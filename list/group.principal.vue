@@ -2,7 +2,7 @@
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
 import Masthead from '@/components/ResourceList/Masthead';
-import { NORMAN } from '@/config/types';
+import { NORMAN, RBAC } from '@/config/types';
 import AsyncButton from '@/components/AsyncButton';
 import { applyProducts } from '@/store/type-map';
 import { NAME } from '@/config/product/auth';
@@ -58,8 +58,12 @@ export default {
         opt:  { force }
       }, { root: true }); // See PromptRemove.vue
 
+      // Upfront load all global roles, this makes it easier to sync fetch them later on
+      await this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE });
+
       const principals = await this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
 
+      // Are there principals that are groups? (don't use rows, it's filtered by those with roles)
       this.hasGroups = principals.filter(principal => principal.principalType === 'group')?.length;
     },
     async refreshGroupMemberships(buttonDone) {
