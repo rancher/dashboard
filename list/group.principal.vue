@@ -53,10 +53,7 @@ export default {
   },
   methods: {
     async updateRows(force = false) {
-      this.rows = await this.$store.dispatch('cluster/findAll', {
-        type: NORMAN.SPOOFED.GROUP_PRINCIPAL,
-        opt:  { force }
-      }, { root: true }); // See PromptRemove.vue
+      await this.updateGroupPrincipals(force);
 
       // Upfront load all global roles, this makes it easier to sync fetch them later on
       await this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE });
@@ -74,15 +71,7 @@ export default {
           data:          { },
         });
 
-        // This is needed in SSR, but not SPA. If this is not here... when cluster/findAll is dispatched... we fail to find the spoofed
-        // type's `getInstance` fn as it hasn't been registered (`instanceMethods` in type-map file is empty)
-        await applyProducts(this.$store);
-
-        // Force spoofed type getInstances to execute again
-        this.rows = await this.$store.dispatch('cluster/findAll', {
-          type: NORMAN.SPOOFED.GROUP_PRINCIPAL,
-          opt:  { force: true }
-        }, { root: true });
+        await this.updateGroupPrincipals(true);
 
         buttonDone(true);
       } catch (err) {
@@ -90,6 +79,17 @@ export default {
         buttonDone(false);
       }
     },
+    async updateGroupPrincipals(force = false) {
+      // This is needed in SSR, but not SPA. If this is not here... when cluster/findAll is dispatched... we fail to find the spoofed
+      // type's `getInstance` fn as it hasn't been registered (`instanceMethods` in type-map file is empty)
+      await applyProducts(this.$store);
+
+      // Force spoofed type getInstances to execute again
+      this.rows = await this.$store.dispatch('cluster/findAll', {
+        type: NORMAN.SPOOFED.GROUP_PRINCIPAL,
+        opt:  { force }
+      }, { root: true });
+    }
   },
 
 };
