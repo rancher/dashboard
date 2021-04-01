@@ -99,13 +99,18 @@ export function init(store) {
         .map(grb => grb.groupPrincipalName)
       );
 
-      const allPrincipals = uniquePrincipalIds.map(pId => store.dispatch('rancher/find', {
+      const allPrincipalsP = uniquePrincipalIds.map(pId => store.dispatch('rancher/find', {
         type: NORMAN.PRINCIPAL,
         opt:  { url: `/v3/principals/${ encodeURIComponent(pId) }` },
         id:   pId
       }));
 
-      return Promise.all(allPrincipals);
+      const allPrincipals = await Promise.all(allPrincipalsP);
+
+      return allPrincipals.map(principal => ({
+        ...principal,
+        type: NORMAN.SPOOFED.GROUP_PRINCIPAL
+      }));
     }
   });
   configureType(NORMAN.SPOOFED.GROUP_PRINCIPAL, {
