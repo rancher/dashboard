@@ -52,8 +52,8 @@ export default {
       h1 {
         font-size: 40px;
         line-height: 36px;
-        border-bottom: 1px solid var(--gauge-divider);
         padding-bottom: $padding / 2;
+        margin-bottom: 5px;
       }
 
       @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {
