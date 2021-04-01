@@ -11,6 +11,10 @@ export default {
     IndentedPanel
   },
 
+  data() {
+    return { hasSupport: false };
+  },
+
   computed: {
     pl() {
       // @TODO PL support
@@ -19,43 +23,65 @@ export default {
 
     options() {
       return options(this.pl);
-    }, 
+    },
+
+    title() {
+      return this.hasSupport ? 'Great News - You\'re covered' : 'SUSE Rancher provides world-class support';
+    }
+  },
+
+  methods: {
+    addSubscription() {
+      this.hasSupport = true;
+    }
   }
-}
+};
 </script>
 <template>
   <div>
-    <BannerGraphic title="SUSE Rancher provides world-class support" />
+    <BannerGraphic :title="title" />
 
-    <IndentedPanel>
-
-    <div class="content mt-20">
-      <div class="promo">
-        <div class="register">
-          <div>Already have support? Add your SUSE Subscription ID</div>
-          <button class="btn add">Add</button>
-        </div>
-        <div class="boxes">
-          <div class="box">
-            <h2>24x7 Support</h2>
-            <div>We provide tightly defined SLAs, and offer round the clock support options</div>
+    <IndentedPanel v-if="!hasSupport">
+      <div class="content mt-20">
+        <div class="promo">
+          <div class="register">
+            <div>Already have support? Add your SUSE Subscription ID</div>
+            <button class="btn add" @click="addSubscription()">
+              Add
+            </button>
           </div>
-          <div class="box">
-            <h2>Issue Resolution</h2>
-            <div>Run SUSE Rancher products with confidence, knowing that the developers who built them are available to quickly resolve issues</div>
+          <div class="boxes">
+            <div class="box">
+              <h2>24x7 Support</h2>
+              <div>We provide tightly defined SLAs, and offer round the clock support options.</div>
+            </div>
+            <div class="box">
+              <h2>Issue Resolution</h2>
+              <div>Run SUSE Rancher products with confidence, knowing that the developers who built them are available to quickly resolve issues.</div>
+            </div>
+            <div class="box">
+              <h2>Troubleshooting</h2>
+              <div>We focus on uncovering the root cause of any issue, whether it is related to Rancher Labs products, Kubernetes, Docker or your underlying infrastructure.</div>
+            </div>
+            <div class="box">
+              <h2>Innovate with Freedom</h2>
+              <div>Take advantage of our certified compatibility with a wide range of Kubernetes providers, operating systems, and open source software.</div>
+            </div>
+          </div>
+          <div class="external">
+            <a href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">Find out more about SUSE Rancher Support <i class="icon icon-external-link" /></a>
           </div>
         </div>
-        <div class="external">
-          <a href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">Find out more about SUSE Rancher Support</a>
+        <div class="community">
+          <h2>Community Support</h2>
+          <div v-for="(value, name) in options" :key="name" class="support-link">
+            <a v-t="name" :href="value" target="_blank" rel="noopener noreferrer nofollow" />
+          </div>
         </div>
       </div>
-      <div class="community">
-        <h2>Community Support</h2>
-        <div v-for="(value, name) in options" :key="name" class="support-link">
-          <a v-t="name" :href="value" target="_blank" rel="noopener noreferrer nofollow" />
-        </div>
-      </div>
-    </div>
+    </IndentedPanel>
+    <IndentedPanel v-else>
+      You've got support
     </IndentedPanel>
   </div>
 </template>
