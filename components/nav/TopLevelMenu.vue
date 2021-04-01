@@ -266,7 +266,7 @@ export default {
           </div>
         </div>
         <div class="footer">
-          <div>
+          <div @click="hide()">
             <nuxt-link :to="{name: 'support' }">
               Get Support
             </nuxt-link>
@@ -274,21 +274,21 @@ export default {
           <div v-tooltip="{ content: fullVersion, classes: 'footer-tooltip' }" class="version" v-html="displayVersion" />
           <div v-if="showLocale">
             <v-popover
-              popover-class="localeSelector"
+              popoverClass="localeSelector"
               placement="top"
               trigger="click"
             >
-              <a>
+              <a class="locale-chooser">
                 {{ selectedLocaleLabel }}
               </a>
 
               <template slot="popover">
                 <ul class="list-unstyled dropdown" style="margin: -1px;">
-                  <li v-if="showNone" v-t="'locale.none'" class="p-10 hand" @click="switchLocale('none')" />
+                  <li v-if="showNone" v-t="'locale.none'" class="hand" @click="switchLocale('none')" />
                   <li
                     v-for="(label, name) in availableLocales"
                     :key="name"
-                    class="p-10 hand"
+                    class="hand"
                     @click="switchLocale(name)"
                   >
                     {{ label }}
@@ -314,10 +314,23 @@ export default {
     border-radius: 5px;
     text-decoration: none;
   }
+
+  .localeSelector {
+    .popover-inner {
+      padding: 10px 0;
+    }
+
+    .popover-arrow {
+      display: none;
+    }
+
+    .popover:focus {
+      outline: 0;
+    }
+  }
 </style>
 
 <style lang="scss" scoped>
-
   .option {
     align-items: center;
     cursor: pointer;
@@ -547,9 +560,13 @@ export default {
     }
   }
 
-  .locale-selector {
+  .locale-chooser {
+    cursor: pointer;
+  }
+
+  .localeSelector {
     ::v-deep .popover-inner {
-      padding: 10px 0;
+      padding: 50px 0;
     }
 
     ::v-deep .popover-arrow {
@@ -561,7 +578,7 @@ export default {
     }
 
     li {
-      padding: 0 20px;
+      padding: 8px 20px;
 
       &:hover {
         background-color: var(--dropdown-hover-bg);
