@@ -22,13 +22,6 @@ export default {
     }
   },
 
-  props: {
-    simple: {
-      type:    Boolean,
-      default: false
-    }
-  },
-
   data() {
     return { show: false };
   },
