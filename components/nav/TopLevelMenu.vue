@@ -4,6 +4,7 @@ import { findBy } from '@/utils/array';
 import { MANAGEMENT } from '@/config/types';
 import { mapPref, DEV } from '@/store/prefs';
 import { sortBy } from '@/utils/sort';
+import { ucFirst } from '@/utils/string';
 
 const UNKNOWN = 'unknown';
 const UI_VERSION = process.env.VERSION || UNKNOWN;
@@ -67,7 +68,7 @@ export default {
       return Object.keys(this.availableLocales).length > 1 || this.dev;
     },
 
-   showNone() {
+    showNone() {
       return this.dev;
     },
 
@@ -85,7 +86,7 @@ export default {
 
     options() {
       const t = this.$store.getters['i18n/t'];
-      const isMultiCluster = this.$store.getters['isMultiCluster'];
+      // const isMultiCluster = this.$store.getters['isMultiCluster'];
 
       const entries = this.activeProducts.map((p) => {
         let label;
@@ -121,7 +122,13 @@ export default {
       });
 
       return entries;
-    }    
+    }
+  },
+
+  watch: {
+    $route(to, from) {
+      this.shown = false;
+    }
   },
 
   mounted() {
@@ -195,38 +202,36 @@ export default {
 
       this.shown = false;
     },
-  },
-
-  watch: {
-    $route (to, from) {
-      this.shown = false;
-    }
-  } 
-}
+  }
+};
 </script>
 <template>
   <div>
-    <div class="menu" @click="toggle()" :class="{'raised': shown}">
-      <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+    <div class="menu" :class="{'raised': shown}" @click="toggle()">
+      <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none" /><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" /></svg>
     </div>
     <div v-if="shown" class="side-menu-glass" @click="hide()"></div>
     <transition name="fade">
       <div v-if="shown" class="side-menu" tabindex="-1">
         <div class="title">
           <div class="menu-spacer"></div>
-          <img class="side-menu-logo" src="~/assets/images/pl/rancher-logo.svg" width="110"/>
+          <img class="side-menu-logo" src="~/assets/images/pl/rancher-logo.svg" width="110" />
         </div>
         <div class="body">
           <div class="option" @click="hide()">
             <nuxt-link
-                class="cluster selector home"
-                :to="{ name: 'home' }"
-              >
-              <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-              <div>Home</div>
+              class="cluster selector home"
+              :to="{ name: 'home' }"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none" /><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" /></svg>
+              <div>
+                Home
+              </div>
             </nuxt-link>
           </div>
-          <div class="category">Explore Cluster</div>
+          <div class="category">
+            Explore Cluster
+          </div>
           <div class="clusters">
             <div v-for="c in clusters" :key="c.id" @click="hide()">
               <nuxt-link
@@ -234,20 +239,24 @@ export default {
                 class="cluster selector"
                 :to="{ name: 'c-cluster', params: { cluster: c.id } }"
               >
-              <img :src="c.logo" />
+                <img :src="c.logo" />
                 <div>{{ c.label }}</div>
               </nuxt-link>
             </div>
           </div>
-          <div class="category">Multi-Cluster</div>
+          <div class="category">
+            Multi-Cluster
+          </div>
           <div v-for="a in multiClusterApps" :key="a.label" class="option" @click="changeProduct(a.value)">
             <i class="icon group-icon" :class="a.icon" />
-            <div>{{a.label}}</div>
+            <div>{{ a.label }}</div>
           </div>
-          <div class="category">Configuration</div>
+          <div class="category">
+            Configuration
+          </div>
           <div v-for="a in configurationApps" :key="a.label" class="option" @click="changeProduct(a.value)">
             <i class="icon group-icon" :class="a.icon" />
-            <div>{{a.label}}</div>
+            <div>{{ a.label }}</div>
           </div>
           <div class="pad"></div>
           <div class="cluster-manager">
@@ -258,12 +267,14 @@ export default {
         </div>
         <div class="footer">
           <div>
-            <nuxt-link :to="{name: 'support' }">Get Support</nuxt-link>
+            <nuxt-link :to="{name: 'support' }">
+              Get Support
+            </nuxt-link>
           </div>
-          <div class="version" v-tooltip="{ content: fullVersion, classes: 'footer-tooltip' }" v-html="displayVersion" />
+          <div v-tooltip="{ content: fullVersion, classes: 'footer-tooltip' }" class="version" v-html="displayVersion" />
           <div v-if="showLocale">
             <v-popover
-              popoverClass="localeSelector"
+              popover-class="localeSelector"
               placement="top"
               trigger="click"
             >
@@ -275,20 +286,20 @@ export default {
                 <ul class="list-unstyled dropdown" style="margin: -1px;">
                   <li v-if="showNone" v-t="'locale.none'" class="p-10 hand" @click="switchLocale('none')" />
                   <li
-                    v-for="(value, name) in availableLocales"
+                    v-for="(label, name) in availableLocales"
                     :key="name"
                     class="p-10 hand"
                     @click="switchLocale(name)"
                   >
-                    {{ value }}
+                    {{ label }}
                   </li>
                 </ul>
               </template>
             </v-popover>
           </div>
         </div>
-        </div>
-     </transition>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -365,7 +376,7 @@ export default {
     &.raised {
       z-index: 200;
     }
-  }  
+  }
 
   .side-menu {
     position: absolute;
