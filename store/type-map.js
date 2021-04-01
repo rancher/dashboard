@@ -540,13 +540,13 @@ export const getters = {
         group.children.push({
           label,
           labelDisplay,
-          mode:   typeObj.mode,
+          mode:     typeObj.mode,
           count,
-          exact:  typeObj.exact || false,
+          exact:    typeObj.exact || false,
           namespaced,
           route,
-          name:   typeObj.name,
-          weight: typeObj.weight || getters.typeWeightFor(typeObj.schema?.id || label, isBasic),
+          name:     typeObj.name,
+          weight:   typeObj.weight || getters.typeWeightFor(typeObj.schema?.id || label, isBasic),
           overview: !!typeObj.overview,
         });
       }

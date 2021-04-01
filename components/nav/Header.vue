@@ -1,18 +1,14 @@
 <script>
 import { mapGetters } from 'vuex';
-import { NORMAN, MANAGEMENT } from '@/config/types';
+import { NORMAN } from '@/config/types';
+import { ucFirst } from '@/utils/string';
 import Import from '@/components/Import';
-import { sortBy } from '@/utils/sort';
-import ProductSwitcher from './ProductSwitcher';
-import ClusterSwitcher from './ClusterSwitcher';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
 export default {
 
   components: {
-    ProductSwitcher,
-    ClusterSwitcher,
     NamespaceFilter,
     WorkspaceSwitcher,
     Import,
@@ -59,7 +55,7 @@ export default {
       if ( this.$store.getters['i18n/exists'](key) ) {
         label = t(key);
       } else {
-        label = ucFirst(p.name);
+        label = ucFirst(this.currentProduct.name);
       }
 
       return label;

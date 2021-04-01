@@ -47,6 +47,7 @@ export default {
 
         return `${ background }${ border }${ borderLeft }`;
       }
+
       return '';
     },
   },

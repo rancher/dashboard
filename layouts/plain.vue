@@ -1,13 +1,9 @@
 <script>
 import Header from '@/components/nav/Header';
-import Footer from '@/components/nav/Footer';
 
 export default {
 
-  components: {
-    Header,
-    Footer,
-  },
+  components: { Header },
 
   middleware: ['authenticated'],
 
@@ -29,7 +25,6 @@ export default {
 
     <main>
       <nuxt class="outlet" />
-      <Footer />
     </main>
   </div>
 </template>

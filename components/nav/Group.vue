@@ -1,5 +1,4 @@
 <script>
-import { mapPref, EXPANDED_GROUPS } from '@/store/prefs';
 import Type from '@/components/nav/Type';
 import $ from 'jquery';
 
@@ -69,11 +68,14 @@ export default {
       if (this.group.children && this.group.children.length > 0) {
         const grp = this.group.children[0];
         const overviewRoute = grp.route;
+
         if (overviewRoute && grp.overview) {
           const route = this.$router.resolve(overviewRoute || {});
+
           return this.$route.fullPath === route.href;
         }
       }
+
       return false;
     },
 
@@ -83,16 +85,19 @@ export default {
 
     isActiveGroup() {
       if (this.group.children && this.group.children.length > 0) {
-        const active = this.group.children.find(item => {
+        const active = this.group.children.find((item) => {
           if (item.route) {
             const route = this.$router.resolve(item.route);
+
             return this.$route.fullPath === route.href;
           }
 
           return false;
         });
+
         return !!active;
       }
+
       return false;
     },
   },
@@ -131,11 +136,9 @@ export default {
 
         if (this.isExpanded && !skipAutoClose) {
           const items = this.group[this.childrenKey];
-
-          console.log(JSON.parse(JSON.stringify(items[0])));
-
           // Navigate to the first item in the group
           const route = items[0].route;
+
           this.$router.replace(route);
         }
       } else {
@@ -152,11 +155,11 @@ export default {
 
 <template>
   <div class="accordion" :class="{[`depth-${depth}`]: true, 'expanded': showExpanded, 'has-children': hasChildren}">
-    <div v-if="showHeader" class="header" @click="toggle($event)" :class="{'active': isOverview}">
+    <div v-if="showHeader" class="header" :class="{'active': isOverview}" @click="toggle($event)">
       <slot name="header">
         <span v-html="group.labelDisplay || group.label" />
       </slot>
-      <i v-if="canCollapse && !isActiveGroup" class="icon toggle" @click="toggle($event, true)" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" />
+      <i v-if="canCollapse && !isActiveGroup" class="icon toggle" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" @click="toggle($event, true)" />
     </div>
     <ul v-if="showExpanded" class="list-unstyled body" v-bind="$attrs">
       <template v-for="(child, idx) in group[childrenKey]">
@@ -195,7 +198,7 @@ export default {
 
     > H6 {
       color: var(--body-text);
-      user-select: none;      
+      user-select: none;
     }
 
     > A {

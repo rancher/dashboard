@@ -328,5 +328,29 @@ export default {
       color: var(--product-icon-active);
     }
   }
+
+  .locale-selector {
+    ::v-deep .popover-inner {
+      padding: 10px 0;
+    }
+
+    ::v-deep .popover-arrow {
+      display: none;
+    }
+
+    ::v-deep .popover:focus {
+      outline: 0;
+    }
+
+    li {
+      padding: 0 20px;
+
+      &:hover {
+        background-color: var(--dropdown-hover-bg);
+        color: var(--dropdown-hover-text);
+        text-decoration: none;
+      }
+    }
+  }
 }
 </style>

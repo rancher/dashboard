@@ -5,9 +5,9 @@ import { parseSi } from '@/utils/units';
 
 // See translation file cluster.providers for list of providers
 const PROVIDER_LOGOS = {
-  'k3s': 'k3s.svg',
-  'minikube': 'minikube.svg',
-  '*': 'kubernetes.svg'
+  k3s:      'k3s.svg',
+  minikube: 'minikube.svg',
+  '*':      'kubernetes.svg'
 };
 
 export default {
@@ -83,7 +83,7 @@ export default {
     // Only interested in the part before the period
     const prv = provider.split('.')[0];
     const logo = PROVIDER_LOGOS[prv] || PROVIDER_LOGOS['*'];
-    console.log(prv + ' ' + logo);
+
     return require(`~/assets/images/providers/${ logo }`);
   },
 

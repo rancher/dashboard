@@ -92,7 +92,7 @@ export default {
 <style lang="scss">
     .zero {
       circle {
-        stroke: #d8d8d8;
+        stroke: var(--gauge-zero);
       }
     }
     .count-gauge {
