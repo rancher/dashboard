@@ -9,7 +9,6 @@ import PromptRemove from '@/components/PromptRemove';
 import AssignTo from '@/components/AssignTo';
 import Group from '@/components/nav/Group';
 import Header from '@/components/nav/Header';
-import Footer from '@/components/nav/Footer';
 import { COUNT, SCHEMA, MANAGEMENT } from '@/config/types';
 import { BASIC, FAVORITE, USED } from '@/store/type-map';
 import { addObjects, replaceWith, clear } from '@/utils/array';
@@ -23,7 +22,6 @@ export default {
     PromptRemove,
     AssignTo,
     Header,
-    Footer,
     ActionMenu,
     Group,
     WindowManager
@@ -198,9 +196,8 @@ export default {
 
     toggle(id, expanded, skip) {
       if (expanded && !skip) {
-        this.$refs.groups.forEach(grp => {
+        this.$refs.groups.forEach((grp) => {
           if (grp.id !== id && grp.canCollapse) {
-            console.log(grp);
             grp.isExpanded = false;
           }
         });

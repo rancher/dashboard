@@ -220,7 +220,7 @@ export function init(store) {
       name:     'c-cluster-product-resource',
       params:   { resource: WORKLOAD }
     },
-    overview:       true,
+    overview: true,
   });
 
   // Ignore these types as they are managed through the settings product

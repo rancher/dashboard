@@ -1,35 +1,29 @@
 <script>
 import { mapGetters } from 'vuex';
-import { NORMAN, MANAGEMENT } from '@/config/types';
+import { NORMAN } from '@/config/types';
+import { ucFirst } from '@/utils/string';
 import Import from '@/components/Import';
-import { sortBy } from '@/utils/sort';
-import ProductSwitcher from './ProductSwitcher';
-import ClusterSwitcher from './ClusterSwitcher';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
 export default {
 
-  props: {
-    simple: {
-      type: Boolean,
-      default: false
-    }
-  },
-
   components: {
-    ProductSwitcher,
-    ClusterSwitcher,
     NamespaceFilter,
     WorkspaceSwitcher,
     Import,
     TopLevelMenu,
   },
 
-  data() {
-    return {
-      show: false,
+  props: {
+    simple: {
+      type:    Boolean,
+      default: false
     }
+  },
+
+  data() {
+    return { show: false };
   },
 
   computed: {
@@ -57,10 +51,11 @@ export default {
       const t = this.$store.getters['i18n/t'];
       let label;
       const key = `product.${ this.currentProduct.name }`;
+
       if ( this.$store.getters['i18n/exists'](key) ) {
         label = t(key);
       } else {
-        label = ucFirst(p.name);
+        label = ucFirst(this.currentProduct.name);
       }
 
       return label;
@@ -92,23 +87,29 @@ export default {
 <template>
   <header :class="{'simple': simple}">
     <div class="menu-spacer"></div>
-    <div class="product" v-if="!simple">
+    <div v-if="!simple" class="product">
       <div v-if="currentProduct && currentProduct.showClusterSwitcher" class="cluster">
         <img v-if="currentCluster" class="cluster-os-logo" :src="currentCluster.providerLogo" />
-        <div class="cluster-name">{{ currentCluster.spec.displayName }}</div>
+        <div class="cluster-name">
+          {{ currentCluster.spec.displayName }}
+        </div>
       </div>
       <div v-if="currentProduct && !currentProduct.showClusterSwitcher" class="cluster">
-        <div class="product-name">{{ prod }}</div>
+        <div class="product-name">
+          {{ prod }}
+        </div>
       </div>
     </div>
     <div v-else>
-      <img class="side-menu-logo" src="~/assets/images/pl/rancher-logo.svg" width="110"/>
-      <div class="title">DASHBOARD</div>
+      <img class="side-menu-logo" src="~/assets/images/pl/rancher-logo.svg" width="110" />
+      <div class="title">
+        DASHBOARD
+      </div>
     </div>
 
     <TopLevelMenu></TopLevelMenu>
 
-    <div class="top" v-if="!simple">
+    <div v-if="!simple" class="top">
       <NamespaceFilter v-if="clusterReady && currentProduct && currentProduct.showNamespaceFilter" />
       <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
     </div>
@@ -119,7 +120,7 @@ export default {
       </a>
     </div>
 
-    <div class="import" v-if="!simple">
+    <div v-if="!simple" class="import">
       <button v-if="currentProduct && currentProduct.showClusterSwitcher" :disabled="!showImport" type="button" class="btn header-btn role-tertiary" @click="openImport()">
         <i v-tooltip="t('nav.import')" class="icon icon-upload icon-lg" />
       </button>
@@ -134,7 +135,7 @@ export default {
       </modal>
     </div>
 
-    <div class="kubectl" v-if="!simple">
+    <div v-if="!simple" class="kubectl">
       <button v-if="currentProduct && currentProduct.showClusterSwitcher" :disabled="!showShell" type="button" class="btn header-btn role-tertiary" @click="currentCluster.openShell()">
         <i v-tooltip="t('nav.shell')" class="icon icon-terminal icon-lg" />
       </button>
