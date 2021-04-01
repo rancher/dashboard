@@ -13,7 +13,6 @@ export function init(store) {
     basicType,
     headers,
     mapType,
-    product,
     spoofedType,
     virtualType,
     weightType,
@@ -188,7 +187,7 @@ export function init(store) {
   //   weight:     105,
   //   route:      { name: 'c-cluster-monitoring' },
   //   exact:      true
-  // });  
+  // });
 
   // basicType([
   //   PROMETHEUSRULE,

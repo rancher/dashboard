@@ -7,6 +7,16 @@ const showFavoritesFor = [FAVORITE, USED];
 export default {
 
   components: { Favorite },
+
+  filters: {
+    spaceify(txt) {
+      txt = txt.replace(/([A-Z])/g, ' $1').trim();
+      // Revert known acronymns
+
+      return txt.replace('A P I ', 'API ');
+    }
+  },
+
   props:      {
     type: {
       type:     Object,
@@ -36,17 +46,9 @@ export default {
     },
   },
 
-  filters: {
-    spaceify(txt) {
-      txt = txt.replace(/([A-Z])/g, ' $1').trim();
-      // Revert known acronymns
-      return txt.replace('A P I ', 'API ');
-    }
-  },
-
   methods: {
     click(e) {
-      this.$emit('click')
+      this.$emit('click');
     },
 
     setNear(val) {

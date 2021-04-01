@@ -210,6 +210,7 @@ $selected: rgba($primary, .5);
   --primary-color              : 61, 152, 211;
 
   --gauge-divider              : #{$lightest};
+  --gauge-zero                 : #{$medium};
   --gauge-success-primary      : 150, 189, 127;
   --gauge-success-secondary    : 190, 211, 172;
   --gauge-warning-primary      : 238, 226, 176;

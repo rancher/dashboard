@@ -3,12 +3,7 @@ import { mapGetters } from 'vuex';
 import { findBy } from '@/utils/array';
 import { MANAGEMENT } from '@/config/types';
 import { mapPref, DEV } from '@/store/prefs';
-import Import from '@/components/Import';
 import { sortBy } from '@/utils/sort';
-import ProductSwitcher from './ProductSwitcher';
-import ClusterSwitcher from './ClusterSwitcher';
-import NamespaceFilter from './NamespaceFilter';
-import WorkspaceSwitcher from './WorkspaceSwitcher';
 
 const UNKNOWN = 'unknown';
 const UI_VERSION = process.env.VERSION || UNKNOWN;
@@ -16,13 +11,7 @@ const UI_COMMIT = process.env.COMMIT || UNKNOWN;
 
 export default {
 
-  components: {
-    ProductSwitcher,
-    ClusterSwitcher,
-    NamespaceFilter,
-    WorkspaceSwitcher,
-    Import,
-  },
+  components: {},
 
   data() {
     const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
@@ -36,7 +25,7 @@ export default {
     }
 
     return {
-      shown: false,
+      shown:          false,
       displayVersion,
       fullVersion,
       uiCommit:       UI_COMMIT,
@@ -84,11 +73,13 @@ export default {
 
     multiClusterApps() {
       const options = this.options;
+
       return options.filter(opt => opt.category === 'multi-cluster');
     },
 
     configurationApps() {
       const options = this.options;
+
       return options.filter(opt => opt.category === 'configuration');
     },
 
@@ -542,6 +533,30 @@ export default {
       max-height: 28px;
       max-width: 28px;
       margin-right: 8px;
+    }
+  }
+
+  .locale-selector {
+    ::v-deep .popover-inner {
+      padding: 10px 0;
+    }
+
+    ::v-deep .popover-arrow {
+      display: none;
+    }
+
+    ::v-deep .popover:focus {
+      outline: 0;
+    }
+
+    li {
+      padding: 0 20px;
+
+      &:hover {
+        background-color: var(--dropdown-hover-bg);
+        color: var(--dropdown-hover-text);
+        text-decoration: none;
+      }
     }
   }
 </style>

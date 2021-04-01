@@ -3,9 +3,7 @@ import Header from '@/components/nav/Header';
 
 export default {
 
-  components: {
-    Header,
-  },
+  components: { Header },
 
   middleware: ['authenticated'],
 
