@@ -306,12 +306,6 @@ export default {
       border-right: var(--nav-border-size) solid var(--nav-border);
       overflow-y: auto;
 
-      .package.depth-0 {
-        &.expanded > .body {
-          margin-bottom: 5px;
-        }
-      }
-
       .header {
         background: transparent;
         padding-left: 10px;
@@ -381,7 +375,6 @@ export default {
         padding: 0 $input-padding-sm;
       }
     }
-
   }
 
   .wm {

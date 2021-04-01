@@ -229,7 +229,7 @@ export default {
           position: absolute;
           right: 0;
           top: 0;
-          padding: 12px 8px 12px 8px;
+          padding: 8px;
           user-select: none;
 
           &:hover {
