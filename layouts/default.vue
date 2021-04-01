@@ -3,7 +3,6 @@ import debounce from 'lodash/debounce';
 import { mapState, mapGetters } from 'vuex';
 import { mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
-import Jump from '@/components/nav/Jump';
 import WindowManager from '@/components/nav/WindowManager';
 import PromptRemove from '@/components/PromptRemove';
 import AssignTo from '@/components/AssignTo';
@@ -18,7 +17,6 @@ import isEqual from 'lodash/isEqual';
 export default {
 
   components: {
-    Jump,
     PromptRemove,
     AssignTo,
     Header,
