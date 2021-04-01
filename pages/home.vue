@@ -1,8 +1,7 @@
 <script>
-import { mapPref, AFTER_LOGIN_ROUTE, SEEN_WHATS_NEW } from '@/store/prefs';
+import { mapPref, AFTER_LOGIN_ROUTE, SEEN_WHATS_NEW, SHOW_LANDING_TIPS } from '@/store/prefs';
 import RadioGroup from '@/components/form/RadioGroup';
 import RadioButton from '@/components/form/RadioButton';
-import SimpleBox from '@/components/SimpleBox';
 import SortableTable from '@/components/SortableTable';
 import Banner from '@/components/Banner';
 import BadgeState from '@/components/BadgeState';
@@ -19,7 +18,6 @@ export default {
   components:      {
     RadioGroup,
     RadioButton,
-    SimpleBox,
     SortableTable,
     Banner,
     BadgeState,
@@ -31,28 +29,65 @@ export default {
       type: MANAGEMENT.CLUSTER,
       opt:  { url: MANAGEMENT.CLUSTER }
     });
-  },
 
-  data() {
     const lastSeenNew = this.$store.getters['prefs/get'](SEEN_WHATS_NEW) ;
     const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
     const fullVersion = setting?.value || 'unknown';
 
-    const seenWhatsNewAlready = compare(lastSeenNew, fullVersion) >= 0;
+    this.seenWhatsNewAlready = compare(lastSeenNew, fullVersion) >= 0;
 
-    const isDev = isDevBuild(fullVersion);
+    this.isDev = isDevBuild(fullVersion);
 
-    // if (!isDev) {
-    this.$store.dispatch('prefs/set', { key: SEEN_WHATS_NEW, value: fullVersion });
+    // if (!this.isDev) {
+    await this.$store.dispatch('prefs/set', { key: SEEN_WHATS_NEW, value: fullVersion });
+    // re-show migration, community, commercial help boxes on upgrade
+    if (!this.seenWhatsNewAlready) {
+      this.$store.dispatch('prefs/set', {
+        key:   SHOW_LANDING_TIPS,
+        value: {
+          migration: true, community: true, commercial: true
+        }
+      });
+    }
     // }
+  },
 
+  data() {
     return {
-      clusters: [], seenWhatsNewAlready, isDev, showCommunity: true, showCommercial: true, showMigration: true
+      clusters: [], seenWhatsNewAlready: false, isDev: false,
     };
   },
 
   computed:   {
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
+    showLandingTips: mapPref(SHOW_LANDING_TIPS),
+
+    showMigration: {
+      get() {
+        return this.showLandingTips.migration;
+      },
+      set(neu) {
+        this.showLandingTips = { ...this.showLandingTips, migration: neu };
+      }
+    },
+
+    showCommunity: {
+      get() {
+        return this.showLandingTips.community;
+      },
+      set(neu) {
+        this.showLandingTips = { ...this.showLandingTips, community: neu };
+      }
+    },
+
+    showCommercial: {
+      get() {
+        return this.showLandingTips.commercial;
+      },
+      set(neu) {
+        this.showLandingTips = { ...this.showLandingTips, commercial: neu };
+      }
+    },
 
     routeFromDropdown: {
       get() {
@@ -76,39 +111,28 @@ export default {
           value: 'home'
         },
         {
-          label: 'Take me to where I last was last login',
+          label: this.t('landing.landingPrefs.options.lastVisited'),
           value: 'last-visited'
         },
         {
-          label: 'Make my home screen',
+          label: this.t('landing.landingPrefs.options.custom'),
           value: 'dropdown'
         }
       ];
     },
 
     routeDropdownOptions() {
-      /*
-      TODO check if management cluster is available to this user and offer that as an option
-      IF the redirect logic is good if user loses permission to see something while logged out
-      */
       const out = [
         {
-          label: 'Apps and Marketplace',
+          label: this.t('landing.landingPrefs.options.appsAndMarketplace'),
           value: 'apps'
         }
       ];
 
       out.push( {
-        label: `Overview for this Cluster (${ this.currentCluster.id }) `,
-        value: `${ this.currentCluster.id }-dashboard`
+        label: this.t('landing.landingPrefs.options.defaultOverview', { cluster: this.defaultClusterId }),
+        value: `${ this.defaultClusterId }-dashboard`
       });
-
-      if (this.currentCluster.id !== this.defaultClusterId) {
-        out.push( {
-          label: `Overview for the Default Cluster (${ this.defaultClusterId })`,
-          value: `${ this.defaultClusterId }-dashboard`
-        });
-      }
 
       return out;
     },
@@ -158,6 +182,8 @@ export default {
     ...mapGetters(['currentCluster', 'defaultClusterId'])
   },
 
+  watch: {},
+
   methods: {
     updateLoginRoute(neu) {
       if (neu) {
@@ -200,8 +226,10 @@ export default {
 
 <template>
   <form>
-    <img class="mb-20" src="~/assets/images/pl/farm-banner.svg" />
-
+    <div id="title-banner">
+      <img class="mb-20" src="~/assets/images/pl/farm-banner.svg" />
+      <h2>{{ t('landing.welcomeToRancher') }}</h2>
+    </div>
     <div v-if="!seenWhatsNewAlready" class="row">
       <div class="col span-12">
         <Banner color="info">
@@ -214,7 +242,9 @@ export default {
       <div :class="{'span-10':showCommercial || showCommunity, 'span-12': !showCommercial && !showCommunity }" class="col">
         <div class="row mb-20">
           <div class="col span-6">
-            <SimpleBox title="What do you want to see when you log in?">
+            <div class="box">
+              <h2>{{ t('landing.landingPrefs.title') }}</h2>
+
               <RadioGroup id="login-route" :value="afterLoginRoute" name="login-route" :options="routeRadioOptions" @input="updateLoginRoute">
                 <template #2="{option, listeners}">
                   <div class="row">
@@ -227,14 +257,26 @@ export default {
                   </div>
                 </template>
               </RadioGroup>
-            </SimpleBox>
+            </div>
           </div>
           <div class="col span-6">
-            <SimpleBox v-if="showMigration" id="migration" closeable title="Migration Assistance" @close="showMigration=false">
-              Read the migration guide for Cluster Manager users - everything you need to take advantage of the expanded Cluster Explorer.
-              <br />
-              <a class="pull-right" href="#">Learn More</a>
-            </SimpleBox>
+            <div
+              v-if="showMigration"
+              id="migration"
+              class="box"
+              closeable
+              title="Migration Assistance"
+            >
+              <h2>{{ t('landing.migration.title') }}</h2>
+              <button type="button" class="role-link" @click="showMigration = false">
+                <i class="icon icon-x icon-lg text-primary" />
+              </button>
+              <div>
+                {{ t('landing.migration.body') }}
+                <br />
+                <a class="pull-right" href="#">Learn More</a>
+              </div>
+            </div>
           </div>
         </div>
         <div class="row">
@@ -284,11 +326,16 @@ export default {
         </div>
       </div>
       <div v-if="showCommercial || showCommunity" class="col span-2">
-        <CommunityLinks v-if="showCommunity" @close="showCommunity = false">
-          <SimpleBox v-if="showCommercial" closeable :title="t('landing.commercial.title')" @close="showCommercial=false">
+        <CommunityLinks v-if="showCommunity" can-close class="mb-20" @close="showCommunity = false" />
+        <div v-if="showCommercial" class="box">
+          <h2>{{ t('landing.commercial.title') }}</h2>
+          <button type="button" class="role-link" @click="showCommercial = false">
+            <i class="icon icon-x icon-lg text-primary" />
+          </button>
+          <div>
             <span v-html="t('landing.commercial.body', {}, true)" />
-          </SimpleBox>
-        </communitylinks>
+          </div>
+        </div>
       </div>
     </div>
   </form>
@@ -316,4 +363,37 @@ export default {
   }
 }
 
+#title-banner {
+  position: relative;
+  text-align: center;
+  &>h2{
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+  .box {
+    padding: 20px;
+    border: 1px solid #d8d8d8;
+    position: relative;
+
+    > h2 {
+      font-size: 20px;
+      font-weight: 300;
+    }
+    > div {
+      font-weight: 300;
+      line-height: 18px;
+      opacity: 0.8;
+    }
+
+    > button {
+      padding: 0;
+      position: absolute;
+      top: 0;
+      right: 10px;
+    }
+  }
 </style>

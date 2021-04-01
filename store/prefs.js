@@ -88,6 +88,9 @@ export const TIME_ZONE = create('time-zone', 'local');
 export const DEV = create('dev', false, { parseJSON });
 export const SEEN_WHATS_NEW = create('seen-home', '', { parseJSON });
 export const AFTER_LOGIN_ROUTE = create('after-login-route', 'clusters' );
+export const SHOW_LANDING_TIPS = create('show-landing-tips', {
+  community: true, migration: true, commercial: true
+}, { parseJSON });
 
 // --------------------
 
@@ -224,7 +227,6 @@ export const actions = {
 
       this.$cookies.set(`${ cookiePrefix }${ key }`.toUpperCase(), value, opt);
     }
-
     if ( definition.asUserPreference ) {
       try {
         server = await dispatch('loadServer', key); // There's no watch on prefs, so get before set...

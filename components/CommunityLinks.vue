@@ -1,10 +1,20 @@
 <script>
-import SimpleBox from '@/components/SimpleBox';
-export default { components: { SimpleBox } };
+export default {
+  props: {
+    canClose: {
+      type:    Boolean,
+      default: false
+    }
+  }
+};
 </script>
 
 <template>
-  <SimpleBox closeable class="mb-20" :title="t('landing.community.title')" @close="$emit('close', $event)">
+  <div closeable class="box">
+    <h2>{{ t('landing.community.title') }}</h2>
+    <button v-if="canClose" type="button" class="role-link" @click="$emit('close', $event)">
+      <i class="icon icon-x icon-lg text-primary" />
+    </button>
     <ul id="community-links" class="list-unstyled">
       <li>
         <a href="https://slack.rancher.io/" target="_blank" rel="noopener nofollow"> <i class="icon icon-external-link"></i>Slack</a>
@@ -19,7 +29,7 @@ export default { components: { SimpleBox } };
         <a href="https://github.com/rancher/rancher" target="_blank" rel="noopener nofollow"> <i class="icon icon-github"></i> Github</a>
       </li>
     </ul>
-  </SimpleBox>
+  </div>
 </template>
 
 <style lang='scss' scoped>
