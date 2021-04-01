@@ -122,7 +122,7 @@ export default {
       font-size: 14px;
       line-height: 24px;
       padding: 7.5px 7px 7.5px 10px;
-      margin: 0 2px 0 -3px;
+      margin: 0 0 0 -3px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -150,6 +150,7 @@ export default {
       font-size: 12px;
       text-align: right;
       justify-items: center;
+      padding-right: 4px;
     }
   }
 </style>
