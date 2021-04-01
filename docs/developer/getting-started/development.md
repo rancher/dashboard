@@ -245,6 +245,7 @@ The following pages contain example components and their styling
 
 - Buttons - `<dashboard url>/design-system`
 - Form Controls - `<dashvoard url>/design-system/form-controls`
+- Provider Images - `<dashvoard url>/design-system/provider-images`
 
 
 ## Internationalisation i18n / Localisation i10n
