@@ -274,7 +274,7 @@ export default {
           <div v-tooltip="{ content: fullVersion, classes: 'footer-tooltip' }" class="version" v-html="displayVersion" />
           <div v-if="showLocale">
             <v-popover
-              popover-class="localeSelector"
+              popoverClass="localeSelector"
               placement="top"
               trigger="click"
             >
