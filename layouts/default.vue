@@ -1,9 +1,7 @@
 <script>
 import debounce from 'lodash/debounce';
 import { mapState, mapGetters } from 'vuex';
-import {
-  mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES, LAST_VISITED
-} from '@/store/prefs';
+import { mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import Jump from '@/components/nav/Jump';
 import WindowManager from '@/components/nav/WindowManager';
@@ -17,7 +15,6 @@ import { BASIC, FAVORITE, USED } from '@/store/type-map';
 import { addObjects, replaceWith, clear } from '@/utils/array';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import isEqual from 'lodash/isEqual';
-import { clone } from '@/utils/object';
 
 export default {
 

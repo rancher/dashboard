@@ -1,5 +1,9 @@
 <script>
+import SimpleBox from '@/components/SimpleBox';
+
 export default {
+  components: { SimpleBox },
+
   props: {
     canClose: {
       type:    Boolean,
@@ -10,11 +14,7 @@ export default {
 </script>
 
 <template>
-  <div closeable class="box">
-    <h2>{{ t('landing.community.title') }}</h2>
-    <button v-if="canClose" type="button" class="role-link" @click="$emit('close', $event)">
-      <i class="icon icon-x icon-lg text-primary" />
-    </button>
+  <SimpleBox :title="t('landing.community.title')" can-close @click="$emit('close', $event)">
     <ul id="community-links" class="list-unstyled">
       <li>
         <a href="https://slack.rancher.io/" target="_blank" rel="noopener nofollow"> <i class="icon icon-external-link"></i>Slack</a>
@@ -29,7 +29,7 @@ export default {
         <a href="https://github.com/rancher/rancher" target="_blank" rel="noopener nofollow"> <i class="icon icon-github"></i> Github</a>
       </li>
     </ul>
-  </div>
+  </SimpleBox>
 </template>
 
 <style lang='scss' scoped>

@@ -6,7 +6,7 @@ export default {
       default: null,
     },
 
-    closeable: {
+    canClose: {
       type:    Boolean,
       default: false
     }
@@ -20,6 +20,9 @@ export default {
       <h2 v-if="title">
         {{ title }}
       </h2>
+      <button v-if="canClose" type="button" class="role-link" @click="$emit('close', $event)">
+        <i class="icon icon-x icon-lg text-primary" />
+      </button>
     </div>
     <div class="content">
       <slot />
@@ -42,10 +45,14 @@ export default {
     font-size: 18px;
     border-bottom: 1px solid var(--simple-box-divider);
     padding-bottom: $padding;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
     & BUTTON {
       padding:0;
       height: fit-content;
+      align-self: flex-start;
     }
 
     & H2{

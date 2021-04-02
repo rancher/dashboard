@@ -6,6 +6,7 @@ import SortableTable from '@/components/SortableTable';
 import Banner from '@/components/Banner';
 import BadgeState from '@/components/BadgeState';
 import CommunityLinks from '@/components/CommunityLinks';
+import SimpleBox from '@/components/SimpleBox';
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
 import { STATE } from '@/config/table-headers';
@@ -21,7 +22,8 @@ export default {
     SortableTable,
     Banner,
     BadgeState,
-    CommunityLinks
+    CommunityLinks,
+    SimpleBox
   },
 
   async fetch() {
@@ -127,9 +129,9 @@ export default {
           value: 'apps'
         },
         {
-        label: this.t('landing.landingPrefs.options.defaultOverview', { cluster: this.defaultClusterId }),
-        value: `${ this.defaultClusterId }-dashboard`
-      }
+          label: this.t('landing.landingPrefs.options.defaultOverview', { cluster: this.defaultClusterId }),
+          value: `${ this.defaultClusterId }-dashboard`
+        }
       ];
 
       out.push( );
@@ -242,9 +244,7 @@ export default {
       <div :class="{'span-10':showCommercial || showCommunity, 'span-12': !showCommercial && !showCommunity }" class="col">
         <div class="row mb-20">
           <div class="col span-6">
-            <div class="box">
-              <h2>{{ t('landing.landingPrefs.title') }}</h2>
-
+            <SimpleBox :title="t('landing.landingPrefs.title') ">
               <RadioGroup id="login-route" :value="afterLoginRoute" name="login-route" :options="routeRadioOptions" @input="updateLoginRoute">
                 <template #2="{option, listeners}">
                   <div class="row">
@@ -257,26 +257,20 @@ export default {
                   </div>
                 </template>
               </RadioGroup>
-            </div>
+            </SimpleBox>
           </div>
           <div class="col span-6">
-            <div
+            <SimpleBox
               v-if="showMigration"
               id="migration"
-              class="box"
-              closeable
-              title="Migration Assistance"
+              can-close
+              :title="t('landing.migration.title')"
+              @close="showMigration = false"
             >
-              <h2>{{ t('landing.migration.title') }}</h2>
-              <button type="button" class="role-link" @click="showMigration = false">
-                <i class="icon icon-x icon-lg text-primary" />
-              </button>
-              <div>
-                {{ t('landing.migration.body') }}
-                <br />
-                <a class="pull-right" href="#">Learn More</a>
-              </div>
-            </div>
+              {{ t('landing.migration.body') }}
+              <br />
+              <a class="pull-right" href="#">Learn More</a>
+            </SimpleBox>
           </div>
         </div>
         <div class="row">
@@ -327,15 +321,9 @@ export default {
       </div>
       <div v-if="showCommercial || showCommunity" class="col span-2">
         <CommunityLinks v-if="showCommunity" can-close class="mb-20" @close="showCommunity = false" />
-        <div v-if="showCommercial" class="box">
-          <h2>{{ t('landing.commercial.title') }}</h2>
-          <button type="button" class="role-link" @click="showCommercial = false">
-            <i class="icon icon-x icon-lg text-primary" />
-          </button>
-          <div>
-            <span v-html="t('landing.commercial.body', {}, true)" />
-          </div>
-        </div>
+        <SimpleBox v-if="showCommercial" :title="t('landing.commercial.title')" can-close @close="showCommercial = false">
+          <span v-html="t('landing.commercial.body', {}, true)" />
+        </SimpleBox>
       </div>
     </div>
   </form>
@@ -373,27 +361,4 @@ export default {
     transform: translate(-50%, -50%);
   }
 }
-
-  .box {
-    padding: 20px;
-    border: 1px solid #d8d8d8;
-    position: relative;
-
-    > h2 {
-      font-size: 20px;
-      font-weight: 300;
-    }
-    > div {
-      font-weight: 300;
-      line-height: 18px;
-      opacity: 0.8;
-    }
-
-    > button {
-      padding: 0;
-      position: absolute;
-      top: 0;
-      right: 10px;
-    }
-  }
 </style>
