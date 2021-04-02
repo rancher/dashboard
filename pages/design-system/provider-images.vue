@@ -60,6 +60,9 @@ export default {
         <img class="" src="~/assets/images/providers/provider-digitalocean.svg" />
       </div>
       <div class="col span-1">
+        <img class="" src="~/assets/images/providers/provider-equinix.svg" />
+      </div>
+      <div class="col span-1">
         <img class="" src="~/assets/images/providers/provider-googlegke.svg" />
       </div>
       <div class="col span-1">
@@ -77,11 +80,11 @@ export default {
       <div class="col span-1">
         <img class="" src="~/assets/images/providers/provider-open-telekom-cloud.svg" />
       </div>
+    </div>
+    <div class="row">
       <div class="col span-1">
         <img class="" src="~/assets/images/providers/provider-oracleoke.svg" />
       </div>
-    </div>
-    <div class="row">
       <div class="col span-1">
         <img class="" src="~/assets/images/providers/provider-packet.svg" />
       </div>
@@ -115,6 +118,9 @@ export default {
         <img class="" src="~/assets/images/providers/provider-digitalocean-black.svg" />
       </div>
       <div class="col span-1">
+        <img class="" src="~/assets/images/providers/provider-equinix-black.svg" />
+      </div>
+      <div class="col span-1">
         <img class="" src="~/assets/images/providers/provider-googlegke-black.svg" />
       </div>
       <div class="col span-1">
@@ -132,11 +138,11 @@ export default {
       <div class="col span-1">
         <img class="" src="~/assets/images/providers/provider-open-telekom-cloud-black.svg" />
       </div>
+    </div>
+    <div class="row">
       <div class="col span-1">
         <img class="" src="~/assets/images/providers/provider-oracleoke-black.svg" />
       </div>
-    </div>
-    <div class="row">
       <div class="col span-1">
         <img class="" src="~/assets/images/providers/provider-packet-black.svg" />
       </div>
@@ -169,6 +175,9 @@ export default {
           <img class="" src="~/assets/images/providers/provider-digitalocean-black.svg" />
         </div>
         <div class="col span-1">
+          <img class="" src="~/assets/images/providers/provider-equinix-black.svg" />
+        </div>
+        <div class="col span-1">
           <img class="" src="~/assets/images/providers/provider-googlegke-black.svg" />
         </div>
         <div class="col span-1">
@@ -186,11 +195,11 @@ export default {
         <div class="col span-1">
           <img class="" src="~/assets/images/providers/provider-open-telekom-cloud-black.svg" />
         </div>
+      </div>
+      <div class="row">
         <div class="col span-1">
           <img class="" src="~/assets/images/providers/provider-oracleoke-black.svg" />
         </div>
-      </div>
-      <div class="row">
         <div class="col span-1">
           <img class="" src="~/assets/images/providers/provider-packet-black.svg" />
         </div>
