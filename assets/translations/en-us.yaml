@@ -1229,7 +1229,7 @@ landing:
     title: What do you want to see when you log in?
     options:
       thisScreen: Take me back to this screen
-      lastVisited: Take me back to the last cluster I visited last login
+      lastVisited: Take me back to the last place I visited
       custom: Make my home screen...
       defaultOverview: Overview for the default cluster ({cluster})
       appsAndMarketplace: Apps and Marketplace

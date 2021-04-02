@@ -125,13 +125,14 @@ export default {
         {
           label: this.t('landing.landingPrefs.options.appsAndMarketplace'),
           value: 'apps'
-        }
-      ];
-
-      out.push( {
+        },
+        {
         label: this.t('landing.landingPrefs.options.defaultOverview', { cluster: this.defaultClusterId }),
         value: `${ this.defaultClusterId }-dashboard`
-      });
+      }
+      ];
+
+      out.push( );
 
       return out;
     },
