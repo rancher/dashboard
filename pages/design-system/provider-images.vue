@@ -79,6 +79,8 @@ export default {
       <div class="col span-1">
         <img class="" src="~/assets/images/providers/provider-oracleoke.svg" />
       </div>
+    </div>
+    <div class="row">
       <div class="col span-1">
         <img class="" src="~/assets/images/providers/provider-packet.svg" />
       </div>
@@ -96,4 +98,12 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+.row {
+  align-items: center;
+  background: #6d6d6d;
+}
+
+.col {
+  background: #efefef;
+}
 </style>
