@@ -233,7 +233,7 @@ export default {
       </template>
     </div>
     <ResourceTabs :value="value">
-      <Tab v-if="jobs && jobs.length" name="jobs" :label="t('tableHeaders.jobs')">
+      <Tab v-if="isCronJob" name="jobs" :label="t('tableHeaders.jobs')">
         <SortableTable
           :rows="jobs"
           :headers="jobHeaders"
@@ -243,7 +243,7 @@ export default {
           :search="false"
         />
       </Tab>
-      <Tab v-else-if="pods && pods.length" name="pods" :label="t('tableHeaders.pods')">
+      <Tab v-else name="pods" :label="t('tableHeaders.pods')">
         <SortableTable
           v-if="pods"
           :rows="pods"
