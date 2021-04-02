@@ -34,8 +34,7 @@ export default {
     const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
     const fullVersion = setting?.value || 'unknown';
 
-    this.seenWhatsNewAlready = compare(lastSeenNew, fullVersion) >= 0;
-
+    this.seenWhatsNewAlready = compare(lastSeenNew, fullVersion) >= 0 && !!lastSeenNew;
     this.isDev = isDevBuild(fullVersion);
 
     // if (!this.isDev) {
