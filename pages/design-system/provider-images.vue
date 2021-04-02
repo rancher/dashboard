@@ -59,6 +59,8 @@ export default {
       <div class="col span-1">
         <img class="" src="~/assets/images/providers/provider-oracleoke.svg" />
       </div>
+    </div>
+    <div class="row">
       <div class="col span-1">
         <img class="" src="~/assets/images/providers/provider-packet.svg" />
       </div>
