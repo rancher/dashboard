@@ -221,7 +221,7 @@ export default {
         padding: 8px 0;
 
         > H6 {
-          font-size: 14px;
+          font-size: 17px;
           text-transform: none;
           padding-left: 10px;
         }

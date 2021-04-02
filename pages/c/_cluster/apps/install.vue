@@ -20,7 +20,7 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 
 import { CATALOG, MANAGEMENT } from '@/config/types';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT, _FLAGGED, FORCE,
+  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT, _FLAGGED, FORCE, DEPRECATED, HIDDEN, FROM_TOOLS,
 } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION, PROJECT } from '@/config/labels-annotations';
 import { exceptionToErrorsArray, stringify } from '@/utils/error';
@@ -29,8 +29,8 @@ import { findBy, insertAt } from '@/utils/array';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import { formatSi, parseSi } from '@/utils/units';
 import { SHOW_PRE_RELEASE, mapPref } from '@/store/prefs';
-import { compare } from '@/utils/version';
-const semver = require('semver');
+import { compare, isPrerelease } from '@/utils/version';
+import { NAME as EXPLORER } from '@/config/product/explorer';
 
 export default {
   name: 'Install',
@@ -61,8 +61,8 @@ export default {
 
     const query = this.$route.query;
 
-    this.showDeprecated = query['deprecated'] === _FLAGGED;
-    this.showHidden = query['hidden'] === _FLAGGED;
+    this.showDeprecated = query[DEPRECATED] === _FLAGGED;
+    this.showHidden = query[HIDDEN] === _FLAGGED;
 
     await this.$store.dispatch('catalog/load');
 
@@ -510,16 +510,8 @@ export default {
             nue.disabled = true;
           }
         }
-        if (!semver.valid(version.version)) {
-          version.version = semver.clean(version.version, { loose: true });
-        }
-        if (!this.showPreRelease) {
-          const isPre = !!semver.prerelease(version.version);
 
-          if (!isPre) {
-            out.push(nue);
-          }
-        } else {
+        if ( this.showPreRelease || !isPrerelease(version.version) ) {
           out.push(nue);
         }
       });
@@ -665,14 +657,25 @@ export default {
     },
 
     done() {
-      this.$router.replace({
-        name:   `c-cluster-product-resource`,
-        params: {
-          product:   this.$store.getters['productId'],
-          cluster:   this.$store.getters['clusterId'],
-          resource:  CATALOG.APP,
-        }
-      });
+      if ( this.$route.query[FROM_TOOLS] === _FLAGGED ) {
+        this.$router.replace({
+          name:   `c-cluster-explorer-tools`,
+          params: {
+            product:   EXPLORER,
+            cluster:   this.$store.getters['clusterId'],
+            resource:  CATALOG.APP,
+          }
+        });
+      } else {
+        this.$router.replace({
+          name:   `c-cluster-product-resource`,
+          params: {
+            product:   this.$store.getters['productId'],
+            cluster:   this.$store.getters['clusterId'],
+            resource:  CATALOG.APP,
+          }
+        });
+      }
     },
 
     async finish(btnCb) {

@@ -10,9 +10,10 @@ import Group from '@/components/nav/Group';
 import Header from '@/components/nav/Header';
 import { COUNT, SCHEMA, MANAGEMENT } from '@/config/types';
 import { BASIC, FAVORITE, USED } from '@/store/type-map';
-import { addObjects, replaceWith, clear } from '@/utils/array';
+import { addObjects, replaceWith, clear, addObject } from '@/utils/array';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import isEqual from 'lodash/isEqual';
+import { ucFirst } from '@/utils/string';
 
 export default {
 
@@ -33,7 +34,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'namespaceMode']),
+    ...mapGetters(['productId', 'namespaceMode', 'isExplorer']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel' }),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -74,10 +75,6 @@ export default {
       }
 
       return {};
-    },
-
-    showJump() {
-      return this.productId === EXPLORER;
     },
   },
 
@@ -151,7 +148,7 @@ export default {
       }
 
       const clusterId = this.$store.getters['clusterId'];
-      const productId = this.$store.getters['productId'];
+      const currentProduct = this.$store.getters['productId'];
       const currentType = this.$route.params.resource || '';
       let namespaces = null;
 
@@ -161,18 +158,46 @@ export default {
 
       const namespaceMode = this.$store.getters['namespaceMode'];
       const out = [];
-      const modes = [BASIC];
+      const loadProducts = this.isExplorer ? [EXPLORER] : [];
 
-      if ( productId === EXPLORER ) {
-        modes.push(FAVORITE);
-        modes.push(USED);
+      if ( this.isExplorer ) {
+        for ( const product of this.activeProducts ) {
+          if ( product.inStore === 'cluster' ) {
+            addObject(loadProducts, product.name);
+          }
+        }
       }
 
-      for ( const mode of modes ) {
-        const types = this.$store.getters['type-map/allTypes'](productId, mode) || {};
-        const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, namespaceMode, namespaces, currentType);
+      // This should already have come into the list from above, but in case it hasn't...
+      addObject(loadProducts, currentProduct);
 
-        addObjects(out, more);
+      for ( const productId of loadProducts ) {
+        const modes = [BASIC];
+
+        if ( productId === EXPLORER ) {
+          modes.push(FAVORITE);
+          modes.push(USED);
+        }
+
+        for ( const mode of modes ) {
+          const types = this.$store.getters['type-map/allTypes'](productId, mode) || {};
+          const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, namespaceMode, namespaces, currentType);
+
+          if ( productId === EXPLORER || !this.isExplorer ) {
+            addObjects(out, more);
+          } else {
+            const root = more.find(x => x.name === 'root');
+            const other = more.filter(x => x.name !== 'root');
+
+            const group = {
+              name:     productId,
+              label:    this.$store.getters['i18n/withFallback'](`product.${ productId }`, null, ucFirst(productId)),
+              children: [...(root.children), ...other],
+            };
+
+            addObject(out, group);
+          }
+        }
       }
 
       replaceWith(this.groups, ...out);
@@ -245,6 +270,9 @@ export default {
     <Header />
 
     <nav v-if="clusterReady">
+      <Jump v-if="isExplorer" class="m-10" />
+      <div v-else class="mb-20" />
+
       <template v-for="(g, idx) in groups">
         <Group
           ref="groups"
@@ -298,7 +326,7 @@ export default {
       "wm       wm";
 
     grid-template-columns: var(--nav-width)     auto;
-    grid-template-rows:    var(--header-height) auto calc( var(--footer-height) + 1px ) var(--wm-height, 0px);
+    grid-template-rows:    var(--header-height) auto 50px var(--wm-height, 0px);
 
     > HEADER {
       grid-area: header;
@@ -310,6 +338,20 @@ export default {
       background-color: var(--nav-bg);
       border-right: var(--nav-border-size) solid var(--nav-border);
       overflow-y: auto;
+
+      .package {
+        border-top: 1px solid var(--border);
+
+        &:last-child {
+          border-bottom: 1px solid var(--border);
+        }
+      }
+
+      .package.depth-0 {
+        &.expanded > .body {
+          margin-bottom: 5px;
+        }
+      }
 
       .header {
         background: transparent;

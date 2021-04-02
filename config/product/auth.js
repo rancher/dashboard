@@ -29,7 +29,6 @@ export function init(store) {
     inStore:             'management',
     icon:                'user',
     removable:           false,
-    weight:              50,
     public:              true, // Hide from regular view during development
     showClusterSwitcher: false,
     category:            'configuration',

@@ -77,7 +77,7 @@ export default {
 
   methods: {
     edit(app) {
-      app.goToUpgrade();
+      app.goToUpgrade(null, true);
     },
 
     remove(app) {
@@ -85,7 +85,7 @@ export default {
     },
 
     install(chart) {
-      chart.goToInstall();
+      chart.goToInstall(true);
     },
   },
 };
