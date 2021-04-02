@@ -358,9 +358,8 @@ export default {
       if ( !want ) {
         return false;
       }
-      const found = findBy(all, 'id', want);
 
-      return !found;
+      return !findBy(all, 'id', want);
     },
 
     showProject() {
@@ -530,7 +529,8 @@ export default {
     'value.metadata.namespace'(neu, old) {
       if (neu) {
         const ns = this.$store.getters['cluster/byId'](NAMESPACE, this.value.metadata.namespace);
-        const project = ns.metadata.annotations[PROJECT];
+
+        const project = ns?.metadata.annotations[PROJECT];
 
         if (project) {
           this.project = project.replace(':', '/');
