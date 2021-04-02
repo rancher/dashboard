@@ -322,7 +322,7 @@ catalog:
     all: All
     gitBranch:
       label: Git 分支
-      placeholder: e.g. master
+      placeholder: e.g. main
     gitRepo:
       label: Git Repo URL
       placeholder: 'e.g. https://github.com/your-company/charts.git'

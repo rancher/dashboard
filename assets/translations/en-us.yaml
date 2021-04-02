@@ -570,7 +570,7 @@ catalog:
     all: All
     gitBranch:
       label: Git Branch
-      placeholder: e.g. master
+      placeholder: e.g. main
     gitRepo:
       label: Git Repo URL
       placeholder: 'e.g. https://github.com/your-company/charts.git'
@@ -902,7 +902,7 @@ fleet:
       branch: A Branch
       revision: A Revision
       branchLabel: Branch Name
-      branchPlaceholder: e.g. master
+      branchPlaceholder: e.g. main
       revisionLabel: Tag or Commit Hash
       revisionPlaceholder: e.g. v1.0.0
     serviceAccount:
