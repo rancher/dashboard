@@ -65,15 +65,27 @@ export default {
     update() {
       const { nodeName, nodeSelector, nodeAffinity } = this;
 
-      if (this.selectNode === 'nodeSelector') {
+      switch (this.selectNode) {
+      case 'nodeSelector':
         Object.assign(this.value, { nodeSelector, nodeName });
-      } else {
+        if (this.value?.affinity?.nodeAffinity) {
+          delete this.value.affinity.nodeAffinity;
+        }
+        break;
+      case 'affinity':
         delete this.value.nodeName;
         delete this.value.nodeSelector;
         if (!this.value.affinity) {
           Object.assign(this.value, { affinity: { nodeAffinity } });
         } else {
           Object.assign(this.value.affinity, { nodeAffinity });
+        }
+        break;
+      default:
+        delete this.value.nodeName;
+        delete this.value.nodeSelector;
+        if (this.value?.affinity?.nodeAffinity) {
+          delete this.value.affinity.nodeAffinity;
         }
       }
     },
@@ -91,6 +103,7 @@ export default {
         :options="[null, 'nodeSelector', 'affinity']"
         :labels="[ t('workload.scheduling.affinity.anyNode'), t('workload.scheduling.affinity.specificNode'), t('workload.scheduling.affinity.schedulingRules') ]"
         :mode="mode"
+        @input="update"
       />
     </div>
     <template v-if="selectNode === 'nodeSelector'">

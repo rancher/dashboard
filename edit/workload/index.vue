@@ -660,6 +660,7 @@ export default {
                 :mode="mode"
                 :label="t('workload.serviceName')"
                 :options="headlessServices"
+                required
               />
             </template>
           </NameNsDescription>
