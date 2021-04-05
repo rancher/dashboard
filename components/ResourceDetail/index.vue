@@ -4,14 +4,13 @@ import Loading from '@/components/Loading';
 import ResourceYaml from '@/components/ResourceYaml';
 import {
   _VIEW, _EDIT, _CLONE, _STAGE, _CREATE,
-  AS, _YAML, _DETAIL, _CONFIG, PREVIEW,
+  AS, _YAML, _DETAIL, _CONFIG, PREVIEW, MODE,
 } from '@/config/query-params';
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
 import DetailTop from '@/components/DetailTop';
-import isEqual from 'lodash/isEqual';
-import { clone, set } from '@/utils/object';
+import { clone, set, diff } from '@/utils/object';
 
 function modeFor(route) {
   if ( route.params.id ) {
@@ -248,7 +247,9 @@ export default {
         delete old[AS];
       }
 
-      if ( !isEqual(neu, old) ) {
+      const queryDiff = Object.keys(diff(neu, old));
+
+      if ( queryDiff.includes(MODE) || queryDiff.includes(AS)) {
         this.$fetch();
       }
     },
