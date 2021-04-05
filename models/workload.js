@@ -254,14 +254,18 @@ export default {
 
   // create clusterip, nodeport, loadbalancer services from container port spec
   servicesFromContainerPorts() {
-    return async(mode) => {
-      const workloadErrors = await this.validationErrors(this);
-
-      if (workloadErrors.length ) {
+    return async(mode, ports) => {
+      if (!ports || !ports.length) {
         return;
       }
 
-      const { ports = [] } = this.container;
+      const ownerRef = {
+        apiVersion: this.apiVersion,
+        controller: true,
+        kind:       this.kind,
+        name:       this.metadata.name,
+        uid:        this.metadata.uid
+      };
 
       let clusterIP = {
         type: SERVICE,
@@ -271,9 +275,10 @@ export default {
           type:     'ClusterIP'
         },
         metadata: {
-          name:        this.metadata.name,
-          namespace:   this.metadata.namespace,
-          annotations:    { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
+          name:            this.metadata.name,
+          namespace:       this.metadata.namespace,
+          annotations:     { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
+          ownerReferences: [ownerRef]
         },
       };
 
@@ -285,10 +290,10 @@ export default {
           type:     'NodePort'
         },
         metadata: {
-          name:        `${ this.metadata.name }-nodeport`,
-          namespace:   this.metadata.namespace,
-          annotations:    { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
-
+          name:            `${ this.metadata.name }-nodeport`,
+          namespace:       this.metadata.namespace,
+          annotations:     { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
+          ownerReferences: [ownerRef]
         },
       };
 
@@ -301,10 +306,10 @@ export default {
           externalTrafficPolicy: 'Cluster'
         },
         metadata: {
-          name:        `${ this.metadata.name }-loadbalancer`,
-          namespace:   this.metadata.namespace,
-          annotations:    { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
-
+          name:            `${ this.metadata.name }-loadbalancer`,
+          namespace:       this.metadata.namespace,
+          annotations:     { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
+          ownerReferences: [ownerRef]
         },
       };
 
