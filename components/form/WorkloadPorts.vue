@@ -143,7 +143,6 @@ export default {
       if ( this.isView ) {
         return;
       }
-
       const out = [];
 
       for ( const row of this.rows ) {
@@ -201,7 +200,7 @@ export default {
       :class="{'show-host':row._showHost}"
     >
       <div class="service-type">
-        <LabeledSelect v-model="row._serviceType" :mode="mode" :label="t('workload.container.ports.createService')" :options="serviceTypes" />
+        <LabeledSelect v-model="row._serviceType" :mode="mode" :label="t('workload.container.ports.createService')" :options="serviceTypes" @input="update" />
       </div>
 
       <div class="portName">

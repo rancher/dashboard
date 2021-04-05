@@ -440,7 +440,12 @@ export default {
     },
 
     async saveService() {
-      const { toSave = [], toRemove = [] } = await this.value.servicesFromContainerPorts(this.mode);
+      const svcs = await this.value.servicesFromContainerPorts(this.mode);
+
+      if (!svcs) {
+        return;
+      }
+      const { toSave = [], toRemove = [] } = svcs;
 
       this.servicesOwned = toSave;
       this.servicesToRemove = toRemove;

@@ -258,7 +258,7 @@ export default {
       const workloadErrors = await this.validationErrors(this);
 
       if (workloadErrors.length ) {
-        throw workloadErrors;
+        return;
       }
 
       const { ports = [] } = this.container;
