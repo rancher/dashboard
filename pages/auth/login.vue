@@ -167,7 +167,7 @@ export default {
           {{ t('login.loginAgain') }}
         </h4>
 
-        <div v-if="providers.length" class="mt-50 mb-50">
+        <div v-if="providers.length" class="mt-50">
           <component
             :is="providerComponents[idx]"
             v-for="(name, idx) in providers"
@@ -175,6 +175,7 @@ export default {
             class="mb-10"
             :focus-on-mount="(idx === 0 && !showLocal)"
             :name="name"
+            :only-option="providers.length === 1 && !showLocal"
           />
         </div>
         <template v-if="hasLocal">
@@ -206,6 +207,7 @@ export default {
                   :waiting-label="t('login.loggingIn')"
                   :success-label="t('login.loggedIn')"
                   :error-label="t('asyncButton.default.error')"
+                  style="font-size: 18px;"
                   @click="loginLocal"
                 />
                 <div class="mt-20">
@@ -214,7 +216,7 @@ export default {
               </div>
             </div>
           </form>
-          <div v-if="hasLocal" class="mt-20 text-center">
+          <div v-if="hasLocal && !showLocal" class="mt-20 text-center">
             <button type="button" class="btn bg-link" @click="toggleLocal">
               {{ t('login.useLocal') }}
             </button>
