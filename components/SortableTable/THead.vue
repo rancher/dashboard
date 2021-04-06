@@ -158,7 +158,7 @@ export default {
   }
 
   th {
-    padding: 12px 5px;
+    padding: 8px 16px;
     font-weight: normal;
     border: 0;
     color: var(--body-text);
