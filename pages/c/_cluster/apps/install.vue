@@ -70,6 +70,11 @@ export default {
       id:   'system-default-registry'
     });
 
+    this.serverUrlSetting = await this.$store.dispatch('management/find', {
+      type: MANAGEMENT.SETTING,
+      id:   'server-url'
+    });
+
     const repoType = query[REPO_TYPE];
     const repoName = query[REPO];
     const chartName = query[CHART];
@@ -294,6 +299,7 @@ export default {
       showHidden:             false,
       showDeprecated:         false,
       defaultRegistrySetting: null,
+      serverUrlSetting:       null,
       chart:                  null,
       chartValues:            null,
       originalYamlValues:     null,
@@ -469,7 +475,7 @@ export default {
       } = this;
       const versions = this.chart?.versions || [];
       const selectedVersion = this.version?.version;
-      const clusterProvider = currentCluster.status.provider || 'other';
+      const isWindows = currentCluster.providerOs === 'windows';
       const out = [];
 
       versions.forEach((version) => {
@@ -482,13 +488,13 @@ export default {
         if ( version?.annotations?.[catalogOSAnnotation] === 'windows' ) {
           nue.label = this.t('catalog.install.versions.windows', { ver: version.version });
 
-          if (clusterProvider !== 'rke.windows') {
+          if ( !isWindows ) {
             nue.disabled = true;
           }
         } else if ( version?.annotations?.[catalogOSAnnotation] === 'linux' ) {
           nue.label = this.t('catalog.install.versions.linux', { ver: version.version });
 
-          if (clusterProvider === 'rke.windows') {
+          if ( isWindows ) {
             nue.disabled = true;
           }
         }
@@ -683,11 +689,18 @@ export default {
 
       const cluster = this.$store.getters['currentCluster'];
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
+      const serverUrl = this.serverUrlSetting?.value || '';
+      const isWindows = cluster.providerOs === 'windows';
 
       setIfNotSet(cattle, 'clusterId', cluster.id);
       setIfNotSet(cattle, 'clusterName', cluster.nameDisplay);
       setIfNotSet(cattle, 'systemDefaultRegistry', defaultRegistry);
       setIfNotSet(global, 'systemDefaultRegistry', defaultRegistry);
+      setIfNotSet(cattle, 'url', serverUrl);
+
+      if ( isWindows ) {
+        setIfNotSet(cattle, 'windows.enabled', true);
+      }
 
       return values;
 
@@ -705,17 +718,30 @@ export default {
 
       const cluster = this.$store.getters['currentCluster'];
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
-
-      deleteIfEqual(values, 'systemDefaultRegistry', defaultRegistry);
+      const serverUrl = this.serverUrlSetting?.value || '';
+      const isWindows = cluster.providerOs === 'windows';
 
       if ( values.global?.cattle ) {
         deleteIfEqual(values.global.cattle, 'clusterId', cluster.id);
         deleteIfEqual(values.global.cattle, 'clusterName', cluster.nameDisplay);
         deleteIfEqual(values.global.cattle, 'systemDefaultRegistry', defaultRegistry);
+        deleteIfEqual(values.global.cattle, 'url', serverUrl);
+
+        if ( isWindows ) {
+          deleteIfEqual(values.global.cattle.windows, 'enabled', true);
+        }
+      }
+
+      if ( values.global?.cattle.windows && !Object.keys(values.global.cattle.windows).length ) {
+        delete values.global.cattle.windows;
       }
 
       if ( values.global?.cattle && !Object.keys(values.global.cattle).length ) {
         delete values.global.cattle;
+      }
+
+      if ( values.global ) {
+        deleteIfEqual(values.global, 'systemDefaultRegistry', defaultRegistry);
       }
 
       if ( !Object.keys(values.global || {}).length ) {
