@@ -345,12 +345,12 @@ export default {
           }
 
           button:first-of-type {
-            border-top: solid thin var(--border);
-            border-right: solid thin var(--border);
+            border-top: solid 1px var(--border);
+            border-right: solid 1px var(--border);
             border-top-right-radius: 0;
           }
           button:last-of-type {
-            border-top: solid thin var(--border);
+            border-top: solid 1px var(--border);
             border-top-left-radius: 0;
           }
 

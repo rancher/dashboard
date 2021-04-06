@@ -661,7 +661,6 @@ $spacing: 10px;
   min-width: 400px;
   border-radius: 5px 5px 0 0;
   overflow: hidden;
-  outline: 1px solid var(--shadow);
   background: var(--sortable-table-accent-bg);
   border-radius: 4px;
 
