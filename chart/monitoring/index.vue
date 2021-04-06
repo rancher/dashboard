@@ -178,6 +178,10 @@ export default {
       };
 
       merge(this.value, extendedDefaults);
+      if (this.provider.startsWith('rke')) {
+        this.$set(this.value, 'ingressNginx', this.value.ingressNginx || {});
+        this.$set(this.value.ingressNginx, 'enabled', true);
+      }
     }
 
     this.$emit('register-before-hook', this.willSave, 'willSave');
