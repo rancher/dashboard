@@ -99,18 +99,28 @@ export function init(store) {
         .map(grb => grb.groupPrincipalName)
       );
 
-      const allPrincipalsP = uniquePrincipalIds.map(pId => store.dispatch('rancher/find', {
-        type: NORMAN.PRINCIPAL,
-        opt:  { url: `/v3/principals/${ encodeURIComponent(pId) }` },
-        id:   pId
-      }));
+      const allPrincipalsP = uniquePrincipalIds
+        .map(async(pId) => {
+          // Guard against principals that aren't retrievable (bindings to principals from previous auth providers)
+          try {
+            return await store.dispatch('rancher/find', {
+              type: NORMAN.PRINCIPAL,
+              opt:  { url: `/v3/principals/${ encodeURIComponent(pId) }` },
+              id:   pId
+            });
+          } catch (e) {
+            console.warn(`Failed to fetch Principal with id: '${ pId }'`, e); // eslint-disable-line no-console
+          }
+        });
 
       const allPrincipals = await Promise.all(allPrincipalsP);
 
-      return allPrincipals.map(principal => ({
-        ...principal,
-        type: NORMAN.SPOOFED.GROUP_PRINCIPAL
-      }));
+      return allPrincipals
+        .filter(p => !!p)
+        .map(p => ({
+          ...p,
+          type: NORMAN.SPOOFED.GROUP_PRINCIPAL
+        }));
     }
   });
   configureType(NORMAN.SPOOFED.GROUP_PRINCIPAL, {
