@@ -297,7 +297,7 @@ export default {
           <t k="wm.containerShell.clear" />
         </button>
       </div>
-      <div class="pull-right text-center p-10" style="min-width: 80px;">
+      <div class="status pull-right">
         <t v-if="isOpen" k="wm.connection.connected" class="text-success" />
         <t v-else-if="isOpening" k="wm.connection.connecting" class="text-warning" :raw="true" />
         <t v-else k="wm.connection.disconnected" class="text-error" />
@@ -331,6 +331,15 @@ export default {
     ::v-deep &.unlabeled-select {
       display: inline-block;
       min-width: 200px;
+      height: 30px;
+      width: initial;
     }
+  }
+
+  .status {
+    align-items: center;
+    display: flex;
+    min-width: 80px;
+    height: 30px;
   }
 </style>

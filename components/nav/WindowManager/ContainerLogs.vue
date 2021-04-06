@@ -456,7 +456,7 @@ export default {
           <t v-if="option" k="wm.containerLogs.containerName" :label="option.label" />
         </template>
       </Select>
-      <div class="pull-left ml-5">
+      <div class="log-action pull-left ml-5">
         <button class="btn bg-primary" :disabled="isFollowing" @click="follow">
           <t k="wm.containerLogs.follow" />
         </button>
@@ -466,13 +466,13 @@ export default {
         <AsyncButton mode="download" @click="download" />
       </div>
 
-      <div class="pull-right text-center p-10" style="min-width: 80px;">
+      <div class="status log-action pull-right text-center p-10" style="min-width: 80px;">
         <t :class="{'text-success': isOpen, 'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
       </div>
-      <div class="pull-right ml-5">
+      <div class="log-action pull-right ml-5">
         <input v-model="search" class="input-sm" type="search" :placeholder="t('wm.containerLogs.search')" />
       </div>
-      <div class="pull-right ml-5">
+      <div class="log-action pull-right ml-5">
         <v-popover
           trigger="click"
           placement="top"
@@ -481,7 +481,8 @@ export default {
             <i class="icon icon-gear" />
           </button>
 
-          <template slot="popover">
+          <template slot="popover" class="asdasd">
+            <div class="filter-popup">
             <LabeledSelect
               v-model="range"
               class="range"
@@ -494,6 +495,7 @@ export default {
             <div><Checkbox :label="t('wm.containerLogs.previous')" :value="previous" @input="togglePrevious" /></div>
             <div><Checkbox :label="t('wm.containerLogs.wrap')" :value="wrap" @input="toggleWrap " /></div>
             <div><Checkbox :label="t('wm.containerLogs.timestamps')" :value="timestamps" @input="toggleTimestamps" /></div>
+            </div>
           </template>
         </v-popover>
       </div>
@@ -566,7 +568,33 @@ export default {
     ::v-deep &.unlabeled-select {
       display: inline-block;
       min-width: 200px;
+      height: 30px;
+      width: initial;
     }
   }
 
+  .log-action {
+    button {
+      border: 0 !important;
+      min-height: 30px;
+      line-height: 30px;
+    }
+
+    > input {
+      height: 30px;
+    }
+  }
+
+  .status {
+    align-items: center;
+    display: flex;
+    min-width: 80px;
+    height: 30px;
+  }
+
+  .filter-popup {
+    > * {
+      margin-bottom: 10px;
+    }
+  }
 </style>
