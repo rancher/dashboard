@@ -42,10 +42,5 @@ export default {
   .content {
     padding: $padding;
   }
-
-  .sortable-table {
-    border: solid thin var(--border);
-    box-shadow: none;
-  }
 }
 </style>

@@ -183,7 +183,7 @@ export default {
 <style lang="scss" scoped>
 .rules {
   .rule {
-    border: solid thin var(--border);
+    border: solid 1px var(--border);
     padding: 20px;
     margin-bottom: 20px;
     position: relative;
