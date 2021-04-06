@@ -403,6 +403,7 @@ export default {
   border: solid var(--header-btn-text) thin;
   color: var(--header-btn-text);
   height: calc(var(--header-height) - 26px);
+  width: initial;
 }
 
 .filter ::v-deep .unlabeled-select .vs__search::placeholder {
