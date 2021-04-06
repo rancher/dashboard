@@ -512,6 +512,7 @@ catalog:
   install:
     action:
       goToUpgrade: Edit/Upgrade
+      ignoreWarning: Continue Anyways
     appReadmeGeneric: This chart doesn't have a Rancher-specific README.  Review the Helm README to learn more about the available configuration options and their usage.
     chart: Chart
     error:

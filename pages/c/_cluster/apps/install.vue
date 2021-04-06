@@ -226,6 +226,8 @@ export default {
       }
     }
 
+    this.warnings = [];
+
     if ( this.existing || query[FORCE] === _FLAGGED ) {
       // Ignore the limits on upgrade (or if asked by query) and don't show any warnings
     } else {
@@ -603,6 +605,10 @@ export default {
       this.showDiff = false;
     },
 
+    ignoreWarning() {
+      this.$router.applyQuery({ [FORCE]: _FLAGGED });
+    },
+
     cancel(reallyCancel) {
       if (!reallyCancel && this.showPreview) {
         return this.resetFromBack();
@@ -924,6 +930,9 @@ export default {
       </Banner>
 
       <div class="mt-20 text-center">
+        <button v-if="warnings.length" type="button" class="btn bg-error" @click="ignoreWarning">
+          <t k="catalog.install.action.ignoreWarning" />
+        </button>
         <button type="button" class="btn role-primary" @click="cancel">
           <t k="generic.cancel" />
         </button>
