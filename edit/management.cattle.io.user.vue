@@ -128,23 +128,30 @@ export default {
       if (!this.credentialsChanged) {
         return;
       }
-      // Save user edits
-      this.value.description = this.form.description;
-      this.value.displayName = this.form.displayName;
-      this.value.mustChangePassword = this.form.password.userChangeOnLogin;
-      await this.value.save();
+
+      const normanUser = await this.$store.dispatch('rancher/find', {
+        type:       NORMAN.USER,
+        id:   this.value.id,
+      });
 
       // Save change of password
+      // - Password must be changed before editing mustChangePassword (setpassword action sets this to false)
       if (this.form.password.password) {
-        // Fetch the user to ensure the `actions` property is correctly populated
-        // (this is missing from `.save` response above... and using `value` results in api error)
-        const updatedUser = await this.$store.dispatch('rancher/find', {
-          type:       NORMAN.USER,
-          id:   this.value.id,
-        });
+        this.$refs.changePassword.save(normanUser);
 
-        this.$refs.changePassword.save(updatedUser);
+        // Why the wait? Without these the user updates below are ignored
+        // - The update request succeeds and shows the correct values in it's response.
+        // - Fetching the norman user again sometimes shows the correct value, sometimes not
+        // - Even if the fetched norman user shows the correct value, it doesn't show up in the steve user
+        //   - Looks like we re-request the stale version via socket?
+        await new Promise(resolve => setTimeout(resolve, 5000));
       }
+
+      // Save user updates
+      normanUser.description = this.form.description;
+      normanUser._name = this.form.displayName;
+      normanUser.mustChangePassword = this.form.password.userChangeOnLogin;
+      await normanUser.save();
     },
     async updateRoles(userId) {
       await this.$refs.grb.save(userId);
