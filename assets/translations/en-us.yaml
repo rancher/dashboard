@@ -208,24 +208,20 @@ authConfig:
     steps:
       1:
         title: 'Step One: For standard Google, click <a href="https://console.developers.google.com/apis/credentials" target="_blank" rel="noopener noreferrer nofollow">here</a> to go applications settings in a new window'
-        body: |-
-          <ul class="mt-0">
-          <li>Login to your account. Navigate to "APIs & Services" and then select "OAuth consent screen". </li>
-          <li>Authorized domains: Top private domain of {hostname} </li>
-          <li>Application homepage link: {serverUrl}</li>
-          <li>Under Scopes for Google APIs, enable "email", "profile", and "openid". </li>
-          <li>Click on "Save". </li>
-          </ul>
+        body:
+         1: Login to your account. Navigate to "APIs & Services" and then select "OAuth consent screen".
+         2: 'Authorized domains: Top private domain of: '
+         3: 'Application homepage link: '
+         4: 'Under Scopes for Google APIs, enable "email", "profile", and "openid".'
+         5: 'Click on "Save".'
       2:
         title: 'Step Two: Navigate to the "Credentials" tab to create your OAuth client ID'
-        body: |-
-          <ul class="mt-0">
-          <li>Select the "Create Credentials" dropdown, and select "OAuth clientID", then select "Web application".</li>
-          <li>Authorized Javascript origins: {serverUrl}</li>
-          <li>Authorized redirect URIs: {serverUrl}/verify-auth </li>
-          <li>Click "Create", and then click on the "Download JSON" button.</li>
-          <li>Upload the downloaded JSON file in the OAuth credentials box.</li>
-          </ul>
+        body: 
+          1: 'Select the "Create Credentials" dropdown, and select "OAuth clientID", then select "Web application".'
+          2: 'Authorized Javascript origins:'
+          3: 'Authorized redirect URIs:'
+          4: 'Click "Create", and then click on the "Download JSON" button.'
+          5: 'Upload the downloaded JSON file in the OAuth credentials box.'
       3:
         title: 'Step Three: Create Service Account credentials'
         body: |-
