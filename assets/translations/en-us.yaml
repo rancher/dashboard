@@ -239,7 +239,10 @@ authConfig:
     freeipa: Configure a FreeIPA server
     activedirectory: Configure an Active Directory account
     openldap: Configure an OpenLDAP server
-    defaultLoginDomain: Default Login Domain
+    defaultLoginDomain:
+      label: Default Login Domain
+      placeholder: eg mycompany
+      hint: This domain will be used if a user logs in without specifying one.
     cert: Certificate
     disabledStatusBitmask: Disabled Status Bitmask
     groupDNAttribute: Group DN Attribute
