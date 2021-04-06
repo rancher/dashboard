@@ -189,7 +189,7 @@ $selected: rgba($primary, .5);
   --wm-tab-height              : 29px;
 
   --glance-bg-rgb              : 61, 152, 211;
-  --glance-divider             : #{rgba($primary, 0.5)};
+  --glance-divider             : #{$medium};
 
   --resource-gauge-back-circle : 255, 255, 255, 0.15;
 

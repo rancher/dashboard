@@ -665,7 +665,7 @@ $spacing: 10px;
   border-radius: 4px;
 
   td {
-    padding: 12px 5px;
+    padding: 8px 16px;
     border: 0;
     word-break: break-word;
 

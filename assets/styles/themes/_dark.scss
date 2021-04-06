@@ -117,7 +117,7 @@
   --sortable-table-header-bg: transparent;
   --sortable-table-accent-bg: #18181D;
   --sortable-table-accent-alt: #{$dark};
-  --sortable-table-top-divider: #{$darkest};
+  --sortable-table-top-divider: var(--border);
   --sortable-table-selected-bg: #{rgba($warning, 0.1)};
   --sortable-table-group-label: #{$lighter};
 
@@ -166,7 +166,7 @@
   --wm-body-bg: #{$darkest};
   --wm-border: black;
 
-  --glance-divider: #{rgba($primary, 0.5)};
+  --glance-divider: #{$medium};
 
   --resource-gauge-back-circle: 74, 75, 82, 0.5;
 
