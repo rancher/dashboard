@@ -77,7 +77,7 @@ export default {
       return null;
     }
 
-    const clusterProvider = this.$rootGetters['currentCluster'].status.provider || 'other';
+    const isWindows = this.$rootGetters['currentCluster'].providerOs === 'windows';
     const thisVersion = this.spec?.chart?.metadata?.version;
     const newestChart = chart.versions?.[0];
     const newestVersion = newestChart?.version;
@@ -86,9 +86,9 @@ export default {
       return null;
     }
 
-    if (clusterProvider === 'rke.windows' && newestChart?.annotations?.['catalog.cattle.io/os'] === 'linux') {
+    if (isWindows && newestChart?.annotations?.['catalog.cattle.io/os'] === 'linux') {
       return null;
-    } else if (clusterProvider !== 'rke.windows' && newestChart?.annotations?.['catalog.cattle.io/os'] === 'windows') {
+    } else if (!isWindows && newestChart?.annotations?.['catalog.cattle.io/os'] === 'windows') {
       return null;
     }
 

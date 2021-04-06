@@ -57,11 +57,11 @@ export default {
     hideRepos: mapPref(HIDE_REPOS),
 
     showWindowsClusterNoAppsSplash() {
-      const clusterProvider = this.currentCluster.status.provider || 'other';
+      const isWindows = this.currentCluster.providerOs === 'windows';
       const { filteredCharts } = this;
       let showSplash = false;
 
-      if (clusterProvider === 'rke.windows' && filteredCharts.length === 0) {
+      if ( isWindows && filteredCharts.length === 0 ) {
         showSplash = true;
       }
 
@@ -114,16 +114,16 @@ export default {
     },
 
     filteredCharts() {
-      const clusterProvider = this.currentCluster.status.provider || 'other';
+      const isWindows = this.currentCluster.providerOs === 'windows';
       const enabledCharts = (this.enabledCharts || []); // .slice();
 
       return enabledCharts.filter((c) => {
         const { versions: chartVersions = [] } = c;
 
-        if (clusterProvider === 'rke.windows' && this.getCompatibleVersions(chartVersions, 'windows').length <= 0) {
+        if ( isWindows && this.getCompatibleVersions(chartVersions, 'windows').length <= 0) {
           // if we have at least one windows
           return false;
-        } else if (clusterProvider !== 'rke.windows' && this.getCompatibleVersions(chartVersions, 'linux').length <= 0) { // linux
+        } else if ( !isWindows && this.getCompatibleVersions(chartVersions, 'linux').length <= 0) { // linux
           // if we have at least one linux
           return false;
         }
@@ -270,13 +270,13 @@ export default {
     selectChart(chart) {
       let version;
       const chartVersions = chart.versions;
-      const clusterProvider = this.currentCluster.status.provider || 'other';
+      const isWindows = this.currentCluster.providerOs === 'windows';
       const windowsVersions = this.getCompatibleVersions(chartVersions, 'windows');
       const linuxVersions = this.getCompatibleVersions(chartVersions, 'linux');
 
-      if (clusterProvider === 'rke.windows' && windowsVersions.length > 0) {
+      if ( isWindows && windowsVersions.length > 0) {
         version = windowsVersions[0].version;
-      } else if (clusterProvider !== 'rke.windows' && linuxVersions.length > 0) {
+      } else if ( !isWindows && linuxVersions.length > 0) {
         version = linuxVersions[0].version;
       } else {
         version = chartVersions[0].version;
