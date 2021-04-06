@@ -239,7 +239,7 @@ export default {
                         class="banner-abbrv"
                       >
                         <span v-if="$store.getters['i18n/exists'](subtype.bannerAbbrv)">{{ t(subtype.bannerAbbrv) }}</span>
-                        <span v-bind:style="{fontSize: abbrSizes[subtype.bannerAbbrv.length]}" v-else>{{ subtype.bannerAbbrv }}</span>
+                        <span v-else :style="{fontSize: abbrSizes[subtype.bannerAbbrv.length]}">{{ subtype.bannerAbbrv }}</span>
                       </div>
                       <div v-else>
                         {{ subtype.id.slice(0, 1).toUpperCase() }}
