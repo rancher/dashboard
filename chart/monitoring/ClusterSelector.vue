@@ -78,6 +78,12 @@ const CLUSTER_TYPES = [
       'rke2Etcd',
     ],
   },
+  {
+    group:      'rke',
+    id:         'rke-windows',
+    label:      'cluster.provider.rkeWindows',
+    configKeys: ['rkeControllerManager', 'rkeScheduler', 'rkeProxy', 'rkeEtcd', 'windowsExporter'],
+  },
 ];
 
 export default {
