@@ -1975,6 +1975,7 @@ persistentVolumeClaim:
   accessModes: Access Modes
   capacity: Capacity
   storageClass: Storage Class
+  useDefault: Use the default class
   volumes: Persistent Volumes
   volumeName: Persistent Volume Name
   source:

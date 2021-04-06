@@ -37,6 +37,7 @@ export default {
     this.persistentVolumes = await this.$store.dispatch('cluster/findAll', { type: PV });
 
     this.storageClassOptions = storageClasses.map(s => s.name).sort();
+    this.storageClassOptions.unshift(this.t('persistentVolumeClaim.useDefault'));
     this.persistentVolumeOptions = this.persistentVolumes
       .map((s) => {
         const status = s.status.phase === 'Available' ? '' : ` (${ s.status.phase })`;
@@ -127,6 +128,9 @@ export default {
       }
     }
   },
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
+  },
   methods: {
     checkboxSetter(key, value) {
       if (value) {
@@ -152,6 +156,11 @@ export default {
 
       this.$set(this, 'persistentVolume', null);
     },
+    willSave() {
+      if (this.value.spec.storageClassName === this.t('persistentVolumeClaim.useDefault')) {
+        this.$delete(this.value.spec, 'storageClassName');
+      }
+    }
   }
 };
 </script>
