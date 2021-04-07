@@ -76,8 +76,8 @@ export default {
         {{ t('advancedSettings.subtext') }}
       </div>
     </Banner>
-    <div v-for="setting in settings" :key="setting.id" class="advanced-setting mb-10">
-      <div class="p-10 header">
+    <div v-for="setting in settings" :key="setting.id" class="advanced-setting mb-20">
+      <div class="header">
         <div class="title">
           <h1>{{ setting.id }}<span v-if="setting.customized" class="modified">Modified</span></h1>
           <h2>{{ setting.description }}</h2>
@@ -88,7 +88,7 @@ export default {
           </button>
         </div>
       </div>
-      <div class="border p-5" value>
+      <div value>
         <div v-if="setting.hide">
           <button class="btn btn-sm role-primary" @click="setting.hide = !setting.hide">
             {{ t('advancedSettings.show') }} {{ setting.id }}
@@ -117,6 +117,8 @@ export default {
 }
 .advanced-setting {
   border: 1px solid var(--border);
+  padding: 20px;
+  border-radius: var(--border-radius);
 
   h1 {
     font-size: 14px;
@@ -128,16 +130,13 @@ export default {
   }
 }
 
-.border {
-  border-top: 1px solid var(--border);
-}
-
-.settings-value {
-  margin: 5px;
+.settings-value pre {
+  margin: 0;
 }
 
 .header {
   display: flex;
+  margin-bottom: 20px;
 }
 
 .title {

@@ -64,22 +64,6 @@ $selected: rgba($primary, .5);
   --scrollbar-thumb-dropdown   : #{$lighter};
   --scrollbar-track            : transparent;
 
-  --header-bg                  : #{$lightest};
-  --header-logo                : #444;
-  --header-btn-bg              : #{$light};
-  --header-btn-text            : #444;
-  --header-input-text          : #444;
-  --header-height              : 55px;
-  --header-border              : #d8d8d8;
-  --header-border-size         : 1px;
-  --nav-width                  : 230px;
-  --nav-bg                     : #{$lightest};
-  --nav-active                 : #c0e5ff;
-  --nav-border                 : #d8d8d8;
-  --nav-border-size            : 1px;
-  --footer-bg                  : transparent;
-  --footer-height              : 0px;
-
   --disabled-bg                : #{$disabled};
   --disabled-text              : #{$secondary};
   --box-bg                     : #{$lighter};
@@ -90,9 +74,25 @@ $selected: rgba($primary, .5);
   --outline                    : #{rgba($medium, 0.75)};
   --outline-width              : 1px;
 
+  --header-bg                  : #{$lightest};
+  --header-logo                : #{$darker};
+  --header-btn-bg              : #{$light};
+  --header-btn-text            : #{$darker};
+  --header-input-text          : #{$darker};
+  --header-height              : 55px;
+  --header-border              : var(--border);
+  --header-border-size         : 1px;
+  --nav-width                  : 230px;
+  --nav-bg                     : #{$lightest};
+  --nav-active                 : #{rgba($primary, 0.3)};
+  --nav-border                 : var(--border);
+  --nav-border-size            : 1px;
+  --footer-bg                  : transparent;
+  --footer-height              : 0px;
+
   --accent-btn                 : #{rgba($primary, 0.2)};
   --accent-btn-hover           : #{rgba($primary, 0.5)};
-  --modal-bg                   :#{$light};
+  --modal-bg                   : #{$light};
   --overlay-bg                 : #{rgba($lighter, 0.75)};
   --shadow                     : #{rgba($medium, 0.85)};
 
@@ -243,9 +243,9 @@ $selected: rgba($primary, .5);
   $endPos: 100%;
   $end: 0;
 
-  $rancher: #3D97D2;
-  $partner: #B5D21E;
-  $other: #924BE4;
+  $rancher: $primary;
+  $partner: #FEA424;
+  $other: #614EA2;
 
   --app-rancher-accent: #{$rancher};
   --app-rancher-accent-text: #{$darkest};

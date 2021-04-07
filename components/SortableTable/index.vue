@@ -653,7 +653,7 @@ $group-separation: 40px;
 $divider-height: 1px;
 
 $separator: 20;
-$remove: 75;
+$remove: 100;
 $spacing: 10px;
 
 .sortable-table {
