@@ -1573,6 +1573,13 @@ monitoringReceiver:
   webhook:
     label: Webhook
     title: Webhook Config
+    urlTooltip: For some webhooks this a url that points to the service DNS
+    modifyNamespace: If <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-driver</pre> was installed in a non-default namespace you'll need to update the namespace in the url below.
+    banner: To use MS Teams or Alibaba Cloud SMS you will need to have <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-driver</pre> installed first.
+    add:
+      generic: Generic
+      msTeams: MS Teams
+      alibabaCloudSms: Alibaba Cloud SMS
   auth:
     label: Auth
     authType: Auth Type
@@ -1588,9 +1595,13 @@ monitoringReceiver:
     bearerTokenFile:
       label: Bearer Token File
       placeholder: e.g. ./user_token
-
-
-
+  shared:
+    proxyUrl:
+      label: Proxy URL
+      placeholder: e.g. http://my-proxy/
+    sendResolved:
+      label: Enable send resolved alerts
+    
 monitoringRoute:
   groups:
     label: Group By
