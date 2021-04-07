@@ -11,8 +11,8 @@ jobs:
       run: |
         mkdir -p .github/workflows/scripts
         pushd .github/workflows/scripts
-        wget https://raw.githubusercontent.com/rancher/dashboard/master/.github/workflows/scripts/pr.js
-        wget https://raw.githubusercontent.com/rancher/dashboard/master/.github/workflows/scripts/request.js
+        wget https://raw.githubusercontent.com/nwmac/ghtest/pr4/.github/workflows/scripts/pr.js
+        wget https://raw.githubusercontent.com/nwmac/ghtest/pr4/.github/workflows/scripts/request.js        
         popd
     - name: run-script
       run: node .github/workflows/scripts/pr.js "${{ secrets.GITHUB_TOKEN }}"
