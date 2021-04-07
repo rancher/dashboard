@@ -17,8 +17,10 @@ const SORT_GROUPS = {
   template:  1,
   kontainer: 2,
   machine:   3,
+  machine1:  3,
   register:  4,
   custom:    5,
+  custom1:   5,
 };
 
 export default {
@@ -30,6 +32,7 @@ export default {
     SelectIconGrid,
     Rke2,
     Import,
+    Checkbox,
   },
 
   mixins: [CreateEditView],
@@ -71,6 +74,11 @@ export default {
 
       set(this.value.metadata, 'namespace', DEFAULT_WORKSPACE);
     }
+
+    // Get the legacy node drivers
+    const drivers = await this.$store.dispatch('management/findAll', { type: 'management.cattle.io.nodedriver' });
+    console.log(drivers);
+    this.nodeDrivers = drivers;
   },
 
   data() {
@@ -81,6 +89,7 @@ export default {
       subType,
       isRegister,
       providerCluster: null,
+      showRKE: false, // Show RKE, not RKE2 options
     };
   },
 
@@ -98,10 +107,22 @@ export default {
       const out = [];
 
       const templates = this.templateOptions;
+      // @TODO come from somewhere dynamic...
+      const templates = ['usertemplate1', 'usertemplate...', 'usertemplateN'];
       const machineTypes = getters['plugins/machineDrivers'];
       const kontainerTypes = getters['plugins/clusterDrivers'];
       const customTypes = ['custom'];
       const customRegisterTypes = ['import'];
+      const rkeMachineTypes = [];
+      //'amazonec2', 'azure', 'digitalocean', 'linode', 'vsphere'];
+      
+      // TODO: Sort
+      // TODO: Can list refresh when the node drivers are activated/deactivated in another session?
+      this.nodeDrivers.forEach(nd => {
+        if (nd.spec.active) {
+          rkeMachineTypes.push(nd.id);
+        }
+      })
 
       kontainerTypes.forEach((id) => {
         addType(id, 'kontainer', true);
@@ -116,18 +137,26 @@ export default {
           addType(id, 'template', true);
         });
 
-        machineTypes.forEach((id) => {
-          addType(id, 'machine', false);
-        });
+        // RKE2
+        if (!this.showRKE) {
+          machineTypes.forEach((id) => {
+            addType(id, 'machine', false);
+          });
 
-        customTypes.forEach((id) => {
-          addType(id, 'custom', false);
-        });
+          customTypes.forEach((id) => {
+            addType(id, 'custom', false);
+          });
+        } else {
+          // RKE
+          rkeMachineTypes.forEach((id) => {
+            addType(id, 'machine1', false, `add/launch/${id}`);
+          });
+        }
       }
 
       return out;
 
-      function addType(id, group, disabled) {
+      function addType(id, group, disabled, link) {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         let icon = require('~/assets/images/generic-driver.svg');
@@ -145,6 +174,7 @@ export default {
           icon,
           group,
           disabled,
+          link
         };
 
         out.push(subtype);
@@ -184,6 +214,11 @@ export default {
     clickedType(obj) {
       const id = obj.id;
 
+      if (obj.link) {
+        console.log(obj);
+        return;
+      }
+
       this.$router.applyQuery({ [SUB_TYPE]: id });
       this.selectType(id);
     },
@@ -215,6 +250,9 @@ export default {
     @error="e=>errors = e"
   >
     <template #subtypes>
+      <div>
+        <Checkbox class="rke-switch" v-model="showRKE" label="Legacy RKE" />
+      </div>
       <div v-for="obj in groupedSubTypes" :key="obj.id" class="mb-20" style="width: 100%;">
         <h4>
           {{ obj.label }}
@@ -248,3 +286,10 @@ export default {
     </template>
   </CruResource>
 </template>
+<style lang='scss'>
+  .rke-switch {
+    // TODO
+    position: absolute;
+    right: 20px;
+  }
+</style>
