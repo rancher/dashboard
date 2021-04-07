@@ -483,18 +483,18 @@ export default {
 
           <template slot="popover" class="asdasd">
             <div class="filter-popup">
-            <LabeledSelect
-              v-model="range"
-              class="range"
-              :label="t('wm.containerLogs.range.label')"
-              :options="rangeOptions"
-              :clearable="false"
-              placement="top"
-              @input="toggleRange($event)"
-            />
-            <div><Checkbox :label="t('wm.containerLogs.previous')" :value="previous" @input="togglePrevious" /></div>
-            <div><Checkbox :label="t('wm.containerLogs.wrap')" :value="wrap" @input="toggleWrap " /></div>
-            <div><Checkbox :label="t('wm.containerLogs.timestamps')" :value="timestamps" @input="toggleTimestamps" /></div>
+              <LabeledSelect
+                v-model="range"
+                class="range"
+                :label="t('wm.containerLogs.range.label')"
+                :options="rangeOptions"
+                :clearable="false"
+                placement="top"
+                @input="toggleRange($event)"
+              />
+              <div><Checkbox :label="t('wm.containerLogs.previous')" :value="previous" @input="togglePrevious" /></div>
+              <div><Checkbox :label="t('wm.containerLogs.wrap')" :value="wrap" @input="toggleWrap " /></div>
+              <div><Checkbox :label="t('wm.containerLogs.timestamps')" :value="timestamps" @input="toggleTimestamps" /></div>
             </div>
           </template>
         </v-popover>
