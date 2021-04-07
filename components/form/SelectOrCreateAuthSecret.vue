@@ -82,10 +82,16 @@ export default {
 
     let selected = _NONE;
 
-    if ( this.value && typeof this.value === 'object' ) {
-      selected = `${ this.value.namespace }/${ this.value.name }`;
-    } else if ( this.value ) {
-      selected = this.value;
+    if ( this.value ) {
+      if ( typeof this.value === 'object' ) {
+        selected = `${ this.value.namespace }/${ this.value.name }`;
+      } else if ( this.value.includes('/') ) {
+        selected = this.value;
+      } else if ( this.namespace ) {
+        selected = `${ this.namespace }/${ this.value }`;
+      } else {
+        selected = this.value;
+      }
     }
 
     this.selected = selected;

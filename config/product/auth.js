@@ -2,6 +2,7 @@ import { DSL } from '@/store/type-map';
 // import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
 import { MANAGEMENT, NORMAN, RBAC } from '@/config/types';
 import { GROUP_NAME, GROUP_ROLE_NAME } from '@/config/table-headers';
+import { uniq } from '@/utils/array';
 
 export const NAME = 'auth';
 
@@ -78,26 +79,47 @@ export function init(store) {
         return [];
       }
 
-      // Groups are a list of principals filtered via those that have group roles bound to them
-      const principals = await store.dispatch('rancher/findAll', {
+      // Ensure we upfront load principals (saves making individual requests later)
+      await store.dispatch('rancher/findAll', {
         type: NORMAN.PRINCIPAL,
         opt:  { url: '/v3/principals' }
       });
+
+      // getInstances should return a list of principals that have global bindings.
+      // It would be easier to just filter principals from above by those with bindings...
+      // .. however the principals list from above is NOT complete and misses some that have bindings (seen when using AD)
+      // So flip the logic and fetch any principal that's missing from the principal list
 
       const globalRoleBindings = await store.dispatch('management/findAll', {
         type: RBAC.GLOBAL_ROLE_BINDING,
         opt:  { force: true }
       });
 
-      // Up front fetch all global roles, instead of individually when needed (results in many duplicated requests)
-      await store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE });
+      const uniquePrincipalIds = uniq(globalRoleBindings
+        .filter(grb => !!grb.groupPrincipalName)
+        .map(grb => grb.groupPrincipalName)
+      );
 
-      return principals
-        .filter(principal => principal.principalType === 'group' &&
-          !!globalRoleBindings.find(globalRoleBinding => globalRoleBinding.groupPrincipalName === principal.id)
-        )
-        .map(principal => ({
-          ...principal,
+      const allPrincipalsP = uniquePrincipalIds
+        .map(async(pId) => {
+          // Guard against principals that aren't retrievable (bindings to principals from previous auth providers)
+          try {
+            return await store.dispatch('rancher/find', {
+              type: NORMAN.PRINCIPAL,
+              opt:  { url: `/v3/principals/${ encodeURIComponent(pId) }` },
+              id:   pId
+            });
+          } catch (e) {
+            console.warn(`Failed to fetch Principal with id: '${ pId }'`, e); // eslint-disable-line no-console
+          }
+        });
+
+      const allPrincipals = await Promise.all(allPrincipalsP);
+
+      return allPrincipals
+        .filter(p => !!p)
+        .map(p => ({
+          ...p,
           type: NORMAN.SPOOFED.GROUP_PRINCIPAL
         }));
     }

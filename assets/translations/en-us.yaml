@@ -513,6 +513,7 @@ catalog:
   install:
     action:
       goToUpgrade: Edit/Upgrade
+      ignoreWarning: Continue Anyways
     appReadmeGeneric: This chart doesn't have a Rancher-specific README.  Review the Helm README to learn more about the available configuration options and their usage.
     chart: Chart
     error:
@@ -548,6 +549,7 @@ catalog:
             other { seconds }
           }
       wait: Wait
+    namespaceIsInProject: "This chart's target namespace, <code>{namespace}</code>, already exists and cannot be added to a different project."
     project: Install into Project
     section:
       appReadme: README

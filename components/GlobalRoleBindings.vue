@@ -215,7 +215,8 @@ export default {
         globalRoleName: role,
       })));
 
-      await Promise.all(newBindings.map(newBinding => newBinding.save()));
+      // Save all changes (and ensure user isn't logged out if they don't have permissions to make a change)
+      await Promise.all(newBindings.map(newBinding => newBinding.save({ redirectUnauthorized: false })));
     },
     async saveRemovedRoles() {
       const existingBindings = await Promise.all(this.roleChanges.removeBindings.map(bindingId => this.$store.dispatch('management/find', {
@@ -223,7 +224,8 @@ export default {
         id:   bindingId
       })));
 
-      await Promise.all(existingBindings.map(existingBinding => existingBinding.remove()));
+      // Save all changes (and ensure user isn't logged out if they don't have permissions to make a change)
+      await Promise.all(existingBindings.map(existingBinding => existingBinding.remove({ redirectUnauthorized: false })));
     },
     /**
      * userId is optional, used when a user has just been created

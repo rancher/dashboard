@@ -39,6 +39,12 @@ platform:
   arch: amd64
 
 steps:
+- name: gate
+  pull: default
+  image: node:12
+  commands:
+  - ./scripts/build-upload-gate
+
 - name: docker-image
   image: plugins/docker
   settings:
@@ -100,6 +106,12 @@ steps:
   image: node:12
   commands:
   - ./scripts/build-hosted
+
+- name: upload-gate
+  pull: default
+  image: node:12
+  commands:
+  - ./scripts/build-upload-gate
 
 - name: upload
   pull: default
@@ -207,6 +219,12 @@ steps:
   image: node:12
   commands:
   - ./scripts/build-embedded
+
+- name: upload-gate
+  pull: default
+  image: node:12
+  commands:
+  - ./scripts/build-upload-gate
 
 - name: upload
   pull: default

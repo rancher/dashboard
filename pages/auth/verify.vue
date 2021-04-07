@@ -54,7 +54,7 @@ export default {
   data() {
     const stateJSON = this.$route.query[GITHUB_NONCE] || '';
 
-    let parsed;
+    let parsed = {};
 
     try {
       parsed = JSON.parse(base64Decode(stateJSON));

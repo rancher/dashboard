@@ -88,6 +88,12 @@ export default {
       showAsForm:    this.$route.query[AS] !== _YAML,
       resourceYaml:  yaml,
       initialYaml:   yaml,
+      abbrSizes:     {
+        3: '24px',
+        4: '18px',
+        5: '16px',
+        6: '14px'
+      }
     };
   },
 
@@ -233,7 +239,7 @@ export default {
                         class="banner-abbrv"
                       >
                         <span v-if="$store.getters['i18n/exists'](subtype.bannerAbbrv)">{{ t(subtype.bannerAbbrv) }}</span>
-                        <span v-else>{{ subtype.bannerAbbrv }}</span>
+                        <span v-else :style="{fontSize: abbrSizes[subtype.bannerAbbrv.length]}">{{ subtype.bannerAbbrv }}</span>
                       </div>
                       <div v-else>
                         {{ subtype.id.slice(0, 1).toUpperCase() }}
@@ -247,9 +253,9 @@ export default {
                     ></span>
                     <span v-else>{{ subtype.label }}</span>
                   </h5>
-                  <a href="" target="_blank" rel="noopener nofollow" class="flex-right">More Info <i class="icon icon-external-link" /></a>
+                  <a v-if="subtype.docLink" :href="subtype.docLink" target="_blank" rel="noopener nofollow" class="flex-right">More Info <i class="icon icon-external-link" /></a>
                 </div>
-                <hr />
+                <hr v-if="subtype.description" />
                 <div v-if="subtype.description" class="description">
                   <span
                     v-if="$store.getters['i18n/exists'](subtype.description)"

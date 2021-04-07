@@ -23,7 +23,7 @@ import { CATALOG, MANAGEMENT } from '@/config/types';
 import {
   REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT, _FLAGGED, FORCE,
 } from '@/config/query-params';
-import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
+import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION, PROJECT } from '@/config/labels-annotations';
 import { exceptionToErrorsArray, stringify } from '@/utils/error';
 import { clone, diff, get, set } from '@/utils/object';
 import { findBy, insertAt } from '@/utils/array';
@@ -68,6 +68,11 @@ export default {
     this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
       id:   'system-default-registry'
+    });
+
+    this.serverUrlSetting = await this.$store.dispatch('management/find', {
+      type: MANAGEMENT.SETTING,
+      id:   'server-url'
     });
 
     const repoType = query[REPO_TYPE];
@@ -153,6 +158,19 @@ export default {
       }
     }
 
+    if (this.forceNamespace && !this.existing) {
+      let ns;
+
+      try {
+        ns = await this.$store.dispatch('cluster/find', { type: NAMESPACE, id: this.forceNamespace });
+        const project = ns.metadata.annotations[PROJECT];
+
+        if (project) {
+          this.project = project.replace(':', '/');
+        }
+      } catch {}
+    }
+
     if ( !this.chart ) {
       return;
     }
@@ -220,6 +238,8 @@ export default {
         }
       }
     }
+
+    this.warnings = [];
 
     if ( this.existing || query[FORCE] === _FLAGGED ) {
       // Ignore the limits on upgrade (or if asked by query) and don't show any warnings
@@ -294,6 +314,7 @@ export default {
       showHidden:             false,
       showDeprecated:         false,
       defaultRegistrySetting: null,
+      serverUrlSetting:       null,
       chart:                  null,
       chartValues:            null,
       originalYamlValues:     null,
@@ -350,7 +371,7 @@ export default {
     },
 
     showProject() {
-      return this.isRancher && !this.existing && this.namespaceIsNew;
+      return this.isRancher && !this.existing && this.forceNamespace;
     },
 
     projectOpts() {
@@ -368,7 +389,7 @@ export default {
       out.unshift({
         id:    'none',
         label: '(None)',
-        value: null,
+        value: '',
       });
 
       return out;
@@ -469,7 +490,7 @@ export default {
       } = this;
       const versions = this.chart?.versions || [];
       const selectedVersion = this.version?.version;
-      const clusterProvider = currentCluster.status.provider || 'other';
+      const isWindows = currentCluster.providerOs === 'windows';
       const out = [];
 
       versions.forEach((version) => {
@@ -482,13 +503,13 @@ export default {
         if ( version?.annotations?.[catalogOSAnnotation] === 'windows' ) {
           nue.label = this.t('catalog.install.versions.windows', { ver: version.version });
 
-          if (clusterProvider !== 'rke.windows') {
+          if ( !isWindows ) {
             nue.disabled = true;
           }
         } else if ( version?.annotations?.[catalogOSAnnotation] === 'linux' ) {
           nue.label = this.t('catalog.install.versions.linux', { ver: version.version });
 
-          if (clusterProvider === 'rke.windows') {
+          if ( isWindows ) {
             nue.disabled = true;
           }
         }
@@ -512,6 +533,18 @@ export default {
         this.$fetch();
       }
     },
+
+    'value.metadata.namespace'(neu, old) {
+      if (neu) {
+        const ns = this.$store.getters['cluster/byId'](NAMESPACE, this.value.metadata.namespace);
+
+        const project = ns?.metadata.annotations[PROJECT];
+
+        if (project) {
+          this.project = project.replace(':', '/');
+        }
+      }
+    }
   },
 
   mounted() {
@@ -595,6 +628,10 @@ export default {
 
     undiff() {
       this.showDiff = false;
+    },
+
+    ignoreWarning() {
+      this.$router.applyQuery({ [FORCE]: _FLAGGED });
     },
 
     cancel(reallyCancel) {
@@ -683,11 +720,18 @@ export default {
 
       const cluster = this.$store.getters['currentCluster'];
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
+      const serverUrl = this.serverUrlSetting?.value || '';
+      const isWindows = cluster.providerOs === 'windows';
 
       setIfNotSet(cattle, 'clusterId', cluster.id);
       setIfNotSet(cattle, 'clusterName', cluster.nameDisplay);
       setIfNotSet(cattle, 'systemDefaultRegistry', defaultRegistry);
       setIfNotSet(global, 'systemDefaultRegistry', defaultRegistry);
+      setIfNotSet(cattle, 'url', serverUrl);
+
+      if ( isWindows ) {
+        setIfNotSet(cattle, 'windows.enabled', true);
+      }
 
       return values;
 
@@ -705,17 +749,30 @@ export default {
 
       const cluster = this.$store.getters['currentCluster'];
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
-
-      deleteIfEqual(values, 'systemDefaultRegistry', defaultRegistry);
+      const serverUrl = this.serverUrlSetting?.value || '';
+      const isWindows = cluster.providerOs === 'windows';
 
       if ( values.global?.cattle ) {
         deleteIfEqual(values.global.cattle, 'clusterId', cluster.id);
         deleteIfEqual(values.global.cattle, 'clusterName', cluster.nameDisplay);
         deleteIfEqual(values.global.cattle, 'systemDefaultRegistry', defaultRegistry);
+        deleteIfEqual(values.global.cattle, 'url', serverUrl);
+
+        if ( isWindows ) {
+          deleteIfEqual(values.global.cattle.windows, 'enabled', true);
+        }
+      }
+
+      if ( values.global?.cattle.windows && !Object.keys(values.global.cattle.windows).length ) {
+        delete values.global.cattle.windows;
       }
 
       if ( values.global?.cattle && !Object.keys(values.global.cattle).length ) {
         delete values.global.cattle;
+      }
+
+      if ( values.global ) {
+        deleteIfEqual(values.global, 'systemDefaultRegistry', defaultRegistry);
       }
 
       if ( !Object.keys(values.global || {}).length ) {
@@ -898,6 +955,9 @@ export default {
       </Banner>
 
       <div class="mt-20 text-center">
+        <button v-if="warnings.length" type="button" class="btn bg-error" @click="ignoreWarning">
+          <t k="catalog.install.action.ignoreWarning" />
+        </button>
         <button type="button" class="btn role-primary" @click="cancel">
           <t k="generic.cancel" />
         </button>
@@ -948,7 +1008,16 @@ export default {
           :extra-columns="showProject ? ['project'] : []"
         >
           <template v-if="showProject" #project>
-            <LabeledSelect v-model="project" :label="t('catalog.install.project')" option-key="id" :options="projectOpts" />
+            <LabeledSelect
+              v-model="project"
+              :disabled="!namespaceIsNew"
+              :label="t('catalog.install.project')"
+              option-key="id"
+              :options="projectOpts"
+              :tooltip="!namespaceIsNew ? t('catalog.install.namespaceIsInProject', {namespace: value.metadata.namespace}, true) : ''"
+              :hover-tooltip="!namespaceIsNew"
+              :status="'info'"
+            />
           </template>
         </NameNsDescription>
 
