@@ -151,6 +151,9 @@ export default {
   },
 
   _availableActions() {
+    const toFilter = ['download'];
+    const out = this._standardActions.filter(action => !toFilter.includes(action.action));
+
     return [
       {
         action:     'activate',
@@ -177,7 +180,7 @@ export default {
         enabled: this.canRefreshAccess
       },
       { divider: true },
-      ...this._standardActions,
+      ...out,
     ];
   },
 
