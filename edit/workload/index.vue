@@ -121,7 +121,8 @@ export default {
       spec,
       type,
       servicesOwned:     [],
-      servicesToRemove:    []
+      servicesToRemove:    [],
+      portsForServices:  []
     };
   },
 
@@ -415,9 +416,7 @@ export default {
 
   created() {
     this.registerBeforeHook(this.saveWorkload, 'willSaveWorkload');
-    this.registerBeforeHook(this.saveService, 'saveService');
-    this.registerAfterHook(this.setOwnerRef, 'setOwnerRef');
-    this.registerAfterHook(this.removeService, 'removeService');
+    this.registerAfterHook(this.saveService, 'saveService');
   },
 
   methods: {
@@ -440,61 +439,22 @@ export default {
     },
 
     async saveService() {
-      const { toSave = [], toRemove = [] } = await this.value.servicesFromContainerPorts(this.mode);
+      const { toSave = [], toRemove = [] } = await this.value.servicesFromContainerPorts(this.mode, this.portsForServices) || {};
 
       this.servicesOwned = toSave;
       this.servicesToRemove = toRemove;
 
-      if (!toSave.length) {
+      if (!toSave.length && !toRemove.length) {
         return;
       }
 
-      return Promise.all(toSave.map(svc => svc.save()));
-    },
-
-    removeService() {
-      if (!this.servicesToRemove) {
-        return;
-      }
-
-      return Promise.all(this.servicesToRemove.map((svc) => {
+      return Promise.all([...toSave.map(svc => svc.save()), ...toRemove.map((svc) => {
         const ui = svc?.metadata?.annotations[UI_MANAGED];
 
         if (ui) {
           svc.remove();
         }
-      }));
-    },
-
-    setOwnerRef() {
-      if (!this.servicesOwned.length ) {
-        return;
-      }
-
-      const ownerRef = {
-        apiVersion: this.value.apiVersion,
-        controller: true,
-        kind:       this.value.kind,
-        name:       this.value.metadata.name,
-        uid:        this.value.metadata.uid
-      };
-
-      this.servicesOwned.forEach((svc) => {
-        const id = `${ svc.metadata.namespace }/${ svc.metadata.name }`;
-
-        try {
-          this.$store.dispatch('cluster/find', {
-            type:     SERVICE,
-            id,
-            opt:  { force: true }
-          }).then((svc) => {
-            if (!svc.metadata.ownerReferences) {
-              svc.metadata.ownerReferences = [ownerRef];
-            }
-            svc.save();
-          });
-        } catch {}
-      });
+      })]);
     },
 
     saveWorkload() {
@@ -531,6 +491,11 @@ export default {
       if (!this.container.name || this.mode === _CREATE) {
         this.$set(this.container, 'name', this.value.metadata.name);
       }
+
+      const { ports = [] } = this.value.container;
+
+      // ports contain info used to create services after saving
+      this.portsForServices = ports.filter(port => port._serviceType && port._serviceType !== '');
 
       Object.assign(this.value, { spec: this.spec });
     },
