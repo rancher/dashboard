@@ -374,7 +374,7 @@ export default {
   },
 
   promptUpdate({ commit, state }, resources = []) {
-    commit('action-menu/togglePromptUpdate', { resources }, { root: true });
+    commit('action-menu/togglePromptUpdate', resources, { root: true });
   },
 
   async collectionAction({ getters, dispatch }, {
