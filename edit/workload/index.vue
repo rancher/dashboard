@@ -435,13 +435,6 @@ export default {
       delete this.value.apiVersion;
     },
 
-    errors(neu, old) {
-      // svc creation happened before workload, so if something went wrong with workload creation, svc should be deleted
-      if (neu && neu.length) {
-        this.cleanUpServices();
-      }
-    },
-
     isInitContainer(neu) {
       if (!this.container) {
         return;
@@ -467,6 +460,8 @@ export default {
 
   created() {
     this.registerBeforeHook(this.saveWorkload, 'willSaveWorkload');
+    this.registerBeforeHook(this.getPorts, 'getPorts');
+
     this.registerAfterHook(this.saveService, 'saveService');
   },
 
@@ -487,6 +482,12 @@ export default {
 
     cancel() {
       this.done();
+    },
+
+    async getPorts() {
+      const ports = await this.value.getPortsWithServiceType() || [];
+
+      this.portsForServices = ports;
     },
 
     async saveService() {
@@ -553,11 +554,17 @@ export default {
         Object.assign(existing, this.container);
       }
 
-      const { ports = [] } = this.value.container;
+      // const { ports = [] } = this.value.container
+      const ports = this.value.containers.reduce((total, each) => {
+        const containerPorts = each.ports || [];
+
+        total.push(...containerPorts.filter(port => port._serviceType && port._serviceType !== ''));
+
+        return total;
+      }, []);
 
       // ports contain info used to create services after saving
-      this.portsForServices = ports.filter(port => port._serviceType && port._serviceType !== '');
-
+      this.portsForServices = ports;
       Object.assign(this.value, { spec: this.spec });
     },
 
@@ -626,20 +633,6 @@ export default {
       } else {
         this.type = type;
       }
-    },
-
-    cleanUpServices() {
-      (this.servicesOwned || []).forEach((svc) => {
-        try {
-          this.$store.dispatch('cluster/find', { type: SERVICE, id: `${ svc.metadata.namespace }/${ svc.metadata.name }` }).then((svc) => {
-            const ui = svc?.metadata?.annotations[UI_MANAGED];
-
-            if (ui) {
-              svc.remove();
-            }
-          });
-        } catch {}
-      });
     },
 
     selectContainer(container) {

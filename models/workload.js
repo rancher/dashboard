@@ -1,9 +1,8 @@
-import { insertAt } from '@/utils/array';
+import { findBy, insertAt } from '@/utils/array';
 import { TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED } from '@/config/labels-annotations';
 import { WORKLOAD_TYPES, SERVICE } from '@/config/types';
 import { clone, get, set } from '@/utils/object';
 import day from 'dayjs';
-import { _CREATE } from '@/config/query-params';
 
 export default {
   // remove clone as yaml/edit as yaml until API supported
@@ -282,14 +281,78 @@ export default {
     };
   },
 
+  // match existing container ports with services created for this workload
+  getPortsWithServiceType() {
+    return async() => {
+      const ports = [];
+
+      this.containers.forEach(container => ports.push(...(container.ports || [])));
+      (this.initContainers || []).forEach(container => ports.push(...(container.ports || [])));
+
+      const services = await this.getServicesOwned();
+      const clusterIPServicePorts = [];
+      const loadBalancerServicePorts = [];
+      const nodePortServicePorts = [];
+
+      if (services.length) {
+        services.forEach((svc) => {
+          switch (svc.spec.type) {
+          case 'ClusterIP':
+            clusterIPServicePorts.push(...(svc?.spec?.ports || []));
+            break;
+          case 'LoadBalancer':
+            loadBalancerServicePorts.push(...(svc?.spec?.ports || []));
+            break;
+          case 'NodePort':
+            nodePortServicePorts.push(...(svc?.spec?.ports || []));
+            break;
+          default:
+            break;
+          }
+        });
+      }
+      ports.forEach((port) => {
+        const name = port.name ? port.name : `${ port.containerPort }${ port.protocol.toLowerCase() }${ port.hostPort || port._listeningPort || '' }`;
+
+        port.name = name;
+        if (loadBalancerServicePorts.length) {
+          const portSpec = findBy(loadBalancerServicePorts, 'name', name);
+
+          if (portSpec) {
+            port._listeningPort = portSpec.port;
+
+            port._serviceType = 'LoadBalancer';
+
+            return;
+          }
+        } if (nodePortServicePorts.length) {
+          const portSpec = findBy(nodePortServicePorts, 'name', name);
+
+          if (portSpec) {
+            port._listeningPort = portSpec.nodePort;
+
+            port._serviceType = 'NodePort';
+
+            return;
+          }
+        } if (clusterIPServicePorts.length) {
+          if (findBy(clusterIPServicePorts, 'name', name)) {
+            port._serviceType = 'ClusterIP';
+          }
+        }
+      });
+
+      return ports;
+    };
+  },
+
   // create clusterip, nodeport, loadbalancer services from container port spec
   servicesFromContainerPorts() {
     return async(mode, ports) => {
-      if (!ports || !ports.length) {
+      if (!ports.length) {
         return;
       }
 
-<<<<<<< HEAD
       const ownerRef = {
         apiVersion: this.apiVersion,
         controller: true,
@@ -297,12 +360,6 @@ export default {
         name:       this.metadata.name,
         uid:        this.metadata.uid
       };
-=======
-      const ports = [];
-
-      this.containers.forEach(container => ports.push(...(container.ports || [])));
-      (this.initContainers || []).forEach(container => ports.push(...(container.ports || [])));
->>>>>>> create/edit/remove sidecars init container
 
       let clusterIP = {
         type: SERVICE,
@@ -350,34 +407,32 @@ export default {
         },
       };
 
-      if (mode !== _CREATE) {
-        const existing = await this.getServicesOwned();
+      const existing = await this.getServicesOwned();
 
-        if (existing && existing.length) {
-          existing.forEach((service) => {
-            switch (service.spec.type) {
-            case 'ClusterIP':
-              clusterIP = service;
-              clusterIP.spec.ports = [];
-              break;
-            case 'NodePort':
-              nodePort = service;
-              nodePort.spec.ports = [];
-              break;
-            case 'LoadBalancer':
-              loadBalancer = service;
-              loadBalancer.spec.ports = [];
-            }
-          });
-        }
+      if (existing && existing.length) {
+        existing.forEach((service) => {
+          switch (service.spec.type) {
+          case 'ClusterIP':
+            clusterIP = service;
+            clusterIP.spec.ports = [];
+            break;
+          case 'NodePort':
+            nodePort = service;
+            nodePort.spec.ports = [];
+            break;
+          case 'LoadBalancer':
+            loadBalancer = service;
+            loadBalancer.spec.ports = [];
+            break;
+          default:
+            break;
+          }
+        });
       }
 
       ports.forEach((port) => {
-        const name = port.name ? `${ port.name }` : `${ port.containerPort }${ port.protocol.toLowerCase() }${ port.hostPort || port._listeningPort || '' }`;
-
-        port.name = name;
         const portSpec = {
-          name, protocol: port.protocol, port: port.containerPort, targetPort: port.containerPort
+          name: port.name, protocol: port.protocol, port: port.containerPort, targetPort: port.containerPort
         };
 
         if (port._serviceType !== '') {
@@ -446,6 +501,7 @@ export default {
       } else if (loadBalancer.id) {
         toRemove.push(loadBalancer);
       }
+      console.log('saving: ', toSave, 'removing: ', toRemove);
 
       return { toSave, toRemove };
     };
