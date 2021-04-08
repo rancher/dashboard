@@ -13,6 +13,7 @@ import { ucFirst } from '@/utils/string';
 import SortableTable from '@/components/SortableTable';
 import { _DETAIL } from '@/config/query-params';
 import { SUBTYPE_MAPPING, VERBS } from '@/models/management.cattle.io.roletemplate';
+import Loading from '@/components/Loading';
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 
@@ -37,7 +38,8 @@ export default {
     NameNsDescription,
     Tab,
     Tabbed,
-    SortableTable
+    SortableTable,
+    Loading,
   },
 
   mixins: [CreateEditView],
@@ -54,7 +56,7 @@ export default {
 
   data() {
     this.$set(this.value, 'rules', this.value.rules || []);
-    this.$set(this.value, 'roleTemplateIds', this.value.roleTemplateIds || []);
+    this.$set(this.value, 'roleTemplateNames', this.value.roleTemplateNames || []);
     this.$set(this.value, 'newUserDefault', !!this.value.newUserDefault);
     this.$set(this.value, 'locked', !!this.value.locked);
 
@@ -139,23 +141,7 @@ export default {
     },
     // Detail View
     rules() {
-      return this.value.rules.map((rule, i) => {
-        const tableRule = {
-          index:           i,
-          apiGroups:       rule.apiGroups || [],
-          resources:       rule.resources || [],
-          nonResourceURLs: rule.nonResourceURLs || []
-        };
-
-        VERBS.forEach((verb) => {
-          const key = this.verbKey(verb);
-
-          tableRule[key] = rule.verbs[0] === '*' || rule.verbs.includes(verb);
-          tableRule.hasCustomVerbs = rule.verbs.some(verb => !VERBS.includes(verb));
-        });
-
-        return tableRule;
-      });
+      return this.createRules(this.value);
     },
     ruleHeaders() {
       const verbHeaders = VERBS.map(verb => ({
@@ -195,6 +181,9 @@ export default {
           formatter: 'list',
         }
       ];
+    },
+    inheritedRules() {
+      return this.createInheritedRules(this.value, [], false);
     }
   },
 
@@ -242,13 +231,55 @@ export default {
     // Detail View
     verbKey(verb) {
       return `has${ ucFirst(verb) }`;
+    },
+    createRules(role) {
+      return (role.rules || []).map((rule, i) => {
+        const tableRule = {
+          index:           i,
+          apiGroups:       rule.apiGroups || [],
+          resources:       rule.resources || [],
+          nonResourceURLs: rule.nonResourceURLs || []
+        };
+
+        VERBS.forEach((verb) => {
+          const key = this.verbKey(verb);
+
+          tableRule[key] = rule.verbs[0] === '*' || rule.verbs.includes(verb);
+          tableRule.hasCustomVerbs = rule.verbs.some(verb => !VERBS.includes(verb));
+        });
+
+        return tableRule;
+      });
+    },
+    createInheritedRules(parent, res = [], showParent = true) {
+      if (!parent.roleTemplateNames) {
+        return [];
+      }
+
+      parent.roleTemplateNames
+        .map(rtn => this.$store.getters[`management/byId`](MANAGEMENT.ROLE_TEMPLATE, rtn))
+        .forEach((rt) => {
+          // Add Self
+          res.push({
+            showParent,
+            parent,
+            template: rt,
+            rules:    this.createRules(rt)
+          });
+          // Add inherited
+          this.createInheritedRules(rt, res);
+        });
+
+      return res;
     }
   }
 };
 </script>
 
 <template>
+  <Loading v-if="$fetchState.pending" />
   <CruResource
+    v-else
     class="receiver"
     :can-yaml="!isCreate"
     :mode="mode"
@@ -268,6 +299,23 @@ export default {
         :row-actions="false"
         :search="false"
       />
+      <div v-for="(inherited, index) of inheritedRules" :key="index">
+        <div class="spacer"></div>
+        <h3>
+          Inherited from {{ inherited.template.nameDisplay }}
+          <template v-if="inherited.showParent">
+            {{ inherited.parent ? '(' + inherited.parent.nameDisplay + ')' : '' }}
+          </template>
+        </h3>
+        <SortableTable
+          key-field="index"
+          :rows="inherited.rules"
+          :headers="ruleHeaders"
+          :table-actions="false"
+          :row-actions="false"
+          :search="false"
+        />
+      </div>
     </template>
     <template v-else>
       <NameNsDescription
@@ -383,7 +431,7 @@ export default {
           :weight="0"
         >
           <ArrayList
-            v-model="value.roleTemplateIds"
+            v-model="value.roleTemplateNames"
             label="Resources"
             add-label="Add Resource"
             :mode="mode"
