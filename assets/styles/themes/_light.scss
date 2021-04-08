@@ -79,6 +79,11 @@ $selected: rgba($primary, .5);
   --footer-bg                  : transparent;
   --footer-height              : 0px;
 
+  --topmenu-bg                 : #{$lightest};
+  --topmost-border             : #d8d8d8;;
+  --topmost-shadow             : #{lighten($lightest, 10%)};
+  --topmost-light-hover        : #{$light};
+
   --disabled-bg                : #{$disabled};
   --disabled-text              : #{$secondary};
   --box-bg                     : #{$lighter};

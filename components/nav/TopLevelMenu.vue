@@ -371,7 +371,7 @@ export default {
     position: absolute;
     left: 0;
     width: 55px;
-    height: 55px;
+    height: 54px;
     top: 0;
     grid-area: menu;
     cursor: pointer;
@@ -379,7 +379,8 @@ export default {
     align-items: center;
     justify-content: center;
     &:hover {
-      background-color: #eee;
+      // TODO
+      background-color: var(--topmost-light-hover);
     }
     .menu-icon {
       width: 24px;
@@ -397,10 +398,10 @@ export default {
     left: 0px;
     height: 100vh;
     width: 280px;
-    background-color: #fff;
+    background-color: var(--topmenu-bg);
     z-index: 100;
-    border-right: 1px solid #e0e0e0;
-    box-shadow: 0 0 15px 4px #eee;
+    border-right: 1px solid var(--topmost-border);
+    box-shadow: 0 0 15px 4px var(--topmost-shadow);
     display: flex;
     flex-direction: column;
     padding: 0;
@@ -414,7 +415,7 @@ export default {
       height: 55px;
       flex: 0 0 55px;
       width: 100%;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid var(--nav-border);
       justify-content: flex-start;
       align-items: center;
       .menu {

@@ -100,7 +100,7 @@ export default {
         </div>
       </div>
     </div>
-    <div v-else>
+    <div v-else class="simple-title">
       <img class="side-menu-logo" src="~/assets/images/pl/rancher-logo.svg" width="110" />
       <div class="title">
         DASHBOARD
@@ -141,7 +141,7 @@ export default {
       </button>
     </div>
 
-    <div class="cluster"></div>
+    <div class="spacer"></div>
 
     <div class="user user-menu" tabindex="0" @blur="showMenu(false)" @click="showMenu(true)" @focus.capture="showMenu(true)">
       <v-popover
@@ -221,12 +221,36 @@ export default {
       padding: 0 5px;
     }
 
-    .back, .import, .kubectl, .cluster, .user-menu {
+    .back {
       padding-top: 6px;
 
       > *:first-child {
         height: 40px;
       }
+    }
+
+    .import, .kubectl {
+      padding-top: 11.5px;
+      > *:first-child {
+        height: 32px;
+        > i {
+          line-height: 32px;
+        }
+      }
+    }
+
+    .simple-title {
+      align-items: center;
+      display: flex;
+
+      .title {
+        height: 24px;
+        line-height: 24px;
+      }
+    }
+
+    .user-menu {
+      padding-top: 9.5px;
     }
 
     ::v-deep > div > .btn.role-tertiary {
@@ -265,6 +289,7 @@ export default {
     .cluster {
       align-items: center;
       display: flex;
+      height: 32px;
       .cluster-os-logo {
         width: 32px;
         height: 32px;
@@ -277,8 +302,9 @@ export default {
 
     > .product {
       grid-area: product;
+      align-items: center;
       position: relative;
-      //display: block;
+      display: flex;
 
       .logo {
         height: 30px;
@@ -340,7 +366,7 @@ export default {
       width: 40px;
     }
 
-    > .cluster {
+    > .spacer {
       grid-area: cluster;
       background-color: var(--header-bg);
       position: relative;

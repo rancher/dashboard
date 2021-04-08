@@ -71,6 +71,11 @@
   --subtle-border: #{$darkest};
   --border: #{$medium};
 
+  --topmenu-bg: #{$darkest};
+  --topmost-border: #medium;
+  --topmost-shadow: #{lighten($darkest, 5%)};
+  --topmost-light-hover: #{$medium};
+
   --accent-btn: #{rgba($primary, 0.2)};
   --accent-btn-hover: #{rgba($primary, 0.5)};
   --modal-bg                   :#{$dark};
