@@ -80,19 +80,17 @@ export default {
   },
 
   watch: {
+    container() {
+      this.connect();
+    },
+
     height() {
       this.fit();
     }
   },
 
   beforeDestroy() {
-    if ( this.socket ) {
-      this.socket.disconnect();
-    }
-
-    if ( this.terminal ) {
-      this.terminal.dispose();
-    }
+    this.cleanup();
   },
 
   async mounted() {
@@ -218,7 +216,6 @@ export default {
       this.socket.addEventListener(EVENT_DISCONNECTED, (e) => {
         this.isOpen = false;
         this.isOpening = false;
-        this.$emit('close');
       });
 
       this.socket.addEventListener(EVENT_MESSAGE, (e) => {
@@ -234,11 +231,6 @@ export default {
 
       this.socket.connect();
       this.terminal.focus();
-    },
-
-    switchTo(container) {
-      this.container = container;
-      this.connect();
     },
 
     flush() {
@@ -271,12 +263,24 @@ export default {
 
       this.socket.send(message);
     },
+
+    cleanup() {
+      if ( this.socket ) {
+        this.socket.disconnect();
+        this.socket = null;
+      }
+
+      if ( this.terminal ) {
+        this.terminal.dispose();
+        this.terminal = null;
+      }
+    },
   }
 };
 </script>
 
 <template>
-  <Window :active="active">
+  <Window :active="active" :before-close="cleanup">
     <template #title>
       <Select
         v-if="containerChoices.length > 0"
@@ -286,7 +290,6 @@ export default {
         :options="containerChoices"
         :clearable="false"
         placement="top"
-        @input="switchTo($event)"
       >
         <template #selected-option="option">
           <t v-if="option" k="wm.containerShell.containerName" :label="option.label" />
