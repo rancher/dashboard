@@ -65,7 +65,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  $title-height: 60px;
+  $title-height: 50px;
 
   .window {
     display: grid;
