@@ -52,7 +52,7 @@ export default {
       model:         null,
       serverSetting: null,
       errors:        null,
-      originalModel: null
+      originalModel: null,
     };
   },
 
@@ -183,7 +183,7 @@ export default {
           await clone.save();
         }
         await this.reloadModel();
-
+        this.showLdap = false;
         btnCb(true);
       } catch (err) {
         this.errors = [err];
