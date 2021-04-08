@@ -199,10 +199,15 @@ export default {
     }
   },
 
+  watch: {
+    container() {
+      this.connect();
+    },
+  },
+
   beforeDestroy() {
     this.$refs.body.removeEventListener('scroll', this.boundUpdateFollowing);
-    this.socket.disconnect();
-    clearInterval(this.timerFlush);
+    this.cleanup();
   },
 
   async mounted() {
@@ -401,11 +406,6 @@ export default {
       el.scrollTop = el.scrollHeight;
     },
 
-    switchTo(container) {
-      this.container = container;
-      this.connect();
-    },
-
     toggleWrap(on) {
       this.wrap = on;
       this.$store.dispatch('prefs/set', { key: LOGS_WRAP, value: this.wrap });
@@ -435,12 +435,21 @@ export default {
 
       return day(time).format(this.timeFormatStr);
     },
+
+    cleanup() {
+      if ( this.socket ) {
+        this.socket.disconnect();
+        this.socket = null;
+      }
+
+      clearInterval(this.timerFlush);
+    },
   },
 };
 </script>
 
 <template>
-  <Window :active="active">
+  <Window :active="active" :before-close="cleanup">
     <template #title>
       <Select
         v-if="containerChoices.length > 0"
@@ -450,7 +459,6 @@ export default {
         :options="containerChoices"
         :clearable="false"
         placement="top"
-        @input="switchTo($event)"
       >
         <template #selected-option="option">
           <t v-if="option" k="wm.containerLogs.containerName" :label="option.label" />
