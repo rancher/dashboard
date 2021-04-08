@@ -27,7 +27,7 @@ export function base64Encode(string, alphabet = NORMAL) {
       '=': ''
     };
 
-    return buf.toString('base64').replace(/[+/]|=$/g, char => m[char]);
+    return buf.toString('base64').replace(/[+/]|=+$/g, char => m[char]);
   }
 
   return buf.toString('base64');
