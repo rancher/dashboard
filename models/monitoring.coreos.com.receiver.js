@@ -35,11 +35,13 @@ export const RECEIVERS_TYPES = [
     logo:  require(`~/assets/images/vendor/email.svg`)
   },
   {
-    name:  'webhook',
-    label: 'monitoringReceiver.webhook.label',
-    title: 'monitoringReceiver.webhook.title',
-    key:   'webhook_configs',
-    logo:  require(`~/assets/images/vendor/webhook.svg`)
+    name:         'webhook',
+    label:        'monitoringReceiver.webhook.label',
+    title:        'monitoringReceiver.webhook.title',
+    key:          'webhook_configs',
+    logo:         require(`~/assets/images/vendor/webhook.svg`),
+    banner:       'webhook.banner',
+    addButton:    'webhook.add'
   },
   {
     name:  'custom',
