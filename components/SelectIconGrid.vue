@@ -144,8 +144,6 @@ export default {
         position: absolute;
         top: 10px;
         right: 10px;
-        // min-width: calc(1.5 * var(--border-radius));
-        // width: $side;
         padding: 2px 10px;
 
         &.indicator {
