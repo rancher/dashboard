@@ -481,7 +481,7 @@ export default {
             <i class="icon icon-gear" />
           </button>
 
-          <template slot="popover" class="asdasd">
+          <template slot="popover">
             <div class="filter-popup">
               <LabeledSelect
                 v-model="range"
