@@ -1,5 +1,5 @@
 <script>
-import { NORMAN, RBAC } from '@/config/types';
+import { NORMAN, MANAGEMENT } from '@/config/types';
 
 export default {
   props:      {
@@ -12,14 +12,14 @@ export default {
 
     boundRoles() {
       const principal = this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.value);
-      const globalRoleBindings = this.$store.getters['management/all'](RBAC.GLOBAL_ROLE_BINDING);
+      const globalRoleBindings = this.$store.getters['management/all'](MANAGEMENT.GLOBAL_ROLE_BINDING);
 
       return globalRoleBindings
         // Bindings for this group
         .filter(globalRoleBinding => globalRoleBinding.groupPrincipalName === principal.id)
         // Display name of role associated with binding
         .map((binding) => {
-          const role = this.$store.getters['management/byId'](RBAC.GLOBAL_ROLE, binding.globalRoleName);
+          const role = this.$store.getters['management/byId'](MANAGEMENT.GLOBAL_ROLE, binding.globalRoleName);
 
           return {
             detailLocation: role.detailLocation,

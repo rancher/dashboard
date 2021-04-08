@@ -464,70 +464,20 @@ export const CLUSTER_CREATOR_DEFAULT = {
   formatter: 'IconIsDefault'
 };
 
-export const RBAC_HEADERS = [
-  {
-    name:      'create',
-    labelKey:  'tableHeaders.rbac.create',
-    value:     'create',
-    align:     'center',
-    formatter: 'IconIsDefault',
-  },
-  {
-    name:      'delete',
-    labelKey:  'tableHeaders.rbac.delete',
-    value:     'delete',
-    align:     'center',
-    formatter: 'IconIsDefault',
-  },
-  {
-    name:      'get',
-    labelKey:  'tableHeaders.rbac.get',
-    value:     'get',
-    align:     'center',
-    formatter: 'IconIsDefault',
-  },
-  {
-    name:      'list',
-    labelKey:  'tableHeaders.rbac.list',
-    value:     'list',
-    align:     'center',
-    formatter: 'IconIsDefault',
-  },
-  {
-    name:      'patch',
-    labelKey:  'tableHeaders.rbac.patch',
-    value:     'patch',
-    align:     'center',
-    formatter: 'IconIsDefault',
-  },
-  {
-    name:      'update',
-    labelKey:  'tableHeaders.rbac.update',
-    value:     'update',
-    align:     'center',
-    formatter: 'IconIsDefault',
-  },
-  {
-    name:      'watch',
-    labelKey:  'tableHeaders.rbac.watch',
-    value:     'watch',
-    align:     'center',
-    formatter: 'IconIsDefault',
-  }
-];
-
 export const RBAC_DEFAULT = {
   name:      'default',
   labelKey:  'tableHeaders.default',
   value:     'default',
-  formatter: 'Checked'
+  formatter: 'Checked',
+  sort:      ['default']
 };
 
 export const RBAC_BUILTIN = {
   name:      'builtin',
   labelKey:  'tableHeaders.builtin',
   value:     'builtin',
-  formatter: 'Checked'
+  formatter: 'Checked',
+  sort:      ['builtin']
 };
 
 export const RESOURCE = {

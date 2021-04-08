@@ -1,12 +1,15 @@
 import { DSL } from '@/store/type-map';
-// import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
-import { MANAGEMENT, NORMAN, RBAC } from '@/config/types';
-import { GROUP_NAME, GROUP_ROLE_NAME } from '@/config/table-headers';
+import { MANAGEMENT, NORMAN } from '@/config/types';
 import { uniq } from '@/utils/array';
+import {
+  GROUP_NAME, GROUP_ROLE_NAME,
+  RBAC_BUILTIN, RBAC_DEFAULT, STATE, NAME as HEADER_NAME, AGE, SIMPLE_NAME
+} from '@/config/table-headers';
 
 export const NAME = 'auth';
 
-const usersVirtualType = 'users';
+const USERS_VIRTUAL_TYPE = 'users';
+const ROLES_VIRTUAL_TYPE = 'roles';
 
 export function init(store) {
   const {
@@ -43,13 +46,14 @@ export function init(store) {
 
   virtualType({
     label:       store.getters['type-map/labelFor']({ id: MANAGEMENT.USER }, 2),
-    name:           usersVirtualType,
+    name:           USERS_VIRTUAL_TYPE,
     namespaced:     false,
     weight:         102,
     icon:           'user',
     route:          {
       name:   'c-cluster-product-resource',
       params: {
+        cluster:  'local',
         product:  NAME,
         resource: MANAGEMENT.USER,
       }
@@ -71,8 +75,8 @@ export function init(store) {
     ],
     getInstances: async() => {
       // Determine if the user can get fetch global roles & global role bindings. If not there's not much point in showing the table
-      const canFetchGlobalRoles = !!store.getters[`management/schemaFor`](RBAC.GLOBAL_ROLE);
-      const canFetchGlobalRoleBindings = !!store.getters[`management/schemaFor`](RBAC.GLOBAL_ROLE_BINDING);
+      const canFetchGlobalRoles = !!store.getters[`management/schemaFor`](MANAGEMENT.GLOBAL_ROLE);
+      const canFetchGlobalRoleBindings = !!store.getters[`management/schemaFor`](MANAGEMENT.GLOBAL_ROLE_BINDING);
 
       if (!canFetchGlobalRoles || !canFetchGlobalRoleBindings) {
         return [];
@@ -90,7 +94,7 @@ export function init(store) {
       // So flip the logic and fetch any principal that's missing from the principal list
 
       const globalRoleBindings = await store.dispatch('management/findAll', {
-        type: RBAC.GLOBAL_ROLE_BINDING,
+        type: MANAGEMENT.GLOBAL_ROLE_BINDING,
         opt:  { force: true }
       });
 
@@ -134,6 +138,18 @@ export function init(store) {
   mapType(NORMAN.SPOOFED.GROUP_PRINCIPAL, store.getters['type-map/labelFor']({ id: NORMAN.SPOOFED.GROUP_PRINCIPAL }, 2));
   weightType(NORMAN.SPOOFED.GROUP_PRINCIPAL, 101, true);
 
+  virtualType({
+    label:       store.getters['i18n/t']('rbac.roletemplate.label'),
+    icon:        'user',
+    namespaced:  false,
+    name:        ROLES_VIRTUAL_TYPE,
+    weight:      101,
+    route:       { name: 'c-cluster-auth-roles' },
+    // There are two resource types shown on this page, MANAGEMENT.GLOBAL_ROLE and MANAGEMENT.ROLE_TEMPLATE
+    // If there user can't see ROLE_TEMPLATE, they definitely can't see GLOBAL_ROLE
+    ifHaveType:  MANAGEMENT.ROLE_TEMPLATE
+  });
+
   configureType(MANAGEMENT.AUTH_CONFIG, {
     isCreatable: false,
     isRemovable: false,
@@ -155,12 +171,38 @@ export function init(store) {
 
   basicType([
     'config',
-    usersVirtualType,
-    NORMAN.SPOOFED.GROUP_PRINCIPAL
+    USERS_VIRTUAL_TYPE,
+    NORMAN.SPOOFED.GROUP_PRINCIPAL,
+    ROLES_VIRTUAL_TYPE
   ]);
 
   headers(NORMAN.SPOOFED.GROUP_PRINCIPAL, [
     GROUP_NAME,
     GROUP_ROLE_NAME
+  ]);
+
+  // A lot of the built in roles have nicer names returned by nameDisplay. In both tables we want to show both nicer and base names
+  const DISPLAY_NAME = {
+    ...HEADER_NAME,
+    name:          'displayName',
+    labelKey: 'tableHeaders.nameDisplay',
+  };
+
+  headers(MANAGEMENT.GLOBAL_ROLE, [
+    STATE,
+    DISPLAY_NAME,
+    SIMPLE_NAME,
+    RBAC_BUILTIN,
+    RBAC_DEFAULT,
+    AGE
+  ]);
+
+  headers(MANAGEMENT.ROLE_TEMPLATE, [
+    STATE,
+    DISPLAY_NAME,
+    SIMPLE_NAME,
+    RBAC_BUILTIN,
+    RBAC_DEFAULT,
+    AGE
   ]);
 }
