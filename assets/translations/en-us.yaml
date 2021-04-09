@@ -2158,6 +2158,7 @@ rbac:
     fleetworkspace-member: Member
     fleetworkspace-readonly: Read-Only
   roletemplate:
+    label: Roles
     newUserDefault:
       no: No
       tooltip: This does not affect any bindings to the role that already exist.
@@ -2175,18 +2176,18 @@ rbac:
           apiGroups: API Groups
     subtypes:
       GLOBAL:
+        createButton: Create Global Role
         label: Global
-        abbreviation: G
         yes: "Yes: Default role for new users"
         defaultLabel: New User Default
       CLUSTER:
+        createButton: Create Cluster Role
         label: Cluster
-        abbreviation: C
         yes: "Yes: Default role for new cluster creation"
         defaultLabel: Cluster Creator Default
       NAMESPACE:
+        createButton: Create Project/Namespace Role
         label: Project/Namespace
-        abbreviation: PN
         yes: "Yes: Default role for new project creation"
         defaultLabel: Project Creator Default
       noContext:
@@ -2294,6 +2295,7 @@ resourceDetail:
       {annotations, plural,
       =1 {Show 1 annotation}
       other {Show {annotations} annotations}}
+    name: Name
   header:
     clone: "Clone from {subtype} {name}"
     create: Create {subtype}
@@ -2885,6 +2887,7 @@ tableHeaders:
   message: Message
   minKubernetesVersion: Min Kubernetes Version
   name: Name
+  nameDisplay: Display Name
   nameUnlinked: Name
   namespace: Namespace
   namespaceName: Name
