@@ -51,27 +51,22 @@ export default {
     };
 
     const formatted = {
-      limitsCpu:      formatSi(parsed.limitsCpu, {
+      limitsCpu:  parsed.limitsCpu ? formatSi(parsed.limitsCpu, {
         minExponent: 1, maxExponent: 1, addSuffix: false, increment: 1 / 1000
-      }),
-      limitsMemory:   formatSi(parsed.limitsMemory, {
+      }) : null,
+      limitsMemory: parsed.limitsMemory ? formatSi(parsed.limitsMemory, {
         minExponent: 2, maxExponent: 2, addSuffix: false, increment: 1024,
-      }),
-      requestsCpu:    formatSi(parsed.requestsCpu, {
+      }) : null,
+      requestsCpu:  parsed.requestsCpu ? formatSi(parsed.requestsCpu, {
         minExponent: 1, maxExponent: 1, addSuffix: false, increment: 1 / 1000,
-      }),
-      requestsMemory: formatSi(parsed.requestsMemory, {
+      }) : null,
+      requestsMemory: parsed.requestsMemory ? formatSi(parsed.requestsMemory, {
         minExponent: 2, maxExponent: 2, addSuffix: false, increment: 1024,
-      }),
+      }) : null,
       viewMode: _VIEW,
     };
 
     return { ...formatted };
-    // return { ...formatted };
-
-    // return {
-    //   limitsCpu, limitsMemory, requestsCpu, requestsMemory
-    // };
   },
 
   computed: {
