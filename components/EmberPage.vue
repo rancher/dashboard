@@ -1,6 +1,9 @@
 <script>
 import Loading from '@/components/Loading';
 
+const EMBER_FRAME = 'ember-iframe';
+const EMBER_FRAME_HIDE_CLASS = 'ember-iframe-hidden';
+
 export default {
   components: { Loading },
 
@@ -20,27 +23,26 @@ export default {
   },
 
   data() {
+    const theme = this.$store.getters['prefs/theme'];
+
     return {
-      iframeEl: null,
-      loaded:   false,
+      iframeEl:     null,
+      loaded:       true,
+      loadRequired: false,
+      theme,
     };
   },
 
   watch: {
-    $route(to, from) {
-      console.log('*********************************************************************************');
-      console.log('Ember Page: Route changed');
-      console.log(to);
-      console.log(from);
-      window.change = {
-        to,
-        from
-      };
+    // TODO: We don't expect source to change
+    src() {
+      console.log('SOURCE CHANGED');
     }
   },
 
   mounted() {
     console.log('Ember Page mounted');
+    this.initFrame();
 
     // const iframe = document.createElement('iframe');
 
@@ -56,6 +58,16 @@ export default {
   beforeDestroy() {
     window.removeEventListener('message', this.receiveMessage);
     console.log('Ember Page: removed event handler');
+
+    // Hide the iframe
+    if (this.iframeEl) {
+      this.iframeEl.classList.add(EMBER_FRAME_HIDE_CLASS);
+    }
+
+    // TODO: Only do this if we never loaded the iframe - once loaded once, we can reuse the loaded iframe
+    // Need to guard against situation when we left the page before the iframe loaded, in which case we do not have
+    // an iframe that is ready - we should add an attribute to the iframe to indicate if it is ready
+    // If we did not finish loading, then delete the iframe
   },
 
   computed: {
@@ -65,6 +77,46 @@ export default {
   },
 
   methods: {
+    initFrame() {
+      // Add the iframe if one does not already exist
+
+      console.log('***************************');
+
+      let iframeEl = document.getElementById(EMBER_FRAME);
+      console.log(iframeEl);
+      if (iframeEl === null) {
+        console.log('need to create new iframe');
+        iframeEl = document.createElement('iframe');
+
+        iframeEl.setAttribute('id', EMBER_FRAME);
+        iframeEl.setAttribute('class', 'ember-iframe');
+        iframeEl.classList.add(EMBER_FRAME_HIDE_CLASS);
+
+        document.body.appendChild(iframeEl);
+
+        console.log('created iframe');
+        iframeEl.setAttribute('src', this.src);
+
+      } else {
+        console.log('IFRAME already exists');
+        //iframeEl.classList.remove('ember-iframe-hidden');
+
+        // Ensure the embedded UI uses the correct theme
+        iframeEl.contentWindow.postMessage({
+          action: 'set-theme',
+          name: this.theme
+        });
+        
+        // Post a message to get it to navigate
+        iframeEl.contentWindow.postMessage({
+          action: 'navigate',
+          name: this.src
+        });
+      }
+
+      console.log('*** LOADING IFRAME');
+      this.iframeEl = iframeEl;
+    },
     frameLoaded(e) {
       if (this.src) {
         const f = this.$refs.frame;
@@ -72,34 +124,48 @@ export default {
         console.log(f.contentWindow.location.href);
       }
     },
-    onbeforeunload(e) {
-      console.log('Ember Page: Before unload');
-      console.log(e);
-    },
     receiveMessage(event) {
-      console.log('Ember Page: message received');
-      console.log(event);
+      // console.log('Ember Page: message received');
+      // console.log(event);
       const msg = event.data;
 
       if (msg.action === 'navigate') {
-        console.log('navigate');
         this.$router.replace({
           name:   'c-cluster-explorer',
           params: { cluster: msg.cluster }
         });
-      } else if (msg.action === 'navigation') {
-        console.log('navigation');
-        // TODO
-        //window.history.pushState({}, 'TITLE', msg.url);
-
-        console.log(msg.url);
-        if (msg.url === '/g/clusters') {
+      } else if (msg.action === 'before-navigation') {
+        // Ember willTransition event
+        if (msg.url === '/g/clusters' || msg.target === 'global-admin.clusters.index') {
           this.loading = true;
           // Go to the vue clusters page
           this.$router.replace('/c/local/manager/rancher.cattle.io.cluster');
         }
+      } else if (msg.action === 'after-navigation') {
+        // Ember didTransition event
+        // TODO
+        // window.history.pushState({}, 'TITLE', msg.url);
+        // console.log(msg.url);
       } else if (msg.action === 'loading') {
         this.loaded = !msg.state;
+        this.updateFrameVisibility();
+      } else if (msg.action === 'ready') {
+        // Echo back a ping
+        this.iframeEl.contentWindow.postMessage({action: 'echo-back'});
+      } else if (msg.action === 'need-to-load') {
+        this.loadRequired = true;
+      } else if (msg.action === 'did-transition') {
+        if (!this.loadRequired) {
+          this.loading = false;
+          this.updateFrameVisibility();
+        }
+      }
+    },
+    updateFrameVisibility() {
+      if (this.loaded) {
+        if (this.iframeEl) {
+          this.iframeEl.classList.remove(EMBER_FRAME_HIDE_CLASS);
+        }
       }
     }
   }
@@ -109,6 +175,7 @@ export default {
 <template>
   <div class="ember-page" :class="{'fixed': fixed}" >
     <Loading :loading="!loaded" :mode="loaderMode" :no-delay="true" />
+    <!--
     <iframe
       ref="frame"
       :src="src"
@@ -117,6 +184,7 @@ export default {
       class="frame"
       @load="frameLoaded"
     ></iframe>
+    -->
   </div>
 </template>
 
@@ -143,5 +211,19 @@ export default {
 
   .loading {
     visibility: visible;
+  }
+</style>
+<style lang="scss">
+  .ember-iframe {
+    border: 0;
+    left: var(--nav-width);
+    height: calc(100vh - var(--header-height));
+    position: absolute;
+    top: var(--header-height);
+    width: calc(100vw - var(--nav-width));      
+  }
+
+  .ember-iframe-hidden {
+    visibility: hidden;
   }
 </style>

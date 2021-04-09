@@ -327,6 +327,7 @@ module.exports = {
     '/n':            proxyEmberOpts('https://127.0.0.1:8000'),
     '/assets':       proxyOpts('https://127.0.0.1:8000'),
     '/translations': proxyOpts('https://127.0.0.1:8000'),
+    '/engines-dist': proxyOpts('https://127.0.0.1:8000'),
   },
 
   // Nuxt server
@@ -378,7 +379,6 @@ function proxyOpts(target) {
 function onProxyEmberReq(proxyReq, req) {
   console.log('ember request');
   console.log(proxyReq.path);
-  console.log(proxyReq);
 
   // if (proxyReq.path.startsWith('/ember')) {
   //   proxyReq.path = proxyReq.path.substring(6);
