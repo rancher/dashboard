@@ -14,13 +14,9 @@ export default {
   },
 
   async fetch() {
-    const drivers = await this.$store.dispatch('auth/getAuthProviders');
+    this.drivers = await this.$store.dispatch('auth/getAuthProviders');
 
     const NAME = this.$route.params.id;
-
-    this.otherProviderEnabled = drivers.filter((driver) => {
-      return driver.id !== NAME && driver.id !== 'local';
-    })[0];
 
     this.originalModel = await this.$store.dispatch('rancher/find', {
       type: NORMAN.AUTH_CONFIG,
@@ -38,6 +34,7 @@ export default {
       this.serverSetting = serverUrl.value;
     }
     this.model = await this.$store.dispatch(`rancher/clone`, { resource: this.originalModel });
+
     if (this.model.openLdapConfig) {
       this.showLdap = true;
     }
@@ -53,13 +50,13 @@ export default {
 
   data() {
     return {
+      drivers:              [],
       isEnabling:           false,
       editConfig:           false,
       model:                null,
       serverSetting:        null,
       errors:               null,
       originalModel:        null,
-      otherProviderEnabled: false
     };
   },
 
@@ -109,7 +106,13 @@ export default {
 
     showCancel() {
       return this.editConfig || !this.model.enabled;
-    }
+    },
+
+    otherProviderEnabled() {
+      return this.drivers.filter((driver) => {
+        return driver.id !== this.model?.id && driver.id !== 'local';
+      })[0];
+    },
   },
 
   methods: {
@@ -191,6 +194,7 @@ export default {
         }
         await this.reloadModel();
         this.showLdap = false;
+        this.drivers = await this.$store.dispatch('auth/getAuthProviders');
         btnCb(true);
       } catch (err) {
         this.errors = [err];
@@ -259,4 +263,5 @@ export default {
       }
     }
   },
+
 };

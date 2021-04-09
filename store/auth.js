@@ -66,7 +66,9 @@ export const actions = {
   getAuthProviders({ dispatch }) {
     return dispatch('rancher/findAll', {
       type: 'authProvider',
-      opt:  { url: `/v3-public/authProviders`, watch: false }
+      opt:  {
+        url: `/v3-public/authProviders`, watch: false, force: true
+      }
     }, { root: true });
   },
 
