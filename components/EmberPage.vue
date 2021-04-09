@@ -42,7 +42,6 @@ export default {
 
   mounted() {
     console.log('Ember Page mounted');
-    this.initFrame();
 
     // const iframe = document.createElement('iframe');
 
@@ -53,6 +52,8 @@ export default {
     // this.$el.appendChild(iframe);
     window.addEventListener('message', this.receiveMessage);
     console.log('Ember Page: added event handler');
+
+    this.initFrame();
   },
 
   beforeDestroy() {
@@ -79,42 +80,40 @@ export default {
   methods: {
     initFrame() {
       // Add the iframe if one does not already exist
-
-      console.log('***************************');
-
       let iframeEl = document.getElementById(EMBER_FRAME);
-      console.log(iframeEl);
       if (iframeEl === null) {
-        console.log('need to create new iframe');
         iframeEl = document.createElement('iframe');
-
         iframeEl.setAttribute('id', EMBER_FRAME);
         iframeEl.setAttribute('class', 'ember-iframe');
         iframeEl.classList.add(EMBER_FRAME_HIDE_CLASS);
-
         document.body.appendChild(iframeEl);
-
-        console.log('created iframe');
         iframeEl.setAttribute('src', this.src);
-
       } else {
-        console.log('IFRAME already exists');
-        //iframeEl.classList.remove('ember-iframe-hidden');
+        // Post a message to get it to navigate
+        iframeEl.contentWindow.postMessage({
+          action: 'navigate',
+          name: this.src
+        });
 
         // Ensure the embedded UI uses the correct theme
         iframeEl.contentWindow.postMessage({
           action: 'set-theme',
           name: this.theme
         });
-        
-        // Post a message to get it to navigate
-        iframeEl.contentWindow.postMessage({
-          action: 'navigate',
-          name: this.src
-        });
+
+        const currentlUrl = iframeEl.getAttribute('data-location');
+
+        let src = this.src;
+        if (this.src.endsWith('/')) {
+          src = src.substr(0, this.src.length - 1);
+        }
+        if (src !== currentlUrl) {
+          iframeEl.classList.add(EMBER_FRAME_HIDE_CLASS);
+        } else {
+          iframeEl.classList.remove(EMBER_FRAME_HIDE_CLASS);
+        }
       }
 
-      console.log('*** LOADING IFRAME');
       this.iframeEl = iframeEl;
     },
     frameLoaded(e) {
@@ -135,6 +134,7 @@ export default {
           params: { cluster: msg.cluster }
         });
       } else if (msg.action === 'before-navigation') {
+        console.log('** before-navigation')
         // Ember willTransition event
         if (msg.url === '/g/clusters' || msg.target === 'global-admin.clusters.index') {
           this.loading = true;
@@ -146,15 +146,22 @@ export default {
         // TODO
         // window.history.pushState({}, 'TITLE', msg.url);
         // console.log(msg.url);
+        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ' + msg.url);
+        console.log(msg.url);
+        this.iframeEl.setAttribute('data-location', msg.url);
       } else if (msg.action === 'loading') {
+        console.log('** loading: ' + msg.state);
         this.loaded = !msg.state;
         this.updateFrameVisibility();
       } else if (msg.action === 'ready') {
         // Echo back a ping
         this.iframeEl.contentWindow.postMessage({action: 'echo-back'});
       } else if (msg.action === 'need-to-load') {
+        console.log('** need to load');
         this.loadRequired = true;
       } else if (msg.action === 'did-transition') {
+        console.log('** did-transition');
+        this.iframeEl.setAttribute('data-location', msg.url);
         if (!this.loadRequired) {
           this.loading = false;
           this.updateFrameVisibility();
@@ -220,7 +227,8 @@ export default {
     height: calc(100vh - var(--header-height));
     position: absolute;
     top: var(--header-height);
-    width: calc(100vw - var(--nav-width));      
+    width: calc(100vw - var(--nav-width));
+    visibility: show;
   }
 
   .ember-iframe-hidden {
