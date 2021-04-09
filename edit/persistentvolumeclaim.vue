@@ -109,7 +109,7 @@ export default {
         return this.value.spec.resources.requests.storage;
       },
       set(value) {
-        this.$set(this.value.spec.resources.requests, 'storage', `${ value }Gi`);
+        this.$set(this.value.spec.resources.requests, 'storage', `${ value || 1 }Gi`);
       }
     },
     persistentVolume: {
@@ -210,6 +210,7 @@ export default {
                   :label="t('persistentVolumeClaim.volumeClaim.requestStorage')"
                   :suffix="'GiB'"
                   :mode="mode"
+                  :min="1"
                 />
               </div>
             </div>
