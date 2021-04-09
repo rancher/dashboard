@@ -313,6 +313,7 @@ authConfig:
   stateBanner:
     disabled: '{provider} is currently disabled.'
     enabled: '{provider} is currently enabled.'
+  thereCanOnlyBeOne: '{otherProvider} authentication is already enabled. You must disable it before enabling authentication with {provider}.'
   testAndEnable: Test and Enable Authentication
 
 authGroups:

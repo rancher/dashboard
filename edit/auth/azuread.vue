@@ -49,10 +49,6 @@ export default {
 
   mixins: [CreateEditView, AuthConfig],
 
-  async fetch() {
-    await this.reloadModel();
-  },
-
   data() {
     return {
       endpoint:          'standard',
@@ -132,6 +128,8 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
+  <Banner v-else-if="!!otherProviderEnabled" :label="t('authConfig.thereCanOnlyBeOne', {otherProvider: t(`model.authConfig.provider.${ otherProviderEnabled.id }`), provider: displayName})" color="error" />
+
   <div v-else>
     <CruResource
       :done-route="doneRoute"

@@ -76,6 +76,8 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
+  <Banner v-else-if="!!otherProviderEnabled" :label="t('authConfig.thereCanOnlyBeOne', {otherProvider: t(`model.authConfig.provider.${ otherProviderEnabled.id }`), provider: displayName})" color="error" />
+
   <div v-else>
     <CruResource
       :cancel-event="true"

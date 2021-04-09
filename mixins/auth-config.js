@@ -14,7 +14,13 @@ export default {
   },
 
   async fetch() {
+    const drivers = await this.$store.dispatch('auth/getAuthProviders');
+
     const NAME = this.$route.params.id;
+
+    this.otherProviderEnabled = drivers.filter((driver) => {
+      return driver.id !== NAME && driver.id !== 'local';
+    })[0];
 
     this.originalModel = await this.$store.dispatch('rancher/find', {
       type: NORMAN.AUTH_CONFIG,
@@ -47,12 +53,13 @@ export default {
 
   data() {
     return {
-      isEnabling:    false,
-      editConfig:    false,
-      model:         null,
-      serverSetting: null,
-      errors:        null,
-      originalModel: null,
+      isEnabling:           false,
+      editConfig:           false,
+      model:                null,
+      serverSetting:        null,
+      errors:               null,
+      originalModel:        null,
+      otherProviderEnabled: false
     };
   },
 
