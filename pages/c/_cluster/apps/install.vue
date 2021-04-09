@@ -921,7 +921,7 @@ export default {
                 <hr />
               </template>
               <template v-else-if="opt.kind === 'label'">
-                <b style="position: relative; left: -10px;">{{ opt.label }}</b>
+                <b style="position: relative; left: -2.5px;">{{ opt.label }}</b>
               </template>
             </template>
           </LabeledSelect>
