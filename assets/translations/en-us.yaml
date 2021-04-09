@@ -2196,6 +2196,10 @@ rbac:
         label: Project/Namespace
         yes: "Yes: Default role for new project creation"
         defaultLabel: Project Creator Default
+      RBAC_ROLE:
+        label: Role
+      RBAC_CLUSTER_ROLE:
+        label: Cluster Role
       noContext:
         label: No Context
   globalRoles:

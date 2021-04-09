@@ -29,6 +29,18 @@ export const SUBTYPE_MAPPING = {
     defaultKey:     'projectCreatorDefault',
     id:             'NAMESPACE',
     labelKey:          'rbac.roletemplate.subtypes.NAMESPACE.label',
+  },
+  RBAC_ROLE: {
+    key:            'RBAC_ROLE',
+    type:           'rbac.authorization.k8s.io.role',
+    id:             'RBAC_ROLE',
+    labelKey:          'rbac.roletemplate.subtypes.RBAC_ROLE.label',
+  },
+  RBAC_CLUSTER_ROLE: {
+    key:            'RBAC_CLUSTER_ROLE',
+    type:           'rbac.authorization.k8s.io.clusterrole',
+    id:             'RBAC_CLUSTER_ROLE',
+    labelKey:          'rbac.roletemplate.subtypes.RBAC_CLUSTER_ROLE.label',
   }
 };
 

@@ -51,10 +51,6 @@ export default {
     return GLOBAL;
   },
 
-  updateSubtype() {
-    return () => { };
-  },
-
   default() {
     return !!this.newUserDefault;
   },

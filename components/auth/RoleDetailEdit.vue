@@ -16,17 +16,23 @@ import { SUBTYPE_MAPPING, VERBS } from '@/models/management.cattle.io.roletempla
 import Loading from '@/components/Loading';
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
+const CLUSTER = SUBTYPE_MAPPING.CLUSTER.key;
+const NAMESPACE = SUBTYPE_MAPPING.NAMESPACE.key;
+const RBAC_ROLE = SUBTYPE_MAPPING.RBAC_ROLE.key;
 
 /**
  * Handles the View, Create and Edit of
  * - management.cattle.io.globalrole
  * - management.cattle.io.roletemplate
+ * - rbac.authorization.k8s.io.role
+ * - rbac.authorization.k8s.io.clusterrole
  *
- * management.cattle.io.roletemplate are further split into two types
+ * management.cattle.io.roletemplate is further split into two types
  * - Cluster
  * - Project/Namespace
  *
- * The Global role, plus two roletemplates's Cluster and Project/Namespace make the three subtypes references throughout
+ * The above means there are 4 types ==> 5 subtypes handled by this component
+ *
  */
 export default {
   components: {
@@ -45,7 +51,7 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    if (this.value.subtype !== GLOBAL) {
+    if (this.value.subtype === CLUSTER || this.value.subtype === NAMESPACE) {
       this.templateOptions = (await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }))
         .map(option => ({
           label: option.nameDisplay,
@@ -56,9 +62,16 @@ export default {
 
   data() {
     this.$set(this.value, 'rules', this.value.rules || []);
-    this.$set(this.value, 'roleTemplateNames', this.value.roleTemplateNames || []);
-    this.$set(this.value, 'newUserDefault', !!this.value.newUserDefault);
-    this.$set(this.value, 'locked', !!this.value.locked);
+    switch (this.value.subtype) {
+    case GLOBAL:
+      this.$set(this.value, 'newUserDefault', !!this.value.newUserDefault);
+      break;
+    case CLUSTER:
+    case NAMESPACE:
+      this.$set(this.value, 'roleTemplateNames', this.value.roleTemplateNames || []);
+      this.$set(this.value, 'locked', !!this.value.locked);
+      break;
+    }
 
     this.value.rules.forEach((rule) => {
       if (rule.verbs[0] === '*') {
@@ -69,7 +82,7 @@ export default {
     const query = { ...this.$route.query };
     const { roleContext } = query;
 
-    if (roleContext) {
+    if (roleContext && this.value.updateSubtype) {
       this.value.updateSubtype(roleContext);
     }
 
@@ -127,17 +140,23 @@ export default {
         }
       ];
     },
-    isRancherSubtype() {
-      return this.value.subtype !== GLOBAL;
+    isRancherRoleTemplate() {
+      return this.value.subtype === CLUSTER || this.value.subtype === NAMESPACE;
+    },
+    isNamespaced() {
+      return this.value.subtype === RBAC_ROLE;
+    },
+    isRancherType() {
+      return this.value.subtype === GLOBAL || this.value.subtype === CLUSTER || this.value.subtype === NAMESPACE;
     },
     isDetail() {
       return this.as === _DETAIL;
     },
     doneLocationOverride() {
-      return {
+      return this.isRancherType ? {
         name:   'c-cluster-auth-roles',
         hash:   `#${ this.value.subtype }`
-      };
+      } : this.value.listLocation;
     },
     // Detail View
     rules() {
@@ -320,11 +339,11 @@ export default {
     <template v-else>
       <NameNsDescription
         v-model="value"
-        :namespaced="false"
+        :namespaced="isNamespaced"
         :mode="mode"
         label="Name"
       />
-      <div class="row">
+      <div v-if="isRancherType" class="row">
         <div class="col span-6">
           <RadioGroup
             :value="value.default"
@@ -336,7 +355,7 @@ export default {
             @input="value.updateDefault"
           />
         </div>
-        <div v-if="isRancherSubtype" class="col span-6">
+        <div v-if="isRancherRoleTemplate" class="col span-6">
           <RadioGroup
             v-model="value.locked"
             name="storageSource"
@@ -417,6 +436,7 @@ export default {
                   <LabeledInput
                     :value="getRule('apiGroups', props.row.value)"
                     :mode="mode"
+                    :required="!isRancherType"
                     @input="setRule('apiGroups', props.row.value, $event)"
                   />
                 </div>
@@ -425,7 +445,7 @@ export default {
           </ArrayList>
         </Tab>
         <Tab
-          v-if="isRancherSubtype"
+          v-if="isRancherRoleTemplate"
           name="inherit-from"
           label="Inherit From"
           :weight="0"
