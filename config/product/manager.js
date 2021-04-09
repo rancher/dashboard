@@ -24,8 +24,76 @@ export function init(store) {
     showClusterSwitcher: false,
   });
 
+
+  // TODO: RKE
+  virtualType({
+    label:          'RKE Templates',
+    name:           'rke-templates',
+    group:          'Root',
+    namespaced:     false,
+    weight:         111,
+    icon:           'folder',
+    route:          { name: 'manager-page', params: { page: 'rke-templates' } },
+    exact:          true
+  });  
+
+  virtualType({
+    label:          'RKE Drivers',
+    name:           'rke-drivers',
+    group:          'Root',
+    namespaced:     false,
+    weight:         112,
+    icon:           'folder',
+    route:          { name: 'manager-page', params: { page: 'rke-drivers' } },
+    exact:          true
+  });
+
+  virtualType({
+    label:          'Global DNS Entries',
+    name:           'global-dns-entries',
+    group:          'Root',
+    namespaced:     false,
+    weight:         112,
+    icon:           'folder',
+    route:          { name: 'manager-page', params: { page: 'global-dns-entries' } },
+    exact:          true
+  });
+
+  virtualType({
+    label:          'Global DNS Providers',
+    name:           'global-dns-providers',
+    group:          'Root',
+    namespaced:     false,
+    weight:         112,
+    icon:           'folder',
+    route:          { name: 'manager-page', params: { page: 'global-dns-providers' } },
+    exact:          true
+  });
+
+  virtualType({
+    label:          'Cluster App Catalogs',
+    name:           'catalogs',
+    group:          'Root',
+    namespaced:     false,
+    weight:         112,
+    icon:           'folder',
+    route:          { name: 'manager-page', params: { page: 'catalogs' } },
+    exact:          true
+  });    
   configureType(CAPI.RANCHER_CLUSTER, { showListMasthead: false, namespaced: false });
   weightType(CAPI.RANCHER_CLUSTER, 100, true);
+  
+
+  basicType([
+    'rke-templates',
+    'rke-drivers',
+  ], 'RKE');
+
+  basicType([
+    'global-dns-entries',
+    'global-dns-providers',
+    'catalogs',
+  ], 'Legacy Configuration');    
 
   // TODO: RKE
   virtualType({

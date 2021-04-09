@@ -20,6 +20,17 @@ function setProduct(store, to) {
   }
 
   if ( !product ) {
+    // Look at the metadata
+    if (to.meta) {
+      to.meta.forEach(m => {
+        if (m.product) {
+          product = m.product;
+        }
+      })
+    }
+  }
+
+  if ( !product ) {
     product = EXPLORER;
   }
 
