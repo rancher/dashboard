@@ -2,13 +2,15 @@
 import { options } from '@/config/footer';
 import BannerGraphic from '@/components/BannerGraphic';
 import IndentedPanel from '@/components/IndentedPanel';
+import Banner from '@/components/Banner';
 
 export default {
   layout: 'home',
 
   components: {
     BannerGraphic,
-    IndentedPanel
+    IndentedPanel,
+    Banner
   },
 
   data() {
@@ -44,12 +46,12 @@ export default {
     <IndentedPanel v-if="!hasSupport">
       <div class="content mt-20">
         <div class="promo">
-          <div class="register">
-            <div>Already have support? Add your SUSE Subscription ID</div>
+          <Banner color="info">
+            <span>Already have support? Add your SUSE Subscription ID</span>
             <button class="btn add" @click="addSubscription()">
               Add
             </button>
-          </div>
+          </Banner>
           <div class="boxes">
             <div class="box">
               <h2>24x7 Support</h2>
@@ -128,7 +130,8 @@ export default {
 
   .box {
     padding: 20px;
-    border: 1px solid #d8d8d8;
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius);
 
     > h2 {
       font-size: 20px;
