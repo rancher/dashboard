@@ -194,6 +194,7 @@ export default {
       :get-option-label="(opt) => getOptionLabel(opt)"
       :label="optionLabel"
       :options="options"
+      :close-on-select="closeOnSelect"
       :map-keydown="mappedKeys"
       :placeholder="placeholder"
       :reduce="(x) => reduce(x)"
