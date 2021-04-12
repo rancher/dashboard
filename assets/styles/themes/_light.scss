@@ -65,23 +65,24 @@ $selected: rgba($primary, .5);
   --scrollbar-track            : transparent;
 
   --header-bg                  : #{$lightest};
-  --header-logo                : #444;
   --header-btn-bg              : #{$light};
-  --header-btn-text            : #444;
+  --header-btn-text            : #{$darker};
   --header-height              : 55px;
-  --header-border              : #d8d8d8;
+  --header-border              : #{$medium};
   --header-border-size         : 1px;
   --nav-width                  : 230px;
   --nav-bg                     : #{$lightest};
-  --nav-active                 : #c0e5ff;
-  --nav-border                 : #d8d8d8;
+  --nav-active                 : #{$light};
+  --nav-hover                  : #{$medium};
+  --nav-expander-hover         : #{darken($medium, 10%)};
+  --nav-border                 : #{$medium};
   --nav-border-size            : 1px;
   --footer-bg                  : transparent;
   --footer-height              : 0px;
 
   --topmenu-bg                 : #{$lightest};
   --topmenu-text               : #{$darkest};
-  --topmost-border             : #d8d8d8;;
+  --topmost-border             : #{$medium};
   --topmost-shadow             : #{lighten($lightest, 10%)};
   --topmost-light-hover        : #{$light};
 

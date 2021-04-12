@@ -188,7 +188,7 @@ export default {
     height: 100vh;
 
     .title {
-      border-left: 1px solid #d8d8d8;
+      border-left: 1px solid var(--header-border);
       padding-left: 10px;
       opacity: 0.7;
       text-transform: uppercase;

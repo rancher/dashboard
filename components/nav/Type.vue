@@ -129,7 +129,7 @@ export default {
       color: var(--body-text);
 
       &:hover {
-        background: var(--dropdown-hover-bg);
+        background: var(--nav-hover);
         text-decoration: none;
 
         ::v-deep .icon {

@@ -59,11 +59,13 @@
   --header-bg                  : #{$darkest};
   --header-border              : #{$medium};
   --header-btn-bg              : #{$dark};
-  --header-btn-text : #{$lightest};
+  --header-btn-text            : #{$lightest};
 
-  --nav-bg: #{$darkest};
-  --nav-active: #{rgba($primary, 0.3)};
-  --nav-border: #{$medium};
+  --nav-bg                     : #{$darkest};
+  --nav-active                 : #{rgba($primary, 0.3)};
+  --nav-border                 : #{$medium};
+  --nav-hover                  : #{$primary};
+  --nav-expander-hover         : #{darken($primary, 20%)};
 
   --disabled-bg: #{darken($disabled, 10%)};
   --disabled-text: #{$secondary};
@@ -73,7 +75,7 @@
 
   --topmenu-bg: #{$darkest};
   --topmenu-text: #{$lightest};
-  --topmost-border: #medium;
+  --topmost-border: #{$medium};
   --topmost-shadow: #{lighten($darkest, 5%)};
   --topmost-light-hover: #{$medium};
 

@@ -309,10 +309,6 @@ export default {
       .header {
         background: transparent;
         padding-left: 10px;
-
-        &:hover {
-          background-color: #e6e6e6;
-        }
       }
 
       H6, .root.child .label {
