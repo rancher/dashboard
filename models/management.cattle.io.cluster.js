@@ -5,9 +5,9 @@ import { parseSi } from '@/utils/units';
 
 // See translation file cluster.providers for list of providers
 const PROVIDER_LOGOS = {
-  k3s:      'provider-k3s.svg',
-  minikube: 'provider-minikube.svg',
-  '*':      'provider-kubernetes.svg'
+  k3s:      'k3s.svg',
+  minikube: 'minikube.svg',
+  '*':      'kubernetes.svg'
 };
 
 export default {
