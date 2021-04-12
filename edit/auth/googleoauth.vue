@@ -11,6 +11,7 @@ import Banner from '@/components/Banner';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
 import FileSelector from '@/components/form/FileSelector';
 import AuthBanner from '@/components/auth/AuthBanner';
+import CopyToClipboardText from '@/components/CopyToClipboardText';
 
 const NAME = 'googleoauth';
 
@@ -24,7 +25,8 @@ export default {
     Checkbox,
     AllowedPrincipals,
     FileSelector,
-    AuthBanner
+    AuthBanner,
+    CopyToClipboardText
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -135,14 +137,35 @@ export default {
         </div>
         <InfoBox class=" mt-20 mb-20 p-10">
           <h3 v-html="t('authConfig.googleoauth.steps.1.title', tArgs, true)" />
-          <div v-html="t('authConfig.googleoauth.steps.1.body', tArgs, true)" />
+          <!-- <div v-html="t('authConfig.googleoauth.steps.1.body', tArgs, true)" /> -->
+          <ul class="mt-0">
+            <li>{{ t('authConfig.googleoauth.steps.1.body.1', {}, true) }} </li>
+            <li>{{ t('authConfig.googleoauth.steps.1.body.2', {}, true) }} <CopyToClipboardText :text="tArgs.hostname" /> </li>
+
+            <li>{{ t('authConfig.googleoauth.steps.1.body.3', {}, true) }} <CopyToClipboardText :text="serverUrl" /> </li>
+
+            <li>{{ t('authConfig.googleoauth.steps.1.body.4', {}, true) }} </li>
+
+            <li>{{ t('authConfig.googleoauth.steps.1.body.5', {}, true) }} </li>
+          </ul>
         </InfoBox>
         <InfoBox class="mb-20 p-10">
           <div class="row">
             <h3 v-html="t('authConfig.googleoauth.steps.2.title', tArgs, true)" />
           </div>
           <div class="row">
-            <div class="col span-6" v-html="t('authConfig.googleoauth.steps.2.body', tArgs, true)" />
+            <div class="col span-6">
+              <ul class="mt-0">
+                <li>{{ t('authConfig.googleoauth.steps.2.body.1', {}, true) }} </li>
+                <li>{{ t('authConfig.googleoauth.steps.2.body.2', {}, true) }} <CopyToClipboardText :text="serverUrl" /> </li>
+
+                <li>{{ t('authConfig.googleoauth.steps.2.body.3', {}, true) }} <CopyToClipboardText :text="serverUrl+'/verify-auth'" /> </li>
+
+                <li>{{ t('authConfig.googleoauth.steps.2.body.4', {}, true) }} </li>
+
+                <li>{{ t('authConfig.googleoauth.steps.2.body.5', {}, true) }} </li>
+              </ul>
+            </div>
             <div class="col span-6">
               <LabeledInput
                 v-model="model.oauthCredential"

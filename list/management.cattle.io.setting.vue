@@ -121,12 +121,12 @@ export default {
   border-radius: var(--border-radius);
 
   h1 {
-    color: var(--link-text);
     font-size: 14px;
   }
   h2 {
     font-size: 12px;
     margin-bottom: 0;
+    opacity: 0.8;
   }
 }
 

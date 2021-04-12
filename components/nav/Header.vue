@@ -218,9 +218,15 @@ export default {
     }
 
     > * {
-      display: flex;
-      align-items: center;
       padding: 0 5px;
+    }
+
+    .back, .import, .kubectl, .cluster, .user-menu {
+      padding-top: 6px;
+
+      > *:first-child {
+        height: 40px;
+      }
     }
 
     ::v-deep > div > .btn.role-tertiary {
@@ -342,6 +348,8 @@ export default {
 
     > .top {
       grid-area: top;
+      background-color: var(--header-bg);
+      padding-top: 6px;
 
       INPUT[type='search']::placeholder,
       .vs__open-indicator,

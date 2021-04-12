@@ -209,24 +209,20 @@ authConfig:
     steps:
       1:
         title: 'Step One: For standard Google, click <a href="https://console.developers.google.com/apis/credentials" target="_blank" rel="noopener noreferrer nofollow">here</a> to go applications settings in a new window'
-        body: |-
-          <ul class="mt-0">
-          <li>Login to your account. Navigate to "APIs & Services" and then select "OAuth consent screen". </li>
-          <li>Authorized domains: Top private domain of {hostname} </li>
-          <li>Application homepage link: {serverUrl}</li>
-          <li>Under Scopes for Google APIs, enable "email", "profile", and "openid". </li>
-          <li>Click on "Save". </li>
-          </ul>
+        body:
+         1: Login to your account. Navigate to "APIs & Services" and then select "OAuth consent screen".
+         2: 'Authorized domains: Top private domain of: '
+         3: 'Application homepage link: '
+         4: 'Under Scopes for Google APIs, enable "email", "profile", and "openid".'
+         5: 'Click on "Save".'
       2:
         title: 'Step Two: Navigate to the "Credentials" tab to create your OAuth client ID'
-        body: |-
-          <ul class="mt-0">
-          <li>Select the "Create Credentials" dropdown, and select "OAuth clientID", then select "Web application".</li>
-          <li>Authorized Javascript origins: {serverUrl}</li>
-          <li>Authorized redirect URIs: {serverUrl}/verify-auth </li>
-          <li>Click "Create", and then click on the "Download JSON" button.</li>
-          <li>Upload the downloaded JSON file in the OAuth credentials box.</li>
-          </ul>
+        body: 
+          1: 'Select the "Create Credentials" dropdown, and select "OAuth clientID", then select "Web application".'
+          2: 'Authorized Javascript origins:'
+          3: 'Authorized redirect URIs:'
+          4: 'Click "Create", and then click on the "Download JSON" button.'
+          5: 'Upload the downloaded JSON file in the OAuth credentials box.'
       3:
         title: 'Step Three: Create Service Account credentials'
         body: |-
@@ -240,7 +236,10 @@ authConfig:
     freeipa: Configure a FreeIPA server
     activedirectory: Configure an Active Directory account
     openldap: Configure an OpenLDAP server
-    defaultLoginDomain: Default Login Domain
+    defaultLoginDomain:
+      label: Default Login Domain
+      placeholder: eg mycompany
+      hint: This domain will be used if a user logs in without specifying one.
     cert: Certificate
     disabledStatusBitmask: Disabled Status Bitmask
     groupDNAttribute: Group DN Attribute
@@ -288,12 +287,18 @@ authConfig:
     UID: UID Field
     adfs: Configure an AD FS account
     api: Rancher API Host
-    cert: Certificate
+    cert: 
+      label: Certificate
+      placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
     displayName: Display Name Field
     groups: Groups Field
-    key: Private Key
+    key: 
+      label: Private Key
+      placeholder: Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----
     keycloak: Configure a Keycloak account
-    metadata: Metadata XML
+    metadata: 
+      label: Metadata XML
+      placeholder: Paste in the IDP Metadata XML
     okta: Configure an Okta account
     ping: Configure a Ping account
     shibboleth: Congiure a Shibboleth account
@@ -513,6 +518,7 @@ catalog:
   install:
     action:
       goToUpgrade: Edit/Upgrade
+      ignoreWarning: Continue Anyways
     appReadmeGeneric: This chart doesn't have a Rancher-specific README.  Review the Helm README to learn more about the available configuration options and their usage.
     chart: Chart
     error:
@@ -548,6 +554,7 @@ catalog:
             other { seconds }
           }
       wait: Wait
+    namespaceIsInProject: "This chart's target namespace, <code>{namespace}</code>, already exists and cannot be added to a different project."
     project: Install into Project
     section:
       appReadme: README
@@ -1574,6 +1581,13 @@ monitoringReceiver:
   webhook:
     label: Webhook
     title: Webhook Config
+    urlTooltip: For some webhooks this a url that points to the service DNS
+    modifyNamespace: If <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-driver</pre> was installed in a non-default namespace you'll need to update the namespace in the url below.
+    banner: To use MS Teams or Alibaba Cloud SMS you will need to have <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-driver</pre> installed first.
+    add:
+      generic: Generic
+      msTeams: MS Teams
+      alibabaCloudSms: Alibaba Cloud SMS
   auth:
     label: Auth
     authType: Auth Type
@@ -1589,9 +1603,13 @@ monitoringReceiver:
     bearerTokenFile:
       label: Bearer Token File
       placeholder: e.g. ./user_token
-
-
-
+  shared:
+    proxyUrl:
+      label: Proxy URL
+      placeholder: e.g. http://my-proxy/
+    sendResolved:
+      label: Enable send resolved alerts
+    
 monitoringRoute:
   groups:
     label: Group By
@@ -1976,6 +1994,7 @@ persistentVolumeClaim:
   accessModes: Access Modes
   capacity: Capacity
   storageClass: Storage Class
+  useDefault: Use the default class
   volumes: Persistent Volumes
   volumeName: Persistent Volume Name
   source:
@@ -2146,6 +2165,7 @@ rbac:
     fleetworkspace-member: Member
     fleetworkspace-readonly: Read-Only
   roletemplate:
+    label: Roles
     newUserDefault:
       no: No
       tooltip: This does not affect any bindings to the role that already exist.
@@ -2163,20 +2183,24 @@ rbac:
           apiGroups: API Groups
     subtypes:
       GLOBAL:
+        createButton: Create Global Role
         label: Global
-        abbreviation: G
         yes: "Yes: Default role for new users"
         defaultLabel: New User Default
       CLUSTER:
+        createButton: Create Cluster Role
         label: Cluster
-        abbreviation: C
         yes: "Yes: Default role for new cluster creation"
         defaultLabel: Cluster Creator Default
       NAMESPACE:
+        createButton: Create Project/Namespace Role
         label: Project/Namespace
-        abbreviation: PN
         yes: "Yes: Default role for new project creation"
         defaultLabel: Project Creator Default
+      RBAC_ROLE:
+        label: Role
+      RBAC_CLUSTER_ROLE:
+        label: Cluster Role
       noContext:
         label: No Context
   globalRoles:
@@ -2282,6 +2306,7 @@ resourceDetail:
       {annotations, plural,
       =1 {Show 1 annotation}
       other {Show {annotations} annotations}}
+    name: Name
   header:
     clone: "Clone from {subtype} {name}"
     create: Create {subtype}
@@ -2873,6 +2898,7 @@ tableHeaders:
   message: Message
   minKubernetesVersion: Min Kubernetes Version
   name: Name
+  nameDisplay: Display Name
   nameUnlinked: Name
   namespace: Namespace
   namespaceName: Name

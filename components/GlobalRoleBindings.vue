@@ -1,7 +1,7 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import { RBAC } from '@/config/types';
+import { MANAGEMENT } from '@/config/types';
 import Checkbox from '@/components/form/Checkbox';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import Loading from '@/components/Loading';
@@ -48,7 +48,7 @@ export default {
   },
   async fetch() {
     try {
-      this.allRoles = await this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE });
+      this.allRoles = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE });
       if (!this.sortedRoles) {
         this.sortedRoles = {
           global:  [],
@@ -70,7 +70,7 @@ export default {
         this.sortedRoles.custom = this.sortedRoles.custom.sort(sort);
 
         if (!this.isCreate) {
-          this.globalRoleBindings = await this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE_BINDING });
+          this.globalRoleBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE_BINDING });
         }
 
         this.update();
@@ -201,7 +201,7 @@ export default {
     },
     async saveAddedRoles(userId) {
       const requestOptions = {
-        type:               RBAC.GLOBAL_ROLE_BINDING,
+        type:               MANAGEMENT.GLOBAL_ROLE_BINDING,
         metadata:           { generateName: `grb-` },
       };
 
@@ -215,15 +215,17 @@ export default {
         globalRoleName: role,
       })));
 
-      await Promise.all(newBindings.map(newBinding => newBinding.save()));
+      // Save all changes (and ensure user isn't logged out if they don't have permissions to make a change)
+      await Promise.all(newBindings.map(newBinding => newBinding.save({ redirectUnauthorized: false })));
     },
     async saveRemovedRoles() {
       const existingBindings = await Promise.all(this.roleChanges.removeBindings.map(bindingId => this.$store.dispatch('management/find', {
-        type: RBAC.GLOBAL_ROLE_BINDING,
+        type: MANAGEMENT.GLOBAL_ROLE_BINDING,
         id:   bindingId
       })));
 
-      await Promise.all(existingBindings.map(existingBinding => existingBinding.remove()));
+      // Save all changes (and ensure user isn't logged out if they don't have permissions to make a change)
+      await Promise.all(existingBindings.map(existingBinding => existingBinding.remove({ redirectUnauthorized: false })));
     },
     /**
      * userId is optional, used when a user has just been created

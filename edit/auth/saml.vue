@@ -43,6 +43,34 @@ export default {
     },
 
   },
+  watch: {
+    showLdap(neu, old) {
+      if (neu && !this.model.openLdapConfig) {
+        const config = {
+          connectionTimeout:            5000,
+          groupDNAttribute:             'entryDN',
+          groupMemberMappingAttribute:  'member',
+          groupMemberUserAttribute:     'entryDN',
+          groupNameAttribute:           'cn',
+          groupObjectClass:             'groupOfNames',
+          groupSearchAttribute:         'cn',
+          nestedGroupMembershipEnabled: false,
+          port:                         389,
+          servers:                      [],
+          starttls:                     false,
+          tls:                          false,
+          disabledStatusBitmask:          0,
+          userLoginAttribute:           'uid',
+          userMemberAttribute:          'memberOf',
+          userNameAttribute:            'cn',
+          userObjectClass:              'inetOrgPerson',
+          userSearchAttribute:          'uid|sn|givenName'
+        };
+
+        this.$set(this.model, 'openLdapConfig', config);
+      }
+    }
+  }
 };
 </script>
 
@@ -144,7 +172,8 @@ export default {
           <div class="col span-4">
             <LabeledInput
               v-model="model.spKey"
-              :label="t(`authConfig.saml.key`)"
+              :label="t(`authConfig.saml.key.label`)"
+              :placeholder="t(`authConfig.saml.key.placeholder`)"
               :mode="mode"
               required
               type="multiline"
@@ -154,7 +183,8 @@ export default {
           <div class="col span-4">
             <LabeledInput
               v-model="model.spCert"
-              :label="t(`authConfig.saml.cert`)"
+              :label="t(`authConfig.saml.cert.label`)"
+              :placeholder="t(`authConfig.saml.cert.placeholder`)"
               :mode="mode"
               required
               type="multiline"
@@ -164,7 +194,8 @@ export default {
           <div class="col span-4">
             <LabeledInput
               v-model="model.idpMetadataContent"
-              :label="t(`authConfig.saml.metadata`)"
+              :label="t(`authConfig.saml.metadata.label`)"
+              :placeholder="t(`authConfig.saml.metadata.placeholder`)"
               :mode="mode"
               required
               type="multiline"

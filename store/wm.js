@@ -73,7 +73,6 @@ export const actions = {
   //   icon:  Shown on the tab
   //   component: 'ContainerShell',
   //   attrs: { whateverTheComponent: wants }
-  //   onClose: () => { // something to do after the tab is closed }
   // }
   open({ commit }, tab) {
     if ( !tab.id ) {

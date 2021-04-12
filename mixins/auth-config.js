@@ -52,7 +52,7 @@ export default {
       model:         null,
       serverSetting: null,
       errors:        null,
-      originalModel: null
+      originalModel: null,
     };
   },
 
@@ -133,6 +133,9 @@ export default {
             if (!this.model.accessMode) {
               this.model.accessMode = 'unrestricted';
             }
+            if (this.model.openLdapConfig && !this.showLdap) {
+              delete this.model.openLdapConfig;
+            }
             await this.model.save();
             await this.$store.dispatch('auth/test', { provider: this.model.id, body: this.model });
             this.model.enabled = true;
@@ -180,7 +183,7 @@ export default {
           await clone.save();
         }
         await this.reloadModel();
-
+        this.showLdap = false;
         btnCb(true);
       } catch (err) {
         this.errors = [err];
@@ -221,10 +224,6 @@ export default {
       switch (this.value.configType) {
       case 'saml':
         set(this.model, 'accessMode', 'unrestricted');
-
-        if (this.model.id === 'shibboleth' && !this.model.openLdapConfig) {
-          set(this.model, 'openLdapConfig', {});
-        }
         break;
       case 'ldap':
         set(this.model, 'servers', []);

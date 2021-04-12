@@ -37,6 +37,7 @@ export default {
     this.persistentVolumes = await this.$store.dispatch('cluster/findAll', { type: PV });
 
     this.storageClassOptions = storageClasses.map(s => s.name).sort();
+    this.storageClassOptions.unshift(this.t('persistentVolumeClaim.useDefault'));
     this.persistentVolumeOptions = this.persistentVolumes
       .map((s) => {
         const status = s.status.phase === 'Available' ? '' : ` (${ s.status.phase })`;
@@ -108,7 +109,7 @@ export default {
         return this.value.spec.resources.requests.storage;
       },
       set(value) {
-        this.$set(this.value.spec.resources.requests, 'storage', `${ value }Gi`);
+        this.$set(this.value.spec.resources.requests, 'storage', `${ value || 1 }Gi`);
       }
     },
     persistentVolume: {
@@ -126,6 +127,9 @@ export default {
         this.$set(this.value.spec, 'storageClassName', '');
       }
     }
+  },
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
   },
   methods: {
     checkboxSetter(key, value) {
@@ -152,6 +156,11 @@ export default {
 
       this.$set(this, 'persistentVolume', null);
     },
+    willSave() {
+      if (this.value.spec.storageClassName === this.t('persistentVolumeClaim.useDefault')) {
+        this.$delete(this.value.spec, 'storageClassName');
+      }
+    }
   }
 };
 </script>
@@ -201,6 +210,7 @@ export default {
                   :label="t('persistentVolumeClaim.volumeClaim.requestStorage')"
                   :suffix="'GiB'"
                   :mode="mode"
+                  :min="1"
                 />
               </div>
             </div>

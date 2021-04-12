@@ -7,8 +7,17 @@ export default {
   components: { LabeledInput, AsyncButton },
   mixins:     [Login],
 
+  props: {
+    onlyOption: {
+      type:    Boolean,
+      default: false
+    }
+  },
+
   data() {
-    return { username: '', password: '' };
+    return {
+      username: '', password: '', showInputs: this.onlyOption
+    };
   },
 
   methods: {
@@ -36,37 +45,44 @@ export default {
 
 <template>
   <form>
-    <div class="span-6 offset-3">
-      <div class="mb-20">
-        <LabeledInput
-          v-model="username"
-          :label="t('login.username')"
-          autocomplete="username"
-        />
+    <template v-if="showInputs">
+      <div class="span-6 offset-3">
+        <div class="mb-20">
+          <LabeledInput
+            v-model="username"
+            :label="t('login.username')"
+            autocomplete="username"
+          />
+        </div>
+        <div class="mb-20">
+          <LabeledInput
+            v-model="password"
+            type="password"
+            :label="t('login.password')"
+            autocomplete="password"
+          />
+        </div>
       </div>
-      <div class="mb-20">
-        <LabeledInput
-          v-model="password"
-          type="password"
-          :label="t('login.password')"
-          autocomplete="password"
-        />
+      <div class="row">
+        <div class="col span-12 text-center">
+          <AsyncButton
+            ref="btn"
+            type="submit"
+            :action-label="t('login.loginWithProvider', {provider: displayName})"
+            :waiting-label="t('login.loggingIn')"
+            :success-label="t('login.loggedIn')"
+            :error-label="t('asyncButton.default.error')"
+            class="btn bg-primary"
+            style="font-size: 18px;"
+            @click="login"
+          />
+        </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col span-12 text-center">
-        <AsyncButton
-          ref="btn"
-          type="submit"
-          :action-label="t('login.loginWithProvider', {provider: displayName})"
-          :waiting-label="t('login.loggingIn')"
-          :success-label="t('login.loggedIn')"
-          :error-label="t('asyncButton.default.error')"
-          class="btn bg-primary"
-          style="font-size: 18px;"
-          @click="login"
-        />
-      </div>
+    </template>
+    <div v-else class="text-center">
+      <button style="font-size: 18px;" type="button" class="btn bg-primary" @click="showInputs = true">
+        {{ t('login.loginWithProvider', {provider: displayName}) }}
+      </button>
     </div>
   </form>
 </template>

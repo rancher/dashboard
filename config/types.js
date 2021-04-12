@@ -53,9 +53,6 @@ export const RBAC = {
   CLUSTER_ROLE:         'rbac.authorization.k8s.io.clusterrole',
   ROLE_BINDING:         'rbac.authorization.k8s.io.rolebinding',
   CLUSTER_ROLE_BINDING: 'rbac.authorization.k8s.io.clusterrolebinding',
-  GLOBAL_ROLE:          'management.cattle.io.globalrole',
-  GLOBAL_ROLE_BINDING:  'management.cattle.io.globalrolebinding',
-  SPOOFED:              { ROLE_TEMPLATE: 'rbac.authorization.k8s.io.roletemplate' }
 };
 
 export const WORKLOAD = 'workload';
@@ -142,6 +139,8 @@ export const MANAGEMENT = {
   SETTING:                       'management.cattle.io.setting',
   USER:                          'management.cattle.io.user',
   TOKEN:                         'management.cattle.io.token',
+  GLOBAL_ROLE:                   'management.cattle.io.globalrole',
+  GLOBAL_ROLE_BINDING:           'management.cattle.io.globalrolebinding',
 };
 
 export const CAPI = {

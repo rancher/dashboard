@@ -17,8 +17,6 @@ import {
   ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN,
 } from '@/config/table-headers';
 
-import { copyResourceValues, SUBTYPES } from '@/models/rbac.authorization.k8s.io.roletemplate';
-
 import { DSL } from '@/store/type-map';
 
 export const NAME = 'explorer';
@@ -29,14 +27,12 @@ export function init(store) {
     basicType,
     ignoreType,
     mapGroup,
-    mapType,
     weightGroup,
     weightType,
     headers,
     virtualType,
     componentForType,
     configureType,
-    spoofedType
   } = DSL(store, NAME);
 
   product({
@@ -79,7 +75,6 @@ export function init(store) {
     RBAC.CLUSTER_ROLE,
     RBAC.ROLE_BINDING,
     RBAC.CLUSTER_ROLE_BINDING,
-    RBAC.SPOOFED.ROLE_TEMPLATE
   ], 'rbac');
 
   weightGroup('cluster', 99, true);
@@ -233,51 +228,4 @@ export function init(store) {
 
   // Ignore these types as they are managed through the auth product
   ignoreType(MANAGEMENT.USER);
-
-  spoofedType({
-    label:             'Role Template',
-    type:              RBAC.SPOOFED.ROLE_TEMPLATE,
-    collectionMethods: ['POST'],
-    schemas:           [
-      {
-        id:                RBAC.SPOOFED.ROLE_TEMPLATE,
-        type:              'schema',
-        resourceFields:    {
-          apiVersion: { type: 'string' },
-          kind:       { type: 'string' },
-          metadata:   { type: 'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta' },
-          rules:      { type: 'array[rancher.cattle.io.v1.roletemplate.rules]' },
-          status:     { type: 'rancher.cattle.io.v1.roletemplate.status' }
-        },
-        collectionMethods: ['POST'],
-      }
-    ],
-    getInstances: async() => {
-      const allPrmises = SUBTYPES.map(type => store.dispatch('cluster/findAll', { type } ));
-      const all = await Promise.all(allPrmises);
-
-      return all
-        .flat()
-        .map((template) => {
-          const instance = {
-            id:              template.id,
-            kind:            template.kind,
-            type:            RBAC.SPOOFED.ROLE_TEMPLATE,
-            status:          template.status,
-            links:           {
-              self:   template.links.self,
-              update: template.links.update,
-              view:   template.links.view
-            },
-            template
-          };
-
-          copyResourceValues(template, instance);
-
-          return instance;
-        });
-    }
-  });
-
-  mapType(RBAC.SPOOFED.ROLE_TEMPLATE, 'Role Template');
 }

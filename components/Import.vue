@@ -84,6 +84,8 @@ export default {
 
     async importYaml(btnCb) {
       try {
+        this.errors = [];
+
         const res = await this.currentCluster.doAction('apply', {
           yaml:             this.currentYaml,
           defaultNamespace: this.defaultNamespace,
@@ -162,9 +164,9 @@ export default {
         v-model="currentYaml"
         class="yaml-editor"
       />
+      <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
     </template>
     <template #actions>
-      <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
       <div v-if="done" class="text-center" style="width: 100%">
         <button type="button" class="btn role-primary" @click="close">
           {{ t('generic.close') }}

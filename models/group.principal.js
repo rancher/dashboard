@@ -1,4 +1,4 @@
-import { NORMAN, RBAC } from '@/config/types';
+import { MANAGEMENT, NORMAN } from '@/config/types';
 import { clone } from '@/utils/object';
 import principal from './principal';
 
@@ -29,7 +29,7 @@ export default {
   },
 
   globalRoleBindings() {
-    return this.$rootGetters['management/all'](RBAC.GLOBAL_ROLE_BINDING)
+    return this.$rootGetters['management/all'](MANAGEMENT.GLOBAL_ROLE_BINDING)
       .filter(globalRoleBinding => this.id === globalRoleBinding.groupPrincipalName);
   },
 
@@ -56,7 +56,7 @@ export default {
     return (resources = this) => {
       const principals = Array.isArray(resources) ? resources : [resources];
 
-      const globalRoleBindings = this.$rootGetters['management/all'](RBAC.GLOBAL_ROLE_BINDING)
+      const globalRoleBindings = this.$rootGetters['management/all'](MANAGEMENT.GLOBAL_ROLE_BINDING)
         .filter(globalRoleBinding => principals.find(principal => principal.id === globalRoleBinding.groupPrincipalName));
 
       this.$dispatch('promptRemove', globalRoleBindings);

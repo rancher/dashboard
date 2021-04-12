@@ -132,7 +132,14 @@ export default {
       </div>
       <div v-if="type==='activedirectory'" class="row mb-20">
         <div class="col span-6">
-          <LabeledInput v-model="model.defaultLoginDomain" required :mode="mode" :label="t('authConfig.ldap.defaultLoginDomain')" />
+          <LabeledInput
+            v-model="model.defaultLoginDomain"
+            :hoover-tooltip="true"
+            :tooltip="t('authConfig.ldap.defaultLoginDomain.hint')"
+            :placeholder="t('authConfig.ldap.defaultLoginDomain.placeholder')"
+            :mode="mode"
+            :label="t('authConfig.ldap.defaultLoginDomain.label')"
+          />
         </div>
       </div>
       <div class="row mb-20">
@@ -215,7 +222,7 @@ export default {
         <div class="col span-6">
           <LabeledInput v-model="model.disabledStatusBitmask" :mode="mode" :label="t('authConfig.ldap.disabledStatusBitmask')" />
         </div>
-        <div class=" col span-6">
+        <div v-if="type!=='shibboleth'" class=" col span-6">
           <RadioGroup
             v-model="model.nestedGroupMembershipEnabled"
             :mode="mode"

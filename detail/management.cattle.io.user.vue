@@ -3,7 +3,7 @@ import CreateEditView from '@/mixins/create-edit-view';
 import Tab from '@/components/Tabbed/Tab';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import SortableTable from '@/components/SortableTable';
-import { MANAGEMENT, RBAC } from '@/config/types';
+import { MANAGEMENT } from '@/config/types';
 import Loading from '@/components/Loading';
 import { NAME } from '@/config/table-headers';
 
@@ -18,7 +18,7 @@ export default {
     CreateEditView
   ],
   async fetch() {
-    const canSeeGlobalRoles = !!this.$store.getters[`management/schemaFor`](RBAC.GLOBAL_ROLE);
+    const canSeeGlobalRoles = !!this.$store.getters[`management/schemaFor`](MANAGEMENT.GLOBAL_ROLE);
 
     if (canSeeGlobalRoles) {
       this.data.gp = await this.fetchGlobalRoleBindings(this.value.id);
@@ -113,7 +113,7 @@ export default {
   methods: {
     async fetchGlobalRoleBindings(userId) {
       try {
-        const roles = await this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE });
+        const roles = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE });
 
         const out = await Promise.all(roles
           .filter(r => !r.isSpecial)
@@ -124,7 +124,7 @@ export default {
           r.hasBound = false;
         });
 
-        const globalRoleBindings = await this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE_BINDING });
+        const globalRoleBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE_BINDING });
 
         globalRoleBindings
           .filter(binding => binding.userName === userId)
