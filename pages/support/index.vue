@@ -12,7 +12,15 @@ export default {
   },
 
   data() {
-    return { hasSupport: false };
+    return {
+      hasSupport: false,
+      promos:     [
+        'support.promos.one',
+        'support.promos.two',
+        'support.promos.three',
+        'support.promos.four',
+      ]
+    };
   },
 
   computed: {
@@ -26,7 +34,7 @@ export default {
     },
 
     title() {
-      return this.hasSupport ? 'Great News - You\'re covered' : 'SUSE Rancher provides world-class support';
+      return this.hasSupport ? 'support.suse.title' : 'support.community.title';
     }
   },
 
@@ -39,41 +47,29 @@ export default {
 </script>
 <template>
   <div>
-    <BannerGraphic :title="title" />
+    <BannerGraphic :title="t(title)" />
 
     <IndentedPanel v-if="!hasSupport">
       <div class="content mt-20">
         <div class="promo">
           <div class="register">
-            <div>Already have support? Add your SUSE Subscription ID</div>
+            <div>{{ t('support.community.register') }}</div>
             <button class="btn add" @click="addSubscription()">
-              Add
+              {{ t('support.community.addSubscription') }}
             </button>
           </div>
           <div class="boxes">
-            <div class="box">
-              <h2>24x7 Support</h2>
-              <div>We provide tightly defined SLAs, and offer round the clock support options.</div>
-            </div>
-            <div class="box">
-              <h2>Issue Resolution</h2>
-              <div>Run SUSE Rancher products with confidence, knowing that the developers who built them are available to quickly resolve issues.</div>
-            </div>
-            <div class="box">
-              <h2>Troubleshooting</h2>
-              <div>We focus on uncovering the root cause of any issue, whether it is related to Rancher Labs products, Kubernetes, Docker or your underlying infrastructure.</div>
-            </div>
-            <div class="box">
-              <h2>Innovate with Freedom</h2>
-              <div>Take advantage of our certified compatibility with a wide range of Kubernetes providers, operating systems, and open source software.</div>
+            <div v-for="key in promos" :key="key" class="box">
+              <h2>{{ t(`${key}.title`) }}</h2>
+              <div>{{ t(`${key}.text`) }}</div>
             </div>
           </div>
           <div class="external">
-            <a href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">Find out more about SUSE Rancher Support <i class="icon icon-external-link" /></a>
+            <a href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.learnMore') }} <i class="icon icon-external-link" /></a>
           </div>
         </div>
         <div class="community">
-          <h2>Community Support</h2>
+          <h2>{{ t('support.community.linksTitle') }}</h2>
           <div v-for="(value, name) in options" :key="name" class="support-link">
             <a v-t="name" :href="value" target="_blank" rel="noopener noreferrer nofollow" />
           </div>
@@ -81,7 +77,7 @@ export default {
       </div>
     </IndentedPanel>
     <IndentedPanel v-else>
-      You've got support
+      {{ t('support.suse.title') }}
     </IndentedPanel>
   </div>
 </template>

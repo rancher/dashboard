@@ -3905,3 +3905,30 @@ featureFlags:
   promptActivate: Please confirm that you want to activate the feature flag "{flag}"
   promptDeactivate: Please confirm that you want to deactivate the feature flag "{flag}"
   restartRequired: "Note: Updating this feature flag requires a restart"
+
+##############################
+### Support Page
+##############################
+
+support:
+  community:
+    title: SUSE Rancher provides world-class support
+    register: Already have support? Add your SUSE Subscription ID
+    addSubscription: Add
+    linksTitle: Community Support
+    learnMore: Find out more about SUSE Rancher Support
+  suse:
+    title: "Great News - You're covered"
+  promos:
+    one:
+      title: 24x7 Support
+      text: We provide tightly defined SLAs, and offer round the clock support options.
+    two:
+      title: Issue Resolution
+      text: Run SUSE Rancher products with confidence, knowing that the developers who built them are available to quickly resolve issues.
+    three:
+      title: Troubleshooting
+      text: We focus on uncovering the root cause of any issue, whether it is related to Rancher Labs products, Kubernetes, Docker or your underlying infrastructure.
+    four:
+      title: Innovate with Freedom
+      text: Take advantage of our certified compatibility with a wide range of Kubernetes providers, operating systems, and open source software.
