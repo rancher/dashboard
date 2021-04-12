@@ -103,7 +103,7 @@ export default {
     <div v-else class="simple-title">
       <img class="side-menu-logo" src="~/assets/images/pl/rancher-logo.svg" width="110" />
       <div class="title">
-        DASHBOARD
+        {{ t('nav.title') }}
       </div>
     </div>
 
@@ -191,6 +191,7 @@ export default {
       border-left: 1px solid #d8d8d8;
       padding-left: 10px;
       opacity: 0.7;
+      text-transform: uppercase;
     }
 
     .filter {
@@ -290,6 +291,7 @@ export default {
       align-items: center;
       display: flex;
       height: 32px;
+      white-space: nowrap;
       .cluster-os-logo {
         width: 32px;
         height: 32px;
