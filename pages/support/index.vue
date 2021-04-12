@@ -93,7 +93,7 @@ export default {
   grid-template-columns: 70% 30%;
 }
 .community {
-  border-left: 1px solid #d8d8d8;
+  border-left: 1px solid var(--border);
   padding-left: 20px;
   > h2 {
     font-size: 18px;
@@ -128,7 +128,7 @@ export default {
 
   .box {
     padding: 20px;
-    border: 1px solid #d8d8d8;
+    border: 1px solid var(--border);
 
     > h2 {
       font-size: 20px;
