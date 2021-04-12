@@ -3281,6 +3281,7 @@ workload:
       containers: Containers
       env: Environment Variables
       events: Events
+      general: General
       healthCheck: Health Check
       image: Image
       networkSettings: Network Settings

@@ -8,18 +8,13 @@ export default {
       type:     Array,
       required: true
     },
-
-    primaryName: {
+    workloadName: {
       type:     String,
       required: true
     }
   },
 
   methods: {
-    isPrimary(container) {
-      return container.name === this.primaryName;
-    },
-
     remove(container) {
       this.$emit('remove', container);
     }
@@ -33,23 +28,22 @@ export default {
       {{ t('workload.container.selectContainer') }}
     </h3>
     <div class="text-muted">
-      {{ t('workload.container.multipleContainers', {name: primaryName}) }}
+      {{ t('workload.container.multipleContainers', {name: workloadName}) }}
     </div>
     <div class="container-container">
-      <Card v-for="(container, i) in containers" :key="i" :class="{'primary': isPrimary(container)}">
+      <Card v-for="(container, i) in containers" :key="i">
         <template #title>
           {{ container.name }}
         </template>
         <template #body>
-          <span v-if="isPrimary(container)">Primary</span>
-          <span v-else-if="container._init">Init</span>
-          <span v-else>Sidecar</span>
+          <span v-if="container._init">Init</span>
+          <span v-else>Container</span>
         </template>
         <template #actions>
           <button class="btn btn-sm role-primary mr-10" type="button" @click="$emit('input', container)">
             {{ t('generic.edit') }}
           </button>
-          <button v-if="!isPrimary(container)" class="btn btn-sm bg-error" type="button" @click="remove(container)">
+          <button v-if="containers.length>1" class="btn btn-sm bg-error" type="button" @click="remove(container)">
             {{ t('generic.remove') }}
           </button>
         </template>
@@ -63,9 +57,5 @@ export default {
   display: flex;
   flex-wrap: wrap;
   width: 100%;
-}
-
-.primary{
-    background-color: var(--tooltip-bg);
 }
 </style>
