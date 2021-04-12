@@ -58,7 +58,7 @@
 
   --header-bg                  : #{$darkest};
   --header-border              : #{$medium};
-  --header-btn-bg              : #{$darker};
+  --header-btn-bg              : #{$dark};
   --header-btn-text : #{$lightest};
 
   --nav-bg: #{$darkest};
@@ -72,6 +72,7 @@
   --border: #{$medium};
 
   --topmenu-bg: #{$darkest};
+  --topmenu-text: #{$lightest};
   --topmost-border: #medium;
   --topmost-shadow: #{lighten($darkest, 5%)};
   --topmost-light-hover: #{$medium};

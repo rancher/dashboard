@@ -80,6 +80,7 @@ $selected: rgba($primary, .5);
   --footer-height              : 0px;
 
   --topmenu-bg                 : #{$lightest};
+  --topmenu-text               : #{$darkest};
   --topmost-border             : #d8d8d8;;
   --topmost-shadow             : #{lighten($lightest, 10%)};
   --topmost-light-hover        : #{$light};
