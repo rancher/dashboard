@@ -355,7 +355,6 @@ export default {
     },
 
     updateInput(node, on, keyField) {
-
       const id = get(node, keyField);
 
       if ( id ) {
