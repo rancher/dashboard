@@ -42,7 +42,7 @@ export default {
 
       if (this.type === WORKLOAD_TYPES.CRON_JOB) {
         if (!spec.jobTemplate) {
-          spec.jobTemplate = { spec: { template: { spec: { restartPolicy: 'Never', containers: [{ imagePullPolicy: 'Always' }] } } } };
+          spec.jobTemplate = { spec: { template: { spec: { restartPolicy: 'Never', containers: [{ imagePullPolicy: 'Always', name: 'container-0' }] } } } };
         }
       } else {
         if (!spec.replicas && spec.replicas !== 0) {
@@ -50,7 +50,7 @@ export default {
         }
 
         if (!spec.template) {
-          spec.template = { spec: { restartPolicy: this.type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always', containers: [{ imagePullPolicy: 'Always' }] } };
+          spec.template = { spec: { restartPolicy: this.type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always', containers: [{ imagePullPolicy: 'Always', name: 'container-0' }] } };
         }
         if (!spec.selector) {
           spec.selector = {};
@@ -501,7 +501,6 @@ export default {
       } else if (loadBalancer.id) {
         toRemove.push(loadBalancer);
       }
-      console.log('saving: ', toSave, 'removing: ', toRemove);
 
       return { toSave, toRemove };
     };
