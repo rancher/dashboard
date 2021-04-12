@@ -355,16 +355,20 @@ export default {
     },
 
     updateInput(node, on, keyField) {
+
       const id = get(node, keyField);
 
       if ( id ) {
-        const input = $(`label[data-node-id="${ id }"]`);
+        // Note: This is looking for the checkbox control for the row
+        const input = $(`div[data-checkbox-ctrl][data-node-id="${ id }"]`);
 
         if ( input && input.length && !input[0].disabled ) {
-          // can't reuse the input ref here because the table has rerenderd and the ref is no longer good
-          $(`label[data-node-id="${ id }"]`).prop('value', on);
+          const label = $(input[0]).find('label');
 
-          let tr = $(`label[data-node-id="${ id }"]`).closest('tr');
+          if (label) {
+            label.prop('value', on);
+          }
+          let tr = input.closest('tr');
           let first = true;
 
           while ( tr && (first || tr.hasClass('sub-row') ) ) {
