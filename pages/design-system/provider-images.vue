@@ -25,57 +25,57 @@ export default {
     <h2>Full Color Logos</h2>
     <div class="row">
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-aliyunecs.svg" />
+        <img class="" src="~/assets/images/providers/aliyunecs.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-amazonec2.svg" />
+        <img class="" src="~/assets/images/providers/amazonec2.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-amazoneks.svg" />
+        <img class="" src="~/assets/images/providers/amazoneks.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-azureaks.svg" />
+        <img class="" src="~/assets/images/providers/azureaks.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-digitalocean.svg" />
+        <img class="" src="~/assets/images/providers/digitalocean.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-equinix.svg" />
+        <img class="" src="~/assets/images/providers/equinix.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-googlegke.svg" />
+        <img class="" src="~/assets/images/providers/googlegke.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-k3s.svg" />
+        <img class="" src="~/assets/images/providers/k3s.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-kubernetes.svg" />
+        <img class="" src="~/assets/images/providers/kubernetes.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-linodelke.svg" />
+        <img class="" src="~/assets/images/providers/linodelke.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-minikube.svg" />
+        <img class="" src="~/assets/images/providers/minikube.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-open-telekom-cloud.svg" />
+        <img class="" src="~/assets/images/providers/open-telekom-cloud.svg" />
       </div>
     </div>
     <div class="row">
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-oracleoke.svg" />
+        <img class="" src="~/assets/images/providers/oracleoke.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-packet.svg" />
+        <img class="" src="~/assets/images/providers/packet.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-rackspace.svg" />
+        <img class="" src="~/assets/images/providers/rackspace.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-tencenttke.svg" />
+        <img class="" src="~/assets/images/providers/tencenttke.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-vmwarevsphere.svg" />
+        <img class="" src="~/assets/images/providers/vmwarevsphere.svg" />
       </div>
     </div>
 
@@ -83,114 +83,114 @@ export default {
     <h2>Single Color Logos</h2>
     <div class="row">
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-aliyunecs-black.svg" />
+        <img class="" src="~/assets/images/providers/aliyunecs-black.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-amazonec2-black.svg" />
+        <img class="" src="~/assets/images/providers/amazonec2-black.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-amazoneks-black.svg" />
+        <img class="" src="~/assets/images/providers/amazoneks-black.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-azureaks-black.svg" />
+        <img class="" src="~/assets/images/providers/azureaks-black.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-digitalocean-black.svg" />
+        <img class="" src="~/assets/images/providers/digitalocean-black.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-equinix-black.svg" />
+        <img class="" src="~/assets/images/providers/equinix-black.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-googlegke-black.svg" />
+        <img class="" src="~/assets/images/providers/googlegke-black.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-k3s-black.svg" />
+        <img class="" src="~/assets/images/providers/k3s-black.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-kubernetes-black.svg" />
+        <img class="" src="~/assets/images/providers/kubernetes-black.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-linodelke-black.svg" />
+        <img class="" src="~/assets/images/providers/linodelke-black.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-minikube-black.svg" />
+        <img class="" src="~/assets/images/providers/minikube-black.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-open-telekom-cloud-black.svg" />
+        <img class="" src="~/assets/images/providers/open-telekom-cloud-black.svg" />
       </div>
     </div>
     <div class="row">
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-oracleoke-black.svg" />
+        <img class="" src="~/assets/images/providers/oracleoke-black.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-packet-black.svg" />
+        <img class="" src="~/assets/images/providers/packet-black.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-rackspace-black.svg" />
+        <img class="" src="~/assets/images/providers/rackspace-black.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-tencenttke-black.svg" />
+        <img class="" src="~/assets/images/providers/tencenttke-black.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/provider-vmwarevsphere-black.svg" />
+        <img class="" src="~/assets/images/providers/vmwarevsphere-black.svg" />
       </div>
     </div>
     <div class="reverse-filter">
       <h2>Inverted with CSS - Single Color Logos</h2>
       <div class="row">
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-aliyunecs-black.svg" />
+          <img class="" src="~/assets/images/providers/aliyunecs-black.svg" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-amazonec2-black.svg" />
+          <img class="" src="~/assets/images/providers/amazonec2-black.svg" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-amazoneks-black.svg" />
+          <img class="" src="~/assets/images/providers/amazoneks-black.svg" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-azureaks-black.svg" />
+          <img class="" src="~/assets/images/providers/azureaks-black.svg" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-digitalocean-black.svg" />
+          <img class="" src="~/assets/images/providers/digitalocean-black.svg" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-equinix-black.svg" />
+          <img class="" src="~/assets/images/providers/equinix-black.svg" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-googlegke-black.svg" />
+          <img class="" src="~/assets/images/providers/googlegke-black.svg" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-k3s-black.svg" />
+          <img class="" src="~/assets/images/providers/k3s-black.svg" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-kubernetes-black.svg" />
+          <img class="" src="~/assets/images/providers/kubernetes-black.svg" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-linodelke-black.svg" />
+          <img class="" src="~/assets/images/providers/linodelke-black.svg" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-minikube-black.svg" />
+          <img class="" src="~/assets/images/providers/minikube-black.svg" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-open-telekom-cloud-black.svg" />
+          <img class="" src="~/assets/images/providers/open-telekom-cloud-black.svg" />
         </div>
       </div>
       <div class="row">
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-oracleoke-black.svg" />
+          <img class="" src="~/assets/images/providers/oracleoke-black.svg" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-packet-black.svg" />
+          <img class="" src="~/assets/images/providers/packet-black.svg" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-rackspace-black.svg" />
+          <img class="" src="~/assets/images/providers/rackspace-black.svg" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-tencenttke-black.svg" />
+          <img class="" src="~/assets/images/providers/tencenttke-black.svg" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/provider-vmwarevsphere-black.svg" />
+          <img class="" src="~/assets/images/providers/vmwarevsphere-black.svg" />
         </div>
       </div>
     </div>
