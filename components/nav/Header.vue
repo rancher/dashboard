@@ -358,6 +358,10 @@ export default {
         border-color: rgba(255, 255, 255, 0.25);
       }
 
+      .vs__selected-options input {
+        color: red;
+      }
+
       .vs__deselect {
         fill: var(--header-btn-bg);
       }
