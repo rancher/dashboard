@@ -153,10 +153,7 @@ export default {
       return this.as === _DETAIL;
     },
     doneLocationOverride() {
-      return this.isRancherType ? {
-        name:   'c-cluster-auth-roles',
-        hash:   `#${ this.value.subtype }`
-      } : this.value.listLocation;
+      return this.value.listLocation;
     },
     // Detail View
     rules() {
@@ -245,7 +242,7 @@ export default {
       this.$set(row, key, value);
     },
     cancel() {
-      this.$router.replace(this.doneLocationOverride);
+      this.done();
     },
     // Detail View
     verbKey(verb) {
@@ -290,7 +287,7 @@ export default {
         });
 
       return res;
-    }
+    },
   }
 };
 </script>

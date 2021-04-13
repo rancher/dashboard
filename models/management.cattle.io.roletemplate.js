@@ -155,4 +155,8 @@ export default {
     };
   },
 
+  doneOverride() {
+    return this.listLocation;
+  }
+
 };

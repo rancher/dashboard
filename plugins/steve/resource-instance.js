@@ -931,6 +931,10 @@ export default {
   },
 
   listLocation() {
+    return this._listLocation;
+  },
+
+  _listLocation() {
     return {
       name:   `c-cluster-product-resource`,
       params: {
