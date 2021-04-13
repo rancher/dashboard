@@ -5,6 +5,11 @@ export default {
       type:     String,
       required: true,
     },
+    // Show as plain - don't show in link style
+    plain: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   methods: {
@@ -17,7 +22,18 @@ export default {
 </script>
 
 <template>
-  <a href="#" @click="clicked">
+  <a class="copy-to-cliboard-text" :class="{'plain': plain}" href="#" @click="clicked">
     {{ text }} <i class="icon icon-copy" />
   </a>
 </template>
+<style lang="scss" scoped>
+  .copy-to-cliboard-text {
+    &.plain {
+      color: var(--body-text);
+
+      &:hover {
+        text-decoration: none;
+      }
+    }
+  }
+</style>

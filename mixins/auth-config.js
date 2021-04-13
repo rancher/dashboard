@@ -71,13 +71,13 @@ export default {
     },
 
     serverUrl() {
-      if ( this.serverSetting ) {
-        return this.serverSetting;
-      } else if ( process.client ) {
+      if (process.client) {
+        // Client-side rendered: use the current window loction
         return window.location.origin;
       }
 
-      return '';
+      // Server-side rendered
+      return this.serverSetting || '';
     },
 
     baseUrl() {

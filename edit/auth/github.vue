@@ -69,16 +69,6 @@ export default {
       return `${ this.model.tls ? 'https://' : 'http://' }${ this.model.hostname }`;
     },
 
-    serverUrl() {
-      if ( this.serverSetting ) {
-        return this.serverSetting;
-      } else if ( process.client ) {
-        return window.location.origin;
-      }
-
-      return '';
-    },
-
     principal() {
       return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
     },

@@ -137,15 +137,11 @@ export default {
         </div>
         <InfoBox class=" mt-20 mb-20 p-10">
           <h3 v-html="t('authConfig.googleoauth.steps.1.title', tArgs, true)" />
-          <!-- <div v-html="t('authConfig.googleoauth.steps.1.body', tArgs, true)" /> -->
-          <ul class="mt-0">
+          <ul class="mt-0 step-list">
             <li>{{ t('authConfig.googleoauth.steps.1.body.1', {}, true) }} </li>
-            <li>{{ t('authConfig.googleoauth.steps.1.body.2', {}, true) }} <CopyToClipboardText :text="tArgs.hostname" /> </li>
-
-            <li>{{ t('authConfig.googleoauth.steps.1.body.3', {}, true) }} <CopyToClipboardText :text="serverUrl" /> </li>
-
+            <li><b>{{ t('authConfig.googleoauth.steps.1.body.2', {}, true) }}</b> {{ t('authConfig.googleoauth.steps.1.topPrivateDomain', {}, true) }} <CopyToClipboardText :plain="true" :text="tArgs.hostname" /> </li>
+            <li><b>{{ t('authConfig.googleoauth.steps.1.body.3', {}, true) }}</b> <CopyToClipboardText :plain="true" :text="serverUrl" /> </li>
             <li>{{ t('authConfig.googleoauth.steps.1.body.4', {}, true) }} </li>
-
             <li>{{ t('authConfig.googleoauth.steps.1.body.5', {}, true) }} </li>
           </ul>
         </InfoBox>
@@ -155,14 +151,11 @@ export default {
           </div>
           <div class="row">
             <div class="col span-6">
-              <ul class="mt-0">
+              <ul class="mt-0 step-list">
                 <li>{{ t('authConfig.googleoauth.steps.2.body.1', {}, true) }} </li>
-                <li>{{ t('authConfig.googleoauth.steps.2.body.2', {}, true) }} <CopyToClipboardText :text="serverUrl" /> </li>
-
-                <li>{{ t('authConfig.googleoauth.steps.2.body.3', {}, true) }} <CopyToClipboardText :text="serverUrl+'/verify-auth'" /> </li>
-
+                <li><b>{{ t('authConfig.googleoauth.steps.2.body.2', {}, true) }}</b> <CopyToClipboardText :plain="true" :text="serverUrl" /> </li>
+                <li><b>{{ t('authConfig.googleoauth.steps.2.body.3', {}, true) }}</b> <CopyToClipboardText :plain="true" :text="serverUrl+'/verify-auth'" /> </li>
                 <li>{{ t('authConfig.googleoauth.steps.2.body.4', {}, true) }} </li>
-
                 <li>{{ t('authConfig.googleoauth.steps.2.body.5', {}, true) }} </li>
               </ul>
             </div>
@@ -185,7 +178,14 @@ export default {
             <h3 v-html="t('authConfig.googleoauth.steps.3.title', tArgs, true)" />
           </div>
           <div class="row">
-            <div class="col span-6" v-html="t('authConfig.googleoauth.steps.3.body', tArgs, true)" />
+            <div class="col span-6">
+              <div v-html="t('authConfig.googleoauth.steps.3.introduction', tArgs, true)" />
+              <ul class="mt-10 step-list">
+                <li>{{ t('authConfig.googleoauth.steps.3.body.1', {}, true) }} </li>
+                <li>{{ t('authConfig.googleoauth.steps.3.body.2', {}, true) }} </li>
+                <li>{{ t('authConfig.googleoauth.steps.3.body.3', {}, true) }} </li>
+              </ul>
+            </div>
             <div class="col span-6">
               <LabeledInput
                 v-model="model.serviceAccountCredential"
@@ -210,3 +210,8 @@ export default {
     </CruResource>
   </div>
 </template>
+<style lang="scss" scoped>
+  .step-list li:not(:last-child) {
+    margin-bottom: 8px;
+  }
+</style>
