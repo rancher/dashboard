@@ -382,10 +382,7 @@ export default {
             <template #column-headers>
               <div class="column-headers row">
                 <div class="col span-3">
-                  <label class="text-label">
-                    {{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.verbs') }}
-                    <span class="required">*</span>
-                  </label>
+                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.verbs') }}</label>
                 </div>
                 <div class="col span-3">
                   <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}</label>
@@ -477,10 +474,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .required {
-    color: var(--error);
-  }
-
   ::v-deep {
     .column-headers {
       margin-right: 75px;
