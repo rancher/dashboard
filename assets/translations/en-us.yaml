@@ -2192,8 +2192,8 @@ rbac:
         yes: "Yes: Default role for new cluster creation"
         defaultLabel: Cluster Creator Default
       NAMESPACE:
-        createButton: Create Project/Namespace Role
-        label: Project/Namespace
+        createButton: Create Project/Namespaces Role
+        label: Project/Namespaces
         yes: "Yes: Default role for new project creation"
         defaultLabel: Project Creator Default
       RBAC_ROLE:
