@@ -7,7 +7,6 @@ import { compare, isPrerelease, sortable } from '@/utils/version';
 import { filterBy } from '@/utils/array';
 import { CATALOG } from '@/config/types';
 import { SHOW_PRE_RELEASE } from '@/store/prefs';
-const semver = require('semver');
 
 export default {
   showMasthead() {
@@ -86,7 +85,7 @@ export default {
     let versions = chart.versions;
 
     if (!showPreRelease) {
-      versions = chart.versions.filter(v => isPrerelease(v));
+      versions = chart.versions.filter(v => !isPrerelease(v.version));
     }
 
     const newestChart = versions?.[0];
