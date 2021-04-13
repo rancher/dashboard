@@ -736,9 +736,9 @@ export default {
           <div class="col span-4">
             <LabeledSelect :value="container" option-label="name" :label="t('workload.container.titles.container')" :options="containerOptions" @input="selectContainer" />
           </div>
-          <div v-if="allContainers.length > 1" class="col">
+          <div v-if="allContainers.length > 1 && isEdit" class="col">
             <button type="button" class="btn-sm role-link" @click="removeContainer(container)">
-              Remove Container
+              {{ t('workload.container.removeContainer') }}
             </button>
           </div>
         </div>
@@ -914,8 +914,7 @@ export default {
 <style lang='scss'>
 .container-row{
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
 }
 

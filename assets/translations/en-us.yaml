@@ -3241,6 +3241,7 @@ workload:
       name: Name
       noCreateService: Do not create a service
       protocol: Protocol
+    removeContainer: Remove Container
     security:
       addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs
