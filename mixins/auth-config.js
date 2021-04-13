@@ -72,7 +72,7 @@ export default {
 
     serverUrl() {
       if (process.client) {
-        // Client-side rendered: use the current window loction
+        // Client-side rendered: use the current window location
         return window.location.origin;
       }
 
