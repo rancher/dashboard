@@ -344,7 +344,7 @@ export default {
   </div>
 </template>
 
-<style type="scss" scoped>
+<style lang="scss" scoped>
 .filter {
   min-width: 220px;
   max-width: 100%;

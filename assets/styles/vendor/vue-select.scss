@@ -345,6 +345,10 @@ $transition-duration: 150ms;
   color: var(--input-text);
 }
 
+header .vs__selected-options input {
+  color: var(--header-input-text);
+}
+
 header .vs-select .vs__dropdown-toggle {
   background: var(--error) !important;
 }
