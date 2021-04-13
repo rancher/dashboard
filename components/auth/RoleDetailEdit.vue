@@ -245,6 +245,18 @@ export default {
     cancel() {
       this.done();
     },
+    async actuallySave(url) {
+      if ( this.isCreate ) {
+        url = url || this.schema.linkFor('collection');
+        const res = await this.value.save({ url, redirectUnauthorized: false });
+
+        if (res) {
+          Object.assign(this.value, res);
+        }
+      } else {
+        await this.value.save({ redirectUnauthorized: false });
+      }
+    },
     // Detail View
     verbKey(verb) {
       return `has${ ucFirst(verb) }`;
