@@ -21,8 +21,7 @@ export default {
 <template>
   <div class="banner-graphic" :class="{'small': small}">
     <div class="graphic">
-      <img class="top" src="~/assets/images/pl/decoration-cloud-big-white.svg" />
-      <img class="trees" src="~/assets/images/pl/decoration-ground.svg" />
+      <img class="banner" src="~/assets/images/pl/banner.svg" />
     </div>
     <div v-if="titleKey" class="title">
       <t :k="titleKey" />
@@ -34,25 +33,21 @@ export default {
 </template>
 
 <style lang="scss">
+  $banner-height: 240px;
+  $banner-height-small: 200px;
+
   .banner-graphic {
-    background-color: #f2f5f5;
     position: relative;
 
     .graphic {
       display: flex;
       flex-direction: column;
-      height: 240px;
+      height: $banner-height;
       overflow: hidden;
-      > img {
+      > img.banner {
         object-fit: cover;
         width: 100%;
-        height: 200px;
-
-        &.top {
-          height: 60px;
-          width: 100%;
-          margin: 0;
-        }
+        height: $banner-height;
       }
     }
     .title {
@@ -63,13 +58,9 @@ export default {
     }
     &.small {
       .graphic {
-        height: 200px;
-        img.top {
-          position: absolute;
-        }
-        img.trees {
-          padding-top: 10px;
-          z-index: 1;
+        height: $banner-height-small;
+        img.banner {
+          margin-top: ($banner-height-small - $banner-height)/2;
         }
       }
       .title {
