@@ -47,6 +47,9 @@ export default {
     const globalRoleSchema = this.$store.getters[`management/schemaFor`](MANAGEMENT.GLOBAL_ROLE);
     const roleTemplatesSchema = this.$store.getters[`management/schemaFor`](MANAGEMENT.ROLE_TEMPLATE);
 
+    const roleTemplateHeaders = this.$store.getters['type-map/headersFor'](roleTemplatesSchema);
+    const defaultHeaderIndex = roleTemplateHeaders.findIndex(header => header.name === 'default');
+
     return {
       tabs: {
         [GLOBAL]: {
@@ -66,6 +69,7 @@ export default {
           labelKey:       SUBTYPE_MAPPING.CLUSTER.labelKey,
           weight:         2,
           schema:         roleTemplatesSchema,
+          headers:        this.applyDefaultHeaderLabel(roleTemplateHeaders, defaultHeaderIndex, 'tableHeaders.authRoles.clusterDefault'),
           createLocation: {
             ...createRoleTemplate,
             query: { roleContext: CLUSTER }
@@ -77,6 +81,7 @@ export default {
           labelKey:       SUBTYPE_MAPPING.NAMESPACE.labelKey,
           weight:         1,
           schema:         roleTemplatesSchema,
+          headers:        this.applyDefaultHeaderLabel(roleTemplateHeaders, defaultHeaderIndex, 'tableHeaders.authRoles.projectDefault'),
           createLocation: {
             ...createRoleTemplate,
             query: { roleContext: PROJECT }
@@ -131,6 +136,19 @@ export default {
 
   },
 
+  methods: {
+    applyDefaultHeaderLabel(roleTemplateHeaders, defaultHeaderIndex, labelKey) {
+      const headers = [...roleTemplateHeaders];
+
+      headers[defaultHeaderIndex] = {
+        ...roleTemplateHeaders[defaultHeaderIndex],
+        labelKey,
+      };
+
+      return headers;
+    }
+  }
+
 };
 </script>
 
@@ -161,11 +179,11 @@ export default {
       </Tab>
 
       <Tab v-if="tabs[CLUSTER].canFetch" :name="CLUSTER" :weight="tabs[CLUSTER].weight" :label-key="tabs[CLUSTER].labelKey">
-        <ResourceTable :schema="tabs[CLUSTER].schema" :rows="clusterResources" />
+        <ResourceTable :schema="tabs[CLUSTER].schema" :headers="tabs[CLUSTER].headers" :rows="clusterResources" />
       </Tab>
 
       <Tab v-if="tabs[PROJECT].canFetch" :name="PROJECT" :weight="tabs[PROJECT].weight" :label-key="tabs[PROJECT].labelKey">
-        <ResourceTable :schema="tabs[PROJECT].schema" :rows="namespaceResources" />
+        <ResourceTable :schema="tabs[PROJECT].schema" :headers="tabs[PROJECT].headers" :rows="namespaceResources" />
       </Tab>
     </Tabbed>
   </div>

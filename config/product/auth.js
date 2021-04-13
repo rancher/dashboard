@@ -193,7 +193,10 @@ export function init(store) {
     DISPLAY_NAME,
     SIMPLE_NAME,
     RBAC_BUILTIN,
-    RBAC_DEFAULT,
+    {
+      ...RBAC_DEFAULT,
+      labelKey: 'tableHeaders.authRoles.globalDefault',
+    },
     AGE
   ]);
 
