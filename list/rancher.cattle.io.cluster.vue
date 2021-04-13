@@ -22,18 +22,33 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      clusters:           this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+      mgmtClusters:       this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+      rancherClusters:    this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
       machineDeployments: this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT })
     });
 
-    this.rows = hash.clusters;
+    this.mgmtClusters = hash.mgmtClusters;
+    this.rancherClusters = hash.rancherClusters;
   },
 
   data() {
-    return { rows: [] };
+    return {
+      mgmtClusters:    [],
+      rancherClusters: [],
+    };
   },
 
   computed: {
+    rows() {
+      const out = this.mgmtClusters.slice();
+
+      for ( const c of this.rancherClusters ) {
+        out.push(c);
+      }
+
+      return out;
+    },
+
     importLink() {
       return {
         name:  'c-cluster-product-resource-create',

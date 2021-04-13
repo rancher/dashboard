@@ -3862,8 +3862,8 @@ typeLabel:
     }
   'management.cattle.io.cluster': |-
     {count, plural,
-      one { All Cluster }
-      other { All Clusters }
+      one { Cluster }
+      other { Clusters }
     }
   'cluster.x-k8s.io.cluster': |-
     {count, plural,
@@ -3872,8 +3872,8 @@ typeLabel:
     }
   'rancher.cattle.io.cluster': |-
     {count, plural,
-      one { Cluster }
-      other { Clusters }
+      one { Rancher Cluster }
+      other { Rancher Clusters }
     }
   'management.cattle.io.user': |-
     {count, plural,

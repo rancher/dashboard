@@ -11,7 +11,6 @@ export function init(store) {
     basicType,
     headers,
     configureType,
-    weightGroup,
   } = DSL(store, NAME);
 
   product({
@@ -27,26 +26,15 @@ export function init(store) {
 
   basicType([
     CAPI.RANCHER_CLUSTER,
+    CAPI.CAPI_CLUSTER,
+    MANAGEMENT.CLUSTER,
   ]);
 
   basicType([
     CAPI.MACHINE_DEPLOYMENT,
+    CAPI.MACHINE_SET,
     CAPI.MACHINE,
   ], 'Advanced');
-
-  basicType([
-    CAPI.CAPI_CLUSTER,
-    MANAGEMENT.CLUSTER,
-    'cluster.x-k8s.io.machinehealthcheck',
-    'cluster.x-k8s.io.machineset',
-    'cluster.x-k8s.io.clusterctl'
-  ], '(Debug)');
-
-  weightGroup('(Debug)', -100, true);
-
-  basicType([
-    /^cluster\.cattle\.io\..*configs?$/,
-  ], 'Node Configs');
 
   const MACHINE_SUMMARY = {
     name:      'summary',

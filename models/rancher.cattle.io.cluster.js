@@ -1,4 +1,4 @@
-import { CAPI } from '@/config/types';
+import { CAPI, MANAGEMENT } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 
 export const DEFAULT_WORKSPACE = 'fleet-default';
@@ -31,6 +31,12 @@ export default {
     const provider = this.nodeProvider;
 
     return this.$getters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, 'generic.unknown', true);
+  },
+
+  mgmt() {
+    const mgmt = this.$getters['byId'](MANAGEMENT.CLUSTER, this.id);
+
+    return mgmt;
   },
 
   pools() {

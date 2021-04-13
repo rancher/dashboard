@@ -27,7 +27,7 @@ export default {
 
   configName() {
     const allKeys = Object.keys(this.spec);
-    const configKey = allKeys.find( kee => kee.includes('Config'));
+    const configKey = allKeys.find( k => k.endsWith('Config'));
 
     return configKey;
   },
