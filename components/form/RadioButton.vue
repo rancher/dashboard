@@ -47,7 +47,7 @@ export default {
     },
 
     muteLabel() {
-      // Don't mute the label if the mode if view and the button is checked
+      // Don't mute the label if the mode is view and the button is checked
       return this.disabled && !(this.mode === _VIEW && this.isChecked);
     }
   },
@@ -79,7 +79,7 @@ export default {
 
 <template>
   <label
-    class="radio-container"
+    :class="[ isDisabled ? 'disabled' : '', 'radio-container']"
     @keydown.enter="clicked($event)"
     @keydown.space="clicked($event)"
     @click.stop="clicked($event)"
@@ -138,6 +138,10 @@ export default {
   border-radius: var(--border-radius);
   padding-bottom: 5px;
 
+  &.disabled {
+    cursor: default
+  }
+
   .radio-label {
     margin: 3px 10px 0px 5px;
   }
@@ -171,10 +175,9 @@ export default {
       opacity:1;
       border: 1.5px solid var(--dropdown-text);
 
-      // Ensure that checked radio buttons are greyed out when not enabled
+      // Ensure that checked radio buttons are muted but still visibly selected when muted
       &.text-muted {
-        background-color: var(--disabled-bg);
-        border-color: var(--disabled-bg);
+        opacity: .25;
       }
     }
   }

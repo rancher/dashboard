@@ -2177,7 +2177,7 @@ rbac:
         label: Grant Resources
         tableHeaders:
           verbs: Verbs
-          resources: Resources
+          resources: Resource
           nonResourceUrls: Non-Resource URLs
           apiGroups: API Groups
     subtypes:

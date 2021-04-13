@@ -62,16 +62,6 @@ export default {
 
   data() {
     this.$set(this.value, 'rules', this.value.rules || []);
-    switch (this.value.subtype) {
-    case GLOBAL:
-      this.$set(this.value, 'newUserDefault', !!this.value.newUserDefault);
-      break;
-    case CLUSTER:
-    case NAMESPACE:
-      this.$set(this.value, 'roleTemplateNames', this.value.roleTemplateNames || []);
-      this.$set(this.value, 'locked', !!this.value.locked);
-      break;
-    }
 
     this.value.rules.forEach((rule) => {
       if (rule.verbs[0] === '*') {
@@ -84,6 +74,17 @@ export default {
 
     if (roleContext && this.value.updateSubtype) {
       this.value.updateSubtype(roleContext);
+    }
+
+    switch (this.value.subtype) {
+    case GLOBAL:
+      this.$set(this.value, 'newUserDefault', !!this.value.newUserDefault);
+      break;
+    case CLUSTER:
+    case NAMESPACE:
+      this.$set(this.value, 'roleTemplateNames', this.value.roleTemplateNames || []);
+      this.$set(this.value, 'locked', !!this.value.locked);
+      break;
     }
 
     this.$nextTick(() => {
