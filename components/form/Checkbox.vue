@@ -102,7 +102,7 @@ export default {
 </script>
 
 <template>
-  <div class="checkbox-outer-container">
+  <div class="checkbox-outer-container" data-checkbox-ctrl>
     <label
       class="checkbox-container"
       :class="{ 'disabled': isDisabled}"
