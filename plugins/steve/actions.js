@@ -340,7 +340,7 @@ export default {
   },
 
   promptRemove({ commit, state }, resources = []) {
-    commit('action-menu/togglePromptRemove', { resources }, { root: true });
+    commit('action-menu/togglePromptRemove', resources, { root: true });
   },
 
   assignTo({ commit, state }, resources = []) {
