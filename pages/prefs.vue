@@ -3,7 +3,7 @@ import day from 'dayjs';
 import ButtonGroup from '@/components/ButtonGroup';
 import Checkbox from '@/components/form/Checkbox';
 import {
-  mapPref, THEME, LANDING, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC
+  mapPref, THEME, LANDING, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE
 } from '@/store/prefs';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { addObject } from '@/utils/array';
@@ -13,14 +13,15 @@ export default {
     ButtonGroup, LabeledSelect, Checkbox
   },
   computed:   {
-    theme:      mapPref(THEME),
-    keymap:     mapPref(KEYMAP),
-    dev:        mapPref(DEV),
-    landing:    mapPref(LANDING),
-    dateFormat: mapPref(DATE_FORMAT),
-    timeFormat: mapPref(TIME_FORMAT),
-    perPage:    mapPref(ROWS_PER_PAGE),
-    hideDesc:   mapPref(HIDE_DESC),
+    theme:          mapPref(THEME),
+    keymap:         mapPref(KEYMAP),
+    dev:            mapPref(DEV),
+    landing:        mapPref(LANDING),
+    dateFormat:     mapPref(DATE_FORMAT),
+    timeFormat:     mapPref(TIME_FORMAT),
+    perPage:        mapPref(ROWS_PER_PAGE),
+    hideDesc:       mapPref(HIDE_DESC),
+    showPreRelease:   mapPref(SHOW_PRE_RELEASE),
 
     themeOptions() {
       return this.$store.getters['prefs/options'](THEME).map((value) => {
@@ -55,6 +56,15 @@ export default {
       return this.$store.getters['prefs/options'](DATE_FORMAT).map((value) => {
         return {
           label: now.format(value),
+          value
+        };
+      });
+    },
+
+    helmOptions() {
+      return this.$store.getters['prefs/options'](SHOW_PRE_RELEASE).map((value) => {
+        return {
+          labelKey: `prefs.helm.${ value }`,
           value
         };
       });
@@ -168,6 +178,13 @@ export default {
         <h4 v-t="'prefs.advanced'" />
         <Checkbox v-model="dev" :label="t('prefs.dev.label', {}, true)" />
         <Checkbox v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" />
+      </div>
+    </div>
+    <hr />
+    <div class="row">
+      <div class="col">
+        <h4 v-t="'prefs.helm.label'" />
+        <ButtonGroup v-model="showPreRelease" :options="helmOptions" />
       </div>
     </div>
   </div>

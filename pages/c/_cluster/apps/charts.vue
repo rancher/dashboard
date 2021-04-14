@@ -11,11 +11,12 @@ import { sortBy } from '@/utils/sort';
 import { mapGetters } from 'vuex';
 import Checkbox from '@/components/form/Checkbox';
 import Select from '@/components/form/Select';
-import { mapPref, HIDE_REPOS } from '@/store/prefs';
+import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE } from '@/store/prefs';
 import { removeObject, addObject, findBy } from '@/utils/array';
 import { CATALOG } from '@/config/labels-annotations';
-
 import filter from 'lodash/filter';
+import { isPrerelease } from '@/utils/version';
+const semver = require('semver');
 
 export default {
   components: {
@@ -215,17 +216,24 @@ export default {
 
       return null;
     },
-    getCompatibleVersions(versions, os) {
+
+    getCompatibleVersions(versions, os, includePrerelease = true) {
       return filter(versions, (ver) => {
         const osAnnotation = ver?.annotations?.[this.catalogOSAnnotation];
 
-        if (osAnnotation && osAnnotation === os) {
-          return true;
-        } else if (!osAnnotation) {
-          return true;
+        if ( !includePrerelease && isPrerelease(ver.version) ) {
+          return false;
         }
 
-        return false;
+        if ( os === null ) {
+          return true;
+        } else if (osAnnotation && osAnnotation === os) {
+          return true;
+        } else if (osAnnotation) {
+          return true;
+        } else {
+          return false;
+        }
       });
     },
 
@@ -269,17 +277,18 @@ export default {
 
     selectChart(chart) {
       let version;
-      const chartVersions = chart.versions;
       const isWindows = this.currentCluster.providerOs === 'windows';
-      const windowsVersions = this.getCompatibleVersions(chartVersions, 'windows');
-      const linuxVersions = this.getCompatibleVersions(chartVersions, 'linux');
+      const showPrerelease = this.$store.getters['prefs/get'](SHOW_PRE_RELEASE);
+      const windowsVersions = this.getCompatibleVersions(chart.versions, 'windows', showPrerelease);
+      const linuxVersions = this.getCompatibleVersions(chart.versions, 'linux', showPrerelease);
+      const allVersions = this.getCompatibleVersions(chart.versions, null, showPrerelease);
 
       if ( isWindows && windowsVersions.length > 0) {
         version = windowsVersions[0].version;
       } else if ( !isWindows && linuxVersions.length > 0) {
         version = linuxVersions[0].version;
       } else {
-        version = chartVersions[0].version;
+        version = allVersions[0].version;
       }
 
       this.$router.push({
@@ -313,6 +322,14 @@ export default {
         btnCb(false);
       }
     },
+
+    isPreRelease(version = '') {
+      if (!semver.valid(version)) {
+        version = semver.clean(version, { loose: true });
+      }
+
+      return semver.prerelease(version);
+    },
   },
 };
 </script>
@@ -345,7 +362,6 @@ export default {
           @input="toggleRepo(r, $event)"
         />
       </div>
-
       <Select
         v-model="category"
         :clearable="false"

@@ -2045,6 +2045,10 @@ prefs:
     label: Enable Developer Tools & Features
   hideDesc:
     label: Hide All Type Description Boxes
+  helm:
+    'true': Include Prerelease Versions
+    'false': Show Releases Only
+    label: Helm Charts
 
 principal:
   loading: Loading&hellip;

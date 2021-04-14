@@ -3,7 +3,6 @@ import isEqual from 'lodash/isEqual';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
-
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
 import Checkbox from '@/components/form/Checkbox';
@@ -30,6 +29,8 @@ import { findBy, insertAt } from '@/utils/array';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import sortBy from 'lodash/sortBy';
 import { formatSi, parseSi } from '@/utils/units';
+import { SHOW_PRE_RELEASE, mapPref } from '@/store/prefs';
+const semver = require('semver');
 
 export default {
   name: 'Install',
@@ -359,6 +360,8 @@ export default {
   computed: {
     ...mapGetters(['currentCluster', 'isRancher']),
 
+    showPreRelease: mapPref(SHOW_PRE_RELEASE),
+
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
       const want = this.value?.metadata?.namespace;
@@ -513,8 +516,18 @@ export default {
             nue.disabled = true;
           }
         }
+        if (!semver.valid(version.version)) {
+          version.version = semver.clean(version.version, { loose: true });
+        }
+        if (!this.showPreRelease) {
+          const isPre = !!semver.prerelease(version.version);
 
-        out.push(nue);
+          if (!isPre) {
+            out.push(nue);
+          }
+        } else {
+          out.push(nue);
+        }
       });
 
       const selectedMatch = out.find(v => v.id === selectedVersion);
