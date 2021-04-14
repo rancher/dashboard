@@ -31,7 +31,6 @@ import Command from '@/components/form/Command';
 import Storage from '@/edit/workload/storage';
 import Labels from '@/components/form/Labels';
 import RadioGroup from '@/components/form/RadioGroup';
-import ContainerSelect from '@/edit/workload/ContainerSelect';
 import { UI_MANAGED } from '@/config/labels-annotations';
 import { removeObject } from '@/utils/array';
 
@@ -61,7 +60,6 @@ export default {
     VolumeClaimTemplate,
     Labels,
     RadioGroup,
-    ContainerSelect
   },
 
   mixins: [CreateEditView],
@@ -116,8 +114,6 @@ export default {
 
     const spec = this.value.spec;
     let container;
-    let isSidecar = false;
-    let showContainerPicker = false;
     const podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
     let containers = podTemplateSpec.containers;
 
@@ -136,14 +132,12 @@ export default {
       if (createSidecar) {
         container = { imagePullPolicy: 'Always', name: `container-${ allContainers.length }` };
         containers.push(container);
-        isSidecar = true;
       } else {
-        showContainerPicker = true;
+        container = containers[0];
       }
     }
-    if (container) {
-      container._active = true;
-    }
+
+    this.selectContainer(container);
 
     return {
       allConfigMaps:     [],
@@ -159,10 +153,8 @@ export default {
       servicesOwned:     [],
       servicesToRemove:    [],
       portsForServices:  [],
-      isSidecar,
       isInitContainer,
       container,
-      showContainerPicker
     };
   },
 
@@ -635,7 +627,6 @@ export default {
       container._active = true;
       this.container = container;
       this.isInitContainer = !!container._init;
-      this.showContainerPicker = false;
     },
 
     addContainer() {
@@ -651,9 +642,7 @@ export default {
       } else {
         removeObject(this.podTemplateSpec.containers, container);
       }
-      if (!this.showContainerPicker) {
-        this.selectContainer(this.allContainers[0]);
-      }
+      this.selectContainer(this.allContainers[0]);
     },
 
     updateInitContainer(neu) {
@@ -686,7 +675,6 @@ export default {
 
   <form v-else>
     <CruResource
-      ref="cruresource"
       :validation-passed="true"
       :selected-subtype="type"
       :resource="value"
@@ -699,214 +687,209 @@ export default {
       @error="e=>errors = e"
       @apply-hooks="applyHooks"
     >
-      <div v-if="showContainerPicker">
-        <ContainerSelect :workload-name="value.metadata.name" :containers="allContainers" @input="selectContainer($event)" @remove="removeContainer" />
+      <div class="row">
+        <div class="col span-12">
+          <NameNsDescription :value="value" :extra-columns="nameNsColumns" :mode="mode" @change="name=value.metadata.name">
+            <template #schedule>
+              <LabeledInput
+                v-model="spec.schedule"
+                type="cron"
+                required
+                :mode="mode"
+                :label="t('workload.cronSchedule')"
+                placeholder="0 * * * *"
+              />
+            </template>
+            <template #replicas>
+              <LabeledInput v-model.number="spec.replicas" type="number" required :mode="mode" :label="t('workload.replicas')" />
+            </template>
+            <template #service>
+              <LabeledSelect
+                v-model="spec.serviceName"
+                option-label="metadata.name"
+                :reduce="service=>service.metadata.name"
+                :mode="mode"
+                :label="t('workload.serviceName')"
+                :options="headlessServices"
+              />
+            </template>
+          </NameNsDescription>
+        </div>
       </div>
-      <template v-else>
-        <div class="row">
-          <div class="col span-12">
-            <NameNsDescription :value="value" :extra-columns="nameNsColumns" :mode="mode" @change="name=value.metadata.name">
-              <template #schedule>
-                <LabeledInput
-                  v-model="spec.schedule"
-                  type="cron"
-                  required
+      <div v-if="containerOptions.length > 1" class="container-row">
+        <div class="col span-4">
+          <LabeledSelect :value="container" option-label="name" :label="t('workload.container.titles.container')" :options="containerOptions" @input="selectContainer" />
+        </div>
+        <div v-if="allContainers.length > 1 && isEdit" class="col">
+          <button type="button" class="btn-sm role-link" @click="removeContainer(container)">
+            {{ t('workload.container.removeContainer') }}
+          </button>
+        </div>
+      </div>
+      <Tabbed :key="allContainers.indexOf(container)" :side-tabs="true">
+        <Tab :label="t('workload.container.titles.general')" name="general">
+          <div>
+            <div :style="{'align-items':'center'}" class="row mb-20">
+              <div class="col span-6">
+                <LabeledInput v-model="container.name" :mode="mode" :label="t('workload.container.containerName')" />
+              </div>
+              <div class="col span-6">
+                <RadioGroup
                   :mode="mode"
-                  :label="t('workload.cronSchedule')"
-                  placeholder="0 * * * *"
+                  :value="isInitContainer"
+                  name="initContainer"
+                  :options="[true, false]"
+                  :labels="[t('workload.container.init'), t('workload.container.standard')]"
+                  @input="updateInitContainer"
                 />
-              </template>
-              <template #replicas>
-                <LabeledInput v-model.number="spec.replicas" type="number" required :mode="mode" :label="t('workload.replicas')" />
-              </template>
-              <template #service>
+              </div>
+            </div>
+            <h3>{{ t('workload.container.titles.image') }}</h3>
+            <div class="row mb-20">
+              <div class="col span-6">
+                <LabeledInput
+                  v-model="container.image"
+                  :mode="mode"
+                  :label="t('workload.container.image')"
+                  placeholder="e.g. nginx:latest"
+                  required
+                />
+              </div>
+              <div class="col span-6">
                 <LabeledSelect
-                  v-model="spec.serviceName"
+                  v-model="container.imagePullPolicy"
+                  :label="t('workload.container.imagePullPolicy')"
+                  :options="pullPolicyOptions"
+                  :mode="mode"
+                />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col span-6">
+                <LabeledSelect
+                  v-model="imagePullSecrets"
+                  :label="t('workload.container.imagePullSecrets')"
+                  :multiple="true"
+                  :taggable="true"
+                  :options="namespacedSecrets"
+                  :mode="mode"
                   option-label="metadata.name"
                   :reduce="service=>service.metadata.name"
-                  :mode="mode"
-                  :label="t('workload.serviceName')"
-                  :options="headlessServices"
                 />
-              </template>
-            </NameNsDescription>
+              </div>
+            </div>
           </div>
-        </div>
-        <div v-if="containerOptions.length > 1" class="container-row">
-          <div class="col span-4">
-            <LabeledSelect :value="container" option-label="name" :label="t('workload.container.titles.container')" :options="containerOptions" @input="selectContainer" />
+
+          <div class="spacer"></div>
+          <div>
+            <h3>{{ t('workload.container.titles.ports') }}</h3>
+            <div class="row">
+              <WorkloadPorts v-model="container.ports" :name="value.metadata.name" :services="servicesOwned" :mode="mode" />
+            </div>
           </div>
-          <div v-if="allContainers.length > 1 && isEdit" class="col">
-            <button type="button" class="btn-sm role-link" @click="removeContainer(container)">
-              {{ t('workload.container.removeContainer') }}
-            </button>
+
+          <div class="spacer"></div>
+          <div>
+            <h3>{{ t('workload.container.titles.command') }}</h3>
+            <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
           </div>
-        </div>
-        <Tabbed :key="allContainers.indexOf(container)" :side-tabs="true">
-          <Tab :label="t('workload.container.titles.general')" name="general">
+        </Tab>
+        <Tab :label="t('workload.storage.title')" name="storage">
+          <Storage
+            v-model="podTemplateSpec"
+            :namespace="value.metadata.namespace"
+            :register-before-hook="registerBeforeHook"
+            :mode="mode"
+            :secrets="namespacedSecrets"
+            :config-maps="namespacedConfigMaps"
+            :container="container"
+          />
+        </Tab>
+        <Tab :label="t('workload.container.titles.resources')" name="resources">
+          <h3 class="mb-10">
+            <t k="workload.scheduling.titles.limits" />
+          </h3>
+          <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />
+          <template>
+            <div class="spacer"></div>
             <div>
-              <div :style="{'align-items':'center'}" class="row mb-20">
-                <div class="col span-6">
-                  <LabeledInput v-model="container.name" :mode="mode" :label="t('workload.container.containerName')" />
-                </div>
-                <div class="col span-6">
-                  <RadioGroup
-                    :mode="mode"
-                    :value="isInitContainer"
-                    name="initContainer"
-                    :options="[true, false]"
-                    :labels="[t('workload.container.init'), t('workload.container.standard')]"
-                    @input="updateInitContainer"
-                  />
-                </div>
-              </div>
-              <h3>{{ t('workload.container.titles.image') }}</h3>
-              <div class="row mb-20">
-                <div class="col span-6">
-                  <LabeledInput
-                    v-model="container.image"
-                    :mode="mode"
-                    :label="t('workload.container.image')"
-                    placeholder="e.g. nginx:latest"
-                    required
-                  />
-                </div>
-                <div class="col span-6">
-                  <LabeledSelect
-                    v-model="container.imagePullPolicy"
-                    :label="t('workload.container.imagePullPolicy')"
-                    :options="pullPolicyOptions"
-                    :mode="mode"
-                  />
-                </div>
-              </div>
+              <h3 class="mb-10">
+                <t k="workload.scheduling.titles.tolerations" />
+              </h3>
               <div class="row">
-                <div class="col span-6">
-                  <LabeledSelect
-                    v-model="imagePullSecrets"
-                    :label="t('workload.container.imagePullSecrets')"
-                    :multiple="true"
-                    :taggable="true"
-                    :options="namespacedSecrets"
-                    :mode="mode"
-                    option-label="metadata.name"
-                    :reduce="service=>service.metadata.name"
-                  />
-                </div>
+                <Tolerations v-model="podTemplateSpec.tolerations" :mode="mode" />
               </div>
             </div>
 
-            <div class="spacer"></div>
             <div>
-              <h3>{{ t('workload.container.titles.ports') }}</h3>
-              <div class="row">
-                <WorkloadPorts v-model="container.ports" :name="value.metadata.name" :services="servicesOwned" :mode="mode" />
-              </div>
-            </div>
-
-            <div class="spacer"></div>
-            <div>
-              <h3>{{ t('workload.container.titles.command') }}</h3>
-              <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
-            </div>
-          </Tab>
-          <Tab :label="t('workload.storage.title')" name="storage">
-            <Storage
-              v-model="podTemplateSpec"
-              :namespace="value.metadata.namespace"
-              :register-before-hook="registerBeforeHook"
-              :mode="mode"
-              :secrets="namespacedSecrets"
-              :config-maps="namespacedConfigMaps"
-              :container="container"
-            />
-          </Tab>
-          <Tab :label="t('workload.container.titles.resources')" name="resources">
-            <h3 class="mb-10">
-              <t k="workload.scheduling.titles.limits" />
-            </h3>
-            <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />
-            <template>
               <div class="spacer"></div>
-              <div>
-                <h3 class="mb-10">
-                  <t k="workload.scheduling.titles.tolerations" />
-                </h3>
-                <div class="row">
-                  <Tolerations v-model="podTemplateSpec.tolerations" :mode="mode" />
-                </div>
-              </div>
-
-              <div>
-                <div class="spacer"></div>
-                <h3 class="mb-10">
-                  <t k="workload.scheduling.titles.priority" />
-                </h3>
-                <div class="row">
-                  <div class="col span-6">
-                    <LabeledInput v-model.number="podTemplateSpec.priority" :mode="mode" :label="t('workload.scheduling.priority.priority')" />
-                  </div>
-                  <div class="col span-6">
-                    <LabeledInput v-model="podTemplateSpec.priorityClassname" :mode="mode" :label="t('workload.scheduling.priority.className')" />
-                  </div>
-                </div>
-              </div>
-            </template>
-          </Tab>
-          <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling">
-            <PodAffinity :mode="mode" :value="podTemplateSpec" />
-          </Tab>
-          <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
-            <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" />
-          </Tab>
-          <Tab :label="t('workload.container.titles.upgrading')" name="upgrading">
-            <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
-            <Upgrading v-else v-model="spec" :mode="mode" :type="type" />
-          </Tab>
-          <Tab v-if="!isInitContainer" :label="t('workload.container.titles.healthCheck')" name="healthCheck">
-            <HealthCheck v-model="healthCheck" :mode="mode" />
-          </Tab>
-          <Tab :label="t('workload.container.titles.securityContext')" name="securityContext">
-            <Security v-model="container.securityContext" :mode="mode" />
-          </Tab>
-          <Tab :label="t('workload.container.titles.networking')" name="networking">
-            <Networking v-model="podTemplateSpec" :mode="mode" />
-          </Tab>
-          <Tab v-if="isStatefulSet" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates">
-            <VolumeClaimTemplate v-model="spec" :mode="mode" />
-          </Tab>
-          <Tab name="labels" :label="t('generic.labelsAndAnnotations')">
-            <Labels v-model="value" :mode="mode" />
-            <div class="spacer"></div>
-
-            <div>
-              <h3>{{ t('workload.container.titles.podLabels') }}</h3>
-              <div class="row mb-20">
-                <KeyValue
-                  key="labels"
-                  v-model="podLabels"
-                  :add-label="t('labels.addLabel')"
-                  :mode="mode"
-                  :read-allowed="false"
-                  :protip="false"
-                />
-              </div>
-              <div class="spacer"></div>
-              <h3>{{ t('workload.container.titles.podAnnotations') }}</h3>
+              <h3 class="mb-10">
+                <t k="workload.scheduling.titles.priority" />
+              </h3>
               <div class="row">
-                <KeyValue
-                  key="annotations"
-                  v-model="podAnnotations"
-                  :add-label="t('labels.addAnnotation')"
-                  :mode="mode"
-                  :read-allowed="false"
-                  :protip="false"
-                />
+                <div class="col span-6">
+                  <LabeledInput v-model.number="podTemplateSpec.priority" :mode="mode" :label="t('workload.scheduling.priority.priority')" />
+                </div>
+                <div class="col span-6">
+                  <LabeledInput v-model="podTemplateSpec.priorityClassname" :mode="mode" :label="t('workload.scheduling.priority.className')" />
+                </div>
               </div>
             </div>
-          </Tab>
-        </Tabbed>
-      </template>
+          </template>
+        </Tab>
+        <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling">
+          <PodAffinity :mode="mode" :value="podTemplateSpec" />
+        </Tab>
+        <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
+          <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" />
+        </Tab>
+        <Tab :label="t('workload.container.titles.upgrading')" name="upgrading">
+          <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
+          <Upgrading v-else v-model="spec" :mode="mode" :type="type" />
+        </Tab>
+        <Tab v-if="!isInitContainer" :label="t('workload.container.titles.healthCheck')" name="healthCheck">
+          <HealthCheck v-model="healthCheck" :mode="mode" />
+        </Tab>
+        <Tab :label="t('workload.container.titles.securityContext')" name="securityContext">
+          <Security v-model="container.securityContext" :mode="mode" />
+        </Tab>
+        <Tab :label="t('workload.container.titles.networking')" name="networking">
+          <Networking v-model="podTemplateSpec" :mode="mode" />
+        </Tab>
+        <Tab v-if="isStatefulSet" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates">
+          <VolumeClaimTemplate v-model="spec" :mode="mode" />
+        </Tab>
+        <Tab name="labels" :label="t('generic.labelsAndAnnotations')">
+          <Labels v-model="value" :mode="mode" />
+          <div class="spacer"></div>
+
+          <div>
+            <h3>{{ t('workload.container.titles.podLabels') }}</h3>
+            <div class="row mb-20">
+              <KeyValue
+                key="labels"
+                v-model="podLabels"
+                :add-label="t('labels.addLabel')"
+                :mode="mode"
+                :read-allowed="false"
+                :protip="false"
+              />
+            </div>
+            <div class="spacer"></div>
+            <h3>{{ t('workload.container.titles.podAnnotations') }}</h3>
+            <div class="row">
+              <KeyValue
+                key="annotations"
+                v-model="podAnnotations"
+                :add-label="t('labels.addAnnotation')"
+                :mode="mode"
+                :read-allowed="false"
+                :protip="false"
+              />
+            </div>
+          </div>
+        </Tab>
+      </Tabbed>
     </CruResource>
   </form>
 </template>
