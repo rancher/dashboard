@@ -3,7 +3,7 @@ import ButtonDropdown from '@/components/ButtonDropdown';
 import { RECEIVERS_TYPES } from '@/models/monitoring.coreos.com.receiver';
 import { _VIEW } from '@/config/query-params';
 
-export const MS_TEAMS_URL = 'http://rancher-alerting-driver-prom-to-teams.cattle-monitoring-system.svc:8089/v2/connector';
+export const MS_TEAMS_URL = 'http://rancher-alerting-drivers-prom2teams.cattle-monitoring-system.svc:8089/v2/connector';
 export const ALIBABA_CLOUD_SMS_URL = 'http://rancher-alerting-driver-sachet.cattle-monitoring-system.svc:9876/alert';
 
 export default {
