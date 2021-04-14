@@ -175,7 +175,7 @@ export default {
       >
         <i v-if="tab.icon" class="icon" :class="{['icon-'+ tab.icon]: true}" />
         <span class="tab-label"> {{ tab.label }}</span>
-        <i class="closer icon icon-fw icon-x" @click="close(tab.id)" />
+        <i class="closer icon icon-fw icon-x" @click.stop="close(tab.id)" />
       </div>
       <div
         class="resizer"
