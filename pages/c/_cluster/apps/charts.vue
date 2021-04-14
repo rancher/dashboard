@@ -117,14 +117,15 @@ export default {
     filteredCharts() {
       const isWindows = this.currentCluster.providerOs === 'windows';
       const enabledCharts = (this.enabledCharts || []); // .slice();
+      const showPrerelease = this.$store.getters['prefs/get'](SHOW_PRE_RELEASE);
 
       return enabledCharts.filter((c) => {
         const { versions: chartVersions = [] } = c;
 
-        if ( isWindows && this.getCompatibleVersions(chartVersions, 'windows').length <= 0) {
+        if ( isWindows && this.getCompatibleVersions(chartVersions, 'windows', showPrerelease).length <= 0) {
           // if we have at least one windows
           return false;
-        } else if ( !isWindows && this.getCompatibleVersions(chartVersions, 'linux').length <= 0) { // linux
+        } else if ( !isWindows && this.getCompatibleVersions(chartVersions, 'linux', showPrerelease).length <= 0) { // linux
           // if we have at least one linux
           return false;
         }
@@ -230,9 +231,9 @@ export default {
         } else if (osAnnotation && osAnnotation === os) {
           return true;
         } else if (osAnnotation) {
-          return true;
-        } else {
           return false;
+        } else {
+          return true;
         }
       });
     },
@@ -283,12 +284,16 @@ export default {
       const linuxVersions = this.getCompatibleVersions(chart.versions, 'linux', showPrerelease);
       const allVersions = this.getCompatibleVersions(chart.versions, null, showPrerelease);
 
-      if ( isWindows && windowsVersions.length > 0) {
+      if ( isWindows && windowsVersions.length ) {
         version = windowsVersions[0].version;
-      } else if ( !isWindows && linuxVersions.length > 0) {
+      } else if ( !isWindows && linuxVersions.length ) {
         version = linuxVersions[0].version;
-      } else {
+      } else if ( allVersions.length ) {
         version = allVersions[0].version;
+      }
+
+      if ( !version ) {
+        return;
       }
 
       this.$router.push({
