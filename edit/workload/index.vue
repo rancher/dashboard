@@ -439,7 +439,6 @@ export default {
       this.$set(this.value, 'type', neu);
       delete this.value.apiVersion;
     },
-
   },
 
   created() {
@@ -675,7 +674,6 @@ export default {
 
   <form v-else>
     <CruResource
-      ref="cruresource"
       :validation-passed="true"
       :selected-subtype="type"
       :resource="value"
@@ -721,7 +719,7 @@ export default {
         <div class="col span-4">
           <LabeledSelect :value="container" option-label="name" :label="t('workload.container.titles.container')" :options="containerOptions" @input="selectContainer" />
         </div>
-        <div v-if="allContainers.length > 1 && isEdit" class="col">
+        <div v-if="allContainers.length > 1 && !isView" class="col">
           <button type="button" class="btn-sm role-link" @click="removeContainer(container)">
             {{ t('workload.container.removeContainer') }}
           </button>
@@ -749,108 +747,45 @@ export default {
             <div class="row mb-20">
               <div class="col span-6">
                 <LabeledInput
-                  v-model="spec.schedule"
-                  type="cron"
-                  required
+                  v-model="container.image"
                   :mode="mode"
-                  :label="t('workload.cronSchedule')"
-                  placeholder="0 * * * *"
+                  :label="t('workload.container.image')"
+                  placeholder="e.g. nginx:latest"
+                  required
+                />
+              </div>
+              <div class="col span-6">
+                <LabeledSelect
+                  v-model="container.imagePullPolicy"
+                  :label="t('workload.container.imagePullPolicy')"
+                  :options="pullPolicyOptions"
+                  :mode="mode"
                 />
               </div>
             </div>
-          </div>
-        </tab>
-      </tabbed>
-    </cruresource>
-  </form>
-</template>
-              <template #replicas>
-                <LabeledInput v-model.number="spec.replicas" type="number" required :mode="mode" :label="t('workload.replicas')" />
-              </template>
-              <template #service>
+            <div class="row">
+              <div class="col span-6">
                 <LabeledSelect
-                  v-model="spec.serviceName"
+                  v-model="imagePullSecrets"
+                  :label="t('workload.container.imagePullSecrets')"
+                  :multiple="true"
+                  :taggable="true"
+                  :options="namespacedSecrets"
+                  :mode="mode"
                   option-label="metadata.name"
                   :reduce="service=>service.metadata.name"
-                  :mode="mode"
-                  :label="t('workload.serviceName')"
-                  :options="headlessServices"
                 />
-              </template>
-            </NameNsDescription>
-          </div>
-        </div>
-        <div v-if="containerOptions.length > 1" class="container-row">
-          <div class="col span-4">
-            <LabeledSelect :value="container" option-label="name" :label="t('workload.container.titles.container')" :options="containerOptions" @input="selectContainer" />
-          </div>
-          <div v-if="allContainers.length > 1" class="col">
-            <button type="button" class="btn-sm role-link" @click="removeContainer(container)">
-              Remove Container
-            </button>
-          </div>
-        </div>
-        <Tabbed :key="allContainers.indexOf(container)" :side-tabs="true">
-          <Tab :label="t('workload.container.titles.general')" name="general">
-            <div>
-              <div :style="{'align-items':'center'}" class="row mb-20">
-                <div class="col span-6">
-                  <LabeledInput v-model="container.name" :mode="mode" :label="t('workload.container.containerName')" />
-                </div>
-                <div class="col span-6">
-                  <RadioGroup
-                    :mode="mode"
-                    :value="isInitContainer"
-                    name="initContainer"
-                    :options="[true, false]"
-                    :labels="[t('workload.container.init'), t('workload.container.standard')]"
-                    @input="updateInitContainer"
-                  />
-                </div>
-              </div>
-              <h3>{{ t('workload.container.titles.image') }}</h3>
-              <div class="row mb-20">
-                <div class="col span-6">
-                  <LabeledInput
-                    v-model="container.image"
-                    :mode="mode"
-                    :label="t('workload.container.image')"
-                    placeholder="e.g. nginx:latest"
-                    required
-                  />
-                </div>
-                <div class="col span-6">
-                  <LabeledSelect
-                    v-model="container.imagePullPolicy"
-                    :label="t('workload.container.imagePullPolicy')"
-                    :options="pullPolicyOptions"
-                    :mode="mode"
-                  />
-                </div>
-              </div>
-              <div class="row">
-                <div class="col span-6">
-                  <LabeledSelect
-                    v-model="imagePullSecrets"
-                    :label="t('workload.container.imagePullSecrets')"
-                    :multiple="true"
-                    :taggable="true"
-                    :options="namespacedSecrets"
-                    :mode="mode"
-                    option-label="metadata.name"
-                    :reduce="service=>service.metadata.name"
-                  />
-                </div>
               </div>
             </div>
+          </div>
 
-            <div class="spacer"></div>
-            <div>
-              <h3>{{ t('workload.container.titles.ports') }}</h3>
-              <div class="row">
-                <WorkloadPorts v-model="container.ports" :name="value.metadata.name" :services="servicesOwned" :mode="mode" />
-              </div>
+          <div class="spacer"></div>
+          <div>
+            <h3>{{ t('workload.container.titles.ports') }}</h3>
+            <div class="row">
+              <WorkloadPorts v-model="container.ports" :name="value.metadata.name" :services="servicesOwned" :mode="mode" />
             </div>
+          </div>
 
           <div class="spacer"></div>
           <div>

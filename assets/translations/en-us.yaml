@@ -12,10 +12,8 @@ generic:
   created: Created
   customize: Customize
   default: Default
-  delete: Delete
   disabled: Disabled
   done: Done
-  edit: Edit
   enabled: Enabled
   ignored: Ignored
   invalidCron: Invalid cron schedule
@@ -3178,26 +3176,26 @@ workload:
       command: Command
       env: Environment Variables
       fromResource:
-        configMap: ConfigMap
-        containerName: Container Name
         key:
           label: Key
-          placeholder: 'e.g. metadata.labels[''<KEY>'']'
+          placeholder: "e.g. metadata.labels['<KEY>']"
         name:
           label: Variable Name
-          placeholder: e.g. FOO
+          placeholder: "e.g. FOO"
         prefix: Prefix
-        secret: Secret
         source:
           label: Source
           placeholder: e.g. my-container
+        secret: Secret
+        configMap: ConfigMap
+        containerName: Container Name
         type: Type
         value:
           label: Value
           placeholder: e.g. bar
-      stdin: Stdin
       tty: TTY
       workingDir: WorkingDir
+      stdin: Stdin
     containerName: Container Name
     healthCheck:
       checkInterval: Check Interval
@@ -3209,94 +3207,92 @@ workload:
         path: Request Path
         port: Check Port
       initialDelay: Initial Delay
-      kind:
-        HTTP: HTTP request returns a successful status (200-399)
-        HTTPS: HTTPS request returns a successful status
-        exec: Command run inside the container exits with status 0
-        none: None
-        tcp: TCP connection opens successfully
       livenessProbe: Liveness Check
       livenessTip: Containers will be restarted when this check is failing.  Not recommended for most uses.
-      noHealthCheck: 'There is not a Readiness Check, Liveness Check or Startup Check configured.'
+      noHealthCheck: "There is not a Readiness Check, Liveness Check or Startup Check configured."
       readinessProbe: Readiness Check
       readinessTip: Containers will be removed from service endpoints when this check is failing.  Recommended.
       startupProbe: Startup Check
       startupTip: Containers will wait until this check succeeds before attempting other health checks.
       successThreshold: Success Threshold
       timeout: Timeout
+      kind:
+        none:  None
+        HTTP:  HTTP request returns a successful status (200-399)
+        HTTPS: HTTPS request returns a successful status
+        tcp:   TCP connection opens successfully
+        exec:  Command run inside the container exits with status 0
     image: Container Image
     imagePullPolicy: Pull Policy
     imagePullSecrets: Pull Secrets
     init: Init Container
     multipleContainers: '{name} has sidecars. Which container do you want to edit?'
     name: Container Name
-    noPorts: There are no ports configured.
     noResourceLimits: There are no resource requirements configured.
+    noPorts: There are no ports configured.
     ports:
-      containerPort: Private Container Port
       createService: Service Type
+      noCreateService: Do not create a service
+      containerPort: Private Container Port
       hostIP: Host IP
       hostPort: Public Host Port
-      listeningPort: Listening Port
       name: Name
-      noCreateService: Do not create a service
       protocol: Protocol
+      listeningPort: Listening Port
     removeContainer: Remove Container
     security:
       addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs
       allowPrivilegeEscalation:
-        'false': 'No'
         label: Privilege Escalation
-        'true': 'Yes: container can gain more privileges than its parent process'
+        'false': No
+        'true': "Yes: container can gain more privileges than its parent process"
       dropCapabilities: Drop Capabilities
       fsGroup: Filesystem Group
       hostIPC: Use Host IPC Namespace
       hostPID: Use Host PID Namespace
       privileged:
-        'false': 'No'
         label: Privileged
-        'true': 'Yes: container has full access to the host'
+        'false': No
+        'true': "Yes: container has full access to the host"
       readOnlyRootFilesystem:
-        'false': 'No'
         label: Read-Only Root Filesystem
-        'true': 'Yes: container has a read-only root filesystem'
+        'false': No
+        'true': "Yes: container has a read-only root filesystem"
       runAsGroup: Run as Group ID
       runAsNonRoot:
-        'false': 'No'
         label: Run as Non-Root
-        'true': 'Yes: container must run as a non-root user'
+        'false': No
+        'true': "Yes: container must run as a non-root user"
       runAsNonRootOptions:
-        noOption: 'No'
-        yesOption: 'Yes: containers must run as non-root-user'
+        noOption: "No"
+        yesOption: "Yes: containers must run as non-root-user"
       runAsUser: Run as User ID
       shareProcessNamespace: Share single process namespace
       supplementalGroups: Additional Group IDs
       sysctls: Sysctls
       sysctlsKey: Name
-    selectContainer: Select a container to edit
     standard: Standard Containter
     titles:
-      command: Command
       container: Container
+      command: Command
       containers: Containers
       env: Environment Variables
       events: Events
-      general: General
       healthCheck: Health Check
       image: Image
-      networkSettings: Network Settings
       networking: Networking
-      nodeScheduling: Node Scheduling
+      networkSettings: Network Settings
       podAnnotations: Pod Annotations
       podLabels: Pod Labels
       podScheduling: Pod Scheduling
+      nodeScheduling: Node Scheduling
       ports: Ports
       resources: Resources
       securityContext: Security Context
       status: Status
-      upgrading: Scaling and Upgrade Policy
       volumeClaimTemplates: Volume Claim Templates
+      upgrading: Scaling and Upgrade Policy
   cronSchedule: Schedule
   detail:
     pods:
@@ -3305,18 +3301,18 @@ workload:
     node: Node
     podIP: Pod IP
     podRestarts: Pod Restarts
+    workload: Workload
     pods: Pods by State
     runs: Runs
-    workload: Workload
   gaugeStates:
     active: Active
-    error: Error
-    failed: Failed
-    running: Running
-    succeeded: Successful
     transitioning: Transitioning
     warning: Warning
-  hideTabs: Hide Advanced Options
+    error: Error
+    succeeded: Successful
+    running: Running
+    failed: Failed
+  hideTabs: 'Hide Advanced Options'
   job:
     activeDeadlineSeconds:
       label: Active Deadline
@@ -3341,7 +3337,6 @@ workload:
       tip: The number of successful finished jobs to retain.
     suspend: Suspend
   networking:
-    dns: DNS
     dnsPolicy:
       label: DNS Policy
       options:
@@ -3357,7 +3352,7 @@ workload:
       label: Host Aliases
       tip: Additional /etc/hosts entries to be injected in the container.
       valueLabel: Hostname
-      valuePlaceholder: 'e.g. foo.com, bar.com'
+      valuePlaceholder: "e.g. foo.com, bar.com"
     hostname:
       label: Hostname
       placeholder: e.g. web
@@ -3371,9 +3366,10 @@ workload:
         hostNetwork: Host Network
         normal: Normal
       placeholder: Select a Mode...
+    dns: DNS
     resolver:
-      add: Add Option
       label: Resolver Options
+      add: Add Option
     searches:
       add: Add Search Domain
       label: Search Domains
@@ -3381,24 +3377,26 @@ workload:
     subdomain:
       label: Subdomain
       placeholder: e.g. web
+
   replicas: Replicas
+  showTabs: 'Show Advanced Options'
   scheduling:
     activeDeadlineSeconds: Pod Active Deadline
     activeDeadlineSecondsTip: The duration that the pod may be active before the system tries to mark it failed and kill associated containers.
     affinity:
       addNodeSelector: Add Node Selector
-      affinityOption: Affinity
-      affinityTitle: Run pods on nodes with pods matching these selectors
-      antiAffinityOption: Anti-Affinity
-      antiAffinityTitle: Run pods on nodes without pods matching these selectors
       anyNode: Run pods on any available node
+      affinityTitle: Run pods on nodes with pods matching these selectors
+      antiAffinityTitle: Run pods on nodes without pods matching these selectors
+      affinityOption: Affinity
+      antiAffinityOption: Anti-Affinity
       matchExpressions:
         addRule: Add Rule
         doesNotExist: Does Not Exist
         exists: Exists
-        greaterThan: '>'
-        in: '='
-        inNamespaces: 'Pods in these namespaces:'
+        greaterThan: ">"
+        in: =
+        inNamespaces: "Pods in these namespaces:"
         key: Key
         lessThan: <
         namespaces: Namespaces
@@ -3408,11 +3406,11 @@ workload:
         weight: Weight
       noPodRules: There are no pod scheduling rules configured.
       nodeName: Node Name
-      preferAny: 'Prefer any of:'
-      preferred: Preferred
       priority: Priority
-      requireAny: 'Require any of:'
+      preferAny: "Prefer any of:"
+      preferred: Preferred
       required: Required
+      requireAny: "Require any of:"
       schedulingRules: Run pods on node(s) matching scheduling rules
       specificNode: Run pods on specific node(s)
       thisPodNamespace: This pod's namespace
@@ -3427,74 +3425,87 @@ workload:
     terminationGracePeriodSecondsTip: The duration that the pod needs to terminate gracefully.
     titles:
       advanced: Advanced
-      limits: Limits and Reservations
       nodeScheduling: Node Scheduling
       nodeSelector: Nodes with these labels
       podScheduling: Pod Scheduling
       priority: Priority
       tab: Scheduling
       tolerations: Tolerations
+      limits: Limits and Reservations
     tolerations:
       addToleration: Add Toleration
       effect: Effect
       effectOptions:
         all: All
         noExecute: NoExecute
-        noSchedule: 'NoSchedule,'
+        noSchedule: "NoSchedule,"
         preferNoSchedule: PreferNoSchedule
       labelKey: Label Key
       operator: Operator
       operatorOptions:
-        equal: '='
+        equal: =
         exists: Exists
       tolerationSeconds: Toleration Seconds
       value: Value
   serviceName: Service Name
-  showTabs: Show Advanced Options
   storage:
+    subtypes:
+      secret: Secret
+      configMap: ConfigMap
+      hostPath: Bind-Mount
+      persistentVolumeClaim: Persistent Volume Claim
+      createPVC: Create Persistent Volume Claim
+      csi: CSI
+      nfs: NFS
+      awsElasticBlockStore: Amazon EBS Disk
+      azureDisk: Azure Disk
+      azureFile: Azure File
+      gcePersistentDisk: Google Persistent Disk
+      driver.longhorn.io: Longhorn
+      vsphereVolume: VMWare vSphere Volume
     addClaim: Add Claim
     addMount: Add Mount
     addVolume: Add Volume
     certificate: Certificate
     csi:
+      diskName: Disk Name
+      diskURI: Disk URI
       cachingMode:
         label: Caching Mode
         options:
           none: None
           readOnly: Read Only
           readWrite: Read Write
-      diskName: Disk Name
-      diskURI: Disk URI
-      drivers:
-        driver.longhorn.io: Longhorn
-      fsType: Filesystem Type
       kind:
         label: Kind
         options:
           dedicated: Dedicated
           managed: Managed
           shared: Shared
+      drivers:
+        driver.longhorn.io: Longhorn
+      fsType: Filesystem Type
+      shareName: Share Name
+      secretName: Secret Name
+      volumeID: Volume ID
       partition: Partition
       pdName: Persistent Disk Name
-      secretName: Secret Name
-      shareName: Share Name
       storagePolicyID: Storage Policy ID
       storagePolicyName: Storage Policy Name
-      volumeID: Volume ID
       volumePath: Volume Path
     defaultMode: Default Mode
     driver: driver
     hostPath:
       label: The Path on the Node must be
       options:
-        blockDevice: An existing block device
-        charDevice: An existing character device
         default: 'Anything: do not check the target path'
+        directoryOrCreate: A directory, or create if it doesn't exist
         directory: An existing directory
-        directoryOrCreate: 'A directory, or create if it doesn''t exist'
+        fileOrCreate: A file, or create if it doesn't exist
         file: An existing file
-        fileOrCreate: 'A file, or create if it doesn''t exist'
         socket: An existing socket
+        charDevice: An existing character device
+        blockDevice: An existing block device
     mountPoint: Mount Point
     nodePath: Path on Node
     optional:
@@ -3504,29 +3515,16 @@ workload:
     path: Path
     readOnly: Read Only
     server: Server
+
     subPath: Sub Path in Volume
-    subtypes:
-      awsElasticBlockStore: Amazon EBS Disk
-      azureDisk: Azure Disk
-      azureFile: Azure File
-      configMap: ConfigMap
-      createPVC: Create Persistent Volume Claim
-      csi: CSI
-      driver.longhorn.io: Longhorn
-      gcePersistentDisk: Google Persistent Disk
-      hostPath: Bind-Mount
-      nfs: NFS
-      persistentVolumeClaim: Persistent Volume Claim
-      secret: Secret
-      vsphereVolume: VMWare vSphere Volume
-    title: Storage
+    title: 'Storage'
     volumeName: Volume Name
     volumePath: Volume Path
   typeDescriptions:
-    apps.daemonset: 'DaemonSets run exactly one pod on every eligible node. When new nodes are added to the cluster, DaemonSets automatically deploy to them. Recommended for system-wide or vertically-scalable workloads that never need more than one pod per node.'
+    apps.daemonset: DaemonSets run exactly one pod on every eligible node. When new nodes are added to the cluster, DaemonSets automatically deploy to them. Recommended for system-wide or vertically-scalable workloads that never need more than one pod per node.
     apps.deployment: Deployments run a scalable number of replicas of a pod distributed among the eligible nodes. Changes are rolled out incrementally and can be rolled back to the previous revision when needed. Recommended for stateless & horizontally-scalable workloads.
-    apps.statefulset: 'StatefulSets manage stateful applications and provide guarantees about the ordering and uniqueness of the pods created. Recommended for workloads with persistent storage or strict identity, quorum, or upgrade order requirements.'
-    batch.cronjob: 'CronJobs create Jobs, which then run Pods, on a repeating schedule. The schedule is expressed in standard Unix cron format, and uses the timezone of the Kubernetes control plane (typically UTC).'
+    apps.statefulset: StatefulSets manage stateful applications and provide guarantees about the ordering and uniqueness of the pods created. Recommended for workloads with persistent storage or strict identity, quorum, or upgrade order requirements.
+    batch.cronjob: CronJobs create Jobs, which then run Pods, on a repeating schedule. The schedule is expressed in standard Unix cron format, and uses the timezone of the Kubernetes control plane (typically UTC).
     batch.job: Jobs create one or more pods to reliably perform a one-time task by running a pod until it exits successfully. Failed pods are automatically replaced until the specified number of completed runs has been reached. Jobs can also run multiple pods in parallel or function as a batch work queue.
   upgrading:
     activeDeadlineSeconds:
@@ -3557,9 +3555,9 @@ workload:
       tip: The number of old ReplicaSets to retain for rollback.
     strategies:
       labels:
-        delete: 'On Delete: New pods are only created when old pods are manually deleted.'
-        recreate: 'Recreate: Kill ALL pods, then start new pods.'
-        rollingUpdate: 'Rolling Update: Create new pods, until max surge is reached, before deleting old pods. Don''t stop more pods than max unavailable.'
+        delete: "On Delete: New pods are only created when old pods are manually deleted."
+        recreate: "Recreate: Kill ALL pods, then start new pods."
+        rollingUpdate: "Rolling Update: Create new pods, until max surge is reached, before deleting old pods. Don't stop more pods than max unavailable."
     terminationGracePeriodSeconds:
       label: Termination Grace Period
       tip: The duration the pod needs to terminate successfully.
@@ -3925,4 +3923,4 @@ featureFlags:
   warning: Feature flags allow Rancher to gate certain features behind flags. You should enable these features with caution, and they should be considered beta functionality, which could cause problems for your system. Additionally, some features (non-dynamic) require a restart of the Rancher server to be enabled. Changing non-dynamic features will restart Rancher pods, which will result in a short outage.
   promptActivate: Please confirm that you want to activate the feature flag "{flag}"
   promptDeactivate: Please confirm that you want to deactivate the feature flag "{flag}"
-  restartRequired: "Note: Updating this feature flag requires a restart"
+  

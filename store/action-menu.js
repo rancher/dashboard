@@ -73,12 +73,6 @@ export const mutations = {
     state.elem = null;
   },
 
-<<<<<<< HEAD
-  togglePromptRemove(state, { resources = [], onConfirm = null }) {
-    state.showPromptRemove = !state.showPromptRemove;
-    if (!isArray(resources)) {
-      resources = [resources];
-=======
   togglePromptRemove(state, resources) {
     if (!resources) {
       state.showPromptRemove = false;
@@ -88,10 +82,8 @@ export const mutations = {
       if (!isArray(resources)) {
         resources = [resources];
       }
->>>>>>> 2a7b1112a02b1d4127533bb098827f0d79dd5a5b
     }
     state.toRemove = resources;
-    state.onConfirm = onConfirm;
   },
 
   toggleAssignTo(state, resources) {
