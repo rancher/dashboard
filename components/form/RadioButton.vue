@@ -79,7 +79,7 @@ export default {
 
 <template>
   <label
-    :class="[ isDisabled ? 'disabled' : '', 'radio-container']"
+    :class="{'disabled': isDisabled, 'radio-container': true}"
     @keydown.enter="clicked($event)"
     @keydown.space="clicked($event)"
     @click.stop="clicked($event)"
@@ -139,7 +139,7 @@ export default {
   padding-bottom: 5px;
 
   &.disabled {
-    cursor: default
+    cursor: not-allowed
   }
 
   .radio-label {
