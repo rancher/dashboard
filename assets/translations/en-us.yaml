@@ -174,7 +174,7 @@ authConfig:
       calllback:
         label: Authorization callback URL
       description:
-        label: Description
+        label: Application description
         value: 'Optional, can be left blank'
       homepage:
         label: Homepage URL
