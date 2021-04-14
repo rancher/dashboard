@@ -1,4 +1,4 @@
-import { isArray, filterBy } from '@/utils/array';
+import { filterBy, isArray } from '@/utils/array';
 
 export const state = function() {
   return {
@@ -73,10 +73,22 @@ export const mutations = {
     state.elem = null;
   },
 
+<<<<<<< HEAD
   togglePromptRemove(state, { resources = [], onConfirm = null }) {
     state.showPromptRemove = !state.showPromptRemove;
     if (!isArray(resources)) {
       resources = [resources];
+=======
+  togglePromptRemove(state, resources) {
+    if (!resources) {
+      state.showPromptRemove = false;
+      resources = [];
+    } else {
+      state.showPromptRemove = !state.showPromptRemove;
+      if (!isArray(resources)) {
+        resources = [resources];
+      }
+>>>>>>> 2a7b1112a02b1d4127533bb098827f0d79dd5a5b
     }
     state.toRemove = resources;
     state.onConfirm = onConfirm;
