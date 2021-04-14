@@ -3226,7 +3226,6 @@ workload:
     imagePullPolicy: Pull Policy
     imagePullSecrets: Pull Secrets
     init: Init Container
-    multipleContainers: '{name} has sidecars. Which container do you want to edit?'
     name: Container Name
     noResourceLimits: There are no resource requirements configured.
     noPorts: There are no ports configured.
@@ -3923,4 +3922,4 @@ featureFlags:
   warning: Feature flags allow Rancher to gate certain features behind flags. You should enable these features with caution, and they should be considered beta functionality, which could cause problems for your system. Additionally, some features (non-dynamic) require a restart of the Rancher server to be enabled. Changing non-dynamic features will restart Rancher pods, which will result in a short outage.
   promptActivate: Please confirm that you want to activate the feature flag "{flag}"
   promptDeactivate: Please confirm that you want to deactivate the feature flag "{flag}"
-  
+  restartRequired: "Note: Updating this feature flag requires a restart"
