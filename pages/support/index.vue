@@ -52,7 +52,7 @@ export default {
     <IndentedPanel v-if="!hasSupport">
       <div class="content mt-20">
         <div class="promo">
-          <div class="register">
+          <div class="register hide">
             <div>{{ t('support.community.register') }}</div>
             <button class="btn add" @click="addSubscription()">
               {{ t('support.community.addSubscription') }}
