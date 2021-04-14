@@ -2180,7 +2180,7 @@ rbac:
         label: Grant Resources
         tableHeaders:
           verbs: Verbs
-          resources: Resources
+          resources: Resource
           nonResourceUrls: Non-Resource URLs
           apiGroups: API Groups
     subtypes:
@@ -2195,8 +2195,8 @@ rbac:
         yes: "Yes: Default role for new cluster creation"
         defaultLabel: Cluster Creator Default
       NAMESPACE:
-        createButton: Create Project/Namespace Role
-        label: Project/Namespace
+        createButton: Create Project/Namespaces Role
+        label: Project/Namespaces
         yes: "Yes: Default role for new project creation"
         defaultLabel: Project Creator Default
       RBAC_ROLE:
@@ -2851,6 +2851,10 @@ tableHeaders:
   address: Address
   age: Age
   apiGroup: API Groups
+  authRoles:
+    globalDefault: New User Default
+    clusterDefault: Cluster Creator Default
+    projectDefault: Project Creator Default
   branch: Branch
   builtIn: Built In
   bundlesReady: Bundles

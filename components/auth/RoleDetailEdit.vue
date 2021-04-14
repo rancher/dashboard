@@ -62,16 +62,6 @@ export default {
 
   data() {
     this.$set(this.value, 'rules', this.value.rules || []);
-    switch (this.value.subtype) {
-    case GLOBAL:
-      this.$set(this.value, 'newUserDefault', !!this.value.newUserDefault);
-      break;
-    case CLUSTER:
-    case NAMESPACE:
-      this.$set(this.value, 'roleTemplateNames', this.value.roleTemplateNames || []);
-      this.$set(this.value, 'locked', !!this.value.locked);
-      break;
-    }
 
     this.value.rules.forEach((rule) => {
       if (rule.verbs[0] === '*') {
@@ -84,6 +74,17 @@ export default {
 
     if (roleContext && this.value.updateSubtype) {
       this.value.updateSubtype(roleContext);
+    }
+
+    switch (this.value.subtype) {
+    case GLOBAL:
+      this.$set(this.value, 'newUserDefault', !!this.value.newUserDefault);
+      break;
+    case CLUSTER:
+    case NAMESPACE:
+      this.$set(this.value, 'roleTemplateNames', this.value.roleTemplateNames || []);
+      this.$set(this.value, 'locked', !!this.value.locked);
+      break;
     }
 
     this.$nextTick(() => {
@@ -153,10 +154,7 @@ export default {
       return this.as === _DETAIL;
     },
     doneLocationOverride() {
-      return this.isRancherType ? {
-        name:   'c-cluster-auth-roles',
-        hash:   `#${ this.value.subtype }`
-      } : this.value.listLocation;
+      return this.value.listLocation;
     },
     // Detail View
     rules() {
@@ -245,7 +243,19 @@ export default {
       this.$set(row, key, value);
     },
     cancel() {
-      this.$router.replace(this.doneLocationOverride);
+      this.done();
+    },
+    async actuallySave(url) {
+      if ( this.isCreate ) {
+        url = url || this.schema.linkFor('collection');
+        const res = await this.value.save({ url, redirectUnauthorized: false });
+
+        if (res) {
+          Object.assign(this.value, res);
+        }
+      } else {
+        await this.value.save({ redirectUnauthorized: false });
+      }
     },
     // Detail View
     verbKey(verb) {
@@ -290,7 +300,7 @@ export default {
         });
 
       return res;
-    }
+    },
   }
 };
 </script>
@@ -385,10 +395,7 @@ export default {
             <template #column-headers>
               <div class="column-headers row">
                 <div class="col span-3">
-                  <label class="text-label">
-                    {{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.verbs') }}
-                    <span class="required">*</span>
-                  </label>
+                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.verbs') }}</label>
                 </div>
                 <div class="col span-3">
                   <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}</label>
@@ -480,10 +487,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .required {
-    color: var(--error);
-  }
-
   ::v-deep {
     .column-headers {
       margin-right: 75px;

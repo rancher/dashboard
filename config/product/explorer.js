@@ -225,4 +225,8 @@ export function init(store) {
 
   // Ignore these types as they are managed through the auth product
   ignoreType(MANAGEMENT.USER);
+
+  // Ignore these types as they are managed through the auth product
+  ignoreType(MANAGEMENT.GLOBAL_ROLE);
+  ignoreType(MANAGEMENT.ROLE_TEMPLATE);
 }
