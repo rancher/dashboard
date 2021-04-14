@@ -174,7 +174,7 @@ authConfig:
       calllback:
         label: Authorization callback URL
       description:
-        label: Description
+        label: Application description
         value: 'Optional, can be left blank'
       homepage:
         label: Homepage URL
@@ -210,10 +210,11 @@ authConfig:
         title: 'Step One: For standard Google, click <a href="https://console.developers.google.com/apis/credentials" target="_blank" rel="noopener noreferrer nofollow">here</a> to go applications settings in a new window'
         body:
          1: Login to your account. Navigate to "APIs & Services" and then select "OAuth consent screen".
-         2: 'Authorized domains: Top private domain of: '
+         2: 'Authorized domains:'
          3: 'Application homepage link: '
          4: 'Under Scopes for Google APIs, enable "email", "profile", and "openid".'
          5: 'Click on "Save".'
+        topPrivateDomain: 'Top private domain of:'
       2:
         title: 'Step Two: Navigate to the "Credentials" tab to create your OAuth client ID'
         body: 
@@ -224,13 +225,11 @@ authConfig:
           5: 'Upload the downloaded JSON file in the OAuth credentials box.'
       3:
         title: 'Step Three: Create Service Account credentials'
-        body: |-
-          Follow <a href="https://rancher.com/docs/rancher/v2.x/en/admin-settings/authentication/google/#creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:<br/>
-          <ul class="mt-0">
-          <li> Create a service account.</li>
-          <li> Generate a key for the service account.</li>
-          <li> Add the service account as an OAuth client in your google domain.</li>
-          </ul>
+        introduction: 'Follow <a href="https://rancher.com/docs/rancher/v2.x/en/admin-settings/authentication/google/#creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:'
+        body:
+          1: Create a service account.
+          2: Generate a key for the service account.
+          3: Add the service account as an OAuth client in your google domain.
   ldap:
     freeipa: Configure a FreeIPA server
     activedirectory: Configure an Active Directory account
@@ -300,7 +299,7 @@ authConfig:
       placeholder: Paste in the IDP Metadata XML
     okta: Configure an Okta account
     ping: Configure a Ping account
-    shibboleth: Congiure a Shibboleth account
+    shibboleth: Configure a Shibboleth account
     showLdap: Configure an OpenLDAP Server
     userName: User Name Field
   azuread:
