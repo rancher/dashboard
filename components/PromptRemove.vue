@@ -114,7 +114,7 @@ export default {
       return this.preventDelete || confirmFailed;
     },
 
-    ...mapState('action-menu', ['showPromptRemove', 'toRemove']),
+    ...mapState('action-menu', ['showPromptRemove', 'toRemove', 'onConfirm']),
     ...mapGetters({ t: 'i18n/t' }),
 
     resourceNames() {
@@ -175,11 +175,10 @@ export default {
     close() {
       this.confirmName = '';
       this.error = '';
-      this.$store.commit('action-menu/togglePromptRemove');
+      this.$store.commit('action-menu/togglePromptRemove', {});
     },
 
     remove(btnCB) {
-      // if doneLocation is defined, redirect after deleting
       let goTo;
 
       if (this.doneLocation) {

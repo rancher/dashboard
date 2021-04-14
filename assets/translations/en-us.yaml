@@ -3199,6 +3199,7 @@ workload:
       tty: TTY
       workingDir: WorkingDir
       stdin: Stdin
+    containerName: Container Name
     healthCheck:
       checkInterval: Check Interval
       command:
@@ -3227,6 +3228,7 @@ workload:
     image: Container Image
     imagePullPolicy: Pull Policy
     imagePullSecrets: Pull Secrets
+    init: Init Container
     name: Container Name
     noResourceLimits: There are no resource requirements configured.
     noPorts: There are no ports configured.
@@ -3239,6 +3241,7 @@ workload:
       name: Name
       protocol: Protocol
       listeningPort: Listening Port
+    removeContainer: Remove Container
     security:
       addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs
@@ -3271,6 +3274,7 @@ workload:
       supplementalGroups: Additional Group IDs
       sysctls: Sysctls
       sysctlsKey: Name
+    standard: Standard Containter
     titles:
       container: Container
       command: Command

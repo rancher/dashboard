@@ -1,4 +1,4 @@
-import { isArray, filterBy } from '@/utils/array';
+import { filterBy, isArray } from '@/utils/array';
 
 export const state = function() {
   return {
@@ -14,6 +14,7 @@ export const state = function() {
     toRemove:         [],
     toAssign:         [],
     toUpdate:         [],
+    onConfirm:        null
   };
 };
 

@@ -17,7 +17,7 @@ import Loading from '@/components/Loading';
 import Networking from '@/components/form/Networking';
 import VolumeClaimTemplate from '@/edit/workload/VolumeClaimTemplate';
 import Job from '@/edit/workload/Job';
-import { _EDIT, _CREATE } from '@/config/query-params';
+import { _EDIT, _CREATE, _VIEW } from '@/config/query-params';
 import WorkloadPorts from '@/components/form/WorkloadPorts';
 import ContainerResourceLimit from '@/components/ContainerResourceLimit';
 import KeyValue from '@/components/form/KeyValue';
@@ -30,7 +30,9 @@ import CruResource from '@/components/CruResource';
 import Command from '@/components/form/Command';
 import Storage from '@/edit/workload/storage';
 import Labels from '@/components/form/Labels';
+import RadioGroup from '@/components/form/RadioGroup';
 import { UI_MANAGED } from '@/config/labels-annotations';
+import { removeObject } from '@/utils/array';
 
 export default {
   name:       'CruWorkload',
@@ -57,6 +59,7 @@ export default {
     Storage,
     VolumeClaimTemplate,
     Labels,
+    RadioGroup,
   },
 
   mixins: [CreateEditView],
@@ -98,6 +101,8 @@ export default {
 
   data() {
     let type = this.$route.params.resource;
+    const createSidecar = !!this.$route.query.sidecar;
+    const isInitContainer = !!this.$route.query.init;
 
     if (type === 'workload') {
       type = null;
@@ -108,6 +113,31 @@ export default {
     }
 
     const spec = this.value.spec;
+    let container;
+    const podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
+    let containers = podTemplateSpec.containers;
+
+    if (this.mode === _CREATE || this.mode === _VIEW || (!createSidecar && !this.value.hasSidecars)) {
+      container = containers[0];
+    } else {
+      if (!podTemplateSpec.initContainers) {
+        podTemplateSpec.initContainers = [];
+      }
+      const allContainers = [...podTemplateSpec.initContainers, ...podTemplateSpec.containers];
+
+      if (this.$route.query.init) {
+        podTemplateSpec.initContainers.push({ imagePullPolicy: 'Always', name: `container-${ allContainers.length }` });
+        containers = podTemplateSpec.initContainers;
+      }
+      if (createSidecar) {
+        container = { imagePullPolicy: 'Always', name: `container-${ allContainers.length }` };
+        containers.push(container);
+      } else {
+        container = containers[0];
+      }
+    }
+
+    this.selectContainer(container);
 
     return {
       allConfigMaps:     [],
@@ -122,7 +152,9 @@ export default {
       type,
       servicesOwned:     [],
       servicesToRemove:    [],
-      portsForServices:  []
+      portsForServices:  [],
+      isInitContainer,
+      container,
     };
   },
 
@@ -216,20 +248,12 @@ export default {
       }
     },
 
-    container: {
-      get() {
-        if (!this.podTemplateSpec.containers) {
-          this.$set(this.podTemplateSpec, 'containers', [
-            { imagePullPolicy: 'Always' }
-          ]);
-        }
+    allContainers() {
+      return [...this.podTemplateSpec.containers, ...(this.podTemplateSpec.initContainers || []).map((each) => {
+        each._init = true;
 
-        return this.podTemplateSpec.containers[0];
-      },
-
-      set(neu) {
-        this.$set(this.podTemplateSpec.containers, 0, neu);
-      }
+        return each;
+      })];
     },
 
     flatResources: {
@@ -366,6 +390,16 @@ export default {
       return out;
     },
 
+    containerOptions() {
+      const out = [...this.allContainers];
+
+      if (!this.isView) {
+        out.push({ name: 'Add Container', _add: true });
+      }
+
+      return out;
+    },
+
     ...mapGetters({ t: 'i18n/t' })
   },
 
@@ -405,17 +439,12 @@ export default {
       this.$set(this.value, 'type', neu);
       delete this.value.apiVersion;
     },
-
-    errors(neu, old) {
-      // svc creation happened before workload, so if something went wrong with workload creation, svc should be deleted
-      if (neu && neu.length) {
-        this.cleanUpServices();
-      }
-    }
   },
 
   created() {
     this.registerBeforeHook(this.saveWorkload, 'willSaveWorkload');
+    this.registerBeforeHook(this.getPorts, 'getPorts');
+
     this.registerAfterHook(this.saveService, 'saveService');
   },
 
@@ -438,6 +467,12 @@ export default {
       this.done();
     },
 
+    async getPorts() {
+      const ports = await this.value.getPortsWithServiceType() || [];
+
+      this.portsForServices = ports;
+    },
+
     async saveService() {
       const { toSave = [], toRemove = [] } = await this.value.servicesFromContainerPorts(this.mode, this.portsForServices) || {};
 
@@ -458,7 +493,7 @@ export default {
     },
 
     saveWorkload() {
-      if (this.type !== WORKLOAD_TYPES.JOB) {
+      if (this.type !== WORKLOAD_TYPES.JOB && this.mode === _CREATE) {
         this.spec.selector = { matchLabels: this.value.workloadSelector };
       }
 
@@ -487,16 +522,31 @@ export default {
       this.fixPodAffinity(podAntiAffinity);
 
       // delete this.value.kind;
-
-      if (!this.container.name || this.mode === _CREATE) {
+      if (this.container && !this.container.name) {
         this.$set(this.container, 'name', this.value.metadata.name);
       }
+      if (this.container) {
+        let existing;
 
-      const { ports = [] } = this.value.container;
+        if (this.isInitContainer) {
+          existing = this.podTemplateSpec.initContainers.find(container => container._active);
+        } else {
+          existing = this.podTemplateSpec.containers.find(container => container._active);
+        }
+
+        Object.assign(existing, this.container);
+      }
+
+      const ports = this.value.containers.reduce((total, each) => {
+        const containerPorts = each.ports || [];
+
+        total.push(...containerPorts.filter(port => port._serviceType && port._serviceType !== ''));
+
+        return total;
+      }, []);
 
       // ports contain info used to create services after saving
-      this.portsForServices = ports.filter(port => port._serviceType && port._serviceType !== '');
-
+      this.portsForServices = ports;
       Object.assign(this.value, { spec: this.spec });
     },
 
@@ -567,19 +617,54 @@ export default {
       }
     },
 
-    cleanUpServices() {
-      (this.servicesOwned || []).forEach((svc) => {
-        try {
-          this.$store.dispatch('cluster/find', { type: SERVICE, id: `${ svc.metadata.namespace }/${ svc.metadata.name }` }).then((svc) => {
-            const ui = svc?.metadata?.annotations[UI_MANAGED];
+    selectContainer(container) {
+      if (container._add) {
+        this.addContainer();
 
-            if (ui) {
-              svc.remove();
-            }
-          });
-        } catch {}
-      });
-    }
+        return;
+      }
+      container._active = true;
+      this.container = container;
+      this.isInitContainer = !!container._init;
+    },
+
+    addContainer() {
+      const container = { imagePullPolicy: 'Always', name: `container-${ this.allContainers.length }` };
+
+      this.podTemplateSpec.containers.push(container);
+      this.selectContainer(container);
+    },
+
+    removeContainer(container) {
+      if (container._init) {
+        removeObject(this.podTemplateSpec.initContainers, container);
+      } else {
+        removeObject(this.podTemplateSpec.containers, container);
+      }
+      this.selectContainer(this.allContainers[0]);
+    },
+
+    updateInitContainer(neu) {
+      if (!this.container) {
+        return;
+      }
+      const containers = this.podTemplateSpec.containers;
+
+      if (neu) {
+        if (!this.podTemplateSpec.initContainers) {
+          this.podTemplateSpec.initContainers = [];
+        }
+        this.podTemplateSpec.initContainers.push(this.container);
+
+        removeObject(containers, this.container);
+      } else {
+        const initContainers = this.podTemplateSpec.initContainers;
+
+        removeObject(initContainers, this.container);
+        containers.push(this.container);
+      }
+      this.isInitContainer = neu;
+    },
   }
 };
 </script>
@@ -625,16 +710,39 @@ export default {
                 :mode="mode"
                 :label="t('workload.serviceName')"
                 :options="headlessServices"
-                required
               />
             </template>
           </NameNsDescription>
         </div>
       </div>
-
-      <Tabbed :side-tabs="true">
-        <Tab :label="t('workload.container.titles.container')" name="container">
+      <div v-if="containerOptions.length > 1" class="container-row">
+        <div class="col span-4">
+          <LabeledSelect :value="container" option-label="name" :label="t('workload.container.titles.container')" :options="containerOptions" @input="selectContainer" />
+        </div>
+        <div v-if="allContainers.length > 1 && !isView" class="col">
+          <button type="button" class="btn-sm role-link" @click="removeContainer(container)">
+            {{ t('workload.container.removeContainer') }}
+          </button>
+        </div>
+      </div>
+      <Tabbed :key="allContainers.indexOf(container)" :side-tabs="true">
+        <Tab :label="t('workload.container.titles.general')" name="general">
           <div>
+            <div :style="{'align-items':'center'}" class="row mb-20">
+              <div class="col span-6">
+                <LabeledInput v-model="container.name" :mode="mode" :label="t('workload.container.containerName')" />
+              </div>
+              <div class="col span-6">
+                <RadioGroup
+                  :mode="mode"
+                  :value="isInitContainer"
+                  name="initContainer"
+                  :options="[true, false]"
+                  :labels="[t('workload.container.init'), t('workload.container.standard')]"
+                  @input="updateInitContainer"
+                />
+              </div>
+            </div>
             <h3>{{ t('workload.container.titles.image') }}</h3>
             <div class="row mb-20">
               <div class="col span-6">
@@ -684,7 +792,76 @@ export default {
             <h3>{{ t('workload.container.titles.command') }}</h3>
             <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
           </div>
+        </Tab>
+        <Tab :label="t('workload.storage.title')" name="storage">
+          <Storage
+            v-model="podTemplateSpec"
+            :namespace="value.metadata.namespace"
+            :register-before-hook="registerBeforeHook"
+            :mode="mode"
+            :secrets="namespacedSecrets"
+            :config-maps="namespacedConfigMaps"
+            :container="container"
+          />
+        </Tab>
+        <Tab :label="t('workload.container.titles.resources')" name="resources">
+          <h3 class="mb-10">
+            <t k="workload.scheduling.titles.limits" />
+          </h3>
+          <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />
+          <template>
+            <div class="spacer"></div>
+            <div>
+              <h3 class="mb-10">
+                <t k="workload.scheduling.titles.tolerations" />
+              </h3>
+              <div class="row">
+                <Tolerations v-model="podTemplateSpec.tolerations" :mode="mode" />
+              </div>
+            </div>
+
+            <div>
+              <div class="spacer"></div>
+              <h3 class="mb-10">
+                <t k="workload.scheduling.titles.priority" />
+              </h3>
+              <div class="row">
+                <div class="col span-6">
+                  <LabeledInput v-model.number="podTemplateSpec.priority" :mode="mode" :label="t('workload.scheduling.priority.priority')" />
+                </div>
+                <div class="col span-6">
+                  <LabeledInput v-model="podTemplateSpec.priorityClassname" :mode="mode" :label="t('workload.scheduling.priority.className')" />
+                </div>
+              </div>
+            </div>
+          </template>
+        </Tab>
+        <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling">
+          <PodAffinity :mode="mode" :value="podTemplateSpec" />
+        </Tab>
+        <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
+          <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" />
+        </Tab>
+        <Tab :label="t('workload.container.titles.upgrading')" name="upgrading">
+          <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
+          <Upgrading v-else v-model="spec" :mode="mode" :type="type" />
+        </Tab>
+        <Tab v-if="!isInitContainer" :label="t('workload.container.titles.healthCheck')" name="healthCheck">
+          <HealthCheck v-model="healthCheck" :mode="mode" />
+        </Tab>
+        <Tab :label="t('workload.container.titles.securityContext')" name="securityContext">
+          <Security v-model="container.securityContext" :mode="mode" />
+        </Tab>
+        <Tab :label="t('workload.container.titles.networking')" name="networking">
+          <Networking v-model="podTemplateSpec" :mode="mode" />
+        </Tab>
+        <Tab v-if="isStatefulSet" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates">
+          <VolumeClaimTemplate v-model="spec" :mode="mode" />
+        </Tab>
+        <Tab name="labels" :label="t('generic.labelsAndAnnotations')">
+          <Labels v-model="value" :mode="mode" />
           <div class="spacer"></div>
+
           <div>
             <h3>{{ t('workload.container.titles.podLabels') }}</h3>
             <div class="row mb-20">
@@ -711,81 +888,16 @@ export default {
             </div>
           </div>
         </Tab>
-        <Tab :label="t('workload.storage.title')" name="storage">
-          <Storage
-            v-model="podTemplateSpec"
-            :namespace="value.metadata.namespace"
-            :register-before-hook="registerBeforeHook"
-            :mode="mode"
-            :secrets="namespacedSecrets"
-            :config-maps="namespacedConfigMaps"
-          />
-        </Tab>
-        <Tab :label="t('workload.container.titles.resources')" name="resources">
-          <h3 class="mb-10">
-            <t k="workload.scheduling.titles.limits" />
-          </h3>
-          <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />
-          <div class="spacer"></div>
-          <div>
-            <h3 class="mb-10">
-              <t k="workload.scheduling.titles.tolerations" />
-            </h3>
-            <div class="row">
-              <Tolerations v-model="podTemplateSpec.tolerations" :mode="mode" />
-            </div>
-          </div>
-
-          <div>
-            <div class="spacer"></div>
-            <h3 class="mb-10">
-              <t k="workload.scheduling.titles.priority" />
-            </h3>
-            <div class="row">
-              <div class="col span-6">
-                <LabeledInput v-model.number="podTemplateSpec.priority" :mode="mode" :label="t('workload.scheduling.priority.priority')" />
-              </div>
-              <div class="col span-6">
-                <LabeledInput v-model="podTemplateSpec.priorityClassname" :mode="mode" :label="t('workload.scheduling.priority.className')" />
-              </div>
-            </div>
-          </div>
-        </Tab>
-        <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling">
-          <PodAffinity :mode="mode" :value="podTemplateSpec" />
-        </Tab>
-        <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
-          <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" />
-        </Tab>
-        <Tab :label="t('workload.container.titles.upgrading')" name="upgrading">
-          <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
-          <Upgrading v-else v-model="spec" :mode="mode" :type="type" />
-        </Tab>
-        <Tab :label="t('workload.container.titles.healthCheck')" name="healthCheck">
-          <HealthCheck v-model="healthCheck" :mode="mode" />
-        </Tab>
-        <Tab :label="t('workload.container.titles.securityContext')" name="securityContext">
-          <Security v-model="container.securityContext" :mode="mode" />
-        </Tab>
-        <Tab :label="t('workload.container.titles.networking')" name="networking">
-          <Networking v-model="podTemplateSpec" :mode="mode" />
-        </Tab>
-        <Tab v-if="isStatefulSet" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates">
-          <VolumeClaimTemplate v-model="spec" :mode="mode" />
-        </Tab>
-        <Tab name="labels" :label="t('generic.labelsAndAnnotations')">
-          <Labels v-model="value" :mode="mode" />
-        </Tab>
       </Tabbed>
     </CruResource>
   </form>
 </template>
 
 <style lang='scss'>
-.types-container {
+.container-row{
   display: flex;
-  flex-wrap: wrap;
-  width: 100%;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
 .type-placeholder{
