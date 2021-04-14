@@ -27,9 +27,9 @@ import { exceptionToErrorsArray, stringify } from '@/utils/error';
 import { clone, diff, get, set } from '@/utils/object';
 import { findBy, insertAt } from '@/utils/array';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
-import sortBy from 'lodash/sortBy';
 import { formatSi, parseSi } from '@/utils/units';
 import { SHOW_PRE_RELEASE, mapPref } from '@/store/prefs';
+import { compare } from '@/utils/version';
 const semver = require('semver');
 
 export default {
@@ -536,7 +536,12 @@ export default {
         out.push({ value: selectedVersion, label: this.t('catalog.install.versions.current', { ver: selectedVersion }) });
       }
 
-      return sortBy(out, 'id');
+      out.sort((a, b) => {
+        // Swapping a and b to get descending order
+        return compare(b.id, a.id);
+      });
+
+      return out;
     },
   },
 
