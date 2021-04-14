@@ -104,6 +104,8 @@ export default {
           <template slot="rows">
             <tr><td>{{ t(`authConfig.${NAME}.adminEmail`) }}: </td><td>{{ model.adminEmail }}</td></tr>
             <tr><td>{{ t(`authConfig.${NAME}.domain`) }}: </td><td>{{ model.hostname }}</td></tr>
+
+            <tr><td>{{ t('authConfig.ldap.nestedGroupMembership.label') }}: </td><td>{{ model.nestedGroupMembershipEnabled ? t('generic.enabled') : t('generic.disabled') }}</td></tr>
           </template>
         </AuthBanner>
 
