@@ -179,13 +179,13 @@ authConfig:
       homepage:
         label: Homepage URL
       instruction: 'Fill in the form with these values:'
-      prefix: |-
-        <li><a href="{baseUrl}/settings/developers" target="_blank" rel="noopener noreferrer nofollow">Click here</a> to go to GitHub application settings in a new window.</li>
-        <li>Click on the "OAuth Apps" tab.</li>
-        <li>Click the "New OAuth App" button.</li>
-      suffix: |-
-        <li>Click "Register application"</li>
-        <li>Copy and paste the Client ID and Client Secret of your newly created OAuth app into the fields below</li>
+      prefix: 
+        1: <li><a href="{baseUrl}/settings/developers" target="_blank" rel="noopener noreferrer nofollow">Click here</a> to go to GitHub application settings in a new window.</li>
+        2: <li>Click on the "OAuth Apps" tab.</li>
+        3: <li>Click the "New OAuth App" button.</li>
+      suffix: 
+        1: <li>Click "Register application"</li>
+        2: <li>Copy and paste the Client ID and Client Secret of your newly created OAuth app into the fields below</li>
     host:
       label: GitHub Enterprise Host
       placeholder: e.g. github.mycompany.example
@@ -207,7 +207,7 @@ authConfig:
       tip: The Service Account Credentials JSON can be found in the service accounts section of the Google API developers console.
     steps:
       1:
-        title: 'Step One: For standard Google, click <a href="https://console.developers.google.com/apis/credentials" target="_blank" rel="noopener noreferrer nofollow">here</a> to go applications settings in a new window'
+        title: 'Click <a href="https://console.developers.google.com/apis/credentials" target="_blank" rel="noopener noreferrer nofollow">here</a> to open applications settings in a new window'
         body:
          1: Login to your account. Navigate to "APIs & Services" and then select "OAuth consent screen".
          2: 'Authorized domains:'
@@ -216,7 +216,7 @@ authConfig:
          5: 'Click on "Save".'
         topPrivateDomain: 'Top private domain of:'
       2:
-        title: 'Step Two: Navigate to the "Credentials" tab to create your OAuth client ID'
+        title: 'Navigate to the "Credentials" tab to create your OAuth client ID'
         body: 
           1: 'Select the "Create Credentials" dropdown, and select "OAuth clientID", then select "Web application".'
           2: 'Authorized Javascript origins:'
@@ -224,7 +224,7 @@ authConfig:
           4: 'Click "Create", and then click on the "Download JSON" button.'
           5: 'Upload the downloaded JSON file in the OAuth credentials box.'
       3:
-        title: 'Step Three: Create Service Account credentials'
+        title: 'Create Service Account credentials'
         introduction: 'Follow <a href="https://rancher.com/docs/rancher/v2.x/en/admin-settings/authentication/google/#creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:'
         body:
           1: Create a service account.
@@ -310,9 +310,10 @@ authConfig:
     tokenEndpoint: Token Endpoint
     authEndpoint: Auth Endpoint
   stateBanner:
-    disabled: '{provider} is currently disabled.'
-    enabled: '{provider} is currently enabled.'
+    disabled: 'The {provider} authentication provider is currently disabled.'
+    enabled: 'The {provider} authentication provider is currently enabled.'
   testAndEnable: Test and Enable Authentication
+  noneEnabled: Local Authentication is always enabled, but you may select another additional authentication provider from those shown below.
 
 authGroups:
   actions:
@@ -3734,8 +3735,8 @@ typeLabel:
     }
   management.cattle.io.authconfig: |-
     {count, plural,
-      one { Auth Provider }
-      other { Auth Providers }
+      one { Authentication Provider }
+      other { Authentication Providers }
     }
   management.cattle.io.feature: |-
     {count, plural,

@@ -2,7 +2,6 @@
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
-import InfoBox from '@/components/InfoBox';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
 import Banner from '@/components/Banner';
@@ -12,6 +11,7 @@ import { NORMAN, MANAGEMENT } from '@/config/types';
 import { findBy } from '@/utils/array';
 import AuthConfig from '@/mixins/auth-config';
 import AuthBanner from '@/components/auth/AuthBanner';
+import InfoBox from '@/components/InfoBox';
 
 const NAME = 'github';
 
@@ -19,13 +19,13 @@ export default {
   components: {
     Loading,
     CruResource,
-    InfoBox,
     RadioGroup,
     LabeledInput,
     Banner,
     CopyToClipboard,
     AllowedPrincipals,
-    AuthBanner
+    AuthBanner,
+    InfoBox
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -184,9 +184,15 @@ export default {
           </div>
         </div>
 
-        <InfoBox class="mt-20 mb-20 p-10">
-          <ul v-html="t(`authConfig.${NAME}.form.prefix`, tArgs, true)" />
-          <ul>
+        <InfoBox :step="1" class="step-box">
+          <ul class="step-list">
+            <li v-html="t(`authConfig.${NAME}.form.prefix.1`, tArgs, true)" />
+            <li v-html="t(`authConfig.${NAME}.form.prefix.2`, tArgs, true)" />
+            <li v-html="t(`authConfig.${NAME}.form.prefix.3`, tArgs, true)" />
+          </ul>
+        </InfoBox>
+        <InfoBox :step="2" class="step-box">
+          <ul class="step-list">
             <li>
               {{ t(`authConfig.${NAME}.form.instruction`, tArgs, true) }}
               <ul class="mt-10">
@@ -197,7 +203,12 @@ export default {
               </ul>
             </li>
           </ul>
-          <ul v-html="t(`authConfig.${NAME}.form.suffix`, tArgs, true)" />
+        </InfoBox>
+        <InfoBox :step="3" class="mb-20">
+          <ul class="step-list">
+            <li v-html="t(`authConfig.${NAME}.form.suffix.1`, tArgs, true)" />
+            <li v-html="t(`authConfig.${NAME}.form.suffix.2`, tArgs, true)" />
+          </ul>
         </InfoBox>
 
         <div class="row mb-20">
@@ -226,3 +237,9 @@ export default {
     </CruResource>
   </div>
 </template>
+
+<style lang="scss" scoped>
+  .step-list li:not(:last-child) {
+    margin-bottom: 8px;
+  }
+</style>
