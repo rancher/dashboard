@@ -14,7 +14,6 @@ export const state = function() {
     toRemove:         [],
     toAssign:         [],
     toUpdate:         [],
-    onConfirm:        null
   };
 };
 
