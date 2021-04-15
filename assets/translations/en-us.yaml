@@ -1036,6 +1036,7 @@ glance:
 grafanaDashboard:
   failedToLoad: Failed to load graph
   reload: Reload
+  grafana: Grafana
 
 graphOptions: 
   detail: Detail

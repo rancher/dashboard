@@ -39,7 +39,7 @@ export default {
 </script>
 
 <template>
-  <div class="dashboard-graph">
+  <div class="dashboard-metrics">
     <div class="graph-options mb-10">
       <DashboardOptions v-model="graphOptions" />
     </div>
@@ -68,3 +68,19 @@ export default {
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.dashboard-metrics {
+  & ::v-deep {
+    .external-link {
+      position: absolute;
+      left: 200px;
+      top: -45px;
+    }
+
+    .frame {
+      top: 0;
+    }
+  }
+}
+</style>
