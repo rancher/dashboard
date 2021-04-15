@@ -114,7 +114,7 @@ export default {
       return this.preventDelete || confirmFailed;
     },
 
-    ...mapState('action-menu', ['showPromptRemove', 'toRemove', 'onConfirm']),
+    ...mapState('action-menu', ['showPromptRemove', 'toRemove']),
     ...mapGetters({ t: 'i18n/t' }),
 
     resourceNames() {
@@ -175,7 +175,7 @@ export default {
     close() {
       this.confirmName = '';
       this.error = '';
-      this.$store.commit('action-menu/togglePromptRemove', {});
+      this.$store.commit('action-menu/togglePromptRemove');
     },
 
     remove(btnCB) {
