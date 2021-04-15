@@ -11,8 +11,8 @@ export default {
 
 <template>
   <div :class="{'stepped': !!step}" class="info-box">
-    <div v-if="step" class="step-number">
-      {{ step }}
+    <div v-if="step" class="step-number mb-10">
+      Step {{ step }}
     </div>
     <slot />
   </div>
@@ -35,16 +35,11 @@ export default {
     }
 
     .step-number {
-      border-radius: 50%;
-      background: var(--primary);
-      width: 1.5em;
-      height: 1.5em;
-      line-height: 1.5em;
-      text-align: center;
-      position: absolute;
-      top: 20px;
-      left: -.75em;
-      color: var(--primary-text)
+      border-radius: var(--border-radius);
+      background: var(--secondary);
+      color: var(--body-bg);
+      display: inline-block;
+      padding: 5px 10px;
   }
 
     .info-column:not(:last-child) {
