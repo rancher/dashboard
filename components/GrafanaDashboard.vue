@@ -36,6 +36,9 @@ export default {
     currentUrl() {
       return this.computeUrl();
     },
+    grafanaUrl() {
+      return this.currentUrl.replace('&kiosk', '');
+    },
     graphWindow() {
       return this.$refs.frame?.contentWindow;
     },
@@ -189,13 +192,16 @@ export default {
     <iframe
       v-show="!error"
       ref="frame"
-      :class="{loading}"
+      :class="{loading, frame: true}"
       :src="initialUrl"
       frameborder="0"
       scrolling="no"
     ></iframe>
     <div v-if="loading">
       <Loading />
+    </div>
+    <div v-if="!loading && !error" class="external-link">
+      <a :href="grafanaUrl" target="_blank" rel="noopener noreferrer nofollow">{{ t('grafanaDashboard.grafana') }} <i class="icon icon-external-link" /></a>
     </div>
   </div>
 </template>
@@ -226,7 +232,7 @@ export default {
     position: absolute;
     left: 0;
     right: 0;
-    top: 0;
+    top: 20px;
     bottom: 0;
     width: 100%;
     height: 100%;
