@@ -2488,6 +2488,20 @@ secret:
     'istio.io/key-and-cert': 'Istio Certificate'
     'helm.sh/release.v1': 'Helm Release'
     'fleet.cattle.io/cluster-registration-values': 'Fleet Cluster'
+    'rancher.cattle.io/cloud-credential': 'Cloud Credential'
+  initials:
+    'opaque': 'O'
+    'kubernetes.io/service-account-token': 'SAT'
+    'kubernetes.io/dockercfg': 'R'
+    'kubernetes.io/dockerconfigjson': 'R'
+    'kubernetes.io/basic-auth': 'HTTP'
+    'kubernetes.io/ssh-auth': 'SSH'
+    'kubernetes.io/tls': 'TLS'
+    'bootstrap.kubernetes.io/token': 'Boot'
+    'istio.io/key-and-cert': 'Ist'
+    'helm.sh/release.v1': 'Helm'
+    'fleet.cattle.io/cluster-registration-values': 'F'
+    'rancher.cattle.io/cloud-credential': 'CC'
   relatedWorkloads: Related Workloads
 
 selectOrCreateAuthSecret:

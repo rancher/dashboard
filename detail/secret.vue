@@ -38,7 +38,7 @@ export default {
   data() {
     let username;
     let password;
-    let registryURL;
+    let registryUrl;
     let registryProvider = 'Custom';
     let key;
     let crt;
@@ -48,18 +48,18 @@ export default {
 
       const { auths } = JSON.parse(json);
 
-      registryURL = Object.keys(auths)[0];
+      registryUrl = Object.keys(auths)[0];
 
-      if (registryURL === 'index.docker.io/v1/') {
+      if (registryUrl === 'index.docker.io/v1/') {
         registryProvider = 'DockerHub';
-      } else if (registryURL === 'quay.io') {
+      } else if (registryUrl === 'quay.io') {
         registryProvider = 'Quay.io';
-      } else if (registryURL.includes('artifactory')) {
+      } else if (registryUrl.includes('artifactory')) {
         registryProvider = 'Artifactory';
       }
 
-      username = auths[registryURL].username;
-      password = auths[registryURL].password;
+      username = auths[registryUrl].username;
+      password = auths[registryUrl].password;
     }
 
     const data = this.value?.data || {};
@@ -96,7 +96,7 @@ export default {
       registryProvider,
       username,
       password,
-      registryURL,
+      registryUrl,
       key,
       crt,
       relatedServices: [],
@@ -166,7 +166,7 @@ export default {
             </detailtext>
           </div>
         </div>
-        <div class="row">
+        <div class="row mt-20">
           <div class="col span-6">
             <DetailText :value="username" label-key="secret.registry.username" />
           </div>
@@ -178,10 +178,10 @@ export default {
 
       <div v-else-if="isCertificate" class="row">
         <div class="col span-6">
-          <DetailText :value="crt" label-key="secret.certificate.certificate" />
+          <DetailText :value="key" label-key="secret.certificate.privateKey" :conceal="true" />
         </div>
         <div class="col span-6">
-          <DetailText :value="key" label-key="secret.certificate.privateKey" :conceal="true" />
+          <DetailText :value="crt" label-key="secret.certificate.certificate" />
         </div>
       </div>
 

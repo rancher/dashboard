@@ -1,22 +1,24 @@
 import r from 'jsrsasign';
-import { CERTMANAGER, KUBERNETES } from '@/config/labels-annotations';
+import { CAPI, CERTMANAGER, KUBERNETES } from '@/config/labels-annotations';
 import { base64Decode, base64Encode } from '@/utils/crypto';
 import { removeObjects } from '@/utils/array';
 import { SERVICE_ACCOUNT } from '@/config/types';
 import { set } from '@/utils/object';
+import { escapeHtml } from '@/utils/string';
 
 export const TYPES = {
-  OPAQUE:        'Opaque',
-  SERVICE_ACCT:  'kubernetes.io/service-account-token',
-  DOCKER:        'kubernetes.io/dockercfg',
-  DOCKER_JSON:   'kubernetes.io/dockerconfigjson',
-  BASIC:         'kubernetes.io/basic-auth',
-  SSH:           'kubernetes.io/ssh-auth',
-  TLS:           'kubernetes.io/tls',
-  BOOTSTRAP:     'bootstrap.kubernetes.io/token',
-  ISTIO_TLS:     'istio.io/key-and-cert',
-  HELM_RELEASE:  'helm.sh/release.v1',
-  FLEET_CLUSTER:  'fleet.cattle.io/cluster-registration-values',
+  OPAQUE:           'Opaque',
+  SERVICE_ACCT:     'kubernetes.io/service-account-token',
+  DOCKER:           'kubernetes.io/dockercfg',
+  DOCKER_JSON:      'kubernetes.io/dockerconfigjson',
+  BASIC:            'kubernetes.io/basic-auth',
+  SSH:              'kubernetes.io/ssh-auth',
+  TLS:              'kubernetes.io/tls',
+  BOOTSTRAP:        'bootstrap.kubernetes.io/token',
+  ISTIO_TLS:        'istio.io/key-and-cert',
+  HELM_RELEASE:     'helm.sh/release.v1',
+  FLEET_CLUSTER:    'fleet.cattle.io/cluster-registration-values',
+  CLOUD_CREDENTIAL: 'provisioning.cattle.io/cloud-credential',
 };
 
 export default {
@@ -28,6 +30,10 @@ export default {
 
   isRegistry() {
     return this._type === TYPES.DOCKER_JSON;
+  },
+
+  isCloudCredential() {
+    return this._type === TYPES.CLOUD_CREDENTIAL;
   },
 
   dockerJSON() {
@@ -303,7 +309,43 @@ export default {
 
   setData() {
     return (key, value) => {
-      set(this.data, key, base64Encode(value));
+      // The key is quoted so that keys like '.dockerconfigjson' that contain dot don't get parsed into an object path
+      set(this.data, `"${ key }"`, base64Encode(value));
     };
-  }
+  },
+
+  cloudCredentialProvider() {
+    return this.metadata?.annotations?.[CAPI.CREDENTIAL_DRIVER];
+  },
+
+  cloudCredentialProviderDisplay() {
+    const provider = (this.cloudCredentialProvider || '').toLowerCase();
+
+    return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, provider);
+  },
+
+  cloudCredentialPublicData() {
+    let [mode, key] = (this.metadata?.annotations?.[CAPI.PUBLIC_DATA] || '').split(/:/, 2);
+
+    if ( !key ) {
+      key = mode;
+      mode = null;
+    }
+
+    if ( !key ) {
+      return;
+    }
+
+    const val = this.decodedData[key];
+
+    const maxLength = Math.min(8, Math.floor(val.length / 2));
+
+    if ( mode === 'prefix' ) {
+      return `${ escapeHtml(val.substr(0, maxLength)) }&hellip;`;
+    } else if ( mode === 'suffix' ) {
+      return `&hellip;${ escapeHtml(val.substr(-1 * maxLength)) }`;
+    } else {
+      return escapeHtml(val);
+    }
+  },
 };
