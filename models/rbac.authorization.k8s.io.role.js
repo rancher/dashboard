@@ -3,6 +3,17 @@ import { CATTLE_API_GROUP, SUBTYPE_MAPPING } from '@/models/management.cattle.io
 import { uniq } from '@/utils/array';
 
 export default {
+  customValidationRules() {
+    return [
+      {
+        path:           'rules',
+        validators:     ['roleTemplateRules'],
+        nullable:       false,
+        type:           'array',
+      },
+    ];
+  },
+
   nameWithinProduct() {
     return this.$rootGetters['i18n/withFallback'](`rbac.displayRole.${ this.name }`, this.name);
   },
