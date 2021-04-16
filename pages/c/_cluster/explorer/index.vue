@@ -177,7 +177,7 @@ export default {
     },
 
     isRKE() {
-      return this.currentCluster.status.provider === 'rke';
+      return this.currentCluster.status.provider.startsWith('rke');
     },
 
     accessibleResources() {
