@@ -362,7 +362,7 @@ export default {
     :validation-passed="validationPassed()"
     :resource="value"
     :errors="errors"
-    :done-route="doneRoute"
+    done-route="c-cluster-manager-clusters"
     @finish="save"
     @error="e=>errors = e"
   >

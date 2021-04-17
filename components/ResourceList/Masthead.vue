@@ -43,11 +43,10 @@ export default {
 
   data() {
     const params = { ...this.$route.params };
-    const resource = params.resource;
 
     const formRoute = { name: `${ this.$route.name }-create`, params };
 
-    const hasEditComponent = this.$store.getters['type-map/hasCustomEdit'](resource);
+    const hasEditComponent = this.$store.getters['type-map/hasCustomEdit'](this.resource);
 
     const yamlRoute = {
       name:  `${ this.$route.name }-create`,
@@ -91,7 +90,7 @@ export default {
         return this.isYamlCreatable;
       }
 
-      return this.schema && this._isCreatable && this.$store.getters['type-map/optionsFor'](this.$route.params.resource).canYaml;
+      return this.schema && this._isCreatable && this.$store.getters['type-map/optionsFor'](this.resource).canYaml;
     },
 
     _isCreatable() {
@@ -104,7 +103,7 @@ export default {
         return false;
       }
 
-      return this.$store.getters['type-map/optionsFor'](this.$route.params.resource).isCreatable;
+      return this.$store.getters['type-map/optionsFor'](this.resource).isCreatable;
     },
 
     _createLocation() {
@@ -128,25 +127,27 @@ export default {
       </h1>
     </div>
     <div class="actions-container">
-      <div class="actions">
-        <slot name="extraActions">
-        </slot>
+      <slot name="actions">
+        <div class="actions">
+          <slot name="extraActions">
+          </slot>
 
-        <n-link
-          v-if="hasEditComponent && _isCreatable"
-          :to="_createLocation"
-          class="btn role-primary"
-        >
-          {{ t("resourceList.head.create") }}
-        </n-link>
-        <n-link
-          v-else-if="_isYamlCreatable"
-          :to="_yamlCreateLocation"
-          class="btn role-primary"
-        >
-          {{ t("resourceList.head.createFromYaml") }}
-        </n-link>
-      </div>
+          <n-link
+            v-if="hasEditComponent && _isCreatable"
+            :to="_createLocation"
+            class="btn role-primary"
+          >
+            {{ t("resourceList.head.create") }}
+          </n-link>
+          <n-link
+            v-else-if="_isYamlCreatable"
+            :to="_yamlCreateLocation"
+            class="btn role-primary"
+          >
+            {{ t("resourceList.head.createFromYaml") }}
+          </n-link>
+        </div>
+      </slot>
     </div>
   </header>
 </template>

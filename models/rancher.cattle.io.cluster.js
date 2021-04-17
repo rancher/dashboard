@@ -7,36 +7,100 @@ export default {
   details() {
     const out = [
       {
-        label:   'Provider',
-        content: this.nodeProvider
+        label:   'Provisioner',
+        content: this.provisionerDisplay
+      },
+      {
+        label:   'Node Provider',
+        content: this.nodeProviderDisplay
       },
       {
         label:   'Kubernetes Version',
-        content: this.spec.kubernetesVersion,
+        content: this.kubernetesVersion,
       },
     ];
 
     return out;
   },
 
-  nodeProvider() {
-    const kind = this.spec?.rkeConfig?.nodePools?.[0]?.nodeConfig?.kind;
+  isRancher() {
+    return !!this.spec?.rkeConfig;
+  },
 
-    if ( kind ) {
-      return kind.replace(/config$/i, '').toLowerCase();
+  mgmt() {
+    const name = this.status?.clusterName;
+
+    if ( !name ) {
+      return null;
+    }
+
+    const out = this.$getters['byId'](MANAGEMENT.CLUSTER, name);
+
+    return out;
+  },
+
+  provisioner() {
+    if ( this.isRancher ) {
+      const allKeys = Object.keys(this.spec);
+      const configKey = allKeys.find( k => k.endsWith('Config'));
+
+      if ( configKey === 'rkeConfig') {
+        return 'rke2';
+      } else if ( configKey ) {
+        return configKey.replace(/config$/i, '');
+      }
+    } else if ( this.mgmt ) {
+      return this.mgmt.provisioner;
+    } else {
+      return null;
+    }
+  },
+
+  provisionerDisplay() {
+    const provisioner = (this.provisioner || '').toLowerCase();
+
+    return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provisioner }"`, null, 'generic.unknown', true);
+  },
+
+  kubernetesVersion() {
+    const unknown = this.$rootGetters['i18n/t']('generic.unknown');
+
+    if ( this.isRancher ) {
+      const fromStatus = this.status?.version?.gitVersion;
+      const fromSpec = this.spec?.kubernetesVersion;
+
+      return fromStatus || fromSpec || unknown;
+    } else if ( this.mgmt ) {
+      return this.mgmt.kubernetesVersion || unknown;
+    } else {
+      return unknown;
+    }
+  },
+
+  nodeProvider() {
+    if ( this.isRancher ) {
+      const kind = this.spec?.rkeConfig?.nodePools?.[0]?.nodeConfig?.kind;
+
+      if ( kind ) {
+        return kind.replace(/config$/i, '');
+      }
+
+      return null;
+    } else if ( this.mgmt ) {
+      return this.mgmt.nodeProvider;
     }
   },
 
   nodeProviderDisplay() {
-    const provider = this.nodeProvider;
+    const provider = (this.nodeProvider || '').toLowerCase();
 
-    return this.$getters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, 'generic.unknown', true);
+    return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, 'generic.unknown', true);
   },
 
-  mgmt() {
-    const mgmt = this.$getters['byId'](MANAGEMENT.CLUSTER, this.id);
-
-    return mgmt;
+  displayName() {
+    if ( this.mgmt && !this.isRancher ) {
+      return this.mgmt.spec.displayName;
+    }
   },
 
   pools() {

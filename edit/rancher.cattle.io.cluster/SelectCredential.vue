@@ -44,7 +44,7 @@ export default {
 
     this.newCredential = await this.$store.dispatch('management/create', {
       type:     SECRET,
-      _type:    TYPES.OPAQUE,
+      _type:    TYPES.CLOUD_CREDENTIAL,
       metadata: {
         namespace:   DEFAULT_WORKSPACE,
         annotations: { [CAPI.CREDENTIAL_DRIVER]: this.driverName }

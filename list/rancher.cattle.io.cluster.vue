@@ -3,26 +3,16 @@ import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { REGISTER, _FLAGGED } from '@/config/query-params';
 import { allHash } from '@/utils/promise';
-import { CAPI } from '@/config/types';
+import { CAPI, MANAGEMENT } from '@/config/types';
 
 export default {
   components: { ResourceTable, Masthead },
 
-  props: {
-    resource: {
-      type:     String,
-      required: true,
-    },
-
-    schema: {
-      type:     Object,
-      required: true,
-    },
-  },
-
   async fetch() {
     const hash = await allHash({
       mgmtClusters:       this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+      mgmtPools:          this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL }),
+      mgmtTemplates:      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE }),
       rancherClusters:    this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
       machineDeployments: this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT })
     });
@@ -33,6 +23,8 @@ export default {
 
   data() {
     return {
+      resource:        CAPI.RANCHER_CLUSTER,
+      schema:          this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
       mgmtClusters:    [],
       rancherClusters: [],
     };
@@ -40,21 +32,33 @@ export default {
 
   computed: {
     rows() {
-      const out = this.mgmtClusters.slice();
-
-      for ( const c of this.rancherClusters ) {
-        out.push(c);
-      }
-
-      return out;
+      return this.rancherClusters;
     },
 
-    importLink() {
+    createLocation() {
       return {
-        name:  'c-cluster-product-resource-create',
+        name:   'c-cluster-product-resource-create',
+        params: {
+          product:  this.$store.getters['currentProduct'].name,
+          resource: this.resource
+        },
+      };
+    },
+
+    importLocation() {
+      return {
+        name:   'c-cluster-product-resource-create',
+        params: {
+          product:  this.$store.getters['currentProduct'].name,
+          resource: this.resource
+        },
         query: { [REGISTER]: _FLAGGED }
       };
     }
+  },
+
+  mounted() {
+    window.c = this;
   },
 };
 </script>
@@ -64,10 +68,11 @@ export default {
     <Masthead
       :schema="schema"
       :resource="resource"
+      :create-location="createLocation"
     >
       <template slot="extraActions">
         <n-link
-          :to="importLink"
+          :to="importLocation"
           class="btn role-primary"
         >
           {{ t('cluster.import') }}
@@ -75,6 +80,21 @@ export default {
       </template>
     </Masthead>
 
-    <ResourceTable :schema="schema" :rows="rows" :namespaced="false" />
+    <ResourceTable :schema="schema" :rows="rows" :namespaced="false">
+      <template #cell:provider="{row}">
+        {{ row.nodeProviderDisplay }}
+        <div class="text-muted">
+          {{ row.provisionerDisplay }}
+        </div>
+      </template>
+      <template #cell:explorer="{row}">
+        <n-link v-if="row.mgmt && row.mgmt.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}">
+          Explore
+        </n-link>
+        <button v-else :disabled="true" class="btn btn-sm role-primary">
+          Explore
+        </button>
+      </template>
+    </ResourceTable>
   </div>
 </template>

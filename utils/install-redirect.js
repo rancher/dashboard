@@ -1,15 +1,20 @@
 import { REPO_TYPE, REPO, CHART, VERSION } from '@/config/query-params';
 
-export default function(product, chartName, defaultResource) {
+export default function(product, chartName, defaultResourceOrRoute) {
   return async function middleware({ redirect, store } ) {
     if ( store.getters['type-map/isProductActive'](product) ) {
       // If the product is installed and there's a default resource, redirect there
-      if ( defaultResource ) {
+
+      if ( defaultResourceOrRoute ) {
+        if ( typeof defaultResourceOrRoute === 'object' ) {
+          return redirect(defaultResourceOrRoute);
+        }
+
         return redirect({
           name:   'c-cluster-product-resource',
           params: {
             product,
-            resource: defaultResource
+            resource: defaultResourceOrRoute
           },
         });
       }

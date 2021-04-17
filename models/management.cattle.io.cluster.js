@@ -1,5 +1,5 @@
 import { CATALOG } from '@/config/labels-annotations';
-import { FLEET } from '@/config/types';
+import { FLEET, MANAGEMENT } from '@/config/types';
 import { insertAt } from '@/utils/array';
 import { parseSi } from '@/utils/units';
 
@@ -8,6 +8,25 @@ import { parseSi } from '@/utils/units';
 const PROVIDER_LOGO_OVERRIDE = {};
 
 export default {
+  details() {
+    const out = [
+      {
+        label:   'Provisioner',
+        content: this.provisionerDisplay
+      },
+      {
+        label:   'Node Provider',
+        content: this.nodeProviderDisplay
+      },
+      {
+        label:   'Kubernetes Version',
+        content: this.kubernetesVersion,
+      },
+    ];
+
+    return out;
+  },
+
   _availableActions() {
     const out = this._standardActions;
 
@@ -25,11 +44,29 @@ export default {
     return this.hasLink('remove') && !this?.spec?.internal;
   },
 
-  configName() {
+  provisioner() {
     const allKeys = Object.keys(this.spec);
     const configKey = allKeys.find( k => k.endsWith('Config'));
 
-    return configKey;
+    if ( configKey ) {
+      return configKey.replace(/Config$/, '');
+    }
+  },
+
+  nodePools() {
+    const pools = this.$getters['all'](MANAGEMENT.NODE_POOL);
+
+    return pools.filter(x => x.spec?.clusterName === this.id);
+  },
+
+  nodeProvider() {
+    const kind = this.nodePools?.[0]?.provider;
+
+    if ( kind ) {
+      return kind.replace(/config$/i, '').toLowerCase();
+    } else if ( this.spec?.internal ) {
+      return 'local';
+    }
   },
 
   groupByLabel() {
@@ -41,11 +78,18 @@ export default {
   },
 
   kubernetesVersion() {
-    if ( this?.status?.version?.gitVersion ) {
-      return this.status.version.gitVersion;
-    } else {
-      return this.$rootGetters['i18n/t']('generic.unknown');
-    }
+    const fromStatus = this.status?.version?.gitVersion;
+    const fromSpec = this.spec?.[`${ this.provisioner }Config`]?.kubernetesVersion;
+
+    return fromStatus || fromSpec || this.$rootGetters['i18n/t']('generic.unknown');
+  },
+
+  kubernetesVersionBase() {
+    return this.kubernetesVersion.replace(/[+-].*$/, '');
+  },
+
+  kubernetesVersionExtension() {
+    return this.kubernetesVersion.replace(/^.*([+-])/, '$1');
   },
 
   openShell() {

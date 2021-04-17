@@ -719,6 +719,7 @@ cluster:
   provider:
     aliyun: Alibaba ACK
     aliyunecs: Aliyun ECS
+    aws: Amazon AWS
     amazonec2: Amazon EC2
     amazoneks: Amazon EKS
     azure: Azure
@@ -735,6 +736,7 @@ cluster:
     k3s: K3s
     kubeAdmin: KubeADM
     linode: Linode
+    local: Local
     minikube: Minikube
     oci: Oracle Cloud Infrastructure
     openstack: OpenStack
@@ -745,7 +747,7 @@ cluster:
     pinganyunecs: Pinganyun ECS
     rackspace: RackSpace
     rancherkubernetesengine: RKE
-    rke2: RKE Government
+    rke2: RKE2
     rke: RKE
     rkeWindows: Windows
     softlayer: SoftLayer
@@ -2488,7 +2490,7 @@ secret:
     'istio.io/key-and-cert': 'Istio Certificate'
     'helm.sh/release.v1': 'Helm Release'
     'fleet.cattle.io/cluster-registration-values': 'Fleet Cluster'
-    'rancher.cattle.io/cloud-credential': 'Cloud Credential'
+    'provisioning.cattle.io/cloud-credential': 'Cloud Credential'
   initials:
     'opaque': 'O'
     'kubernetes.io/service-account-token': 'SAT'
@@ -3876,8 +3878,8 @@ typeLabel:
     }
   'management.cattle.io.cluster': |-
     {count, plural,
-      one { Cluster }
-      other { Clusters }
+      one { Mgmt Cluster }
+      other { Mgmt Clusters }
     }
   'cluster.x-k8s.io.cluster': |-
     {count, plural,
@@ -3886,8 +3888,8 @@ typeLabel:
     }
   'rancher.cattle.io.cluster': |-
     {count, plural,
-      one { Rancher Cluster }
-      other { Rancher Clusters }
+      one { Cluster }
+      other { Clusters }
     }
   'management.cattle.io.user': |-
     {count, plural,

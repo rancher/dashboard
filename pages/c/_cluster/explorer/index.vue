@@ -375,7 +375,10 @@ export default {
         </div>
       </template>
       <template #kubernetesVersion>
-        <h1>{{ currentCluster.kubernetesVersion }}</h1>
+        <h1 v-trim-whitespace>
+          <span>{{ currentCluster.kubernetesVersionBase }}</span>
+          <span v-if="currentCluster.kubernetesVersionExtension" style="font-size: 0.5em">{{ currentCluster.kubernetesVersionExtension }}</span>
+        </h1>
         <label>{{ t('glance.version') }}</label>
       </template>
       <template #totalNodes>
