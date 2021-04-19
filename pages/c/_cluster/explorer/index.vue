@@ -447,6 +447,7 @@ export default {
         <template #default="props">
           <DashboardMetrics
             v-if="props.active"
+            class="etcd-metrics"
             :detail-url="ETCD_METRICS_DETAIL_URL"
             :summary-url="ETCD_METRICS_SUMMARY_URL"
             graph-height="550px"
@@ -506,5 +507,9 @@ export default {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+}
+
+.etcd-metrics ::v-deep .external-link {
+  top: -102px;
 }
 </style>
