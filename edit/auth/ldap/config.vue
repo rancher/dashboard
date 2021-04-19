@@ -132,7 +132,14 @@ export default {
       </div>
       <div v-if="type==='activedirectory'" class="row mb-20">
         <div class="col span-6">
-          <LabeledInput v-model="model.defaultLoginDomain" required :mode="mode" :label="t('authConfig.ldap.defaultLoginDomain')" />
+          <LabeledInput
+            v-model="model.defaultLoginDomain"
+            :hoover-tooltip="true"
+            :tooltip="t('authConfig.ldap.defaultLoginDomain.hint')"
+            :placeholder="t('authConfig.ldap.defaultLoginDomain.placeholder')"
+            :mode="mode"
+            :label="t('authConfig.ldap.defaultLoginDomain.label')"
+          />
         </div>
       </div>
       <div class="row mb-20">

@@ -50,7 +50,7 @@ export default {
 
       registryURL = Object.keys(auths)[0];
 
-      if (registryURL === 'index.dockerhub.io/v1/') {
+      if (registryURL === 'index.docker.io/v1/') {
         registryProvider = 'DockerHub';
       } else if (registryURL === 'quay.io') {
         registryProvider = 'Quay.io';

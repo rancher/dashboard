@@ -61,7 +61,7 @@ export default {
     },
 
     doneOverride: {
-      type:    Function,
+      type:    [Function, Object],
       default: null
     },
 
@@ -288,7 +288,7 @@ export default {
 
     done() {
       if (this.doneOverride) {
-        return this.doneOverride();
+        return typeof (this.doneOverride) === 'function' ? this.doneOverride() : this.$router.replace(this.doneOverride);
       }
       if ( !this.doneRoute ) {
         return;

@@ -3,7 +3,6 @@ import isEqual from 'lodash/isEqual';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
-
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
 import Checkbox from '@/components/form/Checkbox';
@@ -28,8 +27,10 @@ import { exceptionToErrorsArray, stringify } from '@/utils/error';
 import { clone, diff, get, set } from '@/utils/object';
 import { findBy, insertAt } from '@/utils/array';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
-import sortBy from 'lodash/sortBy';
 import { formatSi, parseSi } from '@/utils/units';
+import { SHOW_PRE_RELEASE, mapPref } from '@/store/prefs';
+import { compare } from '@/utils/version';
+const semver = require('semver');
 
 export default {
   name: 'Install',
@@ -359,6 +360,8 @@ export default {
   computed: {
     ...mapGetters(['currentCluster', 'isRancher']),
 
+    showPreRelease: mapPref(SHOW_PRE_RELEASE),
+
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
       const want = this.value?.metadata?.namespace;
@@ -513,8 +516,18 @@ export default {
             nue.disabled = true;
           }
         }
+        if (!semver.valid(version.version)) {
+          version.version = semver.clean(version.version, { loose: true });
+        }
+        if (!this.showPreRelease) {
+          const isPre = !!semver.prerelease(version.version);
 
-        out.push(nue);
+          if (!isPre) {
+            out.push(nue);
+          }
+        } else {
+          out.push(nue);
+        }
       });
 
       const selectedMatch = out.find(v => v.id === selectedVersion);
@@ -523,7 +536,12 @@ export default {
         out.push({ value: selectedVersion, label: this.t('catalog.install.versions.current', { ver: selectedVersion }) });
       }
 
-      return sortBy(out, 'id');
+      out.sort((a, b) => {
+        // Swapping a and b to get descending order
+        return compare(b.id, a.id);
+      });
+
+      return out;
     },
   },
 
@@ -981,7 +999,7 @@ export default {
                 <hr />
               </template>
               <template v-else-if="opt.kind === 'label'">
-                <b style="position: relative; left: -10px;">{{ opt.label }}</b>
+                <b style="position: relative; left: -2.5px;">{{ opt.label }}</b>
               </template>
             </template>
           </LabeledSelect>

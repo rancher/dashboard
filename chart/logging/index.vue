@@ -22,9 +22,15 @@ export default {
   },
 
   created() {
+    let provider = this.provider;
+
+    if ( provider.startsWith('rke.') ) {
+      provider = 'rke';
+    }
+
     this.$set(this.value, 'additionalLoggingSources', this.value.additionalLoggingSources || {});
-    this.$set(this.value.additionalLoggingSources, this.provider, this.value.additionalLoggingSources[this.provider] || {});
-    this.$set(this.value.additionalLoggingSources[this.provider], 'enabled', true);
+    this.$set(this.value.additionalLoggingSources, provider, this.value.additionalLoggingSources[provider] || {});
+    this.$set(this.value.additionalLoggingSources[provider], 'enabled', true);
     this.$set(this.value, 'global', this.value.global || {});
   },
 };

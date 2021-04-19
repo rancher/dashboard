@@ -1,5 +1,6 @@
 <script>
 import Loading from '@/components/Loading';
+import DashboardMetrics from '@/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
 import isEmpty from 'lodash/isEmpty';
 import SortableTable from '@/components/SortableTable';
@@ -23,11 +24,14 @@ import {
   PV,
   WORKLOAD_TYPES
 } from '@/config/types';
-import SimpleBox from '@/components/SimpleBox';
 import ResourceGauge, { resourceCounts } from '@/components/ResourceGauge';
 import CountGauge from '@/components/CountGauge';
 import Glance from '@/components/Glance';
 import { findBy } from '@/utils/array';
+import Tabbed from '@/components/Tabbed';
+import Tab from '@/components/Tabbed/Tab';
+import { allDashboardsExist } from '@/utils/grafana';
+import EtcdInfoBanner from '@/components/EtcdInfoBanner';
 import HardwareResourceGauge from './HardwareResourceGauge';
 
 const PARSE_RULES = {
@@ -50,15 +54,25 @@ const MAX_FAILURES = 2;
 
 const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
+const CLUSTER_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-linux-detail-1/rancher-linux-cluster-metrics-detail?orgId=1';
+const CLUSTER_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-linux-summary-1/rancher-linux-cluster-metrics-summary?orgId=1';
+const K8S_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-k8s-detail-1/rancher-kubernetes-components-metrics-detail?orgId=1';
+const K8S_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-k8s-summary-1/rancher-kubernetes-components-metrics-summary?orgId=1';
+const ETCD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-etcd-detail-1/rancher-etcd-metrics-detail?orgId=1';
+const ETCD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-etcd-summary-1/rancher-etcd-metrics-summary?orgId=1';
+
 export default {
   components: {
     CountGauge,
+    EtcdInfoBanner,
     Glance,
+    DashboardMetrics,
     HardwareResourceGauge,
     Loading,
     ResourceGauge,
-    SimpleBox,
     SortableTable,
+    Tab,
+    Tabbed
   },
 
   async fetch() {
@@ -74,6 +88,10 @@ export default {
     if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE_POOL) ) {
       hash.nodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
     }
+
+    this.showClusterMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]);
+    this.showK8sMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]);
+    this.showEtcdMetrics = this.isRKE && await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]);
 
     const res = await allHash(hash);
 
@@ -120,21 +138,29 @@ export default {
     ];
 
     return {
-      metricPoller:      null,
+      metricPoller:        null,
       eventHeaders,
       nodeHeaders,
-      constraints:       [],
-      events:            [],
-      nodeMetrics:       [],
-      nodePools:         [],
-      nodeTemplates:     [],
-      nodes:             [],
+      constraints:         [],
+      events:              [],
+      nodeMetrics:         [],
+      nodePools:           [],
+      nodeTemplates:       [],
+      nodes:               [],
+      showClusterMetrics: false,
+      showK8sMetrics:     false,
+      showEtcdMetrics:    false,
+      CLUSTER_METRICS_DETAIL_URL,
+      CLUSTER_METRICS_SUMMARY_URL,
+      K8S_METRICS_DETAIL_URL,
+      K8S_METRICS_SUMMARY_URL,
+      ETCD_METRICS_DETAIL_URL,
+      ETCD_METRICS_SUMMARY_URL,
     };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
-
     displayProvider() {
       const other = 'other';
       let provider = this.currentCluster.status.provider || other;
@@ -148,6 +174,10 @@ export default {
       }
 
       return this.t(`cluster.provider.${ provider }`);
+    },
+
+    isRKE() {
+      return this.currentCluster.status.provider === 'rke';
     },
 
     accessibleResources() {
@@ -320,7 +350,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <section v-else>
+  <section v-else class="dashboard">
     <header>
       <div class="title">
         <h1>
@@ -370,28 +400,62 @@ export default {
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.coresUsed')" :total="cpuUsed.total" :useful="cpuUsed.useful" />
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.ramUsed')" :total="ramUsed.total" :useful="ramUsed.useful" :units="ramUsed.units" />
     </div>
-    <SimpleBox class="events" :title="t('clusterIndexPage.sections.events.label')">
-      <SortableTable
-        :rows="events"
-        :headers="eventHeaders"
-        key-field="id"
-        :search="false"
-        :table-actions="false"
-        :row-actions="false"
-        :paging="true"
-        :rows-per-page="10"
-        default-sort-by="date"
-      >
-        <template #cell:resource="{row, value}">
-          <n-link :to="row.detailLocation">
-            {{ value }}
-          </n-link>
-          <div v-if="row.message">
-            {{ row.displayMessage }}
-          </div>
+    <Tabbed class="mt-30">
+      <Tab name="events" :label="t('clusterIndexPage.sections.events.label')" :weight="3">
+        <SortableTable
+          :rows="events"
+          :headers="eventHeaders"
+          key-field="id"
+          :search="false"
+          :table-actions="false"
+          :row-actions="false"
+          :paging="true"
+          :rows-per-page="10"
+          default-sort-by="date"
+        >
+          <template #cell:resource="{row, value}">
+            <n-link :to="row.detailLocation">
+              {{ value }}
+            </n-link>
+            <div v-if="row.message">
+              {{ row.displayMessage }}
+            </div>
+          </template>
+        </SortableTable>
+      </Tab>
+      <Tab v-if="showClusterMetrics" name="cluster-metrics" :label="t('clusterIndexPage.sections.clusterMetrics.label')" :weight="2">
+        <template #default="props">
+          <DashboardMetrics
+            v-if="props.active"
+            :detail-url="CLUSTER_METRICS_DETAIL_URL"
+            :summary-url="CLUSTER_METRICS_SUMMARY_URL"
+            graph-height="825px"
+          />
         </template>
-      </SortableTable>
-    </SimpleBox>
+      </Tab>
+      <Tab v-if="showK8sMetrics" name="k8s-metrics" :label="t('clusterIndexPage.sections.k8sMetrics.label')" :weight="1">
+        <template #default="props">
+          <DashboardMetrics
+            v-if="props.active"
+            :detail-url="K8S_METRICS_DETAIL_URL"
+            :summary-url="K8S_METRICS_SUMMARY_URL"
+            graph-height="550px"
+          />
+        </template>
+      </Tab>
+      <Tab v-if="showEtcdMetrics" name="etcd-metrics" :label="t('clusterIndexPage.sections.etcdMetrics.label')" :weight="0">
+        <template #default="props">
+          <DashboardMetrics
+            v-if="props.active"
+            :detail-url="ETCD_METRICS_DETAIL_URL"
+            :summary-url="ETCD_METRICS_SUMMARY_URL"
+            graph-height="550px"
+          >
+            <EtcdInfoBanner />
+          </DashboardMetrics>
+        </template>
+      </Tab>
+    </Tabbed>
   </section>
 </template>
 
@@ -435,5 +499,12 @@ export default {
 .os-provider-logo {
   height: 40px;
   width: 40px;
+}
+
+.graph-options {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 }
 </style>

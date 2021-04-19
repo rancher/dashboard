@@ -1,8 +1,8 @@
-import { NORMAN, RBAC } from '@/config/types';
+import { NORMAN, MANAGEMENT } from '@/config/types';
 
 export default {
   nameDisplay() {
-    const role = this.$getters['byId'](RBAC.GLOBAL_ROLE, this.globalRoleName);
+    const role = this.$getters['byId'](MANAGEMENT.GLOBAL_ROLE, this.globalRoleName);
 
     if (!role) {
       return this.globalRoleName;

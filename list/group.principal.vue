@@ -2,7 +2,7 @@
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
 import Masthead from '@/components/ResourceList/Masthead';
-import { NORMAN, RBAC } from '@/config/types';
+import { NORMAN, MANAGEMENT } from '@/config/types';
 import AsyncButton from '@/components/AsyncButton';
 import { applyProducts } from '@/store/type-map';
 import { NAME } from '@/config/product/auth';
@@ -56,7 +56,7 @@ export default {
       await this.updateGroupPrincipals(force);
 
       // Upfront load all global roles, this makes it easier to sync fetch them later on
-      await this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE });
+      await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE });
 
       const principals = await this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
 

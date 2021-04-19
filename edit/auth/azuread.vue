@@ -72,7 +72,7 @@ export default {
     },
 
     replyUrl() {
-      return `${ window.location.origin }/verify-auth-azure`;
+      return `${ this.serverUrl }/verify-auth-azure`;
     },
 
     tenantId() {
@@ -171,7 +171,7 @@ export default {
         <InfoBox v-if="!model.enabled" class="mt-20 mb-20 p-10">
           Azure AD requires a whitelisted URL for your Rancher server before beginning this setup. Please ensure that the following URL is set in the Reply URL section of your Azure Portal. Please note that is may take up to 5 minutes for the whitelisted URL to propagate.
           <br />
-          <label>Reply URL: </label> <CopyToClipboardText :text="replyUrl" />
+          <label>Reply URL: </label> <CopyToClipboardText :plain="true" :text="replyUrl" />
         </InfoBox>
 
         <div class="row mb-20">

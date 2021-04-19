@@ -28,13 +28,16 @@ export default {
       default: () => {
         return {};
       }
+    },
+
+    container: {
+      type:     Object,
+      required: true
     }
   },
 
   data() {
-    const container = this.podSpec.containers[0];
-
-    const volumeMounts = (container.volumeMounts || []).filter(mount => mount.name === this.name);
+    const volumeMounts = (this.container.volumeMounts || []).filter(mount => mount.name === this.name);
 
     return { volumeMounts };
   },
@@ -49,10 +52,8 @@ export default {
 
   watch: {
     volumeMounts(neu) {
-      const container = this.podSpec.containers[0];
-
-      container.volumeMounts = (container.volumeMounts || []).filter(mount => mount.name && (mount.name !== this.name));
-      container.volumeMounts.push(...neu);
+      this.container.volumeMounts = (this.container.volumeMounts || []).filter(mount => mount.name && (mount.name !== this.name));
+      this.container.volumeMounts.push(...neu);
     },
 
     name(neu) {

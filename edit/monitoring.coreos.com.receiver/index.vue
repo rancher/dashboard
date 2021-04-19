@@ -12,11 +12,13 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import CreateEditView from '@/mixins/create-edit-view';
 import jsyaml from 'js-yaml';
 import { RECEIVERS_TYPES } from '@/models/monitoring.coreos.com.receiver';
+import ButtonDropdown from '@/components/ButtonDropdown';
 
 export default {
   components: {
     ArrayListGrouped,
     Banner,
+    ButtonDropdown,
     CruResource,
     GradientBox,
     LabeledInput,
@@ -131,6 +133,10 @@ export default {
       } else {
         this.save(...arguments);
       }
+    },
+
+    createAddOptions(receiverType) {
+      return receiverType.addOptions.map();
     }
   }
 };
@@ -190,18 +196,23 @@ export default {
           :scrolling="false"
           :editor-mode="editorMode"
         />
-        <ArrayListGrouped
-          v-else
-          v-model="value.spec[receiverType.key]"
-          class="namespace-list"
-          :mode="mode"
-          :default-add-value="{}"
-          :add-label="t('monitoringReceiver.addButton', { type: t(receiverType.label) })"
-        >
-          <template #default="props">
-            <component :is="getComponent(receiverType.name)" :value="props.row.value" :mode="mode" />
-          </template>
-        </ArrayListGrouped>
+        <div v-else>
+          <component :is="getComponent(receiverType.banner)" v-if="receiverType.banner" :model="value.spec[receiverType.key]" :mode="mode" />
+          <ArrayListGrouped
+            v-model="value.spec[receiverType.key]"
+            class="namespace-list"
+            :mode="mode"
+            :default-add-value="{}"
+            :add-label="t('monitoringReceiver.addButton', { type: t(receiverType.label) })"
+          >
+            <template #default="props">
+              <component :is="getComponent(receiverType.name)" :value="props.row.value" :mode="mode" />
+            </template>
+            <template v-if="receiverType.addButton" #add>
+              <component :is="getComponent(receiverType.addButton)" :model="value.spec[receiverType.key]" :mode="mode" />
+            </template>
+          </ArrayListGrouped>
+        </div>
       </Tab>
     </Tabbed>
   </CruResource>

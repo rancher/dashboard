@@ -1,4 +1,4 @@
-import { isArray, filterBy } from '@/utils/array';
+import { filterBy, isArray } from '@/utils/array';
 
 export const state = function() {
   return {
@@ -72,10 +72,15 @@ export const mutations = {
     state.elem = null;
   },
 
-  togglePromptRemove(state, resources = []) {
-    state.showPromptRemove = !state.showPromptRemove;
-    if (!isArray(resources)) {
-      resources = [resources];
+  togglePromptRemove(state, resources) {
+    if (!resources) {
+      state.showPromptRemove = false;
+      resources = [];
+    } else {
+      state.showPromptRemove = !state.showPromptRemove;
+      if (!isArray(resources)) {
+        resources = [resources];
+      }
     }
     state.toRemove = resources;
   },

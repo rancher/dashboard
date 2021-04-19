@@ -39,7 +39,7 @@ export default {
   data() {
     const rows = clone(this.value || []).map((row) => {
       row._showHost = false;
-      row._serviceType = '' ;
+      row._serviceType = row._serviceType || '';
       row._name = row.name ? `${ row.name }` : `${ row.containerPort }${ row.protocol.toLowerCase() }${ row.hostPort || row._listeningPort || '' }`;
       if (row.hostPort || row.hostIP) {
         row._showHost = true;
@@ -143,7 +143,6 @@ export default {
       if ( this.isView ) {
         return;
       }
-
       const out = [];
 
       for ( const row of this.rows ) {
@@ -201,7 +200,7 @@ export default {
       :class="{'show-host':row._showHost}"
     >
       <div class="service-type">
-        <LabeledSelect v-model="row._serviceType" :mode="mode" :label="t('workload.container.ports.createService')" :options="serviceTypes" />
+        <LabeledSelect v-model="row._serviceType" :mode="mode" :label="t('workload.container.ports.createService')" :options="serviceTypes" @input="queueUpdate" />
       </div>
 
       <div class="portName">

@@ -52,7 +52,7 @@ export default {
       model:         null,
       serverSetting: null,
       errors:        null,
-      originalModel: null
+      originalModel: null,
     };
   },
 
@@ -71,13 +71,13 @@ export default {
     },
 
     serverUrl() {
-      if ( this.serverSetting ) {
-        return this.serverSetting;
-      } else if ( process.client ) {
+      if (process.client) {
+        // Client-side rendered: use the current window location
         return window.location.origin;
       }
 
-      return '';
+      // Server-side rendered
+      return this.serverSetting || '';
     },
 
     baseUrl() {
@@ -183,7 +183,7 @@ export default {
           await clone.save();
         }
         await this.reloadModel();
-
+        this.showLdap = false;
         btnCb(true);
       } catch (err) {
         this.errors = [err];

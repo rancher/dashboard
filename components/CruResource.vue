@@ -204,6 +204,10 @@ export default {
 
       this.$router.applyQuery({ [SUB_TYPE]: id });
       this.$emit('select-type', id);
+    },
+
+    save() {
+      this.$refs.save.clicked();
     }
   }
 };
@@ -300,6 +304,7 @@ export default {
                   </button>
                   <AsyncButton
                     v-if="!showSubtypeSelection"
+                    ref="save"
                     :disabled="!canSave"
                     :mode="finishButtonMode || mode"
                     @click="$emit('finish', $event)"

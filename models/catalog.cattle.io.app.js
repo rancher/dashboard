@@ -3,9 +3,10 @@ import {
   NAMESPACE, NAME, REPO, REPO_TYPE, CHART, VERSION, _VIEW
 } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, FLEET } from '@/config/labels-annotations';
-import { compare, sortable } from '@/utils/version';
+import { compare, isPrerelease, sortable } from '@/utils/version';
 import { filterBy } from '@/utils/array';
 import { CATALOG } from '@/config/types';
+import { SHOW_PRE_RELEASE } from '@/store/prefs';
 
 export default {
   showMasthead() {
@@ -78,8 +79,16 @@ export default {
     }
 
     const isWindows = this.$rootGetters['currentCluster'].providerOs === 'windows';
+    const showPreRelease = this.$rootGetters['prefs/get'](SHOW_PRE_RELEASE);
+
     const thisVersion = this.spec?.chart?.metadata?.version;
-    const newestChart = chart.versions?.[0];
+    let versions = chart.versions;
+
+    if (!showPreRelease) {
+      versions = chart.versions.filter(v => !isPrerelease(v.version));
+    }
+
+    const newestChart = versions?.[0];
     const newestVersion = newestChart?.version;
 
     if ( !thisVersion || !newestVersion ) {

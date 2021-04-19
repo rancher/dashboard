@@ -34,5 +34,6 @@ export default {
     <n-link v-if="to" :to="to">
       {{ value }}
     </n-link>
+    <span v-else>{{ value }}</span>
   </span>
 </template>

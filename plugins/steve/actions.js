@@ -339,7 +339,7 @@ export default {
     return proxyFor(ctx, copy, true);
   },
 
-  promptRemove({ commit, state }, resources = []) {
+  promptRemove({ commit, state }, resources ) {
     commit('action-menu/togglePromptRemove', resources, { root: true });
   },
 

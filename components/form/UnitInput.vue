@@ -60,6 +60,11 @@ export default {
     required: {
       type:    Boolean,
       default: false,
+    },
+
+    min: {
+      type:    [Number, String],
+      default: 0
     }
   },
 
@@ -110,7 +115,7 @@ export default {
     :value="userValue"
     v-bind="$attrs"
     type="number"
-    min="0"
+    :min="min"
     :mode="mode"
     :label="label"
     :label-key="labelKey"
