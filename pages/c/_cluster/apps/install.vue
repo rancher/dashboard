@@ -398,12 +398,6 @@ export default {
       return out;
     },
 
-    isValuesTab() {
-      const tabName = this.$refs.tabs?.activeTabName;
-
-      return tabName && !['appReadme', 'helm', 'readme'].includes(tabName);
-    },
-
     charts() {
       const current = this.existing?.matchingChart(true);
 
@@ -1186,7 +1180,7 @@ export default {
             </template>
 
             <button
-              v-if="(showValuesComponent || hasQuestions) && isValuesTab && !showPreview"
+              v-if="(showValuesComponent || hasQuestions) && !showPreview"
               type="button"
               class="btn role-secondary"
               @click="preview"
