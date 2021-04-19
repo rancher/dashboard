@@ -205,34 +205,14 @@ export default {
   },
 
   methods: {
-
-    getVerb(verb, rule) {
-      const verbs = rule.verbs || [];
-
-      return verbs.includes(verb);
-    },
-
-    setVerb(verb, value, rule) {
-      this.$set(rule.verbs, rule.verbs || []);
-
-      if (value) {
-        const index = rule.verbs.indexOf(verb);
-
-        if (index === -1) {
-          rule.verbs.push(verb);
-        }
-      } else {
-        const index = rule.verbs.indexOf(verb);
-
-        if (index !== -1) {
-          rule.verbs.splice(index, 1);
-        }
-      }
-    },
     setRule(key, rule, event) {
       const value = event.label ? event.label : event;
 
-      this.$set(rule, key, [value]);
+      if (value) {
+        this.$set(rule, key, [value]);
+      } else {
+        this.$set(rule, key, []);
+      }
     },
     getRule(key, rule) {
       return rule[key]?.[0] || null;
@@ -443,7 +423,6 @@ export default {
                   <LabeledInput
                     :value="getRule('apiGroups', props.row.value)"
                     :mode="mode"
-                    :required="!isRancherType"
                     @input="setRule('apiGroups', props.row.value, $event)"
                   />
                 </div>
