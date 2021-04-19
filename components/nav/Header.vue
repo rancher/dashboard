@@ -197,10 +197,6 @@ export default {
     .filter {
       ::v-deep .labeled-select,
       ::v-deep .unlabeled-select {
-        .vs__selected {
-          color: var(--body-text) !important;
-        }
-
         .vs__search::placeholder {
           color: var(--body-text) !important;
         }
