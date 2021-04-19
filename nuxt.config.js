@@ -86,7 +86,7 @@ module.exports = {
       '~assets/styles/base/_mixins.scss',
     ],
   },
-  
+
   // Custom loading indicator
   loadingIndicator: '~/static/loading-indicator.html',
 
