@@ -22,7 +22,6 @@ export function init(store) {
     ifHaveType:          new RegExp(`${ MANAGEMENT.SETTING }|${ MANAGEMENT.FEATURE }`, 'i'),
     inStore:             'management',
     icon:                'globe',
-    weight:              -10,
     removable:           false,
     showClusterSwitcher: false,
     category:            'configuration',

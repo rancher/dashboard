@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import {
-  NAMESPACE, NAME, REPO, REPO_TYPE, CHART, VERSION, _VIEW
+  NAMESPACE, NAME, REPO, REPO_TYPE, CHART, VERSION, _VIEW, FROM_TOOLS, _FLAGGED
 } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, FLEET } from '@/config/labels-annotations';
 import { compare, isPrerelease, sortable } from '@/utils/version';
@@ -62,6 +62,10 @@ export default {
     };
   },
 
+  currentVersion() {
+    return this.spec?.chart?.metadata?.version;
+  },
+
   upgradeAvailable() {
     // false = does not apply (managed by fleet)
     // null = no upgrade found
@@ -119,7 +123,7 @@ export default {
   },
 
   goToUpgrade() {
-    return (forceVersion) => {
+    return (forceVersion, fromTools) => {
       const match = this.matchingChart(true);
       const versionName = this.spec?.chart?.metadata?.version;
       const query = {
@@ -132,6 +136,10 @@ export default {
         query[REPO] = match.repoName;
         query[REPO_TYPE] = match.repoType;
         query[CHART] = match.chartName;
+      }
+
+      if ( fromTools ) {
+        query[FROM_TOOLS] = _FLAGGED;
       }
 
       this.currentRouter().push({

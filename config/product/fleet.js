@@ -21,7 +21,6 @@ export function init(store) {
     icon:                  'fleet',
     inStore:               'management',
     removable:             false,
-    weight:                -1,
     showClusterSwitcher:   false,
     showWorkspaceSwitcher: true,
     category:              'multi-cluster',

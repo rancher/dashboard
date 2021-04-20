@@ -11,6 +11,16 @@ export default {
       type:     Object,
       required: true
     },
+
+    labelKey: {
+      type:    String,
+      default: null
+    },
+
+    linkTo: {
+      type:    Object,
+      default: null
+    }
   },
 
   computed: {
@@ -59,6 +69,16 @@ export default {
       }
 
       return sortBy(Object.values(out), 'sort:desc');
+    },
+
+    displayLabel() {
+      const count = this.row?.deployedResources?.length || 0;
+
+      if ( this.labelKey ) {
+        return this.t(this.labelKey, { count });
+      }
+
+      return `${ count }`;
     }
   },
 };
@@ -74,7 +94,10 @@ export default {
     offset="1"
   >
     <ProgressBarMulti :values="colorParts" class="mb-5" />
-    <span>{{ row.deployedResources.length }}</span>
+    <n-link v-if="linkTo" :to="linkTo">
+      {{ displayLabel }}
+    </n-link>
+    <span v-else>{{ displayLabel }}</span>
 
     <template #popover>
       <table v-if="show" class="fixed">

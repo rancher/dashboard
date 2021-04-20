@@ -18,7 +18,6 @@ export function init(store) {
     ifHaveType:          CAPI.CAPI_CLUSTER,
     inStore:             'management',
     icon:                'globe',
-    weight:              -1,
     removable:           false,
     public:              false, // Hide from regular view during development
     showClusterSwitcher: false,

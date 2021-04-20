@@ -64,5 +64,5 @@ export function loadProduct(name) {
   }
 
   // Note: directly returns the import, not a function
-  return import(/* webpackChunkNAme: "product" */ `@/config/product/${ name }`);
+  return import(/* webpackChunkName: "product" */ `@/config/product/${ name }`);
 }

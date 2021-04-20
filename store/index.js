@@ -84,7 +84,13 @@ export const getters = {
   },
 
   isExplorer(state, getters) {
-    return getters.currentProduct?.name === EXPLORER;
+    const product = getters.currentProduct;
+
+    if ( !product ) {
+      return false;
+    }
+
+    return product.name === EXPLORER || product.inStore === 'cluster';
   },
 
   defaultClusterId(state, getters) {

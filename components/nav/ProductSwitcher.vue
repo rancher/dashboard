@@ -1,12 +1,12 @@
 <script>
 import { mapGetters } from 'vuex';
-import { insertAt, findBy } from '@/utils/array';
+import { findBy } from '@/utils/array';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { createPopper } from '@popperjs/core';
 import $ from 'jquery';
-import { CATALOG } from '@/config/types';
 import Select from '@/components/form/Select';
+import { NAME as EXPLORER } from '@/config/product/explorer';
 
 export default {
   components: { Select },
@@ -21,23 +21,19 @@ export default {
 
     value: {
       get() {
-        return this.$store.getters['productId'];
+        const product = this.$store.getters['currentProduct'];
+
+        if ( product.inStore === 'cluster' ) {
+          return EXPLORER;
+        }
+
+        return product.name;
       },
     },
 
     options() {
-      const t = this.$store.getters['i18n/t'];
-      const isMultiCluster = this.$store.getters['isMultiCluster'];
-
-      const entries = this.activeProducts.map((p) => {
-        let label;
-        const key = `product.${ p.name }`;
-
-        if ( this.$store.getters['i18n/exists'](key) ) {
-          label = t(key);
-        } else {
-          label = ucFirst(p.name);
-        }
+      const entries = this.activeProducts.filter(p => p.name === EXPLORER || p.inStore !== 'cluster').map((p) => {
+        const label = this.$store.getters['i18n/withFallback'](`product.${ p.name }`, null, ucFirst(p.name));
 
         const out = {
           label,
@@ -64,38 +60,6 @@ export default {
 
       const out = sortBy(entries, ['inStore', 'weight:desc', 'label']);
 
-      if ( isMultiCluster && out[0].inStore === 'cluster' ) {
-        insertAt(out, 0, {
-          label:    t('product.clusterGroup'),
-          disabled: true,
-          kind:     'label',
-        });
-      }
-
-      let last;
-
-      for ( let i = out.length - 1 ; i >= 0 ; i-- ) {
-        const entry = out[i];
-
-        if ( isMultiCluster && last && (last.inStore !== entry.inStore) ) {
-          insertAt(out, i + 1, {
-            label:    t('product.globalGroup'),
-            disabled: true,
-            kind:     'label',
-          });
-
-          insertAt(out, i + 1, {
-            label:    `The great divide ${ i }`,
-            kind:     'divider',
-            disabled: true
-          });
-
-          break;
-        }
-
-        last = out[i];
-      }
-
       return out;
     },
   },
@@ -109,14 +73,6 @@ export default {
       const forms = $('FORM');
 
       return forms.length === 0;
-    },
-
-    switchToApps() {
-      if ( !this.shortcutsActive() ) {
-        return;
-      }
-
-      this.change('apps', 'c-cluster-product-resource', { resource: CATALOG.APP });
     },
 
     switchToExplorer() {
@@ -237,7 +193,6 @@ export default {
     <button v-shortkey.once="['p']" class="hide" @shortkey="focus()" />
     <button v-shortkey.once="['f']" class="hide" @shortkey="switchToFleet()" />
     <button v-shortkey.once="['e']" class="hide" @shortkey="switchToExplorer()" />
-    <button v-shortkey.once="['a']" class="hide" @shortkey="switchToApps($event)" />
   </div>
 </template>
 
