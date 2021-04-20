@@ -48,17 +48,9 @@ export default {
     },
 
     prod() {
-      const t = this.$store.getters['i18n/t'];
-      let label;
-      const key = `product.${ this.currentProduct.name }`;
+      const name = this.currentProduct.name;
 
-      if ( this.$store.getters['i18n/exists'](key) ) {
-        label = t(key);
-      } else {
-        label = ucFirst(this.currentProduct.name);
-      }
-
-      return label;
+      return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
     }
   },
 
@@ -141,7 +133,7 @@ export default {
       </button>
     </div>
 
-    <div class="spacer"></div>
+    <div class="header-spacer"></div>
 
     <div class="user user-menu" tabindex="0" @blur="showMenu(false)" @click="showMenu(true)" @focus.capture="showMenu(true)">
       <v-popover
@@ -364,7 +356,7 @@ export default {
       width: 40px;
     }
 
-    > .spacer {
+    > .header-spacer {
       grid-area: cluster;
       background-color: var(--header-bg);
       position: relative;
