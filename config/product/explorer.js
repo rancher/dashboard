@@ -44,6 +44,7 @@ export function init(store) {
 
   basicType(['cluster-dashboard']);
   basicType([
+    'cluster-dashboard',
     NAMESPACE,
     NODE,
   ], 'cluster');
@@ -199,6 +200,7 @@ export function init(store) {
     weight:      100,
     route:       { name: 'c-cluster-explorer' },
     exact:       true,
+    overview:    true,
   });
 
   virtualType({
@@ -213,6 +215,7 @@ export function init(store) {
       name:     'c-cluster-product-resource',
       params:   { resource: WORKLOAD }
     },
+    overview: true,
   });
 
   // Ignore these types as they are managed through the settings product

@@ -46,6 +46,7 @@ export default {
           removable: p.removable !== false,
           inStore:   p.inStore || 'cluster',
           weight:    p.weight || 1,
+          category:  p.category || 'none',
         };
 
         if ( p.externalLink ) {
@@ -325,6 +326,30 @@ export default {
 
     .product-icon {
       color: var(--product-icon-active);
+    }
+  }
+
+  .locale-selector {
+    ::v-deep .popover-inner {
+      padding: 10px 0;
+    }
+
+    ::v-deep .popover-arrow {
+      display: none;
+    }
+
+    ::v-deep .popover:focus {
+      outline: 0;
+    }
+
+    li {
+      padding: 0 20px;
+
+      &:hover {
+        background-color: var(--dropdown-hover-bg);
+        color: var(--dropdown-hover-text);
+        text-decoration: none;
+      }
     }
   }
 }

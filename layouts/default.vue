@@ -3,13 +3,11 @@ import debounce from 'lodash/debounce';
 import { mapState, mapGetters } from 'vuex';
 import { mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
-import Jump from '@/components/nav/Jump';
 import WindowManager from '@/components/nav/WindowManager';
 import PromptRemove from '@/components/PromptRemove';
 import AssignTo from '@/components/AssignTo';
 import Group from '@/components/nav/Group';
 import Header from '@/components/nav/Header';
-import Footer from '@/components/nav/Footer';
 import { COUNT, SCHEMA, MANAGEMENT } from '@/config/types';
 import { BASIC, FAVORITE, USED } from '@/store/type-map';
 import { addObjects, replaceWith, clear } from '@/utils/array';
@@ -19,11 +17,9 @@ import isEqual from 'lodash/isEqual';
 export default {
 
   components: {
-    Jump,
     PromptRemove,
     AssignTo,
     Header,
-    Footer,
     ActionMenu,
     Group,
     WindowManager
@@ -39,6 +35,7 @@ export default {
     ...mapState(['managementReady', 'clusterReady']),
     ...mapGetters(['productId', 'namespaceMode']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel' }),
+    ...mapGetters('type-map', ['activeProducts']),
 
     namespaces() {
       return this.$store.getters['namespaces']();
@@ -170,6 +167,7 @@ export default {
         modes.push(FAVORITE);
         modes.push(USED);
       }
+
       for ( const mode of modes ) {
         const types = this.$store.getters['type-map/allTypes'](productId, mode) || {};
         const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, namespaceMode, namespaces, currentType);
@@ -183,7 +181,7 @@ export default {
     expanded(name) {
       const currentType = this.$route.params.resource || '';
 
-      return this.expandedGroups.includes(name) || name === currentType;
+      return name === currentType;
     },
 
     toggleNoneLocale() {
@@ -192,6 +190,16 @@ export default {
 
     toggleTheme() {
       this.$store.dispatch('prefs/toggleTheme');
+    },
+
+    toggle(id, expanded, skip) {
+      if (expanded && !skip) {
+        this.$refs.groups.forEach((grp) => {
+          if (grp.id !== id && grp.canCollapse) {
+            grp.isExpanded = false;
+          }
+        });
+      }
     },
 
     wheresMyDebugger() {
@@ -237,10 +245,9 @@ export default {
     <Header />
 
     <nav v-if="clusterReady">
-      <Jump v-if="showJump" class="m-10" />
-      <div v-else class="mb-20" />
       <template v-for="(g, idx) in groups">
         <Group
+          ref="groups"
           :key="idx"
           id-prefix=""
           class="package"
@@ -248,6 +255,7 @@ export default {
           :group="g"
           :can-collapse="!g.isRoot"
           :show-header="!g.isRoot"
+          @on-toggle="toggle"
         >
           <template #header>
             <h6>{{ g.label }}</h6>
@@ -258,7 +266,6 @@ export default {
 
     <main v-if="clusterReady">
       <nuxt class="outlet" />
-      <Footer />
 
       <ActionMenu />
       <PromptRemove />
@@ -296,21 +303,22 @@ export default {
       grid-area: nav;
       position: relative;
       background-color: var(--nav-bg);
+      border-right: var(--nav-border-size) solid var(--nav-border);
       overflow-y: auto;
-
-      .package.depth-0 {
-        &.expanded > .body {
-          margin-bottom: 5px;
-        }
-      }
 
       .header {
         background: transparent;
         padding-left: 10px;
+
+        &:hover {
+          background-color: #e6e6e6;
+        }
       }
 
       H6, .root.child .label {
         margin: 0;
+        letter-spacing: normal;
+        line-height: initial;
 
         A { padding-left: 0; }
       }
@@ -324,9 +332,8 @@ export default {
     .outlet {
       display: flex;
       flex-direction: column;
-      padding: 20px 20px 70px 20px;
+      padding: 20px;
       min-height: 100%;
-      margin-bottom: calc(-1 * var(--footer-height) - 1px);
     }
 
     FOOTER {
@@ -368,7 +375,6 @@ export default {
         padding: 0 $input-padding-sm;
       }
     }
-
   }
 
   .wm {

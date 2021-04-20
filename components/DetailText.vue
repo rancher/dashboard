@@ -167,7 +167,7 @@ export default {
 
 <style lang='scss' scoped>
 .with-copy {
-  border: solid thin var(--border);
+  border: solid 1px var(--border);
   border-radius: var(--border-radius);
   padding: 10px;
   position: relative;

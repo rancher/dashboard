@@ -63,10 +63,62 @@ export default {
     hasChildren() {
       return this.group.children?.length > 0;
     },
+
+    isOverview() {
+      if (this.group.children && this.group.children.length > 0) {
+        const grp = this.group.children[0];
+        const overviewRoute = grp.route;
+
+        if (overviewRoute && grp.overview) {
+          const route = this.$router.resolve(overviewRoute || {});
+
+          return this.$route.fullPath === route.href;
+        }
+      }
+
+      return false;
+    },
+
+    showExpanded() {
+      return this.isExpanded || this.isActiveGroup;
+    },
+
+    isActiveGroup() {
+      if (this.group.children && this.group.children.length > 0) {
+        const active = this.group.children.find((item) => {
+          if (item.route) {
+            const route = this.$router.resolve(item.route);
+
+            return this.$route.fullPath === route.href;
+          }
+
+          return false;
+        });
+
+        return !!active;
+      }
+
+      return false;
+    },
   },
 
   methods: {
-    toggle(event) {
+    expandCollapse() {
+      if (this.canCollapse) {
+        this.isExpanded = !this.isExpanded;
+        this.$emit('on-toggle', this.id, this.isExpanded);
+        this.$store.dispatch('type-map/toggleGroup', {
+          group:    this.id,
+          expanded: this.isExpanded
+        });
+      }
+    },
+
+    clicked() {
+      this.$emit('on-toggle', this.id, true);
+    },
+
+    toggle(event, skipAutoClose) {
       const $tgt = $(event.target);
 
       if ( $tgt.closest('a').length && !$tgt.hasClass('toggle') ) {
@@ -75,12 +127,27 @@ export default {
       }
 
       if ( this.canCollapse ) {
-        this.isExpanded = !this.isExpanded;
-        this.$emit('on-toggle', this.id, this.isExpanded);
+        this.isExpanded = skipAutoClose ? !this.isExpanded : true;
+        this.$emit('on-toggle', this.id, this.isExpanded, skipAutoClose);
         this.$store.dispatch('type-map/toggleGroup', {
           group:    this.id,
           expanded: this.isExpanded
         });
+
+        if (this.isExpanded && !skipAutoClose) {
+          const items = this.group[this.childrenKey];
+
+          // Navigate to the first item in the group
+          const route = items[0].route;
+
+          this.$router.replace(route);
+        }
+      } else {
+        this.$emit('on-toggle', this.id, true);
+      }
+
+      if (skipAutoClose) {
+        event.stopPropagation();
       }
     }
   }
@@ -88,14 +155,14 @@ export default {
 </script>
 
 <template>
-  <div class="accordion" :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren}">
-    <div v-if="showHeader" class="header" @click="toggle($event)">
+  <div class="accordion" :class="{[`depth-${depth}`]: true, 'expanded': showExpanded, 'has-children': hasChildren}">
+    <div v-if="showHeader" class="header" :class="{'active': isOverview}" @click="toggle($event)">
       <slot name="header">
         <span v-html="group.labelDisplay || group.label" />
       </slot>
-      <i v-if="canCollapse" class="icon toggle" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" />
+      <i v-if="canCollapse && !isActiveGroup" class="icon toggle" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" @click="toggle($event, true)" />
     </div>
-    <ul v-if="isExpanded" class="list-unstyled body" v-bind="$attrs">
+    <ul v-if="showExpanded" class="list-unstyled body" v-bind="$attrs">
       <template v-for="(child, idx) in group[childrenKey]">
         <li v-if="child.divider" :key="idx">
           <hr />
@@ -112,10 +179,11 @@ export default {
           />
         </li>
         <Type
-          v-else
+          v-else-if="!child.overview"
           :key="id+'_' + child.name + '_type'"
           :is-root="depth == 0 && !showHeader"
           :type="child"
+          @click="clicked"
         />
       </template>
     </ul>
@@ -131,10 +199,15 @@ export default {
 
     > H6 {
       color: var(--body-text);
+      user-select: none;
     }
 
     > A {
       display: block;
+    }
+
+    &.active {
+      background-color: var(--nav-active);
     }
   }
 
@@ -145,7 +218,7 @@ export default {
   .accordion {
     &.depth-0 {
       > .header {
-        padding: 5px 0;
+        padding: 8px 0;
 
         > H6 {
           font-size: 14px;
@@ -157,7 +230,12 @@ export default {
           position: absolute;
           right: 0;
           top: 0;
-          padding: 7px 8px 11px 0;
+          padding: 8px;
+          user-select: none;
+
+          &:hover {
+            background-color: #d0d0d0;
+          }
         }
       }
 
@@ -188,7 +266,7 @@ export default {
  .header ::v-deep > .child.nuxt-link-exact-active {
     background-color: var(--nav-active);
     padding: 0;
-    border-left: solid 5px var(--primary);
+    border-left: solid 5px transparent;
 
     A {
       padding-left: 5px;
@@ -202,6 +280,8 @@ export default {
   .body ::v-deep > .child {
     A {
       border-left: solid 5px transparent;
+      line-height: 16px;
+      font-size: 13px;
     }
 
     A:focus {

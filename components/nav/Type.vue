@@ -7,6 +7,7 @@ const showFavoritesFor = [FAVORITE, USED];
 export default {
 
   components: { Favorite },
+
   props:      {
     type: {
       type:     Object,
@@ -37,6 +38,10 @@ export default {
   },
 
   methods: {
+    click(e) {
+      this.$emit('click');
+    },
+
     setNear(val) {
       this.near = val;
     },
@@ -64,6 +69,7 @@ export default {
     <a
       @mouseenter="setNear(true)"
       @mouseleave="setNear(false)"
+      @click="click"
     >
       <span v-if="type.labelKey" class="label"><t :k="type.labelKey" /></span>
       <span v-else class="label" v-html="type.labelDisplay || type.label" />
@@ -80,8 +86,9 @@ export default {
     margin: 0 var(--outline) 0 0;
 
     .label {
+      align-items: center;
       grid-area: label;
-      display: block;
+      display: flex;
       overflow: hidden;
       text-overflow: ellipsis;
 
@@ -106,10 +113,11 @@ export default {
       font-size: 14px;
       line-height: 24px;
       padding: 7.5px 7px 7.5px 10px;
-      margin: 0 2px 0 -3px;
+      margin: 0 0 0 -3px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      color: var(--body-text);
 
       &:hover {
         background: var(--dropdown-hover-bg);
@@ -133,6 +141,7 @@ export default {
       font-size: 12px;
       text-align: right;
       justify-items: center;
+      padding-right: 4px;
     }
   }
 </style>

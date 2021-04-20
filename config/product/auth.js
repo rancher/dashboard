@@ -32,6 +32,7 @@ export function init(store) {
     weight:              50,
     public:              true, // Hide from regular view during development
     showClusterSwitcher: false,
+    category:            'configuration',
   });
 
   virtualType({

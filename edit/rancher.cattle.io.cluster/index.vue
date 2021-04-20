@@ -112,7 +112,7 @@ export default {
 
         if ( group !== 'template' ) {
           try {
-            icon = require(`~/assets/images/driver/${ id }.svg`);
+            icon = require(`~/assets/images/providers/${ id }.svg`);
           } catch (e) {}
         }
 

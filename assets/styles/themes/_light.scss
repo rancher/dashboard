@@ -23,7 +23,7 @@ $lightest  : #FFFFFF;
 $primary         : #3D98D3;
 $secondary       : $darker;
 $link            : $primary;
-$disabled        : $medium;
+$disabled        : $dark;
 $success         : #5D995D;
 $warning         : #DAC342;
 $error           : #F64747;
@@ -64,31 +64,35 @@ $selected: rgba($primary, .5);
   --scrollbar-thumb-dropdown   : #{$lighter};
   --scrollbar-track            : transparent;
 
-  --header-bg                  : #3797D5;
-  --header-logo                : #{$lightest};
-  --header-btn-bg              : #317DB0;
-  --header-btn-text            : #{$lightest};
-  --header-input-text          : #{$lightest};
-  --header-height              : 55px;
-  --nav-width                  : 250px;
-  --nav-bg                     : #{$lighter};
-  --nav-active                 : #{rgba($primary, 0.3)};
-  --footer-bg                  : transparent;
-  --footer-height              : 50px;
-
   --disabled-bg                : #{$disabled};
   --disabled-text              : #{$secondary};
   --box-bg                     : #{$lighter};
   --subtle-border              : #{$medium};
   --border                     : #{$medium};
-  --border-width              : 1px;
+  --border-width               : 1px;
   --border-radius              : 4px;
-  --outline                    : #{rgba($medium, 0.75)};
+  --outline                    : #{rgba($primary, 0.75)};
   --outline-width              : 1px;
+
+  --header-bg                  : #{$lightest};
+  --header-logo                : #{$darker};
+  --header-btn-bg              : #{$light};
+  --header-btn-text            : #{$darker};
+  --header-input-text          : #{$darker};
+  --header-height              : 55px;
+  --header-border              : var(--border);
+  --header-border-size         : 1px;
+  --nav-width                  : 230px;
+  --nav-bg                     : #{$lightest};
+  --nav-active                 : #{rgba($primary, 0.3)};
+  --nav-border                 : var(--border);
+  --nav-border-size            : 1px;
+  --footer-bg                  : transparent;
+  --footer-height              : 0px;
 
   --accent-btn                 : #{rgba($primary, 0.2)};
   --accent-btn-hover           : #{rgba($primary, 0.5)};
-  --modal-bg                   :#{$light};
+  --modal-bg                   : #{$light};
   --overlay-bg                 : #{rgba($lighter, 0.75)};
   --shadow                     : #{rgba($medium, 0.85)};
 
@@ -115,10 +119,10 @@ $selected: rgba($primary, .5);
   --input-label                : #{$secondary};
   --input-placeholder          : #{darken($disabled, 10%)};
   --input-border               : var(--border);
-  --input-bg                   : #{$light};
+  --input-bg                   : var(--body-bg);
   --input-bg-accent            : #{darken($light, 2%)};
-  --input-hover-bg             : #{darken($light, 5%)};
-  --input-focus-bg             : #{darken($light, 5%)};
+  --input-hover-bg             : var(--box-bg);
+  --input-focus-bg             : var(--box-bg);
   --input-disabled-text: #{darken($disabled, 60%)};
   --input-disabled-label: #{darken($disabled, 40%)};
   --input-disabled-bg: #{$disabled};
@@ -130,7 +134,7 @@ $selected: rgba($primary, .5);
   --progress-divider           : #{$medium};
 
   --sortable-table-bg          : transparent;
-  --sortable-table-header-bg   : #{rgba($primary, 0.2)};
+  --sortable-table-header-bg   : transparent;
   --sortable-table-accent-bg   : #{$lighter};
   --sortable-table-accent-alt  : #{$lightest};
   --sortable-table-top-divider : var(--border);
@@ -185,14 +189,14 @@ $selected: rgba($primary, .5);
   --wm-tab-height              : 29px;
 
   --glance-bg-rgb              : 61, 152, 211;
-  --glance-divider             : #{rgba($primary, 0.5)};
+  --glance-divider             : #{$medium};
 
   --resource-gauge-back-circle : 255, 255, 255, 0.15;
 
   --simple-box-bg              : #{$lightest};
   --simple-box-border          : #{$medium};
   --simple-box-divider         : #{$medium};
-  --simple-box-shadow          : rgba(0, 0, 0, 0.15);
+  --simple-box-shadow          : none;
 
   --terminal-bg                : var(--body-bg);
   --terminal-cursor            : var(--warning);
@@ -207,6 +211,7 @@ $selected: rgba($primary, .5);
   --primary-color              : 61, 152, 211;
 
   --gauge-divider              : #{$lightest};
+  --gauge-zero                 : #{$medium};
   --gauge-success-primary      : 150, 189, 127;
   --gauge-success-secondary    : 190, 211, 172;
   --gauge-warning-primary      : 238, 226, 176;
@@ -238,9 +243,9 @@ $selected: rgba($primary, .5);
   $endPos: 100%;
   $end: 0;
 
-  $rancher: #3D97D2;
-  $partner: #B5D21E;
-  $other: #924BE4;
+  $rancher: $primary;
+  $partner: #FEA424;
+  $other: #614EA2;
 
   --app-rancher-accent: #{$rancher};
   --app-rancher-accent-text: #{$darkest};

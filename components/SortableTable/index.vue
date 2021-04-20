@@ -653,7 +653,7 @@ $group-separation: 40px;
 $divider-height: 1px;
 
 $separator: 20;
-$remove: 75;
+$remove: 100;
 $spacing: 10px;
 
 .sortable-table {
@@ -661,12 +661,11 @@ $spacing: 10px;
   min-width: 400px;
   border-radius: 5px 5px 0 0;
   overflow: hidden;
-  box-shadow: 0 0 20px var(--shadow);
   background: var(--sortable-table-accent-bg);
   border-radius: 4px;
 
   td {
-    padding: 12px 5px;
+    padding: 8px 16px;
     border: 0;
     word-break: break-word;
 

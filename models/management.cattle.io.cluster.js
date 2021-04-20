@@ -3,6 +3,13 @@ import { FLEET } from '@/config/types';
 import { insertAt } from '@/utils/array';
 import { parseSi } from '@/utils/units';
 
+// See translation file cluster.providers for list of providers
+const PROVIDER_LOGOS = {
+  k3s:      'k3s.svg',
+  minikube: 'minikube.svg',
+  '*':      'kubernetes.svg'
+};
+
 export default {
   _availableActions() {
     const out = this._standardActions;
@@ -69,6 +76,15 @@ export default {
 
   providerOsLogo() {
     return require(`~/assets/images/vendor/${ this.providerOs }.svg`);
+  },
+
+  providerLogo() {
+    const provider = this.status?.provider || '*';
+    // Only interested in the part before the period
+    const prv = provider.split('.')[0];
+    const logo = PROVIDER_LOGOS[prv] || PROVIDER_LOGOS['*'];
+
+    return require(`~/assets/images/providers/${ logo }`);
   },
 
   scope() {

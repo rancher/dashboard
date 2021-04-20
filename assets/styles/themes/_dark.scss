@@ -56,8 +56,14 @@
   --scrollbar-thumb: #{$medium};
   --scrollbar-thumb-dropdown: #{$medium};
 
+  --header-bg                  : #{$darkest};
+  --header-border              : #{$medium};
+  --header-btn-bg              : #{$darker};
+  --header-btn-text : #{$lightest};
+
   --nav-bg: #{$darkest};
   --nav-active: #{rgba($primary, 0.3)};
+  --nav-border: #{$medium};
 
   --disabled-bg: #{darken($disabled, 10%)};
   --disabled-text: #{$secondary};
@@ -92,12 +98,10 @@
   --input-label: #{$lighter};
   --input-placeholder: #{$disabled};
   --input-border: var(--border);
-  --input-bg: #{$dark};
+  --input-bg: var(--body-bg);
   --input-bg-accent            : #{darken($dark, 3%)};
-  --input-hover-bg: var(--body-bg);
-  --input-focus-bg: #{$darkest};
-  --input-hover-bg: #{lighten($dark, 5%)};
-  --input-focus-bg: #{lighten($dark, 5%)};
+  --input-hover-bg: var(--box-bg);
+  --input-focus-bg: var(--box-bg);
   --input-disabled-text: #{darken($lightest, 50%)};
   --input-disabled-label: #{darken($lighter, 30%)};
   --input-disabled-bg: #{darken($disabled, 30%)};
@@ -108,10 +112,10 @@
   --progress-bg: #{$medium};
   --progress-divider: #{$lightest};
 
-  --sortable-table-header-bg: #{rgba($primary, 0.2)};
+  --sortable-table-header-bg: transparent;
   --sortable-table-accent-bg: #18181D;
   --sortable-table-accent-alt: #{$dark};
-  --sortable-table-top-divider: #{$darkest};
+  --sortable-table-top-divider: var(--border);
   --sortable-table-selected-bg: #{rgba($warning, 0.1)};
   --sortable-table-group-label: #{$lighter};
 
@@ -160,7 +164,7 @@
   --wm-body-bg: #{$darkest};
   --wm-border: black;
 
-  --glance-divider: #{rgba($primary, 0.5)};
+  --glance-divider: #{$medium};
 
   --resource-gauge-back-circle: 74, 75, 82, 0.5;
 

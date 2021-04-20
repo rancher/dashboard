@@ -1,13 +1,9 @@
 <script>
 import Header from '@/components/nav/Header';
-import Footer from '@/components/nav/Footer';
 
 export default {
 
-  components: {
-    Header,
-    Footer,
-  },
+  components: { Header },
 
   middleware: ['authenticated'],
 
@@ -29,7 +25,6 @@ export default {
 
     <main>
       <nuxt class="outlet" />
-      <Footer />
     </main>
   </div>
 </template>
@@ -56,9 +51,8 @@ export default {
     overflow: auto;
 
     .outlet {
-      padding: 20px 20px 70px 20px;
+      padding: 20px;
       min-height: 100%;
-      margin-bottom: calc(-1 * var(--footer-height) - 1px);
     }
 
     FOOTER {

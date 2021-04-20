@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.2.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 100 100" style="enable-background:new 0 0 100 100;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#FFFFFF;}
+</style>
+<rect x="75" width="25" height="25"/>
+<polygon points="75,75 100,100 100,75 "/>
+<g>
+	<polygon class="st0" points="75,0 100,0 100,24.8 	"/>
+	<path d="M99,1v21.4L77.4,1H99 M100,0H75l25,24.8V0L100,0z"/>
+</g>
+<g>
+	<rect x="50" class="st0" width="25" height="25"/>
+	<path d="M74,1v23H51V1H74 M75,0H50v25h25V0L75,0z"/>
+</g>
+<polygon points="50,24.8 50,0 75,0 "/>
+<g>
+	<polygon class="st0" points="25,0 50,0 50,25 	"/>
+	<path d="M49,1v23H26V1H49 M50,0H25v25h25V0L50,0z"/>
+</g>
+<polygon points="50,24.8 25,24.8 25,0 "/>
+<g>
+	<rect x="74.8" y="25" class="st0" width="25" height="25"/>
+	<path d="M98.8,26v23h-23V26H98.8 M99.8,25h-25v25h25V25L99.8,25z"/>
+</g>
+<polygon points="100,25 100,50 75,50 "/>
+<rect x="49.8" y="25" width="25" height="25"/>
+<g>
+	<polygon class="st0" points="75,50 50,50 50,25 	"/>
+	<path d="M51,27.4L72.6,49H51V27.4 M50,25v25h25L50,25L50,25z"/>
+</g>
+<rect x="75" y="50" width="25" height="25"/>
+<g>
+	<polygon class="st0" points="75,50 100,50 100,75 	"/>
+	<path d="M99,51v21.6L77.4,51H99 M100,50H75l25,25V50L100,50z"/>
+</g>
+<g>
+	<g>
+		<polygon class="st0" points="25,24.8 25,24.8 25,0 12.6,12.4 		"/>
+		<path d="M24,2.4v20l-10-10L24,2.4 M25,0L12.6,12.4L25,24.8V0L25,0z"/>
+	</g>
+	<polygon points="25,0 0,0 12.6,12.4 	"/>
+	<polygon points="75,49.8 50,49.8 62.4,62.2 	"/>
+	<g>
+		<polygon class="st0" points="75,74.8 75,49.8 62.4,62.2 		"/>
+		<path d="M74,52.2v20.2L63.8,62.2L74,52.2 M75,49.8L62.4,62.2L75,74.8V49.8L75,49.8z"/>
+	</g>
+	<g>
+		<polygon class="st0" points="100,74.8 75,74.8 87.4,87.2 		"/>
+		<path d="M97.6,75.8l-10.2,10l-10-10H97.6 M100,74.8H75l12.4,12.4L100,74.8L100,74.8z"/>
+	</g>
+	<g>
+		<polygon class="st0" points="37.4,37.2 50,24.8 25,24.8 25,24.8 		"/>
+		<path d="M47.6,25.8l-10.2,10l-10-10H47.6 M50,24.8H25l12.4,12.4L50,24.8L50,24.8z"/>
+	</g>
+	<polygon points="50,49.6 50,24.8 37.4,37.2 	"/>
+</g>
+</svg>

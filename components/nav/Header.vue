@@ -1,25 +1,35 @@
 <script>
 import { mapGetters } from 'vuex';
 import { NORMAN } from '@/config/types';
+import { ucFirst } from '@/utils/string';
 import Import from '@/components/Import';
-import ProductSwitcher from './ProductSwitcher';
-import ClusterSwitcher from './ClusterSwitcher';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
-
+import TopLevelMenu from './TopLevelMenu';
 export default {
 
   components: {
-    ProductSwitcher,
-    ClusterSwitcher,
     NamespaceFilter,
     WorkspaceSwitcher,
     Import,
+    TopLevelMenu,
+  },
+
+  props: {
+    simple: {
+      type:    Boolean,
+      default: false
+    }
+  },
+
+  data() {
+    return { show: false };
   },
 
   computed: {
     ...mapGetters(['clusterReady', 'isMultiCluster', 'isRancher', 'currentCluster',
       'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink']),
+    ...mapGetters('type-map', ['activeProducts']),
 
     authEnabled() {
       return this.$store.getters['auth/enabled'];
@@ -36,6 +46,12 @@ export default {
     showImport() {
       return !!this.currentCluster?.actions?.apply;
     },
+
+    prod() {
+      const name = this.currentProduct.name;
+
+      return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
+    }
   },
 
   methods: {
@@ -55,33 +71,49 @@ export default {
 
     closeImport() {
       this.$modal.hide('importModal');
-    }
+    },
   }
 };
 </script>
 
 <template>
-  <header>
-    <div class="product">
-      <ProductSwitcher v-if="currentCluster" />
-      <div alt="Logo" class="logo">
-        <img src="~/assets/images/pl/half-logo.svg" />
+  <header :class="{'simple': simple}">
+    <div class="menu-spacer"></div>
+    <div v-if="simple">
+      <img class="side-menu-logo" src="~/assets/images/pl/rancher-logo.svg" width="110" />
+      <div class="title">
+        DASHBOARD
+      </div>
+    </div>
+    <div v-else class="product">
+      <div v-if="currentProduct && currentProduct.showClusterSwitcher" class="cluster">
+        <img v-if="currentCluster" class="cluster-os-logo" :src="currentCluster.providerLogo" />
+        <div class="cluster-name">
+          {{ currentCluster.spec.displayName }}
+        </div>
+      </div>
+      <div v-if="currentProduct && !currentProduct.showClusterSwitcher" class="cluster">
+        <div class="product-name">
+          {{ prod }}
+        </div>
       </div>
     </div>
 
-    <div class="top">
+    <TopLevelMenu />
+
+    <div v-if="!simple" class="top">
       <NamespaceFilter v-if="clusterReady && currentProduct && currentProduct.showNamespaceFilter" />
       <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
     </div>
 
-    <div class="back">
+    <div class="back" style="display: none">
       <a v-if="currentProduct && isRancher" class="btn role-tertiary" :href="(currentProduct.inStore === 'management' ? backToRancherGlobalLink : backToRancherLink)">
         {{ t('nav.backToRancher') }}
       </a>
     </div>
 
-    <div class="import">
-      <button v-if="currentProduct && currentProduct.showClusterSwitcher && showImport" type="button" class="btn role-tertiary" @click="openImport()">
+    <div v-if="!simple" class="import">
+      <button v-if="currentProduct && currentProduct.showClusterSwitcher" :disabled="!showImport" type="button" class="btn header-btn role-tertiary" @click="openImport()">
         <i v-tooltip="t('nav.import')" class="icon icon-upload icon-lg" />
       </button>
       <modal
@@ -95,15 +127,13 @@ export default {
       </modal>
     </div>
 
-    <div class="kubectl">
-      <button v-if="currentProduct && currentProduct.showClusterSwitcher && showShell" type="button" class="btn role-tertiary" @click="currentCluster.openShell()">
+    <div v-if="!simple" class="kubectl">
+      <button v-if="currentProduct && currentProduct.showClusterSwitcher" :disabled="!showShell" type="button" class="btn header-btn role-tertiary" @click="currentCluster.openShell()">
         <i v-tooltip="t('nav.shell')" class="icon icon-terminal icon-lg" />
       </button>
     </div>
 
-    <div class="cluster">
-      <ClusterSwitcher v-if="isMultiCluster && currentProduct && currentProduct.showClusterSwitcher" />
-    </div>
+    <div class="cluster"></div>
 
     <div class="user user-menu" tabindex="0" @blur="showMenu(false)" @click="showMenu(true)" @focus.capture="showMenu(true)">
       <v-popover
@@ -116,7 +146,7 @@ export default {
         :container="false"
       >
         <div class="user-image text-right hand">
-          <img v-if="principal && principal.avatarSrc" :src="principal.avatarSrc" :class="{'avatar-round': principal.roundAvatar}" width="40" height="40" />
+          <img v-if="principal && principal.avatarSrc" :src="principal.avatarSrc" :class="{'avatar-round': principal.roundAvatar}" width="36" height="36" />
           <i v-else class="icon icon-user icon-3x avatar" />
         </div>
         <template slot="popover" class="user-menu">
@@ -144,16 +174,39 @@ export default {
     </div>
   </header>
 </template>
-
 <style lang="scss" scoped>
   HEADER {
     display: grid;
     height: 100vh;
 
-    .labeled-select,
-    .unlabeled-select {
-      min-height: 0;
-      height: $input-height;
+    .title {
+      border-left: 1px solid #d8d8d8;
+      padding-left: 10px;
+      opacity: 0.7;
+    }
+
+    .filter {
+      ::v-deep .labeled-select,
+      ::v-deep .unlabeled-select {
+        .vs__selected {
+          color: var(--body-text) !important;
+        }
+
+        .vs__search::placeholder {
+          color: var(--body-text) !important;
+        }
+
+        .vs__dropdown-toggle .vs__actions:after {
+          color: var(--body-text) !important;
+          font-size: 1.5rem;
+          padding-right: 4px;
+        }
+
+        .vs__dropdown-toggle {
+          background: transparent;
+          border: 1px solid var(--header-border);
+        }
+      }
     }
 
     > * {
@@ -170,25 +223,54 @@ export default {
 
     ::v-deep > div > .btn.role-tertiary {
       border: 1px solid var(--header-btn-bg);
-      background: rgba(0,0,0,.05);
+      border: none;
+      background: var(--header-btn-bg);
       color: var(--header-btn-text);
+      padding: 0 10px;
+      line-height: 32px;
+      min-height: 32px;
+
+      &:hover {
+        background: var(--link-text);
+        color: #fff;
+      }
 
       &[disabled=disabled] {
-        background-color: var(--header-btn-bg) !important;
+        background-color: rgba(0,0,0,0.25) !important;
         color: var(--header-btn-text) !important;
         opacity: 0.7;
       }
     }
 
-    grid-template-areas:  "product top back import kubectl cluster user";
-    grid-template-columns: var(--nav-width) auto min-content min-content min-content min-content var(--header-height);
+    grid-template-areas:  "menu product top back import kubectl cluster user";
+    grid-template-columns: var(--header-height) calc(var(--nav-width) - var(--header-height)) auto min-content min-content min-content min-content var(--header-height);
     grid-template-rows:    var(--header-height);
+
+    &.simple {
+      grid-template-columns: var(--header-height) min-content auto min-content min-content min-content min-content var(--header-height);
+    }
+
+    > .menu-spacer {
+      width: 65px;
+    }
+
+    .cluster {
+      align-items: center;
+      display: flex;
+      .cluster-os-logo {
+        width: 32px;
+        height: 32px;
+        margin-right: 10px;
+      }
+      .cluser-name {
+        font-size: 16px;
+      }
+    }
 
     > .product {
       grid-area: product;
-      background-color: var(--header-btn-bg);
       position: relative;
-      display: block;
+      //display: block;
 
       .logo {
         height: 30px;
@@ -203,14 +285,25 @@ export default {
       }
     }
 
+    .product-name {
+      font-size: 16px;
+    }
+
+    .side-menu-logo {
+      margin-right: 8px;
+    }
+
+    > * {
+      background-color: var(--header-bg);
+      border-bottom: var(--header-border-size) solid var(--header-border);
+    }
+
     > .back {
       grid-area: back;
-      background-color: var(--header-bg);
     }
 
     > .import {
       grid-area: import;
-      background-color: var(--header-bg);
 
       .btn {
         padding: 0 $input-padding-sm;
@@ -219,7 +312,6 @@ export default {
 
     > .kubectl {
       grid-area: kubectl;
-      background-color: var(--header-bg);
 
       .btn {
         padding: 0 $input-padding-sm;
@@ -236,6 +328,10 @@ export default {
       }
     }
 
+    .header-btn {
+      width: 40px;
+    }
+
     > .cluster {
       grid-area: cluster;
       background-color: var(--header-bg);
@@ -244,8 +340,6 @@ export default {
 
     > .top {
       grid-area: top;
-      background-color: var(--header-bg);
-      padding-top: 6px;
 
       INPUT[type='search']::placeholder,
       .vs__open-indicator,
@@ -260,6 +354,10 @@ export default {
       .vs__selected {
         background: rgba(255, 255, 255, 0.15);
         border-color: rgba(255, 255, 255, 0.25);
+      }
+
+      .vs__selected-options input {
+        color: red;
       }
 
       .vs__deselect {
@@ -286,6 +384,11 @@ export default {
         }
       }
 
+      .user-image {
+        display: flex;
+        align-items: center;
+      }
+
       &:focus {
         .v-popover {
           ::v-deep .trigger {
@@ -304,7 +407,7 @@ export default {
       background-color: var(--header-bg);
 
       IMG {
-        border: 1px solid var(--header-btn-bg);
+        //border: 1px solid var(--header-btn-bg);
       }
 
       .avatar-round {
@@ -345,6 +448,10 @@ export default {
     // Remove the default padding on the popup so that the hover on menu items goes full width of the menu
     ::v-deep .popover-inner {
       padding: 10px 0;
+    }
+
+    ::v-deep .v-popover {
+      display: flex;
     }
   }
 

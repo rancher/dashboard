@@ -5,7 +5,7 @@ import {
 } from '@/config/table-headers';
 import { getAllReceivers, getAllRoutes } from '@/utils/alertmanagerconfig';
 
-export const NAME = 'monitoring';
+export const NAME = 'explorer';
 export const CHART_NAME = 'rancher-monitoring';
 
 export function init(store) {
@@ -13,7 +13,6 @@ export function init(store) {
     basicType,
     headers,
     mapType,
-    product,
     spoofedType,
     virtualType,
     weightType,
@@ -31,19 +30,20 @@ export function init(store) {
     }
   } = MONITORING;
 
-  product({
-    ifHaveType: PODMONITOR, // possible RBAC issue here if mon turned on but user doesn't have view/read roles on pod monitors
-    icon:       'monitoring'
-  });
+  // product({
+  //   ifHaveType: PODMONITOR, // possible RBAC issue here if mon turned on but user doesn't have view/read roles on pod monitors
+  //   icon:       'monitoring'
+  // });
 
   virtualType({
-    label:      'Overview',
-    group:      'Root',
+    label:      'Monitoring',
+    group:      'monitoring',
     namespaced: false,
     name:       'monitoring-overview',
     weight:     105,
     route:      { name: 'c-cluster-monitoring' },
-    exact:      true
+    exact:      true,
+    overview:   true,
   });
 
   spoofedType({
@@ -177,13 +177,23 @@ export function init(store) {
     ROUTE,
     SERVICEMONITOR,
     PODMONITOR,
-  ]);
+  ], 'monitoring');
 
-  basicType([
-    PROMETHEUSRULE,
-    ALERTMANAGER,
-    PROMETHEUS
-  ], 'Advanced');
+  // virtualType({
+  //   label:      'Advanced',
+  //   group:      'monitoring-overview',
+  //   namespaced: false,
+  //   name:       'monitoring-advanced',
+  //   weight:     105,
+  //   route:      { name: 'c-cluster-monitoring' },
+  //   exact:      true
+  // });
+
+  // basicType([
+  //   PROMETHEUSRULE,
+  //   ALERTMANAGER,
+  //   PROMETHEUS
+  // ], 'monitoring-advanced');
 
   mapType(SERVICEMONITOR, store.getters['i18n/t'](`typeLabel.${ SERVICEMONITOR }`, { count: 2 }));
   mapType(PODMONITOR, store.getters['i18n/t'](`typeLabel.${ PODMONITOR }`, { count: 2 }));
