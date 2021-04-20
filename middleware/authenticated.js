@@ -77,16 +77,10 @@ export default async function({
         store.commit('auth/hasAuth', true);
 
         if ( status === 401 ) {
-          if ( process.env.dev ) {
-            if ( route.name === 'index' ) {
-              return redirect(302, '/auth/login');
-            } else {
-              return redirect(302, `/auth/login?${ TIMED_OUT }`);
-            }
-          } else if ( process.client ) {
-            window.location.href = '/login';
+          if ( route.name === 'index' ) {
+            return redirect(302, '/auth/login');
           } else {
-            return redirect(302, '/login');
+            return redirect(302, `/auth/login?${ TIMED_OUT }`);
           }
         } else {
           store.commit('setError', e);
