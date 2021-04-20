@@ -89,7 +89,11 @@ export default {
   },
 
   kubernetesVersionExtension() {
-    return this.kubernetesVersion.replace(/^.*([+-])/, '$1');
+    if ( this.kubernetesVersion.match(/[+-]]/) ) {
+      return this.kubernetesVersion.replace(/^.*([+-])/, '$1');
+    }
+
+    return '';
   },
 
   openShell() {
