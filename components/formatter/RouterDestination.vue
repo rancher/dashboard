@@ -97,7 +97,7 @@ export default {
       {{ route }}
     </a>
     <br />
-    <span v-if="remaining > 0" class="plus-more">+{{ remaining }} more</span>
+    <span v-if="remaining > 0" class="plus-more">{{ t('generic.plusMore', {n:remaining}) }}</span>
   </span>
 </template>
 

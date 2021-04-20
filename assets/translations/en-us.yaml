@@ -26,6 +26,7 @@ generic:
   none: None
   number: '{prefix}{value, number}{suffix}'
   overview: Overview
+  plusMore: "+ {n} more"
   readFromFile: Read from File
   register: Register
   remove: Remove

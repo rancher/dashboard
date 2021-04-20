@@ -73,7 +73,7 @@ export default {
       {{ methodToShow }} = {{ valueToShow }}
     </span>
     <br />
-    <span v-if="remaining>0" class="plus-more">+{{ remaining }} more</span>
+    <span v-if="remaining>0" class="plus-more">{{ t('generic.plusMore', {n:remaining}) }}</span>
   </span>
   <span v-else class="text-muted">
     &mdash;
@@ -83,9 +83,5 @@ export default {
 <style lang='scss'>
 .col-router-match {
   color: var(--input-label);
-}
-.plus-more{
-  color: var(  --input-placeholder );
-  font-size: 0.8em;
 }
 </style>
