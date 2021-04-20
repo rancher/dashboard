@@ -57,10 +57,7 @@ export default {
   },
 
   async fetch() {
-    const pvcs = await this.$store.dispatch('cluster/findAll', { type: PVC });
-    const namespace = this.namespace || this.$store.getters['defaultNamespace'];
-
-    this.pvcs = pvcs.filter(pvc => pvc.metadata.namespace === namespace);
+    this.pvcs = await this.$store.dispatch('cluster/findAll', { type: PVC });
   },
 
   data() {
@@ -70,6 +67,12 @@ export default {
   computed: {
     isView() {
       return this.mode === _VIEW;
+    },
+
+    namespacedPVCs() {
+      const namespace = this.namespace || this.$store.getters['defaultNamespace'];
+
+      return this.pvcs.filter(pvc => pvc.metadata.namespace === namespace);
     },
 
     volumeTypeOpts() {
@@ -99,7 +102,7 @@ export default {
     },
 
     pvcNames() {
-      return this.pvcs.map(pvc => pvc.metadata.name);
+      return this.namespacedPVCs.map(pvc => pvc.metadata.name);
     },
     // only show volumes mounted in current container
     containerVolumes: {
