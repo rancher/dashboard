@@ -147,7 +147,7 @@ export default {
         }
       } else {
         delete this.value.spec.backupFilename;
-        delete this.value.spec.storageLocation;
+        this.value.spec.storageLocation = { s3: this.s3 };
       }
     },
 
