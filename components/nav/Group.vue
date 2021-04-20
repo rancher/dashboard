@@ -175,6 +175,7 @@ export default {
             :can-collapse="canCollapse"
             :group="child"
             :expanded="expanded"
+            @selected="$emit('selected')"
           />
         </li>
         <Type
@@ -182,6 +183,7 @@ export default {
           :key="id+'_' + child.name + '_type'"
           :is-root="depth == 0 && !showHeader"
           :type="child"
+          @selected="$emit('selected')"
           @click="clicked"
         />
       </template>
