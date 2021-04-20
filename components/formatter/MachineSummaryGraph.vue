@@ -21,7 +21,7 @@ export default {
     trigger="click"
     offset="1"
   >
-    <ProgressBarMulti :values="row.stateParts" class="mb-5" />
+    <ProgressBarMulti v-if="row.stateParts" :values="row.stateParts" class="mb-5" />
     <span v-if="row.desired === row.ready">{{ row.ready }}</span>
     <span v-else>{{ row.ready }} of {{ row.desired }}</span>
 

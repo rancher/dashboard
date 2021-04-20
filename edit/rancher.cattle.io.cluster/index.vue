@@ -75,9 +75,9 @@ export default {
       const out = [];
 
       // @TODO come from somewhere dynamic...
-      const templates = ['usertemplate1', 'usertemplate2'];
-      const machineTypes = ['amazonec2', 'digitalocean'];
-      const kontainerTypes = ['amazoneks', 'googlegke', 'azureaks'];
+      const templates = ['usertemplate1', 'usertemplate...', 'usertemplateN'];
+      const machineTypes = getters['plugins/machineDrivers'];
+      const kontainerTypes = getters['plugins/clusterDrivers'];
       const customTypes = ['custom'];
       const customRegisterTypes = ['import'];
 
@@ -187,7 +187,6 @@ export default {
     :selected-subtype="subType"
     :resource="value"
     :errors="errors"
-    :done-route="doneRoute"
     :subtypes="subTypes"
     @finish="save"
     @select-type="selectType"

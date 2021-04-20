@@ -7,15 +7,15 @@ export function importCloudCredential(name) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "cloud-credential" */ `@/edit/rancher.cattle.io.cluster/credential/${name}`);
+  return () => import(/* webpackChunkName: "cloud-credential" */ `@/cloud-credential/${name}`);
 }
 
-export function importNodeConfig(name) {
+export function importMachineConfig(name) {
   if ( !name ) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "node-config" */ `@/edit/rancher.cattle.io.cluster/node-config/${name}`);
+  return () => import(/* webpackChunkName: "machine-config" */ `@/machine-config/${name}`);
 }
 
 export function importLogin(name) {

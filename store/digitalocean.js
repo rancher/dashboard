@@ -1,4 +1,3 @@
-import { SECRET } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 import { addParam, addParams } from '@/utils/url';
 
@@ -169,12 +168,7 @@ export const actions = {
     const headers = { Accept: 'application/json' };
 
     if ( credentialId ) {
-      // @TODO go back to using credential by id when it works again
-      // headers['x-api-cattleauth-header'] = `Bearer credID=${ credentialId.replace('/', ':') } passwordField=accessToken`;
-
-      const cred = await dispatch('management/find', { type: SECRET, id: credentialId }, { root: true });
-
-      headers['x-api-auth-header'] = `Bearer ${ cred.decodedData.accessToken }`;
+      headers['x-api-cattleauth-header'] = `Bearer credID=${ credentialId.replace('/', ':') } passwordField=accessToken`;
     } else if ( token ) {
       headers['x-api-auth-header'] = `Bearer ${ token }`;
     }

@@ -1,5 +1,6 @@
 <script>
 import Loading from '@/components/Loading';
+import Banner from '@/components/Banner';
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
@@ -11,12 +12,13 @@ import { SECRET } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { addObject, addObjects, findBy } from '@/utils/array';
 import { sortBy } from '@/utils/sort';
+import { stringify, exceptionToErrorsArray } from '@/utils/error';
 
 const DEFAULT_GROUP = 'rancher-nodes';
 
 export default {
   components: {
-    Loading, LabeledInput, LabeledSelect, Checkbox, RadioGroup, UnitInput, KeyValue
+    Banner, Loading, LabeledInput, LabeledSelect, Checkbox, RadioGroup, UnitInput, KeyValue
   },
 
   mixins: [CreateEditView],
@@ -29,76 +31,81 @@ export default {
   },
 
   async fetch() {
+    this.errors = [];
     if ( !this.credentialId ) {
       return;
     }
 
-    if ( this.credential?.id !== this.credentialId ) {
-      this.credential = await this.$store.dispatch('management/find', { type: SECRET, id: this.credentialId });
-    }
-
-    if ( !this.instanceInfo ) {
-      this.instanceInfo = await this.$store.dispatch('aws/instanceInfo');
-    }
-
-    const region = this.value.region || this.credential?.decodedData.defaultRegion || this.$store.getters['aws/defaultRegion'];
-    const cloudCredentialId = this.credential.id;
-
-    if ( !this.value.region ) {
-      this.$set(this.value, 'region', region);
-    }
-
-    this.ec2Client = await this.$store.dispatch('aws/ec2', { region, cloudCredentialId });
-    this.kmsClient = await this.$store.dispatch('aws/kms', { region, cloudCredentialId });
-
-    const hash = {};
-
-    if ( !this.regionInfo ) {
-      hash.regionInfo = this.ec2Client.describeRegions({});
-    }
-
-    if ( this.loadedRegionalFor !== region ) {
-      hash.zoneInfo = await this.ec2Client.describeAvailabilityZones({});
-      hash.vpcInfo = await this.ec2Client.describeVpcs({});
-      hash.subnetInfo = await this.ec2Client.describeSubnets({});
-      hash.securityGroupInfo = await this.ec2Client.describeSecurityGroups({});
-    }
-
-    const res = await allHash(hash);
-
-    for ( const k in res ) {
-      this[k] = res[k];
-    }
-
     try {
-      this.kmsInfo = await this.kmsClient.listKeys({});
-      this.canReadKms = true;
+      if ( this.credential?.id !== this.credentialId ) {
+        this.credential = await this.$store.dispatch('management/find', { type: SECRET, id: this.credentialId });
+      }
+
+      if ( !this.instanceInfo ) {
+        this.instanceInfo = await this.$store.dispatch('aws/instanceInfo');
+      }
+
+      const region = this.value.region || this.credential?.decodedData.defaultRegion || this.$store.getters['aws/defaultRegion'];
+      const cloudCredentialId = this.credential.id;
+
+      if ( !this.value.region ) {
+        this.$set(this.value, 'region', region);
+      }
+
+      this.ec2Client = await this.$store.dispatch('aws/ec2', { region, cloudCredentialId });
+      this.kmsClient = await this.$store.dispatch('aws/kms', { region, cloudCredentialId });
+
+      const hash = {};
+
+      if ( !this.regionInfo ) {
+        hash.regionInfo = this.ec2Client.describeRegions({});
+      }
+
+      if ( this.loadedRegionalFor !== region ) {
+        hash.zoneInfo = await this.ec2Client.describeAvailabilityZones({});
+        hash.vpcInfo = await this.ec2Client.describeVpcs({});
+        hash.subnetInfo = await this.ec2Client.describeSubnets({});
+        hash.securityGroupInfo = await this.ec2Client.describeSecurityGroups({});
+      }
+
+      const res = await allHash(hash);
+
+      for ( const k in res ) {
+        this[k] = res[k];
+      }
+
+      try {
+        this.kmsInfo = await this.kmsClient.listKeys({});
+        this.canReadKms = true;
+      } catch (e) {
+        this.canReadKms = false;
+      }
+
+      if ( !this.value.zone ) {
+        this.$set(this.value, 'zone', 'a');
+      }
+
+      if ( !this.value.instanceType ) {
+        this.$set(this.value, 'instanceType', this.$store.getters['aws/defaultInstanceType']);
+      }
+
+      this.initNetwork();
+      this.initTags();
+
+      if ( !this.value.securityGroup?.length ) {
+        this.$set(this.value, 'securityGroup', [DEFAULT_GROUP]);
+      }
+
+      if ( this.value.securityGroup?.length === 1 && this.value.securityGroup[0] === DEFAULT_GROUP ) {
+        this.securityGroupMode = 'default';
+      } else {
+        this.securityGroupMode = 'custom';
+      }
+
+      this.loadedRegionalFor = region;
     } catch (e) {
-      this.canReadKms = false;
+      this.errors = exceptionToErrorsArray(e);
     }
-
-    if ( !this.value.zone ) {
-      this.$set(this.value, 'zone', 'a');
-    }
-
-    if ( !this.value.instanceType ) {
-      this.$set(this.value, 'instanceType', this.$store.getters['aws/defaultInstanceType']);
-    }
-
-    this.initNetwork();
-    this.initTags();
-
-    if ( !this.value.securityGroup?.length ) {
-      this.$set(this.value, 'securityGroup', [DEFAULT_GROUP]);
-    }
-
-    if ( this.value.securityGroup?.length === 1 && this.value.securityGroup[0] === DEFAULT_GROUP ) {
-      this.securityGroupMode = 'default';
-    } else {
-      this.securityGroupMode = 'custom';
-    }
-
-    this.loadedRegionalFor = region;
   },
 
   data() {
@@ -275,6 +282,8 @@ export default {
   },
 
   methods: {
+    stringify,
+
     toggleAdvanced() {
       this.showAdvanced = !this.showAdvanced;
     },
@@ -343,7 +352,7 @@ export default {
 <template>
   <div>
     <Loading v-if="$fetchState.pending" />
-    <div v-if="loadedRegionalFor" class="mt-20">
+    <div v-else-if="loadedRegionalFor" class="mt-20">
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledSelect
@@ -531,6 +540,17 @@ export default {
         </div>
       </template>
       <a v-else @click="toggleAdvanced">Show Advanced</a>
+    </div>
+    <div v-if="errors">
+      <div
+        v-for="(err, idx) in errors"
+        :key="idx"
+      >
+        <Banner
+          color="error"
+          :label="stringify(err)"
+        />
+      </div>
     </div>
   </div>
 </template>

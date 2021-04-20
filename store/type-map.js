@@ -390,6 +390,7 @@ export const getters = {
       showState:   true,
       showAge:     true,
       canYaml:     true,
+      namespaced:  null,
     };
 
     return (schemaOrType) => {
@@ -695,6 +696,7 @@ export const getters = {
         const count = counts[schema.id];
         const label = getters.labelFor(schema, count);
         const weight = getters.typeWeightFor(schema?.id || label, isBasic);
+        const typeOptions = getters['optionsFor'](schema);
 
         if ( isBasic ) {
           // These are separate ifs so that things with no kind can still be basic
@@ -714,7 +716,7 @@ export const getters = {
           weight,
           schema,
           name:        schema.id,
-          namespaced:  attrs.namespaced,
+          namespaced:  typeOptions.namespaced === null ? attrs.namespaced : typeOptions.namespaced,
           count:       count ? count.summary.count || 0 : null,
           byNamespace: count ? count.namespaces : {},
           revision:    count ? count.revision : null,

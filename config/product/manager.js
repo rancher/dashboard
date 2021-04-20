@@ -1,6 +1,6 @@
 import { DSL } from '@/store/type-map';
 import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
-import { CAPI, MANAGEMENT } from '@/config/types';
+import { CAPI } from '@/config/types';
 
 export const NAME = 'manager';
 export const CHART_NAME = 'cluster-api';
@@ -11,11 +11,12 @@ export function init(store) {
     basicType,
     headers,
     configureType,
-    weightGroup,
+    virtualType,
+    weightType
   } = DSL(store, NAME);
 
   product({
-    ifHaveType:          CAPI.CAPI_CLUSTER,
+    ifHaveType:          CAPI.RANCHER_CLUSTER,
     inStore:             'management',
     icon:                'globe',
     removable:           false,
@@ -23,30 +24,33 @@ export function init(store) {
     showClusterSwitcher: false,
   });
 
-  configureType(CAPI.RANCHER_CLUSTER, { showListMasthead: false });
+  configureType(CAPI.RANCHER_CLUSTER, { showListMasthead: false, namespaced: false });
+  weightType(CAPI.RANCHER_CLUSTER, 100, true);
+
+  weightType(CAPI.MACHINE_DEPLOYMENT, 3, true);
+  weightType(CAPI.MACHINE_SET, 2, true);
+  weightType(CAPI.MACHINE, 1, true);
+
+  virtualType({
+    label:       'Cloud Credentials',
+    group:      'Root',
+    namespaced:  false,
+    icon:       'globe',
+    name:        'secret',
+    weight:      99,
+    route:       { name: 'c-cluster-manager-secret' },
+  });
 
   basicType([
     CAPI.RANCHER_CLUSTER,
+    'secret',
   ]);
 
   basicType([
     CAPI.MACHINE_DEPLOYMENT,
+    CAPI.MACHINE_SET,
     CAPI.MACHINE,
   ], 'Advanced');
-
-  basicType([
-    CAPI.CAPI_CLUSTER,
-    MANAGEMENT.CLUSTER,
-    'cluster.x-k8s.io.machinehealthcheck',
-    'cluster.x-k8s.io.machineset',
-    'cluster.x-k8s.io.clusterctl'
-  ], '(Debug)');
-
-  weightGroup('(Debug)', -100, true);
-
-  basicType([
-    /^cluster\.cattle\.io\..*configs?$/,
-  ], 'Node Configs');
 
   const MACHINE_SUMMARY = {
     name:      'summary',
@@ -64,13 +68,25 @@ export function init(store) {
     NAME_COL,
     {
       name:   'kubernetesVesion',
-      label:  'K8s Version',
-      value:  'spec.kubernetesVersion',
-      sort:   'spec.kubernetesVersion',
-      search: 'spec.kubernetesVersion',
+      label:  'Version',
+      value:  'kubernetesVersion',
+      sort:   'kubernetesVersion',
+      search: 'kubernetesVersion',
+    },
+    {
+      name:   'provider',
+      label:  'Provider',
+      value:  'nodeProvider',
+      sort:   ['nodeProvider', 'provisioner'],
     },
     MACHINE_SUMMARY,
     AGE,
+    {
+      name:  'explorer',
+      label: ' ',
+      align: 'right',
+      width: 65,
+    },
   ]);
 
   headers('cluster.x-k8s.io.machinedeployment', [

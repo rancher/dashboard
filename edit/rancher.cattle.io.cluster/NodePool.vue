@@ -3,7 +3,7 @@
 import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
 import { _EDIT } from '@/config/query-params';
-import { importNodeConfig } from '@/utils/dynamic-importer';
+import { importMachineConfig } from '@/utils/dynamic-importer';
 
 export default {
 
@@ -36,7 +36,7 @@ export default {
 
   computed: {
     configComponent() {
-      return importNodeConfig(this.provider);
+      return importMachineConfig(this.provider);
     }
   },
 };
@@ -64,6 +64,7 @@ export default {
       :mode="mode"
       :value="value.config"
       :credential-id="credentialId"
+      @error="e=>errors = e"
     />
   </div>
 </template>

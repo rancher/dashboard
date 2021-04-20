@@ -719,6 +719,7 @@ cluster:
   provider:
     aliyun: Alibaba ACK
     aliyunecs: Aliyun ECS
+    aws: Amazon AWS
     amazonec2: Amazon EC2
     amazoneks: Amazon EKS
     azure: Azure
@@ -735,6 +736,7 @@ cluster:
     k3s: K3s
     kubeAdmin: KubeADM
     linode: Linode
+    local: Local
     minikube: Minikube
     oci: Oracle Cloud Infrastructure
     openstack: OpenStack
@@ -745,7 +747,7 @@ cluster:
     pinganyunecs: Pinganyun ECS
     rackspace: RackSpace
     rancherkubernetesengine: RKE
-    rke2: RKE Government
+    rke2: RKE2
     rke: RKE
     rkeWindows: Windows
     softlayer: SoftLayer
@@ -2488,6 +2490,20 @@ secret:
     'istio.io/key-and-cert': 'Istio Certificate'
     'helm.sh/release.v1': 'Helm Release'
     'fleet.cattle.io/cluster-registration-values': 'Fleet Cluster'
+    'provisioning.cattle.io/cloud-credential': 'Cloud Credential'
+  initials:
+    'opaque': 'O'
+    'kubernetes.io/service-account-token': 'SAT'
+    'kubernetes.io/dockercfg': 'R'
+    'kubernetes.io/dockerconfigjson': 'R'
+    'kubernetes.io/basic-auth': 'HTTP'
+    'kubernetes.io/ssh-auth': 'SSH'
+    'kubernetes.io/tls': 'TLS'
+    'bootstrap.kubernetes.io/token': 'Boot'
+    'istio.io/key-and-cert': 'Ist'
+    'helm.sh/release.v1': 'Helm'
+    'fleet.cattle.io/cluster-registration-values': 'F'
+    'rancher.cattle.io/cloud-credential': 'CC'
   relatedWorkloads: Related Workloads
 
 selectOrCreateAuthSecret:
@@ -3862,8 +3878,8 @@ typeLabel:
     }
   'management.cattle.io.cluster': |-
     {count, plural,
-      one { All Cluster }
-      other { All Clusters }
+      one { Mgmt Cluster }
+      other { Mgmt Clusters }
     }
   'cluster.x-k8s.io.cluster': |-
     {count, plural,

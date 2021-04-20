@@ -1,23 +1,21 @@
 <script>
-import Banner from '@/components/Banner';
+import { NAME as MANAGER } from '@/config/product/manager';
 
 export default {
-  layout: 'plain',
-
-  components: { Banner },
-
   fetch({ store, redirect }) {
     const id = store.getters['defaultClusterId'];
 
     if ( id ) {
       redirect({ name: 'c-cluster', params: { cluster: id } });
+    } else {
+      redirect({
+        name:   'c-cluster-product',
+        params: {
+          cluster: 'local',
+          product: MANAGER
+        }
+      });
     }
   }
 };
 </script>
-
-<template>
-  <div>
-    <Banner label="You don't have any clusters..." color="error" />
-  </div>
-</template>
