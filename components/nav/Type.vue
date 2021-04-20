@@ -100,7 +100,6 @@ export default {
 
       ::v-deep .icon {
         position: relative;
-        top: -1px;
         color: var(--muted);
       }
     }
@@ -133,7 +132,6 @@ export default {
       grid-area: favorite;
       font-size: 12px;
       position: relative;
-      top: -1px;
     }
 
     .count {
