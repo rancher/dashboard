@@ -4,11 +4,8 @@ import { insertAt } from '@/utils/array';
 import { parseSi } from '@/utils/units';
 
 // See translation file cluster.providers for list of providers
-const PROVIDER_LOGOS = {
-  k3s:      'k3s.svg',
-  minikube: 'minikube.svg',
-  '*':      'kubernetes.svg'
-};
+// If the logo is not named with the provider name, add an override here
+const PROVIDER_LOGO_OVERRIDE = {};
 
 export default {
   _availableActions() {
@@ -79,12 +76,23 @@ export default {
   },
 
   providerLogo() {
-    const provider = this.status?.provider || '*';
+    const provider = this.status?.provider || 'kubernetes';
     // Only interested in the part before the period
     const prv = provider.split('.')[0];
-    const logo = PROVIDER_LOGOS[prv] || PROVIDER_LOGOS['*'];
+    // Allow overrides if needed
+    const logo = PROVIDER_LOGO_OVERRIDE[prv] || prv;
 
-    return require(`~/assets/images/providers/${ logo }`);
+    let icon;
+
+    try {
+      icon = require(`~/assets/images/providers/provider-${ prv }.svg`);
+    } catch (e) {
+      console.warn(`Can not find provider logo for provider ${ logo }`); // eslint-disable-line no-console
+      // Use fallback generic Kubernetes icon
+      icon = require(`~/assets/images/providers/kubernetes.svg`);
+    }
+
+    return icon;
   },
 
   scope() {

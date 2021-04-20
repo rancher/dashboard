@@ -9,6 +9,7 @@ import { ucFirst } from '@/utils/string';
 const UNKNOWN = 'unknown';
 const UI_VERSION = process.env.VERSION || UNKNOWN;
 const UI_COMMIT = process.env.COMMIT || UNKNOWN;
+const MAX_CLUSTERS_TO_SHOW = 4;
 
 export default {
 
@@ -30,7 +31,8 @@ export default {
       displayVersion,
       fullVersion,
       uiCommit:       UI_COMMIT,
-      uiVersion:      UI_VERSION
+      uiVersion:      UI_VERSION,
+      clusterFilter:  '',
     };
   },
 
@@ -47,9 +49,15 @@ export default {
       },
     },
 
+    showClusterSearch() {
+      const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
+
+      return all.length > MAX_CLUSTERS_TO_SHOW;
+    },
+
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      const out = all.map((x) => {
+      let out = all.map((x) => {
         return {
           id:     x.id,
           label:  x.nameDisplay,
@@ -59,7 +67,13 @@ export default {
         };
       });
 
-      return sortBy(out, ['ready:desc', 'label']);
+      if (this.clusterFilter.length > 0) {
+        out = out.filter(item => item.label.indexOf(this.clusterFilter) === 0);
+      }
+
+      const sorted = sortBy(out, ['ready:desc', 'label']);
+
+      return sorted;
     },
 
     dev: mapPref(DEV),
@@ -75,7 +89,7 @@ export default {
     multiClusterApps() {
       const options = this.options;
 
-      return options.filter(opt => opt.inStore === 'management' && opt.category !== 'configuration');
+      return options.filter(opt => opt.category === 'multi-cluster');
     },
 
     configurationApps() {
@@ -218,21 +232,29 @@ export default {
           <img class="side-menu-logo" src="~/assets/images/pl/rancher-logo.svg" width="110" />
         </div>
         <div class="body">
-          <div class="option" @click="hide()">
+          <div @click="hide()">
             <nuxt-link
-              class="cluster selector home"
+              class="option cluster selector home"
               :to="{ name: 'home' }"
             >
               <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none" /><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" /></svg>
               <div>
-                Home
+                {{ t('nav.home') }}
               </div>
             </nuxt-link>
           </div>
           <div class="category">
-            Explore Cluster
+            {{ t('nav.categories.explore') }}
           </div>
-          <div class="clusters">
+          <div v-if="showClusterSearch" class="search">
+            <input
+              ref="clusterFilter"
+              v-model="clusterFilter"
+              :placeholder="t('nav.search.placeholder')"
+            />
+            <i v-if="clusterFilter.length > 0" class="icon icon-close" @click="clusterFilter=''" />
+          </div>
+          <div class="clusters" :class="{'fixed-height': showClusterSearch}">
             <div v-for="c in clusters" :key="c.id" @click="hide()">
               <nuxt-link
                 v-if="c.ready"
@@ -243,16 +265,19 @@ export default {
                 <div>{{ c.label }}</div>
               </nuxt-link>
             </div>
+            <div v-if="clusters.length === 0" class="none-matching">
+              {{ t('nav.search.noResults') }}
+            </div>
           </div>
           <div class="category">
-            Global Apps
+            {{ t('nav.categories.multiCluster') }}
           </div>
           <div v-for="a in multiClusterApps" :key="a.label" class="option" @click="changeProduct(a.value)">
             <i class="icon group-icon" :class="a.icon" />
             <div>{{ a.label }}</div>
           </div>
           <div class="category">
-            Configuration
+            {{ t('nav.categories.configuration') }}
           </div>
           <div v-for="a in configurationApps" :key="a.label" class="option" @click="changeProduct(a.value)">
             <i class="icon group-icon" :class="a.icon" />
@@ -268,7 +293,7 @@ export default {
         <div class="footer">
           <div @click="hide()">
             <nuxt-link :to="{name: 'support' }">
-              Get Support
+              {{ t('nav.support') }}
             </nuxt-link>
           </div>
           <div v-tooltip="{ content: fullVersion, classes: 'footer-tooltip' }" class="version" v-html="displayVersion" />
@@ -331,18 +356,24 @@ export default {
 </style>
 
 <style lang="scss" scoped>
+  $clear-search-size: 20px;
+  $icon-size: 24px;
+  $option-padding: 5px;
+  $option-height: $icon-size + $option-padding + $option-padding;
+
   .option {
     align-items: center;
     cursor: pointer;
     display: flex;
-    padding: 5px 0 5px 10px;
+    padding: $option-padding 0 $option-padding 10px;
 
     > i {
-      font-size: 24px;
+      font-size: $icon-size;
       margin-right: 8px;
     }
     svg {
       margin-right: 8px;
+      fill: var(--topmenu-text);
     }
 
     > div {
@@ -356,13 +387,11 @@ export default {
       > div {
         color: var(--primary-hover-text);
       }
-      .home {
-        svg {
-          fill: var(--primary-hover-text);
-        }
-        div {
-          color: var(--primary-hover-text);
-        }
+      svg {
+        fill: var(--primary-hover-text);
+      }
+      div {
+        color: var(--primary-hover-text);
       }
     }
   }
@@ -371,7 +400,7 @@ export default {
     position: absolute;
     left: 0;
     width: 55px;
-    height: 55px;
+    height: 54px;
     top: 0;
     grid-area: menu;
     cursor: pointer;
@@ -379,7 +408,7 @@ export default {
     align-items: center;
     justify-content: center;
     &:hover {
-      background-color: #eee;
+      background-color: var(--topmost-light-hover);
     }
     .menu-icon {
       width: 24px;
@@ -397,10 +426,10 @@ export default {
     left: 0px;
     height: 100vh;
     width: 280px;
-    background-color: #fff;
+    background-color: var(--topmenu-bg);
     z-index: 100;
-    border-right: 1px solid #e0e0e0;
-    box-shadow: 0 0 15px 4px #eee;
+    border-right: 1px solid var(--topmost-border);
+    box-shadow: 0 0 15px 4px var(--topmost-shadow);
     display: flex;
     flex-direction: column;
     padding: 0;
@@ -414,7 +443,7 @@ export default {
       height: 55px;
       flex: 0 0 55px;
       width: 100%;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid var(--nav-border);
       justify-content: flex-start;
       align-items: center;
       .menu {
@@ -444,11 +473,24 @@ export default {
         margin-top: 10px;
       }
 
-      .cluster {
-        padding: 5px 0 5px 10px;
+      .home:focus {
+        outline: 0;
+      }
 
-        &.home {
-          padding: 0;
+      .cluster {
+        padding: $option-padding 0 $option-padding 10px;
+        align-items: center;
+        display: flex;
+        &:focus {
+          outline: 0;
+        }
+        .cluser-name {
+          font-size: 16px;
+        }
+        > img {
+          max-height: $icon-size;
+          max-width: $icon-size;
+          margin-right: 8px;
         }
       }
 
@@ -462,14 +504,47 @@ export default {
           line-height: 32px;
           min-height: 32px;
           height: 32px;
-          background-color: #eee;
-          color: #444;
+          background-color: var(--header-btn-bg);
+          color: var(--header-btn-text);
 
           &:hover {
             color: var(--primary-hover-text);
             background: var(--primary-hover-bg);
           }
         }
+      }
+
+      .search {
+        position: relative;
+        > input {
+          background-color: transparent;
+          margin-bottom: 8px;
+          padding-right: 34px;
+        }
+        > i {
+          position: absolute;
+          font-size: $clear-search-size;
+          top: ($option-height - $clear-search-size) / 2;
+          right: 8px;
+          opacity: 0.7;
+          cursor: pointer;
+          &:hover {
+            color: var(--primary-hover-bg);
+          }
+        }
+      }
+
+      .clusters {
+        overflow-y: scroll;
+        overflow-x: hidden;
+
+        &.fixed-height {
+          height: $option-height * 4;
+        }
+      }
+
+      .none-matching {
+        padding: 8px
       }
     }
     .footer {
@@ -539,24 +614,6 @@ export default {
 
     .side-menu-logo {
       opacity: 0;
-    }
-  }
-
-  .cluster {
-    align-items: center;
-    display: flex;
-    .cluster-os-logo {
-      width: 32px;
-      height: 32px;
-      margin-right: 10px;
-    }
-    .cluser-name {
-      font-size: 16px;
-    }
-    > img {
-      max-height: 28px;
-      max-width: 28px;
-      margin-right: 8px;
     }
   }
 

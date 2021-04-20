@@ -64,6 +64,29 @@ $selected: rgba($primary, .5);
   --scrollbar-thumb-dropdown   : #{$lighter};
   --scrollbar-track            : transparent;
 
+  --header-bg                  : #{$lightest};
+  --header-btn-bg              : #{$light};
+  --header-btn-text            : #{$darker};
+  --header-input-text          : #{$lightest};
+  --header-height              : 55px;
+  --header-border              : #{$medium};
+  --header-border-size         : 1px;
+  --nav-width                  : 230px;
+  --nav-bg                     : #{$lightest};
+  --nav-active                 : #{$light};
+  --nav-hover                  : #{$medium};
+  --nav-expander-hover         : #{darken($medium, 10%)};
+  --nav-border                 : #{$medium};
+  --nav-border-size            : 1px;
+  --footer-bg                  : transparent;
+  --footer-height              : 0px;
+
+  --topmenu-bg                 : #{$lightest};
+  --topmenu-text               : #{$darkest};
+  --topmost-border             : #{$medium};
+  --topmost-shadow             : #{lighten($lightest, 10%)};
+  --topmost-light-hover        : #{$light};
+
   --disabled-bg                : #{$disabled};
   --disabled-text              : #{$secondary};
   --box-bg                     : #{$lighter};
@@ -74,25 +97,9 @@ $selected: rgba($primary, .5);
   --outline                    : #{rgba($primary, 0.75)};
   --outline-width              : 1px;
 
-  --header-bg                  : #{$lightest};
-  --header-logo                : #{$darker};
-  --header-btn-bg              : #{$light};
-  --header-btn-text            : #{$darker};
-  --header-input-text          : #{$darker};
-  --header-height              : 55px;
-  --header-border              : var(--border);
-  --header-border-size         : 1px;
-  --nav-width                  : 230px;
-  --nav-bg                     : #{$lightest};
-  --nav-active                 : #{rgba($primary, 0.3)};
-  --nav-border                 : var(--border);
-  --nav-border-size            : 1px;
-  --footer-bg                  : transparent;
-  --footer-height              : 0px;
-
   --accent-btn                 : #{rgba($primary, 0.2)};
   --accent-btn-hover           : #{rgba($primary, 0.5)};
-  --modal-bg                   : #{$light};
+  --modal-bg                   :#{$light};
   --overlay-bg                 : #{rgba($lighter, 0.75)};
   --shadow                     : #{rgba($medium, 0.85)};
 

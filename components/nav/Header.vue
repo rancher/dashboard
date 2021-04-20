@@ -79,13 +79,7 @@ export default {
 <template>
   <header :class="{'simple': simple}">
     <div class="menu-spacer"></div>
-    <div v-if="simple">
-      <img class="side-menu-logo" src="~/assets/images/pl/rancher-logo.svg" width="110" />
-      <div class="title">
-        DASHBOARD
-      </div>
-    </div>
-    <div v-else class="product">
+    <div v-if="!simple" class="product">
       <div v-if="currentProduct && currentProduct.showClusterSwitcher" class="cluster">
         <img v-if="currentCluster" class="cluster-os-logo" :src="currentCluster.providerLogo" />
         <div class="cluster-name">
@@ -98,8 +92,14 @@ export default {
         </div>
       </div>
     </div>
+    <div v-else class="simple-title">
+      <img class="side-menu-logo" src="~/assets/images/pl/rancher-logo.svg" width="110" />
+      <div class="title">
+        {{ t('nav.title') }}
+      </div>
+    </div>
 
-    <TopLevelMenu />
+    <TopLevelMenu></TopLevelMenu>
 
     <div v-if="!simple" class="top">
       <NamespaceFilter v-if="clusterReady && currentProduct && currentProduct.showNamespaceFilter" />
@@ -133,7 +133,7 @@ export default {
       </button>
     </div>
 
-    <div class="cluster"></div>
+    <div class="header-spacer"></div>
 
     <div class="user user-menu" tabindex="0" @blur="showMenu(false)" @click="showMenu(true)" @focus.capture="showMenu(true)">
       <v-popover
@@ -180,18 +180,15 @@ export default {
     height: 100vh;
 
     .title {
-      border-left: 1px solid #d8d8d8;
+      border-left: 1px solid var(--header-border);
       padding-left: 10px;
       opacity: 0.7;
+      text-transform: uppercase;
     }
 
     .filter {
       ::v-deep .labeled-select,
       ::v-deep .unlabeled-select {
-        .vs__selected {
-          color: var(--body-text) !important;
-        }
-
         .vs__search::placeholder {
           color: var(--body-text) !important;
         }
@@ -213,12 +210,36 @@ export default {
       padding: 0 5px;
     }
 
-    .back, .import, .kubectl, .cluster, .user-menu {
+    .back {
       padding-top: 6px;
 
       > *:first-child {
         height: 40px;
       }
+    }
+
+    .import, .kubectl {
+      padding-top: 11.5px;
+      > *:first-child {
+        height: 32px;
+        > i {
+          line-height: 32px;
+        }
+      }
+    }
+
+    .simple-title {
+      align-items: center;
+      display: flex;
+
+      .title {
+        height: 24px;
+        line-height: 24px;
+      }
+    }
+
+    .user-menu {
+      padding-top: 9.5px;
     }
 
     ::v-deep > div > .btn.role-tertiary {
@@ -257,6 +278,8 @@ export default {
     .cluster {
       align-items: center;
       display: flex;
+      height: 32px;
+      white-space: nowrap;
       .cluster-os-logo {
         width: 32px;
         height: 32px;
@@ -269,8 +292,9 @@ export default {
 
     > .product {
       grid-area: product;
+      align-items: center;
       position: relative;
-      //display: block;
+      display: flex;
 
       .logo {
         height: 30px;
@@ -332,7 +356,7 @@ export default {
       width: 40px;
     }
 
-    > .cluster {
+    > .header-spacer {
       grid-area: cluster;
       background-color: var(--header-bg);
       position: relative;
@@ -340,6 +364,7 @@ export default {
 
     > .top {
       grid-area: top;
+      padding-top: 6px;
 
       INPUT[type='search']::placeholder,
       .vs__open-indicator,
@@ -354,10 +379,6 @@ export default {
       .vs__selected {
         background: rgba(255, 255, 255, 0.15);
         border-color: rgba(255, 255, 255, 0.25);
-      }
-
-      .vs__selected-options input {
-        color: red;
       }
 
       .vs__deselect {
