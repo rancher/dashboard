@@ -58,7 +58,7 @@
     "jsdiff": "^1.1.1",
     "jsdom-global": "^3.0.2",
     "jsonpath": "^1.0.2",
-    "jsrsasign": "^8.0.15",
+    "jsrsasign": "^10.2.0",
     "jszip": "^3.2.2",
     "lodash": "^4.17.15",
     "marked": "^2.0.0",
