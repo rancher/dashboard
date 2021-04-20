@@ -136,7 +136,6 @@ export default {
 
         if (this.isExpanded && !skipAutoClose) {
           const items = this.group[this.childrenKey];
-
           // Navigate to the first item in the group
           const route = items[0].route;
 
@@ -220,6 +219,10 @@ export default {
       > .header {
         padding: 8px 0;
 
+        &:hover {
+          background-color: var(--nav-hover);
+        }
+
         > H6 {
           font-size: 14px;
           text-transform: none;
@@ -230,11 +233,11 @@ export default {
           position: absolute;
           right: 0;
           top: 0;
-          padding: 8px;
+          padding: 9px 7px;
           user-select: none;
 
           &:hover {
-            background-color: #d0d0d0;
+            background-color: var(--nav-expander-hover);
           }
         }
       }
@@ -266,11 +269,6 @@ export default {
  .header ::v-deep > .child.nuxt-link-exact-active {
     background-color: var(--nav-active);
     padding: 0;
-    border-left: solid 5px transparent;
-
-    A {
-      padding-left: 5px;
-    }
 
     A, A I {
       color: var(--body-text);

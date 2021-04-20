@@ -8,6 +8,15 @@ export default {
 
   components: { Favorite },
 
+  filters: {
+    spaceify(txt) {
+      txt = txt.replace(/([A-Z])/g, ' $1').trim();
+      // Revert known acronymns
+
+      return txt.replace('A P I ', 'API ');
+    }
+  },
+
   props:      {
     type: {
       type:     Object,
@@ -120,7 +129,7 @@ export default {
       color: var(--body-text);
 
       &:hover {
-        background: var(--dropdown-hover-bg);
+        background: var(--nav-hover);
         text-decoration: none;
 
         ::v-deep .icon {

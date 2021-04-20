@@ -399,8 +399,8 @@ export default {
   margin: 4px;
   user-select: none;
   cursor: default;
-  background: rgba(255, 255, 255, 0.25);
-  border: solid var(--header-btn-text) thin;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--header-border);
   color: var(--header-btn-text);
   height: calc(var(--header-height) - 26px);
   width: initial;

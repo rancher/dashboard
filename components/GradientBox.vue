@@ -74,6 +74,6 @@ export default {
 
 <style lang="scss" scoped>
   .gradient-box.plain {
-      border: 1px solid #d8d8d8;
+      border: 1px solid var(--border);
   }
 </style>

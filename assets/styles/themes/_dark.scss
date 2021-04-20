@@ -58,18 +58,26 @@
 
   --header-bg                  : #{$darkest};
   --header-border              : #{$medium};
-  --header-btn-bg              : #{$darker};
-  --header-btn-text : #{$lightest};
+  --header-btn-bg              : #{$dark};
+  --header-btn-text            : #{$lightest};
 
-  --nav-bg: #{$darkest};
-  --nav-active: #{rgba($primary, 0.3)};
-  --nav-border: #{$medium};
+  --nav-bg                     : #{$darkest};
+  --nav-active                 : #{rgba($primary, 0.3)};
+  --nav-border                 : #{$medium};
+  --nav-hover                  : #{$primary};
+  --nav-expander-hover         : #{darken($primary, 20%)};
 
   --disabled-bg: #{darken($disabled, 10%)};
   --disabled-text: #{$secondary};
   --box-bg: #{$darkest};
   --subtle-border: #{$darkest};
   --border: #{$medium};
+
+  --topmenu-bg: #{$darkest};
+  --topmenu-text: #{$lightest};
+  --topmost-border: #{$medium};
+  --topmost-shadow: #{lighten($darkest, 5%)};
+  --topmost-light-hover: #{$medium};
 
   --accent-btn: #{rgba($primary, 0.2)};
   --accent-btn-hover: #{rgba($primary, 0.5)};
