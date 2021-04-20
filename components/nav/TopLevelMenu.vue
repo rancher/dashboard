@@ -75,7 +75,7 @@ export default {
     multiClusterApps() {
       const options = this.options;
 
-      return options.filter(opt => opt.category === 'multi-cluster');
+      return options.filter(opt => opt.inStore === 'management' && opt.category !== 'configuration');
     },
 
     configurationApps() {
@@ -245,7 +245,7 @@ export default {
             </div>
           </div>
           <div class="category">
-            Multi-Cluster
+            Global Apps
           </div>
           <div v-for="a in multiClusterApps" :key="a.label" class="option" @click="changeProduct(a.value)">
             <i class="icon group-icon" :class="a.icon" />

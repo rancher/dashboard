@@ -36,6 +36,7 @@
 //   ifHaveType,              -- Show this product only if the given type exists in the store [inStore]
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
 //   public,                  -- If true, show to all users.  If false, only show when the Developer Tools pref is on (default true)
+//   category,                -- Group to show the product in for the nav hamburger menu
 // })
 //
 // externalLink(stringOrFn)  The product has an external page (function gets context object

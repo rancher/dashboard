@@ -24,7 +24,6 @@ export function init(store) {
     weight:                -1,
     showClusterSwitcher:   false,
     showWorkspaceSwitcher: true,
-    category:              'multi-cluster',
   });
 
   /*
