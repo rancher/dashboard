@@ -64,6 +64,7 @@ export default {
       :mode="mode"
       :value="value.config"
       :credential-id="credentialId"
+      @error="e=>errors = e"
     />
   </div>
 </template>

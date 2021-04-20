@@ -362,7 +362,6 @@ export default {
     :validation-passed="validationPassed()"
     :resource="value"
     :errors="errors"
-    done-route="c-cluster-manager-clusters"
     @finish="save"
     @error="e=>errors = e"
   >
@@ -430,6 +429,7 @@ export default {
             :mode="mode"
             :provider="provider"
             :credential-id="credentialId"
+            @error="e=>errors = e"
           />
         </Tab>
       </Tabbed>

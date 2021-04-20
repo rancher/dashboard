@@ -1,5 +1,4 @@
 <script>
-import { _EDIT } from '@/config/query-params';
 import LabeledInput from '@/components/form/LabeledInput';
 import FileSelector, { createOnSelected } from '@/components/form/FileSelector';
 

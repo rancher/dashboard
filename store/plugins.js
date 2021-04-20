@@ -1,8 +1,16 @@
+const credentialOptions = {
+  aws:          { publicKey: 'accessKey', publicMode: 'full' },
+  digitalocean: { publicKey: 'accessToken', publicMode: 'prefix' },
+};
+
+// Dynamically loaded drivers can call this eventually to register thier options
+export function configureCredential(name, opt) {
+  credentialOptions[name] = opt;
+}
+
 export const state = function() {
   return {};
 };
-
-export const actions = {};
 
 export const getters = {
   credentialDrivers() {
@@ -11,6 +19,12 @@ export const getters = {
     const drivers = ctx.keys().filter(path => !path.match(/\.(vue|js)$/)).map(path => path.substr(2));
 
     return drivers;
+  },
+
+  credentialOptions() {
+    return (name) => {
+      return credentialOptions[name] || {};
+    };
   },
 
   machineDrivers() {

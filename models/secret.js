@@ -325,24 +325,19 @@ export default {
   },
 
   cloudCredentialPublicData() {
-    let [mode, key] = (this.metadata?.annotations?.[CAPI.PUBLIC_DATA] || '').split(/:/, 2);
+    const { publicKey, publicMode } = this.$rootGetters['plugins/credentialOptions'](this.cloudCredentialProvider);
 
-    if ( !key ) {
-      key = mode;
-      mode = null;
-    }
-
-    if ( !key ) {
+    if ( !publicKey ) {
       return;
     }
 
-    const val = this.decodedData[key];
+    const val = this.decodedData[publicKey];
 
     const maxLength = Math.min(8, Math.floor(val.length / 2));
 
-    if ( mode === 'prefix' ) {
+    if ( publicMode === 'prefix' ) {
       return `${ escapeHtml(val.substr(0, maxLength)) }&hellip;`;
-    } else if ( mode === 'suffix' ) {
+    } else if ( publicMode === 'suffix' ) {
       return `&hellip;${ escapeHtml(val.substr(-1 * maxLength)) }`;
     } else {
       return escapeHtml(val);

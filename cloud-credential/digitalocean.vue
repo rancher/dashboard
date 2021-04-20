@@ -1,16 +1,10 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledInput from '@/components/form/LabeledInput';
-import { CAPI } from '@/config/labels-annotations';
 
 export default {
   components: { LabeledInput },
   mixins:     [CreateEditView],
-
-  data() {
-    // Mark the token as the public/api key field for display
-    this.value.setAnnotation(CAPI.PUBLIC_DATA, 'prefix:accessToken');
-  },
 
   watch: {
     'value.decodedData.accessToken'(neu) {

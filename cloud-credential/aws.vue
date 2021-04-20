@@ -3,7 +3,6 @@ import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import { CAPI } from '@/config/labels-annotations';
 
 export default {
   components: {
@@ -27,9 +26,6 @@ export default {
   },
 
   data() {
-    // Mark the accessKey as the public/api key field for display
-    this.value.setAnnotation(CAPI.PUBLIC_DATA, 'accessKey');
-
     return { knownRegions: null };
   },
 

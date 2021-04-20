@@ -2,9 +2,7 @@
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { SECRET } from '@/config/types';
-import { CAPI } from '@/config/labels-annotations';
 import { AGE, NAME, STATE } from '@/config/table-headers';
-import { TYPES } from '@/models/secret';
 
 export default {
   components: { ResourceTable, Masthead },
