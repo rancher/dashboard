@@ -12,7 +12,7 @@ import { nlToBr } from '@/utils/string';
 import { clone, set } from '@/utils/object';
 import { sortable } from '@/utils/version';
 import { sortBy } from '@/utils/sort';
-import { DEFAULT_WORKSPACE } from '@/models/rancher.cattle.io.cluster';
+import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { _CREATE } from '@/config/query-params';
 import { removeObject } from '@/utils/array';
 import SelectCredential from './SelectCredential';
@@ -127,7 +127,7 @@ export default {
         return null;
       }
 
-      const schema = this.$store.getters['management/schemaFor'](`rancher.cattle.io.${ this.provider }config`);
+      const schema = this.$store.getters['management/schemaFor'](`provisioning.cattle.io.${ this.provider }config`);
 
       return schema;
     },
@@ -225,7 +225,7 @@ export default {
       if ( existing?.length ) {
         for ( const pool of existing ) {
           const config = await this.$store.dispatch('management/find', {
-            type: `rancher.cattle.io.${ pool.nodeConfig.kind.toLowerCase() }`,
+            type: `provisioning.cattle.io.${ pool.nodeConfig.kind.toLowerCase() }`,
             id:   `${ this.value.metadata.namespace }/${ pool.nodeConfig.name }`,
           });
 

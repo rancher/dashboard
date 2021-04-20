@@ -4,7 +4,7 @@ import Loading from '@/components/Loading';
 import CruResource from '@/components/CruResource';
 import SelectIconGrid from '@/components/SelectIconGrid';
 import { REGISTER, SUB_TYPE, _FLAGGED } from '@/config/query-params';
-import { DEFAULT_WORKSPACE } from '@/models/rancher.cattle.io.cluster';
+import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { sortBy } from '@/utils/sort';
 import Rke2 from './rke2';
 

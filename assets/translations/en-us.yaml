@@ -2503,7 +2503,7 @@ secret:
     'istio.io/key-and-cert': 'Ist'
     'helm.sh/release.v1': 'Helm'
     'fleet.cattle.io/cluster-registration-values': 'F'
-    'rancher.cattle.io/cloud-credential': 'CC'
+    'provisioning.cattle.io/cloud-credential': 'CC'
   relatedWorkloads: Related Workloads
 
 selectOrCreateAuthSecret:
@@ -3886,7 +3886,7 @@ typeLabel:
       one { CAPI Cluster }
       other { CAPI Clusters }
     }
-  'rancher.cattle.io.cluster': |-
+  'provisioning.cattle.io.cluster': |-
     {count, plural,
       one { Cluster }
       other { Clusters }
