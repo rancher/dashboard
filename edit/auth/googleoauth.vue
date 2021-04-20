@@ -137,7 +137,7 @@ export default {
             <Checkbox v-model="model.nestedGroupMembershipEnabled" :mode="mode" :label="t('authConfig.ldap.nestedGroupMembership.label')" />
           </div>
         </div>
-        <InfoBox class=" mt-20 mb-20 p-10">
+        <InfoBox :step="1" class=" mt-20 mb-20">
           <h3 v-html="t('authConfig.googleoauth.steps.1.title', tArgs, true)" />
           <ul class="mt-0 step-list">
             <li>{{ t('authConfig.googleoauth.steps.1.body.1', {}, true) }} </li>
@@ -147,7 +147,7 @@ export default {
             <li>{{ t('authConfig.googleoauth.steps.1.body.5', {}, true) }} </li>
           </ul>
         </InfoBox>
-        <InfoBox class="mb-20 p-10">
+        <InfoBox :step="2" class="mb-20">
           <div class="row">
             <h3 v-html="t('authConfig.googleoauth.steps.2.title', tArgs, true)" />
           </div>
@@ -175,7 +175,7 @@ export default {
             </div>
           </div>
         </InfoBox>
-        <InfoBox class="mb-20 p-10">
+        <InfoBox :step="3" class="mb-20">
           <div class="row">
             <h3 v-html="t('authConfig.googleoauth.steps.3.title', tArgs, true)" />
           </div>

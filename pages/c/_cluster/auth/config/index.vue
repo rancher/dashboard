@@ -4,9 +4,10 @@ import SelectIconGrid from '@/components/SelectIconGrid';
 import { sortBy } from '@/utils/sort';
 import { MODE, _EDIT } from '@/config/query-params';
 import { authProvidersInfo } from '@/utils/auth';
+import Banner from '@/components/Banner';
 
 export default {
-  components: { SelectIconGrid },
+  components: { SelectIconGrid, Banner },
 
   async asyncData({ store, redirect }) {
     const authProvs = await authProvidersInfo(store);
@@ -15,7 +16,7 @@ export default {
       redirect(authProvs.enabledLocation);
     }
 
-    return { nonLocal: authProvs.nonLocal };
+    return { nonLocal: authProvs.nonLocal, enabled: authProvs.enabled };
   },
 
   data() {
@@ -41,6 +42,10 @@ export default {
     rows() {
       return sortBy(this.nonLocal, ['sideLabel', 'nameDisplay']);
     },
+
+    displayName() {
+      return this.$store.getters['type-map/labelFor'](this.schema, 2);
+    }
   },
 
   methods: {
@@ -69,6 +74,10 @@ export default {
 
 <template>
   <div>
+    <h1 class="m-0">
+      {{ displayName }}
+    </h1>
+    <Banner v-if="!enabled.length" :label="t('authConfig.noneEnabled')" color="info" />
     <SelectIconGrid
       :rows="rows"
       :color-for="colorFor"

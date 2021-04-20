@@ -73,6 +73,7 @@ export const authProvidersInfo = async(store) => {
 
   return {
     nonLocal,
-    enabledLocation
+    enabledLocation,
+    enabled
   };
 };

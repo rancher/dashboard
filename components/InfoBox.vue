@@ -1,9 +1,19 @@
 <script>
-export default {};
+export default {
+  props: {
+    step: {
+      type:    Number,
+      default: null
+    }
+  }
+};
 </script>
 
 <template>
-  <div class="info-box">
+  <div :class="{'stepped': !!step}" class="info-box">
+    <div v-if="step" class="step-number mb-10">
+      Step {{ step }}
+    </div>
     <slot />
   </div>
 </template>
@@ -18,6 +28,19 @@ export default {};
     border-radius: var(--border-radius);
     flex-grow: 1;
     flex-basis: 0;
+    position:relative;
+
+    .stepped {
+      padding-left: 40px;
+    }
+
+    .step-number {
+      border-radius: var(--border-radius);
+      background: var(--secondary);
+      color: var(--body-bg);
+      display: inline-block;
+      padding: 5px 10px;
+  }
 
     .info-column:not(:last-child) {
       border-right: 1px solid var(--tabbed-border);
