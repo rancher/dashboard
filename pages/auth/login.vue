@@ -3,9 +3,7 @@ import { removeObject } from '@/utils/array';
 import { USERNAME } from '@/config/cookies';
 import LabeledInput from '@/components/form/LabeledInput';
 import AsyncButton from '@/components/AsyncButton';
-import {
-  LOCAL, LOGGED_OUT, TIMED_OUT, _FLAGGED, SPA
-} from '@/config/query-params';
+import { LOCAL, LOGGED_OUT, TIMED_OUT, _FLAGGED } from '@/config/query-params';
 import Checkbox from '@/components/form/Checkbox';
 import { sortBy } from '@/utils/sort';
 import { configType } from '@/models/management.cattle.io.authconfig';
@@ -30,12 +28,6 @@ export default {
     if ( hasLocal ) {
       // Local is special and handled here so that it can be toggled
       removeObject(providers, 'local');
-    }
-
-    if ( !process.env.dev && !route.query[SPA] ) {
-      redirect(302, `${ store.getters['rancherLink'] }login`);
-
-      return;
     }
 
     return {

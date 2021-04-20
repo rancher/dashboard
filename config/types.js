@@ -148,7 +148,7 @@ export const CAPI = {
   MACHINE_DEPLOYMENT: 'cluster.x-k8s.io.machinedeployment',
   MACHINE_SET:        'cluster.x-k8s.io.machineset',
   MACHINE:            'cluster.x-k8s.io.machine',
-  RANCHER_CLUSTER:    'rancher.cattle.io.cluster',
+  RANCHER_CLUSTER:    'provisioning.cattle.io.cluster',
 };
 
 // --------------------------------------

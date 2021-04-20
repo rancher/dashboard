@@ -89,7 +89,7 @@ export default {
     multiClusterApps() {
       const options = this.options;
 
-      return options.filter(opt => opt.category === 'multi-cluster');
+      return options.filter(opt => opt.inStore === 'management' && opt.category !== 'configuration');
     },
 
     configurationApps() {

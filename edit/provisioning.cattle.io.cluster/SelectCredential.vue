@@ -6,7 +6,7 @@ import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Banner from '@/components/Banner';
-import { DEFAULT_WORKSPACE } from '@/models/rancher.cattle.io.cluster';
+import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { importCloudCredential } from '@/utils/dynamic-importer';
 import { TYPES } from '@/models/secret';
 import { CAPI } from '@/config/labels-annotations';
