@@ -177,7 +177,7 @@ export default {
     },
 
     isRKE() {
-      return this.currentCluster.status.provider === 'rke';
+      return ['rke', 'rke.windows'].includes(this.currentCluster.status.provider);
     },
 
     accessibleResources() {
