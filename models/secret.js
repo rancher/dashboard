@@ -309,6 +309,9 @@ export default {
 
   setData() {
     return (key, value) => {
+      if ( !this.data ) {
+        set(this, 'data', {});
+      }
       // The key is quoted so that keys like '.dockerconfigjson' that contain dot don't get parsed into an object path
       set(this.data, `"${ key }"`, base64Encode(value));
     };
