@@ -1,4 +1,4 @@
-@import '@/assets/styles/themes/_light.scss';
+// @import '@/assets/styles/themes/_light.scss';
 // Local variables for reused colors
 
 
@@ -8,7 +8,7 @@ $link            : $primary;
 $info            : mix($primary, $secondary, 50%);
 $selected        : rgba($primary, .5);
 
-.suse {
+.suse-light {
   // Colors that will have text- and bg- helper classes created
   // value can also be map of default, default-text, hover-text, hover-bg, active-text,  active-bg)
   @include color-variables((

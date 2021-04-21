@@ -49,16 +49,6 @@ export default {
   watch: {
     themeSource(neu, old) {
       if (neu === 'default' && old !== 'default' && old !== '') {
-        // // revert to rancher style
-        // try {
-        //   const brandMeta = require(`~/assets/brand/${ this.brand }/metadata.json`);
-        //   const hasStylesheet = brandMeta.hasStylesheet === 'true';
-
-        //   if (hasStylesheet) {
-        //     document.body.classList.remove(this.brand);
-        //   }
-        // } catch (err) {
-        // }
         this.updateBrand(() => {}, this.brand);
 
         this.brand = '';
@@ -94,8 +84,6 @@ export default {
         if (!uiPLUpdated) {
           btnCB(false);
         }
-
-        return;
       }
       this.brandSetting.value = this.brand;
       await this.brandSetting.save();
@@ -104,7 +92,9 @@ export default {
       if (!uiPLUpdated) {
         btnCB(false);
       }
-      this.updateTheme();
+      if (!remove) {
+        this.updateTheme();
+      }
       this.errors = [];
       btnCB(true);
     },

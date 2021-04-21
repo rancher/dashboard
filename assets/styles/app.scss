@@ -15,7 +15,9 @@
 
 @import "./themes/light";
 @import "./themes/dark";
-@import './themes/suse_light.scss';
+@import './themes/_suse_light.scss';
+@import './themes/_suse_dark.scss';
+
 
 @import "./global/columns";
 @import "./global/cards";

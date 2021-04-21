@@ -1,0 +1,58 @@
+.suse-dark {
+    @extend .theme-dark;
+    $primary         : rgb(48, 186, 120);
+    $link            : $primary;
+    
+    $info            : mix($primary, $secondary, 50%);
+    $selected        : rgba($primary, .5);
+    //Contrast colors
+    $contrasted-dark: $lightest !default;
+    $contrasted-light: $darkest !default;
+  
+    // Colors that will have text- and bg- helper classes created
+    // value can also be map of default, default-text, hover-text, hover-bg, active-text,  active-bg)
+    @include color-variables(
+      (
+        default: $dark,
+        muted: $disabled,
+        link: (
+          default-text: $link,
+          hover-text: darken($link, 30%),
+          active-text: lighten($link, 25%),
+          default: transparent,
+          hover-bg: transparent,
+          active-bg: transparent,
+        ),
+        primary: $primary,
+        secondary: $secondary,
+      )
+    );
+  
+  
+  
+    --nav-active                 : #{rgba($primary, 0.3)};
+    --nav-hover                  : #{$primary};
+    --nav-expander-hover         : #{darken($primary, 20%)};
+
+  
+    --accent-btn                 : #{rgba($primary, 0.2)};
+    --accent-btn-hover           : #{rgba($primary, 0.5)};
+
+    --checkbox-ticked-bg         : #{$link};
+
+    --dropdown-text              : #{$link};
+
+    --dropdown-active-bg         : #{$selected};
+
+    --dropdown-hover-bg          : #{$link};
+
+
+  
+    --tag-primary                : #{$primary};
+    --tag-bg                     : #{rgba($primary, 0.2)};
+  
+    --tooltip-bg                 : #{darken($primary, 30%)};
+
+
+  }
+

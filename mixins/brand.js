@@ -12,19 +12,25 @@ export default {
   head() {
     const theme = this.$store.getters['prefs/theme'];
 
-    let cssClass = `theme-${ theme } overflow-hidden dashboard-body`;
+    let cssClass = `overflow-hidden dashboard-body`;
 
     const brand = this.brandSetting?.value;
+    let brandMeta;
 
     try {
-      const brandMeta = require(`~/assets/brand/${ brand }/metadata.json`);
+      brandMeta = require(`~/assets/brand/${ brand }/metadata.json`);
+    } catch {
+      return {
+        bodyAttrs: { class: `theme-${ theme } ${ cssClass }` },
+        title:     this.$store.getters['i18n/t']('nav.title'),
+      };
+    }
 
-      if (brandMeta.hasStylesheet === 'true') {
-        cssClass = `${ cssClass } ${ brand }`;
-      } else {
-        this.$store.dispatch('prefs/setBrandStyle', theme === 'dark');
-      }
-    } catch (err) {
+    if (brandMeta?.hasStylesheet === 'true') {
+      cssClass = `${ cssClass } ${ brand }-${ theme }`;
+    } else {
+      cssClass = `theme-${ theme } overflow-hidden dashboard-body`;
+      this.$store.dispatch('prefs/setBrandStyle', theme === 'dark');
     }
 
     return {
