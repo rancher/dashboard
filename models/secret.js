@@ -280,14 +280,10 @@ export default {
   // use for + n more name display
   unrepeatedSans() {
     if (this._type === TYPES.TLS ) {
-      if (this.certInfo?.sans?.filter) {
-        const commonBases = this.certInfo?.sans.filter(name => name.indexOf('*.') === 0 || name.indexOf('www.') === 0).map(name => name.substr(name.indexOf('.')));
-        const displaySans = removeObjects(this.certInfo?.sans, commonBases);
+      const commonBases = this.certInfo?.sans.filter(name => name.indexOf('*.') === 0 || name.indexOf('www.') === 0).map(name => name.substr(name.indexOf('.')));
+      const displaySans = removeObjects(this.certInfo?.sans, commonBases);
 
-        return displaySans;
-      }
-
-      return this.certInfo?.sans;
+      return displaySans;
     }
   },
 

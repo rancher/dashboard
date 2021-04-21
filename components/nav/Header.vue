@@ -1,7 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
 import { NORMAN } from '@/config/types';
-import { NAME as EXPLORER } from '@/config/product/explorer';
 import { ucFirst } from '@/utils/string';
 import Import from '@/components/Import';
 import NamespaceFilter from './NamespaceFilter';
@@ -58,9 +57,8 @@ export default {
     },
 
     showSearch() {
-      return this.currentProduct?.name === EXPLORER;
+      return this.currentProduct?.inStore === 'cluster';
     },
-
   },
 
   methods: {
@@ -366,10 +364,6 @@ export default {
     > * {
       background-color: var(--header-bg);
       border-bottom: var(--header-border-size) solid var(--header-border);
-    }
-
-    > .resource-search {
-      grid-area: search;
     }
 
     .header-btn {
