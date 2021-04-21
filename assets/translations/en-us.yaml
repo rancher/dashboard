@@ -3462,7 +3462,9 @@ workload:
     subdomain:
       label: Subdomain
       placeholder: e.g. web
-
+  validation:
+    containers: Containers
+    containerImage: Container {name} - "Container Image" is required.
   replicas: Replicas
   showTabs: 'Show Advanced Options'
   scheduling:

@@ -525,17 +525,6 @@ export default {
       if (this.container && !this.container.name) {
         this.$set(this.container, 'name', this.value.metadata.name);
       }
-      if (this.container) {
-        let existing;
-
-        if (this.isInitContainer) {
-          existing = this.podTemplateSpec.initContainers.find(container => container._active);
-        } else {
-          existing = this.podTemplateSpec.containers.find(container => container._active);
-        }
-
-        Object.assign(existing, this.container);
-      }
 
       const ports = this.value.containers.reduce((total, each) => {
         const containerPorts = each.ports || [];

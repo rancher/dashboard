@@ -1,18 +1,24 @@
+import { get } from '@/utils/object';
+
 export function containerImages(spec, getters, errors) {
-  let container;
+  let podSpec;
 
   if (spec.jobTemplate) {
     // cronjob pod template is nested slightly different than other types
-    const { jobTemplate: { spec: { template: { spec: { containers = [] } } } } } = spec;
-
-    container = containers[0] || {};
+    podSpec = get(spec, 'jobTemplate.spec.template.spec');
   } else {
-    const { template:{ spec:{ containers = [] } } } = spec;
-
-    container = containers[0] || {};
+    podSpec = get(spec, 'template.spec');
   }
 
-  if (!container.image) {
-    errors.push(getters['i18n/t']('validation.required', { key: getters['i18n/t']('workload.container.image') }));
+  if (!podSpec.containers || !podSpec.containers.length) {
+    errors.push(getters['i18n/t']('validation.required', { key: getters['i18n/t']('workload.container.titles.containers') }));
+
+    return;
   }
+
+  podSpec.containers.forEach((container) => {
+    if (container && !container.image) {
+      errors.push(getters['i18n/t']('workload.validation.containerImage', { name: container.name }));
+    }
+  });
 }
