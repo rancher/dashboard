@@ -198,7 +198,7 @@ export default {
             const group = {
               name:     productId,
               label:    this.$store.getters['i18n/withFallback'](`product.${ productId }`, null, ucFirst(productId)),
-              children: [...(root ? root.children : []), ...other],
+              children: [...(root?.children || []), ...other],
             };
 
             addObject(out, group);
