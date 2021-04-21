@@ -156,6 +156,9 @@ export default {
     doneLocationOverride() {
       return this.value.listLocation;
     },
+    ruleClass() {
+      return `col ${ this.isNamespaced ? 'span-4' : 'span-3' }`;
+    },
     // Detail View
     rules() {
       return this.createRules(this.value);
@@ -374,23 +377,29 @@ export default {
           >
             <template #column-headers>
               <div class="column-headers row">
-                <div class="col span-3">
-                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.verbs') }}</label>
+                <div :class="ruleClass">
+                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.verbs') }}
+                    <span class="required">*</span>
+                  </label>
                 </div>
-                <div class="col span-3">
-                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}</label>
+                <div :class="ruleClass">
+                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}
+                    <span v-if="isNamespaced" class="required">*</span>
+                  </label>
                 </div>
-                <div class="col span-3">
+                <div v-if="!isNamespaced" :class="ruleClass">
                   <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.nonResourceUrls') }}</label>
                 </div>
-                <div class="col span-3">
-                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}</label>
+                <div :class="ruleClass">
+                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}
+                    <span v-if="isNamespaced" class="required">*</span>
+                  </label>
                 </div>
               </div>
             </template>
             <template #columns="props">
               <div class="columns row">
-                <div class="col span-3">
+                <div :class="ruleClass">
                   <Select
                     :value="props.row.value.verbs"
                     class="lg"
@@ -402,7 +411,7 @@ export default {
                     @input="updateSelectValue(props.row.value, 'verbs', $event)"
                   />
                 </div>
-                <div class="col span-3">
+                <div :class="ruleClass">
                   <Select
                     :value="getRule('resources', props.row.value)"
                     :options="resourceOptions"
@@ -412,14 +421,14 @@ export default {
                     @input="setRule('resources', props.row.value, $event)"
                   />
                 </div>
-                <div class="col span-3">
+                <div v-if="!isNamespaced" :class="ruleClass">
                   <LabeledInput
                     :value="getRule('nonResourceURLs', props.row.value)"
                     :mode="mode"
                     @input="setRule('nonResourceURLs', props.row.value, $event)"
                   />
                 </div>
-                <div class="col span-3">
+                <div :class="ruleClass">
                   <LabeledInput
                     :value="getRule('apiGroups', props.row.value)"
                     :mode="mode"
@@ -466,6 +475,10 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .required {
+    color: var(--error);
+  }
+
   ::v-deep {
     .column-headers {
       margin-right: 75px;
