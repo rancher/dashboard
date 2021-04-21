@@ -133,7 +133,7 @@ export default {
     let icon;
 
     try {
-      icon = require(`~/assets/images/providers/provider-${ prv }.svg`);
+      icon = require(`~/assets/images/providers/${ prv }.svg`);
     } catch (e) {
       console.warn(`Can not find provider logo for provider ${ logo }`); // eslint-disable-line no-console
       // Use fallback generic Kubernetes icon
