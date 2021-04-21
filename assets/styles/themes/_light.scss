@@ -146,7 +146,8 @@ $selected: rgba($primary, .5);
   --sortable-table-accent-alt  : #{$lightest};
   --sortable-table-top-divider : var(--border);
   --sortable-table-body-divider : #{$medium};
-  --sortable-table-selected-bg : #{rgba($warning, 0.1)};
+  --sortable-table-hover-bg : #{$lighter};
+  --sortable-table-selected-bg : #{rgba($primary, 0.02)};
   --sortable-table-group-label : #{$secondary};
 
   --tag-primary                : #{$primary};

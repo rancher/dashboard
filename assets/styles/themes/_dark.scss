@@ -120,11 +120,12 @@
   --progress-bg: #{$medium};
   --progress-divider: #{$lightest};
 
-  --sortable-table-header-bg: transparent;
-  --sortable-table-accent-bg: #18181D;
+  --sortable-table-header-bg: #{$darkest};
+  --sortable-table-accent-bg: #{$darker};
   --sortable-table-accent-alt: #{$dark};
   --sortable-table-top-divider: var(--border);
-  --sortable-table-selected-bg: #{rgba($warning, 0.1)};
+  --sortable-table-hover-bg : #{$darkest};
+  --sortable-table-selected-bg: #{rgba($primary, 0.3)};
   --sortable-table-group-label: #{$lighter};
 
   --tag-primary: #{$primary};
