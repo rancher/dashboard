@@ -192,7 +192,7 @@ export default {
             const group = {
               name:     productId,
               label:    this.$store.getters['i18n/withFallback'](`product.${ productId }`, null, ucFirst(productId)),
-              children: [...(root.children), ...other],
+              children: [...(root ? root.children : []), ...other],
             };
 
             addObject(out, group);
@@ -269,32 +269,31 @@ export default {
   <div v-if="managementReady" class="dashboard-root">
     <Header />
 
-    <nav v-if="clusterReady">
-      <Jump v-if="isExplorer" class="m-10" />
-      <div v-else class="mb-20" />
+    <nav v-if="clusterReady" class="side-nav">
+      <div class="nav">
 
-      <template v-for="(g, idx) in groups">
-        <Group
-          ref="groups"
-          :key="idx"
-          id-prefix=""
-          class="package"
-          :expanded="expanded"
-          :group="g"
-          :can-collapse="!g.isRoot"
-          :show-header="!g.isRoot"
-          @on-toggle="toggle"
-        >
-          <template #header>
-            <h6>{{ g.label }}</h6>
-          </template>
-        </Group>
-      </template>
+        <template v-for="(g, idx) in groups">
+          <Group
+            ref="groups"
+            :key="idx"
+            id-prefix=""
+            class="package"
+            :expanded="expanded"
+            :group="g"
+            :can-collapse="!g.isRoot"
+            :show-header="!g.isRoot"
+            @on-toggle="toggle"
+          >
+            <template #header>
+              <h6>{{ g.label }}</h6>
+            </template>
+          </Group>
+        </template>
+      </div>
+      <n-link tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools'}">
+        <a>{{ t('nav.clusterTools') }}</a>
+      </n-link>
     </nav>
-
-    <n-link tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools'}">
-      <a><i class="icon icon-marketplace" /> {{ t('nav.clusterTools') }}</a>
-    </n-link>
 
     <main v-if="clusterReady">
       <nuxt class="outlet" />
@@ -313,7 +312,16 @@ export default {
     </div>
   </div>
 </template>
-
+<style lang="scss" scoped>
+  .side-nav {
+    display: flex;
+    flex-direction: column;
+    .nav {
+      flex: 1;
+      overflow-y: auto;
+    }
+  }
+</style>
 <style lang="scss">
   .dashboard-root {
     display: grid;
@@ -322,11 +330,10 @@ export default {
     grid-template-areas:
       "header  header"
       "nav      main"
-      "tools    main"
       "wm       wm";
 
     grid-template-columns: var(--nav-width)     auto;
-    grid-template-rows:    var(--header-height) auto 50px var(--wm-height, 0px);
+    grid-template-rows:    var(--header-height) auto  var(--wm-height, 0px);
 
     > HEADER {
       grid-area: header;
@@ -339,29 +346,6 @@ export default {
       border-right: var(--nav-border-size) solid var(--nav-border);
       overflow-y: auto;
 
-      .package {
-        border-top: 1px solid var(--border);
-
-        &:last-child {
-          border-bottom: 1px solid var(--border);
-        }
-      }
-
-      .package.depth-0 {
-        &.expanded > .body {
-          margin-bottom: 5px;
-        }
-      }
-
-      .header {
-        background: transparent;
-        padding-left: 10px;
-
-        &:hover {
-          background-color: #e6e6e6;
-        }
-      }
-
       H6, .root.child .label {
         margin: 0;
         letter-spacing: normal;
@@ -371,38 +355,23 @@ export default {
       }
     }
 
-    > .tools {
-      grid-area: tools;
-      border-top: solid thin var(--border);
-      font-size: 1.25em;
-      position: relative;
-
+    NAV .tools {
+      display: flex;
+      margin-bottom: 10px;
       A {
-        padding: 15px 10px;
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
+        color: var(--body-text);
+        outline: 0;
+        flex: 1;
+        padding: 10px;
 
         &:hover {
-          background: var(--dropdown-hover-bg);
+          background: var(--nav-hover);
           text-decoration: none;
-
-          ::v-deep .icon {
-            color: var(--body-text);
-          }
         }
       }
 
       &.nuxt-link-active {
         background-color: var(--nav-active);
-        border-left: solid 5px var(--primary);
-
-        A {
-          padding: 15px 5px;
-          color: var(--body-text);
-        }
       }
     }
   }

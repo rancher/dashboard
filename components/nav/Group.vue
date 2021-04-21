@@ -67,7 +67,7 @@ export default {
     isOverview() {
       if (this.group.children && this.group.children.length > 0) {
         const grp = this.group.children[0];
-        const overviewRoute = grp.route;
+        const overviewRoute = grp?.route;
 
         if (overviewRoute && grp.overview) {
           const route = this.$router.resolve(overviewRoute || {});
@@ -137,9 +137,12 @@ export default {
         if (this.isExpanded && !skipAutoClose) {
           const items = this.group[this.childrenKey];
           // Navigate to the first item in the group
-          const route = items[0].route;
+          if (items && items.length > 0) {
+            const route = items[0].route;
 
-          this.$router.replace(route);
+            this.$router.replace(route);
+          }
+          this.isExpanded = false;
         }
       } else {
         this.$emit('on-toggle', this.id, true);
@@ -224,7 +227,7 @@ export default {
         }
 
         > H6 {
-          font-size: 17px;
+          font-size: 14px;
           text-transform: none;
           padding-left: 10px;
         }
