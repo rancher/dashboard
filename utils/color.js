@@ -1,6 +1,9 @@
 import { isArray } from '@/utils/array';
 
-// https://css-tricks.com/converting-color-spaces-in-javascript/
+/*
+RGB/HSL conversion functions are borrowed from CSS-Tricks (visited 4/14/21)
+https://css-tricks.com/converting-color-spaces-in-javascript/
+*/
 export function RGBToHSL(r, g, b) {
   // Make r, g, and b fractions of 1
   r = r / 255;
