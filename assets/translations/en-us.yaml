@@ -1648,12 +1648,12 @@ monitoringReceiver:
     label: Webhook
     title: Webhook Config
     urlTooltip: For some webhooks this a url that points to the service DNS
-    modifyNamespace: If <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-drivers</pre> was installed in a non-default namespace you'll need to update the namespace in the url below.
-    banner: To use MS Teams or Alibaba Cloud SMS you will need to have <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-drivers</pre> installed first.
+    modifyNamespace: If <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-drivers</pre> default values were changed, please update the url below in the format http://&lt;new_service_name&gt;.&lt;new_namespace&gt.svc.&lt;port&gt/&lt;path&gt
+    banner: To use MS Teams or SMS you will need to have <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-drivers</pre> installed first.
     add:
       generic: Generic
       msTeams: MS Teams
-      alibabaCloudSms: Alibaba Cloud SMS
+      alibabaCloudSms: SMS
   auth:
     label: Auth
     authType: Auth Type
@@ -2221,6 +2221,11 @@ promptRemove:
   attemptingToRemove: "You are attempting to delete the {type}"
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
   confirmName: "Enter <b>{nameToMatch}</b> below to confirm:"
+
+rancherAlertingDrivers:
+  msTeams: Enable Microsoft Teams
+  sms: Enable SMS
+  selectOne: You must select at least one of the options below.
 
 rbac:
   roleBinding:
