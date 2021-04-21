@@ -404,7 +404,7 @@ export default {
               :class="{'conceal': valueConcealed}"
               :mode="mode"
               :placeholder="valuePlaceholder"
-              :min-height="54"
+              :min-height="61"
               :spellcheck="false"
               @input="queueUpdate"
             />
@@ -478,6 +478,10 @@ export default {
       margin: 10px 0px 10px 0px;
       &.key {
         align-self: flex-start;
+      }
+
+      &.value textarea{
+        padding: 21px 10px 10px 10px;
       }
 
       .text-monospace:not(.conceal) {
