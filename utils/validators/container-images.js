@@ -9,7 +9,8 @@ export function containerImages(spec, getters, errors) {
   } else {
     podSpec = get(spec, 'template.spec');
   }
-  if (!podSpec.containers) {
+
+  if (!podSpec.containers || !podSpec.containers.length) {
     errors.push(getters['i18n/t']('validation.required', { key: getters['i18n/t']('workload.container.containers') }));
 
     return;
