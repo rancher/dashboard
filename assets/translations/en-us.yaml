@@ -97,7 +97,7 @@ nav:
   apps: Apps
   categories:
     explore: Explore Cluster
-    multiCluster: Mutli-Cluster
+    multiCluster: Global Apps
     configuration: Configuration
   search:
     placeholder: Type to search clusters

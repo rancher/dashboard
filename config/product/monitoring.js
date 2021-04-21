@@ -5,11 +5,12 @@ import {
 } from '@/config/table-headers';
 import { getAllReceivers, getAllRoutes } from '@/utils/alertmanagerconfig';
 
-export const NAME = 'explorer';
+export const NAME = 'monitoring';
 export const CHART_NAME = 'rancher-monitoring';
 
 export function init(store) {
   const {
+    product,
     basicType,
     headers,
     mapType,
@@ -30,10 +31,10 @@ export function init(store) {
     }
   } = MONITORING;
 
-  // product({
-  //   ifHaveType: PODMONITOR, // possible RBAC issue here if mon turned on but user doesn't have view/read roles on pod monitors
-  //   icon:       'monitoring'
-  // });
+  product({
+    ifHaveType: PODMONITOR, // possible RBAC issue here if mon turned on but user doesn't have view/read roles on pod monitors
+    icon:       'monitoring'
+  });
 
   virtualType({
     label:      'Monitoring',

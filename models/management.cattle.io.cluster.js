@@ -74,7 +74,13 @@ export default {
   },
 
   isReady() {
-    return this.hasCondition('Ready');
+    // If the Connected condition exists, use that
+    if ( this.isCondition('Connected', null) ) {
+      return this.isCondition('Connected', 'True');
+    }
+
+    // Otherwise use Ready
+    return this.isCondition('Ready', 'True');
   },
 
   kubernetesVersion() {

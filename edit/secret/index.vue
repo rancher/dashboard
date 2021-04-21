@@ -13,6 +13,7 @@ import { CAPI } from '@/config/labels-annotations';
 import { clear } from '@/utils/array';
 import { importCloudCredential } from '@/utils/dynamic-importer';
 import { NAME as MANAGER } from '@/config/product/manager';
+import SelectIconGrid from '@/components/SelectIconGrid';
 
 const creatableTypes = [
   TYPES.OPAQUE,
@@ -30,7 +31,8 @@ export default {
     CruResource,
     Tabbed,
     Tab,
-    Labels
+    Labels,
+    SelectIconGrid
   },
 
   mixins: [CreateEditView],
@@ -84,20 +86,29 @@ export default {
       // Cloud credentials
       if ( this.isCloud ) {
         for ( const id of this.$store.getters['plugins/credentialDrivers'] ) {
-          const label = this.$store.getters['i18n/withFallback'](`cluster.provider."${ id }"`, id);
-          const bannerAbbrv = label.replace(/[^A-Z]/g, '') || label.substr(0, 4);
+          let bannerImage, bannerAbbrv;
+
+          try {
+            bannerImage = require(`~/assets/images/providers/${ id }.svg`);
+          } catch (e) {
+            bannerImage = null;
+            bannerAbbrv = this.initialDisplayFor(id);
+          }
 
           out.push({
-            id, label, bannerAbbrv
+            id,
+            label: this.typeDisplay(CAPI.CREDENTIAL_DRIVER, id),
+            bannerImage,
+            bannerAbbrv
           });
         }
       } else {
         // Other kinds
-        for ( const type of creatableTypes ) {
+        for ( const id of creatableTypes ) {
           out.push({
-            id:          type,
-            label:       this.typeDisplay(type),
-            bannerAbbrv: this.initialDisplayFor(type)
+            id,
+            label:       this.typeDisplay(id),
+            bannerAbbrv: this.initialDisplayFor(id)
           });
         }
       }
@@ -168,22 +179,29 @@ export default {
     },
 
     selectType(type) {
+      let driver;
+
       if ( this.isCloud ) {
-        this.$set(this.value, '_type', TYPES.CLOUD_CREDENTIAL);
+        driver = type;
+        type = TYPES.CLOUD_CREDENTIAL;
+
         if ( this.mode === _CREATE ) {
-          this.value.setAnnotation(CAPI.CREDENTIAL_DRIVER, type);
+          this.value.setAnnotation(CAPI.CREDENTIAL_DRIVER, driver);
         }
-      } else {
-        this.$set(this.value, '_type', type);
       }
 
-      this.$emit('set-subtype', this.typeDisplay(type));
+      this.$set(this.value, '_type', type);
+      this.$emit('set-subtype', this.typeDisplay(type, driver));
     },
 
-    typeDisplay(type) {
-      const fallback = type.replace(/^kubernetes.io\//, '');
+    typeDisplay(type, driver) {
+      if ( type === CAPI.CREDENTIAL_DRIVER ) {
+        return this.$store.getters['i18n/withFallback'](`cluster.provider."${ driver }"`, null, driver);
+      } else {
+        const fallback = type.replace(/^kubernetes.io\//, '');
 
-      return this.$store.getters['i18n/withFallback'](`secret.types."${ type }"`, null, fallback);
+        return this.$store.getters['i18n/withFallback'](`secret.types."${ type }"`, null, fallback);
+      }
     },
 
     initialDisplayFor(type) {

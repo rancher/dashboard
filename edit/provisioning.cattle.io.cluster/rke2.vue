@@ -7,7 +7,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import BadgeState from '@/components/BadgeState';
 import Tab from '@/components/Tabbed/Tab';
-import { MANAGEMENT, SECRET } from '@/config/types';
+import { SECRET } from '@/config/types';
 import { nlToBr } from '@/utils/string';
 import { clone, set } from '@/utils/object';
 import { sortable } from '@/utils/version';
@@ -51,17 +51,17 @@ export default {
   },
 
   async fetch() {
-    const setting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'k8s-version-to-images' });
-
     this.allSecrets = await this.$store.dispatch('management/findAll', { type: SECRET });
-    this.versions = Object.keys(JSON.parse(setting.value));
+
+    this.rke2Versions = (await this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' })).data;
+    this.k3sVersions = (await this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' })).data;
 
     if ( !this.value.spec ) {
       set(this.value, 'spec', {});
     }
 
     if ( !this.value.spec.kubernetesVersion ) {
-      set(this.value.spec, 'kubernetesVersion', this.versionOptions[0].value);
+      set(this.value.spec, 'kubernetesVersion', this.versionOptions.find(x => !!x.value).value);
     }
 
     if ( !this.value.spec.rkeConfig ) {
@@ -82,28 +82,55 @@ export default {
       credentialId:   null,
       credential:     null,
       nodePools:      null,
+      rke2Versions:  null,
+      k3sVersions:   null,
     };
   },
 
   computed: {
     versionOptions() {
-      try {
-        const out = sortBy((this.versions || []).map((v) => {
+      function filterAndMap(versions) {
+        const out = (versions || []).filter(obj => !!obj.serverArgs).map((obj) => {
           return {
-            label: v,
-            value: v,
-            sort:  sortable(v)
+            label:      obj.id,
+            value:      obj.id,
+            sort:       sortable(obj.id),
+            serverArgs: obj.serverArgs,
+            agentArgs:  obj.agentArgs,
           };
-        }), 'sort:desc');
+        });
 
-        // @TODO add existing version on edit if it's missing
-
-        return out;
-      } catch (err) {
-        this.$store.dispatch('growl/fromError', { err });
-
-        return [];
+        return sortBy(out, 'sort:desc');
       }
+
+      const rke2 = filterAndMap(this.rke2Versions);
+      const k3s = filterAndMap(this.k3sVersions);
+      const cur = this.value?.spec?.kubernetesVersion;
+      const out = [];
+
+      if ( cur ) {
+        let existing = rke2.find(x => x.value === cur);
+
+        if ( !existing ) {
+          existing = k3s.find(x => x.value === cur);
+        }
+
+        if ( !existing ) {
+          out.push({ label: `${ cur } (current)`, value: cur });
+        }
+      }
+
+      if ( rke2.length ) {
+        out.push({ kind: 'group', label: this.t('cluster.provider.rke2') });
+        out.push(...rke2);
+      }
+
+      if ( k3s.length ) {
+        out.push({ kind: 'group', label: this.t('cluster.provider.k3s') });
+        out.push(...k3s);
+      }
+
+      return out;
     },
 
     needCredential() {

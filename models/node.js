@@ -165,19 +165,19 @@ export default {
   },
 
   isPidPressureOk() {
-    return this.hasCondition('PIDPressure', 'False');
+    return this.isCondition('PIDPressure', 'False');
   },
 
   isDiskPressureOk() {
-    return this.hasCondition('DiskPressure', 'False');
+    return this.isCondition('DiskPressure', 'False');
   },
 
   isMemoryPressureOk() {
-    return this.hasCondition('MemoryPressure', 'False');
+    return this.isCondition('MemoryPressure', 'False');
   },
 
   isKubeletOk() {
-    return this.hasCondition('Ready');
+    return this.isCondition('Ready');
   },
 
   isCordoned() {

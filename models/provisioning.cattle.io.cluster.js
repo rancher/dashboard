@@ -23,7 +23,7 @@ export default {
     return out;
   },
 
-  isRancher() {
+  isRke2() {
     return !!this.spec?.rkeConfig;
   },
 
@@ -40,7 +40,7 @@ export default {
   },
 
   provisioner() {
-    if ( this.isRancher ) {
+    if ( this.isRke2 ) {
       const allKeys = Object.keys(this.spec);
       const configKey = allKeys.find( k => k.endsWith('Config'));
 
@@ -57,7 +57,12 @@ export default {
   },
 
   provisionerDisplay() {
-    const provisioner = (this.provisioner || '').toLowerCase();
+    let provisioner = (this.provisioner || '').toLowerCase();
+
+    // RKE provisioner can actually do K3s too...
+    if ( provisioner === 'rke2' && this.spec.kubernetesVersion.includes('k3s') ) {
+      provisioner = 'k3s';
+    }
 
     return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provisioner }"`, null, 'generic.unknown', true);
   },
@@ -65,7 +70,7 @@ export default {
   kubernetesVersion() {
     const unknown = this.$rootGetters['i18n/t']('generic.unknown');
 
-    if ( this.isRancher ) {
+    if ( this.isRke2 ) {
       const fromStatus = this.status?.version?.gitVersion;
       const fromSpec = this.spec?.kubernetesVersion;
 
@@ -78,7 +83,7 @@ export default {
   },
 
   nodeProvider() {
-    if ( this.isRancher ) {
+    if ( this.isRke2 ) {
       const kind = this.spec?.rkeConfig?.nodePools?.[0]?.nodeConfig?.kind;
 
       if ( kind ) {
@@ -98,7 +103,7 @@ export default {
   },
 
   displayName() {
-    if ( this.mgmt && !this.isRancher ) {
+    if ( this.mgmt && !this.isRke2 ) {
       return this.mgmt.spec.displayName;
     }
   },

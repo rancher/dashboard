@@ -168,7 +168,7 @@ export const actions = {
     const headers = { Accept: 'application/json' };
 
     if ( credentialId ) {
-      headers['x-api-cattleauth-header'] = `Bearer credID=${ credentialId.replace('/', ':') } passwordField=accessToken`;
+      headers['x-api-cattleauth-header'] = `Bearer credID=${ credentialId } passwordField=accessToken`;
     } else if ( token ) {
       headers['x-api-auth-header'] = `Bearer ${ token }`;
     }

@@ -21,7 +21,6 @@ export function init(store) {
     inStore:             'management',
     icon:                'globe',
     removable:           false,
-    public:              false, // Hide from regular view during development
     showClusterSwitcher: false,
   });
 

@@ -60,8 +60,16 @@ export default {
       type:    Boolean
     },
     selectable: {
-      default: undefined,
-      type:    Function
+      default: (opt) => {
+        if ( opt ) {
+          if ( opt.disabled || opt.kind === 'group' || opt.kind === 'divider' ) {
+            return false;
+          }
+        }
+
+        return true;
+      },
+      type: Function
     },
     status: {
       default: null,
@@ -251,7 +259,13 @@ export default {
       @open="resizeHandler"
     >
       <template #option="option">
-        <div @mousedown="(e) => onClickOption(option, e)">
+        <template v-if="option.kind === 'group'">
+          <b>{{ getOptionLabel(option) }}</b>
+        </template>
+        <template v-else-if="option.kind === 'divider'">
+          <hr />
+        </template>
+        <div v-else @mousedown="(e) => onClickOption(option, e)">
           {{ getOptionLabel(option) }}
         </div>
       </template>

@@ -18,5 +18,5 @@ export default {
 </script>
 
 <template>
-  <div>This is Fleet.</div>
+  <div>This is Cluster Manager.</div>
 </template>
