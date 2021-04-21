@@ -140,6 +140,12 @@ export default {
   },
 
   methods: {
+    collapseAll() {
+      this.$refs.groups.forEach((grp) => {
+        grp.isExpanded = false;
+      });
+    },
+
     getGroups() {
       if ( !this.clusterReady ) {
         clear(this.groups);
@@ -271,7 +277,6 @@ export default {
 
     <nav v-if="clusterReady" class="side-nav">
       <div class="nav">
-
         <template v-for="(g, idx) in groups">
           <Group
             ref="groups"
@@ -291,7 +296,7 @@ export default {
         </template>
       </div>
       <n-link tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools'}">
-        <a>{{ t('nav.clusterTools') }}</a>
+        <a @click="collapseAll()">{{ t('nav.clusterTools') }}</a>
       </n-link>
     </nav>
 

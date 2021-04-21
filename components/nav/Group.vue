@@ -136,13 +136,13 @@ export default {
 
         if (this.isExpanded && !skipAutoClose) {
           const items = this.group[this.childrenKey];
+
           // Navigate to the first item in the group
           if (items && items.length > 0) {
             const route = items[0].route;
 
             this.$router.replace(route);
           }
-          this.isExpanded = false;
         }
       } else {
         this.$emit('on-toggle', this.id, true);
