@@ -1,9 +1,12 @@
 <script>
+import BrandImage from '@/components/BrandImage';
 import { mapState } from 'vuex';
 import { stringify } from '@/utils/error';
 
 export default {
   layout: 'home',
+
+  components: { BrandImage },
 
   data() {
     const home = this.$router.resolve({ name: 'home' }).href;
@@ -32,7 +35,7 @@ export default {
   <div v-if="error">
     <main class="error">
       <div class="text-center">
-        <img src="~/assets/images/pl/error-desert-landscape.svg" width="900" height="300" />
+        <BrandImage file-name="error-desert-landscape.svg" width="900" height="300" />
         <h1 v-if="error.status">
           HTTP Error {{ error.status }}: {{ error.statusText }}
         </h1>

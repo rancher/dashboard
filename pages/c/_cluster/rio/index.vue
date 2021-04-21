@@ -1,12 +1,13 @@
 <script>
 import demos from '@/config/demos';
 import Card from '@/components/Card';
+import BrandImage from '@/components/BrandImage';
 import { DEMO } from '@/config/query-params';
 import InstallRedirect from '@/utils/install-redirect';
 import { NAME, CHART_NAME } from '@/config/product/rio';
 
 export default {
-  components: { Card },
+  components: { Card, BrandImage },
   middleware: InstallRedirect(NAME, CHART_NAME),
 
   data() {
@@ -51,7 +52,7 @@ export default {
         </div>
       </div>
       <div class="col span-4">
-        <img src="~/assets/images/pl/setup-step-one.svg" alt="landscape" />
+        <BrandImage file-name="setup-step-one.svg" alt="landscape" />
       </div>
     </div>
   </div>

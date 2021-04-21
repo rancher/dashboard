@@ -444,7 +444,7 @@ export const actions = {
               const hslPrimary = RGBToHSL(...parseColorString(rgbPrimaryString));
               const colorVars = colorVariables( {
                 primary: hslPrimary,
-                /* link:    { default: hslPrimary, text: hslPrimary } */
+                link:    { default: hslPrimary, text: hslPrimary }
               }, dark);
 
               for (const cssVar in colorVars) {

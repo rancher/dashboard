@@ -1,4 +1,5 @@
 <script>
+import BrandImage from '@/components/BrandImage';
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
 import { mapPref, DEV } from '@/store/prefs';
@@ -14,7 +15,7 @@ const MAX_CLUSTERS_TO_SHOW = 4;
 
 export default {
 
-  components: {},
+  components: { BrandImage },
 
   data() {
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
@@ -167,7 +168,7 @@ export default {
       <div v-if="shown" class="side-menu" tabindex="-1">
         <div class="title">
           <div class="menu-spacer"></div>
-          <img class="side-menu-logo" src="~/assets/images/pl/rancher-logo.svg" width="110" />
+          <BrandImage class="side-menu-logo" file-name="rancher-logo.svg" width="110" />
         </div>
         <div class="body">
           <div @click="hide()">

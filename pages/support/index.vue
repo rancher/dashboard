@@ -1,20 +1,48 @@
 <script>
 import { options } from '@/config/footer';
 import BannerGraphic from '@/components/BannerGraphic';
+import AsyncButton from '@/components/AsyncButton';
 import IndentedPanel from '@/components/IndentedPanel';
+import { MANAGEMENT } from '@/config/types';
 
 export default {
   layout: 'home',
 
   components: {
     BannerGraphic,
-    IndentedPanel
+    IndentedPanel,
+    AsyncButton,
+  },
+
+  async fetch() {
+    const fetchOrCreateSetting = async(id, val) => {
+      let setting;
+
+      try {
+        setting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id });
+      } catch {
+        const schema = this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING);
+        const url = schema.linkFor('collection');
+
+        setting = await this.$store.dispatch('management/create', {
+          type: MANAGEMENT.SETTING, metadata: { name: id }, value: val, default: val
+        });
+        setting.save({ url });
+      }
+
+      return setting;
+    };
+
+    this.supportSetting = await fetchOrCreateSetting('has-support', 'false');
+    this.brandSetting = await fetchOrCreateSetting('brand', '');
   },
 
   data() {
     return {
-      hasSupport: false,
-      promos:     [
+      supportKey:     null,
+      supportSetting: null,
+      brandSetting:   null,
+      promos:         [
         'support.promos.one',
         'support.promos.two',
         'support.promos.three',
@@ -29,33 +57,59 @@ export default {
       return 'rancher';
     },
 
+    hasSupport() {
+      return this.supportSetting?.value && this.supportSetting?.value !== 'false';
+    },
+
     options() {
       return options(this.pl);
     },
 
     title() {
       return this.hasSupport ? 'support.suse.title' : 'support.community.title';
+    },
+
+    brandLink() {
+      const cluster = this.$store.getters['currentCluster'];
+
+      return {
+        name:   'c-cluster-settings-brand',
+        params: { cluster: cluster?.id }
+      };
     }
   },
 
   methods: {
-    addSubscription() {
-      this.hasSupport = true;
-    }
+    async addSubscription(done) {
+      try {
+        this.supportSetting.value = 'true';
+        this.brandSetting.value = 'suse';
+        await Promise.all([this.supportSetting.save(), this.brandSetting.save()]);
+        done(true);
+      } catch {
+        done(false);
+      }
+    },
   }
 };
 </script>
 <template>
   <div>
-    <BannerGraphic :title="t(title)" />
+    <BannerGraphic :title="t(title, {}, true)" />
+
     <IndentedPanel v-if="!hasSupport">
       <div class="content mt-20">
         <div class="promo">
-          <div class="register hide">
-            <div>{{ t('support.community.register') }}</div>
-            <button class="btn add" @click="addSubscription()">
+          <div class="register row">
+            <div class="col">
+              {{ t('support.community.register') }}
+            </div>
+            <div class="col span-3">
+              <input v-model="supportKey" />
+            </div>
+            <AsyncButton size="sm" @click="addSubscription">
               {{ t('support.community.addSubscription') }}
-            </button>
+            </AsyncButton>
           </div>
           <div class="boxes">
             <div v-for="key in promos" :key="key" class="box">
@@ -78,7 +132,12 @@ export default {
       </div>
     </IndentedPanel>
     <IndentedPanel v-else>
-      {{ t('support.suse.title') }}
+      <div class="row mb-20">
+        {{ t('support.suse.title', {}, true) }}
+      </div>
+      <n-link :to="brandLink">
+        {{ t('support.suse.editBrand') }}
+      </n-link>
     </IndentedPanel>
   </div>
 </template>
