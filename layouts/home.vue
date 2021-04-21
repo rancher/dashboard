@@ -6,12 +6,14 @@ export default {
   components: { Header },
 
   middleware: ['authenticated'],
-
   data() {
     return {
       // Assume home pages have routes where the name is the key to use for string lookup
       name: this.$route.name
     };
+  },
+  mounted() {
+    this.$store.dispatch('prefs/setBrand');
   },
 
   head() {
