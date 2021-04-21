@@ -1,4 +1,5 @@
 {
     "ui-pl": "SUSE Rancher",
-    "primary": "rgb(48, 186, 120)"
+    "primary": "rgb(48, 186, 120)",
+    "hasStylesheet": "true"
 }

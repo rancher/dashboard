@@ -1,17 +1,10 @@
 <script>
+import Brand from '@/mixins/brand';
+
 export default {
   middleware: ['authenticated'],
-  mounted() {
-    this.$store.dispatch('prefs/setBrand');
-  },
-  head() {
-    const theme = this.$store.getters['prefs/theme'];
+  mixins:     [Brand],
 
-    return {
-      bodyAttrs: { class: `theme-${ theme } dashboard-body` },
-      title:     this.$store.getters['i18n/t']('nav.title'),
-    };
-  },
 };
 </script>
 

@@ -267,7 +267,7 @@ export const actions = {
 
   async setTheme({ dispatch }, val) {
     await dispatch('set', { key: THEME, value: val });
-    dispatch('setBrand', val === 'dark');
+    dispatch('setBrandStyle', val === 'dark');
   },
 
   loadCookies({ state, commit }) {
@@ -337,7 +337,7 @@ export const actions = {
     function changed(value) {
       // console.log('Prefers Theme:', value);
       dispatch('set', { key: PREFERS_SCHEME, value });
-      dispatch('setBrand', value);
+      dispatch('setBrandStyle', value);
     }
 
     function fromClock() {
@@ -418,26 +418,20 @@ export const actions = {
     return dispatch('set', { key: THEME, value });
   },
 
-  setBrand({ rootState, rootGetters }, dark = false) {
+  setBrandStyle({ rootState, rootGetters }, dark = false) {
     if (rootState.managementReady) {
       try {
         const brandSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, 'brand');
 
-        if (brandSetting) {
-          if (!brandSetting.value || brandSetting.value === '') {
-            const colorVars = colorVariables( {
-              primary: [0, 0, 0],
-              link:    { default: [0, 0, 0], text: [0, 0, 0] }
-            }, dark);
+        if (brandSetting && brandSetting.value && brandSetting.value !== '') {
+          const brand = brandSetting.value;
 
-            for (const cssVar in colorVars) {
-              document.body.style.removeProperty(cssVar);
-            }
+          const brandMeta = require(`~/assets/brand/${ brand }/metadata.json`);
+          const hasStylesheet = brandMeta.hasStylesheet === 'true';
+
+          if (hasStylesheet) {
+            document.body.classList.add(brand);
           } else {
-            const brand = brandSetting.value;
-
-            const brandMeta = require(`~/assets/brand/${ brand }/metadata.json`);
-
             const rgbPrimaryString = brandMeta.primary;
 
             if (rgbPrimaryString) {
