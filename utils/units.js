@@ -102,6 +102,31 @@ export function parseSi(inValue, opt) {
   return val;
 }
 
+export const MEMORY_PARSE_RULES = {
+  memory: {
+    format: {
+      addSuffix:        true,
+      firstSuffix:      'B',
+      increment:        1024,
+      maxExponent:      99,
+      maxPrecision:     2,
+      minExponent:      0,
+      startingExponent: 0,
+      suffix:           'iB',
+    }
+  }
+};
+
+export function createMemoryFormat(n) {
+  const exponent = exponentNeeded(n, MEMORY_PARSE_RULES.memory.format.increment);
+
+  return {
+    ...MEMORY_PARSE_RULES.memory.format,
+    maxExponent: exponent,
+    minExponent: exponent,
+  };
+}
+
 export default {
   exponentNeeded,
   formatSi,

@@ -1,42 +1,96 @@
 <script>
+import Closeable from '@/mixins/closeable';
+
 export default {
+  mixins: [Closeable],
+
   props: {
     title: {
       type:    String,
       default: null,
     },
+
+    canClose: {
+      type:    Boolean,
+      default: false
+    }
   },
+
+  methods: {
+    closeBox(evnt) {
+      this.hide();
+      this.$emit('close', evnt);
+    }
+  }
 };
 </script>
 
 <template>
-  <div class="simple-box" v-on="$listeners">
-    <h2 v-if="title">
-      {{ title }}
-    </h2>
+  <div v-if="shown" class="simple-box" v-on="$listeners">
+    <div class="top">
+      <h2 v-if="title">
+        {{ title }}
+      </h2>
+      <div v-if="canClose || pref" class="close-button" @click="closeBox($event)">
+        <i class="icon icon-close" />
+      </div>
+    </div>
     <div class="content">
       <slot />
     </div>
   </div>
 </template>
-
+<style lang="scss" scoped>
+.top {
+  display: flex;
+  position: relative;
+  > h2 {
+    flex: 1;
+  }
+}
+.close-button {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  > i {
+    font-size: 20px;
+    opacity: 0.5;
+  }
+  &:hover {
+    background-color: #eee;
+  }
+}
+</style>
 <style lang="scss">
 .simple-box {
   $padding: 15px;
 
-  border-radius: 6px;
   background: var(--simple-box-bg) 0% 0% no-repeat padding-box;
   box-shadow: 0px 0px 10px var(--simple-box-shadow);
   border: 1px solid var(--simple-box-border);
   padding: $padding;
 
-  h2 {
+  .top {
     line-height: 24px;
     font-size: 18px;
     border-bottom: 1px solid var(--simple-box-divider);
     padding-bottom: $padding;
     margin: 0 -15px 10px -15px;
     padding: 0 15px 15px 15px;
+    align-items: center;
+    display: flex
+
+    & BUTTON {
+      padding: 0;
+      height: fit-content;
+      align-self: flex-start;
+    }
+
+    & H2{
+      margin-bottom: 0;
+    }
   }
 
   .content {

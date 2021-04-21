@@ -455,7 +455,8 @@ export default {
 
 <template>
   <div>
-    <div class="sortable-table-header">
+    <div :class="{'titled': $slots.title && $slots.title.length}" class="sortable-table-header">
+      <slot name="title" />
       <div v-if="showHeaderRow" class="fixed-header-actions">
         <div v-if="tableActions" class="bulk">
           <button
@@ -814,6 +815,11 @@ $spacing: 10px;
 .sortable-table-header {
   position: relative;
   z-index: z-index('fixedTableHeader');
+
+  &.titled {
+    display: flex;
+    align-items: center;
+  }
 }
 
 .fixed-header-actions {

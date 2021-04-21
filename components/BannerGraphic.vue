@@ -1,5 +1,9 @@
 <script>
+import Closeable from '@/mixins/closeable';
+
 export default {
+  mixins: [Closeable],
+
   props: {
     title: {
       type:    String,
@@ -19,7 +23,10 @@ export default {
 </script>
 
 <template>
-  <div class="banner-graphic" :class="{'small': small}">
+  <div v-if="shown" class="banner-graphic" :class="{'small': small}">
+    <div v-if="pref" class="close-button" @click="hide()">
+      <i class="icon icon-close" />
+    </div>
     <div class="graphic">
       <img class="banner" src="~/assets/images/pl/banner.svg" />
     </div>
@@ -38,6 +45,29 @@ export default {
 
   .banner-graphic {
     position: relative;
+
+    .close-button {
+      position: absolute;
+      visibility: hidden;
+    }
+
+    &:hover .close-button {
+      visibility: visible;
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      font-size: 16px;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      opacity: 0.4;
+
+      &:hover {
+        background-color: var(--accent-btn-hover);
+        opacity: 1;
+      }
+    }
 
     .graphic {
       display: flex;
