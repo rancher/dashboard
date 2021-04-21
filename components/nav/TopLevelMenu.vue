@@ -254,7 +254,7 @@ export default {
             />
             <i v-if="clusterFilter.length > 0" class="icon icon-close" @click="clusterFilter=''" />
           </div>
-          <div class="clusters">
+          <div class="clusters" :class="{'fixed-height': showClusterSearch}">
             <div v-for="c in clusters" :key="c.id" @click="hide()">
               <nuxt-link
                 v-if="c.ready"
