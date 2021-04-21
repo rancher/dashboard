@@ -11,7 +11,7 @@ export function containerImages(spec, getters, errors) {
   }
 
   if (!podSpec.containers || !podSpec.containers.length) {
-    errors.push(getters['i18n/t']('validation.required', { key: getters['i18n/t']('workload.container.containers') }));
+    errors.push(getters['i18n/t']('validation.required', { key: getters['i18n/t']('workload.container.titles.containers') }));
 
     return;
   }
