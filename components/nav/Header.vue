@@ -6,6 +6,8 @@ import Import from '@/components/Import';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
+import Jump from './Jump';
+
 export default {
 
   components: {
@@ -13,6 +15,7 @@ export default {
     WorkspaceSwitcher,
     Import,
     TopLevelMenu,
+    Jump,
   },
 
   props: {
@@ -51,7 +54,11 @@ export default {
       const name = this.currentProduct.name;
 
       return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
-    }
+    },
+
+    showSearch() {
+      return this.currentProduct?.inStore === 'cluster';
+    },
   },
 
   methods: {
@@ -72,6 +79,14 @@ export default {
     closeImport() {
       this.$modal.hide('importModal');
     },
+
+    openSearch() {
+      this.$modal.show('searchModal');
+    },
+
+    hideSearch() {
+      this.$modal.hide('searchModal');
+    }
   }
 };
 </script>
@@ -106,13 +121,7 @@ export default {
       <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
     </div>
 
-    <div class="back" style="display: none">
-      <a v-if="currentProduct && isRancher" class="btn role-tertiary" :href="(currentProduct.inStore === 'management' ? backToRancherGlobalLink : backToRancherLink)">
-        {{ t('nav.backToRancher') }}
-      </a>
-    </div>
-
-    <div v-if="!simple" class="import">
+    <div v-if="!simple" class="header-buttons">
       <button v-if="currentProduct && currentProduct.showClusterSwitcher" :disabled="!showImport" type="button" class="btn header-btn role-tertiary" @click="openImport()">
         <i v-tooltip="t('nav.import')" class="icon icon-upload icon-lg" />
       </button>
@@ -125,12 +134,31 @@ export default {
       >
         <Import :cluster="currentCluster" @close="closeImport" />
       </modal>
-    </div>
 
-    <div v-if="!simple" class="kubectl">
       <button v-if="currentProduct && currentProduct.showClusterSwitcher" :disabled="!showShell" type="button" class="btn header-btn role-tertiary" @click="currentCluster.openShell()">
         <i v-tooltip="t('nav.shell')" class="icon icon-terminal icon-lg" />
       </button>
+
+      <button
+        v-if="showSearch"
+        ref="searchButton"
+        v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}"
+        type="button"
+        class="btn role-tertiary resource-search"
+        @shortkey="openSearch()"
+        @click="openSearch()"
+      >
+        <i v-tooltip="t('nav.resourceSearch.label')" class="icon icon-search icon-lg" />
+      </button>
+      <modal
+        v-if="showSearch"
+        class="search-modal"
+        name="searchModal"
+        width="50%"
+        height="auto"
+      >
+        <Jump @closeSearch="hideSearch()" />
+      </modal>
     </div>
 
     <div class="header-spacer"></div>
@@ -263,12 +291,12 @@ export default {
       }
     }
 
-    grid-template-areas:  "menu product top back import kubectl cluster user";
-    grid-template-columns: var(--header-height) calc(var(--nav-width) - var(--header-height)) auto min-content min-content min-content min-content var(--header-height);
+    grid-template-areas:  "menu product top buttons cluster user";
+    grid-template-columns: var(--header-height) calc(var(--nav-width) - var(--header-height)) auto min-content  min-content var(--header-height);
     grid-template-rows:    var(--header-height);
 
     &.simple {
-      grid-template-columns: var(--header-height) min-content auto min-content min-content min-content min-content var(--header-height);
+      grid-template-columns: var(--header-height) min-content auto min-content min-content var(--header-height);
     }
 
     > .menu-spacer {
@@ -309,6 +337,22 @@ export default {
       }
     }
 
+    .header-buttons {
+      align-items: center;
+      display: flex;
+      grid-area: buttons;
+      margin-top: 1px;
+
+      // Spacing between header buttons
+      .btn:not(:last-of-type) {
+        margin-right: 10px;
+      }
+
+      .btn:focus {
+        box-shadow: none;
+      }
+    }
+
     .product-name {
       font-size: 16px;
     }
@@ -320,36 +364,6 @@ export default {
     > * {
       background-color: var(--header-bg);
       border-bottom: var(--header-border-size) solid var(--header-border);
-    }
-
-    > .back {
-      grid-area: back;
-    }
-
-    > .import {
-      grid-area: import;
-
-      .btn {
-        padding: 0 $input-padding-sm;
-      }
-    }
-
-    > .kubectl {
-      grid-area: kubectl;
-
-      .btn {
-        padding: 0 $input-padding-sm;
-      }
-    }
-
-    > .back,
-    > .import,
-    > .kubectl {
-      text-align: right;
-
-      .btn {
-        text-align: center;
-      }
     }
 
     .header-btn {

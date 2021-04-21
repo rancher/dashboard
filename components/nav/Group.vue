@@ -158,7 +158,7 @@ export default {
 
 <template>
   <div class="accordion" :class="{[`depth-${depth}`]: true, 'expanded': showExpanded, 'has-children': hasChildren}">
-    <div v-if="showHeader" class="header" :class="{'active': isOverview}" @click="toggle($event)">
+    <div v-if="showHeader" class="header" :class="{'active': isOverview, 'noHover': !canCollapse}" @click="toggle($event)">
       <slot name="header">
         <span v-html="group.labelDisplay || group.label" />
       </slot>
@@ -178,6 +178,7 @@ export default {
             :can-collapse="canCollapse"
             :group="child"
             :expanded="expanded"
+            @selected="$emit('selected')"
           />
         </li>
         <Type
@@ -185,6 +186,7 @@ export default {
           :key="id+'_' + child.name + '_type'"
           :is-root="depth == 0 && !showHeader"
           :type="child"
+          @selected="$emit('selected')"
           @click="clicked"
         />
       </template>
@@ -222,8 +224,11 @@ export default {
       > .header {
         padding: 8px 0;
 
-        &:hover {
+        &:hover:not(.noHover) {
           background-color: var(--nav-hover);
+        }
+        &.noHover {
+          cursor: default;
         }
 
         > H6 {
