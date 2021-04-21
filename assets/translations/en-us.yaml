@@ -3139,7 +3139,9 @@ validation:
   roleTemplate:
     roleTemplateRules: 
       missingVerb: You must specify at least one verb for each resource grant
-      missingResource: You must specify at least one Resource, Non-Resource URL or API Group for each resource grant
+      missingResource: You must specify a Resource for each resource grant
+      missingApiGroup: You must specify an API Group for each resource grant
+      missingOneResource: You must specify at least one Resource, Non-Resource URL or API Group for each resource grant
   service:
     externalName:
       none: External Name is required on an ExternalName Service.
