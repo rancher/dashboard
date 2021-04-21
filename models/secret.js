@@ -286,6 +286,7 @@ export default {
 
         return displaySans;
       }
+
       return this.certInfo?.sans || [];
     }
   },
