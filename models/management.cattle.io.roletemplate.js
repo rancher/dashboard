@@ -3,6 +3,7 @@ import { uniq } from '@/utils/array';
 import Vue from 'vue';
 import { get } from '@/utils/object';
 import { DESCRIPTION } from '@/config/labels-annotations';
+import Role from './rbac.authorization.k8s.io.role';
 
 export const CATTLE_API_GROUP = '.cattle.io';
 
@@ -56,14 +57,7 @@ export const VERBS = [
 
 export default {
   customValidationRules() {
-    return [
-      {
-        path:           'rules',
-        validators:     ['roleTemplateRules'],
-        nullable:       false,
-        type:           'array',
-      },
-    ];
+    return Role.customValidationRules();
   },
 
   details() {

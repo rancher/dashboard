@@ -6,8 +6,15 @@ export default {
   customValidationRules() {
     return [
       {
+        path:           'name',
+        translationKey: 'nameNsDescription.name.label',
+        required:       true,
+        nullable:       false,
+        type:           'string',
+      },
+      {
         path:           'rules',
-        validators:     ['roleTemplateRules'],
+        validators:     [`roleTemplateRules:${ this.type }`],
         nullable:       false,
         type:           'array',
       },
