@@ -12,21 +12,7 @@ export default {
       isMac,
       value:       '',
       groups:      null,
-      isFocused:   false,
-      blurTimer:   null,
     };
-  },
-
-  computed: {
-    placeholder() {
-      if ( this.isFocused ) {
-        return 'Type to search...';
-      } else if ( isMac ) {
-        return 'Jump to... (\u2318-K)';
-      } else {
-        return 'Jump to... (Ctrl+K)';
-      }
-    },
   },
 
   watch: {
@@ -38,35 +24,11 @@ export default {
   mounted() {
     this.updateMatches();
     this.queueUpdate = debounce(this.updateMatches, 250);
+
+    this.$refs.input.focus();
   },
 
   methods: {
-    focused() {
-      this.show();
-    },
-
-    blurred() {
-      clearTimeout(this.blurTimer);
-      this.blurTimer = setTimeout(() => {
-        this.hide();
-      }, 200);
-    },
-
-    hotkey() {
-      this.$refs.input.focus();
-      this.$refs.input.select();
-    },
-
-    show() {
-      this.isFocused = true;
-      clearTimeout(this.blurTimer);
-    },
-
-    hide() {
-      this.isFocused = false;
-      this.value = '';
-    },
-
     updateMatches() {
       const clusterId = this.$store.getters['clusterId'];
       const isAllNamespaces = this.$store.getters['isAllNamespaces'];
@@ -92,13 +54,11 @@ export default {
     <input
       ref="input"
       v-model="value"
-      :placeholder="placeholder"
+      :placeholder="t('nav.resourceSearch.placeholder')"
       class="search"
-      @focus="focused"
-      @blur="blurred"
-      @keyup.esc="hide"
+      @keyup.esc="$emit('closeSearch')"
     />
-    <div v-if="isFocused" class="results">
+    <div class="results">
       <div v-for="g in groups" :key="g.name" class="package">
         <Group
           :key="g.name"
@@ -106,6 +66,7 @@ export default {
           :group="g"
           :can-collapse="false"
           :expanded="true"
+          @selected="$emit('closeSearch')"
         >
           <template slot="accordion">
             <h6>{{ g.label }}</h6>
@@ -113,28 +74,24 @@ export default {
         </Group>
       </div>
     </div>
-    <button v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}" class="hide" @shortkey="hotkey()" />
   </div>
 </template>
 
 <style lang="scss" scoped>
-  .search {
+  .search, .search:hover, search:focus {
     position: relative;
+    background-color: var(--dropdown-bg);
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .results {
-    position: absolute;
-    top: 45px;
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
+    margin-top: -1px;
     overflow-y: auto;
-    z-index: 1;
-    padding: 0 10px;
+    padding: 10px;
     color: var(--dropdown-text);
     background-color: var(--dropdown-bg);
     border: 1px solid var(--dropdown-border);
-    border-radius: 0 0 5px 5px;
-    box-shadow: 0 5px 20px var(--shadow);
+    height: 75vh;
   }
 </style>
