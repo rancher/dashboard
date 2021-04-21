@@ -1,9 +1,20 @@
 <script>
-import InstallRedirect from '@/utils/install-redirect';
-import { NAME, CHART_NAME } from '@/config/product/manager';
+import { NAME } from '@/config/product/manager';
 import { CAPI } from '@/config/types';
 
-export default { middleware: [InstallRedirect(NAME, CHART_NAME, CAPI.RANCHER_CLUSTER)] };
+export default {
+  middleware({ redirect, route } ) {
+    return redirect({
+      name:   'c-cluster-product-resource',
+      params: {
+        ...route.params,
+        product:  NAME,
+        resource: CAPI.RANCHER_CLUSTER
+      }
+    });
+  }
+};
+
 </script>
 
 <template>

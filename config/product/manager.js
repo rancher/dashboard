@@ -1,9 +1,9 @@
 import { DSL } from '@/store/type-map';
 import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
 import { CAPI } from '@/config/types';
+import { MULTI_CLUSTER } from '@/config/feature-flags';
 
 export const NAME = 'manager';
-export const CHART_NAME = 'cluster-api';
 
 export function init(store) {
   const {
@@ -17,6 +17,7 @@ export function init(store) {
 
   product({
     ifHaveType:          CAPI.RANCHER_CLUSTER,
+    ifFeature:           MULTI_CLUSTER,
     inStore:             'management',
     icon:                'globe',
     removable:           false,

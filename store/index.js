@@ -324,6 +324,12 @@ export const getters = {
 
     return '/';
   },
+
+  featureFlag(state, getters, rootState, rootGetters) {
+    return (name) => {
+      return rootGetters['management/byId'](MANAGEMENT.FEATURE, name)?.enabled || false;
+    };
+  },
 };
 
 export const mutations = {
@@ -415,7 +421,7 @@ export const actions = {
       }),
     };
 
-    const isRancher = res.rancherSchemas.status === 'fulfilled';
+    const isRancher = res.rancherSchemas.status === 'fulfilled' && getters['management/schemaFor'](MANAGEMENT.PROJECT);
 
     if ( isRancher ) {
       promises['prefs'] = dispatch('prefs/loadServer');
@@ -424,6 +430,10 @@ export const actions = {
 
     if ( getters['management/schemaFor'](COUNT) ) {
       promises['counts'] = dispatch('management/findAll', { type: COUNT });
+    }
+
+    if ( getters['management/schemaFor'](MANAGEMENT.FEATURE) ) {
+      promises['features'] = dispatch('management/findAll', { type: MANAGEMENT.FEATURE });
     }
 
     if ( getters['management/schemaFor'](MANAGEMENT.SETTING) ) {

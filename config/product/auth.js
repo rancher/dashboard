@@ -64,6 +64,7 @@ export function init(store) {
   spoofedType({
     label:             store.getters['type-map/labelFor']({ id: NORMAN.SPOOFED.GROUP_PRINCIPAL }, 2),
     type:              NORMAN.SPOOFED.GROUP_PRINCIPAL,
+    ifHaveType:        MANAGEMENT.GLOBAL_ROLE_BINDING,
     collectionMethods: [],
     schemas:           [
       {

@@ -14,7 +14,7 @@ export default {
   isCurrentUser() {
     const currentPrincipal = this.$rootGetters['auth/principalId'];
 
-    return !!this.principalIds.find(p => p === currentPrincipal);
+    return !!(this.principalIds || []).find(p => p === currentPrincipal);
   },
 
   nameDisplay() {

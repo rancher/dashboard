@@ -9,7 +9,7 @@ import RadioGroup from '@/components/form/RadioGroup';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import { PROVISIONER_OPTIONS } from '@/models/storage.k8s.io.storageclass';
-import { fetchFeatureFlag, UNSUPPORTED_STORAGE_DRIVERS } from '@/utils/feature-flag';
+import { UNSUPPORTED_STORAGE_DRIVERS } from '@/config/feature-flags';
 
 export default {
   name: 'StorageClass',
@@ -26,8 +26,8 @@ export default {
 
   mixins: [CreateEditView],
 
-  async fetch() {
-    this.showUnsupportedStorage = await fetchFeatureFlag(this.$store, UNSUPPORTED_STORAGE_DRIVERS);
+  fetch() {
+    this.showUnsupportedStorage = this.$store.getters['featureFlag'](UNSUPPORTED_STORAGE_DRIVERS);
   },
 
   data() {

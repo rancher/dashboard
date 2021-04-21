@@ -70,7 +70,11 @@ export default {
     cloudComponent() {
       const driver = this.value.metadata?.annotations?.[CAPI.CREDENTIAL_DRIVER];
 
-      return importCloudCredential(driver);
+      if ( driver ) {
+        return importCloudCredential(driver);
+      }
+
+      return null;
     },
 
     // array of id, label, description, initials for type selection step
@@ -87,15 +91,15 @@ export default {
             id, label, bannerAbbrv
           });
         }
-      }
-
-      // Other kinds
-      for ( const type of creatableTypes ) {
-        out.push({
-          id:          type,
-          label:       this.typeDisplay(type),
-          bannerAbbrv: this.initialDisplayFor(type)
-        });
+      } else {
+        // Other kinds
+        for ( const type of creatableTypes ) {
+          out.push({
+            id:          type,
+            label:       this.typeDisplay(type),
+            bannerAbbrv: this.initialDisplayFor(type)
+          });
+        }
       }
 
       return out;
