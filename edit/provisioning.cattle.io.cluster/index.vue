@@ -7,6 +7,7 @@ import { REGISTER, SUB_TYPE, _FLAGGED } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { sortBy } from '@/utils/sort';
 import Rke2 from './rke2';
+import Import from './import';
 
 const SORT_GROUPS = {
   template:  1,
@@ -24,6 +25,7 @@ export default {
     CruResource,
     SelectIconGrid,
     Rke2,
+    Import,
   },
 
   mixins: [CreateEditView],
@@ -87,7 +89,7 @@ export default {
 
       if ( isRegister ) {
         customRegisterTypes.forEach((id) => {
-          addType(id, 'custom', true);
+          addType(id, 'custom', false);
         });
       } else {
         templates.forEach((id) => {
@@ -208,8 +210,14 @@ export default {
     </template>
 
     <!-- @TODO load appropriate component for provider -->
+    <Import
+      v-if="isRegister"
+      v-model="value"
+      :mode="mode"
+      :provider="subType"
+    />
     <Rke2
-      v-if="subType"
+      v-else-if="subType"
       v-model="value"
       :mode="mode"
       :provider="subType"
