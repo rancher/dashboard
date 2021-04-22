@@ -1068,6 +1068,10 @@ export const getters = {
         }
       }
 
+      if ( p.ifFeature && !rootGetters['featureFlag'](p.ifFeature) ) {
+        return false;
+      }
+
       if ( p.ifHaveType && !knownTypes[module].find(t => t.match(stringToRegex(p.ifHaveType)) ) ) {
         return false;
       }

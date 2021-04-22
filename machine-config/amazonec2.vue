@@ -352,6 +352,17 @@ export default {
 <template>
   <div>
     <Loading v-if="$fetchState.pending" />
+    <div v-else-if="errors.length">
+      <div
+        v-for="(err, idx) in errors"
+        :key="idx"
+      >
+        <Banner
+          color="error"
+          :label="stringify(err)"
+        />
+      </div>
+    </div>
     <div v-else-if="loadedRegionalFor" class="mt-20">
       <div class="row mb-20">
         <div class="col span-6">
@@ -540,17 +551,6 @@ export default {
         </div>
       </template>
       <a v-else @click="toggleAdvanced">Show Advanced</a>
-    </div>
-    <div v-if="errors">
-      <div
-        v-for="(err, idx) in errors"
-        :key="idx"
-      >
-        <Banner
-          color="error"
-          :label="stringify(err)"
-        />
-      </div>
     </div>
   </div>
 </template>

@@ -191,7 +191,7 @@ export const AGE = {
   sort:      'metadata.creationTimestamp:desc',
   search:    false,
   formatter: 'LiveDate',
-  width:     85,
+  width:     100,
   align:     'right'
 };
 

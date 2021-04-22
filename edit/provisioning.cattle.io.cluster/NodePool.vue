@@ -49,7 +49,7 @@ export default {
         <LabeledInput v-model="value.pool.name" label="Pool Name" :required="true" />
       </div>
       <div class="col span-2">
-        <LabeledInput v-model="value.pool.quantity" label="Node Count" type="number" min="0" :required="true" />
+        <LabeledInput v-model.number="value.pool.quantity" label="Node Count" type="number" min="0" :required="true" />
       </div>
       <div class="col span-6 pt-5">
         <h3>Roles</h3>

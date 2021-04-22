@@ -4,10 +4,12 @@ import CreateEditView from '@/mixins/create-edit-view';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Checkbox from '@/components/form/Checkbox';
 import { SECRET } from '@/config/types';
+import { stringify, exceptionToErrorsArray } from '@/utils/error';
+import Banner from '@/components/Banner';
 
 export default {
   components: {
-    Loading, LabeledSelect, Checkbox
+    Loading, LabeledSelect, Checkbox, Banner
   },
 
   mixins: [CreateEditView],
@@ -20,47 +22,53 @@ export default {
   },
 
   async fetch() {
-    this.credential = await this.$store.dispatch('management/find', { type: SECRET, id: this.credentialId });
-    this.regionOptions = await this.$store.dispatch('digitalocean/regionOptions', { credentialId: this.credentialId });
+    this.errors = [];
 
-    let defaultRegion = 'sfo3';
+    try {
+      this.credential = await this.$store.dispatch('management/find', { type: SECRET, id: this.credentialId });
+      this.regionOptions = await this.$store.dispatch('digitalocean/regionOptions', { credentialId: this.credentialId });
 
-    if ( !this.regionOptions.find(x => x.value === defaultRegion) ) {
-      defaultRegion = this.regionOptions[0]?.value;
-    }
+      let defaultRegion = 'sfo3';
 
-    const region = this.value.region || this.credential.defaultRegion || defaultRegion;
-
-    if ( !this.value.region ) {
-      this.value.region = region;
-    }
-
-    this.instanceOptions = await this.$store.dispatch('digitalocean/instanceOptions', { credentialId: this.credentialId, region });
-
-    let defaultSize = 's-2vcpu-4gb';
-
-    if ( !this.instanceOptions.find(x => x.value === defaultSize) ) {
-      defaultSize = this.instanceOptions.find(x => x.memoryGb >= 4)?.value;
-
-      if ( !defaultSize ) {
-        defaultSize = this.instanceOptions[0].value;
+      if ( !this.regionOptions.find(x => x.value === defaultRegion) ) {
+        defaultRegion = this.regionOptions[0]?.value;
       }
-    }
 
-    if ( !this.value.size ) {
-      this.value.size = defaultSize;
-    }
+      const region = this.value.region || this.credential.defaultRegion || defaultRegion;
 
-    this.imageOptions = await this.$store.dispatch('digitalocean/imageOptions', { credentialId: this.credentialId, region });
+      if ( !this.value.region ) {
+        this.value.region = region;
+      }
 
-    let defaultImage = 'ubuntu-20-04-x64';
+      this.instanceOptions = await this.$store.dispatch('digitalocean/instanceOptions', { credentialId: this.credentialId, region });
 
-    if ( !this.imageOptions.find(x => x.value === defaultImage) ) {
-      defaultImage = this.imageOptions[0].value;
-    }
+      let defaultSize = 's-2vcpu-4gb';
 
-    if ( !this.value.image ) {
-      this.value.image = defaultImage;
+      if ( !this.instanceOptions.find(x => x.value === defaultSize) ) {
+        defaultSize = this.instanceOptions.find(x => x.memoryGb >= 4)?.value;
+
+        if ( !defaultSize ) {
+          defaultSize = this.instanceOptions[0].value;
+        }
+      }
+
+      if ( !this.value.size ) {
+        this.value.size = defaultSize;
+      }
+
+      this.imageOptions = await this.$store.dispatch('digitalocean/imageOptions', { credentialId: this.credentialId, region });
+
+      let defaultImage = 'ubuntu-20-04-x64';
+
+      if ( !this.imageOptions.find(x => x.value === defaultImage) ) {
+        defaultImage = this.imageOptions[0].value;
+      }
+
+      if ( !this.value.image ) {
+        this.value.image = defaultImage;
+      }
+    } catch (e) {
+      this.errors = exceptionToErrorsArray(e);
     }
   },
 
@@ -78,11 +86,24 @@ export default {
       this.$fetch();
     },
   },
+
+  methods: { stringify },
 };
 </script>
 
 <template>
   <Loading v-if="$fetchState.pending" :delayed="true" />
+  <div v-else-if="errors.length">
+    <div
+      v-for="(err, idx) in errors"
+      :key="idx"
+    >
+      <Banner
+        color="error"
+        :label="stringify(err)"
+      />
+    </div>
+  </div>
   <div v-else>
     <div class="row mt-20">
       <div class="col span-6">

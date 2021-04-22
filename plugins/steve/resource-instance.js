@@ -51,16 +51,17 @@ const STRING_LIKE_TYPES = [
 const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
 const REMAP_STATE = {
-  disabled:      'inactive',
-  notapplied:    'Not Applied',
-  notready:      'Not Ready',
-  waitapplied:   'Wait Applied',
-  outofsync:     'Out of Sync',
-  'in-progress': 'In Progress',
-  gitupdating:   'Git Updating',
-  errapplied:    'Err Applied',
-  waitcheckin:   'Wait Check-In',
-  off:           'Disabled',
+  disabled:                 'inactive',
+  notapplied:               'Not Applied',
+  notready:                 'Not Ready',
+  waitapplied:              'Wait Applied',
+  outofsync:                'Out of Sync',
+  'in-progress':            'In Progress',
+  gitupdating:              'Git Updating',
+  errapplied:               'Err Applied',
+  waitcheckin:              'Wait Check-In',
+  off:                      'Disabled',
+  waitingforinfrastructure: 'Waiting for Infra',
 };
 
 const DEFAULT_COLOR = 'warning';
@@ -575,7 +576,7 @@ export default {
     };
   },
 
-  hasCondition() {
+  isCondition() {
     return (condition, withStatus = 'True') => {
       if ( !this.status || !this.status.conditions ) {
         return false;
@@ -598,7 +599,7 @@ export default {
   waitForCondition() {
     return (name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TMIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) => {
       return this.waitForTestFn(() => {
-        return this.hasCondition(name, withStatus);
+        return this.isCondition(name, withStatus);
       }, `condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
     };
   },

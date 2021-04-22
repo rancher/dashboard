@@ -3,6 +3,7 @@ import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { SECRET } from '@/config/types';
 import { AGE, NAME, STATE } from '@/config/table-headers';
+import { CLOUD_CREDENTIAL, _FLAGGED } from '@/config/query-params';
 
 export default {
   components: { ResourceTable, Masthead },
@@ -55,6 +56,7 @@ export default {
           product:  this.$store.getters['currentProduct'].name,
           resource: this.resource
         },
+        query: { [CLOUD_CREDENTIAL]: _FLAGGED }
       };
     },
   },

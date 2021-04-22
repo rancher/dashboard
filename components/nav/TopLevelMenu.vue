@@ -269,20 +269,24 @@ export default {
               {{ t('nav.search.noResults') }}
             </div>
           </div>
-          <div class="category">
-            {{ t('nav.categories.multiCluster') }}
-          </div>
-          <div v-for="a in multiClusterApps" :key="a.label" class="option" @click="changeProduct(a.value)">
-            <i class="icon group-icon" :class="a.icon" />
-            <div>{{ a.label }}</div>
-          </div>
-          <div class="category">
-            {{ t('nav.categories.configuration') }}
-          </div>
-          <div v-for="a in configurationApps" :key="a.label" class="option" @click="changeProduct(a.value)">
-            <i class="icon group-icon" :class="a.icon" />
-            <div>{{ a.label }}</div>
-          </div>
+          <template v-if="multiClusterApps.length">
+            <div class="category">
+              {{ t('nav.categories.multiCluster') }}
+            </div>
+            <div v-for="a in multiClusterApps" :key="a.label" class="option" @click="changeProduct(a.value)">
+              <i class="icon group-icon" :class="a.icon" />
+              <div>{{ a.label }}</div>
+            </div>
+          </template>
+          <template v-if="configurationApps.length">
+            <div class="category">
+              {{ t('nav.categories.configuration') }}
+            </div>
+            <div v-for="a in configurationApps" :key="a.label" class="option" @click="changeProduct(a.value)">
+              <i class="icon group-icon" :class="a.icon" />
+              <div>{{ a.label }}</div>
+            </div>
+          </template>
           <div class="pad"></div>
           <div class="cluster-manager">
             <a v-if="currentProduct && isMultiCluster" class="btn role-tertiary" :href="(currentProduct.inStore === 'management' ? backToRancherGlobalLink : backToRancherLink)">

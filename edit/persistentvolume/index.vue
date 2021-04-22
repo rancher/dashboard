@@ -18,7 +18,7 @@ import { LONGHORN_PLUGIN, VOLUME_PLUGINS } from '@/models/persistentvolume';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import { clone } from '@/utils/object';
 import { parseSi } from '@/utils/units';
-import { fetchFeatureFlag, UNSUPPORTED_STORAGE_DRIVERS } from '@/utils/feature-flag';
+import { UNSUPPORTED_STORAGE_DRIVERS } from '@/config/feature-flags';
 import InfoBox from '@/components/InfoBox';
 
 export default {
@@ -44,16 +44,16 @@ export default {
 
   async fetch() {
     const storageClasses = await this.$store.dispatch('cluster/findAll', { type: STORAGE_CLASS });
-    const pvcPromise = this.$store.dispatch('cluster/findAll', { type: PVC });
-    const featureFlagPromise = fetchFeatureFlag(this.$store, UNSUPPORTED_STORAGE_DRIVERS);
+
+    await this.$store.dispatch('cluster/findAll', { type: PVC });
+
+    this.showUnsupportedStorage = this.$store.getters['featureFlag'](UNSUPPORTED_STORAGE_DRIVERS);
 
     this.storageClassOptions = storageClasses.map(s => ({
       label: s.name,
       value: s.name
     }));
     this.storageClassOptions.unshift(this.NONE_OPTION);
-    await pvcPromise;
-    this.showUnsupportedStorage = await featureFlagPromise;
   },
 
   data() {
