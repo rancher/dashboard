@@ -87,6 +87,10 @@ export const TIME_FORMAT = create('time-format', 'h:mm:ss a', {
 
 export const TIME_ZONE = create('time-zone', 'local');
 export const DEV = create('dev', false, { parseJSON });
+export const LAST_VISITED = create('last-visited', 'home', { parseJSON });
+export const SEEN_WHATS_NEW = create('seen-home', '', { parseJSON });
+export const AFTER_LOGIN_ROUTE = create('after-login-route', 'home' );
+export const HIDE_HOME_PAGE_CARDS = create('home-page-cards', {}, { parseJSON } );
 
 // --------------------
 
@@ -168,6 +172,33 @@ export const getters = {
     }
 
     return theme;
+  },
+
+  afterLoginRoute: (state, getters) => {
+    const afterLoginRoutePref = getters['get'](AFTER_LOGIN_ROUTE);
+
+    switch (true) {
+    case (afterLoginRoutePref === 'home'):
+      return { name: 'home' };
+    case (afterLoginRoutePref === 'last-visited'): {
+      const lastVisitedPref = getters['get'](LAST_VISITED);
+
+      if (lastVisitedPref) {
+        return lastVisitedPref;
+      }
+      const clusterPref = getters['get'](CLUSTER);
+
+      return { name: 'c-cluster-explorer', params: { product: 'explorer', cluster: clusterPref } };
+    }
+    case (!!afterLoginRoutePref.match(/.+-dashboard$/)):
+    {
+      const clusterId = afterLoginRoutePref.split('-dashboard')[0];
+
+      return { name: 'c-cluster-explorer', params: { product: 'explorer', cluster: clusterId } };
+    }
+    default:
+      return { name: afterLoginRoutePref };
+    }
   }
 };
 
@@ -201,7 +232,6 @@ export const actions = {
 
       this.$cookies.set(`${ cookiePrefix }${ key }`.toUpperCase(), value, opt);
     }
-
     if ( definition.asUserPreference ) {
       try {
         server = await dispatch('loadServer', key); // There's no watch on prefs, so get before set...
@@ -353,6 +383,30 @@ export const actions = {
     }
 
     return server;
+  },
+
+  setLastVisited({ state, dispatch }, route) {
+    if (!route) {
+      return;
+    }
+    const routeComponents = route.name.split('-');
+    const toSave = { name: '', params: {} };
+
+    for ( const i in routeComponents) {
+      const part = routeComponents[i];
+
+      if (!!part && i < 3) {
+        toSave.name += `${ part }-`;
+        if (route.params[part]) {
+          toSave.params[part] = route.params[part];
+        }
+      } else {
+        break;
+      }
+    }
+
+    toSave.name = toSave.name.replace(/-$/, '');
+    dispatch('set', { key: LAST_VISITED, value: toSave });
   },
 
   toggleTheme({ getters, dispatch }) {
