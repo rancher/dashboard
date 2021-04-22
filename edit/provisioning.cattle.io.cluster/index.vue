@@ -82,7 +82,6 @@ export default {
 
     // Get the legacy node drivers
     const drivers = await this.$store.dispatch('management/findAll', { type: 'management.cattle.io.nodedriver' });
-    console.log(drivers);
     this.nodeDrivers = drivers;
   },
 
@@ -167,9 +166,6 @@ export default {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         let icon = require('~/assets/images/generic-driver.svg');
-
-        console.log('--- provider ---');
-        console.log(id);
 
         if ( group !== 'template' ) {
           try {

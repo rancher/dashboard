@@ -106,24 +106,6 @@ module.exports = {
   router: {
     base:       routerBasePath,
     middleware: ['i18n'],
-    // TODO: This is a hack
-    extendRoutes(routes, resolve) {
-      console.log('**** EXTEND ROUTES');
-      //console.log(routes);
-
-
-
-      routes.forEach(r => {
-        console.log(r);
-        if (r.name.indexOf('manager-') === 0) {
-          console.log('Got manager route');
-          console.log(r.name);
-          r.meta = {
-            product: 'manager'
-          };
-        }
-      })
-    }
   },
 
   build: {
@@ -332,14 +314,14 @@ module.exports = {
 
   // Proxy: https://github.com/nuxt-community/proxy-module#options
   proxy: {
-    '/k8s':                   proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
-    '/api':                   proxyWsOpts(api), // Management k8s API
-    '/apis':                  proxyWsOpts(api), // Management k8s API
-    '/v1':                    proxyWsOpts(api), // Management Steve API
-    '/v3':                    proxyWsOpts(api), // Rancher API
-    '/v3-public':             proxyOpts(api), // Rancher Unauthed API
-    '/api-ui':                proxyOpts(api), // Browser API UI
-    '/meta':                  proxyOpts(api), // Browser API UI
+    '/k8s':          proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
+    '/api':          proxyWsOpts(api), // Management k8s API
+    '/apis':         proxyWsOpts(api), // Management k8s API
+    '/v1':           proxyWsOpts(api), // Management Steve API
+    '/v3':           proxyWsOpts(api), // Rancher API
+    '/v3-public':    proxyOpts(api), // Rancher Unauthed API
+    '/api-ui':       proxyOpts(api), // Browser API UI
+    '/meta':         proxyOpts(api), // Browser API UI
     '/v1-*':         proxyOpts(api), // SAML, KDM, etc
     // These are for Ember embedding
     '/g':            proxyEmberOpts('https://127.0.0.1:8000'),
