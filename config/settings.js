@@ -48,6 +48,7 @@ export const SETTING = {
   FEEDBACK_FORM:                    'ui-feedback-form',
   CLUSTER_TEMPLATE_ENFORCEMENT:     'cluster-template-enforcement',
   UI_DEFAULT_LANDING:               'ui-default-landing',
+  BRAND:                            'brand'
 };
 
 // These are the settings that are allowed to be edited via the UI
@@ -68,6 +69,7 @@ export const ALLOWED_SETTINGS = {
   [SETTING.UI_BANNERS]:                     { kind: 'json' },
   'system-default-registry':                  {},
   'ui-index':                                 {},
+  [SETTING.BRAND]:                          {},
   [SETTING.CLUSTER_TEMPLATE_ENFORCEMENT]:   { kind: 'boolean' },
 
   [SETTING.UI_DEFAULT_LANDING]: {

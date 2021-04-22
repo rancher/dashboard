@@ -1,4 +1,4 @@
-.theme-dark {
+@mixin theme-dark ($primary:#3D98D3, $link: #3D98D3, $info:mix($primary, $secondary, 50%)  ) {
   // Local variables for reused colors
 
   //dark sidebar
@@ -212,4 +212,8 @@
 
   --product-icon: #{$lighter};
   --product-icon-active: #{$lightest};
+}
+
+.theme-dark {
+  @include theme-dark;
 }

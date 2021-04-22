@@ -20,19 +20,16 @@ export function RGBToHSL(r, g, b) {
 
   // Calculate hue
   // No difference
-  if (delta == 0) {
+  if (delta === 0) {
     h = 0;
-  }
-  // Red is max
-  else if (cmax == r) {
+  } else if (cmax === r) {
+    // Red is max
     h = ((g - b) / delta) % 6;
-  }
-  // Green is max
-  else if (cmax == g) {
+  } else if (cmax === g) {
+    // Green is max
     h = (b - r) / delta + 2;
-  }
-  // Blue is max
-  else {
+  } else {
+    // Blue is max
     h = (r - g) / delta + 4;
   }
 
@@ -47,7 +44,7 @@ export function RGBToHSL(r, g, b) {
   l = (cmax + cmin) / 2;
 
   // Calculate saturation
-  s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+  s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
 
   // Multiply l and s by 100
   s = +(s * 100).toFixed(1);
@@ -128,10 +125,6 @@ function darken(color, amount) {
   out[2] = color[2] * (1 - amount);
 
   return out;
-}
-
-function saturate(color, amount) {
-
 }
 
 /*
@@ -229,9 +222,33 @@ function colorStateVariables(colors, dark = false) {
 
         --dropdown-active-bg         : #{$selected};
         --terminal-selection         : #{$selected};
+
+    css vars referencing primary in _dark:
+    $link = $primary
+    $selected = rgba($primary, 0.5)
+
+        --outline                    : #{rgba($primary, 0.75)};
+
+        --nav-active                 : #{rgba($primary, 0.3)};
+        --nav-hover                  : #{$primary};
+        --nav-expander-hover         : #{darken($primary, 20%)};
+
+        --accent-btn                 : #{rgba($primary, 0.2)};
+        --accent-btn-hover           : #{rgba($primary, 0.5)};
+
+        --checkbox-ticked-bg         : #{$link};
+
+        --dropdown-text              : #{$link};
+        --dropdown-active-bg         : #{$selected};
+        --dropdown-hover-bg          : #{$link};
+
+        --tag-primary                : #{$primary};
+        --tag-bg                     : #{rgba($primary, 0.2)};
+
+        --tooltip-bg                 : #{darken($primary, 30%)};
 */
 function rootPrimaryColorVariables(primary, dark = false) {
-  const out = {
+  let out = {
     '--accent-btn':        [...primary, 0.2],
     '--accent-btn-hover':  [...primary, 0.5],
     '--card-header':       [...primary, 0.2],
@@ -249,6 +266,30 @@ function rootPrimaryColorVariables(primary, dark = false) {
     '--dropdown-active-bg': [...primary, 0.5],
     '--terminal-selection': [...primary]
   };
+
+  if (dark) {
+    out = {
+      '--outline': [...primary, 0.75],
+
+      '--nav-active':         [...primary, 0.3],
+      '--nav-hover':          [...primary],
+      '--nav-expander-hover': darken(primary, 0.2),
+
+      '--accent-btn':         [...primary, 0.2],
+      '--accent-btn-hover':   [...primary, 0.5],
+
+      '--checkbox-ticked-bg': [...primary],
+
+      '--dropdown-text':      [...primary],
+      '--dropdown-active-bg': [...primary, 0.5],
+      '--dropdown-hover-bg':  [...primary],
+
+      '--tag-primary':        [...primary],
+      '--tag-bg':             [...primary, 0.2],
+
+      '--tooltip-bg': darken(primary, 0.3)
+    };
+  }
 
   for (const cssVar in out) {
     const colorArray = out[cssVar];

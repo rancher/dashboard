@@ -25,7 +25,7 @@ export default {
         const url = schema.linkFor('collection');
 
         setting = await this.$store.dispatch('management/create', {
-          type: MANAGEMENT.SETTING, metadata: { name: id }, value: val, default: val
+          type: MANAGEMENT.SETTING, metadata: { name: id }, value: val, default: val || ''
         });
         setting.save({ url });
       }
@@ -69,14 +69,6 @@ export default {
       return this.hasSupport ? 'support.suse.title' : 'support.community.title';
     },
 
-    brandLink() {
-      const cluster = this.$store.getters['currentCluster'];
-
-      return {
-        name:   'c-cluster-settings-brand',
-        params: { cluster: cluster?.id }
-      };
-    }
   },
 
   methods: {
@@ -135,9 +127,6 @@ export default {
       <div class="row mb-20">
         {{ t('support.suse.title', {}, true) }}
       </div>
-      <n-link :to="brandLink">
-        {{ t('support.suse.editBrand') }}
-      </n-link>
     </IndentedPanel>
   </div>
 </template>

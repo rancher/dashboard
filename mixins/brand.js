@@ -1,12 +1,37 @@
 import { MANAGEMENT } from '@/config/types';
+import { findBy } from '@/utils/array';
 
 export default {
   async fetch() {
-    this.brandSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'brand' });
+    this.globalSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
   },
 
   data() {
-    return { brandSetting: null };
+    return { globalSettings: [] };
+  },
+
+  computed: {
+    brandSetting() {
+      return findBy(this.globalSettings, { id: 'brand' });
+    }
+  },
+
+  watch: {
+    brandSetting(neu) {
+      const uiPLSetting = findBy(this.globalSettings, { id: 'ui-pl' });
+      const brand = neu.value;
+
+      try {
+        const brandMeta = require(`~/assets/brand/${ brand }/metadata.json`);
+        const uiPL = brandMeta['ui-pl'] || uiPLSetting.default;
+
+        uiPLSetting.value = uiPL;
+      } catch {
+        uiPLSetting.value = uiPLSetting.default;
+      }
+
+      uiPLSetting.save();
+    },
   },
 
   head() {

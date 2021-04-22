@@ -34,7 +34,7 @@ $contrasted-light: $lightest !default;
 
 $selected: rgba($primary, .5);
 
-:root {
+@mixin theme-light ($primary:#3D98D3, $link: #3D98D3, $info:mix($primary, $secondary, 50%)  ) {
   // Colors that will have text- and bg- helper classes created
   // value can also be map of default, default-text, hover-text, hover-bg, active-text,  active-bg)
   @include color-variables((
@@ -297,5 +297,10 @@ $selected: rgba($primary, .5);
 
   --product-icon: #{$darker};
   --product-icon-active: #{$darkest};
+}
+
+
+:root {
+  @include theme-light
 }
 

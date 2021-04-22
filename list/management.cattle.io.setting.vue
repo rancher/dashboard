@@ -24,6 +24,9 @@ export default {
 
     // Combine the allowed settings with the data from the API
     Object.keys(ALLOWED_SETTINGS).forEach((setting) => {
+      if (!settingsMap[setting]) {
+        return;
+      }
       const readonly = !!ALLOWED_SETTINGS[setting].readOnly;
       const s = {
         ...ALLOWED_SETTINGS[setting],
