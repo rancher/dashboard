@@ -41,34 +41,17 @@ export default {
   },
 
   mounted() {
-    console.log('Ember Page mounted');
-
-    // const iframe = document.createElement('iframe');
-
-    // console.log(iframe);
-    // this.iframeEl.setAttribute('style', 'visibility: hidden; position: absolute; top: -99999px; border: none;');
-    // iframe.setAttribute('src', '/ember/g/clusters');
-
-    // this.$el.appendChild(iframe);
     window.addEventListener('message', this.receiveMessage);
-    console.log('Ember Page: added event handler');
-
     this.initFrame();
   },
 
   beforeDestroy() {
     window.removeEventListener('message', this.receiveMessage);
-    console.log('Ember Page: removed event handler');
 
     // Hide the iframe
     if (this.iframeEl) {
       this.iframeEl.classList.add(EMBER_FRAME_HIDE_CLASS);
     }
-
-    // TODO: Only do this if we never loaded the iframe - once loaded once, we can reuse the loaded iframe
-    // Need to guard against situation when we left the page before the iframe loaded, in which case we do not have
-    // an iframe that is ready - we should add an attribute to the iframe to indicate if it is ready
-    // If we did not finish loading, then delete the iframe
   },
 
   computed: {
@@ -78,6 +61,9 @@ export default {
   },
 
   methods: {
+
+    // TODO: Need to check that the IFRAME loaded fully, otherwise we won't be able to navigate within
+    // the already loaded frame
     initFrame() {
       // Add the iframe if one does not already exist
       let iframeEl = document.getElementById(EMBER_FRAME);
@@ -123,9 +109,8 @@ export default {
         console.log(f.contentWindow.location.href);
       }
     },
+    // We use PostMessage between the Embedded Ember UI and the Dashboard UI
     receiveMessage(event) {
-      // console.log('Ember Page: message received');
-      // console.log(event);
       const msg = event.data;
 
       if (msg.action === 'navigate') {
@@ -134,33 +119,27 @@ export default {
           params: { cluster: msg.cluster }
         });
       } else if (msg.action === 'before-navigation') {
-        console.log('** before-navigation')
         // Ember willTransition event
+        // TODO: Maintain a map of routes that we want to intercept
         if (msg.url === '/g/clusters' || msg.target === 'global-admin.clusters.index') {
           this.loading = true;
-          // Go to the vue clusters page
-          this.$router.replace('/c/local/manager/rancher.cattle.io.cluster');
+          // Go to the vue clusters page when the Ember app goes back to the Cluster page
+          this.$router.replace('/c/local/manager/provisioning.cattle.io.cluster');
+
         }
       } else if (msg.action === 'after-navigation') {
-        // Ember didTransition event
-        // TODO
-        // window.history.pushState({}, 'TITLE', msg.url);
-        // console.log(msg.url);
-        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ' + msg.url);
-        console.log(msg.url);
+        // Ember afterNavigation event
         this.iframeEl.setAttribute('data-location', msg.url);
       } else if (msg.action === 'loading') {
-        console.log('** loading: ' + msg.state);
         this.loaded = !msg.state;
         this.updateFrameVisibility();
       } else if (msg.action === 'ready') {
         // Echo back a ping
         this.iframeEl.contentWindow.postMessage({action: 'echo-back'});
+        // TODO: Add an attribue to the iframe so we know it has loaded the Ember App and can be re-used
       } else if (msg.action === 'need-to-load') {
-        console.log('** need to load');
         this.loadRequired = true;
       } else if (msg.action === 'did-transition') {
-        console.log('** did-transition');
         this.iframeEl.setAttribute('data-location', msg.url);
         if (!this.loadRequired) {
           this.loading = false;
@@ -182,16 +161,6 @@ export default {
 <template>
   <div class="ember-page" :class="{'fixed': fixed}" >
     <Loading :loading="!loaded" :mode="loaderMode" :no-delay="true" />
-    <!--
-    <iframe
-      ref="frame"
-      :src="src"
-      frameborder="0"
-      :class="{ 'loading': loaded, 'pop': pop }"
-      class="frame"
-      @load="frameLoaded"
-    ></iframe>
-    -->
   </div>
 </template>
 
