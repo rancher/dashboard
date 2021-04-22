@@ -10,9 +10,7 @@ const PAGES = {
 };
 
 export default {
-  components: {
-    EmberPage
-  },
+  components: { EmberPage },
 
   data() {
     const page = this.$route.params.page;
