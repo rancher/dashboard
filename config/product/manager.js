@@ -35,7 +35,7 @@ export function init(store) {
     namespaced:     false,
     weight:         111,
     icon:           'folder',
-    route:          { name: 'c-cluster-manager-page', params: { cluser: 'local', page: 'rke-templates' } },
+    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'rke-templates' } },
     exact:          true
   });
 
@@ -46,7 +46,7 @@ export function init(store) {
     namespaced:     false,
     weight:         112,
     icon:           'folder',
-    route:          { name: 'c-cluster-manager-page', params: { cluser: 'local', page: 'rke-drivers' } },
+    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'rke-drivers' } },
     exact:          true
   });
 
@@ -57,7 +57,7 @@ export function init(store) {
     namespaced:     false,
     weight:         112,
     icon:           'folder',
-    route:          { name: 'c-cluster-manager-page', params: { cluser: 'local', page: 'global-dns-entries' } },
+    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'global-dns-entries' } },
     exact:          true
   });
 
@@ -68,7 +68,7 @@ export function init(store) {
     namespaced:     false,
     weight:         112,
     icon:           'folder',
-    route:          { name: 'c-cluster-manager-page', params: { cluser: 'local', page: 'global-dns-providers' } },
+    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'global-dns-providers' } },
     exact:          true
   });
 
@@ -79,7 +79,7 @@ export function init(store) {
     namespaced:     false,
     weight:         112,
     icon:           'folder',
-    route:          { name: 'c-cluster-manager-page', params: { cluser: 'local', page: 'catalogs' } },
+    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'catalogs' } },
     exact:          true
   });
 
