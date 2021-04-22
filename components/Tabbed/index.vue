@@ -308,6 +308,7 @@ export default {
       display: flex;
       flex: 1 0;
       flex-direction: column;
+      border-bottom: 0;
 
       & .tab {
         width: 100%;
@@ -324,6 +325,7 @@ export default {
         &.active {
           background-color: var(--body-bg);
           border-left: solid 5px var(--primary);
+          border-bottom: 0;
 
           & A{
             color: var(--input-label);
