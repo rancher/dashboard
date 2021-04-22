@@ -123,7 +123,7 @@ export const getters = {
   },
 
   current: state => () => {
-    return state.selected
+    return state.selected;
   },
 
   default: state => () => {

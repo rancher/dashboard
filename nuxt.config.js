@@ -208,7 +208,6 @@ module.exports = {
         ]
       });
 
-
       // Run ESLint on save
       if (isDev && isClient) {
         config.module.rules.push({

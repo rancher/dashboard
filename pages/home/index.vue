@@ -188,9 +188,10 @@ export default {
       // Update the value, so that the message goes away
       const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
       const fullVersion = setting?.value || 'unknown';
+
       this.$store.dispatch('prefs/set', { key: SEEN_WHATS_NEW, value: fullVersion });
 
-      this.$router.push({name: 'docs-doc', params: {doc: 'release-notes'}});
+      this.$router.push({ name: 'docs-doc', params: { doc: 'release-notes' } });
     },
   }
 };

@@ -11,9 +11,8 @@ const docsMap = docs.reduce((map, obj) => {
 
 export default {
   layout: 'home',
-  components: {
-    IndentedPanel
-  },
+
+  components: { IndentedPanel },
 
   async asyncData({ store, $content, params }) {
     const docName = params.doc;
@@ -49,7 +48,7 @@ export default {
       </nuxt-link>
       <span v-if="doc">> {{ doc.title }}</span>
     </h1>
-      <nuxt-content v-if="doc" :document="doc" />
+    <nuxt-content v-if="doc" :document="doc" />
     <div v-else>
       {{ t('generic.notFound') }}
     </div>
