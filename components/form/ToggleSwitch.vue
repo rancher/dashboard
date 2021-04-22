@@ -29,9 +29,9 @@ export default {
       this.state = !this.state;
       if (this.pref) {
         this.$store.dispatch('prefs/set', { key: this.pref, value: this.state });
-       }
+      }
       this.$emit('input', this.state);
-   }
+    }
   }
 };
 </script>

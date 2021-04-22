@@ -378,8 +378,8 @@ function proxyOpts(target) {
 }
 
 function onProxyEmberReq(proxyReq, req) {
-  console.log('ember request');
-  console.log(proxyReq.path);
+  // console.log('ember request');
+  // console.log(proxyReq.path);
 
   // if (proxyReq.path.startsWith('/ember')) {
   //   proxyReq.path = proxyReq.path.substring(6);

@@ -33,10 +33,9 @@ export default {
     };
   },
 
-  watch: {
-    // TODO: We don't expect source to change
-    src() {
-      console.log('SOURCE CHANGED');
+  computed: {
+    loaderMode() {
+      return this.fixed ? 'content' : 'full';
     }
   },
 
@@ -54,12 +53,6 @@ export default {
     }
   },
 
-  computed: {
-    loaderMode() {
-      return this.fixed ? 'content' : 'full';
-    }
-  },
-
   methods: {
 
     // TODO: Need to check that the IFRAME loaded fully, otherwise we won't be able to navigate within
@@ -67,6 +60,7 @@ export default {
     initFrame() {
       // Add the iframe if one does not already exist
       let iframeEl = document.getElementById(EMBER_FRAME);
+
       if (iframeEl === null) {
         iframeEl = document.createElement('iframe');
         iframeEl.setAttribute('id', EMBER_FRAME);
@@ -78,18 +72,19 @@ export default {
         // Post a message to get it to navigate
         iframeEl.contentWindow.postMessage({
           action: 'navigate',
-          name: this.src
+          name:   this.src
         });
 
         // Ensure the embedded UI uses the correct theme
         iframeEl.contentWindow.postMessage({
           action: 'set-theme',
-          name: this.theme
+          name:   this.theme
         });
 
         const currentlUrl = iframeEl.getAttribute('data-location');
 
         let src = this.src;
+
         if (this.src.endsWith('/')) {
           src = src.substr(0, this.src.length - 1);
         }
@@ -102,13 +97,7 @@ export default {
 
       this.iframeEl = iframeEl;
     },
-    frameLoaded(e) {
-      if (this.src) {
-        const f = this.$refs.frame;
 
-        console.log(f.contentWindow.location.href);
-      }
-    },
     // We use PostMessage between the Embedded Ember UI and the Dashboard UI
     receiveMessage(event) {
       const msg = event.data;
@@ -125,7 +114,6 @@ export default {
           this.loading = true;
           // Go to the vue clusters page when the Ember app goes back to the Cluster page
           this.$router.replace('/c/local/manager/provisioning.cattle.io.cluster');
-
         }
       } else if (msg.action === 'after-navigation') {
         // Ember afterNavigation event
@@ -135,7 +123,7 @@ export default {
         this.updateFrameVisibility();
       } else if (msg.action === 'ready') {
         // Echo back a ping
-        this.iframeEl.contentWindow.postMessage({action: 'echo-back'});
+        this.iframeEl.contentWindow.postMessage({ action: 'echo-back' });
         // TODO: Add an attribue to the iframe so we know it has loaded the Ember App and can be re-used
       } else if (msg.action === 'need-to-load') {
         this.loadRequired = true;
@@ -147,6 +135,7 @@ export default {
         }
       }
     },
+
     updateFrameVisibility() {
       if (this.loaded) {
         if (this.iframeEl) {
@@ -159,7 +148,7 @@ export default {
 </script>
 
 <template>
-  <div class="ember-page" :class="{'fixed': fixed}" >
+  <div class="ember-page" :class="{'fixed': fixed}">
     <Loading :loading="!loaded" :mode="loaderMode" :no-delay="true" />
   </div>
 </template>
@@ -170,7 +159,7 @@ export default {
     left: var(--nav-width);
     position: static;
     top: var(--header-height);
-    width: calc(100vw - var(--nav-width));  
+    width: calc(100vw - var(--nav-width));
   }
   .ember-page {
     display: flex;

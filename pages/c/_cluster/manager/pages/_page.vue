@@ -2,11 +2,11 @@
 import EmberPage from '@/components/EmberPage';
 
 const PAGES = {
-  'global-dns-entries': '/g/dns/entries/index/',
+  'global-dns-entries':   '/g/dns/entries/index/',
   'global-dns-providers': '/g/dns/providers/index/',
-  'catalogs': '/g/catalog',
-  'rke-drivers': '/n/drivers/cluster',
-  'rke-templates': '/g/rke-templates/index',
+  catalogs:               '/g/catalog',
+  'rke-drivers':          '/n/drivers/cluster',
+  'rke-templates':        '/g/rke-templates/index',
 };
 
 export default {
@@ -15,6 +15,7 @@ export default {
   data() {
     const page = this.$route.params.page;
     let src;
+
     if (page) {
       src = PAGES[page];
     }
@@ -22,8 +23,7 @@ export default {
     return {
       src,
       page
-    }
-
+    };
   }
 };
 </script>
