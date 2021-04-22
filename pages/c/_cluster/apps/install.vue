@@ -1,8 +1,7 @@
 <script>
-import isEqual from 'lodash/isEqual';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
-import { mapGetters } from 'vuex';
+
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
 import Checkbox from '@/components/form/Checkbox';
@@ -20,7 +19,7 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 
 import { CATALOG, MANAGEMENT } from '@/config/types';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT, _FLAGGED, FORCE, DEPRECATED, HIDDEN, FROM_TOOLS,
+  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, _CREATE, _EDIT, _FLAGGED, FORCE, FROM_TOOLS,
 } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION, PROJECT } from '@/config/labels-annotations';
 import { exceptionToErrorsArray, stringify } from '@/utils/error';
@@ -28,8 +27,8 @@ import { clone, diff, get, set } from '@/utils/object';
 import { findBy, insertAt } from '@/utils/array';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import { formatSi, parseSi } from '@/utils/units';
-import { SHOW_PRE_RELEASE, mapPref } from '@/store/prefs';
-import { compare, isPrerelease } from '@/utils/version';
+import ChartMixin from '@/pages/c/_cluster/apps/chart_mixin';
+import isEqual from 'lodash/isEqual';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 
 export default {
@@ -52,19 +51,17 @@ export default {
     YamlEditor,
   },
 
-  mixins: [ChildHook],
+  mixins: [
+    ChildHook,
+    ChartMixin
+  ],
 
   async fetch() {
+    await this.baseFetch();
+
     this.warnings = [];
     this.requires = [];
     this.errors = [];
-
-    const query = this.$route.query;
-
-    this.showDeprecated = query[DEPRECATED] === _FLAGGED;
-    this.showHidden = query[HIDDEN] === _FLAGGED;
-
-    await this.$store.dispatch('catalog/load');
 
     this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
@@ -76,29 +73,13 @@ export default {
       id:   'server-url'
     });
 
-    const repoType = query[REPO_TYPE];
-    const repoName = query[REPO];
-    const chartName = query[CHART];
-    let versionName = query[VERSION];
-    const appNamespace = query[NAMESPACE] || '';
-    const appName = query[NAME] || '';
-
-    if ( this.repo && chartName ) {
-      this.chart = this.$store.getters['catalog/chart']({
-        repoType,
-        repoName,
-        chartName,
-        includeHidden: true,
-      });
-    }
-
-    if ( appNamespace && appName ) {
+    if ( this.query.appNamespace && this.query.appName ) {
       // Explicitly asking for edit
 
       try {
         this.existing = await this.$store.dispatch('cluster/find', {
           type: CATALOG.APP,
-          id:   `${ appNamespace }/${ appName }`,
+          id:   `${ this.query.appNamespace }/${ this.query.appName }`,
         });
 
         this.mode = _EDIT;
@@ -128,8 +109,8 @@ export default {
     this.value = await this.$store.dispatch('cluster/create', {
       type:     'chartInstallAction',
       metadata: {
-        namespace: this.existing ? this.existing.spec.namespace : appNamespace,
-        name:      this.existing ? this.existing.spec.name : appName,
+        namespace: this.existing ? this.existing.spec.namespace : this.query.appNamespace,
+        name:      this.existing ? this.existing.spec.name : this.query.appName,
       }
     });
 
@@ -139,8 +120,8 @@ export default {
     } else {
       if ( this.chart?.targetNamespace ) {
         this.forceNamespace = this.chart.targetNamespace;
-      } else if ( query[NAMESPACE] ) {
-        this.forceNamespace = query[NAMESPACE];
+      } else if ( this.query.appNamespace ) {
+        this.forceNamespace = this.query.appNamespace;
       } else {
         this.forceNamespace = null;
       }
@@ -148,14 +129,14 @@ export default {
       if ( this.chart?.targetName ) {
         this.value.metadata.name = this.chart.targetName;
         this.nameDisabled = true;
-      } else if ( query[NAME] ) {
-        this.value.metadata.name = query[name];
+      } else if ( this.query.appName ) {
+        this.value.metadata.name = this.query.appName;
       } else {
         this.nameDisabled = false;
       }
 
-      if ( query[DESCRIPTION_QUERY] ) {
-        this.value.setAnnotation(DESCRIPTION_ANNOTATION, query[DESCRIPTION_QUERY]);
+      if ( this.query.description ) {
+        this.value.setAnnotation(DESCRIPTION_ANNOTATION, this.query.description);
       }
     }
 
@@ -172,29 +153,8 @@ export default {
       } catch {}
     }
 
-    if ( !this.chart ) {
+    if ( !this.chart || !this.query.versionName) {
       return;
-    }
-
-    if ( !versionName && this.chart.versions?.length ) {
-      versionName = this.chart.versions[0].version;
-    }
-
-    if ( !versionName ) {
-      return;
-    }
-
-    this.version = this.$store.getters['catalog/version']({
-      repoType, repoName, chartName, versionName
-    });
-
-    try {
-      this.versionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
-        repoType, repoName, chartName, versionName
-      });
-    } catch (e) {
-      console.error(e); // eslint-disable-line no-console
-      this.versionInfo = null;
     }
 
     if ( this.version && process.client ) {
@@ -242,7 +202,7 @@ export default {
 
     this.warnings = [];
 
-    if ( this.existing || query[FORCE] === _FLAGGED ) {
+    if ( this.existing || this.forced ) {
       // Ignore the limits on upgrade (or if asked by query) and don't show any warnings
     } else {
       const needCpu = parseSi(this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUESTS_CPU] || '0');
@@ -312,11 +272,8 @@ export default {
 
   data() {
     return {
-      showHidden:             false,
-      showDeprecated:         false,
       defaultRegistrySetting: null,
       serverUrlSetting:       null,
-      chart:                  null,
       chartValues:            null,
       originalYamlValues:     null,
       previousYamlValues:     null,
@@ -329,8 +286,6 @@ export default {
       value:                  null,
       valuesComponent:        null,
       valuesYaml:             '',
-      version:                null,
-      versionInfo:            null,
       project:                null,
       requires:               [],
       warnings:               [],
@@ -353,15 +308,10 @@ export default {
       historyMax: 5,
       timeout:    600,
 
-      catalogOSAnnotation: CATALOG_ANNOTATIONS.SUPPORTED_OS,
     };
   },
 
   computed: {
-    ...mapGetters(['currentCluster', 'isRancher']),
-
-    showPreRelease: mapPref(SHOW_PRE_RELEASE),
-
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
       const want = this.value?.metadata?.namespace;
@@ -434,18 +384,6 @@ export default {
       return out;
     },
 
-    repo() {
-      const query = this.$route.query;
-      const repoType = query[REPO_TYPE];
-      const repoName = query[REPO];
-
-      return this.$store.getters['catalog/repo']({ repoType, repoName });
-    },
-
-    showReadme() {
-      return !!this.versionInfo?.readme;
-    },
-
     showNameEditor() {
       return !this.nameDisabled || !this.forceNamespace;
     },
@@ -480,55 +418,6 @@ export default {
       return this.showPreview || ( !this.valuesComponent && !this.hasQuestions );
     },
 
-    filteredVersions() {
-      const {
-        currentCluster,
-        catalogOSAnnotation,
-      } = this;
-      const versions = this.chart?.versions || [];
-      const selectedVersion = this.version?.version;
-      const isWindows = currentCluster.providerOs === 'windows';
-      const out = [];
-
-      versions.forEach((version) => {
-        const nue = {
-          label:    version.version,
-          id:       version.version,
-          disabled: false,
-        };
-
-        if ( version?.annotations?.[catalogOSAnnotation] === 'windows' ) {
-          nue.label = this.t('catalog.install.versions.windows', { ver: version.version });
-
-          if ( !isWindows ) {
-            nue.disabled = true;
-          }
-        } else if ( version?.annotations?.[catalogOSAnnotation] === 'linux' ) {
-          nue.label = this.t('catalog.install.versions.linux', { ver: version.version });
-
-          if ( isWindows ) {
-            nue.disabled = true;
-          }
-        }
-
-        if ( this.showPreRelease || !isPrerelease(version.version) ) {
-          out.push(nue);
-        }
-      });
-
-      const selectedMatch = out.find(v => v.id === selectedVersion);
-
-      if (!selectedMatch) {
-        out.push({ value: selectedVersion, label: this.t('catalog.install.versions.current', { ver: selectedVersion }) });
-      }
-
-      out.sort((a, b) => {
-        // Swapping a and b to get descending order
-        return compare(b.id, a.id);
-      });
-
-      return out;
-    },
   },
 
   watch: {
@@ -601,10 +490,6 @@ export default {
         [CHART]:     chart.chartName,
         [VERSION]:   version || chart.versions[0].version
       });
-    },
-
-    selectVersion({ id: version }) {
-      this.$router.applyQuery({ [VERSION]: version });
     },
 
     preview() {
@@ -1004,7 +889,7 @@ export default {
         <div v-if="chart" class="col span-6">
           <LabeledSelect
             :label="t('catalog.install.version')"
-            :value="$route.query.version"
+            :value="query.versionName"
             :options="filteredVersions"
             :selectable="version => !version.disabled"
             @input="selectVersion"

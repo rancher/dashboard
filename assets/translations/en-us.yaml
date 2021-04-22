@@ -537,6 +537,21 @@ catalog:
       readme: Chart README
       resources: Resources
       values: Values YAML
+  chart:
+    header:
+      charts: Charts
+      install: Install
+    info:
+      appVersion: Application Version
+      chartVersions:
+        label: Chart Versions
+        showMore: Show More
+        showLess: Show Less
+      home: Home
+      maintainers: Maintainers
+      related: Related
+      chartUrls: Chart
+      keywords: Keywords
   charts:
     all: All
     categories:
@@ -553,6 +568,7 @@ catalog:
     action:
       goToUpgrade: Edit/Upgrade
       ignoreWarning: Continue Anyways
+    appReadmeMissing: This chart doesn't have a README.
     appReadmeGeneric: This chart doesn't have a Rancher-specific README.  Review the Helm README to learn more about the available configuration options and their usage.
     chart: Chart
     error:

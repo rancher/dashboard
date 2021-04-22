@@ -242,7 +242,7 @@ export default {
       }
 
       this.$router.push({
-        name:   'c-cluster-apps-install',
+        name:   'c-cluster-apps-chart',
         params: {
           cluster:  this.$route.params.cluster,
           product:  this.$store.getters['productId'],

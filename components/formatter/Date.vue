@@ -23,7 +23,18 @@ export default {
     emptyTextKey: {
       type:    String,
       default: ''
-    }
+    },
+
+    showDate: {
+      type:    Boolean,
+      default: true,
+    },
+
+    showTime: {
+      type:    Boolean,
+      default: true,
+    },
+
   },
 
   computed: {
@@ -53,6 +64,11 @@ export default {
 
 <template>
   <component :is="tagName">
-    {{ date }}<br v-if="multiline" /><span v-else>&nbsp;</span>{{ time }}
+    <template v-if="showDate">
+      {{ date }}<br v-if="multiline" /><span v-else>&nbsp;</span>
+    </template>
+    <template v-if="showTime">
+      {{ time }}
+    </template>
   </component>
 </template>

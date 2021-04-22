@@ -21,7 +21,7 @@ export default function(product, chartName, defaultResourceOrRoute) {
 
       // Otherwise just let the middleware pass through
     } else {
-      // The product is not installed, redirect to the install chart
+      // The product is not installed, redirect to the details chart
 
       await store.dispatch('catalog/load');
 
@@ -29,7 +29,7 @@ export default function(product, chartName, defaultResourceOrRoute) {
 
       if ( chart ) {
         return redirect({
-          name:   'c-cluster-apps-install',
+          name:   'c-cluster-apps-chart',
           query:  {
             [REPO_TYPE]: chart.repoType,
             [REPO]:      chart.repoName,
