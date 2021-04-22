@@ -1,8 +1,7 @@
 <script>
-import LazyImage from '@/components/LazyImage';
 import { MANAGEMENT } from '@/config/types';
+
 export default {
-  components: { LazyImage },
   props:      {
     fileName: {
       type:     String,
@@ -13,7 +12,9 @@ export default {
     this.brandSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'brand' });
   },
   data() {
-    return { brandSetting: null };
+    const theme = this.$store.getters['prefs/theme'];
+
+    return { brandSetting: null, theme };
   },
   computed: {
     pathToBrandedImage() {
@@ -22,6 +23,13 @@ export default {
       if (!this.brandSetting?.value) {
         return out;
       } else {
+        if (this.theme === 'dark') {
+          try {
+            out = require(`~/assets/brand/${ this.brandSetting.value }/dark/${ this.fileName }`);
+
+            return out;
+          } catch {}
+        }
         try {
           out = require(`~/assets/brand/${ this.brandSetting.value }/${ this.fileName }`);
         } catch {
@@ -37,5 +45,5 @@ export default {
 };
 </script>
 <template>
-  <LazyImage v-bind="$attrs" :initial-src="pathToBrandedImage" :src="pathToBrandedImage" :error-src="pathToRancherFallback" />
+  <img v-bind="$attrs" :src="pathToBrandedImage" />
 </template>

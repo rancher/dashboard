@@ -1,7 +1,3 @@
-// @import '@/assets/styles/themes/_light.scss';
-// Local variables for reused colors
-
-
 $primary         : rgb(48, 186, 120);
 $link            : $primary;
 
@@ -30,13 +26,10 @@ $selected        : rgba($primary, .5);
 
   --accent-btn                 : #{rgba($primary, 0.2)};
   --accent-btn-hover           : #{rgba($primary, 0.5)};
-  --overlay-bg                 : #{rgba($lighter, 0.75)};
-  --shadow                     : #{rgba($medium, 0.85)};
 
   --dropdown-hover-bg          : #{rgba($primary, 0.2)};
 
   --card-header                : #{rgba($primary, 0.2)};
-
 
   --tag-primary                : #{$primary};
   --tag-bg                     : #{rgba($primary, 0.2)};
@@ -47,7 +40,10 @@ $selected        : rgba($primary, .5);
   --dropdown-active-text       : #{darken($link, 1%)};
   --dropdown-hover-text        : #{lighten($link, 1%)};
 
-  $rancher: $primary;
+  $rancher                     : $primary;
+
+  --app-rancher-accent         : #{$rancher};
+  --app-rancher-bg             : #{sizzle-gradient($rancher)};
 
 }
 

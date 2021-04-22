@@ -5,6 +5,11 @@
     
     $info            : mix($primary, $secondary, 50%);
     $selected        : rgba($primary, .5);
+    
+    $light: #6c6c76;
+
+    $disabled: $light;
+
     //Contrast colors
     $contrasted-dark: $lightest !default;
     $contrasted-light: $darkest !default;
@@ -25,15 +30,15 @@
         ),
         primary: $primary,
         secondary: $secondary,
+        info:       $info,
       )
     );
   
-  
+    --outline                    : #{rgba($primary, 0.75)};
   
     --nav-active                 : #{rgba($primary, 0.3)};
     --nav-hover                  : #{$primary};
     --nav-expander-hover         : #{darken($primary, 20%)};
-
   
     --accent-btn                 : #{rgba($primary, 0.2)};
     --accent-btn-hover           : #{rgba($primary, 0.5)};
@@ -41,18 +46,17 @@
     --checkbox-ticked-bg         : #{$link};
 
     --dropdown-text              : #{$link};
-
     --dropdown-active-bg         : #{$selected};
-
     --dropdown-hover-bg          : #{$link};
 
-
-  
     --tag-primary                : #{$primary};
     --tag-bg                     : #{rgba($primary, 0.2)};
   
     --tooltip-bg                 : #{darken($primary, 30%)};
 
-
+    $rancher                     : $primary;
+  
+    --app-rancher-accent         : #{$rancher};
+    --app-rancher-bg             : #{sizzle-gradient($rancher)};
   }
 

@@ -5,6 +5,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
 import { stringify } from '@/utils/error';
+import { colorVariables } from '@/utils/color';
 
 export default {
 
@@ -75,7 +76,15 @@ export default {
           if (hasStylesheet) {
             document.body.classList.remove(remove);
           } else {
-            // TODO remove brand style if applied via js
+            // remove brand style if applied via js
+            const colorVars = colorVariables( {
+              primary: [0, 0, 0],
+              link:    { default: [0, 0, 0], text: [0, 0, 0] }
+            });
+
+            for (const cssVar in colorVars) {
+              document.body.style.removeProperty(cssVar, colorVars[cssVar]);
+            }
           }
         } catch (err) {
         }
@@ -125,7 +134,7 @@ export default {
         v-model="themeSource"
         label="Choose a new UI Theme"
         name="theme-source"
-        :options="[{value: 'default', label:t('branding.options.default')}, {value: 'suse', label:t('branding.options.suse')}, {value: 'custom', label:t('branding.options.custom')}]"
+        :options="[{value: 'default', label:t('branding.options.default')}, {value: 'suse', label:t('branding.options.suse')}]"
       />
     </div>
     <template v-if="themeSource === 'custom'">
