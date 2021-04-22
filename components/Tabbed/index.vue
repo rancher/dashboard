@@ -274,9 +274,6 @@ export default {
 
       &.active {
         border-bottom: solid 2px var(--primary);
-        // background-color: var(--tabbed-container-bg);
-        // box-shadow: 0 0 20px var(--shadow);
-        // clip-path: polygon(-100% -100%, 100% -100%, 200% 100%, -100% 100%);
 
         A {
           color: var(--primary);
@@ -287,15 +284,12 @@ export default {
 
   .tab-container {
     padding: 20px;
-    // border: solid 1px var(--border);
-    // background-color: var(--tabbed-container-bg);
-    // box-shadow: 0 0 20px var(--shadow);
   }
 
   .side-tabs{
     display: flex;
-    box-shadow: 0 0 20px var(--shadow);
-    border-radius: calc(var(--border-radius) * 2);
+    border: solid 1px var(--border);
+    border-radius: var(--border-radius);
     background-color: var(--tabbed-sidebar-bg);
 
     .tab-container {
@@ -320,6 +314,7 @@ export default {
 
         A {
           color: var(--primary);
+          padding: 15px;
         }
 
         &.active {
