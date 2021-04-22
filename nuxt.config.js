@@ -106,24 +106,6 @@ module.exports = {
   router: {
     base:       routerBasePath,
     middleware: ['i18n'],
-    // TODO: This is a hack
-    extendRoutes(routes, resolve) {
-      console.log('**** EXTEND ROUTES');
-      //console.log(routes);
-
-
-
-      routes.forEach(r => {
-        console.log(r);
-        if (r.name.indexOf('manager-') === 0) {
-          console.log('Got manager route');
-          console.log(r.name);
-          r.meta = {
-            product: 'manager'
-          };
-        }
-      })
-    }
   },
 
   build: {
