@@ -692,6 +692,10 @@ $spacing: 10px;
       &:last-of-type {
         border-bottom: 0;
       }
+
+      &:hover {
+        background-color: var(--sortable-table-hover-bg);
+      }
     }
 
     td {
@@ -706,11 +710,11 @@ $spacing: 10px;
     }
 
     tr.active-row {
-      color: var(--sortable-table-header-bg) !important;
+      color: var(--sortable-table-header-bg);
     }
 
     tr.row-selected {
-      background: var(--sortable-table-selected-bg) !important;
+      background: var(--sortable-table-selected-bg);
     }
 
     .no-rows {
