@@ -8,9 +8,11 @@ export default {
     if (!seenWhatsNew || !seenWhatsNew.length) {
       return redirect({ name: 'home' });
     }
-    const afterLoginRouteObject = store.getters['prefs/afterLoginRoute'];
 
-    return redirect(afterLoginRouteObject);
+    // TODO: Add back in support for changing login landing page
+    // const afterLoginRouteObject = store.getters['prefs/afterLoginRoute'];
+    // return redirect(afterLoginRouteObject);
+    return redirect({ name: 'home' });
   }
 };
 </script>

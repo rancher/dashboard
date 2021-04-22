@@ -207,7 +207,7 @@ export default {
       </div>
       <div class="row">
         <div :class="{'span-9': showSidePanel, 'span-12': !showSidePanel }" class="col">
-          <SimpleBox :title="t('landing.landingPrefs.title')" :pref="HIDE_HOME_PAGE_CARDS" pref-key="setLoginPage">
+          <SimpleBox v-if="false" :title="t('landing.landingPrefs.title')" :pref="HIDE_HOME_PAGE_CARDS" pref-key="setLoginPage" class="panel">
             <RadioGroup id="login-route" :value="afterLoginRoute" name="login-route" :options="routeRadioOptions" @input="updateLoginRoute">
               <template #2="{option, listeners}">
                 <div class="row">
@@ -223,7 +223,7 @@ export default {
           </SimpleBox>
           <SimpleBox
             id="migration"
-            class="mt-20"
+            class="panel"
             :title="t('landing.migration.title')"
             :pref="HIDE_HOME_PAGE_CARDS"
             pref-key="migrationTip"
@@ -233,7 +233,7 @@ export default {
             <!-- Unhide this when docs are added -->
             <a class="hide pull-right" href="#">{{ t('landing.learnMore') }}</a>
           </SimpleBox>
-          <div class="row mt-20">
+          <div class="row panel">
             <div class="col span-12">
               <SortableTable :table-actions="false" :row-actions="false" key-field="id" :rows="clusters" :headers="clusterHeaders">
                 <template #title>
@@ -305,6 +305,9 @@ export default {
   }
   .table-heading {
     align-items: center;
+  }
+  .panel:not(:first-child) {
+    margin-top: 20px;
   }
 </style>
 <style lang="scss">
