@@ -1,7 +1,7 @@
-import { DSL } from '@/store/type-map';
-import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
-import { CAPI } from '@/config/types';
 import { MULTI_CLUSTER } from '@/config/feature-flags';
+import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
+import { CAPI } from '@/config/types';
+import { DSL } from '@/store/type-map';
 
 export const NAME = 'manager';
 
@@ -24,6 +24,8 @@ export function init(store) {
     showClusterSwitcher: false,
   });
 
+  configureType(CAPI.RANCHER_CLUSTER, { showListMasthead: false, namespaced: false });
+  weightType(CAPI.RANCHER_CLUSTER, 100, true);
 
   // TODO: RKE
   virtualType({
@@ -35,7 +37,7 @@ export function init(store) {
     icon:           'folder',
     route:          { name: 'manager-page', params: { page: 'rke-templates' } },
     exact:          true
-  });  
+  });
 
   virtualType({
     label:          'RKE Drivers',
@@ -79,10 +81,7 @@ export function init(store) {
     icon:           'folder',
     route:          { name: 'manager-page', params: { page: 'catalogs' } },
     exact:          true
-  });    
-  configureType(CAPI.RANCHER_CLUSTER, { showListMasthead: false, namespaced: false });
-  weightType(CAPI.RANCHER_CLUSTER, 100, true);
-  
+  });
 
   basicType([
     'rke-templates',
@@ -93,7 +92,7 @@ export function init(store) {
     'global-dns-entries',
     'global-dns-providers',
     'catalogs',
-  ], 'Legacy Configuration');    
+  ], 'Legacy Configuration');
 
   weightType(CAPI.MACHINE_DEPLOYMENT, 3, true);
   weightType(CAPI.MACHINE_SET, 2, true);

@@ -340,7 +340,8 @@ module.exports = {
     '/v3-public':             proxyOpts(api), // Rancher Unauthed API
     '/api-ui':                proxyOpts(api), // Browser API UI
     '/meta':                  proxyOpts(api), // Browser API UI
-    '/v1-*':      proxyOpts(api, // SAML, KDM, etc
+    '/v1-*':         proxyOpts(api), // SAML, KDM, etc
+    // These are for Ember embedding
     '/g':            proxyEmberOpts('https://127.0.0.1:8000'),
     '/n':            proxyEmberOpts('https://127.0.0.1:8000'),
     '/assets':       proxyOpts('https://127.0.0.1:8000'),

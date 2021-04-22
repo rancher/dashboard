@@ -4,7 +4,7 @@ import {
   WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD,
   RBAC,
   MANAGEMENT,
-q  NORMAN,
+  NORMAN,
 } from '@/config/types';
 
 import {
