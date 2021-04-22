@@ -17,21 +17,22 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
     provider() {
-      return this.currentCluster.status.provider;
+      return (this.currentCluster.status.provider || '').split('.')[0];
     }
   },
 
   created() {
-    let provider = this.provider;
+    const provider = this.provider;
 
-    if ( provider.startsWith('rke.') ) {
-      provider = 'rke';
+    if ( !this.value._setSources ) {
+      // Save a note so that form -> yaml -> form doesn't reset these
+      Object.defineProperty(this.value, '_setSources', { enumerable: false, value: true });
+
+      this.$set(this.value, 'additionalLoggingSources', this.value.additionalLoggingSources || {});
+      this.$set(this.value.additionalLoggingSources, provider, this.value.additionalLoggingSources[provider] || {});
+      this.$set(this.value.additionalLoggingSources[provider], 'enabled', true);
+      this.$set(this.value, 'global', this.value.global || {});
     }
-
-    this.$set(this.value, 'additionalLoggingSources', this.value.additionalLoggingSources || {});
-    this.$set(this.value.additionalLoggingSources, provider, this.value.additionalLoggingSources[provider] || {});
-    this.$set(this.value.additionalLoggingSources[provider], 'enabled', true);
-    this.$set(this.value, 'global', this.value.global || {});
   },
 };
 </script>
