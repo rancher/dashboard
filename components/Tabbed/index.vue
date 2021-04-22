@@ -247,15 +247,10 @@ export default {
     list-style-type: none;
     margin: 0;
     padding: 0;
+    border-bottom: solid 2px var(--border);
 
     &:focus {
      outline:none;
-
-      & .tab.active {
-        outline-color: var(--outline);
-        outline-style: solid;
-        outline-width: var(--outline-width);
-      }
     }
 
     .tab {
@@ -264,10 +259,13 @@ export default {
       float: left;
       margin: 0 8px 0 0;
       cursor: pointer;
+      margin-bottom: -1px;
 
       A {
+        color: var(--secondary);
         display: block;
-        padding: 10px 15px;
+        padding: 20px 15px;
+        text-decoration: none;
       }
 
       &:last-child {
@@ -275,13 +273,13 @@ export default {
       }
 
       &.active {
-        background-color: var(--tabbed-container-bg);
+        border-bottom: solid 2px var(--primary);
+        // background-color: var(--tabbed-container-bg);
         // box-shadow: 0 0 20px var(--shadow);
         // clip-path: polygon(-100% -100%, 100% -100%, 200% 100%, -100% 100%);
 
         A {
-          color: var(--body-text);
-          text-decoration: none;
+          color: var(--primary);
         }
       }
     }
@@ -289,7 +287,8 @@ export default {
 
   .tab-container {
     padding: 20px;
-    background-color: var(--tabbed-container-bg);
+    // border: solid 1px var(--border);
+    // background-color: var(--tabbed-container-bg);
     // box-shadow: 0 0 20px var(--shadow);
   }
 
