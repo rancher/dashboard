@@ -14,13 +14,7 @@ export default {
   layout:     'unauthenticated',
   components: {
     ButtonGroup,
-    Checkbox,
     LabeledInput,
-    LabeledSelect,
-    UnitInput,
-    Select,
-    SecretSelector,
-    InputWithSelect
   },
 
   data() {

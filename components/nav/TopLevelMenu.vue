@@ -289,9 +289,9 @@ export default {
           </template>
           <div class="pad"></div>
           <div class="cluster-manager">
-            <a v-if="currentProduct && isMultiCluster" class="btn role-tertiary" :href="(currentProduct.inStore === 'management' ? backToRancherGlobalLink : backToRancherLink)">
-              {{ t('nav.backToRancher') }}
-            </a>
+            <button v-if="currentProduct && isMultiCluster" role="button" class="btn role-tertiary" :href="(currentProduct.inStore === 'management' ? backToRancherGlobalLink : backToRancherLink)">
+              <i class="icon icon-cluster" /> {{ t('nav.backToRancher') }}
+            </button>
           </div>
         </div>
         <div class="footer">
@@ -503,7 +503,9 @@ export default {
       }
 
       .cluster-manager {
+        display: flex;
         .btn {
+          flex: 1;
           border: 0;
           line-height: 32px;
           min-height: 32px;

@@ -296,7 +296,9 @@ export default {
         </template>
       </div>
       <n-link tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools'}">
-        <a @click="collapseAll()">{{ t('nav.clusterTools') }}</a>
+        <button class="btn role-tertiary" role="button" @click="collapseAll()">
+          <i class="icon icon-gear" /> {{ t('nav.clusterTools') }}
+        </button>
       </n-link>
     </nav>
 
@@ -362,12 +364,17 @@ export default {
 
     NAV .tools {
       display: flex;
-      margin-bottom: 10px;
-      A {
-        color: var(--body-text);
+      margin: 10px;
+
+      .btn {
         outline: 0;
         flex: 1;
-        padding: 10px;
+        border: 0;
+        line-height: 32px;
+        min-height: 32px;
+        height: 32px;
+        background-color: var(--header-btn-bg);
+        color: var(--header-btn-text);
 
         &:hover {
           background: var(--nav-hover);
