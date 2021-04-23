@@ -775,7 +775,7 @@ cluster:
         label: Access Key
         placeholder: Your AWS Access Key
       secretKey:
-        label: SecretKey
+        label: ScretKey
         placeholder: Your AWS Secret Key
       defaultRegion:
         label: Default Region
@@ -3399,7 +3399,7 @@ workload:
       name: Name
       protocol: Protocol
       listeningPort: Listening Port
-      removeContainer: Remove Container
+    removeContainer: Remove Container
     security:
       addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs
