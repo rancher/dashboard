@@ -28,7 +28,7 @@ export default {
       <i class="icon icon-close" />
     </div>
     <div class="graphic">
-      <img class="banner" src="~/assets/images/pl/banner.svg" />
+      <img class="banner" src="~/assets/images/pl/banner.svg" draggable="false" />
     </div>
     <div v-if="titleKey" class="title">
       <t :k="titleKey" />

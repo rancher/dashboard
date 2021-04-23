@@ -89,7 +89,7 @@ export const TIME_ZONE = create('time-zone', 'local');
 export const DEV = create('dev', false, { parseJSON });
 export const LAST_VISITED = create('last-visited', 'home', { parseJSON });
 export const SEEN_WHATS_NEW = create('seen-home', '', { parseJSON });
-export const AFTER_LOGIN_ROUTE = create('after-login-route', 'home' );
+export const AFTER_LOGIN_ROUTE = create('after-login-route', 'home', { parseJSON } );
 export const HIDE_HOME_PAGE_CARDS = create('home-page-cards', {}, { parseJSON } );
 
 export const _RKE1 = 'rke1';
@@ -180,6 +180,10 @@ export const getters = {
 
   afterLoginRoute: (state, getters) => {
     const afterLoginRoutePref = getters['get'](AFTER_LOGIN_ROUTE);
+
+    if (typeof(afterLoginRoutePref) !== 'string') {
+      return afterLoginRoutePref;
+    }
 
     switch (true) {
     case (afterLoginRoutePref === 'home'):
@@ -393,24 +397,15 @@ export const actions = {
     if (!route) {
       return;
     }
-    const routeComponents = route.name.split('-');
-    const toSave = { name: '', params: {} };
 
-    for ( const i in routeComponents) {
-      const part = routeComponents[i];
+    // Just save the route's name and params
+    const toSave = { name: route.name, params: route.params };
 
-      if (!!part && i < 3) {
-        toSave.name += `${ part }-`;
-        if (route.params[part]) {
-          toSave.params[part] = route.params[part];
-        }
-      } else {
-        break;
-      }
-    }
-
-    toSave.name = toSave.name.replace(/-$/, '');
     dispatch('set', { key: LAST_VISITED, value: toSave });
+
+    // TODO - Remove debugging
+    // console.log('set Last Visited');
+    // console.log(toSave.name, toSave.params);
   },
 
   toggleTheme({ getters, dispatch }) {

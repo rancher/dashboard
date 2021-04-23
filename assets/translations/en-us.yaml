@@ -109,7 +109,10 @@ nav:
     label: Resource Search
     toolTip: Resource Search {key}
     placeholder: Type to search for a resource...
-
+  header:
+    setLoginPage: Set as login page
+    restoreCards: Restore hidden cards
+ 
 product:
   apps: Apps & Marketplace
   auth: Users & Authentication

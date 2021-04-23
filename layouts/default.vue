@@ -16,6 +16,10 @@ import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@/utils/string';
 import { getVersionInfo } from '@/utils/version';
 import { sortBy } from '@/utils/sort';
+import { AFTER_LOGIN_ROUTE } from '@/store/prefs';
+import PageHeaderActions from '@/mixins/page-header';
+
+const SET_LOGIN_ACTION = 'set-as-login';
 
 export default {
 
@@ -28,6 +32,8 @@ export default {
     WindowManager
   },
 
+  mixins: [PageHeaderActions],
+
   data() {
     const { displayVersion } = getVersionInfo(this.$store);
 
@@ -38,9 +44,11 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'namespaceMode', 'isExplorer']),
+    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel' }),
     ...mapGetters('type-map', ['activeProducts']),
+
+    afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
 
     namespaces() {
       return this.$store.getters['namespaces']();
@@ -49,6 +57,22 @@ export default {
     dev:            mapPref(DEV),
     expandedGroups: mapPref(EXPANDED_GROUPS),
     favoriteTypes:  mapPref(FAVORITE_TYPES),
+    
+    pageHeaderActions() {
+      const pageHeaderActions = [];
+
+      const product = this.$store.getters['currentProduct'];
+
+      // Only show for Cluster Explorer
+      if (product.inStore === 'cluster') {
+        pageHeaderActions.push({
+          labelKey: 'nav.header.setLoginPage',
+          action:   SET_LOGIN_ACTION
+        });
+      }
+
+      return pageHeaderActions;
+    },
 
     allSchemas() {
       const managementReady = this.$store.getters['managementReady'];
@@ -105,6 +129,24 @@ export default {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
+        
+        // Store the last visited route when the product changes
+        // TODO: Ignore produce changes for Explorer
+        this.$store.dispatch('prefs/setLastVisited', this.$route);
+      }
+    },
+
+    clusterId(a, b) {
+      if ( !isEqual(a, b) ) {
+        // Store the last visited route when the cluster changes
+        const route = {
+          name: this.$route.name,
+          params: {
+            ...this.$route.params,
+            cluster: a,
+          }
+        }
+        this.$store.dispatch('prefs/setLastVisited', route);
       }
     },
 
@@ -144,6 +186,17 @@ export default {
   },
 
   methods: {
+    handlePageHeaderAction(action) {
+      if (action.action === SET_LOGIN_ACTION) {
+        this.afterLoginRoute = {
+          name: 'c-cluster-explorer',
+          params: {
+            cluster: this.clusterId,
+          }
+        };
+      }
+    },
+
     collapseAll() {
       this.$refs.groups.forEach((grp) => {
         grp.isExpanded = false;

@@ -9,6 +9,8 @@ import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 
+const PAGE_HEADER_ACTION = 'page-header-action';
+
 export default {
 
   components: {
@@ -34,7 +36,7 @@ export default {
 
   computed: {
     ...mapGetters(['clusterReady', 'isMultiCluster', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink']),
+      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions']),
     ...mapGetters('type-map', ['activeProducts']),
 
     authEnabled() {
@@ -89,7 +91,21 @@ export default {
 
     hideSearch() {
       this.$modal.hide('searchModal');
-    }
+    },
+
+    showPageActionsMenu(show) {
+      if (this.$refs.pageActions) {
+        if (show) {
+          this.$refs.pageActions.show();
+        } else {
+          this.$refs.pageActions.hide();
+        }
+      }
+    },
+
+    headerAction(action) {
+      this.$nuxt.$emit(PAGE_HEADER_ACTION, action);
+    }    
   }
 };
 </script>
@@ -184,6 +200,30 @@ export default {
       </modal>
     </div>
 
+    <div v-if="pageActions && pageActions.length" class="actions">
+      <i class="icon icon-actions" @blur="showPageActionsMenu(false)" @click="showPageActionsMenu(true)" @focus.capture="showPageActionsMenu(true)" />
+      <v-popover
+        ref="pageActions"
+        placement="bottom-end"
+        offset="0"
+        trigger="manual"
+        :delay="{show: 0, hide: 0}"
+        :popper-options="{modifiers: { flip: { enabled: false } } }"
+        :container="false"
+      >
+        <template slot="popover" class="user-menu">
+          <ul class="list-unstyled dropdown" @click.stop="showPageActionsMenu(false)">
+            <li class="user-menu-item" v-for="a in pageActions" :key="a.label">
+              <a v-if="!a.seperator" @click="headerAction(a)">{{ a.labelKey ? t(a.labelKey) : a.label }}</a>
+              <div v-else class="menu-seperator">
+                <div class="menu-seperator-line" />
+              </div>
+            </li>
+          </ul>
+        </template>
+      </v-popover>
+    </div>
+
     <div class="header-spacer"></div>
 
     <div class="user user-menu" tabindex="0" @blur="showMenu(false)" @click="showMenu(true)" @focus.capture="showMenu(true)">
@@ -261,6 +301,21 @@ export default {
       padding: 0 5px;
     }
 
+    .actions {
+      align-items: center;
+      cursor: pointer;
+      display: flex;
+      grid-area: header-actions;
+
+      > I {
+        font-size: 18px;
+        padding: 6px;
+        &:hover {
+          color: var(--link-text);
+        }
+      }
+    }
+
     .back {
       padding-top: 6px;
 
@@ -309,12 +364,12 @@ export default {
       }
     }
 
-    grid-template-areas:  "menu product top buttons cluster user";
-    grid-template-columns: var(--header-height) calc(var(--nav-width) - var(--header-height)) auto min-content  min-content var(--header-height);
+    grid-template-areas:  "menu product top buttons header-actions cluster user";
+    grid-template-columns: var(--header-height) calc(var(--nav-width) - var(--header-height)) auto min-content min-content min-content var(--header-height);
     grid-template-rows:    var(--header-height);
 
     &.simple {
-      grid-template-columns: var(--header-height) min-content auto min-content min-content var(--header-height);
+      grid-template-columns: var(--header-height) min-content auto min-content min-content min-content var(--header-height);
     }
 
     > .menu-spacer {
@@ -504,6 +559,16 @@ export default {
     }
   }
 
+  .actions {
+    ::v-deep .popover:focus {
+      outline: 0;
+    }
+
+    .dropdown {
+      margin: 0 -10px;
+    }
+  }
+
   .user-menu-item {
     a {
       cursor: hand;
@@ -520,6 +585,16 @@ export default {
       &:focus {
         margin: 0 2px;
         padding: 10px 8px;
+      }
+    }
+
+    div.menu-seperator {
+      cursor: default;
+      padding: 4px 0;
+
+      .menu-seperator-line {
+        background-color: var(--border);
+        height: 1px;
       }
     }
   }
