@@ -116,6 +116,7 @@ export default {
             :options="[false,true]"
             :labels="[t('workload.container.security.privileged.false'), t('workload.container.security.privileged.true')]"
             :mode="mode"
+            @input="update"
           />
         </div>
         <div v-if="!privileged" class="col span-6">
@@ -127,6 +128,7 @@ export default {
             :options="[false,true]"
             :labels="[t('workload.container.security.allowPrivilegeEscalation.false'), t('workload.container.security.allowPrivilegeEscalation.true')]"
             :mode="mode"
+            @input="update"
           />
         </div>
       </div>
@@ -143,7 +145,7 @@ export default {
             :options="[false, true]"
             :labels="[t('workload.container.security.runAsNonRoot.false'), t('workload.container.security.runAsNonRoot.true')]"
             :mode="mode"
-            @input="e=>runAsRoot = !e"
+            @input="e=>{runAsRoot = !e; update()}"
           />
         </div>
         <div class="col span-6">
@@ -154,6 +156,7 @@ export default {
             :options="[false, true]"
             :labels="[t('workload.container.security.readOnlyRootFilesystem.false'), t('workload.container.security.readOnlyRootFilesystem.true')]"
             :mode="mode"
+            @input="update"
           />
         </div>
       </div>
