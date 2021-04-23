@@ -3,10 +3,10 @@ import { mapState } from 'vuex';
 import { stringify } from '@/utils/error';
 
 export default {
-  layout: 'plain',
+  layout: 'home',
 
   data() {
-    const home = this.$router.resolve({ name: 'index' }).href;
+    const home = this.$router.resolve({ name: 'home' }).href;
     const store = this.$store;
 
     if ( process.client && !store.state.error && !store.state.cameFromError) {
@@ -39,11 +39,13 @@ export default {
         <h1 v-else>
           Error
         </h1>
-        <h2 v-if="error" class="text-secondary">
+        <h2 v-if="error" class="text-secondary mt-20">
           {{ displayError }}
         </h2>
-        <p>
-          <a :href="home" class="btn role-primary">Reload</a>
+        <p class="mt-20">
+          <a :href="home" class="btn role-primary">
+            {{ t('nav.home') }}
+          </a>
         </p>
       </div>
     </main>
