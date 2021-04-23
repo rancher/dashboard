@@ -125,8 +125,8 @@ export default {
             </a>
             <DateFormatter :value="vers.created" :show-time="false" />
           </div>
-          <div class="mt-10 chart-content__right-bar__section--cVersion">
-            <button v-if="mappedVersions.length > showLastVersions" type="button" class="btn role-secondary" @click="showMoreVersions = !showMoreVersions">
+          <div class="mt-10 chart-content__right-bar__section--showMore">
+            <button v-if="mappedVersions.length > showLastVersions" type="button" class="btn btn-sm role-link" @click="showMoreVersions = !showMoreVersions">
               {{ t(`catalog.chart.info.chartVersions.${showMoreVersions ? 'showLess' : 'showMore'}`) }}
             </button>
           </div>
@@ -151,7 +151,7 @@ export default {
         </div>
         <div v-if="version.urls" class="chart-content__right-bar__section">
           <h3>{{ t('catalog.chart.info.chartUrls') }}</h3>
-          <a v-for="url of version.urls" :key="url" :href="url" rel="nofollow noopener noreferrer" target="_blank">{{ url }}</a>
+          <a v-for="url of version.urls" :key="url" :href="url" rel="nofollow noopener noreferrer" target="_blank">{{ version.urls.length === 1 ? 'Download': url }}</a>
         </div>
         <div v-if="version.keywords" class="chart-content__right-bar__section chart-content__right-bar__section--keywords">
           <h3>{{ t('catalog.chart.info.keywords') }}Keywords</h3>
@@ -176,8 +176,12 @@ export default {
       * + H4,
       * + H5,
       * + H6 {
-        margin-top: 40px;
+        margin-top: 20px;
       }
+    }
+
+    ::v-deep code {
+      padding: 0;
     }
 
     ::v-deep pre {
@@ -253,6 +257,10 @@ export default {
           .selected {
             font-weight: bold;
           }
+        }
+        &--showMore {
+          display: flex;
+          justify-content: center;
         }
         &--keywords{
          word-break: break-word;
