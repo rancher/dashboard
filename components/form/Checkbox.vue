@@ -127,6 +127,7 @@ export default {
         role="checkbox"
       />
       <span
+        v-if="label || labelKey || tooltipKey || tooltip"
         class="checkbox-label"
       >
         <slot name="label">

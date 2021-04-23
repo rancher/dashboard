@@ -463,7 +463,7 @@ export default {
             v-for="act in availableActions"
             :key="act.action"
             type="button"
-            class="btn role-primary"
+            class="btn bg-primary btm-sm"
             :disabled="!act.enabled"
             @click="applyTableAction(act, null, $event)"
             @mouseover="setBulkActionOfInterest(act)"
@@ -643,6 +643,21 @@ export default {
   </div>
 </template>
 
+<style lang="scss" scoped>
+  // Remove colors from multi-action buttons in the table
+  td {
+    .actions.role-multi-action {
+      background-color: transparent;
+      border: none;
+      font-size: 18px;
+      &:hover, &:focus {
+        background-color: var(--accent-btn);
+        box-shadow: none;
+      }
+    }
+  }
+</style>
+
 <style lang="scss">
 //
 // Important: Almost all selectors in here need to be ">"-ed together so they
@@ -667,21 +682,15 @@ $spacing: 10px;
   border-radius: 4px;
 
   td {
-    padding: 8px 16px;
+    padding: 8px 5px;
     border: 0;
-    word-break: break-word;
 
     &.row-check {
-      padding-top: 16px;
-
-      LABEL {
-        margin-right: 1px; /* to make up for the edge border */
-      }
+      padding-top: 12px;
     }
   }
 
   tbody {
-
     tr {
       border-bottom: 1px solid var(--sortable-table-top-divider);
       background-color: var(--body-bg);
@@ -696,7 +705,7 @@ $spacing: 10px;
 
       &:hover {
         background-color: var(--sortable-table-hover-bg);
-      }
+      }      
     }
 
     td {
@@ -823,7 +832,7 @@ $spacing: 10px;
   &.titled {
     display: flex;
     align-items: center;
-  }
+  }  
 }
 
 .fixed-header-actions {

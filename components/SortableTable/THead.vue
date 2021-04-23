@@ -163,7 +163,7 @@ export default {
   }
 
   th {
-    padding: 8px 16px;
+    padding: 8px 5px;
     font-weight: normal;
     border: 0;
     color: var(--body-text);
