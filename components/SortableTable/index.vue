@@ -705,7 +705,7 @@ $spacing: 10px;
 
       &:hover {
         background-color: var(--sortable-table-hover-bg);
-      }      
+      }
     }
 
     td {
@@ -832,7 +832,7 @@ $spacing: 10px;
   &.titled {
     display: flex;
     align-items: center;
-  }  
+  }
 }
 
 .fixed-header-actions {
