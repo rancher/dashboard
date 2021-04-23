@@ -6,6 +6,7 @@ import SelectIconGrid from '@/components/SelectIconGrid';
 import { REGISTER, SUB_TYPE, _FLAGGED } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { sortBy } from '@/utils/sort';
+import { set } from '@/utils/object';
 import Rke2 from './rke2';
 import Import from './import';
 
@@ -43,6 +44,10 @@ export default {
   },
 
   async fetch() {
+    if ( !this.value.spec ) {
+      set(this.value, 'spec', {});
+    }
+
     if ( this.subType ) {
       await this.selectType(this.subType, false);
     } else if ( this.value.nodeProvider ) {
@@ -51,10 +56,10 @@ export default {
 
     if ( !this.value.id ) {
       if ( !this.value.metadata ) {
-        this.$set(this.value, 'metadata', {});
+        set(this.value, 'metadata', {});
       }
 
-      this.$set(this.value.metadata, 'namespace', DEFAULT_WORKSPACE);
+      set(this.value.metadata, 'namespace', DEFAULT_WORKSPACE);
     }
   },
 

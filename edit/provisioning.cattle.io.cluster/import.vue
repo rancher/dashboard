@@ -3,13 +3,19 @@ import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
 import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
-import { set } from '@/utils/object';
+import Tabbed from '@/components/Tabbed';
+import Labels from './Labels';
+import AgentEnv from './AgentEnv';
+// import { set } from '@/utils/object';
 
 export default {
   components: {
+    Loading,
     NameNsDescription,
     CruResource,
-    Loading,
+    Tabbed,
+    Labels,
+    AgentEnv
   },
 
   mixins: [CreateEditView],
@@ -32,9 +38,9 @@ export default {
   },
 
   fetch() {
-    if ( !this.value.spec.rkeConfig ) {
-      set(this.value.spec, 'rkeConfig', {});
-    }
+    // if ( !this.value.spec.rkeConfig ) {
+    // set(this.value.spec, 'rkeConfig', {});
+    // }
   },
 
   data() {
@@ -51,7 +57,6 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <CruResource
     v-else
-    ref="cruresource"
     :mode="mode"
     :resource="value"
     :errors="errors"
@@ -70,5 +75,10 @@ export default {
         description-placeholder="cluster.description.placeholder"
       />
     </div>
+
+    <Tabbed :side-tabs="true">
+      <AgentEnv v-model="value" :mode="mode" />
+      <Labels v-model="value" :mode="mode" />
+    </Tabbed>
   </CruResource>
 </template>

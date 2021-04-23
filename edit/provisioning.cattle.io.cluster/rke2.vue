@@ -3,10 +3,10 @@ import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
 import Loading from '@/components/Loading';
 import Tabbed from '@/components/Tabbed';
+import Tab from '@/components/Tabbed/Tab';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import BadgeState from '@/components/BadgeState';
-import Tab from '@/components/Tabbed/Tab';
 import { SECRET } from '@/config/types';
 import { nlToBr } from '@/utils/string';
 import { clone, set } from '@/utils/object';
@@ -17,6 +17,8 @@ import { _CREATE } from '@/config/query-params';
 import { removeObject } from '@/utils/array';
 import SelectCredential from './SelectCredential';
 import NodePool from './NodePool';
+import Labels from './Labels';
+import AgentEnv from './AgentEnv';
 
 export default {
   components: {
@@ -29,6 +31,8 @@ export default {
     LabeledSelect,
     NodePool,
     BadgeState,
+    AgentEnv,
+    Labels,
   },
 
   mixins: [CreateEditView],
@@ -415,9 +419,7 @@ export default {
       />
 
       <div class="clearfix">
-        <h2 class="pull-left">
-          Node Pools
-        </h2>
+        <h2 v-t="'cluster.tabs.nodePools'" class="pull-left" />
         <div class="pull-right">
           <BadgeState
             v-tooltip="nodeTotals.tooltip.etcd"
@@ -460,48 +462,49 @@ export default {
           />
         </Tab>
       </Tabbed>
-
-      <div class="spacer" />
-
-      <h2>Cluster Configuration</h2>
-      <Tabbed :side-tabs="true">
-        <Tab name="cluster" label="Basics" :weight="10">
-          <LabeledSelect
-            v-model="value.spec.kubernetesVersion"
-            :options="versionOptions"
-            label-key="cluster.kubernetesVersion.label"
-          />
-          <ul>
-            <li>Cloud Provider</li>
-            <li>Windows Support</li>
-          </ul>
-        </Tab>
-        <Tab name="networking" label="Networking" :weight="9">
-          <ul>
-            <li>Network Provider</li>
-            <li>Project Network Isolation</li>
-            <li>CNI MTU</li>
-            <li>Ingress Enabled</li>
-            <li>Ingress Default Backend</li>
-            <li>Node Port Range</li>
-          </ul>
-        </Tab>
-        <Tab name="advanced" label="Advanced" :weight="8">
-          <ul>
-            <li>PSPs</li>
-            <li>Docker Version</li>
-            <li>Docker Root Dir</li>
-            <li>Snapshot Backups</li>
-            <li>Secrets Encryption</li>
-            <li>CIS Scan Schedule</li>
-            <li>Max Unavailable / Drain nodes</li>
-            <li>Agent Env Vars</li>
-            <li>Authorized Cluster Endpoint</li>
-            <li>Private Registry</li>
-          </ul>
-        </Tab>
-      </Tabbed>
     </div>
+
+    <div class="spacer" />
+
+    <h2 v-t="'cluster.tabs.cluster'" />
+    <Tabbed :side-tabs="true">
+      <Tab name="basic" label-key="cluster.tabs.basic" :weight="10">
+        <LabeledSelect
+          v-model="value.spec.kubernetesVersion"
+          :options="versionOptions"
+          label-key="cluster.kubernetesVersion.label"
+        />
+        <ul>
+          <li>Cloud Provider</li>
+          <li>Windows Support</li>
+        </ul>
+      </Tab>
+      <Tab name="networking" label-key="cluster.tabs.networking" :weight="9">
+        <ul>
+          <li>Network Provider</li>
+          <li>Project Network Isolation</li>
+          <li>CNI MTU</li>
+          <li>Ingress Enabled</li>
+          <li>Ingress Default Backend</li>
+          <li>Node Port Range</li>
+        </ul>
+      </Tab>
+      <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="8">
+        <ul>
+          <li>PSPs</li>
+          <li>Docker Version</li>
+          <li>Docker Root Dir</li>
+          <li>Snapshot Backups</li>
+          <li>Secrets Encryption</li>
+          <li>CIS Scan Schedule</li>
+          <li>Max Unavailable / Drain nodes</li>
+          <li>Authorized Cluster Endpoint</li>
+          <li>Private Registry</li>
+        </ul>
+      </Tab>
+      <AgentEnv v-model="value" :mode="mode" />
+      <Labels v-model="value" :mode="mode" />
+    </Tabbed>
 
     <template v-if="needCredential && !credentialId" #form-footer>
       <div><!-- Hide the outer footer --></div>
