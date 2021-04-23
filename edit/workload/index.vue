@@ -439,6 +439,13 @@ export default {
       this.$set(this.value, 'type', neu);
       delete this.value.apiVersion;
     },
+
+    container(neu) {
+      const containers = this.isInitContainer ? this.podTemplateSpec.initContainers : this.podTemplateSpec.containers;
+      const existing = containers.filter(container => container._active)[0];
+
+      Object.assign(existing, neu);
+    }
   },
 
   created() {
@@ -493,7 +500,7 @@ export default {
     },
 
     saveWorkload() {
-      if (this.type !== WORKLOAD_TYPES.JOB && this.mode === _CREATE) {
+      if (this.type !== WORKLOAD_TYPES.JOB && this.type !== WORKLOAD_TYPES.CRON_JOB && this.mode === _CREATE) {
         this.spec.selector = { matchLabels: this.value.workloadSelector };
       }
 
@@ -505,7 +512,7 @@ export default {
         template = this.spec.template;
       }
 
-      if (this.type !== WORKLOAD_TYPES.JOB) {
+      if (this.type !== WORKLOAD_TYPES.JOB && this.type !== WORKLOAD_TYPES.CRON_JOB && this.mode === _CREATE) {
         if (!template.metadata) {
           template.metadata = { labels: this.value.workloadSelector };
         } else {
@@ -612,13 +619,28 @@ export default {
 
         return;
       }
+      (this.allContainers || []).forEach((container) => {
+        if (container._active) {
+          delete container._active;
+        }
+      });
       container._active = true;
       this.container = container;
       this.isInitContainer = !!container._init;
     },
 
     addContainer() {
-      const container = { imagePullPolicy: 'Always', name: `container-${ this.allContainers.length }` };
+      let nameNumber = this.allContainers.length;
+      const allNames = this.allContainers.reduce((names, each) => {
+        names.push(each.name);
+
+        return names;
+      }, []);
+
+      while (allNames.includes(`container-${ nameNumber }`)) {
+        nameNumber++;
+      }
+      const container = { imagePullPolicy: 'Always', name: `container-${ nameNumber }` };
 
       this.podTemplateSpec.containers.push(container);
       this.selectContainer(container);

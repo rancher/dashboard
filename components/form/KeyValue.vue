@@ -62,7 +62,7 @@ export default {
     keyPlaceholder: {
       type: String,
       default() {
-        return this.$store.getters['i18n/t']('keyValue.valuePlaceholder');
+        return this.$store.getters['i18n/t']('keyValue.keyPlaceholder');
       },
     },
 
@@ -276,7 +276,7 @@ export default {
           }
 
           return {
-            [this.keyName]:   row.key,
+            [this.keyName]:   row[this.keyName],
             [this.valueName]: value,
           };
         }));
