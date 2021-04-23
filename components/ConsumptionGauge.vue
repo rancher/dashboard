@@ -13,7 +13,7 @@ export default {
      */
     resourceName: {
       type:     String,
-      required: true
+      default: ''
     },
     /**
      * The total amount of the resource (both used and unused amount).
@@ -42,6 +42,15 @@ export default {
     numberFormatter: {
       type:    Function,
       default: value => Number.isInteger(value) ? value : value.toFixed(2)
+    },
+
+    /**
+     * Optional map of css color class: percentage stops to apply to bar
+     */
+
+    colorStops: {
+      type:    Object,
+      default: null
     }
   },
   computed: {
@@ -79,11 +88,14 @@ export default {
       {{ resourceName }}
     </h3>
     <div class="numbers text-muted">
-      <span>{{ t('node.detail.glance.consumptionGauge.used') }}</span> <span>{{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }} <span class="ml-10 percentage">/&nbsp;{{ formattedPercentage }}</span></span>
+      <slot name="title">
+        <span>{{ t('node.detail.glance.consumptionGauge.used') }}</span> <span>{{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }} <span class="ml-10 percentage">/&nbsp;{{ formattedPercentage }}</span></span>
+      </slot>
     </div>
     <div class="mt-10">
       <PercentageBar
         :value="percentageBarValue"
+        :color-stops="colorStops"
       />
     </div>
   </div>

@@ -38,12 +38,43 @@ export default {
     showPercentage: {
       type:    Boolean,
       default: false
+    },
+
+    /**
+     * Optional map of percentage:color class stops to apply to bar
+     */
+
+    colorStops: {
+      type:    Object,
+      default: null
     }
   },
 
   computed: {
     primaryColor() {
       const isLess = this.preferredDirection === PreferredDirection.LESS;
+
+      if (this.colorStops) {
+        const thresholds = Object.keys(this.colorStops).sort();
+
+        if (isLess) {
+          let i = thresholds.length - 1;
+
+          while (this.value < thresholds[i]) {
+            i--;
+          }
+
+          return this.colorStops[thresholds[i]];
+        } else {
+          let i = 0;
+
+          while (this.value > thresholds[i]) {
+            i++;
+          }
+
+          return this.colorStops[thresholds[i]];
+        }
+      }
       const threshold = isLess ? 80 : 20;
 
       const left = isLess ? this.value : threshold;
