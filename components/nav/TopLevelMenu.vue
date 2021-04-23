@@ -5,6 +5,7 @@ import { MANAGEMENT } from '@/config/types';
 import { mapPref, DEV } from '@/store/prefs';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
+import { KEY } from '@/utils/platform';
 
 const UNKNOWN = 'unknown';
 const UI_VERSION = process.env.VERSION || UNKNOWN;
@@ -99,40 +100,30 @@ export default {
     },
 
     options() {
-      const t = this.$store.getters['i18n/t'];
-      // const isMultiCluster = this.$store.getters['isMultiCluster'];
+      const cluster = this.clusterId || this.$store.getters['defaultClusterId'];
 
       const entries = this.activeProducts.map((p) => {
-        let label;
-        const key = `product.${ p.name }`;
+        // Try product-specific index first
+        const to = {
+          name:   `c-cluster-${ p.name }`,
+          params: { cluster }
+        };
 
-        if ( this.$store.getters['i18n/exists'](key) ) {
-          label = t(key);
-        } else {
-          label = ucFirst(p.name);
+        if ( !this.$router.getMatchedComponents(to).length ) {
+          to.name = 'c-cluster-product';
+          to.params.product = p.name;
         }
 
-        const out = {
-          label,
+        return {
+          label:     this.$store.getters['i18n/withFallback'](`product."${ p.name }"`, null, ucFirst(p.name)),
           icon:      `icon-${ p.icon || 'copy' }`,
           value:     p.name,
           removable: p.removable !== false,
           inStore:   p.inStore || 'cluster',
           weight:    p.weight || 1,
           category:  p.category || 'none',
+          to,
         };
-
-        if ( p.externalLink ) {
-          out.kind = 'external';
-          out.link = p.externalLink;
-        } else if ( p.link ) {
-          out.kind = 'internal';
-          out.link = p.link;
-        } else {
-          out.kind = 'internal';
-        }
-
-        return out;
       });
 
       return entries;
@@ -140,7 +131,7 @@ export default {
   },
 
   watch: {
-    $route(to, from) {
+    $route() {
       this.shown = false;
     }
   },
@@ -155,10 +146,11 @@ export default {
 
   methods: {
     handler(e) {
-      if (e.keyCode === 27) {
+      if (e.keyCode === KEY.ESCAPE ) {
         this.hide();
       }
     },
+
     hide() {
       this.shown = false;
     },
@@ -169,52 +161,6 @@ export default {
 
     switchLocale(locale) {
       this.$store.dispatch('i18n/switchTo', locale);
-    },
-
-    changeProduct(product, route = '', moreParams = {}) {
-      const entry = findBy(this.options, 'value', product);
-
-      if ( !entry ) {
-        return;
-      }
-
-      if ( entry?.link ) {
-        if ( entry.kind === 'external' ) {
-          let windowName = '_blank';
-
-          // Non-removable external links (MCM) go to a named window
-          if ( entry.removable === false ) {
-            windowName = `R_${ product }`;
-          }
-
-          window.open(entry.link, windowName);
-          this.value = this.previous;
-
-          return;
-        } else {
-          window.location.href = entry.link;
-        }
-      }
-
-      this.previous = this.value;
-
-      // Try product-specific index first
-      const opt = {
-        name:   route || `c-cluster-${ product }`,
-        params: {
-          cluster: this.clusterId,
-          product,
-          ...moreParams
-        }
-      };
-
-      if ( !this.$router.getMatchedComponents(opt).length ) {
-        opt.name = 'c-cluster-product';
-      }
-
-      this.$router.push(opt);
-
-      this.shown = false;
     },
   }
 };
@@ -273,19 +219,19 @@ export default {
             <div class="category">
               {{ t('nav.categories.multiCluster') }}
             </div>
-            <div v-for="a in multiClusterApps" :key="a.label" class="option" @click="changeProduct(a.value)">
+            <nuxt-link v-for="a in multiClusterApps" :key="a.label" class="option" :to="a.to">
               <i class="icon group-icon" :class="a.icon" />
               <div>{{ a.label }}</div>
-            </div>
+            </nuxt-link>
           </template>
           <template v-if="configurationApps.length">
             <div class="category">
               {{ t('nav.categories.configuration') }}
             </div>
-            <div v-for="a in configurationApps" :key="a.label" class="option" @click="changeProduct(a.value)">
+            <nuxt-link v-for="a in configurationApps" :key="a.label" class="option" :to="a.to">
               <i class="icon group-icon" :class="a.icon" />
               <div>{{ a.label }}</div>
-            </div>
+            </nuxt-link>
           </template>
           <div class="pad"></div>
           <div class="cluster-manager">
@@ -370,6 +316,10 @@ export default {
     cursor: pointer;
     display: flex;
     padding: $option-padding 0 $option-padding 10px;
+
+    &:hover {
+      text-decoration: none;
+    }
 
     > i {
       font-size: $icon-size;
