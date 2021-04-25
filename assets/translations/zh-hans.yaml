@@ -362,7 +362,7 @@ asyncButton:
     action:  '创建'
     success: '已创建'
     waiting: '正在创建&hellip;'
-   default:
+  default:
     action: 正在执行
     error: 错误
     success: 成功
@@ -371,7 +371,7 @@ asyncButton:
     action:  '删除'
     success: '已删除'
     waiting: '正在删除&hellip;'
-    disable:
+  disable:
     action: 禁用
     success: 已禁用
     waiting: 正在禁用&hellip;
@@ -439,8 +439,6 @@ backupRestoreOperator:
     rancherNamespace: Rancher 资源集命名空间
     size: 大小
     storage:
-      tip: 配置默认保存所有备份的存储位置。可以选择对每个备份进行覆盖，仅限于使用与 S3 兼容的对象存储。
-      storageClass:
         label: 存储类
         options:
           defaultStorageClass: '使用({name})作为默认存储类'
@@ -448,13 +446,13 @@ backupRestoreOperator:
           pickPV: 使用已有的持久卷
           pickSC: 使用已有的存储类
           s3: 使用Amazon S3对象存储服务
-      persistentVolume:
-        label: 持久存储卷
-      storageClass:
-        label: 存储类
-      tip: '配置一个默认保存所有备份的存储位置。您可以选择对每个备份进行覆盖，但仅限于使用与 S3 兼容的对象存储。'
-      warning: '此 {type} 没有将其回收策略设置为 "保留"。 如果卷被更改或未绑定，您的备份可能会丢失。'
-  encryption: 靠， 
+        persistentVolume:
+          label: 持久存储卷
+        storageClass:
+          label: 存储类
+        tip: '配置一个默认保存所有备份的存储位置。您可以选择对每个备份进行覆盖，但仅限于使用与 S3 兼容的对象存储。'
+        warning: '此 {type} 没有将其回收策略设置为 "保留"。 如果卷被更改或未绑定，您的备份可能会丢失。'
+  encryption: 加密 
   encryptionConfigName:
     backuptip: '<code>cattle-resource-system</code>命名空间中具有<code>encryption-provider-config.yaml</code>密钥的任何秘密。<br/>此文件的内容是从此备份中执行还原所必需的，Rancher Backup 不会存储这些内容。'
     label: 加密配置密钥 
@@ -690,8 +688,8 @@ cis:
   testID: Test ID
   testsToSkip: 跳过测试
   testsSkipped: 已跳过的测试
-  cluster:
-provider:
+cluster:
+  provider:
       aliyun: Alibaba ACK
       aliyunecs: Aliyun ECS
       amazonec2: Amazon EC2
@@ -1702,7 +1700,7 @@ node:
       version: 版本
     glance:
       consumptionGauge:
-      used: 已使用
+        used: 已使用
         amount: "已使用{total} {unit}中的{used}"
         cpu: CPU
         memory: 内存
@@ -1816,7 +1814,7 @@ persistentVolume:
       label: 路径
       placeholder: 例如：/var
     user:
-      label:用户
+      label: 用户
       placeholder: 例如：root
     secretFile:
       label: 密钥文件
@@ -1824,7 +1822,7 @@ persistentVolume:
   rbd:
     label: Ceph RBD（不支持）
     user:
-      label:用户
+      label: 用户
       placeholder: 例如：root
     keyRing:
       label: Key Ring
@@ -2204,63 +2202,63 @@ rbac:
     fleetworkspace-readonly: 只读用户
   user:
     label: 普通用户
-        description: 普通用户可以创建新的集群并管理他们被授予访问权的集群和项目。
-      user-base:
-        label: User-Base 用户
-        description: User-Base 用户只拥有登录权限。
-      clusters-create:
-        label: 创建集群
-        description: 允许用户创建集群，并成为该集群的所有者（owner）。
-      clustertemplates-create:
-        label: 创建RKE集群模板
-        description: 允许用户创建RKE集群模板，并成为该模板的所有者（owner）。
-      authn-manage:
-        label: 配置认证方式
-        description: 运行用户启用、编辑或禁用所有的认证方式。
-      catalogs-manage:
-        label: 配置应用
-        description: 允许用户添加、编辑和删除应用。
-      clusters-manage:
-        label: 管理所有集群
-        description: 允许用户管理所有集群，包括他们不是成员的集群。
-      clusterscans-manage:
-        label: 管理CIS集群扫描
-        description: 允许用户运行新建的CIS集群扫描和管理现有的CIS集群扫描。
-      kontainerdrivers-manage:
-        label: 创建集群驱动
-        description: 允许用户新建集群驱动，并成为该集群驱动的所有者（owner）。
-      features-manage:
-        label: 配置功能标记
-        description: 允许用户通过功能标志设置来启用和禁用自定义功能。
-      nodedrivers-manage:
-        label: 配置集群驱动
-        description: 允许用户启用、配置和删除所有节点驱动设置。
-      nodetemplates-manage:
-        label: 管理节点模板
-        description: 允许用户定义、编辑和删除节点模板。
-      podsecuritypolicytemplates-manage:
-        label: 管理Pod安全策略（PSP）
-        description: 允许用户定义、编辑和删除Pod安全策略。
-      roles-manage:
-        label: 管理用户角色
-        description: 允许用户定义、编辑和删除用户角色。
-      settings-manage:
-        label: 管理Rancher配置
-        description: 允许用户管理Rancher配置。
-      users-manage:
-        label: 管理用户
-        description: 允许用户为所有用户创建、删除和设置密码。
-      catalogs-use:
-        label: 使用应用
-        description: 允许用户查看和部署应用中的模板。 普通用户默认拥有此权限。
-      nodetemplates-use:
-        label: 使用节点模板
-        description: 允许用户使用任何现有的节点模板来部署新的节点。
-      view-rancher-metrics:
-        label: 查看Rancher指标
-        description: 允许用户通过API查看Metrics。
-      base:
-        label: 登录权限
+    description: 普通用户可以创建新的集群并管理他们被授予访问权的集群和项目。
+  user-base:
+    label: User-Base 用户
+    description: User-Base 用户只拥有登录权限。
+  clusters-create:
+    label: 创建集群
+    description: 允许用户创建集群，并成为该集群的所有者（owner）。
+  clustertemplates-create:
+    label: 创建RKE集群模板
+    description: 允许用户创建RKE集群模板，并成为该模板的所有者（owner）。
+  authn-manage:
+    label: 配置认证方式
+    description: 运行用户启用、编辑或禁用所有的认证方式。
+  catalogs-manage:
+    label: 配置应用
+    description: 允许用户添加、编辑和删除应用。
+  clusters-manage:
+    label: 管理所有集群
+    description: 允许用户管理所有集群，包括他们不是成员的集群。
+  clusterscans-manage:
+    label: 管理CIS集群扫描
+    description: 允许用户运行新建的CIS集群扫描和管理现有的CIS集群扫描。
+  kontainerdrivers-manage:
+    label: 创建集群驱动
+    description: 允许用户新建集群驱动，并成为该集群驱动的所有者（owner）。
+  features-manage:
+    label: 配置功能标记
+    description: 允许用户通过功能标志设置来启用和禁用自定义功能。
+  nodedrivers-manage:
+    label: 配置集群驱动
+    description: 允许用户启用、配置和删除所有节点驱动设置。
+  nodetemplates-manage:
+    label: 管理节点模板
+    description: 允许用户定义、编辑和删除节点模板。
+  podsecuritypolicytemplates-manage:
+    label: 管理Pod安全策略（PSP）
+    description: 允许用户定义、编辑和删除Pod安全策略。
+  roles-manage:
+    label: 管理用户角色
+    description: 允许用户定义、编辑和删除用户角色。
+  settings-manage:
+    label: 管理Rancher配置
+    description: 允许用户管理Rancher配置。
+  users-manage:
+    label: 管理用户
+    description: 允许用户为所有用户创建、删除和设置密码。
+  catalogs-use:
+    label: 使用应用
+    description: 允许用户查看和部署应用中的模板。 普通用户默认拥有此权限。
+  nodetemplates-use:
+    label: 使用节点模板
+    description: 允许用户使用任何现有的节点模板来部署新的节点。
+  view-rancher-metrics:
+    label: 查看Rancher指标
+    description: 允许用户通过API查看Metrics。
+  base:
+    label: 登录权限
 
 resourceDetail:
   detailTop:
@@ -2318,7 +2316,7 @@ resourceTable:
     namespace: 以命名空间分组
     project: 以项目分组
   groupLabel:
-   cluster: "<span>集群：</span> {name}"
+    cluster: "<span>集群：</span> {name}"
     namespace: "<span>命名空间：</span> {name}"
     nodePool: "<span>节点池</span> {name}"
     notInANamespace: 不在命名空间内
@@ -3217,8 +3215,6 @@ workload:
       hostPort: 公共主机端口
       name: 名称
       protocol: 协议
-      createService: 服务类型
-      noCreateService: Do not create a service
     security:
       addCapabilities: 添加功能
       addGroupIDs: 添加组 ID
@@ -3812,7 +3808,6 @@ action:
   remove: 删除
   view: 查看配置
   viewInApi: API 查看
-  edit: 编辑配置
   activate: 激活
   deactivate: 停用
   show: 显示
@@ -3875,7 +3870,7 @@ advancedSettings:
     'system-default-registry': '用于所有系统Docker镜像的私有仓库。'
     'ui-index': 'UI的HTML索引。'
     'ui-pl': 'Private-Label company name.'
-    'ui-issues': "使用一个URL地址来发送新的 "提交问题 "报告，而不是将用户发送到Github问题页面。"
+    'ui-issues': '使用一个URL地址来发送新的 "提交问题 "报告，而不是将用户发送到Github问题页面。'
     'telemetry-opt': '遥测报告opt-in。'
     'auth-user-info-max-age-seconds': '在进行认证提供者组成员同步之前，用户认证令牌的最大存活时间。'
     'auth-user-info-resync-cron': '重新同步认证提供者组成员资格的默认cron时间表。'
