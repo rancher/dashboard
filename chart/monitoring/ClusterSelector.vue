@@ -80,7 +80,7 @@ const CLUSTER_TYPES = [
   },
   {
     group:      'rke',
-    id:         'rke-windows',
+    id:         'rke.windows',
     label:      'cluster.provider.rkeWindows',
     configKeys: ['rkeControllerManager', 'rkeScheduler', 'rkeProxy', 'rkeEtcd'],
   },
@@ -166,13 +166,13 @@ export default {
         this.$set(this.value.prometheus.prometheusSpec.resources.requests, 'memory', '1750Mi');
       }
 
-      if (clusterType.id === 'rke-windows') {
+      if (clusterType.id === 'rke.windows') {
         if (!this.value.global.cattle.windows) {
           this.$set(this.value.global.cattle, 'windows', { enabled: true });
         } else {
           this.value.global.cattle.windows.enabled = true;
         }
-      } else if (oldClusterType && oldClusterType.id === 'rke-windows') {
+      } else if (oldClusterType && oldClusterType.id === 'rke.windows') {
         delete this.value.global.cattle.windows;
       }
     },
