@@ -816,7 +816,7 @@ export default {
       delete this.__rehydrate;
       const forNew = !this.id;
 
-      const errors = await this.validationErrors(this);
+      const errors = await this.validationErrors(this, opt.ignoreFields);
 
       if (!isEmpty(errors)) {
         return Promise.reject(errors);
