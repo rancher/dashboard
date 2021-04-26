@@ -157,7 +157,11 @@ export default {
             addObject(this.model.allowedPrincipalIds, this.me.id);
           }
         }
-        await this.model.save();
+        if (wasEnabled && configType === 'oauth') {
+          await this.model.save({ ignoreFields: ['oauthCredential', 'serviceAccountCredential'] });
+        } else {
+          await this.model.save();
+        }
         await this.reloadModel();
         this.isEnabling = false;
         this.editConfig = false;
@@ -233,18 +237,6 @@ export default {
           set(this.model, 'disabledStatusBitmask', 2);
         } else {
           set(this.model, 'disabledStatusBitmask', 0);
-        }
-        break;
-      case 'oauth':
-        if (this.model.id === 'googleoauth') {
-          const { oauthCredential, serviceAccountCredential } = this.originalValue;
-
-          if (!this.model.oauthCredential) {
-            set(this.model, 'oauthCredential', oauthCredential);
-          }
-          if (!this.model.serviceAccountCredential) {
-            set(this.model, 'serviceAccountCredential', serviceAccountCredential);
-          }
         }
         break;
       default:
