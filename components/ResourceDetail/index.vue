@@ -67,7 +67,7 @@ export default {
     const store = this.$store;
     const route = this.$route;
     const params = route.params;
-    const inStore = this.storeOverride || store.getters['currentProduct']?.inStore;
+    const inStore = this.storeOverride || store.getters['currentStore'](params.resource);
     const realMode = this.realMode;
 
     // eslint-disable-next-line prefer-const

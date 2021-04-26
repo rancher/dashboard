@@ -17,5 +17,17 @@ export default {
     return all.filter((ns) => {
       return ns.projectId === this.metadata.name;
     });
+  },
+
+  listLocation() {
+    return { name: 'c-cluster-product-projectsnamespaces' };
+  },
+
+  parentLocationOverride() {
+    return this.listLocation;
+  },
+
+  shortId() {
+    return this.id.split('/')[1];
   }
 };

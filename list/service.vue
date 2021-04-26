@@ -10,7 +10,7 @@ export default {
   // fetch nodes before loading this page, as they may be referenced in the Target table column
   async fetch() {
     const store = this.$store;
-    const inStore = store.getters['currentProduct'].inStore;
+    const inStore = store.getters['currentStore']();
     let hasNodes = false;
 
     try {

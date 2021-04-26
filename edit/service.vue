@@ -202,7 +202,7 @@ export default {
 
     async loadPods() {
       try {
-        const inStore = this.$store.getters['currentProduct'].inStore;
+        const inStore = this.$store.getters['currentStore'](POD);
 
         this.allPods = await this.$store.dispatch(`${ inStore }/findAll`, { type: POD });
         this.updateMatchingPods();

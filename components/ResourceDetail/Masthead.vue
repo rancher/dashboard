@@ -71,7 +71,7 @@ export default {
 
   computed: {
     schema() {
-      const inStore = this.storeOverride || this.$store.getters['currentProduct'].inStore;
+      const inStore = this.storeOverride || this.$store.getters['currentStore'](this.resource);
 
       return this.$store.getters[`${ inStore }/schemaFor`]( this.resource );
     },
@@ -169,13 +169,15 @@ export default {
       const displayName = this.$store.getters['type-map/labelFor'](this.schema);
       const product = this.$store.getters['currentProduct'].name;
 
-      const location = {
+      const defaultLocation = {
         name:   'c-cluster-product-resource',
         params: {
           resource: this.resource,
           product,
         }
       };
+
+      const location = this.value.parentLocationOverride || defaultLocation;
 
       if (this.parentRouteOverride) {
         location.name = this.parentRouteOverride;

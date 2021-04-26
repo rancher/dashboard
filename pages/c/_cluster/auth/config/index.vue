@@ -22,7 +22,7 @@ export default {
   data() {
     const resource = MANAGEMENT.AUTH_CONFIG;
     const getters = this.$store.getters;
-    const inStore = getters['currentProduct'].inStore;
+    const inStore = getters['currentStore'](resource);
     const hasListComponent = getters['type-map/hasCustomList'](resource);
     const hasEditComponent = getters['type-map/hasCustomEdit'](resource);
     const schema = getters[`${ inStore }/schemaFor`](resource);

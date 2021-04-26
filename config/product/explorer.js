@@ -39,13 +39,15 @@ export function init(store) {
     removable:           false,
     weight:              3,
     showNamespaceFilter: true,
-    icon:                'compass'
+    icon:                'compass',
+    typeStoreMap:        { [MANAGEMENT.PROJECT]: 'management' }
   });
 
   basicType(['cluster-dashboard', 'cluster-tools']);
   basicType([
     'cluster-dashboard',
-    NAMESPACE,
+    'projects-namespaces',
+    'namespaces',
     NODE,
   ], 'cluster');
   basicType([
@@ -90,6 +92,8 @@ export function init(store) {
 
   ignoreType('events.k8s.io.event'); // Old, moved into core
   ignoreType('extensions.ingress'); // Old, moved into networking
+  ignoreType(MANAGEMENT.PROJECT);
+  ignoreType(NAMESPACE);
 
   mapGroup(/^(core)?$/, 'Core');
   mapGroup('apps', 'Apps');
@@ -218,6 +222,30 @@ export function init(store) {
       params:   { resource: WORKLOAD }
     },
     overview: true,
+  });
+
+  virtualType({
+    label:            'Projects/Namespaces',
+    group:            'cluster',
+    icon:             'globe',
+    namespaced:       false,
+    ifRancherCluster: true,
+    name:             'projects-namespaces',
+    weight:           98,
+    route:            { name: 'c-cluster-product-projectsnamespaces' },
+    exact:            true,
+  });
+
+  virtualType({
+    label:            'Namespaces',
+    group:            'cluster',
+    icon:             'globe',
+    namespaced:       false,
+    ifRancherCluster: false,
+    name:             'namespaces',
+    weight:           98,
+    route:            { name: 'c-cluster-product-namespaces' },
+    exact:            true,
   });
 
   // Ignore these types as they are managed through the settings product

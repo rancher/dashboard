@@ -82,7 +82,7 @@ export default {
     },
 
     allNamespaces() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
+      const inStore = this.$store.getters['currentStore'](NAMESPACE);
       const choices = this.$store.getters[`${ inStore }/all`](NAMESPACE);
       const out = sortBy(choices.map((obj) => {
         return {

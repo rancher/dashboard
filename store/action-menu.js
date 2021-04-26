@@ -2,18 +2,20 @@ import { filterBy, isArray } from '@/utils/array';
 
 export const state = function() {
   return {
-    show:             false,
-    tableSelected:    [],
-    tableAll:         [],
-    resources:        [],
-    elem:             null,
-    event:            null,
-    showPromptRemove: false,
-    showAssignTo:     false,
-    showPromptUpdate: false,
-    toRemove:         [],
-    toAssign:         [],
-    toUpdate:         [],
+    show:                  false,
+    tableSelected:         [],
+    tableAll:              [],
+    resources:             [],
+    elem:                  null,
+    event:                 null,
+    showPromptRemove:      false,
+    showPromptMove:        false,
+    toMove:                [],
+    showAssignTo:          false,
+    showPromptUpdate:      false,
+    toRemove:              [],
+    toAssign:              [],
+    toUpdate:              [],
   };
 };
 
@@ -83,6 +85,16 @@ export const mutations = {
       }
     }
     state.toRemove = resources;
+  },
+
+  togglePromptMove(state, resources) {
+    if (!resources) {
+      state.showPromptMove = false;
+      resources = [];
+    } else {
+      state.showPromptMove = !state.showPromptMove;
+      state.toMove = Array.isArray(resources) ? resources : [resources];
+    }
   },
 
   toggleAssignTo(state, resources) {

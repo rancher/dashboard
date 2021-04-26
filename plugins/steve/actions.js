@@ -343,6 +343,10 @@ export default {
     commit('action-menu/togglePromptRemove', resources, { root: true });
   },
 
+  promptMove({ commit, state }, resources) {
+    commit('action-menu/togglePromptMove', resources, { root: true });
+  },
+
   assignTo({ commit, state }, resources = []) {
     commit('action-menu/toggleAssignTo', resources, { root: true });
   },

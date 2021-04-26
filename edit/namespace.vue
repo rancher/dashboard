@@ -10,6 +10,7 @@ import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import CruResource from '@/components/CruResource';
 import Labels from '@/components/form/Labels';
+import { PROJECT_ID } from '@/config/query-params';
 
 export default {
   components: {
@@ -33,7 +34,7 @@ export default {
 
     return {
       originalQuotaId,
-      project: this.value?.metadata?.labels?.[PROJECT],
+      project: this.value?.metadata?.labels?.[PROJECT] || this.$route.query[PROJECT_ID],
     };
   },
 
@@ -63,6 +64,10 @@ export default {
 
       return out;
     },
+
+    doneLocationOverride() {
+      return this.value.listLocation;
+    }
   },
 
   created() {
@@ -84,7 +89,7 @@ export default {
 
 <template>
   <CruResource
-    :done-route="doneRoute"
+    :done-route="doneLocationOverride.name"
     :mode="mode"
     :resource="value"
     :subtypes="[]"

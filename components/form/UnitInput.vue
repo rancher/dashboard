@@ -33,7 +33,7 @@ export default {
     },
 
     suffix: {
-      type:    String,
+      type:    [String, Boolean],
       default: 'B',
     },
 
@@ -75,6 +75,10 @@ export default {
 
   computed: {
     addon() {
+      if (!this.suffix) {
+        return false;
+      }
+
       return this.unit + this.suffix;
     },
 

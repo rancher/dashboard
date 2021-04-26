@@ -16,7 +16,8 @@ export default {
 
     let hasFetch = false;
 
-    const inStore = store.getters['currentProduct'].inStore;
+    const inStore = store.getters['currentStore'](resource);
+
     const schema = store.getters[`${ inStore }/schemaFor`](resource);
 
     if ( this.hasListComponent ) {
@@ -52,7 +53,7 @@ export default {
 
     const hasListComponent = getters['type-map/hasCustomList'](resource);
 
-    const inStore = getters['currentProduct'].inStore;
+    const inStore = getters['currentStore'](resource);
     const schema = getters[`${ inStore }/schemaFor`](resource);
 
     const showMasthead = getters[`type-map/optionsFor`](resource).showListMasthead;

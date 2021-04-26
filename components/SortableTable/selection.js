@@ -419,6 +419,10 @@ export default {
         action, args, opts
       });
       this.$store.commit(`${ this.storeName }/setBulkActionOfInterest`, null);
+    },
+
+    clearSelection() {
+      this.update([], this.selectedNodes);
     }
   }
 };

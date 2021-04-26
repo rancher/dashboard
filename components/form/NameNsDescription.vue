@@ -159,7 +159,7 @@ export default {
     },
 
     namespaces() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
+      const inStore = this.$store.getters['currentStore'](this.namespaceType);
       const choices = this.$store.getters[`${ inStore }/all`](this.namespaceType);
 
       const out = sortBy(

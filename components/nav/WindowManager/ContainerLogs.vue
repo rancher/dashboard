@@ -388,7 +388,7 @@ export default {
       });
 
       try {
-        const inStore = this.$store.getters['currentProduct'].inStore;
+        const inStore = this.$store.getters['currentStore']();
         const res = await this.$store.dispatch(`${ inStore }/request`, { url, responseType: 'blob' });
         // const blob = new Blob([res], { type: 'text/plain;charset=utf-8' });
         const fileName = `${ this.pod.nameDisplay }_${ this.container }.log`;
