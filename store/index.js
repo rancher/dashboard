@@ -584,7 +584,7 @@ export const actions = {
     if ( route.name === 'index' ) {
       router.replace('/auth/login');
     } else {
-      const QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT
+      const QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT;
 
       router.replace(`/auth/login?${ QUERY }`);
     }
