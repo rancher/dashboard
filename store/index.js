@@ -9,7 +9,7 @@ import { sortBy } from '@/utils/sort';
 import { filterBy, findBy } from '@/utils/array';
 import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@/store/type-map';
 import { NAME as EXPLORER } from '@/config/product/explorer';
-import { TIMED_OUT } from '@/config/query-params';
+import { TIMED_OUT, LOGGED_OUT } from '@/config/query-params';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -584,7 +584,9 @@ export const actions = {
     if ( route.name === 'index' ) {
       router.replace('/auth/login');
     } else {
-      router.replace(`/auth/login?${ TIMED_OUT }`);
+      const QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT;
+
+      router.replace(`/auth/login?${ QUERY }`);
     }
   },
 
