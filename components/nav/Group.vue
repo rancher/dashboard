@@ -80,7 +80,7 @@ export default {
     },
 
     showExpanded() {
-      return this.isExpanded || this.isActiveGroup;
+      return this.isExpanded || this.isActiveGroup || this.group.isRoot;
     },
 
     isActiveGroup() {
