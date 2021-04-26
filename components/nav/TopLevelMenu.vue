@@ -39,7 +39,7 @@ export default {
 
   computed: {
     ...mapGetters(['clusterId']),
-    ...mapGetters(['clusterReady', 'isMultiCluster', 'currentCluster',
+    ...mapGetters(['clusterReady', 'isRancher', 'currentCluster',
       'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink']),
     ...mapGetters('type-map', ['activeProducts']),
     ...mapGetters('i18n', ['selectedLocaleLabel', 'availableLocales']),
@@ -235,7 +235,7 @@ export default {
           </template>
           <div class="pad"></div>
           <div class="cluster-manager">
-            <a v-if="currentProduct && isMultiCluster" class="btn role-tertiary" :href="(currentProduct.inStore === 'management' ? backToRancherGlobalLink : backToRancherLink)">
+            <a v-if="currentProduct && isRancher" class="btn role-tertiary" :href="(currentProduct.inStore === 'management' ? backToRancherGlobalLink : backToRancherLink)">
               {{ t('nav.backToRancher') }}
             </a>
           </div>
