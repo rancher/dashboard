@@ -107,8 +107,6 @@ nav:
     placeholder: Type to search for a resource...
 
 product:
-  clusterGroup: Cluster Applications
-  globalGroup: Global Applications
   apps: Apps & Marketplace
   auth: Users & Authentication
   backup: Rancher Backups
