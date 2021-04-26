@@ -734,12 +734,16 @@ export default {
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
       const serverUrl = this.serverUrlSetting?.value || '';
       const isWindows = cluster.providerOs === 'windows';
+      const pathPrefix = cluster.rancherKubernetesEngineConfig?.pathPrefix || '';
+      const windowsPathPrefix = cluster.rancherKubernetesEngineConfig?.windowsPathPrefix || '';
 
       setIfNotSet(cattle, 'clusterId', cluster.id);
       setIfNotSet(cattle, 'clusterName', cluster.nameDisplay);
       setIfNotSet(cattle, 'systemDefaultRegistry', defaultRegistry);
       setIfNotSet(global, 'systemDefaultRegistry', defaultRegistry);
       setIfNotSet(cattle, 'url', serverUrl);
+      setIfNotSet(cattle, 'rkePathPrefix', pathPrefix);
+      setIfNotSet(cattle, 'rkeWindowsPathPrefix', windowsPathPrefix);
 
       if ( isWindows ) {
         setIfNotSet(cattle, 'windows.enabled', true);
@@ -763,12 +767,16 @@ export default {
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
       const serverUrl = this.serverUrlSetting?.value || '';
       const isWindows = cluster.providerOs === 'windows';
+      const pathPrefix = cluster.rancherKubernetesEngineConfig?.pathPrefix || '';
+      const windowsPathPrefix = cluster.rancherKubernetesEngineConfig?.windowsPathPrefix || '';
 
       if ( values.global?.cattle ) {
         deleteIfEqual(values.global.cattle, 'clusterId', cluster.id);
         deleteIfEqual(values.global.cattle, 'clusterName', cluster.nameDisplay);
         deleteIfEqual(values.global.cattle, 'systemDefaultRegistry', defaultRegistry);
         deleteIfEqual(values.global.cattle, 'url', serverUrl);
+        deleteIfEqual(values.global.cattle, 'rkePathPrefix', pathPrefix);
+        deleteIfEqual(values.global.cattle, 'rkeWindowsPathPrefix', windowsPathPrefix);
 
         if ( isWindows ) {
           deleteIfEqual(values.global.cattle.windows, 'enabled', true);
