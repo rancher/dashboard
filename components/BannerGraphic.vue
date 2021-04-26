@@ -74,6 +74,7 @@ export default {
       flex-direction: column;
       height: $banner-height;
       overflow: hidden;
+      background-color: #bbe5f8;
       > img.banner {
         object-fit: cover;
         width: 100%;
