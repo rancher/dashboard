@@ -650,7 +650,14 @@ export default {
               />
             </template>
             <template #replicas>
-              <LabeledInput v-model.number="spec.replicas" type="number" required :mode="mode" :label="t('workload.replicas')" />
+              <LabeledInput
+                v-model.number="spec.replicas"
+                type="number"
+                min="0"
+                required
+                :mode="mode"
+                :label="t('workload.replicas')"
+              />
             </template>
             <template #service>
               <LabeledSelect
