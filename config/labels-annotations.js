@@ -60,6 +60,10 @@ export const CATALOG = {
   _MANAGEMENT:      'management',
   _DOWNSTREAM:      'downstream',
 
+  TYPE:             'catalog.cattle.io/type',
+  _APP:             'app',
+  _CLUSTER_TPL:     'cluster-template',
+
   COMPONENT:        'catalog.cattle.io/ui-component',
   SOURCE_REPO_TYPE: 'catalog.cattle.io/ui-source-repo-type',
   SOURCE_REPO_NAME: 'catalog.cattle.io/ui-source-repo',

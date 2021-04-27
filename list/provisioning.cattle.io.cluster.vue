@@ -75,17 +75,22 @@ export default {
           :to="importLocation"
           class="btn role-primary"
         >
-          {{ t('cluster.import') }}
+          {{ t('cluster.importAction') }}
         </n-link>
       </template>
     </Masthead>
 
     <ResourceTable :schema="schema" :rows="rows" :namespaced="false">
       <template #cell:provider="{row}">
-        {{ row.nodeProviderDisplay }}
-        <div class="text-muted">
+        <template v-if="row.nodeProviderDisplay">
+          {{ row.nodeProviderDisplay }}
+          <div class="text-muted">
+            {{ row.provisionerDisplay }}
+          </div>
+        </template>
+        <template v-else>
           {{ row.provisionerDisplay }}
-        </div>
+        </template>
       </template>
       <template #cell:explorer="{row}">
         <n-link v-if="row.mgmt && row.mgmt.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}">

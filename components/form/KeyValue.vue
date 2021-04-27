@@ -1,7 +1,7 @@
 <script>
 import debounce from 'lodash/debounce';
 import { typeOf } from '@/utils/sort';
-import { removeAt } from '@/utils/array';
+import { removeAt, removeObject } from '@/utils/array';
 import { asciiLike } from '@/utils/string';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';
@@ -113,6 +113,22 @@ export default {
       default: false,
     },
 
+    // On initial reading of the existing value, this function is called
+    // and can return false to say that a value is not supported for editing.
+    // This is mainly useful for resources like envVars that have a valueFrom
+    // you want to preserve but not support editing
+    supported: {
+      type:    Function,
+      default: v => true,
+    },
+
+    // For asMap=false, preserve (copy) these keys from the original value into the emitted value.
+    // Also usefule for valueFrom as above.
+    preserveKeys: {
+      type:    Array,
+      default: null,
+    },
+
     addLabel: {
       type: String,
       default() {
@@ -175,39 +191,63 @@ export default {
   },
 
   data() {
-    // @TODO base64 and binary support for as Array (!asMap)
-    if ( !this.asMap ) {
-      const rows = (this.value || []).slice() ;
-
-      rows.map((row) => {
-        row.binary = !asciiLike(row[this.valueName]);
-      });
-
-      return { rows };
-    }
-
-    const input = this.value || {};
     const rows = [];
 
-    Object.keys(input).forEach((key) => {
-      let value = input[key];
+    if ( this.asMap ) {
+      const input = this.value || {};
 
-      if ( this.valueBase64 ) {
-        value = base64Decode(value);
-      }
-      rows.push({
-        key,
-        value,
-        binary: !asciiLike(value),
+      Object.keys(input).forEach((key) => {
+        let value = input[key];
+
+        if ( this.valueBase64 ) {
+          value = base64Decode(value);
+        }
+        rows.push({
+          key,
+          value,
+          binary:    !asciiLike(value),
+          supported: true,
+        });
       });
-    });
+    } else {
+      const input = this.value || [];
+
+      for ( const row of input ) {
+        let value = row[this.valueName] || '';
+
+        if ( this.valueBase64 ) {
+          value = base64Decode(value);
+        }
+
+        const entry = {
+          [this.keyName]:   row[this.keyName] || '',
+          [this.valueName]: value,
+          binary:           !asciiLike(value),
+          supported:        this.supported(row),
+        };
+
+        for ( const k of this.preserveKeys ) {
+          if ( typeof row[k] !== 'undefined' ) {
+            entry[k] = row[k];
+          }
+        }
+
+        rows.push(entry);
+      }
+    }
 
     if ( !rows.length && this.initialEmptyRow ) {
-      rows.push({ [this.keyName]: '', [this.valueName]: '' });
+      rows.push({
+        [this.keyName]:   '',
+        [this.valueName]: '',
+        binary:           false,
+        supported:        true
+      });
     }
 
     return { rows };
   },
+
   computed: {
     isView() {
       return this.mode === _VIEW;
@@ -229,8 +269,11 @@ export default {
         [this.keyName]:   key,
         [this.valueName]: value,
         binary:           !asciiLike(value),
+        supported:        true,
       });
+
       this.queueUpdate();
+
       this.$nextTick(() => {
         const keys = this.$refs.key;
         const lastKey = keys[keys.length - 1];
@@ -267,49 +310,59 @@ export default {
     },
 
     update() {
-      if ( !this.asMap ) {
-        this.$emit('input', this.rows.map((row) => {
-          let value = row.value;
+      let out;
+
+      if ( this.asMap ) {
+        out = {};
+        const keyName = this.keyName;
+        const valueName = this.valueName;
+
+        for ( const row of this.rows ) {
+          let value = (row[valueName] || '');
+          const key = (row[keyName] || '').trim();
+
+          if (value && typeOf(value) === 'object') {
+            out[key] = JSON.parse(JSON.stringify(value));
+          } else {
+            value = (value || '').trim();
+
+            if ( value && this.valueBase64 ) {
+              value = base64Encode(value);
+            }
+            if ( key && (value || this.valueCanBeEmpty) ) {
+              out[key] = value;
+            }
+          }
+        }
+      } else {
+        const preserveKeys = this.preserveKeys || [];
+
+        removeObject(preserveKeys, this.keyName);
+        removeObject(preserveKeys, this.valueName);
+
+        out = this.rows.map((row) => {
+          let value = row[this.valueName];
 
           if ( this.base64Encode ) {
             value = base64Encode(value);
           }
 
-          return {
+          const entry = {
             [this.keyName]:   row[this.keyName],
             [this.valueName]: value,
           };
-        }));
 
-        return;
-      }
-
-      const out = {};
-      const keyName = this.keyName;
-      const valueName = this.valueName;
-
-      if (!this.rows.length) {
-        this.$emit('input', out);
-      }
-
-      for ( const row of this.rows ) {
-        let value = (row[valueName] || '');
-        const key = (row[keyName] || '').trim();
-
-        if (value && typeOf(value) === 'object') {
-          out[key] = JSON.parse(JSON.stringify(value));
-        } else {
-          value = (value || '').trim();
-
-          if ( value && this.valueBase64 ) {
-            value = base64Encode(value);
+          for ( const k of preserveKeys ) {
+            if ( typeof row[k] !== 'undefined' ) {
+              entry[k] = row[k];
+            }
           }
-          if ( key && (value || this.valueCanBeEmpty) ) {
-            out[key] = value;
-          }
-        }
-        this.$emit('input', out);
+
+          return entry;
+        });
       }
+
+      this.$emit('input', out);
     },
 
     onPaste(index, event, pastedValue) {
@@ -395,7 +448,10 @@ export default {
             :valueName="valueName"
             :queueUpdate="queueUpdate"
           >
-            <div v-if="row.binary">
+            <div v-if="!row.supported">
+              {{ t('detailText.unsupported', null, true) }}
+            </div>
+            <div v-else-if="row.binary">
               {{ t('detailText.binary', {n: row.value.length || 0}, true) }}
             </div>
             <TextAreaAutoGrow

@@ -23,7 +23,6 @@ export function init(store) {
     removable:             false,
     showClusterSwitcher:   false,
     showWorkspaceSwitcher: true,
-    category:              'Global Apps',
   });
 
   /*

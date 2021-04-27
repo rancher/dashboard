@@ -406,6 +406,7 @@ function addChart(ctx, map, chart, repo) {
       certifiedSort:    CERTIFIED_SORTS[certified] || 99,
       icon:             chart.icon,
       color:            repo.color,
+      chartType:        chart.annotations?.[CATALOG_ANNOTATIONS.TYPE] || CATALOG_ANNOTATIONS._APP,
       chartName:        chart.name,
       chartDisplayName: chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
       chartDescription: chart.description,
@@ -498,6 +499,7 @@ export function filterAndArrangeCharts(charts, {
   showPrerelease = true,
   hideRepos = [],
   showRepos = [],
+  showTypes = [],
 } = {}) {
   const out = charts.filter((c) => {
     const { versions: chartVersions = [] } = c;
@@ -515,6 +517,10 @@ export function filterAndArrangeCharts(charts, {
     }
 
     if ( showRepos?.length && !showRepos.includes(c.repoKey) ) {
+      return false;
+    }
+
+    if ( showTypes?.length && !showTypes.includes(c.chartType) ) {
       return false;
     }
 

@@ -1,9 +1,20 @@
 <script>
-import InstallRedirect from '@/utils/install-redirect';
-import { NAME, CHART_NAME } from '@/config/product/fleet';
+import { NAME } from '@/config/product/fleet';
 import { FLEET } from '@/config/types';
 
-export default { middleware: [InstallRedirect(NAME, CHART_NAME, FLEET.GIT_REPO)] };
+export default {
+  middleware({ redirect, route } ) {
+    return redirect({
+      name:   'c-cluster-product-resource',
+      params: {
+        ...route.params,
+        product:  NAME,
+        resource: FLEET.GIT_REPO,
+      }
+    });
+  }
+};
+
 </script>
 
 <template>
