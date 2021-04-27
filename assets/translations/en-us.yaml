@@ -1263,7 +1263,16 @@ labels:
     title: Annotations
 
 landing:
-  clusters: Clusters
+  clusters: 
+    title: Clusters
+    provider: Provider
+    kubernetesVersion: Kubernetes Version
+    explorer: Explorer
+    explore: Explore
+    cores: |-
+      {count, plural,
+      =1 {core}
+      other {cores}}
 # taken from Ember: https://github.com/rancher/ui/blob/master/app/components/modal-home/template.hbs
   releaseNotes: 
     '<ul class="list-unstyled">
@@ -3071,6 +3080,7 @@ tableHeaders:
   maxKubernetesVersion: Max Kubernetes Version
   message: Message
   minKubernetesVersion: Min Kubernetes Version
+  memory: Memory
   name: Name
   nameDisplay: Display Name
   nameUnlinked: Name
