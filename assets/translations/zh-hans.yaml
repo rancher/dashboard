@@ -13,6 +13,7 @@ generic:
   customize: 定制
   default: 默认
   disabled: 禁用
+  done: 完成
   enabled: 启用
   ignored: 忽略
   invalidCron: 无效的 cron 调度
@@ -25,6 +26,7 @@ generic:
   none: 无
   number: '{prefix}{value, number}{suffix}'
   overview: 概述
+  plusMore: "还有 {n} 个其他的"
   readFromFile: 从文件读取
   register: 注册
   remove: 移除
@@ -32,6 +34,11 @@ generic:
     {count, plural,
     one  {资源}
     other {资源}
+    }
+  resourceCount: |-
+    {count, plural,
+    one  {1 resource}
+    other {# resources}
     }
   save: 保存
   type: 类型
@@ -63,9 +70,12 @@ locale:
 
 nav:
   title: 仪表盘
-  backToRancher: 返回 Rancher UI
+  #backToRancher: Cluster Manager
+  clusterTools: Cluster Tools
   shell: 命令行
   import: 导入 YAML 文件
+  home: 首页
+  support: 获取支持
   group:
     cluster: 集群
     inUse: 更多资源
@@ -74,6 +84,7 @@ nav:
     starred: 已收藏
     storage: 存储
     workload: 工作负载
+    monitoring: 监控
   ns:
     all: 全部命名空间
     clusterLevel: 集群资源
@@ -84,6 +95,16 @@ nav:
     system: 系统命名空间
     user: 用户命名空间
   apps: 应用商店
+  categories:
+    explore: 浏览集群
+    multiCluster: 全局应用
+    configuration: 配置
+  search:
+    placeholder: 输入关键词，搜索集群
+    noResults: 没有找到与关键词匹配的集群
+  resourceSearch:
+    label: 输入关键词，搜索资源
+    placeholder: 输入关键词，搜索资源
 
 product:
   clusterGroup: 集群应用
@@ -102,6 +123,7 @@ product:
   logging: 日志
   rio: Rio
   settings: 全局设置
+  monitoring: 监控
 
 suffix:
   percent: "%"
@@ -326,6 +348,7 @@ authConfig:
     disabled: '{provider} 目前已被禁用。'
     enabled: '{provider} 目前已被禁用。'
   testAndEnable: 测试和启用认证
+  noneEnabled: 本地认证总是被启用，但你可以从下面显示的认证提供者中选择另一个额外的认证提供者。
 
 authGroups:
   actions:
@@ -333,6 +356,7 @@ authGroups:
     assignRoles: 为当前用户组成员分配全局角色
   assignEdit:
     assignTitle: 为当前用户组分配全局角色
+
 assignTo:
   title: |-
     {count, plural,
@@ -604,6 +628,13 @@ catalog:
     url:
       label: Index URL
       placeholder: '例如：https://charts.rancher.io'
+  tools:
+    header: 集群工具
+    action:
+      install: 安装
+      upgrade: 升级/编辑
+      edit: 编辑
+      remove: 移除
 
 changePassword:
   title: 修改密码
@@ -692,6 +723,7 @@ cluster:
   provider:
       aliyun: Alibaba ACK
       aliyunecs: Aliyun ECS
+      aws: Amazon AWS
       amazonec2: Amazon EC2
       amazoneks: Amazon EKS
       azure: Azure
@@ -708,6 +740,7 @@ cluster:
       k3s: K3s
       kubeAdmin: KubeADM
       linode: Linode
+      local: Local
       minikube: Minikube
       oci: Oracle Cloud Infrastructure
       openstack: OpenStack
@@ -718,7 +751,7 @@ cluster:
       pinganyunecs: Pinganyun ECS
       rackspace: RackSpace
       rancherkubernetesengine: RKE
-      rke2: RKE Government
+      rke2: RKE2
       rke: RKE
       rkeWindows: Windows
       softlayer: SoftLayer
@@ -1100,7 +1133,7 @@ hpa:
     resource: 选定的目标参考在规格上没有正确的资源请求。否则，HPA指标将不会有任何影响。
   workloadTab:
     current: 当前的副本
-    last: 最后一个刻度时间 ## doublecheck
+    last: 最后一个刻度时间
     max: 最大副本数量
     min: 最小副本数量
     targetReference: 目标参考
@@ -1213,6 +1246,71 @@ labels:
     title: 标签
   annotations:
     title: 注释
+
+landing:
+  clusters: 集群
+# taken from Ember: https://github.com/rancher/ui/blob/master/app/components/modal-home/template.hbs
+  releaseNotes: 
+    '<ul class="list-unstyled">
+      <li class="mb-10">
+        <b>Cluster Explorer:</b> New dashboard to provide a deeper look into clusters under management.
+        <ul>
+          <li>Manage all Kubernetes cluster resources including custom resources from the Kubernetes operator ecosystem</li>
+          <li>Deploy and manage Helm charts from our new Apps &amp; Marketplace</li>
+          <li>View logs and interact with kubectl shell in a new IDE-like viewer</li>
+        </ul>
+      </li>
+      <li class="mb-10"><b>Monitoring and Alerting powered by Prometheus:</b> Allows management of custom Grafana dashboards and provide customization to AlertManager</li>
+      <li class="mb-10"><b>Logging powered by Banzai Cloud:</b> Customize FluentBit and Fluentd configurations and ship logs to a remote data store</li>
+      <li class="mb-10"><b>CIS Scans powered by kube-bench:</b> Extended support to perform CIS scans tailored for EKS and GKE platforms and perform a generic scan on any Kubernetes distribution</li>
+      <li class="mb-10"><b>Istio 1.7+:</b> Allows users to deploy multiple ingress and egress gateways</li>
+      <li class="mb-10">
+        <b>Rancher Continuous Delivery powered by Fleet:</b> Fleet is a built-in deployment tool for delivering applications and configurations from a Git source repository across multiple clusters.
+        <ul>
+          <li>Deploy any Kubernetes resource defined by manifests, kustomize, or Helm</li>
+          <li>Scale deployments to any number of clusters using a staged checkout and pull-based update model</li>
+          <li>Organize clusters into groups for easier management</li>
+          <li>Map Git source repositories to cluster group targets</li>
+        </ul>
+      </li>
+      <li class="mb-10">
+        <b>Enhanced EKS Lifecycle Management:</b>
+        <ul>
+          <li>Provisioning has been enhanced to support managed node groups, private access, and control plane logging</li>
+          <li>Registering existing EKS clusters allow management of upgrades and configuration</li>
+        </ul>
+      </li>
+      <li>
+        <b>Rancher Server Backups:</b>
+        <ul>
+          <li>Back up Rancher server without access to the etcd database</li>
+          <li>Restore data into any Kubernetes cluster</li>
+        </ul>
+      </li>
+    </ul>'
+  seeWhatsNew: Learn more about the improvements and new capabilities in this version.
+  whatsNewLink: "What's new in 2.5"
+  learnMore: Learn More
+  migration:
+    title: Migration Assistance
+    body: Read the migration guide for Cluster Manager users - everything you need to take advantage of the expanded Cluster Explorer
+  community:
+    title: Community Support
+    docs: Docs
+    forums: Forums
+  commercial:
+    title: Commercial Support
+    body: Learn about commercial support <a href="https://rancher.com/support-maintenance-terms/" target='_blank' rel='noopener nofollow noreferrer'>here</a>.
+  landingPrefs:
+    title: What do you want to see when you log in?
+    options:
+      thisScreen: Take me back to this screen
+      lastVisited: Take me back to the last place I visited
+      custom: Make my home screen...
+      defaultOverview: Overview for the default cluster ({cluster})
+      appsAndMarketplace: Apps and Marketplace
+      fleet: Fleet
+  welcomeToRancher: Welcome to Rancher
 
 logging:
   clusterFlow:
@@ -1555,7 +1653,8 @@ monitoring:
       volumeName: Volume 名称
     title: 配置 Prometheus
     warningInstalled: |
-      '警告: 当前 Prometheus Operators 已部署，目前还不支持将多个 Prometheus Operators 部署到同一个集群上。在安装此 Chart 之前，请删除此集群中所有其他 Prometheus Operators。如果当前 Prometheus Operators 由 Rancher UI 部署，如果你想在仪表盘中启用新的监控，请先在 Rancher UI 中禁用原来的监控。'
+      '目前已经部署了Prometheus Operators。目前不支持在一个集群上部署多个Prometheus Operators。在尝试安装此chart之前，请从该集群中移除所有其他的Prometheus Operators部署。
+      如果您是从启用了监控功能的旧版Rancher迁移过来的，请在尝试安装此chart之前完全禁用此集群上的监控功能。
   receiver:
     fields:
       name: 名称
@@ -2188,6 +2287,11 @@ promptRemove:
   protip: "提示: 按住 {alternateLabel} 键同时单击 delete 以绕过此确认"
   confirmName: "Enter <b>{nameToMatch}</b> below to confirm:"
 
+rancherAlertingDrivers:
+  msTeams: 启用Microsoft Teams通知
+  sms: 启用短信通知
+  selectOne: 您至少需要选择其中一种通知方式。
+
 rbac:
   roleBinding:
     noData: 没有与此资源相关联的成员。
@@ -2200,6 +2304,69 @@ rbac:
     fleetworkspace-admin: 管理员
     fleetworkspace-member: 成员
     fleetworkspace-readonly: 只读用户
+  roletemplate:
+    label: 角色
+    newUserDefault:
+      no: 否
+      tooltip: 这并不影响任何已经存在的对角色的绑定。
+    locked:
+      label: 已锁定
+      yes: '是：该角色已被锁定，新的绑定不允许使用这个角色'
+      no: No
+    tabs:
+      grantResources: 
+        label: 授予资源
+        tableHeaders:
+          verbs: 操作
+          resources: 资源
+          nonResourceUrls: 非资源URLs
+          apiGroups: API组
+    subtypes:
+      GLOBAL:
+        createButton: 创建全局角色
+        label: 全局
+        yes: "是：新用户的默认角色"
+        defaultLabel: 新用户的默认角色
+      CLUSTER:
+        createButton: 创建集群角色
+        label: 集群
+        yes: "是：创建新集群时，默认使用此角色"
+        defaultLabel: 集群创建者的默认角色
+      NAMESPACE:
+        createButton: 创建项目/命名空间角色
+        label: 项目/命名空间
+        yes: "是：创建新项目时，默认使用此角色"
+        defaultLabel: 项目创建者的默认角色
+      RBAC_ROLE:
+        label: 角色
+      RBAC_CLUSTER_ROLE:
+        label: 集群角色
+      noContext:
+        label: 没有正文内容
+  globalRoles:
+    types:
+      global:
+        label: 全局权限
+        description: |-
+          控制 {isUser, select,
+          true {user}
+          false {group}} 有什么权限来管理整个{appName}的安装。
+      custom:
+        label: 自定义
+        description: 不是Rancher创建的角色
+      builtin:
+        label: 内建
+        description: 额外的角色来定义更细粒度的权限模型。
+    unknownRole:
+        description: 没有描述
+    assignOnlyRole: 已分配该角色
+    role:
+      admin:
+        label: 管理员
+        description: 管理员可以完全控制整个安装和所有集群中的所有资源。
+      restricted-admin:
+        label: 受限管理员
+        description: 受限管理员可以完全控制所有下游集群的所有资源，但不能访问本地集群。
   user:
     label: 普通用户
     description: 普通用户可以创建新的集群并管理他们被授予访问权的集群和项目。
@@ -2396,6 +2563,20 @@ secret:
     'istio.io/key-and-cert': 'Istio 证书'
     'helm.sh/release.v1': 'Helm 版本'
     'fleet.cattle.io/cluster-registration-values': 'Fleet 集群'
+    'provisioning.cattle.io/cloud-credential': '云凭证'
+    initials:
+      'opaque': 'O'
+      'kubernetes.io/service-account-token': 'SAT'
+      'kubernetes.io/dockercfg': 'R'
+      'kubernetes.io/dockerconfigjson': 'R'
+      'kubernetes.io/basic-auth': 'HTTP'
+      'kubernetes.io/ssh-auth': 'SSH'
+      'kubernetes.io/tls': 'TLS'
+      'bootstrap.kubernetes.io/token': 'Boot'
+      'istio.io/key-and-cert': 'Ist'
+      'helm.sh/release.v1': 'Helm'
+      'fleet.cattle.io/cluster-registration-values': 'F'
+      'provisioning.cattle.io/cloud-credential': 'CC'
   relatedWorkloads: 相关的工作负载
 
 selectOrCreateAuthSecret:
