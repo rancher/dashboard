@@ -351,6 +351,14 @@ export default {
   display: inline-block;
 }
 
+.filter {
+  ::v-deep .vs__dropdown-menu {
+    li.vs__dropdown-option {
+      padding: 4px 5px;
+    }
+  }
+}
+
 .filter.show-masked ::v-deep .unlabeled-select:not(.masked-dropdown) {
   position: absolute;
   left: 0;
