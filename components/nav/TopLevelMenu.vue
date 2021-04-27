@@ -1,6 +1,5 @@
 <script>
 import { mapGetters } from 'vuex';
-import { findBy } from '@/utils/array';
 import { MANAGEMENT } from '@/config/types';
 import { mapPref, DEV } from '@/store/prefs';
 import { sortBy } from '@/utils/sort';

@@ -348,7 +348,7 @@ export default {
           const neu = await entry.config.save();
 
           entry.config = neu;
-          entry.pool.nodeConfig.name = neu.metadata.name;
+          entry.pool.nodeConfigRef.name = neu.metadata.name;
           entry.create = false;
         }
 

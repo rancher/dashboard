@@ -5,8 +5,11 @@ import CruResource from '@/components/CruResource';
 import SelectIconGrid from '@/components/SelectIconGrid';
 import { REGISTER, SUB_TYPE, _FLAGGED } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
+import { mapGetters } from 'vuex';
 import { sortBy } from '@/utils/sort';
 import { set } from '@/utils/object';
+import { filterAndArrangeCharts } from '@/store/catalog';
+import { CATALOG } from '@/config/labels-annotations';
 import Rke2 from './rke2';
 import Import from './import';
 
@@ -50,8 +53,13 @@ export default {
 
     if ( this.subType ) {
       await this.selectType(this.subType, false);
+    } else if ( this.value.isImported ) {
+      this.isRegister = true;
+      this.selectType('import', false);
     } else if ( this.value.nodeProvider ) {
       await this.selectType(this.value.nodeProvider, false);
+    } else {
+      await this.$store.dispatch('catalog/load');
     }
 
     if ( !this.value.id ) {
@@ -75,14 +83,19 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ allCharts: 'catalog/charts' }),
+
+    templateOptions() {
+      return filterAndArrangeCharts(this.allCharts, { showTypes: CATALOG._CLUSTER_TPL }).map(x => x.id);
+    },
+
     subTypes() {
       const getters = this.$store.getters;
       const isRegister = this.isRegister;
 
       const out = [];
 
-      // @TODO come from somewhere dynamic...
-      const templates = ['usertemplate1', 'usertemplate...', 'usertemplateN'];
+      const templates = this.templateOptions;
       const machineTypes = getters['plugins/machineDrivers'];
       const kontainerTypes = getters['plugins/clusterDrivers'];
       const customTypes = ['custom'];

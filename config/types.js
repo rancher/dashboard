@@ -12,12 +12,13 @@ export const STEVE = {
 // Auth (via Norman)
 // Base: /v3
 export const NORMAN = {
-  AUTH_CONFIG: 'authconfig',
-  PRINCIPAL:   'principal',
-  USER:        'user',
-  TOKEN:       'token',
-  GROUP:       'group',
-  SPOOFED:     { GROUP_PRINCIPAL: 'group.principal' }
+  AUTH_CONFIG:   'authconfig',
+  CLUSTER_TOKEN: 'clusterregistrationtoken',
+  GROUP:         'group',
+  PRINCIPAL:     'principal',
+  SPOOFED:       { GROUP_PRINCIPAL: 'group.principal' },
+  TOKEN:         'token',
+  USER:          'user',
 };
 
 // Public (via Norman)
@@ -236,5 +237,4 @@ export const CIS = {
   CLUSTER_SCAN_PROFILE: 'cis.cattle.io.clusterscanprofile',
   BENCHMARK:            'cis.cattle.io.clusterscanbenchmark',
   REPORT:               'cis.cattle.io.clusterscanreport'
-
 };

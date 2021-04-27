@@ -4,6 +4,7 @@ import CruResource from '@/components/CruResource';
 import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Tabbed from '@/components/Tabbed';
+import { CAPI } from '@/config/types';
 import Labels from './Labels';
 import AgentEnv from './AgentEnv';
 // import { set } from '@/utils/object';
@@ -49,7 +50,17 @@ export default {
 
   computed: {},
 
-  methods: {},
+  methods: {
+    onDone() {
+      return this.$router.replace({
+        name:   'c-cluster-product-resource-id',
+        params: {
+          resource: CAPI.RANCHER_CLUSTER,
+          id:       this.value.id,
+        },
+      });
+    },
+  },
 };
 </script>
 

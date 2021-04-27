@@ -743,7 +743,13 @@ cluster:
   description:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
-  import: Import Existing
+  import:
+    commandInstructions: 'Run the <code>kubectl</code> command below on an existing Kubernetes cluster running a supported Kubernetes version to import it into Rancher:'
+    commandInstructionsInsecure: 'If you get a &quot;certificate signed by unknown authority&quot; error, your Rancher installation has a self-signed or untrusted SSL certificate.  Run the command below instead to bypass the certificate verification:'
+    clusterRoleBindingInstructions: 'If you get permission errors creating some of the resources, your user may not have the <code>cluster-admin</code> role.  Use this command to apply it:'
+    clusterRoleBindingCommand: 'kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user <your username from your kubeconfig>'
+
+  importAction: Import Existing
   kubernetesVersion:
     label: Kubernetes Version
   name:
@@ -822,7 +828,7 @@ cluster:
     exoscale: Exoscale
     googlegke: Google GKE
     huaweicce: Huawei CCE
-    import: Import
+    imported: Imported
     k3s: K3s
     kubeAdmin: KubeADM
     linode: Linode
@@ -891,10 +897,6 @@ clusterIndexPage:
     nodes:
       label: Unhealthy Nodes
       noRows: There are no unhealthy nodes to show.
-
-clusterSwitcher:
-  noResults: No Clusters found.
-  search: Start typing to search for a cluster.
 
 configmap:
   tabs:

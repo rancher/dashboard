@@ -6,7 +6,7 @@ import { asciiLike } from '@/utils/string';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
-import { get, set } from '@/utils/object';
+import { get } from '@/utils/object';
 import FileSelector from '@/components/form/FileSelector';
 import { _EDIT, _VIEW } from '@/config/query-params';
 
