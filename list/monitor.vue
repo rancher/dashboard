@@ -1,0 +1,80 @@
+<script>
+import Loading from '@/components/Loading';
+import Tabbed from '@/components/Tabbed';
+import Tab from '@/components/Tabbed/Tab';
+import TypeDescription from '@/components/TypeDescription';
+
+import ResourceTable from '@/components/ResourceTable';
+import { MONITORING } from '@/config/types';
+import { allHash } from '@/utils/promise';
+export default {
+  components: {
+    Loading, Tabbed, Tab, ResourceTable, TypeDescription
+  },
+
+  async fetch() {
+    this.podMonitorSchema = this.$store.getters['cluster/schemaFor'](MONITORING.PODMONITOR);
+    this.serviceMonitorSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SERVICEMONITOR);
+
+    const hash = await allHash( {
+      podMonitors:     this.$store.dispatch('cluster/findAll', { type: MONITORING.PODMONITOR } ),
+      serviceMonitors: this.$store.dispatch('cluster/findAll', { type: MONITORING.SERVICEMONITOR } )
+    });
+
+    this.podMonitors = hash.podMonitors;
+    this.serviceMonitors = hash.serviceMonitors;
+  },
+
+  data() {
+    return {
+      podMonitors: [], serviceMonitors: [], podMonitorSchema: null, serviceMonitorSchema: null
+    };
+  },
+
+  computed: {
+    createRoute() {
+      const activeResource = this.$refs?.tabs?.activeTabName;
+
+      return {
+        name:   'c-cluster-product-resource-create',
+        params: {
+          resource: activeResource, cluster: this.$route.params.cluster, product: 'monitoring'
+        }
+      };
+    },
+  }
+};
+</script>
+
+<template>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
+    <div class="row header mb-40">
+      <h1>  {{ t('monitoring.monitors') }}</h1>
+      <div>
+        <button class="btn btn-lg role-primary float right" @click="$router.push(createRoute)">
+          {{ t('resourceList.head.createFromYaml') }}
+        </button>
+      </div>
+    </div>
+    <Tabbed ref="tabs">
+      <Tab :name="podMonitorSchema.id" :label="$store.getters['type-map/labelFor'](podMonitorSchema, 2)">
+        <TypeDescription :resource="podMonitorSchema.id" />
+        <ResourceTable :schema="podMonitorSchema" :rows="podMonitors" />
+      </Tab>
+      <Tab :name="serviceMonitorSchema.id" :label="$store.getters['type-map/labelFor'](serviceMonitorSchema, 2)">
+        <TypeDescription :resource="serviceMonitorSchema.id" />
+        <ResourceTable :schema="serviceMonitorSchema" :rows="serviceMonitors" />
+      </Tab>
+    </Tabbed>
+  </div>
+</template>
+
+<style lang='scss' scoped>
+.header{
+  display: flex;
+  H1{
+    flex: 1;
+  }
+}
+</style>
