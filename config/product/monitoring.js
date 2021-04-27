@@ -38,7 +38,6 @@ export function init(store) {
 
   virtualType({
     label:      'Monitoring',
-    group:      'monitoring',
     namespaced: false,
     name:       'monitoring-overview',
     weight:     105,
@@ -178,23 +177,13 @@ export function init(store) {
     ROUTE,
     SERVICEMONITOR,
     PODMONITOR,
-  ], 'monitoring');
+  ]);
 
-  // virtualType({
-  //   label:      'Advanced',
-  //   group:      'monitoring-overview',
-  //   namespaced: false,
-  //   name:       'monitoring-advanced',
-  //   weight:     105,
-  //   route:      { name: 'c-cluster-monitoring' },
-  //   exact:      true
-  // });
-
-  // basicType([
-  //   PROMETHEUSRULE,
-  //   ALERTMANAGER,
-  //   PROMETHEUS
-  // ], 'monitoring-advanced');
+  basicType([
+    PROMETHEUSRULE,
+    ALERTMANAGER,
+    PROMETHEUS
+  ], 'Advanced');
 
   mapType(SERVICEMONITOR, store.getters['i18n/t'](`typeLabel.${ SERVICEMONITOR }`, { count: 2 }));
   mapType(PODMONITOR, store.getters['i18n/t'](`typeLabel.${ PODMONITOR }`, { count: 2 }));
