@@ -854,21 +854,25 @@ cluster:
 clusterIndexPage:
   hardwareResourceGauge:
     consumption: "{useful} of {total} {units} {suffix}"
-    coresReserved: Cores Reserved
-    coresUsed: Cores Used
-    podsUsed: Pods Used
-    ramReserved: Memory Reserved
-    ramUsed: Memory Used
+    cores: Cores
+    pods: Pods
+    ram: Memory
+    used: Used
+    reserved: Reserved
   header: Cluster Dashboard
   resourceGauge:
     totalResources: Total Resources
   sections:
+    capacity:
+      label: Capacity
     events:
       label: Events
       resource:
         label: Resource
       date:
         label: Date
+    alerts:
+      label: Alerts
     clusterMetrics:
       label: Cluster Metrics
     etcdMetrics:
@@ -1062,6 +1066,7 @@ glance:
   pods: Pods
   provider: Provider
   version: Kubernetes Version
+  monitoringDashboard: Monitoring Dashboard
 
 grafanaDashboard:
   failedToLoad: Failed to load graph

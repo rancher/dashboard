@@ -1,50 +1,35 @@
 <script>
-import HalfCircle from '@/components/graph/HalfCircle';
+import ConsumptionGauge from '@/components/ConsumptionGauge';
 import SimpleBox from '@/components/SimpleBox';
 
 export default {
-  components: { HalfCircle, SimpleBox },
+  components: { ConsumptionGauge, SimpleBox },
   props:      {
     name: {
       type:     String,
       required: true
     },
-    total: {
-      type:     Number,
-      required: true
-    },
-    useful: {
-      type:     Number,
-      required: true
-    },
+
     units: {
       type:    String,
       default: ''
+    },
+
+    used: {
+      type:    Object,
+      default: null
+    },
+
+    reserved: {
+      type:    Object,
+      default: null
     }
   },
   computed: {
-    percentage() {
-      if (this.total === 0) {
-        return 0;
-      }
-
-      return this.useful / this.total;
-    },
-    displayPercetange() {
-      const integerPercentage = Math.round(this.percentage * 100);
-
-      return `${ integerPercentage }%`;
-    },
-    color() {
-      if (this.percentage >= 0.90) {
-        return this.strokes('--gauge-error-primary', '--gauge-error-secondary');
-      }
-
-      if (this.percentage >= 0.75) {
-        return this.strokes('--gauge-warning-primary', '--gauge-warning-secondary');
-      }
-
-      return this.strokes('--gauge-success-primary', '--gauge-success-secondary');
+    colorStops() {
+      return {
+        0: '--success', 30: '--warning', 70: '--error'
+      };
     }
   },
   methods: {
@@ -63,29 +48,57 @@ export default {
 
     rgba(variable, opacity) {
       return `rgba(var(${ variable }), ${ opacity })`;
+    },
+
+    percentage(resource) {
+      if (resource.total === 0) {
+        return 0;
+      }
+
+      return `${ (resource.useful / resource.total * 100).toFixed(2) }%`;
     }
   }
 };
 </script>
 
 <template>
-  <SimpleBox class="hardware-resource-gauge" :title="name">
+  <SimpleBox class="hardware-resource-gauge">
     <div class="chart">
-      <div class="half-circle-container">
-        <HalfCircle
-          :percentage="percentage"
-          :primary-stroke-color="color.primaryStrokeColor"
-          :primary-stroke-gradient-color="color.primaryStrokeGradientColor"
-          :secondary-stroke-color="color.secondaryStrokeColor"
-          :secondary-stroke-gradient-color="color.secondaryStrokeGradientColor"
-        />
-        <div class="percentage">
-          {{ displayPercetange }}
-        </div>
+      <h3 class="text-muted">
+        {{ name }}
+      </h3>
+      <div v-if=" reserved && (reserved.total || reserved.useful)" class="">
+        <ConsumptionGauge
+          :capacity="reserved.total"
+          :used="reserved.useful"
+          :color-stops="colorStops"
+        >
+          <template #title>
+            <span>
+              {{ t('clusterIndexPage.hardwareResourceGauge.reserved') }}
+            </span>
+            <span>
+              {{ percentage(reserved) }}
+            </span>
+          </template>
+        </ConsumptionGauge>
       </div>
-    </div>
-    <div class="of">
-      {{ t('clusterIndexPage.hardwareResourceGauge.consumption', {useful: maxDecimalPlaces(useful), total: maxDecimalPlaces(total), units, suffix: name }) }}
+      <div v-if=" used && used.useful" class="">
+        <ConsumptionGauge
+          :capacity="used.total"
+          :used="used.useful"
+          :color-stops="colorStops"
+        >
+          <template #title>
+            <span>
+              {{ t('clusterIndexPage.hardwareResourceGauge.used') }}
+            </span>
+            <span>
+              {{ percentage(used) }}
+            </span>
+          </template>
+        </ConsumptionGauge>
+      </div>
     </div>
   </SimpleBox>
 </template>
@@ -99,28 +112,5 @@ export default {
         display: flex;
         flex-direction: column;
 
-        .chart .half-circle-container {
-            position: relative;
-            margin: $large-spacing auto 0 auto;
-            padding-bottom: $large-spacing;
-            max-width: 245px;
-            height: 122.5px + $large-spacing;
-            border-bottom: 2px solid var(--simple-box-divider);
-
-            .percentage {
-              position: absolute;
-              bottom: 15px;
-              text-align: center;
-              width: 100%;
-
-              font-size: 40px;
-            }
-        }
-
-        .of {
-            padding-top: $spacing;
-            padding-bottom: $large-spacing;
-            text-align: center;
-        }
     }
 </style>

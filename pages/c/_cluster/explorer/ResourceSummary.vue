@@ -1,5 +1,5 @@
 <script>
-import CountGauge from '@/components/CountGauge';
+import SimpleBox from '@/components/SimpleBox';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { COUNT } from '@/config/types';
 import { colorForState } from '@/plugins/steve/resource-instance';
@@ -20,7 +20,6 @@ export function resourceCounts(store, resource) {
   const inStore = store.getters['currentProduct'].inStore;
   const clusterCounts = store.getters[`${ inStore }/all`](COUNT)[0].counts;
   const summary = clusterCounts[resource].summary;
-
   const counts = {
     total:        summary.count || 0,
     useful:       summary.count || 0,
@@ -41,24 +40,34 @@ export function resourceCounts(store, resource) {
 }
 
 export default {
-  components: { CountGauge },
+  components: { SimpleBox },
+
   props:      {
     resource: {
       type:     String,
-      required: true
+      default: ''
     },
-    primaryColorVar: {
-      type:     String,
-      required: true
-    },
+
+    spoofedCounts: {
+      type:    Object,
+      default: null
+    }
   },
 
   computed: {
     resourceCounts() {
+      if (this.spoofedCounts) {
+        return this.spoofedCounts;
+      }
+
       return resourceCounts(this.$store, this.resource);
     },
 
     location() {
+      if (this.spoofedCounts) {
+        return this.spoofedCounts.location;
+      }
+
       return {
         name:     'c-cluster-product-resource',
         params:   { product: EXPLORER, resource: this.resource }
@@ -66,26 +75,68 @@ export default {
     },
 
     name() {
+      if (this.spoofedCounts) {
+        return this.spoofedCounts.name;
+      }
       const inStore = this.$store.getters['currentProduct'].inStore;
       const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource);
 
       return this.$store.getters['type-map/labelFor'](schema, this.resourceCounts.useful);
     },
-
-    input() {
-      return {
-        plain:           true,
-        name:            this.name,
-        location:        this.location,
-        primaryColorVar: this.primaryColorVar,
-        ...this.resourceCounts
-      };
-    },
   },
+
+  methods: {
+    goToResource() {
+      if (this.location) {
+        this.$router.push(this.location);
+      }
+    },
+  }
 
 };
 </script>
 
 <template>
-  <CountGauge class="resource-gauge-two" v-bind="input" />
+  <div>
+    <SimpleBox class="container" @click="goToResource">
+      <h1>{{ resourceCounts.useful }}</h1>
+      <h3 class="text-muted">
+        {{ name }}
+      </h3>
+      <div class="warnings">
+        <div :class="{'invisible':!resourceCounts.warningCount }" class="warn-count mb-10 chip">
+          {{ resourceCounts.warningCount }}
+        </div>
+        <div :class="{'invisible':!resourceCounts.errorCount}" class="error-count chip">
+          {{ resourceCounts.errorCount }}
+        </div>
+      </div>
+    </SimpleBox>
+  </div>
 </template>
+
+<style lang='scss' scoped>
+::v-deep .content{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    & H1, H3 {
+        margin: 0;
+    }
+
+    & .chip{
+        border-radius: 2em;
+        color: var(--body-bg);
+        padding: 0px 1em;
+
+        &.warn-count {
+            background: var(--warning)
+        }
+
+        &.error-count {
+            background: var(--error)
+        }
+    }
+}
+
+</style>
