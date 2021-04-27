@@ -573,8 +573,10 @@ export const actions = {
 
     await dispatch('cluster/unsubscribe');
     commit('clusterChanged', false);
+    commit('setCluster', null);
     commit('cluster/reset');
 
+    await dispatch('rancher/unsubscribe');
     commit('rancher/reset');
     commit('catalog/reset');
 
