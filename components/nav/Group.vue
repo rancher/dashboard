@@ -286,9 +286,12 @@ export default {
  .header ::v-deep > .child.nuxt-link-exact-active {
     padding: 0;
 
+    A, A I {
+      color: var(--body-text);
+    }
+
     A {
       background-color: var(--nav-active);
-      color: var(--body-text);
     }
   }
 
