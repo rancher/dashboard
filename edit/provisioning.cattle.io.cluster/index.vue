@@ -119,7 +119,7 @@ export default {
         });
 
         customTypes.forEach((id) => {
-          addType(id, 'custom', true);
+          addType(id, 'custom', false);
         });
       }
 

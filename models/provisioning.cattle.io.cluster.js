@@ -29,6 +29,10 @@ export default {
     return this.provisioner === 'imported';
   },
 
+  isCustom() {
+    return this.isRke2 && !(this.spec?.rkeConfig?.nodePools?.length);
+  },
+
   isRke2() {
     return !!this.spec?.rkeConfig;
   },

@@ -305,7 +305,7 @@ export default {
           hostnamePrefix:   '',
           labels:           {},
           quantity:         1,
-          nodeConfig:       {
+          nodeConfigRef:    {
             kind:       this.nodeConfigSchema.attributes.kind,
             name:       null,
           },
@@ -372,7 +372,7 @@ export default {
     },
 
     validationPassed() {
-      return !!this.credentialId;
+      return this.provider === 'custom' || !!this.credentialId;
     },
 
     cancelCredential() {
@@ -418,53 +418,53 @@ export default {
         description-placeholder="cluster.description.placeholder"
       />
 
-      <div class="clearfix">
-        <h2 v-t="'cluster.tabs.nodePools'" class="pull-left" />
-        <div class="pull-right">
-          <BadgeState
-            v-tooltip="nodeTotals.tooltip.etcd"
-            :color="nodeTotals.color.etcd"
-            :icon="nodeTotals.icon.etcd"
-            :label="nodeTotals.label.etcd"
-            class="mr-10"
-          />
-          <BadgeState
-            v-tooltip="nodeTotals.tooltip.controlPlane"
-            :color="nodeTotals.color.controlPlane"
-            :icon="nodeTotals.icon.controlPlane"
-            :label="nodeTotals.label.controlPlane"
-            class="mr-10"
-          />
-          <BadgeState
-            v-tooltip="nodeTotals.tooltip.worker"
-            :color="nodeTotals.color.worker"
-            :icon="nodeTotals.icon.worker"
-            :label="nodeTotals.label.worker"
-          />
+      <template v-if="hasNodePools">
+        <div class="clearfix">
+          <h2 v-t="'cluster.tabs.nodePools'" class="pull-left" />
+          <div class="pull-right">
+            <BadgeState
+              v-tooltip="nodeTotals.tooltip.etcd"
+              :color="nodeTotals.color.etcd"
+              :icon="nodeTotals.icon.etcd"
+              :label="nodeTotals.label.etcd"
+              class="mr-10"
+            />
+            <BadgeState
+              v-tooltip="nodeTotals.tooltip.controlPlane"
+              :color="nodeTotals.color.controlPlane"
+              :icon="nodeTotals.icon.controlPlane"
+              :label="nodeTotals.label.controlPlane"
+              class="mr-10"
+            />
+            <BadgeState
+              v-tooltip="nodeTotals.tooltip.worker"
+              :color="nodeTotals.color.worker"
+              :icon="nodeTotals.icon.worker"
+              :label="nodeTotals.label.worker"
+            />
+          </div>
         </div>
-      </div>
 
-      <Tabbed
-        v-if="hasNodePools"
-        ref="pools"
-        :side-tabs="true"
-        :show-tabs-add-remove="true"
-        @addTab="addNodePool"
-        @removeTab="removeNodePool($event)"
-      >
-        <Tab v-for="obj in nodePools" :key="obj.id" :name="obj.id" :label="obj.pool.name || '(Not Named)'" :show-header="false">
-          <NodePool
-            :value="obj"
-            :mode="mode"
-            :provider="provider"
-            :credential-id="credentialId"
-            @error="e=>errors = e"
-          />
-        </Tab>
-      </Tabbed>
+        <Tabbed
+          ref="pools"
+          :side-tabs="true"
+          :show-tabs-add-remove="true"
+          @addTab="addNodePool"
+          @removeTab="removeNodePool($event)"
+        >
+          <Tab v-for="obj in nodePools" :key="obj.id" :name="obj.id" :label="obj.pool.name || '(Not Named)'" :show-header="false">
+            <NodePool
+              :value="obj"
+              :mode="mode"
+              :provider="provider"
+              :credential-id="credentialId"
+              @error="e=>errors = e"
+            />
+          </Tab>
+        </Tabbed>
+        <div class="spacer" />
+      </template>
     </div>
-
-    <div class="spacer" />
 
     <h2 v-t="'cluster.tabs.cluster'" />
     <Tabbed :side-tabs="true">

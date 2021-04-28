@@ -7,6 +7,7 @@ import Tab from '@/components/Tabbed/Tab';
 import { allHash } from '@/utils/promise';
 import { CAPI } from '@/config/types';
 import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
+import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
 
 export default {
   components: {
@@ -14,7 +15,8 @@ export default {
     ResourceTabs,
     SortableTable,
     Tab,
-    CopyCode
+    CopyCode,
+    CustomCommand
   },
 
   props: {
@@ -32,7 +34,7 @@ export default {
       machines:           this.$store.dispatch('management/findAll', { type: CAPI.MACHINE })
     });
 
-    if ( this.value.isImported ) {
+    if ( this.value.isImported || this.value.isCustom ) {
       hash.clusterToken = await this.value.getOrCreateToken();
     }
 
@@ -73,6 +75,10 @@ export default {
         AGE,
       ];
     },
+  },
+
+  mounted() {
+    window.c = this;
   }
 };
 </script>
@@ -101,20 +107,23 @@ export default {
       </SortableTable>
     </Tab>
     <Tab v-if="clusterToken" name="registration" label="Registration">
-      <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
-      <CopyCode class="m-10 p-10">
-        {{ clusterToken.command }}
-      </CopyCode>
+      <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" />
+      <template v-else>
+        <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
+        <CopyCode class="m-10 p-10">
+          {{ clusterToken.command }}
+        </CopyCode>
 
-      <h4 class="mt-10" v-html="t('cluster.import.commandInstructionsInsecure', null, true)" />
-      <CopyCode class="m-10 p-10">
-        {{ clusterToken.insecureCommand }}
-      </CopyCode>
+        <h4 class="mt-10" v-html="t('cluster.import.commandInstructionsInsecure', null, true)" />
+        <CopyCode class="m-10 p-10">
+          {{ clusterToken.insecureCommand }}
+        </CopyCode>
 
-      <h4 class="mt-10" v-html="t('cluster.import.clusterRoleBindingInstructions', null, true)" />
-      <CopyCode class="m-10 p-10">
-        {{ t('cluster.import.clusterRoleBindingCommand', null, true) }}
-      </CopyCode>
+        <h4 class="mt-10" v-html="t('cluster.import.clusterRoleBindingInstructions', null, true)" />
+        <CopyCode class="m-10 p-10">
+          {{ t('cluster.import.clusterRoleBindingCommand', null, true) }}
+        </CopyCode>
+      </template>
     </Tab>
   </ResourceTabs>
 </template>

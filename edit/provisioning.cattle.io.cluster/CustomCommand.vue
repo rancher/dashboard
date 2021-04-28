@@ -1,0 +1,130 @@
+<script>
+import InfoBox from '@/components/InfoBox';
+import Checkbox from '@/components/form/Checkbox';
+import CopyCode from '@/components/CopyCode';
+import LabeledInput from '@/components/form/LabeledInput';
+import KeyValue from '@/components/form/KeyValue';
+import Taints from '@/components/form/Taints';
+
+export default {
+  components: {
+    Checkbox, CopyCode, InfoBox, KeyValue, LabeledInput, Taints
+  },
+
+  props: {
+    clusterToken: {
+      type:     Object,
+      required: true,
+    }
+  },
+
+  data() {
+    return {
+      showAdvanced:    false,
+      etcd:            false,
+      controlPlane:    false,
+      worker:          false,
+      address:         '',
+      internalAddress: '',
+      nodeName:        '',
+      labels:          {},
+      taints:          []
+    };
+  },
+
+  computed: {
+    command() {
+      const out = [this.clusterToken.nodeCommand];
+
+      this.etcd && out.push('--etcd');
+      this.controlPlane && out.push('--controlplane');
+      this.worker && out.push('--worker');
+      this.address && out.push(`--address ${ this.address }`);
+      this.internalAddress && out.push(`--internal-address ${ this.internalAddress }`);
+      this.nodeName && out.push(`--node-name ${ this.nodeName }`);
+
+      for ( const key in this.labels ) {
+        const k = sanitizeKey(key);
+        const v = sanitizeValue(this.labels[k]);
+
+        if ( k && v ) {
+          out.push(`--label ${ k }=${ v }`);
+        }
+      }
+
+      for ( const t of this.taints ) {
+        const k = sanitizeKey(t.key);
+        const v = sanitizeValue(t.value);
+        const e = sanitizeValue(t.effect);
+
+        if ( k && v && e ) {
+          out.push(`--taints ${ k }=${ v }:${ e }`);
+        }
+      }
+
+      return out.join(' ');
+    },
+  },
+
+  methods: {
+    toggleAdvanced() {
+      this.showAdvanced = !this.showAdvanced;
+    },
+  },
+};
+
+function sanitizeKey(k) {
+  return (k || '').replace(/[^a-z0-9./_-]/ig, '');
+}
+
+function sanitizeValue(v) {
+  return (v || '').replace(/[^a-z0-9._-]/ig, '');
+}
+</script>
+
+<template>
+  <div>
+    <InfoBox :step="1" class="step-box">
+      <h3 v-t="'cluster.custom.nodeRole.label'" />
+      <h4 v-t="'cluster.custom.nodeRole.detail'" />
+      <Checkbox v-model="etcd" label-key="model.machine.role.etcd" />
+      <Checkbox v-model="controlPlane" label-key="model.machine.role.controlPlane" />
+      <Checkbox v-model="worker" label-key="model.machine.role.worker" />
+    </InfoBox>
+
+    <InfoBox v-if="showAdvanced" :step="2" class="step-box">
+      <h3 v-t="'cluster.custom.advanced.label'" />
+      <h4 v-t="'cluster.custom.advanced.detail'" />
+
+      <div class="row mb-10">
+        <div class="col span-4">
+          <LabeledInput v-model="nodeName" label="Node Name" />
+        </div>
+        <div class="col span-4">
+          <LabeledInput v-model="address" label="Node Public IP" />
+        </div>
+        <div class="col span-4">
+          <LabeledInput v-model="internalAddress" label="Node Private IP" />
+        </div>
+      </div>
+
+      <KeyValue v-model="labels" class="mb-10" mode="edit" title="Node Labels" :read-allowed="false" />
+
+      <Taints v-model="taints" class="mb-10" mode="edit" :value="taints" />
+
+      <a v-t="'generic.hideAdvanced'" @click="toggleAdvanced" />
+    </InfoBox>
+
+    <div v-else class="mb-20">
+      <a v-t="'generic.showAdvanced'" @click="toggleAdvanced" />
+    </div>
+
+    <InfoBox :step="showAdvanced ? 3 : 2" class="step-box">
+      <h3 v-t="'cluster.custom.registrationCommand.label'" />
+      <h4 v-t="'cluster.custom.registrationCommand.detail'" />
+      <CopyCode class="m-10 p-10">
+        {{ command }}
+      </CopyCode>
+    </InfoBox>
+  </div>
+</template>
