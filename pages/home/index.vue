@@ -232,11 +232,14 @@ export default {
             :pref="HIDE_HOME_PAGE_CARDS"
             pref-key="migrationTip"
           >
-            {{ t('landing.gettingStarted.body') }}
-            <br />
-            <nuxt-link :to="{name: 'docs-doc', params: {doc: 'getting-started'}}" class="pull-right">
-              {{ t('landing.learnMore') }}
-            </nuxt-link>
+            <div class="getting-started">
+              <span>
+                {{ t('landing.gettingStarted.body') }}
+              </span>
+              <nuxt-link :to="{name: 'docs-doc', params: {doc: 'getting-started'}}" class="getting-started-btn">
+                {{ t('landing.learnMore') }}
+              </nuxt-link>
+            </div>
           </SimpleBox>
           <div class="row panel">
             <div class="col span-12">
@@ -313,6 +316,19 @@ export default {
   }
   .panel:not(:first-child) {
     margin-top: 20px;
+  }
+  .getting-started {
+    align-items: flex-end;
+    display: flex;
+
+    > span {
+      flex: 1;
+      margin-right: 20px;
+    }
+  }
+  .getting-started-btn {
+    display: contents;
+    white-space: nowrap;
   }
 </style>
 <style lang="scss">

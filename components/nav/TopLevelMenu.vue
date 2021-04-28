@@ -300,7 +300,14 @@ export default {
               {{ t('nav.support') }}
             </nuxt-link>
           </div>
-          <div v-tooltip="{ content: fullVersion, classes: 'footer-tooltip' }" class="version" v-html="displayVersion" />
+          <div @click="hide()">
+            <nuxt-link
+              v-tooltip="{ content: fullVersion, classes: 'footer-tooltip' }"
+              :to="{ name: 'docs-doc', params: { doc: 'release-notes' } }"
+              class="version"
+              v-html="displayVersion"
+            />
+          </div>
           <div v-if="showLocale">
             <v-popover
               popover-class="localeSelector"
@@ -571,7 +578,7 @@ export default {
       }
 
       .version {
-        cursor: help;
+        cursor: pointer;
       }
     }
   }
