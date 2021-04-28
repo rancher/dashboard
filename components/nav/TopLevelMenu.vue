@@ -209,6 +209,10 @@ export default {
                 <img :src="c.logo" />
                 <div>{{ c.label }}</div>
               </nuxt-link>
+              <span v-else class="cluster selector disabled">
+                <img :src="c.logo" />
+                <div>{{ c.label }}</div>
+              </span>
             </div>
             <div v-if="clusters.length === 0" class="none-matching">
               {{ t('nav.search.noResults') }}
@@ -284,12 +288,20 @@ export default {
   </div>
 </template>
 
+<style scoped>
+  .cluster.disabled > * {
+    cursor: not-allowed;
+    filter: grayscale(1);
+    color: var(--muted);
+  }
+</style>
+
 <style lang="scss">
   .localeSelector, .footer-tooltip {
     z-index: 1000;
   }
 
-  .cluster.selector:hover {
+  .cluster.selector:not(.disabled):hover {
     color: var(--primary-hover-text);
     background: var(--primary-hover-bg);
     border-radius: 5px;
