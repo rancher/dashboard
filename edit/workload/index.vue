@@ -669,6 +669,7 @@ export default {
 
         removeObject(containers, this.container);
       } else {
+        delete this.container._init;
         const initContainers = this.podTemplateSpec.initContainers;
 
         removeObject(initContainers, this.container);
