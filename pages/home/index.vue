@@ -11,7 +11,7 @@ import CommunityLinks from '@/components/CommunityLinks';
 import SimpleBox from '@/components/SimpleBox';
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
-import { STATE, NAME } from '@/config/table-headers';
+import { STATE } from '@/config/table-headers';
 import { createMemoryFormat, formatSi, parseSi } from '@/utils/units';
 import { compare } from '@/utils/version';
 
@@ -112,7 +112,12 @@ export default {
     clusterHeaders() {
       return [
         STATE,
-        NAME,
+        {
+          name:          'name',
+          labelKey:      'tableHeaders.name',
+          sort:          ['nameSort'],
+          canBeVariable: true
+        },
         {
           label: this.t('landing.clusters.provider'),
           value: 'status.provider',
@@ -143,10 +148,10 @@ export default {
           value: '',
           sort:  ['status.allocatable.pods', 'status.available.pods']
         },
-        {
-          name:  'explorer',
-          label:  this.t('landing.clusters.explorer')
-        }
+        // {
+        //   name:  'explorer',
+        //   label:  this.t('landing.clusters.explorer')
+        // }
       ];
     },
 
@@ -235,6 +240,16 @@ export default {
           <div class="row panel">
             <div class="col span-12">
               <SortableTable :table-actions="false" :row-actions="false" key-field="id" :rows="clusters" :headers="clusterHeaders">
+                <template #col:name="{row}">
+                  <td>
+                    <span>
+                      <n-link v-if="row.isReady" :to="row.detailLocation">
+                        {{ row.nameDisplay }}
+                      </n-link>
+                      <span v-else>{{ row.nameDisplay }}</span>
+                    </span>
+                  </td>
+                </template>
                 <template #title>
                   <div class="row pb-20 table-heading">
                     <h2 class="mb-0">
@@ -267,14 +282,14 @@ export default {
                     &mdash;
                   </td>
                 </template>
-                <template #cell:explorer="{row}">
+                <!-- <template #cell:explorer="{row}">
                   <n-link v-if="row && row.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.id}}">
                     {{ t('landing.clusters.explore') }}
                   </n-link>
                   <button v-else :disabled="true" class="btn btn-sm role-primary">
                     {{ t('landing.clusters.explore') }}
                   </button>
-                </template>
+                </template> -->
               </SortableTable>
             </div>
           </div>
