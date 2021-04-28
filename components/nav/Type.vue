@@ -17,7 +17,12 @@ export default {
     isRoot: {
       type:    Boolean,
       default: false,
-    }
+    },
+
+    depth: {
+      type:    Number,
+      default: 0,
+    },
   },
 
   data() {
@@ -58,8 +63,8 @@ export default {
     :key="type.name"
     :to="type.route"
     tag="li"
-    class="child"
-    :class="{'root': isRoot}"
+    class="child nav-type"
+    :class="{'root': isRoot, [`depth-${depth}`]: true}"
     :exact="type.exact"
   >
     <a
@@ -137,5 +142,17 @@ export default {
       justify-items: center;
       padding-right: 4px;
     }
+
+    &.nav-type:not(.depth-0) {
+      A {
+        font-size: 13px;
+        padding: 5.5px 7px 5.5px 10px;
+      }
+
+      ::v-deep .label I {
+        padding-right: 2px;
+      }
+    }
   }
+
 </style>

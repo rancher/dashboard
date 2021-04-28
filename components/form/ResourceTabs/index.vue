@@ -36,6 +36,11 @@ export default {
       type:    String,
       default: _VIEW,
     },
+
+    defaultTab: {
+      type:    String,
+      default: null,
+    },
   },
 
   async fetch() {
@@ -118,7 +123,7 @@ export default {
 </script>
 
 <template>
-  <Tabbed v-bind="$attrs">
+  <Tabbed v-bind="$attrs" :default-tab="defaultTab">
     <slot />
 
     <Tab v-if="showConditions" label-key="resourceTabs.conditions.tab" name="conditions" :weight="-1">

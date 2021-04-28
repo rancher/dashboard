@@ -116,6 +116,9 @@ export function init(store) {
   mapGroup('argoproj.io', 'Argo');
   mapGroup('logging.banzaicloud.io', 'Logging');
   mapGroup(/.*resources\.cattle\.io.*/, 'Backup-Restore');
+  mapGroup(/^(.*\.)?cluster\.x-k8s\.io$/, 'Cluster API');
+  mapGroup(/^provisioning\.cattle\.io$/, 'Rancher Provisioning');
+  mapGroup(/^rke(-node)?\.cattle\.io$/, 'RKE1 Provisioning');
 
   configureType(NODE, { isCreatable: false, isEditable: false });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });

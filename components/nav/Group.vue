@@ -80,7 +80,7 @@ export default {
     },
 
     showExpanded() {
-      return this.isExpanded || this.isActiveGroup;
+      return this.isExpanded || this.isActiveGroup || this.group.isRoot;
     },
 
     isActiveGroup() {
@@ -186,6 +186,7 @@ export default {
           :key="id+'_' + child.name + '_type'"
           :is-root="depth == 0 && !showHeader"
           :type="child"
+          :depth="depth"
           @selected="$emit('selected')"
           @click="clicked"
         />
@@ -220,13 +221,24 @@ export default {
   }
 
   .accordion {
+    .header {
+      &:hover:not(.noHover) {
+        background-color: var(--nav-hover);
+      }
+
+      > I {
+        &:hover {
+          background-color: var(--nav-expander-hover);
+        }
+      }
+    }
+  }
+
+  .accordion {
     &.depth-0 {
       > .header {
         padding: 8px 0;
 
-        &:hover:not(.noHover) {
-          background-color: var(--nav-hover);
-        }
         &.noHover {
           cursor: default;
         }
@@ -243,10 +255,6 @@ export default {
           top: 0;
           padding: 9px 7px;
           user-select: none;
-
-          &:hover {
-            background-color: var(--nav-expander-hover);
-          }
         }
       }
 
@@ -257,6 +265,7 @@ export default {
 
     &:not(.depth-0) {
       > .header {
+        padding-left: 10px;
         > SPAN {
           // Child groups that aren't linked themselves
           display: inline-block;
@@ -267,7 +276,7 @@ export default {
           position: absolute;
           right: 0;
           top: 0;
-          padding: 6px 8px 6px 0;
+          padding: 6px 8px 6px 8px;
         }
       }
     }
@@ -275,11 +284,14 @@ export default {
 
  .body ::v-deep > .child.nuxt-link-active,
  .header ::v-deep > .child.nuxt-link-exact-active {
-    background-color: var(--nav-active);
     padding: 0;
 
     A, A I {
       color: var(--body-text);
+    }
+
+    A {
+      background-color: var(--nav-active);
     }
   }
 

@@ -11,7 +11,7 @@ import CommunityLinks from '@/components/CommunityLinks';
 import SimpleBox from '@/components/SimpleBox';
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
-import { STATE } from '@/config/table-headers';
+import { STATE, NAME } from '@/config/table-headers';
 import { createMemoryFormat, formatSi, parseSi } from '@/utils/units';
 import { compare } from '@/utils/version';
 
@@ -110,41 +110,40 @@ export default {
     clusterHeaders() {
       return [
         STATE,
+        NAME,
         {
-          name:  'name',
-          label: 'Name',
-          value: 'nameDisplay',
-          sort:  ['nameDisplay']
-        },
-        {
-          label: 'Provider',
+          label: this.t('landing.clusters.provider'),
           value: 'status.provider',
           name:  'Provider'
         },
         {
-          label: 'Kubernetes Version',
+          label: this.t('landing.clusters.kubernetesVersion'),
           value: 'kubernetesVersion',
           name:  'Kubernetes Version'
         },
         {
-          label: 'CPU',
+          label: this.t('tableHeaders.cpu'),
           value: '',
           name:  'cpu',
           sort:  ['status.allocatable.cpu', 'status.available.cpu']
 
         },
         {
-          label: 'Memory',
+          label: this.t('tableHeaders.memory'),
           value: '',
           name:  'memory',
           sort:  ['status.allocatable.memory', 'status.available.memory']
 
         },
         {
+          label:  this.t('tableHeaders.pods'),
           name:  'pods',
-          label: 'Pods',
           value: '',
           sort:  ['status.allocatable.pods', 'status.available.pods']
+        },
+        {
+          name:  'explorer',
+          label:  this.t('landing.clusters.explorer')
         }
       ];
     },
@@ -247,21 +246,14 @@ export default {
                 <template #title>
                   <div class="row pb-20 table-heading">
                     <h2 class="mb-0">
-                      {{ t('landing.clusters') }}
+                      {{ t('landing.clusters.title') }}
                     </h2>
                     <BadgeState :label="clusters.length.toString()" color="role-tertiary ml-20 mr-20" />
                   </div>
                 </template>
-                <template #col:name="{row}">
-                  <td>
-                    <nuxt-link :to="{name:'c-cluster-explorer', params: {product: 'explorer', cluster: row.id}}">
-                      {{ row.nameDisplay }}
-                    </nuxt-link>
-                  </td>
-                </template>
                 <template #col:cpu="{row}">
                   <td v-if="cpuAllocatable(row)">
-                    {{ `${cpuUsed(row)}/${cpuAllocatable(row)} cores` }}
+                    {{ `${cpuUsed(row)}/${cpuAllocatable(row)} ${t('landing.clusters.cores', {count:cpuAllocatable(row) })}` }}
                   </td>
                   <td v-else>
                     &mdash;
@@ -282,6 +274,14 @@ export default {
                   <td v-else>
                     &mdash;
                   </td>
+                </template>
+                <template #cell:explorer="{row}">
+                  <n-link v-if="row && row.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.id}}">
+                    {{ t('landing.clusters.explore') }}
+                  </n-link>
+                  <button v-else :disabled="true" class="btn btn-sm role-primary">
+                    {{ t('landing.clusters.explore') }}
+                  </button>
                 </template>
               </SortableTable>
             </div>

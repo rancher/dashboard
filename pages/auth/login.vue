@@ -199,7 +199,6 @@ export default {
                   :waiting-label="t('login.loggingIn')"
                   :success-label="t('login.loggedIn')"
                   :error-label="t('asyncButton.default.error')"
-                  style="font-size: 18px;"
                   @click="loginLocal"
                 />
                 <div class="mt-20">

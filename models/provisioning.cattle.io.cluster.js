@@ -1,5 +1,7 @@
-import { CAPI, MANAGEMENT } from '@/config/types';
+import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
+import { findBy } from '@/utils/array';
 import { sortBy } from '@/utils/sort';
+import { ucFirst } from '@/utils/string';
 
 export const DEFAULT_WORKSPACE = 'fleet-default';
 
@@ -21,6 +23,10 @@ export default {
     ];
 
     return out;
+  },
+
+  isImported() {
+    return this.provisioner === 'imported';
   },
 
   isRke2() {
@@ -64,7 +70,7 @@ export default {
       provisioner = 'k3s';
     }
 
-    return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provisioner }"`, null, 'generic.unknown', true);
+    return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provisioner }"`, null, ucFirst(provisioner));
   },
 
   kubernetesVersion() {
@@ -83,8 +89,10 @@ export default {
   },
 
   nodeProvider() {
-    if ( this.isRke2 ) {
-      const kind = this.spec?.rkeConfig?.nodePools?.[0]?.nodeConfig?.kind;
+    if ( this.isImported ) {
+      return null;
+    } else if ( this.isRke2 ) {
+      const kind = this.spec?.rkeConfig?.nodePools?.[0]?.nodeConfigRef?.kind;
 
       if ( kind ) {
         return kind.replace(/config$/i, '');
@@ -97,6 +105,10 @@ export default {
   },
 
   nodeProviderDisplay() {
+    if ( this.isImported ) {
+      return null;
+    }
+
     const provider = (this.nodeProvider || '').toLowerCase();
 
     return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, 'generic.unknown', true);
@@ -166,4 +178,27 @@ export default {
 
     return sortBy(out, 'sort:desc');
   },
+
+  getOrCreateToken() {
+    return async() => {
+      const tokens = await this.$dispatch('rancher/findAll', { type: NORMAN.CLUSTER_TOKEN, force: true }, { root: true });
+
+      let token = findBy(tokens, 'clusterId', this.id);
+
+      if ( token ) {
+        return token;
+      }
+
+      if ( !this.mgmt ) {
+        return;
+      }
+
+      token = await this.$dispatch('rancher/create', {
+        type:      NORMAN.CLUSTER_TOKEN,
+        clusterId: this.mgmt.id
+      }, { root: true });
+
+      return token.save();
+    };
+  }
 };

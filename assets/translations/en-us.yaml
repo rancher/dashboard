@@ -17,7 +17,7 @@ generic:
   enabled: Enabled
   ignored: Ignored
   invalidCron: Invalid cron schedule
-  labelsAndAnnotations: Labels and Annotations
+  labelsAndAnnotations: Labels & Annotations
   loading: Loading&hellip;
   members: Members
   na: n/a
@@ -108,8 +108,6 @@ nav:
     placeholder: Type to search for a resource...
 
 product:
-  clusterGroup: Cluster Applications
-  globalGroup: Global Applications
   apps: Apps & Marketplace
   auth: Users & Authentication
   backup: Rancher Backups
@@ -720,115 +718,44 @@ cis:
   testsToSkip: Tests to Skip
 
 cluster:
-  provider:
-    aliyun: Alibaba ACK
-    aliyunecs: Aliyun ECS
-    aws: Amazon AWS
-    amazonec2: Amazon EC2
-    amazoneks: Amazon EKS
-    azure: Azure
-    azureaks: Azure AKS
-    baidu: Baidu CCE
-    cloudca: Cloud.ca
-    custom: Custom
-    digitalocean: DigitalOcean
-    docker: Docker
-    exoscale: Exoscale
-    googlegke: Google GKE
-    huaweicce: Huawei CCE
-    import: Import
-    k3s: K3s
-    kubeAdmin: KubeADM
-    linode: Linode
-    local: Local
-    minikube: Minikube
-    oci: Oracle Cloud Infrastructure
-    openstack: OpenStack
-    oracleoke: Oracle OKE
-    otc: Open Telekom Cloud
-    other: Other
-    packet: Packet
-    pinganyunecs: Pinganyun ECS
-    rackspace: RackSpace
-    rancherkubernetesengine: RKE
-    rke2: RKE2
-    rke: RKE
-    rkeWindows: Windows
-    softlayer: SoftLayer
-    tencenttke: Tencent TKE
-    upcloud: UpCloud
-    vmwarevsphere: vSphere
-    zstack: ZStack
-  providerGroup:
-    create-template: Use a Catalog Template to create a cluster
-    create-kontainer: Create a cluster in a hosted Kuberetes provider
-    create-machine: Provision new nodes and create a cluster using RKE
-    create-custom: Use existing nodes and create a cluster using RKE
-    register-kontainer: Register an existing cluster in a hosted Kubernetes provider
-    register-custom: Import any Kubernetes cluster
+  agentEnvVars:
+    label: Agent Environment
+    detail: Add additional environment variables to the agent container.  This is most commonly useful for configuring a HTTP proxy.
   credential:
-    label: Cloud Credential
-    name:
-      label: Credential Name
-      placeholder: Name for this credential (optional)
     aws:
       accessKey:
         label: Access Key
         placeholder: Your AWS Access Key
-      secretKey:
-        label: ScretKey
-        placeholder: Your AWS Secret Key
       defaultRegion:
-        label: Default Region
         help: The default region to use when creating clusters.  Also contacted to verify that this credential works.
+        label: Default Region
+      secretKey:
+        label: SecretKey
+        placeholder: Your AWS Secret Key
     digitalocean:
       accessToken:
+        help: Paste in a Personal Access Token from the DigitalOcean <a href="https://cloud.digitalocean.com/settings/api/tokens" target="_blank" rel="noopener noreferrer nofollow">Applications & API</a> screen.
         label: Access Token
         placeholder: Your DigitalOcean API Access Token
-        help: Paste in a Personal Access Token from the DigitalOcean <a href="https://cloud.digitalocean.com/settings/api/tokens" target="_blank" rel="noopener noreferrer nofollow">Applications & API</a> screen.
-  name:
-    label: Cluster Name
-    placeholder: A unique name for the cluster
+    label: Cloud Credential
+    name:
+      label: Credential Name
+      placeholder: Name for this credential (optional)
   description:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
-  import: Import Existing
+  import:
+    commandInstructions: 'Run the <code>kubectl</code> command below on an existing Kubernetes cluster running a supported Kubernetes version to import it into Rancher:'
+    commandInstructionsInsecure: 'If you get a &quot;certificate signed by unknown authority&quot; error, your Rancher installation has a self-signed or untrusted SSL certificate.  Run the command below instead to bypass the certificate verification:'
+    clusterRoleBindingInstructions: 'If you get permission errors creating some of the resources, your user may not have the <code>cluster-admin</code> role.  Use this command to apply it:'
+    clusterRoleBindingCommand: 'kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user <your username from your kubeconfig>'
+
+  importAction: Import Existing
   kubernetesVersion:
     label: Kubernetes Version
-  nodePool:
-    nodeTotals:
-      label:
-        etcd: "{count} etcd"
-        controlPlane: "{count} Control Plane"
-        worker: "{count} Worker"
-      tooltip:
-        etcd: |-
-          {count, plural,
-            =0 { A cluster needs at least one etcd node to be usable. }
-            =1 { A cluster with only one etcd node is not fault-tolerant. }
-            =2 { Clusters should have an odd number of nodes.  A cluster with 2 etcd nodes is not fault-tolerant. }
-            =3 {}
-            =4 { Clusters should have an odd number of nodes. }
-            =5 {}
-            =6 { Clusters should have an odd number of nodes. }
-            =7 {}
-            other { More than 7 etcd nods is not recommended. }
-          }
-        controlPlane: |-
-          {count, plural,
-            =0 { A cluster needs at least one control plane node to be usable. }
-            =1 { A cluster with only one control plane node is not fault-tolerant. }
-            other {}
-          }
-        worker: |-
-          {count, plural,
-            =0 { A cluster needs at least one worker node to be usable. }
-            =1 { A cluster with only one worker node is not fault-tolerant. }
-            other {}
-          }
-    name:
-      label: Pool Name
-      placeholder: A random one will be generated by default
+  name:
+    label: Cluster Name
+    placeholder: A unique name for the cluster
   nodeConfig:
     aws:
       sizeLabel: |-
@@ -852,24 +779,115 @@ cluster:
           other {# vCPUs}
         }, {disk} GB Disk ({value})
 
+  nodePool:
+    name:
+      label: Pool Name
+      placeholder: A random one will be generated by default
+    nodeTotals:
+      label:
+        controlPlane: '{count} Control Plane'
+        etcd: '{count} etcd'
+        worker: '{count} Worker'
+      tooltip:
+        controlPlane: |-
+          {count, plural,
+            =0 { A cluster needs at least one control plane node to be usable. }
+            =1 { A cluster with only one control plane node is not fault-tolerant. }
+            other {}
+          }
+        etcd: |-
+          {count, plural,
+            =0 { A cluster needs at least one etcd node to be usable. }
+            =1 { A cluster with only one etcd node is not fault-tolerant. }
+            =2 { Clusters should have an odd number of nodes.  A cluster with 2 etcd nodes is not fault-tolerant. }
+            =3 {}
+            =4 { Clusters should have an odd number of nodes. }
+            =5 {}
+            =6 { Clusters should have an odd number of nodes. }
+            =7 {}
+            other { More than 7 etcd nods is not recommended. }
+          }
+        worker: |-
+          {count, plural,
+            =0 { A cluster needs at least one worker node to be usable. }
+            =1 { A cluster with only one worker node is not fault-tolerant. }
+            other {}
+          }
+  provider:
+    aliyun: Alibaba ACK
+    aliyunecs: Aliyun ECS
+    amazonec2: Amazon EC2
+    amazoneks: Amazon EKS
+    aws: Amazon AWS
+    azure: Azure
+    azureaks: Azure AKS
+    baidu: Baidu CCE
+    cloudca: Cloud.ca
+    custom: Custom
+    digitalocean: DigitalOcean
+    docker: Docker
+    exoscale: Exoscale
+    googlegke: Google GKE
+    huaweicce: Huawei CCE
+    imported: Imported
+    k3s: K3s
+    kubeAdmin: KubeADM
+    linode: Linode
+    local: Local
+    minikube: Minikube
+    oci: Oracle Cloud Infrastructure
+    openstack: OpenStack
+    oracleoke: Oracle OKE
+    otc: Open Telekom Cloud
+    other: Other
+    packet: Packet
+    pinganyunecs: Pinganyun ECS
+    rackspace: RackSpace
+    rancherkubernetesengine: RKE
+    rke: RKE
+    rke2: RKE2
+    rkeWindows: Windows
+    softlayer: SoftLayer
+    tencenttke: Tencent TKE
+    upcloud: UpCloud
+    vmwarevsphere: vSphere
+    zstack: ZStack
+  providerGroup:
+    create-custom: Use existing nodes and create a cluster using RKE
+    create-kontainer: Create a cluster in a hosted Kuberetes provider
+    create-machine: Provision new nodes and create a cluster using RKE
+    create-template: Use a Catalog Template to create a cluster
+    register-custom: Import any Kubernetes cluster
+  tabs:
+    advanced: Advanced
+    agentEnv: Agent Environment
+    basic: Basics
+    cluster: Cluster Configuration
+    networking: Networking
+    nodePools: Node Pools
+
 clusterIndexPage:
   hardwareResourceGauge:
     consumption: "{useful} of {total} {units} {suffix}"
-    coresReserved: Cores Reserved
-    coresUsed: Cores Used
-    podsUsed: Pods Used
-    ramReserved: Memory Reserved
-    ramUsed: Memory Used
+    cores: Cores
+    pods: Pods
+    ram: Memory
+    used: Used
+    reserved: Reserved
   header: Cluster Dashboard
   resourceGauge:
     totalResources: Total Resources
   sections:
+    capacity:
+      label: Capacity
     events:
       label: Events
       resource:
         label: Resource
       date:
         label: Date
+    alerts:
+      label: Alerts
     clusterMetrics:
       label: Cluster Metrics
     etcdMetrics:
@@ -884,10 +902,6 @@ clusterIndexPage:
     nodes:
       label: Unhealthy Nodes
       noRows: There are no unhealthy nodes to show.
-
-clusterSwitcher:
-  noResults: No Clusters found.
-  search: Start typing to search for a cluster.
 
 configmap:
   tabs:
@@ -922,6 +936,7 @@ detailText:
   collapse: Hide
   binary: '<Binary Data: {n, number} bytes>'
   empty: '<Empty>'
+  unsupported: '<Value not supported by UI, see YAML>'
   plusMore: |-
     {n, plural,
       =1 {+ 1 more char}
@@ -1063,6 +1078,7 @@ glance:
   pods: Pods
   provider: Provider
   version: Kubernetes Version
+  monitoringDashboard: Monitoring Dashboard
 
 grafanaDashboard:
   failedToLoad: Failed to load graph
@@ -1248,7 +1264,16 @@ labels:
     title: Annotations
 
 landing:
-  clusters: Clusters
+  clusters: 
+    title: Clusters
+    provider: Provider
+    kubernetesVersion: Kubernetes Version
+    explorer: Explorer
+    explore: Explore
+    cores: |-
+      {count, plural,
+      =1 {core}
+      other {cores}}
   seeWhatsNew: Learn more about the improvements and new capabilities in this version.
   whatsNewLink: "What's new in 2.5"
   learnMore: Learn More
@@ -1675,12 +1700,12 @@ monitoringReceiver:
     label: Webhook
     title: Webhook Config
     urlTooltip: For some webhooks this a url that points to the service DNS
-    modifyNamespace: If <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-drivers</pre> was installed in a non-default namespace you'll need to update the namespace in the url below.
-    banner: To use MS Teams or Alibaba Cloud SMS you will need to have <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-drivers</pre> installed first.
+    modifyNamespace: If <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-drivers</pre> default values were changed, please update the url below in the format http://&lt;new_service_name&gt;.&lt;new_namespace&gt.svc.&lt;port&gt/&lt;path&gt
+    banner: To use MS Teams or SMS you will need to have <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-drivers</pre> installed first.
     add:
       generic: Generic
       msTeams: MS Teams
-      alibabaCloudSms: Alibaba Cloud SMS
+      alibabaCloudSms: SMS
   auth:
     label: Auth
     authType: Auth Type
@@ -2248,6 +2273,11 @@ promptRemove:
   attemptingToRemove: "You are attempting to delete the {type}"
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
   confirmName: "Enter <b>{nameToMatch}</b> below to confirm:"
+
+rancherAlertingDrivers:
+  msTeams: Enable Microsoft Teams
+  sms: Enable SMS
+  selectOne: You must select at least one of the options below.
 
 rbac:
   roleBinding:
@@ -3012,6 +3042,7 @@ tableHeaders:
   maxKubernetesVersion: Max Kubernetes Version
   message: Message
   minKubernetesVersion: Min Kubernetes Version
+  memory: Memory
   name: Name
   nameDisplay: Display Name
   nameUnlinked: Name
@@ -3356,7 +3387,7 @@ workload:
       name: Name
       protocol: Protocol
       listeningPort: Listening Port
-    removeContainer: Remove Container
+      removeContainer: Remove Container
     security:
       addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs

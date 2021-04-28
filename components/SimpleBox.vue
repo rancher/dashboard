@@ -27,7 +27,7 @@ export default {
 
 <template>
   <div v-if="shown" class="simple-box" v-on="$listeners">
-    <div class="top">
+    <div v-if="title || canClose" class="top">
       <h2 v-if="title">
         {{ title }}
       </h2>

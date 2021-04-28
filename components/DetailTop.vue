@@ -32,7 +32,7 @@ export default {
       return [
         ...(this.moreDetails || []),
         ...(this.value?.details || []),
-      ];
+      ].filter(x => !!`${ x.content }`);
     },
 
     labels() {

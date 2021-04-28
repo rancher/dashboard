@@ -1,4 +1,5 @@
 import { parse as parseUrl, addParam } from '@/utils/url';
+import { COUNT } from '@/config/types';
 
 export function computeDashboardUrl(embedUrl, clusterId, params) {
   const url = parseUrl(embedUrl);
@@ -23,6 +24,10 @@ export function computeDashboardUrl(embedUrl, clusterId, params) {
 }
 
 export async function dashboardExists(dispatch, clusterId, embedUrl) {
+  if (!await isMonitoringInstalled(dispatch)) {
+    return false;
+  }
+
   const url = parseUrl(embedUrl);
   const clusterPrefix = clusterId === 'local' ? '' : `/k8s/clusters/${ clusterId }`;
   const prefix = `${ clusterPrefix }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/`;
@@ -78,4 +83,10 @@ export async function failedProposals(dispatch, clusterId) {
   const response = await queryGrafana(dispatch, clusterId, 'sum(etcd_server_proposals_failed_total)', { start, end }, 30);
 
   return response.data.result[0]?.values?.[0]?.[1] || 0;
+}
+
+async function isMonitoringInstalled(dispatch) {
+  const counts = await dispatch('cluster/findAll', { type: COUNT });
+
+  return !!counts?.[0]?.counts?.['catalog.cattle.io.app']?.namespaces?.['cattle-monitoring-system'];
 }
