@@ -97,8 +97,14 @@ export default {
     <div v-if="!simple" class="product">
       <div v-if="currentProduct && currentProduct.showClusterSwitcher" class="cluster">
         <img v-if="currentCluster" class="cluster-os-logo" :src="currentCluster.providerLogo" />
-        <div class="cluster-name">
+        <div v-if="currentCluster" class="cluster-name">
           {{ currentCluster.spec.displayName }}
+        </div>
+        <div v-else class="simple-title">
+          <img class="side-menu-logo" src="~/assets/images/pl/rancher-logo.svg" width="110" />
+          <div class="title">
+            {{ t('nav.title') }}
+          </div>
         </div>
       </div>
       <div v-if="currentProduct && !currentProduct.showClusterSwitcher" class="cluster">

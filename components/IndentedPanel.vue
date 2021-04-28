@@ -16,8 +16,8 @@ export default {};
 
   @media only screen and (max-width: map-get($breakpoints, '--viewport-9')) {
     .indented-panel {
-      margin-left: 0;
-      width: 100%;
+      margin: 0 20px;
+      width: initial;
     }
   }
 </style>

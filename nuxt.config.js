@@ -193,6 +193,21 @@ module.exports = {
         },
       });
 
+      // Prevent warning in log with the md files in the content folder
+      config.module.rules.push({
+        test:    /\.md$/,
+        use:  [
+          {
+            loader:  'url-loader',
+            options: {
+              name:     '[path][name].[ext]',
+              limit:    1,
+              esModule: false
+            },
+          }
+        ]
+      });
+
       // Run ESLint on save
       if (isDev && isClient) {
         config.module.rules.push({
@@ -269,6 +284,7 @@ module.exports = {
     'cookie-universal-nuxt',
     'portal-vue/nuxt',
     '~/plugins/steve/rehydrate-all',
+    '@nuxt/content',
   ],
 
   // Vue plugins

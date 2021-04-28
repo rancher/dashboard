@@ -122,6 +122,14 @@ export const getters = {
     return false;
   },
 
+  current: state => () => {
+    return state.selected;
+  },
+
+  default: state => () => {
+    return state.default;
+  },
+
   withFallback: (state, getters) => (key, args, fallback, fallbackIsKey = false) => {
     // Support withFallback(key,fallback) when no args
     if ( !fallback && typeof args === 'string' ) {

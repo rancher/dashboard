@@ -40,15 +40,13 @@ export default {
     const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
     const fullVersion = setting?.value || 'unknown';
 
+    this.fullVersion = fullVersion;
     this.seenWhatsNewAlready = compare(lastSeenNew, fullVersion) >= 0 && !!lastSeenNew;
-
-    // Hide the release notes message - maybe use a close box instead?
-    await this.$store.dispatch('prefs/set', { key: SEEN_WHATS_NEW, value: fullVersion });
   },
 
   data() {
     return {
-      HIDE_HOME_PAGE_CARDS, clusters: [], seenWhatsNewAlready: false
+      HIDE_HOME_PAGE_CARDS, clusters: [], seenWhatsNewAlready: false, fullVersion: ''
     };
   },
 
@@ -186,7 +184,13 @@ export default {
     },
 
     showWhatsNew() {
-      this.$router.push({ name: 'release-notes' });
+      // Update the value, so that the message goes away
+      const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
+      const fullVersion = setting?.value || 'unknown';
+
+      this.$store.dispatch('prefs/set', { key: SEEN_WHATS_NEW, value: fullVersion });
+
+      this.$router.push({ name: 'docs-doc', params: { doc: 'release-notes' } });
     },
   }
 };
@@ -223,14 +227,18 @@ export default {
           <SimpleBox
             id="migration"
             class="panel"
-            :title="t('landing.migration.title')"
+            :title="t('landing.gettingStarted.title')"
             :pref="HIDE_HOME_PAGE_CARDS"
             pref-key="migrationTip"
           >
-            {{ t('landing.migration.body') }}
-            <br />
-            <!-- Unhide this when docs are added -->
-            <a class="hide pull-right" href="#">{{ t('landing.learnMore') }}</a>
+            <div class="getting-started">
+              <span>
+                {{ t('landing.gettingStarted.body') }}
+              </span>
+              <nuxt-link :to="{name: 'docs-doc', params: {doc: 'getting-started'}}" class="getting-started-btn">
+                {{ t('landing.learnMore') }}
+              </nuxt-link>
+            </div>
           </SimpleBox>
           <div class="row panel">
             <div class="col span-12">
@@ -308,6 +316,19 @@ export default {
   }
   .panel:not(:first-child) {
     margin-top: 20px;
+  }
+  .getting-started {
+    align-items: flex-end;
+    display: flex;
+
+    > span {
+      flex: 1;
+      margin-right: 20px;
+    }
+  }
+  .getting-started-btn {
+    display: contents;
+    white-space: nowrap;
   }
 </style>
 <style lang="scss">
