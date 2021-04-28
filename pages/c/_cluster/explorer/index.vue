@@ -356,8 +356,8 @@ export default {
 
     <div class="resource-gauges">
       <ResourceSummary :spoofed-counts="totalCountGaugeInput" />
-      <ResourceSummary resource="node" />
-      <ResourceSummary resource="apps.deployment" />
+      <ResourceSummary v-if="clusterCounts['node']" resource="node" />
+      <ResourceSummary v-if="clusterCounts['apps.deployment']" resource="apps.deployment" />
     </div>
 
     <h3 class="mt-40">
