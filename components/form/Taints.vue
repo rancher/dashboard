@@ -1,5 +1,5 @@
 <script>
-import ArrayList from '@/components/form/ArrayList';
+import KeyValue from '@/components/form/KeyValue';
 import { _VIEW } from '@/config/query-params';
 import Select from '@/components/form/Select';
 
@@ -10,7 +10,7 @@ const EFFECT_VALUES = {
 };
 
 export default {
-  components: { ArrayList, Select },
+  components: { KeyValue, Select },
 
   props: {
     value: {
@@ -22,6 +22,7 @@ export default {
       default: _VIEW
     }
   },
+
   data() {
     return { effectOptions: Object.values(EFFECT_VALUES).map(v => ({ label: v, value: v })) };
   },
@@ -31,16 +32,14 @@ export default {
       get() {
         return this.value;
       },
+
       set(localValue) {
         this.$emit('input', localValue);
       }
     },
-    defaultAddValue() {
-      return {
-        key:    '',
-        value:  '',
-        effect: EFFECT_VALUES.NO_SCHEDULE
-      };
+
+    defaultAddData() {
+      return { effect: EFFECT_VALUES.NO_SCHEDULE };
     }
   }
 };
@@ -48,74 +47,29 @@ export default {
 
 <template>
   <div class="taints">
-    <h4>Taints</h4>
-    <ArrayList
+    <KeyValue
       v-model="localValue"
-      class="match-kinds-list"
-      :protip="false"
-      add-label="Add"
-      :show-header="true"
+      title="Taints"
       :mode="mode"
-      :default-add-value="defaultAddValue"
+      :as-map="false"
+      :read-allowed="false"
+      :protip="false"
+      :show-header="true"
+      :default-add-data="defaultAddData"
+      :extra-columns="['effect']"
+      :preserve-keys="['effect']"
     >
-      <template v-slot:thead-columns>
-        <th class="key">
-          Key
-        </th>
-        <th class="value">
-          Value
-        </th>
-        <th class="effect">
-          Effect
-        </th>
+      <template #label:effect>
+        Effect
       </template>
-      <template v-slot:columns="scope">
-        <td class="key">
-          <input
-            v-model="scope.row.value.key"
-            placeholder="e.g. foo"
-            autocorrect="off"
-            autocapitalize="off"
-            spellcheck="false"
-          />
-        </td>
-        <td class="value">
-          <input
-            v-model="scope.row.value.value"
-            placeholder="e.g. bar"
-            autocorrect="off"
-            autocapitalize="off"
-            spellcheck="false"
-          />
-        </td>
-        <td class="effect">
-          <Select
-            v-model="scope.row.value.effect"
-            :options="effectOptions"
-          />
-        </td>
+
+      <template #col:effect="{row, queueUpdate}">
+        <Select
+          v-model="row.effect"
+          :options="effectOptions"
+          @input="queueUpdate"
+        />
       </template>
-    </ArrayList>
+    </KeyValue>
   </div>
 </template>
-
-<style lang="scss">
-.taints {
-  TABLE {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 5px 10px;
-  }
-
-  TH {
-    text-align: left;
-    font-size: 10px;
-    font-weight: normal;
-    color: var(--input-label);
-  }
-
-  TD {
-    padding-bottom: 10px;
-  }
-}
-</style>

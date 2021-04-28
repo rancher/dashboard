@@ -500,27 +500,18 @@ export function filterAndArrangeCharts(charts, {
   hideRepos = [],
   showRepos = [],
   showTypes = [],
+  hideTypes = [],
 } = {}) {
   const out = charts.filter((c) => {
     const { versions: chartVersions = [] } = c;
 
-    if ( c.deprecated && !showDeprecated) {
-      return false;
-    }
-
-    if ( c.hidden && !showHidden) {
-      return false;
-    }
-
-    if ( hideRepos?.length && hideRepos.includes(c.repoKey) ) {
-      return false;
-    }
-
-    if ( showRepos?.length && !showRepos.includes(c.repoKey) ) {
-      return false;
-    }
-
-    if ( showTypes?.length && !showTypes.includes(c.chartType) ) {
+    if (
+      ( c.deprecated && !showDeprecated ) ||
+      ( c.hidden && !showHidden ) ||
+      ( hideRepos?.length && hideRepos.includes(c.repoKey) ) ||
+      ( showRepos?.length && !showRepos.includes(c.repoKey) ) ||
+      ( hideTypes?.length && hideTypes.includes(c.chartType) ) ||
+      ( showTypes?.length && !showTypes.includes(c.chartType) ) ) {
       return false;
     }
 

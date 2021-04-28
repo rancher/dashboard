@@ -14,6 +14,7 @@ import Select from '@/components/form/Select';
 import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE } from '@/store/prefs';
 import { removeObject, addObject, findBy } from '@/utils/array';
 import { compatibleVersionsFor, filterAndArrangeCharts } from '@/store/catalog';
+import { CATALOG } from '@/config/labels-annotations';
 
 export default {
   components: {
@@ -120,6 +121,7 @@ export default {
         showDeprecated: this.showDeprecated,
         showHidden:     this.showHidden,
         hideRepos:      this.hideRepos,
+        showTypes:      [CATALOG._APP],
         showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
     },

@@ -438,7 +438,7 @@ export default {
       </div>
 
       <template v-if="showAdvanced">
-        <a @click="toggleAdvanced">Hide Advanced</a>
+        <a v-t="'generic.hideAdvanced'" @click="toggleAdvanced" />
 
         <div class="row mt-20">
           <div class="col span-6">
@@ -550,7 +550,7 @@ export default {
           </div>
         </div>
       </template>
-      <a v-else @click="toggleAdvanced">Show Advanced</a>
+      <a v-else v-t="'generic.showAdvanced'" @click="toggleAdvanced" />
     </div>
   </div>
 </template>

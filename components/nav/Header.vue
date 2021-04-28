@@ -128,8 +128,15 @@ export default {
     </div>
 
     <div v-if="!simple" class="header-buttons">
-      <button v-if="currentProduct && currentProduct.showClusterSwitcher" :disabled="!showImport" type="button" class="btn header-btn role-tertiary" @click="openImport()">
-        <i v-tooltip="t('nav.import')" class="icon icon-upload icon-lg" />
+      <button
+        v-if="currentProduct && currentProduct.showClusterSwitcher"
+        v-tooltip="t('nav.import')"
+        :disabled="!showImport"
+        type="button"
+        class="btn header-btn role-tertiary"
+        @click="openImport()"
+      >
+        <i class="icon icon-upload icon-lg" />
       </button>
       <modal
         class="import-modal"
@@ -141,20 +148,27 @@ export default {
         <Import :cluster="currentCluster" @close="closeImport" />
       </modal>
 
-      <button v-if="currentProduct && currentProduct.showClusterSwitcher" :disabled="!showShell" type="button" class="btn header-btn role-tertiary" @click="currentCluster.openShell()">
-        <i v-tooltip="t('nav.shell')" class="icon icon-terminal icon-lg" />
+      <button
+        v-if="currentProduct && currentProduct.showClusterSwitcher"
+        v-tooltip="t('nav.shell')"
+        :disabled="!showShell"
+        type="button"
+        class="btn header-btn role-tertiary"
+        @click="currentCluster.openShell()"
+      >
+        <i class="icon icon-terminal icon-lg" />
       </button>
 
       <button
         v-if="showSearch"
-        ref="searchButton"
+        v-tooltip="t('nav.resourceSearch.label')"
         v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}"
         type="button"
         class="btn role-tertiary resource-search"
         @shortkey="openSearch()"
         @click="openSearch()"
       >
-        <i v-tooltip="t('nav.resourceSearch.label')" class="icon icon-search icon-lg" />
+        <i class="icon icon-search icon-lg" />
       </button>
       <modal
         v-if="showSearch"
@@ -446,10 +460,6 @@ export default {
 
       grid-area: user;
       background-color: var(--header-bg);
-
-      IMG {
-        //border: 1px solid var(--header-btn-bg);
-      }
 
       .avatar-round {
         border: 0;

@@ -3,7 +3,7 @@ import jsyaml from 'js-yaml';
 import { escapeHtml } from '@/utils/string';
 import { FLEET } from '@/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@/config/labels-annotations';
-import { addObjects, findBy, insertAt } from '@/utils/array';
+import { addObject, addObjects, findBy, insertAt } from '@/utils/array';
 import { set } from '@/utils/object';
 
 function quacksLikeAHash(str) {
@@ -110,7 +110,13 @@ export default {
     }
 
     for ( const tgt of this.spec.targets ) {
-      if ( tgt.clusterGroup ) {
+      if ( tgt.clusterName ) {
+        const cluster = findBy(clusters, 'metadata.name', tgt.clusterName);
+
+        if ( cluster ) {
+          addObject(out, cluster);
+        }
+      } else if ( tgt.clusterGroup ) {
         const group = findBy(groups, {
           'metadata.namespace': this.metadata.namespace,
           'metadata.name':      tgt.clusterGroup,
@@ -240,6 +246,11 @@ export default {
         if ( !mode ) {
           mode = 'clusterGroup';
         }
+      }
+
+      if ( target.clusterName ) {
+        mode = 'cluster';
+        cluster = target.clusterName;
       }
 
       if ( target.clusterSelector ) {

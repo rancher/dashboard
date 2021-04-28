@@ -13,6 +13,7 @@ export default {
     ResourceTable,
     Masthead
   },
+
   async fetch() {
     const store = this.$store;
     const resource = this.resource;
