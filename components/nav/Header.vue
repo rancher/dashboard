@@ -144,7 +144,7 @@ export default {
         ref="searchButton"
         v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}"
         type="button"
-        class="btn role-tertiary resource-search"
+        class="btn header-btn role-tertiary"
         @shortkey="openSearch()"
         @click="openSearch()"
       >
@@ -246,16 +246,6 @@ export default {
       }
     }
 
-    .import, .kubectl {
-      padding-top: 11.5px;
-      > *:first-child {
-        height: 32px;
-        > i {
-          line-height: 32px;
-        }
-      }
-    }
-
     .simple-title {
       align-items: center;
       display: flex;
@@ -278,6 +268,11 @@ export default {
       padding: 0 10px;
       line-height: 32px;
       min-height: 32px;
+
+      i {
+        // Ideally same height as the parent button, but this means tooltip needs adjusting (which is it's own can of worms)
+        line-height: 20px;
+      }
 
       &:hover {
         background: var(--link-text);
