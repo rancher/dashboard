@@ -129,6 +129,15 @@ export default {
       default: null,
     },
 
+    extraColumns: {
+      type:    Array,
+      default: () => [],
+    },
+    defaultAddData: {
+      type:    Object,
+      default: () => {},
+    },
+
     addLabel: {
       type: String,
       default() {
@@ -253,8 +262,8 @@ export default {
       return this.mode === _VIEW;
     },
 
-    threeColumns() {
-      return this.removeAllowed;
+    containerStyle() {
+      return `grid-template-columns: repeat(${ 2 + this.extraColumns.length }, 1fr)${ this.removeAllowed ? ' 50px' : '' };`;
     },
   },
 
@@ -265,12 +274,16 @@ export default {
   methods: {
     asciiLike,
     add(key = '', value = '') {
-      this.rows.push({
+      const obj = {
+        ...this.defaultAddData,
         [this.keyName]:   key,
         [this.valueName]: value,
-        binary:           !asciiLike(value),
-        supported:        true,
-      });
+      };
+
+      obj.binary = !asciiLike(value);
+      obj.supported = true;
+
+      this.rows.push(obj);
 
       this.queueUpdate();
 
@@ -407,7 +420,7 @@ export default {
       </slot>
     </div>
 
-    <div class="kv-container" :class="{'extra-column':threeColumns}">
+    <div class="kv-container" :style="containerStyle">
       <template v-if="rows.length">
         <label class="text-label">
           {{ keyLabel }}
@@ -416,7 +429,12 @@ export default {
         <label class="text-label">
           {{ valueLabel }}
         </label>
-        <span v-if="threeColumns" />
+        <label v-for="c in extraColumns" :key="c">
+          <slot :name="'label:'+c">{{ c }}</slot>
+        </label>
+        <slot v-if="removeAllowed" name="remove">
+          <span />
+        </slot>
       </template>
 
       <template v-for="(row,i) in rows">
@@ -478,6 +496,10 @@ export default {
           </slot>
         </div>
 
+        <div v-for="c in extraColumns" :key="i + c">
+          <slot :name="'col:' + c" :row="row" :queue-update="queueUpdate" />
+        </div>
+
         <div v-if="removeAllowed" :key="i" class="kv-item remove">
           <slot name="removeButton" :remove="remove" :row="row">
             <button type="button" :disabled="isView" class="btn role-link" @click="remove(i)">
@@ -518,15 +540,10 @@ export default {
   .kv-container{
     display: grid;
     align-items: center;
-    grid-template-columns: auto 1fr;
     column-gap: 20px;
 
     label {
       margin-bottom: 0;
-    }
-
-    &.extra-column {
-       grid-template-columns: 1fr 1fr 100px;
     }
 
     & .kv-item {
