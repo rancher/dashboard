@@ -58,7 +58,6 @@ const RESOURCES = [
   'APIService',
   'Alertmanager',
   'App',
-  'App',
   'AppRevision',
   'AuthConfig',
   'AuthorizationPolicy',
@@ -151,7 +150,6 @@ const RESOURCES = [
   'Namespace',
   'NetworkPolicy',
   'Node',
-  'Node',
   'NodeDriver',
   'NodeMetrics',
   'NodePool',
@@ -217,20 +215,13 @@ const RESOURCES = [
   'Template',
   'TemplateContent',
   'TemplateVersion',
-  'ThanosRuler',
   'Token',
   'User',
   'UserAttribute',
   'ValidatingWebhookConfiguration',
   'VirtualService',
   'VolumeAttachment',
-  'WorkloadEntry',
-  'adapter',
-  'attributemanifest',
-  'handler',
-  'instance',
-  'rule',
-  'template'
+  'WorkloadEntry'
 ];
 
 export default {
