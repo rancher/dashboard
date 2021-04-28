@@ -2,7 +2,6 @@
 import { exceptionToErrorsArray } from '@/utils/error';
 import { mapGetters } from 'vuex';
 import { FLEET } from '@/config/types';
-import { FLEET as FLEET_LABELS } from '@/config/labels-annotations';
 import { set } from '@/utils/object';
 import ArrayList from '@/components/form/ArrayList';
 import Banner from '@/components/Banner';
@@ -252,14 +251,8 @@ export default {
       } else if ( kind === 'none' ) {
         spec.targets = [];
       } else if ( kind === 'cluster' ) {
-        // const mgmt = this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, value);
-
-        // if ( mgmt ) {
-        //   mgmt.setClusterNameLabel(true);
-        // }
-
         spec.targets = [
-          { clusterSelector: { matchLabels: { [FLEET_LABELS.CLUSTER_NAME]: value } } }
+          { clusterName: value },
         ];
       } else if ( kind === 'group' ) {
         spec.targets = [
