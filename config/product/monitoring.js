@@ -168,16 +168,40 @@ export function init(store) {
     getInstances: () => getAllRoutes(store.dispatch)
   });
 
+  virtualType({
+    label:         'Routes and Receivers',
+    group:         'monitoring',
+    name:     'route-receiver',
+    icon:     'globe',
+  });
+
+  virtualType({
+    label:         'Monitors',
+    group:         'monitoring',
+    name:     'monitor',
+    icon:     'globe',
+  });
+
+  configureType('route-receiver', { showListMasthead: false });
+  configureType('monitor', { showListMasthead: false });
   configureType(ROUTE, { showState: false, showAge: false });
   configureType(RECEIVER, { showState: false, showAge: false });
 
   basicType([
     'monitoring-overview',
-    RECEIVER,
-    ROUTE,
-    SERVICEMONITOR,
-    PODMONITOR,
-  ]);
+    'monitor',
+    'route-receiver',
+  ], 'monitoring');
+
+  // virtualType({
+  //   label:      'Advanced',
+  //   group:      'monitoring-overview',
+  //   namespaced: false,
+  //   name:       'monitoring-advanced',
+  //   weight:     105,
+  //   route:      { name: 'c-cluster-monitoring' },
+  //   exact:      true
+  // });
 
   basicType([
     PROMETHEUSRULE,

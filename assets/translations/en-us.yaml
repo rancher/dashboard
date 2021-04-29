@@ -1678,6 +1678,8 @@ monitoring:
       groupWait: Group Wait
       receiver: Receiver
       repeatInterval: Repeat Interval
+  routesAndReceivers: Routes and Receivers
+  monitors: Monitors
   tabs:
     alerting: Alerting
     general: General
