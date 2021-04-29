@@ -119,6 +119,7 @@ export const STATES = {
   paused:             { color: 'info', icon: 'info' },
   pending:            { color: 'info', icon: 'tag' },
   provisioning:       { color: 'info', icon: 'dot' },
+  provisioned:        { color: 'success', icon: 'dot' },
   purged:             { color: 'error', icon: 'purged' },
   purging:            { color: 'info', icon: 'purged' },
   ready:              { color: 'success', icon: 'dot-open' },
@@ -573,6 +574,12 @@ export default {
       return this.waitForTestFn(() => {
         return this.hasLink(name);
       }, `link=${ name }`);
+    };
+  },
+
+  hasCondition() {
+    return (condition) => {
+      return this.isCondition(condition, null);
     };
   },
 

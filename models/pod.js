@@ -1,4 +1,4 @@
-import { findBy, insertAt } from '@/utils/array';
+import { insertAt } from '@/utils/array';
 import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
 import { NODE, WORKLOAD_TYPES } from '@/config/types';
 
@@ -16,13 +16,6 @@ export default {
   availableActions() {
     const out = this._standardActions;
 
-    const removeAction = findBy(out, 'altAction', ' remove');
-    let idx = out.length - 1;
-
-    if ( removeAction ) {
-      idx = out.indexOf(removeAction);
-    }
-
     const openShell = {
       action:     'openShell',
       enabled:    true,
@@ -38,9 +31,10 @@ export default {
       total:      1,
     };
 
-    insertAt(out, idx, openShell);
-    insertAt(out, idx + 1, openLogs);
-    insertAt(out, idx + 2, { divider: true });
+    // Add backwards, each one to the top
+    insertAt(out, 0, { divider: true });
+    insertAt(out, 0, openLogs);
+    insertAt(out, 0, openShell);
 
     return out;
   },
