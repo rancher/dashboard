@@ -52,11 +52,6 @@ export default {
       type:    Object,
       default: null
     },
-
-    showDetail: {
-      type:     Boolean,
-      required: true,
-    }    
   },
   computed: {
     displayUnits() {
