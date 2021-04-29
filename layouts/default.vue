@@ -29,6 +29,7 @@ export default {
 
   data() {
     const { displayVersion } = getVersionInfo(this.$store);
+
     return { groups: [], displayVersion };
   },
 
@@ -298,7 +299,7 @@ export default {
         </template>
       </div>
       <n-link tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools'}">
-        <a @click="collapseAll()" class="tools-button">
+        <a class="tools-button" @click="collapseAll()">
           <i class="icon icon-gear" />
           <span>{{ t('nav.clusterTools') }}</span>
         </a>
@@ -404,7 +405,7 @@ export default {
     NAV .version {
       cursor: default;
       margin: 0 10px 10px 10px;
-    }      
+    }
   }
 
   MAIN {
