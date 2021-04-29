@@ -1,6 +1,5 @@
 <script>
 import { mapGetters } from 'vuex';
-import { WORKLOAD_TYPES } from '@/config/types';
 
 export default {
   props: {
@@ -22,7 +21,7 @@ export default {
   data() {
     let images = [];
 
-    if (Object.values(WORKLOAD_TYPES).includes(this.row.type)) {
+    if ( this.row?.imageNames ) {
       images = this.row.imageNames;
     } else {
       images = this.value;

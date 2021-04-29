@@ -103,11 +103,9 @@ export default {
   },
 
   imageNames() {
-    return this.spec.containers.reduce((all, container) => {
-      all.push(container.image);
-
-      return all;
-    }, []);
+    return this.spec.containers.map(container => container.image).map((image) => {
+      return image.replace(/^(index\.)?docker.io\/(library\/)?/, '').replace(/:latest$/, '');
+    });
   },
 
   workloadRef() {
