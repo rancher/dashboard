@@ -4,6 +4,7 @@ import BackLink from '@/components/BackLink';
 import BackRoute from '@/mixins/back-link';
 import ButtonGroup from '@/components/ButtonGroup';
 import Checkbox from '@/components/form/Checkbox';
+import LandingPagePreference from '@/components/LandingPagePreference';
 import {
   mapPref, THEME, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE
 } from '@/store/prefs';
@@ -13,7 +14,7 @@ import { addObject } from '@/utils/array';
 export default {
   layout:     'plain',
   components: {
-    BackLink, ButtonGroup, LabeledSelect, Checkbox
+    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference
   },
   mixins:     [BackRoute],
   computed:   {
@@ -140,6 +141,8 @@ export default {
       <t k="prefs.theme.autoDetail" :pm="pm" :am="am" />
     </div>
     <hr />
+    <h4 v-t="'prefs.landing.label'" />
+    <LandingPagePreference />
     <h4 v-t="'prefs.formatting'" />
     <div class="row">
       <div class="col span-4">

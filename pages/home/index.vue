@@ -3,12 +3,11 @@ import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from
 import Banner from '@/components/Banner';
 import BannerGraphic from '@/components/BannerGraphic';
 import IndentedPanel from '@/components/IndentedPanel';
-import RadioGroup from '@/components/form/RadioGroup';
-import RadioButton from '@/components/form/RadioButton';
 import SortableTable from '@/components/SortableTable';
 import BadgeState from '@/components/BadgeState';
 import CommunityLinks from '@/components/CommunityLinks';
 import SimpleBox from '@/components/SimpleBox';
+import LandingPagePreference from '@/components/LandingPagePreference';
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
 import { STATE } from '@/config/table-headers';
@@ -26,12 +25,11 @@ export default {
     Banner,
     BannerGraphic,
     IndentedPanel,
-    RadioGroup,
-    RadioButton,
     SortableTable,
     BadgeState,
     CommunityLinks,
-    SimpleBox
+    SimpleBox,
+    LandingPagePreference,
   },
 
   mixins: [PageHeaderActions],
@@ -76,55 +74,6 @@ export default {
       return !(this.homePageCards.commercialSupportTip && this.homePageCards.communitySupportTip);
     },
 
-    routeFromDropdown: {
-      get() {
-        if (this.afterLoginRoute !== 'home' && this.afterLoginRoute !== 'last-visited') {
-          const out = (this.routeDropdownOptions.filter(opt => opt.value === this.afterLoginRoute) || [])[0];
-
-          return out;
-        }
-
-        return this.routeDropdownOptions[0];
-      },
-      set(neu) {
-        this.afterLoginRoute = neu.value;
-      }
-    },
-
-    routeRadioOptions() {
-      return [
-        {
-          label: this.t('landing.landingPrefs.options.thisScreen'),
-          value: 'home'
-        },
-        {
-          label: this.t('landing.landingPrefs.options.lastVisited'),
-          value: 'last-visited'
-        },
-        {
-          label: this.t('landing.landingPrefs.options.custom'),
-          value: 'dropdown'
-        }
-      ];
-    },
-
-    routeDropdownOptions() {
-      const out = [
-        {
-          label: this.t('landing.landingPrefs.options.appsAndMarketplace'),
-          value: 'apps'
-        },
-        {
-          label: this.t('landing.landingPrefs.options.defaultOverview', { cluster: this.defaultClusterId }),
-          value: `${ this.defaultClusterId }-dashboard`
-        }
-      ];
-
-      out.push( );
-
-      return out;
-    },
-
     clusterHeaders() {
       return [
         STATE,
@@ -159,7 +108,7 @@ export default {
 
         },
         {
-          label:  this.t('tableHeaders.pods'),
+          label: this.t('tableHeaders.pods'),
           name:  'pods',
           value: '',
           sort:  ['status.allocatable.pods', 'status.available.pods']
@@ -189,14 +138,6 @@ export default {
       }
     },
 
-    updateLoginRoute(neu) {
-      if (neu) {
-        this.afterLoginRoute = neu;
-      } else {
-        this.afterLoginRoute = this.routeFromDropdown?.value;
-      }
-    },
-
     cpuUsed(cluster) {
       return parseSi(cluster.status.requested?.cpu);
     },
@@ -214,7 +155,6 @@ export default {
 
     memoryAllocatable(cluster) {
       const parsedAllocatable = (parseSi(cluster.status.allocatable?.memory) || 0).toString();
-
       const format = createMemoryFormat(parsedAllocatable);
 
       return formatSi(parsedAllocatable, format);
@@ -248,19 +188,8 @@ export default {
       </div>
       <div class="row">
         <div :class="{'span-9': showSidePanel, 'span-12': !showSidePanel }" class="col">
-          <SimpleBox v-if="false" :title="t('landing.landingPrefs.title')" :pref="HIDE_HOME_PAGE_CARDS" pref-key="setLoginPage" class="panel">
-            <RadioGroup id="login-route" :value="afterLoginRoute" name="login-route" :options="routeRadioOptions" @input="updateLoginRoute">
-              <template #2="{option, listeners}">
-                <div class="row">
-                  <div class="col">
-                    <RadioButton :label="option.label" :val="false" :value="afterLoginRoute=== 'home' || afterLoginRoute === 'last-visited'" v-on="listeners" />
-                  </div>
-                  <div class="col span-6">
-                    <v-select v-model="routeFromDropdown" :clearable="false" :options="routeDropdownOptions" />
-                  </div>
-                </div>
-              </template>
-            </RadioGroup>
+          <SimpleBox :title="t('landing.landingPrefs.title')" :pref="HIDE_HOME_PAGE_CARDS" pref-key="setLoginPage" class="panel">
+            <LandingPagePreference />
           </SimpleBox>
           <SimpleBox
             id="migration"

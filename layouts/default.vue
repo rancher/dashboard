@@ -46,7 +46,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer']),
+    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel' }),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -131,24 +131,13 @@ export default {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
-
-        // Store the last visited route when the product changes
-        this.$store.dispatch('prefs/setLastVisited', this.$route);
       }
     },
 
     clusterId(a, b) {
       if ( !isEqual(a, b) ) {
         // Store the last visited route when the cluster changes
-        const route = {
-          name:   this.$route.name,
-          params: {
-            ...this.$route.params,
-            cluster: a,
-          }
-        };
-
-        this.$store.dispatch('prefs/setLastVisited', route);
+        this.setClusterAsLastRoute();
       }
     },
 
@@ -179,15 +168,36 @@ export default {
         this.getGroups();
       }
     },
+
+    currentProduct(a, b) {
+      if ( !isEqual(a, b) ) {
+        if (a.inStore !== b.inStore || a.inStore !== 'cluster' ) {
+          this.$store.dispatch('prefs/setLastVisited', this.$route);
+        }
+      }
+    }
   },
 
   created() {
     this.queueUpdate = debounce(this.getGroups, 500);
 
     this.getGroups();
+
+    this.$store.dispatch('prefs/setLastVisited', this.$route);
   },
 
   methods: {
+    setClusterAsLastRoute() {
+      const route = {
+        name:   this.$route.name,
+        params: {
+          ...this.$route.params,
+          cluster: this.clusterId,
+        }
+      };
+
+      this.$store.dispatch('prefs/setLastVisited', route);
+    },
     handlePageAction(action) {
       if (action.action === SET_LOGIN_ACTION) {
         this.afterLoginRoute = {
