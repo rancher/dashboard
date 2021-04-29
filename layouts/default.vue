@@ -168,6 +168,9 @@ export default {
       const namespaceMode = this.$store.getters['namespaceMode'];
       const out = [];
       const loadProducts = this.isExplorer ? [EXPLORER] : [];
+      const productMap = this.activeProducts.reduce((acc, p) => {
+        return {...acc, [p.name]: p};
+      }, {});
 
       if ( this.isExplorer ) {
         for ( const product of this.activeProducts ) {
@@ -202,6 +205,7 @@ export default {
               name:     productId,
               label:    this.$store.getters['i18n/withFallback'](`product.${ productId }`, null, ucFirst(productId)),
               children: [...(root?.children || []), ...other],
+              weight:   productMap[productId]?.weight || 0,
             };
 
             addObject(out, group);
@@ -209,6 +213,7 @@ export default {
         }
       }
 
+      out.sort((a, b) => { return b.weight - a.weight; });
       replaceWith(this.groups, ...out);
     },
 

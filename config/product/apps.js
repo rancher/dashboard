@@ -25,7 +25,7 @@ export function init(store) {
 
   product({
     removable:   false,
-    weight:      2,
+    weight:      97,
     ifHaveGroup: 'catalog.cattle.io',
     icon:        'marketplace',
   });
