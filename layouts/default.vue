@@ -189,7 +189,7 @@ export default {
   },
 
   methods: {
-    handlePageHeaderAction(action) {
+    handlePageAction(action) {
       if (action.action === SET_LOGIN_ACTION) {
         this.afterLoginRoute = {
           name:   'c-cluster-explorer',

@@ -41,18 +41,14 @@ export default {
       type: MANAGEMENT.CLUSTER,
       opt:  { url: MANAGEMENT.CLUSTER }
     });
-
-    const lastSeenNew = this.$store.getters['prefs/get'](SEEN_WHATS_NEW) ;
-    const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
-    const fullVersion = setting?.value || 'unknown';
-
-    this.fullVersion = fullVersion;
-    this.seenWhatsNewAlready = compare(lastSeenNew, fullVersion) >= 0 && !!lastSeenNew;
   },
 
   data() {
-    // Page header actions don't change on the Home Page
-    const pageHeaderActions = [
+    const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
+    const fullVersion = setting?.value || 'unknown';
+
+    // Page actions don't change on the Home Page
+    const pageActions = [
       {
         labelKey: 'nav.header.setLoginPage',
         action:   SET_LOGIN_ACTION
@@ -65,13 +61,21 @@ export default {
     ];
 
     return {
-      HIDE_HOME_PAGE_CARDS, clusters: [], seenWhatsNewAlready: false, fullVersion: '', pageHeaderActions
+      HIDE_HOME_PAGE_CARDS, clusters: [], fullVersion, pageActions
     };
   },
 
   computed: {
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
     homePageCards:   mapPref(HIDE_HOME_PAGE_CARDS),
+
+    seenWhatsNewAlready() {
+      const lastSeenNew = this.$store.getters['prefs/get'](SEEN_WHATS_NEW) ;
+      const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
+      const fullVersion = setting?.value || 'unknown';
+
+      return compare(lastSeenNew, fullVersion) >= 0 && !!lastSeenNew;
+    },
 
     showSidePanel() {
       return !(this.homePageCards.commercialSupportTip && this.homePageCards.communitySupportTip);
@@ -181,7 +185,7 @@ export default {
   },
 
   methods: {
-    handlePageHeaderAction(action) {
+    handlePageAction(action) {
       if (action.action === RESET_CARDS_ACTION) {
         this.resetCards();
       } else if (action.action === SET_LOGIN_ACTION) {
@@ -230,8 +234,9 @@ export default {
       this.$router.push({ name: 'docs-doc', params: { doc: 'release-notes' } });
     },
 
-    resetCards() {
-      this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value: {} });
+    async resetCards() {
+      await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value: {} });
+      await this.$store.dispatch('prefs/set', { key: SEEN_WHATS_NEW, value: '' });
     }
   }
 };
