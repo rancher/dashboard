@@ -43,16 +43,24 @@ export default async function({
 
   // Initial ?setup=admin-password can technically be on any route
   const initialPass = route.query[SETUP];
+  const firstLogin = await store.dispatch('rancher/find', {
+    type: 'setting',
+    id:   'first-login',
+    opt:  { url: `/v3/settings/first-login` }
+  });
 
-  if ( initialPass ) {
-    const ok = await tryInitialSetup(store, initialPass, isDev);
+  if (firstLogin && firstLogin.value === 'true' ) {
+    const ok = await tryInitialSetup(store, initialPass);
 
-    if ( ok ) {
-      return redirect(302, `/auth/setup?${ SETUP }=${ escape(initialPass) }`);
-    } else {
-      return redirect(302, '/auth/login');
+    if (ok) {
+      if (initialPass) {
+        return redirect({ name: 'auth-setup', params: { [SETUP]: initialPass } });
+      } else {
+        return redirect({ name: 'auth-setup' });
+      }
     }
   }
+
   // Make sure you're actually logged in
   if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
     try {
@@ -137,21 +145,8 @@ export default async function({
   }
 }
 
-async function tryInitialSetup(store, password, isDev) {
+async function tryInitialSetup(store, password = 'admin') {
   try {
-    const firstLogin = await store.dispatch('management/find', {
-      type: MANAGEMENT.SETTING,
-      id:   'first-login',
-      opt:  { url: `${ MANAGEMENT.SETTING }s/first-login` }
-    });
-
-    if ( isDev ) {
-      // Ignore first-login for dev
-    } else if ( !firstLogin || firstLogin.value !== 'true' ) {
-      // Require first-login to be set for prod
-      return false;
-    }
-
     const res = await store.dispatch('auth/login', {
       provider: 'local',
       body:     {
@@ -160,7 +155,7 @@ async function tryInitialSetup(store, password, isDev) {
       },
     });
 
-    return res === true;
+    return res._status === 200;
   } catch (e) {
     console.error('Error trying initial setup', e); // eslint-disable-line no-console
 

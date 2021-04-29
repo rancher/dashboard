@@ -2745,6 +2745,27 @@ servicesPage:
   typeOpts:
     label: Service Type
 
+setup:
+  welcome: Welcome to {product}!
+  setPassword: The first order of business is to set a strong password for the default <code>admin</code> user. We suggest using this random one generated just for you, but enter your own if you like. 
+  newPassword: New Password
+  confirmPassword: Confirm New Password
+  useRandom: Use a randomly generated password
+  useManual: Set a specific password to use
+  telemetry:
+    label: Allow collection of anonymous statistics to help us improve Rancher
+    tip:  'Rancher Labs would like to collect a bit of anonymized information
+          about the configuration of your installation to help make Rio better.
+          Your data will not be shared with anyone else, and no information about
+          what specific resources or endpoints you are deploying is included.
+          Once enabled you can view exactly what data will be sent at <code>/v1-telemetry</code>.
+          <a href="https://rancher.com/docs/rancher/v2.x/en/faq/telemetry/" target="_blank" rel="noopener noreferrer nofollow">More Info</a>'
+  eula: I agree to the <a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">terms and conditions</a> for using Rancher.
+  serverUrl: 
+    label: Server URL
+    tip:  What URL should be used for this Rancher installation? All the nodes in your clusters will need to be able to reach this. You can skip setting this for now, and update it later in General Settings>Advanced Settings.
+    skip: Skip
+
 sortableTable:
   actionAvailability:
     selected: "{actionable} selected"
