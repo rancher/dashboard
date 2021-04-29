@@ -9,7 +9,7 @@ import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 
-const PAGE_HEADER_ACTION = 'page-header-action';
+const PAGE_HEADER_ACTION = 'page-action';
 
 export default {
 
@@ -103,9 +103,9 @@ export default {
       }
     },
 
-    headerAction(action) {
+    pageAction(action) {
       this.$nuxt.$emit(PAGE_HEADER_ACTION, action);
-    }    
+    }
   }
 };
 </script>
@@ -213,8 +213,8 @@ export default {
       >
         <template slot="popover" class="user-menu">
           <ul class="list-unstyled dropdown" @click.stop="showPageActionsMenu(false)">
-            <li class="user-menu-item" v-for="a in pageActions" :key="a.label">
-              <a v-if="!a.seperator" @click="headerAction(a)">{{ a.labelKey ? t(a.labelKey) : a.label }}</a>
+            <li v-for="a in pageActions" :key="a.label" class="user-menu-item">
+              <a v-if="!a.seperator" @click="pageAction(a)">{{ a.labelKey ? t(a.labelKey) : a.label }}</a>
               <div v-else class="menu-seperator">
                 <div class="menu-seperator-line" />
               </div>

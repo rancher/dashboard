@@ -66,7 +66,7 @@ export const getters = {
 
   pageActions(state) {
     return state.pageActions;
-  },  
+  },
 
   currentCluster(state, getters) {
     return getters['management/byId'](MANAGEMENT.CLUSTER, state.clusterId);
@@ -358,7 +358,7 @@ export const mutations = {
 
   pageActions(state, pageActions) {
     state.pageActions = pageActions;
-  },  
+  },
 
   updateWorkspace(state, { value, all }) {
     if ( all ) {

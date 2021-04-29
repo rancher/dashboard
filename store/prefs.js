@@ -181,7 +181,7 @@ export const getters = {
   afterLoginRoute: (state, getters) => {
     const afterLoginRoutePref = getters['get'](AFTER_LOGIN_ROUTE);
 
-    if (typeof(afterLoginRoutePref) !== 'string') {
+    if (typeof afterLoginRoutePref !== 'string') {
       return afterLoginRoutePref;
     }
 

@@ -1,7 +1,9 @@
 <script>
 import debounce from 'lodash/debounce';
 import { mapState, mapGetters } from 'vuex';
-import { mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
+import {
+  mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES, AFTER_LOGIN_ROUTE
+} from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import WindowManager from '@/components/nav/WindowManager';
 import PromptRemove from '@/components/PromptRemove';
@@ -57,21 +59,21 @@ export default {
     dev:            mapPref(DEV),
     expandedGroups: mapPref(EXPANDED_GROUPS),
     favoriteTypes:  mapPref(FAVORITE_TYPES),
-    
-    pageHeaderActions() {
-      const pageHeaderActions = [];
+
+    pageActions() {
+      const pageActions = [];
 
       const product = this.$store.getters['currentProduct'];
 
       // Only show for Cluster Explorer
       if (product.inStore === 'cluster') {
-        pageHeaderActions.push({
+        pageActions.push({
           labelKey: 'nav.header.setLoginPage',
           action:   SET_LOGIN_ACTION
         });
       }
 
-      return pageHeaderActions;
+      return pageActions;
     },
 
     allSchemas() {
@@ -129,7 +131,7 @@ export default {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
-        
+
         // Store the last visited route when the product changes
         // TODO: Ignore produce changes for Explorer
         this.$store.dispatch('prefs/setLastVisited', this.$route);
@@ -140,12 +142,13 @@ export default {
       if ( !isEqual(a, b) ) {
         // Store the last visited route when the cluster changes
         const route = {
-          name: this.$route.name,
+          name:   this.$route.name,
           params: {
             ...this.$route.params,
             cluster: a,
           }
-        }
+        };
+
         this.$store.dispatch('prefs/setLastVisited', route);
       }
     },
@@ -189,10 +192,8 @@ export default {
     handlePageHeaderAction(action) {
       if (action.action === SET_LOGIN_ACTION) {
         this.afterLoginRoute = {
-          name: 'c-cluster-explorer',
-          params: {
-            cluster: this.clusterId,
-          }
+          name:   'c-cluster-explorer',
+          params: { cluster: this.clusterId }
         };
       }
     },
