@@ -14,6 +14,7 @@ import { addObjects, replaceWith, clear, addObject } from '@/utils/array';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@/utils/string';
+import { getVersionInfo } from '@/utils/version';
 
 export default {
 
@@ -27,7 +28,8 @@ export default {
   },
 
   data() {
-    return { groups: [] };
+    const { displayVersion } = getVersionInfo(this.$store);
+    return { groups: [], displayVersion };
   },
 
   middleware: ['authenticated'],
@@ -296,8 +298,14 @@ export default {
         </template>
       </div>
       <n-link tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools'}">
-        <a @click="collapseAll()">{{ t('nav.clusterTools') }}</a>
+        <a @click="collapseAll()" class="tools-button">
+          <i class="icon icon-gear" />
+          <span>{{ t('nav.clusterTools') }}</span>
+        </a>
       </n-link>
+      <div class="version text-muted">
+        {{ displayVersion }}
+      </div>
     </nav>
 
     <main v-if="clusterReady">
@@ -362,9 +370,16 @@ export default {
 
     NAV .tools {
       display: flex;
-      margin-bottom: 10px;
+      margin: 10px;
+      text-align: center;
+
       A {
+        align-items: center;
+        border: 1px solid var(--border);
+        border-radius: 5px;
         color: var(--body-text);
+        display: flex;
+        justify-content: center;
         outline: 0;
         flex: 1;
         padding: 10px;
@@ -373,12 +388,23 @@ export default {
           background: var(--nav-hover);
           text-decoration: none;
         }
+
+        > I {
+          margin-right: 4px;
+        }
       }
 
-      &.nuxt-link-active {
-        background-color: var(--nav-active);
+      &.nuxt-link-active:not(:hover) {
+        A {
+          background-color: var(--nav-active);
+        }
       }
     }
+
+    NAV .version {
+      cursor: default;
+      margin: 0 10px 10px 10px;
+    }      
   }
 
   MAIN {

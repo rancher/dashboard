@@ -5,6 +5,7 @@ import { mapPref, DEV } from '@/store/prefs';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { KEY } from '@/utils/platform';
+import { getVersionInfo } from '@/utils/version';
 
 const UNKNOWN = 'unknown';
 const UI_VERSION = process.env.VERSION || UNKNOWN;
@@ -16,15 +17,7 @@ export default {
   components: {},
 
   data() {
-    const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
-    const fullVersion = setting?.value || 'unknown';
-    let displayVersion = fullVersion;
-
-    const match = fullVersion.match(/^(.*)-([0-9a-f]{40})-(.*)$/);
-
-    if ( match ) {
-      displayVersion = match[2].substr(0, 7);
-    }
+    const { displayVersion, fullVersion } = getVersionInfo(this.$store);
 
     return {
       shown:          false,

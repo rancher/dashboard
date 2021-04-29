@@ -1,5 +1,6 @@
 import { sortableNumericSuffix } from '@/utils/sort';
 import semver from 'semver';
+import { MANAGEMENT } from '@/config/types';
 
 export function parse(str) {
   str = `${ str }`;
@@ -77,4 +78,21 @@ export function isDevBuild(version) {
   }
 
   return false;
+}
+
+export function getVersionInfo(store) {
+  const setting = store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
+  const fullVersion = setting?.value || 'unknown';
+  let displayVersion = fullVersion;
+
+  const match = fullVersion.match(/^(.*)-([0-9a-f]{40})-(.*)$/);
+
+  if ( match ) {
+    displayVersion = match[2].substr(0, 7);
+  }
+
+  return {
+    displayVersion,
+    fullVersion
+  };
 }
