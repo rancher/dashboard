@@ -116,7 +116,7 @@ export default {
 
     pageAction(action) {
       this.$nuxt.$emit(PAGE_HEADER_ACTION, action);
-    }    
+    }
   }
 };
 </script>
