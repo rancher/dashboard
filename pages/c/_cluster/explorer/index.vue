@@ -124,9 +124,6 @@ export default {
       ROLES,
     ];
 
-    console.log('>>>>>>>>>>>>>>>>>>>');
-    console.log(clusterCounts);
-
     return {
       metricPoller:        null,
       eventHeaders,
