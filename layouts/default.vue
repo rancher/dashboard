@@ -169,7 +169,7 @@ export default {
       const out = [];
       const loadProducts = this.isExplorer ? [EXPLORER] : [];
       const productMap = this.activeProducts.reduce((acc, p) => {
-        return {...acc, [p.name]: p};
+        return { ...acc, [p.name]: p };
       }, {});
 
       if ( this.isExplorer ) {
@@ -213,7 +213,9 @@ export default {
         }
       }
 
-      out.sort((a, b) => { return b.weight - a.weight; });
+      out.sort((a, b) => {
+        return b.weight - a.weight;
+      });
       replaceWith(this.groups, ...out);
     },
 

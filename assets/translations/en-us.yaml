@@ -107,6 +107,7 @@ nav:
     noResults: No matching clusters
   resourceSearch:
     label: Resource Search
+    toolTip: Resource Search {key}
     placeholder: Type to search for a resource...
 
 product:
@@ -474,7 +475,7 @@ backupRestoreOperator:
         label: Persistent Volume
       storageClass:
         label: Storage Class
-      tip: 'Configure a storage location where all backups are saved by default. You will have the option to override this with each backup, but will be limited to using an S3-compatible object store.'
+      tip: 'Configure a storage location where all backups are saved by default. You will have the option to override this witresourceSearchh each backup, but will be limited to using an S3-compatible object store.'
       warning: 'This {type} does not have its reclaim policy set to "Retain".  Your backups may be lost if the volume is changed or becomes unbound.'
   encryption: Encryption
   encryptionConfigName:
