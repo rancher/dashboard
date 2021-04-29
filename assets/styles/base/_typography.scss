@@ -48,10 +48,11 @@ code, samp, kbd, .monospace {
 }
 
 pre {
-  padding: 10px;
+  padding: 15px;
   border-radius: var(--border-radius);
   background: var(--box-bg);
-  margin: 5px;
+  border: solid 1px var(--border);
+  margin: 10px 0;
   overflow: auto;
 }
 
