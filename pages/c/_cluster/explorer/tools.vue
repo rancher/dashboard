@@ -173,7 +173,8 @@ export default {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        font-size: 0.9em
+        font-size: 0.9em;
+        margin-top: 4px;
       }
 
       .description {
