@@ -64,7 +64,7 @@ export default {
 <template>
   <SimpleBox class="hardware-resource-gauge">
     <div class="chart">
-      <h3 class="text-muted">
+      <h3>
         {{ name }}
       </h3>
       <div v-if=" reserved && (reserved.total || reserved.useful)" class="">
@@ -75,7 +75,7 @@ export default {
         >
           <template #title>
             <span>
-              {{ t('clusterIndexPage.hardwareResourceGauge.reserved') }}
+              {{ t('clusterIndexPage.hardwareResourceGauge.reserved') }} <span class="values text-muted">{{ reserved.useful }} / {{ reserved.total }} {{ reserved.units }}</span>
             </span>
             <span>
               {{ percentage(reserved) }}
@@ -83,7 +83,7 @@ export default {
           </template>
         </ConsumptionGauge>
       </div>
-      <div v-if=" used && used.useful" class="">
+      <div v-if=" used && used.useful">
         <ConsumptionGauge
           :capacity="used.total"
           :used="used.useful"
@@ -91,7 +91,7 @@ export default {
         >
           <template #title>
             <span>
-              {{ t('clusterIndexPage.hardwareResourceGauge.used') }}
+              {{ t('clusterIndexPage.hardwareResourceGauge.used') }} <span class="values text-muted">{{ used.useful }} / {{ used.total }} {{ used.units }}</span>
             </span>
             <span>
               {{ percentage(used) }}
@@ -103,14 +103,18 @@ export default {
   </SimpleBox>
 </template>
 
-<style lang="scss">
-    .hardware-resource-gauge {
-        $spacing: 10px;
-        $large-spacing: $spacing * 1.5;
+<style lang="scss" scoped>
+  .hardware-resource-gauge {
+    $spacing: 10px;
+    $large-spacing: $spacing * 1.5;
 
-        position: relative;
-        display: flex;
-        flex-direction: column;
+    position: relative;
+    display: flex;
+    flex-direction: column;
 
+    .values {
+      font-size: 12px;
+      padding-left: 10px;
     }
+  }
 </style>

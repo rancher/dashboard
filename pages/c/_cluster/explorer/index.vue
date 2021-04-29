@@ -124,6 +124,9 @@ export default {
       ROLES,
     ];
 
+    console.log('>>>>>>>>>>>>>>>>>>>');
+    console.log(clusterCounts);
+
     return {
       metricPoller:        null,
       eventHeaders,
@@ -249,7 +252,15 @@ export default {
 
     hasMonitoring() {
       return !!this.clusterCounts?.[0]?.counts?.['catalog.cattle.io.app']?.namespaces?.['cattle-monitoring-system'];
-    }
+    },
+
+    canAccessNodes() {
+      return !!this.clusterCounts?.[0]?.counts?.['node'];
+    },
+
+    canAccessDeployments() {
+      return !!this.clusterCounts?.[0]?.counts?.['apps.deployment'];
+    },
   },
 
   mounted() {
@@ -347,17 +358,17 @@ export default {
         <span><LiveDate :value="currentCluster.metadata.creationTimestamp" :add-suffix="true" :show-tooltip="true" /></span>
       </div>
       <div :style="{'flex':1}" />
-      <div v-if="hasMonitoring">
+      <div v-if="hasMonitoring && false">
         <n-link :to="{name: 'c-cluster-monitoring'}">
-          {{ t('glance.monitoringDashboard') }} <i class="icon icon-external-link" />
+          {{ t('glance.monitoringDashboard') }}
         </n-link>
       </div>
     </div>
 
     <div class="resource-gauges">
       <ResourceSummary :spoofed-counts="totalCountGaugeInput" />
-      <ResourceSummary v-if="clusterCounts['node']" resource="node" />
-      <ResourceSummary v-if="clusterCounts['apps.deployment']" resource="apps.deployment" />
+      <ResourceSummary v-if="canAccessNodes" resource="node" />
+      <ResourceSummary v-if="canAccessDeployments" resource="apps.deployment" />
     </div>
 
     <h3 class="mt-40">
@@ -441,7 +452,6 @@ export default {
 
   &>*{
     margin-right: 40px;
-    color: var(--muted);
 
     & SPAN {
        font-weight: bold
