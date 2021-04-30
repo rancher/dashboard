@@ -2,6 +2,7 @@
 import { mapGetters } from 'vuex';
 import { NORMAN } from '@/config/types';
 import { ucFirst } from '@/utils/string';
+import { isMac } from '@/utils/platform';
 import Import from '@/components/Import';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
@@ -26,7 +27,9 @@ export default {
   },
 
   data() {
-    return { show: false };
+    const searchShortcut = isMac ? '(\u2318-K)' : '(Ctrl+K)';
+
+    return { show: false, searchShortcut };
   },
 
   computed: {
@@ -161,7 +164,7 @@ export default {
 
       <button
         v-if="showSearch"
-        v-tooltip="t('nav.resourceSearch.label')"
+        v-tooltip="t('nav.resourceSearch.toolTip', {key: searchShortcut})"
         v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}"
         type="button"
         class="btn header-btn role-tertiary"

@@ -107,6 +107,7 @@ nav:
     noResults: No matching clusters
   resourceSearch:
     label: Resource Search
+    toolTip: Resource Search {key}
     placeholder: Type to search for a resource...
 
 product:

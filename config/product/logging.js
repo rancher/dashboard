@@ -19,6 +19,7 @@ export function init(store) {
   product({
     ifHaveGroup: /^(.*\.)?logging\.banzaicloud\.io$/,
     icon:        'logging',
+    weight:      89,
   });
 
   basicType([
@@ -36,6 +37,7 @@ export function init(store) {
     name:       'logging-overview',
     route:      { name: 'c-cluster-logging' },
     exact:       true,
+    overview:    true,
   });
 
   spoofedType({

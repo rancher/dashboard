@@ -80,7 +80,8 @@ export function init(store) {
     name:       'gatekeeper-overview',
     route:      { name: 'c-cluster-gatekeeper' },
     exact:      true,
-    weight:     3
+    weight:     3,
+    overview:   true,
   });
 
   headers(GATEKEEPER.CONSTRAINT_TEMPLATE, [

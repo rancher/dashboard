@@ -30,7 +30,8 @@ export function init(store) {
     name:       'longhorn-overview',
     weight:     105,
     route:      { name: 'c-cluster-longhorn' },
-    exact:      true
+    exact:      true,
+    overview:   true,
   });
 
   basicType('longhorn-overview');

@@ -79,9 +79,9 @@ export function init(store) {
 
   weightGroup('cluster', 99, true);
   weightGroup('workload', 98, true);
-  weightGroup('serviceDiscovery', 97, true);
-  weightGroup('storage', 96, true);
-  weightGroup('rbac', 95, true);
+  weightGroup('serviceDiscovery', 96, true);
+  weightGroup('storage', 95, true);
+  weightGroup('rbac', 94, true);
   weightType(POD, -1, true);
 
   for (const key in WORKLOAD_TYPES) {

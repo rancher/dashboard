@@ -15,6 +15,7 @@ import { NAME as EXPLORER } from '@/config/product/explorer';
 import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@/utils/string';
 import { getVersionInfo } from '@/utils/version';
+import { sortBy } from '@/utils/sort';
 
 export default {
 
@@ -168,6 +169,9 @@ export default {
       const namespaceMode = this.$store.getters['namespaceMode'];
       const out = [];
       const loadProducts = this.isExplorer ? [EXPLORER] : [];
+      const productMap = this.activeProducts.reduce((acc, p) => {
+        return { ...acc, [p.name]: p };
+      }, {});
 
       if ( this.isExplorer ) {
         for ( const product of this.activeProducts ) {
@@ -202,6 +206,7 @@ export default {
               name:     productId,
               label:    this.$store.getters['i18n/withFallback'](`product.${ productId }`, null, ucFirst(productId)),
               children: [...(root?.children || []), ...other],
+              weight:   productMap[productId]?.weight || 0,
             };
 
             addObject(out, group);
@@ -209,7 +214,7 @@ export default {
         }
       }
 
-      replaceWith(this.groups, ...out);
+      replaceWith(this.groups, ...sortBy(out, ['weight:desc', 'label']));
     },
 
     expanded(name) {

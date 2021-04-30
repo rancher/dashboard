@@ -64,6 +64,10 @@ export default {
       return this.group.children?.length > 0;
     },
 
+    onlyHasOverview() {
+      return this.group.children && this.group.children.length === 1 && this.group.children[0].overview;
+    },
+
     isOverview() {
       if (this.group.children && this.group.children.length > 0) {
         const grp = this.group.children[0];
@@ -162,7 +166,7 @@ export default {
       <slot name="header">
         <span v-html="group.labelDisplay || group.label" />
       </slot>
-      <i v-if="canCollapse && !isActiveGroup" class="icon toggle" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" @click="toggle($event, true)" />
+      <i v-if="!onlyHasOverview && canCollapse && !isActiveGroup" class="icon toggle" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" @click="toggle($event, true)" />
     </div>
     <ul v-if="showExpanded" class="list-unstyled body" v-bind="$attrs">
       <template v-for="(child, idx) in group[childrenKey]">

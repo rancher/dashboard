@@ -26,6 +26,7 @@ export function init(store) {
     weight:      100,
     route:       { name: 'c-cluster-istio' },
     exact:       true,
+    overview:    true,
   });
 
   basicType('istio-overview');
