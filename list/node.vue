@@ -1,35 +1,41 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
+import Loading from '@/components/Loading';
 import Poller from '@/utils/poller';
 import {
   STATE, NAME, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM
 } from '@/config/table-headers';
 
-import { METRIC } from '@/config/types';
+import { CAPI, METRIC, NODE } from '@/config/types';
+import { allHash } from '@/utils/promise';
 
 const METRICS_POLL_RATE_MS = 30000;
 const MAX_FAILURES = 2;
 
 export default {
   name:       'ListNode',
-  components: { ResourceTable },
+  components: { Loading, ResourceTable },
 
   props: {
     schema: {
       type:     Object,
       required: true,
     },
+  },
 
-    rows: {
-      type:     Array,
-      required: true,
-    },
+  async fetch() {
+    this.rows = await this.$store.dispatch('cluster/findAll', { type: NODE });
+
+    if ( this.$store.getters['management/schemaFor'](CAPI.MACHINE) ) {
+      await this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+    }
   },
 
   data() {
     return {
-      headers:         [STATE, NAME, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM],
-      metricPoller:    new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES),
+      rows:         null,
+      headers:      [STATE, NAME, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM],
+      metricPoller: new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES),
     };
   },
 
@@ -60,7 +66,9 @@ export default {
 </script>
 
 <template>
+  <Loading v-if="$fetchState.pending" />
   <ResourceTable
+    v-else
     v-bind="$attrs"
     :schema="schema"
     :headers="headers"

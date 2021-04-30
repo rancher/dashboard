@@ -92,7 +92,6 @@ export default {
         :headers="machineHeaders"
         :table-actions="false"
         :search="false"
-        key-field="key"
         default-sort-by="name"
         group-by="poolId"
         group-ref="pool"

@@ -36,6 +36,8 @@ export const NODE_ROLES = {
 export const CAPI = {
   DEPLOYMENT_NAME:   'cluster.x-k8s.io/deployment-name',
   CREDENTIAL_DRIVER: 'provisioning.cattle.io/driver',
+  CLUSTER_NAMESPACE: 'cluster.x-k8s.io/cluster-namespace',
+  MACHINE_NAME:      'cluster.x-k8s.io/machine',
 };
 
 export const CATALOG = {

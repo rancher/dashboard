@@ -5,22 +5,20 @@ import { insertAt } from '@/utils/array';
 import { downloadUrl } from '@/utils/download';
 
 export default {
-  availableActions() {
+  _availableActions() {
     const out = this._standardActions;
 
     const openSsh = {
       action:     'openSsh',
-      enabled:    true,
+      enabled:    !!this.links.shell,
       icon:       'icon icon-fw icon-chevron-right',
       label:      'SSH Shell',
-      total:      1,
     };
     const downloadKeys = {
       action:     'downloadKeys',
-      enabled:    true,
+      enabled:    !!this.links.sshkeys,
       icon:       'icon icon-fw icon-download',
       label:      'Download SSH Key',
-      total:      1,
     };
 
     insertAt(out, 0, { divider: true });

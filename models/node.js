@@ -1,13 +1,13 @@
 import Vue from 'vue';
 import { formatPercent } from '@/utils/string';
-import { NODE_ROLES, RKE } from '@/config/labels-annotations.js';
-import { METRIC, POD } from '@/config/types';
+import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, RKE } from '@/config/labels-annotations.js';
+import { CAPI, METRIC, POD } from '@/config/types';
 import { parseSi } from '@/utils/units';
 import { PRIVATE } from '@/plugins/steve/resource-proxy';
 import findLast from 'lodash/findLast';
 
 export default {
-  availableActions() {
+  _availableActions() {
     const cordon = {
       action:     'cordon',
       enabled:    this.hasLink('update') && this.isWorker && !this.isCordoned,
@@ -26,11 +26,41 @@ export default {
       bulkable:   true
     };
 
+    const openSsh = {
+      action:     'openSsh',
+      enabled:    !!this.provisionedMachine?.links?.shell,
+      icon:       'icon icon-fw icon-chevron-right',
+      label:      'SSH Shell',
+    };
+
+    const downloadKeys = {
+      action:     'downloadKeys',
+      enabled:    !!this.provisionedMachine?.links?.sshkeys,
+      icon:       'icon icon-fw icon-download',
+      label:      'Download SSH Key',
+    };
+
     return [
+      openSsh,
+      downloadKeys,
+      { divider: true },
       cordon,
       uncordon,
+      { divider: true },
       ...this._standardActions
     ];
+  },
+
+  openSsh() {
+    return () => {
+      this.provisionedMachine.openSsh();
+    };
+  },
+
+  downloadKeys() {
+    return () => {
+      this.provisionedMachine.downloadKeys();
+    };
   },
 
   showDetailStateBadge() {
@@ -266,6 +296,16 @@ export default {
 
   confirmRemove() {
     return true;
+  },
+
+  // You need to preload CAPI.MACHINEs to use this
+  provisionedMachine() {
+    const namespace = this.metadata?.annotations?.[CAPI_ANNOTATIONS.CLUSTER_NAMESPACE];
+    const name = this.metadata?.annotations?.[CAPI_ANNOTATIONS.MACHINE_NAME];
+
+    if ( namespace && name ) {
+      return this.$rootGetters['management/byId'](CAPI.MACHINE, `${ namespace }/${ name }`);
+    }
   },
 };
 

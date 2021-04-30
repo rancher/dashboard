@@ -40,15 +40,15 @@ export default {
   },
 
   fetch() {
-    return this.$store.dispatch('cluster/findAll', { type: POD });
+    this.$store.dispatch('cluster/findAll', { type: POD });
   },
 
   data() {
     const podSchema = this.$store.getters['cluster/schemaFor'](POD);
 
     return {
-      metricPoller:           new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES),
-      metrics:                { cpu: 0, memory: 0 },
+      metricPoller:     new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES),
+      metrics:          { cpu: 0, memory: 0 },
       infoTableHeaders: [
         {
           ...KEY,
