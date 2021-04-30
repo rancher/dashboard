@@ -4,6 +4,7 @@ import CruResource from '@/components/CruResource';
 import Loading from '@/components/Loading';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
+import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import BadgeState from '@/components/BadgeState';
@@ -33,6 +34,7 @@ export default {
     BadgeState,
     AgentEnv,
     Labels,
+    LabeledInput,
   },
 
   mixins: [CreateEditView],
@@ -72,6 +74,28 @@ export default {
       set(this.value.spec, 'rkeConfig', {});
     }
 
+    if ( !this.value.spec.rkeConfig?.controlPlaneConfig ) {
+      set(this.value.spec, 'rkeConfig.controlPlaneConfig', {});
+    }
+
+    this.controlConfig = this.value.spec.rkeConfig.controlPlaneConfig;
+
+    if ( !this.value.spec.rkeConfig?.workerConfig?.length ) {
+      set(this.value.spec, 'rkeConfig.workerConfig', [{}]);
+    }
+
+    this.workerConfig = this.value.spec.rkeConfig.workerConfig[0];
+    this.workerConfigSupported = this.value.spec.rkeConfig.workerConfig.length === 1 && !this.workerConfig.machineLabelSelector;
+
+    if ( this.selectedVersion ) {
+      for ( const k in this.selectedVersion.serverArgs ) {
+        set(this.controlConfig, k, this.controlConfig[k] || this.selectedVersion.serverArgs[k].default || null);
+      }
+      for ( const k in this.selectedVersion.agentArgs ) {
+        set(this.workerConfig, k, this.workerConfig[k] || this.selectedVersion.agentArgs[k].default || null);
+      }
+    }
+
     await this.initNodePools(this.value.spec.rkeConfig.nodePools);
     if ( this.mode === _CREATE && !this.nodePools.length ) {
       await this.addNodePool();
@@ -80,14 +104,17 @@ export default {
 
   data() {
     return {
-      lastIdx:       0,
-      allSecrets:     null,
-      nodeComponent:  null,
-      credentialId:   null,
-      credential:     null,
-      nodePools:      null,
-      rke2Versions:  null,
-      k3sVersions:   null,
+      lastIdx:               0,
+      allSecrets:            null,
+      nodeComponent:         null,
+      credentialId:          null,
+      credential:            null,
+      nodePools:             null,
+      rke2Versions:          null,
+      k3sVersions:           null,
+      workerConfigSupported: null,
+      workerConfig:          null,
+      controlConfig:         null,
     };
   },
 
@@ -501,6 +528,35 @@ export default {
           <li>Windows Support</li>
         </ul>
       </Tab>
+      <Tab name="server" label="Server Args" :weight="10">
+        <LabeledInput v-model="controlConfig['cluster-cidr']" label="Cluster CIDR" />
+        <LabeledInput v-model="controlConfig['service-cidr']" label="Service CIDR" />
+        <LabeledInput v-model="controlConfig['cluster-dns']" label="Cluster DNS" />
+        <LabeledInput v-model="controlConfig['cluster-domain']" label="Cluster Domain" />
+        <!-- :options="selectedVersion.serverArgs.cni.options" -->
+        <LabeledSelect
+          v-model="controlConfig.cni"
+          :options="[]"
+          label="Container Networking Interface Provider"
+        />
+        <ul>
+          <li>audit-policy-file</li>
+          <li>disable: <span v-if="false">{{ selectedVersion.serverArgs.disable.options.join(", ") }}</span></li>
+          <li>etcd-disabled-snapshots</li>
+          <li>etcd-expose-metrics</li>
+          <li>etcd-snapshot-dir</li>
+          <li>etcd-snapshot-name</li>
+          <li>etcd-snapshot-retention</li>
+          <li>etcd-snapshot-schedule-cron</li>
+          <li>kube-apiserver-arg[]</li>
+          <li>kube-controller-manager-arg[]</li>
+          <li>kube-scheduler-arg[]</li>
+          <li>profile: <span v-if="false">{{ selectedVersion.profile.options.join(", ") }}</span></li>
+          <li>secrets-encryption</li>
+          <li>tls-san[]</li>
+        </ul>
+      </Tab>
+
       <Tab name="networking" label-key="cluster.tabs.networking" :weight="9">
         <ul>
           <li>Network Provider</li>
