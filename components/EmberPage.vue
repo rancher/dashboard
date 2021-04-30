@@ -24,7 +24,6 @@ export default {
   },
 
   data() {
-
     return {
       iframeEl:     null,
       loaded:       true,
@@ -106,10 +105,12 @@ export default {
       const iframeEl = document.getElementById(EMBER_FRAME);
 
       if (iframeEl) {
+        const emberTheme = theme === 'light' ? 'ui-light' : 'ui-dark';
+
         // Ensure the embedded UI uses the correct theme
         iframeEl.contentWindow.postMessage({
           action: 'set-theme',
-          name:   theme
+          name:   emberTheme
         });
       }
     },
