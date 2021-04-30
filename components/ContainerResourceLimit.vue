@@ -116,12 +116,21 @@ export default {
         requestsMemory,
       } = this;
       const namespace = this.namespace; // no deep copy in destructure proxy yet
-      const out = {
-        limitsCpu:      `${ limitsCpu }m`,
-        limitsMemory:   `${ limitsMemory }Mi`,
-        requestsCpu:    `${ requestsCpu }m`,
-        requestsMemory: `${ requestsMemory }Mi`,
-      };
+
+      const out = {};
+
+      if (limitsCpu) {
+        out.limitsCpu = `${ limitsCpu }m`;
+      }
+      if (limitsMemory) {
+        out.limitsMemory = `${ limitsMemory }Mi`;
+      }
+      if (requestsCpu) {
+        out.requestsCpu = `${ requestsCpu }Mi`;
+      }
+      if (requestsMemory) {
+        out.requestsMemory = `${ requestsMemory }Mi`;
+      }
 
       if (namespace) {
         namespace.setAnnotation(CONTAINER_DEFAULT_RESOURCE_LIMIT, JSON.stringify(out));
