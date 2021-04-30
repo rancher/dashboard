@@ -2,7 +2,7 @@ import { findBy, insertAt } from '@/utils/array';
 import { ucFirst } from '@/utils/string';
 
 export default {
-  availableActions() {
+  _availableActions() {
     const out = this._standardActions;
 
     const removeAction = findBy(out, 'altAction', ' remove');

@@ -25,7 +25,7 @@ export default {
     };
   },
 
-  availableActions() {
+  _availableActions() {
     const out = this._standardActions;
 
     const upgrade = {
