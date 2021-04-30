@@ -1,5 +1,6 @@
 <script>
 import Loading from '@/components/Loading';
+import { mapGetters } from 'vuex';
 
 const EMBER_FRAME = 'ember-iframe';
 const EMBER_FRAME_HIDE_CLASS = 'ember-iframe-hidden';
@@ -23,19 +24,25 @@ export default {
   },
 
   data() {
-    const theme = this.$store.getters['prefs/theme'];
 
     return {
       iframeEl:     null,
       loaded:       true,
       loadRequired: false,
-      theme,
     };
   },
 
   computed: {
+    ...mapGetters({ theme: 'prefs/theme' }),
+
     loaderMode() {
       return this.fixed ? 'content' : 'full';
+    }
+  },
+
+  watch: {
+    theme(theme) {
+      this.notifyTheme(theme);
     }
   },
 
@@ -75,11 +82,8 @@ export default {
           name:   this.src
         });
 
-        // Ensure the embedded UI uses the correct theme
-        iframeEl.contentWindow.postMessage({
-          action: 'set-theme',
-          name:   this.theme
-        });
+        // Ensure iframe gets the latest theme if it has changed
+        this.notifyTheme(this.theme);
 
         const currentlUrl = iframeEl.getAttribute('data-location');
 
@@ -96,6 +100,18 @@ export default {
       }
 
       this.iframeEl = iframeEl;
+    },
+
+    notifyTheme(theme) {
+      const iframeEl = document.getElementById(EMBER_FRAME);
+
+      if (iframeEl) {
+        // Ensure the embedded UI uses the correct theme
+        iframeEl.contentWindow.postMessage({
+          action: 'set-theme',
+          name:   theme
+        });
+      }
     },
 
     // We use PostMessage between the Embedded Ember UI and the Dashboard UI
