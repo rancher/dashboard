@@ -737,8 +737,8 @@ export default {
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
       const serverUrl = this.serverUrlSetting?.value || '';
       const isWindows = cluster.providerOs === 'windows';
-      const pathPrefix = cluster.rancherKubernetesEngineConfig?.pathPrefix || '';
-      const windowsPathPrefix = cluster.rancherKubernetesEngineConfig?.windowsPathPrefix || '';
+      const pathPrefix = cluster.spec?.rancherKubernetesEngineConfig?.pathPrefix || '';
+      const windowsPathPrefix = cluster.spec?.rancherKubernetesEngineConfig?.winPathPrefix || '';
 
       setIfNotSet(cattle, 'clusterId', cluster.id);
       setIfNotSet(cattle, 'clusterName', cluster.nameDisplay);
@@ -770,8 +770,8 @@ export default {
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
       const serverUrl = this.serverUrlSetting?.value || '';
       const isWindows = cluster.providerOs === 'windows';
-      const pathPrefix = cluster.rancherKubernetesEngineConfig?.pathPrefix || '';
-      const windowsPathPrefix = cluster.rancherKubernetesEngineConfig?.windowsPathPrefix || '';
+      const pathPrefix = cluster.spec?.rancherKubernetesEngineConfig?.pathPrefix || '';
+      const windowsPathPrefix = cluster.spec?.rancherKubernetesEngineConfig?.winPathPrefix || '';
 
       if ( values.global?.cattle ) {
         deleteIfEqual(values.global.cattle, 'clusterId', cluster.id);
