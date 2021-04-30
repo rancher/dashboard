@@ -248,15 +248,15 @@ export default {
     },
 
     hasMonitoring() {
-      return !!this.clusterCounts?.[0]?.counts?.['catalog.cattle.io.app']?.namespaces?.['cattle-monitoring-system'];
+      return !!this.clusterCounts?.[0]?.counts?.[CATALOG.APP]?.namespaces?.['cattle-monitoring-system'];
     },
 
     canAccessNodes() {
-      return !!this.clusterCounts?.[0]?.counts?.['node'];
+      return !!this.clusterCounts?.[0]?.counts?.[NODE];
     },
 
     canAccessDeployments() {
-      return !!this.clusterCounts?.[0]?.counts?.['apps.deployment'];
+      return !!this.clusterCounts?.[0]?.counts?.[WORKLOAD_TYPES.DEPLOYMENT];
     },
   },
 
