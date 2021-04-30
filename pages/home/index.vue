@@ -243,7 +243,7 @@ export default {
                 <template #col:name="{row}">
                   <td>
                     <span>
-                      <n-link v-if="row.isReady" :to="row.detailLocation">
+                      <n-link v-if="row.isReady" :to="{ name: 'c-cluster-explorer', params: { cluster: row.id }}">
                         {{ row.nameDisplay }}
                       </n-link>
                       <span v-else>{{ row.nameDisplay }}</span>
