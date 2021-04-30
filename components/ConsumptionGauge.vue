@@ -51,7 +51,7 @@ export default {
     colorStops: {
       type:    Object,
       default: null
-    }
+    },
   },
   computed: {
     displayUnits() {
@@ -87,7 +87,7 @@ export default {
     <h3>
       {{ resourceName }}
     </h3>
-    <div class="numbers text-muted">
+    <div class="numbers">
       <slot name="title">
         <span>{{ t('node.detail.glance.consumptionGauge.used') }}</span> <span>{{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }} <span class="ml-10 percentage">/&nbsp;{{ formattedPercentage }}</span></span>
       </slot>

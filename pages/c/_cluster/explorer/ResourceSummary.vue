@@ -98,16 +98,16 @@ export default {
 
 <template>
   <div>
-    <SimpleBox class="container" @click="goToResource">
+    <SimpleBox class="container" :class="{'has-link': !!location}" @click="goToResource">
       <h1>{{ resourceCounts.useful }}</h1>
-      <h3 class="text-muted">
+      <h3>
         {{ name }}
       </h3>
       <div class="warnings">
-        <div :class="{'invisible':!resourceCounts.warningCount }" class="warn-count mb-10 chip">
+        <div v-if="resourceCounts.warningCount" class="warn-count mb-10 chip">
           {{ resourceCounts.warningCount }}
         </div>
-        <div :class="{'invisible':!resourceCounts.errorCount}" class="error-count chip">
+        <div v-if="resourceCounts.errorCount" class="error-count chip">
           {{ resourceCounts.errorCount }}
         </div>
       </div>
@@ -116,7 +116,15 @@ export default {
 </template>
 
 <style lang='scss' scoped>
-::v-deep .content{
+  .has-link {
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--link-text);
+    }
+  }
+
+  ::v-deep .content{
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -125,18 +133,17 @@ export default {
     }
 
     & .chip{
-        border-radius: 2em;
-        color: var(--body-bg);
-        padding: 0px 1em;
+      border-radius: 2em;
+      color: var(--body-bg);
+      padding: 0px 1em;
 
-        &.warn-count {
-            background: var(--warning)
-        }
+      &.warn-count {
+          background: var(--warning)
+      }
 
-        &.error-count {
-            background: var(--error)
-        }
+      &.error-count {
+          background: var(--error)
+      }
     }
 }
-
 </style>
