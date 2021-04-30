@@ -26,7 +26,8 @@ import {
   SERVICE,
   PV,
   WORKLOAD_TYPES,
-  COUNT
+  COUNT,
+  CATALOG,
 } from '@/config/types';
 import { findBy } from '@/utils/array';
 import Tabbed from '@/components/Tabbed';
