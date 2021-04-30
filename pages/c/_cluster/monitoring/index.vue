@@ -276,6 +276,7 @@ export default {
         :title="t('monitoring.overview.alertsList.label')"
       >
         <SortableTable
+          class="active-alerts"
           :rows="allAlerts"
           :headers="eventHeaders"
           :search="false"
@@ -290,3 +291,9 @@ export default {
     </div>
   </section>
 </template>
+
+<style lang="scss" scoped>
+  .active-alerts ::v-deep td:nth-child(2) {
+    white-space: nowrap;
+  }
+</style>
