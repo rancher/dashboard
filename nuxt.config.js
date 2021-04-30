@@ -101,6 +101,8 @@ module.exports = {
     // debug:   true
   },
 
+  content: { markdown: { prism: { theme: false } } },
+
   router: {
     base:       routerBasePath,
     middleware: ['i18n'],
