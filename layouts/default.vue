@@ -15,6 +15,7 @@ import { NAME as EXPLORER } from '@/config/product/explorer';
 import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@/utils/string';
 import { getVersionInfo } from '@/utils/version';
+import { sortBy } from '@/utils/sort';
 
 export default {
 
@@ -213,10 +214,7 @@ export default {
         }
       }
 
-      out.sort((a, b) => {
-        return b.weight - a.weight;
-      });
-      replaceWith(this.groups, ...out);
+      replaceWith(this.groups, ...sortBy(out, ['weight:desc', 'label']));
     },
 
     expanded(name) {
