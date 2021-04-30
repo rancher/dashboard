@@ -108,6 +108,12 @@ export default {
       this.$emit('input', cleanUp(out));
     },
 
+    applyUnits(out, key, value, unit) {
+      if (value) {
+        out[key] = typeof value === 'string' ? value : `${ value }${ unit }`;
+      }
+    },
+
     updateBeforeSave(value) {
       const {
         limitsCpu,
@@ -116,12 +122,13 @@ export default {
         requestsMemory,
       } = this;
       const namespace = this.namespace; // no deep copy in destructure proxy yet
-      const out = {
-        limitsCpu:      `${ limitsCpu }m`,
-        limitsMemory:   `${ limitsMemory }Mi`,
-        requestsCpu:    `${ requestsCpu }m`,
-        requestsMemory: `${ requestsMemory }Mi`,
-      };
+
+      const out = {};
+
+      this.applyUnits(out, 'limitsCpu', limitsCpu, 'm');
+      this.applyUnits(out, 'limitsMemory', limitsMemory, 'Mi');
+      this.applyUnits(out, 'requestsCpu', requestsCpu, 'Mi');
+      this.applyUnits(out, 'requestsMemory', requestsMemory, 'Mi');
 
       if (namespace) {
         namespace.setAnnotation(CONTAINER_DEFAULT_RESOURCE_LIMIT, JSON.stringify(out));
