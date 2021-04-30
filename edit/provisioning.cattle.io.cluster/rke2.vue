@@ -14,7 +14,7 @@ import { sortable } from '@/utils/version';
 import { sortBy } from '@/utils/sort';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { _CREATE } from '@/config/query-params';
-import { removeObject } from '@/utils/array';
+import { findBy, removeObject } from '@/utils/array';
 import SelectCredential from './SelectCredential';
 import NodePool from './NodePool';
 import Labels from './Labels';
@@ -137,6 +137,24 @@ export default {
       return out;
     },
 
+    selectedVersion() {
+      const str = this.value.spec.kubernetesVersion;
+
+      if ( !str ) {
+        return;
+      }
+
+      return findBy(this.versionOptions, 'value', str);
+    },
+
+    serverArgs() {
+      return this.selectedVersion?.serverArgs;
+    },
+
+    agentArgs() {
+      return this.selectedVersion?.agentArgs;
+    },
+
     needCredential() {
       if ( this.provider === 'custom' || this.provider === 'import' ) {
         return false;
@@ -240,6 +258,10 @@ export default {
         }
       }
     },
+  },
+
+  mounted() {
+    window.rke = this;
   },
 
   created() {
