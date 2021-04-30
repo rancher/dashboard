@@ -108,6 +108,12 @@ export default {
       this.$emit('input', cleanUp(out));
     },
 
+    applyUnits(out, key, value, unit) {
+      if (value) {
+        out[key] = typeof value === 'string' ? value : `${ value }${ unit }`;
+      }
+    },
+
     updateBeforeSave(value) {
       const {
         limitsCpu,
@@ -119,18 +125,10 @@ export default {
 
       const out = {};
 
-      if (limitsCpu) {
-        out.limitsCpu = `${ limitsCpu }m`;
-      }
-      if (limitsMemory) {
-        out.limitsMemory = `${ limitsMemory }Mi`;
-      }
-      if (requestsCpu) {
-        out.requestsCpu = `${ requestsCpu }Mi`;
-      }
-      if (requestsMemory) {
-        out.requestsMemory = `${ requestsMemory }Mi`;
-      }
+      this.applyUnits(out, 'limitsCpu', limitsCpu, 'm');
+      this.applyUnits(out, 'limitsMemory', limitsMemory, 'Mi');
+      this.applyUnits(out, 'requestsCpu', requestsCpu, 'Mi');
+      this.applyUnits(out, 'requestsMemory', requestsMemory, 'Mi');
 
       if (namespace) {
         namespace.setAnnotation(CONTAINER_DEFAULT_RESOURCE_LIMIT, JSON.stringify(out));
