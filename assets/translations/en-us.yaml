@@ -4126,3 +4126,7 @@ support:
     four:
       title: Innovate with Freedom
       text: Take advantage of our certified compatibility with a wide range of Kubernetes providers, operating systems, and open source software.
+
+embedding:
+  retry: Retry
+  unavailable: Cluster Manager UI is not available

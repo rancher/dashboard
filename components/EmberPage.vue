@@ -4,6 +4,7 @@ import { mapGetters } from 'vuex';
 
 const EMBER_FRAME = 'ember-iframe';
 const EMBER_FRAME_HIDE_CLASS = 'ember-iframe-hidden';
+const PAGE_CHECK_TIMEOUT = 30000;
 
 export default {
   components: { Loading },
@@ -28,6 +29,8 @@ export default {
       iframeEl:     null,
       loaded:       true,
       loadRequired: false,
+      emberCheck:   null,
+      error:        false,
     };
   },
 
@@ -57,15 +60,54 @@ export default {
     if (this.iframeEl) {
       this.iframeEl.classList.add(EMBER_FRAME_HIDE_CLASS);
     }
+
+    // Cancel any pending http request to check Ember UI availability
+    if (this.emberCheck) {
+      this.emberCheck.cancel('User left page');
+    }
   },
 
   methods: {
-
-    // TODO: Need to check that the IFRAME loaded fully, otherwise we won't be able to navigate within
-    // the already loaded frame
-    initFrame() {
-      // Add the iframe if one does not already exist
+    async initFrame() {
+      // Get the existing iframe if it exists
       let iframeEl = document.getElementById(EMBER_FRAME);
+
+      // If the iframe already exists, check if it is ready for us to reuse
+      // by navigating within the app that is already loaded
+      if (iframeEl !== null) {
+        const ready = iframeEl.getAttribute('data-ready');
+
+        if (!ready) {
+          iframeEl.remove();
+          iframeEl = null;
+        }
+      }
+
+      if (iframeEl === null) {
+        // Fetch a page to check that the Ember UI is available
+        try {
+          this.error = false;
+          this.loaded = false;
+          this.emberCheck = this.$axios.CancelToken.source();
+
+          // Make a head requst to a known asset of the Ember UI
+          const pageUrl = `${ window.location.origin }/assets/images/logos/rke.svg`;
+          const response = await this.$axios.head(pageUrl, {
+            timeout:     PAGE_CHECK_TIMEOUT,
+            cancelToken: this.emberCheck.token,
+          });
+
+          if (response.status !== 200) {
+            this.loaded = true;
+            this.error = true;
+          }
+        } catch (e) {
+          if (!this.$axios.isCancel(e)) {
+            this.loaded = true;
+            this.error = true;
+          }
+        }
+      }
 
       if (iframeEl === null) {
         iframeEl = document.createElement('iframe');
@@ -75,7 +117,7 @@ export default {
         document.body.appendChild(iframeEl);
         iframeEl.setAttribute('src', this.src);
       } else {
-        // Post a message to get it to navigate
+        // Post a message to navigate withint the existing app
         iframeEl.contentWindow.postMessage({
           action: 'navigate',
           name:   this.src
@@ -128,7 +170,7 @@ export default {
         // Ember willTransition event
         // TODO: Maintain a map of routes that we want to intercept
         if (msg.url === '/g/clusters' || msg.target === 'global-admin.clusters.index') {
-          this.loading = true;
+          this.loaded = false;
           // Go to the vue clusters page when the Ember app goes back to the Cluster page
           this.$router.replace('/c/local/manager/provisioning.cattle.io.cluster');
         }
@@ -142,6 +184,7 @@ export default {
         // Echo back a ping
         this.iframeEl.contentWindow.postMessage({ action: 'echo-back' });
         // TODO: Add an attribue to the iframe so we know it has loaded the Ember App and can be re-used
+        this.iframeEl.setAttribute('data-ready', true);
       } else if (msg.action === 'need-to-load') {
         this.loadRequired = true;
       } else if (msg.action === 'did-transition') {
@@ -167,6 +210,12 @@ export default {
 <template>
   <div class="ember-page" :class="{'fixed': fixed}">
     <Loading :loading="!loaded" :mode="loaderMode" :no-delay="true" />
+    <div v-if="error" class="ember-page-error">
+      <div>{{ t('embedding.unavailable') }}</div>
+      <button class="btn role-primary" @click="initFrame()">
+        {{ t('embedding.retry') }}
+      </button>
+    </div>
   </div>
 </template>
 
@@ -193,6 +242,17 @@ export default {
 
   .loading {
     visibility: visible;
+  }
+  .ember-page-error {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    > div {
+      font-size: 20px;
+      padding-bottom: 20px;
+    }
   }
 </style>
 <style lang="scss">
