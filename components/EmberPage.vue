@@ -183,7 +183,6 @@ export default {
       } else if (msg.action === 'ready') {
         // Echo back a ping
         this.iframeEl.contentWindow.postMessage({ action: 'echo-back' });
-        // TODO: Add an attribue to the iframe so we know it has loaded the Ember App and can be re-used
         this.iframeEl.setAttribute('data-ready', true);
       } else if (msg.action === 'need-to-load') {
         this.loadRequired = true;
