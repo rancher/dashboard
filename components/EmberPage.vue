@@ -117,7 +117,7 @@ export default {
         document.body.appendChild(iframeEl);
         iframeEl.setAttribute('src', this.src);
       } else {
-        // Post a message to navigate withint the existing app
+        // Post a message to navigate within the existing app
         iframeEl.contentWindow.postMessage({
           action: 'navigate',
           name:   this.src
