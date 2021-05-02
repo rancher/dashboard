@@ -6,6 +6,12 @@ const EMBER_FRAME = 'ember-iframe';
 const EMBER_FRAME_HIDE_CLASS = 'ember-iframe-hidden';
 const PAGE_CHECK_TIMEOUT = 30000;
 
+// Remove the IFrame if the user has not used an embedded page after this time
+// since last visiting an embedded page
+const INACTIVITY_CHECK_TIMEOUT = 60000;
+
+let inactiveRemoveTimer = null;
+
 export default {
   components: { Loading },
 
@@ -49,6 +55,8 @@ export default {
   },
 
   mounted() {
+    // Embedded page visited, so cancel time to remove IFRAME when inactive
+    window.clearTimeout(inactiveRemoveTimer);
     window.addEventListener('message', this.receiveMessage);
     this.initFrame();
   },
@@ -65,6 +73,15 @@ export default {
     if (this.emberCheck) {
       this.emberCheck.cancel('User left page');
     }
+
+    // Set up a timer to remove the IFrame after a period of inactivity
+    inactiveRemoveTimer = window.setTimeout(() => {
+      const iframeEl = document.getElementById(EMBER_FRAME);
+
+      if (iframeEl !== null) {
+        iframeEl.remove();
+      }
+    }, INACTIVITY_CHECK_TIMEOUT);
   },
 
   methods: {
@@ -107,6 +124,10 @@ export default {
             this.error = true;
           }
         }
+      }
+
+      if (this.error) {
+        return;
       }
 
       if (iframeEl === null) {
