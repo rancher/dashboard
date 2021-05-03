@@ -988,6 +988,8 @@ fleet:
       unready: Non-Ready
     auth:
       label: Authentication
+      git: Git Authentication
+      helm: Helm Authentication
     caBundle:
       label: Certificates
       placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"
@@ -2604,6 +2606,9 @@ selectOrCreateAuthSecret:
   basic:
     username: Username
     password: Password
+    cacerts: 
+      label: CA Certificate
+      placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
   namespaceGroup: "Namespace: {name}"
   chooseExisting: "Choose an existing secret:"
   createSsh: Create a SSH Key Secret
