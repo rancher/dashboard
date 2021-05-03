@@ -1,8 +1,8 @@
 import { NAME as EXPLORER } from '@/config/product/explorer';
-import { SETUP, TIMED_OUT } from '@/config/query-params';
-import { MANAGEMENT, NORMAN } from '@/config/types';
-import { applyProducts } from '@/store/type-map';
 import { findBy } from '@/utils/array';
+import { SETUP, TIMED_OUT } from '@/config/query-params';
+import { NORMAN } from '@/config/types';
+import { applyProducts } from '@/store/type-map';
 import { ClusterNotFoundError } from '@/utils/error';
 import { get } from '@/utils/object';
 
