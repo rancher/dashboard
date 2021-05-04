@@ -32,9 +32,7 @@ $info            : mix($primary, $secondary, 50%);
 $contrasted-dark: $darkest !default;
 $contrasted-light: $lightest !default;
 
-$selected: rgba($primary, .5);
-
-@mixin theme-light ($primary:#3D98D3, $link: #3D98D3, $info:mix($primary, $secondary, 50%)  ) {
+BODY {
   // Colors that will have text- and bg- helper classes created
   // value can also be map of default, default-text, hover-text, hover-bg, active-text,  active-bg)
   @include color-variables((
@@ -48,14 +46,105 @@ $selected: rgba($primary, .5);
       hover-bg:     transparent,
       active-bg:    transparent,
     ),
-    primary:    $primary,
+    // primary:    $primary,
     secondary:  $secondary,
     success:    $success,
-    info:       $info,
+    // info:       $info,
     warning:    $warning,
     error:      $error,
     darker:     $darker
   ), true);
+
+  --primary-h: 204;
+  --primary-s: 63%;
+  --primary-l: 53%;
+
+  --info-h: 206;
+  --info-s: 32%;
+  --info-l: 49%;
+
+  --info: #{$info};
+  --info-text: #{$lightest};
+  --info-hover-bg: hsl(var(--info-h), var(--info-s), calc(var(--info-l) * .9));
+  --info-hover-text: saturate($lightest, 20%);
+  --info-active-bg: hsl(var(--info-h), var(--info-s), calc(var(--info-l) * .75));
+  --info-active-text: #{$lightest};
+  --info-border: var(--info);
+  --info-banner-bg: hsla(var(--info-h), var(--info-s), var(--info-l), .15);
+
+  --primary: #{$primary};
+  --primary-text: #{$lightest};
+  --primary-hover-bg: hsl(var(--primary-h), var(--primary-s), calc(var(--primary-l) * .9));
+  --primary-hover-text: saturate($lightest, 20%);
+  --primary-active-bg: hsl(var(--primary-h), var(--primary-s), calc(var(--primary-l) * .75));;
+  --primary-active-text: #{$lightest};
+  --primary-border: var(--primary);
+  --primary-banner-bg:  hsla(var(--primary-h), var(--primary-s), var(--primary-l), .15);
+
+  .text-primary {
+    color: var(--primary) !important;
+  }
+
+  .bg-primary{
+    background-color: var(--primary);
+    color: var(--primary-text);
+
+    &.hollow {
+      color: var(--primary);
+      background-color: transparent;
+      border: 1px solid var(--primary);
+    }
+
+    &.btn:hover {
+      color: var(--primary-hover-text);
+      background: var(--primary-hover-bg);
+      transition: all 0.3s ease;
+    }
+
+    &.btn:active {
+      color: var(--primary-active-text);
+      background: var(--primary-active-bg);
+    }
+  }
+
+  .border-info {
+    border-color: var(--info-border);
+  }
+
+
+    .text-info {
+    color: var(--info) !important;
+  }
+
+  .bg-info{
+    background-color: var(--info);
+    color: var(--info-text);
+
+    &.hollow {
+      color: var(--info);
+      background-color: transparent;
+      border: 1px solid var(--info);
+    }
+
+    &.btn:hover {
+      color: var(--info-hover-text);
+      background: var(--info-hover-bg);
+      transition: all 0.3s ease;
+    }
+
+    &.btn:active {
+      color: var(--info-active-text);
+      background: var(--info-active-bg);
+    }
+  }
+
+  .border-info {
+    border-color: var(--info-border);
+  }
+  
+
+
+  --selected: hsla(var(--primary-h), var(--primary-s), var(--primary-l), .5);
 
   --body-bg                    : #{$lightest};
   --body-gradient              : linear-gradient(180deg, #{$lightest} 0%, #{$lighter} 100%);
@@ -97,30 +186,30 @@ $selected: rgba($primary, .5);
   --outline                    : #{rgba($link, 0.75)};
   --outline-width              : 1px;
 
-  --accent-btn                 : #{rgba($primary, 0.2)};
-  --accent-btn-hover           : #{rgba($primary, 0.5)};
+  --accent-btn                 : hsla(var(--primary-h), var(--primary-s), var(--primary-l), .2);
+  --accent-btn-hover           : var(--selected);
   --modal-bg                   :#{$light};
-  --overlay-bg                 : #{rgba($lighter, 0.75)};
+  --overlay-bg                 : hsla(var(--primary-h), var(--primary-s), var(--primary-l), .75);
   --shadow                     : #{rgba($medium, 0.85)};
 
   --checkbox-tick              : #{$lightest};
   --checkbox-border            : #{$medium};
   --checkbox-tick-disabled     : #{darken($disabled, 40%)};
   --checkbox-disabled-bg       : #{$disabled};
-  --checkbox-ticked-bg         : #{$link};
+  --checkbox-ticked-bg         : var(--primary);
 
   --dropdown-bg                : #{$lightest};
   --dropdown-border            : #{$medium};
   --dropdown-divider           : #{$medium};
-  --dropdown-text              : #{$link};
-  --dropdown-active-text       : #{darken($link, 1%)};
-  --dropdown-active-bg         : #{$selected};
+  --dropdown-text              : var(--primary);
+  --dropdown-active-text       : hsl(var(--primary-h), var(--primary-s), calc(var(--primary-l) * .99));
+  --dropdown-active-bg         : var(--selected);
   --dropdown-hover-text        : #{lighten($link, 1%)};
   --dropdown-hover-bg          : #{rgba($link, 0.2)};
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
 
-  --card-header                : #{rgba($primary, 0.2)};
+  --card-header                : hsla(var(--primary-h), var(--primary-s), var(--primary-l), .2);
 
   --input-text                 : #{$darkest};
   --input-label                : #{$secondary};
@@ -147,17 +236,18 @@ $selected: rgba($primary, .5);
   --sortable-table-top-divider : var(--border);
   --sortable-table-body-divider : #{$medium};
   --sortable-table-hover-bg : #{$lighter};
-  --sortable-table-selected-bg : #{rgba($primary, 0.02)};
+  --sortable-table-selected-bg : hsla(var(--primary-h), var(--primary-s), var(--primary-l), .02);
   --sortable-table-group-label : #{$secondary};
 
-  --tag-primary                : #{$primary};
-  --tag-bg                     : #{rgba($primary, 0.2)};
+  --tag-primary                : var(--primary);
+  --tag-bg                     : hsla(var(--primary-h), var(--primary-s), var(--primary-l), .2);
 
   --popover-bg                 : var(--body-bg);
   --popover-border             : var(--border);
   --popover-text               : var(--body-text);
   --popover-border-radius      : var(--border-radius);
-  --tooltip-bg                 : #{lighten($primary, 35%)};
+  --tooltip-bg                 : hsl(var(--primary-h), var(--primary-s), calc(var(--primary-l) * 1.75 ));
+
   --tooltip-border             : var(--tag-primary);
   --tooltip-text               : var(--tag-primary);
   --tooltip-bg-warning         : #{rgba($warning, 0.8)};
@@ -208,7 +298,7 @@ $selected: rgba($primary, .5);
 
   --terminal-bg                : var(--body-bg);
   --terminal-cursor            : var(--warning);
-  --terminal-selection         : #{$selected};
+  --terminal-selection         : var(--selected);
   --terminal-text              : var(--body-text);
 
   --logs-bg                    : var(--wm-body-bg);
@@ -298,9 +388,3 @@ $selected: rgba($primary, .5);
   --product-icon: #{$darker};
   --product-icon-active: #{$darkest};
 }
-
-
-:root {
-  @include theme-light
-}
-

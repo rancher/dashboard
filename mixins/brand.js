@@ -3,35 +3,24 @@ import { findBy } from '@/utils/array';
 
 export default {
   async fetch() {
-    this.globalSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
+    this.brandCookie = this.$cookies.get('brand');
+    try {
+      this.globalSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
+    } catch {}
   },
 
   data() {
-    return { globalSettings: [] };
+    return { globalSettings: [], brandCookie: null };
   },
 
   computed: {
-    brandSetting() {
-      return findBy(this.globalSettings, { id: 'brand' });
-    }
-  },
-
-  watch: {
-    brandSetting(neu) {
-      const uiPLSetting = findBy(this.globalSettings, { id: 'ui-pl' });
-      const brand = neu.value;
-
-      try {
-        const brandMeta = require(`~/assets/brand/${ brand }/metadata.json`);
-        const uiPL = brandMeta['ui-pl'] || uiPLSetting.default;
-
-        uiPLSetting.value = uiPL;
-      } catch {
-        uiPLSetting.value = uiPLSetting.default;
+    brand() {
+      if (this.brandCookie && !this.globalSettings.length) {
+        return this.brandCookie;
       }
 
-      uiPLSetting.save();
-    },
+      return findBy(this.globalSettings, { id: 'brand' })?.value;
+    }
   },
 
   head() {
@@ -39,11 +28,10 @@ export default {
 
     let cssClass = `overflow-hidden dashboard-body`;
 
-    const brand = this.brandSetting?.value;
     let brandMeta;
 
     try {
-      brandMeta = require(`~/assets/brand/${ brand }/metadata.json`);
+      brandMeta = require(`~/assets/brand/${ this.brand }/metadata.json`);
     } catch {
       return {
         bodyAttrs: { class: `theme-${ theme } ${ cssClass }` },
@@ -52,7 +40,7 @@ export default {
     }
 
     if (brandMeta?.hasStylesheet === 'true') {
-      cssClass = `${ cssClass } ${ brand }-${ theme }`;
+      cssClass = `${ cssClass } ${ this.brand } theme-${ theme }`;
     } else {
       cssClass = `theme-${ theme } overflow-hidden dashboard-body`;
       this.$store.dispatch('prefs/setBrandStyle', theme === 'dark');

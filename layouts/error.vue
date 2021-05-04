@@ -1,9 +1,11 @@
 <script>
 import { addParam } from '@/utils/url';
-export default {
-  name: 'NuxtError',
+import Brand from '@/mixins/brand';
 
-  props: {
+export default {
+  name:   'NuxtError',
+  mixins:     [Brand],
+  props:  {
     error: {
       type:    Object,
       default: null

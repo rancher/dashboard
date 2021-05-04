@@ -1,14 +1,7 @@
 <script>
-export default {
-  head() {
-    const theme = this.$store.getters['prefs/theme'];
+import Brand from '@/mixins/brand';
 
-    return {
-      bodyAttrs: { class: `theme-${ theme } dashboard-body` },
-      title:     this.$store.getters['i18n/t']('nav.title'),
-    };
-  },
-};
+export default { mixins: [Brand] };
 </script>
 
 <template>

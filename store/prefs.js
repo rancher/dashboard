@@ -1,7 +1,6 @@
 import Vue from 'vue';
 import { MANAGEMENT, STEVE } from '@/config/types';
 import { clone } from '@/utils/object';
-import { colorVariables, parseColorString, RGBToHSL } from '@/utils/color';
 
 const definitions = {};
 
@@ -430,19 +429,7 @@ export const actions = {
           if (hasStylesheet) {
             document.body.classList.add(brand);
           } else {
-            const rgbPrimaryString = brandMeta.primary;
-
-            if (rgbPrimaryString) {
-              const hslPrimary = RGBToHSL(...parseColorString(rgbPrimaryString));
-              const colorVars = colorVariables( {
-                primary: hslPrimary,
-                link:    { default: hslPrimary, text: hslPrimary }
-              }, dark);
-
-              for (const cssVar in colorVars) {
-                document.body.style.setProperty(cssVar, colorVars[cssVar]);
-              }
-            }
+            // TODO option apply color at runtime
           }
         }
       } catch {}

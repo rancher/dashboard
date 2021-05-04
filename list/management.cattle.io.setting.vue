@@ -148,7 +148,7 @@ export default {
 
 .modified {
   margin-left: 10px;
-  border: 1px solid var(--link-text);
+  border: 1px solid var(--primary);
   border-radius: 5px;
   padding: 2px 10px;
   font-size: 12px;

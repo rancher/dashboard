@@ -1,0 +1,17 @@
+.suse {
+  $primary: hsl(151, 59%, 46%);
+  $info:  mix($primary, $secondary, 50%);
+
+  --primary: #{$primary};
+  --info: #{$info};
+
+  --primary-h: 151;
+  --primary-s: 59%;
+  --primary-l: 46%;
+
+  --info-h: 90;
+  --info-s: 91%;
+  --info-l: 30%;
+
+  --sizzle-info:    #{red($info)},    #{green($info)},    #{blue($info)};
+}

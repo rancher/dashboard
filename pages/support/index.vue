@@ -77,6 +77,7 @@ export default {
         this.supportSetting.value = 'true';
         this.brandSetting.value = 'suse';
         await Promise.all([this.supportSetting.save(), this.brandSetting.save()]);
+        this.$cookies.set('brand', 'suse');
         done(true);
       } catch {
         done(false);
