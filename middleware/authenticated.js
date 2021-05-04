@@ -40,7 +40,6 @@ export default async function({
       return;
     }
   }
-
   // Initial ?setup=admin-password can technically be on any route
   const initialPass = route.query[SETUP];
   const firstLogin = await store.dispatch('rancher/find', {
@@ -49,15 +48,20 @@ export default async function({
     opt:  { url: `/v3/settings/first-login` }
   });
 
+  // TODO show error if firstLogin and default pass doesn't work
   if (firstLogin && firstLogin.value === 'true' ) {
     const ok = await tryInitialSetup(store, initialPass);
 
     if (ok) {
       if (initialPass) {
-        return redirect({ name: 'auth-setup', params: { [SETUP]: initialPass } });
+        return redirect({ name: 'auth-setup', query: { [SETUP]: initialPass } });
       } else {
         return redirect({ name: 'auth-setup' });
       }
+    } else {
+      const t = store.getters['i18n/t'];
+
+      return redirect({ name: 'auth-login', query: { err: t('setup.defaultPasswordError') } });
     }
   }
 
