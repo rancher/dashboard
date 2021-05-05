@@ -324,8 +324,8 @@ module.exports = {
     '/meta':         proxyOpts(api), // Browser API UI
     '/v1-*':         proxyOpts(api), // SAML, KDM, etc
     // These are for Ember embedding
-    '/g':            proxyEmberOpts('https://127.0.0.1:8000'),
-    '/n':            proxyEmberOpts('https://127.0.0.1:8000'),
+    '/g':            proxyOpts('https://127.0.0.1:8000'),
+    '/n':            proxyOpts('https://127.0.0.1:8000'),
     '/assets':       proxyOpts('https://127.0.0.1:8000'),
     '/translations': proxyOpts('https://127.0.0.1:8000'),
     '/engines-dist': proxyOpts('https://127.0.0.1:8000'),
@@ -350,22 +350,6 @@ module.exports = {
   eslint: { cache: './node_modules/.cache/eslint' },
 };
 
-function proxyEmberOpts(target) {
-  return {
-    target,
-    secure:      !dev,
-    onProxyReq:  onProxyEmberReq,
-    onProxyReqWs,
-    onError,
-    onProxyRes,
-    // pathRewrite(path, req) {
-    //   console.log(`rewriting path: ${ path }`);
-
-    //   return path.replace('/ember/', '/');
-    // }
-  };
-}
-
 function proxyOpts(target) {
   return {
     target,
@@ -375,18 +359,6 @@ function proxyOpts(target) {
     onError,
     onProxyRes,
   };
-}
-
-function onProxyEmberReq(proxyReq, req) {
-  // console.log('ember request');
-  // console.log(proxyReq.path);
-
-  // if (proxyReq.path.startsWith('/ember')) {
-  //   proxyReq.path = proxyReq.path.substring(6);
-  // }
-  // console.log(proxyReq.path);
-  proxyReq.setHeader('x-api-host', req.headers['host']);
-  proxyReq.setHeader('x-forwarded-proto', 'https');
 }
 
 function onProxyRes(proxyRes, req, res) {
