@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icons';
-  src:  url('fonts/icomoon.eot?pi4iyr');
-  src:  url('fonts/icomoon.eot?pi4iyr#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.ttf?pi4iyr') format('truetype'),
-    url('fonts/icomoon.woff?pi4iyr') format('woff'),
-    url('fonts/icomoon.svg?pi4iyr#icomoon') format('svg');
+  src:  url('fonts/icons.eot?3oo15s');
+  src:  url('fonts/icons.eot?3oo15s#iefix') format('embedded-opentype'),
+    url('fonts/icons.ttf?3oo15s') format('truetype'),
+    url('fonts/icons.woff?3oo15s') format('woff'),
+    url('fonts/icons.svg?3oo15s#icons') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -190,6 +190,15 @@
 .icon-github:before {
   content: "\e922";
 }
+.icon-apple:before {
+  content: "\e93e";
+}
+.icon-windows:before {
+  content: "\e93f";
+}
+.icon-linux:before {
+  content: "\e940";
+}
 .icon-backup-restore:before {
   content: "\e934";
 }
@@ -216,6 +225,9 @@
 }
 .icon-compass:before {
   content: "\e92c";
+}
+.icon-cluster-management:before {
+  content: "\e941";
 }
 .icon-cluster:before {
   content: "\e92d";
