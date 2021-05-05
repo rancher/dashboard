@@ -1,37 +1,20 @@
 <script>
-import EmberPage from '@/components/EmberPage';
-
-const PAGES = {
-  'global-dns-entries':   '/g/dns/entries/index/',
-  'global-dns-providers': '/g/dns/providers/index/',
-  catalogs:               '/g/catalog',
-  'rke-drivers':          '/n/drivers/cluster',
-  'rke-templates':        '/g/rke-templates/index',
-};
+import EmbeddedPageView from '@/components/EmberPageView';
 
 export default {
-  components: { EmberPage },
+  components: { EmbeddedPageView },
 
   data() {
-    const page = this.$route.params.page;
-    let src;
-
-    if (page) {
-      src = PAGES[page];
-    }
-
     return {
-      src,
-      page
+      PAGES: {
+        'rke-drivers':   '/n/drivers/cluster',
+        'rke-templates': '/g/rke-templates/index',
+      }
     };
   }
 };
 </script>
 
 <template>
-  <EmberPage v-if="src" :src="src" :fixed="true" />
-  <div v-else>
-    <h1>Page Not Found</h1>
-    <h2>{{ page }}</h2>
-  </div>
+  <EmbeddedPageView :pages="PAGES" />
 </template>

@@ -86,13 +86,7 @@ export function init(store) {
   basicType([
     'rke-templates',
     'rke-drivers',
-  ], 'RKE');
-
-  basicType([
-    'global-dns-entries',
-    'global-dns-providers',
-    'catalogs',
-  ], 'Legacy Configuration');
+  ], 'RKE Configuration');
 
   weightType(CAPI.MACHINE_DEPLOYMENT, 3, true);
   weightType(CAPI.MACHINE_SET, 2, true);

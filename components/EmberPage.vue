@@ -148,12 +148,8 @@ export default {
         this.notifyTheme(this.theme);
 
         const currentlUrl = iframeEl.getAttribute('data-location');
+        const src = this.trimURL(this.src);
 
-        let src = this.src;
-
-        if (this.src.endsWith('/')) {
-          src = src.substr(0, this.src.length - 1);
-        }
         if (src !== currentlUrl) {
           iframeEl.classList.add(EMBER_FRAME_HIDE_CLASS);
         } else {
@@ -176,6 +172,14 @@ export default {
           name:   emberTheme
         });
       }
+    },
+
+    trimURL(url) {
+      if (url && url.endsWith('/')) {
+        url = url.substr(0, url.length - 1);
+      }
+
+      return url;
     },
 
     // We use PostMessage between the Embedded Ember UI and the Dashboard UI
@@ -208,7 +212,7 @@ export default {
       } else if (msg.action === 'need-to-load') {
         this.loadRequired = true;
       } else if (msg.action === 'did-transition') {
-        this.iframeEl.setAttribute('data-location', msg.url);
+        this.iframeEl.setAttribute('data-location', this.trimURL(msg.url));
         if (!this.loadRequired) {
           this.loading = false;
           this.updateFrameVisibility();
