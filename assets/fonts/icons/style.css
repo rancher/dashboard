@@ -1,10 +1,10 @@
 @font-face {
-  font-family: 'icons';
-  src:  url('fonts/icomoon.eot?pi4iyr');
-  src:  url('fonts/icomoon.eot?pi4iyr#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.ttf?pi4iyr') format('truetype'),
-    url('fonts/icomoon.woff?pi4iyr') format('woff'),
-    url('fonts/icomoon.svg?pi4iyr#icomoon') format('svg');
+  font-family: 'icomoon';
+  src:  url('fonts/icomoon.eot?ou4dl1');
+  src:  url('fonts/icomoon.eot?ou4dl1#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?ou4dl1') format('truetype'),
+    url('fonts/icomoon.woff?ou4dl1') format('woff'),
+    url('fonts/icomoon.svg?ou4dl1#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -12,7 +12,7 @@
 
 [class^="icon-"], [class*=" icon-"] {
   /* use !important to prevent issues with browser extensions that change fonts */
-  font-family: 'icons' !important;
+  font-family: 'icomoon' !important;
   speak: never;
   font-style: normal;
   font-weight: normal;
@@ -219,4 +219,13 @@
 }
 .icon-cluster:before {
   content: "\e92d";
+}
+.icon-apple:before {
+  content: "\e93e";
+}
+.icon-windows:before {
+  content: "\e93f";
+}
+.icon-linux:before {
+  content: "\e940";
 }
