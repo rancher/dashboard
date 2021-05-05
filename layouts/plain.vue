@@ -5,14 +5,17 @@ import PromptRemove from '@/components/PromptRemove';
 import AssignTo from '@/components/AssignTo';
 import IndentedPanel from '@/components/IndentedPanel';
 import Brand from '@/mixins/brand';
+import FixedBanner from '@/components/FixedBanner';
 
 export default {
+
   components: {
     ActionMenu,
     AssignTo,
     Header,
     IndentedPanel,
-    PromptRemove
+    PromptRemove,
+    FixedBanner
   },
 
   middleware: ['authenticated'],
@@ -34,23 +37,33 @@ export default {
 
 <template>
   <div class="dashboard-root">
-    <Header :simple="true" />
+    <FixedBanner />
 
-    <main>
-      <IndentedPanel class="pt-20">
-        <nuxt class="outlet" />
-      </IndentedPanel>
-      <ActionMenu />
-      <PromptRemove />
-      <AssignTo />
-    </main>
+    <div class="dashboard-content">
+      <Header :simple="true" />
+      <main>
+        <IndentedPanel class="pt-20">
+          <nuxt class="outlet" />
+        </IndentedPanel>
+        <ActionMenu />
+        <PromptRemove />
+        <AssignTo />
+      </main>
+    </div>
+
+    <FixedBanner :footer="true" />
   </div>
 </template>
 
 <style lang="scss" scoped>
   .dashboard-root {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     height: 100vh;
+  }
+  .dashboard-content {
+    display: grid;
+    flex-grow: 1;
 
     grid-template-areas:
       "header"

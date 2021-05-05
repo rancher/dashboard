@@ -59,9 +59,20 @@ export function init(store) {
     }
   });
 
+  virtualType({
+    ifHaveType:     MANAGEMENT.SETTING,
+    labelKey:       'branding.label',
+    name:           'brand',
+    namespaced:     false,
+    weight:         98,
+    icon:           'folder',
+    route:          { name: 'c-cluster-settings-brand' }
+  });
+
   basicType([
     'settings',
     'features',
+    'brand'
   ]);
 
   configureType(MANAGEMENT.SETTING, {

@@ -4242,10 +4242,30 @@ featureFlags:
 branding:
   label: Branding
   directoryName: Brand Asset Directory Name
+  logos:
+    label: Logo
+    tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Max file size: 20KB'
+    lightPreview: Light Theme Preview
+    darkPreview: Dark Theme Preview
+    uploadLight: Upload Light Logo
+    uploadDark: Upload Dark Logo
+    useCustom: Use a Custom Logo
   options:
     default: Default Rancher Theme
     suse: SUSE Theme
     custom: Define a Custom Theme
+    uiPL:
+    label: Private Label Company Name
+  uiIssues:
+    label: Issue Reporting URL
+  uiBanner:
+    label: Fixed Banners
+    text: Text
+    textColor: Text Color
+    background: Background Color
+    showHeader: Show Banner in Header
+    showFooter: Show Banner in Footer
+
 resourceQuota:
   configMaps: Config Maps
   limitsCpu: CPU Limit

@@ -38,6 +38,16 @@ export default {
     multiple: {
       type:    Boolean,
       default: false
+    },
+
+    byteLimit: {
+      type:    Number,
+      default: 0
+    },
+
+    readAsDataUrl: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -56,6 +66,15 @@ export default {
       const input = event.target;
       const files = Array.from(input.files || []);
 
+      if (this.byteLimit) {
+        for (const file of files) {
+          if (file.size > this.byteLimit) {
+            this.$emit('error', `${ file.name } exceeds the file size limit of ${ this.byteLimit } bytes`);
+
+            return;
+          }
+        }
+      }
       try {
         const asyncFileContents = files.map(this.getFileContents);
         const fileContents = await Promise.all(asyncFileContents);
@@ -85,8 +104,11 @@ export default {
         reader.onerror = (err) => {
           reject(err);
         };
-
-        reader.readAsText(file);
+        if (this.readAsDataUrl) {
+          reader.readAsDataURL(file);
+        } else {
+          reader.readAsText(file);
+        }
       });
     }
   }
