@@ -610,6 +610,8 @@ export const actions = {
       dispatch('rancher/rehydrateSubscribe');
     }
 
+    dispatch('catalog/rehydrate');
+
     dispatch('prefs/loadCookies');
     dispatch('prefs/loadTheme');
   },
