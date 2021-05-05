@@ -158,8 +158,10 @@ accountAndKeys:
     change: Change Password
   apiKeys:
     title: API Keys
-    notAllowed: You do no
-n
+    notAllowed: You do not have permission to manage API Keys
+    add:
+      description:
+        label: Description
         placeholder: Optionally enter a description to help you identify this API Key
       label: Create API Key
       expiry:
