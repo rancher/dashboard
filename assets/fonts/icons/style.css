@@ -1,16 +1,15 @@
 @font-face {
   font-family: 'icons';
-  src:  url('fonts/icons.eot?3oo15s');
-  src:  url('fonts/icons.eot?3oo15s#iefix') format('embedded-opentype'),
-    url('fonts/icons.ttf?3oo15s') format('truetype'),
-    url('fonts/icons.woff?3oo15s') format('woff'),
-    url('fonts/icons.svg?3oo15s#icons') format('svg');
+  src:
+    url('fonts/icons.ttf?zd0vl7') format('truetype'),
+    url('fonts/icons.woff?zd0vl7') format('woff'),
+    url('fonts/icons.svg?zd0vl7#icons') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
 }
 
-[class^="icon-"], [class*=" icon-"] {
+.icon {
   /* use !important to prevent issues with browser extensions that change fonts */
   font-family: 'icons' !important;
   speak: never;
