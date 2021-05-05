@@ -298,12 +298,12 @@ export default {
       :resource-subtype="resourceSubtype"
       :parent-route-override="parentRouteOverride"
       :store-override="storeOverride"
-    />
-
-    <DetailTop
-      v-if="isView && isDetail"
-      :value="originalModel"
-    />
+    >
+      <DetailTop
+        v-if="isView && isDetail"
+        :value="originalModel"
+      />
+    </Masthead>
 
     <ResourceYaml
       v-if="isYaml"
