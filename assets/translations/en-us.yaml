@@ -735,6 +735,7 @@ cluster:
     registrationCommand:
       label: Registration Command
       detail: Run this command on each of the existing machines you want to register.
+      insecure: "Insecure: Select this to skip TLS verification if your server has a self-signed certificate."
   credential:
     aws:
       accessKey:
@@ -886,6 +887,7 @@ cluster:
     cluster: Cluster Configuration
     networking: Networking
     nodePools: Node Pools
+    upgrade: Upgrade Strategy
 
 clusterIndexPage:
   hardwareResourceGauge:

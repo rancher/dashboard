@@ -26,6 +26,7 @@ import NodePool from './NodePool';
 import Labels from './Labels';
 import AgentEnv from './AgentEnv';
 import ACE from './ACE';
+import DrainOptions from './DrainOptions';
 
 export default {
   components: {
@@ -43,6 +44,7 @@ export default {
     NodePool,
     BadgeState,
     ACE,
+    DrainOptions,
     AgentEnv,
     Labels,
     LabeledInput
@@ -95,10 +97,10 @@ export default {
 
     if ( !this.value.spec.rkeConfig.upgradeStrategy ) {
       set(this.value.spec.rkeConfig, 'upgradeStrategy', {
-        drainServerNodes:  true,
-        drainWorkerNodes:  true,
-        serverConcurrency: 1,
-        workerConcurrency: 1,
+        controlPlaneConcurrency:  '10%',
+        controlPlaneDrainOptions: {},
+        workerConcurrency:        '10%',
+        workerDrainOptions:       {},
       });
     }
 
@@ -745,23 +747,24 @@ export default {
         </div>
       </Tab>
 
-      <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="8" @active="$refs.additionalManifest.refresh()">
-        <h3>Upgrade Strategy</h3>
+      <Tab name="upgrade" label-key="cluster.tabs.upgrade" :weight="8">
         <div class="row">
-          <div class="col span-4">
-            <LabeledInput v-model.number="rkeConfig.upgradeStrategy.serverConcurrency" :mode="mode" label="Server Concurrency" />
+          <div class="col span-6">
+            <h3>Control Plane</h3>
+            <LabeledInput v-model="rkeConfig.upgradeStrategy.controlPlaneConcurrency" :mode="mode" label="Control Plane Concurrency" tooltip="This can be either a fixed number of nodes (e.g. 1) at a time of a percentage (e.g. 10%)" />
+            <div class="spacer" />
+            <DrainOptions v-model="rkeConfig.upgradeStrategy.controlPlaneDrainOptions" :mode="mode" />
           </div>
-          <div class="col span-4">
-            <LabeledInput v-model.number="rkeConfig.upgradeStrategy.workerConcurrency" :mode="mode" label="Worker Concurrency" />
-          </div>
-          <div class="col span-4 mt-10">
-            <div><Checkbox v-model="rkeConfig.upgradeStrategy.drainServerNodes" :mode="mode" label="Drain Server Nodes" /></div>
-            <div><Checkbox v-model="rkeConfig.upgradeStrategy.drainWorkerNodes" :mode="mode" label="Drain Worker Nodes" /></div>
+          <div class="col span-6">
+            <h3>Worker Nodes</h3>
+            <LabeledInput v-model="rkeConfig.upgradeStrategy.workerConcurrency" :mode="mode" label="Worker Concurrency" tooltip="This can be either a fixed number of nodes (e.g. 1) at a time of a percentage (e.g. 10%)" />
+            <div class="spacer" />
+            <DrainOptions v-model="rkeConfig.upgradeStrategy.workerDrainOptions" :mode="mode" />
           </div>
         </div>
+      </Tab>
 
-        <div class="spacer" />
-
+      <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="-1" @active="$refs.additionalManifest.refresh()">
         <template v-if="selectedVersion.serverArgs.profile || selectedVersion.agentArgs.profile">
           <h3>CIS Profile Validation</h3>
           <div class="row">
@@ -826,7 +829,7 @@ export default {
       <AgentEnv v-model="value" :mode="mode" />
       <Labels v-model="value" :mode="mode" />
 
-      <Tab name="TBD" :weight="-1">
+      <Tab name="TBD" :weight="-2">
         <div><b>??</b></div>
         <ul>
           <li>Snapshot Backups</li>

@@ -185,16 +185,16 @@ export default {
 
   getOrCreateToken() {
     return async() => {
+      if ( !this.mgmt ) {
+        return;
+      }
+
       const tokens = await this.$dispatch('rancher/findAll', { type: NORMAN.CLUSTER_TOKEN, force: true }, { root: true });
 
-      let token = findBy(tokens, 'clusterId', this.id);
+      let token = findBy(tokens, 'clusterId', this.mgmt.id);
 
       if ( token ) {
         return token;
-      }
-
-      if ( !this.mgmt ) {
-        return;
       }
 
       token = await this.$dispatch('rancher/create', {
