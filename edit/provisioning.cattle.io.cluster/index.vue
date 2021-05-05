@@ -56,6 +56,8 @@ export default {
     } else if ( this.value.isImported ) {
       this.isRegister = true;
       this.selectType('import', false);
+    } else if ( this.value.isCustom ) {
+      this.selectType('custom', false);
     } else if ( this.value.nodeProvider ) {
       await this.selectType(this.value.nodeProvider, false);
     } else {

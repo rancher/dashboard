@@ -3,9 +3,9 @@ import { GATEKEEPER } from '@/config/types';
 import { downloadFile } from '@/utils/download';
 
 export default {
-  availableActions() {
+  _availableActions() {
     const toFilter = ['cloneYaml'];
-    let out = this._availableActions;
+    let out = this._standardActions;
     const downloadAction = out.find(a => a?.action === 'download');
     const removeMatch = out.find(a => a.action === 'promptRemove');
 

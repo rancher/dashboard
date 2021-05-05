@@ -13,19 +13,19 @@ export const WORKLOAD_PRIORITY = {
 };
 
 export default {
-  availableActions() {
+  _availableActions() {
     const out = this._standardActions;
 
     const openShell = {
       action:     'openShell',
-      enabled:    true,
+      enabled:    !!this.links.view && this.isRunning,
       icon:       'icon icon-fw icon-chevron-right',
       label:      'Execute Shell',
       total:      1,
     };
     const openLogs = {
       action:     'openLogs',
-      enabled:    true,
+      enabled:    !!this.links.view,
       icon:       'icon icon-fw icon-chevron-right',
       label:      'View Logs',
       total:      1,

@@ -49,7 +49,7 @@ export default {
     keyField: {
       // Field that is unique for each row.
       type:     String,
-      required: true,
+      default: '_key',
     },
 
     groupBy: {

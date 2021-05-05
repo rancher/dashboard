@@ -872,7 +872,14 @@ cluster:
     create-machine: Provision new nodes and create a cluster using RKE
     create-template: Use a Catalog Template to create a cluster
     register-custom: Import any Kubernetes cluster
+  rke2:
+    systemService:
+      rke2-coredns: 'CoreDNS'
+      rke2-ingress-nginx: 'NGINX Ingress Controller'
+      rke2-kube-proxy: 'Kube Proxy'
+      rke2-metrics-server: 'Metrics Server'
   tabs:
+    ace: Authorized Endpoint
     advanced: Advanced
     agentEnv: Agent Environment
     basic: Basics

@@ -33,7 +33,7 @@ export default {
       .filter(globalRoleBinding => this.id === globalRoleBinding.groupPrincipalName);
   },
 
-  availableActions() {
+  _availableActions() {
     return [
       {
         action:  'goToEdit',

@@ -44,12 +44,23 @@ const NEVER_ADD = [
   'metadata.managedFields',
   'metadata.ownerReferences',
   'metadata.resourceVersion',
+  'metadata.relationships',
   'metadata.selfLink',
   'metadata.uid',
   // CRD -> Schema describes the schema used for validation, pruning, and defaulting of this version of the custom resource. If we allow processing we fall into inf loop on openAPIV3Schema.allOf which contains a cyclical ref of allOf props.
   'spec.versions.schema',
   'status',
   'stringData',
+];
+
+const ACTIVELY_REMOVE = [
+  'metadata.managedFields',
+  'metadata.relationships',
+  'metadata.state',
+  'status',
+  'links',
+  'type',
+  'id'
 ];
 
 const INDENT = 2;
@@ -108,7 +119,23 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
     }
   });
 
-  NEVER_ADD.forEach((entry) => {
+  for ( const key in data ) {
+    if ( typeof data[key] !== 'undefined' ) {
+      addObject(regularFields, key);
+    }
+  }
+
+  for ( const entry of ACTIVELY_REMOVE ) {
+    const parts = entry.split(/\./);
+    const key = parts[parts.length - 1];
+    const prefix = parts.slice(0, -1).join('.');
+
+    if ( prefix === path) {
+      removeObject(regularFields, key);
+    }
+  }
+
+  for ( const entry of NEVER_ADD ) {
     const parts = entry.split(/\./);
     const key = parts[parts.length - 1];
     const prefix = parts.slice(0, -1).join('.');
@@ -116,19 +143,17 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
     if ( prefix === path && schema.resourceFields && schema.resourceFields[key] ) {
       removeObject(commentFields, key);
     }
-  });
+  }
 
   removeObjects(commentFields, regularFields);
 
-  const regular = regularFields.map((key) => {
-    return stringifyField(key);
-  });
+  const regular = regularFields.map(k => stringifyField(k));
+  const comments = commentFields.map(k => comment(stringifyField(k)));
 
-  const comments = commentFields.map((key) => {
-    return comment(stringifyField(key));
-  });
-
-  const out = [...regular, ...comments].join('\n').trim();
+  const out = [...regular, ...comments]
+    .filter(x => x !== null)
+    .join('\n')
+    .trim();
 
   return out;
 
@@ -136,11 +161,6 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
 
   function stringifyField(key) {
     const field = schema.resourceFields[key];
-    const type = typeMunge(field.type);
-    const mapOf = typeRef('map', type);
-    const arrayOf = typeRef('array', type);
-    const referenceTo = typeRef('reference', type);
-
     let out = `${ key }:`;
 
     // '_type' in steve maps to kubernetes 'type' field; show 'type' field in yaml
@@ -149,9 +169,30 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
     }
 
     if ( !field ) {
-      // Not much to do here...
+      if (data[key]) {
+        try {
+          const cleaned = cleanUp(data);
+          const parsedData = jsyaml.safeDump(cleaned[key]);
+
+          if ( typeof data[key] === 'object' || Array.isArray(data[key]) ) {
+            out += `\n${ indent(parsedData.trim()) }`;
+          } else {
+            out += ` ${ parsedData.trim() }`;
+          }
+
+          return out;
+        } catch (e) {
+          console.error(`Error: Unable to parse map data for yaml key: ${ key }`, e); // eslint-disable-line no-console
+        }
+      }
+
       return null;
     }
+
+    const type = typeMunge(field.type);
+    const mapOf = typeRef('map', type);
+    const arrayOf = typeRef('array', type);
+    const referenceTo = typeRef('reference', type);
 
     if ( mapOf ) {
       if (data[key]) {

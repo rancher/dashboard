@@ -4,21 +4,28 @@ import CruResource from '@/components/CruResource';
 import Loading from '@/components/Loading';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
+import Banner from '@/components/Banner';
+import YamlEditor from '@/components/YamlEditor';
+import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import ArrayList from '@/components/form/ArrayList';
+import Checkbox from '@/components/form/Checkbox';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import BadgeState from '@/components/BadgeState';
-import { SECRET } from '@/config/types';
+import { MANAGEMENT, SECRET } from '@/config/types';
 import { nlToBr } from '@/utils/string';
 import { clone, set } from '@/utils/object';
 import { sortable } from '@/utils/version';
 import { sortBy } from '@/utils/sort';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { _CREATE } from '@/config/query-params';
-import { removeObject } from '@/utils/array';
+import { findBy, removeObject } from '@/utils/array';
+import difference from 'lodash/difference';
 import SelectCredential from './SelectCredential';
 import NodePool from './NodePool';
 import Labels from './Labels';
 import AgentEnv from './AgentEnv';
+import ACE from './ACE';
 
 export default {
   components: {
@@ -27,12 +34,18 @@ export default {
     Loading,
     Tabbed,
     Tab,
+    Banner,
+    YamlEditor,
+    ArrayList,
+    Checkbox,
     SelectCredential,
     LabeledSelect,
     NodePool,
     BadgeState,
+    ACE,
     AgentEnv,
     Labels,
+    LabeledInput
   },
 
   mixins: [CreateEditView],
@@ -57,6 +70,10 @@ export default {
   async fetch() {
     this.allSecrets = await this.$store.dispatch('management/findAll', { type: SECRET });
 
+    if ( this.$store.getters['management/schemaFor'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
+      this.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
+    }
+
     this.rke2Versions = (await this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' })).data;
     this.k3sVersions = (await this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' })).data;
 
@@ -72,6 +89,36 @@ export default {
       set(this.value.spec, 'rkeConfig', {});
     }
 
+    if ( !this.value.spec.rkeConfig.upgradeStrategy ) {
+      set(this.value.spec.rkeConfig, 'upgradeStrategy', {
+        drainServerNodes:  true,
+        drainWorkerNodes:  true,
+        serverConcurrency: 1,
+        workerConcurrency: 1,
+      });
+    }
+
+    if ( !this.value.spec.rkeConfig?.controlPlaneConfig ) {
+      set(this.value.spec, 'rkeConfig.controlPlaneConfig', {});
+    }
+
+    if ( !this.value.spec.rkeConfig?.workerConfig?.length ) {
+      set(this.value.spec, 'rkeConfig.workerConfig', [{}]);
+    }
+
+    if ( !this.value.spec.defaultPodSecurityPolicyTemplateName ) {
+      set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', null);
+    }
+
+    if ( this.selectedVersion ) {
+      for ( const k in this.selectedVersion.serverArgs ) {
+        set(this.serverConfig, k, this.serverConfig[k] || this.selectedVersion.serverArgs[k].default || null);
+      }
+      for ( const k in this.selectedVersion.agentArgs ) {
+        set(this.agentConfig, k, this.agentConfig[k] || this.selectedVersion.agentArgs[k].default || null);
+      }
+    }
+
     await this.initNodePools(this.value.spec.rkeConfig.nodePools);
     if ( this.mode === _CREATE && !this.nodePools.length ) {
       await this.addNodePool();
@@ -80,18 +127,39 @@ export default {
 
   data() {
     return {
-      lastIdx:       0,
-      allSecrets:     null,
-      nodeComponent:  null,
-      credentialId:   null,
-      credential:     null,
-      nodePools:      null,
-      rke2Versions:  null,
-      k3sVersions:   null,
+      lastIdx:               0,
+      allSecrets:            null,
+      allPSPs:               null,
+      nodeComponent:         null,
+      credentialId:          null,
+      credential:            null,
+      nodePools:             null,
+      rke2Versions:          null,
+      k3sVersions:           null,
     };
   },
 
   computed: {
+    rkeConfig() {
+      return this.value.spec.rkeConfig;
+    },
+
+    serverConfig() {
+      return this.value.spec.rkeConfig.controlPlaneConfig;
+    },
+
+    agentConfig() {
+      return this.value.spec.rkeConfig.workerConfig[0];
+    },
+
+    multipleAgentConfigs() {
+      return this.value.spec.rkeConfig.workerConfig.length > 1;
+    },
+
+    unsupportedAgentConfig() {
+      return !!this.agentConfig.machineLabelSelector;
+    },
+
     versionOptions() {
       function filterAndMap(versions) {
         const out = (versions || []).filter(obj => !!obj.serverArgs).map((obj) => {
@@ -135,6 +203,56 @@ export default {
       }
 
       return out;
+    },
+
+    pspOptions() {
+      const out = [{ label: '(None)', value: null }];
+
+      if ( this.allPSPs ) {
+        for ( const pspt of this.allPSPs ) {
+          out.push({
+            label: pspt.nameDisplay,
+            value: pspt.id,
+          });
+        }
+      }
+
+      const cur = this.value.spec.defaultPodSecurityPolicyTemplateName;
+
+      if ( cur && !out.find(x => x.value === cur) ) {
+        out.unshift({ label: `${ cur } (Current)`, value: cur });
+      }
+
+      return out;
+    },
+
+    disableOptions() {
+      return this.selectedVersion.serverArgs.disable.options.map((value) => {
+        return {
+          label: this.$store.getters['i18n/withFallback'](`cluster.rke2.systemService."${ value }"`, null, value.replace(/^rke2-/, '')),
+          value,
+        };
+      });
+    },
+
+    selectedVersion() {
+      const str = this.value.spec.kubernetesVersion;
+
+      if ( !str ) {
+        return;
+      }
+
+      const out = findBy(this.versionOptions, 'value', str);
+
+      return out;
+    },
+
+    serverArgs() {
+      return this.selectedVersion?.serverArgs;
+    },
+
+    agentArgs() {
+      return this.selectedVersion?.agentArgs;
     },
 
     needCredential() {
@@ -225,7 +343,39 @@ export default {
       }
 
       return out;
-    }
+    },
+
+    enabledSystemServices: {
+      get() {
+        const out = difference(this.selectedVersion.serverArgs.disable.options, this.serverConfig.disable || []);
+
+        return out;
+      },
+
+      set(neu) {
+        const out = difference(this.selectedVersion.serverArgs.disable.options, neu);
+
+        set(this.serverConfig, 'disable', out);
+      },
+    },
+
+    showCloudConfigYaml() {
+      const name = this.agentConfig['cloud-provider-name'];
+
+      if ( !name ) {
+        return false;
+      }
+
+      switch ( name ) {
+      case 'none': return false;
+      case 'aws': return false;
+      default: return true;
+      }
+    },
+
+    showCni() {
+      return !!this.selectedVersion.serverArgs.cni;
+    },
   },
 
   watch: {
@@ -240,6 +390,10 @@ export default {
         }
       }
     },
+  },
+
+  mounted() {
+    window.rke = this;
   },
 
   created() {
@@ -468,43 +622,226 @@ export default {
 
     <h2 v-t="'cluster.tabs.cluster'" />
     <Tabbed :side-tabs="true">
-      <Tab name="basic" label-key="cluster.tabs.basic" :weight="10">
-        <LabeledSelect
-          v-model="value.spec.kubernetesVersion"
-          :options="versionOptions"
-          label-key="cluster.kubernetesVersion.label"
-        />
-        <ul>
-          <li>Cloud Provider</li>
-          <li>Windows Support</li>
-        </ul>
+      <Tab name="basic" label-key="cluster.tabs.basic" :weight="10" @active="if ( $refs.cloudProvider ) $refs.cloudProvider.refresh()">
+        <div class="row">
+          <div class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
+            <LabeledSelect
+              v-model="value.spec.kubernetesVersion"
+              :options="versionOptions"
+              label-key="cluster.kubernetesVersion.label"
+            />
+          </div>
+          <div v-if="showCni" class="col span-4">
+            <LabeledSelect
+              v-model="serverConfig.cni"
+              :options="selectedVersion.serverArgs.cni.options"
+              label="Container Network Provider"
+            />
+          </div>
+          <div class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
+            <LabeledSelect
+              v-model="agentConfig['cloud-provider-name']"
+              :options="selectedVersion.agentArgs['cloud-provider-name'].options"
+              label="Cloud Provider"
+            />
+          </div>
+        </div>
+
+        <template v-if="showCloudConfigYaml">
+          <div class="spacer" />
+
+          <div class="col span-12">
+            <h3>Cloud Provider Config</h3>
+            <YamlEditor
+              ref="cloudProvider"
+              v-model="agentConfig['cloud-provider-config']"
+              initial-yaml-values="# Cloud Provider Config"
+              class="yaml-editor"
+            />
+          </div>
+        </template>
+
+        <div class="spacer" />
+
+        <h3>Security</h3>
+        <div class="row">
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="value.spec.defaultPodSecurityPolicyTemplateName"
+              :options="pspOptions"
+              label="Default Pod Security Policy"
+            />
+          </div>
+          <div class="col span-6 mt-10">
+            <div v-if="selectedVersion.serverArgs['secrets-encryption']">
+              <Checkbox v-model="serverConfig['secrets-encryption']" label="Encrypt Secrets" />
+            </div>
+            <div><Checkbox v-model="value.spec.enableNetworkPolicy" label="Project Network Isolation" /></div>
+            <div v-if="selectedVersion.agentArgs.selinux">
+              <Checkbox v-model="agentConfig.selinux" label="SELinux" />
+            </div>
+          </div>
+        </div>
+        <div class="row">
+        </div>
+
+        <div class="spacer" />
+
+        <div v-if="selectedVersion.serverArgs.disable" class="row">
+          <div class="col span-12">
+            <div><h3>System Services</h3></div>
+            <Checkbox
+              v-for="opt in disableOptions"
+              :key="opt"
+              v-model="enabledSystemServices"
+              :label="opt.label"
+              :value-when-true="opt.value"
+            />
+          </div>
+        </div>
+
+        <div class="spacer" />
       </Tab>
+
       <Tab name="networking" label-key="cluster.tabs.networking" :weight="9">
-        <ul>
-          <li>Network Provider</li>
-          <li>Project Network Isolation</li>
-          <li>CNI MTU</li>
-          <li>Ingress Enabled</li>
-          <li>Ingress Default Backend</li>
-          <li>Node Port Range</li>
-        </ul>
+        <div v-if="selectedVersion.serverArgs['service-node-port-range']" class="row mb-20">
+          <div class="col span-6">
+            <LabeledInput v-model="serverConfig['service-node-port-range']" label="NodePort Service Port Range" />
+          </div>
+        </div>
+
+        <div class="row mb-20">
+          <div v-if="selectedVersion.serverArgs['cluster-cidr']" class="col span-6">
+            <LabeledInput v-model="serverConfig['cluster-cidr']" label="Cluster CIDR" />
+          </div>
+          <div v-if="selectedVersion.serverArgs['service-cidr']" class="col span-6">
+            <LabeledInput v-model="serverConfig['service-cidr']" label="Service CIDR" />
+          </div>
+        </div>
+
+        <div class="row mb-20">
+          <div v-if="selectedVersion.serverArgs['cluster-dns']" class="col span-6">
+            <LabeledInput v-model="serverConfig['cluster-dns']" label="Cluster DNS" />
+          </div>
+          <div v-if="selectedVersion.serverArgs['cluster-domain']" class="col span-6">
+            <LabeledInput v-model="serverConfig['cluster-domain']" label="Cluster Domain" />
+          </div>
+        </div>
+
+        <div v-if="selectedVersion.serverArgs['tls-san']" class="row mb-20">
+          <div class="col span-6">
+            <ArrayList :value="serverConfig['tls-san']" title="TLS Alternate Names" />
+          </div>
+        </div>
       </Tab>
-      <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="8">
-        <ul>
-          <li>PSPs</li>
-          <li>Docker Version</li>
-          <li>Docker Root Dir</li>
-          <li>Snapshot Backups</li>
-          <li>Secrets Encryption</li>
-          <li>CIS Scan Schedule</li>
-          <li>Max Unavailable / Drain nodes</li>
-          <li>Authorized Cluster Endpoint</li>
-          <li>Private Registry</li>
-        </ul>
+
+      <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="8" @active="$refs.additionalManifest.refresh()">
+        <h3>Upgrade Strategy</h3>
+        <div class="row">
+          <div class="col span-4">
+            <LabeledInput v-model.number="rkeConfig.upgradeStrategy.serverConcurrency" label="Server Concurrency" />
+          </div>
+          <div class="col span-4">
+            <LabeledInput v-model.number="rkeConfig.upgradeStrategy.workerConcurrency" label="Worker Concurrency" />
+          </div>
+          <div class="col span-4 mt-10">
+            <div><Checkbox v-model="rkeConfig.upgradeStrategy.drainServerNodes" label="Drain Server Nodes" /></div>
+            <div><Checkbox v-model="rkeConfig.upgradeStrategy.drainWorkerNodes" label="Drain Worker Nodes" /></div>
+          </div>
+        </div>
+
+        <div class="spacer" />
+
+        <template v-if="selectedVersion.serverArgs.profile || selectedVersion.agentArgs.profile">
+          <h3>CIS Profile Validation</h3>
+          <div class="row">
+            <div v-if="selectedVersion.serverArgs.profile" class="col span-6">
+              <LabeledSelect
+                v-model="serverConfig.profile"
+                :options="selectedVersion.serverArgs.profile.options"
+                label="Server CIS Profile"
+              />
+            </div>
+            <div v-if="selectedVersion.agentArgs.profile" class="col span-6">
+              <LabeledSelect
+                v-model="agentConfig.profile"
+                :options="selectedVersion.agentArgs.profile.options"
+                label="Worker CIS Profile"
+              />
+            </div>
+          </div>
+        </template>
+
+        <div class="spacer" />
+
+        <div v-if="selectedVersion.agentArgs['protect-kernel-defaults']" class="row">
+          <div class="col span-12">
+            <Checkbox v-model="agentConfig['protect-kernel-defaults']" label="Raise error if kernel parameters are different than the expected kubelet defaults." />
+          </div>
+        </div>
+
+        <div class="spacer" />
+
+        <div class="row">
+          <div class="col span-6">
+            <ArrayList v-if="selectedVersion.agentArgs['kublet-arg']" :value="agentConfig['kubelet-arg']" title="Additional Kubelet Args" class="mb-20" />
+            <ArrayList v-if="selectedVersion.serverArgs['kube-controller-manager-arg']" :value="serverConfig['kube-controller-manager-arg']" title="Additional Controller Manager Args" class="mb-20" />
+          </div>
+          <div class="col span-6">
+            <ArrayList v-if="selectedVersion.serverArgs['kube-apiserver-arg']" :value="serverConfig['kube-apiserver-arg']" title="Additional API Server Args" class="mb-20" />
+            <ArrayList v-if="selectedVersion.serverArgs['kube-scheduler-arg']" :value="serverConfig['kube-scheduler-arg']" title="Additional Scheduler Args" />
+          </div>
+        </div>
+
+        <div class="spacer" />
+
+        <div>
+          <h3>
+            Additional Manifest
+            <i v-tooltip="'Additional Kubernetes Manifet YAML to be applied to the cluster on startup.'" class="icon icon-info" />
+          </h3>
+          <YamlEditor
+            ref="additionalManifest"
+            v-model="rkeConfig.additionalManifest"
+            initial-yaml-values="# Additional Manifest YAML"
+            class="yaml-editor"
+          />
+        </div>
       </Tab>
+
+      <ACE v-model="value" :mode="mode" />
       <AgentEnv v-model="value" :mode="mode" />
       <Labels v-model="value" :mode="mode" />
+
+      <Tab name="TBD" :weight="-1">
+        <div><b>??</b></div>
+        <ul>
+          <li>Snapshot Backups</li>
+          <li>Private Registry</li>
+          <li>CNI MTU</li>
+          <li>Ingress Default Backend</li>
+        </ul>
+
+        <div><b>ServerArgs:</b></div>
+        <ul>
+          <li>audit-policy-file</li>
+          <li>etcd-disabled-snapshots</li>
+          <li>etcd-expose-metrics</li>
+          <li>etcd-snapshot-dir</li>
+          <li>etcd-snapshot-name</li>
+          <li>etcd-snapshot-retention</li>
+          <li>etcd-snapshot-schedule-cron</li>
+        </ul>
+        <div><b>AgentArgs:</b></div>
+        <ul>
+          <li>audit-policy-file</li>
+          <li>system-default-registry</li>
+        </ul>
+      </Tab>
     </Tabbed>
+
+    <Banner v-if="multipleAgentConfigs" color="warning" label="This cluster has multiple workerConfigs. This form does only manages the first one; use the YAML editor to manage the full configuration." />
+    <Banner v-if="unsupportedAgentConfig" color="warning" label="This cluster contains a workerConfig which this form does not fully support; use the YAML editor to manage the full configuration." />
 
     <template v-if="needCredential && !credentialId" #form-footer>
       <div><!-- Hide the outer footer --></div>
