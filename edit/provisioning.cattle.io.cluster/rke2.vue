@@ -4,6 +4,7 @@ import CruResource from '@/components/CruResource';
 import Loading from '@/components/Loading';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
+import Banner from '@/components/Banner';
 import YamlEditor from '@/components/YamlEditor';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -33,6 +34,7 @@ export default {
     Loading,
     Tabbed,
     Tab,
+    Banner,
     YamlEditor,
     ArrayList,
     Checkbox,
@@ -108,14 +110,12 @@ export default {
       set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', null);
     }
 
-    this.workerConfigSupported = this.value.spec.rkeConfig.workerConfig.length === 1 && !this.workerConfig.machineLabelSelector;
-
     if ( this.selectedVersion ) {
       for ( const k in this.selectedVersion.serverArgs ) {
-        set(this.controlConfig, k, this.controlConfig[k] || this.selectedVersion.serverArgs[k].default || null);
+        set(this.serverConfig, k, this.serverConfig[k] || this.selectedVersion.serverArgs[k].default || null);
       }
       for ( const k in this.selectedVersion.agentArgs ) {
-        set(this.workerConfig, k, this.workerConfig[k] || this.selectedVersion.agentArgs[k].default || null);
+        set(this.agentConfig, k, this.agentConfig[k] || this.selectedVersion.agentArgs[k].default || null);
       }
     }
 
@@ -136,7 +136,6 @@ export default {
       nodePools:             null,
       rke2Versions:          null,
       k3sVersions:           null,
-      workerConfigSupported: null,
     };
   },
 
@@ -145,12 +144,20 @@ export default {
       return this.value.spec.rkeConfig;
     },
 
-    controlConfig() {
+    serverConfig() {
       return this.value.spec.rkeConfig.controlPlaneConfig;
     },
 
-    workerConfig() {
+    agentConfig() {
       return this.value.spec.rkeConfig.workerConfig[0];
+    },
+
+    multipleAgentConfigs() {
+      return this.value.spec.rkeConfig.workerConfig.length > 1;
+    },
+
+    unsupportedAgentConfig() {
+      return !!this.agentConfig.machineLabelSelector;
     },
 
     versionOptions() {
@@ -340,7 +347,7 @@ export default {
 
     enabledSystemServices: {
       get() {
-        const out = difference(this.selectedVersion.serverArgs.disable.options, this.controlConfig.disable || []);
+        const out = difference(this.selectedVersion.serverArgs.disable.options, this.serverConfig.disable || []);
 
         return out;
       },
@@ -348,12 +355,12 @@ export default {
       set(neu) {
         const out = difference(this.selectedVersion.serverArgs.disable.options, neu);
 
-        set(this.controlConfig, 'disable', out);
+        set(this.serverConfig, 'disable', out);
       },
     },
 
     showCloudConfigYaml() {
-      const name = this.workerConfig['cloud-provider-name'];
+      const name = this.agentConfig['cloud-provider-name'];
 
       if ( !name ) {
         return false;
@@ -626,14 +633,14 @@ export default {
           </div>
           <div v-if="showCni" class="col span-4">
             <LabeledSelect
-              v-model="controlConfig.cni"
+              v-model="serverConfig.cni"
               :options="selectedVersion.serverArgs.cni.options"
               label="Container Network Provider"
             />
           </div>
           <div class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
             <LabeledSelect
-              v-model="workerConfig['cloud-provider-name']"
+              v-model="agentConfig['cloud-provider-name']"
               :options="selectedVersion.agentArgs['cloud-provider-name'].options"
               label="Cloud Provider"
             />
@@ -647,7 +654,7 @@ export default {
             <h3>Cloud Provider Config</h3>
             <YamlEditor
               ref="cloudProvider"
-              v-model="workerConfig['cloud-provider-config']"
+              v-model="agentConfig['cloud-provider-config']"
               initial-yaml-values="# Cloud Provider Config"
               class="yaml-editor"
             />
@@ -666,8 +673,13 @@ export default {
             />
           </div>
           <div class="col span-6 mt-10">
-            <div><Checkbox v-model="controlConfig['secrets-encryption']" label="Encrypt Secrets" /></div>
+            <div v-if="selectedVersion.serverArgs['secrets-encryption']">
+              <Checkbox v-model="serverConfig['secrets-encryption']" label="Encrypt Secrets" />
+            </div>
             <div><Checkbox v-model="value.spec.enableNetworkPolicy" label="Project Network Isolation" /></div>
+            <div v-if="selectedVersion.agentArgs.selinux">
+              <Checkbox v-model="agentConfig.selinux" label="SELinux" />
+            </div>
           </div>
         </div>
         <div class="row">
@@ -675,7 +687,7 @@ export default {
 
         <div class="spacer" />
 
-        <div class="row">
+        <div v-if="selectedVersion.serverArgs.disable" class="row">
           <div class="col span-12">
             <div><h3>System Services</h3></div>
             <Checkbox
@@ -692,33 +704,33 @@ export default {
       </Tab>
 
       <Tab name="networking" label-key="cluster.tabs.networking" :weight="9">
-        <div v-if="currentVersion.serverArgs['service-node-port-range']" class="row mb-20">
+        <div v-if="selectedVersion.serverArgs['service-node-port-range']" class="row mb-20">
           <div class="col span-6">
-            <LabeledInput v-model="controlConfig['service-node-port-range']" label="NodePort Service Port Range" />
+            <LabeledInput v-model="serverConfig['service-node-port-range']" label="NodePort Service Port Range" />
           </div>
         </div>
 
         <div class="row mb-20">
-          <div v-if="currentVersion.serverArgs['cluster-cidr']" class="col span-6">
-            <LabeledInput v-model="controlConfig['cluster-cidr']" label="Cluster CIDR" />
+          <div v-if="selectedVersion.serverArgs['cluster-cidr']" class="col span-6">
+            <LabeledInput v-model="serverConfig['cluster-cidr']" label="Cluster CIDR" />
           </div>
-          <div v-if="currentVersion.serverArgs['service-cidr']" class="col span-6">
-            <LabeledInput v-model="controlConfig['service-cidr']" label="Service CIDR" />
+          <div v-if="selectedVersion.serverArgs['service-cidr']" class="col span-6">
+            <LabeledInput v-model="serverConfig['service-cidr']" label="Service CIDR" />
           </div>
         </div>
 
         <div class="row mb-20">
-          <div v-if="currentVersion.serverArgs['cluster-dns']" class="col span-6">
-            <LabeledInput v-model="controlConfig['cluster-dns']" label="Cluster DNS" />
+          <div v-if="selectedVersion.serverArgs['cluster-dns']" class="col span-6">
+            <LabeledInput v-model="serverConfig['cluster-dns']" label="Cluster DNS" />
           </div>
-          <div v-if="currentVersion.serverArgs['cluster-domain']" class="col span-6">
-            <LabeledInput v-model="controlConfig['cluster-domain']" label="Cluster Domain" />
+          <div v-if="selectedVersion.serverArgs['cluster-domain']" class="col span-6">
+            <LabeledInput v-model="serverConfig['cluster-domain']" label="Cluster Domain" />
           </div>
         </div>
 
-        <div v-if="currentVersion.serverArgs['tls-san']" class="row mb-20">
+        <div v-if="selectedVersion.serverArgs['tls-san']" class="row mb-20">
           <div class="col span-6">
-            <ArrayList :value="controlConfig['tls-san']" title="TLS Alternate Names" />
+            <ArrayList :value="serverConfig['tls-san']" title="TLS Alternate Names" />
           </div>
         </div>
       </Tab>
@@ -740,29 +752,31 @@ export default {
 
         <div class="spacer" />
 
-        <h3>CIS Profile Validation</h3>
-        <div class="row">
-          <div class="col span-6">
-            <LabeledSelect
-              v-model="controlConfig.profile"
-              :options="selectedVersion.serverArgs.profile.options"
-              label="Server CIS Profile"
-            />
+        <template v-if="selectedVersion.serverArgs.profile || selectedVersion.agentArgs.profile">
+          <h3>CIS Profile Validation</h3>
+          <div class="row">
+            <div v-if="selectedVersion.serverArgs.profile" class="col span-6">
+              <LabeledSelect
+                v-model="serverConfig.profile"
+                :options="selectedVersion.serverArgs.profile.options"
+                label="Server CIS Profile"
+              />
+            </div>
+            <div v-if="selectedVersion.agentArgs.profile" class="col span-6">
+              <LabeledSelect
+                v-model="agentConfig.profile"
+                :options="selectedVersion.agentArgs.profile.options"
+                label="Worker CIS Profile"
+              />
+            </div>
           </div>
-          <div class="col span-6">
-            <LabeledSelect
-              v-model="workerConfig.profile"
-              :options="selectedVersion.agentArgs.profile.options"
-              label="Worker CIS Profile"
-            />
-          </div>
-        </div>
+        </template>
 
         <div class="spacer" />
 
-        <div class="row">
+        <div v-if="selectedVersion.agentArgs['protect-kernel-defaults']" class="row">
           <div class="col span-12">
-            <Checkbox v-model="workerConfig['protect-kernel-defaults']" label="Raise error if kernel parameters are different than the expected kubelet defaults." />
+            <Checkbox v-model="agentConfig['protect-kernel-defaults']" label="Raise error if kernel parameters are different than the expected kubelet defaults." />
           </div>
         </div>
 
@@ -770,12 +784,12 @@ export default {
 
         <div class="row">
           <div class="col span-6">
-            <ArrayList :value="workerConfig['kubelet-arg']" title="Additional Kubelet Args" class="mb-20" />
-            <ArrayList :value="controlConfig['kube-controller-manager-arg']" title="Additional Controller Manager Args" class="mb-20" />
+            <ArrayList v-if="selectedVersion.agentArgs['kublet-arg']" :value="agentConfig['kubelet-arg']" title="Additional Kubelet Args" class="mb-20" />
+            <ArrayList v-if="selectedVersion.serverArgs['kube-controller-manager-arg']" :value="serverConfig['kube-controller-manager-arg']" title="Additional Controller Manager Args" class="mb-20" />
           </div>
           <div class="col span-6">
-            <ArrayList :value="controlConfig['kube-apiserver-arg']" title="Additional API Server Args" class="mb-20" />
-            <ArrayList :value="controlConfig['kube-scheduler-arg']" title="Additional Scheduler Args" />
+            <ArrayList v-if="selectedVersion.serverArgs['kube-apiserver-arg']" :value="serverConfig['kube-apiserver-arg']" title="Additional API Server Args" class="mb-20" />
+            <ArrayList v-if="selectedVersion.serverArgs['kube-scheduler-arg']" :value="serverConfig['kube-scheduler-arg']" title="Additional Scheduler Args" />
           </div>
         </div>
 
@@ -795,6 +809,10 @@ export default {
         </div>
       </Tab>
 
+      <ACE v-model="value" :mode="mode" />
+      <AgentEnv v-model="value" :mode="mode" />
+      <Labels v-model="value" :mode="mode" />
+
       <Tab name="TBD" :weight="-1">
         <div><b>??</b></div>
         <ul>
@@ -807,28 +825,23 @@ export default {
         <div><b>ServerArgs:</b></div>
         <ul>
           <li>audit-policy-file</li>
-          <li>disable: <span>{{ selectedVersion.serverArgs.disable.options.join(", ") }}</span></li>
           <li>etcd-disabled-snapshots</li>
           <li>etcd-expose-metrics</li>
           <li>etcd-snapshot-dir</li>
           <li>etcd-snapshot-name</li>
           <li>etcd-snapshot-retention</li>
           <li>etcd-snapshot-schedule-cron</li>
-          <li>profile: <span>{{ selectedVersion.serverArgs.profile.options.join(", ") }}</span></li>
         </ul>
         <div><b>AgentArgs:</b></div>
         <ul>
           <li>audit-policy-file</li>
-          <li>profile: <span>{{ selectedVersion.agentArgs.profile.options.join(", ") }}</span></li>
-          <li>protect-kernel-defaults</li>
-          <li>selinux</li>
           <li>system-default-registry</li>
         </ul>
       </Tab>
-      <ACE v-model="value" :mode="mode" />
-      <AgentEnv v-model="value" :mode="mode" />
-      <Labels v-model="value" :mode="mode" />
     </Tabbed>
+
+    <Banner v-if="multipleAgentConfigs" color="warning" label="This cluster has multiple workerConfigs. This form does only manages the first one; use the YAML editor to manage the full configuration." />
+    <Banner v-if="unsupportedAgentConfig" color="warning" label="This cluster contains a workerConfig which this form does not fully support; use the YAML editor to manage the full configuration." />
 
     <template v-if="needCredential && !credentialId" #form-footer>
       <div><!-- Hide the outer footer --></div>
