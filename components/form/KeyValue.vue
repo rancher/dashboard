@@ -421,23 +421,30 @@ export default {
     </div>
 
     <div class="kv-container" :style="containerStyle">
-      <template v-if="rows.length">
-        <label class="text-label">
-          {{ keyLabel }}
-          <i v-if="protip" v-tooltip="protip" class="icon icon-info" />
-        </label>
-        <label class="text-label">
-          {{ valueLabel }}
-        </label>
-        <label v-for="c in extraColumns" :key="c">
-          <slot :name="'label:'+c">{{ c }}</slot>
-        </label>
-        <slot v-if="removeAllowed" name="remove">
-          <span />
-        </slot>
+      <label class="text-label">
+        {{ keyLabel }}
+        <i v-if="protip && !isView" v-tooltip="protip" class="icon icon-info" />
+      </label>
+      <label class="text-label">
+        {{ valueLabel }}
+      </label>
+      <label v-for="c in extraColumns" :key="c">
+        <slot :name="'label:'+c">{{ c }}</slot>
+      </label>
+      <slot v-if="removeAllowed" name="remove">
+        <span />
+      </slot>
+
+      <template v-if="!rows.length && isView">
+        <div class="kv-item key text-muted">
+          &mdash;
+        </div>
+        <div class="kv-item key text-muted">
+          &mdash;
+        </div>
       </template>
 
-      <template v-for="(row,i) in rows">
+      <template v-for="(row,i) in rows" v-else>
         <div :key="i+'key'" class="kv-item key">
           <slot
             name="key"
@@ -510,9 +517,9 @@ export default {
       </template>
     </div>
 
-    <div v-if="addAllowed || readAllowed" class="footer">
+    <div v-if="(addAllowed || readAllowed) && !isView" class="footer">
       <slot name="add" :add="add">
-        <button v-if="addAllowed" :disabled="isView" type="button" class="btn role-tertiary add" @click="add()">
+        <button v-if="addAllowed" type="button" class="btn role-tertiary add" @click="add()">
           {{ addLabel }}
         </button>
         <FileSelector

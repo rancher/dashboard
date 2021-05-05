@@ -109,6 +109,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model="value.region"
+          :mode="mode"
           :options="regionOptions"
           :searchable="true"
           :required="true"
@@ -118,6 +119,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model="value.size"
+          :mode="mode"
           :options="instanceOptions"
           :searchable="true"
           :required="true"
@@ -130,6 +132,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model="value.image"
+          :mode="mode"
           :options="imageOptions"
           :searchable="true"
           :required="true"
@@ -138,9 +141,9 @@ export default {
       </div>
       <div class="col span-6 pt-5">
         <h3>Additional options</h3>
-        <Checkbox v-model="value.monitoring" label="Monitoring" />
-        <Checkbox v-model="value.ipv6" label="IPv6" />
-        <Checkbox v-model="value.privateNetworking" label="Private Networking" />
+        <Checkbox v-model="value.monitoring" :mode="mode" label="Monitoring" />
+        <Checkbox v-model="value.ipv6" :mode="mode" label="IPv6" />
+        <Checkbox v-model="value.privateNetworking" :mode="mode" label="Private Networking" />
       </div>
     </div>
   </div>

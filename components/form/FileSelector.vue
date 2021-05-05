@@ -94,7 +94,7 @@ export default {
 </script>
 
 <template>
-  <button :disabled="disabled" type="button" class="file-selector btn" @click="selectFile">
+  <button v-if="isEditing" :disabled="disabled" type="button" class="file-selector btn" @click="selectFile">
     <span>{{ label }}</span>
     <input
       ref="uploader"

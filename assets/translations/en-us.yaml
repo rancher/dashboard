@@ -881,7 +881,7 @@ cluster:
   tabs:
     ace: Authorized Endpoint
     advanced: Advanced
-    agentEnv: Agent Environment
+    agentEnv: Agent Environment Vars
     basic: Basics
     cluster: Cluster Configuration
     networking: Networking
@@ -2467,7 +2467,7 @@ resourceDetail:
     age: Age
     defaultBannerMessage:
       error: This resource is currently in an error state, but there isn't a detailed message available.
-      transitioning: This resource is currently in a transitioning state,but there isn't a detailed message available.
+      transitioning: This resource is currently in a transitioning state, but there isn't a detailed message available.
     sensitive:
       hide: Hide Sensitive Values
       show: Show Sensitive Values

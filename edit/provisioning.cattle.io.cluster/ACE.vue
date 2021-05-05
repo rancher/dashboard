@@ -59,6 +59,7 @@ export default {
 
       <LabeledInput
         v-model="config.fqdn"
+        :mode="mode"
         label="FQDN"
         tooltip="A FQDN which will resolve to the healthy control plane nodes of the cluster."
       />
@@ -67,11 +68,12 @@ export default {
 
       <LabeledInput
         v-model="config.caCerts"
+        :mode="mode"
         label="CA Certificates"
         type="multiline"
         tooltip="Certificates required for the client to successfully verify the validity of the certificate returned by the endpoint."
       />
-      <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onCertSelected" />
+      <FileSelector :mode="mode" class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onCertSelected" />
     </template>
   </Tab>
 </template>

@@ -278,9 +278,9 @@ export default {
     <div v-else>
       <slot name="empty" />
     </div>
-    <div v-if="showAdd" class="footer">
+    <div v-if="showAdd && !isView" class="footer">
       <slot v-if="showAdd" name="add">
-        <button type="button" :disabled="isView" class="btn role-tertiary add" @click="add()">
+        <button type="button" class="btn role-tertiary add" @click="add()">
           {{ addLabel }}
         </button>
       </slot>

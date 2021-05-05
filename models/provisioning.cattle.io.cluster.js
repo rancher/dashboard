@@ -96,15 +96,15 @@ export default {
     if ( this.isImported ) {
       return null;
     } else if ( this.isRke2 ) {
-      const kind = this.spec?.rkeConfig?.nodePools?.[0]?.nodeConfigRef?.kind;
+      const kind = this.spec?.rkeConfig?.nodePools?.[0]?.nodeConfigRef?.kind.toLowerCase();
 
       if ( kind ) {
-        return kind.replace(/config$/i, '');
+        return kind.replace(/config$/i, '').toLowerCase();
       }
 
       return null;
     } else if ( this.mgmt ) {
-      return this.mgmt.nodeProvider;
+      return this.mgmt.nodeProvider.toLowerCase();
     }
   },
 
