@@ -12,6 +12,13 @@ const INACTIVITY_CHECK_TIMEOUT = 60000;
 
 let inactiveRemoveTimer = null;
 
+const INTERCEPTS = {
+  '/g/clusters':                   '/c/local/manager/provisioning.cattle.io.cluster',
+  '/g/catalog':                    '/c/local/mcapps/pages/catalogs',
+  '/g/security/cloud-credentials': '/c/local/manager/pages/cloud-credentials',
+  '/n/node-templates':             '/c/local/manager/pages/node-templates',
+};
+
 export default {
   components: { Loading },
 
@@ -193,11 +200,14 @@ export default {
         });
       } else if (msg.action === 'before-navigation') {
         // Ember willTransition event
-        // TODO: Maintain a map of routes that we want to intercept
-        if (msg.url === '/g/clusters' || msg.target === 'global-admin.clusters.index') {
-          this.loaded = false;
-          // Go to the vue clusters page when the Ember app goes back to the Cluster page
-          this.$router.replace('/c/local/manager/provisioning.cattle.io.cluster');
+        if (INTERCEPTS[msg.url]) {
+          const dest = INTERCEPTS[msg.url];
+
+          if (dest !== window.location.pathname) {
+            this.iframeEl.setAttribute('data-location', this.trimURL(msg.url));
+            this.loaded = false;
+            this.$router.replace(dest);
+          }
         }
       } else if (msg.action === 'after-navigation') {
         // Ember afterNavigation event

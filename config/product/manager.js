@@ -51,102 +51,32 @@ export function init(store) {
   });
 
   virtualType({
-    label:          'Global DNS Entries',
-    name:           'global-dns-entries',
+    label:          'Cloud Credentials',
+    name:           'rke-cloud-credentials',
     group:          'Root',
     namespaced:     false,
     weight:         112,
     icon:           'folder',
-    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'global-dns-entries' } },
+    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'cloud-credentials' } },
     exact:          true
   });
 
   virtualType({
-    label:          'Global DNS Providers',
-    name:           'global-dns-providers',
+    label:          'Node Templates',
+    name:           'rke-node-templates',
     group:          'Root',
     namespaced:     false,
     weight:         112,
     icon:           'folder',
-    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'global-dns-providers' } },
-    exact:          true
-  });
-
-  virtualType({
-    label:          'Cluster App Catalogs',
-    name:           'catalogs',
-    group:          'Root',
-    namespaced:     false,
-    weight:         112,
-    icon:           'folder',
-    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'catalogs' } },
+    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'node-templates' } },
     exact:          true
   });
 
   basicType([
     'rke-templates',
     'rke-drivers',
-  ], 'RKE Configuration');
-
-  // TODO: RKE
-  virtualType({
-    label:          'RKE Templates',
-    name:           'rke-templates',
-    group:          'Root',
-    namespaced:     false,
-    weight:         111,
-    icon:           'folder',
-    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'rke-templates' } },
-    exact:          true
-  });
-
-  virtualType({
-    label:          'RKE Drivers',
-    name:           'rke-drivers',
-    group:          'Root',
-    namespaced:     false,
-    weight:         112,
-    icon:           'folder',
-    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'rke-drivers' } },
-    exact:          true
-  });
-
-  virtualType({
-    label:          'Global DNS Entries',
-    name:           'global-dns-entries',
-    group:          'Root',
-    namespaced:     false,
-    weight:         112,
-    icon:           'folder',
-    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'global-dns-entries' } },
-    exact:          true
-  });
-
-  virtualType({
-    label:          'Global DNS Providers',
-    name:           'global-dns-providers',
-    group:          'Root',
-    namespaced:     false,
-    weight:         112,
-    icon:           'folder',
-    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'global-dns-providers' } },
-    exact:          true
-  });
-
-  virtualType({
-    label:          'Cluster App Catalogs',
-    name:           'catalogs',
-    group:          'Root',
-    namespaced:     false,
-    weight:         112,
-    icon:           'folder',
-    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'catalogs' } },
-    exact:          true
-  });
-
-  basicType([
-    'rke-templates',
-    'rke-drivers',
+    'rke-cloud-credentials',
+    'rke-node-templates'
   ], 'RKE Configuration');
 
   weightType(CAPI.MACHINE_DEPLOYMENT, 3, true);
