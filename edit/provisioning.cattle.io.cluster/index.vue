@@ -113,8 +113,6 @@ export default {
       const out = [];
 
       const templates = this.templateOptions;
-      // @TODO come from somewhere dynamic...
-      const templates = ['usertemplate1', 'usertemplate...', 'usertemplateN'];
       const machineTypes = getters['plugins/machineDrivers'];
       const kontainerTypes = getters['plugins/clusterDrivers'];
       const customTypes = ['custom'];
