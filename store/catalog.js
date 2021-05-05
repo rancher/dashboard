@@ -250,7 +250,7 @@ export const mutations = {
     state.namespacedRepos = namespaced;
   },
 
-  setCharts(state, { charts, errors, loaded }) {
+  setCharts(state, { charts, errors = [], loaded = [] }) {
     state.charts = charts;
     state.errors = errors;
 
@@ -360,6 +360,21 @@ export const actions = {
 
     return info;
   },
+
+  rehydrate(ctx) {
+    const { state, commit } = ctx;
+    const charts = state.charts || {};
+
+    Object.entries(state.charts).forEach(([key, chart]) => {
+      if (chart.__rehydrate) {
+        charts[key] = proxyFor(ctx, chart);
+      }
+    });
+    commit('setCharts', {
+      charts,
+      errors: state.errors,
+    });
+  }
 };
 
 function addChart(ctx, map, chart, repo) {
