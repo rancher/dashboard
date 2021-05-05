@@ -165,9 +165,6 @@ export default {
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         let icon = require('~/assets/images/generic-driver.svg');
 
-        console.log('--- provider ---');
-        console.log(id);
-
         if ( group !== 'template' ) {
           try {
             icon = require(`~/assets/images/providers/${ id }.svg`);
