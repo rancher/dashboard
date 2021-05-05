@@ -7,7 +7,6 @@ import {
 } from '@/config/table-headers';
 
 import { CAPI, METRIC, NODE } from '@/config/types';
-import { allHash } from '@/utils/promise';
 
 const METRICS_POLL_RATE_MS = 30000;
 const MAX_FAILURES = 2;

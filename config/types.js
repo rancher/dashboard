@@ -142,6 +142,7 @@ export const MANAGEMENT = {
   TOKEN:                         'management.cattle.io.token',
   GLOBAL_ROLE:                   'management.cattle.io.globalrole',
   GLOBAL_ROLE_BINDING:           'management.cattle.io.globalrolebinding',
+  POD_SECURITY_POLICY_TEMPLATE:  'management.cattle.io.podsecuritypolicytemplate',
 };
 
 export const CAPI = {

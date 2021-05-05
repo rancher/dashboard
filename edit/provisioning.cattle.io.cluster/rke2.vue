@@ -4,11 +4,14 @@ import CruResource from '@/components/CruResource';
 import Loading from '@/components/Loading';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
+import YamlEditor from '@/components/YamlEditor';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import ArrayList from '@/components/form/ArrayList';
+import Checkbox from '@/components/form/Checkbox';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import BadgeState from '@/components/BadgeState';
-import { SECRET } from '@/config/types';
+import { MANAGEMENT, SECRET } from '@/config/types';
 import { nlToBr } from '@/utils/string';
 import { clone, set } from '@/utils/object';
 import { sortable } from '@/utils/version';
@@ -16,10 +19,12 @@ import { sortBy } from '@/utils/sort';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { _CREATE } from '@/config/query-params';
 import { findBy, removeObject } from '@/utils/array';
+import difference from 'lodash/difference';
 import SelectCredential from './SelectCredential';
 import NodePool from './NodePool';
 import Labels from './Labels';
 import AgentEnv from './AgentEnv';
+import ACE from './ACE';
 
 export default {
   components: {
@@ -28,13 +33,17 @@ export default {
     Loading,
     Tabbed,
     Tab,
+    YamlEditor,
+    ArrayList,
+    Checkbox,
     SelectCredential,
     LabeledSelect,
     NodePool,
     BadgeState,
+    ACE,
     AgentEnv,
     Labels,
-    LabeledInput,
+    LabeledInput
   },
 
   mixins: [CreateEditView],
@@ -59,6 +68,10 @@ export default {
   async fetch() {
     this.allSecrets = await this.$store.dispatch('management/findAll', { type: SECRET });
 
+    if ( this.$store.getters['management/schemaFor'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
+      this.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
+    }
+
     this.rke2Versions = (await this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' })).data;
     this.k3sVersions = (await this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' })).data;
 
@@ -74,17 +87,27 @@ export default {
       set(this.value.spec, 'rkeConfig', {});
     }
 
+    if ( !this.value.spec.rkeConfig.upgradeStrategy ) {
+      set(this.value.spec.rkeConfig, 'upgradeStrategy', {
+        drainServerNodes:  true,
+        drainWorkerNodes:  true,
+        serverConcurrency: 1,
+        workerConcurrency: 1,
+      });
+    }
+
     if ( !this.value.spec.rkeConfig?.controlPlaneConfig ) {
       set(this.value.spec, 'rkeConfig.controlPlaneConfig', {});
     }
-
-    this.controlConfig = this.value.spec.rkeConfig.controlPlaneConfig;
 
     if ( !this.value.spec.rkeConfig?.workerConfig?.length ) {
       set(this.value.spec, 'rkeConfig.workerConfig', [{}]);
     }
 
-    this.workerConfig = this.value.spec.rkeConfig.workerConfig[0];
+    if ( !this.value.spec.defaultPodSecurityPolicyTemplateName ) {
+      set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', null);
+    }
+
     this.workerConfigSupported = this.value.spec.rkeConfig.workerConfig.length === 1 && !this.workerConfig.machineLabelSelector;
 
     if ( this.selectedVersion ) {
@@ -106,6 +129,7 @@ export default {
     return {
       lastIdx:               0,
       allSecrets:            null,
+      allPSPs:               null,
       nodeComponent:         null,
       credentialId:          null,
       credential:            null,
@@ -113,12 +137,22 @@ export default {
       rke2Versions:          null,
       k3sVersions:           null,
       workerConfigSupported: null,
-      workerConfig:          null,
-      controlConfig:         null,
     };
   },
 
   computed: {
+    rkeConfig() {
+      return this.value.spec.rkeConfig;
+    },
+
+    controlConfig() {
+      return this.value.spec.rkeConfig.controlPlaneConfig;
+    },
+
+    workerConfig() {
+      return this.value.spec.rkeConfig.workerConfig[0];
+    },
+
     versionOptions() {
       function filterAndMap(versions) {
         const out = (versions || []).filter(obj => !!obj.serverArgs).map((obj) => {
@@ -164,6 +198,36 @@ export default {
       return out;
     },
 
+    pspOptions() {
+      const out = [{ label: '(None)', value: null }];
+
+      if ( this.allPSPs ) {
+        for ( const pspt of this.allPSPs ) {
+          out.push({
+            label: pspt.nameDisplay,
+            value: pspt.id,
+          });
+        }
+      }
+
+      const cur = this.value.spec.defaultPodSecurityPolicyTemplateName;
+
+      if ( cur && !out.find(x => x.value === cur) ) {
+        out.unshift({ label: `${ cur } (Current)`, value: cur });
+      }
+
+      return out;
+    },
+
+    disableOptions() {
+      return this.selectedVersion.serverArgs.disable.options.map((value) => {
+        return {
+          label: this.$store.getters['i18n/withFallback'](`cluster.rke2.systemService."${ value }"`, null, value.replace(/^rke2-/, '')),
+          value,
+        };
+      });
+    },
+
     selectedVersion() {
       const str = this.value.spec.kubernetesVersion;
 
@@ -171,7 +235,9 @@ export default {
         return;
       }
 
-      return findBy(this.versionOptions, 'value', str);
+      const out = findBy(this.versionOptions, 'value', str);
+
+      return out;
     },
 
     serverArgs() {
@@ -270,7 +336,39 @@ export default {
       }
 
       return out;
-    }
+    },
+
+    enabledSystemServices: {
+      get() {
+        const out = difference(this.selectedVersion.serverArgs.disable.options, this.controlConfig.disable || []);
+
+        return out;
+      },
+
+      set(neu) {
+        const out = difference(this.selectedVersion.serverArgs.disable.options, neu);
+
+        set(this.controlConfig, 'disable', out);
+      },
+    },
+
+    showCloudConfigYaml() {
+      const name = this.workerConfig['cloud-provider-name'];
+
+      if ( !name ) {
+        return false;
+      }
+
+      switch ( name ) {
+      case 'none': return false;
+      case 'aws': return false;
+      default: return true;
+      }
+    },
+
+    showCni() {
+      return !!this.selectedVersion.serverArgs.cni;
+    },
   },
 
   watch: {
@@ -517,69 +615,217 @@ export default {
 
     <h2 v-t="'cluster.tabs.cluster'" />
     <Tabbed :side-tabs="true">
-      <Tab name="basic" label-key="cluster.tabs.basic" :weight="10">
-        <LabeledSelect
-          v-model="value.spec.kubernetesVersion"
-          :options="versionOptions"
-          label-key="cluster.kubernetesVersion.label"
-        />
-        <ul>
-          <li>Cloud Provider</li>
-          <li>Windows Support</li>
-        </ul>
+      <Tab name="basic" label-key="cluster.tabs.basic" :weight="10" @active="if ( $refs.cloudProvider ) $refs.cloudProvider.refresh()">
+        <div class="row">
+          <div class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
+            <LabeledSelect
+              v-model="value.spec.kubernetesVersion"
+              :options="versionOptions"
+              label-key="cluster.kubernetesVersion.label"
+            />
+          </div>
+          <div v-if="showCni" class="col span-4">
+            <LabeledSelect
+              v-model="controlConfig.cni"
+              :options="selectedVersion.serverArgs.cni.options"
+              label="Container Network Provider"
+            />
+          </div>
+          <div class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
+            <LabeledSelect
+              v-model="workerConfig['cloud-provider-name']"
+              :options="selectedVersion.agentArgs['cloud-provider-name'].options"
+              label="Cloud Provider"
+            />
+          </div>
+        </div>
+
+        <template v-if="showCloudConfigYaml">
+          <div class="spacer" />
+
+          <div class="col span-12">
+            <h3>Cloud Provider Config</h3>
+            <YamlEditor
+              ref="cloudProvider"
+              v-model="workerConfig['cloud-provider-config']"
+              initial-yaml-values="# Cloud Provider Config"
+              class="yaml-editor"
+            />
+          </div>
+        </template>
+
+        <div class="spacer" />
+
+        <h3>Security</h3>
+        <div class="row">
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="value.spec.defaultPodSecurityPolicyTemplateName"
+              :options="pspOptions"
+              label="Default Pod Security Policy"
+            />
+          </div>
+          <div class="col span-6 mt-10">
+            <div><Checkbox v-model="controlConfig['secrets-encryption']" label="Encrypt Secrets" /></div>
+            <div><Checkbox v-model="value.spec.enableNetworkPolicy" label="Project Network Isolation" /></div>
+          </div>
+        </div>
+        <div class="row">
+        </div>
+
+        <div class="spacer" />
+
+        <div class="row">
+          <div class="col span-12">
+            <div><h3>System Services</h3></div>
+            <Checkbox
+              v-for="opt in disableOptions"
+              :key="opt"
+              v-model="enabledSystemServices"
+              :label="opt.label"
+              :value-when-true="opt.value"
+            />
+          </div>
+        </div>
+
+        <div class="spacer" />
       </Tab>
-      <Tab name="server" label="Server Args" :weight="10">
-        <LabeledInput v-model="controlConfig['cluster-cidr']" label="Cluster CIDR" />
-        <LabeledInput v-model="controlConfig['service-cidr']" label="Service CIDR" />
-        <LabeledInput v-model="controlConfig['cluster-dns']" label="Cluster DNS" />
-        <LabeledInput v-model="controlConfig['cluster-domain']" label="Cluster Domain" />
-        <!-- :options="selectedVersion.serverArgs.cni.options" -->
-        <LabeledSelect
-          v-model="controlConfig.cni"
-          :options="[]"
-          label="Container Networking Interface Provider"
-        />
+
+      <Tab name="networking" label-key="cluster.tabs.networking" :weight="9">
+        <div v-if="currentVersion.serverArgs['service-node-port-range']" class="row mb-20">
+          <div class="col span-6">
+            <LabeledInput v-model="controlConfig['service-node-port-range']" label="NodePort Service Port Range" />
+          </div>
+        </div>
+
+        <div class="row mb-20">
+          <div v-if="currentVersion.serverArgs['cluster-cidr']" class="col span-6">
+            <LabeledInput v-model="controlConfig['cluster-cidr']" label="Cluster CIDR" />
+          </div>
+          <div v-if="currentVersion.serverArgs['service-cidr']" class="col span-6">
+            <LabeledInput v-model="controlConfig['service-cidr']" label="Service CIDR" />
+          </div>
+        </div>
+
+        <div class="row mb-20">
+          <div v-if="currentVersion.serverArgs['cluster-dns']" class="col span-6">
+            <LabeledInput v-model="controlConfig['cluster-dns']" label="Cluster DNS" />
+          </div>
+          <div v-if="currentVersion.serverArgs['cluster-domain']" class="col span-6">
+            <LabeledInput v-model="controlConfig['cluster-domain']" label="Cluster Domain" />
+          </div>
+        </div>
+
+        <div v-if="currentVersion.serverArgs['tls-san']" class="row mb-20">
+          <div class="col span-6">
+            <ArrayList :value="controlConfig['tls-san']" title="TLS Alternate Names" />
+          </div>
+        </div>
+      </Tab>
+
+      <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="8" @active="$refs.additionalManifest.refresh()">
+        <h3>Upgrade Strategy</h3>
+        <div class="row">
+          <div class="col span-4">
+            <LabeledInput v-model.number="rkeConfig.upgradeStrategy.serverConcurrency" label="Server Concurrency" />
+          </div>
+          <div class="col span-4">
+            <LabeledInput v-model.number="rkeConfig.upgradeStrategy.workerConcurrency" label="Worker Concurrency" />
+          </div>
+          <div class="col span-4 mt-10">
+            <div><Checkbox v-model="rkeConfig.upgradeStrategy.drainServerNodes" label="Drain Server Nodes" /></div>
+            <div><Checkbox v-model="rkeConfig.upgradeStrategy.drainWorkerNodes" label="Drain Worker Nodes" /></div>
+          </div>
+        </div>
+
+        <div class="spacer" />
+
+        <h3>CIS Profile Validation</h3>
+        <div class="row">
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="controlConfig.profile"
+              :options="selectedVersion.serverArgs.profile.options"
+              label="Server CIS Profile"
+            />
+          </div>
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="workerConfig.profile"
+              :options="selectedVersion.agentArgs.profile.options"
+              label="Worker CIS Profile"
+            />
+          </div>
+        </div>
+
+        <div class="spacer" />
+
+        <div class="row">
+          <div class="col span-12">
+            <Checkbox v-model="workerConfig['protect-kernel-defaults']" label="Raise error if kernel parameters are different than the expected kubelet defaults." />
+          </div>
+        </div>
+
+        <div class="spacer" />
+
+        <div class="row">
+          <div class="col span-6">
+            <ArrayList :value="workerConfig['kubelet-arg']" title="Additional Kubelet Args" class="mb-20" />
+            <ArrayList :value="controlConfig['kube-controller-manager-arg']" title="Additional Controller Manager Args" class="mb-20" />
+          </div>
+          <div class="col span-6">
+            <ArrayList :value="controlConfig['kube-apiserver-arg']" title="Additional API Server Args" class="mb-20" />
+            <ArrayList :value="controlConfig['kube-scheduler-arg']" title="Additional Scheduler Args" />
+          </div>
+        </div>
+
+        <div class="spacer" />
+
+        <div>
+          <h3>
+            Additional Manifest
+            <i v-tooltip="'Additional Kubernetes Manifet YAML to be applied to the cluster on startup.'" class="icon icon-info" />
+          </h3>
+          <YamlEditor
+            ref="additionalManifest"
+            v-model="rkeConfig.additionalManifest"
+            initial-yaml-values="# Additional Manifest YAML"
+            class="yaml-editor"
+          />
+        </div>
+      </Tab>
+
+      <Tab name="TBD" :weight="-1">
+        <div><b>??</b></div>
+        <ul>
+          <li>Snapshot Backups</li>
+          <li>Private Registry</li>
+          <li>CNI MTU</li>
+          <li>Ingress Default Backend</li>
+        </ul>
+
+        <div><b>ServerArgs:</b></div>
         <ul>
           <li>audit-policy-file</li>
-          <li>disable: <span v-if="false">{{ selectedVersion.serverArgs.disable.options.join(", ") }}</span></li>
+          <li>disable: <span>{{ selectedVersion.serverArgs.disable.options.join(", ") }}</span></li>
           <li>etcd-disabled-snapshots</li>
           <li>etcd-expose-metrics</li>
           <li>etcd-snapshot-dir</li>
           <li>etcd-snapshot-name</li>
           <li>etcd-snapshot-retention</li>
           <li>etcd-snapshot-schedule-cron</li>
-          <li>kube-apiserver-arg[]</li>
-          <li>kube-controller-manager-arg[]</li>
-          <li>kube-scheduler-arg[]</li>
-          <li>profile: <span v-if="false">{{ selectedVersion.profile.options.join(", ") }}</span></li>
-          <li>secrets-encryption</li>
-          <li>tls-san[]</li>
+          <li>profile: <span>{{ selectedVersion.serverArgs.profile.options.join(", ") }}</span></li>
         </ul>
-      </Tab>
-
-      <Tab name="networking" label-key="cluster.tabs.networking" :weight="9">
+        <div><b>AgentArgs:</b></div>
         <ul>
-          <li>Network Provider</li>
-          <li>Project Network Isolation</li>
-          <li>CNI MTU</li>
-          <li>Ingress Enabled</li>
-          <li>Ingress Default Backend</li>
-          <li>Node Port Range</li>
+          <li>audit-policy-file</li>
+          <li>profile: <span>{{ selectedVersion.agentArgs.profile.options.join(", ") }}</span></li>
+          <li>protect-kernel-defaults</li>
+          <li>selinux</li>
+          <li>system-default-registry</li>
         </ul>
       </Tab>
-      <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="8">
-        <ul>
-          <li>PSPs</li>
-          <li>Docker Version</li>
-          <li>Docker Root Dir</li>
-          <li>Snapshot Backups</li>
-          <li>Secrets Encryption</li>
-          <li>CIS Scan Schedule</li>
-          <li>Max Unavailable / Drain nodes</li>
-          <li>Authorized Cluster Endpoint</li>
-          <li>Private Registry</li>
-        </ul>
-      </Tab>
+      <ACE v-model="value" :mode="mode" />
       <AgentEnv v-model="value" :mode="mode" />
       <Labels v-model="value" :mode="mode" />
     </Tabbed>
