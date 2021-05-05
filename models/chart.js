@@ -2,7 +2,6 @@ import { compatibleVersionsFor } from '@/store/catalog';
 import {
   REPO_TYPE, REPO, CHART, VERSION, FROM_TOOLS, _FLAGGED, _UNFLAG
 } from '@/config/query-params';
-import { NAME as APPS } from '@/config/product/apps';
 
 export default {
   goToInstall() {
@@ -25,11 +24,8 @@ export default {
 
       this.currentRouter().push({
         name:   'c-cluster-apps-install',
-        params: {
-          cluster:  currentCluster.id,
-          product:  APPS,
-        },
-        query: {
+        params: { cluster: currentCluster.id },
+        query:  {
           [REPO_TYPE]:  this.repoType,
           [REPO]:       this.repoName,
           [CHART]:      this.chartName,

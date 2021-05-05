@@ -59,7 +59,7 @@ export default {
     opacity: 0.5;
   }
   &:hover {
-    background-color: #eee;
+    background-color: var(--wm-closer-hover-bg);
   }
 }
 </style>

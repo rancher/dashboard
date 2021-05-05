@@ -1,70 +1,64 @@
 <script>
-import isEqual from 'lodash/isEqual';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
-import { mapGetters } from 'vuex';
-import AsyncButton from '@/components/AsyncButton';
+import { mapPref, DIFF } from '@/store/prefs';
+
 import Banner from '@/components/Banner';
+import ButtonGroup from '@/components/ButtonGroup';
+import ChartReadme from '@/components/ChartReadme';
 import Checkbox from '@/components/form/Checkbox';
-import CruResourceFooter from '@/components/CruResourceFooter';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LazyImage from '@/components/LazyImage';
 import Loading from '@/components/Loading';
-import Markdown from '@/components/Markdown';
 import NameNsDescription from '@/components/form/NameNsDescription';
+import ResourceCancelModal from '@/components/ResourceCancelModal';
 import Questions from '@/components/Questions';
-import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import UnitInput from '@/components/form/UnitInput';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
+import Wizard from '@/components/Wizard';
 
 import { CATALOG, MANAGEMENT } from '@/config/types';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT, _FLAGGED, FORCE, DEPRECATED, HIDDEN, FROM_TOOLS,
+  CHART, FROM_TOOLS, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
 } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION, PROJECT } from '@/config/labels-annotations';
-import { exceptionToErrorsArray, stringify } from '@/utils/error';
+import { exceptionToErrorsArray } from '@/utils/error';
 import { clone, diff, get, set } from '@/utils/object';
 import { findBy, insertAt } from '@/utils/array';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
-import { formatSi, parseSi } from '@/utils/units';
-import { SHOW_PRE_RELEASE, mapPref } from '@/store/prefs';
-import { compare, isPrerelease } from '@/utils/version';
-import { NAME as EXPLORER } from '@/config/product/explorer';
+import ChartMixin from '@/pages/c/_cluster/apps/chart_mixin';
+import isEqual from 'lodash/isEqual';
 
 export default {
   name: 'Install',
 
   components: {
-    AsyncButton,
     Banner,
+    ButtonGroup,
+    ChartReadme,
     Checkbox,
-    CruResourceFooter,
     LabeledSelect,
     LazyImage,
     Loading,
-    Markdown,
     NameNsDescription,
+    ResourceCancelModal,
     Questions,
-    Tab,
     Tabbed,
     UnitInput,
     YamlEditor,
+    Wizard
   },
 
-  mixins: [ChildHook],
+  mixins: [
+    ChildHook,
+    ChartMixin
+  ],
 
   async fetch() {
-    this.warnings = [];
-    this.requires = [];
+    await this.baseFetch();
+
     this.errors = [];
-
-    const query = this.$route.query;
-
-    this.showDeprecated = query[DEPRECATED] === _FLAGGED;
-    this.showHidden = query[HIDDEN] === _FLAGGED;
-
-    await this.$store.dispatch('catalog/load');
 
     this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
@@ -76,60 +70,11 @@ export default {
       id:   'server-url'
     });
 
-    const repoType = query[REPO_TYPE];
-    const repoName = query[REPO];
-    const chartName = query[CHART];
-    let versionName = query[VERSION];
-    const appNamespace = query[NAMESPACE] || '';
-    const appName = query[NAME] || '';
-
-    if ( this.repo && chartName ) {
-      this.chart = this.$store.getters['catalog/chart']({
-        repoType,
-        repoName,
-        chartName,
-        includeHidden: true,
-      });
-    }
-
-    if ( appNamespace && appName ) {
-      // Explicitly asking for edit
-
-      try {
-        this.existing = await this.$store.dispatch('cluster/find', {
-          type: CATALOG.APP,
-          id:   `${ appNamespace }/${ appName }`,
-        });
-
-        this.mode = _EDIT;
-      } catch (e) {
-        this.mode = _CREATE;
-        this.existing = null;
-      }
-    } else if ( this.chart?.targetNamespace && this.chart?.targetName ) {
-      // Asking to install a special chart with fixed namespace/name
-      // so edit it if there's an existing install
-
-      try {
-        this.existing = await this.$store.dispatch('cluster/find', {
-          type: CATALOG.APP,
-          id:   `${ this.chart.targetNamespace }/${ this.chart.targetName }`,
-        });
-        this.mode = _EDIT;
-      } catch (e) {
-        this.mode = _CREATE;
-        this.existing = null;
-      }
-    } else {
-      // Regular create
-
-      this.mode = _CREATE;
-    }
     this.value = await this.$store.dispatch('cluster/create', {
       type:     'chartInstallAction',
       metadata: {
-        namespace: this.existing ? this.existing.spec.namespace : appNamespace,
-        name:      this.existing ? this.existing.spec.name : appName,
+        namespace: this.existing ? this.existing.spec.namespace : this.query.appNamespace,
+        name:      this.existing ? this.existing.spec.name : this.query.appName,
       }
     });
 
@@ -139,8 +84,8 @@ export default {
     } else {
       if ( this.chart?.targetNamespace ) {
         this.forceNamespace = this.chart.targetNamespace;
-      } else if ( query[NAMESPACE] ) {
-        this.forceNamespace = query[NAMESPACE];
+      } else if ( this.query.appNamespace ) {
+        this.forceNamespace = this.query.appNamespace;
       } else {
         this.forceNamespace = null;
       }
@@ -148,14 +93,14 @@ export default {
       if ( this.chart?.targetName ) {
         this.value.metadata.name = this.chart.targetName;
         this.nameDisabled = true;
-      } else if ( query[NAME] ) {
-        this.value.metadata.name = query[name];
+      } else if ( this.query.appName ) {
+        this.value.metadata.name = this.query.appName;
       } else {
         this.nameDisabled = false;
       }
 
-      if ( query[DESCRIPTION_QUERY] ) {
-        this.value.setAnnotation(DESCRIPTION_ANNOTATION, query[DESCRIPTION_QUERY]);
+      if ( this.query.description ) {
+        this.value.setAnnotation(DESCRIPTION_ANNOTATION, this.query.description);
       }
     }
 
@@ -172,103 +117,12 @@ export default {
       } catch {}
     }
 
-    if ( !this.chart ) {
+    if ( !this.chart || !this.query.versionName) {
       return;
-    }
-
-    if ( !versionName && this.chart.versions?.length ) {
-      versionName = this.chart.versions[0].version;
-    }
-
-    if ( !versionName ) {
-      return;
-    }
-
-    this.version = this.$store.getters['catalog/version']({
-      repoType, repoName, chartName, versionName
-    });
-
-    try {
-      this.versionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
-        repoType, repoName, chartName, versionName
-      });
-    } catch (e) {
-      console.error(e); // eslint-disable-line no-console
-      this.versionInfo = null;
     }
 
     if ( this.version && process.client ) {
       await this.loadValuesComponent();
-    }
-
-    const required = (this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUIRES_GVK] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
-
-    if ( required.length ) {
-      for ( const gvr of required ) {
-        if ( this.$store.getters['catalog/isInstalled']({ gvr }) ) {
-          continue;
-        }
-
-        const provider = this.$store.getters['catalog/versionProviding']({
-          gvr,
-          repoName: this.chart.repoName,
-          repoType: this.chart.repoType
-        });
-
-        const url = this.$router.resolve({
-          name:   'c-cluster-apps-install',
-          params: {
-            cluster:  this.$route.params.cluster,
-            product:  this.$store.getters['productId'],
-          },
-          query: {
-            [REPO_TYPE]: provider.repoType,
-            [REPO]:      provider.repoName,
-            [CHART]:     provider.name,
-            [VERSION]:   provider.version,
-          }
-        }).href;
-
-        if ( provider ) {
-          this.requires.push(this.t('catalog.install.error.requiresFound', {
-            url,
-            name: provider.name
-          }, true));
-        } else {
-          this.requires.push(this.t('catalog.install.error.requiresMissing', { name: gvr }));
-        }
-      }
-    }
-
-    this.warnings = [];
-
-    if ( this.existing || query[FORCE] === _FLAGGED ) {
-      // Ignore the limits on upgrade (or if asked by query) and don't show any warnings
-    } else {
-      const needCpu = parseSi(this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUESTS_CPU] || '0');
-      const needMemory = parseSi(this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUESTS_MEMORY] || '0');
-
-      // Note: These are null if unknown
-      const availableCpu = this.currentCluster.availableCpu;
-      const availableMemory = this.currentCluster.availableMemory;
-
-      if ( availableCpu !== null && availableCpu < needCpu ) {
-        this.warnings.push(this.t('catalog.install.error.insufficientCpu', {
-          need: Math.round(needCpu * 100) / 100,
-          have: Math.round(availableCpu * 100) / 100,
-        }));
-      }
-
-      if ( availableMemory !== null && availableMemory < needMemory ) {
-        this.warnings.push(this.t('catalog.install.error.insufficientMemory', {
-          need: formatSi(needMemory, {
-            increment: 1024, suffix: 'iB', firstSuffix: 'B'
-          }),
-          have: formatSi(availableMemory, {
-            increment: 1024, suffix: 'iB', firstSuffix: 'B'
-          }),
-        }));
-      }
     }
 
     if ( !this.loadedVersion || this.loadedVersion !== this.version.key ) {
@@ -308,15 +162,14 @@ export default {
       this.loadedVersionValues = this.versionInfo?.values || {};
       this.loadedVersion = this.version?.key;
     }
+
+    this.updateStepOneReady();
   },
 
   data() {
     return {
-      showHidden:             false,
-      showDeprecated:         false,
       defaultRegistrySetting: null,
       serverUrlSetting:       null,
-      chart:                  null,
       chartValues:            null,
       originalYamlValues:     null,
       previousYamlValues:     null,
@@ -329,11 +182,7 @@ export default {
       value:                  null,
       valuesComponent:        null,
       valuesYaml:             '',
-      version:                null,
-      versionInfo:            null,
       project:                null,
-      requires:               [],
-      warnings:               [],
 
       crds:                true,
       cleanupOnFail:       false,
@@ -342,26 +191,39 @@ export default {
       nameDisabled:        false,
       openApi:             true,
       resetValues:         false,
-      defaultTab:          'appReadme',
       showPreview:         false,
+      preShowPreview:      false,
       showDiff:            false,
       showValuesComponent: true,
       showQuestions:       true,
+      showSlideIn:         false,
       componentHasTabs:    false,
       wait:                true,
 
       historyMax: 5,
       timeout:    600,
 
-      catalogOSAnnotation: CATALOG_ANNOTATIONS.SUPPORTED_OS,
+      steps: [{
+        name:        'basics',
+        label:       this.t('catalog.install.steps.basics.label'),
+        subtext:     this.t('catalog.install.steps.basics.subtext'),
+        ready:       true,
+      }, {
+        name:        'helmValues',
+        label:       this.t('catalog.install.steps.helmValues.label'),
+        subtext:     this.t('catalog.install.steps.helmValues.subtext'),
+        ready:       true,
+      }, {
+        name:        'helmCli',
+        label:       this.t('catalog.install.steps.helmCli.label'),
+        subtext:     this.t('catalog.install.steps.helmCli.subtext'),
+        ready:       true,
+      }],
+
     };
   },
 
   computed: {
-    ...mapGetters(['currentCluster', 'isRancher']),
-
-    showPreRelease: mapPref(SHOW_PRE_RELEASE),
-
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
       const want = this.value?.metadata?.namespace;
@@ -378,7 +240,7 @@ export default {
     },
 
     projectOpts() {
-      const cluster = this.$store.getters['currentCluster'];
+      const cluster = this.currentCluster;
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
       const out = projects.filter(x => x.spec.clusterName === cluster.id).map((project) => {
@@ -434,18 +296,6 @@ export default {
       return out;
     },
 
-    repo() {
-      const query = this.$route.query;
-      const repoType = query[REPO_TYPE];
-      const repoName = query[REPO];
-
-      return this.$store.getters['catalog/repo']({ repoType, repoName });
-    },
-
-    showReadme() {
-      return !!this.versionInfo?.readme;
-    },
-
     showNameEditor() {
       return !this.nameDisabled || !this.forceNamespace;
     },
@@ -480,55 +330,58 @@ export default {
       return this.showPreview || ( !this.valuesComponent && !this.hasQuestions );
     },
 
-    filteredVersions() {
-      const {
-        currentCluster,
-        catalogOSAnnotation,
-      } = this;
-      const versions = this.chart?.versions || [];
-      const selectedVersion = this.version?.version;
-      const isWindows = currentCluster.providerOs === 'windows';
-      const out = [];
-
-      versions.forEach((version) => {
-        const nue = {
-          label:    version.version,
-          id:       version.version,
-          disabled: false,
-        };
-
-        if ( version?.annotations?.[catalogOSAnnotation] === 'windows' ) {
-          nue.label = this.t('catalog.install.versions.windows', { ver: version.version });
-
-          if ( !isWindows ) {
-            nue.disabled = true;
-          }
-        } else if ( version?.annotations?.[catalogOSAnnotation] === 'linux' ) {
-          nue.label = this.t('catalog.install.versions.linux', { ver: version.version });
-
-          if ( isWindows ) {
-            nue.disabled = true;
-          }
-        }
-
-        if ( this.showPreRelease || !isPrerelease(version.version) ) {
-          out.push(nue);
-        }
-      });
-
-      const selectedMatch = out.find(v => v.id === selectedVersion);
-
-      if (!selectedMatch) {
-        out.push({ value: selectedVersion, label: this.t('catalog.install.versions.current', { ver: selectedVersion }) });
-      }
-
-      out.sort((a, b) => {
-        // Swapping a and b to get descending order
-        return compare(b.id, a.id);
-      });
-
-      return out;
+    formYamlOptions() {
+      return [{
+        labelKey: 'catalog.install.section.chartOptions',
+        value:    false,
+      }, {
+        labelKey: 'catalog.install.section.valuesYaml',
+        value:    true,
+      }];
     },
+
+    editYamlOptions() {
+      return [{
+        labelKey: 'resourceYaml.buttons.edit',
+        value:    false,
+      }, {
+        labelKey: 'resourceYaml.buttons.diff',
+        value:    true,
+      }];
+    },
+
+    yamlDiffModeOptions() {
+      return [{
+        labelKey: 'resourceYaml.buttons.unified',
+        value:    'unified',
+      }, {
+        labelKey: 'resourceYaml.buttons.split',
+        value:    'split',
+      }];
+    },
+
+    stepperName() {
+      return this.existing?.nameDisplay || this.chart.chartDisplayName;
+    },
+
+    stepperSubtext() {
+      return this.existing && this.currentVersion !== this.targetVersion ? `${ this.currentVersion } > ${ this.targetVersion }` : this.targetVersion;
+    },
+
+    diffMode: mapPref(DIFF),
+
+    step1Description() {
+      return this.$store.getters['i18n/exists']('catalog.install.steps.basics.description') ? this.t('catalog.install.steps.basics.description', { action: this.action }, true) : '';
+    },
+
+    step2Description() {
+      return this.$store.getters['i18n/exists']('catalog.install.steps.helmValues.description') ? this.t('catalog.install.steps.helmValues.description', { action: this.action }, true) : '';
+    },
+
+    step3Description() {
+      return this.$store.getters['i18n/exists']('catalog.install.steps.helmCli.description') ? this.t('catalog.install.steps.helmCli.description', { action: this.action }, true) : '';
+    },
+
   },
 
   watch: {
@@ -548,7 +401,46 @@ export default {
           this.project = project.replace(':', '/');
         }
       }
-    }
+    },
+
+    preShowPreview(neu) {
+      if (!neu && this.valuesYaml !== this.previousYamlValues) {
+        this.$refs.cancelModal.show();
+      } else {
+        this.showPreview = this.preShowPreview;
+      }
+    },
+
+    showPreview(neu) {
+      if (neu) {
+        // Show the YAML preview
+        this.valuesYaml = jsyaml.safeDump(this.chartValues || {});
+        this.previousYamlValues = this.valuesYaml;
+
+        this.showValuesComponent = false;
+        this.showQuestions = false;
+      } else {
+        // Return to form, reset everything back to starting point
+        this.showValuesComponent = true;
+        this.showQuestions = true;
+
+        this.showDiff = false;
+        this.valuesYaml = this.previousYamlValues;
+      }
+    },
+
+    requires() {
+      this.updateStepOneReady();
+    },
+
+    warnings() {
+      this.updateStepOneReady();
+    },
+
+    ignoreWarning() {
+      this.updateStepOneReady();
+    },
+
   },
 
   mounted() {
@@ -564,7 +456,6 @@ export default {
   },
 
   methods: {
-    stringify,
 
     async loadValuesComponent() {
       // TODO: Remove RELEASE_NAME. This is only in until the component annotation is added to the OPA Gatekeeper chart
@@ -590,7 +481,7 @@ export default {
       }
     },
 
-    selectChart(chart, version) {
+    selectChart(chart) {
       if ( !chart ) {
         return;
       }
@@ -599,82 +490,27 @@ export default {
         [REPO]:      chart.repoName,
         [REPO_TYPE]: chart.repoType,
         [CHART]:     chart.chartName,
-        [VERSION]:   version || chart.versions[0].version
+        [VERSION]:   chart.versions[0].version
       });
     },
 
-    selectVersion({ id: version }) {
-      this.$router.applyQuery({ [VERSION]: version });
-    },
-
-    preview() {
-      this.valuesYaml = jsyaml.safeDump(this.chartValues || {});
-      this.previousYamlValues = this.valuesYaml;
-
-      this.showPreview = true;
-      this.showValuesComponent = false;
-      this.showQuestions = false;
-
-      this.$nextTick(() => {
-        this.$refs.tabs.select('values-yaml');
-      });
-    },
-
-    unpreview() {
-      this.showPreview = false;
-      this.showValuesComponent = true;
-      this.showQuestions = true;
-    },
-
-    diff() {
-      this.showDiff = true;
-    },
-
-    undiff() {
-      this.showDiff = false;
-    },
-
-    ignoreWarning() {
-      this.$router.applyQuery({ [FORCE]: _FLAGGED });
-    },
-
-    cancel(reallyCancel) {
-      if (!reallyCancel && this.showPreview) {
-        return this.resetFromBack();
-      }
-
+    cancel() {
       if ( this.existing ) {
         this.done();
+      } else if (this.$route.query[FROM_TOOLS] === _FLAGGED) {
+        this.$router.replace(this.clusterToolsLocation());
       } else {
-        this.$router.replace({ name: 'c-cluster-apps' });
+        this.$router.replace(this.chartLocation(false));
       }
-    },
-
-    async resetFromBack() {
-      await this.unpreview();
-      await this.undiff();
-      this.valuesYaml = this.previousYamlValues;
     },
 
     done() {
       if ( this.$route.query[FROM_TOOLS] === _FLAGGED ) {
-        this.$router.replace({
-          name:   `c-cluster-explorer-tools`,
-          params: {
-            product:   EXPLORER,
-            cluster:   this.$store.getters['clusterId'],
-            resource:  CATALOG.APP,
-          }
-        });
+        this.$router.replace(this.clusterToolsLocation());
       } else {
-        this.$router.replace({
-          name:   `c-cluster-product-resource`,
-          params: {
-            product:   this.$store.getters['productId'],
-            cluster:   this.$store.getters['clusterId'],
-            resource:  CATALOG.APP,
-          }
-        });
+        // If the create app process fails helm validation then we still get here... so until this is fixed new apps will be taken to the
+        // generic apps list (existing apps will be taken to their detail page)
+        this.$router.replace(this.appLocation());
       }
     },
 
@@ -733,7 +569,7 @@ export default {
         set(values.global, 'cattle', cattle);
       }
 
-      const cluster = this.$store.getters['currentCluster'];
+      const cluster = this.currentCluster;
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
       const serverUrl = this.serverUrlSetting?.value || '';
       const isWindows = cluster.providerOs === 'windows';
@@ -817,13 +653,19 @@ export default {
       } catch (err) {
         return { errors: exceptionToErrorsArray(err) };
       }
+
+      return { errors: [] };
     },
 
     actionInput(isUpgrade) {
       const fromChart = this.versionInfo?.values || {};
 
+      const errors = [];
+
       if ( this.showingYaml ) {
-        this.applyYamlToValues();
+        const { errors: yamlErrors } = this.applyYamlToValues();
+
+        errors.push(...yamlErrors);
       }
 
       // Only save the values that differ from the chart's standard values.yaml
@@ -836,7 +678,7 @@ export default {
 
       const chart = {
         chartName:   this.chart.chartName,
-        version:     this.version.version,
+        version:     this.version?.version || this.query.versionName,
         releaseName: form.metadata.name,
         description: form.metadata?.annotations?.[DESCRIPTION_ANNOTATION],
         annotations: {
@@ -850,7 +692,6 @@ export default {
         chart.resetValues = this.resetValues;
       }
 
-      const errors = [];
       const out = {
         charts:    [chart],
         noHooks:   this.hooks === false,
@@ -921,345 +762,291 @@ export default {
       return { errors, input: out };
     },
 
-    tabChanged({ tab }) {
+    tabChanged() {
       window.scrollTop = 0;
+    },
 
-      if ( tab.name === 'values-yaml' ) {
-        this.$nextTick(() => {
-          if ( this.$refs.yaml ) {
-            this.$refs.yaml.refresh();
-            this.$refs.yaml.focus();
-          }
-        });
-      }
+    updateStepOneReady() {
+      const okRequires = !this.requires.length;
+      const okWarnings = !this.warnings.length || this.ignoreWarning;
+      const okChart = !!this.chart;
+
+      this.steps[0].ready = okRequires && okWarnings && okChart;
     },
 
     getOptionLabel(opt) {
       return opt?.chartDisplayName;
     },
+
   },
 };
 </script>
 
 <template>
   <Loading v-if="$fetchState.pending" />
-
-  <form v-else>
-    <h1 v-if="existing">
-      <t k="catalog.install.header.upgrade" :name="existing.nameDisplay" />
-    </h1>
-    <h1 v-else-if="chart">
-      <t k="catalog.install.header.install" :name="chart.chartDisplayName" />
-    </h1>
-    <h1 v-else>
-      <t k="catalog.install.header.installGeneric" />
-    </h1>
-
-    <div v-if="chart" class="chart-info mb-20">
-      <div class="logo-container">
+  <div v-else class="install-steps">
+    <Wizard
+      v-if="value"
+      :steps="steps"
+      :errors="errors"
+      :edit-first-step="true"
+      :banner-title="stepperName"
+      :banner-title-subtext="stepperSubtext"
+      :finish-mode="action"
+      class="wizard"
+      @cancel="cancel"
+      @finish="finish"
+    >
+      <template #bannerTitleImage>
         <div class="logo-bg">
-          <LazyImage :src="chart.icon" class="logo" />
+          <LazyImage :src="chart ? chart.icon : ''" class="logo" />
         </div>
-      </div>
-      <div class="description">
-        <p>
-          {{ chart.description }}
-        </p>
-      </div>
-    </div>
+      </template>
+      <template #basics>
+        <div class="step__basic">
+          <p v-if="step1Description" class="row mb-10">
+            {{ step1Description }}
+          </p>
+          <div v-if="requires.length || warnings.length" class="mb-30">
+            <Banner v-for="msg in requires" :key="msg" color="error">
+              <span v-html="msg" />
+            </Banner>
 
-    <template v-if="requires.length || warnings.length">
-      <Banner v-for="msg in requires" :key="msg" color="warning">
-        <span v-html="msg" />
-      </Banner>
+            <Banner v-for="msg in warnings" :key="msg" color="warning">
+              <span v-html="msg" />
+            </Banner>
 
-      <Banner v-for="msg in warnings" :key="msg" color="error">
-        <span v-html="msg" />
-      </Banner>
-
-      <div class="mt-20 text-center">
-        <button v-if="warnings.length" type="button" class="btn bg-error" @click="ignoreWarning">
-          <t k="catalog.install.action.ignoreWarning" />
-        </button>
-        <button type="button" class="btn role-primary" @click="cancel">
-          <t k="generic.cancel" />
-        </button>
-      </div>
-    </template>
-
-    <template v-else>
-      <div class="row mb-20">
-        <div class="col span-6">
-          <LabeledSelect
-            :label="t('catalog.install.chart')"
-            :value="chart"
-            :options="charts"
-            :selectable="option => !option.disabled"
-            :get-option-label="opt => getOptionLabel(opt)"
-            option-key="key"
-            @input="selectChart($event)"
-          >
-            <template v-slot:option="opt">
-              <template v-if="opt.kind === 'divider'">
-                <hr />
-              </template>
-              <template v-else-if="opt.kind === 'label'">
-                <b style="position: relative; left: -2.5px;">{{ opt.label }}</b>
-              </template>
-            </template>
-          </LabeledSelect>
-        </div>
-        <div v-if="chart" class="col span-6">
-          <LabeledSelect
-            :label="t('catalog.install.version')"
-            :value="$route.query.version"
-            :options="filteredVersions"
-            :selectable="version => !version.disabled"
-            @input="selectVersion"
-          />
-        </div>
-      </div>
-      <div v-if="chart && value">
-        <NameNsDescription
-          v-model="value"
-          :mode="mode"
-          :name-disabled="nameDisabled"
-          :name-required="false"
-          :name-ns-hidden="!showNameEditor"
-          :force-namespace="forceNamespace"
-          :namespace-new-allowed="!existing && !forceNamespace"
-          :extra-columns="showProject ? ['project'] : []"
-        >
-          <template v-if="showProject" #project>
-            <LabeledSelect
-              v-model="project"
-              :disabled="!namespaceIsNew"
-              :label="t('catalog.install.project')"
-              option-key="id"
-              :options="projectOpts"
-              :tooltip="!namespaceIsNew ? t('catalog.install.namespaceIsInProject', {namespace: value.metadata.namespace}, true) : ''"
-              :hover-tooltip="!namespaceIsNew"
-              :status="'info'"
-            />
-          </template>
-        </NameNsDescription>
-
-        <Tabbed
-          ref="tabs"
-          :side-tabs="true"
-          :class="{'with-name': showNameEditor}"
-          :default-tab="defaultTab"
-          @changed="tabChanged($event)"
-        >
-          <Tab name="appReadme" :label="t('catalog.install.section.appReadme')" :weight="100">
-            <Markdown v-if="versionInfo && versionInfo.appReadme" v-model="versionInfo.appReadme" class="md md-desc" />
-            <Markdown v-else :value="t('catalog.install.appReadmeGeneric')" class="md md-desc" />
-          </Tab>
-
-          <template v-if="valuesComponent && showValuesComponent">
-            <component
-              :is="valuesComponent"
-              v-if="componentHasTabs"
-              v-model="chartValues"
-              :mode="mode"
-              :chart="chart"
-              :existing="existing"
-              :version="version"
-              :version-info="versionInfo"
-              @warn="e=>warnings.push(e)"
-              @register-before-hook="registerBeforeHook"
-              @register-after-hook="registerAfterHook"
-            />
-            <Tab
-              v-else
-              name="values-form"
-              :label="t('catalog.install.section.chartOptions')"
-            >
-              <component
-                :is="valuesComponent"
-                v-if="valuesComponent"
-                v-model="chartValues"
-                :mode="mode"
-                :chart="chart"
-                :existing="existing"
-                :version="version"
-                :version-info="versionInfo"
-                @warn="e=>warnings.push(e)"
-                @register-before-hook="registerBeforeHook"
-                @register-after-hook="registerAfterHook"
+            <Checkbox v-if="warnings.length" v-model="ignoreWarning" label-key="catalog.install.action.ignoreWarning" />
+          </div>
+          <div v-if="existing" class="row mb-10">
+            <div class="col span-6">
+              <!-- We have a chart, select a new version -->
+              <LabeledSelect
+                v-if="chart"
+                :label="t('catalog.install.version')"
+                :value="query.versionName"
+                :options="filteredVersions"
+                :selectable="version => !version.disabled"
+                @input="selectVersion"
               />
-              <Tab
+              <!-- There is no chart, let the user try to select one -->
+              <LabeledSelect
                 v-else
-                name="values-form"
-                :label="t('catalog.install.section.chartOptions')"
+                :label="t('catalog.install.chart')"
+                :value="chart"
+                :options="charts"
+                :selectable="option => !option.disabled"
+                :get-option-label="opt => getOptionLabel(opt)"
+                option-key="key"
+                @input="selectChart($event)"
               >
+                <template v-slot:option="opt">
+                  <template v-if="opt.kind === 'divider'">
+                    <hr />
+                  </template>
+                  <template v-else-if="opt.kind === 'label'">
+                    <b style="position: relative; left: -2.5px;">{{ opt.label }}</b>
+                  </template>
+                </template>
+              </LabeledSelect>
+            </div>
+          </div>
+
+          <NameNsDescription
+            v-if="chart"
+            v-model="value"
+            :mode="mode"
+            :name-disabled="nameDisabled"
+            :name-required="false"
+            :name-ns-hidden="!showNameEditor"
+            :force-namespace="forceNamespace"
+            :namespace-new-allowed="!existing && !forceNamespace"
+            :extra-columns="showProject ? ['project'] : []"
+          >
+            <template v-if="showProject" #project>
+              <LabeledSelect
+                v-model="project"
+                :disabled="!namespaceIsNew"
+                :label="t('catalog.install.project')"
+                option-key="id"
+                :options="projectOpts"
+                :tooltip="!namespaceIsNew ? t('catalog.install.namespaceIsInProject', {namespace: value.metadata.namespace}, true) : ''"
+                :hover-tooltip="!namespaceIsNew"
+                :status="'info'"
+              />
+            </template>
+          </NameNsDescription>
+        </div>
+      </template>
+      <template #helmValues>
+        <p v-if="step2Description" class="row mb-10">
+          {{ step2Description }}
+        </p>
+        <div class="step__values__controls">
+          <!-- Edit as YAML / Back to Form -->
+          <ButtonGroup
+            v-if="(valuesComponent || hasQuestions)"
+            v-model="preShowPreview"
+            :options="formYamlOptions"
+            inactive-class="bg-disabled btn-sm"
+            active-class="bg-primary btn-sm"
+            :disabled="preShowPreview != showPreview"
+          ></ButtonGroup>
+          <!-- Continue Editing / Show Diff -->
+          <ButtonGroup
+            v-if="showingYaml"
+            v-model="showDiff"
+            :options="editYamlOptions"
+            inactive-class="bg-disabled btn-sm"
+            active-class="bg-primary btn-sm"
+          ></ButtonGroup>
+          <div class="step__values__controls--spacer">
+&nbsp;
+          </div>
+          <ButtonGroup
+            v-if="showingYaml && showDiff"
+            v-model="diffMode"
+            :options="yamlDiffModeOptions"
+            inactive-class="bg-disabled btn-sm"
+            active-class="bg-primary btn-sm"
+          ></ButtonGroup>
+          <div v-if="hasReadme" class="btn-group">
+            <button type="button" class="btn bg-primary btn-sm" @click="showSlideIn = !showSlideIn">
+              {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
+            </button>
+          </div>
+        </div>
+        <div class="scroll__container">
+          <div class="scroll__content">
+            <!-- Values (as Custom Component) -->
+            <template v-if="valuesComponent && showValuesComponent">
+              <Tabbed
+                v-if="componentHasTabs"
+                ref="tabs"
+                :side-tabs="true"
+                :class="{'with-name': showNameEditor}"
+                class="step__values__content"
+                @changed="tabChanged($event)"
+              >
+                <component
+                  :is="valuesComponent"
+                  v-model="chartValues"
+                  :mode="mode"
+                  :chart="chart"
+                  class="step__values__content"
+                  :existing="existing"
+                  :version="version"
+                  :version-info="versionInfo"
+                  @warn="e=>errors.push(e)"
+                  @register-before-hook="registerBeforeHook"
+                  @register-after-hook="registerAfterHook"
+                />
+              </Tabbed>
+              <template v-else>
                 <component
                   :is="valuesComponent"
                   v-if="valuesComponent"
                   v-model="chartValues"
                   :mode="mode"
                   :chart="chart"
+                  class="step__values__content"
                   :existing="existing"
                   :version="version"
                   :version-info="versionInfo"
-                  @warn="e=>warnings.push(e)"
+                  @warn="e=>errors.push(e)"
                   @register-before-hook="registerBeforeHook"
                   @register-after-hook="registerAfterHook"
                 />
-              </Tab>
-            </tab>
-          </template>
-          <Questions
-            v-else-if="hasQuestions && showQuestions"
-            v-model="chartValues"
-            :mode="mode"
-            :chart="chart"
-            :version="version"
-            :version-info="versionInfo"
-            :target-namespace="targetNamespace"
-          />
-          <Tab v-else name="values-yaml" :label="t('catalog.install.section.valuesYaml')">
-            <YamlEditor
-              ref="yaml"
-              v-model="valuesYaml"
-              :scrolling="false"
-              :initial-yaml-values="originalYamlValues"
-              :editor-mode="editorMode"
-            />
-          </Tab>
-
-          <Tab v-if="showReadme" name="readme" :label="t('catalog.install.section.readme')" :weight="-1">
-            <Markdown v-if="showReadme" ref="readme" v-model="versionInfo.readme" class="md readme" />
-          </Tab>
-
-          <Tab name="helm" :label="t('catalog.install.section.helm')" :weight="-2">
-            <div><Checkbox v-if="existing" v-model="cleanupOnFail" :label="t('catalog.install.helm.cleanupOnFail')" /></div>
-            <div><Checkbox v-if="!existing" v-model="crds" :label="t('catalog.install.helm.crds')" /></div>
-            <div><Checkbox v-model="hooks" :label="t('catalog.install.helm.hooks')" /></div>
-            <div><Checkbox v-if="existing" v-model="force" :label="t('catalog.install.helm.force')" /></div>
-            <div><Checkbox v-if="existing" v-model="resetValues" :label="t('catalog.install.helm.resetValues')" /></div>
-            <div><Checkbox v-if="!existing" v-model="openApi" :label="t('catalog.install.helm.openapi')" /></div>
-            <div><Checkbox v-model="wait" :label="t('catalog.install.helm.wait')" /></div>
-            <div style="display: block; max-width: 400px;" class="mt-10">
-              <UnitInput
-                v-model.number="timeout"
-                :label="t('catalog.install.helm.timeout.label')"
-                :suffix="t('catalog.install.helm.timeout.unit', {value: timeout})"
+              </template>
+            </template>
+            <!-- Values (as Questions)  -->
+            <Tabbed
+              v-else-if="hasQuestions && showQuestions"
+              ref="tabs"
+              :side-tabs="true"
+              :class="{'with-name': showNameEditor}"
+              class="step__values__content"
+              @changed="tabChanged($event)"
+            >
+              <Questions
+                v-model="chartValues"
+                :mode="mode"
+                :chart="chart"
+                :version="version"
+                :version-info="versionInfo"
+                :target-namespace="targetNamespace"
               />
-            </div>
-            <div style="display: block; max-width: 400px;" class="mt-10">
-              <UnitInput
-                v-if="existing"
-                v-model.number="historyMax"
-                :label="t('catalog.install.helm.historyMax.label')"
-                :suffix="t('catalog.install.helm.historyMax.unit', {value: historyMax})"
+            </Tabbed>
+            <!-- Values (as YAML) -->
+            <template v-else>
+              <YamlEditor
+                ref="yaml"
+                v-model="valuesYaml"
+                class="step__values__content"
+                :scrolling="true"
+                :initial-yaml-values="originalYamlValues"
+                :editor-mode="editorMode"
+                :hide-preview-buttons="true"
               />
-            </div>
-          </Tab>
-        </Tabbed>
-
-        <div v-for="(err, idx) in errors" :key="idx">
-          <Banner color="error" :label="stringify(err)" />
+            </template>
+          </div>
         </div>
 
-        <CruResourceFooter
-          done-route="c-cluster-apps"
-          :mode="mode"
-          :finish-button-mode="(existing ? 'upgrade' : 'install')"
-          :is-form="true"
-          @cancel-confirmed="cancel"
-        >
-          <template #default="{checkCancel}">
-            <template v-if="(!!valuesComponent || hasQuestions) && !showValuesComponent && !showQuestions">
-              <button
-                v-if="showDiff"
-                type="button"
-                class="btn role-secondary"
-                @click="undiff"
-              >
-                <t k="resourceYaml.buttons.continue" />
-              </button>
-              <button
-                v-else
-                :disabled="valuesYaml === originalYamlValues"
-                type="button"
-                class="btn role-secondary"
-                @click="diff"
-              >
-                <t k="resourceYaml.buttons.diff" />
-              </button>
-            </template>
-
-            <button
-              v-if="(showValuesComponent || hasQuestions) && !showPreview"
-              type="button"
-              class="btn role-secondary"
-              @click="preview"
-            >
-              {{ t("cruResource.previewYaml") }}
-            </button>
-
-            <div>
-              <button
-                v-if="showPreview && !showDiff"
-                type="button"
-                class="btn role-secondary"
-                @click="valuesYaml === originalYamlValues ? resetFromBack() : checkCancel(false)"
-              >
-                <t k="cruResource.backToForm" />
-              </button>
-
-              <AsyncButton
-                :mode="(existing ? 'upgrade' : 'install')"
-                @click="finish"
-              />
-            </div>
-          </template>
-        </CruResourceFooter>
-      </div>
-    </template>
-  </form>
+        <!-- Confirm loss of changes on toggle from yaml/preview to form -->
+        <ResourceCancelModal ref="cancelModal" :is-cancel-modal="false" :is-form="true" @cancel-cancel="preShowPreview=true" @confirm-cancel="showPreview = false;"></ResourceCancelModal>
+      </template>
+      <template #helmCli>
+        <p v-if="step3Description" class="row mb-10">
+          {{ step3Description }}
+        </p>
+        <div><Checkbox v-if="existing" v-model="cleanupOnFail" :label="t('catalog.install.helm.cleanupOnFail')" /></div>
+        <div><Checkbox v-if="!existing" v-model="crds" :label="t('catalog.install.helm.crds')" /></div>
+        <div><Checkbox v-model="hooks" :label="t('catalog.install.helm.hooks')" /></div>
+        <div><Checkbox v-if="existing" v-model="force" :label="t('catalog.install.helm.force')" /></div>
+        <div><Checkbox v-if="existing" v-model="resetValues" :label="t('catalog.install.helm.resetValues')" /></div>
+        <div><Checkbox v-if="!existing" v-model="openApi" :label="t('catalog.install.helm.openapi')" /></div>
+        <div><Checkbox v-model="wait" :label="t('catalog.install.helm.wait')" /></div>
+        <div style="display: block; max-width: 400px;" class="mt-10">
+          <UnitInput
+            v-model.number="timeout"
+            :label="t('catalog.install.helm.timeout.label')"
+            :suffix="t('catalog.install.helm.timeout.unit', {value: timeout})"
+          />
+        </div>
+        <div style="display: block; max-width: 400px;" class="mt-10">
+          <UnitInput
+            v-if="existing"
+            v-model.number="historyMax"
+            :label="t('catalog.install.helm.historyMax.label')"
+            :suffix="t('catalog.install.helm.historyMax.unit', {value: historyMax})"
+          />
+        </div>
+      </template>
+    </Wizard>
+    <div class="slideIn" :class="{'hide': false, 'slideIn__show': showSlideIn}">
+      <h2 class="slideIn__header">
+        {{ t('catalog.install.steps.helmValues.chartInfo.label') }}
+        <div class="slideIn__close-button" @click="showSlideIn = false">
+          <i class="icon icon-close" />
+        </div>
+      </h2>
+      <ChartReadme v-if="hasReadme" :version-info="versionInfo" class="chart-content__tabs" />
+    </div>
+  </div>
 </template>
 
 <style lang="scss" scoped>
-  $desc-height: 100px;
+  $title-height: 50px;
   $padding: 5px;
 
-  .md {
-    overflow: auto;
-    max-width: 100%;
-
-    ::v-deep {
-      * + H1,
-      * + H2,
-      * + H3,
-      * + H4,
-      * + H5,
-      * + H6 {
-        margin-top: 40px;
-      }
-    }
+  .install-steps {
+    position: relative; overflow: hidden;
   }
 
-  .md-desc > H1:first-child {
-    display: none;
-  }
-
-  .chart-info {
-    margin-top: 10px;
-    display: flex;
-    height: $desc-height;
-    align-items: center;
-
-    .logo-container {
-      height: $desc-height;
-      width: $desc-height;
-      text-align: center;
-    }
-
+  .wizard {
     .logo-bg {
-      height: $desc-height;
-      width: $desc-height;
+      height: $title-height;
+      width: $title-height;
       background-color: white;
       border: $padding solid white;
       border-radius: calc( 3 * var(--border-radius));
@@ -1267,8 +1054,8 @@ export default {
     }
 
     .logo {
-      max-height: $desc-height - 2 * $padding;
-      max-width: $desc-height - 2 * $padding;
+      max-height: $title-height - 2 * $padding;
+      max-width: $title-height - 2 * $padding;
       position: absolute;
       width: auto;
       height: auto;
@@ -1278,18 +1065,111 @@ export default {
       left: 0;
       margin: auto;
     }
+  }
 
-    .description {
-      flex-grow: 1;
-      padding-left: 20px;
-      // width: calc(100% - #{$sideways-tabs-width});
-      // height: $desc-height;
-      overflow: auto;
-      color: var(--secondary);
+  .step {
+    &__values {
+      &__controls {
+        display: flex;
+        margin-bottom: 15px;
 
-      .name {
-        margin: #{-1 * $padding} 0 0 0;
+        & > *:not(:last-of-type) {
+          margin-right: $padding * 2;
+        }
+
+        &--spacer {
+          flex: 1
+        }
+
       }
+
+      &__content {
+        flex: 1;
+
+        ::v-deep .tab-container {
+          overflow: auto;
+        }
+      }
+
     }
   }
+
+  .slideIn {
+    border-left: var(--header-border-size) solid var(--header-border);
+    position: absolute;
+    top: 0;
+    right: -700px;
+    height: 100%;
+    background-color: var(--topmenu-bg);
+    max-width: 35%;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+
+    padding: 10px;
+
+    transition: right .5s ease;
+
+    &__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    &__close-button {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px;
+      > i {
+        font-size: 20px;
+        opacity: 0.5;
+      }
+      &:hover {
+        background-color: var(--wm-closer-hover-bg);
+      }
+    }
+
+    .chart-content__tabs {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+
+      height: 0;
+
+      padding-bottom: 10px;
+
+      ::v-deep .chart-readmes {
+        flex: 1;
+        overflow: auto;
+      }
+    }
+
+    &__show {
+      right: 0;
+    }
+
+  }
+
+  .scroll {
+    &__container {
+      $yaml-height: 200px;
+      display: flex;
+      flex: 1;
+      min-height: $yaml-height;
+      height: 0;
+    }
+    &__content {
+      display: flex;
+      flex: 1;
+      overflow: auto;
+    }
+
+  }
+
+  ::v-deep .yaml-editor {
+    flex: 1
+  }
+
 </style>

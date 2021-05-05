@@ -213,7 +213,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading v-if="$fetchState.pending" mode="relative" />
   <div v-else class="config-monitoring-container">
     <Tab name="general" :label="t('monitoring.tabs.general')" :weight="99">
       <div>
