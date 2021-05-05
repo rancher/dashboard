@@ -26,6 +26,12 @@ const SORT_GROUPS = {
   custom1:   5,
 };
 
+// Map some provider IDs to icon names where they don't directly match
+const ICON_MAPPINGS = {
+  //azure: 'azureaks',
+  linode: 'linodelke',
+}
+
 export default {
   name: 'CruCluster',
 
@@ -120,13 +126,12 @@ export default {
       const rkeMachineTypes = [];
       // 'amazonec2', 'azure', 'digitalocean', 'linode', 'vsphere'];
 
-      // TODO: Sort
-      // TODO: Can list refresh when the node drivers are activated/deactivated in another session?
       this.nodeDrivers.forEach((nd) => {
         if (nd.spec.active) {
           rkeMachineTypes.push(nd.id);
         }
       });
+      rkeMachineTypes.sort();
 
       kontainerTypes.forEach((id) => {
         addType(id, 'kontainer', true);
@@ -165,9 +170,11 @@ export default {
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         let icon = require('~/assets/images/generic-driver.svg');
 
+        const iconID = ICON_MAPPINGS[id] || id;
+
         if ( group !== 'template' ) {
           try {
-            icon = require(`~/assets/images/providers/${ id }.svg`);
+            icon = require(`~/assets/images/providers/${ iconID }.svg`);
           } catch (e) {}
         }
 

@@ -128,7 +128,6 @@ product:
   clusterManagement: Cluster Management
   monitoring: Monitoring
 
-
 suffix:
   percent: "%"
   cpus: CPUs
@@ -159,10 +158,8 @@ accountAndKeys:
     change: Change Password
   apiKeys:
     title: API Keys
-    notAllowed: You do not have permission to manage API Keys
-    add:
-      description:
-        label: Description
+    notAllowed: You do no
+n
         placeholder: Optionally enter a description to help you identify this API Key
       label: Create API Key
       expiry:
@@ -871,7 +868,8 @@ cluster:
   providerGroup:
     create-custom: Use existing nodes and create a cluster using RKE
     create-kontainer: Create a cluster in a hosted Kuberetes provider
-    create-machine: Provision new nodes and create a cluster using RKE
+    create-machine: Provision new nodes and create a cluster using RKE2
+    create-machine1: Provision new nodes and create a cluster using RKE
     create-template: Use a Catalog Template to create a cluster
     register-custom: Import any Kubernetes cluster
   rke2:
