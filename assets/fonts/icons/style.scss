@@ -3,9 +3,9 @@
 @font-face {
   font-family: '#{$icomoon-font-family}';
   src:
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?he7f54') format('truetype'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?he7f54') format('woff'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?he7f54##{$icomoon-font-family}') format('svg');
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?zd0vl7') format('truetype'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?zd0vl7') format('woff'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?zd0vl7##{$icomoon-font-family}') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -301,6 +301,21 @@
     content: $icon-github; 
   }
 }
+.icon-apple {
+  &:before {
+    content: $icon-apple; 
+  }
+}
+.icon-windows {
+  &:before {
+    content: $icon-windows; 
+  }
+}
+.icon-linux {
+  &:before {
+    content: $icon-linux; 
+  }
+}
 .icon-backup-restore {
   &:before {
     content: $icon-backup-restore; 
@@ -344,6 +359,11 @@
 .icon-compass {
   &:before {
     content: $icon-compass; 
+  }
+}
+.icon-cluster-management {
+  &:before {
+    content: $icon-cluster-management; 
   }
 }
 .icon-cluster {
