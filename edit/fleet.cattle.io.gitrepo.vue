@@ -373,7 +373,6 @@ export default {
       in-store="management"
       generate-name="helmrepo-auth-"
       label-key="fleet.gitRepo.auth.helm"
-      :allow-cacerts="true"
       hook-name="registerHelmAuthSecret"
       @input="updateAuth($event, 'helmSecretName')"
     />

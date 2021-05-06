@@ -2606,9 +2606,6 @@ selectOrCreateAuthSecret:
   basic:
     username: Username
     password: Password
-    cacerts: 
-      label: CA Certificate
-      placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
   namespaceGroup: "Namespace: {name}"
   chooseExisting: "Choose an existing secret:"
   createSsh: Create a SSH Key Secret

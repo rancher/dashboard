@@ -3,7 +3,6 @@ import { _EDIT } from '@/config/query-params';
 import Loading from '@/components/Loading';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import FileSelector from '@/components/form/FileSelector';
 import { SECRET } from '@/config/types';
 import { TYPES as SECRET_TYPES } from '@/models/secret';
 import { base64Encode } from '@/utils/crypto';
@@ -19,7 +18,6 @@ export default {
     Loading,
     LabeledInput,
     LabeledSelect,
-    FileSelector
   },
 
   props: {
@@ -73,11 +71,6 @@ export default {
       default: true,
     },
 
-    allowCacerts: {
-      type:    Boolean,
-      default: false,
-    },
-
     registerBeforeHook: {
       type:     Function,
       required: true,
@@ -120,7 +113,6 @@ export default {
       password:   '',
       publicKey:  '',
       privateKey: '',
-      cacerts:    null,
     };
   },
 
@@ -141,9 +133,6 @@ export default {
 
       if ( this.allowBasic ) {
         types.push(SECRET_TYPES.BASIC);
-      }
-      if (this.allowCacerts) {
-        types.push(SECRET_TYPES.OPAQUE);
       }
 
       const out = this.allSecrets
@@ -272,7 +261,7 @@ export default {
             'ssh-privatekey': base64Encode(this.privateKey),
           };
         } else {
-          secret._type = this.allowCacerts ? SECRET_TYPES.OPAQUE : SECRET_TYPES.BASIC;
+          secret._type = SECRET_TYPES.BASIC;
           secret.data = {
             username:  base64Encode(this.username),
             password: base64Encode(this.password),
@@ -334,18 +323,6 @@ export default {
           <LabeledInput v-model="password" type="password" label-key="selectOrCreateAuthSecret.basic.password" />
         </div>
       </template>
-    </div>
-    <div v-if="allowCacerts && selected === _BASIC" class="row mt-20">
-      <div class="col span-6">
-        <LabeledInput
-          v-model="cacerts"
-          type="multiline"
-          :label="t('selectOrCreateAuthSecret.basic.cacerts.label')"
-          :mode="mode"
-          :placeholder="t('selectOrCreateAuthSecret.basic.cacerts.placeholder')"
-        />
-        <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="cacerts = $event" />
-      </div>
     </div>
   </div>
 </template>
