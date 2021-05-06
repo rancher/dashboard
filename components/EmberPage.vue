@@ -12,11 +12,19 @@ const INACTIVITY_CHECK_TIMEOUT = 60000;
 
 let inactiveRemoveTimer = null;
 
+// Pages that we should intercept when loaded in the IFRAME and instead
+// navigate to a page in Cluster Dashboard
+// exmample if the Ember clusters page that is navigated to when the user presses cancel on some pages
+// we intercept this and go the the vue Clusters page instead
 const INTERCEPTS = {
-  '/g/clusters':                   '/c/local/manager/provisioning.cattle.io.cluster',
-  '/g/catalog':                    '/c/local/mcapps/pages/catalogs',
-  '/g/security/cloud-credentials': '/c/local/manager/pages/cloud-credentials',
-  '/n/node-templates':             '/c/local/manager/pages/node-templates',
+  'global-admin.clusters.index': {
+    name: 'c-cluster-product-resource',
+    params: {
+      cluster: '',
+      product: '',
+      resource: 'provisioning.cattle.io.cluster'
+    }
+  },
 };
 
 export default {
@@ -49,6 +57,7 @@ export default {
 
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),
+    ...mapGetters(['clusterId', 'productId']),
 
     loaderMode() {
       return this.fixed ? 'content' : 'full';
@@ -84,7 +93,7 @@ export default {
     // Set up a timer to remove the IFrame after a period of inactivity
     inactiveRemoveTimer = window.setTimeout(() => {
       const iframeEl = document.getElementById(EMBER_FRAME);
-
+  
       if (iframeEl !== null) {
         iframeEl.remove();
       }
@@ -200,14 +209,10 @@ export default {
         });
       } else if (msg.action === 'before-navigation') {
         // Ember willTransition event
-        if (INTERCEPTS[msg.url]) {
-          const dest = INTERCEPTS[msg.url];
-
-          if (dest !== window.location.pathname) {
-            this.iframeEl.setAttribute('data-location', this.trimURL(msg.url));
-            this.loaded = false;
-            this.$router.replace(dest);
-          }
+        if (INTERCEPTS[msg.target]) {
+          const dest = INTERCEPTS[msg.target];
+          this.loaded = false;
+          this.$router.replace(this.fillRoute(dest));
         }
       } else if (msg.action === 'after-navigation') {
         // Ember afterNavigation event
@@ -236,6 +241,22 @@ export default {
           this.iframeEl.classList.remove(EMBER_FRAME_HIDE_CLASS);
         }
       }
+    },
+
+    fillRoute(route) {
+      if (typeof route === 'object') {
+        // Fill in standard params
+        if (route.params) {
+          if ('cluster' in route.params) {
+            route.params.cluster = this.clusterId;
+          }
+          if ('product' in route.params) {
+            route.params.product = this.productId;
+          }
+        }
+      }
+
+      return route;
     }
   }
 };
