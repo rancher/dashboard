@@ -62,11 +62,16 @@ export default {
 
 <template>
   <Loading v-if="!settings" />
-  <div v-else class="row about">
+  <div v-else class="about">
     <h1 v-t="'about.title'" />
-    <table class="col span-6">
-      <tr><td><h3>{{ t('about.versions.title') }}</h3></td></tr>
-      <tr><td><h6>{{ t('about.versions.component') }}</h6></td><td><h6>{{ t('about.versions.version') }}</h6></td></tr>
+    <h3>{{ t('about.versions.title') }}</h3>
+    <table class="">
+      <thead>
+        <tr>
+          <th>{{ t('about.versions.component') }}</th>
+          <th>{{ t('about.versions.version') }}</th>
+        </tr>
+      </thead>
       <tr v-if="rancherVersion">
         <td>
           <a href="https://github.com/rancher/rancher" target="_blank" rel="nofollow noopener noreferrer">
@@ -102,10 +107,10 @@ export default {
           </a>
         </td><td>{{ dockerMachineVersion.value }}</td>
       </tr>
-      <tr><td>&nbsp;</td></tr>
-      <tr><td>&nbsp;</td><td><span v-html="t('about.versions.releaseNotes', {}, true)" /></td></tr>
-      <tr><td>&nbsp;</td></tr>
-      <tr><td><h3>{{ t('about.imageList.title') }}</h3></td></tr>
+    </table>
+    <p class="pt-20 pb-40" v-html="t('about.versions.releaseNotes', {}, true)" />
+    <h3>{{ t('about.imageList.title') }}</h3>
+    <table>
       <tr>
         <td>
           {{ t("about.imageList.linuxImageList") }}
@@ -132,9 +137,33 @@ export default {
   .about {
     td {
       min-width: 150px;
+      padding: 8px 5px;
     }
     a {
       cursor: pointer;
     }
+  }
+
+  table {
+    border-collapse: collapse;
+    overflow: hidden;
+    border-radius: var(--border-radius);
+
+    > thead > tr > th {
+      padding: 8px 5px;
+      background-color: var(--sortable-table-body-divider);
+    }
+  }
+
+  th, td {
+    border: 1px solid var(--border);
+    text-align: left;
+    }
+  th {
+      border-bottom: 1px solid var(--sortable-table-top-divider);
+      background-color: var(--body-bg);
+  }
+  tr:nth-child(odd) {
+      background-color: var(--sortable-table-accent-bg);
   }
 </style>
