@@ -10,7 +10,7 @@ import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@/utils/sort';
 import { set } from '@/utils/object';
-import { RKE_SWITCH } from '@/store/prefs';
+import { mapPref, RKE_SWITCH } from '@/store/prefs';
 import { filterAndArrangeCharts } from '@/store/catalog';
 import { CATALOG } from '@/config/labels-annotations';
 import Rke2 from './rke2';
@@ -27,10 +27,7 @@ const SORT_GROUPS = {
 };
 
 // Map some provider IDs to icon names where they don't directly match
-const ICON_MAPPINGS = {
-  //azure: 'azureaks',
-  linode: 'linodelke',
-}
+const ICON_MAPPINGS = { linode: 'linodelke' };
 
 export default {
   name: 'CruCluster',
@@ -99,14 +96,13 @@ export default {
       subType,
       isRegister,
       providerCluster: null,
-      showRKE:         false, // Show RKE, not RKE2 options
       emberLink:       null,
-      rkePref:         RKE_SWITCH,
     };
   },
 
   computed: {
     ...mapGetters({ allCharts: 'catalog/charts' }),
+    showRKE: mapPref(RKE_SWITCH),
 
     templateOptions() {
       return filterAndArrangeCharts(this.allCharts, { showTypes: CATALOG._CLUSTER_TPL }).map(x => x.id);
@@ -146,19 +142,18 @@ export default {
           addType(id, 'template', true);
         });
 
-        // RKE2
-        if (!this.showRKE) {
+        if (this.showRKE) {
+          // RKE
+          rkeMachineTypes.forEach((id) => {
+            addType(id, 'machine1', false, `/g/clusters/add/launch/${ id }`);
+          });
+        } else {
           machineTypes.forEach((id) => {
             addType(id, 'machine', false);
           });
 
           customTypes.forEach((id) => {
             addType(id, 'custom', false);
-          });
-        } else {
-          // RKE
-          rkeMachineTypes.forEach((id) => {
-            addType(id, 'machine1', false, `/g/clusters/add/launch/${ id }`);
           });
         }
       }
@@ -261,7 +256,7 @@ export default {
   >
     <template #subtypes>
       <div>
-        <ToggleSwitch v-model="showRKE" class="rke-switch" :pref="rkePref" :labels="['RKE2', 'RKE']" />
+        <ToggleSwitch v-model="showRKE" class="rke-switch" :labels="['RKE2', 'RKE']" />
       </div>
       <div v-for="obj in groupedSubTypes" :key="obj.id" class="mb-20" style="width: 100%;">
         <h4>

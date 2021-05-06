@@ -18,10 +18,10 @@ let inactiveRemoveTimer = null;
 // we intercept this and go the the vue Clusters page instead
 const INTERCEPTS = {
   'global-admin.clusters.index': {
-    name: 'c-cluster-product-resource',
+    name:   'c-cluster-product-resource',
     params: {
-      cluster: '',
-      product: '',
+      cluster:  '',
+      product:  '',
       resource: 'provisioning.cattle.io.cluster'
     }
   },
@@ -93,7 +93,7 @@ export default {
     // Set up a timer to remove the IFrame after a period of inactivity
     inactiveRemoveTimer = window.setTimeout(() => {
       const iframeEl = document.getElementById(EMBER_FRAME);
-  
+
       if (iframeEl !== null) {
         iframeEl.remove();
       }
@@ -211,6 +211,7 @@ export default {
         // Ember willTransition event
         if (INTERCEPTS[msg.target]) {
           const dest = INTERCEPTS[msg.target];
+
           this.loaded = false;
           this.$router.replace(this.fillRoute(dest));
         }

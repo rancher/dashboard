@@ -9,27 +9,14 @@ export default {
       type:    Array,
       default: () => ['', '']
     },
-    pref: {
-      type:    String,
-      default: null
-    }
   },
   data() {
-    let state = !!this.on;
-
-    if (this.pref) {
-      state = this.$store.getters['prefs/get'](this.pref);
-      this.$emit('input', state);
-    }
-
-    return { state };
+    return { state: !!this.on };
   },
+
   methods: {
     toggle() {
       this.state = !this.state;
-      if (this.pref) {
-        this.$store.dispatch('prefs/set', { key: this.pref, value: this.state });
-      }
       this.$emit('input', this.state);
     }
   }
