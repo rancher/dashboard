@@ -1,7 +1,7 @@
 <script>
 export default {
   props: {
-    on: {
+    value: {
       type:    Boolean,
       default: false
     },
@@ -11,7 +11,7 @@ export default {
     },
   },
   data() {
-    return { state: !!this.on };
+    return { state: !!this.value };
   },
 
   methods: {
