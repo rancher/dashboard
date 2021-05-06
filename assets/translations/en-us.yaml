@@ -735,6 +735,7 @@ cluster:
     registrationCommand:
       label: Registration Command
       detail: Run this command on each of the existing machines you want to register.
+      insecure: "Insecure: Select this to skip TLS verification if your server has a self-signed certificate."
   credential:
     aws:
       accessKey:
@@ -881,11 +882,12 @@ cluster:
   tabs:
     ace: Authorized Endpoint
     advanced: Advanced
-    agentEnv: Agent Environment
+    agentEnv: Agent Environment Vars
     basic: Basics
     cluster: Cluster Configuration
     networking: Networking
     nodePools: Node Pools
+    upgrade: Upgrade Strategy
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -2467,7 +2469,7 @@ resourceDetail:
     age: Age
     defaultBannerMessage:
       error: This resource is currently in an error state, but there isn't a detailed message available.
-      transitioning: This resource is currently in a transitioning state,but there isn't a detailed message available.
+      transitioning: This resource is currently in a transitioning state, but there isn't a detailed message available.
     sensitive:
       hide: Hide Sensitive Values
       show: Show Sensitive Values

@@ -24,6 +24,7 @@ export default {
       etcd:            false,
       controlPlane:    false,
       worker:          false,
+      insecure:        false,
       address:         '',
       internalAddress: '',
       nodeName:        '',
@@ -34,7 +35,7 @@ export default {
 
   computed: {
     command() {
-      const out = [this.clusterToken.nodeCommand];
+      const out = this.insecure ? [this.clusterToken.insecureNodeCommand] : [this.clusterToken.nodeCommand];
 
       this.etcd && out.push('--etcd');
       this.controlPlane && out.push('--controlplane');
@@ -125,6 +126,8 @@ function sanitizeValue(v) {
       <CopyCode class="m-10 p-10">
         {{ command }}
       </CopyCode>
+
+      <Checkbox v-model="insecure" label-key="cluster.custom.registrationCommand.insecure" />
     </InfoBox>
   </div>
 </template>

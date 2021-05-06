@@ -358,21 +358,23 @@ export default {
       </slot>
     </header>
 
-    <Banner v-if="banner && isView && !parent.hideBanner" class="state-banner mb-20" :color="banner.color" :label="banner.message" />
+    <Banner v-if="banner && isView && !parent.hideBanner" class="state-banner mb-10" :color="banner.color" :label="banner.message" />
     <Banner
       v-if="managedWarning.show"
       color="warning"
       class="mb-20"
       :label="t('resourceDetail.masthead.managedWarning', managedWarning)"
     />
+
+    <slot />
   </div>
 </template>
 
 <style lang='scss' scoped>
   .masthead {
-    padding-bottom: 10px;
+    padding-bottom: 5px;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 10px;
+    margin-bottom: 5px;
   }
 
   HEADER {

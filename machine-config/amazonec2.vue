@@ -368,6 +368,7 @@ export default {
         <div class="col span-6">
           <LabeledSelect
             v-model="value.region"
+            :mode="mode"
             :options="regionOptions"
             :required="true"
             :searchable="true"
@@ -377,6 +378,7 @@ export default {
         <div class="col span-6">
           <LabeledSelect
             v-model="value.zone"
+            :mode="mode"
             :options="zoneOptions"
             :required="true"
             label="Zone"
@@ -387,6 +389,7 @@ export default {
         <div class="col span-9">
           <LabeledSelect
             v-model="value.instanceType"
+            :mode="mode"
             :options="instanceOptions"
             :required="true"
             :selectable="option => !option.disabled"
@@ -404,12 +407,13 @@ export default {
           </LabeledSelect>
         </div>
         <div class="col span-3">
-          <UnitInput v-model="value.rootSize" placeholder="Default: 16" label="Root Disk Size" suffix="GB" />
+          <UnitInput v-model="value.rootSize" :mode="mode" placeholder="Default: 16" label="Root Disk Size" suffix="GB" />
         </div>
       </div>
       <div class="row mt-20 mb-20">
         <div class="col span-6">
           <LabeledSelect
+            :mode="mode"
             :value="selectedNetwork"
             :options="networkOptions"
             :searchable="true"
@@ -431,6 +435,7 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model="value.iamInstanceProfile"
+            :mode="mode"
             label="IAM Instance Profile Name"
             tooltip="Kubernetes AWS Cloud Provider support requires an appropriate instance profile"
           />
@@ -444,6 +449,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model="value.ami"
+              :mode="mode"
               label="AMI ID"
               placeholder="Default: A recent Ubuntu LTS"
             />
@@ -451,6 +457,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model="value.sshUser"
+              :mode="mode"
               label="SSH Username for AMI"
               :disabled="!value.ami"
               placeholder="Default: ubuntu"
@@ -478,6 +485,7 @@ export default {
             <LabeledSelect
               v-if="value.vpcId && securityGroupMode === 'custom'"
               v-model="value.securityGroup"
+              :mode="mode"
               :disabled="!value.vpcId"
               :options="securityGroupOptions"
               :searchable="true"
@@ -491,6 +499,7 @@ export default {
           <div class="col span-6">
             <LabeledInput
               v-model="value.volumeType"
+              :mode="mode"
               label="EBS Root Volume Type"
               placeholder="Default: gp2"
             />
@@ -499,17 +508,19 @@ export default {
 
         <div class="row mt-20">
           <div class="col span-12">
-            <Checkbox v-model="value.encryptEbsVolume" label="Encrypt EBS Volume" />
+            <Checkbox v-model="value.encryptEbsVolume" :mode="mode" label="Encrypt EBS Volume" />
             <div v-if="value.encryptEbsVolume" class="mt-10">
               <LabeledSelect
                 v-if="canReadKms"
                 v-model="value.kmsKey"
+                :mode="mode"
                 :options="kmsOptions"
                 label="KMS Key ARN"
               />
               <template v-else>
                 <LabeledInput
                   v-model="value.kmsKey"
+                  :mode="mode"
                   label="KMS Key ARN"
                 />
                 <p class="text-muted">
@@ -521,19 +532,19 @@ export default {
         </div>
         <div class="row mt-20">
           <div class="col span-6">
-            <Checkbox v-model="value.requestSpotInstance" label="Request Spot Instance" />
+            <Checkbox v-model="value.requestSpotInstance" :mode="mode" label="Request Spot Instance" />
             <div v-if="value.requestSpotInstance" class="mt-10">
-              <UnitInput v-model="value.spotPrice" placeholder="Default: 0.50" label="Spot Price" suffix="Dollars per hour" />
+              <UnitInput v-model="value.spotPrice" :mode="mode" placeholder="Default: 0.50" label="Spot Price" suffix="Dollars per hour" />
             </div>
           </div>
         </div>
 
         <div class="row mt-20">
           <div class="col span-12">
-            <div><Checkbox v-model="value.privateAddressOnly" label="Use only private addresses" /></div>
-            <div><Checkbox v-model="value.useEbsOptimizedInstance" label="EBS-Optimized Instance" /></div>
-            <div><Checkbox v-model="value.httpEndpoint" label="Allow access to EC2 metadata" /></div>
-            <div><Checkbox v-model="value.httpTokens" :disabled="!value.httpEndpoint" label="Use tokens for metadata" /></div>
+            <div><Checkbox v-model="value.privateAddressOnly" :mode="mode" label="Use only private addresses" /></div>
+            <div><Checkbox v-model="value.useEbsOptimizedInstance" :mode="mode" label="EBS-Optimized Instance" /></div>
+            <div><Checkbox v-model="value.httpEndpoint" :mode="mode" label="Allow access to EC2 metadata" /></div>
+            <div><Checkbox v-model="value.httpTokens" :mode="mode" :disabled="!value.httpEndpoint" label="Use tokens for metadata" /></div>
           </div>
         </div>
 

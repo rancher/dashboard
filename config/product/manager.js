@@ -19,7 +19,7 @@ export function init(store) {
     ifHaveType:          CAPI.RANCHER_CLUSTER,
     ifFeature:           MULTI_CLUSTER,
     inStore:             'management',
-    icon:                'globe',
+    icon:                'cluster-management',
     removable:           false,
     showClusterSwitcher: false,
   });

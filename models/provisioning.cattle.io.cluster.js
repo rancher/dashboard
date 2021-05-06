@@ -70,7 +70,7 @@ export default {
     let provisioner = (this.provisioner || '').toLowerCase();
 
     // RKE provisioner can actually do K3s too...
-    if ( provisioner === 'rke2' && this.spec.kubernetesVersion.includes('k3s') ) {
+    if ( provisioner === 'rke2' && this.spec?.kubernetesVersion?.includes('k3s') ) {
       provisioner = 'k3s';
     }
 
@@ -96,15 +96,15 @@ export default {
     if ( this.isImported ) {
       return null;
     } else if ( this.isRke2 ) {
-      const kind = this.spec?.rkeConfig?.nodePools?.[0]?.nodeConfigRef?.kind;
+      const kind = this.spec?.rkeConfig?.nodePools?.[0]?.nodeConfigRef?.kind.toLowerCase();
 
       if ( kind ) {
-        return kind.replace(/config$/i, '');
+        return kind.replace(/config$/i, '').toLowerCase();
       }
 
       return null;
     } else if ( this.mgmt ) {
-      return this.mgmt.nodeProvider;
+      return this.mgmt.nodeProvider.toLowerCase();
     }
   },
 
@@ -185,16 +185,16 @@ export default {
 
   getOrCreateToken() {
     return async() => {
+      if ( !this.mgmt ) {
+        return;
+      }
+
       const tokens = await this.$dispatch('rancher/findAll', { type: NORMAN.CLUSTER_TOKEN, force: true }, { root: true });
 
-      let token = findBy(tokens, 'clusterId', this.id);
+      let token = findBy(tokens, 'clusterId', this.mgmt.id);
 
       if ( token ) {
         return token;
-      }
-
-      if ( !this.mgmt ) {
-        return;
       }
 
       token = await this.$dispatch('rancher/create', {
