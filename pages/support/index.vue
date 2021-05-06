@@ -48,7 +48,6 @@ export default {
 <template>
   <div>
     <BannerGraphic :title="t(title)" />
-
     <IndentedPanel v-if="!hasSupport">
       <div class="content mt-20">
         <div class="promo">
@@ -65,7 +64,9 @@ export default {
             </div>
           </div>
           <div class="external">
-            <a href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.learnMore') }} <i class="icon icon-external-link" /></a>
+            <a href="https://rancher.com/support-maintenance-terms" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.learnMore') }} <i class="icon icon-external-link" /></a>
+            or
+            <a href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.pricing') }} <i class="icon icon-external-link" /></a>
           </div>
         </div>
         <div class="community">

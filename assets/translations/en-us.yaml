@@ -113,7 +113,11 @@ nav:
   header:
     setLoginPage: Set as login page
     restoreCards: Restore hidden cards
- 
+  userMenu:
+    preferences: Preferences
+    accountAndKeys: Account & API Keys
+    logOut: Log Out
+
 product:
   apps: Apps & Marketplace
   auth: Users & Authentication
@@ -155,6 +159,23 @@ suffix:
 ##############################
 # Components & Pages
 ##############################
+about:
+  title: About
+  versions:
+    title: Versions
+    component: Component
+    version: Version
+    cli: CLI
+    ui: User Interface
+    helm: Helm
+    machine: Machine
+    releaseNotes: 'Release notes can be found <a href="/docs/release-notes">here</a>.'
+  imageList:
+    title: Image Lists
+    linuxImageList: Linux
+    windowsImageList: Windows
+
+
 accountAndKeys:
   title: Account and API Keys
   account:
@@ -1322,7 +1343,7 @@ landing:
     forums: Forums
   commercial:
     title: Commercial Support
-    body: Learn about commercial support <a href="https://rancher.com/support-maintenance-terms/" target='_blank' rel='noopener nofollow noreferrer'>here</a>.
+    body: Learn about commercial support <a href="/support">here</a>.
   landingPrefs:
     title: What do you want to see when you log in?
     options:
@@ -4125,6 +4146,7 @@ support:
     addSubscription: Add
     linksTitle: Community Support
     learnMore: Find out more about SUSE Rancher Support
+    pricing: Contact us for pricing
   suse:
     title: "Great News - You're covered"
   promos:

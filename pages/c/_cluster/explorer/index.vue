@@ -259,6 +259,10 @@ export default {
     canAccessDeployments() {
       return !!this.clusterCounts?.[0]?.counts?.[WORKLOAD_TYPES.DEPLOYMENT];
     },
+
+    hasMetricsTabs() {
+      return this.showClusterMetrics || this.showK8sMetrics || this.showEtcdMetrics;
+    }
   },
 
   mounted() {
@@ -403,7 +407,7 @@ export default {
         </template>
       </SortableTable>
     </div>
-    <Tabbed class="mt-30">
+    <Tabbed v-if="hasMetricsTabs" class="mt-30">
       <Tab v-if="showClusterMetrics" name="cluster-metrics" :label="t('clusterIndexPage.sections.clusterMetrics.label')" :weight="2">
         <template #default="props">
           <DashboardMetrics
