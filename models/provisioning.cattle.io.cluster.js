@@ -70,7 +70,7 @@ export default {
     let provisioner = (this.provisioner || '').toLowerCase();
 
     // RKE provisioner can actually do K3s too...
-    if ( provisioner === 'rke2' && this.spec.kubernetesVersion.includes('k3s') ) {
+    if ( provisioner === 'rke2' && this.spec?.kubernetesVersion?.includes('k3s') ) {
       provisioner = 'k3s';
     }
 
