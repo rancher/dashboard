@@ -192,17 +192,7 @@ export function init(store) {
     'monitoring-overview',
     'monitor',
     'route-receiver',
-  ], 'monitoring');
-
-  // virtualType({
-  //   label:      'Advanced',
-  //   group:      'monitoring-overview',
-  //   namespaced: false,
-  //   name:       'monitoring-advanced',
-  //   weight:     105,
-  //   route:      { name: 'c-cluster-monitoring' },
-  //   exact:      true
-  // });
+  ]);
 
   basicType([
     PROMETHEUSRULE,
