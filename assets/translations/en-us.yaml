@@ -166,7 +166,6 @@ about:
     component: Component
     version: Version
     cli: CLI
-    ui: User Interface
     helm: Helm
     machine: Machine
     releaseNotes: 'Release notes can be found <a href="/docs/release-notes">here</a>.'

@@ -270,9 +270,6 @@ export default {
             <nuxt-link v-if="isRancher" tag="li" :to="{name: 'account'}" class="user-menu-item">
               <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }} <i class="icon icon-fw icon-user" /></a>
             </nuxt-link>
-            <nuxt-link tag="li" :to="{name: 'about'}" class="user-menu-item">
-              <a>{{ t('nav.userMenu.about') }} <i class="icon icon-fw icon-info" /></a>
-            </nuxt-link>
             <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout'}" class="user-menu-item">
               <a @blur="showMenu(false)">{{ t('nav.userMenu.logOut') }} <i class="icon icon-fw icon-close" /></a>
             </nuxt-link>

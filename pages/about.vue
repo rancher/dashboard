@@ -2,7 +2,7 @@
 import Loading from '@/components/Loading';
 import { MANAGEMENT } from '@/config/types';
 import { SETTING } from '@/config/settings';
-import { getProduct } from '@/config/private-label';
+import { getVendor } from '@/config/private-label';
 import { downloadFile } from '@/utils/download';
 
 export default {
@@ -21,10 +21,7 @@ export default {
       return this.settings.find(s => s.id === SETTING.VERSION_RANCHER);
     },
     appName() {
-      return getProduct();
-    },
-    uiVersion() {
-      return `${ process.env.version }${ process.env.commit ? `-${ process.env.commit }` : '' }`;
+      return getVendor();
     },
     cliVersion() {
       return this.settings.find(s => s.id === SETTING.VERSION_CLI);
@@ -79,13 +76,6 @@ export default {
           </a>
         </td><td>{{ rancherVersion.value }}</td>
       </tr>
-      <tr v-if="uiVersion">
-        <td>
-          <a href="https://github.com/rancher/dashboard" target="_blank" rel="nofollow noopener noreferrer">
-            {{ t("about.versions.ui") }}
-          </a>
-        </td><td>{{ uiVersion }}</td>
-      </tr>
       <tr v-if="cliVersion">
         <td>
           <a href="https://github.com/rancher/cli" target="_blank" rel="nofollow noopener noreferrer">
@@ -134,36 +124,32 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .about {
-    td {
-      min-width: 150px;
-      padding: 8px 5px;
-    }
-    a {
-      cursor: pointer;
-    }
-  }
-
+.about {
   table {
     border-collapse: collapse;
     overflow: hidden;
     border-radius: var(--border-radius);
 
-    > thead > tr > th {
-      padding: 8px 5px;
-      background-color: var(--sortable-table-body-divider);
+    tr > td:first-of-type {
+      width: 20%;
     }
-  }
 
-  th, td {
-    border: 1px solid var(--border);
-    text-align: left;
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px 5px;
+      min-width: 150px;
+      text-align: left;
     }
-  th {
+
+    th {
+      background-color: var(--sortable-table-top-divider);
       border-bottom: 1px solid var(--sortable-table-top-divider);
-      background-color: var(--body-bg);
+    }
+
+    a {
+      cursor: pointer;
+    }
   }
-  tr:nth-child(odd) {
-      background-color: var(--sortable-table-accent-bg);
-  }
+}
+
 </style>
