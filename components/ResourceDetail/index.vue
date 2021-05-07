@@ -279,7 +279,15 @@ export default {
   methods: {
     setSubtype(subtype) {
       this.resourceSubtype = subtype;
-    }
+    },
+
+    keyAction(act) {
+      const m = this.originalModel;
+
+      if ( m?.[act] ) {
+        m[act]();
+      }
+    },
   }
 };
 </script>
@@ -329,5 +337,10 @@ export default {
       :real-mode="realMode"
       @set-subtype="setSubtype"
     />
+
+    <button v-if="isView" v-shortkey.once="['d']" class="hide" @shortkey="keyAction('goToDetail')" />
+    <button v-if="isView" v-shortkey.once="['c']" class="hide" @shortkey="keyAction('goToViewConfig')" />
+    <button v-if="isView" v-shortkey.once="['y']" class="hide" @shortkey="keyAction('goToViewYaml')" />
+    <button v-if="isView" v-shortkey.once="['e']" class="hide" @shortkey="keyAction('goToEdit')" />
   </div>
 </template>

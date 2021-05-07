@@ -248,11 +248,11 @@ export default {
     </template>
 
     <template #shortkeys>
-      <button v-shortkey="['enter']" class="hide detail" @shortkey="keyAction('detail')" />
-      <button v-shortkey="['e']" class="hide" @shortkey="keyAction('edit')" />
-      <button v-shortkey="['y']" class="hide" @shortkey="keyAction('yaml')" />
-      <button v-if="_showBulkActions" v-shortkey="['del']" class="hide" @shortkey="keyAction('remove')" />
-      <button v-if="_showBulkActions" v-shortkey="['backspace']" class="hide" @shortkey="keyAction('remove')" />
+      <button v-shortkey.once="['enter']" class="hide detail" @shortkey="keyAction('detail')" />
+      <button v-shortkey.once="['e']" class="hide" @shortkey="keyAction('edit')" />
+      <button v-shortkey.once="['y']" class="hide" @shortkey="keyAction('yaml')" />
+      <button v-if="_showBulkActions" v-shortkey.once="['del']" class="hide" @shortkey="keyAction('remove')" />
+      <button v-if="_showBulkActions" v-shortkey.once="['backspace']" class="hide" @shortkey="keyAction('remove')" />
     </template>
   </SortableTable>
 </template>

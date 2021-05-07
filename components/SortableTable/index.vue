@@ -455,14 +455,14 @@ export default {
       const row = $(elem).parents('tr');
 
       this.keySelectRow(row, more);
-    }, 100),
+    }, 50),
 
     focusPrevious: throttle(function(event, more = false) {
       const elem = this.focusAdjacent(false);
       const row = $(elem).parents('tr');
 
       this.keySelectRow(row, more);
-    }, 100),
+    }, 50),
   }
 };
 </script>
@@ -651,12 +651,14 @@ export default {
         <i class="icon icon-chevron-end" />
       </button>
     </div>
-    <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
-    <button v-shortkey="['j']" class="hide" @shortkey="focusNext($event)" />
-    <button v-shortkey="['k']" class="hide" @shortkey="focusPrevious($event)" />
-    <button v-shortkey="['shift','j']" class="hide" @shortkey="focusNext($event, true)" />
-    <button v-shortkey="['shift','k']" class="hide" @shortkey="focusPrevious($event, true)" />
-    <slot name="shortkeys" />
+    <button v-if="search" v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
+    <template v-if="tableActions">
+      <button v-shortkey="['j']" class="hide" @shortkey="focusNext($event)" />
+      <button v-shortkey="['k']" class="hide" @shortkey="focusPrevious($event)" />
+      <button v-shortkey="['shift','j']" class="hide" @shortkey="focusNext($event, true)" />
+      <button v-shortkey="['shift','k']" class="hide" @shortkey="focusPrevious($event, true)" />
+      <slot name="shortkeys" />
+    </template>
   </div>
 </template>
 
