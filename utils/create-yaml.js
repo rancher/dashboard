@@ -160,7 +160,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
   // ---------------
 
   function stringifyField(key) {
-    const field = schema.resourceFields[key];
+    const field = schema.resourceFields?.[key];
     let out = `${ key }:`;
 
     // '_type' in steve maps to kubernetes 'type' field; show 'type' field in yaml
