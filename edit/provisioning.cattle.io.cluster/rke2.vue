@@ -366,6 +366,10 @@ export default {
     },
 
     showCloudConfigYaml() {
+      if ( !this.selectedVersion.agentArgs['cloud-provider-name'] ) {
+        return false;
+      }
+
       const name = this.agentConfig['cloud-provider-name'];
 
       if ( !name ) {
@@ -646,7 +650,7 @@ export default {
               label="Container Network Provider"
             />
           </div>
-          <div class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
+          <div v-if="selectedVersion.agentArgs['cloud-provider-name']" class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
             <LabeledSelect
               v-model="agentConfig['cloud-provider-name']"
               :mode="mode"
