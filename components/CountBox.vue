@@ -1,8 +1,6 @@
 <script>
-import GradientBox from '@/components/GradientBox';
 
 export default {
-  components: { GradientBox },
   props:      {
     name: {
       type:     String,
@@ -17,16 +15,33 @@ export default {
       required: true
     },
   },
+  computed: {
+    sideStyle() {
+      return `border-left: 9px solid ${ this.customizePrimaryColorOpacity(1) };`;
+    },
+
+    mainStyle() {
+      return `border-color: ${ this.customizePrimaryColorOpacity(0.25) };`;
+    }
+  },
+
+  methods: {
+    customizePrimaryColorOpacity(opacity) {
+      return `rgba(var(${ this.primaryColorVar }), ${ opacity })`;
+    }
+  }
 };
 </script>
 
 <template>
-  <GradientBox class="count" :primary-color-var="primaryColorVar">
-    <div class="data">
-      <h1>{{ count }}</h1>
-      <label>{{ name }}</label>
+  <div class="count-container" :style="sideStyle">
+    <div class="count" :primary-color-var="primaryColorVar" :style="mainStyle">
+      <div class="data">
+        <h1>{{ count }}</h1>
+        <label>{{ name }}</label>
+      </div>
     </div>
-  </GradientBox>
+  </div>
 </template>
 
 <style lang="scss" scoped>
@@ -38,6 +53,9 @@ export default {
       display: flex;
       flex-direction: row;
       align-items: center;
+      border-width: 2px;
+      border-style: solid;
+      border-left: 0;
 
       .data {
         display: flex;
