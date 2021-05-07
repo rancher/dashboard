@@ -8,12 +8,13 @@ import { findBy } from '@/utils/array';
 export function monitoringStatus() {
   return {
     monitoringStatus() {
-      const status ={
+      const status = {
         v1: haveV1Monitoring(this.$store.getters),
         v2: haveV2Monitoring(this.$store.getters),
       };
 
       status.installed = status.v1 || status.v2;
+
       return status;
     }
   };
