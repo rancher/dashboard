@@ -31,6 +31,7 @@ import {
 } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { mapPref, CLUSTER_TOOLS_TIP } from '@/store/prefs';
+import { monitoringStatus } from '@/utils/monitoring';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import { allDashboardsExist } from '@/utils/grafana';
@@ -151,6 +152,7 @@ export default {
 
   computed: {
     ...mapGetters(['currentCluster']),
+    ...monitoringStatus(),
 
     hideClusterToolsTip: mapPref(CLUSTER_TOOLS_TIP),
 
@@ -362,9 +364,10 @@ export default {
         <span><LiveDate :value="currentCluster.metadata.creationTimestamp" :add-suffix="true" :show-tooltip="true" /></span>
       </div>
       <div :style="{'flex':1}" />
-      <div v-if="hasMonitoring && false">
-        <n-link :to="{name: 'c-cluster-monitoring'}">
-          {{ t('glance.monitoringDashboard') }}
+      <div v-if="!monitoringStatus.v2">
+        <n-link :to="{name: 'c-cluster-explorer-tools'}" class="monitoring-install">
+          <i class="icon icon-gear" />
+          <span>{{ t('glance.installMonitoring') }}</span>
         </n-link>
       </div>
     </div>
@@ -454,7 +457,7 @@ export default {
   padding: 20px 0px;
   display: flex;
 
-  &>*{
+  &>*:not(:last-child) {
     margin-right: 40px;
 
     & SPAN {
@@ -488,5 +491,18 @@ export default {
 
 .cluster-tools-tip {
   margin-top: 0;
+}
+
+.monitoring-install {
+  display: flex;
+
+  > I {
+    line-height: inherit;
+    margin-right: 4px;
+  }
+
+  &:focus {
+    outline: 0;
+  }
 }
 </style>
