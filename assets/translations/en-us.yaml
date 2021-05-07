@@ -1102,6 +1102,7 @@ glance:
   provider: Provider
   version: Kubernetes Version
   monitoringDashboard: Monitoring Dashboard
+  installMonitoring: Install Monitoring
 
 grafanaDashboard:
   failedToLoad: Failed to load graph

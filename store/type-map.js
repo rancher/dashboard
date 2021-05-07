@@ -32,6 +32,7 @@
 //   showClusterSwitcher,     -- Show the cluster switcher in the header (default true)
 //   showNamespaceFilter,     -- Show the namespace filter in the header (default false)
 //   showWorkspaceSwitcher,   -- Show the workspace switcher in the header (conflicts with namespace) (default false)
+//   ifHave,                  -- Show this product only if the given capability is available
 //   ifHaveGroup,             -- Show this product only if the given group exists in the store [inStore]
 //   ifHaveType,              -- Show this product only if the given type exists in the store [inStore]
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
@@ -118,6 +119,7 @@ import { NAME as EXPLORER } from '@/config/product/explorer';
 import isObject from 'lodash/isObject';
 import { normalizeType } from '@/plugins/steve/normalize';
 import { sortBy } from '@/utils/sort';
+import { haveV2Monitoring, haveV1Monitoring } from '@/utils/monitoring';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -134,6 +136,11 @@ export const SPOOFED_PREFIX = '__[[spoofed]]__';
 export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 
 const instanceMethods = {};
+
+export const IF_HAVE = {
+  V1_MONITORING: 'v1-monitoring',
+  V2_MONITORING: 'v2-monitoring',
+};
 
 export function DSL(store, product, module = 'type-map') {
   // store.commit(`${ module }/product`, { name: product });
@@ -738,6 +745,10 @@ export const getters = {
             continue;
           }
 
+          if (item.ifHave && !this.ifHave(rootGetters, item.ifHave)) {
+            continue;
+          }
+
           if ( item.ifHaveType && !findBy(schemas, 'id', normalizeType(item.ifHaveType)) ) {
             continue;
           }
@@ -1069,6 +1080,10 @@ export const getters = {
       }
 
       if ( p.ifFeature && !rootGetters['featureFlag'](p.ifFeature) ) {
+        return false;
+      }
+
+      if ( p.ifHave && !ifHave(rootGetters, p.ifHave)) {
         return false;
       }
 
@@ -1435,4 +1450,17 @@ function stringToRegex(str) {
   }
 
   return out;
+}
+
+function ifHave(getters, option) {
+  switch(option) {
+    case IF_HAVE.V2_MONITORING: {
+      return haveV2Monitoring(getters);
+    }
+    case IF_HAVE.V1_MONITORING: {
+      return haveV1Monitoring(getters);
+    }
+    default:
+      return false;
+  }
 }
