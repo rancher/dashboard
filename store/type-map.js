@@ -1460,14 +1460,14 @@ function stringToRegex(str) {
 }
 
 function ifHave(getters, option) {
-  switch(option) {
-    case IF_HAVE.V2_MONITORING: {
-      return haveV2Monitoring(getters);
-    }
-    case IF_HAVE.V1_MONITORING: {
-      return haveV1Monitoring(getters);
-    }
-    default:
-      return false;
+  switch (option) {
+  case IF_HAVE.V2_MONITORING: {
+    return haveV2Monitoring(getters);
+  }
+  case IF_HAVE.V1_MONITORING: {
+    return haveV1Monitoring(getters);
+  }
+  default:
+    return false;
   }
 }
