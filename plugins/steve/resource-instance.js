@@ -970,6 +970,10 @@ export default {
     return this._detailLocation;
   },
 
+  goToDetail() {
+    this.currentRouter().push(this.detailLocation);
+  },
+
   goToClone() {
     return (moreQuery = {}) => {
       const location = this.detailLocation;
