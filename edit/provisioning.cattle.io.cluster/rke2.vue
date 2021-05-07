@@ -118,10 +118,10 @@ export default {
 
     if ( this.selectedVersion ) {
       for ( const k in this.selectedVersion.serverArgs ) {
-        set(this.serverConfig, k, this.serverConfig[k] || this.selectedVersion.serverArgs[k].default || null);
+        set(this.serverConfig, k, this.serverConfig[k] || this.selectedVersion.serverArgs[k].default || undefined);
       }
       for ( const k in this.selectedVersion.agentArgs ) {
-        set(this.agentConfig, k, this.agentConfig[k] || this.selectedVersion.agentArgs[k].default || null);
+        set(this.agentConfig, k, this.agentConfig[k] || this.selectedVersion.agentArgs[k].default || undefined);
       }
     }
 
