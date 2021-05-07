@@ -106,7 +106,10 @@ export default {
       const tagName = e.target.tagName;
       const tgt = $(e.target);
       const actionElement = tgt.closest('.actions')[0];
-      const content = this.pagedRows;
+
+      if ( tgt.hasClass('select-all-check') ) {
+        return;
+      }
 
       if ( !actionElement ) {
         if (
@@ -118,9 +121,13 @@ export default {
         }
       }
 
-      let tgtRow = $(e.currentTarget);
+      const tgtRow = $(e.currentTarget);
 
-      if ( tgtRow.hasClass('separator-row') || tgt.hasClass('select-all-check')) {
+      return this.nodeForRow(tgtRow);
+    },
+
+    nodeForRow(tgtRow) {
+      if ( tgtRow?.hasClass('separator-row') ) {
         return;
       }
 
@@ -138,7 +145,7 @@ export default {
         return;
       }
 
-      const node = content.find( x => get(x, this.keyField) === nodeId );
+      const node = this.pagedRows.find( x => get(x, this.keyField) === nodeId );
 
       return node;
     },
@@ -248,6 +255,23 @@ export default {
         resources,
         event: e.originalEvent,
       });
+    },
+
+    keySelectRow(row, more = false) {
+      const node = this.nodeForRow(row);
+      const content = this.pagedRows;
+
+      if ( !node ) {
+        return;
+      }
+
+      if ( more ) {
+        this.update([node], []);
+      } else {
+        this.update([node], content);
+      }
+
+      this.prevNode = node;
     },
 
     isSelectionCheckbox(element) {
@@ -389,7 +413,7 @@ export default {
     },
 
     applyTableAction(action, args, event) {
-      const opts = { alt: isAlternate(event) };
+      const opts = { alt: event && isAlternate(event) };
 
       this.$store.dispatch(`${ this.storeName }/executeTable`, {
         action, args, opts

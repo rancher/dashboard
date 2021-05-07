@@ -416,13 +416,19 @@ export default {
       }
     },
 
+    nearestCheckbox() {
+      const $cur = $(document.activeElement).closest('tr.main-row').find('.checkbox-custom');
+
+      return $cur[0];
+    },
+
     focusAdjacent(next = true) {
       const all = $('.checkbox-custom', this.$el).toArray();
-      const $cur = $(document.activeElement).closest('tr.main-row').find('.checkbox-custom');
+      const cur = this.nearestCheckbox();
       let idx = -1;
 
-      if ( $cur.length ) {
-        idx = all.indexOf($cur[0]) + (next ? 1 : -1 );
+      if ( cur ) {
+        idx = all.indexOf(cur) + (next ? 1 : -1 );
       } else if ( next ) {
         idx = 1;
       } else {
@@ -439,16 +445,24 @@ export default {
 
       if ( all[idx] ) {
         all[idx].focus();
+
+        return all[idx];
       }
     },
 
-    focusNext: throttle(function() {
-      this.focusAdjacent(true);
-    }, 100),
+    focusNext: throttle(function(event, more = false) {
+      const elem = this.focusAdjacent(true);
+      const row = $(elem).parents('tr');
 
-    focusPrevious: throttle(function() {
-      this.focusAdjacent(false);
-    }, 100),
+      this.keySelectRow(row, more);
+    }, 50),
+
+    focusPrevious: throttle(function(event, more = false) {
+      const elem = this.focusAdjacent(false);
+      const row = $(elem).parents('tr');
+
+      this.keySelectRow(row, more);
+    }, 50),
   }
 };
 </script>
@@ -637,9 +651,14 @@ export default {
         <i class="icon icon-chevron-end" />
       </button>
     </div>
-    <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
-    <button v-if="tableActions" v-shortkey="['j']" class="hide" @shortkey="focusNext()" />
-    <button v-if="tableActions" v-shortkey="['k']" class="hide" @shortkey="focusPrevious()" />
+    <button v-if="search" v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
+    <template v-if="tableActions">
+      <button v-shortkey="['j']" class="hide" @shortkey="focusNext($event)" />
+      <button v-shortkey="['k']" class="hide" @shortkey="focusPrevious($event)" />
+      <button v-shortkey="['shift','j']" class="hide" @shortkey="focusNext($event, true)" />
+      <button v-shortkey="['shift','k']" class="hide" @shortkey="focusPrevious($event, true)" />
+      <slot name="shortkeys" />
+    </template>
   </div>
 </template>
 

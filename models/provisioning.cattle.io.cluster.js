@@ -103,7 +103,7 @@ export default {
       }
 
       return null;
-    } else if ( this.mgmt ) {
+    } else if ( this.mgmt?.nodeProvider ) {
       return this.mgmt.nodeProvider.toLowerCase();
     }
   },
@@ -115,7 +115,11 @@ export default {
 
     const provider = (this.nodeProvider || '').toLowerCase();
 
-    return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, 'generic.unknown', true);
+    if ( provider ) {
+      return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, provider);
+    } else {
+      return this.$rootGetters['i18n/t']('generic.unknown');
+    }
   },
 
   displayName() {

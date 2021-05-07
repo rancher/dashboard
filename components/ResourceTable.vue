@@ -4,6 +4,7 @@ import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
 import ButtonGroup from '@/components/ButtonGroup';
 import SortableTable from '@/components/SortableTable';
 import { NAMESPACE } from '@/config/table-headers';
+import { findBy } from '@/utils/array';
 
 export default {
   components: { ButtonGroup, SortableTable },
@@ -175,11 +176,51 @@ export default {
       };
     },
   },
+
+  methods: {
+    keyAction(action) {
+      const table = this.$refs.table;
+
+      if ( !table ) {
+        return;
+      }
+
+      const selection = table.selectedNodes;
+
+      if ( action === 'remove' ) {
+        const act = findBy(table.availableActions, 'action', 'promptRemove');
+
+        if ( act ) {
+          table.setBulkActionOfInterest(act);
+          table.applyTableAction(act);
+        }
+
+        return;
+      }
+
+      if ( selection.length !== 1 ) {
+        return;
+      }
+
+      switch ( action ) {
+      case 'detail':
+        selection[0].goToDetail();
+        break;
+      case 'edit':
+        selection[0].goToEdit();
+        break;
+      case 'yaml':
+        selection[0].goToViewYaml();
+        break;
+      }
+    },
+  }
 };
 </script>
 
 <template>
   <SortableTable
+    ref="table"
     v-bind="$attrs"
     :headers="_headers"
     :rows="filteredRows"
@@ -204,6 +245,14 @@ export default {
     <!-- Pass down templates provided by the caller -->
     <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
       <slot :name="slot" v-bind="scope" />
+    </template>
+
+    <template #shortkeys>
+      <button v-shortkey.once="['enter']" class="hide detail" @shortkey="keyAction('detail')" />
+      <button v-shortkey.once="['e']" class="hide" @shortkey="keyAction('edit')" />
+      <button v-shortkey.once="['y']" class="hide" @shortkey="keyAction('yaml')" />
+      <button v-if="_showBulkActions" v-shortkey.once="['del']" class="hide" @shortkey="keyAction('remove')" />
+      <button v-if="_showBulkActions" v-shortkey.once="['backspace']" class="hide" @shortkey="keyAction('remove')" />
     </template>
   </SortableTable>
 </template>
