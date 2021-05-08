@@ -1,7 +1,7 @@
-import { DSL } from '@/store/type-map';
-import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
-import { CAPI } from '@/config/types';
 import { MULTI_CLUSTER } from '@/config/feature-flags';
+import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
+import { CAPI } from '@/config/types';
+import { DSL } from '@/store/type-map';
 
 export const NAME = 'manager';
 
@@ -26,6 +26,58 @@ export function init(store) {
 
   configureType(CAPI.RANCHER_CLUSTER, { showListMasthead: false, namespaced: false });
   weightType(CAPI.RANCHER_CLUSTER, 100, true);
+
+  // TODO: RKE
+  virtualType({
+    label:          'RKE Templates',
+    name:           'rke-templates',
+    group:          'Root',
+    namespaced:     false,
+    weight:         111,
+    icon:           'folder',
+    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'rke-templates' } },
+    exact:          true
+  });
+
+  virtualType({
+    label:          'RKE Drivers',
+    name:           'rke-drivers',
+    group:          'Root',
+    namespaced:     false,
+    weight:         112,
+    icon:           'folder',
+    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'rke-drivers' } },
+    exact:          true
+  });
+
+  virtualType({
+    label:          'Cloud Credentials',
+    name:           'rke-cloud-credentials',
+    group:          'Root',
+    namespaced:     false,
+    weight:         112,
+    icon:           'folder',
+    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'cloud-credentials' } },
+    exact:          true
+  });
+
+  virtualType({
+    label:          'Node Templates',
+    name:           'rke-node-templates',
+    group:          'Root',
+    namespaced:     false,
+    weight:         112,
+    icon:           'folder',
+    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'node-templates' } },
+    exact:          true
+  });
+
+  basicType([
+    'rke-templates',
+    'rke-drivers',
+    'rke-cloud-credentials',
+    'rke-node-templates'
+  ], 'RKE Configuration');
 
   weightType(CAPI.MACHINE_DEPLOYMENT, 3, true);
   weightType(CAPI.MACHINE_SET, 2, true);

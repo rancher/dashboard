@@ -9,6 +9,7 @@ import Checkbox from '@/components/form/Checkbox';
 import ButtonGroup from '@/components/ButtonGroup';
 import { mapPref, THEME } from '@/store/prefs';
 import { ucFirst } from '@/utils/string';
+import ToggleSwitch from '@/components/form/ToggleSwitch';
 
 export default {
   layout:     'unauthenticated',
@@ -20,7 +21,8 @@ export default {
     UnitInput,
     Select,
     SecretSelector,
-    InputWithSelect
+    InputWithSelect,
+    ToggleSwitch,
   },
 
   data() {
@@ -40,6 +42,7 @@ export default {
       m:       'm',
       x:       'x',
       cb:      false,
+      ts:      false,
     };
   },
 
@@ -247,6 +250,9 @@ export default {
         :disabled="true"
         :indeterminate="true"
       />
+    </div>
+    <div class="m-20">
+      <ToggleSwitch :value="ts" :labels="['RKE', 'RKE2']" />
     </div>
   </div>
 </template>

@@ -28,7 +28,7 @@ export const getters = {
   },
 
   machineDrivers() {
-    // @TODO enable/disable based on what the API says, generic driver support
+    // The subset of drivers supported by Vue
     const ctx = require.context('@/machine-config', true, /.*/);
 
     const drivers = ctx.keys().filter(path => !path.match(/\.(vue|js)$/)).map(path => path.substr(2));
@@ -37,7 +37,7 @@ export const getters = {
   },
 
   clusterDrivers() {
-    // @TODO Read from somewhere actually dynamic
-    return ['amazoneks', 'googlegke', 'azureaks'];
+    // The subset of drivers supported by Vue
+    return [];
   },
 };

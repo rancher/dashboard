@@ -1,10 +1,10 @@
-import { NORMAN, MANAGEMENT } from '@/config/types';
-import { findBy } from '@/utils/array';
-import { SETUP, TIMED_OUT } from '@/config/query-params';
-import { get } from '@/utils/object';
-import { ClusterNotFoundError } from '@/utils/error';
-import { applyProducts } from '@/store/type-map';
 import { NAME as EXPLORER } from '@/config/product/explorer';
+import { SETUP, TIMED_OUT } from '@/config/query-params';
+import { MANAGEMENT, NORMAN } from '@/config/types';
+import { applyProducts } from '@/store/type-map';
+import { findBy } from '@/utils/array';
+import { ClusterNotFoundError } from '@/utils/error';
+import { get } from '@/utils/object';
 
 let beforeEachSetup = false;
 
