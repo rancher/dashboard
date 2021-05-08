@@ -829,21 +829,26 @@ cluster:
             other {}
           }
   provider:
-    aliyun: Alibaba ACK
+    amazoneks: Amazon EKS
+    azureaks: Azure AKS
+    aliyunkubernetescontainerservice: Alibaba ACK
+    baiducloudcontainerengine: Baidu CCE
+    googlegke: Google GKE
+    huaweicce: Huawei CCE
+    oracleoke: Oracle OKE
+    otc: Open Telekom Cloud
+    tencenttke: Tencent TKE
     aliyunecs: Aliyun ECS
     amazonec2: Amazon EC2
-    amazoneks: Amazon EKS
     aws: Amazon AWS
     azure: Azure
-    azureaks: Azure AKS
-    baidu: Baidu CCE
     cloudca: Cloud.ca
     custom: Custom
     digitalocean: DigitalOcean
     docker: Docker
     exoscale: Exoscale
-    googlegke: Google GKE
-    huaweicce: Huawei CCE
+    google: Google GCE
+    import: Import
     imported: Imported
     k3s: K3s
     kubeAdmin: KubeADM
@@ -852,26 +857,26 @@ cluster:
     minikube: Minikube
     oci: Oracle Cloud Infrastructure
     openstack: OpenStack
-    oracleoke: Oracle OKE
-    otc: Open Telekom Cloud
+    opentelekomcloudcontainerengine: Open Telekom Cloud CCE
     other: Other
     packet: Packet
     pinganyunecs: Pinganyun ECS
     rackspace: RackSpace
     rancherkubernetesengine: RKE
-    rke: RKE
     rke2: RKE2
+    rke: RKE
     rkeWindows: Windows
     softlayer: SoftLayer
-    tencenttke: Tencent TKE
     upcloud: UpCloud
     vmwarevsphere: vSphere
     zstack: ZStack
   providerGroup:
-    create-custom: Use existing nodes and create a cluster using RKE
+    create-custom1: Use existing nodes and create a cluster using RKE
+    create-custom2: Use existing nodes and create a cluster using RKE2
     create-kontainer: Create a cluster in a hosted Kuberetes provider
-    create-machine: Provision new nodes and create a cluster using RKE2
-    create-machine1: Provision new nodes and create a cluster using RKE
+    register-kontainer: Register an existing cluster in a hosted Kuberetes provider
+    create-rke1: Provision new nodes and create a cluster using RKE
+    create-rke2: Provision new nodes and create a cluster using RKE2
     create-template: Use a Catalog Template to create a cluster
     register-custom: Import any Kubernetes cluster
   rke2:
@@ -2462,6 +2467,7 @@ resourceDetail:
   header:
     clone: "Clone from {subtype} {name}"
     create: Create {subtype}
+    import: Import {subtype}
     edit: "{subtype} {name}"
     stage: "Stage from {subtype} {name}"
     view: "{subtype} {name}"

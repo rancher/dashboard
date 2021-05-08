@@ -3,7 +3,7 @@ import CreateEditView from '@/mixins/create-edit-view/impl';
 import Loading from '@/components/Loading';
 import ResourceYaml from '@/components/ResourceYaml';
 import {
-  _VIEW, _EDIT, _CLONE, _STAGE, _CREATE,
+  _VIEW, _EDIT, _CLONE, _IMPORT, _STAGE, _CREATE,
   AS, _YAML, _DETAIL, _CONFIG, PREVIEW, MODE,
 } from '@/config/query-params';
 import { SCHEMA } from '@/config/types';
@@ -70,10 +70,10 @@ export default {
     let { namespace, id } = params;
     let resource = this.resourceOverride || params.resource;
 
-    // There are 5 "real" modes that can be put into the query string
+    // There are 6 "real" modes that can be put into the query string
     // These are mapped down to the 3 regular page "mode"s that create-edit-view components
-    // know about:  view, edit, create (stage and clone become "create")
-    const mode = ((realMode === _STAGE || realMode === _CLONE) ? _CREATE : realMode);
+    // know about:  view, edit, create (stage, import and clone become "create")
+    const mode = ([_CLONE, _IMPORT, _STAGE].includes(realMode) ? _CREATE : realMode);
 
     const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource, id);
     const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource, id);
@@ -143,7 +143,7 @@ export default {
         yaml = await getYaml(originalModel);
       }
 
-      if ( realMode === _CLONE || realMode === _STAGE ) {
+      if ( [_CLONE, _IMPORT, _STAGE].includes(realMode) ) {
         model.cleanForNew();
         yaml = model.cleanYaml(yaml, realMode);
       }
@@ -221,7 +221,7 @@ export default {
     },
 
     offerPreview() {
-      return this.as === _YAML && [_EDIT, _CLONE, _STAGE].includes(this.mode);
+      return this.as === _YAML && [_EDIT, _CLONE, _IMPORT, _STAGE].includes(this.mode);
     },
 
     showComponent() {

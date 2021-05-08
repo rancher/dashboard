@@ -2,22 +2,38 @@
 export default {
   props: {
     value: {
-      type:    Boolean,
+      type:    null,
       default: false
     },
-    labels: {
-      type:    Array,
-      default: () => ['', '']
+
+    offValue: {
+      type:    null,
+      default: false,
+    },
+
+    onValue: {
+      type:    null,
+      default: true,
+    },
+
+    offLabel: {
+      type:    String,
+      default: '',
+    },
+
+    onLabel: {
+      type:    String,
+      default: '',
     },
   },
   data() {
-    return { state: !!this.value };
+    return { state: this.value === this.onValue };
   },
 
   methods: {
     toggle() {
       this.state = !this.state;
-      this.$emit('input', this.state);
+      this.$emit('input', this.state ? this.onValue : this.offValue);
     }
   }
 };
@@ -25,12 +41,12 @@ export default {
 
 <template>
   <span class="toggle-container">
-    <span class="label" :class="{ active: !state}">{{ labels[0] }}</span>
+    <span class="label" :class="{ active: !state}">{{ offLabel }}</span>
     <label class="switch">
       <input type="checkbox" :checked="state" @input="toggle">
       <span class="slider round"></span>
     </label>
-    <span class="label" :class="{ active: state}">{{ labels[1] }}</span>
+    <span class="label" :class="{ active: state}">{{ onLabel }}</span>
   </span>
 </template>
 

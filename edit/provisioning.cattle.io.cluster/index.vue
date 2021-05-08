@@ -10,20 +10,23 @@ import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@/utils/sort';
 import { set } from '@/utils/object';
-import { mapPref, RKE_SWITCH } from '@/store/prefs';
+import { mapPref, PROVISIONER, _RKE1, _RKE2 } from '@/store/prefs';
 import { filterAndArrangeCharts } from '@/store/catalog';
 import { CATALOG } from '@/config/labels-annotations';
-import Rke2 from './rke2';
+import { MANAGEMENT } from '@/config/types';
+import { mapFeature, RKE2 as RKE2_FEATURE } from '@/config/feature-flags';
+import Rke2Config from './rke2';
 import Import from './import';
 
 const SORT_GROUPS = {
   template:  1,
   kontainer: 2,
-  machine:   3,
-  machine1:  3,
+  rke1:      3,
+  rke2:      3,
   register:  4,
   custom:    5,
   custom1:   5,
+  custom2:   5,
 };
 
 // Map some provider IDs to icon names where they don't directly match
@@ -36,7 +39,7 @@ export default {
     Loading,
     CruResource,
     SelectIconGrid,
-    Rke2,
+    Rke2Config,
     Import,
     EmberPage,
     ToggleSwitch,
@@ -57,6 +60,9 @@ export default {
   },
 
   async fetch() {
+    this.nodeDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
+    this.kontainerDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTANIER_DRIVER });
+
     if ( !this.value.spec ) {
       set(this.value, 'spec', {});
     }
@@ -81,11 +87,6 @@ export default {
 
       set(this.value.metadata, 'namespace', DEFAULT_WORKSPACE);
     }
-
-    // Get the legacy node drivers
-    const drivers = await this.$store.dispatch('management/findAll', { type: 'management.cattle.io.nodedriver' });
-
-    this.nodeDrivers = drivers;
   },
 
   data() {
@@ -93,16 +94,48 @@ export default {
     const isRegister = this.$route.query[REGISTER] === _FLAGGED;
 
     return {
+      nodeDrivers:      [],
+      kontainerDrivers:     [],
       subType,
       isRegister,
-      providerCluster: null,
-      emberLink:       null,
+      providerCluster:  null,
+      emberLink:        null,
     };
   },
 
   computed: {
     ...mapGetters({ allCharts: 'catalog/charts' }),
-    showRKE: mapPref(RKE_SWITCH),
+    preferredProvisioner: mapPref(PROVISIONER),
+    _RKE1:                () => _RKE1,
+    _RKE2:                () => _RKE2,
+
+    rke2Enabled: mapFeature(RKE2_FEATURE),
+
+    showRkeToggle() {
+      return this.rke2Enabled && !this.isRegister;
+    },
+
+    provisioner: {
+      get() {
+        if ( !this.rke2Enabled ) {
+          return _RKE1;
+        }
+
+        return this.preferredProvisioner;
+      },
+
+      set(neu) {
+        this.preferredProvisioner = neu;
+      },
+    },
+
+    isRke1() {
+      return this.provisioner === _RKE1;
+    },
+
+    isRke2() {
+      return this.provisioner === _RKE2;
+    },
 
     templateOptions() {
       return filterAndArrangeCharts(this.allCharts, { showTypes: CATALOG._CLUSTER_TPL }).map(x => x.id);
@@ -115,52 +148,43 @@ export default {
       const out = [];
 
       const templates = this.templateOptions;
-      const machineTypes = getters['plugins/machineDrivers'];
-      const kontainerTypes = getters['plugins/clusterDrivers'];
-      const customTypes = ['custom'];
-      const customRegisterTypes = ['import'];
-      const rkeMachineTypes = [];
-      // 'amazonec2', 'azure', 'digitalocean', 'linode', 'vsphere'];
+      const vueMachineTypes = getters['plugins/machineDrivers'];
+      const vueKontainerTypes = getters['plugins/clusterDrivers'];
+      const machineTypes = this.nodeDrivers.filter(x => x.spec.active).map(x => x.id);
 
-      this.nodeDrivers.forEach((nd) => {
-        if (nd.spec.active) {
-          rkeMachineTypes.push(nd.id);
+      this.kontainerDrivers.filter(x => (isRegister ? x.showRegister : x.showCreate)).forEach((obj) => {
+        if ( vueKontainerTypes.includes(obj.driverName) ) {
+          addType(obj.driverName, 'kontainer', false);
+        } else {
+          addType(obj.driverName, 'kontainer', false, (isRegister ? obj.emberRegisterPath : obj.emberCreatePath));
         }
-      });
-      rkeMachineTypes.sort();
-
-      kontainerTypes.forEach((id) => {
-        addType(id, 'kontainer', true);
       });
 
       if ( isRegister ) {
-        customRegisterTypes.forEach((id) => {
-          addType(id, 'custom', false);
-        });
+        addType('import', 'custom', false);
       } else {
         templates.forEach((id) => {
           addType(id, 'template', true);
         });
 
-        if (this.showRKE) {
-          // RKE
-          rkeMachineTypes.forEach((id) => {
-            addType(id, 'machine1', false, `/g/clusters/add/launch/${ id }`);
-          });
-        } else {
+        if (this.isRke1 ) {
           machineTypes.forEach((id) => {
-            addType(id, 'machine', false);
+            addType(id, 'rke1', false, `/g/clusters/add/launch/${ id }`);
           });
 
-          customTypes.forEach((id) => {
-            addType(id, 'custom', false);
+          addType('custom', 'custom1', false, '/g/clusters/add/launch/custom');
+        } else {
+          machineTypes.forEach((id) => {
+            addType(id, 'rke2', !vueMachineTypes.includes(id));
           });
+
+          addType('custom', 'custom2', false);
         }
       }
 
       return out;
 
-      function addType(id, group, disabled, link) {
+      function addType(id, group, disabled = false, link = null) {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         let icon = require('~/assets/images/generic-driver.svg');
@@ -220,10 +244,7 @@ export default {
     clickedType(obj) {
       const id = obj.id;
 
-      if (obj.link) {
-        this.emberLink = obj.link;
-      }
-
+      this.emberLink = obj.link;
       this.$router.applyQuery({ [SUB_TYPE]: id });
       this.selectType(id);
     },
@@ -255,11 +276,18 @@ export default {
     @error="e=>errors = e"
   >
     <template #subtypes>
-      <div>
-        <ToggleSwitch v-model="showRKE" class="rke-switch" :labels="['RKE2', 'RKE']" />
-      </div>
       <div v-for="obj in groupedSubTypes" :key="obj.id" class="mb-20" style="width: 100%;">
         <h4>
+          <div v-if="showRkeToggle && [_RKE1,_RKE2].includes(obj.name)" class="grouped-type">
+            <ToggleSwitch
+              v-model="provisioner"
+              class="rke-switch"
+              off-value="rke1"
+              off-label="RKE"
+              on-value="rke2"
+              on-label="RKE2"
+            />
+          </div>
           {{ obj.label }}
         </h4>
         <SelectIconGrid
@@ -279,16 +307,15 @@ export default {
       :mode="mode"
       :provider="subType"
     />
-    <Rke2
-      v-if="!showRKE && subType"
+    <div v-else-if="emberLink" class="embed">
+      <EmberPage :src="emberLink" />
+    </div>
+    <Rke2Config
+      v-else-if="subType"
       v-model="value"
       :mode="mode"
       :provider="subType"
     />
-
-    <div v-if="showRKE && subType" class="embed">
-      <EmberPage :src="emberLink" />
-    </div>
 
     <template v-if="subType" #form-footer>
       <div><!-- Hide the outer footer --></div>
@@ -296,10 +323,14 @@ export default {
   </CruResource>
 </template>
 <style lang='scss'>
+  .grouped-type {
+    position: relative;
+  }
+
   .rke-switch {
     margin-top: -10px;
     position: absolute;
-    right: 20px;
+    right: 0;
   }
 
   .embed {

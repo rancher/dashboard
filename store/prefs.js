@@ -92,8 +92,9 @@ export const SEEN_WHATS_NEW = create('seen-home', '', { parseJSON });
 export const AFTER_LOGIN_ROUTE = create('after-login-route', 'home' );
 export const HIDE_HOME_PAGE_CARDS = create('home-page-cards', {}, { parseJSON } );
 
-// Cluster Provisionning RKE Switch default
-export const RKE_SWITCH = create('rke-provision', false, { options: [true, false], parseJSON });
+export const _RKE1 = 'rke1';
+export const _RKE2 = 'rke2';
+export const PROVISIONER = create('provisioner', _RKE2, { options: [_RKE1, _RKE2] });
 
 // --------------------
 

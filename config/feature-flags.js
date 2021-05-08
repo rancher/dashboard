@@ -4,4 +4,11 @@ export const ISTIO_VIRTUAL_SERVICE_UI = 'istio-virtual-service-ui';
 export const RKE2 = 'rke2';
 export const UNSUPPORTED_STORAGE_DRIVERS = 'unsupported-storage-drivers';
 export const MULTI_CLUSTER = 'multi-cluster-management';
-export const PROVISIONING_V2 = 'provisionionv2';
+
+export const mapFeature = function(name) {
+  return {
+    get() {
+      return this.$store.getters['featureFlag'](name);
+    },
+  };
+};
