@@ -30,7 +30,7 @@ export default {
     return !!this.spec.active;
   },
 
-  showRegister() {
+  showImport() {
     return this.showCreate && IMPORTABLE.includes(this.driverName);
   },
 
@@ -44,7 +44,7 @@ export default {
     return `/g/clusters/add/launch/${ driver }`;
   },
 
-  emberRegisterPath() {
+  emberImportPath() {
     const provider = DRIVER_TO_IMPORT[this.driverName] || this.driverName;
 
     return `/g/clusters/add/launch/import?importProvider=${ provider }`;

@@ -68,5 +68,4 @@ export const FROM_TOOLS = 'tools';
 
 // Cluster provisioning
 export const PROVIDER = 'provider';
-export const REGISTER = 'register';
 export const CLOUD_CREDENTIAL = 'cloud';

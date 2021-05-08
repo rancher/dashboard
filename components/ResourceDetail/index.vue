@@ -13,7 +13,11 @@ import DetailTop from '@/components/DetailTop';
 import { clone, set, diff } from '@/utils/object';
 
 function modeFor(route) {
-  if ( route.params.id ) {
+  if ( route.query?.mode === _IMPORT ) {
+    return _IMPORT;
+  }
+
+  if ( route.params?.id ) {
     return route.query.mode || _VIEW;
   } else {
     return _CREATE;
@@ -102,7 +106,7 @@ export default {
     const schema = store.getters[`${ inStore }/schemaFor`](resource);
     let originalModel, model, yaml;
 
-    if ( realMode === _CREATE ) {
+    if ( realMode === _CREATE || realMode === _IMPORT ) {
       if ( !namespace ) {
         namespace = store.getters['defaultNamespace'];
       }

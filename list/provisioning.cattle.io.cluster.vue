@@ -1,9 +1,9 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
-import { REGISTER, _FLAGGED } from '@/config/query-params';
 import { allHash } from '@/utils/promise';
 import { CAPI, MANAGEMENT } from '@/config/types';
+import { MODE, _IMPORT } from '@/config/query-params';
 
 export default {
   components: { ResourceTable, Masthead },
@@ -52,7 +52,7 @@ export default {
           product:  this.$store.getters['currentProduct'].name,
           resource: this.resource
         },
-        query: { [REGISTER]: _FLAGGED }
+        query: { [MODE]: _IMPORT }
       };
     }
   },

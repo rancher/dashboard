@@ -5,7 +5,7 @@ import CruResource from '@/components/CruResource';
 import SelectIconGrid from '@/components/SelectIconGrid';
 import EmberPage from '@/components/EmberPage';
 import ToggleSwitch from '@/components/form/ToggleSwitch';
-import { REGISTER, SUB_TYPE, _FLAGGED } from '@/config/query-params';
+import { SUB_TYPE, _IMPORT } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@/utils/sort';
@@ -48,6 +48,11 @@ export default {
   mixins: [CreateEditView],
 
   props: {
+    realMode: {
+      type:     String,
+      required: true,
+    },
+
     mode: {
       type:     String,
       required: true,
@@ -70,7 +75,7 @@ export default {
     if ( this.subType ) {
       await this.selectType(this.subType, false);
     } else if ( this.value.isImported ) {
-      this.isRegister = true;
+      this.isImport = true;
       this.selectType('import', false);
     } else if ( this.value.isCustom ) {
       this.selectType('custom', false);
@@ -91,13 +96,13 @@ export default {
 
   data() {
     const subType = this.$route.query[SUB_TYPE] || null;
-    const isRegister = this.$route.query[REGISTER] === _FLAGGED;
+    const isImport = this.realMode === _IMPORT;
 
     return {
       nodeDrivers:      [],
       kontainerDrivers:     [],
       subType,
-      isRegister,
+      isImport,
       providerCluster:  null,
       emberLink:        null,
     };
@@ -112,7 +117,7 @@ export default {
     rke2Enabled: mapFeature(RKE2_FEATURE),
 
     showRkeToggle() {
-      return this.rke2Enabled && !this.isRegister;
+      return this.rke2Enabled && !this.isImport;
     },
 
     provisioner: {
@@ -143,7 +148,7 @@ export default {
 
     subTypes() {
       const getters = this.$store.getters;
-      const isRegister = this.isRegister;
+      const isImport = this.isImport;
 
       const out = [];
 
@@ -152,15 +157,15 @@ export default {
       const vueKontainerTypes = getters['plugins/clusterDrivers'];
       const machineTypes = this.nodeDrivers.filter(x => x.spec.active).map(x => x.id);
 
-      this.kontainerDrivers.filter(x => (isRegister ? x.showRegister : x.showCreate)).forEach((obj) => {
+      this.kontainerDrivers.filter(x => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
         if ( vueKontainerTypes.includes(obj.driverName) ) {
           addType(obj.driverName, 'kontainer', false);
         } else {
-          addType(obj.driverName, 'kontainer', false, (isRegister ? obj.emberRegisterPath : obj.emberCreatePath));
+          addType(obj.driverName, 'kontainer', false, (isImport ? obj.emberImportPath : obj.emberCreatePath));
         }
       });
 
-      if ( isRegister ) {
+      if ( isImport ) {
         addType('import', 'custom', false);
       } else {
         templates.forEach((id) => {
@@ -221,7 +226,7 @@ export default {
         if ( !entry ) {
           entry = {
             name,
-            label: this.$store.getters['i18n/withFallback'](`cluster.providerGroup."${ this.isRegister ? 'register-' : 'create-' }${ name }"`, null, name),
+            label: this.$store.getters['i18n/withFallback'](`cluster.providerGroup."${ this.isImport ? 'register-' : 'create-' }${ name }"`, null, name),
             types: [],
             sort:  SORT_GROUPS[name],
           };
@@ -300,16 +305,15 @@ export default {
       </div>
     </template>
 
-    <!-- @TODO load appropriate component for provider -->
+    <div v-if="emberLink" class="embed">
+      <EmberPage :src="emberLink" />
+    </div>
     <Import
-      v-if="isRegister"
+      v-else-if="isImport"
       v-model="value"
       :mode="mode"
       :provider="subType"
     />
-    <div v-else-if="emberLink" class="embed">
-      <EmberPage :src="emberLink" />
-    </div>
     <Rke2Config
       v-else-if="subType"
       v-model="value"
