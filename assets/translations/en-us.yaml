@@ -988,6 +988,8 @@ fleet:
       unready: Non-Ready
     auth:
       label: Authentication
+      git: Git Authentication
+      helm: Helm Authentication
     caBundle:
       label: Certificates
       placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"

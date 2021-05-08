@@ -224,13 +224,13 @@ export default {
   methods: {
     set,
 
-    updateAuth(val) {
+    updateAuth(val, key) {
       const spec = this.value.spec;
 
       if ( val ) {
-        spec.clientSecretName = val;
+        spec[key] = val;
       } else {
-        delete spec.clientSecretName;
+        delete spec[key];
       }
     },
 
@@ -362,7 +362,19 @@ export default {
       :namespace="value.metadata.namespace"
       in-store="management"
       generate-name="gitrepo-auth-"
-      @input="updateAuth($event)"
+      label-key="fleet.gitRepo.auth.git"
+      @input="updateAuth($event, 'clientSecretName')"
+    />
+
+    <SelectOrCreateAuthSecret
+      :value="value.spec.helmSecretName"
+      :register-before-hook="registerBeforeHook"
+      :namespace="value.metadata.namespace"
+      in-store="management"
+      generate-name="helmrepo-auth-"
+      label-key="fleet.gitRepo.auth.helm"
+      hook-name="registerHelmAuthSecret"
+      @input="updateAuth($event, 'helmSecretName')"
     />
 
     <template v-if="isTls">

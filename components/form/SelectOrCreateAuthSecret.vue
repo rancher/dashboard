@@ -75,6 +75,11 @@ export default {
       type:     Function,
       required: true,
     },
+
+    hookName: {
+      type:    String,
+      default: 'registerAuthSecret'
+    }
   },
 
   async fetch() {
@@ -215,7 +220,7 @@ export default {
 
   created() {
     if (this.registerBeforeHook) {
-      this.registerBeforeHook(this.doCreate, 'createAuthSecret');
+      this.registerBeforeHook(this.doCreate, this.hookName);
     }
   },
 
@@ -261,6 +266,9 @@ export default {
             username:  base64Encode(this.username),
             password: base64Encode(this.password),
           };
+          if (this.allowCacerts && this.cacerts) {
+            secret.data.cacerts = base64Encode(this.cacerts);
+          }
         }
 
         await secret.save();
