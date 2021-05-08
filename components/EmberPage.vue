@@ -116,7 +116,7 @@ export default {
         }
       }
 
-      if (iframeEl === null) {
+      if (iframeEl === null && process.env.dev) {
         // Fetch a page to check that the Ember UI is available
         try {
           this.error = false;
