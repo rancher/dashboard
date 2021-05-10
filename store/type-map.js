@@ -103,9 +103,8 @@
 //   mapWeight,
 //   continueOnMatch
 // )
-
 import { AGE, NAME, NAMESPACE, STATE } from '@/config/table-headers';
-import { COUNT, SCHEMA } from '@/config/types';
+import { COUNT, SCHEMA, MANAGEMENT } from '@/config/types';
 import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import {
   addObject, findBy, insertAt, isArray, removeObject
@@ -1467,7 +1466,73 @@ function ifHave(getters, option) {
   case IF_HAVE.V1_MONITORING: {
     return haveV1Monitoring(getters);
   }
+  case 'project': {
+    return !!project(getters);
+  }
   default:
     return false;
   }
+}
+
+// Look at the namespace filters to determine if a project is selected
+function project(getters) {
+  const clusterId = getters['currentCluster']?.id;
+
+  if ( !clusterId ) {
+    return null;
+  }
+
+  const filters = getters['namespaceFilters'];
+  const namespaces = [];
+  let projectName = null;
+
+  filters.forEach((filter) => {
+    const [type, id] = filter.split('://', 2);
+
+    if (type === 'project') {
+      if (projectName !== null) {
+        // More than one project selected
+        return null;
+      }
+      projectName = id;
+    } else if (type === 'ns') {
+      namespaces.push(id);
+    } else {
+      // Something other than project or namespace
+      return null;
+    }
+  });
+
+  // No project found?
+  if (!projectName) {
+    return null;
+  }
+
+  // We have one project and a set of namespaces
+  // Check that all of the namespaces belong to the project
+  const project = getters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ projectName }`);
+
+  // No additional namespaces means just the project is selected
+  if (namespaces.length === 0) {
+    return project;
+  }
+
+  // Convert the project namespaces into a map so we can check existtence easily
+  const prjNamespaceMap = project.namespaces.reduce((m, ns) => {
+    m[ns.metadata.name] = true;
+
+    return m;
+  }, {});
+
+  // All of the namespace filters must belong to the project
+  const found = namespaces.reduce((total, ns) => {
+    console.log(ns);
+    return prjNamespaceMap[ns] ? total + 1 : 0;
+  }, 0);
+
+  if (found !== namespaces.length) {
+    return null;
+  }
+
+  return project;
 }

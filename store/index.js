@@ -171,6 +171,12 @@ export const getters = {
     return !filters[0].startsWith('ns://');
   },
 
+  namespaceFilters(state) {
+    const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith('namespaced://'));
+
+    return filters;
+  },
+
   namespaceMode(state, getters) {
     const filters = state.namespaceFilters;
     const product = getters['currentProduct'];
