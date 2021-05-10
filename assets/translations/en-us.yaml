@@ -585,7 +585,7 @@ catalog:
       chartUrls: Chart
       keywords: Keywords
     errors:
-      clusterToolExists: The application for this Cluster Tool already exists. To edit or update go to the <a href="{url}">App</a>
+      clusterToolExists: This chart has a fixed namespace and name. A matching <a href="{url}">application</a> has been found and any changes will be made to it. 
   charts:
     all: All
     categories:
@@ -601,7 +601,7 @@ catalog:
   install:
     action:
       goToUpgrade: Edit/Upgrade
-      ignoreWarning: Ignore Warning/s
+      ignoreWarning: Ignore {count, plural, =1 { warning } other { warnings }}
     appReadmeMissing: This chart doesn't have any additional chart information.
     appReadmeTitle: Chart Information (Helm README)
     chart: Chart
@@ -657,7 +657,7 @@ catalog:
       helmCli:
         label: Command
         subtext: Change how the Helm command runs
-        description: Rancher will {action} your chart using a CLI tool. Here's the settings you can apply for it's command.
+        description: "{appName} will {action} your chart using a CLI tool. Here's the settings you can apply for its command."
     version: Version
     versions:
       current: '{ver} (Current)'
@@ -3399,7 +3399,7 @@ validation:
       interval: '"{key}" must be of a format with digits followed by a unit i.e. 1h, 2m, 30s'
 
 wizard:
-  back: Back
+  previous: Previous
   finish: Finish
   next: Next
   step: "Step {number}"

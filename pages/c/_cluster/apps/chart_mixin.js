@@ -224,14 +224,15 @@ export default {
     },
 
     action() {
-      return this.existing ? this.currentVersion === this.targetVersion ? 'update' : 'upgrade' : 'install';
+      if (this.existing) {
+        return this.currentVersion === this.targetVersion ? 'update' : 'upgrade';
+      }
+
+      return 'install';
     },
 
-    isClusterTool() {
-      // Note - this copies how cluster tools options are created
-      const rancherCatalogKey = this.$store.getters['catalog/repos'].find(x => x.isRancher)._key;
-
-      return this.chart?.repoKey === rancherCatalogKey;
+    isChartTargeted() {
+      return this.chart?.targetNamespace && this.chart?.targetName;
     }
   },
 

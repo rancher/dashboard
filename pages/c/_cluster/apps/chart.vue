@@ -37,13 +37,13 @@ export default {
       return this.showMoreVersions ? this.mappedVersions : this.mappedVersions.slice(0, this.showLastVersions);
     },
 
-    clusterToolWarning() {
+    targetedAppWarning() {
       if (!this.existing) {
         return;
       }
       const url = this.$router.resolve(this.appLocation()).href;
 
-      return this.isClusterTool ? this.t('catalog.chart.errors.clusterToolExists', { url }, true) : '';
+      return this.isChartTargeted ? this.t('catalog.chart.errors.clusterToolExists', { url }, true) : '';
     },
 
     maintainers() {
@@ -93,23 +93,21 @@ export default {
     <div v-if="chart" class="chart-header">
       <div class="name-logo-install">
         <div class="name-logo">
+          <div class="logo-bg">
+            <LazyImage :src="chart.icon" class="logo" />
+          </div>
           <h1>
             <nuxt-link :to="{ name: 'c-cluster-apps-charts' }">
               {{ t('catalog.chart.header.charts') }}:
             </nuxt-link>
             {{ chart.chartDisplayName }} ({{ targetVersion }})
           </h1>
-          <div v-if="chart.icon" class="logo-container">
-            <div class="logo-bg ml-10">
-              <LazyImage :src="chart.icon" class="logo" />
-            </div>
-          </div>
         </div>
-        <button v-if="!requires.length && (!clusterToolWarning)" type="button" class="btn role-primary" @click.prevent="install">
+        <button v-if="!requires.length" type="button" class="btn role-primary" @click.prevent="install">
           {{ t(`asyncButton.${action}.action` ) }}
         </button>
       </div>
-      <div v-if="requires.length || warnings.length || clusterToolWarning" class="mt-20">
+      <div v-if="requires.length || warnings.length || targetedAppWarning" class="mt-20">
         <Banner v-for="msg in requires" :key="msg" color="error">
           <span v-html="msg" />
         </Banner>
@@ -118,8 +116,8 @@ export default {
           <span v-html="msg" />
         </Banner>
 
-        <Banner v-if="clusterToolWarning" color="warning">
-          <span v-html="clusterToolWarning" />
+        <Banner v-if="targetedAppWarning" color="warning">
+          <span v-html="targetedAppWarning" />
         </Banner>
       </div>
       <div v-else-if="version && version.description" class="description mt-10">
@@ -142,9 +140,9 @@ export default {
             {{ t('catalog.chart.info.chartVersions.label') }}
           </h3>
           <div v-for="vers of versions" :key="vers.id" class="chart-content__right-bar__section--cVersion">
-            <b v-if="vers.originalVersion === version.version">{{ vers.shortLabel }}</b>
+            <b v-if="vers.originalVersion === version.version">{{ vers.originalVersion === currentVersion ? t('catalog.install.versions.current', { ver: currentVersion }): vers.shortLabel }}</b>
             <a v-else v-tooltip="vers.label.length > 16 ? vers.label : null" @click.prevent="selectVersion(vers)">
-              {{ vers.shortLabel }}
+              {{ vers.originalVersion === currentVersion ? t('catalog.install.versions.current', { ver: currentVersion }): vers.shortLabel }}
             </a>
             <DateFormatter :value="vers.created" :show-time="false" />
           </div>
@@ -186,47 +184,51 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  $name-height: 30px;
+  $name-height: 50px;
   $padding: 5px;
 
   .chart-header {
 
     .name-logo-install {
       display: flex;
-      height: $name-height;
+      align-items: center;
       justify-content: space-between;
+      height: $name-height;
     }
 
     .name-logo {
       display: flex;
+      align-items: center;
+
+      .logo-bg {
+        height: $name-height;
+        width: $name-height;
+        background-color: white;
+        border: $padding solid white;
+        border-radius: calc( 3 * var(--border-radius));
+        position: relative;
+      }
+
+      .logo {
+        max-height: $name-height - 2 * $padding;
+        max-width: $name-height - 2 * $padding;
+        position: absolute;
+        width: auto;
+        height: auto;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        margin: auto;
+      }
+
+      h1 {
+        margin: 0 20px;
+      }
     }
 
-    .logo-container {
-      height: $name-height;
-      width: $name-height;
-      text-align: center;
-    }
-
-    .logo-bg {
-      height: $name-height;
-      width: $name-height;
-      background-color: white;
-      border: $padding solid white;
-      border-radius: calc( 3 * var(--border-radius));
-      position: relative;
-    }
-
-    .logo {
-      max-height: $name-height - 2 * $padding;
-      max-width: $name-height - 2 * $padding;
-      position: absolute;
-      width: auto;
-      height: auto;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      margin: auto;
+    .btn {
+      height: 30px;
     }
 
     .description {
@@ -238,9 +240,12 @@ export default {
     display: flex;
     &__tabs {
       flex: 1;
+      min-width: 400px;
     }
     &__right-bar {
+      min-width: 260px;
       max-width: 260px;
+
       &__section {
         display: flex;
         flex-direction: column;

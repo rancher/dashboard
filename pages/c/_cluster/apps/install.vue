@@ -816,7 +816,7 @@ export default {
               <span v-html="msg" />
             </Banner>
 
-            <Checkbox v-if="warnings.length" v-model="ignoreWarning" label-key="catalog.install.action.ignoreWarning" />
+            <Checkbox v-if="warnings.length" v-model="ignoreWarning" :label="t('catalog.install.action.ignoreWarning', { count: warnings.length })" />
           </div>
           <div v-if="existing" class="row mb-10">
             <div class="col span-6">

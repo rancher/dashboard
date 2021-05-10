@@ -193,7 +193,8 @@ export default {
             <!-- Logo -->
             <slot name="bannerTitleImage">
               <div v-if="bannerImage" class="round-image">
-                <img :src="bannerImage" />
+                <LazyImage :src="bannerImage" class="logo" />
+                <!-- <img :src="bannerImage" /> -->
               </div>
             </slot>
             <!-- Title with subtext -->
@@ -270,7 +271,7 @@ export default {
         <div class="controls-steps">
           <slot v-if="activeStepIndex!==0" name="back" :back="back">
             <button :disabled="!editFirstStep && activeStepIndex===1" type="button" class="btn role-secondary" @click="back()">
-              <t k="wizard.back" />
+              <t k="wizard.previous" />
             </button>
           </slot>
           <slot v-if="activeStepIndex === steps.length-1" name="finish" :finish="finish">
@@ -430,7 +431,7 @@ $spacer: 10px;
       margin: 10px 10px 10px 0;
       border-radius: 50%;
       overflow: hidden;
-      img {
+      .logo {
         min-width: 50px;
         height: 50px;
       }

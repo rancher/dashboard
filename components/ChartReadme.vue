@@ -63,6 +63,8 @@ export default {
 
     ::v-deep code {
       padding: 0;
+      white-space: break-spaces;
+      word-break: break-word;
     }
 
     ::v-deep pre {
