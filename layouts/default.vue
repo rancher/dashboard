@@ -357,7 +357,7 @@ export default {
           </Group>
         </template>
       </div>
-      <n-link tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools'}">
+      <n-link v-if="isExplorer" tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools'}">
         <a class="tools-button" @click="collapseAll()">
           <i class="icon icon-gear" />
           <span>{{ t('nav.clusterTools') }}</span>
