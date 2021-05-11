@@ -1,7 +1,10 @@
 import { CATALOG } from '@/config/labels-annotations';
 import { FLEET, MANAGEMENT } from '@/config/types';
 import { insertAt } from '@/utils/array';
+import { downloadFile } from '@/utils/download';
 import { parseSi } from '@/utils/units';
+import jsyaml from 'js-yaml';
+import { eachLimit } from '@/utils/promise';
 
 // See translation file cluster.providers for list of providers
 // If the logo is not named with the provider name, add an override here
@@ -35,6 +38,15 @@ export default {
       label:      'Kubectl Shell',
       icon:       'icon icon-terminal',
       enabled:    !!this.links.shell,
+    });
+
+    insertAt(out, 1, {
+      action:     'downloadKubeConfig',
+      bulkAction: 'downloadKubeConfigBulk',
+      label:      'Download KubeConfig',
+      icon:       'icon icon-download',
+      bulkable:   true,
+      enabled:    this.$rootGetters['isRancher'],
     });
 
     return out;
@@ -100,21 +112,6 @@ export default {
     }
 
     return '';
-  },
-
-  openShell() {
-    return () => {
-      this.$dispatch('wm/open', {
-        id:        `kubectl-${ this.id }`,
-        label:     this.$rootGetters['i18n/t']('wm.kubectlShell.title', { name: this.nameDisplay }),
-        icon:      'terminal',
-        component: 'KubectlShell',
-        attrs:     {
-          cluster: this,
-          pod:     {}
-        }
-      }, { root: true });
-    };
   },
 
   providerOs() {
@@ -189,5 +186,67 @@ export default {
     } else {
       return null;
     }
-  }
+  },
+
+  openShell() {
+    return () => {
+      this.$dispatch('wm/open', {
+        id:        `kubectl-${ this.id }`,
+        label:     this.$rootGetters['i18n/t']('wm.kubectlShell.title', { name: this.nameDisplay }),
+        icon:      'terminal',
+        component: 'KubectlShell',
+        attrs:     {
+          cluster: this,
+          pod:     {}
+        }
+      }, { root: true });
+    };
+  },
+
+  generateKubeConfig() {
+    return async() => {
+      const res = await this.$dispatch('request', {
+        method: 'post',
+        url:    `/v3/clusters/${ this.id }?action=generateKubeconfig`
+      });
+
+      return res.config;
+    };
+  },
+
+  downloadKubeConfig() {
+    return async() => {
+      const config = await this.generateKubeConfig();
+
+      downloadFile(`${ this.nameDisplay }.yaml`, config, 'application/yaml');
+    };
+  },
+
+  downloadKubeConfigBulk() {
+    return async(items) => {
+      let obj = {};
+      let first = true;
+
+      await eachLimit(items, 10, (item, idx) => {
+        return item.generateKubeConfig().then((config) => {
+          const entry = jsyaml.safeLoad(config);
+
+          if ( first ) {
+            obj = entry;
+            first = false;
+          } else {
+            obj.clusters.push(...entry.clusters);
+            obj.users.push(...entry.users);
+            obj.contexts.push(...entry.contexts);
+          }
+        });
+      });
+
+      delete obj['current-context'];
+
+      const out = jsyaml.safeDump(obj);
+
+      downloadFile('kubeconfig.yaml', out, 'application/yaml');
+    };
+  },
 };

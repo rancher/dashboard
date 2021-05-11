@@ -47,11 +47,15 @@ export default {
       return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
     },
 
-    showShell() {
+    kubeConfigEnabled() {
+      return true;
+    },
+
+    shellEnabled() {
       return !!this.currentCluster?.links?.shell;
     },
 
-    showImport() {
+    importEnabled() {
       return !!this.currentCluster?.actions?.apply;
     },
 
@@ -147,36 +151,46 @@ export default {
     </div>
 
     <div v-if="!simple" class="header-buttons">
-      <button
-        v-if="currentProduct && currentProduct.showClusterSwitcher"
-        v-tooltip="t('nav.import')"
-        :disabled="!showImport"
-        type="button"
-        class="btn header-btn role-tertiary"
-        @click="openImport()"
-      >
-        <i class="icon icon-upload icon-lg" />
-      </button>
-      <modal
-        class="import-modal"
-        name="importModal"
-        width="75%"
-        height="auto"
-        styles="max-height: 90vh;"
-      >
-        <Import :cluster="currentCluster" @close="closeImport" />
-      </modal>
+      <template v-if="currentProduct && currentProduct.showClusterSwitcher">
+        <button
+          v-tooltip="t('nav.import')"
+          :disabled="!importEnabled"
+          type="button"
+          class="btn header-btn role-tertiary"
+          @click="openImport()"
+        >
+          <i class="icon icon-upload icon-lg" />
+        </button>
+        <modal
+          class="import-modal"
+          name="importModal"
+          width="75%"
+          height="auto"
+          styles="max-height: 90vh;"
+        >
+          <Import :cluster="currentCluster" @close="closeImport" />
+        </modal>
 
-      <button
-        v-if="currentProduct && currentProduct.showClusterSwitcher"
-        v-tooltip="t('nav.shell')"
-        :disabled="!showShell"
-        type="button"
-        class="btn header-btn role-tertiary"
-        @click="currentCluster.openShell()"
-      >
-        <i class="icon icon-terminal icon-lg" />
-      </button>
+        <button
+          v-tooltip="t('nav.shell')"
+          :disabled="!shellEnabled"
+          type="button"
+          class="btn header-btn role-tertiary"
+          @click="currentCluster.openShell()"
+        >
+          <i class="icon icon-terminal icon-lg" />
+        </button>
+
+        <button
+          v-tooltip="t('nav.kubeconfig')"
+          :disabled="!kubeConfigEnabled"
+          type="button"
+          class="btn header-btn role-tertiary"
+          @click="currentCluster.downloadKubeConfig()"
+        >
+          <i class="icon icon-file icon-lg" />
+        </button>
+      </template>
 
       <button
         v-if="showSearch"
