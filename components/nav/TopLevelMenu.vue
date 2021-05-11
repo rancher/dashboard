@@ -197,7 +197,7 @@ export default {
             <div v-for="c in clusters" :key="c.id" @click="hide()">
               <nuxt-link
                 v-if="c.ready"
-                class="cluster selector"
+                class="cluster selector option"
                 :to="{ name: 'c-cluster', params: { cluster: c.id } }"
               >
                 <img :src="c.logo" />
@@ -296,8 +296,8 @@ export default {
   }
 
   .cluster.selector:not(.disabled):hover {
-    color: var(--primary-hover-text);
-    background: var(--primary-hover-bg);
+    color: var(--lightest);
+    background: var(--disabled-bg);
     border-radius: 5px;
     text-decoration: none;
   }
@@ -328,6 +328,7 @@ export default {
     cursor: pointer;
     display: flex;
     padding: $option-padding 0 $option-padding 10px;
+    color: var(--link-text);
 
     &:hover {
       text-decoration: none;
@@ -347,17 +348,17 @@ export default {
     }
 
     &:hover {
-      color: var(--primary-hover-text);
-      background: var(--primary-hover-bg);
+      color: var(--lightest);
+      background: var(--disabled-bg);
       border-radius: 5px;
       > div {
-        color: var(--primary-hover-text);
+        color: var(--lightest);
       }
       svg {
-        fill: var(--primary-hover-text);
+        fill: var(--lightest);
       }
       div {
-        color: var(--primary-hover-text);
+        color: var(--lightest);
       }
     }
   }
@@ -474,8 +475,8 @@ export default {
           color: var(--header-btn-text);
 
           &:hover {
-            color: var(--primary-hover-text);
-            background: var(--primary-hover-bg);
+            color: var(--lightest);
+            background: var(--disabled-bg);
           }
         }
       }
@@ -495,7 +496,7 @@ export default {
           opacity: 0.7;
           cursor: pointer;
           &:hover {
-            color: var(--primary-hover-bg);
+            color: var(--disabled-bg);
           }
         }
       }

@@ -52,7 +52,8 @@ BODY {
     // info:       $info,
     warning:    $warning,
     error:      $error,
-    darker:     $darker
+    darker:     $darker,
+    lighter: $lighter
   ), true);
 
   --primary-h: 204;
@@ -66,7 +67,7 @@ BODY {
   --info: #{$info};
   --info-text: #{$lightest};
   --info-hover-bg: hsl(var(--info-h), var(--info-s), calc(var(--info-l) * .9));
-  --info-hover-text: saturate($lightest, 20%);
+  --info-hover-text: #{saturate($lightest, 20%)};
   --info-active-bg: hsl(var(--info-h), var(--info-s), calc(var(--info-l) * .75));
   --info-active-text: #{$lightest};
   --info-border: var(--info);
@@ -75,7 +76,7 @@ BODY {
   --primary: #{$primary};
   --primary-text: #{$lightest};
   --primary-hover-bg: hsl(var(--primary-h), var(--primary-s), calc(var(--primary-l) * .9));
-  --primary-hover-text: saturate($lightest, 20%);
+  --primary-hover-text: #{saturate($lightest, 20%)};
   --primary-active-bg: hsl(var(--primary-h), var(--primary-s), calc(var(--primary-l) * .75));;
   --primary-active-text: #{$lightest};
   --primary-border: var(--primary);
@@ -189,7 +190,9 @@ BODY {
   --accent-btn                 : hsla(var(--primary-h), var(--primary-s), var(--primary-l), .2);
   --accent-btn-hover           : var(--selected);
   --modal-bg                   :#{$light};
-  --overlay-bg                 : hsla(var(--primary-h), var(--primary-s), var(--primary-l), .75);
+  // --overlay-bg                 : hsla(var(--primary-h), var(--primary-s), var(--primary-l), .75);
+  --overlay-bg                 : #{rgba($link, .75)};
+
   --shadow                     : #{rgba($medium, 0.85)};
 
   --checkbox-tick              : #{$lightest};

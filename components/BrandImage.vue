@@ -9,14 +9,18 @@ export default {
     }
   },
   async fetch() {
-    this.brandSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'brand' });
+    this.managementSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
   },
   data() {
     const theme = this.$store.getters['prefs/theme'];
 
-    return { brandSetting: null, theme };
+    return { theme, managementSettings: [] };
   },
   computed: {
+    brandSetting() {
+      return this.managementSettings.filter(setting => setting.id === 'brand')[0];
+    },
+
     pathToBrandedImage() {
       let out = require(`~/assets/images/pl/${ this.fileName }`);
 

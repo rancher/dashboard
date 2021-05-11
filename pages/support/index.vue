@@ -3,6 +3,8 @@ import { options } from '@/config/footer';
 import BannerGraphic from '@/components/BannerGraphic';
 import AsyncButton from '@/components/AsyncButton';
 import IndentedPanel from '@/components/IndentedPanel';
+import Card from '@/components/Card';
+
 import { MANAGEMENT } from '@/config/types';
 
 export default {
@@ -12,6 +14,7 @@ export default {
     BannerGraphic,
     IndentedPanel,
     AsyncButton,
+    Card
   },
 
   async fetch() {
@@ -39,7 +42,7 @@ export default {
 
   data() {
     return {
-      supportKey:     null,
+      supportKey:     '',
       supportSetting: null,
       brandSetting:   null,
       promos:         [
@@ -79,6 +82,22 @@ export default {
         await Promise.all([this.supportSetting.save(), this.brandSetting.save()]);
         this.$cookies.set('brand', 'suse');
         done(true);
+        this.$modal.hide('toggle-support');
+      } catch {
+        done(false);
+      }
+    },
+
+    async removeSubscription(done) {
+      try {
+        this.supportSetting.value = 'false';
+        this.brandSetting.value = '';
+        await Promise.all([this.supportSetting.save(), this.brandSetting.save()]);
+        if (this.$cookies.get('brand')) {
+          this.$cookies.remove('brand');
+        }
+        done(true);
+        this.$modal.hide('toggle-support');
       } catch {
         done(false);
       }
@@ -91,19 +110,17 @@ export default {
     <BannerGraphic :title="t(title, {}, true)" />
 
     <IndentedPanel>
+      <div v-if="!hasSupport" class="register row">
+        <div>
+          {{ t('support.subscription.haveSupport') }}
+        </div>
+        <button class="ml-5 btn role-secondary btn-sm" type="button" @click="$modal.show('toggle-support')">
+          {{ t('support.subscription.addSubscription') }}
+        </button>
+      </div>
+
       <div class="content mt-20">
         <div class="promo">
-          <div v-if="!hasSupport" class="register row">
-            <div class="col">
-              {{ t('support.community.register') }}
-            </div>
-            <div class="col span-3">
-              <input v-model="supportKey" />
-            </div>
-            <AsyncButton size="sm" @click="addSubscription">
-              {{ t('support.community.addSubscription') }}
-            </AsyncButton>
-          </div>
           <div class="boxes">
             <div v-for="key in promos" :key="key" class="box">
               <h2>{{ t(`${key}.title`) }}</h2>
@@ -122,8 +139,39 @@ export default {
             <a v-t="name" :href="value" target="_blank" rel="noopener noreferrer nofollow" />
           </div>
         </div>
+        <div v-if="hasSupport" class="row">
+          <button class="btn role-tertiary btn-sm" type="button" @click="$modal.show('toggle-support')">
+            {{ t('support.subscription.removeSubscription') }}
+          </button>
+        </div>
       </div>
     </IndentedPanel>
+    <modal
+      name="toggle-support"
+      height="auto"
+      :width="300"
+    >
+      <Card :show-highlight-border="false" class="toogle-support">
+        <template #title>
+          {{ hasSupport? t('support.subscription.removeTitle') : t('support.subscription.addTitle') }}
+        </template>
+        <template #body>
+          <div v-if="hasSupport" class="mt-20">
+            {{ t('support.subscription.removeBody') }}
+          </div>
+          <div v-else class="mt-20">
+            <input v-model="supportKey" />
+          </div>
+        </template>
+        <template #actions>
+          <button type="button" class="btAhn role-secondary" @click="$modal.hide('toggle-support')">
+            {{ t('generic.cancel') }}
+          </button>
+          <AsyncButton v-if="!hasSupport" :disabled="!supportKey.length" class="pull-right" @click="addSubscription" />
+          <AsyncButton v-else :action-label="t('generic.remove')" class="pull-right" @click="removeSubscription" />
+        </template>
+      </Card>
+    </modal>
   </div>
 </template>
 <style lang="scss" scoped>
@@ -133,6 +181,20 @@ export default {
   grid-row-gap: 20px;
   grid-template-columns: 70% 30%;
 }
+
+.toogle-support {
+    height: 100%;
+
+    &.card-container {
+      box-shadow: none;
+    }
+
+    &::v-deep .card-actions {
+      display: flex;
+      justify-content: space-between;
+    }
+}
+
 .community {
   border-left: 1px solid var(--border);
   padding-left: 20px;
@@ -151,14 +213,8 @@ export default {
 .register {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  margin-top: 20px;
   font-size: 16px;
-
-  .btn.add {
-    min-height: 32px;
-    line-height: 32px;
-    margin-left: 10px;
-  }
 }
 .boxes {
   display: grid;
