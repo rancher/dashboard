@@ -2,7 +2,7 @@
 import debounce from 'lodash/debounce';
 import { mapState, mapGetters } from 'vuex';
 import {
-  mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES, AFTER_LOGIN_ROUTE
+  mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES, AFTER_LOGIN_ROUTE, SEEN_WHATS_NEW
 } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import WindowManager from '@/components/nav/WindowManager';
@@ -18,7 +18,7 @@ import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@/utils/string';
 import { getVersionInfo } from '@/utils/version';
 import { sortBy } from '@/utils/sort';
-import PageHeaderActions from '@/mixins/page-header';
+import PageHeaderActions from '@/mixins/page-actions';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -193,6 +193,8 @@ export default {
           name:   'c-cluster-explorer',
           params: { cluster: this.clusterId }
         };
+        // Mark release notes as seen, so that the login route is honoured
+        this.$store.dispatch('prefs/set', { key: SEEN_WHATS_NEW, value: getVersionInfo(this.$store).fullVersion });
       }
     },
 

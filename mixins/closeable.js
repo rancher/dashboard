@@ -29,19 +29,18 @@ export default {
   },
 
   methods: {
-    hide() {
+    async hide() {
       if (this.pref) {
         let value = this.shown;
 
         // Set the preference to store that the panel is hidden
         if (this.prefKey) {
-          value = this.$store.getters['prefs/get'](this.pref);
           if (value === true || value === false || value.length > 0) {
             value = {};
           }
           value[this.prefKey] = true;
         }
-        this.$store.dispatch('prefs/set', { key: this.pref, value });
+        await this.$store.dispatch('prefs/set', { key: this.pref, value });
       }
     }
   },

@@ -13,7 +13,7 @@ import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
 import { STATE } from '@/config/table-headers';
 import { createMemoryFormat, formatSi, parseSi } from '@/utils/units';
-import { compare } from '@/utils/version';
+import { compare, getVersionInfo } from '@/utils/version';
 import PageHeaderActions from '@/mixins/page-actions';
 
 const SET_LOGIN_ACTION = 'set-as-login';
@@ -44,8 +44,7 @@ export default {
   },
 
   data() {
-    const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
-    const fullVersion = setting?.value || 'unknown';
+    const fullVersion = getVersionInfo(this.$store).fullVersion;
 
     // Page actions don't change on the Home Page
     const pageActions = [
@@ -190,6 +189,8 @@ export default {
         this.resetCards();
       } else if (action.action === SET_LOGIN_ACTION) {
         this.afterLoginRoute = 'home';
+        // Mark release notes as seen, so that the login route is honoured
+        this.$store.dispatch('prefs/set', { key: SEEN_WHATS_NEW, value: getVersionInfo(this.$store).fullVersion });
       }
     },
 
