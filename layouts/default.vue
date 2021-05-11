@@ -18,7 +18,6 @@ import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@/utils/string';
 import { getVersionInfo } from '@/utils/version';
 import { sortBy } from '@/utils/sort';
-import { AFTER_LOGIN_ROUTE } from '@/store/prefs';
 import PageHeaderActions from '@/mixins/page-header';
 
 const SET_LOGIN_ACTION = 'set-as-login';
