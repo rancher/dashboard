@@ -177,6 +177,14 @@ export const RAM = {
   width:     120,
 };
 
+export const PRINCIPAL = {
+  name:      'principal',
+  labelKey:  'tableHeaders.name',
+  sort:      'principal.loginName',
+  value:     'userPrincipalName',
+  formatter: 'Principal',
+};
+
 export const PODS = {
   name:      'pods',
   labelKey:  'tableHeaders.pods',
@@ -787,6 +795,12 @@ export const RESTART = {
   sort:      ['restartRequired', 'nameSort'],
   formatter: 'Checked',
   width:     75,
+};
+
+export const ROLE = {
+  name:          'role',
+  value:         'roleDisplay',
+  labelKey:      'tableHeaders.role',
 };
 
 export const FEATURE_DESCRIPTION = {

@@ -113,7 +113,7 @@ export default {
   },
 
   projectNameSort() {
-    return this.project?.nameSort || '}';
+    return this.project?.nameSort || '';
   },
 
   istioInstalled() {
