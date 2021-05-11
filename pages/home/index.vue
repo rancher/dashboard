@@ -70,8 +70,7 @@ export default {
 
     seenWhatsNewAlready() {
       const lastSeenNew = this.$store.getters['prefs/get'](SEEN_WHATS_NEW) ;
-      const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
-      const fullVersion = setting?.value || 'unknown';
+      const fullVersion = getVersionInfo(this.$store).fullVersion;
 
       return compare(lastSeenNew, fullVersion) >= 0 && !!lastSeenNew;
     },
