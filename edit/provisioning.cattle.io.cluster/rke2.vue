@@ -125,6 +125,14 @@ export default {
       }
     }
 
+    if ( !this.serverConfig.profile ) {
+      set(this.serverConfig, 'profile', null);
+    }
+
+    if ( !this.serverConfig.profile ) {
+      set(this.serverConfig, 'profile', null);
+    }
+
     await this.initNodePools(this.value.spec.rkeConfig.nodePools);
     if ( this.mode === _CREATE && !this.nodePools.length ) {
       await this.addNodePool();
@@ -207,6 +215,16 @@ export default {
         out.push({ kind: 'group', label: this.t('cluster.provider.k3s') });
         out.push(...k3s);
       }
+
+      return out;
+    },
+
+    profileOptions() {
+      const out = (this.selectedVersion?.agentArgs?.profile?.options || []).map((x) => {
+        return { label: x, value: x };
+      });
+
+      out.unshift({ label: '(None)', value: null });
 
       return out;
     },
@@ -384,7 +402,7 @@ export default {
     },
 
     showCni() {
-      return !!this.selectedVersion.serverArgs.cni;
+      return !!this.selectedVersion.agentArgs.cni;
     },
   },
 
@@ -644,9 +662,9 @@ export default {
           </div>
           <div v-if="showCni" class="col span-4">
             <LabeledSelect
-              v-model="serverConfig.cni"
+              v-model="agentConfig.cni"
               :mode="mode"
-              :options="selectedVersion.serverArgs.cni.options"
+              :options="selectedVersion.agentArgs.cni.options"
               label="Container Network Provider"
             />
           </div>
@@ -776,7 +794,7 @@ export default {
               <LabeledSelect
                 v-model="serverConfig.profile"
                 :mode="mode"
-                :options="selectedVersion.serverArgs.profile.options"
+                :options="profileOptions"
                 label="Server CIS Profile"
               />
             </div>
@@ -784,7 +802,7 @@ export default {
               <LabeledSelect
                 v-model="agentConfig.profile"
                 :mode="mode"
-                :options="selectedVersion.agentArgs.profile.options"
+                :options="profileOptions"
                 label="Worker CIS Profile"
               />
             </div>
@@ -838,7 +856,7 @@ export default {
         <ul>
           <li>Snapshot Backups</li>
           <li>Private Registry</li>
-          <li>CNI MTU</li>
+          <li>CNI MTU / Options from chart</li>
           <li>Ingress Default Backend</li>
         </ul>
 

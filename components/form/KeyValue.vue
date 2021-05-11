@@ -421,19 +421,21 @@ export default {
     </div>
 
     <div class="kv-container" :style="containerStyle">
-      <label class="text-label">
-        {{ keyLabel }}
-        <i v-if="protip && !isView" v-tooltip="protip" class="icon icon-info" />
-      </label>
-      <label class="text-label">
-        {{ valueLabel }}
-      </label>
-      <label v-for="c in extraColumns" :key="c">
-        <slot :name="'label:'+c">{{ c }}</slot>
-      </label>
-      <slot v-if="removeAllowed" name="remove">
-        <span />
-      </slot>
+      <template v-if="rows.length || isView">
+        <label class="text-label">
+          {{ keyLabel }}
+          <i v-if="protip && !isView" v-tooltip="protip" class="icon icon-info" />
+        </label>
+        <label class="text-label">
+          {{ valueLabel }}
+        </label>
+        <label v-for="c in extraColumns" :key="c">
+          <slot :name="'label:'+c">{{ c }}</slot>
+        </label>
+        <slot v-if="removeAllowed" name="remove">
+          <span />
+        </slot>
+      </template>
 
       <template v-if="!rows.length && isView">
         <div class="kv-item key text-muted">

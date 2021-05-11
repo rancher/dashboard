@@ -75,9 +75,10 @@ nav:
   title: Dashboard
   backToRancher: Cluster Manager
   clusterTools: Cluster Tools
-  shell: Kubectl Shell
+  kubeconfig: Download KubeConfig
   import: Import YAML
   home: Home
+  shell: Kubectl Shell
   support: Get Support
   group:
     cluster: Cluster

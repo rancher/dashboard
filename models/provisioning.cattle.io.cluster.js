@@ -1,5 +1,5 @@
 import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
-import { findBy } from '@/utils/array';
+import { findBy, insertAt } from '@/utils/array';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 
@@ -21,6 +21,28 @@ export default {
         content: this.kubernetesVersion,
       },
     ];
+
+    return out;
+  },
+
+  _availableActions() {
+    const out = this._standardActions;
+
+    insertAt(out, 0, {
+      action:     'openShell',
+      label:      'Kubectl Shell',
+      icon:       'icon icon-terminal',
+      enabled:    !!this.mgmt?.links.shell,
+    });
+
+    insertAt(out, 1, {
+      action:     'downloadKubeConfig',
+      bulkAction: 'downloadKubeConfigBulk',
+      label:      'Download KubeConfig',
+      icon:       'icon icon-download',
+      bulkable:   true,
+      enabled:    this.$rootGetters['isRancher'],
+    });
 
     return out;
   },
@@ -208,5 +230,29 @@ export default {
 
       return token.save();
     };
-  }
+  },
+
+  openShell() {
+    return () => {
+      return this.mgmt?.openShell();
+    };
+  },
+
+  generateKubeConfig() {
+    return () => {
+      return this.mgmt?.generateKubeConfig();
+    };
+  },
+
+  downloadKubeConfig() {
+    return () => {
+      return this.mgmt?.downloadKubeConfig();
+    };
+  },
+
+  downloadKubeConfigBulk() {
+    return (items) => {
+      return this.mgmt?.downloadKubeConfigBulk(items);
+    };
+  },
 };

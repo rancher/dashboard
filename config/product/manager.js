@@ -29,55 +29,54 @@ export function init(store) {
 
   // TODO: RKE
   virtualType({
-    label:          'RKE Templates',
-    name:           'rke-templates',
-    group:          'Root',
-    namespaced:     false,
-    weight:         111,
-    icon:           'folder',
-    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'rke-templates' } },
-    exact:          true
+    label:      'RKE Templates',
+    name:       'rke-templates',
+    group:      'Root',
+    namespaced: false,
+    weight:     111,
+    icon:       'globe',
+    route:      { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'rke-templates' } },
+    exact:      true
   });
 
   virtualType({
-    label:          'RKE Drivers',
-    name:           'rke-drivers',
-    group:          'Root',
-    namespaced:     false,
-    weight:         112,
-    icon:           'folder',
+    label:      'Drivers',
+    name:       'drivers',
+    group:      'Root',
+    namespaced: false,
+    weight:     112,
+    icon:       'globe',
     route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'rke-drivers' } },
     exact:          true
   });
 
   virtualType({
-    label:          'Cloud Credentials',
-    name:           'rke-cloud-credentials',
-    group:          'Root',
-    namespaced:     false,
-    weight:         112,
-    icon:           'folder',
-    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'cloud-credentials' } },
-    exact:          true
+    label:      'Cloud Credentials',
+    name:       'rke-cloud-credentials',
+    group:      'Root',
+    namespaced: false,
+    weight:     112,
+    icon:       'globe',
+    route:      { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'cloud-credentials' } },
+    exact:      true
   });
 
   virtualType({
-    label:          'Node Templates',
-    name:           'rke-node-templates',
-    group:          'Root',
-    namespaced:     false,
-    weight:         112,
-    icon:           'folder',
-    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'node-templates' } },
-    exact:          true
+    label:      'Node Templates',
+    name:       'rke-node-templates',
+    group:      'Root',
+    namespaced: false,
+    weight:     112,
+    icon:       'globe',
+    route:      { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'node-templates' } },
+    exact:      true
   });
 
   basicType([
     'rke-templates',
-    'rke-drivers',
     'rke-cloud-credentials',
     'rke-node-templates'
-  ], 'RKE Configuration');
+  ], 'RKE1 Configuration');
 
   weightType(CAPI.MACHINE_DEPLOYMENT, 3, true);
   weightType(CAPI.MACHINE_SET, 2, true);
