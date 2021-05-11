@@ -1,5 +1,5 @@
 <script>
-import { MANAGEMENT } from '@/config/types';
+import { MANAGEMENT, NORMAN } from '@/config/types';
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
 import { NAME } from '@/config/product/explorer';
@@ -16,7 +16,8 @@ export default {
 
     const hydration = [
       this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER }),
-      this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE })
+      this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }),
+      this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
     ];
     const clusterRoleTemplateBindings = clusterRoleTemplateBindingSchema ? await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING }) : [];
 

@@ -130,7 +130,7 @@ export function init(store) {
 
   mapType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, store.getters['i18n/t'](`typeLabel.${ MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING }`, { count: 2 }));
 
-  configureType(NODE, { isCreatable: false });
+  configureType(NODE, { isCreatable: false, isEditable: false });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
   configureType(PVC, { isEditable: false });
   configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { isEditable: false });
