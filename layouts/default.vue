@@ -1,7 +1,9 @@
 <script>
 import debounce from 'lodash/debounce';
 import { mapState, mapGetters } from 'vuex';
-import { mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
+import {
+  mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES, AFTER_LOGIN_ROUTE
+} from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import WindowManager from '@/components/nav/WindowManager';
 import PromptRemove from '@/components/PromptRemove';
@@ -14,8 +16,11 @@ import { addObjects, replaceWith, clear, addObject } from '@/utils/array';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@/utils/string';
-import { getVersionInfo } from '@/utils/version';
+import { getVersionInfo, markSeenReleaseNotes } from '@/utils/version';
 import { sortBy } from '@/utils/sort';
+import PageHeaderActions from '@/mixins/page-actions';
+
+const SET_LOGIN_ACTION = 'set-as-login';
 
 export default {
 
@@ -28,6 +33,8 @@ export default {
     WindowManager
   },
 
+  mixins: [PageHeaderActions],
+
   data() {
     const { displayVersion } = getVersionInfo(this.$store);
 
@@ -38,9 +45,11 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'namespaceMode', 'isExplorer']),
+    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel' }),
     ...mapGetters('type-map', ['activeProducts']),
+
+    afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
 
     namespaces() {
       return this.$store.getters['namespaces']();
@@ -49,6 +58,22 @@ export default {
     dev:            mapPref(DEV),
     expandedGroups: mapPref(EXPANDED_GROUPS),
     favoriteTypes:  mapPref(FAVORITE_TYPES),
+
+    pageActions() {
+      const pageActions = [];
+
+      const product = this.$store.getters['currentProduct'];
+
+      // Only show for Cluster Explorer
+      if (product.inStore === 'cluster') {
+        pageActions.push({
+          labelKey: 'nav.header.setLoginPage',
+          action:   SET_LOGIN_ACTION
+        });
+      }
+
+      return pageActions;
+    },
 
     allSchemas() {
       const managementReady = this.$store.getters['managementReady'];
@@ -105,6 +130,24 @@ export default {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
+
+        // Store the last visited route when the product changes
+        this.$store.dispatch('prefs/setLastVisited', this.$route);
+      }
+    },
+
+    clusterId(a, b) {
+      if ( !isEqual(a, b) ) {
+        // Store the last visited route when the cluster changes
+        const route = {
+          name:   this.$route.name,
+          params: {
+            ...this.$route.params,
+            cluster: a,
+          }
+        };
+
+        this.$store.dispatch('prefs/setLastVisited', route);
       }
     },
 
@@ -144,6 +187,17 @@ export default {
   },
 
   methods: {
+    handlePageAction(action) {
+      if (action.action === SET_LOGIN_ACTION) {
+        this.afterLoginRoute = {
+          name:   'c-cluster-explorer',
+          params: { cluster: this.clusterId }
+        };
+        // Mark release notes as seen, so that the login route is honoured
+        markSeenReleaseNotes(this.$store);
+      }
+    },
+
     collapseAll() {
       this.$refs.groups.forEach((grp) => {
         grp.isExpanded = false;

@@ -35,6 +35,7 @@ export const state = () => {
     workspace:        null,
     error:            null,
     cameFromError:    false,
+    pageActions:      [],
   };
 };
 
@@ -61,6 +62,10 @@ export const getters = {
 
   workspace(state, getters) {
     return state.workspace;
+  },
+
+  pageActions(state) {
+    return state.pageActions;
   },
 
   currentCluster(state, getters) {
@@ -349,6 +354,10 @@ export const mutations = {
     if ( all ) {
       state.allNamespaces = all;
     }
+  },
+
+  pageActions(state, pageActions) {
+    state.pageActions = pageActions;
   },
 
   updateWorkspace(state, { value, all }) {

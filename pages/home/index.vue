@@ -1,5 +1,5 @@
 <script>
-import { mapPref, AFTER_LOGIN_ROUTE, SEEN_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from '@/store/prefs';
+import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from '@/store/prefs';
 import Banner from '@/components/Banner';
 import BannerGraphic from '@/components/BannerGraphic';
 import IndentedPanel from '@/components/IndentedPanel';
@@ -13,7 +13,11 @@ import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
 import { STATE } from '@/config/table-headers';
 import { createMemoryFormat, formatSi, parseSi } from '@/utils/units';
-import { compare } from '@/utils/version';
+import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenReleaseNotes } from '@/utils/version';
+import PageHeaderActions from '@/mixins/page-actions';
+
+const SET_LOGIN_ACTION = 'set-as-login';
+const RESET_CARDS_ACTION = 'reset-homepage-cards';
 
 export default {
   name:       'Home',
@@ -30,29 +34,43 @@ export default {
     SimpleBox
   },
 
+  mixins: [PageHeaderActions],
+
   async fetch() {
     this.clusters = await this.$store.dispatch('management/findAll', {
       type: MANAGEMENT.CLUSTER,
       opt:  { url: MANAGEMENT.CLUSTER }
     });
-
-    const lastSeenNew = this.$store.getters['prefs/get'](SEEN_WHATS_NEW) ;
-    const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
-    const fullVersion = setting?.value || 'unknown';
-
-    this.fullVersion = fullVersion;
-    this.seenWhatsNewAlready = compare(lastSeenNew, fullVersion) >= 0 && !!lastSeenNew;
   },
 
   data() {
+    const fullVersion = getVersionInfo(this.$store).fullVersion;
+
+    // Page actions don't change on the Home Page
+    const pageActions = [
+      {
+        labelKey: 'nav.header.setLoginPage',
+        action:   SET_LOGIN_ACTION
+      },
+      { seperator: true },
+      {
+        labelKey: 'nav.header.restoreCards',
+        action:   RESET_CARDS_ACTION
+      },
+    ];
+
     return {
-      HIDE_HOME_PAGE_CARDS, clusters: [], seenWhatsNewAlready: false, fullVersion: ''
+      HIDE_HOME_PAGE_CARDS, clusters: [], fullVersion, pageActions
     };
   },
 
   computed: {
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
     homePageCards:   mapPref(HIDE_HOME_PAGE_CARDS),
+
+    readWhatsNewAlready() {
+      return readReleaseNotes(this.$store);
+    },
 
     showSidePanel() {
       return !(this.homePageCards.commercialSupportTip && this.homePageCards.communitySupportTip);
@@ -156,7 +174,21 @@ export default {
     ...mapGetters(['currentCluster', 'defaultClusterId'])
   },
 
+  async created() {
+    // Update last visited on load
+    await this.$store.dispatch('prefs/setLastVisited', { name: 'home' });
+    markSeenReleaseNotes(this.$store);
+  },
+
   methods: {
+    handlePageAction(action) {
+      if (action.action === RESET_CARDS_ACTION) {
+        this.resetCards();
+      } else if (action.action === SET_LOGIN_ACTION) {
+        this.afterLoginRoute = 'home';
+      }
+    },
+
     updateLoginRoute(neu) {
       if (neu) {
         this.afterLoginRoute = neu;
@@ -190,13 +222,14 @@ export default {
 
     showWhatsNew() {
       // Update the value, so that the message goes away
-      const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
-      const fullVersion = setting?.value || 'unknown';
-
-      this.$store.dispatch('prefs/set', { key: SEEN_WHATS_NEW, value: fullVersion });
-
+      markReadReleaseNotes(this.$store);
       this.$router.push({ name: 'docs-doc', params: { doc: 'release-notes' } });
     },
+
+    async resetCards() {
+      await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value: {} });
+      await this.$store.dispatch('prefs/set', { key: READ_WHATS_NEW, value: '' });
+    }
   }
 };
 
@@ -205,7 +238,7 @@ export default {
   <div class="home-page">
     <BannerGraphic :small="true" :title="t('landing.welcomeToRancher')" :pref="HIDE_HOME_PAGE_CARDS" pref-key="welcomeBanner" />
     <IndentedPanel class="mt-20">
-      <div v-if="!seenWhatsNewAlready" class="row">
+      <div v-if="!readWhatsNewAlready" class="row">
         <div class="col span-12">
           <Banner color="info whats-new">
             <div>{{ t('landing.seeWhatsNew') }}</div>
