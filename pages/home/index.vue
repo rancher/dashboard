@@ -13,9 +13,7 @@ import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
 import { STATE } from '@/config/table-headers';
 import { createMemoryFormat, formatSi, parseSi } from '@/utils/units';
-import {
-  getVersionInfo, readReleaseNotes, markReadReleaseNotes, seenReleaseNotes, markSeenReleaseNotes
-} from '@/utils/version';
+import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenReleaseNotes } from '@/utils/version';
 import PageHeaderActions from '@/mixins/page-actions';
 
 const SET_LOGIN_ACTION = 'set-as-login';
