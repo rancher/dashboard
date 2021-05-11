@@ -133,7 +133,6 @@ export default {
         this.getGroups();
 
         // Store the last visited route when the product changes
-        // TODO: Ignore produce changes for Explorer
         this.$store.dispatch('prefs/setLastVisited', this.$route);
       }
     },

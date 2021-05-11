@@ -402,10 +402,6 @@ export const actions = {
     const toSave = { name: route.name, params: route.params };
 
     dispatch('set', { key: LAST_VISITED, value: toSave });
-
-    // TODO - Remove debugging
-    // console.log('set Last Visited');
-    // console.log(toSave.name, toSave.params);
   },
 
   toggleTheme({ getters, dispatch }) {
