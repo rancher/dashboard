@@ -140,7 +140,7 @@ export default {
         />
       </div>
       <div class="col span-6 pt-5">
-        <h3>Additional options</h3>
+        <h3>Additional DigitalOcean Options</h3>
         <Checkbox v-model="value.monitoring" :mode="mode" label="Monitoring" />
         <Checkbox v-model="value.ipv6" :mode="mode" label="IPv6" />
         <Checkbox v-model="value.privateNetworking" :mode="mode" label="Private Networking" />

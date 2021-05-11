@@ -4,12 +4,19 @@ import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
 import { _EDIT } from '@/config/query-params';
 import { importMachineConfig } from '@/utils/dynamic-importer';
+import Taints from '@/components/form/Taints.vue';
+import KeyValue from '@/components/form/KeyValue.vue';
+import AdvancedSection from '@/components/AdvancedSection.vue';
+import { randomStr } from '@/utils/string';
 
 export default {
 
   components: {
     LabeledInput,
     Checkbox,
+    Taints,
+    KeyValue,
+    AdvancedSection,
   },
 
   props: {
@@ -32,6 +39,10 @@ export default {
       type:     String,
       required: true,
     },
+  },
+
+  data() {
+    return { uuid: randomStr() };
   },
 
   computed: {
@@ -66,12 +77,43 @@ export default {
       </div>
     </div>
 
+    <hr class="mt-10" />
+
     <component
       :is="configComponent"
+      :uuid="uuid"
       :mode="mode"
       :value="value.config"
       :credential-id="credentialId"
       @error="e=>errors = e"
     />
+
+    <AdvancedSection :mode="mode" class="advanced">
+      <portal-target :name="'advanced-' + uuid" multiple />
+
+      <div class="spacer" />
+
+      <KeyValue
+        v-model="value.pool.labels"
+        :add-label="t('labels.addLabel')"
+        :mode="mode"
+        title="Kubernetes Node Labels"
+        :read-allowed="false"
+        :value-can-be-empty="true"
+      />
+
+      <div class="spacer" />
+
+      <Taints v-model="value.pool.taints" :mode="mode" />
+
+      <portal-target :name="'advanced-footer-' + uuid" multiple />
+    </AdvancedSection>
   </div>
 </template>
+
+<style lang="scss" scoped>
+  .advanced ::v-deep >.vue-portal-target:empty,
+  .advanced ::v-deep >.vue-portal-target:empty + .spacer {
+    display: none;
+  }
+</style>
