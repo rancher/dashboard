@@ -31,7 +31,7 @@ export default {
   methods: {
     async hide() {
       if (this.pref) {
-        let value = this.shown;
+        let value = this.$store.getters['prefs/get'](this.pref);
 
         // Set the preference to store that the panel is hidden
         if (this.prefKey) {

@@ -1,7 +1,7 @@
 import { sortableNumericSuffix } from '@/utils/sort';
 import semver from 'semver';
 import { MANAGEMENT } from '@/config/types';
-import { SEEN_WHATS_NEW } from '@/store/prefs';
+import { READ_WHATS_NEW, SEEN_WHATS_NEW } from '@/store/prefs';
 
 export function parse(str) {
   str = `${ str }`;
@@ -109,5 +109,19 @@ export function seenReleaseNotes(store) {
 export async function markSeenReleaseNotes(store) {
   if (!seenReleaseNotes(store)) {
     await store.dispatch('prefs/set', { key: SEEN_WHATS_NEW, value: getVersionInfo(store).fullVersion });
+  }
+}
+
+export function readReleaseNotes(store) {
+  const lastSeenNew = store.getters['prefs/get'](READ_WHATS_NEW) ;
+  const fullVersion = getVersionInfo(store).fullVersion;
+
+  return compare(lastSeenNew, fullVersion) >= 0 && !!lastSeenNew;
+}
+
+// Mark that the user has read the release notes for this version if not already done
+export async function markReadReleaseNotes(store) {
+  if (!readReleaseNotes(store)) {
+    await store.dispatch('prefs/set', { key: READ_WHATS_NEW, value: getVersionInfo(store).fullVersion });
   }
 }

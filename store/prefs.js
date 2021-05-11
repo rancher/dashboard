@@ -88,7 +88,8 @@ export const TIME_FORMAT = create('time-format', 'h:mm:ss a', {
 export const TIME_ZONE = create('time-zone', 'local');
 export const DEV = create('dev', false, { parseJSON });
 export const LAST_VISITED = create('last-visited', 'home', { parseJSON });
-export const SEEN_WHATS_NEW = create('seen-home', '', { parseJSON });
+export const SEEN_WHATS_NEW = create('seen-whatsnew', '', { parseJSON });
+export const READ_WHATS_NEW = create('read-whatsnew', '', { parseJSON });
 export const AFTER_LOGIN_ROUTE = create('after-login-route', 'home', { parseJSON } );
 export const HIDE_HOME_PAGE_CARDS = create('home-page-cards', {}, { parseJSON } );
 

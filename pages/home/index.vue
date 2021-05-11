@@ -1,5 +1,5 @@
 <script>
-import { mapPref, AFTER_LOGIN_ROUTE, SEEN_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from '@/store/prefs';
+import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from '@/store/prefs';
 import Banner from '@/components/Banner';
 import BannerGraphic from '@/components/BannerGraphic';
 import IndentedPanel from '@/components/IndentedPanel';
@@ -13,7 +13,9 @@ import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
 import { STATE } from '@/config/table-headers';
 import { createMemoryFormat, formatSi, parseSi } from '@/utils/units';
-import { getVersionInfo, seenReleaseNotes, markSeenReleaseNotes } from '@/utils/version';
+import {
+  getVersionInfo, readReleaseNotes, markReadReleaseNotes, seenReleaseNotes, markSeenReleaseNotes
+} from '@/utils/version';
 import PageHeaderActions from '@/mixins/page-actions';
 
 const SET_LOGIN_ACTION = 'set-as-login';
@@ -68,8 +70,8 @@ export default {
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
     homePageCards:   mapPref(HIDE_HOME_PAGE_CARDS),
 
-    seenWhatsNewAlready() {
-      return seenReleaseNotes(this.$store);
+    readWhatsNewAlready() {
+      return readReleaseNotes(this.$store);
     },
 
     showSidePanel() {
@@ -174,9 +176,10 @@ export default {
     ...mapGetters(['currentCluster', 'defaultClusterId'])
   },
 
-  created() {
+  async created() {
     // Update last visited on load
-    this.$store.dispatch('prefs/setLastVisited', { name: 'home' });
+    await this.$store.dispatch('prefs/setLastVisited', { name: 'home' });
+    markSeenReleaseNotes(this.$store);
   },
 
   methods: {
@@ -185,8 +188,6 @@ export default {
         this.resetCards();
       } else if (action.action === SET_LOGIN_ACTION) {
         this.afterLoginRoute = 'home';
-        // Mark release notes as seen, so that the login route is honoured
-        markSeenReleaseNotes(this.$store);
       }
     },
 
@@ -223,13 +224,13 @@ export default {
 
     showWhatsNew() {
       // Update the value, so that the message goes away
-      markSeenReleaseNotes(this.$store);
+      markReadReleaseNotes(this.$store);
       this.$router.push({ name: 'docs-doc', params: { doc: 'release-notes' } });
     },
 
     async resetCards() {
       await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value: {} });
-      await this.$store.dispatch('prefs/set', { key: SEEN_WHATS_NEW, value: '' });
+      await this.$store.dispatch('prefs/set', { key: READ_WHATS_NEW, value: '' });
     }
   }
 };
@@ -239,7 +240,7 @@ export default {
   <div class="home-page">
     <BannerGraphic :small="true" :title="t('landing.welcomeToRancher')" :pref="HIDE_HOME_PAGE_CARDS" pref-key="welcomeBanner" />
     <IndentedPanel class="mt-20">
-      <div v-if="!seenWhatsNewAlready" class="row">
+      <div v-if="!readWhatsNewAlready" class="row">
         <div class="col span-12">
           <Banner color="info whats-new">
             <div>{{ t('landing.seeWhatsNew') }}</div>
