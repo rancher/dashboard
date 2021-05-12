@@ -15,6 +15,7 @@ import { filterAndArrangeCharts } from '@/store/catalog';
 import { CATALOG } from '@/config/labels-annotations';
 import { MANAGEMENT } from '@/config/types';
 import { mapFeature, RKE2 as RKE2_FEATURE } from '@/config/feature-flags';
+import { allHash } from '@/utils/promise';
 import Rke2Config from './rke2';
 import Import from './import';
 
@@ -65,22 +66,43 @@ export default {
   },
 
   async fetch() {
-    this.nodeDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
-    this.kontainerDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTANIER_DRIVER });
+    const hash = {
+      nodeDrivers:      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER }),
+      kontainerDrivers: this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTANIER_DRIVER }),
+    };
+
+    if ( this.value.id && !this.value.isRke2 ) {
+      // These are needed to resolve references in the mgmt cluster -> node pool -> node template to figure out what provider the cluster is using
+      // so that the edit iframe for ember pages can go to the right place.
+      hash.nodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+    }
+
+    const res = await allHash(hash);
+
+    this.nodeDrivers = res.nodeDrivers;
+    this.kontainerDrivers = res.kontainerDrivers;
 
     if ( !this.value.spec ) {
       set(this.value, 'spec', {});
     }
 
     if ( this.subType ) {
+      // Explicitly asked from query string
       await this.selectType(this.subType, false);
     } else if ( this.value.isImported ) {
+      // Edit exiting import
       this.isImport = true;
       this.selectType('import', false);
     } else if ( this.value.isCustom ) {
+      // Edit exiting custom
       this.selectType('custom', false);
-    } else if ( this.value.nodeProvider ) {
+    } else if ( this.value.isRke2 && this.value.nodeProvider ) {
+      // Edit exiting RKE2
       await this.selectType(this.value.nodeProvider, false);
+    } else if ( this.value.mgmt?.emberEditPath ) {
+      // Iframe an old page
+      this.emberLink = this.value.mgmt.emberEditPath;
     } else {
       await this.$store.dispatch('catalog/load');
     }
@@ -268,6 +290,9 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
+  <div v-else-if="emberLink" class="embed">
+    <EmberPage :src="emberLink" />
+  </div>
   <CruResource
     v-else
     :mode="mode"
@@ -305,11 +330,8 @@ export default {
       </div>
     </template>
 
-    <div v-if="emberLink" class="embed">
-      <EmberPage :src="emberLink" />
-    </div>
     <Import
-      v-else-if="isImport"
+      v-if="isImport"
       v-model="value"
       :mode="mode"
       :provider="subType"

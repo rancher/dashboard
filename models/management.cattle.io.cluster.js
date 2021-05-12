@@ -5,6 +5,9 @@ import { downloadFile } from '@/utils/download';
 import { parseSi } from '@/utils/units';
 import jsyaml from 'js-yaml';
 import { eachLimit } from '@/utils/promise';
+import { addParams } from '@/utils/url';
+import { isEmpty } from '@/utils/object';
+import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 
 // See translation file cluster.providers for list of providers
 // If the logo is not named with the provider name, add an override here
@@ -56,6 +59,12 @@ export default {
     return this.hasLink('remove') && !this?.spec?.internal;
   },
 
+  nodePools() {
+    const pools = this.$getters['all'](MANAGEMENT.NODE_POOL);
+
+    return pools.filter(x => x.spec?.clusterName === this.id);
+  },
+
   provisioner() {
     const allKeys = Object.keys(this.spec);
     const configKey = allKeys.find( k => k.endsWith('Config'));
@@ -63,12 +72,6 @@ export default {
     if ( configKey ) {
       return configKey.replace(/Config$/, '');
     }
-  },
-
-  nodePools() {
-    const pools = this.$getters['all'](MANAGEMENT.NODE_POOL);
-
-    return pools.filter(x => x.spec?.clusterName === this.id);
   },
 
   nodeProvider() {
@@ -79,6 +82,45 @@ export default {
     } else if ( this.spec?.internal ) {
       return 'local';
     }
+  },
+
+  emberEditPath() {
+    // Ember wants one word called provider to tell what component to show, but has much indirect mapping to figure out what it is.
+    let provider;
+
+    // Provisioner is the "<something>Config" in the model
+    const provisioner = KONTAINER_TO_DRIVER[(this.provisioner || '').toLowerCase()] || this.provisioner;
+
+    if ( provisioner === 'rancherKubernetesEngine' ) {
+      if ( this.nodePools?.[0] ) {
+        provider = this.nodePools[0]?.nodeTemplate?.spec?.driver || null;
+      } else {
+        provider = 'custom';
+      }
+    } else if ( this.driver && this.provisioner ) {
+      provider = this.driver;
+    } else {
+      provider = 'import';
+    }
+
+    const qp = { provider };
+
+    // Copied out of https://github.com/rancher/ui/blob/20f56dc54c4fc09b5f911e533cb751c13609adaf/app/models/cluster.js#L844
+    if ( provider === 'import' && isEmpty(this.eksConfig) && isEmpty(this.gkeConfig) ) {
+      qp.importProvider = 'other';
+    } else if (
+      (provider === 'amazoneks' && !isEmpty(this.eksConfig) ) ||
+       (provider === 'gke' && !isEmpty(this.gkeConfig) )
+       // || something for aks v2
+    ) {
+      qp.importProvider = KONTAINER_TO_DRIVER[provider];
+    }
+
+    if ( this.clusterTemplateRevisionId ) {
+      qp.clusterTemplateRevision = this.clusterTemplateRevisionId;
+    }
+
+    return addParams(`/c/${ escape(this.id) }/edit`, qp);
   },
 
   groupByLabel() {

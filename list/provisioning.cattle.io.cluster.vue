@@ -92,6 +92,9 @@ export default {
           {{ row.provisionerDisplay }}
         </template>
       </template>
+      <template #cell:summary="{row}">
+        <span v-if="!row.isRke2" class="text-muted">&mdash;</span>
+      </template>
       <template #cell:explorer="{row}">
         <n-link v-if="row.mgmt && row.mgmt.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}">
           Explore

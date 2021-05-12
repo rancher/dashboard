@@ -324,6 +324,7 @@ module.exports = {
     '/meta':         proxyOpts(api), // Browser API UI
     '/v1-*':         proxyOpts(api), // SAML, KDM, etc
     // These are for Ember embedding
+    '/c/*/edit':     proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
     '/g':            proxyOpts('https://127.0.0.1:8000'),
     '/n':            proxyOpts('https://127.0.0.1:8000'),
     '/assets':       proxyOpts('https://127.0.0.1:8000'),
