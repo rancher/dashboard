@@ -3,19 +3,26 @@ const V2 = ['amazoneks', 'googlegke'];
 const IMPORTABLE = ['amazoneks', 'googlegke'];
 
 // The Ember create page has short names that don't match the full kontainer driver
-const KONTAINER_TO_DRIVER = {
-  azurekubernetesservice:        'azureaks',
-  googlekubernetesengine:        'googlegke',
-  rancherkubernetesengine:       'rke',
+export const KONTAINER_TO_DRIVER = {
   amazonelasticcontainerservice: 'amazoneks',
-  tencentkubernetesengine:       'tencenttke',
-  huaweicontainercloudengine:    'huaweicce',
-  oraclecontainerengine:         'oracleoke',
-  linodekubernetesengine:        'linodelke',
+  azurekubernetesservice:        'azureaks',
+  aks:                           'azureaksv2', // Guessing it will be called this...
+  eks:                           'amazoneksv2',
+  gke:                           'googlegkev2',
+  googlekubernetesengine:        'googlegke',
+  huaweicontainercloudengine:    'huaweicce', // Does this actually exist?
+  huaweiengine:                  'huaweicce',
+  linodekubernetesengine:        'linodelke', // Does this actually exist?
+  lkeengine:                     'linodelke',
+  okeengine:                     'oracleoke',
+  oraclecontainerengine:         'oracleoke', // Does this actually exist?
+  rke2:                          'rke2',
+  tencentengine:                 'tencenttke',
+  tencentkubernetesengine:       'tencenttke', // Does this actually exist?
 };
 
 // And the Import page has even shorter ones that don't match kontainer or create...
-const DRIVER_TO_IMPORT = {
+export const DRIVER_TO_IMPORT = {
   googlegke: 'gke',
   amazoneks: 'eks',
   azureaks:  'aks',
@@ -37,7 +44,7 @@ export default {
   emberCreatePath() {
     let driver = this.driverName;
 
-    if ( V2.includes(driver) ) {
+    if ( V2.includes(driver) && !driver.endsWith('v2') ) {
       driver += 'v2';
     }
 

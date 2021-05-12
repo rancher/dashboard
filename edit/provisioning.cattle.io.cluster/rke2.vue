@@ -521,12 +521,13 @@ export default {
       const finalPools = [];
 
       for ( const entry of this.nodePools ) {
-        const prefix = `${ this.value.metadata.name }-${ (entry.pool.name || 'pool') }`.substr(0, 50);
+        const prefix = `${ this.value.metadata.name }-${ (entry.pool.name || 'pool') }`.substr(0, 50).toLowerCase();
 
         if ( entry.create ) {
-          if ( !entry.config.metadata?.name && !entry.config.metadata?.generateName ) {
+          if ( !entry.config.metadata?.name ) {
             entry.config.metadata.generateName = `nc-${ prefix }-`;
           }
+
           const neu = await entry.config.save();
 
           entry.config = neu;
@@ -857,7 +858,6 @@ export default {
           <li>Snapshot Backups</li>
           <li>Private Registry</li>
           <li>CNI MTU / Options from chart</li>
-          <li>Ingress Default Backend</li>
         </ul>
 
         <div><b>ServerArgs:</b></div>

@@ -1,6 +1,8 @@
 <script>
 import Loading from '@/components/Loading';
 import { mapGetters } from 'vuex';
+import { NAME as MANAGER } from '@/config/product/manager';
+import { CAPI } from '@/config/types';
 
 const EMBER_FRAME = 'ember-iframe';
 const EMBER_FRAME_HIDE_CLASS = 'ember-iframe-hidden';
@@ -21,8 +23,16 @@ const INTERCEPTS = {
     name:   'c-cluster-product-resource',
     params: {
       cluster:  '',
-      product:  '',
-      resource: 'provisioning.cattle.io.cluster'
+      product:  MANAGER,
+      resource: CAPI.RANCHER_CLUSTER,
+    }
+  },
+  'authenticated.cluster.index': {
+    name:   'c-cluster-product-resource',
+    params: {
+      cluster:  '',
+      product:  MANAGER,
+      resource: CAPI.RANCHER_CLUSTER,
     }
   },
 };
