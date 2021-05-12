@@ -62,7 +62,6 @@ export const ROWS_PER_PAGE = create('per-page', 100, { options: [10, 25, 50, 100
 export const LOGS_WRAP = create('logs-wrap', true, { parseJSON });
 export const LOGS_TIME = create('logs-time', true, { parseJSON });
 export const LOGS_RANGE = create('logs-range', '30 minutes', { parseJSON });
-export const LANDING = create('landing', '', { parseJSON, options: ['ember', 'vue'] });
 export const HIDE_REPOS = create('hide-repos', [], { parseJSON });
 export const HIDE_DESC = create('hide-desc', [], { parseJSON });
 export const HIDE_SENSITIVE = create('hide-sensitive', true, { options: [true, false], parseJSON });
