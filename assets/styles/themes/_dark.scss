@@ -1,4 +1,4 @@
-.theme-dark   {
+.theme-dark {
   // Local variables for reused colors
 
   //dark sidebar
@@ -43,6 +43,7 @@
         hover-bg: transparent,
         active-bg: transparent,
       ),
+      primary: $primary,
       secondary: $secondary,
     )
   );
@@ -61,10 +62,10 @@
   --header-btn-text            : #{$lightest};
 
   --nav-bg                     : #{$darkest};
-  --nav-active                 :  hsla(var(--primary-h), var(--primary-s), var(--primary-l), .3);
+  --nav-active                 : #{rgba($primary, 0.3)};
   --nav-border                 : #{$medium};
-  --nav-hover                  : var(--primary);
-  --nav-expander-header        : hsl(var(--primary-h), var(--primary-s), calc(var(--primary-l) * .8));
+  --nav-hover                  : #{$primary};
+  --nav-expander-hover         : #{darken($primary, 20%)};
 
   --disabled-bg: #{darken($disabled, 10%)};
   --disabled-text: #{$secondary};
@@ -78,6 +79,8 @@
   --topmost-shadow: #{lighten($darkest, 5%)};
   --topmost-light-hover: #{$medium};
 
+  --accent-btn: #{rgba($primary, 0.2)};
+  --accent-btn-hover: #{rgba($primary, 0.5)};
   --modal-bg                   :#{$dark};
   --overlay-bg: #{rgba($darkest, 0.75)};
   --shadow: #{rgba($darkest, 0.9)};
@@ -86,12 +89,14 @@
   --checkbox-border            : #{$medium};
   --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
   --checkbox-disabled-bg       : #{$disabled};
-  --checkbox-ticked-bg         : #{$link};
+  --checkbox-ticked-bg         : #{$primary};
 
   --dropdown-bg: #{mix($medium, $dark, 10%)};
   --dropdown-border: #{$light};
   --dropdown-divider: #{$light};
+  --dropdown-text: #{$link};
   --dropdown-active-text: #{$lightest};
+  --dropdown-active-bg: #{$selected};
   --dropdown-hover-text: #{$lightest};
   --dropdown-hover-bg: #{$link};
   --dropdown-disabled-bg: #{$disabled};
@@ -120,14 +125,16 @@
   --sortable-table-accent-alt: #{$dark};
   --sortable-table-top-divider: var(--border);
   --sortable-table-hover-bg : #{$darkest};
-  --sortable-table-selected-bg: hsla(var(--primary-h), var(--primary-s), var(--primary-l), .3);
+  --sortable-table-selected-bg: #{rgba($primary, 0.3)};
   --sortable-table-group-label: #{$lighter};
 
+  --tag-primary: #{$primary};
+  --tag-bg: #{rgba($primary, 0.2)};
 
   --popover-bg: var(--body-bg);
   --popover-border: var(--border);
   --popover-text: var(--body-text);
-  --tooltip-bg: hsl(var(--primary-h), var(--primary-s), calc(var(--primary-l) * .8));
+  --tooltip-bg: #{darken($primary, 30%)};
   --tooltip-border: var(--tag-primary);
   --tooltip-text: var(--body-text);
   --tooltip-text-warning: var(--body-text);
@@ -177,7 +184,7 @@
 
   --terminal-bg: var(--wm-body-bg);
   --terminal-cursor: var(--warning);
-  --terminal-selection: var(--selected);
+  --terminal-selection: #{$selected};
   --terminal-text: var(--body-text);
 
   --logs-bg: var(--wm-body-bg);

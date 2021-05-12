@@ -296,8 +296,8 @@ export default {
   }
 
   .cluster.selector:not(.disabled):hover {
-    color: var(--lightest);
-    background: var(--disabled-bg);
+    color: var(--primary-hover-text);
+    background: var(--primary-hover-bg);
     border-radius: 5px;
     text-decoration: none;
   }
@@ -348,17 +348,17 @@ export default {
     }
 
     &:hover {
-      color: var(--lightest);
-      background: var(--disabled-bg);
+      color: var(--primary-hover-text);
+      background: var(--primary-hover-bg);
       border-radius: 5px;
       > div {
-        color: var(--lightest);
+        color: var(--primary-hover-text);
       }
       svg {
-        fill: var(--lightest);
+        fill: var(--primary-hover-text);
       }
       div {
-        color: var(--lightest);
+        color: var(--primary-hover-text);
       }
     }
   }
@@ -475,8 +475,8 @@ export default {
           color: var(--header-btn-text);
 
           &:hover {
-            color: var(--lightest);
-            background: var(--disabled-bg);
+            color: var(--primary-hover-text);
+            background: var(--primary-hover-bg);
           }
         }
       }
@@ -605,8 +605,8 @@ export default {
       padding: 8px 20px;
 
       &:hover {
-        background-color: var(--dropdown-hover-bg);
-        color: var(--dropdown-hover-text);
+        background-color: var(--primary-hover-bg);
+        color: var(--primary-hover-text);
         text-decoration: none;
       }
     }

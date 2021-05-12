@@ -168,12 +168,12 @@ export default {
 
   .radio-custom {
     &[aria-checked="true"] {
-      background-color: var(--dropdown-text);
+      background-color: var(--primary);
       -webkit-transform: rotate(0deg) scale(1);
       -ms-transform: rotate(0deg) scale(1);
       transform: rotate(0deg) scale(1);
       opacity:1;
-      border: 1.5px solid var(--dropdown-text);
+      border: 1.5px solid var(--primary);
 
       // Ensure that checked radio buttons are muted but still visibly selected when muted
       &.text-muted {
