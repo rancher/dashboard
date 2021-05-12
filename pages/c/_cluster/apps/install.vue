@@ -30,6 +30,12 @@ import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-h
 import ChartMixin from '@/pages/c/_cluster/apps/chart_mixin';
 import isEqual from 'lodash/isEqual';
 
+const VALUES_STATE = {
+  FORM: '1',
+  YAML: '2',
+  DIFF: '3'
+};
+
 export default {
   name: 'Install',
 
@@ -164,6 +170,8 @@ export default {
     }
 
     this.updateStepOneReady();
+
+    this.preFormYamlOption = this.valuesComponent || this.hasQuestions ? VALUES_STATE.FORM : VALUES_STATE.YAML;
   },
 
   data() {
@@ -191,8 +199,8 @@ export default {
       nameDisabled:        false,
       openApi:             true,
       resetValues:         false,
-      showPreview:         false,
-      preShowPreview:      false,
+      preFormYamlOption:   VALUES_STATE.YAML,
+      formYamlOption:      VALUES_STATE.YAML,
       showDiff:            false,
       showValuesComponent: true,
       showQuestions:       true,
@@ -327,27 +335,29 @@ export default {
     },
 
     showingYaml() {
-      return this.showPreview || ( !this.valuesComponent && !this.hasQuestions );
+      return this.formYamlOption === VALUES_STATE.YAML || ( !this.valuesComponent && !this.hasQuestions );
     },
 
     formYamlOptions() {
-      return [{
-        labelKey: 'catalog.install.section.chartOptions',
-        value:    false,
-      }, {
-        labelKey: 'catalog.install.section.valuesYaml',
-        value:    true,
-      }];
-    },
+      const options = [];
 
-    editYamlOptions() {
-      return [{
-        labelKey: 'resourceYaml.buttons.edit',
-        value:    false,
+      if (this.valuesComponent || this.hasQuestions) {
+        options.push({
+          labelKey: 'catalog.install.section.chartOptions',
+          value:    VALUES_STATE.FORM,
+        });
+      }
+      options.push({
+        labelKey: 'catalog.install.section.valuesYaml',
+        value:    VALUES_STATE.YAML,
       }, {
-        labelKey: 'resourceYaml.buttons.diff',
-        value:    true,
-      }];
+        labelKey: 'catalog.install.section.diff',
+        value:    VALUES_STATE.DIFF,
+        // === quite obviously shouldn't work, but has been and still does. When the magic breaks address with heavier stringify/jsyaml.safeDump
+        disabled: this.formYamlOption === VALUES_STATE.FORM ? this.originalYamlValues === jsyaml.safeDump(this.chartValues || {}) : this.originalYamlValues === this.valuesYaml,
+      });
+
+      return options;
     },
 
     yamlDiffModeOptions() {
@@ -361,7 +371,7 @@ export default {
     },
 
     stepperName() {
-      return this.existing?.nameDisplay || this.chart.chartDisplayName;
+      return this.existing?.nameDisplay || this.chart?.chartDisplayName;
     },
 
     stepperSubtext() {
@@ -411,29 +421,49 @@ export default {
       }
     },
 
-    preShowPreview(neu) {
-      if (!neu && this.valuesYaml !== this.previousYamlValues) {
+    preFormYamlOption(neu, old) {
+      if (neu === VALUES_STATE.FORM && this.valuesYaml !== this.previousYamlValues && !!this.$refs.cancelModal) {
         this.$refs.cancelModal.show();
       } else {
-        this.showPreview = this.preShowPreview;
+        this.formYamlOption = neu;
       }
     },
 
-    showPreview(neu) {
-      if (neu) {
-        // Show the YAML preview
-        this.valuesYaml = jsyaml.safeDump(this.chartValues || {});
-        this.previousYamlValues = this.valuesYaml;
-
-        this.showValuesComponent = false;
-        this.showQuestions = false;
-      } else {
+    formYamlOption(neu, old) {
+      switch (neu) {
+      case VALUES_STATE.FORM:
         // Return to form, reset everything back to starting point
+        this.valuesYaml = this.previousYamlValues;
+
         this.showValuesComponent = true;
         this.showQuestions = true;
 
         this.showDiff = false;
-        this.valuesYaml = this.previousYamlValues;
+        break;
+      case VALUES_STATE.YAML:
+        // Show the YAML preview
+        if (old === VALUES_STATE.FORM) {
+          this.valuesYaml = jsyaml.safeDump(this.chartValues || {});
+          this.previousYamlValues = this.valuesYaml;
+        }
+
+        this.showValuesComponent = false;
+        this.showQuestions = false;
+
+        this.showDiff = false;
+        break;
+      case VALUES_STATE.DIFF:
+        // Show the YAML diff
+        if (old === VALUES_STATE.FORM) {
+          this.valuesYaml = jsyaml.safeDump(this.chartValues || {});
+          this.previousYamlValues = this.valuesYaml;
+        }
+
+        this.showValuesComponent = false;
+        this.showQuestions = false;
+
+        this.showDiff = true;
+        break;
       }
     },
 
@@ -451,8 +481,8 @@ export default {
 
   },
 
-  mounted() {
-    this.loadValuesComponent();
+  async mounted() {
+    await this.loadValuesComponent();
 
     window.scrollTop = 0;
 
@@ -461,6 +491,8 @@ export default {
       window.v = this.value;
       window.c = this;
     }
+
+    this.preFormYamlOption = this.valuesComponent || this.hasQuestions ? VALUES_STATE.FORM : VALUES_STATE.YAML;
   },
 
   beforeDestroy() {
@@ -476,7 +508,6 @@ export default {
       if ( component ) {
         if ( this.$store.getters['catalog/haveComponent'](component) ) {
           this.valuesComponent = this.$store.getters['catalog/importComponent'](component);
-
           const loaded = await this.valuesComponent();
 
           this.showValuesComponent = true;
@@ -904,28 +935,18 @@ export default {
           {{ step2Description }}
         </p>
         <div class="step__values__controls">
-          <!-- Edit as YAML / Back to Form -->
           <ButtonGroup
-            v-if="(valuesComponent || hasQuestions)"
-            v-model="preShowPreview"
+            v-model="preFormYamlOption"
             :options="formYamlOptions"
             inactive-class="bg-disabled btn-sm"
             active-class="bg-primary btn-sm"
-            :disabled="preShowPreview != showPreview"
-          ></ButtonGroup>
-          <!-- Continue Editing / Show Diff -->
-          <ButtonGroup
-            v-if="showingYaml"
-            v-model="showDiff"
-            :options="editYamlOptions"
-            inactive-class="bg-disabled btn-sm"
-            active-class="bg-primary btn-sm"
+            :disabled="preFormYamlOption != formYamlOption"
           ></ButtonGroup>
           <div class="step__values__controls--spacer">
 &nbsp;
           </div>
           <ButtonGroup
-            v-if="showingYaml && showDiff"
+            v-if="showDiff"
             v-model="diffMode"
             :options="yamlDiffModeOptions"
             inactive-class="bg-disabled btn-sm"
@@ -1014,7 +1035,7 @@ export default {
         </div>
 
         <!-- Confirm loss of changes on toggle from yaml/preview to form -->
-        <ResourceCancelModal ref="cancelModal" :is-cancel-modal="false" :is-form="true" @cancel-cancel="preShowPreview=true" @confirm-cancel="showPreview = false;"></ResourceCancelModal>
+        <ResourceCancelModal ref="cancelModal" :is-cancel-modal="false" :is-form="true" @cancel-cancel="preFormYamlOption=formYamlOption" @confirm-cancel="formYamlOption = preFormYamlOption;"></ResourceCancelModal>
       </template>
       <template #helmCli>
         <p v-if="step3Description" class="row mb-10">

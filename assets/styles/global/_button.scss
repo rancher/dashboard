@@ -147,4 +147,9 @@ fieldset[disabled] .btn {
       border-bottom-right-radius: var(--border-radius);
     }
   }
+
+  .btn[disabled] {
+    // Ensure disabled button's border remains as-is, otherwise button appears vertically shorter than others in group
+    border: inherit;
+  }
 }

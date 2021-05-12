@@ -75,7 +75,7 @@ export default {
       v-tooltip="opt.tooltipKey ? t(opt.tooltipKey) : opt.tooltip"
       type="button"
       :class="opt.class"
-      :disabled="disabled"
+      :disabled="disabled || opt.disabled"
       @click="change(opt.value)"
     >
       <slot name="option" :label="opt.label" :value="opt.value">
