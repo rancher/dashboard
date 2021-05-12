@@ -168,7 +168,7 @@ about:
     cli: CLI
     helm: Helm
     machine: Machine
-    releaseNotes: 'Release notes can be found <a href="/docs/release-notes">here</a>.'
+    releaseNotes: 'View release notes'
   imageList:
     title: Image Lists
     linuxImageList: Linux
@@ -1342,7 +1342,7 @@ landing:
     forums: Forums
   commercial:
     title: Commercial Support
-    body: Learn about commercial support <a href="/support">here</a>.
+    body: Learn about commercial support
   landingPrefs:
     title: What do you want to see when you log in?
     options:

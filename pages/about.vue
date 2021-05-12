@@ -98,7 +98,11 @@ export default {
         </td><td>{{ dockerMachineVersion.value }}</td>
       </tr>
     </table>
-    <p class="pt-20 pb-40" v-html="t('about.versions.releaseNotes', {}, true)" />
+    <p class="pt-20 pb-40">
+      <nuxt-link :to="{ path: 'docs/release-notes'}">
+        {{ t('about.versions.releaseNotes') }}
+      </nuxt-link>
+    </p>
     <h3>{{ t('about.imageList.title') }}</h3>
     <table>
       <tr>
