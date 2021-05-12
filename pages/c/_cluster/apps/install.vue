@@ -368,6 +368,14 @@ export default {
       return this.existing && this.currentVersion !== this.targetVersion ? `${ this.currentVersion } > ${ this.targetVersion }` : this.targetVersion;
     },
 
+    reademeWindowName() {
+      return `${ this.stepperName }-${ this.version.version }`;
+    },
+
+    showingReadmeWindow() {
+      return !!this.$store.getters['wm/byId'](this.reademeWindowName);
+    },
+
     diffMode: mapPref(DIFF),
 
     step1Description() {
@@ -453,6 +461,10 @@ export default {
       window.v = this.value;
       window.c = this;
     }
+  },
+
+  beforeDestroy() {
+    this.$store.dispatch('wm/close', this.reademeWindowName, { root: true });
   },
 
   methods: {
@@ -778,6 +790,15 @@ export default {
       return opt?.chartDisplayName;
     },
 
+    showReadmeWindow() {
+      this.$store.dispatch('wm/open', {
+        id:        this.reademeWindowName,
+        label:     this.reademeWindowName,
+        icon:      'file',
+        component: 'ChartReadme',
+        attrs:     { versionInfo: this.versionInfo }
+      }, { root: true });
+    }
   },
 };
 </script>
@@ -910,7 +931,7 @@ export default {
             inactive-class="bg-disabled btn-sm"
             active-class="bg-primary btn-sm"
           ></ButtonGroup>
-          <div v-if="hasReadme" class="btn-group">
+          <div v-if="hasReadme && !showingReadmeWindow" class="btn-group">
             <button type="button" class="btn bg-primary btn-sm" @click="showSlideIn = !showSlideIn">
               {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
             </button>
@@ -1026,8 +1047,13 @@ export default {
     <div class="slideIn" :class="{'hide': false, 'slideIn__show': showSlideIn}">
       <h2 class="slideIn__header">
         {{ t('catalog.install.steps.helmValues.chartInfo.label') }}
-        <div class="slideIn__close-button" @click="showSlideIn = false">
-          <i class="icon icon-close" />
+        <div class="slideIn__header__buttons">
+          <div v-tooltip="'Dock in window'" class="slideIn__header__button" @click="showSlideIn = false; showReadmeWindow()">
+            <i class="icon icon-terminal" />
+          </div>
+          <div class="slideIn__header__button" @click="showSlideIn = false">
+            <i class="icon icon-close" />
+          </div>
         </div>
       </h2>
       <ChartReadme v-if="hasReadme" :version-info="versionInfo" class="chart-content__tabs" />
@@ -1114,20 +1140,24 @@ export default {
       display: flex;
       align-items: center;
       justify-content: space-between;
-    }
 
-    &__close-button {
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2px;
-      > i {
-        font-size: 20px;
-        opacity: 0.5;
+      &__buttons {
+        display: flex;
       }
-      &:hover {
-        background-color: var(--wm-closer-hover-bg);
+
+      &__button {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px;
+        > i {
+          font-size: 20px;
+          opacity: 0.5;
+        }
+        &:hover {
+          background-color: var(--wm-closer-hover-bg);
+        }
       }
     }
 

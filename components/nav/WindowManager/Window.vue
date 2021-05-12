@@ -54,8 +54,8 @@ export default {
 </script>
 
 <template>
-  <div class="window">
-    <div class="title clearfix">
+  <div class="window" :class="{'show-grid': $slots.title && $slots.body}">
+    <div v-if="$slots.title" class="title clearfix">
       <slot name="title" />
     </div>
     <div class="body clearfix">
@@ -68,12 +68,15 @@ export default {
   $title-height: 50px;
 
   .window {
-    display: grid;
-    grid-template-areas:
-      "body"
-      "title";
-    grid-template-rows: auto $title-height;
     height: 100%;
+
+    &.show-grid {
+      display: grid;
+      grid-template-areas:
+        "body"
+        "title";
+      grid-template-rows: auto $title-height;
+    }
   }
 
   .title {
