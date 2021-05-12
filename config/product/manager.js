@@ -1,4 +1,4 @@
-import { MULTI_CLUSTER } from '@/config/feature-flags';
+import { MULTI_CLUSTER } from '@/store/features';
 import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
 import { CAPI } from '@/config/types';
 import { DSL } from '@/store/type-map';

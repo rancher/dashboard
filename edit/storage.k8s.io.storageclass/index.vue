@@ -9,7 +9,7 @@ import RadioGroup from '@/components/form/RadioGroup';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import { PROVISIONER_OPTIONS } from '@/models/storage.k8s.io.storageclass';
-import { UNSUPPORTED_STORAGE_DRIVERS } from '@/config/feature-flags';
+import { mapFeature, UNSUPPORTED_STORAGE_DRIVERS } from '@/store/features';
 
 export default {
   name: 'StorageClass',
@@ -25,10 +25,6 @@ export default {
   },
 
   mixins: [CreateEditView],
-
-  fetch() {
-    this.showUnsupportedStorage = this.$store.getters['featureFlag'](UNSUPPORTED_STORAGE_DRIVERS);
-  },
 
   data() {
     const reclaimPolicyOptions = [
@@ -75,17 +71,20 @@ export default {
       volumeBindingModeOptions,
       mountOptions:           [],
       provisioner:            PROVISIONER_OPTIONS[0].value,
-      showUnsupportedStorage: false
     };
   },
 
   computed: {
+    showUnsupportedStorage: mapFeature(UNSUPPORTED_STORAGE_DRIVERS),
+
     modeOverride() {
       return this.isCreate ? _CREATE : _VIEW;
     },
+
     provisionerWatch() {
       return this.value.provisioner;
     },
+
     provisioners() {
       return PROVISIONER_OPTIONS.filter(provisioner => this.showUnsupportedStorage || provisioner.supported);
     }

@@ -17,7 +17,7 @@ export const strict = false;
 
 export const plugins = [
   Steve({ namespace: 'management', baseUrl: '/v1' }),
-  Steve({ namespace: 'cluster', baseUrl: '' }), // url set later
+  Steve({ namespace: 'cluster', baseUrl: '' }), // URL dynamically set for the selected cluster
   Steve({ namespace: 'rancher', baseUrl: '/v3' }),
 ];
 
@@ -329,12 +329,6 @@ export const getters = {
 
     return '/';
   },
-
-  featureFlag(state, getters, rootState, rootGetters) {
-    return (name) => {
-      return rootGetters['management/byId'](MANAGEMENT.FEATURE, name)?.enabled || false;
-    };
-  },
 };
 
 export const mutations = {
@@ -428,6 +422,9 @@ export const actions = {
         type: MANAGEMENT.CLUSTER,
         opt:  { url: MANAGEMENT.CLUSTER }
       }),
+
+      // Features checks on its own if they are available
+      features: dispatch('features/loadServer'),
     };
 
     const isRancher = res.rancherSchemas.status === 'fulfilled' && !!getters['management/schemaFor'](MANAGEMENT.PROJECT);
@@ -439,10 +436,6 @@ export const actions = {
 
     if ( getters['management/schemaFor'](COUNT) ) {
       promises['counts'] = dispatch('management/findAll', { type: COUNT });
-    }
-
-    if ( getters['management/schemaFor'](MANAGEMENT.FEATURE) ) {
-      promises['features'] = dispatch('management/findAll', { type: MANAGEMENT.FEATURE });
     }
 
     if ( getters['management/schemaFor'](MANAGEMENT.SETTING) ) {
