@@ -257,7 +257,7 @@ export default {
           position: absolute;
           right: 0;
           top: 0;
-          padding: 9px 7px;
+          padding: 10px 7px 9px 7px;
           user-select: none;
         }
       }

@@ -245,7 +245,7 @@ export default {
           <div @click="hide()">
             <nuxt-link
               v-tooltip="{ content: fullVersion, classes: 'footer-tooltip' }"
-              :to="{ name: 'docs-doc', params: { doc: 'release-notes' } }"
+              :to="{ name: 'about' }"
               class="version"
               v-html="displayVersion"
             />

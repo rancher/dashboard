@@ -265,13 +265,13 @@ export default {
               </div>
             </li>
             <nuxt-link tag="li" :to="{name: 'prefs'}" class="user-menu-item">
-              <a>Preferences <i class="icon icon-fw icon-gear" /></a>
+              <a>{{ t('nav.userMenu.preferences') }} <i class="icon icon-fw icon-gear" /></a>
             </nuxt-link>
             <nuxt-link v-if="isRancher" tag="li" :to="{name: 'account'}" class="user-menu-item">
-              <a>Account &amp; API Keys <i class="icon icon-fw icon-user" /></a>
+              <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }} <i class="icon icon-fw icon-user" /></a>
             </nuxt-link>
             <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout'}" class="user-menu-item">
-              <a @blur="showMenu(false)">Log Out <i class="icon icon-fw icon-close" /></a>
+              <a @blur="showMenu(false)">{{ t('nav.userMenu.logOut') }} <i class="icon icon-fw icon-close" /></a>
             </nuxt-link>
           </ul>
         </template>

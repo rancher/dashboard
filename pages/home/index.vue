@@ -338,7 +338,9 @@ export default {
         <div v-if="showSidePanel" class="col span-3">
           <CommunityLinks :pref="HIDE_HOME_PAGE_CARDS" pref-key="communitySupportTip" class="mb-20" />
           <SimpleBox :pref="HIDE_HOME_PAGE_CARDS" pref-key="commercialSupportTip" :title="t('landing.commercial.title')">
-            <span v-html="t('landing.commercial.body', {}, true)" />
+            <nuxt-link :to="{ path: 'support'}">
+              {{ t('landing.commercial.body') }}
+            </nuxt-link>
           </SimpleBox>
         </div>
       </div>
