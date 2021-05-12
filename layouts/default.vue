@@ -62,11 +62,12 @@ export default {
 
     pageActions() {
       const pageActions = [];
-
       const product = this.$store.getters['currentProduct'];
 
-      // Only show for Cluster Explorer
-      if (product.inStore === 'cluster') {
+      // Only show for Cluster Explorer or Global Apps (not configuration)
+      const canSetAsHome = product.inStore === 'cluster' || (product.inStore === 'management' && product.category !== 'configuration');
+
+      if (canSetAsHome) {
         pageActions.push({
           labelKey: 'nav.header.setLoginPage',
           action:   SET_LOGIN_ACTION
@@ -200,13 +201,42 @@ export default {
     },
     handlePageAction(action) {
       if (action.action === SET_LOGIN_ACTION) {
-        this.afterLoginRoute = {
-          name:   'c-cluster-explorer',
-          params: { cluster: this.clusterId }
-        };
+        this.afterLoginRoute = this.getLoginRoute();
         // Mark release notes as seen, so that the login route is honoured
         markSeenReleaseNotes(this.$store);
       }
+    },
+
+    getLoginRoute() {
+      // Cluster Explorer
+      if (this.currentProduct.inStore === 'cluster') {
+        return {
+          name:   'c-cluster-explorer',
+          params: { cluster: this.clusterId }
+        };
+      }
+
+      const parts = this.$route.name.split('-');
+      const params = {};
+
+      // If the route is a resource route, remote the resource part
+      if (parts[parts.length - 1] === 'resource') {
+        parts.pop();
+      }
+
+      // Remove the resource param
+      Object.keys(this.$route.params).forEach((p) => {
+        if (p !== 'resource') {
+          params[p] = this.$route.params[p];
+        }
+      });
+
+      const route = {
+        name: parts.join('-'),
+        params
+      };
+
+      return route;
     },
 
     collapseAll() {

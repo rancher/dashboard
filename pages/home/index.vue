@@ -188,9 +188,6 @@ export default {
       </div>
       <div class="row">
         <div :class="{'span-9': showSidePanel, 'span-12': !showSidePanel }" class="col">
-          <SimpleBox :title="t('landing.landingPrefs.title')" :pref="HIDE_HOME_PAGE_CARDS" pref-key="setLoginPage" class="panel">
-            <LandingPagePreference />
-          </SimpleBox>
           <SimpleBox
             id="migration"
             class="panel"
@@ -206,6 +203,9 @@ export default {
                 {{ t('landing.learnMore') }}
               </nuxt-link>
             </div>
+          </SimpleBox>
+          <SimpleBox :title="t('landing.landingPrefs.title')" :pref="HIDE_HOME_PAGE_CARDS" pref-key="setLoginPage" class="panel">
+            <LandingPagePreference />
           </SimpleBox>
           <div class="row panel">
             <div class="col span-12">

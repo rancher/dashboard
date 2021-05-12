@@ -20,7 +20,7 @@ export default {
   },
 
   data() {
-    // Store the route has it was on page load (before the user may have changed it)
+    // Store the route as it was on page load (before the user may have changed it)
     const customRoute = this.$store.getters['prefs/get'](AFTER_LOGIN_ROUTE);
 
     return { clusters: [], customRoute };
@@ -118,9 +118,6 @@ export default {
 
 <style lang="scss" scoped>
   .custom-page {
-    display: flex;
-    flex-direction: column;
-
     .custom-page-options {
       margin: 5px 0 0 20px;
       min-width: 320px;
