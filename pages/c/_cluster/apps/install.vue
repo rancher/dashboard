@@ -475,10 +475,6 @@ export default {
       this.updateStepOneReady();
     },
 
-    ignoreWarning() {
-      this.updateStepOneReady();
-    },
-
   },
 
   async mounted() {
@@ -811,10 +807,9 @@ export default {
 
     updateStepOneReady() {
       const okRequires = !this.requires.length;
-      const okWarnings = !this.warnings.length || this.ignoreWarning;
       const okChart = !!this.chart;
 
-      this.steps[0].ready = okRequires && okWarnings && okChart;
+      this.steps[0].ready = okRequires && okChart;
     },
 
     getOptionLabel(opt) {
@@ -867,8 +862,6 @@ export default {
             <Banner v-for="msg in warnings" :key="msg" color="warning">
               <span v-html="msg" />
             </Banner>
-
-            <Checkbox v-if="warnings.length" v-model="ignoreWarning" :label="t('catalog.install.action.ignoreWarning', { count: warnings.length })" />
           </div>
           <div v-if="existing" class="row mb-10">
             <div class="col span-6">

@@ -601,7 +601,6 @@ catalog:
   install:
     action:
       goToUpgrade: Edit/Upgrade
-      ignoreWarning: Ignore {count, plural, =1 { warning } other { warnings }}
     appReadmeMissing: This chart doesn't have any additional chart information.
     appReadmeTitle: Chart Information (Helm README)
     chart: Chart
