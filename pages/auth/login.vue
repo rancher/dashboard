@@ -29,12 +29,20 @@ export default {
       // Local is special and handled here so that it can be toggled
       removeObject(providers, 'local');
     }
+    const firstLoginSetting = await store.dispatch('rancher/find', {
+      type: 'setting',
+      id:   'first-login',
+      opt:  { url: `/v3/settings/first-login` }
+    });
+
+    const needsSetup = firstLoginSetting?.value === 'true';
 
     return {
       providers,
       hasOthers,
       hasLocal,
       showLocal: !hasOthers || (route.query[LOCAL] === _FLAGGED),
+      needsSetup
     };
   },
 
@@ -129,7 +137,12 @@ export default {
           this.$cookies.remove(USERNAME);
         }
         buttonCb(true);
-        this.$router.replace('/');
+
+        if (this.needsSetup) {
+          this.$router.push({ name: 'auth-setup', query: { setup: this.password } });
+        } else {
+          this.$router.replace('/');
+        }
       } catch (err) {
         this.err = err;
         buttonCb(false);
@@ -150,7 +163,7 @@ export default {
           {{ t('login.welcome', {vendor}) }}
         </h1>
         <h4 v-if="err" class="text-error text-center">
-          {{ t('login.error') }}
+          {{ err }}
         </h4>
         <h4 v-else-if="loggedOut" class="text-success text-center">
           {{ t('login.loggedOut') }}

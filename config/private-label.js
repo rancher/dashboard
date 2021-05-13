@@ -4,7 +4,7 @@ export const CUSTOM = 2;
 
 let mode = STANDARD;
 let vendor = 'Rancher';
-let product = 'Dashboard';
+let product = 'Rancher';
 
 export function setMode(m) {
   mode = m;

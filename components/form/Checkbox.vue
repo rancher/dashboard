@@ -131,7 +131,7 @@ export default {
         class="checkbox-label"
       >
         <slot name="label">
-          <t v-if="labelKey" :k="labelKey" />
+          <t v-if="labelKey" :k="labelKey" :raw="true" />
           <template v-else-if="label">{{ label }}</template>
           <i v-if="tooltipKey" v-tooltip="t(tooltipKey)" class="checkbox-info icon icon-info icon-lg" />
           <i v-else-if="tooltip" v-tooltip="tooltip" class="checkbox-info icon icon-info icon-lg" />
