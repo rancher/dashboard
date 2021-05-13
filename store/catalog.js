@@ -75,7 +75,7 @@ export const getters = {
         return false;
       }
 
-      if ( chart.scope && chart.scope !== cluster.scope ) {
+      if ( cluster && chart.scope && chart.scope !== cluster.scope ) {
         return false;
       }
 

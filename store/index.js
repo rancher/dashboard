@@ -10,6 +10,7 @@ import { filterBy, findBy } from '@/utils/array';
 import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@/store/type-map';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { TIMED_OUT, LOGGED_OUT } from '@/config/query-params';
+import { setVendor } from '@/config/private-label';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -456,6 +457,12 @@ export const actions = {
 
     if ( res.clusters.length === 1 && res.clusters[0].metadata?.name === 'local' ) {
       isMultiCluster = false;
+    }
+
+    const pl = res.settings?.find(x => x.name === 'ui-pl')?.value;
+
+    if ( pl ) {
+      setVendor(pl);
     }
 
     commit('managementChanged', {

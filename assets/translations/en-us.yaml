@@ -72,7 +72,6 @@ locale:
   none: (None)
 
 nav:
-  title: Dashboard
   backToRancher: Cluster Manager
   clusterTools: Cluster Tools
   kubeconfig: Download KubeConfig
@@ -330,7 +329,7 @@ authConfig:
     serverConnectionTimeout: Server Connection Timeout
     serviceAccountDN: Service Account Distinguished Name
     serviceAccountPassword: Service Account Password
-    serviceAccountInfo: Rancher needs a service account that has read-only access to all of the domains that will be able to login, so that we can determine what groups a user is a member of when they make a request with an API key.
+    serviceAccountInfo: '{vendor} needs a service account that has read-only access to all of the domains that will be able to login, so that we can determine what groups a user is a member of when they make a request with an API key.'
     starttls:
       label: Start TLS
       tip: Upgrades non-encrypted connections by wrapping with TLS during the connection process. Can not be used in conjunction with TLS.
@@ -349,7 +348,7 @@ authConfig:
     entityID: Entity ID Field
     UID: UID Field
     adfs: Configure an AD FS account
-    api: Rancher API Host
+    api: '{vendor} API Host'
     cert: 
       label: Certificate
       placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
@@ -574,7 +573,7 @@ catalog:
     certified:
       other: Other
       partner: Partner
-      rancher: Rancher
+      rancher: '{vendor}'
     header: Deploy Chart
     noCharts: 'There are no charts available, have you added any repos?'
     noWindows: Your catalogs do not contain any charts capable of being deployed on a Windows cluster.
@@ -583,7 +582,7 @@ catalog:
     action:
       goToUpgrade: Edit/Upgrade
       ignoreWarning: Continue Anyways
-    appReadmeGeneric: This chart doesn't have a Rancher-specific README.  Review the Helm README to learn more about the available configuration options and their usage.
+    appReadmeGeneric: "This chart doesn't have a {vendor}-specific README.  Review the Helm README to learn more about the available configuration options and their usage."
     chart: Chart
     error:
       requiresFound: '<a href="{url}">${name}</a> must be installed before you can install this chart.'
@@ -647,7 +646,7 @@ catalog:
       label: Git Repo URL
       placeholder: 'e.g. https://github.com/your-company/charts.git'
     name:
-      rancher-charts: Rancher
+      rancher-charts: '{vendor}'
       rancher-partner-charts: Partners
       rancher-rke2-charts: RKE2
     target:
@@ -697,7 +696,10 @@ chartHeading:
 
 cis:
   addTest: Add Test ID
-  alertNeeded: Alerting must be enabled within the CIS chart values.yaml. This requires that <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's Monitoring and Alerting app</a> is installed and the Receivers and Routes are <a target="_blank" rel='noopener noreferrer nofollow' href='https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/configuration/#alertmanager-config'> configured to send out alerts.</a>
+  alertNeeded: |-
+    Alerting must be enabled within the CIS chart values.yaml.
+    This requires that the <a tabindex="0" href="{link}">{vendor} Monitoring and Alerting app</a> is installed
+    and the Receivers and Routes are <a target="_blank" rel='noopener noreferrer nofollow' href='https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/configuration/#alertmanager-config'> configured to send out alerts.</a>
   alertOnComplete: Alert on scan completion
   alertOnFailure: Alert on scan failure
   benchmarkVersion: Benchmark Version
@@ -788,8 +790,8 @@ cluster:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
   import:
-    commandInstructions: 'Run the <code>kubectl</code> command below on an existing Kubernetes cluster running a supported Kubernetes version to import it into Rancher:'
-    commandInstructionsInsecure: 'If you get a &quot;certificate signed by unknown authority&quot; error, your Rancher installation has a self-signed or untrusted SSL certificate.  Run the command below instead to bypass the certificate verification:'
+    commandInstructions: 'Run the <code>kubectl</code> command below on an existing Kubernetes cluster running a supported Kubernetes version to import it into {vendor}:'
+    commandInstructionsInsecure: 'If you get a &quot;certificate signed by unknown authority&quot; error, your {vendor} installation has a self-signed or untrusted SSL certificate.  Run the command below instead to bypass the certificate verification:'
     clusterRoleBindingInstructions: 'If you get permission errors creating some of the resources, your user may not have the <code>cluster-admin</code> role.  Use this command to apply it:'
     clusterRoleBindingCommand: 'kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user <your username from your kubeconfig>'
 
@@ -901,8 +903,8 @@ cluster:
   providerGroup:
     create-custom1: Use existing nodes and create a cluster using RKE
     create-custom2: Use existing nodes and create a cluster using RKE2
-    create-kontainer: Create a cluster in a hosted Kuberetes provider
-    register-kontainer: Register an existing cluster in a hosted Kuberetes provider
+    create-kontainer: Create a cluster in a hosted Kubernetes provider
+    register-kontainer: Register an existing cluster in a hosted Kubernetes provider
     create-rke1: Provision new nodes and create a cluster using RKE
     create-rke2: Provision new nodes and create a cluster using RKE2
     create-template: Use a Catalog Template to create a cluster
@@ -1286,7 +1288,7 @@ istio:
   links:
     kiali:
       label: Kiali
-      description: Visualization of services within a service mesh and how they are connected. For Kiali to display data, you need Prometheus installed. If you need a monitoring solution, install <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's monitoring</a>.
+      description: 'Visualization of services within a service mesh and how they are connected. For Kiali to display data, you need Prometheus installed. If you need a monitoring solution, install <a tabindex="0" href="{link}">{vendor} monitoring</a>.'
     jaeger:
       label: Jaeger
       description: Monitor and Troubleshoot microservices-based distributed systems.
@@ -1294,8 +1296,8 @@ istio:
   cni: Enabled CNI
   customOverlayFile:
     label: Custom Overlay File
-    tip: 'The <a target="_blank" rel="noopener noreferrer nofollow" href="https://istio.io/latest/docs/setup/install/istioctl/#customizing-the-configuration">overlay file</a> allows for additional configuration on top of the base Rancher Istio installation. You can utilize the <a href="https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/" target="_blank" rel="noopener noreferrer nofollow" >IstioOperator API</a> to make changes and additions for all components and apply those changes via this overlay YAML file.'
-  description: 'Rancher Istio helm chart installs a minimal Istio configuration for you to get started integrating with your applications.
+    tip: 'The <a target="_blank" rel="noopener noreferrer nofollow" href="https://istio.io/latest/docs/setup/install/istioctl/#customizing-the-configuration">overlay file</a> allows for additional configuration on top of the base {vendor} Istio installation. You can utilize the <a href="https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/" target="_blank" rel="noopener noreferrer nofollow" >IstioOperator API</a> to make changes and additions for all components and apply those changes via this overlay YAML file.'
+  description: '{vendor} Istio helm chart installs a minimal Istio configuration for you to get started integrating with your applications.
   If you would like to get additional information about Istio, visit <a target="_blank" href="https://istio.io/latest/docs/concepts/what-is-istio" rel="noopener noreferrer nofollow">https://istio.io/latest/docs/concepts/what-is-istio/</a>'
   egressGateway: Enabled Egress Gateway
   ingressGateway: Enabled Ingress Gateway
@@ -1355,7 +1357,7 @@ landing:
       defaultOverview: Overview for the default cluster ({cluster})
       appsAndMarketplace: Apps and Marketplace
       fleet: Fleet
-  welcomeToRancher: Welcome to Rancher
+  welcomeToRancher: 'Welcome to {vendor}'
 
 logging:
   clusterFlow:
@@ -1670,7 +1672,7 @@ monitoring:
         label: Prometheus Targets
     subtitle: 'Powered By: <a href="https://github.com/coreos/prometheus-operator" target="_blank" rel="noopener noreferrer nofollow">Prometheus</a>'
     title: Dashboard
-    v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of Rancher with monitoring enabled, please disable monitoring in Cluster Manager before attempting to use monitoring in Cluster Explorer.'
+    v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of {vendor} with monitoring enabled, please disable monitoring in Cluster Manager before attempting to use monitoring in Cluster Explorer.'
   prometheus:
     config:
       adminApi: Admin API
@@ -1703,7 +1705,7 @@ monitoring:
     title: Configure Prometheus
     warningInstalled: |
       Warning: Prometheus Operators are currently deployed. Deploying multiple Prometheus Operators onto one cluster is not currently supported. Please remove all other Prometheus Operator deployments from this cluster before trying to install this chart.
-      If you are migrating from an older version of Rancher with Monitoring enabled, please disable Monitoring on this cluster completely before attempting to install this chart.
+      If you are migrating from an older version of {vendor} with Monitoring enabled, please disable Monitoring on this cluster completely before attempting to install this chart.
   receiver:
     fields:
       name: Name
@@ -1734,7 +1736,7 @@ monitoring:
     general: General
     grafana: Grafana
     prometheus: Prometheus
-  v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of Rancher with monitoring enabled, please disable monitoring in Cluster Manager before attempting to install the new Rancher Monitoring chart in Cluster Explorer.'
+  v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of {vendor} with monitoring enabled, please disable monitoring in Cluster Manager before attempting to install the new {vendor} Monitoring chart in Cluster Explorer.'
   volume:
     modes:
       block: Block
@@ -2405,7 +2407,7 @@ rbac:
           false {group}} has to administer the overall {appName} installation.
       custom:
         label: Custom
-        description: Roles not created by Rancher.
+        description: 'Roles not created by {vendor}.'
       builtin:
         label: Built-in
         description: Additional roles to define more fine-grain permissions model.
@@ -2463,7 +2465,7 @@ rbac:
         description: Allows the user to define, edit, and remove Role definitions.
       settings-manage:
         label: Manage Settings
-        description: Allows the user to manage Rancher Settings.
+        description: 'Allows the user to manage {vendor} Settings.'
       users-manage:
         label: Manage Users
         description: Allows the user to create, remove, and set passwords for all Users.
@@ -2474,7 +2476,7 @@ rbac:
         label: Use Node Templates
         description: Allows the user to deploy new Nodes using any existing Node Templates.
       view-rancher-metrics:
-        label: View Rancher Metrics
+        label: 'View {vendor} Metrics'
         description: Allows the user to view Metrics through the API.
       base:
         label: Login Access
@@ -3889,7 +3891,7 @@ typeDescription:
   monitoring.coreos.com.prometheusrule: A Prometheus Rule resource defines both recording and/or alert rules. A recording rule can pre-compute values and save the results. Alerting rules allow you to define conditions on when to send notifications to AlertManager.
   monitoring.coreos.com.prometheus: A Prometheus server is a Prometheus deployment whose scrape configuration and rules are determined by selected ServiceMonitors, PodMonitors, and PrometheusRules and whose alerts will be sent to all selected Alertmanagers with the custom resource's configuration.
   monitoring.coreos.com.alertmanager: An alert manager is deployment whose configuration will be specified by a secret in the same namespace, which determines which alerts should go to which receiver.
-  catalog.cattle.io.clusterrepo: A chart repository is a Helm repository or Rancher's git based application catalog. It provides the list of available charts in the cluster.
+  catalog.cattle.io.clusterrepo: 'A chart repository is a Helm repository or {vendor} git based application catalog. It provides the list of available charts in the cluster.'
   catalog.cattle.io.operation: An operation is the list of recent Helm operations that have been applied to the cluster.
   catalog.cattle.io.app: An installed application is a Helm 3 chart that was installed either via our charts or through the Helm CLI.
   logging.banzaicloud.io.clusterflow: Logs from the cluster will be collected and logged to the selected Cluster Output.
@@ -4160,7 +4162,11 @@ advancedSettings:
 
 featureFlags:
   label: Feature Flags
-  warning: Feature flags allow Rancher to gate certain features behind flags. You should enable these features with caution, and they should be considered beta functionality, which could cause problems for your system. Additionally, some features (non-dynamic) require a restart of the Rancher server to be enabled. Changing non-dynamic features will restart Rancher pods, which will result in a short outage.
+  warning: |-
+    Feature flags allow {vendor} to gate certain features behind flags.
+    Features that are off by defult shoud be considered experimental functionality.
+    Some features require a restart of the {vendor} server to change.
+    This will result in a short outage of the API and UI, but no affect running clusters or workloads.
   promptActivate: Please confirm that you want to activate the feature flag "{flag}"
   promptDeactivate: Please confirm that you want to deactivate the feature flag "{flag}"
   restartRequired: "Note: Updating this feature flag requires a restart"

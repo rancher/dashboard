@@ -5,6 +5,7 @@ import { ucFirst } from '@/utils/string';
 import { isMac } from '@/utils/platform';
 import Import from '@/components/Import';
 import BrandImage from '@/components/BrandImage';
+import { getProduct } from '@/config/private-label';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
@@ -40,6 +41,10 @@ export default {
     ...mapGetters(['clusterReady', 'isMultiCluster', 'isRancher', 'currentCluster',
       'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions']),
     ...mapGetters('type-map', ['activeProducts']),
+
+    appName() {
+      return getProduct();
+    },
 
     authEnabled() {
       return this.$store.getters['auth/enabled'];
@@ -128,7 +133,7 @@ export default {
         <div v-else class="simple-title">
           <img class="side-menu-logo" src="~/assets/images/pl/rancher-logo.svg" width="110" />
           <div class="title">
-            {{ t('nav.title') }}
+            {{ appName }}
           </div>
         </div>
       </div>
@@ -141,7 +146,7 @@ export default {
     <div v-else class="simple-title">
       <BrandImage class="side-menu-logo" file-name="rancher-logo.svg" width="110" />
       <div class="title">
-        {{ t('nav.title') }}
+        {{ appName }}
       </div>
     </div>
 
