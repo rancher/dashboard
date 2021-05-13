@@ -32,8 +32,33 @@ export default {
     dockerMachineVersion() {
       return this.settings.find(s => s.id === SETTING.VERSION_MACHINE);
     },
+    downloads() {
+      return [
+        this.createOSOption('about.os.mac', 'icon-apple', this.settings?.find(s => s.id === SETTING.CLI_URL.DARWIN)?.value, null),
+        this.createOSOption('about.os.linux', 'icon-linux', this.settings?.find(s => s.id === SETTING.CLI_URL.LINUX)?.value, this.downloadLinuxImages),
+        this.createOSOption('about.os.windows', 'icon-windows', this.settings?.find(s => s.id === SETTING.CLI_URL.WINDOWS)?.value, this.downloadWindowsImages)
+      ];
+    },
+    downloadImageList() {
+      return this.downloads.filter(d => !!d.imageList);
+    },
+    downloadCli() {
+      return this.downloads.filter(d => !!d.cliLink);
+    }
   },
   methods: {
+    createOSOption(label, icon, cliLink, imageList) {
+      const slash = cliLink?.lastIndexOf('/');
+
+      return {
+        label,
+        icon,
+        imageList,
+        cliLink,
+        cliFile: slash >= 0 ? cliLink.substr(slash + 1, cliLink.length - 1) : cliLink
+      };
+    },
+
     async downloadLinuxImages() {
       const res = await this.$store.dispatch('management/request', { url: '/v3/kontainerdrivers/rancher-images' });
 
@@ -62,7 +87,7 @@ export default {
   <div v-else class="about">
     <h1 v-t="'about.title'" />
     <h3>{{ t('about.versions.title') }}</h3>
-    <table class="">
+    <table>
       <thead>
         <tr>
           <th>{{ t('about.versions.component') }}</th>
@@ -98,32 +123,39 @@ export default {
         </td><td>{{ dockerMachineVersion.value }}</td>
       </tr>
     </table>
-    <p class="pt-20 pb-40">
+    <p class="pt-20">
       <nuxt-link :to="{ path: 'docs/release-notes'}">
         {{ t('about.versions.releaseNotes') }}
       </nuxt-link>
     </p>
-    <h3>{{ t('about.imageList.title') }}</h3>
-    <table>
-      <tr>
-        <td>
-          {{ t("about.imageList.linuxImageList") }}
-        </td><td>
-          <a @click="downloadLinuxImages">
-            {{ t('asyncButton.download.action') }}
-          </a>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          {{ t("about.imageList.windowsImageList") }}
-        </td><td>
-          <a @click="downloadWindowsImages">
-            {{ t('asyncButton.download.action') }}
-          </a>
-        </td>
-      </tr>
-    </table>
+    <template v-if="downloadImageList.length">
+      <h3 class="pt-40">
+        {{ t('about.downloadImageList.title') }}
+      </h3>
+      <table>
+        <tr v-for="d in downloadImageList" :key="d.icon" class="link">
+          <td>{{ t(d.label) }} <i :class="`icon ${d.icon}`" /></td>
+          <td>
+            <a v-if="d.imageList" @click="d.imageList">
+              {{ t('asyncButton.download.action') }}
+            </a>
+          </td>
+        </tr>
+      </table>
+    </template>
+    <template v-if="downloadCli.length">
+      <h3 class="pt-40">
+        {{ t('about.downloadCLI.title') }}
+      </h3>
+      <table>
+        <tr v-for="d in downloadCli" :key="d.icon" class="link">
+          <td>{{ t(d.label) }} <i :class="`icon ${d.icon}`" /></td>
+          <td>
+            <a v-if="d.cliLink" :href="d.cliLink">{{ d.cliFile }}</a>
+          </td>
+        </tr>
+      </table>
+    </template>
   </div>
 </template>
 
