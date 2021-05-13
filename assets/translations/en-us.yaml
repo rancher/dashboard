@@ -169,11 +169,14 @@ about:
     helm: Helm
     machine: Machine
     releaseNotes: 'View release notes'
-  imageList:
+  os:
+    mac: macOS
+    windows: Windows
+    linux: Linux
+  downloadImageList:
     title: Image Lists
-    linuxImageList: Linux
-    windowsImageList: Windows
-
+  downloadCLI:
+    title: CLI Downloads
 
 accountAndKeys:
   title: Account and API Keys
