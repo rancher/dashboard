@@ -133,8 +133,12 @@ export default {
         {{ t('about.downloadImageList.title') }}
       </h3>
       <table>
-        <tr v-for="d in downloadImageList" :key="d.icon" class="link">
-          <td>{{ t(d.label) }} <i :class="`icon ${d.icon}`" /></td>
+        <tr v-for="d in downloadImageList" :key="d.icon">
+          <td>
+            <div class="os">
+              <i :class="`icon ${d.icon} mr-5`" /> {{ t(d.label) }}
+            </div>
+          </td>
           <td>
             <a v-if="d.imageList" @click="d.imageList">
               {{ t('asyncButton.download.action') }}
@@ -149,7 +153,11 @@ export default {
       </h3>
       <table>
         <tr v-for="d in downloadCli" :key="d.icon" class="link">
-          <td>{{ t(d.label) }} <i :class="`icon ${d.icon}`" /></td>
+          <td>
+            <div class="os">
+              <i :class="`icon ${d.icon} mr-5`" /> {{ t(d.label) }}
+            </div>
+          </td>
           <td>
             <a v-if="d.cliLink" :href="d.cliLink">{{ d.cliFile }}</a>
           </td>
@@ -184,6 +192,11 @@ export default {
 
     a {
       cursor: pointer;
+    }
+
+    .os {
+      display: flex;
+      align-items: center;
     }
   }
 }
