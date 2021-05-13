@@ -216,27 +216,7 @@ export default {
         };
       }
 
-      let parts = this.$route.name.split('-');
-      const params = {};
-
-      // Find the 'resource' part of the route, if it is there
-      const index = parts.findIndex(p => p === 'resource');
-
-      if (index >= 0) {
-        parts = parts.slice(0, index);
-      }
-
-      // Just keep the params that are needed
-      parts.forEach((param) => {
-        if (this.$route.params[param]) {
-          params[param] = this.$route.params[param];
-        }
-      });
-
-      return {
-        name: parts.join('-'),
-        params
-      };
+      return this.$route;
     },
 
     collapseAll() {
