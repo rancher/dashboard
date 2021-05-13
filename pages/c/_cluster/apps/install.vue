@@ -389,15 +389,15 @@ export default {
     diffMode: mapPref(DIFF),
 
     step1Description() {
-      return this.$store.getters['i18n/exists']('catalog.install.steps.basics.description') ? this.t('catalog.install.steps.basics.description', { action: this.action }, true) : '';
+      return this.$store.getters['i18n/withFallback']('catalog.install.steps.basics.description', { action: this.action, existing: !!this.existing }, '');
     },
 
     step2Description() {
-      return this.$store.getters['i18n/exists']('catalog.install.steps.helmValues.description') ? this.t('catalog.install.steps.helmValues.description', { action: this.action }, true) : '';
+      return this.$store.getters['i18n/withFallback']('catalog.install.steps.helmValues.description', { action: this.action, existing: !!this.existing }, '');
     },
 
     step3Description() {
-      return this.$store.getters['i18n/exists']('catalog.install.steps.helmCli.description') ? this.t('catalog.install.steps.helmCli.description', { action: this.action }, true) : '';
+      return this.$store.getters['i18n/withFallback']('catalog.install.steps.helmCli.description', { action: this.action, existing: !!this.existing }, '');
     },
 
   },

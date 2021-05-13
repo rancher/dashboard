@@ -1,5 +1,5 @@
 <script>
-import ChartReadme from '@/components/ChartReadme'; // TODO: RC location
+import ChartReadme from '@/components/ChartReadme';
 import Window from './Window';
 
 export default {

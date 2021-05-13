@@ -647,17 +647,25 @@ catalog:
       basics:
         label: Metadata
         subtext: Set App metadata
-        description: This process will help you {action} your chosen chart.
+        description: This process will help {action, select,
+            install { create }
+            upgrade { upgrade }
+            update { update }
+          } the {existing, select,
+            true { app }
+            false { chart }
+          }. Start by setting some basic information used by {vendor} to manage the App.
       helmValues:
         label: Values
-        subtext: Change how the App runs
+        subtext: Change how the App works
+        description: Configure Values used by Helm to define the App.
         chartInfo:
           button: View Chart Info
           label: Chart Info
       helmCli:
         label: Command
-        subtext: Change how the Helm command runs
-        description: "{appName} will {action} your chart using a CLI tool. Here's the settings you can apply for its command."
+        subtext: Change how the Values are applied
+        description: Configure Options used by {vendor} to {action} the App.
     version: Version
     versions:
       current: '{ver} (Current)'
