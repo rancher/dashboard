@@ -31,9 +31,9 @@ import ChartMixin from '@/pages/c/_cluster/apps/chart_mixin';
 import isEqual from 'lodash/isEqual';
 
 const VALUES_STATE = {
-  FORM: '1',
-  YAML: '2',
-  DIFF: '3'
+  FORM: 'FORM',
+  YAML: 'YAML',
+  DIFF: 'DIFF'
 };
 
 export default {
@@ -175,6 +175,18 @@ export default {
   },
 
   data() {
+    const defaultCmdOpts = {
+      cleanupOnFail:       false,
+      crds:                true,
+      hooks:               true,
+      force:               false,
+      resetValues:         false,
+      openApi:             true,
+      wait:                true,
+      timeout:       600,
+      historyMax:    5,
+    };
+
     return {
       defaultRegistrySetting: null,
       serverUrlSetting:       null,
@@ -192,13 +204,11 @@ export default {
       valuesYaml:             '',
       project:                null,
 
-      crds:                true,
-      cleanupOnFail:       false,
-      force:               false,
-      hooks:               true,
-      nameDisabled:        false,
-      openApi:             true,
-      resetValues:         false,
+      defaultCmdOpts,
+      customCmdOpts: { ...defaultCmdOpts },
+
+      nameDisabled: false,
+
       preFormYamlOption:   VALUES_STATE.YAML,
       formYamlOption:      VALUES_STATE.YAML,
       showDiff:            false,
@@ -206,28 +216,26 @@ export default {
       showQuestions:       true,
       showSlideIn:         false,
       componentHasTabs:    false,
-      wait:                true,
+      showCommandStep:        false,
 
-      historyMax: 5,
-      timeout:    600,
-
-      steps: [{
+      stepBasic: {
         name:        'basics',
         label:       this.t('catalog.install.steps.basics.label'),
         subtext:     this.t('catalog.install.steps.basics.subtext'),
         ready:       true,
-      }, {
+      },
+      stepValues: {
         name:        'helmValues',
         label:       this.t('catalog.install.steps.helmValues.label'),
         subtext:     this.t('catalog.install.steps.helmValues.subtext'),
         ready:       true,
-      }, {
+      },
+      stepCommands: {
         name:        'helmCli',
         label:       this.t('catalog.install.steps.helmCli.label'),
         subtext:     this.t('catalog.install.steps.helmCli.subtext'),
         ready:       true,
-      }],
-
+      }
     };
   },
 
@@ -400,6 +408,20 @@ export default {
       return this.$store.getters['i18n/withFallback']('catalog.install.steps.helmCli.description', { action: this.action, existing: !!this.existing }, '');
     },
 
+    steps() {
+      const steps = [this.stepBasic];
+
+      if (this.showCommandStep) {
+        steps.push(this.stepCommands);
+      }
+      steps.push(this.stepValues);
+
+      return steps;
+    },
+
+    cmdOptions() {
+      return this.showCommandStep ? this.customCmdOpts : this.defaultCmdOpts;
+    }
   },
 
   watch: {
@@ -728,25 +750,25 @@ export default {
       };
 
       if ( isUpgrade ) {
-        chart.resetValues = this.resetValues;
+        chart.resetValues = this.cmdOptions.resetValues;
       }
 
       const out = {
         charts:    [chart],
-        noHooks:   this.hooks === false,
-        timeout:   this.timeout > 0 ? `${ this.timeout }s` : null,
-        wait:      this.wait === true,
+        noHooks:   this.cmdOptions.hooks === false,
+        timeout:   this.cmdOptions.timeout > 0 ? `${ this.cmdOptions.timeout }s` : null,
+        wait:      this.cmdOptions.wait === true,
         namespace: form.metadata.namespace,
         projectId: this.project,
       };
 
       if ( isUpgrade ) {
-        out.force = this.force === true;
-        out.historyMax = this.historyMax;
-        out.cleanupOnFail = this.cleanupOnFail;
+        out.force = this.cmdOptions.force === true;
+        out.historyMax = this.cmdOptions.historyMax;
+        out.cleanupOnFail = this.cmdOptions.cleanupOnFail;
       } else {
-        out.disableOpenAPIValidation = this.openApi === false;
-        out.skipCRDs = this.crds === false;
+        out.disableOpenAPIValidation = this.cmdOptions.openApi === false;
+        out.skipCRDs = this.cmdOptions.crds === false;
       }
 
       const more = [];
@@ -921,6 +943,12 @@ export default {
               />
             </template>
           </NameNsDescription>
+
+          <div class="step__values__controls--spacer" style="flex:1">
+&nbsp;
+          </div>
+
+          <Checkbox v-model="showCommandStep" :label="t('catalog.install.steps.helmCli.checkbox', { action })" />
         </div>
       </template>
       <template #helmValues>
@@ -1034,26 +1062,26 @@ export default {
         <p v-if="step3Description" class="row mb-10">
           {{ step3Description }}
         </p>
-        <div><Checkbox v-if="existing" v-model="cleanupOnFail" :label="t('catalog.install.helm.cleanupOnFail')" /></div>
-        <div><Checkbox v-if="!existing" v-model="crds" :label="t('catalog.install.helm.crds')" /></div>
-        <div><Checkbox v-model="hooks" :label="t('catalog.install.helm.hooks')" /></div>
-        <div><Checkbox v-if="existing" v-model="force" :label="t('catalog.install.helm.force')" /></div>
-        <div><Checkbox v-if="existing" v-model="resetValues" :label="t('catalog.install.helm.resetValues')" /></div>
-        <div><Checkbox v-if="!existing" v-model="openApi" :label="t('catalog.install.helm.openapi')" /></div>
-        <div><Checkbox v-model="wait" :label="t('catalog.install.helm.wait')" /></div>
+        <div><Checkbox v-if="existing" v-model="customCmdOpts.cleanupOnFail" :label="t('catalog.install.helm.cleanupOnFail')" /></div>
+        <div><Checkbox v-if="!existing" v-model="customCmdOpts.crds" :label="t('catalog.install.helm.crds')" /></div>
+        <div><Checkbox v-model="customCmdOpts.hooks" :label="t('catalog.install.helm.hooks')" /></div>
+        <div><Checkbox v-if="existing" v-model="customCmdOpts.force" :label="t('catalog.install.helm.force')" /></div>
+        <div><Checkbox v-if="existing" v-model="customCmdOpts.resetValues" :label="t('catalog.install.helm.resetValues')" /></div>
+        <div><Checkbox v-if="!existing" v-model="customCmdOpts.openApi" :label="t('catalog.install.helm.openapi')" /></div>
+        <div><Checkbox v-model="customCmdOpts.wait" :label="t('catalog.install.helm.wait')" /></div>
         <div style="display: block; max-width: 400px;" class="mt-10">
           <UnitInput
-            v-model.number="timeout"
+            v-model.number="customCmdOpts.timeout"
             :label="t('catalog.install.helm.timeout.label')"
-            :suffix="t('catalog.install.helm.timeout.unit', {value: timeout})"
+            :suffix="t('catalog.install.helm.timeout.unit', {value: customCmdOpts.timeout})"
           />
         </div>
         <div style="display: block; max-width: 400px;" class="mt-10">
           <UnitInput
             v-if="existing"
-            v-model.number="historyMax"
+            v-model.number="customCmdOpts.historyMax"
             :label="t('catalog.install.helm.historyMax.label')"
-            :suffix="t('catalog.install.helm.historyMax.unit', {value: historyMax})"
+            :suffix="t('catalog.install.helm.historyMax.unit', {value: customCmdOpts.historyMax})"
           />
         </div>
       </template>

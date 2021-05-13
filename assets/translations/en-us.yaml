@@ -663,6 +663,7 @@ catalog:
           button: View Chart Info
           label: Chart Info
       helmCli:
+        checkbox: Supply additional settings used by {vendor} to {action} the App.
         label: Command
         subtext: Change how the Values are applied
         description: Configure Options used by {vendor} to {action} the App.
