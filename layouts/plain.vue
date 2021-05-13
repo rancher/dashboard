@@ -77,13 +77,4 @@ export default {
       padding: 0;
     }
   }
-
-  .back-link {
-    align-items: center;
-    display: flex;
-    font-size: 16px;
-    outline: 0;
-    padding: 10px 0;
-    width: fit-content;
-  }
 </style>
