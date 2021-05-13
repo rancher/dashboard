@@ -883,10 +883,6 @@ clusterIndexPage:
       label: 节点不健康
       noRows: 所有节点都处于健康状态
 
-clusterSwitcher:
-  noResults: 没有找到任何集群。
-  search: 请输入集群名称，搜索集群。
-
 configmap:
   tabs:
     data:
