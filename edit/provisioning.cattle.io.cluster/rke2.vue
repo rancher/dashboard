@@ -272,11 +272,11 @@ export default {
     },
 
     serverArgs() {
-      return this.selectedVersion?.serverArgs;
+      return this.selectedVersion?.serverArgs || {};
     },
 
     agentArgs() {
-      return this.selectedVersion?.agentArgs;
+      return this.selectedVersion?.agentArgs || {};
     },
 
     needCredential() {

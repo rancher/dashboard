@@ -118,7 +118,7 @@ export default {
     if ( this.isImported ) {
       return null;
     } else if ( this.isRke2 ) {
-      const kind = this.spec?.rkeConfig?.nodePools?.[0]?.nodeConfigRef?.kind.toLowerCase();
+      const kind = this.spec?.rkeConfig?.nodePools?.[0]?.nodeConfigRef?.kind?.toLowerCase();
 
       if ( kind ) {
         return kind.replace(/config$/i, '').toLowerCase();

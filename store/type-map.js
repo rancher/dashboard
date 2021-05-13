@@ -1068,7 +1068,7 @@ export const getters = {
         }
       }
 
-      if ( p.ifFeature && !rootGetters['featureFlag'](p.ifFeature) ) {
+      if ( p.ifFeature && !rootGetters['features/get'](p.ifFeature) ) {
         return false;
       }
 

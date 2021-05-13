@@ -407,7 +407,14 @@ export default {
           </LabeledSelect>
         </div>
         <div class="col span-3">
-          <UnitInput v-model="value.rootSize" :mode="mode" placeholder="Default: 16" label="Root Disk Size" suffix="GB" />
+          <UnitInput
+            v-model="value.rootSize"
+            output-as="string"
+            :mode="mode"
+            placeholder="Default: 16"
+            label="Root Disk Size"
+            suffix="GB"
+          />
         </div>
       </div>
       <div class="row mt-20 mb-20">
@@ -532,7 +539,14 @@ export default {
           <div class="col span-6">
             <Checkbox v-model="value.requestSpotInstance" :mode="mode" label="Request Spot Instance" />
             <div v-if="value.requestSpotInstance" class="mt-10">
-              <UnitInput v-model="value.spotPrice" :mode="mode" placeholder="Default: 0.50" label="Spot Price" suffix="Dollars per hour" />
+              <UnitInput
+                v-model="value.spotPrice"
+                output-as="string"
+                :mode="mode"
+                placeholder="Default: 0.50"
+                label="Spot Price"
+                suffix="Dollars per hour"
+              />
             </div>
           </div>
         </div>
