@@ -24,6 +24,9 @@ export default {
 
     // Combine the allowed settings with the data from the API
     Object.keys(ALLOWED_SETTINGS).forEach((setting) => {
+      if (!settingsMap[setting]) {
+        return;
+      }
       const readonly = !!ALLOWED_SETTINGS[setting].readOnly;
       const s = {
         ...ALLOWED_SETTINGS[setting],
@@ -145,7 +148,7 @@ export default {
 
 .modified {
   margin-left: 10px;
-  border: 1px solid var(--link-text);
+  border: 1px solid var(--primary);
   border-radius: 5px;
   padding: 2px 10px;
   font-size: 12px;

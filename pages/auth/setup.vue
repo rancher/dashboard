@@ -4,6 +4,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import CopyCode from '@/components/CopyCode';
 import CopyToClipboard from '@/components/CopyToClipboard';
 import AsyncButton from '@/components/AsyncButton';
+import BrandImage from '@/components/BrandImage';
 import { SETUP, STEP, _UNFLAG } from '@/config/query-params';
 import { NORMAN, MANAGEMENT } from '@/config/types';
 import { open, popupWindowOptions } from '@/utils/window';
@@ -15,7 +16,7 @@ export default {
   layout: 'blank',
 
   components: {
-    AsyncButton, CopyCode, LabeledInput, CopyToClipboard, Checkbox
+    AsyncButton, CopyCode, LabeledInput, CopyToClipboard, Checkbox, BrandImage
   },
 
   async asyncData({ route, req, store }) {
@@ -392,7 +393,7 @@ export default {
           </div>
         </div>
         <div class="col span-6">
-          <img src="~/assets/images/pl/setup-step-one.svg" />
+          <BrandImage file-name="setup-step-one.svg" />
         </div>
       </div>
     </form>
@@ -483,7 +484,7 @@ export default {
           </div>
         </div>
         <div class="col span-6">
-          <img src="~/assets/images/pl/setup-step-one.svg" />
+          <BrandImage file-name="setup-step-one.svg" />
         </div>
       </div>
     </form>
@@ -517,7 +518,7 @@ export default {
           </div>
         </div>
         <div class="col span-6">
-          <img src="~/assets/images/pl/setup-step-one.svg" />
+          <BrandImage file-name="setup-step-one.svg" />
         </div>
       </div>
     </form>

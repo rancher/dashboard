@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { STEVE } from '@/config/types';
+import { MANAGEMENT, STEVE } from '@/config/types';
 import { clone } from '@/utils/object';
 
 const definitions = {};
@@ -264,6 +264,10 @@ export const actions = {
     }
   },
 
+  async setTheme({ dispatch }, val) {
+    await dispatch('set', { key: THEME, value: val });
+  },
+
   loadCookies({ state, commit }) {
     if ( state.cookiesLoaded ) {
       return;
@@ -410,4 +414,25 @@ export const actions = {
 
     return dispatch('set', { key: THEME, value });
   },
+
+  setBrandStyle({ rootState, rootGetters }, dark = false) {
+    if (rootState.managementReady) {
+      try {
+        const brandSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, 'brand');
+
+        if (brandSetting && brandSetting.value && brandSetting.value !== '') {
+          const brand = brandSetting.value;
+
+          const brandMeta = require(`~/assets/brand/${ brand }/metadata.json`);
+          const hasStylesheet = brandMeta.hasStylesheet === 'true';
+
+          if (hasStylesheet) {
+            document.body.classList.add(brand);
+          } else {
+            // TODO option apply color at runtime
+          }
+        }
+      } catch {}
+    }
+  }
 };

@@ -1,0 +1,42 @@
+.suse {
+  $primary: hsl(151, 59%, 46%);
+  $info:  mix($primary, $secondary, 50%);
+  $selected: rgba($primary, .5);
+
+  @include color-variables((
+    primary:    $primary,
+    info:       $info,
+  ), true);
+
+  --outline                    : #{rgba($primary, 0.75)};
+  --accent-btn                 : #{rgba($primary, 0.2)};
+  --accent-btn-hover           : #{rgba($primary, 0.5)};
+
+  --card-header                : #{rgba($primary, 0.2)};
+
+  --sortable-table-selected-bg : #{rgba($primary, 0.02)};
+  --tag-bg                     : #{rgba($primary, 0.2)};
+  --tag-primary                : #{$primary};
+  --tooltip-border             : var(--tag-primary);
+  --tooltip-text               : var(--tag-primary);
+  --tooltip-bg                 : #{lighten($primary, 35%)};
+  --terminal-selection         : #{$selected};
+
+  &.dark-theme{
+    --accent-btn: #{rgba($primary, 0.2)};
+
+    --nav-active                 : #{rgba($primary, 0.3)};
+    --nav-hover                  : #{$primary};
+    --nav-expander-hover         : #{darken($primary, 20%)};
+    --accent-btn: #{rgba($primary, 0.2)};
+    --accent-btn-hover: #{rgba($primary, 0.5)};
+    --sortable-table-selected-bg: #{rgba($primary, 0.3)};
+    --tag-primary: #{$primary};
+    --tag-bg: #{rgba($primary, 0.2)};
+    --tooltip-bg: #{darken($primary, 30%)};
+
+    --sortable-table-selected-bg: #{rgba($primary, 0.3)};
+    --tag-bg: #{rgba($primary, 0.2)};
+    --tooltip-bg: #{darken($primary, 30%)};
+  }
+}

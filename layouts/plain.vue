@@ -4,9 +4,9 @@ import Header from '@/components/nav/Header';
 import PromptRemove from '@/components/PromptRemove';
 import AssignTo from '@/components/AssignTo';
 import IndentedPanel from '@/components/IndentedPanel';
+import Brand from '@/mixins/brand';
 
 export default {
-
   components: {
     ActionMenu,
     AssignTo,
@@ -17,20 +17,16 @@ export default {
 
   middleware: ['authenticated'],
 
+  mixins: [Brand],
+
   data() {
     return {
       // Assume home pages have routes where the name is the key to use for string lookup
       name: this.$route.name,
     };
   },
-
-  head() {
-    const theme = this.$store.getters['prefs/theme'];
-
-    return {
-      bodyAttrs: { class: `theme-${ theme } overflow-hidden dashboard-body` },
-      title:     this.$store.getters['i18n/t']('nav.title'),
-    };
+  mounted() {
+    this.$store.dispatch('prefs/setBrand');
   },
 
 };

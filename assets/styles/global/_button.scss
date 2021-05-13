@@ -60,7 +60,7 @@ button,
 
 //btn roles
 .role-primary {
-  background: var(--link-text);
+  background: var(--primary);
   color: var(--primary-text);
 
   &:hover {
@@ -77,8 +77,8 @@ button,
 
 .role-tertiary {
   background: var(--accent-btn);
-  border: solid thin var(--link-text);
-  color: var(--link-text);
+  border: solid thin var(--primary);
+  color: var(--primary);
 }
 
 .role-link {
@@ -88,8 +88,8 @@ button,
 
 .role-multi-action {
   background: var(--accent-btn);
-  border: solid thin var(--link-text);
-  color: var(--link-text);
+  border: solid thin var(--primary);
+  color: var(--primary);
   border-radius: 2px;
 }
 
