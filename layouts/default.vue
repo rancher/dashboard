@@ -216,27 +216,27 @@ export default {
         };
       }
 
-      const parts = this.$route.name.split('-');
+      let parts = this.$route.name.split('-');
       const params = {};
 
-      // If the route is a resource route, remote the resource part
-      if (parts[parts.length - 1] === 'resource') {
-        parts.pop();
+      // Find the 'resource' part of the route, if it is there
+      const index = parts.findIndex(p => p === 'resource');
+
+      if (index >= 0) {
+        parts = parts.slice(0, index);
       }
 
-      // Remove the resource param
-      Object.keys(this.$route.params).forEach((p) => {
-        if (p !== 'resource') {
-          params[p] = this.$route.params[p];
+      // Just keep the params that are needed
+      parts.forEach((param) => {
+        if (this.$route.params[param]) {
+          params[param] = this.$route.params[param];
         }
       });
 
-      const route = {
+      return {
         name: parts.join('-'),
         params
       };
-
-      return route;
     },
 
     collapseAll() {
