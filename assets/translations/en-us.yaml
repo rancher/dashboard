@@ -1799,7 +1799,7 @@ monitoringRoute:
   interval:
     label: Group Interval
   matching:
-    info: The root route has to match everything so matching can't be configured.
+    info: The root route has to match everything so matching cannot be configured.
     label: Match
   receiver:
     label: Receiver
