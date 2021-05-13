@@ -123,6 +123,7 @@ export default {
           label: 'monitoring.accessModes.many',
         },
       ],
+      clusterType:           {},
       disableAggregateRoles: false,
       prometheusResources:   [],
       pvcs:                  [],
@@ -217,7 +218,14 @@ export default {
     <Tab name="general" :label="t('monitoring.tabs.general')" :weight="99">
       <div>
         <div class="row mb-20">
-          <ClusterSelector :value="value" :mode="mode" />
+          <ClusterSelector :value="value" :mode="mode" @onClusterTypeChanged="clusterType = $event" />
+        </div>
+        <div v-if="clusterType.group === 'managed'" class="row mb-20">
+          <Checkbox
+            v-model="value.prometheusOperator.hostNetwork"
+            label-key="monitoring.hostNetwork.label"
+            :tooltip="t('monitoring.hostNetwork.tip', {}, true)"
+          />
         </div>
         <div class="row">
           <div class="col span-6">

@@ -1634,6 +1634,9 @@ monitoring:
       volumeMode: Volume Mode
       volumeName: Volume Name
     title: Configure Grafana
+  hostNetwork:
+    label: Use Host Network For Prometheus Operator
+    tip: If you are using a managed Kubernetes cluster with custom CNI (e.g. Calico), you must enable this option to allow a managed control plane to contact the admission webhook exposed by Prometheus Operator to mutate or validate incoming PrometheusRules.
   overview:
     alertsList:
       ends:

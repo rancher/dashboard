@@ -134,8 +134,6 @@ export default {
             this.$set(this.value.coreDns, 'enabled', true);
             this.$set(this.value.kubeDns, 'enabled', false);
           }
-
-          this.$set(this.value.prometheusOperator, 'hostNetwork', false);
         } else if (oldClusterType.group !== 'other') { // old cluster type only sets some values to false, if they need to be reset true it will happen below
           this.setClusterTypeEnabledValues([oldConfigKeys, false]);
         }
@@ -151,7 +149,6 @@ export default {
         this.setClusterTypeEnabledValues([configKeys, false]);
       } else if (clusterType.group === 'managed') {
         this.setClusterTypeEnabledValues([configKeys, false]);
-        this.$set(this.value.prometheusOperator, 'hostNetwork', true);
 
         if (clusterType.id === 'gke') {
           this.$set(this.value.coreDns, 'enabled', false);
@@ -175,6 +172,7 @@ export default {
       } else if (oldClusterType && oldClusterType.id === 'rke.windows') {
         delete this.value.global.cattle.windows;
       }
+      this.$emit('onClusterTypeChanged', clusterType);
     },
   },
 
