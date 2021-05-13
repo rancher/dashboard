@@ -1,5 +1,7 @@
 <script>
 import day from 'dayjs';
+import BackLink from '@/components/BackLink';
+import BackRoute from '@/mixins/back-link';
 import ButtonGroup from '@/components/ButtonGroup';
 import Checkbox from '@/components/form/Checkbox';
 import {
@@ -9,9 +11,11 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import { addObject } from '@/utils/array';
 
 export default {
+  layout:     'plain',
   components: {
-    ButtonGroup, LabeledSelect, Checkbox
+    BackLink, ButtonGroup, LabeledSelect, Checkbox
   },
+  mixins:     [BackRoute],
   computed:   {
     theme:          mapPref(THEME),
     keymap:         mapPref(KEYMAP),
@@ -127,6 +131,7 @@ export default {
 
 <template>
   <div>
+    <BackLink :link="backLink" />
     <h1 v-t="'prefs.title'" />
 
     <h4 v-t="'prefs.theme.label'" />

@@ -1,17 +1,21 @@
 <script>
+import BackLink from '@/components/BackLink';
 import PromptChangePassword from '@/components/PromptChangePassword';
 import { NORMAN } from '@/config/types';
 import Loading from '@/components/Loading';
 import Principal from '@/components/auth/Principal';
+import BackRoute from '@/mixins/back-link';
 import { mapGetters } from 'vuex';
 
 import Banner from '@/components/Banner';
 import ResourceTable from '@/components/ResourceTable';
 
 export default {
+  layout:     'plain',
   components: {
-    Banner, PromptChangePassword, Loading, ResourceTable, Principal
+    BackLink, Banner, PromptChangePassword, Loading, ResourceTable, Principal
   },
+  mixins: [BackRoute],
   async fetch() {
     this.canChangePassword = await this.calcCanChangePassword();
 
@@ -89,6 +93,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
+    <BackLink :link="backLink" />
     <h1 v-t="'accountAndKeys.title'" />
 
     <h4 v-t="'accountAndKeys.account.title'" />

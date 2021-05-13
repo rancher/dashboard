@@ -1,11 +1,28 @@
 <script>
+import ActionMenu from '@/components/ActionMenu';
 import Header from '@/components/nav/Header';
+import PromptRemove from '@/components/PromptRemove';
+import AssignTo from '@/components/AssignTo';
+import IndentedPanel from '@/components/IndentedPanel';
 
 export default {
 
-  components: { Header },
+  components: {
+    ActionMenu,
+    AssignTo,
+    Header,
+    IndentedPanel,
+    PromptRemove
+  },
 
   middleware: ['authenticated'],
+
+  data() {
+    return {
+      // Assume home pages have routes where the name is the key to use for string lookup
+      name: this.$route.name,
+    };
+  },
 
   head() {
     const theme = this.$store.getters['prefs/theme'];
@@ -21,10 +38,15 @@ export default {
 
 <template>
   <div class="dashboard-root">
-    <Header />
+    <Header :simple="true" />
 
     <main>
-      <nuxt class="outlet" />
+      <IndentedPanel class="pt-20">
+        <nuxt class="outlet" />
+      </IndentedPanel>
+      <ActionMenu />
+      <PromptRemove />
+      <AssignTo />
     </main>
   </div>
 </template>
@@ -51,13 +73,8 @@ export default {
     overflow: auto;
 
     .outlet {
-      padding: 20px;
       min-height: 100%;
-    }
-
-    FOOTER {
-      background-color: var(--nav-bg);
-      height: var(--footer-height);
+      padding: 0;
     }
   }
 </style>

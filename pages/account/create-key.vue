@@ -3,6 +3,7 @@ import ResourceDetail from '@/components/ResourceDetail';
 
 export default {
   name:       'APIKeyCreate',
+  layout:     'plain',
   components: { ResourceDetail },
 };
 </script>
