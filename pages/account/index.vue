@@ -11,7 +11,7 @@ import Banner from '@/components/Banner';
 import ResourceTable from '@/components/ResourceTable';
 
 export default {
-  layout:     'nonav',
+  layout:     'plain',
   components: {
     BackLink, Banner, PromptChangePassword, Loading, ResourceTable, Principal
   },

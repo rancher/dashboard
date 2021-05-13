@@ -1,12 +1,16 @@
 <script>
 import Loading from '@/components/Loading';
+import BackLink from '@/components/BackLink';
+import BackRoute from '@/mixins/back-link';
 import { MANAGEMENT } from '@/config/types';
 import { SETTING } from '@/config/settings';
 import { getVendor } from '@/config/private-label';
 import { downloadFile } from '@/utils/download';
 
 export default {
-  components: { Loading },
+  layout:     'plain',
+  components: { BackLink, Loading },
+  mixins:     [BackRoute],
   async fetch() {
     this.settings = await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.SETTING });
   },
@@ -60,6 +64,7 @@ export default {
 <template>
   <Loading v-if="!settings" />
   <div v-else class="about">
+    <BackLink :link="backLink" />
     <h1 v-t="'about.title'" />
     <h3>{{ t('about.versions.title') }}</h3>
     <table class="">

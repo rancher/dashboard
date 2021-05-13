@@ -11,7 +11,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import { addObject } from '@/utils/array';
 
 export default {
-  layout:     'nonav',
+  layout:     'plain',
   components: {
     BackLink, ButtonGroup, LabeledSelect, Checkbox
   },

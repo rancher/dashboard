@@ -19,6 +19,7 @@ export default {
     align-items: center;
     display: flex;
     font-size: 16px;
+    margin-bottom: 10px;
     outline: 0;
     padding: 10px 0;
     width: fit-content;
