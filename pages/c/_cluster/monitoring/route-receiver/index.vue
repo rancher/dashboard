@@ -16,13 +16,6 @@ export default {
     Tab,
   },
 
-  props: {
-    schema: {
-      type:     Object,
-      required: true,
-    },
-  },
-
   async fetch() {
     this.routeSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ROUTE);
     this.receiverSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.RECEIVER);
@@ -45,8 +38,10 @@ export default {
   },
 
   data() {
+    const initTab = this.$route.query.resource || MONITORING.SPOOFED.RECEIVER;
+
     return {
-      routes: [], receivers: [], secretTo: null, routeSchema: null, receiverSchema: null
+      routes: [], receivers: [], secretTo: null, routeSchema: null, receiverSchema: null, initTab
     };
   },
   computed: {
@@ -55,10 +50,9 @@ export default {
       const activeResource = this.$refs?.tabs?.activeTabName || this.routeSchema.id;
 
       return {
-        name:   'c-cluster-product-resource-create',
-        params: {
-          resource: activeResource, cluster: this.$route.params.cluster, product: 'monitoring'
-        }
+        name:   'c-cluster-monitoring-route-receiver-create',
+        params: { cluster: this.$route.params.cluster },
+        query:  { resource: activeResource }
       };
     },
   },
@@ -77,7 +71,7 @@ export default {
         </button>
       </div>
     </div>
-    <Tabbed ref="tabs">
+    <Tabbed ref="tabs" :default-tab="initTab">
       <Tab :name="routeSchema.id" :label="$store.getters['type-map/labelFor'](routeSchema, 2)">
         <div v-if="secretTo">
           We don't support the current route format stored in alertmanager.yaml. Click

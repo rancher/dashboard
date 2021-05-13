@@ -59,12 +59,17 @@ export default {
 
     return {
       expectedFields,
-      receiverTypes:    RECEIVERS_TYPES,
-      fileFound:        false,
-      receiver:         {},
+      receiverTypes:        RECEIVERS_TYPES,
+      fileFound:            false,
+      receiver:             {},
       suffixYaml,
       EDITOR_MODES,
-      yamlError:        ''
+      yamlError:            '',
+      doneLocationOverride:      {
+        name:   'c-cluster-monitoring-route-receiver',
+        params: { cluster: this.$store.getters['clusterId'] },
+        query:  { resource: MONITORING.SPOOFED.RECEIVER }
+      }
     };
   },
 
@@ -153,6 +158,7 @@ export default {
     :subtypes="[]"
     :can-yaml="false"
     :errors="errors"
+    :cancel-event="true"
     @error="e=>errors = e"
     @finish="saveOverride"
     @cancel="done"

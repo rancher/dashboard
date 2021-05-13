@@ -26,20 +26,21 @@ export default {
   },
 
   data() {
+    const initTab = this.$route.query.resource || MONITORING.SPOOFED.PODMONITOR;
+
     return {
-      podMonitors: [], serviceMonitors: [], podMonitorSchema: null, serviceMonitorSchema: null
+      podMonitors: [], serviceMonitors: [], podMonitorSchema: null, serviceMonitorSchema: null, initTab
     };
   },
 
   computed: {
     createRoute() {
-      const activeResource = this.$refs?.tabs?.activeTabName;
+      const activeResource = this.$refs?.tabs?.activeTabName || this.routeSchema.id;
 
       return {
-        name:   'c-cluster-product-resource-create',
-        params: {
-          resource: activeResource, cluster: this.$route.params.cluster, product: 'monitoring'
-        }
+        name:   'c-cluster-monitoring-monitor-create',
+        params: { cluster: this.$route.params.cluster },
+        query:  { resource: activeResource }
       };
     },
   }
@@ -57,7 +58,7 @@ export default {
         </button>
       </div>
     </div>
-    <Tabbed ref="tabs">
+    <Tabbed ref="tabs" :default-tab="initTab">
       <Tab :name="podMonitorSchema.id" :label="$store.getters['type-map/labelFor'](podMonitorSchema, 2)">
         <TypeDescription :resource="podMonitorSchema.id" />
         <ResourceTable :schema="podMonitorSchema" :rows="podMonitors" />

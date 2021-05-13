@@ -89,7 +89,6 @@ export default {
       if ( this.onDone ) {
         return this.onDone();
       }
-
       if ( this.doneLocationOverride) {
         return this.$router.replace(this.doneLocationOverride);
       }

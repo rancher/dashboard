@@ -43,7 +43,14 @@ export default {
   data() {
     this.$set(this.value.spec, 'group_by', this.value.spec.group_by || []);
 
-    return { receiverOptions: [] };
+    return {
+      receiverOptions:      [],
+      doneLocationOverride:      {
+        name:   'c-cluster-monitoring-route-receiver',
+        params: { cluster: this.$store.getters['clusterId'] },
+        query:  { resource: MONITORING.SPOOFED.ROUTE }
+      }
+    };
   },
 };
 </script>
@@ -58,6 +65,7 @@ export default {
     :mode="mode"
     :resource="value"
     :subtypes="[]"
+    :cancel-event="true"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"

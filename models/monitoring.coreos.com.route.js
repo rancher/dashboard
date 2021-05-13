@@ -86,6 +86,14 @@ export default {
     return areRoutesSupportedFormat(this.secret);
   },
 
+  _detailLocation() {
+    return {
+      name:   'c-cluster-monitoring-route-receiver-id',
+      params: { cluster: this.$rootGetters['clusterId'], id: this.id },
+      query:  { resource: this.type }
+    };
+  },
+
   customValidationRules() {
     const rules = [
       {
