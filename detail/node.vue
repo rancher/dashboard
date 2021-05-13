@@ -15,7 +15,13 @@ import Poller from '@/utils/poller';
 import { METRIC, POD } from '@/config/types';
 import createEditView from '@/mixins/create-edit-view';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
+import DashboardMetrics from '@/components/DashboardMetrics';
+import { mapGetters } from 'vuex';
+import { allDashboardsExist } from '@/utils/grafana';
+import Loading from '@/components/Loading';
 
+const NODE_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-node-detail-1/rancher-node-detail?orgId=1';
+const NODE_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-node-1/rancher-node?orgId=1';
 const METRICS_POLL_RATE_MS = 30000;
 const MAX_FAILURES = 2;
 
@@ -25,6 +31,8 @@ export default {
   components: {
     Alert,
     ConsumptionGauge,
+    DashboardMetrics,
+    Loading,
     ResourceTabs,
     Tab,
     SortableTable,
@@ -39,8 +47,10 @@ export default {
     },
   },
 
-  fetch() {
-    this.$store.dispatch('cluster/findAll', { type: POD });
+  async fetch() {
+    this.showMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [NODE_METRICS_DETAIL_URL, NODE_METRICS_SUMMARY_URL]);
+
+    return this.$store.dispatch('cluster/findAll', { type: POD });
   },
 
   data() {
@@ -70,11 +80,15 @@ export default {
         VALUE,
         EFFECT
       ],
-      podTableHeaders: this.$store.getters['type-map/headersFor'](podSchema)
+      podTableHeaders: this.$store.getters['type-map/headersFor'](podSchema),
+      NODE_METRICS_DETAIL_URL,
+      NODE_METRICS_SUMMARY_URL,
+      showMetrics:     false
     };
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
     memoryUnits() {
       const exponent = exponentNeeded(this.value.ramCapacity, 1024);
 
@@ -118,6 +132,10 @@ export default {
     taintTableRows() {
       return this.value.spec.taints || [];
     },
+
+    graphVars() {
+      return { instance: `${ this.value.internalIp }:9796` };
+    }
   },
 
   mounted() {
@@ -160,7 +178,8 @@ export default {
 </script>
 
 <template>
-  <div class="node">
+  <Loading v-if="$fetchState.pending" />
+  <div v-else class="node">
     <div class="spacer"></div>
     <div class="alerts">
       <Alert class="mr-10" :status="pidPressureStatus" :message="t('node.detail.glance.pidPressure')" />
@@ -175,7 +194,7 @@ export default {
     </div>
     <div class="spacer"></div>
     <ResourceTabs v-model="value" :mode="mode">
-      <Tab name="pods" :label="t('node.detail.tab.pods')" :weight="3">
+      <Tab name="pods" :label="t('node.detail.tab.pods')" :weight="4">
         <SortableTable
           key-field="_key"
           :headers="podTableHeaders"
@@ -184,6 +203,17 @@ export default {
           :table-actions="false"
           :search="false"
         />
+      </Tab>
+      <Tab v-if="showMetrics" :label="t('node.detail.tab.metrics')" name="node-metrics" :weight="3">
+        <template #default="props">
+          <DashboardMetrics
+            v-if="props.active"
+            :detail-url="NODE_METRICS_DETAIL_URL"
+            :summary-url="NODE_METRICS_SUMMARY_URL"
+            :vars="graphVars"
+            graph-height="825px"
+          />
+        </template>
       </Tab>
       <Tab name="info" :label="t('node.detail.tab.info.label')" class="bordered-table" :weight="2">
         <SortableTable

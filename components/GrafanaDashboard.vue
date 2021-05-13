@@ -10,6 +10,10 @@ export default {
       type:     String,
       required: true,
     },
+    vars: {
+      type:    Object,
+      default: () => ({})
+    },
     range: {
       type:    String,
       default: null
@@ -125,6 +129,14 @@ export default {
 
       if (this.refreshRate) {
         params.refresh = this.refreshRate;
+      }
+
+      if (Object.keys(this.vars).length > 0) {
+        Object.entries(this.vars).forEach((entry) => {
+          const paramName = `var-${ entry[0] }`;
+
+          params[paramName] = entry[1];
+        });
       }
 
       params.theme = this.theme;

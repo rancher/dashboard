@@ -1856,6 +1856,7 @@ node:
     tab:
       conditions: Conditions
       images: Images
+      metrics: Metrics
       info:
         label: Info
         key:
@@ -3492,6 +3493,7 @@ workload:
       networkSettings: Network Settings
       podAnnotations: Pod Annotations
       podLabels: Pod Labels
+      metrics: Metrics
       podScheduling: Pod Scheduling
       nodeScheduling: Node Scheduling
       ports: Ports

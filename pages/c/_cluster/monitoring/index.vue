@@ -1,5 +1,4 @@
 <script>
-import { mapGetters } from 'vuex';
 import isEmpty from 'lodash/isEmpty';
 
 import InstallRedirect from '@/utils/install-redirect';
@@ -25,74 +24,70 @@ export default {
 
   middleware: InstallRedirect(NAME, CHART_NAME),
 
+  async fetch() {
+    await this.fetchDeps();
+  },
+
   data() {
+    const grafanaSrc = require('~/assets/images/vendor/grafana.svg');
+    const prometheusSrc = require('~/assets/images/vendor/prometheus.svg');
+    const currentCluster = this.$store.getters['currentCluster'];
+
     return {
       availableLinks: {
         alertmanager: false,
         grafana:      false,
         prometheus:   false,
       },
-      grafanaSrc:    require('~/assets/images/vendor/grafana.svg'),
-      prometheusSrc: require('~/assets/images/vendor/prometheus.svg'),
       resources:     [MONITORING.ALERTMANAGER, MONITORING.PROMETHEUS],
       v1Installed:   false,
-    };
-  },
-
-  computed: {
-    ...mapGetters(['currentCluster']),
-    externalLinks() {
-      return [
+      externalLinks: [
         {
           enabled:     false,
           group:       'alertmanager',
-          iconSrc:     this.prometheusSrc,
+          iconSrc:     prometheusSrc,
           label:       'monitoring.overview.linkedList.alertManager.label',
           description:
             'monitoring.overview.linkedList.alertManager.description',
-          link: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-alertmanager:9093/proxy`,
+          link: `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-alertmanager:9093/proxy`,
         },
         {
           enabled:     false,
           group:       'grafana',
-          iconSrc:     this.grafanaSrc,
+          iconSrc:     grafanaSrc,
           label:       'monitoring.overview.linkedList.grafana.label',
           description: 'monitoring.overview.linkedList.grafana.description',
-          link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy`,
+          link:        `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy`,
         },
         {
           enabled:     false,
           group:       'prometheus',
-          iconSrc:     this.prometheusSrc,
+          iconSrc:     prometheusSrc,
           label:       'monitoring.overview.linkedList.prometheusPromQl.label',
           description:
             'monitoring.overview.linkedList.prometheusPromQl.description',
-          link: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/graph`,
+          link: `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/graph`,
         },
         {
           enabled:     false,
           group:       'prometheus',
-          iconSrc:     this.prometheusSrc,
+          iconSrc:     prometheusSrc,
           label:       'monitoring.overview.linkedList.prometheusRules.label',
           description:
             'monitoring.overview.linkedList.prometheusRules.description',
-          link: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/rules`,
+          link: `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/rules`,
         },
         {
           enabled:     false,
           group:       'prometheus',
-          iconSrc:     this.prometheusSrc,
+          iconSrc:     prometheusSrc,
           label:       'monitoring.overview.linkedList.prometheusTargets.label',
           description:
             'monitoring.overview.linkedList.prometheusTargets.description',
-          link: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/targets`,
+          link: `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/targets`,
         },
-      ];
-    },
-  },
-
-  mounted() {
-    this.fetchDeps();
+      ]
+    };
   },
 
   methods: {

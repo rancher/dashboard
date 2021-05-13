@@ -6,11 +6,20 @@ import SortableTable from '@/components/SortableTable';
 import { STATE, SIMPLE_NAME, IMAGE } from '@/config/table-headers';
 import { sortableNumericSuffix } from '@/utils/sort';
 import { findBy } from '@/utils/array';
+import DashboardMetrics from '@/components/DashboardMetrics';
+import { mapGetters } from 'vuex';
+import { allDashboardsExist } from '@/utils/grafana';
+import Loading from '@/components/Loading';
+
+const POD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-containers-1/rancher-pod-containers?orgId=1';
+const POD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-1/rancher-pod?orgId=1';
 
 export default {
   name: 'PodDetail',
 
   components: {
+    DashboardMetrics,
+    Loading,
     ResourceTabs,
     Tab,
     SortableTable,
@@ -18,7 +27,20 @@ export default {
 
   mixins: [CreateEditView],
 
+  async fetch() {
+    this.showMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [POD_METRICS_DETAIL_URL, POD_METRICS_SUMMARY_URL]);
+  },
+
+  data() {
+    return {
+      POD_METRICS_DETAIL_URL,
+      POD_METRICS_SUMMARY_URL,
+      showMetrics: false
+    };
+  },
+
   computed:   {
+    ...mapGetters(['currentCluster']),
     containers() {
       const { containerStatuses = [] } = this.value.status;
 
@@ -68,12 +90,21 @@ export default {
         }
       ];
     },
+
+    graphVars() {
+      return {
+        namespace: this.value.namespace,
+        pod:       this.value.name
+      };
+    },
+
   },
 };
 </script>
 
 <template>
-  <ResourceTabs mode="view" class="mt-20" :value="value">
+  <Loading v-if="$fetchState.pending" />
+  <ResourceTabs v-else mode="view" class="mt-20" :value="value">
     <Tab :label="t('workload.container.titles.containers')" name="containers" :weight="3">
       <SortableTable
         :rows="containers"
@@ -84,6 +115,17 @@ export default {
         :row-actions="false"
         :table-actions="false"
       />
+    </Tab>
+    <Tab v-if="showMetrics" :label="t('workload.container.titles.metrics')" name="pod-metrics" :weight="2.5">
+      <template #default="props">
+        <DashboardMetrics
+          v-if="props.active"
+          :detail-url="POD_METRICS_DETAIL_URL"
+          :summary-url="POD_METRICS_SUMMARY_URL"
+          :vars="graphVars"
+          graph-height="550px"
+        />
+      </template>
     </Tab>
   </ResourceTabs>
 </template>

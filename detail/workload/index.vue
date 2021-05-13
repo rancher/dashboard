@@ -9,9 +9,26 @@ import ResourceTabs from '@/components/form/ResourceTabs';
 import CountGauge from '@/components/CountGauge';
 import { allHash } from '@/utils/promise';
 import { get } from '@/utils/object';
+import DashboardMetrics from '@/components/DashboardMetrics';
+import { mapGetters } from 'vuex';
+import { allDashboardsExist } from '@/utils/grafana';
+
+const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';
+const WORKLOAD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-1/rancher-workload?orgId=1';
+
+export const WORKLOAD_TYPE_TO_KIND_MAPPING = {
+  [WORKLOAD_TYPES.DEPLOYMENT]:             'Deployment',
+  [WORKLOAD_TYPES.CRON_JOB]:               'CronJob',
+  [WORKLOAD_TYPES.DAEMON_SET]:             'DaemonSet',
+  [WORKLOAD_TYPES.JOB]:                    'Job',
+  [WORKLOAD_TYPES.STATEFUL_SET]:           'StatefulSet',
+  [WORKLOAD_TYPES.REPLICA_SET]:            'ReplicaSet',
+  [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 'ReplicationController',
+};
 
 export default {
   components: {
+    DashboardMetrics,
     Tab,
     Loading,
     ResourceTabs,
@@ -32,13 +49,18 @@ export default {
     for ( const k in res ) {
       this[k] = res[k];
     }
+
+    this.showMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [WORKLOAD_METRICS_DETAIL_URL, WORKLOAD_METRICS_SUMMARY_URL]);
   },
 
   data() {
-    return { allPods: null, allJobs: [] };
+    return {
+      allPods: null, allJobs: [], WORKLOAD_METRICS_DETAIL_URL, WORKLOAD_METRICS_SUMMARY_URL, showMetrics: false
+    };
   },
 
   computed:   {
+    ...mapGetters(['currentCluster']),
     pods() {
       const relationships = get(this.value, 'metadata.relationships') || [];
       const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
@@ -200,6 +222,14 @@ export default {
         POD_IMAGES
       ];
     },
+
+    graphVars() {
+      return {
+        namespace: this.value.namespace,
+        kind:      WORKLOAD_TYPE_TO_KIND_MAPPING[this.value.type],
+        workload:  this.value.id
+      };
+    }
   },
 };
 </script>
@@ -233,7 +263,7 @@ export default {
       </template>
     </div>
     <ResourceTabs :value="value">
-      <Tab v-if="isCronJob" name="jobs" :label="t('tableHeaders.jobs')">
+      <Tab v-if="isCronJob" name="jobs" :label="t('tableHeaders.jobs')" :weight="4">
         <SortableTable
           :rows="jobs"
           :headers="jobHeaders"
@@ -243,7 +273,7 @@ export default {
           :search="false"
         />
       </Tab>
-      <Tab v-else name="pods" :label="t('tableHeaders.pods')">
+      <Tab v-else name="pods" :label="t('tableHeaders.pods')" :weight="4">
         <SortableTable
           v-if="pods"
           :rows="pods"
@@ -254,6 +284,17 @@ export default {
           :groupable="false"
           :search="false"
         />
+      </Tab>
+      <Tab v-if="showMetrics" :label="t('workload.container.titles.metrics')" name="workload-metrics" :weight="3">
+        <template #default="props">
+          <DashboardMetrics
+            v-if="props.active"
+            :detail-url="WORKLOAD_METRICS_DETAIL_URL"
+            :summary-url="WORKLOAD_METRICS_SUMMARY_URL"
+            :vars="graphVars"
+            graph-height="550px"
+          />
+        </template>
       </Tab>
     </ResourceTabs>
   </div>

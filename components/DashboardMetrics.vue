@@ -14,6 +14,10 @@ export default {
       type:     String,
       required: true,
     },
+    vars: {
+      type:    Object,
+      default: () => ({})
+    },
     graphHeight: {
       type:     String,
       required: true
@@ -55,6 +59,7 @@ export default {
         :refresh-rate="graphOptions.refreshRate"
         :range="graphOptions.range"
         :url="detailUrl"
+        :vars="vars"
       />
       <GrafanaDashboard
         v-else
@@ -64,6 +69,7 @@ export default {
         :refresh-rate="graphOptions.refreshRate"
         :range="graphOptions.range"
         :url="summaryUrl"
+        :vars="vars"
       />
     </div>
   </div>
