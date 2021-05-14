@@ -22,6 +22,8 @@
   --tooltip-bg                 : #{lighten($primary, 35%)};
   --terminal-selection         : #{$selected};
 
+  --dropdown-hover-bg          : #{$primary};
+
   &.dark-theme{
     --accent-btn: #{rgba($primary, 0.2)};
 

@@ -216,19 +216,23 @@ export default {
             <div class="category">
               {{ t('nav.categories.multiCluster') }}
             </div>
-            <nuxt-link v-for="a in multiClusterApps" :key="a.label" class="option" :to="a.to">
-              <i class="icon group-icon" :class="a.icon" />
-              <div>{{ a.label }}</div>
-            </nuxt-link>
+            <div v-for="a in multiClusterApps" :key="a.label" @click="hide()">
+              <nuxt-link class="option" :to="a.to">
+                <i class="icon group-icon" :class="a.icon" />
+                <div>{{ a.label }}</div>
+              </nuxt-link>
+            </div>
           </template>
           <template v-if="configurationApps.length">
             <div class="category">
               {{ t('nav.categories.configuration') }}
             </div>
-            <nuxt-link v-for="a in configurationApps" :key="a.label" class="option" :to="a.to">
-              <i class="icon group-icon" :class="a.icon" />
-              <div>{{ a.label }}</div>
-            </nuxt-link>
+            <div v-for="a in configurationApps" :key="a.label" @click="hide()">
+              <nuxt-link class="option" :to="a.to">
+                <i class="icon group-icon" :class="a.icon" />
+                <div>{{ a.label }}</div>
+              </nuxt-link>
+            </div>
           </template>
           <div class="pad"></div>
           <div class="cluster-manager">
@@ -332,6 +336,13 @@ export default {
 
     &:hover {
       text-decoration: none;
+    }
+
+    &:focus {
+      outline: 0;
+      > div {
+        text-decoration: underline;
+      }
     }
 
     > i {
