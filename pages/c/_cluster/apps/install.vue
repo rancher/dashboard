@@ -217,6 +217,7 @@ export default {
       showSlideIn:         false,
       componentHasTabs:    false,
       showCommandStep:        false,
+      isNamespaceNew:      false,
 
       stepBasic: {
         name:        'basics',
@@ -411,10 +412,10 @@ export default {
     steps() {
       const steps = [this.stepBasic];
 
+      steps.push(this.stepValues);
       if (this.showCommandStep) {
         steps.push(this.stepCommands);
       }
-      steps.push(this.stepValues);
 
       return steps;
     },
@@ -929,6 +930,8 @@ export default {
             :force-namespace="forceNamespace"
             :namespace-new-allowed="!existing && !forceNamespace"
             :extra-columns="showProject ? ['project'] : []"
+            :show-spacer="false"
+            @isNamespaceNew="isNamespaceNew = $event"
           >
             <template v-if="showProject" #project>
               <LabeledSelect
@@ -943,12 +946,14 @@ export default {
               />
             </template>
           </NameNsDescription>
-
+          <div class="mt-10 mb-40">
+            {{ isNamespaceNew ? t('catalog.install.steps.basics.createNamespace') : '&nbsp;' }}
+          </div>
           <div class="step__values__controls--spacer" style="flex:1">
 &nbsp;
           </div>
 
-          <Checkbox v-model="showCommandStep" :label="t('catalog.install.steps.helmCli.checkbox', { action })" />
+          <Checkbox v-model="showCommandStep" :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })" />
         </div>
       </template>
       <template #helmValues>
@@ -1090,8 +1095,8 @@ export default {
       <h2 class="slideIn__header">
         {{ t('catalog.install.steps.helmValues.chartInfo.label') }}
         <div class="slideIn__header__buttons">
-          <div v-tooltip="'Dock in window'" class="slideIn__header__button" @click="showSlideIn = false; showReadmeWindow()">
-            <i class="icon icon-terminal" />
+          <div v-tooltip="t('catalog.install.slideIn.dock')" class="slideIn__header__button" @click="showSlideIn = false; showReadmeWindow()">
+            <i class="icon icon-dock" />
           </div>
           <div class="slideIn__header__button" @click="showSlideIn = false">
             <i class="icon icon-close" />
@@ -1136,6 +1141,11 @@ export default {
   }
 
   .step {
+    &__basic {
+      .spacer {
+        line-height: 2;
+      }
+    }
     &__values {
       &__controls {
         display: flex;
