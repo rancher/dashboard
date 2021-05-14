@@ -402,7 +402,7 @@ export default {
     },
 
     showCni() {
-      return !!this.selectedVersion.agentArgs.cni;
+      return !!this.selectedVersion.serverArgs.cni;
     },
   },
 
@@ -665,7 +665,7 @@ export default {
             <LabeledSelect
               v-model="agentConfig.cni"
               :mode="mode"
-              :options="selectedVersion.agentArgs.cni.options"
+              :options="selectedVersion.serverArgs.cni.options"
               label="Container Network Provider"
             />
           </div>

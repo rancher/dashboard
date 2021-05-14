@@ -97,7 +97,7 @@ export function init(store) {
   mapGroup('autoscaling', 'Autoscaling');
   mapGroup('policy', 'Policy');
   mapGroup('networking.k8s.io', 'Networking');
-  mapGroup(/^api.*\.k8s\.io$/, 'API');
+  mapGroup(/^(.+\.)?api(server)?.*\.k8s\.io$/, 'API');
   mapGroup('rbac.authorization.k8s.io', 'RBAC');
   mapGroup('admissionregistration.k8s.io', 'Admission');
   mapGroup('crd.projectcalico.org', 'Calico');
@@ -107,7 +107,7 @@ export function init(store) {
   mapGroup(/^(.*\.)?tekton\.dev$/, 'Tekton');
   mapGroup(/^(.*\.)?longhorn(\.rancher)?\.io$/, 'Longhorn');
   mapGroup(/^(.*\.)?(fleet|gitjob)\.cattle\.io$/, 'Fleet');
-  mapGroup(/^(.*\.)?(helm|upgrade|k3s)\.cattle\.io$/, 'k3s');
+  mapGroup(/^(.*\.)?(helm|upgrade|k3s)\.cattle\.io$/, 'K3s');
   mapGroup(/^(.*\.)?cis\.cattle\.io$/, 'CIS');
   mapGroup(/^(catalog|project|management)\.cattle\.io$/, 'Rancher');
   mapGroup(/^(.*\.)?istio\.io$/, 'Istio');
@@ -116,9 +116,8 @@ export function init(store) {
   mapGroup('argoproj.io', 'Argo');
   mapGroup('logging.banzaicloud.io', 'Logging');
   mapGroup(/.*resources\.cattle\.io.*/, 'Backup-Restore');
-  mapGroup(/^(.*\.)?cluster\.x-k8s\.io$/, 'Cluster API');
-  mapGroup(/^provisioning\.cattle\.io$/, 'Rancher Provisioning');
-  mapGroup(/^rke(-node)?\.cattle\.io$/, 'RKE Provisioning');
+  mapGroup(/^(.*\.)?cluster\.x-k8s\.io$/, 'Cluster Provisioning');
+  mapGroup(/^(aks|eks|gke|rke|rke-node|provisioning)\.cattle\.io$/, 'Cluster Provisioning');
 
   configureType(NODE, { isCreatable: false, isEditable: false });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
