@@ -4,7 +4,6 @@ import Brand from '@/mixins/brand';
 export default {
   middleware: ['authenticated'],
   mixins:     [Brand],
-
 };
 </script>
 

@@ -10,6 +10,7 @@ import { filterBy, findBy } from '@/utils/array';
 import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@/store/type-map';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { TIMED_OUT, LOGGED_OUT } from '@/config/query-params';
+import { setVendor } from '@/config/private-label';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -17,7 +18,7 @@ export const strict = false;
 
 export const plugins = [
   Steve({ namespace: 'management', baseUrl: '/v1' }),
-  Steve({ namespace: 'cluster', baseUrl: '' }), // url set later
+  Steve({ namespace: 'cluster', baseUrl: '' }), // URL dynamically set for the selected cluster
   Steve({ namespace: 'rancher', baseUrl: '/v3' }),
 ];
 
@@ -329,12 +330,6 @@ export const getters = {
 
     return '/';
   },
-
-  featureFlag(state, getters, rootState, rootGetters) {
-    return (name) => {
-      return rootGetters['management/byId'](MANAGEMENT.FEATURE, name)?.enabled || false;
-    };
-  },
 };
 
 export const mutations = {
@@ -428,6 +423,9 @@ export const actions = {
         type: MANAGEMENT.CLUSTER,
         opt:  { url: MANAGEMENT.CLUSTER }
       }),
+
+      // Features checks on its own if they are available
+      features: dispatch('features/loadServer'),
     };
 
     const isRancher = res.rancherSchemas.status === 'fulfilled' && !!getters['management/schemaFor'](MANAGEMENT.PROJECT);
@@ -439,10 +437,6 @@ export const actions = {
 
     if ( getters['management/schemaFor'](COUNT) ) {
       promises['counts'] = dispatch('management/findAll', { type: COUNT });
-    }
-
-    if ( getters['management/schemaFor'](MANAGEMENT.FEATURE) ) {
-      promises['features'] = dispatch('management/findAll', { type: MANAGEMENT.FEATURE });
     }
 
     if ( getters['management/schemaFor'](MANAGEMENT.SETTING) ) {
@@ -463,6 +457,12 @@ export const actions = {
 
     if ( res.clusters.length === 1 && res.clusters[0].metadata?.name === 'local' ) {
       isMultiCluster = false;
+    }
+
+    const pl = res.settings?.find(x => x.name === 'ui-pl')?.value;
+
+    if ( pl ) {
+      setVendor(pl);
     }
 
     commit('managementChanged', {

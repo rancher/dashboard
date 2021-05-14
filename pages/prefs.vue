@@ -5,7 +5,7 @@ import BackRoute from '@/mixins/back-link';
 import ButtonGroup from '@/components/ButtonGroup';
 import Checkbox from '@/components/form/Checkbox';
 import {
-  mapPref, THEME, LANDING, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE
+  mapPref, THEME, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE
 } from '@/store/prefs';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { addObject } from '@/utils/array';
@@ -19,7 +19,6 @@ export default {
   computed:   {
     keymap:         mapPref(KEYMAP),
     dev:            mapPref(DEV),
-    landing:        mapPref(LANDING),
     dateFormat:     mapPref(DATE_FORMAT),
     timeFormat:     mapPref(TIME_FORMAT),
     perPage:        mapPref(ROWS_PER_PAGE),
@@ -39,15 +38,6 @@ export default {
       return this.$store.getters['prefs/options'](THEME).map((value) => {
         return {
           labelKey: `prefs.theme.${ value }`,
-          value
-        };
-      });
-    },
-
-    landingOptions() {
-      return this.$store.getters['prefs/options'](LANDING).map((value) => {
-        return {
-          labelKey: `prefs.landing.${ value }`,
           value
         };
       });
@@ -149,9 +139,6 @@ export default {
     <div class="mt-10">
       <t k="prefs.theme.autoDetail" :pm="pm" :am="am" />
     </div>
-    <hr />
-    <h4 v-t="'prefs.landing.label'" />
-    <ButtonGroup v-model="landing" :options="landingOptions" />
     <hr />
     <h4 v-t="'prefs.formatting'" />
     <div class="row">

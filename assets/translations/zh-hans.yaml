@@ -759,7 +759,7 @@ cluster:
       #zstack: ZStack
   providerGroup:
     create-template: 使用模板创建集群
-    create-kontainer: 在托管的 Kuberetes 提供商中创建集群
+    create-kontainer: 在托管的 Kubernetes 提供商中创建集群
     create-machine: 在新建的节点上使用 RKE 创建集群
     create-custom: 在现有的节点上使用 RKE 创建集群
     register-kontainer: 在托管的 Kubernetes 提供商中注册一个现有的集群
@@ -882,10 +882,6 @@ clusterIndexPage:
     nodes:
       label: 节点不健康
       noRows: 所有节点都处于健康状态
-
-clusterSwitcher:
-  noResults: 没有找到任何集群。
-  search: 请输入集群名称，搜索集群。
 
 configmap:
   tabs:

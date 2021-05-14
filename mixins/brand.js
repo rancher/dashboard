@@ -1,5 +1,6 @@
 import { MANAGEMENT } from '@/config/types';
 import { findBy } from '@/utils/array';
+import { getVendor } from '@/config/private-label';
 
 export default {
   async fetch() {
@@ -35,7 +36,7 @@ export default {
     } catch {
       return {
         bodyAttrs: { class: `theme-${ theme } ${ cssClass }` },
-        title:     this.$store.getters['i18n/t']('nav.title'),
+        title:     getVendor(),
       };
     }
 

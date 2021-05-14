@@ -17,6 +17,11 @@ export default {
       default: null
     },
 
+    outputAs: {
+      type:    String,
+      default: 'number', // or string
+    },
+
     inputExponent: {
       type:    Number,
       default: 0,
@@ -102,6 +107,10 @@ export default {
 
       if ( userValue ) {
         out = parseSi(`${ userValue } ${ this.unit || '' }`, { increment: this.increment });
+      }
+
+      if ( this.outputAs === 'string' ) {
+        out = `${ out }`;
       }
 
       this.$emit('input', out);

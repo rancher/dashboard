@@ -14,7 +14,7 @@ import { mapPref, PROVISIONER, _RKE1, _RKE2 } from '@/store/prefs';
 import { filterAndArrangeCharts } from '@/store/catalog';
 import { CATALOG } from '@/config/labels-annotations';
 import { MANAGEMENT } from '@/config/types';
-import { mapFeature, RKE2 as RKE2_FEATURE } from '@/config/feature-flags';
+import { mapFeature, RKE2 as RKE2_FEATURE } from '@/store/features';
 import { allHash } from '@/utils/promise';
 import Rke2Config from './rke2';
 import Import from './import';

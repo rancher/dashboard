@@ -1,4 +1,4 @@
-const HIDDEN = ['rke'];
+const HIDDEN = ['rke', 'rancherkubernetesengine'];
 const V2 = ['amazoneks', 'googlegke'];
 const IMPORTABLE = ['amazoneks', 'googlegke'];
 

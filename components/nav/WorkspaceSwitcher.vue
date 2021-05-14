@@ -51,7 +51,7 @@ export default {
       :clearable="false"
       :reduce="(opt) => opt.value"
     />
-    <button v-shortkey.once="['w']" class="hide" @shortkey="focus()" />
+    <!--button v-shortkey.once="['w']" class="hide" @shortkey="focus()" /-->
   </div>
 </template>
 

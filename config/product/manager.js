@@ -1,4 +1,4 @@
-import { MULTI_CLUSTER } from '@/config/feature-flags';
+import { MULTI_CLUSTER } from '@/store/features';
 import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
 import { CAPI } from '@/config/types';
 import { DSL } from '@/store/type-map';
@@ -27,27 +27,24 @@ export function init(store) {
   configureType(CAPI.RANCHER_CLUSTER, { showListMasthead: false, namespaced: false });
   weightType(CAPI.RANCHER_CLUSTER, 100, true);
 
-  // TODO: RKE
-  virtualType({
-    label:      'RKE Templates',
-    name:       'rke-templates',
-    group:      'Root',
-    namespaced: false,
-    weight:     111,
-    icon:       'globe',
-    route:      { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'rke-templates' } },
-    exact:      true
-  });
-
   virtualType({
     label:      'Drivers',
     name:       'drivers',
     group:      'Root',
     namespaced: false,
-    weight:     112,
     icon:       'globe',
-    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'rke-drivers' } },
-    exact:          true
+    route:      { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'rke-drivers' } },
+    exact:      true
+  });
+
+  virtualType({
+    label:      'RKE Templates',
+    name:       'rke-templates',
+    group:      'Root',
+    namespaced: false,
+    icon:       'globe',
+    route:      { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'rke-templates' } },
+    exact:      true
   });
 
   virtualType({
@@ -55,7 +52,6 @@ export function init(store) {
     name:       'rke-cloud-credentials',
     group:      'Root',
     namespaced: false,
-    weight:     112,
     icon:       'globe',
     route:      { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'cloud-credentials' } },
     exact:      true
@@ -66,7 +62,6 @@ export function init(store) {
     name:       'rke-node-templates',
     group:      'Root',
     namespaced: false,
-    weight:     112,
     icon:       'globe',
     route:      { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'node-templates' } },
     exact:      true
@@ -95,6 +90,7 @@ export function init(store) {
   basicType([
     CAPI.RANCHER_CLUSTER,
     'secret',
+    'drivers',
   ]);
 
   basicType([

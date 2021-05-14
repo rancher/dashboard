@@ -18,8 +18,8 @@ import { LONGHORN_PLUGIN, VOLUME_PLUGINS } from '@/models/persistentvolume';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import { clone } from '@/utils/object';
 import { parseSi } from '@/utils/units';
-import { UNSUPPORTED_STORAGE_DRIVERS } from '@/config/feature-flags';
 import InfoBox from '@/components/InfoBox';
+import { mapFeature, UNSUPPORTED_STORAGE_DRIVERS } from '@/store/features';
 
 export default {
   name: 'PersistentVolume',
@@ -47,8 +47,6 @@ export default {
 
     await this.$store.dispatch('cluster/findAll', { type: PVC });
 
-    this.showUnsupportedStorage = this.$store.getters['featureFlag'](UNSUPPORTED_STORAGE_DRIVERS);
-
     this.storageClassOptions = storageClasses.map(s => ({
       label: s.name,
       value: s.name
@@ -73,11 +71,17 @@ export default {
     const plugin = (foundPlugin || VOLUME_PLUGINS[0]).value;
 
     return {
-      storageClassOptions: [], plugin, NONE_OPTION, NODE, initialNodeAffinity: clone(this.value.spec.nodeAffinity), showUnsupportedStorage: false
+      storageClassOptions: [],
+      plugin,
+      NONE_OPTION,
+      NODE,
+      initialNodeAffinity: clone(this.value.spec.nodeAffinity),
     };
   },
 
   computed: {
+    showUnsupportedStorage: mapFeature(UNSUPPORTED_STORAGE_DRIVERS),
+
     readWriteOnce: {
       get() {
         return this.value.spec.accessModes.includes('ReadWriteOnce');
