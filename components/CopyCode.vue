@@ -9,7 +9,7 @@ export default {
       $event.stopPropagation();
       $event.preventDefault();
 
-      this.$copyText(this.$slots.default[0].text).then(() => {
+      this.$copyText(this.$slots.default[0].text.trim()).then(() => {
         this.copied = true;
 
         setTimeout(() => {
