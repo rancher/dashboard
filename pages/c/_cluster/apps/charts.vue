@@ -378,8 +378,8 @@ export default {
 
 <style lang="scss" scoped>
 
-.option-label-container {
-  padding-left: 10px;
+.option-label {
+  margin-left: 10px;
 }
 
 .option-label-container ::v-deep .vs__search {
