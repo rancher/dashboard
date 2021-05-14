@@ -907,25 +907,25 @@ cluster:
             other {}
           }
   provider:
-    amazoneks: Amazon EKS
-    azureaks: Azure AKS
-    aliyunkubernetescontainerservice: Alibaba ACK
-    baiducloudcontainerengine: Baidu CCE
-    googlegke: Google GKE
-    huaweicce: Huawei CCE
-    oracleoke: Oracle OKE
-    otc: Open Telekom Cloud
-    tencenttke: Tencent TKE
     aliyunecs: Aliyun ECS
+    aliyunkubernetescontainerservice: Alibaba ACK
     amazonec2: Amazon EC2
+    amazoneks: Amazon EKS
     aws: Amazon AWS
     azure: Azure
+    azureaks: Azure AKS
+    aks: Azure AKS
+    baiducloudcontainerengine: Baidu CCE
     cloudca: Cloud.ca
     custom: Custom
     digitalocean: DigitalOcean
     docker: Docker
+    eks: Amazon EKS
     exoscale: Exoscale
     google: Google GCE
+    googlegke: Google GKE
+    gke: Google GKE
+    huaweicce: Huawei CCE
     import: Import
     imported: Imported
     k3s: K3s
@@ -936,6 +936,8 @@ cluster:
     oci: Oracle Cloud Infrastructure
     openstack: OpenStack
     opentelekomcloudcontainerengine: Open Telekom Cloud CCE
+    oracleoke: Oracle OKE
+    otc: Open Telekom Cloud
     other: Other
     packet: Packet
     pinganyunecs: Pinganyun ECS
@@ -945,6 +947,7 @@ cluster:
     rke: RKE
     rkeWindows: Windows
     softlayer: SoftLayer
+    tencenttke: Tencent TKE
     upcloud: UpCloud
     vmwarevsphere: vSphere
     zstack: ZStack
