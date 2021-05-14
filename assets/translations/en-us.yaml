@@ -3522,7 +3522,7 @@ workload:
       name: Name
       protocol: Protocol
       listeningPort: Listening Port
-      removeContainer: Remove Container
+    removeContainer: Remove Container
     security:
       addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs
@@ -3562,6 +3562,7 @@ workload:
       containers: Containers
       env: Environment Variables
       events: Events
+      general: General
       healthCheck: Health Check
       image: Image
       networking: Networking
