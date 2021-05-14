@@ -8,7 +8,7 @@ export default {
     // How to size and position the loading indicator - supports three modes:
     // 'content' - the content area only (not side nav or header)
     // 'main' - entire main view excluding the header, but including the side nav
-    // 'full' - entire view including the header and the side nav
+    // 'relative' - content up to the nearest relatively positioned element
     mode: {
       type:    String,
       default: 'content',

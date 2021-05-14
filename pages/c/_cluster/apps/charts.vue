@@ -240,11 +240,13 @@ export default {
       }
 
       if ( !version ) {
+        console.warn(`Cannot select chart '${ chart.chartName }' (no compatible version available for '${ this.currentCluster.providerOs }')`); // eslint-disable-line no-console
+
         return;
       }
 
       this.$router.push({
-        name:   'c-cluster-apps-install',
+        name:   'c-cluster-apps-chart',
         params: {
           cluster:  this.$route.params.cluster,
           product:  this.$store.getters['productId'],

@@ -477,6 +477,10 @@ asyncButton:
     action: Remove
     success: Removed
     waiting: Removing&hellip;
+  update:
+    action: Update
+    success: Updated
+    waiting: Updating&hellip;
   upgrade:
     action: Upgrade
     success: Upgrading
@@ -566,6 +570,22 @@ catalog:
       readme: Chart README
       resources: Resources
       values: Values YAML
+  chart:
+    header:
+      charts: Charts
+    info:
+      appVersion: Application Version
+      chartVersions:
+        label: Chart Versions
+        showMore: Show More
+        showLess: Show Less
+      home: Home
+      maintainers: Maintainers
+      related: Related
+      chartUrls: Chart
+      keywords: Keywords
+    errors:
+      clusterToolExists: This chart has a fixed namespace and name. A matching <a href="{url}">application</a> has been found and any changes will be made to it. 
   charts:
     all: All
     categories:
@@ -581,11 +601,11 @@ catalog:
   install:
     action:
       goToUpgrade: Edit/Upgrade
-      ignoreWarning: Continue Anyways
-    appReadmeGeneric: "This chart doesn't have a {vendor}-specific README.  Review the Helm README to learn more about the available configuration options and their usage."
+    appReadmeMissing: This chart doesn't have any additional chart information.
+    appReadmeTitle: Chart Information (Helm README)
     chart: Chart
     error:
-      requiresFound: '<a href="{url}">${name}</a> must be installed before you can install this chart.'
+      requiresFound: '<a href="{url}">{name}</a> must be installed before you can install this chart.'
       requiresMissing: 'This chart requires another chart that provides {name}, but none was was found.'
       insufficientCpu: 'This chart requires {need, number} CPU cores, but the cluster only has {have, number} available.'
       insufficientMemory: 'This chart requires {need} of memory, but the cluster only has {have} available.'
@@ -620,14 +640,36 @@ catalog:
     namespaceIsInProject: "This chart's target namespace, <code>{namespace}</code>, already exists and cannot be added to a different project."
     project: Install into Project
     section:
-      appReadme: README
-      chartOptions: Chart Options
-      helm: Helm Deploy Options
-      readme: Helm README
-      valuesYaml: Values YAML
+      chartOptions: Edit Options
+      valuesYaml: Edit YAML
+      diff: Compare Changes
+    steps:
+      basics:
+        label: Metadata
+        subtext: Set App metadata
+        description: This process will help {action, select,
+            install { create }
+            upgrade { upgrade }
+            update { update }
+          } the {existing, select,
+            true { app }
+            false { chart }
+          }. Start by setting some basic information used by {vendor} to manage the App.
+      helmValues:
+        label: Values
+        subtext: Change how the App works
+        description: Configure Values used by Helm to define the App.
+        chartInfo:
+          button: View Chart Info
+          label: Chart Info
+      helmCli:
+        checkbox: Supply additional settings used by {vendor} to {action} the App.
+        label: Command
+        subtext: Change how the Values are applied
+        description: Configure Options used by {vendor} to {action} the App.
     version: Version
     versions:
-      current: '{ver} (current)'
+      current: '{ver} (Current)'
       linux: '{ver} (Linux-only)'
       windows: '{ver} (Windows-only)'
   operation:
@@ -2563,7 +2605,10 @@ resourceYaml:
     namespaceRequired: This resource is namespaced, so a namespace must be provided.
   buttons:
     continue: Continue Editing
+    edit: Edit YAML
     diff: Show Diff
+    unified: Unified
+    split: Split
 
 rioConfig:
   configure:
@@ -3363,10 +3408,10 @@ validation:
       interval: '"{key}" must be of a format with digits followed by a unit i.e. 1h, 2m, 30s'
 
 wizard:
-  back: Back
+  previous: Previous
   finish: Finish
   next: Next
-  step: "Step {number}:"
+  step: "Step {number}"
 
 wm:
   connection:

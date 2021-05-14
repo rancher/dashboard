@@ -2,10 +2,11 @@
 import { mapGetters } from 'vuex';
 
 import AsyncButton from '@/components/AsyncButton';
+import ResourceCancelModal from '@/components/ResourceCancelModal';
 import { _VIEW } from '@/config/query-params';
 
 export default {
-  components: { AsyncButton },
+  components: { AsyncButton, ResourceCancelModal },
   props:      {
     mode: {
       type:    String,
@@ -58,13 +59,10 @@ export default {
       } else {
         this.isCancelModal = false;
       }
-
-      this.$modal.show('cancel-modal');
+      this.$refs.cancelModal.show();
     },
 
     confirmCancel(isCancel) {
-      this.$modal.hide('cancel-modal');
-
       this.$emit('cancel-confirmed', isCancel);
     },
   },
@@ -91,36 +89,7 @@ export default {
         @click="$emit('finish', $event)"
       />
     </slot>
-
-    <modal class="confirm-modal" name="cancel-modal" :width="440" height="auto">
-      <div class="header">
-        <h4 class="text-default-text">
-          <t v-if="isCancelModal" k="generic.cancel" />
-          <span v-else>{{ t("cruResource.backToForm") }}</span>
-        </h4>
-      </div>
-      <div class="body">
-        <p v-if="isCancelModal">
-          <t k="cruResource.cancelBody" />
-        </p>
-        <p v-else>
-          <t k="cruResource.backBody" />
-        </p>
-      </div>
-      <div class="footer">
-        <button
-          type="button"
-          class="btn role-secondary"
-          @click="$modal.hide('cancel-modal')"
-        >
-          {{ isForm ? t("cruResource.reviewForm") : t("cruResource.reviewYaml") }}
-        </button>
-        <button type="button" class="btn role-primary" @click="confirmCancel(isCancelModal)">
-          <span v-if="isCancelModal">{{ t("cruResource.confirmCancel") }}</span>
-          <span v-else>{{ t("cruResource.confirmBack") }}</span>
-        </button>
-      </div>
-    </modal>
+    <ResourceCancelModal ref="cancelModal" :is-cancel-modal="isCancelModal" :is-form="isForm" @confirm-cancel="confirmCancel($event)"></ResourceCancelModal>
   </div>
 </template>
 
@@ -134,39 +103,5 @@ export default {
     margin-left: 20px;
   }
 }
-.confirm-modal {
-  .btn {
-    margin: 0 10px;
-  }
 
-  .v--modal-box {
-    background-color: var(--default);
-    box-shadow: none;
-    min-height: 200px;
-    .body {
-      min-height: 75px;
-      padding: 10px 0 0 15px;
-      p {
-        margin-top: 10px;
-      }
-    }
-    .header {
-      background-color: var(--error);
-      padding: 15px 0 0 15px;
-
-      h4 {
-        color: white;
-      }
-    }
-    .header,
-    .footer {
-      height: 50px;
-    }
-    .footer {
-      border-top: 1px solid var(--border);
-      text-align: center;
-      padding: 10px 0 0 15px;
-    }
-  }
-}
 </style>

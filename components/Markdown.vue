@@ -64,6 +64,7 @@ export default {
     this.markedRenderer = renderer;
     this.dompurify = dompurify;
     this.loaded = true;
+    this.$emit('loaded', true);
   }
 };
 </script>

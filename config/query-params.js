@@ -63,7 +63,6 @@ export const DESCRIPTION = 'description';
 export const CATEGORY = 'category';
 export const DEPRECATED = 'deprecated';
 export const HIDDEN = 'hidden';
-export const FORCE = 'force';
 export const FROM_TOOLS = 'tools';
 
 // Cluster provisioning

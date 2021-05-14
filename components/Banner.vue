@@ -48,6 +48,9 @@ export default {
     }
 
     .closer {
+      display: flex;
+      align-items: center;
+
       cursor: pointer;
       position: absolute;
       top: 0;

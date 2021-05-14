@@ -67,6 +67,11 @@ button,
     background-color: var(--primary-hover-bg);
     color: var(--primary-text);
   }
+
+  &:focus {
+    background-color: var(--primary-hover-bg);
+    color: var(--primary-text);
+  }
 }
 
 .role-secondary {
@@ -141,5 +146,10 @@ fieldset[disabled] .btn {
       border-top-right-radius: var(--border-radius);
       border-bottom-right-radius: var(--border-radius);
     }
+  }
+
+  .btn[disabled] {
+    // Ensure disabled button's border remains as-is, otherwise button appears vertically shorter than others in group
+    border: inherit;
   }
 }

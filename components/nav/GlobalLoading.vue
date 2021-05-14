@@ -18,5 +18,5 @@ export default {
 
 </script>
 <template>
-  <Loading v-if="loading" mode="full" />
+  <Loading v-if="loading" mode="relative" />
 </template>

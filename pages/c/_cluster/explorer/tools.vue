@@ -76,8 +76,8 @@ export default {
   },
 
   methods: {
-    edit(app) {
-      app.goToUpgrade(null, true);
+    edit(app, version) {
+      app.goToUpgrade(version, true);
     },
 
     remove(app) {
@@ -246,7 +246,7 @@ export default {
             <button class="btn btn-sm role-secondary" @click="remove(opt.app)">
               <i class="icon icon-delete icon-lg" />
             </button>
-            <button class="btn btn-sm role-secondary" @click="edit(opt.app)" v-html="t('catalog.tools.action.upgrade')" />
+            <button class="btn btn-sm role-secondary" @click="edit(opt.app, opt.app.upgradeAvailable)" v-html="t('catalog.tools.action.upgrade')" />
           </template>
           <template v-else-if="opt.app">
             <button class="btn btn-sm role-secondary" @click="remove(opt.app)">
