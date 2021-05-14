@@ -40,6 +40,7 @@ export default {
     ArrayList,
     Checkbox,
     SelectCredential,
+    LabeledInput,
     LabeledSelect,
     NodePool,
     BadgeState,
@@ -47,7 +48,6 @@ export default {
     DrainOptions,
     AgentEnv,
     Labels,
-    LabeledInput
   },
 
   mixins: [CreateEditView],
@@ -592,8 +592,7 @@ export default {
       :provider="provider"
       :cancel="cancelCredential"
     />
-    </div>
-    </div>
+
     <div v-if="credentialId || !needCredential" class="mt-20">
       <NameNsDescription
         v-if="!isView"
@@ -745,7 +744,74 @@ export default {
         <div class="spacer" />
       </Tab>
 
-      <Tab v-if="haveArgInfo" name="networking" label-key="cluster.tabs.networking" :weight="9">
+      <Tab v-if="serverArgs['etcd-disbale-snapshots']" name="etcd" label-key="cluster.tabs.etcd" :weight="9">
+        <Checkbox v-model="serverConfig['etcd-expose-metrics']" :mode="mode" label="Expose metrics to the public interface" />
+
+        <RadioGroup
+          v-model="serverConfig['etcd-disable-snapshots']"
+          name="etcd-disable-snapshots"
+          :options="[true, false]"
+          label="Automatic Snapshots"
+          :labels="['Disable','Enable']"
+          :mode="mode"
+        />
+
+        <template v-if="serverConfig['etcd-disable-snapshots'] !== true">
+          <div class="row">
+            <div class="col span-6">
+              <LabeledInput v-if="serverArgs['etcd-snapshot-schedule']" v-model="serverConfig['etcd-snapshot-schedule']" :mode="mode" label="Cron Schedule" />
+            </div>
+            <div class="col span-6">
+              <UnitInput
+                v-if="serverArgs['etcd-snapshot-retention']"
+                v-model="serverConfig['etcd-snapshot-retention']"
+                output-as="string"
+                :mode="mode"
+                label="Keep the last"
+                suffix="Snapshots"
+              />
+            </div>
+          </div>
+
+          <div class="spacer" />
+
+          <div class="row">
+            <div class="col span-6">
+              <LabeledInput v-if="serverArgs['etcd-snapshot-dir']" v-model="serverConfig['etcd-snapshot-dir']" :mode="mode" label="Storage Directory" />
+            </div>
+            <div class="col span-6">
+              <LabeledInput v-if="serverArgs['etcd-snapshot-name']" v-model="serverConfig['etcd-snapshot-name']" :mode="mode" label="Filename Prefix" />
+            </div>
+          </div>
+
+          <div class="spacer" />
+
+          <RadioGroup
+            v-model="serverConfig['etcd-s3']"
+            name="etcd-s3"
+            :options="[false, true]"
+            label="Backup Snapshots to S3"
+            :labels="['Disable','Enable']"
+            :mode="mode"
+          />
+        </template>
+
+        <template v-if="serverArgs['etcd-s3'] && serverConfig['etcd-s3'] !== false">
+          <pre><code>
+            --etcd-s3                              (db) Enable backup to S3
+            --etcd-s3-endpoint value               (db) S3 endpoint url (default: "s3.amazonaws.com")
+            --etcd-s3-endpoint-ca value            (db) S3 custom CA cert to connect to S3 endpoint
+            --etcd-s3-skip-ssl-verify              (db) Disables S3 SSL certificate validation
+            --etcd-s3-access-key value             (db) S3 access key [$AWS_ACCESS_KEY_ID]
+            --etcd-s3-secret-key value             (db) S3 secret key [$AWS_SECRET_ACCESS_KEY]
+            --etcd-s3-bucket value                 (db) S3 bucket name
+            --etcd-s3-region value                 (db) S3 region / bucket location (optional) (default: "us-east-1")
+            --etcd-s3-folder value                 (db) S3 folder
+          </code></pre>
+        </template>
+      </Tab>
+
+      <Tab v-if="haveArgInfo" name="networking" label-key="cluster.tabs.networking" :weight="8">
         <div v-if="serverArgs['service-node-port-range']" class="row mb-20">
           <div class="col span-6">
             <LabeledInput v-model="serverConfig['service-node-port-range']" :mode="mode" label="NodePort Service Port Range" />
@@ -777,7 +843,7 @@ export default {
         </div>
       </Tab>
 
-      <Tab name="upgrade" label-key="cluster.tabs.upgrade" :weight="8">
+      <Tab name="upgrade" label-key="cluster.tabs.upgrade" :weight="7">
         <div class="row">
           <div class="col span-6">
             <h3>Control Plane</h3>

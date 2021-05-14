@@ -972,6 +972,7 @@ cluster:
     agentEnv: Agent Environment Vars
     basic: Basics
     cluster: Cluster Configuration
+    etcd: etcd
     networking: Networking
     nodePools: Node Pools
     upgrade: Upgrade Strategy

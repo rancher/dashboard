@@ -5,7 +5,7 @@ import SortableTable from '@/components/SortableTable';
 import CopyCode from '@/components/CopyCode';
 import Tab from '@/components/Tabbed/Tab';
 import { allHash } from '@/utils/promise';
-import { CAPI } from '@/config/types';
+import { CAPI, MANAGEMENT } from '@/config/types';
 import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
 import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
 
@@ -29,17 +29,24 @@ export default {
   },
 
   async fetch() {
-    const hash = await allHash({
+    const hash = {
       machineDeployments: this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT }),
       machines:           this.$store.dispatch('management/findAll', { type: CAPI.MACHINE })
-    });
+    };
 
     if ( this.value.isImported || this.value.isCustom ) {
-      hash.clusterToken = await this.value.getOrCreateToken();
+      hash.clusterToken = this.value.getOrCreateToken();
+    } else if ( !this.value.isRke2 ) {
+      // These are needed to resolve references in the mgmt cluster -> node pool -> node template to figure out what provider the cluster is using
+      // so that the edit iframe for ember pages can go to the right place.
+      hash.nodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
     }
 
-    this.allMachines = hash.machines;
-    this.clusterToken = hash.clusterToken;
+    const res = await allHash(hash);
+
+    this.allMachines = res.machines;
+    this.clusterToken = res.clusterToken;
   },
 
   data() {
@@ -75,6 +82,14 @@ export default {
         AGE,
       ];
     },
+
+    showRke1Pools() {
+      return this.value.mgmt?.nodePools?.length > 0;
+    },
+
+    showSnapshots() {
+      return true;
+    }
   },
 
   mounted() {
@@ -86,8 +101,9 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <ResourceTabs v-else v-model="value" :default-tab="defaultTab">
-    <Tab name="node-pools" label-key="cluster.tabs.nodePools">
+    <Tab v-if="value.isRke2 || showRke1Pools" name="node-pools" label-key="cluster.tabs.nodePools" :weight="3">
       <SortableTable
+        v-if="value.isRke2"
         :rows="machines"
         :headers="machineHeaders"
         :table-actions="false"
@@ -104,8 +120,12 @@ export default {
           </div>
         </template>
       </SortableTable>
+      <div v-else>
+        RKE 1 node pools...
+      </div>
     </Tab>
-    <Tab v-if="clusterToken" name="registration" label="Registration">
+
+    <Tab v-if="clusterToken" name="registration" label="Registration" :weight="2">
       <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" />
       <template v-else>
         <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
@@ -123,6 +143,10 @@ export default {
           {{ t('cluster.import.clusterRoleBindingCommand', null, true) }}
         </CopyCode>
       </template>
+    </Tab>
+
+    <Tab v-if="showSnapshots" name="snapshots" label="etcd Snapshots" :weight="1">
+      etcd snapshots...
     </Tab>
   </ResourceTabs>
 </template>
