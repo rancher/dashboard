@@ -1,19 +1,17 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
-import Poller from '@/utils/poller';
 import {
   STATE, NAME, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM
 } from '@/config/table-headers';
+import metricPoller from '@/mixins/metric-poller';
 
 import { CAPI, METRIC, NODE } from '@/config/types';
-
-const METRICS_POLL_RATE_MS = 30000;
-const MAX_FAILURES = 2;
 
 export default {
   name:       'ListNode',
   components: { Loading, ResourceTable },
+  mixins:     [metricPoller],
 
   props: {
     schema: {
@@ -34,16 +32,7 @@ export default {
     return {
       rows:         null,
       headers:      [STATE, NAME, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM],
-      metricPoller: new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES),
     };
-  },
-
-  mounted() {
-    this.metricPoller.start();
-  },
-
-  beforeDestroy() {
-    this.metricPoller.stop();
   },
 
   methods: {
