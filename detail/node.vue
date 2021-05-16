@@ -11,7 +11,6 @@ import {
   VALUE
 } from '@/config/table-headers';
 import ResourceTabs from '@/components/form/ResourceTabs';
-import Poller from '@/utils/poller';
 import { METRIC, POD } from '@/config/types';
 import createEditView from '@/mixins/create-edit-view';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
@@ -19,11 +18,10 @@ import DashboardMetrics from '@/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@/utils/grafana';
 import Loading from '@/components/Loading';
+import metricPoller from '@/mixins/metric-poller';
 
 const NODE_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-node-detail-1/rancher-node-detail?orgId=1';
 const NODE_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-node-1/rancher-node?orgId=1';
-const METRICS_POLL_RATE_MS = 30000;
-const MAX_FAILURES = 2;
 
 export default {
   name: 'DetailNode',
@@ -38,7 +36,7 @@ export default {
     SortableTable,
   },
 
-  mixins: [createEditView],
+  mixins: [createEditView, metricPoller],
 
   props: {
     value: {
@@ -57,7 +55,6 @@ export default {
     const podSchema = this.$store.getters['cluster/schemaFor'](POD);
 
     return {
-      metricPoller:     new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES),
       metrics:          { cpu: 0, memory: 0 },
       infoTableHeaders: [
         {
@@ -136,14 +133,6 @@ export default {
     graphVars() {
       return { instance: `${ this.value.internalIp }:9796` };
     }
-  },
-
-  mounted() {
-    this.metricPoller.start();
-  },
-
-  beforeDestroy() {
-    this.metricPoller.stop();
   },
 
   methods: {

@@ -5,7 +5,6 @@ import { mapGetters } from 'vuex';
 import isEmpty from 'lodash/isEmpty';
 import SortableTable from '@/components/SortableTable';
 import { allHash } from '@/utils/promise';
-import Poller from '@/utils/poller';
 import AlertTable from '@/components/AlertTable';
 import {
   parseSi, formatSi, exponentNeeded, UNITS, createMemoryFormat, MEMORY_PARSE_RULES
@@ -34,11 +33,9 @@ import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import { allDashboardsExist } from '@/utils/grafana';
 import EtcdInfoBanner from '@/components/EtcdInfoBanner';
+import metricPoller from '@/mixins/metric-poller';
 import ResourceSummary, { resourceCounts } from './ResourceSummary';
 import HardwareResourceGauge from './HardwareResourceGauge';
-
-const METRICS_POLL_RATE_MS = 30000;
-const MAX_FAILURES = 2;
 
 const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -61,6 +58,8 @@ export default {
     Tabbed,
     AlertTable
   },
+
+  mixins: [metricPoller],
 
   async fetch() {
     const hash = {
@@ -126,7 +125,6 @@ export default {
     ];
 
     return {
-      metricPoller:        null,
       eventHeaders,
       nodeHeaders,
       constraints:         [],
@@ -265,11 +263,6 @@ export default {
     }
   },
 
-  mounted() {
-    this.metricPoller = new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES);
-    this.metricPoller.start();
-  },
-
   methods: {
     createMemoryValues(total, useful) {
       const parsedTotal = parseSi((total || '0').toString());
@@ -322,10 +315,6 @@ export default {
     findBy,
   },
 
-  beforeRouteLeave(to, from, next) {
-    this.metricPoller.stop();
-    next();
-  }
 };
 </script>
 
