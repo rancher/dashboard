@@ -143,6 +143,7 @@ export default {
     <hr />
     <h4 v-t="'prefs.landing.label'" />
     <LandingPagePreference />
+    <hr />
     <h4 v-t="'prefs.formatting'" />
     <div class="row">
       <div class="col span-4">

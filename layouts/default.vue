@@ -170,25 +170,25 @@ export default {
       }
     },
 
-    currentProduct(a, b) {
+    async currentProduct(a, b) {
       if ( !isEqual(a, b) ) {
         if (a.inStore !== b.inStore || a.inStore !== 'cluster' ) {
-          this.$store.dispatch('prefs/setLastVisited', this.$route);
+          await this.$store.dispatch('prefs/setLastVisited', this.$route);
         }
       }
     }
   },
 
-  created() {
+  async created() {
     this.queueUpdate = debounce(this.getGroups, 500);
 
     this.getGroups();
 
-    this.$store.dispatch('prefs/setLastVisited', this.$route);
+    await this.$store.dispatch('prefs/setLastVisited', this.$route);
   },
 
   methods: {
-    setClusterAsLastRoute() {
+    async setClusterAsLastRoute() {
       const route = {
         name:   this.$route.name,
         params: {
@@ -197,7 +197,7 @@ export default {
         }
       };
 
-      this.$store.dispatch('prefs/setLastVisited', route);
+      await this.$store.dispatch('prefs/setLastVisited', route);
     },
     handlePageAction(action) {
       if (action.action === SET_LOGIN_ACTION) {
