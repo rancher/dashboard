@@ -25,7 +25,7 @@ export default {
     await store.dispatch('management/findAll', { type: FLEET.CLUSTER });
     await store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP });
 
-    const inStore = store.getters['currentProduct'].inStore;
+    const inStore = store.getters['currentStore'](this.resource);
 
     this.rows = await store.dispatch(`${ inStore }/findAll`, { type: this.resource });
   },

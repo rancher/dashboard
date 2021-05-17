@@ -48,11 +48,12 @@ export const LOGGING_OUTPUT_PROVIDERS = {
 };
 
 export const SIMPLE_NAME = {
-  name:     'name',
-  labelKey: 'tableHeaders.simpleName',
-  value:    'name',
-  sort:     ['name'],
-  width:    200
+  name:          'name',
+  labelKey:      'tableHeaders.simpleName',
+  value:         'name',
+  sort:          ['name'],
+  width:         200,
+  canBeVariable: true,
 };
 
 export const EFFECT = {

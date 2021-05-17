@@ -127,7 +127,7 @@ export default {
 
         return Object.keys(map).filter(key => map[key]);
       } else {
-        const inStore = this.$store.getters['currentProduct'].inStore;
+        const inStore = this.$store.getters['currentStore'](NAMESPACE);
 
         return this.$store.getters[`${ inStore }/all`](NAMESPACE);
       }

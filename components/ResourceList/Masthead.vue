@@ -39,6 +39,10 @@ export default {
       type:    Object,
       default: null,
     },
+    createButtonLabel: {
+      type:    String,
+      default: null
+    }
   },
 
   data() {
@@ -112,6 +116,10 @@ export default {
 
     _yamlCreateLocation() {
       return this.yamlCreateLocation || this.yamlRoute;
+    },
+
+    _createButtonlabel() {
+      return this.createButtonLabel || this.t('resourceList.head.create');
     }
 
   },
@@ -137,7 +145,7 @@ export default {
             :to="_createLocation"
             class="btn role-primary"
           >
-            {{ t("resourceList.head.create") }}
+            {{ _createButtonlabel }}
           </n-link>
           <n-link
             v-else-if="_isYamlCreatable"

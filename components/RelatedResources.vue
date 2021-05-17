@@ -66,7 +66,7 @@ export default {
       }
 
       const cluster = this.$store.getters['clusterId'];
-      const inStore = this.$store.getters['currentProduct'].inStore;
+      const inStore = this.$store.getters['currentStore']();
       const out = [];
 
       for ( const r of this.filteredRelationships) {
@@ -138,7 +138,7 @@ export default {
 
   methods: {
     async getRealResources(rows) {
-      const inStore = this.$store.getters['currentProduct'].inStore;
+      const inStore = this.$store.getters['currentStore']();
 
       const res = await Promise.allSettled(rows.map((row) => {
         return this.$store.dispatch(`${ inStore }/find`, { type: row.type, id: row.id });

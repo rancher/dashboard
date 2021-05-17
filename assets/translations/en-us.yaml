@@ -137,8 +137,11 @@ product:
 
 suffix:
   percent: "%"
+  milliCpus: mili CPUs
   cpus: CPUs
   ib: iB
+  mib: MiB
+  gb: GB
   revisions: |-
     {count, plural,
       =1 { Revision }
@@ -1857,6 +1860,11 @@ monitoringRoute:
   wait:
     label: Group Wait
 
+moveModal:
+  title: Move to a new project?
+  description: 'You are moving the following namespaces:'
+  moveButtonLabel: Move
+
 nameNsDescription:
   name:
     label: Name
@@ -1878,6 +1886,7 @@ namespace:
   resources: Resources
   enableAutoInjection: Enable Istio Auto Injection
   disableAutoInjection: Disable Istio Auto Injection
+  move: Move
 
 namespaceFilter:
   selected:
@@ -2320,6 +2329,16 @@ probe:
   type:
     label: Type
     placeholder: Select a check type
+
+project:
+  containerDefaultResourceLimit: Container Default Resource Limit
+  resourceQuotas: Resource Quotas
+
+projectNamespaces:
+  createNamespace: Create Namespace
+  createProject: Create Project
+  label: Projects/Namespaces
+  noNamespaces: There are no namespaces defined.
 
 prometheusRule:
   alertingRules:
@@ -4227,6 +4246,34 @@ branding:
     default: Default Rancher Theme
     suse: SUSE Theme
     custom: Define a Custom Theme
+resourceQuota:
+  configMaps: Config Maps
+  limitsCpu: CPU Limit
+  limitsMemory: Memory Limit
+  persistentVolumeClaims: Persistent Volume Claims
+  pods: Pods
+  replicationControllers: Replication Controllers
+  requestsCpu: CPU Reservation
+  requestsMemory: Memory Reservation
+  requestsStorage: Storage Reservation
+  secrets: Secrets
+  services: Services
+  servicesLoadBalancers: Services Load Balancers
+  servicesNodePorts: Service Node Ports
+  projectLimit:
+    label: Project Limit
+    cpuPlaceholder: e.g. 2000
+    memoryPlaceholder: e.g. 2048
+    storagePlaceholder: e.g. 50
+    unitlessPlaceholder: e.g. 50
+  namespaceDefaultLimit:
+    label: Namespace Default Limit
+    cpuPlaceholder: e.g. 500
+    memoryPlaceholder: e.g. 1024
+    storagePlaceholder: e.g. 10
+    unitlessPlaceholder: e.g. 10
+  resourceType:
+    label: Resource Type
 
 
 ##############################

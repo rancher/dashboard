@@ -68,3 +68,6 @@ export const FROM_TOOLS = 'tools';
 // Cluster provisioning
 export const PROVIDER = 'provider';
 export const CLOUD_CREDENTIAL = 'cloud';
+
+// NAMESPACE
+export const PROJECT_ID = 'projectId';

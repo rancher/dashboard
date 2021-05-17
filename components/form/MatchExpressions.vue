@@ -107,7 +107,7 @@ export default {
   computed: {
     // include an empty option for default option 'this pod's namespace
     allNamespaces() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
+      const inStore = this.$store.getters['currentStore'](NAMESPACE);
       const choices = this.$store.getters[`${ inStore }/all`](NAMESPACE);
 
       const out = sortBy(choices.map((obj) => {

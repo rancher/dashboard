@@ -44,7 +44,7 @@ export default {
   },
 
   async fetch() {
-    const inStore = this.$store.getters['currentProduct'].inStore;
+    const inStore = this.$store.getters['currentStore'](EVENT);
 
     if ( this.$store.getters[`${ inStore }/schemaFor`](EVENT) ) {
       this.hasEvents = true; // @TODO be smarter about which ones actually ever have events
@@ -61,7 +61,7 @@ export default {
 
   computed: {
     showConditions() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
+      const inStore = this.$store.getters['currentStore'](this.value.type);
 
       return this.isView && this.value?.type && this.$store.getters[`${ inStore }/pathExistsInSchema`](this.value.type, 'status.conditions');
     },

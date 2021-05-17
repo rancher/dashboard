@@ -67,7 +67,7 @@ export default {
 
       divider();
 
-      const inStore = this.$store.getters['currentProduct'].inStore;
+      const inStore = this.$store.getters['currentStore'](NAMESPACE);
       const namespaces = sortBy(
         this.$store.getters[`${ inStore }/all`](NAMESPACE),
         ['nameDisplay']

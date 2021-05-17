@@ -89,6 +89,22 @@ export const getters = {
     return out;
   },
 
+  currentStore(state, getters) {
+    return (type) => {
+      const product = getters['currentProduct'];
+
+      if (!product) {
+        return 'cluster';
+      }
+
+      if (type && product.typeStoreMap?.[type]) {
+        return product.typeStoreMap[type];
+      }
+
+      return product.inStore;
+    };
+  },
+
   isExplorer(state, getters) {
     const product = getters.currentProduct;
 

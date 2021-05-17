@@ -548,61 +548,63 @@ export default {
             </td>
           </tr>
         </slot>
-        <template v-for="row in group.rows">
+        <template v-for="(row, i) in group.rows">
           <slot name="main-row" :row="row">
-            <!-- The data-cant-run-bulk-action-of-interest attribute is being used instead of :class because
-            because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
-            the value of :class changes. -->
-            <tr :key="get(row,keyField)" class="main-row" :data-node-id="get(row,keyField)" :data-cant-run-bulk-action-of-interest="actionOfInterest && !canRunBulkActionOfInterest(row)">
-              <td v-if="tableActions" class="row-check" align="middle">
-                <Checkbox class="selection-checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
-              </td>
-              <td v-if="subExpandColumn" class="row-expand" align="middle">
-                <i data-title="Toggle Expand" :class="{icon: true, 'icon-chevron-right': true, 'icon-chevron-down': !!expanded[get(row, keyField)]}" @click.stop="toggleExpand(row)" />
-              </td>
-              <template v-for="col in columns">
-                <slot
-                  :name="'col:' + col.name"
-                  :row="row"
-                  :col="col"
-                  :dt="dt"
-                  :expanded="expanded"
-                  :rowKey="get(row,keyField)"
-                >
-                  <td
-                    :key="col.name"
-                    :data-title="labelFor(col)"
-                    :align="col.align || 'left'"
-                    :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter}"
-                    :width="col.width"
+            <slot :name="'main-row:' + (row.mainRowKey || i)">
+              <!-- The data-cant-run-bulk-action-of-interest attribute is being used instead of :class because
+              because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
+              the value of :class changes. -->
+              <tr :key="get(row,keyField)" class="main-row" :data-node-id="get(row,keyField)" :data-cant-run-bulk-action-of-interest="actionOfInterest && !canRunBulkActionOfInterest(row)">
+                <td v-if="tableActions" class="row-check" align="middle">
+                  {{ row.mainRowKey }}<Checkbox class="selection-checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
+                </td>
+                <td v-if="subExpandColumn" class="row-expand" align="middle">
+                  <i data-title="Toggle Expand" :class="{icon: true, 'icon-chevron-right': true, 'icon-chevron-down': !!expanded[get(row, keyField)]}" @click.stop="toggleExpand(row)" />
+                </td>
+                <template v-for="col in columns">
+                  <slot
+                    :name="'col:' + col.name"
+                    :row="row"
+                    :col="col"
+                    :dt="dt"
+                    :expanded="expanded"
+                    :rowKey="get(row,keyField)"
                   >
-                    <slot :name="'cell:' + col.name" :row="row" :col="col" :value="valueFor(row,col)">
-                      <component
-                        :is="col.formatter"
-                        v-if="col.formatter"
-                        :value="valueFor(row,col)"
-                        :row="row"
-                        :col="col"
-                        v-bind="col.formatterOpts"
-                      />
-                      <template v-else-if="valueFor(row,col) !== ''">
-                        {{ valueFor(row,col) }}
-                      </template>
-                      <template v-else-if="col.dashIfEmpty">
-                        <span class="text-muted">&mdash;</span>
-                      </template>
-                    </slot>
-                  </td>
-                </slot>
-              </template>
-              <td v-if="rowActions" align="middle">
-                <slot name="row-actions" :row="row">
-                  <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-sm role-multi-action actions">
-                    <i class="icon icon-actions" />
-                  </button>
-                </slot>
-              </td>
-            </tr>
+                    <td
+                      :key="col.name"
+                      :data-title="labelFor(col)"
+                      :align="col.align || 'left'"
+                      :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter}"
+                      :width="col.width"
+                    >
+                      <slot :name="'cell:' + col.name" :row="row" :col="col" :value="valueFor(row,col)">
+                        <component
+                          :is="col.formatter"
+                          v-if="col.formatter"
+                          :value="valueFor(row,col)"
+                          :row="row"
+                          :col="col"
+                          v-bind="col.formatterOpts"
+                        />
+                        <template v-else-if="valueFor(row,col) !== ''">
+                          {{ valueFor(row,col) }}
+                        </template>
+                        <template v-else-if="col.dashIfEmpty">
+                          <span class="text-muted">&mdash;</span>
+                        </template>
+                      </slot>
+                    </td>
+                  </slot>
+                </template>
+                <td v-if="rowActions" align="middle">
+                  <slot name="row-actions" :row="row">
+                    <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-sm role-multi-action actions">
+                      <i class="icon icon-actions" />
+                    </button>
+                  </slot>
+                </td>
+              </tr>
+            </slot>
           </slot>
           <slot
             v-if="subRows && (!subExpandable || expanded[get(row,keyField)])"

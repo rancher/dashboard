@@ -214,6 +214,10 @@ export default {
         break;
       }
     },
+
+    clearSelection() {
+      this.$refs.table.clearSelection();
+    }
   }
 };
 </script>

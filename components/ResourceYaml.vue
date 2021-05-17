@@ -86,7 +86,7 @@ export default {
 
   computed: {
     schema() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
+      const inStore = this.$store.getters['currentStore'](this.value.type);
 
       return this.$store.getters[`${ inStore }/schemaFor`]( this.value.type );
     },

@@ -288,7 +288,7 @@ export default {
   },
 
   description() {
-    return this.metadata?.annotations?.[DESCRIPTION];
+    return this.metadata?.annotations?.[DESCRIPTION] || this.spec?.description;
   },
 
   labels() {

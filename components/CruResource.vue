@@ -170,16 +170,18 @@ export default {
         this.$emit('cancel');
       } else {
         const { resource = this.resource.type } = this.$route.params;
-
-        this.$router.replace({
+        const doneOverride = this.resource.doneOverride;
+        const doneDefault = {
           name:   this.doneRoute,
           params: { resource }
-        });
+        };
+
+        this.$router.replace(doneOverride || doneDefault);
       }
     },
 
     createResourceYaml(resource) {
-      const inStore = this.$store.getters['currentProduct'].inStore;
+      const inStore = this.$store.getters['currentStore'](resource);
       const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
       const clonedResource = clone(resource);
 
