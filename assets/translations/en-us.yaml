@@ -643,6 +643,8 @@ catalog:
       chartOptions: Edit Options
       valuesYaml: Edit YAML
       diff: Compare Changes
+    slideIn:
+      dock: Dock to bottom
     steps:
       basics:
         label: Metadata
@@ -652,21 +654,22 @@ catalog:
             upgrade { upgrade }
             update { update }
           } the {existing, select,
-            true { app }
-            false { chart }
+            true { app}
+            false { chart}
           }. Start by setting some basic information used by {vendor} to manage the App.
+        createNamespace: Namespace will be created
       helmValues:
         label: Values
         subtext: Change how the App works
-        description: Configure Values used by Helm to define the App.
+        description: Configure Values used by Helm that help define the App.
         chartInfo:
           button: View Chart Info
           label: Chart Info
       helmCli:
-        checkbox: Supply additional settings used by {vendor} to {action} the App.
-        label: Command
-        subtext: Change how the Values are applied
-        description: Configure Options used by {vendor} to {action} the App.
+        checkbox: Enable additional deployment options
+        label: Deploy Options
+        subtext: Change how the app is deployed
+        description: Supply additional deployment options
     version: Version
     versions:
       current: '{ver} (Current)'
