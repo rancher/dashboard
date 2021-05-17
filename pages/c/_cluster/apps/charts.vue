@@ -327,7 +327,6 @@ export default {
 
       <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
       <AsyncButton mode="refresh" size="sm" @click="refresh" />
-      <!-- </div> -->
     </div>
 
     <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />

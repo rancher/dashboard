@@ -249,7 +249,10 @@ export default {
     },
 
     allContainers() {
-      return [...this.podTemplateSpec.containers, ...(this.podTemplateSpec.initContainers || []).map((each) => {
+      const containers = this.podTemplateSpec?.containers || [];
+      const initContainers = this.podTemplateSpec?.initContainers || [];
+
+      return [...containers, ...initContainers.map((each) => {
         each._init = true;
 
         return each;
@@ -744,7 +747,7 @@ export default {
           </button>
         </div>
       </div>
-      <Tabbed :key="allContainers.indexOf(container)" :side-tabs="true">
+      <Tabbed :key="container.name" :side-tabs="true">
         <Tab :label="t('workload.container.titles.general')" name="general">
           <div>
             <div :style="{'align-items':'center'}" class="row mb-20">
