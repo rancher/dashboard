@@ -56,12 +56,12 @@
   --scrollbar-thumb: #{$medium};
   --scrollbar-thumb-dropdown: #{$medium};
 
-  --header-bg                  : #{$darkest};
+  --header-bg                  : #{$darker};
   --header-border              : #{$medium};
   --header-btn-bg              : #{$dark};
   --header-btn-text            : #{$lightest};
 
-  --nav-bg                     : #{$darkest};
+  --nav-bg                     : #{$darker};
   --nav-active                 : #{rgba($primary, 0.3)};
   --nav-border                 : #{$medium};
   --nav-hover                  : #{$primary};
@@ -122,7 +122,7 @@
   --progress-divider: #{$lightest};
 
   --sortable-table-header-bg: #{$darkest};
-  --sortable-table-accent-bg: #{$darker};
+  --sortable-table-accent-bg: #{$darkest};
   --sortable-table-accent-alt: #{$dark};
   --sortable-table-top-divider: var(--border);
   --sortable-table-hover-bg : #{$darkest};
