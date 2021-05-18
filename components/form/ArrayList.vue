@@ -264,7 +264,7 @@ export default {
           </div>
         </slot>
         <div v-if="showRemove" class="remove">
-          <slot name="remove-button" :remove="() => remove(idx)" i="idx">
+          <slot name="remove-button" :remove="() => remove(idx)" :i="idx">
             <button type="button" :disabled="isView" class="btn role-link" @click="remove(idx)">
               {{ removeLabel }}
             </button>

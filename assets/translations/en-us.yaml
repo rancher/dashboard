@@ -222,6 +222,9 @@ accountAndKeys:
       bearerTokenTip: "Access Key and Secret Key can be sent as the username and password for HTTP Basic auth to authorize requests. You can also combine them to use as a Bearer token:"
       ttlLimitedWarning: The Expiry time for this API Key was reduced due to system configuration
 
+addProjectMemberDialog:
+  title: Add Project Member
+
 authConfig:
   accessMode:
     label: 'Configure who should be able to login and use {vendor}'
@@ -2053,6 +2056,7 @@ moveModal:
   title: Move to a new project?
   description: 'You are moving the following namespaces:'
   moveButtonLabel: Move
+  targetProject: Target Project
 
 nameNsDescription:
   name:
@@ -2524,8 +2528,52 @@ probe:
     placeholder: Select a check type
 
 project:
+  members: 
+    label: Members
+    user: User
+    role: Role
   containerDefaultResourceLimit: Container Default Resource Limit
   resourceQuotas: Resource Quotas
+  haveOneOwner: There must be at least one member with the Owner role.
+
+projectMembers:
+  project:
+    label: Project
+  projectPermissions:
+    label: Project Permissions
+    description: Controls what access users have to the Project
+    owner:
+      label: Owner
+      description: Owners have full control over the Project and all resources inside it.
+    member:
+      label: Member
+      description: Members can manage the resources inside the Project but not change the Project itself.
+    readOnly:
+      label: Read Only
+      description: Members can only view the resources inside the Project but not change the resources.
+    custom:
+      label: Custom
+      description: Choose individual roles for this user.
+    createNs: Create Namespaces
+    configmapsManage: Manage Config Maps
+    ingressManage: Manage Ingress
+    projectcatalogsManage: Manage Project Catalogs
+    projectroletemplatebindingsManage: Manage Project Members
+    secretsManage: Manage Secrets
+    serviceaccountsManage: Manage Service Accounts
+    servicesManage: Manage Services
+    persistentvolumeclaimsManage: Manage Volumes
+    workloadsManage: Manage Workloads
+    configmapsView: View Config Maps
+    ingressView: View Ingress
+    monitoringUiView: View Monitoring
+    projectcatalogsView: View Project Catalogs
+    projectroletemplatebindingsView: View Project Members
+    secretsView: View Secrets
+    serviceaccountsView: View Service Accounts
+    servicesView: View Services
+    persistentvolumeclaimsView: View Volumes
+    workloadsView: View Workloads
 
 projectNamespaces:
   createNamespace: Create Namespace
@@ -4261,11 +4309,7 @@ typeLabel:
       one { Cluster Group }
       other {Cluster Groups }
     }
-  management.cattle.io.clusterroletemplatebinding: |-
-    {count, plural,
-      one { Cluster Member }
-      other { Cluster Members }
-    }
+
   fleet.cattle.io.gitrepo: |-
     {count, plural,
       one { Git Repo }

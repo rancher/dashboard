@@ -70,6 +70,7 @@ export default {
       :headers="headers"
       :rows="filteredClusterRoleTemplateBindings"
       :groupable="false"
+      :namespaced="false"
       sub-search="subSearch"
       :sub-fields="['nameDisplay']"
     />

@@ -70,5 +70,5 @@ export const FROM_CLUSTER = 'cluster';
 export const PROVIDER = 'provider';
 export const CLOUD_CREDENTIAL = 'cloud';
 
-// NAMESPACE
+// NAMESPACE/PROJECT
 export const PROJECT_ID = 'projectId';

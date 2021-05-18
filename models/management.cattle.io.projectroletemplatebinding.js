@@ -1,6 +1,26 @@
 import { MANAGEMENT } from '@/config/types';
 
 export default {
+  canCustomEdit() {
+    return false;
+  },
+
+  canYaml() {
+    return false;
+  },
+
+  canClone() {
+    return false;
+  },
+
+  user() {
+    return this.$rootGetters['management/byId'](MANAGEMENT.USER, this.userName);
+  },
+
+  nameDisplay() {
+    return this.user?.nameDisplay;
+  },
+
   projectId() {
     // projectName is in format `local:p-v679w`. project id's are in format `local/p-v679w`,
     return this.projectName.replace(':', '/');
@@ -25,6 +45,14 @@ export default {
 
   clusterDisplayName() {
     return this.cluster ? this.cluster.nameDisplay : this.clusterId;
+  },
+
+  userAvatar() {
+    return {
+      nameDisplay: this.nameDisplay,
+      userName:    this.user.username,
+      avatarSrc:   this.user.avatarSrc
+    };
   },
 
   projectDetailLocation() {
@@ -61,6 +89,13 @@ export default {
 
   roleTemplate() {
     return this.$rootGetters['management/byId'](MANAGEMENT.ROLE_TEMPLATE, this.roleTemplateName);
-  }
+  },
 
+  roleDisplay() {
+    return this.roleTemplate.nameDisplay;
+  },
+
+  listLocation() {
+    return { name: 'c-cluster-explorer-project-members' };
+  },
 };

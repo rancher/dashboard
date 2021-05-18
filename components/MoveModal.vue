@@ -86,7 +86,7 @@ export default {
             </li>
           </ul>
         </div>
-        <LabeledSelect v-model="targetProject" :options="projectOptions" :label="'Target Project'" />
+        <LabeledSelect v-model="targetProject" :options="projectOptions" :label="t('moveModal.targetProject')" />
       </div>
       <template #actions>
         <button class="btn role-secondary" @click="close">

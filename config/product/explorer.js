@@ -28,7 +28,6 @@ export function init(store) {
     basicType,
     ignoreType,
     mapGroup,
-    mapType,
     weightGroup,
     weightType,
     headers,
@@ -43,7 +42,11 @@ export function init(store) {
     weight:              3,
     showNamespaceFilter: true,
     icon:                'compass',
-    typeStoreMap:        { [MANAGEMENT.PROJECT]: 'management', [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management' }
+    typeStoreMap:        {
+      [MANAGEMENT.PROJECT]:                       'management',
+      [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',
+      [MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING]: 'management'
+    }
   });
 
   basicType(['cluster-dashboard', 'cluster-tools']);
@@ -80,7 +83,7 @@ export function init(store) {
     RBAC.CLUSTER_ROLE,
     RBAC.ROLE_BINDING,
     RBAC.CLUSTER_ROLE_BINDING,
-    'cluster-members'
+    'cluster-members',
   ], 'rbac');
 
   weightGroup('cluster', 99, true);
@@ -98,6 +101,8 @@ export function init(store) {
   ignoreType('extensions.ingress'); // Old, moved into networking
   ignoreType(MANAGEMENT.PROJECT);
   ignoreType(NAMESPACE);
+  ignoreType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
+  ignoreType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING);
 
   mapGroup(/^(core)?$/, 'Core');
   mapGroup('apps', 'Apps');
@@ -128,12 +133,11 @@ export function init(store) {
   mapGroup(/^(.*\.)?cluster\.x-k8s\.io$/, 'Cluster Provisioning');
   mapGroup(/^(aks|eks|gke|rke|rke-machine-config|provisioning)\.cattle\.io$/, 'Cluster Provisioning');
 
-  mapType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, store.getters['i18n/t'](`typeLabel.${ MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING }`, { count: 2 }));
-
   configureType(NODE, { isCreatable: false, isEditable: false });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
   configureType(PVC, { isEditable: false });
   configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { isEditable: false });
+  configureType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING, { isEditable: false });
 
   setGroupDefaultType('serviceDiscovery', SERVICE);
 
@@ -231,7 +235,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:          store.getters['i18n/t']('generic.overview'),
+    label:          'Overview',
     group:          'Workload',
     namespaced:     true,
     name:           'workload',
