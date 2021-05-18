@@ -173,7 +173,15 @@ export default {
     async currentProduct(a, b) {
       if ( !isEqual(a, b) ) {
         if (a.inStore !== b.inStore || a.inStore !== 'cluster' ) {
-          await this.$store.dispatch('prefs/setLastVisited', this.$route);
+          const route = {
+            name:   'c-cluster-product',
+            params: {
+              cluster: this.clusterId,
+              product: a.name,
+            }
+          };
+
+          await this.$store.dispatch('prefs/setLastVisited', route);
         }
       }
     }
