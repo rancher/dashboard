@@ -5,9 +5,13 @@ import SortableTable from '@/components/SortableTable';
 import CopyCode from '@/components/CopyCode';
 import Tab from '@/components/Tabbed/Tab';
 import { allHash } from '@/utils/promise';
-import { CAPI, MANAGEMENT } from '@/config/types';
-import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
+import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
+import {
+  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN,
+} from '@/config/table-headers';
 import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
+import AsyncButton from '@/components/AsyncButton.vue';
+import Card from '@/components/Card.vue';
 
 export default {
   components: {
@@ -16,7 +20,9 @@ export default {
     SortableTable,
     Tab,
     CopyCode,
-    CustomCommand
+    CustomCommand,
+    AsyncButton,
+    Card
   },
 
   props: {
@@ -43,16 +49,22 @@ export default {
       hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
     }
 
+    if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
+      hash.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
+    }
+
     const res = await allHash(hash);
 
     this.allMachines = res.machines;
     this.clusterToken = res.clusterToken;
+    this.etcdBackups = res.etcdBackups;
   },
 
   data() {
     return {
       allMachines:  null,
-      clusterToken: null
+      clusterToken: null,
+      etcdBackups:  null,
     };
   },
 
@@ -88,12 +100,69 @@ export default {
     },
 
     showSnapshots() {
-      return true;
-    }
+      return this.value.isRke2 || this.value.isRke1;
+    },
+
+    rke1Snapshots() {
+      const mgmtId = this.value.mgmt?.id;
+
+      if ( !mgmtId ) {
+        return [];
+      }
+
+      return (this.etcdBackups || []).filter(x => x.clusterId === mgmtId);
+    },
+
+    rke1SnapshotHeaders() {
+      return [
+        STATE_NORMAN,
+        NAME_COL,
+        {
+          name:     'version',
+          labelKey: 'tableHeaders.version',
+          value:    'status.kubernetesVersion',
+          sort:     'status.kubernetesVersion',
+          width:    150,
+        },
+        { ...AGE_NORMAN, canBeVariable: true },
+        {
+          name:      'manual',
+          labelKey:  'tableHeaders.manual',
+          value:     'manual',
+          formatter: 'Checked',
+          sort:      ['manual'],
+          align:     'center',
+          width:     50,
+        },
+      ];
+    },
   },
 
   mounted() {
     window.c = this;
+  },
+
+  methods: {
+    async takeSnapshot(btnCb) {
+      try {
+        if ( this.value.isRke1 ) {
+          await this.$store.dispatch('rancher/request', {
+            url:           `/v3/clusters/${ escape(this.value.mgmt.id) }?action=backupEtcd`,
+            method:        'post',
+          });
+
+          // Give the change event some time to show up
+          setTimeout(() => {
+            btnCb(true);
+          }, 1000);
+        } else {
+          debugger;
+        }
+      } catch (err) {
+        this.$dispatch('growl/fromError', { title: 'Error creating snapshot', err });
+        btnCb(false);
+      }
+    },
   }
 };
 </script>
@@ -146,7 +215,21 @@ export default {
     </Tab>
 
     <Tab v-if="showSnapshots" name="snapshots" label="etcd Snapshots" :weight="1">
-      etcd snapshots...
+      <template v-if="value.isRke1">
+        <SortableTable
+          :headers="rke1SnapshotHeaders"
+          default-sort-by="age"
+          :rows="rke1Snapshots"
+          :search="false"
+        >
+          <template #header-right>
+            <AsyncButton mode="snapshot" class="btn role-primary" @click="takeSnapshot" />
+          </template>
+        </SortableTable>
+      </template>
+      <template v-else>
+        RKE2 snapshots...
+      </template>
     </Tab>
   </ResourceTabs>
 </template>

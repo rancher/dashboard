@@ -480,6 +480,14 @@ asyncButton:
     action: Remove
     success: Removed
     waiting: Removing&hellip;
+  restore:
+    action: Restore
+    waiting: Restoring&hellip;
+    success: Restored
+  snapshot:
+    action: Snapshow Now
+    waiting: Snapshotting&hellip;
+    success: Shapshot Creating
   update:
     action: Update
     success: Updated
@@ -2407,6 +2415,9 @@ promptRemove:
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
   confirmName: "Enter <b>{nameToMatch}</b> below to confirm:"
 
+promptRestore:
+  title: Restore Snapshot
+
 rancherAlertingDrivers:
   msTeams: Enable Microsoft Teams
   sms: Enable SMS
@@ -3197,6 +3208,7 @@ tableHeaders:
   lastSeen: Last Seen
   loggingOutputProviders: Provider
   machines: Machines
+  manual: Manual
   matches: Matches
   maxKubernetesVersion: Max Kubernetes Version
   message: Message

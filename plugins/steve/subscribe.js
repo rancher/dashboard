@@ -1,3 +1,4 @@
+import { remapSpecialKeys } from '@/plugins/steve/resource-proxy';
 import { get } from '@/utils/object';
 import Socket, {
   EVENT_CONNECTED,
@@ -356,6 +357,8 @@ export const actions = {
   },
 
   'ws.resource.create'({ getters, state }, { data }) {
+    remapSpecialKeys(data);
+
     if ( !getters.typeRegistered(getters.normalizeType(data.type)) ) {
       return;
     }
@@ -370,6 +373,8 @@ export const actions = {
   },
 
   'ws.resource.change'({ getters, state }, { data }) {
+    remapSpecialKeys(data);
+
     if ( !getters.typeRegistered(getters.normalizeType(data.type)) ) {
       return;
     }

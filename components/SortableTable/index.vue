@@ -268,7 +268,11 @@ export default {
     },
 
     showHeaderRow() {
-      return this.search || this.tableActions || this.$slots['header-left']?.length;
+      return this.search ||
+        this.tableActions ||
+        this.$slots['header-left']?.length ||
+        this.$slots['header-middle']?.length ||
+        this.$slots['header-right']?.length;
     },
 
     columns() {
@@ -500,8 +504,16 @@ export default {
           <slot name="header-middle" />
         </div>
 
-        <div v-if="search" class="search">
-          <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" :placeholder="t('sortableTable.search')">
+        <div v-if="search || ($slots['header-right'] && $slots['header-right'].length)" class="search">
+          <slot name="header-right" />
+          <input
+            v-if="search"
+            ref="searchQuery"
+            v-model="searchQuery"
+            type="search"
+            class="input-sm"
+            :placeholder="t('sortableTable.search')"
+          >
         </div>
       </div>
     </div>
@@ -886,6 +898,7 @@ $spacing: 10px;
 
   .search {
     grid-area: search;
+    text-align: right;
   }
 }
 

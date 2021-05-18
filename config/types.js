@@ -13,6 +13,7 @@ export const STEVE = {
 // Base: /v3
 export const NORMAN = {
   AUTH_CONFIG:   'authconfig',
+  ETCD_BACKUP:   'etcdbackup',
   CLUSTER_TOKEN: 'clusterregistrationtoken',
   GROUP:         'group',
   PRINCIPAL:     'principal',

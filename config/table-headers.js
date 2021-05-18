@@ -798,7 +798,7 @@ export const FEATURE_DESCRIPTION = {
   width:    300,
 };
 
-export const FEATURE_STATE = {
+export const STATE_NORMAN = {
   name:      'state',
   labelKey:  'tableHeaders.state',
   sort:      ['stateSort', 'nameSort'],

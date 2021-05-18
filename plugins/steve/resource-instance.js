@@ -439,7 +439,7 @@ export default {
 
   // You can override the state by providing your own state (and possibly reading metadata.state)
   state() {
-    return this.metadata?.state?.name || 'unknown';
+    return this.metadata?.state?.name || this._state || 'unknown';
   },
 
   // You can override the displayed by providing your own stateDisplay (and possibly using the function exported above)

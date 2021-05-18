@@ -7,6 +7,7 @@ import {
 import ActionMenu from '@/components/ActionMenu';
 import WindowManager from '@/components/nav/WindowManager';
 import PromptRemove from '@/components/PromptRemove';
+import PromptRestore from '@/components/PromptRestore';
 import AssignTo from '@/components/AssignTo';
 import Group from '@/components/nav/Group';
 import Header from '@/components/nav/Header';
@@ -28,6 +29,7 @@ export default {
 
   components: {
     PromptRemove,
+    PromptRestore,
     AssignTo,
     Header,
     ActionMenu,
@@ -395,6 +397,7 @@ export default {
         <nuxt class="outlet" />
         <ActionMenu />
         <PromptRemove />
+        <PromptRestore />
         <AssignTo />
         <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
         <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />

@@ -59,6 +59,10 @@ export default {
     return !!this.spec?.rkeConfig;
   },
 
+  isRke1() {
+    return !!this.mgmt?.spec?.rancherKubernetesEngineConfig;
+  },
+
   mgmt() {
     const name = this.status?.clusterName;
 
