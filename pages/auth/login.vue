@@ -9,7 +9,7 @@ import { sortBy } from '@/utils/sort';
 import { configType } from '@/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
 import { importLogin } from '@/utils/dynamic-importer';
-import { getVendor, getProduct } from '../../config/private-label';
+import { getVendor, getProduct, setVendor } from '../../config/private-label';
 
 export default {
   name:       'Login',
@@ -35,9 +35,19 @@ export default {
       opt:  { url: `/v3/settings/first-login` }
     });
 
+    const uiPLSetting = await store.dispatch('rancher/find', {
+      type: 'setting',
+      id:   'ui-pl',
+      opt:  { url: `/v3/settings/ui-pl` }
+    });
+
+    if (uiPLSetting.value && uiPLSetting.value.length && uiPLSetting.value !== getVendor()) {
+      setVendor(uiPLSetting.value);
+    }
     const needsSetup = firstLoginSetting?.value === 'true';
 
     return {
+      vendor:    getVendor(),
       providers,
       hasOthers,
       hasLocal,
@@ -50,7 +60,6 @@ export default {
     const username = $cookies.get(USERNAME, { parseJSON: false }) || '';
 
     return {
-      vendor:  getVendor(),
       product: getProduct(),
 
       username,

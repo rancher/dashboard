@@ -6,6 +6,7 @@ import IndentedPanel from '@/components/IndentedPanel';
 import Card from '@/components/Card';
 
 import { MANAGEMENT } from '@/config/types';
+import { getVendor } from '@/config/private-label';
 
 export default {
   layout: 'home',
@@ -38,14 +39,17 @@ export default {
 
     this.supportSetting = await fetchOrCreateSetting('has-support', 'false');
     this.brandSetting = await fetchOrCreateSetting('brand', '');
+    this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'ui-issues' });
   },
 
   data() {
     return {
-      supportKey:     '',
-      supportSetting: null,
-      brandSetting:   null,
-      promos:         [
+      vendor:          getVendor(),
+      supportKey:      '',
+      supportSetting:  null,
+      brandSetting:    null,
+      uiIssuesSetting: null,
+      promos:          [
         'support.promos.one',
         'support.promos.two',
         'support.promos.three',
@@ -55,17 +59,12 @@ export default {
   },
 
   computed: {
-    pl() {
-      // @TODO PL support
-      return 'rancher';
-    },
-
     hasSupport() {
       return this.supportSetting?.value && this.supportSetting?.value !== 'false';
     },
 
     options() {
-      return options(this.pl);
+      return options(this.vendor, this.uiIssuesSetting?.value);
     },
 
     title() {

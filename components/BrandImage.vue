@@ -6,6 +6,10 @@ export default {
     fileName: {
       type:     String,
       required: true
+    },
+    dark: {
+      type:    Boolean,
+      default: false
     }
   },
   async fetch() {
@@ -17,31 +21,54 @@ export default {
     return { theme, managementSettings: [] };
   },
   computed: {
-    brandSetting() {
-      return this.managementSettings.filter(setting => setting.id === 'brand')[0];
+    brand() {
+      const setting = this.managementSettings.filter(setting => setting.id === 'brand')[0] || {};
+
+      return setting.value;
+    },
+
+    uiLogoLight() {
+      const setting = this.managementSettings.filter(setting => setting.id === 'ui-logo-light')[0] || {};
+
+      return setting.value;
+    },
+
+    uiLogoDark() {
+      const setting = this.managementSettings.filter(setting => setting.id === 'ui-logo-dark')[0] || {};
+
+      return setting.value;
     },
 
     pathToBrandedImage() {
       let out = require(`~/assets/images/pl/${ this.fileName }`);
 
-      if (!this.brandSetting?.value) {
+      if (this.fileName === 'rancher-logo.svg') {
+        if ((this.theme === 'light' || !this.uiLogoDark) && this.uiLogoLight) {
+          return this.uiLogoLight;
+        } else if (this.uiLogoDark) {
+          return this.uiLogoDark;
+        }
+      }
+
+      if (!this.brandSetting) {
         return out;
       } else {
-        if (this.theme === 'dark') {
+        if (this.theme === 'dark' || this.dark) {
           try {
-            out = require(`~/assets/brand/${ this.brandSetting.value }/dark/${ this.fileName }`);
+            out = require(`~/assets/brand/${ this.brand }/dark/${ this.fileName }`);
 
             return out;
           } catch {}
         }
         try {
-          out = require(`~/assets/brand/${ this.brandSetting.value }/${ this.fileName }`);
+          out = require(`~/assets/brand/${ this.brand }/${ this.fileName }`);
         } catch {
         }
 
         return out ;
       }
     },
+
     pathToRancherFallback() {
       return require(`~/assets/images/pl/${ this.fileName }`);
     }

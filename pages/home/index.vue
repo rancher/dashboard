@@ -15,6 +15,7 @@ import { STATE } from '@/config/table-headers';
 import { createMemoryFormat, formatSi, parseSi } from '@/utils/units';
 import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenReleaseNotes } from '@/utils/version';
 import PageHeaderActions from '@/mixins/page-actions';
+import { getVendor } from '@/config/private-label';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 const RESET_CARDS_ACTION = 'reset-homepage-cards';
@@ -60,7 +61,7 @@ export default {
     ];
 
     return {
-      HIDE_HOME_PAGE_CARDS, clusters: [], fullVersion, pageActions
+      HIDE_HOME_PAGE_CARDS, clusters: [], fullVersion, pageActions, vendor: getVendor(),
     };
   },
 
@@ -236,7 +237,7 @@ export default {
 </script>
 <template>
   <div class="home-page">
-    <BannerGraphic :small="true" :title="t('landing.welcomeToRancher')" :pref="HIDE_HOME_PAGE_CARDS" pref-key="welcomeBanner" />
+    <BannerGraphic :small="true" :title="t('landing.welcomeToRancher', {vendor})" :pref="HIDE_HOME_PAGE_CARDS" pref-key="welcomeBanner" />
     <IndentedPanel class="mt-20">
       <div v-if="!readWhatsNewAlready" class="row">
         <div class="col span-12">

@@ -168,7 +168,9 @@ export default {
       <div v-if="shown" class="side-menu" tabindex="-1">
         <div class="title">
           <div class="menu-spacer"></div>
-          <BrandImage class="side-menu-logo" file-name="rancher-logo.svg" width="110" />
+          <div class="side-menu-logo">
+            <BrandImage file-name="rancher-logo.svg" />
+          </div>
         </div>
         <div class="body">
           <div @click="hide()">
@@ -402,7 +404,7 @@ export default {
     position: absolute;
     top: 0;
     left: 0px;
-    height: 100vh;
+    bottom: 0;
     width: 280px;
     background-color: var(--topmenu-bg);
     z-index: 100;
@@ -555,7 +557,7 @@ export default {
     position: absolute;
     top: 0;
     left: 0px;
-    height: 100vh;
+    bottom: 0;
     width: 100vw;
     z-index: 99;
     opacity: 1;
@@ -566,6 +568,11 @@ export default {
     opacity: 1;
     transition: opacity 1.2s;
     transition-delay: 0s;
+    width: 110px;
+    & IMG {
+     height: 55px;
+     max-width: 100%;
+    }
   }
 
   .fade-enter-active {
