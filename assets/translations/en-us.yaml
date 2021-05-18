@@ -3261,6 +3261,7 @@ tableHeaders:
   simpleName: Name
   simpleScale: Scale
   simpleType: Type
+  size: Size
   started: Started
   state: State
   status: Status

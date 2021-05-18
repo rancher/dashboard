@@ -318,7 +318,7 @@ export default {
   },
 
   nameDisplay() {
-    return this.displayName || this.spec?.displayName || this.metadata?.annotations?.[NORMAN_NAME] || this.metadata?.name || this.id;
+    return this.displayName || this.spec?.displayName || this.metadata?.annotations?.[NORMAN_NAME] || this.metadata?.name || this.name || this.id;
   },
 
   nameSort() {

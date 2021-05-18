@@ -57,6 +57,8 @@ export function proxyFor(ctx, obj, isClone = false) {
       } else if ( name === 'constructor' ) {
         // To satisfy vue-devtools
         return FAKE_CONSTRUCTOR;
+      } else if ( name === '$ctx' ) {
+        return ctx;
       } else if ( name.startsWith('$') ) {
         return ctx[name.substr(1)];
       } else if ( name === PRIVATE ) {

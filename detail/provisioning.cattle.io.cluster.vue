@@ -11,7 +11,6 @@ import {
 } from '@/config/table-headers';
 import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@/components/AsyncButton.vue';
-import Card from '@/components/Card.vue';
 
 export default {
   components: {
@@ -22,7 +21,6 @@ export default {
     CopyCode,
     CustomCommand,
     AsyncButton,
-    Card
   },
 
   props: {
@@ -113,10 +111,20 @@ export default {
       return (this.etcdBackups || []).filter(x => x.clusterId === mgmtId);
     },
 
+    rke2Snapshots() {
+      return this.value.etcdSnapshots;
+    },
+
     rke1SnapshotHeaders() {
       return [
         STATE_NORMAN,
-        NAME_COL,
+        {
+          name:          'name',
+          labelKey:      'tableHeaders.name',
+          value:         'nameDisplay',
+          sort:          ['nameSort'],
+          canBeVariable: true,
+        },
         {
           name:     'version',
           labelKey: 'tableHeaders.version',
@@ -133,6 +141,33 @@ export default {
           sort:      ['manual'],
           align:     'center',
           width:     50,
+        },
+      ];
+    },
+
+    rke2SnapshotHeaders() {
+      return [
+        STATE_NORMAN,
+        {
+          name:          'name',
+          labelKey:      'tableHeaders.name',
+          value:         'nameDisplay',
+          sort:          ['nameSort'],
+          canBeVariable: true,
+        },
+        {
+          name:      'size',
+          labelKey:  'tableHeaders.size',
+          value:     'size',
+          sort:      'size',
+          formatter: 'Si',
+          width:     150,
+        },
+        {
+          ...AGE,
+          value:         'createdAt',
+          sort:          'createdAt:desc',
+          canBeVariable: true
         },
       ];
     },
@@ -156,10 +191,11 @@ export default {
             btnCb(true);
           }, 1000);
         } else {
-          debugger;
+          btnCb(false);
+          this.$store.dispatch('growl/fromError', { title: '@TODO Actual RKE2 snapshot create API call' });
         }
       } catch (err) {
-        this.$dispatch('growl/fromError', { title: 'Error creating snapshot', err });
+        this.$store.dispatch('growl/fromError', { title: 'Error creating snapshot', err });
         btnCb(false);
       }
     },
@@ -214,22 +250,18 @@ export default {
       </template>
     </Tab>
 
-    <Tab v-if="showSnapshots" name="snapshots" label="etcd Snapshots" :weight="1">
-      <template v-if="value.isRke1">
-        <SortableTable
-          :headers="rke1SnapshotHeaders"
-          default-sort-by="age"
-          :rows="rke1Snapshots"
-          :search="false"
-        >
-          <template #header-right>
-            <AsyncButton mode="snapshot" class="btn role-primary" @click="takeSnapshot" />
-          </template>
-        </SortableTable>
-      </template>
-      <template v-else>
-        RKE2 snapshots...
-      </template>
+    <Tab v-if="showSnapshots" name="snapshots" label="Snapshots" :weight="1">
+      <SortableTable
+        :headers="value.isRke1 ? rke1SnapshotHeaders : rke2SnapshotHeaders"
+        default-sort-by="age"
+        :table-actions="value.isRke1"
+        :rows="value.isRke1 ? rke1Snapshots : rke2Snapshots"
+        :search="false"
+      >
+        <template #header-right>
+          <AsyncButton mode="snapshot" class="btn role-primary" @click="takeSnapshot" />
+        </template>
+      </SortableTable>
     </Tab>
   </ResourceTabs>
 </template>

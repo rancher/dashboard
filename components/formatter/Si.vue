@@ -6,11 +6,21 @@ export default {
     value: {
       type:    Number,
       default: () => []
+    },
+
+    opts: {
+      type:    Object,
+      default: () => {},
     }
   },
   computed: {
     formattedValue() {
-      return formatSi(this.value, { suffix: 'B', firstSuffix: '' });
+      return formatSi(this.value, {
+        suffix:      'iB',
+        firstSuffix: 'B',
+        increment:   1024,
+        ...this.opts
+      });
     }
   }
 };

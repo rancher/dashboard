@@ -35,6 +35,10 @@ export default {
     snapshot() {
       return this.toRestore[0];
     },
+
+    isRke2() {
+      return !!this.snapshot.rke2;
+    },
   },
 
   watch: {
@@ -97,7 +101,7 @@ export default {
           <div class="spacer" />
 
           <h3>Snapshot Date</h3>
-          <div><Date :value="snapshot.created" /></div>
+          <div><Date :value="snapshot.createdAt || snapshot.created" /></div>
 
           <div class="spacer" />
 
@@ -118,8 +122,11 @@ export default {
 
         <AsyncButton
           mode="restore"
+          :disabled="isRke2"
           @click="apply"
         />
+
+        <Banner v-if="isRke2" color="warning" label="@TODO The actual rke2 restore action..." />
 
         <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
       </div>
