@@ -48,7 +48,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer']),
+    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel' }),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -64,11 +64,12 @@ export default {
 
     pageActions() {
       const pageActions = [];
-
       const product = this.$store.getters['currentProduct'];
 
-      // Only show for Cluster Explorer
-      if (product.inStore === 'cluster') {
+      // Only show for Cluster Explorer or Global Apps (not configuration)
+      const canSetAsHome = product.inStore === 'cluster' || (product.inStore === 'management' && product.category !== 'configuration');
+
+      if (canSetAsHome) {
         pageActions.push({
           labelKey: 'nav.header.setLoginPage',
           action:   SET_LOGIN_ACTION
@@ -133,24 +134,13 @@ export default {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
-
-        // Store the last visited route when the product changes
-        this.$store.dispatch('prefs/setLastVisited', this.$route);
       }
     },
 
     clusterId(a, b) {
       if ( !isEqual(a, b) ) {
         // Store the last visited route when the cluster changes
-        const route = {
-          name:   this.$route.name,
-          params: {
-            ...this.$route.params,
-            cluster: a,
-          }
-        };
-
-        this.$store.dispatch('prefs/setLastVisited', route);
+        this.setClusterAsLastRoute();
       }
     },
 
@@ -181,24 +171,62 @@ export default {
         this.getGroups();
       }
     },
+
+    async currentProduct(a, b) {
+      if ( !isEqual(a, b) ) {
+        if (a.inStore !== b.inStore || a.inStore !== 'cluster' ) {
+          const route = {
+            name:   'c-cluster-product',
+            params: {
+              cluster: this.clusterId,
+              product: a.name,
+            }
+          };
+
+          await this.$store.dispatch('prefs/setLastVisited', route);
+        }
+      }
+    }
   },
 
-  created() {
+  async created() {
     this.queueUpdate = debounce(this.getGroups, 500);
 
     this.getGroups();
+
+    await this.$store.dispatch('prefs/setLastVisited', this.$route);
   },
 
   methods: {
+    async setClusterAsLastRoute() {
+      const route = {
+        name:   this.$route.name,
+        params: {
+          ...this.$route.params,
+          cluster: this.clusterId,
+        }
+      };
+
+      await this.$store.dispatch('prefs/setLastVisited', route);
+    },
     handlePageAction(action) {
       if (action.action === SET_LOGIN_ACTION) {
-        this.afterLoginRoute = {
-          name:   'c-cluster-explorer',
-          params: { cluster: this.clusterId }
-        };
+        this.afterLoginRoute = this.getLoginRoute();
         // Mark release notes as seen, so that the login route is honoured
         markSeenReleaseNotes(this.$store);
       }
+    },
+
+    getLoginRoute() {
+      // Cluster Explorer
+      if (this.currentProduct.inStore === 'cluster') {
+        return {
+          name:   'c-cluster-explorer',
+          params: { cluster: this.clusterId }
+        };
+      }
+
+      return this.$route;
     },
 
     collapseAll() {

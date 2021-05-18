@@ -402,10 +402,9 @@ export const actions = {
       return;
     }
 
-    // Just save the route's name and params
-    const toSave = { name: route.name, params: route.params };
+    const toSave = getLoginRoute(route);
 
-    dispatch('set', { key: LAST_VISITED, value: toSave });
+    return dispatch('set', { key: LAST_VISITED, value: toSave });
   },
 
   toggleTheme({ getters, dispatch }) {
@@ -435,3 +434,28 @@ export const actions = {
     }
   }
 };
+
+function getLoginRoute(route) {
+  let parts = route.name.split('-');
+  const params = {};
+  const routeParams = route.params || {};
+
+  // Find the 'resource' part of the route, if it is there
+  const index = parts.findIndex(p => p === 'resource');
+
+  if (index >= 0) {
+    parts = parts.slice(0, index);
+  }
+
+  // Just keep the params that are needed
+  parts.forEach((param) => {
+    if (routeParams[param]) {
+      params[param] = routeParams[param];
+    }
+  });
+
+  return {
+    name: parts.join('-'),
+    params
+  };
+}
