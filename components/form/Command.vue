@@ -102,10 +102,9 @@ export default {
         args:       this.args,
         workingDir: this.workingDir,
         tty:        this.tty,
-
       };
 
-      this.$emit('input', cleanUp(out) );
+      this.$emit('input', cleanUp(out));
     },
   },
 };
