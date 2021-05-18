@@ -880,7 +880,7 @@ export default {
         <Tab v-if="isStatefulSet" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates">
           <VolumeClaimTemplate v-model="spec" :mode="mode" />
         </Tab>
-        <Tab name="labels" :label="t('generic.labelsAndAnnotations')">
+        <Tab name="labels" label-key="generic.labelsAndAnnotations">
           <Labels v-model="value" :mode="mode" />
           <div class="spacer"></div>
 
