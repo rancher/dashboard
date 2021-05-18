@@ -55,6 +55,14 @@ export default {
       type:     Function,
       required: true,
     },
+    noRows: {
+      type:    Boolean,
+      default: true,
+    },
+    noResults: {
+      type:    Boolean,
+      default: true,
+    }
   },
 
   computed: {
@@ -115,6 +123,7 @@ export default {
           v-model="isAll"
           class="check"
           :indeterminate="isIndeterminate"
+          :disabled="noRows || noResults"
         />
       </th>
       <th v-if="subExpandColumn" :width="expandWidth"></th>
