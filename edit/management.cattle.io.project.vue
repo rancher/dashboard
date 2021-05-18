@@ -48,7 +48,7 @@ export default {
       </Tab>
       <Tab
         name="labels-and-annotations"
-        :label="t('generic.labelsAndAnnotations')"
+        label-key="generic.labelsAndAnnotations"
         :weight="7"
       >
         <Labels

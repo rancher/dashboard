@@ -247,7 +247,7 @@ export default {
             :hide-sensitive-data="hideSensitiveData"
           />
         </Tab>
-        <Tab name="labels" :label="t('generic.labelsAndAnnotations')">
+        <Tab name="labels" label-key="generic.labelsAndAnnotations">
           <Labels v-model="value" :mode="mode" />
         </Tab>
       </Tabbed>

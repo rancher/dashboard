@@ -123,7 +123,7 @@ export default {
       <Tab
         v-if="!isView"
         name="labels-and-annotations"
-        :label="t('generic.labelsAndAnnotations')"
+        label-key="generic.labelsAndAnnotations"
         :weight="-1"
       >
         <Labels
