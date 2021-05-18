@@ -67,6 +67,7 @@ export default {
 
       &:hover {
         background-color: var(--accent-btn-hover);
+        color: var(--accent-btn-hover-text);
         opacity: 1;
       }
     }

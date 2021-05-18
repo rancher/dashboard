@@ -334,7 +334,7 @@ export default {
     cursor: pointer;
     display: flex;
     padding: $option-padding 0 $option-padding 10px;
-    color: var(--link-text);
+    color: var(--link);
 
     &:hover {
       text-decoration: none;
@@ -357,7 +357,7 @@ export default {
     }
 
     > div {
-      color: var(--link-text);
+      color: var(--link);
     }
 
     &:hover {
@@ -535,7 +535,7 @@ export default {
       flex-direction: row;
       > * {
         flex: 1;
-        color: var(--link-text);
+        color: var(--link);
 
         &:first-child {
           text-align: left;

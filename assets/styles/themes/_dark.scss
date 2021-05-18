@@ -33,17 +33,10 @@
   // value can also be map of default, default-text, hover-text, hover-bg, active-text,  active-bg)
   @include color-variables(
     (
-      default: $dark,
-      muted: $disabled,
-      link: (
-        default-text: $link,
-        hover-text: darken($link, 30%),
-        active-text: lighten($link, 25%),
-        default: transparent,
-        hover-bg: transparent,
-        active-bg: transparent,
-      ),
-      primary: $primary,
+      default:   $dark,
+      muted:     $disabled,
+      link:      $link,
+      primary:   $primary,
       secondary: $secondary,
     )
   );
@@ -51,7 +44,6 @@
   --default-text: #{$light};
 
   --body-bg: #{$darker};
-  --body-gradient: linear-gradient(180deg, #{$dark} 0%, #{$darkest} 100%);
   --body-text: #{$lightest};
   --scrollbar-thumb: #{$medium};
   --scrollbar-thumb-dropdown: #{$medium};
@@ -61,11 +53,11 @@
   --header-btn-bg              : #{$dark};
   --header-btn-text            : #{$lightest};
 
-  --nav-bg                     : #{$darker};
-  --nav-active                 : #{rgba($primary, 0.3)};
+  --nav-bg                     : #{$darkest};
+  --nav-active                 : var(--primary-active-bg);
   --nav-border                 : #{$medium};
-  --nav-hover                  : #{$primary};
-  --nav-expander-hover         : #{darken($primary, 20%)};
+  --nav-hover                  : var(--primary);
+  --nav-expander-hover         : var(--primary-banner-bg);
 
   --disabled-bg: #{darken($disabled, 10%)};
   --disabled-text: #{$secondary};
@@ -79,18 +71,20 @@
   --topmost-shadow: #{lighten($darkest, 5%)};
   --topmost-light-hover: #{$medium};
 
-  --accent-btn: #{rgba($primary, 0.2)};
-  --accent-btn-hover: #{rgba($primary, 0.5)};
-  --modal-bg                   :#{$dark};
-  --modal-border: #{$medium};
-  --overlay-bg: #{rgba($darkest, 0.75)};
-  --shadow: #{rgba($darkest, 0.9)};
+  --accent-btn                 : var(--primary-banner-bg);
+  --accent-btn-hover           : var(--primary);
+  --accent-btn-hover-text      : #{$lightest};
+
+  --modal-bg         : #{$dark};
+  --modal-border     : #{$medium};
+  --overlay-bg       : #{rgba($darkest, 0.75)};
+  --shadow           : #{rgba($darkest, 0.9)};
 
   --checkbox-tick              : #{$lightest};
   --checkbox-border            : #{$medium};
   --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
   --checkbox-disabled-bg       : #{$disabled};
-  --checkbox-ticked-bg         : #{$primary};
+  --checkbox-ticked-bg         : var(--primary);
 
   --dropdown-bg: #{mix($medium, $dark, 10%)};
   --dropdown-border: #{$light};
@@ -126,19 +120,20 @@
   --sortable-table-accent-alt: #{$dark};
   --sortable-table-top-divider: var(--border);
   --sortable-table-hover-bg : #{$darkest};
-  --sortable-table-selected-bg: #{rgba($primary, 0.3)};
+  --sortable-table-selected-bg: var(--primary-light-bg);
   --sortable-table-group-label: #{$lighter};
 
-  --tag-primary: #{$primary};
-  --tag-bg: #{rgba($primary, 0.2)};
+  --tag-primary: #{$lightest};
+  --tag-bg:      #{$medium};
 
   --popover-bg: var(--body-bg);
   --popover-border: var(--border);
   --popover-text: var(--body-text);
-  --tooltip-bg: #{darken($primary, 30%)};
-  --tooltip-border: var(--tag-primary);
-  --tooltip-text: var(--body-text);
-  --tooltip-text-warning: var(--body-text);
+
+  --tooltip-bg           : #{$medium};
+  --tooltip-border       : var(--tag-primary);
+  --tooltip-text         : var(--body-text);
+  --tooltip-text-warning : var(--body-text);
 
 
   --tabbed-border: #{$medium};
