@@ -7,7 +7,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import Banner from '@/components/Banner';
 import CopyToClipboard from '@/components/CopyToClipboard';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
-import { NORMAN, MANAGEMENT } from '@/config/types';
+import { MANAGEMENT } from '@/config/types';
 import { findBy } from '@/utils/array';
 import AuthConfig from '@/mixins/auth-config';
 import AuthBanner from '@/components/auth/AuthBanner';
@@ -67,10 +67,6 @@ export default {
 
     baseUrl() {
       return `${ this.model.tls ? 'https://' : 'http://' }${ this.model.hostname }`;
-    },
-
-    principal() {
-      return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
     },
 
     displayName() {
@@ -170,7 +166,7 @@ export default {
           :labels="[ t(`authConfig.${NAME}.target.public`), t(`authConfig.${NAME}.target.private`)]"
         />
 
-        <div class="row">
+        <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
               v-if="!isPublic"
