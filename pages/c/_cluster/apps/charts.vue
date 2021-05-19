@@ -359,23 +359,21 @@ export default {
     margin-right: 5px;
 
     &.rancher {
-      background: var(--app-rancher-bg);
       border: 1px solid var(--app-rancher-accent);
     }
 
     &.partner {
-      background: var(--app-partner-bg);
       border: 1px solid var(--app-partner-accent);
     }
 
-    &.color1 { background: var(--app-color1-bg); border: 1px solid var(--app-color1-accent); }
-    &.color2 { background: var(--app-color2-bg); border: 1px solid var(--app-color2-accent); }
-    &.color3 { background: var(--app-color3-bg); border: 1px solid var(--app-color3-accent); }
-    &.color4 { background: var(--app-color4-bg); border: 1px solid var(--app-color4-accent); }
-    &.color5 { background: var(--app-color5-bg); border: 1px solid var(--app-color5-accent); }
-    &.color6 { background: var(--app-color6-bg); border: 1px solid var(--app-color6-accent); }
-    &.color7 { background: var(--app-color7-bg); border: 1px solid var(--app-color7-accent); }
-    &.color8 { background: var(--app-color8-bg); border: 1px solid var(--app-color8-accent); }
+    &.color1 { border: 1px solid var(--app-color1-accent); }
+    &.color2 { border: 1px solid var(--app-color2-accent); }
+    &.color3 { border: 1px solid var(--app-color3-accent); }
+    &.color4 { border: 1px solid var(--app-color4-accent); }
+    &.color5 { border: 1px solid var(--app-color5-accent); }
+    &.color6 { border: 1px solid var(--app-color6-accent); }
+    &.color7 { border: 1px solid var(--app-color7-accent); }
+    &.color8 { border: 1px solid var(--app-color8-accent); }
   }
 
   .left-right-split {

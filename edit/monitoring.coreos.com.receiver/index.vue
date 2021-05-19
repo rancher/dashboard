@@ -4,7 +4,6 @@ import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
 import CruResource from '@/components/CruResource';
-import GradientBox from '@/components/GradientBox';
 import LabeledInput from '@/components/form/LabeledInput';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
@@ -20,7 +19,6 @@ export default {
     Banner,
     ButtonDropdown,
     CruResource,
-    GradientBox,
     LabeledInput,
     Loading,
     Tabbed,
@@ -170,22 +168,20 @@ export default {
     </div>
     <Tabbed ref="tabbed" :side-tabs="true" default-tab="overview" @changed="tabChanged">
       <Tab :label="t('generic.overview')" :weight="receiverTypes.length" name="overview">
-        <div class="box-container">
-          <GradientBox v-for="(receiverType, i) in receiverTypes" :key="i" class="mb-10" primary-color-var="--primary-color" @click.native="navigateTo(receiverType)">
-            <div class="gradient-container">
-              <div class="left">
-                <div class="logo">
-                  <img :src="receiverType.logo" />
-                </div>
-                <h4 class="name ml-10">
-                  <t :k="receiverType.label" />
-                </h4>
+        <div class="box-container create-resource-container ">
+          <div v-for="(receiverType, i) in receiverTypes" :key="i" class="mb-10 subtype-banner" primary-color-var="--primary-color" @click.native="navigateTo(receiverType)">
+            <div class="left">
+              <div class="logo">
+                <img :src="receiverType.logo" />
               </div>
-              <div v-if="receiverType.name !== 'custom'" class="right">
-                {{ getCount(receiverType) }}
-              </div>
+              <h4 class="name ml-10">
+                <t :k="receiverType.label" />
+              </h4>
             </div>
-          </GradientBox>
+            <div v-if="receiverType.name !== 'custom'" class="right">
+              {{ getCount(receiverType) }}
+            </div>
+          </div>
         </div>
       </Tab>
       <Tab
@@ -235,21 +231,7 @@ export default {
       flex-wrap: wrap;
       margin: 0 -1*$margin;
 
-      .gradient-box {
-        width: calc(50% - 2 * #{$margin});
-      }
-    }
-
-    .gradient-box {
-      padding: $margin;
-      position: relative;
-      border-radius: calc( 1.5 * var(--border-radius));
-      cursor: pointer;
-
-      .gradient-container {
-        height: 76px;
-        display: flex;
-        flex-direction: row;
+      .subtype-banner{
         justify-content: space-between;
         align-items: center;
       }
