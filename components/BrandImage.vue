@@ -50,7 +50,7 @@ export default {
         }
       }
 
-      if (!this.brandSetting) {
+      if (!this.brand) {
         return out;
       } else {
         if (this.theme === 'dark' || this.dark) {
