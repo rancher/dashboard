@@ -5,9 +5,12 @@ import SortableTable from '@/components/SortableTable';
 import CopyCode from '@/components/CopyCode';
 import Tab from '@/components/Tabbed/Tab';
 import { allHash } from '@/utils/promise';
-import { CAPI } from '@/config/types';
-import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
+import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
+import {
+  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN,
+} from '@/config/table-headers';
 import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
+import AsyncButton from '@/components/AsyncButton.vue';
 
 export default {
   components: {
@@ -16,7 +19,8 @@ export default {
     SortableTable,
     Tab,
     CopyCode,
-    CustomCommand
+    CustomCommand,
+    AsyncButton,
   },
 
   props: {
@@ -29,23 +33,36 @@ export default {
   },
 
   async fetch() {
-    const hash = await allHash({
+    const hash = {
       machineDeployments: this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT }),
       machines:           this.$store.dispatch('management/findAll', { type: CAPI.MACHINE })
-    });
+    };
 
     if ( this.value.isImported || this.value.isCustom ) {
-      hash.clusterToken = await this.value.getOrCreateToken();
+      hash.clusterToken = this.value.getOrCreateToken();
+    } else if ( !this.value.isRke2 ) {
+      // These are needed to resolve references in the mgmt cluster -> node pool -> node template to figure out what provider the cluster is using
+      // so that the edit iframe for ember pages can go to the right place.
+      hash.nodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
     }
 
-    this.allMachines = hash.machines;
-    this.clusterToken = hash.clusterToken;
+    if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
+      hash.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
+    }
+
+    const res = await allHash(hash);
+
+    this.allMachines = res.machines;
+    this.clusterToken = res.clusterToken;
+    this.etcdBackups = res.etcdBackups;
   },
 
   data() {
     return {
       allMachines:  null,
-      clusterToken: null
+      clusterToken: null,
+      etcdBackups:  null,
     };
   },
 
@@ -75,10 +92,113 @@ export default {
         AGE,
       ];
     },
+
+    showRke1Pools() {
+      return this.value.mgmt?.nodePools?.length > 0;
+    },
+
+    showSnapshots() {
+      return this.value.isRke2 || this.value.isRke1;
+    },
+
+    rke1Snapshots() {
+      const mgmtId = this.value.mgmt?.id;
+
+      if ( !mgmtId ) {
+        return [];
+      }
+
+      return (this.etcdBackups || []).filter(x => x.clusterId === mgmtId);
+    },
+
+    rke2Snapshots() {
+      return this.value.etcdSnapshots;
+    },
+
+    rke1SnapshotHeaders() {
+      return [
+        STATE_NORMAN,
+        {
+          name:          'name',
+          labelKey:      'tableHeaders.name',
+          value:         'nameDisplay',
+          sort:          ['nameSort'],
+          canBeVariable: true,
+        },
+        {
+          name:     'version',
+          labelKey: 'tableHeaders.version',
+          value:    'status.kubernetesVersion',
+          sort:     'status.kubernetesVersion',
+          width:    150,
+        },
+        { ...AGE_NORMAN, canBeVariable: true },
+        {
+          name:      'manual',
+          labelKey:  'tableHeaders.manual',
+          value:     'manual',
+          formatter: 'Checked',
+          sort:      ['manual'],
+          align:     'center',
+          width:     50,
+        },
+      ];
+    },
+
+    rke2SnapshotHeaders() {
+      return [
+        STATE_NORMAN,
+        {
+          name:          'name',
+          labelKey:      'tableHeaders.name',
+          value:         'nameDisplay',
+          sort:          ['nameSort'],
+          canBeVariable: true,
+        },
+        {
+          name:      'size',
+          labelKey:  'tableHeaders.size',
+          value:     'size',
+          sort:      'size',
+          formatter: 'Si',
+          width:     150,
+        },
+        {
+          ...AGE,
+          value:         'createdAt',
+          sort:          'createdAt:desc',
+          canBeVariable: true
+        },
+      ];
+    },
   },
 
   mounted() {
     window.c = this;
+  },
+
+  methods: {
+    async takeSnapshot(btnCb) {
+      try {
+        if ( this.value.isRke1 ) {
+          await this.$store.dispatch('rancher/request', {
+            url:           `/v3/clusters/${ escape(this.value.mgmt.id) }?action=backupEtcd`,
+            method:        'post',
+          });
+
+          // Give the change event some time to show up
+          setTimeout(() => {
+            btnCb(true);
+          }, 1000);
+        } else {
+          btnCb(false);
+          this.$store.dispatch('growl/fromError', { title: '@TODO Actual RKE2 snapshot create API call' });
+        }
+      } catch (err) {
+        this.$store.dispatch('growl/fromError', { title: 'Error creating snapshot', err });
+        btnCb(false);
+      }
+    },
   }
 };
 </script>
@@ -86,8 +206,9 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <ResourceTabs v-else v-model="value" :default-tab="defaultTab">
-    <Tab name="node-pools" label-key="cluster.tabs.nodePools">
+    <Tab v-if="value.isRke2 || showRke1Pools" name="node-pools" label-key="cluster.tabs.nodePools" :weight="3">
       <SortableTable
+        v-if="value.isRke2"
         :rows="machines"
         :headers="machineHeaders"
         :table-actions="false"
@@ -104,8 +225,12 @@ export default {
           </div>
         </template>
       </SortableTable>
+      <div v-else>
+        RKE 1 node pools...
+      </div>
     </Tab>
-    <Tab v-if="clusterToken" name="registration" label="Registration">
+
+    <Tab v-if="clusterToken" name="registration" label="Registration" :weight="2">
       <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" />
       <template v-else>
         <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
@@ -123,6 +248,20 @@ export default {
           {{ t('cluster.import.clusterRoleBindingCommand', null, true) }}
         </CopyCode>
       </template>
+    </Tab>
+
+    <Tab v-if="showSnapshots" name="snapshots" label="Snapshots" :weight="1">
+      <SortableTable
+        :headers="value.isRke1 ? rke1SnapshotHeaders : rke2SnapshotHeaders"
+        default-sort-by="age"
+        :table-actions="value.isRke1"
+        :rows="value.isRke1 ? rke1Snapshots : rke2Snapshots"
+        :search="false"
+      >
+        <template #header-right>
+          <AsyncButton mode="snapshot" class="btn role-primary" @click="takeSnapshot" />
+        </template>
+      </SortableTable>
     </Tab>
   </ResourceTabs>
 </template>

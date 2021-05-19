@@ -73,6 +73,10 @@ export default {
     function responseObject(res) {
       let out = res.data;
 
+      if ( res.status === 201 ) {
+        out = {};
+      }
+
       if ( typeof out !== 'object' ) {
         out = { data: out };
       }
@@ -339,12 +343,16 @@ export default {
     return proxyFor(ctx, copy, true);
   },
 
+  promptMove({ commit, state }, resources) {
+    commit('action-menu/togglePromptMove', resources, { root: true });
+  },
+
   promptRemove({ commit, state }, resources ) {
     commit('action-menu/togglePromptRemove', resources, { root: true });
   },
 
-  promptMove({ commit, state }, resources) {
-    commit('action-menu/togglePromptMove', resources, { root: true });
+  promptRestore({ commit, state }, resources ) {
+    commit('action-menu/togglePromptRestore', resources, { root: true });
   },
 
   assignTo({ commit, state }, resources = []) {

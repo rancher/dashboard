@@ -1,4 +1,5 @@
 import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
+import { proxyFor } from '@/plugins/steve/resource-proxy';
 import { findBy, insertAt } from '@/utils/array';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
@@ -57,6 +58,10 @@ export default {
 
   isRke2() {
     return !!this.spec?.rkeConfig;
+  },
+
+  isRke1() {
+    return !!this.mgmt?.spec?.rancherKubernetesEngineConfig;
   },
 
   mgmt() {
@@ -254,5 +259,17 @@ export default {
     return (items) => {
       return this.mgmt?.downloadKubeConfigBulk(items);
     };
+  },
+
+  etcdSnapshots() {
+    return (this.status?.etcdSnapshots || []).map((x) => {
+      x.id = x._name;
+      x.type = 'etcdBackup';
+      x.state = 'active';
+      x.clusterId = this.id;
+      x.rke2 = true;
+
+      return proxyFor(this.$ctx, x);
+    });
   },
 };

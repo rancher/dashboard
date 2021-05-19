@@ -82,7 +82,7 @@ export default {
 
     <ResourceTable :schema="schema" :rows="rows" :namespaced="false">
       <template #cell:provider="{row}">
-        <template v-if="row.nodeProviderDisplay">
+        <template v-if="row.nodeProvider">
           {{ row.nodeProviderDisplay }}
           <div class="text-muted">
             {{ row.provisionerDisplay }}

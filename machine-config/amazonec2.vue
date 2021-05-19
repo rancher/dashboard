@@ -281,7 +281,7 @@ export default {
     },
 
     'securityGroupMode'(val) {
-      this.value.securityGroupReadonly = ( val === 'default' );
+      this.value.securityGroupReadonly = ( val !== 'default' );
     },
   },
 

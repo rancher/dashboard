@@ -42,11 +42,7 @@ export function proxyFor(ctx, obj, isClone = false) {
   const customModel = lookup(mappedType, obj?.metadata?.name);
   const model = customModel || ResourceInstance;
 
-  // Hack for now, the resource-instance name() overwrites the model name.
-  if ( obj.name ) {
-    obj._name = obj.name;
-    delete obj.name;
-  }
+  remapSpecialKeys(obj);
 
   const proxy = new Proxy(obj, {
     get(target, name) {
@@ -61,6 +57,8 @@ export function proxyFor(ctx, obj, isClone = false) {
       } else if ( name === 'constructor' ) {
         // To satisfy vue-devtools
         return FAKE_CONSTRUCTOR;
+      } else if ( name === '$ctx' ) {
+        return ctx;
       } else if ( name.startsWith('$') ) {
         return ctx[name.substr(1)];
       } else if ( name === PRIVATE ) {
@@ -94,4 +92,17 @@ export function proxyFor(ctx, obj, isClone = false) {
   });
 
   return proxy;
+}
+
+export function remapSpecialKeys(obj) {
+  // Hack for now, the resource-instance name() overwrites the model name.
+  if ( obj.name ) {
+    obj._name = obj.name;
+    delete obj.name;
+  }
+
+  if ( obj.state ) {
+    obj._state = obj.state;
+    delete obj.state;
+  }
 }

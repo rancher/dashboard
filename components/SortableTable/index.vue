@@ -268,7 +268,11 @@ export default {
     },
 
     showHeaderRow() {
-      return this.search || this.tableActions;
+      return this.search ||
+        this.tableActions ||
+        this.$slots['header-left']?.length ||
+        this.$slots['header-middle']?.length ||
+        this.$slots['header-right']?.length;
     },
 
     columns() {
@@ -472,32 +476,44 @@ export default {
     <div :class="{'titled': $slots.title && $slots.title.length}" class="sortable-table-header">
       <slot name="title" />
       <div v-if="showHeaderRow" class="fixed-header-actions">
-        <div v-if="tableActions" class="bulk">
-          <button
-            v-for="act in availableActions"
-            :key="act.action"
-            type="button"
-            class="btn role-primary"
-            :disabled="!act.enabled"
-            @click="applyTableAction(act, null, $event)"
-            @mouseover="setBulkActionOfInterest(act)"
-            @mouseleave="setBulkActionOfInterest(null)"
-          >
-            <i v-if="act.icon" :class="act.icon" />
-            <span v-html="act.label" />
-          </button>
-          <span />
-          <label v-if="actionAvailability" class="action-availability">
-            {{ actionAvailability }}
-          </label>
+        <div class="bulk">
+          <slot name="header-left">
+            <template v-if="tableActions">
+              <button
+                v-for="act in availableActions"
+                :key="act.action"
+                type="button"
+                class="btn role-primary"
+                :disabled="!act.enabled"
+                @click="applyTableAction(act, null, $event)"
+                @mouseover="setBulkActionOfInterest(act)"
+                @mouseleave="setBulkActionOfInterest(null)"
+              >
+                <i v-if="act.icon" :class="act.icon" />
+                <span v-html="act.label" />
+              </button>
+              <span />
+              <label v-if="actionAvailability" class="action-availability">
+                {{ actionAvailability }}
+              </label>
+            </template>
+          </slot>
         </div>
 
-        <div class="middle">
+        <div v-if="$slots['header-middle'] && $slots['header-middle'].length" class="middle">
           <slot name="header-middle" />
         </div>
 
-        <div v-if="search" class="search">
-          <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" :placeholder="t('sortableTable.search')">
+        <div v-if="search || ($slots['header-right'] && $slots['header-right'].length)" class="search">
+          <slot name="header-right" />
+          <input
+            v-if="search"
+            ref="searchQuery"
+            v-model="searchQuery"
+            type="search"
+            class="input-sm"
+            :placeholder="t('sortableTable.search')"
+          >
         </div>
       </div>
     </div>
@@ -882,6 +898,7 @@ $spacing: 10px;
 
   .search {
     grid-area: search;
+    text-align: right;
   }
 }
 

@@ -480,6 +480,14 @@ asyncButton:
     action: Remove
     success: Removed
     waiting: Removing&hellip;
+  restore:
+    action: Restore
+    waiting: Restoring&hellip;
+    success: Restored
+  snapshot:
+    action: Snapshow Now
+    waiting: Snapshotting&hellip;
+    success: Shapshot Creating
   update:
     action: Update
     success: Updated
@@ -907,25 +915,25 @@ cluster:
             other {}
           }
   provider:
-    amazoneks: Amazon EKS
-    azureaks: Azure AKS
-    aliyunkubernetescontainerservice: Alibaba ACK
-    baiducloudcontainerengine: Baidu CCE
-    googlegke: Google GKE
-    huaweicce: Huawei CCE
-    oracleoke: Oracle OKE
-    otc: Open Telekom Cloud
-    tencenttke: Tencent TKE
     aliyunecs: Aliyun ECS
+    aliyunkubernetescontainerservice: Alibaba ACK
     amazonec2: Amazon EC2
+    amazoneks: Amazon EKS
     aws: Amazon AWS
     azure: Azure
+    azureaks: Azure AKS
+    aks: Azure AKS
+    baiducloudcontainerengine: Baidu CCE
     cloudca: Cloud.ca
     custom: Custom
     digitalocean: DigitalOcean
     docker: Docker
+    eks: Amazon EKS
     exoscale: Exoscale
     google: Google GCE
+    googlegke: Google GKE
+    gke: Google GKE
+    huaweicce: Huawei CCE
     import: Import
     imported: Imported
     k3s: K3s
@@ -936,6 +944,8 @@ cluster:
     oci: Oracle Cloud Infrastructure
     openstack: OpenStack
     opentelekomcloudcontainerengine: Open Telekom Cloud CCE
+    oracleoke: Oracle OKE
+    otc: Open Telekom Cloud
     other: Other
     packet: Packet
     pinganyunecs: Pinganyun ECS
@@ -945,6 +955,7 @@ cluster:
     rke: RKE
     rkeWindows: Windows
     softlayer: SoftLayer
+    tencenttke: Tencent TKE
     upcloud: UpCloud
     vmwarevsphere: vSphere
     zstack: ZStack
@@ -969,6 +980,7 @@ cluster:
     agentEnv: Agent Environment Vars
     basic: Basics
     cluster: Cluster Configuration
+    etcd: etcd
     networking: Networking
     nodePools: Node Pools
     upgrade: Upgrade Strategy
@@ -2403,6 +2415,9 @@ promptRemove:
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
   confirmName: "Enter <b>{nameToMatch}</b> below to confirm:"
 
+promptRestore:
+  title: Restore Snapshot
+
 rancherAlertingDrivers:
   msTeams: Enable Microsoft Teams
   sms: Enable SMS
@@ -3193,6 +3208,7 @@ tableHeaders:
   lastSeen: Last Seen
   loggingOutputProviders: Provider
   machines: Machines
+  manual: Manual
   matches: Matches
   maxKubernetesVersion: Max Kubernetes Version
   message: Message
@@ -3245,6 +3261,7 @@ tableHeaders:
   simpleName: Name
   simpleScale: Scale
   simpleType: Type
+  size: Size
   started: Started
   state: State
   status: Status

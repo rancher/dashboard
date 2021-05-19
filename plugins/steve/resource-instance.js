@@ -318,7 +318,7 @@ export default {
   },
 
   nameDisplay() {
-    return this.displayName || this.spec?.displayName || this.metadata?.annotations?.[NORMAN_NAME] || this.metadata?.name || this.id;
+    return this.displayName || this.spec?.displayName || this.metadata?.annotations?.[NORMAN_NAME] || this.metadata?.name || this.name || this.id;
   },
 
   nameSort() {
@@ -439,7 +439,7 @@ export default {
 
   // You can override the state by providing your own state (and possibly reading metadata.state)
   state() {
-    return this.metadata?.state?.name || 'unknown';
+    return this.metadata?.state?.name || this._state || 'unknown';
   },
 
   // You can override the displayed by providing your own stateDisplay (and possibly using the function exported above)
