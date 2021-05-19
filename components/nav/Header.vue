@@ -126,7 +126,8 @@ export default {
     <div class="menu-spacer"></div>
     <div v-if="!simple" class="product">
       <div v-if="currentProduct && currentProduct.showClusterSwitcher" class="cluster">
-        <img v-if="currentCluster" class="cluster-os-logo" :src="currentCluster.providerLogo" />
+        <BrandImage v-if="currentCluster.isLocal" file-name="local-cluster.svg" class="pr-5" width="25" />
+        <img v-else-if="currentCluster" class="cluster-os-logo" :src="currentCluster.providerLogo" />
         <div v-if="currentCluster" class="cluster-name">
           {{ currentCluster.spec.displayName }}
         </div>

@@ -53,11 +53,12 @@ export default {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
       let out = all.map((x) => {
         return {
-          id:     x.id,
-          label:  x.nameDisplay,
-          ready:  x.isReady,
-          osLogo: x.providerOsLogo,
-          logo:   x.providerLogo,
+          id:      x.id,
+          label:   x.nameDisplay,
+          ready:   x.isReady,
+          osLogo:  x.providerOsLogo,
+          logo:    x.providerLogo,
+          isLocal: x.isLocal
         };
       });
 
@@ -202,7 +203,8 @@ export default {
                 class="cluster selector option"
                 :to="{ name: 'c-cluster', params: { cluster: c.id } }"
               >
-                <img :src="c.logo" />
+                <BrandImage v-if="c.isLocal" file-name="local-cluster.svg" />
+                <img v-else :src="c.logo" />
                 <div>{{ c.label }}</div>
               </nuxt-link>
               <span v-else class="cluster selector disabled">

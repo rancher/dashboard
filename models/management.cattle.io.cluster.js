@@ -168,6 +168,10 @@ export default {
     return require(`~/assets/images/vendor/${ this.providerOs }.svg`);
   },
 
+  isLocal() {
+    return this.id === 'local';
+  },
+
   providerLogo() {
     const provider = this.status?.provider || 'kubernetes';
     // Only interested in the part before the period
