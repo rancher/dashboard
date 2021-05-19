@@ -77,7 +77,7 @@ BUTTON,
 }
 
 A {
-  @include link-color(var(--link-text), var(--link-hover-text));
+  @include link-color(var(--link), var(--body-text));
 
   text-decoration: none;
 

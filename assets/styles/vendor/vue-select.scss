@@ -241,7 +241,7 @@ $transition-duration: 150ms;
   background-color: var(--accent-btn);
   border: 1px solid var(--primary);
   border-radius: 3px;
-  color: var(--link-text);
+  color: var(--link);
   margin-left: $input-padding-sm;
 
   &:not(:last-of-type) {
@@ -266,7 +266,7 @@ $transition-duration: 150ms;
   &:after {
     content: $icon-close;
     font-family: 'icons';
-    color: var(--link-text);
+    color: var(--link);
   }
 }
 

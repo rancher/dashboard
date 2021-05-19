@@ -221,22 +221,18 @@ export default {
         &:hover:not(.disabled) { border-color: var(--app-color4-accent); }
       }
       &.color5 {
-        background: var(--app-color5-bg);
         .side-label { background-color: var(--app-color5-accent); color: var(--app-color5-accent-text); }
         &:hover:not(.disabled) { border-color: var(--app-color5-accent); }
       }
       &.color6 {
-        background: var(--app-color6-bg);
         .side-label { background-color: var(--app-color6-accent); color: var(--app-color6-accent-text); }
         &:hover:not(.disabled) { border-color: var(--app-color6-accent); }
       }
       &.color7 {
-        background: var(--app-color7-bg);
         .side-label { background-color: var(--app-color7-accent); color: var(--app-color7-accent-text); }
         &:hover:not(.disabled) { border-color: var(--app-color7-accent); }
       }
       &.color8 {
-        background: var(--app-color8-bg);
         .side-label { background-color: var(--app-color8-accent); color: var(--app-color8-accent-text); }
         &:hover:not(.disabled) { border-color: var(--app-color8-accent); }
       }

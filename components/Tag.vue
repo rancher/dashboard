@@ -10,11 +10,10 @@ export default {};
 
 <style lang="scss" scoped>
   .tag {
-    border: 1px solid var(--tag-primary);
     border-radius: var(--border-radius);
     color: var(--tag-primary);
     background-color: var(--tag-bg);
-    padding: 3px 5px 2px 5px;
+    padding: 4px 6px 3px 6px;
     font-size: 12px;
   }
 </style>

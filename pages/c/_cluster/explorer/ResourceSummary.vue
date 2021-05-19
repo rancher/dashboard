@@ -120,7 +120,7 @@ export default {
     cursor: pointer;
 
     &:hover {
-      border-color: var(--link-text);
+      border-color: var(--link);
     }
   }
 

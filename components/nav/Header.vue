@@ -331,7 +331,7 @@ export default {
         font-size: 18px;
         padding: 6px;
         &:hover {
-          color: var(--link-text);
+          color: var(--link);
         }
       }
     }
