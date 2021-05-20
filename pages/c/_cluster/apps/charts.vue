@@ -93,6 +93,28 @@ export default {
       return out;
     },
 
+    repoOptionsForDropdown() {
+      return [{
+        label: this.t('catalog.repo.all'), all: true, enabled: this.areAllEnabled()
+      }, ...this.repoOptions];
+    },
+
+    flattenedRepoNames() {
+      const shownRepos = this.repoOptions.filter(repo => !this.hideRepos.includes(repo._key));
+      const reducedRepos = shownRepos.reduce((acc, c, i) => {
+        acc += c.label;
+        const length = shownRepos.length;
+
+        if (i < length - 1) {
+          acc += ', ';
+        }
+
+        return acc;
+      }, '');
+
+      return reducedRepos;
+    },
+
     enabledCharts() {
       return (this.allCharts || []).filter((c) => {
         if ( c.deprecated && !this.showDeprecated ) {
@@ -155,21 +177,7 @@ export default {
 
       return out;
     },
-    flattenedRepoNames() {
-      const shownRepos = this.repoOptions.filter(repo => !this.hideRepos.includes(repo._key));
-      const reducedRepos = shownRepos.reduce((acc, c, i) => {
-        acc += c.label;
-        const length = shownRepos.length;
 
-        if (i < length - 1) {
-          acc += ', ';
-        }
-
-        return acc;
-      }, '');
-
-      return reducedRepos;
-    }
   },
 
   watch: {
@@ -310,24 +318,24 @@ export default {
       <div>
         <Select
           :searchable="false"
-          :options="[{label: 'All', all: true, enabled:areAllEnabled() },...repoOptions]"
+          :options="repoOptionsForDropdown"
           :value="flattenedRepoNames"
-          class="option-label-container "
+          class="checkbox-select"
+          :close-on-select="false"
           @option:selecting="$event.all ? toggleAll(!$event.enabled) : toggleRepo($event, !$event.enabled) "
         >
-          <template #selected-option-container="{option}">
-            <span class="option-label">
-              {{ option.label }}
-            </span>
-          </template>
-
           <template #option="repo">
             <Checkbox
               :value="repo.enabled"
               :label="repo.label"
-              :class="{'pull-left': true, 'repo': true, [repo.color]: true}"
+              class="pull-left repo in-select"
+              :class="{ [repo.color]: true}"
               :color="repo.color"
-            />
+            >
+              <template #label>
+                <span>{{ repo.label }}</span><i v-if="!repo.all" class=" pl-5 icon icon-dot icon-sm" :class="{[repo.color]: true}" />
+              </template>
+            </Checkbox>
           </template>
         </Select>
       </div>
@@ -377,141 +385,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-
-.option-label {
-  margin-left: 10px;
-}
-
-.option-label-container ::v-deep .vs__search {
-  position: absolute;
-  right: 0
-}
-
-.option-label-container ::v-deep .vs__selected-options  {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  display: inline-block;
-  line-height: 2.4rem;
-}
-
-.repo {
-  width: 100%;
-  border-radius: 4px;
-}
-
-.repo:first-child {
-  margin-bottom: 1px;
-  &:hover {
-    // color: var(--input-bg-accent);
-    background: var(--input-hover-bg);
-  }
-}
-
-.repo:not(:first-child) {
-  margin: 1px 0;
-}
-
-.repo {
-  padding: 7px 0 6px 13px;
-  &:hover ::v-deep.checkbox-label {
-      color: var(--body-text);
-    }
-
-  &.rancher {
-    background: var(--app-rancher-bg);
-      &:hover {
-      background: var(--app-rancher-accent);
-    }
-    &:hover ::v-deep.checkbox-label {
-      color: var(--app-rancher-accent-text);
-    }
-  }
-
-  &.partner {
-    background: var(--app-partner-bg);
-      &:hover {
-      background: var(--app-partner-accent);
-    }
-    &:hover ::v-deep.checkbox-label {
-      color: var(--app-partner-accent-text);
-    }
-  }
-
-  &.color1 {
-    background: var(--app-color1-bg);
-    &:hover {
-      background: var(--app-color1-accent);
-    }
-    &:hover ::v-deep.checkbox-label {
-      color: var(--app-color1-accent-text);
-    }
-  }
-  &.color2 {
-    background: var(--app-color2-bg);
-    &:hover {
-      background: var(--app-color2-accent);
-    }
-    &:hover ::v-deep.checkbox-label {
-      color: var(--app-color2-accent-text);
-    }
-  }
-  &.color3 {
-    background: var(--app-color3-bg);
-    &:hover {
-      background: var(--app-color3-accent);
-    }
-    &:hover ::v-deep.checkbox-label {
-      color: var(--app-color3-accent-text);
-    }
-  }
-  &.color4 {
-    background: var(--app-color4-bg);
-    &:hover {
-      background: var(--app-color4-accent);
-    }
-    &:hover ::v-deep.checkbox-label {
-      color: var(--app-color4-accent-text);
-    }
-  }
-  &.color5 {
-    background: var(--app-color5-bg);
-    &:hover {
-      background: var(--app-color5-accent);
-    }
-    &:hover ::v-deep.checkbox-label {
-      color: var(--app-color5-accent-text);
-    }
-  }
-  &.color6 {
-    background: var(--app-color6-bg);
-    &:hover {
-      background: var(--app-color6-accent);
-    }
-    &:hover ::v-deep.checkbox-label {
-      color: var(--app-color6-accent-text);
-    }
-  }
-  &.color7 {
-    background: var(--app-color7-bg);
-    &:hover {
-      background: var(--app-color7-accent);
-    }
-    &:hover ::v-deep.checkbox-label {
-      color: var(--app-color7-accent-text);
-    }
-  }
-  &.color8 {
-    background: var(--app-color8-bg);
-    &:hover {
-      background: var(--app-color8-accent);
-    }
-    &:hover ::v-deep.checkbox-label {
-      color: var(--app-color8-accent-text);
-    }
-  }
-}
-
 .left-right-split {
     padding: 0 0 20px 0;
     width: 100%;
@@ -521,18 +394,160 @@ export default {
     grid-template-columns: 50% auto auto 40px;
     align-content: center;
     grid-column-gap: 10px;
-
-  // .left-half {
-  //   background: lavenderblush;
-  //   grid-column: 1;
-  //   // grid-area: left;
-  // }
-
-  // .right-half {
-  //   background: darkslateblue;
-  //   grid-column: 2;
-  //   // grid-area: right;
-  // }
   }
+
+.checkbox-select {
+   .vs__search {
+    position: absolute;
+    right: 0
+  }
+
+ .vs__selected-options  {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: inline-block;
+    line-height: 2.4rem;
+  }
+
+}
+
+.checkbox-outer-container.in-select {
+  transform: translateX(-5px);
+  padding: 7px 0 6px 13px;
+  width: calc(100% + 10px);
+
+  ::v-deep.checkbox-label {
+    display: flex;
+    align-items: center;
+
+    & i {
+      line-height: inherit;
+    }
+  }
+
+  &:first-child {
+    &:hover {
+      background: var(--input-hover-bg);
+    }
+  }
+
+  &:hover ::v-deep.checkbox-label {
+      color: var(--body-text);
+    }
+
+  &.rancher {
+      &:hover {
+      background: var(--app-rancher-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-rancher-accent-text);
+    }
+    & i {
+      color: var(--app-rancher-accent)
+    }
+  }
+
+  &.partner {
+      &:hover {
+      background: var(--app-partner-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-partner-accent-text);
+    }
+    & i {
+      color: var(--app-partner-accent)
+    }
+  }
+
+  &.color1 {
+    &:hover {
+      background: var(--app-color1-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-color1-accent-text);
+    }
+    & i {
+      color: var(--app-color1-accent)
+    }
+  }
+  &.color2 {
+    &:hover {
+      background: var(--app-color2-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-color2-accent-text);
+    }
+        & i {
+      color: var(--app-color2-accent)
+    }
+  }
+  &.color3 {
+    &:hover {
+      background: var(--app-color3-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-color3-accent-text);
+    }
+        & i {
+      color: var(--app-color3-accent)
+    }
+  }
+  &.color4 {
+    &:hover {
+      background: var(--app-color4-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-color4-accent-text);
+    }
+        & i {
+      color: var(--app-color4-accent)
+    }
+  }
+  &.color5 {
+    &:hover {
+      background: var(--app-color5-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-color5-accent-text);
+    }
+        & i {
+      color: var(--app-color4-accent)
+    }
+  }
+  &.color6 {
+    &:hover {
+      background: var(--app-color6-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-color6-accent-text);
+    }
+        & i {
+      color: var(--app-color6-accent)
+    }
+  }
+  &.color7 {
+    &:hover {
+      background: var(--app-color7-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-color7-accent-text);
+    }
+        & i {
+      color: var(--app-color7-accent)
+    }
+  }
+  &.color8 {
+    &:hover {
+      background: var(--app-color8-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-color8-accent-text);
+    }
+        & i {
+      color: var(--app-color8-accent)
+    }
+  }
+}
 
 </style>
