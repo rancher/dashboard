@@ -298,7 +298,6 @@ export default {
         </template>
       </Tab>
       <Tab v-if="v1MonitoringUrl" name="v1Metrics" :label="t('node.detail.tab.metrics')" :weight="10">
-        HELLO
         <div id="ember-anchor">
           <EmberPage inline="ember-anchor" :fixed="false" :src="v1MonitoringUrl" />
         </div>
