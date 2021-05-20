@@ -72,6 +72,7 @@ export default {
             name:      this.snapshot.name,
             size:      this.snapshot.size,
             nodeName:  this.snapshot.nodeName,
+            s3:        this.snapshot.s3,
           });
 
           await cluster.save();

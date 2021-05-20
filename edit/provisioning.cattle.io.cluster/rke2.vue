@@ -860,6 +860,10 @@ export default {
         </div>
       </Tab>
 
+      <Tab name="registry" label-key="cluster.tabs.registry" :weight="6">
+        Registry Options..
+      </Tab>
+
       <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="-1" @active="$refs.additionalManifest.refresh()">
         <template v-if="serverArgs.profile || agentArgs.profile">
           <h3>CIS Profile Validation</h3>
@@ -928,31 +932,6 @@ export default {
       <ACE v-model="value" :mode="mode" />
       <AgentEnv v-model="value" :mode="mode" />
       <Labels v-model="value" :mode="mode" />
-
-      <Tab name="TBD" :weight="-2">
-        <div><b>??</b></div>
-        <ul>
-          <li>Snapshot Backups</li>
-          <li>Private Registry</li>
-          <li>CNI MTU / Options from chart</li>
-        </ul>
-
-        <div><b>ServerArgs:</b></div>
-        <ul>
-          <li>audit-policy-file</li>
-          <li>etcd-disabled-snapshots</li>
-          <li>etcd-expose-metrics</li>
-          <li>etcd-snapshot-dir</li>
-          <li>etcd-snapshot-name</li>
-          <li>etcd-snapshot-retention</li>
-          <li>etcd-snapshot-schedule-cron</li>
-        </ul>
-        <div><b>AgentArgs:</b></div>
-        <ul>
-          <li>audit-policy-file</li>
-          <li>system-default-registry</li>
-        </ul>
-      </Tab>
     </Tabbed>
 
     <Banner v-if="multipleAgentConfigs" color="warning" label="This cluster has multiple workerConfigs. This form does only manages the first one; use the YAML editor to manage the full configuration." />
