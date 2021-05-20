@@ -116,7 +116,7 @@ export default {
 
     showDialog(isAdd) {
       this.isRemoveDialog = isAdd;
-      this.$modal.show('toggle-support')
+      this.$modal.show('toggle-support');
     }
   }
 };
@@ -129,11 +129,13 @@ export default {
       <div class="content mt-20">
         <div class="promo">
           <div class="box mb-20 box-primary">
-            <h2>{{ t('support.suse.access.title')}}</h2>
-              <div>
-                <p class="pb-10">{{ t('support.suse.access.text') }}</p>
-                <a href="https://scc.suse.com" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.suse.access.action') }} <i class="icon icon-external-link" /></a>
-              </div>
+            <h2>{{ t('support.suse.access.title') }}</h2>
+            <div>
+              <p class="pb-10">
+                {{ t('support.suse.access.text') }}
+              </p>
+              <a href="https://scc.suse.com" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.suse.access.action') }} <i class="icon icon-external-link" /></a>
+            </div>
           </div>
           <div class="boxes">
             <div v-for="key in promos" :key="key" class="box">
