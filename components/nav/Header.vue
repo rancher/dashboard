@@ -144,9 +144,8 @@ export default {
       </div>
     </div>
     <div v-else class="simple-title">
-      <BrandImage class="side-menu-logo" file-name="rancher-logo.svg" width="110" />
-      <div class="title">
-        {{ appName }}
+      <div class="side-menu-logo">
+        <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
       </div>
     </div>
 
@@ -452,7 +451,18 @@ export default {
     }
 
     .side-menu-logo {
+      align-items: center;
+      display: flex;
       margin-right: 8px;
+      height: 55px;
+      max-width: 200px;
+      padding: 12px 0;
+    }
+
+    .side-menu-logo-img {
+      object-fit: contain;
+      height: 21px;
+      max-width: 200px;
     }
 
     > * {

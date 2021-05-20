@@ -139,49 +139,24 @@ export default {
           <LabeledInput v-model="uiPLSetting.value" :label="t('branding.uiPL.label')" />
         </div>
       </div>
-      <div class="mb-40">
-        <div class="col span-6">
+      <div class="mb-20">
+        <div class="col span-6 pb-5">
           <LabeledInput v-model="uiIssuesSetting.value" :label="t('branding.uiIssues.label')" />
         </div>
         <span class="text-label">{{ t(`advancedSettings.descriptions.${ 'ui-issues' }`, {}, true) }}</span>
       </div>
-      <h3 class="mb-5 pb-0">
-        {{ t('branding.uiBanner.label') }}
-      </h3>
-      <label class="text-label">
-        {{ t(`advancedSettings.descriptions.${ 'ui-banners' }`, {}, true) }}
-      </label>
 
-      <div class="row mt-20 mb-20">
-        <Checkbox :value="bannerVal.showHeader==='true'" :label="t('branding.uiBanner.showHeader')" @input="e=>$set(bannerVal, 'showHeader', e.toString())" />
-        <Checkbox :value="bannerVal.showFooter==='true'" :label="t('branding.uiBanner.showFooter')" @input="e=>$set(bannerVal, 'showFooter', e.toString())" />
-      </div>
-      <template v-if="bannerVal.showHeader==='true' || bannerVal.showFooter==='true'">
-        <div class="row">
-          <div class="col span-12">
-            <LabeledInput v-model="bannerVal.banner.text" :label="t('branding.uiBanner.text')" />
-          </div>
-        </div>
-        <div class="row">
-          <div class="col span-3">
-            <ColorInput v-model="bannerVal.banner.color" :label="t('branding.uiBanner.textColor')" />
-          </div>
-          <div class="col span-3">
-            <ColorInput v-model="bannerVal.banner.background" :label="t('branding.uiBanner.background')" />
-          </div>
-        </div>
-      </template>
-
-      <h3 class="mt-40 mb-5 pb-0">
+      <h3 class="mt-20 mb-5 pb-5">
         {{ t('branding.logos.label') }}
       </h3>
       <label class="text-label">
         {{ t('branding.logos.tip', {}, true) }}
       </label>
 
-      <div class="row mt-20">
+      <div class="row mt-10 mb-20">
         <Checkbox v-model="customizeLogo" :label="t('branding.logos.useCustom')" />
       </div>
+
       <div v-if="customizeLogo" class="row mb-20">
         <div class="col logo-container span-6">
           <div class="mb-10">
@@ -216,6 +191,33 @@ export default {
           </SimpleBox>
         </div>
       </div>
+
+      <h3 class="mb-5 pb-5">
+        {{ t('branding.uiBanner.label') }}
+      </h3>
+      <label class="text-label">
+        {{ t(`advancedSettings.descriptions.${ 'ui-banners' }`, {}, true) }}
+      </label>
+
+      <div class="row mt-20 mb-20">
+        <Checkbox :value="bannerVal.showHeader==='true'" :label="t('branding.uiBanner.showHeader')" @input="e=>$set(bannerVal, 'showHeader', e.toString())" />
+        <Checkbox :value="bannerVal.showFooter==='true'" :label="t('branding.uiBanner.showFooter')" @input="e=>$set(bannerVal, 'showFooter', e.toString())" />
+      </div>
+      <template v-if="bannerVal.showHeader==='true' || bannerVal.showFooter==='true'">
+        <div class="row">
+          <div class="col span-12">
+            <LabeledInput v-model="bannerVal.banner.text" :label="t('branding.uiBanner.text')" />
+          </div>
+        </div>
+        <div class="row mt-10">
+          <div class="col span-3">
+            <ColorInput v-model="bannerVal.banner.color" :label="t('branding.uiBanner.textColor')" />
+          </div>
+          <div class="col span-3">
+            <ColorInput v-model="bannerVal.banner.background" :label="t('branding.uiBanner.background')" />
+          </div>
+        </div>
+      </template>
     </div>
     <template v-for="err in errors">
       <Banner :key="err" color="error" :label="err" />
@@ -227,29 +229,29 @@ export default {
 </template>
 
 <style scoped lang='scss'>
-.logo-container{
+.logo-container {
     display: flex;
     flex-direction: column;
 
-    ::v-deep.simple-box{
+    ::v-deep.simple-box {
         position: relative;
         flex: 1;
-        max-height: 200px;
+        max-height: 120px;
 
-        .content{
-            height: 100%;
-            display: flex;
+        .content {
+          height: 100%;
+          display: flex;
         }
 
-        .logo-preview{
-            max-width: 100%;
+        .logo-preview {
+          max-width: 100%;
         }
     }
 
     & LABEL {
-        position: absolute;
-        top: 10px;
-        left: 10px;
+      position: absolute;
+      top: 10px;
+      left: 10px;
     }
 }
 

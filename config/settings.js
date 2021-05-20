@@ -48,8 +48,8 @@ export const ALLOWED_SETTINGS = {
   // [SETTING.CLUSTER_DEFAULTS]:            { kind: 'json' },
   [SETTING.ENGINE_URL]:                     {},
   [SETTING.ENGINE_ISO_URL]:                 {},
-  [SETTING.PL]:                             {},
-  [SETTING.ISSUES]:                         {},
+  // [SETTING.PL]:                             {},
+  // [SETTING.ISSUES]:                         {},
   [SETTING.INGRESS_IP_DOMAIN]:              {},
   [SETTING.AUTH_USER_INFO_MAX_AGE_SECONDS]: {},
   [SETTING.AUTH_USER_SESSION_TTL_MINUTES]:  {},
@@ -60,7 +60,7 @@ export const ALLOWED_SETTINGS = {
   [SETTING.BANNERS]:                        { kind: 'json' },
   [SETTING.SYSTEM_DEFAULT_REGISTRY]:        {},
   [SETTING.UI_INDEX]:                       {},
-  [SETTING.BRAND]:                          {},
+  // [SETTING.BRAND]:                          {},
   [SETTING.CLUSTER_TEMPLATE_ENFORCEMENT]:   { kind: 'boolean' },
 
   [SETTING.TELEMETRY]: {

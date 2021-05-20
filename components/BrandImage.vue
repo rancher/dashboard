@@ -17,11 +17,11 @@ export default {
     this.managementSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
   },
   data() {
-    const theme = this.$store.getters['prefs/theme'];
-
-    return { theme, managementSettings: [] };
+    return { managementSettings: [] };
   },
   computed: {
+    ...mapGetters({ theme: 'prefs/theme' }),
+
     brand() {
       const setting = this.managementSettings.filter(setting => setting.id === SETTING.BRAND)[0] || {};
 
@@ -40,39 +40,40 @@ export default {
       return setting.value;
     },
 
-    pathToBrandedImage() {
-      let out = require(`~/assets/images/pl/${ this.fileName }`);
+    defaultPathToBrandedImage() {
+      const themePrefix = this.theme === 'dark' ? 'dark/' : '';
 
+      try {
+        return require(`~/assets/images/pl/${ themePrefix }${ this.fileName }`);
+      } catch {
+        return require(`~/assets/images/pl/${ this.fileName }`);
+      }
+    },
+
+    pathToBrandedImage() {
       if (this.fileName === 'rancher-logo.svg') {
-        if ((this.theme === 'light' || !this.uiLogoDark) && this.uiLogoLight) {
+        if (this.theme === 'light' && this.uiLogoLight) {
           return this.uiLogoLight;
-        } else if (this.uiLogoDark) {
+        } else if (this.theme === 'dark' && this.uiLogoDark) {
           return this.uiLogoDark;
         }
       }
 
       if (!this.brand) {
-        return out;
+        return this.defaultPathToBrandedImage;
       } else {
         if (this.theme === 'dark' || this.dark) {
           try {
-            out = require(`~/assets/brand/${ this.brand }/dark/${ this.fileName }`);
-
-            return out;
+            return require(`~/assets/brand/${ this.brand }/dark/${ this.fileName }`);
           } catch {}
         }
         try {
-          out = require(`~/assets/brand/${ this.brand }/${ this.fileName }`);
-        } catch {
-        }
+          return require(`~/assets/brand/${ this.brand }/${ this.fileName }`);
+        } catch {}
 
-        return out ;
+        return this.defaultPathToBrandedImage;
       }
     },
-
-    pathToRancherFallback() {
-      return require(`~/assets/images/pl/${ this.fileName }`);
-    }
   }
 };
 </script>
