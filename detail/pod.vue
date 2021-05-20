@@ -11,6 +11,7 @@ import V1WorkloadMetrics from '@/mixins/v1-workload-metrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@/utils/grafana';
 import Loading from '@/components/Loading';
+import LabeledSelect from '@/components/form/LabeledSelect';
 
 const POD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-containers-1/rancher-pod-containers?orgId=1';
 const POD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-1/rancher-pod?orgId=1';
@@ -24,6 +25,7 @@ export default {
     ResourceTabs,
     Tab,
     SortableTable,
+    LabeledSelect,
   },
 
   mixins: [CreateEditView, V1WorkloadMetrics],
@@ -33,10 +35,19 @@ export default {
   },
 
   data() {
+    const t = this.$store.getters['i18n/t'];
+    const POD_OPTION = {
+      id:    '//POD//',
+      label: t('workload.metrics.pod'),
+    };
+
     return {
       POD_METRICS_DETAIL_URL,
       POD_METRICS_SUMMARY_URL,
-      showMetrics: false
+      POD_OPTION,
+      showMetrics: false,
+      selection:   POD_OPTION,
+      metricsID:   null,
     };
   },
 
@@ -99,7 +110,36 @@ export default {
       };
     },
 
+    metricsOptions() {
+      const v = this.containers.map((c) => {
+        return {
+          id:    c.name,
+          label: c.name
+        };
+      });
+
+      v.unshift(this.POD_OPTION);
+
+      return v;
+    },
+
+    v1Metrics() {
+      if (!this.metricsID) {
+        return this.v1MonitoringUrl;
+      } else {
+        return `${ this.v1MonitoringContainerBaseUrl }/${ this.metricsID }`;
+      }
+    }
   },
+
+  methods: {
+    slectionChanged(c) {
+      const id = c === this.POD_OPTION ? null : c.id;
+
+      this.metricsID = id;
+      this.selection = c;
+    }
+  }
 };
 </script>
 
@@ -118,8 +158,15 @@ export default {
       />
     </Tab>
     <Tab v-if="v1MonitoringUrl" name="v1Metrics" :label="t('node.detail.tab.metrics')" :weight="0">
+      <LabeledSelect
+        class="pod-metrics-chooser"
+        :value="selection"
+        label-key="workload.metrics.metricsView"
+        :options="metricsOptions"
+        @input="slectionChanged($event)"
+      />
       <div id="ember-anchor">
-        <EmberPage inline="ember-anchor" :fixed="false" :src="v1MonitoringUrl" />
+        <EmberPage inline="ember-anchor" :fixed="false" :src="v1Metrics" />
       </div>
     </Tab>
     <Tab v-if="showMetrics" :label="t('workload.container.titles.metrics')" name="pod-metrics" :weight="2.5">
@@ -135,3 +182,10 @@ export default {
     </Tab>
   </ResourceTabs>
 </template>
+<style scoped>
+  .pod-metrics-chooser {
+    width: fit-content;
+    margin-bottom: 10px;
+    min-width: 300px;
+  }
+</style>

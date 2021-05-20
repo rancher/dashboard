@@ -3666,6 +3666,9 @@ workload:
       label: Successful Job History Limit
       tip: The number of successful finished jobs to retain.
     suspend: Suspend
+  metrics:
+    pod: Pod Metrics
+    metricsView: Metrics View
   networking:
     dnsPolicy:
       label: DNS Policy

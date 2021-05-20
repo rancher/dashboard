@@ -15,6 +15,7 @@ export default {
     });
 
     let v1MonitoringUrl = null;
+    let v1MonitoringContainerBaseUrl = null;
 
     if (p && haveV1Monitoring(this.$store.getters)) {
       const prjID = p.id.replace('/', ':');
@@ -27,6 +28,7 @@ export default {
         prefix = `workload-metrics/${ res }:`;
       } else {
         prefix = `workloads/pod-metrics/`;
+        v1MonitoringContainerBaseUrl = `/p/${ prjID }/workloads/${ namespace }:${ id }/container-metrics/`;
       }
 
       v1MonitoringUrl = `/p/${ prjID }/${ prefix }${ namespace }:${ id }`;
@@ -35,6 +37,7 @@ export default {
     return {
       project: p ? p.id : null,
       v1MonitoringUrl,
+      v1MonitoringContainerBaseUrl,
     };
   },
 };
