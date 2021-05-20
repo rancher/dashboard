@@ -94,6 +94,14 @@ export default {
     };
   },
 
+  doneOverride() {
+    return {
+      name:   'c-cluster-monitoring-route-receiver',
+      params: { cluster: this.$rootGetters['clusterId'] },
+      query:  { resource: this.type }
+    };
+  },
+
   customValidationRules() {
     const rules = [
       {
