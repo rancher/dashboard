@@ -228,7 +228,7 @@ authConfig:
     unrestricted: Allow any valid user
   allowedPrincipalIds:
     title: Authorized Users & Groups
-  associatedWarning: 'Note: The {provider} user you authenticate as will be associated as an alternate way to login to the {vendor} user you are currently logged in as (<code>{username}</code>).'
+  associatedWarning: 'Note: The {provider} user you authenticate as will be associated as an alternate way to login to the {vendor} user you are currently logged in as (<code>{username}</code>); all the global permissions, project, and cluster role bindings of this {vendor} user will also apply to the {provider} user.'
   github:
     clientId:
       label: Client ID
@@ -381,6 +381,8 @@ authConfig:
     enabled: 'The {provider} authentication provider is currently enabled.'
   testAndEnable: Test and Enable Authentication
   noneEnabled: Local Authentication is always enabled, but you may select another additional authentication provider from those shown below.
+  localEnabled: '{vendor} is configured to allow access to accounts in its local database.'
+  manageLocal: Manage Accounts
 
 authGroups:
   actions:

@@ -45,7 +45,16 @@ export default {
 
     displayName() {
       return this.$store.getters['type-map/labelFor'](this.schema, 2);
-    }
+    },
+
+    localUsersRoute() {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster: this.$route.params.cluster, product: 'auth', resource: MANAGEMENT.USER
+        }
+      };
+    },
   },
 
   methods: {
@@ -67,7 +76,7 @@ export default {
         params: { id },
         query:  { [MODE]: _EDIT }
       });
-    }
+    },
   }
 };
 </script>
@@ -77,7 +86,14 @@ export default {
     <h1 class="m-0">
       {{ displayName }}
     </h1>
-    <Banner v-if="!enabled.length" :label="t('authConfig.noneEnabled')" color="info" />
+    <Banner v-if="!enabled.length" :label="t('authConfig.noneEnabled')" color="info">
+      {{ t('authConfig.localEnabled') }}
+      <nuxt-link :to="localUsersRoute">
+        {{ t('authConfig.manageLocal') }}
+      </nuxt-link>
+      <br />
+      {{ t('authConfig.noneEnabled') }}
+    </Banner>
     <SelectIconGrid
       :rows="rows"
       :color-for="colorFor"
