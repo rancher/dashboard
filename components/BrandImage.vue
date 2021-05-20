@@ -52,10 +52,12 @@ export default {
 
     pathToBrandedImage() {
       if (this.fileName === 'rancher-logo.svg') {
-        if (this.theme === 'light' && this.uiLogoLight) {
-          return this.uiLogoLight;
-        } else if (this.theme === 'dark' && this.uiLogoDark) {
+        if (this.theme === 'dark' && this.uiLogoDark) {
           return this.uiLogoDark;
+        }
+
+        if (this.uiLogoLight) {
+          return this.uiLogoLight;
         }
       }
 
