@@ -11,6 +11,7 @@ import {
 } from '@/config/table-headers';
 import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@/components/AsyncButton.vue';
+import { set } from '@/utils/object';
 
 export default {
   components: {
@@ -191,8 +192,9 @@ export default {
             btnCb(true);
           }, 1000);
         } else {
-          btnCb(false);
-          this.$store.dispatch('growl/fromError', { title: '@TODO Actual RKE2 snapshot create API call' });
+          set(this.value.spec.rkeConfig, 'etcdSnapshotCreate', {});
+          await this.value.save();
+          btnCb(true);
         }
       } catch (err) {
         this.$store.dispatch('growl/fromError', { title: 'Error creating snapshot', err });

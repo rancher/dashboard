@@ -73,7 +73,7 @@ export default {
     function responseObject(res) {
       let out = res.data;
 
-      if ( res.status === 201 ) {
+      if ( res.status === 204 || out === null ) {
         out = {};
       }
 
