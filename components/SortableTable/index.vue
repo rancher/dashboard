@@ -530,14 +530,16 @@ export default {
         :sort-by="sortBy"
         :default-sort-by="_defaultSortBy"
         :descending="descending"
+        :no-rows="noRows"
+        :no-results="noResults"
         @on-toggle-all="onToggleAll"
         @on-sort-change="changeSort"
       />
 
       <tbody v-if="noRows">
         <slot name="no-rows">
-          <tr>
-            <td :colspan="fullColspan" class="no-rows">
+          <tr class="no-rows">
+            <td :colspan="fullColspan">
               <t v-if="showNoRows" :k="noRowsKey" />
             </td>
           </tr>
@@ -545,8 +547,8 @@ export default {
       </tbody>
       <tbody v-else-if="noResults">
         <slot name="no-results">
-          <tr>
-            <td :colspan="fullColspan" class="no-results text-center">
+          <tr class="no-results">
+            <td :colspan="fullColspan" class="text-center">
               <t :k="noDataKey" />
             </td>
           </tr>
@@ -765,8 +767,16 @@ $spacing: 10px;
     }
 
     .no-rows {
-      padding: 30px 0;
-      text-align: center;
+      td {
+        padding: 30px 0;
+        text-align: center;
+      }
+    }
+
+    .no-rows, .no-results {
+      &:hover {
+        background-color: var(--body-bg);
+      }
     }
 
     &.group {
