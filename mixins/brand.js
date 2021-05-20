@@ -1,13 +1,10 @@
 import { MANAGEMENT } from '@/config/types';
-import { findBy } from '@/utils/array';
 import { getVendor } from '@/config/private-label';
+import { SETTING } from '@/config/settings';
 
 export default {
-  async fetch() {
+  fetch() {
     this.brandCookie = this.$cookies.get('brand');
-    try {
-      this.globalSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
-    } catch {}
   },
 
   data() {
@@ -16,11 +13,13 @@ export default {
 
   computed: {
     brand() {
-      if (this.brandCookie && !this.globalSettings.length) {
+      const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BRAND);
+
+      if ( this.brandCookie && !setting ) {
         return this.brandCookie;
       }
 
-      return findBy(this.globalSettings, { id: 'brand' })?.value;
+      return setting?.value;
     }
   },
 

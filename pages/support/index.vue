@@ -7,6 +7,7 @@ import Card from '@/components/Card';
 
 import { MANAGEMENT } from '@/config/types';
 import { getVendor } from '@/config/private-label';
+import { SETTING } from '@/config/settings';
 
 export default {
   layout: 'home',
@@ -29,8 +30,12 @@ export default {
         const url = schema.linkFor('collection');
 
         setting = await this.$store.dispatch('management/create', {
-          type: MANAGEMENT.SETTING, metadata: { name: id }, value: val, default: val || ''
+          type:     MANAGEMENT.SETTING,
+          metadata: { name: id },
+          value:    val,
+          default:  val || ''
         });
+
         setting.save({ url });
       }
 
@@ -38,8 +43,8 @@ export default {
     };
 
     this.supportSetting = await fetchOrCreateSetting('has-support', 'false');
-    this.brandSetting = await fetchOrCreateSetting('brand', '');
-    this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'ui-issues' });
+    this.brandSetting = await fetchOrCreateSetting(SETTING.BRAND, '');
+    this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
   },
 
   data() {

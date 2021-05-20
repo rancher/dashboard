@@ -985,6 +985,7 @@ cluster:
     etcd: etcd
     networking: Networking
     nodePools: Node Pools
+    registry: Private Registry
     upgrade: Upgrade Strategy
 
 clusterIndexPage:
@@ -4271,7 +4272,7 @@ branding:
     default: Default Rancher Theme
     suse: SUSE Theme
     custom: Define a Custom Theme
-    uiPL:
+  uiPL:
     label: Private Label Company Name
   uiIssues:
     label: Issue Reporting URL

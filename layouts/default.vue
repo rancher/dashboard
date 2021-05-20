@@ -68,6 +68,10 @@ export default {
       const pageActions = [];
       const product = this.$store.getters['currentProduct'];
 
+      if ( !product ) {
+        return [];
+      }
+
       // Only show for Cluster Explorer or Global Apps (not configuration)
       const canSetAsHome = product.inStore === 'cluster' || (product.inStore === 'management' && product.category !== 'configuration');
 

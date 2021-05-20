@@ -17,7 +17,7 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    ifHaveGroup:           /^(.*\.)*fleet\.cattle\.io$/,
+    ifHaveType:            FLEET.GIT_REPO,
     icon:                  'fleet',
     inStore:               'management',
     removable:             false,

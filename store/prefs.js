@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import { MANAGEMENT, STEVE } from '@/config/types';
 import { clone } from '@/utils/object';
+import { SETTING } from '@/config/settings';
 
 const definitions = {};
 
@@ -416,7 +417,7 @@ export const actions = {
   setBrandStyle({ rootState, rootGetters }, dark = false) {
     if (rootState.managementReady) {
       try {
-        const brandSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, 'brand');
+        const brandSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.BRAND);
 
         if (brandSetting && brandSetting.value && brandSetting.value !== '') {
           const brand = brandSetting.value;
