@@ -4228,6 +4228,8 @@ advancedSettings:
     'cluster-template-enforcement': 'Non-admins will be restricted to launching clusters via preapproved RKE Templates only.'
     'auth-user-session-ttl-minutes': 'Custom TTL (in minutes) on a user auth session.'
     'auth-token-max-ttl-minutes': 'Custom max TTL (in minutes) on an auth token.'
+    'kubeconfig-generate-token': 'Automatically generate kubeconfig tokens for users.'
+    'kubeconfig-token-ttl-minutes': 'Custom max TTL (in minutes) on a kubeconfig token.'
     'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
     'ui-default-landing': 'The default page users land on after login.'
