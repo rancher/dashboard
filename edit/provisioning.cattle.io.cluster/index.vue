@@ -313,9 +313,9 @@ export default {
               v-model="provisioner"
               class="rke-switch"
               off-value="rke1"
-              off-label="RKE"
+              off-label="RKE1"
               on-value="rke2"
-              on-label="RKE2"
+              on-label="RKE2/K3s"
             />
           </div>
           {{ obj.label }}

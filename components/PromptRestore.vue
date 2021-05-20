@@ -6,6 +6,8 @@ import Banner from '@/components/Banner';
 import Date from '@/components/formatter/Date.vue';
 import RadioGroup from '@/components/form/RadioGroup.vue';
 import { exceptionToErrorsArray } from '@/utils/error';
+import { CAPI } from '@/config/types';
+import { set } from '@/utils/object';
 
 export default {
   components: {
@@ -20,7 +22,7 @@ export default {
     return {
       errors:        [],
       labels:        {},
-      restoreMode:   'etcd',
+      restoreMode:   'all',
       moveTo:        this.workspace,
       loaded:        false,
       allWorkspaces: [],
@@ -62,14 +64,22 @@ export default {
 
     async apply(buttonDone) {
       try {
-        await this.$store.dispatch('rancher/request', {
-          url:           `/v3/clusters/${ escape(this.snapshot.clusterId) }?action=restoreFromEtcdBackup`,
-          method:        'post',
-          data:   {
-            etcdBackupId:     this.snapshot.id,
-            restoreRkeConfig: this.restoreMode,
-          },
-        });
+        if ( this.isRke2 ) {
+          const cluster = this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, this.snapshot.clusterId);
+
+          set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', { name: this.snapshot.name });
+
+          await cluster.save();
+        } else {
+          await this.$store.dispatch('rancher/request', {
+            url:           `/v3/clusters/${ escape(this.snapshot.clusterId) }?action=restoreFromEtcdBackup`,
+            method:        'post',
+            data:   {
+              etcdBackupId:     this.snapshot.id,
+              restoreRkeConfig: this.restoreMode,
+            },
+          });
+        }
 
         buttonDone(true);
         this.close();
@@ -103,15 +113,17 @@ export default {
           <h3>Snapshot Date</h3>
           <div><Date :value="snapshot.createdAt || snapshot.created" /></div>
 
-          <div class="spacer" />
+          <template v-if="!isRke2">
+            <div class="spacer" />
 
-          <RadioGroup
-            v-model="restoreMode"
-            name="restoreMode"
-            label="Restore Type"
-            :labels="['Only etcd', 'Kubernetes version and etcd', 'Cluster config, Kubernetes version and etcd']"
-            :options="['etcd', 'kubernetesVersion', 'all']"
-          />
+            <RadioGroup
+              v-model="restoreMode"
+              name="restoreMode"
+              label="Restore Type"
+              :labels="['Only etcd', 'Kubernetes version and etcd', 'Cluster config, Kubernetes version and etcd']"
+              :options="['etcd', 'kubernetesVersion', 'all']"
+            />
+          </template>
         </form>
       </div>
 
@@ -122,11 +134,8 @@ export default {
 
         <AsyncButton
           mode="restore"
-          :disabled="isRke2"
           @click="apply"
         />
-
-        <Banner v-if="isRke2" color="warning" label="@TODO The actual rke2 restore action..." />
 
         <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
       </div>

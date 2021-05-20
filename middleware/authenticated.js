@@ -42,14 +42,21 @@ export default async function({
   }
   // Initial ?setup=admin-password can technically be on any route
   const initialPass = route.query[SETUP];
-  const firstLogin = await store.dispatch('rancher/find', {
-    type: 'setting',
-    id:   'first-login',
-    opt:  { url: `/v3/settings/first-login` }
-  });
+  let firstLogin = false;
+
+  try {
+    const res = await store.dispatch('rancher/find', {
+      type: 'setting',
+      id:   'first-login',
+      opt:  { url: `/v3/settings/first-login` }
+    });
+
+    firstLogin = res?.value === 'true';
+  } catch (e) {
+  }
 
   // TODO show error if firstLogin and default pass doesn't work
-  if (firstLogin && firstLogin.value === 'true' ) {
+  if ( firstLogin ) {
     const ok = await tryInitialSetup(store, initialPass);
 
     if (ok) {
