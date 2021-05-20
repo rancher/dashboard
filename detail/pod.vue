@@ -7,6 +7,7 @@ import { STATE, SIMPLE_NAME, IMAGE } from '@/config/table-headers';
 import { sortableNumericSuffix } from '@/utils/sort';
 import { findBy } from '@/utils/array';
 import DashboardMetrics from '@/components/DashboardMetrics';
+import V1WorkloadMetrics from '@/mixins/v1-workload-metrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@/utils/grafana';
 import Loading from '@/components/Loading';
@@ -25,7 +26,7 @@ export default {
     SortableTable,
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, V1WorkloadMetrics],
 
   async fetch() {
     this.showMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [POD_METRICS_DETAIL_URL, POD_METRICS_SUMMARY_URL]);
@@ -115,6 +116,11 @@ export default {
         :row-actions="false"
         :table-actions="false"
       />
+    </Tab>
+    <Tab v-if="v1MonitoringUrl" name="v1Metrics" :label="t('node.detail.tab.metrics')" :weight="0">
+      <div id="ember-anchor">
+        <EmberPage inline="ember-anchor" :fixed="false" :src="v1MonitoringUrl" />
+      </div>
     </Tab>
     <Tab v-if="showMetrics" :label="t('workload.container.titles.metrics')" name="pod-metrics" :weight="2.5">
       <template #default="props">

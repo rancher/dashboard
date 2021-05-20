@@ -85,7 +85,13 @@ export default {
     multiClusterApps() {
       const options = this.options;
 
-      return options.filter(opt => opt.inStore === 'management' && opt.category !== 'configuration');
+      return options.filter(opt => opt.inStore === 'management' && opt.category !== 'configuration' && opt.category !== 'legacy');
+    },
+
+    legacyApps() {
+      const options = this.options;
+
+      return options.filter(opt => opt.inStore === 'management' && opt.category === 'legacy');
     },
 
     configurationApps() {
@@ -228,6 +234,23 @@ export default {
               </nuxt-link>
             </div>
           </template>
+          <template v-if="legacyApps.length">
+            <div class="category">
+              {{ t('nav.categories.legacy') }}
+            </div>
+            <div v-if="currentProduct && isRancher" @click="hide()">
+              <a :href="(currentProduct.inStore === 'management' ? backToRancherGlobalLink : backToRancherLink)" class="option">
+                <i class="icon icon-cluster" />
+                {{ t('nav.backToRancher') }}
+              </a>
+            </div>
+            <div v-for="a in legacyApps" :key="a.label" @click="hide()">
+              <nuxt-link class="option" :to="a.to">
+                <i class="icon group-icon" :class="a.icon" />
+                <div>{{ a.label }}</div>
+              </nuxt-link>
+            </div>
+          </template>
           <template v-if="configurationApps.length">
             <div class="category">
               {{ t('nav.categories.configuration') }}
@@ -240,11 +263,6 @@ export default {
             </div>
           </template>
           <div class="pad"></div>
-          <div class="cluster-manager">
-            <a v-if="currentProduct && isRancher" class="btn role-tertiary" :href="(currentProduct.inStore === 'management' ? backToRancherGlobalLink : backToRancherLink)">
-              {{ t('nav.backToRancher') }}
-            </a>
-          </div>
         </div>
         <div class="footer">
           <div @click="hide()">
@@ -486,22 +504,6 @@ export default {
 
       .pad {
         flex: 1;
-      }
-
-      .cluster-manager {
-        .btn {
-          border: 0;
-          line-height: 32px;
-          min-height: 32px;
-          height: 32px;
-          background-color: var(--header-btn-bg);
-          color: var(--header-btn-text);
-
-          &:hover {
-            color: var(--primary-hover-text);
-            background: var(--primary-hover-bg);
-          }
-        }
       }
 
       .search {

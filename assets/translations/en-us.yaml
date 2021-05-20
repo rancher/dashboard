@@ -101,6 +101,7 @@ nav:
   categories:
     explore: Explore Cluster
     multiCluster: Global Apps
+    legacy: Legacy Apps
     configuration: Configuration
   search:
     placeholder: Type to search clusters
@@ -134,6 +135,7 @@ product:
   settings: Global Settings
   clusterManagement: Cluster Management
   monitoring: Monitoring
+  mcapps: Mutli-cluster Apps
 
 suffix:
   percent: "%"
@@ -721,6 +723,7 @@ catalog:
       upgrade: Upgrade/Edit
       edit: Edit
       remove: Remove
+      manage: Manage
 
 changePassword:
   title: Change Password
@@ -4357,3 +4360,15 @@ support:
 embedding:
   retry: Retry
   unavailable: Cluster Manager UI is not available
+
+v1ClusterTools:
+  monitoring:
+    label: Monitoring (Legacy)
+    description: 'Legacy V1 monitoring. V1 Monitoring is deprecated since Rancher 2.5.0. <a target="blank" href="https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/migrating/#migrating-from-monitoring-v1-to-monitoring-v2">Learn more</a> about migrating to V2 Monitoring.'
+  logging:
+    label: Logging (Legacy)
+    description: 'Legacy V1 logging. V1 Logging is deprecated since Rancher 2.5.0. <a target="blank" href="https://rancher.com/docs/rancher/v2.x/en/logging/v2.5/migrating/">Learn more</a> about migrating to V2 Logging.'
+  istio:
+    label: Istio (Legacy)
+    description: 'Legacy V1 Istio. V1 Istio is deprecated since Rancher 2.5.0.'
+

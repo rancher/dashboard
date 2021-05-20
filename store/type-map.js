@@ -747,7 +747,7 @@ export const getters = {
             continue;
           }
 
-          if (item.ifHave && !this.ifHave(rootGetters, item.ifHave)) {
+          if (item.ifHave && !ifHave(rootGetters, item.ifHave)) {
             continue;
           }
 
@@ -1469,13 +1469,16 @@ function ifHave(getters, option) {
   case 'project': {
     return !!project(getters);
   }
+  case 'no-project': {
+    return !project(getters);
+  }
   default:
     return false;
   }
 }
 
 // Look at the namespace filters to determine if a project is selected
-function project(getters) {
+export function project(getters) {
   const clusterId = getters['currentCluster']?.id;
 
   if ( !clusterId ) {
@@ -1486,7 +1489,7 @@ function project(getters) {
   const namespaces = [];
   let projectName = null;
 
-  filters.forEach((filter) => {
+  for (const filter of filters) {
     const [type, id] = filter.split('://', 2);
 
     if (type === 'project') {
@@ -1501,7 +1504,7 @@ function project(getters) {
       // Something other than project or namespace
       return null;
     }
-  });
+  }
 
   // No project found?
   if (!projectName) {
@@ -1526,7 +1529,6 @@ function project(getters) {
 
   // All of the namespace filters must belong to the project
   const found = namespaces.reduce((total, ns) => {
-    console.log(ns);
     return prjNamespaceMap[ns] ? total + 1 : 0;
   }, 0);
 

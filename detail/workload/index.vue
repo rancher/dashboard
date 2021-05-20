@@ -10,6 +10,7 @@ import CountGauge from '@/components/CountGauge';
 import { allHash } from '@/utils/promise';
 import { get } from '@/utils/object';
 import DashboardMetrics from '@/components/DashboardMetrics';
+import V1WorkloadMetrics from '@/mixins/v1-workload-metrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@/utils/grafana';
 
@@ -36,7 +37,7 @@ export default {
     SortableTable
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, V1WorkloadMetrics],
 
   async fetch() {
     const hash = { allPods: this.$store.dispatch('cluster/findAll', { type: POD }) };
@@ -295,6 +296,12 @@ export default {
             graph-height="550px"
           />
         </template>
+      </Tab>
+      <Tab v-if="v1MonitoringUrl" name="v1Metrics" :label="t('node.detail.tab.metrics')" :weight="10">
+        HELLO
+        <div id="ember-anchor">
+          <EmberPage inline="ember-anchor" :fixed="false" :src="v1MonitoringUrl" />
+        </div>
       </Tab>
     </ResourceTabs>
   </div>
