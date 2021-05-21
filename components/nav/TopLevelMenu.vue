@@ -1,5 +1,6 @@
 <script>
 import BrandImage from '@/components/BrandImage';
+import RancherProviderIcon from '@/components/RancherProviderIcon';
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
 import { mapPref, DEV } from '@/store/prefs';
@@ -15,7 +16,7 @@ const MAX_CLUSTERS_TO_SHOW = 4;
 
 export default {
 
-  components: { BrandImage },
+  components: { BrandImage, RancherProviderIcon },
 
   data() {
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
@@ -203,7 +204,7 @@ export default {
                 class="cluster selector option"
                 :to="{ name: 'c-cluster', params: { cluster: c.id } }"
               >
-                <BrandImage v-if="c.isLocal" file-name="local-cluster.svg" />
+                <RancherProviderIcon v-if="c.isLocal" width="25" class="rancher-provider-icon" />
                 <img v-else :src="c.logo" />
                 <div>{{ c.label }}</div>
               </nuxt-link>
@@ -308,6 +309,12 @@ export default {
     background: var(--primary-hover-bg);
     border-radius: 5px;
     text-decoration: none;
+
+    .rancher-provider-icon {
+      .rancher-icon-fill {
+        fill: var(--primary-hover-text);;
+      }
+    }
   }
 
   .localeSelector {
@@ -323,6 +330,7 @@ export default {
       outline: 0;
     }
   }
+
 </style>
 
 <style lang="scss" scoped>
