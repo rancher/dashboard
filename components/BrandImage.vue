@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
 import { SETTING } from '@/config/settings';
 
