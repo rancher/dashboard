@@ -57,10 +57,10 @@ export const ALLOWED_SETTINGS = {
   [SETTING.AUTH_USER_INFO_RESYNC_CRON]:     {},
   [SETTING.SERVER_URL]:                     { kind: 'url' },
   [SETTING.RKE_METADATA_CONFIG]:            { kind: 'json' },
-  [SETTING.BANNERS]:                        { kind: 'json' },
+  // [SETTING.BANNERS]:                        { kind: 'json' },
   [SETTING.SYSTEM_DEFAULT_REGISTRY]:        {},
   [SETTING.UI_INDEX]:                       {},
-  // [SETTING.BRAND]:                          {},
+  [SETTING.BRAND]:                          {},
   [SETTING.CLUSTER_TEMPLATE_ENFORCEMENT]:   { kind: 'boolean' },
 
   [SETTING.TELEMETRY]: {
