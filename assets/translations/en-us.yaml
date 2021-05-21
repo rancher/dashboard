@@ -2831,7 +2831,7 @@ servicesPage:
     label: Service Type
 
 setup:
-  welcome: Welcome to {product}!
+  welcome: Welcome to {vendor}!
   setPassword: The first order of business is to set a strong password for the default <code>admin</code> user. We suggest using this random one generated just for you, but enter your own if you like. 
   newPassword: New Password
   confirmPassword: Confirm New Password

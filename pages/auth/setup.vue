@@ -174,7 +174,7 @@ export default {
         </h1>
 
         <template v-if="step===1">
-          <p class="text-center mb-40 mt-20">
+          <p class="text-center mb-40 mt-20 setup-title">
             <t k="setup.setPassword" :raw="true" />
           </p>
 
@@ -212,8 +212,9 @@ export default {
             <Checkbox v-model="telemetry" :label="t('setup.telemetry.label')" type="checkbox" />
             <i v-tooltip="{content:t('setup.telemetry.tip', {}, true), delay: {hide:500}, autoHide: false}" class="icon icon-info" />
           </div>
-          <div class="checkbox">
-            <Checkbox v-model="eula" label-key="setup.eula" type="checkbox" />
+          <div class="checkbox pt-10 eula">
+            <Checkbox v-model="eula" type="checkbox" />
+            <span v-html="t('setup.eula', {}, true)"></span>
           </div>
 
           <div class="text-center mt-20">
@@ -232,7 +233,7 @@ export default {
             <button type="button" class="btn role-link" @click="done">
               {{ t('setup.serverUrl.skip') }}
             </button>
-            <AsyncButton type="submit" mode="edit" @click="setServerUrl" />
+            <AsyncButton type="submit" mode="continue" @click="setServerUrl" />
           </div>
         </template>
       </div>
@@ -272,13 +273,31 @@ export default {
       }
     }
 
+    .setup-title {
+      ::v-deep code {
+        font-size: 12px;
+      }
+    }
+
+    p {
+      line-height: 20px;
+    }
+
+    .eula {
+      align-items: center;
+      display: flex;
+
+      span {
+        margin-left: 5px;
+      }
+    }
   }
 
-      .landscape {
-      background-image: url('~assets/images/pl/login-landscape.svg');
-      background-repeat: no-repeat;
-      background-size: cover;
-      background-position: center center;
-      height: 100vh;
-    }
+  .landscape {
+    background-image: url('~assets/images/pl/login-landscape.svg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
+    height: 100vh;
+  }
 </style>
