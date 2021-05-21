@@ -9,15 +9,19 @@ import { findBy } from '@/utils/array';
 import Checkbox from '@/components/form/Checkbox';
 import { getVendor, getProduct } from '@/config/private-label';
 import RadioGroup from '@/components/form/RadioGroup';
-import { allHash } from '@/utils/promise';
-import { SETTING } from '@/config/settings';
+import { setSetting, SETTING } from '@/config/settings';
 import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
 
 export default {
   layout: 'unauthenticated',
 
-  async middleware({ store, redirect, route } ) {
-    await store.dispatch('management/findAll', { type: MANAGEMENT.SETTING, load: _ALL_IF_AUTHED });
+  async middleware({ store, redirect } ) {
+    try {
+      await store.dispatch('management/findAll', {
+        type: MANAGEMENT.SETTING, load: _ALL_IF_AUTHED, opt: { url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false }
+      });
+    } catch (e) {
+    }
 
     const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
 
@@ -31,32 +35,17 @@ export default {
   },
 
   async asyncData({ route, req, store }) {
-    const hash = await allHash({
-      firstLoginSetting:  store.dispatch('rancher/find', {
-        type: MANAGEMENT.SETTING,
-        id:   SETTING.FIRST_LOGIN,
-      }),
-      telemetrySetting:  store.dispatch('management/find', {
-        type: MANAGEMENT.SETTING,
-        id:   SETTING.TELEMETRY
-      }),
-      serverUrlSetting: store.dispatch('management/find', {
-        type: MANAGEMENT.SETTING,
-        id:   SETTING.SERVER_URL,
-      }),
-      eulaSetting: await store.dispatch('management/find', {
-        type: MANAGEMENT.SETTING,
-        id:   SETTING.EULA_AGREED,
-      }),
-      principals: store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL })
-    });
+    const telemetrySetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.TELEMETRY);
+    const serverUrlSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SERVER_URL);
+
+    const principals = await store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
 
     const current = route.query[SETUP] || 'admin';
 
     let serverUrl;
 
-    if (hash.serverUrlSetting.value) {
-      serverUrl = hash.serverUrlSetting.value;
+    if (serverUrlSetting?.value) {
+      serverUrl = serverUrlSetting.value;
     } else if ( process.server ) {
       serverUrl = req.headers.host;
     } else {
@@ -66,8 +55,6 @@ export default {
     return {
       vendor:            getVendor(),
       product:           getProduct(),
-      firstLogin:        hash.firstLoginSetting.value === 'true',
-      firstLoginSetting: hash.firstLoginSetting,
       step:              parseInt(route.query.step, 10) || 1,
 
       useRandom:   false,
@@ -78,15 +65,11 @@ export default {
       confirm:     '',
 
       serverUrl,
-      serverUrlSetting: hash.serverUrlSetting,
 
-      telemetry:        hash.telemetrySetting.value !== 'out',
-      telemetrySetting: hash.telemetrySetting,
+      telemetry: telemetrySetting?.value !== 'out',
 
-      eula:        hash.eulaSetting.value !== '',
-      eulaSetting: hash.eulaSetting,
-
-      principals: hash.principals,
+      eula: false,
+      principals,
 
       errors: []
     };
@@ -144,10 +127,13 @@ export default {
     async finishPassword(buttonCb) {
       try {
         await this.$store.dispatch('loadManagement');
-        this.telemetrySetting.value = this.telemetry ? 'in' : 'out';
-        this.eulaSetting.value = (new Date()).toISOString();
-        this.firstLoginSetting.value = 'false';
-        await Promise.all([this.eulaSetting.save(), this.telemetrySetting.save(), this.firstLoginSetting.save()]);
+
+        await Promise.all([
+          setSetting(this.$store, SETTING.EULA_AGREED, (new Date()).toISOString() ),
+          setSetting(this.$store, SETTING.TELEMETRY, this.telemetry ? 'in' : 'out'),
+          setSetting(this.$store, SETTING.FIRST_LOGIN, 'false'),
+        ]);
+
         await this.$store.dispatch('rancher/request', {
           url:           '/v3/users?action=changepassword',
           method:        'post',
@@ -164,9 +150,8 @@ export default {
     },
 
     async setServerUrl(buttonCb) {
-      this.serverUrlSetting.value = this.serverUrl;
       try {
-        await this.serverUrlSetting.save();
+        await setSetting(this.$store, SETTING.SERVER_URL, this.serverUrl);
         buttonCb(true);
         this.done();
       } catch {

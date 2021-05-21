@@ -1,4 +1,5 @@
-// Setttings
+// Settings
+import { MANAGEMENT } from './types';
 
 // Adapted from: https://github.com/rancher/ui/blob/08c379a9529f740666a704b52522a468986c3520/lib/shared/addon/utils/constants.js#L564
 
@@ -67,4 +68,33 @@ export const ALLOWED_SETTINGS = {
     kind:    'enum',
     options: ['prompt', 'in', 'out']
   },
+};
+
+export const fetchOrCreateSetting = async(store, id, val, save = true) => {
+  let setting;
+
+  try {
+    setting = await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id });
+  } catch {
+    const schema = store.getters['management/schemaFor'](MANAGEMENT.SETTING);
+    const url = schema.linkFor('collection');
+
+    setting = await store.dispatch('management/create', {
+      type: MANAGEMENT.SETTING, metadata: { name: id }, value: val, default: val || ''
+    });
+
+    if ( save ) {
+      setting.save({ url });
+    }
+  }
+
+  return setting;
+};
+
+export const setSetting = async(store, id, val) => {
+  const setting = await fetchOrCreateSetting(store, id, val, false);
+
+  setting.value = val;
+
+  return setting.save();
 };
