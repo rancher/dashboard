@@ -65,50 +65,11 @@ export function init(store) {
     route:          { name: 'c-cluster-settings-brand' }
   });
 
-  virtualType({
-    label:          'Global DNS Entries',
-    name:           'global-dns-entries',
-    group:          'Root',
-    namespaced:     false,
-    weight:         112,
-    icon:           'folder',
-    route:          { name: 'c-cluster-settings-pages-page', params: { cluser: 'local', page: 'global-dns-entries' } },
-    exact:          true
-  });
-
-  virtualType({
-    label:          'Global DNS Providers',
-    name:           'global-dns-providers',
-    group:          'Root',
-    namespaced:     false,
-    weight:         112,
-    icon:           'folder',
-    route:          { name: 'c-cluster-settings-pages-page', params: { cluser: 'local', page: 'global-dns-providers' } },
-    exact:          true
-  });
-
-  virtualType({
-    label:          'Pod Security Policies',
-    name:           'pod-security-policies',
-    group:          'Root',
-    namespaced:     false,
-    weight:         112,
-    icon:           'folder',
-    route:          { name: 'c-cluster-settings-pages-page', params: { cluser: 'local', page: 'pod-security-policies' } },
-    exact:          true
-  });
-
   basicType([
     'settings',
     'features',
     'brand'
   ]);
-
-  basicType([
-    'global-dns-entries',
-    'global-dns-providers',
-    'pod-security-policies'
-  ], 'Legacy Configuration');
 
   configureType(MANAGEMENT.SETTING, {
     isCreatable: false,

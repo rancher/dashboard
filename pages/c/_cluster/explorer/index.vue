@@ -163,6 +163,9 @@ export default {
     },
 
     v1MonitoringURL() {
+
+      console.log('>>>>>>>>>>>>>>>>>>>.');
+      console.log(this.currentCluster);
       return `/k/${ this.currentCluster.id }`;
     },
 

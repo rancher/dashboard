@@ -25,7 +25,7 @@ export function init(store) {
     name:           'mc-apps',
     group:          'Root',
     namespaced:     false,
-    weight:         111,
+    weight:         112,
     icon:           'folder',
     route:          { name: 'c-cluster-mcapps-pages-page', params: { cluster: 'local', page: 'apps' } },
     exact:          true
@@ -42,8 +42,32 @@ export function init(store) {
     exact:          true
   });
 
+  virtualType({
+    label:          'Global DNS Entries',
+    name:           'global-dns-entries',
+    group:          'Root',
+    namespaced:     false,
+    weight:         110,
+    icon:           'folder',
+    route:          { name: 'c-cluster-mcapps-pages-page', params: { cluser: 'local', page: 'global-dns-entries' } },
+    exact:          true
+  });
+
+  virtualType({
+    label:          'Global DNS Providers',
+    name:           'global-dns-providers',
+    group:          'Root',
+    namespaced:     false,
+    weight:         109,
+    icon:           'folder',
+    route:          { name: 'c-cluster-mcapps-pages-page', params: { cluser: 'local', page: 'global-dns-providers' } },
+    exact:          true
+  });  
+
   basicType([
     'mc-apps',
-    'mc-catalogs'
+    'mc-catalogs',
+    'global-dns-entries',
+    'global-dns-providers',
   ]);
 }

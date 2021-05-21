@@ -1,6 +1,6 @@
-import { MULTI_CLUSTER } from '@/store/features';
 import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
 import { CAPI } from '@/config/types';
+import { MULTI_CLUSTER } from '@/store/features';
 import { DSL } from '@/store/type-map';
 
 export const NAME = 'manager';
@@ -93,10 +93,22 @@ export function init(store) {
     'drivers',
   ]);
 
+  virtualType({
+    label:          'Pod Security Policies',
+    name:           'pod-security-policies',
+    group:          'Root',
+    namespaced:     false,
+    weight:         0,
+    icon:           'folder',
+    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'pod-security-policies' } },
+    exact:          true
+  });
+
   basicType([
     CAPI.MACHINE_DEPLOYMENT,
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
+    'pod-security-policies'
   ], 'Advanced');
 
   const MACHINE_SUMMARY = {

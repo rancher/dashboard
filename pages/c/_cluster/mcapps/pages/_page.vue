@@ -7,8 +7,10 @@ export default {
   data() {
     return {
       PAGES: {
-        apps:     '/g/apps',
-        catalogs: '/g/catalog',
+        apps:                   '/g/apps',
+        catalogs:               '/g/catalog',
+        'global-dns-entries':   '/g/dns/entries/index/',
+        'global-dns-providers': '/g/dns/providers/index/',
       }
     };
   }
