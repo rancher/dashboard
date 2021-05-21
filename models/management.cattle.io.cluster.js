@@ -8,7 +8,6 @@ import { eachLimit } from '@/utils/promise';
 import { addParams } from '@/utils/url';
 import { isEmpty } from '@/utils/object';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
-import { CopySnapshotRequest } from '@aws-sdk/client-ec2';
 
 // See translation file cluster.providers for list of providers
 // If the logo is not named with the provider name, add an override here
