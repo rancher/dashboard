@@ -163,14 +163,12 @@ export default {
     },
 
     v1MonitoringURL() {
-
-      console.log('>>>>>>>>>>>>>>>>>>>.');
-      console.log(this.currentCluster);
       return `/k/${ this.currentCluster.id }`;
     },
 
     displayProvider() {
       const other = 'other';
+
       let provider = this.currentCluster.status.provider || other;
 
       if (provider === 'rke.windows') {

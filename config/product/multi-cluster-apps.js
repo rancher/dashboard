@@ -62,7 +62,7 @@ export function init(store) {
     icon:           'folder',
     route:          { name: 'c-cluster-mcapps-pages-page', params: { cluser: 'local', page: 'global-dns-providers' } },
     exact:          true
-  });  
+  });
 
   basicType([
     'mc-apps',
