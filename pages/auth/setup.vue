@@ -11,6 +11,7 @@ import { getVendor, getProduct } from '@/config/private-label';
 import RadioGroup from '@/components/form/RadioGroup';
 import { setSetting, SETTING } from '@/config/settings';
 import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
+import { isDevBuild } from '@/utils/version';
 
 export default {
   layout: 'unauthenticated',
@@ -37,6 +38,14 @@ export default {
   async asyncData({ route, req, store }) {
     const telemetrySetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.TELEMETRY);
     const serverUrlSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SERVER_URL);
+    const rancherVersionSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.VERSION_RANCHER);
+    let telemetry = true;
+
+    if (telemetrySetting?.value && telemetrySetting.value !== 'prompt') {
+      telemetry = telemetrySetting.value !== 'out';
+    } else if (!rancherVersionSetting?.value || isDevBuild(rancherVersionSetting?.value)) {
+      telemetry = false;
+    }
 
     const principals = await store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
 
@@ -66,7 +75,7 @@ export default {
 
       serverUrl,
 
-      telemetry: telemetrySetting?.value !== 'out',
+      telemetry,
 
       eula: false,
       principals,
