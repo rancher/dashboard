@@ -6,6 +6,7 @@ import { applyProducts } from '@/store/type-map';
 import { ClusterNotFoundError } from '@/utils/error';
 import { get } from '@/utils/object';
 import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
+import { SETTING } from '@/config/settings';
 
 let beforeEachSetup = false;
 
@@ -43,7 +44,7 @@ export default async function({
   }
   // Initial ?setup=admin-password can technically be on any route
   const initialPass = route.query[SETUP];
-  let firstLogin = false;
+  let firstLogin = null;
 
   try {
     // Load settings, which will either be just the public ones if not logged in, or all if you are
@@ -53,10 +54,23 @@ export default async function({
       opt:  { url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false }
     });
 
-    const res = store.getters['management/byId'](MANAGEMENT.SETTING, 'first-login');
+    const res = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
 
     firstLogin = res?.value === 'true';
   } catch (e) {
+  }
+
+  if ( firstLogin === null ) {
+    try {
+      const res = await store.dispatch('rancher/find', {
+        type: 'setting',
+        id:   SETTING.FIRST_LOGIN,
+        opt:  { url: `/v3/settings/${ SETTING.FIRST_LOGIN }` }
+      });
+
+      firstLogin = res?.value === 'true';
+    } catch (e) {
+    }
   }
 
   // TODO show error if firstLogin and default pass doesn't work

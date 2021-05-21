@@ -11,25 +11,7 @@ import Banner from '@/components/Banner';
 import { allHash } from '@/utils/promise';
 import { MANAGEMENT } from '@/config/types';
 import { getVendor, setVendor } from '@/config/private-label';
-import { SETTING } from '@/config/settings';
-
-export const fetchOrCreateSetting = async(store, id, val) => {
-  let setting;
-
-  try {
-    setting = await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id });
-  } catch {
-    const schema = store.getters['management/schemaFor'](MANAGEMENT.SETTING);
-    const url = schema.linkFor('collection');
-
-    setting = await store.dispatch('management/create', {
-      type: MANAGEMENT.SETTING, metadata: { name: id }, value: val, default: val || ''
-    });
-    setting.save({ url });
-  }
-
-  return setting;
-};
+import { SETTING, fetchOrCreateSetting } from '@/config/settings';
 
 export default {
   layout: 'authenticated',
