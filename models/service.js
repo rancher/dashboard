@@ -145,11 +145,28 @@ export default {
   },
 
   proxyUrl() {
-    return (proto, port) => {
+    return (scheme, port) => {
       const view = this.linkFor('view');
       const idx = view.lastIndexOf(`/`);
 
-      return `${ view.slice(0, idx) }/${ proto }:${ this.metadata.name }:${ port }/proxy`;
+      return proxyUrlFromBase(view.slice(0, idx), scheme, this.metadata.name, port);
     };
   }
 };
+
+export function proxyUrlFromParts(clusterId, namespace, name, scheme, port, path) {
+  const base = `/k8s/clusters/${ escape(clusterId) }/api/v1/namespaces/${ escape(namespace) }/services`;
+
+  return proxyUrlFromBase(base, scheme, name, port, path);
+}
+
+export function proxyUrlFromBase(base, scheme, name, port, path) {
+  const schemaNamePort = (scheme ? `${ escape(scheme) }:` : '') + escape(name) + (port ? `:${ escape(port) }` : '');
+
+  const cleanPath = `/${ (path || '').replace(/^\/+/g, '') }`;
+  const cleanBase = base.replace(/\/+$/g, '');
+
+  const out = `${ cleanBase }/${ schemaNamePort }/proxy${ cleanPath }`;
+
+  return out;
+}

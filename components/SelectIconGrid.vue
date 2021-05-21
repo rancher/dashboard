@@ -1,5 +1,6 @@
 <script>
 import LazyImage from '@/components/LazyImage';
+import { get } from '@/utils/object';
 
 export default {
   components: { LazyImage },
@@ -35,22 +36,39 @@ export default {
       default: 'disabled',
     },
 
+    asLink: {
+      type:    Boolean,
+      default: false,
+    },
+    linkField: {
+      type:    String,
+      default: 'link'
+    },
+    targetField: {
+      type:    String,
+      default: 'target',
+    },
+    rel: {
+      type:    String,
+      default: 'noopener noreferrer nofollow'
+    },
+
     noDataKey: {
       type:    String,
       default: 'sortableTable.noRows',
     },
 
     colorFor: {
-      type: Function,
-      default() {
-        return (r, idx) => `color${ (idx % 8) + 1 }`;
-      },
+      type:    Function,
+      default: (r, idx) => `color${ (idx % 8) + 1 }`,
     },
   },
 
   methods: {
+    get,
+
     isDisabled(idx) {
-      return this.rows[idx][this.disabledField] === true;
+      return get(this.rows[idx], this.disabledField) === true;
     },
 
     select(row, idx) {
@@ -67,23 +85,30 @@ export default {
 <template>
   <div v-if="rows.length" class="grid">
     <div
+      :is="asLink ? 'a' : 'div'"
       v-for="(r, idx) in rows"
-      :key="r[keyField]"
+      :key="get(r, keyField)"
+      :href="asLink ? get(r, linkField) : null"
+      :target="get(r, targetField)"
+      :rel="rel"
       class="item"
-      :class="{'has-description': !!r[descriptionField], [colorFor(r, idx)]: true, disabled: r[disabledField] === true}"
+      :class="{'has-description': !!get(r, descriptionField), [colorFor(r, idx)]: true, disabled: get(r, disabledField) === true}"
       @click="select(r, idx)"
     >
-      <div class="side-label" :class="{'indicator': !r[sideLabelField] }">
-        <label v-if="r[sideLabelField]">{{ r[sideLabelField] }}</label>
+      <div class="side-label" :class="{'indicator': true }" />
+
+      <div v-if="get(r, sideLabelField)" class="side-label" :class="{'indicator': false }">
+        <label>{{ get(r, sideLabelField) }}</label>
       </div>
+
       <div class="logo">
-        <LazyImage :src="r[iconField]" />
+        <LazyImage :src="get(r, iconField)" />
       </div>
       <h4 class="name">
-        {{ r[nameField] }}
+        {{ get(r, nameField) }}
       </h4>
-      <div v-if="r[descriptionField]" class="description">
-        {{ r[descriptionField] }}
+      <div v-if="get(r, descriptionField)" class="description">
+        {{ get(r, descriptionField) }}
       </div>
     </div>
   </div>
@@ -133,11 +158,14 @@ export default {
       position: relative;
       //border-radius: calc( 1.5 * var(--border-radius));
       border: 1px solid var(--border);
+      text-decoration: none !important;
+      color: var(--body-text) !important;
 
       &:hover:not(.disabled) {
         box-shadow: 0 0 30px var(--shadow);
         transition: box-shadow 0.1s ease-in-out;
         cursor: pointer;
+        text-decoration: none !important;
       }
 
       .side-label {
@@ -274,7 +302,7 @@ export default {
         line-clamp: 3;
         overflow: hidden;
         text-overflow: ellipsis;
-        color: var(--text-muted);
+        color: var(--text-muted) !important;
       }
     }
 

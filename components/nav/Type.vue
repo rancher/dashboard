@@ -34,7 +34,7 @@ export default {
 
   computed: {
     showFavorite() {
-      return ( showFavoritesFor.includes(this.type.mode) && this.near );
+      return ( this.type.mode && this.near && showFavoritesFor.includes(this.type.mode) );
     },
 
     showCount() {
@@ -60,6 +60,7 @@ export default {
 
 <template>
   <n-link
+    v-if="type.route"
     :key="type.name"
     :to="type.route"
     tag="li"
@@ -80,6 +81,24 @@ export default {
       </span>
     </a>
   </n-link>
+  <li
+    v-else-if="type.link"
+    class="child nav-type"
+  >
+    <a
+      :href="type.link"
+      :target="type.target"
+      rel="noopener noreferrer nofollow"
+      @click="$emit('selected')"
+      @mouseenter="setNear(true)"
+      @mouseleave="setNear(false)"
+    >
+      <span class="label">{{ type.label }}&nbsp;<i class="icon icon-external-link" /></span>
+    </a>
+  </li>
+  <li v-else>
+    {{ type }}?
+  </li>
 </template>
 
 <style lang="scss" scoped>
