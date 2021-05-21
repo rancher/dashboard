@@ -8,8 +8,13 @@ import { addParam } from '@/utils/url';
 import { normalizeType } from './normalize';
 import { proxyFor, SELF } from './resource-proxy';
 
+export const _ALL = 'all';
+export const _MULTI = 'multi';
+export const _ALL_IF_AUTHED = 'allIfAuthed';
+export const _NONE = 'none';
+
 export default {
-  async request({ dispatch, rootGetters }, opt) {
+  request({ dispatch, rootGetters }, opt) {
     // Handle spoofed types instead of making an actual request
     // Spoofing is handled here to ensure it's done for both yaml and form editing.
     // It became apparent that this was the only place that both intersected
@@ -18,8 +23,8 @@ export default {
       const id = rest.join('/'); // Cover case where id contains '/'
       const isApi = scheme === SPOOFED_API_PREFIX;
       const typemapGetter = id ? 'getSpoofedInstance' : 'getSpoofedInstances';
-      const schemas = await rootGetters['cluster/all'](SCHEMA);
-      const instance = await rootGetters[`type-map/${ typemapGetter }`](type, id);
+      const schemas = rootGetters['cluster/all'](SCHEMA);
+      const instance = rootGetters[`type-map/${ typemapGetter }`](type, id);
       const data = isApi ? createYaml(schemas, type, instance) : instance;
 
       return id && !isApi ? data : { data };
@@ -72,6 +77,12 @@ export default {
 
     function responseObject(res) {
       let out = res.data;
+
+      const fromHeader = res.headers['x-api-cattle-auth'];
+
+      if ( fromHeader && fromHeader !== rootGetters['auth/fromHeader'] ) {
+        dispatch('auth/gotHeader', fromHeader, { root: true });
+      }
 
       if ( res.status === 204 || out === null ) {
         out = {};
@@ -126,7 +137,9 @@ export default {
   },
 
   async findAll(ctx, { type, opt }) {
-    const { getters, commit, dispatch } = ctx;
+    const {
+      getters, commit, dispatch, rootGetters
+    } = ctx;
 
     opt = opt || {};
     type = getters.normalizeType(type);
@@ -145,15 +158,40 @@ export default {
 
     const res = await dispatch('request', opt);
 
-    if ( opt.load === false ) {
-      return res;
+    let load = _ALL;
+
+    if ( opt.load === false || opt.load === _NONE ) {
+      load = _NONE;
+    } else if ( opt.load === _ALL_IF_AUTHED ) {
+      const header = rootGetters['auth/fromHeader'];
+
+      if ( `${ header }` === 'true' || `${ header }` === 'none' ) {
+        load = _ALL;
+      }
+
+      load = _MULTI;
     }
 
-    commit('loadAll', {
-      ctx,
-      type,
-      data: res.data
-    });
+    if ( load === _NONE ) {
+      return res;
+    } else if ( load === _MULTI ) {
+      // This has the effect of adding the response to the store,
+      // without replacing all the existing content for that type,
+      // and without marking that type as having 'all 'loaded.
+      //
+      // This is used e.g. to load a partial list of settings before login
+      // while still knowing we need to load the full list later.
+      commit('loadMulti', {
+        ctx,
+        data: res.data
+      });
+    } else {
+      commit('loadAll', {
+        ctx,
+        type,
+        data: res.data
+      });
+    }
 
     if ( opt.watch !== false ) {
       dispatch('watch', {
@@ -306,11 +344,11 @@ export default {
     return getters['byId'](type, id);
   },
 
-  loadMulti(ctx, entries) {
+  loadMulti(ctx, data) {
     const { commit } = ctx;
 
     commit('loadMulti', {
-      entries,
+      data,
       ctx,
     });
   },

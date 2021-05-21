@@ -1,3 +1,5 @@
+import { SETTING } from './settings';
+
 export const ANY = 0;
 export const STANDARD = 1;
 export const CUSTOM = 2;
@@ -40,7 +42,7 @@ export function matches(pl) {
 }
 
 export function getVendor() {
-  if ( vendor === 'rancher' ) {
+  if ( vendor === SETTING.PL_RANCHER_VALUE ) {
     return STANDARD_VENDOR;
   }
 

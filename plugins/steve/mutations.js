@@ -100,10 +100,10 @@ export default {
     Object.assign(state.config, config);
   },
 
-  loadMulti(state, { entries, ctx }) {
-    // console.log('### Mutation loadMulti', entries.length);
-    for ( const data of entries ) {
-      load(state, { data, ctx });
+  loadMulti(state, { data, ctx }) {
+    // console.log('### Mutation loadMulti', data.length);
+    for ( const entry of data ) {
+      load(state, { data: entry, ctx });
     }
   },
 

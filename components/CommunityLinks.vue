@@ -4,6 +4,7 @@ import SimpleBox from '@/components/SimpleBox';
 import Closeable from '@/mixins/closeable';
 import { MANAGEMENT } from '@/config/types';
 import { getVendor } from '@/config/private-label';
+import { SETTING } from '@/config/settings';
 
 export default {
   components: { SimpleBox },
@@ -11,7 +12,7 @@ export default {
   mixins: [Closeable],
 
   async fetch() {
-    this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'ui-issues' });
+    this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
   },
 
   data() {

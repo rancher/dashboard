@@ -67,7 +67,13 @@ export default {
         if ( this.isRke2 ) {
           const cluster = this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, this.snapshot.clusterId);
 
-          set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', { name: this.snapshot.name });
+          set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', {
+            createdAt: this.snapshot.createdAt,
+            name:      this.snapshot.name,
+            size:      this.snapshot.size,
+            nodeName:  this.snapshot.nodeName,
+            s3:        this.snapshot.s3,
+          });
 
           await cluster.save();
         } else {

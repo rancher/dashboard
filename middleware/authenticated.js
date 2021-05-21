@@ -1,10 +1,11 @@
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { findBy } from '@/utils/array';
 import { SETUP, TIMED_OUT } from '@/config/query-params';
-import { NORMAN } from '@/config/types';
+import { MANAGEMENT, NORMAN } from '@/config/types';
 import { applyProducts } from '@/store/type-map';
 import { ClusterNotFoundError } from '@/utils/error';
 import { get } from '@/utils/object';
+import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
 
 let beforeEachSetup = false;
 
@@ -45,11 +46,14 @@ export default async function({
   let firstLogin = false;
 
   try {
-    const res = await store.dispatch('rancher/find', {
-      type: 'setting',
-      id:   'first-login',
-      opt:  { url: `/v3/settings/first-login` }
+    // Load settings, which will either be just the public ones if not logged in, or all if you are
+    await store.dispatch('management/findAll', {
+      type: MANAGEMENT.SETTING,
+      load: _ALL_IF_AUTHED,
+      opt:  { url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false }
     });
+
+    const res = store.getters['management/byId'](MANAGEMENT.SETTING, 'first-login');
 
     firstLogin = res?.value === 'true';
   } catch (e) {
@@ -73,40 +77,57 @@ export default async function({
   }
 
   // Make sure you're actually logged in
+  function isLoggedIn(me) {
+    store.commit('auth/hasAuth', true);
+    store.commit('auth/loggedInAs', me.id);
+  }
+
+  function notLoggedIn() {
+    store.commit('auth/hasAuth', true);
+
+    if ( route.name === 'index' ) {
+      return redirect(302, '/auth/login');
+    } else {
+      return redirect(302, `/auth/login?${ TIMED_OUT }`);
+    }
+  }
+
+  function noAuth() {
+    store.commit('auth/hasAuth', false);
+  }
+
   if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
-    try {
-      const principals = await store.dispatch('rancher/findAll', {
-        type: NORMAN.PRINCIPAL,
-        opt:  {
-          url:                  '/v3/principals',
-          redirectUnauthorized: false,
-        }
-      });
+    // In newer versions the API calls return the auth state instead of having to make a new call all the time.
+    const fromHeader = store.getters['auth/fromHeader'];
 
-      const me = findBy(principals, 'me', true);
+    if ( fromHeader === 'none' ) {
+      noAuth();
+    } else if ( fromHeader === 'true' ) {
+      const me = await findMe(store);
 
-      store.commit('auth/hasAuth', true);
-      store.commit('auth/loggedInAs', me.id);
-    } catch (e) {
-      const status = e?._status;
+      isLoggedIn(me);
+    } else if ( fromHeader === 'false' ) {
+      notLoggedIn();
+    } else {
+      // Older versions look at principals and see what happens
+      try {
+        const me = await findMe(store);
 
-      if ( status === 404 ) {
-        store.commit('auth/hasAuth', false);
-      } else {
-        store.commit('auth/hasAuth', true);
+        isLoggedIn(me);
+      } catch (e) {
+        const status = e?._status;
 
-        if ( status === 401 ) {
-          if ( route.name === 'index' ) {
-            return redirect(302, '/auth/login');
-          } else {
-            return redirect(302, `/auth/login?${ TIMED_OUT }`);
-          }
+        if ( status === 404 ) {
+          noAuth();
         } else {
-          store.commit('setError', e);
-          console.log(JSON.stringify(e)); // eslint-disable-line no-console
-        }
+          if ( status === 401 ) {
+            notLoggedIn();
+          } else {
+            store.commit('setError', e);
+          }
 
-        return;
+          return;
+        }
       }
     }
   }
@@ -154,6 +175,20 @@ export default async function({
       return redirect(302, '/fail-whale');
     }
   }
+}
+
+async function findMe(store) {
+  const principals = await store.dispatch('rancher/findAll', {
+    type: NORMAN.PRINCIPAL,
+    opt:  {
+      url:                  '/v3/principals',
+      redirectUnauthorized: false,
+    }
+  });
+
+  const me = findBy(principals, 'me', true);
+
+  return me;
 }
 
 async function tryInitialSetup(store, password = 'admin') {

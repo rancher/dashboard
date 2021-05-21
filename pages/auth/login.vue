@@ -9,6 +9,9 @@ import { sortBy } from '@/utils/sort';
 import { configType } from '@/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
 import { importLogin } from '@/utils/dynamic-importer';
+import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
+import { MANAGEMENT } from '@/config/types';
+import { SETTING } from '@/config/settings';
 import { getVendor, getProduct, setVendor } from '../../config/private-label';
 
 export default {
@@ -29,20 +32,38 @@ export default {
       // Local is special and handled here so that it can be toggled
       removeObject(providers, 'local');
     }
-    const firstLoginSetting = await store.dispatch('rancher/find', {
-      type: 'setting',
-      id:   'first-login',
-      opt:  { url: `/v3/settings/first-login` }
-    });
 
-    const uiPLSetting = await store.dispatch('rancher/find', {
-      type: 'setting',
-      id:   'ui-pl',
-      opt:  { url: `/v3/settings/ui-pl` }
-    });
+    let firstLoginSetting, plSetting;
 
-    if (uiPLSetting.value && uiPLSetting.value.length && uiPLSetting.value !== getVendor()) {
-      setVendor(uiPLSetting.value);
+    // Load settings.
+    // For newer versions this will return all settings if you are somehow logged in,
+    // and just the public ones if you aren't.
+    try {
+      await store.dispatch('management/findAll', {
+        type: MANAGEMENT.SETTING,
+        load: _ALL_IF_AUTHED,
+        opt:  { url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false },
+      });
+
+      firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
+      plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
+    } catch (e) {
+      // Older versions used Norman API to get these
+      firstLoginSetting = await store.dispatch('rancher/find', {
+        type: 'setting',
+        id:   SETTING.FIRST_LOGIN,
+        opt:  { url: `/v3/settings/${ SETTING.FIRST_LOGIN }` }
+      });
+
+      plSetting = await store.dispatch('rancher/find', {
+        type: 'setting',
+        id:   SETTING.PL,
+        opt:  { url: `/v3/settings/${ SETTING.PL }` }
+      });
+    }
+
+    if (plSetting.value?.length && plSetting.value !== getVendor()) {
+      setVendor(plSetting.value);
     }
     const needsSetup = firstLoginSetting?.value === 'true';
 

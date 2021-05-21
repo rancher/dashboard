@@ -11,6 +11,7 @@ import Banner from '@/components/Banner';
 import { allHash } from '@/utils/promise';
 import { MANAGEMENT } from '@/config/types';
 import { getVendor, setVendor } from '@/config/private-label';
+import { SETTING } from '@/config/settings';
 
 export const fetchOrCreateSetting = async(store, id, val) => {
   let setting;
@@ -29,6 +30,7 @@ export const fetchOrCreateSetting = async(store, id, val) => {
 
   return setting;
 };
+
 export default {
   layout: 'authenticated',
 
@@ -38,11 +40,11 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      uiPLSetting:        this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'ui-pl' }),
-      uiIssuesSetting:    this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'ui-issues' }),
-      uiBannerSetting:    this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: 'ui-banners' }),
-      uiLogoDarkSetting:  fetchOrCreateSetting(this.$store, 'ui-logo-dark', ''),
-      uiLogoLightSetting: fetchOrCreateSetting(this.$store, 'ui-logo-light', ''),
+      uiPLSetting:        this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.PL }),
+      uiIssuesSetting:    this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES }),
+      uiBannerSetting:    this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS }),
+      uiLogoDarkSetting:  fetchOrCreateSetting(this.$store, SETTING.LOGO_DARK, ''),
+      uiLogoLightSetting: fetchOrCreateSetting(this.$store, SETTING.LOGO_LIGHT, ''),
     });
 
     Object.assign(this, hash);

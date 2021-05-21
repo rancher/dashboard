@@ -17,6 +17,7 @@ import { createMemoryFormat, formatSi, parseSi } from '@/utils/units';
 import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenReleaseNotes } from '@/utils/version';
 import PageHeaderActions from '@/mixins/page-actions';
 import { getVendor } from '@/config/private-label';
+import { mapFeature, MULTI_CLUSTER } from '@/store/features';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 const RESET_CARDS_ACTION = 'reset-homepage-cards';
@@ -67,6 +68,7 @@ export default {
 
   computed: {
     ...mapGetters(['currentCluster']),
+    mcm: mapFeature(MULTI_CLUSTER),
 
     createLocation() {
       return {
@@ -246,7 +248,7 @@ export default {
                     <BadgeState :label="clusters.length.toString()" color="role-tertiary ml-20 mr-20" />
                   </div>
                 </template>
-                <template #header-middle>
+                <template v-if="mcm" #header-middle>
                   <n-link
                     :to="importLocation"
                     class="btn btn-sm role-primary"

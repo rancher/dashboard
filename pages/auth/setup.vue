@@ -10,18 +10,18 @@ import Checkbox from '@/components/form/Checkbox';
 import { getVendor, getProduct } from '@/config/private-label';
 import RadioGroup from '@/components/form/RadioGroup';
 import { allHash } from '@/utils/promise';
+import { SETTING } from '@/config/settings';
+import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
 
 export default {
   layout: 'unauthenticated',
 
   async middleware({ store, redirect, route } ) {
-    const firstLoginSetting = await store.dispatch('rancher/find', {
-      type: 'setting',
-      id:   'first-login',
-      opt:  { url: `/v3/settings/first-login` }
-    });
+    await store.dispatch('management/findAll', { type: MANAGEMENT.SETTING, load: _ALL_IF_AUTHED });
 
-    if (firstLoginSetting.value !== 'true') {
+    const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
+
+    if (firstLoginSetting?.value !== 'true') {
       return redirect('/');
     }
   },
@@ -33,45 +33,23 @@ export default {
   async asyncData({ route, req, store }) {
     const hash = await allHash({
       firstLoginSetting:  store.dispatch('rancher/find', {
-        type: 'setting',
-        id:   'first-login',
-        opt:  { url: `/v3/settings/first-login` }
+        type: MANAGEMENT.SETTING,
+        id:   SETTING.FIRST_LOGIN,
       }),
       telemetrySetting:  store.dispatch('management/find', {
         type: MANAGEMENT.SETTING,
-        id:   'telemetry-opt',
-        opt:  { url: `${ MANAGEMENT.SETTING }s/telemetry-opt` }
+        id:   SETTING.TELEMETRY
       }),
       serverUrlSetting: store.dispatch('management/find', {
         type: MANAGEMENT.SETTING,
-        id:   'server-url',
-        opt:  { url: `${ MANAGEMENT.SETTING }s/server-url` }
+        id:   SETTING.SERVER_URL,
       }),
-      principals:  store.dispatch('rancher/findAll', {
-        type: NORMAN.PRINCIPAL,
-        opt:  { url: '/v3/principals' }
-      })
-    });
-
-    const firstLogin = hash.firstLoginSetting.value === 'true';
-
-    if (!firstLogin) {
-
-    }
-
-    let eulaSetting;
-
-    try {
-      eulaSetting = await store.dispatch('management/find', {
+      eulaSetting: await store.dispatch('management/find', {
         type: MANAGEMENT.SETTING,
-        id:   'eula-accepted',
-        opt:  { url: `${ MANAGEMENT.SETTING }s/eula-accepted` }
-      });
-    } catch {
-      eulaSetting = await store.dispatch('management/create', {
-        type: MANAGEMENT.SETTING, metadata: { name: 'eula-accepted' }, value: 'false', default: 'false'
-      });
-    }
+        id:   SETTING.EULA_AGREED,
+      }),
+      principals: store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL })
+    });
 
     const current = route.query[SETUP] || 'admin';
 
@@ -105,8 +83,8 @@ export default {
       telemetry:        hash.telemetrySetting.value !== 'out',
       telemetrySetting: hash.telemetrySetting,
 
-      eula: eulaSetting.value === 'true',
-      eulaSetting,
+      eula:        hash.eulaSetting.value !== '',
+      eulaSetting: hash.eulaSetting,
 
       principals: hash.principals,
 
@@ -167,13 +145,12 @@ export default {
       try {
         await this.$store.dispatch('loadManagement');
         this.telemetrySetting.value = this.telemetry ? 'in' : 'out';
-        this.eulaSetting.value = 'true';
+        this.eulaSetting.value = (new Date()).toISOString();
         this.firstLoginSetting.value = 'false';
         await Promise.all([this.eulaSetting.save(), this.telemetrySetting.save(), this.firstLoginSetting.save()]);
         await this.$store.dispatch('rancher/request', {
           url:           '/v3/users?action=changepassword',
           method:        'post',
-          headers:       { 'Content-Type': 'application/json' },
           data:          {
             currentPassword: this.current,
             newPassword:     this.password

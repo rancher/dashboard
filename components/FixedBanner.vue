@@ -1,5 +1,6 @@
 <script>
 import { MANAGEMENT } from '@/config/types';
+import { SETTING } from '@/config/settings';
 export default {
   props: {
     footer: {
@@ -9,11 +10,15 @@ export default {
   },
 
   async fetch() {
-    this.bannerSetting = await this.$store.dispatch('management/find', { id: 'ui-banners', type: MANAGEMENT.SETTING });
+    this.bannerSetting = await this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
   },
+
   data() {
     return {
-      showHeader: false, showFooter: false, banner: {}, bannerSetting: null
+      showHeader:    false,
+      showFooter:    false,
+      banner:        {},
+      bannerSetting: null
     };
   },
 
@@ -36,14 +41,14 @@ export default {
 
   watch: {
     bannerSetting(neu) {
-      if (neu.value && neu.value !== '') {
+      if (neu?.value && neu.value !== '') {
         try {
           const parsed = JSON.parse(neu.value);
 
           this.showHeader = parsed.showHeader === 'true';
 
           this.showFooter = parsed.showFooter === 'true';
-          this.banner = parsed.banner;
+          this.banner = parsed.banner || {};
         } catch {}
       }
     }

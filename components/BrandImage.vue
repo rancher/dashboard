@@ -1,5 +1,6 @@
 <script>
 import { MANAGEMENT } from '@/config/types';
+import { SETTING } from '@/config/settings';
 
 export default {
   props:      {
@@ -22,19 +23,19 @@ export default {
   },
   computed: {
     brand() {
-      const setting = this.managementSettings.filter(setting => setting.id === 'brand')[0] || {};
+      const setting = this.managementSettings.filter(setting => setting.id === SETTING.BRAND)[0] || {};
 
       return setting.value;
     },
 
     uiLogoLight() {
-      const setting = this.managementSettings.filter(setting => setting.id === 'ui-logo-light')[0] || {};
+      const setting = this.managementSettings.filter(setting => setting.id === SETTING.LOGO_LIGHT)[0] || {};
 
       return setting.value;
     },
 
     uiLogoDark() {
-      const setting = this.managementSettings.filter(setting => setting.id === 'ui-logo-dark')[0] || {};
+      const setting = this.managementSettings.filter(setting => setting.id === SETTING.LOGO_DARK)[0] || {};
 
       return setting.value;
     },
