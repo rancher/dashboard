@@ -6,7 +6,7 @@ import ButtonGroup from '@/components/ButtonGroup';
 import Checkbox from '@/components/form/Checkbox';
 import LandingPagePreference from '@/components/LandingPagePreference';
 import {
-  mapPref, THEME, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE
+  mapPref, THEME, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE, MENU_MAX_CLUSTERS
 } from '@/store/prefs';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { addObject } from '@/utils/array';
@@ -18,13 +18,14 @@ export default {
   },
   mixins:     [BackRoute],
   computed:   {
-    keymap:         mapPref(KEYMAP),
-    dev:            mapPref(DEV),
-    dateFormat:     mapPref(DATE_FORMAT),
-    timeFormat:     mapPref(TIME_FORMAT),
-    perPage:        mapPref(ROWS_PER_PAGE),
-    hideDesc:       mapPref(HIDE_DESC),
-    showPreRelease:   mapPref(SHOW_PRE_RELEASE),
+    keymap:          mapPref(KEYMAP),
+    dev:             mapPref(DEV),
+    dateFormat:      mapPref(DATE_FORMAT),
+    timeFormat:      mapPref(TIME_FORMAT),
+    perPage:         mapPref(ROWS_PER_PAGE),
+    hideDesc:        mapPref(HIDE_DESC),
+    showPreRelease:  mapPref(SHOW_PRE_RELEASE),
+    menuMaxClusters: mapPref(MENU_MAX_CLUSTERS),
 
     theme: {
       get() {
@@ -105,6 +106,15 @@ export default {
       }));
     },
 
+    menuClusterOptions() {
+      const t = this.$store.getters['i18n/t'];
+
+      return this.$store.getters['prefs/options'](MENU_MAX_CLUSTERS).map(count => ({
+        label: t('prefs.clusterToShow.value', { count }),
+        value: count
+      }));
+    },
+
     hideDescriptions: {
       get() {
         return this.hideDesc.includes('ALL');
@@ -172,6 +182,21 @@ export default {
         />
       </div>
     </div>
+
+    <hr />
+    <div class="row">
+      <div class="col span-4">
+        <LabeledSelect
+          v-model.number="menuMaxClusters"
+          :label="t('prefs.clusterToShow.label')"
+          :options="menuClusterOptions"
+          option-key="value"
+          option-label="label"
+          placeholder="Select a row count"
+        />
+      </div>
+    </div>
+
     <hr />
     <div class="row">
       <div class="col span-8">

@@ -100,6 +100,9 @@ export const PROVISIONER = create('provisioner', _RKE2, { options: [_RKE1, _RKE2
 // Promo for Cluster Tools feature on Cluster Dashboard page
 export const CLUSTER_TOOLS_TIP = create('hide-cluster-tools-tip', false, { parseJSON });
 
+// Maximum number of clusters to show in the slide-in menu
+export const MENU_MAX_CLUSTERS = create('menu-max-clusters', 4, { options: [2, 3, 4, 5, 6, 7, 8, 9, 10], parseJSON });
+
 // --------------------
 
 const cookiePrefix = 'R_';

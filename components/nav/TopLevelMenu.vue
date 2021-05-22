@@ -2,8 +2,9 @@
 import BrandImage from '@/components/BrandImage';
 import RancherProviderIcon from '@/components/RancherProviderIcon';
 import { mapGetters } from 'vuex';
+import $ from 'jquery';
 import { MANAGEMENT } from '@/config/types';
-import { mapPref, DEV } from '@/store/prefs';
+import { mapPref, DEV, MENU_MAX_CLUSTERS } from '@/store/prefs';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { KEY } from '@/utils/platform';
@@ -12,7 +13,6 @@ import { getVersionInfo } from '@/utils/version';
 const UNKNOWN = 'unknown';
 const UI_VERSION = process.env.VERSION || UNKNOWN;
 const UI_COMMIT = process.env.COMMIT || UNKNOWN;
-const MAX_CLUSTERS_TO_SHOW = 4;
 
 export default {
 
@@ -47,7 +47,7 @@ export default {
     showClusterSearch() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
 
-      return all.length > MAX_CLUSTERS_TO_SHOW;
+      return all.length > this.maxClustersToShow;
     },
 
     clusters() {
@@ -73,6 +73,8 @@ export default {
     },
 
     dev: mapPref(DEV),
+
+    maxClustersToShow: mapPref(MENU_MAX_CLUSTERS),
 
     showLocale() {
       return Object.keys(this.availableLocales).length > 1 || this.dev;
@@ -128,7 +130,7 @@ export default {
   watch: {
     $route() {
       this.shown = false;
-    }
+    },
   },
 
   mounted() {
@@ -140,6 +142,17 @@ export default {
   },
 
   methods: {
+    // Cluster list number of items shown is configurbale via user preference
+    setClusterListHeight(a) {
+      const el = this.$refs.clusterList;
+
+      if (el) {
+        const $el = $(el);
+        const h = 34 * a;
+
+        $el.css('height', `${ h }px`);
+      }
+    },
     handler(e) {
       if (e.keyCode === KEY.ESCAPE ) {
         this.hide();
@@ -152,6 +165,9 @@ export default {
 
     toggle() {
       this.shown = !this.shown;
+      this.$nextTick(() => {
+        this.setClusterListHeight(this.maxClustersToShow);
+      });
     },
 
     switchLocale(locale) {
@@ -197,7 +213,7 @@ export default {
             />
             <i v-if="clusterFilter.length > 0" class="icon icon-close" @click="clusterFilter=''" />
           </div>
-          <div class="clusters" :class="{'fixed-height': showClusterSearch}">
+          <div ref="clusterList" class="clusters" :class="{'fixed-height': showClusterSearch}">
             <div v-for="c in clusters" :key="c.id" @click="hide()">
               <nuxt-link
                 v-if="c.ready"
