@@ -113,7 +113,8 @@ export function init(store) {
   mapGroup(/^(.*\.)?(fleet|gitjob)\.cattle\.io$/, 'Fleet');
   mapGroup(/^(.*\.)?(helm|upgrade|k3s)\.cattle\.io$/, 'K3s');
   mapGroup(/^(.*\.)?cis\.cattle\.io$/, 'CIS');
-  mapGroup(/^(catalog|project|management)\.cattle\.io$/, 'Rancher');
+  mapGroup(/^(.*\.)?traefik\.containo\.us$/, 'Træfik');
+  mapGroup(/^(catalog|management|project|ui)\.cattle\.io$/, 'Rancher');
   mapGroup(/^(.*\.)?istio\.io$/, 'Istio');
   mapGroup('split.smi-spec.io', 'SMI');
   mapGroup(/^(.*\.)*knative\.(io|dev)$/, 'Knative');

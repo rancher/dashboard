@@ -38,7 +38,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['clusterReady', 'isMultiCluster', 'isRancher', 'currentCluster',
+    ...mapGetters(['clusterReady', 'isExplorer', 'isMultiCluster', 'isRancher', 'currentCluster',
       'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions']),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -153,7 +153,7 @@ export default {
     <TopLevelMenu></TopLevelMenu>
 
     <div v-if="!simple" class="top">
-      <NamespaceFilter v-if="clusterReady && currentProduct && currentProduct.showNamespaceFilter" />
+      <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
       <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
     </div>
 

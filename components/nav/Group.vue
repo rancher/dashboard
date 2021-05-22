@@ -194,6 +194,12 @@ export default {
           @selected="$emit('selected')"
           @click="clicked"
         />
+        <div
+          v-else
+          :key="id+'_' + child.name + '_hmm'"
+        >
+          {{ child }}??
+        </div>
       </template>
     </ul>
   </div>

@@ -13,7 +13,7 @@ import Group from '@/components/nav/Group';
 import Header from '@/components/nav/Header';
 import Brand from '@/mixins/brand';
 import FixedBanner from '@/components/FixedBanner';
-import { COUNT, SCHEMA, MANAGEMENT } from '@/config/types';
+import { COUNT, SCHEMA, MANAGEMENT, UI } from '@/config/types';
 import { BASIC, FAVORITE, USED } from '@/store/type-map';
 import { addObjects, replaceWith, clear, addObject } from '@/utils/array';
 import { NAME as EXPLORER } from '@/config/product/explorer';
@@ -96,6 +96,14 @@ export default {
       return this.$store.getters[`${ product.inStore }/all`](SCHEMA);
     },
 
+    allNavLinks() {
+      if ( !this.clusterId || !this.$store.getters['cluster/schemaFor'](UI.NAV_LINK) ) {
+        return [];
+      }
+
+      return this.$store.getters['cluster/all'](UI.NAV_LINK);
+    },
+
     counts() {
       const managementReady = this.$store.getters['managementReady'];
       const product = this.$store.getters['currentProduct'];
@@ -123,6 +131,10 @@ export default {
     },
 
     allSchemas() {
+      this.queueUpdate();
+    },
+
+    allNavLinks() {
       this.queueUpdate();
     },
 
@@ -303,6 +315,68 @@ export default {
             addObject(out, group);
           }
         }
+      }
+
+      if ( this.isExplorer ) {
+        const allNavLinks = this.allNavLinks;
+        const toAdd = [];
+        const haveGroup = {};
+
+        for ( const obj of allNavLinks ) {
+          const groupLabel = obj.spec.group;
+          const groupSlug = obj.normalizedGroup;
+
+          const entry = {
+            name:        `link-${ obj._key }`,
+            link:        obj.link,
+            target:      obj.actualTarget,
+            label:       obj.labelDisplay,
+            sideLabel:   obj.spec.sideLabel,
+            iconSrc:     obj.spec.iconSrc,
+            description: obj.spec.description,
+          };
+
+          // If there's a spec.group (groupLabel), all entries with that name go under one nav group
+          if ( groupSlug ) {
+            if ( haveGroup[groupSlug] ) {
+              continue;
+            }
+
+            haveGroup[groupSlug] = true;
+
+            toAdd.push({
+              name:     `navlink-group-${ groupSlug }`,
+              label:    groupLabel,
+              isRoot:   true,
+              // This is the item that actually shows up in the nav, since this outer group will be invisible
+              children: [
+                {
+                  name:  `navlink-child-${ groupSlug }`,
+                  label: groupLabel,
+                  route: {
+                    name:   'c-cluster-navlinks-group',
+                    params: {
+                      cluster: this.clusterId,
+                      group:   groupSlug,
+                    }
+                  },
+                }
+              ],
+              weight: -100,
+            });
+          } else {
+            toAdd.push({
+              name:       `navlink-${ entry.name }`,
+              label:      entry.label,
+              isRoot:     true,
+              // This is the item that actually shows up in the nav, since this outer group will be invisible
+              children:   [entry],
+              weight:     -100,
+            });
+          }
+        }
+
+        addObjects(out, toAdd);
       }
 
       replaceWith(this.groups, ...sortBy(out, ['weight:desc', 'label']));

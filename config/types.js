@@ -242,3 +242,5 @@ export const CIS = {
   BENCHMARK:            'cis.cattle.io.clusterscanbenchmark',
   REPORT:               'cis.cattle.io.clusterscanreport'
 };
+
+export const UI = { NAV_LINK: 'ui.cattle.io.navlink' };

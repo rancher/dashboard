@@ -1,6 +1,6 @@
 import Steve from '@/plugins/steve';
 import {
-  COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET
+  COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET, UI
 } from '@/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS, LAST_NAMESPACE, WORKSPACE } from '@/store/prefs';
 import { allHash, allHashSettled } from '@/utils/promise';
@@ -522,8 +522,8 @@ export const actions = {
         namespace: state.clusterId,
         stop:      true
       });
-      commit('management/forgetType', MANAGEMENT.PROJECT);
 
+      commit('management/forgetType', MANAGEMENT.PROJECT);
       commit('catalog/reset');
     }
 
@@ -572,8 +572,9 @@ export const actions = {
 
     const res = await allHash({
       projects:   isRancher && dispatch('management/findAll', projectArgs),
-      counts:     dispatch('cluster/findAll', { type: COUNT, opt: { url: 'counts' } }),
-      namespaces: dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } })
+      counts:     dispatch('cluster/findAll', { type: COUNT }),
+      namespaces: dispatch('cluster/findAll', { type: NAMESPACE }),
+      navLinks:   !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
     });
 
     commit('updateNamespaces', {
