@@ -111,12 +111,14 @@ export default {
           name:          'name',
           labelKey:      'tableHeaders.name',
           sort:          ['nameSort'],
-          canBeVariable: true
+          canBeVariable: true,
+          search:        ['nameSort'],
         },
         {
           label: this.t('landing.clusters.provider'),
           value: 'status.provider',
-          name:  'Provider'
+          name:  'Provider',
+          sort:  ['status.provider'],
         },
         {
           label: this.t('landing.clusters.kubernetesVersion'),
