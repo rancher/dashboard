@@ -22,8 +22,7 @@ export default {
     this.showDeprecated = query[DEPRECATED] === _FLAGGED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
 
-    this.allInstalled = await this.$store.dispatch('cluster/findAll', { type: CATALOG.APP, opt: { force: true } });
-    // this.allInstalled = await this.$store.dispatch('cluster/findAll', { type: CATALOG.APP });
+    this.allInstalled = await this.$store.dispatch('cluster/findAll', { type: CATALOG.APP });
 
     // If legacy feature flag enabled
     if (this.legacyEnabled) {
@@ -114,33 +113,15 @@ export default {
       return [
         this._legacyChart('monitoring'),
         this._legacyChart('logging'),
-        // this._legacyChart('istio'),
       ];
     }
   },
 
   mounted() {
     window.c = this;
-
-    // start a timer
-    // this._checkMonitoring();
   },
 
   methods: {
-    // _checkMonitoring() {
-    //   setTimeout(() => {
-    //     console.log('>> V1 Monitoring >>>>>>>>>>>>>>>>>>');
-    //     const s = this.currentCluster?.status;
-    //     if (s) {
-    //       console.log(JSON.parse(JSON.stringify(s)));
-    //     } else {
-    //       console.log('Monitoring not installed');
-    //     }
-    //     console.log(this.installedApps);
-    //     this._checkMonitoring();
-    //   }, 5000);
-    // },
-
     _legacyChart(id) {
       return {
         certifiedSort:    1,

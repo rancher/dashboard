@@ -140,6 +140,8 @@ const instanceMethods = {};
 export const IF_HAVE = {
   V1_MONITORING: 'v1-monitoring',
   V2_MONITORING: 'v2-monitoring',
+  PROJECT:       'project',
+  NO_PROJECT:    'no-project',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -1466,10 +1468,10 @@ function ifHave(getters, option) {
   case IF_HAVE.V1_MONITORING: {
     return haveV1Monitoring(getters);
   }
-  case 'project': {
+  case IF_HAVE.PROJECT: {
     return !!project(getters);
   }
-  case 'no-project': {
+  case IF_HAVE.NO_PROJECT: {
     return !project(getters);
   }
   default:

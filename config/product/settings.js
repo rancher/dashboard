@@ -1,6 +1,11 @@
-import { FEATURE_DESCRIPTION, RESTART, SIMPLE_NAME, STATE } from '@/config/table-headers';
-import { MANAGEMENT } from '@/config/types';
 import { DSL } from '@/store/type-map';
+import { MANAGEMENT } from '@/config/types';
+import {
+  STATE,
+  SIMPLE_NAME,
+  FEATURE_DESCRIPTION,
+  RESTART,
+} from '@/config/table-headers';
 
 export const NAME = 'settings';
 

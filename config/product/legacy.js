@@ -1,5 +1,5 @@
 import { LEGACY } from '@/store/features';
-import { DSL } from '@/store/type-map';
+import { DSL, IF_HAVE } from '@/store/type-map';
 
 export const NAME = 'legacy';
 
@@ -50,7 +50,7 @@ export function init(store) {
   });
 
   virtualType({
-    ifHave:     'project',
+    ifHave:     IF_HAVE.PROJECT,
     label:      'Project',
     namespaced: true,
     name:       'v1-project',
@@ -62,7 +62,7 @@ export function init(store) {
   });
 
   virtualType({
-    ifHave:     'no-project',
+    ifHave:     IF_HAVE.NO_PROJECT,
     label:      'Project',
     namespaced: true,
     name:       'v1-project-overview',
@@ -83,7 +83,7 @@ export function init(store) {
   // Project Pages
 
   virtualType({
-    ifHave:     'project',
+    ifHave:     IF_HAVE.PROJECT,
     label:      'Alerts',
     namespaced: true,
     name:       'project-alerts',
@@ -94,7 +94,7 @@ export function init(store) {
   });
 
   virtualType({
-    ifHave:     'project',
+    ifHave:     IF_HAVE.PROJECT,
     label:      'Apps',
     namespaced: true,
     name:       'project-apps',
@@ -105,7 +105,7 @@ export function init(store) {
   });
 
   virtualType({
-    ifHave:     'project',
+    ifHave:     IF_HAVE.PROJECT,
     label:      'Catalogs',
     namespaced: true,
     name:       'project-catalogs',
@@ -116,7 +116,7 @@ export function init(store) {
   });
 
   virtualType({
-    ifHave:     'project',
+    ifHave:     IF_HAVE.PROJECT,
     label:      'Logging',
     namespaced: true,
     name:       'project-logging',
@@ -127,7 +127,7 @@ export function init(store) {
   });
 
   virtualType({
-    ifHave:     'project',
+    ifHave:     IF_HAVE.PROJECT,
     label:      'Monitoring',
     namespaced: true,
     name:       'project-monitoring',
