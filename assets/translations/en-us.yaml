@@ -4284,6 +4284,12 @@ branding:
     background: Background Color
     showHeader: Show Banner in Header
     showFooter: Show Banner in Footer
+  color:
+    label: Primary Color
+    tip: Swap {current} out for a custom color throughout the UI.
+    useCustom: Use a Custom Color
+    defaultRancher: Rancher blue
+    defaultSuse: SUSE green
 
 resourceQuota:
   configMaps: Config Maps

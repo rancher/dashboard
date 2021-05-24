@@ -12,6 +12,7 @@ import { allHash } from '@/utils/promise';
 import { MANAGEMENT } from '@/config/types';
 import { getVendor, setVendor } from '@/config/private-label';
 import { SETTING, fetchOrCreateSetting } from '@/config/settings';
+const Color = require('color');
 
 export default {
   layout: 'authenticated',
@@ -27,9 +28,15 @@ export default {
       uiBannerSetting:    this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS }),
       uiLogoDarkSetting:  fetchOrCreateSetting(this.$store, SETTING.LOGO_DARK, ''),
       uiLogoLightSetting: fetchOrCreateSetting(this.$store, SETTING.LOGO_LIGHT, ''),
+      uiColorSetting:     fetchOrCreateSetting(this.$store, SETTING.PRIMARY_COLOR, ''),
+      hasSupportSetting:     fetchOrCreateSetting(this.$store, SETTING.SUPPORTED, ''),
     });
 
     Object.assign(this, hash);
+
+    if (this.hasSupportSetting.value === 'true') {
+      this.defaultColor = this.t('branding.color.defaultSuse');
+    }
 
     try {
       this.bannerVal = JSON.parse(hash.uiBannerSetting.value);
@@ -52,11 +59,15 @@ export default {
         this.customizeLogo = true;
       } catch {}
     }
+    if (hash.uiColorSetting.value) {
+      this.uiColor = Color(hash.uiColorSetting.value).hex();
+      this.customizeColor = true;
+    }
   },
 
   data() {
     return {
-      venodr:      getVendor(),
+      vendor:      getVendor(),
       uiPLSetting: {},
 
       uiIssuesSetting: {},
@@ -70,12 +81,19 @@ export default {
       uiLogoLight:        '',
       customizeLogo:      false,
 
+      uiColorSetting: {},
+      uiColor:        '',
+      customizeColor: false,
+      defaultColor:   this.t('branding.color.defaultRancher'),
+
       errors: []
     };
   },
+
+  watch: {},
+
   methods: {
     updateLogo(img, key) {
-      // TODO check file size
       this[key] = img;
     },
 
@@ -89,12 +107,19 @@ export default {
         this.uiLogoDarkSetting.value = '';
       }
 
+      if (this.customizeColor) {
+        this.uiColorSetting.value = Color(this.uiColor).rgb().string();
+      } else {
+        this.uiColorSetting.value = null;
+      }
+
       try {
         await Promise.all([this.uiPLSetting.save(),
           this.uiIssuesSetting.save(),
           this.uiBannerSetting.save(),
           this.uiLogoDarkSetting.save(),
-          this.uiLogoLightSetting.save()]);
+          this.uiLogoLightSetting.save(),
+          this.uiColorSetting.save()]);
         if (this.uiPLSetting.value !== this.vendor) {
           setVendor(this.uiPLSetting.value);
         }
@@ -105,7 +130,7 @@ export default {
         btnCB(false);
       }
     }
-  }
+  },
 };
 </script>
 
@@ -200,6 +225,18 @@ export default {
           </div>
         </div>
       </template>
+      <h3 class="mt-40 mb-5 pb-0">
+        {{ t('branding.color.label') }}
+      </h3>
+      <label class="text-label">
+        {{ t('branding.color.tip', {current: defaultColor}, true) }}
+      </label>
+      <div class="row mt-20">
+        <Checkbox v-model="customizeColor" :label="t('branding.color.useCustom')" />
+      </div>
+      <div v-if="customizeColor" class="row mt-20">
+        <ColorInput v-model="uiColor" />
+      </div>
     </div>
     <template v-for="err in errors">
       <Banner :key="err" color="error" :label="err" />

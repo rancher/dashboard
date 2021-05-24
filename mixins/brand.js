@@ -1,10 +1,13 @@
 import { MANAGEMENT } from '@/config/types';
 import { getVendor } from '@/config/private-label';
 import { SETTING } from '@/config/settings';
+import { findBy } from '@/utils/array';
+import { createCssVars } from '@/utils/color';
+import { mapPref, THEME } from '@/store/prefs';
 
 export default {
-  fetch() {
-    this.brandCookie = this.$cookies.get('brand');
+  async fetch() {
+    this.globalSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
   },
 
   data() {
@@ -12,20 +15,53 @@ export default {
   },
 
   computed: {
-    brand() {
-      const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BRAND);
+    theme: mapPref(THEME),
 
-      if ( this.brandCookie && !setting ) {
-        return this.brandCookie;
-      }
+    brand() {
+      const setting = findBy(this.globalSettings, 'id', SETTING.BRAND);
+
+      return setting?.value;
+    },
+
+    color() {
+      const setting = findBy(this.globalSettings, 'id', SETTING.PRIMARY_COLOR);
 
       return setting?.value;
     }
   },
 
-  head() {
-    const theme = this.$store.getters['prefs/theme'];
+  watch: {
+    color(neu) {
+      if (neu) {
+        this.setCustomPrimaryColor(neu);
+      } else {
+        this.removePrimaryCustomColor();
+      }
+    },
+    theme() {
+      if (this.color) {
+        this.setCustomPrimaryColor(this.color);
+      }
+    },
+  },
+  methods: {
+    setCustomPrimaryColor(color) {
+      const vars = createCssVars(color, this.theme);
 
+      for (const prop in vars) {
+        document.body.style.setProperty(prop, vars[prop]);
+      }
+    },
+
+    removePrimaryCustomColor() {
+      const vars = createCssVars('rgb(0,0,0)', this.theme);
+
+      for (const prop in vars) {
+        document.body.style.removeProperty(prop);
+      }
+    }
+  },
+  head() {
     let cssClass = `overflow-hidden dashboard-body`;
 
     let brandMeta;
@@ -34,16 +70,16 @@ export default {
       brandMeta = require(`~/assets/brand/${ this.brand }/metadata.json`);
     } catch {
       return {
-        bodyAttrs: { class: `theme-${ theme } ${ cssClass }` },
+        bodyAttrs: { class: `theme-${ this.theme } ${ cssClass }` },
         title:     getVendor(),
       };
     }
 
     if (brandMeta?.hasStylesheet === 'true') {
-      cssClass = `${ cssClass } ${ this.brand } theme-${ theme }`;
+      cssClass = `${ cssClass } ${ this.brand } theme-${ this.theme }`;
     } else {
-      cssClass = `theme-${ theme } overflow-hidden dashboard-body`;
-      this.$store.dispatch('prefs/setBrandStyle', theme === 'dark');
+      cssClass = `theme-${ this.theme } overflow-hidden dashboard-body`;
+      this.$store.dispatch('prefs/setBrandStyle', this.theme === 'dark');
     }
 
     return {
