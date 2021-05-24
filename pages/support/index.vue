@@ -9,6 +9,8 @@ import { MANAGEMENT } from '@/config/types';
 import { getVendor } from '@/config/private-label';
 import { SETTING } from '@/config/settings';
 
+const KEY_REGX = /^[0-9a-fA-F]{8}$/;
+
 export default {
   layout: 'home',
 
@@ -76,6 +78,9 @@ export default {
       return this.hasSupport ? 'support.suse.title' : 'support.community.title';
     },
 
+    validSupportKey() {
+      return !!this.supportKey.match(KEY_REGX);
+    }
   },
 
   methods: {
@@ -171,7 +176,7 @@ export default {
           <button type="button" class="btAhn role-secondary" @click="$modal.hide('toggle-support')">
             {{ t('generic.cancel') }}
           </button>
-          <AsyncButton v-if="!hasSupport" :disabled="!supportKey.length" class="pull-right" @click="addSubscription" />
+          <AsyncButton v-if="!hasSupport" :disabled="!validSupportKey" class="pull-right" @click="addSubscription" />
           <AsyncButton v-else :action-label="t('generic.remove')" class="pull-right" @click="removeSubscription" />
         </template>
       </Card>
