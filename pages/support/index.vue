@@ -86,7 +86,6 @@ export default {
   methods: {
     async addSubscription(done) {
       try {
-        this.hasSupportOnDialog = this.hasSupport;
         this.supportSetting.value = 'true';
         this.brandSetting.value = 'suse';
         await Promise.all([this.supportSetting.save(), this.brandSetting.save()]);
@@ -100,7 +99,6 @@ export default {
 
     async removeSubscription(done) {
       try {
-        this.hasSupportOnDialog = this.hasSupport;
         this.supportSetting.value = 'false';
         this.brandSetting.value = '';
         await Promise.all([this.supportSetting.save(), this.brandSetting.save()]);
