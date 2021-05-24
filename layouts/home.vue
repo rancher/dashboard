@@ -2,6 +2,7 @@
 import Header from '@/components/nav/Header';
 import Brand from '@/mixins/brand';
 import FixedBanner from '@/components/FixedBanner';
+import { mapPref, DEV } from '@/store/prefs';
 
 export default {
 
@@ -18,6 +19,14 @@ export default {
     };
   },
 
+  computed: { dev: mapPref(DEV) },
+
+  methods: {
+    toggleTheme() {
+      this.$store.dispatch('prefs/toggleTheme');
+    },
+  }
+
 };
 </script>
 
@@ -32,6 +41,7 @@ export default {
       </main>
     </div>
     <FixedBanner :footer="true" />
+    <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
   </div>
 </template>
 

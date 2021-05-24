@@ -564,14 +564,18 @@ export default {
   }
 
   .side-menu-logo {
+    align-items: center;
+    display: flex;
     margin-left: 10px;
     opacity: 1;
     transition: opacity 1.2s;
     transition-delay: 0s;
-    width: 110px;
+    height: 55px;
+    max-width: 200px;
     & IMG {
-     height: 55px;
-     max-width: 100%;
+      object-fit: contain;
+      height: 21px;
+      max-width: 200px;
     }
   }
 

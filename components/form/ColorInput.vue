@@ -38,6 +38,8 @@ export default {
 
 <style lang='scss' scoped>
 .color-input {
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
   padding: 10px;
 
   LABEL{
@@ -63,8 +65,8 @@ export default {
   INPUT{
     border: none;
     padding: 0;
-    width: 2em;
-    height: 2em;
+    width: 23px;
+    height: 23px;
     -webkit-appearance: none;
     opacity: 0;
     &:hover {
