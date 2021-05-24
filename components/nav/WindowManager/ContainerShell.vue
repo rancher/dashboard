@@ -300,7 +300,7 @@ export default {
           <t k="wm.containerShell.clear" />
         </button>
       </div>
-      <div class="status pull-right">
+      <div class="status pull-left">
         <t v-if="isOpen" k="wm.connection.connected" class="text-success" />
         <t v-else-if="isOpening" k="wm.connection.connecting" class="text-warning" :raw="true" />
         <t v-else k="wm.connection.disconnected" class="text-error" />
@@ -316,6 +316,16 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .text-warning {
+    animation: flasher 2.5s linear infinite;
+  }
+
+  @keyframes flasher {
+    50% {
+      opacity: 0;
+    }
+  }
+
   .shell-container {
     height: 100%;
     overflow: hidden;
@@ -344,5 +354,6 @@ export default {
     display: flex;
     min-width: 80px;
     height: 30px;
+    margin-left: 10px;
   }
 </style>
