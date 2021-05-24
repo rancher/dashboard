@@ -40,7 +40,7 @@ export default {
         bulkable:   true,
         bulkAction: 'move',
         enabled:    true,
-        icon:       'icon icon-play',
+        icon:       'icon icon-fork',
         weight:     3,
       });
     }
