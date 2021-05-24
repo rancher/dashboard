@@ -856,6 +856,7 @@ cluster:
   importAction: Import Existing
   kubernetesVersion:
     label: Kubernetes Version
+  toolsTip: Use the new Cluster Tools to manage and install Monitoring, Logging and other tools
   name:
     label: Cluster Name
     placeholder: A unique name for the cluster

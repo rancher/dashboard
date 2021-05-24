@@ -97,6 +97,9 @@ export const _RKE1 = 'rke1';
 export const _RKE2 = 'rke2';
 export const PROVISIONER = create('provisioner', _RKE2, { options: [_RKE1, _RKE2] });
 
+// Promo for Cluster Tools feature on Cluster Dashboard page
+export const CLUSTER_TOOLS_TIP = create('hide-cluster-tools-tip', false, { parseJSON });
+
 // --------------------
 
 const cookiePrefix = 'R_';

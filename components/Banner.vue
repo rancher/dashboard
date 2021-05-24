@@ -29,7 +29,7 @@ export default {
       </template>
     </slot>
     <div v-if="closable" class="closer" @click="$emit('close')">
-      <i class="icon icon-2x icon-close" />
+      <i class="icon icon-2x icon-close closer-icon" />
     </div>
   </div>
 </template>
@@ -61,6 +61,16 @@ export default {
       width: 40px;
       line-height: 42px;
       text-align: center;
+
+      .closer-icon {
+        font-size: 22px;
+        opacity: 0.7;
+
+        &:hover {
+          opacity: 1;
+          color: var(--link);
+        }
+      }
     }
 
     &.primary {
