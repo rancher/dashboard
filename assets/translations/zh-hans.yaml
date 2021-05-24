@@ -345,8 +345,8 @@ authConfig:
     #tokenEndpoint: Token Endpoint
     #authEndpoint: Auth Endpoint
   stateBanner:
-    disabled: '{provider} 目前已被禁用。'
-    enabled: '{provider} 目前已被禁用。'
+    disabled: '已禁用{provider} 。'
+    enabled: '已启用{provider} 。'
   testAndEnable: 测试和启用认证
 
 authGroups:
