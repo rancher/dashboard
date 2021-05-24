@@ -163,7 +163,7 @@ export default {
     },
 
     v1MonitoringURL() {
-      return `/k/${ this.currentCluster.id }`;
+      return `/k/${ this.currentCluster.id }/monitoring`;
     },
 
     displayProvider() {
@@ -402,7 +402,7 @@ export default {
     </div>
 
     <div v-if="hasV1Monitoring" id="ember-anchor" class="mt-20">
-      <EmberPage inline="ember-anchor" :fixed="false" :src="v1MonitoringURL" />
+      <EmberPage inline="ember-anchor" :src="v1MonitoringURL" />
     </div>
 
     <div class="mb-40 mt-40">

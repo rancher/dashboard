@@ -166,7 +166,7 @@ export default {
         @input="slectionChanged($event)"
       />
       <div id="ember-anchor">
-        <EmberPage inline="ember-anchor" :fixed="false" :src="v1Metrics" />
+        <EmberPage inline="ember-anchor" :src="v1Metrics" />
       </div>
     </Tab>
     <Tab v-if="showMetrics" :label="t('workload.container.titles.metrics')" name="pod-metrics" :weight="2.5">

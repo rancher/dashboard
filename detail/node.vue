@@ -262,7 +262,7 @@ export default {
       </Tab>
       <Tab v-if="v1MonitoringUrl" name="v1Metrics" :label="t('node.detail.tab.metrics')" :weight="0">
         <div id="ember-anchor">
-          <EmberPage inline="ember-anchor" :fixed="false" :src="v1MonitoringUrl" />
+          <EmberPage inline="ember-anchor" :src="v1MonitoringUrl" />
         </div>
       </Tab>
     </ResourceTabs>

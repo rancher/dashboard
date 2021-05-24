@@ -358,12 +358,4 @@ export default {
     position: absolute;
     right: 0;
   }
-
-  .embed {
-    position: absolute;
-    top: var(--header-height);
-    height: calc(100vh - var(--header-height));
-    left: var(--nav-width);
-    width: calc(100vw - var(--nav-width));
-  }
 </style>

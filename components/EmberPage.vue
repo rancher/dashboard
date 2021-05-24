@@ -2,7 +2,8 @@
 import Loading from '@/components/Loading';
 import { mapGetters } from 'vuex';
 import { NAME as MANAGER } from '@/config/product/manager';
-import { CAPI } from '@/config/types';
+import { CAPI, MANAGEMENT } from '@/config/types';
+import { SETTING } from '@/config/settings';
 
 const EMBER_FRAME = 'ember-iframe';
 const EMBER_FRAME_HIDE_CLASS = 'ember-iframe-hidden';
@@ -57,10 +58,6 @@ export default {
       type:    Boolean,
       default: false
     },
-    fixed: {
-      type:    Boolean,
-      default: false
-    },
     inline: {
       type:    String,
       default: ''
@@ -69,12 +66,14 @@ export default {
 
   data() {
     return {
-      iframeEl:     null,
-      loaded:       true,
-      loadRequired: false,
-      emberCheck:   null,
-      error:        false,
-      heightSync:   null,
+      iframeEl:         null,
+      loaded:           true,
+      loadRequired:     false,
+      emberCheck:       null,
+      error:            false,
+      heightSync:       null,
+      showHeaderBanner: false,
+      showFooterBanner: false,
     };
   },
 
@@ -83,7 +82,7 @@ export default {
     ...mapGetters(['clusterId', 'productId']),
 
     loaderMode() {
-      return this.fixed ? 'content' : 'full';
+      return 'content';
     }
   },
 
@@ -112,7 +111,7 @@ export default {
       clearTimeout(this.heightSync);
     }
 
-    if (!this.fixed && this.inline) {
+    if (this.inline) {
       const iframeEl = document.getElementById(EMBER_FRAME);
 
       // Remove the IFRAME - we can't reuse it one its been moved inline
@@ -142,7 +141,31 @@ export default {
   },
 
   methods: {
+    addBannerClasses(elm, prefix) {
+      elm.classList.remove(`${ prefix }-top-banner`);
+      elm.classList.remove(`${ prefix }-one-banner`);
+      elm.classList.remove(`${ prefix }-two-banners`);
+
+      if (this.showHeaderBanner) {
+        elm.classList.add(`${ prefix }-top-banner`);
+        if (this.showFooterBanner) {
+          elm.classList.add(`${ prefix }-two-banners`);
+        }
+      } else if (this.showFooterBanner) {
+        elm.classList.add(`${ prefix }-one-banner`);
+      }
+    },
+
     async initFrame() {
+      const bannerSetting = await this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
+
+      try {
+        const parsed = JSON.parse(bannerSetting.value);
+
+        this.showHeaderBanner = parsed.showHeader === 'true';
+        this.showFooterBanner = parsed.showFooter === 'true';
+      } catch {}
+
       // Get the existing iframe if it exists
       let iframeEl = document.getElementById(EMBER_FRAME);
 
@@ -236,6 +259,9 @@ export default {
         iframeEl.height = 0;
         this.syncHeight();
       }
+
+      this.addBannerClasses(this.$refs.emberPage, 'fixed');
+      this.addBannerClasses(iframeEl, 'ember-iframe');
     },
 
     syncHeight() {
@@ -382,7 +408,7 @@ export default {
 </script>
 
 <template>
-  <div class="ember-page" :class="{'fixed': fixed}">
+  <div ref="emberPage" class="ember-page" :class="fixed">
     <Loading v-if="!inline" :loading="!loaded" :mode="loaderMode" :no-delay="true" />
     <div v-if="inline && !loaded" class="inline-loading" v-html="t('generic.loading', {}, true)" />
     <div v-if="error" class="ember-page-error">
@@ -395,6 +421,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  $banner-height: 2em;
   .fixed {
     height: calc(100vh - var(--header-height));
     left: var(--nav-width);
@@ -402,6 +429,19 @@ export default {
     top: var(--header-height);
     width: calc(100vw - var(--nav-width));
   }
+
+  .fixed-top-banner {
+    top: calc(#{$banner-height} + var(--header-height));
+  }
+
+  .fixed-one-banner {
+    height: calc(100vh - var(--header-height) - #{$banner-height});
+  }
+
+  .fixed-two-banners {
+    height: calc(100vh - var(--header-height) - #{$banner-height} - #{$banner-height});
+  }
+
   .ember-page {
     display: flex;
     height: 100%;
@@ -438,6 +478,8 @@ export default {
   }
 </style>
 <style lang="scss">
+  $banner-height: 2em;
+
   .ember-iframe {
     border: 0;
     left: var(--nav-width);
@@ -446,6 +488,18 @@ export default {
     top: var(--header-height);
     width: calc(100vw - var(--nav-width));
     visibility: show;
+  }
+
+  .ember-iframe-top-banner {
+    top: calc(#{$banner-height} + var(--header-height));
+  }
+
+  .ember-iframe-one-banner {
+    height: calc(100vh - var(--header-height) - #{$banner-height});
+  }
+
+  .ember-iframe-two-banners {
+    height: calc(100vh - var(--header-height) - #{$banner-height} - #{$banner-height});
   }
 
   .ember-iframe-inline {
