@@ -46,7 +46,6 @@ export default {
           const parsed = JSON.parse(neu.value);
 
           this.showHeader = parsed.showHeader === 'true';
-
           this.showFooter = parsed.showFooter === 'true';
           this.banner = parsed.banner || {};
         } catch {}
