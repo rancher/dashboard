@@ -201,6 +201,11 @@ export default {
         }
         iframeEl.setAttribute('src', this.src);
       } else {
+        // Reset scroll position to top
+        if (iframeEl.contentWindow?.scrollTo) {
+          iframeEl.contentWindow.scrollTo(0, 0);
+        }
+
         // Post a message to navigate within the existing app
         iframeEl.contentWindow.postMessage({
           action: 'navigate',
