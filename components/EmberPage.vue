@@ -222,17 +222,14 @@ export default {
 
       this.iframeEl = iframeEl;
 
-      if (this.fixed) {
+      if (!this.inline) {
         iframeEl.classList.add('ember-iframe');
         iframeEl.classList.remove('ember-iframe-inline');
       } else {
         iframeEl.classList.remove('ember-iframe');
         iframeEl.classList.add('ember-iframe-inline');
-
-        if (this.inline) {
-          iframeEl.height = 0;
-          this.syncHeight();
-        }
+        iframeEl.height = 0;
+        this.syncHeight();
       }
     },
 
