@@ -110,9 +110,9 @@ export default {
         {
           name:          'name',
           labelKey:      'tableHeaders.name',
+          value:         'nameDisplay',
           sort:          ['nameSort'],
           canBeVariable: true,
-          search:        ['nameSort'],
         },
         {
           label: this.t('landing.clusters.provider'),
