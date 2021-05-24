@@ -4330,10 +4330,14 @@ support:
     removeSubscription: Remove your Subscription ID
     addTitle: Add your SUSE Subscription ID
     removeTitle: Remove your ID?
-    removeBody: This will only effect the Cluster Explorer, not your SUSE subscription.
+    removeBody: "Note: This will not effect your subscription."
   suse:
     title: "Great News - You're covered"
     editBrand: Customize UI Theme
+    access:
+      title: Get Support
+      text: Login to SUSE Customer Center to access support for your subscription
+      action: SUSE Customer Center
   promos:
     one:
       title: 24x7 Support
