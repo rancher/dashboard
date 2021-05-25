@@ -183,8 +183,7 @@ export default {
       </div>
     </div>
 
-    <hr />
-    <div class="row">
+    <div class="row mt-20">
       <div class="col span-4">
         <LabeledSelect
           v-model.number="menuMaxClusters"

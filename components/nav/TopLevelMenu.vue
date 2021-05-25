@@ -143,12 +143,13 @@ export default {
 
   methods: {
     // Cluster list number of items shown is configurbale via user preference
-    setClusterListHeight(a) {
+    setClusterListHeight(maxToShow) {
       const el = this.$refs.clusterList;
+      const max = Math.min(maxToShow, this.clusters.length);
 
       if (el) {
         const $el = $(el);
-        const h = 34 * a;
+        const h = 34 * max;
 
         $el.css('height', `${ h }px`);
       }
@@ -213,7 +214,7 @@ export default {
             />
             <i v-if="clusterFilter.length > 0" class="icon icon-close" @click="clusterFilter=''" />
           </div>
-          <div ref="clusterList" class="clusters" :class="{'fixed-height': showClusterSearch}">
+          <div ref="clusterList" class="clusters">
             <div v-for="c in clusters" :key="c.id" @click="hide()">
               <nuxt-link
                 v-if="c.ready"
@@ -543,10 +544,6 @@ export default {
       .clusters {
         overflow-y: scroll;
         overflow-x: hidden;
-
-        &.fixed-height {
-          height: $option-height * 4;
-        }
       }
 
       .none-matching {
