@@ -79,7 +79,7 @@ export const actions = {
         value:    size.slug
       };
 
-      out.label = rootGetters['i18n/t']('cluster.nodeConfig.digitalocean.sizeLabel', out);
+      out.label = rootGetters['i18n/t']('cluster.machineConfig.digitalocean.sizeLabel', out);
 
       return out;
     }).filter(size => size.plan !== 'other');

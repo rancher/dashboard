@@ -146,7 +146,7 @@ export const actions = {
         groupLabel,
         instanceClass,
         memoryBytes:   parseSi(row['Memory']),
-        label:         rootGetters['i18n/t']('cluster.nodeConfig.aws.sizeLabel', {
+        label:         rootGetters['i18n/t']('cluster.machineConfig.aws.sizeLabel', {
           apiName,
           cpu:          row['vCPUs'],
           memory:       parseInt(row['Memory'], 10),

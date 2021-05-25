@@ -884,7 +884,7 @@ cluster:
   name:
     label: Cluster Name
     placeholder: A unique name for the cluster
-  nodeConfig:
+  machineConfig:
     aws:
       sizeLabel: |-
         {apiName}: {cpu}, {memory, number} GiB Memory, {storageSize, plural,

@@ -306,7 +306,7 @@ export default {
       return true;
     },
 
-    nodeConfigSchema() {
+    machineConfigSchema() {
       if ( !this.hasMachinePools ) {
         return null;
       }
@@ -449,8 +449,8 @@ export default {
       if ( existing?.length ) {
         for ( const pool of existing ) {
           const config = await this.$store.dispatch('management/find', {
-            type: `provisioning.cattle.io.${ pool.nodeConfigRef.kind.toLowerCase() }`,
-            id:   `${ this.value.metadata.namespace }/${ pool.nodeConfigRef.name }`,
+            type: `provisioning.cattle.io.${ pool.machineConfigRef.kind.toLowerCase() }`,
+            id:   `${ this.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
           });
 
           // @TODO what if the pool is missing?
@@ -470,14 +470,14 @@ export default {
     },
 
     async addMachinePool() {
-      if ( !this.nodeConfigSchema ) {
+      if ( !this.machineConfigSchema ) {
         return;
       }
 
       const numCurrentPools = this.machinePools.length || 0;
 
       const config = await this.$store.dispatch('management/createPopulated', {
-        type:     this.nodeConfigSchema.id,
+        type:     this.machineConfigSchema.id,
         metadata: { namespace: DEFAULT_WORKSPACE }
       });
 
@@ -498,8 +498,8 @@ export default {
           hostnamePrefix:   '',
           labels:           {},
           quantity:         1,
-          nodeConfigRef:    {
-            kind:       this.nodeConfigSchema.attributes.kind,
+          machineConfigRef:    {
+            kind:       this.machineConfigSchema.attributes.kind,
             name:       null,
           },
         },
@@ -542,7 +542,7 @@ export default {
           const neu = await entry.config.save();
 
           entry.config = neu;
-          entry.pool.nodeConfigRef.name = neu.metadata.name;
+          entry.pool.machineConfigRef.name = neu.metadata.name;
           entry.create = false;
         }
 

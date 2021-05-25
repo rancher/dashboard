@@ -827,7 +827,7 @@ cluster:
     name:
       label: 节点池名称
       placeholder: 默认情况下会随机生成一个节点池名称
-  #nodeConfig:
+  #machineConfig:
     #aws:
       #sizeLabel: |-
         #{apiName}: {cpu}, {memory, number} GiB Memory, {storageSize, plural,
