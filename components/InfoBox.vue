@@ -37,6 +37,7 @@ export default {
     .step-number {
       border-radius: var(--border-radius);
       background: var(--secondary);
+      color: var(--input-text);
       display: inline-block;
       padding: 5px 10px;
   }

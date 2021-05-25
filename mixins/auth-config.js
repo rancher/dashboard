@@ -30,6 +30,11 @@ export default {
       opt:  { url: `/v1/{ MANAGEMENT.SETTING }/server-url` }
     });
 
+    this.principals = await this.$store.dispatch('rancher/findAll', {
+      type: NORMAN.PRINCIPAL,
+      opt:  { url: '/v3/principals', force: true }
+    });
+
     if ( serverUrl ) {
       this.serverSetting = serverUrl.value;
     }
@@ -56,16 +61,11 @@ export default {
       serverSetting: null,
       errors:        null,
       originalModel: null,
+      principals:    []
     };
   },
 
   computed: {
-    me() {
-      const out = findBy(this.principals, 'me', true);
-
-      return out;
-    },
-
     doneLocationOverride() {
       return {
         name:   this.$route.name,
@@ -88,7 +88,7 @@ export default {
     },
 
     principal() {
-      return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
+      return findBy(this.principals, 'me', true) || {};
     },
 
     displayName() {
@@ -203,6 +203,10 @@ export default {
         // Covers case where user disables... then enables in same visit to page
         this.applyDefaults();
 
+        this.principals = await this.$store.dispatch('rancher/findAll', {
+          type: NORMAN.PRINCIPAL,
+          opt:  { url: '/v3/principals', force: true }
+        });
         this.showLdap = false;
         btnCb(true);
       } catch (err) {

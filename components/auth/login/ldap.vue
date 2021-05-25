@@ -8,16 +8,14 @@ export default {
   mixins:     [Login],
 
   props: {
-    onlyOption: {
+    open: {
       type:    Boolean,
       default: false
     }
   },
 
   data() {
-    return {
-      username: '', password: '', showInputs: this.onlyOption
-    };
+    return { username: '', password: '' };
   },
 
   methods: {
@@ -45,7 +43,7 @@ export default {
 
 <template>
   <form>
-    <template v-if="showInputs">
+    <template v-if="open">
       <div class="span-6 offset-3">
         <div class="mb-20">
           <LabeledInput
@@ -80,7 +78,7 @@ export default {
       </div>
     </template>
     <div v-else class="text-center">
-      <button style="font-size: 18px;" type="button" class="btn bg-primary" @click="showInputs = true">
+      <button style="font-size: 18px;" type="button" class="btn bg-primary" @click="$emit('toggle')">
         {{ t('login.loginWithProvider', {provider: displayName}) }}
       </button>
     </div>
