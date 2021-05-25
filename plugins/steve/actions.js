@@ -14,7 +14,7 @@ export const _ALL_IF_AUTHED = 'allIfAuthed';
 export const _NONE = 'none';
 
 export default {
-  request({ dispatch, rootGetters }, opt) {
+  async request({ dispatch, rootGetters }, opt) {
     // Handle spoofed types instead of making an actual request
     // Spoofing is handled here to ensure it's done for both yaml and form editing.
     // It became apparent that this was the only place that both intersected
@@ -23,8 +23,10 @@ export default {
       const id = rest.join('/'); // Cover case where id contains '/'
       const isApi = scheme === SPOOFED_API_PREFIX;
       const typemapGetter = id ? 'getSpoofedInstance' : 'getSpoofedInstances';
+
       const schemas = rootGetters['cluster/all'](SCHEMA);
-      const instance = rootGetters[`type-map/${ typemapGetter }`](type, id);
+      // getters return async getSpoofedInstance/getSpoofedInstances fn
+      const instance = await rootGetters[`type-map/${ typemapGetter }`](type, id);
       const data = isApi ? createYaml(schemas, type, instance) : instance;
 
       return id && !isApi ? data : { data };

@@ -228,7 +228,7 @@ authConfig:
     unrestricted: Allow any valid user
   allowedPrincipalIds:
     title: Authorized Users & Groups
-  associatedWarning: 'Note: The {provider} user you authenticate as will be associated as an alternate way to login to the {vendor} user you are currently logged in as (<code>{username}</code>); all the global permissions, project, and cluster role bindings of this {vendor} user will also apply to the {provider} user.'
+  associatedWarning: 'Note: The {provider} user you authenticate as will be associated as an alternate way to login to the {vendor} user you are currently logged in as <code>{username}</code>; all the global permissions, project, and cluster role bindings of this {vendor} user will also apply to the {provider} user.'
   github:
     clientId:
       label: Client ID
@@ -376,6 +376,27 @@ authConfig:
     graphEndpoint: Graph Endpoint
     tokenEndpoint: Token Endpoint
     authEndpoint: Auth Endpoint
+  oidc:
+    oidc: Configure an OIDC account
+    keycloakoidc: Configure a Keycloak OIDC account
+    rancherUrl: Rancher URL
+    clientId: Client ID
+    clientSecret: Client Secret
+    customEndpoint:
+      label: Endpoints
+      custom: Specify (advanced)
+      standard: Generate
+    keycloak:
+      url: Keycloak URL
+      realm: Keycloak Realm
+    issuer: Issuer
+    authEndpoint: Auth Endpoint
+    cert:
+      label: Certificate
+      placeholder: Paste in the certificate, starting with -----BEGIN CERTIFICATE-----
+    key:
+      label: Private Key
+      placeholder: Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----
   stateBanner:
     disabled: 'The {provider} authentication provider is currently disabled.'
     enabled: 'The {provider} authentication provider is currently enabled.'
@@ -3912,6 +3933,10 @@ model:
       ldap: LDAP
       saml: SAML
       oauth: OAuth
+      oidc: OIDC
+    name:
+      keycloak: Keycloak (SAML)
+      keycloakoidc: Keycloak (OIDC)
     provider:
       system: System
       local: Local
@@ -3928,6 +3953,8 @@ model:
       okta: Okta
       freeipa: FreeIPA
       googleoauth: Google
+      oidc: OIDC
+      keycloakoidc: Keycloak
 
   cluster:
     name: Cluster Name

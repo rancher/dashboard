@@ -24,14 +24,16 @@ export default {
       return;
     }
 
+    const principalId = escape(this.value).replace(/\//g, '%2F');
+
     try {
       this.principal = await this.$store.dispatch('rancher/find', {
         type: NORMAN.PRINCIPAL,
         id:   this.value,
-        opt:  { url: `/v3/principals/${ escape(this.value).replace(/\//g, '%2F') }` }
+        opt:  { url: `/v3/principals/${ principalId }` }
       });
     } catch (e) {
-      // Meh...
+      console.error('Failed to fetch principal', this.value, principalId); // eslint-disable-line no-console
     }
   },
 

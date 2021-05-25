@@ -1262,6 +1262,8 @@ export default {
       let field, key, val, displayKey;
 
       for ( let i = 0 ; i < keys.length ; i++ ) {
+        const fieldErrors = [];
+
         key = keys[i];
         field = fields[key];
         val = get(data, key);
@@ -1291,15 +1293,15 @@ export default {
           }
         }
         if (fieldType === 'boolean') {
-          validateBoolean(val, field, displayKey, this.$rootGetters, errors);
+          validateBoolean(val, field, displayKey, this.$rootGetters, fieldErrors);
         } else {
-          validateLength(val, field, displayKey, this.$rootGetters, errors);
-          validateChars(val, field, displayKey, this.$rootGetters, errors);
+          validateLength(val, field, displayKey, this.$rootGetters, fieldErrors);
+          validateChars(val, field, displayKey, this.$rootGetters, fieldErrors);
         }
 
-        if (errors.length > 0) {
-          errors.push(this.t('validation.required', { key: displayKey }));
-
+        if (fieldErrors.length > 0) {
+          fieldErrors.push(this.t('validation.required', { key: displayKey }));
+          errors.push(...fieldErrors);
           continue;
         }
 
@@ -1314,8 +1316,9 @@ export default {
             Vue.set(data, key, val);
           }
 
-          errors.push(...validateDnsLikeTypes(val, fieldType, displayKey, this.$rootGetters, errors));
+          fieldErrors.push(...validateDnsLikeTypes(val, fieldType, displayKey, this.$rootGetters, fieldErrors));
         }
+        errors.push(...fieldErrors);
       }
 
       let { customValidationRules } = this;

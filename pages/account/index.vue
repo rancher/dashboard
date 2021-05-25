@@ -45,7 +45,14 @@ export default {
     },
 
     principal() {
-      return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
+      const principalId = this.$store.getters['auth/principalId'];
+      const principal = this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, principalId);
+
+      if (!principal) {
+        console.error('Failed to find principal with id: ', principalId); // eslint-disable-line no-console
+      }
+
+      return principal || {};
     },
 
     apiKeys() {

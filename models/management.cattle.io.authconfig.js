@@ -13,7 +13,10 @@ export const configType = {
   googleoauth:     'oauth',
   local:           '',
   github:          'oauth',
+  keycloakoidc:    'oidc'
 };
+
+const imageOverrides = { keycloakoidc: 'keycloak' };
 
 export default {
   _availableActions() {
@@ -32,6 +35,10 @@ export default {
   },
 
   nameDisplay() {
+    return this.$rootGetters['i18n/withFallback'](`model.authConfig.name."${ this.id }"`, null, this.provider);
+  },
+
+  provider() {
     return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.id }"`, null, this.id);
   },
 
@@ -44,7 +51,7 @@ export default {
   },
 
   icon() {
-    return require(`~/assets/images/vendor/${ this.id }.svg`);
+    return require(`~/assets/images/vendor/${ imageOverrides[this.id] || this.id }.svg`);
   },
 
   state() {
