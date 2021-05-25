@@ -366,6 +366,16 @@ export default {
       if (this.loaded) {
         if (this.iframeEl) {
           this.iframeEl.classList.remove(EMBER_FRAME_HIDE_CLASS);
+
+          // Notify the embedded UI of the primary and primary text colors
+          const primary = window.getComputedStyle(document.body).getPropertyValue('--primary');
+          const primaryText = window.getComputedStyle(document.body).getPropertyValue('--primary-text');
+
+          this.iframeEl.contentWindow.postMessage({
+            action: 'colors',
+            primary,
+            primaryText,
+          });
         }
       }
     },
