@@ -29,14 +29,9 @@ export default {
       uiLogoDarkSetting:  fetchOrCreateSetting(this.$store, SETTING.LOGO_DARK, ''),
       uiLogoLightSetting: fetchOrCreateSetting(this.$store, SETTING.LOGO_LIGHT, ''),
       uiColorSetting:     fetchOrCreateSetting(this.$store, SETTING.PRIMARY_COLOR, ''),
-      hasSupportSetting:     fetchOrCreateSetting(this.$store, SETTING.SUPPORTED, ''),
     });
 
     Object.assign(this, hash);
-
-    if (this.hasSupportSetting.value === 'true') {
-      this.defaultColor = this.t('branding.color.defaultSuse');
-    }
 
     try {
       this.bannerVal = JSON.parse(hash.uiBannerSetting.value);
@@ -66,6 +61,13 @@ export default {
   },
 
   data() {
+    let uiColor = getComputedStyle(document.body).getPropertyValue('--primary');
+    const suse = document.querySelector('.suse');
+
+    if (suse) {
+      uiColor = getComputedStyle(suse).getPropertyValue('--primary');
+    }
+
     return {
       vendor:      getVendor(),
       uiPLSetting: {},
@@ -82,9 +84,8 @@ export default {
       customizeLogo:      false,
 
       uiColorSetting: {},
-      uiColor:        '',
+      uiColor,
       customizeColor: false,
-      defaultColor:   this.t('branding.color.defaultRancher'),
 
       errors: []
     };
@@ -199,6 +200,19 @@ export default {
         </div>
       </div>
 
+      <h3 class="mt-40 mb-5 pb-0">
+        {{ t('branding.color.label') }}
+      </h3>
+      <label class="text-label">
+        {{ t('branding.color.tip', {}, true) }}
+      </label>
+      <div class="row mt-20">
+        <Checkbox v-model="customizeColor" :label="t('branding.color.useCustom')" />
+      </div>
+      <div v-if="customizeColor" class="row mt-20 mb-20">
+        <ColorInput v-model="uiColor" />
+      </div>
+
       <h3 class="mb-5 pb-5">
         {{ t('branding.uiBanner.label') }}
       </h3>
@@ -225,18 +239,6 @@ export default {
           </div>
         </div>
       </template>
-      <h3 class="mt-40 mb-5 pb-0">
-        {{ t('branding.color.label') }}
-      </h3>
-      <label class="text-label">
-        {{ t('branding.color.tip', {current: defaultColor}, true) }}
-      </label>
-      <div class="row mt-20">
-        <Checkbox v-model="customizeColor" :label="t('branding.color.useCustom')" />
-      </div>
-      <div v-if="customizeColor" class="row mt-20">
-        <ColorInput v-model="uiColor" />
-      </div>
     </div>
     <template v-for="err in errors">
       <Banner :key="err" color="error" :label="err" />
