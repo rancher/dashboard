@@ -793,7 +793,7 @@ cluster:
   import: 导入已有集群
   kubernetesVersion:
     label: Kubernetes 版本
-  nodePool:
+  machinePool:
     nodeTotals:
       label:
         etcd: "{count} 个etcd节点"
@@ -2480,7 +2480,7 @@ resourceTable:
   groupLabel:
    cluster: "<span>集群：</span> {name}"
   namespace: "<span>命名空间：</span> {name}"
-  nodePool: "<span>节点池</span> {name}"
+  machinePool: "<span>节点池</span> {name}"
   notInANamespace: 不在命名空间内
   notInAProject: 不在项目内
   project: "<span>项目：</span> {name}"

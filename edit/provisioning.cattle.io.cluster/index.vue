@@ -74,8 +74,8 @@ export default {
     if ( this.value.id && !this.value.isRke2 ) {
       // These are needed to resolve references in the mgmt cluster -> node pool -> node template to figure out what provider the cluster is using
       // so that the edit iframe for ember pages can go to the right place.
-      hash.nodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-      hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+      hash.rke1NodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      hash.rke1NodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
     }
 
     const res = await allHash(hash);
@@ -97,9 +97,9 @@ export default {
     } else if ( this.value.isCustom ) {
       // Edit exiting custom
       this.selectType('custom', false);
-    } else if ( this.value.isRke2 && this.value.nodeProvider ) {
+    } else if ( this.value.isRke2 && this.value.machineProvider ) {
       // Edit exiting RKE2
-      await this.selectType(this.value.nodeProvider, false);
+      await this.selectType(this.value.machineProvider, false);
     } else if ( this.value.mgmt?.emberEditPath ) {
       // Iframe an old page
       this.emberLink = this.value.mgmt.emberEditPath;

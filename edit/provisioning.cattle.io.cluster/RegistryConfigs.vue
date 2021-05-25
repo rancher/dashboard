@@ -46,7 +46,11 @@ export default {
   },
 
   computed: {
-    TLS: TYPES.TLS,
+    TLS: {
+      get() {
+        return TYPES.TLS;
+      },
+    },
 
     defaultAddValue() {
       return {

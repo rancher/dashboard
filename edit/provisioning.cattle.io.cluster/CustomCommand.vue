@@ -59,7 +59,7 @@ export default {
         const e = sanitizeValue(t.effect);
 
         if ( k && v && e ) {
-          out.push(`--taints ${ k }=${ v }:${ e }`);
+          out.push(`--taint ${ k }=${ v }:${ e }`);
         }
       }
 

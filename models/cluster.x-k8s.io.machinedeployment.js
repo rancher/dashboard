@@ -22,11 +22,11 @@ export default {
   },
 
   groupByPoolLabel() {
-    return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.nodePool', { name: escapeHtml(this.nameDisplay) }) }`;
+    return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.machinePool', { name: escapeHtml(this.nameDisplay) }) }`;
   },
 
   groupByPoolShortLabel() {
-    return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.nodePool', { name: escapeHtml(this.nameDisplay.replace(/^.*-nodepool-/, '')) }) }`;
+    return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.machinePool', { name: escapeHtml(this.nameDisplay) }) }`;
   },
 
   desired() {
