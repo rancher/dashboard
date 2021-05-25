@@ -122,6 +122,14 @@ export default {
     };
   },
 
+  doneOverride() {
+    return {
+      name:   'c-cluster-monitoring-route-receiver',
+      params: { cluster: this.$rootGetters['clusterId'] },
+      query:  { resource: this.type }
+    };
+  },
+
   receiverTypes() {
     const types = RECEIVERS_TYPES
       .filter(type => type.name !== 'custom' && this.spec[type.key]?.length > 0)
