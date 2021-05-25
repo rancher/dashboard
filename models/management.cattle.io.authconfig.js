@@ -13,7 +13,6 @@ export const configType = {
   googleoauth:     'oauth',
   local:           '',
   github:          'oauth',
-  oidc:            'oidc',
   keycloakoidc:    'oidc'
 };
 
