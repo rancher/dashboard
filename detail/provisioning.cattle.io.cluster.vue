@@ -223,7 +223,7 @@ export default {
         <template #group-by="{group}">
           <div v-if="group && group.ref" class="group-tab" v-html="group.ref.groupByPoolShortLabel" />
           <div v-else v-trim-whitespace class="group-tab">
-            Node Pool: None
+            Machine Pool: None
           </div>
         </template>
       </SortableTable>

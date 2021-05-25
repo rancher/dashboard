@@ -1009,7 +1009,7 @@ cluster:
     cluster: Cluster Configuration
     etcd: etcd
     networking: Networking
-    nodePools: Node Pools
+    nodePools: Machine Pools
     registry: Private Registry
     upgrade: Upgrade Strategy
 
@@ -2651,7 +2651,7 @@ resourceTable:
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
     namespace: "<span>Namespace:</span> {name}"
-    nodePool: "<span>Node Pool:</span> {name}"
+    nodePool: "<span>Machine Pool:</span> {name}"
     notInANamespace: Not Namespaced
     notInAProject: Not in a Project
     project: "<span>Project:</span> {name}"
