@@ -141,6 +141,38 @@ BODY, .theme-light {
     color: var(--muted) !important;
   }
 
+  --darker                    : #{$darker};
+  --darker-text               : #{contrast-color($darker)};
+  --darker-hover-bg           : #{darken($darker, 10%)};
+  --darker-hover-text         : #{saturate($lightest, 20%)};
+  --darker-active-bg          : #{darken($darker, 25%)};
+  --darker-active-text        : #{contrast-color(darken($darker, 25%))};
+  --darker-border             : #($darker);
+  --darker-banner-bg          : #{rgba($darker, 0.15)};
+  --darker-light-bg           : #{rgba($darker, 0.05)};
+
+  .text-darker {
+    color: var(--default) !important;
+  }
+
+  .bg-darker {
+    background-color: var(--darker);
+    color: var(--darker-text);
+
+    &.btn:hover {
+      color: var(--darker-hover-text);
+      background: var(--darker-hover-bg);
+      transition: all 0.3s ease;
+    }
+
+    &.btn:active {
+      color: var(--darker-active-text);
+      background: var(--darker-active-bg);
+      }
+  }
+
+
+
   --success                    : #{$success};
   --success-text               : #{contrast-color($success)};
   --success-hover-bg           : #{darken($success, 10%)};
@@ -152,7 +184,7 @@ BODY, .theme-light {
   --success-light-bg           : #{rgba($success, 0.05)};
 
   .text-success {
-    color: var(--default) !important;
+    color: var(--success) !important;
   }
 
   .bg-success {

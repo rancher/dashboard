@@ -17,6 +17,7 @@ import { COUNT, SCHEMA, MANAGEMENT, UI } from '@/config/types';
 import { BASIC, FAVORITE, USED } from '@/store/type-map';
 import { addObjects, replaceWith, clear, addObject } from '@/utils/array';
 import { NAME as EXPLORER } from '@/config/product/explorer';
+import { NAME as NAVLINKS } from '@/config/product/navlinks';
 import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@/utils/string';
 import { getVersionInfo, markSeenReleaseNotes } from '@/utils/version';
@@ -290,6 +291,11 @@ export default {
       for ( const productId of loadProducts ) {
         const modes = [BASIC];
 
+        if ( productId === NAVLINKS ) {
+          // Navlinks produce their own top-level nav items so don't need to show it as a product.
+          continue;
+        }
+
         if ( productId === EXPLORER ) {
           modes.push(FAVORITE);
           modes.push(USED);
@@ -461,7 +467,7 @@ export default {
             </Group>
           </template>
         </div>
-        <n-link v-if="isExplorer" tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools'}">
+        <n-link v-if="isExplorer" tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools', params: {cluster: clusterId}}">
           <a class="tools-button" @click="collapseAll()">
             <i class="icon icon-gear" />
             <span>{{ t('nav.clusterTools') }}</span>

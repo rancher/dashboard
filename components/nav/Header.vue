@@ -6,6 +6,7 @@ import { isMac } from '@/utils/platform';
 import Import from '@/components/Import';
 import BrandImage from '@/components/BrandImage';
 import { getProduct } from '@/config/private-label';
+import RancherProviderIcon from '@/components/RancherProviderIcon';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
@@ -21,7 +22,8 @@ export default {
     Import,
     TopLevelMenu,
     Jump,
-    BrandImage
+    BrandImage,
+    RancherProviderIcon,
   },
 
   props: {
@@ -126,7 +128,8 @@ export default {
     <div class="menu-spacer"></div>
     <div v-if="!simple" class="product">
       <div v-if="currentProduct && currentProduct.showClusterSwitcher" class="cluster">
-        <img v-if="currentCluster" class="cluster-os-logo" :src="currentCluster.providerLogo" />
+        <RancherProviderIcon v-if="currentCluster.isLocal" class="mr-10" width="25" />
+        <img v-else-if="currentCluster" class="cluster-os-logo" :src="currentCluster.providerLogo" />
         <div v-if="currentCluster" class="cluster-name">
           {{ currentCluster.spec.displayName }}
         </div>
@@ -144,9 +147,8 @@ export default {
       </div>
     </div>
     <div v-else class="simple-title">
-      <BrandImage class="side-menu-logo" file-name="rancher-logo.svg" width="110" />
-      <div class="title">
-        {{ appName }}
+      <div class="side-menu-logo">
+        <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
       </div>
     </div>
 
@@ -452,7 +454,18 @@ export default {
     }
 
     .side-menu-logo {
+      align-items: center;
+      display: flex;
       margin-right: 8px;
+      height: 55px;
+      max-width: 200px;
+      padding: 12px 0;
+    }
+
+    .side-menu-logo-img {
+      object-fit: contain;
+      height: 21px;
+      max-width: 200px;
     }
 
     > * {

@@ -6,6 +6,7 @@ import isEmpty from 'lodash/isEmpty';
 import SortableTable from '@/components/SortableTable';
 import { allHash } from '@/utils/promise';
 import AlertTable from '@/components/AlertTable';
+import Banner from '@/components/Banner';
 import {
   parseSi, formatSi, exponentNeeded, UNITS, createMemoryFormat, MEMORY_PARSE_RULES
 } from '@/utils/units';
@@ -29,6 +30,7 @@ import {
   CATALOG,
 } from '@/config/types';
 import { findBy } from '@/utils/array';
+import { mapPref, CLUSTER_TOOLS_TIP } from '@/store/prefs';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import { allDashboardsExist } from '@/utils/grafana';
@@ -56,7 +58,8 @@ export default {
     SortableTable,
     Tab,
     Tabbed,
-    AlertTable
+    AlertTable,
+    Banner,
   },
 
   mixins: [metricPoller],
@@ -148,6 +151,8 @@ export default {
 
   computed: {
     ...mapGetters(['currentCluster']),
+
+    hideClusterToolsTip: mapPref(CLUSTER_TOOLS_TIP),
 
     displayProvider() {
       const other = 'other';
@@ -331,6 +336,14 @@ export default {
         </div>
       </div>
     </header>
+    <Banner
+      v-if="!hideClusterToolsTip"
+      :closable="true"
+      class="cluster-tools-tip"
+      color="info"
+      label-key="cluster.toolsTip"
+      @close="hideClusterToolsTip = true"
+    />
     <div
       class="cluster-dashboard-glance"
     >
@@ -471,5 +484,9 @@ export default {
 
 .etcd-metrics ::v-deep .external-link {
   top: -102px;
+}
+
+.cluster-tools-tip {
+  margin-top: 0;
 }
 </style>

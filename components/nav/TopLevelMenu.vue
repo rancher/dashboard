@@ -1,5 +1,6 @@
 <script>
 import BrandImage from '@/components/BrandImage';
+import RancherProviderIcon from '@/components/RancherProviderIcon';
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
 import { mapPref, DEV } from '@/store/prefs';
@@ -15,7 +16,7 @@ const MAX_CLUSTERS_TO_SHOW = 4;
 
 export default {
 
-  components: { BrandImage },
+  components: { BrandImage, RancherProviderIcon },
 
   data() {
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
@@ -53,11 +54,12 @@ export default {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
       let out = all.map((x) => {
         return {
-          id:     x.id,
-          label:  x.nameDisplay,
-          ready:  x.isReady,
-          osLogo: x.providerOsLogo,
-          logo:   x.providerLogo,
+          id:      x.id,
+          label:   x.nameDisplay,
+          ready:   x.isReady,
+          osLogo:  x.providerOsLogo,
+          logo:    x.providerLogo,
+          isLocal: x.isLocal
         };
       });
 
@@ -202,7 +204,8 @@ export default {
                 class="cluster selector option"
                 :to="{ name: 'c-cluster', params: { cluster: c.id } }"
               >
-                <img :src="c.logo" />
+                <RancherProviderIcon v-if="c.isLocal" width="25" class="rancher-provider-icon" />
+                <img v-else :src="c.logo" />
                 <div>{{ c.label }}</div>
               </nuxt-link>
               <span v-else class="cluster selector disabled">
@@ -306,6 +309,12 @@ export default {
     background: var(--primary-hover-bg);
     border-radius: 5px;
     text-decoration: none;
+
+    .rancher-provider-icon {
+      .rancher-icon-fill {
+        fill: var(--primary-hover-text);;
+      }
+    }
   }
 
   .localeSelector {
@@ -321,6 +330,7 @@ export default {
       outline: 0;
     }
   }
+
 </style>
 
 <style lang="scss" scoped>
@@ -564,14 +574,18 @@ export default {
   }
 
   .side-menu-logo {
+    align-items: center;
+    display: flex;
     margin-left: 10px;
     opacity: 1;
     transition: opacity 1.2s;
     transition-delay: 0s;
-    width: 110px;
+    height: 55px;
+    max-width: 200px;
     & IMG {
-     height: 55px;
-     max-width: 100%;
+      object-fit: contain;
+      height: 21px;
+      max-width: 200px;
     }
   }
 

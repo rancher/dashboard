@@ -856,6 +856,7 @@ cluster:
   importAction: Import Existing
   kubernetesVersion:
     label: Kubernetes Version
+  toolsTip: Use the new Cluster Tools to manage and install Monitoring, Logging and other tools
   name:
     label: Cluster Name
     placeholder: A unique name for the cluster
@@ -2831,7 +2832,7 @@ servicesPage:
     label: Service Type
 
 setup:
-  welcome: Welcome to {product}!
+  welcome: Welcome to {vendor}!
   setPassword: The first order of business is to set a strong password for the default <code>admin</code> user. We suggest using this random one generated just for you, but enter your own if you like. 
   newPassword: New Password
   confirmPassword: Confirm New Password
@@ -4252,7 +4253,7 @@ featureFlags:
     Feature flags allow {vendor} to gate certain features behind flags.
     Features that are off by defult shoud be considered experimental functionality.
     Some features require a restart of the {vendor} server to change.
-    This will result in a short outage of the API and UI, but no affect running clusters or workloads.
+    This will result in a short outage of the API and UI, but not affect running clusters or workloads.
   promptActivate: Please confirm that you want to activate the feature flag "{flag}"
   promptDeactivate: Please confirm that you want to deactivate the feature flag "{flag}"
   restartRequired: "Note: Updating this feature flag requires a restart"
@@ -4262,7 +4263,7 @@ branding:
   directoryName: Brand Asset Directory Name
   logos:
     label: Logo
-    tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Max file size: 20KB'
+    tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB'
     lightPreview: Light Theme Preview
     darkPreview: Dark Theme Preview
     uploadLight: Upload Light Logo
@@ -4330,10 +4331,14 @@ support:
     removeSubscription: Remove your Subscription ID
     addTitle: Add your SUSE Subscription ID
     removeTitle: Remove your ID?
-    removeBody: This will only effect the Cluster Explorer, not your SUSE subscription.
+    removeBody: "Note: This will not effect your subscription."
   suse:
     title: "Great News - You're covered"
     editBrand: Customize UI Theme
+    access:
+      title: Get Support
+      text: Login to SUSE Customer Center to access support for your subscription
+      action: SUSE Customer Center
   promos:
     one:
       title: 24x7 Support

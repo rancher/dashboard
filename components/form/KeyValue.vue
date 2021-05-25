@@ -412,7 +412,7 @@ export default {
 
 <template>
   <div class="key-value">
-    <div v-if="title" class="clearfix">
+    <div v-if="title || $slots.title" class="clearfix">
       <slot name="title">
         <h3>
           {{ title }}

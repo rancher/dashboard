@@ -9,6 +9,8 @@ import { MANAGEMENT } from '@/config/types';
 import { getVendor } from '@/config/private-label';
 import { SETTING } from '@/config/settings';
 
+const KEY_REGX = /^[0-9a-fA-F]{8}$/;
+
 export default {
   layout: 'home',
 
@@ -76,6 +78,9 @@ export default {
       return this.hasSupport ? 'support.suse.title' : 'support.community.title';
     },
 
+    validSupportKey() {
+      return !!this.supportKey.match(KEY_REGX);
+    }
   },
 
   methods: {
@@ -106,6 +111,11 @@ export default {
         done(false);
       }
     },
+
+    showDialog(isAdd) {
+      this.isRemoveDialog = isAdd;
+      this.$modal.show('toggle-support');
+    }
   }
 };
 </script>
@@ -114,17 +124,17 @@ export default {
     <BannerGraphic :title="t(title, {}, true)" />
 
     <IndentedPanel>
-      <div v-if="!hasSupport" class="register row">
-        <div>
-          {{ t('support.subscription.haveSupport') }}
-        </div>
-        <button class="ml-5 btn role-secondary btn-sm" type="button" @click="$modal.show('toggle-support')">
-          {{ t('support.subscription.addSubscription') }}
-        </button>
-      </div>
-
       <div class="content mt-20">
         <div class="promo">
+          <div class="box mb-20 box-primary">
+            <h2>{{ t('support.suse.access.title') }}</h2>
+            <div>
+              <p class="pb-10">
+                {{ t('support.suse.access.text') }}
+              </p>
+              <a href="https://scc.suse.com" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.suse.access.action') }} <i class="icon icon-external-link" /></a>
+            </div>
+          </div>
           <div class="boxes">
             <div v-for="key in promos" :key="key" class="box">
               <h2>{{ t(`${key}.title`) }}</h2>
@@ -136,6 +146,19 @@ export default {
             or
             <a href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.pricing') }} <i class="icon icon-external-link" /></a>
           </div>
+          <div v-if="!hasSupport" class="register row">
+            <div>
+              {{ t('support.subscription.haveSupport') }}
+            </div>
+            <button class="ml-5 btn role-secondary btn-sm" type="button" @click="showDialog(false)">
+              {{ t('support.subscription.addSubscription') }}
+            </button>
+          </div>
+          <div v-if="hasSupport" class="register row">
+            <a class="remove-link" @click="showDialog(true)">
+              {{ t('support.subscription.removeSubscription') }}
+            </a>
+          </div>
         </div>
         <div class="community">
           <h2>{{ t('support.community.linksTitle') }}</h2>
@@ -143,24 +166,19 @@ export default {
             <a v-t="name" :href="value" target="_blank" rel="noopener noreferrer nofollow" />
           </div>
         </div>
-        <div v-if="hasSupport" class="row">
-          <button class="btn role-tertiary btn-sm" type="button" @click="$modal.show('toggle-support')">
-            {{ t('support.subscription.removeSubscription') }}
-          </button>
-        </div>
       </div>
     </IndentedPanel>
     <modal
       name="toggle-support"
       height="auto"
-      :width="300"
+      :width="340"
     >
       <Card :show-highlight-border="false" class="toogle-support">
         <template #title>
-          {{ hasSupport? t('support.subscription.removeTitle') : t('support.subscription.addTitle') }}
+          {{ isRemoveDialog? t('support.subscription.removeTitle') : t('support.subscription.addTitle') }}
         </template>
         <template #body>
-          <div v-if="hasSupport" class="mt-20">
+          <div v-if="isRemoveDialog" class="mt-20">
             {{ t('support.subscription.removeBody') }}
           </div>
           <div v-else class="mt-20">
@@ -168,10 +186,10 @@ export default {
           </div>
         </template>
         <template #actions>
-          <button type="button" class="btAhn role-secondary" @click="$modal.hide('toggle-support')">
+          <button type="button" class="btn role-secondary" @click="$modal.hide('toggle-support')">
             {{ t('generic.cancel') }}
           </button>
-          <AsyncButton v-if="!hasSupport" :disabled="!supportKey.length" class="pull-right" @click="addSubscription" />
+          <AsyncButton v-if="!isRemoveDialog" :disabled="!validSupportKey" class="pull-right" @click="addSubscription" />
           <AsyncButton v-else :action-label="t('generic.remove')" class="pull-right" @click="removeSubscription" />
         </template>
       </Card>
@@ -220,27 +238,35 @@ export default {
   margin-top: 20px;
   font-size: 16px;
 }
+.remove-link {
+  cursor: pointer;
+  font-size: 14px;
+}
 .boxes {
   display: grid;
   grid-column-gap: 20px;
   grid-row-gap: 20px;
   grid-template-columns: 50% 50%;
   margin-right: 20px;
+}
 
-  .box {
-    padding: 20px;
-    border: 1px solid var(--border);
+.box {
+  padding: 20px;
+  border: 1px solid var(--border);
 
-    > h2 {
-      font-size: 20px;
-      font-weight: 300;
-    }
+  &.box-primary {
+    border-color: var(--primary);
+  }
 
-    > div {
-      font-weight: 300;
-      line-height: 18px;
-      opacity: 0.8;
-    }
+  > h2 {
+    font-size: 20px;
+    font-weight: 300;
+  }
+
+  > div {
+    font-weight: 300;
+    line-height: 18px;
+    opacity: 0.8;
   }
 }
 </style>
