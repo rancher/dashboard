@@ -36,11 +36,13 @@ export const SETTING = {
   SYSTEM_DEFAULT_REGISTRY:        'system-default-registry',
   PL:                               'ui-pl',
   PL_RANCHER_VALUE:                 'rancher',
+  SUPPORTED:                        'has-support',
   BANNERS:                          'ui-banners',
   ISSUES:                           'ui-issues',
   BRAND:                            'ui-brand',
   LOGO_LIGHT:                       'ui-logo-light',
   LOGO_DARK:                        'ui-logo-dark',
+  PRIMARY_COLOR:                    'ui-primary-color'
 };
 
 // These are the settings that are allowed to be edited via the UI

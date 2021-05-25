@@ -4284,6 +4284,10 @@ branding:
     background: Background Color
     showHeader: Show Banner in Header
     showFooter: Show Banner in Footer
+  color:
+    label: Primary Color
+    tip: You can override the primary color used throughout the UI with a custom color of your choice.
+    useCustom: Use a Custom Color
 
 resourceQuota:
   configMaps: Config Maps
