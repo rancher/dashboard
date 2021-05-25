@@ -27,6 +27,8 @@ import Labels from './Labels';
 import AgentEnv from './AgentEnv';
 import ACE from './ACE';
 import DrainOptions from './DrainOptions';
+import RegistryMirrors from './RegistryMirrors';
+import RegistryConfigs from './RegistryConfigs';
 
 export default {
   components: {
@@ -48,6 +50,8 @@ export default {
     DrainOptions,
     AgentEnv,
     Labels,
+    RegistryMirrors,
+    RegistryConfigs,
   },
 
   mixins: [CreateEditView],
@@ -861,7 +865,17 @@ export default {
       </Tab>
 
       <Tab name="registry" label-key="cluster.tabs.registry" :weight="6">
-        Registry Options..
+        <RegistryMirrors
+          v-model="value"
+          :mode="mode"
+        />
+
+        <RegistryConfigs
+          v-model="value"
+          class="mt-20"
+          :mode="mode"
+          :register-before-hook="registerBeforeHook"
+        />
       </Tab>
 
       <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="-1" @active="$refs.additionalManifest.refresh()">
