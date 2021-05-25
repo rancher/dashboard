@@ -59,7 +59,7 @@ export default {
 
   methods: {
     colorFor(row) {
-      const types = ['ldap', 'oauth', 'saml'];
+      const types = ['ldap', 'oauth', 'saml', 'oidc'];
 
       const idx = types.indexOf(row.configType);
 
@@ -97,7 +97,7 @@ export default {
     <SelectIconGrid
       :rows="rows"
       :color-for="colorFor"
-      name-field="nameDisplay"
+      name-field="provider"
       @clicked="(row) => goTo(row.id)"
     />
   </div>

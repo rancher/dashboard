@@ -25,7 +25,7 @@ data:
 
 ## Keycloak
 
-### Developer Set Up
+### Developer Set Up (SAML)
 Use the steps below to set up a Keycloak instance for dev environments and configure an Auth Provider for it.
 
 1. Bring up a local Keycloak instance in docker using the instructions at [here](https://www.keycloak.org/getting-started/getting-started-docker).
@@ -45,4 +45,17 @@ Use the steps below to set up a Keycloak instance for dev environments and confi
    | Private Key | For key and cert files, export the Client in the Keycloak UI via the `Clients` list page and extract & wrap the `saml.signing.certificate` and `saml.signing.private.key` as cert files (see [step 5](https://gist.github.com/PhilipSchmid/506b33cd74ddef4064d30fba50635c5b) for more info). |
    | Certificate | See Private Key section above|
    | Metadata | For the SAML Metadata, download as per Rancher docs. Be sure to follow the `NOTE` instructions regarding `EntitiesDescriptor` and `EntityDescriptor`. For a better set of instructions see [step 6](https://gist.github.com/PhilipSchmid/506b33cd74ddef4064d30fba50635c5b)|
+
+### Developer Set Up (OIDC)
+1. In Vue UI set up the Keycloak OIDC provider with the following values
+   | Field | Value |
+   |-------|-------|
+   | Client ID | Find via the keycloak console |
+   | Client Secret | Find via the keycloak console (client's credentials tab) |
+   | Private Key (optional) |  |
+   | Certificate (optional) |  |
+   | Keycloak URL | URL of keycloak instance (no path) |
+   | Keycloak Realm | Find via the keycloak console (above menu on left or in path after /realms/) |
+
+> The user used when enabling the provider must be an Admin or in a group
 

@@ -41,9 +41,11 @@ export function stringify(err) {
     } else if ( err.url ) {
       str = `from ${ err.url }`;
     }
-  } else {
+  }
+
+  if (!str) {
     // Good luck...
-    str = `${ err }`;
+    str = JSON.stringify(err);
   }
 
   return str;

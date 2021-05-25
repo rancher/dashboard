@@ -96,7 +96,7 @@ export default {
   <main>
     <h1 class="text-center mt-50">
       <span v-if="testing">
-        Testing&hellip;
+        Testing Configuration&hellip;
       </span>
       <span v-else>
         Logging In&hellip;

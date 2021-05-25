@@ -6,7 +6,10 @@ import { GITHUB_SCOPE, GITHUB_NONCE, GITHUB_REDIRECT } from '@/config/query-para
 import { base64Encode } from '@/utils/crypto';
 
 export const BASE_SCOPES = {
-  github: ['read:org'], googleoauth: ['openid profile email'], azuread: []
+  github:       ['read:org'],
+  googleoauth:  ['openid profile email'],
+  azuread:      [],
+  keycloakoidc: ['profile,email']
 };
 
 const KEY = 'rc_nonce';
@@ -211,7 +214,7 @@ export const actions = {
 
         return openAuthPopup(idpRedirectUrl, provider);
       } else {
-      // github, google, azuread
+      // github, google, azuread, oidc
         const res = await driver.doAction('configureTest', body);
         const { redirectUrl } = res;
 

@@ -1,8 +1,10 @@
 import { _EDIT } from '@/config/query-params';
 import { NORMAN, MANAGEMENT } from '@/config/types';
 import { AFTER_SAVE_HOOKS, BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
+import { BASE_SCOPES } from '@/store/auth';
 import { addObject, findBy } from '@/utils/array';
 import { set } from '@/utils/object';
+import { exceptionToErrorsArray } from '@/utils/error';
 
 export default {
   beforeCreate() {
@@ -40,6 +42,7 @@ export default {
         this.$set(this.model, 'rancherApiHost', this.serverUrl);
       }
     }
+
     if (!this.model.enabled) {
       this.applyDefaults();
     }
@@ -125,11 +128,13 @@ export default {
       }
       try {
         if (this.editConfig || !wasEnabled) {
-          if (configType === 'oauth') {
+          if (configType === 'oauth' || configType === 'oidc') {
             const code = await this.$store.dispatch('auth/test', { provider: this.model.id, body: this.model });
 
             obj.code = code;
-          } if (configType === 'saml') {
+          }
+
+          if (configType === 'saml') {
             if (!this.model.accessMode) {
               this.model.accessMode = 'unrestricted';
             }
@@ -146,15 +151,23 @@ export default {
             }
             await this.model.doAction('testAndApply', obj, { redirectUnauthorized: false });
           }
-          // Reload principals to get the new ones from the provider
+
+          // Reload principals to get the new ones from the provider (including 'me')
           this.principals = await this.$store.dispatch('rancher/findAll', {
             type: NORMAN.PRINCIPAL,
             opt:  { url: '/v3/principals', force: true }
           });
 
           this.model.allowedPrincipalIds = this.model.allowedPrincipalIds || [];
-          if ( this.me && !this.model.allowedPrincipalIds.includes(this.me.id) ) {
-            addObject(this.model.allowedPrincipalIds, this.me.id);
+
+          if ( this.me) {
+            if (!this.model.allowedPrincipalIds.includes(this.me.id) ) {
+              addObject(this.model.allowedPrincipalIds, this.me.id);
+            }
+            // Session has switched to new 'me', ensure we react
+            this.$store.commit('auth/loggedInAs', this.me.id);
+          } else {
+            console.warn(`Unable to find principal marked as 'me'`); // eslint-disable-line no-console
           }
         }
         if (wasEnabled && configType === 'oauth') {
@@ -169,7 +182,7 @@ export default {
 
         btnCb(true);
       } catch (err) {
-        this.errors = Array.isArray(err) ? err : [err];
+        this.errors = exceptionToErrorsArray(err);
         btnCb(false);
         this.model.enabled = wasEnabled;
         this.isEnabling = false;
@@ -187,6 +200,9 @@ export default {
           await clone.save();
         }
         await this.reloadModel();
+        // Covers case where user disables... then enables in same visit to page
+        this.applyDefaults();
+
         this.showLdap = false;
         btnCb(true);
       } catch (err) {
@@ -226,6 +242,18 @@ export default {
 
     applyDefaults() {
       switch (this.value.configType) {
+      case 'oidc': {
+        const serverUrl = this.serverUrl.endsWith('/') ? this.serverUrl.slice(0, this.serverUrl.length - 1) : this.serverUrl;
+
+        // AuthConfig
+        set(this.model, 'accessMode', 'unrestricted'); // This should remain as unrestricted, enabling will fail otherwise
+
+        // KeyCloakOIDCConfig --> OIDCConfig
+        set(this.model, 'rancherUrl', `${ serverUrl }/verify-auth`);
+        set(this.model, 'scope', BASE_SCOPES.keycloakoidc[0]);
+        break;
+      }
+
       case 'saml':
         set(this.model, 'accessMode', 'unrestricted');
         break;
