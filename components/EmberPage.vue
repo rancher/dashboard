@@ -272,7 +272,7 @@ export default {
       this.heightSync = setTimeout(() => {
         this.doSyncHeight();
         this.syncHeight();
-      }, 1000);
+      }, 500);
     },
 
     doSyncHeight() {

@@ -183,6 +183,9 @@ export default {
         </h4>
         <div slot="body" class="waiting">
           <p>{{ t('featureFlags.restart.wait') }}</p>
+          <span class="restarting-icon">
+            <i class=" icon icon-spinner icon-spin" />
+          </span>
         </div>
         <template #actions>
           <button class="btn role-secondary" @click="close">
@@ -213,6 +216,16 @@ export default {
 
     p {
       line-height: 20px;;
+    }
+  }
+
+  .restarting-icon {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+
+    > I {
+    font-size: 24px;
     }
   }
 </style>

@@ -21,7 +21,6 @@ export default {
 
   data() {
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
-    const legacyEnabled = this.$store.getters['features/get'](LEGACY);
 
     return {
       shown:          false,
@@ -30,7 +29,6 @@ export default {
       uiCommit:       UI_COMMIT,
       uiVersion:      UI_VERSION,
       clusterFilter:  '',
-      legacyEnabled,
     };
   },
 
@@ -40,11 +38,16 @@ export default {
       'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink']),
     ...mapGetters('type-map', ['activeProducts']),
     ...mapGetters('i18n', ['selectedLocaleLabel', 'availableLocales']),
+    ...mapGetters({ features: 'features/get' }),
 
     value: {
       get() {
         return this.$store.getters['productId'];
       },
+    },
+
+    legacyEnabled() {
+      return this.features(LEGACY);
     },
 
     showClusterSearch() {
