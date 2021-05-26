@@ -93,6 +93,28 @@ export default {
       return out;
     },
 
+    repoOptionsForDropdown() {
+      return [{
+        label: this.t('catalog.repo.all'), all: true, enabled: this.areAllEnabled()
+      }, ...this.repoOptions];
+    },
+
+    flattenedRepoNames() {
+      const shownRepos = this.repoOptions.filter(repo => !this.hideRepos.includes(repo._key));
+      const reducedRepos = shownRepos.reduce((acc, c, i) => {
+        acc += c.label;
+        const length = shownRepos.length;
+
+        if (i < length - 1) {
+          acc += ', ';
+        }
+
+        return acc;
+      }, '');
+
+      return reducedRepos;
+    },
+
     enabledCharts() {
       return (this.allCharts || []).filter((c) => {
         if ( c.deprecated && !this.showDeprecated ) {
@@ -155,6 +177,7 @@ export default {
 
       return out;
     },
+
   },
 
   watch: {
@@ -292,22 +315,31 @@ export default {
     </header>
 
     <div class="left-right-split">
-      <div class="mt-10">
-        <Checkbox
-          :value="allRepos"
-          :label="t('catalog.charts.all')"
-          :class="{'pull-left': true, 'repo': true}"
-          @input="toggleAll($event)"
-        />
-        <Checkbox
-          v-for="r in repoOptions"
-          :key="r.label"
-          v-model="r.enabled"
-          :label="r.label"
-          :class="{'pull-left': true, 'repo': true, [r.color]: true}"
-          @input="toggleRepo(r, $event)"
-        />
+      <div>
+        <Select
+          :searchable="false"
+          :options="repoOptionsForDropdown"
+          :value="flattenedRepoNames"
+          class="checkbox-select"
+          :close-on-select="false"
+          @option:selecting="$event.all ? toggleAll(!$event.enabled) : toggleRepo($event, !$event.enabled) "
+        >
+          <template #option="repo">
+            <Checkbox
+              :value="repo.enabled"
+              :label="repo.label"
+              class="pull-left repo in-select"
+              :class="{ [repo.color]: true}"
+              :color="repo.color"
+            >
+              <template #label>
+                <span>{{ repo.label }}</span><i v-if="!repo.all" class=" pl-5 icon icon-dot icon-sm" :class="{[repo.color]: true}" />
+              </template>
+            </Checkbox>
+          </template>
+        </Select>
       </div>
+
       <Select
         v-model="category"
         :clearable="false"
@@ -353,50 +385,169 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .repo {
-    border-radius: var(--border-radius);
-    padding: 3px 0 3px 8px;
-    margin-right: 5px;
-
-    &.rancher {
-      border: 1px solid var(--app-rancher-accent);
-    }
-
-    &.partner {
-      border: 1px solid var(--app-partner-accent);
-    }
-
-    &.color1 { border: 1px solid var(--app-color1-accent); }
-    &.color2 { border: 1px solid var(--app-color2-accent); }
-    &.color3 { border: 1px solid var(--app-color3-accent); }
-    &.color4 { border: 1px solid var(--app-color4-accent); }
-    &.color5 { border: 1px solid var(--app-color5-accent); }
-    &.color6 { border: 1px solid var(--app-color6-accent); }
-    &.color7 { border: 1px solid var(--app-color7-accent); }
-    &.color8 { border: 1px solid var(--app-color8-accent); }
+.left-right-split {
+    padding: 0 0 20px 0;
+    width: 100%;
+    z-index: z-index('fixedTableHeader');
+    background: transparent;
+    display: grid;
+    grid-template-columns: 50% auto auto 40px;
+    align-content: center;
+    grid-column-gap: 10px;
   }
 
-  .left-right-split {
-      padding: 0 0 20px 0;
-      width: 100%;
-      z-index: z-index('fixedTableHeader');
-      background: transparent;
-      display: grid;
-      grid-template-columns: 50% auto auto 40px;
-      align-content: center;
-      grid-column-gap: 10px;
-
-    // .left-half {
-    //   background: lavenderblush;
-    //   grid-column: 1;
-    //   // grid-area: left;
-    // }
-
-    // .right-half {
-    //   background: darkslateblue;
-    //   grid-column: 2;
-    //   // grid-area: right;
-    // }
+.checkbox-select {
+   .vs__search {
+    position: absolute;
+    right: 0
   }
+
+ .vs__selected-options  {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: inline-block;
+    line-height: 2.4rem;
+  }
+
+}
+
+.checkbox-outer-container.in-select {
+  transform: translateX(-5px);
+  padding: 7px 0 6px 13px;
+  width: calc(100% + 10px);
+
+  ::v-deep.checkbox-label {
+    display: flex;
+    align-items: center;
+
+    & i {
+      line-height: inherit;
+    }
+  }
+
+  &:first-child {
+    &:hover {
+      background: var(--input-hover-bg);
+    }
+  }
+
+  &:hover ::v-deep.checkbox-label {
+      color: var(--body-text);
+    }
+
+  &.rancher {
+      &:hover {
+      background: var(--app-rancher-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-rancher-accent-text);
+    }
+    & i {
+      color: var(--app-rancher-accent)
+    }
+  }
+
+  &.partner {
+      &:hover {
+      background: var(--app-partner-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-partner-accent-text);
+    }
+    & i {
+      color: var(--app-partner-accent)
+    }
+  }
+
+  &.color1 {
+    &:hover {
+      background: var(--app-color1-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-color1-accent-text);
+    }
+    & i {
+      color: var(--app-color1-accent)
+    }
+  }
+  &.color2 {
+    &:hover {
+      background: var(--app-color2-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-color2-accent-text);
+    }
+        & i {
+      color: var(--app-color2-accent)
+    }
+  }
+  &.color3 {
+    &:hover {
+      background: var(--app-color3-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-color3-accent-text);
+    }
+        & i {
+      color: var(--app-color3-accent)
+    }
+  }
+  &.color4 {
+    &:hover {
+      background: var(--app-color4-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-color4-accent-text);
+    }
+        & i {
+      color: var(--app-color4-accent)
+    }
+  }
+  &.color5 {
+    &:hover {
+      background: var(--app-color5-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-color5-accent-text);
+    }
+        & i {
+      color: var(--app-color4-accent)
+    }
+  }
+  &.color6 {
+    &:hover {
+      background: var(--app-color6-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-color6-accent-text);
+    }
+        & i {
+      color: var(--app-color6-accent)
+    }
+  }
+  &.color7 {
+    &:hover {
+      background: var(--app-color7-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-color7-accent-text);
+    }
+        & i {
+      color: var(--app-color7-accent)
+    }
+  }
+  &.color8 {
+    &:hover {
+      background: var(--app-color8-accent);
+    }
+    &:hover ::v-deep.checkbox-label {
+      color: var(--app-color8-accent-text);
+    }
+        & i {
+      color: var(--app-color8-accent)
+    }
+  }
+}
 
 </style>

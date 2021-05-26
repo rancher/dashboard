@@ -367,7 +367,7 @@ BODY, .theme-light {
   --card-header                : var(--primary-banner-bg);
 
   --input-text                 : #{$darkest};
-  --input-label                : var(--secondary);
+  --input-label                : #{$secondary};
   --input-placeholder          : #{darken($disabled, 10%)};
   --input-border               : var(--border);
   --input-bg                   : var(--body-bg);
