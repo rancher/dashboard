@@ -76,6 +76,16 @@ export default {
     return out;
   },
 
+  waitForMgmt() {
+    return (timeout, interval) => {
+      return this.waitForTestFn(() => {
+        const name = this.status?.clusterName;
+
+        return name && !!this.$getters['byId'](MANAGEMENT.CLUSTER, name);
+      }, `mgmt cluster create`, timeout, interval);
+    };
+  },
+
   provisioner() {
     if ( this.isRke2 ) {
       const allKeys = Object.keys(this.spec);
@@ -216,6 +226,8 @@ export default {
 
   getOrCreateToken() {
     return async() => {
+      await this.waitForMgmt();
+
       if ( !this.mgmt ) {
         return;
       }

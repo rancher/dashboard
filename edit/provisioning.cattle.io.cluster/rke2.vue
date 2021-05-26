@@ -12,7 +12,7 @@ import ArrayList from '@/components/form/ArrayList';
 import Checkbox from '@/components/form/Checkbox';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import BadgeState from '@/components/BadgeState';
-import { MANAGEMENT, SECRET } from '@/config/types';
+import { CAPI, MANAGEMENT, SECRET } from '@/config/types';
 import { nlToBr } from '@/utils/string';
 import { clone, set } from '@/utils/object';
 import { sortable } from '@/utils/version';
@@ -573,7 +573,38 @@ export default {
       if ( this.$refs.cruresource ) {
         this.$refs.cruresource.emitOrRoute();
       }
-    }
+    },
+
+    done() {
+      let routeName = 'c-cluster-product-resource';
+
+      if ( this.mode === _CREATE && (this.provider === 'import' || this.provider === 'custom') ) {
+        // Go show the registration command
+        routeName = 'c-cluster-product-resource-namespace-id';
+      }
+
+      this.$router.push({
+        name:   routeName,
+        params: {
+          cluster:   this.$route.params.cluster,
+          product:   this.$store.getters['productId'],
+          resource:  CAPI.RANCHER_CLUSTER,
+          namespace: this.value.metadata.namespace,
+          id:        this.value.metadata.name,
+        },
+      });
+    },
+
+    cancel() {
+      this.$router.push({
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster:  this.$route.params.cluster,
+          product:  this.$store.getters['productId'],
+          resource: CAPI.RANCHER_CLUSTER,
+        },
+      });
+    },
   },
 };
 </script>
@@ -587,7 +618,11 @@ export default {
     :validation-passed="validationPassed()"
     :resource="value"
     :errors="errors"
+    :done-event="true"
+    :cancel-event="true"
+    @done="done"
     @finish="save"
+    @cancel="cancel"
     @error="e=>errors = e"
   >
     <SelectCredential

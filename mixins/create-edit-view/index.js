@@ -29,5 +29,10 @@ export default {
       type:     Object,
       default: null,
     },
+
+    doneEvent: {
+      type:    Boolean,
+      default: false,
+    },
   },
 };

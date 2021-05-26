@@ -86,9 +86,12 @@ export default {
 
   methods: {
     done() {
-      if ( this.onDone ) {
-        return this.onDone();
+      if ( this.doneEvent ) {
+        this.$emit('done');
+
+        return;
       }
+
       if ( this.doneLocationOverride) {
         return this.$router.replace(this.doneLocationOverride);
       }

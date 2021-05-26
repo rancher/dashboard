@@ -21,9 +21,9 @@ export default {
   data() {
     return {
       showAdvanced:    false,
-      etcd:            false,
-      controlPlane:    false,
-      worker:          false,
+      etcd:            true,
+      controlPlane:    true,
+      worker:          true,
       insecure:        false,
       address:         '',
       internalAddress: '',

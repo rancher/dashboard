@@ -13,7 +13,7 @@ import { set } from '@/utils/object';
 import { mapPref, PROVISIONER, _RKE1, _RKE2 } from '@/store/prefs';
 import { filterAndArrangeCharts } from '@/store/catalog';
 import { CATALOG } from '@/config/labels-annotations';
-import { MANAGEMENT } from '@/config/types';
+import { CAPI, MANAGEMENT } from '@/config/types';
 import { mapFeature, RKE2 as RKE2_FEATURE } from '@/store/features';
 import { allHash } from '@/utils/promise';
 import Rke2Config from './rke2';
@@ -264,6 +264,17 @@ export default {
   },
 
   methods: {
+    cancel() {
+      this.$router.push({
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster:  this.$route.params.cluster,
+          product:  this.$store.getters['productId'],
+          resource: CAPI.RANCHER_CLUSTER,
+        },
+      });
+    },
+
     colorFor(obj) {
       return `color${ SORT_GROUPS[obj.group] || 1 }`;
     },
@@ -301,7 +312,9 @@ export default {
     :resource="value"
     :errors="errors"
     :subtypes="subTypes"
+    :cancel-event="true"
     @finish="save"
+    @cancel="cancel"
     @select-type="selectType"
     @error="e=>errors = e"
   >

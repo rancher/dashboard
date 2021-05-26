@@ -840,7 +840,7 @@ cluster:
   custom:
     nodeRole:
       label: Node Role
-      detail: Choose what roles the node will have in the cluster.  The cluster needs to have at least one node with each role
+      detail: Choose what roles the node will have in the cluster.  The cluster needs to have at least one node with each role.
     advanced:
       label: Advanced
       detail: Additional control over how the node will be registered.  These values will often need to be different for each node registered.
