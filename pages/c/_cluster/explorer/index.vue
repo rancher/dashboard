@@ -382,7 +382,7 @@ export default {
         </n-link>
       </div>
       <div v-if="monitoringStatus.v1">
-        <span>V1 Monitoring installed</span>
+        <span>{{ t('glance.v1MonitoringInstalled') }}</span>
       </div>
     </div>
 

@@ -1208,6 +1208,7 @@ glance:
   version: Kubernetes Version
   monitoringDashboard: Monitoring Dashboard
   installMonitoring: Install Monitoring
+  v1MonitoringInstalled: V1 Monitoring Installed
 
 grafanaDashboard:
   failedToLoad: Failed to load graph
@@ -4264,6 +4265,9 @@ featureFlags:
   promptActivate: Please confirm that you want to activate the feature flag "{flag}"
   promptDeactivate: Please confirm that you want to deactivate the feature flag "{flag}"
   restartRequired: "Note: Updating this feature flag requires a restart"
+  restart:
+    title: Waiting for Restart
+    wait: This may take a few moments
 
 branding:
   label: Branding
@@ -4371,7 +4375,6 @@ v1ClusterTools:
   logging:
     label: Logging (Legacy)
     description: 'Legacy V1 logging. V1 Logging is deprecated since Rancher 2.5.0. <a target="blank" href="https://rancher.com/docs/rancher/v2.x/en/logging/v2.5/migrating/">Learn more</a> about migrating to V2 Logging.'
-  istio:
-    label: Istio (Legacy)
-    description: 'Legacy V1 Istio. V1 Istio is deprecated since Rancher 2.5.0.'
 
+v1ProjectTools:
+   prompt: 

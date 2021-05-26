@@ -178,10 +178,10 @@ export default {
       </Card>
       <Card v-else class="prompt-update" :show-highlight-border="false">
         <h4 slot="title" class="text-default-text">
-          Waiting for Restart
+          {{ t('featureFlags.restart.title') }}
         </h4>
         <div slot="body" class="waiting">
-          <p>This may take a few moments</p>
+          <p>{{ t('featureFlags.restart.wait') }}</p>
         </div>
         <template #actions>
           <button class="btn role-secondary" @click="close">
