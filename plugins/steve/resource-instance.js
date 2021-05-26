@@ -1577,4 +1577,10 @@ export default {
       return out;
     };
   },
+
+  shortId() {
+    const splitId = this.id.split('/');
+
+    return splitId.length > 1 ? splitId[1] : splitId[0];
+  }
 };

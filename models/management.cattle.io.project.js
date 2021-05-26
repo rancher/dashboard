@@ -25,9 +25,5 @@ export default {
 
   parentLocationOverride() {
     return this.listLocation;
-  },
-
-  shortId() {
-    return this.id.split('/')[1];
   }
 };
