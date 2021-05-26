@@ -8,6 +8,7 @@ import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { KEY } from '@/utils/platform';
 import { getVersionInfo } from '@/utils/version';
+import { LEGACY } from '@/store/features';
 
 const UNKNOWN = 'unknown';
 const UI_VERSION = process.env.VERSION || UNKNOWN;
@@ -20,6 +21,7 @@ export default {
 
   data() {
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
+    const legacyEnabled = this.$store.getters['features/get'](LEGACY);
 
     return {
       shown:          false,
@@ -28,6 +30,7 @@ export default {
       uiCommit:       UI_COMMIT,
       uiVersion:      UI_VERSION,
       clusterFilter:  '',
+      legacyEnabled,
     };
   },
 
@@ -234,7 +237,7 @@ export default {
               </nuxt-link>
             </div>
           </template>
-          <template v-if="legacyApps.length">
+          <template v-if="legacyEnabled">
             <div class="category">
               {{ t('nav.categories.legacy') }}
             </div>

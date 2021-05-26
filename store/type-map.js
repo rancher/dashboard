@@ -119,7 +119,7 @@ import { NAME as EXPLORER } from '@/config/product/explorer';
 import isObject from 'lodash/isObject';
 import { normalizeType } from '@/plugins/steve/normalize';
 import { sortBy } from '@/utils/sort';
-import { haveV2Monitoring, haveV1Monitoring } from '@/utils/monitoring';
+import { haveV1Monitoring, haveV2Monitoring } from '@/utils/monitoring';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -424,7 +424,7 @@ export const getters = {
 
   typeWeightFor(state) {
     return (type, forBasic) => {
-      type = type.toLowerCase();
+      type = type?.toLowerCase();
 
       if ( forBasic ) {
         return state.basicTypeWeights[type] || 0;

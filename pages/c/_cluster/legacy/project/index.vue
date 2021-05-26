@@ -25,5 +25,5 @@ export default {
 </script>
 
 <template>
-  <IconMessage icon="icon-monitoring" message="Use the Project/Namespace filter at the top of the page to select a Project in order to see legacy Project features." />
+  <IconMessage icon="icon-monitoring" message-key="legacy.project.select" />
 </template>

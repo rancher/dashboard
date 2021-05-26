@@ -31,7 +31,7 @@ import {
 } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { mapPref, CLUSTER_TOOLS_TIP } from '@/store/prefs';
-import { monitoringStatus } from '@/utils/monitoring';
+import { haveV1Monitoring, monitoringStatus } from '@/utils/monitoring';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import { allDashboardsExist } from '@/utils/grafana';
@@ -159,7 +159,7 @@ export default {
     hideClusterToolsTip: mapPref(CLUSTER_TOOLS_TIP),
 
     hasV1Monitoring() {
-      return !!this.currentCluster?.status?.monitoringStatus;
+      return haveV1Monitoring(this.$store.getters);
     },
 
     v1MonitoringURL() {

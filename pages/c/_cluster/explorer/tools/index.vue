@@ -90,12 +90,9 @@ export default {
       }
 
       const chartsWithApps = charts.map((chart) => {
-        const app = this.installedAppForChart[chart.id];
-
         return {
           chart,
-          app,
-          upgradeAvailable: app?.upgradeAvailable,
+          app: this.installedAppForChart[chart.id],
         };
       });
 
@@ -191,9 +188,6 @@ export default {
             v1.app = v2.app;
             v2.app = undefined;
             v2.blockedV1 = true;
-
-            // We don't show upgrade info for V1 features
-            v1.upgradeAvailable = false;
           }
         }
       }
@@ -346,13 +340,13 @@ export default {
             {{ opt.chart.chartDisplayName }}
           </h3>
           <div class="version">
-            <template v-if="opt.app && opt.upgradeAvailable">
-              v{{ opt.app.currentVersion }} <b><i class="icon icon-chevron-right" /> v{{ opt.upgradeAvailable }}</b>
+            <template v-if="opt.app && opt.app.upgradeAvailable && !opt.chart.legacy">
+              v{{ opt.app.currentVersion }} <b><i class="icon icon-chevron-right" /> v{{ opt.app.upgradeAvailable }}</b>
             </template>
             <template v-else-if="opt.app">
               v{{ opt.app.currentVersion }}
             </template>
-            <template v-else-if=" opt.chart.versions.length">
+            <template v-else-if="opt.chart.versions.length">
               v{{ opt.chart.versions[0].version }}
             </template>
           </div>
@@ -370,11 +364,11 @@ export default {
           <template v-else-if="opt.app && opt.chart.legacy">
             <button class="btn btn-sm role-secondary" @click="openV1Tool(opt.chart.legacyPage)" v-html="t('catalog.tools.action.manage')" />
           </template>
-          <template v-else-if="opt.app && opt.upgradeAvailable">
+          <template v-else-if="opt.app && opt.upgradeAvailable && !opt.chart.legacy">
             <button class="btn btn-sm role-secondary" @click="remove(opt.app)">
               <i class="icon icon-delete icon-lg" />
             </button>
-            <button class="btn btn-sm role-secondary" @click="edit(opt.app, opt.upgradeAvailable)" v-html="t('catalog.tools.action.upgrade')" />
+            <button class="btn btn-sm role-secondary" @click="edit(opt.app, opt.app.upgradeAvailable)" v-html="t('catalog.tools.action.upgrade')" />
           </template>
           <template v-else-if="opt.app">
             <button class="btn btn-sm role-secondary" @click="remove(opt.app)">

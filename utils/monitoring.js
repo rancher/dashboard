@@ -1,10 +1,9 @@
 // Helpers for determining if V2 or v1 Monitoring are installed
-
-import { SCHEMA, MONITORING } from '@/config/types';
+import { MONITORING, SCHEMA } from '@/config/types';
 import { normalizeType } from '@/plugins/steve/normalize';
 import { findBy } from '@/utils/array';
 
-// Can be used inside a compoennts' computed property
+// Can be used inside a components' computed property
 export function monitoringStatus() {
   return {
     monitoringStatus() {

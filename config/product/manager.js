@@ -94,7 +94,7 @@ export function init(store) {
   ]);
 
   virtualType({
-    label:          'Pod Security Policies',
+    labelKey:       'legacy.psps',
     name:           'pod-security-policies',
     group:          'Root',
     namespaced:     false,

@@ -106,6 +106,7 @@ export default {
       this.error = null;
       try {
         this.update.spec.value = !this.update.enabled;
+        // await can go back in when backend returns from the save before restarting
         this.update.save();
         this.waitForBackend(btnCB);
         this.waiting = true;

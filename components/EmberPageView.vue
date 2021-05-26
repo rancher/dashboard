@@ -30,7 +30,7 @@ export default {
 <template>
   <EmberPage v-if="src" :src="src" />
   <div v-else>
-    <h1>Page Not Found</h1>
+    <h1>{{ t('generic.notFound') }}</h1>
     <h2>{{ page }}</h2>
   </div>
 </template>

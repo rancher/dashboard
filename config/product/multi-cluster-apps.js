@@ -21,7 +21,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:          'Apps',
+    labelKey:       'legacy.apps',
     name:           'mc-apps',
     group:          'Root',
     namespaced:     false,
@@ -32,7 +32,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:          'Catalogs',
+    labelKey:       'legacy.catalogs',
     name:           'mc-catalogs',
     group:          'Root',
     namespaced:     false,
@@ -43,7 +43,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:          'Global DNS Entries',
+    labelKey:       'legacy.globalDnsEntries',
     name:           'global-dns-entries',
     group:          'Root',
     namespaced:     false,
@@ -54,7 +54,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:          'Global DNS Providers',
+    labelKey:       'legacy.globalDnsProviders',
     name:           'global-dns-providers',
     group:          'Root',
     namespaced:     false,

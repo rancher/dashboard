@@ -20,6 +20,7 @@ import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@/utils/grafana';
 import Loading from '@/components/Loading';
 import metricPoller from '@/mixins/metric-poller';
+import { haveV1Monitoring } from '@/utils/monitoring';
 
 const NODE_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-node-detail-1/rancher-node-detail?orgId=1';
 const NODE_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-node-1/rancher-node?orgId=1';
@@ -50,12 +51,14 @@ export default {
   async fetch() {
     this.showMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [NODE_METRICS_DETAIL_URL, NODE_METRICS_SUMMARY_URL]);
 
-    const v3Nodes = await this.$store.dispatch('rancher/request', {
-      url:    '/v3/nodes',
-      method: 'get'
-    });
+    if (haveV1Monitoring(this.$store.getters)) {
+      const v3Nodes = await this.$store.dispatch('rancher/request', {
+        url:    '/v3/nodes',
+        method: 'get'
+      });
 
-    this.v3Nodes = v3Nodes;
+      this.v3Nodes = v3Nodes;
+    }
 
     return this.$store.dispatch('cluster/findAll', { type: POD });
   },

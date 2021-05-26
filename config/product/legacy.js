@@ -17,7 +17,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:          'Alerts',
+    labelKey:       'legacy.alerts',
     name:           'v1-alerts',
     group:          'Root',
     namespaced:     true,
@@ -28,7 +28,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:          'Catalogs',
+    labelKey:       'legacy.catalogs',
     name:           'v1-catalogs',
     group:          'Root',
     namespaced:     true,
@@ -39,7 +39,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:          'Notifiers',
+    labelKey:       'legacy.notifiers',
     name:           'v1-notifiers',
     group:          'Root',
     namespaced:     true,
@@ -51,7 +51,7 @@ export function init(store) {
 
   virtualType({
     ifHave:     IF_HAVE.PROJECT,
-    label:      'Project',
+    labelKey:   'legacy.project.label',
     namespaced: true,
     name:       'v1-project',
     weight:     105,
@@ -63,7 +63,7 @@ export function init(store) {
 
   virtualType({
     ifHave:     IF_HAVE.NO_PROJECT,
-    label:      'Project',
+    labelKey:   'legacy.project.label',
     namespaced: true,
     name:       'v1-project-overview',
     weight:     105,
@@ -84,7 +84,7 @@ export function init(store) {
 
   virtualType({
     ifHave:     IF_HAVE.PROJECT,
-    label:      'Alerts',
+    labelKey:   'legacy.alerts',
     namespaced: true,
     name:       'project-alerts',
     weight:     105,
@@ -95,7 +95,7 @@ export function init(store) {
 
   virtualType({
     ifHave:     IF_HAVE.PROJECT,
-    label:      'Apps',
+    labelKey:   'legacy.apps',
     namespaced: true,
     name:       'project-apps',
     weight:     110,
@@ -106,7 +106,7 @@ export function init(store) {
 
   virtualType({
     ifHave:     IF_HAVE.PROJECT,
-    label:      'Catalogs',
+    labelKey:   'legacy.catalogs',
     namespaced: true,
     name:       'project-catalogs',
     weight:     105,
@@ -117,7 +117,7 @@ export function init(store) {
 
   virtualType({
     ifHave:     IF_HAVE.PROJECT,
-    label:      'Logging',
+    labelKey:   'legacy.logging',
     namespaced: true,
     name:       'project-logging',
     weight:     105,
@@ -128,7 +128,7 @@ export function init(store) {
 
   virtualType({
     ifHave:     IF_HAVE.PROJECT,
-    label:      'Monitoring',
+    labelKey:   'legacy.monitoring',
     namespaced: true,
     name:       'project-monitoring',
     weight:     105,

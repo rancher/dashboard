@@ -72,6 +72,7 @@ export default {
       emberCheck:       null,
       error:            false,
       heightSync:       null,
+      frameHeight:      -1,
       showHeaderBanner: false,
       showFooterBanner: false,
     };
@@ -80,10 +81,6 @@ export default {
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),
     ...mapGetters(['clusterId', 'productId']),
-
-    loaderMode() {
-      return 'content';
-    }
   },
 
   watch: {
@@ -142,6 +139,10 @@ export default {
 
   methods: {
     addBannerClasses(elm, prefix) {
+      if (!elm) {
+        return;
+      }
+
       elm.classList.remove(`${ prefix }-top-banner`);
       elm.classList.remove(`${ prefix }-one-banner`);
       elm.classList.remove(`${ prefix }-two-banners`);
@@ -253,26 +254,25 @@ export default {
       if (!this.inline) {
         iframeEl.classList.add('ember-iframe');
         iframeEl.classList.remove('ember-iframe-inline');
+        this.addBannerClasses(this.$refs.emberPage, 'fixed');
+        this.addBannerClasses(iframeEl, 'ember-iframe');
       } else {
         iframeEl.classList.remove('ember-iframe');
         iframeEl.classList.add('ember-iframe-inline');
         iframeEl.height = 0;
         this.syncHeight();
       }
-
-      this.addBannerClasses(this.$refs.emberPage, 'fixed');
-      this.addBannerClasses(iframeEl, 'ember-iframe');
     },
 
     syncHeight() {
       if (this.heightSync) {
-        clearInterval(this.heightSync);
+        clearTimeout(this.heightSync);
       }
 
       this.heightSync = setTimeout(() => {
         this.doSyncHeight();
         this.syncHeight();
-      }, 1500);
+      }, 1000);
     },
 
     doSyncHeight() {
@@ -282,8 +282,8 @@ export default {
         const app = doc.getElementById('application');
         const h = app?.offsetHeight;
 
-        if (h && this.heightSync !== h) {
-          this.heightSync = h;
+        if (h && this.frameHeight !== h) {
+          this.frameHeight = h;
           iframeEl.height = h;
         }
       }
@@ -418,8 +418,8 @@ export default {
 </script>
 
 <template>
-  <div ref="emberPage" class="ember-page" :class="fixed">
-    <Loading v-if="!inline" :loading="!loaded" :mode="loaderMode" :no-delay="true" />
+  <div ref="emberPage" class="ember-page">
+    <Loading v-if="!inline" :loading="!loaded" mode="content" :no-delay="true" />
     <div v-if="inline && !loaded" class="inline-loading" v-html="t('generic.loading', {}, true)" />
     <div v-if="error" class="ember-page-error">
       <div>{{ t('embedding.unavailable') }}</div>
@@ -432,13 +432,6 @@ export default {
 
 <style lang="scss" scoped>
   $banner-height: 2em;
-  .fixed {
-    height: calc(100vh - var(--header-height));
-    left: var(--nav-width);
-    position: static;
-    top: var(--header-height);
-    width: calc(100vw - var(--nav-width));
-  }
 
   .fixed-top-banner {
     top: calc(#{$banner-height} + var(--header-height));
@@ -457,6 +450,7 @@ export default {
     height: 100%;
     padding: 0;
   }
+
   .frame {
     flex: 1;
     visibility: hidden;

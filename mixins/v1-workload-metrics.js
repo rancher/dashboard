@@ -19,7 +19,7 @@ export default {
 
     if (p && haveV1Monitoring(this.$store.getters)) {
       const prjID = p.id.replace('/', ':');
-      let prefix = 'workloads/';
+      let prefix;
 
       if (resource !== 'pod') {
         const r = resource.split('.');

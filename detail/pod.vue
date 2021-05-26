@@ -133,7 +133,7 @@ export default {
   },
 
   methods: {
-    slectionChanged(c) {
+    selectionChanged(c) {
       const id = c === this.POD_OPTION ? null : c.id;
 
       this.metricsID = id;
@@ -163,7 +163,7 @@ export default {
         :value="selection"
         label-key="workload.metrics.metricsView"
         :options="metricsOptions"
-        @input="slectionChanged($event)"
+        @input="selectionChanged($event)"
       />
       <div id="ember-anchor">
         <EmberPage inline="ember-anchor" :src="v1Metrics" />
