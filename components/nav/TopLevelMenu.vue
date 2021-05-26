@@ -221,7 +221,7 @@ export default {
                 class="cluster selector option"
                 :to="{ name: 'c-cluster', params: { cluster: c.id } }"
               >
-                <RancherProviderIcon v-if="c.isLocal" width="25" class="rancher-provider-icon" />
+                <RancherProviderIcon v-if="c.isLocal" width="24" class="rancher-provider-icon" />
                 <img v-else :src="c.logo" />
                 <div>{{ c.label }}</div>
               </nuxt-link>
