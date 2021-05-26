@@ -32,8 +32,10 @@ export const SETTING = {
   AUTH_USER_INFO_RESYNC_CRON:       'auth-user-info-resync-cron',
   AUTH_LOCAL_VALIDATE_DESC:         'auth-password-requirements-description',
   CLUSTER_TEMPLATE_ENFORCEMENT:     'cluster-template-enforcement',
-  UI_INDEX:                       'ui-index',
-  SYSTEM_DEFAULT_REGISTRY:        'system-default-registry',
+  UI_INDEX:                         'ui-index',
+  UI_DASHBOARD_INDEX:               'ui-dashboard-index',
+  UI_OFFLINE_PREFERRED:             'ui-offline-preferred',
+  SYSTEM_DEFAULT_REGISTRY:          'system-default-registry',
   PL:                               'ui-pl',
   PL_RANCHER_VALUE:                 'rancher',
   SUPPORTED:                        'has-support',
@@ -63,6 +65,11 @@ export const ALLOWED_SETTINGS = {
   // [SETTING.BANNERS]:                        { kind: 'json' },
   [SETTING.SYSTEM_DEFAULT_REGISTRY]:        {},
   [SETTING.UI_INDEX]:                       {},
+  [SETTING.UI_DASHBOARD_INDEX]:             {},
+  [SETTING.UI_OFFLINE_PREFERRED]:           {
+    kind:    'enum',
+    options: ['dynamic', 'true', 'false']
+  },
   [SETTING.BRAND]:                          {},
   [SETTING.CLUSTER_TEMPLATE_ENFORCEMENT]:   { kind: 'boolean' },
 
