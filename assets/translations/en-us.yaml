@@ -3741,15 +3741,15 @@ workload:
       antiAffinityOption: Anti-Affinity
       matchExpressions:
         addRule: Add Rule
-        doesNotExist: Does Not Exist
-        exists: Exists
+        doesNotExist: is not set
+        exists: is set
         greaterThan: ">"
-        in: =
+        in: in list
         inNamespaces: "Pods in these namespaces:"
         key: Key
         lessThan: <
         namespaces: Namespaces
-        notIn: ≠
+        notIn: not in list
         operator: Operator
         value: Value
         weight: Weight
