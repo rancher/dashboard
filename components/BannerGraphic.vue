@@ -78,16 +78,21 @@ export default {
       height: $banner-height;
       overflow: hidden;
       > img.banner {
+        flex: 1;
         object-fit: cover;
-        width: 100%;
-        height: $banner-height;
+        background-color: red;
       }
     }
     .title {
+      display: flex;
+      justify-content: center;
+      align-items: center;
       position: absolute;
       text-align: center;
-      top: 70px;
+      top: 0;
+      height: 100%;
       width: 100%;
+      margin-top: -20px;
     }
     &.small {
       .graphic {
@@ -95,9 +100,6 @@ export default {
         img.banner {
           margin-top: ($banner-height-small - $banner-height)/2;
         }
-      }
-      .title {
-        top: 50px;
       }
     }
   }
