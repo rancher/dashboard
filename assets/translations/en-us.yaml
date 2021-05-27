@@ -2302,6 +2302,10 @@ prefs:
     vue: Cluster Explorer
     ember: Cluster Manager
   formatting: Formatting
+  clusterToShow:
+    label: Number of clusters to show in top menu
+    value: |-
+      {count, number}    
   dateFormat:
     label: Date Format
   timeFormat:
