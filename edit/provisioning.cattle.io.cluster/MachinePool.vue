@@ -63,7 +63,7 @@ export default {
         <LabeledInput
           v-model.number="value.pool.quantity"
           :mode="mode"
-          label="Node Count"
+          label="Machine Count"
           type="number"
           min="0"
           :required="true"

@@ -44,8 +44,8 @@ export default {
     } else if ( !this.value.isRke2 ) {
       // These are needed to resolve references in the mgmt cluster -> node pool -> node template to figure out what provider the cluster is using
       // so that the edit iframe for ember pages can go to the right place.
-      hash.nodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-      hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+      hash.rke1NodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      hash.rke1NodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
     }
 
     if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
@@ -95,7 +95,7 @@ export default {
     },
 
     showRke1Pools() {
-      return this.value.mgmt?.nodePools?.length > 0;
+      return this.value.mgmt?.machinePools?.length > 0;
     },
 
     showSnapshots() {
@@ -208,7 +208,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <ResourceTabs v-else v-model="value" :default-tab="defaultTab">
-    <Tab v-if="value.isRke2 || showRke1Pools" name="node-pools" label-key="cluster.tabs.nodePools" :weight="3">
+    <Tab v-if="value.isRke2 || showRke1Pools" name="node-pools" label-key="cluster.tabs.machinePools" :weight="3">
       <SortableTable
         v-if="value.isRke2"
         :rows="machines"
@@ -223,12 +223,12 @@ export default {
         <template #group-by="{group}">
           <div v-if="group && group.ref" class="group-tab" v-html="group.ref.groupByPoolShortLabel" />
           <div v-else v-trim-whitespace class="group-tab">
-            Node Pool: None
+            Machine Pool: None
           </div>
         </template>
       </SortableTable>
-      <div v-else>
-        RKE 1 node pools...
+      <div v-else-if="showRke1Pools">
+        {{ JSON.stringify(value.mgmt.machinePools) }}
       </div>
     </Tab>
 

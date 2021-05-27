@@ -82,8 +82,8 @@ export default {
 
     <ResourceTable :schema="schema" :rows="rows" :namespaced="false">
       <template #cell:provider="{row}">
-        <template v-if="row.nodeProvider">
-          {{ row.nodeProviderDisplay }}
+        <template v-if="row.machineProvider">
+          {{ row.machineProviderDisplay }}
           <div class="text-muted">
             {{ row.provisionerDisplay }}
           </div>
@@ -93,7 +93,7 @@ export default {
         </template>
       </template>
       <template #cell:summary="{row}">
-        <span v-if="!row.isRke2" class="text-muted">&mdash;</span>
+        <span v-if="!row.isRke2 || row.isCustom" class="text-muted">&mdash;</span>
       </template>
       <template #cell:explorer="{row}">
         <n-link v-if="row.mgmt && row.mgmt.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}">

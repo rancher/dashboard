@@ -135,8 +135,8 @@ export function init(store) {
     {
       name:   'provider',
       label:  'Provider',
-      value:  'nodeProvider',
-      sort:   ['nodeProvider', 'provisioner'],
+      value:  'machineProvider',
+      sort:   ['machineProvider', 'provisioner'],
     },
     MACHINE_SUMMARY,
     AGE,
@@ -148,7 +148,7 @@ export function init(store) {
     },
   ]);
 
-  headers('cluster.x-k8s.io.machinedeployment', [
+  headers(CAPI.MACHINE_DEPLOYMENT, [
     STATE,
     NAME_COL,
     MACHINE_SUMMARY,

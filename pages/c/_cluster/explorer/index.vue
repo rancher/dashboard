@@ -78,7 +78,7 @@ export default {
     }
 
     if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE_POOL) ) {
-      hash.nodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      hash.rke1NodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
     }
 
     this.showClusterMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]);
@@ -136,7 +136,6 @@ export default {
       constraints:         [],
       events:              [],
       nodeMetrics:         [],
-      nodePools:           [],
       nodeTemplates:       [],
       nodes:               [],
       showClusterMetrics: false,

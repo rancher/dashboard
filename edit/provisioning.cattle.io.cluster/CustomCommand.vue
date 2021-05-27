@@ -21,9 +21,9 @@ export default {
   data() {
     return {
       showAdvanced:    false,
-      etcd:            false,
-      controlPlane:    false,
-      worker:          false,
+      etcd:            true,
+      controlPlane:    true,
+      worker:          true,
       insecure:        false,
       address:         '',
       internalAddress: '',
@@ -59,7 +59,7 @@ export default {
         const e = sanitizeValue(t.effect);
 
         if ( k && v && e ) {
-          out.push(`--taints ${ k }=${ v }:${ e }`);
+          out.push(`--taint ${ k }=${ v }:${ e }`);
         }
       }
 

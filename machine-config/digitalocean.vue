@@ -67,6 +67,8 @@ export default {
       if ( !this.value.image ) {
         this.value.image = defaultImage;
       }
+
+      this.updateUsername();
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
     }
@@ -85,9 +87,21 @@ export default {
     'credentialId'() {
       this.$fetch();
     },
+
+    'value.image': 'updateUsername',
   },
 
-  methods: { stringify },
+  methods: {
+    stringify,
+
+    updateUsername() {
+      if ( this.value.image.match(/rancheros/i) ) {
+        this.value.sshUser = 'rancher';
+      } else {
+        this.value.sshUser = undefined;
+      }
+    },
+  },
 };
 </script>
 

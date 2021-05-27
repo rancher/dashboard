@@ -12,7 +12,7 @@ import ArrayList from '@/components/form/ArrayList';
 import Checkbox from '@/components/form/Checkbox';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import BadgeState from '@/components/BadgeState';
-import { MANAGEMENT, SECRET } from '@/config/types';
+import { CAPI, MANAGEMENT, SECRET } from '@/config/types';
 import { nlToBr } from '@/utils/string';
 import { clone, set } from '@/utils/object';
 import { sortable } from '@/utils/version';
@@ -22,7 +22,7 @@ import { _CREATE } from '@/config/query-params';
 import { findBy, removeObject } from '@/utils/array';
 import difference from 'lodash/difference';
 import SelectCredential from './SelectCredential';
-import NodePool from './NodePool';
+import MachinePool from './MachinePool';
 import Labels from './Labels';
 import AgentEnv from './AgentEnv';
 import ACE from './ACE';
@@ -44,7 +44,7 @@ export default {
     SelectCredential,
     LabeledInput,
     LabeledSelect,
-    NodePool,
+    MachinePool,
     BadgeState,
     ACE,
     DrainOptions,
@@ -136,9 +136,9 @@ export default {
       set(this.serverConfig, 'profile', null);
     }
 
-    await this.initNodePools(this.value.spec.rkeConfig.nodePools);
-    if ( this.mode === _CREATE && !this.nodePools.length ) {
-      await this.addNodePool();
+    await this.initMachinePools(this.value.spec.rkeConfig.machinePools);
+    if ( this.mode === _CREATE && !this.machinePools.length ) {
+      await this.addMachinePool();
     }
   },
 
@@ -150,7 +150,7 @@ export default {
       nodeComponent:         null,
       credentialId:          null,
       credential:            null,
-      nodePools:             null,
+      machinePools:          null,
       rke2Versions:          null,
       k3sVersions:           null,
     };
@@ -298,7 +298,7 @@ export default {
       return true;
     },
 
-    hasNodePools() {
+    hasMachinePools() {
       if ( this.provider === 'custom' || this.provider === 'import' ) {
         return false;
       }
@@ -306,8 +306,8 @@ export default {
       return true;
     },
 
-    nodeConfigSchema() {
-      if ( !this.hasNodePools ) {
+    machineConfigSchema() {
+      if ( !this.hasMachinePools ) {
         return null;
       }
 
@@ -332,7 +332,7 @@ export default {
         out.icon[role] = 'icon-checkmark';
       }
 
-      for ( const row of this.nodePools ) {
+      for ( const row of this.machinePools ) {
         if ( row.remove ) {
           continue;
         }
@@ -349,8 +349,8 @@ export default {
       }
 
       for ( const role of roles ) {
-        out.label[role] = this.t(`cluster.nodePool.nodeTotals.label.${ role }`, { count: counts[role] });
-        out.tooltip[role] = this.t(`cluster.nodePool.nodeTotals.tooltip.${ role }`, { count: counts[role] });
+        out.label[role] = this.t(`cluster.machinePool.nodeTotals.label.${ role }`, { count: counts[role] });
+        out.tooltip[role] = this.t(`cluster.machinePool.nodeTotals.tooltip.${ role }`, { count: counts[role] });
       }
 
       if ( counts.etcd === 0 ) {
@@ -436,21 +436,21 @@ export default {
   },
 
   created() {
-    this.registerBeforeHook(this.saveNodePools);
-    this.registerAfterHook(this.cleanupNodePools);
+    this.registerBeforeHook(this.saveMachinePools);
+    this.registerAfterHook(this.cleanupMachinePools);
   },
 
   methods: {
     nlToBr,
 
-    async initNodePools(existing) {
+    async initMachinePools(existing) {
       const out = [];
 
       if ( existing?.length ) {
         for ( const pool of existing ) {
           const config = await this.$store.dispatch('management/find', {
-            type: `provisioning.cattle.io.${ pool.nodeConfigRef.kind.toLowerCase() }`,
-            id:   `${ this.value.metadata.namespace }/${ pool.nodeConfigRef.name }`,
+            type: `provisioning.cattle.io.${ pool.machineConfigRef.kind.toLowerCase() }`,
+            id:   `${ this.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
           });
 
           // @TODO what if the pool is missing?
@@ -466,18 +466,18 @@ export default {
         }
       }
 
-      this.nodePools = out;
+      this.machinePools = out;
     },
 
-    async addNodePool() {
-      if ( !this.nodeConfigSchema ) {
+    async addMachinePool() {
+      if ( !this.machineConfigSchema ) {
         return;
       }
 
-      const numCurrentPools = this.nodePools.length || 0;
+      const numCurrentPools = this.machinePools.length || 0;
 
       const config = await this.$store.dispatch('management/createPopulated', {
-        type:     this.nodeConfigSchema.id,
+        type:     this.machineConfigSchema.id,
         metadata: { namespace: DEFAULT_WORKSPACE }
       });
 
@@ -485,7 +485,7 @@ export default {
 
       const name = `pool${ ++this.lastIdx }`;
 
-      this.nodePools.push({
+      this.machinePools.push({
         id:      name,
         config,
         remove: false,
@@ -498,8 +498,8 @@ export default {
           hostnamePrefix:   '',
           labels:           {},
           quantity:         1,
-          nodeConfigRef:    {
-            kind:       this.nodeConfigSchema.attributes.kind,
+          machineConfigRef:    {
+            kind:       this.machineConfigSchema.attributes.kind,
             name:       null,
           },
         },
@@ -512,8 +512,8 @@ export default {
       });
     },
 
-    removeNodePool(idx) {
-      const entry = this.nodePools[idx];
+    removeMachinePool(idx) {
+      const entry = this.machinePools[idx];
 
       if ( !entry ) {
         return;
@@ -521,17 +521,17 @@ export default {
 
       if ( entry.create ) {
         // If this is a new pool that isn't saved yet, it can just be dropped
-        removeObject(this.nodePools, entry);
+        removeObject(this.machinePools, entry);
       } else {
         // Mark for removal on save
         entry.remove = true;
       }
     },
 
-    async saveNodePools() {
+    async saveMachinePools() {
       const finalPools = [];
 
-      for ( const entry of this.nodePools ) {
+      for ( const entry of this.machinePools ) {
         const prefix = `${ this.value.metadata.name }-${ (entry.pool.name || 'pool') }`.substr(0, 50).toLowerCase();
 
         if ( entry.create ) {
@@ -542,7 +542,7 @@ export default {
           const neu = await entry.config.save();
 
           entry.config = neu;
-          entry.pool.nodeConfigRef.name = neu.metadata.name;
+          entry.pool.machineConfigRef.name = neu.metadata.name;
           entry.create = false;
         }
 
@@ -553,11 +553,11 @@ export default {
         finalPools.push(entry.pool);
       }
 
-      this.value.spec.rkeConfig.nodePools = finalPools;
+      this.value.spec.rkeConfig.machinePools = finalPools;
     },
 
-    async cleanupNodePools() {
-      for ( const entry of this.nodePools ) {
+    async cleanupMachinePools() {
+      for ( const entry of this.machinePools ) {
         if ( entry.remove ) {
           await entry.config.remove();
           entry.remove = false;
@@ -573,7 +573,38 @@ export default {
       if ( this.$refs.cruresource ) {
         this.$refs.cruresource.emitOrRoute();
       }
-    }
+    },
+
+    done() {
+      let routeName = 'c-cluster-product-resource';
+
+      if ( this.mode === _CREATE && (this.provider === 'import' || this.provider === 'custom') ) {
+        // Go show the registration command
+        routeName = 'c-cluster-product-resource-namespace-id';
+      }
+
+      this.$router.push({
+        name:   routeName,
+        params: {
+          cluster:   this.$route.params.cluster,
+          product:   this.$store.getters['productId'],
+          resource:  CAPI.RANCHER_CLUSTER,
+          namespace: this.value.metadata.namespace,
+          id:        this.value.metadata.name,
+        },
+      });
+    },
+
+    cancel() {
+      this.$router.push({
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster:  this.$route.params.cluster,
+          product:  this.$store.getters['productId'],
+          resource: CAPI.RANCHER_CLUSTER,
+        },
+      });
+    },
   },
 };
 </script>
@@ -587,10 +618,15 @@ export default {
     :validation-passed="validationPassed()"
     :resource="value"
     :errors="errors"
+    :done-event="true"
+    :cancel-event="true"
+    @done="done"
     @finish="save"
+    @cancel="cancel"
     @error="e=>errors = e"
   >
     <SelectCredential
+      v-if="needCredential"
       v-model="credentialId"
       :mode="mode"
       :provider="provider"
@@ -609,9 +645,9 @@ export default {
         description-placeholder="cluster.description.placeholder"
       />
 
-      <template v-if="hasNodePools">
+      <template v-if="hasMachinePools">
         <div class="clearfix">
-          <h2 v-t="'cluster.tabs.nodePools'" class="pull-left" />
+          <h2 v-t="'cluster.tabs.machinePools'" class="pull-left" />
           <div v-if="!isView" class="pull-right">
             <BadgeState
               v-tooltip="nodeTotals.tooltip.etcd"
@@ -640,11 +676,11 @@ export default {
           ref="pools"
           :side-tabs="true"
           :show-tabs-add-remove="!isView"
-          @addTab="addNodePool"
-          @removeTab="removeNodePool($event)"
+          @addTab="addMachinePool"
+          @removeTab="removeMachinePool($event)"
         >
-          <Tab v-for="obj in nodePools" :key="obj.id" :name="obj.id" :label="obj.pool.name || '(Not Named)'" :show-header="false">
-            <NodePool
+          <Tab v-for="obj in machinePools" :key="obj.id" :name="obj.id" :label="obj.pool.name || '(Not Named)'" :show-header="false">
+            <MachinePool
               :value="obj"
               :mode="mode"
               :provider="provider"

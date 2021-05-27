@@ -47,6 +47,10 @@ export default {
   computed: {
     ...mapState('action-menu', ['showPromptUpdate', 'toUpdate']),
     ...mapGetters({ t: 'i18n/t' }),
+
+    filteredRows() {
+      return this.rows.filter(x => x.name !== 'fleet');
+    },
   },
 
   watch: {
@@ -141,8 +145,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <Banner color="warning" :label="t('featureFlags.warning')" />
-    <ResourceTable :schema="schema" :rows="rows" />
+    <ResourceTable :schema="schema" :rows="filteredRows" />
     <modal
       class="update-modal"
       name="toggleFlag"
