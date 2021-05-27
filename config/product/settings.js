@@ -6,6 +6,7 @@ import {
   FEATURE_DESCRIPTION,
   RESTART,
 } from '@/config/table-headers';
+
 export const NAME = 'settings';
 
 export function init(store) {

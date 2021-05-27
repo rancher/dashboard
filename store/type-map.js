@@ -32,6 +32,7 @@
 //   showClusterSwitcher,     -- Show the cluster switcher in the header (default true)
 //   showNamespaceFilter,     -- Show the namespace filter in the header (default false)
 //   showWorkspaceSwitcher,   -- Show the workspace switcher in the header (conflicts with namespace) (default false)
+//   ifHave,                  -- Show this product only if the given capability is available
 //   ifHaveGroup,             -- Show this product only if the given group exists in the store [inStore]
 //   ifHaveType,              -- Show this product only if the given type exists in the store [inStore]
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
@@ -102,9 +103,8 @@
 //   mapWeight,
 //   continueOnMatch
 // )
-
 import { AGE, NAME, NAMESPACE, STATE } from '@/config/table-headers';
-import { COUNT, SCHEMA } from '@/config/types';
+import { COUNT, SCHEMA, MANAGEMENT } from '@/config/types';
 import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import {
   addObject, findBy, insertAt, isArray, removeObject
@@ -119,6 +119,7 @@ import { NAME as EXPLORER } from '@/config/product/explorer';
 import isObject from 'lodash/isObject';
 import { normalizeType } from '@/plugins/steve/normalize';
 import { sortBy } from '@/utils/sort';
+import { haveV1Monitoring, haveV2Monitoring } from '@/utils/monitoring';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -135,6 +136,13 @@ export const SPOOFED_PREFIX = '__[[spoofed]]__';
 export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 
 const instanceMethods = {};
+
+export const IF_HAVE = {
+  V1_MONITORING: 'v1-monitoring',
+  V2_MONITORING: 'v2-monitoring',
+  PROJECT:       'project',
+  NO_PROJECT:    'no-project',
+};
 
 export function DSL(store, product, module = 'type-map') {
   // store.commit(`${ module }/product`, { name: product });
@@ -416,7 +424,7 @@ export const getters = {
 
   typeWeightFor(state) {
     return (type, forBasic) => {
-      type = type.toLowerCase();
+      type = type?.toLowerCase();
 
       if ( forBasic ) {
         return state.basicTypeWeights[type] || 0;
@@ -738,6 +746,10 @@ export const getters = {
           const weight = type.weight || getters.typeWeightFor(item.label, isBasic);
 
           if ( item['public'] === false && !isDev ) {
+            continue;
+          }
+
+          if (item.ifHave && !ifHave(rootGetters, item.ifHave)) {
             continue;
           }
 
@@ -1076,6 +1088,10 @@ export const getters = {
       }
 
       if ( p.ifFeature && !rootGetters['features/get'](p.ifFeature) ) {
+        return false;
+      }
+
+      if ( p.ifHave && !ifHave(rootGetters, p.ifHave)) {
         return false;
       }
 
@@ -1442,4 +1458,85 @@ function stringToRegex(str) {
   }
 
   return out;
+}
+
+function ifHave(getters, option) {
+  switch (option) {
+  case IF_HAVE.V2_MONITORING: {
+    return haveV2Monitoring(getters);
+  }
+  case IF_HAVE.V1_MONITORING: {
+    return haveV1Monitoring(getters);
+  }
+  case IF_HAVE.PROJECT: {
+    return !!project(getters);
+  }
+  case IF_HAVE.NO_PROJECT: {
+    return !project(getters);
+  }
+  default:
+    return false;
+  }
+}
+
+// Look at the namespace filters to determine if a project is selected
+export function project(getters) {
+  const clusterId = getters['currentCluster']?.id;
+
+  if ( !clusterId ) {
+    return null;
+  }
+
+  const filters = getters['namespaceFilters'];
+  const namespaces = [];
+  let projectName = null;
+
+  for (const filter of filters) {
+    const [type, id] = filter.split('://', 2);
+
+    if (type === 'project') {
+      if (projectName !== null) {
+        // More than one project selected
+        return null;
+      }
+      projectName = id;
+    } else if (type === 'ns') {
+      namespaces.push(id);
+    } else {
+      // Something other than project or namespace
+      return null;
+    }
+  }
+
+  // No project found?
+  if (!projectName) {
+    return null;
+  }
+
+  // We have one project and a set of namespaces
+  // Check that all of the namespaces belong to the project
+  const project = getters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ projectName }`);
+
+  // No additional namespaces means just the project is selected
+  if (namespaces.length === 0) {
+    return project;
+  }
+
+  // Convert the project namespaces into a map so we can check existtence easily
+  const prjNamespaceMap = project.namespaces.reduce((m, ns) => {
+    m[ns.metadata.name] = true;
+
+    return m;
+  }, {});
+
+  // All of the namespace filters must belong to the project
+  const found = namespaces.reduce((total, ns) => {
+    return prjNamespaceMap[ns] ? total + 1 : 0;
+  }, 0);
+
+  if (found !== namespaces.length) {
+    return null;
+  }
+
+  return project;
 }

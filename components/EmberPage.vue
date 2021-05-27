@@ -2,7 +2,8 @@
 import Loading from '@/components/Loading';
 import { mapGetters } from 'vuex';
 import { NAME as MANAGER } from '@/config/product/manager';
-import { CAPI } from '@/config/types';
+import { CAPI, MANAGEMENT } from '@/config/types';
+import { SETTING } from '@/config/settings';
 
 const EMBER_FRAME = 'ember-iframe';
 const EMBER_FRAME_HIDE_CLASS = 'ember-iframe-hidden';
@@ -35,6 +36,14 @@ const INTERCEPTS = {
       resource: CAPI.RANCHER_CLUSTER,
     }
   },
+  'global-admin.catalog': {
+    name:   'c-cluster-mcapps-pages-page',
+    params: {
+      cluster: 'local',
+      product: 'mcapps',
+      page:    'catalogs'
+    }
+  }
 };
 
 export default {
@@ -49,46 +58,64 @@ export default {
       type:    Boolean,
       default: false
     },
-    fixed: {
-      type:    Boolean,
-      default: false
+    inline: {
+      type:    String,
+      default: ''
     },
   },
 
   data() {
     return {
-      iframeEl:     null,
-      loaded:       true,
-      loadRequired: false,
-      emberCheck:   null,
-      error:        false,
+      iframeEl:         null,
+      loaded:           true,
+      loadRequired:     false,
+      emberCheck:       null,
+      error:            false,
+      heightSync:       null,
+      frameHeight:      -1,
+      showHeaderBanner: false,
+      showFooterBanner: false,
     };
   },
 
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),
     ...mapGetters(['clusterId', 'productId']),
-
-    loaderMode() {
-      return this.fixed ? 'content' : 'full';
-    }
   },
 
   watch: {
     theme(theme) {
       this.notifyTheme(theme);
+    },
+
+    // Update when source property changes
+    src(nue, old) {
+      this.initFrame();
     }
   },
 
   mounted() {
     // Embedded page visited, so cancel time to remove IFRAME when inactive
-    window.clearTimeout(inactiveRemoveTimer);
+    clearTimeout(inactiveRemoveTimer);
     window.addEventListener('message', this.receiveMessage);
     this.initFrame();
   },
 
   beforeDestroy() {
     window.removeEventListener('message', this.receiveMessage);
+
+    if (this.heightSync) {
+      clearTimeout(this.heightSync);
+    }
+
+    if (this.inline) {
+      const iframeEl = document.getElementById(EMBER_FRAME);
+
+      // Remove the IFRAME - we can't reuse it one its been moved inline
+      if (iframeEl) {
+        iframeEl.remove();
+      }
+    }
 
     // Hide the iframe
     if (this.iframeEl) {
@@ -101,7 +128,7 @@ export default {
     }
 
     // Set up a timer to remove the IFrame after a period of inactivity
-    inactiveRemoveTimer = window.setTimeout(() => {
+    inactiveRemoveTimer = setTimeout(() => {
       const iframeEl = document.getElementById(EMBER_FRAME);
 
       if (iframeEl !== null) {
@@ -111,7 +138,35 @@ export default {
   },
 
   methods: {
+    addBannerClasses(elm, prefix) {
+      if (!elm) {
+        return;
+      }
+
+      elm.classList.remove(`${ prefix }-top-banner`);
+      elm.classList.remove(`${ prefix }-one-banner`);
+      elm.classList.remove(`${ prefix }-two-banners`);
+
+      if (this.showHeaderBanner) {
+        elm.classList.add(`${ prefix }-top-banner`);
+        if (this.showFooterBanner) {
+          elm.classList.add(`${ prefix }-two-banners`);
+        }
+      } else if (this.showFooterBanner) {
+        elm.classList.add(`${ prefix }-one-banner`);
+      }
+    },
+
     async initFrame() {
+      const bannerSetting = await this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
+
+      try {
+        const parsed = JSON.parse(bannerSetting.value);
+
+        this.showHeaderBanner = parsed.showHeader === 'true';
+        this.showFooterBanner = parsed.showFooter === 'true';
+      } catch {}
+
       // Get the existing iframe if it exists
       let iframeEl = document.getElementById(EMBER_FRAME);
 
@@ -120,7 +175,7 @@ export default {
       if (iframeEl !== null) {
         const ready = iframeEl.getAttribute('data-ready');
 
-        if (!ready) {
+        if (!ready || this.inline) {
           iframeEl.remove();
           iframeEl = null;
         }
@@ -159,11 +214,22 @@ export default {
       if (iframeEl === null) {
         iframeEl = document.createElement('iframe');
         iframeEl.setAttribute('id', EMBER_FRAME);
-        iframeEl.setAttribute('class', 'ember-iframe');
         iframeEl.classList.add(EMBER_FRAME_HIDE_CLASS);
-        document.body.appendChild(iframeEl);
+
+        if (this.inline) {
+          const frameParent = document.getElementById(this.inline);
+
+          frameParent.appendChild(iframeEl);
+        } else {
+          document.body.append(iframeEl);
+        }
         iframeEl.setAttribute('src', this.src);
       } else {
+        // Reset scroll position to top
+        if (iframeEl.contentWindow?.scrollTo) {
+          iframeEl.contentWindow.scrollTo(0, 0);
+        }
+
         // Post a message to navigate within the existing app
         iframeEl.contentWindow.postMessage({
           action: 'navigate',
@@ -173,7 +239,7 @@ export default {
         // Ensure iframe gets the latest theme if it has changed
         this.notifyTheme(this.theme);
 
-        const currentlUrl = iframeEl.getAttribute('data-location');
+        const currentlUrl = iframeEl.contentWindow.location.pathname;
         const src = this.trimURL(this.src);
 
         if (src !== currentlUrl) {
@@ -184,6 +250,43 @@ export default {
       }
 
       this.iframeEl = iframeEl;
+
+      if (!this.inline) {
+        iframeEl.classList.add('ember-iframe');
+        iframeEl.classList.remove('ember-iframe-inline');
+        this.addBannerClasses(this.$refs.emberPage, 'fixed');
+        this.addBannerClasses(iframeEl, 'ember-iframe');
+      } else {
+        iframeEl.classList.remove('ember-iframe');
+        iframeEl.classList.add('ember-iframe-inline');
+        iframeEl.height = 0;
+        this.syncHeight();
+      }
+    },
+
+    syncHeight() {
+      if (this.heightSync) {
+        clearTimeout(this.heightSync);
+      }
+
+      this.heightSync = setTimeout(() => {
+        this.doSyncHeight();
+        this.syncHeight();
+      }, 500);
+    },
+
+    doSyncHeight() {
+      if (this.inline) {
+        const iframeEl = document.getElementById(EMBER_FRAME);
+        const doc = iframeEl.contentWindow.document;
+        const app = doc.getElementById('application');
+        const h = app?.offsetHeight;
+
+        if (h && this.frameHeight !== h) {
+          this.frameHeight = h;
+          iframeEl.height = h;
+        }
+      }
     },
 
     notifyTheme(theme) {
@@ -222,12 +325,15 @@ export default {
         if (INTERCEPTS[msg.target]) {
           const dest = INTERCEPTS[msg.target];
 
+          if (this.isCurrentRoute(dest)) {
+            this.loaded = true;
+
+            return;
+          }
+
           this.loaded = false;
           this.$router.replace(this.fillRoute(dest));
         }
-      } else if (msg.action === 'after-navigation') {
-        // Ember afterNavigation event
-        this.iframeEl.setAttribute('data-location', msg.url);
       } else if (msg.action === 'loading') {
         this.loaded = !msg.state;
         this.updateFrameVisibility();
@@ -235,14 +341,24 @@ export default {
         // Echo back a ping
         this.iframeEl.contentWindow.postMessage({ action: 'echo-back' });
         this.iframeEl.setAttribute('data-ready', true);
+
+        const doc = this.iframeEl.contentWindow?.document?.body;
+
+        if (this.inline) {
+          doc.classList.add('embedded-no-overflow');
+        } else {
+          doc.classList.remove('embedded-no-overflow');
+        }
       } else if (msg.action === 'need-to-load') {
         this.loadRequired = true;
       } else if (msg.action === 'did-transition') {
-        this.iframeEl.setAttribute('data-location', this.trimURL(msg.url));
         if (!this.loadRequired) {
           this.loading = false;
           this.updateFrameVisibility();
+          this.doSyncHeight();
         }
+      } else if (msg.action === 'dashboard') {
+        this.$router.replace(msg.page);
       }
     },
 
@@ -250,6 +366,16 @@ export default {
       if (this.loaded) {
         if (this.iframeEl) {
           this.iframeEl.classList.remove(EMBER_FRAME_HIDE_CLASS);
+
+          // Notify the embedded UI of the primary and primary text colors
+          const primary = window.getComputedStyle(document.body).getPropertyValue('--primary');
+          const primaryText = window.getComputedStyle(document.body).getPropertyValue('--primary-text');
+
+          this.iframeEl.contentWindow.postMessage({
+            action: 'colors',
+            primary,
+            primaryText,
+          });
         }
       }
     },
@@ -268,14 +394,33 @@ export default {
       }
 
       return route;
+    },
+
+    isCurrentRoute(route) {
+      const current = this.$route;
+
+      if (current.name === route.name) {
+        let same = true;
+
+        Object.keys(current.params).forEach((p) => {
+          if (route.params[p] !== current.params[p]) {
+            same = false;
+          }
+        });
+
+        return same;
+      }
+
+      return false;
     }
   }
 };
 </script>
 
 <template>
-  <div class="ember-page" :class="{'fixed': fixed}">
-    <Loading :loading="!loaded" :mode="loaderMode" :no-delay="true" />
+  <div ref="emberPage" class="ember-page">
+    <Loading v-if="!inline" :loading="!loaded" mode="content" :no-delay="true" />
+    <div v-if="inline && !loaded" class="inline-loading" v-html="t('generic.loading', {}, true)" />
     <div v-if="error" class="ember-page-error">
       <div>{{ t('embedding.unavailable') }}</div>
       <button class="btn role-primary" @click="initFrame()">
@@ -286,18 +431,26 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .fixed {
-    height: calc(100vh - var(--header-height));
-    left: var(--nav-width);
-    position: static;
-    top: var(--header-height);
-    width: calc(100vw - var(--nav-width));
+  $banner-height: 2em;
+
+  .fixed-top-banner {
+    top: calc(#{$banner-height} + var(--header-height));
   }
+
+  .fixed-one-banner {
+    height: calc(100vh - var(--header-height) - #{$banner-height});
+  }
+
+  .fixed-two-banners {
+    height: calc(100vh - var(--header-height) - #{$banner-height} - #{$banner-height});
+  }
+
   .ember-page {
     display: flex;
     height: 100%;
     padding: 0;
   }
+
   .frame {
     flex: 1;
     visibility: hidden;
@@ -320,8 +473,17 @@ export default {
       padding-bottom: 20px;
     }
   }
+  .inline-loading {
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 10px;
+    text-align: center;
+    width: 100%;
+  }
 </style>
 <style lang="scss">
+  $banner-height: 2em;
+
   .ember-iframe {
     border: 0;
     left: var(--nav-width);
@@ -330,6 +492,24 @@ export default {
     top: var(--header-height);
     width: calc(100vw - var(--nav-width));
     visibility: show;
+  }
+
+  .ember-iframe-top-banner {
+    top: calc(#{$banner-height} + var(--header-height));
+  }
+
+  .ember-iframe-one-banner {
+    height: calc(100vh - var(--header-height) - #{$banner-height});
+  }
+
+  .ember-iframe-two-banners {
+    height: calc(100vh - var(--header-height) - #{$banner-height} - #{$banner-height});
+  }
+
+  .ember-iframe-inline {
+    border: 0;
+    width: 100%;
+    overflow: hidden;
   }
 
   .ember-iframe-hidden {

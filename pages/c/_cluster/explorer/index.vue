@@ -31,11 +31,13 @@ import {
 } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { mapPref, CLUSTER_TOOLS_TIP } from '@/store/prefs';
+import { haveV1Monitoring, monitoringStatus } from '@/utils/monitoring';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import { allDashboardsExist } from '@/utils/grafana';
 import EtcdInfoBanner from '@/components/EtcdInfoBanner';
 import metricPoller from '@/mixins/metric-poller';
+import EmberPage from '@/components/EmberPage';
 import ResourceSummary, { resourceCounts } from './ResourceSummary';
 import HardwareResourceGauge from './HardwareResourceGauge';
 
@@ -60,6 +62,7 @@ export default {
     Tabbed,
     AlertTable,
     Banner,
+    EmberPage,
   },
 
   mixins: [metricPoller],
@@ -151,11 +154,21 @@ export default {
 
   computed: {
     ...mapGetters(['currentCluster']),
+    ...monitoringStatus(),
 
     hideClusterToolsTip: mapPref(CLUSTER_TOOLS_TIP),
 
+    hasV1Monitoring() {
+      return haveV1Monitoring(this.$store.getters);
+    },
+
+    v1MonitoringURL() {
+      return `/k/${ this.currentCluster.id }/monitoring`;
+    },
+
     displayProvider() {
       const other = 'other';
+
       let provider = this.currentCluster.status.provider || other;
 
       if (provider === 'rke.windows') {
@@ -362,10 +375,14 @@ export default {
         <span><LiveDate :value="currentCluster.metadata.creationTimestamp" :add-suffix="true" :show-tooltip="true" /></span>
       </div>
       <div :style="{'flex':1}" />
-      <div v-if="hasMonitoring && false">
-        <n-link :to="{name: 'c-cluster-monitoring'}">
-          {{ t('glance.monitoringDashboard') }}
+      <div v-if="!monitoringStatus.v2 && !monitoringStatus.v1">
+        <n-link :to="{name: 'c-cluster-explorer-tools'}" class="monitoring-install">
+          <i class="icon icon-gear" />
+          <span>{{ t('glance.installMonitoring') }}</span>
         </n-link>
+      </div>
+      <div v-if="monitoringStatus.v1">
+        <span>{{ t('glance.v1MonitoringInstalled') }}</span>
       </div>
     </div>
 
@@ -375,13 +392,17 @@ export default {
       <ResourceSummary v-if="canAccessDeployments" resource="apps.deployment" />
     </div>
 
-    <h3 class="mt-40">
+    <h3 v-if="!hasV1Monitoring" class="mt-40">
       {{ t('clusterIndexPage.sections.capacity.label') }}
     </h3>
-    <div class="hardware-resource-gauges">
+    <div v-if="!hasV1Monitoring" class="hardware-resource-gauges">
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.pods')" :used="podsUsed" />
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.cores')" :reserved="cpuReserved" :used="cpuUsed" />
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.ram')" :reserved="ramReserved" :used="ramUsed" :units="ramReserved.units" />
+    </div>
+
+    <div v-if="hasV1Monitoring" id="ember-anchor" class="mt-20">
+      <EmberPage inline="ember-anchor" :src="v1MonitoringURL" />
     </div>
 
     <div class="mb-40 mt-40">
@@ -454,7 +475,7 @@ export default {
   padding: 20px 0px;
   display: flex;
 
-  &>*{
+  &>*:not(:last-child) {
     margin-right: 40px;
 
     & SPAN {
@@ -488,5 +509,18 @@ export default {
 
 .cluster-tools-tip {
   margin-top: 0;
+}
+
+.monitoring-install {
+  display: flex;
+
+  > I {
+    line-height: inherit;
+    margin-right: 4px;
+  }
+
+  &:focus {
+    outline: 0;
+  }
 }
 </style>

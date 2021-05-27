@@ -6,6 +6,8 @@ import { filterAndArrangeCharts } from '@/store/catalog';
 import { CATALOG } from '@/config/types';
 import LazyImage from '@/components/LazyImage';
 import AppSummaryGraph from '@/components/formatter/AppSummaryGraph';
+import { sortBy } from '@/utils/sort';
+import { LEGACY } from '@/store/features';
 
 export default {
   components: {
@@ -21,24 +23,43 @@ export default {
     this.showHidden = query[HIDDEN] === _FLAGGED;
 
     this.allInstalled = await this.$store.dispatch('cluster/findAll', { type: CATALOG.APP });
+
+    // If legacy feature flag enabled
+    if (this.legacyEnabled) {
+      this.v1SystemCatalog = await this.$store.dispatch('cluster/find', {
+        type: 'management.cattle.io.catalog',
+        id:   'system-library',
+      });
+    }
   },
 
   data() {
-    return { allInstalled: null };
+    const legacyEnabled = this.$store.getters['features/get'](LEGACY);
+
+    return {
+      allInstalled:    null,
+      v1SystemCatalog: null,
+      legacyEnabled
+    };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
+    ...mapGetters({ t: 'i18n/t' }),
 
     rancherCatalog() {
       return this.$store.getters['catalog/repos'].find(x => x.isRancher);
     },
 
+    installedApps() {
+      return this.allInstalled;
+    },
+
     installedAppForChart() {
       const out = {};
 
-      for ( const app of this.allInstalled ) {
+      for ( const app of this.installedApps ) {
         const matching = app.matchingChart();
 
         if ( !matching ) {
@@ -55,20 +76,42 @@ export default {
       const clusterProvider = this.currentCluster.status.provider || 'other';
       const enabledCharts = (this.allCharts || []);
 
-      const charts = filterAndArrangeCharts(enabledCharts, {
+      let charts = filterAndArrangeCharts(enabledCharts, {
         clusterProvider,
         showDeprecated: this.showDeprecated,
         showHidden:     this.showHidden,
         showRepos:      [this.rancherCatalog._key],
       });
 
-      return charts.map((chart) => {
+      //  If legacy support is enabled, show V1 charts for some V1 Cluster tools
+      if (this.legacyEnabled) {
+        charts = charts.concat(this.legacyCharts);
+        charts = sortBy(charts, ['certifiedSort', 'chartDisplayName']);
+      }
+
+      const chartsWithApps = charts.map((chart) => {
         return {
           chart,
           app: this.installedAppForChart[chart.id],
         };
       });
+
+      // V1 Legacy support
+      if (this.legacyEnabled) {
+        this.moveAppWhenLegacy(chartsWithApps, 'v1-monitoring', 'rancher-monitoring');
+        this.moveAppWhenLegacy(chartsWithApps, 'v1-logging', 'rancher-logging');
+      }
+
+      return chartsWithApps;
     },
+
+    legacyCharts() {
+      // Fake charts for the legacy V1 tools
+      return [
+        this._legacyChart('monitoring'),
+        this._legacyChart('logging'),
+      ];
+    }
   },
 
   mounted() {
@@ -76,6 +119,22 @@ export default {
   },
 
   methods: {
+    _legacyChart(id) {
+      return {
+        certifiedSort:    1,
+        chartDisplayName: this.t(`v1ClusterTools.${ id }.label`),
+        chartDescription: this.t(`v1ClusterTools.${ id }.description`),
+        id:               `v1-${ id }`,
+        chartName:        `v1-${ id }`,
+        key:              `v1-${ id }`,
+        versions:         this.getLegacyVersions(`rancher-${ id }`),
+        repoKey:          this.rancherCatalog._key,
+        legacy:           true,
+        legacyPage:       id,
+        iconName:         `icon-${ id }`,
+      };
+    },
+
     edit(app, version) {
       app.goToUpgrade(version, true);
     },
@@ -87,7 +146,53 @@ export default {
     install(chart) {
       chart.goToInstall(true);
     },
-  },
+
+    openV1Tool(id) {
+      const cluster = this.$store.getters['currentCluster'];
+      const route = {
+        name:   'c-cluster-explorer-tools-pages-page',
+        params: {
+          cluster: cluster.id,
+          prodct:  'explorer',
+          page:    id,
+        }
+      };
+
+      this.$router.replace(route);
+    },
+
+    getLegacyVersions(id) {
+      const versions = [];
+      const c = this.v1SystemCatalog?.status?.helmVersionCommits[id]?.Value;
+
+      if (c) {
+        Object.keys(c).forEach(v => versions.unshift({ version: v }));
+      }
+
+      return versions;
+    },
+
+    moveAppWhenLegacy(chartsWithApps, v1ChartName, v2ChartName) {
+      const v1 = chartsWithApps.find(a => a.chart.chartName === v1ChartName);
+      const v2 = chartsWithApps.find(a => a.chart.chartName === v2ChartName);
+
+      // Check app on v2
+      if (v1 && v2 && v2.app) {
+        const appVersion = v2.app.spec?.chart?.metadata?.version;
+
+        if (appVersion) {
+          const isV1Version = v1.chart.versions.find(v => v.version === appVersion);
+
+          if (isV1Version) {
+            // Move the app data to the v1 chart
+            v1.app = v2.app;
+            v2.app = undefined;
+            v2.blockedV1 = true;
+          }
+        }
+      }
+    }
+  }
 };
 </script>
 
@@ -147,12 +252,24 @@ export default {
         overflow: hidden;
         background-color: white;
 
+        &.legacy {
+          background-color: transparent;
+        }
+
         img {
           width: $logo - 4px;
           height: $logo - 4px;
           object-fit: contain;
           position: relative;
           top: 2px;
+        }
+
+        > i {
+          background-color: var(--box-bg);
+          border-radius: 50%;
+          font-size: 32px;
+          line-height: 50px;
+          width: 50px;
         }
       }
 
@@ -214,35 +331,40 @@ export default {
         :key="opt.chart.id"
         class="item"
       >
-        <div class="logo">
-          <LazyImage :src="opt.chart.icon" />
+        <div class="logo" :class="{'legacy': opt.chart.legacy}">
+          <i v-if="opt.chart.iconName" class="icon" :class="opt.chart.iconName" />
+          <LazyImage v-else :src="opt.chart.icon" />
         </div>
         <div class="name-version">
           <h3 class="name">
             {{ opt.chart.chartDisplayName }}
           </h3>
           <div class="version">
-            <template v-if="opt.app && opt.app.upgradeAvailable">
+            <template v-if="opt.app && opt.app.upgradeAvailable && !opt.chart.legacy">
               v{{ opt.app.currentVersion }} <b><i class="icon icon-chevron-right" /> v{{ opt.app.upgradeAvailable }}</b>
             </template>
             <template v-else-if="opt.app">
               v{{ opt.app.currentVersion }}
             </template>
-            <template v-else>
+            <template v-else-if="opt.chart.versions.length">
               v{{ opt.chart.versions[0].version }}
             </template>
           </div>
         </div>
         <div class="description">
-          <div class="description-content">
-            {{ opt.chart.chartDescription }}
-          </div>
+          <div class="description-content" v-html="opt.chart.chartDescription" />
         </div>
         <div v-if="opt.app" class="state">
           <AppSummaryGraph :row="opt.app" label-key="generic.resourceCount" :link-to="opt.app.detailLocation" />
         </div>
         <div class="action">
-          <template v-if="opt.app && opt.app.upgradeAvailable">
+          <template v-if="opt.blockedV1">
+            <button disabled="true" class="btn btn-sm role-primary" v-html="t('catalog.tools.action.install')" />
+          </template>
+          <template v-else-if="opt.app && opt.chart.legacy">
+            <button class="btn btn-sm role-secondary" @click="openV1Tool(opt.chart.legacyPage)" v-html="t('catalog.tools.action.manage')" />
+          </template>
+          <template v-else-if="opt.app && opt.upgradeAvailable && !opt.chart.legacy">
             <button class="btn btn-sm role-secondary" @click="remove(opt.app)">
               <i class="icon icon-delete icon-lg" />
             </button>
@@ -253,6 +375,9 @@ export default {
               <i class="icon icon-delete icon-lg" />
             </button>
             <button class="btn btn-sm role-secondary" @click="edit(opt.app)" v-html="t('catalog.tools.action.edit')" />
+          </template>
+          <template v-else-if="opt.chart.legacy">
+            <button class="btn btn-sm role-primary" @click="openV1Tool(opt.chart.legacyPage)" v-html="t('catalog.tools.action.install')" />
           </template>
           <template v-else>
             <button class="btn btn-sm role-primary" @click="install(opt.chart)" v-html="t('catalog.tools.action.install')" />

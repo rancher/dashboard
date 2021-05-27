@@ -38,7 +38,9 @@ export default {
       updateMode: 'activate',
       error:      null,
       enabling:   false,
-      restart:    false
+      restart:    false,
+      waiting:    false,
+      timer:      null,
     };
   },
 
@@ -72,10 +74,19 @@ export default {
   methods: {
     close() {
       this.$store.commit('action-menu/togglePromptUpdate');
+
+      if (this.timer) {
+        clearTimeout(this.timer);
+        this.timer = null;
+      }
     },
 
     toggleFlag(btnCB) {
-      this.doToggle(btnCB);
+      if (this.restart) {
+        this.doToggleWithRestart(btnCB);
+      } else {
+        this.doToggle(btnCB);
+      }
     },
 
     async doToggle(btnCB) {
@@ -89,6 +100,39 @@ export default {
         this.error = err;
         btnCB(false);
       }
+    },
+
+    doToggleWithRestart(btnCB) {
+      this.error = null;
+      try {
+        this.update.spec.value = !this.update.enabled;
+        // await can go back in when backend returns from the save before restarting
+        this.update.save();
+        this.waitForBackend(btnCB);
+        this.waiting = true;
+      } catch (err) {
+        this.error = err;
+        btnCB(false);
+      }
+    },
+
+    waitForBackend(btnCB) {
+      const url = `/v3/features/${ this.update.id }`;
+
+      this.timer = setTimeout(async() => {
+        try {
+          const response = await this.$axios.get(url, { timeout: 5000 });
+
+          if (response?.status === 200) {
+            this.rows = await this.$store.dispatch('management/findAll', { type: this.resource, opt: { force: true } });
+            btnCB(true);
+            this.close();
+            this.waiting = false;
+          }
+        } catch (e) {}
+
+        this.waitForBackend(btnCB);
+      }, 2500);
     }
   }
 };
@@ -105,9 +149,10 @@ export default {
       :width="350"
       height="auto"
       styles="max-height: 100vh;"
+      :click-to-close="!restart || !waiting"
       @closed="close"
     >
-      <Card class="prompt-update" :show-highlight-border="false">
+      <Card v-if="!waiting" class="prompt-update" :show-highlight-border="false">
         <h4 slot="title" class="text-default-text">
           Are you sure?
         </h4>
@@ -132,6 +177,22 @@ export default {
           <AsyncButton :mode="updateMode" class="btn bg-error ml-10" @click="toggleFlag" />
         </template>
       </Card>
+      <Card v-else class="prompt-update" :show-highlight-border="false">
+        <h4 slot="title" class="text-default-text">
+          {{ t('featureFlags.restart.title') }}
+        </h4>
+        <div slot="body" class="waiting">
+          <p>{{ t('featureFlags.restart.wait') }}</p>
+          <span class="restarting-icon">
+            <i class=" icon icon-spinner icon-spin" />
+          </span>
+        </div>
+        <template #actions>
+          <button class="btn role-secondary" @click="close">
+            {{ t('generic.cancel') }}
+          </button>
+        </template>
+      </Card>
     </modal>
   </div>
 </template>
@@ -145,6 +206,26 @@ export default {
     ::v-deep .card-actions {
       display: flex;
       justify-content: center;
+    }
+  }
+
+  .waiting {
+    text-align: center;
+    font-size: 14px;
+    margin: 10px 0;
+
+    p {
+      line-height: 20px;;
+    }
+  }
+
+  .restarting-icon {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+
+    > I {
+    font-size: 24px;
     }
   }
 </style>

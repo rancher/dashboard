@@ -11,6 +11,7 @@ import {
   VALUE
 } from '@/config/table-headers';
 import ResourceTabs from '@/components/form/ResourceTabs';
+import EmberPage from '@/components/EmberPage';
 import { METRIC, POD } from '@/config/types';
 import createEditView from '@/mixins/create-edit-view';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
@@ -19,6 +20,7 @@ import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@/utils/grafana';
 import Loading from '@/components/Loading';
 import metricPoller from '@/mixins/metric-poller';
+import { haveV1Monitoring } from '@/utils/monitoring';
 
 const NODE_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-node-detail-1/rancher-node-detail?orgId=1';
 const NODE_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-node-1/rancher-node?orgId=1';
@@ -34,6 +36,7 @@ export default {
     ResourceTabs,
     Tab,
     SortableTable,
+    EmberPage,
   },
 
   mixins: [createEditView, metricPoller],
@@ -48,6 +51,15 @@ export default {
   async fetch() {
     this.showMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [NODE_METRICS_DETAIL_URL, NODE_METRICS_SUMMARY_URL]);
 
+    if (haveV1Monitoring(this.$store.getters)) {
+      const v3Nodes = await this.$store.dispatch('rancher/request', {
+        url:    '/v3/nodes',
+        method: 'get'
+      });
+
+      this.v3Nodes = v3Nodes;
+    }
+
     return this.$store.dispatch('cluster/findAll', { type: POD });
   },
 
@@ -55,6 +67,7 @@ export default {
     const podSchema = this.$store.getters['cluster/schemaFor'](POD);
 
     return {
+      v3Nodes:          null,
       metrics:          { cpu: 0, memory: 0 },
       infoTableHeaders: [
         {
@@ -86,6 +99,22 @@ export default {
 
   computed: {
     ...mapGetters(['currentCluster']),
+    v1MonitoringUrl() {
+      if (this.v3Nodes && this.v3Nodes.data) {
+        const node = this.v3Nodes.data.find((n) => {
+          return n.nodeName === this.value.metadata?.name;
+        });
+
+        if (node) {
+          // Custom page just with node metrics graphs
+          const id = this.currentCluster.id;
+
+          return `/k/${ id }/monitoring/${ node.id }/metrics`;
+        }
+      }
+
+      return null;
+    },
     memoryUnits() {
       const exponent = exponentNeeded(this.value.ramCapacity, 1024);
 
@@ -233,6 +262,11 @@ export default {
           :table-actions="false"
           :search="false"
         />
+      </Tab>
+      <Tab v-if="v1MonitoringUrl" name="v1Metrics" :label="t('node.detail.tab.metrics')" :weight="0">
+        <div id="ember-anchor">
+          <EmberPage inline="ember-anchor" :src="v1MonitoringUrl" />
+        </div>
       </Tab>
     </ResourceTabs>
   </div>

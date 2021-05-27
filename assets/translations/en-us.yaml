@@ -101,6 +101,7 @@ nav:
   categories:
     explore: Explore Cluster
     multiCluster: Global Apps
+    legacy: Legacy Apps
     configuration: Configuration
   search:
     placeholder: Type to search clusters
@@ -134,6 +135,7 @@ product:
   settings: Global Settings
   clusterManagement: Cluster Management
   monitoring: Monitoring
+  mcapps: Mutli-cluster Apps
 
 suffix:
   percent: "%"
@@ -742,6 +744,7 @@ catalog:
       upgrade: Upgrade/Edit
       edit: Edit
       remove: Remove
+      manage: Manage
 
 changePassword:
   title: Change Password
@@ -1225,6 +1228,8 @@ glance:
   provider: Provider
   version: Kubernetes Version
   monitoringDashboard: Monitoring Dashboard
+  installMonitoring: Install Monitoring
+  v1MonitoringInstalled: V1 Monitoring Installed
 
 grafanaDashboard:
   failedToLoad: Failed to load graph
@@ -3687,6 +3692,9 @@ workload:
       label: Successful Job History Limit
       tip: The number of successful finished jobs to retain.
     suspend: Suspend
+  metrics:
+    pod: Pod Metrics
+    metricsView: Metrics View
   networking:
     dnsPolicy:
       label: DNS Policy
@@ -4288,6 +4296,9 @@ featureFlags:
   promptActivate: Please confirm that you want to activate the feature flag "{flag}"
   promptDeactivate: Please confirm that you want to deactivate the feature flag "{flag}"
   restartRequired: "Note: Updating this feature flag requires a restart"
+  restart:
+    title: Waiting for Restart
+    wait: This may take a few moments
 
 branding:
   label: Branding
@@ -4391,3 +4402,26 @@ support:
 embedding:
   retry: Retry
   unavailable: Cluster Manager UI is not available
+
+v1ClusterTools:
+  monitoring:
+    label: Monitoring (Legacy)
+    description: 'Legacy V1 monitoring. V1 Monitoring is deprecated since Rancher 2.5.0. <a target="blank" href="https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/migrating/#migrating-from-monitoring-v1-to-monitoring-v2">Learn more</a> about migrating to V2 Monitoring.'
+  logging:
+    label: Logging (Legacy)
+    description: 'Legacy V1 logging. V1 Logging is deprecated since Rancher 2.5.0. <a target="blank" href="https://rancher.com/docs/rancher/v2.x/en/logging/v2.5/migrating/">Learn more</a> about migrating to V2 Logging.'
+
+legacy:
+  alerts: Alerts
+  apps: Apps
+  catalogs: Catalogs
+  globalDnsEntries: Global DNS Entries
+  globalDnsProviders: Global DNS Providers
+  logging: Logging
+  notifiers: Notifiers
+  monitoring: Monitoring
+  psps: Pod Security Policies
+  project:
+    label: Project
+    select: "Use the Project/Namespace filter at the top of the page to select a Project in order to see legacy Project features."
+  
