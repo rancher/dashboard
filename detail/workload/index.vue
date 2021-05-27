@@ -27,6 +27,13 @@ export const WORKLOAD_TYPE_TO_KIND_MAPPING = {
   [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 'ReplicationController',
 };
 
+const METRICS_SUPPORTED_KINDS = [
+  WORKLOAD_TYPES.DAEMON_SET,
+  WORKLOAD_TYPES.JOB,
+  WORKLOAD_TYPES.REPLICA_SET,
+  WORKLOAD_TYPES.STATEFUL_SET
+];
+
 export default {
   components: {
     DashboardMetrics,
@@ -51,7 +58,9 @@ export default {
       this[k] = res[k];
     }
 
-    this.showMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [WORKLOAD_METRICS_DETAIL_URL, WORKLOAD_METRICS_SUMMARY_URL]);
+    const isMetricsSupportedKind = METRICS_SUPPORTED_KINDS.includes(this.value.type);
+
+    this.showMetrics = isMetricsSupportedKind && await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [WORKLOAD_METRICS_DETAIL_URL, WORKLOAD_METRICS_SUMMARY_URL]);
   },
 
   data() {
@@ -228,7 +237,7 @@ export default {
       return {
         namespace: this.value.namespace,
         kind:      WORKLOAD_TYPE_TO_KIND_MAPPING[this.value.type],
-        workload:  this.value.id
+        workload:  this.value.shortId
       };
     }
   },
