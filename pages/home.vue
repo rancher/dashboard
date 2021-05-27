@@ -209,7 +209,7 @@ export default {
 <template>
   <div class="home-page">
     <BannerGraphic :small="true" :title="t('landing.welcomeToRancher', {vendor})" :pref="HIDE_HOME_PAGE_CARDS" pref-key="welcomeBanner" />
-    <IndentedPanel class="mt-20">
+    <IndentedPanel class="mt-20 mb-20">
       <div v-if="!readWhatsNewAlready" class="row">
         <div class="col span-12">
           <Banner color="info whats-new">
