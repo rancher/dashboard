@@ -9,7 +9,7 @@ import { MANAGEMENT } from '@/config/types';
 import { getVendor } from '@/config/private-label';
 import { SETTING } from '@/config/settings';
 
-const KEY_REGX = /^[0-9a-fA-F]{8}$/;
+const KEY_REGX = /^[0-9a-fA-F]{16}$/;
 
 export default {
   layout: 'home',
