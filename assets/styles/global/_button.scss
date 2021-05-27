@@ -110,7 +110,6 @@ fieldset[disabled] .btn {
   cursor: not-allowed;
   color: var(--disabled-text) !important;
   &:not(.role-link){
-    border: solid thin var(--input-disabled-border);
     background-color: var(--disabled-bg) !important;
   }
 }
