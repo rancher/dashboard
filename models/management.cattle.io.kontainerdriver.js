@@ -4,21 +4,24 @@ const IMPORTABLE = ['amazoneks', 'googlegke'];
 
 // The Ember create page has short names that don't match the full kontainer driver
 export const KONTAINER_TO_DRIVER = {
-  amazonelasticcontainerservice: 'amazoneks',
-  azurekubernetesservice:        'azureaks',
-  aks:                           'azureaksv2', // Guessing it will be called this...
-  eks:                           'amazoneksv2',
-  gke:                           'googlegkev2',
-  googlekubernetesengine:        'googlegke',
-  huaweicontainercloudengine:    'huaweicce', // Does this actually exist?
-  huaweiengine:                  'huaweicce',
-  linodekubernetesengine:        'linodelke', // Does this actually exist?
-  lkeengine:                     'linodelke',
-  okeengine:                     'oracleoke',
-  oraclecontainerengine:         'oracleoke', // Does this actually exist?
-  rke2:                          'rke2',
-  tencentengine:                 'tencenttke',
-  tencentkubernetesengine:       'tencenttke', // Does this actually exist?
+  amazonelasticcontainerservice:    'amazoneks',
+  azurekubernetesservice:           'azureaks',
+  aks:                              'azureaksv2', // Guessing it will be called this...
+  eks:                              'amazoneksv2',
+  gke:                              'googlegkev2',
+  googlekubernetesengine:           'googlegke',
+  huaweicontainercloudengine:       'huaweicce', // Does this actually exist?
+  huaweiengine:                     'huaweicce',
+  linodekubernetesengine:           'linodelke', // Does this actually exist?
+  lkeengine:                        'linodelke',
+  okeengine:                        'oracleoke',
+  oraclecontainerengine:            'oracleoke', // Does this actually exist?
+  rke2:                             'rke2',
+  tencentengine:                    'tencenttke',
+  tencentkubernetesengine:          'tencenttke', // Does this actually exist?
+  aliyunkubernetescontainerservice: 'aliyun',
+  baiducloudcontainerengine :       'baidu',
+  opentelekomcloudcontainerengine:  'otccce',
 };
 
 // And the Import page has even shorter ones that don't match kontainer or create...
