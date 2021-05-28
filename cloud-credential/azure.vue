@@ -1,10 +1,16 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledInput from '@/components/form/LabeledInput';
+import { azureEnvironments } from '@/machine-config/azure';
+import LabeledSelect from '@/components/form/LabeledSelect';
 
 export default {
-  components: { LabeledInput },
+  components: { LabeledInput, LabeledSelect },
   mixins:     [CreateEditView],
+
+  data() {
+    return { azureEnvironments };
+  },
 
   watch: {
     'value.decodedData.clientId'(neu) {
@@ -17,6 +23,9 @@ export default {
       this.$emit('validationChanged', !!neu);
     },
     'value.decodedData.tenantId'(neu) {
+      this.$emit('validationChanged', !!neu);
+    },
+    'value.decodedData.environment'(neu) {
       this.$emit('validationChanged', !!neu);
     },
   },
@@ -80,13 +89,26 @@ export default {
         @input="value.setData('clientId', $event)"
       />
     </div>
-    <div>
+    <div class="mb-10">
       <LabeledInput
         :value="value.decodedData.clientSecret"
         label-key="cluster.credential.azure.clientSecret.label"
         type="password"
         :mode="mode"
         @input="value.setData('clientSecret', $event)"
+      />
+    </div>
+    <div class="mb-10">
+      <LabeledSelect
+        :value="value.decodedData.environment"
+        :mode="mode"
+        :options="azureEnvironments"
+        option-key="value"
+        option-label="value"
+        :searchable="false"
+        :required="true"
+        :label="t('cluster.credential.azure.environment.label')"
+        @input="value.setData('environment', $event);"
       />
     </div>
   </section>

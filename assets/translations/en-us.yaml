@@ -886,6 +886,8 @@ cluster:
         label: Client ID
       clientSecret:
         label: Client Secret
+      environment:
+        label: Environment
       subscriptionId:
         label: Subscription ID
       tenantId:
@@ -933,6 +935,61 @@ cluster:
           =0 {EBS-Only}
           other {{storageSize, number} GiB {storageType}}
         }
+    azure:
+      availabilitySet:
+        label: Availability Set (unmanaged)
+      dns:
+        help: A unique DNS label for the public IP adddress.
+        label: DNS Label
+      environment:
+        label: Environment
+      faultDomainCount:
+        help: If the availability set has already been created, the fault domain count will be ignored.
+        label: Fault Domain Count
+      image:
+        help: Providing an ARM resource identifier requires using managed disk.
+        label: Image
+      location:
+        label: Location
+      managedDisks:
+        label: Use Managed Disks
+      managedDisksSize:
+        label: Managed Disk Size
+      nsg:
+        help: When using a Rancher managed or providing an existing NSG, all nodes using this template will use the supplied NSG. If no NSG is provided, a new NSG will be created for each node.
+        label: Network Security Group
+      openPort:
+        add: Add Port
+        help: When using an existing NSG, Open Ports are ignored.
+        label: Open Port
+      privateIp:
+        label: Private IP Address
+      publicIpOptions:
+        header: Public IP Options
+        noPublic:
+          label: No Public IP
+        staticPublicIp:
+          label: Static Public IP
+      resourceGroup:
+        label: Resource Group
+      size:
+        label: VM Size
+      sshUser:
+        label: SSH Username
+      storageType:
+        label: Storage Type
+      subnet:
+        label: Subnet
+      subnetPrefix:
+        label: Subnet Prefix
+      updateDomainCount:
+        help: If the availability set has already been created, the update domain count will be ignored.
+        label: Update Domain Count
+      usePrivateIp:
+        label: Use Private IP
+      vnet:
+        label: Virtual Network
+        placeholder: '[resourcegroup:]name'
     digitalocean:
       sizeLabel: |-
         {plan, select,
