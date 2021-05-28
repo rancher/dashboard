@@ -6,6 +6,8 @@ import { ucFirst } from '@/utils/string';
 
 export const DEFAULT_WORKSPACE = 'fleet-default';
 
+const SAVE_AS_RKE_TEMPLATE_ACTION = '"saveAsTemplate';
+
 export default {
   details() {
     const out = [
@@ -44,6 +46,20 @@ export default {
       bulkable:   true,
       enabled:    this.$rootGetters['isRancher'],
     });
+
+    const canSaveAsTemplate = this.isRke1 && this.mgmt.status.driver === 'rancherKubernetesEngine' && !this.mgmt.spec.clusterTemplateName;
+
+    if (canSaveAsTemplate) {
+      insertAt(out, 2, { divider: true });
+
+      insertAt(out, 3, {
+        action:     'saveAsRKETemplate',
+        label:      'Save as RKE Template',
+        icon:       'icon icon-folder',
+        bulkable:   true,
+        enabled:    this.$rootGetters['isRancher'],
+      });
+    }
 
     return out;
   },
@@ -284,4 +300,13 @@ export default {
       return proxyFor(this.$ctx, x);
     });
   },
+
+  saveAsRKETemplate() {
+    return (resources = this) => {
+      this.$dispatch('promptModal', {
+        resources,
+        component: 'SaveAsRKETemplateDialog'
+      });
+    };    
+  }
 };

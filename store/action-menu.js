@@ -13,11 +13,13 @@ export const state = function() {
     showPromptRestore: false,
     showAssignTo:      false,
     showPromptUpdate:  false,
+    showModal:         false,
     toMove:            [],
     toRemove:          [],
     toRestore:         [],
     toAssign:          [],
     toUpdate:          [],
+    modalData:         {},
   };
 };
 
@@ -135,7 +137,24 @@ export const mutations = {
     }
 
     state.toUpdate = resources;
-  }
+  },
+
+  togglePromptModal(state, data) {
+
+    console.log('Toggle prompt modal');
+    console.log(data);
+
+    if (!data) {
+      // Clearing the resources also hides the prompt
+      state.showModal = false;
+    } else {
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SHOW >>> ');
+      console.log(data.resources);
+      state.showModal = true;
+    }
+
+    state.modalData = data;
+  }  
 };
 
 export const actions = {

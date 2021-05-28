@@ -1,0 +1,101 @@
+<script>
+import AsyncButton from '@/components/AsyncButton';
+import Card from '@/components/Card';
+import Banner from '@/components/Banner';
+import LabeledInput from '@/components/form/LabeledInput';
+import { exceptionToErrorsArray } from '@/utils/error';
+
+const DEFAULT_REVISION = 'v1';
+
+export default {
+  components: {
+    Card,
+    AsyncButton,
+    Banner,
+    LabeledInput,
+  },
+  props:      {
+    resources: {
+      type:     Array,
+      required: true
+    }
+  },
+  data() {
+    return { errors: [], name: '' };
+  },
+  computed: {
+    cluster() {
+      if (this.resources?.length === 1) {
+        const c = this.resources[0];
+
+        return c;
+      }
+
+      return {};
+    },
+  },
+  methods: {
+    close() {
+      this.$emit('close');
+    },
+
+    async apply(buttonDone) {
+      try {
+        await this.$store.dispatch('rancher/request', {
+          url:    `/v3/clusters/${ escape(this.cluster.name) }?action=saveAsTemplate`,
+          method: 'post',
+          data:   {
+            clusterTemplateName:         this.name,
+            clusterTemplateRevisionName: DEFAULT_REVISION
+          },
+        });
+
+        buttonDone(true);
+        this.close();
+      } catch (err) {
+        this.errors = exceptionToErrorsArray(err);
+        buttonDone(false);
+      }
+    }
+  }
+};
+</script>
+
+<template>
+
+  <Card class="prompt-restore" :show-highlight-border="false">
+    <h4 slot="title" class="text-default-text" v-html="t('promptSaveAsRKETemplate.title', { cluster: cluster.displayName }, true)" />
+
+    <div slot="body" class="pl-10 pr-10">
+      <form>
+        <p class="pt-10 pb-10">{{ t('promptSaveAsRKETemplate.description') }}</P>
+        <Banner color="warning" label-key="promptSaveAsRKETemplate.warning" />
+
+        <LabeledInput
+          v-model="name"
+          :label="t('promptSaveAsRKETemplate.name')"
+          :required="true"
+        />
+      </form>
+    </div>
+
+    <div slot="actions">
+      <button class="btn role-secondary mr-10" @click="close">
+        {{ t('generic.cancel') }}
+      </button>
+
+      <AsyncButton
+        mode="create"
+        :disabled="name.length <= 0"
+        @click="apply"
+      />
+
+      <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+    </div>
+  </Card>
+</template>
+<style lang='scss' scoped>
+  .prompt-restore {
+    margin: 0;
+  }
+</style>

@@ -77,13 +77,15 @@ button,
 .role-secondary {
   background: transparent;
   color: var(--primary) !important;
-  border: solid thin var(--primary);
+  border: solid 1px var(--primary);
+  line-height: $btn-height - 2px;
 }
 
 .role-tertiary {
   background: var(--accent-btn);
-  border: solid thin var(--primary);
+  border: solid 1px var(--primary);
   color: var(--primary);
+  line-height: $btn-height - 2px;
 }
 
 .role-link {
