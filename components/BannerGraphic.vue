@@ -80,7 +80,6 @@ export default {
       > img.banner {
         flex: 1;
         object-fit: cover;
-        background-color: red;
       }
     }
     .title {
