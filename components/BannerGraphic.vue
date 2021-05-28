@@ -26,9 +26,6 @@ export default {
 
 <template>
   <div v-if="shown" class="banner-graphic" :class="{'small': small}">
-    <div v-if="pref" class="close-button" @click="hide()">
-      <i class="icon icon-close" />
-    </div>
     <div class="graphic">
       <BrandImage class="banner" file-name="banner.svg" :draggable="false" />
     </div>
@@ -38,6 +35,9 @@ export default {
     <h1 v-else-if="title" class="title">
       {{ title }}
     </h1>
+    <div v-if="pref" class="close-button" @click="hide()">
+      <i class="icon icon-close" />
+    </div>
   </div>
 </template>
 
@@ -78,16 +78,20 @@ export default {
       height: $banner-height;
       overflow: hidden;
       > img.banner {
+        flex: 1;
         object-fit: cover;
-        width: 100%;
-        height: $banner-height;
       }
     }
     .title {
+      display: flex;
+      justify-content: center;
+      align-items: center;
       position: absolute;
       text-align: center;
-      top: 70px;
+      top: 0;
+      height: 100%;
       width: 100%;
+      margin-top: -20px;
     }
     &.small {
       .graphic {
@@ -95,9 +99,6 @@ export default {
         img.banner {
           margin-top: ($banner-height-small - $banner-height)/2;
         }
-      }
-      .title {
-        top: 50px;
       }
     }
   }
