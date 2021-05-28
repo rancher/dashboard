@@ -20,7 +20,7 @@ export const KONTAINER_TO_DRIVER = {
   tencentengine:                    'tencenttke',
   tencentkubernetesengine:          'tencenttke', // Does this actually exist?
   aliyunkubernetescontainerservice: 'aliyun',
-  baiducloudcontainerengine :       'baidu',
+  baiducloudcontainerengine:        'baidu',
   opentelekomcloudcontainerengine:  'otccce',
 };
 
