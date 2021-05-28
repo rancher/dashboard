@@ -18,23 +18,14 @@ export default {
 
   data() {
     return {
-      errors:        [],
-      labels:        {},
-      restoreMode:   'all',
-      moveTo:        this.workspace,
-      opened:        false,
-      allWorkspaces: [],
+      errors: [],
+      opened: false,
     };
   },
 
   computed:   {
     ...mapState('action-menu', ['showModal', 'modalData']),
     ...mapGetters({ t: 'i18n/t' }),
-    ...mapGetters(['currentCluster']),
-
-    dynamic() {
-      return this.modalComponent;
-    },
 
     resources() {
       let resources = this.modalData?.resources;
@@ -70,7 +61,6 @@ export default {
       }
 
       this.errors = [];
-      this.labels = {};
       this.$store.commit('action-menu/togglePromptModal');
     },
 
@@ -90,7 +80,7 @@ export default {
     :scrollable="true"
     @closed="modalClosed()"
   >
-    <component v-if="opened && component" :is="component" @close="close()" :resources="resources"/>
+    <component :is="component" v-if="opened && component" :resources="resources" @close="close()" />
   </modal>
 </template>
 

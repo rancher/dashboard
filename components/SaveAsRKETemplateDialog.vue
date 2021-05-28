@@ -62,13 +62,14 @@ export default {
 </script>
 
 <template>
-
   <Card class="prompt-restore" :show-highlight-border="false">
     <h4 slot="title" class="text-default-text" v-html="t('promptSaveAsRKETemplate.title', { cluster: cluster.displayName }, true)" />
 
     <div slot="body" class="pl-10 pr-10">
       <form>
-        <p class="pt-10 pb-10">{{ t('promptSaveAsRKETemplate.description') }}</P>
+        <p class="pt-10 pb-10">
+          {{ t('promptSaveAsRKETemplate.description') }}
+        </p>
         <Banner color="warning" label-key="promptSaveAsRKETemplate.warning" />
 
         <LabeledInput

@@ -6,8 +6,6 @@ import { ucFirst } from '@/utils/string';
 
 export const DEFAULT_WORKSPACE = 'fleet-default';
 
-const SAVE_AS_RKE_TEMPLATE_ACTION = '"saveAsTemplate';
-
 export default {
   details() {
     const out = [
@@ -307,6 +305,6 @@ export default {
         resources,
         component: 'SaveAsRKETemplateDialog'
       });
-    };    
+    };
   }
 };
