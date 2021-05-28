@@ -26,9 +26,6 @@ export default {
 
 <template>
   <div v-if="shown" class="banner-graphic" :class="{'small': small}">
-    <div v-if="pref" class="close-button" @click="hide()">
-      <i class="icon icon-close" />
-    </div>
     <div class="graphic">
       <BrandImage class="banner" file-name="banner.svg" :draggable="false" />
     </div>
@@ -38,6 +35,9 @@ export default {
     <h1 v-else-if="title" class="title">
       {{ title }}
     </h1>
+    <div v-if="pref" class="close-button" @click="hide()">
+      <i class="icon icon-close" />
+    </div>
   </div>
 </template>
 
