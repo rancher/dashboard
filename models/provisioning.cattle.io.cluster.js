@@ -45,6 +45,15 @@ export default {
       enabled:    this.$rootGetters['isRancher'],
     });
 
+    if (this.mgmt.actions['rotateCertificates']) {
+      insertAt(out, 1, {
+        action:     'toggleRotateCertificates',
+        label:      'Rotate Certificates',
+        icon:       'icon icon-backup',
+        bulkable:   true,
+      });
+    }
+
     const canSaveAsTemplate = this.isRke1 && this.mgmt.status.driver === 'rancherKubernetesEngine' && !this.mgmt.spec.clusterTemplateName && this.hasLink('update');
     const canRotateEncryptionKey = this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey');
 
@@ -300,6 +309,12 @@ export default {
   downloadKubeConfigBulk() {
     return (items) => {
       return this.mgmt?.downloadKubeConfigBulk(items);
+    };
+  },
+
+  toggleRotateCertificates() {
+    return () => {
+      this.$dispatch('promptRotate', this);
     };
   },
 

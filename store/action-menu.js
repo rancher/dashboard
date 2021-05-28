@@ -13,6 +13,7 @@ export const state = function() {
     showPromptRestore: false,
     showAssignTo:      false,
     showPromptUpdate:  false,
+    showPromptRotate:  false,
     showModal:         false,
     toMove:            [],
     toRemove:          [],
@@ -20,6 +21,7 @@ export const state = function() {
     toAssign:          [],
     toUpdate:          [],
     modalData:         {},
+    toRotate:          {}
   };
 };
 
@@ -148,6 +150,16 @@ export const mutations = {
     }
 
     state.modalData = data;
+  },
+
+   togglePromptRotate(state, cluster) {
+    if (!cluster) {
+      state.showPromptRotate = false;
+    } else {
+      state.showPromptRotate = !state.showPromptRotate;
+    }
+
+    state.toRotate = cluster;
   }
 };
 

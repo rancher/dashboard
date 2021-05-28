@@ -403,6 +403,10 @@ export default {
     commit('action-menu/togglePromptModal', data, { root: true });
   },
 
+  promptRotate({ commit, state }, cluster ) {
+    commit('action-menu/togglePromptRotate', cluster, { root: true });
+  },
+
   async resourceAction({ getters, dispatch }, {
     resource, actionName, body, opt,
   }) {

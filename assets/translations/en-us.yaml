@@ -1048,6 +1048,12 @@ cluster:
     machinePools: Machine Pools
     registry: Private Registry
     upgrade: Upgrade Strategy
+  rotateCertificates:
+    label: Rotate Certificates
+    modalTitle: Rotate Cluster Certificates
+    services: Services
+    allServices: Rotate all service certificates
+    selectService: Rotate an individual service
 
 clusterIndexPage:
   hardwareResourceGauge:

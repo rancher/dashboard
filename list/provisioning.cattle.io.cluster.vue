@@ -1,12 +1,15 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
+import RotateCertificates from '@/components/RotateCertificates';
 import { allHash } from '@/utils/promise';
 import { CAPI, MANAGEMENT } from '@/config/types';
 import { MODE, _IMPORT } from '@/config/query-params';
 
 export default {
-  components: { ResourceTable, Masthead },
+  components: {
+    ResourceTable, Masthead, RotateCertificates
+  },
 
   async fetch() {
     const hash = await allHash({
@@ -104,5 +107,6 @@ export default {
         </button>
       </template>
     </ResourceTable>
+    <RotateCertificates />
   </div>
 </template>
