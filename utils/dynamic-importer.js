@@ -66,3 +66,11 @@ export function loadProduct(name) {
   // Note: directly returns the import, not a function
   return import(/* webpackChunkName: "product" */ `@/config/product/${ name }`);
 }
+
+export function importDialog(name) {
+  if ( !name ) {
+    throw new Error('Name required');
+  }
+
+  return () => import(/* webpackChunkName: "dialog" */ `@/components/dialog/${name}`);
+}

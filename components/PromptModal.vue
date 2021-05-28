@@ -4,16 +4,13 @@ import { isArray } from '@/utils/array';
 import AsyncButton from '@/components/AsyncButton';
 import Card from '@/components/Card';
 import Banner from '@/components/Banner';
-import SaveAsRKETemplateDialog from '@/components/SaveAsRKETemplateDialog';
+import { importDialog } from '@/utils/dynamic-importer';
 
 export default {
   components: {
     Card,
     AsyncButton,
     Banner,
-    // Need to include all of the dialogs here
-    // Would be nice if this could be done dynamically
-    SaveAsRKETemplateDialog,
   },
 
   data() {
@@ -38,7 +35,7 @@ export default {
     },
 
     component() {
-      return this.modalData?.component;
+      return importDialog(this.modalData?.component);
     },
   },
 
