@@ -311,7 +311,7 @@ export default {
         return null;
       }
 
-      const schema = this.$store.getters['management/schemaFor'](`provisioning.cattle.io.${ this.provider }config`);
+      const schema = this.$store.getters['management/schemaFor'](`rke-machine-config.cattle.io.${ this.provider }config`);
 
       return schema;
     },
