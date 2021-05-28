@@ -3,7 +3,6 @@ import { getVendor } from '@/config/private-label';
 import { SETTING } from '@/config/settings';
 import { findBy } from '@/utils/array';
 import { createCssVars } from '@/utils/color';
-import { mapPref, THEME } from '@/store/prefs';
 
 export default {
   async fetch() {
@@ -15,8 +14,6 @@ export default {
   },
 
   computed: {
-    theme: mapPref(THEME),
-
     brand() {
       const setting = findBy(this.globalSettings, 'id', SETTING.BRAND);
 
@@ -27,6 +24,10 @@ export default {
       const setting = findBy(this.globalSettings, 'id', SETTING.PRIMARY_COLOR);
 
       return setting?.value;
+    },
+
+    theme() {
+      return this.$store.getters['prefs/theme'];
     }
   },
 
