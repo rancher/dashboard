@@ -458,6 +458,7 @@ export default {
       display: flex;
       margin-right: 8px;
       height: 55px;
+      margin-left: 5px;
       max-width: 200px;
       padding: 12px 0;
     }
