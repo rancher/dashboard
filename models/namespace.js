@@ -5,6 +5,11 @@ import { ISTIO, MANAGEMENT } from '@/config/types';
 import { escapeHtml } from '@/utils/string';
 import { insertAt, isArray } from '@/utils/array';
 
+const OBSCURE_NAMESPACE_PREFIX = [
+  'c-', // cluster namesapce
+  'p-' // project namespace
+];
+
 export default {
 
   _availableActions() {
@@ -74,8 +79,16 @@ export default {
     return false;
   },
 
+  // These are namespaces that are created by rancher to serve purposes in the background but the user shouldn't have
+  // to worry themselves about them.
+  isObscure() {
+    return OBSCURE_NAMESPACE_PREFIX.some(prefix => this.metadata.name.startsWith(prefix)) && this.isSystem;
+  },
+
   projectId() {
-    return this.metadata?.labels?.[PROJECT] || null;
+    const projectAnnotation = this.metadata?.annotations?.[PROJECT] || '';
+
+    return projectAnnotation.split(':')[1] || null;
   },
 
   project() {

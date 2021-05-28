@@ -6,7 +6,7 @@ import { MANAGEMENT, NAMESPACE } from '@/config/types';
 import Loading from '@/components/Loading';
 import { PROJECT_ID } from '@/config/query-params';
 import Masthead from '@/components/ResourceList/Masthead';
-import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
+import { mapPref, GROUP_RESOURCES, DEV } from '@/store/prefs';
 import MoveModal from '@/components/MoveModal';
 
 export default {
@@ -29,14 +29,14 @@ export default {
       return;
     }
 
-    this.rows = await this.$store.dispatch(`${ inStore }/findAll`, { type: NAMESPACE });
+    this.namespaces = await this.$store.dispatch(`${ inStore }/findAll`, { type: NAMESPACE });
     this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
   },
 
   data() {
     return {
       schema:        null,
-      rows:          [],
+      namespaces:    [],
       projects:      [],
       projectSchema: null,
       MANAGEMENT,
@@ -95,6 +95,13 @@ export default {
     groupPreference: mapPref(GROUP_RESOURCES),
     filteredRows() {
       return this.groupPreference === 'none' ? this.rows : this.rowsWithFakeNamespaces;
+    },
+    rows() {
+      if (this.$store.getters['prefs/get'](DEV)) {
+        return this.namespaces;
+      }
+
+      return this.namespaces.filter(namespace => !namespace.isObscure);
     }
   },
   methods: {
