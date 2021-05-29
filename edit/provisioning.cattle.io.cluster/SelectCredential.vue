@@ -232,7 +232,7 @@ export default {
         name-label="cluster.credential.name.label"
         name-placeholder="cluster.credential.name.placeholder"
         :name-required="false"
-        :mode="mode"
+        mode="create"
       />
 
       <component

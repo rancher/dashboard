@@ -9,6 +9,8 @@ import YamlEditor from '@/components/YamlEditor';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import ArrayList from '@/components/form/ArrayList';
+import RadioGroup from '@/components/form/RadioGroup';
+import UnitInput from '@/components/form/UnitInput';
 import Checkbox from '@/components/form/Checkbox';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import BadgeState from '@/components/BadgeState';
@@ -29,6 +31,7 @@ import ACE from './ACE';
 import DrainOptions from './DrainOptions';
 import RegistryMirrors from './RegistryMirrors';
 import RegistryConfigs from './RegistryConfigs';
+import S3Config from './S3Config';
 
 export default {
   components: {
@@ -44,6 +47,8 @@ export default {
     SelectCredential,
     LabeledInput,
     LabeledSelect,
+    RadioGroup,
+    UnitInput,
     MachinePool,
     BadgeState,
     ACE,
@@ -52,6 +57,7 @@ export default {
     Labels,
     RegistryMirrors,
     RegistryConfigs,
+    S3Config
   },
 
   mixins: [CreateEditView],
@@ -132,8 +138,17 @@ export default {
       set(this.serverConfig, 'profile', null);
     }
 
-    if ( !this.serverConfig.profile ) {
-      set(this.serverConfig, 'profile', null);
+    if ( this.rkeConfig.etcd?.s3?.bucket ) {
+      this.s3Backup = true;
+    }
+
+    if ( !this.rkeConfig.etcd ) {
+      set(this.rkeConfig, 'etcd', {
+        disableSnapshots:     false,
+        s3:                   null,
+        snapshotRetention:    5,
+        snapshotScheduleCron: '* */5 * * *',
+      });
     }
 
     await this.initMachinePools(this.value.spec.rkeConfig.machinePools);
@@ -153,6 +168,7 @@ export default {
       machinePools:          null,
       rke2Versions:          null,
       k3sVersions:           null,
+      s3Backup:      false,
     };
   },
 
@@ -691,284 +707,286 @@ export default {
         </Tabbed>
         <div class="spacer" />
       </template>
-    </div>
 
-    <h2 v-t="'cluster.tabs.cluster'" />
-    <Tabbed :side-tabs="true">
-      <Tab name="basic" label-key="cluster.tabs.basic" :weight="10" @active="if ( $refs.cloudProvider ) $refs.cloudProvider.refresh()">
-        <Banner v-if="!haveArgInfo" color="warning" label="Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor." />
+      <h2 v-t="'cluster.tabs.cluster'" />
+      <Tabbed :side-tabs="true">
+        <Tab name="basic" label-key="cluster.tabs.basic" :weight="10" @active="if ( $refs.cloudProvider ) $refs.cloudProvider.refresh()">
+          <Banner v-if="!haveArgInfo" color="warning" label="Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor." />
 
-        <div class="row">
-          <div class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
-            <LabeledSelect
-              v-model="value.spec.kubernetesVersion"
-              :mode="mode"
-              :options="versionOptions"
-              label-key="cluster.kubernetesVersion.label"
-            />
+          <div class="row">
+            <div class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
+              <LabeledSelect
+                v-model="value.spec.kubernetesVersion"
+                :mode="mode"
+                :options="versionOptions"
+                label-key="cluster.kubernetesVersion.label"
+              />
+            </div>
+            <div v-if="showCni" class="col span-4">
+              <LabeledSelect
+                v-model="serverConfig.cni"
+                :mode="mode"
+                :options="serverArgs.cni.options"
+                label="Container Network Provider"
+              />
+            </div>
+            <div v-if="agentArgs['cloud-provider-name']" class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
+              <LabeledSelect
+                v-model="agentConfig['cloud-provider-name']"
+                :mode="mode"
+                :options="agentArgs['cloud-provider-name'].options"
+                label="Cloud Provider"
+              />
+            </div>
           </div>
-          <div v-if="showCni" class="col span-4">
-            <LabeledSelect
-              v-model="serverConfig.cni"
-              :mode="mode"
-              :options="serverArgs.cni.options"
-              label="Container Network Provider"
-            />
-          </div>
-          <div v-if="agentArgs['cloud-provider-name']" class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
-            <LabeledSelect
-              v-model="agentConfig['cloud-provider-name']"
-              :mode="mode"
-              :options="agentArgs['cloud-provider-name'].options"
-              label="Cloud Provider"
-            />
-          </div>
-        </div>
 
-        <template v-if="showCloudConfigYaml">
+          <template v-if="showCloudConfigYaml">
+            <div class="spacer" />
+
+            <div class="col span-12">
+              <h3>Cloud Provider Config</h3>
+              <YamlEditor
+                ref="cloudProvider"
+                v-model="agentConfig['cloud-provider-config']"
+                :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
+                initial-yaml-values="# Cloud Provider Config"
+                class="yaml-editor"
+              />
+            </div>
+          </template>
+
           <div class="spacer" />
 
-          <div class="col span-12">
-            <h3>Cloud Provider Config</h3>
+          <h3>Security</h3>
+          <div class="row">
+            <div class="col span-6">
+              <LabeledSelect
+                v-model="value.spec.defaultPodSecurityPolicyTemplateName"
+                :mode="mode"
+                :options="pspOptions"
+                label="Default Pod Security Policy"
+              />
+            </div>
+            <div class="col span-6 mt-5">
+              <div v-if="serverArgs['secrets-encryption']">
+                <Checkbox v-model="serverConfig['secrets-encryption']" :mode="mode" label="Encrypt Secrets" />
+              </div>
+              <div><Checkbox v-model="value.spec.enableNetworkPolicy" :mode="mode" label="Project Network Isolation" /></div>
+              <div v-if="agentArgs.selinux">
+                <Checkbox v-model="agentConfig.selinux" :mode="mode" label="SELinux" />
+              </div>
+            </div>
+          </div>
+          <div class="row">
+          </div>
+
+          <div class="spacer" />
+
+          <div v-if="serverArgs.disable" class="row">
+            <div class="col span-12">
+              <div><h3>System Services</h3></div>
+              <Checkbox
+                v-for="opt in disableOptions"
+                :key="opt.value"
+                v-model="enabledSystemServices"
+                :mode="mode"
+                :label="opt.label"
+                :value-when-true="opt.value"
+              />
+            </div>
+          </div>
+
+          <div class="spacer" />
+        </Tab>
+
+        <Tab name="etcd" label-key="cluster.tabs.etcd" :weight="9">
+          <div class="row">
+            <div class="col span-6">
+              <RadioGroup
+                v-model="rkeConfig.disableSnapshots"
+                name="etcd-disable-snapshots"
+                :options="[true, false]"
+                label="Automatic Snapshots"
+                :labels="['Disable','Enable']"
+                :mode="mode"
+              />
+            </div>
+            <div class="col span-6">
+              <RadioGroup
+                v-if="serverArgs['etcd-expose-metrics']"
+                v-model="serverConfig['etcd-expose-metrics']"
+                name="etcd-expose-metrics"
+                :options="[false, true]"
+                label="Metrics"
+                :labels="['Only available inside the cluster','Exposed to the public interface']"
+                :mode="mode"
+              />
+            </div>
+          </div>
+
+          <template v-if="rkeConfig.disableSnapshots !== true">
+            <div class="row">
+              <div class="col span-6">
+                <LabeledInput v-model="rkeConfig.snapshotScheduleCron" :mode="mode" label="Cron Schedule" />
+              </div>
+              <div class="col span-6">
+                <UnitInput
+                  v-model="rkeConfig.snapshotRetention"
+                  :mode="mode"
+                  label="Keep the last"
+                  suffix="Snapshots"
+                />
+              </div>
+            </div>
+
+            <div class="spacer" />
+
+            <RadioGroup
+              v-model="s3Backup"
+              name="etcd-s3"
+              :options="[false, true]"
+              label="Backup Snapshots to S3"
+              :labels="['Disable','Enable']"
+              :mode="mode"
+            />
+
+            <S3Config v-if="s3Backup" v-model="rkeConfig.etcd.s3" :mode="mode" />
+          </template>
+        </Tab>
+
+        <Tab v-if="haveArgInfo" name="networking" label-key="cluster.tabs.networking" :weight="8">
+          <div v-if="serverArgs['service-node-port-range']" class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput v-model="serverConfig['service-node-port-range']" :mode="mode" label="NodePort Service Port Range" />
+            </div>
+          </div>
+
+          <div class="row mb-20">
+            <div v-if="serverArgs['cluster-cidr']" class="col span-6">
+              <LabeledInput v-model="serverConfig['cluster-cidr']" :mode="mode" label="Cluster CIDR" />
+            </div>
+            <div v-if="serverArgs['service-cidr']" class="col span-6">
+              <LabeledInput v-model="serverConfig['service-cidr']" :mode="mode" label="Service CIDR" />
+            </div>
+          </div>
+
+          <div class="row mb-20">
+            <div v-if="serverArgs['cluster-dns']" class="col span-6">
+              <LabeledInput v-model="serverConfig['cluster-dns']" :mode="mode" label="Cluster DNS" />
+            </div>
+            <div v-if="serverArgs['cluster-domain']" class="col span-6">
+              <LabeledInput v-model="serverConfig['cluster-domain']" :mode="mode" label="Cluster Domain" />
+            </div>
+          </div>
+
+          <div v-if="serverArgs['tls-san']" class="row mb-20">
+            <div class="col span-6">
+              <ArrayList :mode="mode" :value="serverConfig['tls-san']" title="TLS Alternate Names" />
+            </div>
+          </div>
+        </Tab>
+
+        <Tab name="upgrade" label-key="cluster.tabs.upgrade" :weight="7">
+          <div class="row">
+            <div class="col span-6">
+              <h3>Control Plane</h3>
+              <LabeledInput v-model="rkeConfig.upgradeStrategy.controlPlaneConcurrency" :mode="mode" label="Control Plane Concurrency" tooltip="This can be either a fixed number of nodes (e.g. 1) at a time of a percentage (e.g. 10%)" />
+              <div class="spacer" />
+              <DrainOptions v-model="rkeConfig.upgradeStrategy.controlPlaneDrainOptions" :mode="mode" />
+            </div>
+            <div class="col span-6">
+              <h3>Worker Nodes</h3>
+              <LabeledInput v-model="rkeConfig.upgradeStrategy.workerConcurrency" :mode="mode" label="Worker Concurrency" tooltip="This can be either a fixed number of nodes (e.g. 1) at a time of a percentage (e.g. 10%)" />
+              <div class="spacer" />
+              <DrainOptions v-model="rkeConfig.upgradeStrategy.workerDrainOptions" :mode="mode" />
+            </div>
+          </div>
+        </Tab>
+
+        <Tab name="registry" label-key="cluster.tabs.registry" :weight="6">
+          <RegistryMirrors
+            v-model="value"
+            :mode="mode"
+          />
+
+          <RegistryConfigs
+            v-model="value"
+            class="mt-20"
+            :mode="mode"
+            :register-before-hook="registerBeforeHook"
+          />
+        </Tab>
+
+        <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="-1" @active="$refs.additionalManifest.refresh()">
+          <template v-if="serverArgs.profile || agentArgs.profile">
+            <h3>CIS Profile Validation</h3>
+            <div class="row">
+              <div v-if="serverArgs.profile" class="col span-6">
+                <LabeledSelect
+                  v-model="serverConfig.profile"
+                  :mode="mode"
+                  :options="profileOptions"
+                  label="Server CIS Profile"
+                />
+              </div>
+              <div v-if="agentArgs.profile" class="col span-6">
+                <LabeledSelect
+                  v-model="agentConfig.profile"
+                  :mode="mode"
+                  :options="profileOptions"
+                  label="Worker CIS Profile"
+                />
+              </div>
+            </div>
+
+            <div class="spacer" />
+          </template>
+
+          <template v-if="agentArgs['protect-kernel-defaults']">
+            <div class="row">
+              <div class="col span-12">
+                <Checkbox v-model="agentConfig['protect-kernel-defaults']" :mode="mode" label="Raise error if kernel parameters are different than the expected kubelet defaults." />
+              </div>
+            </div>
+
+            <div class="spacer" />
+          </template>
+
+          <template v-if="haveArgInfo">
+            <div class="row">
+              <div class="col span-6">
+                <ArrayList v-if="agentArgs['kubelet-arg']" :mode="mode" :value="agentConfig['kubelet-arg']" title="Additional Kubelet Args" class="mb-20" />
+                <ArrayList v-if="serverArgs['kube-controller-manager-arg']" :mode="mode" :value="serverConfig['kube-controller-manager-arg']" title="Additional Controller Manager Args" class="mb-20" />
+              </div>
+              <div class="col span-6">
+                <ArrayList v-if="serverArgs['kube-apiserver-arg']" :mode="mode" :value="serverConfig['kube-apiserver-arg']" title="Additional API Server Args" class="mb-20" />
+                <ArrayList v-if="serverArgs['kube-scheduler-arg']" :mode="mode" :value="serverConfig['kube-scheduler-arg']" title="Additional Scheduler Args" />
+              </div>
+            </div>
+
+            <div class="spacer" />
+          </template>
+
+          <div>
+            <h3>
+              Additional Manifest
+              <i v-tooltip="'Additional Kubernetes Manifet YAML to be applied to the cluster on startup.'" class="icon icon-info" />
+            </h3>
             <YamlEditor
-              ref="cloudProvider"
-              v-model="agentConfig['cloud-provider-config']"
+              ref="additionalManifest"
+              v-model="rkeConfig.additionalManifest"
               :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-              initial-yaml-values="# Cloud Provider Config"
+              initial-yaml-values="# Additional Manifest YAML"
               class="yaml-editor"
             />
           </div>
-        </template>
+        </Tab>
 
-        <div class="spacer" />
-
-        <h3>Security</h3>
-        <div class="row">
-          <div class="col span-6">
-            <LabeledSelect
-              v-model="value.spec.defaultPodSecurityPolicyTemplateName"
-              :mode="mode"
-              :options="pspOptions"
-              label="Default Pod Security Policy"
-            />
-          </div>
-          <div class="col span-6 mt-5">
-            <div v-if="serverArgs['secrets-encryption']">
-              <Checkbox v-model="serverConfig['secrets-encryption']" :mode="mode" label="Encrypt Secrets" />
-            </div>
-            <div><Checkbox v-model="value.spec.enableNetworkPolicy" :mode="mode" label="Project Network Isolation" /></div>
-            <div v-if="agentArgs.selinux">
-              <Checkbox v-model="agentConfig.selinux" :mode="mode" label="SELinux" />
-            </div>
-          </div>
-        </div>
-        <div class="row">
-        </div>
-
-        <div class="spacer" />
-
-        <div v-if="serverArgs.disable" class="row">
-          <div class="col span-12">
-            <div><h3>System Services</h3></div>
-            <Checkbox
-              v-for="opt in disableOptions"
-              :key="opt.value"
-              v-model="enabledSystemServices"
-              :mode="mode"
-              :label="opt.label"
-              :value-when-true="opt.value"
-            />
-          </div>
-        </div>
-
-        <div class="spacer" />
-      </Tab>
-
-      <Tab v-if="serverArgs['etcd-disbale-snapshots']" name="etcd" label-key="cluster.tabs.etcd" :weight="9">
-        <Checkbox v-model="serverConfig['etcd-expose-metrics']" :mode="mode" label="Expose metrics to the public interface" />
-
-        <RadioGroup
-          v-model="serverConfig['etcd-disable-snapshots']"
-          name="etcd-disable-snapshots"
-          :options="[true, false]"
-          label="Automatic Snapshots"
-          :labels="['Disable','Enable']"
-          :mode="mode"
-        />
-
-        <template v-if="serverConfig['etcd-disable-snapshots'] !== true">
-          <div class="row">
-            <div class="col span-6">
-              <LabeledInput v-if="serverArgs['etcd-snapshot-schedule']" v-model="serverConfig['etcd-snapshot-schedule']" :mode="mode" label="Cron Schedule" />
-            </div>
-            <div class="col span-6">
-              <UnitInput
-                v-if="serverArgs['etcd-snapshot-retention']"
-                v-model="serverConfig['etcd-snapshot-retention']"
-                output-as="string"
-                :mode="mode"
-                label="Keep the last"
-                suffix="Snapshots"
-              />
-            </div>
-          </div>
-
-          <div class="spacer" />
-
-          <div class="row">
-            <div class="col span-6">
-              <LabeledInput v-if="serverArgs['etcd-snapshot-dir']" v-model="serverConfig['etcd-snapshot-dir']" :mode="mode" label="Storage Directory" />
-            </div>
-            <div class="col span-6">
-              <LabeledInput v-if="serverArgs['etcd-snapshot-name']" v-model="serverConfig['etcd-snapshot-name']" :mode="mode" label="Filename Prefix" />
-            </div>
-          </div>
-
-          <div class="spacer" />
-
-          <RadioGroup
-            v-model="serverConfig['etcd-s3']"
-            name="etcd-s3"
-            :options="[false, true]"
-            label="Backup Snapshots to S3"
-            :labels="['Disable','Enable']"
-            :mode="mode"
-          />
-        </template>
-      </Tab>
-
-      <Tab v-if="haveArgInfo" name="networking" label-key="cluster.tabs.networking" :weight="8">
-        <div v-if="serverArgs['service-node-port-range']" class="row mb-20">
-          <div class="col span-6">
-            <LabeledInput v-model="serverConfig['service-node-port-range']" :mode="mode" label="NodePort Service Port Range" />
-          </div>
-        </div>
-
-        <div class="row mb-20">
-          <div v-if="serverArgs['cluster-cidr']" class="col span-6">
-            <LabeledInput v-model="serverConfig['cluster-cidr']" :mode="mode" label="Cluster CIDR" />
-          </div>
-          <div v-if="serverArgs['service-cidr']" class="col span-6">
-            <LabeledInput v-model="serverConfig['service-cidr']" :mode="mode" label="Service CIDR" />
-          </div>
-        </div>
-
-        <div class="row mb-20">
-          <div v-if="serverArgs['cluster-dns']" class="col span-6">
-            <LabeledInput v-model="serverConfig['cluster-dns']" :mode="mode" label="Cluster DNS" />
-          </div>
-          <div v-if="serverArgs['cluster-domain']" class="col span-6">
-            <LabeledInput v-model="serverConfig['cluster-domain']" :mode="mode" label="Cluster Domain" />
-          </div>
-        </div>
-
-        <div v-if="serverArgs['tls-san']" class="row mb-20">
-          <div class="col span-6">
-            <ArrayList :mode="mode" :value="serverConfig['tls-san']" title="TLS Alternate Names" />
-          </div>
-        </div>
-      </Tab>
-
-      <Tab name="upgrade" label-key="cluster.tabs.upgrade" :weight="7">
-        <div class="row">
-          <div class="col span-6">
-            <h3>Control Plane</h3>
-            <LabeledInput v-model="rkeConfig.upgradeStrategy.controlPlaneConcurrency" :mode="mode" label="Control Plane Concurrency" tooltip="This can be either a fixed number of nodes (e.g. 1) at a time of a percentage (e.g. 10%)" />
-            <div class="spacer" />
-            <DrainOptions v-model="rkeConfig.upgradeStrategy.controlPlaneDrainOptions" :mode="mode" />
-          </div>
-          <div class="col span-6">
-            <h3>Worker Nodes</h3>
-            <LabeledInput v-model="rkeConfig.upgradeStrategy.workerConcurrency" :mode="mode" label="Worker Concurrency" tooltip="This can be either a fixed number of nodes (e.g. 1) at a time of a percentage (e.g. 10%)" />
-            <div class="spacer" />
-            <DrainOptions v-model="rkeConfig.upgradeStrategy.workerDrainOptions" :mode="mode" />
-          </div>
-        </div>
-      </Tab>
-
-      <Tab name="registry" label-key="cluster.tabs.registry" :weight="6">
-        <RegistryMirrors
-          v-model="value"
-          :mode="mode"
-        />
-
-        <RegistryConfigs
-          v-model="value"
-          class="mt-20"
-          :mode="mode"
-          :register-before-hook="registerBeforeHook"
-        />
-      </Tab>
-
-      <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="-1" @active="$refs.additionalManifest.refresh()">
-        <template v-if="serverArgs.profile || agentArgs.profile">
-          <h3>CIS Profile Validation</h3>
-          <div class="row">
-            <div v-if="serverArgs.profile" class="col span-6">
-              <LabeledSelect
-                v-model="serverConfig.profile"
-                :mode="mode"
-                :options="profileOptions"
-                label="Server CIS Profile"
-              />
-            </div>
-            <div v-if="agentArgs.profile" class="col span-6">
-              <LabeledSelect
-                v-model="agentConfig.profile"
-                :mode="mode"
-                :options="profileOptions"
-                label="Worker CIS Profile"
-              />
-            </div>
-          </div>
-
-          <div class="spacer" />
-        </template>
-
-        <template v-if="agentArgs['protect-kernel-defaults']">
-          <div class="row">
-            <div class="col span-12">
-              <Checkbox v-model="agentConfig['protect-kernel-defaults']" :mode="mode" label="Raise error if kernel parameters are different than the expected kubelet defaults." />
-            </div>
-          </div>
-
-          <div class="spacer" />
-        </template>
-
-        <template v-if="haveArgInfo">
-          <div class="row">
-            <div class="col span-6">
-              <ArrayList v-if="agentArgs['kubelet-arg']" :mode="mode" :value="agentConfig['kubelet-arg']" title="Additional Kubelet Args" class="mb-20" />
-              <ArrayList v-if="serverArgs['kube-controller-manager-arg']" :mode="mode" :value="serverConfig['kube-controller-manager-arg']" title="Additional Controller Manager Args" class="mb-20" />
-            </div>
-            <div class="col span-6">
-              <ArrayList v-if="serverArgs['kube-apiserver-arg']" :mode="mode" :value="serverConfig['kube-apiserver-arg']" title="Additional API Server Args" class="mb-20" />
-              <ArrayList v-if="serverArgs['kube-scheduler-arg']" :mode="mode" :value="serverConfig['kube-scheduler-arg']" title="Additional Scheduler Args" />
-            </div>
-          </div>
-
-          <div class="spacer" />
-        </template>
-
-        <div>
-          <h3>
-            Additional Manifest
-            <i v-tooltip="'Additional Kubernetes Manifet YAML to be applied to the cluster on startup.'" class="icon icon-info" />
-          </h3>
-          <YamlEditor
-            ref="additionalManifest"
-            v-model="rkeConfig.additionalManifest"
-            :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-            initial-yaml-values="# Additional Manifest YAML"
-            class="yaml-editor"
-          />
-        </div>
-      </Tab>
-
-      <ACE v-model="value" :mode="mode" />
-      <AgentEnv v-model="value" :mode="mode" />
-      <Labels v-model="value" :mode="mode" />
-    </Tabbed>
+        <ACE v-model="value" :mode="mode" />
+        <AgentEnv v-model="value" :mode="mode" />
+        <Labels v-model="value" :mode="mode" />
+      </Tabbed>
+    </div>
 
     <Banner v-if="multipleAgentConfigs" color="warning" label="This cluster has multiple workerConfigs. This form does only manages the first one; use the YAML editor to manage the full configuration." />
     <Banner v-if="unsupportedAgentConfig" color="warning" label="This cluster contains a workerConfig which this form does not fully support; use the YAML editor to manage the full configuration." />
