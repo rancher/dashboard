@@ -311,7 +311,7 @@ export default {
         return null;
       }
 
-      const schema = this.$store.getters['management/schemaFor'](`rke-machine-config.cattle.io.${ this.provider }config`);
+      const schema = this.$store.getters['management/schemaFor'](`${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`);
 
       return schema;
     },
@@ -449,7 +449,7 @@ export default {
       if ( existing?.length ) {
         for ( const pool of existing ) {
           const config = await this.$store.dispatch('management/find', {
-            type: `provisioning.cattle.io.${ pool.machineConfigRef.kind.toLowerCase() }`,
+            type: `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`,
             id:   `${ this.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
           });
 
