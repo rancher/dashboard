@@ -835,20 +835,6 @@ export default {
             :mode="mode"
           />
         </template>
-
-        <template v-if="serverArgs['etcd-s3'] && serverConfig['etcd-s3'] !== false">
-          <pre><code>
-            --etcd-s3                              (db) Enable backup to S3
-            --etcd-s3-endpoint value               (db) S3 endpoint url (default: "s3.amazonaws.com")
-            --etcd-s3-endpoint-ca value            (db) S3 custom CA cert to connect to S3 endpoint
-            --etcd-s3-skip-ssl-verify              (db) Disables S3 SSL certificate validation
-            --etcd-s3-access-key value             (db) S3 access key [$AWS_ACCESS_KEY_ID]
-            --etcd-s3-secret-key value             (db) S3 secret key [$AWS_SECRET_ACCESS_KEY]
-            --etcd-s3-bucket value                 (db) S3 bucket name
-            --etcd-s3-region value                 (db) S3 region / bucket location (optional) (default: "us-east-1")
-            --etcd-s3-folder value                 (db) S3 folder
-          </code></pre>
-        </template>
       </Tab>
 
       <Tab v-if="haveArgInfo" name="networking" label-key="cluster.tabs.networking" :weight="8">

@@ -510,9 +510,9 @@ asyncButton:
     waiting: Restoring&hellip;
     success: Restored
   snapshot:
-    action: Snapshow Now
+    action: Snapshot Now
     waiting: Snapshotting&hellip;
-    success: Shapshot Creating
+    success: Snapshot Creating
   update:
     action: Update
     success: Updated
@@ -961,7 +961,7 @@ cluster:
     googlegke: Google GKE
     gke: Google GKE
     huaweicce: Huawei CCE
-    import: Import
+    import: Generic
     imported: Imported
     k3s: K3s
     kubeAdmin: KubeADM
@@ -979,7 +979,7 @@ cluster:
     rackspace: RackSpace
     rancherkubernetesengine: RKE
     rke2: RKE2
-    rke: RKE
+    rke: RKE1
     rkeWindows: Windows
     softlayer: SoftLayer
     tencenttke: Tencent TKE

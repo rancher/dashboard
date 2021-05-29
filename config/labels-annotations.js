@@ -28,9 +28,10 @@ export const STORAGE = {
 };
 
 export const NODE_ROLES = {
-  CONTROL_PLANE: 'node-role.kubernetes.io/controlplane',
-  WORKER:        'node-role.kubernetes.io/worker',
-  ETCD:          'node-role.kubernetes.io/etcd',
+  CONTROL_PLANE_OLD: 'node-role.kubernetes.io/controlplane',
+  CONTROL_PLANE:     'node-role.kubernetes.io/control-plane',
+  WORKER:            'node-role.kubernetes.io/worker',
+  ETCD:              'node-role.kubernetes.io/etcd',
 };
 
 export const CAPI = {

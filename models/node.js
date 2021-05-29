@@ -90,15 +90,18 @@ export default {
   },
 
   isWorker() {
-    const { WORKER: worker } = NODE_ROLES;
-
-    return `${ this.labels[worker] }` === 'true';
+    return `${ this.labels[NODE_ROLES.WORKER] }` === 'true';
   },
 
   isControlPlane() {
-    const { CONTROL_PLANE: controlPlane } = NODE_ROLES;
+    if (
+      `${ this.labels[NODE_ROLES.CONTROL_PLANE] }` === 'true' ||
+      `${ this.labels[NODE_ROLES.CONTROL_PLANE_OLD] }` === 'true'
+    ) {
+      return true;
+    }
 
-    return `${ this.labels[controlPlane] }` === 'true';
+    return false;
   },
 
   isEtcd() {
