@@ -36,6 +36,7 @@ export const SETTING = {
   UI_DASHBOARD_INDEX:               'ui-dashboard-index',
   UI_OFFLINE_PREFERRED:             'ui-offline-preferred',
   SYSTEM_DEFAULT_REGISTRY:          'system-default-registry',
+  UI_ISSUES:                        'ui-issues',
   PL:                               'ui-pl',
   PL_RANCHER_VALUE:                 'rancher',
   SUPPORTED:                        'has-support',

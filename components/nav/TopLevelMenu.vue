@@ -10,6 +10,7 @@ import { ucFirst } from '@/utils/string';
 import { KEY } from '@/utils/platform';
 import { getVersionInfo } from '@/utils/version';
 import { LEGACY } from '@/store/features';
+import { SETTING } from '@/config/settings';
 
 const UNKNOWN = 'unknown';
 const UI_VERSION = process.env.VERSION || UNKNOWN;
@@ -136,6 +137,24 @@ export default {
       });
 
       return entries;
+    },
+
+    showSupportLink() {
+      const hasSupport = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value;
+
+      if (hasSupport === 'true') {
+        const canEditSettings = (this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PATCH');
+
+        if (canEditSettings) {
+          return { name: 'support' };
+        } else {
+          const uiIssues = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_ISSUES )?.value;
+
+          return uiIssues || null;
+        }
+      }
+
+      return { name: 'support' };
     }
   },
 
@@ -288,8 +307,8 @@ export default {
           <div class="pad"></div>
         </div>
         <div class="footer">
-          <div @click="hide()">
-            <nuxt-link :to="{name: 'support' }">
+          <div v-if="showSupportLink" @click="hide()">
+            <nuxt-link :to="showSupportLink">
               {{ t('nav.support') }}
             </nuxt-link>
           </div>
