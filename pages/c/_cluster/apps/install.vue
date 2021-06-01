@@ -1173,7 +1173,7 @@ export default {
   }
 
   .slideIn {
-    $slideout-width: 500px;
+    $slideout-width: 35%;
 
     border-left: var(--header-border-size) solid var(--header-border);
     position: absolute;
