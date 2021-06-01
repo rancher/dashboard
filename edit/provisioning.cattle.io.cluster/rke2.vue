@@ -17,10 +17,10 @@ import BadgeState from '@/components/BadgeState';
 import { CAPI, MANAGEMENT, SECRET } from '@/config/types';
 import { nlToBr } from '@/utils/string';
 import { clone, set } from '@/utils/object';
-import { sortable } from '@/utils/version';
+import { compare, sortable } from '@/utils/version';
 import { sortBy } from '@/utils/sort';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
-import { _CREATE } from '@/config/query-params';
+import { _CREATE, _EDIT } from '@/config/query-params';
 import { findBy, removeObject } from '@/utils/array';
 import difference from 'lodash/difference';
 import SelectCredential from './SelectCredential';
@@ -194,45 +194,60 @@ export default {
     },
 
     versionOptions() {
-      function filterAndMap(versions) {
+      function filterAndMap(versions, minVersion) {
         const out = (versions || []).filter(obj => !!obj.serverArgs).map((obj) => {
+          let disabled = false;
+
+          if ( minVersion ) {
+            disabled = compare(obj.id, minVersion) < 0;
+          }
+
           return {
             label:      obj.id,
             value:      obj.id,
             sort:       sortable(obj.id),
             serverArgs: obj.serverArgs,
             agentArgs:  obj.agentArgs,
+            disabled,
           };
         });
 
         return sortBy(out, 'sort:desc');
       }
 
-      const rke2 = filterAndMap(this.rke2Versions);
-      const k3s = filterAndMap(this.k3sVersions);
-      const cur = this.value?.spec?.kubernetesVersion;
+      const cur = this.value?.spec?.kubernetesVersion || '';
+      const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
+      const existingK3s = this.mode === _EDIT && cur.includes('k3s');
+      const rke2 = filterAndMap(this.rke2Versions, (existingRke2 ? cur : null));
+      const k3s = filterAndMap(this.k3sVersions, (existingK3s ? cur : null));
+      const showRke2 = rke2.length && !existingK3s;
+      const showK3s = k3s.length && !existingRke2;
       const out = [];
 
-      if ( cur ) {
-        let existing = rke2.find(x => x.value === cur);
-
-        if ( !existing ) {
-          existing = k3s.find(x => x.value === cur);
+      if ( showRke2 ) {
+        if ( showK3s ) {
+          out.push({ kind: 'group', label: this.t('cluster.provider.rke2') });
         }
 
-        if ( !existing ) {
-          out.push({ label: `${ cur } (current)`, value: cur });
-        }
-      }
-
-      if ( rke2.length ) {
-        out.push({ kind: 'group', label: this.t('cluster.provider.rke2') });
         out.push(...rke2);
       }
 
-      if ( k3s.length ) {
-        out.push({ kind: 'group', label: this.t('cluster.provider.k3s') });
+      if ( showK3s ) {
+        if ( showRke2 ) {
+          out.push({ kind: 'group', label: this.t('cluster.provider.k3s') });
+        }
+
         out.push(...k3s);
+      }
+
+      if ( cur ) {
+        const existing = out.find(x => x.value === cur);
+
+        if ( existing ) {
+          existing.disabled = false;
+        } else {
+          out.push({ label: `${ cur } (current)`, value: cur });
+        }
       }
 
       return out;
