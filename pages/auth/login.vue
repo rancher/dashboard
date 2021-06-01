@@ -210,7 +210,8 @@ export default {
             class="mb-10"
             :focus-on-mount="(idx === 0 && !showLocal)"
             :name="name"
-            :only-option="providers.length === 1 && !showLocal"
+            :open="!showLocal"
+            @showInputs="showLocal = false"
           />
         </div>
         <template v-if="hasLocal">
