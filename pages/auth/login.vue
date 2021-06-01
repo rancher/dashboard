@@ -211,7 +211,7 @@ export default {
             :focus-on-mount="(idx === 0 && !showLocal)"
             :name="name"
             :open="!showLocal"
-            @toggle="showLocal = false"
+            @showInputs="showLocal = false"
           />
         </div>
         <template v-if="hasLocal">

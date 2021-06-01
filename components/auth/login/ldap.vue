@@ -78,7 +78,7 @@ export default {
       </div>
     </template>
     <div v-else class="text-center">
-      <button style="font-size: 18px;" type="button" class="btn bg-primary" @click="$emit('toggle')">
+      <button style="font-size: 18px;" type="button" class="btn bg-primary" @click="$emit('showInputs')">
         {{ t('login.loginWithProvider', {provider: displayName}) }}
       </button>
     </div>
