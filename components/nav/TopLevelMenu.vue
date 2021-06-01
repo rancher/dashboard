@@ -404,7 +404,7 @@ export default {
     }
     svg {
       margin-right: 8px;
-      fill: var(--topmenu-text);
+      fill: var(--link);
     }
 
     > div {
@@ -502,6 +502,10 @@ export default {
         text-transform: uppercase;
         opacity: 0.8;
         margin-top: 10px;
+      }
+
+      .home {
+        color: var(--link);
       }
 
       .home:focus {
