@@ -3,7 +3,7 @@
 // an import with a variable in the path.
 
 export function importCloudCredential(name) {
-  if ( !name ) {
+  if (!name) {
     throw new Error('Name required');
   }
 
@@ -11,7 +11,7 @@ export function importCloudCredential(name) {
 }
 
 export function importMachineConfig(name) {
-  if ( !name ) {
+  if (!name) {
     throw new Error('Name required');
   }
 
@@ -19,7 +19,7 @@ export function importMachineConfig(name) {
 }
 
 export function importLogin(name) {
-  if ( !name ) {
+  if (!name) {
     throw new Error('Name required');
   }
 
@@ -27,7 +27,7 @@ export function importLogin(name) {
 }
 
 export function importChart(name) {
-  if ( !name ) {
+  if (!name) {
     throw new Error('Name required');
   }
 
@@ -35,7 +35,7 @@ export function importChart(name) {
 }
 
 export function importList(name) {
-  if ( !name ) {
+  if (!name) {
     throw new Error('Name required');
   }
 
@@ -43,7 +43,7 @@ export function importList(name) {
 }
 
 export function importDetail(name) {
-  if ( !name ) {
+  if (!name) {
     throw new Error('Name required');
   }
 
@@ -51,7 +51,7 @@ export function importDetail(name) {
 }
 
 export function importEdit(name) {
-  if ( !name ) {
+  if (!name) {
     throw new Error('Name required');
   }
 
@@ -59,10 +59,10 @@ export function importEdit(name) {
 }
 
 export function loadProduct(name) {
-  if ( !name ) {
+  if (!name) {
     throw new Error('Name required');
   }
 
   // Note: directly returns the import, not a function
-  return import(/* webpackChunkName: "product" */ `@/config/product/${ name }`);
+  return import(/* webpackChunkName: "product" */ `@/config/product/${name}`);
 }

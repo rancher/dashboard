@@ -4,13 +4,14 @@ import isEmpty from 'lodash/isEmpty';
 import InstallRedirect from '@/utils/install-redirect';
 import AlertTable from '@/components/AlertTable';
 import { NAME, CHART_NAME } from '@/config/product/monitoring';
-import { ENDPOINTS, MONITORING, WORKLOAD_TYPES } from '@/config/types';
+import { ENDPOINTS, MONITORING } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { findBy } from '@/utils/array';
 
 import Banner from '@/components/Banner';
 import LazyImage from '@/components/LazyImage';
 import SimpleBox from '@/components/SimpleBox';
+import { haveV1MonitoringWorkloads } from '@/utils/monitoring';
 
 const CATTLE_MONITORING_NAMESPACE = 'cattle-monitoring-system';
 
@@ -94,25 +95,7 @@ export default {
     async fetchDeps() {
       const { $store, externalLinks } = this;
 
-      const workloads = await Promise.all(
-        Object.values(WORKLOAD_TYPES).map(type => this.$store.dispatch('cluster/findAll', { type })
-        )
-      );
-
-      workloads.flat().forEach((workload) => {
-        if (
-          !isEmpty(workload?.spec?.template?.spec?.containers) &&
-          workload.spec.template.spec.containers.find(
-            c => c.image.includes('quay.io/coreos/prometheus-operator') ||
-              c.image.includes('rancher/coreos-prometheus-operator')
-          ) &&
-          workload?.metadata?.namespace !== CATTLE_MONITORING_NAMESPACE
-        ) {
-          if (!this.v1Installed) {
-            this.v1Installed = true;
-          }
-        }
-      });
+      this.v1Installed = await haveV1MonitoringWorkloads($store);
 
       const hash = await allHash({ endpoints: $store.dispatch('cluster/findAll', { type: ENDPOINTS }) });
 

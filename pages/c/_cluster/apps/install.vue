@@ -17,18 +17,20 @@ import Tabbed from '@/components/Tabbed';
 import UnitInput from '@/components/form/UnitInput';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import Wizard from '@/components/Wizard';
-
+import ChartMixin from '@/pages/c/_cluster/apps/chart_mixin';
+import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import { CATALOG, MANAGEMENT } from '@/config/types';
 import {
   CHART, FROM_TOOLS, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
 } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION, PROJECT } from '@/config/labels-annotations';
+
 import { exceptionToErrorsArray } from '@/utils/error';
 import { clone, diff, get, set } from '@/utils/object';
 import { findBy, insertAt } from '@/utils/array';
-import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
-import ChartMixin from '@/pages/c/_cluster/apps/chart_mixin';
+
 import isEqual from 'lodash/isEqual';
+import Vue from 'vue';
 
 const VALUES_STATE = {
   FORM: 'FORM',
@@ -131,6 +133,8 @@ export default {
       await this.loadValuesComponent();
     }
 
+    await this.loadChartSteps();
+
     if ( !this.loadedVersion || this.loadedVersion !== this.version.key ) {
       let userValues;
 
@@ -224,19 +228,26 @@ export default {
         label:       this.t('catalog.install.steps.basics.label'),
         subtext:     this.t('catalog.install.steps.basics.subtext'),
         ready:       true,
+        weight:  30
       },
       stepValues: {
         name:        'helmValues',
         label:       this.t('catalog.install.steps.helmValues.label'),
         subtext:     this.t('catalog.install.steps.helmValues.subtext'),
         ready:       true,
+        weight:  20
       },
       stepCommands: {
         name:        'helmCli',
         label:       this.t('catalog.install.steps.helmCli.label'),
         subtext:     this.t('catalog.install.steps.helmCli.subtext'),
         ready:       true,
-      }
+        weight:  10
+      },
+
+      customSteps: [
+
+      ]
     };
   },
 
@@ -410,14 +421,17 @@ export default {
     },
 
     steps() {
-      const steps = [this.stepBasic];
+      const steps = [
+        this.stepBasic,
+        this.stepValues,
+        ...this.customSteps
+      ];
 
-      steps.push(this.stepValues);
       if (this.showCommandStep) {
         steps.push(this.stepCommands);
       }
 
-      return steps;
+      return steps.sort((a, b) => (b.weight || 0) - (a.weight || 0));
     },
 
     cmdOptions() {
@@ -503,6 +517,8 @@ export default {
   async mounted() {
     await this.loadValuesComponent();
 
+    await this.loadChartSteps();
+
     window.scrollTop = 0;
 
     // For easy access debugging...
@@ -541,6 +557,32 @@ export default {
         this.componentHasTabs = false;
         this.showValuesComponent = false;
       }
+    },
+
+    async loadChartSteps() {
+      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT] || this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
+
+      if ( component ) {
+        const steps = await this.$store.getters['catalog/chartSteps'](component);
+
+        this.customSteps = await Promise.all( steps.map(cs => this.loadChartStep(cs)));
+      }
+    },
+
+    async loadChartStep(customStep) {
+      const loaded = await customStep.component();
+      const withFallBack = this.$store.getters['i18n/withFallback'];
+
+      return {
+        name:        customStep.name,
+        label:       withFallBack(loaded?.default?.label, null, customStep.name),
+        subtext:     withFallBack(loaded?.default?.subtext, null, ''),
+        weight:      loaded?.default?.weight,
+        ready:       false,
+        hidden:      true,
+        loading:    true,
+        component: customStep.component,
+      };
     },
 
     selectChart(chart) {
@@ -684,7 +726,7 @@ export default {
         }
       }
 
-      if ( values.global?.cattle.windows && !Object.keys(values.global.cattle.windows).length ) {
+      if ( values.global?.cattle?.windows && !Object.keys(values.global.cattle.windows).length ) {
         delete values.global.cattle.windows;
       }
 
@@ -847,6 +889,16 @@ export default {
         component: 'ChartReadme',
         attrs:     { versionInfo: this.versionInfo }
       }, { root: true });
+    },
+
+    updateStep(stepName, update) {
+      const step = this.steps.find(step => step.name === stepName);
+
+      if (step) {
+        for (const prop in update) {
+          Vue.set(step, prop, update[prop]);
+        }
+      }
     }
   },
 };
@@ -867,6 +919,14 @@ export default {
       @cancel="cancel"
       @finish="finish"
     >
+      <template v-for="customStep of customSteps" v-slot:[customStep.name]>
+        <component
+          :is="customStep.component"
+          :key="customStep.name"
+          @update="updateStep(customStep.name, $event)"
+          @errors="e=>errors.push(...e)"
+        />
+      </template>
       <template #bannerTitleImage>
         <div class="logo-bg">
           <LazyImage :src="chart ? chart.icon : ''" class="logo" />
@@ -1111,6 +1171,7 @@ export default {
 <style lang="scss" scoped>
   $title-height: 50px;
   $padding: 5px;
+  $slideout-width: 35%;
 
   .install-steps {
     position: relative; overflow: hidden;

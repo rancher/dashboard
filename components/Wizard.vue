@@ -2,6 +2,7 @@
 
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
+import Loading from '@/components/Loading';
 import { stringify } from '@/utils/error';
 
 /*
@@ -20,7 +21,8 @@ Wizard will emit these events:
 export default {
   components: {
     AsyncButton,
-    Banner
+    Banner,
+    Loading,
   },
 
   props:      {
@@ -31,6 +33,8 @@ export default {
     subtext: String (optional) - If defined, appears below the step number in the banner. If blank, label is used
     ready: Boolean - whether or not the step is completed/wizard is able to go to next step
       if a step has ready=true, the wizard also allows navigation *back* to it
+    hidden: Don't show step, though include in DOM (dynamic steps must be in DOM to determine if they will include themselves in wizard)
+    loading: Wizard will block until all steps are not loading
   }
   */
     steps: {
@@ -93,7 +97,7 @@ export default {
   },
 
   data() {
-    return { activeStep: this.steps[this.initStepIndex] };
+    return { activeStep: null };
   },
 
   computed: {
@@ -102,23 +106,41 @@ export default {
     },
 
     activeStepIndex() {
-      return this.steps.indexOf(this.activeStep);
+      return this.visibleSteps.indexOf(this.activeStep);
     },
 
     canNext() {
-      return (this.activeStepIndex < this.steps.length - 1) && this.activeStep.ready;
+      return (this.activeStepIndex < this.visibleSteps.length - 1) && this.activeStep.ready;
     },
 
     readySteps() {
-      return this.steps.filter(step => step.ready);
+      return this.visibleSteps.filter(step => step.ready);
     },
 
     showSteps() {
       return this.activeStep.showSteps !== false;
+    },
+
+    stepsLoaded() {
+      return !this.steps.some(step => step.loading === true);
+    },
+
+    visibleSteps() {
+      return this.steps.filter(step => !step.hidden);
+    }
+  },
+
+  watch: {
+    stepsLoaded(neu, old) {
+      if (!old && neu) {
+        this.activeStep = this.visibleSteps[this.initStepIndex];
+        this.goToStep(this.activeStepIndex + 1);
+      }
     }
   },
 
   created() {
+    this.activeStep = this.visibleSteps[this.initStepIndex];
     this.goToStep(this.activeStepIndex + 1);
   },
 
@@ -133,7 +155,7 @@ export default {
         return;
       }
 
-      const selected = this.steps[number - 1];
+      const selected = this.visibleSteps[number - 1];
 
       if ( !selected || (!this.isAvailable(selected) && number !== 1)) {
         return;
@@ -166,14 +188,14 @@ export default {
         return false;
       }
 
-      const idx = this.steps.indexOf(step);
+      const idx = this.visibleSteps.indexOf(step);
 
       if (idx === 0 && !this.editFirstStep) {
         return false;
       }
 
       for (let i = 0; i < idx; i++) {
-        if ( this.steps[i].ready === false ) {
+        if ( this.visibleSteps[i].ready === false ) {
           return false;
         }
       }
@@ -185,107 +207,110 @@ export default {
 </script>
 
 <template>
-  <div class="container">
-    <div class="header">
-      <div class="title">
-        <div v-if="showBanner" class="top choice-banner">
-          <div v-show="initialTitle || activeStepIndex > 0" class="title">
-            <!-- Logo -->
-            <slot name="bannerTitleImage">
-              <div v-if="bannerImage" class="round-image">
-                <LazyImage :src="bannerImage" class="logo" />
-                <!-- <img :src="bannerImage" /> -->
+  <div class="outer-container">
+    <Loading v-if="!stepsLoaded" mode="relative" />
+    <!-- Note - Don't v-else this.... the steps need to be included in order to update 'stepsLoaded' -->
+    <div class="outer-container" :class="{'hide': !stepsLoaded}">
+      <div class="header">
+        <div class="title">
+          <div v-if="showBanner" class="top choice-banner">
+            <div v-show="initialTitle || activeStepIndex > 0" class="title">
+              <!-- Logo -->
+              <slot name="bannerTitleImage">
+                <div v-if="bannerImage" class="round-image">
+                  <LazyImage :src="bannerImage" class="logo" />
+                </div>
+              </slot>
+              <!-- Title with subtext -->
+              <div class="subtitle">
+                <h2 v-if="bannerTitle">
+                  {{ bannerTitle }}
+                </h2>
+                <span v-if="bannerTitleSubtext" class="subtext">{{ bannerTitleSubtext }}</span>
               </div>
-            </slot>
-            <!-- Title with subtext -->
-            <div class="subtitle">
-              <h2 v-if="bannerTitle">
-                {{ bannerTitle }}
-              </h2>
-              <span v-if="bannerTitleSubtext" class="subtext">{{ bannerTitleSubtext }}</span>
+            </div>
+            <!-- Step number with subtext -->
+            <div v-if="activeStep" class="subtitle">
+              <h2>{{ t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
+              <slot name="bannerSubtext">
+                <span class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
+              </slot>
             </div>
           </div>
-          <!-- Step number with subtext -->
-          <div class="subtitle">
-            <h2>{{ t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
-            <slot name="bannerSubtext">
-              <span class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
+        </div>
+        <div class="step-sequence">
+          <ul
+            v-if="showSteps"
+            class="steps"
+            tabindex="0"
+            @keyup.right.stop="selectNext(1)"
+            @keyup.left.stop="selectNext(-1)"
+          >
+            <template v-for="(step, idx ) in visibleSteps">
+              <li
+
+                :id="step.name"
+                :key="step.name+'li'"
+                :class="{step: true, active: step === activeStep, disabled: !isAvailable(step)}"
+                role="presentation"
+              >
+                <span
+                  :aria-controls="'step' + idx+1"
+                  :aria-selected="step === activeStep"
+                  role="tab"
+                  class="controls"
+                  @click.prevent="goToStep(idx+1, true)"
+                >
+                  <span class="icon icon-lg" :class="{'icon-dot': step === activeStep, 'icon-dot-open':step !== activeStep}" />
+                  <span>
+                    {{ step.label }}
+                  </span>
+                </span>
+              </li>
+              <div v-if="idx!==visibleSteps.length-1" :key="step.name" class="divider" />
+            </template>
+          </ul>
+        </div>
+      </div>
+
+      <div class="step-container">
+        <template v-for="step in steps">
+          <div v-if="step === activeStep || step.hidden" :key="step.name" class="step-container__step" :class="{'hide': step !== activeStep && step.hidden}">
+            <slot :step="step" :name="step.name" />
+          </div>
+        </template>
+      </div>
+
+      <div class="controls-container">
+        <div v-for="(err,idx) in errorStrings" :key="idx">
+          <Banner color="error" :label="err" :closable="true" @close="errors.splice(idx, 1)" />
+        </div>
+        <div class="controls-row pt-20">
+          <slot name="cancel" :cancel="cancel">
+            <button type="button" class="btn role-secondary" @click="cancel">
+              <t k="generic.cancel" />
+            </button>
+          </slot>
+
+          <div class="controls-steps">
+            <slot v-if="activeStepIndex!==0" name="back" :back="back">
+              <button :disabled="!editFirstStep && activeStepIndex===1" type="button" class="btn role-secondary" @click="back()">
+                <t k="wizard.previous" />
+              </button>
+            </slot>
+            <slot v-if="activeStepIndex === visibleSteps.length-1" name="finish" :finish="finish">
+              <AsyncButton
+                :disabled="!activeStep.ready"
+                :mode="finishMode"
+                @click="finish"
+              />
+            </slot>
+            <slot v-else name="next" :next="next">
+              <button :disabled="!canNext" type="button" class="btn role-primary" @click="next()">
+                <t k="wizard.next" />
+              </button>
             </slot>
           </div>
-        </div>
-      </div>
-      <div class="step-sequence">
-        <ul
-          v-if="showSteps"
-          class="steps"
-          tabindex="0"
-          @keyup.right.stop="selectNext(1)"
-          @keyup.left.stop="selectNext(-1)"
-        >
-          <template v-for="(step, idx ) in steps">
-            <li
-
-              :id="step.name"
-              :key="step.name+'li'"
-              :class="{step: true, active: step === activeStep, disabled: !isAvailable(step)}"
-              role="presentation"
-            >
-              <span
-                :aria-controls="'step' + idx+1"
-                :aria-selected="step === activeStep"
-                role="tab"
-                class="controls"
-                @click.prevent="goToStep(idx+1, true)"
-              >
-                <span class="icon icon-lg" :class="{'icon-dot': step === activeStep, 'icon-dot-open':step !== activeStep}" />
-                <span>
-                  {{ step.label }}
-                </span>
-              </span>
-            </li>
-            <div v-if="idx!==steps.length-1" :key="step.name" class="divider" />
-          </template>
-        </ul>
-      </div>
-    </div>
-
-    <div class="step-container">
-      <template v-for="step in steps">
-        <div v-if="step === activeStep" :key="step.name" class="step-container__step">
-          <slot :step="step" :name="step.name" />
-        </div>
-      </template>
-    </div>
-
-    <div class="controls-container">
-      <div v-for="(err,idx) in errorStrings" :key="idx">
-        <Banner color="error" :label="err" :closable="true" @close="errors.splice(idx, 1)" />
-      </div>
-      <div class="controls-row pt-20">
-        <slot name="cancel" :cancel="cancel">
-          <button type="button" class="btn role-secondary" @click="cancel">
-            <t k="generic.cancel" />
-          </button>
-        </slot>
-
-        <div class="controls-steps">
-          <slot v-if="activeStepIndex!==0" name="back" :back="back">
-            <button :disabled="!editFirstStep && activeStepIndex===1" type="button" class="btn role-secondary" @click="back()">
-              <t k="wizard.previous" />
-            </button>
-          </slot>
-          <slot v-if="activeStepIndex === steps.length-1" name="finish" :finish="finish">
-            <AsyncButton
-              :disabled="!activeStep.ready"
-              :mode="finishMode"
-              @click="finish"
-            />
-          </slot>
-          <slot v-else name="next" :next="next">
-            <button :disabled="!canNext" type="button" class="btn role-primary" @click="next()">
-              <t k="wizard.next" />
-            </button>
-          </slot>
         </div>
       </div>
     </div>
@@ -295,7 +320,7 @@ export default {
 <style lang='scss' scoped>
 $spacer: 10px;
 
-.container {
+.outer-container {
   display: flex;
   flex-direction: column;
   flex: 1;
