@@ -944,6 +944,7 @@ cluster:
   provider:
     aliyunecs: Aliyun ECS
     aliyunkubernetescontainerservice: Alibaba ACK
+    aliyun:  Alibaba ACK
     amazonec2: Amazon EC2
     amazoneks: Amazon EKS
     aws: Amazon AWS
@@ -951,6 +952,7 @@ cluster:
     azureaks: Azure AKS
     aks: Azure AKS
     baiducloudcontainerengine: Baidu CCE
+    baidu: Baidu CCE
     cloudca: Cloud.ca
     custom: Custom
     digitalocean: DigitalOcean
@@ -971,6 +973,7 @@ cluster:
     oci: Oracle Cloud Infrastructure
     openstack: OpenStack
     opentelekomcloudcontainerengine: Open Telekom Cloud CCE
+    otccce: Open Telekom Cloud CCE
     oracleoke: Oracle OKE
     otc: Open Telekom Cloud
     other: Other
