@@ -159,15 +159,15 @@ export default {
 
   data() {
     return {
-      lastIdx:               0,
-      allSecrets:            null,
-      allPSPs:               null,
-      nodeComponent:         null,
-      credentialId:          null,
-      credential:            null,
-      machinePools:          null,
-      rke2Versions:          null,
-      k3sVersions:           null,
+      lastIdx:       0,
+      allSecrets:    null,
+      allPSPs:       null,
+      nodeComponent: null,
+      credentialId:  null,
+      credential:    null,
+      machinePools:  null,
+      rke2Versions:  null,
+      k3sVersions:   null,
       s3Backup:      false,
     };
   },
@@ -452,8 +452,8 @@ export default {
   },
 
   created() {
-    this.registerBeforeHook(this.saveMachinePools);
-    this.registerAfterHook(this.cleanupMachinePools);
+    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools');
+    this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
   },
 
   methods: {
@@ -795,15 +795,13 @@ export default {
               />
             </div>
           </div>
-
-          <div class="spacer" />
         </Tab>
 
         <Tab name="etcd" label-key="cluster.tabs.etcd" :weight="9">
           <div class="row">
             <div class="col span-6">
               <RadioGroup
-                v-model="rkeConfig.disableSnapshots"
+                v-model="rkeConfig.etcd.disableSnapshots"
                 name="etcd-disable-snapshots"
                 :options="[true, false]"
                 label="Automatic Snapshots"
@@ -811,6 +809,45 @@ export default {
                 :mode="mode"
               />
             </div>
+          </div>
+          <div v-if="rkeConfig.etcd.disableSnapshots !== true" class="row">
+            <div class="col span-6">
+              <LabeledInput v-model="rkeConfig.etcd.snapshotScheduleCron" :mode="mode" label="Cron Schedule" />
+            </div>
+            <div class="col span-6">
+              <UnitInput
+                v-model="rkeConfig.etcd.snapshotRetention"
+                :mode="mode"
+                label="Keep the last"
+                suffix="Snapshots"
+              />
+            </div>
+          </div>
+
+          <template v-if="rkeConfig.etcd.disableSnapshots !== true">
+            <div class="spacer" />
+
+            <RadioGroup
+              v-model="s3Backup"
+              name="etcd-s3"
+              :options="[false, true]"
+              label="Backup Snapshots to S3"
+              :labels="['Disable','Enable']"
+              :mode="mode"
+            />
+
+            <S3Config
+              v-if="s3Backup"
+              v-model="rkeConfig.etcd.s3"
+              :namespace="value.metadata.namespace"
+              :register-before-hook="registerBeforeHook"
+              :mode="mode"
+            />
+          </template>
+
+          <div class="spacer" />
+
+          <div class="row">
             <div class="col span-6">
               <RadioGroup
                 v-if="serverArgs['etcd-expose-metrics']"
@@ -823,35 +860,6 @@ export default {
               />
             </div>
           </div>
-
-          <template v-if="rkeConfig.disableSnapshots !== true">
-            <div class="row">
-              <div class="col span-6">
-                <LabeledInput v-model="rkeConfig.snapshotScheduleCron" :mode="mode" label="Cron Schedule" />
-              </div>
-              <div class="col span-6">
-                <UnitInput
-                  v-model="rkeConfig.snapshotRetention"
-                  :mode="mode"
-                  label="Keep the last"
-                  suffix="Snapshots"
-                />
-              </div>
-            </div>
-
-            <div class="spacer" />
-
-            <RadioGroup
-              v-model="s3Backup"
-              name="etcd-s3"
-              :options="[false, true]"
-              label="Backup Snapshots to S3"
-              :labels="['Disable','Enable']"
-              :mode="mode"
-            />
-
-            <S3Config v-if="s3Backup" v-model="rkeConfig.etcd.s3" :mode="mode" />
-          </template>
         </Tab>
 
         <Tab v-if="haveArgInfo" name="networking" label-key="cluster.tabs.networking" :weight="8">

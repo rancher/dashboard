@@ -2754,7 +2754,11 @@ selectOrCreateAuthSecret:
     none: None
     basic: HTTP Basic Auth
     ssh: SSH Key
+    aws: AWS/S3
     custom: Secret Name
+  aws:
+    accessKey: Access Key
+    secretKey: Secret Key
   ssh:
     publicKey: Public Key
     privateKey: Private Key
@@ -2765,6 +2769,7 @@ selectOrCreateAuthSecret:
   chooseExisting: "Choose an existing secret:"
   createSsh: Create a SSH Key Secret
   createBasic: Create a HTTP Basic Auth Secret
+  createAws: Create an AWS/S3 Auth Secret
 
 servicePorts:
   header:

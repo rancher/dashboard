@@ -40,7 +40,7 @@ export default {
           continue;
         }
 
-        mirrors[entry.hostname] = entry.endpoints.split(/\s*,\s*/).map(x => x.trim());
+        mirrors[entry.hostname] = { endpoint: entry.endpoints.split(/\s*,\s*/).map(x => x.trim()) };
       }
 
       set(this.value, 'spec.rkeConfig.registries.mirrors', mirrors);
