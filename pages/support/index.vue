@@ -46,17 +46,20 @@ export default {
 
     this.supportSetting = await fetchOrCreateSetting('has-support', 'false');
     this.brandSetting = await fetchOrCreateSetting(SETTING.BRAND, '');
+    this.hideCommunitySetting = await fetchOrCreateSetting(SETTING.HIDE_COMMUNITY, 'false');
+
     this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
   },
 
   data() {
     return {
-      vendor:          getVendor(),
-      supportKey:      '',
-      supportSetting:  null,
-      brandSetting:    null,
-      uiIssuesSetting: null,
-      promos:          [
+      vendor:               getVendor(),
+      supportKey:           '',
+      supportSetting:       null,
+      brandSetting:         null,
+      uiIssuesSetting:      null,
+      hideCommunitySetting: null,
+      promos:               [
         'support.promos.one',
         'support.promos.two',
         'support.promos.three',
@@ -71,7 +74,7 @@ export default {
     },
 
     options() {
-      return options(this.vendor, this.uiIssuesSetting?.value);
+      return options( this.uiIssuesSetting?.value, this.hideCommunitySetting?.value === 'true');
     },
 
     title() {

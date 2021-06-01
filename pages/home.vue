@@ -18,6 +18,7 @@ import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenRelease
 import PageHeaderActions from '@/mixins/page-actions';
 import { getVendor } from '@/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@/store/features';
+import { SETTING } from '@/config/settings';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 const RESET_CARDS_ACTION = 'reset-homepage-cards';
@@ -101,7 +102,7 @@ export default {
     },
 
     showSidePanel() {
-      return !(this.homePageCards.commercialSupportTip && this.homePageCards.communitySupportTip);
+      return this.showCommercialSupport || !this.homePageCards.communitySupportTip;
     },
 
     clusterHeaders() {
@@ -150,6 +151,12 @@ export default {
         //   label:  this.t('landing.clusters.explorer')
         // }
       ];
+    },
+
+    showCommercialSupport() {
+      const hasSupport = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED);
+
+      return !this.homePageCards.commercialSupportTip && hasSupport.value !== 'true';
     },
 
     ...mapGetters(['currentCluster', 'defaultClusterId'])
@@ -312,7 +319,7 @@ export default {
         </div>
         <div v-if="showSidePanel" class="col span-3">
           <CommunityLinks :pref="HIDE_HOME_PAGE_CARDS" pref-key="communitySupportTip" class="mb-20" />
-          <SimpleBox :pref="HIDE_HOME_PAGE_CARDS" pref-key="commercialSupportTip" :title="t('landing.commercial.title')">
+          <SimpleBox v-if="showCommercialSupport" :pref="HIDE_HOME_PAGE_CARDS" pref-key="commercialSupportTip" :title="t('landing.commercial.title')">
             <nuxt-link :to="{ path: 'support'}">
               {{ t('landing.commercial.body') }}
             </nuxt-link>

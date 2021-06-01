@@ -3,7 +3,6 @@ import { options } from '@/config/footer';
 import SimpleBox from '@/components/SimpleBox';
 import Closeable from '@/mixins/closeable';
 import { MANAGEMENT } from '@/config/types';
-import { getVendor } from '@/config/private-label';
 import { SETTING } from '@/config/settings';
 
 export default {
@@ -13,18 +12,20 @@ export default {
 
   async fetch() {
     this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
+    this.hideCommunitySetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.HIDE_COMMUNITY });
   },
 
   data() {
-    return { uiIssuesSetting: null };
+    return { uiIssuesSetting: null, hideCommunitySetting: null };
   },
   computed: {
-    pl() {
-      return getVendor();
-    },
 
     options() {
-      return options(this.pl, this.uiIssuesSetting?.value);
+      if (this.hideCommunitySetting?.value === 'true') {
+        return options(this.uiIssuesSetting?.value, this.hideCommunitySetting?.value === 'true');
+      }
+
+      return options( this.uiIssuesSetting?.value);
     },
   }
 };
