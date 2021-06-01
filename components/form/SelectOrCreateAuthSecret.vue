@@ -12,6 +12,7 @@ import { sortBy } from '@/utils/sort';
 const _NONE = '_none';
 const _BASIC = '_basic';
 const _SSH = '_ssh';
+const _AWS = '_aws';
 
 export default {
   components: {
@@ -71,6 +72,11 @@ export default {
       default: true,
     },
 
+    allowAws: {
+      type:    Boolean,
+      default: false,
+    },
+
     registerBeforeHook: {
       type:     Function,
       required: true,
@@ -88,7 +94,12 @@ export default {
   },
 
   async fetch() {
-    this.allSecrets = await this.$store.dispatch(`${ this.inStore }/findAll`, { type: SECRET });
+    // Avoid an async call and loading screen if already loaded by someone else
+    if ( this.$store.getters[`${ this.inStore }/haveAll`](SECRET) ) {
+      this.allSecrets = this.$store.getters[`${ this.inStore }/all`](SECRET);
+    } else {
+      this.allSecrets = await this.$store.dispatch(`${ this.inStore }/findAll`, { type: SECRET });
+    }
 
     let selected = _NONE;
 
@@ -114,8 +125,6 @@ export default {
       allSecrets: null,
       selected:   null,
 
-      username:   '',
-      password:   '',
       publicKey:  '',
       privateKey: '',
     };
@@ -125,12 +134,18 @@ export default {
     _SSH() {
       return _SSH;
     },
+
     _BASIC() {
       return _BASIC;
     },
 
+    _AWS() {
+      return _AWS;
+    },
+
     options() {
       const types = [];
+      const keys = [];
 
       if ( this.allowSsh ) {
         types.push(SECRET_TYPES.SSH);
@@ -140,12 +155,32 @@ export default {
         types.push(SECRET_TYPES.BASIC);
       }
 
+      if ( this.allowAws ) {
+        keys.push('accessKey');
+        keys.push('secretKey');
+      }
+
       const out = this.allSecrets
-        .filter(x => types.includes(x._type) )
         .filter(x => this.namespace && this.limitToNamespace ? x.metadata.namespace === this.namespace : true)
-        .map((x) => {
+        .filter((x) => {
+          // Must match one of the types if given
+          if ( types.length && !types.includes(x._type) ) {
+            return false;
+          }
+
+          // Must match ALL of the keys if given
+          if ( keys.length ) {
+            const dataKeys = Object.keys(x.data || {});
+
+            if ( !keys.every(key => dataKeys.includes(key)) ) {
+              return false;
+            }
+
+            return true;
+          }
+        }).map((x) => {
           return {
-            label: `${ x.metadata.name } (${ x.typeDisplay })`,
+            label: `${ x.metadata.name } (${ x.subTypeDisplay })`,
             group: x.metadata.namespace,
             value: x.id,
           };
@@ -183,7 +218,14 @@ export default {
       if ( this.allowSsh ) {
         out.unshift({
           label: this.t('selectOrCreateAuthSecret.createSsh'),
-          value: '_ssh',
+          value: _SSH,
+        });
+      }
+
+      if ( this.allowAws ) {
+        out.unshift({
+          label: this.t('selectOrCreateAuthSecret.createAws'),
+          value: _AWS,
         });
       }
 
@@ -209,7 +251,7 @@ export default {
         return '';
       }
 
-      if ( this.selected === _SSH || this.selected === _BASIC ) {
+      if ( this.selected === _SSH || this.selected === _BASIC || this.selected === _AWS ) {
         return 'col span-4';
       }
 
@@ -238,12 +280,14 @@ export default {
   created() {
     if (this.registerBeforeHook) {
       this.registerBeforeHook(this.doCreate, this.hookName);
+    } else {
+      throw new Error('Before Hook is missing');
     }
   },
 
   methods: {
     update() {
-      if ( !this.selected || this.selected === _SSH || this.selected === _BASIC || this.selected === _NONE ) {
+      if ( !this.selected || [_SSH, _BASIC, _AWS, _NONE].includes(this.selected) ) {
         this.$emit('input', null);
       } else {
         const split = this.selected.split('/');
@@ -262,38 +306,51 @@ export default {
     },
 
     async doCreate() {
-      if ( this.selected === _SSH || this.selected === _BASIC ) {
-        const secret = await this.$store.dispatch(`${ this.inStore }/create`, {
-          type:     SECRET,
-          metadata: {
-            namespace:    this.namespace,
-            generateName: this.generateName
-          },
-        });
-
-        if ( this.selected === _SSH ) {
-          secret._type = SECRET_TYPES.SSH;
-          secret.data = {
-            'ssh-publickey':  base64Encode(this.publicKey),
-            'ssh-privatekey': base64Encode(this.privateKey),
-          };
-        } else {
-          secret._type = SECRET_TYPES.BASIC;
-          secret.data = {
-            username:  base64Encode(this.username),
-            password: base64Encode(this.password),
-          };
-          if (this.allowCacerts && this.cacerts) {
-            secret.data.cacerts = base64Encode(this.cacerts);
-          }
-        }
-
-        await secret.save();
-
-        this.$nextTick(() => {
-          this.selected = secret.id;
-        });
+      if ( ![_SSH, _BASIC, _AWS].includes(this.selected) ) {
+        return;
       }
+
+      const secret = await this.$store.dispatch(`${ this.inStore }/create`, {
+        type:     SECRET,
+        metadata: {
+          namespace:    this.namespace,
+          generateName: this.generateName
+        },
+      });
+
+      let type, publicField, privateField;
+
+      switch ( this.selected ) {
+      case _SSH:
+        type = SECRET_TYPES.SSH;
+        publicField = 'ssh-publickey';
+        privateField = 'ssh-privatekey';
+        break;
+      case _BASIC:
+        type = SECRET_TYPES.BASIC;
+        publicField = 'username';
+        privateField = 'password';
+        break;
+      case _AWS:
+        type = SECRET_TYPES.OPAQUE;
+        publicField = 'accessKey';
+        privateField = 'secretKey';
+        break;
+      default:
+        throw new Error('Uknown type');
+      }
+
+      secret._type = type;
+      secret.data = {
+        [publicField]:  base64Encode(this.publicKey),
+        [privateField]: base64Encode(this.privateKey),
+      };
+
+      await secret.save();
+
+      this.$nextTick(() => {
+        this.selected = secret.id;
+      });
     },
   },
 };
@@ -334,10 +391,18 @@ export default {
       </template>
       <template v-else-if="selected === _BASIC">
         <div :class="moreCols">
-          <LabeledInput v-model="username" label-key="selectOrCreateAuthSecret.basic.username" />
+          <LabeledInput v-model="publicKey" label-key="selectOrCreateAuthSecret.basic.username" />
         </div>
         <div :class="moreCols">
-          <LabeledInput v-model="password" type="password" label-key="selectOrCreateAuthSecret.basic.password" />
+          <LabeledInput v-model="privateKey" type="password" label-key="selectOrCreateAuthSecret.basic.password" />
+        </div>
+      </template>
+      <template v-else-if="selected === _AWS">
+        <div :class="moreCols">
+          <LabeledInput v-model="publicKey" label-key="selectOrCreateAuthSecret.aws.accessKey" />
+        </div>
+        <div :class="moreCols">
+          <LabeledInput v-model="privateKey" type="password" label-key="selectOrCreateAuthSecret.aws.secretKey" />
         </div>
       </template>
     </div>

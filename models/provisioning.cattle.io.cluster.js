@@ -275,7 +275,7 @@ export default {
 
   etcdSnapshots() {
     return (this.status?.etcdSnapshots || []).map((x) => {
-      x.id = x._name;
+      x.id = x.name || x._name;
       x.type = 'etcdBackup';
       x.state = 'active';
       x.clusterId = this.id;

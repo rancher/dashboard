@@ -149,11 +149,12 @@ export const MANAGEMENT = {
 };
 
 export const CAPI = {
-  CAPI_CLUSTER:       'cluster.x-k8s.io.cluster',
-  MACHINE_DEPLOYMENT: 'cluster.x-k8s.io.machinedeployment',
-  MACHINE_SET:        'cluster.x-k8s.io.machineset',
-  MACHINE:            'cluster.x-k8s.io.machine',
-  RANCHER_CLUSTER:    'provisioning.cattle.io.cluster',
+  CAPI_CLUSTER:         'cluster.x-k8s.io.cluster',
+  MACHINE_DEPLOYMENT:   'cluster.x-k8s.io.machinedeployment',
+  MACHINE_SET:          'cluster.x-k8s.io.machineset',
+  MACHINE:              'cluster.x-k8s.io.machine',
+  RANCHER_CLUSTER:      'provisioning.cattle.io.cluster',
+  MACHINE_CONFIG_GROUP: 'rke-machine-config.cattle.io',
 };
 
 // --------------------------------------
