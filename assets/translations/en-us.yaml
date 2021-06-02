@@ -4389,8 +4389,9 @@ support:
     addSubscription: Add a Subscription ID
     removeSubscription: Remove your Subscription ID
     addTitle: Add your SUSE Subscription ID
+    addLabel: "Please enter a valid Subscription ID:"
     removeTitle: Remove your ID?
-    removeBody: "Note: This will not effect your subscription."
+    removeBody: "Note: This will not affect your subscription."
   suse:
     title: "Great News - You're covered"
     editBrand: Customize UI Theme

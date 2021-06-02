@@ -115,6 +115,14 @@ export default {
     showDialog(isAdd) {
       this.isRemoveDialog = isAdd;
       this.$modal.show('toggle-support');
+    },
+
+    dialogOpened() {
+      const input = this.$refs.subscriptionIDInput;
+
+      if (input) {
+        input.focus();
+      }
     }
   }
 };
@@ -172,6 +180,7 @@ export default {
       name="toggle-support"
       height="auto"
       :width="340"
+      @opened="dialogOpened"
     >
       <Card :show-highlight-border="false" class="toogle-support">
         <template #title>
@@ -182,7 +191,10 @@ export default {
             {{ t('support.subscription.removeBody') }}
           </div>
           <div v-else class="mt-20">
-            <input v-model="supportKey" />
+            <p class="pb-10">
+              {{ t('support.subscription.addLabel') }}
+            </p>
+            <input ref="subscriptionIDInput" v-model="supportKey" />
           </div>
         </template>
         <template #actions>
