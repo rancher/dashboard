@@ -1,28 +1,15 @@
 <script>
-import { mapState, mapGetters } from 'vuex';
+import { mapState } from 'vuex';
 import { isArray } from '@/utils/array';
-import AsyncButton from '@/components/AsyncButton';
-import Card from '@/components/Card';
-import Banner from '@/components/Banner';
 import { importDialog } from '@/utils/dynamic-importer';
 
 export default {
-  components: {
-    Card,
-    AsyncButton,
-    Banner,
-  },
-
   data() {
-    return {
-      errors: [],
-      opened: false,
-    };
+    return { opened: false };
   },
 
   computed:   {
     ...mapState('action-menu', ['showModal', 'modalData']),
-    ...mapGetters({ t: 'i18n/t' }),
 
     resources() {
       let resources = this.modalData?.resources;
@@ -60,10 +47,6 @@ export default {
       this.errors = [];
       this.$store.commit('action-menu/togglePromptModal');
     },
-
-    modalClosed() {
-      this.close();
-    }
   }
 };
 </script>
@@ -75,7 +58,7 @@ export default {
     styles="background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 100vh;"
     height="auto"
     :scrollable="true"
-    @closed="modalClosed()"
+    @closed="close()"
   >
     <component :is="component" v-if="opened && component" :resources="resources" @close="close()" />
   </modal>
