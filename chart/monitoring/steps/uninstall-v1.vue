@@ -23,16 +23,17 @@ export default {
 
   data() {
     return {
-      uninstalled: false,
-      error:       null,
+      haveV1Monitoring: false,
+      error:            null,
     };
   },
 
   mounted() {
+    this.haveV1Monitoring = haveV1Monitoring(this.$store.getters);
     this.$emit('update', {
       loading: false,
       ready:   false,
-      hidden:  !haveV1Monitoring(this.$store.getters),
+      hidden:  !this.haveV1Monitoring,
     });
   },
 
@@ -48,9 +49,9 @@ export default {
             const hasV1MonitoringWorkloads = await haveV1MonitoringWorkloads(this.$store);
 
             if ((!hasV1Monitoring && !hasV1MonitoringWorkloads)) {
-              this.$emit('update', { ready: true });
+              this.$emit('update', { ready: true, hidden: true });
               buttonCb(true);
-              this.uninstalled = true;
+              this.haveV1Monitoring = false;
 
               return;
             }
@@ -70,22 +71,7 @@ export default {
 </script>
 <template>
   <div class="v1-monitoring">
-    <IconMessage
-      v-if="uninstalled"
-      class="mt-40"
-      icon="icon-checkmark"
-      :vertical="true"
-      icon-state="success"
-    >
-      <template #message>
-        <p class="">
-          {{ t('monitoring.installSteps.uninstallV1.success1') }}
-        </p>
-        <p class="mt-10" v-html="t('monitoring.installSteps.uninstallV1.success2')">
-        </p>
-      </template>
-    </IconMessage>
-    <template v-else>
+    <template v-if="haveV1Monitoring">
       <IconMessage
         class="mt-40 mb-20"
         icon="icon-warning"
@@ -103,10 +89,24 @@ export default {
       <AsyncButton
         mode="uninstall"
         :delay="2000"
-        :disabled="uninstalled"
         @click="uninstall"
       />
     </template>
+    <IconMessage
+      v-else
+      class="mt-40"
+      icon="icon-checkmark"
+      :vertical="true"
+      icon-state="success"
+    >
+      <template #message>
+        <p class="">
+          {{ t('monitoring.installSteps.uninstallV1.success1') }}
+        </p>
+        <p class="mt-10" v-html="t('monitoring.installSteps.uninstallV1.success2')">
+        </p>
+      </template>
+    </IconMessage>
   </div>
 </template>
 
