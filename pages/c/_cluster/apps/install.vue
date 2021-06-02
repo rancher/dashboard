@@ -1173,13 +1173,15 @@ export default {
   }
 
   .slideIn {
+    $slideout-width: 35%;
+
     border-left: var(--header-border-size) solid var(--header-border);
     position: absolute;
     top: 0;
-    right: -700px;
+    right: -$slideout-width;
     height: 100%;
     background-color: var(--topmenu-bg);
-    max-width: 35%;
+    width: $slideout-width;
     z-index: 10;
     display: flex;
     flex-direction: column;
