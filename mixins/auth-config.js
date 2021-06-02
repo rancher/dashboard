@@ -160,12 +160,12 @@ export default {
 
           this.model.allowedPrincipalIds = this.model.allowedPrincipalIds || [];
 
-          if ( this.me) {
-            if (!this.model.allowedPrincipalIds.includes(this.me.id) ) {
-              addObject(this.model.allowedPrincipalIds, this.me.id);
+          if ( this.principal) {
+            if (!this.model.allowedPrincipalIds.includes(this.principal.id) ) {
+              addObject(this.model.allowedPrincipalIds, this.principal.id);
             }
             // Session has switched to new 'me', ensure we react
-            this.$store.commit('auth/loggedInAs', this.me.id);
+            this.$store.commit('auth/loggedInAs', this.principal.id);
           } else {
             console.warn(`Unable to find principal marked as 'me'`); // eslint-disable-line no-console
           }
