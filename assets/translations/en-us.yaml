@@ -872,6 +872,17 @@ cluster:
     name:
       label: Credential Name
       placeholder: Name for this credential (optional)
+    vmwarevsphere:
+        server:
+          label: vCenter or ESXi Server
+          placeholder: vcenter.domain.com
+        port:
+          label: Port
+        username:
+          label: Username
+        password:
+          label: Password
+        note: 'Note: The free ESXi license does not support API access. Only servers with a valid or evaluation license are supported.'
   description:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
