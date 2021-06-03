@@ -236,6 +236,31 @@ export const getters = {
       return importChart(name);
     };
   },
+
+  chartSteps(state, getters) {
+    return (name) => {
+      const steps = [];
+
+      const stepsPath = `./${ name }/steps/`;
+      // require.context only takes literals, so find all candidate step files and filter out
+      const allPaths = require.context('@/chart', true, /\.vue$/).keys();
+
+      allPaths
+        .filter(path => path.startsWith(stepsPath))
+        .forEach((path) => {
+          try {
+            steps.push({
+              name:      path.replace(stepsPath, ''),
+              component: importChart(path.substr(2, path.length)),
+            });
+          } catch (e) {
+            console.warn(`Failed to load step component ${ path } for chart ${ name }`, e); // eslint-disable-line no-console
+          }
+        });
+
+      return steps;
+    };
+  }
 };
 
 export const mutations = {

@@ -513,6 +513,10 @@ asyncButton:
     action: Snapshot Now
     waiting: Snapshotting&hellip;
     success: Snapshot Creating
+  uninstall:
+    action: Uninstall
+    success: Uninstalled
+    waiting: Uninstalling&hellip;
   update:
     action: Update
     success: Updated
@@ -1763,7 +1767,6 @@ monitoring:
         label: Prometheus Targets
     subtitle: 'Powered By: <a href="https://github.com/coreos/prometheus-operator" target="_blank" rel="noopener noreferrer nofollow">Prometheus</a>'
     title: Dashboard
-    v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of {vendor} with monitoring enabled, please disable monitoring in Cluster Manager before attempting to use monitoring in Cluster Explorer.'
   prometheus:
     config:
       adminApi: Admin API
@@ -1822,6 +1825,14 @@ monitoring:
       repeatInterval: Repeat Interval
   routesAndReceivers: Routes and Receivers
   monitors: Monitors
+  installSteps:
+    uninstallV1:
+      stepTitle: Uninstall V1
+      stepSubtext: Uninstall Previous Monitoring
+      warning1: V1 Monitoring is currently deployed. This needs to be uninstalled before V2 monitoring can be installed.
+      warning2: <a target="blank" href="https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/migrating/#migrating-from-monitoring-v1-to-monitoring-v2" target='_blank' rel='noopener nofollow'>Learn more</a> about migrating to V2 Monitoring.
+      success1: V1 monitoring successfully uninstalled.
+      success2: Press Next to continue
   tabs:
     alerting: Alerting
     general: General
@@ -4217,6 +4228,7 @@ action:
   hide: Hide
   copy: Copy
   unassign: 'Unassign'
+  uninstall: Uninstall
 
 unit:
   sec: secs

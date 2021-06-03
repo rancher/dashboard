@@ -1,9 +1,17 @@
 <script>
 export default {
   props:      {
+    vertical: {
+      type:     Boolean,
+      default: false,
+    },
     icon: {
       type:     String,
       required: true,
+    },
+    iconState: {
+      type:     String,
+      default: null
     },
     message: {
       type:    String,
@@ -18,28 +26,52 @@ export default {
 </script>
 
 <template>
-  <div class="icon-message">
-    <i class="icon" :class="icon" />
+  <div class="icon-message" :class="{'vertical': vertical}">
+    <i class="icon" :class="{ [icon]: true, [iconState]: !!iconState}" />
     <div class="message">
-      <template v-if="messageKey">
-        {{ t(messageKey) }}
-      </template>
-      <template v-else>
-        {{ message }}
-      </template>
+      <slot name="message">
+        <template v-if="messageKey">
+          {{ t(messageKey) }}
+        </template>
+        <template v-else>
+          {{ message }}
+        </template>
+      </slot>
     </div>
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
+  .vertical {
+    flex-direction: column;
+    width: 100%;
+  }
+
   .icon-message {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex: 1;
 
     > I {
       font-size: 64px;
       margin-bottom: 20px;
+
+      &.info {
+      color: var(--primary);
+      }
+
+      &.error {
+        color: var(--error);
+      }
+
+      &.warning {
+        color: var(--warning);
+      }
+
+      &.success {
+        color: var(--success);
+      }
     }
 
     > .message {
@@ -49,5 +81,6 @@ export default {
       text-align: center;
       line-height: 30px;
     }
+
   }
 </style>
