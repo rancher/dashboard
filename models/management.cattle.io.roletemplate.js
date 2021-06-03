@@ -307,6 +307,10 @@ export default {
 
   doneOverride() {
     return this.listLocation;
+  },
+
+  parentLocationOverride() {
+    return this.listLocation;
   }
 
 };
