@@ -187,7 +187,10 @@ export default {
             // Move the app data to the v1 chart
             v1.app = v2.app;
             v2.app = undefined;
-            v2.blockedV1 = true;
+            v2.blocked = true;
+          } else {
+            // V2 is installed, so block V1
+            v1.blocked = true;
           }
         }
       }
@@ -358,7 +361,7 @@ export default {
           <AppSummaryGraph :row="opt.app" label-key="generic.resourceCount" :link-to="opt.app.detailLocation" />
         </div>
         <div class="action">
-          <template v-if="opt.blockedV1">
+          <template v-if="opt.blocked">
             <button disabled="true" class="btn btn-sm role-primary" v-html="t('catalog.tools.action.install')" />
           </template>
           <template v-else-if="opt.app && opt.chart.legacy">
