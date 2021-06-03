@@ -8,6 +8,7 @@ import ActionMenu from '@/components/ActionMenu';
 import WindowManager from '@/components/nav/WindowManager';
 import PromptRemove from '@/components/PromptRemove';
 import PromptRestore from '@/components/PromptRestore';
+import PromptModal from '@/components/PromptModal';
 import AssignTo from '@/components/AssignTo';
 import Group from '@/components/nav/Group';
 import Header from '@/components/nav/Header';
@@ -32,6 +33,7 @@ export default {
     PromptRemove,
     PromptRestore,
     AssignTo,
+    PromptModal,
     Header,
     ActionMenu,
     Group,
@@ -483,6 +485,7 @@ export default {
         <PromptRemove />
         <PromptRestore />
         <AssignTo />
+        <PromptModal />
         <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
         <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
         <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger()" />

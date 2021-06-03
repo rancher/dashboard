@@ -45,6 +45,20 @@ export default {
       enabled:    this.$rootGetters['isRancher'],
     });
 
+    const canSaveAsTemplate = this.isRke1 && this.mgmt.status.driver === 'rancherKubernetesEngine' && !this.mgmt.spec.clusterTemplateName && this.hasLink('update');
+
+    if (canSaveAsTemplate) {
+      insertAt(out, 2, { divider: true });
+
+      insertAt(out, 3, {
+        action:     'saveAsRKETemplate',
+        label:      'Save as RKE Template',
+        icon:       'icon icon-folder',
+        bulkable:   false,
+        enabled:    this.$rootGetters['isRancher'],
+      });
+    }
+
     return out;
   },
 
@@ -284,4 +298,13 @@ export default {
       return proxyFor(this.$ctx, x);
     });
   },
+
+  saveAsRKETemplate() {
+    return (resources = this) => {
+      this.$dispatch('promptModal', {
+        resources,
+        component: 'SaveAsRKETemplateDialog'
+      });
+    };
+  }
 };

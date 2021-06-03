@@ -399,6 +399,10 @@ export default {
     commit('action-menu/toggleAssignTo', resources, { root: true });
   },
 
+  promptModal({ commit, state }, data ) {
+    commit('action-menu/togglePromptModal', data, { root: true });
+  },
+
   async resourceAction({ getters, dispatch }, {
     resource, actionName, body, opt,
   }) {
