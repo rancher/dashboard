@@ -1,6 +1,6 @@
 const HIDDEN = ['rke', 'rancherkubernetesengine'];
-const V2 = ['amazoneks', 'googlegke'];
-const IMPORTABLE = ['amazoneks', 'googlegke'];
+const V2 = ['amazoneks', 'googlegke', 'azureaks'];
+const IMPORTABLE = ['amazoneks', 'googlegke', 'azureaks'];
 
 // The Ember create page has short names that don't match the full kontainer driver
 export const KONTAINER_TO_DRIVER = {
