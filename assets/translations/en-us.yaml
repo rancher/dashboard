@@ -697,7 +697,8 @@ catalog:
             true { app}
             false { chart}
           }. Start by setting some basic information used by {vendor} to manage the App.
-        createNamespace: Namespace will be created
+        nsCreationDescription: "To install the app into a new namespace enter it's name and select it in the Namespace field."
+        createNamespace: "Namespace <code>{namespace}</code> will be created."
       helmValues:
         label: Values
         subtext: Change how the App works
