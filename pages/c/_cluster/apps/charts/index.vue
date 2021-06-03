@@ -269,7 +269,7 @@ export default {
       }
 
       this.$router.push({
-        name:   'c-cluster-apps-chart',
+        name:   'c-cluster-apps-charts-chart',
         params: {
           cluster:  this.$route.params.cluster,
           product:  this.$store.getters['productId'],
