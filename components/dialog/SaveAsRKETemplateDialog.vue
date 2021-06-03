@@ -34,6 +34,11 @@ export default {
       return {};
     },
   },
+  mounted() {
+    this.$nextTick(() => {
+      this.$refs.templateName.focus();
+    });
+  },
   methods: {
     close() {
       this.$emit('close');
@@ -52,6 +57,15 @@ export default {
 
         buttonDone(true);
         this.close();
+
+        // Take the user to the RKE Templates view
+        this.$router.replace({
+          name:   'c-cluster-manager-pages-page',
+          params: {
+            cluster: 'local',
+            page:    'rke-templates'
+          }
+        });
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
         buttonDone(false);
@@ -73,6 +87,7 @@ export default {
         <Banner color="warning" label-key="promptSaveAsRKETemplate.warning" />
 
         <LabeledInput
+          ref="templateName"
           v-model="name"
           :label="t('promptSaveAsRKETemplate.name')"
           :required="true"
@@ -80,7 +95,7 @@ export default {
       </form>
     </div>
 
-    <div slot="actions">
+    <div slot="actions" class="buttons">
       <button class="btn role-secondary mr-10" @click="close">
         {{ t('generic.cancel') }}
       </button>
@@ -98,5 +113,10 @@ export default {
 <style lang='scss' scoped>
   .prompt-restore {
     margin: 0;
+  }
+  .buttons {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
   }
 </style>

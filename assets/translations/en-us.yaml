@@ -2459,7 +2459,7 @@ promptSaveAsRKETemplate:
   title: Create RKE Template from {cluster}
   name: Cluster Template Name
   description: Create a new RKE cluster template and initial revision from the current cluster configuration.
-  warning: This will modify the current cluster, setting up the cluster to use the newly created cluster template and revision.
+  warning: This will modify the cluster, setting it up to use the newly created cluster template and revision.
 
 rancherAlertingDrivers:
   msTeams: Enable Microsoft Teams

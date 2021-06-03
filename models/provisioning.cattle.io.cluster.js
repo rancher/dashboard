@@ -45,7 +45,7 @@ export default {
       enabled:    this.$rootGetters['isRancher'],
     });
 
-    const canSaveAsTemplate = this.isRke1 && this.mgmt.status.driver === 'rancherKubernetesEngine' && !this.mgmt.spec.clusterTemplateName;
+    const canSaveAsTemplate = this.isRke1 && this.mgmt.status.driver === 'rancherKubernetesEngine' && !this.mgmt.spec.clusterTemplateName && this.hasLink('update');
 
     if (canSaveAsTemplate) {
       insertAt(out, 2, { divider: true });
@@ -54,7 +54,7 @@ export default {
         action:     'saveAsRKETemplate',
         label:      'Save as RKE Template',
         icon:       'icon icon-folder',
-        bulkable:   true,
+        bulkable:   false,
         enabled:    this.$rootGetters['isRancher'],
       });
     }
