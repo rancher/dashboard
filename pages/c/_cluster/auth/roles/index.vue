@@ -12,23 +12,23 @@ const CLUSTER = SUBTYPE_MAPPING.CLUSTER.key;
 const PROJECT = SUBTYPE_MAPPING.NAMESPACE.key;
 
 const createGlobalRole = {
-  name:   'c-cluster-product-resource-create',
+  name:   `c-cluster-${ NAME }-roles-resource-create`,
   params: {
     cluster:  'local',
-    product:  NAME,
     resource: MANAGEMENT.GLOBAL_ROLE,
   }
 };
 const createRoleTemplate = {
-  name:   'c-cluster-product-resource-create',
+  name:   `c-cluster-${ NAME }-roles-resource-create`,
   params: {
     cluster:  'local',
-    product:  NAME,
     resource: MANAGEMENT.ROLE_TEMPLATE,
   }
 };
 
 export default {
+  name: 'Roles',
+
   components: {
     Tab, Tabbed, ResourceTable, Loading
   },

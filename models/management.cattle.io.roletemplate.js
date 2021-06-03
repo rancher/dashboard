@@ -298,6 +298,13 @@ export default {
     };
   },
 
+  detailLocation() {
+    return {
+      ...this._detailLocation,
+      name: `c-cluster-auth-roles-resource-id`,
+    };
+  },
+
   doneOverride() {
     return this.listLocation;
   }
