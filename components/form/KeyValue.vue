@@ -73,6 +73,11 @@ export default {
       default: true,
     },
 
+    keyOptionUnique: {
+      type:    Boolean,
+      default: false,
+    },
+
     keyPlaceholder: {
       type: String,
       default() {
@@ -211,6 +216,10 @@ export default {
       type:    Array,
       default: () => [': ', '='],
     },
+    loading: {
+      default: false,
+      type:    Boolean
+    },
   },
 
   data() {
@@ -279,6 +288,19 @@ export default {
     containerStyle() {
       return `grid-template-columns: repeat(${ 2 + this.extraColumns.length }, 1fr)${ this.removeAllowed ? ' 50px' : '' };`;
     },
+
+    usedKeyOptions() {
+      return this.rows.map(row => row[this.keyName]);
+    },
+
+    filteredKeyOptions() {
+      if (this.keyOptionUnique) {
+        return this.keyOptions
+          .filter(option => !this.usedKeyOptions.includes(option.value));
+      }
+
+      return this.keyOptions;
+    }
   },
 
   created() {
@@ -418,6 +440,16 @@ export default {
       this.queueUpdate();
     },
 
+    calculateOptions(value) {
+      const valueOption = this.keyOptions.find(o => o.value === value);
+
+      if (valueOption) {
+        return [valueOption, ...this.filteredKeyOptions];
+      }
+
+      return this.filteredKeyOptions;
+    },
+
     get,
 
   }
@@ -476,7 +508,8 @@ export default {
               :searchable="true"
               :clearable="false"
               :taggable="keyTaggable"
-              :options="keyOptions"
+              :options="calculateOptions(row[keyName])"
+              @input="queueUpdate"
             />
             <input
               v-else
@@ -545,8 +578,8 @@ export default {
 
     <div v-if="(addAllowed || readAllowed) && !isView" class="footer">
       <slot name="add" :add="add">
-        <button v-if="addAllowed" type="button" class="btn role-tertiary add" @click="add()">
-          {{ addLabel }}
+        <button v-if="addAllowed" type="button" class="btn role-tertiary add" :disabled="loading || (keyOptions && filteredKeyOptions.length === 0)" @click="add()">
+          <i v-if="loading" class="mr-5 icon icon-spinner icon-spin icon-lg" /> {{ addLabel }}
         </button>
         <FileSelector
           v-if="readAllowed"

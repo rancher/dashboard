@@ -140,6 +140,7 @@ product:
 suffix:
   percent: "%"
   milliCpus: mili CPUs
+  cores: Cores
   cpus: CPUs
   ib: iB
   mib: MiB
@@ -1020,6 +1021,83 @@ cluster:
           =1 {# vCPU}
           other {# vCPUs}
         }, {disk} GB Disk ({value})
+    vsphere:
+      hostOptions:
+        any: Any
+      vAppOptions:
+        label: vApp Options
+        description: Choose OVF environment properties
+        disable: Do not use vApp
+        auto: Use vApp to configure networks with network protocol profiles
+        manual: Provide a custom vApp config
+        restoreType: Restore Type
+        transport: 
+          label: OVF environment transport
+          tooltip: com.vmware.guestInfo or iso
+          placeholder: e.g. com.vmware.guestInfo
+        protocol:
+          label: vApp IP protocol
+          tooltip: IPv4 or IPv6
+          placeholder: e.g. IPv4
+        allocation:
+          label: vApp IP allocation policy
+          tooltip: dhcp, fixed, transient or fixedAllocated
+          placeholder: e.g. fixedAllocated
+        properties:
+          label: vApp properties
+          add: Add Property
+          keyPlaceholder: e.g. guestinfo.interface.0.ip.0.address
+          valuePlaceholder: e.g. ip:VM Network, expression or string
+      networks:
+        label: Networks
+        add: Add Network
+      guestinfo:
+        label: Configuration Parameters used for guestinfo
+        add: Add Parameter
+        keyPlaceholder: e.g. guestinfo.hostname
+        valuePlaceholder: e.g. myrancherhost
+      creationMethods:
+        template: 'Deploy from template: Data Center'
+        library: 'Deploy from template: Content Library'
+        vm: 'Clone an existing virtual machine'
+        legacy: 'Install from boot2docker ISO (Legacy)'
+      scheduling:
+        label: Scheduling
+        description: Choose what hypervisor the virtual machine will be scheduled to
+        dataCenter: Data Center
+        resourcePool: Resource Pool
+        dataStore: Data Store
+        folder: Folder
+        host: 
+          label: Host
+          note: Specific host to create VM on (leave blank for standalone ESXi or for cluster with DRS)
+      instanceOptions:
+        label: Instance Options
+        description: Choose the size and OS of the virtual machine
+        cpus: CPUs
+        memory: Memory
+        disk: Disk
+        creationMethod: Creation method
+        template: Template
+        contentLibrary: Content library
+        libraryTemplate: Library template
+        virtualMachine: Virtual machine
+        osIsoUrl: 
+          label: OS ISO URL
+          placeholder: 'Default: Latest rancheros-vmware image'
+        cloudInit:
+          label: Cloud Init
+          placeholder: e.g. http://my_host/cloud-config.yml
+          note: Cloud-init file or url to set in the guestinfo
+        cloudConfigYaml: Cloud Config YAML
+      tags:
+        label: Tags
+        description: Tags allow you to attach metadata to objects in the vSphere inventory to make it easier to sort and search for these objects.
+        addTag: Add Tag
+      customAttributes:
+        label: Custom attributes (legacy)
+        description: Custom attributes allow you to attach metadata to objects in the vSphere inventory to make it easier to sort and search for these objects.
+        add: Add custom attribute
 
   machinePool:
     name:
