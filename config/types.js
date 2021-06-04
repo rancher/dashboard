@@ -18,6 +18,7 @@ export const NORMAN = {
   CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterRoleTemplateBinding',
   GROUP:                         'group',
   PRINCIPAL:                     'principal',
+  PROJECT:                       'project',
   SPOOFED:                       { GROUP_PRINCIPAL: 'group.principal' },
   TOKEN:                         'token',
   USER:                          'user',
