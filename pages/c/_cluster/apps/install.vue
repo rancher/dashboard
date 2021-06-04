@@ -1,6 +1,7 @@
 <script>
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
+import isEqual from 'lodash/isEqual';
 import { mapPref, DIFF } from '@/store/prefs';
 
 import Banner from '@/components/Banner';
@@ -17,19 +18,17 @@ import Tabbed from '@/components/Tabbed';
 import UnitInput from '@/components/form/UnitInput';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import Wizard from '@/components/Wizard';
-import ChartMixin from '@/pages/c/_cluster/apps/chart_mixin';
+import ChartMixin from '@/mixins/chart';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import { CATALOG, MANAGEMENT } from '@/config/types';
 import {
-  CHART, FROM_TOOLS, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
+  CHART, FROM_CLUSTER, FROM_TOOLS, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
 } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION, PROJECT } from '@/config/labels-annotations';
 
 import { exceptionToErrorsArray } from '@/utils/error';
 import { clone, diff, get, set } from '@/utils/object';
 import { findBy, insertAt } from '@/utils/array';
-
-import isEqual from 'lodash/isEqual';
 import Vue from 'vue';
 
 const VALUES_STATE = {
@@ -64,7 +63,7 @@ export default {
   ],
 
   async fetch() {
-    await this.baseFetch();
+    await this.fetchChart();
 
     this.errors = [];
 
@@ -176,6 +175,8 @@ export default {
     this.updateStepOneReady();
 
     this.preFormYamlOption = this.valuesComponent || this.hasQuestions ? VALUES_STATE.FORM : VALUES_STATE.YAML;
+
+    this.reademeWindowName = `${ this.stepperName }-${ this.version?.version }`;
   },
 
   data() {
@@ -207,6 +208,7 @@ export default {
       valuesComponent:        null,
       valuesYaml:             '',
       project:                null,
+      reademeWindowName:      null,
 
       defaultCmdOpts,
       customCmdOpts: { ...defaultCmdOpts },
@@ -220,7 +222,7 @@ export default {
       showQuestions:       true,
       showSlideIn:         false,
       componentHasTabs:    false,
-      showCommandStep:        false,
+      showCommandStep:     false,
       isNamespaceNew:      false,
 
       stepBasic: {
@@ -350,10 +352,6 @@ export default {
       return EDITOR_MODES.EDIT_CODE;
     },
 
-    hasQuestions() {
-      return this.versionInfo && !!this.versionInfo.questions;
-    },
-
     showingYaml() {
       return this.formYamlOption === VALUES_STATE.YAML || ( !this.valuesComponent && !this.hasQuestions );
     },
@@ -391,15 +389,11 @@ export default {
     },
 
     stepperName() {
-      return this.existing?.nameDisplay || this.chart?.chartDisplayName;
+      return this.existing?.nameDisplay || this.chart?.chartNameDisplay;
     },
 
     stepperSubtext() {
       return this.existing && this.currentVersion !== this.targetVersion ? `${ this.currentVersion } > ${ this.targetVersion }` : this.targetVersion;
-    },
-
-    reademeWindowName() {
-      return `${ this.stepperName }-${ this.version.version }`;
     },
 
     showingReadmeWindow() {
@@ -421,11 +415,19 @@ export default {
     },
 
     steps() {
-      const steps = [
-        this.stepBasic,
-        this.stepValues,
-        ...this.customSteps
-      ];
+      let steps;
+
+      const type = this.version?.annotations?.[CATALOG_ANNOTATIONS.TYPE];
+
+      if ( type === CATALOG_ANNOTATIONS._CLUSTER_TPL ) {
+        steps = [this.stepValues];
+      } else {
+        steps = [
+          this.stepBasic,
+          this.stepValues,
+          ...this.customSteps
+        ];
+      }
 
       if (this.showCommandStep) {
         steps.push(this.stepCommands);
@@ -603,6 +605,8 @@ export default {
         this.done();
       } else if (this.$route.query[FROM_TOOLS] === _FLAGGED) {
         this.$router.replace(this.clusterToolsLocation());
+      } else if (this.$route.query[FROM_CLUSTER] === _FLAGGED) {
+        this.$router.replace(this.clustersLocation());
       } else {
         this.$router.replace(this.chartLocation(false));
       }
@@ -611,6 +615,8 @@ export default {
     done() {
       if ( this.$route.query[FROM_TOOLS] === _FLAGGED ) {
         this.$router.replace(this.clusterToolsLocation());
+      } else if (this.$route.query[FROM_CLUSTER] === _FLAGGED) {
+        this.$router.replace(this.clustersLocation());
       } else {
         // If the create app process fails helm validation then we still get here... so until this is fixed new apps will be taken to the
         // generic apps list (existing apps will be taken to their detail page)
@@ -878,7 +884,7 @@ export default {
     },
 
     getOptionLabel(opt) {
-      return opt?.chartDisplayName;
+      return opt?.chartNameDisplay;
     },
 
     showReadmeWindow() {

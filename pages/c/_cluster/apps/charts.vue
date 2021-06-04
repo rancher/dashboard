@@ -372,7 +372,7 @@ export default {
       <SelectIconGrid
         v-else
         :rows="filteredCharts"
-        name-field="chartDisplayName"
+        name-field="chartNameDisplay"
         description-field="chartDescription"
         :color-for="colorForChart"
         @clicked="(row) => selectChart(row)"

@@ -1,11 +1,11 @@
 import { compatibleVersionsFor } from '@/store/catalog';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, FROM_TOOLS, _FLAGGED, _UNFLAG
+  REPO_TYPE, REPO, CHART, VERSION, _FLAGGED,
 } from '@/config/query-params';
 
 export default {
-  goToInstall() {
-    return (fromTools) => {
+  queryParams() {
+    return (from) => {
       let version;
       const chartVersions = this.versions;
       const currentCluster = this.$rootGetters['currentCluster'];
@@ -22,16 +22,30 @@ export default {
         version = chartVersions[0].version;
       }
 
+      const out = {
+        [REPO_TYPE]:  this.repoType,
+        [REPO]:       this.repoName,
+        [CHART]:      this.chartName,
+        [VERSION]:    version,
+      };
+
+      if ( from ) {
+        out[from] = _FLAGGED;
+      }
+
+      return out;
+    };
+  },
+
+  goToInstall() {
+    return (from, clusterId) => {
+      const query = this.queryParams(from);
+      const currentCluster = this.$rootGetters['currentCluster'];
+
       this.currentRouter().push({
         name:   'c-cluster-apps-install',
-        params: { cluster: currentCluster.id },
-        query:  {
-          [REPO_TYPE]:  this.repoType,
-          [REPO]:       this.repoName,
-          [CHART]:      this.chartName,
-          [VERSION]:    version,
-          [FROM_TOOLS]: fromTools ? _FLAGGED : _UNFLAG
-        }
+        params: { cluster: clusterId || currentCluster.id },
+        query,
       });
     };
   },

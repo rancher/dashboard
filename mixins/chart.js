@@ -7,9 +7,10 @@ import {
 import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
 import { SHOW_PRE_RELEASE, mapPref } from '@/store/prefs';
 import { NAME as EXPLORER } from '@/config/product/explorer';
+import { NAME as MANAGER } from '@/config/product/manager';
 
 import { formatSi, parseSi } from '@/utils/units';
-import { CATALOG } from '@/config/types';
+import { CAPI, CATALOG } from '@/config/types';
 import { isPrerelease } from '@/utils/version';
 
 export default {
@@ -233,11 +234,15 @@ export default {
 
     isChartTargeted() {
       return this.chart?.targetNamespace && this.chart?.targetName;
-    }
+    },
+
+    hasQuestions() {
+      return this.versionInfo && !!this.versionInfo.questions;
+    },
   },
 
   methods: {
-    async baseFetch() {
+    async fetchChart() {
       await this.$store.dispatch('catalog/load');
 
       if ( this.query.appNamespace && this.query.appName ) {
@@ -369,6 +374,17 @@ export default {
           cluster:   this.$store.getters['clusterId'],
           resource:  CATALOG.APP,
         }
+      };
+    },
+
+    clustersLocation() {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster:  this.$route.params.cluster,
+          product:  MANAGER,
+          resource: CAPI.RANCHER_CLUSTER,
+        },
       };
     }
   },

@@ -118,7 +118,7 @@ export default {
     },
 
     showSteps() {
-      return this.activeStep.showSteps !== false;
+      return this.activeStep.showSteps !== false && this.visibleSteps.length > 1;
     },
 
     stepsLoaded() {
@@ -230,7 +230,7 @@ export default {
               </div>
             </div>
             <!-- Step number with subtext -->
-            <div v-if="activeStep" class="subtitle">
+            <div v-if="activeStep && showSteps" class="subtitle">
               <h2>{{ t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
               <slot name="bannerSubtext">
                 <span class="subtext">{{ activeStep.subtext || activeStep.label }}</span>

@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import Loading from '@/components/Loading';
-import { _FLAGGED, DEPRECATED, HIDDEN } from '@/config/query-params';
+import { _FLAGGED, DEPRECATED, HIDDEN, FROM_TOOLS } from '@/config/query-params';
 import { filterAndArrangeCharts } from '@/store/catalog';
 import { CATALOG } from '@/config/types';
 import LazyImage from '@/components/LazyImage';
@@ -86,7 +86,7 @@ export default {
       //  If legacy support is enabled, show V1 charts for some V1 Cluster tools
       if (this.legacyEnabled) {
         charts = charts.concat(this.legacyCharts);
-        charts = sortBy(charts, ['certifiedSort', 'chartDisplayName']);
+        charts = sortBy(charts, ['certifiedSort', 'chartNameDisplay']);
       }
 
       const chartsWithApps = charts.map((chart) => {
@@ -122,7 +122,7 @@ export default {
     _legacyChart(id) {
       return {
         certifiedSort:    1,
-        chartDisplayName: this.t(`v1ClusterTools.${ id }.label`),
+        chartNameDisplay: this.t(`v1ClusterTools.${ id }.label`),
         chartDescription: this.t(`v1ClusterTools.${ id }.description`),
         id:               `v1-${ id }`,
         chartName:        `v1-${ id }`,
@@ -144,7 +144,7 @@ export default {
     },
 
     install(chart) {
-      chart.goToInstall(true);
+      chart.goToInstall(FROM_TOOLS);
     },
 
     openV1Tool(id) {
@@ -337,7 +337,7 @@ export default {
         </div>
         <div class="name-version">
           <h3 class="name">
-            {{ opt.chart.chartDisplayName }}
+            {{ opt.chart.chartNameDisplay }}
           </h3>
           <div class="version">
             <template v-if="opt.app && opt.app.upgradeAvailable && !opt.chart.legacy">
