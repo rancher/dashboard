@@ -50,8 +50,9 @@ export default async function({
     // Load settings, which will either be just the public ones if not logged in, or all if you are
     await store.dispatch('management/findAll', {
       type: MANAGEMENT.SETTING,
-      load: _ALL_IF_AUTHED,
-      opt:  { url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false }
+      opt:  {
+        load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
+      }
     });
 
     const res = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);

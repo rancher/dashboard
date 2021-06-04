@@ -19,7 +19,10 @@ export default {
   async middleware({ store, redirect } ) {
     try {
       await store.dispatch('management/findAll', {
-        type: MANAGEMENT.SETTING, load: _ALL_IF_AUTHED, opt: { url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false }
+        type: MANAGEMENT.SETTING,
+        opt:  {
+          load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
+        }
       });
     } catch (e) {
     }
