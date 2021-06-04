@@ -5,7 +5,7 @@ import CruResource from '@/components/CruResource';
 import SelectIconGrid from '@/components/SelectIconGrid';
 import EmberPage from '@/components/EmberPage';
 import ToggleSwitch from '@/components/form/ToggleSwitch';
-import { SUB_TYPE, _IMPORT } from '@/config/query-params';
+import { CHART, FROM_CLUSTER, SUB_TYPE, _IMPORT } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@/utils/sort';
@@ -37,13 +37,13 @@ export default {
   name: 'CruCluster',
 
   components: {
-    Loading,
     CruResource,
-    SelectIconGrid,
-    Rke2Config,
-    Import,
     EmberPage,
-    ToggleSwitch,
+    Import,
+    Loading,
+    Rke2Config,
+    SelectIconGrid,
+    ToggleSwitch
   },
 
   mixins: [CreateEditView],
@@ -69,6 +69,7 @@ export default {
     const hash = {
       nodeDrivers:      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER }),
       kontainerDrivers: this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTANIER_DRIVER }),
+      catalog:          this.$store.dispatch('catalog/load'),
     };
 
     if ( this.value.id && !this.value.isRke2 ) {
@@ -103,8 +104,6 @@ export default {
     } else if ( this.value.mgmt?.emberEditPath ) {
       // Iframe an old page
       this.emberLink = this.value.mgmt.emberEditPath;
-    } else {
-      await this.$store.dispatch('catalog/load');
     }
 
     if ( !this.value.id ) {
@@ -118,12 +117,14 @@ export default {
 
   data() {
     const subType = this.$route.query[SUB_TYPE] || null;
+    const chart = this.$route.query[CHART] || null;
     const isImport = this.realMode === _IMPORT;
 
     return {
       nodeDrivers:      [],
-      kontainerDrivers:     [],
+      kontainerDrivers: [],
       subType,
+      chart,
       isImport,
       providerCluster:  null,
       emberLink:        null,
@@ -165,7 +166,9 @@ export default {
     },
 
     templateOptions() {
-      return filterAndArrangeCharts(this.allCharts, { showTypes: CATALOG._CLUSTER_TPL }).map(x => x.id);
+      const out = filterAndArrangeCharts(this.allCharts, { showTypes: CATALOG._CLUSTER_TPL });
+
+      return out;
     },
 
     subTypes() {
@@ -190,8 +193,14 @@ export default {
       if ( isImport ) {
         addType('import', 'custom', false);
       } else {
-        templates.forEach((id) => {
-          addType(id, 'template', true);
+        templates.forEach((chart) => {
+          out.push({
+            id:          `chart:${ chart.id }`,
+            label:       chart.chartNameDisplay,
+            description: chart.chartDescription,
+            icon:        chart.icon || require('~/assets/images/generic-catalog.svg'),
+            group:       'template',
+          });
         });
 
         if (this.isRke1 ) {
@@ -218,11 +227,9 @@ export default {
 
         const iconID = ICON_MAPPINGS[id] || id;
 
-        if ( group !== 'template' ) {
-          try {
-            icon = require(`~/assets/images/providers/${ iconID }.svg`);
-          } catch (e) {}
-        }
+        try {
+          icon = require(`~/assets/images/providers/${ iconID }.svg`);
+        } catch (e) {}
 
         const subtype = {
           id,
@@ -281,6 +288,16 @@ export default {
 
     clickedType(obj) {
       const id = obj.id;
+      const parts = id.split(':', 2);
+
+      if ( parts[0] === 'chart' ) {
+        const chart = this.$store.getters['catalog/chart']({ key: parts[1] });
+        const localCluster = this.$store.getters['management/all'](MANAGEMENT.CLUSTER).find(x => x.isLocal);
+
+        chart.goToInstall(FROM_CLUSTER, localCluster.id);
+
+        return;
+      }
 
       this.emberLink = obj.link;
       this.$router.applyQuery({ [SUB_TYPE]: id });
@@ -288,8 +305,15 @@ export default {
     },
 
     selectType(type, fetch = true) {
-      this.subType = type;
-      this.$emit('set-subtype', this.$store.getters['i18n/withFallback'](`cluster.provider."${ type }"`, null, type));
+      const parts = type.split(':', 2);
+
+      if ( parts[0] === 'chart' ) {
+        this.subType = 'chart';
+        this.$emit('set-subtype', this.$store.getters['i18n/withFallback'](`cluster.provider.chart`));
+      } else {
+        this.subType = type;
+        this.$emit('set-subtype', this.$store.getters['i18n/withFallback'](`cluster.provider."${ type }"`, null, type));
+      }
 
       if ( fetch ) {
         this.$fetch();

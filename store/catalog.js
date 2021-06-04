@@ -65,7 +65,11 @@ export const getters = {
 
   charts(state, getters, rootState, rootGetters) {
     const repoKeys = getters.repos.map(x => x._key);
-    const cluster = rootGetters['currentCluster'];
+    let cluster = rootGetters['currentCluster'];
+
+    if ( rootGetters['currentProduct'].inStore === 'management' ) {
+      cluster = null;
+    }
 
     // Filter out charts for repos that are no longer in the store, rather
     // than trying to clear them when a repo is removed.
@@ -87,8 +91,16 @@ export const getters = {
 
   chart(state, getters) {
     return ({
-      repoType, repoName, chartName, preferRepoType, preferRepoName, includeHidden
+      key, repoType, repoName, chartName, preferRepoType, preferRepoName, includeHidden
     }) => {
+      if ( key && !repoType && !repoName && !chartName) {
+        const parsed = parseKey(key);
+
+        repoType = parsed.repoType;
+        repoName = parsed.repoName;
+        chartName = parsed.chartName;
+      }
+
       let matching = filterBy(getters.charts, {
         repoType,
         repoName,
@@ -108,7 +120,7 @@ export const getters = {
         preferSameRepo(matching, preferRepoType, preferRepoName);
       }
 
-      return clone(matching[0]);
+      return matching[0];
     };
   },
 
@@ -124,7 +136,8 @@ export const getters = {
         name = gvr;
       }
 
-      const schema = rootGetters['cluster/schemaFor'](name);
+      const inStore = rootGetters['currentProduct'].inStore;
+      const schema = rootGetters[`${ inStore }/schemaFor`](name);
 
       if ( schema && (!version || schema.attributes.version === version) ) {
         return true;
@@ -219,7 +232,7 @@ export const getters = {
     return state.errors || [];
   },
 
-  haveComponent(state, getters) {
+  haveComponent() {
     return (name) => {
       try {
         require.resolve(`@/chart/${ name }`);
@@ -296,13 +309,14 @@ export const actions = {
     } = ctx;
 
     let promises = {};
+    const inStore = rootGetters['currentProduct'].inStore;
 
-    if ( rootGetters['cluster/schemaFor'](CATALOG.CLUSTER_REPO) ) {
-      promises.cluster = dispatch('cluster/findAll', { type: CATALOG.CLUSTER_REPO }, { root: true });
+    if ( rootGetters[`${ inStore }/schemaFor`](CATALOG.CLUSTER_REPO) ) {
+      promises.cluster = dispatch(`${ inStore }/findAll`, { type: CATALOG.CLUSTER_REPO }, { root: true });
     }
 
-    if ( rootGetters['cluster/schemaFor'](CATALOG.REPO) ) {
-      promises.namespaced = dispatch('cluster/findAll', { type: CATALOG.REPO }, { root: true });
+    if ( rootGetters[`${ inStore }/schemaFor`](CATALOG.REPO) ) {
+      promises.namespaced = dispatch(`${ inStore }/findAll`, { type: CATALOG.REPO }, { root: true });
     }
 
     const hash = await allHash(promises);
@@ -402,10 +416,24 @@ export const actions = {
   }
 };
 
+export function generateKey(repoType, repoName, chartName) {
+  return `${ repoType }/${ repoName }/${ chartName }`;
+}
+
+export function parseKey(key) {
+  const parts = key.split('/');
+
+  return {
+    repoType:  parts[0],
+    repoName:  parts[1],
+    chartName: parts[2],
+  };
+}
+
 function addChart(ctx, map, chart, repo) {
   const repoType = (repo.type === CATALOG.CLUSTER_REPO ? 'cluster' : 'namespace');
   const repoName = repo.metadata.name;
-  const key = `${ repoType }/${ repoName }/${ chart.name }`;
+  const key = generateKey(repoType, repoName, chart.name);
   let obj = map[key];
 
   const certifiedAnnotation = chart.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED];
@@ -448,7 +476,7 @@ function addChart(ctx, map, chart, repo) {
       color:            repo.color,
       chartType:        chart.annotations?.[CATALOG_ANNOTATIONS.TYPE] || CATALOG_ANNOTATIONS._APP,
       chartName:        chart.name,
-      chartDisplayName: chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
+      chartNameDisplay: chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
       chartDescription: chart.description,
       repoKey:          repo._key,
       versions:         [],
@@ -582,5 +610,5 @@ export function filterAndArrangeCharts(charts, {
     return true;
   });
 
-  return sortBy(out, ['certifiedSort', 'repoName', 'chartDisplayName']);
+  return sortBy(out, ['certifiedSort', 'repoName', 'chartNameDisplay']);
 }

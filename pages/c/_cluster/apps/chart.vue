@@ -1,6 +1,6 @@
 <script>
 import Loading from '@/components/Loading';
-import ChartMixin from '@/pages/c/_cluster/apps/chart_mixin';
+import ChartMixin from '@/mixins/chart';
 import Banner from '@/components/Banner';
 import ChartReadme from '@/components/ChartReadme';
 import LazyImage from '@/components/LazyImage';
@@ -22,7 +22,7 @@ export default {
   ],
 
   async fetch() {
-    await this.baseFetch();
+    await this.fetchChart();
   },
 
   data() {
@@ -100,7 +100,7 @@ export default {
             <nuxt-link :to="{ name: 'c-cluster-apps-charts' }">
               {{ t('catalog.chart.header.charts') }}:
             </nuxt-link>
-            {{ chart.chartDisplayName }} ({{ targetVersion }})
+            {{ chart.chartNameDisplay }} ({{ targetVersion }})
           </h1>
         </div>
         <button v-if="!requires.length" type="button" class="btn role-primary" @click.prevent="install">

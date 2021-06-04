@@ -1,63 +1,70 @@
 <script>
-import CreateEditView from '@/mixins/create-edit-view';
-import CruResource from '@/components/CruResource';
-import Loading from '@/components/Loading';
-import Tabbed from '@/components/Tabbed';
-import Tab from '@/components/Tabbed/Tab';
-import Banner from '@/components/Banner';
-import YamlEditor from '@/components/YamlEditor';
-import LabeledInput from '@/components/form/LabeledInput';
-import LabeledSelect from '@/components/form/LabeledSelect';
-import ArrayList from '@/components/form/ArrayList';
-import RadioGroup from '@/components/form/RadioGroup';
-import UnitInput from '@/components/form/UnitInput';
-import Checkbox from '@/components/form/Checkbox';
-import NameNsDescription from '@/components/form/NameNsDescription';
-import BadgeState from '@/components/BadgeState';
+import difference from 'lodash/difference';
+import { mapGetters } from 'vuex';
+
 import { CAPI, MANAGEMENT, SECRET } from '@/config/types';
+import { _CREATE, _EDIT } from '@/config/query-params';
+
 import { nlToBr } from '@/utils/string';
 import { clone, set } from '@/utils/object';
 import { compare, sortable } from '@/utils/version';
 import { sortBy } from '@/utils/sort';
-import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
-import { _CREATE, _EDIT } from '@/config/query-params';
 import { findBy, removeObject } from '@/utils/array';
-import difference from 'lodash/difference';
-import SelectCredential from './SelectCredential';
-import MachinePool from './MachinePool';
-import Labels from './Labels';
-import AgentEnv from './AgentEnv';
+
+import CreateEditView from '@/mixins/create-edit-view';
+import ArrayList from '@/components/form/ArrayList';
+import BadgeState from '@/components/BadgeState';
+import Banner from '@/components/Banner';
+import Checkbox from '@/components/form/Checkbox';
+import CruResource from '@/components/CruResource';
+import LabeledInput from '@/components/form/LabeledInput';
+import LabeledSelect from '@/components/form/LabeledSelect';
+import Loading from '@/components/Loading';
+import NameNsDescription from '@/components/form/NameNsDescription';
+import RadioGroup from '@/components/form/RadioGroup';
+import Tab from '@/components/Tabbed/Tab';
+import Tabbed from '@/components/Tabbed';
+import UnitInput from '@/components/form/UnitInput';
+import YamlEditor from '@/components/YamlEditor';
+
+import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
+
+import { allHash } from '@/utils/promise';
 import ACE from './ACE';
+import AgentEnv from './AgentEnv';
 import DrainOptions from './DrainOptions';
-import RegistryMirrors from './RegistryMirrors';
+import Labels from './Labels';
+import MachinePool from './MachinePool';
 import RegistryConfigs from './RegistryConfigs';
+import RegistryMirrors from './RegistryMirrors';
 import S3Config from './S3Config';
+import SelectCredential from './SelectCredential';
 
 export default {
   components: {
-    NameNsDescription,
-    CruResource,
-    Loading,
-    Tabbed,
-    Tab,
-    Banner,
-    YamlEditor,
+    ACE,
+    AgentEnv,
     ArrayList,
+    BadgeState,
+    Banner,
     Checkbox,
-    SelectCredential,
+    CruResource,
+    DrainOptions,
     LabeledInput,
     LabeledSelect,
-    RadioGroup,
-    UnitInput,
-    MachinePool,
-    BadgeState,
-    ACE,
-    DrainOptions,
-    AgentEnv,
     Labels,
-    RegistryMirrors,
+    Loading,
+    MachinePool,
+    NameNsDescription,
+    RadioGroup,
     RegistryConfigs,
-    S3Config
+    RegistryMirrors,
+    S3Config,
+    SelectCredential,
+    Tab,
+    Tabbed,
+    UnitInput,
+    YamlEditor,
   },
 
   mixins: [CreateEditView],
@@ -80,21 +87,28 @@ export default {
   },
 
   async fetch() {
-    this.allSecrets = await this.$store.dispatch('management/findAll', { type: SECRET });
-
-    if ( this.value.spec.cloudCredentialSecretName ) {
-      this.credentialId = `${ this.value.metadata.namespace }/${ this.value.spec.cloudCredentialSecretName }`;
-    }
+    const hash = {
+      allSecrets:   this.$store.dispatch('management/findAll', { type: SECRET }),
+      rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
+      k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
+    };
 
     if ( this.$store.getters['management/schemaFor'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
-      this.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
+      hash.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
     }
 
-    this.rke2Versions = (await this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' })).data;
-    this.k3sVersions = (await this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' })).data;
+    const res = await allHash(hash);
+
+    this.allSecrets = res.allSecrets;
+    this.rke2Versions = res.rke2Versions.data;
+    this.k3sVersions = res.k3sVersions.data;
 
     if ( !this.value.spec ) {
       set(this.value, 'spec', {});
+    }
+
+    if ( this.value.spec.cloudCredentialSecretName ) {
+      this.credentialId = `${ this.value.metadata.namespace }/${ this.value.spec.cloudCredentialSecretName }`;
     }
 
     if ( !this.value.spec.kubernetesVersion ) {
@@ -114,11 +128,11 @@ export default {
       });
     }
 
-    if ( !this.value.spec.rkeConfig?.controlPlaneConfig ) {
+    if ( !this.value.spec.rkeConfig.controlPlaneConfig ) {
       set(this.value.spec, 'rkeConfig.controlPlaneConfig', {});
     }
 
-    if ( !this.value.spec.rkeConfig?.workerConfig?.length ) {
+    if ( !this.value.spec.rkeConfig.workerConfig?.length ) {
       set(this.value.spec, 'rkeConfig.workerConfig', [{}]);
     }
 
@@ -173,6 +187,8 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ allCharts: 'catalog/charts' }),
+
     rkeConfig() {
       return this.value.spec.rkeConfig;
     },

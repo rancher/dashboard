@@ -5,6 +5,7 @@ import { STANDARD } from './config/private-label';
 import { directiveSsr as t } from './plugins/i18n';
 import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
 
+require('events').EventEmitter.defaultMaxListeners = 20;
 require('dotenv').config();
 
 const version = process.env.VERSION ||

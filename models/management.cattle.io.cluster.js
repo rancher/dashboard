@@ -193,7 +193,7 @@ export default {
   },
 
   scope() {
-    return this.id === 'local' ? CATALOG._MANAGEMENT : CATALOG._DOWNSTREAM;
+    return this.isLocal ? CATALOG._MANAGEMENT : CATALOG._DOWNSTREAM;
   },
 
   setClusterNameLabel() {

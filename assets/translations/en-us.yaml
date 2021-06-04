@@ -706,8 +706,8 @@ catalog:
           button: View Chart Info
           label: Chart Info
       helmCli:
-        checkbox: Enable additional deployment options
-        label: Deploy Options
+        checkbox: Customize Helm options before install
+        label: Helm Options
         subtext: Change how the app is deployed
         description: Supply additional deployment options
     version: Version

@@ -64,6 +64,7 @@ export const CATEGORY = 'category';
 export const DEPRECATED = 'deprecated';
 export const HIDDEN = 'hidden';
 export const FROM_TOOLS = 'tools';
+export const FROM_CLUSTER = 'cluster';
 
 // Cluster provisioning
 export const PROVIDER = 'provider';
