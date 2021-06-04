@@ -1,9 +1,10 @@
 import {
   CONFIG_MAP,
-  NAMESPACE, NODE, SECRET, INGRESS,
+  NODE, SECRET, INGRESS,
   WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD,
   RBAC,
   MANAGEMENT,
+  NAMESPACE,
   NORMAN,
 } from '@/config/types';
 
@@ -27,6 +28,7 @@ export function init(store) {
     basicType,
     ignoreType,
     mapGroup,
+    mapType,
     weightGroup,
     weightType,
     headers,
@@ -40,7 +42,7 @@ export function init(store) {
     weight:              3,
     showNamespaceFilter: true,
     icon:                'compass',
-    typeStoreMap:        { [MANAGEMENT.PROJECT]: 'management' }
+    typeStoreMap:        { [MANAGEMENT.PROJECT]: 'management', [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management' }
   });
 
   basicType(['cluster-dashboard', 'cluster-tools']);
@@ -77,6 +79,7 @@ export function init(store) {
     RBAC.CLUSTER_ROLE,
     RBAC.ROLE_BINDING,
     RBAC.CLUSTER_ROLE_BINDING,
+    'cluster-members'
   ], 'rbac');
 
   weightGroup('cluster', 99, true);
@@ -124,9 +127,12 @@ export function init(store) {
   mapGroup(/^(.*\.)?cluster\.x-k8s\.io$/, 'Cluster Provisioning');
   mapGroup(/^(aks|eks|gke|rke|rke-machine-config|provisioning)\.cattle\.io$/, 'Cluster Provisioning');
 
+  mapType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, store.getters['i18n/t'](`typeLabel.${ MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING }`, { count: 2 }));
+
   configureType(NODE, { isCreatable: false, isEditable: false });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
   configureType(PVC, { isEditable: false });
+  configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { isEditable: false });
 
   configureType('workload', {
     displayName: 'Workload',
@@ -200,7 +206,7 @@ export function init(store) {
   ]);
 
   virtualType({
-    label:       'Cluster Dashboard',
+    label:       store.getters['i18n/t']('clusterIndexPage.header'),
     group:      'Root',
     namespaced:  false,
     name:        'cluster-dashboard',
@@ -211,7 +217,18 @@ export function init(store) {
   });
 
   virtualType({
-    label:          'Overview',
+    label:       store.getters['i18n/t']('members.clusterMembers'),
+    group:      'rbac',
+    namespaced:  false,
+    name:        'cluster-members',
+    icon:       'globe',
+    weight:      100,
+    route:       { name: 'c-cluster-explorer-members' },
+    exact:       true,
+  });
+
+  virtualType({
+    label:          store.getters['i18n/t']('generic.overview'),
     group:          'Workload',
     namespaced:     true,
     name:           'workload',
@@ -226,7 +243,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:            'Projects/Namespaces',
+    label:            store.getters['i18n/t']('projectNamespaces.label'),
     group:            'cluster',
     icon:             'globe',
     namespaced:       false,
@@ -238,7 +255,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:            'Namespaces',
+    label:            store.getters['i18n/t'](`typeLabel.${ NAMESPACE }`, { count: 2 }),
     group:            'cluster',
     icon:             'globe',
     namespaced:       false,

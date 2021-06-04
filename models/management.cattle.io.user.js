@@ -17,6 +17,12 @@ export default {
     return !!(this.principalIds || []).find(p => p === currentPrincipal);
   },
 
+  principals() {
+    return this.principalIds
+      .map(id => this.$rootGetters['rancher/byId'](NORMAN.PRINCIPAL, id))
+      .filter(p => p);
+  },
+
   nameDisplay() {
     return this.displayName || this.username || this.id;
   },

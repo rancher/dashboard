@@ -1686,6 +1686,33 @@ login:
   loginWithLocal: Log in with Local User
   useProvider: Use a {provider} user
 
+members:
+  clusterMembers: Cluster Members
+  createActionLabel: Add
+  clusterPermissions:
+    noDescription: User created - no description
+    label: Cluster Permissions
+    description: Controls what access users have to the Cluster
+    createProjects: Create Projects
+    manageClusterBackups: Manage Cluster Backups
+    manageClusterCatalogs: Manage Cluster Catalogs
+    manageClusterMembers: Manage Cluster Members
+    manageNodes: Manage Nodes
+    manageStorage: Manage Storage
+    viewAllProjects: View All Projects
+    viewClusterCatalogs: View Cluster Catalogs
+    viewClusterMembers: View Cluster Members
+    viewNodes: View Nodes
+    owner:
+      label: Owner
+      description: Owners have full control over the Cluster and all resources inside it.
+    member:
+      label: Member
+      description: Members can manage the resources inside the Cluster but not change the Cluster itself.
+    custom:
+      label: Custom
+      description: Choose individual roles for this user.
+
 monitoring:
   accessModes:
     many: ReadWriteMany
@@ -2500,6 +2527,8 @@ rbac:
     fleetworkspace-admin: Admin
     fleetworkspace-member: Member
     fleetworkspace-readonly: Read-Only
+  members:
+    label: Members
   roletemplate:
     label: Roles
     newUserDefault:
@@ -4129,6 +4158,11 @@ typeLabel:
       one { Cluster Group }
       other {Cluster Groups }
     }
+  management.cattle.io.clusterroletemplatebinding: |-
+    {count, plural,
+      one { Cluster Member }
+      other { Cluster Members }
+    }
   fleet.cattle.io.gitrepo: |-
     {count, plural,
       one { Git Repo }
@@ -4214,6 +4248,11 @@ typeLabel:
     {count, plural,
       one { User }
       other { Users }
+    }
+  namespace: |-
+    {count, plural,
+      one { Namespace }
+      other { Namespaces }
     }
   group.principal: |-
     {count, plural,

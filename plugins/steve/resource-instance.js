@@ -684,7 +684,7 @@ export default {
         action:  (this.canCustomEdit ? 'goToClone' : 'cloneYaml'),
         label:   this.t('action.clone'),
         icon:    'icon icon-copy',
-        enabled:  this.canCreate && (this.canCustomEdit || this.canYaml),
+        enabled:  this.canClone && this.canCreate && (this.canCustomEdit || this.canYaml),
       },
       { divider: true },
       {
@@ -715,6 +715,10 @@ export default {
 
   _canDelete() {
     return this.hasLink('remove') && this.$rootGetters['type-map/optionsFor'](this.type).isRemovable;
+  },
+
+  canClone() {
+    return true;
   },
 
   canUpdate() {
@@ -839,7 +843,7 @@ export default {
           const schema = this.$getters['schemaFor'](this.type);
           let url = schema.linkFor('collection');
 
-          if ( schema.attributes && schema.attributes.namespaced ) {
+          if ( schema.attributes && schema.attributes.namespaced && this.metadata && this.metadata.namespace ) {
             url += `/${ this.metadata.namespace }`;
           }
 

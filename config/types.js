@@ -12,14 +12,15 @@ export const STEVE = {
 // Auth (via Norman)
 // Base: /v3
 export const NORMAN = {
-  AUTH_CONFIG:   'authconfig',
-  ETCD_BACKUP:   'etcdbackup',
-  CLUSTER_TOKEN: 'clusterregistrationtoken',
-  GROUP:         'group',
-  PRINCIPAL:     'principal',
-  SPOOFED:       { GROUP_PRINCIPAL: 'group.principal' },
-  TOKEN:         'token',
-  USER:          'user',
+  AUTH_CONFIG:                   'authconfig',
+  ETCD_BACKUP:                   'etcdbackup',
+  CLUSTER_TOKEN:                 'clusterregistrationtoken',
+  CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterRoleTemplateBinding',
+  GROUP:                         'group',
+  PRINCIPAL:                     'principal',
+  SPOOFED:                       { GROUP_PRINCIPAL: 'group.principal' },
+  TOKEN:                         'token',
+  USER:                          'user',
 };
 
 // Public (via Norman)
