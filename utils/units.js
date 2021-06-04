@@ -127,6 +127,26 @@ export function createMemoryFormat(n) {
   };
 }
 
+function createMemoryUnits(n) {
+  const exponent = exponentNeeded(n, MEMORY_PARSE_RULES.memory.format.increment);
+
+  return `${ UNITS[exponent] }${ MEMORY_PARSE_RULES.memory.format.suffix }`;
+}
+
+export function createMemoryValues(total, useful) {
+  const parsedTotal = parseSi((total || '0').toString());
+  const parsedUseful = parseSi((useful || '0').toString());
+  const format = createMemoryFormat(parsedTotal);
+  const formattedTotal = formatSi(parsedTotal, format);
+  const formattedUseful = formatSi(parsedUseful, format);
+
+  return {
+    total:  Number.parseFloat(formattedTotal),
+    useful: Number.parseFloat(formattedUseful),
+    units:  createMemoryUnits(parsedTotal)
+  };
+}
+
 export default {
   exponentNeeded,
   formatSi,
