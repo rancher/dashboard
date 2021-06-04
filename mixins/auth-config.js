@@ -27,7 +27,7 @@ export default {
     const serverUrl = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
       id:   'server-url',
-      opt:  { url: `/v1/{ MANAGEMENT.SETTING }/server-url` }
+      opt:  { url: `/v1/${ MANAGEMENT.SETTING }/server-url` }
     });
 
     this.principals = await this.$store.dispatch('rancher/findAll', {
