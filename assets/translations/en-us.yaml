@@ -386,7 +386,7 @@ authConfig:
     clientSecret: Client Secret
     customEndpoint:
       label: Endpoints
-      custom: Specify (advanced)
+      custom: Specify
       standard: Generate
     keycloak:
       url: Keycloak URL

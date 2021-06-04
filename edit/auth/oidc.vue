@@ -36,7 +36,7 @@ export default {
           true
         ]
       },
-      keycloak: {
+      keycloakUrls: {
         url:   null,
         realm: null
       }
@@ -61,22 +61,40 @@ export default {
 
   },
   watch: {
-    'keycloak.url'() {
-      this.updateKeycloak();
+    'keycloakUrls.url'() {
+      this.updateIssuerEndpoint();
     },
-    'keycloak.realm'() {
-      this.updateKeycloak();
+    'keycloakUrls.realm'() {
+      this.updateIssuerEndpoint();
+    },
+    'model.enabled'(neu) {
+      // Cover case where oidc gets disabled and we return to the edit screen with a reset model
+      if (!neu) {
+        this.keycloakUrls = {
+          url:   null,
+          realm: null
+        };
+        this.customEndpoint.value = false;
+      }
+    },
+    editConfig(neu, old) {
+      // Cover use case where user edits existing oidc (keycloakUrls aren't persisted, so if we have issuer & authEndpoint set custom endpoints to true)
+      if (!old && neu) {
+        this.customEndpoint.value = (!this.keycloakUrls.url && !this.keycloakUrls.authEndpoint) && (!!this.model.issuer && !!this.model.authEndpoint);
+      }
     }
-
   },
 
   methods: {
-    updateKeycloak() {
-      const url = this.keycloak.url.replaceAll(' ', '');
+    updateIssuerEndpoint() {
+      if (!this.keycloakUrls.url) {
+        return;
+      }
+      const url = this.keycloakUrls.url.replaceAll(' ', '');
 
-      this.model.issuer = `${ url }/auth/realms/${ this.keycloak.realm || '' }`;
+      this.model.issuer = `${ url }/auth/realms/${ this.keycloakUrls.realm || '' }`;
       this.model.authEndpoint = `${ this.model.issuer || '' }/protocol/openid-connect/auth`;
-    }
+    },
   }
 };
 </script>
@@ -180,7 +198,7 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
-              v-model="keycloak.url"
+              v-model="keycloakUrls.url"
               :label="t(`authConfig.oidc.keycloak.url`)"
               :mode="mode"
               :required="!customEndpoint.value"
@@ -189,7 +207,7 @@ export default {
           </div>
           <div class="col span-6">
             <LabeledInput
-              v-model="keycloak.realm"
+              v-model="keycloakUrls.realm"
               :label="t(`authConfig.oidc.keycloak.realm`)"
               :mode="mode"
               :required="!customEndpoint.value"
