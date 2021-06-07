@@ -4,7 +4,7 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { MANAGEMENT } from '@/config/types';
-import { PROJECT } from '@/config/labels-annotations';
+import { CONTAINER_DEFAULT_RESOURCE_LIMIT, PROJECT } from '@/config/labels-annotations';
 import ContainerResourceLimit from '@/components/ContainerResourceLimit';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
@@ -32,9 +32,12 @@ export default {
       originalQuotaId = `${ this.originalValue.metadata.name }/default-quota`;
     }
 
+    const project = this.value?.metadata?.labels?.[PROJECT] || this.$route.query[PROJECT_ID];
+
     return {
       originalQuotaId,
-      project: this.value?.metadata?.labels?.[PROJECT] || this.$route.query[PROJECT_ID],
+      project,
+      containerResourceLimits: this.value.annotations[CONTAINER_DEFAULT_RESOURCE_LIMIT] || this.getDefaultContainerResourceLimits(project)
     };
   },
 
@@ -70,6 +73,14 @@ export default {
     }
   },
 
+  watch: {
+    project(newProject) {
+      const limits = this.getDefaultContainerResourceLimits(newProject);
+
+      this.$set(this, 'containerResourceLimits', limits);
+    }
+  },
+
   created() {
     this.registerBeforeHook(this.willSave, 'willSave');
   },
@@ -81,6 +92,17 @@ export default {
 
       this.value.setLabel(PROJECT, this.project);
       this.value.setAnnotation(PROJECT, annotation);
+    },
+
+    getDefaultContainerResourceLimits(projectId) {
+      if (!projectId) {
+        return;
+      }
+
+      const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+      const project = projects.find(p => p.id.includes(projectId));
+
+      return project.spec.containerDefaultResourceLimit || {};
     }
   }
 
@@ -115,6 +137,8 @@ export default {
     <Tabbed :side-tabs="true">
       <Tab name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
         <ContainerResourceLimit
+          :key="JSON.stringify(containerResourceLimits)"
+          :value="containerResourceLimits"
           :mode="mode"
           :namespace="value"
           :register-before-hook="registerBeforeHook"
