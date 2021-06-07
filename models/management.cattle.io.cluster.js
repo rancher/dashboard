@@ -99,6 +99,8 @@ export default {
       }
     } else if ( this.driver && this.provisioner ) {
       provider = this.driver;
+    } else if ( !this.driver && provisioner.endsWith('v2') ) {
+      provider = provisioner;
     } else {
       provider = 'import';
     }
