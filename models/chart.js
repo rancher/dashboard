@@ -43,7 +43,7 @@ export default {
       const currentCluster = this.$rootGetters['currentCluster'];
 
       this.currentRouter().push({
-        name:   'c-cluster-apps-install',
+        name:   'c-cluster-apps-charts-install',
         params: { cluster: clusterId || currentCluster.id },
         query,
       });

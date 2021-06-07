@@ -341,7 +341,7 @@ export default {
       };
 
       return {
-        name:   install ? 'c-cluster-apps-install' : 'c-cluster-apps-chart',
+        name:   install ? 'c-cluster-apps-charts-install' : 'c-cluster-apps-charts-chart',
         params: {
           cluster:  this.$route.params.cluster,
           product:  this.$store.getters['productId'],

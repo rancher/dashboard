@@ -32,7 +32,7 @@ export default function(product, chartName, defaultResourceOrRoute) {
 
       if ( chart ) {
         return redirect({
-          name:   'c-cluster-apps-chart',
+          name:   'c-cluster-apps-charts-chart',
           params: { cluster },
           query:  {
             [REPO_TYPE]: chart.repoType,
