@@ -438,6 +438,10 @@ export default {
 
     cmdOptions() {
       return this.showCommandStep ? this.customCmdOpts : this.defaultCmdOpts;
+    },
+
+    namespaceNewAllowed() {
+      return !this.existing && !this.forceNamespace;
     }
   },
 
@@ -940,9 +944,12 @@ export default {
       </template>
       <template #basics>
         <div class="step__basic">
-          <p v-if="step1Description" class="row mb-10">
-            {{ step1Description }}
-          </p>
+          <Banner v-if="step1Description" color="info" class="description">
+            <span>{{ step1Description }}</span>
+            <span v-if="namespaceNewAllowed" class="mt-10">
+              {{ t('catalog.install.steps.basics.nsCreationDescription', {}, true) }}
+            </span>
+          </Banner>
           <div v-if="requires.length || warnings.length" class="mb-30">
             <Banner v-for="msg in requires" :key="msg" color="error">
               <span v-html="msg" />
@@ -953,7 +960,7 @@ export default {
             </Banner>
           </div>
           <div v-if="existing" class="row mb-10">
-            <div class="col span-6">
+            <div class="col span-4">
               <!-- We have a chart, select a new version -->
               <LabeledSelect
                 v-if="chart"
@@ -994,9 +1001,10 @@ export default {
             :name-required="false"
             :name-ns-hidden="!showNameEditor"
             :force-namespace="forceNamespace"
-            :namespace-new-allowed="!existing && !forceNamespace"
+            :namespace-new-allowed="namespaceNewAllowed"
             :extra-columns="showProject ? ['project'] : []"
             :show-spacer="false"
+            :horizontal="false"
             @isNamespaceNew="isNamespaceNew = $event"
           >
             <template v-if="showProject" #project>
@@ -1012,20 +1020,19 @@ export default {
               />
             </template>
           </NameNsDescription>
-          <div class="mt-10 mb-40">
-            {{ isNamespaceNew ? t('catalog.install.steps.basics.createNamespace') : '&nbsp;' }}
-          </div>
           <div class="step__values__controls--spacer" style="flex:1">
 &nbsp;
           </div>
+          <Banner v-if="isNamespaceNew" color="info" v-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) ">
+          </Banner>
 
-          <Checkbox v-model="showCommandStep" :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })" />
+          <Checkbox v-model="showCommandStep" class="mb-20" :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })" />
         </div>
       </template>
       <template #helmValues>
-        <p v-if="step2Description" class="row mb-10">
+        <Banner v-if="step2Description" color="info" class="description">
           {{ step2Description }}
-        </p>
+        </Banner>
         <div class="step__values__controls">
           <ButtonGroup
             v-model="preFormYamlOption"
@@ -1130,9 +1137,9 @@ export default {
         <ResourceCancelModal ref="cancelModal" :is-cancel-modal="false" :is-form="true" @cancel-cancel="preFormYamlOption=formYamlOption" @confirm-cancel="formYamlOption = preFormYamlOption;"></ResourceCancelModal>
       </template>
       <template #helmCli>
-        <p v-if="step3Description" class="row mb-10">
+        <Banner v-if="step3Description" color="info" class="description">
           {{ step3Description }}
-        </p>
+        </Banner>
         <div><Checkbox v-if="existing" v-model="customCmdOpts.cleanupOnFail" :label="t('catalog.install.helm.cleanupOnFail')" /></div>
         <div><Checkbox v-if="!existing" v-model="customCmdOpts.crds" :label="t('catalog.install.helm.crds')" /></div>
         <div><Checkbox v-model="customCmdOpts.hooks" :label="t('catalog.install.helm.hooks')" /></div>
@@ -1180,7 +1187,14 @@ export default {
   $slideout-width: 35%;
 
   .install-steps {
-    position: relative; overflow: hidden;
+    position: relative;
+    overflow: hidden;
+
+    .description {
+      display: flex;
+      flex-direction: column;
+      margin-top: 0;
+    }
   }
 
   .wizard {
@@ -1209,6 +1223,10 @@ export default {
 
   .step {
     &__basic {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+
       .spacer {
         line-height: 2;
       }

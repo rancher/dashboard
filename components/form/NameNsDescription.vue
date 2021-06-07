@@ -106,6 +106,10 @@ export default {
     showSpacer: {
       type:    Boolean,
       default: true
+    },
+    horizontal: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -191,6 +195,10 @@ export default {
     },
 
     colSpan() {
+      if (!this.horizontal) {
+        return `span-8`;
+      }
+
       let cols = (this.nameNsHidden ? 0 : 1) + (this.descriptionHidden ? 0 : 1) + this.extraColumns.length;
 
       cols = Math.max(2, cols); // If there's only one column, make it render half-width as if there were two
@@ -263,7 +271,7 @@ export default {
 
 <template>
   <div>
-    <div class="row name-ns-description">
+    <div class="name-ns-description" :class="{'flip-direction': !horizontal, row: true}">
       <div v-show="!nameNsHidden" :class="{ col: true, [colSpan]: true }">
         <slot :namespaces="namespaces" name="namespace">
           <InputWithSelect
@@ -334,6 +342,18 @@ export default {
           padding-bottom: 2px;
         }
       }
+    }
+  }
+
+  &.flip-direction {
+    flex-direction: column;
+
+    &.name-ns-description {
+      max-height: initial;
+    }
+
+    & > div > * {
+      margin-bottom: 20px;
     }
   }
 }

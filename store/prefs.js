@@ -443,7 +443,7 @@ export const actions = {
 };
 
 function getLoginRoute(route) {
-  let parts = route.name.split('-');
+  let parts = route.name?.split('-') || [];
   const params = {};
   const routeParams = route.params || {};
 

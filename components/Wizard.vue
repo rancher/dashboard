@@ -469,7 +469,7 @@ $spacer: 10px;
   flex: 1 1 auto;
   height: 0;
   overflow-y: auto;
-  padding: 20px $spacer 2px 2px; // Handle borders flush against edge
+  padding: 20px 2px 2px 2px; // Handle borders flush against edge
 
   display: flex;
   flex-direction: column;

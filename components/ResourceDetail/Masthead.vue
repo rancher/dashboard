@@ -375,9 +375,9 @@ export default {
 
 <style lang='scss' scoped>
   .masthead {
-    padding-bottom: 5px;
+    padding-bottom: 10px;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 5px;
+    margin-bottom: 10px;
   }
 
   HEADER {
