@@ -180,7 +180,7 @@ export default {
 
       if (el) {
         const $el = $(el);
-        const h = 34 * max;
+        const h = 32 * max;
 
         $el.css('height', `${ h }px`);
       }
@@ -396,7 +396,7 @@ export default {
 <style lang="scss" scoped>
   $clear-search-size: 20px;
   $icon-size: 24px;
-  $option-padding: 5px;
+  $option-padding: 4px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
   .option {
@@ -532,9 +532,9 @@ export default {
       }
 
       .cluster {
-        padding: $option-padding 0 $option-padding 10px;
         align-items: center;
         display: flex;
+        height: $option-height;
         &:focus {
           outline: 0;
         }
