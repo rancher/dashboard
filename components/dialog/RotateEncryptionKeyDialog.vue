@@ -54,13 +54,7 @@ export default {
 
   computed: {
     cluster() {
-      if (this.resources?.length === 1) {
-        const c = this.resources[0];
-
-        return c;
-      }
-
-      return {};
+      return this.resources?.[0];
     },
   },
 
@@ -70,14 +64,8 @@ export default {
     },
 
     async apply(buttonDone) {
-      const url = this.cluster.mgmt.actions.rotateEncryptionKey;
-
       try {
-        await this.$store.dispatch('rancher/request', {
-          url,
-          method: 'post',
-        });
-
+        await this.cluster.mgmt.doAction('rotateEncryptionKey');
         buttonDone(true);
         this.close();
       } catch (err) {
