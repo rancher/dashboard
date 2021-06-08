@@ -14,6 +14,7 @@ import { clear } from '@/utils/array';
 import { importCloudCredential } from '@/utils/dynamic-importer';
 import { NAME as MANAGER } from '@/config/product/manager';
 import SelectIconGrid from '@/components/SelectIconGrid';
+import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
 const creatableTypes = [
   TYPES.OPAQUE,
@@ -43,7 +44,7 @@ export default {
     const isCloud = newCloudCred || editCloudCred;
 
     if ( newCloudCred ) {
-      this.value.metadata.namespace = 'fleet-default';
+      this.value.metadata.namespace = DEFAULT_WORKSPACE;
     }
 
     return { isCloud };
