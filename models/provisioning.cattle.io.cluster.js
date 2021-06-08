@@ -47,19 +47,41 @@ export default {
 
     const canSaveAsTemplate = this.isRke1 && this.mgmt.status.driver === 'rancherKubernetesEngine' && !this.mgmt.spec.clusterTemplateName && this.hasLink('update');
 
-    if (canSaveAsTemplate) {
-      insertAt(out, 2, { divider: true });
+    let insertIndex = 3;
 
-      insertAt(out, 3, {
+    if (canSaveAsTemplate || this.canRotateEncryptionKey) {
+      insertAt(out, 2, { divider: true });
+    }
+
+    if (canSaveAsTemplate) {
+      insertAt(out, insertIndex, {
         action:     'saveAsRKETemplate',
         label:      'Save as RKE Template',
         icon:       'icon icon-folder',
         bulkable:   false,
         enabled:    this.$rootGetters['isRancher'],
       });
+      insertIndex++;
+    }
+
+    if (this.canRotateEncryptionKey) {
+      insertAt(out, insertIndex, {
+        action:     'rotateEncryptionKey',
+        label:      'Rotate Encryption Keys',
+        icon:       'icon icon-refresh',
+        bulkable:   false,
+        enabled:    this.$rootGetters['isRancher'],
+      });
     }
 
     return out;
+  },
+
+  canRotateEncryptionKey() {
+    const hasAction = !!this.mgmt?.actions?.rotateEncryptionKey;
+
+    // Only supported for RKE1 Clusters for now
+    return hasAction && this.isRke1;
   },
 
   isImported() {
@@ -306,5 +328,15 @@ export default {
         component: 'SaveAsRKETemplateDialog'
       });
     };
+  },
+
+  rotateEncryptionKey() {
+    return (resources = this) => {
+      this.$dispatch('promptModal', {
+        resources,
+        component: 'RotateEncryptionKeyDialog'
+      });
+    };
   }
+
 };
