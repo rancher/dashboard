@@ -62,54 +62,60 @@ export default {
 
 <template>
   <section>
-    <div class="mb-10">
-      <LabeledInput
-        :value="value.decodedData.tenantId"
-        label-key="cluster.credential.azure.tenantId.label"
-        type="text"
-        :mode="mode"
-        @input="value.setData('tenantId', $event)"
-      />
+    <div class="row mb-10">
+      <div class="col span-6">
+        <LabeledInput
+          :value="value.decodedData.tenantId"
+          label-key="cluster.credential.azure.tenantId.label"
+          type="text"
+          :mode="mode"
+          @input="value.setData('tenantId', $event)"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          :value="value.decodedData.subscriptionId"
+          label-key="cluster.credential.azure.subscriptionId.label"
+          type="text"
+          :mode="mode"
+          @input="value.setData('subscriptionId', $event)"
+        />
+      </div>
     </div>
-    <div class="mb-10">
-      <LabeledInput
-        :value="value.decodedData.subscriptionId"
-        label-key="cluster.credential.azure.subscriptionId.label"
-        type="text"
-        :mode="mode"
-        @input="value.setData('subscriptionId', $event)"
-      />
+    <div class="row mb-10">
+      <div class="col span-6">
+        <LabeledInput
+          :value="value.decodedData.clientId"
+          label-key="cluster.credential.azure.clientId.label"
+          type="text"
+          :mode="mode"
+          @input="value.setData('clientId', $event)"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          :value="value.decodedData.clientSecret"
+          label-key="cluster.credential.azure.clientSecret.label"
+          type="password"
+          :mode="mode"
+          @input="value.setData('clientSecret', $event)"
+        />
+      </div>
     </div>
-    <div class="mb-10">
-      <LabeledInput
-        :value="value.decodedData.clientId"
-        label-key="cluster.credential.azure.clientId.label"
-        type="text"
-        :mode="mode"
-        @input="value.setData('clientId', $event)"
-      />
-    </div>
-    <div class="mb-10">
-      <LabeledInput
-        :value="value.decodedData.clientSecret"
-        label-key="cluster.credential.azure.clientSecret.label"
-        type="password"
-        :mode="mode"
-        @input="value.setData('clientSecret', $event)"
-      />
-    </div>
-    <div class="mb-10">
-      <LabeledSelect
-        :value="value.decodedData.environment"
-        :mode="mode"
-        :options="azureEnvironments"
-        option-key="value"
-        option-label="value"
-        :searchable="false"
-        :required="true"
-        :label="t('cluster.credential.azure.environment.label')"
-        @input="value.setData('environment', $event);"
-      />
+    <div class="row mb-10">
+      <div class="col span-6">
+        <LabeledSelect
+          :value="value.decodedData.environment"
+          :mode="mode"
+          :options="azureEnvironments"
+          option-key="value"
+          option-label="value"
+          :searchable="false"
+          :required="true"
+          :label="t('cluster.credential.azure.environment.label')"
+          @input="value.setData('environment', $event)"
+        />
+      </div>
     </div>
   </section>
 </template>
