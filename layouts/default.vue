@@ -334,6 +334,10 @@ export default {
           const groupLabel = obj.spec.group;
           const groupSlug = obj.normalizedGroup;
 
+          if ( !obj.link ) {
+            continue;
+          }
+
           const entry = {
             name:        `link-${ obj._key }`,
             link:        obj.link,

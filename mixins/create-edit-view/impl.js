@@ -3,6 +3,7 @@ import { LAST_NAMESPACE } from '@/store/prefs';
 import { exceptionToErrorsArray } from '@/utils/error';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import { clear } from '@/utils/array';
+import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
 export default {
   mixins: [ChildHook],
@@ -125,8 +126,11 @@ export default {
         }
 
         if ( this.isCreate ) {
-          if ( this.value?.metadata?.namespace ) {
-            this.value.$dispatch('prefs/set', { key: LAST_NAMESPACE, value: this.value.metadata.namespace }, { root: true });
+          const ns = this.value?.metadata?.namespace;
+
+          // Don't remember fleet-default as a target since the user isn't usually picking it explicitly
+          if ( ns && ns !== DEFAULT_WORKSPACE ) {
+            this.value.$dispatch('prefs/set', { key: LAST_NAMESPACE, value: ns }, { root: true });
           }
         }
 

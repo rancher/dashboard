@@ -33,7 +33,7 @@ export function init(store) {
     group:      'Root',
     namespaced: false,
     icon:       'globe',
-    route:      { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'rke-drivers' } },
+    route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'rke-drivers' } },
     exact:      true
   });
 
@@ -43,7 +43,7 @@ export function init(store) {
     group:      'Root',
     namespaced: false,
     icon:       'globe',
-    route:      { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'rke-templates' } },
+    route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'rke-templates' } },
     exact:      true
   });
 
@@ -53,7 +53,7 @@ export function init(store) {
     group:      'Root',
     namespaced: false,
     icon:       'globe',
-    route:      { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'cloud-credentials' } },
+    route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'cloud-credentials' } },
     exact:      true
   });
 
@@ -63,7 +63,7 @@ export function init(store) {
     group:      'Root',
     namespaced: false,
     icon:       'globe',
-    route:      { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'node-templates' } },
+    route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'node-templates' } },
     exact:      true
   });
 
@@ -100,7 +100,7 @@ export function init(store) {
     namespaced:     false,
     weight:         0,
     icon:           'folder',
-    route:          { name: 'c-cluster-manager-pages-page', params: { cluser: 'local', page: 'pod-security-policies' } },
+    route:          { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'pod-security-policies' } },
     exact:          true
   });
 

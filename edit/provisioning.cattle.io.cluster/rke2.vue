@@ -1,17 +1,23 @@
 <script>
 import difference from 'lodash/difference';
+import differenceBy from 'lodash/differenceBy';
+import throttle from 'lodash/throttle';
+import isArray from 'lodash/isArray';
+import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
 
+import CreateEditView from '@/mixins/create-edit-view';
 import { CAPI, MANAGEMENT, SECRET } from '@/config/types';
 import { _CREATE, _EDIT } from '@/config/query-params';
+import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
-import { nlToBr } from '@/utils/string';
-import { clone, set } from '@/utils/object';
-import { compare, sortable } from '@/utils/version';
-import { sortBy } from '@/utils/sort';
 import { findBy, removeObject } from '@/utils/array';
+import { clone, diff, isEmpty, set } from '@/utils/object';
+import { allHash } from '@/utils/promise';
+import { sortBy } from '@/utils/sort';
+import { camelToTitle, nlToBr } from '@/utils/string';
+import { compare, sortable } from '@/utils/version';
 
-import CreateEditView from '@/mixins/create-edit-view';
 import ArrayList from '@/components/form/ArrayList';
 import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
@@ -26,10 +32,8 @@ import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import UnitInput from '@/components/form/UnitInput';
 import YamlEditor from '@/components/YamlEditor';
+import Questions from '@/components/Questions';
 
-import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
-
-import { allHash } from '@/utils/promise';
 import ACE from './ACE';
 import AgentEnv from './AgentEnv';
 import DrainOptions from './DrainOptions';
@@ -56,6 +60,7 @@ export default {
     Loading,
     MachinePool,
     NameNsDescription,
+    Questions,
     RadioGroup,
     RegistryConfigs,
     RegistryMirrors,
@@ -87,21 +92,23 @@ export default {
   },
 
   async fetch() {
-    const hash = {
-      allSecrets:   this.$store.dispatch('management/findAll', { type: SECRET }),
-      rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
-      k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
-    };
+    if ( !this.allSecrets ) {
+      const hash = {
+        allSecrets:   this.$store.dispatch('management/findAll', { type: SECRET }),
+        rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
+        k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
+      };
 
-    if ( this.$store.getters['management/schemaFor'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
-      hash.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
+      if ( this.$store.getters['management/schemaFor'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
+        hash.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
+      }
+
+      const res = await allHash(hash);
+
+      this.allSecrets = res.allSecrets;
+      this.rke2Versions = res.rke2Versions.data;
+      this.k3sVersions = res.k3sVersions.data;
     }
-
-    const res = await allHash(hash);
-
-    this.allSecrets = res.allSecrets;
-    this.rke2Versions = res.rke2Versions.data;
-    this.k3sVersions = res.k3sVersions.data;
 
     if ( !this.value.spec ) {
       set(this.value, 'spec', {});
@@ -113,31 +120,6 @@ export default {
 
     if ( !this.value.spec.kubernetesVersion ) {
       set(this.value.spec, 'kubernetesVersion', this.versionOptions.find(x => !!x.value).value);
-    }
-
-    if ( !this.value.spec.rkeConfig ) {
-      set(this.value.spec, 'rkeConfig', {});
-    }
-
-    if ( !this.value.spec.rkeConfig.upgradeStrategy ) {
-      set(this.value.spec.rkeConfig, 'upgradeStrategy', {
-        controlPlaneConcurrency:  '10%',
-        controlPlaneDrainOptions: {},
-        workerConcurrency:        '10%',
-        workerDrainOptions:       {},
-      });
-    }
-
-    if ( !this.value.spec.rkeConfig.controlPlaneConfig ) {
-      set(this.value.spec, 'rkeConfig.controlPlaneConfig', {});
-    }
-
-    if ( !this.value.spec.rkeConfig.workerConfig?.length ) {
-      set(this.value.spec, 'rkeConfig.workerConfig', [{}]);
-    }
-
-    if ( !this.value.spec.defaultPodSecurityPolicyTemplateName ) {
-      set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', null);
     }
 
     for ( const k in this.serverArgs ) {
@@ -165,24 +147,83 @@ export default {
       });
     }
 
-    await this.initMachinePools(this.value.spec.rkeConfig.machinePools);
-    if ( this.mode === _CREATE && !this.machinePools.length ) {
-      await this.addMachinePool();
+    if ( !this.machinePools ) {
+      await this.initMachinePools(this.value.spec.rkeConfig.machinePools);
+      if ( this.mode === _CREATE && !this.machinePools.length ) {
+        await this.addMachinePool();
+      }
+    }
+
+    if ( !this.versionInfo ) {
+      this.versionInfo = {};
+    }
+
+    for ( const v of this.addonVersions ) {
+      if ( this.versionInfo[v.name] ) {
+        continue;
+      }
+
+      const res = await this.$store.dispatch('catalog/getVersionInfo', {
+        repoType:    'cluster',
+        repoName:    v.repoName,
+        chartName:   v.name,
+        versionName: v.version
+      });
+
+      this.versionInfo[v.name] = res;
+
+      const fromChart = res.values || {};
+      const fromUser = this.chartValues[v.name] || this.value.spec.rkeConfig.chartValues[v.name] || {};
+
+      const merged = merge(merge({}, fromChart), fromUser);
+
+      set(this.chartValues, v.name, merged);
     }
   },
 
   data() {
+    if ( !this.value.spec.rkeConfig ) {
+      set(this.value.spec, 'rkeConfig', {});
+    }
+
+    if ( !this.value.spec.rkeConfig.chartValues ) {
+      set(this.value.spec.rkeConfig, 'chartValues', {});
+    }
+
+    if ( !this.value.spec.rkeConfig.upgradeStrategy ) {
+      set(this.value.spec.rkeConfig, 'upgradeStrategy', {
+        controlPlaneConcurrency:  '10%',
+        controlPlaneDrainOptions: {},
+        workerConcurrency:        '10%',
+        workerDrainOptions:       {},
+      });
+    }
+
+    if ( !this.value.spec.rkeConfig.controlPlaneConfig ) {
+      set(this.value.spec, 'rkeConfig.controlPlaneConfig', {});
+    }
+
+    if ( !this.value.spec.rkeConfig.workerConfig?.length ) {
+      set(this.value.spec, 'rkeConfig.workerConfig', [{}]);
+    }
+
+    if ( !this.value.spec.defaultPodSecurityPolicyTemplateName ) {
+      set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', null);
+    }
+
     return {
-      lastIdx:       0,
-      allSecrets:    null,
-      allPSPs:       null,
-      nodeComponent: null,
-      credentialId:  null,
-      credential:    null,
-      machinePools:  null,
-      rke2Versions:  null,
-      k3sVersions:   null,
-      s3Backup:      false,
+      lastIdx:          0,
+      allSecrets:       null,
+      allPSPs:          null,
+      nodeComponent:    null,
+      credentialId:     null,
+      credential:       null,
+      machinePools:     null,
+      rke2Versions:     null,
+      k3sVersions:      null,
+      s3Backup:         false,
+      chartValues:      clone(this.value.spec.rkeConfig.chartValues),
+      chartVersionInfo: null,
     };
   },
 
@@ -224,6 +265,7 @@ export default {
             sort:       sortable(obj.id),
             serverArgs: obj.serverArgs,
             agentArgs:  obj.agentArgs,
+            charts:     obj.charts,
             disabled,
           };
         });
@@ -335,6 +377,10 @@ export default {
 
     agentArgs() {
       return this.selectedVersion?.agentArgs || {};
+    },
+
+    chartVersions() {
+      return this.selectedVersion?.charts || {};
     },
 
     needCredential() {
@@ -462,6 +508,23 @@ export default {
     showCni() {
       return !!this.serverArgs.cni;
     },
+
+    addonVersions() {
+      const names = [];
+      const cni = this.serverConfig.cni;
+
+      if ( cni ) {
+        const parts = cni.split('+');
+
+        names.push(...parts);
+      }
+
+      if ( this.agentConfig['cloud-provider-name'] === 'vsphere' ) {
+        names.push('vsphere-cpi', 'vpshere-csi');
+      }
+
+      return names.map(name => this.chartVersionFor(name)).filter(x => !!x);
+    },
   },
 
   watch: {
@@ -474,6 +537,12 @@ export default {
         } else {
           this.value.spec.cloudCredentialSecretName = null;
         }
+      }
+    },
+
+    addonVersions(neu, old) {
+      if (!this.$fetchState.pending && differenceBy(neu, old, 'name').length ) {
+        this.$fetch();
       }
     },
   },
@@ -489,6 +558,7 @@ export default {
 
   methods: {
     nlToBr,
+    set,
 
     async initMachinePools(existing) {
       const out = [];
@@ -652,6 +722,65 @@ export default {
         },
       });
     },
+
+    chartVersionFor(feature) {
+      const chartName = `rke2-${ feature }`;
+      const entry = this.chartVersions[chartName];
+
+      if ( !entry ) {
+        return null;
+      }
+
+      const out = this.$store.getters['catalog/version']({
+        repoType:    'cluster',
+        repoName:    (feature === 'multus' ? 'rancher-rke2-charts' : entry.repo), // @TODO remove when KDM is fixed
+        chartName,
+        versionName: entry.version,
+      });
+
+      return out;
+    },
+
+    labelForAddon(name) {
+      const fallback = `${ camelToTitle(name.replace(/^(rke|rke2|rancher)-/, '')) } Configuration`;
+
+      return this.$store.getters['i18n/withFallback'](`cluster.addonChart."${ name }"`, null, fallback);
+    },
+
+    refreshYamls() {
+      const keys = Object.keys(this.$refs).filter(x => x.startsWith('yaml'));
+
+      for ( const k of keys ) {
+        const entry = this.$refs[k];
+        const list = isArray(entry) ? entry : [entry];
+
+        for ( const component of list ) {
+          component.refresh();
+        }
+      }
+    },
+
+    updateValues(name, values) {
+      set(this.chartValues, name, values);
+      this.syncChartValues();
+    },
+
+    syncChartValues: throttle(function() {
+      const keys = this.addonVersions.map(x => x.name );
+      const out = {};
+
+      for ( const k of keys ) {
+        const fromChart = this.versionInfo[k].values;
+        const fromUser = this.chartValues[k];
+        const different = diff(fromChart, fromUser);
+
+        if ( !isEmpty(different) ) {
+          out[k] = different;
+        }
+      }
+
+      set(this.value.spec.rkeConfig, 'chartValues', out);
+    }, 250, { leading: true }),
   },
 };
 </script>
@@ -741,7 +870,7 @@ export default {
 
       <h2 v-t="'cluster.tabs.cluster'" />
       <Tabbed :side-tabs="true">
-        <Tab name="basic" label-key="cluster.tabs.basic" :weight="10" @active="if ( $refs.cloudProvider ) $refs.cloudProvider.refresh()">
+        <Tab name="basic" label-key="cluster.tabs.basic" :weight="10" @active="refreshYamls">
           <Banner v-if="!haveArgInfo" color="warning" label="Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor." />
 
           <div class="row">
@@ -777,7 +906,7 @@ export default {
             <div class="col span-12">
               <h3>Cloud Provider Config</h3>
               <YamlEditor
-                ref="cloudProvider"
+                ref="yaml"
                 v-model="agentConfig['cloud-provider-config']"
                 :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
                 initial-yaml-values="# Cloud Provider Config"
@@ -956,7 +1085,7 @@ export default {
           />
         </Tab>
 
-        <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="-1" @active="$refs.additionalManifest.refresh()">
+        <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="-1" @active="refreshYamls">
           <template v-if="serverArgs.profile || agentArgs.profile">
             <h3>CIS Profile Validation</h3>
             <div class="row">
@@ -1012,12 +1141,37 @@ export default {
               <i v-tooltip="'Additional Kubernetes Manifet YAML to be applied to the cluster on startup.'" class="icon icon-info" />
             </h3>
             <YamlEditor
-              ref="additionalManifest"
+              ref="yaml-additional"
               v-model="rkeConfig.additionalManifest"
               :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
               initial-yaml-values="# Additional Manifest YAML"
               class="yaml-editor"
             />
+          </div>
+
+          <div v-if="addonVersions.length">
+            <div v-for="v in addonVersions" :key="v._key">
+              <div class="spacer" />
+              <h3>{{ labelForAddon(v.name) }}</h3>
+              <Questions
+                v-if="versionInfo[v.name].questions"
+                v-model="chartValues[v.name]"
+                :mode="mode"
+                :chart-version="versionInfo[v.name]"
+                :target-namespace="value.metadata.namespace"
+              />
+              <YamlEditor
+                v-else
+                ref="yaml-values"
+                :value="chartValues[v.name]"
+                :scrolling="true"
+                :initial-yaml-values="versionInfo[v.name].values"
+                :as-object="true"
+                :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
+                :hide-preview-buttons="true"
+                @input="data => updateValues(v.name, data)"
+              />
+            </div>
           </div>
         </Tab>
 

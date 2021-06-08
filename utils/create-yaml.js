@@ -1,5 +1,5 @@
 import { indent as _indent } from '@/utils/string';
-import { addObject, removeObject, removeObjects } from '@/utils/array';
+import { addObject, findBy, removeObject, removeObjects } from '@/utils/array';
 import jsyaml from 'js-yaml';
 import { cleanUp } from '@/utils/object';
 
@@ -65,8 +65,12 @@ const ACTIVELY_REMOVE = [
 
 const INDENT = 2;
 
-export function createYaml(schemas, type, data, processAlwaysAdd = true, depth = 0, path = '') {
-  const schema = schemas.find(x => x.id === type);
+export function createYaml(schemas, type, data, processAlwaysAdd = true, depth = 0, path = '', rootType = null) {
+  const schema = findBy(schemas, 'id', type);
+
+  if ( !rootType ) {
+    rootType = type;
+  }
 
   if ( !schema ) {
     return `Error loading schema for ${ type }`;
@@ -148,7 +152,18 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
   removeObjects(commentFields, regularFields);
 
   const regular = regularFields.map(k => stringifyField(k));
-  const comments = commentFields.map(k => comment(stringifyField(k)));
+  const comments = commentFields.map((k) => {
+    // Don't add a namespace comment for types that aren't namespaced.
+    if ( path === 'metadata' && k === 'namespace' ) {
+      const rootSchema = findBy(schemas, 'id', rootType);
+
+      if ( rootSchema && !rootSchema.attributes?.namespaced ) {
+        return null;
+      }
+    }
+
+    return comment(stringifyField(k));
+  });
 
   const out = [...regular, ...comments]
     .filter(x => x !== null)
@@ -209,7 +224,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       if ( SIMPLE_TYPES.includes(mapOf) ) {
         out += `\n#  key: ${ mapOf }`;
       } else {
-        const chunk = createYaml(schemas, mapOf, null, processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key));
+        const chunk = createYaml(schemas, mapOf, null, processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType);
         let indented = indent(chunk, 2);
 
         indented = indented.replace(/^(#)?\s\s\s\s/, '$1');
@@ -238,7 +253,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       if ( SIMPLE_TYPES.includes(arrayOf) ) {
         out += `\n#  - ${ arrayOf }`;
       } else {
-        const chunk = createYaml(schemas, arrayOf, null, false, depth + 1, (path ? `${ path }.${ key }` : key));
+        const chunk = createYaml(schemas, arrayOf, null, false, depth + 1, (path ? `${ path }.${ key }` : key), rootType);
         let indented = indent(chunk, 2);
 
         indented = indented.replace(/^(#)?\s*\s\s([^\s])/, '$1  - $2');
@@ -286,10 +301,10 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       }
     }
 
-    const subDef = schemas.find(x => x.id === type);
+    const subDef = findBy(schemas, 'id', type);
 
     if ( subDef ) {
-      const chunk = createYaml(schemas, type, data[key], processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key));
+      const chunk = createYaml(schemas, type, data[key], processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType);
 
       out += `\n${ indent(chunk) }`;
     } else {
@@ -331,4 +346,14 @@ export function typeMunge(type) {
   }
 
   return type;
+}
+
+export function saferDump(obj) {
+  const out = jsyaml.safeDump(obj || {});
+
+  if ( out === '{}\n' ) {
+    return '';
+  }
+
+  return out;
 }

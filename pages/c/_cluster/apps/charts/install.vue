@@ -30,6 +30,8 @@ import { exceptionToErrorsArray } from '@/utils/error';
 import { clone, diff, get, set } from '@/utils/object';
 import { findBy, insertAt } from '@/utils/array';
 import Vue from 'vue';
+import { saferDump } from '@/utils/create-yaml';
+import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
 const VALUES_STATE = {
   FORM: 'FORM',
@@ -77,26 +79,28 @@ export default {
       id:   'server-url'
     });
 
-    this.value = await this.$store.dispatch('cluster/create', {
-      type:     'chartInstallAction',
-      metadata: {
-        namespace: this.existing ? this.existing.spec.namespace : this.query.appNamespace,
-        name:      this.existing ? this.existing.spec.name : this.query.appName,
-      }
-    });
-
     if ( this.existing ) {
       this.forceNamespace = this.existing.metadata.namespace;
       this.nameDisabled = true;
+    } else if (this.$route.query[FROM_CLUSTER] === _FLAGGED) {
+      this.forceNamespace = DEFAULT_WORKSPACE;
+    } else if ( this.chart?.targetNamespace ) {
+      this.forceNamespace = this.chart.targetNamespace;
+    } else if ( this.query.appNamespace ) {
+      this.forceNamespace = this.query.appNamespace;
     } else {
-      if ( this.chart?.targetNamespace ) {
-        this.forceNamespace = this.chart.targetNamespace;
-      } else if ( this.query.appNamespace ) {
-        this.forceNamespace = this.query.appNamespace;
-      } else {
-        this.forceNamespace = null;
-      }
+      this.forceNamespace = null;
+    }
 
+    this.value = await this.$store.dispatch('cluster/create', {
+      type:     'chartInstallAction',
+      metadata: {
+        namespace: this.forceNamespace || this.$store.getters['defaultNamespace'],
+        name:      this.existing?.spec?.name || this.query.appName || '',
+      }
+    });
+
+    if ( !this.existing) {
       if ( this.chart?.targetName ) {
         this.value.metadata.name = this.chart.targetName;
         this.nameDisabled = true;
@@ -157,11 +161,7 @@ export default {
 
       this.removeGlobalValuesFrom(userValues);
       this.chartValues = merge(merge({}, this.versionInfo?.values || {}), userValues);
-      this.valuesYaml = jsyaml.safeDump(this.chartValues || {});
-
-      if ( this.valuesYaml === '{}\n' ) {
-        this.valuesYaml = '';
-      }
+      this.valuesYaml = saferDump(this.chartValues);
 
       // For YAML diff
       if ( !this.loadedVersion ) {
@@ -1112,9 +1112,7 @@ export default {
               <Questions
                 v-model="chartValues"
                 :mode="mode"
-                :chart="chart"
-                :version="version"
-                :version-info="versionInfo"
+                :chart-version="versionInfo"
                 :target-namespace="targetNamespace"
               />
             </Tabbed>

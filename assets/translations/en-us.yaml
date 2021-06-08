@@ -843,6 +843,19 @@ cis:
   testsToSkip: Tests to Skip
 
 cluster:
+  addonChart:
+    rancher-vsphere-cpi: vSphere CPI Configuration
+    rancher-vsphere-csi: vSphere CSI Configuration
+    rke2-calico: Calico Configuration
+    rke2-calico-crd: Calico Configuration
+    rke2-canal: Canal Configuration
+    rke2-cilium: Cilium Configuration
+    rke2-coredns: CoreDNS Configuration
+    rke2-ingress-nginx: NGINX Ingress Configuration
+    rke2-kube-proxy: Kube Proxy Configuration
+    rke2-metrics-server: Metrics Server Configuration
+    rke2-multus: Multus Configuration
+
   agentEnvVars:
     label: Agent Environment
     detail: Add additional environment variables to the agent container.  This is most commonly useful for configuring a HTTP proxy.

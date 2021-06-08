@@ -2,7 +2,7 @@ import { proxyUrlFromParts } from '@/models/service';
 
 export default {
   labelDisplay() {
-    return this.spec.label || this.metadata.name;
+    return this.spec?.label || this.metadata.name || '?';
   },
 
   link() {

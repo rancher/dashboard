@@ -409,7 +409,7 @@ export default {
         height: 32px;
         margin-right: 10px;
       }
-      .cluser-name {
+      .cluster-name {
         font-size: 16px;
       }
     }

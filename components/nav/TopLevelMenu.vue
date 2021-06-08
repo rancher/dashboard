@@ -538,7 +538,7 @@ export default {
         &:focus {
           outline: 0;
         }
-        .cluser-name {
+        .cluster-name {
           font-size: 16px;
         }
         > img {
