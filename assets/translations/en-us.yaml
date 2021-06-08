@@ -509,6 +509,10 @@ asyncButton:
     action: Restore
     waiting: Restoring&hellip;
     success: Restored
+  rotate:
+    action: Rotate
+    waiting: Rotating&hellip;
+    success: Rotated
   snapshot:
     action: Snapshot Now
     waiting: Snapshotting&hellip;
@@ -2510,6 +2514,12 @@ promptSaveAsRKETemplate:
   name: Cluster Template Name
   description: Create a new RKE cluster template and initial revision from the current cluster configuration.
   warning: This will modify the cluster, setting it up to use the newly created cluster template and revision.
+
+promptRotateEncryptionKey:
+  title: Rotate Encryption Keys
+  description: The last backup {name} was performed on {date}
+  warning: Before proceeding, ensure a successful ETCD backup of the cluster has been completed.
+  error: No backup found
 
 rancherAlertingDrivers:
   msTeams: Enable Microsoft Teams
