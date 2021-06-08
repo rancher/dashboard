@@ -467,6 +467,13 @@ export default {
 
       this.keySelectRow(row, more);
     }, 50),
+
+    showSubRow(row, keyField) {
+      const hasInjectedSubRows = this.subRows && (!this.subExpandable || this.expanded[get(row, keyField)]);
+      const hasStateDescription = row.stateDescription;
+
+      return hasInjectedSubRows || hasStateDescription;
+    }
   }
 };
 </script>
@@ -572,7 +579,7 @@ export default {
               <!-- The data-cant-run-bulk-action-of-interest attribute is being used instead of :class because
               because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
               the value of :class changes. -->
-              <tr :key="get(row,keyField)" class="main-row" :data-node-id="get(row,keyField)" :data-cant-run-bulk-action-of-interest="actionOfInterest && !canRunBulkActionOfInterest(row)">
+              <tr :key="get(row,keyField)" class="main-row" :class="{ 'has-sub-row': showSubRow(row, keyField)}" :data-node-id="get(row,keyField)" :data-cant-run-bulk-action-of-interest="actionOfInterest && !canRunBulkActionOfInterest(row)">
                 <td v-if="tableActions" class="row-check" align="middle">
                   {{ row.mainRowKey }}<Checkbox class="selection-checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
                 </td>
@@ -625,12 +632,20 @@ export default {
             </slot>
           </slot>
           <slot
-            v-if="subRows && (!subExpandable || expanded[get(row,keyField)])"
+            v-if="showSubRow(row, keyField)"
             name="sub-row"
             :full-colspan="fullColspan"
             :row="row"
             :sub-matches="subMatches"
-          />
+          >
+            <tr v-if="row.stateDescription" :key="get(row,keyField) + '-description'" class="state-description sub-row">
+              <td v-if="tableActions" class="row-check" align="middle">
+              </td>
+              <td :colspan="fullColspan - (tableActions ? 1: 0)" :class="{ 'text-error' : row.stateObj.error }">
+                {{ row.stateDescription }}
+              </td>
+            </tr>
+          </slot>
         </template>
       </tbody>
     </table>
@@ -734,16 +749,26 @@ $spacing: 10px;
       border-bottom: 1px solid var(--sortable-table-top-divider);
       background-color: var(--body-bg);
 
-      &.main-row + .sub-row {
+      &.main-row + .sub-row, &.main-row.has-sub-row {
         border-bottom: 0;
+      }
+
+      // if a main-row is hovered also hover it's sibling sub row. note - the reverse is handled in selection.js
+      &.main-row:not(.row-selected):hover + .sub-row {
+        background-color: var(--sortable-table-hover-bg);
       }
 
       &:last-of-type {
         border-bottom: 0;
       }
 
-      &:hover {
+      &:hover, &.sub-row-hovered {
         background-color: var(--sortable-table-hover-bg);
+      }
+
+      &.state-description > td {
+        font-size: 13px;
+        padding-top: 0;
       }
     }
 

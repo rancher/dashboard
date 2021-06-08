@@ -291,7 +291,7 @@ export default {
         key-field="id"
       >
         <template #sub-row="{row, fullColspan}">
-          <tr>
+          <tr class="sub-row">
             <td :colspan="fullColspan">
               <Banner v-if="(row.state==='fail' || row.state==='warn')&& row.remediation" class="sub-banner" :label="remediationDisplay(row)" color="warning" />
               <SortableTable

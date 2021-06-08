@@ -331,6 +331,14 @@ export default {
         component: 'RotateEncryptionKeyDialog'
       });
     };
-  }
+  },
+
+  stateObj() {
+    if (!this.isRke2) {
+      return this.mgmt?.stateObj || this.metadata?.state;
+    }
+
+    return this.metadata?.state;
+  },
 
 };
