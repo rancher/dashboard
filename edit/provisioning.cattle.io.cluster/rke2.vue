@@ -1,18 +1,23 @@
 <script>
 import difference from 'lodash/difference';
 import differenceBy from 'lodash/differenceBy';
+import throttle from 'lodash/throttle';
+import isArray from 'lodash/isArray';
+import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
 
+import CreateEditView from '@/mixins/create-edit-view';
 import { CAPI, MANAGEMENT, SECRET } from '@/config/types';
 import { _CREATE, _EDIT } from '@/config/query-params';
+import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
-import { camelToTitle, nlToBr } from '@/utils/string';
-import { clone, set } from '@/utils/object';
-import { compare, sortable } from '@/utils/version';
-import { sortBy } from '@/utils/sort';
 import { findBy, removeObject } from '@/utils/array';
+import { clone, diff, isEmpty, set } from '@/utils/object';
+import { allHash } from '@/utils/promise';
+import { sortBy } from '@/utils/sort';
+import { camelToTitle, nlToBr } from '@/utils/string';
+import { compare, sortable } from '@/utils/version';
 
-import CreateEditView from '@/mixins/create-edit-view';
 import ArrayList from '@/components/form/ArrayList';
 import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
@@ -29,10 +34,6 @@ import UnitInput from '@/components/form/UnitInput';
 import YamlEditor from '@/components/YamlEditor';
 import Questions from '@/components/Questions';
 
-import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
-
-import { allHash } from '@/utils/promise';
-import isArray from 'lodash/isArray';
 import ACE from './ACE';
 import AgentEnv from './AgentEnv';
 import DrainOptions from './DrainOptions';
@@ -171,9 +172,12 @@ export default {
 
       this.versionInfo[v.name] = res;
 
-      if ( !this.chartValues[v.name] ) {
-        set(this.chartValues, v.name, res.values || {});
-      }
+      const fromChart = res.values || {};
+      const fromUser = this.chartValues[v.name] || this.value.spec.rkeConfig.chartValues[v.name] || {};
+
+      const merged = merge(merge({}, fromChart), fromUser);
+
+      set(this.chartValues, v.name, merged);
     }
   },
 
@@ -218,6 +222,7 @@ export default {
       rke2Versions:     null,
       k3sVersions:      null,
       s3Backup:         false,
+      chartValues:      clone(this.value.spec.rkeConfig.chartValues),
       chartVersionInfo: null,
     };
   },
@@ -235,10 +240,6 @@ export default {
 
     agentConfig() {
       return this.value.spec.rkeConfig.workerConfig[0];
-    },
-
-    chartValues() {
-      return this.value.spec.rkeConfig.chartValues;
     },
 
     multipleAgentConfigs() {
@@ -557,6 +558,7 @@ export default {
 
   methods: {
     nlToBr,
+    set,
 
     async initMachinePools(existing) {
       const out = [];
@@ -756,7 +758,29 @@ export default {
           component.refresh();
         }
       }
-    }
+    },
+
+    updateValues(name, values) {
+      set(this.chartValues, name, values);
+      this.syncChartValues();
+    },
+
+    syncChartValues: throttle(function() {
+      const keys = this.addonVersions.map(x => x.name );
+      const out = {};
+
+      for ( const k of keys ) {
+        const fromChart = this.versionInfo[k].values;
+        const fromUser = this.chartValues[k];
+        const different = diff(fromChart, fromUser);
+
+        if ( !isEmpty(different) ) {
+          out[k] = different;
+        }
+      }
+
+      set(this.value.spec.rkeConfig, 'chartValues', out);
+    }, 250, { leading: true }),
   },
 };
 </script>
@@ -1139,12 +1163,13 @@ export default {
               <YamlEditor
                 v-else
                 ref="yaml-values"
-                v-model="chartValues[v.name]"
+                :value="chartValues[v.name]"
                 :scrolling="true"
                 :initial-yaml-values="versionInfo[v.name].values"
                 :as-object="true"
                 :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
                 :hide-preview-buttons="true"
+                @input="data => updateValues(v.name, data)"
               />
             </div>
           </div>
