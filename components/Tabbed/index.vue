@@ -253,10 +253,6 @@ export default {
 
       & .tab.active {
         text-decoration: underline;
-
-        > A {
-          color: var(--outline);
-        }
       }
     }
 
