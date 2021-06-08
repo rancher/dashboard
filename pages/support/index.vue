@@ -114,6 +114,7 @@ export default {
 
     showDialog(isAdd) {
       this.isRemoveDialog = isAdd;
+      this.supportKey = '';
       this.$modal.show('toggle-support');
     },
 
