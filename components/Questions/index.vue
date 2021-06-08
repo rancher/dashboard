@@ -125,17 +125,7 @@ export default {
       required: true,
     },
 
-    chart: {
-      type:     Object,
-      required: true,
-    },
-
-    version: {
-      type:     Object,
-      required: true,
-    },
-
-    versionInfo: {
+    chartVersion: {
       type:     Object,
       required: true,
     },
@@ -152,7 +142,7 @@ export default {
 
   computed: {
     allQuestions() {
-      return this.versionInfo.questions.questions;
+      return this.chartVersion.questions.questions;
     },
 
     shownQuestions() {

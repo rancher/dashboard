@@ -49,7 +49,7 @@ export function init(store) {
     namespaced:     false,
     weight:         110,
     icon:           'folder',
-    route:          { name: 'c-cluster-mcapps-pages-page', params: { cluser: 'local', page: 'global-dns-entries' } },
+    route:          { name: 'c-cluster-mcapps-pages-page', params: { cluster: 'local', page: 'global-dns-entries' } },
     exact:          true
   });
 
@@ -60,7 +60,7 @@ export function init(store) {
     namespaced:     false,
     weight:         109,
     icon:           'folder',
-    route:          { name: 'c-cluster-mcapps-pages-page', params: { cluser: 'local', page: 'global-dns-providers' } },
+    route:          { name: 'c-cluster-mcapps-pages-page', params: { cluster: 'local', page: 'global-dns-providers' } },
     exact:          true
   });
 

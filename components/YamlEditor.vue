@@ -2,6 +2,7 @@
 import jsyaml from 'js-yaml';
 import { mapPref, DIFF } from '@/store/prefs';
 import isEmpty from 'lodash/isEmpty';
+import { saferDump } from '@/utils/create-yaml';
 import CodeMirror from './CodeMirror';
 import FileDiff from './FileDiff';
 
@@ -25,8 +26,13 @@ export default {
       }
     },
 
+    asObject: {
+      type:    Boolean,
+      default: false,
+    },
+
     initialYamlValues: {
-      type:    String,
+      type:    [String, Object],
       default: '',
     },
 
@@ -36,7 +42,7 @@ export default {
     },
 
     value: {
-      type:     String,
+      type:     [String, Object],
       default:  '',
     },
 
@@ -48,10 +54,28 @@ export default {
 
   data() {
     const { initialYamlValues, value } = this;
-    const original = isEmpty(initialYamlValues) ? value : initialYamlValues;
+    let curValue;
+    let original;
 
-    return { original };
+    if ( this.asObject ) {
+      curValue = saferDump(value);
+    } else {
+      curValue = value || '';
+    }
+
+    if ( this.asObject && initialYamlValues) {
+      original = saferDump(initialYamlValues);
+    } else {
+      original = initialYamlValues;
+    }
+
+    if ( isEmpty(original) ) {
+      original = value;
+    }
+
+    return { original, curValue };
   },
+
   computed: {
     cmOptions() {
       const readOnly = this.editorMode === EDITOR_MODES.VIEW_CODE;
@@ -112,15 +136,8 @@ export default {
       return [EDITOR_MODES.EDIT_CODE, EDITOR_MODES.VIEW_CODE].includes(this.editorMode);
     },
   },
+
   watch: {
-
-    value(newYaml) {
-      try {
-        const parsed = jsyaml.safeLoad(newYaml);
-
-        this.$emit('newObject', parsed);
-      } catch (ex) {}
-    },
     showUploadPrompt(neu) {
       if (neu) {
         this.$refs.yamluploader.click();
@@ -141,8 +158,21 @@ export default {
       }
     },
 
-    onInput() {
-      this.$emit('input', ...arguments);
+    onInput(value) {
+      if ( !this.asObject ) {
+        this.$emit('input', ...arguments);
+      }
+
+      try {
+        const parsed = jsyaml.safeLoad(value);
+
+        if ( this.asObject ) {
+          this.$emit('input', parsed);
+        } else {
+          this.$emit('newObject', parsed);
+        }
+      } catch (ex) {}
+
       this.$emit('onInput', ...arguments);
     },
 
@@ -155,9 +185,8 @@ export default {
     },
 
     updateValue(value) {
-      this.value = value;
+      this.curValue = value;
     }
-
   }
 };
 </script>
@@ -184,7 +213,7 @@ export default {
       v-if="showCodeEditor"
       ref="cm"
       :class="{fill: true, scrolling: scrolling}"
-      :value="value"
+      :value="curValue"
       :options="cmOptions"
       @onInput="onInput"
       @onReady="onReady"
@@ -196,7 +225,7 @@ export default {
       :filename="'.yaml'"
       :side-by-side="diffMode === 'split'"
       :orig="original"
-      :neu="value"
+      :neu="curValue"
     />
   </div>
 </template>

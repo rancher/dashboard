@@ -332,3 +332,13 @@ export function typeMunge(type) {
 
   return type;
 }
+
+export function saferDump(obj) {
+  const out = jsyaml.safeDump(obj || {});
+
+  if ( out === '{}\n' ) {
+    return '';
+  }
+
+  return out;
+}

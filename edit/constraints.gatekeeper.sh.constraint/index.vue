@@ -15,6 +15,7 @@ import Tabbed from '@/components/Tabbed';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import CruResource from '@/components/CruResource';
 import { ENFORCEMENT_ACTION_VALUES } from '@/models/constraints.gatekeeper.sh.constraint';
+import { saferDump } from '@/utils/create-yaml';
 import NamespaceList, { NAMESPACE_FILTERS } from './NamespaceList';
 import MatchKinds from './MatchKinds';
 import Scope, { SCOPE_OPTIONS } from './Scope';
@@ -82,11 +83,7 @@ export default {
       this.$set(this.value.spec.match.namespaceSelector, 'labelSelector', this.value.spec.match.namespaceSelector.labelSelector || []);
     }
 
-    let parametersYaml = this.value?.spec?.parameters ? jsyaml.safeDump(this.value.spec.parameters) : '';
-
-    if (parametersYaml === '{}\n') {
-      parametersYaml = '';
-    }
+    const parametersYaml = saferDump(this.value?.spec?.parameters);
 
     return {
       emptySpec,

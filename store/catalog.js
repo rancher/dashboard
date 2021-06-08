@@ -220,7 +220,17 @@ export const getters = {
         repoType, repoName, chartName
       });
 
-      const version = findBy(chart.versions, 'version', versionName);
+      if ( !chart ) {
+        return null;
+      }
+
+      let version;
+
+      if ( versionName ) {
+        version = findBy(chart.versions, 'version', versionName);
+      } else {
+        version = chart.versions[0];
+      }
 
       if ( version ) {
         return clone(version);

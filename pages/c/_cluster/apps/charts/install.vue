@@ -30,6 +30,7 @@ import { exceptionToErrorsArray } from '@/utils/error';
 import { clone, diff, get, set } from '@/utils/object';
 import { findBy, insertAt } from '@/utils/array';
 import Vue from 'vue';
+import { saferDump } from '@/utils/create-yaml';
 
 const VALUES_STATE = {
   FORM: 'FORM',
@@ -157,11 +158,7 @@ export default {
 
       this.removeGlobalValuesFrom(userValues);
       this.chartValues = merge(merge({}, this.versionInfo?.values || {}), userValues);
-      this.valuesYaml = jsyaml.safeDump(this.chartValues || {});
-
-      if ( this.valuesYaml === '{}\n' ) {
-        this.valuesYaml = '';
-      }
+      this.valuesYaml = saferDump(this.chartValues);
 
       // For YAML diff
       if ( !this.loadedVersion ) {
@@ -1112,9 +1109,7 @@ export default {
               <Questions
                 v-model="chartValues"
                 :mode="mode"
-                :chart="chart"
-                :version="version"
-                :version-info="versionInfo"
+                :chart-version="versionInfo"
                 :target-namespace="targetNamespace"
               />
             </Tabbed>
