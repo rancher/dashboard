@@ -79,6 +79,10 @@ button,
   color: var(--primary) !important;
   border: solid 1px var(--primary);
   line-height: $btn-height - 2px;
+
+  &.btn-sm {
+    line-height: $btn-sm-height;
+  }
 }
 
 .role-tertiary {
