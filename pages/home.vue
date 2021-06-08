@@ -154,7 +154,7 @@ export default {
     },
 
     showCommercialSupport() {
-      const hasSupport = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED);
+      const hasSupport = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED) || {};
 
       return !this.homePageCards.commercialSupportTip && hasSupport.value !== 'true';
     },
