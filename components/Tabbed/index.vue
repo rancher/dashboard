@@ -252,9 +252,11 @@ export default {
      outline:none;
 
       & .tab.active {
-        outline-color: var(--outline);
-        outline-style: solid;
-        outline-width: var(--outline-width);
+        text-decoration: underline;
+
+        > A {
+          color: var(--outline);
+        }
       }
     }
 
