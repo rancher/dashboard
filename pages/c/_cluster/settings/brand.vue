@@ -13,6 +13,7 @@ import { MANAGEMENT } from '@/config/types';
 import { getVendor, setVendor } from '@/config/private-label';
 import { SETTING, fetchOrCreateSetting } from '@/config/settings';
 const Color = require('color');
+const parse = require('url-parse');
 
 export default {
   layout: 'authenticated',
@@ -23,12 +24,13 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      uiPLSetting:        this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.PL }),
-      uiIssuesSetting:    this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES }),
-      uiBannerSetting:    this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS }),
-      uiLogoDarkSetting:  fetchOrCreateSetting(this.$store, SETTING.LOGO_DARK, ''),
-      uiLogoLightSetting: fetchOrCreateSetting(this.$store, SETTING.LOGO_LIGHT, ''),
-      uiColorSetting:     fetchOrCreateSetting(this.$store, SETTING.PRIMARY_COLOR, ''),
+      uiPLSetting:            this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.PL }),
+      uiIssuesSetting:        this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES }),
+      uiBannerSetting:        this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS }),
+      uiLogoDarkSetting:      fetchOrCreateSetting(this.$store, SETTING.LOGO_DARK, ''),
+      uiLogoLightSetting:     fetchOrCreateSetting(this.$store, SETTING.LOGO_LIGHT, ''),
+      uiColorSetting:         fetchOrCreateSetting(this.$store, SETTING.PRIMARY_COLOR, ''),
+      uiHideCommunitySetting: fetchOrCreateSetting(this.$store, SETTING.HIDE_COMMUNITY, 'false'),
     });
 
     Object.assign(this, hash);
@@ -87,6 +89,8 @@ export default {
       uiColor,
       customizeColor: false,
 
+      uiHideCommunitySetting: {},
+
       errors: []
     };
   },
@@ -98,7 +102,22 @@ export default {
       this[key] = img;
     },
 
+    validateUrl(url) {
+      const parsed = parse(url, {});
+
+      if (!parsed.protocol) {
+        this.errors.push(this.t('branding.uiIssues.invalidUrl'));
+
+        return false;
+      }
+
+      return true;
+    },
+
     async save(btnCB) {
+      if (this.uiIssuesSetting.value && !this.validateUrl(this.uiIssuesSetting.value)) {
+        return btnCB(false);
+      }
       this.uiBannerSetting.value = JSON.stringify(this.bannerVal);
       if (this.customizeLogo) {
         this.uiLogoLightSetting.value = this.uiLogoLight;
@@ -115,12 +134,15 @@ export default {
       }
 
       try {
-        await Promise.all([this.uiPLSetting.save(),
+        await Promise.all([
+          this.uiPLSetting.save(),
           this.uiIssuesSetting.save(),
           this.uiBannerSetting.save(),
           this.uiLogoDarkSetting.save(),
           this.uiLogoLightSetting.save(),
-          this.uiColorSetting.save()]);
+          this.uiColorSetting.save(),
+          this.uiHideCommunitySetting.save()
+        ]);
         if (this.uiPLSetting.value !== this.vendor) {
           setVendor(this.uiPLSetting.value);
         }
@@ -130,8 +152,8 @@ export default {
         this.errors.push(err);
         btnCB(false);
       }
-    }
-  },
+    },
+  }
 };
 </script>
 
@@ -147,14 +169,23 @@ export default {
           <LabeledInput v-model="uiPLSetting.value" :label="t('branding.uiPL.label')" />
         </div>
       </div>
-      <div class="mb-20">
+
+      <h3 class="mt-40 mb-5 pb-5">
+        {{ t('branding.uiIssues.label') }}
+      </h3>
+      <label class="text-label">
+        {{ t(`advancedSettings.descriptions.${ 'ui-issues' }`, {}, true) }}
+      </label>
+      <div :style="{'align-items':'center'}" class="row mt-10">
         <div class="col span-6 pb-5">
-          <LabeledInput v-model="uiIssuesSetting.value" :label="t('branding.uiIssues.label')" />
+          <LabeledInput v-model="uiIssuesSetting.value" :label="t('branding.uiIssues.issuesUrl')" />
         </div>
-        <span class="text-label">{{ t(`advancedSettings.descriptions.${ 'ui-issues' }`, {}, true) }}</span>
+        <div class="col span-6">
+          <Checkbox :value="uiHideCommunitySetting.value==='true'" :label="t('branding.uiIssues.hideCommunity')" @input="e=>e? uiHideCommunitySetting.value = 'true' :uiHideCommunitySetting.value = 'false' " />
+        </div>
       </div>
 
-      <h3 class="mt-20 mb-5 pb-5">
+      <h3 class="mt-40 mb-5 pb-5">
         {{ t('branding.logos.label') }}
       </h3>
       <label class="text-label">
@@ -213,7 +244,7 @@ export default {
         <ColorInput v-model="uiColor" />
       </div>
 
-      <h3 class="mb-5 pb-5">
+      <h3 class="mb-5 pb-5 mt-40">
         {{ t('branding.uiBanner.label') }}
       </h3>
       <label class="text-label">
