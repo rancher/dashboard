@@ -35,6 +35,7 @@ export function init(store) {
     virtualType,
     componentForType,
     configureType,
+    setGroupDefaultType,
   } = DSL(store, NAME);
 
   product({
@@ -133,6 +134,8 @@ export function init(store) {
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
   configureType(PVC, { isEditable: false });
   configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { isEditable: false });
+
+  setGroupDefaultType('serviceDiscovery', 'service');
 
   configureType('workload', {
     displayName: 'Workload',
