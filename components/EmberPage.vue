@@ -329,8 +329,6 @@ export default {
           if (this.isCurrentRoute(dest)) {
             this.setLoaded(true);
 
-            console.warn('Nothing to do - already loaded');
-
             return;
           }
 
