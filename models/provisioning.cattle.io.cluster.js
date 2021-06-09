@@ -45,19 +45,11 @@ export default {
       enabled:    this.$rootGetters['isRancher'],
     });
 
-    if (this.mgmt.actions['rotateCertificates']) {
-      insertAt(out, 1, {
-        action:     'toggleRotateCertificates',
-        label:      'Rotate Certificates',
-        icon:       'icon icon-backup',
-        bulkable:   true,
-      });
-    }
-
     const canSaveAsTemplate = this.isRke1 && this.mgmt.status.driver === 'rancherKubernetesEngine' && !this.mgmt.spec.clusterTemplateName && this.hasLink('update');
     const canRotateEncryptionKey = this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey');
+    const canRotateCertificates = this.mgmt?.hasAction('rotateCertificates');
 
-    if (canSaveAsTemplate || canRotateEncryptionKey) {
+    if (canSaveAsTemplate || canRotateEncryptionKey || canRotateCertificates) {
       insertAt(out, 2, { divider: true });
 
       let insertIndex = 3;
@@ -67,6 +59,17 @@ export default {
           action:     'saveAsRKETemplate',
           label:      'Save as RKE Template',
           icon:       'icon icon-folder',
+          bulkable:   false,
+          enabled:    this.$rootGetters['isRancher'],
+        });
+        insertIndex++;
+      }
+
+      if (canRotateCertificates) {
+        insertAt(out, insertIndex, {
+          action:     'rotateCertificates',
+          label:      'Rotate Certificates',
+          icon:       'icon icon-backup',
           bulkable:   false,
           enabled:    this.$rootGetters['isRancher'],
         });
@@ -312,12 +315,6 @@ export default {
     };
   },
 
-  toggleRotateCertificates() {
-    return () => {
-      this.$dispatch('promptRotate', this);
-    };
-  },
-
   etcdSnapshots() {
     return (this.status?.etcdSnapshots || []).map((x) => {
       x.id = x.name || x._name;
@@ -335,6 +332,15 @@ export default {
       this.$dispatch('promptModal', {
         resources,
         component: 'SaveAsRKETemplateDialog'
+      });
+    };
+  },
+
+  rotateCertificates() {
+    return (resources = this) => {
+      this.$dispatch('promptModal', {
+        resources,
+        component: 'RotateCertificatesDialog'
       });
     };
   },

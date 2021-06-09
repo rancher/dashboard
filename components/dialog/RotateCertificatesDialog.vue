@@ -1,32 +1,41 @@
 <script>
-import LabeledSelect from '@/components/form/LabeledSelect';
 import Card from '@/components/Card';
 import AsyncButton from '@/components/AsyncButton';
 
 import RadioGroup from '@/components/form/RadioGroup';
+import Select from '@/components/form/Select';
 
 import { get } from '@/utils/object';
-import { mapState } from 'vuex';
 
 export default {
   components: {
-    LabeledSelect,
+    Select,
     RadioGroup,
     Card,
     AsyncButton
   },
+
+  props: {
+    resources: {
+      type:     Array,
+      required: true
+    }
+  },
+
   data() {
     return {
       selectedService: '', allServices: true, errors: []
     };
   },
   computed:   {
-    ...mapState('action-menu', ['showPromptRotate', 'toRotate']),
+    cluster() {
+      return this.resources?.[0];
+    },
 
     serviceOptions() {
       const schema = this.$store.getters['rancher/schemaFor']('rotatecertificateinput');
 
-      return get(schema, 'resourceFields.services.options') || '';
+      return get(schema, 'resourceFields.services.options') || [];
     },
 
     actionParams() {
@@ -44,22 +53,13 @@ export default {
     }
   },
 
-  watch:    {
-    showPromptRotate(show) {
-      if (show) {
-        this.$modal.show('rotate-certs');
-      } else {
-        this.$modal.hide('rotate-certs');
-      }
-    }
-  },
   methods: {
     close() {
-      this.$store.commit('action-menu/togglePromptRotate');
+      this.$emit('close');
     },
 
     rotate(btnCB) {
-      const cluster = this.toRotate.mgmt || {};
+      const cluster = this.cluster.mgmt || {};
 
       if (!cluster?.actions?.rotateCertificates) {
         btnCB(false);
@@ -83,35 +83,49 @@ export default {
 </script>
 
 <template>
-  <modal class="rotate-modal" name="rotate-certs" @closed="close">
-    <Card :style="{'height':'100%'}">
-      <template #title>
-        <h3>{{ t('cluster.rotateCertificates.modalTitle') }}</h3>
-      </template>
-      <template #body>
-        <div v-for="error in errors" :key="error" class="row mb-20 text-error">
-          {{ error }}
-        </div>
-        <div class="row">
-          <div class="col span-6">
-            <RadioGroup v-model="allServices" name="service-mode" :options="[{value: true,label:t('cluster.rotateCertificates.allServices')}, {value: false, label:t('cluster.rotateCertificates.selectService')}]" />
-          </div>
-          <div class="col span-6">
-            <LabeledSelect v-if="!allServices" v-model="selectedService" :options="serviceOptions" :label="t('cluster.rotateCertificates.services')" />
-          </div>
-        </div>
-      </template>
-      <template #actions>
-        <button class="btn role-secondary mr-20" @click="close">
-          {{ t('generic.cancel') }}
-        </button>
-        <AsyncButton @click="rotate" />
-      </template>
-    </Card>
-  </modal>
+  <Card class="prompt-rotate" :show-highlight-border="false" :style="{'height':'100%'}">
+    <template #title>
+      <h3>{{ t('cluster.rotateCertificates.modalTitle') }}</h3>
+    </template>
+    <template #body>
+      <div v-for="error in errors" :key="error" class="row mb-20 text-error">
+        {{ error }}
+      </div>
+      <div class="options">
+        <RadioGroup v-model="allServices" name="service-mode" :options="[{value: true,label:t('cluster.rotateCertificates.allServices')}, {value: false, label:t('cluster.rotateCertificates.selectService')}]" />
+        <Select v-model="selectedService" :options="serviceOptions" class="service-select" :class="{'invisible': allServices}" />
+      </div>
+    </template>
+    <div slot="actions" class="buttons">
+      <button class="btn role-secondary mr-20" @click="close">
+        {{ t('generic.cancel') }}
+      </button>
+      <AsyncButton mode="rotate" @click="rotate" />
+    </div>
+  </Card>
 </template>
 
 <style lang='scss' scoped>
+  .prompt-rotate {
+    margin: 0;
+  }
+  .buttons {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+  }
+  .options {
+    display: flex;
+    flex-direction: column;
+
+    .service-select {
+      margin-left: 20px;
+      margin-top: 10px;
+      width: fit-content;
+      min-width: 260px;
+    }
+  }
+
 .rotate-modal ::v-deep.v--modal-box{
   border:none;
 
