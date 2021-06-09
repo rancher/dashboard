@@ -1,6 +1,7 @@
 const credentialOptions = {
   aws:          { publicKey: 'accessKey', publicMode: 'full' },
   digitalocean: { publicKey: 'accessToken', publicMode: 'prefix' },
+  azure:        { publicKey: 'clientId', publicMode: 'full' },
 };
 
 // Dynamically loaded drivers can call this eventually to register thier options

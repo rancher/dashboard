@@ -85,10 +85,15 @@ export default {
 
     driverName() {
       let driver = this.provider;
+      const azureDrivers = ['azure', 'aks'];
 
       // Map providers that share a common credential to one driver
       if ( driver === 'amazonec2' || driver === 'amazoneks' ) {
         driver = 'aws';
+      }
+
+      if ( azureDrivers.includes(driver) ) {
+        driver = 'azure';
       }
 
       return driver;
