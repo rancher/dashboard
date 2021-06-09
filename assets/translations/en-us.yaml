@@ -987,6 +987,7 @@ cluster:
     baiducloudcontainerengine: Baidu CCE
     baidu: Baidu CCE
     cloudca: Cloud.ca
+    cloudscale: Cloudscale
     custom: Custom
     digitalocean: DigitalOcean
     docker: Docker
@@ -1001,6 +1002,7 @@ cluster:
     k3s: K3s
     kubeAdmin: KubeADM
     linode: Linode
+    linodelke: Linode
     local: Local
     minikube: Minikube
     oci: Oracle Cloud Infrastructure
@@ -1012,6 +1014,7 @@ cluster:
     other: Other
     packet: Packet
     pinganyunecs: Pinganyun ECS
+    pnap: phoenixNAP
     rackspace: RackSpace
     rancherkubernetesengine: RKE
     rke2: RKE2

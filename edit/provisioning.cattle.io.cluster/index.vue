@@ -31,7 +31,12 @@ const SORT_GROUPS = {
 };
 
 // Map some provider IDs to icon names where they don't directly match
-const ICON_MAPPINGS = { linode: 'linodelke' };
+const ICON_MAPPINGS = {
+  linode: 'linodelke',
+  custom: 'blue-gear',
+  import: 'kubernetes',
+  otccce: 'open-telekom-cloud'
+};
 
 export default {
   name: 'CruCluster',
@@ -180,7 +185,9 @@ export default {
       const templates = this.templateOptions;
       const vueMachineTypes = getters['plugins/machineDrivers'];
       const vueKontainerTypes = getters['plugins/clusterDrivers'];
-      const machineTypes = this.nodeDrivers.filter(x => x.spec.active).map(x => x.id);
+      const machineTypes = this.nodeDrivers.filter(x => x.spec.active).map((x) => {
+        return !x.spec.builtin ? x.spec.displayName : x.id;
+      });
 
       this.kontainerDrivers.filter(x => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
         if ( vueKontainerTypes.includes(obj.driverName) ) {
