@@ -174,8 +174,9 @@ export default {
       // by navigating within the app that is already loaded
       if (iframeEl !== null) {
         const ready = iframeEl.getAttribute('data-ready');
+        const lastDidLoad = iframeEl.getAttribute('data-loaded') !== 'false';
 
-        if (!ready || this.inline) {
+        if (!ready || this.inline || !lastDidLoad) {
           iframeEl.remove();
           iframeEl = null;
         }
@@ -326,16 +327,16 @@ export default {
           const dest = INTERCEPTS[msg.target];
 
           if (this.isCurrentRoute(dest)) {
-            this.loaded = true;
+            this.setLoaded(true);
 
             return;
           }
 
-          this.loaded = false;
+          this.setLoaded(false);
           this.$router.replace(this.fillRoute(dest));
         }
       } else if (msg.action === 'loading') {
-        this.loaded = !msg.state;
+        this.setLoaded(!msg.state);
         this.updateFrameVisibility();
       } else if (msg.action === 'ready') {
         // Echo back a ping
@@ -353,12 +354,19 @@ export default {
         this.loadRequired = true;
       } else if (msg.action === 'did-transition') {
         if (!this.loadRequired) {
-          this.loading = false;
+          this.setLoaded(false);
           this.updateFrameVisibility();
           this.doSyncHeight();
         }
       } else if (msg.action === 'dashboard') {
         this.$router.replace(msg.page);
+      }
+    },
+
+    setLoaded(loaded) {
+      this.loaded = loaded;
+      if (this.iframeEl) {
+        this.iframeEl.setAttribute('data-loaded', loaded);
       }
     },
 
