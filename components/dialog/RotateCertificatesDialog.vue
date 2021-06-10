@@ -6,6 +6,7 @@ import RadioGroup from '@/components/form/RadioGroup';
 import Select from '@/components/form/Select';
 
 import { get } from '@/utils/object';
+import { exceptionToErrorsArray } from '@/utils/error';
 
 export default {
   components: {
@@ -58,26 +59,19 @@ export default {
       this.$emit('close');
     },
 
-    rotate(btnCB) {
+    async rotate(buttonDone) {
       const cluster = this.cluster.mgmt || {};
+      const params = this.actionParams;
 
-      if (!cluster?.actions?.rotateCertificates) {
-        btnCB(false);
-      } else {
-        const params = this.actionParams;
-
-        cluster.doAction('rotateCertificates', cluster, { params }).then((res) => {
-          if (res._status === 200) {
-            btnCB(true);
-            this.errors = [];
-            this.close();
-          } else {
-            this.errors.push(res._statusText);
-            btnCB(false);
-          }
-        });
+      try {
+        await this.doAction('rotateCertificates', cluster, { params });
+        buttonDone(true);
+        this.close();
+      } catch (err) {
+        this.errors = exceptionToErrorsArray(err);
+        buttonDone(false);
       }
-    },
+    }
   }
 };
 </script>
