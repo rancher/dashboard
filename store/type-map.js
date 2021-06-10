@@ -97,6 +97,10 @@
 //   groupOrArrayOfGroups,    -- see weightType...
 //   weight
 // )
+// setGroupDefaultType(       Set the default child type to show when the group is expanded
+//   groupOrArrayOfGroups,    -- see setGroupDefaultType...
+//   defaultType
+// )
 // mapGroup(                  Remap a group name to a display name
 //   matchRegexOrString,      -- see mapType...
 //   replacementString,
@@ -222,6 +226,14 @@ export function DSL(store, product, module = 'type-map') {
       }
     },
 
+    setGroupDefaultType(input, defaultType) {
+      if ( isArray(input) ) {
+        store.commit(`${ module }/setGroupDefaultType`, { groups: input, defaultType });
+      } else {
+        store.commit(`${ module }/setGroupDefaultType`, { group: input, defaultType });
+      }
+    },
+
     weightType(input, weight, forBasic) {
       if ( isArray(input) ) {
         store.commit(`${ module }/weightType`, {
@@ -291,6 +303,7 @@ export const state = function() {
     basicTypes:              {},
     groupIgnore:             [],
     groupWeights:            {},
+    groupDefaultTypes:       {},
     basicGroupWeights:       { [ROOT]: 1000 },
     groupMappings:           [],
     typeIgnore:              [],
@@ -446,6 +459,14 @@ export const getters = {
     };
   },
 
+  groupDefaultTypeFor(state) {
+    return (group) => {
+      group = group.toLowerCase();
+
+      return state.groupDefaultTypes[group];
+    };
+  },
+
   getTree(state, getters, rootState, rootGetters) {
     return (productId, mode, allTypes, clusterId, namespaceMode, namespaces, currentType, search) => {
       // modes: basic, used, all, favorite
@@ -594,7 +615,8 @@ export const getters = {
           group = {
             name,
             label,
-            weight: getters.groupWeightFor(name, forBasic),
+            weight:      getters.groupWeightFor(name, forBasic),
+            defaultType: getters.groupDefaultTypeFor(name),
           };
 
           tree.children.push(group);
@@ -1243,6 +1265,24 @@ export const mutations = {
 
     for ( const g of groups ) {
       map[g.toLowerCase()] = weight;
+    }
+  },
+
+  // setGroupDefaultType({group: 'core', defaultType: 'name'});
+  // By default when a group is clicked, the first item is selected - this allows
+  // this behvaiour to be changed and a named child type can be chosen
+  // These operate on group names *after* mapping but *before* translation
+  setGroupDefaultType(state, { group, groups, defaultType }) {
+    if ( !groups ) {
+      groups = [];
+    }
+
+    if ( group ) {
+      groups.push(group);
+    }
+
+    for ( const g of groups ) {
+      state.groupDefaultTypes[g.toLowerCase()] = defaultType;
     }
   },
 
