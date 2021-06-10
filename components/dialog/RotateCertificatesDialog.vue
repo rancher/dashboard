@@ -1,6 +1,7 @@
 <script>
 import Card from '@/components/Card';
 import AsyncButton from '@/components/AsyncButton';
+import Banner from '@/components/Banner';
 
 import RadioGroup from '@/components/form/RadioGroup';
 import Select from '@/components/form/Select';
@@ -13,7 +14,8 @@ export default {
     Select,
     RadioGroup,
     Card,
-    AsyncButton
+    AsyncButton,
+    Banner
   },
 
   props: {
@@ -28,6 +30,7 @@ export default {
       selectedService: '', allServices: true, errors: []
     };
   },
+
   computed:   {
     cluster() {
       return this.resources?.[0];
@@ -54,17 +57,21 @@ export default {
     }
   },
 
+  mounted() {
+    this.selectedService = this.serviceOptions[0] || '';
+  },
+
   methods: {
     close() {
       this.$emit('close');
     },
 
     async rotate(buttonDone) {
-      const cluster = this.cluster.mgmt || {};
+      const cluster = this.cluster.mgmt;
       const params = this.actionParams;
 
       try {
-        await this.doAction('rotateCertificates', cluster, { params });
+        await cluster.doAction('rotateCertificates', params);
         buttonDone(true);
         this.close();
       } catch (err) {
@@ -82,9 +89,7 @@ export default {
       <h3>{{ t('cluster.rotateCertificates.modalTitle') }}</h3>
     </template>
     <template #body>
-      <div v-for="error in errors" :key="error" class="row mb-20 text-error">
-        {{ error }}
-      </div>
+      <Banner v-for="(error, i) in errors" :key="i" class="" color="error" :label="error" />
       <div class="options">
         <RadioGroup v-model="allServices" name="service-mode" :options="[{value: true,label:t('cluster.rotateCertificates.allServices')}, {value: false, label:t('cluster.rotateCertificates.selectService')}]" />
         <Select v-model="selectedService" :options="serviceOptions" class="service-select" :class="{'invisible': allServices}" />
@@ -94,7 +99,7 @@ export default {
       <button class="btn role-secondary mr-20" @click="close">
         {{ t('generic.cancel') }}
       </button>
-      <AsyncButton mode="rotate" @click="rotate" />
+      <AsyncButton mode="rotate" :disabled="!allServices && !selectedService" @click="rotate" />
     </div>
   </Card>
 </template>
