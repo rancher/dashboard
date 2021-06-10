@@ -102,6 +102,11 @@ export default {
       this[key] = img;
     },
 
+    setError(e) {
+      this.errors = [];
+      this.errors.push(e);
+    },
+
     validateUrl(url) {
       const parsed = parse(url, {});
 
@@ -133,6 +138,8 @@ export default {
         this.uiColorSetting.value = null;
       }
 
+      this.errors = [];
+
       try {
         await Promise.all([
           this.uiPLSetting.save(),
@@ -146,7 +153,6 @@ export default {
         if (this.uiPLSetting.value !== this.vendor) {
           setVendor(this.uiPLSetting.value);
         }
-        this.errors = [];
         btnCB(true);
       } catch (err) {
         this.errors.push(err);
@@ -204,7 +210,7 @@ export default {
               :read-as-data-url="true"
               class="role-secondary"
               :label="t('branding.logos.uploadLight')"
-              @error="e=>errors.push(e)"
+              @error="setError"
               @selected="updateLogo($event, 'uiLogoLight')"
             />
           </div>
@@ -220,7 +226,7 @@ export default {
               :read-as-data-url="true"
               class="role-secondary"
               :label="t('branding.logos.uploadDark')"
-              @error="e=>errors.push(e)"
+              @error="setError"
               @selected="updateLogo($event, 'uiLogoDark')"
             />
           </div>
