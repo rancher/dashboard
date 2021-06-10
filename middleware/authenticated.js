@@ -169,11 +169,19 @@ export default async function({
 
     store.app.router.beforeEach((to, from, next) => {
       setProduct(store, to);
+      // Clear state used to record if back button was used for navigation
+      window._popStateDetected = false;
       next();
     });
 
     // Call it for the initial pageload
     setProduct(store, route);
+
+    // Set global window param when the user navigates using the back button
+    window._popStateDetected = false;
+    window.addEventListener('popstate', () => {
+      window._popStateDetected = true;
+    });
   }
 
   try {

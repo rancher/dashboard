@@ -12,6 +12,10 @@ export default {
     }
   },
 
+  data() {
+    return { ready: false };
+  },
+
   computed: {
     statusCode() {
       return (this.error && this.error.statusCode) || 500;
@@ -25,9 +29,21 @@ export default {
     // If the page isn't a sub-path of the base url, redirect to it instead of saying not found.
     // For clicking from manager -> explorer -> back, nuxt tries to load /g/clusters and doesn't
     // have a route for that.
+
+    console.log('ERROR PAGE >>>>>>>>>>>>>>>>>>>>');
+
+    console.log(this.$route);
+    console.log(this.$route.path);
+    console.log(this.$router.options.base);
+    console.log(this.$route.query.redir);
+
+    console.log(window._popStateDetected);
+    
     if ( !this.$route.path.startsWith(this.$router.options.base) && !this.$route.query.redir ) {
-      window.location.href = addParam(this.$route.fullPath, 'redir', 1);
+      window.location.href = this.$route.fullPath;
     }
+
+    this.ready = true;
   },
 
   head() {
@@ -45,7 +61,7 @@ export default {
 </script>
 
 <template>
-  <div class="wrapper">
+  <div v-if="ready" class="wrapper">
     <div class="error">
       <svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" fill="#DBE1EC" viewBox="0 0 48 48">
         <path d="M22 30h4v4h-4zm0-16h4v12h-4zm1.99-10C12.94 4 4 12.95 4 24s8.94 20 19.99 20S44 35.05 44 24 35.04 4 23.99 4zM24 40c-8.84 0-16-7.16-16-16S15.16 8 24 8s16 7.16 16 16-7.16 16-16 16z" />
