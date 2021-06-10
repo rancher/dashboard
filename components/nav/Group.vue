@@ -141,7 +141,7 @@ export default {
         if (this.isExpanded && !skipAutoClose) {
           const items = this.group[this.childrenKey];
 
-          // Navigate to the first item in the group
+          // Navigate to one of the child items (by default the first child)
           if (items && items.length > 0) {
             let index = 0;
 

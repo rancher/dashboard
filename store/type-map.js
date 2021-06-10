@@ -97,6 +97,10 @@
 //   groupOrArrayOfGroups,    -- see weightType...
 //   weight
 // )
+// setGroupDefaultType(       Set the default child type to show when the group is expanded
+//   groupOrArrayOfGroups,    -- see setGroupDefaultType...
+//   defaultType
+// )
 // mapGroup(                  Remap a group name to a display name
 //   matchRegexOrString,      -- see mapType...
 //   replacementString,

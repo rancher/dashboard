@@ -135,7 +135,7 @@ export function init(store) {
   configureType(PVC, { isEditable: false });
   configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { isEditable: false });
 
-  setGroupDefaultType('serviceDiscovery', 'service');
+  setGroupDefaultType('serviceDiscovery', SERVICE);
 
   configureType('workload', {
     displayName: 'Workload',
