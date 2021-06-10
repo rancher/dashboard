@@ -97,9 +97,9 @@ export default {
       } else {
         provider = 'custom';
       }
-    } else if ( this.driver && this.provisioner ) {
+    } else if ( this.driver ) {
       provider = this.driver;
-    } else if ( !this.driver && provisioner.endsWith('v2') ) {
+    } else if ( provisioner && provisioner.endsWith('v2') ) {
       provider = provisioner;
     } else {
       provider = 'import';
