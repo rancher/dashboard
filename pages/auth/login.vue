@@ -68,13 +68,20 @@ export default {
     }
     const needsSetup = firstLoginSetting?.value === 'true';
 
+    let singleProvider;
+
+    if (providers.length === 1) {
+      singleProvider = providers[0];
+    }
+
     return {
       vendor:    getVendor(),
       providers,
       hasOthers,
       hasLocal,
       showLocal: !hasOthers || (route.query[LOCAL] === _FLAGGED),
-      needsSetup
+      needsSetup,
+      singleProvider
     };
   },
 
@@ -97,7 +104,19 @@ export default {
     };
   },
 
-  computed: { ...mapGetters({ t: 'i18n/t' }) },
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
+    nonLocalPrompt() {
+      if (this.singleProvider) {
+        const provider = this.displayName(this.singleProvider);
+
+        return this.t('login.useProvider', { provider });
+      }
+
+      return this.t('login.useNonLocal');
+    }
+  },
 
   created() {
     this.providerComponents = this.providers.map((name) => {
@@ -117,7 +136,7 @@ export default {
     },
 
     toggleLocal() {
-      this.showLocal = true;
+      this.showLocal = !this.showLocal;
       this.$router.applyQuery({ [LOCAL]: _FLAGGED });
       this.$nextTick(() => {
         this.focusSomething();
@@ -203,7 +222,7 @@ export default {
           {{ t('login.loginAgain') }}
         </h4>
 
-        <div v-if="providers.length" class="mt-50">
+        <div v-if="(!hasLocal || (hasLocal && !showLocal)) && providers.length" class="mt-50">
           <component
             :is="providerComponents[idx]"
             v-for="(name, idx) in providers"
@@ -253,9 +272,14 @@ export default {
             </div>
           </form>
           <div v-if="hasLocal && !showLocal" class="mt-20 text-center">
-            <button type="button" class="btn bg-link" @click="toggleLocal">
+            <a role="button" @click="toggleLocal">
               {{ t('login.useLocal') }}
-            </button>
+            </a>
+          </div>
+          <div v-if="hasLocal && showLocal && providers.length" class="mt-20 text-center">
+            <a role="button" @click="toggleLocal">
+              {{ nonLocalPrompt }}
+            </a>
           </div>
         </template>
       </div>
