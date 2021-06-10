@@ -439,7 +439,7 @@ export default {
 
   // You can override the state by providing your own state (and possibly reading metadata.state)
   state() {
-    return this.metadata?.state?.name || this._state || 'unknown';
+    return this.stateObj?.name || this._state || 'unknown';
   },
 
   // You can override the displayed by providing your own stateDisplay (and possibly using the function exported above)
@@ -451,8 +451,8 @@ export default {
     return colorForState.call(
       this,
       this.state,
-      this.metadata?.state?.error,
-      this.metadata?.state?.transitioning
+      this.stateObj?.error,
+      this.stateObj?.transitioning
     );
   },
 
@@ -495,12 +495,16 @@ export default {
     return stateSort(this.stateColor, this.stateDisplay);
   },
 
-  showMessage() {
-    const trans = this.metadata?.state?.transitioning || false;
-    const error = this.metadata?.state?.error || false;
-    const message = this.metadata?.state?.message;
+  stateDescription() {
+    const trans = this.stateObj?.transitioning || false;
+    const error = this.stateObj?.error || false;
+    const message = this.stateObj?.message;
 
-    return (trans || error) && message && message.toLowerCase() !== this.stateDisplay.toLowerCase();
+    return trans || error ? ucFirst(message) : '';
+  },
+
+  stateObj() {
+    return this.metadata?.state;
   },
 
   // ------------------------------------------------------------------

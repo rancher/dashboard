@@ -23,10 +23,14 @@ export default {
     this._onRowClickBound = this.onRowClick.bind(this);
     this._onRowMousedownBound = this.onRowMousedown.bind(this);
     this._onRowContextBound = this.onRowContext.bind(this);
+    this._onRowMouseEnterBound = this.onRowMouseEnter.bind(this);
+    this._onRowMouseLeaveBound = this.onRowMouseLeave.bind(this);
 
     $table.on('click', '> TBODY > TR', this._onRowClickBound);
     $table.on('mousedown', '> TBODY > TR', this._onRowMousedownBound);
     $table.on('contextmenu', '> TBODY > TR', this._onRowContextBound);
+    $table.on('mouseenter', '> TBODY > TR', this._onRowMouseEnterBound);
+    $table.on('mouseleave', '> TBODY > TR', this._onRowMouseLeaveBound);
   },
 
   beforeDestroy() {
@@ -35,6 +39,8 @@ export default {
     $table.off('click', '> TBODY > TR', this._onRowClickBound);
     $table.off('mousedown', '> TBODY > TR', this._onRowMousedownBound);
     $table.off('contextmenu', '> TBODY > TR', this._onRowContextBound);
+    $table.off('mouseenter', '> TBODY > TR', this._onRowMouseEnterBound);
+    $table.off('mouseleave', '> TBODY > TR', this._onRowMouseLeaveBound);
 
     // get rid of the selection Vuex module when the table is destroyed
     this.$store.unregisterModule(this.storeName);
@@ -99,6 +105,26 @@ export default {
     onRowMousedown(e) {
       if ( isRange(e) || this.isSelectionCheckbox(e.target) ) {
         e.preventDefault();
+      }
+    },
+
+    onRowMouseEnter(e) {
+      const tr = $(e.target).closest('TR');
+
+      if (tr.hasClass('state-description')) {
+        const trMainRow = tr.prev('TR');
+
+        trMainRow.toggleClass('sub-row-hovered', true);
+      }
+    },
+
+    onRowMouseLeave(e) {
+      const tr = $(e.target).closest('TR');
+
+      if (tr.hasClass('state-description')) {
+        const trMainRow = tr.prev('TR');
+
+        trMainRow.toggleClass('sub-row-hovered', false);
       }
     },
 
@@ -423,6 +449,7 @@ export default {
 
     clearSelection() {
       this.update([], this.selectedNodes);
-    }
+    },
+
   }
 };

@@ -144,21 +144,21 @@ export default {
     },
 
     banner() {
-      if (this.value?.metadata?.state?.error) {
+      if (this.value?.stateObj?.error) {
         const defaultErrorMessage = this.t('resourceDetail.masthead.defaultBannerMessage.error', undefined, true);
 
         return {
           color:   'error',
-          message: this.value.metadata.state.message || defaultErrorMessage
+          message: this.value.stateObj.message || defaultErrorMessage
         };
       }
 
-      if (this.value?.metadata?.state?.transitioning) {
+      if (this.value?.stateObj?.transitioning) {
         const defaultTransitioningMessage = this.t('resourceDetail.masthead.defaultBannerMessage.transitioning', undefined, true);
 
         return {
           color:   'info',
-          message: this.value.metadata.state.message || defaultTransitioningMessage
+          message: this.value.stateObj.message || defaultTransitioningMessage
         };
       }
 

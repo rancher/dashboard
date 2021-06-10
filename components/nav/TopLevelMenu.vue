@@ -256,7 +256,7 @@ export default {
                 <img v-else :src="c.logo" />
                 <div>{{ c.label }}</div>
               </nuxt-link>
-              <span v-else class="cluster selector disabled">
+              <span v-else class="option-disabled cluster selector disabled">
                 <img :src="c.logo" />
                 <div>{{ c.label }}</div>
               </span>
@@ -403,7 +403,6 @@ export default {
     align-items: center;
     cursor: pointer;
     display: flex;
-    padding: $option-padding 0 $option-padding 10px;
     color: var(--link);
 
     &:hover {
@@ -444,6 +443,10 @@ export default {
         color: var(--primary-hover-text);
       }
     }
+  }
+
+  .option, .option-disabled {
+    padding: $option-padding 0 $option-padding 10px;
   }
 
   .menu {
