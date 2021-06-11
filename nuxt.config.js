@@ -311,6 +311,7 @@ module.exports = {
     { src: '~/plugins/lookup', ssr: false },
     { src: '~/plugins/nuxt-client-init', ssr: false },
     '~/plugins/replaceall',
+    '~/plugins/back-button',
   ],
 
   // Proxy: https://github.com/nuxt-community/proxy-module#options

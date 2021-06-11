@@ -1,5 +1,4 @@
 <script>
-import { addParam } from '@/utils/url';
 import Brand from '@/mixins/brand';
 
 export default {
@@ -29,18 +28,10 @@ export default {
     // If the page isn't a sub-path of the base url, redirect to it instead of saying not found.
     // For clicking from manager -> explorer -> back, nuxt tries to load /g/clusters and doesn't
     // have a route for that.
-
-    console.log('ERROR PAGE >>>>>>>>>>>>>>>>>>>>');
-
-    console.log(this.$route);
-    console.log(this.$route.path);
-    console.log(this.$router.options.base);
-    console.log(this.$route.query.redir);
-
-    console.log(window._popStateDetected);
-    
-    if ( !this.$route.path.startsWith(this.$router.options.base) && !this.$route.query.redir ) {
+    if (this.statusCode === 404 && !this.$route.path.startsWith(this.$router.options.base) && window._popStateDetected) {
       window.location.href = this.$route.fullPath;
+
+      return;
     }
 
     this.ready = true;
