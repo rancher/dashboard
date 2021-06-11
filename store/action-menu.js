@@ -148,7 +148,7 @@ export const mutations = {
     }
 
     state.modalData = data;
-  }
+  },
 };
 
 export const actions = {
