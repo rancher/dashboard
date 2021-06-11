@@ -68,6 +68,8 @@ export default {
 
     repoOptions() {
       let nextColor = 1;
+      // Colors 3 and 4 match `rancher` and `partner` colors, so just avoid them
+      const colors = [0, 1, 2, 5, 6, 7, 8];
 
       let out = this.$store.getters['catalog/repos'].map((r) => {
         return {
@@ -83,8 +85,8 @@ export default {
 
       for ( const entry of out ) {
         if ( !entry.color ) {
-          entry.color = `color${ nextColor }`;
-          if ( nextColor < 8 ) {
+          entry.color = `color${ colors[nextColor] }`;
+          if ( nextColor < 6 ) {
             nextColor++;
           }
         }
@@ -100,6 +102,12 @@ export default {
     },
 
     flattenedRepoNames() {
+      const allChecked = this.repoOptionsForDropdown.find(repo => repo.all && repo.enabled);
+
+      if (allChecked) {
+        return allChecked.label;
+      }
+
       const shownRepos = this.repoOptions.filter(repo => !this.hideRepos.includes(repo._key));
       const reducedRepos = shownRepos.reduce((acc, c, i) => {
         acc += c.label;
@@ -315,30 +323,31 @@ export default {
     </header>
 
     <div class="left-right-split">
-      <div>
-        <Select
-          :searchable="false"
-          :options="repoOptionsForDropdown"
-          :value="flattenedRepoNames"
-          class="checkbox-select"
-          :close-on-select="false"
-          @option:selecting="$event.all ? toggleAll(!$event.enabled) : toggleRepo($event, !$event.enabled) "
-        >
-          <template #option="repo">
-            <Checkbox
-              :value="repo.enabled"
-              :label="repo.label"
-              class="pull-left repo in-select"
-              :class="{ [repo.color]: true}"
-              :color="repo.color"
-            >
-              <template #label>
-                <span>{{ repo.label }}</span><i v-if="!repo.all" class=" pl-5 icon icon-dot icon-sm" :class="{[repo.color]: true}" />
-              </template>
-            </Checkbox>
-          </template>
-        </Select>
-      </div>
+      <Select
+        :searchable="false"
+        :options="repoOptionsForDropdown"
+        :value="flattenedRepoNames"
+        class="checkbox-select"
+        :close-on-select="false"
+        @option:selecting="$event.all ? toggleAll(!$event.enabled) : toggleRepo($event, !$event.enabled) "
+      >
+        <template #selected-option="selected">
+          {{ selected.label }}
+        </template>
+        <template #option="repo">
+          <Checkbox
+            :value="repo.enabled"
+            :label="repo.label"
+            class="pull-left repo in-select"
+            :class="{ [repo.color]: true}"
+            :color="repo.color"
+          >
+            <template #label>
+              <span>{{ repo.label }}</span><i v-if="!repo.all" class=" pl-5 icon icon-dot icon-sm" :class="{[repo.color]: true}" />
+            </template>
+          </Checkbox>
+        </template>
+      </Select>
 
       <Select
         v-model="category"
@@ -489,7 +498,7 @@ export default {
     &:hover ::v-deep.checkbox-label {
       color: var(--app-color3-accent-text);
     }
-        & i {
+    & i {
       color: var(--app-color3-accent)
     }
   }
@@ -500,7 +509,7 @@ export default {
     &:hover ::v-deep.checkbox-label {
       color: var(--app-color4-accent-text);
     }
-        & i {
+    & i {
       color: var(--app-color4-accent)
     }
   }
@@ -511,8 +520,8 @@ export default {
     &:hover ::v-deep.checkbox-label {
       color: var(--app-color5-accent-text);
     }
-        & i {
-      color: var(--app-color4-accent)
+    & i {
+      color: var(--app-color5-accent)
     }
   }
   &.color6 {
@@ -522,7 +531,7 @@ export default {
     &:hover ::v-deep.checkbox-label {
       color: var(--app-color6-accent-text);
     }
-        & i {
+    & i {
       color: var(--app-color6-accent)
     }
   }
@@ -533,7 +542,7 @@ export default {
     &:hover ::v-deep.checkbox-label {
       color: var(--app-color7-accent-text);
     }
-        & i {
+    & i {
       color: var(--app-color7-accent)
     }
   }
@@ -544,7 +553,7 @@ export default {
     &:hover ::v-deep.checkbox-label {
       color: var(--app-color8-accent-text);
     }
-        & i {
+    & i {
       color: var(--app-color8-accent)
     }
   }
