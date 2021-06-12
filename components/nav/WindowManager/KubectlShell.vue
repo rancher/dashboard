@@ -15,12 +15,20 @@ export default {
 
   methods: {
     getSocketUrl() {
+      let cmd = '/bin/sh';
+
+      const isWindows = this.$store.getters['currentCluster'].providerOs === 'windows';
+
+      if (isWindows) {
+        cmd = ['cmd'];
+      }
+
       const url = addParams(`${ this.cluster.links.shell.replace(/^http/, 'ws') }`, {
         stdout:    1,
         stdin:     1,
         stderr:    1,
         tty:       1,
-        command:   '/bin/sh'
+        command:   cmd
       });
 
       return url;
