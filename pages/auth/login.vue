@@ -3,6 +3,7 @@ import { removeObject } from '@/utils/array';
 import { USERNAME } from '@/config/cookies';
 import LabeledInput from '@/components/form/LabeledInput';
 import AsyncButton from '@/components/AsyncButton';
+import BrandImage from '@/components/BrandImage';
 import { LOCAL, LOGGED_OUT, TIMED_OUT, _FLAGGED } from '@/config/query-params';
 import Checkbox from '@/components/form/Checkbox';
 import { sortBy } from '@/utils/sort';
@@ -18,7 +19,7 @@ export default {
   name:       'Login',
   layout:     'unauthenticated',
   components: {
-    LabeledInput, AsyncButton, Checkbox
+    LabeledInput, AsyncButton, Checkbox, BrandImage,
   },
 
   async asyncData({ route, redirect, store }) {
@@ -284,7 +285,7 @@ export default {
         </template>
       </div>
 
-      <div class="col span-6 landscape" />
+      <BrandImage class="col span-6 landscape" file-name="login-landscape.svg" />
     </div>
   </main>
 </template>
@@ -298,11 +299,9 @@ export default {
     }
 
     .landscape {
-      background-image: url('~assets/images/pl/login-landscape.svg');
-      background-repeat: no-repeat;
-      background-size: cover;
-      background-position: center center;
       height: 100vh;
+      margin: 0;
+      object-fit: cover;
     }
   }
 </style>
