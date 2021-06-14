@@ -58,7 +58,7 @@ export default {
         <img class="" src="~/assets/images/providers/minikube.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/open-telekom-cloud.svg" />
+        <img class="" src="~/assets/images/providers/otc.svg" />
       </div>
     </div>
     <div class="row">
@@ -76,6 +76,42 @@ export default {
       </div>
       <div class="col span-1">
         <img class="" src="~/assets/images/providers/vmwarevsphere.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/aliyun.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/baidu.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/blue-gear.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/cloudca.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/cloudscale.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/huaweicce.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/oci.svg" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/openstack.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/otc.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/pinganyunecs.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/pnap.svg" />
       </div>
     </div>
 
@@ -116,7 +152,7 @@ export default {
         <img class="" src="~/assets/images/providers/minikube-black.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/open-telekom-cloud-black.svg" />
+        <img class="" src="~/assets/images/providers/otc-black.svg" />
       </div>
     </div>
     <div class="row">
@@ -135,7 +171,44 @@ export default {
       <div class="col span-1">
         <img class="" src="~/assets/images/providers/vmwarevsphere-black.svg" />
       </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/aliyun-black.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/baidu-black.svg" />
+      </div>
+      <!-- <div class="col span-1">
+        <img class="" src="~/assets/images/providers/blue-gear-black.svg" />
+      </div> -->
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/cloudca-black.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/cloudscale-black.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/huaweicce-black.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/oci-black.svg" />
+      </div>
     </div>
+
+    <div class="row">
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/openstack-black.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/otc-black.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/pinganyunecs-black.svg" />
+      </div>
+      <div class="col span-1">
+        <img class="" src="~/assets/images/providers/pnap-black.svg" />
+      </div>
+    </div>
+
     <div class="reverse-filter">
       <h2>Inverted with CSS - Single Color Logos</h2>
       <div class="row">
@@ -173,7 +246,7 @@ export default {
           <img class="" src="~/assets/images/providers/minikube-black.svg" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/open-telekom-cloud-black.svg" />
+          <img class="" src="~/assets/images/providers/otc-black.svg" />
         </div>
       </div>
       <div class="row">
