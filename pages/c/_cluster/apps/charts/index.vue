@@ -67,9 +67,9 @@ export default {
     },
 
     repoOptions() {
-      let nextColor = 1;
+      let nextColor = 0;
       // Colors 3 and 4 match `rancher` and `partner` colors, so just avoid them
-      const colors = [0, 1, 2, 5, 6, 7, 8];
+      const colors = [1, 2, 5, 6, 7, 8];
 
       let out = this.$store.getters['catalog/repos'].map((r) => {
         return {
@@ -86,8 +86,9 @@ export default {
       for ( const entry of out ) {
         if ( !entry.color ) {
           entry.color = `color${ colors[nextColor] }`;
-          if ( nextColor < 6 ) {
-            nextColor++;
+          nextColor++;
+          if ( nextColor >= colors.length ) {
+            nextColor = 0;
           }
         }
       }
@@ -106,6 +107,11 @@ export default {
 
       if (allChecked) {
         return allChecked.label;
+      }
+
+      // None checked
+      if (!this.repoOptionsForDropdown.find(repo => repo.enabled)) {
+        return this.t('generic.none');
       }
 
       const shownRepos = this.repoOptions.filter(repo => !this.hideRepos.includes(repo._key));
