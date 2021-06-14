@@ -15,8 +15,12 @@ export const BASE_SCOPES = {
 const KEY = 'rc_nonce';
 
 const ERR_NONCE = 'nonce';
-const ERR_CLIENT = 'client';
-const ERR_SERVER = 'server';
+
+export const LOGIN_ERRORS = {
+  CLIENT:              'client',
+  CLIENT_UNAUTHORIZED: 'client_unauthorized',
+  SERVER:              'server'
+};
 
 export const state = function() {
   return {
@@ -244,11 +248,13 @@ export const actions = {
 
       return res;
     } catch (err) {
-      if ( err._status >= 400 && err._status <= 499 ) {
-        return Promise.reject(ERR_CLIENT);
+      if (err._status === 401) {
+        return Promise.reject(LOGIN_ERRORS.CLIENT_UNAUTHORIZED);
+      } else if ( err._status >= 400 && err._status <= 499 ) {
+        return Promise.reject(LOGIN_ERRORS.CLIENT);
       }
 
-      return Promise.reject(ERR_SERVER);
+      return Promise.reject(LOGIN_ERRORS.SERVER);
     }
   },
 
