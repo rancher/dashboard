@@ -536,7 +536,6 @@ export const SPEC_TYPE = {
   value:     `$['spec']['type']`,
   sort:      `$['spec']['type']`,
   formatter: 'ServiceType',
-  width:     100,
 };
 
 export const TARGET_PORT = {

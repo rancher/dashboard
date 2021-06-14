@@ -38,7 +38,7 @@ export default {
         metadata: { annotations = {} },
         spec: {
           clusterIP = null, ports = [], type: serviceType, externalName
-        }
+        },
       } = row;
       const out = [];
       const isHeadless = serviceType === 'ClusterIP' && clusterIP === 'None';
@@ -66,10 +66,10 @@ export default {
       } else {
         ports.forEach((p) => {
           const clusterIpAndPort = `${ parsedClusterIp }${ p.port }`;
-          const protocol = p?.protocol ? ` /${ p.protocol }` : '';
-          const targetPort = p?.targetPort ? ` > ${ p.targetPort }` : '';
+          const protocol = p?.protocol ? `/${ p.protocol }` : '';
+          const targetPort = p?.targetPort ? ` <span class="icon icon-external-link"></span> ${ p.targetPort }` : '';
 
-          label = `${ clusterIpAndPort }${ protocol }${ targetPort }`;
+          label = `${ clusterIpAndPort }${ targetPort }${ protocol }`;
 
           out.push({
             label,
@@ -86,12 +86,11 @@ export default {
 
 <template>
   <div>
-    <div v-if="hasPublic">
+    <div v-if="hasPublic" class="text-small">
       <Endpoints v-model="parsed" :row="{}" :col="{}" />
     </div>
-    <div v-for="(port, index) in parsed" v-else :key="index">
-      <span v-if="port.link" v-html="port.link"></span>
-      <span v-else>{{ port.label }}</span>
+    <div v-for="(port, index) in parsed" v-else :key="index" class="text-small">
+      <span v-html="port.label"></span>
     </div>
   </div>
 </template>
