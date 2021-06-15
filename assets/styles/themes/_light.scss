@@ -305,8 +305,8 @@ BODY, .theme-light {
   --scrollbar-track            : transparent;
 
   --header-bg                  : #{$lightest};
-  --header-btn-bg              : #{$light};
-  --header-btn-text            : #{$darker};
+  --header-btn-bg              : transparent;
+  --header-btn-text            : #{$darkest};
   --header-input-text          : #{$lightest};
   --header-height              : 55px;
   --header-border              : #{$medium};
