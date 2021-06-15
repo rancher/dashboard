@@ -97,7 +97,7 @@ export default {
           <div class="bordered-section">
             <PersistentVolumeClaim v-if="props.row.value.metadata" :value="props.row.value" :mode="mode" @input="updatePVC(props.row.value)" />
           </div>
-          <Mount :pod-spec="value.template.spec" :name="props.row.value.metadata.name" :mode="mode" />
+          <Mount :pod-spec="value.template.spec" :name="props.row.value.metadata.name" :mode="mode" :container="value.template.spec.containers[0]" />
         </template>
         <template #add>
           <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addPVC">
