@@ -1,20 +1,23 @@
 <script>
 import { TYPES } from '@/models/secret';
-import { NAMESPACE } from '@/config/types';
+import { MANAGEMENT, NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CruResource from '@/components/CruResource';
 import { CLOUD_CREDENTIAL, _CREATE, _EDIT, _FLAGGED } from '@/config/query-params';
+import Loading from '@/components/Loading';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import Labels from '@/components/form/Labels';
 import { HIDE_SENSITIVE } from '@/store/prefs';
 import { CAPI } from '@/config/labels-annotations';
-import { clear } from '@/utils/array';
+import { clear, uniq } from '@/utils/array';
 import { importCloudCredential } from '@/utils/dynamic-importer';
 import { NAME as MANAGER } from '@/config/product/manager';
 import SelectIconGrid from '@/components/SelectIconGrid';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
+import { sortBy } from '@/utils/sort';
+import { ucFirst } from '@/utils/string';
 
 const creatableTypes = [
   TYPES.OPAQUE,
@@ -28,6 +31,7 @@ export default {
   name: 'CruSecret',
 
   components: {
+    Loading,
     NameNsDescription,
     CruResource,
     Tabbed,
@@ -38,6 +42,12 @@ export default {
 
   mixins: [CreateEditView],
 
+  async fetch() {
+    if ( this.isCloud ) {
+      this.nodeDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
+    }
+  },
+
   data() {
     const newCloudCred = this.$route.query[CLOUD_CREDENTIAL] === _FLAGGED;
     const editCloudCred = this.mode === _EDIT && this.value._type === TYPES.CLOUD_CREDENTIAL;
@@ -47,7 +57,11 @@ export default {
       this.value.metadata.namespace = DEFAULT_WORKSPACE;
     }
 
-    return { isCloud };
+    return {
+      isCloud,
+      nodeDrivers: null,
+
+    };
   },
 
   computed: {
@@ -70,14 +84,21 @@ export default {
       return require(`@/edit/secret/${ this.typeKey }`).default;
     },
 
-    cloudComponent() {
+    driverName() {
       const driver = this.value.metadata?.annotations?.[CAPI.CREDENTIAL_DRIVER];
 
-      if ( driver ) {
+      return driver;
+    },
+
+    cloudComponent() {
+      const driver = this.driverName;
+      const haveProviders = this.$store.getters['plugins/credentialDrivers'];
+
+      if ( haveProviders.includes(driver) ) {
         return importCloudCredential(driver);
       }
 
-      return null;
+      return importCloudCredential('generic');
     },
 
     // array of id, label, description, initials for type selection step
@@ -86,7 +107,13 @@ export default {
 
       // Cloud credentials
       if ( this.isCloud ) {
-        for ( const id of this.$store.getters['plugins/credentialDrivers'] ) {
+        const machineTypes = uniq(this.nodeDrivers
+          .filter(x => x.spec.active)
+          .map(x => x.spec.displayName || x.id)
+          .map(x => this.$store.getters['plugins/credentialDriverFor'](x))
+        );
+
+        for ( const id of machineTypes ) {
           let bannerImage, bannerAbbrv;
 
           try {
@@ -114,7 +141,7 @@ export default {
         }
       }
 
-      return out;
+      return sortBy(out, 'label');
     },
 
     namespaces() {
@@ -206,7 +233,7 @@ export default {
     },
 
     initialDisplayFor(type) {
-      const fallback = (this.typeDisplay(type) || '').replace(/[^A-Z]/g, '') || type;
+      const fallback = (ucFirst(this.typeDisplay(type) || '').replace(/[^A-Z]/g, '') || type).substr(0, 3);
 
       return this.$store.getters['i18n/withFallback'](`secret.initials."${ type }"`, null, fallback);
     },
@@ -216,7 +243,9 @@ export default {
 
 <template>
   <form>
+    <Loading v-if="$fetchState.pending" />
     <CruResource
+      v-else
       :mode="mode"
       :validation-passed="true"
       :selected-subtype="value._type"
@@ -235,6 +264,7 @@ export default {
         :is="cloudComponent"
         v-if="isCloud"
         ref="cloudComponent"
+        :driver-name="driverName"
         :value="value"
         :mode="mode"
         :hide-sensitive-data="hideSensitiveData"

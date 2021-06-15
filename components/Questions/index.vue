@@ -39,15 +39,15 @@ export function componentForQuestion(q) {
   return 'string';
 }
 
-export function schemaToQuestions(schema) {
-  const keys = Object.keys(schema.resourceFields);
+export function schemaToQuestions(fields) {
+  const keys = Object.keys(fields);
   const out = [];
 
   for ( const k of keys ) {
     out.push({
       variable: k,
       label:    k,
-      ...schema.resourceFields[k],
+      ...fields[k],
     });
   }
 
@@ -192,12 +192,14 @@ export default {
 
   computed: {
     allQuestions() {
-      if ( this.source.type === 'schema' ) {
-        return schemaToQuestions(this.source);
-      } else if ( this.source.questions?.questions ) {
+      if ( this.source.questions?.questions ) {
         return this.chartVersion.questions.questions;
+      } else if ( this.source.type === 'schema' && this.source.resourceFields ) {
+        return schemaToQuestions(this.source.resourceFields);
+      } else if ( typeof this.source === 'object' ) {
+        return schemaToQuestions(this.source);
       } else {
-        throw new Error('Must specify sourec as a chartVersion or Schema resource');
+        return [];
       }
     },
 

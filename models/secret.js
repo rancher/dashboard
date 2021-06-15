@@ -3,8 +3,9 @@ import { CAPI, CERTMANAGER, KUBERNETES } from '@/config/labels-annotations';
 import { base64Decode, base64Encode } from '@/utils/crypto';
 import { removeObjects } from '@/utils/array';
 import { SERVICE_ACCOUNT } from '@/config/types';
-import { set } from '@/utils/object';
+import { isEmpty, set } from '@/utils/object';
 import { escapeHtml } from '@/utils/string';
+import { fullFields, prefixFields, simplify, suffixFields } from '@/store/plugins';
 
 export const TYPES = {
   OPAQUE:           'Opaque',
@@ -312,13 +313,25 @@ export default {
   },
 
   setData() {
-    return (key, value) => {
-      if ( !this.data ) {
+    return (key, value) => { // or (mapOfNewData)
+      const isMap = key && typeof key === 'object';
+
+      if ( !this.data || isMap ) {
         set(this, 'data', {});
       }
 
-      // The key is quoted so that keys like '.dockerconfigjson' that contain dot don't get parsed into an object path
-      set(this.data, `"${ key }"`, base64Encode(value));
+      let neu;
+
+      if ( isMap ) {
+        neu = key;
+      } else {
+        neu = { [key]: value };
+      }
+
+      for ( const k in neu ) {
+        // The key is quoted so that keys like '.dockerconfigjson' that contain dot don't get parsed into an object path
+        set(this.data, `"${ k }"`, base64Encode(neu[k]));
+      }
     };
   },
 
@@ -333,7 +346,33 @@ export default {
   },
 
   cloudCredentialPublicData() {
-    const { publicKey, publicMode } = this.$rootGetters['plugins/credentialOptions'](this.cloudCredentialProvider);
+    let { publicKey, publicMode } = this.$rootGetters['plugins/credentialOptions'](this.cloudCredentialProvider);
+
+    const options = {
+      full:   fullFields,
+      prefix: prefixFields,
+      suffix: suffixFields,
+    };
+
+    if ( !publicKey ) {
+      for ( const k in this.decodedData || {} ) {
+        if ( publicKey ) {
+          break;
+        }
+
+        if ( isEmpty(this.decodedData[k]) ) {
+          continue;
+        }
+
+        for ( const mode in options ) {
+          if ( options[mode].includes( simplify(k) ) ) {
+            publicKey = k;
+            publicMode = mode;
+            break;
+          }
+        }
+      }
+    }
 
     if ( !publicKey ) {
       return;

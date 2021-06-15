@@ -1106,6 +1106,8 @@ cluster:
       rke2-ingress-nginx: 'NGINX Ingress Controller'
       rke2-kube-proxy: 'Kube Proxy'
       rke2-metrics-server: 'Metrics Server'
+  selectCredential:
+    genericDescription: "{vendor} has no built-in support for this driver.  We've taken a guess, but consult the driver's documentation for the fields required for authentication."
   tabs:
     ace: Authorized Endpoint
     advanced: Advanced

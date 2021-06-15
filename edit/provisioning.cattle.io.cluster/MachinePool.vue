@@ -47,7 +47,13 @@ export default {
 
   computed: {
     configComponent() {
-      return importMachineConfig(this.provider);
+      const haveProviders = this.$store.getters['plugins/machineDrivers'];
+
+      if ( haveProviders.includes(this.provider) ) {
+        return importMachineConfig(this.provider);
+      }
+
+      return importMachineConfig('generic');
     }
   },
 };
@@ -84,6 +90,7 @@ export default {
       :uuid="uuid"
       :mode="mode"
       :value="value.config"
+      :provider="provider"
       :credential-id="credentialId"
       @error="e=>errors = e"
     />

@@ -1,4 +1,5 @@
 <script>
+import Loading from '@/components/Loading';
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { SECRET } from '@/config/types';
@@ -6,7 +7,9 @@ import { AGE, NAME, STATE } from '@/config/table-headers';
 import { CLOUD_CREDENTIAL, _FLAGGED } from '@/config/query-params';
 
 export default {
-  components: { ResourceTable, Masthead },
+  components: {
+    Loading, ResourceTable, Masthead
+  },
 
   async fetch() {
     this.allSecrets = await this.$store.dispatch('management/findAll', { type: SECRET });
@@ -14,9 +17,9 @@ export default {
 
   data() {
     return {
-      allSecrets: [],
-      resource:        SECRET,
-      schema:          this.$store.getters['management/schemaFor'](SECRET),
+      allSecrets: null,
+      resource:   SECRET,
+      schema:     this.$store.getters['management/schemaFor'](SECRET),
     };
   },
 
@@ -68,7 +71,8 @@ export default {
 </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
     <Masthead
       :schema="schema"
       :resource="resource"
