@@ -13,6 +13,7 @@ import { importLogin } from '@/utils/dynamic-importer';
 import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
 import { MANAGEMENT } from '@/config/types';
 import { SETTING } from '@/config/settings';
+import { LOGIN_ERRORS } from '@/store/auth';
 import { getVendor, getProduct, setVendor } from '../../config/private-label';
 
 export default {
@@ -170,6 +171,8 @@ export default {
     async loginLocal(buttonCb) {
       try {
         this.err = null;
+        this.timedOut = null;
+        this.loggedOut = null;
         await this.$store.dispatch('auth/login', {
           provider: 'local',
           body:     {
@@ -187,7 +190,6 @@ export default {
         } else {
           this.$cookies.remove(USERNAME);
         }
-        buttonCb(true);
 
         if (this.needsSetup) {
           this.$router.push({ name: 'auth-setup', query: { setup: this.password } });
@@ -195,7 +197,13 @@ export default {
           this.$router.replace('/');
         }
       } catch (err) {
-        this.err = err;
+        if (err === LOGIN_ERRORS.CLIENT_UNAUTHORIZED) {
+          this.err = this.t('login.clientError');
+        } else if (err === LOGIN_ERRORS.CLIENT || err === LOGIN_ERRORS.SERVER) {
+          this.err = this.t('login.error');
+        } else {
+          this.err = err;
+        }
         buttonCb(false);
       }
     },
@@ -213,17 +221,18 @@ export default {
         <h1 class="text-center">
           {{ t('login.welcome', {vendor}) }}
         </h1>
-        <h4 v-if="err" class="text-error text-center">
-          {{ err }}
-        </h4>
-        <h4 v-else-if="loggedOut" class="text-success text-center">
-          {{ t('login.loggedOut') }}
-        </h4>
-        <h4 v-else-if="timedOut" class="text-error text-center">
-          {{ t('login.loginAgain') }}
-        </h4>
-
-        <div v-if="(!hasLocal || (hasLocal && !showLocal)) && providers.length" class="mt-50">
+        <div class="login-messages">
+          <h4 v-if="err" class="text-error text-center">
+            {{ err }}
+          </h4>
+          <h4 v-else-if="loggedOut" class="text-success text-center">
+            {{ t('login.loggedOut') }}
+          </h4>
+          <h4 v-else-if="timedOut" class="text-error text-center">
+            {{ t('login.loginAgain') }}
+          </h4>
+        </div>
+        <div v-if="(!hasLocal || (hasLocal && !showLocal)) && providers.length" class="mt-30">
           <component
             :is="providerComponents[idx]"
             v-for="(name, idx) in providers"
@@ -302,6 +311,10 @@ export default {
       height: 100vh;
       margin: 0;
       object-fit: cover;
+    }
+
+    .login-messages {
+      height: 20px
     }
   }
 </style>

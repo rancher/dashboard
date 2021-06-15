@@ -1772,6 +1772,7 @@ login:
   loggedOut: You have been logged out.
   loginAgain: Log in again to continue.
   error: An error occured logging in. Please try again.
+  clientError: Invalid username or password. Please try again.
   useLocal: Use a local user
   loginWithProvider: Log in with {provider}
   username: Username
