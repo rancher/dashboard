@@ -197,7 +197,7 @@ export default {
 </script>
 
 <template>
-  <div :class="{'side-tabs':!!sideTabs}">
+  <div :class="{'side-tabs': (!!sideTabs && tabs.length)}">
     <ul
       ref="tablist"
       role="tablist"
@@ -236,7 +236,7 @@ export default {
         </li>
       </ul>
     </ul>
-    <div class="tab-container">
+    <div :class="{ 'tab-container': !!tabs.length }">
       <slot />
     </div>
   </div>
