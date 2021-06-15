@@ -36,18 +36,22 @@ export default {
       return;
     }
 
-    const res = await store.dispatch('auth/verifyOAuth', {
-      code,
-      nonce,
-      provider
-    });
+    try {
+      const res = await store.dispatch('auth/verifyOAuth', {
+        code,
+        nonce,
+        provider
+      });
 
-    if ( res._status === 200) {
-      const backTo = route.query[BACK_TO] || '/';
+      if ( res._status === 200) {
+        const backTo = route.query[BACK_TO] || '/';
 
-      redirect(backTo);
-    } else {
-      redirect(`/auth/login?err=${ escape(res) }`);
+        redirect(backTo);
+      } else {
+        redirect(`/auth/login?err=${ escape(res) }`);
+      }
+    } catch (err) {
+      redirect(`/auth/login?err=${ escape(err) }`);
     }
   },
 

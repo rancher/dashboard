@@ -117,6 +117,16 @@ export default {
       }
 
       return this.t('login.useNonLocal');
+    },
+
+    errorMessage() {
+      if (this.err === LOGIN_ERRORS.CLIENT_UNAUTHORIZED) {
+        return this.t('login.clientError');
+      } else if (this.err === LOGIN_ERRORS.CLIENT || this.err === LOGIN_ERRORS.SERVER) {
+        return this.t('login.error');
+      }
+
+      return this.err;
     }
   },
 
@@ -197,13 +207,7 @@ export default {
           this.$router.replace('/');
         }
       } catch (err) {
-        if (err === LOGIN_ERRORS.CLIENT_UNAUTHORIZED) {
-          this.err = this.t('login.clientError');
-        } else if (err === LOGIN_ERRORS.CLIENT || err === LOGIN_ERRORS.SERVER) {
-          this.err = this.t('login.error');
-        } else {
-          this.err = err;
-        }
+        this.err = err;
         buttonCb(false);
       }
     },
@@ -222,8 +226,8 @@ export default {
           {{ t('login.welcome', {vendor}) }}
         </h1>
         <div class="login-messages">
-          <h4 v-if="err" class="text-error text-center">
-            {{ err }}
+          <h4 v-if="errorMessage" class="text-error text-center">
+            {{ errorMessage }}
           </h4>
           <h4 v-else-if="loggedOut" class="text-success text-center">
             {{ t('login.loggedOut') }}

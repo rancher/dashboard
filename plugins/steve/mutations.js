@@ -2,7 +2,7 @@ import Vue from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@/utils/array';
 import { SCHEMA } from '@/config/types';
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
-import { proxyFor } from './resource-proxy';
+import { proxyFor, remapSpecialKeys } from './resource-proxy';
 
 function registerType(state, type) {
   let cache = state.types[type];
@@ -47,6 +47,8 @@ function load(state, { data, ctx, existing }) {
     for ( const k of Object.keys(existing) ) {
       delete existing[k];
     }
+
+    remapSpecialKeys(data);
 
     for ( const k of Object.keys(data) ) {
       Vue.set(existing, k, data[k]);
