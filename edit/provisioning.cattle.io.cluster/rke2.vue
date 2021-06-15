@@ -1,6 +1,5 @@
 <script>
 import difference from 'lodash/difference';
-import differenceBy from 'lodash/differenceBy';
 import throttle from 'lodash/throttle';
 import isArray from 'lodash/isArray';
 import merge from 'lodash/merge';
@@ -154,10 +153,6 @@ export default {
       }
     }
 
-    if ( !this.versionInfo ) {
-      this.versionInfo = {};
-    }
-
     for ( const v of this.addonVersions ) {
       if ( this.versionInfo[v.name] ) {
         continue;
@@ -222,8 +217,8 @@ export default {
       rke2Versions:     null,
       k3sVersions:      null,
       s3Backup:         false,
-      chartValues:      clone(this.value.spec.rkeConfig.chartValues),
       chartVersionInfo: null,
+      versionInfo:      {},
     };
   },
 
@@ -232,6 +227,10 @@ export default {
 
     rkeConfig() {
       return this.value.spec.rkeConfig;
+    },
+
+    chartValues() {
+      return this.value.spec.rkeConfig.chartValues;
     },
 
     serverConfig() {
@@ -345,7 +344,7 @@ export default {
     disableOptions() {
       return this.serverArgs.disable.options.map((value) => {
         return {
-          label: this.$store.getters['i18n/withFallback'](`cluster.rke2.systemService."${ value }"`, null, value.replace(/^rke2-/, '')),
+          label: this.$store.getters['i18n/withFallback'](`cluster.rke2.systemService."${ value }"`, null, value.replace(/^(rke2|rancher)-/, '')),
           value,
         };
       });
@@ -509,21 +508,27 @@ export default {
       return !!this.serverArgs.cni;
     },
 
-    addonVersions() {
+    addonNames() {
       const names = [];
       const cni = this.serverConfig.cni;
 
       if ( cni ) {
-        const parts = cni.split('+');
+        const parts = cni.split('+').map(x => `rke2-${ x }`);
 
         names.push(...parts);
       }
 
       if ( this.agentConfig['cloud-provider-name'] === 'vsphere' ) {
-        names.push('vsphere-cpi', 'vpshere-csi');
+        names.push('rancher-vsphere-cpi', 'rancher-vsphere-csi');
       }
 
-      return names.map(name => this.chartVersionFor(name)).filter(x => !!x);
+      return names;
+    },
+
+    addonVersions() {
+      const versions = this.addonNames.map(name => this.chartVersionFor(name));
+
+      return versions.filter(x => !!x);
     },
   },
 
@@ -540,8 +545,10 @@ export default {
       }
     },
 
-    addonVersions(neu, old) {
-      if (!this.$fetchState.pending && differenceBy(neu, old, 'name').length ) {
+    addonNames(neu, old) {
+      const diff = difference(neu, old);
+
+      if (!this.$fetchState.pending && diff.length ) {
         this.$fetch();
       }
     },
@@ -723,8 +730,7 @@ export default {
       });
     },
 
-    chartVersionFor(feature) {
-      const chartName = `rke2-${ feature }`;
+    chartVersionFor(chartName) {
       const entry = this.chartVersions[chartName];
 
       if ( !entry ) {
@@ -733,7 +739,7 @@ export default {
 
       const out = this.$store.getters['catalog/version']({
         repoType:    'cluster',
-        repoName:    (feature === 'multus' ? 'rancher-rke2-charts' : entry.repo), // @TODO remove when KDM is fixed
+        repoName:    entry.repo,
         chartName,
         versionName: entry.version,
       });
@@ -1157,6 +1163,7 @@ export default {
                 v-if="versionInfo[v.name].questions"
                 v-model="chartValues[v.name]"
                 :mode="mode"
+                :tabbed="false"
                 :source="versionInfo[v.name]"
                 :target-namespace="value.metadata.namespace"
               />

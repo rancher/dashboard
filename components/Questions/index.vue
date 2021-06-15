@@ -165,7 +165,7 @@ export default {
     },
 
     tabbed: {
-      type:    Boolean,
+      type:    [Boolean, String],
       default: true,
     },
 
@@ -193,7 +193,7 @@ export default {
   computed: {
     allQuestions() {
       if ( this.source.questions?.questions ) {
-        return this.chartVersion.questions.questions;
+        return this.source.questions.questions;
       } else if ( this.source.type === 'schema' && this.source.resourceFields ) {
         return schemaToQuestions(this.source.resourceFields);
       } else if ( typeof this.source === 'object' ) {
@@ -266,6 +266,18 @@ export default {
 
       return sortBy(out, 'weight:desc');
     },
+
+    asTabs() {
+      if ( this.tabbed === false || this.tabbed === 'never' ) {
+        return false;
+      }
+
+      if ( this.tabbed === 'multiple' ) {
+        return this.groups.length > 1;
+      }
+
+      return true;
+    },
   },
 
   watch: {
@@ -287,7 +299,7 @@ export default {
 </script>
 
 <template>
-  <div v-if="tabbed">
+  <form v-if="asTabs">
     <Tab
       v-for="g in groups"
       :key="g.name"
@@ -307,8 +319,8 @@ export default {
         </div>
       </div>
     </Tab>
-  </div>
-  <div v-else>
+  </form>
+  <form v-else>
     <div
       v-for="g in groups"
       :key="g.name"
@@ -329,7 +341,7 @@ export default {
         </div>
       </div>
     </div>
-  </div>
+  </form>
 </template>
 
 <style lang="scss" scoped>

@@ -1113,6 +1113,7 @@ export default {
                 v-model="chartValues"
                 :mode="mode"
                 :source="versionInfo"
+                tabbed="multiple"
                 :target-namespace="targetNamespace"
               />
             </Tabbed>
