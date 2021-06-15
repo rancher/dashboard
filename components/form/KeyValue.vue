@@ -7,11 +7,13 @@ import { base64Encode, base64Decode } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 import { get } from '@/utils/object';
+import Select from '@/components/form/Select';
 import FileSelector from '@/components/form/FileSelector';
 import { _EDIT, _VIEW } from '@/config/query-params';
 
 export default {
   components: {
+    Select,
     TextAreaAutoGrow,
     FileSelector
   },
@@ -57,6 +59,18 @@ export default {
       default() {
         return this.$store.getters['i18n/t']('generic.key');
       },
+    },
+
+    // Offer a set of suggestions for the keys as a Select instead of Input
+    keyOptions: {
+      type:    Array,
+      default: null,
+    },
+
+    // If false and keyOptions are provided, the key MUST be one of the keyOptions.
+    keyTaggable: {
+      type:    Boolean,
+      default: true,
     },
 
     keyPlaceholder: {
@@ -455,7 +469,17 @@ export default {
             :keyName="keyName"
             :valueName="valueName"
           >
+            <Select
+              v-if="keyOptions"
+              ref="key"
+              v-model="row[keyName]"
+              :searchable="true"
+              :clearable="false"
+              :taggable="keyTaggable"
+              :options="keyOptions"
+            />
             <input
+              v-else
               ref="key"
               v-model="row[keyName]"
               :disabled="isView"
