@@ -1068,17 +1068,17 @@ cluster:
     k3s: K3s
     kubeAdmin: KubeADM
     linode: Linode
-    linodelke: Linode
+    linodelke: Linode LKE
     local: Local
     minikube: Minikube
-    oci: Oracle Cloud Infrastructure
+    oci: Oracle OCI
     openstack: OpenStack
     opentelekomcloudcontainerengine: Open Telekom Cloud CCE
     otccce: Open Telekom Cloud CCE
     oracleoke: Oracle OKE
     otc: Open Telekom Cloud
     other: Other
-    packet: Packet
+    packet: Equinix Metal
     pinganyunecs: Pinganyun ECS
     pnap: phoenixNAP
     rackspace: RackSpace
@@ -1086,7 +1086,7 @@ cluster:
     rke2: RKE2
     rke: RKE1
     rkeWindows: Windows
-    softlayer: SoftLayer
+    softlayer: IBM Cloud
     tencenttke: Tencent TKE
     upcloud: UpCloud
     vmwarevsphere: vSphere

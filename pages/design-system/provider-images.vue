@@ -84,9 +84,6 @@ export default {
         <img class="" src="~/assets/images/providers/baidu.svg" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/blue-gear.svg" />
-      </div>
-      <div class="col span-1">
         <img class="" src="~/assets/images/providers/cloudca.svg" />
       </div>
       <div class="col span-1">
@@ -177,9 +174,6 @@ export default {
       <div class="col span-1">
         <img class="" src="~/assets/images/providers/baidu-black.svg" />
       </div>
-      <!-- <div class="col span-1">
-        <img class="" src="~/assets/images/providers/blue-gear-black.svg" />
-      </div> -->
       <div class="col span-1">
         <img class="" src="~/assets/images/providers/cloudca-black.svg" />
       </div>

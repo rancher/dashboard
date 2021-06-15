@@ -30,14 +30,6 @@ const SORT_GROUPS = {
   custom2:   5,
 };
 
-// Map some provider IDs to icon names where they don't directly match
-const ICON_MAPPINGS = {
-  linode: 'linodelke',
-  custom: 'blue-gear',
-  import: 'kubernetes',
-  otccce: 'open-telekom-cloud'
-};
-
 export default {
   name: 'CruCluster',
 
@@ -232,10 +224,8 @@ export default {
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         let icon = require('~/assets/images/generic-driver.svg');
 
-        const iconID = ICON_MAPPINGS[id] || id;
-
         try {
-          icon = require(`~/assets/images/providers/${ iconID }.svg`);
+          icon = require(`~/assets/images/providers/${ id }.svg`);
         } catch (e) {}
 
         const subtype = {
