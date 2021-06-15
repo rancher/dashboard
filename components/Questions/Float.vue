@@ -1,9 +1,11 @@
 <script>
-import Checkbox from '@/components/form/Checkbox';
+import LabeledInput from '@/components/form/LabeledInput';
 import Question from './Question';
 
+//  @TODO valid_chars, invalid_chars
+
 export default {
-  components: { Checkbox },
+  components: { LabeledInput },
   mixins:     [Question]
 };
 </script>
@@ -11,11 +13,14 @@ export default {
 <template>
   <div class="row">
     <div class="col span-6">
-      <Checkbox
+      <LabeledInput
+        type="text"
         :mode="mode"
         :label="displayLabel"
+        :placeholder="question.default"
+        :required="question.required"
         :value="value"
-        @input="$emit('input', $event)"
+        @input="val = parseFloat($event); if ( !isNaN(val) ) { $emit('input', val) }"
       />
     </div>
     <div v-if="showDescription" class="col span-6 mt-10">

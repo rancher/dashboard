@@ -1,8 +1,15 @@
+import { _EDIT } from '@/config/query-params';
+
 export default {
   props: {
     question: {
       type:     Object,
       required: true,
+    },
+
+    mode: {
+      type:     String,
+      default: _EDIT,
     },
 
     // targetNamespace: {

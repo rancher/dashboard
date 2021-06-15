@@ -28,6 +28,7 @@ export default {
   <div>
     Secret in namespace {{ targetNamespace }}
     <LabeledSelect
+      :mode="mode"
       :disabled="$fetchState.pending"
       :label="displayLabel"
       :placeholder="question.description"

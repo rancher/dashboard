@@ -24,6 +24,7 @@ export default {
   <div class="row">
     <div class="col span-6">
       <LabeledInput
+        :mode="mode"
         :type="inputType"
         :label="displayLabel"
         :placeholder="question.default"

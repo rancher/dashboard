@@ -15,6 +15,7 @@ export default {
     <div class="col span-6">
       <LabeledInput
         type="text"
+        :mode="mode"
         :label="displayLabel"
         :placeholder="question.default"
         :required="question.required"
