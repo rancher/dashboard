@@ -4504,7 +4504,7 @@ branding:
     label: Support Links
     issuesUrl: Issue Reporting URL
     invalidUrl: The issue reporting value must be a complete URL, including protocol.
-    hideCommunity: Also hide all Rancher community support links
+    communityLinks: Show Rancher community support links
   uiBanner:
     label: Fixed Banners
     text: Text
