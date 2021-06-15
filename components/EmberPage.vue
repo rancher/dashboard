@@ -173,7 +173,7 @@ export default {
       // If the iframe already exists, check if it is ready for us to reuse
       // by navigating within the app that is already loaded
       if (iframeEl !== null) {
-        const ready = iframeEl.getAttribute('data-ready');
+        const ready = iframeEl.getAttribute('data-ready') !== 'false';
         const lastDidLoad = iframeEl.getAttribute('data-loaded') !== 'false';
 
         if (!ready || this.inline || !lastDidLoad) {
@@ -359,6 +359,7 @@ export default {
           this.doSyncHeight();
         }
       } else if (msg.action === 'dashboard') {
+        this.iframeEl.setAttribute('data-ready', false);
         this.$router.replace(msg.page);
       }
     },
