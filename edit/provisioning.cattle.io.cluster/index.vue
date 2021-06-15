@@ -30,14 +30,6 @@ const SORT_GROUPS = {
   custom2:   5,
 };
 
-// Map some provider IDs to icon names where they don't directly match
-const ICON_MAPPINGS = {
-  linode: 'linodelke',
-  custom: 'blue-gear',
-  import: 'kubernetes',
-  otccce: 'open-telekom-cloud'
-};
-
 export default {
   name: 'CruCluster',
 
@@ -183,11 +175,8 @@ export default {
       const out = [];
 
       const templates = this.templateOptions;
-      const vueMachineTypes = getters['plugins/machineDrivers'];
       const vueKontainerTypes = getters['plugins/clusterDrivers'];
-      const machineTypes = this.nodeDrivers.filter(x => x.spec.active).map((x) => {
-        return !x.spec.builtin ? x.spec.displayName : x.id;
-      });
+      const machineTypes = this.nodeDrivers.filter(x => x.spec.active && x.state === 'active').map(x => x.spec.displayName || x.id);
 
       this.kontainerDrivers.filter(x => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
         if ( vueKontainerTypes.includes(obj.driverName) ) {
@@ -218,7 +207,7 @@ export default {
           addType('custom', 'custom1', false, '/g/clusters/add/launch/custom');
         } else {
           machineTypes.forEach((id) => {
-            addType(id, 'rke2', !vueMachineTypes.includes(id));
+            addType(id, 'rke2', false);
           });
 
           addType('custom', 'custom2', false);
@@ -232,10 +221,8 @@ export default {
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         let icon = require('~/assets/images/generic-driver.svg');
 
-        const iconID = ICON_MAPPINGS[id] || id;
-
         try {
-          icon = require(`~/assets/images/providers/${ iconID }.svg`);
+          icon = require(`~/assets/images/providers/${ id }.svg`);
         } catch (e) {}
 
         const subtype = {
@@ -271,6 +258,10 @@ export default {
         }
 
         entry.types.push(row);
+      }
+
+      for ( const k in out ) {
+        out[k].types = sortBy(out[k].types, 'label');
       }
 
       return sortBy(Object.values(out), 'sort');

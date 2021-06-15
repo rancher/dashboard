@@ -37,7 +37,7 @@ export async function dashboardExists(dispatch, clusterId, embedUrl) {
   const newUrl = `${ prefix }api/dashboards/uid/${ uid }`;
 
   try {
-    await dispatch('cluster/request', { url: newUrl });
+    await dispatch('cluster/request', { url: newUrl, redirectUnauthorized: false });
 
     return true;
   } catch (ex) {
@@ -55,7 +55,7 @@ export function queryGrafana(dispatch, clusterId, query, range, step) {
   const clusterPrefix = clusterId === 'local' ? '' : `/k8s/clusters/${ clusterId }`;
   const url = `${ clusterPrefix }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/api/datasources/proxy/1/api/v1/query_range?query=${ query }&start=${ range.start }&end=${ range.end }&step=${ step }`;
 
-  return dispatch('cluster/request', { url });
+  return dispatch('cluster/request', { url, redirectUnauthorized: false });
 }
 
 export async function hasLeader(dispatch, clusterId) {

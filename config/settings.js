@@ -48,7 +48,7 @@ export const SETTING = {
   LOGO_LIGHT:                       'ui-logo-light',
   LOGO_DARK:                        'ui-logo-dark',
   PRIMARY_COLOR:                    'ui-primary-color',
-  HIDE_COMMUNITY:                   'ui-hide-community-links'
+  COMMUNITY_LINKS:                  'ui-community-links'
 };
 
 // These are the settings that are allowed to be edited via the UI

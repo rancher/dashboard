@@ -2,12 +2,17 @@
 import Jexl from 'jexl';
 import Tab from '@/components/Tabbed/Tab';
 import { get, set } from '@/utils/object';
+import sortBy from 'lodash/sortBy';
+import { _EDIT } from '@/config/query-params';
 import StringType from './String';
 import BooleanType from './Boolean';
 import EnumType from './Enum';
 import IntType from './Int';
+import FloatType from './Float';
+import ArrayType from './Array';
+import MapType from './Map';
 
-const knownTypes = {
+export const knownTypes = {
   string:    StringType,
   hostname:  StringType, // @TODO
   multiline: StringType,
@@ -15,10 +20,39 @@ const knownTypes = {
   boolean:   BooleanType,
   enum:      EnumType,
   int:       IntType,
+  float:     FloatType,
+  map:       MapType,
   // storageclass
   // pvc
   // secret
 };
+
+export function componentForQuestion(q) {
+  if ( knownTypes[q.type] ) {
+    return q.type;
+  } else if ( q.type.startsWith('array[') ) { // This only really works for array[string|multiline], but close enough for now.
+    return ArrayType;
+  } else if ( q.type.startsWith('map[') ) { // Same, only works with map[string|multiline]
+    return MapType;
+  }
+
+  return 'string';
+}
+
+export function schemaToQuestions(fields) {
+  const keys = Object.keys(fields);
+  const out = [];
+
+  for ( const k of keys ) {
+    out.push({
+      variable: k,
+      label:    k,
+      ...fields[k],
+    });
+  }
+
+  return out;
+}
 
 function evalExpr(expr, values) {
   try {
@@ -120,12 +154,23 @@ export default {
   components: { Tab, ...knownTypes },
 
   props: {
+    mode: {
+      type:    String,
+      default: _EDIT,
+    },
+
     value: {
       type:     Object,
       required: true,
     },
 
-    chartVersion: {
+    tabbed: {
+      type:    Boolean,
+      default: true,
+    },
+
+    // Can be a chartVersion or a resource Schema
+    source: {
       type:     Object,
       required: true,
     },
@@ -133,7 +178,12 @@ export default {
     targetNamespace: {
       type:     String,
       required: true
-    }
+    },
+
+    ignoreVariables: {
+      type:    Array,
+      default: () => [],
+    },
   },
 
   data() {
@@ -142,7 +192,15 @@ export default {
 
   computed: {
     allQuestions() {
-      return this.chartVersion.questions.questions;
+      if ( this.source.questions?.questions ) {
+        return this.chartVersion.questions.questions;
+      } else if ( this.source.type === 'schema' && this.source.resourceFields ) {
+        return schemaToQuestions(this.source.resourceFields);
+      } else if ( typeof this.source === 'object' ) {
+        return schemaToQuestions(this.source);
+      } else {
+        return [];
+      }
     },
 
     shownQuestions() {
@@ -156,6 +214,10 @@ export default {
       const out = [];
 
       for ( const q of this.allQuestions ) {
+        if ( this.ignoreVariables.includes(q.variable) ) {
+          continue;
+        }
+
         addQuestion(q);
       }
 
@@ -185,24 +247,24 @@ export default {
       let weight = this.shownQuestions.length;
 
       for ( const q of this.shownQuestions ) {
-        if ( q.group ) {
-          const normalized = q.group.trim().toLowerCase();
+        const group = q.group || defaultGroup;
 
-          if ( !map[normalized] ) {
-            map[normalized] = {
-              name:      q.group || defaultGroup,
-              questions: [],
-              weight:    weight--,
-            };
-          }
+        const normalized = group.trim().toLowerCase();
 
-          map[normalized].questions.push(q);
+        if ( !map[normalized] ) {
+          map[normalized] = {
+            name:      group,
+            questions: [],
+            weight:    weight--,
+          };
         }
+
+        map[normalized].questions.push(q);
       }
 
       const out = Object.values(map);
 
-      return out;
+      return sortBy(out, 'weight:desc');
     },
   },
 
@@ -219,20 +281,13 @@ export default {
   methods: {
     get,
     set,
-
-    componentForQuestion(q) {
-      if ( knownTypes[q.type] ) {
-        return q.type;
-      }
-
-      return 'string';
-    }
+    componentForQuestion,
   },
 };
 </script>
 
 <template>
-  <div>
+  <div v-if="tabbed">
     <Tab
       v-for="g in groups"
       :key="g.name"
@@ -252,6 +307,28 @@ export default {
         </div>
       </div>
     </Tab>
+  </div>
+  <div v-else>
+    <div
+      v-for="g in groups"
+      :key="g.name"
+    >
+      <h3 v-if="groups.length > 1">
+        {{ g.label }}
+      </h3>
+      <div v-for="q in g.questions" :key="q.variable" class="row question">
+        <div class="col span-12">
+          <component
+            :is="componentForQuestion(q)"
+            :question="q"
+            :target-namespace="targetNamespace"
+            :mode="mode"
+            :value="get(value, q.variable)"
+            @input="set(value, q.variable, $event)"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 

@@ -15,7 +15,6 @@ const PLAN_SORTS = {
 };
 
 const VALID_IMAGES = [
-  /^rancheros$/,
   /^centos-\d+-x64$/,
   /^debian-\d+-x64$/,
   /^fedora-\d+-x64$/,

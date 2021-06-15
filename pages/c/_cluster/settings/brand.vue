@@ -30,7 +30,7 @@ export default {
       uiLogoDarkSetting:      fetchOrCreateSetting(this.$store, SETTING.LOGO_DARK, ''),
       uiLogoLightSetting:     fetchOrCreateSetting(this.$store, SETTING.LOGO_LIGHT, ''),
       uiColorSetting:         fetchOrCreateSetting(this.$store, SETTING.PRIMARY_COLOR, ''),
-      uiHideCommunitySetting: fetchOrCreateSetting(this.$store, SETTING.HIDE_COMMUNITY, 'false'),
+      uiCommunitySetting:     fetchOrCreateSetting(this.$store, SETTING.COMMUNITY_LINKS, 'true'),
     });
 
     Object.assign(this, hash);
@@ -89,7 +89,7 @@ export default {
       uiColor,
       customizeColor: false,
 
-      uiHideCommunitySetting: {},
+      uiCommunitySetting: {},
 
       errors: []
     };
@@ -148,7 +148,7 @@ export default {
           this.uiLogoDarkSetting.save(),
           this.uiLogoLightSetting.save(),
           this.uiColorSetting.save(),
-          this.uiHideCommunitySetting.save()
+          this.deCommunitySetting.save()
         ]);
         if (this.uiPLSetting.value !== this.vendor) {
           setVendor(this.uiPLSetting.value);
@@ -187,7 +187,7 @@ export default {
           <LabeledInput v-model="uiIssuesSetting.value" :label="t('branding.uiIssues.issuesUrl')" />
         </div>
         <div class="col span-6">
-          <Checkbox :value="uiHideCommunitySetting.value==='true'" :label="t('branding.uiIssues.hideCommunity')" @input="e=>e? uiHideCommunitySetting.value = 'true' :uiHideCommunitySetting.value = 'false' " />
+          <Checkbox v-model="uiCommunitySetting.value" :label="t('branding.uiIssues.communityLinks')" />
         </div>
       </div>
 

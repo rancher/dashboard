@@ -12,6 +12,7 @@ export default {
   <div class="row">
     <div class="col span-6">
       <LabeledSelect
+        :mode="mode"
         :label="displayLabel"
         :options="question.options"
         :placeholder="question.description"

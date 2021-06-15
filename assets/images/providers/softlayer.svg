@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32px" height="31px" viewBox="0 0 32 31" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 54.1 (76490) - https://sketchapp.com -->
+    <title>Compute</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+        <g id="Products" transform="translate(-352.000000, -41.000000)" stroke="#5596E6" stroke-width="0.85">
+            <g id="ICONS" transform="translate(353.000000, 40.000000)">
+                <g id="Row-1">
+                    <g id="Compute">
+                        <g id="Group-5" transform="translate(9.000000, 10.849900)">
+                            <polyline id="Stroke-1" points="11.882 0.1205 21.429 0.1205 21.429 11.0295 13.246 11.0295"></polyline>
+                            <polyline id="Stroke-3" points="10.5182 11.0296 0.9712 11.0296 0.9712 20.5746 11.8822 20.5746 11.8822 12.3936"></polyline>
+                        </g>
+                        <path d="M10.936,11.9346 L19.918,20.9156" id="Stroke-6"></path>
+                        <g id="Group-15" transform="translate(0.000000, 0.849900)">
+                            <polyline id="Stroke-7" points="11.3354 10.1205 20.8824 10.1205 20.8824 0.5755 9.9714 0.5755 9.9714 8.5435"></polyline>
+                            <polyline id="Stroke-9" points="9.9716 21.0296 0.4246 21.0296 0.4246 10.1206 8.6076 10.1206"></polyline>
+                            <path d="M22.2458,21.0296 C22.2458,21.7826 21.6348,22.3936 20.8818,22.3936 C20.1288,22.3936 19.5178,21.7826 19.5178,21.0296 C19.5178,20.2766 20.1288,19.6656 20.8818,19.6656 C21.6348,19.6656 22.2458,20.2766 22.2458,21.0296 Z" id="Stroke-11"></path>
+                            <path d="M11.3354,10.1205 C11.3354,10.8735 10.7244,11.4845 9.9714,11.4845 C9.2184,11.4845 8.6074,10.8735 8.6074,10.1205 C8.6074,9.3675 9.2184,8.7565 9.9714,8.7565 C10.7244,8.7565 11.3354,9.3675 11.3354,10.1205 Z" id="Stroke-13"></path>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

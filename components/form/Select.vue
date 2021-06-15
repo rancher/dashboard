@@ -149,6 +149,10 @@ export default {
       return () => popper.destroy();
     },
 
+    focus() {
+      this.focusSearch();
+    },
+
     focusSearch() {
       this.$nextTick(() => {
         const el = this.$refs['select-input']?.searchEl;

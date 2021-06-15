@@ -1112,7 +1112,7 @@ export default {
               <Questions
                 v-model="chartValues"
                 :mode="mode"
-                :chart-version="versionInfo"
+                :source="versionInfo"
                 :target-namespace="targetNamespace"
               />
             </Tabbed>

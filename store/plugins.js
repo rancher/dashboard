@@ -1,12 +1,70 @@
+import { removeObjects } from '@/utils/array';
+
+export function simplify(key) {
+  return key.toLowerCase().replace(/[^a-z0-9]/ig, '');
+}
+
 const credentialOptions = {
-  aws:          { publicKey: 'accessKey', publicMode: 'full' },
-  digitalocean: { publicKey: 'accessToken', publicMode: 'prefix' },
-  azure:        { publicKey: 'clientId', publicMode: 'full' },
+  aws:          {
+    publicKey:  'accessKey',
+    publicMode: 'full',
+    keys:       ['region', 'accessKey', 'secretKey']
+  },
+  digitalocean: {
+    publicKey:  'accessToken',
+    publicMode: 'prefix',
+    keys:       'accessToken'
+  },
+  azure:        {
+    publicKey:  'clientId',
+    publicMode: 'full',
+    keys:       ['subscriptionId', 'tenantId', 'clientId', 'clientSecret']
+  },
 };
+
+const driverMap = {
+  amazonec2: 'aws',
+  amazoneks: 'aws',
+  aks:       'azure',
+};
+
+export const likelyFields = [
+  'username', 'password',
+  'accesskey', 'secretkey',
+  'accesskeyid', 'secretkeyid', 'accesskeysecret',
+  'token', 'apikey',
+  'secret',
+  'clientid', 'clientsecret', 'subscriptionid', 'tenantid',
+].map(x => simplify(x));
+
+export const iffyFields = [
+  'location', 'region',
+].map(x => simplify(x));
+
+export const fullFields = [
+  'username',
+  'accesskey',
+  'accesskeyid',
+  'clientid'
+].map(x => simplify(x));
+
+export const prefixFields = [
+  'token',
+  'apikey',
+  'secret',
+].map(x => simplify(x));
+
+export const suffixFields = [
+].map(x => simplify(x));
 
 // Dynamically loaded drivers can call this eventually to register thier options
 export function configureCredential(name, opt) {
   credentialOptions[name] = opt;
+}
+
+// Map a driver to a different credential name, e.g. amazonec2 and amazoneks both use the 'aws' credential type.
+export function mapDriver(name, to) {
+  driverMap[name] = to;
 }
 
 export const state = function() {
@@ -28,8 +86,14 @@ export const getters = {
     };
   },
 
+  credentialDriverFor() {
+    return (name) => {
+      return driverMap[name] || name;
+    };
+  },
+
   machineDrivers() {
-    // The subset of drivers supported by Vue
+    // The subset of drivers supported by Vue components
     const ctx = require.context('@/machine-config', true, /.*/);
 
     const drivers = ctx.keys().filter(path => !path.match(/\.(vue|js)$/)).map(path => path.substr(2));
@@ -38,7 +102,47 @@ export const getters = {
   },
 
   clusterDrivers() {
-    // The subset of drivers supported by Vue
+    // The subset of drivers supported by Vue components
     return [];
+  },
+
+  schemaForDriver(state, getters, rootState, rootGetters) {
+    return (name) => {
+      const id = `rke-machine-config.cattle.io.${ name }config`;
+      const schema = rootGetters['management/schemaFor'](id);
+
+      return schema;
+    };
+  },
+
+  fieldNamesForDriver(state, getters) {
+    return (name) => {
+      const schema = getters.schemaForDriver(name);
+
+      if ( !schema ) {
+        throw new Error(`Machine Driver Config schema not found for ${ name }`);
+      }
+
+      const out = Object.keys(schema?.resourceFields || {});
+
+      removeObjects(out, ['apiVersion', 'dockerPort', 'kind', 'metadata']);
+
+      return out;
+    };
+  },
+
+  fieldsForDriver(state, getters) {
+    return (name) => {
+      const schema = getters.schemaForDriver(name);
+      const names = getters.fieldNamesForDriver(name);
+
+      const out = {};
+
+      for ( const n of names ) {
+        out[n] = schema.resourceFields[n];
+      }
+
+      return out;
+    };
   },
 };

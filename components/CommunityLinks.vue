@@ -12,7 +12,7 @@ export default {
 
   async fetch() {
     this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
-    this.hideCommunitySetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.HIDE_COMMUNITY });
+    this.communitySetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.COMMUNITY_LINKS });
   },
 
   data() {
@@ -21,8 +21,8 @@ export default {
   computed: {
 
     options() {
-      if (this.hideCommunitySetting?.value === 'true') {
-        return options(this.uiIssuesSetting?.value, this.hideCommunitySetting?.value === 'true');
+      if (this.communitySetting?.value === 'false') {
+        return options(this.uiIssuesSetting?.value, true);
       }
 
       return options( this.uiIssuesSetting?.value);

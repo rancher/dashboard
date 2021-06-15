@@ -1068,17 +1068,17 @@ cluster:
     k3s: K3s
     kubeAdmin: KubeADM
     linode: Linode
-    linodelke: Linode
+    linodelke: Linode LKE
     local: Local
     minikube: Minikube
-    oci: Oracle Cloud Infrastructure
+    oci: Oracle OCI
     openstack: OpenStack
     opentelekomcloudcontainerengine: Open Telekom Cloud CCE
     otccce: Open Telekom Cloud CCE
     oracleoke: Oracle OKE
     otc: Open Telekom Cloud
     other: Other
-    packet: Packet
+    packet: Equinix Metal
     pinganyunecs: Pinganyun ECS
     pnap: phoenixNAP
     rackspace: RackSpace
@@ -1086,7 +1086,7 @@ cluster:
     rke2: RKE2
     rke: RKE1
     rkeWindows: Windows
-    softlayer: SoftLayer
+    softlayer: IBM Cloud
     tencenttke: Tencent TKE
     upcloud: UpCloud
     vmwarevsphere: vSphere
@@ -1106,6 +1106,8 @@ cluster:
       rke2-ingress-nginx: 'NGINX Ingress Controller'
       rke2-kube-proxy: 'Kube Proxy'
       rke2-metrics-server: 'Metrics Server'
+  selectCredential:
+    genericDescription: "{vendor} has no built-in support for this driver.  We've taken a guess, but consult the driver's documentation for the fields required for authentication."
   tabs:
     ace: Authorized Endpoint
     advanced: Advanced
@@ -4504,7 +4506,7 @@ branding:
     label: Support Links
     issuesUrl: Issue Reporting URL
     invalidUrl: The issue reporting value must be a complete URL, including protocol.
-    hideCommunity: Also hide all Rancher community support links
+    communityLinks: Show Rancher community support links
   uiBanner:
     label: Fixed Banners
     text: Text

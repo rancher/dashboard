@@ -1157,7 +1157,7 @@ export default {
                 v-if="versionInfo[v.name].questions"
                 v-model="chartValues[v.name]"
                 :mode="mode"
-                :chart-version="versionInfo[v.name]"
+                :source="versionInfo[v.name]"
                 :target-namespace="value.metadata.namespace"
               />
               <YamlEditor
