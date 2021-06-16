@@ -36,7 +36,11 @@ export default {
   data() {
     const searchShortcut = isMac ? '(\u2318-K)' : '(Ctrl+K)';
 
-    return { show: false, searchShortcut };
+    return {
+      show:        false,
+      showTooltip: false,
+      searchShortcut,
+    };
   },
 
   computed: {
@@ -77,6 +81,25 @@ export default {
     showSearch() {
       return this.currentProduct?.inStore === 'cluster';
     },
+
+    nameTooltip() {
+      return !this.showTooltip ? {} : {
+        content: this.currentCluster.nameDisplay,
+        delay:   500,
+      };
+    }
+  },
+
+  watch: {
+    currentCluster(nue, old) {
+      if (nue && old && nue.id !== old.id) {
+        this.checkClusterName();
+      }
+    }
+  },
+
+  mounted() {
+    this.checkClusterName();
   },
 
   methods: {
@@ -118,6 +141,14 @@ export default {
 
     pageAction(action) {
       this.$nuxt.$emit(PAGE_HEADER_ACTION, action);
+    },
+
+    checkClusterName() {
+      this.$nextTick(() => {
+        const el = this.$refs.clusterName;
+
+        this.showTooltip = el && (el.clientWidth < el.scrollWidth);
+      });
     }
   }
 };
@@ -130,7 +161,7 @@ export default {
       <div v-if="currentProduct && currentProduct.showClusterSwitcher" class="cluster cluster-clipped">
         <RancherProviderIcon v-if="currentCluster.isLocal" class="mr-10 cluster-local-logo" width="25" />
         <img v-else-if="currentCluster" class="cluster-os-logo" :src="currentCluster.providerLogo" />
-        <div v-if="currentCluster" class="cluster-name">
+        <div v-if="currentCluster" ref="clusterName" v-tooltip="nameTooltip" class="cluster-name">
           {{ currentCluster.spec.displayName }}
         </div>
         <div v-else class="simple-title">
