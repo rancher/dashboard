@@ -326,6 +326,11 @@ export default {
       return out;
     },
 
+    showSelectVersionOrChart() {
+      // Allow the user to choose a version if the app exists OR they've come from tools
+      return this.existing || (FROM_TOOLS in this.$route.query);
+    },
+
     showNameEditor() {
       return !this.nameDisabled || !this.forceNamespace;
     },
@@ -950,7 +955,7 @@ export default {
               {{ t('catalog.install.steps.basics.nsCreationDescription', {}, true) }}
             </span>
           </Banner>
-          <div v-if="requires.length || warnings.length" class="mb-30">
+          <div v-if="requires.length || warnings.length" class="mb-15">
             <Banner v-for="msg in requires" :key="msg" color="error">
               <span v-html="msg" />
             </Banner>
@@ -959,9 +964,9 @@ export default {
               <span v-html="msg" />
             </Banner>
           </div>
-          <div v-if="existing" class="row mb-10">
+          <div v-if="showSelectVersionOrChart" class="row mb-20">
             <div class="col span-4">
-              <!-- We have a chart, select a new version -->
+              <!-- We have a chart for the app, let the user select a new version -->
               <LabeledSelect
                 v-if="chart"
                 :label="t('catalog.install.version')"
@@ -970,7 +975,7 @@ export default {
                 :selectable="version => !version.disabled"
                 @input="selectVersion"
               />
-              <!-- There is no chart, let the user try to select one -->
+              <!-- Can't find the chart for the app, let the user try to select one -->
               <LabeledSelect
                 v-else
                 :label="t('catalog.install.chart')"
