@@ -63,13 +63,6 @@ export default {
   },
 
   data() {
-    let uiColor = getComputedStyle(document.body).getPropertyValue('--primary');
-    const suse = document.querySelector('.suse');
-
-    if (suse) {
-      uiColor = getComputedStyle(suse).getPropertyValue('--primary');
-    }
-
     return {
       vendor:      getVendor(),
       uiPLSetting: {},
@@ -86,7 +79,7 @@ export default {
       customizeLogo:      false,
 
       uiColorSetting: {},
-      uiColor,
+      uiColor:        null,
       customizeColor: false,
 
       uiCommunitySetting: {},
@@ -96,6 +89,18 @@ export default {
   },
 
   watch: {},
+
+  mounted() {
+    let uiColor = getComputedStyle(document.body).getPropertyValue('--primary');
+    const suse = document.querySelector('.suse');
+
+    if (suse) {
+      uiColor = getComputedStyle(suse).getPropertyValue('--primary');
+    }
+
+    // Only set the color to the default if not already set from the custom color
+    this.uiColor = this.uiColor || uiColor.trim();
+  },
 
   methods: {
     updateLogo(img, key) {
@@ -148,7 +153,7 @@ export default {
           this.uiLogoDarkSetting.save(),
           this.uiLogoLightSetting.save(),
           this.uiColorSetting.save(),
-          this.deCommunitySetting.save()
+          this.uiCommunitySetting.save()
         ]);
         if (this.uiPLSetting.value !== this.vendor) {
           setVendor(this.uiPLSetting.value);
@@ -187,7 +192,7 @@ export default {
           <LabeledInput v-model="uiIssuesSetting.value" :label="t('branding.uiIssues.issuesUrl')" />
         </div>
         <div class="col span-6">
-          <Checkbox v-model="uiCommunitySetting.value" :label="t('branding.uiIssues.communityLinks')" />
+          <Checkbox :value="uiCommunitySetting.value === 'true'" :label="t('branding.uiIssues.communityLinks')" @input="e=>$set(uiCommunitySetting, 'value', e.toString())" />
         </div>
       </div>
 
