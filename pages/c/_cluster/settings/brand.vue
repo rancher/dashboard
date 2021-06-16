@@ -63,17 +63,6 @@ export default {
   },
 
   data() {
-    let uiColor;
-
-    if (process.client) {
-      uiColor = getComputedStyle(document.body).getPropertyValue('--primary');
-      const suse = document.querySelector('.suse');
-
-      if (suse) {
-        uiColor = getComputedStyle(suse).getPropertyValue('--primary');
-      }
-    }
-
     return {
       vendor:      getVendor(),
       uiPLSetting: {},
@@ -90,7 +79,7 @@ export default {
       customizeLogo:      false,
 
       uiColorSetting: {},
-      uiColor,
+      uiColor:        null,
       customizeColor: false,
 
       uiCommunitySetting: {},
@@ -100,6 +89,18 @@ export default {
   },
 
   watch: {},
+
+  mounted() {
+    let uiColor = getComputedStyle(document.body).getPropertyValue('--primary');
+    const suse = document.querySelector('.suse');
+
+    if (suse) {
+      uiColor = getComputedStyle(suse).getPropertyValue('--primary');
+    }
+
+    // Only set the color to the default if not already set from the custom color
+    this.uiColor = this.uiColor || uiColor.trim();
+  },
 
   methods: {
     updateLogo(img, key) {
