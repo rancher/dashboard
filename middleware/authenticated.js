@@ -175,12 +175,14 @@ export default async function({
     // Call it for the initial pageload
     setProduct(store, route);
 
-    store.app.router.afterEach((to, from) => {
-      // Clear state used to record if back button was used for navigation
-      setTimeout(() => {
-        window._popStateDetected = false;
-      }, 1);
-    });
+    if (process.client) {
+      store.app.router.afterEach((to, from) => {
+        // Clear state used to record if back button was used for navigation
+        setTimeout(() => {
+          window._popStateDetected = false;
+        }, 1);
+      });
+    }
   }
 
   try {
