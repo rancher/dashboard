@@ -228,6 +228,7 @@ export default {
     />
   </div>
 </template>
+
 <style lang="scss" scoped>
   .unlabeled-select {
     position: relative;

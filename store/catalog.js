@@ -611,7 +611,7 @@ export function filterAndArrangeCharts(charts, {
       const searchTokens = searchQuery.split(/\s*[, ]\s*/).map(x => ensureRegex(x, false));
 
       for ( const token of searchTokens ) {
-        if ( !c.chartName.match(token) && (c.chartDescription && !c.chartDescription.match(token)) ) {
+        if ( !c.chartNameDisplay.match(token) && (c.chartDescription && !c.chartDescription.match(token)) ) {
           return false;
         }
       }
