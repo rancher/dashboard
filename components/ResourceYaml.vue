@@ -76,11 +76,12 @@ export default {
     this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
 
     return {
-      initialYaml: this.initialYamlForDiff || this.yaml,
+      initialYaml:  this.initialYamlForDiff || this.yaml,
       currentYaml:  this.yaml,
       showPreview:  false,
       errors:       null,
-      cm:          null,
+      cm:           null,
+      initialReady: true
     };
   },
 
@@ -141,6 +142,11 @@ export default {
     },
 
     onReady(cm) {
+      if (!this.initialReady) {
+        return;
+      }
+      this.initialReady = false;
+
       this.cm = cm;
 
       if ( this.isEdit ) {
