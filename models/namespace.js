@@ -7,7 +7,9 @@ import { insertAt, isArray } from '@/utils/array';
 
 const OBSCURE_NAMESPACE_PREFIX = [
   'c-', // cluster namesapce
-  'p-' // project namespace
+  'p-', // project namespace
+  'user-', // user namespace
+  'local', // local namespace
 ];
 
 export default {
