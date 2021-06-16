@@ -90,7 +90,7 @@ export default {
         <ResourceQuota v-model="value" :mode="mode" />
       </Tab>
       <Tab name="container-default-resource-limit" :label="t('project.containerDefaultResourceLimit')" :weight="8">
-        <ContainerResourceLimit v-model="value.spec.containerDefaultResourceLimit" :mode="mode" :show-tip="false" />
+        <ContainerResourceLimit v-model="value.spec.containerDefaultResourceLimit" :mode="mode" :show-tip="false" :register-before-hook="registerBeforeHook" />
       </Tab>
       <Tab
         name="labels-and-annotations"

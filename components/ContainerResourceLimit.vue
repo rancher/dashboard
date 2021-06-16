@@ -110,7 +110,7 @@ export default {
 
     applyUnits(out, key, value, unit) {
       if (value) {
-        out[key] = typeof value === 'string' ? value : `${ value }${ unit }`;
+        out[key] = typeof value === 'string' && value.includes(unit) ? value : `${ value }${ unit }`;
       }
     },
 
