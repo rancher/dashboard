@@ -506,7 +506,6 @@ export default {
             </template>
           </slot>
         </div>
-
         <div v-if="$slots['header-middle'] && $slots['header-middle'].length" class="middle">
           <slot name="header-middle" />
         </div>

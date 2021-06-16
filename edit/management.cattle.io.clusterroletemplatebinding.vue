@@ -176,13 +176,13 @@ export default {
     @finish="saveOverride"
     @cancel="done"
   >
-    <div class="row m-10">
+    <div class="row mt-10">
       <div class="col span-12">
         <SelectPrincipal class="mb-20" :mode="mode" :retain-selection="true" @add="onAdd" />
       </div>
     </div>
 
-    <Card :show-highlight-border="false" :show-actions="false">
+    <Card class="m-0" :show-highlight-border="false" :show-actions="false">
       <template v-slot:title>
         <div class="type-title">
           <h3>{{ t('members.clusterPermissions.label') }}</h3>
