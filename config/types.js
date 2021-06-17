@@ -248,3 +248,9 @@ export const CIS = {
 };
 
 export const UI = { NAV_LINK: 'ui.cattle.io.navlink' };
+
+export const VIRTUAL_TYPES = {
+  CLUSTER_MEMBERS:    'cluster-members',
+  PROJECT_NAMESPACES: 'projects-namespaces',
+  NAMESPACES:         'namespaces'
+};

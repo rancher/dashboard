@@ -47,6 +47,11 @@ export default {
           value: false
         },
         {
+          label: this.t('members.clusterPermissions.manageNavlinks'),
+          key:   'navlinks-manage',
+          value: false
+        },
+        {
           label: this.t('members.clusterPermissions.manageNodes'),
           key:   'nodes-manage',
           value: false

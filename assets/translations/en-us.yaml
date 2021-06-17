@@ -1797,6 +1797,7 @@ members:
     manageClusterBackups: Manage Cluster Backups
     manageClusterCatalogs: Manage Cluster Catalogs
     manageClusterMembers: Manage Cluster Members
+    manageNavlinks: Manage Navlinks
     manageNodes: Manage Nodes
     manageStorage: Manage Storage
     viewAllProjects: View All Projects
@@ -4320,6 +4321,11 @@ typeLabel:
       one { Authentication Provider }
       other { Authentication Providers }
     }
+  management.cattle.io.clusterroletemplatebinding: |-
+    {count, plural,
+      one { Cluster Member }
+      other { Cluster Members }
+    }
   management.cattle.io.feature: |-
     {count, plural,
       one { Feature Flag }
@@ -4410,6 +4416,11 @@ typeLabel:
     {count, plural,
       one { API Key }
       other { API Keys }
+    }
+  workload: |-
+    {count, plural,
+      one { Workload }
+      other { Workloads }
     }
 
 action:

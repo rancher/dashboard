@@ -6,6 +6,7 @@ import {
   MANAGEMENT,
   NAMESPACE,
   NORMAN,
+  VIRTUAL_TYPES,
 } from '@/config/types';
 
 import {
@@ -227,7 +228,7 @@ export function init(store) {
     label:       store.getters['i18n/t']('members.clusterMembers'),
     group:      'rbac',
     namespaced:  false,
-    name:        'cluster-members',
+    name:        VIRTUAL_TYPES.CLUSTER_MEMBERS,
     icon:       'globe',
     weight:      100,
     route:       { name: 'c-cluster-explorer-members' },
@@ -235,10 +236,10 @@ export function init(store) {
   });
 
   virtualType({
-    label:          'Overview',
-    group:          'Workload',
+    label:          store.getters['i18n/t'](`typeLabel.${ WORKLOAD }`, { count: 2 }),
+    group:          store.getters['i18n/t'](`typeLabel.${ WORKLOAD }`, { count: 2 }),
     namespaced:     true,
-    name:           'workload',
+    name:           WORKLOAD,
     weight:         99,
     icon:           'folder',
     ifHaveSubTypes: Object.values(WORKLOAD_TYPES),
@@ -255,7 +256,7 @@ export function init(store) {
     icon:             'globe',
     namespaced:       false,
     ifRancherCluster: true,
-    name:             'projects-namespaces',
+    name:             VIRTUAL_TYPES.PROJECT_NAMESPACES,
     weight:           98,
     route:            { name: 'c-cluster-product-projectsnamespaces' },
     exact:            true,
@@ -267,7 +268,7 @@ export function init(store) {
     icon:             'globe',
     namespaced:       false,
     ifRancherCluster: false,
-    name:             'namespaces',
+    name:             VIRTUAL_TYPES.NAMESPACES,
     weight:           98,
     route:            { name: 'c-cluster-product-namespaces' },
     exact:            true,
