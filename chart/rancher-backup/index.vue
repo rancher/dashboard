@@ -48,11 +48,7 @@ export default {
     this.storageClasses = hash.storageClasses;
     this.persistentVolumes = hash.persistentVolumes;
 
-    if (this.mode === 'create') {
-      this.storageSource = 'none';
-    } else {
-      this.storageSource = this.getStorageSource(this.value);
-    }
+    this.storageSource = this.getStorageSource(this.value) || 'none';
   },
 
   data() {
@@ -98,8 +94,8 @@ export default {
       case 'pickSC':
         this.value.persistence.enabled = true;
         this.value.s3.enabled = false;
-        if (!this.value.persistence.storageClass || this.value.persistence.storageClass === '-' ) {
-          this.value.persistence.storageClass = this.defaultStorageClass?.id;
+        if (this.defaultStorageClass && (!this.value.persistence.storageClass || this.value.persistence.storageClass === '-' )) {
+          this.value.persistence.storageClass = this.defaultStorageClass.id;
           this.storageClass = this.defaultStorageClass;
         }
         if (this.storageClass?.reclaimPolicy === 'Delete') {
