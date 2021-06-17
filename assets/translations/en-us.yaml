@@ -4321,6 +4321,11 @@ typeLabel:
       one { Authentication Provider }
       other { Authentication Providers }
     }
+  management.cattle.io.clusterroletemplatebinding: |-
+    {count, plural,
+      one { Cluster Member }
+      other { Cluster Members }
+    }
   management.cattle.io.feature: |-
     {count, plural,
       one { Feature Flag }

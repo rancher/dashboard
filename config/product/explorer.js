@@ -232,6 +232,10 @@ export function init(store) {
     weight:      100,
     route:       { name: 'c-cluster-explorer-members' },
     exact:       true,
+    ifHaveType:  {
+      type:   MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
+      store: 'management'
+    }
   });
 
   virtualType({
