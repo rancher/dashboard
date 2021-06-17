@@ -213,7 +213,7 @@ export default {
     font-size: 14px;
     position: relative;
     cursor: pointer;
-    color: var(--input-label);
+    color: var(--body-text);
 
     > H6 {
       color: var(--body-text);
