@@ -49,7 +49,7 @@ export default {
   computed: {
     filteredClusterRoleTemplateBindings() {
       return this.clusterRoleTemplateBindings
-        .filter(b => !b.user?.isSystem && b.clusterName === this.$store.getters['currentCluster'].id);
+        .filter(b => !b.isSystem && b.clusterName === this.$store.getters['currentCluster'].id);
     }
   },
 
