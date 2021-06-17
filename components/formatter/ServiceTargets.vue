@@ -67,7 +67,7 @@ export default {
         ports.forEach((p) => {
           const clusterIpAndPort = `${ parsedClusterIp }${ p.port }`;
           const protocol = p?.protocol ? `/${ p.protocol }` : '';
-          const targetPort = p?.targetPort ? ` <span class="icon icon-external-link"></span> ${ p.targetPort }` : '';
+          const targetPort = p?.targetPort ? ` <span class="icon icon-endpoints_connected icon-lg"></span> ${ p.targetPort }` : '';
 
           label = `${ clusterIpAndPort }${ targetPort }${ protocol }`;
 
