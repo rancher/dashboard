@@ -85,6 +85,15 @@ export const PERSISTENT_VOLUME_SOURCE = {
   sort:     ['provisioner'],
 };
 
+export const PERSISTENT_VOLUME_CLAIM = {
+  name:          'persistent-volume-claim',
+  labelKey:      'tableHeaders.persistentVolumeClaim',
+  sort:          ['nameSort'],
+  value:         'claimName',
+  formatter:     'LinkDetail',
+  formatterOpts: { reference: 'claim.detailLocation' },
+};
+
 export const OUTPUT = {
   name:          'localOutputRefs',
   labelKey:      'tableHeaders.output',

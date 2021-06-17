@@ -3477,6 +3477,7 @@ tableHeaders:
   object: Object
   output: Output
   p95: 95%tile
+  persistentVolumeClaim: Persistent Volume Claim
   persistentVolumeSource: Source
   podImages: Image
   pods: Pods

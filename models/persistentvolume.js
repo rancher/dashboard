@@ -130,6 +130,11 @@ export default {
 
     return allClaims.find(claim => claim.spec.volumeName === this.name);
   },
+
+  claimName() {
+    return this.claim?.nameDisplay || this.t('generic.na');
+  },
+
   canDelete() {
     return this.state !== 'bound';
   },
