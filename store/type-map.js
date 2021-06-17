@@ -34,7 +34,7 @@
 //   showWorkspaceSwitcher,   -- Show the workspace switcher in the header (conflicts with namespace) (default false)
 //   ifHave,                  -- Show this product only if the given capability is available
 //   ifHaveGroup,             -- Show this product only if the given group exists in the store [inStore]
-//   ifHaveType,              -- Show this product only if the given type exists in the store [inStore]
+//   ifHaveType,              -- Show this product only if the given type exists in the store [inStore], This can also be specified as an object { type: TYPE, store: 'management' } if the type isn't in the current [inStore]
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
 //   public,                  -- If true, show to all users.  If false, only show when the Developer Tools pref is on (default true)
 //   category,                -- Group to show the product in for the nav hamburger menu
@@ -775,8 +775,13 @@ export const getters = {
             continue;
           }
 
-          if ( item.ifHaveType && !findBy(schemas, 'id', normalizeType(item.ifHaveType)) ) {
-            continue;
+          if ( item.ifHaveType ) {
+            const targetedSchemas = typeof item.ifHaveType === 'string' ? schemas : rootGetters[`${ item.ifHaveType.store }/all`](SCHEMA);
+            const type = typeof item.ifHaveType === 'string' ? item.ifHaveType : item.ifHaveType?.type;
+
+            if (!findBy(targetedSchemas, 'id', normalizeType(type))) {
+              continue;
+            }
           }
 
           if ( item.ifHaveSubTypes ) {
