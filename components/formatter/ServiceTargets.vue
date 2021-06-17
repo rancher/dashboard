@@ -3,6 +3,7 @@ import isEmpty from 'lodash/isEmpty';
 import { CATTLE_PUBLIC_ENDPOINTS } from '@/config/labels-annotations';
 import Endpoints from '@/components/formatter/Endpoints';
 import has from 'lodash/has';
+import { isMaybeSecure } from '@/utils/url';
 
 export default {
   components: { Endpoints },
@@ -65,9 +66,21 @@ export default {
         });
       } else {
         ports.forEach((p) => {
-          const clusterIpAndPort = `${ parsedClusterIp }${ p.port }`;
-          const protocol = p?.protocol ? `/${ p.protocol }` : '';
+          let proxyUrl;
+
+          const stringPort = p.port.toString();
+
+          if (p?.protocol === 'TCP' && (stringPort.endsWith('80') || stringPort.endsWith('443'))) {
+            if (isMaybeSecure(p.port, p?.protocol)) {
+              proxyUrl = row.proxyUrl('https', p.port);
+            } else {
+              proxyUrl = row.proxyUrl('http', p.port);
+            }
+          }
+
+          const clusterIpAndPort = proxyUrl ? `<a href="${ proxyUrl }" target="_blank" rel="noopener noreferrer nofollow">${ p?.name ? p.name : `${ parsedClusterIp }${ p.port }` }</a>` : `${ parsedClusterIp }${ p.port }`;
           const targetPort = p?.targetPort ? ` <span class="icon icon-endpoints_connected icon-lg"></span> ${ p.targetPort }` : '';
+          const protocol = p?.protocol ? `/${ p.protocol }` : '';
 
           label = `${ clusterIpAndPort }${ targetPort }${ protocol }`;
 
