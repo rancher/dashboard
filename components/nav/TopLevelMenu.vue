@@ -364,17 +364,27 @@ export default {
     z-index: 1000;
   }
 
-  .cluster.selector:not(.disabled):hover {
-    color: var(--primary-hover-text);
-    background: var(--primary-hover-bg);
-    border-radius: 5px;
-    text-decoration: none;
+  .cluster {
+    &.selector:not(.disabled):hover {
+      color: var(--primary-hover-text);
+      background: var(--primary-hover-bg);
+      border-radius: 5px;
+      text-decoration: none;
+
+      .rancher-provider-icon {
+        .rancher-icon-fill {
+          fill: var(--primary-hover-text);;
+        }
+      }
+    }
 
     .rancher-provider-icon {
       .rancher-icon-fill {
-        fill: var(--primary-hover-text);;
+        // Should match .option color
+        fill: var(--link);
       }
     }
+
   }
 
   .localeSelector {
