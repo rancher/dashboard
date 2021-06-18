@@ -3478,6 +3478,7 @@ tableHeaders:
   lastSeen: Last Seen
   loggingOutputProviders: Provider
   machines: Machines
+  machineNodeName: K8s Node
   manual: Manual
   matches: Matches
   maxKubernetesVersion: Max Kubernetes Version

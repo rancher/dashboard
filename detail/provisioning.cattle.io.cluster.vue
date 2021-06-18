@@ -7,7 +7,7 @@ import Tab from '@/components/Tabbed/Tab';
 import { allHash } from '@/utils/promise';
 import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
 import {
-  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN,
+  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES,
 } from '@/config/table-headers';
 import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@/components/AsyncButton.vue';
@@ -89,6 +89,13 @@ export default {
       return [
         STATE,
         NAME_COL,
+        ROLES,
+        {
+          name:      'node-name',
+          labelKey:  'tableHeaders.machineNodeName',
+          sort:      'status.nodeRef.name',
+          value:     'status.nodeRef.name',
+        },
         AGE,
       ];
     },
@@ -215,6 +222,14 @@ export default {
           <div v-else v-trim-whitespace class="group-tab">
             Machine Pool: None
           </div>
+        </template>
+        <template #cell:node-name="cell">
+          <span v-if="cell.value && value.mgmt">
+            <n-link :to="{name: 'c-cluster-product-resource-id', params: { cluster: value.mgmt.id, product: 'explorer', resource: 'node', id: cell.value}}">
+              {{ cell.value }}
+            </n-link>
+          </span>
+          <span v-else class="text-muted">&mdash;</span>
         </template>
       </SortableTable>
       <div v-else-if="showRke1Pools">
