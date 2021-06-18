@@ -342,9 +342,11 @@ export default {
     },
 
     disableOptions() {
+      const isK3s = (this.value?.spec?.kubernetesVersion || '').includes('k3s');
+
       return this.serverArgs.disable.options.map((value) => {
         return {
-          label: this.$store.getters['i18n/withFallback'](`cluster.rke2.systemService."${ value }"`, null, value.replace(/^(rke2|rancher)-/, '')),
+          label: this.$store.getters['i18n/withFallback'](`cluster.${ isK3s ? 'k3s' : 'rke2' }.systemService."${ value }"`, null, value.replace(/^(rke2|rancher)-/, '')),
           value,
         };
       });
@@ -772,10 +774,9 @@ export default {
     },
 
     syncChartValues: throttle(function() {
-      const keys = this.addonVersions.map(x => x.name );
       const out = {};
 
-      for ( const k of keys ) {
+      for ( const k of this.addonNames ) {
         const fromChart = this.versionInfo[k].values;
         const fromUser = this.chartValues[k];
         const different = diff(fromChart, fromUser);
