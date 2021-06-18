@@ -1106,7 +1106,7 @@ cluster:
   rke2:
     systemService:
       rke2-coredns: 'CoreDNS'
-      rke2-ingress-nginx: 'NGINX Ingress Controller'
+      rke2-ingress-nginx: 'NGINX Ingress'
       rke2-kube-proxy: 'Kube Proxy'
       rke2-metrics-server: 'Metrics Server'
   k3s:
@@ -1118,6 +1118,16 @@ cluster:
       traefik: 'Traefik Ingress'
   selectCredential:
     genericDescription: "{vendor} has no built-in support for this driver.  We've taken a guess, but consult the driver's documentation for the fields required for authentication."
+  snapshot:
+    successTitle: Snapshot Started
+    errorTitle: "Error Snapshotting {name}"
+    successMessage: "A snapshot has been requested for {name}"
+    bulkSuccessTitle: Snapshot Started
+    bulkSuccessMessage: |-
+      {count, plural,
+        =1 { A snapshot has been requested for 1 cluster }
+        other {A snapshot has been requested for {count} clusters}
+      }
   tabs:
     ace: Authorized Endpoint
     advanced: Advanced

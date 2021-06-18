@@ -11,7 +11,6 @@ import {
 } from '@/config/table-headers';
 import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@/components/AsyncButton.vue';
-import { set } from '@/utils/object';
 
 export default {
   components: {
@@ -181,26 +180,17 @@ export default {
   methods: {
     async takeSnapshot(btnCb) {
       try {
-        if ( this.value.isRke1 ) {
-          await this.$store.dispatch('rancher/request', {
-            url:           `/v3/clusters/${ escape(this.value.mgmt.id) }?action=backupEtcd`,
-            method:        'post',
-          });
+        await this.value.takeSnapshot();
 
-          // Give the change event some time to show up
-          setTimeout(() => {
-            btnCb(true);
-          }, 1000);
-        } else {
-          set(this.value.spec.rkeConfig, 'etcdSnapshotCreate', {});
-          await this.value.save();
+        // Give the change event some time to show up
+        setTimeout(() => {
           btnCb(true);
-        }
+        }, 1000);
       } catch (err) {
         this.$store.dispatch('growl/fromError', { title: 'Error creating snapshot', err });
         btnCb(false);
       }
-    },
+    }
   }
 };
 </script>
