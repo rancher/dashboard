@@ -58,6 +58,14 @@ export function importEdit(name) {
   return () => import(/* webpackChunkName: "edit" */ `@/edit/${name}`);
 }
 
+export function importDialog(name) {
+  if ( !name ) {
+    throw new Error('Name required');
+  }
+
+  return () => import(/* webpackChunkName: "dialog" */ `@/components/dialog/${name}`);
+}
+
 export function loadProduct(name) {
   if (!name) {
     throw new Error('Name required');
@@ -67,10 +75,11 @@ export function loadProduct(name) {
   return import(/* webpackChunkName: "product" */ `@/config/product/${name}`);
 }
 
-export function importDialog(name) {
+export function loadTranslation(name) {
   if ( !name ) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "dialog" */ `@/components/dialog/${name}`);
+  // Note: directly returns the import, not a function
+  return import(/* webpackChunkName: "[request]" */ `@/assets/translations/${name}.yaml`);
 }

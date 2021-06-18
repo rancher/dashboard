@@ -3,8 +3,7 @@ import { LOCALE } from '@/config/cookies';
 import { get } from '@/utils/object';
 import en from '@/assets/translations/en-us.yaml';
 import { getProduct, getVendor } from '@/config/private-label';
-
-const translationContext = require.context('@/assets/translations', true, /.*/);
+import { loadTranslation } from '@/utils/dynamic-importer';
 
 const NONE = 'none';
 
@@ -12,7 +11,11 @@ const NONE = 'none';
 const intlCache = {};
 
 export const state = function() {
-  const available = translationContext.keys().map(path => path.replace(/^.*\/([^\/]+)\.[^.]+$/, '$1'));
+  // const translationContext = require.context('@/assets/translations', true, /.*/);
+  // const available = translationContext.keys().map(path => path.replace(/^.*\/([^\/]+)\.[^.]+$/, '$1'));
+  // Using require.context() forces them to all be in the same webpack chunk name... just hardcode the list for now so zh-hans
+  // gets generated as it's own chunk instead of being loaded all the time.
+  const available = ['en-us', 'zh-hans'];
 
   const out = {
     default:      'en-us',
@@ -169,7 +172,7 @@ export const actions = {
   },
 
   async load({ commit }, locale) {
-    const translations = await translationContext(`./${ locale }.yaml`);
+    const translations = await loadTranslation(locale);
 
     commit('loadTranslations', { locale, translations });
 
