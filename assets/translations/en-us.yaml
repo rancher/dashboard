@@ -2090,6 +2090,8 @@ namespaceList:
   addLabel: Add Namespace
 
 node:
+  list:
+    pool: Pool
   detail:
     detailTop:
       containerRuntime: Container Runtime
@@ -3521,6 +3523,7 @@ tableHeaders:
   subType: Kind
   success: Success
   summary: Summary
+  taints: Taints
   target: Target
   targetKind: Target Type
   targetPort: Target

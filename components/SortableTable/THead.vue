@@ -132,7 +132,7 @@ export default {
         :key="col.name"
         :align="col.align || 'left'"
         :width="col.width"
-        :class="{ sortable: col.sort }"
+        :class="{ sortable: col.sort, [col.breakpoint]: !!col.breakpoint}"
         @click.prevent="changeSort($event, col)"
       >
         <span v-if="col.sort" @click="$router.applyQuery(queryFor(col))">
@@ -179,6 +179,26 @@ export default {
 
     & A {
       color: var(--body-text);
+    }
+
+    // Aligns with COLUMN_BREAKPOINTS
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-4')) {
+      // HIDE column on sizes below 480px
+      &.tablet, &.laptop, &.desktop {
+        display: none;
+      }
+    }
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-9')) {
+      // HIDE column on sizes below 992px
+      &.laptop, &.desktop {
+        display: none;
+      }
+    }
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-12')) {
+      // HIDE column on sizes below 1281px
+      &.desktop {
+        display: none;
+      }
     }
   }
 

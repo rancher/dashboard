@@ -167,8 +167,7 @@ export default {
     />
     <ResourceTable
       ref="table"
-      class="
-      table"
+      class="table"
       v-bind="$attrs"
       :schema="schema"
       :headers="headers"
@@ -216,35 +215,35 @@ export default {
 </template>
 <style lang="scss" scoped>
 .project-namespaces {
-    & ::v-deep {
-        .project-name {
-          line-height: 30px;
-        }
-
-        .project-bar {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-
-            &.has-description {
-              .right {
-                margin-top: 5px;
-              }
-              .group-tab {
-                &, &::after {
-                    height: 50px;
-                }
-
-                &::after {
-                    right: -20px;
-                }
-
-                .description {
-                    margin-top: -20px;
-                }
-              }
-            }
-        }
+  & ::v-deep {
+    .project-name {
+      line-height: 30px;
     }
+
+    .project-bar {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+
+      &.has-description {
+        .right {
+          margin-top: 5px;
+        }
+        .group-tab {
+          &, &::after {
+              height: 50px;
+          }
+
+          &::after {
+              right: -20px;
+          }
+
+          .description {
+              margin-top: -20px;
+          }
+        }
+      }
+    }
+  }
 }
 </style>

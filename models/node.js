@@ -6,6 +6,10 @@ import { parseSi } from '@/utils/units';
 import { PRIVATE } from '@/plugins/steve/resource-proxy';
 import findLast from 'lodash/findLast';
 
+/****************************************************
+ * Note - this is a kube node, not a norman node
+ ****************************************************/
+
 export default {
   _availableActions() {
     const cordon = {
@@ -170,7 +174,7 @@ export default {
   },
 
   cpuUsagePercentage() {
-    return ((this.cpuUsage * 10000) / this.cpuCapacity).toString();
+    return ((this.cpuUsage * 100) / this.cpuCapacity).toString();
   },
 
   ramUsage() {
@@ -182,11 +186,15 @@ export default {
   },
 
   ramUsagePercentage() {
-    return ((this.ramUsage * 10000) / this.ramCapacity).toString();
+    return ((this.ramUsage * 100) / this.ramCapacity).toString();
   },
 
   podUsage() {
     return calculatePercentage(this.status.allocatable.pods, this.status.capacity.pods);
+  },
+
+  podConsumedUsage() {
+    return ((this.podConsumed / this.podCapacity) * 100).toString();
   },
 
   podCapacity() {
@@ -310,6 +318,7 @@ export default {
       return this.$rootGetters['management/byId'](CAPI.MACHINE, `${ namespace }/${ name }`);
     }
   },
+
 };
 
 function calculatePercentage(allocatable, capacity) {
