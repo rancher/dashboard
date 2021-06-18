@@ -30,7 +30,7 @@ export default {
     }
 
     this.namespaces = await this.$store.dispatch(`${ inStore }/findAll`, { type: NAMESPACE });
-    this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
+    this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } });
   },
 
   data() {
@@ -66,8 +66,14 @@ export default {
 
       return uniq(ids);
     },
+    clusterProjects() {
+      const clusterId = this.$store.getters['currentCluster'].id;
+
+      return this.projects.filter(project => project.spec.clusterName === clusterId);
+    },
     projectsWithoutNamespaces() {
-      return this.projects.filter(project => !this.projectIdsWithNamespaces.includes(project.name));
+      return this.clusterProjects
+        .filter(project => !this.projectIdsWithNamespaces.includes(project.name));
     },
     // We're using this because we need to show projects as groups even if the project doesn't have any namespaces.
     rowsWithFakeNamespaces() {

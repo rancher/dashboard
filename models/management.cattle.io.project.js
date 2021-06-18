@@ -1,5 +1,5 @@
 import { SYSTEM_PROJECT } from '@/config/labels-annotations';
-import { NAMESPACE } from '@/config/types';
+import { MANAGEMENT, NAMESPACE, NORMAN } from '@/config/types';
 
 export default {
   isSystem() {
@@ -25,5 +25,67 @@ export default {
 
   parentLocationOverride() {
     return this.listLocation;
+  },
+
+  save() {
+    return async() => {
+      const norman = await this.norman;
+
+      const newValue = await norman.save();
+
+      await this.$dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } }, { root: true });
+
+      return newValue;
+    };
+  },
+
+  remove() {
+    return async() => {
+      const norman = await this.norman;
+
+      await norman.remove(...arguments);
+      await this.$dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } }, { root: true });
+    };
+  },
+
+  norman() {
+    return this.id ? this.normanEditProject : this.normanNewProject;
+  },
+
+  async normanNewProject() {
+    const normanProject = await this.$dispatch('rancher/create', {
+      type:                          NORMAN.PROJECT,
+      name:                          this.spec.displayName,
+      description:                   this.spec.description,
+      annotations:                   this.metadata.annotations,
+      labels:                        this.metadata.labels,
+      clusterId:                     this.$rootGetters['currentCluster'].id,
+      creatorId:                     this.$rootGetters['auth/principalId'],
+      containerDefaultResourceLimit: this.spec.containerDefaultResourceLimit,
+      namespaceDefaultResourceQuota: this.spec.namespaceDefaultResourceQuota,
+      resourceQuota:                 this.spec.resourceQuota,
+    }, { root: true });
+
+    // The backend seemingly required both labels/annotation and metadata.labels/annotations or it doesn't save the labels and annotations
+    normanProject.setAnnotations(this.metadata.annotations);
+    normanProject.setLabels(this.metadata.labels);
+
+    return normanProject;
+  },
+
+  async normanEditProject() {
+    const normanProject = await this.$dispatch('rancher/find', {
+      type:       NORMAN.PROJECT,
+      id:         this.id.replace('/', ':'),
+    }, { root: true });
+
+    normanProject.setAnnotations(this.metadata.annotations);
+    normanProject.setLabels(this.metadata.labels);
+    normanProject.description = this.spec.description;
+    normanProject.containerDefaultResourceLimit = this.spec.containerDefaultResourceLimit;
+    normanProject.namespaceDefaultResourceQuota = this.spec.namespaceDefaultResourceQuota;
+    normanProject.resourceQuota = this.spec.resourceQuota;
+
+    return normanProject;
   }
 };
