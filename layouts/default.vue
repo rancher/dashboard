@@ -5,6 +5,7 @@ import {
   mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES, AFTER_LOGIN_ROUTE
 } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
+import GrowlManager from '@/components/GrowlManager';
 import WindowManager from '@/components/nav/WindowManager';
 import PromptRemove from '@/components/PromptRemove';
 import PromptRestore from '@/components/PromptRestore';
@@ -37,6 +38,7 @@ export default {
     Header,
     ActionMenu,
     Group,
+    GrowlManager,
     WindowManager,
     FixedBanner
   },
@@ -522,6 +524,7 @@ export default {
       </div>
     </div>
     <FixedBanner :footer="true" />
+    <GrowlManager />
   </div>
 </template>
 <style lang="scss" scoped>
