@@ -1,3 +1,4 @@
+import { CREATOR_ID, CREATOR_OWNER_BINDING } from '@/config/labels-annotations';
 import { _CREATE } from '@/config/query-params';
 import { MANAGEMENT } from '@/config/types';
 
@@ -79,5 +80,9 @@ export default {
 
   subSearch() {
     return [{ nameDisplay: this.nameDisplay }];
+  },
+
+  isSystem() {
+    return !this.metadata.annotations[CREATOR_ID] && this.metadata.annotations[CREATOR_OWNER_BINDING] !== 'true';
   }
 };
