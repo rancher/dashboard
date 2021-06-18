@@ -36,8 +36,6 @@ export default {
     closeExpired() {
       const now = new Date().getTime();
 
-      console.log('Close Expired before', now);
-
       for ( const growl of this.stack ) {
         if ( !growl.timeout ) {
           continue;
