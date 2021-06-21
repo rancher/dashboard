@@ -13,8 +13,24 @@ import { MANAGEMENT } from '@/config/types';
 import { getVendor, setVendor } from '@/config/private-label';
 import { SETTING, fetchOrCreateSetting } from '@/config/settings';
 import isEmpty from 'lodash/isEmpty';
+import { clone } from '@/utils/object';
 const Color = require('color');
 const parse = require('url-parse');
+
+const DEFAULT_BANNER_SETTING = {
+  bannerHeader: {
+    background: null,
+    color:      null,
+    text:       null
+  },
+  bannerFooter: {
+    background: null,
+    color:      null,
+    text:       null
+  },
+  showHeader:   'false',
+  showFooter:   'false',
+};
 
 export default {
   layout: 'authenticated',
@@ -36,16 +52,6 @@ export default {
 
     Object.assign(this, hash);
 
-    try {
-      const parsedBanner = JSON.parse(hash.uiBannerSetting.value);
-
-      this.bannerVal = this.checkOrUpdateLegacyUIBannerSetting(parsedBanner);
-    } catch {
-      this.bannerVal = {};
-    }
-    if (!this.bannerVal.banner) {
-      this.$set(this.bannerVal, 'banner', {});
-    }
     if (hash.uiLogoDarkSetting.value) {
       try {
         this.uiLogoDark = hash.uiLogoDarkSetting.value;
@@ -91,7 +97,17 @@ export default {
     };
   },
 
-  watch: {},
+  watch: {
+    uiBannerSetting(neu) {
+      if (neu?.value && neu.value !== '') {
+        try {
+          const parsedBanner = JSON.parse(neu.value);
+
+          this.bannerVal = this.checkOrUpdateLegacyUIBannerSetting(parsedBanner);
+        } catch {}
+      }
+    }
+  },
 
   mounted() {
     let uiColor = getComputedStyle(document.body).getPropertyValue('--primary');
@@ -109,13 +125,24 @@ export default {
     checkOrUpdateLegacyUIBannerSetting(parsedBanner) {
       const { bannerHeader, bannerFooter, banner } = parsedBanner;
 
-      if (isEmpty(bannerHeader) && isEmpty(bannerFooter) && !isEmpty(banner?.text)) {
-        const neu = {
-          bannerHeader: { ...parsedBanner.banner },
-          bannerFooter: { ...parsedBanner.banner },
-          showHeader:   parsedBanner?.showHeader ? parsedBanner?.showHeader.toString() : false.toString(),
-          showFooter:   parsedBanner?.showFooter ? parsedBanner?.showFooter.toString() : false.toString(),
-        };
+      if (isEmpty(bannerHeader) && isEmpty(bannerFooter)) {
+        let neu = DEFAULT_BANNER_SETTING;
+
+        if (!isEmpty(banner)) {
+          const cloned = clone(( banner ?? {} ));
+
+          if (cloned?.textColor) {
+            cloned['color'] = cloned.textColor;
+            delete cloned.textColor;
+          }
+
+          neu = {
+            bannerHeader: { ...cloned },
+            bannerFooter: { ...cloned },
+            showHeader:   parsedBanner?.showHeader === 'true' ? 'true' : 'false',
+            showFooter:   parsedBanner?.showFooter === 'true' ? 'true' : 'false',
+          };
+        }
 
         return neu;
       }
@@ -281,17 +308,14 @@ export default {
         {{ t(`advancedSettings.descriptions.${ 'ui-banners' }`, {}, true) }}
       </label>
 
-      <div class="row mt-20 mb-20">
-        <div class="col span-6">
-          <Checkbox :value="bannerVal.showHeader==='true'" :label="t('branding.uiBanner.showHeader')" @input="e=>$set(bannerVal, 'showHeader', e.toString())" />
-        </div>
-        <div class="col span-6">
-          <Checkbox :value="bannerVal.showFooter==='true'" :label="t('branding.uiBanner.showFooter')" @input="e=>$set(bannerVal, 'showFooter', e.toString())" />
-        </div>
-      </div>
       <template>
-        <div class="row">
-          <div v-if="bannerVal.showHeader==='true'" class="col span-6">
+        <div class="row mt-20 mb-20">
+          <div class="col span-6">
+            <Checkbox :value="bannerVal.showHeader==='true'" :label="t('branding.uiBanner.showHeader')" @input="e=>$set(bannerVal, 'showHeader', e.toString())" />
+          </div>
+        </div>
+        <div v-if="bannerVal.showHeader==='true'" class="row mb-20">
+          <div class="col span-12">
             <div class="row">
               <div class="col span-12">
                 <LabeledInput v-model="bannerVal.bannerHeader.text" :label="t('branding.uiBanner.text')" />
@@ -306,7 +330,14 @@ export default {
               </div>
             </div>
           </div>
-          <div v-if="bannerVal.showFooter==='true'" class="col span-6">
+        </div>
+        <div class="row">
+          <div class="col span-6">
+            <Checkbox :value="bannerVal.showFooter==='true'" :label="t('branding.uiBanner.showFooter')" @input="e=>$set(bannerVal, 'showFooter', e.toString())" />
+          </div>
+        </div>
+        <div v-if="bannerVal.showFooter==='true'" class="row">
+          <div class="col span-12 mt-20">
             <div class="row">
               <div class="col span-12">
                 <LabeledInput v-model="bannerVal.bannerFooter.text" :label="t('branding.uiBanner.text')" />
@@ -328,7 +359,7 @@ export default {
       <Banner :key="err" color="error" :label="err" />
     </template>
     <div>
-      <AsyncButton class="pull-right" mode="apply" @click="save" />
+      <AsyncButton class="pull-right mt-20" mode="apply" @click="save" />
     </div>
   </div>
 </template>
