@@ -10,7 +10,7 @@ import { CAPI, MANAGEMENT, SECRET } from '@/config/types';
 import { _CREATE, _EDIT } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
-import { findBy, removeObject } from '@/utils/array';
+import { findBy, removeObject, clear } from '@/utils/array';
 import { clone, diff, isEmpty, set } from '@/utils/object';
 import { allHash } from '@/utils/promise';
 import { sortBy } from '@/utils/sort';
@@ -608,7 +608,7 @@ export default {
       this.machinePools = out;
     },
 
-    async addMachinePool() {
+    async addMachinePool(idx) {
       if ( !this.machineConfigSchema ) {
         return;
       }
@@ -620,7 +620,7 @@ export default {
         metadata: { namespace: DEFAULT_WORKSPACE }
       });
 
-      config.applyDefaults();
+      config.applyDefaults(idx, this.machinePools);
 
       const name = `pool${ ++this.lastIdx }`;
 
@@ -737,8 +737,30 @@ export default {
       });
     },
 
-    saveOverride() {
-      this.save(...arguments);
+    async saveOverride(btnCb) {
+      if ( this.errors ) {
+        clear(this.errors);
+      }
+
+      for (const [index] of this.machinePools.entries()) { // validator machine config
+        if ( typeof this.$refs.pool[index]?.test === 'function' ) {
+          try {
+            const res = await this.$refs.pool[index].test();
+
+            if (Array.isArray(res) && res.length > 0) {
+              this.errors.push(...res);
+            }
+          } catch (e) {
+            this.errors.push(e);
+          }
+        }
+      }
+
+      if (this.errors.length) {
+        btnCb(false);
+      } else {
+        return this.save(btnCb);
+      }
 
       this.value.waitForMgmt().then(() => {
         if (this.membershipUpdate.save) {
@@ -893,11 +915,12 @@ export default {
           ref="pools"
           :side-tabs="true"
           :show-tabs-add-remove="!isView"
-          @addTab="addMachinePool"
+          @addTab="addMachinePool($event)"
           @removeTab="removeMachinePool($event)"
         >
           <Tab v-for="obj in machinePools" :key="obj.id" :name="obj.id" :label="obj.pool.name || '(Not Named)'" :show-header="false">
             <MachinePool
+              ref="pool"
               :value="obj"
               :mode="mode"
               :provider="provider"

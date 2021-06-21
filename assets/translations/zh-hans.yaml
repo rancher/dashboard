@@ -784,6 +784,26 @@ cluster:
         #label: Access Token
         placeholder: 请输入您的 DigitalOcean API Access Token
         help: 从 DigitalOcean <a href="https://cloud.digitalocean.com/settings/api/tokens" target="_blank" rel="noopener noreferrer nofollow">Applications & API</a>中复制和粘贴个人访问令牌。
+    harvester:
+      import: 导入的 Harvester
+      external: 外部的 Harvester
+      namespace: 命名空间
+      cpu: CPUs
+      memory: 内存
+      disk: 磁盘
+      image: 镜像
+      network: 网络
+      sshUser: SSH 用户名
+      userData: 
+        label: 用户配置模板
+        title: "用户数据:"
+      networkData:
+        label: 网络配置模板
+        title: "网络数据:"
+      kubeconfigContent:
+        label: Kubeconfig 文件
+      cluster: 集群
+      placeholder: 命名空间/名称
   name:
     label: 集群名称
     placeholder: 请输入集群名称，该名称不能与其他集群名称相同

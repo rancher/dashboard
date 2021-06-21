@@ -931,6 +931,25 @@ cluster:
         password:
           label: Password
         note: 'Note: The free ESXi license does not support API access. Only servers with a valid or evaluation license are supported.'
+    harvester:
+      import: Imported Harvester
+      external: External Harvester
+      namespace: Namespace
+      cpu: CPUs
+      memory: Memory
+      disk: Disk
+      image: Image
+      network: Network Name
+      sshUser: SSH User
+      userData: 
+        label: User Data Template
+        title: "User Data:"
+      networkData:
+        label: Network Data Template
+        title: "Network Data:"
+      kubeconfigContent:
+        label: KubeconfigContent
+      placeholder: 'Namespace/Name'
   description:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster

@@ -56,6 +56,28 @@ export default {
       return importMachineConfig('generic');
     }
   },
+
+  methods: {
+    async test() {
+      if ( typeof this.$refs.configComponent?.test === 'function' ) {
+        let errors = [];
+
+        try {
+          const res = await this.$refs.configComponent.test();
+
+          if ( !res || res?.errors) {
+            if (res?.errors) {
+              errors = res.errors;
+            }
+          }
+        } catch (e) {
+          errors = [e];
+        }
+
+        return errors;
+      }
+    }
+  }
 };
 </script>
 
@@ -87,6 +109,7 @@ export default {
 
     <component
       :is="configComponent"
+      ref="configComponent"
       :uuid="uuid"
       :mode="mode"
       :value="value.config"
