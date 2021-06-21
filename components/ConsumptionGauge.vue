@@ -84,7 +84,7 @@ export default {
 
 <template>
   <div class="consumption-gauge">
-    <h3>
+    <h3 v-if="resourceName">
       {{ resourceName }}
     </h3>
     <div class="numbers">

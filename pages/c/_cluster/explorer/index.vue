@@ -2,14 +2,11 @@
 import Loading from '@/components/Loading';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
-import isEmpty from 'lodash/isEmpty';
 import SortableTable from '@/components/SortableTable';
 import { allHash } from '@/utils/promise';
 import AlertTable from '@/components/AlertTable';
 import Banner from '@/components/Banner';
-import {
-  parseSi, formatSi, exponentNeeded, UNITS, createMemoryFormat, MEMORY_PARSE_RULES
-} from '@/utils/units';
+import { parseSi, createMemoryValues } from '@/utils/units';
 import {
   NAME,
   REASON,
@@ -90,6 +87,7 @@ export default {
     for ( const k in res ) {
       this[k] = res[k];
     }
+    this.metricAggregations = await this.currentCluster.fetchNodeMetrics();
   },
 
   data() {
@@ -138,6 +136,7 @@ export default {
       nodeMetrics:         [],
       nodeTemplates:       [],
       nodes:               [],
+      metricAggregations: {},
       showClusterMetrics: false,
       showK8sMetrics:     false,
       showEtcdMetrics:    false,
@@ -224,32 +223,7 @@ export default {
     },
 
     ramReserved() {
-      return this.createMemoryValues(this.currentCluster?.status?.allocatable?.memory, this.currentCluster?.status?.requested?.memory);
-    },
-
-    metricAggregations() {
-      const nodes = this.nodes;
-      const someNonWorkerRoles = this.nodes.some(node => node.hasARole && !node.isWorker);
-      const metrics = this.nodeMetrics.filter((nodeMetrics) => {
-        const node = nodes.find(nd => nd.id === nodeMetrics.id);
-
-        return node && (!someNonWorkerRoles || node.isWorker);
-      });
-      const initialAggregation = {
-        cpu:    0,
-        memory: 0
-      };
-
-      if (isEmpty(metrics)) {
-        return null;
-      }
-
-      return metrics.reduce((agg, metric) => {
-        agg.cpu += parseSi(metric.usage.cpu);
-        agg.memory += parseSi(metric.usage.memory);
-
-        return agg;
-      }, initialAggregation);
+      return createMemoryValues(this.currentCluster?.status?.allocatable?.memory, this.currentCluster?.status?.requested?.memory);
     },
 
     cpuUsed() {
@@ -260,7 +234,7 @@ export default {
     },
 
     ramUsed() {
-      return this.createMemoryValues(this.currentCluster?.status?.capacity?.memory, this.metricAggregations?.memory);
+      return createMemoryValues(this.currentCluster?.status?.capacity?.memory, this.metricAggregations?.memory);
     },
 
     hasMonitoring() {
@@ -281,26 +255,6 @@ export default {
   },
 
   methods: {
-    createMemoryValues(total, useful) {
-      const parsedTotal = parseSi((total || '0').toString());
-      const parsedUseful = parseSi((useful || '0').toString());
-      const format = createMemoryFormat(parsedTotal);
-      const formattedTotal = formatSi(parsedTotal, format);
-      const formattedUseful = formatSi(parsedUseful, format);
-
-      return {
-        total:  Number.parseFloat(formattedTotal),
-        useful: Number.parseFloat(formattedUseful),
-        units:  this.createMemoryUnits(parsedTotal)
-      };
-    },
-
-    createMemoryUnits(n) {
-      const exponent = exponentNeeded(n, MEMORY_PARSE_RULES.memory.format.increment);
-
-      return `${ UNITS[exponent] }${ MEMORY_PARSE_RULES.memory.format.suffix }`;
-    },
-
     showActions() {
       this.$store.commit('action-menu/show', {
         resources: this.currentCluster,
