@@ -35,8 +35,7 @@ export default {
 
   computed: {
     ...mapGetters(['clusterId']),
-    ...mapGetters(['clusterReady', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink']),
+    ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct']),
     ...mapGetters('type-map', ['activeProducts']),
     ...mapGetters('i18n', ['selectedLocaleLabel', 'availableLocales']),
     ...mapGetters({ features: 'features/get' }),
@@ -279,12 +278,6 @@ export default {
           <template v-if="legacyEnabled">
             <div class="category">
               {{ t('nav.categories.legacy') }}
-            </div>
-            <div v-if="currentProduct && isRancher" @click="hide()">
-              <a :href="(currentProduct.inStore === 'management' ? backToRancherGlobalLink : backToRancherLink)" class="option">
-                <i class="icon icon-cluster" />
-                {{ t('nav.backToRancher') }}
-              </a>
             </div>
             <div v-for="a in legacyApps" :key="a.label" @click="hide()">
               <nuxt-link class="option" :to="a.to">

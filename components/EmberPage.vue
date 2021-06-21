@@ -43,7 +43,14 @@ const INTERCEPTS = {
       product: 'mcapps',
       page:    'catalogs'
     }
-  }
+  },
+  'authenticated.cluster.istio.cluster-setting': {
+    name:   'c-cluster-legacy-pages-page',
+    params: {
+      cluster: 'local',
+      page:    'istio'
+    }
+  },
 };
 
 export default {
@@ -62,6 +69,10 @@ export default {
       type:    String,
       default: ''
     },
+    forceReuse: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   data() {
@@ -90,7 +101,9 @@ export default {
 
     // Update when source property changes
     src(nue, old) {
-      this.initFrame();
+      if (nue !== old) {
+        this.initFrame();
+      }
     }
   },
 
@@ -167,6 +180,9 @@ export default {
         this.showFooterBanner = parsed.showFooter === 'true';
       } catch {}
 
+      this.loaded = true;
+      this.loadRequired = false;
+
       // Get the existing iframe if it exists
       let iframeEl = document.getElementById(EMBER_FRAME);
 
@@ -175,8 +191,11 @@ export default {
       if (iframeEl !== null) {
         const ready = iframeEl.getAttribute('data-ready') !== 'false';
         const lastDidLoad = iframeEl.getAttribute('data-loaded') !== 'false';
+        const doNotReuse = !!this.inline && !this.forceReuse;
+        // Was not inline but now is - can't reuse
+        const inlineChanged = !!this.inline && (iframeEl.parentElement === document.body);
 
-        if (!ready || this.inline || !lastDidLoad) {
+        if (!ready || doNotReuse || !lastDidLoad || inlineChanged) {
           iframeEl.remove();
           iframeEl = null;
         }
@@ -240,10 +259,10 @@ export default {
         // Ensure iframe gets the latest theme if it has changed
         this.notifyTheme(this.theme);
 
-        const currentlUrl = iframeEl.contentWindow.location.pathname;
+        const currentUrl = iframeEl.contentWindow.location.pathname;
         const src = this.trimURL(this.src);
 
-        if (src !== currentlUrl) {
+        if (src !== currentUrl) {
           iframeEl.classList.add(EMBER_FRAME_HIDE_CLASS);
         } else {
           iframeEl.classList.remove(EMBER_FRAME_HIDE_CLASS);
@@ -322,6 +341,8 @@ export default {
           params: { cluster: msg.cluster }
         });
       } else if (msg.action === 'before-navigation') {
+        this.$emit('before-nav', msg.target);
+
         // Ember willTransition event
         if (INTERCEPTS[msg.target]) {
           const dest = INTERCEPTS[msg.target];
@@ -354,7 +375,7 @@ export default {
         this.loadRequired = true;
       } else if (msg.action === 'did-transition') {
         if (!this.loadRequired) {
-          this.setLoaded(false);
+          this.setLoaded(true);
           this.updateFrameVisibility();
           this.doSyncHeight();
         }

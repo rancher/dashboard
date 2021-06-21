@@ -4650,12 +4650,17 @@ legacy:
   alerts: Alerts
   apps: Apps
   catalogs: Catalogs
+  cis-scans: CIS Scans
+  configuration: Configuration
   globalDnsEntries: Global DNS Entries
   globalDnsProviders: Global DNS Providers
+  istio: Istio
   logging: Logging
   notifiers: Notifiers
   monitoring: Monitoring
+  pipelines: Pipelines
   psps: Pod Security Policies
+
   project:
     label: Project
     select: "Use the Project/Namespace filter at the top of the page to select a Project in order to see legacy Project features."
