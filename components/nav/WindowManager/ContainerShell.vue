@@ -3,6 +3,8 @@ import { allHash } from '@/utils/promise';
 import { addParams } from '@/utils/url';
 import { base64Decode, base64Encode } from '@/utils/crypto';
 import Select from '@/components/form/Select';
+import isEmpty from 'lodash/isEmpty';
+import { NODE } from '@/config/types';
 
 import Socket, {
   EVENT_CONNECTED,
@@ -14,12 +16,16 @@ import Socket, {
 } from '@/utils/socket';
 import Window from './Window';
 
-const DEFAULT_COMMAND = ['/bin/sh', '-c', 'TERM=xterm-256color; export TERM; [ -x /bin/bash ] && ([ -x /usr/bin/script ] && /usr/bin/script -q -c "/bin/bash" /dev/null || exec /bin/bash) || exec /bin/sh'];
+const DEFAULT_COMMAND = [
+  '/bin/sh',
+  '-c',
+  'TERM=xterm-256color; export TERM; [ -x /bin/bash ] && ([ -x /usr/bin/script ] && /usr/bin/script -q -c "/bin/bash" /dev/null || exec /bin/bash) || exec /bin/sh',
+];
 
 export default {
   components: { Window, Select },
 
-  props:      {
+  props: {
     // The definition of the tab itself
     tab: {
       type:     Object,
@@ -48,7 +54,7 @@ export default {
     initialContainer: {
       type:    String,
       default: null,
-    }
+    },
   },
 
   data() {
@@ -61,16 +67,17 @@ export default {
       webglAddon:  null,
       isOpen:      false,
       isOpening:   false,
-      backlog:     []
+      backlog:     [],
+      node:        null,
     };
   },
 
   computed: {
     xtermConfig() {
       return {
-        cursorBlink:  true,
-        useStyle:     true,
-        fontSize:     12,
+        cursorBlink: true,
+        useStyle:    true,
+        fontSize:    12,
       };
     },
 
@@ -86,7 +93,7 @@ export default {
 
     height() {
       this.fit();
-    }
+    },
   },
 
   beforeDestroy() {
@@ -94,11 +101,28 @@ export default {
   },
 
   async mounted() {
+    await this.fetchNode();
     await this.setupTerminal();
     await this.connect();
   },
 
   methods: {
+    async fetchNode() {
+      if (this.node) {
+        return;
+      }
+
+      const nodeId = this.pod.spec?.nodeName;
+
+      try {
+        this.node = await this.$store.dispatch('cluster/find', {
+          type: NODE,
+          id:   nodeId,
+        });
+      } catch (e) {
+        console.error('Failed to fetch node', nodeId); // eslint-disable-line no-console
+      }
+    },
     async setupTerminal() {
       const docStyle = getComputedStyle(document.querySelector('body'));
       const xterm = await import(/* webpackChunkName: "xterm" */ 'xterm');
@@ -115,7 +139,7 @@ export default {
           background: docStyle.getPropertyValue('--terminal-bg').trim(),
           cursor:     docStyle.getPropertyValue('--terminal-cursor').trim(),
           selection:  docStyle.getPropertyValue('--terminal-selection').trim(),
-          foreground: docStyle.getPropertyValue('--terminal-text').trim()
+          foreground: docStyle.getPropertyValue('--terminal-text').trim(),
         },
         ...this.xtermConfig,
       });
@@ -135,7 +159,7 @@ export default {
       terminal.loadAddon(new addons.weblinks.WebLinksAddon());
       terminal.open(this.$refs.xterm);
 
-      if ( this.webglAddon ) {
+      if (this.webglAddon) {
         terminal.loadAddon(this.webglAddon);
       }
 
@@ -152,7 +176,7 @@ export default {
     },
 
     write(msg) {
-      if ( this.isOpen ) {
+      if (this.isOpen) {
         this.socket.send(msg);
       } else {
         this.backlog.push(msg);
@@ -164,30 +188,33 @@ export default {
     },
 
     getSocketUrl() {
-      if ( !this.pod?.links?.view ) {
+      if (!this.pod?.links?.view) {
         return;
       }
+      const { node } = this;
       let cmd = DEFAULT_COMMAND;
-      const isWindows = this.$store.getters['currentCluster'].providerOs === 'windows';
 
-      if (isWindows) {
+      if (!isEmpty(node) && node?.status?.nodeInfo?.operatingSystem === 'windows') {
         cmd = ['cmd'];
       }
 
-      const url = addParams(`${ this.pod.links.view.replace(/^http/, 'ws') }/exec`, {
-        container: this.container,
-        stdout:    1,
-        stdin:     1,
-        stderr:    1,
-        tty:       1,
-        command:   cmd,
-      });
+      const url = addParams(
+        `${ this.pod.links.view.replace(/^http/, 'ws') }/exec`,
+        {
+          container: this.container,
+          stdout:    1,
+          stdin:     1,
+          stderr:    1,
+          tty:       1,
+          command:   cmd,
+        }
+      );
 
       return url;
     },
 
     async connect() {
-      if ( this.socket ) {
+      if (this.socket) {
         await this.socket.disconnect();
         this.socket = null;
         this.terminal.reset();
@@ -195,7 +222,7 @@ export default {
 
       const url = this.getSocketUrl();
 
-      if ( !url ) {
+      if (!url) {
         return;
       }
 
@@ -228,7 +255,7 @@ export default {
         const type = e.detail.data.substr(0, 1);
         const msg = base64Decode(e.detail.data.substr(1));
 
-        if ( `${ type }` === '1' ) {
+        if (`${ type }` === '1') {
           this.terminal.write(msg);
         } else {
           console.error(msg); // eslint-disable-line no-console
@@ -244,13 +271,13 @@ export default {
 
       this.backlog = [];
 
-      for ( const data of backlog ) {
+      for (const data of backlog) {
         this.socket.send(data);
       }
     },
 
     fit(arg) {
-      if ( !this.fitAddon ) {
+      if (!this.fitAddon) {
         return;
       }
 
@@ -258,30 +285,32 @@ export default {
 
       const { rows, cols } = this.fitAddon.proposeDimensions();
 
-      if ( !this.isOpen ) {
+      if (!this.isOpen) {
         return;
       }
 
-      const message = `4${ base64Encode(JSON.stringify({
-        Width:  Math.floor(cols),
-        Height: Math.floor(rows),
-      })) }`;
+      const message = `4${ base64Encode(
+        JSON.stringify({
+          Width:  Math.floor(cols),
+          Height: Math.floor(rows),
+        })
+      ) }`;
 
       this.socket.send(message);
     },
 
     cleanup() {
-      if ( this.socket ) {
+      if (this.socket) {
         this.socket.disconnect();
         this.socket = null;
       }
 
-      if ( this.terminal ) {
+      if (this.terminal) {
         this.terminal.dispose();
         this.terminal = null;
       }
     },
-  }
+  },
 };
 </script>
 
@@ -298,7 +327,11 @@ export default {
         placement="top"
       >
         <template #selected-option="option">
-          <t v-if="option" k="wm.containerShell.containerName" :label="option.label" />
+          <t
+            v-if="option"
+            k="wm.containerShell.containerName"
+            :label="option.label"
+          />
         </template>
       </Select>
       <div class="pull-left ml-5">
@@ -308,12 +341,17 @@ export default {
       </div>
       <div class="status pull-left">
         <t v-if="isOpen" k="wm.connection.connected" class="text-success" />
-        <t v-else-if="isOpening" k="wm.connection.connecting" class="text-warning" :raw="true" />
+        <t
+          v-else-if="isOpening"
+          k="wm.connection.connecting"
+          class="text-warning"
+          :raw="true"
+        />
         <t v-else k="wm.connection.disconnected" class="text-error" />
       </div>
     </template>
     <template #body>
-      <div class="shell-container" :class="{'open': isOpen, 'closed': !isOpen}">
+      <div class="shell-container" :class="{ open: isOpen, closed: !isOpen }">
         <div ref="xterm" class="shell-body" />
         <resize-observer @notify="fit" />
       </div>
@@ -322,44 +360,44 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .text-warning {
-    animation: flasher 2.5s linear infinite;
+.text-warning {
+  animation: flasher 2.5s linear infinite;
+}
+
+@keyframes flasher {
+  50% {
+    opacity: 0;
   }
+}
 
-  @keyframes flasher {
-    50% {
-      opacity: 0;
-    }
+.shell-container {
+  height: 100%;
+  overflow: hidden;
+}
+
+.shell-body {
+  padding: calc(2 * var(--outline-width));
+  height: 100%;
+
+  & > .terminal.focus {
+    outline: var(--outline-width) solid var(--outline);
   }
+}
 
-  .shell-container {
-    height: 100%;
-    overflow: hidden;
-  }
-
-  .shell-body {
-    padding: calc( 2 * var(--outline-width) );
-    height: 100%;
-
-    & > .terminal.focus {
-      outline: var(--outline-width) solid var(--outline);
-    }
-  }
-
-  .containerPicker {
-    ::v-deep &.unlabeled-select {
-      display: inline-block;
-      min-width: 200px;
-      height: 30px;
-      width: initial;
-    }
-  }
-
-  .status {
-    align-items: center;
-    display: flex;
-    min-width: 80px;
+.containerPicker {
+  ::v-deep &.unlabeled-select {
+    display: inline-block;
+    min-width: 200px;
     height: 30px;
-    margin-left: 10px;
+    width: initial;
   }
+}
+
+.status {
+  align-items: center;
+  display: flex;
+  min-width: 80px;
+  height: 30px;
+  margin-left: 10px;
+}
 </style>
