@@ -246,6 +246,8 @@ export const actions = {
         ...body
       }, { redirectUnauthorized: false });
 
+      await dispatch('prefs/loadServer', {}, { root: true });
+
       return res;
     } catch (err) {
       if (err._status === 401) {
