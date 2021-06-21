@@ -195,7 +195,7 @@ export default {
           />
         </li>
         <Type
-          v-else-if="!child.overview"
+          v-else-if="!child.overview || group.name === 'starred'"
           :key="id+'_' + child.name + '_type'"
           :is-root="depth == 0 && !showHeader"
           :type="child"

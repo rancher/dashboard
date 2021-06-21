@@ -2,7 +2,7 @@
 import ResourceTable from '@/components/ResourceTable';
 import { STATE, AGE, SIMPLE_NAME } from '@/config/table-headers';
 import { uniq } from '@/utils/array';
-import { MANAGEMENT, NAMESPACE } from '@/config/types';
+import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES } from '@/config/types';
 import Loading from '@/components/Loading';
 import { PROJECT_ID } from '@/config/query-params';
 import Masthead from '@/components/ResourceList/Masthead';
@@ -40,6 +40,7 @@ export default {
       projects:      [],
       projectSchema: null,
       MANAGEMENT,
+      VIRTUAL_TYPES
     };
   },
 
@@ -168,6 +169,7 @@ export default {
       :schema="projectSchema"
       :type-display="t('projectNamespaces.label')"
       :resource="MANAGEMENT.PROJECT"
+      :favorite-resource="VIRTUAL_TYPES.PROJECT_NAMESPACES"
       :create-location="createProjectLocation"
       :create-button-label="t('projectNamespaces.createProject')"
     />

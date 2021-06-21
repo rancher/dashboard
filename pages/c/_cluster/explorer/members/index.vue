@@ -1,5 +1,5 @@
 <script>
-import { MANAGEMENT, NORMAN } from '@/config/types';
+import { MANAGEMENT, NORMAN, VIRTUAL_TYPES } from '@/config/types';
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
 import { NAME } from '@/config/product/explorer';
@@ -43,6 +43,7 @@ export default {
       },
       resource:                    MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
       clusterRoleTemplateBindings: null,
+      VIRTUAL_TYPES
     };
   },
 
@@ -62,6 +63,7 @@ export default {
     <Masthead
       :schema="schema"
       :resource="resource"
+      :favorite-resource="VIRTUAL_TYPES.CLUSTER_MEMBERS"
       :create-location="createLocation"
       :create-button-label="t('members.createActionLabel')"
     />

@@ -1,7 +1,7 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import { STATE, NAME, AGE } from '@/config/table-headers';
-import { NAMESPACE } from '@/config/types';
+import { NAMESPACE, VIRTUAL_TYPES } from '@/config/types';
 import Loading from '@/components/Loading';
 import Masthead from '@/components/ResourceList/Masthead';
 
@@ -22,7 +22,7 @@ export default {
 
   data() {
     return {
-      rows: [], schema: null, NAMESPACE
+      rows: [], schema: null, NAMESPACE, VIRTUAL_TYPES
     };
   },
 
@@ -53,6 +53,7 @@ export default {
     <Masthead
       :schema="schema"
       :resource="NAMESPACE"
+      :favorite-resource="VIRTUAL_TYPES.NAMESPACE"
       :create-location="createLocation"
     />
     <ResourceTable

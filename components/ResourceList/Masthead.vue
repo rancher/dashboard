@@ -15,6 +15,10 @@ export default {
       type:     String,
       required: true,
     },
+    favoriteResource: {
+      type:     String,
+      default: null
+    },
     schema: {
       type:    Object,
       default: null,
@@ -131,7 +135,7 @@ export default {
     <TypeDescription :resource="resource" />
     <div class="title">
       <h1 class="m-0">
-        {{ _typeDisplay }} <Favorite v-if="isExplorer" :resource="resource" />
+        {{ _typeDisplay }} <Favorite v-if="isExplorer" :resource="favoriteResource || resource" />
       </h1>
     </div>
     <div class="actions-container">
