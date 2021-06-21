@@ -163,7 +163,8 @@ export default {
 
     getLegacyVersions(id) {
       const versions = [];
-      const c = this.v1SystemCatalog?.status?.helmVersionCommits[id]?.Value;
+      const hvcs = this.v1SystemCatalog?.status?.helmVersionCommits;
+      const c = hvcs ? hvcs[id]?.Value : null;
 
       if (c) {
         Object.keys(c).forEach(v => versions.unshift({ version: v }));

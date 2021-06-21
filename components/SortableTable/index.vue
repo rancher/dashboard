@@ -748,7 +748,7 @@ $spacing: 10px;
       border-bottom: 1px solid var(--sortable-table-top-divider);
       background-color: var(--body-bg);
 
-      &.main-row + .sub-row, &.main-row.has-sub-row {
+      &.main-row.has-sub-row {
         border-bottom: 0;
       }
 
