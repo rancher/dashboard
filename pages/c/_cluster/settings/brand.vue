@@ -12,6 +12,7 @@ import { allHash } from '@/utils/promise';
 import { MANAGEMENT } from '@/config/types';
 import { getVendor, setVendor } from '@/config/private-label';
 import { SETTING, fetchOrCreateSetting } from '@/config/settings';
+import isEmpty from 'lodash/isEmpty';
 const Color = require('color');
 const parse = require('url-parse');
 
@@ -36,7 +37,9 @@ export default {
     Object.assign(this, hash);
 
     try {
-      this.bannerVal = JSON.parse(hash.uiBannerSetting.value);
+      const parsedBanner = JSON.parse(hash.uiBannerSetting.value);
+
+      this.bannerVal = this.checkOrUpdateLegacyUIBannerSetting(parsedBanner);
     } catch {
       this.bannerVal = {};
     }
@@ -103,6 +106,22 @@ export default {
   },
 
   methods: {
+    checkOrUpdateLegacyUIBannerSetting(parsedBanner) {
+      const { bannerHeader, bannerFooter, banner } = parsedBanner;
+
+      if (isEmpty(bannerHeader) && isEmpty(bannerFooter) && !isEmpty(banner?.text)) {
+        const neu = {
+          bannerHeader: { ...parsedBanner.banner },
+          bannerFooter: { ...parsedBanner.banner },
+          showHeader:   parsedBanner?.showHeader ? parsedBanner?.showHeader.toString() : false.toString(),
+          showFooter:   parsedBanner?.showFooter ? parsedBanner?.showFooter.toString() : false.toString(),
+        };
+
+        return neu;
+      }
+
+      return parsedBanner;
+    },
     updateLogo(img, key) {
       this[key] = img;
     },
@@ -263,21 +282,44 @@ export default {
       </label>
 
       <div class="row mt-20 mb-20">
-        <Checkbox :value="bannerVal.showHeader==='true'" :label="t('branding.uiBanner.showHeader')" @input="e=>$set(bannerVal, 'showHeader', e.toString())" />
-        <Checkbox :value="bannerVal.showFooter==='true'" :label="t('branding.uiBanner.showFooter')" @input="e=>$set(bannerVal, 'showFooter', e.toString())" />
-      </div>
-      <template v-if="bannerVal.showHeader==='true' || bannerVal.showFooter==='true'">
-        <div class="row">
-          <div class="col span-12">
-            <LabeledInput v-model="bannerVal.banner.text" :label="t('branding.uiBanner.text')" />
-          </div>
+        <div class="col span-6">
+          <Checkbox :value="bannerVal.showHeader==='true'" :label="t('branding.uiBanner.showHeader')" @input="e=>$set(bannerVal, 'showHeader', e.toString())" />
         </div>
-        <div class="row mt-10">
-          <div class="col span-3">
-            <ColorInput v-model="bannerVal.banner.color" :label="t('branding.uiBanner.textColor')" />
+        <div class="col span-6">
+          <Checkbox :value="bannerVal.showFooter==='true'" :label="t('branding.uiBanner.showFooter')" @input="e=>$set(bannerVal, 'showFooter', e.toString())" />
+        </div>
+      </div>
+      <template>
+        <div class="row">
+          <div v-if="bannerVal.showHeader==='true'" class="col span-6">
+            <div class="row">
+              <div class="col span-12">
+                <LabeledInput v-model="bannerVal.bannerHeader.text" :label="t('branding.uiBanner.text')" />
+              </div>
+            </div>
+            <div class="row mt-10">
+              <div class="col span-6">
+                <ColorInput v-model="bannerVal.bannerHeader.color" :label="t('branding.uiBanner.textColor')" />
+              </div>
+              <div class="col span-6">
+                <ColorInput v-model="bannerVal.bannerHeader.background" :label="t('branding.uiBanner.background')" />
+              </div>
+            </div>
           </div>
-          <div class="col span-3">
-            <ColorInput v-model="bannerVal.banner.background" :label="t('branding.uiBanner.background')" />
+          <div v-if="bannerVal.showFooter==='true'" class="col span-6">
+            <div class="row">
+              <div class="col span-12">
+                <LabeledInput v-model="bannerVal.bannerFooter.text" :label="t('branding.uiBanner.text')" />
+              </div>
+            </div>
+            <div class="row mt-10">
+              <div class="col span-6">
+                <ColorInput v-model="bannerVal.bannerFooter.color" :label="t('branding.uiBanner.textColor')" />
+              </div>
+              <div class="col span-6">
+                <ColorInput v-model="bannerVal.bannerFooter.background" :label="t('branding.uiBanner.background')" />
+              </div>
+            </div>
           </div>
         </div>
       </template>
