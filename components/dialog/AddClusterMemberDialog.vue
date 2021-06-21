@@ -1,12 +1,11 @@
 <script>
 import Card from '@/components/Card';
-import ProjectMemberEditor from '@/components/form/ProjectMemberEditor';
-import { MANAGEMENT } from '@/config/types';
+import ClusterPermissionsEditor from '@/components/form/Members/ClusterPermissionsEditor';
 
 export default {
   components: {
     Card,
-    ProjectMemberEditor
+    ClusterPermissionsEditor
   },
 
   props:      {
@@ -17,15 +16,7 @@ export default {
   },
 
   data() {
-    return {
-      member:       {
-        permissionGroup: 'member',
-        custom:          {},
-        userPrincipalId: '',
-        projectId:       null,
-        roleTemplateIds: []
-      }
-    };
+    return { bindings: [] };
   },
 
   computed: {
@@ -39,31 +30,20 @@ export default {
       this.$emit('close');
     },
 
-    async apply() {
-      this.onAdd(await this.createBindings());
+    apply() {
+      this.onAdd(this.bindings);
       this.close();
     },
-
-    createBindings() {
-      const promises = this.member.roleTemplateIds.map(roleTemplateId => this.$store.dispatch(`management/create`, {
-        type:                  MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
-        roleTemplateName:      roleTemplateId,
-        userPrincipalName:     this.member.userPrincipalId,
-        projectName:           this.member.projectId,
-      }));
-
-      return Promise.all(promises);
-    }
   }
 };
 </script>
 
 <template>
   <Card class="prompt-rotate" :show-highlight-border="false">
-    <h4 slot="title" class="text-default-text" v-html="t('addProjectMemberDialog.title')" />
+    <h4 slot="title" class="text-default-text" v-html="t('addClusterMemberDialog.title')" />
 
     <div slot="body" class="pl-10 pr-10">
-      <ProjectMemberEditor v-model="member" :use-two-columns-for-custom="true" />
+      <ClusterPermissionsEditor v-model="bindings" :use-two-columns-for-custom="true" />
     </div>
 
     <div slot="actions" class="buttons">

@@ -34,6 +34,7 @@ import YamlEditor from '@/components/YamlEditor';
 import Questions from '@/components/Questions';
 
 import { normalizeName } from '@/components/form/NameNsDescription.vue';
+import ClusterMembershipEditor from '@/components/form/Members/ClusterMembershipEditor';
 import ACE from './ACE';
 import AgentEnv from './AgentEnv';
 import DrainOptions from './DrainOptions';
@@ -52,6 +53,7 @@ export default {
     BadgeState,
     Banner,
     Checkbox,
+    ClusterMembershipEditor,
     CruResource,
     DrainOptions,
     LabeledInput,
@@ -220,6 +222,8 @@ export default {
       s3Backup:         false,
       chartVersionInfo: null,
       versionInfo:      {},
+      membershipUpdate: {},
+      hasOwner:         false,
     };
   },
 
@@ -555,6 +559,14 @@ export default {
         this.$fetch();
       }
     },
+
+    hasOwner() {
+      if (this.hasOwner) {
+        this.$set(this, 'errors', this.errors.filter(e => e !== this.t('cluster.haveOneOwner')));
+      } else {
+        this.errors.push(this.t('cluster.haveOneOwner'));
+      }
+    }
   },
 
   mounted() {
@@ -696,7 +708,7 @@ export default {
     },
 
     validationPassed() {
-      return this.provider === 'custom' || !!this.credentialId;
+      return (this.provider === 'custom' || !!this.credentialId) && this.hasOwner;
     },
 
     cancelCredential() {
@@ -722,6 +734,16 @@ export default {
           namespace: this.value.metadata.namespace,
           id:        this.value.metadata.name,
         },
+      });
+    },
+
+    saveOverride() {
+      this.save(...arguments);
+
+      this.value.waitForMgmt().then(() => {
+        if (this.membershipUpdate.save) {
+          this.membershipUpdate.save(this.value.mgmt.id);
+        }
       });
     },
 
@@ -792,6 +814,14 @@ export default {
 
       set(this.value.spec.rkeConfig, 'chartValues', out);
     }, 250, { leading: true }),
+
+    onMembershipUpdate(update) {
+      this.$set(this, 'membershipUpdate', update);
+    },
+
+    onHasOwnerChanged(hasOwner) {
+      this.$set(this, 'hasOwner', hasOwner);
+    },
   },
 };
 </script>
@@ -808,7 +838,7 @@ export default {
     :done-event="true"
     :cancel-event="true"
     @done="done"
-    @finish="save"
+    @finish="saveOverride"
     @cancel="cancel"
     @error="e=>errors = e"
   >
@@ -881,7 +911,7 @@ export default {
 
       <h2 v-t="'cluster.tabs.cluster'" />
       <Tabbed :side-tabs="true">
-        <Tab name="basic" label-key="cluster.tabs.basic" :weight="10" @active="refreshYamls">
+        <Tab name="basic" label-key="cluster.tabs.basic" :weight="11" @active="refreshYamls">
           <Banner v-if="!haveArgInfo" color="warning" label="Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor." />
 
           <div class="row">
@@ -966,6 +996,13 @@ export default {
               />
             </div>
           </div>
+        </Tab>
+
+        <Tab name="memberRoles" label-key="cluster.tabs.memberRoles" :weight="10">
+          <Banner v-if="isEdit" color="info">
+            {{ t('cluster.memberRoles.removeMessage') }}
+          </Banner>
+          <ClusterMembershipEditor :mode="mode" :parent-id="value.mgmt ? value.mgmt.id : null" @membership-update="onMembershipUpdate" @has-owner-changed="onHasOwnerChanged" />
         </Tab>
 
         <Tab name="etcd" label-key="cluster.tabs.etcd" :weight="9">
