@@ -397,6 +397,14 @@ export default {
     expanded(name) {
       const currentType = this.$route.params.resource || '';
 
+      if (!currentType) {
+        const grp = this.groups.find(item => item.name === name);
+
+        if (grp?.children) {
+          return this.hasRoute(grp.children);
+        }
+      }
+
       return name === currentType;
     },
 
@@ -416,6 +424,20 @@ export default {
           }
         });
       }
+    },
+
+    hasRoute(grp) {
+      return !!grp.find((item) => {
+        if (item.children) {
+          return this.hasRoute(item.children);
+        } else if (item.route) {
+          const route = this.$router.resolve(item.route);
+
+          return this.$route.fullPath === route.href;
+        }
+
+        return false;
+      });
     },
 
     wheresMyDebugger() {
