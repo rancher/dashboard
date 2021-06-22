@@ -1,3 +1,5 @@
+import { isArray } from '@/utils/array';
+
 export function addParam(url, key, val) {
   let out = url + (url.includes('?') ? '&' : '?');
 
@@ -49,6 +51,45 @@ export function parseLinkHeader(str) {
   }
 
   return out;
+}
+
+export function isMaybeSecure(port, proto) {
+  const protocol = proto.toLowerCase();
+
+  return portMatch([port], [443, 8443], '443') || protocol === 'https';
+}
+
+export function portMatch(ports, equals, endsWith) {
+  if (!isArray(ports)) {
+    ports = [ports];
+  }
+
+  if (!isArray(equals)) {
+    equals = [equals];
+  }
+
+  if (!isArray(endsWith)) {
+    endsWith = [endsWith];
+  }
+
+  for (let i = 0; i < ports.length; i++) {
+    const port = ports[i];
+
+    if (equals.includes(port)) {
+      return true;
+    }
+
+    for (let j = 0; j < endsWith.length; j++) {
+      const suffix = `${ endsWith[j] }`;
+      const portStr = `${ port }`;
+
+      if (portStr !== suffix && portStr.endsWith(suffix)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 // parseUri 1.2.2

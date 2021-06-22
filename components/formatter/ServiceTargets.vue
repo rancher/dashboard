@@ -3,6 +3,7 @@ import isEmpty from 'lodash/isEmpty';
 import { CATTLE_PUBLIC_ENDPOINTS } from '@/config/labels-annotations';
 import Endpoints from '@/components/formatter/Endpoints';
 import has from 'lodash/has';
+import { isMaybeSecure } from '@/utils/url';
 
 export default {
   components: { Endpoints },
@@ -38,7 +39,7 @@ export default {
         metadata: { annotations = {} },
         spec: {
           clusterIP = null, ports = [], type: serviceType, externalName
-        }
+        },
       } = row;
       const out = [];
       const isHeadless = serviceType === 'ClusterIP' && clusterIP === 'None';
@@ -65,11 +66,23 @@ export default {
         });
       } else {
         ports.forEach((p) => {
-          const clusterIpAndPort = `${ parsedClusterIp }${ p.port }`;
-          const protocol = p?.protocol ? ` /${ p.protocol }` : '';
-          const targetPort = p?.targetPort ? ` > ${ p.targetPort }` : '';
+          let proxyUrl;
 
-          label = `${ clusterIpAndPort }${ protocol }${ targetPort }`;
+          const stringPort = p.port.toString();
+
+          if (p?.protocol === 'TCP' && (stringPort.endsWith('80') || stringPort.endsWith('443'))) {
+            if (isMaybeSecure(p.port, p?.protocol)) {
+              proxyUrl = row.proxyUrl('https', p.port);
+            } else {
+              proxyUrl = row.proxyUrl('http', p.port);
+            }
+          }
+
+          const clusterIpAndPort = proxyUrl ? `<a href="${ proxyUrl }" target="_blank" rel="noopener noreferrer nofollow">${ p?.name ? p.name : `${ parsedClusterIp }${ p.port }` }</a>` : `${ parsedClusterIp }${ p.port }`;
+          const targetPort = p?.targetPort ? ` <span class="icon icon-endpoints_connected icon-lg"></span> ${ p.targetPort }` : '';
+          const protocol = p?.protocol ? `/${ p.protocol }` : '';
+
+          label = `${ clusterIpAndPort }${ targetPort }${ protocol }`;
 
           out.push({
             label,
@@ -86,12 +99,11 @@ export default {
 
 <template>
   <div>
-    <div v-if="hasPublic">
+    <div v-if="hasPublic" class="text-small">
       <Endpoints v-model="parsed" :row="{}" :col="{}" />
     </div>
-    <div v-for="(port, index) in parsed" v-else :key="index">
-      <span v-if="port.link" v-html="port.link"></span>
-      <span v-else>{{ port.label }}</span>
+    <div v-for="(port, index) in parsed" v-else :key="index" class="text-small">
+      <span v-html="port.label"></span>
     </div>
   </div>
 </template>
