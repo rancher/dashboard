@@ -243,7 +243,7 @@ export default {
         return {
           label:       obj.GroupName,
           description: obj.GroupDescription,
-          value:       obj.GroupId
+          value:       obj.GroupName
         };
       });
 
