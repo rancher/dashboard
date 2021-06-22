@@ -84,6 +84,10 @@ export default {
     const current = route.query[SETUP] || store.getters['auth/initialPass'] || 'admin';
     const v3User = store.getters['auth/v3User'] ?? {};
 
+    const mcmEnabled = await store.dispatch('management/find', {
+      type: MANAGEMENT.FEATURE, id: 'multi-cluster-management', opt: { url: `/v1/${ MANAGEMENT.FEATURE }/multi-cluster-management` }
+    })?.spec?.value !== false;
+
     let serverUrl;
 
     if (serverUrlSetting?.value) {
@@ -114,6 +118,7 @@ export default {
       v3User,
 
       serverUrl,
+      mcmEnabled,
 
       telemetry,
 
@@ -150,7 +155,6 @@ export default {
 
       return out;
     },
-
   },
 
   watch: {
@@ -291,7 +295,7 @@ export default {
             </div>
           </template>
 
-          <template v-else>
+          <template v-else-if="mcmEnabled">
             <p>
               <t k="setup.serverUrl.tip" :raw="true" />
             </p>
