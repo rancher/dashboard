@@ -45,9 +45,8 @@ const INTERCEPTS = {
     }
   },
   'authenticated.cluster.istio.cluster-setting': {
-    name:   'c-cluster-legacy-pages-page',
+    name:   'c-cluster-explorer-tools-pages-page',
     params: {
-      cluster: 'local',
       page:    'istio'
     }
   },
@@ -84,6 +83,7 @@ export default {
       error:            false,
       heightSync:       null,
       frameHeight:      -1,
+      frameWidth:       -1,
       showHeaderBanner: false,
       showFooterBanner: false,
     };
@@ -280,22 +280,22 @@ export default {
         iframeEl.classList.remove('ember-iframe');
         iframeEl.classList.add('ember-iframe-inline');
         iframeEl.height = 0;
-        this.syncHeight();
+        this.syncSize();
       }
     },
 
-    syncHeight() {
+    syncSize() {
       if (this.heightSync) {
         clearTimeout(this.heightSync);
       }
 
       this.heightSync = setTimeout(() => {
-        this.doSyncHeight();
-        this.syncHeight();
+        this.dosyncSize();
+        this.syncSize();
       }, 500);
     },
 
-    doSyncHeight() {
+    dosyncSize() {
       if (this.inline) {
         const iframeEl = document.getElementById(EMBER_FRAME);
         const doc = iframeEl.contentWindow.document;
@@ -305,6 +305,14 @@ export default {
         if (h && this.frameHeight !== h) {
           this.frameHeight = h;
           iframeEl.height = h;
+        }
+
+        const frameParent = document.getElementById(this.inline);
+        const w = frameParent.offsetWidth;
+        
+        if (w && this.frameWidth !== w) {
+          this.frameWidth = w;
+          iframeEl.width = w;
         }
       }
     },
@@ -377,7 +385,7 @@ export default {
         if (!this.loadRequired) {
           this.setLoaded(true);
           this.updateFrameVisibility();
-          this.doSyncHeight();
+          this.dosyncSize();
         }
       } else if (msg.action === 'dashboard') {
         this.iframeEl.setAttribute('data-ready', false);
@@ -538,7 +546,6 @@ export default {
 
   .ember-iframe-inline {
     border: 0;
-    width: 100%;
     overflow: hidden;
   }
 

@@ -47,16 +47,6 @@ export function init(store) {
   });
 
   virtualType({
-    labelKey:       'legacy.istio',
-    name:           'v1-istio',
-    group:          'Root',
-    namespaced:     true,
-    weight:         111,
-    route:          { name: 'c-cluster-legacy-pages-page', params: { page: 'istio' } },
-    exact:          true
-  });
-
-  virtualType({
     labelKey:       'legacy.cis-scans',
     name:           'v1-cis-scans',
     group:          'Root',
@@ -93,7 +83,6 @@ export function init(store) {
     'v1-catalogs',
     'v1-notifiers',
     'v1-cis-scans',
-    'v1-istio',
     'v1-project-overview'
   ]);
 
