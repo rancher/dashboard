@@ -1,5 +1,6 @@
 # Rancher Dashboard
 [![Build Status](http://drone-publish.rancher.io/api/badges/rancher/dashboard/status.svg)](http://drone-publish.rancher.io/rancher/dashboard)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Francher%2Fdashboard.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Francher%2Fdashboard?ref=badge_shield)
 
 Rancher Dashboard UI, a.k.a Cluster Explorer.
 For the other Rancher UI (Cluster Manager) see [rancher/ui](https://github.com/rancher/ui).
@@ -215,3 +216,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Francher%2Fdashboard.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Francher%2Fdashboard?ref=badge_large)
