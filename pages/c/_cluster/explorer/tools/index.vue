@@ -100,6 +100,8 @@ export default {
       if (this.legacyEnabled) {
         this.moveAppWhenLegacy(chartsWithApps, 'v1-monitoring', 'rancher-monitoring');
         this.moveAppWhenLegacy(chartsWithApps, 'v1-logging', 'rancher-logging');
+        this.moveAppWhenLegacy(chartsWithApps, 'v1-istio', 'rancher-istio');
+        this.moveAppWhenLegacy(chartsWithApps, 'v1-cis', 'rancher-cis');
       }
 
       return chartsWithApps;
@@ -110,6 +112,8 @@ export default {
       return [
         this._legacyChart('monitoring'),
         this._legacyChart('logging'),
+        this._legacyChart('istio'),
+        this._legacyChart('cis'),
       ];
     }
   },
@@ -176,6 +180,9 @@ export default {
     moveAppWhenLegacy(chartsWithApps, v1ChartName, v2ChartName) {
       const v1 = chartsWithApps.find(a => a.chart.chartName === v1ChartName);
       const v2 = chartsWithApps.find(a => a.chart.chartName === v2ChartName);
+
+      console.log('************************');
+      console.log(JSON.parse(JSON.stringify(chartsWithApps)));
 
       // Check app on v2
       if (v1 && v2 && v2.app) {
