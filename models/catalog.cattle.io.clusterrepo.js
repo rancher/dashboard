@@ -23,6 +23,7 @@ export default {
       label:      this.t('action.refresh'),
       icon:       'icon icon-refresh',
       enabled:    !!this.links.update,
+      bulkable:   true,
     });
 
     return out;

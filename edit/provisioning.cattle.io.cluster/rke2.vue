@@ -33,6 +33,7 @@ import UnitInput from '@/components/form/UnitInput';
 import YamlEditor from '@/components/YamlEditor';
 import Questions from '@/components/Questions';
 
+import { normalizeName } from '@/components/form/NameNsDescription.vue';
 import ACE from './ACE';
 import AgentEnv from './AgentEnv';
 import DrainOptions from './DrainOptions';
@@ -658,7 +659,10 @@ export default {
       const finalPools = [];
 
       for ( const entry of this.machinePools ) {
-        const prefix = `${ this.value.metadata.name }-${ (entry.pool.name || 'pool') }`.substr(0, 50).toLowerCase();
+        // Capitals and such aren't allowed;
+        set(entry.pool, 'name', normalizeName(entry.pool.name) || 'pool');
+
+        const prefix = `${ this.value.metadata.name }-${ entry.pool.name }`.substr(0, 50).toLowerCase();
 
         if ( entry.create ) {
           if ( !entry.config.metadata?.name ) {
