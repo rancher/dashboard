@@ -333,12 +333,12 @@ export default {
         const haveGroup = {};
 
         for ( const obj of allNavLinks ) {
-          const groupLabel = obj.spec.group;
-          const groupSlug = obj.normalizedGroup;
-
           if ( !obj.link ) {
             continue;
           }
+
+          const groupLabel = obj.spec.group;
+          const groupSlug = obj.normalizedGroup;
 
           const entry = {
             name:        `link-${ obj._key }`,
