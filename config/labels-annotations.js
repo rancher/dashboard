@@ -36,6 +36,12 @@ export const NODE_ROLES = {
   ETCD:              'node-role.kubernetes.io/etcd',
 };
 
+export const MACHINE_ROLES = {
+  CONTROL_PLANE: 'rke.cattle.io/control-plane-role',
+  WORKER:        'rke.cattle.io/worker-role',
+  ETCD:          'rke.cattle.io/etcd-role',
+};
+
 export const CAPI = {
   DEPLOYMENT_NAME:   'cluster.x-k8s.io/deployment-name',
   CREDENTIAL_DRIVER: 'provisioning.cattle.io/driver',

@@ -177,7 +177,7 @@ export default {
         }
       };
 
-      const location = this.value.parentLocationOverride || defaultLocation;
+      const location = this.value?.parentLocationOverride || defaultLocation;
 
       if (this.parentRouteOverride) {
         location.name = this.parentRouteOverride;

@@ -699,6 +699,7 @@ export default {
         bulkable:   true,
         enabled:    this.canDelete,
         bulkAction: 'promptRemove',
+        weight:     -10, // Delete always goes last
       },
       {
         action:  'viewInApi',

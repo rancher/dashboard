@@ -1,5 +1,5 @@
 import { CAPI } from '@/config/types';
-import { CAPI as CAPI_LABELS } from '@/config/labels-annotations';
+import { CAPI as CAPI_LABELS, MACHINE_ROLES } from '@/config/labels-annotations';
 import { escapeHtml } from '@/utils/string';
 import { insertAt } from '@/utils/array';
 import { downloadUrl } from '@/utils/download';
@@ -76,5 +76,56 @@ export default {
     const name = this.cluster?.nameDisplay || this.spec.clusterName;
 
     return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: escapeHtml(name) });
+  },
+
+  labels() {
+    return this.metadata?.labels || {};
+  },
+
+  isWorker() {
+    return `${ this.labels[MACHINE_ROLES.WORKER] }` === 'true';
+  },
+
+  isControlPlane() {
+    return `${ this.labels[MACHINE_ROLES.CONTROL_PLANE] }` === 'true';
+  },
+
+  isEtcd() {
+    return `${ this.labels[MACHINE_ROLES.ETCD] }` === 'true';
+  },
+
+  roles() {
+    const { isControlPlane, isWorker, isEtcd } = this;
+
+    if (( isControlPlane && isWorker && isEtcd ) ||
+        ( !isControlPlane && !isWorker && !isEtcd )) {
+      // !isControlPlane && !isWorker && !isEtcd === RKE?
+      return 'All';
+    }
+    // worker+cp, worker+etcd, cp+etcd
+
+    if (isControlPlane && isWorker) {
+      return 'Control Plane, Worker';
+    }
+
+    if (isControlPlane && isEtcd) {
+      return 'Control Plane, Etcd';
+    }
+
+    if (isEtcd && isWorker) {
+      return 'Etcd, Worker';
+    }
+
+    if (isControlPlane) {
+      return 'Control Plane';
+    }
+
+    if (isEtcd) {
+      return 'Etcd';
+    }
+
+    if (isWorker) {
+      return 'Worker';
+    }
   },
 };

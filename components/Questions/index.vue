@@ -11,17 +11,24 @@ import IntType from './Int';
 import FloatType from './Float';
 import ArrayType from './Array';
 import MapType from './Map';
+import ReferenceType from './Reference';
 
 export const knownTypes = {
-  string:    StringType,
-  hostname:  StringType, // @TODO
-  multiline: StringType,
-  password:  StringType,
-  boolean:   BooleanType,
-  enum:      EnumType,
-  int:       IntType,
-  float:     FloatType,
-  map:       MapType,
+  string:       StringType,
+  hostname:     StringType, // @TODO
+  multiline:    StringType,
+  password:     StringType,
+  boolean:      BooleanType,
+  enum:         EnumType,
+  int:          IntType,
+  float:        FloatType,
+  map:          MapType,
+  reference:    ReferenceType,
+  configmap:    ReferenceType,
+  secret:       ReferenceType,
+  storageclass: ReferenceType,
+  pvc:          ReferenceType,
+
   // storageclass
   // pvc
   // secret
@@ -34,6 +41,8 @@ export function componentForQuestion(q) {
     return ArrayType;
   } else if ( q.type.startsWith('map[') ) { // Same, only works with map[string|multiline]
     return MapType;
+  } else if ( q.type.startsWith('reference[') ) { // Same, only works with map[string|multiline]
+    return ReferenceType;
   }
 
   return 'string';

@@ -63,7 +63,7 @@ export default {
   <div>
     <div class="row">
       <div class="col span-4">
-        <LabeledInput v-model="value.pool.name" :mode="mode" label="Pool Name" :required="true" />
+        <LabeledInput v-model="value.pool.name" :mode="mode" label="Pool Name" :required="true" :disabled="!!value.config.id" />
       </div>
       <div class="col span-2">
         <LabeledInput
