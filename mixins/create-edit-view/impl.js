@@ -63,6 +63,10 @@ export default {
     },
 
     doneRoute() {
+      if ( this.value?.doneRoute ) {
+        return this.value.doneRoute;
+      }
+
       let name = this.$route.name;
 
       if ( name.endsWith('-id') ) {

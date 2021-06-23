@@ -6,6 +6,7 @@ import { SERVICE_ACCOUNT } from '@/config/types';
 import { isEmpty, set } from '@/utils/object';
 import { escapeHtml } from '@/utils/string';
 import { fullFields, prefixFields, simplify, suffixFields } from '@/store/plugins';
+import { NAME as MANAGER } from '@/config/product/manager';
 
 export const TYPES = {
   OPAQUE:           'Opaque',
@@ -388,6 +389,14 @@ export default {
       return `&hellip;${ escapeHtml(val.substr(-1 * maxLength)) }`;
     } else {
       return escapeHtml(val);
+    }
+  },
+
+  doneRoute() {
+    if ( this.$rootGetters['currentProduct'].name === MANAGER ) {
+      return 'c-cluster-manager-secret';
+    } else {
+      return 'c-cluster-product-resource';
     }
   },
 };
