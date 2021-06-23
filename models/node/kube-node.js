@@ -1,10 +1,13 @@
 import Vue from 'vue';
 import { formatPercent } from '@/utils/string';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, RKE } from '@/config/labels-annotations.js';
-import { CAPI, METRIC, POD } from '@/config/types';
+import {
+  CAPI, MANAGEMENT, METRIC, NORMAN, POD
+} from '@/config/types';
 import { parseSi } from '@/utils/units';
 import { PRIVATE } from '@/plugins/steve/resource-proxy';
 import findLast from 'lodash/findLast';
+import { isObject } from 'lodash';
 
 export default {
   _availableActions() {
@@ -24,6 +27,26 @@ export default {
       label:      'Uncordon',
       total:      1,
       bulkable:   true
+    };
+
+    const normanAction = this.normanNode?.actions || {};
+
+    const drain = {
+      action:     'drain',
+      enabled:     !!normanAction.drain,
+      icon:       'icon icon-fw icon-dot-open',
+      label:      this.t('drainNode.action'),
+      bulkable:   true,
+      bulkAction: 'drain'
+    };
+
+    const stopDrain = {
+      action:     'stopDrain',
+      enabled:    !!normanAction.stopDrain,
+      icon:       'icon icon-fw icon-x',
+      label:      this.t('drainNode.actionStop'),
+      bulkable:   true,
+      bulkAction: 'stopDrain'
     };
 
     const openSsh = {
@@ -46,6 +69,8 @@ export default {
       { divider: true },
       cordon,
       uncordon,
+      drain,
+      stopDrain,
       { divider: true },
       ...this._standardActions
     ];
@@ -90,11 +115,13 @@ export default {
   },
 
   isWorker() {
-    return `${ this.labels[NODE_ROLES.WORKER] }` === 'true';
+    return this.managementNode ? this.managementNode.isWorker : `${ this.labels[NODE_ROLES.WORKER] }` === 'true';
   },
 
   isControlPlane() {
-    if (
+    if (this.managementNode) {
+      return this.managementNode.isControlPlane;
+    } else if (
       `${ this.labels[NODE_ROLES.CONTROL_PLANE] }` === 'true' ||
       `${ this.labels[NODE_ROLES.CONTROL_PLANE_OLD] }` === 'true'
     ) {
@@ -105,9 +132,7 @@ export default {
   },
 
   isEtcd() {
-    const { ETCD: etcd } = NODE_ROLES;
-
-    return `${ this.labels[etcd] }` === 'true';
+    return this.managementNode ? this.managementNode.isEtcd : `${ this.labels[NODE_ROLES.ETCD] }` === 'true';
   },
 
   hasARole() {
@@ -170,7 +195,7 @@ export default {
   },
 
   cpuUsagePercentage() {
-    return ((this.cpuUsage * 10000) / this.cpuCapacity).toString();
+    return ((this.cpuUsage * 100) / this.cpuCapacity).toString();
   },
 
   ramUsage() {
@@ -182,11 +207,15 @@ export default {
   },
 
   ramUsagePercentage() {
-    return ((this.ramUsage * 10000) / this.ramCapacity).toString();
+    return ((this.ramUsage * 100) / this.ramCapacity).toString();
   },
 
   podUsage() {
     return calculatePercentage(this.status.allocatable.pods, this.status.capacity.pods);
+  },
+
+  podConsumedUsage() {
+    return ((this.podConsumed / this.podCapacity) * 100).toString();
   },
 
   podCapacity() {
@@ -217,6 +246,21 @@ export default {
     return !!this.spec.unschedulable;
   },
 
+  drainedState() {
+    const sNodeCondition = this.managementNode?.status.conditions.find(c => c.type === 'Drained');
+
+    if (sNodeCondition) {
+      if (sNodeCondition.status === 'True') {
+        return 'drained';
+      }
+      if (sNodeCondition.transitioning) {
+        return 'draining';
+      }
+    }
+
+    return null;
+  },
+
   containerRuntimeVersion() {
     return this.status.nodeInfo.containerRuntimeVersion.replace('docker://', '');
   },
@@ -243,7 +287,71 @@ export default {
     };
   },
 
+  clusterId() {
+    // k8s/clusters/<cluster id>/v1/nodes/</cluster name>
+    const parts = this.links.self.split('/');
+
+    return parts[parts.length - 4];
+  },
+
+  normanNodeId() {
+    const managementNode = (this.$rootGetters['management/all'](MANAGEMENT.NODE) || []).find((n) => {
+      return n.id.startsWith(this.clusterId) && n.status.nodeName === this.name;
+    });
+
+    if (managementNode) {
+      return managementNode.id.replace('/', ':');
+    }
+
+    // kube node
+    // id: node-worker2
+
+    // management Node
+    // "id": "c-b5mpr/m-67bzt",
+    // "type": "management.cattle.io.node",
+    // status.nodeName
+
+    // v3/nodes
+    // "nodeName": "node-worker2",
+    // "id": "c-b5mpr:m-67bzt",
+
+    // v3/schema/node
+  },
+
+  normanNode() {
+    return this.$rootGetters['rancher/byId'](NORMAN.NODE, this.normanNodeId);
+  },
+
+  // managementNodeId() {
+
+  // },
+
+  managementNode() {
+    return this.$rootGetters['management/all'](MANAGEMENT.NODE).find((mNode) => {
+      return mNode.id.startsWith(this.clusterId) && mNode.status.nodeName === this.id;
+    });
+  },
+
+  drain() {
+    return (resources) => {
+      this.$dispatch('promptModal', { component: 'DrainNode', resources: [resources || [this], this.normanNodeId] });
+    };
+  },
+
+  stopDrain() {
+    return async(resources) => {
+      const safeResources = Array.isArray(resources) ? resources : [this];
+
+      await Promise.all(safeResources.map((node) => {
+        return node.normanNode.doAction('stopDrain');
+      }));
+    };
+  },
+
   state() {
+    if (this.drainedState) {
+      return this.drainedState;
+    }
     if ( !this[PRIVATE].isDetailPage && this.isCordoned ) {
       return 'cordoned';
     }
@@ -310,6 +418,7 @@ export default {
       return this.$rootGetters['management/byId'](CAPI.MACHINE, `${ namespace }/${ name }`);
     }
   },
+
 };
 
 function calculatePercentage(allocatable, capacity) {

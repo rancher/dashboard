@@ -16,6 +16,16 @@ const cache = {};
 export function lookup(type, appSpecializationName) {
   type = normalizeType(type).replace(/\//g, '');
 
+  // TODO: RC hack
+  if (type === 'node') {
+    console.log(type);
+    if (typeof appSpecializationName === 'undefined') {
+      type = 'norman-node';
+    } else {
+      type = 'kube-node';
+    }
+  }
+
   const impl = cache[type];
 
   if ( impl ) {
@@ -25,6 +35,17 @@ export function lookup(type, appSpecializationName) {
   }
 
   try {
+    // TODO: RC hack
+    if (type === 'norman-node' || type === 'kube-node') {
+      // appSpecializationName will be undefined for norman nodes
+      const base = require(`@/models/node/${ type }`);
+      const model = { ...base.default };
+
+      cache[type] = model;
+
+      return model;
+    }
+
     const base = require(`@/models/${ type }`);
     const model = { ...base.default };
 

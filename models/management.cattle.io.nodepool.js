@@ -12,7 +12,20 @@ export default {
     return this.nodeTemplate?.provider;
   },
 
+  providerName() {
+    return this.nodeTemplate?.nameDisplay;
+  },
+
   providerDisplay() {
     return this.nodeTemplate?.providerDisplay;
   },
+
+  providerLocation() {
+    return this.nodeTemplate?.providerLocation;
+  },
+
+  providerSize() {
+    return this.nodeTemplate?.providerSize;
+  },
+
 };

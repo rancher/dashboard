@@ -372,7 +372,7 @@ export default {
                   </td>
                 </template>
                 <template #col:pods="{row}">
-                  <td v-if="row.status.allocatable.pods && row.status.allocatable.pods!== '0'">
+                  <td v-if="row.status.allocatable && row.status.allocatable.pods && row.status.allocatable.pods!== '0'">
                     {{ `${row.status.requested.pods}/${row.status.allocatable.pods}` }}
                   </td>
                   <td v-else>

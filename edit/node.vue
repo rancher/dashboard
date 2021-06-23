@@ -44,7 +44,6 @@ export default {
       :value="value"
       :namespaced="false"
       :mode="mode"
-      :extra-columns="extraColumns"
     />
     <ResourceTabs v-model="value" :mode="mode">
       <Tab name="taints" :label="t('node.detail.tab.taints')" :weight="0">
