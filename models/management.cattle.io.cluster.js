@@ -30,6 +30,13 @@ export default {
       },
     ];
 
+    const provisioner = this?.provisioner ?? '';
+    const v2Providers = ['aks', 'gke', 'eks'];
+
+    if (v2Providers.includes(provisioner)) {
+      return out.filter(deet => deet.label !== 'Machine Provider');
+    }
+
     return out;
   },
 
