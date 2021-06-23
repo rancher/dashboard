@@ -1,3 +1,5 @@
+import { ONE_WAY } from '@/config/features';
+
 export default {
 
   state() {
@@ -16,6 +18,10 @@ export default {
     return false;
   },
 
+  canDisable() {
+    return this.canUpdate && !ONE_WAY.includes(this.id);
+  },
+
   _availableActions() {
     const out = this._standardActions;
     const state = this.enabled;
@@ -25,7 +31,7 @@ export default {
       action:  'toggleFeatureFlag',
       label:   state ? 'Deactivate' : 'Activate',
       icon:    'icon icon-edit',
-      enabled: this.canUpdate,
+      enabled: state ? this.canDisable : this.canUpdate,
     };
 
     out.unshift(enableAction);
