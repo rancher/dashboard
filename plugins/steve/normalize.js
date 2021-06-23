@@ -70,7 +70,7 @@ export function cleanForNew(obj) {
 
 function dropKeys(obj) {
   Object.keys(obj || {}).forEach((key) => {
-    if ( !!key.match(/(^|.*\.)cattle\.io(\/.*|$)/) ) {
+    if ( !!key.match(/(^|field\.)cattle\.io(\/.*|$)/) ) {
       delete obj[key];
     }
   });

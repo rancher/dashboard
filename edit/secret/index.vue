@@ -4,7 +4,9 @@ import { MANAGEMENT, NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CruResource from '@/components/CruResource';
-import { CLOUD_CREDENTIAL, _CREATE, _EDIT, _FLAGGED } from '@/config/query-params';
+import {
+  CLOUD_CREDENTIAL, _CLONE, _CREATE, _EDIT, _FLAGGED
+} from '@/config/query-params';
 import Loading from '@/components/Loading';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
@@ -51,7 +53,8 @@ export default {
   data() {
     const newCloudCred = this.$route.query[CLOUD_CREDENTIAL] === _FLAGGED;
     const editCloudCred = this.mode === _EDIT && this.value._type === TYPES.CLOUD_CREDENTIAL;
-    const isCloud = newCloudCred || editCloudCred;
+    const cloneCloudCred = this.realMode === _CLONE && this.originalValue._type === TYPES.CLOUD_CREDENTIAL;
+    const isCloud = newCloudCred || editCloudCred || cloneCloudCred;
 
     if ( newCloudCred ) {
       this.value.metadata.namespace = DEFAULT_WORKSPACE;
@@ -210,8 +213,13 @@ export default {
       let driver;
 
       if ( this.isCloud ) {
-        driver = type;
-        type = TYPES.CLOUD_CREDENTIAL;
+        if ( type === TYPES.CLOUD_CREDENTIAL ) {
+          // Clone goes through here
+          driver = this.driverName;
+        } else {
+          driver = type;
+          type = TYPES.CLOUD_CREDENTIAL;
+        }
 
         if ( this.mode === _CREATE ) {
           this.value.setAnnotation(CAPI.CREDENTIAL_DRIVER, driver);
