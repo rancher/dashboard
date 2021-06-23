@@ -12,11 +12,11 @@ export default {
     const out = [
       {
         label:   'Provisioner',
-        content: this.provisionerDisplay
+        content: this.provisionerDisplay || this.t('generic.none'),
       },
       {
         label:   'Machine Provider',
-        content: this.machineProviderDisplay
+        content: this.machineProviderDisplay || this.t('generic.none'),
       },
       {
         label:   'Kubernetes Version',
@@ -90,6 +90,14 @@ export default {
     return this.isRke2 && !(this.spec?.rkeConfig?.machinePools?.length);
   },
 
+  isImportedK3s() {
+    return this.isImported && this.mgmt?.status?.provider === 'k3s';
+  },
+
+  isImportedRke2() {
+    return this.isImported && this.mgmt?.status?.provider === 'rke2';
+  },
+
   isRke2() {
     return !!this.spec?.rkeConfig;
   },
@@ -143,6 +151,10 @@ export default {
     // RKE provisioner can actually do K3s too...
     if ( provisioner === 'rke2' && this.spec?.kubernetesVersion?.includes('k3s') ) {
       provisioner = 'k3s';
+    } else if ( this.isImportedK3s ) {
+      provisioner = 'k3s';
+    } else if ( this.isImportedRke2 ) {
+      provisioner = 'rke2';
     }
 
     return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provisioner }"`, null, ucFirst(provisioner));

@@ -53,10 +53,10 @@ export default {
   methods: {
     done() {
       return this.$router.replace({
-        name:   'c-cluster-product-resource-id',
+        name:   'c-cluster-product-resource-namespace-id',
         params: {
           resource:  CAPI.RANCHER_CLUSTER,
-          namespace: this.value.metadata.namesspace,
+          namespace: this.value.metadata.namespace,
           id:        this.value.metadata.name,
         },
       });
