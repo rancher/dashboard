@@ -225,6 +225,15 @@ export const mutations = {
   cookiesLoaded(state) {
     state.cookiesLoaded = true;
   },
+
+  reset(state) {
+    for (const key in definitions) {
+      if ( definitions[key]?.asCookie ) {
+        continue;
+      }
+      delete state.data[key];
+    }
+  }
 };
 
 export const actions = {

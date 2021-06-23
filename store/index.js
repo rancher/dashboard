@@ -603,6 +603,7 @@ export const actions = {
     await dispatch('management/unsubscribe');
     commit('managementChanged', { ready: false });
     commit('management/reset');
+    commit('prefs/reset');
 
     await dispatch('cluster/unsubscribe');
     commit('clusterChanged', false);
