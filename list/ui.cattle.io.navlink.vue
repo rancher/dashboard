@@ -28,7 +28,7 @@ export default {
     :rows="rows"
   >
     <template #cell:to="{row}">
-      <template v-if="row.spec.toService">
+      <template v-if="row.spec && row.spec.toService">
         <n-link :to="{name: 'c-cluster-product-resource-namespace-id', params: { cluster: clusterId, product: 'explorer', resource: 'service', namespace: row.spec.toService.namespace, id: row.spec.toService.name}}">
           {{ row.spec.toService.namespace }}/{{ row.spec.toService.name }}
         </n-link>:
@@ -37,12 +37,13 @@ export default {
           <i class="icon icon-external-link" />
         </a>
       </template>
-      <template v-else>
+      <template v-else-if="row.link">
         <a :href="row.link" :target="row.actualTarget" rel="noopener noreferrer nofollow">
           {{ row.link.replace(/^https:\/\//,'') }}
           <i class="icon icon-external-link" />
         </a>
       </template>
+      <span v-else class="text-muted">&mdash;</span>
     </template>
   </ResourceTable>
 </template>
