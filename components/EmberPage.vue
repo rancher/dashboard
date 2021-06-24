@@ -390,6 +390,10 @@ export default {
       } else if (msg.action === 'dashboard') {
         this.iframeEl.setAttribute('data-ready', false);
         this.$router.replace(msg.page);
+      } else if (msg.action === 'reload') {
+        this.loaded = false;
+        this.iframeEl.remove();
+        this.initFrame();
       }
     },
 

@@ -26,10 +26,16 @@ export default {
 
     // If legacy feature flag enabled
     if (this.legacyEnabled) {
-      this.v1SystemCatalog = await this.$store.dispatch('cluster/find', {
-        type: 'management.cattle.io.catalog',
-        id:   'system-library',
-      });
+      const res = await this.$store.dispatch('cluster/request', { url: '/v3/templates?catalogId=system-library' });
+
+      if (res && res.data) {
+        this.v1SystemCatalog = res.data.reduce((map, template) => {
+          map[template.name] = template;
+          return map;
+        }, {});
+      } else {
+        this.v1SystemCatalog = {};
+      }
     }
   },
 
@@ -167,10 +173,10 @@ export default {
 
     getLegacyVersions(id) {
       const versions = [];
-      const c = this.v1SystemCatalog?.status?.helmVersionCommits[id]?.Value;
+      const c = this.v1SystemCatalog?.[id];
 
       if (c) {
-        Object.keys(c).forEach(v => versions.unshift({ version: v }));
+        Object.keys(c.versionLinks).forEach(v => versions.unshift({ version: v }));
       }
 
       return versions;
@@ -179,9 +185,6 @@ export default {
     moveAppWhenLegacy(chartsWithApps, v1ChartName, v2ChartName) {
       const v1 = chartsWithApps.find(a => a.chart.chartName === v1ChartName);
       const v2 = chartsWithApps.find(a => a.chart.chartName === v2ChartName);
-
-      console.log('************************');
-      console.log(JSON.parse(JSON.stringify(chartsWithApps)));
 
       // Check app on v2
       if (v1 && v2 && v2.app) {
