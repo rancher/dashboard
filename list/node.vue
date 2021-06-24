@@ -51,7 +51,7 @@ export default {
 
     if (canViewNodePools && canViewNodeTemplates) {
       // Managemnet Node's required for kube role and some reousrce states
-      hash.mNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      hash.mgmtNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
       hash.nodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
       hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
     }
@@ -143,7 +143,6 @@ export default {
 
     updateNodePools(nodes = []) {
       nodes.forEach((node) => {
-        // const sNode = this.clustermNodes.find(sn => sn.status.nodeName === node.id);
         const sNode = node.managementNode;
 
         if (sNode) {
@@ -186,11 +185,9 @@ export default {
     <template #group-by="{group}">
       <div class="pool-row" :class="{'has-description':clusterNodePoolsMap[group.key] && clusterNodePoolsMap[group.key].nodeTemplate}">
         <div v-trim-whitespace class="group-tab">
-          <div v-if="clusterNodePoolsMap[group.key]" class="project-name">
-            {{ t('node.list.pool') }}: {{ clusterNodePoolsMap[group.key].spec.hostnamePrefix }} ({{ group.rows.length }})
+          <div v-if="clusterNodePoolsMap[group.key]" class="project-name" v-html="t('resourceTable.groupLabel.nodePool', { name: clusterNodePoolsMap[group.key].spec.hostnamePrefix, count: group.rows.length})">
           </div>
-          <div v-else class="project-name">
-            {{ t('node.list.pool') }}: {{ t('generic.none') }}
+          <div v-else class="project-name" v-html="t('resourceTable.groupLabel.notInANodePool')">
           </div>
           <div v-if="clusterNodePoolsMap[group.key] && clusterNodePoolsMap[group.key].nodeTemplate" class="description text-muted text-small">
             {{ clusterNodePoolsMap[group.key].providerDisplay }} &ndash;  {{ clusterNodePoolsMap[group.key].providerLocation }} / {{ clusterNodePoolsMap[group.key].providerSize }} ({{ clusterNodePoolsMap[group.key].providerName }})

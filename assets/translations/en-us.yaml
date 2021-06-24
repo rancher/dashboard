@@ -2140,7 +2140,6 @@ namespaceList:
 
 node:
   list:
-    pool: Pool
     nodeTaint: Taints
   detail:
     detailTop:
@@ -2920,6 +2919,8 @@ resourceTable:
     project: "<span>Project:</span> {name}"
     notInAWorkspace: Not in a Workspace
     workspace: "<span>Workspace:</span> {name}"
+    notInANodePool: "Not in a Pool"
+    nodePool: "<span>Node Pool:</span> {name} ({count})"
 
 resourceTabs:
   conditions:
