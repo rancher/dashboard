@@ -60,14 +60,15 @@ export default {
       action:     'rotateCertificates',
       label:      'Rotate Certificates',
       icon:       'icon icon-backup',
-      enabled:     this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey')
+      enabled:    this.mgmt?.hasAction('rotateCertificates')
+
     });
 
     insertAt(out, idx++, {
       action:     'rotateEncryptionKey',
       label:      'Rotate Encryption Keys',
       icon:       'icon icon-refresh',
-      enabled:   this.mgmt?.hasAction('rotateCertificates')
+      enabled:     this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey')
     });
 
     insertAt(out, idx++, {
