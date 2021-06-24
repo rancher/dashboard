@@ -17,7 +17,6 @@ echo "BRANCH: ${COMMIT_BRANCH:-<none>}"
 echo "TAG: ${GIT_TAG:-<none>}"
 DIR=${GIT_TAG:-$COMMIT_BRANCH}
 
-# Rio is stuck pointing at the "master" folder, use "latest" instead.
 if [[ "${DIR}" == "master" ]]; then
   DIR="latest"
 fi

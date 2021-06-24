@@ -188,21 +188,6 @@ export const ISTIO = {
   GATEWAY:          'networking.istio.io.gateway'
 };
 
-export const RIO = {
-  CLUSTER_DOMAIN:   'admin.rio.cattle.io.clusterdomain',
-  FEATURE:          'admin.rio.cattle.io.feature',
-  INFO:             'admin.rio.cattle.io.rioinfo',
-  PUBLIC_DOMAIN:    'admin.rio.cattle.io.publicdomain',
-
-  APP:              'rio.cattle.io.app',
-  EXTERNAL_SERVICE: 'rio.cattle.io.externalservice',
-  STACK:            'rio.cattle.io.stack',
-  ROUTER:           'rio.cattle.io.router',
-  SERVICE:          'rio.cattle.io.service',
-
-  SYSTEM_NAMESPACE: 'rio-system',
-};
-
 export const LOGGING = {
   // LOGGING:        'logging.banzaicloud.io.logging',
   CLUSTER_FLOW:   'logging.banzaicloud.io.clusterflow',

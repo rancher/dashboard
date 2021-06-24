@@ -132,7 +132,6 @@ product:
   gatekeeper: OPA Gatekeeper
   istio: Istio
   logging: Logging
-  rio: Rio
   settings: Global Settings
   clusterManagement: Cluster Management
   monitoring: Monitoring
@@ -2949,21 +2948,6 @@ resourceYaml:
     unified: Unified
     split: Split
 
-rioConfig:
-  configure:
-    description: Description
-    helpText:
-      listItem1: The application deployment engine for Kubernetes.
-      listItem2: "Rio makes it faster and easier for DevOps to build, test, deploy, scale and version stateless applications"
-    requirements:
-      header: Requirements
-      helpText:
-        listItem1: 1 CPU Core
-        listItem2: 2 GiB of Memory
-  header: Rio
-  yaml:
-    buttonText: Customize
-
 secret:
   authentication: Authentication
   certificate:
@@ -3147,7 +3131,7 @@ setup:
   telemetry:
     label: Allow collection of anonymous statistics to help us improve Rancher
     tip:  'Rancher Labs would like to collect a bit of anonymized information
-          about the configuration of your installation to help make Rio better.
+          about the configuration of your installation to help make Rancher better.
           Your data will not be shared with anyone else, and no information about
           what specific resources or endpoints you are deploying is included.
           Once enabled you can view exactly what data will be sent at <code>/v1-telemetry</code>.
@@ -3563,7 +3547,6 @@ tableHeaders:
   resource: Resource
   resources: Resources
   restarts: Restarts
-  rioImage: Image
   role: Role
   roles: Roles
   scale: Scale
