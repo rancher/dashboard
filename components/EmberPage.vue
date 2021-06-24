@@ -46,9 +46,7 @@ const INTERCEPTS = {
   },
   'authenticated.cluster.istio.cluster-setting': {
     name:   'c-cluster-explorer-tools-pages-page',
-    params: {
-      page:    'istio'
-    }
+    params: { page: 'istio' }
   },
 };
 
@@ -309,7 +307,7 @@ export default {
 
         const frameParent = document.getElementById(this.inline);
         const w = frameParent.offsetWidth;
-        
+
         if (w && this.frameWidth !== w) {
           this.frameWidth = w;
           iframeEl.width = w;
@@ -390,6 +388,10 @@ export default {
       } else if (msg.action === 'dashboard') {
         this.iframeEl.setAttribute('data-ready', false);
         this.$router.replace(msg.page);
+      } else if (msg.action === 'reload') {
+        this.loaded = false;
+        this.iframeEl.remove();
+        this.initFrame();
       }
     },
 
