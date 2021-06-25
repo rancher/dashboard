@@ -185,7 +185,7 @@ export default {
     <template #group-by="{group}">
       <div class="pool-row" :class="{'has-description':clusterNodePoolsMap[group.key] && clusterNodePoolsMap[group.key].nodeTemplate}">
         <div v-trim-whitespace class="group-tab">
-          <div v-if="clusterNodePoolsMap[group.key]" class="project-name" v-html="t('resourceTable.groupLabel.nodePool', { name: clusterNodePoolsMap[group.key].spec.hostnamePrefix, count: group.rows.length})">
+          <div v-if="clusterNodePoolsMap[group.key]" class="project-name" v-html="t('resourceTable.groupLabel.nodePool', { name: clusterNodePoolsMap[group.key].spec.hostnamePrefix, count: group.rows.length}, true)">
           </div>
           <div v-else class="project-name" v-html="t('resourceTable.groupLabel.notInANodePool')">
           </div>
@@ -202,14 +202,15 @@ export default {
           <td>&nbsp;</td>
           <td>&nbsp;</td>
           <td :colspan="fullColspan-2">
-            <div class="taints">
-              {{ t('node.list.nodeTaint') }}:
-              <Tag v-for="taint in row.spec.taints" :key="taint.key + taint.value + taint.effect">
-                {{ taint.key }}={{ taint.value }}:{{ taint.effect }}
-              </Tag>
-            </div>
+            {{ t('node.list.nodeTaint') }}:
+            <Tag v-for="taint in row.spec.taints" :key="taint.key + taint.value + taint.effect" class="mr-5">
+              {{ taint.key }}={{ taint.value }}:{{ taint.effect }}
+            </Tag>
           </td>
         </template>
+        <td v-else :colspan="fullColspan">
+&nbsp;
+        </td>
       </tr>
     </template>
   </ResourceTable>
@@ -251,9 +252,15 @@ export default {
 .taints {
   td {
     padding-top:0;
+    .tag {
+      margin-right: 5px
+    }
   }
   &.empty-taints {
-   td {
+    // No taints... so hide sub-row (but not bottom-border)
+    height: 0;
+    line-height: 0;
+    td {
       padding: 0;
     }
   }

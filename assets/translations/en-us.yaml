@@ -2140,6 +2140,7 @@ namespaceList:
 
 node:
   list:
+    pool: Pool
     nodeTaint: Taints
   detail:
     detailTop:

@@ -2,30 +2,7 @@ import { normalizeType } from './normalize';
 
 const cache = {};
 
-/**
- * This will lookup and load a model based on the type and appSpecializationName if specified.
- *
- * We want to have the ability to treat chart apps as if they were native resources.
- * As part of this desire to treat apps as a native resource we also want to be able to customize their models.
- * If we attempt to load an 'app' type with an 'appSpecializationName' we will first
- * load the 'app' type and then merge that with a model found in '@/models/apps/${appSpecializationName}'
- * if the file exists.
- * @param {*} type the type we'd like to lookup
- * @param {*} appSpecializationName the name of the app so we can lookup a model with the given name and merge that with the app base type.
- */
-export function lookup(type, appSpecializationName) {
-  type = normalizeType(type).replace(/\//g, '');
-
-  // TODO: RC hack
-  if (type === 'node') {
-    console.log(type);
-    if (typeof appSpecializationName === 'undefined') {
-      type = 'norman-node';
-    } else {
-      type = 'kube-node';
-    }
-  }
-
+function find(cache, type, appSpecializationName) {
   const impl = cache[type];
 
   if ( impl ) {
@@ -35,17 +12,6 @@ export function lookup(type, appSpecializationName) {
   }
 
   try {
-    // TODO: RC hack
-    if (type === 'norman-node' || type === 'kube-node') {
-      // appSpecializationName will be undefined for norman nodes
-      const base = require(`@/models/node/${ type }`);
-      const model = { ...base.default };
-
-      cache[type] = model;
-
-      return model;
-    }
-
     const base = require(`@/models/${ type }`);
     const model = { ...base.default };
 
@@ -67,4 +33,22 @@ export function lookup(type, appSpecializationName) {
   cache[type] = null;
 
   return null;
+}
+
+/**
+ * This will lookup and load a model based on the type and appSpecializationName if specified.
+ *
+ * We want to have the ability to treat chart apps as if they were native resources.
+ * As part of this desire to treat apps as a native resource we also want to be able to customize their models.
+ * If we attempt to load an 'app' type with an 'appSpecializationName' we will first
+ * load the 'app' type and then merge that with a model found in '@/models/apps/${appSpecializationName}'
+ * if the file exists.
+ * @param {*} store the name of the store that the type comes from
+ * @param {*} type the type we'd like to lookup
+ * @param {*} appSpecializationName the name of the app so we can lookup a model with the given name and merge that with the app base type.
+ */
+export function lookup(store, type, appSpecializationName) {
+  type = normalizeType(type).replace(/\//g, '');
+
+  return find(cache, `${ store }/${ type }`, appSpecializationName) || find(cache, type, appSpecializationName) || null;
 }

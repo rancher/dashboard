@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import { formatPercent } from '@/utils/string';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, RKE } from '@/config/labels-annotations.js';
 import {
@@ -7,13 +6,14 @@ import {
 import { parseSi } from '@/utils/units';
 import { PRIVATE } from '@/plugins/steve/resource-proxy';
 import findLast from 'lodash/findLast';
-import { isObject } from 'lodash';
 
 export default {
   _availableActions() {
+    const normanAction = this.normanNode?.actions || {};
+
     const cordon = {
       action:     'cordon',
-      enabled:    this.hasLink('update') && this.isWorker && !this.isCordoned,
+      enabled:    !!normanAction.cordon,
       icon:       'icon icon-fw icon-pause',
       label:      'Cordon',
       total:      1,
@@ -22,14 +22,12 @@ export default {
 
     const uncordon = {
       action:     'uncordon',
-      enabled:    this.hasLink('update') && this.isWorker && this.isCordoned,
+      enabled:    !!normanAction.uncordon,
       icon:       'icon icon-fw icon-play',
       label:      'Uncordon',
       total:      1,
       bulkable:   true
     };
-
-    const normanAction = this.normanNode?.actions || {};
 
     const drain = {
       action:     'drain',
@@ -46,7 +44,6 @@ export default {
       icon:       'icon icon-fw icon-x',
       label:      this.t('drainNode.actionStop'),
       bulkable:   true,
-      bulkAction: 'stopDrain'
     };
 
     const openSsh = {
@@ -274,21 +271,26 @@ export default {
   },
 
   cordon() {
-    return async() => {
-      Vue.set(this.spec, 'unschedulable', true);
-      await this.save();
+    return async(resources) => {
+      const safeResources = Array.isArray(resources) ? resources : [this];
+
+      await Promise.all(safeResources.map((node) => {
+        return node.normanNode.doAction('cordon');
+      }));
     };
   },
 
   uncordon() {
-    return async() => {
-      Vue.set(this.spec, 'unschedulable', false);
-      await this.save();
+    return async(resources) => {
+      const safeResources = Array.isArray(resources) ? resources : [this];
+
+      await Promise.all(safeResources.map((node) => {
+        return node.normanNode.doAction('uncordon');
+      }));
     };
   },
 
   clusterId() {
-    // k8s/clusters/<cluster id>/v1/nodes/</cluster name>
     const parts = this.links.self.split('/');
 
     return parts[parts.length - 4];
@@ -302,29 +304,11 @@ export default {
     if (managementNode) {
       return managementNode.id.replace('/', ':');
     }
-
-    // kube node
-    // id: node-worker2
-
-    // management Node
-    // "id": "c-b5mpr/m-67bzt",
-    // "type": "management.cattle.io.node",
-    // status.nodeName
-
-    // v3/nodes
-    // "nodeName": "node-worker2",
-    // "id": "c-b5mpr:m-67bzt",
-
-    // v3/schema/node
   },
 
   normanNode() {
     return this.$rootGetters['rancher/byId'](NORMAN.NODE, this.normanNodeId);
   },
-
-  // managementNodeId() {
-
-  // },
 
   managementNode() {
     return this.$rootGetters['management/all'](MANAGEMENT.NODE).find((mNode) => {
