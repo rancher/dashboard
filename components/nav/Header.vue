@@ -85,7 +85,7 @@ export default {
     nameTooltip() {
       return !this.showTooltip ? {} : {
         content: this.currentCluster.nameDisplay,
-        delay:   500,
+        delay:   400,
       };
     }
   },
@@ -158,10 +158,10 @@ export default {
   <header :class="{'simple': simple}">
     <div class="menu-spacer"></div>
     <div v-if="!simple" class="product">
-      <div v-if="currentProduct && currentProduct.showClusterSwitcher" class="cluster cluster-clipped">
+      <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster cluster-clipped">
         <RancherProviderIcon v-if="currentCluster.isLocal" class="mr-10 cluster-local-logo" width="25" />
         <img v-else-if="currentCluster" class="cluster-os-logo" :src="currentCluster.providerLogo" />
-        <div v-if="currentCluster" ref="clusterName" v-tooltip="nameTooltip" class="cluster-name">
+        <div v-if="currentCluster" ref="clusterName" class="cluster-name">
           {{ currentCluster.spec.displayName }}
         </div>
         <div v-else class="simple-title">
