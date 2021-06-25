@@ -45,8 +45,7 @@ const INTERCEPTS = {
     }
   },
   'authenticated.cluster.istio.cluster-setting': {
-    name:   'c-cluster-explorer-tools-pages-page',
-    params: { page: 'istio' }
+    name:   'c-cluster-explorer-tools',
   },
 };
 

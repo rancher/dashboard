@@ -26,11 +26,14 @@ export default {
 
     // If legacy feature flag enabled
     if (this.legacyEnabled) {
-      const res = await this.$store.dispatch('cluster/request', { url: '/v3/templates?catalogId=system-library' });
+      const res = await this.$store.dispatch('management/findMatching', {
+        type: 'management.cattle.io.catalogtemplate',
+        selector: 'catalog.cattle.io/name=system-library'
+      });
 
-      if (res && res.data) {
-        this.v1SystemCatalog = res.data.reduce((map, template) => {
-          map[template.name] = template;
+      if (res) {
+        this.v1SystemCatalog = res.reduce((map, template) => {
+          map[template.spec.displayName] = template;
 
           return map;
         }, {});
@@ -108,7 +111,6 @@ export default {
         this.moveAppWhenLegacy(chartsWithApps, 'v1-monitoring', 'rancher-monitoring');
         this.moveAppWhenLegacy(chartsWithApps, 'v1-logging', 'rancher-logging');
         this.moveAppWhenLegacy(chartsWithApps, 'v1-istio', 'rancher-istio');
-        this.moveAppWhenLegacy(chartsWithApps, 'v1-cis', 'rancher-cis');
       }
 
       return chartsWithApps;
@@ -120,7 +122,6 @@ export default {
         this._legacyChart('monitoring'),
         this._legacyChart('logging'),
         this._legacyChart('istio'),
-        this._legacyChart('cis'),
       ];
     }
   },
@@ -176,8 +177,8 @@ export default {
       const versions = [];
       const c = this.v1SystemCatalog?.[id];
 
-      if (c) {
-        Object.keys(c.versionLinks).forEach(v => versions.unshift({ version: v }));
+      if (c?.spec?.versions) {
+        c.spec.versions.forEach(v => versions.push({ version: v.version }));
       }
 
       return versions;

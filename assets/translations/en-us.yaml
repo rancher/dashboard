@@ -4679,9 +4679,6 @@ v1ClusterTools:
   istio:
     label: Istio (Legacy)
     description: 'Legacy V1 Istio. Istio v1.5 has been deprecated since Rancher 2.5.0. <a target="blank" href="https://rancher.com/docs/rancher/v2.5/en/istio/#migrate-from-previous-istio-version">Learn more</a> about migrating to the latest version.'
-  cis:
-    label: CIS Scanning (Legacy)
-    description: Leagcy CIS Scanning. CIS Scanning has been deprecated as of Rancher 2.5.0 - use the newer CIS Benchmarking.
 
 legacy:
   alerts: Alerts
