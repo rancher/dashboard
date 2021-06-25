@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import Loading from '@/components/Loading';
 import { _FLAGGED, DEPRECATED, HIDDEN, FROM_TOOLS } from '@/config/query-params';
 import { filterAndArrangeCharts } from '@/store/catalog';
-import { CATALOG } from '@/config/types';
+import { CATALOG, MANAGEMENT } from '@/config/types';
 import LazyImage from '@/components/LazyImage';
 import AppSummaryGraph from '@/components/formatter/AppSummaryGraph';
 import { sortBy } from '@/utils/sort';
@@ -27,7 +27,7 @@ export default {
     // If legacy feature flag enabled
     if (this.legacyEnabled) {
       const res = await this.$store.dispatch('management/findMatching', {
-        type: 'management.cattle.io.catalogtemplate',
+        type:     MANAGEMENT.CATALOG_TEMPLATE,
         selector: 'catalog.cattle.io/name=system-library'
       });
 
