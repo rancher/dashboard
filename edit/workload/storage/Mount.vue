@@ -11,12 +11,6 @@ export default {
       default: 'create'
     },
 
-    // container volume mounts
-    value: {
-      type:    Array,
-      default: () => []
-    },
-
     // volume name
     name: {
       type:     String,
@@ -42,13 +36,7 @@ export default {
     return { volumeMounts };
   },
 
-  computed: {
-    type() {
-      return Object.keys(this.value).filter(key => key !== 'name')[0];
-    },
-
-    ...mapGetters({ t: 'i18n/t' })
-  },
+  computed: { ...mapGetters({ t: 'i18n/t' }) },
 
   watch: {
     volumeMounts(neu) {
