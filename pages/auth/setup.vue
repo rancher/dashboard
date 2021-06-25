@@ -28,8 +28,9 @@ export default {
     }
 
     const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
+    const v3User = store.getters['auth/v3User'] ?? {};
 
-    if (firstLoginSetting?.value !== 'true') {
+    if (firstLoginSetting?.value !== 'true' && !v3User?.mustChangePassword) {
       return redirect('/');
     }
   },
@@ -51,8 +52,10 @@ export default {
     }
 
     const principals = await store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
+    const me = findBy(principals, 'me', true);
 
-    const current = route.query[SETUP] || 'admin';
+    const current = route.query[SETUP] || store.getters['auth/initialPass'] || 'admin';
+    const v3User = store.getters['auth/v3User'] ?? {};
 
     let serverUrl;
 
@@ -69,12 +72,15 @@ export default {
       product:           getProduct(),
       step:              parseInt(route.query.step, 10) || 1,
 
-      useRandom:   false,
-      haveCurrent: !!current,
-      username:    'admin',
+      useRandom:          false,
+      haveCurrent:        !!current,
+      username:           me?.loginName ?? 'admin',
+      mustChangePassword: v3User?.mustChangePassword ?? false,
       current,
-      password:    '',
-      confirm:     '',
+      password:           '',
+      confirm:            '',
+
+      v3User,
 
       serverUrl,
 
@@ -89,7 +95,7 @@ export default {
 
   computed: {
     passwordSubmitDisabled() {
-      if (!this.eula) {
+      if (!this.eula && !this.mustChangePassword) {
         return true;
       }
 
@@ -138,13 +144,15 @@ export default {
   methods: {
     async finishPassword(buttonCb) {
       try {
-        await this.$store.dispatch('loadManagement');
+        if (!this.mustChangePassword) {
+          await this.$store.dispatch('loadManagement');
 
-        await Promise.all([
-          setSetting(this.$store, SETTING.EULA_AGREED, (new Date()).toISOString() ),
-          setSetting(this.$store, SETTING.TELEMETRY, this.telemetry ? 'in' : 'out'),
-          setSetting(this.$store, SETTING.FIRST_LOGIN, 'false'),
-        ]);
+          await Promise.all([
+            setSetting(this.$store, SETTING.EULA_AGREED, (new Date()).toISOString() ),
+            setSetting(this.$store, SETTING.TELEMETRY, this.telemetry ? 'in' : 'out'),
+            setSetting(this.$store, SETTING.FIRST_LOGIN, 'false'),
+          ]);
+        }
 
         await this.$store.dispatch('rancher/request', {
           url:           '/v3/users?action=changepassword',
@@ -154,8 +162,20 @@ export default {
             newPassword:     this.password
           },
         });
-        this.step = 2;
-        buttonCb(true);
+
+        if (this.mustChangePassword) {
+          const user = this.v3User;
+
+          user.mustChangePassword = false;
+          this.$store.dispatch('auth/gotUser', user);
+
+          buttonCb(true);
+
+          this.done();
+        } else {
+          this.step = 2;
+          buttonCb(true);
+        }
       } catch (err) {
         buttonCb(false);
       }
@@ -186,9 +206,10 @@ export default {
         </h1>
 
         <template v-if="step===1">
-          <p class="text-center mb-40 mt-20 setup-title">
-            <t k="setup.setPassword" :raw="true" />
-          </p>
+          <p
+            class="text-center mb-40 mt-20 setup-title"
+            v-html="t('setup.setPassword', { username }, true)"
+          ></p>
 
           <!-- For password managers... -->
           <input type="hidden" name="username" autocomplete="username" :value="username" />
@@ -218,15 +239,17 @@ export default {
             label-key="setup.confirmPassword"
           />
 
-          <hr class="mt-40 mb-40 " />
+          <div v-if="!mustChangePassword">
+            <hr class="mt-40 mb-40 " />
 
-          <div class="checkbox">
-            <Checkbox v-model="telemetry" :label="t('setup.telemetry.label')" type="checkbox" />
-            <i v-tooltip="{content:t('setup.telemetry.tip', {}, true), delay: {hide:500}, autoHide: false}" class="icon icon-info" />
-          </div>
-          <div class="checkbox pt-10 eula">
-            <Checkbox v-model="eula" type="checkbox" />
-            <span v-html="t('setup.eula', {}, true)"></span>
+            <div class="checkbox">
+              <Checkbox v-model="telemetry" :label="t('setup.telemetry.label')" type="checkbox" />
+              <i v-tooltip="{content:t('setup.telemetry.tip', {}, true), delay: {hide:500}, autoHide: false}" class="icon icon-info" />
+            </div>
+            <div class="checkbox pt-10 eula">
+              <Checkbox v-model="eula" type="checkbox" />
+              <span v-html="t('setup.eula', {}, true)"></span>
+            </div>
           </div>
 
           <div class="text-center mt-20">

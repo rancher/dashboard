@@ -7,6 +7,7 @@ import { applyProducts } from '@/store/type-map';
 import { findBy } from '@/utils/array';
 import { ClusterNotFoundError } from '@/utils/error';
 import { get } from '@/utils/object';
+import { isEmpty } from 'lodash';
 
 let beforeEachSetup = false;
 
@@ -93,10 +94,10 @@ export default async function({
 
     if (ok) {
       if (initialPass) {
-        return redirect({ name: 'auth-setup', query: { [SETUP]: initialPass } });
-      } else {
-        return redirect({ name: 'auth-setup' });
+        store.dispatch('auth/setInitialPass', initialPass);
       }
+
+      return redirect({ name: 'auth-setup' });
     } else {
       const t = store.getters['i18n/t'];
 
@@ -125,6 +126,14 @@ export default async function({
   }
 
   if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
+    const v3User = await findV3User(store);
+
+    if (v3User?.mustChangePassword) {
+      store.commit('auth/gotUser', v3User);
+
+      return redirect({ name: 'auth-setup' });
+    }
+
     // In newer versions the API calls return the auth state instead of having to make a new call all the time.
     const fromHeader = store.getters['auth/fromHeader'];
 
@@ -226,6 +235,15 @@ async function findMe(store) {
   const me = findBy(principals, 'me', true);
 
   return me;
+}
+
+async function findV3User(store) {
+  const user = await store.dispatch('rancher/findAll', {
+    type: NORMAN.USER,
+    opt:  { url: '/v3/users?me=true' }
+  });
+
+  return isEmpty(user[0]) ? {} : user[0];
 }
 
 async function tryInitialSetup(store, password = 'admin') {

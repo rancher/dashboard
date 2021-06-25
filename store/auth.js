@@ -28,6 +28,8 @@ export const state = function() {
     hasAuth:     null,
     loggedIn:    false,
     principalId: null,
+    v3User:      null,
+    initialPass: null,
   };
 };
 
@@ -48,6 +50,14 @@ export const getters = {
     return state.principalId;
   },
 
+  v3User(state) {
+    return state.v3User;
+  },
+
+  initialPass(state) {
+    return state.initialPass;
+  },
+
   isGithub(state) {
     return state.principalId && state.principalId.startsWith('github_user://');
   }
@@ -56,6 +66,10 @@ export const getters = {
 export const mutations = {
   gotHeader(state, fromHeader) {
     state.fromHeader = fromHeader;
+  },
+
+  gotUser(state, v3User) {
+    state.v3User = v3User;
   },
 
   hasAuth(state, hasAuth) {
@@ -75,12 +89,26 @@ export const mutations = {
 
     state.loggedIn = false;
     state.principalId = null;
+    state.v3User = null;
+    state.initialPass = null;
   },
+
+  initialPass(state, pass) {
+    state.initialPass = pass;
+  }
 };
 
 export const actions = {
   gotHeader({ commit }, fromHeader) {
     commit('gotHeader', fromHeader);
+  },
+
+  gotUser({ commit }, user) {
+    commit('gotUser', user);
+  },
+
+  setInitialPass({ commit }, pass) {
+    commit('initialPass', pass);
   },
 
   getAuthProviders({ dispatch }) {
