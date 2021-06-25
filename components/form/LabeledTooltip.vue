@@ -103,4 +103,14 @@ export default {
         @include tooltipColors(var(--success));
     }
 }
+
+// Ensure code blocks inside tootips don't look awful
+.tooltip {
+  .tooltip-inner {
+    > pre {
+      padding: 2px;
+      vertical-align: middle;
+    }
+  }
+}
 </style>
