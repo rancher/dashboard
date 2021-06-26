@@ -8,31 +8,16 @@ import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import KeyValue from '@/components/form/KeyValue';
 import RadioGroup from '@/components/form/RadioGroup';
+import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 
 export default {
   components: {
-    CruResource, NameNsDescription, LabeledInput, LabeledSelect, Tab, Tabbed, KeyValue, RadioGroup
+    CruResource, NameNsDescription, LabeledInput, LabeledSelect, Tab, Tabbed, KeyValue, RadioGroup, ArrayListGrouped
   },
   mixins: [CreateEditView],
   data() {
     return {
-      mode:         'edit',
-      tooltip:      '',
-      a:            'a',
-      arr:          [1, 2, 3],
-      b:            'b',
-      c:            'c',
-      d:            42,
-      e:            'e',
-      f:            'f',
-      g:            'g',
-      h:            'h',
-      i:            'i',
-      n:            'n',
-      m:            'm',
-      x:            'x',
-      cb:           false,
-      ts:           false,
+
       v1:           'v1',
       version:      'version',
       radioOptions: [
@@ -72,9 +57,9 @@ export default {
       :register-before-hook="registerBeforeHook"
     />
     <div class="mb-20">
-      <LabeledSelect
+      <LabeledInput
+        v-model="value.spec.host"
         label="Select or input a host"
-        :options="['foo','bar','baz']"
         :mode="mode"
         :tooltip="tooltip"
         :required="true"
@@ -89,20 +74,32 @@ export default {
           istio-destination-rule-subsets-label
           :weight="10"
         >
-          <LabeledInput
-            v-model="v1"
-            label="Name"
+          <ArrayListGrouped
+            v-model="value.spec.subsets"
+            table-class="fixed"
             :mode="mode"
-            :tooltip="tooltip"
-            :required="true"
-          />
-          <KeyValue
-            v-model="v1"
-            :mode="mode"
-            :protip="true"
-            :read-allowed="false"
+            title="Name"
+            :default-add-value="{}"
           >
-          </keyvalue>
+            <template #default="{row, i}">
+              <code>{{ i }}, {{ JSON.stringify(row) }}</code>
+              <LabeledInput
+                v-model="row.value.name"
+                label="Name"
+                :mode="mode"
+                :tooltip="tooltip"
+                :required="true"
+              />
+              <KeyValue
+                :key="i"
+                v-model="row.value.labels"
+                :mode="mode"
+                :protip="true"
+                :read-allowed="false"
+              >
+              </keyvalue>
+            </template>
+          </ArrayListGrouped>
         </Tab>
         <Tab
           name="load-balancer"
@@ -122,7 +119,7 @@ export default {
           :weight="2"
         >
           <div class="row">
-            <div class="col span-4 mb-20">
+            <div class="col span-4 mb-10">
               <LabeledInput
 
                 :label="t('istio.destinationRule.connectionPool.http1MaxPendingRequests.label')"
@@ -131,7 +128,7 @@ export default {
                 :placeholder="t('istio.destinationRule.connectionPool.http1MaxPendingRequests.placeholder')"
               />
             </div>
-            <div class="col span-4 mb-20">
+            <div class="col span-4 mb-10">
               <LabeledInput
 
                 :label="t('istio.destinationRule.connectionPool.http2MaxRequests.label')"
@@ -140,7 +137,7 @@ export default {
                 :placeholder="t('istio.destinationRule.connectionPool.http2MaxRequests.placeholder')"
               />
             </div>
-            <div class="col span-4 mb-20">
+            <div class="col span-4 mb-10">
               <LabeledInput
 
                 :label="t('istio.destinationRule.connectionPool.maxRequestsPerConnection.label')"
@@ -151,7 +148,7 @@ export default {
             </div>
           </div>
           <div class="row">
-            <div class="col span-4 mb-20">
+            <div class="col span-4 mb-10">
               <LabeledInput
 
                 :label="t('istio.destinationRule.connectionPool.maxRetries.label')"
@@ -160,7 +157,7 @@ export default {
                 :placeholder="t('istio.destinationRule.connectionPool.maxRetries.placeholder')"
               />
             </div>
-            <div class="col span-4 mb-20">
+            <div class="col span-4 mb-10">
               <LabeledInput
 
                 :label="t('istio.destinationRule.connectionPool.connectTimeout.label')"
@@ -169,7 +166,7 @@ export default {
                 :placeholder="t('istio.destinationRule.connectionPool.connectTimeout.placeholder')"
               />
             </div>
-            <div class="col span-4 mb-20">
+            <div class="col span-4 mb-10">
               <LabeledInput
 
                 :label="t('istio.destinationRule.connectionPool.maxConnections.label')"
@@ -186,7 +183,7 @@ export default {
           :weight="1"
         >
           <div class="row">
-            <div class="col span-6 mb-20">
+            <div class="col span-6 mb-10">
               <LabeledInput
 
                 :label="t('istio.destinationRule.outlierDetection.baseEjectionTime.label')"
@@ -195,7 +192,7 @@ export default {
                 :placeholder="t('istio.destinationRule.outlierDetection.baseEjectionTime.placeholder')"
               />
             </div>
-            <div class="col span-6 mb-20">
+            <div class="col span-6 mb-10">
               <LabeledInput
 
                 :label="t('istio.destinationRule.outlierDetection.consecutiveErrors.label')"
@@ -206,7 +203,7 @@ export default {
             </div>
           </div>
           <div class="row">
-            <div class="col span-6 mb-20">
+            <div class="col span-6 mb-10">
               <LabeledInput
 
                 :label="t('istio.destinationRule.outlierDetection.interval.label')"
@@ -215,7 +212,7 @@ export default {
                 :placeholder="t('istio.destinationRule.outlierDetection.interval.placeholder')"
               />
             </div>
-            <div class="col span-6 mb-20">
+            <div class="col span-6 mb-10">
               <LabeledInput
 
                 :label="t('istio.destinationRule.outlierDetection.maxEjectionPercent.label')"
