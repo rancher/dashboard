@@ -244,6 +244,7 @@ export default {
               name="value"
               :row="row"
               :mode="mode"
+              :i="idx"
               :isView="isView"
               :queue-update="queueUpdate"
             >
