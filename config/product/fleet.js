@@ -1,4 +1,4 @@
-import { DSL } from '@/store/type-map';
+import { DSL, IF_HAVE } from '@/store/type-map';
 import { FLEET } from '@/config/types';
 import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
 
@@ -18,6 +18,7 @@ export function init(store) {
 
   product({
     ifHaveType:            FLEET.GIT_REPO,
+    ifHave:                IF_HAVE.FLEET,
     icon:                  'fleet',
     inStore:               'management',
     removable:             false,
