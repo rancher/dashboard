@@ -1,5 +1,6 @@
-import { CAPI } from '@/config/types';
+import { CAPI, NODE } from '@/config/types';
 import { CAPI as CAPI_LABELS, MACHINE_ROLES } from '@/config/labels-annotations';
+import { NAME as EXPLORER } from '@/config/product/explorer';
 import { escapeHtml } from '@/utils/string';
 import { insertAt } from '@/utils/array';
 import { downloadUrl } from '@/utils/download';
@@ -70,6 +71,20 @@ export default {
 
   pool() {
     return this.$rootGetters['management/byId'](CAPI.MACHINE_DEPLOYMENT, this.poolId);
+  },
+
+  kubeNodeDetailLocation() {
+    const kubeId = this.status?.nodeRef?.name;
+
+    return kubeId ? {
+      name:   'c-cluster-product-resource-id',
+      params: {
+        cluster:  this.cluster.status.clusterName,
+        product:  EXPLORER,
+        resource: NODE,
+        id:       kubeId
+      }
+    } : kubeId;
   },
 
   groupByLabel() {

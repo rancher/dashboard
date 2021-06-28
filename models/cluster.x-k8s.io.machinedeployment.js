@@ -29,6 +29,36 @@ export default {
     return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.machinePool', { name: escapeHtml(this.nameDisplay) }) }`;
   },
 
+  templateType() {
+    return this.spec.template.spec.infrastructureRef.kind ? `rke-machine.cattle.io.${ this.spec.template.spec.infrastructureRef.kind.toLowerCase() }` : null;
+  },
+
+  template() {
+    const ref = this.spec.template.spec.infrastructureRef;
+    const id = `${ ref.namespace }/${ ref.name }`;
+    const template = this.$rootGetters['management/byId'](this.templateType, id);
+
+    return template;
+  },
+
+  providerName() {
+    return this.template?.nameDisplay;
+  },
+
+  providerDisplay() {
+    const provider = (this.template?.provider || '').toLowerCase();
+
+    return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, 'generic.unknown', true);
+  },
+
+  providerLocation() {
+    return this.template?.providerLocation || this.t('node.list.poolDescription.noLocation');
+  },
+
+  providerSize() {
+    return this.template?.providerSize || this.t('node.list.poolDescription.noSize');
+  },
+
   desired() {
     return this.spec?.replicas || 0;
   },
@@ -47,6 +77,17 @@ export default {
 
   unavailable() {
     return this.status?.unavailableReplicas || 0;
+  },
+
+  scalePool() {
+    return (delta) => {
+      const clustersMachinePool = this.cluster.spec.rkeConfig.machinePools.find(mp => `${ this.cluster.id }-${ mp.name }` === this.id);
+
+      if (clustersMachinePool) {
+        clustersMachinePool.quantity += delta;
+        this.cluster.save();
+      }
+    };
   },
 
   stateParts() {
