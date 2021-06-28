@@ -74,7 +74,7 @@ export default {
       @mouseleave="setNear(false)"
     >
       <span v-if="type.labelKey" class="label"><t :k="type.labelKey" /></span>
-      <span v-else class="label" v-html="type.labelDisplay || type.label" />
+      <span v-else class="label" :class="{'no-icon': !type.icon}" v-html="type.labelDisplay || type.label" />
       <span v-if="showFavorite || showCount" class="count">
         <Favorite v-if="showFavorite" :resource="type.name" />
         {{ type.count }}
@@ -111,6 +111,10 @@ export default {
       display: flex;
       overflow: hidden;
       text-overflow: ellipsis;
+
+      &.no-icon {
+        padding-left: 3px;
+      }
 
       ::v-deep .highlight {
         background: var(--diff-ins-bg);

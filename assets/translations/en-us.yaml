@@ -4678,17 +4678,25 @@ v1ClusterTools:
   logging:
     label: Logging (Legacy)
     description: 'Legacy V1 logging. V1 Logging is deprecated since Rancher 2.5.0. <a target="blank" href="https://rancher.com/docs/rancher/v2.x/en/logging/v2.5/migrating/">Learn more</a> about migrating to V2 Logging.'
+  istio:
+    label: Istio (Legacy)
+    description: 'Legacy V1 Istio. Istio v1.5 has been deprecated since Rancher 2.5.0. <a target="blank" href="https://rancher.com/docs/rancher/v2.5/en/istio/#migrate-from-previous-istio-version">Learn more</a> about migrating to the latest version.'
 
 legacy:
   alerts: Alerts
   apps: Apps
   catalogs: Catalogs
+  cis-scans: CIS Scans
+  configuration: Configuration
   globalDnsEntries: Global DNS Entries
   globalDnsProviders: Global DNS Providers
+  istio: Istio
   logging: Logging
   notifiers: Notifiers
   monitoring: Monitoring
+  pipelines: Pipelines
   psps: Pod Security Policies
+
   project:
     label: Project
     select: "Use the Project/Namespace filter at the top of the page to select a Project in order to see legacy Project features."

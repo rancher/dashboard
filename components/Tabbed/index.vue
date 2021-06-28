@@ -33,6 +33,11 @@ export default {
     useHash: {
       type:    Boolean,
       default: true,
+    },
+
+    noContent: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -236,7 +241,7 @@ export default {
         </li>
       </ul>
     </ul>
-    <div :class="{ 'tab-container': !!tabs.length }">
+    <div :class="{ 'tab-container': !!tabs.length, 'no-content': noContent }">
       <slot />
     </div>
   </div>
@@ -289,6 +294,10 @@ export default {
     padding: 20px;
     background-color: var(--tabbed-container-bg);
     // box-shadow: 0 0 20px var(--shadow);
+
+    &.no-content {
+      padding: 0 0 3px 0;
+    }
   }
 
   .side-tabs{
