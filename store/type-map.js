@@ -110,7 +110,6 @@
 import { AGE, NAME, NAMESPACE, STATE } from '@/config/table-headers';
 import { COUNT, SCHEMA, MANAGEMENT } from '@/config/types';
 import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
-import { FLEET } from '@/store/features';
 import {
   addObject, findBy, insertAt, isArray, removeObject
 } from '@/utils/array';
@@ -147,7 +146,6 @@ export const IF_HAVE = {
   V2_MONITORING: 'v2-monitoring',
   PROJECT:       'project',
   NO_PROJECT:    'no-project',
-  FLEET:         'fleet-feature-flag',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -1520,9 +1518,6 @@ function ifHave(getters, option) {
   }
   case IF_HAVE.NO_PROJECT: {
     return !project(getters);
-  }
-  case IF_HAVE.FLEET: {
-    return getters['features/get'](FLEET);
   }
   default:
     return false;

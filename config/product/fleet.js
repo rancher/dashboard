@@ -1,6 +1,7 @@
-import { DSL, IF_HAVE } from '@/store/type-map';
+import { DSL } from '@/store/type-map';
 import { FLEET } from '@/config/types';
 import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
+import { FLEET as FLEET_FEATURE } from '@/store/features';
 
 export const NAME = 'fleet';
 export const CHART_NAME = 'fleet';
@@ -18,7 +19,7 @@ export function init(store) {
 
   product({
     ifHaveType:            FLEET.GIT_REPO,
-    ifHave:                IF_HAVE.FLEET,
+    ifFeature:             FLEET_FEATURE,
     icon:                  'fleet',
     inStore:               'management',
     removable:             false,
