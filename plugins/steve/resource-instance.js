@@ -92,6 +92,8 @@ export const STATES = {
   deployed:           { color: 'success', icon: 'dot-open' },
   disabled:           { color: 'warning', icon: 'error' },
   disconnected:       { color: 'warning', icon: 'error' },
+  drained:            { color: 'info', icon: 'tag' },
+  draining:           { color: 'warning', icon: 'tag' },
   errapplied:         { color: 'error', icon: 'error' },
   error:              { color: 'error', icon: 'error' },
   erroring:           { color: 'error', icon: 'error' },

@@ -475,6 +475,10 @@ asyncButton:
     action: Download
     success: Saving
     waiting: Downloading&hellip;
+  drain:
+    action: Drain
+    success: Drained
+    waiting: Draining&hellip;
   edit:
     action: Save
     success: Saved
@@ -1136,6 +1140,7 @@ cluster:
     cluster: Cluster Configuration
     etcd: etcd
     networking: Networking
+    nodePools: Node Pools
     machinePools: Machine Pools
     registry: Private Registry
     upgrade: Upgrade Strategy
@@ -1145,6 +1150,9 @@ cluster:
     services: Services
     allServices: Rotate all service certificates
     selectService: Rotate an individual service
+  nodePool:
+    scaleDown: Scale Pool Down
+    scaleUp: Scale Pool Up
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -1222,6 +1230,27 @@ detailText:
       =1 {+ 1 more char}
       other {+ {n, number} more chars}
     }
+
+drainNode:
+  action: 'Drain'
+  actionStop: 'Stop Drain'
+  titleOne: Drain {name}
+  titleMultiple: 'Drain {count} Nodes'
+  deleteLocalData: Delete Empty Dir Data
+  force: Force
+  safe:
+    label: Safe
+    helpText: If a node has standalone pods or ephemeral data it will be cordoned but not drained.
+  gracePeriod:
+    title: Grace period for pods to terminate themselves
+    default: Honor the default from each pod
+    placeholder: e.g. 30
+    custom: "Ignore the defaults and give each pod:"
+  timeout:
+    title: "Drain timeout"
+    default: Keep trying forever
+    placeholder: e.g. 60
+    custom: "Give up after:"
 
 etcdInfoBanner:
   hasLeader: "Etcd has a leader:"
@@ -2110,6 +2139,12 @@ namespaceList:
   addLabel: Add Namespace
 
 node:
+  list:
+    pool: Pool
+    nodeTaint: Taints
+    poolDescription:
+      noSize: No Size
+      noLocation: No Location
   detail:
     detailTop:
       containerRuntime: Container Runtime
@@ -2888,6 +2923,8 @@ resourceTable:
     project: "<span>Project:</span> {name}"
     notInAWorkspace: Not in a Workspace
     workspace: "<span>Workspace:</span> {name}"
+    notInANodePool: "Not in a Pool"
+    nodePool: "<span>Node Pool:</span> {name} ({count})"
 
 resourceTabs:
   conditions:
@@ -3542,6 +3579,7 @@ tableHeaders:
   subType: Kind
   success: Success
   summary: Summary
+  taints: Taints
   target: Target
   targetKind: Target Type
   targetPort: Target

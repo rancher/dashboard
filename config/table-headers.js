@@ -198,8 +198,10 @@ export const PODS = {
   name:      'pods',
   labelKey:  'tableHeaders.pods',
   sort:      'pods',
-  value:     'podUsage',
-  formatter: 'PercentageBar'
+  search:    false,
+  value:     'podConsumedUsage',
+  formatter: 'PercentageBar',
+  width:     120,
 };
 
 export const AGE = {

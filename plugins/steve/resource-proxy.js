@@ -37,9 +37,8 @@ export function proxyFor(ctx, obj, isClone = false) {
       });
     }
   }
-
   const mappedType = ctx.rootGetters['type-map/componentFor'](obj.type);
-  const customModel = lookup(mappedType, obj?.metadata?.name);
+  const customModel = lookup(ctx.state.config.namespace, mappedType, obj?.metadata?.name);
   const model = customModel || ResourceInstance;
 
   remapSpecialKeys(obj);
