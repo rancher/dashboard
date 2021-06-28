@@ -2142,6 +2142,9 @@ node:
   list:
     pool: Pool
     nodeTaint: Taints
+    poolDescription:
+      noSize: No Size
+      noLocation: No Location
   detail:
     detailTop:
       containerRuntime: Container Runtime

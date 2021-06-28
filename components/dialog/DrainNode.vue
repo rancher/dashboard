@@ -130,7 +130,6 @@ export default {
 </script>
 
 <template>
-  <!-- TODO: RC huh - clusterTemplateCreate ClusterTemplateOverrideToggle -->
   <Card class="prompt-rotate" :show-highlight-border="false">
     <h4 slot="title" class="text-default-text">
       <template v-if="kubeNodes.length > 1">

@@ -8,7 +8,6 @@ import {
 import metricPoller from '@/mixins/metric-poller';
 
 import {
-  CAPI,
   MANAGEMENT, METRIC, NODE, NORMAN, POD
 } from '@/config/types';
 import { mapGetters } from 'vuex';
@@ -32,11 +31,7 @@ export default {
   },
 
   async fetch() {
-    const hash = {
-      kubeNodes: this.$store.dispatch('cluster/findAll', { type: NODE }),
-      // Used by kube node model to determine if SSH action
-      machines:           this.$store.dispatch('management/findAll', { type: CAPI.MACHINE })
-    };
+    const hash = { kubeNodes: this.$store.dispatch('cluster/findAll', { type: NODE }) };
 
     const canViewNodePools = this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE_POOL);
     const canViewNodeTemplates = this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE_TEMPLATE);
@@ -231,15 +226,15 @@ export default {
     }
     .group-tab {
       &, &::after {
-          height: 50px;
+        height: 50px;
       }
 
       &::after {
-          right: -20px;
+        right: -20px;
       }
 
       .description {
-          margin-top: -20px;
+        margin-top: -20px;
       }
     }
   }
