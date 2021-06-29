@@ -80,10 +80,6 @@ export function init(store) {
     POD,
   ], 'workload');
   basicType([
-    RBAC.ROLE,
-    RBAC.CLUSTER_ROLE,
-    RBAC.ROLE_BINDING,
-    RBAC.CLUSTER_ROLE_BINDING,
     'cluster-members',
   ], 'rbac');
 
