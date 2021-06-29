@@ -1,6 +1,8 @@
 <script>
 import { MANAGEMENT } from '@/config/types';
 import { SETTING } from '@/config/settings';
+import isEmpty from 'lodash/isEmpty';
+
 export default {
   props: {
     footer: {
@@ -44,10 +46,24 @@ export default {
       if (neu?.value && neu.value !== '') {
         try {
           const parsed = JSON.parse(neu.value);
+          const {
+            bannerHeader, bannerFooter, banner, showHeader, showFooter
+          } = parsed;
+          let bannerContent = parsed?.banner || {};
 
-          this.showHeader = parsed.showHeader === 'true';
-          this.showFooter = parsed.showFooter === 'true';
-          this.banner = parsed.banner || {};
+          if (isEmpty(banner)) {
+            if (showFooter && this.footer) {
+              bannerContent = bannerFooter || {};
+            } else if (showHeader) {
+              bannerContent = bannerHeader || {};
+            } else {
+              bannerContent = {};
+            }
+          }
+
+          this.showHeader = showHeader === 'true';
+          this.showFooter = showFooter === 'true';
+          this.banner = bannerContent;
         } catch {}
       }
     }
