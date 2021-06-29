@@ -16,7 +16,7 @@ export default {
       },
       {
         label:   'Machine Provider',
-        content: this.machineProviderDisplay,
+        content: this.machineProvider ? this.machineProviderDisplay : null,
       },
       {
         label:   'Kubernetes Version',
