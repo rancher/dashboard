@@ -3,6 +3,7 @@
 ##############################
 generic:
   add: Add
+  all: All
   back: Back
   cancel: Cancel
   close: Close
@@ -2138,7 +2139,7 @@ namespaceList:
 node:
   list:
     pool: Pool
-    noNodes: There are no Nodes in this Pool
+    noNodes: This pool is empty
     nodeTaint: Taints
     scaleDown: Scale Pool Down
     scaleUp: Scale Pool Up
@@ -2918,7 +2919,7 @@ resourceTable:
     cluster: "<span>Cluster:</span> {name}"
     namespace: "<span>Namespace:</span> {name}"
     notInAMachinePool: "Not In A Deployment"
-    machinePool: "<span>Pools:</span> {name}"
+    machinePool: "<span>Pool:</span> {name}"
     notInANamespace: Not Namespaced
     notInAProject: Not in a Project
     project: "<span>Project:</span> {name}"

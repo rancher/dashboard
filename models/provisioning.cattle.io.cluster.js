@@ -107,7 +107,7 @@ export default {
     return !!this.mgmt?.spec?.rancherKubernetesEngineConfig;
   },
 
-  clusterId() {
+  mgmtClusterId() {
     return this.mgmt?.id || this.id.replace(`${ this.metadata.namespace }/`, '');
   },
 

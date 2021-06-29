@@ -13,8 +13,6 @@ import {
 import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@/components/AsyncButton.vue';
 
-import { GROUP_RESOURCES, mapPref } from '@/store/prefs';
-
 export default {
   components: {
     Loading,
@@ -67,11 +65,11 @@ export default {
 
     const res = await allHash(hash);
 
-    this.allMachines = res.machines;
-    this.allMachineDeployments = res.machineDeployments;
+    this.allMachines = res.machines || [];
+    this.allMachineDeployments = res.machineDeployments || [];
 
-    this.allNodes = res.allNodes;
-    this.allNodePools = res.allNodePools;
+    this.allNodes = res.allNodes || [];
+    this.allNodePools = res.allNodePools || [];
 
     this.clusterToken = res.clusterToken;
     this.etcdBackups = res.etcdBackups;
@@ -85,14 +83,14 @@ export default {
 
   data() {
     return {
-      allMachines:           null,
-      allMachineDeployments: null,
+      allMachines:           [],
+      allMachineDeployments: [],
 
       mgmtNodeSchema:        this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE),
       machineSchema:  this.$store.getters[`management/schemaFor`]( CAPI.MACHINE),
 
-      allNodes:     null,
-      allNodePools: null,
+      allNodes:     [],
+      allNodePools: [],
 
       clusterToken: null,
       etcdBackups:  null,
@@ -101,14 +99,12 @@ export default {
   },
 
   computed: {
-    tableGroup: mapPref(GROUP_RESOURCES),
-
     defaultTab() {
-      if (this.machines.length) {
+      if (this.showMachines) {
         return 'machine-pools';
       }
 
-      if (this.nodes.length) {
+      if (this.showNodes) {
         return 'node-pools';
       }
 
@@ -118,7 +114,7 @@ export default {
     fakeMachines() {
       // When a deployment has no machines it's not shown.... so add a fake machine to it
       // This is a catch all scenario seen in older node pool world but not deployments
-      const emptyDeployments = (this.allMachineDeployments || []).filter(x => x.spec.clusterName === this.value.metadata.name && x.spec.replicas === 0);
+      const emptyDeployments = this.allMachineDeployments.filter(x => x.spec.clusterName === this.value.metadata.name && x.spec.replicas === 0);
 
       return emptyDeployments.map(d => ({
         poolId:       d.id,
@@ -128,7 +124,7 @@ export default {
     },
 
     machines() {
-      const machines = (this.allMachines || []).filter((x) => {
+      const machines = this.allMachines.filter((x) => {
         if ( x.metadata?.namespace !== this.value.metadata.namespace ) {
           return false;
         }
@@ -140,20 +136,28 @@ export default {
     },
 
     nodes() {
-      const nodes = (this.allNodes || []).filter(x => x.clusterId === this.value.clusterId);
+      const nodes = this.allNodes.filter(x => x.mgmtClusterId === this.value.mgmtClusterId);
 
       return [...nodes, ...this.fakeNodes];
     },
 
     fakeNodes() {
       // When a pool has no nodes it's not shown.... so add a fake node to it
-      const emptyNodePools = (this.allNodePools || []).filter(x => x.spec.clusterName === this.value.clusterId && x.spec.quantity === 0);
+      const emptyNodePools = this.allNodePools.filter(x => x.spec.clusterName === this.value.mgmtClusterId && x.spec.quantity === 0);
 
       return emptyNodePools.map(np => ({
         spec:       { nodePoolName: np.id.replace('/', ':') },
         mainRowKey: 'isFake',
         pool:       np,
       }));
+    },
+
+    showMachines() {
+      return this.value.isRke2 || !!this.machines.length;
+    },
+
+    showNodes() {
+      return !this.showMachines && !!this.nodes.length;
     },
 
     showSnapshots() {
@@ -179,7 +183,6 @@ export default {
 
     mgmtNodeSchemaHeaders() {
       return [
-        // VERSION, INTERNAL_EXTERNAL_IP
         STATE, NAME_COL,
         {
           name:          'node-name',
@@ -303,9 +306,8 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <ResourceTabs v-else v-model="value" :default-tab="defaultTab">
-    <Tab v-if="value.isRke2" name="machine-pools" label-key="cluster.tabs.machinePools" :weight="3">
+    <Tab v-if="showMachines" name="machine-pools" label-key="cluster.tabs.machinePools" :weight="3">
       <ResourceTable
-        v-if="value.isRke2"
         :rows="machines"
         :schema="machineSchema"
         :headers="machineHeaders"
@@ -315,6 +317,14 @@ export default {
         group-ref="pool"
         :group-sort="['pool.nameDisplay']"
       >
+        <template #main-row:isFake="{fullColspan}">
+          <tr class="main-row">
+            <td :colspan="fullColspan" class="no-entries">
+              {{ t('node.list.noNodes') }}
+            </td>
+          </tr>
+        </template>
+
         <template #group-by="{group}">
           <div class="pool-row" :class="{'has-description':group.ref && group.ref.template}">
             <div v-trim-whitespace class="group-tab">
@@ -339,7 +349,7 @@ export default {
         </template>
       </ResourceTable>
     </Tab>
-    <Tab v-else name="node-pools" label-key="cluster.tabs.nodePools" :weight="3">
+    <Tab v-else-if="showNodes" name="node-pools" label-key="cluster.tabs.nodePools" :weight="3">
       <ResourceTable
         :schema="mgmtNodeSchema"
         :headers="mgmtNodeSchemaHeaders"

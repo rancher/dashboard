@@ -62,10 +62,6 @@ export default {
       default: 'resourceTable.groupBy.namespace',
     },
 
-    alwaysGroup: {
-      type:    Boolean,
-      default: false
-    }
   },
 
   computed: {
@@ -242,7 +238,7 @@ export default {
     key-field="_key"
     v-on="$listeners"
   >
-    <template v-if="showGrouping && !alwaysGroup" #header-middle>
+    <template v-if="showGrouping" #header-middle>
       <slot name="more-header-middle" />
       <ButtonGroup v-model="group" :options="groupOptions" />
     </template>

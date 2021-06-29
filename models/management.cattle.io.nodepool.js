@@ -44,9 +44,11 @@ export default {
     };
   },
 
-  scalePool(delta) {
-    this.spec.quantity += delta;
-    this.save();
+  scalePool() {
+    return (delta) => {
+      this.spec.quantity += delta;
+      this.save();
+    };
   }
 
 };
