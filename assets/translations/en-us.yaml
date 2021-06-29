@@ -3516,7 +3516,7 @@ tableHeaders:
   lastUpdated: Last Updated
   lastSeen: Last Seen
   loggingOutputProviders: Provider
-  machines: Machines
+  machines: Machines/Nodes
   machineNodeName: K8s Node
   manual: Manual
   matches: Matches

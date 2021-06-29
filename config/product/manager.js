@@ -114,7 +114,6 @@ export function init(store) {
   const MACHINE_SUMMARY = {
     name:      'summary',
     labelKey:  'tableHeaders.machines',
-    value:     'status',
     sort:      false,
     search:    false,
     formatter: 'MachineSummaryGraph',

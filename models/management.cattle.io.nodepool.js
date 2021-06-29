@@ -1,4 +1,5 @@
 import { CAPI, MANAGEMENT } from '@/config/types';
+import { sortBy } from '@/utils/sort';
 
 export default {
 
@@ -49,6 +50,45 @@ export default {
       this.spec.quantity += delta;
       this.save();
     };
-  }
+  },
+
+  nodes() {
+    const nodePoolName = this.id.replace('/', ':');
+
+    return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.spec.nodePoolName === nodePoolName);
+  },
+
+  desired() {
+    return this.spec?.quantity || 0;
+  },
+
+  pending() {
+    return Math.max(0, this.desired - (this.nodes?.length || 0));
+  },
+
+  ready() {
+    return Math.max(0, (this.nodes?.length || 0) - (this.pending || 0));
+  },
+
+  stateParts() {
+    const out = [
+      {
+        label:     'Pending',
+        color:     'bg-info',
+        textColor: 'text-info',
+        value:     this.pending,
+        sort:      1,
+      },
+      {
+        label:     'Ready',
+        color:     'bg-success',
+        textColor: 'text-success',
+        value:     this.ready,
+        sort:      4,
+      },
+    ].filter(x => x.value > 0);
+
+    return sortBy(out, 'sort:desc');
+  },
 
 };

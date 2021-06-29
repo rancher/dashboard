@@ -11,6 +11,8 @@ export default {
   async fetch() {
     const hash = await allHash({
       mgmtClusters:       this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+      // Used to determine non-rke2 node counts
+      mgmtNodes:          this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE }),
       mgmtPools:          this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL }),
       mgmtTemplates:      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE }),
       rancherClusters:    this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
@@ -93,7 +95,7 @@ export default {
         </template>
       </template>
       <template #cell:summary="{row}">
-        <span v-if="!row.isRke2 || row.isCustom" class="text-muted">&mdash;</span>
+        <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>
       <template #cell:explorer="{row}">
         <n-link v-if="row.mgmt && row.mgmt.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}">
