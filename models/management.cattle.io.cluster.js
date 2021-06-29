@@ -71,6 +71,8 @@ export default {
 
     if ( configKey ) {
       return configKey.replace(/Config$/, '');
+    } else {
+      return 'imported';
     }
   },
 
