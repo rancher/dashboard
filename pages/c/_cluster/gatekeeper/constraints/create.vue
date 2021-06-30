@@ -106,9 +106,9 @@ export default {
       <ResourceYaml
         v-if="obj"
         :key="yaml"
-        :obj="obj"
-        :value="yaml"
-        :for-create="true"
+        :yaml="yaml"
+        :value="obj"
+        :mode="mode"
         :done-override="done"
       />
     </div>
