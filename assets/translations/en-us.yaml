@@ -711,6 +711,14 @@ catalog:
           }. Start by setting some basic information used by {vendor} to manage the App.
         nsCreationDescription: "To install the app into a new namespace enter it's name and select it in the Namespace field."
         createNamespace: "Namespace <code>{namespace}</code> will be created."
+      clusterTplVersion:
+        label: Version
+        subtext: Select a version of the template
+        description: Select a version of the Cluster Template
+      clusterTplValues:
+        label: Values
+        subtext: Change how the Cluster is defined
+        description: Configure Values used by Helm that help define the Cluster.
       helmValues:
         label: Values
         subtext: Change how the App works
