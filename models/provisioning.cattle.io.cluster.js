@@ -23,11 +23,10 @@ export default {
       },
     ];
 
-    const provisioner = this?.provisioner ?? '';
-    const v2Providers = ['aks', 'gke', 'eks'];
+    if (!this.machineProvider) {
+      out.splice(1, 1);
 
-    if (v2Providers.includes(provisioner)) {
-      return out.filter(deet => deet.label !== 'Machine Provider');
+      return out;
     }
 
     return out;
