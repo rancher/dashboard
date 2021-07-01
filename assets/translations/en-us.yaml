@@ -1338,6 +1338,7 @@ footer:
   forums: Forums
   issue: File an Issue
   slack: Slack
+  wechat: WeChat
 
 gatekeeperConstraint:
   match:
