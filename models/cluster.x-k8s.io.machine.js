@@ -1,5 +1,7 @@
-import { CAPI } from '@/config/types';
+import { CAPI, NODE } from '@/config/types';
 import { CAPI as CAPI_LABELS, MACHINE_ROLES } from '@/config/labels-annotations';
+import { NAME as EXPLORER } from '@/config/product/explorer';
+import { listNodeRoles } from '@/models/cluster/node';
 import { escapeHtml } from '@/utils/string';
 import { insertAt } from '@/utils/array';
 import { downloadUrl } from '@/utils/download';
@@ -72,6 +74,20 @@ export default {
     return this.$rootGetters['management/byId'](CAPI.MACHINE_DEPLOYMENT, this.poolId);
   },
 
+  kubeNodeDetailLocation() {
+    const kubeId = this.status?.nodeRef?.name;
+
+    return kubeId ? {
+      name:   'c-cluster-product-resource-id',
+      params: {
+        cluster:  this.cluster.status.clusterName,
+        product:  EXPLORER,
+        resource: NODE,
+        id:       kubeId
+      }
+    } : kubeId;
+  },
+
   groupByLabel() {
     const name = this.cluster?.nameDisplay || this.spec.clusterName;
 
@@ -97,35 +113,6 @@ export default {
   roles() {
     const { isControlPlane, isWorker, isEtcd } = this;
 
-    if (( isControlPlane && isWorker && isEtcd ) ||
-        ( !isControlPlane && !isWorker && !isEtcd )) {
-      // !isControlPlane && !isWorker && !isEtcd === RKE?
-      return 'All';
-    }
-    // worker+cp, worker+etcd, cp+etcd
-
-    if (isControlPlane && isWorker) {
-      return 'Control Plane, Worker';
-    }
-
-    if (isControlPlane && isEtcd) {
-      return 'Control Plane, Etcd';
-    }
-
-    if (isEtcd && isWorker) {
-      return 'Etcd, Worker';
-    }
-
-    if (isControlPlane) {
-      return 'Control Plane';
-    }
-
-    if (isEtcd) {
-      return 'Etcd';
-    }
-
-    if (isWorker) {
-      return 'Worker';
-    }
+    return listNodeRoles(isControlPlane, isWorker, isEtcd, this.t('generic.all'));
   },
 };

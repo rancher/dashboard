@@ -45,7 +45,7 @@ export default {
     }
 
     if (canViewNodePools && canViewNodeTemplates) {
-      // Managemnet Node's required for kube role and some reousrce states
+      // Managemnet Node's required for kube role and some resource states
       hash.mgmtNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
       hash.nodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
       hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });

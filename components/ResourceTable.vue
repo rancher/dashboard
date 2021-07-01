@@ -61,6 +61,7 @@ export default {
       type:    String,
       default: 'resourceTable.groupBy.namespace',
     },
+
   },
 
   computed: {

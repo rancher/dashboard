@@ -1,5 +1,6 @@
 <script>
 import Loading from '@/components/Loading';
+import ResourceTable from '@/components/ResourceTable';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import SortableTable from '@/components/SortableTable';
 import CopyCode from '@/components/CopyCode';
@@ -15,6 +16,7 @@ import AsyncButton from '@/components/AsyncButton.vue';
 export default {
   components: {
     Loading,
+    ResourceTable,
     ResourceTabs,
     SortableTable,
     Tab,
@@ -33,14 +35,24 @@ export default {
   },
 
   async fetch() {
-    const hash = {
-      machineDeployments: this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT }),
-      machines:           this.$store.dispatch('management/findAll', { type: CAPI.MACHINE })
-    };
+    const hash = {};
 
-    if ( this.value.isImported || this.value.isCustom ) {
+    const isImportedOrCustom = this.value.isImported || this.value.isCustom;
+
+    if (isImportedOrCustom || this.value.isRke1) {
+      // Cluster isn't compatible with machines/machineDeployments, show nodes/node pools instead
+
+      hash.allNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      hash.allNodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+    } else {
+      hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
+      hash.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+    }
+
+    if (isImportedOrCustom) {
       hash.clusterToken = this.value.getOrCreateToken();
-    } else if ( !this.value.isRke2 ) {
+    } else if (!this.value.isRke2 ) {
       // These are needed to resolve references in the mgmt cluster -> node pool -> node template to figure out what provider the cluster is using
       // so that the edit iframe for ember pages can go to the right place.
       hash.rke1NodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
@@ -53,59 +65,136 @@ export default {
 
     const res = await allHash(hash);
 
-    this.allMachines = res.machines;
+    this.allMachines = res.machines || [];
+    this.allMachineDeployments = res.machineDeployments || [];
+
+    this.allNodes = res.allNodes || [];
+    this.allNodePools = res.allNodePools || [];
+
     this.clusterToken = res.clusterToken;
     this.etcdBackups = res.etcdBackups;
+
+    const machineDeloymentTemplateType = res.machineDeployments?.[0]?.templateType;
+
+    if (machineDeloymentTemplateType) {
+      await this.$store.dispatch('management/findAll', { type: machineDeloymentTemplateType });
+    }
   },
 
   data() {
     return {
-      allMachines:  null,
+      allMachines:           [],
+      allMachineDeployments: [],
+
+      mgmtNodeSchema:        this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE),
+      machineSchema:  this.$store.getters[`management/schemaFor`]( CAPI.MACHINE),
+
+      allNodes:     [],
+      allNodePools: [],
+
       clusterToken: null,
       etcdBackups:  null,
+
     };
   },
 
   computed: {
     defaultTab() {
-      if ( this.clusterToken && !this.machines.length ) {
-        return 'registration';
+      if (this.showMachines) {
+        return 'machine-pools';
       }
 
-      return 'node-pools';
+      if (this.showNodes) {
+        return 'node-pools';
+      }
+
+      return '';
+    },
+
+    fakeMachines() {
+      // When a deployment has no machines it's not shown.... so add a fake machine to it
+      // This is a catch all scenario seen in older node pool world but not deployments
+      const emptyDeployments = this.allMachineDeployments.filter(x => x.spec.clusterName === this.value.metadata.name && x.spec.replicas === 0);
+
+      return emptyDeployments.map(d => ({
+        poolId:       d.id,
+        mainRowKey: 'isFake',
+        pool:       d,
+      }));
     },
 
     machines() {
-      return (this.allMachines || []).filter((x) => {
+      const machines = this.allMachines.filter((x) => {
         if ( x.metadata?.namespace !== this.value.metadata.namespace ) {
           return false;
         }
 
         return x.spec?.clusterName === this.value.metadata.name;
       });
+
+      return [...machines, ...this.fakeMachines];
+    },
+
+    nodes() {
+      const nodes = this.allNodes.filter(x => x.mgmtClusterId === this.value.mgmtClusterId);
+
+      return [...nodes, ...this.fakeNodes];
+    },
+
+    fakeNodes() {
+      // When a pool has no nodes it's not shown.... so add a fake node to it
+      const emptyNodePools = this.allNodePools.filter(x => x.spec.clusterName === this.value.mgmtClusterId && x.spec.quantity === 0);
+
+      return emptyNodePools.map(np => ({
+        spec:       { nodePoolName: np.id.replace('/', ':') },
+        mainRowKey: 'isFake',
+        pool:       np,
+      }));
+    },
+
+    showMachines() {
+      return this.value.isRke2 || !!this.machines.length;
+    },
+
+    showNodes() {
+      return !this.showMachines && !!this.nodes.length;
+    },
+
+    showSnapshots() {
+      return this.value.isRke2 || this.value.isRke1;
     },
 
     machineHeaders() {
       return [
         STATE,
         NAME_COL,
-        ROLES,
         {
-          name:      'node-name',
-          labelKey:  'tableHeaders.machineNodeName',
-          sort:      'status.nodeRef.name',
-          value:     'status.nodeRef.name',
+          name:          'node-name',
+          labelKey:      'tableHeaders.machineNodeName',
+          sort:          'status.nodeRef.name',
+          value:         'status.nodeRef.name',
+          formatter:     'LinkDetail',
+          formatterOpts: { reference: 'kubeNodeDetailLocation' }
         },
+        ROLES,
         AGE,
       ];
     },
 
-    showRke1Pools() {
-      return this.value.mgmt?.machinePools?.length > 0;
-    },
-
-    showSnapshots() {
-      return this.value.isRke2 || this.value.isRke1;
+    mgmtNodeSchemaHeaders() {
+      return [
+        STATE, NAME_COL,
+        {
+          name:          'node-name',
+          labelKey:      'tableHeaders.machineNodeName',
+          sort:          'kubeNodeName',
+          value:         'kubeNodeName',
+          formatter:     'LinkDetail',
+          formatterOpts: { reference: 'kubeNodeDetailLocation' }
+        },
+        ROLES,
+        AGE
+      ];
     },
 
     rke1Snapshots() {
@@ -178,6 +267,7 @@ export default {
         },
       ];
     },
+
   },
 
   mounted() {
@@ -197,7 +287,18 @@ export default {
         this.$store.dispatch('growl/fromError', { title: 'Error creating snapshot', err });
         btnCb(false);
       }
-    }
+    },
+
+    showPoolAction(event, pool) {
+      this.$store.commit(`action-menu/show`, {
+        resources: [pool],
+        elem:      event.target
+      });
+    },
+    showPoolActionButton(pool) {
+      return !!pool.availableActions?.length;
+    },
+
   }
 };
 </script>
@@ -205,36 +306,95 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <ResourceTabs v-else v-model="value" :default-tab="defaultTab">
-    <Tab v-if="value.isRke2 || showRke1Pools" name="node-pools" label-key="cluster.tabs.machinePools" :weight="3">
-      <SortableTable
-        v-if="value.isRke2"
+    <Tab v-if="showMachines" name="machine-pools" label-key="cluster.tabs.machinePools" :weight="3">
+      <ResourceTable
         :rows="machines"
+        :schema="machineSchema"
         :headers="machineHeaders"
-        :table-actions="false"
-        :search="false"
         default-sort-by="name"
+        :groupable="false"
         group-by="poolId"
         group-ref="pool"
         :group-sort="['pool.nameDisplay']"
       >
+        <template #main-row:isFake="{fullColspan}">
+          <tr class="main-row">
+            <td :colspan="fullColspan" class="no-entries">
+              {{ t('node.list.noNodes') }}
+            </td>
+          </tr>
+        </template>
+
         <template #group-by="{group}">
-          <div v-if="group && group.ref" class="group-tab" v-html="group.ref.groupByPoolShortLabel" />
-          <div v-else v-trim-whitespace class="group-tab">
-            Machine Pool: None
+          <div class="pool-row" :class="{'has-description':group.ref && group.ref.template}">
+            <div v-trim-whitespace class="group-tab">
+              <div v-if="group && group.ref" v-html="group.ref.groupByPoolShortLabel" />
+              <div v-else v-html="t('resourceTable.groupLabel.notInANodePool')">
+              </div>
+              <div v-if="group.ref && group.ref.template" class="description text-muted text-small">
+                {{ group.ref.providerDisplay }} &ndash;  {{ group.ref.providerLocation }} / {{ group.ref.providerSize }} ({{ group.ref.providerName }})
+              </div>
+            </div>
+            <div v-if="group.ref" class="right mr-45">
+              <template v-if="value.hasLink('update')">
+                <button v-tooltip="t('node.list.scaleDown')" :disabled="group.ref.spec.replicas < 2" type="button" class="btn btn-sm role-secondary" @click="group.ref.scalePool(-1)">
+                  <i class="icon icon-sm icon-minus" />
+                </button>
+                <button v-tooltip="t('node.list.scaleUp')" type="button" class="btn btn-sm role-secondary ml-10" @click="group.ref.scalePool(1)">
+                  <i class="icon icon-sm icon-plus" />
+                </button>
+              </template>
+            </div>
           </div>
         </template>
-        <template #cell:node-name="cell">
-          <span v-if="cell.value && value.mgmt">
-            <n-link :to="{name: 'c-cluster-product-resource-id', params: { cluster: value.mgmt.id, product: 'explorer', resource: 'node', id: cell.value}}">
-              {{ cell.value }}
-            </n-link>
-          </span>
-          <span v-else class="text-muted">&mdash;</span>
+      </ResourceTable>
+    </Tab>
+    <Tab v-else-if="showNodes" name="node-pools" label-key="cluster.tabs.nodePools" :weight="3">
+      <ResourceTable
+        :schema="mgmtNodeSchema"
+        :headers="mgmtNodeSchemaHeaders"
+        :rows="nodes"
+        :groupable="false"
+        group-by="spec.nodePoolName"
+        group-ref="pool"
+        :group-sort="['pool.nameDisplay']"
+      >
+        <template #main-row:isFake="{fullColspan}">
+          <tr class="main-row">
+            <td :colspan="fullColspan" class="no-entries">
+              {{ t('node.list.noNodes') }}
+            </td>
+          </tr>
         </template>
-      </SortableTable>
-      <div v-else-if="showRke1Pools">
-        {{ JSON.stringify(value.mgmt.machinePools) }}
-      </div>
+
+        <template #group-by="{group}">
+          <div class="pool-row" :class="{'has-description':group.ref && group.ref.nodeTemplate}">
+            <div v-trim-whitespace class="group-tab">
+              <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix, count: group.rows.length}, true)">
+              </div>
+              <div v-else v-html="t('resourceTable.groupLabel.notInANodePool')">
+              </div>
+              <div v-if="group.ref && group.ref.nodeTemplate" class="description text-muted text-small">
+                {{ group.ref.providerDisplay }} &ndash;  {{ group.ref.providerLocation }} / {{ group.ref.providerSize }} ({{ group.ref.providerName }})
+              </div>
+            </div>
+            <div v-if="group.ref" class="right">
+              <template v-if="group.ref.hasLink('update')">
+                <button v-tooltip="t('node.list.scaleDown')" :disabled="group.ref.spec.quantity < 2" type="button" class="btn btn-sm role-secondary" @click="group.ref.scalePool(-1)">
+                  <i class="icon icon-sm icon-minus" />
+                </button>
+                <button v-tooltip="t('node.list.scaleUp')" type="button" class="btn btn-sm role-secondary ml-10" @click="group.ref.scalePool(1)">
+                  <i class="icon icon-sm icon-plus" />
+                </button>
+              </template>
+
+              <button type="button" class="project-action btn btn-sm role-multi-action actions mr-5 ml-15" :class="{invisible: !showPoolActionButton(group.ref)}" @click="showPoolAction($event, group.ref)">
+                <i class="icon icon-actions" />
+              </button>
+            </div>
+          </div>
+        </template>
+      </ResourceTable>
     </Tab>
 
     <Tab v-if="clusterToken" name="registration" label="Registration" :weight="2">
@@ -272,3 +432,31 @@ export default {
     </Tab>
   </ResourceTabs>
 </template>
+
+<style lang='scss' scoped>
+.main-row .no-entries {
+  text-align: center;
+}
+.pool-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  &.has-description {
+    .group-tab {
+      &, &::after {
+          height: 50px;
+      }
+
+      &::after {
+          right: -20px;
+      }
+
+      .description {
+          margin-top: -20px;
+      }
+    }
+  }
+}
+
+</style>
