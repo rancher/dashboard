@@ -2191,6 +2191,8 @@ node:
           systemUUID: System UUID
       pods: Pods
       taints: Taints
+  actions:
+    downloadSSHKey: Download SSH Key
 
 persistentVolume:
   pluginConfiguration:

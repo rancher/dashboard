@@ -20,7 +20,7 @@ export default {
       action:     'downloadKeys',
       enabled:    !!this.links.sshkeys,
       icon:       'icon icon-fw icon-download',
-      label:      'Download SSH Key',
+      label:      this.t('node.actions.downloadSSHKey'),
     };
 
     insertAt(out, 0, { divider: true });
