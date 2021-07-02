@@ -261,7 +261,7 @@ export default {
   >
     <Card class="prompt-remove" :show-highlight-border="false">
       <h4 slot="title" class="text-default-text">
-        Are you sure?
+        {{ t('promptRemove.title') }}
       </h4>
       <div slot="body">
         <div class="mb-10">
@@ -285,7 +285,7 @@ export default {
       </div>
       <template #actions>
         <button class="btn role-secondary" @click="close">
-          Cancel
+          {{ t('generic.cancel') }}
         </button>
         <AsyncButton mode="delete" class="btn bg-error ml-10" :disabled="deleteDisabled" @click="remove" />
       </template>

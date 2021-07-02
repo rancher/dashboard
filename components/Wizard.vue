@@ -109,6 +109,26 @@ export default {
       return this.visibleSteps.findIndex(s => s.name === this.activeStep.name);
     },
 
+    showPrevious() {
+      // If on first step...
+      if (this.activeStepIndex === 0) {
+        return false;
+      }
+      // .. or any previous step isn't hidden
+      for (let stepIndex = 0; stepIndex < this.activeStepIndex; stepIndex++) {
+        const step = this.visibleSteps[stepIndex];
+
+        if (!step) {
+          break;
+        }
+        if (!step.hidden) {
+          return true;
+        }
+      }
+
+      return false;
+    },
+
     canNext() {
       return (this.activeStepIndex < this.visibleSteps.length - 1) && this.activeStep.ready;
     },
@@ -293,7 +313,7 @@ export default {
           </slot>
 
           <div class="controls-steps">
-            <slot v-if="activeStepIndex!==0" name="back" :back="back">
+            <slot v-if="showPrevious" name="back" :back="back">
               <button :disabled="!editFirstStep && activeStepIndex===1" type="button" class="btn role-secondary" @click="back()">
                 <t k="wizard.previous" />
               </button>

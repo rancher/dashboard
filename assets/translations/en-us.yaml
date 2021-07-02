@@ -2022,7 +2022,8 @@ monitoring:
       stepTitle: Uninstall V1
       stepSubtext: Uninstall Previous Monitoring
       warning1: V1 Monitoring is currently deployed. This needs to be uninstalled before V2 monitoring can be installed.
-      warning2: <a target="blank" href="https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/migrating/#migrating-from-monitoring-v1-to-monitoring-v2" target='_blank' rel='noopener nofollow'>Learn more</a> about migrating to V2 Monitoring.
+      warning2: <a target="blank" href="https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/migrating/#migrating-from-monitoring-v1-to-monitoring-v2" target='_blank' rel='noopener nofollow'>Learn more</a> about the migration steps to V2 Monitoring.
+      promptDescription: <div class="mt-20 mb-20">You are attempting to uninstall V1 Monitoring. Please ensure you have read the migration steps.</div>
       success1: V1 monitoring successfully uninstalled.
       success2: Press Next to continue
   tabs:
@@ -2699,6 +2700,7 @@ prometheusRule:
     removeRecord: Remove Record
 
 promptRemove:
+  title: Are you sure?
   andOthers: |-
     {count, plural,
     =0 {.}
@@ -4708,7 +4710,7 @@ embedding:
 v1ClusterTools:
   monitoring:
     label: Monitoring (Legacy)
-    description: 'Legacy V1 monitoring. V1 Monitoring is deprecated since Rancher 2.5.0. <a target="blank" href="https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/migrating/#migrating-from-monitoring-v1-to-monitoring-v2">Learn more</a> about migrating to V2 Monitoring.'
+    description: 'Legacy V1 monitoring. V1 Monitoring is deprecated since Rancher 2.5.0. <a target="blank" href="https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/migrating/#migrating-from-monitoring-v1-to-monitoring-v2">Learn more</a> about the migration steps to V2 Monitoring.'
   logging:
     label: Logging (Legacy)
     description: 'Legacy V1 logging. V1 Logging is deprecated since Rancher 2.5.0. <a target="blank" href="https://rancher.com/docs/rancher/v2.x/en/logging/v2.5/migrating/">Learn more</a> about migrating to V2 Logging.'
