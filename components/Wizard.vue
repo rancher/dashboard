@@ -106,7 +106,7 @@ export default {
     },
 
     activeStepIndex() {
-      return this.visibleSteps.indexOf(this.activeStep);
+      return this.visibleSteps.findIndex(s => s.name === this.activeStep.name);
     },
 
     canNext() {
@@ -188,7 +188,7 @@ export default {
         return false;
       }
 
-      const idx = this.visibleSteps.indexOf(step);
+      const idx = this.visibleSteps.findIndex(s => s.name === step.name);
 
       if (idx === 0 && !this.editFirstStep) {
         return false;
@@ -251,17 +251,17 @@ export default {
 
                 :id="step.name"
                 :key="step.name+'li'"
-                :class="{step: true, active: step === activeStep, disabled: !isAvailable(step)}"
+                :class="{step: true, active: step.name === activeStep.name, disabled: !isAvailable(step)}"
                 role="presentation"
               >
                 <span
                   :aria-controls="'step' + idx+1"
-                  :aria-selected="step === activeStep"
+                  :aria-selected="step.name === activeStep.name"
                   role="tab"
                   class="controls"
                   @click.prevent="goToStep(idx+1, true)"
                 >
-                  <span class="icon icon-lg" :class="{'icon-dot': step === activeStep, 'icon-dot-open':step !== activeStep}" />
+                  <span class="icon icon-lg" :class="{'icon-dot': step.name === activeStep.name, 'icon-dot-open':step.name !== activeStep.name}" />
                   <span>
                     {{ step.label }}
                   </span>
@@ -275,7 +275,7 @@ export default {
 
       <div class="step-container">
         <template v-for="step in steps">
-          <div v-if="step === activeStep || step.hidden" :key="step.name" class="step-container__step" :class="{'hide': step !== activeStep && step.hidden}">
+          <div v-if="step.name === activeStep.name || step.hidden" :key="step.name" class="step-container__step" :class="{'hide': step.name !== activeStep.name && step.hidden}">
             <slot :step="step" :name="step.name" />
           </div>
         </template>
