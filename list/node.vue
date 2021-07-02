@@ -10,7 +10,6 @@ import metricPoller from '@/mixins/metric-poller';
 import {
   MANAGEMENT, METRIC, NODE, NORMAN, POD
 } from '@/config/types';
-import { mapGetters } from 'vuex';
 import { allHash } from '@/utils/promise';
 import { get } from '@/utils/object';
 import { GROUP_RESOURCES, mapPref } from '@/store/prefs';
@@ -33,25 +32,21 @@ export default {
   async fetch() {
     const hash = { kubeNodes: this.$store.dispatch('cluster/findAll', { type: NODE }) };
 
-    const canViewNodePools = this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE_POOL);
-    const canViewNodeTemplates = this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE_TEMPLATE);
-    const canViewPods = this.$store.getters[`cluster/schemaFor`](POD);
-
+    const canViewMgmtNodes = this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE);
     const canViewNormanNodes = this.$store.getters[`rancher/schemaFor`](NORMAN.NODE);
 
+    this.canViewPods = this.$store.getters[`cluster/schemaFor`](POD);
+
     if (canViewNormanNodes) {
-      // Required for Drain action
+      // Required for Drain/Cordon action
       hash.normanNodes = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE });
     }
 
-    if (canViewNodePools && canViewNodeTemplates) {
-      // Managemnet Node's required for kube role and some resource states
+    if (canViewMgmtNodes) {
       hash.mgmtNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
-      hash.nodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-      hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
     }
 
-    if (canViewPods) {
+    if (this.canViewPods) {
       // Used for running pods metrics
       hash.pods = this.$store.dispatch('cluster/findAll', { type: POD });
     }
@@ -59,67 +54,38 @@ export default {
     const res = await allHash(hash);
 
     this.kubeNodes = res.kubeNodes;
-    this.nodePools = res.nodePools || [];
-    this.nodeTemplates = res.nodeTemplates || [];
-
-    await this.updateNodePools(res.kubeNodes);
   },
 
   data() {
     return {
       kubeNodes:     null,
-      nodeTemplates: null,
-      nodePools:     null,
-      headers:          [STATE, NAME, ROLES, VERSION, INTERNAL_EXTERNAL_IP, {
+      canViewPods: false,
+    };
+  },
+
+  computed: {
+    tableGroup: mapPref(GROUP_RESOURCES),
+
+    headers() {
+      const headers = [STATE, NAME, ROLES, VERSION, INTERNAL_EXTERNAL_IP, {
         ...CPU,
         breakpoint: COLUMN_BREAKPOINTS.LAPTOP
       }, {
         ...RAM,
         breakpoint: COLUMN_BREAKPOINTS.LAPTOP
-      }, {
-        ...PODS,
-        breakpoint: COLUMN_BREAKPOINTS.DESKTOP
-      }, AGE],
-    };
-  },
+      }];
 
-  computed: {
-    ...mapGetters(['currentCluster']),
-    tableGroup: mapPref(GROUP_RESOURCES),
-
-    clusterNodePools() {
-      return this.nodePools?.filter(pool => pool?.spec?.clusterName === this.currentCluster.id) || [];
-    },
-
-    clusterNodePoolsMap() {
-      return this.clusterNodePools.reduce((res, node) => {
-        res[node.id] = node;
-
-        return res;
-      }, {});
-    },
-
-    hasPools() {
-      return !!this.clusterNodePools.length;
-    },
-
-    groupBy() {
-      if (!this.hasPools) {
-        return null;
+      if (this.canViewPods) {
+        headers.push({
+          ...PODS,
+          breakpoint: COLUMN_BREAKPOINTS.DESKTOP
+        });
       }
+      headers.push(AGE);
 
-      return this.tableGroup === 'none' ? '' : 'nodePoolId';
-    }
-
-  },
-
-  watch: {
-    kubeNodes: {
-      deep: true,
-      handler(neu, old) {
-        this.updateNodePools(neu);
-      }
+      return headers;
     },
+
   },
 
   methods:  {
@@ -136,26 +102,6 @@ export default {
       }
     },
 
-    updateNodePools(nodes = []) {
-      nodes.forEach((node) => {
-        const sNode = node.managementNode;
-
-        if (sNode) {
-          node.nodePoolId = sNode.spec.nodePoolName?.replace(':', '/') || '' ;
-        }
-      });
-    },
-
-    getNodePoolFromTableGroup(group) {
-      return this.getNodePool(group.key);
-    },
-
-    getNodeTemplate(nodeTemplateName) {
-      const parsedName = nodeTemplateName.replace(':', '/');
-
-      return this.nodeTemplates.find(nt => nt.id === parsedName);
-    },
-
     get,
 
   }
@@ -170,27 +116,10 @@ export default {
     v-bind="$attrs"
     :schema="schema"
     :headers="headers"
-    :rows="[...kubeNodes]"
-    :groupable="hasPools"
-    :group-by="groupBy"
-    group-tooltip="node.list.pool"
+    :rows="kubeNodes"
     :sub-rows="true"
     v-on="$listeners"
   >
-    <template #group-by="{group}">
-      <div class="pool-row" :class="{'has-description':clusterNodePoolsMap[group.key] && clusterNodePoolsMap[group.key].nodeTemplate}">
-        <div v-trim-whitespace class="group-tab">
-          <div v-if="clusterNodePoolsMap[group.key]" class="project-name" v-html="t('resourceTable.groupLabel.nodePool', { name: clusterNodePoolsMap[group.key].spec.hostnamePrefix, count: group.rows.length}, true)">
-          </div>
-          <div v-else class="project-name" v-html="t('resourceTable.groupLabel.notInANodePool')">
-          </div>
-          <div v-if="clusterNodePoolsMap[group.key] && clusterNodePoolsMap[group.key].nodeTemplate" class="description text-muted text-small">
-            {{ clusterNodePoolsMap[group.key].providerDisplay }} &ndash;  {{ clusterNodePoolsMap[group.key].providerLocation }} / {{ clusterNodePoolsMap[group.key].providerSize }} ({{ clusterNodePoolsMap[group.key].providerName }})
-          </div>
-        </div>
-      </div>
-    </template>
-
     <template #sub-row="{fullColspan, row}">
       <tr class="taints sub-row" :class="{'empty-taints': !row.spec.taints || !row.spec.taints.length}">
         <template v-if="row.spec.taints && row.spec.taints.length">
@@ -212,38 +141,6 @@ export default {
 </template>
 
 <style lang='scss' scoped>
-.pool-row {
-  display: flex;
-  justify-content: space-between;
-
-  .project-name {
-    line-height: 30px;
-  }
-
-  &.has-description {
-    .right {
-      margin-top: 5px;
-    }
-    .group-tab {
-      &, &::after {
-        height: 50px;
-      }
-
-      &::after {
-        right: -20px;
-      }
-
-      .description {
-        margin-top: -20px;
-      }
-    }
-  }
-
-  BUTTON {
-     line-height: 1em;
-  }
-}
-
 .taints {
   td {
     padding-top:0;
