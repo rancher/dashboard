@@ -16,13 +16,13 @@ export default {
       },
       {
         label:   'Machine Provider',
-        content: this.machineProviderDisplay || this.t('generic.none'),
+        content: this.machineProvider ? this.machineProviderDisplay : null,
       },
       {
         label:   'Kubernetes Version',
         content: this.kubernetesVersion,
       },
-    ];
+    ].filter(x => !!x.content);
 
     return out;
   },

@@ -10,7 +10,6 @@ export default [
   'kube-public',
   'kube-system',
   'linkerd',
-  'rio-system',
   'security-scan',
   'tekton-pipelines',
 ];

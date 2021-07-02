@@ -20,8 +20,6 @@ export const KUBERNETES = {
   INSTANCE:             'app.kubernetes.io/instance',
 };
 
-export const RIO = { STACK: 'rio.cattle.io/stack' };
-
 export const CERTMANAGER = { ISSUER: 'cert-manager.io/issuer-name' };
 
 export const STORAGE = {
