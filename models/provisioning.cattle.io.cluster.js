@@ -24,6 +24,12 @@ export default {
       },
     ].filter(x => !!x.content);
 
+    if (!this.machineProvider) {
+      out.splice(1, 1);
+
+      return out;
+    }
+
     return out;
   },
 
