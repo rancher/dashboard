@@ -26,4 +26,6 @@ module.exports = {
     // '<rootDir>/pages/*.vue',
     '!<rootDir>/components/RancherProviderIcon.vue'
   ],
+  coverageDirectory: '<rootDir>/coverage',
+  coverageReporters: ['html', 'text'],
 };

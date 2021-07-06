@@ -26,7 +26,7 @@ describe('unitinput', () => {
     expect(input.element.disabled).toBeTruthy();
   });
 
-  test('inputExponent changes units displayed', () => {
+  test('inputExponent prop changes units displayed', () => {
     const wrapper = mount(UnitInput, { propsData: { value: 1, inputExponent: 2 } });
     const expectedUnits = `${ UNITS[2] }B`;
 
