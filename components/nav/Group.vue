@@ -1,7 +1,5 @@
 <script>
 import Type from '@/components/nav/Type';
-import $ from 'jquery';
-
 export default {
   name: 'Group',
 
@@ -23,11 +21,6 @@ export default {
       required: true,
     },
 
-    expanded: {
-      type:     [Function, Boolean],
-      required: true,
-    },
-
     childrenKey: {
       type:    String,
       default: 'children',
@@ -46,17 +39,8 @@ export default {
 
   data() {
     const id = (this.idPrefix || '') + this.group.name;
-    let isExpanded = false;
 
-    if ( !this.canCollapse ) {
-      isExpanded = true;
-    } else if ( typeof this.expanded === 'function' ) {
-      isExpanded = this.expanded(id);
-    } else {
-      isExpanded = this.expanded === true;
-    }
-
-    return { id, isExpanded };
+    return { id, expanded: false };
   },
 
   computed: {
@@ -83,86 +67,92 @@ export default {
       return false;
     },
 
-    showExpanded() {
-      return this.isExpanded || this.isActiveGroup || this.group.isRoot;
+    isExpanded: {
+      get() {
+        return this.group.isRoot || !!this.expanded;
+      },
+      set(v) {
+        this.expanded = v;
+      }
+    }
+  },
+
+  methods: {
+    expandGroup() {
+      this.isExpanded = true;
+      this.$emit('expand', this.group);
     },
 
-    isActiveGroup() {
-      if (this.group.children && this.group.children.length > 0) {
-        const active = this.group.children.find((item) => {
-          if (item.route) {
-            const route = this.$router.resolve(item.route);
+    groupSelected() {
+      this.expandGroup();
 
-            return this.$route.fullPath === route.href;
+      const items = this.group[this.childrenKey];
+
+      // Navigate to one of the child items (by default the first child)
+      if (items && items.length > 0) {
+        let index = 0;
+
+        // If there is a default type, use it
+        if (this.group.defaultType) {
+          const found = items.findIndex(i => i.name === this.group.defaultType);
+
+          index = (found === -1) ? 0 : found;
+        }
+
+        const route = items[index].route;
+
+        if (route) {
+          this.$router.replace(route);
+        }
+      }
+    },
+
+    // User clicked on the expander icon, so toggle the expansion so the user can see inside the group
+    peek($event) {
+      this.isExpanded = !this.isExpanded;
+      $event.stopPropagation();
+    },
+
+    hasActiveRoute(items) {
+      if (!items) {
+        items = this.group;
+      }
+
+      for (const item of items.children) {
+        if (item.children && this.hasActiveRoute(item)) {
+          return true;
+        } else if (item.route) {
+          const route = this.$router.resolve(item.route);
+
+          if (this.$route.fullPath === route.href) {
+            return true;
           }
-
-          return false;
-        });
-
-        return !!active;
+        }
       }
 
       return false;
     },
-  },
 
-  methods: {
-    expandCollapse() {
-      if (this.canCollapse) {
-        this.isExpanded = !this.isExpanded;
-        this.$emit('on-toggle', this.id, this.isExpanded);
-        this.$store.dispatch('type-map/toggleGroup', {
-          group:    this.id,
-          expanded: this.isExpanded
-        });
-      }
-    },
+    syncNav() {
+      const refs = this.$refs.groups;
 
-    clicked() {
-      this.$emit('on-toggle', this.id, true);
-    },
+      if (refs) {
+        // Only expand one group - so after the first has been expanded, no more will
+        let canExpand = true;
 
-    toggle(event, skipAutoClose) {
-      const $tgt = $(event.target);
+        refs.forEach((grp) => {
+          if (!grp.group.isRoot) {
+            if (canExpand) {
+              const isActive = this.hasActiveRoute(grp.group);
 
-      if ( $tgt.closest('a').length && !$tgt.hasClass('toggle') ) {
-        // Ignore clicks on groups that are also types, unless you click the actual toggle icon
-        return;
-      }
-
-      if ( this.canCollapse ) {
-        this.isExpanded = skipAutoClose ? !this.isExpanded : true;
-        this.$emit('on-toggle', this.id, this.isExpanded, skipAutoClose);
-        this.$store.dispatch('type-map/toggleGroup', {
-          group:    this.id,
-          expanded: this.isExpanded
-        });
-
-        if (this.isExpanded && !skipAutoClose) {
-          const items = this.group[this.childrenKey];
-
-          // Navigate to one of the child items (by default the first child)
-          if (items && items.length > 0) {
-            let index = 0;
-
-            // If there is a default type, use it
-            if (this.group.defaultType) {
-              const found = items.findIndex(i => i.name === this.group.defaultType);
-
-              index = (found === -1) ? 0 : found;
+              if (isActive) {
+                grp.isExpanded = true;
+                canExpand = false;
+                this.$nextTick(() => grp.syncNav());
+              }
             }
-
-            const route = items[index].route;
-
-            this.$router.replace(route);
           }
-        }
-      } else {
-        this.$emit('on-toggle', this.id, true);
-      }
-
-      if (skipAutoClose) {
-        event.stopPropagation();
+        });
       }
     }
   }
@@ -170,28 +160,29 @@ export default {
 </script>
 
 <template>
-  <div class="accordion" :class="{[`depth-${depth}`]: true, 'expanded': showExpanded, 'has-children': hasChildren}">
-    <div v-if="showHeader" class="header" :class="{'active': isOverview, 'noHover': !canCollapse}" @click="toggle($event)">
+  <div class="accordion" :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren}">
+    <div v-if="showHeader" class="header" :class="{'active': isOverview, 'noHover': !canCollapse}" @click="groupSelected($event)">
       <slot name="header">
         <span v-html="group.labelDisplay || group.label" />
       </slot>
-      <i v-if="!onlyHasOverview && canCollapse && !isActiveGroup" class="icon toggle" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" @click="toggle($event, true)" />
+      <i v-if="!onlyHasOverview && canCollapse" class="icon toggle" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" @click="peek($event, true)" />
     </div>
-    <ul v-if="showExpanded" class="list-unstyled body" v-bind="$attrs">
+    <ul v-if="isExpanded" class="list-unstyled body" v-bind="$attrs">
       <template v-for="(child, idx) in group[childrenKey]">
         <li v-if="child.divider" :key="idx">
           <hr />
         </li>
         <li v-else-if="child[childrenKey]" :key="child.name">
           <Group
+            ref="groups"
             :key="id+'_'+child.name+'_children'"
             :id-prefix="id+'_'"
             :depth="depth + 1"
             :children-key="childrenKey"
             :can-collapse="canCollapse"
             :group="child"
-            :expanded="expanded"
-            @selected="$emit('selected')"
+            @selected="groupSelected($event)"
+            @expand="expandGroup($event)"
           />
         </li>
         <Type
@@ -200,8 +191,7 @@ export default {
           :is-root="depth == 0 && !showHeader"
           :type="child"
           :depth="depth"
-          @selected="$emit('selected')"
-          @click="clicked"
+          @selected="expandGroup($event)"
         />
       </template>
     </ul>
