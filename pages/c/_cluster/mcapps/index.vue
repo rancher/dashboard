@@ -7,7 +7,6 @@ export default {
       name:   'c-cluster-mcapps-pages-page',
       params: {
         ...route.params,
-        cluster: 'local',
         product:  NAME,
         page:    'apps'
       }
