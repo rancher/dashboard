@@ -185,7 +185,7 @@ export default {
     },
 
     updateValue(value) {
-      this.curValue = value;
+      this.$refs.cm.updateValue(value);
     }
   }
 };
