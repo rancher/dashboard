@@ -1,9 +1,10 @@
-import { randomStr } from '@/utils/string';
-import { parse as parseUrl, removeParam, addParams } from '@/utils/url';
-import { findBy, addObjects } from '@/utils/array';
+import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE } from '@/config/query-params';
+import { NORMAN } from '@/config/types';
+import { addObjects, findBy } from '@/utils/array';
 import { openAuthPopup, returnTo } from '@/utils/auth';
-import { GITHUB_SCOPE, GITHUB_NONCE, GITHUB_REDIRECT } from '@/config/query-params';
 import { base64Encode } from '@/utils/crypto';
+import { randomStr } from '@/utils/string';
+import { addParams, parse as parseUrl, removeParam } from '@/utils/url';
 
 export const BASE_SCOPES = {
   github:       ['read:org'],
@@ -101,6 +102,15 @@ export const mutations = {
 export const actions = {
   gotHeader({ commit }, fromHeader) {
     commit('gotHeader', fromHeader);
+  },
+
+  async getUser({ dispatch, commit }) {
+    const user = await dispatch('rancher/findAll', {
+      type: NORMAN.USER,
+      opt:  { url: '/v3/users', filter: { me: true } }
+    }, { root: true });
+
+    commit('gotUser', user?.[0]);
   },
 
   gotUser({ commit }, user) {

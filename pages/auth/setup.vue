@@ -3,7 +3,7 @@ import { randomStr } from '@/utils/string';
 import LabeledInput from '@/components/form/LabeledInput';
 import CopyToClipboard from '@/components/CopyToClipboard';
 import AsyncButton from '@/components/AsyncButton';
-import { SETUP } from '@/config/query-params';
+import { LOGGED_OUT, SETUP } from '@/config/query-params';
 import { NORMAN, MANAGEMENT } from '@/config/types';
 import { findBy } from '@/utils/array';
 import Checkbox from '@/components/form/Checkbox';
@@ -12,11 +12,24 @@ import RadioGroup from '@/components/form/RadioGroup';
 import { setSetting, SETTING } from '@/config/settings';
 import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
 import { isDevBuild } from '@/utils/version';
+import { exceptionToErrorsArray } from '@/utils/error';
+
+const calcIsFirstLogin = (store) => {
+  const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
+
+  return firstLoginSetting?.value === 'true';
+};
+
+const calcMustChangePassword = async(store) => {
+  await store.dispatch('auth/getUser');
+
+  return store.getters['auth/v3User']?.mustChangePassword;
+};
 
 export default {
   layout: 'unauthenticated',
 
-  async middleware({ store, redirect } ) {
+  async middleware({ store, redirect, route } ) {
     try {
       await store.dispatch('management/findAll', {
         type: MANAGEMENT.SETTING,
@@ -27,12 +40,26 @@ export default {
     } catch (e) {
     }
 
-    const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
-    const v3User = store.getters['auth/v3User'] ?? {};
+    const isFirstLogin = calcIsFirstLogin(store);
+    const mustChangePassword = calcMustChangePassword(store);
 
-    if (firstLoginSetting?.value !== 'true' && !v3User?.mustChangePassword) {
-      return redirect('/');
+    if (isFirstLogin) {
+      // Always show setup if this is the first log in
+      return;
+    } else if (mustChangePassword) {
+      // If the password needs changing and this isn't the first log in ensure we have the password
+      if (!!store.getters['auth/initialPass']) {
+        // Got it... show setup
+        return;
+      }
+      // Haven't got it... redirect to log in so we get it
+      await store.dispatch('auth/logout', null, { root: true });
+
+      return redirect(302, `/auth/login?${ LOGGED_OUT }`);
     }
+
+    // For all other cases we don't need to show setup
+    return redirect('/');
   },
 
   components: {
@@ -67,17 +94,21 @@ export default {
       serverUrl = window.location.origin;
     }
 
+    const isFirstLogin = calcIsFirstLogin(store);
+    const mustChangePassword = calcMustChangePassword(store);
+
     return {
       vendor:            getVendor(),
       product:           getProduct(),
       step:              parseInt(route.query.step, 10) || 1,
 
-      useRandom:          false,
+      useRandom:          true,
       haveCurrent:        !!current,
-      username:           me?.loginName ?? 'admin',
-      mustChangePassword: v3User?.mustChangePassword ?? false,
+      username:           me?.loginName || 'admin',
+      mustSetup:          isFirstLogin,
+      mustChangePassword: isFirstLogin || mustChangePassword,
       current,
-      password:           '',
+      password:           randomStr(),
       confirm:            '',
 
       v3User,
@@ -95,7 +126,7 @@ export default {
 
   computed: {
     passwordSubmitDisabled() {
-      if (!this.eula && !this.mustChangePassword) {
+      if (!this.eula && this.mustSetup) {
         return true;
       }
 
@@ -144,7 +175,7 @@ export default {
   methods: {
     async finishPassword(buttonCb) {
       try {
-        if (!this.mustChangePassword) {
+        if (this.mustSetup) {
           await this.$store.dispatch('loadManagement');
 
           await Promise.all([
@@ -163,14 +194,13 @@ export default {
           },
         });
 
-        if (this.mustChangePassword) {
-          const user = this.v3User;
+        const user = this.v3User;
 
-          user.mustChangePassword = false;
-          this.$store.dispatch('auth/gotUser', user);
+        user.mustChangePassword = false;
+        this.$store.dispatch('auth/gotUser', user);
 
+        if (!this.mustSetup && this.mustChangePassword) {
           buttonCb(true);
-
           this.done();
         } else {
           this.step = 2;
@@ -178,6 +208,7 @@ export default {
         }
       } catch (err) {
         buttonCb(false);
+        this.errors = exceptionToErrorsArray(err);
       }
     },
 
@@ -197,80 +228,92 @@ export default {
   },
 };
 </script>
+
 <template>
   <div class="setup">
     <div class="row">
-      <div class="col span-6">
-        <h1 class="text-center">
-          {{ t('setup.welcome', {product}) }}
-        </h1>
+      <div class="col span-6 form-col">
+        <div>
+          &nbsp;
+        </div>
+        <div>
+          <h1 class="text-center">
+            {{ t('setup.welcome', {product}) }}
+          </h1>
 
-        <template v-if="step===1">
-          <p
-            class="text-center mb-40 mt-20 setup-title"
-            v-html="t('setup.setPassword', { username }, true)"
-          ></p>
+          <template v-if="step===1">
+            <p
+              class="text-center mb-40 mt-20 setup-title"
+              v-html="t(mustSetup ? 'setup.setPassword' : 'setup.newUserSetPassword', { username }, true)"
+            ></p>
 
-          <!-- For password managers... -->
-          <input type="hidden" name="username" autocomplete="username" :value="username" />
-          <div class="mb-20">
-            <RadioGroup v-model="useRandom" name="password-mode" :options="[{label: t('setup.useRandom'), value: true}, {label: t('setup.useManual'), value: false}]" />
-          </div>
-          <div class="mb-20">
+            <!-- For password managers... -->
+            <input type="hidden" name="username" autocomplete="username" :value="username" />
+            <div class="mb-20">
+              <RadioGroup v-model="useRandom" name="password-mode" :options="[{label: t('setup.useRandom'), value: true}, {label: t('setup.useManual'), value: false}]" />
+            </div>
+            <div class="mb-20">
+              <LabeledInput
+                ref="password"
+                v-model.trim="password"
+                :type="useRandom ? 'text' : 'password'"
+                :disabled="useRandom"
+                label-key="setup.newPassword"
+              >
+                <template v-if="useRandom" #suffix>
+                  <div class="addon" style="padding: 0 0 0 12px;">
+                    <CopyToClipboard :text="password" class="btn-sm" />
+                  </div>
+                </template>
+              </LabeledInput>
+            </div>
             <LabeledInput
-              ref="password"
-              v-model.trim="password"
-              :type="useRandom ? 'text' : 'password'"
-              :disabled="useRandom"
-              label-key="setup.newPassword"
-            >
-              <template v-if="useRandom" #suffix>
-                <div class="addon" style="padding: 0 0 0 12px;">
-                  <CopyToClipboard :text="password" class="btn-sm" />
-                </div>
-              </template>
-            </LabeledInput>
-          </div>
-          <LabeledInput
-            v-show="!useRandom"
-            v-model.trim="confirm"
-            autocomplete="new-password"
-            type="password"
-            label-key="setup.confirmPassword"
-          />
+              v-show="!useRandom"
+              v-model.trim="confirm"
+              autocomplete="new-password"
+              type="password"
+              label-key="setup.confirmPassword"
+            />
 
-          <div v-if="!mustChangePassword">
-            <hr class="mt-40 mb-40 " />
+            <div v-if="mustSetup">
+              <hr class="mt-40 mb-40 " />
 
-            <div class="checkbox">
-              <Checkbox v-model="telemetry" :label="t('setup.telemetry.label')" type="checkbox" />
-              <i v-tooltip="{content:t('setup.telemetry.tip', {}, true), delay: {hide:500}, autoHide: false}" class="icon icon-info" />
+              <div class="checkbox">
+                <Checkbox v-model="telemetry" :label="t('setup.telemetry.label')" type="checkbox" />
+                <i v-tooltip="{content:t('setup.telemetry.tip', {}, true), delay: {hide:500}, autoHide: false}" class="icon icon-info" />
+              </div>
+              <div class="checkbox pt-10 eula">
+                <Checkbox v-model="eula" type="checkbox" />
+                <span v-html="t('setup.eula', {}, true)"></span>
+              </div>
             </div>
-            <div class="checkbox pt-10 eula">
-              <Checkbox v-model="eula" type="checkbox" />
-              <span v-html="t('setup.eula', {}, true)"></span>
+
+            <div class="text-center mt-20">
+              <AsyncButton key="passwordSubmit" type="submit" mode="continue" :disabled="passwordSubmitDisabled" @click="finishPassword" />
             </div>
-          </div>
+          </template>
 
-          <div class="text-center mt-20">
-            <AsyncButton key="passwordSubmit" type="submit" mode="continue" :disabled="passwordSubmitDisabled" @click="finishPassword" />
-          </div>
-        </template>
+          <template v-else>
+            <p>
+              <t k="setup.serverUrl.tip" :raw="true" />
+            </p>
+            <div class="mt-20">
+              <LabeledInput v-model="serverUrl" :label="t('setup.serverUrl.label')" />
+            </div>
+            <div class="text-center mt-20">
+              <button type="button" class="btn role-link" @click="done">
+                {{ t('setup.serverUrl.skip') }}
+              </button>
+              <AsyncButton type="submit" mode="continue" @click="setServerUrl" />
+            </div>
+          </template>
 
-        <template v-else>
-          <p>
-            <t k="setup.serverUrl.tip" :raw="true" />
-          </p>
-          <div class="mt-20">
-            <LabeledInput v-model="serverUrl" :label="t('setup.serverUrl.label')" />
+          <div class="setup-errors mt-20">
+            <h4 v-for="err in errors" :key="err" class="text-error text-center">
+              {{ err }}
+            </h4>
           </div>
-          <div class="text-center mt-20">
-            <button type="button" class="btn role-link" @click="done">
-              {{ t('setup.serverUrl.skip') }}
-            </button>
-            <AsyncButton type="submit" mode="continue" @click="setServerUrl" />
-          </div>
-        </template>
+        </div>
       </div>
 
       <div class="col span-6 landscape" />
@@ -298,7 +341,6 @@ export default {
     overflow: hidden;
 
     .row {
-      align-items: center;
       & .checkbox {
         margin: auto
       }
@@ -308,10 +350,25 @@ export default {
       }
     }
 
+    .form-col {
+      display: flex;
+      flex-direction: column;
+      & > div:first-of-type {
+        flex:3;
+      }
+      & > div:nth-of-type(2) {
+        flex: 9;
+      }
+    }
+
     .setup-title {
       ::v-deep code {
         font-size: 12px;
       }
+    }
+
+    .setup-errors {
+      min-height: 50px;
     }
 
     p {

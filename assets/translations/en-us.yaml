@@ -776,7 +776,7 @@ changePassword:
   deleteKeys:
     label: Delete all existing API keys
   changeOnLogin:
-    label: Ask user to change their password on first login
+    label: Ask user to change their password on next login
   generatePassword:
     label: Generate a random password
   currentPassword:
@@ -3135,7 +3135,7 @@ setup:
   defaultPasswordError: It looks like this is your first time visting the Rancher UI, but the local admin account password is already set to something unique. Log in with that account below to continue the setup process.
   eula: I agree to the <a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">terms and conditions</a> for using Rancher.
   newPassword: New Password
-  newUserSetPassword: The first order of business is to set a strong password for <code>{username}</code>. We suggest using this random one generated just for you, but enter your own if you like.
+  newUserSetPassword: The first order of business is to set a strong password. We suggest using this random one generated just for you, but enter your own if you like.
   serverUrl:
     label: Server URL
     skip: Skip

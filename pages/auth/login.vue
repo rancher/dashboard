@@ -14,7 +14,6 @@ import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
 import { MANAGEMENT, NORMAN } from '@/config/types';
 import { SETTING } from '@/config/settings';
 import { LOGIN_ERRORS } from '@/store/auth';
-import isEmpty from 'lodash/isEmpty';
 import { getVendor, getProduct, setVendor } from '../../config/private-label';
 
 export default {
@@ -197,10 +196,10 @@ export default {
           opt:  { url: '/v3/users?me=true' }
         });
 
-        if (!isEmpty(user) && !isEmpty(user[0])) {
+        if (!!user?.[0]) {
           this.$store.dispatch('auth/gotUser', user[0]);
 
-          this.needsSetup = user[0]?.mustChangePassword ?? false;
+          this.needsSetup = user[0].mustChangePassword;
         }
 
         if ( this.remember ) {
