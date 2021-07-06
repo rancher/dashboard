@@ -331,3 +331,8 @@ Shortcuts are implemented via [`vue-shortkey`](https://github.com/iFgR/vue-short
 ```
 
 Configuration for this is in `plugins/shortkey.js`. At the time of writing this contains options to disable keyboard shortcuts in `input`, `textarea` and `select` elements.
+
+## Testing
+The dashboard is configured to run unit tests with Jest. The `yarn test` command will run every test — anything in a `__tests__` directory, and all js/ts files suffixed with `.test` or `.spec` — and output a coverage report to `/coverage`. 
+
+Example tests can be found in `/components/__tests__`. For more information about testing vue components, see the [vue test utils ](https://vue-test-utils.vuejs.org/) and [jest](https://jestjs.io/docs/getting-started) docs.
