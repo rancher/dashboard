@@ -7,6 +7,25 @@ import { parseSi } from '@/utils/units';
 import { PRIVATE } from '@/plugins/steve/resource-proxy';
 import findLast from 'lodash/findLast';
 
+export const listNodeRoles = (isControlPlane, isWorker, isEtcd, allString) => {
+  const res = [];
+
+  if (isControlPlane) {
+    res.push('Control Plane');
+  }
+  if (isWorker) {
+    res.push('Worker');
+  }
+  if (isEtcd) {
+    res.push('Etcd');
+  }
+  if (res.length === 3 || res.length === 0) {
+    return allString;
+  }
+
+  return res.join(', ');
+};
+
 export default {
   _availableActions() {
     const normanAction = this.normanNode?.actions || {};
@@ -147,36 +166,7 @@ export default {
   roles() {
     const { isControlPlane, isWorker, isEtcd } = this;
 
-    if (( isControlPlane && isWorker && isEtcd ) ||
-        ( !isControlPlane && !isWorker && !isEtcd )) {
-      // !isControlPlane && !isWorker && !isEtcd === RKE?
-      return 'All';
-    }
-    // worker+cp, worker+etcd, cp+etcd
-
-    if (isControlPlane && isWorker) {
-      return 'Control Plane, Worker';
-    }
-
-    if (isControlPlane && isEtcd) {
-      return 'Control Plane, Etcd';
-    }
-
-    if (isEtcd && isWorker) {
-      return 'Etcd, Worker';
-    }
-
-    if (isControlPlane) {
-      return 'Control Plane';
-    }
-
-    if (isEtcd) {
-      return 'Etcd';
-    }
-
-    if (isWorker) {
-      return 'Worker';
-    }
+    return listNodeRoles(isControlPlane, isWorker, isEtcd, this.t('generic.all'));
   },
 
   version() {

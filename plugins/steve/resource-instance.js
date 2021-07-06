@@ -749,7 +749,7 @@ export default {
   },
 
   canYaml() {
-    return this.hasLink('rioview') || this.hasLink('view');
+    return this.hasLink('view');
   },
 
   // ------------------------------------------------------------------
@@ -1075,8 +1075,7 @@ export default {
 
   download() {
     return async() => {
-      const link = this.hasLink('rioview') ? 'rioview' : 'view';
-      const value = await this.followLink(link, { headers: { accept: 'application/yaml' } });
+      const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
 
       downloadFile(`${ this.nameDisplay }.yaml`, value.data, 'application/yaml');
     };
@@ -1099,9 +1098,7 @@ export default {
       }
 
       await eachLimit(items, 10, (item, idx) => {
-        const link = item.hasLink('rioview') ? 'rioview' : 'view';
-
-        return item.followLink(link, { headers: { accept: 'application/yaml' } } ).then((data) => {
+        return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then((data) => {
           files[`resources/${ names[idx] }`] = data.data || data;
         });
       });
@@ -1222,9 +1219,7 @@ export default {
           data:   yaml
         });
       } else {
-        const link = this.hasLink('rioupdate') ? 'rioupdate' : 'update';
-
-        res = await this.followLink(link, {
+        res = await this.followLink('update', {
           method:  'PUT',
           headers,
           data:   yaml

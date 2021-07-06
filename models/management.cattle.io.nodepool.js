@@ -1,6 +1,8 @@
-import { MANAGEMENT } from '@/config/types';
+import { CAPI, MANAGEMENT } from '@/config/types';
+import { sortBy } from '@/utils/sort';
 
 export default {
+
   nodeTemplate() {
     const id = (this.spec?.nodeTemplateName || '').replace(/:/, '/');
     const template = this.$getters['byId'](MANAGEMENT.NODE_TEMPLATE, id);
@@ -26,6 +28,67 @@ export default {
 
   providerSize() {
     return this.nodeTemplate?.providerSize;
+  },
+
+  provisioningCluster() {
+    return this.$getters['all'](CAPI.RANCHER_CLUSTER).find(c => c.name === this.spec.clusterName);
+  },
+
+  doneOverride() {
+    return {
+      name:   'c-cluster-product-resource-namespace-id',
+      params: {
+        resource:  CAPI.RANCHER_CLUSTER,
+        namespace: this.provisioningCluster?.namespace,
+        id:        this.spec.clusterName
+      }
+    };
+  },
+
+  scalePool() {
+    return (delta) => {
+      this.spec.quantity += delta;
+      this.save();
+    };
+  },
+
+  nodes() {
+    const nodePoolName = this.id.replace('/', ':');
+
+    return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.spec.nodePoolName === nodePoolName);
+  },
+
+  desired() {
+    return this.spec?.quantity || 0;
+  },
+
+  pending() {
+    return Math.max(0, this.desired - (this.nodes?.length || 0));
+  },
+
+  ready() {
+    return Math.max(0, (this.nodes?.length || 0) - (this.pending || 0));
+  },
+
+  stateParts() {
+    const out = [
+      {
+        label:     'Pending',
+        color:     'bg-info',
+        textColor: 'text-info',
+        value:     this.pending,
+        sort:      1,
+      },
+      {
+        label:     'Ready',
+        color:     'bg-success',
+        textColor: 'text-success',
+        value:     this.ready,
+        sort:      4,
+      },
+    ].filter(x => x.value > 0);
+
+    return sortBy(out, 'sort:desc');
   },
 
 };

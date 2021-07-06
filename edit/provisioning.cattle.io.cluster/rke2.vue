@@ -143,7 +143,7 @@ export default {
         disableSnapshots:     false,
         s3:                   null,
         snapshotRetention:    5,
-        snapshotScheduleCron: '* */5 * * *',
+        snapshotScheduleCron: '0 */5 * * *',
       });
     }
 

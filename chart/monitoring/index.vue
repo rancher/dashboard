@@ -224,7 +224,7 @@ export default {
             />
           </div>
         </div>
-        <div v-if="provider === 'rke'" class="row mt-20">
+        <div v-if="provider === 'rke' && value.rkeEtcd" class="row mt-20">
           <div class="col span-6">
             <LabeledInput
               v-model="value.rkeEtcd.clients.https.certDir"

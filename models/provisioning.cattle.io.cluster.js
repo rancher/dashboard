@@ -16,13 +16,19 @@ export default {
       },
       {
         label:   'Machine Provider',
-        content: this.machineProviderDisplay || this.t('generic.none'),
+        content: this.machineProvider ? this.machineProviderDisplay : null,
       },
       {
         label:   'Kubernetes Version',
         content: this.kubernetesVersion,
       },
-    ];
+    ].filter(x => !!x.content);
+
+    if (!this.machineProvider) {
+      out.splice(1, 1);
+
+      return out;
+    }
 
     return out;
   },
@@ -105,6 +111,10 @@ export default {
 
   isRke1() {
     return !!this.mgmt?.spec?.rancherKubernetesEngineConfig;
+  },
+
+  mgmtClusterId() {
+    return this.mgmt?.id || this.id.replace(`${ this.metadata.namespace }/`, '');
   },
 
   mgmt() {
@@ -206,6 +216,10 @@ export default {
     }
   },
 
+  nodes() {
+    return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.mgmtClusterId));
+  },
+
   displayName() {
     if ( this.mgmt && !this.isRke2 ) {
       return this.mgmt.spec.displayName;
@@ -213,7 +227,13 @@ export default {
   },
 
   pools() {
-    return this.$getters['all'](CAPI.MACHINE_DEPLOYMENT).filter(pool => pool.spec?.clusterName === this.metadata.name);
+    const deployments = this.$getters['all'](CAPI.MACHINE_DEPLOYMENT).filter(pool => pool.spec?.clusterName === this.metadata.name);
+
+    if (!!deployments.length) {
+      return deployments;
+    }
+
+    return this.$getters['all'](MANAGEMENT.NODE_POOL).filter(pool => pool.spec.clusterName === this.status.clusterName);
   },
 
   desired() {

@@ -85,8 +85,14 @@ export default {
       set(this.value, 'spec', {});
     }
 
+    // Explicitly asked from query string?
     if ( this.subType ) {
-      // Explicitly asked from query string
+      // For RKE1 Cluster, set the ember link so that we load the page rather than using RKE2 create
+      if (this.isRke1) {
+        const selected = this.subTypes.find(s => s.id === this.subType);
+
+        this.emberLink = selected?.link;
+      }
       await this.selectType(this.subType, false);
     } else if ( this.value.isImported ) {
       // Edit exiting import
