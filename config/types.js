@@ -17,6 +17,8 @@ export const NORMAN = {
   CLUSTER_TOKEN:                 'clusterregistrationtoken',
   CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterRoleTemplateBinding',
   GROUP:                         'group',
+  // Note - This allows access to node resources, not schema's or custom components (both are accessed via 'type' which clashes with kube node)
+  NODE:                          'node',
   PRINCIPAL:                     'principal',
   PROJECT:                       'project',
   PROJECT_ROLE_TEMPLATE_BINDING: 'projectRoleTemplateBinding',
@@ -137,6 +139,7 @@ export const MANAGEMENT = {
   FEATURE:                       'management.cattle.io.feature',
   GROUP:                         'management.cattle.io.group',
   KONTANIER_DRIVER:              'management.cattle.io.kontainerdriver',
+  NODE:                          'management.cattle.io.node',
   NODE_DRIVER:                   'management.cattle.io.nodedriver',
   NODE_POOL:                     'management.cattle.io.nodepool',
   NODE_TEMPLATE:                 'management.cattle.io.nodetemplate',
@@ -183,21 +186,6 @@ export const ISTIO = {
   VIRTUAL_SERVICE:  'networking.istio.io.virtualservice',
   DESTINATION_RULE:  'networking.istio.io.destinationrule',
   GATEWAY:          'networking.istio.io.gateway'
-};
-
-export const RIO = {
-  CLUSTER_DOMAIN:   'admin.rio.cattle.io.clusterdomain',
-  FEATURE:          'admin.rio.cattle.io.feature',
-  INFO:             'admin.rio.cattle.io.rioinfo',
-  PUBLIC_DOMAIN:    'admin.rio.cattle.io.publicdomain',
-
-  APP:              'rio.cattle.io.app',
-  EXTERNAL_SERVICE: 'rio.cattle.io.externalservice',
-  STACK:            'rio.cattle.io.stack',
-  ROUTER:           'rio.cattle.io.router',
-  SERVICE:          'rio.cattle.io.service',
-
-  SYSTEM_NAMESPACE: 'rio-system',
 };
 
 export const LOGGING = {

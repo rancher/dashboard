@@ -41,8 +41,8 @@ $z-indexes: (
 // @media only screen and (min-width: map-get($breakpoints, '--viewport-*')) {
 // }
 $breakpoints: (
-  '--viewport-4':  480px,
-  '--viewport-7':  768px,
-  '--viewport-9':  992px,
-  '--viewport-12': 1281px,
+  '--viewport-4':  480px, // Phone
+  '--viewport-7':  768px, // Tablet
+  '--viewport-9':  992px, // Laptop/Desktop
+  '--viewport-12': 1281px, // Desktop
 );

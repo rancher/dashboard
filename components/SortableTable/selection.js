@@ -111,7 +111,7 @@ export default {
     onRowMouseEnter(e) {
       const tr = $(e.target).closest('TR');
 
-      if (tr.hasClass('state-description')) {
+      if (tr.hasClass('sub-row')) {
         const trMainRow = tr.prev('TR');
 
         trMainRow.toggleClass('sub-row-hovered', true);
@@ -121,7 +121,7 @@ export default {
     onRowMouseLeave(e) {
       const tr = $(e.target).closest('TR');
 
-      if (tr.hasClass('state-description')) {
+      if (tr.hasClass('sub-row')) {
         const trMainRow = tr.prev('TR');
 
         trMainRow.toggleClass('sub-row-hovered', false);

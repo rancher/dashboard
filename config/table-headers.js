@@ -198,8 +198,10 @@ export const PODS = {
   name:      'pods',
   labelKey:  'tableHeaders.pods',
   sort:      'pods',
-  value:     'podUsage',
-  formatter: 'PercentageBar'
+  search:    false,
+  value:     'podConsumedUsage',
+  formatter: 'PercentageBar',
+  width:     120,
 };
 
 export const AGE = {
@@ -240,13 +242,6 @@ export const IMAGE = {
   labelKey: 'tableHeaders.image',
   value:    'image',
   sort:     ['image', 'nameSort'],
-};
-
-export const RIO_IMAGE = {
-  name:     'image',
-  labelKey: 'tableHeaders.rioImage',
-  value:    'imageDisplay',
-  sort:     ['imageDisplay', 'nameSort'],
 };
 
 export const POD_IMAGES = {
@@ -336,20 +331,6 @@ export const TARGET = {
   name:     'target',
   labelKey: 'tableHeaders.target',
   value:    'targetDisplay',
-};
-
-export const MATCHES = {
-  name:      'matches',
-  labelKey:  'tableHeaders.matches',
-  value:     'spec.routes',
-  formatter: 'RouterMatch'
-};
-
-export const DESTINATION = {
-  name:      'destination',
-  labelKey:  'tableHeaders.destination',
-  value:     'spec.routes',
-  formatter: 'RouterDestination'
 };
 
 export const USERNAME = {

@@ -121,7 +121,7 @@ export default {
 
 <template>
   <div>
-    <div v-if="label || labelKey || tooltip || tooltipKey" class="radio-group label">
+    <div v-if="label || labelKey || tooltip || tooltipKey || $slots.label" class="radio-group label">
       <slot name="label">
         <h3>
           <t v-if="labelKey" :k="labelKey" />

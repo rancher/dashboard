@@ -175,8 +175,6 @@ export default {
     this.updateStepOneReady();
 
     this.preFormYamlOption = this.valuesComponent || this.hasQuestions ? VALUES_STATE.FORM : VALUES_STATE.YAML;
-
-    this.reademeWindowName = `${ this.stepperName }-${ this.version?.version }`;
   },
 
   data() {
@@ -208,7 +206,6 @@ export default {
       valuesComponent:        null,
       valuesYaml:             '',
       project:                null,
-      reademeWindowName:      null,
 
       defaultCmdOpts,
       customCmdOpts: { ...defaultCmdOpts },
@@ -221,30 +218,42 @@ export default {
       showValuesComponent: true,
       showQuestions:       true,
       showSlideIn:         false,
+      shownReadmeWindows:  [],
       componentHasTabs:    false,
       showCommandStep:     false,
       isNamespaceNew:      false,
 
       stepBasic: {
-        name:        'basics',
-        label:       this.t('catalog.install.steps.basics.label'),
-        subtext:     this.t('catalog.install.steps.basics.subtext'),
-        ready:       true,
-        weight:  30
+        name:           'basics',
+        label:          this.t('catalog.install.steps.basics.label'),
+        subtext:        this.t('catalog.install.steps.basics.subtext'),
+        descriptionKey: 'catalog.install.steps.basics.description',
+        ready:          true,
+        weight:         30
+      },
+      stepClusterTplVersion: {
+        name:           'clusterTplVersion',
+        label:          this.t('catalog.install.steps.clusterTplVersion.label'),
+        subtext:        this.t('catalog.install.steps.clusterTplVersion.subtext'),
+        descriptionKey: 'catalog.install.steps.helmValues.description',
+        ready:          true,
+        weight:         30
       },
       stepValues: {
-        name:        'helmValues',
-        label:       this.t('catalog.install.steps.helmValues.label'),
-        subtext:     this.t('catalog.install.steps.helmValues.subtext'),
-        ready:       true,
-        weight:  20
+        name:           'helmValues',
+        label:          this.t('catalog.install.steps.helmValues.label'),
+        subtext:        this.t('catalog.install.steps.helmValues.subtext'),
+        descriptionKey: 'catalog.install.steps.helmValues.description',
+        ready:          true,
+        weight:         20
       },
       stepCommands: {
-        name:        'helmCli',
-        label:       this.t('catalog.install.steps.helmCli.label'),
-        subtext:     this.t('catalog.install.steps.helmCli.subtext'),
-        ready:       true,
-        weight:  10
+        name:           'helmCli',
+        label:          this.t('catalog.install.steps.helmCli.label'),
+        subtext:        this.t('catalog.install.steps.helmCli.subtext'),
+        descriptionKey: 'catalog.install.steps.helmCli.description',
+        ready:          true,
+        weight:         10
       },
 
       customSteps: [
@@ -401,37 +410,56 @@ export default {
       return this.existing && this.currentVersion !== this.targetVersion ? `${ this.currentVersion } > ${ this.targetVersion }` : this.targetVersion;
     },
 
+    readmeWindowName() {
+      // Version can change, so allow multiple WM tabs for different versions
+      return `${ this.stepperName }-${ this.version?.version }`;
+    },
+
     showingReadmeWindow() {
-      return !!this.$store.getters['wm/byId'](this.reademeWindowName);
+      return !!this.$store.getters['wm/byId'](this.readmeWindowName);
     },
 
     diffMode: mapPref(DIFF),
 
     step1Description() {
-      return this.$store.getters['i18n/withFallback']('catalog.install.steps.basics.description', { action: this.action, existing: !!this.existing }, '');
+      const descriptionKey = this.steps.find(s => s.name === 'basics').descriptionKey;
+
+      return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action, existing: !!this.existing }, '');
     },
 
     step2Description() {
-      return this.$store.getters['i18n/withFallback']('catalog.install.steps.helmValues.description', { action: this.action, existing: !!this.existing }, '');
+      const descriptionKey = this.steps.find(s => s.name === 'helmValues').descriptionKey;
+
+      return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action, existing: !!this.existing }, '');
     },
 
     step3Description() {
-      return this.$store.getters['i18n/withFallback']('catalog.install.steps.helmCli.description', { action: this.action, existing: !!this.existing }, '');
+      const descriptionKey = this.steps.find(s => s.name === 'helmCli').descriptionKey;
+
+      return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action, existing: !!this.existing }, '');
     },
 
     steps() {
-      let steps;
+      const steps = [];
 
       const type = this.version?.annotations?.[CATALOG_ANNOTATIONS.TYPE];
 
       if ( type === CATALOG_ANNOTATIONS._CLUSTER_TPL ) {
-        steps = [this.stepValues];
+        if (this.filteredVersions?.length > 1) {
+          steps.push(this.stepClusterTplVersion);
+        }
+        steps.push({
+          ...this.stepValues,
+          label:          this.t('catalog.install.steps.clusterTplValues.label'),
+          subtext:        this.t('catalog.install.steps.clusterTplValues.subtext'),
+          descriptionKey: 'catalog.install.steps.clusterTplValues.description',
+        });
       } else {
-        steps = [
+        steps.push(
           this.stepBasic,
           this.stepValues,
           ...this.customSteps
-        ];
+        );
       }
 
       if (this.showCommandStep) {
@@ -454,6 +482,7 @@ export default {
     '$route.query'(neu, old) {
       if ( !isEqual(neu, old) ) {
         this.$fetch();
+        this.showSlideIn = false;
       }
     },
 
@@ -542,7 +571,7 @@ export default {
   },
 
   beforeDestroy() {
-    this.$store.dispatch('wm/close', this.reademeWindowName, { root: true });
+    this.shownReadmeWindows.forEach(name => this.$store.dispatch('wm/close', name, { root: true }));
   },
 
   methods: {
@@ -898,12 +927,13 @@ export default {
 
     showReadmeWindow() {
       this.$store.dispatch('wm/open', {
-        id:        this.reademeWindowName,
-        label:     this.reademeWindowName,
+        id:        this.readmeWindowName,
+        label:     this.readmeWindowName,
         icon:      'file',
         component: 'ChartReadme',
         attrs:     { versionInfo: this.versionInfo }
       }, { root: true });
+      this.shownReadmeWindows.push(this.readmeWindowName);
     },
 
     updateStep(stepName, update) {
@@ -997,7 +1027,6 @@ export default {
               </LabeledSelect>
             </div>
           </div>
-
           <NameNsDescription
             v-if="chart"
             v-model="value"
@@ -1032,6 +1061,31 @@ export default {
           </Banner>
 
           <Checkbox v-model="showCommandStep" class="mb-20" :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })" />
+        </div>
+      </template>
+      <template #clusterTplVersion>
+        <Banner color="info" class="description">
+          {{ t('catalog.install.steps.clusterTplVersion.description') }}
+        </Banner>
+        <div class="row mb-20">
+          <div class="col span-4">
+            <LabeledSelect
+              v-if="chart"
+              :label="t('catalog.install.version')"
+              :value="query.versionName"
+              :options="filteredVersions"
+              :selectable="version => !version.disabled"
+              @input="selectVersion"
+            />
+          </div>
+          <div class="step__values__controls--spacer">
+&nbsp;
+          </div>
+          <div class="btn-group">
+            <button type="button" class="btn bg-primary btn-sm" :disabled="!hasReadme || showingReadmeWindow" @click="showSlideIn = !showSlideIn">
+              {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
+            </button>
+          </div>
         </div>
       </template>
       <template #helmValues>

@@ -45,11 +45,6 @@ export const DIFF = 'diff';
 export const _UNIFIED = 'unified';
 export const _SPLIT = 'split';
 
-// Rio Service/K8s Workload
-export const DEMO = 'demo';
-export const ADD_SIDECAR = 'add-sidecar';
-export const EDIT_CONTAINER = 'container';
-
 // CruResource
 export const SUB_TYPE = 'type';
 

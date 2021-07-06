@@ -1,16 +1,38 @@
-import Vue from 'vue';
 import { formatPercent } from '@/utils/string';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, RKE } from '@/config/labels-annotations.js';
-import { CAPI, METRIC, POD } from '@/config/types';
+import {
+  CAPI, MANAGEMENT, METRIC, NORMAN, POD
+} from '@/config/types';
 import { parseSi } from '@/utils/units';
 import { PRIVATE } from '@/plugins/steve/resource-proxy';
 import findLast from 'lodash/findLast';
 
+export const listNodeRoles = (isControlPlane, isWorker, isEtcd, allString) => {
+  const res = [];
+
+  if (isControlPlane) {
+    res.push('Control Plane');
+  }
+  if (isWorker) {
+    res.push('Worker');
+  }
+  if (isEtcd) {
+    res.push('Etcd');
+  }
+  if (res.length === 3 || res.length === 0) {
+    return allString;
+  }
+
+  return res.join(', ');
+};
+
 export default {
   _availableActions() {
+    const normanAction = this.normanNode?.actions || {};
+
     const cordon = {
       action:     'cordon',
-      enabled:    this.hasLink('update') && this.isWorker && !this.isCordoned,
+      enabled:    !!normanAction.cordon,
       icon:       'icon icon-fw icon-pause',
       label:      'Cordon',
       total:      1,
@@ -19,11 +41,28 @@ export default {
 
     const uncordon = {
       action:     'uncordon',
-      enabled:    this.hasLink('update') && this.isWorker && this.isCordoned,
+      enabled:    !!normanAction.uncordon,
       icon:       'icon icon-fw icon-play',
       label:      'Uncordon',
       total:      1,
       bulkable:   true
+    };
+
+    const drain = {
+      action:     'drain',
+      enabled:     !!normanAction.drain,
+      icon:       'icon icon-fw icon-dot-open',
+      label:      this.t('drainNode.action'),
+      bulkable:   true,
+      bulkAction: 'drain'
+    };
+
+    const stopDrain = {
+      action:     'stopDrain',
+      enabled:    !!normanAction.stopDrain,
+      icon:       'icon icon-fw icon-x',
+      label:      this.t('drainNode.actionStop'),
+      bulkable:   true,
     };
 
     const openSsh = {
@@ -46,6 +85,8 @@ export default {
       { divider: true },
       cordon,
       uncordon,
+      drain,
+      stopDrain,
       { divider: true },
       ...this._standardActions
     ];
@@ -90,11 +131,13 @@ export default {
   },
 
   isWorker() {
-    return `${ this.labels[NODE_ROLES.WORKER] }` === 'true';
+    return this.managementNode ? this.managementNode.isWorker : `${ this.labels[NODE_ROLES.WORKER] }` === 'true';
   },
 
   isControlPlane() {
-    if (
+    if (this.managementNode) {
+      return this.managementNode.isControlPlane;
+    } else if (
       `${ this.labels[NODE_ROLES.CONTROL_PLANE] }` === 'true' ||
       `${ this.labels[NODE_ROLES.CONTROL_PLANE_OLD] }` === 'true'
     ) {
@@ -105,9 +148,7 @@ export default {
   },
 
   isEtcd() {
-    const { ETCD: etcd } = NODE_ROLES;
-
-    return `${ this.labels[etcd] }` === 'true';
+    return this.managementNode ? this.managementNode.isEtcd : `${ this.labels[NODE_ROLES.ETCD] }` === 'true';
   },
 
   hasARole() {
@@ -125,36 +166,7 @@ export default {
   roles() {
     const { isControlPlane, isWorker, isEtcd } = this;
 
-    if (( isControlPlane && isWorker && isEtcd ) ||
-        ( !isControlPlane && !isWorker && !isEtcd )) {
-      // !isControlPlane && !isWorker && !isEtcd === RKE?
-      return 'All';
-    }
-    // worker+cp, worker+etcd, cp+etcd
-
-    if (isControlPlane && isWorker) {
-      return 'Control Plane, Worker';
-    }
-
-    if (isControlPlane && isEtcd) {
-      return 'Control Plane, Etcd';
-    }
-
-    if (isEtcd && isWorker) {
-      return 'Etcd, Worker';
-    }
-
-    if (isControlPlane) {
-      return 'Control Plane';
-    }
-
-    if (isEtcd) {
-      return 'Etcd';
-    }
-
-    if (isWorker) {
-      return 'Worker';
-    }
+    return listNodeRoles(isControlPlane, isWorker, isEtcd, this.t('generic.all'));
   },
 
   version() {
@@ -170,7 +182,7 @@ export default {
   },
 
   cpuUsagePercentage() {
-    return ((this.cpuUsage * 10000) / this.cpuCapacity).toString();
+    return ((this.cpuUsage * 100) / this.cpuCapacity).toString();
   },
 
   ramUsage() {
@@ -182,11 +194,15 @@ export default {
   },
 
   ramUsagePercentage() {
-    return ((this.ramUsage * 10000) / this.ramCapacity).toString();
+    return ((this.ramUsage * 100) / this.ramCapacity).toString();
   },
 
   podUsage() {
     return calculatePercentage(this.status.allocatable.pods, this.status.capacity.pods);
+  },
+
+  podConsumedUsage() {
+    return ((this.podConsumed / this.podCapacity) * 100).toString();
   },
 
   podCapacity() {
@@ -217,6 +233,21 @@ export default {
     return !!this.spec.unschedulable;
   },
 
+  drainedState() {
+    const sNodeCondition = this.managementNode?.status.conditions.find(c => c.type === 'Drained');
+
+    if (sNodeCondition) {
+      if (sNodeCondition.status === 'True') {
+        return 'drained';
+      }
+      if (sNodeCondition.transitioning) {
+        return 'draining';
+      }
+    }
+
+    return null;
+  },
+
   containerRuntimeVersion() {
     return this.status.nodeInfo.containerRuntimeVersion.replace('docker://', '');
   },
@@ -230,20 +261,71 @@ export default {
   },
 
   cordon() {
-    return async() => {
-      Vue.set(this.spec, 'unschedulable', true);
-      await this.save();
+    return async(resources) => {
+      const safeResources = Array.isArray(resources) ? resources : [this];
+
+      await Promise.all(safeResources.map((node) => {
+        return node.normanNode.doAction('cordon');
+      }));
     };
   },
 
   uncordon() {
-    return async() => {
-      Vue.set(this.spec, 'unschedulable', false);
-      await this.save();
+    return async(resources) => {
+      const safeResources = Array.isArray(resources) ? resources : [this];
+
+      await Promise.all(safeResources.map((node) => {
+        return node.normanNode.doAction('uncordon');
+      }));
+    };
+  },
+
+  clusterId() {
+    const parts = this.links.self.split('/');
+
+    return parts[parts.length - 4];
+  },
+
+  normanNodeId() {
+    const managementNode = (this.$rootGetters['management/all'](MANAGEMENT.NODE) || []).find((n) => {
+      return n.id.startsWith(this.clusterId) && n.status.nodeName === this.name;
+    });
+
+    if (managementNode) {
+      return managementNode.id.replace('/', ':');
+    }
+  },
+
+  normanNode() {
+    return this.$rootGetters['rancher/byId'](NORMAN.NODE, this.normanNodeId);
+  },
+
+  managementNode() {
+    return this.$rootGetters['management/all'](MANAGEMENT.NODE).find((mNode) => {
+      return mNode.id.startsWith(this.clusterId) && mNode.status.nodeName === this.id;
+    });
+  },
+
+  drain() {
+    return (resources) => {
+      this.$dispatch('promptModal', { component: 'DrainNode', resources: [resources || [this], this.normanNodeId] });
+    };
+  },
+
+  stopDrain() {
+    return async(resources) => {
+      const safeResources = Array.isArray(resources) ? resources : [this];
+
+      await Promise.all(safeResources.map((node) => {
+        return node.normanNode.doAction('stopDrain');
+      }));
     };
   },
 
   state() {
+    if (this.drainedState) {
+      return this.drainedState;
+    }
     if ( !this[PRIVATE].isDetailPage && this.isCordoned ) {
       return 'cordoned';
     }
@@ -310,6 +392,7 @@ export default {
       return this.$rootGetters['management/byId'](CAPI.MACHINE, `${ namespace }/${ name }`);
     }
   },
+
 };
 
 function calculatePercentage(allocatable, capacity) {

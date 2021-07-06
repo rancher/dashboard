@@ -20,14 +20,14 @@ export const KUBERNETES = {
   INSTANCE:             'app.kubernetes.io/instance',
 };
 
-export const RIO = { STACK: 'rio.cattle.io/stack' };
-
 export const CERTMANAGER = { ISSUER: 'cert-manager.io/issuer-name' };
 
 export const STORAGE = {
   DEFAULT_STORAGE_CLASS:      'storageclass.kubernetes.io/is-default-class',
   BETA_DEFAULT_STORAGE_CLASS: 'storageclass.beta.kubernetes.io/is-default-class'
 };
+
+export const MANAGEMENT_NODE = { NODE_NAME: 'management.cattle.io/nodename' };
 
 export const NODE_ROLES = {
   CONTROL_PLANE_OLD: 'node-role.kubernetes.io/controlplane',

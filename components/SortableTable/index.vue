@@ -13,6 +13,21 @@ import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
 
+export const COLUMN_BREAKPOINTS = {
+  /**
+   * Only show column if at tablet width or wider
+   */
+  TABLET:  'tablet',
+  /**
+   * Only show column if at laptop width or wider
+   */
+  LAPTOP:  'laptop',
+  /**
+   * Only show column if at desktop width or wider
+   */
+  DESKTOP: 'desktop'
+};
+
 // @TODO:
 // Fixed header/scrolling
 
@@ -574,7 +589,7 @@ export default {
         </slot>
         <template v-for="(row, i) in group.rows">
           <slot name="main-row" :row="row">
-            <slot :name="'main-row:' + (row.mainRowKey || i)">
+            <slot :name="'main-row:' + (row.mainRowKey || i)" :full-colspan="fullColspan">
               <!-- The data-cant-run-bulk-action-of-interest attribute is being used instead of :class because
               because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
               the value of :class changes. -->
@@ -598,7 +613,7 @@ export default {
                       :key="col.name"
                       :data-title="labelFor(col)"
                       :align="col.align || 'left'"
-                      :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter}"
+                      :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter, [col.breakpoint]: !!col.breakpoint}"
                       :width="col.width"
                     >
                       <slot :name="'cell:' + col.name" :row="row" :col="col" :value="valueFor(row,col)">
@@ -706,6 +721,26 @@ export default {
       &:hover, &:focus {
         background-color: var(--accent-btn);
         box-shadow: none;
+      }
+    }
+
+    // Aligns with COLUMN_BREAKPOINTS
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-4')) {
+      // HIDE column on sizes below 480px
+      &.tablet, &.laptop, &.desktop {
+        display: none;
+      }
+    }
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-9')) {
+      // HIDE column on sizes below 992px
+      &.laptop, &.desktop {
+        display: none;
+      }
+    }
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-12')) {
+      // HIDE column on sizes below 1281px
+      &.desktop {
+        display: none;
       }
     }
   }

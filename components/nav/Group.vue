@@ -276,6 +276,19 @@ export default {
       }
     }
 
+    &.depth-1 {
+      > .header {
+        > SPAN {
+          font-size: 13px;
+          line-height: 16px;
+          padding: 8px 0 7px 5px !important;
+        }
+        > I {
+          padding: 9px 7px 8px 7px !important;
+        }
+      }
+    }
+
     &:not(.depth-0) {
       > .header {
         padding-left: 10px;

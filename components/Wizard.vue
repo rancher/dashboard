@@ -106,7 +106,27 @@ export default {
     },
 
     activeStepIndex() {
-      return this.visibleSteps.indexOf(this.activeStep);
+      return this.visibleSteps.findIndex(s => s.name === this.activeStep.name);
+    },
+
+    showPrevious() {
+      // If on first step...
+      if (this.activeStepIndex === 0) {
+        return false;
+      }
+      // .. or any previous step isn't hidden
+      for (let stepIndex = 0; stepIndex < this.activeStepIndex; stepIndex++) {
+        const step = this.visibleSteps[stepIndex];
+
+        if (!step) {
+          break;
+        }
+        if (!step.hidden) {
+          return true;
+        }
+      }
+
+      return false;
     },
 
     canNext() {
@@ -188,7 +208,7 @@ export default {
         return false;
       }
 
-      const idx = this.visibleSteps.indexOf(step);
+      const idx = this.visibleSteps.findIndex(s => s.name === step.name);
 
       if (idx === 0 && !this.editFirstStep) {
         return false;
@@ -251,17 +271,17 @@ export default {
 
                 :id="step.name"
                 :key="step.name+'li'"
-                :class="{step: true, active: step === activeStep, disabled: !isAvailable(step)}"
+                :class="{step: true, active: step.name === activeStep.name, disabled: !isAvailable(step)}"
                 role="presentation"
               >
                 <span
                   :aria-controls="'step' + idx+1"
-                  :aria-selected="step === activeStep"
+                  :aria-selected="step.name === activeStep.name"
                   role="tab"
                   class="controls"
                   @click.prevent="goToStep(idx+1, true)"
                 >
-                  <span class="icon icon-lg" :class="{'icon-dot': step === activeStep, 'icon-dot-open':step !== activeStep}" />
+                  <span class="icon icon-lg" :class="{'icon-dot': step.name === activeStep.name, 'icon-dot-open':step.name !== activeStep.name}" />
                   <span>
                     {{ step.label }}
                   </span>
@@ -275,7 +295,7 @@ export default {
 
       <div class="step-container">
         <template v-for="step in steps">
-          <div v-if="step === activeStep || step.hidden" :key="step.name" class="step-container__step" :class="{'hide': step !== activeStep && step.hidden}">
+          <div v-if="step.name === activeStep.name || step.hidden" :key="step.name" class="step-container__step" :class="{'hide': step.name !== activeStep.name && step.hidden}">
             <slot :step="step" :name="step.name" />
           </div>
         </template>
@@ -293,7 +313,7 @@ export default {
           </slot>
 
           <div class="controls-steps">
-            <slot v-if="activeStepIndex!==0" name="back" :back="back">
+            <slot v-if="showPrevious" name="back" :back="back">
               <button :disabled="!editFirstStep && activeStepIndex===1" type="button" class="btn role-secondary" @click="back()">
                 <t k="wizard.previous" />
               </button>

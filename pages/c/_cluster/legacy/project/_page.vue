@@ -2,7 +2,12 @@
 import EmberPage from '@/components/EmberPage';
 import { project } from '@/store/type-map';
 
-const PAGES = { monitoring: 'monitoring/project-setting' };
+const PAGES = {
+  istio:          'istio/project-istio/metrics',
+  monitoring:     'monitoring/project-setting',
+  pipelineConfig: 'pipeline',
+  pipelines:      'pipeline/pipelines'
+};
 
 export default {
   components: { EmberPage },

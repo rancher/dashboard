@@ -28,10 +28,10 @@ export const MULTI_CLUSTER = create('multi-cluster-management', true);
 export const LEGACY = create('legacy', false);
 export const RKE2 = create('rke2', true);
 export const UNSUPPORTED_STORAGE_DRIVERS = create('unsupported-storage-drivers', false);
+export const FLEET = create('continuous-delivery', true);
 
 // Not currently used.. no point defining ones we don't use
 // export const EMBEDDED_CLUSTER_API = create('embedded-cluster-api', true);
-// export const FLEET = create('fleet', true);
 // export const ISTIO_VIRTUAL_SERVICE_UI = create('istio-virtual-service-ui', true);
 // export const PROVISIONINGV2 = create('provisioningv2', true);
 // export const AUTH = create('auth', true);
