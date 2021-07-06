@@ -40,36 +40,39 @@ export default {
     show() {
       this.$modal.show('wechat-modal');
     },
-    // close() {
-    //   this.$modal.hide('wechat-modal');
-    // }
+    close() {
+      this.$modal.hide('wechat-modal');
+    }
   },
 };
 </script>
 
 <template>
   <div>
-    <p>Selected Locale: {{ selectedLocaleLabel }}</p>
     <SimpleBox :title="t('landing.community.title')" :pref="pref" :pref-key="prefKey">
       <div v-for="(value, name) in options" :key="name" class="support-link">
         <a v-t="name" :href="value" target="_blank" rel="noopener noreferrer nofollow" />
       </div>
 
-      <div v-if="selectedLocaleLabel === '简体中文'" class="support-link">
-        <p @click="show">
-          WeChat
-        </p>
+      <div v-if="selectedLocaleLabel === t('locale.zh-hans')" class="support-link">
+        <a class="link" @click="show">
+          {{ t('footer.wechat.title') }}
+        </a>
       </div>
     </SimpleBox>
     <modal
-      class="wechat-modal"
       name="wechat-modal"
       height="auto"
-      :width="440"
+      :width="640"
     >
-      <div style="margin: 60px;">
-        <h1>Here is a modal</h1>
+      <div class="wechat-modal">
+        <h1>{{ t('footer.wechat.modalText') }}</h1>
         <div class="qr-img">
+        </div>
+        <div>
+          <button class="btn role-primary" @click="close">
+            {{ t('generic.close') }}
+          </button>
         </div>
       </div>
     </modal>
@@ -82,7 +85,18 @@ export default {
   }
 
   .wechat-modal {
+    margin: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 
+  .link {
+    cursor: pointer;
+  }
+
+  .btn {
+    margin: 20px auto 0;
   }
 
   .qr-img {
@@ -92,5 +106,6 @@ export default {
     background-position: center center;
     height: 128px;
     width: 128px;
+    margin: 15px auto 10px;
   }
 </style>
