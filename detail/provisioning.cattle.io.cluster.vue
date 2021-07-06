@@ -35,6 +35,7 @@ export default {
   },
 
   async fetch() {
+    await this.value.waitForProvisioner();
     const hash = {};
 
     const isImportedOrCustom = this.value.isImported || this.value.isCustom;

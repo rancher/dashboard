@@ -129,6 +129,14 @@ export default {
     return out;
   },
 
+  waitForProvisioner() {
+    return (timeout, interval) => {
+      return this.waitForTestFn(() => {
+        return !!this.provisioner;
+      }, `set provisioner`, timeout, interval);
+    };
+  },
+
   waitForMgmt() {
     return (timeout, interval) => {
       return this.waitForTestFn(() => {
