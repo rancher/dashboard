@@ -2,8 +2,25 @@ import { MANAGEMENT_NODE } from '@/config/labels-annotations';
 import { CAPI, MANAGEMENT, NODE } from '@/config/types';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { listNodeRoles } from '@/models/cluster/node';
+import { insertAt } from '@/utils/array';
+import { downloadFile } from '@/utils/download';
 
 export default {
+  _availableActions() {
+    const out = this._standardActions;
+
+    const downloadKeys = {
+      action:     'downloadKeys',
+      enabled:    !!this.status.rkeNode?.sshKey,
+      icon:       'icon icon-fw icon-download',
+      label:      this.t('node.actions.downloadSSHKey'),
+    };
+
+    insertAt(out, 0, { divider: true });
+    insertAt(out, 0, downloadKeys);
+
+    return out;
+  },
 
   kubeNodeName() {
     return this.metadata.labels[MANAGEMENT_NODE.NODE_NAME];
@@ -47,6 +64,12 @@ export default {
     const nodePoolID = this.spec.nodePoolName.replace(':', '/');
 
     return this.$rootGetters['management/byId'](MANAGEMENT.NODE_POOL, nodePoolID);
+  },
+
+  downloadKeys() {
+    return () => {
+      downloadFile(this.status.nodeName, this.status.rkeNode.sshKey, 'application/octet-stream');
+    };
   },
 
   provisioningCluster() {

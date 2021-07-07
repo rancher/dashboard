@@ -76,7 +76,7 @@ export default {
       action:     'downloadKeys',
       enabled:    !!this.provisionedMachine?.links?.sshkeys,
       icon:       'icon icon-fw icon-download',
-      label:      'Download SSH Key',
+      label:      this.t('node.actions.downloadSSHKey'),
     };
 
     return [
