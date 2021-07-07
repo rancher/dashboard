@@ -137,6 +137,7 @@ export default {
   },
 
   mounted() {
+    this.username = this.firstLogin ? 'admin' : this.username;
     this.$nextTick(() => {
       this.focusSomething();
     });
@@ -247,9 +248,12 @@ export default {
             {{ t('login.loginAgain') }}
           </h4>
         </div>
-        <Banner v-if="firstLogin" color="info">
-          <t k="setup.defaultPasswordError" :raw="true" />
-        </Banner>
+        <div v-if="firstLogin" class="first-login-message">
+          <Banner color="info">
+            <t k="setup.defaultPasswordError" :raw="true" />
+          </Banner>
+        </div>
+
         <div v-if="(!hasLocal || (hasLocal && !showLocal)) && providers.length" class="mt-30">
           <component
             :is="providerComponents[idx]"
@@ -263,10 +267,11 @@ export default {
           />
         </div>
         <template v-if="hasLocal">
-          <form v-if="showLocal" class="mt-50">
+          <form v-if="showLocal" class="mt-40">
             <div class="span-6 offset-3">
               <div class="mb-20">
                 <LabeledInput
+                  v-if="!firstLogin"
                   ref="username"
                   v-model="username"
                   :label="t('login.username')"
@@ -293,7 +298,7 @@ export default {
                   :error-label="t('asyncButton.default.error')"
                   @click="loginLocal"
                 />
-                <div class="mt-20">
+                <div v-if="!firstLogin" class="mt-20">
                   <Checkbox v-model="remember" label="Remember Username" type="checkbox" />
                 </div>
               </div>
@@ -331,12 +336,27 @@ export default {
       object-fit: cover;
     }
 
-    .login-messages {
-      height: 20px;
+    .login-messages, .first-login-message {
       display: flex;
       justify-content: center;
-      .text-error {
+      .text-error, .banner {
         max-width: 80%;
+      }
+    }
+
+    .login-messages {
+      height: 20px;
+    }
+
+    .first-login-message {
+      .banner {
+        margin-bottom: 0;
+        border-left: 0;
+
+        ::v-deep code {
+          font-size: 12px;
+          padding: 0;
+        }
       }
     }
   }
