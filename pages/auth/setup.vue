@@ -84,9 +84,11 @@ export default {
     const current = route.query[SETUP] || store.getters['auth/initialPass'] || 'admin';
     const v3User = store.getters['auth/v3User'] ?? {};
 
-    const mcmEnabled = await store.dispatch('management/find', {
+    const mcmFeature = await store.dispatch('management/find', {
       type: MANAGEMENT.FEATURE, id: 'multi-cluster-management', opt: { url: `/v1/${ MANAGEMENT.FEATURE }/multi-cluster-management` }
-    })?.spec?.value !== false;
+    });
+
+    const mcmEnabled = mcmFeature?.spec?.value || mcmFeature?.status?.default;
 
     let serverUrl;
 
@@ -207,7 +209,11 @@ export default {
           buttonCb(true);
           this.done();
         } else {
-          this.step = 2;
+          if (this.mcmEnabled) {
+            this.step = 2;
+          } else {
+            this.done();
+          }
           buttonCb(true);
         }
       } catch (err) {
@@ -295,7 +301,7 @@ export default {
             </div>
           </template>
 
-          <template v-else-if="mcmEnabled">
+          <template v-else>
             <p>
               <t k="setup.serverUrl.tip" :raw="true" />
             </p>
