@@ -38,7 +38,7 @@ import EmberPage from '@/components/EmberPage';
 import ResourceSummary, { resourceCounts } from './ResourceSummary';
 import HardwareResourceGauge from './HardwareResourceGauge';
 
-const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
+export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
 const CLUSTER_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-cluster-nodes-1/rancher-cluster-nodes?orgId=1';
 const CLUSTER_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-cluster-1/rancher-cluster?orgId=1';
@@ -208,6 +208,10 @@ export default {
       return totalInput;
     },
 
+    hasStats() {
+      return this.currentCluster?.status?.allocatable && this.currentCluster?.status?.requested;
+    },
+
     cpuReserved() {
       return {
         total:  parseSi(this.currentCluster?.status?.allocatable?.cpu),
@@ -345,10 +349,10 @@ export default {
       <ResourceSummary v-if="canAccessDeployments" resource="apps.deployment" />
     </div>
 
-    <h3 v-if="!hasV1Monitoring" class="mt-40">
+    <h3 v-if="!hasV1Monitoring && hasStats" class="mt-40">
       {{ t('clusterIndexPage.sections.capacity.label') }}
     </h3>
-    <div v-if="!hasV1Monitoring" class="hardware-resource-gauges">
+    <div v-if="!hasV1Monitoring && hasStats" class="hardware-resource-gauges">
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.pods')" :used="podsUsed" />
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.cores')" :reserved="cpuReserved" :used="cpuUsed" />
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.ram')" :reserved="ramReserved" :used="ramUsed" :units="ramReserved.units" />

@@ -8,17 +8,16 @@ import BadgeState from '@/components/BadgeState';
 import CommunityLinks from '@/components/CommunityLinks';
 import SimpleBox from '@/components/SimpleBox';
 import LandingPagePreference from '@/components/LandingPagePreference';
+import SingleClusterInfo from '@/components/SingleClusterInfo';
 import { mapGetters } from 'vuex';
 import { MANAGEMENT, CAPI } from '@/config/types';
 import { NAME as MANAGER } from '@/config/product/manager';
 import { STATE } from '@/config/table-headers';
 import { MODE, _IMPORT } from '@/config/query-params';
-import { createMemoryFormat, createMemoryValues, formatSi, parseSi } from '@/utils/units';
+import { createMemoryFormat, formatSi, parseSi } from '@/utils/units';
 import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenReleaseNotes } from '@/utils/version';
 import PageHeaderActions from '@/mixins/page-actions';
 import { getVendor } from '@/config/private-label';
-import ConsumptionGauge from '@/components/ConsumptionGauge';
-import { get } from '@/utils/object';
 import { mapFeature, MULTI_CLUSTER } from '@/store/features';
 import { SETTING } from '@/config/settings';
 
@@ -37,7 +36,7 @@ export default {
     CommunityLinks,
     SimpleBox,
     LandingPagePreference,
-    ConsumptionGauge
+    SingleClusterInfo
   },
 
   mixins: [PageHeaderActions],
@@ -65,8 +64,7 @@ export default {
     ];
 
     return {
-
-      HIDE_HOME_PAGE_CARDS, clusters: [], fullVersion, pageActions, vendor: getVendor(), clusterDetail: null,
+      HIDE_HOME_PAGE_CARDS, clusters: [], fullVersion, pageActions, vendor: getVendor(),
     };
   },
 
@@ -165,23 +163,6 @@ export default {
     ...mapGetters(['currentCluster', 'defaultClusterId'])
   },
 
-  watch: {
-    async clusters(neu) {
-      if (!this.mcm) {
-        this.clusterDetail = neu[1];
-        const nodeMetrics = await this.clusterDetail.fetchNodeMetrics();
-
-        this.$set(this.clusterDetail, 'metrics', {
-          cpu:    {
-            total: parseInt(get(this.clusterDetail, 'status.capacity.cpu')),
-            used:  nodeMetrics?.cpu || 0
-          },
-          memory: createMemoryValues(get(this.clusterDetail, 'status.capacity.memory'), nodeMetrics?.memory || 0 )
-        });
-      }
-    }
-  },
-
   async created() {
     // Update last visited on load
     await this.$store.dispatch('prefs/setLastVisited', { name: 'home' });
@@ -228,9 +209,7 @@ export default {
     async resetCards() {
       await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value: {} });
       await this.$store.dispatch('prefs/set', { key: READ_WHATS_NEW, value: '' });
-    },
-    get,
-    parseSi
+    }
   }
 };
 
@@ -246,57 +225,6 @@ export default {
             <a class="hand" @click.prevent.stop="showWhatsNew"><span v-html="t('landing.whatsNewLink')" /></a>
           </Banner>
         </div>
-      </div>
-
-      <div
-        v-if="!mcm && clusterDetail"
-        class="cluster-dashboard-glance"
-      >
-        <div>
-          <label>{{ t('glance.provider') }}: </label>
-          <span>
-            {{ t(`cluster.provider.${ clusterDetail.status.provider || 'other' }`) }}</span>
-        </div>
-        <div>
-          <label>{{ t('glance.version') }}: </label>
-          <span v-if="clusterDetail.kubernetesVersionExtension" style="font-size: 0.5em">{{ clusterDetail.kubernetesVersionExtension }}</span>
-          <span>{{ clusterDetail.kubernetesVersionBase }}</span>
-        </div>
-        <div>
-          <label>{{ t('glance.created') }}: </label>
-          <span><LiveDate :value="clusterDetail.metadata.creationTimestamp" :add-suffix="true" :show-tooltip="true" /></span>
-        </div>
-
-        <div class="glance-gauge">
-          <span>{{ t('landing.clusters.cpuUsed') }}:</span>
-
-          <ConsumptionGauge
-
-            :capacity="get(clusterDetail, 'metrics.cpu.total')"
-            :used="get(clusterDetail, 'metrics.cpu.used')"
-          >
-            <template #title>
-              <span class="text-muted">
-                {{ get(clusterDetail, 'metrics.cpu.used') || 0 }} / {{ get(clusterDetail, 'metrics.cpu.total') }}
-              </span>
-            </template>
-          </ConsumptionGauge>
-        </div>
-        <div class="glance-gauge">
-          <span>{{ t('landing.clusters.memoryUsed') }}:</span>
-          <ConsumptionGauge
-            :units="get(clusterDetail, 'metrics.memory.units')"
-            :capacity="get(clusterDetail, 'metrics.memory.total')"
-            :used="get(clusterDetail, 'metrics.memory.used')"
-          >
-            <template #title>
-              <span class="text-muted">
-                {{ get(clusterDetail, 'metrics.memory.used') || 0 }} / {{ get(clusterDetail, 'metrics.memory.total') }}{{ get(clusterDetail, 'metrics.memory.units') }}
-              </span>
-            </template>
-          </ConsumptionGauge>
-        </div>
-        <div :style="{'flex':1}" />
       </div>
 
       <div class="row">
@@ -389,6 +317,9 @@ export default {
                 </template> -->
               </SortableTable>
             </div>
+            <div v-else class="col span-12">
+              <SingleClusterInfo />
+            </div>
           </div>
         </div>
         <div v-if="showSidePanel" class="col span-3">
@@ -404,46 +335,6 @@ export default {
   </div>
 </template>
 <style lang='scss' scoped>
-.cluster-dashboard-glance {
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  padding: 20px;
-  margin-bottom: 40px;
-  display: flex;
-
-  &>*:not(:last-child) {
-    margin-right: 40px;
-
-    & SPAN {
-       font-weight: bold
-    }
-  }
-
-  .glance-gauge{
-    display:flex;
-    flex:1;
-    &>span {
-      padding-right: 5px;
-    }
-
-    & .consumption-gauge {
-      flex-grow: 1;
-      max-width: 100px;
-      position:relative;
-
-      & >:first-child {
-        font-size: 12px;
-        position: absolute;
-        bottom: calc(-1em - 3px);
-        right:  0;
-      }
-      & >:last-child{
-        margin-top: 0 !important;
-        flex:1;
-      }
-    }
-  }
-}
   .banner.info.whats-new {
     border: 0;
     margin-top: 10px;

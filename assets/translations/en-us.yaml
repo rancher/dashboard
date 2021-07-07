@@ -19,6 +19,7 @@ generic:
   ignored: Ignored
   invalidCron: Invalid cron schedule
   labelsAndAnnotations: Labels & Annotations
+  links: Links
   loading: Loading&hellip;
   members: Members
   na: n/a
@@ -1397,6 +1398,7 @@ glance:
   monitoringDashboard: Monitoring Dashboard
   installMonitoring: Install Monitoring
   v1MonitoringInstalled: V1 Monitoring Installed
+  clusterInfo: Cluster Information
 
 grafanaDashboard:
   failedToLoad: Failed to load graph

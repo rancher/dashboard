@@ -141,11 +141,15 @@ export default {
     return this.isCondition('Ready');
   },
 
-  kubernetesVersion() {
+  kubernetesVersionRaw() {
     const fromStatus = this.status?.version?.gitVersion;
     const fromSpec = this.spec?.[`${ this.provisioner }Config`]?.kubernetesVersion;
 
-    return fromStatus || fromSpec || this.$rootGetters['i18n/t']('generic.unknown');
+    return fromStatus || fromSpec;
+  },
+
+  kubernetesVersion() {
+    return this.kubernetesVersionRaw || this.$rootGetters['i18n/t']('generic.unknown');
   },
 
   kubernetesVersionBase() {
