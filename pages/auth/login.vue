@@ -11,7 +11,7 @@ import { configType } from '@/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
 import { importLogin } from '@/utils/dynamic-importer';
 import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
-import { MANAGEMENT } from '@/config/types';
+import { MANAGEMENT, NORMAN } from '@/config/types';
 import { SETTING } from '@/config/settings';
 import { LOGIN_ERRORS } from '@/store/auth';
 import { getVendor, getProduct, setVendor } from '../../config/private-label';
@@ -190,6 +190,18 @@ export default {
             password: this.password
           }
         });
+
+        const user = await this.$store.dispatch('rancher/findAll', {
+          type: NORMAN.USER,
+          opt:  { url: '/v3/users?me=true' }
+        });
+
+        if (!!user?.[0]) {
+          this.$store.dispatch('auth/gotUser', user[0]);
+
+          this.needsSetup = this.needsSetup || user[0].mustChangePassword;
+        }
+
         if ( this.remember ) {
           this.$cookies.set(USERNAME, this.username, {
             encode: x => x,
@@ -202,7 +214,8 @@ export default {
         }
 
         if (this.needsSetup) {
-          this.$router.push({ name: 'auth-setup', query: { setup: this.password } });
+          this.$store.dispatch('auth/setInitialPass', this.password);
+          this.$router.push({ name: 'auth-setup' });
         } else {
           this.$router.replace('/');
         }
@@ -318,7 +331,12 @@ export default {
     }
 
     .login-messages {
-      height: 20px
+      height: 20px;
+      display: flex;
+      justify-content: center;
+      .text-error {
+        max-width: 80%;
+      }
     }
   }
 </style>

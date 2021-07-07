@@ -776,7 +776,7 @@ changePassword:
   deleteKeys:
     label: Delete all existing API keys
   changeOnLogin:
-    label: Ask user to change their password on first login
+    label: Ask user to change their password on next login
   generatePassword:
     label: Generate a random password
   currentPassword:
@@ -2594,7 +2594,7 @@ probe:
     placeholder: Select a check type
 
 project:
-  members: 
+  members:
     label: Members
     user: User
     role: Role
@@ -3133,13 +3133,16 @@ servicesPage:
     label: Service Type
 
 setup:
-  welcome: Welcome to {vendor}!
-  setPassword: The first order of business is to set a strong password for the default <code>admin</code> user. We suggest using this random one generated just for you, but enter your own if you like.
-  newPassword: New Password
   confirmPassword: Confirm New Password
-  useRandom: Use a randomly generated password
-  useManual: Set a specific password to use
   defaultPasswordError: It looks like this is your first time visting the Rancher UI, but the local admin account password is already set to something unique. Log in with that account below to continue the setup process.
+  eula: I agree to the <a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">terms and conditions</a> for using Rancher.
+  newPassword: New Password
+  newUserSetPassword: The first order of business is to set a strong password. We suggest using this random one generated just for you, but enter your own if you like.
+  serverUrl:
+    label: Server URL
+    skip: Skip
+    tip: What URL should be used for this Rancher installation? All the nodes in your clusters will need to be able to reach this. You can skip setting this for now, and update it later in General Settings>Advanced Settings.
+  setPassword: The first order of business is to set a strong password for the default <code>{username}</code> user. We suggest using this random one generated just for you, but enter your own if you like.
   telemetry:
     label: Allow collection of anonymous statistics to help us improve Rancher
     tip:  'Rancher Labs would like to collect a bit of anonymized information
@@ -3148,11 +3151,9 @@ setup:
           what specific resources or endpoints you are deploying is included.
           Once enabled you can view exactly what data will be sent at <code>/v1-telemetry</code>.
           <a href="https://rancher.com/docs/rancher/v2.x/en/faq/telemetry/" target="_blank" rel="noopener noreferrer nofollow">More Info</a>'
-  eula: I agree to the <a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">terms and conditions</a> for using Rancher.
-  serverUrl:
-    label: Server URL
-    tip:  What URL should be used for this Rancher installation? All the nodes in your clusters will need to be able to reach this. You can skip setting this for now, and update it later in General Settings>Advanced Settings.
-    skip: Skip
+  useManual: Set a specific password to use
+  useRandom: Use a randomly generated password
+  welcome: Welcome to {vendor}!
 
 sortableTable:
   actionAvailability:

@@ -93,10 +93,10 @@ export default async function({
 
     if (ok) {
       if (initialPass) {
-        return redirect({ name: 'auth-setup', query: { [SETUP]: initialPass } });
-      } else {
-        return redirect({ name: 'auth-setup' });
+        store.dispatch('auth/setInitialPass', initialPass);
       }
+
+      return redirect({ name: 'auth-setup' });
     } else {
       const t = store.getters['i18n/t'];
 
@@ -125,6 +125,13 @@ export default async function({
   }
 
   if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
+    await store.dispatch('auth/getUser');
+    const v3User = store.getters['auth/v3User'] || {};
+
+    if (v3User?.mustChangePassword) {
+      return redirect({ name: 'auth-setup' });
+    }
+
     // In newer versions the API calls return the auth state instead of having to make a new call all the time.
     const fromHeader = store.getters['auth/fromHeader'];
 

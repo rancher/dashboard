@@ -19,6 +19,10 @@ export default {
       type:    String,
       default: null
     },
+    mustChangePassword: {
+      type:    Boolean,
+      default: false
+    }
   },
   async fetch() {
     if (this.isChange) {
@@ -27,11 +31,11 @@ export default {
         type: NORMAN.USER,
         opt:  { url: '/v3/users', filter: { me: true } }
       });
+      const user = users?.[0];
 
-      if (users && users.length === 1) {
-        this.username = users[0].username;
-      }
+      this.username = user?.username;
     }
+    this.userChangeOnLogin = this.mustChangePassword;
   },
   data(ctx) {
     return {
