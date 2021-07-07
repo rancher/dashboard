@@ -6,6 +6,15 @@ export default {
   components: { LabeledInput },
   mixins:     [CreateEditView],
 
+  watch: {
+    value: {
+      deep: true,
+      handler(neu) {
+        this.$emit('validationChanged', !!neu);
+      }
+    }
+  },
+
   methods: {
     test() {
       // Vsphere doesn't have a test function. The credential has to be created before we can make calls.
