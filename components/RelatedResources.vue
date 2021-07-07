@@ -111,6 +111,7 @@ export default {
           _key:     key,
 
           name,
+          namespace,
           nameDisplay: name,
           nameSort:    sortableNumericSuffix(name).toLowerCase(),
 
