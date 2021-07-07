@@ -35,6 +35,7 @@ export default {
   },
 
   async fetch() {
+    await this.value.waitForProvisioner();
     const hash = {};
 
     if (this.value.isImported || this.value.isRke1) {
