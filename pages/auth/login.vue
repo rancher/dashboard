@@ -199,7 +199,7 @@ export default {
         if (!!user?.[0]) {
           this.$store.dispatch('auth/gotUser', user[0]);
 
-          this.needsSetup = user[0].mustChangePassword;
+          this.needsSetup = this.needsSetup || user[0].mustChangePassword;
         }
 
         if ( this.remember ) {
@@ -331,7 +331,12 @@ export default {
     }
 
     .login-messages {
-      height: 20px
+      height: 20px;
+      display: flex;
+      justify-content: center;
+      .text-error {
+        max-width: 80%;
+      }
     }
   }
 </style>

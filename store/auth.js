@@ -70,7 +70,8 @@ export const mutations = {
   },
 
   gotUser(state, v3User) {
-    state.v3User = v3User;
+    // Always deference to avoid race condition when setting `mustChangePassword`
+    state.v3User = { ...v3User };
   },
 
   hasAuth(state, hasAuth) {
@@ -104,7 +105,11 @@ export const actions = {
     commit('gotHeader', fromHeader);
   },
 
-  async getUser({ dispatch, commit }) {
+  async getUser({ dispatch, commit, getters }) {
+    if (getters.v3User) {
+      return;
+    }
+
     const user = await dispatch('rancher/findAll', {
       type: NORMAN.USER,
       opt:  { url: '/v3/users', filter: { me: true } }

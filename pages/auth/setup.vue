@@ -276,9 +276,7 @@ export default {
             />
 
             <div v-if="mustSetup">
-              <hr class="mt-40 mb-40 " />
-
-              <div class="checkbox">
+              <div class="checkbox mt-40">
                 <Checkbox v-model="telemetry" :label="t('setup.telemetry.label')" type="checkbox" />
                 <i v-tooltip="{content:t('setup.telemetry.tip', {}, true), delay: {hide:500}, autoHide: false}" class="icon icon-info" />
               </div>
@@ -364,6 +362,7 @@ export default {
     .setup-title {
       ::v-deep code {
         font-size: 12px;
+        padding: 0;
       }
     }
 
