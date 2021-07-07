@@ -98,9 +98,7 @@ export default async function({
 
       return redirect({ name: 'auth-setup' });
     } else {
-      const t = store.getters['i18n/t'];
-
-      return redirect({ name: 'auth-login', query: { err: t('setup.defaultPasswordError') } });
+      return redirect({ name: 'auth-login' });
     }
   }
 
