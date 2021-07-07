@@ -138,23 +138,13 @@ export default {
       return entries;
     },
 
-    showSupportLink() {
-      const hasSupport = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value;
+    canEditSettings() {
+      return (this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PATCH');
+    },
 
-      if (hasSupport === 'true') {
-        const canEditSettings = (this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PATCH');
-
-        if (canEditSettings) {
-          return { name: 'support' };
-        } else {
-          const uiIssues = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_ISSUES )?.value;
-
-          return uiIssues || null;
-        }
-      }
-
-      return { name: 'support' };
-    }
+    hasSupport() {
+      return this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value === 'true';
+    },
   },
 
   watch: {
@@ -300,9 +290,9 @@ export default {
           <div class="pad"></div>
         </div>
         <div class="footer">
-          <div v-if="showSupportLink" @click="hide()">
-            <nuxt-link :to="showSupportLink">
-              {{ t('nav.support') }}
+          <div v-if="canEditSettings" @click="hide()">
+            <nuxt-link :to="{name: 'support'}">
+              {{ t('nav.support', {hasSupport}) }}
             </nuxt-link>
           </div>
           <div @click="hide()">

@@ -1,9 +1,10 @@
 export function options(issues, hideRancher) {
   if (!issues) {
+    if (hideRancher) {
+      return { };
+    }
     issues = 'https://github.com/rancher/dashboard/issues/new';
-  }
-
-  if (hideRancher) {
+  } else if (hideRancher) {
     return { 'footer.issue': issues };
   }
 
