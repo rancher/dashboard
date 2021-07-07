@@ -110,12 +110,14 @@ export const actions = {
       return;
     }
 
-    const user = await dispatch('rancher/findAll', {
-      type: NORMAN.USER,
-      opt:  { url: '/v3/users', filter: { me: true } }
-    }, { root: true });
+    try {
+      const user = await dispatch('rancher/findAll', {
+        type: NORMAN.USER,
+        opt:  { url: '/v3/users', filter: { me: true } }
+      }, { root: true });
 
-    commit('gotUser', user?.[0]);
+      commit('gotUser', user?.[0]);
+    } catch { }
   },
 
   gotUser({ commit }, user) {

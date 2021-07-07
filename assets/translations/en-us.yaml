@@ -3134,7 +3134,7 @@ servicesPage:
 
 setup:
   confirmPassword: Confirm New Password
-  defaultPasswordError: It looks like this is your first time visting the Rancher UI, but the local admin account password is already set to something unique. Log in with that account below to continue the setup process.
+  defaultPasswordError: It looks like this is your first time visiting the Rancher UI; you will need to log in to the local <code>admin</code> account to continue to the setup process.<br><br>If the admin password wasn't preset with an environment variable during installation, one has been randomly generated for you and may be found in your install logs. Alternatively follow the instructions <a rel="noopener noreferrer nofollow" target="_blank" href="https://rancher.com/docs/rancher/v2.5/en/faq/technical/">here</a> to reset the admin password.
   eula: I agree to the <a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">terms and conditions</a> for using Rancher.
   newPassword: New Password
   newUserSetPassword: The first order of business is to set a strong password. We suggest using this random one generated just for you, but enter your own if you like.

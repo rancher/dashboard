@@ -4,6 +4,7 @@ import { USERNAME } from '@/config/cookies';
 import LabeledInput from '@/components/form/LabeledInput';
 import AsyncButton from '@/components/AsyncButton';
 import BrandImage from '@/components/BrandImage';
+import Banner from '@/components/Banner';
 import { LOCAL, LOGGED_OUT, TIMED_OUT, _FLAGGED } from '@/config/query-params';
 import Checkbox from '@/components/form/Checkbox';
 import { sortBy } from '@/utils/sort';
@@ -20,7 +21,7 @@ export default {
   name:       'Login',
   layout:     'unauthenticated',
   components: {
-    LabeledInput, AsyncButton, Checkbox, BrandImage,
+    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner
   },
 
   async asyncData({ route, redirect, store }) {
@@ -68,7 +69,6 @@ export default {
     if (plSetting.value?.length && plSetting.value !== getVendor()) {
       setVendor(plSetting.value);
     }
-    const needsSetup = firstLoginSetting?.value === 'true';
 
     let singleProvider;
 
@@ -77,12 +77,12 @@ export default {
     }
 
     return {
-      vendor:    getVendor(),
+      vendor:     getVendor(),
       providers,
       hasOthers,
       hasLocal,
-      showLocal: !hasOthers || (route.query[LOCAL] === _FLAGGED),
-      needsSetup,
+      showLocal:  !hasOthers || (route.query[LOCAL] === _FLAGGED),
+      firstLogin: firstLoginSetting?.value === 'true',
       singleProvider
     };
   },
@@ -127,7 +127,7 @@ export default {
       }
 
       return this.err;
-    }
+    },
   },
 
   created() {
@@ -137,6 +137,7 @@ export default {
   },
 
   mounted() {
+    this.username = this.firstLogin ? 'admin' : this.username;
     this.$nextTick(() => {
       this.focusSomething();
     });
@@ -198,8 +199,6 @@ export default {
 
         if (!!user?.[0]) {
           this.$store.dispatch('auth/gotUser', user[0]);
-
-          this.needsSetup = this.needsSetup || user[0].mustChangePassword;
         }
 
         if ( this.remember ) {
@@ -213,7 +212,7 @@ export default {
           this.$cookies.remove(USERNAME);
         }
 
-        if (this.needsSetup) {
+        if (this.firstLogin || user[0]?.mustChangePassword) {
           this.$store.dispatch('auth/setInitialPass', this.password);
           this.$router.push({ name: 'auth-setup' });
         } else {
@@ -249,6 +248,12 @@ export default {
             {{ t('login.loginAgain') }}
           </h4>
         </div>
+        <div v-if="firstLogin" class="first-login-message">
+          <Banner color="info">
+            <t k="setup.defaultPasswordError" :raw="true" />
+          </Banner>
+        </div>
+
         <div v-if="(!hasLocal || (hasLocal && !showLocal)) && providers.length" class="mt-30">
           <component
             :is="providerComponents[idx]"
@@ -262,10 +267,11 @@ export default {
           />
         </div>
         <template v-if="hasLocal">
-          <form v-if="showLocal" class="mt-50">
+          <form v-if="showLocal" class="mt-40">
             <div class="span-6 offset-3">
               <div class="mb-20">
                 <LabeledInput
+                  v-if="!firstLogin"
                   ref="username"
                   v-model="username"
                   :label="t('login.username')"
@@ -292,7 +298,7 @@ export default {
                   :error-label="t('asyncButton.default.error')"
                   @click="loginLocal"
                 />
-                <div class="mt-20">
+                <div v-if="!firstLogin" class="mt-20">
                   <Checkbox v-model="remember" label="Remember Username" type="checkbox" />
                 </div>
               </div>
@@ -330,12 +336,27 @@ export default {
       object-fit: cover;
     }
 
-    .login-messages {
-      height: 20px;
+    .login-messages, .first-login-message {
       display: flex;
       justify-content: center;
-      .text-error {
+      .text-error, .banner {
         max-width: 80%;
+      }
+    }
+
+    .login-messages {
+      height: 20px;
+    }
+
+    .first-login-message {
+      .banner {
+        margin-bottom: 0;
+        border-left: 0;
+
+        ::v-deep code {
+          font-size: 12px;
+          padding: 0;
+        }
       }
     }
   }
