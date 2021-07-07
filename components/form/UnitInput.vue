@@ -172,7 +172,7 @@ export default {
       } else if ( this.outputAs === 'string' ) {
         out = out === null ? '' : `${ inputValue }`;
       } else if (out) {
-        out = this.unit ? parseSi(`out${ this.unit }`) : parseInt(out);
+        out = this.unit ? parseSi(`${ out }${ this.unit }`) : parseInt(out);
       }
 
       this.$emit('input', out);

@@ -24,8 +24,11 @@ module.exports = {
   collectCoverageFrom: [
     '<rootDir>/components/**/*.vue',
     // '<rootDir>/pages/*.vue',
-    '!<rootDir>/components/RancherProviderIcon.vue'
+    '!<rootDir>/components/RancherProviderIcon.vue',
   ],
-  coverageDirectory: '<rootDir>/coverage',
-  coverageReporters: ['html', 'text'],
+  modulePathIgnorePatterns: ['<rootDir>/cypress/'],
+  coverageDirectory:        '<rootDir>/coverage',
+  coverageReporters:        ['html', 'text'],
+  globals:                  { 'ts-jest': { isolatedModules: true } },
+  preset:                   'ts-jest'
 };

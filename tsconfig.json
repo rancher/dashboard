@@ -25,10 +25,9 @@
     "types": [
       "@types/node",
       "@nuxt/types",
-      "cypress"
+      "jest"
     ]
   },
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["./**/*.ts"],
+  "exclude": ["./**/__tests__/**"]
 }
