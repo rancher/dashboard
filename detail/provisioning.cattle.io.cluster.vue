@@ -37,9 +37,7 @@ export default {
   async fetch() {
     const hash = {};
 
-    const isImportedOrCustom = this.value.isImported || this.value.isCustom;
-
-    if (isImportedOrCustom || this.value.isRke1) {
+    if (this.value.isImported || this.value.isRke1) {
       // Cluster isn't compatible with machines/machineDeployments, show nodes/node pools instead
 
       hash.allNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
@@ -50,7 +48,7 @@ export default {
       hash.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
     }
 
-    if (isImportedOrCustom) {
+    if (this.value.isImported || this.value.isCustom) {
       hash.clusterToken = this.value.getOrCreateToken();
     } else if (!this.value.isRke2 ) {
       // These are needed to resolve references in the mgmt cluster -> node pool -> node template to figure out what provider the cluster is using
