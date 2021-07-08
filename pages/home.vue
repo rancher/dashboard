@@ -43,7 +43,7 @@ export default {
   mixins: [PageHeaderActions],
 
   async fetch() {
-    this.clusters = await this.$store.dispatch('management/findAll', {
+    this.baseClusters = await this.$store.dispatch('management/findAll', {
       type: MANAGEMENT.CLUSTER,
       opt:  { url: MANAGEMENT.CLUSTER }
     });
@@ -66,7 +66,7 @@ export default {
 
     return {
 
-      HIDE_HOME_PAGE_CARDS, clusters: [], fullVersion, pageActions, vendor: getVendor(), clusterDetail: null,
+      HIDE_HOME_PAGE_CARDS, baseClusters: [], fullVersion, pageActions, vendor: getVendor(), clusterDetail: null,
     };
   },
 
@@ -83,6 +83,10 @@ export default {
           resource: CAPI.RANCHER_CLUSTER
         },
       };
+    },
+
+    clusters() {
+      return this.baseClusters.filter(c => !c.spec.mock);
     },
 
     importLocation() {

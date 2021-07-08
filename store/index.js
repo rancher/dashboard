@@ -546,11 +546,31 @@ export const actions = {
     console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
 
     // See if it really exists
-    const cluster = await dispatch('management/find', {
-      type: MANAGEMENT.CLUSTER,
-      id,
-      opt:  { url: `${ MANAGEMENT.CLUSTER }s/${ escape(id) }` }
-    });
+    let cluster;
+
+    try {
+      cluster = await dispatch('management/find', {
+        type: MANAGEMENT.CLUSTER,
+        id,
+        opt:  { url: `${ MANAGEMENT.CLUSTER }s/${ escape(id) }` }
+      });
+    } catch (e) {
+      const clusters = getters['management/all'](MANAGEMENT.CLUSTER);
+
+      // Catch case where cluster has defaulted to 'local', user cannot fetch and there are no other clusters.
+      // So create a mock local cluster to ensure routing works
+      if (id === 'local' && e.status === 403 && clusters.length === 0) {
+        cluster = {
+          id,
+          type:   'management.cattle.io.cluster',
+          kind:   'Cluster',
+          schema: { },
+          spec:   { mock: true },
+          status: { }
+        };
+        await dispatch('management/load', { data: cluster });
+      }
+    }
 
     const clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
 
