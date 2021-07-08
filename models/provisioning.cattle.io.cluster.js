@@ -36,6 +36,16 @@ export default {
   _availableActions() {
     const out = this._standardActions;
     let idx = 0;
+    const isLocal = this.mgmt?.isLocal;
+
+    // Don't let the user delete the local cluster from the UI
+    if (isLocal) {
+      const remove = out.findIndex(a => a.action === 'promptRemove');
+
+      if (remove > -1) {
+        out.splice(remove, 1);
+      }
+    }
 
     insertAt(out, idx++, {
       action:     'openShell',
