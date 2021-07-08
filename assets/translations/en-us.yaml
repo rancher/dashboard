@@ -223,6 +223,9 @@ accountAndKeys:
       bearerTokenTip: "Access Key and Secret Key can be sent as the username and password for HTTP Basic auth to authorize requests. You can also combine them to use as a Bearer token:"
       ttlLimitedWarning: The Expiry time for this API Key was reduced due to system configuration
 
+addClusterMemberDialog:
+  title: Add Cluster Member
+
 addProjectMemberDialog:
   title: Add Project Member
 
@@ -931,6 +934,7 @@ cluster:
   description:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
+  haveOneOwner: There must be at least one member with the Owner role.
   import:
     commandInstructions: 'Run the <code>kubectl</code> command below on an existing Kubernetes cluster running a supported Kubernetes version to import it into {vendor}:'
     commandInstructionsInsecure: 'If you get a &quot;certificate signed by unknown authority&quot; error, your {vendor} installation has a self-signed or untrusted SSL certificate.  Run the command below instead to bypass the certificate verification:'
@@ -1133,6 +1137,8 @@ cluster:
             =1 { A cluster with only one worker node is not fault-tolerant. }
             other {}
           }
+  memberRoles:
+    removeMessage: 'Note: Removing a user will not remove their project permissions'
   provider:
     aliyunecs: Aliyun ECS
     aliyunkubernetescontainerservice: Alibaba ACK
@@ -1228,6 +1234,7 @@ cluster:
     networking: Networking
     nodePools: Node Pools
     machinePools: Machine Pools
+    memberRoles: Member Roles
     registry: Private Registry
     upgrade: Upgrade Strategy
   rotateCertificates:
@@ -1944,6 +1951,12 @@ members:
     custom:
       label: Custom
       description: Choose individual roles for this user.
+
+membershipEditor:
+  label: Members
+  user: User
+  role: Role
+  onlyUser: You are the only active registered user.
 
 monitoring:
   accessModes:
@@ -2674,8 +2687,6 @@ probe:
 project:
   members:
     label: Members
-    user: User
-    role: Role
   containerDefaultResourceLimit: Container Default Resource Limit
   resourceQuotas: Resource Quotas
   haveOneOwner: There must be at least one member with the Owner role.
@@ -2686,6 +2697,7 @@ projectMembers:
   projectPermissions:
     label: Project Permissions
     description: Controls what access users have to the Project
+    noDescription: User created - no description
     owner:
       label: Owner
       description: Owners have full control over the Project and all resources inside it.

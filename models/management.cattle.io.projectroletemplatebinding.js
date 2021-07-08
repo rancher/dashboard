@@ -1,4 +1,4 @@
-import { MANAGEMENT } from '@/config/types';
+import { MANAGEMENT, NORMAN } from '@/config/types';
 
 export default {
   canCustomEdit() {
@@ -23,7 +23,7 @@ export default {
 
   projectId() {
     // projectName is in format `local:p-v679w`. project id's are in format `local/p-v679w`,
-    return this.projectName.replace(':', '/');
+    return this.projectName?.replace(':', '/');
   },
 
   clusterId() {
@@ -98,4 +98,33 @@ export default {
   listLocation() {
     return { name: 'c-cluster-explorer-project-members' };
   },
+
+  norman() {
+    return this.$dispatch(`rancher/create`, {
+      type:                  NORMAN.PROJECT_ROLE_TEMPLATE_BINDING,
+      roleTemplateId:        this.roleTemplateName,
+      userPrincipalId:       this.userPrincipalName,
+      projectId:             this.projectName,
+      projectRoleTemplateId: '',
+      subjectKind:           'User',
+      userId:                '',
+      id:                    this.id?.replace('/', ':')
+    }, { root: true });
+  },
+
+  save() {
+    return async() => {
+      const norman = await this.norman;
+
+      return norman.save();
+    };
+  },
+
+  remove() {
+    return async() => {
+      const norman = await this.norman;
+
+      await norman.remove({ url: `/v3/projectRoleTemplateBindings/${ norman.id }` });
+    };
+  }
 };

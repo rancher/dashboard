@@ -42,7 +42,7 @@ export default {
         }
       },
       resource:                    MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
-      clusterRoleTemplateBindings: null,
+      clusterRoleTemplateBindings: [],
       VIRTUAL_TYPES
     };
   },
