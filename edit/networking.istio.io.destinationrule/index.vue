@@ -18,23 +18,17 @@ export default {
   data() {
     return {
 
-      v1:           'v1',
-      version:      'version',
       radioOptions: [
         {
           label: 'Use standard load balancing algorithms',
-          value: 'standard'
+          value: 'simple'
         }, {
           label: 'Use consistent hash-based load balancing for soft session affinity',
-          value: 'consistent'
-        }
+          value: { consistentHash: 'asdf' }
+        },
+
       ]
     };
-  },
-  methods: {
-    log() {
-      console.log('click');
-    }
   },
 
 };
@@ -82,7 +76,8 @@ export default {
             :default-add-value="{}"
           >
             <template #default="{row, i}">
-              <code>{{ i }}, {{ JSON.stringify(row) }}</code>
+              <code>i: {{ i }}, {{ JSON.stringify(row) }}</code>
+              <br><br>
               <LabeledInput
                 v-model="row.value.name"
                 label="Name"
@@ -107,7 +102,7 @@ export default {
           :weight="3"
         >
           <RadioGroup
-            v-model="radioOptions[0]"
+            v-model="value.spec.trafficPolicy.loadBalancer"
             name="loadBalancer"
             :mode="modeOverride"
             :options="radioOptions"
