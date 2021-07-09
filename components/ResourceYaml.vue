@@ -245,6 +245,7 @@ export default {
     },
 
     preview() {
+      this.updateValue(this.currentYaml);
       this.showPreview = true;
       this.$router.applyQuery({ [PREVIEW]: _FLAGGED });
     },
