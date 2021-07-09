@@ -25,6 +25,10 @@ export default {
       default: true,
       type:    Boolean
     },
+    loading: {
+      default: false,
+      type:    Boolean
+    },
     localizedLabel: {
       default: false,
       type:    Boolean
@@ -62,7 +66,7 @@ export default {
     selectable: {
       default: (opt) => {
         if ( opt ) {
-          if ( opt.disabled || opt.kind === 'group' || opt.kind === 'divider' ) {
+          if ( opt.disabled || opt.kind === 'group' || opt.kind === 'divider' || opt.loading ) {
             return false;
           }
         }
@@ -240,7 +244,7 @@ export default {
       :append-to-body="appendToBody"
       :calculate-position="withPopper"
       :class="{ 'no-label': !(label || '').length }"
-      :disabled="isView || disabled"
+      :disabled="isView || disabled || loading"
       :get-option-key="
         (opt) => (optionKey ? get(opt, optionKey) : getOptionLabel(opt))
       "
@@ -252,7 +256,7 @@ export default {
       :reduce="(x) => reduce(x)"
       :searchable="isSearchable"
       :selectable="selectable"
-      :value="value != null ? value : ''"
+      :value="value != null && !loading ? value : ''"
       v-on="$listeners"
       @search:blur="onBlur"
       @search:focus="onFocus"
@@ -274,6 +278,7 @@ export default {
         <slot :name="slot" v-bind="scope" />
       </template>
     </v-select>
+    <i v-if="loading" class="icon icon-spinner icon-spin icon-lg" />
     <LabeledTooltip
       v-if="tooltip && !focused"
       :hover="hoverTooltip"
@@ -285,6 +290,14 @@ export default {
 
 <style lang='scss' scoped>
 .labeled-select {
+  position: relative;
+
+  .icon-spinner {
+    position: absolute;
+    left: calc(50% - .5em);
+    top: calc(50% - .5em);
+  }
+
   .labeled-container {
     padding: $input-padding-sm 0 1px $input-padding-sm;
 

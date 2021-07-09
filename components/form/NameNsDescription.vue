@@ -7,6 +7,10 @@ import { _VIEW, _EDIT } from '@/config/query-params';
 import LabeledInput from '@/components/form/LabeledInput';
 import InputWithSelect from '@/components/form/InputWithSelect';
 
+export function normalizeName(str) {
+  return (str || '').trim().toLowerCase().replace(/\s+/g, '-');
+}
+
 export default {
   components: { LabeledInput, InputWithSelect },
 
@@ -211,7 +215,7 @@ export default {
 
   watch: {
     name(val) {
-      val = val.toLowerCase();
+      val = normalizeName(val);
 
       if (this.nameKey) {
         set(this.value, this.nameKey, val);

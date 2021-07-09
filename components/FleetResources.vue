@@ -1,6 +1,8 @@
 <script>
 import { colorForState, stateDisplay, stateSort } from '@/plugins/steve/resource-instance';
 import SortableTable from '@/components/SortableTable';
+import { NAME as EXPLORER } from '@/config/product/explorer';
+import { FLEET as FLEET_ANNOTATIONS } from '@/config/labels-annotations';
 
 export default {
   components: { SortableTable },
@@ -39,6 +41,17 @@ export default {
           const color = colorForState(state).replace('text-', 'bg-');
           const display = stateDisplay(state);
 
+          const detailLocation = {
+            name:   `c-cluster-product-resource${ r.namespace ? '-namespace' : '' }-id`,
+            params: {
+              product:   EXPLORER,
+              cluster:   c.metadata.labels[FLEET_ANNOTATIONS.CLUSTER_NAME],
+              resource:  r.type,
+              namespace: r.namespace,
+              id:        r.name,
+            }
+          };
+
           out.push({
             key:             `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }`,
             kind:            r.kind,
@@ -54,6 +67,7 @@ export default {
             stateDisplay:    display,
             stateSort:       stateSort(color, display),
             namespacedName,
+            detailLocation,
           });
         }
       }
@@ -90,10 +104,11 @@ export default {
           label: 'Kind',
         },
         {
-          name:  'name',
-          value: 'name',
-          sort:  'name',
-          label: 'Name',
+          name:      'name',
+          value:     'name',
+          sort:      'name',
+          label:     'Name',
+          formatter: 'LinkDetail',
         },
         {
           name:  'namespace',

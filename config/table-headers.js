@@ -244,13 +244,6 @@ export const IMAGE = {
   sort:     ['image', 'nameSort'],
 };
 
-export const RIO_IMAGE = {
-  name:     'image',
-  labelKey: 'tableHeaders.rioImage',
-  value:    'imageDisplay',
-  sort:     ['imageDisplay', 'nameSort'],
-};
-
 export const POD_IMAGES = {
   name:      'pod_images',
   labelKey:  'tableHeaders.podImages',
@@ -338,20 +331,6 @@ export const TARGET = {
   name:     'target',
   labelKey: 'tableHeaders.target',
   value:    'targetDisplay',
-};
-
-export const MATCHES = {
-  name:      'matches',
-  labelKey:  'tableHeaders.matches',
-  value:     'spec.routes',
-  formatter: 'RouterMatch'
-};
-
-export const DESTINATION = {
-  name:      'destination',
-  labelKey:  'tableHeaders.destination',
-  value:     'spec.routes',
-  formatter: 'RouterDestination'
 };
 
 export const USERNAME = {
@@ -538,7 +517,6 @@ export const SPEC_TYPE = {
   value:     `$['spec']['type']`,
   sort:      `$['spec']['type']`,
   formatter: 'ServiceType',
-  width:     100,
 };
 
 export const TARGET_PORT = {

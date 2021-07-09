@@ -62,7 +62,7 @@
     "jsonpath": "^1.0.2",
     "jsrsasign": "^10.2.0",
     "jszip": "^3.2.2",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "marked": "^2.0.0",
     "node-sass": "^4.12.0",
     "nuxt": "2.14.6",

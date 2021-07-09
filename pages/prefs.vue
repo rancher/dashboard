@@ -75,15 +75,15 @@ export default {
     },
 
     pm() {
-      const now = day('1982-02-24 06:00:00 PM');
+      const time = day().hour(18).minute(0).second(0);
 
-      return now.format(this.timeFormat.replace(/:ss/, ''));
+      return time.format(this.timeFormat.replace(/:ss/, ''));
     },
 
     am() {
-      const now = day('1982-02-24 06:00:00 AM');
+      const time = day().hour(6).minute(0).second(0);
 
-      return now.format(this.timeFormat.replace(/:ss/, ''));
+      return time.format(this.timeFormat.replace(/:ss/, ''));
     },
 
     timeOptions() {

@@ -39,31 +39,36 @@ export default {
 
   methods: {
     uninstall(buttonCb) {
-      Promise.resolve()
-        .then(async() => {
-          await this.$store.getters['currentCluster'].doAction('disableMonitoring');
+      this.$store.dispatch('cluster/promptModal', {
+        component: 'GenericPrompt',
+        resources: {
+          applyMode:   'uninstall',
+          applyAction: async(buttonDone) => {
+            await this.$store.getters['currentCluster'].doAction('disableMonitoring');
 
-          for (let index = 0; index < 30; index++) {
+            for (let index = 0; index < 30; index++) {
             // Wait 30 seconds for the containers to go
-            const hasV1Monitoring = haveV1Monitoring(this.$store.getters);
-            const hasV1MonitoringWorkloads = await haveV1MonitoringWorkloads(this.$store);
+              const hasV1Monitoring = haveV1Monitoring(this.$store.getters);
+              const hasV1MonitoringWorkloads = await haveV1MonitoringWorkloads(this.$store);
 
-            if ((!hasV1Monitoring && !hasV1MonitoringWorkloads)) {
-              this.$emit('update', { ready: true, hidden: true });
-              buttonCb(true);
-              this.haveV1Monitoring = false;
+              if ((!hasV1Monitoring && !hasV1MonitoringWorkloads)) {
+                this.$emit('update', { ready: true, hidden: true });
+                this.haveV1Monitoring = false;
 
-              return;
+                buttonDone(true);
+
+                return;
+              }
+              await delay(1000);
             }
-            await delay(1000);
-          }
-          this.$emit('errors', [`Failed to uninstall: timed out`]);
-          buttonCb(false);
-        })
-        .catch((e) => {
-          this.$emit('errors', [`Failed to uninstall: ${ e }`]);
-          buttonCb(false);
-        });
+
+            throw new Error(`Failed to uninstall: timed out`);
+          },
+          title: this.t('promptRemove.title', {}, true),
+          body:  this.t('monitoring.installSteps.uninstallV1.promptDescription', {}, true),
+        },
+      });
+      buttonCb(true);
     },
   }
 };
@@ -88,7 +93,7 @@ export default {
       </IconMessage>
       <AsyncButton
         mode="uninstall"
-        :delay="2000"
+        :delay="0"
         @click="uninstall"
       />
     </template>

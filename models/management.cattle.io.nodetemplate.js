@@ -3,69 +3,69 @@ import { formatSi } from '@/utils/units';
 const CONFIG_KEYS = [
   {
     driver:           'aliyunecs',
-    size:      { key: 'config.instanceType' },
+    size:      { key: 'instanceType' },
     location: {
       getDisplayProperty(that) {
-        return `${ that.config.region }${ that.config.zone }`;
+        return `${ that.providerConfig.region }${ that.providerConfig.zone }`;
       }
     }
   },
   {
     driver:           'amazonec2',
-    size:      { key: 'config.instanceType' },
+    size:      { key: 'instanceType' },
     location: {
       getDisplayProperty(that) {
-        return `${ that.config.region }${ that.config.zone }`;
+        return `${ that.providerConfig.region }${ that.providerConfig.zone }`;
       }
     }
   },
   {
     driver:           'azure',
-    size:      { key: 'config.size' },
-    location: { key: 'config.location' }
+    size:      { key: 'size' },
+    location: { key: 'location' }
   },
   {
     driver:           'digitalocean',
-    size:      { key: 'config.size' },
-    location: { key: 'config.region' }
+    size:      { key: 'size' },
+    location: { key: 'region' }
   },
   {
     driver:           'exoscale',
-    size:      { key: 'config.instanceProfile' },
-    location: { key: 'config.availabilityZone' }
+    size:      { key: 'instanceProfile' },
+    location: { key: 'availabilityZone' }
   },
   {
     driver:           'linode',
-    size:      { key: 'config.instanceType' },
-    location: { key: 'config.region' }
+    size:      { key: 'instanceType' },
+    location: { key: 'region' }
   },
   {
     driver:           'oci',
-    size:      { key: 'config.nodeShape' },
+    size:      { key: 'nodeShape' },
     location: {}
   },
   {
     driver:           'packet',
-    size:      { key: 'config.plan' },
-    location: { key: 'config.facilityCode' }
+    size:      { key: 'plan' },
+    location: { key: 'facilityCode' }
   },
   {
     driver:           'pnap',
-    size:      { key: 'config.serverType' },
-    location: { key: 'config.serverLocation' }
+    size:      { key: 'serverType' },
+    location: { key: 'serverLocation' }
   },
   {
     driver:           'rackspace',
-    size:      { key: 'config.flavorId' },
-    location: { key: 'config.region' }
+    size:      { key: 'flavorId' },
+    location: { key: 'region' }
   },
   {
     driver:           'vmwarevsphere',
     size:   {
       getDisplayProperty(that) {
-        const size = formatSi(that.config.memorySize * 1048576, 1024, 'iB');
+        const size = formatSi(that.providerConfig.memorySize * 1048576, 1024, 'iB');
 
-        return `${ size }, ${ that.config.cpuCount } Core`;
+        return `${ size }, ${ that.providerConfig.cpuCount } Core`;
       }
     },
     location: { key: null }
@@ -109,7 +109,7 @@ export default {
       }
     }
 
-    return this.providerConfig?.region || 'No Region';
+    return this.providerConfig?.region || this.t('node.list.poolDescription.noLocation');
   },
 
   providerSize() {
@@ -128,6 +128,6 @@ export default {
       }
     }
 
-    return this.providerConfig?.size || 'No Size';
+    return this.providerConfig?.size || this.t('node.list.poolDescription.noSize');
   }
 };

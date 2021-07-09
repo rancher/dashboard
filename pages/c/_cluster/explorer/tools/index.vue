@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import Loading from '@/components/Loading';
 import { _FLAGGED, DEPRECATED, HIDDEN, FROM_TOOLS } from '@/config/query-params';
 import { filterAndArrangeCharts } from '@/store/catalog';
-import { CATALOG } from '@/config/types';
+import { CATALOG, MANAGEMENT } from '@/config/types';
 import LazyImage from '@/components/LazyImage';
 import AppSummaryGraph from '@/components/formatter/AppSummaryGraph';
 import { sortBy } from '@/utils/sort';
@@ -26,10 +26,20 @@ export default {
 
     // If legacy feature flag enabled
     if (this.legacyEnabled) {
-      this.v1SystemCatalog = await this.$store.dispatch('cluster/find', {
-        type: 'management.cattle.io.catalog',
-        id:   'system-library',
+      const res = await this.$store.dispatch('management/findMatching', {
+        type:     MANAGEMENT.CATALOG_TEMPLATE,
+        selector: 'catalog.cattle.io/name=system-library'
       });
+
+      if (res) {
+        this.v1SystemCatalog = res.reduce((map, template) => {
+          map[template.spec.displayName] = template;
+
+          return map;
+        }, {});
+      } else {
+        this.v1SystemCatalog = {};
+      }
     }
   },
 
@@ -100,6 +110,7 @@ export default {
       if (this.legacyEnabled) {
         this.moveAppWhenLegacy(chartsWithApps, 'v1-monitoring', 'rancher-monitoring');
         this.moveAppWhenLegacy(chartsWithApps, 'v1-logging', 'rancher-logging');
+        this.moveAppWhenLegacy(chartsWithApps, 'v1-istio', 'rancher-istio');
       }
 
       return chartsWithApps;
@@ -110,6 +121,7 @@ export default {
       return [
         this._legacyChart('monitoring'),
         this._legacyChart('logging'),
+        this._legacyChart('istio'),
       ];
     }
   },
@@ -163,10 +175,10 @@ export default {
 
     getLegacyVersions(id) {
       const versions = [];
-      const c = this.v1SystemCatalog?.status?.helmVersionCommits[id]?.Value;
+      const c = this.v1SystemCatalog?.[id];
 
-      if (c) {
-        Object.keys(c).forEach(v => versions.unshift({ version: v }));
+      if (c?.spec?.versions) {
+        c.spec.versions.forEach(v => versions.push({ version: v.version }));
       }
 
       return versions;

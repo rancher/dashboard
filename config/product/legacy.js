@@ -22,7 +22,6 @@ export function init(store) {
     group:          'Root',
     namespaced:     true,
     weight:         111,
-    icon:           'folder',
     route:          { name: 'c-cluster-legacy-pages-page', params: { page: 'alerts' } },
     exact:          true
   });
@@ -33,7 +32,6 @@ export function init(store) {
     group:          'Root',
     namespaced:     true,
     weight:         111,
-    icon:           'folder',
     route:          { name: 'c-cluster-legacy-pages-page', params: { page: 'catalogs' } },
     exact:          true
   });
@@ -44,8 +42,17 @@ export function init(store) {
     group:          'Root',
     namespaced:     true,
     weight:         111,
-    icon:           'folder',
     route:          { name: 'c-cluster-legacy-pages-page', params: { page: 'notifiers' } },
+    exact:          true
+  });
+
+  virtualType({
+    labelKey:       'legacy.cis-scans',
+    name:           'v1-cis-scans',
+    group:          'Root',
+    namespaced:     true,
+    weight:         111,
+    route:          { name: 'c-cluster-legacy-pages-page', params: { page: 'cis' } },
     exact:          true
   });
 
@@ -55,7 +62,6 @@ export function init(store) {
     namespaced: true,
     name:       'v1-project',
     weight:     105,
-    icon:       'folder',
     route:      { name: 'c-cluster-project-apps' },
     exact:      true,
     overview:   false,
@@ -67,7 +73,6 @@ export function init(store) {
     namespaced: true,
     name:       'v1-project-overview',
     weight:     105,
-    icon:       'folder',
     route:      { name: 'c-cluster-legacy-project' },
     exact:      true,
     overview:   false,
@@ -77,6 +82,7 @@ export function init(store) {
     'v1-alerts',
     'v1-catalogs',
     'v1-notifiers',
+    'v1-cis-scans',
     'v1-project-overview'
   ]);
 
@@ -137,11 +143,35 @@ export function init(store) {
     overview:   false,
   });
 
+  virtualType({
+    ifHave:     IF_HAVE.PROJECT,
+    labelKey:   'legacy.istio',
+    namespaced: true,
+    name:       'project-istio',
+    weight:     105,
+    route:      { name: 'c-cluster-legacy-project-page', params: { page: 'istio' } },
+    exact:      true,
+    overview:   false,
+  });
+
+  virtualType({
+    ifHave:     IF_HAVE.PROJECT,
+    labelKey:   'legacy.pipelines',
+    namespaced: true,
+    name:       'project-pipelines',
+    weight:     104,
+    route:      { name: 'c-cluster-legacy-pipelines' },
+    exact:      true,
+    overview:   false,
+  });
+
   basicType([
     'project-apps',
     'project-alerts',
     'project-catalogs',
     'project-logging',
+    'project-istio',
     'project-monitoring',
+    'project-pipelines',
   ], 'Project');
 }

@@ -1,6 +1,7 @@
 import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
 import { proxyFor } from '@/plugins/steve/resource-proxy';
 import { findBy, insertAt } from '@/utils/array';
+import { set } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 
@@ -11,32 +12,49 @@ export default {
     const out = [
       {
         label:   'Provisioner',
-        content: this.provisionerDisplay
+        content: this.provisionerDisplay || this.t('generic.none'),
       },
       {
         label:   'Machine Provider',
-        content: this.machineProviderDisplay
+        content: this.machineProvider ? this.machineProviderDisplay : null,
       },
       {
         label:   'Kubernetes Version',
         content: this.kubernetesVersion,
       },
-    ];
+    ].filter(x => !!x.content);
+
+    if (!this.machineProvider) {
+      out.splice(1, 1);
+
+      return out;
+    }
 
     return out;
   },
 
   _availableActions() {
     const out = this._standardActions;
+    let idx = 0;
+    const isLocal = this.mgmt?.isLocal;
 
-    insertAt(out, 0, {
+    // Don't let the user delete the local cluster from the UI
+    if (isLocal) {
+      const remove = out.findIndex(a => a.action === 'promptRemove');
+
+      if (remove > -1) {
+        out.splice(remove, 1);
+      }
+    }
+
+    insertAt(out, idx++, {
       action:     'openShell',
       label:      'Kubectl Shell',
       icon:       'icon icon-terminal',
       enabled:    !!this.mgmt?.links.shell,
     });
 
-    insertAt(out, 1, {
+    insertAt(out, idx++, {
       action:     'downloadKubeConfig',
       bulkAction: 'downloadKubeConfigBulk',
       label:      'Download KubeConfig',
@@ -45,47 +63,38 @@ export default {
       enabled:    this.$rootGetters['isRancher'],
     });
 
-    const canSaveAsTemplate = this.isRke1 && this.mgmt.status.driver === 'rancherKubernetesEngine' && !this.mgmt.spec.clusterTemplateName && this.hasLink('update');
-    const canRotateEncryptionKey = this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey');
-    const canRotateCertificates = this.mgmt?.hasAction('rotateCertificates');
+    insertAt(out, idx++, {
+      action:     'snapshotAction',
+      label:      'Take Snapshot',
+      icon:       'icon icon-snapshot',
+      bulkAction: 'snapshotBulk',
+      bulkable:   true,
+      enabled:    (this.isRke1 || this.isRke2),
+    });
 
-    if (canSaveAsTemplate || canRotateEncryptionKey || canRotateCertificates) {
-      insertAt(out, 2, { divider: true });
+    insertAt(out, idx++, {
+      action:     'rotateCertificates',
+      label:      'Rotate Certificates',
+      icon:       'icon icon-backup',
+      enabled:    this.mgmt?.hasAction('rotateCertificates')
 
-      let insertIndex = 3;
+    });
 
-      if (canSaveAsTemplate) {
-        insertAt(out, insertIndex, {
-          action:     'saveAsRKETemplate',
-          label:      'Save as RKE Template',
-          icon:       'icon icon-folder',
-          bulkable:   false,
-          enabled:    this.$rootGetters['isRancher'],
-        });
-        insertIndex++;
-      }
+    insertAt(out, idx++, {
+      action:     'rotateEncryptionKey',
+      label:      'Rotate Encryption Keys',
+      icon:       'icon icon-refresh',
+      enabled:     this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey')
+    });
 
-      if (canRotateCertificates) {
-        insertAt(out, insertIndex, {
-          action:     'rotateCertificates',
-          label:      'Rotate Certificates',
-          icon:       'icon icon-backup',
-          bulkable:   false,
-          enabled:    this.$rootGetters['isRancher'],
-        });
-        insertIndex++;
-      }
+    insertAt(out, idx++, {
+      action:     'saveAsRKETemplate',
+      label:      'Save as RKE Template',
+      icon:       'icon icon-folder',
+      enabled:    this.isRke1 && this.mgmt?.status?.driver === 'rancherKubernetesEngine' && !this.mgmt?.spec?.clusterTemplateName && this.hasLink('update'),
+    });
 
-      if (canRotateEncryptionKey) {
-        insertAt(out, insertIndex, {
-          action:     'rotateEncryptionKey',
-          label:      'Rotate Encryption Keys',
-          icon:       'icon icon-refresh',
-          bulkable:   false,
-          enabled:    this.$rootGetters['isRancher'],
-        });
-      }
-    }
+    insertAt(out, idx++, { divider: true });
 
     return out;
   },
@@ -98,12 +107,24 @@ export default {
     return this.isRke2 && !(this.spec?.rkeConfig?.machinePools?.length);
   },
 
+  isImportedK3s() {
+    return this.isImported && this.mgmt?.status?.provider === 'k3s';
+  },
+
+  isImportedRke2() {
+    return this.isImported && this.mgmt?.status?.provider === 'rke2';
+  },
+
   isRke2() {
     return !!this.spec?.rkeConfig;
   },
 
   isRke1() {
     return !!this.mgmt?.spec?.rancherKubernetesEngineConfig;
+  },
+
+  mgmtClusterId() {
+    return this.mgmt?.id || this.id.replace(`${ this.metadata.namespace }/`, '');
   },
 
   mgmt() {
@@ -116,6 +137,14 @@ export default {
     const out = this.$getters['byId'](MANAGEMENT.CLUSTER, name);
 
     return out;
+  },
+
+  waitForProvisioner() {
+    return (timeout, interval) => {
+      return this.waitForTestFn(() => {
+        return !!this.provisioner;
+      }, `set provisioner`, timeout, interval);
+    };
   },
 
   waitForMgmt() {
@@ -151,6 +180,10 @@ export default {
     // RKE provisioner can actually do K3s too...
     if ( provisioner === 'rke2' && this.spec?.kubernetesVersion?.includes('k3s') ) {
       provisioner = 'k3s';
+    } else if ( this.isImportedK3s ) {
+      provisioner = 'k3s';
+    } else if ( this.isImportedRke2 ) {
+      provisioner = 'rke2';
     }
 
     return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provisioner }"`, null, ucFirst(provisioner));
@@ -201,6 +234,10 @@ export default {
     }
   },
 
+  nodes() {
+    return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.mgmtClusterId));
+  },
+
   displayName() {
     if ( this.mgmt && !this.isRke2 ) {
       return this.mgmt.spec.displayName;
@@ -208,7 +245,13 @@ export default {
   },
 
   pools() {
-    return this.$getters['all'](CAPI.MACHINE_DEPLOYMENT).filter(pool => pool.spec?.clusterName === this.metadata.name);
+    const deployments = this.$getters['all'](CAPI.MACHINE_DEPLOYMENT).filter(pool => pool.spec?.clusterName === this.metadata.name);
+
+    if (!!deployments.length) {
+      return deployments;
+    }
+
+    return this.$getters['all'](MANAGEMENT.NODE_POOL).filter(pool => pool.spec.clusterName === this.status.clusterName);
   },
 
   desired() {
@@ -312,6 +355,70 @@ export default {
   downloadKubeConfigBulk() {
     return (items) => {
       return this.mgmt?.downloadKubeConfigBulk(items);
+    };
+  },
+
+  snapshotAction() {
+    return async() => {
+      try {
+        await this.takeSnapshot();
+        this.$dispatch('growl/success', {
+          title:   this.$rootGetters['i18n/t']('cluster.snapshot.successTitle', { name: this.nameDisplay }),
+          message: this.$rootGetters['i18n/t']('cluster.snapshot.successMessage', { name: this.nameDisplay })
+        }, { root: true });
+      } catch (err) {
+        this.$dispatch('growl/fromError', {
+          title: this.$rootGetters['i18n/t']('cluster.snapshot.errorTitle', { name: this.nameDisplay }),
+          err,
+        }, { root: true });
+      }
+    };
+  },
+
+  snapshotBulk() {
+    return async(items) => {
+      const res = await Promise.allSettled(items.map((row) => {
+        return row.takeSnapshot();
+      }));
+
+      const successful = res.filter( x => x.status === 'fulfilled').length;
+
+      if ( successful ) {
+        this.$dispatch('growl/success', {
+          title:   this.$rootGetters['i18n/t']('cluster.snapshot.bulkSuccessTitle'),
+          message: this.$rootGetters['i18n/t']('cluster.snapshot.bulkSuccessMessage', { count: successful })
+        }, { root: true });
+      }
+
+      for ( let i = 0 ; i < res.length ; i++ ) {
+        if ( res[i].status !== 'fulfilled' ) {
+          this.$dispatch('growl/fromError', {
+            title: this.$rootGetters['i18n/t']('cluster.snapshot.errorTitle', { name: items[i].nameDisplay }),
+            err:   res[i].value,
+          }, { root: true });
+        }
+      }
+    };
+  },
+
+  takeSnapshot() {
+    return () => {
+      if ( this.isRke1 ) {
+        return this.$dispatch('rancher/request', {
+          url:           `/v3/clusters/${ escape(this.mgmt.id) }?action=backupEtcd`,
+          method:        'post',
+        }, { root: true });
+      } else {
+        const args = {};
+
+        if ( this.spec?.rkeConfig?.etcd?.s3 ) {
+          args.s3 = this.spec.rkeConfig.etcd.s3;
+        }
+
+        set(this.spec.rkeConfig, 'etcdSnapshotCreate', args);
+
+        return this.save();
+      }
     };
   },
 

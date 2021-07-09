@@ -28,9 +28,7 @@ async function getYaml(model) {
   let yaml;
   const opt = { headers: { accept: 'application/yaml' } };
 
-  if ( model.hasLink('rioview') ) {
-    yaml = (await model.followLink('rioview', opt)).data;
-  } else if ( model.hasLink('view') ) {
+  if ( model.hasLink('view') ) {
     yaml = (await model.followLink('view', opt)).data;
   }
 

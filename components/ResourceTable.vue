@@ -62,10 +62,6 @@ export default {
       default: 'resourceTable.groupBy.namespace',
     },
 
-    alwaysGroup: {
-      type:    Boolean,
-      default: false
-    }
   },
 
   computed: {

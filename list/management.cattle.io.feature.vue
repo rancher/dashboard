@@ -112,16 +112,14 @@ export default {
         this.update.spec.value = !this.update.enabled;
         // await can go back in when backend returns from the save before restarting
         this.update.save();
-        this.waitForBackend(btnCB);
-        this.waiting = true;
-      } catch (err) {
-        this.error = err;
-        btnCB(false);
-      }
+      } catch (err) {}
+
+      this.waitForBackend(btnCB, this.update.id);
+      this.waiting = true;
     },
 
-    waitForBackend(btnCB) {
-      const url = `/v3/features/${ this.update.id }`;
+    waitForBackend(btnCB, id) {
+      const url = `/v3/features/${ id }`;
 
       this.timer = setTimeout(async() => {
         try {
@@ -135,7 +133,7 @@ export default {
           }
         } catch (e) {}
 
-        this.waitForBackend(btnCB);
+        this.waitForBackend(btnCB, id);
       }, 2500);
     }
   }

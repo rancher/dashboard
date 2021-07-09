@@ -20,8 +20,6 @@ export const KUBERNETES = {
   INSTANCE:             'app.kubernetes.io/instance',
 };
 
-export const RIO = { STACK: 'rio.cattle.io/stack' };
-
 export const CERTMANAGER = { ISSUER: 'cert-manager.io/issuer-name' };
 
 export const STORAGE = {
@@ -29,11 +27,19 @@ export const STORAGE = {
   BETA_DEFAULT_STORAGE_CLASS: 'storageclass.beta.kubernetes.io/is-default-class'
 };
 
+export const MANAGEMENT_NODE = { NODE_NAME: 'management.cattle.io/nodename' };
+
 export const NODE_ROLES = {
   CONTROL_PLANE_OLD: 'node-role.kubernetes.io/controlplane',
   CONTROL_PLANE:     'node-role.kubernetes.io/control-plane',
   WORKER:            'node-role.kubernetes.io/worker',
   ETCD:              'node-role.kubernetes.io/etcd',
+};
+
+export const MACHINE_ROLES = {
+  CONTROL_PLANE: 'rke.cattle.io/control-plane-role',
+  WORKER:        'rke.cattle.io/worker-role',
+  ETCD:          'rke.cattle.io/etcd-role',
 };
 
 export const CAPI = {

@@ -84,7 +84,7 @@ export default {
     <div>
       <div class="row mb-10">
         <div class="col span-6">
-          <LabeledInput v-model="value.name" :required="true" :mode="mode" :label="t('workload.storage.volumeName')" @input="e=>updateMountNames(e)" />
+          <LabeledInput v-model="value.name" :required="true" :mode="mode" :label="t('workload.storage.volumeName')" />
         </div>
       </div>
       <div class="row mb-10">

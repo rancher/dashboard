@@ -1,6 +1,6 @@
 import { CREATOR_ID, CREATOR_OWNER_BINDING } from '@/config/labels-annotations';
 import { _CREATE } from '@/config/query-params';
-import { MANAGEMENT } from '@/config/types';
+import { MANAGEMENT, NORMAN } from '@/config/types';
 
 export default {
   detailPageHeaderActionOverride() {
@@ -84,5 +84,32 @@ export default {
 
   isSystem() {
     return !this.metadata.annotations[CREATOR_ID] && this.metadata.annotations[CREATOR_OWNER_BINDING] !== 'true';
-  }
+  },
+
+  norman() {
+    return this.$dispatch(`rancher/create`, {
+      type:                  NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING,
+      roleTemplateId:        this.roleTemplateName,
+      userPrincipalId:       this.userPrincipalName,
+      clusterId:             this.clusterName,
+      subjectKind:           'User',
+      id:                    this.id?.replace('/', ':')
+    }, { root: true });
+  },
+
+  save() {
+    return async() => {
+      const norman = await this.norman;
+
+      return norman.save();
+    };
+  },
+
+  remove() {
+    return async() => {
+      const norman = await this.norman;
+
+      await norman.remove({ url: `/v3/clusterRoleTemplateBindings/${ norman.id }` });
+    };
+  },
 };

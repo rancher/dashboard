@@ -1,6 +1,7 @@
 <script>
 import Card from '@/components/Card';
 import ProjectMemberEditor from '@/components/form/ProjectMemberEditor';
+import { MANAGEMENT } from '@/config/types';
 
 export default {
   components: {
@@ -38,9 +39,20 @@ export default {
       this.$emit('close');
     },
 
-    apply(buttonDone) {
-      this.onAdd(this.member);
+    async apply() {
+      this.onAdd(await this.createBindings());
       this.close();
+    },
+
+    createBindings() {
+      const promises = this.member.roleTemplateIds.map(roleTemplateId => this.$store.dispatch(`management/create`, {
+        type:                  MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
+        roleTemplateName:      roleTemplateId,
+        userPrincipalName:     this.member.userPrincipalId,
+        projectName:           this.member.projectId,
+      }));
+
+      return Promise.all(promises);
     }
   }
 };
@@ -51,7 +63,7 @@ export default {
     <h4 slot="title" class="text-default-text" v-html="t('addProjectMemberDialog.title')" />
 
     <div slot="body" class="pl-10 pr-10">
-      <ProjectMemberEditor v-model="member" />
+      <ProjectMemberEditor v-model="member" :use-two-columns-for-custom="true" />
     </div>
 
     <div slot="actions" class="buttons">

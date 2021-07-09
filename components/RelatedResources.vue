@@ -95,7 +95,7 @@ export default {
           name:   `c-cluster-product-resource${ namespace ? '-namespace' : '' }-id`,
           params: {
             product:  EXPLORER,
-            cluster,
+            cluster:  inStore === 'management' ? 'local' : cluster,
             resource: type,
             namespace,
             id:       name,
@@ -111,6 +111,7 @@ export default {
           _key:     key,
 
           name,
+          namespace,
           nameDisplay: name,
           nameSort:    sortableNumericSuffix(name).toLowerCase(),
 

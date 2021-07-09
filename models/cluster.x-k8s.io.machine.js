@@ -1,5 +1,7 @@
-import { CAPI } from '@/config/types';
-import { CAPI as CAPI_LABELS } from '@/config/labels-annotations';
+import { CAPI, NODE } from '@/config/types';
+import { CAPI as CAPI_LABELS, MACHINE_ROLES } from '@/config/labels-annotations';
+import { NAME as EXPLORER } from '@/config/product/explorer';
+import { listNodeRoles } from '@/models/cluster/node';
 import { escapeHtml } from '@/utils/string';
 import { insertAt } from '@/utils/array';
 import { downloadUrl } from '@/utils/download';
@@ -18,7 +20,7 @@ export default {
       action:     'downloadKeys',
       enabled:    !!this.links.sshkeys,
       icon:       'icon icon-fw icon-download',
-      label:      'Download SSH Key',
+      label:      this.t('node.actions.downloadSSHKey'),
     };
 
     insertAt(out, 0, { divider: true });
@@ -72,9 +74,45 @@ export default {
     return this.$rootGetters['management/byId'](CAPI.MACHINE_DEPLOYMENT, this.poolId);
   },
 
+  kubeNodeDetailLocation() {
+    const kubeId = this.status?.nodeRef?.name;
+
+    return kubeId ? {
+      name:   'c-cluster-product-resource-id',
+      params: {
+        cluster:  this.cluster.status.clusterName,
+        product:  EXPLORER,
+        resource: NODE,
+        id:       kubeId
+      }
+    } : kubeId;
+  },
+
   groupByLabel() {
     const name = this.cluster?.nameDisplay || this.spec.clusterName;
 
     return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: escapeHtml(name) });
+  },
+
+  labels() {
+    return this.metadata?.labels || {};
+  },
+
+  isWorker() {
+    return `${ this.labels[MACHINE_ROLES.WORKER] }` === 'true';
+  },
+
+  isControlPlane() {
+    return `${ this.labels[MACHINE_ROLES.CONTROL_PLANE] }` === 'true';
+  },
+
+  isEtcd() {
+    return `${ this.labels[MACHINE_ROLES.ETCD] }` === 'true';
+  },
+
+  roles() {
+    const { isControlPlane, isWorker, isEtcd } = this;
+
+    return listNodeRoles(isControlPlane, isWorker, isEtcd, this.t('generic.all'));
   },
 };

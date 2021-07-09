@@ -212,6 +212,7 @@ export default {
           ref="changePassword"
           v-model="form.password"
           :mode="mode"
+          :must-change-password="value.mustChangePassword"
           @valid="validation.password = $event"
         />
       </div>

@@ -3,10 +3,17 @@ import CreateEditView from '@/mixins/create-edit-view';
 import SelectPrincipal from '@/components/auth/SelectPrincipal';
 import { MANAGEMENT } from '@/config/types';
 import Loading from '@/components/Loading';
+import Card from '@/components/Card';
+import RadioGroup from '@/components/form/RadioGroup';
+import Checkbox from '@/components/form/Checkbox';
+import { DESCRIPTION } from '@/config/labels-annotations';
 
 export default {
   components: {
+    Card,
+    Checkbox,
     Loading,
+    RadioGroup,
     SelectPrincipal
   },
 
@@ -16,11 +23,22 @@ export default {
     value: {
       type:     Object,
       required: true
+    },
+
+    useTwoColumnsForCustom: {
+      type:    Boolean,
+      default: false
     }
   },
   async fetch() {
-    await this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER });
-    this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
+    const [, roleTemplates, projects] = await Promise.all([
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER }),
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE }),
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT })
+    ]);
+
+    this.roleTemplates = roleTemplates;
+    this.projects = projects;
   },
   data() {
     this.setRoleTemplateIds(this.value.permissionGroup);
@@ -128,16 +146,48 @@ export default {
           value: false,
         },
       ],
-      projects: [],
+      projects:      [],
+      roleTemplates:     [],
     };
   },
   computed: {
-    projectOptions() {
-      return this.projects
-        .map(p => ({
-          value: p.id.replace('/', ':'),
-          label: p.nameDisplay
-        }));
+    customRoles() {
+      return this.roleTemplates
+        .filter((role) => {
+          return !role.builtin && !role.external && !role.hidden && role.context === 'project';
+        });
+    },
+
+    options() {
+      const customRoles = this.customRoles.map(role => ({
+        label:       role.nameDisplay,
+        description: role.description || role.metadata?.annotations?.[DESCRIPTION] || this.t('projectMembers.projectPermissions.noDescription'),
+        value:       role.id
+      }));
+
+      return [
+        {
+          label:       this.t('projectMembers.projectPermissions.owner.label'),
+          description: this.t('projectMembers.projectPermissions.owner.description'),
+          value:       'owner'
+        },
+        {
+          label:       this.t('projectMembers.projectPermissions.member.label'),
+          description: this.t('projectMembers.projectPermissions.member.description'),
+          value:       'member'
+        },
+        {
+          label:       this.t('projectMembers.projectPermissions.readOnly.label'),
+          description: this.t('projectMembers.projectPermissions.readOnly.description'),
+          value:       'read-only'
+        },
+        ...customRoles,
+        {
+          label:       this.t('projectMembers.projectPermissions.custom.label'),
+          description: this.t('projectMembers.projectPermissions.custom.description'),
+          value:       'custom'
+        }
+      ];
     }
   },
   watch: {
@@ -176,9 +226,13 @@ export default {
         return ['read-only'];
       }
 
-      return this.customPermissions
-        .filter(permission => permission.value)
-        .map(permission => permission.key);
+      if (permissionGroup === 'custom') {
+        return this.customPermissions
+          .filter(permission => permission.value)
+          .map(permission => permission.key);
+      }
+
+      return [permissionGroup];
     }
   }
 };
@@ -193,51 +247,35 @@ export default {
         <SelectPrincipal class="mb-20" :mode="mode" :retain-selection="true" @add="onAdd" />
       </div>
     </div>
-    <div class="row">
-      <div class="col span-12">
-        <h3 class="mb-0">
-          {{ t('projectMembers.projectPermissions.label') }}
-        </h3>
-        <label class="mt-0 mb-0">{{ t('projectMembers.projectPermissions.description') }}</label>
-        <div class="mb-10 mt-20">
-          <label class="radio">
-            <input v-model="value.permissionGroup" :disabled="isView" type="radio" value="owner" />
-            {{ t('projectMembers.projectPermissions.owner.label') }}
-            <div class="text-small text-muted">{{ t('projectMembers.projectPermissions.owner.description') }}</div>
-          </label>
+    <Card class="m-0" :show-highlight-border="false" :show-actions="false">
+      <template v-slot:title>
+        <div class="type-title">
+          <h3>{{ t('projectMembers.projectPermissions.label') }}</h3>
+          <div class="type-description">
+            {{ t('projectMembers.projectPermissions.description') }}
+          </div>
         </div>
-        <div class="mb-10">
-          <label class="radio">
-            <input v-model="value.permissionGroup" :disabled="isView" type="radio" value="member" />
-            {{ t('projectMembers.projectPermissions.member.label') }}
-            <div class="text-small text-muted">{{ t('projectMembers.projectPermissions.member.description') }}</div>
-          </label>
+      </template>
+      <template v-slot:body>
+        <RadioGroup
+          v-model="value.permissionGroup"
+          :options="options"
+          name="permission-group"
+        />
+        <div v-if="value.permissionGroup === 'custom'" class="custom-permissions ml-20 mt-10" :class="{'two-column': useTwoColumnsForCustom}">
+          <Checkbox v-for="permission in customPermissions" :key="permission.key" v-model="permission.value" class="mb-5" :label="permission.label" />
         </div>
-        <div class="mb-10">
-          <label class="radio">
-            <input v-model="value.permissionGroup" :disabled="isView" type="radio" value="read-only" />
-            {{ t('projectMembers.projectPermissions.readOnly.label') }}
-            <div class="text-small text-muted">{{ t('projectMembers.projectPermissions.readOnly.description') }}</div>
-          </label>
-        </div>
-        <div>
-          <label class="radio">
-            <input v-model="value.permissionGroup" :disabled="isView" type="radio" value="custom" />
-            {{ t('projectMembers.projectPermissions.custom.label') }}
-            <div class="text-small text-muted">{{ t('projectMembers.projectPermissions.custom.description') }}</div>
-          </label>
-        </div>
-        <div v-if="value.permissionGroup === 'custom'" class="custom-permissions mt-10">
-          <label v-for="permission in customPermissions" :key="permission.key" class="mb-5">
-            <input v-model="permission.value" :disabled="isView" type="checkbox" />
-            {{ permission.label }}
-          </label>
-        </div>
-      </div>
-    </div>
+      </template>
+    </Card>
   </div>
 </template>
 <style lang="scss" scoped>
+$detailSize: 11px;
+
+::v-deep .type-description {
+    font-size: $detailSize;
+}
+
 label.radio {
   font-size: 16px;
 }
@@ -245,5 +283,8 @@ label.radio {
 .custom-permissions {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
+  &.two-column {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 </style>

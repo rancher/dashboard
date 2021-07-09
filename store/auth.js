@@ -1,9 +1,10 @@
-import { randomStr } from '@/utils/string';
-import { parse as parseUrl, removeParam, addParams } from '@/utils/url';
-import { findBy, addObjects } from '@/utils/array';
+import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE } from '@/config/query-params';
+import { NORMAN } from '@/config/types';
+import { addObjects, findBy } from '@/utils/array';
 import { openAuthPopup, returnTo } from '@/utils/auth';
-import { GITHUB_SCOPE, GITHUB_NONCE, GITHUB_REDIRECT } from '@/config/query-params';
 import { base64Encode } from '@/utils/crypto';
+import { randomStr } from '@/utils/string';
+import { addParams, parse as parseUrl, removeParam } from '@/utils/url';
 
 export const BASE_SCOPES = {
   github:       ['read:org'],
@@ -28,6 +29,8 @@ export const state = function() {
     hasAuth:     null,
     loggedIn:    false,
     principalId: null,
+    v3User:      null,
+    initialPass: null,
   };
 };
 
@@ -48,6 +51,14 @@ export const getters = {
     return state.principalId;
   },
 
+  v3User(state) {
+    return state.v3User;
+  },
+
+  initialPass(state) {
+    return state.initialPass;
+  },
+
   isGithub(state) {
     return state.principalId && state.principalId.startsWith('github_user://');
   }
@@ -56,6 +67,11 @@ export const getters = {
 export const mutations = {
   gotHeader(state, fromHeader) {
     state.fromHeader = fromHeader;
+  },
+
+  gotUser(state, v3User) {
+    // Always deference to avoid race condition when setting `mustChangePassword`
+    state.v3User = { ...v3User };
   },
 
   hasAuth(state, hasAuth) {
@@ -75,12 +91,41 @@ export const mutations = {
 
     state.loggedIn = false;
     state.principalId = null;
+    state.v3User = null;
+    state.initialPass = null;
   },
+
+  initialPass(state, pass) {
+    state.initialPass = pass;
+  }
 };
 
 export const actions = {
   gotHeader({ commit }, fromHeader) {
     commit('gotHeader', fromHeader);
+  },
+
+  async getUser({ dispatch, commit, getters }) {
+    if (getters.v3User) {
+      return;
+    }
+
+    try {
+      const user = await dispatch('rancher/findAll', {
+        type: NORMAN.USER,
+        opt:  { url: '/v3/users', filter: { me: true } }
+      }, { root: true });
+
+      commit('gotUser', user?.[0]);
+    } catch { }
+  },
+
+  gotUser({ commit }, user) {
+    commit('gotUser', user);
+  },
+
+  setInitialPass({ commit }, pass) {
+    commit('initialPass', pass);
   },
 
   getAuthProviders({ dispatch }) {

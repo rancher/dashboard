@@ -80,10 +80,6 @@ export function init(store) {
     POD,
   ], 'workload');
   basicType([
-    RBAC.ROLE,
-    RBAC.CLUSTER_ROLE,
-    RBAC.ROLE_BINDING,
-    RBAC.CLUSTER_ROLE_BINDING,
     'cluster-members',
   ], 'rbac');
 
@@ -134,7 +130,7 @@ export function init(store) {
   mapGroup(/^(.*\.)?cluster\.x-k8s\.io$/, 'Cluster Provisioning');
   mapGroup(/^(aks|eks|gke|rke|rke-machine-config|provisioning)\.cattle\.io$/, 'Cluster Provisioning');
 
-  configureType(NODE, { isCreatable: false, isEditable: false });
+  configureType(NODE, { isCreatable: false, isEditable: true });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
   configureType(PVC, { isEditable: false });
   configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { isEditable: false });
@@ -167,7 +163,7 @@ export function init(store) {
     AGE
   ]);
   headers(INGRESS, [STATE, NAME_COL, NAMESPACE_COL, INGRESS_TARGET, INGRESS_DEFAULT_BACKEND, AGE]);
-  headers(SERVICE, [STATE, NAME_COL, NAMESPACE_COL, SPEC_TYPE, TARGET_PORT, SELECTOR, AGE]);
+  headers(SERVICE, [STATE, NAME_COL, NAMESPACE_COL, TARGET_PORT, SELECTOR, SPEC_TYPE, AGE]);
   headers(HPA, [STATE, NAME_COL, HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA, AGE]);
 
   headers(WORKLOAD, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, TYPE, 'Ready', AGE]);
