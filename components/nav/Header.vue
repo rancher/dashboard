@@ -84,7 +84,7 @@ export default {
 
     nameTooltip() {
       return !this.showTooltip ? {} : {
-        content: this.currentCluster.nameDisplay,
+        content: this.currentCluster?.nameDisplay,
         delay:   400,
       };
     }
@@ -159,8 +159,8 @@ export default {
     <div class="menu-spacer"></div>
     <div v-if="!simple" class="product">
       <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster cluster-clipped">
-        <RancherProviderIcon v-if="currentCluster.isLocal" class="mr-10 cluster-local-logo" width="25" />
-        <img v-else-if="currentCluster" class="cluster-os-logo" :src="currentCluster.providerLogo" />
+        <RancherProviderIcon v-if="currentCluster && currentCluster.isLocal" class="mr-10 cluster-local-logo" width="25" />
+        <img v-else-if="currentCluster && currentCluster.providerLogo" class="cluster-os-logo" :src="currentCluster.providerLogo" />
         <div v-if="currentCluster" ref="clusterName" class="cluster-name">
           {{ currentCluster.spec.displayName }}
         </div>
@@ -185,12 +185,12 @@ export default {
 
     <TopLevelMenu></TopLevelMenu>
 
-    <div v-if="!simple" class="top">
+    <div v-if="currentCluster && !simple" class="top">
       <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
       <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
     </div>
 
-    <div v-if="!simple" class="header-buttons">
+    <div v-if="currentCluster && !simple" class="header-buttons">
       <template v-if="currentProduct && currentProduct.showClusterSwitcher">
         <button
           v-tooltip="t('nav.import')"
