@@ -160,7 +160,7 @@ export function init(store) {
     namespaced: true,
     name:       'project-pipelines',
     weight:     104,
-    route:      { name: 'c-cluster-legacy-pipelines' },
+    route:      { name: 'c-cluster-legacy-project-pipelines' },
     exact:      true,
     overview:   false,
   });
