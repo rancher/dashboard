@@ -411,6 +411,6 @@ export default {
 
 <style lang="scss">
 .select-or-create-auth-secret div.labeled-select {
-  min-height: 61px;
+  min-height: $input-height;
 }
 </style>
