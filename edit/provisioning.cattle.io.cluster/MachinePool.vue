@@ -102,7 +102,7 @@ export default {
 
       <KeyValue
         v-model="value.pool.labels"
-        :add-label="t('labels.addLabel')"
+        :add-label="t('generic.add')"
         :mode="mode"
         title="Kubernetes Node Labels"
         :read-allowed="false"
