@@ -73,7 +73,10 @@ export default {
   mounted() {
     if ( this.testing ) {
       try {
-        reply(null, this.$route.query[GITHUB_CODE] );
+        const { error: respError, error_description: respErrorDescription, [GITHUB_CODE]: code } = this.$route.query;
+        const error = respErrorDescription || respError || (!code ? 'No code supplied by auth provider' : null);
+
+        reply(error, code );
       } catch (e) {
         window.close();
       }
