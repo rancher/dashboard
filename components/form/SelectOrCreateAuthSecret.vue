@@ -358,7 +358,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div v-else class="select-or-create-auth-secret">
     <div class="mt-20" :class="{'row': !vertical}">
       <div :class="firstCol">
         <LabeledSelect
@@ -408,3 +408,9 @@ export default {
     </div>
   </div>
 </template>
+
+<style lang="scss">
+.select-or-create-auth-secret div.labeled-select {
+  min-height: $input-height;
+}
+</style>
