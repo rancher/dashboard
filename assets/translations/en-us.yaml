@@ -1660,6 +1660,8 @@ istio:
 labels:
   addLabel: Add Label
   addSetLabel: Add/Set Label
+  addTag: Add Tag
+  addTaint: Add Taint
   addAnnotation: Add Annotation
   labels:
     title: Labels

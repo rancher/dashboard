@@ -567,6 +567,7 @@ export default {
               :mode="mode"
               :read-allowed="false"
               title="EC2 Tags"
+              :add-label="t('labels.addTag')"
               @input="updateTags"
             />
           </div>
