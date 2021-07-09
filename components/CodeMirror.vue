@@ -54,9 +54,6 @@ export default {
   },
 
   methods: {
-    updateValue(value) {
-      this.$refs.cm.codemirror.doc.setValue(value);
-    },
 
     focus() {
       if ( this.$refs.cm ) {
