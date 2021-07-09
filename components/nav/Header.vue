@@ -165,10 +165,7 @@ export default {
           {{ currentCluster.spec.displayName }}
         </div>
         <div v-else class="simple-title">
-          <img class="side-menu-logo" src="~/assets/images/pl/rancher-logo.svg" width="110" />
-          <div class="title">
-            {{ appName }}
-          </div>
+          <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
         </div>
       </div>
       <div v-if="currentProduct && !currentProduct.showClusterSwitcher" class="cluster">
