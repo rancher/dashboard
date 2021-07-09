@@ -6,7 +6,7 @@ const CONFIG_KEYS = [
     size:      { key: 'instanceType' },
     location: {
       getDisplayProperty(that) {
-        return `${ that.providerConfig.region }${ that.providerConfig.zone }`;
+        return `${ that.providerConfig?.region }${ that.providerConfig?.zone }`;
       }
     }
   },
@@ -15,7 +15,7 @@ const CONFIG_KEYS = [
     size:      { key: 'instanceType' },
     location: {
       getDisplayProperty(that) {
-        return `${ that.providerConfig.region }${ that.providerConfig.zone }`;
+        return `${ that.providerConfig?.region }${ that.providerConfig?.zone }`;
       }
     }
   },
@@ -63,9 +63,9 @@ const CONFIG_KEYS = [
     driver:           'vmwarevsphere',
     size:   {
       getDisplayProperty(that) {
-        const size = formatSi(that.providerConfig.memorySize * 1048576, 1024, 'iB');
+        const size = formatSi(that.providerConfig?.memorySize * 1048576, 1024, 'iB');
 
-        return `${ size }, ${ that.providerConfig.cpuCount } Core`;
+        return `${ size }, ${ that.providerConfig?.cpuCount } Core`;
       }
     },
     location: { key: null }
@@ -101,7 +101,7 @@ export default {
         if (config.location.getDisplayProperty) {
           return config.location.getDisplayProperty(this);
         }
-        const value = this.providerConfig[config.location.key];
+        const value = this.providerConfig?.[config.location.key];
 
         if (value) {
           return value;
@@ -120,7 +120,7 @@ export default {
         if (config.size.getDisplayProperty) {
           return config.size.getDisplayProperty(this);
         }
-        const value = this.providerConfig[config.size.key];
+        const value = this.providerConfig?.[config.size.key];
 
         if (value) {
           return value;
