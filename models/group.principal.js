@@ -42,7 +42,8 @@ export default {
         enabled:  true,
       },
       {
-        action:     'unassignGroupRoles',
+        action:     'promptUnassignGroupRoles',
+        altAction:  'unassignGroupRoles',
         label:      this.t('action.unassign'),
         icon:       'icon icon-trash',
         bulkable:   true,
@@ -52,10 +53,9 @@ export default {
     ];
   },
 
-  unassignGroupRoles() {
+  promptUnassignGroupRoles() {
     return (resources = this) => {
       const principals = Array.isArray(resources) ? resources : [resources];
-
       const globalRoleBindings = this.$rootGetters['management/all'](MANAGEMENT.GLOBAL_ROLE_BINDING)
         .filter(globalRoleBinding => principals.find(principal => principal.id === globalRoleBinding.groupPrincipalName));
 
@@ -63,4 +63,16 @@ export default {
     };
   },
 
+  unassignGroupRoles() {
+    return async(resources = this) => {
+      const principals = Array.isArray(resources) ? resources : [resources];
+      const globalRoleBindings = this.$rootGetters['management/all'](MANAGEMENT.GLOBAL_ROLE_BINDING)
+        .filter(globalRoleBinding => principals.find(principal => principal.id === globalRoleBinding.groupPrincipalName));
+
+      await Promise.all(globalRoleBindings.map(resource => resource.remove()));
+
+      // There is no dialog to close, but this can be watched and used to refresh the group principles
+      this.$dispatch('promptRemove', null);
+    };
+  }
 };
