@@ -1,3 +1,4 @@
+import { CREATOR_ID } from '@/config/labels-annotations';
 import { MANAGEMENT, NORMAN } from '@/config/types';
 
 export default {
@@ -97,6 +98,10 @@ export default {
 
   listLocation() {
     return { name: 'c-cluster-explorer-project-members' };
+  },
+
+  isSystem() {
+    return !this.metadata.annotations[CREATOR_ID];
   },
 
   norman() {
