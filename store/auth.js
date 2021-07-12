@@ -10,7 +10,7 @@ export const BASE_SCOPES = {
   github:       ['read:org'],
   googleoauth:  ['openid profile email'],
   azuread:      [],
-  keycloakoidc: ['profile,email']
+  keycloakoidc: ['openid profile email']
 };
 
 const KEY = 'rc_nonce';
