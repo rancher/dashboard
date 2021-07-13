@@ -81,6 +81,12 @@ export default {
     onChanges(cm, changes) {
       this.$emit('onChanges', cm, changes);
     },
+
+    updateValue(value) {
+      if ( this.$refs.cm ) {
+        this.$refs.cm.codemirror.doc.setValue(value);
+      }
+    }
   }
 };
 </script>
