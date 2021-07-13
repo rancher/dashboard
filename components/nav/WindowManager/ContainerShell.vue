@@ -59,16 +59,17 @@ export default {
 
   data() {
     return {
-      container:   this.initialContainer || this.pod?.defaultContainerName,
-      socket:      null,
-      terminal:    null,
-      fitAddon:    null,
-      searchAddon: null,
-      webglAddon:  null,
-      isOpen:      false,
-      isOpening:   false,
-      backlog:     [],
-      node:        null,
+      container:      this.initialContainer || this.pod?.defaultContainerName,
+      socket:         null,
+      terminal:       null,
+      fitAddon:       null,
+      searchAddon:    null,
+      webglAddon:     null,
+      isOpen:         false,
+      isOpening:      false,
+      backlog:        [],
+      node:           null,
+      keepAliveTimer: null,
     };
   },
 
@@ -97,6 +98,7 @@ export default {
   },
 
   beforeDestroy() {
+    clearInterval(this.keepAliveTimer);
     this.cleanup();
   },
 
@@ -104,6 +106,11 @@ export default {
     await this.fetchNode();
     await this.setupTerminal();
     await this.connect();
+
+    clearInterval(this.keepAliveTimer);
+    this.keepAliveTimer = setInterval(() => {
+      this.fit();
+    }, 60 * 1000);
   },
 
   methods: {
