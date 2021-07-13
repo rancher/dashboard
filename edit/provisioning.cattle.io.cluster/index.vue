@@ -16,7 +16,6 @@ import { CATALOG } from '@/config/labels-annotations';
 import { CAPI, MANAGEMENT } from '@/config/types';
 import { mapFeature, RKE2 as RKE2_FEATURE } from '@/store/features';
 import { allHash } from '@/utils/promise';
-import { BLANK_CLUSTER } from '@/store';
 import Rke2Config from './rke2';
 import Import from './import';
 
@@ -297,9 +296,9 @@ export default {
 
       if ( parts[0] === 'chart' ) {
         const chart = this.$store.getters['catalog/chart']({ key: parts[1] });
+        const localCluster = this.$store.getters['management/all'](MANAGEMENT.CLUSTER).find(x => x.isLocal);
 
-        // TODO: RC Test
-        chart.goToInstall(FROM_CLUSTER, BLANK_CLUSTER);
+        chart.goToInstall(FROM_CLUSTER, localCluster.id);
 
         return;
       }

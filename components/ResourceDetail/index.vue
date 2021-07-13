@@ -111,7 +111,6 @@ export default {
 
       const data = { type: resource };
 
-      // TODO: RC API standard user, no clusters - `provisioning.cattle.io.cluster` isn't in v1/schemas (but is reachable by v1/schemas/provisioning.cattle.io.cluster)
       if ( schema?.attributes?.namespaced ) {
         data.metadata = { namespace };
       }

@@ -96,7 +96,6 @@ export default {
   async fetch() {
     if ( !this.allSecrets ) {
       const hash = {
-        // TODO: RC API standard user, no clusters - v1/secret GET 403
         allSecrets:   this.$store.dispatch('management/findAll', { type: SECRET }),
         rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
         k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
