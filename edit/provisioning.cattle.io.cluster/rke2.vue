@@ -197,12 +197,12 @@ export default {
       });
     }
 
-    if ( !this.value.spec.rkeConfig.controlPlaneConfig ) {
-      set(this.value.spec, 'rkeConfig.controlPlaneConfig', {});
+    if ( !this.value.spec.rkeConfig.machineGlobalConfig ) {
+      set(this.value.spec, 'rkeConfig.machineGlobalConfig', {});
     }
 
-    if ( !this.value.spec.rkeConfig.workerConfig?.length ) {
-      set(this.value.spec, 'rkeConfig.workerConfig', [{}]);
+    if ( !this.value.spec.rkeConfig.machineSelectorConfig?.length ) {
+      set(this.value.spec, 'rkeConfig.machineSelectorConfig', [{}]);
     }
 
     if ( !this.value.spec.defaultPodSecurityPolicyTemplateName ) {
@@ -239,15 +239,15 @@ export default {
     },
 
     serverConfig() {
-      return this.value.spec.rkeConfig.controlPlaneConfig;
+      return this.value.spec.rkeConfig.machineGlobalConfig;
     },
 
     agentConfig() {
-      return this.value.spec.rkeConfig.workerConfig[0];
+      return this.value.spec.rkeConfig.machineSelectorConfig[0];
     },
 
     multipleAgentConfigs() {
-      return this.value.spec.rkeConfig.workerConfig.length > 1;
+      return this.value.spec.rkeConfig.machineSelectorConfig.length > 1;
     },
 
     unsupportedAgentConfig() {
@@ -1230,8 +1230,8 @@ export default {
       </Tabbed>
     </div>
 
-    <Banner v-if="multipleAgentConfigs" color="warning" label="This cluster has multiple workerConfigs. This form does only manages the first one; use the YAML editor to manage the full configuration." />
-    <Banner v-if="unsupportedAgentConfig" color="warning" label="This cluster contains a workerConfig which this form does not fully support; use the YAML editor to manage the full configuration." />
+    <Banner v-if="multipleAgentConfigs" color="warning" label="This cluster has multiple machineSelectorConfigs. This form does only manages the first one; use the YAML editor to manage the full configuration." />
+    <Banner v-if="unsupportedAgentConfig" color="warning" label="This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration." />
 
     <template v-if="needCredential && !credentialId" #form-footer>
       <div><!-- Hide the outer footer --></div>
