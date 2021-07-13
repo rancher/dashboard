@@ -80,7 +80,11 @@ nav:
   import: Import YAML
   home: Home
   shell: Kubectl Shell
-  support: Get Support
+  support: |-
+    {hasSupport, select,
+      true {Support}
+      other {Get Support}
+    }
   group:
     cluster: Cluster
     inUse: More Resources

@@ -103,7 +103,7 @@ export default {
     },
 
     showSidePanel() {
-      return this.showCommercialSupport || !this.homePageCards.communitySupportTip;
+      return this.showCommercialSupport || this.showCommunityLinks;
     },
 
     clusterHeaders() {
@@ -155,9 +155,21 @@ export default {
     },
 
     showCommercialSupport() {
+      const canEditSettings = (this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PATCH');
+
       const hasSupport = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED) || {};
 
-      return !this.homePageCards.commercialSupportTip && hasSupport.value !== 'true';
+      return !this.homePageCards.commercialSupportTip && hasSupport.value !== 'true' && canEditSettings;
+    },
+
+    showCommunityLinks() {
+      const uiIssuesSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_ISSUES) || {};
+      const communityLinksSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.COMMUNITY_LINKS) || {};
+
+      const hasSomethingToShow = communityLinksSetting?.value !== 'false' || !!( uiIssuesSetting.value && uiIssuesSetting.value !== '');
+      const hiddenByPreference = this.homePageCards.communitySupportTip === true;
+
+      return hasSomethingToShow && !hiddenByPreference;
     },
 
     ...mapGetters(['currentCluster', 'defaultClusterId'])
@@ -323,7 +335,7 @@ export default {
           </div>
         </div>
         <div v-if="showSidePanel" class="col span-3">
-          <CommunityLinks :pref="HIDE_HOME_PAGE_CARDS" pref-key="communitySupportTip" class="mb-20" />
+          <CommunityLinks v-if="showCommunityLinks" :pref="HIDE_HOME_PAGE_CARDS" pref-key="communitySupportTip" class="mb-20" />
           <SimpleBox v-if="showCommercialSupport" :pref="HIDE_HOME_PAGE_CARDS" pref-key="commercialSupportTip" :title="t('landing.commercial.title')">
             <nuxt-link :to="{ path: 'support'}">
               {{ t('landing.commercial.body') }}

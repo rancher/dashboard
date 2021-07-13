@@ -17,7 +17,7 @@ export default {
   },
 
   data() {
-    return { uiIssuesSetting: null, hideCommunitySetting: null };
+    return { uiIssuesSetting: null, communitySetting: null };
   },
 
   computed: {
