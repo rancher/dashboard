@@ -3907,6 +3907,10 @@ tableHeaders:
   targetVm: Target VM
   phase: Phase
   attachedVM: Attached VM
+  hostIp: Host IP
+  storage: Storage Size
+  defaultVersion: Default version
+  ipAddress: IP Address
 
 target:
   router:
