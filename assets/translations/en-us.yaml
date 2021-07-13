@@ -3959,6 +3959,8 @@ tableHeaders:
   weight: Weight
   progress: Progress
   fingerprint: Fingerprint
+  networkType: Type
+  networkVlan: Vlan ID
 
 target:
   router:
@@ -4587,6 +4589,16 @@ harvester:
     label: Backups
   network:
     label: Networks
+    message:
+      vlanInactive: 'VLAN network is inactive at {name} host'
+      premise: 
+        prefix: 'You must configure a network in'
+        middle: 'Settings'
+        suffic: 'before creating a new network.'
+      errorTip:
+        prefix: Physical NIC value in
+        middle: Setting
+        suffic: "is invalid, error: "
   sshKey:
     label: SSH Keys
     keypair: SSH Key
