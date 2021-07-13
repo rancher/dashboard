@@ -1,5 +1,6 @@
 <script>
 import { mapPref, AFTER_LOGIN_ROUTE } from '@/store/prefs';
+import { mapFeature, MULTI_CLUSTER } from '@/store/features';
 import RadioGroup from '@/components/form/RadioGroup';
 import RadioButton from '@/components/form/RadioButton';
 import Select from '@/components/form/Select';
@@ -28,6 +29,7 @@ export default {
 
   computed: {
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
+    mcm:             mapFeature(MULTI_CLUSTER),
 
     routeFromDropdown: {
       get() {
@@ -43,7 +45,7 @@ export default {
     },
 
     routeRadioOptions() {
-      return [
+      const options = [
         {
           label: this.t('landing.landingPrefs.options.homePage'),
           value: 'home'
@@ -57,6 +59,13 @@ export default {
           value: 'dropdown'
         }
       ];
+
+      // Remove the last option if not multi-cluster
+      if (!this.mcm) {
+        options.pop();
+      }
+
+      return options;
     },
 
     routeDropdownOptions() {
