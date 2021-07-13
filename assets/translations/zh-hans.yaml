@@ -3144,6 +3144,8 @@ tableHeaders:
   weight: 权重
   progress: 进度
   fingerprint: 唯一标识
+  networkType: 类型
+  networkVlan: Vlan ID
 
 target:
   router:
@@ -3762,6 +3764,17 @@ harvester:
     label: 备份
   network:
     label: 网络
+    message:
+      vlanInactive: 'VLAN网络在主机 {name} 上处于非活动状态'
+      premise: 
+        prefix: '您必须先配置网络'
+        middle: '设置'
+        suffic: ',然后才能创建新网络。'
+      errorTip:
+        prefix: 非法的网络
+        middle: 配置
+        suffic: ",错误信息： "
+
   sshKey:
     label: SSH 秘钥
     keypair: SSH 公钥

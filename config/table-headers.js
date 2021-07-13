@@ -860,3 +860,22 @@ export const FINGERPRINT = {
   labelKey:  'tableHeaders.fingerprint',
   value:     'status.fingerPrint',
 };
+
+// network
+export const NETWORK_TYPE = {
+  name:      'type',
+  value:     'spec.config',
+  sort:      'spec.config',
+  type:      'type',
+  formatter: 'ParseNetworkConfig',
+  labelKey:  'tableHeaders.networkType'
+};
+
+export const NETWORK_VLAN = {
+  name:      'vlan',
+  value:     'spec.config',
+  sort:      'spec.config',
+  type:      'vlan',
+  formatter: 'ParseNetworkConfig',
+  labelKey:  'tableHeaders.networkVlan'
+};
