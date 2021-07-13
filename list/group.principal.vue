@@ -41,10 +41,11 @@ export default {
       }
     };
   },
-  computed: { ...mapState('action-menu', ['showPromptRemove']) },
+  computed: { ...mapState('action-menu', ['showPromptRemove', 'toRemove']) },
   watch:    {
-    async showPromptRemove(show, ...args) {
-      if (!show) {
+    async toRemove(resources) {
+      if (resources?.length === 0) {
+        await this.refreshGroupMemberships(() => {});
         // spoofed collections normally get updated when promptRemove has completed (given the resources are of a spoofed type)..
         // ... however in this use case it doesn't happen so do it manually (the removed resources are not globalRoleBindings and not spoofed)
         await this.updateRows(true);

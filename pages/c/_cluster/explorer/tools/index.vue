@@ -8,6 +8,7 @@ import LazyImage from '@/components/LazyImage';
 import AppSummaryGraph from '@/components/formatter/AppSummaryGraph';
 import { sortBy } from '@/utils/sort';
 import { LEGACY } from '@/store/features';
+import { isAlternate } from '@/utils/platform';
 
 export default {
   components: {
@@ -151,8 +152,15 @@ export default {
       app.goToUpgrade(version, true);
     },
 
-    remove(app) {
-      app.promptRemove();
+    remove(app, event) {
+      const alt = isAlternate(event);
+
+      if (!alt) {
+        app.promptRemove();
+      } else {
+        // User held alt key, so don't prompt
+        app.remove();
+      }
     },
 
     install(chart) {
@@ -380,13 +388,13 @@ export default {
             <button class="btn btn-sm role-secondary" @click="openV1Tool(opt.chart.legacyPage)" v-html="t('catalog.tools.action.manage')" />
           </template>
           <template v-else-if="opt.app && opt.upgradeAvailable && !opt.chart.legacy">
-            <button class="btn btn-sm role-secondary" @click="remove(opt.app)">
+            <button class="btn btn-sm role-secondary" @click="remove(opt.app, $event)">
               <i class="icon icon-delete icon-lg" />
             </button>
             <button class="btn btn-sm role-secondary" @click="edit(opt.app, opt.app.upgradeAvailable)" v-html="t('catalog.tools.action.upgrade')" />
           </template>
           <template v-else-if="opt.app">
-            <button class="btn btn-sm role-secondary" @click="remove(opt.app)">
+            <button class="btn btn-sm role-secondary" @click="remove(opt.app, $event)">
               <i class="icon icon-delete icon-lg" />
             </button>
             <button class="btn btn-sm role-secondary" @click="edit(opt.app)" v-html="t('catalog.tools.action.edit')" />
