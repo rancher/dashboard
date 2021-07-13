@@ -1,4 +1,4 @@
-import { CREATOR_ID, CREATOR_OWNER_BINDING } from '@/config/labels-annotations';
+import { CREATOR_ID } from '@/config/labels-annotations';
 import { _CREATE } from '@/config/query-params';
 import { MANAGEMENT, NORMAN } from '@/config/types';
 
@@ -83,7 +83,7 @@ export default {
   },
 
   isSystem() {
-    return !this.metadata.annotations[CREATOR_ID] && this.metadata.annotations[CREATOR_OWNER_BINDING] !== 'true';
+    return !this.metadata.annotations[CREATOR_ID];
   },
 
   norman() {
