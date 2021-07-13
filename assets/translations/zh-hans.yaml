@@ -3755,6 +3755,15 @@ workload:
 harvester:
   dashboard:
     label: 概览
+    header: 仪表盘
+    hardwareResourceGauge:
+      cpu: CPU
+      memory: 内存
+      storage: 存储
+    sections:
+      events:
+        label: 事件
+
   host:
     label: 主机
   virtualMachine:

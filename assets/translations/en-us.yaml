@@ -4518,6 +4518,15 @@ workload:
 harvester:
   dashboard:
     label: Dashboard
+    header: Dashboard
+    hardwareResourceGauge:
+      cpu: CPU  
+      memory: Memory
+      storage: Storage Size
+    sections:
+      events:
+        label: Events
+
   host:
     label: Hosts
   virtualMachine:
