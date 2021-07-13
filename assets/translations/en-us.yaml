@@ -3957,6 +3957,8 @@ tableHeaders:
   value: Value
   version: Version
   weight: Weight
+  progress: Progress
+  fingerprint: Fingerprint
 
 target:
   router:
@@ -4568,6 +4570,42 @@ workload:
       tip: The duration the pod needs to terminate successfully.
     title: Upgrading
 
+harvester:
+  dashboard:
+    label: Dashboard
+  host:
+    label: Hosts
+  virtualMachine:
+    label: Virtual Machines
+  volume: 
+    label: Volumes
+  image:
+    label: Images
+  vmTemplate:
+    label: Templates
+  backup:
+    label: Backups
+  network:
+    label: Networks
+  sshKey:
+    label: SSH Keys
+    keypair: SSH Key
+    tabs:
+      basics: Basics
+
+  setting:
+    label: Settings
+    validation:
+      physicalNIC: DefaultPhysicalNIC
+    placeholder:
+      accessKeyId: specify your access key id
+      secretAccessKey: specify your secret access key
+      cert: upload a self-signed SSL certificate
+    vlanChangeTip: The newly modified default physical NIC only applies to newly added nodes, not existing ones
+    defaultPhysicalNIC: Default Physical NIC
+
+  cloudTemplate:
+    label: Cloud Config Templates
 
 ##############################
 # Model Properties
@@ -4863,6 +4901,62 @@ typeLabel:
       one { Workload }
       other { Workloads }
     }
+  kubevirt.io.virtualmachine: |-
+    {count, plural,
+      one { Virtual Machine }
+      other { Virtual Machines }
+    }
+  harvesterhci.io.virtualmachineimage: |-
+    {count, plural,
+      one { Image }
+      other { Images }
+    }
+  harvesterhci.io.keypair: |-
+    {count, plural,
+      one { SSH Key }
+      other { SSH Keys }
+    }
+  host: |-
+    {count, plural,
+      one { Host }
+      other { Hosts }
+    }
+  configmap: |-
+    {count, plural,
+      one { Cloud Config Template }
+      other { Cloud Config Templates }
+    }
+  k8s.cni.cncf.io.networkattachmentdefinition: |-
+    {count, plural,
+      one { Network }
+      other { Networks }
+    }
+  cdi.kubevirt.io.datavolume: |-
+    {count, plural,
+      one { Volume }
+      other { Volumes }
+    }
+  harvesterhci.io.user:  |-
+    {count, plural,
+      one { User }
+      other { Users }
+    }
+  harvesterhci.io.setting:  |-
+    {count, plural,
+      one { Setting }
+      other { Settings }
+    }
+  harvesterhci.io.virtualmachinetemplateversion: |-
+    {count, plural,
+      one { Template }
+      other { Templates }
+    }
+  harvesterhci.io.virtualmachinebackup: |-
+    {count, plural,
+      one { Backup }
+      other { Backups }
+    }
+  
 
 action:
   clone: Clone
@@ -4955,6 +5049,14 @@ advancedSettings:
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
     'ui-default-landing': 'The default page users land on after login.'
     'brand': Folder name for an alternative theme defined in '/assets/brand'
+    'vlan': Default physical NIC name of the VLAN network.
+    'api-ui-source': Config how to load the API and UI source.
+    'backup-target': Custom back target to store VM backups.
+    'log-level': Configure Harvester server log level. Default to info.
+    'rancher-enabled': Specify whether to display the Rancher UI navigation button or not.
+    'server-version': Harvester server version.
+    'upgrade-checker-enabled': Specify whether to enable Harvester upgrade check or not. Default is true.
+    'upgrade-checker-url': Default Harvester upgrade check url. Only used when the <code>upgrade-checker-enabled</code>  is equal to true.
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:
@@ -4969,6 +5071,14 @@ advancedSettings:
       dynamic: Dynamic
       true: Local
       false: Remote
+    'api-ui-source':
+      auto: 'Auto'
+      bundled: 'Bundled'
+      external: 'External'
+    'log-level':
+      info: Info
+      debug: Debug
+      trace: Trace
 
 featureFlags:
   label: Feature Flags

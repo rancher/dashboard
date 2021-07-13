@@ -3142,6 +3142,8 @@ tableHeaders:
   value: 值
   version: 版本号
   weight: 权重
+  progress: 进度
+  fingerprint: 唯一标识
 
 target:
   router:
@@ -3743,6 +3745,42 @@ workload:
       tip: 杀死 Pod 前所需的等待时间
     title: 升级中
 
+harvester:
+  dashboard:
+    label: 概览
+  host:
+    label: 主机
+  virtualMachine:
+    label: 虚拟机
+  volume: 
+    label: 卷
+  image:
+    label: 镜像
+  vmTemplate:
+    label: 虚拟机模板
+  backup:
+    label: 备份
+  network:
+    label: 网络
+  sshKey:
+    label: SSH 秘钥
+    keypair: SSH 公钥
+    tabs:
+      basics: 基本信息
+
+  setting:
+    label: 设置
+    validation:
+      physicalNIC: DefaultPhysicalNIC
+    placeholder:
+      accessKeyId: 指定您的访问密钥ID
+      secretAccessKey: 指定您的私密访问密钥
+      cert: 上传自签名SSL证书
+    vlanChangeTip: 新修改的默认物理网卡仅适用于新增节点，不适用于现有节点
+    defaultPhysicalNIC: 默认物理网卡
+
+  cloudTemplate:
+    label: Cloud 配置模板
 
 ##############################
 # Model Properties
@@ -4001,6 +4039,17 @@ typeLabel:
       one { API密钥 }
       other { API密钥 }
     }
+  kubevirt.io.virtualmachine: 虚拟机
+  harvesterhci.io.virtualmachineimage: 镜像
+  harvesterhci.io.keypair: SSH 密钥
+  cloudTemplate: Cloud 配置模板
+  harvesterhci.io.virtualmachinetemplateversion: 虚拟机模板
+  k8s.cni.cncf.io.networkattachmentdefinition: 网络
+  cdi.kubevirt.io.datavolume: 卷
+  harvesterhci.io.user: 用户
+  harvesterhci.io.setting: 设置
+  host: 主机
+  harvesterhci.io.virtualmachinebackup: 备份
 
 action:
   clone: 克隆
@@ -4087,9 +4136,25 @@ advancedSettings:
     'rke-metadata-config': '配置RKE元数据刷新参数。'
     'ui-banners': '分类横幅是用来在页眉、页脚或两者中显示一个自定义的固定横幅。'
     'ui-default-landing': '用户在登录后登陆的默认页面。'
+    'vlan': VLAN网络的默认物理NIC名称.
+    'api-ui-source': 配置如何加载API和UI资源.
+    'backup-target': 自定义备份目标用于存储VM备份.
+    'log-level': 配置Harvester服务器日志级别. 默认为信息
+    'rancher-enabled': 指定是否显示Rancher UI导航按钮.
+    'server-version': Harvester服务器版本.
+    'upgrade-checker-enabled': 指定是否启用Harvester升级检查. 默认为true.
+    'upgrade-checker-url': 默认的Harvester升级检查地址。 仅在<code> upgrade-checker-enabled </code> 等于true时使用。
   editHelp:
     'ui-banners': 这个设置需要一个JSON对象，包含3个根参数；<code>banner</code>, <code>showHeader</code>, <code>showFooter</code>。<code>banner</code>是一个包含；<code>textColor</code>, <code>background</code>, 和<code>text</code>的对象，其中<code>textColor</code>和<code>background</code>是任何有效的CSS颜色值。
-  #enum:
+  enum:
+    'api-ui-source':
+      auto: 'Auto'
+      bundled: 'Bundled'
+      external: 'External'
+    'log-level':
+      info: Info
+      debug: Debug
+      trace: Trace
     #'ui-default-landing':
      # ember: Cluster Manager
       #vue: Cluster Explorer

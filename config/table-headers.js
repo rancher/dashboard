@@ -831,3 +831,40 @@ export const STATE_NORMAN = {
   default:   'unknown',
   formatter: 'BadgeStateFormatter',
 };
+
+/**
+ * Harvester
+ */
+
+// image
+export const IMAGE_DOWNLOAD_SIZE = {
+  name:      'downloadedBytes',
+  labelKey:  'tableHeaders.size',
+  value:     'status.size',
+  sort:      'status.size',
+  formatter: 'ByteFormat',
+  width:     120
+};
+
+export const IMAGE_PROGRESS = {
+  name:      'Uploaded',
+  labelKey:  'tableHeaders.progress',
+  value:     'status.progress',
+  sort:      'status.progress',
+  formatter: 'ImagePercentageBar',
+};
+
+export const IMAGE_MESSAGE = {
+  name:      'Message',
+  labelKey:  'tableHeaders.message',
+  value:     'status.conditions',
+  sort:      'status.conditions',
+  formatter: 'ImageMessage',
+};
+
+// SSH keys
+export const FINGERPRINT = {
+  name:      'Fingerprint',
+  labelKey:  'tableHeaders.fingerprint',
+  value:     'status.fingerPrint',
+};
