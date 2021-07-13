@@ -53,7 +53,7 @@ export default {
 
 <template>
   <div class="pipelines">
-    <Tabbed ref="tabs" :no-content="true" @changed="tabChanged">
+    <Tabbed ref="tabs" :use-hash="false" :no-content="true" @changed="tabChanged">
       <Tab name="pipelines" label-key="legacy.pipelines" :weight="3" />
       <Tab name="configuration" label-key="legacy.configuration" :weight="2" />
     </Tabbed>
