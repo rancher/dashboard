@@ -3151,6 +3151,10 @@ tableHeaders:
   hostIp: 主机IP
   attachedVM: 被挂载到
   phase: 阶段
+  hostIp: 主机IP
+  storage: 存储
+  defaultVersion: 默认版本
+  ipAddress: IP 地址
 
 target:
   router:

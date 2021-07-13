@@ -42,7 +42,7 @@ export default {
 
   attachVM() {
     const vmList = this.$rootGetters['cluster/all'](HCI.VM);
-    const ownerAnnotation = this.getAnnotationValue(DATA_VOLUME_OWNEDBY);
+    const ownerAnnotation = get(this, `metadata.annotations."${ DATA_VOLUME_OWNEDBY }"`) || '';
 
     if (!ownerAnnotation) {
       return;
