@@ -10,18 +10,6 @@ export default {
     ResourceSummary
   },
 
-  props: {
-    title: {
-      type:    String,
-      default: null,
-    },
-
-    canClose: {
-      type:    Boolean,
-      default: false
-    }
-  },
-
   async fetch() {
     this.clusters = await this.$store.dispatch('management/findAll', {
       type: MANAGEMENT.CLUSTER,
