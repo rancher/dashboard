@@ -58,6 +58,7 @@ export default {
       :default-add-data="defaultAddData"
       :extra-columns="['effect']"
       :preserve-keys="['effect']"
+      :add-label="t('labels.addTaint')"
     >
       <template #label:effect>
         Effect
