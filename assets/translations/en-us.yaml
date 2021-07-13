@@ -3964,6 +3964,8 @@ tableHeaders:
   readyToUse: ReadyToUse
   backupTarget: Backup Target
   targetVm: Target VM
+  phase: Phase
+  attachedVM: Attached VM
 
 target:
   router:
