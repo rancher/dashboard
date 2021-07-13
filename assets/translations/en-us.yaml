@@ -3902,6 +3902,9 @@ tableHeaders:
   fingerprint: Fingerprint
   networkType: Type
   networkVlan: Vlan ID
+  readyToUse: ReadyToUse
+  backupTarget: Backup Target
+  targetVm: Target VM
 
 target:
   router:
@@ -4525,6 +4528,33 @@ harvester:
     label: Templates
   backup:
     label: Backups
+    backupModal:
+      addBackup: Add Backup
+    restoreModal:
+      title: Backup and restore
+      selectBackup: Select Backup
+      message:
+        backup: Please select the backup that needs to be restored.
+    createText: Restore Backup
+    title: Restore Virtual Machine
+    backupTargetTip: The endpoint used to access the backupstore. NFS and S3 are supported.
+    message:
+      noSetting:
+        prefix: You must configure the backup target in
+        middle: 'setting'
+        suffic: before creating a new backup.
+      errorTip:
+        prefix: Backup Target value in
+        middle: Setting
+        suffic: "is invalid, error: "
+    restore:
+      backup: Backup
+      deletePreviousVolumes: Delete Previous Volumes
+      createNew: Create new
+      replaceExisting: Replace existing
+      virtualMachineName: Virtual Machine Name
+    matchTarget: The current backup target does not match the existing one.
+
   network:
     label: Networks
     message:

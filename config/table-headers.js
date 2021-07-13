@@ -879,3 +879,27 @@ export const NETWORK_VLAN = {
   formatter: 'ParseNetworkConfig',
   labelKey:  'tableHeaders.networkVlan'
 };
+
+// backup
+export const TARGET_VM = {
+  name:      'targetVM',
+  labelKey:  'tableHeaders.targetVm',
+  value:     'attachVM',
+  align:     'left',
+  formatter: 'AttachVMWithName'
+};
+
+export const BACKUP_TARGET = {
+  name:      'backupTarget',
+  labelKey:  'tableHeaders.backupTarget',
+  value:     'backupTarget',
+  align:     'left',
+  formatter: 'BackupTargetValidation'
+};
+
+export const READY_TO_USE = {
+  name:     'readyToUse',
+  labelKey:  'tableHeaders.readyToUse',
+  value:    'status.readyToUse',
+  align:    'left',
+};
