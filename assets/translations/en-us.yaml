@@ -670,6 +670,9 @@ catalog:
       upgrade: 'Upgrade {name}'
     helm:
       atomic: Atomic
+      description:
+        label: Description
+        placeholder: e.g. Purpose of helm command
       cleanupOnFail: Cleanup on Failure
       crds: Apply custom resource definitions
       dryRun: Dry Run
@@ -712,7 +715,7 @@ catalog:
             true { app}
             false { chart}
           }. Start by setting some basic information used by {vendor} to manage the App.
-        nsCreationDescription: "To install the app into a new namespace enter it's name and select it in the Namespace field."
+        nsCreationDescription: "To install the app into a new namespace enter it's name in the Namespace field and select it."
         createNamespace: "Namespace <code>{namespace}</code> will be created."
       clusterTplVersion:
         label: Version
