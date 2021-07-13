@@ -164,7 +164,7 @@ export default {
 </script>
 
 <template>
-  <div class="windowmanager">
+  <div id="windowmanager" class="windowmanager">
     <div ref="tabs" class="tabs">
       <div
         v-for="tab in tabs"
