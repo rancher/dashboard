@@ -19,7 +19,7 @@ export default {
   },
 
   attachNodeName() {
-    return this.getLabelValue('network.harvesterhci.io/nodename');
+    return get(this, `metadata.labels."network.harvesterhci.io/nodename"`) || '';
   },
 
   linkMessage() {
