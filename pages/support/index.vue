@@ -234,14 +234,6 @@ export default {
 .community {
   border-left: 1px solid var(--border);
   padding-left: 20px;
-  > h2 {
-    font-size: 18px;
-    font-weight: 300;
-    margin-bottom: 20px;
-  }
-  .support-link {
-    margin: 10px 0;
-  }
 }
 .external {
   margin-top: 20px;
