@@ -22,7 +22,7 @@ export default {
   computed: {
     ...mapState('action-menu', ['showPromptMove', 'toMove']),
     excludedProjects() {
-      return this.toMove.map(namespace => namespace.project.shortId);
+      return this.toMove.map(namespace => namespace?.project?.shortId);
     },
     projectOptions() {
       return this.projects
