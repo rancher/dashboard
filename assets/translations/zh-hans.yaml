@@ -3146,6 +3146,9 @@ tableHeaders:
   fingerprint: 唯一标识
   networkType: 类型
   networkVlan: Vlan ID
+  backupTarget: 备份路径
+  targetVm: 目标VM
+  hostIp: 主机IP
 
 target:
   router:
@@ -3762,6 +3765,33 @@ harvester:
     label: 虚拟机模板
   backup:
     label: 备份
+    backupModal:
+      addBackup: 添加备份
+    restoreModal:
+      title: 恢复备份
+      selectBackup: 选择备份
+      message:
+        backup: 请选择需要还原的备份.
+    createText: 恢复备份
+    title: 恢复虚拟机
+    backupTargetTip: 用于访问备份存储的端点。 支持NFS和S3。
+    message:
+      noSetting:
+        prefix: '在创建新备份之前, 必须在'
+        middle: '设置'
+        suffic: '中配置备份目标.'
+      errorTip:
+        prefix: 非法的备份目标
+        middle: 设置
+        suffic: ",错误信息： "
+    restore:
+      backup: 备份名称
+      deletePreviousVolumes: 历史卷清除策略
+      createNew: 新建虚拟机
+      replaceExisting: 选择已存在的虚拟机
+      virtualMachineName: 虚拟机名称
+    matchTarget: 当前备份目标与现有目标不匹配。
+
   network:
     label: 网络
     message:
