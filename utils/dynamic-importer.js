@@ -83,3 +83,11 @@ export function loadTranslation(name) {
   // Note: directly returns the import, not a function
   return import(/* webpackChunkName: "[request]" */ `@/assets/translations/${name}.yaml`);
 }
+
+export function importComponent(path) {
+  if ( !path ) {
+    throw new Error('Path required');
+  }
+
+  return () => import(/* webpackChunkName: "import-component" */ `@/edit/${ path }`);
+}
