@@ -118,7 +118,9 @@ import { clone, get } from '@/utils/object';
 import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@/utils/string';
-import { importList, importDetail, importEdit, loadProduct } from '@/utils/dynamic-importer';
+import {
+  importList, importDetail, importEdit, loadProduct, importComponent
+} from '@/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import isObject from 'lodash/isObject';
@@ -992,6 +994,24 @@ export const getters = {
       }
 
       return cache[key];
+    };
+  },
+
+  haveComponent(state, getters) {
+    return (path) => {
+      try {
+        require.resolve(`@/edit/${ path }`);
+
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
+  },
+
+  importComponent(state, getters) {
+    return (path) => {
+      return importComponent(path);
     };
   },
 

@@ -28,9 +28,8 @@ export const plugins = [
     namespace: 'management', baseUrl: '/v1', modelBaseClass: BY_TYPE
   }),
   Steve({ namespace: 'cluster', baseUrl: '' }), // URL dynamically set for the selected cluster
-  Steve({
-    namespace: 'rancher', baseUrl: '/v3', modelBaseClass: NORMAN_CLASS
-  }),
+  Steve({ namespace: 'rancher', baseUrl: '/v3' }),
+  Steve({ namespace: 'virtual', baseUrl: '' }),
 ];
 
 export const state = () => {
@@ -587,12 +586,15 @@ export const actions = {
     }
 
     const clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
+    const virtualBase = `/k8s/clusters/${ escape(id) }/v1/harvester`;
 
     // Update the Steve client URLs
     commit('cluster/applyConfig', { baseUrl: clusterBase });
+    commit('virtual/applyConfig', { baseUrl: virtualBase });
 
     await Promise.all([
       dispatch('cluster/loadSchemas', true),
+      dispatch('virtual/loadSchemas', true),
     ]);
 
     dispatch('cluster/subscribe');
@@ -606,10 +608,12 @@ export const actions = {
     };
 
     const res = await allHash({
-      projects:   isRancher && dispatch('management/findAll', projectArgs),
-      counts:     dispatch('cluster/findAll', { type: COUNT }),
-      namespaces: dispatch('cluster/findAll', { type: NAMESPACE }),
-      navLinks:   !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
+      projects:          isRancher && dispatch('management/findAll', projectArgs),
+      counts:            dispatch('cluster/findAll', { type: COUNT }),
+      virtualCount:      dispatch('virtual/findAll', { type: COUNT }),
+      namespaces:        dispatch('cluster/findAll', { type: NAMESPACE }),
+      virtualNamespaces: dispatch('virtual/findAll', { type: NAMESPACE }),
+      navLinks:          !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
     });
 
     await dispatch('cleanNamespaces');

@@ -79,6 +79,28 @@ export default {
       return sorted;
     },
 
+    harvesters() {
+      const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
+      let out = all.map((x) => {
+        return {
+          id:      x.id,
+          label:   x.nameDisplay,
+          ready:   x.isReady,
+          osLogo:  x.providerOsLogo,
+          logo:    x.providerLogo,
+          isLocal: x.isLocal
+        };
+      });
+
+      if (this.clusterFilter.length > 0) {
+        out = out.filter(item => item.label.indexOf(this.clusterFilter) === 0);
+      }
+
+      const sorted = sortBy(out, ['ready:desc', 'label']);
+
+      return sorted;
+    },
+
     dev: mapPref(DEV),
 
     maxClustersToShow: mapPref(MENU_MAX_CLUSTERS),
