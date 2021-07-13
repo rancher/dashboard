@@ -416,6 +416,10 @@ export const getters = {
     };
 
     return (schemaOrType) => {
+      if (!schemaOrType) {
+        return {};
+      }
+
       const type = (typeof schemaOrType === 'object' ? schemaOrType.id : schemaOrType);
       const found = state.typeOptions.find((entry) => {
         const re = stringToRegex(entry.match);
