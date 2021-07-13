@@ -173,9 +173,9 @@
   --resource-gauge-back-circle : 74, 75, 82, 0.5;
 
   --simple-box-bg              : #{$darker};
-  --simple-box-border          : #{$darkest};
+  --simple-box-border          : #{$medium};
   --simple-box-divider         : #{$medium};
-  --simple-box-shadow          : rgba(0, 0, 0, 0.15);
+  --simple-box-shadow          : none;
 
   --terminal-bg                : var(--wm-body-bg);
   --terminal-cursor            : var(--warning);
