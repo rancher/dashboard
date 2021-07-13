@@ -3149,6 +3149,8 @@ tableHeaders:
   backupTarget: 备份路径
   targetVm: 目标VM
   hostIp: 主机IP
+  attachedVM: 被挂载到
+  phase: 阶段
 
 target:
   router:
