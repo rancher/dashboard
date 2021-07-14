@@ -12,23 +12,84 @@ import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 
 export default {
   components: {
-    CruResource, NameNsDescription, LabeledInput, LabeledSelect, Tab, Tabbed, KeyValue, RadioGroup, ArrayListGrouped
+    CruResource, NameNsDescription, LabeledInput, LabeledSelect, Tab, Tabbed, KeyValue, RadioGroup, ArrayListGrouped,
   },
   mixins: [CreateEditView],
   data() {
     return {
 
+      useSimple: true,
+
+      simpleOptions: ['ROUND_ROBIN', 'LEAST_CONN', 'RANDOM', 'PASSTHROUGH'],
+
+      hashMode: 'useHeader',
+
+      hashOptions: [
+        {
+          label: 'Hash based on specific HTTP header',
+          value: 'useHeader'
+        },
+        {
+          label: 'Hash based on HTTP cookie',
+          value: 'useCookie'
+        },
+        {
+          label: 'Hash based on the source IP address',
+          value: 'useIp'
+        }
+      ],
+
       radioOptions: [
         {
           label: 'Use standard load balancing algorithms',
-          value: 'simple'
+          value: true
         }, {
           label: 'Use consistent hash-based load balancing for soft session affinity',
-          value: { consistentHash: 'asdf' }
+          value: false
         },
 
       ]
     };
+  },
+  watch: {
+    useSimple(neu, old) {
+      if (neu === true) {
+        this.value.spec.trafficPolicy.loadBalancer.simple = 'ROUND_ROBIN';
+        delete this.value.spec.trafficPolicy.loadBalancer.consistentHash;
+      } else {
+        delete this.value.spec.trafficPolicy.loadBalancer.simple;
+        this.value.spec.trafficPolicy.loadBalancer.consistentHash = {};
+      }
+    },
+
+  },
+  methods: {
+    updateHashMode(neu) {
+      if (neu === 'useCookie') {
+        delete this.value.spec.trafficPolicy.loadBalancer.consistentHash.httpHeaderName;
+        this.$set(
+          this.value.spec.trafficPolicy.loadBalancer.consistentHash,
+          'httpCookie',
+          {
+            name: '',
+            path: '',
+            ttl:  ''
+
+          }
+        );
+      }
+
+      // if (neu === 'httpCookie') {
+      //   delete this.value.spec.trafficPolicy.loadBalancer.consistentHash.httpHeaderName;
+      //   this.value.spec.trafficPolicy.loadBalancer.consistentHash.httpCookie = {};
+      // }
+
+      // if (neu === 'httpCookie') {
+      //   delete this.value.spec.trafficPolicy.loadBalancer.consistentHash.httpHeaderName;
+      //   this.value.spec.trafficPolicy.loadBalancer.consistentHash.httpCookie = {};
+      // }
+      this.hashMode = neu;
+    }
   },
 
 };
@@ -53,9 +114,9 @@ export default {
     <div class="mb-20">
       <LabeledInput
         v-model="value.spec.host"
-        label="Select or input a host"
+        label="Input a host"
         :mode="mode"
-        :tooltip="tooltip"
+
         :required="true"
       />
     </div>
@@ -102,11 +163,73 @@ export default {
           :weight="3"
         >
           <RadioGroup
-            v-model="value.spec.trafficPolicy.loadBalancer"
+            v-model="useSimple"
             name="loadBalancer"
-            :mode="modeOverride"
+            :mode="mode"
             :options="radioOptions"
           />
+          <div>
+            <div v-if="useSimple">
+              <LabeledSelect
+
+                v-model="value.spec.trafficPolicy.loadBalancer.simple"
+                :options="simpleOptions"
+                label="Algorithm"
+                :mode="mode"
+              >
+              </LabeledSelect>
+            </div>
+
+            <div v-else class="mt-20">
+              <RadioGroup
+                :value="hashMode"
+                name="Hash Options"
+                :mode="mode"
+                :options="hashOptions"
+                label="Hash Mode"
+                @input="updateHashMode"
+              />
+
+              <div v-if="hashMode === 'useCookie'">
+                <LabeledInput
+                  :value="value.spec.trafficPolicy.loadBalancer.consistentHash.httpCookie.name"
+                  label="Name"
+                  @input="e => $set(value.spec.trafficPolicy.loadBalancer.consistentHash.httpCookie, 'name', e)"
+                >
+                </LabeledInput>
+                <LabeledInput
+                  :value="value.spec.trafficPolicy.loadBalancer.consistentHash.httpCookie.path"
+                  label="Path"
+                  @input="e => $set(value.spec.trafficPolicy.loadBalancer.consistentHash.httpCookie, 'path', e)"
+                >
+                </LabeledInput>
+                <LabeledInput
+                  :value="value.spec.trafficPolicy.loadBalancer.consistentHash.httpCookie.ttl"
+                  label="TTL"
+                  @input="e => $set(value.spec.trafficPolicy.loadBalancer.consistentHash.httpCookie, 'ttl', e)"
+                >
+                </LabeledInput>
+              </div>
+
+              <div v-if="hashMode === 'useHeader'">
+                <LabeledInput>
+                </LabeledInput>
+                <LabeledInput>
+                </LabeledInput>
+                <LabeledInput>
+                </LabeledInput>
+              </div>
+
+              <div v-if="hashMode === 'useIp'">
+                <LabeledInput>
+                </LabeledInput>
+                <LabeledInput>
+                </LabeledInput>
+                <LabeledInput>
+                </LabeledInput>
+              </div>
+            </div>
+          </div>
         </Tab>
         <Tab
           name="connection-pool"

@@ -11,7 +11,7 @@ export default {
           trafficPolicy: {
 
             loadBalancer: {
-              // simple: 'ROUND_ROBIN',
+              simple: 'ROUND_ROBIN',
               // consistentHash:
               // localityLbSetting:
             },
