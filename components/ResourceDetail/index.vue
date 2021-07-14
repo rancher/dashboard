@@ -111,7 +111,7 @@ export default {
 
       const data = { type: resource };
 
-      if ( schema.attributes?.namespaced ) {
+      if ( schema?.attributes?.namespaced ) {
         data.metadata = { namespace };
       }
 

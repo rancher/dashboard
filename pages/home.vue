@@ -20,6 +20,7 @@ import PageHeaderActions from '@/mixins/page-actions';
 import { getVendor } from '@/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@/store/features';
 import { SETTING } from '@/config/settings';
+import { BLANK_CLUSTER } from '@/store';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 const RESET_CARDS_ACTION = 'reset-homepage-cards';
@@ -77,7 +78,7 @@ export default {
         name:   'c-cluster-product-resource-create',
         params: {
           product:  MANAGER,
-          cluster:  this.currentCluster?.id || 'local',
+          cluster:  BLANK_CLUSTER,
           resource: CAPI.RANCHER_CLUSTER
         },
       };
@@ -88,7 +89,7 @@ export default {
         name:   'c-cluster-product-resource-create',
         params: {
           product:  MANAGER,
-          cluster:  this.currentCluster?.id || 'local',
+          cluster:  BLANK_CLUSTER,
           resource: CAPI.RANCHER_CLUSTER
         },
         query: { [MODE]: _IMPORT }
