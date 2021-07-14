@@ -51,7 +51,11 @@ export default {
     },
 
     projectOpts() {
-      const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+      const clusterId = this.$store.getters['currentCluster'].id;
+      let projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+
+      // Filter out projects not for the current cluster
+      projects = projects.filter(c => c.spec?.clusterName === clusterId);
 
       const out = projects.map((project) => {
         return {
