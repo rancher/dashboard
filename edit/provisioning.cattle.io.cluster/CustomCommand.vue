@@ -1,4 +1,5 @@
 <script>
+import Banner from '@/components/Banner';
 import InfoBox from '@/components/InfoBox';
 import Checkbox from '@/components/form/Checkbox';
 import CopyCode from '@/components/CopyCode';
@@ -8,10 +9,15 @@ import Taints from '@/components/form/Taints';
 
 export default {
   components: {
-    Checkbox, CopyCode, InfoBox, KeyValue, LabeledInput, Taints
+    Banner, Checkbox, CopyCode, InfoBox, KeyValue, LabeledInput, Taints
   },
 
   props: {
+    cluster: {
+      type:     Object,
+      required: true,
+    },
+
     clusterToken: {
       type:     Object,
       required: true,
@@ -34,15 +40,15 @@ export default {
   },
 
   computed: {
-    command() {
+    linuxCommand() {
       const out = this.insecure ? [this.clusterToken.insecureNodeCommand] : [this.clusterToken.nodeCommand];
 
       this.etcd && out.push('--etcd');
       this.controlPlane && out.push('--controlplane');
       this.worker && out.push('--worker');
-      this.address && out.push(`--address ${ this.address }`);
-      this.internalAddress && out.push(`--internal-address ${ this.internalAddress }`);
-      this.nodeName && out.push(`--node-name ${ this.nodeName }`);
+      this.address && out.push(`--address ${ sanitizeValue(this.address) }`);
+      this.internalAddress && out.push(`--internal-address ${ sanitizeValue(this.internalAddress) }`);
+      this.nodeName && out.push(`--node-name ${ sanitizeValue(this.nodeName) }`);
 
       for ( const key in this.labels ) {
         const k = sanitizeKey(key);
@@ -65,6 +71,36 @@ export default {
 
       return out.join(' ');
     },
+
+    windowsCommand() {
+      const out = [this.clusterToken.windowsNodeCommand];
+
+      this.address && out.push(`-Address "${ sanitizeValue(this.address) }"`);
+      this.internalAddress && out.push(`-InternalAddress "${ sanitizeValue(this.internalAddress) }"`);
+      this.nodeName && out.push(`-NodeName "${ sanitizeValue(this.nodeName) }"`);
+
+      for ( const key in this.labels ) {
+        const k = sanitizeKey(key);
+        const v = sanitizeValue(this.labels[k]);
+
+        if ( k && v ) {
+          out.push(`-Label "${ k }=${ v }"`);
+        }
+      }
+
+      for ( const t of this.taints ) {
+        const k = sanitizeKey(t.key);
+        const v = sanitizeValue(t.value);
+        const e = sanitizeValue(t.effect);
+
+        if ( k && v && e ) {
+          out.push(`-Taint "${ k }=${ v }:${ e }"`);
+        }
+      }
+
+      return out.join(' ');
+    },
+
   },
 
   methods: {
@@ -122,12 +158,20 @@ function sanitizeValue(v) {
 
     <InfoBox :step="showAdvanced ? 3 : 2" class="step-box">
       <h3 v-t="'cluster.custom.registrationCommand.label'" />
-      <h4 v-t="'cluster.custom.registrationCommand.detail'" />
+      <h4 v-t="'cluster.custom.registrationCommand.linuxDetail'" />
       <CopyCode class="m-10 p-10">
-        {{ command }}
+        {{ linuxCommand }}
       </CopyCode>
-
       <Checkbox v-model="insecure" label-key="cluster.custom.registrationCommand.insecure" />
+
+      <template v-if="cluster.supportsWindows">
+        <hr class="mt-20 mb-20" />
+        <h4 v-t="'cluster.custom.registrationCommand.windowsDetail'" />
+        <CopyCode v-if="cluster.mgmt.isReady || true" class="m-10 p-10">
+          {{ windowsCommand }}
+        </CopyCode>
+        <Banner color="info" :label="t('cluster.custom.registrationCommand.windowsNotReady')" />
+      </template>
     </InfoBox>
   </div>
 </template>

@@ -4,6 +4,7 @@ import { findBy, insertAt } from '@/utils/array';
 import { set } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
+import { compare } from '@/utils/version';
 
 export const DEFAULT_WORKSPACE = 'fleet-default';
 
@@ -469,4 +470,21 @@ export default {
     return this.metadata?.state;
   },
 
+  supportsWindows() {
+    if ( !this.isRke2 ) {
+      return false;
+    }
+
+    if ( !this.kubernetesVersion || compare(this.kubernetesVersion, 'v1.21.0') < 0 ) {
+      return false;
+    }
+
+    const cni = this.spec?.rkeConfig?.machineGlobalConfig?.cni;
+
+    if ( cni && cni !== 'calico' ) {
+      return false;
+    }
+
+    return true;
+  }
 };
