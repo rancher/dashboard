@@ -99,6 +99,7 @@ nav:
     explore: 浏览集群
     multiCluster: 全局应用
     configuration: 配置
+    harvester: HARVESTER 集群
   search:
     placeholder: 输入关键词，搜索集群
     noResults: 没有与关键词匹配的集群
@@ -124,6 +125,7 @@ product:
   #rio: Rio
   settings: 全局设置
   monitoring: 监控
+  virtualManagement: 虚拟化管理
 
 suffix:
   #percent: "%"
@@ -3151,7 +3153,6 @@ tableHeaders:
   hostIp: 主机IP
   attachedVM: 被挂载到
   phase: 阶段
-  hostIp: 主机IP
   storage: 存储
   defaultVersion: 默认版本
   ipAddress: IP 地址
@@ -3757,6 +3758,107 @@ workload:
     title: 升级中
 
 harvester:
+  modal:
+    backup:
+      success: '已启动备份 { backUpName }.'
+      addBackup: 添加备份
+    restore:
+      success: '虚拟机{ name }恢复成功.'
+      title: 恢复备份
+      selectBackup: 选择备份
+      message:
+        backup: 请选择需要还原的备份.
+    createTemplate:
+      title: '生成模版'
+      name: 名称
+      description: 描述
+      message: 
+        tip: '请输入模版名称！'
+        success: '模板 { templateName } 创建成功.'
+        failed: '生成模板失败！'
+    migration:
+      failedMessage: 最新迁移失败!
+      title: 迁移
+      fields:
+        nodeName: 
+          label: 目标节点
+          placeholder: 请选择目标节点
+    ejectCDROM:
+      title: 弹出 CDROM
+      warnTip: 弹出卷将导致重新启动虚拟机.
+      operationTip: '选择您要删除的卷:'
+      delete: 删除
+  notification:
+    title:
+      succeed: 成功
+      info: 提示
+      warning: 警告
+      error: 错误
+  action:
+    createVM: 创建虚拟机
+    start: 启动
+    restart: 重启
+    stop: 停止
+    pause: 暂停
+    unpause: 取消暂停
+    ejectCDROM: 弹出 CDROM
+    launchFormTemplate: 从模板启动实例
+    modifyTemplate: 修改模版 (创建新版本)
+    setDefaultVersion: 设置默认版本
+    addTemplateVersion: 添加模版版本
+    backup: 备份
+    restore: 恢复
+    restoreNewVM: 恢复新的虚拟机
+    restoreExistingVM: 恢复现存的虚拟机
+    migrate: 迁移
+    abortMigration: 取消迁移
+    createTemplate: 生成模板
+    enableMaintenance: 开启维护模式
+    disableMaintenance: 关闭维护模式
+    cordon: 封锁
+    uncordon: 解除封锁
+  tableHeaders:
+    size: 大小
+    progress: 进度
+    phase: 阶段
+    message: 消息
+    attachedVM: 挂载VM
+    fingerprint: 唯一标识
+    value: 值
+    actions: 操作
+    readyToUse: 可用
+    backupTarget: 备份路径
+    targetVm: 目标VM
+    hostIp: 主机IP
+    vm:
+      ipAddress: IP 地址
+      node: 主机
+      defaultVersion: 默认版本
+    network:
+      type: 类型
+      vlan: Vlan ID
+  fields:
+    version: 版本
+    name: 名称
+    type: 类型
+    image: 镜像
+    size: 大小
+    volume: 卷
+    network: 网络
+    model: 模式
+    macAddress: mac地址
+    port: 端口
+    protocol: 协议
+    remove: 删除
+    count: 数量
+    PhysicalNic: 物理网卡
+    cpu: Cpu
+    memory: 内存
+    virtaulName: 虚拟机名称
+  tab:
+    volume: 卷
+    network: 网络
+    advanced: 高级选项
   dashboard:
     label: 概览
     header: 仪表盘
@@ -3770,23 +3872,152 @@ harvester:
 
   host:
     label: 主机
+
   virtualMachine:
     label: 虚拟机
+    instance:
+      single:
+        label: 单个实例
+        nameLabel: 名称
+        host: 
+          label: 主机名
+          placeholder: 默认为虚拟机名称
+      multiple:
+        label: 多个实例
+        nameNsDescription: 每个实例的名称前缀
+        count: 数量
+        countTip: 创建虚拟机的实例数量必须大于 1 小于 10
+        nameLabel: 名称前缀
+        host: 
+          label: 主机名前缀
+          placeholder: 默认为虚拟机名称
+    useTemplate:
+      label: "使用模版:"
+      template:
+        label: 模版
+      version:
+        label: 版本
+    restartTip: 现在重新启动虚拟机以使配置更改生效.
+    createRunning: 创建时启动虚拟机
+    restartNow: 现在重启
+    createSSHKey: 创建SSH密钥
+    installAgent: 安装 qemu-guest-agent
+    enableUsb: 启动 USB Tablet 增强
+    sshTitle: 添加SSH公钥
+    imageTip: 创建虚拟机所需的.iso，.img，.qcow2或.raw的外部镜像地址
+    title: 虚拟机
+    volume:
+      volumeTip: VM仅包含一个cd-rom卷。 您可能要添加其他磁盘卷。
+      macTip: 提示：安装的操作系统内显示的MAC地址
+      type: 类型
+      size: 大小
+      bus:  Bus
+      bootOrder: 引导顺序
+      volume: 卷
+      dockerImage: Docker镜像
+      addVolume: 添加卷
+      addExistingVolume: 添加已存在的卷
+      addVmImage: 添加VM镜像
+      addContainer: 添加容器镜像
+      title:
+        vmImage: VM镜像
+        existingVolume: 已存在的卷
+        volume: 卷
+        container: 容器镜像
+      unmount:
+        title: 你确定吗?
+        message: 您确定要卸载此卷吗？
+    network:
+      title: 网络
+      addNetwork: 添加网络
+      addPort:  添加端口
+    cloudConfig:
+      title: Cloud配置
+      cloudInit:
+        label: Cloud Init
+        placeholder: 请选择...
+      userData:
+        label: 用户配置模板
+        title: "User Data:"
+        tip: '您可以指定Cloud-init相关的用户数据以在启动期间配置实例或运行配置脚本。 如果一次启动多个实例，则该配置会对所有实例生效。<a href="https://cloudinit.readthedocs.io/en/latest/topics/examples.html" target="_blank"> 查看更多 </a>'
+      networkData:
+        label: 网络配置模板
+        title: "Network Data:"
+        tip: '网络设备配置可让您自定义实例的网络接口,例如管理子网分配，虚拟设备创建（bonds，bridges，Vlan）路由和DNS配置。 <a href="https://cloudinit.readthedocs.io/en/latest/topics/network-config-format-v1.html" target="_blank"> 查看更多 </a>'
+    input:
+      name: 名称
+      memory: 内存
+      image: 镜像
+      sshKey: SSH 密钥
+      sshKeyValue: SSH 公钥
+      MachineType: 机器类型
+    machineTypeTip: '指定一个处理器架构来模拟。 要查看支持的体系结构列表，请运行：qemu-system-x86_64 -cpu？'
+    detail:
+      details:
+        name: 名称
+        namespace: 命名空间
+        created: 创建时间
+        hostname: 节点名称
+        node: 主机
+        ipAddress: IP 地址
+        bootOrder: 启动顺序
+        CDROMs: CD-ROMs
+        operatingSystem: 操作系统
+        kernelRelease: 内核版本
+        flavor: 规格
+        down: 虚拟机未启动
+        sourceNode: 源节点
+        targetNode: 目标节点
+        started: 开始时间
+        ended: 结束时间
+      notAvailable: 不可用
+      GuestAgentNotInstalled: 访客代理未准备就绪
+      tabs:
+        overview: 概览
+        details: 详情
+        environment: 环境
+        events: 事件
+        migration: 迁移
+        console: 控制台
+        networkInterfaces: 网络接口
+        disks: 硬盘
+        networks: 网络
+        basics: 基本信息
+        configurations: 配置
+        instance: 虚拟机
+        monitor: 监控数据
+        keypairs: 公共密钥
+        cloudConfig: Cloud 配置
+      console:
+        down: 请启动虚拟机以访问控制台.
+
   volume: 
     label: 卷
+    size: 大小
+    source: 资源类型
+    sourceOptions:
+      new: New
+      vmImage: VM Image
+    image: 镜像
+    imageName: 镜像
+
   image:
     label: 镜像
+    tabs:
+      basics: 基本信息
+    url: 镜像地址
+    size: 大小
+    urlTip: '<a href="https://www.qemu.org/docs/master/system/images.html#disk-image-file-formats" target="_blank">qemu</a> 支持 <code>raw</code> 和 <code>qcow2</code> 镜像格式. 可启动的ISO镜像也可以是类似 <code>raw</code> 格式的镜像.'
+
   vmTemplate:
     label: 虚拟机模板
+    tabs:
+      basics: 基本信息
+    nameNsDescription:
+      name: 模板名称
+
   backup:
     label: 备份
-    backupModal:
-      addBackup: 添加备份
-    restoreModal:
-      title: 恢复备份
-      selectBackup: 选择备份
-      message:
-        backup: 请选择需要还原的备份.
     createText: 恢复备份
     title: 恢复虚拟机
     backupTargetTip: 用于访问备份存储的端点。 支持NFS和S3。

@@ -1,9 +1,9 @@
 <script>
 import Banner from '@/components/Banner';
 import Loading from '@/components/Loading';
-import ResourceTable from '@/components/ResourceTable';
-import Masthead from '@/components/ResourceList/Masthead';
 import MessageLink from '@/components/MessageLink';
+import Masthead from '@/components/ResourceList/Masthead';
+import ResourceTable from '@/components/ResourceTable';
 
 import { HCI } from '@/config/types';
 import { allHash } from '@/utils/promise';
@@ -70,7 +70,7 @@ export default {
       handler(neu) {
         const setting = !!neu ? '' : this.to;
 
-        this.$store.commit('cluster/setConfig', { // Provide a shortcut link, when the configuration is correct
+        this.$store.commit('virtual/setConfig', { // Provide a shortcut link, when the configuration is correct
           type: this.resource,
           data: { setting }
         });

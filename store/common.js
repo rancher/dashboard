@@ -1,5 +1,4 @@
 import Parse from 'url-parse';
-// import Notification from '@/components/Notification/main.js';
 import { HCI } from '@/config/types';
 
 export const state = function() {
@@ -54,7 +53,7 @@ export const actions = {
     const parse = Parse(window.history.href);
 
     const id = state.latestBundleId;
-    let bundleCrd = await dispatch('cluster/find', { type: HCI.SUPPORT_BUNDLE, id }, { root: true });
+    let bundleCrd = await dispatch('virtual/find', { type: HCI.SUPPORT_BUNDLE, id }, { root: true });
     const t = rootGetters['i18n/t'];
 
     let count = 0;
@@ -63,7 +62,7 @@ export const actions = {
     const timer = setInterval(async() => {
       count = count + 1;
       if (count % 3 === 0) { // ws mayby disconnect
-        bundleCrd = await dispatch('cluster/find', {
+        bundleCrd = await dispatch('virtual/find', {
           type: HCI.SUPPORT_BUNDLE,
           id,
           opt:  { force: true }
@@ -71,17 +70,15 @@ export const actions = {
       }
 
       if (bundleCrd.bundleState !== 'ready') {
-        bundleCrd = rootGetters['cluster/byId'](HCI.SUPPORT_BUNDLE, id);
+        bundleCrd = rootGetters['virtual/byId'](HCI.SUPPORT_BUNDLE, id);
         const percentage = bundleCrd.precent;
 
         commit('setBundlePercentage', percentage);
 
         if (bundleCrd?.bundleMessage) {
-          // Notification.warning({
-          //   duration: 0,
-          //   title:    t('harvester.notification.title.error'),
-          //   message:  bundleCrd?.bundleMessage
-          // });
+          const error = bundleCrd?.bundleMessage;
+
+          this.$store.dispatch('growl/fromError', { title: t('harvester.notification.title.error'), error }, { root: true });
           clearInterval(timer);
           commit('setBundlePending', false);
         }

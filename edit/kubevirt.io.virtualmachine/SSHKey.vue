@@ -61,11 +61,11 @@ export default {
     },
 
     ssh() {
-      return this.$store.getters['cluster/all'](HCI.SSH);
+      return this.$store.getters['virtual/all'](HCI.SSH);
     },
 
     sshOption() {
-      const choise = this.$store.getters['cluster/all'](HCI.SSH);
+      const choise = this.$store.getters['virtual/all'](HCI.SSH);
 
       return choise.map( (O) => {
         return {
@@ -113,14 +113,14 @@ export default {
       this.errors = [];
 
       if (!this.sshName) {
-        const fieldName = this.t('harvester.vmPage.input.name');
+        const fieldName = this.t('harvester.virtualMachine.input.name');
         const message = this.t('validation.required', { key: fieldName });
 
         this.errors.push(message);
       }
 
       if (!this.publicKey) {
-        const fieldName = this.t('harvester.vmPage.input.sshKeyValue');
+        const fieldName = this.t('harvester.virtualMachine.input.sshKeyValue');
         const message = this.t('validation.required', { key: fieldName });
 
         this.errors.push(message);
@@ -139,7 +139,7 @@ export default {
       }
 
       try {
-        const sshValue = await this.$store.dispatch('cluster/create', {
+        const sshValue = await this.$store.dispatch('virtual/create', {
           metadata: {
             name:      this.sshName,
             namespace: this.namespace
@@ -184,10 +184,10 @@ export default {
   <div>
     <div>
       <div class="keyLisk">
-        <InputOrDisplay :name="t('harvester.vmPage.input.sshKey')" :value="checkedSsh" :mode="mode" class="mb-20">
+        <InputOrDisplay :name="t('harvester.virtualMachine.input.sshKey')" :value="checkedSsh" :mode="mode" class="mb-20">
           <LabeledSelect
             v-model="checkedSsh"
-            :label="t('harvester.vmPage.input.sshKey')"
+            :label="t('harvester.virtualMachine.input.sshKey')"
             :taggable="true"
             :mode="mode"
             :multiple="true"
@@ -200,7 +200,7 @@ export default {
       </div>
 
       <span v-if="!isView" class="btn btn-sm bg-primary mt-20" @click="show">
-        {{ t('harvester.vmPage.buttons.createSSHKey') }}
+        {{ t('harvester.virtualMachine.createSSHKey') }}
       </span>
     </div>
 
@@ -213,13 +213,13 @@ export default {
       @close="cancel"
     >
       <template #title>
-        {{ t('harvester.vmPage.sshTitle') }}
+        {{ t('harvester.virtualMachine.sshTitle') }}
       </template>
 
       <template #content>
         <LabeledInput
           v-model="sshName"
-          :label="t('harvester.vmPage.input.name')"
+          :label="t('harvester.virtualMachine.input.name')"
           class="mb-20"
           required
           @keydown.native.enter.prevent="()=>{}"
@@ -227,7 +227,7 @@ export default {
 
         <LabeledInput
           v-model="publicKey"
-          :label="t('harvester.vmPage.input.sshKeyValue')"
+          :label="t('harvester.virtualMachine.input.sshKeyValue')"
           :min-height="160"
           class="mb-20"
           type="multiline"

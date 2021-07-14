@@ -1,12 +1,13 @@
 <script>
-import { STATE, AGE, NAME, NAMESPACE } from '@/config/table-headers';
-import ResourceTable from '@/components/ResourceTable';
-import { HCI, PV } from '@/config/types';
-import { allHash } from '@/utils/promise';
 import Loading from '@/components/Loading';
+import ResourceTable from '@/components/ResourceTable';
+
+import { allHash } from '@/utils/promise';
+import { HCI, PV } from '@/config/types';
+import { STATE, AGE, NAME, NAMESPACE } from '@/config/table-headers';
 
 export default {
-  name:       'ListPV',
+  name:       'ListVolume',
   components: { Loading, ResourceTable },
 
   props: {

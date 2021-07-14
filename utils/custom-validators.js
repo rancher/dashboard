@@ -9,6 +9,7 @@ import { podAffinity } from '@/utils/validators/pod-affinity';
 import { roleTemplateRules } from '@/utils/validators/role-template';
 import { clusterName } from '@/utils/validators/cluster-name';
 import { isHttps } from '@/utils/validators/setting';
+import { backupTarget } from '@/utils/validators/setting';
 
 /**
 * Custom validation functions beyond normal scalr types
@@ -31,4 +32,5 @@ export default {
   podAffinity,
   roleTemplateRules,
   isHttps
+  backupTarget
 };

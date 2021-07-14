@@ -1,13 +1,15 @@
 <script>
-import _ from 'lodash';
+import findIndex from 'lodash/findIndex';
 import randomstring from 'randomstring';
-import { clone } from '@/utils/object';
-import { HCI } from '@/config/types';
-import { removeObject } from '@/utils/array.js';
+
 import InfoBox from '@/components/InfoBox';
-import { _VIEW } from '@/config/query-params';
+import Base from '@/edit/kubevirt.io.virtualmachine/network/base';
+
 import { sortBy } from '@/utils/sort';
-import Base from './base';
+import { clone } from '@/utils/object';
+import { removeObject } from '@/utils/array';
+import { HCI } from '@/config/types';
+import { _VIEW } from '@/config/query-params';
 
 const MANAGEMENT_NETWORK = 'management Network';
 
@@ -19,18 +21,12 @@ export default {
       type:    String,
       default: 'create'
     },
-
     value: {
       type:    Array,
       default: () => {
         return [];
       }
-    },
-
-    namespace: {
-      type:    String,
-      default: null
-    },
+    }
   },
 
   data() {
@@ -45,23 +41,19 @@ export default {
       return this.mode === _VIEW;
     },
     networkOption() {
-      const choices = this.$store.getters['cluster/all'](HCI.NETWORK_ATTACHMENT);
+      const choices = this.$store.getters['virtual/all'](HCI.NETWORK_ATTACHMENT);
 
       const out = sortBy(
-        choices
-          .filter(C => C.metadata.namespace === 'default')
-          .map((obj) => {
-            return {
-              label: obj.id,
-              value: obj.id
-            };
-          }),
+        choices.map((obj) => {
+          return {
+            label: obj.id,
+            value: obj.id
+          };
+        }),
         'label'
       );
 
-      const findPodIndex = _.findIndex(this.rows, (o) => {
-        return o.networkName === MANAGEMENT_NETWORK;
-      });
+      const findPodIndex = findIndex(this.rows, R => R.networkName === MANAGEMENT_NETWORK);
 
       if (findPodIndex === -1 || (findPodIndex !== -1 && this.rows.length === 1)) {
         out.push({
@@ -132,32 +124,23 @@ export default {
 
 <template>
   <div>
-    <div v-for="(row, i) in rows" :key="i">
-      <InfoBox class="infoBox">
-        <button v-if="!isView" type="button" class="role-link btn btn-lg remove-vol" @click="removeRow(row)">
-          <i class="icon icon-2x icon-x" />
-        </button>
-        <h3>
-          {{ t('harvester.vmPage.network.title') }}
-        </h3>
-        <div>
-          <Base
-            v-model="rows[i]"
-            :rows="rows"
-            :mode="mode"
-            :network-option="networkOption"
-            @update="update"
-          />
-        </div>
-      </InfoBox>
-    </div>
-    <div v-if="!isView" class="row">
-      <div class="col span-6">
-        <button type="button" class="btn btn-sm bg-primary mr-15" @click="addRow">
-          {{ t('harvester.vmPage.buttons.addNetwork') }}
-        </button>
-      </div>
-    </div>
+    <InfoBox v-for="(row, i) in rows" :key="i" class="infoBox">
+      <button v-if="!isView" type="button" class="role-link btn btn-sm remove-vol" @click="removeRow(row)">
+        <i class="icon icon-2x icon-x" />
+      </button>
+      <h3> {{ t('harvester.virtualMachine.network.title') }} </h3>
+      <Base
+        v-model="rows[i]"
+        :rows="rows"
+        :mode="mode"
+        :network-option="networkOption"
+        @update="update"
+      />
+    </InfoBox>
+
+    <button v-if="!isView" type="button" class="btn btn-sm bg-primary" @click="addRow">
+      {{ t('harvester.virtualMachine.network.addNetwork') }}
+    </button>
   </div>
 </template>
 

@@ -1,8 +1,8 @@
 <script>
-import cloneDeep from 'lodash/cloneDeep';
 import isEqual from 'lodash/isEqual';
+import cloneDeep from 'lodash/cloneDeep';
 import { mapGetters } from 'vuex';
-import { safeLoad, safeDump } from 'js-yaml';
+import { safeDump } from 'js-yaml';
 
 import Banner from '@/components/Banner';
 import Tabbed from '@/components/Tabbed';
@@ -64,10 +64,10 @@ export default {
 
     return {
       cloneDeepVM,
-      count:                 1,
+      count:                 2,
       realHostname:          '',
-      templateId:          '',
-      templateVersion:       '',
+      templateId:            '',
+      templateVersionId:       '',
       isSingle:              true,
       isRunning:             true,
       useTemplate:           false,
@@ -77,6 +77,19 @@ export default {
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
+    machineTypeOptions() {
+      return [{
+        label: 'None',
+        value: ''
+      }, {
+        label: 'q35',
+        value: 'q35'
+      }, {
+        label: 'pc',
+        value: 'pc'
+      }];
+    },
 
     templateOptions() {
       return this.templates.map( (T) => {
@@ -100,54 +113,34 @@ export default {
       });
     },
 
-    machineTypeOptions() {
-      return [{
-        label: 'None',
-        value: ''
-      }, {
-        label: 'q35',
-        value: 'q35'
-      }, {
-        label: 'pc',
-        value: 'pc'
-      }];
-    },
-
     curTemplateResource() {
       return this.templates.find( O => O.id === this.templateId);
     },
 
     curVersionResource() {
-      return this.versions.find( O => O.id === this.templateVersion);
+      return this.versions.find( O => O.id === this.templateVersionId);
     },
 
     nameLabel() {
-      return this.isSingle ? 'harvester.vmPage.nameNsDescription.name.singleLabel' : 'harvester.vmPage.nameNsDescription.name.multipleLabel';
+      return this.isSingle ? 'harvester.virtualMachine.instance.single.nameLabel' : 'harvester.virtualMachine.instance.multiple.nameLabel';
     },
 
     hostnameLabel() {
-      return this.isSingle ? 'harvester.vmPage.hostName.label' : 'harvester.vmPage.hostPrefixName.label';
+      return this.isSingle ? 'harvester.virtualMachine.instance.single.host.label' : 'harvester.virtualMachine.instance.multiple.host.label';
     },
 
-    hostname: { // 待分析
+    hostPlaceholder() {
+      return this.isSingle ? this.t('harvester.virtualMachine.instance.single.host.placeholder') : this.t('harvester.virtualMachine.instance.multiple.host.placeholder');
+    },
+
+    hostname: {
       get() {
-        return this.spec?.template?.spec?.hostname;
+        return this.spec.template.spec?.hostname;
       },
 
       set(neu) {
-        try {
-          this.useCustomHostname = false;
-          if (neu || neu.length > 0) {
-            this.useCustomHostname = true;
-            const oldCloudConfig = safeLoad(this.getCloudInit());
-
-            oldCloudConfig.hostname = neu;
-
-            this.$set(this.spec.template.spec, 'hostname', neu);
-          }
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.log('---watch hostname has error');
+        if (neu) {
+          this.$set(this.spec.template.spec, 'hostname', neu);
         }
       }
     },
@@ -159,16 +152,15 @@ export default {
         return;
       }
 
-      this.templateVersion = this.templates.find( O => O.id === id)?.defaultVersionId;
+      this.templateVersionId = this.templates.find( O => O.id === id)?.defaultVersionId;
     },
 
-    templateVersion(id) {
+    templateVersionId(id) {
       if (!id) {
         return;
       }
-
       const curVersion = this.versions.find( V => V.id === id);
-      const sshKey = curVersion.spec?.keyPairIds || []; // 这里面后端好像没保存keyPairIds
+      const sshKey = curVersion.spec?.keyPairIds || [];
 
       const cloudScript = curVersion?.spec?.vm?.template?.spec?.volumes?.find( (V) => {
         return V.cloudInitNoCloud !== undefined;
@@ -184,10 +176,10 @@ export default {
 
     useTemplate(neu) {
       if (neu === false) {
+        this.templateId = '';
+        this.templateVersionId = '';
         this.value.applyDefaults();
         this.changeSpec();
-        this.templateId = '';
-        this.templateVersion = '';
       }
     },
 
@@ -227,7 +219,7 @@ export default {
       });
     });
 
-    this.registerFailureHook(() => {
+    this.registerFailureHook(() => { // Creating a VM doesn't need type, but the frontend needs to find resources according to type.
       this.$set(this.value, 'type', HCI.VM);
     });
 
@@ -236,8 +228,8 @@ export default {
         const cloneDeepNewVM = cloneDeep(this.value);
 
         delete cloneDeepNewVM.type;
-        delete this.cloneDeepVM.type;
         delete cloneDeepNewVM?.metadata;
+        delete this.cloneDeepVM.type;
         delete this.cloneDeepVM?.metadata;
 
         const dataVolumeTemplates = this.cloneDeepVM?.spec?.dataVolumeTemplates || [];
@@ -257,14 +249,14 @@ export default {
   },
 
   mounted() {
-    this.imageName = this.$route.query?.image || this.imageName;
+    this.imageId = this.$route.query?.image || this.imageId;
 
-    const templateId = this.$route.query?.templateId;
-    const templateVersion = this.$route.query?.version;
+    const templateId = this.$route.query.templateId;
+    const templateVersionId = this.$route.query.versionId;
 
-    if (templateId && templateVersion) {
+    if (templateId && templateVersionId) {
       this.templateId = templateId;
-      this.templateVersion = templateVersion;
+      this.templateVersionId = templateVersionId;
       this.useTemplate = true;
     }
   },
@@ -279,23 +271,22 @@ export default {
     },
 
     async saveSingle(buttonCb) {
-      const url = `v1/${ HCI.VM }s`;
-
       this.normalizeSpec();
-      const realHostname = this.useCustomHostname ? this.value.spec.template.spec.hostname : this.value.metadata.name;
 
-      this.$set(this.value.spec.template.spec, 'hostname', realHostname);
-      await this.save(buttonCb, url);
+      if (!this.value.spec.template.spec.hostname) {
+        this.$set(this.value.spec.template.spec, 'hostname', this.value.metadata.name);
+      }
+
+      await this.save(buttonCb);
     },
 
     async saveMultiple(buttonCb) {
-      const baseName = this.value.metadata.name || '';
-      const baseHostname = this.useCustomHostname ? this.value.spec.template.spec.hostname : this.value.metadata.name;
-      const join = baseName.endsWith('-') ? '' : '-';
-      const countLength = this.count.toString().length;
+      const namePrefix = this.value.metadata.name || '';
+      const baseHostname = this.value?.spec?.template?.spec?.hostname ? this.value.spec.template.spec.hostname : this.value.metadata.name;
+      const join = namePrefix.endsWith('-') ? '' : '-';
 
-      if (this.count < 1 || this.count === undefined) {
-        this.errors = ['"Count" should be between 1 and 10'];
+      if (this.count < 1) {
+        this.errors = [this.t('harvester.virtualMachine.instance.multiple.countTip')];
         buttonCb(false);
 
         return;
@@ -304,14 +295,15 @@ export default {
       for (let i = 1; i <= this.count; i++) {
         this.$set(this.value, 'type', HCI.VM);
 
-        const suffix = i?.toString()?.padStart(countLength, '0');
+        const suffix = i < 10 ? `0${ i }` : i;
 
         cleanForNew(this.value);
-        this.value.metadata.name = `${ baseName }${ join }${ suffix }`;
+        this.value.metadata.name = `${ namePrefix }${ join }${ suffix }`;
         const hostname = `${ baseHostname }${ join }${ suffix }`;
 
-        this.normalizeSpec();
         this.$set(this.value.spec.template.spec, 'hostname', hostname);
+
+        this.normalizeSpec();
 
         try {
           await this.save(buttonCb);
@@ -326,16 +318,16 @@ export default {
       const spec = this.value.spec;
       const diskRows = this.getDiskRows(spec);
       const networkRows = this.getNetworkRows(spec);
-      const imageName = this.getRootImage(spec);
+      const imageId = this.getRootImageId(spec);
 
-      if (imageName) {
+      if (imageId) {
         this.autoChangeForImage = false;
       }
 
       this.$set(this, 'spec', spec);
       this.$set(this, 'diskRows', diskRows);
       this.$set(this, 'networkRows', networkRows);
-      this.$set(this, 'imageName', imageName);
+      this.$set(this, 'imageId', imageId);
     },
 
     validataCount(count) {
@@ -369,14 +361,14 @@ export default {
       @apply-hooks="applyHooks"
       @finish="saveVM"
     >
-      <div v-if="isCreate" class="mb-20">
-        <RadioGroup
-          v-model="isSingle"
-          name="createInstanceMode"
-          :options="[true,false]"
-          :labels="[t('harvester.vmPage.input.singleInstance'), t('harvester.vmPage.input.multipleInstance')]"
-        />
-      </div>
+      <RadioGroup
+        v-if="isCreate"
+        v-model="isSingle"
+        class="mb-20"
+        name="createInstanceMode"
+        :options="[true,false]"
+        :labels="[t('harvester.virtualMachine.instance.single.label'), t('harvester.virtualMachine.instance.multiple.label')]"
+      />
 
       <NameNsDescription
         v-model="value"
@@ -384,7 +376,7 @@ export default {
         :has-extra="!isSingle"
         :name-label="nameLabel"
         :namespaced="true"
-        :name-placeholder="isSingle ? 'nameNsDescription.name.placeholder' : 'harvester.vmPage.multipleVMInstance.nameNsDescription'"
+        :name-placeholder="isSingle ? 'nameNsDescription.name.placeholder' : 'harvester.virtualMachine.instance.multiple.nameNsDescription'"
         :extra-columns="isSingle ? [] :['type']"
       >
         <template v-slot:type>
@@ -393,7 +385,7 @@ export default {
             v-model.number="count"
             v-int-number
             type="number"
-            :label="t('harvester.fields.count')"
+            :label="t('harvester.virtualMachine.instance.multiple.count')"
             required
             @input="validataCount"
           />
@@ -405,38 +397,34 @@ export default {
         v-model="useTemplate"
         class="check mb-20"
         type="checkbox"
-        label-key="harvester.vmPage.useTemplate"
+        label-key="harvester.virtualMachine.useTemplate.label"
       />
 
       <div v-if="useTemplate" class="row mb-20">
         <div class="col span-6">
           <LabeledSelect
             v-model="templateId"
-            label-key="harvester.vmPage.input.template"
+            label-key="harvester.virtualMachine.useTemplate.template.label"
             :options="templateOptions"
           />
         </div>
 
         <div class="col span-6">
           <LabeledSelect
-            v-model="templateVersion"
-            label-key="harvester.vmPage.input.version"
+            v-model="templateVersionId"
+            label-key="harvester.virtualMachine.useTemplate.version.label"
             :options="versionOptions"
           />
         </div>
       </div>
 
       <Tabbed :side-tabs="true" @changed="onTabChanged">
-        <Tab name="Basics" :label="t('harvester.vmPage.detail.tabs.basics')">
+        <Tab name="Basics" :label="t('harvester.virtualMachine.detail.tabs.basics')">
           <CpuMemory :cpu="spec.template.spec.domain.cpu.cores" :memory="memory" @updateCpuMemory="updateCpuMemory" />
 
-          <div class="mb-20">
-            <ImageSelect v-model="imageName" :disk-rows="diskRows" :disabled="!isCreate" />
-          </div>
+          <ImageSelect v-model="imageId" class="mb-20" :disk-rows="diskRows" :disabled="!isCreate" />
 
-          <div class="mb-20">
-            <SSHKey v-model="sshKey" :namespace="value.metadata.namespace" @update:sshKey="updateSSHKey" />
-          </div>
+          <SSHKey v-model="sshKey" class="mb-20" :namespace="value.metadata.namespace" @update:sshKey="updateSSHKey" />
         </Tab>
 
         <Tab
@@ -465,7 +453,7 @@ export default {
               <LabeledInput
                 v-model="hostname"
                 :label-key="hostnameLabel"
-                :placeholder="t('harvester.vmPage.hostName.placeholder')"
+                :placeholder="hostPlaceholder"
                 required
               />
             </div>
@@ -473,7 +461,7 @@ export default {
             <div class="col span-6">
               <LabeledSelect
                 v-model="machineType"
-                label-key="harvester.vmPage.input.MachineType"
+                label-key="harvester.virtualMachine.input.MachineType"
                 :options="machineTypeOptions"
               />
             </div>
@@ -487,30 +475,34 @@ export default {
             @updateCloudConfig="updateCloudConfig"
           />
 
-          <div class="spacer"></div>
-          <Checkbox v-model="isUseMouseEnhancement" class="check" type="checkbox" :label="t('harvester.vmPage.enableUsb')" />
+          <Checkbox v-model="isUseMouseEnhancement" class="check mt-20" type="checkbox" label-key="harvester.virtualMachine.enableUsb" />
 
-          <Checkbox v-model="installAgent" class="check" type="checkbox" label="Install guest agent" />
+          <Checkbox v-model="installAgent" class="check" type="checkbox" label-key="harvester.virtualMachine.installAgent" />
         </Tab>
       </Tabbed>
 
-      <template #extend>
-        <div class="mt-20">
-          <div v-if="!isEdit">
-            <Checkbox v-model="isRunning" class="check mb-20" type="checkbox" :label="t('harvester.vmPage.createRunning')" />
-          </div>
+      <div class="mt-20">
+        <Checkbox
+          v-if="!isEdit"
+          v-model="isRunning"
+          class="check mb-20"
+          type="checkbox"
+          label-key="harvester.virtualMachine.createRunning"
+        />
 
-          <div v-if="isEdit" class="restart">
-            <div class="banner-content">
-              <Banner color="warning" class="banner-right">
-                Restart the virtual machine now to take effect of the configuration changes.
+        <span v-if="isEdit" class="restart">
+          <Banner color="warning" class="banner-right">
+            {{ t('harvester.virtualMachine.restartTip') }}
 
-                <Checkbox v-model="isRestartImmediately" class="check ml-20" type="checkbox" label="Restart Now" />
-              </Banner>
-            </div>
-          </div>
-        </div>
-      </template>
+            <Checkbox
+              v-model="isRestartImmediately"
+              class="check ml-20"
+              type="checkbox"
+              label-key="harvester.virtualMachine.restartNow"
+            />
+          </Banner>
+        </span>
+      </div>
     </CruResource>
   </div>
 </template>
@@ -530,12 +522,9 @@ export default {
   }
 
   .banner-right {
+    width: auto;
     display: flex;
-    justify-content: flex-end;
-  }
-
-  .banner-content {
-    display: inline-block;
+    justify-items: center;
   }
 }
 </style>

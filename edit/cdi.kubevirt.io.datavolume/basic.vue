@@ -5,7 +5,7 @@ import UnitInput from '@/components/form/UnitInput';
 import { sortBy } from '@/utils/sort';
 import { formatSi, parseSi } from '@/utils/units';
 import { HCI } from '@/config/types';
-import { HARVESTER_IMAGE_ID } from '@/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { InterfaceOption } from '@/config/map';
 
 export default {
@@ -35,7 +35,7 @@ export default {
   },
 
   data() {
-    const source = !!this.resource?.metadata?.annotations?.[HARVESTER_IMAGE_ID] ? 'url' : 'blank';
+    const source = !!this.resource?.metadata?.annotations?.[HCI_ANNOTATIONS.IMAGE_ID] ? 'url' : 'blank';
     const image = source === 'url' ? this.$store.getters['cluster/all'](HCI.IMAGE).find( (I) => {
       return I?.status?.downloadUrl === this.value?.source?.http?.url;
     })?.id : '';
@@ -73,10 +73,10 @@ export default {
     sourceOption() {
       return [{
         value: 'blank',
-        label: this.t('harvester.volumePage.sourceOptions.new')
+        label: this.t('harvester.volume.sourceOptions.new')
       }, {
         value: 'url',
-        label: this.t('harvester.volumePage.sourceOptions.vmImage')
+        label: this.t('harvester.volume.sourceOptions.vmImage')
       }
       // , {
       //   value: 'container',
@@ -139,7 +139,7 @@ export default {
 
       // if (this.isVmImage && this.image) {
       if (this.isVmImage) {
-        imageAnnotations = { [HARVESTER_IMAGE_ID]: this.image };
+        imageAnnotations = { [HCI_ANNOTATIONS.IMAGE_ID]: this.image };
       } else {
         imageAnnotations = {};
       }
@@ -180,7 +180,7 @@ export default {
   <div @input="update">
     <LabeledSelect
       v-model="source"
-      :label="t('harvester.volumePage.source')"
+      :label="t('harvester.volume.source')"
       :options="sourceOption"
       :disabled="!isCreate"
       required
@@ -201,7 +201,7 @@ export default {
     <LabeledSelect
       v-if="isVmImage"
       v-model="image"
-      :label="t('harvester.volumePage.image')"
+      :label="t('harvester.volume.image')"
       :options="ImageOption"
       :disabled="!isCreate"
       required
@@ -212,7 +212,7 @@ export default {
 
     <UnitInput
       v-model="storage"
-      :label="t('harvester.volumePage.size')"
+      :label="t('harvester.volume.size')"
       suffix="iB"
       :input-exponent="3"
       :output-exponent="3"

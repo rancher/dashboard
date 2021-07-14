@@ -9,7 +9,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 const { mapState } = createNamespacedHelpers(HCI.VM);
 
 export default {
-  name: 'RestoreModal',
+  name: 'CloneTemplateModal',
 
   components: { LabeledInput, ModalWithCard },
 
@@ -22,21 +22,8 @@ export default {
   },
 
   computed: {
-    ...mapState(['actionResources', 'isShowCloneTemplate']),
     ...mapGetters({ t: 'i18n/t' }),
-
-    backupOption() {
-      const attachBackup = this.backups.filter( (B) => {
-        return B.attachVM === this.actionResources?.metadata?.name;
-      });
-
-      return attachBackup.map( (O) => {
-        return {
-          value: O.metadata.name,
-          label: O.metadata.name
-        };
-      });
-    },
+    ...mapState(['actionResources', 'isShowCloneTemplate'])
   },
 
   watch: {
@@ -64,7 +51,7 @@ export default {
 
     async saveRestore(buttonCb) {
       if (!this.templateName) {
-        this.$set(this, 'errors', [this.t('harvester.vmPage.createTemplate.message.tip')]);
+        this.$set(this, 'errors', [this.t('harvester.modal.createTemplate.message.tip')]);
         buttonCb(false);
 
         return;
@@ -74,13 +61,13 @@ export default {
         const res = await this.actionResources.doAction('createTemplate', { name: this.templateName, description: this.description }, {}, false);
 
         if (res._status === 200 || res._status === 204) {
-          this.$notify({
-            title:    this.t('harvester.notification.title.succeed'),
-            message:  this.t('harvester.vmPage.createTemplate.message.success', { templateName: this.templateName }),
-            type:     'success'
-          });
+          this.$store.dispatch('growl/success', {
+            title:   this.t('harvester.notification.title.succeed'),
+            message: this.t('harvester.modal.createTemplate.message.success', { templateName: this.templateName })
+          }, { root: true });
 
           this.closeModal();
+          buttonCb(true);
         } else {
           const error = res?.data || exceptionToErrorsArray(res) || res;
 
@@ -91,6 +78,7 @@ export default {
         const error = err?.data || exceptionToErrorsArray(err) || err;
 
         this.$set(this, 'errors', [error]);
+        buttonCb(false);
       }
     }
   },
@@ -108,20 +96,20 @@ export default {
     @close="closeModal"
   >
     <template #title>
-      {{ t('harvester.vmPage.createTemplate.title') }}
+      {{ t('harvester.modal.createTemplate.title') }}
     </template>
 
     <template #content>
       <LabeledInput
         v-model="templateName"
         class="mb-20"
-        :label="t('harvester.vmPage.createTemplate.fields.name')"
+        :label="t('harvester.modal.createTemplate.name')"
         required
       />
 
       <LabeledInput
         v-model="description"
-        :label="t('harvester.vmPage.createTemplate.fields.description')"
+        :label="t('harvester.modal.createTemplate.description')"
       />
     </template>
   </ModalWithCard>

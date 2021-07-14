@@ -2,7 +2,7 @@ import { HCI } from '@/config/types';
 import {
   DESCRIPTION,
   ANNOTATIONS_TO_IGNORE_REGEX,
-  HCI_IMAGE_SOURCE
+  HCI as HCI_ANNOTATIONS
 } from '@/config/labels-annotations';
 import { get } from '@/utils/object';
 import { findBy } from '@/utils/array';
@@ -29,10 +29,12 @@ export default {
     return () => {
       const router = this.currentRouter();
 
+      const image = `${ this.metadata.namespace }/${ this.spec.displayName }`;
+
       router.push({
         name:   `c-cluster-product-resource-create`,
         params: { resource: HCI.VM },
-        query:  { image: this.nameDisplay }
+        query:  { image }
       });
     };
   },
@@ -55,7 +57,7 @@ export default {
   },
 
   resourcesStatus() {
-    const imageList = this.$rootGetters['cluster/all'](HCI.IMAGE);
+    const imageList = this.$rootGetters['virtual/all'](HCI.IMAGE);
 
     let warningCount = 0;
     let errorCount = 0;
@@ -86,7 +88,7 @@ export default {
   },
 
   imageSource() {
-    return get(this.value, `metadata.annotations."${ HCI_IMAGE_SOURCE }"`) || 'url'; // url is default source
+    return get(this.value, `metadata.annotations."${ HCI_ANNOTATIONS.IMAGE_SOURCE }"`) || 'url'; // url is default source
   },
 
   annotationsToIgnoreRegexes() {
@@ -107,7 +109,7 @@ export default {
         nullable:       false,
         path:           'spec.url',
         required:       true,
-        translationKey: 'harvester.imagePage.url'
+        translationKey: 'harvester.image.url'
       };
 
       out.push(urlFormat, urlRequired);

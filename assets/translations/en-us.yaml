@@ -111,6 +111,7 @@ nav:
     multiCluster: Global Apps
     legacy: Legacy Apps
     configuration: Configuration
+    harvester: HARVESTER CLUSTER
   search:
     placeholder: Type to search clusters
     noResults: No matching clusters
@@ -146,6 +147,7 @@ product:
   clusterManagement: Cluster Management
   monitoring: Monitoring
   mcapps: Multi-cluster Apps
+  virtualManagement: Virtualization Management 
 
 suffix:
   percent: "%"
@@ -4670,11 +4672,111 @@ workload:
     title: Upgrading
 
 harvester:
+  modal:
+    backup:
+      success: 'Backup { backUpName } has been initiated.'
+      addBackup: Add Backup
+    restore:
+      success: 'Restore { name } created successfully.'
+      title: Backup and restore
+      selectBackup: Select Backup
+      message:
+        backup: Please select the backup that needs to be restored.
+    createTemplate:
+      title: 'Generate Template'
+      name: 'Name'
+      description: 'Description'
+      message: 
+        tip: Please enter a template name!
+        success: 'Template { templateName } created successfully.'
+        failed: 'Failed generated template!'
+    migration:
+      failedMessage: Latest migration failed!
+      title: Migration
+      fields:
+        nodeName: 
+          label: Target Node
+          placeholder: Choose Target Node
+    ejectCDROM:
+      title: Eject CDROM
+      warnTip: Eject volume will restart the virtual machine.
+      operationTip: 'Select the volume you want to delete:'
+      delete: Delete
+  notification:
+    title:
+      succeed: Succeed
+      info: Info
+      warning: Warning
+      error: Error
+  action:
+    createVM: Create a Virtual Machine
+    start: Start
+    restart: Restart
+    stop: Stop
+    pause: Pause
+    unpause: unpasue
+    ejectCDROM: Eject CDROM
+    launchFormTemplate: Launch instance from template
+    modifyTemplate: Modify template (Create new version)
+    setDefaultVersion: Set default version
+    addTemplateVersion: Add templateVersion
+    backup: Take Backup
+    restore: Restore
+    restoreNewVM: Restore New
+    restoreExistingVM: Replace Existing
+    migrate: Migrate
+    abortMigration: Abort Migration
+    createTemplate: Generate Template
+    enableMaintenance: Enable Maintenance Mode
+    disableMaintenance: Disable Maintenance Mode
+    cordon: Cordon
+    uncordon: Uncordon
+  tableHeaders:
+    size: Size
+    progress: Progress
+    message: Message
+    phase: Phase
+    attachedVM: Attached VM
+    fingerprint: Fingerprint
+    value: Value
+    actions: Actions
+    readyToUse: ReadyToUse
+    backupTarget: Backup Target
+    targetVm: Target VM
+    hostIp: Host IP
+    vm:
+      ipAddress: IP Address
+      node: Node
+      defaultVersion: Default Version
+    network:
+      type: Type
+      vlan: Vlan ID
+  tab:
+    volume: Volumes
+    network: Networks
+    advanced: Advanced Options
+  fields:
+    version: Version
+    name: Name
+    type: Type
+    image: Image
+    size: Size
+    volume: Volume
+    network: Network
+    model: Model
+    macAddress: Mac Address
+    port: Port
+    protocol: Protocol
+    remove: REMOVE
+    PhysicalNic: Physical NIC
+    cpu: Cpu
+    memory: Memory
+    virtaulName: Virtual machine name
   dashboard:
     label: Dashboard
     header: Dashboard
     hardwareResourceGauge:
-      cpu: CPU  
+      cpu: CPU
       memory: Memory
       storage: Storage Size
     sections:
@@ -4683,23 +4785,177 @@ harvester:
 
   host:
     label: Hosts
+
   virtualMachine:
     label: Virtual Machines
+    instance:
+      singleInstance: 
+      multipleInstance: 
+      single:
+        label: Single Instance
+        nameLabel: Name
+        host: 
+          label: Host Name
+          placeholder: default to the virtual machine name.
+      multiple:
+        label: Multiple Instance
+        nameNsDescription: Name prefix for each instance
+        count: Count
+        countTip: Count should be between 1 and 10
+        nameLabel: Name Prefix
+        host: 
+          label: Host Prefix Name
+          placeholder: default to the virtual machine name.
+    useTemplate:
+      label: "Use VM Template:"
+      template:
+        label: template
+      version:
+        label: version
+    restartTip: Restart the virtual machine now to take effect of the configuration changes.
+    createRunning: Start virtual machine on creation
+    restartNow: Restart Now
+    createSSHKey: Create SSH Key
+    installAgent: Install guest agent
+    enableUsb: Enable USB Tablet
+    sshTitle: Add Public SSH Key
+    imageTip: An external URL to the .iso, .img, .qcow2 or .raw that the virtual machine should be created from.
+    volume:
+      volumeTip: The VM only contains a cd-rom volume. You may want to add additional disk volumes.
+      macTip: "Protip: MAC address as seen inside the guest system."
+      type: Type
+      size: Size
+      bus:  Bus
+      bootOrder: Boot Order
+      volume: Volume
+      dockerImage: Docker Image
+      addVolume: Add Volume
+      addExistingVolume: Add Existing Volume
+      addVmImage: Add VM Image
+      addContainer: Add Container
+      title:
+        vmImage: VM Image
+        existingVolume: Existing Volume
+        volume: Volume
+        container: Container
+      unmount:
+        title: Are you sure?
+        message: Are you sure you want to unmount this volume?
+    network:
+      title: Network
+      addNetwork: Add Network
+      addPort:  Add Port
+    cloudConfig:
+      title: Cloud Config
+      cloudInit:
+        label: Cloud Init
+        placeholder: Choose a template
+      userData:
+        label: User Data Template
+        title: "User Data:"
+        tip: "You can specify user data to configure an instance or run a configuration script during launch. If you launch more than one instance at a time, the user data is available to all the instances in that reservation. <a href='https://cloudinit.readthedocs.io/en/latest/topics/examples.html' target='_blank'>Learn more</a>"
+      networkData:
+        label: Network Data Template
+        title: "Network Data:"
+        tip: "The network-data configuration allows you to customize the instance’s networking interfaces by assigning subnet configuration, virtual device creation (bonds, bridges, vlans) routes and DNS configuration. <a href='https://cloudinit.readthedocs.io/en/latest/topics/network-config-format-v1.html' target='_blank'>Learn more</a>"
+    input:
+      name: Name
+      memory: Memory
+      image: Image
+      sshKey: SSHKey
+      sshKeyValue: SSH-Key
+      MachineType: MachineType
+    machineTypeTip: 'Specify a processor architecture to emulate. To see a list of supported architectures, run: qemu-system-x86_64 -cpu ?'
+    detail:
+      tabs:
+        overview: Overview
+        details: Details
+        environment: Environment
+        events: Events
+        migration: Migration
+        console: Console
+        networkInterfaces: Network Interfaces
+        disks: Disks
+        networks: Networks
+        basics: Basics
+        configurations: Configurations
+        inventory: Inventory
+        hostBasic: Basic Attributes
+        instance: Virtual Machines
+        monitor: Monitor Data
+        keypairs: SSH Keys
+        cloudConfig: Cloud Config
+      details:
+        title:
+          vmDetails: Virtual Machine Details
+          requirements: Scheduling and resources requirements
+          services: Services
+          users: Logged in users
+        name: Name
+        namespace: Namespace
+        created: Created
+        hostname: Hostname
+        node: Node
+        ipAddress: IP Address
+        status: Status
+        pod: Pod
+        labels: Labels
+        bootOrder: Boot Order
+        annotations: Annotations
+        CDROMs: CD-ROMs
+        description: Description
+        operatingSystem: Operating System
+        template: Template
+        kernelRelease: Kernel Release
+        owner: Owner
+        workloadProfile: Workload Profile
+        nodeSelector: Node Selector
+        flavor: Flavor
+        tolerations: Tolerations
+        dedicatedResources: Dedicated Resources
+        down: VM not running
+        affinityRules: Affinity Rules
+        sourceNode: Source Node
+        targetNode: Target Node
+        started: Started
+        ended: Ended
+      notAvailable: Not available
+      GuestAgentNotInstalled: Guest agent required
+      noOwner: No Owner
+      events:
+        from: Generated from
+        down: No events in the past hour
+      console:
+        down: This Virtual Machine is down. Please start it to access its console.
+     
   volume: 
     label: Volumes
+    tabs:
+      basics: Basics
+    size: Size
+    source: Source
+    sourceOptions:
+      new: New
+      vmImage: VM Image
+    image: Image
+
   image:
     label: Images
+    tabs:
+      basics: Basics
+    url: URL
+    size: Size
+    urlTip: 'supports the <code>raw</code> and <code>qcow2</code> image formats which are supported by <a href="https://www.qemu.org/docs/master/system/images.html#disk-image-file-formats" target="_blank">qemu</a>. Bootable ISO images can also be used and are treated like <code>raw</code> images.'
+
   vmTemplate:
     label: Templates
+    tabs:
+      basics: Basics
+    nameNsDescription:
+      name: Template Name
+
   backup:
     label: Backups
-    backupModal:
-      addBackup: Add Backup
-    restoreModal:
-      title: Backup and restore
-      selectBackup: Select Backup
-      message:
-        backup: Please select the backup that needs to be restored.
     createText: Restore Backup
     title: Restore Virtual Machine
     backupTargetTip: The endpoint used to access the backupstore. NFS and S3 are supported.
@@ -4722,6 +4978,8 @@ harvester:
 
   network:
     label: Networks
+    tabs:
+      basics: Basics
     message:
       vlanInactive: 'VLAN network is inactive at {name} host'
       premise: 

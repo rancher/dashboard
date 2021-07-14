@@ -94,7 +94,7 @@ export default {
   },
 
   isRunning() {
-    if (this.getStatusPhase === VMIPhase.Running) {
+    if (this?.status?.phase === VMIPhase.Running) {
       return { status: VMIPhase.Running };
     }
 

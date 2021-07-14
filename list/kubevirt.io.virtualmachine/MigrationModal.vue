@@ -1,12 +1,12 @@
 <script>
 import { createNamespacedHelpers, mapGetters } from 'vuex';
 
-import { exceptionToErrorsArray } from '@/utils/error';
-import { HOST_CUSTOM_NAME, HARVESTER_MAINTENANCE_STATUS } from '@/config/labels-annotations';
 import { NODE, HCI } from '@/config/types';
+import { exceptionToErrorsArray } from '@/utils/error';
+import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
-import LabeledSelect from '@/components/form/LabeledSelect';
 import ModalWithCard from '@/components/ModalWithCard';
+import LabeledSelect from '@/components/form/LabeledSelect';
 
 const { mapState } = createNamespacedHelpers(HCI.VM);
 
@@ -24,26 +24,26 @@ export default {
   },
 
   computed:   {
-    ...mapState(['isShowMigration', 'actionResources']),
     ...mapGetters({ t: 'i18n/t' }),
+    ...mapState(['isShowMigration', 'actionResources']),
 
     vmi() {
-      const vmiResources = this.$store.getters['cluster/all'](HCI.VMI);
+      const vmiResources = this.$store.getters['virtual/all'](HCI.VMI);
       const resource = vmiResources.find(VMI => VMI.id === this.actionResources?.id) || null;
 
       return resource;
     },
 
     nodeNameList() {
-      const nodes = this.$store.getters['cluster/all'](NODE);
+      const nodes = this.$store.getters['virtual/all'](NODE);
 
       return nodes.filter((n) => {
         // do not allow to migrate to self node
-        return n.id !== this.vmi?.status?.nodeName && !n.metadata?.annotations?.[HARVESTER_MAINTENANCE_STATUS];
+        return n.id !== this.vmi?.status?.nodeName && !n.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS];
       }).map((n) => {
         let label = n?.metadata?.name;
         const value = n?.metadata?.name;
-        const custom = n?.metadata?.annotations?.[HOST_CUSTOM_NAME];
+        const custom = n?.metadata?.annotations?.[HCI_ANNOTATIONS.HOST_CUSTOM_NAME];
 
         if (custom) {
           label = custom;
@@ -87,7 +87,7 @@ export default {
       }
 
       if (!this.nodeName) {
-        const name = this.$store.getters['i18n/t']('harvester.vmPage.migrationModal.fields.nodeName.label');
+        const name = this.$store.getters['i18n/t']('harvester.modal.migration.fields.nodeName.label');
         const message = this.$store.getters['i18n/t']('validation.required', { key: name });
 
         this.$set(this, 'errors', [message]);
@@ -105,6 +105,7 @@ export default {
         const error = err?.data || exceptionToErrorsArray(err) || err;
 
         this.$set(this, 'errors', [error]);
+        buttonDone(false);
       }
     },
 
@@ -124,14 +125,14 @@ export default {
     @close="close"
   >
     <template #title>
-      {{ t('harvester.vmPage.migrationModal.title') }}
+      {{ t('harvester.modal.migration.title') }}
     </template>
 
     <template #content>
       <LabeledSelect
         v-model="nodeName"
-        :label="t('harvester.vmPage.migrationModal.fields.nodeName.label')"
-        :placeholder="t('harvester.vmPage.migrationModal.fields.nodeName.placeholder')"
+        :label="t('harvester.modal.migration.fields.nodeName.label')"
+        :placeholder="t('harvester.modal.migration.fields.nodeName.placeholder')"
         :options="nodeNameList"
       />
     </template>

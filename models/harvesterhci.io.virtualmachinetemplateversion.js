@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import _ from 'lodash';
+import find from 'lodash/find';
 import { HCI } from '@/config/types';
 import {
   AS, MODE, _CREATE, _VIEW, _CONFIG
@@ -101,7 +101,7 @@ export default {
   },
 
   templates() {
-    return this.$rootGetters['cluster/all'](HCI.VM_TEMPLATE);
+    return this.$rootGetters['virtual/all'](HCI.VM_TEMPLATE);
   },
 
   machineType() {
@@ -122,7 +122,7 @@ export default {
       router.push({
         name:   `c-cluster-product-resource-create`,
         params: { resource: HCI.VM },
-        query:  { templateId, version: launchVersion }
+        query:  { templateId, versionId: launchVersion }
       });
     };
   },
@@ -160,7 +160,7 @@ export default {
   },
 
   currentTemplate() {
-    return _.find(this.templates, T => T.id === this.templateId);
+    return find(this.templates, T => T.id === this.templateId);
   },
 
   setDefaultVersion() {
@@ -173,7 +173,7 @@ export default {
   },
 
   defaultVersion() {
-    const templates = this.$rootGetters['cluster/all'](HCI.VM_TEMPLATE);
+    const templates = this.$rootGetters['virtual/all'](HCI.VM_TEMPLATE);
     const template = templates.find(T => this.templateId === T.id);
 
     return template?.status?.defaultVersion;

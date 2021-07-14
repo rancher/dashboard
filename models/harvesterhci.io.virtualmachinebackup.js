@@ -1,7 +1,8 @@
 import { HCI } from '@/config/types';
-import { HARVESTER_BACKUP_TARGET } from '@/config/labels-annotations';
-import { colorForState } from '@/plugins/steve/resource-instance';
 import { get } from '@/utils/object';
+import { findBy } from '@/utils/array';
+import { colorForState } from '@/plugins/steve/resource-instance';
+import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 export default {
   _availableActions() {
@@ -56,12 +57,15 @@ export default {
 
   state() {
     let out = 'Pending';
+    const conditions = get(this, 'status.conditions');
+    const isProgress = findBy(conditions, 'type', 'InProgress') === 'True';
+    const isReady = findBy(conditions, 'type', 'Ready') === 'True';
 
     if (this?.status?.readyToUse) {
       out = 'Ready';
-    } else if (this.getConditionStatus('InProgress') === 'True') {
+    } else if (isProgress === 'True') {
       out = 'Progressing';
-    } else if (this.getConditionStatus('Ready') !== 'True') {
+    } else if (!isReady) {
       out = 'error';
     }
 
@@ -83,18 +87,18 @@ export default {
   },
 
   backupTarget() {
-    return get(this, `metadata.annotations."${ HARVESTER_BACKUP_TARGET }"`) || '';
+    return get(this, `metadata.annotations."${ HCI_ANNOTATIONS.BACKUP_TARGET }"`) || '';
   },
 
   isMatchWithCurrentBakcupTarget() {
-    const allSetting = this.$rootGetters['cluster/all'](HCI.SETTING);
+    const allSetting = this.$rootGetters['virtual/all'](HCI.SETTING);
     const backupTargetResource = allSetting.find( O => O.id === 'backup-target');
 
     return this.backupTarget === backupTargetResource?.parseValue?.endpoint;
   },
 
   attachVmExisting() {
-    const vmList = this.$rootGetters['cluster/all'](HCI.VM);
+    const vmList = this.$rootGetters['virtual/all'](HCI.VM);
 
     return !!vmList.find( V => V.metadata.name === this.attachVM);
   }
