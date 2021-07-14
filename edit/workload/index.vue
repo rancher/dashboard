@@ -155,6 +155,7 @@ export default {
       portsForServices:  [],
       isInitContainer,
       container,
+      containerChange:   0,
     };
   },
 
@@ -630,6 +631,7 @@ export default {
       container._active = true;
       this.container = container;
       this.isInitContainer = !!container._init;
+      this.containerChange++;
     },
 
     addContainer() {
@@ -747,7 +749,7 @@ export default {
           </button>
         </div>
       </div>
-      <Tabbed :key="container.name" :side-tabs="true">
+      <Tabbed :key="containerChange" :side-tabs="true">
         <Tab :label="t('workload.container.titles.general')" name="general">
           <div>
             <div :style="{'align-items':'center'}" class="row mb-20">
