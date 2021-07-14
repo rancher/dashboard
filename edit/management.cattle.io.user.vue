@@ -16,8 +16,12 @@ export default {
   mixins:     [
     CreateEditView
   ],
+
   data() {
+    const showGlobalRoles = !!this.$store.getters[`management/schemaFor`](MANAGEMENT.GLOBAL_ROLE);
+
     return {
+      showGlobalRoles,
       form:             {
         username:    this.value.username,
         description: this.value.description,
@@ -29,11 +33,12 @@ export default {
       },
       validation: {
         password:     false,
-        roles:        false,
+        roles:        !showGlobalRoles,
         rolesChanged:     false,
       },
     };
   },
+
   computed: {
     valid() {
       const valid = this.credentialsValid && this.rolesValid;
@@ -154,7 +159,9 @@ export default {
       await normanUser.save();
     },
     async updateRoles(userId) {
-      await this.$refs.grb.save(userId);
+      if (this.$refs.grb) {
+        await this.$refs.grb.save(userId);
+      }
     }
   }
 };
@@ -216,7 +223,7 @@ export default {
           @valid="validation.password = $event"
         />
       </div>
-      <div class="global-permissions">
+      <div v-if="showGlobalRoles" class="global-permissions">
         <GlobalRoleBindings
           ref="grb"
           :user-id="value.id || originalValue.id"
