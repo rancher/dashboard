@@ -415,7 +415,7 @@ export default {
     </Tab>
 
     <Tab v-if="showRegistration" name="registration" label="Registration" :weight="2">
-      <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" />
+      <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" :cluster="value" />
       <template v-else>
         <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
         <CopyCode class="m-10 p-10">
