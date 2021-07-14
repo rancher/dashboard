@@ -1,7 +1,7 @@
 <script>
 import { formatSi, parseSi } from '@/utils/units';
-import InputOrDisplay from '@/components/InputOrDisplay';
 import UnitInput from '@/components/form/UnitInput';
+import InputOrDisplay from '@/components/InputOrDisplay';
 
 export default {
   name:       'CpuMemory',
@@ -9,20 +9,17 @@ export default {
 
   props:      {
     cpu: {
-      type:    [Number, String],
+      type:    Number,
       default: null
     },
-
     memory: {
-      type:    [Number, String],
+      type:    String,
       default: null
     },
-
     mode: {
-      type:     String,
-      default: 'edit',
+      type:      String,
+      default:  'create',
     },
-
     disabled: {
       type:    Boolean,
       default: false
@@ -97,11 +94,11 @@ export default {
     </div>
 
     <div class="col span-6">
-      <InputOrDisplay :name="t('harvester.vmPage.input.memory')" :value="localMemory" :mode="mode" class="mb-20">
+      <InputOrDisplay :name="t('harvester.virtualMachine.input.memory')" :value="localMemory" :mode="mode" class="mb-20">
         <UnitInput
           v-model="localMemory"
           v-int-number
-          :label="t('harvester.vmPage.input.memory')"
+          :label="t('harvester.virtualMachine.input.memory')"
           suffix="iB"
           :mode="mode"
           :input-exponent="3"

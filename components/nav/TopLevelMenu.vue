@@ -80,28 +80,6 @@ export default {
       return sorted;
     },
 
-    harvesters() {
-      const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      let out = all.map((x) => {
-        return {
-          id:      x.id,
-          label:   x.nameDisplay,
-          ready:   x.isReady,
-          osLogo:  x.providerOsLogo,
-          logo:    x.providerLogo,
-          isLocal: x.isLocal
-        };
-      });
-
-      if (this.clusterFilter.length > 0) {
-        out = out.filter(item => item.label.indexOf(this.clusterFilter) === 0);
-      }
-
-      const sorted = sortBy(out, ['ready:desc', 'label']);
-
-      return sorted;
-    },
-
     dev: mapPref(DEV),
 
     maxClustersToShow: mapPref(MENU_MAX_CLUSTERS),
@@ -278,28 +256,6 @@ export default {
               {{ t('nav.search.noResults') }}
             </div>
           </div>
-          <template>
-            <div class="category">
-              HARVESTER CLUSTER
-            </div>
-            <div v-for="c in harvesters" :key="c.id" @click="hide()">
-              <nuxt-link
-                v-if="c.ready"
-                class="cluster selector option"
-                :to="{ name: 'c-cluster-product', params: { cluster: c.id, product: 'virtual' } }"
-              >
-                <img :src="c.logo" />
-                <div>{{ c.label }}</div>
-              </nuxt-link>
-              <span v-else class="option-disabled cluster selector disabled">
-                <img :src="c.logo" />
-                <div>{{ c.label }}</div>
-              </span>
-            </div>
-            <div v-if="clusters.length === 0" class="none-matching">
-              {{ t('nav.search.noResults') }}
-            </div>
-          </template>
           <template v-if="multiClusterApps.length">
             <div class="category">
               {{ t('nav.categories.multiCluster') }}

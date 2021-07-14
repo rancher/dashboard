@@ -67,6 +67,11 @@ export default {
       default: '_key',
     },
 
+    groupTitleBy: {
+      type:    String,
+      default: null
+    },
+
     groupBy: {
       // Field to group rows by, row[groupBy] must be something that can be a map key
       type:    String,
@@ -578,13 +583,16 @@ export default {
       <tbody v-for="group in groupedRows" v-else :key="group.key" :class="{ group: groupBy }">
         <slot v-if="groupBy" name="group-row" :group="group" :fullColspan="fullColspan">
           <tr class="group-row">
-            <td :colspan="fullColspan">
+            <td v-if="!groupTitleBy" :colspan="fullColspan">
               <slot name="group-by" :group="group">
                 <div v-trim-whitespace class="group-tab">
                   {{ group.ref }}
                 </div>
               </slot>
             </td>
+
+            <slot v-if="groupTitleBy" name="groupTitleAction" :group="group">
+            </slot>
           </tr>
         </slot>
         <template v-for="(row, i) in group.rows">

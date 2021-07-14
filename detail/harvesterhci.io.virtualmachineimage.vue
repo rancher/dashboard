@@ -51,10 +51,10 @@ export default {
 
 <template>
   <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
-    <Tab name="detail" :label="t('harvester.vmPage.detail.tabs.basics')" class="bordered-table">
+    <Tab name="detail" :label="t('harvester.virtualMachine.detail.tabs.basics')" class="bordered-table">
       <div class="row">
         <div class="col span-12">
-          <LabelValue :name="t('harvester.imagePage.url')" :value="url" class="mb-20">
+          <LabelValue :name="t('harvester.image.url')" :value="url" class="mb-20">
             <template #value>
               <div v-if="url !== '-'">
                 <CopyToClipboardText :text="url" />
@@ -69,7 +69,7 @@ export default {
 
       <div class="row">
         <div class="col span-12">
-          <LabelValue :name="t('harvester.imagePage.size')" :value="formattedValue" class="mb-20" />
+          <LabelValue :name="t('harvester.image.size')" :value="formattedValue" class="mb-20" />
         </div>
       </div>
 

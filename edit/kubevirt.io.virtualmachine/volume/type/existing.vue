@@ -77,7 +77,7 @@ export default {
       return false;
     },
     volumeOption() {
-      const choices = this.$store.getters['cluster/all'](HCI.DATA_VOLUME);
+      const choices = this.$store.getters['virtual/all'](HCI.DATA_VOLUME);
 
       return sortBy(
         choices
@@ -92,7 +92,7 @@ export default {
 
             const isExistingRWO = obj.isRWO && obj.attachVM;
 
-            return obj.metadata.namespace === 'default' && obj.phaseStatus === 'Succeeded' && isAvailable && !isExistingRWO;
+            return obj.phaseStatus === 'Succeeded' && isAvailable && !isExistingRWO;
           })
           .map((obj) => {
             return {
@@ -107,7 +107,7 @@ export default {
 
   watch: {
     'value.volumeName'(neu) {
-      const choices = this.$store.getters['cluster/all'](HCI.DATA_VOLUME);
+      const choices = this.$store.getters['virtual/all'](HCI.DATA_VOLUME);
 
       const pvcResource = choices.find( O => O.metadata.name === neu);
 
@@ -184,10 +184,10 @@ export default {
 
     <div class="row mb-20">
       <div class="col span-3">
-        <InputOrDisplay :name="t('harvester.vmPage.volume.bus')" :value="value.bus" :mode="mode">
+        <InputOrDisplay :name="t('harvester.virtualMachine.volume.bus')" :value="value.bus" :mode="mode">
           <LabeledSelect
             v-model="value.bus"
-            :label="t('harvester.vmPage.volume.bus')"
+            :label="t('harvester.virtualMachine.volume.bus')"
             :mode="mode"
             :options="interfaceOption"
             :disabled="true"
@@ -198,10 +198,10 @@ export default {
       </div>
 
       <div class="col span-3">
-        <InputOrDisplay :name="t('harvester.vmPage.volume.bootOrder')" :value="value.bootOrder" :mode="mode">
+        <InputOrDisplay :name="t('harvester.virtualMachine.volume.bootOrder')" :value="value.bootOrder" :mode="mode">
           <LabeledSelect
             v-model="value.bootOrder"
-            :label="t('harvester.vmPage.volume.bootOrder')"
+            :label="t('harvester.virtualMachine.volume.bootOrder')"
             :mode="mode"
             :searchable="false"
             :options="bootOrderOption"

@@ -2,17 +2,16 @@ import { colorForState } from '@/plugins/steve/resource-instance';
 import { HCI } from '@/config/types';
 import {
   DESCRIPTION,
-  DATA_VOLUME_OWNEDBY,
   LABELS_TO_IGNORE_REGEX,
   ANNOTATIONS_TO_IGNORE_REGEX,
-  HARVESTER_VOLUME_CREATEDBY
+  HCI as HCI_ANNOTATIONS
 } from '@/config/labels-annotations';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
 
 export default {
   stateDisplay() {
-    const ownedBy = this?.metadata?.annotations?.[DATA_VOLUME_OWNEDBY];
+    const ownedBy = this?.metadata?.annotations?.[HCI_ANNOTATIONS.OWNED_BY];
     const conditions = get(this, 'status.conditions');
     const readyCondition = findBy(conditions, 'type', 'Ready');
     const status = readyCondition?.status === 'True' ? 'Ready' : 'NotReady';
@@ -42,7 +41,7 @@ export default {
 
   attachVM() {
     const vmList = this.$rootGetters['cluster/all'](HCI.VM);
-    const ownerAnnotation = get(this, `metadata.annotations."${ DATA_VOLUME_OWNEDBY }"`) || '';
+    const ownerAnnotation = get(this, `metadata.annotations."${ HCI_ANNOTATIONS.OWNED_BY }"`) || '';
 
     if (!ownerAnnotation) {
       return;
@@ -88,7 +87,7 @@ export default {
   },
 
   labelsToIgnoreRegexes() {
-    return [HARVESTER_VOLUME_CREATEDBY].concat(LABELS_TO_IGNORE_REGEX);
+    return [HCI_ANNOTATIONS.CREATED_BY].concat(LABELS_TO_IGNORE_REGEX);
   },
 
   annotationsToIgnoreRegexes() {
@@ -115,7 +114,7 @@ export default {
       {
         nullable:       false,
         path:           'spec.pvc.resources.requests.storage',
-        translationKey: 'harvester.volumePage.size',
+        translationKey: 'harvester.volume.size',
         type:           'string',
         validators:     ['dataVolumeSize']
       },
@@ -123,7 +122,7 @@ export default {
         nullable:       false,
         path:           'spec.source',
         required:       true,
-        translationKey: 'harvester.volumePage.source',
+        translationKey: 'harvester.volume.source',
         type:           'object',
       },
     ];
@@ -133,7 +132,7 @@ export default {
         nullable:       false,
         path:           'metadata.annotations',
         required:       true,
-        translationKey: 'harvester.volumePage.image',
+        translationKey: 'harvester.volume.image',
         type:           'string',
         validators:     ['dataVolumeImage']
       });

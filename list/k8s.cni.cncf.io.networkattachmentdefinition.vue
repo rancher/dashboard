@@ -1,6 +1,7 @@
 <script>
 import Banner from '@/components/Banner';
 import Loading from '@/components/Loading';
+import MessageLink from '@/components/MessageLink';
 import ResourceTable from '@/components/ResourceTable';
 
 import {
@@ -14,7 +15,7 @@ import { allHash } from '@/utils/promise';
 export default {
   name:       'LNetworks',
   components: {
-    ResourceTable, Banner, Loading
+    ResourceTable, Banner, Loading, MessageLink
   },
 
   props: {
@@ -45,6 +46,7 @@ export default {
       hosts:                 [],
       hostNetworks:          [],
       clusterNetworkSetting: [],
+      to:                    `${ HCI.CLUSTER_NETWORK }/harvester-system/vlan?mode=edit`
     };
   },
 
@@ -84,7 +86,7 @@ export default {
       handler(neu) {
         const type = this.$route.params.resource;
 
-        this.$store.commit('cluster/setConfig', {
+        this.$store.commit('virtual/setConfig', {
           type,
           data: { disableCreateButton: neu }
         });
@@ -100,13 +102,12 @@ export default {
   <div v-else>
     <template v-if="isVlanDisable">
       <Banner color="error">
-        <div>
-          {{ t('harvester.network.message.premise.prefix') }}
-          <nuxt-link to="network.harvesterhci.io.clusternetwork/harvester-system/vlan?mode=edit">
-            {{ t('harvester.network.message.premise.middle') }}
-          </nuxt-link>
-          {{ t('harvester.network.message.premise.suffic') }}
-        </div>
+        <MessageLink
+          :to="to"
+          prefix-label="harvester.network.message.premise.prefix"
+          middle-label="harvester.network.message.premise.middle"
+          suffic-label="harvester.network.message.premise.suffic"
+        />
       </Banner>
     </template>
 

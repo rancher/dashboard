@@ -1,7 +1,7 @@
 <script>
-import { createNamespacedHelpers, mapGetters } from 'vuex';
-import { exceptionToErrorsArray } from '@/utils/error';
 import { HCI } from '@/config/types';
+import { exceptionToErrorsArray } from '@/utils/error';
+import { createNamespacedHelpers, mapGetters } from 'vuex';
 
 import ModalWithCard from '@/components/ModalWithCard';
 import LabeledInput from '@/components/form/LabeledInput';
@@ -63,12 +63,10 @@ export default {
           const res = await this.actionResources.doAction('backup', { name: this.backUpName }, {}, false);
 
           if (res._status === 200 || res._status === 204) {
-            this.$notify({
-              duration: 5000,
-              title:    this.t('harvester.notification.title.succeed'),
-              message:  this.t('harvester.vmPage.backupModal.success', { backUpName: this.backUpName }),
-              type:     'success'
-            });
+            this.$store.dispatch('growl/success', {
+              title:   this.t('harvester.notification.title.succeed'),
+              message: this.t('harvester.modal.backup.success', { backUpName: this.backUpName })
+            }, { root: true });
 
             this.$store.commit('kubevirt.io.virtualmachine/toggleBackupModal');
             this.backUpName = '';
@@ -103,7 +101,7 @@ export default {
     @close="close"
   >
     <template #title>
-      {{ t('harvester.backUpPage.backupModal.addBackup') }}
+      {{ t('harvester.modal.backup.addBackup') }}
     </template>
 
     <template #content>

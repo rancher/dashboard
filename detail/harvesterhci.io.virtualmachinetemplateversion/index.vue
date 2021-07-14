@@ -129,7 +129,7 @@ export default {
       @finish="saveVMT"
     >
       <Tabbed :side-tabs="true" @changed="onTabChanged">
-        <Tab name="Basics" :label="t('harvester.vmPage.detail.tabs.basics')">
+        <Tab name="Basics" :label="t('harvester.virtualMachine.detail.tabs.basics')">
           <CpuMemory :cpu="spec.template.spec.domain.cpu.cores" :mode="mode" :memory="memory" @updateCpuMemory="updateCpuMemory" />
 
           <div class="mb-20">
@@ -165,7 +165,7 @@ export default {
           <CloudConfig ref="yamlEditor" :user-script="userScript" :mode="mode" :network-script="networkScript" @updateCloudConfig="updateCloudConfig" />
 
           <div class="spacer"></div>
-          <Checkbox v-model="isUseMouseEnhancement" :mode="mode" class="check" type="checkbox" :label="t('harvester.vmPage.enableUsb')" />
+          <Checkbox v-model="isUseMouseEnhancement" :mode="mode" class="check" type="checkbox" :label="t('harvester.virtualMachine.enableUsb')" />
         </Tab>
       </Tabbed>
     </CruResource>

@@ -8,6 +8,7 @@ import { cronSchedule } from '@/utils/validators/cron-schedule';
 import { podAffinity } from '@/utils/validators/pod-affinity';
 import { roleTemplateRules } from '@/utils/validators/role-template';
 import { clusterName } from '@/utils/validators/cluster-name';
+import { backupTarget } from '@/utils/validators/setting';
 
 /**
 * Custom validation functions beyond normal scalr types
@@ -28,5 +29,6 @@ export default {
   containerImages,
   cronSchedule,
   podAffinity,
-  roleTemplateRules
+  roleTemplateRules,
+  backupTarget
 };

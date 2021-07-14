@@ -103,7 +103,7 @@ export default {
     </div>
 
     <button v-if="!isDisabled" class="btn btn-sm role-secondary" @click.prevent="addRows()">
-      {{ t('harvester.buttons.addPort') }}
+      {{ t('harvester.virtualMachine.network.addPort') }}
     </button>
   </div>
 </template>

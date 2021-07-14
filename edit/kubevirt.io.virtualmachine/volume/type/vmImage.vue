@@ -76,12 +76,12 @@ export default {
       return this.idx === 0;
     },
     imagesOption() {
-      const choise = this.$store.getters['cluster/all'](HCI.IMAGE);
+      const choise = this.$store.getters['virtual/all'](HCI.IMAGE);
 
       return choise.map( (I) => {
         return {
-          label: I.spec.displayName,
-          value: I.spec.displayName
+          label: `${ I.metadata.namespace }/${ I.spec.displayName }`,
+          value: I.id
         };
       });
     },
@@ -90,7 +90,6 @@ export default {
       // return !this.value.newCreateId && this.mode === _EDIT;
       return false;
     }
-
   },
 
   watch: {
@@ -156,10 +155,10 @@ export default {
 
     <div class="row mb-20">
       <div class="col span-3">
-        <InputOrDisplay :name="t('harvester.vmPage.volume.bus')" :value="value.bus" :mode="mode">
+        <InputOrDisplay :name="t('harvester.virtualMachine.volume.bus')" :value="value.bus" :mode="mode">
           <LabeledSelect
             v-model="value.bus"
-            :label="t('harvester.vmPage.volume.bus')"
+            :label="t('harvester.virtualMachine.volume.bus')"
             :mode="mode"
             :options="interfaceOption"
             :disabled="isDisabled"
@@ -169,10 +168,10 @@ export default {
       </div>
 
       <div class="col span-3">
-        <InputOrDisplay :name="t('harvester.vmPage.volume.bootOrder')" :value="value.bootOrder" :mode="mode">
+        <InputOrDisplay :name="t('harvester.virtualMachine.volume.bootOrder')" :value="value.bootOrder" :mode="mode">
           <LabeledSelect
             v-model="value.bootOrder"
-            :label="t('harvester.vmPage.volume.bootOrder')"
+            :label="t('harvester.virtualMachine.volume.bootOrder')"
             :mode="mode"
             :disabled="isDisabled"
             :searchable="false"

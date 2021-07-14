@@ -15,7 +15,7 @@ export default {
 
   computed: {
     vmiResource() {
-      const vmiList = this.$store.getters['cluster/all'](HCI.VMI) || [];
+      const vmiList = this.$store.getters['virtual/all'](HCI.VMI) || [];
       const vmi = vmiList.find( (VMI) => {
         return VMI?.metadata?.ownerReferences?.[0]?.uid === this.vmResource?.metadata?.uid;
       });

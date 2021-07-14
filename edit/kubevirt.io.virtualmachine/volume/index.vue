@@ -1,8 +1,8 @@
 <script>
-import _ from 'lodash';
+import remove from 'lodash/remove';
 import randomstring from 'randomstring';
 import { PVC, STORAGE_CLASS } from '@/config/types';
-import { removeObject } from '@/utils/array.js';
+import { removeObject } from '@/utils/array';
 import { clone } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
 import { SOURCE_TYPE, InterfaceOption } from '@/config/map';
@@ -47,12 +47,6 @@ export default {
       default: 'ReadWriteOnce'
     },
 
-    // namespaced configmaps and secrets
-    configMaps: {
-      type:    Array,
-      default: () => []
-    },
-
     secrets: {
       type:    Array,
       default: () => []
@@ -60,7 +54,7 @@ export default {
   },
 
   async fetch() {
-    const pvcs = await this.$store.dispatch('cluster/findAll', { type: PVC });
+    const pvcs = await this.$store.dispatch('virtual/findAll', { type: PVC });
     const namespace = this.namespace || this.$store.getters['defaultNamespace'];
 
     this.pvcs = pvcs.filter(pvc => pvc.metadata.namespace === namespace);
@@ -121,7 +115,7 @@ export default {
     bootOrderOption() {
       const baseOrder = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-      _.remove(baseOrder, (n) => {
+      remove(baseOrder, (n) => {
         return this.choosedOrder.includes(n);
       });
       baseOrder.unshift('-');
@@ -138,7 +132,7 @@ export default {
     },
 
     storageOption() {
-      const choices = this.$store.getters['cluster/all'](STORAGE_CLASS);
+      const choices = this.$store.getters['virtual/all'](STORAGE_CLASS);
 
       return sortBy(
         choices
@@ -173,7 +167,6 @@ export default {
       const neu = {
         name,
         source:           type,
-        pvcNS:            'default',
         size:             '10Gi',
         type:             'disk',
         accessMode:       this.customAccessMode,
@@ -225,10 +218,10 @@ export default {
 
     headerFor(type) {
       return {
-        'New':               this.$store.getters['i18n/t']('harvester.vmPage.volume.title.volume'), // eslint-disable-line
-        'VM Image':          this.$store.getters['i18n/t']('harvester.vmPage.volume.title.vmImage'),
-        'Existing Volume':   this.$store.getters['i18n/t']('harvester.vmPage.volume.title.existingVolume'),
-        'Container':         this.$store.getters['i18n/t']('harvester.vmPage.volume.title.container'), // eslint-disable-line
+        'New':               this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.volume'), // eslint-disable-line
+        'VM Image':          this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.vmImage'),
+        'Existing Volume':   this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.existingVolume'),
+        'Container':         this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.container'), // eslint-disable-line
       }[type];
     },
 
@@ -253,7 +246,7 @@ export default {
   <div>
     <div v-for="(volume, i) in rows" :key="i">
       <InfoBox class="volume-source">
-        <button v-if="i !== 0 && isDisableClose" type="button" class="role-link btn btn-lg remove-vol" @click="removeVolume(volume)">
+        <button v-if="i !== 0 && isDisableClose" type="button" class="role-link btn btn-sm remove-vol" @click="removeVolume(volume)">
           <i class="icon icon-2x icon-x" />
         </button>
         <h3>{{ headerFor(volume.source) }}</h3>
@@ -274,43 +267,43 @@ export default {
           />
         </div>
       </InfoBox>
-      <Banner v-if="showVolumeTip" color="warning" :label="t('harvester.vmPage.volume.volumeTip')" />
+      <Banner v-if="showVolumeTip" color="warning" :label="t('harvester.virtualMachine.volume.volumeTip')" />
     </div>
     <div v-if="!isView">
       <button type="button" class="btn btn-sm bg-primary mr-15 mb-10" @click="addVolume(SOURCE_TYPE.NEW)">
-        {{ t('harvester.vmPage.buttons.addVolume') }}
+        {{ t('harvester.virtualMachine.volume.addVolume') }}
       </button>
 
       <button type="button" class="btn btn-sm bg-primary mr-15 mb-10" @click="addVolume(SOURCE_TYPE.ATTACH_VOLUME)">
-        {{ t('harvester.vmPage.buttons.addExistingVolume') }}
+        {{ t('harvester.virtualMachine.volume.addExistingVolume') }}
       </button>
 
       <button type="button" class="btn btn-sm bg-primary mr-15 mb-10" @click="addVolume(SOURCE_TYPE.IMAGE)">
-        {{ t('harvester.vmPage.buttons.addVmImage') }}
+        {{ t('harvester.virtualMachine.volume.addVmImage') }}
       </button>
 
       <button type="button" class="btn btn-sm bg-primary mb-10" @click="addVolume(SOURCE_TYPE.CONTAINER)">
-        {{ t('harvester.vmPage.buttons.addContainer') }}
+        {{ t('harvester.virtualMachine.volume.addContainer') }}
       </button>
     </div>
 
     <ModalWithCard ref="deleteTip" name="deleteTip" :width="400">
       <template #title>
-        Are you sure?
+        {{ t('harvester.virtualMachine.volume.unmount.title') }}
       </template>
 
       <template #content>
         <div>
-          <span>Are you sure you want to unmount this volume?</span>
+          <span>{{ t('harvester.virtualMachine.volume.unmount.message') }}</span>
         </div>
       </template>
 
       <template #footer>
         <button class="btn role-secondary btn-sm mr-20" @click.prevent="cancel">
-          No
+          {{ t('generic.no') }}
         </button>
         <button class="btn role-tertiary bg-primary btn-sm mr-20" @click.prevent="save">
-          Yes
+          {{ t('generic.yes') }}
         </button>
       </template>
     </ModalWithCard>

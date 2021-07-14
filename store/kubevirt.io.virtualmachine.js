@@ -4,7 +4,8 @@ export const state = function() {
     isShowBackUp:        false,
     isShowRestore:       false,
     isShowMigration:     false,
-    isShowCloneTemplate:   false
+    isShowCloneTemplate: false,
+    isShowEjectCDROM:    false,
   };
 };
 
@@ -26,6 +27,11 @@ export const mutations = {
 
   toggleCloneTemplateModal(state, resources = []) {
     state.isShowCloneTemplate = !state.isShowCloneTemplate;
+    state.actionResources = resources;
+  },
+
+  toggleEjectCDROMModal(state, resources = []) {
+    state.isShowEjectCDROM = !state.isShowEjectCDROM;
     state.actionResources = resources;
   },
 };

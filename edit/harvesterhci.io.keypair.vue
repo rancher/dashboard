@@ -2,8 +2,8 @@
 import randomstring from 'randomstring';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import LabeledInput from '@/components/form/LabeledInput';
 import CruResource from '@/components/CruResource';
+import LabeledInput from '@/components/form/LabeledInput';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import FileSelector, { createOnSelected } from '@/components/form/FileSelector';
 

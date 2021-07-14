@@ -1,9 +1,9 @@
 <script>
-import ResourceTable from '@/components/ResourceTable';
 import VmState from '@/components/formatter/vmState';
+import ResourceTable from '@/components/ResourceTable';
 
 import { STATE, AGE, NAME, NAMESPACE } from '@/config/table-headers';
-import { HCI } from '@/config/types';
+import { HCI, NODE } from '@/config/types';
 
 import { allHash } from '@/utils/promise';
 import Loading from '@/components/Loading';
@@ -11,17 +11,19 @@ import BackupModal from './backupModal';
 import RestoreModal from './restoreModal';
 import MigrationModal from './MigrationModal';
 import CloneTemplate from './cloneTemplate';
+import ejectCDROM from './ejectCDROM';
 
 export default {
   name:       'ListVM',
   components: {
     Loading,
-    ResourceTable,
     VmState,
+    ejectCDROM,
     BackupModal,
     RestoreModal,
     MigrationModal,
-    CloneTemplate
+    CloneTemplate,
+    ResourceTable
   },
 
   props: {
@@ -33,24 +35,25 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      vm:                  this.$store.dispatch('cluster/findAll', { type: HCI.VM }),
-      vmi:                  this.$store.dispatch('cluster/findAll', { type: HCI.VMI }),
-      allNodeNetwork:      this.$store.dispatch('cluster/findAll', { type: HCI.NODE_NETWORK }),
-      allClusterNetwork:   this.$store.dispatch('cluster/findAll', { type: HCI.CLUSTER_NETWORK }),
+      nodes:             this.$store.dispatch('virtual/findAll', { type: NODE }),
+      vms:               this.$store.dispatch('virtual/findAll', { type: HCI.VM }),
+      vmis:              this.$store.dispatch('virtual/findAll', { type: HCI.VMI }),
+      nodeNetworks:      this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK }),
+      clusterNetworks:   this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK }),
     });
 
-    this.vmiList = hash.vmi;
-    this.vmList = hash.vm;
-    this.allNodeNetwork = hash.allNodeNetwork;
-    this.allClusterNetwork = hash.allClusterNetwork;
+    this.allVMs = hash.vms;
+    this.allVMIs = hash.vmis;
+    this.allNodeNetworks = hash.nodeNetworks;
+    this.allClusterNetworks = hash.clusterNetworks;
   },
 
   data() {
     return {
-      vmList:            [],
-      vmiList:           [],
-      allNodeNetwork:    [],
-      allClusterNetwork: []
+      allVMs:             [],
+      allVMIs:            [],
+      allNodeNetworks:    [],
+      allClusterNetworks: []
     };
   },
 
@@ -101,13 +104,9 @@ export default {
     },
 
     rows() {
-      const matchVMI = this.vmiList.filter((VMI) => {
-        const matchVM = this.vmList.find(VM => VM.id === VMI.id);
+      const matchVMIs = this.allVMIs.filter(VMI => !this.allVMs.find(VM => VM.id === VMI.id));
 
-        return !matchVM;
-      });
-
-      return [...this.vmList, ...matchVMI];
+      return [...this.allVMs, ...matchVMIs];
     }
   },
 };
@@ -128,7 +127,7 @@ export default {
     >
       <template slot="cell:state" slot-scope="scope" class="state-col">
         <div class="state">
-          <VmState class="vmstate" :row="scope.row" :all-node-network="allNodeNetwork" :all-cluster-network="allClusterNetwork" />
+          <VmState class="vmstate" :row="scope.row" :all-node-network="allNodeNetworks" :all-cluster-network="allClusterNetworks" />
         </div>
       </template>
     </ResourceTable>
@@ -137,6 +136,7 @@ export default {
     <RestoreModal />
     <MigrationModal />
     <CloneTemplate />
+    <ejectCDROM />
   </div>
 </template>
 

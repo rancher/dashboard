@@ -26,7 +26,7 @@ export default {
   },
 
   data() {
-    const tip = this.t('harvester.vmPage.imageTip');
+    const tip = this.t('harvester.virtualMachine.imageTip');
 
     return {
       tip:        this.disabled ? '' : tip,
@@ -36,14 +36,17 @@ export default {
 
   computed: {
     ImageOption() {
-      const choise = this.$store.getters['cluster/all'](HCI.IMAGE);
+      const choise = this.$store.getters['virtual/all'](HCI.IMAGE);
 
       return choise
         .filter( I => I.isReady)
         .map((I) => {
+          const value = I.id;
+          const label = `${ I.metadata.namespace }/${ I.spec.displayName }`;
+
           return {
-            label: I.spec.displayName,
-            value: I.spec.displayName
+            label,
+            value
           };
         });
     }
@@ -64,12 +67,12 @@ export default {
 </script>
 
 <template>
-  <InputOrDisplay :name="t('harvester.vmPage.input.image')" :value="image" :mode="mode" class="mb-20">
+  <InputOrDisplay :name="t('harvester.virtualMachine.input.image')" :value="image" :mode="mode" class="mb-20">
     <LabeledSelect
       v-model="image"
       :disabled="disabled"
       :mode="mode"
-      :label="t('harvester.vmPage.input.image')"
+      :label="t('harvester.virtualMachine.input.image')"
       :required="required"
       :options="ImageOption"
       :tooltip="tip"

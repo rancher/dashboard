@@ -18,8 +18,8 @@ export default {
   },
 
   data() {
-    const dataVolumeList = this.$store.getters['cluster/all'](HCI.DATA_VOLUME) || [];
-    const vmList = this.$store.getters['cluster/all'](HCI.VM) || [];
+    const dataVolumeList = this.$store.getters['virtual/all'](HCI.DATA_VOLUME) || [];
+    const vmList = this.$store.getters['virtual/all'](HCI.VM) || [];
 
     return {
       vmList,
