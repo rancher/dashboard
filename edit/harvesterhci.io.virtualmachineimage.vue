@@ -10,7 +10,7 @@ import Cookie from 'js-cookie';
 import customValidators from '@/utils/custom-validators';
 import { _EDIT } from '@/config/query-params';
 import { IMAGE_FILE_FORMAT } from '@/config/constant';
-import { HCI_IMAGE_SOURCE } from '@/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 export default {
   name: 'EditImage',
@@ -106,7 +106,7 @@ export default {
 
       Object.assign(this.value.metadata.annotations, {
         ...this.value.metadata.annotations,
-        [HCI_IMAGE_SOURCE]: this.uploadMode // url or file
+        [HCI_ANNOTATIONS.IMAGE_SOURCE]: this.uploadMode // url or file
       });
 
       if (this.uploadMode !== 'url') {
@@ -152,7 +152,7 @@ export default {
     />
 
     <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
-      <Tab name="basic" :label="t('harvester.vmPage.detail.tabs.basics')" :weight="3" class="bordered-table">
+      <Tab name="basic" :label="t('harvester.image.tabs.basics')" :weight="3" class="bordered-table">
         <div class="row mb-20 mt-20">
           <div class="col span-12">
             <LabeledInput
@@ -164,8 +164,8 @@ export default {
             >
               <template #label>
                 <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
-                  {{ t('harvester.imagePage.url') }}
-                  <i v-tooltip="t('harvester.imagePage.urlTip', {}, raw=true)" class="icon icon-info" style="font-size: 14px" />
+                  {{ t('harvester.image.url') }}
+                  <i v-tooltip="t('harvester.image.urlTip', {}, raw=true)" class="icon icon-info" style="font-size: 14px" />
                 </label>
               </template>
             </LabeledInput>

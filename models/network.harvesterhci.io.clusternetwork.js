@@ -29,6 +29,16 @@ export default {
     return detailLocation;
   },
 
+  parentLocationOverride() {
+    return {
+      ...this.listLocation,
+      params: {
+        ...this.listLocation.params,
+        resource: HCI.SETTING
+      }
+    };
+  },
+
   // vlan
   canUseVlan() {
     return this.isVlanOpen && this.defaultPhysicalNic.length > 0;

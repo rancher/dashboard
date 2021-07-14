@@ -1,18 +1,12 @@
-/* eslint-disable */
 import Vue from 'vue';
-import _ from 'lodash';
 import { safeLoad } from 'js-yaml';
-// import Notification from '@/components/Notification/main.js';
 import { colorForState } from '@/plugins/steve/resource-instance';
-import {
-  POD, NODE, HCI
-} from '@/config/types';
+import { POD, NODE, HCI } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
-import { HARVESTER_RESTORE_NAME } from '@/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
-const VMI_WAITING_MESSAGE =
-  'The virtual machine is waiting for resources to become available.';
+const VMI_WAITING_MESSAGE = 'The virtual machine is waiting for resources to become available.';
 const VM_ERROR = 'VM error';
 const STOPPING = 'Stopping';
 const OFF = 'Off';
@@ -23,7 +17,8 @@ const PAUSED_VM_MODAL_MESSAGE = 'This VM has been paused. If you wish to unpause
 
 const POD_STATUS_NOT_SCHEDULABLE = 'POD_NOT_SCHEDULABLE';
 const POD_STATUS_CONTAINER_FAILING = 'POD_CONTAINER_FAILING';
-const POD_STATUS_NOT_READY = 'POD_NOT_READY'; // eslint-disable-line
+// eslint-disable-next-line no-unused-vars
+const POD_STATUS_NOT_READY = 'POD_NOT_READY';
 
 const POD_STATUS_FAILED = 'POD_FAILED';
 const POD_STATUS_CRASHLOOP_BACKOFF = 'POD_CRASHLOOP_BACKOFF';
@@ -118,20 +113,16 @@ export default {
         enabled:    !!this.actions?.backup,
         icon:       'icons icon-h-restore-existing',
         label:      this.t('harvester.action.backup'),
-        // bulkable:   true,
-        // external:   true,
       },
       {
         action:     'restoreVM',
         enabled:    !!this.actions?.restore,
         icon:       'icons icon-h-restore-new',
         label:      this.t('harvester.action.restore'),
-        // bulkable:   true,
-        // external:   true,
       },
       {
         action:     'ejectCDROM',
-        enabled:    !!this.actions.ejectCdRom,
+        enabled:    !!this.actions?.ejectCdRom,
         icon:       'icon icon-delete',
         label:      this.t('harvester.action.ejectCDROM'),
       },
@@ -196,8 +187,9 @@ export default {
                 // }
               }
             },
-            hostname: '',
-            networks: [{
+            evictionStrategy: 'LiveMigrate',
+            hostname:         '',
+            networks:         [{
               name: 'default',
               pod:  {}
             }],
@@ -279,8 +271,8 @@ export default {
   },
 
   ejectCDROM() {
-    return () => {
-      this.$dispatch('ejectCDROM', this);
+    return (resources = this) => {
+      this.$commit('kubevirt.io.virtualmachine/toggleEjectCDROMModal', resources, { root: true });
     };
   },
 
@@ -291,30 +283,26 @@ export default {
   },
 
   createTemplate() {
-    return async (resources = this) => {
+    return async(resources = this) => {
       this.$commit('kubevirt.io.virtualmachine/toggleCloneTemplateModal', resources, { root: true });
-      // try {
-      //   const message = this.t('harvester.vmPage.createTemplate.message.success');
-      //   const res = await this.doAction('createTemplate', {});
+      try {
+        const message = this.t('harvester.modal.createTemplate.message.success');
+        const res = await this.doAction('createTemplate', {});
 
-      //   if (res._status === 200 || res._status === 204) {
-      //     Notification({
-      //       title:    this.t('harvester.notification.title.succeed'),
-      //       duration: 5000,
-      //       message,
-      //       type:     'success'
-      //     })
-      //   }
-      // } catch(err) {
-      //   const message = err?.response?.data?.message || err || this.t('harvester.vmPage.createTemplate.message.failed')
+        if (res._status === 200 || res._status === 204) {
+          this.$store.dispatch('growl/success', {
+            title: this.t('harvester.notification.title.succeed'),
+            message
+          }, { root: true });
+        }
+      } catch (err) {
+        const message = err?.response?.data?.message || err || this.t('harvester.modal.createTemplate.message.failed');
 
-      //   Notification({
-      //     title:    this.t('harvester.notification.title.error'),
-      //     duration: 5000,
-      //     message,
-      //     type:     'error'
-      //   })
-      // }
+        this.$dispatch('growl/fromError', {
+          title: this.t('harvester.notification.title.error'),
+          err:   message,
+        }, { root: true });
+      }
     };
   },
 
@@ -370,8 +358,8 @@ export default {
   },
 
   podResource() {
-    const vmiResource = this.$rootGetters['cluster/byId'](HCI.VMI, this.id);
-    const podList = this.$rootGetters['cluster/all'](POD);
+    const vmiResource = this.$rootGetters['virtual/byId'](HCI.VMI, this.id);
+    const podList = this.$rootGetters['virtual/all'](POD);
 
     return podList.find( (P) => {
       return vmiResource?.metadata?.name === P.metadata?.ownerReferences?.[0].name;
@@ -390,7 +378,7 @@ export default {
 
   isVMError() {
     const conditions = get(this, 'status.conditions');
-    const vmFailureCond = (findBy(conditions, 'type', 'Failure') || {});
+    const vmFailureCond = findBy(conditions, 'type', 'Failure');
 
     if (vmFailureCond) {
       return {
@@ -403,12 +391,12 @@ export default {
   },
 
   vmi() {
-    return this.$rootGetters['cluster/byId'](HCI.VMI, this.id);
+    return this.$rootGetters['virtual/byId'](HCI.VMI, this.id);
   },
 
   isError() {
     const conditions = get(this.vmi, 'status.conditions');
-    const vmiFailureCond = (findBy(conditions, 'type', 'Failure') || {});
+    const vmiFailureCond = findBy(conditions, 'type', 'Failure');
 
     if (vmiFailureCond) {
       return { status: 'VMI error', detailedMessage: vmiFailureCond.message };
@@ -430,7 +418,7 @@ export default {
   },
 
   isRunning() {
-    if (this.vmi?.getStatusPhase === VMIPhase.Running) {
+    if (this.vmi?.status?.phase === VMIPhase.Running) {
       return { status: VMIPhase.Running };
     }
 
@@ -471,15 +459,15 @@ export default {
   },
 
   otherState() {
-    const state = (this.vmi && [VMIPhase.Scheduling, VMIPhase.Scheduled].includes(this.vmi.getStatusPhase) && {
+    const state = (this.vmi && [VMIPhase.Scheduling, VMIPhase.Scheduled].includes(this.vmi?.status?.phase) && {
       status:  'Starting',
       message: STARTING_MESSAGE,
     }) ||
-    (this.vmi && this.vmi.getStatusPhase === VMIPhase.Pending && {
+    (this.vmi && this.vmi.status?.phase === VMIPhase.Pending && {
       status:  'VMI_WAITING',
       message: VMI_WAITING_MESSAGE,
     }) ||
-    (this.vmi && this.vmi.getStatusPhase === VMIPhase.Failed && { status: 'VMI_ERROR' }) ||
+    (this.vmi && this.vmi?.status?.phase === VMIPhase.Failed && { status: 'VMI_ERROR' }) ||
     ((this.isVMExpectedRunning && !this.isVMCreated) && { status: 'Pending' }) ||
     { status: 'UNKNOWN' };
 
@@ -491,15 +479,15 @@ export default {
   },
 
   getDataVolumeTemplates() {
-    return _.get(this, 'spec.dataVolumeTemplates') === null ? [] : this.spec.dataVolumeTemplates;
+    return get(this, 'spec.dataVolumeTemplates') === null ? [] : this.spec.dataVolumeTemplates;
   },
 
   restoreState() {
     return (vmResource = this, id) => {
       if (!id) {
-        id = `default/${ get(vmResource, `metadata.annotations."${ HARVESTER_RESTORE_NAME }"`) }`;
+        id = `default/${ get(vmResource, `metadata.annotations."${ HCI_ANNOTATIONS.RESTORE_NAME }"`) }`;
       }
-      const restoreResource = this.$rootGetters['cluster/byId'](HCI.RESTORE, id);
+      const restoreResource = this.$rootGetters['virtual/byId'](HCI.RESTORE, id);
 
       if (!restoreResource) {
         return true;
@@ -519,7 +507,7 @@ export default {
     }
 
     if (!!this?.vmi?.migrationState && this.vmi.migrationState.status !== 'Failed') {
-      return this.vmi.migrationState.status
+      return this.vmi.migrationState.status;
     }
 
     const state =
@@ -538,7 +526,7 @@ export default {
 
   warningMessage() {
     const conditions = get(this, 'status.conditions');
-    const vmFailureCond = (findBy(conditions, 'type', 'Failure') || {});
+    const vmFailureCond = findBy(conditions, 'type', 'Failure');
 
     if (vmFailureCond) {
       return {
@@ -573,9 +561,10 @@ export default {
     if (!!this?.vmi?.migrationState && this.vmi.migrationState.status === 'Failed') {
       return {
         ...this.actualState,
-        message: this.t('harvester.vmPage.migrationModal.failedMessage')
-      }
+        message: this.t('harvester.modal.migration.failedMessage')
+      };
     }
+
     return null;
   },
 
@@ -634,7 +623,7 @@ export default {
   },
 
   resourcesStatus() {
-    const vmList = this.$rootGetters['cluster/all'](HCI.VM);
+    const vmList = this.$rootGetters['virtual/all'](HCI.VM);
     let warningCount = 0;
     let errorCount = 0;
 
@@ -655,7 +644,7 @@ export default {
   },
 
   restoreName() {
-    return get(this, `metadata.annotations."${ HARVESTER_RESTORE_NAME }"`) || '';
+    return get(this, `metadata.annotations."${ HCI_ANNOTATIONS.RESTORE_NAME }"`) || '';
   },
 
   actuallyBeforeSave() {
@@ -714,8 +703,6 @@ export default {
   memorySort() {
     const memory = this?.spec?.template?.spec?.domain?.resources?.requests?.memory || 0;
 
-    return parseInt(memory)
+    return parseInt(memory);
   }
-
-  // network, disk logic
 };

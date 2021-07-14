@@ -1,9 +1,9 @@
 <script>
+import Tip from '@/components/Tip';
+import Password from '@/components/form/Password';
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import Password from '@/components/form/Password';
-import Tip from '@/components/Tip';
 
 export default {
   name: 'BackupTarget',
@@ -106,7 +106,7 @@ export default {
       <LabeledSelect v-model="parseDefaultValue.type" class="mb-20" :label="t('harvester.fields.type')" :options="typeOption" @input="update" />
 
       <LabeledInput v-model="parseDefaultValue.endpoint" class="mb-5" :placeholder="endpointPlaceholder" :mode="mode" label="Endpoint" />
-      <Tip class="mb-20" icon="icons icon-h-question" :text="t('harvester.backUpPage.backupTargetTip')" />
+      <Tip class="mb-20" icon="icon icon-info" :text="t('harvester.backup.backupTargetTip')" />
 
       <template v-if="isS3">
         <LabeledInput

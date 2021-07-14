@@ -1,11 +1,12 @@
 <script>
 import { mapGetters } from 'vuex';
-import { HCI } from '@/config/types';
-import { HCI_ALLOWED_SETTINGS } from '@/config/settings';
-import { allHash } from '@/utils/promise';
 import Banner from '@/components/Banner';
 import Loading from '@/components/Loading';
+
 import { DEV } from '@/store/prefs';
+import { HCI } from '@/config/types';
+import { allHash } from '@/utils/promise';
+import { HCI_ALLOWED_SETTINGS } from '@/config/settings';
 
 export default {
   components: { Banner, Loading },
@@ -13,8 +14,8 @@ export default {
   async fetch() {
     const isDev = this.$store.getters['prefs/get'](DEV);
     const rows = await allHash({
-      clusterNetwork:      this.$store.dispatch('cluster/findAll', { type: HCI.CLUSTER_NETWORK }),
-      haversterSettings:   this.$store.dispatch('cluster/findAll', { type: HCI.SETTING }),
+      clusterNetwork:      this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK }),
+      haversterSettings:   this.$store.dispatch('virtual/findAll', { type: HCI.SETTING }),
     });
 
     const allRows = [...rows.clusterNetwork, ...rows.haversterSettings];
@@ -28,7 +29,6 @@ export default {
 
     const initSettings = [];
 
-    // Combine the allowed settings with the data from the API
     Object.keys(HCI_ALLOWED_SETTINGS).forEach((setting) => {
       if (!settingsMap[setting]) {
         return;
@@ -43,8 +43,6 @@ export default {
 
       s.hide = s.canHide = (s.kind === 'json' || s.kind === 'multiline');
 
-      // There are only 2 actions that can be enabled - Edit Setting or View in API
-      // If neither is available for this setting then we hide the action menu button
       s.hasActions = !s.readOnly || isDev;
       initSettings.push(s);
     });

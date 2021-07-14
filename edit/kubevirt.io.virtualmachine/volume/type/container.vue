@@ -89,22 +89,22 @@ export default {
 
     <div class="row">
       <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.vmPage.volume.dockerImage')" :value="value.container" :mode="mode">
-          <LabeledInput v-model="value.container" :label="t('harvester.vmPage.volume.dockerImage')" :mode="mode" required @input="update" />
+        <InputOrDisplay :name="t('harvester.virtualMachine.volume.dockerImage')" :value="value.container" :mode="mode">
+          <LabeledInput v-model="value.container" :label="t('harvester.virtualMachine.volume.dockerImage')" :mode="mode" required @input="update" />
         </InputOrDisplay>
       </div>
 
       <div class="col span-3">
-        <InputOrDisplay :name="t('harvester.vmPage.volume.bus')" :value="value.bus" :mode="mode">
-          <LabeledSelect v-model="value.bus" :label="t('harvester.vmPage.volume.bus')" :options="interfaceOption" :mode="mode" @input="update" />
+        <InputOrDisplay :name="t('harvester.virtualMachine.volume.bus')" :value="value.bus" :mode="mode">
+          <LabeledSelect v-model="value.bus" :label="t('harvester.virtualMachine.volume.bus')" :options="interfaceOption" :mode="mode" @input="update" />
         </InputOrDisplay>
       </div>
 
       <div class="col span-3">
-        <InputOrDisplay :name="t('harvester.vmPage.volume.bootOrder')" :value="value.bootOrder" :mode="mode">
+        <InputOrDisplay :name="t('harvester.virtualMachine.volume.bootOrder')" :value="value.bootOrder" :mode="mode">
           <LabeledSelect
             v-model="value.bootOrder"
-            :label="t('harvester.vmPage.volume.bootOrder')"
+            :label="t('harvester.virtualMachine.volume.bootOrder')"
             :searchable="false"
             :mode="mode"
             :options="bootOrderOption"

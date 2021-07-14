@@ -11,7 +11,7 @@ import { HCI } from '@/config/types';
 const createObject = {
   apiVersion: 'harvesterhci.io/v1beta1',
   kind:       'VirtualMachineRestore',
-  metadata:   { name: '', namespace: 'default' },
+  metadata:   { name: '', namespace: '' },
   type:       HCI.RESTORE,
   spec:       {
     target: {
@@ -38,8 +38,8 @@ export default {
 
   async fetch() {
     await allHash({
-      backups:         this.$store.dispatch('cluster/findAll', { type: HCI.BACKUP }),
-      vms:             this.$store.dispatch('cluster/findAll', { type: HCI.VM }),
+      backups:         this.$store.dispatch('virtual/findAll', { type: HCI.BACKUP }),
+      vms:             this.$store.dispatch('virtual/findAll', { type: HCI.VM }),
     });
   },
 
@@ -63,7 +63,7 @@ export default {
 
   computed: {
     backupOption() {
-      const choices = this.$store.getters['cluster/all'](HCI.BACKUP);
+      const choices = this.$store.getters['virtual/all'](HCI.BACKUP);
 
       return choices.filter( (T) => {
         const hasVM = this.restoreNewVm || T.attachVmExisting;
@@ -90,13 +90,19 @@ export default {
     currentBackupResource() {
       const name = this.backupName;
 
-      const backupList = this.$store.getters['cluster/all'](HCI.BACKUP);
+      const backupList = this.$store.getters['virtual/all'](HCI.BACKUP);
 
       return backupList.find( O => O.name === name);
     },
 
     disableExisting() {
       return !this.currentBackupResource?.attachVmExisting;
+    },
+
+    backupNamespace() {
+      const backupList = this.$store.getters['virtual/all'](HCI.BACKUP);
+
+      return backupList.find( B => B.metadata.name === this.backupName)?.metadata?.namespace;
     }
   },
 
@@ -127,7 +133,9 @@ export default {
     async saveRestore(buttonCb) {
       this.update();
 
-      const proxyResource = await this.$store.dispatch('cluster/create', this.restoreResource);
+      const proxyResource = await this.$store.dispatch('virtual/create', this.restoreResource);
+
+      proxyResource.metadata.namespace = this.backupNamespace;
 
       try {
         await proxyResource.save();

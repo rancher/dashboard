@@ -1,10 +1,29 @@
 <script>
-import LabeledSelect from '@/components/form/LabeledSelect';
-import LabeledInput from '@/components/form/LabeledInput';
 import InputOrDisplay from '@/components/InputOrDisplay';
+import LabeledInput from '@/components/form/LabeledInput';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import PortInputGroup from '@/components/form/PortInputGroup';
-import { MODEL } from '@/config/map';
 import { _CREATE, _VIEW } from '@/config/query-params';
+
+export const MODEL = [{
+  label: 'virtio',
+  value: 'virtio'
+}, {
+  label: 'e1000',
+  value: 'e1000'
+}, {
+  label: 'e1000e',
+  value: 'e1000e'
+}, {
+  label: 'ne2k_pci',
+  value: 'ne2k_pci'
+}, {
+  label: 'pcnet',
+  value: 'pcnet'
+}, {
+  label: 'rtl8139',
+  value: 'rtl8139'
+}];
 
 const MANAGEMENT_NETWORK = 'management Network';
 
@@ -40,6 +59,7 @@ export default {
       default: 'create'
     }
   },
+
   data() {
     return {
       rowIndex:   0,
@@ -107,7 +127,7 @@ export default {
       if (networkName === MANAGEMENT_NETWORK) {
         this.value.isPod = true;
       } else {
-        // const choices = this.$store.getters['cluster/byId'](HCI.NETWORK_ATTACHMENT, `default/${ neu }`);
+        // const choices = this.$store.getters['virtual/byId'](HCI.NETWORK_ATTACHMENT, `default/${ neu }`);
         // this.currentRow.isIpamStatic = choices?.isIpamStatic || false;
         // this.value.type = 'bridge';
         this.value.isPod = false;
@@ -178,7 +198,7 @@ export default {
             <template #label>
               <label class="has-tooltip">
                 {{ t('harvester.fields.macAddress') }}
-                <i v-tooltip="t('harvester.vmPage.volume.macTip')" class="icon icon-info" style="font-size: 14px" />
+                <i v-tooltip="t('harvester.virtualMachine.volume.macTip')" class="icon icon-info" style="font-size: 14px" />
               </label>
             </template>
           </LabeledInput>
@@ -189,13 +209,5 @@ export default {
     <hr v-if="isMasquerade" class="mb-20">
 
     <PortInputGroup v-if="value.type === 'masquerade'" v-model="value" :disabled="isDisabled" :mode="mode" />
-    <!-- <LabeledInput
-      v-if="value.isIpamStatic"
-      v-model="value.cidr"
-      label="CIDR"
-      class="mb-20"
-      required
-      @input="validateCidr"
-    /> -->
   </div>
 </template>

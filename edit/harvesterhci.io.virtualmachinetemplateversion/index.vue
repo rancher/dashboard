@@ -1,10 +1,11 @@
 <script>
-import cloneDeep from 'lodash/cloneDeep';
 import randomstring from 'randomstring';
-import Checkbox from '@/components/form/Checkbox';
-import Tabbed from '@/components/Tabbed';
+import cloneDeep from 'lodash/cloneDeep';
+
 import Tab from '@/components/Tabbed/Tab';
+import Tabbed from '@/components/Tabbed';
 import Loading from '@/components/Loading';
+import Checkbox from '@/components/form/Checkbox';
 import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
 
@@ -21,8 +22,8 @@ import { _CONFIG } from '@/config/query-params';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { cleanForNew } from '@/plugins/steve/normalize';
 
-import CreateEditView from '@/mixins/create-edit-view';
 import VM_MIXIN from '@/mixins/vm';
+import CreateEditView from '@/mixins/create-edit-view';
 
 export default {
   name: 'EditVMTemplate',
@@ -53,8 +54,8 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      templates:  this.$store.dispatch('cluster/findAll', { type: HCI.VM_TEMPLATE }),
-      versions:   this.$store.dispatch('cluster/findAll', { type: HCI.VM_VERSION }),
+      templates:  this.$store.dispatch('virtual/findAll', { type: HCI.VM_TEMPLATE }),
+      versions:   this.$store.dispatch('virtual/findAll', { type: HCI.VM_VERSION }),
     });
 
     let templateId = this.$route.query.templateId;
@@ -74,7 +75,7 @@ export default {
         defaultVersionId: ''
       };
 
-      templateValue = await this.$store.dispatch('cluster/create', {
+      templateValue = await this.$store.dispatch('virtual/create', {
         metadata: {
           name:      '',
           namespace: 'default'
@@ -146,7 +147,7 @@ export default {
     this.registerAfterHook(async() => {
       if (this.isDefaultVersion) {
         // Set the default version according to annotation:[HCI_ANNOTATIONS.TEMPLATE_VERSION_CUSTOM_NAME]
-        const versions = await this.$store.dispatch('cluster/findAll', { type: HCI.VM_VERSION, opt: { force: true } });
+        const versions = await this.$store.dispatch('virtual/findAll', { type: HCI.VM_VERSION, opt: { force: true } });
 
         const version = versions.find( V => V?.metadata?.annotations?.[HCI_ANNOTATIONS.TEMPLATE_VERSION_CUSTOM_NAME] === this.customName);
 
@@ -168,16 +169,14 @@ export default {
   },
 
   mounted() {
-    const imageName = this.diskRows[0].image || '';
-
-    this.imageName = imageName;
+    this.imageId = this.diskRows[0].image || '';
   },
 
   methods: {
     async saveVMT(buttonCb) {
       this.normalizeSpec();
 
-      const templates = await this.$store.dispatch('cluster/findAll', { type: HCI.VM_TEMPLATE });
+      const templates = await this.$store.dispatch('virtual/findAll', { type: HCI.VM_TEMPLATE });
       const template = templates.find( O => O.metadata.name === this.templateValue.metadata.name);
 
       if (!this.templateId) {
@@ -248,18 +247,18 @@ export default {
       :mode="mode"
       :name-disabled="isEditVersion || isConfig"
       :namespace-disabled="isEditVersion || isConfig"
-      name-label="harvester.templatePage.name"
+      name-label="harvester.vmTemplate.nameNsDescription.name"
       :namespaced="true"
     />
 
     <Checkbox v-if="isEditVersion" v-model="isDefaultVersion" class="mb-20" :label="t('harvester.templatePage.defaultVersion')" type="checkbox" />
 
     <Tabbed :side-tabs="true" @changed="onTabChanged">
-      <Tab name="Basics" :label="t('harvester.vmPage.detail.tabs.basics')">
+      <Tab name="Basics" :label="t('harvester.vmTemplate.tabs.basics')">
         <CpuMemory :cpu="spec.template.spec.domain.cpu.cores" :memory="memory" :disabled="isConfig" @updateCpuMemory="updateCpuMemory" />
 
         <div class="mb-20">
-          <ImageSelect v-model="imageName" :disk-rows="diskRows" :required="false" :disabled="!isCreate" />
+          <ImageSelect v-model="imageId" :disk-rows="diskRows" :required="false" :disabled="!isCreate" />
         </div>
 
         <div class="mb-20">
@@ -267,31 +266,19 @@ export default {
         </div>
       </Tab>
 
-      <Tab
-        name="Volume"
-        :label="t('harvester.tab.volume')"
-        :weight="-1"
-      >
+      <Tab name="Volume" :label="t('harvester.tab.volume')" :weight="-1">
         <Volume v-model="diskRows" :mode="mode" />
       </Tab>
 
-      <Tab
-        name="Network"
-        :label="t('harvester.tab.network')"
-        :weight="-2"
-      >
+      <Tab name="Network" :label="t('harvester.tab.network')" :weight="-2">
         <Network v-model="networkRows" :mode="mode" />
       </Tab>
 
-      <Tab
-        name="advanced"
-        :label="t('harvester.tab.advanced')"
-        :weight="-3"
-      >
+      <Tab name="advanced" :label="t('harvester.tab.advanced')" :weight="-3">
         <CloudConfig ref="yamlEditor" :user-script="userScript" :network-script="networkScript" @updateCloudConfig="updateCloudConfig" />
 
         <div class="spacer"></div>
-        <Checkbox v-model="isUseMouseEnhancement" class="check" type="checkbox" :label="t('harvester.vmPage.enableUsb')" />
+        <Checkbox v-model="isUseMouseEnhancement" class="check" type="checkbox" :label="t('harvester.virtualMachine.enableUsb')" />
       </Tab>
     </Tabbed>
   </CruResource>

@@ -22,8 +22,8 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      template:           this.$store.dispatch('cluster/findAll', { type: HCI.VM_TEMPLATE }),
-      templateVersion:    this.$store.dispatch('cluster/findAll', { type: HCI.VM_VERSION }),
+      template:           this.$store.dispatch('virtual/findAll', { type: HCI.VM_TEMPLATE }),
+      templateVersion:    this.$store.dispatch('virtual/findAll', { type: HCI.VM_VERSION }),
     });
 
     this.template = hash.template;
@@ -132,7 +132,7 @@ export default {
           aria-expanded="false"
           type="button"
           class="btn btn-sm role-multi-action"
-          @click.stop="showActions($event, group.gropActionRowRef)"
+          @click.stop="showActions($event, group.gropActionRowRef, group)"
         >
           <i class="icon icon-actions" />
         </button>
