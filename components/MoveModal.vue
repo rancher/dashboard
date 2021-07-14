@@ -12,7 +12,11 @@ export default {
     AsyncButton, Card, LabeledSelect, Loading
   },
   async fetch() {
-    this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
+    const clusterId = this.$store.getters['currentCluster'].id;
+    const projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
+
+    // Filter out projects not for the current cluster
+    this.projects = projects.filter(c => c.spec?.clusterName === clusterId);
   },
   data() {
     return {
@@ -22,7 +26,7 @@ export default {
   computed: {
     ...mapState('action-menu', ['showPromptMove', 'toMove']),
     excludedProjects() {
-      return this.toMove.map(namespace => namespace?.project?.shortId);
+      return this.toMove.filter(namespace => !!namespace.project).map(namespace => namespace.project.shortId);
     },
     projectOptions() {
       return this.projects
