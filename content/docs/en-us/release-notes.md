@@ -10,7 +10,7 @@ Full lifecycle management has been brought to AKS (Azure Kubernetes Service) clu
 -   We now support more configuration options for Rancher managed AKS clusters.
 -   We now support more options for configuring private AKS clusters.
 -   When provisioning an AKS cluster, you can now use reusable cloud credentials instead of directly using service account credentials when provisioning the cluster.
--   Greater management capabilities are now available for registered AKS clusters. The same configuration options are available for registered AKS clusters as for the AKS clusters created through the Rancher UI. [Issue](https://github.com/rancher/rancher/issues/31045)
+-   Greater management capabilities are now available for registered AKS clusters. The same configuration options are available for registered AKS clusters as for the AKS clusters created through the Rancher UI.
 
 ## Project Network Isolation for Hosted Kubernetes
 
@@ -20,32 +20,31 @@ It is also enabled for all registered clusters.
 
 ## Support for Keycloak using OIDC
 
-The Keycloak OIDC authentication provider is now available in the Rancher UI. [Issue](https://github.com/rancher/rancher/issues/30280)
+The Keycloak OIDC authentication provider is now available in the Rancher UI.
 
 ## Windows Support for RKE2
 
-We now support Windows nodes in RKE2 Kubernetes clusters, and we support Calico for Windows nodes in RKE2 clusters. [Issue](https://github.com/rancher/windows/issues/4)
+We now support Windows nodes in RKE2 Kubernetes clusters, and we support Calico for Windows nodes in RKE2 clusters.
 
 ## CVE Image Scanning
 
 Rancher now proactively scans images for CVE vulnerabilities. Our image scanning tool is public, and we now include the results of our CVE scans in the release assets in CSV format.
-[Issue](https://github.com/rancherlabs/rancher-security/issues/721)
 
 ## User Level Audit Log Traceability
 
-Without needing access to the Rancher API, UI, or local cluster, a downstream cluster admin can now read the Kubernetes audit logs and know the identity of users in external identity providers who performed actions in the cluster. [Issue](https://github.com/rancher/rancher/issues/31166)
+Without needing access to the Rancher API, UI, or local cluster, a downstream cluster admin can now read the Kubernetes audit logs and know the identity of users in external identity providers who performed actions in the cluster.
 
 ## Token Hashing
 
-Token hashing has been added to Rancher as an opt-in feature flag. After a user has opted in, token hashing is permanent and non-reversible. [Issue](https://github.com/rancher/rancher/issues/31214)
+Token hashing has been added to Rancher as an opt-in feature flag. After a user has opted in, token hashing is permanent and non-reversible.
 
 ## Dockershim Support
 
-As of Kubernetes 1.20, Dockershim, the CRI compliant layer between the Kubelet and the Docker daemon will no longer be supported. We now implement the upstream open source community Dockershim announced by Mirantis and Docker to ensure RKE clusters can continue to leverage Docker as their container runtime. [Issue](https://github.com/rancher/rancher/issues/31943)
+As of Kubernetes 1.20, Dockershim, the CRI compliant layer between the Kubelet and the Docker daemon will no longer be supported. We now implement the upstream open source community Dockershim announced by Mirantis and Docker to ensure RKE clusters can continue to leverage Docker as their container runtime.
 
 ## Disabled Default Backend
 
-The default backend is now disabled by default for ingress-nginx. [Issue](https://github.com/rancher/rancher/issues/30356)
+The default backend is now disabled by default for ingress-nginx.
 
 ## Cluster Provisioning Tech Preview
 
@@ -59,11 +58,9 @@ We provide an example cluster template for RKE2 that can be used to provision a 
 - Install Rancher V2 Monitoring
 - Assign cluster members
 
-[Issue](https://github.com/rancher/rancher/issues/30099)
-
 ### Disabling Fleet GitOps
 
-Rancher 2.6 requires Fleet as part of the cluster provisioning process, but the ability to turn off the CI portion of Fleet has been added as an opt-in feature flag for those customers who have their own CI and do not wish to use this capability in Fleet. [Issue](https://github.com/rancher/rancher/issues/32808)
+Rancher 2.6 requires Fleet as part of the cluster provisioning process, but the ability to turn off the CI portion of Fleet has been added as an opt-in feature flag for those customers who have their own CI and do not wish to use this capability in Fleet.
 
 # UI Updates
 
@@ -83,7 +80,7 @@ The new and improved UI features that replace the functionality of the Cluster M
 
 ## Custom Navigation Links
 
-You can create links at the top level and group links together. The links can point to services in the cluster. [Issue](https://github.com/rancher/dashboard/issues/2835)
+You can create links at the top level and group links together. The links can point to services in the cluster.
 
 ## Caveats for Applications in Both Cluster Manager and Cluster Explorer
 
@@ -95,7 +92,7 @@ The following caveats apply to existing clusters that had applications such as L
 
 # Other Notes
 
-### Deprecated Features
+## Deprecated Features
 
 These applications installed with Cluster Manager will reach EOL in a future Rancher version. We recommend installing the newer versions of these applications through the Cluster Explorer in the Rancher UI.
 

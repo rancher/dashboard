@@ -62,25 +62,30 @@ export default {
 
   ::v-deep .nuxt-content-container {
     .nuxt-content {
-      margin-bottom: 40px;
+      margin-bottom: 100px;
+      h1:not(:first-child) {
+        margin-top: 30px;
+      }
 
       h2 {
         font-size: 18px;
-        margin: 10px 0;
+        margin: 25px 0 15px 0;
+        text-decoration: underline;
       }
       h3 {
         font-size: 16px;
         margin: 10px 0;
+        text-decoration: underline;
       }
       p {
-        line-height: 18px;
+        line-height: 20px;
       }
       p:not(:last-child) {
         margin-bottom: 12px;
       }
       ul {
         > li:not(:last-child) {
-          margin-bottom: 5px;
+          margin-bottom: 10px;
         }
       }
       table {
