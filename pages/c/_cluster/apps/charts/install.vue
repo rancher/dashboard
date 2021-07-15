@@ -541,6 +541,7 @@ export default {
         this.showValuesComponent = false;
         this.showQuestions = false;
 
+        this.updateValue(this.valuesYaml);
         this.showDiff = true;
         break;
       }
@@ -577,6 +578,11 @@ export default {
   },
 
   methods: {
+    updateValue(value) {
+      if (this.$refs.yaml) {
+        this.$refs.yaml.updateValue(value);
+      }
+    },
 
     async loadValuesComponent() {
       // TODO: Remove RELEASE_NAME. This is only in until the component annotation is added to the OPA Gatekeeper chart
