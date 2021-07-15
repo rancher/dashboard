@@ -579,7 +579,9 @@ export default {
 
   methods: {
     updateValue(value) {
-      this.$refs.yaml.updateValue(value);
+      if (this.$refs.yaml) {
+        this.$refs.yaml.updateValue(value);
+      }
     },
 
     async loadValuesComponent() {
