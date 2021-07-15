@@ -44,6 +44,13 @@ export default {
       const out = this.$store.getters['type-map/getTree'](product, ALL, allTypes, clusterId, BOTH, namespaces, null, this.value);
 
       this.groups = out;
+
+      // Hide top-level groups with no children (or one child that is an overview)
+      this.groups.forEach((g) => {
+        const hidden = g.children?.length === 0 || (g.children?.length === 1 && g.children[0].overview);
+
+        g.hidden = !!hidden;
+      });
     },
   },
 };
@@ -61,12 +68,13 @@ export default {
     <div class="results">
       <div v-for="g in groups" :key="g.name" class="package">
         <Group
+          v-if="!g.hidden"
           :key="g.name"
           id-prefix=""
           :group="g"
           :can-collapse="false"
-          :expanded="true"
-          @selected="$emit('closeSearch')"
+          :fixed-open="true"
+          @close="$emit('closeSearch')"
         >
           <template slot="accordion">
             <h6>{{ g.label }}</h6>
