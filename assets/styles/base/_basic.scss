@@ -65,8 +65,6 @@ BODY {
 INPUT,
 SELECT,
 TEXTAREA,
-BUTTON,
-.btn,
 .labeled-input,
 .labeled-select,
 .unlabeled-select,
@@ -76,6 +74,14 @@ BUTTON,
     @include form-focus }
 }
 
+BUTTON,
+.btn {
+   &:focus, &.focused {
+     outline: none;
+    box-shadow: 0 0 0 var(--outline-width) var(--outline);
+    background: var(--primary-hover-bg);
+   }
+}
 A {
   @include link-color(var(--link), var(--body-text));
 
