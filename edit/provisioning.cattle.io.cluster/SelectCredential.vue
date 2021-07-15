@@ -40,7 +40,11 @@ export default {
   },
 
   async fetch() {
-    this.allSecrets = await this.$store.dispatch('management/findAll', { type: SECRET });
+    const secretSchema = this.$store.getters['management/schemaFor'](SECRET);
+
+    if (secretSchema?.collectionMethods.find(x => x.toLowerCase() === 'get')) {
+      this.allSecrets = await this.$store.dispatch('management/findAll', { type: SECRET });
+    }
 
     this.newCredential = await this.$store.dispatch('management/create', {
       type:     SECRET,
@@ -62,7 +66,7 @@ export default {
 
   data() {
     return {
-      allSecrets:             null,
+      allSecrets:             [],
       nodeComponent:          null,
       credentialId:           this.value || _NONE,
       newCredential:          null,
