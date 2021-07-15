@@ -143,7 +143,7 @@ export const getters = {
       return false;
     }
 
-    if ( !product.showNamespaceFilter ) {
+    if ( !product.showNamespaceFilter && !getters['isExplorer'] ) {
       return true;
     }
 
