@@ -9,14 +9,13 @@
   }
 
   .subtype-banner {
-    border-left: 5px solid var(--primary);
-    border-radius: var(--border-radius);
+    border: 1px solid var(--border);
+    border-radius: 0;
     display: flex;
     flex-basis: 40%;
     margin: 10px;
     min-height: 80px;
     padding: 10px;
-    box-shadow: 0 0 20px var(--shadow);
 
     &.disabled {
       cursor: not-allowed !important;

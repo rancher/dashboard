@@ -434,6 +434,9 @@ $logo: 60px;
 }
 
 .subtype-logo {
+  align-items: center;
+  display: flex;
+  justify-content: center;
   position: absolute;
   left: 0;
   width: $logo;
@@ -441,6 +444,10 @@ $logo: 60px;
   border-radius: calc(2 * var(--border-radius));
   overflow: hidden;
   background-color: white;
+
+  > .round-image {
+    margin-right: 0;
+  };
 
   img {
     width: $logo - 4px;
