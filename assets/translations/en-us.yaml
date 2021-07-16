@@ -1262,8 +1262,8 @@ cluster:
     cluster: Cluster Configuration
     etcd: etcd
     networking: Networking
-    nodePools: Node Pools
     machinePools: Machine Pools
+    machines: Machines
     memberRoles: Member Roles
     registry: Private Registry
     upgrade: Upgrade Strategy
@@ -3396,7 +3396,7 @@ servicesPage:
       label: Load Balancer
     nodePort:
       abbrv: NP
-      description: "Exposes the service on each node's IP at a static port (the `NodePort`). You'll be able to contact this type of service, from outside the cluster, by requesting `<NodeIP>:<NodePort>`."
+      description: "Exposes the service on each node's IP at a static port (the `NodePort`). You'll be able to contact this type of service, from outside the cluster, by requesting `&lt;NodeIP&gt;:&lt;NodePort&gt;`."
       label: Node Port
   typeOpts:
     label: Service Type
