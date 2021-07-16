@@ -105,7 +105,15 @@ export default {
   },
 
   isCustom() {
-    return this.isRke2 && !(this.spec?.rkeConfig?.machinePools?.length);
+    if ( this.isRke2 ) {
+      return !(this.spec?.rkeConfig?.machinePools?.length);
+    }
+
+    if ( this.isRke1 ) {
+      return !this.pools?.length;
+    }
+
+    return false;
   },
 
   isImportedK3s() {
@@ -471,6 +479,10 @@ export default {
   },
 
   supportsWindows() {
+    if ( this.isRke1 ) {
+      return this.mgmt?.spec?.windowsPreferedCluster || false;
+    }
+
     if ( !this.isRke2 ) {
       return false;
     }

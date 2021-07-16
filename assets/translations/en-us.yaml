@@ -890,15 +890,15 @@ cluster:
   custom:
     nodeRole:
       label: Node Role
-      detail: Choose what roles the node will have in the cluster.  The cluster needs to have at least one node with each role.  Windows nodes can only be workers.
+      detail: Choose what roles the node will have in the cluster.  The cluster needs to have at least one node with each role.
     advanced:
       label: Advanced
       detail: Additional control over how the node will be registered.  These values will often need to be different for each node registered.
     registrationCommand:
       label: Registration Command
       linuxDetail: Run this command on each of the existing Linux machines you want to register.
-      windowsDetail: Run this command on each of the existing Windows machines you want to register.
-      windowsNotReady: The cluster must have Linux etcd and Control Plane nodes and be up and running before you can add Windows workers.
+      windowsDetail: Run this command on each of the existing Windows machines you want to register.  Windows nodes can only be workers.
+      windowsNotReady: The cluster must be up and running with Linux etcd and Control Plane nodes before you can add Windows workers.
       insecure: "Insecure: Select this to skip TLS verification if your server has a self-signed certificate."
   credential:
     aws:
