@@ -1671,6 +1671,152 @@ istio:
     tip: 'The <a target="_blank" rel="noopener noreferrer nofollow" href="https://istio.io/latest/docs/setup/install/istioctl/#customizing-the-configuration">overlay file</a> allows for additional configuration on top of the base {vendor} Istio installation. You can utilize the <a href="https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/" target="_blank" rel="noopener noreferrer nofollow" >IstioOperator API</a> to make changes and additions for all components and apply those changes via this overlay YAML file.'
   description: '{vendor} Istio helm chart installs a minimal Istio configuration for you to get started integrating with your applications.
   If you would like to get additional information about Istio, visit <a target="_blank" href="https://istio.io/latest/docs/concepts/what-is-istio" rel="noopener noreferrer nofollow">https://istio.io/latest/docs/concepts/what-is-istio/</a>'
+  destinationRule:
+    title:
+      new: Add Destination Rule
+      edit: Edit Destination Rule
+      view: "Destination Rule: {name}"
+    port:
+      label: Port
+      placeholder: e.g. 8080 or myport
+    host:
+      label: Input a host
+      error: Host is required.
+    name:
+      placeholder: e.g. myrule
+    loadBalancer:
+      title: Load Balancer
+      label: Algorithm
+      detail: Configure the load balancer algorithms
+      simple:
+        label: Use standard load balancing algorithms
+        roundRobin:
+          label: Round Robin Policy
+        leastConn:
+          label: Least Request Load Balancer
+        random:
+          label: Random Load Balancer
+        passthrough:
+          label: Passthrough
+      consistentHash:
+        label: Use consistent hash-based load balancing for soft session affinity
+        httpHeaderName:
+          label: HTTP Header Name
+          placeholder: e.g. end-user
+          error: HTTP Header Name is required.
+        minimumRingSize:
+          label: Minimum Ring Size
+          placeholder: e.g. 1024
+        httpCookie:
+          name:
+            label: Cookie Name
+            placeholder: e.g. username
+            error: Cookie Name is required.
+          path:
+            label: Cookie Path
+            placeholder: e.g. /
+          ttl:
+            label: TTL
+            placeholder: e.g. 0s
+            error: TTL is required.
+        mode:
+          label: Hash Mode
+          header:
+            label: Hash based on a specific HTTP header
+          cookie:
+            label: Hash based on HTTP cookie
+          sourceIp:
+            label: Hash based on the source IP address
+    connectionPool:
+      label: Connection Pool
+      detail: Configure the volume of connections to an upstream service
+      http1MaxPendingRequests:
+        label: HTTP1 Max Pending Requests
+        placeholder: e.g. 1024
+        help: Maximum number of pending HTTP requests to a destination.
+      http2MaxRequests:
+        label: HTTP2 Max Requests
+        placeholder: e.g. 1024
+        help: Maximum number of requests to a backend.
+      maxRequestsPerConnection:
+        label: HTTP Max Requests Per Connection
+        placeholder: e.g. 10
+        help: Maximum number of requests per connection to a backend. Setting this parameter to 1 disables keep alive.
+      maxRetries:
+        label: HTTP Max Retries
+        placeholder: e.g. 1024
+        help: Maximum number of retries that can be outstanding to all hosts in a cluster at a given time.
+      connectTimeout:
+        label: TCP Connection Timeout
+        placeholder: e.g. 30ms
+        help: TCP connection timeout.
+      maxConnections:
+        label: TCP Max Connections
+        placeholder: e.g. 1024
+        help: Maximum number of HTTP1 /TCP connections to a destination host.
+    outlierDetection:
+      label: Outlier Detection
+      detail: Configure eviction of unhealthy hosts from the load balancing pool
+      baseEjectionTime:
+        label: Base Ejection Time
+        placeholder: e.g. 30s
+        help: Minimum ejection duration. A host will remain ejected for a period equal to the product of minimum ejection duration and the number of times the host has been ejected.
+      consecutiveErrors:
+        label: Consecutive Errors
+        placeholder: e.g. 5
+        help: Number of errors before a host is ejected from the connection pool.
+      interval:
+        label: Interval
+        placeholder: e.g. 10s
+        help: Time interval between ejection sweep analysis.
+      maxEjectionPercent:
+        label: Max Ejection Percent
+        placeholder: e.g. 10
+        help: Maximum % of hosts in the load balancing pool for the upstream service that can be ejected.
+    subsets:
+      label: Subsets
+      noSubsets: No Subsets
+      addSubsetLabel: Add Subset
+      removeSubsetLabel: Remove Subset
+      name:
+        label: Name
+        placeholder: e.g. v1
+        error: Subset Name is required.
+      labels:
+        error: Please input at least one label for subset.
+    tls:
+      label: TLS
+      detail: Configure TLS related settings for connections to the upstream service
+      mode:
+        label: TLS Mode
+        none:
+          label: NONE
+        istio:
+          label: Istio Mutual - Secure connections to the upstream using mutual TLS by Istio
+        disable:
+          label: Disable - Do not setup a TLS connection to the upstream endpoint
+        simple:
+          label: Simple - Originate a TLS connection to the upstream endpoint
+        mutual:
+          label: Mutual - Secure connections to the upstream using mutual TLS by presenting client certificates for authentication
+      clientCertificate:
+        label: Client Certificate
+        placeholder: e.g. /etc/certs/myclientcert.pem
+        error: Client Certificate is required.
+      privateKey:
+        label: Private Key
+        placeholder: e.g. /etc/certs/client_private_key.pem
+        error: Private Key is required.
+      caCertificates:
+        label: CA Certificates
+        placeholder: e.g. /etc/certs/rootcacerts.pem
+      sni:
+        label: SNI
+        placeholder: e.g. nginx.example.com
+      subjectAltNames:
+        label: Subject Alternative Names
+        placeholder: e.g. example.com
+        add: Add Subject Alternative Name
   egressGateway: Enabled Egress Gateway
   ingressGateway: Enabled Ingress Gateway
   istiodRemote: Enabled istiodRemote
