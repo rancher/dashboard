@@ -20,7 +20,11 @@
     "analyze": "./node_modules/.bin/nuxt build --analyze",
     "start": "./node_modules/.bin/nuxt start",
     "generate": "./node_modules/.bin/nuxt generate",
-    "dev-debug": "node --inspect ./node_modules/.bin/nuxt"
+    "dev-debug": "node --inspect ./node_modules/.bin/nuxt",
+    "cy:run": "cypress run",
+    "cy:open": "cypress open",
+    "e2e:dev": "start-server-and-test dev https://localhost:8005 cy:open",
+    "e2e:run": "start-server-and-test start http://localhost:80 cy:run"
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.1.0",
@@ -96,6 +100,8 @@
     "@babel/preset-env": "^7.10.3",
     "@babel/preset-typescript": "^7.14.5",
     "@babel/runtime-corejs3": "^7.10.3",
+    "@cypress/vue": "^2.2.3",
+    "@cypress/webpack-dev-server": "^1.4.0",
     "@nuxt/types": "2.14.6",
     "@nuxt/typescript-build": "^2.1.0",
     "@nuxtjs/eslint-config-typescript": "^6.0.1",
@@ -111,10 +117,15 @@
     "core-js": "3",
     "css-loader": "^3.4.2",
     "csv-loader": "^3.0.3",
-    "eslint": "^7.31.0",
+    "cypress": "^7.7.0",
+    "eslint": "^7.32.0",
+    "eslint-config-standard": ">=12.0.0",
     "eslint-plugin-ava": "^9.0.0",
+    "eslint-plugin-cypress": "^2.11.3",
+    "eslint-plugin-node": "^11.1.0",
     "nodemon": "^2.0.2",
     "nyc": "^15.0.0",
+    "start-server-and-test": "^1.13.1",
     "style-loader": "^1.1.2",
     "yarn": "^1.22.4"
   },
