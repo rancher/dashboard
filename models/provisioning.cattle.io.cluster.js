@@ -52,7 +52,7 @@ export default {
       action:     'openShell',
       label:      'Kubectl Shell',
       icon:       'icon icon-terminal',
-      enabled:    !!this.mgmt?.links.shell,
+      enabled:    !!this.mgmt?.links.shell && this.mgmt?.isReady,
     });
 
     insertAt(out, idx++, {
@@ -70,14 +70,14 @@ export default {
       icon:       'icon icon-snapshot',
       bulkAction: 'snapshotBulk',
       bulkable:   true,
-      enabled:    (this.isRke1 || this.isRke2),
+      enabled:    (this.isRke1 || this.isRke2) && this.mgmt?.isReady,
     });
 
     insertAt(out, idx++, {
       action:     'rotateCertificates',
       label:      'Rotate Certificates',
       icon:       'icon icon-backup',
-      enabled:    this.mgmt?.hasAction('rotateCertificates')
+      enabled:    this.mgmt?.hasAction('rotateCertificates') && this.mgmt?.isReady,
 
     });
 
@@ -85,7 +85,7 @@ export default {
       action:     'rotateEncryptionKey',
       label:      'Rotate Encryption Keys',
       icon:       'icon icon-refresh',
-      enabled:     this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey')
+      enabled:     this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && this.mgmt?.isReady,
     });
 
     insertAt(out, idx++, {
