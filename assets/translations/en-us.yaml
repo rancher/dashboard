@@ -16,6 +16,7 @@ generic:
   disabled: Disabled
   done: Done
   enabled: Enabled
+  id: ID
   ignored: Ignored
   invalidCron: Invalid cron schedule
   labelsAndAnnotations: Labels & Annotations

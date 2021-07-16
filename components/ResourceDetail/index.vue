@@ -11,6 +11,7 @@ import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
 import DetailTop from '@/components/DetailTop';
 import { clone, set, diff } from '@/utils/object';
+import IconMessage from '@/components/IconMessage';
 
 function modeFor(route) {
   if ( route.query?.mode === _IMPORT ) {
@@ -41,6 +42,7 @@ export default {
     DetailTop,
     ResourceYaml,
     Masthead,
+    IconMessage,
   },
 
   mixins: [CreateEditView],
@@ -84,6 +86,7 @@ export default {
     // As determines what component will be rendered
     const requested = route.query[AS];
     let as;
+    let notFound = false;
 
     if ( mode === _VIEW && hasCustomDetail && (!requested || requested === _DETAIL) ) {
       as = _DETAIL;
@@ -129,11 +132,16 @@ export default {
         fqid = `${ namespace }/${ fqid }`;
       }
 
-      originalModel = await store.dispatch(`${ inStore }/find`, {
-        type: resource,
-        id:   fqid,
-        opt:  { watch: true }
-      });
+      try {
+        originalModel = await store.dispatch(`${ inStore }/find`, {
+          type: resource,
+          id:   fqid,
+          opt:  { watch: true }
+        });
+      } catch (e) {
+        originalModel = {};
+        notFound = fqid;
+      }
 
       if (realMode === _VIEW) {
         model = originalModel;
@@ -173,6 +181,7 @@ export default {
       originalModel,
       mode,
       value: model,
+      notFound,
     };
 
     for ( const key in out ) {
@@ -296,6 +305,17 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
+  <div v-else-if="notFound">
+    <IconMessage icon="icon-warning">
+      <template v-slot:message>
+        {{ t('generic.notFound') }}
+        <div>
+          <div>{{ t('generic.type') }}: {{ resource }}</div>
+          <div>{{ t('generic.id') }}: {{ notFound }}</div>
+        </div>
+      </template>
+    </IconMessage>
+  </div>
   <div v-else>
     <Masthead
       :resource="resource"
