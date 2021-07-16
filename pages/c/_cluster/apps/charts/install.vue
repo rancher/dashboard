@@ -9,6 +9,7 @@ import ButtonGroup from '@/components/ButtonGroup';
 import ChartReadme from '@/components/ChartReadme';
 import Checkbox from '@/components/form/Checkbox';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import LabeledInput from '@/components/form/LabeledInput';
 import LazyImage from '@/components/LazyImage';
 import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -24,7 +25,7 @@ import { CATALOG, MANAGEMENT } from '@/config/types';
 import {
   CHART, FROM_CLUSTER, FROM_TOOLS, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
 } from '@/config/query-params';
-import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION, PROJECT } from '@/config/labels-annotations';
+import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@/config/labels-annotations';
 
 import { exceptionToErrorsArray } from '@/utils/error';
 import { clone, diff, get, set } from '@/utils/object';
@@ -47,6 +48,7 @@ export default {
     ButtonGroup,
     ChartReadme,
     Checkbox,
+    LabeledInput,
     LabeledSelect,
     LazyImage,
     Loading,
@@ -111,7 +113,7 @@ export default {
       }
 
       if ( this.query.description ) {
-        this.value.setAnnotation(DESCRIPTION_ANNOTATION, this.query.description);
+        this.customCmdOpts.description = this.query.description;
       }
     }
 
@@ -539,6 +541,7 @@ export default {
         this.showValuesComponent = false;
         this.showQuestions = false;
 
+        this.updateValue(this.valuesYaml);
         this.showDiff = true;
         break;
       }
@@ -575,6 +578,11 @@ export default {
   },
 
   methods: {
+    updateValue(value) {
+      if (this.$refs.yaml) {
+        this.$refs.yaml.updateValue(value);
+      }
+    },
 
     async loadValuesComponent() {
       // TODO: Remove RELEASE_NAME. This is only in until the component annotation is added to the OPA Gatekeeper chart
@@ -828,7 +836,7 @@ export default {
         chartName:   this.chart.chartName,
         version:     this.version?.version || this.query.versionName,
         releaseName: form.metadata.name,
-        description: form.metadata?.annotations?.[DESCRIPTION_ANNOTATION],
+        description: this.customCmdOpts.description,
         annotations: {
           [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: this.chart.repoType,
           [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: this.chart.repoName
@@ -1030,6 +1038,7 @@ export default {
           <NameNsDescription
             v-if="chart"
             v-model="value"
+            :description-hidden="true"
             :mode="mode"
             :name-disabled="nameDisabled"
             :name-required="false"
@@ -1218,6 +1227,14 @@ export default {
             v-model.number="customCmdOpts.historyMax"
             :label="t('catalog.install.helm.historyMax.label')"
             :suffix="t('catalog.install.helm.historyMax.unit', {value: customCmdOpts.historyMax})"
+          />
+        </div>
+        <div style="display: block; max-width: 400px;" class="mt-10">
+          <LabeledInput
+            v-model="customCmdOpts.description"
+            label-key="catalog.install.helm.description.label"
+            placeholder-key="catalog.install.helm.description.placeholder"
+            :min-height="30"
           />
         </div>
       </template>

@@ -4,7 +4,7 @@ import BannerGraphic from '@/components/BannerGraphic';
 import AsyncButton from '@/components/AsyncButton';
 import IndentedPanel from '@/components/IndentedPanel';
 import Card from '@/components/Card';
-
+import CommunityLinks from '@/components/CommunityLinks';
 import { MANAGEMENT } from '@/config/types';
 import { getVendor } from '@/config/private-label';
 import { SETTING } from '@/config/settings';
@@ -18,7 +18,8 @@ export default {
     BannerGraphic,
     IndentedPanel,
     AsyncButton,
-    Card
+    Card,
+    CommunityLinks
   },
 
   async fetch() {
@@ -83,7 +84,7 @@ export default {
 
     validSupportKey() {
       return !!this.supportKey.match(KEY_REGX);
-    }
+    },
   },
 
   methods: {
@@ -173,10 +174,7 @@ export default {
           </div>
         </div>
         <div class="community">
-          <h2>{{ t('support.community.linksTitle') }}</h2>
-          <div v-for="(value, name) in options" :key="name" class="support-link">
-            <a v-t="name" :href="value" target="_blank" rel="noopener noreferrer nofollow" />
-          </div>
+          <CommunityLinks />
         </div>
       </div>
     </IndentedPanel>

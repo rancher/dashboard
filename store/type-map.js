@@ -416,6 +416,10 @@ export const getters = {
     };
 
     return (schemaOrType) => {
+      if (!schemaOrType) {
+        return {};
+      }
+
       const type = (typeof schemaOrType === 'object' ? schemaOrType.id : schemaOrType);
       const found = state.typeOptions.find((entry) => {
         const re = stringToRegex(entry.match);
@@ -540,6 +544,7 @@ export const getters = {
           group = _ensureGroup(root, groupForBasicType, true);
         } else if ( mode === FAVORITE ) {
           group = _ensureGroup(root, 'starred');
+          group.weight = 1000;
         } else if ( mode === USED ) {
           group = _ensureGroup(root, `inUse::${ getters.groupLabelFor(typeObj.schema) }`);
         } else {

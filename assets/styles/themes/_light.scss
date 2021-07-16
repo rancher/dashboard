@@ -384,10 +384,9 @@ BODY, .theme-light {
   --progress-bg                : #{$medium};
   --progress-divider           : #{$medium};
 
-  --sortable-table-bg          : transparent;
-  --sortable-table-header-bg   : transparent;
-  --sortable-table-accent-bg   : #{$lighter};
-  --sortable-table-accent-alt  : #{$lightest};
+  --sortable-table-bg          : #{darken($lightest, 5%)};
+  --sortable-table-row-bg      : #{$lightest};
+  --sortable-table-header-bg   : #{$lighter};
   --sortable-table-top-divider : var(--border);
   --sortable-table-body-divider : #{$medium};
 

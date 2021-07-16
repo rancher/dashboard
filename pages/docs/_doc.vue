@@ -59,4 +59,49 @@ export default {
     font-size: 18px;
     margin: 20px 0;
   }
+
+  ::v-deep .nuxt-content-container {
+    .nuxt-content {
+      margin-bottom: 100px;
+      h1:not(:first-child) {
+        margin-top: 30px;
+      }
+
+      h2 {
+        font-size: 18px;
+        margin: 25px 0 15px 0;
+        text-decoration: underline;
+      }
+      h3 {
+        font-size: 16px;
+        margin: 10px 0;
+        text-decoration: underline;
+      }
+      p {
+        line-height: 20px;
+      }
+      p:not(:last-child) {
+        margin-bottom: 12px;
+      }
+      ul {
+        > li:not(:last-child) {
+          margin-bottom: 10px;
+        }
+      }
+      table {
+        border: 1px solid var(--border);
+        border-collapse: collapse;
+
+        thead, tbody {
+          tr {
+            td, th {
+              border: 1px solid var(--border);
+              padding: 5px 5px;
+            }
+          }
+        }
+      }
+    }
+  }
+
 </style>

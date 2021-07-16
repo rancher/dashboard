@@ -52,11 +52,12 @@ export default {
     ];
     const allBindings = this.schema ? await this.$store.dispatch(`management/findAll`, { type: this.type }) : [];
     const bindings = allBindings
+      .filter(b => !b.isSystem)
       .filter(b => !b.user?.isSystem)
       .filter(b => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
 
     // Add the current user as the project owner. This will get created by default
-    if (bindings.length === 0 && this.defaultBindingHandler) {
+    if (this.mode === _CREATE && bindings.length === 0 && this.defaultBindingHandler) {
       bindings.push(await this.defaultBindingHandler());
     }
 

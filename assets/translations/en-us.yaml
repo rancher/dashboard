@@ -19,6 +19,7 @@ generic:
   ignored: Ignored
   invalidCron: Invalid cron schedule
   labelsAndAnnotations: Labels & Annotations
+  links: Links
   loading: Loading&hellip;
   members: Members
   na: n/a
@@ -79,7 +80,11 @@ nav:
   import: Import YAML
   home: Home
   shell: Kubectl Shell
-  support: Get Support
+  support: |-
+    {hasSupport, select,
+      true {Support}
+      other {Get Support}
+    }
   group:
     cluster: Cluster
     inUse: More Resources
@@ -670,6 +675,9 @@ catalog:
       upgrade: 'Upgrade {name}'
     helm:
       atomic: Atomic
+      description:
+        label: Description
+        placeholder: e.g. Purpose of helm command
       cleanupOnFail: Cleanup on Failure
       crds: Apply custom resource definitions
       dryRun: Dry Run
@@ -712,7 +720,7 @@ catalog:
             true { app}
             false { chart}
           }. Start by setting some basic information used by {vendor} to manage the App.
-        nsCreationDescription: "To install the app into a new namespace enter it's name and select it in the Namespace field."
+        nsCreationDescription: "To install the app into a new namespace enter it's name in the Namespace field and select it."
         createNamespace: "Namespace <code>{namespace}</code> will be created."
       clusterTplVersion:
         label: Version
@@ -881,13 +889,15 @@ cluster:
   custom:
     nodeRole:
       label: Node Role
-      detail: Choose what roles the node will have in the cluster.  The cluster needs to have at least one node with each role.
+      detail: Choose what roles the node will have in the cluster.  The cluster needs to have at least one node with each role.  Windows nodes can only be workers.
     advanced:
       label: Advanced
       detail: Additional control over how the node will be registered.  These values will often need to be different for each node registered.
     registrationCommand:
       label: Registration Command
-      detail: Run this command on each of the existing machines you want to register.
+      linuxDetail: Run this command on each of the existing Linux machines you want to register.
+      windowsDetail: Run this command on each of the existing Windows machines you want to register.
+      windowsNotReady: The cluster must have Linux etcd and Control Plane nodes and be up and running before you can add Windows workers.
       insecure: "Insecure: Select this to skip TLS verification if your server has a self-signed certificate."
   credential:
     aws:
@@ -1482,6 +1492,7 @@ glance:
   monitoringDashboard: Monitoring Dashboard
   installMonitoring: Install Monitoring
   v1MonitoringInstalled: V1 Monitoring Installed
+  clusterInfo: Cluster Information
 
 grafanaDashboard:
   failedToLoad: Failed to load graph
@@ -1804,6 +1815,8 @@ istio:
 labels:
   addLabel: Add Label
   addSetLabel: Add/Set Label
+  addTag: Add Tag
+  addTaint: Add Taint
   addAnnotation: Add Annotation
   labels:
     title: Labels
@@ -1824,7 +1837,7 @@ landing:
     cpuUsed: CPU Used
     memoryUsed: Memory Used
   seeWhatsNew: Learn more about the improvements and new capabilities in this version.
-  whatsNewLink: "What's new in 2.5"
+  whatsNewLink: "What's new in 2.6"
   learnMore: Learn More
   gettingStarted:
     title: Getting Started

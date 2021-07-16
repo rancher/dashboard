@@ -59,6 +59,8 @@ export default {
 
   methods: {
     selectFile() {
+      // Clear the value so the user can reselect the same file again
+      this.$refs.uploader.value = null;
       this.$refs.uploader.click();
     },
 

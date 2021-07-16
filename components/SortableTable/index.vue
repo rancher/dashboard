@@ -766,7 +766,7 @@ $spacing: 10px;
   border-radius: 5px 5px 0 0;
   outline: 1px solid var(--border);
   overflow: hidden;
-  background: var(--sortable-table-accent-bg);
+  background: var(--sortable-table-bg);
   border-radius: 4px;
 
   td {
@@ -781,7 +781,7 @@ $spacing: 10px;
   tbody {
     tr {
       border-bottom: 1px solid var(--sortable-table-top-divider);
-      background-color: var(--body-bg);
+      background-color: var(--sortable-table-row-bg);
 
       &.main-row.has-sub-row {
         border-bottom: 0;
@@ -808,12 +808,12 @@ $spacing: 10px;
 
     td {
       &:first-of-type {
-        border-left: 1px solid var(--sortable-table-accent-bg);
+        // border-left: 1px solid var(--sortable-table-accent-bg);
       }
 
       &:last-of-type {
         /* Not sure why 2 but one doesn't show up.. */
-        border-right: 2px solid var(--sortable-table-accent-bg);
+        // border-right: 2px solid var(--sortable-table-accent-bg);
       }
     }
 
@@ -851,7 +851,7 @@ $spacing: 10px;
       background-color: initial;
 
       &:first-child {
-        border-bottom: 0;
+        border-bottom: 2px solid var(--sortable-table-row-bg);
       }
 
       &:not(:first-child) {
@@ -872,9 +872,9 @@ $spacing: 10px;
         line-height: $group-row-height;
         padding: 0 10px;
         border-radius: 4px 4px 0px 0px;
-        background-color: var(--body-bg);
+        background-color: var(--sortable-table-row-bg);
         position: relative;
-        top: 0;
+        top: 1px;
         display: inline-block;
         z-index: z-index('tableGroup');
         min-width: $group-row-height * 1.8;
@@ -888,7 +888,7 @@ $spacing: 10px;
         height: $group-row-height;
         width: 70px;
         border-radius: 5px 5px 0px 0px;
-        background-color: var(--body-bg);
+        background-color: var(--sortable-table-row-bg);
         content: "";
         position: absolute;
         right: -15px;

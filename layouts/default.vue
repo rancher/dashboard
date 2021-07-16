@@ -1,9 +1,7 @@
 <script>
 import debounce from 'lodash/debounce';
 import { mapState, mapGetters } from 'vuex';
-import {
-  mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES, AFTER_LOGIN_ROUTE
-} from '@/store/prefs';
+import { mapPref, DEV, FAVORITE_TYPES, AFTER_LOGIN_ROUTE } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import GrowlManager from '@/components/GrowlManager';
 import WindowManager from '@/components/nav/WindowManager';
@@ -48,7 +46,11 @@ export default {
   data() {
     const { displayVersion } = getVersionInfo(this.$store);
 
-    return { groups: [], displayVersion };
+    return {
+      groups:         [],
+      displayVersion,
+      wantNavSync:    false
+    };
   },
 
   middleware: ['authenticated'],
@@ -66,7 +68,6 @@ export default {
     },
 
     dev:            mapPref(DEV),
-    expandedGroups: mapPref(EXPANDED_GROUPS),
     favoriteTypes:  mapPref(FAVORITE_TYPES),
 
     pageActions() {
@@ -157,6 +158,7 @@ export default {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
+        this.wantNavSync = true;
       }
     },
 
@@ -171,6 +173,7 @@ export default {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
+        this.wantNavSync = true;
       }
     },
 
@@ -209,6 +212,13 @@ export default {
           await this.$store.dispatch('prefs/setLastVisited', route);
         }
       }
+    },
+
+    $route(a, b) {
+      if (this.wantNavSync && !isEqual(a, b)) {
+        this.wantNavSync = false;
+        this.$nextTick(() => this.syncNav());
+      }
     }
   },
 
@@ -218,6 +228,11 @@ export default {
     this.getGroups();
 
     await this.$store.dispatch('prefs/setLastVisited', this.$route);
+  },
+
+  mounted() {
+    // Sync the navigation tree on fresh load
+    this.$nextTick(() => this.syncNav());
   },
 
   methods: {
@@ -396,20 +411,6 @@ export default {
       replaceWith(this.groups, ...sortBy(out, ['weight:desc', 'label']));
     },
 
-    expanded(name) {
-      const currentType = this.$route.params.resource || '';
-
-      if (!currentType) {
-        const grp = this.groups.find(item => item.name === name);
-
-        if (grp?.children) {
-          return this.hasRoute(grp.children);
-        }
-      }
-
-      return name === currentType;
-    },
-
     toggleNoneLocale() {
       this.$store.dispatch('i18n/toggleNone');
     },
@@ -418,27 +419,11 @@ export default {
       this.$store.dispatch('prefs/toggleTheme');
     },
 
-    toggle(id, expanded, skip) {
-      if (expanded && !skip) {
-        this.$refs.groups.forEach((grp) => {
-          if (grp.id !== id && grp.canCollapse) {
-            grp.isExpanded = false;
-          }
-        });
-      }
-    },
-
-    hasRoute(grp) {
-      return !!grp.find((item) => {
-        if (item.children) {
-          return this.hasRoute(item.children);
-        } else if (item.route) {
-          const route = this.$router.resolve(item.route);
-
-          return this.$route.fullPath === route.href;
+    groupSelected(selected) {
+      this.$refs.groups.forEach((grp) => {
+        if (grp.canCollapse) {
+          grp.isExpanded = (grp.group.name === selected.name);
         }
-
-        return false;
       });
     },
 
@@ -465,9 +450,33 @@ export default {
       }
 
       cluster.openShell();
-    }
-  },
+    },
 
+    syncNav() {
+      const refs = this.$refs.groups;
+
+      if (refs) {
+        // Only expand one group - so after the first has been expanded, no more will
+        // This prevents the 'More Resources' group being expanded in addition to the normal group
+        let canExpand = true;
+
+        refs.forEach((grp) => {
+          if (!grp.group.isRoot) {
+            grp.isExpanded = false;
+            if (canExpand) {
+              const isActive = grp.hasActiveRoute();
+
+              if (isActive) {
+                grp.isExpanded = true;
+                canExpand = false;
+                this.$nextTick(() => grp.syncNav());
+              }
+            }
+          }
+        });
+      }
+    },
+  }
 };
 </script>
 
@@ -485,11 +494,11 @@ export default {
               :key="idx"
               id-prefix=""
               class="package"
-              :expanded="expanded"
               :group="g"
               :can-collapse="!g.isRoot"
               :show-header="!g.isRoot"
-              @on-toggle="toggle"
+              @selected="groupSelected($event)"
+              @expand="groupSelected($event)"
             >
               <template #header>
                 <h6>{{ g.label }}</h6>

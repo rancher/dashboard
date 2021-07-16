@@ -1,5 +1,5 @@
 <script>
-import { mapState } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 import Card from '@/components/Card';
 import AsyncButton from '@/components/AsyncButton';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -11,28 +11,39 @@ export default {
   components: {
     AsyncButton, Card, LabeledSelect, Loading
   },
+
   async fetch() {
     this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
   },
+
   data() {
     return {
       modalName: 'move-modal', projects: [], targetProject: null
     };
   },
+
   computed: {
     ...mapState('action-menu', ['showPromptMove', 'toMove']),
+    ...mapGetters(['currentCluster']),
+
     excludedProjects() {
-      return this.toMove.map(namespace => namespace.project.shortId);
+      return this.toMove.filter(namespace => !!namespace.project).map(namespace => namespace.project.shortId);
     },
+
     projectOptions() {
-      return this.projects
-        .map(p => ({
-          value: p.shortId,
-          label: p.nameDisplay
-        }))
-        .filter(pair => !this.excludedProjects.includes(pair.value) );
+      return this.projects.reduce((inCluster, project) => {
+        if (!this.excludedProjects.includes(project.shortId) && project.spec?.clusterName === this.currentCluster.id) {
+          inCluster.push({
+            value: project.shortId,
+            label: project.nameDisplay
+          });
+        }
+
+        return inCluster;
+      }, []);
     }
   },
+
   watch:    {
     showPromptMove(show) {
       if (show) {
@@ -42,6 +53,7 @@ export default {
       }
     }
   },
+
   methods: {
     close() {
       this.$store.commit('action-menu/togglePromptMove');
@@ -62,6 +74,7 @@ export default {
         this.$emit('moving');
         await Promise.all(promises);
         finish(true);
+        this.targetProject = null;
         this.close();
       } catch (ex) {
         finish(false);

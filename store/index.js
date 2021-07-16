@@ -17,6 +17,8 @@ import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 // becaues it's more efficient to do that sometimes.
 export const strict = false;
 
+export const BLANK_CLUSTER = '_';
+
 export const plugins = [
   Steve({ namespace: 'management', baseUrl: '/v1' }),
   Steve({ namespace: 'cluster', baseUrl: '' }), // URL dynamically set for the selected cluster
@@ -127,7 +129,7 @@ export const getters = {
       return clusters[0].id;
     }
 
-    return null;
+    return BLANK_CLUSTER;
   },
 
   isAllNamespaces(state, getters) {
@@ -141,7 +143,7 @@ export const getters = {
       return false;
     }
 
-    if ( !product.showNamespaceFilter ) {
+    if ( !product.showNamespaceFilter && !getters['isExplorer'] ) {
       return true;
     }
 
@@ -545,6 +547,11 @@ export const actions = {
 
     console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
 
+    if (id === BLANK_CLUSTER) {
+      commit('clusterChanged', true);
+
+      return;
+    }
     // See if it really exists
     const cluster = await dispatch('management/find', {
       type: MANAGEMENT.CLUSTER,

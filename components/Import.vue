@@ -73,13 +73,12 @@ export default {
     },
 
     onFileSelected(value) {
-      // const component = this.$refs.yamleditor;
+      const component = this.$refs.yamleditor;
 
-      // if (component) {
-      // component.updateValue(value);
-      // }
-
-      this.currentYaml = value;
+      if (component) {
+        this.errors = null;
+        component.updateValue(value);
+      }
     },
 
     async importYaml(btnCb) {
@@ -173,7 +172,7 @@ export default {
         </button>
       </div>
       <div v-else class="text-center" style="width: 100%">
-        <button type="button" class="btn role-secondary" @click="close">
+        <button type="button" class="btn role-secondary mr-10" @click="close">
           {{ t('generic.cancel') }}
         </button>
         <AsyncButton v-if="!done" mode="import" :disabled="!currentYaml.length" @click="importYaml" />

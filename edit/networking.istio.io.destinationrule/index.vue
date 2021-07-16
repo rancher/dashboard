@@ -67,13 +67,10 @@ export default {
             :default-add-value="{}"
           >
             <template #default="{row, i}">
-              <code>i: {{ i }}, {{ JSON.stringify(row) }}</code>
-              <br><br>
               <LabeledInput
                 v-model="row.value.name"
                 label="Name"
                 :mode="mode"
-                :tooltip="tooltip"
                 :required="true"
               />
               <KeyValue
@@ -103,6 +100,7 @@ export default {
             <div class="col span-4 mb-10">
               <LabeledInput
 
+                v-model="value.spec.trafficPolicy.connectionPool.http.http1MaxPendingRequests"
                 :label="t('istio.destinationRule.connectionPool.http1MaxPendingRequests.label')"
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.connectionPool.http1MaxPendingRequests.help')"
@@ -111,7 +109,7 @@ export default {
             </div>
             <div class="col span-4 mb-10">
               <LabeledInput
-
+                v-model="value.spec.trafficPolicy.connectionPool.http.http2MaxRequests"
                 :label="t('istio.destinationRule.connectionPool.http2MaxRequests.label')"
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.connectionPool.http2MaxRequests.help')"
@@ -120,7 +118,7 @@ export default {
             </div>
             <div class="col span-4 mb-10">
               <LabeledInput
-
+                v-model="value.spec.trafficPolicy.connectionPool.http.maxRequestsPerConnection"
                 :label="t('istio.destinationRule.connectionPool.maxRequestsPerConnection.label')"
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.connectionPool.maxRequestsPerConnection.help')"
@@ -131,7 +129,7 @@ export default {
           <div class="row">
             <div class="col span-4 mb-10">
               <LabeledInput
-
+                v-model="value.spec.trafficPolicy.connectionPool.http.maxRetries"
                 :label="t('istio.destinationRule.connectionPool.maxRetries.label')"
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.connectionPool.maxRetries.help')"
@@ -140,7 +138,7 @@ export default {
             </div>
             <div class="col span-4 mb-10">
               <LabeledInput
-
+                v-model="value.spec.trafficPolicy.connectionPool.tcp.duration"
                 :label="t('istio.destinationRule.connectionPool.connectTimeout.label')"
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.connectionPool.connectTimeout.help')"
@@ -149,7 +147,7 @@ export default {
             </div>
             <div class="col span-4 mb-10">
               <LabeledInput
-
+                v-model="value.spec.trafficPolicy.connectionPool.tcp.maxConnections"
                 :label="t('istio.destinationRule.connectionPool.maxConnections.label')"
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.connectionPool.maxConnections.help')"
@@ -166,7 +164,7 @@ export default {
           <div class="row">
             <div class="col span-6 mb-10">
               <LabeledInput
-
+                v-model="value.spec.trafficPolicy.outlierDetection.baseEjectionTime"
                 :label="t('istio.destinationRule.outlierDetection.baseEjectionTime.label')"
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.outlierDetection.baseEjectionTime.help')"
@@ -175,7 +173,7 @@ export default {
             </div>
             <div class="col span-6 mb-10">
               <LabeledInput
-
+                v-model="value.spec.trafficPolicy.outlierDetection.consecutiveErrors"
                 :label="t('istio.destinationRule.outlierDetection.consecutiveErrors.label')"
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.outlierDetection.consecutiveErrors.help')"
@@ -186,7 +184,7 @@ export default {
           <div class="row">
             <div class="col span-6 mb-10">
               <LabeledInput
-
+                v-model="value.spec.trafficPolicy.outlierDetection.interval"
                 :label="t('istio.destinationRule.outlierDetection.interval.label')"
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.outlierDetection.interval.help')"
@@ -195,7 +193,7 @@ export default {
             </div>
             <div class="col span-6 mb-10">
               <LabeledInput
-
+                v-model="value.spec.trafficPolicy.outlierDetection.maxEjectionPercent"
                 :label="t('istio.destinationRule.outlierDetection.maxEjectionPercent.label')"
                 :mode="mode"
                 :tooltip="t('istio.destinationRule.outlierDetection.maxEjectionPercent.help')"

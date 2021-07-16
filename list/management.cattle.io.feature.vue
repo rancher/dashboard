@@ -5,6 +5,9 @@ import Card from '@/components/Card';
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
+import LabeledInput from '@/components/form/LabeledInput';
+import { MANAGEMENT } from '@/config/types';
+import { SETTING } from '@/config/settings';
 
 export default {
   components: {
@@ -12,7 +15,8 @@ export default {
     Banner,
     Card,
     Loading,
-    ResourceTable
+    ResourceTable,
+    LabeledInput
   },
 
   props: {
@@ -29,18 +33,36 @@ export default {
 
   async fetch() {
     this.rows = await this.$store.dispatch('management/findAll', { type: this.resource });
+
+    this.serverUrlSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SERVER_URL);
+
+    if (this.serverUrlSetting?.value) {
+      this.serverUrl = this.serverUrlSetting.value;
+    } else {
+      this.noUrlSet = true;
+      if ( process.server ) {
+        const { req } = this.$nuxt.context;
+
+        this.serverUrl = req.headers.host;
+      } else {
+        this.serverUrl = window.location.origin;
+      }
+    }
   },
 
   data() {
     return {
-      rows:       null,
-      update:     [],
-      updateMode: 'activate',
-      error:      null,
-      enabling:   false,
-      restart:    false,
-      waiting:    false,
-      timer:      null,
+      rows:             null,
+      update:           [],
+      updateMode:       'activate',
+      error:            null,
+      enabling:         false,
+      restart:          false,
+      waiting:          false,
+      timer:            null,
+      serverUrlSetting: {},
+      serverUrl:        '',
+      noUrlSet:         false,
     };
   },
 
@@ -51,6 +73,10 @@ export default {
     filteredRows() {
       return this.rows.filter(x => x.name !== 'fleet');
     },
+
+    promptForUrl() {
+      return this.update?.id === 'multi-cluster-management' && this.noUrlSet;
+    }
   },
 
   watch: {
@@ -135,7 +161,18 @@ export default {
 
         this.waitForBackend(btnCB, id);
       }, 2500);
-    }
+    },
+
+    async saveUrl(btnCB) {
+      try {
+        this.serverUrlSetting.value = this.serverUrl;
+        await this.serverUrlSetting.save();
+        btnCB(true);
+      } catch (err) {
+        this.error = err;
+        btnCB(false);
+      }
+    },
   }
 };
 </script>
@@ -159,9 +196,20 @@ export default {
         </h4>
         <div slot="body">
           <div v-if="update" class="mb-10">
-            <span v-if="enabling">
-              {{ t('featureFlags.promptActivate', {flag: update.id}) }}
-            </span>
+            <div v-if="enabling">
+              <span>
+                {{ t('featureFlags.promptActivate', {flag: update.id}) }}
+              </span>
+              <div v-if="promptForUrl" class="mt-10">
+                <span> {{ t('featureFlags.requiresSetting') }}</span>
+                <div :style="{'align-items':'center'}" class="row mt-10">
+                  <LabeledInput v-model="serverUrl" :label="t('setup.serverUrl.label')" />
+                  <div class="col pl-5">
+                    <AsyncButton @click="saveUrl" />
+                  </div>
+                </div>
+              </div>
+            </div>
             <span v-else>
               {{ t('featureFlags.promptDeactivate', {flag: update.id}) }}
             </span>
@@ -175,7 +223,7 @@ export default {
           <button class="btn role-secondary" @click="close">
             {{ t('generic.cancel') }}
           </button>
-          <AsyncButton :mode="updateMode" class="btn bg-error ml-10" @click="toggleFlag" />
+          <AsyncButton :disabled="promptForUrl && !serverUrlSetting.value" :mode="updateMode" class="btn bg-error ml-10" @click="toggleFlag" />
         </template>
       </Card>
       <Card v-else class="prompt-update" :show-highlight-border="false">

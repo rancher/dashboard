@@ -144,6 +144,18 @@ export default {
     display: block;
   }
 
+  & .labeled-select {
+    min-height: $input-height;
+  }
+
+  & .vs__selected-options {
+    padding: 8px 0 7px 0;
+  }
+
+  & label {
+    display: inline-block;
+  }
+
   &.show-key-selector {
     .input-container > * {
       display: inline-block;

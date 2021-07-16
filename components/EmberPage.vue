@@ -1,6 +1,6 @@
 <script>
 import Loading from '@/components/Loading';
-import { mapGetters } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import { NAME as MANAGER } from '@/config/product/manager';
 import { CAPI, MANAGEMENT } from '@/config/types';
 import { SETTING } from '@/config/settings';
@@ -8,6 +8,7 @@ import { SETTING } from '@/config/settings';
 const EMBER_FRAME = 'ember-iframe';
 const EMBER_FRAME_HIDE_CLASS = 'ember-iframe-hidden';
 const PAGE_CHECK_TIMEOUT = 30000;
+const WINDOW_MANAGER = 'windowmanager';
 
 // Remove the IFrame if the user has not used an embedded page after this time
 // since last visiting an embedded page
@@ -79,6 +80,7 @@ export default {
       heightSync:       null,
       frameHeight:      -1,
       frameWidth:       -1,
+      wmHeight:         -1,
       showHeaderBanner: false,
       showFooterBanner: false,
     };
@@ -87,6 +89,7 @@ export default {
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),
     ...mapGetters(['clusterId', 'productId']),
+    ...mapState('wm', ['open']),
   },
 
   watch: {
@@ -98,6 +101,26 @@ export default {
     src(nue, old) {
       if (nue !== old) {
         this.initFrame();
+      }
+    },
+
+    // Watch on the window manager opening/closing
+    open(nue, old) {
+      if (nue !== old) {
+        if (nue) {
+          this.syncSize();
+        } else {
+          clearTimeout(this.heightSync);
+          const iframeEl = document.getElementById(EMBER_FRAME);
+
+          // Reset the height when the window manager is closed
+          this.heightSync = null;
+          this.wmHeight = -1;
+
+          if (iframeEl) {
+            iframeEl.style.height = '';
+          }
+        }
       }
     }
   },
@@ -271,6 +294,11 @@ export default {
         iframeEl.classList.remove('ember-iframe-inline');
         this.addBannerClasses(this.$refs.emberPage, 'fixed');
         this.addBannerClasses(iframeEl, 'ember-iframe');
+
+        // If the window manager is open, sync the size
+        if (this.open) {
+          this.syncSize();
+        }
       } else {
         iframeEl.classList.remove('ember-iframe');
         iframeEl.classList.add('ember-iframe-inline');
@@ -308,6 +336,21 @@ export default {
         if (w && this.frameWidth !== w) {
           this.frameWidth = w;
           iframeEl.width = w;
+        }
+      } else {
+        // Ensure the height takes into count the window manger height
+        const wm = document.getElementById(WINDOW_MANAGER);
+
+        if (wm) {
+          const wmh = wm.offsetHeight;
+
+          if (wmh !== this.wmHeight) {
+            // Adjust the bottom
+            const iframeEl = document.getElementById(EMBER_FRAME);
+
+            iframeEl.style.height = `calc(100vh - var(--header-height) - ${ wmh }px)`;
+            this.wmHeight = wmh;
+          }
         }
       }
     },
