@@ -10,52 +10,14 @@ export default {
           subsets:       [],
           trafficPolicy: {
 
-            loadBalancer: {
-              simple: 'ROUND_ROBIN',
-              // consistentHash:
-              // localityLbSetting:
-            },
+            loadBalancer:   { simple: 'ROUND_ROBIN' },
             connectionPool: {
-              tcp:  {
-                // maxConnections:
-                // connectTimeout:
-                // tcpKeepalive:
-              },
-              http: {
-                // http1MaxPendingRequests:
-                // http2MaxRequests:
-                // maxRequestsPerConnection:
-                // maxRetries:
-                // idleTimeout:
-                // h2UpgradePolicy:
-                // useClientProtocol:
+              tcp:  {},
+              http: {},
+            },
+            outlierDetection: {},
 
-              },
-            },
-            outlierDetection: {
-              // consecutiveGatewayErrors:
-              // consecutive5xxErrors:
-              // interval:
-              // baseEjectionTime:
-              // maxEjectionPercent:
-              // minHealthPercent:
-            },
-
-            tls: {
-              // mode:
-              // clientCertificate:
-              // privateKey:
-              // caCertificates:
-              // credentialName:
-              // subjectAltNames:
-              // sni:
-            },
-            // portLevelSettings:{
-            // - port: '',
-            //     number: 80
-            //   loadBalancer: '',
-            //     simple: LEAST_CONN
-            // }
+            tls: {},
 
           }
         });
