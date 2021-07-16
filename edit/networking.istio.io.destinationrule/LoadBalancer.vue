@@ -45,24 +45,24 @@ export default {
       simpleOptions: ['ROUND_ROBIN', 'LEAST_CONN', 'RANDOM', 'PASSTHROUGH'],
       modeOptions:   [
         {
-          label: 'Use standard load balancing algorithms',
+          label: this.t('istio.destinationRule.loadBalancer.simple.label'),
           value: true
         }, {
-          label: 'Use consistent hash-based load balancing for soft session affinity',
+          label: this.t('istio.destinationRule.loadBalancer.consistentHash.label'),
           value: false
         },
       ],
       hashModeOptions: [
         {
-          label: 'Hash based on specific HTTP header',
+          label: this.t('istio.destinationRule.loadBalancer.consistentHash.mode.header.label'),
           value: 'useHeader'
         },
         {
-          label: 'Hash based on HTTP cookie',
+          label: this.t('istio.destinationRule.loadBalancer.consistentHash.mode.cookie.label'),
           value: 'useCookie'
         },
         {
-          label: 'Hash based on the source IP address',
+          label: this.t('istio.destinationRule.loadBalancer.consistentHash.mode.sourceIp.label'),
           value: 'useIp'
         }
       ],
@@ -119,7 +119,7 @@ export default {
         <LabeledSelect
           v-model="value.simple"
           :options="simpleOptions"
-          label="Algorithm"
+          :label="t('istio.destinationRule.loadBalancer.label')"
           :mode="mode"
         />
       </div>
@@ -132,21 +132,25 @@ export default {
             name="HashOptions"
             :mode="mode"
             :options="hashModeOptions"
-            label="Hash Mode"
+            :label="t('istio.destinationRule.loadBalancer.consistentHash.mode.label')"
           />
         </div>
       </div>
       <div class="row mb-20">
         <div class="col span-6">
-          <LabeledInput v-model="value.consistentHash.minimumRingSize" label="Minimum Ring Size" type="number" />
+          <LabeledInput
+            v-model="value.consistentHash.minimumRingSize"
+            :label="t('istio.destinationRule.loadBalancer.consistentHash.minimumRingSize.label')"
+            type="number"
+          />
         </div>
       </div>
       <div v-if="hashMode === 'useHeader'" class="row">
         <div class="col span-6">
           <LabeledInput
             v-model="value.consistentHash.httpHeaderName"
-            label="HTTP Header Name"
-            placeholder="e.g. end-user"
+            :label="t('istio.destinationRule.loadBalancer.consistentHash.httpHeaderName.label')"
+            :placeholder="t('istio.destinationRule.loadBalancer.consistentHash.httpHeaderName.placeholder')"
           />
         </div>
       </div>
@@ -155,23 +159,23 @@ export default {
         <div class="col span-4">
           <LabeledInput
             v-model="value.consistentHash.httpCookie.name"
-            label="Cookie Name"
-            placeholder="e.g. username"
+            :label="t('istio.destinationRule.loadBalancer.consistentHash.httpCookie.name.label')"
+            :placeholder="t('istio.destinationRule.loadBalancer.consistentHash.httpCookie.name.placeholder')"
             required
           />
         </div>
         <div class="col span-4">
           <LabeledInput
             v-model="value.consistentHash.httpCookie.path"
-            label="Cookie Path"
-            placeholder="e.g. /"
+            :label="t('istio.destinationRule.loadBalancer.consistentHash.httpCookie.path.label')"
+            :placeholder="t('istio.destinationRule.loadBalancer.consistentHash.httpCookie.path.placeholder')"
           />
         </div>
         <div class="col span-4">
           <LabeledInput
             v-model="value.consistentHash.httpCookie.ttl"
-            label="TTL"
-            placeholder="e.g. 0s"
+            :label="t('istio.destinationRule.loadBalancer.consistentHash.httpCookie.ttl.label')"
+            :placeholder="t('istio.destinationRule.loadBalancer.consistentHash.httpCookie.ttl.placeholder')"
             required
           />
         </div>

@@ -1661,11 +1661,13 @@ istio:
       label: Port
       placeholder: e.g. 8080 or myport
     host:
+      label: Input a host
       error: Host is required.
     name:
       placeholder: e.g. myrule
     loadBalancer:
-      label: Load Balancer
+      title: Load Balancer
+      label: Algorithm
       detail: Configure the load balancer algorithms
       simple:
         label: Use standard load balancing algorithms

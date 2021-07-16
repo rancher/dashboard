@@ -56,7 +56,7 @@ export default {
     <div class="mb-20">
       <LabeledInput
         v-model="value.spec.host"
-        label="Input a host"
+        :label="t('istio.destinationRule.host.label')"
         :mode="mode"
 
         :required="true"
@@ -81,7 +81,7 @@ export default {
             <template #default="{row, i}">
               <LabeledInput
                 v-model="row.value.name"
-                label="Name"
+                :label="t('generic.name')"
                 :mode="mode"
                 :required="true"
               />
