@@ -189,7 +189,9 @@ export default {
     },
 
     tabAddClicked() {
-      this.$emit('addTab');
+      const activeTabIndex = findIndex(this.tabs, tab => tab.active);
+
+      this.$emit('addTab', activeTabIndex);
     },
 
     tabRemoveClicked() {

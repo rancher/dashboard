@@ -92,7 +92,7 @@ export default {
     userValue() {
       let userValue = '';
 
-      if ( this.value !== null && this.value !== undefined ) {
+      if ( this.value !== null && this.value !== undefined && this.value !== '' && this.value !== 'null') {
         userValue = parseSi(`${ this.value } ${ this.unit || '' }`, {
           addSuffix:   false,
           increment:   this.increment,
@@ -114,7 +114,7 @@ export default {
       }
 
       if ( this.outputAs === 'string' ) {
-        out = `${ out }`;
+        out = out === null ? '' : `${ out }`;
       }
 
       this.$emit('input', out);

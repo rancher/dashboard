@@ -309,6 +309,7 @@ module.exports = {
     '~/plugins/trim-whitespace',
     { src: '~/plugins/extend-router' },
     { src: '~/plugins/lookup', ssr: false },
+    { src: '~/plugins/int-number', ssr: false },
     { src: '~/plugins/nuxt-client-init', ssr: false },
     '~/plugins/replaceall',
     '~/plugins/back-button',

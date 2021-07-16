@@ -58,6 +58,10 @@ export default {
 
     if ( newCloudCred ) {
       this.value.metadata.namespace = DEFAULT_WORKSPACE;
+
+      this.$set(this.value.metadata, 'name', '');
+
+      this.$set(this.value, 'data', {});
     }
 
     return {
@@ -192,8 +196,12 @@ export default {
         try {
           const res = await this.$refs.cloudComponent.test();
 
-          if ( !res ) {
-            this.errors = ['Authentication test failed, please check your credentials'];
+          if ( !res || res?.errors) {
+            if (res?.errors) {
+              this.errors = res.errors;
+            } else {
+              this.errors = ['Authentication test failed, please check your credentials'];
+            }
             btnCb(false);
 
             return;

@@ -14,5 +14,5 @@ export default {
     // }
 
     return keys.join(', ');
-  }
+  },
 };

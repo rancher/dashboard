@@ -109,3 +109,8 @@ export const ANNOTATIONS_TO_FOLD = [
   /^kubectl\.kubernetes\.io\/.*$/,
   /^objectset\.rio\.cattle\.io\/.*$/,
 ];
+
+export const HCI = {
+  CLUSTER_ID: 'harvesterhci.io/clusterId',
+  CLOUD_INIT: 'harvesterhci.io/cloud-init-template'
+};

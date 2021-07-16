@@ -242,3 +242,25 @@ export const VIRTUAL_TYPES = {
   PROJECT_NAMESPACES: 'projects-namespaces',
   NAMESPACES:         'namespaces'
 };
+
+// harvester
+export const HCI = {
+  VM:                 'kubevirt.io.virtualmachine',
+  VMI:                'kubevirt.io.virtualmachineinstance',
+  VMIM:               'kubevirt.io.virtualmachineinstancemigration',
+  VM_TEMPLATE:        'harvesterhci.io.virtualmachinetemplate',
+  VM_VERSION:         'harvesterhci.io.virtualmachinetemplateversion',
+  IMAGE:              'harvesterhci.io.virtualmachineimage',
+  SSH:                'harvesterhci.io.keypair',
+  DATA_VOLUME:        'cdi.kubevirt.io.datavolume',
+  USER:               'harvesterhci.io.user',
+  SETTING:            'harvesterhci.io.setting',
+  UPGRADE:            'harvesterhci.io.upgrade',
+  BACKUP:             'harvesterhci.io.virtualmachinebackup',
+  RESTORE:            'harvesterhci.io.virtualmachinerestore',
+  BACKUP_CONTENT:     'harvesterhci.io.virtualmachinebackupcontent',
+  NODE_NETWORK:       'network.harvesterhci.io.nodenetwork',
+  CLUSTER_NETWORK:    'network.harvesterhci.io.clusternetwork',
+  SUPPORT_BUNDLE:     'harvesterhci.io.supportbundle',
+  NETWORK_ATTACHMENT: 'k8s.cni.cncf.io.networkattachmentdefinition',
+};
