@@ -108,6 +108,7 @@ export default {
 
       this.rke2Versions = res.rke2Versions.data;
       this.k3sVersions = res.k3sVersions.data;
+      this.allPSPs = res.allPSPs || [];
     }
 
     if ( !this.value.spec ) {
@@ -175,6 +176,16 @@ export default {
 
       set(this.chartValues, v.name, merged);
     }
+
+    if ( this.value.spec.defaultPodSecurityPolicyTemplateName === undefined ) {
+      let def = 'unrestricted';
+
+      if ( !this.allPSPs.find(x => x.name === def) ) {
+        def = this.allPSPs[0]?.name || null;
+      }
+
+      set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', def);
+    }
   },
 
   data() {
@@ -201,10 +212,6 @@ export default {
 
     if ( !this.value.spec.rkeConfig.machineSelectorConfig?.length ) {
       set(this.value.spec, 'rkeConfig.machineSelectorConfig', [{}]);
-    }
-
-    if ( !this.value.spec.defaultPodSecurityPolicyTemplateName ) {
-      set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', null);
     }
 
     return {
