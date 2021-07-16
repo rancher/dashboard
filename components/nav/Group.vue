@@ -34,6 +34,11 @@ export default {
     showHeader: {
       type:    Boolean,
       default: true,
+    },
+
+    fixedOpen: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -69,7 +74,7 @@ export default {
 
     isExpanded: {
       get() {
-        return this.group.isRoot || !!this.expanded;
+        return this.fixedOpen || this.group.isRoot || !!this.expanded;
       },
       set(v) {
         this.expanded = v;
@@ -84,6 +89,11 @@ export default {
     },
 
     groupSelected() {
+      // Don't do anything if we're in the fixed mode and this is an overview
+      if (this.fixedOpen) {
+        return;
+      }
+
       this.expandGroup();
 
       const items = this.group[this.childrenKey];
@@ -105,6 +115,15 @@ export default {
           this.$router.replace(route);
         }
       }
+    },
+
+    selectType() {
+      this.groupSelected();
+      this.close();
+    },
+
+    close() {
+      this.$emit('close');
     },
 
     // User clicked on the expander icon, so toggle the expansion so the user can see inside the group
@@ -172,6 +191,9 @@ export default {
         <li v-if="child.divider" :key="idx">
           <hr />
         </li>
+        <!-- <div v-else-if="child[childrenKey] && hideGroup(child[childrenKey])" :key="child.name">
+          HIDDEN
+        </div> -->
         <li v-else-if="child[childrenKey]" :key="child.name">
           <Group
             ref="groups"
@@ -181,8 +203,10 @@ export default {
             :children-key="childrenKey"
             :can-collapse="canCollapse"
             :group="child"
+            :fixed-open="fixedOpen"
             @selected="groupSelected($event)"
             @expand="expandGroup($event)"
+            @close="close($event)"
           />
         </li>
         <Type
@@ -191,7 +215,7 @@ export default {
           :is-root="depth == 0 && !showHeader"
           :type="child"
           :depth="depth"
-          @selected="expandGroup($event)"
+          @selected="selectType($event)"
         />
       </template>
     </ul>
