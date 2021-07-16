@@ -1,0 +1,28 @@
+{
+  "files.exclude": {
+    ".ackrc": true,
+    ".dockerignore": true,
+    ".drone.yml": true,
+    ".editorconfig": true,
+    ".eslintcache": true,
+    ".eslintignore": true,
+    ".eslintrc.js": true,
+    ".gitignore": true,
+    ".nuxt*": true,
+    ".nyc_output": true,
+    "Dockerfile": true,
+    "LICENSE": true,
+    "babel.config.js": true,
+    "jsconfig.json": true,
+    "yarn-error.log": true
+  },
+  "eslint.format.enable": true,
+  "eslint.run": "onSave",
+  "eslint.packageManager": "yarn",
+  "eslint.validate": ["vue","html","javascript","typescript"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "javascript.preferences.importModuleSpecifier": "non-relative",
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+}
