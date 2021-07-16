@@ -25,12 +25,4 @@
   },
   "javascript.preferences.importModuleSpecifier": "non-relative",
   "typescript.preferences.importModuleSpecifier": "non-relative",
-  "workbench.colorCustomizations": {
-    "panel.border": "#44444450",
-    "tab.activeBackground": "#44444450",
-    "tab.activeBorder": "#2C679B",
-    "activityBar.background": "#2C679B",
-    "titleBar.activeBackground": "#D7E4EA",
-    "titleBar.activeForeground": "#34485d"
-  },
 }
