@@ -94,9 +94,8 @@ export default {
   },
 
   async fetch() {
-    if ( !this.allSecrets ) {
+    if ( !this.rke2Versions ) {
       const hash = {
-        allSecrets:   this.$store.dispatch('management/findAll', { type: SECRET }),
         rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
         k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
       };
@@ -107,7 +106,6 @@ export default {
 
       const res = await allHash(hash);
 
-      this.allSecrets = res.allSecrets;
       this.rke2Versions = res.rke2Versions.data;
       this.k3sVersions = res.k3sVersions.data;
     }
@@ -211,7 +209,6 @@ export default {
 
     return {
       lastIdx:          0,
-      allSecrets:       null,
       allPSPs:          null,
       nodeComponent:    null,
       credentialId:     null,
