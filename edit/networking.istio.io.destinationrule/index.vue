@@ -22,6 +22,16 @@ export default {
   },
 
   mixins: [CreateEditView],
+
+  data() {
+    if (this.mode === 'edit') {
+      const specWithDefaults = Object.assign({}, this.value.spec, this.value.defaultSpec);
+
+      this.$set(this.value, 'spec', specWithDefaults);
+    }
+
+    return {};
+  },
 };
 </script>
 
