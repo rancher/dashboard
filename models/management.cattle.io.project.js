@@ -39,15 +39,6 @@ export default {
     };
   },
 
-  remove() {
-    return async() => {
-      const norman = await this.norman;
-
-      await norman.remove(...arguments);
-      await this.$dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } }, { root: true });
-    };
-  },
-
   norman() {
     return this.id ? this.normanEditProject : this.normanNewProject;
   },

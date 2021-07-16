@@ -11,6 +11,11 @@ export default {
       type:     Object,
       required: true,
     },
+
+    stateKey: {
+      type:    String,
+      default: 'fleet.fleetSummary.state'
+    }
   },
 
   computed: {
@@ -69,7 +74,7 @@ export default {
     <div v-for="(v, k) in counts" :key="k" class="col span-2-of-10">
       <CountBox
         :count="v['count']"
-        :name="capitalize(k)"
+        :name="t(`${stateKey}.${k}`) || capitalize(k)"
         :primary-color-var="'--sizzle-' + v.color"
       />
     </div>
