@@ -101,6 +101,7 @@ export default {
             set(binding, this.parentKey, parentId);
             binding.save();
           });
+
           const removedPromises = removedBindings.map(binding => binding.remove());
 
           return Promise.all([...savedPromises, ...removedPromises]);

@@ -102,6 +102,7 @@ export default {
       if (this.showRegistration && !this.machines?.length) {
         return 'registration';
       }
+
       if (this.showMachines) {
         return 'machine-pools';
       }
