@@ -121,6 +121,10 @@ export default {
 
       const nodeId = this.pod.spec?.nodeName;
 
+      if ( !nodeId ) {
+        return;
+      }
+
       try {
         this.node = await this.$store.dispatch('cluster/find', {
           type: NODE,
@@ -198,6 +202,7 @@ export default {
       if (!this.pod?.links?.view) {
         return;
       }
+
       const { node } = this;
       let cmd = DEFAULT_COMMAND;
 
