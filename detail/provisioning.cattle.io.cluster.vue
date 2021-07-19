@@ -102,6 +102,7 @@ export default {
       if (this.showRegistration && !this.machines?.length) {
         return 'registration';
       }
+
       if (this.showMachines) {
         return 'machine-pools';
       }
@@ -323,14 +324,14 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <ResourceTabs v-else v-model="value" :default-tab="defaultTab">
-    <Tab v-if="showMachines" name="machine-pools" label-key="cluster.tabs.machinePools" :weight="3">
+    <Tab v-if="showMachines" name="machine-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="3">
       <ResourceTable
         :rows="machines"
         :schema="machineSchema"
         :headers="machineHeaders"
         default-sort-by="name"
         :groupable="false"
-        group-by="poolId"
+        :group-by="value.isCustom ? null : 'poolId'"
         group-ref="pool"
         :group-sort="['pool.nameDisplay']"
       >
@@ -366,13 +367,13 @@ export default {
         </template>
       </ResourceTable>
     </Tab>
-    <Tab v-else-if="showNodes" name="node-pools" label-key="cluster.tabs.nodePools" :weight="3">
+    <Tab v-else-if="showNodes" name="node-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="3">
       <ResourceTable
         :schema="mgmtNodeSchema"
         :headers="mgmtNodeSchemaHeaders"
         :rows="nodes"
         :groupable="false"
-        group-by="spec.nodePoolName"
+        :group-by="value.isCustom ? null : 'spec.nodePoolName'"
         group-ref="pool"
         :group-sort="['pool.nameDisplay']"
       >

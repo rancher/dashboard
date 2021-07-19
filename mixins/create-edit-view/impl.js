@@ -146,12 +146,12 @@ export default {
         }
 
         await this.applyHooks(AFTER_SAVE_HOOKS);
-        buttonDone(true);
+        buttonDone && buttonDone(true);
 
         this.done();
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
-        buttonDone(false);
+        buttonDone && buttonDone(false);
       }
     },
 

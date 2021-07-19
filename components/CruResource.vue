@@ -73,7 +73,7 @@ export default {
       default: true,
     },
 
-    // Override the set of labels shown on the button from teh default save/create.
+    // Override the set of labels shown on the button from the default save/create.
     finishButtonMode: {
       type:    String,
       default: null,

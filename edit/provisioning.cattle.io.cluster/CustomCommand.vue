@@ -162,12 +162,12 @@ function sanitizeValue(v) {
       <CopyCode class="m-10 p-10">
         {{ linuxCommand }}
       </CopyCode>
-      <Checkbox v-model="insecure" label-key="cluster.custom.registrationCommand.insecure" />
+      <Checkbox v-if="clusterToken.insecureNodeCommand" v-model="insecure" label-key="cluster.custom.registrationCommand.insecure" />
 
       <template v-if="cluster.supportsWindows">
         <hr class="mt-20 mb-20" />
         <h4 v-t="'cluster.custom.registrationCommand.windowsDetail'" />
-        <CopyCode v-if="cluster.mgmt.isReady || true" class="m-10 p-10">
+        <CopyCode v-if="cluster.mgmt && cluster.mgmt.isReady" class="m-10 p-10">
           {{ windowsCommand }}
         </CopyCode>
         <Banner color="info" :label="t('cluster.custom.registrationCommand.windowsNotReady')" />

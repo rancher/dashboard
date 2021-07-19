@@ -17,7 +17,11 @@ export default {
     getSocketUrl() {
       let cmd = '/bin/sh';
 
-      const isWindows = this.$store.getters['currentCluster'].providerOs === 'windows';
+      if ( !this.cluster ) {
+        return;
+      }
+
+      const isWindows = this.cluster.providerOs === 'windows';
 
       if (isWindows) {
         cmd = ['cmd'];
