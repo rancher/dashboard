@@ -94,16 +94,16 @@ export default {
         this.emberLink = selected?.link;
       }
       await this.selectType(this.subType, false);
-    } else if ( this.value.isImported ) {
-      // Edit exiting import
-      this.isImport = true;
-      this.selectType('import', false);
-    } else if ( this.value.isCustom ) {
+    // } else if ( this.value.isImported ) {
+    //   // Edit exiting import
+    //   this.isImport = true;
+    //   this.selectType('import', false);
+    } else if ( this.value.isRke2 && this.value.isCustom ) {
       // Edit exiting custom
       this.selectType('custom', false);
     } else if ( this.value.isRke2 && this.value.machineProvider ) {
       // Edit exiting RKE2
-      await this.selectType(this.value.machineProvider, false);
+      this.selectType(this.value.machineProvider, false);
     } else if ( this.value.mgmt?.emberEditPath ) {
       // Iframe an old page
       this.emberLink = this.value.mgmt.emberEditPath;
