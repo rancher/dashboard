@@ -1,5 +1,6 @@
 <script>
 import dayjs from 'dayjs';
+import { mapGetters } from 'vuex';
 import { HCI } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import ModalWithCard from '@/components/ModalWithCard';
@@ -33,6 +34,8 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
+
     versionOptions() {
       const settings = this.$store.getters['cluster/all'](HCI.SETTING);
 
@@ -121,23 +124,26 @@ export default {
 
 <template>
   <div>
-    <header class="header">
+    <header class="header mb-0">
       <h1>
-        <t k="harvester.dashboard.header" />
+        <t
+          k="harvester.dashboard.header"
+          :cluster="currentCluster.nameDisplay"
+        />
       </h1>
       <button v-if="versionOptions.length" type="button" class="btn bg-warning btn-sm" @click="open">
-        <t k="harvester.upgradePage.upgrade" />
+        <t k="harvester.dashboard.upgrade.upgrade" />
       </button>
     </header>
 
     <ModalWithCard ref="deleteTip" name="deleteTip" :width="500">
       <template #title>
-        <t k="harvester.upgradePage.upgradeApp" />
+        <t k="harvester.dashboard.upgrade.upgradeApp" />
       </template>
 
       <template #content>
         <div class="currentVersion">
-          <span> <t k="harvester.upgradePage.currentVersion" /> </span>
+          <span> <t k="harvester.dashboard.upgrade.currentVersion" /> </span>
           <span class="version">{{ currentVersion }}</span>
         </div>
 
@@ -147,7 +153,7 @@ export default {
           <LabeledSelect
             v-model="version"
             class="mb-20"
-            :label="t('harvester.upgradePage.versionLabel')"
+            :label="t('harvester.dashboard.upgrade.versionLabel')"
             :options="versionOptions"
             :clearable="true"
           />
@@ -164,7 +170,7 @@ export default {
             <t k="generic.close" />
           </button>
           <button class="btn role-tertiary bg-primary btn-sm mr-20" @click.prevent="handleUpgrade">
-            <t k="harvester.upgradePage.upgrade" />
+            <t k="harvester.dashboard.upgrade.upgrade" />
           </button>
         </div>
       </template>
@@ -176,6 +182,7 @@ export default {
   .header {
     display: flex;
     justify-content: space-between;
+    align-items: center;
   }
 
   .footer {

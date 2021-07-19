@@ -11,8 +11,8 @@ import { parseSi, formatSi, exponentNeeded, UNITS } from '@/utils/units';
 import { REASON } from '@/config/table-headers';
 import { EVENT, METRIC, NODE, HCI } from '@/config/types';
 import SimpleBox from '@/components/SimpleBox';
-import ResourceGauge from '@/components/ResourceGauge';
-import HardwareResourceGauge from './HardwareResourceGauge';
+import ResourceSummary from '@/components/ResourceSummary';
+import HardwareResourceGauge from '@/components/HardwareResourceGauge';
 import Upgrade from './Upgrade';
 
 dayjs.extend(utc);
@@ -45,19 +45,28 @@ export default {
   components: {
     Loading,
     HardwareResourceGauge,
-    ResourceGauge,
     SimpleBox,
     SortableTable,
     Upgrade,
+    ResourceSummary,
   },
 
   async fetch() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+
     const hash = {
-      vms:         this.fetchClusterResources(HCI.VM),
-      nodes:       this.fetchClusterResources(NODE),
-      events:      this.fetchClusterResources(EVENT),
-      metricNodes: this.fetchClusterResources(METRIC.NODE),
+      vms:          this.fetchClusterResources(HCI.VM),
+      nodes:        this.fetchClusterResources(NODE),
+      events:       this.fetchClusterResources(EVENT),
+      metricNodes:  this.fetchClusterResources(METRIC.NODE),
+      settings:    this.fetchClusterResources(HCI.SETTING),
     };
+
+    (this.accessibleResources || []).map((a) => {
+      hash[a.type] = this.$store.dispatch(`${ inStore }/findAll`, { type: a.type });
+
+      return null;
+    });
 
     const res = await allHash(hash);
 
@@ -112,18 +121,22 @@ export default {
 
   computed: {
     accessibleResources() {
-      return RESOURCES.filter(resource => this.$store.getters['cluster/schemaFor'](resource.type));
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return RESOURCES.filter(resource => this.$store.getters[`${ inStore }/schemaFor`](resource.type));
     },
 
     currentVersion() {
-      const settings = this.$store.getters['cluster/all'](HCI.SETTING);
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const settings = this.$store.getters[`${ inStore }/all`](HCI.SETTING);
       const setting = settings.find( S => S.id === 'server-version');
 
       return setting?.value || setting?.default;
     },
 
     firstNodeCreationTimestamp() {
-      const days = this.$store.getters['cluster/all'](NODE).map( (N) => {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const days = this.$store.getters[`${ inStore }/all`](NODE).map( (N) => {
         return dayjs(N.metadata.creationTimestamp);
       });
 
@@ -242,8 +255,6 @@ export default {
 
     cpuUsed() {
       return {
-        // total:  formatSi(this.cpusTotal),
-        // useful: formatSi(this.cpusUsageTotal)
         total:  this.cpusTotal,
         useful: this.cpusUsageTotal
       };
@@ -259,7 +270,11 @@ export default {
 
     filterEvents() {
       return this.events.filter( E => ['VirtualMachineInstance', 'VirtualMachine'].includes(E.involvedObject.kind));
-    }
+    },
+
+    nodesTotal() {
+      return this.nodes.length || 0;
+    },
   },
 
   mounted() {
@@ -298,12 +313,14 @@ export default {
       return `${ UNITS[exponent] }${ PARSE_RULES.memory.format.suffix }`;
     },
 
-    async fetchClusterResources(type, opt = {}) {
-      const schema = this.$store.getters['cluster/schemaFor'](type);
+    async fetchClusterResources(type, opt = {}, store) {
+      const inStore = store || this.$store.getters['currentProduct'].inStore;
+
+      const schema = this.$store.getters[`${ inStore }/schemaFor`](type);
 
       if (schema) {
         try {
-          const resources = await this.$store.dispatch('cluster/findAll', { type, opt });
+          const resources = await this.$store.dispatch(`${ inStore }/findAll`, { type, opt });
 
           return resources;
         } catch (err) {
@@ -337,28 +354,70 @@ export default {
       class="cluster-dashboard-glance"
     >
       <div>
-        <label>{{ t('glance.created') }}: </label>
-        <span><LiveDate :value="firstNodeCreationTimestamp" :add-suffix="true" :show-tooltip="true" /></span>
+        <label>
+          {{ t('harvester.dashboard.version') }}:
+        </label>
+        <span>
+          <span v-tooltip="{content: currentVersion}">
+            {{ currentVersion }}
+          </span>
+        </span>
+      </div>
+      <div>
+        <label>
+          {{ t('glance.nodes.total.label', { count: nodesTotal}) }}:
+        </label>
+        <span>
+          <span v-tooltip="{content: nodesTotal}">
+            {{ nodesTotal }}
+          </span>
+        </span>
+      </div>
+      <div>
+        <label>
+          {{ t('glance.created') }}:
+        </label>
+        <span>
+          <LiveDate
+            :value="firstNodeCreationTimestamp"
+            :add-suffix="true"
+            :show-tooltip="true"
+          />
+        </span>
       </div>
     </div>
 
-    <div class="resource-gauges mb-20">
-      <ResourceGauge
-        v-for="(resource, i) in accessibleResources"
+    <div class="resource-gauges">
+      <ResourceSummary
+        v-for="resource in accessibleResources"
         :key="resource.type"
         :resource="resource.type"
-        :visit-resource="resource.visitResource"
-        :primary-color-var="`--sizzle-${i}`"
       />
     </div>
 
+    <h3 class="mt-40">
+      {{ t('clusterIndexPage.sections.capacity.label') }}
+    </h3>
     <div class="hardware-resource-gauges">
-      <HardwareResourceGauge :name="t('harvester.dashboard.hardwareResourceGauge.cpu')" :total="cpuUsed.total" :useful="cpuUsed.useful" />
-      <HardwareResourceGauge :name="t('harvester.dashboard.hardwareResourceGauge.memory')" :total="memoryUsed.total" :useful="memoryUsed.useful" :units="memoryUsed.units" />
-      <HardwareResourceGauge :name="t('harvester.dashboard.hardwareResourceGauge.storage')" :total="storageUsed.total" :useful="storageUsed.useful" :units="storageUsed.units" />
+      <HardwareResourceGauge
+        :name="t('harvester.dashboard.hardwareResourceGauge.cpu')"
+        :reserved="cpuUsed"
+      />
+      <HardwareResourceGauge
+        :name="t('harvester.dashboard.hardwareResourceGauge.memory')"
+        :reserved="memoryUsed"
+      />
+      <HardwareResourceGauge
+        :name="t('harvester.dashboard.hardwareResourceGauge.storage')"
+        :reserved="storageUsed"
+        :units="storageUsed.units"
+      />
     </div>
 
-    <SimpleBox class="events" :title="t('harvester.dashboard.sections.events.label')">
+    <SimpleBox
+      class="events"
+      :title="t('harvester.dashboard.sections.events.label')"
+    >
       <SortableTable
         :rows="filterEvents"
         :headers="eventHeaders"
