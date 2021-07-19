@@ -472,7 +472,9 @@ export const actions = {
       promises['namespaces'] = dispatch('management/findAll', { type: NAMESPACE });
     }
 
-    if ( getters['management/schemaFor'](FLEET.WORKSPACE) ) {
+    const fleetSchema = getters['management/schemaFor'](FLEET.WORKSPACE);
+
+    if (fleetSchema?.links?.collection) {
       promises['workspaces'] = dispatch('management/findAll', { type: FLEET.WORKSPACE });
     }
 
