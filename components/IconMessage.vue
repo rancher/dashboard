@@ -52,6 +52,7 @@ export default {
     align-items: center;
     justify-content: center;
     flex: 1;
+    flex-direction: column;
 
     > I {
       font-size: 64px;
