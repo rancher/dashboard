@@ -3869,6 +3869,14 @@ harvester:
     sections:
       events:
         label: 事件
+    upgrade:
+      upgradeApp: 升级软件
+      upgrade: 升级
+      upgradeTip: 请选中要升级到的版本
+      currentVersion: 当前版本
+      versionLabel: 可用的兼容版本
+      upgradeNode: 升级节点
+      upgradeSysService: 升级系统服务
 
   host:
     label: 主机

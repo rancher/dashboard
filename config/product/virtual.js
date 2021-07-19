@@ -29,14 +29,13 @@ export function init(store) {
     icon:                'compass'
   });
 
-  basicType(['virtual-dashboard']);
+  basicType([HCI.DASHBOARD]);
   virtualType({
-    ifHaveType:    NODE,
     label:         store.getters['i18n/t']('harvester.dashboard.label'),
     group:        'Root',
     labelDisplay: 'harvester.nav.dashboard',
     namespaced:   true,
-    name:         'virtual-dashboard',
+    name:         HCI.DASHBOARD,
     weight:       500,
     route:        { name: 'c-cluster-virtual' },
     exact:        true,

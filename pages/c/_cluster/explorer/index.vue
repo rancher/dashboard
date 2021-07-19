@@ -35,8 +35,8 @@ import { allDashboardsExist } from '@/utils/grafana';
 import EtcdInfoBanner from '@/components/EtcdInfoBanner';
 import metricPoller from '@/mixins/metric-poller';
 import EmberPage from '@/components/EmberPage';
-import ResourceSummary, { resourceCounts } from './ResourceSummary';
-import HardwareResourceGauge from './HardwareResourceGauge';
+import ResourceSummary, { resourceCounts } from '@/components/ResourceSummary';
+import HardwareResourceGauge from '@/components/HardwareResourceGauge';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 

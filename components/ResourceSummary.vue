@@ -1,6 +1,5 @@
 <script>
 import SimpleBox from '@/components/SimpleBox';
-import { NAME as EXPLORER } from '@/config/product/explorer';
 import { COUNT } from '@/config/types';
 import { colorForState } from '@/plugins/steve/resource-instance';
 
@@ -75,7 +74,10 @@ export default {
 
       const route = {
         name:     'c-cluster-product-resource',
-        params:   { product: EXPLORER, resource: this.resource }
+        params:   {
+          product:  this.$store.getters['currentProduct'].name,
+          resource: this.resource,
+        }
       };
 
       if (this.cluster) {

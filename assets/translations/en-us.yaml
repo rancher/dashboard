@@ -143,7 +143,7 @@ product:
   clusterManagement: Cluster Management
   monitoring: Monitoring
   mcapps: Multi-cluster Apps
-  virtualManagement: Virtualization Management 
+  virtualManager: Virtualization Management
 
 suffix:
   percent: "%"
@@ -4624,7 +4624,7 @@ harvester:
     virtaulName: Virtual machine name
   dashboard:
     label: Dashboard
-    header: Dashboard
+    header: "Harvester Clsuter: {cluster}"
     hardwareResourceGauge:
       cpu: CPU
       memory: Memory
@@ -4632,6 +4632,15 @@ harvester:
     sections:
       events:
         label: Events
+    upgrade:
+      upgradeApp: Upgrade Software
+      upgrade: Upgrade
+      upgradeTip: Please select the version you want to upgrade to
+      currentVersion: CURRENT VERSION
+      versionLabel: AVAILABLE COMPATIBLE VERSIONS
+      upgradeNode: Upgrading Nodes
+      upgradeSysService: Upgrading System Services
+    version: version
 
   host:
     label: Hosts
@@ -4859,6 +4868,10 @@ harvester:
 
   cloudTemplate:
     label: Cloud Config Templates
+
+  manager:
+    cluster:
+      label: Clusters
 
 ##############################
 # Model Properties
@@ -5208,6 +5221,11 @@ typeLabel:
     {count, plural,
       one { Backup }
       other { Backups }
+    }
+  harvesterhci.io.management.cluster: |-
+    {count, plural,
+      one { Cluster }
+      other { Clusters }
     }
   
 

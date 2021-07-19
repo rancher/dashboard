@@ -264,4 +264,6 @@ export const HCI = {
   CLUSTER_NETWORK:    'network.harvesterhci.io.clusternetwork',
   SUPPORT_BUNDLE:     'harvesterhci.io.supportbundle',
   NETWORK_ATTACHMENT: 'k8s.cni.cncf.io.networkattachmentdefinition',
+  CLUSTER:            'harvesterhci.io.management.cluster',
+  DASHBOARD:          'harvesterhci.io.dashboard',
 };
