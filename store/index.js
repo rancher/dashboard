@@ -34,26 +34,32 @@ export const plugins = [
 
 export const state = () => {
   return {
-    managementReady:  false,
-    clusterReady:     false,
-    isMultiCluster:   false,
-    isRancher:        false,
-    namespaceFilters: [],
-    allNamespaces:    null,
-    allWorkspaces:    null,
-    clusterId:        null,
-    productId:        null,
-    workspace:        null,
-    error:            null,
-    cameFromError:    false,
-    pageActions:      [],
-    serverVersion:    null,
+    managementReady:     false,
+    clusterReady:        false,
+    virtualClusterReady:     false,
+    isMultiCluster:      false,
+    isRancher:           false,
+    namespaceFilters:    [],
+    allNamespaces:       null,
+    allWorkspaces:       null,
+    clusterId:           null,
+    productId:           null,
+    virtualClusterId:           null,
+    workspace:           null,
+    error:               null,
+    cameFromError:       false,
+    pageActions:         [],
+    serverVersion:       null,
   };
 };
 
 export const getters = {
   clusterReady(state) {
     return state.clusterReady === true;
+  },
+
+  virtualClusterReady(state) {
+    return state.virtualClusterReady === true;
   },
 
   isMultiCluster(state) {
@@ -70,6 +76,10 @@ export const getters = {
 
   productId(state, getters) {
     return state.productId;
+  },
+
+  virtualClusterId(state, getters) {
+    return state.virtualClusterId;
   },
 
   workspace(state, getters) {
@@ -376,6 +386,10 @@ export const mutations = {
     state.clusterReady = ready;
   },
 
+  virtualClusterChanged(state, ready) {
+    state.virtualClusterReady = ready;
+  },
+
   updateNamespaces(state, { filters, all }) {
     state.namespaceFilters = filters.filter(x => !!x);
 
@@ -411,6 +425,10 @@ export const mutations = {
 
   setProduct(state, neu) {
     state.productId = neu;
+  },
+
+  setVirtualClusterId(state, neu) {
+    state.virtualClusterId = neu;
   },
 
   setError(state, obj) {
@@ -590,11 +608,9 @@ export const actions = {
 
     // Update the Steve client URLs
     commit('cluster/applyConfig', { baseUrl: clusterBase });
-    commit('virtual/applyConfig', { baseUrl: virtualBase });
 
     await Promise.all([
       dispatch('cluster/loadSchemas', true),
-      dispatch('virtual/loadSchemas', true),
     ]);
 
     dispatch('cluster/subscribe');
@@ -610,9 +626,7 @@ export const actions = {
     const res = await allHash({
       projects:          isRancher && dispatch('management/findAll', projectArgs),
       counts:            dispatch('cluster/findAll', { type: COUNT }),
-      virtualCount:      dispatch('virtual/findAll', { type: COUNT }),
       namespaces:        dispatch('cluster/findAll', { type: NAMESPACE }),
-      virtualNamespaces: dispatch('virtual/findAll', { type: NAMESPACE }),
       navLinks:          !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
     });
 
@@ -640,6 +654,79 @@ export const actions = {
       }
     });
     commit('updateNamespaces', { filters: value });
+  },
+
+  async loadVirtual({
+    state, commit, dispatch, getters
+  }, id) {
+    const isMultiCluster = getters['isMultiCluster'];
+
+    if (isMultiCluster && id === 'local') {
+      return;
+    }
+
+    if ( state.virtualClusterId && state.virtualClusterId === id ) {
+      // Do nothing, we're already connected/connecting to this cluster
+      return;
+    }
+
+    if ( state.virtualClusterId && id ) {
+      commit('virtualClusterChanged', false);
+
+      await dispatch('virtual/unsubscribe');
+      commit('virtual/reset');
+    }
+
+    if (id) {
+      commit('setVirtualClusterId', id);
+    }
+
+    console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
+
+    // See if it really exists
+    const cluster = await dispatch('management/find', {
+      type: MANAGEMENT.CLUSTER,
+      id,
+      opt:  { url: `${ MANAGEMENT.CLUSTER }s/${ escape(id) }` }
+    });
+
+    const virtualBase = `/k8s/clusters/${ escape(id) }/v1/harvester`;
+
+    if ( !cluster ) {
+      commit('setVirtualClusterId', null);
+      commit('virtual/applyConfig', { baseUrl: null });
+      throw new ClusterNotFoundError(id);
+    }
+
+    // Update the Steve client URLs
+    commit('virtual/applyConfig', { baseUrl: virtualBase });
+
+    await Promise.all([
+      dispatch('virtual/loadSchemas', true),
+    ]);
+
+    dispatch('virtual/subscribe');
+
+    await allHash({
+      virtualCount:      dispatch('virtual/findAll', { type: COUNT }),
+      virtualNamespaces: dispatch('virtual/findAll', { type: NAMESPACE }),
+    });
+
+    commit('virtualClusterChanged', true);
+
+    console.log('Done loading virtual cluster.'); // eslint-disable-line no-console
+  },
+
+  async clearVirtual({
+    state, commit, dispatch, getters
+  }, id) {
+    if ( state.virtualClusterId && id ) {
+      commit('virtualClusterChanged', false);
+
+      await dispatch('virtual/unsubscribe');
+      commit('virtual/reset');
+      commit('setVirtualClusterId', null);
+    }
   },
 
   async cleanNamespaces({ getters, dispatch }) {

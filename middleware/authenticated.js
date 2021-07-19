@@ -10,6 +10,7 @@ import { applyProducts } from '@/store/type-map';
 import { findBy } from '@/utils/array';
 import { ClusterNotFoundError } from '@/utils/error';
 import { get } from '@/utils/object';
+import { NAME as VIRTUAL } from '@/config/product/virtual';
 
 let beforeEachSetup = false;
 
@@ -217,13 +218,22 @@ export default async function({
 
   try {
     let clusterId = get(route, 'params.cluster');
+    const productId = get(route, 'params.product');
 
     if ( clusterId ) {
       // Run them in parallel
-      await Promise.all([
+      const res = [
         await store.dispatch('loadManagement'),
         await store.dispatch('loadCluster', clusterId),
-      ]);
+      ];
+
+      if (route.name === `c-cluster-${ VIRTUAL }` || productId === VIRTUAL) {
+        res.push(await store.dispatch('loadVirtual', clusterId));
+      } else {
+        res.push(await store.dispatch('clearVirtual', clusterId));
+      }
+
+      await Promise.all(res);
     } else {
       await store.dispatch('loadManagement');
 
