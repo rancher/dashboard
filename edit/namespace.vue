@@ -44,13 +44,11 @@ export default {
       projectName = null;
     }
 
-    if (this.mode === 'edit') {
-      return {
-        originalQuotaId,
-        project:                 projectName,
-        containerResourceLimits: this.value.annotations[CONTAINER_DEFAULT_RESOURCE_LIMIT] || this.getDefaultContainerResourceLimits(projectName)
-      };
-    }
+    return {
+      originalQuotaId,
+      project:                 projectName,
+      containerResourceLimits: this.value.annotations[CONTAINER_DEFAULT_RESOURCE_LIMIT] || this.getDefaultContainerResourceLimits(projectName)
+    };
   },
 
   computed: {

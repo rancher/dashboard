@@ -23,23 +23,32 @@ export default {
       const out = {
         success: {
           count: 0,
-          color: 'success'
+          color: 'success',
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.success`, null, 'Success')
         },
         info:    {
           count: 0,
-          color: 'info'
+          color: 'info',
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.info`, null, 'Info')
+
         },
         warning: {
           count: 0,
-          color: 'warning'
+          color: 'warning',
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.warning`, null, 'Warning')
+
         },
         error:   {
           count: 0,
-          color: 'error'
+          color: 'error',
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.error`, null, 'Error')
+
         },
         unknown: {
           count: 0,
-          color: 'warning'
+          color: 'warning',
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.unknown`, null, 'Unknown')
+
         },
       };
 
@@ -57,6 +66,7 @@ export default {
           out[k] = {
             count: this.value[k] || 0,
             color: mapped.color,
+            label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ k }`, null, capitalize(k))
           };
         }
       }
@@ -74,7 +84,7 @@ export default {
     <div v-for="(v, k) in counts" :key="k" class="col span-2-of-10">
       <CountBox
         :count="v['count']"
-        :name="t(`${stateKey}.${k}`) || capitalize(k)"
+        :name="v.label"
         :primary-color-var="'--sizzle-' + v.color"
       />
     </div>
