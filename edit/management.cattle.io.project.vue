@@ -36,7 +36,11 @@ export default {
       membershipUpdate: {}
     };
   },
-
+  computed: {
+    hasMemberAccess() {
+      return !!this.projectRoleTemplateBindingSchema;
+    }
+  },
   watch: {
     hasOwner() {
       this.errors = this.hasOwner ? [] : [this.t('project.haveOneOwner')];
@@ -47,7 +51,6 @@ export default {
     this.$set(this.value, 'spec', this.value.spec || {});
     this.$set(this.value.spec, 'containerDefaultResourceLimit', this.value.spec.containerDefaultResourceLimit || {});
   },
-
   methods: {
     async save(saveCb) {
       try {
@@ -71,7 +74,7 @@ export default {
     onMembershipUpdate(update) {
       this.$set(this, 'membershipUpdate', update);
     }
-  }
+  },
 };
 </script>
 <template>
@@ -90,7 +93,7 @@ export default {
   >
     <NameNsDescription v-model="value" :mode="mode" :namespaced="false" description-key="spec.description" name-key="spec.displayName" />
     <Tabbed :side-tabs="true">
-      <Tab name="members" :label="t('project.members.label')" :weight="10">
+      <Tab v-if="hasMemberAccess" name="members" :label="t('project.members.label')" :weight="10">
         <ProjectMembershipEditor :mode="mode" :parent-id="value.id" @has-owner-changed="onHasOwnerChanged" @membership-update="onMembershipUpdate" />
       </Tab>
       <Tab name="resource-quotas" :label="t('project.resourceQuotas')" :weight="9">
