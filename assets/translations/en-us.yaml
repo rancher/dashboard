@@ -887,6 +887,7 @@ cluster:
   agentEnvVars:
     label: Agent Environment
     detail: Add additional environment variables to the agent container.  This is most commonly useful for configuring a HTTP proxy.
+    keyLabel: Variable Name
   custom:
     nodeRole:
       label: Node Role
