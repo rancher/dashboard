@@ -9,11 +9,13 @@ import ResourceTabs from '@/components/form/ResourceTabs';
 
 import { COUNT } from '@/config/types';
 import { getStatesByType } from '@/plugins/steve/resource-instance';
+import MoveModal from '@/components/MoveModal';
 
 export default {
   components: {
     FleetSummary,
     ResourceTabs,
+    MoveModal
   },
 
   mixins: [CreateEditView],
@@ -93,8 +95,9 @@ export default {
   <div>
     <div class="mb-20">
       <h3>{{ t('namespace.resources') }}</h3>
-      <FleetSummary :value="namespacedCounts" />
+      <FleetSummary state-key="namespace.resourceStates" :value="namespacedCounts" />
     </div>
     <ResourceTabs v-model="value" :mode="mode" />
+    <MoveModal />
   </div>
 </template>

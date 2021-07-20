@@ -56,6 +56,8 @@ export default {
       .filter(b => !b.user?.isSystem)
       .filter(b => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
 
+    this.$set(this, 'lastSavedBindings', [...bindings]);
+
     // Add the current user as the project owner. This will get created by default
     if (this.mode === _CREATE && bindings.length === 0 && this.defaultBindingHandler) {
       bindings.push(await this.defaultBindingHandler());
@@ -64,7 +66,6 @@ export default {
     const [users] = await Promise.all(userHydration);
 
     this.$set(this, 'bindings', bindings);
-    this.$set(this, 'lastSavedBindings', bindings);
     this.$set(this, 'users', users);
   },
 

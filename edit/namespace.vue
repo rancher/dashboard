@@ -11,6 +11,7 @@ import Tab from '@/components/Tabbed/Tab';
 import CruResource from '@/components/CruResource';
 import Labels from '@/components/form/Labels';
 import { PROJECT_ID } from '@/config/query-params';
+import MoveModal from '@/components/MoveModal';
 
 export default {
   components: {
@@ -20,7 +21,8 @@ export default {
     Labels,
     NameNsDescription,
     Tab,
-    Tabbed
+    Tabbed,
+    MoveModal
   },
 
   mixins: [CreateEditView],
@@ -31,13 +33,21 @@ export default {
     if ( this.originalValue?.metadata?.name ) {
       originalQuotaId = `${ this.originalValue.metadata.name }/default-quota`;
     }
+    let projectName = this.value?.metadata?.labels?.[PROJECT] || this.$route.query[PROJECT_ID];
+    const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
-    const project = this.value?.metadata?.labels?.[PROJECT] || this.$route.query[PROJECT_ID];
+    const project = projects.find(p => p.id.includes(projectName));
+
+    // namespaces' project label remains when a project has been deleted: verify this project still exists
+    if (!project && this.value?.metadata?.labels?.[PROJECT]) {
+      delete this.value.metadata.labels[PROJECT];
+      projectName = null;
+    }
 
     return {
       originalQuotaId,
-      project,
-      containerResourceLimits: this.value.annotations[CONTAINER_DEFAULT_RESOURCE_LIMIT] || this.getDefaultContainerResourceLimits(project)
+      project:                 projectName,
+      containerResourceLimits: this.value.annotations[CONTAINER_DEFAULT_RESOURCE_LIMIT] || this.getDefaultContainerResourceLimits(projectName)
     };
   },
 
@@ -98,13 +108,14 @@ export default {
       this.value.setAnnotation(PROJECT, annotation);
     },
 
-    getDefaultContainerResourceLimits(projectId) {
-      if (!projectId) {
+    getDefaultContainerResourceLimits(projectName) {
+      if (!projectName) {
         return;
       }
 
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
-      const project = projects.find(p => p.id.includes(projectId));
+
+      const project = projects.find(p => p.id.includes(projectName));
 
       return project.spec.containerDefaultResourceLimit || {};
     }
@@ -162,5 +173,6 @@ export default {
         />
       </Tab>
     </Tabbed>
+    <MoveModal />
   </CruResource>
 </template>
