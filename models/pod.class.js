@@ -240,7 +240,7 @@ export default class Pod extends Resource {
   },
 
   findFailingContainerStatus() {
-    return get(this, 'status.containerStatuses', []).find((container) => {
+    return (get(this, 'status.containerStatuses'), []).find((container) => {
       return !container.ready &&
       (includes(failedWaitingContainerReasons, get(container, 'state.waiting.reason')) ||
       includes(failedTerminationContaineReasons, get(container, 'state.terminated.reason')));
@@ -316,10 +316,8 @@ export default class Pod extends Resource {
   },
 
   getPodFalseStatusConditions() {
-    return this.getPodStatusConditions.filter(condition => condition.status !== 'True');
-  },
+    const conditions = get(this, 'status.conditions') || [];
 
-  getPodStatusConditions() {
-    return get(this, 'status.conditions', []);
-  },
+    return conditions.filter(condition => condition.status !== 'True');
+  }
 };

@@ -3859,6 +3859,30 @@ harvester:
     volume: 卷
     network: 网络
     advanced: 高级选项
+
+  validation:
+    custom:
+      tooLongName: '"名称" 不能超过 {max} 个字符'
+      cidr: '非法的CIRD'
+    vm:
+      name: '"名称" 是必填项'
+      memory: '"内存" 是必填项'
+      network:
+        error: '网络 {prefix}: {message}'
+        name: '"网络名称" 是必填项'
+        macFormat: 'MAC 地址格式不正确'
+        duplicatedName: '网络名称重复'
+        duplicatedPortName: '端口名重复'
+        duplicatedPortNumber: '端口号重复'
+      volume:
+        error: '卷 {prefix}: {message}'
+        type: '"类型" 是必填项'
+        duplicatedName: '卷名称重复'
+        size: '"大小" 是必填项'
+        image: '"镜像" 是必填项'
+        volume: '"卷" 是必填项'
+        docker: '"Docker 镜像" 是必填项'
+
   dashboard:
     label: 概览
     header: 仪表盘
@@ -4384,7 +4408,6 @@ typeLabel:
   harvesterhci.io.setting: 设置
   host: 主机
   harvesterhci.io.virtualmachinebackup: 备份
-  cloudTemplate: Cloud 配置模板
 
 action:
   clone: 克隆

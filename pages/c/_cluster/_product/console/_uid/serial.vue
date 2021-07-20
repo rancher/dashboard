@@ -1,11 +1,16 @@
 <script>
 import { HCI } from '@/config/types';
-import Console from '@/components/form/Console';
+import SerialConsole from '@/components/form/SerialConsole';
+import Loading from '@/components/Loading';
 
 export default {
   layout: 'blank',
 
-  components: { Console },
+  components: { SerialConsole, Loading },
+
+  async fetch() {
+    this.rows = await this.$store.dispatch('virtual/findAll', { type: HCI.VMI });
+  },
 
   data() {
     return { uid: this.$route.params.uid };
@@ -24,22 +29,23 @@ export default {
 
   mounted() {
     window.addEventListener('beforeunload', () => {
-      this.$refs.console.close();
+      this.$refs.serialConsole.close();
     });
   },
 
   head() {
-    return { title: this.vmi.metadata.name };
+    return { title: this.vmi?.metadata?.name };
   },
 };
 </script>
 
 <template>
-  <Console ref="console" v-model="vmi" />
+  <Loading v-if="$fetchState.pending" />
+  <SerialConsole v-else ref="serialConsole" v-model="vmi" />
 </template>
 
 <style lang="scss">
-  body, #__nuxt, #__layout, main, #app, .vm-console, .vm-console >div, .vm-console >div >div{
+  body, #__nuxt, #__layout, main {
     height: 100%;
   }
 </style>

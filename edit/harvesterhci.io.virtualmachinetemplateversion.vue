@@ -1,10 +1,7 @@
 <script>
 import randomstring from 'randomstring';
-import cloneDeep from 'lodash/cloneDeep';
-
-import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
-import Loading from '@/components/Loading';
+import Tab from '@/components/Tabbed/Tab';
 import Checkbox from '@/components/form/Checkbox';
 import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -17,8 +14,7 @@ import ImageSelect from '@/edit/kubevirt.io.virtualmachine/Image';
 import SSHKey from '@/edit/kubevirt.io.virtualmachine/SSHKey';
 
 import { HCI } from '@/config/types';
-import { allHash } from '@/utils/promise';
-import { _CONFIG } from '@/config/query-params';
+import { _CONFIG, _EDIT, _VIEW } from '@/config/query-params';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { cleanForNew } from '@/plugins/steve/normalize';
 
@@ -29,16 +25,15 @@ export default {
   name: 'EditVMTemplate',
 
   components: {
-    Loading,
-    Volume,
-    Network,
-    CruResource,
-    CpuMemory,
-    ImageSelect,
-    SSHKey,
-    Checkbox,
-    Tabbed,
     Tab,
+    SSHKey,
+    Volume,
+    Tabbed,
+    Network,
+    Checkbox,
+    CpuMemory,
+    CruResource,
+    ImageSelect,
     CloudConfig,
     NameNsDescription
   },
@@ -52,59 +47,17 @@ export default {
     },
   },
 
-  async fetch() {
-    const hash = await allHash({
-      templates:  this.$store.dispatch('virtual/findAll', { type: HCI.VM_TEMPLATE }),
-      versions:   this.$store.dispatch('virtual/findAll', { type: HCI.VM_VERSION }),
-    });
-
-    let templateId = this.$route.query.templateId;
-    let versionId = this.$route.query.versionId;
-
-    if (this.$route.query?.as === _CONFIG) {
-      templateId = this?.value?.spec?.templateId;
-      versionId = this?.value?.id;
-    }
-
-    let templateValue = hash.templates.find( V => V.id === templateId) || null;
-    let templateSpec = templateValue?.spec;
-
-    if (!templateValue) {
-      templateSpec = {
-        description:      '',
-        defaultVersionId: ''
-      };
-
-      templateValue = await this.$store.dispatch('virtual/create', {
-        metadata: {
-          name:      '',
-          namespace: 'default'
-        },
-        spec:     templateSpec,
-        type:     HCI.VM_TEMPLATE
-      });
-    }
-
-    if (versionId) {
-      const versionValue = hash.versions.find( V => V.id === versionId);
-
-      const cloneDeepVersion = cloneDeep(versionValue);
-
-      this.value.spec = cloneDeepVersion.spec;
-      this.value.spec.vm = cloneDeepVersion.spec.vm;
-    }
-
-    this.templateId = templateId;
-    this.versionId = versionId;
-    this.templateValue = templateValue;
-    this.templateSpec = templateSpec;
-  },
-
   data() {
+    if (this.mode === _EDIT) {
+      this.value = cleanForNew(this.value);
+    }
+
+    const templateId = this.value.templateId || this.$route.query.templateId;
+
     return {
-      templateId:       '',
-      templateValue:    {},
-      templateSpec:     {},
+      templateId,
+      templateValue:    null,
+      templateSpec:     null,
       versionName:      '',
       description:      '',
       defaultVersion:   null,
@@ -114,13 +67,13 @@ export default {
   },
 
   computed: {
-    isEditVersion() {
-      return !!this.$route.query.templateId;
-    },
-
     isConfig() {
       return this.$route.query?.as === _CONFIG;
     },
+
+    realMode() {
+      return this.templateId ? _VIEW : this.mode;
+    }
   },
 
   watch: {
@@ -136,6 +89,34 @@ export default {
       });
 
       this.keyPairIds = out;
+    },
+
+    templateId: {
+      async handler(neu) {
+        const templates = await this.$store.dispatch('virtual/findAll', { type: HCI.VM_TEMPLATE });
+        let templateValue = templates.find( V => V.id === neu) || null;
+        let templateSpec = templateValue?.spec;
+
+        if (!templateValue) {
+          templateSpec = {
+            description:      '',
+            defaultVersionId: ''
+          };
+
+          templateValue = await this.$store.dispatch('virtual/create', {
+            metadata: {
+              name:      '',
+              namespace: ''
+            },
+            spec:     templateSpec,
+            type:     HCI.VM_TEMPLATE
+          });
+        }
+
+        this.templateValue = templateValue;
+        this.templateSpec = templateSpec;
+      },
+      immediate: true
     }
   },
 
@@ -231,9 +212,8 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
   <CruResource
-    v-else
+    v-if="templateSpec"
     :done-route="doneRoute"
     :resource="value"
     :can-yaml="false"
@@ -244,21 +224,19 @@ export default {
   >
     <NameNsDescription
       v-model="templateValue"
-      :mode="mode"
-      :name-disabled="isEditVersion || isConfig"
-      :namespace-disabled="isEditVersion || isConfig"
+      :mode="realMode"
       name-label="harvester.vmTemplate.nameNsDescription.name"
       :namespaced="true"
     />
 
-    <Checkbox v-if="isEditVersion" v-model="isDefaultVersion" class="mb-20" :label="t('harvester.templatePage.defaultVersion')" type="checkbox" />
+    <Checkbox v-if="templateId" v-model="isDefaultVersion" class="mb-20" :label="t('tableHeaders.defaultVersion')" type="checkbox" />
 
     <Tabbed :side-tabs="true" @changed="onTabChanged">
       <Tab name="Basics" :label="t('harvester.vmTemplate.tabs.basics')">
-        <CpuMemory :cpu="spec.template.spec.domain.cpu.cores" :memory="memory" :disabled="isConfig" @updateCpuMemory="updateCpuMemory" />
+        <CpuMemory :cpu="spec.template.spec.domain.cpu.cores" :memory="memory" :mode="mode" :disabled="isConfig" @updateCpuMemory="updateCpuMemory" />
 
         <div class="mb-20">
-          <ImageSelect v-model="imageId" :disk-rows="diskRows" :required="false" :disabled="!isCreate" />
+          <ImageSelect v-model="imageId" :disk-rows="diskRows" :required="false" :mode="mode" :disabled="isConfig" />
         </div>
 
         <div class="mb-20">

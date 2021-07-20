@@ -24,7 +24,7 @@ export default {
       nullable:       false,
       path:           'spec.virtualMachineBackupName',
       required:       true,
-      translationKey: 'harvester.backUpPage.restore.backup',
+      translationKey: 'harvester.backup.restore.backup',
     }];
 
     if (!isNew) {
@@ -32,7 +32,7 @@ export default {
         path:           'spec.deletionPolicy',
         required:       true,
         type:           'string',
-        translationKey: 'harvester.backUpPage.restore.deletePreviousVolumes',
+        translationKey: 'harvester.backup.restore.deletePreviousVolumes',
       });
     }
 

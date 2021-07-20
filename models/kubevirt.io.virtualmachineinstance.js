@@ -1,6 +1,6 @@
 import { colorForState } from '@/plugins/steve/resource-instance';
 import { HCI } from '@/config/types';
-import { HARVESTER_MIGRATION_STATE } from '@/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 const PAUSED = 'Paused';
 const PAUSED_VM_MODAL_MESSAGE = 'This VM has been paused. If you wish to unpause it, please click the Unpause button below. For further details, please check with your system administrator.';
@@ -60,7 +60,7 @@ export default {
   },
 
   migrationState() {
-    const state = this.metadata?.annotations?.[HARVESTER_MIGRATION_STATE];
+    const state = this.metadata?.annotations?.[HCI_ANNOTATIONS.MIGRATION_STATE];
 
     if (this.vmimResource?.status?.phase === VMIPhase.Failed) {
       return {
