@@ -5,7 +5,8 @@ export function onClickOption(option, e) {
 
   const getValue = opt => (this.optionKey ? this.get(opt, this.optionKey) : this.getOptionLabel(opt));
   const optionValue = getValue(option);
-  const optionIndex = this.value.findIndex(option => getValue(option) === optionValue);
+  const value = this.value || [];
+  const optionIndex = value.findIndex(option => getValue(option) === optionValue);
 
   if (optionIndex < 0) {
     return;
