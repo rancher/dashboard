@@ -1,9 +1,9 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
-import Poller from '@/utils/poller';
+import Loading from '@/components/Loading';
 import { STATE, NAME, AGE } from '@/config/table-headers';
 import { METRIC, NODE, SCHEMA } from '@/config/types';
-import { allHash } from '@/utils/promise';
+import metricPoller from '@/mixins/metric-poller';
 import MaintenanceModal from './maintenanceModal';
 import CordonModal from './cordonModal';
 
@@ -17,9 +17,6 @@ const schema = {
   metadata: { name: 'host' },
 };
 
-const METRICS_POLL_RATE_MS = 30000;
-const MAX_FAILURES = 2;
-
 const HOST_IP = {
   name:      'host-ip',
   labelKey:  'tableHeaders.hostIp',
@@ -29,25 +26,18 @@ const HOST_IP = {
 };
 
 export default {
-  name:       'ListNode',
+  name:       'ListHost',
   components: {
-    ResourceTable, MaintenanceModal, CordonModal
+    ResourceTable, Loading, MaintenanceModal, CordonModal
   },
+  mixins: [metricPoller],
 
   async fetch() {
-    const hash = await allHash({
-      metrics:  this.$store.dispatch('virtual/findAll', { type: METRIC.NODE }),
-      nodes:   this.$store.dispatch('virtual/findAll', { type: NODE }),
-    });
-
-    this.rows = hash.nodes;
+    this.rows = await this.$store.dispatch('virtual/findAll', { type: NODE });
   },
 
   data() {
-    return {
-      rows:          [],
-      metricPoller: new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES)
-    };
+    return { rows: [] };
   },
 
   computed: {
@@ -85,26 +75,19 @@ export default {
       return schema;
     }
   },
-
-  mounted() {
-    this.metricPoller.start();
-  },
-  beforeDestroy() {
-    this.metricPoller.stop();
-  },
-
   methods: {
     async loadMetrics() {
       const schema = this.$store.getters['cluster/schemaFor'](METRIC.NODE);
 
       if (schema) {
-        await this.$store.dispatch('cluster/findAll', {
+        await this.$store.dispatch('virtual/findAll', {
           type: METRIC.NODE,
           opt:  { force: true }
         });
+
         this.$forceUpdate();
       }
-    }
+    },
   },
 
   typeDisplay() {
@@ -122,13 +105,15 @@ export default {
 </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
     <ResourceTable
       v-bind="$attrs"
       :schema="schema"
       :groupable="false"
       :headers="headers"
       :rows="[...rows]"
+      :namespaced="false"
       key-field="_key"
       v-on="$listeners"
     >

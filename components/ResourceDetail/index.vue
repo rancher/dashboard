@@ -6,6 +6,7 @@ import {
   _VIEW, _EDIT, _CLONE, _IMPORT, _STAGE, _CREATE,
   AS, _YAML, _DETAIL, _CONFIG, PREVIEW, MODE,
 } from '@/config/query-params';
+import { NAME as VIRTUAL } from '@/config/product/virtual';
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
@@ -278,8 +279,9 @@ export default {
     const id = this.$route.params.id;
     let resource = this.resourceOverride || this.$route.params.resource;
     const options = this.$store.getters[`type-map/optionsFor`](resource);
+    const isHarvester = this.$store.getters['currentProduct'].name === VIRTUAL;
 
-    if ( options.resource ) {
+    if ( options.resource && !isHarvester ) {
       resource = options.resource;
     }
 

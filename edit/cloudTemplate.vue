@@ -58,59 +58,6 @@ export default {
     update() {
       this.value.data = { cloudInit: this.config };
     },
-
-    onChanges(cm, changes) {
-      this.update();
-      if ( changes.length !== 1 ) {
-        return;
-      }
-
-      const change = changes[0];
-
-      if ( change.from.line !== change.to.line ) {
-        return;
-      }
-
-      let line = change.from.line;
-      let str = cm.getLine(line);
-      let maxIndent = indentChars(str);
-
-      if ( maxIndent === null ) {
-        return;
-      }
-
-      cm.replaceRange('', { line, ch: 0 }, { line, ch: 1 }, '+input');
-
-      while ( line > 0 ) {
-        line--;
-        str = cm.getLine(line);
-        const indent = indentChars(str);
-
-        if ( indent === null ) {
-          break;
-        }
-
-        if ( indent < maxIndent ) {
-          cm.replaceRange('', { line, ch: 0 }, { line, ch: 1 }, '+input');
-
-          if ( indent === 0 ) {
-            break;
-          }
-
-          maxIndent = indent;
-        }
-      }
-
-      function indentChars(str) {
-        const match = str.match(/^#(\s+)/);
-
-        if ( match ) {
-          return match[1].length;
-        }
-
-        return null;
-      }
-    },
   }
 };
 </script>
@@ -132,11 +79,11 @@ export default {
     />
 
     <Tabbed :side-tabs="true">
-      <Tab name="basics" :label="t('harvester.vmPage.detail.tabs.basics')" :weight="1">
+      <Tab name="basics" :label="t('harvester.host.tabs.basics')" :weight="1">
         <div class="mb-20">
           <LabeledSelect
             v-model="type"
-            :label="t('harvester.cloudInitPage.templateType')"
+            :label="t('harvester.cloudTemplate.templateType')"
             :disabled="!isCreate"
             :options="types"
           />
@@ -148,7 +95,7 @@ export default {
             v-model="config"
             class="yaml-editor"
             :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-            @onChanges="onChanges"
+            @onChanges="update"
           />
         </div>
       </Tab>

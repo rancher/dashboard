@@ -1,27 +1,23 @@
 <script>
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import Poller from '@/utils/poller';
+import metricPoller from '@/mixins/metric-poller';
 import { METRIC, NODE, HCI } from '@/config/types';
 import { HOSTNAME } from '@/config/labels-annotations';
 import { allHash } from '@/utils/promise';
 import Basic from './basic';
 import Instance from './instance';
-// import Monitor from './monitor';
-
-const METRICS_POLL_RATE_MS = 30000;
-const MAX_FAILURES = 2;
 
 export default {
-  name: 'DetailNode',
+  name: 'DetailHost',
 
   components: {
     Tabbed,
     Tab,
     Basic,
     Instance,
-    // Monitor
   },
+  mixins: [metricPoller],
 
   props: {
     value: {
@@ -32,15 +28,15 @@ export default {
 
   async fetch() {
     const hash = {
-      nodes:        this.$store.dispatch('cluster/findAll', { type: NODE }),
-      vms:          this.$store.dispatch('cluster/findAll', { type: HCI.VM }),
-      hostNetworks: this.$store.dispatch('cluster/findAll', { type: HCI.NODE_NETWORK })
+      nodes:        this.$store.dispatch('virtual/findAll', { type: NODE }),
+      vms:          this.$store.dispatch('virtual/findAll', { type: HCI.VM }),
+      hostNetworks: this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK })
     };
 
     const res = await allHash(hash);
     const instanceMap = {};
 
-    (this.$store.getters['cluster/all'](HCI.VMI) || []).forEach((vmi) => {
+    (this.$store.getters['virtual/all'](HCI.VMI) || []).forEach((vmi) => {
       const vmiUID = vmi?.metadata?.ownerReferences?.[0]?.uid;
 
       if (vmiUID) {
@@ -61,7 +57,6 @@ export default {
 
   data() {
     return {
-      metricPoller:        new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES),
       metrics:             null,
       mode:                'view',
       rows:                [],
@@ -69,28 +64,17 @@ export default {
     };
   },
 
-  mounted() {
-    this.metricPoller.start();
-  },
-
-  beforeDestroy() {
-    this.metricPoller.stop();
-  },
-
   methods: {
-    mapToStatus(isOk) {
-      return isOk ? 'success' : 'error';
-    },
-
     async loadMetrics() {
       const schema = this.$store.getters['cluster/schemaFor'](METRIC.NODE);
 
       if (schema) {
-        this.metrics = await this.$store.dispatch('cluster/find', {
+        this.metrics = await this.$store.dispatch('virtual/find', {
           type: METRIC.NODE,
           id:   this.value.id,
           opt:  { force: true, watch: false }
         });
+
         this.$forceUpdate();
       }
     },
@@ -101,14 +85,11 @@ export default {
 
 <template>
   <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
-    <Tab name="basics" :label="t('harvester.vmPage.detail.tabs.basics')" :weight="3" class="bordered-table">
+    <Tab name="basics" :label="t('harvester.host.tabs.basics')" :weight="3" class="bordered-table">
       <Basic v-model="value" :metrics="metrics" :mode="mode" :host-netowrk-resource="hostNetowrkResource" />
     </Tab>
-    <Tab name="instance" :label="t('harvester.vmPage.detail.tabs.instance')" :weight="2" class="bordered-table">
+    <Tab name="instance" :label="t('harvester.host.tabs.instance')" :weight="2" class="bordered-table">
       <Instance :rows="rows" />
     </Tab>
-    <!-- <Tab name="monitor" :label="t('harvester.vmPage.detail.tabs.monitor')" :weight="1" class="bordered-table">
-      <Monitor v-model="value" />
-    </Tab> -->
   </Tabbed>
 </template>
