@@ -769,7 +769,7 @@ export default {
   followLink() {
     return (linkName, opt = {}) => {
       if ( !opt.url ) {
-        opt.url = (this.links || {})[linkName];
+        opt.url = this.linkFor(linkName);
       }
 
       if ( opt.urlSuffix ) {
