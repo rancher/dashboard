@@ -30,6 +30,7 @@ export default {
       :supported="(row) => typeof row.valueFrom === 'undefined'"
       :read-allowed="true"
       :value-can-be-empty="true"
+      :key-label="t('cluster.agentEnvVars.keyLabel')"
     />
   </Tab>
 </template>
