@@ -1,5 +1,6 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
+import Loading from '@/components/Loading';
 import { CONFIG_MAP, SCHEMA } from '@/config/types';
 import { NAME, AGE, NAMESPACE } from '@/config/table-headers';
 import { HCI } from '@/config/labels-annotations';
@@ -16,7 +17,7 @@ const schema = {
 
 export default {
   name:       'ListCloudTemplate',
-  components: { ResourceTable },
+  components: { ResourceTable, Loading },
 
   async fetch() {
     this.rows = await this.$store.dispatch('virtual/findAll', { type: CONFIG_MAP });
@@ -55,7 +56,7 @@ export default {
     let paramSchema = schema;
 
     if (type !== schema.id) {
-      paramSchema = this.$store.getters['virtual/schemaFor'](type);
+      paramSchema = this.$store.getters['cluster/schemaFor'](type);
     }
 
     return this.$store.getters['type-map/labelFor'](paramSchema, 99);
@@ -64,7 +65,9 @@ export default {
 </script>
 
 <template>
+  <Loading v-if="$fetchState.pending" />
   <ResourceTable
+    v-else
     v-bind="$attrs"
     :headers="headers"
     :groupable="true"

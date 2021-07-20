@@ -1,3 +1,4 @@
+import { NAME as VIRTUAL } from '@/config/product/virtual';
 import { clone } from '@/utils/object';
 
 export default {
@@ -18,7 +19,11 @@ export default {
     return keys.join(', ');
   },
 
-  detailLocation() { // maybe only harvester mode
+  detailLocation() {
+    if (this.$rootGetters['currentProduct'].name !== VIRTUAL) {
+      return;
+    }
+
     const detailLocation = clone(this._detailLocation);
 
     detailLocation.params.resource = 'cloudTemplate';
@@ -26,7 +31,11 @@ export default {
     return detailLocation;
   },
 
-  doneOverride() { // maybe only harvester mode
+  doneOverride() {
+    if (this.$rootGetters['currentProduct'].name !== VIRTUAL) {
+      return;
+    }
+
     const detailLocation = clone(this._detailLocation);
 
     delete detailLocation.params.namespace;
@@ -35,5 +44,13 @@ export default {
     detailLocation.name = 'c-cluster-product-resource';
 
     return detailLocation;
-  }
+  },
+
+  parentLocationOverride() {
+    if (this.$rootGetters['currentProduct'].name !== VIRTUAL) {
+      return;
+    }
+
+    return this.doneOverride;
+  },
 };

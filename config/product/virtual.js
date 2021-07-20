@@ -185,6 +185,7 @@ export function init(store) {
   });
   virtualType({
     label:        store.getters['i18n/t']('harvester.cloudTemplate.label'),
+    labelDisplay: 'harvester.typeLabel.host',
     name:         CLOUD_TEMPLATE,
     namespaced:   true,
     weight:       87,

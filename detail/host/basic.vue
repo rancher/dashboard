@@ -3,8 +3,12 @@ import ConsumptionGauge from '@/components/ConsumptionGauge';
 import LabelValue from '@/components/LabelValue';
 import Banner from '@/components/Banner';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
-import { HOST_CUSTOM_NAME } from '@/config/labels-annotations';
-import { get } from '@/utils/object';
+import { HCI } from '@/config/labels-annotations';
+
+const COMPLETE = 'complete';
+const NONE = 'none';
+const PROMOTE_RESTART = 'promoteRestart';
+const PROMOTE_SUCCEED = 'promoteSucceed';
 
 export default {
   name: 'BasicNode',
@@ -44,7 +48,7 @@ export default {
 
   computed: {
     customName() {
-      return get(this, `metadata.labels."${ HOST_CUSTOM_NAME }"`) || '';
+      return this.value.metadata?.annotations?.[HCI.HOST_CUSTOM_NAME];
     },
 
     cpuTotal() {
@@ -124,7 +128,7 @@ export default {
     },
 
     nodeType() {
-      return this.value.isMaster ? this.t('harvester.hostPage.detail.management') : this.t('harvester.hostPage.detail.compute');
+      return this.value.isMaster ? this.t('harvester.host.detail.management') : this.t('harvester.host.detail.compute');
     },
 
     lastUpdateTime() {
@@ -132,7 +136,16 @@ export default {
     },
 
     nodeRoleState() {
-      return this.value.nodeRoleState;
+      const isExistRoleStatus = this.value.metadata?.labels?.[HCI.NODE_ROLE_MASTER] !== undefined || this.value.metadata?.labels?.[HCI.NODE_ROLE_CONTROL_PLANE] !== undefined;
+      const promoteStatus = this.value.metadata?.annotations?.[HCI.HARVESTER_PROMOTE_STATUS] || NONE;
+
+      if (!isExistRoleStatus && promoteStatus === COMPLETE) {
+        return PROMOTE_RESTART;
+      } else if (isExistRoleStatus && promoteStatus === COMPLETE) {
+        return PROMOTE_SUCCEED;
+      }
+
+      return promoteStatus;
     },
 
     networkType() {
@@ -164,27 +177,27 @@ export default {
 
 <template>
   <div class="host-detail">
-    <h3>{{ t('harvester.vmPage.detail.tabs.overview') }}</h3>
+    <h3>{{ t('harvester.host.tabs.overview') }}</h3>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabelValue :name="t('harvester.hostPage.detail.customName')" :value="customName" />
+        <LabelValue :name="t('harvester.host.detail.customName')" :value="customName" />
       </div>
       <div class="col span-6">
-        <LabelValue :name="t('harvester.hostPage.detail.hostIP')" :value="value.internalIp" />
+        <LabelValue :name="t('harvester.host.detail.hostIP')" :value="value.internalIp" />
       </div>
     </div>
 
     <div class="row mb-20">
       <div class="col span-6">
-        <LabelValue :name="t('harvester.hostPage.detail.os')" :value="value.status.nodeInfo.osImage" />
+        <LabelValue :name="t('harvester.host.detail.os')" :value="value.status.nodeInfo.osImage" />
       </div>
       <div class="col span-6">
         <div class="role">
-          <LabelValue :name="t('harvester.hostPage.detail.role')">
+          <LabelValue :name="t('harvester.host.detail.role')">
             <template #value>
               {{ nodeType }}
               <span class="text-warning ml-20">
-                {{ t(`harvester.hostPage.promote.${nodeRoleState}`) }}
+                {{ t(`harvester.host.promote.${nodeRoleState}`) }}
               </span>
             </template>
           </LabelValue>
@@ -194,30 +207,30 @@ export default {
 
     <div class="row mb-20">
       <div class="col span-6">
-        <LabelValue :name="t('harvester.hostPage.detail.create')" :value="value.metadata.creationTimestamp" />
+        <LabelValue :name="t('harvester.host.detail.create')" :value="value.metadata.creationTimestamp" />
       </div>
       <div class="col span-6">
-        <LabelValue :name="t('harvester.hostPage.detail.update')" :value="lastUpdateTime" />
+        <LabelValue :name="t('harvester.host.detail.update')" :value="lastUpdateTime" />
       </div>
     </div>
 
     <hr class="divider" />
-    <h3>{{ t('harvester.hostPage.detail.title.network') }}</h3>
+    <h3>{{ t('harvester.host.detail.title.network') }}</h3>
     <Banner v-if="networkMessage" color="error">
       {{ networkMessage }}
     </Banner>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabelValue :name="t('harvester.hostPage.detail.networkType')" :value="networkType" />
+        <LabelValue :name="t('harvester.host.detail.networkType')" :value="networkType" />
       </div>
 
       <div class="col span-6">
-        <LabelValue :name="t('harvester.hostPage.detail.nic')" :value="nic" />
+        <LabelValue :name="t('harvester.host.detail.nic')" :value="nic" />
       </div>
     </div>
 
     <hr class="divider" />
-    <h3>{{ t('harvester.vmPage.detail.tabs.monitor') }}</h3>
+    <h3>{{ t('harvester.host.tabs.monitor') }}</h3>
     <div class="row mb-20">
       <div class="col span-4">
         <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.cpu')" :capacity="cpuTotal" :used="cpuUsage" :units="cpuUnits" />
@@ -226,23 +239,23 @@ export default {
         <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.memory')" :capacity="memoryTotal" :used="memoryUsage" :units="memoryUnits" :number-formatter="memoryFormatter" />
       </div>
       <div class="col span-4">
-        <ConsumptionGauge :resource-name="t('harvester.hostPage.detail.storage')" :capacity="storageTotal" :used="storageUsage" :units="storageUnits" :number-formatter="memoryFormatter" />
+        <ConsumptionGauge :resource-name="t('harvester.host.detail.storage')" :capacity="storageTotal" :used="storageUsage" :units="storageUnits" :number-formatter="memoryFormatter" />
       </div>
     </div>
 
     <hr class="section-divider" />
-    <h3>{{ t('harvester.hostPage.detail.more') }}</h3>
+    <h3>{{ t('harvester.host.detail.more') }}</h3>
     <div class="row mb-20">
       <div class="col span-4">
-        <LabelValue :name="t('harvester.hostPage.detail.uuid')" :value="value.status.nodeInfo.systemUUID" />
+        <LabelValue :name="t('harvester.host.detail.uuid')" :value="value.status.nodeInfo.systemUUID" />
       </div>
 
       <div class="col span-4">
-        <LabelValue :name="t('harvester.hostPage.detail.kernel')" :value="value.status.nodeInfo.kernelVersion" />
+        <LabelValue :name="t('harvester.host.detail.kernel')" :value="value.status.nodeInfo.kernelVersion" />
       </div>
 
       <div class="col span-4">
-        <LabelValue :name="t('harvester.hostPage.detail.containerRuntime')" :value="value.status.nodeInfo.containerRuntimeVersion" />
+        <LabelValue :name="t('harvester.host.detail.containerRuntime')" :value="value.status.nodeInfo.containerRuntimeVersion" />
       </div>
     </div>
   </div>
