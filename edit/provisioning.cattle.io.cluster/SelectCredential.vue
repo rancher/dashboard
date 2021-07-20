@@ -42,7 +42,7 @@ export default {
   async fetch() {
     const secretSchema = this.$store.getters['management/schemaFor'](SECRET);
 
-    if (secretSchema?.collectionMethods.find(x => x.toLowerCase() === 'get')) {
+    if (secretSchema?.canGetCollection) {
       this.allSecrets = await this.$store.dispatch('management/findAll', { type: SECRET });
     }
 

@@ -1,5 +1,5 @@
 import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
-import { CAPI } from '@/config/types';
+import { CAPI, SECRET } from '@/config/types';
 import { MULTI_CLUSTER } from '@/store/features';
 import { DSL } from '@/store/type-map';
 
@@ -85,6 +85,7 @@ export function init(store) {
     name:        'secret',
     weight:      99,
     route:       { name: 'c-cluster-manager-secret' },
+    ifHaveType: SECRET
   });
 
   basicType([

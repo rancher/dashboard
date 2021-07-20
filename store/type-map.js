@@ -111,7 +111,7 @@ import { AGE, NAME, NAMESPACE, STATE } from '@/config/table-headers';
 import { COUNT, SCHEMA, MANAGEMENT } from '@/config/types';
 import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import {
-  addObject, findBy, insertAt, isArray, removeObject
+  addObject, filterBy, findBy, insertAt, isArray, removeObject
 } from '@/utils/array';
 import { clone, get } from '@/utils/object';
 import {
@@ -783,8 +783,14 @@ export const getters = {
           if ( item.ifHaveType ) {
             const targetedSchemas = typeof item.ifHaveType === 'string' ? schemas : rootGetters[`${ item.ifHaveType.store }/all`](SCHEMA);
             const type = typeof item.ifHaveType === 'string' ? item.ifHaveType : item.ifHaveType?.type;
+            const foundSchemas = filterBy(targetedSchemas, 'id', normalizeType(type));
 
-            if (!findBy(targetedSchemas, 'id', normalizeType(type))) {
+            if (!foundSchemas.find(s => s.canGetCollection)) {
+              if (out[id]) {
+                // Some scenarios have virtual types spoofing genuine types, so avoid showing underlying genuine type as well
+                // (secrets in cluster manage for non-admins)
+                delete out[id];
+              }
               continue;
             }
           }
