@@ -6,6 +6,12 @@ export default {
     value: {
       type:    String,
       default: ''
+    },
+    row: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
 
@@ -17,7 +23,7 @@ export default {
 
   computed: {
     vm() {
-      const vm = this.vmList.find( V => V.id === `default/${ this.value }`);
+      const vm = this.vmList.find( V => V.id === `${ this.row.metadata.namespace }/${ this.value }`);
 
       return vm;
     },

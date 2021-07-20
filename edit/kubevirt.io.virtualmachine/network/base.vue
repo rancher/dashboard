@@ -127,9 +127,6 @@ export default {
       if (networkName === MANAGEMENT_NETWORK) {
         this.value.isPod = true;
       } else {
-        // const choices = this.$store.getters['virtual/byId'](HCI.NETWORK_ATTACHMENT, `default/${ neu }`);
-        // this.currentRow.isIpamStatic = choices?.isIpamStatic || false;
-        // this.value.type = 'bridge';
         this.value.isPod = false;
       }
       this.$emit('update');

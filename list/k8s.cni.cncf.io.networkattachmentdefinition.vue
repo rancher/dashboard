@@ -81,19 +81,19 @@ export default {
     }
   },
 
-  watch: {
-    disableCreate: {
-      handler(neu) {
-        const type = this.$route.params.resource;
+  // watch: {
+  //   disableCreate: {
+  //     handler(neu) {
+  //       const type = this.$route.params.resource;
 
-        this.$store.commit('virtual/setConfig', {
-          type,
-          data: { disableCreateButton: neu }
-        });
-      },
-      immediate: true
-    }
-  },
+  //       this.$store.commit('virtual/setConfig', {
+  //         type,
+  //         data: { disableCreateButton: neu }
+  //       });
+  //     },
+  //     immediate: true
+  //   }
+  // },
 };
 </script>
 

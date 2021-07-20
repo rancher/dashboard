@@ -38,7 +38,7 @@ export default {
   <div v-else>
     {{ value }}
     <p v-if="value" class="text-error">
-      {{ t('harvester.backUpPage.matchTarget') }}
+      {{ t('harvester.backup.matchTarget') }}
     </p>
   </div>
 </template>

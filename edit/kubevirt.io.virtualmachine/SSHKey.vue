@@ -4,7 +4,6 @@ import { mapGetters } from 'vuex';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import ModalWithCard from '@/components/ModalWithCard';
-import InputOrDisplay from '@/components/InputOrDisplay';
 
 import { HCI } from '@/config/types';
 import { clone } from '@/utils/object';
@@ -15,7 +14,6 @@ export default {
     LabeledInput,
     ModalWithCard,
     LabeledSelect,
-    InputOrDisplay
   },
 
   props: {
@@ -28,7 +26,7 @@ export default {
 
     mode: {
       type:     String,
-      default: 'edit',
+      default:  'create',
     },
 
     disableCreate: {
@@ -183,21 +181,17 @@ export default {
 <template>
   <div>
     <div>
-      <div class="keyLisk">
-        <InputOrDisplay :name="t('harvester.virtualMachine.input.sshKey')" :value="checkedSsh" :mode="mode" class="mb-20">
-          <LabeledSelect
-            v-model="checkedSsh"
-            :label="t('harvester.virtualMachine.input.sshKey')"
-            :taggable="true"
-            :mode="mode"
-            :multiple="true"
-            :searchable="true"
-            :disabled="isConfig"
-            :options="sshOption"
-            @input="update"
-          />
-        </InputOrDisplay>
-      </div>
+      <LabeledSelect
+        v-model="checkedSsh"
+        :label="t('harvester.virtualMachine.input.sshKey')"
+        :taggable="true"
+        :mode="mode"
+        :multiple="true"
+        :searchable="true"
+        :disabled="isConfig"
+        :options="sshOption"
+        @input="update"
+      />
 
       <span v-if="!isView" class="btn btn-sm bg-primary mt-20" @click="show">
         {{ t('harvester.virtualMachine.createSSHKey') }}

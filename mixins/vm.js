@@ -69,17 +69,29 @@ export default {
       this.deleteCloneValue();
     }
 
-    const spec = type === HCI.VM ? this.value.spec : this.value.spec.vm;
+    let spec;
+    let sshKey = [];
+    let diskRows = [];
+    let imageId = '';
+    let networkRows = [];
+    let hasCreateVolumes = [];
+    let userScript = null;
+    let networkScript = null;
+    let machineType = '';
 
-    const sshKey = this.getSSHIDs(spec);
+    if (type !== HCI.BACKUP) {
+      spec = type === HCI.VM ? this.value.spec : this.value.spec.vm;
 
-    const diskRows = this.getDiskRows(spec);
-    const imageId = this.getRootImageId(spec);
-    const networkRows = this.getNetworkRows(spec);
-    const hasCreateVolumes = this.getHasCreatedVolumes(spec);
-    const { userScript, networkScript } = this.getCloudScript(spec);
+      sshKey = this.getSSHIDs(spec);
 
-    const machineType = this.value.machineType;
+      diskRows = this.getDiskRows(spec);
+      imageId = this.getRootImageId(spec);
+      networkRows = this.getNetworkRows(spec);
+      hasCreateVolumes = this.getHasCreatedVolumes(spec);
+      ({ userScript, networkScript } = this.getCloudScript(spec));
+
+      machineType = this.value.machineType;
+    }
 
     return {
       spec,
@@ -364,11 +376,11 @@ export default {
         }
       };
 
-      if (!this.isVM) {
-        if (!this.imageId) {
-          spec.dataVolumeTemplates[0].metadata.annotations[HCI_ANNOTATIONS.IMAGE_ID] = TEMPORARY_VALUE;
-        }
-      }
+      // if (!this.isVM) {
+      //   if (!this.imageId) {
+      //     spec.dataVolumeTemplates[0].metadata.annotations[HCI_ANNOTATIONS.IMAGE_ID] = TEMPORARY_VALUE;
+      //   }
+      // }
 
       if (volumes.length === 0) {
         delete spec.template.spec.volumes;
@@ -523,9 +535,12 @@ export default {
         if (imageResource?.metadata?.name) {
           _dataVolumeTemplate.spec.pvc.storageClassName = `longhorn-${ imageResource?.metadata?.name }`;
           _dataVolumeTemplate.metadata.annotations = { [HCI_ANNOTATIONS.IMAGE_ID]: imageResource?.id };
-        } else if (!this.isVM) { // vmTemplate rootImage can be empty
-          _dataVolumeTemplate.metadata.annotations = { [HCI_ANNOTATIONS.IMAGE_ID]: TEMPORARY_VALUE };
+        } else if (this.isVM) {
+          _dataVolumeTemplate.metadata.annotations = { [HCI_ANNOTATIONS.IMAGE_ID]: undefined };
         }
+        //  else { // vmTemplate rootImage can be empty
+        //   _dataVolumeTemplate.metadata.annotations = { [HCI_ANNOTATIONS.IMAGE_ID]: TEMPORARY_VALUE };
+        // }
         break;
       }
       }
@@ -671,7 +686,7 @@ export default {
     getRootImageId(spec) {
       const id = (spec?.dataVolumeTemplates || [])[0]?.metadata?.annotations?.[HCI_ANNOTATIONS.IMAGE_ID] || '';
 
-      return id;
+      return id !== TEMPORARY_VALUE ? id : '';
     },
 
     deleteCloneValue() {

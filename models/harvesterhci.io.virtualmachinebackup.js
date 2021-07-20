@@ -5,6 +5,11 @@ import { colorForState } from '@/plugins/steve/resource-instance';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 export default {
+  detailPageHeaderActionOverride() {
+    return () => {
+      return this.t('harvester.backup.title');
+    };
+  },
   _availableActions() {
     const toFilter = ['goToEdit', 'cloneYaml', 'goToClone', 'download'];
 

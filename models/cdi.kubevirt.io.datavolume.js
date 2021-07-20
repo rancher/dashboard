@@ -40,7 +40,7 @@ export default {
   },
 
   attachVM() {
-    const vmList = this.$rootGetters['cluster/all'](HCI.VM);
+    const vmList = this.$rootGetters['virtual/all'](HCI.VM);
     const ownerAnnotation = get(this, `metadata.annotations."${ HCI_ANNOTATIONS.OWNED_BY }"`) || '';
 
     if (!ownerAnnotation) {
@@ -67,7 +67,7 @@ export default {
   },
 
   resourcesStatus() {
-    const list = this.$rootGetters['cluster/all'](HCI.DATA_VOLUME);
+    const list = this.$rootGetters['virtual/all'](HCI.DATA_VOLUME);
 
     let warning = 0;
     let error = 0;

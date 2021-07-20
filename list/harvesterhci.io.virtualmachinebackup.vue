@@ -26,6 +26,7 @@ export default {
 
   async fetch() {
     const hash = await allHash({
+      vms:      this.$store.dispatch('virtual/findAll', { type: HCI.VM }),
       settings: this.$store.dispatch('virtual/findAll', { type: HCI.SETTING }),
       rows:     this.$store.dispatch('virtual/findAll', { type: HCI.BACKUP }),
     });
@@ -65,19 +66,19 @@ export default {
     },
   },
 
-  watch: {
-    errorMessage: {
-      handler(neu) {
-        const setting = !!neu ? '' : this.to;
+  // watch: {
+  //   errorMessage: {
+  //     handler(neu) {
+  //       const setting = !!neu ? '' : this.to;
 
-        this.$store.commit('virtual/setConfig', { // Provide a shortcut link, when the configuration is correct
-          type: this.resource,
-          data: { setting }
-        });
-      },
-      immediate: true
-    }
-  },
+  //       this.$store.commit('virtual/setConfig', { // Provide a shortcut link, when the configuration is correct
+  //         type: this.resource,
+  //         data: { setting }
+  //       });
+  //     },
+  //     immediate: true
+  //   }
+  // },
 };
 </script>
 

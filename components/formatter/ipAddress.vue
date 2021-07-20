@@ -43,39 +43,6 @@ export default {
       });
     },
 
-    // podIp() {
-    //   const vmiResources = this.$store.getters['virtual/all'](HCI.VMI);
-    //   const podResources = this.$store.getters['virtual/all'](POD);
-
-    //   const ips = new Set();
-    //   let networkStatus = '[]';
-    //   let podResource = null;
-
-    //   const resource = vmiResources.find(VMI => VMI.id === this.value) || null;
-
-    //   if (resource) {
-    //     podResource = podResources.find( (P) => {
-    //       return resource?.metadata?.name === P.metadata?.ownerReferences?.[0].name;
-    //     });
-
-    //     networkStatus = podResource?.getAnnotationValue(HARVESTER_NETWORK_STATUS);
-    //   }
-
-    //   try {
-    //     if (networkStatus && podResource?.status?.phase !== 'Succeeded') {
-    //       const obj = JSON.parse(networkStatus);
-
-    //       obj.map( (O) => {
-    //         ips.add(...O.ips);
-    //       });
-    //     }
-    //   } catch (err) {
-
-    //   }
-
-    //   return [...ips];
-    // },
-
     vmiIp() {
       const vmiResources = this.$store.getters['virtual/all'](HCI.VMI);
       const resource = vmiResources.find(VMI => VMI.id === this.value) || null;
