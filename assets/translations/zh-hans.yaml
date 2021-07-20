@@ -3877,10 +3877,42 @@ harvester:
       versionLabel: 可用的兼容版本
       upgradeNode: 升级节点
       upgradeSysService: 升级系统服务
-
   host:
     label: 主机
-
+    promote:
+      none: ' '
+      running: 角色升级中
+      failed: 角色升级失败
+      unknown: 角色升级中断
+      promoteRestart: 角色升级重启中
+      promoteSucceed: 角色升级完成
+    tabs:
+      network: 网络
+    detail:
+      title:
+        network: 网络配置
+      hostIP: 节点IP
+      role: 角色
+      os: 操作系统
+      create: 创建时间
+      update: 最近更新时间
+      customName: 自定义名称
+      consoleUrl: Console 地址
+      more: 更多信息
+      uuid: UUID
+      containerRuntime: 容器运行时
+      kernel: 内核
+      management: 管理节点
+      compute: 计算节点
+      storage: 存储
+      networkType: 类型
+      nic: 物理网卡
+    enableMaintenance:
+      title: 开启节点维护模式
+      protip: 此操作会迁移当前节点上的所有虚拟机.
+    cordon:
+      title: 封锁
+      protip: 此操作将会标记节点 { node } 为不可调度.
   virtualMachine:
     label: 虚拟机
     instance:
@@ -4078,6 +4110,7 @@ harvester:
 
   cloudTemplate:
     label: Cloud 配置模板
+    templateType: 模板类型
 
 ##############################
 # Model Properties
@@ -4347,6 +4380,7 @@ typeLabel:
   harvesterhci.io.setting: 设置
   host: 主机
   harvesterhci.io.virtualmachinebackup: 备份
+  cloudTemplate: Cloud 配置模板
 
 action:
   clone: 克隆

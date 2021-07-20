@@ -7,10 +7,8 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import CreateEditView from '@/mixins/create-edit-view';
-import { allHash } from '@/utils/promise';
-import { HOST_CUSTOM_NAME } from '@/config/labels-annotations';
+import { HCI as HCI_LABELS_ANNOTATIONS } from '@/config/labels-annotations';
 import { HCI } from '@/config/types';
-import { get } from '@/utils/object';
 
 export default {
   name:       'EditNode',
@@ -31,8 +29,8 @@ export default {
     }
   },
   async fetch() {
-    const hash = await allHash({ hostNetworks: this.$store.dispatch('cluster/findAll', { type: HCI.NODE_NETWORK }) });
-    const hostNetowrkResource = hash.hostNetworks.find( O => this.value.id === O.attachNodeName);
+    const hostNetworks = await this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK });
+    const hostNetowrkResource = hostNetworks.find( O => this.value.id === O.attachNodeName);
 
     if (hostNetowrkResource) {
       this.hostNetowrkResource = hostNetowrkResource;
@@ -42,7 +40,7 @@ export default {
     }
   },
   data() {
-    const customName = get(this.value, `metadata.annotations."${ HOST_CUSTOM_NAME }"`) || '';
+    const customName = this.value.metadata?.annotations?.[HCI_LABELS_ANNOTATIONS.HOST_CUSTOM_NAME] || '';
 
     return {
       hostNetowrkResource: null,
@@ -55,7 +53,7 @@ export default {
   computed: {
     nicsOptions() {
       return this.physicalNics.map( (N) => {
-        const isRecommended = N.usedByManagementNetwork ? '  (Not recommended)' : '';
+        const isRecommended = N.usedByManagementNetwork ? this.$store.getters['i18n/t']('harvester.host.detail.notRecommended') : '';
 
         return {
           value: N.name,
@@ -66,7 +64,7 @@ export default {
   },
   watch: {
     customName(neu) {
-      this.value.setAnnotation(HOST_CUSTOM_NAME, neu);
+      this.value.setAnnotation(HCI_LABELS_ANNOTATIONS.HOST_CUSTOM_NAME, neu);
     },
   },
   created() {
@@ -94,15 +92,15 @@ export default {
       :mode="mode"
     />
     <Tabbed ref="tabbed" class="mt-15" :side-tabs="true">
-      <Tab name="basics" :weight="100" :label="t('harvester.vmPage.detail.tabs.basics')">
+      <Tab name="basics" :weight="100" :label="t('harvester.host.tabs.basics')">
         <LabeledInput
           v-model="customName"
-          :label="t('harvester.hostPage.detail.customName')"
+          :label="t('harvester.host.detail.customName')"
           class="mb-20"
           :mode="mode"
         />
       </Tab>
-      <Tab name="network" :weight="90" :label="t('harvester.hostPage.tabs.network')">
+      <Tab name="network" :weight="90" :label="t('harvester.host.tabs.network')">
         <InfoBox class="wrapper">
           <div class="row warpper">
             <div class="col span-6">

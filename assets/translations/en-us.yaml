@@ -4703,10 +4703,47 @@ harvester:
       upgradeNode: Upgrading Nodes
       upgradeSysService: Upgrading System Services
     version: version
-
   host:
     label: Hosts
-
+    promote:
+      none: ' '
+      running: promoting
+      failed: promote failed
+      unknown: promote halted
+      promoteRestart: restarting
+      promoteSucceed: promote completed
+    tabs:
+      network: Network
+      overview: Overview
+      basics: Basics
+      instance: Virtual Machines
+      monitor: Monitor Data
+    detail:
+      title:
+        network: Network Configuration
+      hostIP: Host IP
+      role: Role
+      os: Operating System
+      create: Creation Time
+      update: Last Update Time
+      customName: Custom Name
+      consoleUrl: Console URL
+      more: More Information
+      uuid: UUID
+      containerRuntime: Container Runtime
+      kernel: Kernel
+      management: Management Node
+      compute: Compute Node
+      storage: Storage Size
+      nic: Physical NIC
+      notRecommended: '   (Not recommended)'
+      networkType: Type
+    enableMaintenance:
+      title: Enable Maintenance Mode
+      protip: The operation will migrate all virtual machines on this node to other nodes.
+    cordon:
+      title: Cordon
+      protip: This operation will mark the node { node } as unschedulable.
   virtualMachine:
     label: Virtual Machines
     instance:
@@ -4930,6 +4967,7 @@ harvester:
 
   cloudTemplate:
     label: Cloud Config Templates
+    templateType: Template Type
 
   manager:
     cluster:
@@ -5288,6 +5326,11 @@ typeLabel:
     {count, plural,
       one { Cluster }
       other { Clusters }
+    }
+  cloudTemplate: |-
+    {count, plural,
+      one { Cloud Config Template }
+      other { Cloud Config Templates }
     }
   
 
