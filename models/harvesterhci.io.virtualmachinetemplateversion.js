@@ -2,7 +2,7 @@ import Vue from 'vue';
 import find from 'lodash/find';
 import { HCI } from '@/config/types';
 import {
-  AS, MODE, _CREATE, _VIEW, _CONFIG
+  AS, MODE, _VIEW, _CONFIG, _UNFLAG, _EDIT
 } from '@/config/query-params';
 
 export default {
@@ -127,19 +127,34 @@ export default {
     };
   },
 
+  // cloneTemplate() {
+  //   return (moreQuery = {}) => {
+  //     const router = this.currentRouter();
+
+  //     router.push({
+  //       name:   `c-cluster-product-resource-create`,
+  //       params: { resource: HCI.VM_VERSION },
+  //       query:  {
+  //         [MODE]:     _CREATE,
+  //         templateId: this.templateId,
+  //         versionId:  this.id,
+  //       }
+  //     });
+  //   };
+  // },
+
   cloneTemplate() {
     return (moreQuery = {}) => {
-      const router = this.currentRouter();
+      const location = this.detailLocation;
 
-      router.push({
-        name:   `c-cluster-product-resource-create`,
-        params: { resource: HCI.VM_VERSION },
-        query:  {
-          [MODE]:     _CREATE,
-          templateId: this.templateId,
-          versionId:  this.id,
-        }
-      });
+      location.query = {
+        ...location.query,
+        [MODE]: _EDIT,
+        [AS]:   _UNFLAG,
+        ...moreQuery
+      };
+
+      this.currentRouter().push(location);
     };
   },
 

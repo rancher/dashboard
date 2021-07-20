@@ -67,17 +67,15 @@ export default {
 </script>
 
 <template>
-  <InputOrDisplay :name="t('harvester.virtualMachine.input.image')" :value="image" :mode="mode" class="mb-20">
-    <LabeledSelect
-      v-model="image"
-      :disabled="disabled"
-      :mode="mode"
-      :label="t('harvester.virtualMachine.input.image')"
-      :required="required"
-      :options="ImageOption"
-      :tooltip="tip"
-      :hover-tooltip="true"
-      @input="update"
-    />
-  </InputOrDisplay>
+  <LabeledSelect
+    v-model="image"
+    :disabled="disabled"
+    :mode="mode"
+    :label="t('harvester.virtualMachine.input.image')"
+    :required="required"
+    :options="ImageOption"
+    :tooltip="tip"
+    :hover-tooltip="true"
+    @input="update"
+  />
 </template>

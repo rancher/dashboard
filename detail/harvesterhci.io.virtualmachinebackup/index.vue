@@ -1,6 +1,7 @@
 <script>
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
+import Loading from '@/components/Loading';
 import CruResource from '@/components/CruResource';
 import Checkbox from '@/components/form/Checkbox';
 import VM_MIXIN from '@/mixins/vm';
@@ -22,6 +23,7 @@ export default {
     Network,
     CruResource,
     Tabbed,
+    Loading,
     Tab,
     CloudConfig,
     Checkbox,
@@ -45,11 +47,10 @@ export default {
   async fetch() {
     const hash = await allHash({ backupContents: this.$store.dispatch('virtual/findAll', { type: HCI.BACKUP_CONTENT }) });
 
-    const content = hash.backupContents.find( O => O.id === `default/${ this.value?.backupContentName }`);
+    const content = hash.backupContents.find( O => O.id === `${ this.value.metadata.namespace }/${ this.value?.backupContentName }`);
 
     const spec = content.spec.source.virtualMachineSpec;
 
-    this.backupContents = hash.backupContents;
     this.spec = spec;
     this.contentResource = content;
 
@@ -64,14 +65,11 @@ export default {
 
     this.diskRows = this.getDiskRows(spec);
     this.networkRows = this.getNetworkRows(spec);
-    this.imageName = this.getRootImage(spec);
+    this.imageName = this.getRootImageId(spec);
   },
 
   data() {
-    return {
-      backupContents:  [],
-      contentResource: null
-    };
+    return { contentResource: null };
   },
 
   methods: {
@@ -85,7 +83,9 @@ export default {
 </script>
 
 <template>
+  <Loading v-if="$fetchState.pending" />
   <CruResource
+    v-else
     :done-route="doneRoute"
     :resource="value"
     :mode="mode"

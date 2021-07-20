@@ -485,7 +485,7 @@ export default {
   restoreState() {
     return (vmResource = this, id) => {
       if (!id) {
-        id = `default/${ get(vmResource, `metadata.annotations."${ HCI_ANNOTATIONS.RESTORE_NAME }"`) }`;
+        id = `${ this.metadata.namespace }/${ get(vmResource, `metadata.annotations."${ HCI_ANNOTATIONS.RESTORE_NAME }"`) }`;
       }
       const restoreResource = this.$rootGetters['virtual/byId'](HCI.RESTORE, id);
 

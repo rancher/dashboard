@@ -4684,6 +4684,30 @@ harvester:
     cpu: Cpu
     memory: Memory
     virtaulName: Virtual machine name
+  
+  validation:
+    custom:
+      tooLongName: '"Name" cannot be more than {max} characters.'
+      cidr: 'CIRD is invalid.'
+    vm:
+      name: 'name is required'
+      memory: '"Memory" is required!'
+      network:
+        error: 'network {prefix}: {message}'
+        name: 'Network Name is required'
+        macFormat: 'Invalid MAC address format.'
+        duplicatedName: 'network with this name already exists!.'
+        duplicatedPortName: 'Duplicate name of the port.'
+        duplicatedPortNumber: 'Duplicate number of the port'
+      volume:
+        error: 'volume {prefix}: {message}'
+        duplicatedName: 'volume with this name already exists!.'
+        type: '"Type" is required!'
+        size: '"Size" is required!'
+        image: '"Image" is required!'
+        volume: '"Volume" is required!'
+        docker: '"Docker Image" is required!'
+  
   dashboard:
     label: Dashboard
     header: "Harvester Clsuter: {cluster}"

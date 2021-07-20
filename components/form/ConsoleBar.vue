@@ -52,13 +52,10 @@ export default {
         uid = this.resource.metadata.uid;
       }
 
-      let host = window.location.host;
+      const host = window.location.host;
+      const pathname = window.location.pathname.replace('/kubevirt.io.virtualmachine', '');
 
-      if (process.env.NODE_ENV === 'production') {
-        host = `${ host }/dashboard`;
-      }
-
-      const url = `https://${ host }/console/${ uid }/${ type }`;
+      const url = `https://${ host }${ pathname }/console/${ uid }/${ type }`;
 
       window.open(url, '_blank', 'toolbars=0,width=900,height=700,left=0,top=0');
     },
