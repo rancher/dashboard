@@ -88,6 +88,7 @@ export default {
           :taggable="true"
           :clearable="true"
           :close-on-select="false"
+          placement="top"
         />
       </div>
     </div>
