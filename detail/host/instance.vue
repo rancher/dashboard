@@ -31,8 +31,8 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      allNodeNetwork:      this.$store.dispatch('cluster/findAll', { type: HCI.NODE_NETWORK }),
-      allClusterNetwork:   this.$store.dispatch('cluster/findAll', { type: HCI.CLUSTER_NETWORK }),
+      allNodeNetwork:      this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK }),
+      allClusterNetwork:   this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK }),
     });
 
     this.allNodeNetwork = hash.allNodeNetwork;

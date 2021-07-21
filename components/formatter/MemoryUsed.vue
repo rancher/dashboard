@@ -25,7 +25,7 @@ export default {
 
   computed: {
     metrics() {
-      return this.$store.getters['cluster/byId'](METRIC.NODE, this.row.id);
+      return this.$store.getters['virtual/byId'](METRIC.NODE, this.row.id);
     },
 
     memoryTotal() {

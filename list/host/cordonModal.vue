@@ -74,11 +74,11 @@ export default {
   >
     <Card>
       <h4 slot="title" class="text-default-text">
-        {{ t('harvester.hostPage.cordon.title') }}
+        {{ t('harvester.host.cordon.title') }}
       </h4>
 
       <div slot="body" class="pl-10 pr-10">
-        <Banner color="warning" :label="t('harvester.hostPage.cordon.protip', { node: nodeName })" class="mt-20" />
+        <Banner color="warning" :label="t('harvester.host.cordon.protip', { node: nodeName })" class="mt-20" />
         <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
       </div>
 

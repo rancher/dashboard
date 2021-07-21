@@ -5375,11 +5375,6 @@ typeLabel:
       one { Host }
       other { Hosts }
     }
-  configmap: |-
-    {count, plural,
-      one { Cloud Config Template }
-      other { Cloud Config Templates }
-    }
   k8s.cni.cncf.io.networkattachmentdefinition: |-
     {count, plural,
       one { Network }

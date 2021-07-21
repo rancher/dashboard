@@ -133,4 +133,5 @@ export const HCI = {
   NODE_ROLE_MASTER:             'node-role.kubernetes.io/master',
   NODE_ROLE_CONTROL_PLANE:      'node-role.kubernetes.io/control-plane',
   HARVESTER_PROMOTE_STATUS:     'harvesterhci.io/promote-status',
+  HARVESTER_MAINTENANCE_STATUS: 'harvesterhci.io/maintain-status',
 };
