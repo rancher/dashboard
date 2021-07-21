@@ -5,6 +5,8 @@ import metricPoller from '@/mixins/metric-poller';
 import { METRIC, NODE, HCI } from '@/config/types';
 import { HOSTNAME } from '@/config/labels-annotations';
 import { allHash } from '@/utils/promise';
+import MaintenanceModal from '@/list/host/maintenanceModal';
+import CordonModal from '@/list/host/cordonModal';
 import Basic from './basic';
 import Instance from './instance';
 
@@ -16,6 +18,8 @@ export default {
     Tab,
     Basic,
     Instance,
+    MaintenanceModal,
+    CordonModal
   },
   mixins: [metricPoller],
 
@@ -84,12 +88,17 @@ export default {
 </script>
 
 <template>
-  <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
-    <Tab name="basics" :label="t('harvester.host.tabs.basics')" :weight="3" class="bordered-table">
-      <Basic v-model="value" :metrics="metrics" :mode="mode" :host-netowrk-resource="hostNetowrkResource" />
-    </Tab>
-    <Tab name="instance" :label="t('harvester.host.tabs.instance')" :weight="2" class="bordered-table">
-      <Instance :rows="rows" />
-    </Tab>
-  </Tabbed>
+  <div>
+    <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
+      <Tab name="basics" :label="t('harvester.host.tabs.basics')" :weight="3" class="bordered-table">
+        <Basic v-model="value" :metrics="metrics" :mode="mode" :host-netowrk-resource="hostNetowrkResource" />
+      </Tab>
+      <Tab name="instance" :label="t('harvester.host.tabs.instance')" :weight="2" class="bordered-table">
+        <Instance :rows="rows" />
+      </Tab>
+    </Tabbed>
+
+    <MaintenanceModal />
+    <CordonModal />
+  </div>
 </template>
