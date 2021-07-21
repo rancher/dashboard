@@ -82,7 +82,7 @@ export default {
       referenced = this.allConfigMaps.filter((resource) => {
         return resource.metadata.name === refName;
       })[0];
-      if (referenced) {
+      if (referenced && referenced.data) {
         keys.push(...Object.keys(referenced.data));
       }
       break;
@@ -98,7 +98,7 @@ export default {
       referenced = this.allSecrets.filter((resource) => {
         return resource.metadata.name === refName;
       })[0];
-      if (referenced) {
+      if (referenced && referenced.data) {
         keys.push(...Object.keys(referenced.data));
       }
       break;
@@ -208,7 +208,7 @@ export default {
 
   methods: {
     updateRow() {
-      if ((!this.name && !this.refName) || (!this.name.length && !this.refName.length)) {
+      if (!this.name?.length && !this.refName?.length) {
         if (this.type !== 'fieldRef') {
           this.$emit('input', null);
 
