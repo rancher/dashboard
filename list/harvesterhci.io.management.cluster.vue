@@ -1,5 +1,6 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
+import { NAME as VIRTUAL } from '@/config/product/virtual';
 
 export default {
 
@@ -28,7 +29,16 @@ export default {
     <template #col:name="{row}">
       <td>
         <span>
-          <n-link v-if="row.isReady" :to="{ name: 'c-cluster-virtual', params: { cluster: row.id }}">
+          <n-link
+            v-if="row.isReady"
+            :to="{
+              name: 'c-cluster-product',
+              params: {
+                cluster: row.id,
+                product: VIRTUAL,
+              }
+            }"
+          >
             {{ row.nameDisplay }}
           </n-link>
           <span v-else>
