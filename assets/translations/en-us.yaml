@@ -397,6 +397,9 @@ authConfig:
     rancherUrl: Rancher URL
     clientId: Client ID
     clientSecret: Client Secret
+    adminAccountUsername: Service Account Username
+    adminAccountPassword: Service Account Password
+    adminAccountInfo: '{vendor} needs a service account that is a member of all the parent groups that will be able to login. This is specifically required to determine if a user is in a child group of that parent. If your groups are not nested the Service Account is not required.'
     customEndpoint:
       label: Endpoints
       custom: Specify
