@@ -3,9 +3,7 @@ import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, RKE, HCI } from '@/config/labels-
 import {
   CAPI, MANAGEMENT, METRIC, NORMAN, POD
 } from '@/config/types';
-import { NAME as VIRTUAL } from '@/config/product/virtual';
 import { parseSi } from '@/utils/units';
-import { clone } from '@/utils/object';
 import { PRIVATE } from '@/plugins/steve/resource-proxy';
 import findLast from 'lodash/findLast';
 
@@ -112,26 +110,6 @@ export default {
 
   name() {
     return this.metadata.name;
-  },
-
-  nameDisplay() {
-    if (this.$rootGetters['currentProduct'].name !== VIRTUAL) {
-      return this.name;
-    }
-
-    return this.metadata?.annotations?.[HCI.HOST_CUSTOM_NAME] || this.name;
-  },
-
-  detailLocation() {
-    if (this.$rootGetters['currentProduct'].name !== VIRTUAL) {
-      return;
-    }
-
-    const detailLocation = clone(this._detailLocation);
-
-    detailLocation.params.resource = 'host';
-
-    return detailLocation;
   },
 
   internalIp() {

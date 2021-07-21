@@ -20,8 +20,8 @@ export default {
   },
 
   detailLocation() {
-    if (this.$rootGetters['currentProduct'].name !== VIRTUAL) {
-      return;
+    if (this.$rootGetters['currentProduct'].inStore !== VIRTUAL) {
+      return this._detailLocation;
     }
 
     const detailLocation = clone(this._detailLocation);
@@ -32,7 +32,7 @@ export default {
   },
 
   doneOverride() {
-    if (this.$rootGetters['currentProduct'].name !== VIRTUAL) {
+    if (this.$rootGetters['currentProduct'].inStore !== VIRTUAL) {
       return;
     }
 
@@ -47,7 +47,7 @@ export default {
   },
 
   parentLocationOverride() {
-    if (this.$rootGetters['currentProduct'].name !== VIRTUAL) {
+    if (this.$rootGetters['currentProduct'].inStore !== VIRTUAL) {
       return;
     }
 
