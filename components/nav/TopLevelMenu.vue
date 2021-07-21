@@ -3,7 +3,7 @@ import BrandImage from '@/components/BrandImage';
 import RancherProviderIcon from '@/components/RancherProviderIcon';
 import { mapGetters } from 'vuex';
 import $ from 'jquery';
-import { MANAGEMENT } from '@/config/types';
+import { MANAGEMENT, VIRTUAL_PROVIDER } from '@/config/types';
 import { mapPref, DEV, MENU_MAX_CLUSTERS } from '@/store/prefs';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
@@ -58,7 +58,7 @@ export default {
 
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      let out = all.map((x) => {
+      let out = all.filter(c => c.status?.provider !== VIRTUAL_PROVIDER).map((x) => {
         return {
           id:      x.id,
           label:   x.nameDisplay,

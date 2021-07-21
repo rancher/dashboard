@@ -1,4 +1,4 @@
-import { HCI, MANAGEMENT } from '@/config/types';
+import { HCI, MANAGEMENT, VIRTUAL_PROVIDER } from '@/config/types';
 import { MULTI_CLUSTER } from '@/store/features';
 import { DSL } from '@/store/type-map';
 
@@ -46,7 +46,7 @@ export function init(store) {
     getInstances: async() => {
       const clusters = await store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
 
-      return clusters.filter(c => c.status.provider === 'harvester');
+      return clusters.filter(c => c.status?.provider === VIRTUAL_PROVIDER);
     }
   });
 }

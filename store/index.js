@@ -1,6 +1,6 @@
 import Steve from '@/plugins/steve';
 import {
-  COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET, UI
+  COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET, UI, VIRTUAL_PROVIDER
 } from '@/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS, LAST_NAMESPACE, WORKSPACE } from '@/store/prefs';
 import { allHash, allHashSettled } from '@/utils/promise';
@@ -89,6 +89,10 @@ export const getters = {
 
   currentCluster(state, getters) {
     return getters['management/byId'](MANAGEMENT.CLUSTER, state.clusterId);
+  },
+
+  currentVirtualCluster(state, getters) {
+    return getters['management/byId'](MANAGEMENT.CLUSTER, state.virtualClusterId);
   },
 
   currentProduct(state, getters) {
@@ -369,6 +373,13 @@ export const getters = {
     }
 
     return '/';
+  },
+
+  isVirtualCluster(state, getters, rootState, rootGetters) {
+    const clusterId = getters.defaultClusterId; 
+    const cluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, clusterId)
+
+    return cluster?.status?.provider === VIRTUAL_PROVIDER
   },
 };
 
@@ -670,7 +681,11 @@ export const actions = {
       opt:  { url: `${ MANAGEMENT.CLUSTER }s/${ escape(id) }` }
     });
 
-    const virtualBase = `/k8s/clusters/${ escape(id) }/v1/harvester`;
+    let virtualBase = `/k8s/clusters/${ escape(id) }/v1/harvester`;
+
+    if (id === 'local') {
+      virtualBase = `/v1/harvester`;
+    }
 
     if ( !cluster ) {
       commit('setVirtualClusterId', null);

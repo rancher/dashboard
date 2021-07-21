@@ -269,3 +269,5 @@ export const HCI = {
   CLUSTER:            'harvesterhci.io.management.cluster',
   DASHBOARD:          'harvesterhci.io.dashboard',
 };
+
+export const VIRTUAL_PROVIDER = 'harvester';

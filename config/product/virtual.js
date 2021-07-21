@@ -19,6 +19,7 @@ export function init(store) {
     headers,
     configureType,
     virtualType,
+    spoofedType,
   } = DSL(store, NAME);
 
   product({
@@ -34,11 +35,18 @@ export function init(store) {
     label:         store.getters['i18n/t']('harvester.dashboard.label'),
     group:        'Root',
     labelDisplay: 'harvester.nav.dashboard',
-    namespaced:   true,
     name:         HCI.DASHBOARD,
     weight:       500,
-    route:        { name: 'c-cluster-virtual' },
-    exact:        true,
+    route:        {
+      name:   'c-cluster-product-resource',
+      params:  {
+        product:  NAME,
+        resource: HCI.DASHBOARD,
+      },
+    },
+  });
+  configureType(HCI.DASHBOARD, {
+    showListMasthead: false,
   });
 
   configureType(HOST, {
