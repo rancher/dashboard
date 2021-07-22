@@ -1,6 +1,6 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
-import { STATE, AGE, SIMPLE_NAME } from '@/config/table-headers';
+import { STATE, AGE, NAME } from '@/config/table-headers';
 import { uniq } from '@/utils/array';
 import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES } from '@/config/types';
 import Loading from '@/components/Loading';
@@ -55,7 +55,7 @@ export default {
 
       return [
         STATE,
-        SIMPLE_NAME,
+        NAME,
         this.groupPreference === 'none' ? project : null,
         AGE
       ].filter(h => h);

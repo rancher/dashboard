@@ -2406,6 +2406,13 @@ namespace:
   enableAutoInjection: Enable Istio Auto Injection
   disableAutoInjection: Disable Istio Auto Injection
   move: Move
+  resourceStates:
+      success: 'Active'
+      info: 'Transitioning'
+      warning: 'Warning'
+      error: 'Error'
+      unknown: 'Unknown'
+
 
 namespaceFilter:
   selected:
