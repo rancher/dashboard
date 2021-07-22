@@ -36,7 +36,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentVirtualCluster']),
+    ...mapGetters(['currentCluster']),
 
     versionOptions() {
       const settings = this.$store.getters['cluster/all'](HCI.SETTING);
@@ -130,7 +130,7 @@ export default {
       <h1>
         <t
           k="harvester.dashboard.header"
-          :cluster="currentVirtualCluster.nameDisplay"
+          :cluster="currentCluster.nameDisplay"
         />
       </h1>
       <button v-if="versionOptions.length" type="button" class="btn bg-warning btn-sm" @click="open">
