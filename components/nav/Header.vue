@@ -180,7 +180,7 @@ export default {
       </div>
     </div>
 
-    <TopLevelMenu v-if="!isVirtualCluster"></TopLevelMenu>
+    <TopLevelMenu v-if="isMultiCluster || !isVirtualCluster"></TopLevelMenu>
 
     <div v-if="currentCluster && !simple" class="top">
       <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />

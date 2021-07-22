@@ -19,7 +19,6 @@ export function init(store) {
     headers,
     configureType,
     virtualType,
-    spoofedType,
   } = DSL(store, NAME);
 
   product({
@@ -45,9 +44,7 @@ export function init(store) {
       },
     },
   });
-  configureType(HCI.DASHBOARD, {
-    showListMasthead: false,
-  });
+  configureType(HCI.DASHBOARD, { showListMasthead: false });
 
   configureType(HOST, {
     location:    {

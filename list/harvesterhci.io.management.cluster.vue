@@ -16,6 +16,10 @@ export default {
       required: true,
     },
   },
+
+  data() {
+    return { VIRTUAL };
+  },
 };
 </script>
 
@@ -32,10 +36,9 @@ export default {
           <n-link
             v-if="row.isReady"
             :to="{
-              name: 'c-cluster-product',
+              name: `c-cluster-${VIRTUAL}`,
               params: {
                 cluster: row.id,
-                product: VIRTUAL,
               }
             }"
           >
