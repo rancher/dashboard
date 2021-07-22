@@ -9,6 +9,10 @@ export default {
   mixins:     [CreateEditView],
 
   data() {
+    if ( !this.value.decodedData.environment ) {
+      this.value.setData('environment', 'AzurePublicCloud');
+    }
+
     return { azureEnvironments };
   },
 
@@ -22,9 +26,6 @@ export default {
     'value.decodedData.subscriptionId'(neu) {
       this.$emit('validationChanged', !!neu);
     },
-    'value.decodedData.tenantId'(neu) {
-      this.$emit('validationChanged', !!neu);
-    },
     'value.decodedData.environment'(neu) {
       this.$emit('validationChanged', !!neu);
     },
@@ -36,7 +37,6 @@ export default {
         clientId,
         clientSecret,
         subscriptionId,
-        tenantId,
       } = this.value.decodedData;
 
       try {
@@ -47,7 +47,6 @@ export default {
             clientId,
             clientSecret,
             subscriptionId,
-            tenantId,
           },
         });
 
@@ -64,12 +63,16 @@ export default {
   <section>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput
-          :value="value.decodedData.tenantId"
-          label-key="cluster.credential.azure.tenantId.label"
-          type="text"
+        <LabeledSelect
+          :value="value.decodedData.environment"
           :mode="mode"
-          @input="value.setData('tenantId', $event)"
+          :options="azureEnvironments"
+          option-key="value"
+          option-label="value"
+          :searchable="false"
+          :required="true"
+          :label="t('cluster.credential.azure.environment.label')"
+          @input="value.setData('environment', $event)"
         />
       </div>
       <div class="col span-6">
@@ -78,6 +81,7 @@ export default {
           label-key="cluster.credential.azure.subscriptionId.label"
           type="text"
           :mode="mode"
+          :required="true"
           @input="value.setData('subscriptionId', $event)"
         />
       </div>
@@ -89,6 +93,7 @@ export default {
           label-key="cluster.credential.azure.clientId.label"
           type="text"
           :mode="mode"
+          :required="true"
           @input="value.setData('clientId', $event)"
         />
       </div>
@@ -98,22 +103,8 @@ export default {
           label-key="cluster.credential.azure.clientSecret.label"
           type="password"
           :mode="mode"
-          @input="value.setData('clientSecret', $event)"
-        />
-      </div>
-    </div>
-    <div class="row mb-10">
-      <div class="col span-6">
-        <LabeledSelect
-          :value="value.decodedData.environment"
-          :mode="mode"
-          :options="azureEnvironments"
-          option-key="value"
-          option-label="value"
-          :searchable="false"
           :required="true"
-          :label="t('cluster.credential.azure.environment.label')"
-          @input="value.setData('environment', $event)"
+          @input="value.setData('clientSecret', $event)"
         />
       </div>
     </div>
