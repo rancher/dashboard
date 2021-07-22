@@ -84,10 +84,6 @@ export const getters = {
     return getters['management/byId'](MANAGEMENT.CLUSTER, state.clusterId);
   },
 
-  currentVirtualCluster(state, getters) {
-    return getters['management/byId'](MANAGEMENT.CLUSTER, state.virtualClusterId);
-  },
-
   currentProduct(state, getters) {
     const active = getters['type-map/activeProducts'];
 
