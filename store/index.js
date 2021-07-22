@@ -123,6 +123,7 @@ export const getters = {
   defaultClusterId(state, getters) {
     const all = getters['management/all'](MANAGEMENT.CLUSTER);
     const clusters = sortBy(filterBy(all, 'isReady'), 'nameDisplay');
+
     const desired = getters['prefs/get'](CLUSTER_PREF);
 
     if ( clusters.find(x => x.id === desired) ) {
@@ -368,6 +369,18 @@ export const getters = {
   isSingleVirtualCluster(state, getters, rootState, rootGetters) {
     return !getters.isMultiCluster && getters.isVirtualCluster;
   },
+
+  isMultiVirtualCluster(state, getters, rootState, rootGetters) {
+    const localCluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, 'local');
+
+    return getters.isMultiCluster && localCluster?.status?.provider === VIRTUAL_PROVIDER;
+  },
+
+  isCurrentVirtualCluster(state, getters) {
+    const cluster = getters['currentCluster'];
+
+    return cluster?.status?.provider === VIRTUAL_PROVIDER;
+  }
 };
 
 export const mutations = {

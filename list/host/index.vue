@@ -3,6 +3,7 @@ import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
 import { STATE, NAME, AGE } from '@/config/table-headers';
 import { METRIC, NODE, SCHEMA } from '@/config/types';
+import { allHash } from '@/utils/promise';
 import metricPoller from '@/mixins/metric-poller';
 import MaintenanceModal from './maintenanceModal';
 import CordonModal from './cordonModal';
@@ -33,7 +34,12 @@ export default {
   mixins: [metricPoller],
 
   async fetch() {
-    this.rows = await this.$store.dispatch('virtual/findAll', { type: NODE });
+    const hash = await allHash({
+      nodes:      this.$store.dispatch('virtual/findAll', { type: NODE }),
+      metric:   this.$store.dispatch('virtual/findAll', { type: METRIC.NODE }),
+    });
+
+    this.rows = hash.nodes;
   },
 
   data() {

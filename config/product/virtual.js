@@ -1,8 +1,8 @@
 import {
-  HCI, NODE, CONFIG_MAP, VIRTUAL_TYPES, MANAGEMENT
+  HCI, NODE, CONFIG_MAP, NAMESPACE, VIRTUAL_TYPES, MANAGEMENT
 } from '@/config/types';
 import {
-  STATE, NAME as NAME_COL, AGE, NAMESPACE, IMAGE_DOWNLOAD_SIZE,
+  STATE, NAME_UNLINKED, NAME as NAME_COL, AGE, NAMESPACE_COL, IMAGE_DOWNLOAD_SIZE,
   FINGERPRINT
 } from '@/config/table-headers';
 
@@ -124,7 +124,7 @@ export function init(store) {
   });
 
   basicType([HCI.IMAGE]);
-  headers(HCI.IMAGE, [STATE, NAME_COL, NAMESPACE, /* IMAGE_PROGRESS, IMAGE_MESSAGE, */IMAGE_DOWNLOAD_SIZE, AGE]);
+  headers(HCI.IMAGE, [STATE, NAME_COL, NAMESPACE_COL, /* IMAGE_PROGRESS, IMAGE_MESSAGE, */IMAGE_DOWNLOAD_SIZE, AGE]);
   virtualType({
     label:      store.getters['i18n/t']('harvester.image.label'),
     group:      'root',
@@ -151,6 +151,24 @@ export function init(store) {
     weight:           98,
     route:            { name: 'c-cluster-product-projectsnamespaces' },
     exact:            true,
+  });
+
+  // singleVirtualCluster
+  headers(NAMESPACE, [STATE, NAME_UNLINKED, AGE]);
+  basicType([NAMESPACE]);
+  virtualType({
+    showMenuFun(state, getters, rootState, rootGetters) {
+      return rootGetters['isSingleVirtualCluster'];
+    },
+    label:                  'Namespace',
+    name:                   NAMESPACE,
+    namespaced:             true,
+    weight:                 89,
+    route:                  {
+      name:   'c-cluster-product-resource',
+      params: { resource: NAMESPACE }
+    },
+    exact: false,
   });
 
   basicType([
@@ -205,7 +223,7 @@ export function init(store) {
     exact: false,
   });
 
-  headers(HCI.SSH, [STATE, NAME_COL, NAMESPACE, FINGERPRINT, AGE]);
+  headers(HCI.SSH, [STATE, NAME_COL, NAMESPACE_COL, FINGERPRINT, AGE]);
   virtualType({
     label:      store.getters['i18n/t']('harvester.sshKey.label'),
     name:       HCI.SSH,

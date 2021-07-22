@@ -140,21 +140,28 @@ export default {
     },
 
     customStorageClassConfig() {
-      const storageClass = this.$store.getters['virtual/all'](HCI.SETTING).find( O => O.id === 'default-storage-class');
+      const storageClassValue = this.$store.getters['virtual/all'](HCI.SETTING).find( O => O.id === 'default-storage-class')?.value || '{}';
+      let parse = {};
 
-      return storageClass?.value ? storageClass.value.split(':') : [];
+      try {
+        parse = JSON.parse(storageClassValue);
+      } catch {
+        parse = {};
+      }
+
+      return parse;
     },
 
     customDefaultStorageClass() {
-      return this.customStorageClassConfig[0];
+      return this.customStorageClassConfig.storageClass;
     },
 
     customVolumeMode() {
-      return this.customStorageClassConfig[1] || 'Block';
+      return this.customStorageClassConfig.volumeMode || 'Block';
     },
 
     customAccessMode() {
-      return this.customStorageClassConfig[2] || 'ReadWriteOnce';
+      return this.customStorageClassConfig.accessModes || 'ReadWriteOnce';
     }
   },
 
@@ -230,7 +237,7 @@ export default {
               volumeMode = dataVolumeSpecPVC?.volumeMode;
               accessMode = dataVolumeSpecPVC?.accessModes?.[0];
               size = dataVolumeSpecPVC?.resources?.requests?.storage || '10Gi';
-              storageClassName = dataVolumeSpecPVC?.storageClassName || this.customDefaultStorageClass;
+              storageClassName = dataVolumeSpecPVC?.storageClassName;
             } else { // SOURCE_TYPE.ATTACH_VOLUME
               const choices = this.$store.getters['virtual/all'](HCI.DATA_VOLUME);
               const dvResource = choices.find( O => O.id === `${ namespace }/${ volume?.dataVolume?.name }`);
@@ -524,7 +531,7 @@ export default {
 
       switch (R.source) {
       case SOURCE_TYPE.NEW:
-        _dataVolumeTemplate.spec.pvc.storageClassName = R.storageClassName; // this.customDefaultStorageClass
+        _dataVolumeTemplate.spec.pvc.storageClassName = this.customDefaultStorageClass || R.storageClassName || this.defaultStorageClass;
         _dataVolumeTemplate.spec.source = { blank: {} };
         break;
       case SOURCE_TYPE.IMAGE: {
@@ -759,8 +766,9 @@ export default {
       handler(neu) {
         if (this.diskRows.length > 0) {
           const _diskRows = cloneDeep(this.diskRows);
+          const imageResource = this.getImageResourceById(neu);
 
-          const isIso = /.iso$/.test(neu);
+          const isIso = /.iso$/.test(imageResource?.spec?.url);
 
           if (this.autoChangeForImage) {
             if (isIso) {

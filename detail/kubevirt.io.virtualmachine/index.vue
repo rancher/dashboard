@@ -137,7 +137,7 @@ export default {
         <Migration v-model="value" :vmi-resource="vmi" />
       </Tab>
 
-      <Tab :label="t('harvester.virtualMachine.detail.tabs.metrics')" name="vm-metrics" :weight="2.5" v-if="false">
+      <Tab v-if="false" :label="t('harvester.virtualMachine.detail.tabs.metrics')" namev-if="false" :weight="2.5">
         <template #default="props">
           <HarvesterMetrics
             v-if="props.active"
