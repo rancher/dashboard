@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import { NAMESPACE_FILTERS } from '@/store/prefs';
 import { NAMESPACE, MANAGEMENT } from '@/config/types';
 import { sortBy } from '@/utils/sort';
@@ -17,6 +18,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['isCurrentVirtualCluster', 'isSingleVirtualCluster', 'isMultiVirtualCluster']),
     filterIsHovered() {
       return this.isHovered;
     },
@@ -36,44 +38,47 @@ export default {
 
     options() {
       const t = this.$store.getters['i18n/t'];
+      let out = [];
 
-      const out = [
-        {
-          id:    'all',
-          kind:  'special',
-          label: t('nav.ns.all'),
-        },
-        {
-          id:    'all://user',
-          kind:  'special',
-          label: t('nav.ns.user'),
-        },
-        {
-          id:    'all://system',
-          kind:  'special',
-          label: t('nav.ns.system'),
-        },
-        {
-          id:    'namespaced://true',
-          kind:  'special',
-          label: t('nav.ns.namespaced'),
-        },
-        {
-          id:    'namespaced://false',
-          kind:  'special',
-          label: t('nav.ns.clusterLevel'),
-        },
-      ];
+      if (!this.isCurrentVirtualCluster) {
+        out = [
+          {
+            id:    'all',
+            kind:  'special',
+            label: t('nav.ns.all'),
+          },
+          {
+            id:    'all://user',
+            kind:  'special',
+            label: t('nav.ns.user'),
+          },
+          {
+            id:    'all://system',
+            kind:  'special',
+            label: t('nav.ns.system'),
+          },
+          {
+            id:    'namespaced://true',
+            kind:  'special',
+            label: t('nav.ns.namespaced'),
+          },
+          {
+            id:    'namespaced://false',
+            kind:  'special',
+            label: t('nav.ns.clusterLevel'),
+          },
+        ];
 
-      divider();
+        divider();
+      }
 
       const inStore = this.$store.getters['currentStore'](NAMESPACE);
       const namespaces = sortBy(
         this.$store.getters[`${ inStore }/all`](NAMESPACE),
         ['nameDisplay']
-      );
+      ).filter( N => this.isCurrentVirtualCluster ? !N.isSystem : true);
 
-      if (this.$store.getters['isRancher']) {
+      if (this.$store.getters['isRancher'] || this.isMultiVirtualCluster) {
         const cluster = this.$store.getters['currentCluster'];
         let projects = this.$store.getters['management/all'](
           MANAGEMENT.PROJECT
@@ -87,7 +92,6 @@ export default {
         let firstProject = true;
 
         namespacesByProject[null] = []; // For namespaces not in a project
-
         for (const project of projects) {
           projectsById[project.metadata.name] = project;
         }
@@ -106,7 +110,6 @@ export default {
             entry = [];
             namespacesByProject[namespace.projectId] = entry;
           }
-
           entry.push(namespace);
         }
 

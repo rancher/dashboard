@@ -38,12 +38,10 @@ const METRICS_POLL_RATE_MS = 20000;
 const MAX_FAILURES = 2;
 
 const RESOURCES = [{
-  type:          NODE,
+  type:            NODE,
   spoofedLocation: {
     name:     'c-cluster-product-resource',
-    params:   {
-      resource: 'host',
-    }
+    params:   { resource: 'host' }
   }
 }, { type: HCI.VM }, { type: HCI.NETWORK_ATTACHMENT }, { type: HCI.IMAGE }, { type: HCI.DATA_VOLUME }];
 
@@ -357,7 +355,7 @@ export default {
         v-for="resource in accessibleResources"
         :key="resource.type"
         :resource="resource.type"
-        :spoofedLocation="resource.spoofedLocation"
+        :spoofed-location="resource.spoofedLocation"
       />
     </div>
 
@@ -486,10 +484,10 @@ export default {
         </SortableTable>
       </Tab>
       <Tab
+        v-if="false"
         name="metric"
         label="Metric"
         :weight="96"
-        v-if="false"
       >
         <HarvesterMetrics
           :detail-url="CLUSTER_METRICS_DETAIL_URL"

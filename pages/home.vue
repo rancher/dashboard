@@ -10,7 +10,7 @@ import SimpleBox from '@/components/SimpleBox';
 import LandingPagePreference from '@/components/LandingPagePreference';
 import SingleClusterInfo from '@/components/SingleClusterInfo';
 import { mapGetters, mapState } from 'vuex';
-import { MANAGEMENT, CAPI } from '@/config/types';
+import { MANAGEMENT, CAPI, VIRTUAL_PROVIDER } from '@/config/types';
 import { NAME as MANAGER } from '@/config/product/manager';
 import { STATE } from '@/config/table-headers';
 import { MODE, _IMPORT } from '@/config/query-params';
@@ -43,7 +43,7 @@ export default {
   mixins: [PageHeaderActions],
 
   async fetch() {
-    this.clusters = await this.$store.dispatch('management/findAll', {
+    this.allClusters = await this.$store.dispatch('management/findAll', {
       type: MANAGEMENT.CLUSTER,
       opt:  { url: MANAGEMENT.CLUSTER }
     });
@@ -65,7 +65,8 @@ export default {
     ];
 
     return {
-      HIDE_HOME_PAGE_CARDS, clusters: [], fullVersion, pageActions, vendor: getVendor(),
+
+      HIDE_HOME_PAGE_CARDS, allClusters: [], fullVersion, pageActions, vendor: getVendor(), clusterDetail: null,
     };
   },
 
@@ -73,6 +74,10 @@ export default {
     ...mapState(['managementReady']),
     ...mapGetters(['currentCluster']),
     mcm: mapFeature(MULTI_CLUSTER),
+
+    clusters() {
+      return this.allClusters.filter(C => C.status?.provider !== VIRTUAL_PROVIDER);
+    },
 
     createLocation() {
       return {
