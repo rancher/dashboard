@@ -4070,6 +4070,10 @@ harvester:
         prefix: 非法的备份目标
         middle: 设置
         suffic: ",错误信息： "
+      viewSetting:
+        prefix: 点击
+        middle: 这里
+        suffic: 查看备份的配置详情.
     restore:
       backup: 备份名称
       deletePreviousVolumes: 历史卷清除策略

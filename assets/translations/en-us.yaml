@@ -4926,6 +4926,10 @@ harvester:
         prefix: Backup Target value in
         middle: Setting
         suffic: "is invalid, error: "
+      viewSetting:
+        prefix: Click
+        middle: here
+        suffic: to view the backup config.
     restore:
       backup: Backup
       deletePreviousVolumes: Delete Previous Volumes

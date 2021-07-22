@@ -114,6 +114,19 @@ export default {
       </MessageLink>
     </Banner>
 
+    <Banner
+      v-else
+      color="info"
+      :closable="true"
+    >
+      <MessageLink
+        :to="to"
+        prefix-label="harvester.backup.message.viewSetting.prefix"
+        middle-label="harvester.backup.message.viewSetting.middle"
+        suffic-label="harvester.backup.message.viewSetting.suffic"
+      />
+    </Banner>
+
     <ResourceTable
       v-bind="$attrs"
       :headers="headers"
