@@ -1,7 +1,7 @@
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { SETUP, TIMED_OUT } from '@/config/query-params';
 import { SETTING } from '@/config/settings';
-import { MANAGEMENT, NORMAN, VIRTUAL_PROVIDER } from '@/config/types';
+import { MANAGEMENT, NORMAN } from '@/config/types';
 import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
 import { applyProducts } from '@/store/type-map';
 import { findBy } from '@/utils/array';
@@ -197,6 +197,11 @@ export default async function({
     const productId = get(route, 'params.product');
 
     if (productId === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }`) {
+      await store.dispatch('resetStore', {
+        id:    clusterId,
+        store: 'cluster',
+      });
+
       const res = [
         store.dispatch('loadManagement'),
         store.dispatch('loadVirtual', clusterId),
@@ -205,10 +210,14 @@ export default async function({
       await Promise.all(res);
     } else if ( clusterId ) {
       // Run them in parallel
+      await store.dispatch('resetStore', {
+        id:    clusterId,
+        store: VIRTUAL,
+      });
+
       const res = [
         store.dispatch('loadManagement'),
         store.dispatch('loadCluster', clusterId),
-        store.dispatch('clearVirtual', clusterId),
       ];
 
       await Promise.all(res);
@@ -216,24 +225,24 @@ export default async function({
       await store.dispatch('loadManagement');
 
       clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
-      const isMultiCluster = store.getters['isMultiCluster']
-      const isVirtualCluster = store.getters['isVirtualCluster']
-      
+      const isMultiCluster = store.getters['isMultiCluster'];
+      const isVirtualCluster = store.getters['isVirtualCluster'];
+
       if ( clusterId && !isVirtualCluster) {
         await store.dispatch('loadCluster', clusterId);
       }
 
       if (isVirtualCluster && !isMultiCluster) {
         const value = {
-          name: 'c-cluster-product',
+          name:   'c-cluster-product',
           params: {
             cluster: clusterId,
             product: VIRTUAL,
           },
-        }
+        };
 
-        await store.dispatch('prefs/set', { 
-          key: AFTER_LOGIN_ROUTE, 
+        await store.dispatch('prefs/set', {
+          key: AFTER_LOGIN_ROUTE,
           value,
         });
       }
