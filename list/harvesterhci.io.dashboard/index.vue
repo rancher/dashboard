@@ -9,7 +9,6 @@ import Poller from '@/utils/poller';
 import { parseSi, formatSi, exponentNeeded, UNITS } from '@/utils/units';
 import { REASON } from '@/config/table-headers';
 import { EVENT, METRIC, NODE, HCI } from '@/config/types';
-import SimpleBox from '@/components/SimpleBox';
 import ResourceSummary from '@/components/ResourceSummary';
 import HardwareResourceGauge from '@/components/HardwareResourceGauge';
 import Tabbed from '@/components/Tabbed';
