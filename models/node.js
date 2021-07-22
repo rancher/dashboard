@@ -149,11 +149,11 @@ export default {
   },
 
   isEnteringMaintenance() {
-    return this.metadata?.annotations?.[HCI.HARVESTER_MAINTENANCE_STATUS] === 'running';
+    return this.metadata?.annotations?.[HCI.MAINTENANCE_STATUS] === 'running';
   },
 
   isMaintenance() {
-    return this.metadata?.annotations?.[HCI.HARVESTER_MAINTENANCE_STATUS] === 'completed';
+    return this.metadata?.annotations?.[HCI.MAINTENANCE_STATUS] === 'completed';
   },
 
 };

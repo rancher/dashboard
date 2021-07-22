@@ -137,7 +137,7 @@ export default {
 
     nodeRoleState() {
       const isExistRoleStatus = this.value.metadata?.labels?.[HCI.NODE_ROLE_MASTER] !== undefined || this.value.metadata?.labels?.[HCI.NODE_ROLE_CONTROL_PLANE] !== undefined;
-      const promoteStatus = this.value.metadata?.annotations?.[HCI.HARVESTER_PROMOTE_STATUS] || NONE;
+      const promoteStatus = this.value.metadata?.annotations?.[HCI.PROMOTE_STATUS] || NONE;
 
       if (!isExistRoleStatus && promoteStatus === COMPLETE) {
         return PROMOTE_RESTART;
