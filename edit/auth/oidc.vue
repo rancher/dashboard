@@ -9,7 +9,6 @@ import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
 import FileSelector from '@/components/form/FileSelector';
 import AuthBanner from '@/components/auth/AuthBanner';
 import RadioGroup from '@/components/form/RadioGroup';
-import Password from '@/components/form/Password';
 
 export default {
   components: {
@@ -20,8 +19,7 @@ export default {
     AllowedPrincipals,
     FileSelector,
     AuthBanner,
-    RadioGroup,
-    Password
+    RadioGroup
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -154,25 +152,6 @@ export default {
               :label="t(`authConfig.oidc.clientSecret`)"
               :mode="mode"
               required
-            />
-          </div>
-        </div>
-
-        <Banner color="info" :label="t('authConfig.oidc.adminAccountInfo')" />
-        <div class="row mb-20">
-          <div class="col span-6">
-            <LabeledInput
-              v-model="model.adminAccountUsername"
-              :label="t(`authConfig.oidc.adminAccountUsername`)"
-              :mode="mode"
-            />
-          </div>
-          <div class="col span-6">
-            <Password
-              v-model="model.adminAccountPassword"
-              :label="t(`authConfig.oidc.adminAccountPassword`)"
-              :ignore-password-managers="true"
-              :mode="mode"
             />
           </div>
         </div>
