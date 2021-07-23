@@ -23,6 +23,12 @@ if ( !api.startsWith('http') ) {
   api = `https://${ api }`;
 }
 
+let opniApi = process.env.OPNI_API;
+
+if (opniApi && !opniApi.startsWith('http')) {
+  opniApi = `http://${ opniApi }`;
+}
+
 let routerBasePath = '/';
 let resourceBase = '';
 let outputDir = 'dist';
@@ -62,6 +68,10 @@ if ( pl !== STANDARD ) {
 }
 
 console.log(`API: ${ api }`); // eslint-disable-line no-console
+
+if (opniApi) {
+  console.log(`OPNI API: ${ opniApi }`); // eslint-disable-line no-console
+}
 
 module.exports = {
   dev,
@@ -326,6 +336,7 @@ module.exports = {
     '/api-ui':       proxyOpts(api), // Browser API UI
     '/meta':         proxyOpts(api), // Browser API UI
     '/v1-*':         proxyOpts(api), // SAML, KDM, etc
+    '/internal':         proxyOpts(opniApi), // OPNI,
     // These are for Ember embedding
     '/c/*/edit':     proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
     '/k/':           proxyOpts('https://127.0.0.1:8000'),

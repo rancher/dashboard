@@ -4,11 +4,10 @@ import { getInsights, getAnomolies, getLogs, getWorkloadLogs } from '@/utils/opn
 export default {
   components: { },
 
-  fetch() {
-    this.insights = getInsights();
-    this.anomolies = getAnomolies();
-    this.logs = getLogs();
-    this.workloadLogs = getWorkloadLogs();
+  async fetch() {
+    const responses = await Promise.all([getInsights(), getAnomolies(), getLogs(), getWorkloadLogs()]);
+
+    [this.insights, this.anomolies, this.logs, this.workloadLogs] = responses;
 
     console.log(this.insights, this.anomolies, this.logs, this.workloadLogs); // eslint-disable-line no-console
   },
