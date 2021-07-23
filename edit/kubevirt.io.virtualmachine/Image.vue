@@ -1,10 +1,9 @@
 <script>
 import LabeledSelect from '@/components/form/LabeledSelect';
-import InputOrDisplay from '@/components/InputOrDisplay';
 import { HCI } from '@/config/types';
 
 export default {
-  components: { LabeledSelect, InputOrDisplay },
+  components: { LabeledSelect },
 
   props: {
     value: {

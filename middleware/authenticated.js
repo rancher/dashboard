@@ -47,7 +47,7 @@ function setProduct(store, to) {
 }
 
 export default async function({
-  route, app, store, redirect, $cookies
+  route, app, store, redirect, $cookies, req, isDev, from
 }) {
   if ( route.path && typeof route.path === 'string') {
     // Ignore webpack hot module reload requests
@@ -219,12 +219,15 @@ export default async function({
 
   try {
     let clusterId = get(route, 'params.cluster');
-    const productId = get(route, 'params.product');
+    const product = get(route, 'params.product');
+    const oldProduct = from?.params?.product;
 
-    if (productId === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }`) {
+    if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }`) {
       await store.dispatch('resetStore', {
         id:    clusterId,
         store: 'cluster',
+        oldProduct,
+        product,
       });
 
       const res = [
@@ -238,6 +241,8 @@ export default async function({
       await store.dispatch('resetStore', {
         id:    clusterId,
         store: VIRTUAL,
+        oldProduct,
+        product,
       });
 
       const res = [
