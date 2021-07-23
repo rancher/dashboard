@@ -9,6 +9,7 @@ module.exports = {
     parser:     'babel-eslint',
     sourceType: 'module',
   },
+  globals: { NodeJS: true, Timer: true },
   extends: [
     'standard',
     'eslint:recommended',

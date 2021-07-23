@@ -1,6 +1,16 @@
-import { isArray } from '@/utils/array';
+type UriField = 'source' | 'protocol' | 'authority' | 'userInfo' | 'user' | 'password' | 'host' | 'port' | 'relative' | 'path' | 'directory' | 'file' | 'queryStr' | 'anchor'
+type UriFields = {
+  [key in UriField]: string;
+}
+type QueryParams = {
+  [key: string]: string
+}
 
-export function addParam(url, key, val) {
+interface ParsedUri extends UriFields {
+  query: QueryParams;
+}
+
+export function addParam(url: string, key: string, val: string | string[]): string {
   let out = url + (url.includes('?') ? '&' : '?');
 
   // val can be a string or an array of strings
@@ -18,7 +28,7 @@ export function addParam(url, key, val) {
   return out;
 }
 
-export function addParams(url, params) {
+export function addParams(url: string, params: QueryParams): string {
   if ( params && typeof params === 'object' ) {
     Object.keys(params).forEach((key) => {
       url = addParam(url, key, params[key]);
@@ -28,7 +38,7 @@ export function addParams(url, params) {
   return url;
 }
 
-export function removeParam(url, key) {
+export function removeParam(url: string, key: string): string {
   const parsed = parse(url);
 
   if ( parsed.query?.[key] ) {
@@ -38,8 +48,8 @@ export function removeParam(url, key) {
   return stringify(parsed);
 }
 
-export function parseLinkHeader(str) {
-  const out = {};
+export function parseLinkHeader(str: string) {
+  const out: { [key: string]: string} = { };
   const lines = (str || '').split(',');
 
   for ( const line of lines ) {
@@ -53,24 +63,13 @@ export function parseLinkHeader(str) {
   return out;
 }
 
-export function isMaybeSecure(port, proto) {
+export function isMaybeSecure(port: number, proto: string): boolean {
   const protocol = proto.toLowerCase();
 
-  return portMatch([port], [443, 8443], '443') || protocol === 'https';
+  return portMatch([port], [443, 8443], ['443']) || protocol === 'https';
 }
 
-export function portMatch(ports, equals, endsWith) {
-  if (!isArray(ports)) {
-    ports = [ports];
-  }
-
-  if (!isArray(equals)) {
-    equals = [equals];
-  }
-
-  if (!isArray(endsWith)) {
-    endsWith = [endsWith];
-  }
+export function portMatch(ports: number[], equals: number[], endsWith:  string[]): boolean {
 
   for (let i = 0; i < ports.length; i++) {
     const port = ports[i];
@@ -96,21 +95,25 @@ export function portMatch(ports, equals, endsWith) {
 // (c) Steven Levithan <stevenlevithan.com>
 // https://javascriptsource.com/parseuri/
 // MIT License
-export function parse(str) {
+export function parse(str: string): ParsedUri {
   const o = parse.options;
   const m = o.parser[o.strictMode ? 'strict' : 'loose'].exec(str);
-  const uri = {};
+  if (!m) {
+    throw Error(`Cannot parse as uri: ${str}`)
+  }
+  const uri = {} as ParsedUri;
   let i = 14;
 
   while (i--) {
     uri[o.key[i]] = m[i] || '';
   }
 
-  uri[o.q.name] = {};
-  uri[o.key[12]].replace(o.q.parser, ($0, $1, $2) => {
+  uri.query = {};
+  uri.queryStr.replace(o.q.parser, (_, $1: string, $2: string): string => {
     if ($1) {
       uri[o.q.name][$1] = $2;
     }
+    return '';
   });
 
   return uri;
@@ -127,9 +130,20 @@ parse.options = {
     strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
     loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
   }
+} as {
+  strictMode: boolean,
+  key:        UriField[],
+  q:          {
+    name:   'query',
+    parser: RegExp
+  },
+  parser: {
+    strict: RegExp,
+    loose:  RegExp
+  }
 };
 
-export function stringify(uri) {
+export function stringify(uri: ParsedUri): string {
   let out = `${ uri.protocol }://`;
 
   if ( uri.user && uri.password ) {
