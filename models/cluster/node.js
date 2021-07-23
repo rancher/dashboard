@@ -1,5 +1,5 @@
 import { formatPercent } from '@/utils/string';
-import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, RKE, HCI } from '@/config/labels-annotations.js';
+import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, RKE } from '@/config/labels-annotations.js';
 import {
   CAPI, MANAGEMENT, METRIC, NORMAN, POD
 } from '@/config/types';

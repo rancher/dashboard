@@ -16,6 +16,7 @@ import { addParam } from '@/utils/url';
 import { SETTING } from '@/config/settings';
 import semver from 'semver';
 import { BY_TYPE, NORMAN as NORMAN_CLASS } from '@/plugins/steve/resource-proxy';
+import { NAME as VIRTUAL } from '@/config/product/virtual';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -716,10 +717,18 @@ export const actions = {
 
   async resetStore({
     state, commit, dispatch, getters
-  }, { id, store }) {
+  }, {
+    id, store, oldProduct, product
+  }) {
     if ( state.clusterId && id && store) {
       await dispatch(`${ store }/unsubscribe`);
       commit(`${ store }/reset`);
+    }
+
+    if (oldProduct !== product) {
+      if (product === VIRTUAL || oldProduct === VIRTUAL) {
+        commit('setCluster', null);
+      }
     }
   },
 
