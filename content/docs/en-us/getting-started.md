@@ -49,22 +49,17 @@ As of version 2.6, Cluster Manager is no longer provided as a separate UI. The d
       <td>Menu → Cluster Management → Drivers</td>
     </tr>
     <tr>
-      <td>RKE Templates</td>
+      <td>RKE1 Templates</td>
       <td>Global → Tools → RKE Templates</td>
       <td>Menu → Cluster Management →  RKE1 Configuration → RKE Templates</td>
     </tr>
     <tr>
-      <td>Cloud Credentials</td>
+      <td>RKE1 Cloud Credentials</td>
       <td>User Icon → Cloud Credentials</td>
       <td>Menu → Cluster Management → RKE1 Configuration → Cloud Credentials</td>
     </tr>
     <tr>
-      <td>Node Templates</td>
-      <td>User Icon → Node Templates</td>
-      <td>Menu → Cluster Management → RKE1 Configuration → Node Templates</td>
-    </tr>
-    <tr>
-      <td>Node Templates</td>
+      <td>RKE1 Node Templates</td>
       <td>User Icon → Node Templates</td>
       <td>Menu → Cluster Management → RKE1 Configuration → Node Templates</td>
     </tr>
@@ -229,12 +224,22 @@ As of version 2.6, Cluster Manager is no longer provided as a separate UI. The d
       <td>Kubeconfig download</td>
       <td>(Cluster) → Cluster → Kubeconfig File</td>
       <td>Menu → (Cluster) → Cluster → File Icon (top-right)</td>
-    </tr>    
+    </tr>
+    <tr>
+      <td>CLI download</td>
+      <td>Bottom Bar</td>
+      <td>Menu → Version</td>
+    </tr>
+    <tr>
+      <td>Image Lists download</td>
+      <td>Bottom Bar --> Version</td>
+      <td>Menu → Version</td>
+    </tr>
     <tr>
       <td>API & Keys</td>
       <td>User Avatar → API & Keys</td>
       <td>User Avatar → Account & API Keys</td>
-    </tr>    
+    </tr>
     <tr>
       <td>Preferences</td>
       <td>User Avatar → Preferences</td>
