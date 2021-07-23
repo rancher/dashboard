@@ -345,6 +345,16 @@ export default {
 
       this.$set(this.value, 'tags', ary.join(','));
     },
+
+    test() {
+      const errors = [];
+
+      if (!this.selectedNetwork) {
+        errors.push(this.t('validation.required', { key: 'VPC/Subnet' }, true));
+      }
+
+      return { errors };
+    },
   },
 };
 </script>
