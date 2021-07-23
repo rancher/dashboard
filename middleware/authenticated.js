@@ -201,13 +201,15 @@ export default async function({
       await store.dispatch('resetStore', {
         id:    clusterId,
         store: 'cluster',
-        oldProduct,
-        product,
       });
 
       const res = [
         store.dispatch('loadManagement'),
-        store.dispatch('loadVirtual', clusterId),
+        store.dispatch('loadVirtual', {
+          id: clusterId,
+          product,
+          oldProduct,
+        }),
       ];
 
       await Promise.all(res);
@@ -216,8 +218,6 @@ export default async function({
       await store.dispatch('resetStore', {
         id:    clusterId,
         store: VIRTUAL,
-        oldProduct,
-        product,
       });
 
       const res = [
