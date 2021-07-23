@@ -1,4 +1,6 @@
-import { HCI, NODE, CONFIG_MAP } from '@/config/types';
+import {
+  HCI, NODE, CONFIG_MAP, VIRTUAL_TYPES, MANAGEMENT
+} from '@/config/types';
 import {
   STATE, NAME as NAME_COL, AGE, NAMESPACE, IMAGE_DOWNLOAD_SIZE,
   FINGERPRINT
@@ -70,6 +72,28 @@ export function init(store) {
       params: { resource: HOST }
     },
     exact: false,
+  });
+
+  // multiVirtualCluster
+  basicType([
+    'cluster-members',
+  ], 'rbac');
+  virtualType({
+    showMenuFun(state, getters, rootState, rootGetters) {
+      return rootGetters['isMultiCluster'];
+    },
+    label:       store.getters['i18n/t']('members.clusterMembers'),
+    group:      'rbac',
+    namespaced:  false,
+    name:        VIRTUAL_TYPES.CLUSTER_MEMBERS,
+    icon:       'globe',
+    weight:      100,
+    route:       { name: 'c-cluster-virtual-members' },
+    exact:       true,
+    ifHaveType:  {
+      type:   MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
+      store: 'management'
+    }
   });
 
   basicType([HCI.VM]);
