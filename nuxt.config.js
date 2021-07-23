@@ -23,7 +23,7 @@ if ( !api.startsWith('http') ) {
   api = `https://${ api }`;
 }
 
-let opniApi = process.env.OPNI_API;
+let opniApi = process.env.OPNI_API || 'http://localhost:8888';
 
 if (opniApi && !opniApi.startsWith('http')) {
   opniApi = `http://${ opniApi }`;
@@ -336,7 +336,7 @@ module.exports = {
     '/api-ui':       proxyOpts(api), // Browser API UI
     '/meta':         proxyOpts(api), // Browser API UI
     '/v1-*':         proxyOpts(api), // SAML, KDM, etc
-    '/internal':         proxyOpts(opniApi), // OPNI,
+    '/internal':     proxyOpts(opniApi), // OPNI,
     // These are for Ember embedding
     '/c/*/edit':     proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
     '/k/':           proxyOpts('https://127.0.0.1:8000'),
