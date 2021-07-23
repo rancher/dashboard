@@ -1,11 +1,10 @@
 <script>
 import { formatSi, parseSi } from '@/utils/units';
 import UnitInput from '@/components/form/UnitInput';
-import InputOrDisplay from '@/components/InputOrDisplay';
 
 export default {
   name:       'CpuMemory',
-  components: { UnitInput, InputOrDisplay },
+  components: { UnitInput },
 
   props:      {
     cpu: {

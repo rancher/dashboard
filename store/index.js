@@ -12,6 +12,7 @@ import { NAME as EXPLORER } from '@/config/product/explorer';
 import { TIMED_OUT, LOGGED_OUT } from '@/config/query-params';
 import { setVendor } from '@/config/private-label';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
+import { NAME as VIRTUAL } from '@/config/product/virtual';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -682,10 +683,18 @@ export const actions = {
 
   async resetStore({
     state, commit, dispatch, getters
-  }, { id, store }) {
+  }, {
+    id, store, oldProduct, product
+  }) {
     if ( state.clusterId && id && store) {
       await dispatch(`${ store }/unsubscribe`);
       commit(`${ store }/reset`);
+    }
+
+    if (oldProduct !== product) {
+      if (product === VIRTUAL || oldProduct === VIRTUAL) {
+        commit('setCluster', null);
+      }
     }
   },
 
