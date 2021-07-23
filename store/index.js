@@ -652,14 +652,14 @@ export const actions = {
 
   async loadVirtual({
     state, commit, dispatch, getters
-  }, id) {
+  }, { id, product, oldProduct }) {
     const isMultiCluster = getters['isMultiCluster'];
 
     if (isMultiCluster && id === 'local') {
       return;
     }
 
-    if ( state.clusterId && state.clusterId === id ) {
+    if ( state.clusterId && state.clusterId === id && oldProduct === VIRTUAL) {
       // Do nothing, we're already connected/connecting to this cluster
       return;
     }
@@ -717,18 +717,10 @@ export const actions = {
 
   async resetStore({
     state, commit, dispatch, getters
-  }, {
-    id, store, oldProduct, product
-  }) {
+  }, { id, store }) {
     if ( state.clusterId && id && store) {
       await dispatch(`${ store }/unsubscribe`);
       commit(`${ store }/reset`);
-    }
-
-    if (oldProduct !== product) {
-      if (product === VIRTUAL || oldProduct === VIRTUAL) {
-        commit('setCluster', null);
-      }
     }
   },
 
