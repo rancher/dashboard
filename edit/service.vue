@@ -225,6 +225,7 @@ export default {
 
     targetPortsStrOrInt(targetPorts = []) {
       const neu = clone(targetPorts);
+      // eslint-disable-next-line  prefer-regex-literals
       const isNumeric = new RegExp('^\\d+$');
 
       neu.forEach((port, idx) => {

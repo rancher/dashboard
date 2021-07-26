@@ -1,6 +1,6 @@
 type UriField = 'source' | 'protocol' | 'authority' | 'userInfo' | 'user' | 'password' | 'host' | 'port' | 'relative' | 'path' | 'directory' | 'file' | 'queryStr' | 'anchor'
 type UriFields = {
-  [key in UriField]: string;
+  [key in UriField]: string; // eslint-disable-line no-unused-vars
 }
 type QueryParams = {
   [key: string]: string
@@ -69,8 +69,7 @@ export function isMaybeSecure(port: number, proto: string): boolean {
   return portMatch([port], [443, 8443], ['443']) || protocol === 'https';
 }
 
-export function portMatch(ports: number[], equals: number[], endsWith:  string[]): boolean {
-
+export function portMatch(ports: number[], equals: number[], endsWith: string[]): boolean {
   for (let i = 0; i < ports.length; i++) {
     const port = ports[i];
 
@@ -98,8 +97,9 @@ export function portMatch(ports: number[], equals: number[], endsWith:  string[]
 export function parse(str: string): ParsedUri {
   const o = parse.options;
   const m = o.parser[o.strictMode ? 'strict' : 'loose'].exec(str);
+
   if (!m) {
-    throw Error(`Cannot parse as uri: ${str}`)
+    throw new Error(`Cannot parse as uri: ${ str }`);
   }
   const uri = {} as ParsedUri;
   let i = 14;
@@ -113,6 +113,7 @@ export function parse(str: string): ParsedUri {
     if ($1) {
       uri[o.q.name][$1] = $2;
     }
+
     return '';
   });
 
@@ -132,14 +133,14 @@ parse.options = {
   }
 } as {
   strictMode: boolean,
-  key:        UriField[],
-  q:          {
-    name:   'query',
+  key: UriField[],
+  q: {
+    name: 'query',
     parser: RegExp
   },
   parser: {
     strict: RegExp,
-    loose:  RegExp
+    loose: RegExp
   }
 };
 
