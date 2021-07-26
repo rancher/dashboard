@@ -230,10 +230,6 @@ export default {
     volumeEvents() {
       return this.events.filter( E => ['DataVolume'].includes(E.involvedObject.kind));
     },
-
-    nodesTotal() {
-      return this.nodes.length || 0;
-    },
   },
 
   mounted() {
@@ -319,16 +315,6 @@ export default {
         <span>
           <span v-tooltip="{content: currentVersion}">
             {{ currentVersion }}
-          </span>
-        </span>
-      </div>
-      <div>
-        <label>
-          {{ t('glance.nodes.total.label', { count: nodesTotal}) }}:
-        </label>
-        <span>
-          <span v-tooltip="{content: nodesTotal}">
-            {{ nodesTotal }}
           </span>
         </span>
       </div>
