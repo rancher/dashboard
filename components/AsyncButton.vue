@@ -215,7 +215,7 @@ export default Vue.extend({
     },
 
     focus() {
-      this.$refs.btn.focus();
+      (this.$refs.btn as HTMLElement).focus();
     }
   }
 });

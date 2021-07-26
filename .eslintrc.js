@@ -4,18 +4,10 @@ module.exports = {
     browser: true,
     node:    true
   },
-  parser:        'vue-eslint-parser',
-  parserOptions: {
-    parser:     'babel-eslint',
-    sourceType: 'module',
-  },
-  globals: { NodeJS: true, Timer: true },
   extends: [
     'standard',
     'eslint:recommended',
-    'plugin:vue/recommended',
-    '@nuxtjs',
-    'plugin:nuxt/recommended',
+    '@nuxtjs/eslint-config-typescript'
   ],
   // add your custom rules here
   rules: {

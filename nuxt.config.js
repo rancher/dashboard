@@ -212,15 +212,15 @@ module.exports = {
         ]
       });
 
-      // Run ESLint on save
-      if (isDev && isClient) {
-        config.module.rules.push({
-          enforce: 'pre',
-          test:    /\.(js|vue)$/,
-          loader:  'eslint-loader',
-          exclude: /(node_modules)/
-        });
-      }
+      // // Run ESLint on save
+      // if (isDev && isClient) {
+      //   config.module.rules.push({
+      //     enforce: 'pre',
+      //     test:    /\.(js|vue)$/,
+      //     loader:  'eslint-loader',
+      //     exclude: /(node_modules)/
+      //   });
+      // }
     },
 
     // extractCSS:   true,
@@ -355,6 +355,8 @@ module.exports = {
 
   // Eslint module options
   eslint: { cache: './node_modules/.cache/eslint' },
+
+  typescript: { typeCheck: { eslint: { files: './**/*.{ts,js,vue}' } } }
 };
 
 function proxyOpts(target) {
