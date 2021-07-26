@@ -4974,6 +4974,10 @@ harvester:
         prefix: 'You must configure a network in'
         middle: 'Settings'
         suffic: 'before creating a new network.'
+      viewSetting:
+        prefix: Click
+        middle: here
+        suffic: to view the network config.
       errorTip:
         prefix: Physical NIC value in
         middle: Setting
