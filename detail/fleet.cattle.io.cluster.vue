@@ -5,6 +5,7 @@ import FleetRepos from '@/components/FleetRepos';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import Tab from '@/components/Tabbed/Tab';
 import { MANAGEMENT, FLEET } from '@/config/types';
+import { FLEET as FLEET_LABELS } from '@/config/labels-annotations';
 
 export default {
   name: 'DetailCluster',
@@ -25,9 +26,11 @@ export default {
   },
 
   async fetch() {
+    const clusterId = this.value?.metadata?.labels[FLEET_LABELS.CLUSTER_NAME];
+
     this.rancherCluster = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.CLUSTER,
-      id:   this.$route.params.id
+      id:   clusterId
     });
 
     this.allRepos = await this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO });
