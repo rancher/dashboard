@@ -4034,6 +4034,7 @@ harvester:
         targetNode: 目标节点
         started: 开始时间
         ended: 结束时间
+        metrics: 虚拟机指标
       notAvailable: 不可用
       GuestAgentNotInstalled: 访客代理未准备就绪
       tabs:

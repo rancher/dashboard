@@ -6,6 +6,7 @@ import CreateEditView from '@/mixins/create-edit-view';
 import BackupModal from '@/list/kubevirt.io.virtualmachine/backupModal';
 import RestoreModal from '@/list/kubevirt.io.virtualmachine/restoreModal';
 import MigrationModal from '@/list/kubevirt.io.virtualmachine/MigrationModal';
+import HarvesterMetrics from '@/components/HarvesterMetrics';
 import OverviewBasics from './tabs/details/basics';
 import OverviewDisks from './tabs/details/disks';
 import OverviewNetworks from './tabs/details/networks';
@@ -13,6 +14,9 @@ import OverviewKeypairs from './tabs/details/keypairs';
 import OverviewCloudConfigs from './tabs/details/cloud-configs';
 import Migration from './tabs/migration';
 import Events from './tabs/events/';
+
+const CLUSTER_METRICS_DETAIL_URL = '/api/v1/namespaces/harvester-monitoring/services/http:monitoring-grafana:80/proxy/d/HV_1uZwWk/vm-info-detail?orgId=1';
+const CLUSTER_METRICS_SUMMARY_URL = '/api/v1/namespaces/harvester-monitoring/services/http:monitoring-grafana:80/proxy/d/V3EJMiinz/vm-info-detail?orgId=1';
 
 export default {
   name: 'VMIDetailsPage',
@@ -29,7 +33,8 @@ export default {
     Migration,
     BackupModal,
     RestoreModal,
-    MigrationModal
+    MigrationModal,
+    HarvesterMetrics,
   },
 
   mixins: [CreateEditView],
@@ -46,7 +51,11 @@ export default {
   },
 
   data() {
-    return { switchToCloud: false };
+    return {
+      switchToCloud: false,
+      CLUSTER_METRICS_DETAIL_URL,
+      CLUSTER_METRICS_SUMMARY_URL,
+    };
   },
 
   computed: {
@@ -75,6 +84,13 @@ export default {
 
         return 1;
       });
+    },
+
+    graphVars() {
+      return {
+        namespace: this.value.namespace,
+        vm:        this.value.name
+      };
     },
   },
 
@@ -119,6 +135,19 @@ export default {
 
       <Tab name="migration" :label="t('harvester.virtualMachine.detail.tabs.migration')">
         <Migration v-model="value" :vmi-resource="vmi" />
+      </Tab>
+
+      <Tab :label="t('harvester.virtualMachine.detail.tabs.metrics')" name="vm-metrics" :weight="2.5" v-if="false">
+        <template #default="props">
+          <HarvesterMetrics
+            v-if="props.active"
+            :detail-url="CLUSTER_METRICS_DETAIL_URL"
+            :summary-url="CLUSTER_METRICS_SUMMARY_URL"
+            graph-height="550px"
+            :has-sumarry-and-detail="false"
+            :vars="graphVars"
+          />
+        </template>
       </Tab>
     </Tabbed>
 
