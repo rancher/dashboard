@@ -5015,3 +5015,24 @@ legacy:
     label: Project
     select: "Use the Project/Namespace filter at the top of the page to select a Project in order to see legacy Project features."
 
+##############################
+### Opni
+##############################
+
+opni:
+  chart:
+    labels:
+      anomaly: Anomalous
+      normal: Normal
+      suspicious: Suspicious
+      controlPlaneAnomaly: |-
+        {count, plural,
+        one  {Control Plane Anomaly}
+        other {Control Plane Anomalies}
+        }
+      workloadAnomaly: |-
+        {count, plural,
+        one  {Workload Anomaly}
+        other {Workload Anomalies}
+        }
+    resetZoom: Reset Zoom

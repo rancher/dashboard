@@ -35,6 +35,7 @@
     "@popperjs/core": "^2.4.0",
     "ansi_up": "^5.0.0",
     "babel-plugin-module-resolver": "^4.0.0",
+    "billboard.js": "^3.1.2",
     "browser-env": "^3.2.6",
     "cookie": "^0.4.0",
     "cookie-universal-nuxt": "^2.0.17",
