@@ -28,7 +28,6 @@ export function init(store) {
     removable:           false,
     showNamespaceFilter: true,
     showClusterSwitcher: false,
-    icon:                'compass'
   });
 
   basicType([HCI.DASHBOARD]);

@@ -232,22 +232,25 @@ export default async function({
         store.dispatch('loadManagement'),
         store.dispatch('loadVirtual', {
           id: clusterId,
-          product,
           oldProduct,
         }),
       ];
 
       await Promise.all(res);
     } else if ( clusterId ) {
-      // Run them in parallel
       await store.dispatch('resetStore', {
         id:    clusterId,
         store: VIRTUAL,
       });
 
+      // Run them in parallel
       const res = [
         store.dispatch('loadManagement'),
-        store.dispatch('loadCluster', clusterId),
+        store.dispatch('loadCluster', {
+          id: clusterId,
+          product,
+          oldProduct,
+        }),
       ];
 
       await Promise.all(res);
@@ -259,7 +262,11 @@ export default async function({
       const isVirtualCluster = store.getters['isVirtualCluster'];
 
       if ( clusterId && !isVirtualCluster) {
-        await store.dispatch('loadCluster', clusterId);
+        await store.dispatch('loadCluster', {
+          id: clusterId,
+          product,
+          oldProduct,
+        });
       }
 
       if (isVirtualCluster && !isMultiCluster) {
