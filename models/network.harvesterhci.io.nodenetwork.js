@@ -26,7 +26,7 @@ export default {
     return {
       name:    this.attachNodeName,
       message: this.message,
-      to:      `node/${ this.attachNodeName }?mode=edit`
+      to:      `host/${ this.attachNodeName }?mode=edit`
     };
   }
 };

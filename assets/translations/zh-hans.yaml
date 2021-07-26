@@ -4115,6 +4115,10 @@ harvester:
         prefix: '您必须先配置网络'
         middle: '设置'
         suffic: ',然后才能创建新网络。'
+      viewSetting:
+        prefix: 点击
+        middle: 这里
+        suffic: 查看网络的配置详情.
       errorTip:
         prefix: 非法的网络
         middle: 配置

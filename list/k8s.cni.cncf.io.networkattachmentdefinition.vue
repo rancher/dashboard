@@ -111,6 +111,17 @@ export default {
       </Banner>
     </template>
 
+    <template v-else>
+      <Banner color="info">
+        <MessageLink
+          :to="to"
+          prefix-label="harvester.network.message.viewSetting.prefix"
+          middle-label="harvester.network.message.viewSetting.middle"
+          suffic-label="harvester.network.message.viewSetting.suffic"
+        />
+      </Banner>
+    </template>
+
     <template v-if="abnormalNetwork.length">
       <Banner
         v-for="item in abnormalNetwork"
