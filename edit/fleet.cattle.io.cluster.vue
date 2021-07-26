@@ -6,6 +6,7 @@ import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import { MANAGEMENT } from '@/config/types';
 import { _VIEW } from '@/config/query-params';
+import { FLEET } from '@/config/labels-annotations';
 
 export default {
   name: 'CruFleetCluster',
@@ -27,9 +28,11 @@ export default {
   },
 
   async fetch() {
+    const clusterId = this.value?.metadata?.labels[FLEET.CLUSTER_NAME];
+
     this.rancherCluster = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.CLUSTER,
-      id:   this.$route.params.id
+      id:   clusterId
     });
   },
 
