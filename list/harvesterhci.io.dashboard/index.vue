@@ -13,6 +13,7 @@ import ResourceSummary from '@/components/ResourceSummary';
 import HardwareResourceGauge from '@/components/HardwareResourceGauge';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
+import HarvesterMetrics from '@/components/HarvesterMetrics';
 import Upgrade from './Upgrade';
 
 dayjs.extend(utc);
@@ -38,8 +39,16 @@ const MAX_FAILURES = 2;
 
 const RESOURCES = [{
   type:          NODE,
-  visitResource: 'host'
+  spoofedLocation: {
+    name:     'c-cluster-product-resource',
+    params:   {
+      resource: 'host',
+    }
+  }
 }, { type: HCI.VM }, { type: HCI.NETWORK_ATTACHMENT }, { type: HCI.IMAGE }, { type: HCI.DATA_VOLUME }];
+
+const CLUSTER_METRICS_DETAIL_URL = '/api/v1/namespaces/harvester-monitoring/services/http:monitoring-grafana:80/proxy/d/HV_1uZwWk/vm-dashboard?orgId=1';
+const CLUSTER_METRICS_SUMMARY_URL = '/api/v1/namespaces/harvester-monitoring/services/http:monitoring-grafana:80/proxy/d/V3EJMiinz/vm-dashboard?orgId=1';
 
 export default {
   components: {
@@ -50,6 +59,7 @@ export default {
     ResourceSummary,
     Tabbed,
     Tab,
+    HarvesterMetrics,
   },
 
   async fetch() {
@@ -116,7 +126,9 @@ export default {
       nodes:             [],
       metricNodes:       [],
       vms:               [],
-      currentCluster:    'local'
+      currentCluster:    'local',
+      CLUSTER_METRICS_DETAIL_URL,
+      CLUSTER_METRICS_SUMMARY_URL,
     };
   },
 
@@ -230,6 +242,14 @@ export default {
     volumeEvents() {
       return this.events.filter( E => ['DataVolume'].includes(E.involvedObject.kind));
     },
+
+    hostEvents() {
+      return this.events.filter( E => ['Node'].includes(E.involvedObject.kind));
+    },
+
+    imageEvents() {
+      return this.events.filter( E => ['VirtualMachineImage'].includes(E.involvedObject.kind));
+    },
   },
 
   mounted() {
@@ -337,6 +357,7 @@ export default {
         v-for="resource in accessibleResources"
         :key="resource.type"
         :resource="resource.type"
+        :spoofedLocation="resource.spoofedLocation"
       />
     </div>
 
@@ -363,10 +384,10 @@ export default {
       <Tab
         name="host"
         label="Hosts"
-        :weight="99"
+        :weight="98"
       >
         <SortableTable
-          :rows="[]"
+          :rows="hostEvents"
           :headers="eventHeaders"
           key-field="id"
           :search="false"
@@ -388,8 +409,8 @@ export default {
       </Tab>
       <Tab
         name="vm"
-        label="VMS"
-        :weight="98"
+        label="VMs"
+        :weight="99"
       >
         <SortableTable
           :rows="vmEvents"
@@ -444,7 +465,7 @@ export default {
         :weight="96"
       >
         <SortableTable
-          :rows="[]"
+          :rows="imageEvents"
           :headers="eventHeaders"
           key-field="id"
           :search="false"
@@ -463,6 +484,19 @@ export default {
             </div>
           </template>
         </SortableTable>
+      </Tab>
+      <Tab
+        name="metric"
+        label="Metric"
+        :weight="96"
+        v-if="false"
+      >
+        <HarvesterMetrics
+          :detail-url="CLUSTER_METRICS_DETAIL_URL"
+          :summary-url="CLUSTER_METRICS_SUMMARY_URL"
+          graph-height="825px"
+          :has-sumarry-and-detail="false"
+        />
       </Tab>
     </Tabbed>
   </section>

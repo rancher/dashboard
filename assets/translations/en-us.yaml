@@ -4868,6 +4868,7 @@ harvester:
         monitor: Monitor Data
         keypairs: SSH Keys
         cloudConfig: Cloud Config
+        metrics: Metrics
       details:
         title:
           vmDetails: Virtual Machine Details

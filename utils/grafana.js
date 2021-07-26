@@ -4,11 +4,8 @@ import { COUNT } from '@/config/types';
 export function computeDashboardUrl(embedUrl, clusterId, params) {
   const url = parseUrl(embedUrl);
   const clusterPrefix = clusterId === 'local' ? '' : `/k8s/clusters/${ clusterId }`;
-  const prefix = `${ clusterPrefix }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/`;
-  const delimiter = 'http:rancher-monitoring-grafana:80/proxy/';
-  const path = url.path.split(delimiter)[1];
 
-  let newUrl = prefix + path;
+  let newUrl = `${ clusterPrefix }${ url.path }`;
 
   if (url.query.viewPanel) {
     newUrl = addParam(newUrl, 'viewPanel', url.query.viewPanel);

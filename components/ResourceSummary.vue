@@ -52,10 +52,10 @@ export default {
       default: null
     },
 
-    cluster: {
-      type:    String,
-      default: null
-    }
+    spoofedLocation: {
+      type:    [Object, null],
+      default: null,
+    },
   },
 
   computed: {
@@ -72,19 +72,17 @@ export default {
         return this.spoofedCounts.location;
       }
 
-      const route = {
+      if (this.spoofedLocation) {
+        return this.spoofedLocation;
+      }
+
+      return {
         name:     'c-cluster-product-resource',
         params:   {
           product:  this.$store.getters['currentProduct'].name,
           resource: this.resource,
         }
       };
-
-      if (this.cluster) {
-        route.params.cluster = this.cluster;
-      }
-
-      return route;
     },
 
     name() {
