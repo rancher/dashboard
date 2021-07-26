@@ -14,7 +14,7 @@ export function init(store) {
   product({
     ifFeature:           MULTI_CLUSTER,
     inStore:             'management',
-    icon:                'cluster-management',
+    icon:                'harvester',
     removable:           false,
     showClusterSwitcher: false,
   });

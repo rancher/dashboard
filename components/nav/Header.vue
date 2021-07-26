@@ -1,6 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import { NORMAN } from '@/config/types';
+import { NAME as VIRTUAL } from '@/config/product/virtual';
 import { ucFirst } from '@/utils/string';
 import { isMac } from '@/utils/platform';
 import Import from '@/components/Import';
@@ -40,12 +41,13 @@ export default {
       show:        false,
       showTooltip: false,
       searchShortcut,
+      VIRTUAL,
     };
   },
 
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isMultiCluster', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isVirtualCluster']),
+      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isVirtualCluster', 'isSingleVirtualCluster']),
     ...mapGetters('type-map', ['activeProducts']),
 
     appName() {
@@ -156,7 +158,13 @@ export default {
 
 <template>
   <header :class="{'simple': simple}">
-    <div class="menu-spacer"></div>
+    <div class="menu-spacer">
+      <img
+        v-if="isSingleVirtualCluster"
+        class="side-menu-logo"
+        src="~/assets/images/providers/harvester.svg"
+      />
+    </div>
     <div v-if="!simple" class="product">
       <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster cluster-clipped">
         <RancherProviderIcon v-if="currentCluster && currentCluster.isLocal" class="mr-10 cluster-local-logo" width="25" />
