@@ -373,7 +373,7 @@ export const getters = {
   isMultiVirtualCluster(state, getters, rootState, rootGetters) {
     const localCluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, 'local');
 
-    return getters.isMultiCluster && localCluster?.status?.provider === VIRTUAL_PROVIDER;
+    return getters.isMultiCluster && localCluster?.status?.provider !== VIRTUAL_PROVIDER;
   },
 
   isCurrentVirtualCluster(state, getters) {
