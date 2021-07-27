@@ -385,6 +385,22 @@ export default {
       />
     </div>
 
+    <Tabbed
+      v-if="hasMetrics"
+      class="mt-20"
+    >
+      <Tab
+        name="metric"
+        label="Metric"
+      >
+        <HarvesterMetrics
+          :detail-url="VM_DASHBOARD_METRICS_URL"
+          graph-height="825px"
+          :has-sumarry-and-detail="false"
+        />
+      </Tab>
+    </Tabbed>
+
     <Tabbed class="mt-20">
       <Tab
         name="host"
@@ -489,22 +505,6 @@ export default {
             </div>
           </template>
         </SortableTable>
-      </Tab>
-    </Tabbed>
-
-    <Tabbed
-      v-if="hasMetrics"
-      class="mt-20"
-    >
-      <Tab
-        name="metric"
-        label="Metric"
-      >
-        <HarvesterMetrics
-          :detail-url="VM_DASHBOARD_METRICS_URL"
-          graph-height="825px"
-          :has-sumarry-and-detail="false"
-        />
       </Tab>
     </Tabbed>
   </section>
