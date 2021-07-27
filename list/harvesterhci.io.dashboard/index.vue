@@ -8,7 +8,9 @@ import { allHash } from '@/utils/promise';
 import Poller from '@/utils/poller';
 import { parseSi, formatSi, exponentNeeded, UNITS } from '@/utils/units';
 import { REASON } from '@/config/table-headers';
-import { EVENT, METRIC, NODE, HCI } from '@/config/types';
+import {
+  EVENT, METRIC, NODE, HCI, SERVICE
+} from '@/config/types';
 import ResourceSummary from '@/components/ResourceSummary';
 import HardwareResourceGauge from '@/components/HardwareResourceGauge';
 import Tabbed from '@/components/Tabbed';
@@ -45,8 +47,7 @@ const RESOURCES = [{
   }
 }, { type: HCI.VM }, { type: HCI.NETWORK_ATTACHMENT }, { type: HCI.IMAGE }, { type: HCI.DATA_VOLUME }];
 
-const CLUSTER_METRICS_DETAIL_URL = '/api/v1/namespaces/harvester-monitoring/services/http:monitoring-grafana:80/proxy/d/HV_1uZwWk/vm-dashboard?orgId=1';
-const CLUSTER_METRICS_SUMMARY_URL = '/api/v1/namespaces/harvester-monitoring/services/http:monitoring-grafana:80/proxy/d/V3EJMiinz/vm-dashboard?orgId=1';
+const VM_DASHBOARD_METRICS_URL = '/api/v1/namespaces/harvester-monitoring/services/http:monitoring-grafana:80/proxy/d/harvester-vm-dashboard-1/vm-dashboard?orgId=1';
 
 export default {
   components: {
@@ -69,6 +70,7 @@ export default {
       events:       this.fetchClusterResources(EVENT),
       metricNodes:  this.fetchClusterResources(METRIC.NODE),
       settings:    this.fetchClusterResources(HCI.SETTING),
+      services:    this.fetchClusterResources(SERVICE),
     };
 
     (this.accessibleResources || []).map((a) => {
@@ -125,8 +127,7 @@ export default {
       metricNodes:       [],
       vms:               [],
       currentCluster:    'local',
-      CLUSTER_METRICS_DETAIL_URL,
-      CLUSTER_METRICS_SUMMARY_URL,
+      VM_DASHBOARD_METRICS_URL,
     };
   },
 
@@ -247,6 +248,12 @@ export default {
 
     imageEvents() {
       return this.events.filter( E => ['VirtualMachineImage'].includes(E.involvedObject.kind));
+    },
+
+    hasMetrics() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return !!this.$store.getters[`${ inStore }/byId`]('service', 'harvester-monitoring/monitoring-grafana');
     },
   },
 
@@ -483,15 +490,18 @@ export default {
           </template>
         </SortableTable>
       </Tab>
+    </Tabbed>
+
+    <Tabbed
+      v-if="hasMetrics"
+      class="mt-20"
+    >
       <Tab
-        v-if="false"
         name="metric"
         label="Metric"
-        :weight="96"
       >
         <HarvesterMetrics
-          :detail-url="CLUSTER_METRICS_DETAIL_URL"
-          :summary-url="CLUSTER_METRICS_SUMMARY_URL"
+          :detail-url="VM_DASHBOARD_METRICS_URL"
           graph-height="825px"
           :has-sumarry-and-detail="false"
         />
