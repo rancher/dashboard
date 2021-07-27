@@ -1,6 +1,6 @@
 <script>
 import RancherProviderIcon from '@/components/RancherProviderIcon';
-import ResourceSummary, { resourceCounts } from '@/pages/c/_cluster/explorer/ResourceSummary';
+import ResourceSummary, { resourceCounts } from '@/components/ResourceSummary';
 import { NAMESPACE, MANAGEMENT, NODE, COUNT } from '@/config/types';
 import { RESOURCES } from '@/pages/c/_cluster/explorer/index';
 
