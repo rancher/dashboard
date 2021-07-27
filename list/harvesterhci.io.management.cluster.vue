@@ -30,6 +30,8 @@ export default {
     };
   },
 
+  fetch() {},
+
   computed: {
     importLocation() {
       return {
