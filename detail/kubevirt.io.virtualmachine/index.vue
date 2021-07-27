@@ -1,12 +1,13 @@
 <script>
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import { EVENT, HCI } from '@/config/types';
+import { EVENT, HCI, SERVICE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import BackupModal from '@/list/kubevirt.io.virtualmachine/backupModal';
 import RestoreModal from '@/list/kubevirt.io.virtualmachine/restoreModal';
 import MigrationModal from '@/list/kubevirt.io.virtualmachine/MigrationModal';
 import HarvesterMetrics from '@/components/HarvesterMetrics';
+import { allHash } from '@/utils/promise';
 import OverviewBasics from './tabs/details/basics';
 import OverviewDisks from './tabs/details/disks';
 import OverviewNetworks from './tabs/details/networks';
@@ -15,8 +16,7 @@ import OverviewCloudConfigs from './tabs/details/cloud-configs';
 import Migration from './tabs/migration';
 import Events from './tabs/events/';
 
-const CLUSTER_METRICS_DETAIL_URL = '/api/v1/namespaces/harvester-monitoring/services/http:monitoring-grafana:80/proxy/d/HV_1uZwWk/vm-info-detail?orgId=1';
-const CLUSTER_METRICS_SUMMARY_URL = '/api/v1/namespaces/harvester-monitoring/services/http:monitoring-grafana:80/proxy/d/V3EJMiinz/vm-info-detail?orgId=1';
+const VM_METRICS_DETAIL_URL = '/api/v1/namespaces/harvester-monitoring/services/http:monitoring-grafana:80/proxy/d/harvester-vm-detail-1/vm-info-detail?orgId=1';
 
 export default {
   name: 'VMIDetailsPage',
@@ -46,21 +46,29 @@ export default {
     },
   },
 
-  fetch() {
-    this.getEvents();
+  async fetch() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+
+    const hash = {
+      services: this.$store.dispatch(`${ inStore }/findAll`, { type: SERVICE }),
+      events:   this.$store.dispatch(`${ inStore }/findAll`, { type: EVENT }),
+    };
+
+    await allHash(hash);
   },
 
   data() {
     return {
       switchToCloud: false,
-      CLUSTER_METRICS_DETAIL_URL,
-      CLUSTER_METRICS_SUMMARY_URL,
+      VM_METRICS_DETAIL_URL,
     };
   },
 
   computed: {
     vmi() {
-      const vmiList = this.$store.getters['cluster/all'](HCI.VMI) || [];
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      const vmiList = this.$store.getters[`${ inStore }/all`](HCI.VMI) || [];
       const vmi = vmiList.find( (VMI) => {
         return VMI?.metadata?.ownerReferences?.[0]?.uid === this.value?.metadata?.uid;
       });
@@ -68,7 +76,9 @@ export default {
       return vmi;
     },
     allEvents() {
-      return this.$store.getters['cluster/all'](EVENT);
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return this.$store.getters[`${ inStore }/all`](EVENT);
     },
     events() {
       return this.allEvents.filter((e) => {
@@ -92,13 +102,15 @@ export default {
         vm:        this.value.name
       };
     },
+
+    hasMetrics() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return !!this.$store.getters[`${ inStore }/byId`]('service', 'harvester-monitoring/monitoring-grafana');
+    },
   },
 
   methods: {
-    getEvents() {
-      this.$store.dispatch('cluster/findAll', { type: EVENT });
-    },
-
     tabChanged({ tab = {} }) {
       this.switchToCloud = tab.name === 'cloudConfig';
     },
@@ -107,7 +119,8 @@ export default {
 </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
     <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true" @changed="tabChanged">
       <Tab name="basics" :label="t('harvester.virtualMachine.detail.tabs.basics')" class="bordered-table" :weight="7">
         <OverviewBasics v-model="value" :resource="vmi" mode="view" />
@@ -137,12 +150,11 @@ export default {
         <Migration v-model="value" :vmi-resource="vmi" />
       </Tab>
 
-      <Tab v-if="false" :label="t('harvester.virtualMachine.detail.tabs.metrics')" namev-if="false" :weight="2.5">
+      <Tab v-if="hasMetrics" :label="t('harvester.virtualMachine.detail.tabs.metrics')" name="vm-metrics" :weight="2.5">
         <template #default="props">
           <HarvesterMetrics
             v-if="props.active"
-            :detail-url="CLUSTER_METRICS_DETAIL_URL"
-            :summary-url="CLUSTER_METRICS_SUMMARY_URL"
+            :detail-url="VM_METRICS_DETAIL_URL"
             graph-height="550px"
             :has-sumarry-and-detail="false"
             :vars="graphVars"
