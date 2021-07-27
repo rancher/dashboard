@@ -226,11 +226,12 @@ module.exports = {
               targets:     isServer ? { node: '12' } : { browsers: ['last 2 versions'] },
               modern:      !isServer
             }
-          ]
+          ],
+          '@babel/preset-typescript',
         ];
       },
       plugins: [
-        '@babel/plugin-transform-modules-commonjs',
+        ['@babel/plugin-transform-modules-commonjs'],
         // Should be resolved in nuxt  v.2.15.5, see https://github.com/nuxt/nuxt.js/issues/9224#issuecomment-835742221
         ['@babel/plugin-proposal-private-methods', { loose: true }]
       ],
