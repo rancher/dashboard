@@ -138,6 +138,21 @@ export function init(store) {
     exact: false,
   });
 
+  basicType(['projects-namespaces']);
+  virtualType({
+    showMenuFun(state, getters, rootState, rootGetters) {
+      return rootGetters['isMultiCluster'];
+    },
+    ifHaveType:       NODE,
+    label:            'Projects/Namespaces',
+    group:            'cluster',
+    namespaced:  true,
+    name:             'projects-namespaces',
+    weight:           98,
+    route:            { name: 'c-cluster-product-projectsnamespaces' },
+    exact:            true,
+  });
+
   basicType([
     TEMPLATE,
     HCI.NETWORK_ATTACHMENT,
