@@ -34,7 +34,7 @@ export default {
     const hash = {
       nodes:        this.$store.dispatch('virtual/findAll', { type: NODE }),
       vms:          this.$store.dispatch('virtual/findAll', { type: HCI.VM }),
-      hostNetworks: this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK })
+      hostNetworks: this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK }),
     };
 
     const res = await allHash(hash);
@@ -54,6 +54,8 @@ export default {
 
     const hostNetowrkResource = res.hostNetworks.find( O => this.value.id === O.attachNodeName);
 
+    this.loadMetrics();
+
     if (hostNetowrkResource) {
       this.hostNetowrkResource = hostNetowrkResource;
     }
@@ -70,7 +72,7 @@ export default {
 
   methods: {
     async loadMetrics() {
-      const schema = this.$store.getters['cluster/schemaFor'](METRIC.NODE);
+      const schema = this.$store.getters['virtual/schemaFor'](METRIC.NODE);
 
       if (schema) {
         this.metrics = await this.$store.dispatch('virtual/find', {

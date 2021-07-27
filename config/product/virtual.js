@@ -178,7 +178,7 @@ export function init(store) {
     HCI.SSH,
     CLOUD_TEMPLATE,
     HCI.SETTING
-  ], 'advanced');
+  ], 'Advanced');
 
   configureType(HCI.CLUSTER_NETWORK, { realResource: HCI.SETTING, showState: false });
   virtualType({
