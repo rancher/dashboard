@@ -102,10 +102,27 @@ export default {
   },
 
   getVMIApiPath() {
-    return `/apis/subresources.kubevirt.io/v1/namespaces/${ this.metadata.namespace }/virtualmachineinstances/${ this.name }/vnc`;
+    const clusterId = this.$rootGetters['clusterId'];
+
+    console.log('----getVMIApiPath', this.$rootGetters['isMultiVirtualCluster']);
+    if (this.$rootGetters['isMultiVirtualCluster']) {
+      const prefix = `/k8s/clusters/${ clusterId }`;
+
+      return `${ prefix }/apis/subresources.kubevirt.io/v1/namespaces/${ this.metadata.namespace }/virtualmachineinstances/${ this.name }/vnc`;
+    } else {
+      return `/apis/subresources.kubevirt.io/v1/namespaces/${ this.metadata.namespace }/virtualmachineinstances/${ this.name }/vnc`;
+    }
   },
 
   getSerialConsolePath() {
-    return `/apis/subresources.kubevirt.io/v1/namespaces/${ this.metadata.namespace }/virtualmachineinstances/${ this.name }/console`;
+    const clusterId = this.$rootGetters['clusterId'];
+
+    if (this.$rootGetters['isMultiVirtualCluster']) {
+      const prefix = `/k8s/clusters/${ clusterId }`;
+
+      return `${ prefix }/apis/subresources.kubevirt.io/v1/namespaces/${ this.metadata.namespace }/virtualmachineinstances/${ this.name }/console`;
+    } else {
+      return `/apis/subresources.kubevirt.io/v1/namespaces/${ this.metadata.namespace }/virtualmachineinstances/${ this.name }/console`;
+    }
   }
 };
