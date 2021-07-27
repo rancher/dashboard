@@ -74,6 +74,7 @@ export function init(store) {
   });
 
   // multiVirtualCluster
+  configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { useManagementAPI: true });
   basicType([
     'cluster-members',
   ], 'rbac');
@@ -85,7 +86,6 @@ export function init(store) {
     group:      'rbac',
     namespaced:  false,
     name:        VIRTUAL_TYPES.CLUSTER_MEMBERS,
-    icon:       'globe',
     weight:      100,
     route:       { name: 'c-cluster-virtual-members' },
     exact:       true,
@@ -138,6 +138,7 @@ export function init(store) {
     exact: false,
   });
 
+  configureType(MANAGEMENT.PROJECT, { useManagementAPI: true });
   basicType(['projects-namespaces']);
   virtualType({
     showMenuFun(state, getters, rootState, rootGetters) {
