@@ -98,7 +98,7 @@ export default Vue.extend({
   computed: {
     classes(): {btn: boolean, [color: string]: boolean} {
       const key = `${ this.phase }Color`;
-      const color = typeHelper.memberOfObject(this, key);
+      const color = typeHelper.memberOfComponent(this, key);
 
       const out = {
         btn:      true,
@@ -140,7 +140,7 @@ export default Vue.extend({
     },
 
     displayLabel(): string {
-      const override = typeHelper.memberOfObject(this, `${ this.phase }Label`);
+      const override = typeHelper.memberOfComponent(this, `${ this.phase }Label`);
       const exists = this.$store.getters['i18n/exists'];
       const t = this.$store.getters['i18n/t'];
       const key = `asyncButton.${ this.mode }.${ this.phase }`;
