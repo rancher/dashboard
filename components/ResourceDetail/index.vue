@@ -81,7 +81,7 @@ export default {
 
     const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource, id);
     const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource, id);
-    const schemas = store.getters[`${ inStore }/all`](SCHEMA);
+    let schemas = store.getters[`${ inStore }/all`](SCHEMA);
 
     // As determines what component will be rendered
     const requested = route.query[AS];
@@ -104,7 +104,12 @@ export default {
       resource = options.resource;
     }
 
-    const schema = store.getters[`${ inStore }/schemaFor`](resource);
+    let schema = store.getters[`${ inStore }/schemaFor`](resource);
+
+    if (this.realStore) {
+      schema = store.getters[`${ this.realStore }/schemaFor`](resource);
+      schemas = store.getters[`${ this.realStore }/all`](SCHEMA);
+    }
     let originalModel, model, yaml;
 
     if ( realMode === _CREATE || realMode === _IMPORT ) {
@@ -244,6 +249,17 @@ export default {
 
       return null;
     },
+
+    realStore() {
+      const resource = this.resourceOverride || this.$route.params.resource;
+      const { useManagementAPI } = this.$store.getters[`type-map/optionsFor`](resource);
+
+      if (useManagementAPI) {
+        return 'management';
+      }
+
+      return null;
+    }
   },
 
   watch: {
@@ -328,7 +344,7 @@ export default {
       :has-edit="hasCustomEdit"
       :resource-subtype="resourceSubtype"
       :parent-route-override="parentRouteOverride"
-      :store-override="storeOverride"
+      :store-override="storeOverride || realStore"
     >
       <DetailTop
         v-if="isView && isDetail"
