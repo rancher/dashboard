@@ -43,7 +43,7 @@ export default {
   mixins: [PageHeaderActions],
 
   async fetch() {
-    this.allClusters = await this.$store.dispatch('management/findAll', {
+    this.clusters = await this.$store.dispatch('management/findAll', {
       type: MANAGEMENT.CLUSTER,
       opt:  { url: MANAGEMENT.CLUSTER }
     });
@@ -66,7 +66,7 @@ export default {
 
     return {
 
-      HIDE_HOME_PAGE_CARDS, allClusters: [], fullVersion, pageActions, vendor: getVendor(), clusterDetail: null,
+      HIDE_HOME_PAGE_CARDS, clusters: [], fullVersion, pageActions, vendor: getVendor(), clusterDetail: null,
     };
   },
 
@@ -74,10 +74,6 @@ export default {
     ...mapState(['managementReady']),
     ...mapGetters(['currentCluster']),
     mcm: mapFeature(MULTI_CLUSTER),
-
-    clusters() {
-      return this.allClusters.filter(C => C.status?.provider !== VIRTUAL_PROVIDER);
-    },
 
     createLocation() {
       return {
