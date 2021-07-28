@@ -4711,7 +4711,7 @@ harvester:
   
   dashboard:
     label: Dashboard
-    header: "Harvester Clsuter: {cluster}"
+    header: "Harvester Cluster: {cluster}"
     hardwareResourceGauge:
       cpu: CPU
       memory: Memory
