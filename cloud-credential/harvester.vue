@@ -5,7 +5,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import RadioGroup from '@/components/form/RadioGroup';
 
 import { get } from '@/utils/object';
-import { MANAGEMENT } from '@/config/types';
+import { MANAGEMENT, VIRTUAL_PROVIDER } from '@/config/types';
 import { HCI } from '@/config/labels-annotations';
 
 export default {
@@ -34,8 +34,8 @@ export default {
   },
 
   computed: {
-    clusterOptions() { // TODO: Filter out all harvester clusters
-      return this.clusters.map( (cluster) => {
+    clusterOptions() {
+      return this.clusters.filter(c => c.status?.provider === VIRTUAL_PROVIDER).map( (cluster) => {
         return {
           value: cluster.id,
           label: cluster.nameDisplay
