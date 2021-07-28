@@ -9,8 +9,18 @@ import AsyncButton from '@/components/AsyncButton';
 export default {
   components: { Card, AsyncButton },
   data() {
+    const { resource } = this.$route.params;
+    const getters = this.$store.getters;
+    const hasCustomRemove = getters['type-map/hasCustomPromptRemove'](resource);
+
     return {
-      randomPosition: Math.random(), confirmName: '', error: '', warning: '', preventDelete: false
+      hasCustomRemove,
+      randomPosition:  Math.random(),
+      confirmName:     '',
+      error:           '',
+      warning:         '',
+      preventDelete:   false,
+      removeComponent: this.$store.getters['type-map/importCustomPromptRemove'](resource)
     };
   },
   computed:   {
@@ -138,6 +148,16 @@ export default {
     showPromptRemove(show) {
       if (show) {
         this.$modal.show('promptRemove');
+
+        let { resource } = this.$route.params;
+
+        if (this.toRemove.length > 0) {
+          resource = this.toRemove[0].type;
+        }
+
+        this.hasCustomRemove = this.$store.getters['type-map/hasCustomPromptRemove'](resource);
+
+        this.removeComponent = this.$store.getters['type-map/importCustomPromptRemove'](resource);
       } else {
         this.$modal.hide('promptRemove');
       }
@@ -179,6 +199,12 @@ export default {
     },
 
     remove(btnCB) {
+      if (this.hasCustomRemove && this.$refs?.customPrompt?.remove) {
+        this.$refs.customPrompt.remove();
+
+        return;
+      }
+
       let goTo;
 
       if (this.doneLocation) {
@@ -265,6 +291,23 @@ export default {
       </h4>
       <div slot="body">
         <div class="mb-10">
+          {{ t('promptRemove.attemptingToRemove', {type}) }} <template v-for="(resource, i) in names">
+            <template v-if="i<5">
+              <LinkDetail :key="resource" :value="resource" :row="toRemove[i]" @click.native="close" />
+              <span v-if="i===names.length-1" :key="resource.id">{{ plusMore }}</span><span v-else :key="resource.id">{{ i === toRemove.length-2 ? `, ${ t('harvester.promptRemove.and') } ` : ', ' }}</span>
+            </template>
+          </template>
+
+          <component
+            :is="removeComponent"
+            v-if="hasCustomRemove"
+            ref="customPrompt"
+            v-model="toRemove"
+            v-bind="_data"
+            :needs-confirm="needsConfirm"
+            :value="toRemove"
+          />
+
           {{ t('promptRemove.attemptingToRemove', { type }) }} <span v-html="resourceNames"></span>
           <div v-if="needsConfirm" class="mt-10">
             <span

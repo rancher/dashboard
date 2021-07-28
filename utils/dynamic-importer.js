@@ -91,3 +91,7 @@ export function importComponent(path) {
 
   return () => import(/* webpackChunkName: "import-component" */ `@/edit/${ path }`);
 }
+
+export function importCustomPromptRemove(name) {
+  return () => import(/* webpackChunkName: "custom-prompt-remove" */ `@/promptRemove/${ name }`);
+}
