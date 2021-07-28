@@ -308,7 +308,9 @@ export default {
             :value="toRemove"
           />
 
-          {{ t('promptRemove.attemptingToRemove', { type }) }} <span v-html="resourceNames"></span>
+          <div v-else>
+            {{ t('promptRemove.attemptingToRemove', { type }) }} <span v-html="resourceNames"></span>
+          </div>
           <div v-if="needsConfirm" class="mt-10">
             <span
               v-html="t('promptRemove.confirmName', { nameToMatch }, true)"
