@@ -119,7 +119,7 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@/utils/string';
 import {
-  importList, importDetail, importEdit, loadProduct, importComponent
+  importList, importDetail, importEdit, loadProduct, importComponent, importCustomPromptRemove
 } from '@/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@/config/product/explorer';
@@ -330,6 +330,7 @@ export const state = function() {
       detail:       {},
       edit:         {},
       componentFor: {},
+      promptRemove: {},
     },
   };
 };
@@ -1017,6 +1018,27 @@ export const getters = {
     };
   },
 
+  hasCustomPromptRemove(state, getters) {
+    return (rawType) => {
+      const type = getters.componentFor(rawType);
+
+      const cache = state.cache.promptRemove;
+
+      if ( cache[type] !== undefined ) {
+        return cache[type];
+      }
+
+      try {
+        require.resolve(`@/promptRemove/${ type }`);
+        cache[type] = true;
+      } catch (e) {
+        cache[type] = false;
+      }
+
+      return cache[type];
+    };
+  },
+
   importComponent(state, getters) {
     return (path) => {
       return importComponent(path);
@@ -1044,6 +1066,14 @@ export const getters = {
       const key = getters.componentFor(rawType, subType);
 
       return importEdit(key);
+    };
+  },
+
+  importCustomPromptRemove(state, getters) {
+    return (rawType) => {
+      const type = getters.componentFor(rawType);
+
+      return importCustomPromptRemove(type);
     };
   },
 
