@@ -426,6 +426,19 @@ export const REASON = {
   value:    'reason',
   sort:     ['reason']
 };
+export const RECLAIM_POLICY = {
+  name:     'reclaimPolicy',
+  labelKey: 'tableHeaders.reclaimPolicy',
+  value:    'spec.persistentVolumeReclaimPolicy',
+  sort:     ['spec.persistentVolumeReclaimPolicy']
+};
+export const PV_REASON = {
+  name:     'pvReason',
+  labelKey: 'tableHeaders.reason',
+  value:    'status.reason',
+  sort:     ['status.reason']
+};
+
 export const MESSAGE = {
   name:     'message',
   labelKey: 'tableHeaders.message',
