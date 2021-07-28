@@ -1,11 +1,19 @@
 <script>
 import bb, { area, zoom, selection } from 'billboard.js';
 import { randomStr } from '@/utils/string';
-import LabeledSelect from '@/components/form/LabeledSelect';
+import { getAbsoluteValue } from '@/components/form/SuperDatePicker/util';
 export default {
   name:       'TimeSeries',
-  components: { LabeledSelect },
+  components: { },
   props:      {
+    from: {
+      type:     Object,
+      required: true
+    },
+    to: {
+      type:     Object,
+      required: true
+    },
     /*
       {
         name1: [] data1,
@@ -62,11 +70,13 @@ export default {
   computed: {
     // TODO more time selection modes than 'last x minutes'
     minTime() {
-      return ((this.latestTime / 1000) - (this.timeRange * 60)) * 1000;
+      return getAbsoluteValue(this.from).valueOf();
+      // return ((this.latestTime / 1000) - (this.timeRange * 60)) * 1000;
     },
 
     maxTime() {
-      return this.latestTime;
+      return getAbsoluteValue(this.to).valueOf();
+      // return this.latestTime;
     },
 
     // TODO remove when done with mocks
@@ -92,9 +102,11 @@ export default {
   watch: {
     minTime() {
       this.createChart();
+    },
+    maxTime() {
+      this.createChart();
     }
   },
-
   mounted() {
     this.createChart();
   },
@@ -187,13 +199,6 @@ export default {
 <template>
   <div>
     <div class="row mb-20 input-controls">
-      <div class="col span-4">
-        <LabeledSelect
-          v-model="timeRange"
-          label="Time Range"
-          :options="timeOpts"
-        />
-      </div>
       <div class="col span-4">
       </div>
       <div :style="{'align-self':'center'}" class="col span-4 ">

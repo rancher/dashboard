@@ -2,6 +2,8 @@
 import { getInsights, getAnomalies, getLogs, getWorkloadLogs } from '@/utils/opni';
 import SortableTable from '@/components/SortableTable';
 import TimeSeries from '@/components/graph/TimeSeries';
+import { formatForTimeseries, findBucket, showTooltip } from './util';
+
 export default {
   components: { SortableTable, TimeSeries },
 
@@ -70,70 +72,9 @@ export default {
   },
 
   methods: {
-    formatForTimeseries(data) {
-      const out = {};
-
-      data.forEach((entry) => {
-        Object.entries(entry).forEach(([key, value]) => {
-          const label = this.$store.getters['i18n/withFallback'](`opni.chart.labels.${ key }`, { count: 1 }, key);
-
-          if (!out[label]) {
-            out[label] = [];
-          }
-          out[label].push(value);
-        });
-      });
-
-      return out;
-    },
-
-    findBucket(log, timestamps) {
-      const logTime = log.timestamp;
-
-      let out;
-
-      let i = 0;
-
-      while (out === undefined) {
-        const thisTime = timestamps[i];
-        const nextTime = timestamps[i + 1];
-
-        if (!thisTime) {
-          out = null;
-        }
-
-        if (logTime >= thisTime && logTime < nextTime) {
-          out = thisTime;
-        } else {
-          i++;
-        }
-      }
-
-      return out;
-    },
-
-    // TODO table multi-select
-    showTooltip(chartName, logs = []) {
-      const log = logs[0];
-      const chartComp = this.$refs[chartName];
-
-      if (!chartComp) {
-        return;
-      }
-      if (!log) {
-        chartComp.hideTooltip();
-
-        return;
-      }
-      const { minTime, maxTime } = chartComp;
-      const timestamps = chartComp?.dataSeries?.timestamp;
-      const targetTimestamp = this.findBucket(log, timestamps);
-      // const targetTimestamp = logs[0]['window_dt'];
-
-      if (targetTimestamp && targetTimestamp >= minTime && targetTimestamp <= maxTime) {
-        chartComp.showTooltip({ x: targetTimestamp });
-      }
-    },
+    formatForTimeseries,
+    findBucket,
+    showTooltip,
   }
 };
 
@@ -177,3 +118,34 @@ export default {
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: top;
+}
+::v-deep {
+  .stub {
+    width: calc(100% + 13px);
+    height: 300px;
+    margin-left: -7px;
+  }
+  input {
+    height: 40px;
+  }
+
+  .opni.sub-row {
+    td {
+      padding-top: 0;
+    }
+  }
+
+  .main-row {
+    td {
+      padding-bottom: 0;
+    }
+  }
+}
+</style>

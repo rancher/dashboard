@@ -10,15 +10,22 @@ export function init(store) {
   product({ icon: 'longhorn' });
 
   virtualType({
-    label:      'Overview',
-    group:      'Root',
+    label:      'Insights',
     namespaced: false,
-    name:       'opni-overview',
-    weight:     105,
-    route:      { name: 'c-cluster-opni' },
+    name:       'opni-insights',
+    weight:     2,
+    route:      { name: 'c-cluster-opni-insights' },
     exact:      true,
-    overview:   true,
   });
 
-  basicType('opni-overview');
+  virtualType({
+    label:      'Anomalies',
+    namespaced: false,
+    name:       'opni-anomalies',
+    weight:     1,
+    route:      { name: 'c-cluster-opni-anomalies' },
+    exact:      true,
+  });
+
+  basicType(['opni-insights', 'opni-anomalies']);
 }

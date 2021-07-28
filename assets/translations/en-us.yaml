@@ -4945,6 +4945,22 @@ resourceQuota:
     label: Resource Type
 
 
+superDatePicker:
+  SECONDS_AGO: Seconds ago
+  MINUTES_AGO: Minutes ago
+  HOURS_AGO: Hours ago
+  DAYS_AGO: Days ago
+  WEEKS_AGO: Weeks ago
+  MONTHS_AGO: Months ago
+  YEARS_AGO: Years ago
+  SECONDS_FROM_NOW: Seconds from now
+  MINUTES_FROM_NOW: Minutes from now
+  HOURS_FROM_NOW: Hours from now
+  DAYS_FROM_NOW: Days from now
+  WEEKS_FROM_NOW: Weeks from now
+  MONTHS_FROM_NOW: Months from now
+  YEARS_FROM_NOW: Years from now
+
 ##############################
 ### Support Page
 ##############################

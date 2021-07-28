@@ -37,7 +37,7 @@ export default {
           {{ title }}
         </slot>
       </div>
-      <hr />
+      <hr v-if="title" />
       <div class="card-body">
         <slot name="body">
           {{ content }}
