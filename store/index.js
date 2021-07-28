@@ -366,15 +366,11 @@ export const getters = {
     return '/';
   },
 
-  isVirtualCluster(state, getters, rootState, rootGetters) {
+  isSingleVirtualCluster(state, getters, rootState, rootGetters) {
     const clusterId = getters.defaultClusterId;
     const cluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, clusterId);
 
-    return cluster?.status?.provider === VIRTUAL_PROVIDER;
-  },
-
-  isSingleVirtualCluster(state, getters, rootState, rootGetters) {
-    return !getters.isMultiCluster && getters.isVirtualCluster;
+    return !getters.isMultiCluster && cluster?.status?.provider === VIRTUAL_PROVIDER;
   },
 
   isMultiVirtualCluster(state, getters, rootState, rootGetters) {

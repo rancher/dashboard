@@ -258,18 +258,9 @@ export default async function({
       await store.dispatch('loadManagement');
 
       clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
-      const isMultiCluster = store.getters['isMultiCluster'];
-      const isVirtualCluster = store.getters['isVirtualCluster'];
+      const isSingleVirtualCluster = store.getters['isSingleVirtualCluster'];
 
-      if ( clusterId && !isVirtualCluster) {
-        await store.dispatch('loadCluster', {
-          id: clusterId,
-          product,
-          oldProduct,
-        });
-      }
-
-      if (isVirtualCluster && !isMultiCluster) {
+      if (isSingleVirtualCluster) {
         const value = {
           name:   'c-cluster-product',
           params: {
@@ -281,6 +272,12 @@ export default async function({
         await store.dispatch('prefs/set', {
           key: AFTER_LOGIN_ROUTE,
           value,
+        });
+      } else if ( clusterId) {
+        await store.dispatch('loadCluster', {
+          id: clusterId,
+          product,
+          oldProduct,
         });
       }
     }
