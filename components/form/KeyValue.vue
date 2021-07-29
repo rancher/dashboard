@@ -123,6 +123,10 @@ export default {
       type:    Boolean,
       default: true,
     },
+    valueTrim: {
+      type:    Boolean,
+      default: true,
+    },
     valueBase64: {
       type:    Boolean,
       default: false,
@@ -373,7 +377,11 @@ export default {
           if (value && typeOf(value) === 'object') {
             out[key] = JSON.parse(JSON.stringify(value));
           } else {
-            value = (value || '').trim();
+            value = value || '';
+
+            if ( this.valueTrim ) {
+              value = value.trim();
+            }
 
             if ( value && this.valueBase64 ) {
               value = base64Encode(value);

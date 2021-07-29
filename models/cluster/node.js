@@ -383,6 +383,10 @@ export default {
     return true;
   },
 
+  canClone() {
+    return false;
+  },
+
   // You need to preload CAPI.MACHINEs to use this
   provisionedMachine() {
     const namespace = this.metadata?.annotations?.[CAPI_ANNOTATIONS.CLUSTER_NAMESPACE];

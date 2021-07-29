@@ -122,7 +122,7 @@ export default {
 
       try {
         ns = await this.$store.dispatch('cluster/find', { type: NAMESPACE, id: this.forceNamespace });
-        const project = ns.metadata.annotations[PROJECT];
+        const project = ns.metadata.annotations?.[PROJECT];
 
         if (project) {
           this.project = project.replace(':', '/');
@@ -492,7 +492,7 @@ export default {
       if (neu) {
         const ns = this.$store.getters['cluster/byId'](NAMESPACE, this.value.metadata.namespace);
 
-        const project = ns?.metadata.annotations[PROJECT];
+        const project = ns?.metadata.annotations?.[PROJECT];
 
         if (project) {
           this.project = project.replace(':', '/');

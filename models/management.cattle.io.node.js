@@ -85,6 +85,9 @@ export default {
         id:        this.namespace
       }
     };
-  }
+  },
 
+  canClone() {
+    return false;
+  },
 };

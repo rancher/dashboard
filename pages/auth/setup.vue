@@ -23,7 +23,9 @@ const calcIsFirstLogin = (store) => {
 const calcMustChangePassword = async(store) => {
   await store.dispatch('auth/getUser');
 
-  return store.getters['auth/v3User']?.mustChangePassword;
+  const out = store.getters['auth/v3User']?.mustChangePassword;
+
+  return out;
 };
 
 export default {
@@ -40,8 +42,8 @@ export default {
     } catch (e) {
     }
 
-    const isFirstLogin = calcIsFirstLogin(store);
-    const mustChangePassword = calcMustChangePassword(store);
+    const isFirstLogin = await calcIsFirstLogin(store);
+    const mustChangePassword = await calcMustChangePassword(store);
 
     if (isFirstLogin) {
       // Always show setup if this is the first log in
@@ -81,7 +83,7 @@ export default {
     const principals = await store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
     const me = findBy(principals, 'me', true);
 
-    const current = route.query[SETUP] || store.getters['auth/initialPass'] || 'admin';
+    const current = route.query[SETUP] || store.getters['auth/initialPass'];
     const v3User = store.getters['auth/v3User'] ?? {};
 
     const mcmFeature = await store.dispatch('management/find', {
@@ -100,8 +102,8 @@ export default {
       serverUrl = window.location.origin;
     }
 
-    const isFirstLogin = calcIsFirstLogin(store);
-    const mustChangePassword = calcMustChangePassword(store);
+    const isFirstLogin = await calcIsFirstLogin(store);
+    const mustChangePassword = await calcMustChangePassword(store);
 
     return {
       vendor:            getVendor(),
@@ -111,8 +113,8 @@ export default {
       useRandom:          true,
       haveCurrent:        !!current,
       username:           me?.loginName || 'admin',
-      mustSetup:          isFirstLogin,
-      mustChangePassword: isFirstLogin || mustChangePassword,
+      isFirstLogin,
+      mustChangePassword,
       current,
       password:           randomStr(),
       confirm:            '',
@@ -132,24 +134,24 @@ export default {
   },
 
   computed: {
-    passwordSubmitDisabled() {
-      if (!this.eula && this.mustSetup) {
-        return true;
-      }
-
-      if ( this.useRandom ) {
+    saveEnabled() {
+      if ( !this.eula ) {
         return false;
       }
 
-      if ( !this.password || this.password !== this.confirm ) {
-        return true;
+      if ( this.mustChangePassword ) {
+        if ( !this.current ) {
+          return false;
+        }
+
+        if ( !this.useRandom ) {
+          if ( !this.password || this.password !== this.confirm ) {
+            return false;
+          }
+        }
       }
 
-      if ( !this.current ) {
-        return true;
-      }
-
-      return false;
+      return true;
     },
 
     me() {
@@ -174,61 +176,53 @@ export default {
   },
 
   mounted() {
-    this.$refs.password.focus();
-    this.$refs.password.select();
+    const el = this.$refs.password;
+
+    if ( el ) {
+      el.focus();
+      el.select();
+    }
   },
 
   methods: {
-    async finishPassword(buttonCb) {
+    async save(buttonCb) {
+      const promises = [];
+
       try {
-        if (this.mustSetup) {
-          await this.$store.dispatch('loadManagement');
+        await this.$store.dispatch('loadManagement');
 
-          await Promise.all([
-            setSetting(this.$store, SETTING.EULA_AGREED, (new Date()).toISOString() ),
-            setSetting(this.$store, SETTING.TELEMETRY, this.telemetry ? 'in' : 'out'),
-            setSetting(this.$store, SETTING.FIRST_LOGIN, 'false'),
-          ]);
+        if ( this.mustChangePassword ) {
+          await this.$store.dispatch('rancher/request', {
+            url:           '/v3/users?action=changepassword',
+            method:        'post',
+            data:          {
+              currentPassword: this.current,
+              newPassword:     this.password
+            },
+          });
+        } else {
+          promises.push(setSetting(this.$store, SETTING.FIRST_LOGIN, 'false'));
         }
-
-        await this.$store.dispatch('rancher/request', {
-          url:           '/v3/users?action=changepassword',
-          method:        'post',
-          data:          {
-            currentPassword: this.current,
-            newPassword:     this.password
-          },
-        });
 
         const user = this.v3User;
 
         user.mustChangePassword = false;
         this.$store.dispatch('auth/gotUser', user);
 
-        if (!this.mustSetup && this.mustChangePassword) {
-          buttonCb(true);
-          this.done();
-        } else {
-          if (this.mcmEnabled) {
-            this.step = 2;
-          } else {
-            this.done();
-          }
-          buttonCb(true);
+        promises.push( setSetting(this.$store, SETTING.EULA_AGREED, (new Date()).toISOString()) );
+        promises.push( setSetting(this.$store, SETTING.TELEMETRY, this.telemetry ? 'in' : 'out') );
+
+        if ( this.mcmEnabled && this.serverUrl ) {
+          promises.push( setSetting(this.$store, SETTING.SERVER_URL, this.serverUrl) );
         }
+
+        await Promise.all(promises);
+
+        buttonCb(true);
+        this.done();
       } catch (err) {
         buttonCb(false);
         this.errors = exceptionToErrorsArray(err);
-      }
-    },
-
-    async setServerUrl(buttonCb) {
-      try {
-        await setSetting(this.$store, SETTING.SERVER_URL, this.serverUrl);
-        buttonCb(true);
-        this.done();
-      } catch {
-        buttonCb(false);
       }
     },
 
@@ -240,7 +234,7 @@ export default {
 </script>
 
 <template>
-  <div class="setup">
+  <form class="setup">
     <div class="row">
       <div class="col span-6 form-col">
         <div>
@@ -251,11 +245,20 @@ export default {
             {{ t('setup.welcome', {product}) }}
           </h1>
 
-          <template v-if="step===1">
+          <template v-if="mustChangePassword">
             <p
-              class="text-center mb-40 mt-20 setup-title"
-              v-html="t(mustSetup ? 'setup.setPassword' : 'setup.newUserSetPassword', { username }, true)"
+              class="text-center mb-20 mt-20 setup-title"
+              v-html="t(isFirstLogin ? 'setup.setPassword' : 'setup.newUserSetPassword', { username }, true)"
             ></p>
+
+            <LabeledInput
+              v-if="!haveCurrent"
+              v-model.trim="current"
+              autocomplete="current-password"
+              type="password"
+              label-key="setup.currentPassword"
+              class="mb-20"
+            />
 
             <!-- For password managers... -->
             <input type="hidden" name="username" autocomplete="username" :value="username" />
@@ -284,37 +287,28 @@ export default {
               type="password"
               label-key="setup.confirmPassword"
             />
-
-            <div v-if="mustSetup">
-              <div class="checkbox mt-40">
-                <Checkbox v-model="telemetry" :label="t('setup.telemetry.label')" type="checkbox" />
-                <i v-tooltip="{content:t('setup.telemetry.tip', {}, true), delay: {hide:500}, autoHide: false}" class="icon icon-info" />
-              </div>
-              <div class="checkbox pt-10 eula">
-                <Checkbox v-model="eula" type="checkbox" />
-                <span v-html="t('setup.eula', {}, true)"></span>
-              </div>
-            </div>
-
-            <div class="text-center mt-20">
-              <AsyncButton key="passwordSubmit" type="submit" mode="continue" :disabled="passwordSubmitDisabled" @click="finishPassword" />
-            </div>
           </template>
 
-          <template v-else>
+          <template v-if="mcmEnabled">
+            <hr v-if="mustChangePassword" class="mt-20 mb-20" />
             <p>
               <t k="setup.serverUrl.tip" :raw="true" />
             </p>
             <div class="mt-20">
               <LabeledInput v-model="serverUrl" :label="t('setup.serverUrl.label')" />
             </div>
-            <div class="text-center mt-20">
-              <button type="button" class="btn role-link" @click="done">
-                {{ t('setup.serverUrl.skip') }}
-              </button>
-              <AsyncButton type="submit" mode="continue" @click="setServerUrl" />
-            </div>
           </template>
+
+          <div class="checkbox mt-40">
+            <Checkbox v-model="telemetry" label-key="setup.telemetry" />
+          </div>
+          <div class="checkbox pt-10 eula">
+            <Checkbox v-model="eula" label-key="setup.eula" />
+          </div>
+
+          <div class="text-center mt-20">
+            <AsyncButton key="passwordSubmit" type="submit" mode="continue" :disabled="!saveEnabled" @click="save" />
+          </div>
 
           <div class="setup-errors mt-20">
             <h4 v-for="err in errors" :key="err" class="text-error text-center">
@@ -326,7 +320,7 @@ export default {
 
       <div class="col span-6 landscape" />
     </div>
-  </div>
+  </form>
 </template>
 
 <style lang="scss" scoped>
