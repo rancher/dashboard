@@ -108,7 +108,11 @@ export default {
         return this.namespaces;
       }
 
-      return this.namespaces.filter(namespace => !namespace.isObscure);
+      const isVirtualCluster = this.$store.getters['isVirtualCluster'];
+
+      return this.namespaces.filter((namespace) => {
+        return isVirtualCluster ? (!namespace.isSystem && !namespace.isObscure) : !namespace.isObscure;
+      });
     }
   },
   methods: {
