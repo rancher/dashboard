@@ -53,6 +53,7 @@ export default {
       :mode="mode"
       :initial-empty-row="true"
       :value-base64="true"
+      :value-trim="false"
       :value-concealed="isView && hideSensitiveData"
       :file-modifier="fileModifier"
       read-icon=""
