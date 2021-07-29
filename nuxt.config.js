@@ -78,6 +78,7 @@ module.exports = {
 
   buildModules: [
     '@nuxtjs/style-resources',
+    '@nuxt/typescript-build'
   ],
   styleResources: {
     // only import functions, mixins, or variables, NEVER import full styles https://github.com/nuxt-community/style-resources-module#warning
@@ -210,16 +211,6 @@ module.exports = {
           }
         ]
       });
-
-      // Run ESLint on save
-      if (isDev && isClient) {
-        config.module.rules.push({
-          enforce: 'pre',
-          test:    /\.(js|vue)$/,
-          loader:  'eslint-loader',
-          exclude: /(node_modules)/
-        });
-      }
     },
 
     // extractCSS:   true,
@@ -235,10 +226,15 @@ module.exports = {
               targets:     isServer ? { node: '12' } : { browsers: ['last 2 versions'] },
               modern:      !isServer
             }
-          ]
+          ],
+          '@babel/preset-typescript',
         ];
       },
-      plugins: ['@babel/plugin-transform-modules-commonjs'],
+      plugins: [
+        ['@babel/plugin-transform-modules-commonjs'],
+        // Should be resolved in nuxt  v.2.15.5, see https://github.com/nuxt/nuxt.js/issues/9224#issuecomment-835742221
+        ['@babel/plugin-proposal-private-methods', { loose: true }]
+      ],
     }
   },
 
@@ -354,6 +350,8 @@ module.exports = {
 
   // Eslint module options
   eslint: { cache: './node_modules/.cache/eslint' },
+
+  typescript: { typeCheck: { eslint: { files: './**/*.{ts,js,vue}' } } }
 };
 
 function proxyOpts(target) {

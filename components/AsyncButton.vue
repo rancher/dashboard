@@ -1,4 +1,7 @@
-<script>
+<script lang="ts">
+import Vue from 'vue';
+import typeHelper from '@/utils/type-helpers';
+
 const ACTION = 'action';
 const WAITING = 'waiting';
 const SUCCESS = 'success';
@@ -7,7 +10,9 @@ const ERROR = 'error';
 const TEXT = 'text';
 const TOOLTIP = 'tooltip';
 
-export default {
+export type AsyncButtonCallback = (success: boolean) => void;
+
+export default Vue.extend({
   props: {
     /**
      * Mode maps to keys in asyncButton.* translations
@@ -86,21 +91,18 @@ export default {
     }
   },
 
-  data() {
-    return {
-      phase: ACTION,
-      timer: null,
-    };
+  data(): { phase: string, timer?: NodeJS.Timeout} {
+    return { phase: ACTION };
   },
 
   computed: {
-    classes() {
+    classes(): {btn: boolean, [color: string]: boolean} {
       const key = `${ this.phase }Color`;
-      const color = this[key];
+      const color = typeHelper.memberOfComponent(this, key);
 
       const out = {
-        btn:     true,
-        [color]: true,
+        btn:      true,
+        [color]:  true,
       };
 
       if (this.size) {
@@ -110,7 +112,7 @@ export default {
       return out;
     },
 
-    displayIcon() {
+    displayIcon(): string {
       const exists = this.$store.getters['i18n/exists'];
       const t = this.$store.getters['i18n/t'];
       const key = `asyncButton.${ this.mode }.${ this.phase }Icon`;
@@ -137,8 +139,8 @@ export default {
       return out;
     },
 
-    displayLabel() {
-      const override = this[`${ this.phase }Label`];
+    displayLabel(): string {
+      const override = typeHelper.memberOfComponent(this, `${ this.phase }Label`);
       const exists = this.$store.getters['i18n/exists'];
       const t = this.$store.getters['i18n/t'];
       const key = `asyncButton.${ this.mode }.${ this.phase }`;
@@ -155,15 +157,15 @@ export default {
       }
     },
 
-    isSpinning() {
+    isSpinning(): boolean {
       return this.phase === WAITING;
     },
 
-    isDisabled() {
+    isDisabled(): boolean {
       return this.disabled || this.phase === WAITING;
     },
 
-    tooltip() {
+    tooltip(): { content: string, hideOnTargetClick: boolean} | null {
       if ( this.labelAs === TOOLTIP ) {
         return {
           content:           this.displayLabel,
@@ -176,7 +178,7 @@ export default {
   },
 
   methods: {
-    clicked($event) {
+    clicked($event: MouseEvent) {
       if ($event) {
         $event.stopPropagation();
         $event.preventDefault();
@@ -186,16 +188,20 @@ export default {
         return;
       }
 
-      clearTimeout(this.timer);
+      if (this.timer) {
+        clearTimeout(this.timer);
+      }
 
       this.phase = WAITING;
 
-      this.$emit('click', (success) => {
+      const cb: AsyncButtonCallback = (success) => {
         this.done(success);
-      });
+      };
+
+      this.$emit('click', cb);
     },
 
-    done(success) {
+    done(success: boolean) {
       this.phase = (success ? SUCCESS : ERROR );
       this.timer = setTimeout(() => {
         this.timerDone();
@@ -209,10 +215,10 @@ export default {
     },
 
     focus() {
-      this.$refs.btn.focus();
+      (this.$refs.btn as HTMLElement).focus();
     }
   }
-};
+});
 </script>
 
 <template>

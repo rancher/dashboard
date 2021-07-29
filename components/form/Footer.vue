@@ -1,9 +1,10 @@
-<script>
+<script lang="ts">
+import Vue from 'vue';
 import { _VIEW } from '@/config/query-params';
-import AsyncButton from '@/components/AsyncButton';
-import Banner from '@/components/Banner';
+import AsyncButton, { AsyncButtonCallback } from '@/components/AsyncButton.vue';
+import Banner from '@/components/Banner.vue';
 
-export default {
+export default Vue.extend({
   components: {
     AsyncButton,
     Banner,
@@ -31,13 +32,13 @@ export default {
   },
 
   computed: {
-    isView() {
+    isView(): boolean {
       return this.mode === _VIEW;
     },
   },
 
   methods: {
-    save(buttonCb) {
+    save(buttonCb: AsyncButtonCallback) {
       this.$emit('save', buttonCb);
     },
 
@@ -45,7 +46,7 @@ export default {
       this.$emit('done');
     }
   }
-};
+});
 </script>
 <template>
   <div v-if="!isView">
