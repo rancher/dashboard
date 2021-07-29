@@ -1,4 +1,16 @@
 <script>
+import { isArray } from '@/utils/array';
+
+function flatten(node) {
+  if ( isArray(node) ) {
+    return node.map(flatten).join(' ');
+  } else if ( node.children ) {
+    return node.children.map(flatten).join(' ');
+  } else if ( node.text ) {
+    return node.text;
+  }
+}
+
 export default {
   data() {
     return { copied: false };
@@ -9,7 +21,9 @@ export default {
       $event.stopPropagation();
       $event.preventDefault();
 
-      this.$copyText(this.$slots.default[0].text.trim()).then(() => {
+      const content = flatten(this.$slots.default).trim();
+
+      this.$copyText(content).then(() => {
         this.copied = true;
 
         setTimeout(() => {

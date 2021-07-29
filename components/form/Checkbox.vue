@@ -72,28 +72,39 @@ export default {
 
   methods: {
     clicked(event) {
-      if (!this.isDisabled) {
-        const click = $.Event('click');
+      if ( event.target.tagName === 'A' && event.target.href ) {
+        // Ignore links inside the checkbox label so you can click them
+        return true;
+      }
 
-        click.shiftKey = event.shiftKey;
-        click.altKey = event.altKey;
-        click.ctrlKey = event.ctrlKey;
-        click.metaKey = event.metaKey;
+      event.stopPropagation();
+      event.preventDefault();
 
-        // Flip the value
-        if (this.isMulti()) {
-          if (this.isChecked) {
-            removeObject(this.value, this.valueWhenTrue);
-          } else {
-            addObject(this.value, this.valueWhenTrue);
-          }
-          this.$emit('input', this.value);
+      if (this.isDisabled) {
+        return;
+      }
+
+      const click = $.Event('click');
+
+      click.shiftKey = event.shiftKey;
+      click.altKey = event.altKey;
+      click.ctrlKey = event.ctrlKey;
+      click.metaKey = event.metaKey;
+
+      // Flip the value
+      if (this.isMulti()) {
+        if (this.isChecked) {
+          removeObject(this.value, this.valueWhenTrue);
         } else {
-          this.$emit('input', !this.value);
-          $(this.$el).trigger(click);
+          addObject(this.value, this.valueWhenTrue);
         }
+        this.$emit('input', this.value);
+      } else {
+        this.$emit('input', !this.value);
+        $(this.$el).trigger(click);
       }
     },
+
     isMulti() {
       return Array.isArray(this.value);
     }
@@ -108,7 +119,7 @@ export default {
       :class="{ 'disabled': isDisabled}"
       @keydown.enter.prevent="clicked($event)"
       @keydown.space.prevent="clicked($event)"
-      @click.stop.prevent="clicked($event)"
+      @click="clicked($event)"
     >
       <input
         v-model="value"

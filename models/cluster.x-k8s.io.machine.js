@@ -30,6 +30,10 @@ export default {
     return out;
   },
 
+  canClone() {
+    return false;
+  },
+
   openSsh() {
     return () => {
       this.$dispatch('wm/open', {
