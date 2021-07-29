@@ -1,9 +1,13 @@
-import { SYSTEM_PROJECT } from '@/config/labels-annotations';
+import { DEFAULT_PROJECT, SYSTEM_PROJECT } from '@/config/labels-annotations';
 import { MANAGEMENT, NAMESPACE, NORMAN } from '@/config/types';
 
 export default {
   isSystem() {
     return this.metadata?.labels?.[SYSTEM_PROJECT] === 'true';
+  },
+
+  isDefault() {
+    return this.metadata?.labels?.[DEFAULT_PROJECT] === 'true';
   },
 
   namespaces() {
