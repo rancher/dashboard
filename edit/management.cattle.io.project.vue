@@ -39,6 +39,9 @@ export default {
   computed: {
     hasMemberAccess() {
       return !!this.projectRoleTemplateBindingSchema;
+    },
+    isValid() {
+      return this.value.isDefault || this.value.isSystem || this.hasOwner;
     }
   },
   watch: {
@@ -86,7 +89,7 @@ export default {
     :resource="value"
     :subtypes="[]"
     :can-yaml="false"
-    :validation-passed="hasOwner"
+    :validation-passed="isValid"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"
