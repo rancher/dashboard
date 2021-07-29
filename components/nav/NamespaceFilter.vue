@@ -18,7 +18,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isCurrentVirtualCluster', 'isSingleVirtualCluster', 'isMultiVirtualCluster']),
+    ...mapGetters(['isVirtualCluster', 'isSingleVirtualCluster', 'isMultiVirtualCluster']),
     filterIsHovered() {
       return this.isHovered;
     },
@@ -40,7 +40,7 @@ export default {
       const t = this.$store.getters['i18n/t'];
       let out = [];
 
-      if (!this.isCurrentVirtualCluster) {
+      if (!this.isVirtualCluster) {
         out = [
           {
             id:    'all',
@@ -76,7 +76,7 @@ export default {
       const namespaces = sortBy(
         this.$store.getters[`${ inStore }/all`](NAMESPACE),
         ['nameDisplay']
-      ).filter( N => this.isCurrentVirtualCluster ? !N.isSystem : true);
+      ).filter( N => this.isVirtualCluster ? !N.isSystem : true);
 
       if (this.$store.getters['isRancher'] || this.isMultiVirtualCluster) {
         const cluster = this.$store.getters['currentCluster'];
