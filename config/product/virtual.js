@@ -28,6 +28,11 @@ export function init(store) {
     removable:           false,
     showNamespaceFilter: true,
     showClusterSwitcher: false,
+    typeStoreMap:        {
+      [MANAGEMENT.PROJECT]:                       'management',
+      [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',
+      [MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING]: 'management'
+    }
   });
 
   basicType([HCI.DASHBOARD]);
@@ -74,7 +79,6 @@ export function init(store) {
   });
 
   // multiVirtualCluster
-  configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { useManagementAPI: true });
   basicType([
     'cluster-members',
   ], 'rbac');
@@ -138,7 +142,6 @@ export function init(store) {
     exact: false,
   });
 
-  configureType(MANAGEMENT.PROJECT, { useManagementAPI: true });
   basicType(['projects-namespaces']);
   virtualType({
     showMenuFun(state, getters, rootState, rootGetters) {
