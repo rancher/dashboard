@@ -3832,6 +3832,7 @@ tableHeaders:
     watch: Watch
   ready: Ready
   reason: Reason
+  reclaimPolicy: Reclaim Policy
   repo: Repo
   reposReady: Repos Ready
   replicas: Replicas
