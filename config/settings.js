@@ -99,7 +99,7 @@ export const fetchOrCreateSetting = async(store, id, val, save = true) => {
     });
 
     if ( save ) {
-      setting.save({ url });
+      await setting.save({ url });
     }
   }
 
@@ -111,5 +111,7 @@ export const setSetting = async(store, id, val) => {
 
   setting.value = val;
 
-  return setting.save();
+  await setting.save();
+
+  return setting;
 };

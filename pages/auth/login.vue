@@ -4,6 +4,8 @@ import { USERNAME } from '@/config/cookies';
 import LabeledInput from '@/components/form/LabeledInput';
 import AsyncButton from '@/components/AsyncButton';
 import BrandImage from '@/components/BrandImage';
+import InfoBox from '@/components/InfoBox';
+import CopyCode from '@/components/CopyCode';
 import Banner from '@/components/Banner';
 import { LOCAL, LOGGED_OUT, TIMED_OUT, _FLAGGED } from '@/config/query-params';
 import Checkbox from '@/components/form/Checkbox';
@@ -15,13 +17,13 @@ import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
 import { MANAGEMENT, NORMAN } from '@/config/types';
 import { SETTING } from '@/config/settings';
 import { LOGIN_ERRORS } from '@/store/auth';
-import { getVendor, getProduct, setVendor } from '../../config/private-label';
+import { getVendor, getProduct, setVendor } from '@/config/private-label';
 
 export default {
   name:       'Login',
   layout:     'unauthenticated',
   components: {
-    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner
+    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode
   },
 
   async asyncData({ route, redirect, store }) {
@@ -229,8 +231,8 @@ export default {
 
 <template>
   <main class="login">
-    <div class="row mb-20">
-      <div class="col span-6">
+    <div class="row gutless mb-20">
+      <div class="col span-6 p-20">
         <p class="text-center">
           {{ t('login.howdy') }}
         </p>
@@ -249,9 +251,31 @@ export default {
           </h4>
         </div>
         <div v-if="firstLogin" class="first-login-message">
-          <Banner color="info">
-            <t k="setup.defaultPasswordError" :raw="true" />
-          </Banner>
+          <InfoBox color="info">
+            <t k="setup.defaultPassword.intro" :raw="true" />
+
+            <div><t k="setup.defaultPassword.dockerPrefix" :raw="true" /></div>
+            <ul>
+              <li>
+                <t k="setup.defaultPassword.dockerPs" :raw="true" />
+              </li>
+              <li>
+                <CopyCode>
+                  <t k="setup.defaultPassword.dockerCmd" :raw="true" />
+                </CopyCode>
+              </li>
+            </ul>
+            <div><t k="setup.defaultPassword.dockerSuffix" :raw="true" /></div>
+
+            <br />
+            <div><t k="setup.defaultPassword.helmPrefix" :raw="true" /></div>
+            <br />
+            <CopyCode>
+              <t k="setup.defaultPassword.helmCmd" :raw="true" />
+            </CopyCode>
+            <br />
+            <div><t k="setup.defaultPassword.helmSuffix" :raw="true" /></div>
+          </InfoBox>
         </div>
 
         <div v-if="(!hasLocal || (hasLocal && !showLocal)) && providers.length" class="mt-30">
