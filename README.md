@@ -31,7 +31,7 @@ yarn build
 yarn start
 
 # Develop via Docker instead of a local nodejs
-docker build -f Dockerfile.dev -t dashboard:dev
+docker build -f Dockerfile.dev -t dashboard:dev .
 docker run -v $(pwd):/src \
   -v dashboard_node:/src/node_modules \
   -p 8005:8005 \
@@ -168,7 +168,7 @@ wm | "Window manager" at the bottom of the screen for things like container shel
 
 ## Synching state
 
-The high-level way the entire UI works is that API calls are made to load data from the server, and then a "watch" is started to notify us of changes so that information can be kept up to date at all times without polling or refreshing.  You can load a single resource by ID, an entire collection of all those resources, or something in between, and they should still stay up to date.  This works by having an array of a single authorititive copy of all the "known" models saved in the API stores (`management` & `cluster`) and updating the data when an event is received from the "subscribe" websocket.  The update is done on the _existing_ copy, so that anything that refers to it finds out that it changed through Vue's reactivity.  When manipulating models or collections of results from the API, some care is needed to make sure you are keeping that single copy and not making extras or turning a "live" array of models into a "dead" clone of it.
+The high-level way the entire UI works is that API calls are made to load data from the server, and then a "watch" is started to notify us of changes so that information can be kept up to date at all times without polling or refreshing.  You can load a single resource by ID, an entire collection of all those resources, or something in between, and they should still stay up to date.  This works by having an array of a single authoritative copy of all the "known" models saved in the API stores (`management` & `cluster`) and updating the data when an event is received from the "subscribe" websocket.  The update is done on the _existing_ copy, so that anything that refers to it finds out that it changed through Vue's reactivity.  When manipulating models or collections of results from the API, some care is needed to make sure you are keeping that single copy and not making extras or turning a "live" array of models into a "dead" clone of it.
 
   The most basic operations are `find({type, id})` to load a single resource by ID, `findAll({type})` load all of them.  These (anything starting with `find`) are async calls to the API.  Getters like `all(type)` and `byId(type, id)` are synchronous and return only info that has already been previously loaded.  See `plugins/steve/` for all the available actions and getters.
 

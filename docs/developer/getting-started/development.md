@@ -7,7 +7,7 @@ See [APIs](../../../README.md#apis).
 
 The older Norman API is served on `/v3`. The newer Steve API (see [here](https://github.com/rancher/api-spec/blob/master/specification.md) for spec) is served on `/v1` .
 
-In both cases the schema's returned dictate 
+In both cases the schemas returned dictate 
 - Which resources are shown
 - What operations (create, update, delete, etc) can be made against resource/s
 - What actions (archive, change password, etc) can be made against resource/s
@@ -237,15 +237,15 @@ This customisation should also support the `as=config` param, where the form is 
 
 ## Styling
 
-SCSS Styles can be found in `assets/styles/`. It's recommended to browse through some of the common styles in `_helpers.scss` and `_mixings.scss`.
+SCSS Styles can be found in `assets/styles/`. It's recommended to browse through some of the common styles in `_helpers.scss` and `_mixins.scss`.
 
 ### Examples
 
 The following pages contain example components and their styling
 
 - Buttons - `<dashboard url>/design-system`
-- Form Controls - `<dashvoard url>/design-system/form-controls`
-- Provider Images - `<dashvoard url>/design-system/provider-images`
+- Form Controls - `<dashboard url>/design-system/form-controls`
+- Provider Images - `<dashboard url>/design-system/provider-images`
 
 
 ## Internationalisation i18n / Localisation i10n
@@ -259,7 +259,7 @@ In HTML
 
 ```
 <t k="<path to localisation>" />
-{{ t("<path to localisation>1") }}
+{{ t("<path to localisation>") }}
 ```
 
 Many components will also accept a localisation path via a `value-key` property, instead of the translated text in `value`.
@@ -267,7 +267,7 @@ Many components will also accept a localisation path via a `value-key` property,
 In JS
 
 ```
-this.t('<path to localisation')
+this.t('<path to localisation>')
 ```
 
 A localisation can be checked with
