@@ -70,7 +70,7 @@ export const getters = {
         msg = get(state.translations[state.default], key);
       }
 
-      if ( !msg ) {
+      if ( msg === undefined ) {
         return undefined;
       }
 
@@ -94,8 +94,9 @@ export const getters = {
     } else if ( formatter && formatter.format ) {
       // Inject things like appName so they're always available in any translation
       const moreArgs = {
-        vendor:  getVendor(),
-        appName: getProduct(),
+        vendor:   getVendor(),
+        appName:  getProduct(),
+        docsBase: 'https://rancher.com/docs/rancher/v2.6/en',
         ...args
       };
 
