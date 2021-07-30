@@ -888,6 +888,9 @@ cluster:
     label: Agent Environment
     detail: Add additional environment variables to the agent container.  This is most commonly useful for configuring a HTTP proxy.
     keyLabel: Variable Name
+  cloudProvider:
+    vsphere:
+      note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the Add-On Config tab.'
   custom:
     nodeRole:
       label: Node Role
@@ -1257,6 +1260,7 @@ cluster:
       }
   tabs:
     ace: Authorized Endpoint
+    addons: Add-On Config
     advanced: Advanced
     agentEnv: Agent Environment Vars
     basic: Basics
@@ -1266,7 +1270,7 @@ cluster:
     machinePools: Machine Pools
     machines: Machines
     memberRoles: Member Roles
-    registry: Private Registry
+    registry: Registries
     upgrade: Upgrade Strategy
   rotateCertificates:
     label: Rotate Certificates

@@ -58,7 +58,7 @@ export default {
     key-name="hostname"
     key-placeholder="e.g. docker.io or *"
     value-label="Mirror Endpoints"
-    value-placeholder="e.g. a.my-registry.com:5000, b.my-registry.com:5000"
+    value-placeholder="e.g. a.registry.com:5000, b.registry.com:5000"
     value-name="endpoints"
     add-label="Add Mirror"
     :mode="mode"
