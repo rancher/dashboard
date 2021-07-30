@@ -96,6 +96,12 @@ export default {
     };
   },
 
+  template() {
+    return this.$rootGetters['virtual/all'](HCI.VM_TEMPLATE).find((T) => {
+      return T.id === this.spec.templateId;
+    });
+  },
+
   version() {
     return this?.status?.version;
   },

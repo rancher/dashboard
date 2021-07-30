@@ -39,7 +39,7 @@ export default {
     ...mapGetters(['currentCluster']),
 
     versionOptions() {
-      const settings = this.$store.getters['cluster/all'](HCI.SETTING);
+      const settings = this.$store.getters['virtual/all'](HCI.SETTING);
 
       const upgradeVersion = settings.find( S => S.id === 'upgradable-versions');
 

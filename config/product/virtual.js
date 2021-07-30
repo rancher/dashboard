@@ -39,7 +39,6 @@ export function init(store) {
   virtualType({
     label:         store.getters['i18n/t']('harvester.dashboard.label'),
     group:        'Root',
-    labelDisplay: 'harvester.nav.dashboard',
     name:         HCI.DASHBOARD,
     weight:       500,
     route:        {
@@ -67,7 +66,6 @@ export function init(store) {
     ifHaveType:    NODE,
     label:         store.getters['i18n/t']('harvester.host.label'),
     group:        'Root',
-    labelDisplay: 'harvester.typeLabel.host',
     name:         HOST,
     namespaced:   true,
     weight:       399,
@@ -147,10 +145,9 @@ export function init(store) {
     showMenuFun(state, getters, rootState, rootGetters) {
       return rootGetters['isMultiCluster'];
     },
-    ifHaveType:       NODE,
     label:            'Projects/Namespaces',
-    group:            'cluster',
-    namespaced:  true,
+    group:            'root',
+    namespaced:       true,
     name:             'projects-namespaces',
     weight:           98,
     route:            { name: 'c-cluster-product-projectsnamespaces' },
