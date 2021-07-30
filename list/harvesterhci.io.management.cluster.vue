@@ -3,7 +3,6 @@ import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { NAME as VIRTUAL } from '@/config/product/virtual';
 import { CAPI } from '@/config/types';
-import { MODE, _IMPORT } from '@/config/query-params';
 
 export default {
 
@@ -36,11 +35,10 @@ export default {
         name:   'c-cluster-product-resource-create',
         params: {
           product:  this.$store.getters['currentProduct'].name,
-          resource: this.resource
+          resource: this.schema.id,
         },
-        query: { [MODE]: _IMPORT, type: 'Harvester' }
       };
-    }
+    },
   }
 };
 </script>
@@ -76,7 +74,7 @@ export default {
               :to="{
                 name: `c-cluster-${VIRTUAL}`,
                 params: {
-                  cluster: row.id,
+                  cluster: row.status.clusterName,
                 }
               }"
             >
