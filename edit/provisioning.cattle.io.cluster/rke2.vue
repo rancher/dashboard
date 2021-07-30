@@ -393,6 +393,10 @@ export default {
       return this.selectedVersion?.charts || {};
     },
 
+    showCisProfile() {
+      return this.provider !== 'custom' && ( this.serverArgs.profile || this.agentArgs.profile );
+    },
+
     needCredential() {
       if ( this.provider === 'custom' || this.provider === 'import' ) {
         return false;
@@ -1167,7 +1171,7 @@ export default {
         </Tab>
 
         <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="-1" @active="refreshYamls">
-          <template v-if="serverArgs.profile || agentArgs.profile">
+          <template v-if="showCisProfile">
             <h3>CIS Profile Validation</h3>
             <div class="row">
               <div v-if="serverArgs.profile" class="col span-6">
