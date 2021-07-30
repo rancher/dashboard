@@ -888,6 +888,9 @@ cluster:
     label: Agent Environment
     detail: Add additional environment variables to the agent container.  This is most commonly useful for configuring a HTTP proxy.
     keyLabel: Variable Name
+  cloudProvider:
+    vsphere:
+      note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the Add-On Config tab.'
   custom:
     nodeRole:
       label: Node Role
@@ -1223,12 +1226,12 @@ cluster:
     zstack: ZStack
   providerGroup:
     create-custom1: Use existing nodes and create a cluster using RKE
-    create-custom2: Use existing nodes and create a cluster using RKE2
+    create-custom2: Use existing nodes and create a cluster using RKE2 (Tech Preview)
     create-kontainer: Create a cluster in a hosted Kubernetes provider
     register-kontainer: Register an existing cluster in a hosted Kubernetes provider
     create-rke1: Provision new nodes and create a cluster using RKE
-    create-rke2: Provision new nodes and create a cluster using RKE2
-    create-template: Use a Catalog Template to create a cluster
+    create-rke2: Provision new nodes and create a cluster using RKE2 (Tech Preview)
+    create-template: Use a Catalog Template to create a cluster (Tech Preview)
     register-custom: Import any Kubernetes cluster
   rke2:
     systemService:
@@ -1257,6 +1260,7 @@ cluster:
       }
   tabs:
     ace: Authorized Endpoint
+    addons: Add-On Config
     advanced: Advanced
     agentEnv: Agent Environment Vars
     basic: Basics
@@ -1266,7 +1270,7 @@ cluster:
     machinePools: Machine Pools
     machines: Machines
     memberRoles: Member Roles
-    registry: Private Registry
+    registry: Registries
     upgrade: Upgrade Strategy
   rotateCertificates:
     label: Rotate Certificates
@@ -1274,6 +1278,10 @@ cluster:
     services: Services
     allServices: Rotate all service certificates
     selectService: Rotate an individual service
+  toggle:
+    v1: RKE1
+    v2: RKE2/K3s
+
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -3413,13 +3421,11 @@ setup:
   currentPassword: Bootstrap Password
   confirmPassword: Confirm New Password
   defaultPassword:
-    intro: It looks like this is your first time visiting {vendor}; if you pre-set your own bootstrap password, enter it here.  Otherwise a random one has been generated for you.<br/><br/>
+    intro: It looks like this is your first time visiting {vendor}; if you pre-set your own bootstrap password, enter it here.  Otherwise a random one has been generated for you.  To find it:<br/><br/>
     dockerPrefix: 'For a "docker run" installation:'
-    dockerCmd: 'docker logs <i>container-id</i> 2&gt;&amp;1 | grep "Bootstrap Password:"'
     dockerPs: 'Find your container ID with <code>docker ps</code>, then run:'
     dockerSuffix: ""
     helmPrefix: 'For a Helm installation, run:'
-    helmCmd: "kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{\"\\n\"}}'"
     helmSuffix: ""
   eula: I agree to the <a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">terms and conditions</a> for using Rancher.
   newPassword: New Password

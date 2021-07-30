@@ -359,7 +359,6 @@ export default {
             <MatchExpressions
               :initial-empty-row="false"
               :mode="mode"
-              type=""
               :value="matchExpressions"
               :show-remove="false"
               @input="matchChanged($event)"

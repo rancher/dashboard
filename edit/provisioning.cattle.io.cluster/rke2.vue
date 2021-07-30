@@ -18,6 +18,7 @@ import { camelToTitle, nlToBr } from '@/utils/string';
 import { compare, sortable } from '@/utils/version';
 
 import ArrayList from '@/components/form/ArrayList';
+import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
 import Checkbox from '@/components/form/Checkbox';
@@ -25,6 +26,7 @@ import CruResource from '@/components/CruResource';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Loading from '@/components/Loading';
+import MatchExpressions from '@/components/form/MatchExpressions';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import RadioGroup from '@/components/form/RadioGroup';
 import Tab from '@/components/Tabbed/Tab';
@@ -50,6 +52,7 @@ export default {
     ACE,
     AgentEnv,
     ArrayList,
+    ArrayListGrouped,
     BadgeState,
     Banner,
     Checkbox,
@@ -61,6 +64,7 @@ export default {
     Labels,
     Loading,
     MachinePool,
+    MatchExpressions,
     NameNsDescription,
     Questions,
     RadioGroup,
@@ -211,7 +215,7 @@ export default {
     }
 
     if ( !this.value.spec.rkeConfig.machineSelectorConfig?.length ) {
-      set(this.value.spec, 'rkeConfig.machineSelectorConfig', [{}]);
+      set(this.value.spec, 'rkeConfig.machineSelectorConfig', [{ config: {} }]);
     }
 
     return {
@@ -247,15 +251,43 @@ export default {
     },
 
     agentConfig() {
-      return this.value.spec.rkeConfig.machineSelectorConfig[0];
+      // The one we want is the first one with no selector.
+      // If there are multiple with no selector, that will fall under the unsupported message below.
+      return this.value.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
     },
 
-    multipleAgentConfigs() {
-      return this.value.spec.rkeConfig.machineSelectorConfig.length > 1;
-    },
+    // kubeletConfigs() {
+    //   return this.value.spec.rkeConfig.machineSelectorConfig.filter(x => !!x.machineLabelSelector);
+    // },
 
-    unsupportedAgentConfig() {
-      return !!this.agentConfig.machineLabelSelector;
+    unsupportedSelectorConfig() {
+      let global = 0;
+      let kubeletOnly = 0;
+      let other = 0;
+
+      // The form supports one config that has no selector for all the main parts
+      // And one or more configs that have a selector and exactly only kubelet-args.
+      // If there are any other properties set, or multiple configs with no selector
+      // show a warning that you're editing only part of the config in the UI.
+
+      for ( const conf of this.value.spec?.rkeConfig?.machineSelectorConfig ) {
+        if ( conf.machineLabelSelector ) {
+          const keys = Object.keys(conf.config || {});
+
+          if ( keys.length === 0 || (keys.length === 1 && keys[0] === 'kubelet-arg') ) {
+            kubeletOnly++;
+          } else {
+            other++;
+          }
+        } else {
+          global++;
+        }
+      }
+
+      // eslint-disable-next-line no-console
+      console.log(`Global: ${ global }, Kubelet Only: ${ kubeletOnly }, Other: ${ other }`);
+
+      return ( global > 1 || other > 0 );
     },
 
     versionOptions() {
@@ -330,7 +362,7 @@ export default {
     },
 
     pspOptions() {
-      const out = [{ label: '(None)', value: null }];
+      const out = [{ label: 'RKE2 Default', value: null }];
 
       if ( this.allPSPs ) {
         for ( const pspt of this.allPSPs ) {
@@ -391,6 +423,10 @@ export default {
 
     chartVersions() {
       return this.selectedVersion?.charts || {};
+    },
+
+    showCisProfile() {
+      return this.provider === 'custom' && ( this.serverArgs.profile || this.agentArgs.profile );
     },
 
     needCredential() {
@@ -511,8 +547,19 @@ export default {
       switch ( name ) {
       case 'none': return false;
       case 'aws': return false;
+      case 'vsphere': return false;
       default: return true;
       }
+    },
+
+    showVsphereNote() {
+      if ( !this.agentArgs['cloud-provider-name'] ) {
+        return false;
+      }
+
+      const name = this.agentConfig['cloud-provider-name'];
+
+      return name === 'vsphere';
     },
 
     showCni() {
@@ -855,6 +902,10 @@ export default {
     onHasOwnerChanged(hasOwner) {
       this.$set(this, 'hasOwner', hasOwner);
     },
+
+    canRemoveKubeletRow(row, idx) {
+      return idx !== 0;
+    }
   },
 };
 </script>
@@ -974,7 +1025,10 @@ export default {
             </div>
           </div>
 
-          <template v-if="showCloudConfigYaml">
+          <template v-if="showVsphereNote">
+            <Banner color="warning" label-key="cluster.cloudProvider.vsphere.note" />
+          </template>
+          <template v-else-if="showCloudConfigYaml">
             <div class="spacer" />
 
             <div class="col span-12">
@@ -1001,17 +1055,29 @@ export default {
                 label="Default Pod Security Policy"
               />
             </div>
-            <div class="col span-6 mt-5">
-              <div v-if="serverArgs['secrets-encryption']">
-                <Checkbox v-model="serverConfig['secrets-encryption']" :mode="mode" label="Encrypt Secrets" />
-              </div>
-              <div><Checkbox v-model="value.spec.enableNetworkPolicy" :mode="mode" label="Project Network Isolation" /></div>
-              <div v-if="agentArgs.selinux">
-                <Checkbox v-model="agentConfig.selinux" :mode="mode" label="SELinux" />
-              </div>
+            <div v-if="showCisProfile" class="col span-6">
+              <LabeledSelect
+                v-if="serverArgs.profile"
+                v-model="serverConfig.profile"
+                :mode="mode"
+                :options="profileOptions"
+                label="Server CIS Profile"
+              />
+              <LabeledSelect
+                v-else-if="agentArgs.profile"
+                v-model="agentConfig.profile"
+                :mode="mode"
+                :options="profileOptions"
+                label="Worker CIS Profile"
+              />
             </div>
           </div>
           <div class="row">
+            <div class="col span-12 mt-20">
+              <Checkbox v-if="serverArgs['secrets-encryption']" v-model="serverConfig['secrets-encryption']" :mode="mode" label="Encrypt Secrets" />
+              <Checkbox v-model="value.spec.enableNetworkPolicy" :mode="mode" label="Project Network Isolation" />
+              <Checkbox v-if="agentArgs.selinux" v-model="agentConfig.selinux" :mode="mode" label="SELinux" />
+            </div>
           </div>
 
           <div class="spacer" />
@@ -1038,7 +1104,7 @@ export default {
           <ClusterMembershipEditor :mode="mode" :parent-id="value.mgmt ? value.mgmt.id : null" @membership-update="onMembershipUpdate" @has-owner-changed="onHasOwnerChanged" />
         </Tab>
 
-        <Tab name="etcd" label-key="cluster.tabs.etcd" :weight="9">
+        <Tab name="etcd" label-key="cluster.tabs.etcd">
           <div class="row">
             <div class="col span-6">
               <RadioGroup
@@ -1103,13 +1169,8 @@ export default {
           </div>
         </Tab>
 
-        <Tab v-if="haveArgInfo" name="networking" label-key="cluster.tabs.networking" :weight="8">
-          <div v-if="serverArgs['service-node-port-range']" class="row mb-20">
-            <div class="col span-6">
-              <LabeledInput v-model="serverConfig['service-node-port-range']" :mode="mode" label="NodePort Service Port Range" />
-            </div>
-          </div>
-
+        <Tab v-if="haveArgInfo" name="networking" label-key="cluster.tabs.networking">
+          <h3>Addressing</h3>
           <div class="row mb-20">
             <div v-if="serverArgs['cluster-cidr']" class="col span-6">
               <LabeledInput v-model="serverConfig['cluster-cidr']" :mode="mode" label="Cluster CIDR" />
@@ -1128,14 +1189,22 @@ export default {
             </div>
           </div>
 
-          <div v-if="serverArgs['tls-san']" class="row mb-20">
+          <div v-if="serverArgs['service-node-port-range']" class="row mb-20">
             <div class="col span-6">
-              <ArrayList :mode="mode" :value="serverConfig['tls-san']" title="TLS Alternate Names" />
+              <LabeledInput v-model="serverConfig['service-node-port-range']" :mode="mode" label="NodePort Service Port Range" />
             </div>
           </div>
+
+          <div v-if="serverArgs['tls-san']" class="row mb-20">
+            <div class="col span-6">
+              <ArrayList v-model="serverConfig['tls-san']" :protip="false" :mode="mode" title="TLS Alternate Names" />
+            </div>
+          </div>
+
+          <ACE v-model="value" :mode="mode" />
         </Tab>
 
-        <Tab name="upgrade" label-key="cluster.tabs.upgrade" :weight="7">
+        <Tab name="upgrade" label-key="cluster.tabs.upgrade">
           <div class="row">
             <div class="col span-6">
               <h3>Control Plane</h3>
@@ -1152,7 +1221,7 @@ export default {
           </div>
         </Tab>
 
-        <Tab name="registry" label-key="cluster.tabs.registry" :weight="6">
+        <Tab name="registry" label-key="cluster.tabs.registry">
           <RegistryMirrors
             v-model="value"
             :mode="mode"
@@ -1166,73 +1235,9 @@ export default {
           />
         </Tab>
 
-        <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="-1" @active="refreshYamls">
-          <template v-if="serverArgs.profile || agentArgs.profile">
-            <h3>CIS Profile Validation</h3>
-            <div class="row">
-              <div v-if="serverArgs.profile" class="col span-6">
-                <LabeledSelect
-                  v-model="serverConfig.profile"
-                  :mode="mode"
-                  :options="profileOptions"
-                  label="Server CIS Profile"
-                />
-              </div>
-              <div v-if="agentArgs.profile" class="col span-6">
-                <LabeledSelect
-                  v-model="agentConfig.profile"
-                  :mode="mode"
-                  :options="profileOptions"
-                  label="Worker CIS Profile"
-                />
-              </div>
-            </div>
-
-            <div class="spacer" />
-          </template>
-
-          <template v-if="agentArgs['protect-kernel-defaults']">
-            <div class="row">
-              <div class="col span-12">
-                <Checkbox v-model="agentConfig['protect-kernel-defaults']" :mode="mode" label="Raise error if kernel parameters are different than the expected kubelet defaults." />
-              </div>
-            </div>
-
-            <div class="spacer" />
-          </template>
-
-          <template v-if="haveArgInfo">
-            <div class="row">
-              <div class="col span-6">
-                <ArrayList v-if="agentArgs['kubelet-arg']" :mode="mode" :value="agentConfig['kubelet-arg']" title="Additional Kubelet Args" class="mb-20" />
-                <ArrayList v-if="serverArgs['kube-controller-manager-arg']" :mode="mode" :value="serverConfig['kube-controller-manager-arg']" title="Additional Controller Manager Args" class="mb-20" />
-              </div>
-              <div class="col span-6">
-                <ArrayList v-if="serverArgs['kube-apiserver-arg']" :mode="mode" :value="serverConfig['kube-apiserver-arg']" title="Additional API Server Args" class="mb-20" />
-                <ArrayList v-if="serverArgs['kube-scheduler-arg']" :mode="mode" :value="serverConfig['kube-scheduler-arg']" title="Additional Scheduler Args" />
-              </div>
-            </div>
-
-            <div class="spacer" />
-          </template>
-
-          <div>
-            <h3>
-              Additional Manifest
-              <i v-tooltip="'Additional Kubernetes Manifet YAML to be applied to the cluster on startup.'" class="icon icon-info" />
-            </h3>
-            <YamlEditor
-              ref="yaml-additional"
-              v-model="rkeConfig.additionalManifest"
-              :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-              initial-yaml-values="# Additional Manifest YAML"
-              class="yaml-editor"
-            />
-          </div>
-
+        <Tab name="addons" label-key="cluster.tabs.addons" @active="refreshYamls">
           <div v-if="addonVersions.length">
             <div v-for="v in addonVersions" :key="v._key">
-              <div class="spacer" />
               <h3>{{ labelForAddon(v.name) }}</h3>
               <Questions
                 v-if="versionInfo[v.name].questions"
@@ -1253,18 +1258,82 @@ export default {
                 :hide-preview-buttons="true"
                 @input="data => updateValues(v.name, data)"
               />
+              <div class="spacer" />
             </div>
+          </div>
+
+          <div>
+            <h3>
+              Additional Manifest
+              <i v-tooltip="'Additional Kubernetes Manifet YAML to be applied to the cluster on startup.'" class="icon icon-info" />
+            </h3>
+            <YamlEditor
+              ref="yaml-additional"
+              v-model="rkeConfig.additionalManifest"
+              :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
+              initial-yaml-values="# Additional Manifest YAML"
+              class="yaml-editor"
+            />
           </div>
         </Tab>
 
-        <ACE v-model="value" :mode="mode" />
+        <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="-1" @active="refreshYamls">
+          <template v-if="haveArgInfo">
+            <h3>Additional Kubelet Args</h3>
+            <ArrayListGrouped
+              v-if="agentArgs['kubelet-arg']"
+              v-model="rkeConfig.machineSelectorConfig"
+              class="mb-20"
+              add-label="Add Machine Selector"
+              :can-remove="canRemoveKubeletRow"
+              :default-add-value="{machineLabelSelector: { matchExpressions: [], matchLabels: {} }, config: {'kubelet-arg': []}}"
+            >
+              <template #default="{row}">
+                <template v-if="row.value.machineLabelSelector">
+                  <h3>For machines with labels matching:</h3>
+                  <MatchExpressions
+                    v-model="row.value.machineLabelSelector"
+                    class="mb-20"
+                    :mode="mode"
+                    :show-remove="false"
+                    :initial-empty-row="true"
+                  />
+                  <h3>Add additional Kubelet args:</h3>
+                </template>
+                <h3 v-else>
+                  For all nodes:
+                </h3>
+
+                <ArrayList
+                  v-model="row.value.config['kubelet-arg']"
+                  :mode="mode"
+                  add-label="Add Argument"
+                  :initial-empty-row="!!row.value.machineLabelSelector"
+                />
+              </template>
+            </ArrayListGrouped>
+
+            <ArrayList v-if="serverArgs['kube-controller-manager-arg']" v-model="serverConfig['kube-controller-manager-arg']" :mode="mode" title="Additional Controller Manager Args" class="mb-20" />
+            <ArrayList v-if="serverArgs['kube-apiserver-arg']" v-model="serverConfig['kube-apiserver-arg']" :mode="mode" title="Additional API Server Args" class="mb-20" />
+            <ArrayList v-if="serverArgs['kube-scheduler-arg']" v-model="serverConfig['kube-scheduler-arg']" :mode="mode" title="Additional Scheduler Args" />
+          </template>
+          <template v-if="agentArgs['protect-kernel-defaults']">
+            <div class="spacer" />
+
+            <div class="row">
+              <div class="col span-12">
+                <Checkbox v-model="agentConfig['protect-kernel-defaults']" :mode="mode" label="Raise error if kernel parameters are different than the expected kubelet defaults" />
+              </div>
+            </div>
+          </template>
+        </Tab>
+
         <AgentEnv v-model="value" :mode="mode" />
         <Labels v-model="value" :mode="mode" />
       </Tabbed>
     </div>
 
-    <Banner v-if="multipleAgentConfigs" color="warning" label="This cluster has multiple machineSelectorConfigs. This form does only manages the first one; use the YAML editor to manage the full configuration." />
-    <Banner v-if="unsupportedAgentConfig" color="warning" label="This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration." />
+    <Banner v-if="unsupportedSelectorConfig" color="warning" label="This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration." />
 
     <template v-if="needCredential && !credentialId" #form-footer>
       <div><!-- Hide the outer footer --></div>
