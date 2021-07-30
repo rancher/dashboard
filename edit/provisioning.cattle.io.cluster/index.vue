@@ -354,9 +354,9 @@ export default {
               v-model="provisioner"
               class="rke-switch"
               off-value="rke1"
-              off-label="RKE1"
+              :off-label="t('cluster.toggle.v1')"
               on-value="rke2"
-              on-label="RKE2/K3s"
+              :on-label="t('cluster.toggle.v2')"
             />
           </div>
           {{ obj.label }}
