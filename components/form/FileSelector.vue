@@ -1,5 +1,5 @@
 <script>
-import { _EDIT } from '@/config/query-params';
+import { _EDIT, _VIEW } from '@/config/query-params';
 import { set } from '@/utils/object';
 
 export function createOnSelected(field) {
@@ -52,8 +52,8 @@ export default {
   },
 
   computed: {
-    isEditing() {
-      return this.mode === _EDIT;
+    isView() {
+      return this.mode === _VIEW;
     }
   },
 
@@ -118,7 +118,7 @@ export default {
 </script>
 
 <template>
-  <button v-if="isEditing" :disabled="disabled" type="button" class="file-selector btn" @click="selectFile">
+  <button v-if="!isView" :disabled="disabled" type="button" class="file-selector btn" @click="selectFile">
     <span>{{ label }}</span>
     <input
       ref="uploader"
