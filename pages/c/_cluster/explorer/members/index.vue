@@ -6,6 +6,12 @@ import { NAME } from '@/config/product/explorer';
 import Masthead from '@/components/ResourceList/Masthead';
 import { AGE, ROLE, STATE, PRINCIPAL } from '@/config/table-headers';
 
+/**
+ * When this metadata.name is used it indicates that the binding was created by the cluster owner.
+ * It's used to preventing filtering out the Default Admin user when filtering out system users.
+ */
+const CREATOR_CLUSTER_OWNER = 'creator-cluster-owner';
+
 export default {
   components: {
     Loading, Masthead, ResourceTable
@@ -50,10 +56,9 @@ export default {
   computed: {
     filteredClusterRoleTemplateBindings() {
       return this.clusterRoleTemplateBindings
-        .filter(b => !b.isSystem && b.clusterName === this.$store.getters['currentCluster'].id);
+        .filter(b => (!b.isSystem || b.metadata.name === CREATOR_CLUSTER_OWNER ) && b.clusterName === this.$store.getters['currentCluster'].id);
     }
   },
-
 };
 </script>
 
