@@ -131,7 +131,6 @@ export default {
           </div>
           <MatchExpressions
             v-model="props.row.value.matchExpressions"
-            :initial-empty-row="!isView"
             :mode="mode"
             class="col span-12 mt-20"
             :type="node"

@@ -135,9 +135,7 @@ export default {
 
     <h2 v-t="'fleet.clusterGroup.selector.label'" />
     <MatchExpressions
-      :initial-empty-row="!isView"
       :mode="mode"
-      type=""
       :value="expressions"
       :show-remove="false"
       @input="matchChanged($event)"

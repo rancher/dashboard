@@ -1,13 +1,12 @@
 <script>
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
-import Tab from '@/components/Tabbed/Tab';
 import FileSelector, { createOnSelected } from '@/components/form/FileSelector';
 import { set } from '@/utils/object';
 
 export default {
   components: {
-    RadioGroup, LabeledInput, Tab, FileSelector
+    RadioGroup, LabeledInput, FileSelector
   },
 
   props: {
@@ -45,7 +44,9 @@ export default {
 </script>
 
 <template>
-  <Tab name="ace" label-key="cluster.tabs.ace">
+  <div>
+    <h3 v-t="'cluster.tabs.ace'" />
+
     <RadioGroup
       v-model="config.enabled"
       name="enabled"
@@ -55,25 +56,26 @@ export default {
     />
 
     <template v-if="config.enabled">
-      <div class="spacer" />
-
-      <LabeledInput
-        v-model="config.fqdn"
-        :mode="mode"
-        label="FQDN"
-        tooltip="A FQDN which will resolve to the healthy control plane nodes of the cluster."
-      />
-
-      <div class="spacer" />
-
-      <LabeledInput
-        v-model="config.caCerts"
-        :mode="mode"
-        label="CA Certificates"
-        type="multiline"
-        tooltip="Certificates required for the client to successfully verify the validity of the certificate returned by the endpoint."
-      />
-      <FileSelector :mode="mode" class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onCertSelected" />
+      <div class="row mb-20">
+        <div class="col span-6">
+          <LabeledInput
+            v-model="config.fqdn"
+            :mode="mode"
+            label="FQDN"
+            tooltip="A FQDN which will resolve to the healthy control plane nodes of the cluster."
+          />
+        </div>
+        <div class="col span-6">
+          <LabeledInput
+            v-model="config.caCerts"
+            :mode="mode"
+            label="CA Certificates"
+            type="multiline"
+            tooltip="Certificates required for the client to successfully verify the validity of the certificate returned by the endpoint."
+          />
+          <FileSelector :mode="mode" class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onCertSelected" />
+        </div>
+      </div>
     </template>
-  </Tab>
+  </div>
 </template>

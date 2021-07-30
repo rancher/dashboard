@@ -68,7 +68,6 @@ export default {
         <h3>Metric Selector</h3>
         <MatchExpressions
           :mode="mode"
-          type=""
           :value="matchExpressions"
           :label="t('hpa.metricIdentifier.selector.label')"
           :show-remove="false"

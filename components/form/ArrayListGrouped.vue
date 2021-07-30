@@ -5,9 +5,30 @@ import { _VIEW } from '@/config/query-params';
 
 export default {
   components: { ArrayList, InfoBox },
+  props:      {
+    canRemove: {
+      type:    [Boolean, Function],
+      default: true,
+    }
+  },
+
   computed:   {
     isDisabled() {
       return this.$attrs.mode === _VIEW;
+    }
+  },
+
+  methods: {
+    canRemoveRow(row, idx) {
+      if ( this.isDisabled ) {
+        return false;
+      }
+
+      if ( typeof this.canRemove === 'function' ) {
+        return this.canRemove(row, idx);
+      }
+
+      return this.canRemove;
     }
   }
 };
@@ -16,12 +37,12 @@ export default {
 <template>
   <ArrayList class="array-list-grouped" v-bind="$attrs" @input="$emit('input', $event)" @add="$emit('add')">
     <template v-slot:columns="scope">
-      <InfoBox :class="{'pt-40': !isDisabled}">
-        <slot v-bind="scope"></slot>
+      <InfoBox>
+        <slot v-bind="scope" />
       </InfoBox>
     </template>
     <template v-slot:remove-button="scope">
-      <button v-if="!isDisabled" type="button" class="btn role-link close btn-sm" @click="scope.remove">
+      <button v-if="canRemoveRow(scope.row, scope.i)" type="button" class="btn role-link close btn-sm" @click="scope.remove">
         <i class="icon icon-2x icon-x" />
       </button>
       <span v-else></span>
