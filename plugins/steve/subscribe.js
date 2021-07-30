@@ -372,7 +372,7 @@ export const actions = {
     });
   },
 
-  'ws.resource.change'({ getters, state }, { data }) {
+  'ws.resource.change'({ getters, state, rootGetters }, { data }) {
     remapSpecialKeys(data);
 
     if ( !getters.typeRegistered(getters.normalizeType(data.type)) ) {
@@ -386,9 +386,27 @@ export const actions = {
       event:  'load',
       body:   data
     });
+
+    const type = data.type;
+    const typeOption = rootGetters['type-map/optionsFor'](type);
+
+    if (typeOption?.alias?.length > 0) {
+      const alias = typeOption?.alias || [];
+
+      alias.map((type) => {
+        state.queue.push({
+          action: 'dispatch',
+          event:  'load',
+          body:   {
+            ...data,
+            type,
+          },
+        });
+      });
+    }
   },
 
-  'ws.resource.remove'({ getters, state }, { data }) {
+  'ws.resource.remove'({ getters, state, rootGetters }, { data }) {
     const type = getters.normalizeType(data.type);
 
     if ( !getters.typeRegistered(type) ) {
@@ -413,6 +431,22 @@ export const actions = {
         action: 'commit',
         event:  'forgetType',
         body:   data.id
+      });
+    }
+
+    const typeOption = rootGetters['type-map/optionsFor'](type);
+
+    if (typeOption?.alias?.length > 0) {
+      const alias = typeOption?.alias || [];
+
+      alias.map((type) => {
+        const obj = getters.byId(type, data.id);
+
+        state.queue.push({
+          action: 'commit',
+          event:  'remove',
+          body:   obj,
+        });
       });
     }
   },
