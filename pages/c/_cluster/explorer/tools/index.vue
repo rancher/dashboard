@@ -4,6 +4,7 @@ import Loading from '@/components/Loading';
 import { _FLAGGED, DEPRECATED, HIDDEN, FROM_TOOLS } from '@/config/query-params';
 import { filterAndArrangeCharts } from '@/store/catalog';
 import { CATALOG, MANAGEMENT } from '@/config/types';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
 import LazyImage from '@/components/LazyImage';
 import AppSummaryGraph from '@/components/formatter/AppSummaryGraph';
 import { sortBy } from '@/utils/sort';
@@ -92,6 +93,7 @@ export default {
         showDeprecated: this.showDeprecated,
         showHidden:     this.showHidden,
         showRepos:      [this.rancherCatalog._key],
+        showTypes:      [CATALOG_ANNOTATIONS._CLUSTER_TOOL],
       });
 
       //  If legacy support is enabled, show V1 charts for some V1 Cluster tools

@@ -73,6 +73,7 @@ export const CATALOG = {
   TYPE:             'catalog.cattle.io/type',
   _APP:             'app',
   _CLUSTER_TPL:     'cluster-template',
+  _CLUSTER_TOOL:    'cluster-tool',
 
   COMPONENT:        'catalog.cattle.io/ui-component',
   SOURCE_REPO_TYPE: 'catalog.cattle.io/ui-source-repo-type',
