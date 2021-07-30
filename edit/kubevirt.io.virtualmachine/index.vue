@@ -147,31 +147,41 @@ export default {
   },
 
   watch: {
-    templateId(id) {
-      if (!id) {
-        return;
-      }
+    templateId: {
+      async handler(id, old) {
+        if (!id) {
+          return;
+        }
 
-      this.templateVersionId = this.templates.find( O => O.id === id)?.defaultVersionId;
+        if (id !== old && !this.templateVersionId) {
+          const templates = await this.$store.dispatch('virtual/findAll', { type: HCI.VM_TEMPLATE });
+
+          this.templateVersionId = templates.find( O => O.id === id)?.defaultVersionId;
+        }
+      },
+      immediate: false
     },
 
-    templateVersionId(id) {
-      if (!id) {
-        return;
+    templateVersionId: {
+      async handler(id) {
+        if (!id) {
+          return;
+        }
+        const versions = await this.$store.dispatch('virtual/findAll', { type: HCI.VM_VERSION });
+        const curVersion = versions.find( V => V.id === id);
+        const sshKey = curVersion.spec?.keyPairIds || [];
+
+        const cloudScript = curVersion?.spec?.vm?.template?.spec?.volumes?.find( (V) => {
+          return V.cloudInitNoCloud !== undefined;
+        })?.cloudInitNoCloud; // TODO: use modals
+
+        this.$set(this, 'userScript', cloudScript?.userData);
+        this.$set(this, 'networkScript', cloudScript?.networkData);
+        this.$set(this, 'sshKey', sshKey);
+        // this.$refs.ssh.updateSSH(sshKey);
+        this.value.spec = curVersion?.spec?.vm;
+        this.changeSpec();
       }
-      const curVersion = this.versions.find( V => V.id === id);
-      const sshKey = curVersion.spec?.keyPairIds || [];
-
-      const cloudScript = curVersion?.spec?.vm?.template?.spec?.volumes?.find( (V) => {
-        return V.cloudInitNoCloud !== undefined;
-      })?.cloudInitNoCloud; // TODO: use modals
-
-      this.$set(this, 'userScript', cloudScript?.userData);
-      this.$set(this, 'networkScript', cloudScript?.networkData);
-      this.$set(this, 'sshKey', sshKey);
-      // this.$refs.ssh.updateSSH(sshKey);
-      this.value.spec = curVersion?.spec?.vm;
-      this.changeSpec();
     },
 
     useTemplate(neu) {
@@ -346,6 +356,10 @@ export default {
         this.$refs.yamlEditor.refresh();
       }
     },
+
+    updateTemplateId() {
+      this.templateVersionId = '';
+    }
   },
 };
 </script>
@@ -406,6 +420,7 @@ export default {
             v-model="templateId"
             label-key="harvester.virtualMachine.useTemplate.template.label"
             :options="templateOptions"
+            @input="updateTemplateId"
           />
         </div>
 

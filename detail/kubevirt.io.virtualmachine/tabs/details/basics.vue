@@ -66,7 +66,7 @@ export default {
     },
 
     imageName() {
-      const imageList = this.$store.getters['cluster/all'](HCI.IMAGE) || [];
+      const imageList = this.$store.getters['virtual/all'](HCI.IMAGE) || [];
       const imageId = this.value?.spec?.dataVolumeTemplates?.[0]?.metadata?.annotations?.['harvesterhci.io/imageId'] || '';
       const image = imageList.find( I => imageId === I.id);
 
