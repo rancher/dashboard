@@ -157,7 +157,7 @@ export default {
         showDeprecated: this.showDeprecated,
         showHidden:     this.showHidden,
         hideRepos:      this.hideRepos,
-        showTypes:      [CATALOG._APP],
+        hideTypes:      [CATALOG._CLUSTER_TPL],
         showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
     },
