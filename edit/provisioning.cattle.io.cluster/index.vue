@@ -169,6 +169,10 @@ export default {
     },
 
     templateOptions() {
+      if ( !this.rke2Enabled ) {
+        return [];
+      }
+
       const out = filterAndArrangeCharts(this.allCharts, { showTypes: CATALOG._CLUSTER_TPL });
 
       return out;
