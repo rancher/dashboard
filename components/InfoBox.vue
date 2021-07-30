@@ -12,7 +12,7 @@ export default {
 <template>
   <div :class="{'stepped': !!step}" class="info-box">
     <div v-if="step" class="step-number mb-10">
-      Step {{ step }}
+      <h2>Step {{ step }}</h2>
     </div>
     <slot />
   </div>

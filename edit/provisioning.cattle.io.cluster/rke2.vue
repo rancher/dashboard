@@ -18,6 +18,7 @@ import { camelToTitle, nlToBr } from '@/utils/string';
 import { compare, sortable } from '@/utils/version';
 
 import ArrayList from '@/components/form/ArrayList';
+import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
 import Checkbox from '@/components/form/Checkbox';
@@ -25,6 +26,7 @@ import CruResource from '@/components/CruResource';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Loading from '@/components/Loading';
+import MatchExpressions from '@/components/form/MatchExpressions';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import RadioGroup from '@/components/form/RadioGroup';
 import Tab from '@/components/Tabbed/Tab';
@@ -50,6 +52,7 @@ export default {
     ACE,
     AgentEnv,
     ArrayList,
+    ArrayListGrouped,
     BadgeState,
     Banner,
     Checkbox,
@@ -61,6 +64,7 @@ export default {
     Labels,
     Loading,
     MachinePool,
+    MatchExpressions,
     NameNsDescription,
     Questions,
     RadioGroup,
@@ -211,7 +215,7 @@ export default {
     }
 
     if ( !this.value.spec.rkeConfig.machineSelectorConfig?.length ) {
-      set(this.value.spec, 'rkeConfig.machineSelectorConfig', [{}]);
+      set(this.value.spec, 'rkeConfig.machineSelectorConfig', [{ config: {} }]);
     }
 
     return {
@@ -247,15 +251,43 @@ export default {
     },
 
     agentConfig() {
-      return this.value.spec.rkeConfig.machineSelectorConfig[0];
+      // The one we want is the first one with no selector.
+      // If there are multiple with no selector, that will fall under the unsupported message below.
+      return this.value.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
     },
 
-    multipleAgentConfigs() {
-      return this.value.spec.rkeConfig.machineSelectorConfig.length > 1;
-    },
+    // kubeletConfigs() {
+    //   return this.value.spec.rkeConfig.machineSelectorConfig.filter(x => !!x.machineLabelSelector);
+    // },
 
-    unsupportedAgentConfig() {
-      return !!this.agentConfig.machineLabelSelector;
+    unsupportedSelectorConfig() {
+      let global = 0;
+      let kubeletOnly = 0;
+      let other = 0;
+
+      // The form supports one config that has no selector for all the main parts
+      // And one or more configs that have a selector and exactly only kubelet-args.
+      // If there are any other properties set, or multiple configs with no selector
+      // show a warning that you're editing only part of the config in the UI.
+
+      for ( const conf of this.value.spec?.rkeConfig?.machineSelectorConfig ) {
+        if ( conf.machineLabelSelector ) {
+          const keys = Object.keys(conf.config || {});
+
+          if ( keys.length === 0 || (keys.length === 1 && keys[0] === 'kubelet-arg') ) {
+            kubeletOnly++;
+          } else {
+            other++;
+          }
+        } else {
+          global++;
+        }
+      }
+
+      // eslint-disable-next-line no-console
+      console.log(`Global: ${ global }, Kubelet Only: ${ kubeletOnly }, Other: ${ other }`);
+
+      return ( global > 1 || other > 0 );
     },
 
     versionOptions() {
@@ -870,6 +902,10 @@ export default {
     onHasOwnerChanged(hasOwner) {
       this.$set(this, 'hasOwner', hasOwner);
     },
+
+    canRemoveKubeletRow(row, idx) {
+      return idx !== 0;
+    }
   },
 };
 </script>
@@ -1161,7 +1197,7 @@ export default {
 
           <div v-if="serverArgs['tls-san']" class="row mb-20">
             <div class="col span-6">
-              <ArrayList :protip="false" :mode="mode" :value="serverConfig['tls-san']" title="TLS Alternate Names" />
+              <ArrayList v-model="serverConfig['tls-san']" :protip="false" :mode="mode" title="TLS Alternate Names" />
             </div>
           </div>
 
@@ -1242,25 +1278,51 @@ export default {
         </Tab>
 
         <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="-1" @active="refreshYamls">
+          <template v-if="haveArgInfo">
+            <h3>Additional Kubelet Args</h3>
+            <ArrayListGrouped
+              v-if="agentArgs['kubelet-arg']"
+              v-model="rkeConfig.machineSelectorConfig"
+              class="mb-20"
+              add-label="Add Machine Selector"
+              :can-remove="canRemoveKubeletRow"
+              :default-add-value="{machineLabelSelector: { matchExpressions: [], matchLabels: {} }, config: {'kubelet-arg': []}}"
+            >
+              <template #default="{row}">
+                <template v-if="row.value.machineLabelSelector">
+                  <h3>For machines with labels matching:</h3>
+                  <MatchExpressions
+                    v-model="row.value.machineLabelSelector"
+                    class="mb-20"
+                    :mode="mode"
+                    :show-remove="false"
+                    :initial-empty-row="true"
+                  />
+                  <h3>Add additional Kubelet args:</h3>
+                </template>
+                <h3 v-else>
+                  For all nodes:
+                </h3>
+
+                <ArrayList
+                  v-model="row.value.config['kubelet-arg']"
+                  :mode="mode"
+                  add-label="Add Argument"
+                  :initial-empty-row="!!row.value.machineLabelSelector"
+                />
+              </template>
+            </ArrayListGrouped>
+
+            <ArrayList v-if="serverArgs['kube-controller-manager-arg']" v-model="serverConfig['kube-controller-manager-arg']" :mode="mode" title="Additional Controller Manager Args" class="mb-20" />
+            <ArrayList v-if="serverArgs['kube-apiserver-arg']" v-model="serverConfig['kube-apiserver-arg']" :mode="mode" title="Additional API Server Args" class="mb-20" />
+            <ArrayList v-if="serverArgs['kube-scheduler-arg']" v-model="serverConfig['kube-scheduler-arg']" :mode="mode" title="Additional Scheduler Args" />
+          </template>
           <template v-if="agentArgs['protect-kernel-defaults']">
+            <div class="spacer" />
+
             <div class="row">
               <div class="col span-12">
                 <Checkbox v-model="agentConfig['protect-kernel-defaults']" :mode="mode" label="Raise error if kernel parameters are different than the expected kubelet defaults" />
-              </div>
-            </div>
-
-            <div class="spacer" />
-          </template>
-
-          <template v-if="haveArgInfo">
-            <div class="row">
-              <div class="col span-6">
-                <ArrayList v-if="agentArgs['kubelet-arg']" :mode="mode" :value="agentConfig['kubelet-arg']" title="Additional Kubelet Args" class="mb-20" />
-                <ArrayList v-if="serverArgs['kube-controller-manager-arg']" :mode="mode" :value="serverConfig['kube-controller-manager-arg']" title="Additional Controller Manager Args" class="mb-20" />
-              </div>
-              <div class="col span-6">
-                <ArrayList v-if="serverArgs['kube-apiserver-arg']" :mode="mode" :value="serverConfig['kube-apiserver-arg']" title="Additional API Server Args" class="mb-20" />
-                <ArrayList v-if="serverArgs['kube-scheduler-arg']" :mode="mode" :value="serverConfig['kube-scheduler-arg']" title="Additional Scheduler Args" />
               </div>
             </div>
           </template>
@@ -1271,8 +1333,7 @@ export default {
       </Tabbed>
     </div>
 
-    <Banner v-if="multipleAgentConfigs" color="warning" label="This cluster has multiple machineSelectorConfigs. This form does only manages the first one; use the YAML editor to manage the full configuration." />
-    <Banner v-if="unsupportedAgentConfig" color="warning" label="This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration." />
+    <Banner v-if="unsupportedSelectorConfig" color="warning" label="This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration." />
 
     <template v-if="needCredential && !credentialId" #form-footer>
       <div><!-- Hide the outer footer --></div>

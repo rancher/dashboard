@@ -287,7 +287,6 @@ export default {
                 <MatchExpressions
                   v-model="props.row.value.matchExpressions"
                   :mode="modeOverride"
-                  :initial-empty-row="!isView"
                   class="col span-12"
                   :type="NODE"
                   :show-remove="false"
