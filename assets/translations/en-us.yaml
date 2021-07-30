@@ -110,7 +110,6 @@ nav:
     multiCluster: Global Apps
     legacy: Legacy Apps
     configuration: Configuration
-    harvester: HARVESTER CLUSTER
   search:
     placeholder: Type to search clusters
     noResults: No matching clusters

@@ -5,7 +5,6 @@ export default {
     groupedRows() {
       const groupKey = this.groupBy;
       const refKey = this.groupRef || groupKey;
-      const gropActionRowRef = this.groupTitleBy;
 
       if ( !groupKey) {
         return [{
@@ -24,18 +23,7 @@ export default {
         const ref = get(obj, refKey);
         let entry = map[key];
 
-        if (entry && gropActionRowRef && obj.type === gropActionRowRef) {
-          entry.gropActionRowRef = obj;
-        } else if (gropActionRowRef && obj.type === gropActionRowRef) {
-          entry = {
-            key,
-            ref,
-            rows:             [],
-            gropActionRowRef: obj,
-          };
-          map[key] = entry;
-          out.push(entry);
-        } else if ( entry ) {
+        if ( entry ) {
           entry.rows.push(obj);
         } else {
           entry = {

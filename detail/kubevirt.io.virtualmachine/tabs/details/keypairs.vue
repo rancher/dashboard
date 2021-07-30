@@ -19,7 +19,7 @@ export default {
   },
 
   created() {
-    const ssh = this.$store.getters['cluster/all'](HCI.SSH);
+    const ssh = this.$store.getters['virtual/all'](HCI.SSH);
 
     this.allssh = ssh || [];
     this.getKey();

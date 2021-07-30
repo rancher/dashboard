@@ -36,7 +36,7 @@ export default {
 
   data() {
     const source = !!this.resource?.metadata?.annotations?.[HCI_ANNOTATIONS.IMAGE_ID] ? 'url' : 'blank';
-    const image = source === 'url' ? this.$store.getters['cluster/all'](HCI.IMAGE).find( (I) => {
+    const image = source === 'url' ? this.$store.getters['virtual/all'](HCI.IMAGE).find( (I) => {
       return I?.status?.downloadUrl === this.value?.source?.http?.url;
     })?.id : '';
 
@@ -97,7 +97,7 @@ export default {
     },
 
     ImageOption() {
-      const choices = this.$store.getters['cluster/all'](HCI.IMAGE);
+      const choices = this.$store.getters['virtual/all'](HCI.IMAGE);
 
       return sortBy(
         choices
@@ -113,7 +113,7 @@ export default {
     },
 
     imgUrl() {
-      const choices = this.$store.getters['cluster/all'](HCI.IMAGE);
+      const choices = this.$store.getters['virtual/all'](HCI.IMAGE);
 
       return choices.find( (I) => {
         return I.id === this.image;

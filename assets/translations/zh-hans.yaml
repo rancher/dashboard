@@ -99,7 +99,6 @@ nav:
     explore: 浏览集群
     multiCluster: 全局应用
     configuration: 配置
-    harvester: HARVESTER 集群
   search:
     placeholder: 输入关键词，搜索集群
     noResults: 没有与关键词匹配的集群

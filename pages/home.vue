@@ -65,8 +65,7 @@ export default {
     ];
 
     return {
-
-      HIDE_HOME_PAGE_CARDS, clusters: [], fullVersion, pageActions, vendor: getVendor(), clusterDetail: null,
+      HIDE_HOME_PAGE_CARDS, clusters: [], fullVersion, pageActions, vendor: getVendor(),
     };
   },
 

@@ -54,23 +54,11 @@ export default {
     },
 
     rows() {
-      const out = [];
-
-      for (const crd of this.template) {
-        crd.customId = crd.id.replace(/[\d\D]*\//, '');
-        out.push(crd);
-      }
-
-      for (const crd of this.templateVersion) {
-        crd.customId = crd.spec.templateId.replace(/[\d\D]*\//, '');
-        out.push(crd);
-      }
-
-      return out;
+      return [...this.templateVersion];
     },
 
     groupBy() {
-      return 'customId';
+      return 'spec.templateId';
     },
 
     groupTitleBy() {
@@ -79,18 +67,31 @@ export default {
   },
 
   methods: {
-    showActions(e, row) {
-      this.$store.commit('action-menu/show', {
-        resources: row,
-        elem:      e.target,
+    showActions(e, group) {
+      const template = group.rows[0].template;
+
+      this.$store.commit(`action-menu/show`, {
+        resources: [template],
+        elem:      e.target
       });
     },
 
-    valueFor(resource) {
+    valueFor(group) {
+      const resource = group?.rows?.[0].template;
+
       return resource?.metadata?.creationTimestamp;
+    },
+
+    templateLabel(group) {
+      const row = group.rows[0];
+
+      return row.id;
+    },
+
+    templateResource(group) {
+      return group?.rows?.[0].template;
     }
   },
-
 };
 </script>
 
@@ -110,43 +111,59 @@ export default {
     key-field="_key"
     v-on="$listeners"
   >
-    <template slot="groupTitleAction" slot-scope="{group}">
-      <td colspan="5">
-        <slot name="group-by" :group="group" :row="group.gropActionRowRef">
-          <div v-trim-whitespace class="group-tab">
-            {{ group.ref }}
-          </div>
-        </slot>
-      </td>
+    <template #group-by="group">
+      <div class="group-bar">
+        <div class="group-tab">
+          <div class="project-name" v-html="templateLabel(group.group)" />
+        </div>
 
-      <td align="right" class="data">
-        <LiveData
-          :value="valueFor(group.gropActionRowRef)"
-          :row="group.gropActionRowRef"
-        />
-      </td>
-
-      <td align="middle" class="action">
-        <button
-          aria-haspopup="true"
-          aria-expanded="false"
-          type="button"
-          class="btn btn-sm role-multi-action"
-          @click.stop="showActions($event, group.gropActionRowRef, group)"
-        >
-          <i class="icon icon-actions" />
-        </button>
-      </td>
+        <div class="right">
+          <LiveData
+            :value="valueFor(group.group)"
+            :row="templateResource(group.group)"
+          />
+          <button type="button" class="btn btn-sm actions mr-5 role-multi-action" @click="showActions($event, group.group)">
+            <i class="icon icon-actions" />
+          </button>
+        </div>
+      </div>
     </template>
   </ResourceTable>
 </template>
 
 <style lang="scss" scoped>
-::v-deep .sortable-table tbody tr.group-row td.data {
-  padding: 12px 5px;
-}
+::v-deep {
+  .group-name {
+    line-height: 30px;
+  }
 
-::v-deep .sortable-table tbody tr.group-row td.actions {
-  width: 32px !important;
+  .group-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    .live-date {
+      padding-right: 7px;
+    }
+
+    &.has-description {
+      .right {
+        margin-top: 5px;
+      }
+      .group-tab {
+        &, &::after {
+            height: 50px;
+        }
+
+        &::after {
+            right: -20px;
+        }
+
+        .description {
+            margin-top: -20px;
+        }
+      }
+    }
+  }
 }
 </style>

@@ -72,8 +72,11 @@ const DEFAULT_WAIT_TMIMEOUT = 30000;
 
 export const STATES = {
   'in-progress':      { color: 'info', icon: 'tag' },
+  'in-use':           { color: 'success', icon: 'dot-open' },
   'pending-rollback': { color: 'info', icon: 'dot-half' },
   'pending-upgrade':  { color: 'info', icon: 'dot-half' },
+  'N/A':              { color: 'warning', icon: 'x' },
+  'vm-error':         { color: 'error', icon: 'dot' },
   aborted:            { color: 'warning', icon: 'error' },
   activating:         { color: 'info', icon: 'tag' },
   active:             { color: 'success', icon: 'dot-open' },
@@ -94,6 +97,7 @@ export const STATES = {
   disconnected:       { color: 'warning', icon: 'error' },
   drained:            { color: 'info', icon: 'tag' },
   draining:           { color: 'warning', icon: 'tag' },
+  enteringMaintain:   { color: 'info', icon: 'tag' },
   errapplied:         { color: 'error', icon: 'error' },
   error:              { color: 'error', icon: 'error' },
   erroring:           { color: 'error', icon: 'error' },
@@ -105,7 +109,9 @@ export const STATES = {
   inactive:           { color: 'error', icon: 'dot' },
   initializing:       { color: 'warning', icon: 'error' },
   inprogress:         { color: 'info', icon: 'spinner' },
+  imported:           { color: 'success', icon: 'dot-open' },
   locked:             { color: 'warning', icon: 'adjust' },
+  maintain:           { color: 'info', icon: 'tag' },
   migrating:          { color: 'info', icon: 'info' },
   missing:            { color: 'warning', icon: 'adjust' },
   modified:           { color: 'warning', icon: 'edit' },
@@ -124,6 +130,7 @@ export const STATES = {
   provisioned:        { color: 'success', icon: 'dot' },
   purged:             { color: 'error', icon: 'purged' },
   purging:            { color: 'info', icon: 'purged' },
+  progress:           { color: 'warning', icon: 'x' },
   ready:              { color: 'success', icon: 'dot-open' },
   reconnecting:       { color: 'error', icon: 'error' },
   registering:        { color: 'info', icon: 'tag' },
@@ -155,6 +162,7 @@ export const STATES = {
   waitcheckin:        { color: 'warning', icon: 'tag' },
   waiting:            { color: 'info', icon: 'tag' },
   warning:            { color: 'warning', icon: 'error' },
+  validated:          { color: 'success', icon: 'dot-open' },
 };
 
 export function getStatesByType(type = 'info') {

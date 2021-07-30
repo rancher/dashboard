@@ -45,7 +45,7 @@ export default {
   },
 
   vmimResource() {
-    const all = this.$rootGetters['cluster/all'](HCI.VMIM) || [];
+    const all = this.$rootGetters['virtual/all'](HCI.VMIM) || [];
     const vmimList = all.filter(vmim => vmim.spec?.vmiName === this.metadata?.name);
 
     if (vmimList.length === 0) {
