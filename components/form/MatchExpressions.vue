@@ -1,34 +1,19 @@
 <script>
-import { NODE, POD, NAMESPACE } from '@/config/types';
+import { NODE, POD } from '@/config/types';
 import Select from '@/components/form/Select';
-import { sortBy } from '@/utils/sort';
 import { mapGetters } from 'vuex';
-import { removeObject } from '@/utils/array';
+import { isArray, removeObject } from '@/utils/array';
 import { clone } from '@/utils/object';
+import { convert, simplify } from '@/utils/selector';
 
 export default {
   components: { Select },
   props:      {
-    // array of match expressions
+    // Array of actual match expressions
+    // or k8s selector Object of {matchExpressions, matchLabels}
     value: {
-      type:     Array,
+      type:     [Array, Object],
       default: () => []
-    },
-
-    namespaces: {
-      type:    Array,
-      default: null
-    },
-
-    topologyKey: {
-      type:    String,
-      default: null
-    },
-
-    // show selector weight (if present) in view mode
-    weight: {
-      type:    Number,
-      default: null
     },
 
     // CRU mode
@@ -39,8 +24,8 @@ export default {
 
     // pod/node affinity types have different operator options
     type: {
-      type:     String,
-      required: true
+      type:    String,
+      default: NODE
     },
 
     // whether or not to show an initial empty row of inputs when value is empty in editing modes
@@ -77,7 +62,13 @@ export default {
 
     const ops = this.type === NODE ? nodeOptions : podOptions;
 
-    let rules = [...this.value];
+    let rules;
+
+    if ( isArray(this.value) ) {
+      rules = [...this.value];
+    } else {
+      rules = convert(this.value.matchLabels, this.value.matchExpressions);
+    }
 
     rules = rules.map((rule) => {
       const newRule = clone(rule);
@@ -89,7 +80,7 @@ export default {
       return newRule;
     });
 
-    if (!rules.length && this.initialEmptyRow) {
+    if (!rules.length && this.initialEmptyRow && !this.isView) {
       rules.push({
         key:      '',
         operator: 'In',
@@ -105,23 +96,6 @@ export default {
   },
 
   computed: {
-    // include an empty option for default option 'this pod's namespace
-    allNamespaces() {
-      const inStore = this.$store.getters['currentStore'](NAMESPACE);
-      const choices = this.$store.getters[`${ inStore }/all`](NAMESPACE);
-
-      const out = sortBy(choices.map((obj) => {
-        return {
-          label: obj.nameDisplay,
-          value: obj.id,
-        };
-      }), 'label');
-
-      out.unshift({ label: this.t('workload.scheduling.affinity.thisPodNamespace'), value: null });
-
-      return out;
-    },
-
     isView() {
       return this.mode === 'view';
     },
@@ -170,7 +144,11 @@ export default {
           return matchExpression;
         }).filter(x => !!x);
 
-        this.$emit('input', out);
+        if ( isArray(this.value) ) {
+          this.$emit('input', out);
+        } else {
+          this.$emit('input', simplify(out));
+        }
       });
     }
   }
@@ -179,8 +157,7 @@ export default {
 
 <template>
   <div @input="update">
-    <span v-if="weight && isView" class="selector-weight"><t k="workload.scheduling.affinity.matchExpressions.weight" />: {{ weight }}</span>
-    <button v-if="showRemove && !isView" id="remove-btn" class="btn role-link" @click="$emit('remove')">
+    <button v-if="showRemove && !isView" type="button" class="btn role-link remove-expression" @click="$emit('remove')">
       <i class="icon icon-x" />
     </button>
 
@@ -266,26 +243,22 @@ export default {
     }
   }
 
-  #remove-btn, .selector-weight{
+  .remove-expression {
     padding:  8px;
     position: absolute;
     margin-bottom:10px;
     right: 0px;
     top: 0px;
     z-index: z-index('overContent');
-  }
 
-  #remove-btn i {
-    font-size:2em;
+    i {
+      font-size:2em;
+    }
   }
 
   .remove-container {
     display: flex;
     justify-content: center;
-  }
-
-  .selector-weight {
-    color: var(--input-label)
   }
 
   .match-expression-row, .match-expression-header {
