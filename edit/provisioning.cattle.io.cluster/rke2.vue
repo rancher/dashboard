@@ -330,7 +330,7 @@ export default {
     },
 
     pspOptions() {
-      const out = [{ label: '(None)', value: null }];
+      const out = [{ label: 'RKE2 Default', value: null }];
 
       if ( this.allPSPs ) {
         for ( const pspt of this.allPSPs ) {
