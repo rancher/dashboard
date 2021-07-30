@@ -2,12 +2,16 @@
 import { isArray } from '@/utils/array';
 
 function flatten(node) {
-  if ( isArray(node) ) {
+  if ( node.text ) {
+    return node.text;
+  } else if ( isArray(node) ) {
     return node.map(flatten).join(' ');
   } else if ( node.children ) {
     return node.children.map(flatten).join(' ');
-  } else if ( node.text ) {
-    return node.text;
+  } else if ( node.child ) {
+    return flatten(node.child);
+  } else {
+    return '';
   }
 }
 
