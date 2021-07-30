@@ -130,6 +130,10 @@ export default {
 
       return this.err;
     },
+
+    kubectlCmd() {
+      return "kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{\"\\n\"}}'";
+    }
   },
 
   created() {
@@ -261,7 +265,7 @@ export default {
               </li>
               <li>
                 <CopyCode>
-                  <t k="setup.defaultPassword.dockerCmd" :raw="true" />
+                  docker logs <u>container-id</u> 2&gt;&amp;1 | grep "Bootstrap Password:"
                 </CopyCode>
               </li>
             </ul>
@@ -271,7 +275,7 @@ export default {
             <div><t k="setup.defaultPassword.helmPrefix" :raw="true" /></div>
             <br />
             <CopyCode>
-              <t k="setup.defaultPassword.helmCmd" :raw="true" />
+              {{ kubectlCmd }}
             </CopyCode>
             <br />
             <div><t k="setup.defaultPassword.helmSuffix" :raw="true" /></div>

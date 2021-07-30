@@ -3421,13 +3421,11 @@ setup:
   currentPassword: Bootstrap Password
   confirmPassword: Confirm New Password
   defaultPassword:
-    intro: It looks like this is your first time visiting {vendor}; if you pre-set your own bootstrap password, enter it here.  Otherwise a random one has been generated for you.<br/><br/>
+    intro: It looks like this is your first time visiting {vendor}; if you pre-set your own bootstrap password, enter it here.  Otherwise a random one has been generated for you.  To find it:<br/><br/>
     dockerPrefix: 'For a "docker run" installation:'
-    dockerCmd: 'docker logs <i>container-id</i> 2&gt;&amp;1 | grep "Bootstrap Password:"'
     dockerPs: 'Find your container ID with <code>docker ps</code>, then run:'
     dockerSuffix: ""
     helmPrefix: 'For a Helm installation, run:'
-    helmCmd: "kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{\"\\n\"}}'"
     helmSuffix: ""
   eula: I agree to the <a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">terms and conditions</a> for using Rancher.
   newPassword: New Password
