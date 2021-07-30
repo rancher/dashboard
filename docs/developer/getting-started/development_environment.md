@@ -83,7 +83,7 @@ Due to the way Dashboard resources are constructed examining the contents of one
 > A These are part of the common underlying `resource-instance.js` or, if the resource type has it, the type's own `model`.
 
 ### Exploring the API
-The API serves up an interface to [browse both Norman and Steve API's](https://github.com/rancher/api-ui). Both will list supported schema's and allow the user to fetch individual or collections of resources. The schema's will describe the actions executable against individual or collections of resource. For Norman it will also show fields that can be filtered on.
+The API serves up an interface to [browse both Norman and Steve APIs](https://github.com/rancher/api-ui). Both will list supported schemas and allow the user to fetch individual or collections of resources. The schemas will describe the actions executable against individual or collections of resource. For Norman it will also show fields that can be filtered on.
 
 The dashboard will proxy requests to the API, so the interfaces are available via `<Dashboard URL>/v3` (Norman) and `<Dashboard URL>/v1` (Steve)
 

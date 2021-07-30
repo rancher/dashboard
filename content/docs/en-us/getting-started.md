@@ -11,7 +11,7 @@ If you have previously been using the Cluster Manager UI, check out the guide be
 
 ## Home
 
-When you first login to Rancher you'll be taken to the new Home page. There are a numebr of information cards presented. You can close these using the <i class="icon icon-close doc-icon"></i> icon. If you wish to bring back the hidden cards, open the page menu using the <i class="icon icon-actions doc-icon"></i>  icon in the top-right and choose 'Restore hidden cards'.
+When you first login to Rancher you'll be taken to the new Home page. There are a number of information cards presented. You can close these using the <i class="icon icon-close doc-icon"></i> icon. If you wish to bring back the hidden cards, open the page menu using the <i class="icon icon-actions doc-icon"></i>  icon in the top-right and choose 'Restore hidden cards'.
 
 You can change where you land when you login from the Home page and also from the Preferences page. To access User Preferences, click on the user avatar icon in the top right and choose 'Preferences' from the menu.
 ### Top-level Menu
@@ -22,7 +22,7 @@ The new slide-in menu provides quick access to your clusters and apps. It is acc
 
 ## Migrating from Cluster Manager
 
-As of version 2.6, Cluster Manager is no longer provided as a separate UI. The dashboard UI has been enhanced to provide the functionality from Cluster Manager. As a result, functionality you might be familar with from Cluster Manager can be found in slightly different locations within the new UI - this guide helps you find what you're looking for.
+As of version 2.6, Cluster Manager is no longer provided as a separate UI. The dashboard UI has been enhanced to provide the functionality from Cluster Manager. As a result, functionality you might be familiar with from Cluster Manager can be found in slightly different locations within the new UI - this guide helps you find what you're looking for.
 
 > Note that the legacy feature flag needs to be enabled for legacy functionality to be available. You can enable this from the slide-in menu → Global Settings → Feature Flags.
 
@@ -245,5 +245,5 @@ As of version 2.6, Cluster Manager is no longer provided as a separate UI. The d
       <td>User Avatar → Preferences</td>
       <td>User Avatar → Preferences</td>
     </tr>    
-  </tbdoy>
+  </tbody>
 </table>
