@@ -1274,6 +1274,10 @@ cluster:
     services: Services
     allServices: Rotate all service certificates
     selectService: Rotate an individual service
+  toggle:
+    v1: RKE1
+    v2: RKE2/K3s
+
 
 clusterIndexPage:
   hardwareResourceGauge:
