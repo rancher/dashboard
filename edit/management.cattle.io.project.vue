@@ -66,6 +66,7 @@ export default {
         saveCb(true);
         this.$router.replace(this.value.listLocation);
       } catch (ex) {
+        this.errors.push(ex);
         saveCb(false);
       }
     },
