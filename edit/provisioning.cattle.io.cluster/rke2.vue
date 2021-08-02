@@ -182,13 +182,7 @@ export default {
     }
 
     if ( this.value.spec.defaultPodSecurityPolicyTemplateName === undefined ) {
-      let def = 'unrestricted';
-
-      if ( !this.allPSPs.find(x => x.name === def) ) {
-        def = this.allPSPs[0]?.name || null;
-      }
-
-      set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', def);
+      set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
     }
   },
 
@@ -362,7 +356,7 @@ export default {
     },
 
     pspOptions() {
-      const out = [{ label: 'RKE2 Default', value: null }];
+      const out = [{ label: 'RKE2 Default', value: '' }];
 
       if ( this.allPSPs ) {
         for ( const pspt of this.allPSPs ) {
@@ -1092,6 +1086,13 @@ export default {
                 :mode="mode"
                 :label="opt.label"
                 :value-when-true="opt.value"
+              />
+              <Checkbox
+                v-if="serverArgs['disable-kube-proxy']"
+                :value="serverConfig['disable-kube-proxy'] !== true"
+                :mode="mode"
+                label="Kube Proxy"
+                @input="val => serverConfig['disable-kube-proxy'] = !val"
               />
             </div>
           </div>

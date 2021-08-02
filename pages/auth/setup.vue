@@ -219,7 +219,9 @@ export default {
         await Promise.all(promises);
 
         buttonCb(true);
-        this.done();
+        setTimeout(() => {
+          this.done();
+        }, 2000);
       } catch (err) {
         buttonCb(false);
         this.errors = exceptionToErrorsArray(err);
