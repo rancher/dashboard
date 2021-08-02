@@ -182,13 +182,7 @@ export default {
     }
 
     if ( this.value.spec.defaultPodSecurityPolicyTemplateName === undefined ) {
-      let def = 'unrestricted';
-
-      if ( !this.allPSPs.find(x => x.name === def) ) {
-        def = this.allPSPs[0]?.name || null;
-      }
-
-      set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', def);
+      set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
     }
   },
 
@@ -362,7 +356,7 @@ export default {
     },
 
     pspOptions() {
-      const out = [{ label: 'RKE2 Default', value: null }];
+      const out = [{ label: 'RKE2 Default', value: '' }];
 
       if ( this.allPSPs ) {
         for ( const pspt of this.allPSPs ) {
