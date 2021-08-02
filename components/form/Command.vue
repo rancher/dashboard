@@ -1,5 +1,6 @@
 <script>
-import { cleanUp } from '@/utils/object';
+import Vue from 'vue';
+
 import LabeledInput from '@/components/form/LabeledInput';
 import ShellInput from '@/components/form/ShellInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -95,7 +96,6 @@ export default {
   methods: {
     update() {
       const out = {
-        ...this.value,
         stdin:      this.stdin,
         stdinOnce:  this.stdinOnce,
         command:    this.command,
@@ -104,7 +104,17 @@ export default {
         tty:        this.tty,
       };
 
-      this.$emit('input', cleanUp(out));
+      for (const prop in out) {
+        const val = out[prop];
+
+        if (val === '' || typeof val === 'undefined' || val === null) {
+          Vue.delete(this.value, prop);
+        } else {
+          Vue.set(this.value, prop, val);
+        }
+      }
+
+      this.$emit('input', this.value);
     },
   },
 };
