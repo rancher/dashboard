@@ -287,8 +287,8 @@ export default {
       return false;
     },
 
-    isClusterActive() {
-      return this.value.state === 'active';
+    isClusterReady() {
+      return this.value.mgmt?.isReady;
     }
   },
 
@@ -451,7 +451,7 @@ export default {
           <AsyncButton
             mode="snapshot"
             class="btn role-primary"
-            :disabled="!isClusterActive"
+            :disabled="!isClusterReady"
             @click="takeSnapshot"
           />
         </template>
