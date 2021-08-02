@@ -288,7 +288,7 @@ export default {
     },
 
     isClusterActive() {
-      return this.$attrs['original-value'].metadata.state.name === 'active';
+      return this.value.state === 'active';
     }
   },
 
