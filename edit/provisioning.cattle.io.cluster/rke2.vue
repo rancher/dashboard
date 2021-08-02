@@ -1090,9 +1090,9 @@ export default {
               <Checkbox
                 v-if="serverArgs['disable-kube-proxy']"
                 :value="serverConfig['disable-kube-proxy'] !== true"
-                @input="val => serverConfig['disable-kube-proxy'] = !val"
                 :mode="mode"
                 label="Kube Proxy"
+                @input="val => serverConfig['disable-kube-proxy'] = !val"
               />
             </div>
           </div>
