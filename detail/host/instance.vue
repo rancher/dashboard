@@ -1,7 +1,6 @@
 <script>
 import { STATE, AGE, NAME } from '@/config/table-headers';
 import SortableTable from '@/components/SortableTable';
-// import VmState from '@/components/formatter/BadgeStateFormatter';
 import VmState from '@/components/formatter/vmState';
 import { allHash } from '@/utils/promise';
 import { HCI } from '@/config/types';

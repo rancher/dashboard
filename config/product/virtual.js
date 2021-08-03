@@ -195,10 +195,7 @@ export function init(store) {
     exact: false,
   });
 
-  configureType(HCI.BACKUP, {
-    DisableEditInDetail: true,
-    showListMasthead:    false
-  });
+  configureType(HCI.BACKUP, { showListMasthead: false });
   virtualType({
     label:      store.getters['i18n/t']('harvester.backup.label'),
     name:       HCI.BACKUP,
