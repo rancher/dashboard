@@ -1,6 +1,6 @@
 <script>
 import { TYPES } from '@/models/secret';
-import { MANAGEMENT } from '@/config/types';
+import { MANAGEMENT, NORMAN } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CruResource from '@/components/CruResource';
@@ -16,6 +16,8 @@ import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { set } from '@/utils/object';
+import { mapFeature, RKE2 as RKE2_FEATURE } from '@/store/features';
+import { rke1Supports } from '~/store/plugins';
 
 export default {
   name: 'CruCloudCredential',
@@ -32,13 +34,23 @@ export default {
 
   async fetch() {
     this.nodeDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
+    this.kontainerDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTANIER_DRIVER });
+
+    if ( !this.value._name ) {
+      set(this.value, '_name', '');
+    }
   },
 
   data() {
-    return { nodeDrivers: null };
+    return {
+      nodeDrivers:      null,
+      kontainerDrivers: null
+    };
   },
 
   computed: {
+    rke2Enabled: mapFeature(RKE2_FEATURE),
+
     storeOverride() {
       return 'rancher';
     },
@@ -64,13 +76,38 @@ export default {
     secretSubTypes() {
       const out = [];
 
-      const machineTypes = uniq(this.nodeDrivers
-        .filter(x => x.spec.active)
-        .map(x => x.spec.displayName || x.id)
-        .map(x => this.$store.getters['plugins/credentialDriverFor'](x))
-      );
+      const drivers = [...this.nodeDrivers, ...this.kontainerDrivers]
+        .filter(x => x.spec.active && x.id !== 'rancherkubernetesengine')
+        .map(x => x.spec.displayName || x.id);
 
-      for ( const id of machineTypes ) {
+      let types = uniq(drivers.map(x => this.$store.getters['plugins/credentialDriverFor'](x)));
+
+      if ( !this.rke2Enabled ) {
+        types = types.filter(x => rke1Supports.includes(x));
+      }
+
+      const schema = this.$store.getters['rancher/schemaFor'](NORMAN.CLOUD_CREDENTIAL);
+
+      types = types.filter((name) => {
+        const key = this.$store.getters['plugins/credentialFieldForDriver'](name);
+        const subSchemaName = schema.resourceFields[`${ key }credentialConfig`]?.type;
+
+        if ( !subSchemaName ) {
+          return;
+        }
+
+        const subSchema = this.$store.getters['rancher/schemaFor'](subSchemaName);
+
+        if ( !subSchema ) {
+          return false;
+        }
+
+        const fields = subSchema.resourceFields;
+
+        return fields && Object.keys(fields).length > 0;
+      });
+
+      for ( const id of types ) {
         let bannerImage, bannerAbbrv;
 
         try {
@@ -147,7 +184,9 @@ export default {
         this.value.metadata.generateName = 'cc-';
         this.value.metadata.namespace = DEFAULT_WORKSPACE;
 
-        set(this.value, `${ driver }credentialConfig`, {});
+        const field = this.$store.getters['plugins/credentialFieldForDriver'](driver);
+
+        set(this.value, `${ field }credentialConfig`, {});
       }
 
       this.$set(this.value, '_type', type);
@@ -183,9 +222,8 @@ export default {
       @select-type="selectType"
       @error="e=>errors = e"
     >
-      <NameNsDescription v-model="value" name-key="name" :mode="mode" :namespaced="false" />
+      <NameNsDescription v-model="value" name-key="_name" :mode="mode" :namespaced="false" />
 
-      <div class="spacer"></div>
       <component
         :is="cloudComponent"
         ref="cloudComponent"

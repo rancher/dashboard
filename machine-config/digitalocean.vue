@@ -3,7 +3,7 @@ import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Checkbox from '@/components/form/Checkbox';
-import { SECRET } from '@/config/types';
+import { NORMAN, SECRET } from '@/config/types';
 import { stringify, exceptionToErrorsArray } from '@/utils/error';
 import Banner from '@/components/Banner';
 
@@ -25,7 +25,7 @@ export default {
     this.errors = [];
 
     try {
-      this.credential = await this.$store.dispatch('management/find', { type: SECRET, id: this.credentialId });
+      this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.credentialId });
       this.regionOptions = await this.$store.dispatch('digitalocean/regionOptions', { credentialId: this.credentialId });
 
       let defaultRegion = 'sfo3';

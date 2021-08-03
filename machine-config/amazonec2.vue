@@ -8,7 +8,7 @@ import KeyValue from '@/components/form/KeyValue';
 import UnitInput from '@/components/form/UnitInput';
 import RadioGroup from '@/components/form/RadioGroup';
 import Checkbox from '@/components/form/Checkbox';
-import { SECRET } from '@/config/types';
+import { NORMAN, SECRET } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { addObject, addObjects, findBy } from '@/utils/array';
 import { sortBy } from '@/utils/sort';
@@ -43,7 +43,7 @@ export default {
 
     try {
       if ( this.credential?.id !== this.credentialId ) {
-        this.credential = await this.$store.dispatch('management/find', { type: SECRET, id: this.credentialId });
+        this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.credentialId });
       }
 
       if ( !this.instanceInfo ) {

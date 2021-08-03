@@ -3,7 +3,7 @@ import Loading from '@/components/Loading';
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { NORMAN, SECRET } from '@/config/types';
-import { AGE_NORMAN, NAME } from '@/config/table-headers';
+import { AGE_NORMAN, DESCRIPTION, NAME_UNLINKED } from '@/config/table-headers';
 import { CLOUD_CREDENTIAL, _FLAGGED } from '@/config/query-params';
 
 export default {
@@ -31,15 +31,7 @@ export default {
 
     headers() {
       return [
-        NAME,
-        {
-          name:        'provider',
-          label:       'Provider',
-          value:       'providerDisplay',
-          sort:        'providerDisplay',
-          search:      'providerDisplay',
-          dashIfEmpty: true,
-        },
+        NAME_UNLINKED,
         {
           name:        'apikey',
           label:       'API Key',
@@ -48,13 +40,14 @@ export default {
           search:      'publicData',
           dashIfEmpty: true,
         },
+        DESCRIPTION,
         AGE_NORMAN,
       ];
     },
 
     createLocation() {
       return {
-        name:   'c-cluster-product-resource-create',
+        name:   'c-cluster-manager-cloudcredential-create',
         params: {
           product:  this.$store.getters['currentProduct'].name,
           resource: this.resource
@@ -80,7 +73,7 @@ export default {
       type-display="Cloud Credentials"
     />
 
-    <ResourceTable :schema="schema" :rows="rows" :headers="headers" :namespaced="false">
+    <ResourceTable :schema="schema" :rows="rows" :headers="headers" :namespaced="false" group-by="providerDisplay">
       <template #cell:apikey="{row}">
         <span v-if="row.publicData" v-html="row.publicData" />
         <span v-else class="text-muted">&mdash;</span>
