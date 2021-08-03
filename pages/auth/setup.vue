@@ -135,7 +135,7 @@ export default {
 
   computed: {
     saveEnabled() {
-      if ( !this.eula ) {
+      if ( !this.eula && this.isFirstLogin) {
         return false;
       }
 
@@ -209,11 +209,13 @@ export default {
         user.mustChangePassword = false;
         this.$store.dispatch('auth/gotUser', user);
 
-        promises.push( setSetting(this.$store, SETTING.EULA_AGREED, (new Date()).toISOString()) );
-        promises.push( setSetting(this.$store, SETTING.TELEMETRY, this.telemetry ? 'in' : 'out') );
+        if (this.isFirstLogin) {
+          promises.push( setSetting(this.$store, SETTING.EULA_AGREED, (new Date()).toISOString()) );
+          promises.push( setSetting(this.$store, SETTING.TELEMETRY, this.telemetry ? 'in' : 'out') );
 
-        if ( this.mcmEnabled && this.serverUrl ) {
-          promises.push( setSetting(this.$store, SETTING.SERVER_URL, this.serverUrl) );
+          if ( this.mcmEnabled && this.serverUrl ) {
+            promises.push( setSetting(this.$store, SETTING.SERVER_URL, this.serverUrl) );
+          }
         }
 
         await Promise.all(promises);
@@ -289,22 +291,24 @@ export default {
             />
           </template>
 
-          <template v-if="mcmEnabled">
-            <hr v-if="mustChangePassword" class="mt-20 mb-20" />
-            <p>
-              <t k="setup.serverUrl.tip" :raw="true" />
-            </p>
-            <div class="mt-20">
-              <LabeledInput v-model="serverUrl" :label="t('setup.serverUrl.label')" />
+          <template v-if="isFirstLogin">
+            <template v-if="mcmEnabled">
+              <hr v-if="mustChangePassword" class="mt-20 mb-20" />
+              <p>
+                <t k="setup.serverUrl.tip" :raw="true" />
+              </p>
+              <div class="mt-20">
+                <LabeledInput v-model="serverUrl" :label="t('setup.serverUrl.label')" />
+              </div>
+            </template>
+
+            <div class="checkbox mt-40">
+              <Checkbox v-model="telemetry" label-key="setup.telemetry" />
+            </div>
+            <div class="checkbox pt-10 eula">
+              <Checkbox v-model="eula" label-key="setup.eula" />
             </div>
           </template>
-
-          <div class="checkbox mt-40">
-            <Checkbox v-model="telemetry" label-key="setup.telemetry" />
-          </div>
-          <div class="checkbox pt-10 eula">
-            <Checkbox v-model="eula" label-key="setup.eula" />
-          </div>
 
           <div class="text-center mt-20">
             <AsyncButton key="passwordSubmit" type="submit" mode="continue" :disabled="!saveEnabled" @click="save" />
