@@ -6,7 +6,7 @@ import { createCssVars } from '@/utils/color';
 
 export default {
   async fetch() {
-    this.globalSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING, opt: { url: `/v1/${ MANAGEMENT.SETTING }` } });
+    this.globalSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING);
   },
 
   data() {
