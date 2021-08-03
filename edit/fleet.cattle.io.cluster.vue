@@ -75,12 +75,12 @@ export default {
     @finish="save"
     @cancel="done"
   >
-    <NameNsDescription v-if="!isView" v-model="value" :mode="mode" :namespaced="isNamespaced" />
+    <NameNsDescription v-model="value" :mode="mode" :namespaced="isNamespaced" />
 
-    <hr v-if="!isView" class="mt-20 mb-20" />
+    <hr class="mt-20 mb-20" />
 
     <Labels
-      v-if="!isView"
+
       default-section-class="mt-20"
       :value="rancherCluster"
       :mode="mode"
