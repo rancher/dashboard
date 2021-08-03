@@ -119,6 +119,14 @@ export default {
       set(this.value, 'spec', {});
     }
 
+    if ( !this.value.spec.machineSelectorConfig ) {
+      set(this.value.spec, 'machineSelectorConfig', []);
+    }
+
+    if ( !this.value.spec.machineSelectorConfig.find(x => !x.machineLabelSelector) ) {
+      this.value.spec.machineSelectorConfig.unshift({ config: {} });
+    }
+
     if ( this.value.spec.cloudCredentialSecretName ) {
       this.credentialId = `${ this.value.metadata.namespace }/${ this.value.spec.cloudCredentialSecretName }`;
     }
