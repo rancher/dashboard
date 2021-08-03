@@ -7,6 +7,7 @@ import { containerImages } from '@/utils/validators/container-images';
 import { cronSchedule } from '@/utils/validators/cron-schedule';
 import { podAffinity } from '@/utils/validators/pod-affinity';
 import { roleTemplateRules } from '@/utils/validators/role-template';
+import { clusterName } from '@/utils/validators/cluster-name';
 
 /**
 * Custom validation functions beyond normal scalr types
@@ -14,6 +15,7 @@ import { roleTemplateRules } from '@/utils/validators/role-template';
 * Exported function is used as a lookup key in resource-instance:validationErrors:customValidationRules loop
 */
 export default {
+  clusterName,
   clusterIp,
   externalName,
   flowOutput,
