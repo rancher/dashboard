@@ -1,7 +1,6 @@
 <script>
 import VMState from '@/components/formatter/BadgeStateFormatter';
 import MigrationState from '@/components/formatter/MigrationState';
-// import RestoreProgress from '@/components/formatter/restoreProgress';
 
 export default {
   components: { VMState, MigrationState },
@@ -36,7 +35,7 @@ export default {
   },
 
   computed: {
-    NetworkImpassability() {
+    networkImpassability() {
       const nodeName = this.row?.nodeName;
       const nn = this.allNodeNetwork.find( N => N.attachNodeName === nodeName);
 
@@ -52,7 +51,7 @@ export default {
     warningMessage() {
       const out = [];
 
-      if (this.NetworkImpassability) {
+      if (this.networkImpassability) {
         out.push(this.t('harvester.networkPage.message.vlanInactive', { name: this.row.realAttachNodeName }));
       }
 
@@ -86,7 +85,6 @@ export default {
 
 <template>
   <span>
-    <!-- <RestoreProgress :vm="row" /> -->
     <MigrationState v-show="isMigrating" :vm-resource="row" @state-changed="migrationStateChanged" />
     <div v-show="!isMigrating" class="state">
       <VMState :row="row" />
@@ -101,7 +99,7 @@ export default {
 
         <template slot="popover">
           <p v-for="(message, index) in warningMessage" :key="message">
-            {{ index+1 }}. {{ message }}
+            {{ index + 1 }}. {{ message }}
           </p>
         </template>
       </v-popover>

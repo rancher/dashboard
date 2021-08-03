@@ -81,7 +81,9 @@ export default {
 
       <div v-if="errorMessage !== '-'" class="row">
         <div class="col span-12">
-          <div>Message</div>
+          <div>
+            {{ t('tableHeaders.message') }}
+          </div>
           <div :class="{ 'error': errorMessage !== '-' }">
             {{ errorMessage }}
           </div>

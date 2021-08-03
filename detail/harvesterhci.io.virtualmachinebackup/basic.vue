@@ -70,12 +70,6 @@ export default {
       });
     },
 
-    flavor() {
-      const domain = this.value?.virtualMachineSpec?.template?.spec?.domain;
-
-      return `${ domain.cpu.cores } vCPU , ${ domain.resources.requests.memory } Memory`;
-    },
-
     machineType() {
       return this.value?.virtualMachineSpec?.template?.spec?.domain?.machine?.type || undefined;
     }

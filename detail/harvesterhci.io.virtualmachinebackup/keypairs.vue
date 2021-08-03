@@ -11,10 +11,6 @@ export default {
     }
   },
 
-  // async fetch() {
-  //   await allHash({ ssh: this.$store.dispatch('cluster/findAll', { type: HCI.SSH }) });
-  // },
-
   data() {
     return {
       visible: false,

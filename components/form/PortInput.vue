@@ -55,8 +55,5 @@ export default {
     :label="t('harvester.fields.port')"
     placeholder="e.g. 8080"
     :disabled="isDisabled"
-  >
-  </labeledinput>
+  />
 </template>
-
-<style lang="scss"></style>
