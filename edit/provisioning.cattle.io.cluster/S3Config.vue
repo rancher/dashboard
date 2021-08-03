@@ -50,7 +50,11 @@ export default {
 
   methods: {
     update() {
-      this.$emit('input', { ...this.config });
+      const out = { ...this.config };
+
+      console.log('emit', out);
+
+      this.$emit('input', out);
     },
   },
 };
@@ -67,30 +71,31 @@ export default {
       :allow-aws="true"
       :namespace="namespace"
       generate-name="etcd-backup-s3-"
+      @input="update"
     />
 
     <div class="row mt-20">
       <div class="col span-6">
-        <LabeledInput v-model="config.bucket" label="Bucket" />
+        <LabeledInput v-model="config.bucket" label="Bucket" @input="update" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="config.folder" label="Folder" />
+        <LabeledInput v-model="config.folder" label="Folder" @input="update" />
       </div>
     </div>
 
     <div class="row mt-20">
       <div class="col span-6">
-        <LabeledInput v-model="config.region" label="Region" />
+        <LabeledInput v-model="config.region" label="Region" @input="update" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="config.endpoint" label="Endpoint" />
+        <LabeledInput v-model="config.endpoint" label="Endpoint" @input="update" />
       </div>
     </div>
 
     <div class="mt-20">
-      <Checkbox v-model="config.skipSSLVerify" :mode="mode" label="Accept any certificate (insecure)" />
+      <Checkbox v-model="config.skipSSLVerify" :mode="mode" label="Accept any certificate (insecure)" @input="update" />
 
-      <LabeledInput v-if="!config.skipSSLVerify" v-model="config.endpointCA" type="multiline" label="Endpoint CA Cert" />
+      <LabeledInput v-if="!config.skipSSLVerify" v-model="config.endpointCA" type="multiline" label="Endpoint CA Cert" @input="update" />
     </div>
   </div>
 </template>
