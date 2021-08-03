@@ -1,5 +1,5 @@
 import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
-import { CAPI, NORMAN } from '@/config/types';
+import { CAPI } from '@/config/types';
 import { MULTI_CLUSTER } from '@/store/features';
 import { DSL } from '@/store/type-map';
 
@@ -12,7 +12,8 @@ export function init(store) {
     headers,
     configureType,
     virtualType,
-    weightType
+    weightType,
+    weightGroup
   } = DSL(store, NAME);
 
   product({
@@ -100,6 +101,8 @@ export function init(store) {
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
   ], 'Advanced');
+
+  weightGroup('Advanced', -1, true);
 
   const MACHINE_SUMMARY = {
     name:      'summary',

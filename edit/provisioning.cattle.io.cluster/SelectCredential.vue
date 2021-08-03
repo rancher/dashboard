@@ -52,10 +52,10 @@ export default {
       data: {},
     });
 
-    if ( this.filteredSecrets.length === 1 ) {
+    if ( this.filteredCredentials.length === 1 ) {
       // Auto pick the first credential if there's only one
-      this.credentialId = this.filteredSecrets[0].id;
-    } else if ( !this.filteredSecrets.length ) {
+      this.credentialId = this.filteredCredentials[0].id;
+    } else if ( !this.filteredCredentials.length ) {
       this.credentialId = _NEW;
     }
   },
@@ -92,13 +92,12 @@ export default {
       return driver;
     },
 
-    filteredSecrets() {
-      return this.allCredentials.filter(x => x.provider == this.driverName);
+    filteredCredentials() {
+      return this.allCredentials.filter(x => x.provider === this.driverName);
     },
 
     options() {
-      // @TODO better thing to filter secrets by, limit to matching provider
-      const out = this.filteredSecrets.map((obj) => {
+      const out = this.filteredCredentials.map((obj) => {
         return {
           label: obj.nameDisplay,
           value: obj.id,

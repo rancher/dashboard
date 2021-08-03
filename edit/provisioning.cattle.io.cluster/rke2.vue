@@ -6,7 +6,7 @@ import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
 
 import CreateEditView from '@/mixins/create-edit-view';
-import { CAPI, MANAGEMENT, SECRET } from '@/config/types';
+import { CAPI, MANAGEMENT, NORMAN, SECRET } from '@/config/types';
 import { _CREATE, _EDIT } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
@@ -603,10 +603,10 @@ export default {
 
     credentialId(val) {
       if ( val ) {
-        this.credential = this.$store.getters['management/byId'](SECRET, this.credentialId);
+        this.credential = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.credentialId);
 
         if ( this.credential ) {
-          this.value.spec.cloudCredentialSecretName = this.credential.metadata.name;
+          this.value.spec.cloudCredentialSecretName = this.credential.id;
         } else {
           this.value.spec.cloudCredentialSecretName = null;
         }

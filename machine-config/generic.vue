@@ -3,7 +3,7 @@ import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
 import CreateEditView from '@/mixins/create-edit-view';
 import { exceptionToErrorsArray, stringify } from '@/utils/error';
-import { SECRET } from '@/config/types';
+import { NORMAN, SECRET } from '@/config/types';
 import Questions from '@/components/Questions';
 import { iffyFields, simplify } from '@/store/plugins';
 import { isEmpty } from '@/utils/object';
@@ -31,7 +31,7 @@ export default {
     this.errors = [];
 
     try {
-      this.credential = await this.$store.dispatch('management/find', { type: SECRET, id: this.credentialId });
+      this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.credentialId });
       this.fields = this.$store.getters['plugins/fieldsForDriver'](this.provider);
       const name = `rke-machine-config.cattle.io.${ this.provider }config`;
 

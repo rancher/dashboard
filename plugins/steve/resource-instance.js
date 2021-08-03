@@ -883,6 +883,10 @@ export default {
         opt.data.type = opt.data._type;
       }
 
+      if (opt?.data._name) {
+        opt.data.name = opt.data._name;
+      }
+
       try {
         const res = await this.$dispatch('request', opt);
 

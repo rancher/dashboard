@@ -17,7 +17,16 @@ export default {
   },
 
   data() {
-    const keyOptions = this.$store.getters['plugins/fieldNamesForDriver'](this.driverName);
+    let keyOptions = [];
+
+    const normanType = this.$store.getters['plugins/credentialFieldForDriver'](this.driverName);
+    const normanSchema = this.$store.getters['rancher/schemaFor'](`${ normanType }credentialconfig`);
+
+    if ( normanSchema ) {
+      keyOptions = Object.keys(normanSchema.resourceFields || {});
+    } else {
+      keyOptions = this.$store.getters['plugins/fieldNamesForDriver'](this.driverName);
+    }
 
     if ( this.mode === _CREATE ) {
       // Prepopulate empty values for keys that sound like they're cloud-credential-ey
@@ -27,7 +36,7 @@ export default {
       for ( const k of keyOptions ) {
         const sk = simplify(k);
 
-        if ( likelyFields.includes(sk) || iffyFields.includes(sk) ) {
+        if ( normanSchema || likelyFields.includes(sk) || iffyFields.includes(sk) ) {
           keys.push(k);
         }
       }
@@ -40,8 +49,9 @@ export default {
     }
 
     return {
+      hasSupport: !!normanSchema,
       keyOptions,
-      errors: null,
+      errors:     null,
     };
   },
 
@@ -62,12 +72,15 @@ export default {
 
 <template>
   <div>
-    <Banner color="info" label-key="cluster.selectCredential.genericDescription" class="mt-0" />
+    <Banner v-if="!hasSupport" color="info" label-key="cluster.selectCredential.genericDescription" class="mt-0" />
     <KeyValue
       :value="value.decodedData"
-      :key-options="keyOptions"
+      :key-options="hasSupport || !keyOptions.length ? null : keyOptions"
+      :key-editable="!hasSupport"
       :mode="mode"
       :read-allowed="true"
+      :add-allowed="!hasSupport"
+      :remove-allowed="!hasSupport"
       :initial-empty-row="true"
       @input="update"
     />

@@ -66,7 +66,7 @@ export default {
     parentRouteOverride: {
       type:    String,
       default: null,
-    }
+    },
   },
 
   computed: {

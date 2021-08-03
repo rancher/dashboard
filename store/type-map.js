@@ -337,7 +337,7 @@ export const getters = {
   labelFor(state, getters, rootState, rootGetters) {
     return (schema, count = 1) => {
       return _applyMapping(schema, state.typeMappings, 'id', false, () => {
-        const key = `typeLabel."${ schema.id }"`;
+        const key = `typeLabel."${ schema.id.toLowerCase() }"`;
 
         if ( rootGetters['i18n/exists'](key) ) {
           return rootGetters['i18n/t'](key, { count }).trim();

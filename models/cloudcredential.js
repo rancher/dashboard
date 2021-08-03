@@ -24,6 +24,7 @@ export default {
 
     const configKey = this.configKey;
 
+    // Call [amazoneks,amazonec2] -> aws
     if ( configKey ) {
       const out = this.$rootGetters['plugins/credentialDriverFor'](configKey.replace(/credentialConfig$/, ''));
 

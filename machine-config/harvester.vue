@@ -11,7 +11,7 @@ import Banner from '@/components/Banner';
 import { get } from '@/utils/object';
 import { mapGetters } from 'vuex';
 import {
-  SECRET, HCI, NAMESPACE, MANAGEMENT, CONFIG_MAP
+  SECRET, HCI, NAMESPACE, MANAGEMENT, CONFIG_MAP, NORMAN
 } from '@/config/types';
 import { base64Decode, base64Encode } from '@/utils/crypto';
 import { allHashSettled } from '@/utils/promise';
@@ -41,7 +41,7 @@ export default {
     this.errors = [];
 
     try {
-      this.credential = await this.$store.dispatch('management/find', { type: SECRET, id: this.credentialId });
+      this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.credentialId });
       const clusterId = get(this.credential, `metadata.annotations."${ HCI_ANNOTATIONS.CLUSTER_ID }"`);
 
       const url = `/k8s/clusters/${ clusterId }/v1`;
