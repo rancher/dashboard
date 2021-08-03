@@ -15,7 +15,7 @@ export default {
     }
   },
   async fetch() {
-    this.managementSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
+    this.managementSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING);
   },
   data() {
     return { managementSettings: [] };
