@@ -1302,7 +1302,7 @@ export default {
                   <h3>Add additional Kubelet args:</h3>
                 </template>
                 <h3 v-else>
-                  For all nodes:
+                  For all machines:
                 </h3>
 
                 <ArrayList

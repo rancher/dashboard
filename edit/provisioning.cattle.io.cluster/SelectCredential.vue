@@ -1,7 +1,7 @@
 <script>
 import Loading from '@/components/Loading';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import { SECRET } from '@/config/types';
+import { NORMAN, SECRET } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -40,11 +40,7 @@ export default {
   },
 
   async fetch() {
-    const secretSchema = this.$store.getters['management/schemaFor'](SECRET);
-
-    if (secretSchema?.collectionMethods.find(x => x.toLowerCase() === 'get')) {
-      this.allSecrets = await this.$store.dispatch('management/findAll', { type: SECRET });
-    }
+    this.allCredentials = await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
 
     this.newCredential = await this.$store.dispatch('management/create', {
       type:     SECRET,
@@ -66,7 +62,7 @@ export default {
 
   data() {
     return {
-      allSecrets:             [],
+      allCredentials:         [],
       nodeComponent:          null,
       credentialId:           this.value || _NONE,
       newCredential:          null,
@@ -97,13 +93,7 @@ export default {
     },
 
     filteredSecrets() {
-      // @TODO better thing to filter secrets by, limit to matching provider
-      const out = this.allSecrets.filter((obj) => {
-        return obj.metadata.namespace === DEFAULT_WORKSPACE &&
-          obj.metadata.annotations?.[CAPI.CREDENTIAL_DRIVER] === this.driverName;
-      });
-
-      return out;
+      return this.allCredentials.filter(x => x.provider == this.driverName);
     },
 
     options() {

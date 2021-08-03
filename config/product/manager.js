@@ -1,5 +1,5 @@
 import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
-import { CAPI } from '@/config/types';
+import { CAPI, NORMAN } from '@/config/types';
 import { MULTI_CLUSTER } from '@/store/features';
 import { DSL } from '@/store/type-map';
 
@@ -24,7 +24,36 @@ export function init(store) {
     showClusterSwitcher: false,
   });
 
+  virtualType({
+    name:        'cloud-credentials',
+    label:       'Cloud Credentials',
+    group:      'Root',
+    namespaced:  false,
+    icon:       'globe',
+    weight:      99,
+    route:       { name: 'c-cluster-manager-cloudcredential' },
+  });
+
+  virtualType({
+    labelKey:       'legacy.psps',
+    name:           'pod-security-policies',
+    group:          'Root',
+    namespaced:     false,
+    weight:         0,
+    icon:           'folder',
+    route:          { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'pod-security-policies' } },
+    exact:          true
+  });
+
+  basicType([
+    CAPI.RANCHER_CLUSTER,
+    'cloud-credentials',
+    'drivers',
+    'pod-security-policies'
+  ]);
+
   configureType(CAPI.RANCHER_CLUSTER, { showListMasthead: false, namespaced: false });
+  // configureType(NORMAN.CLOUD_CREDENTIAL, { showListMasthead: false, namespaced: false });
   weightType(CAPI.RANCHER_CLUSTER, 100, true);
 
   virtualType({
@@ -48,16 +77,6 @@ export function init(store) {
   });
 
   virtualType({
-    label:      'Cloud Credentials',
-    name:       'rke-cloud-credentials',
-    group:      'Root',
-    namespaced: false,
-    icon:       'globe',
-    route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'cloud-credentials' } },
-    exact:      true
-  });
-
-  virtualType({
     label:      'Node Templates',
     name:       'rke-node-templates',
     group:      'Root',
@@ -69,7 +88,6 @@ export function init(store) {
 
   basicType([
     'rke-templates',
-    'rke-cloud-credentials',
     'rke-node-templates'
   ], 'RKE1 Configuration');
 
@@ -77,38 +95,10 @@ export function init(store) {
   weightType(CAPI.MACHINE_SET, 2, true);
   weightType(CAPI.MACHINE, 1, true);
 
-  virtualType({
-    label:       'Cloud Credentials',
-    group:      'Root',
-    namespaced:  false,
-    icon:       'globe',
-    name:        'secret',
-    weight:      99,
-    route:       { name: 'c-cluster-manager-secret' },
-  });
-
-  basicType([
-    CAPI.RANCHER_CLUSTER,
-    'secret',
-    'drivers',
-  ]);
-
-  virtualType({
-    labelKey:       'legacy.psps',
-    name:           'pod-security-policies',
-    group:          'Root',
-    namespaced:     false,
-    weight:         0,
-    icon:           'folder',
-    route:          { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'pod-security-policies' } },
-    exact:          true
-  });
-
   basicType([
     CAPI.MACHINE_DEPLOYMENT,
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
-    'pod-security-policies'
   ], 'Advanced');
 
   const MACHINE_SUMMARY = {
