@@ -1,0 +1,202 @@
+<script>
+import { TYPES } from '@/models/secret';
+import { MANAGEMENT } from '@/config/types';
+import CreateEditView from '@/mixins/create-edit-view';
+import NameNsDescription from '@/components/form/NameNsDescription';
+import CruResource from '@/components/CruResource';
+import { _CREATE } from '@/config/query-params';
+import Loading from '@/components/Loading';
+import Labels from '@/components/form/Labels';
+import { HIDE_SENSITIVE } from '@/store/prefs';
+import { CAPI } from '@/config/labels-annotations';
+import { clear, uniq } from '@/utils/array';
+import { importCloudCredential } from '@/utils/dynamic-importer';
+import SelectIconGrid from '@/components/SelectIconGrid';
+import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
+import { sortBy } from '@/utils/sort';
+import { ucFirst } from '@/utils/string';
+import { set } from '@/utils/object';
+
+export default {
+  name: 'CruCloudCredential',
+
+  components: {
+    Loading,
+    NameNsDescription,
+    CruResource,
+    Labels,
+    SelectIconGrid
+  },
+
+  mixins: [CreateEditView],
+
+  async fetch() {
+    this.nodeDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
+  },
+
+  data() {
+    return { nodeDrivers: null };
+  },
+
+  computed: {
+    storeOverride() {
+      return 'rancher';
+    },
+
+    driverName() {
+      const driver = this.value.provider;
+
+      return driver;
+    },
+
+    cloudComponent() {
+      const driver = this.driverName;
+      const haveProviders = this.$store.getters['plugins/credentialDrivers'];
+
+      if ( haveProviders.includes(driver) ) {
+        return importCloudCredential(driver);
+      }
+
+      return importCloudCredential('generic');
+    },
+
+    // array of id, label, description, initials for type selection step
+    secretSubTypes() {
+      const out = [];
+
+      const machineTypes = uniq(this.nodeDrivers
+        .filter(x => x.spec.active)
+        .map(x => x.spec.displayName || x.id)
+        .map(x => this.$store.getters['plugins/credentialDriverFor'](x))
+      );
+
+      for ( const id of machineTypes ) {
+        let bannerImage, bannerAbbrv;
+
+        try {
+          bannerImage = require(`~/assets/images/providers/${ id }.svg`);
+        } catch (e) {
+          bannerImage = null;
+          bannerAbbrv = this.initialDisplayFor(id);
+        }
+
+        out.push({
+          id,
+          label: this.typeDisplay(CAPI.CREDENTIAL_DRIVER, id),
+          bannerImage,
+          bannerAbbrv
+        });
+      }
+
+      return sortBy(out, 'label');
+    },
+
+    hideSensitiveData() {
+      return this.$store.getters['prefs/get'](HIDE_SENSITIVE);
+    },
+
+    doneRoute() {
+      return 'c-cluster-manager-cloudcredential';
+    },
+  },
+
+  methods: {
+    async saveSecret(btnCb) {
+      if ( this.errors ) {
+        clear(this.errors);
+      }
+
+      if ( typeof this.$refs.cloudComponent?.test === 'function' ) {
+        try {
+          const res = await this.$refs.cloudComponent.test();
+
+          if ( !res || res?.errors) {
+            if (res?.errors) {
+              this.errors = res.errors;
+            } else {
+              this.errors = ['Authentication test failed, please check your credentials'];
+            }
+            btnCb(false);
+
+            return;
+          }
+        } catch (e) {
+          this.errors = [e];
+          btnCb(false);
+
+          return;
+        }
+      }
+
+      return this.save(btnCb);
+    },
+
+    selectType(type) {
+      let driver;
+
+      if ( type === TYPES.CLOUD_CREDENTIAL ) {
+        // Clone goes through here
+        driver = this.driverName;
+      } else {
+        driver = type;
+        type = TYPES.CLOUD_CREDENTIAL;
+      }
+
+      if ( this.mode === _CREATE ) {
+        this.value.setAnnotation(CAPI.CREDENTIAL_DRIVER, driver);
+        this.value.metadata.generateName = 'cc-';
+        this.value.metadata.namespace = DEFAULT_WORKSPACE;
+
+        set(this.value, `${ driver }credentialConfig`, {});
+      }
+
+      this.$set(this.value, '_type', type);
+      this.$emit('set-subtype', this.typeDisplay(type, driver));
+    },
+
+    typeDisplay(type, driver) {
+      return this.$store.getters['i18n/withFallback'](`cluster.provider."${ driver }"`, null, driver);
+    },
+
+    initialDisplayFor(type) {
+      const fallback = (ucFirst(this.typeDisplay(type) || '').replace(/[^A-Z]/g, '') || type).substr(0, 3);
+
+      return this.$store.getters['i18n/withFallback'](`secret.initials."${ type }"`, null, fallback);
+    },
+  },
+};
+</script>
+
+<template>
+  <form>
+    <Loading v-if="$fetchState.pending" />
+    <CruResource
+      v-else
+      :mode="mode"
+      :validation-passed="true"
+      :selected-subtype="value._type"
+      :resource="value"
+      :errors="errors"
+      :done-route="doneRoute"
+      :subtypes="secretSubTypes"
+      @finish="saveSecret"
+      @select-type="selectType"
+      @error="e=>errors = e"
+    >
+      <NameNsDescription v-model="value" name-key="name" :mode="mode" :namespaced="false" />
+
+      <div class="spacer"></div>
+      <component
+        :is="cloudComponent"
+        ref="cloudComponent"
+        :driver-name="driverName"
+        :value="value"
+        :mode="mode"
+        :hide-sensitive-data="hideSensitiveData"
+      />
+    </CruResource>
+  </form>
+</template>
+
+<style lang='scss'>
+</style>

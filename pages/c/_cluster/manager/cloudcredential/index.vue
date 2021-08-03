@@ -2,8 +2,8 @@
 import Loading from '@/components/Loading';
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
-import { SECRET } from '@/config/types';
-import { AGE, NAME, STATE } from '@/config/table-headers';
+import { NORMAN, SECRET } from '@/config/types';
+import { AGE_NORMAN, NAME } from '@/config/table-headers';
 import { CLOUD_CREDENTIAL, _FLAGGED } from '@/config/query-params';
 
 export default {
@@ -13,42 +13,42 @@ export default {
 
   async fetch() {
     this.allSecrets = await this.$store.dispatch('management/findAll', { type: SECRET });
+    this.allCredentials = await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
   },
 
   data() {
     return {
-      allSecrets: null,
-      resource:   SECRET,
-      schema:     this.$store.getters['management/schemaFor'](SECRET),
+      allCredentials: null,
+      resource:       NORMAN.CLOUD_CREDENTIAL,
+      schema:         this.$store.getters['rancher/schemaFor'](NORMAN.CLOUD_CREDENTIAL),
     };
   },
 
   computed: {
     rows() {
-      return this.allSecrets.filter(x => x.isCloudCredential);
+      return this.allCredentials || [];
     },
 
     headers() {
       return [
-        STATE,
         NAME,
         {
           name:        'provider',
           label:       'Provider',
-          value:       'cloudCredentialProviderDisplay',
-          sort:        'cloudCredentialProviderDisplay',
-          search:      'cloudCredentialProviderDisplay',
+          value:       'providerDisplay',
+          sort:        'providerDisplay',
+          search:      'providerDisplay',
           dashIfEmpty: true,
         },
         {
           name:        'apikey',
           label:       'API Key',
-          value:       'cloudCredentialPublicData',
-          sort:        'cloudCredentialPublicData',
-          search:      'cloudCredentialPublicData',
+          value:       'publicData',
+          sort:        'publicData',
+          search:      'publicData',
           dashIfEmpty: true,
         },
-        AGE
+        AGE_NORMAN,
       ];
     },
 
@@ -82,7 +82,8 @@ export default {
 
     <ResourceTable :schema="schema" :rows="rows" :headers="headers" :namespaced="false">
       <template #cell:apikey="{row}">
-        <span v-html="row.cloudCredentialPublicData" />
+        <span v-if="row.publicData" v-html="row.publicData" />
+        <span v-else class="text-muted">&mdash;</span>
       </template>
     </ResourceTable>
   </div>

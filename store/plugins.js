@@ -82,12 +82,16 @@ export const getters = {
 
   credentialOptions() {
     return (name) => {
+      name = (name || '').toLowerCase();
+
       return credentialOptions[name] || {};
     };
   },
 
   credentialDriverFor() {
     return (name) => {
+      name = (name || '').toLowerCase();
+
       return driverMap[name] || name;
     };
   },
