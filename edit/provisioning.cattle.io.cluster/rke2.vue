@@ -593,6 +593,14 @@ export default {
   },
 
   watch: {
+    s3Backup(neu) {
+      if ( neu ) {
+        set(this.rkeConfig.etcd, 's3', {});
+      } else {
+        set(this.rkeConfig.etcd, 's3', null);
+      }
+    },
+
     credentialId(val) {
       if ( val ) {
         this.credential = this.$store.getters['management/byId'](SECRET, this.credentialId);
@@ -1153,7 +1161,7 @@ export default {
             />
 
             <S3Config
-              v-if="s3Backup"
+              v-if="rkeConfig.etcd.s3"
               v-model="rkeConfig.etcd.s3"
               :namespace="value.metadata.namespace"
               :register-before-hook="registerBeforeHook"
