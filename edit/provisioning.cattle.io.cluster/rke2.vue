@@ -128,7 +128,7 @@ export default {
     }
 
     if ( this.value.spec.cloudCredentialSecretName ) {
-      this.credentialId = `${ this.value.metadata.namespace }/${ this.value.spec.cloudCredentialSecretName }`;
+      this.credentialId = `${ this.value.spec.cloudCredentialSecretName }`;
     }
 
     if ( !this.value.spec.kubernetesVersion ) {
@@ -136,11 +136,19 @@ export default {
     }
 
     for ( const k in this.serverArgs ) {
-      set(this.serverConfig, k, this.serverConfig[k] || this.serverArgs[k].default || undefined);
+      if ( this.serverConfig[k] === undefined ) {
+        const def = this.serverArgs[k].default;
+
+        set(this.serverConfig, k, (def !== undefined ? undefined : def));
+      }
     }
 
     for ( const k in this.agentArgs ) {
-      set(this.agentConfig, k, this.agentConfig[k] || this.agentArgs[k].default || undefined);
+      if ( this.agentConfig[k] === undefined ) {
+        const def = this.agentArgs[k].default;
+
+        set(this.agentConfig, k, (def !== undefined ? undefined : def));
+      }
     }
 
     if ( !this.serverConfig.profile ) {
@@ -393,6 +401,25 @@ export default {
           value,
         };
       });
+    },
+
+    cloudProviderOptions() {
+      const out = [{ label: '(None)', value: '' }];
+
+      for ( const opt of this.agentArgs['cloud-provider-name'].options ) {
+        out.push({
+          label: opt,
+          value: opt,
+        });
+      }
+
+      const cur = this.agentConfig['cloud-provider-name'];
+
+      if ( cur && !out.find(x => x.value === cur) ) {
+        out.unshift({ label: `${ cur } (Current)`, value: cur });
+      }
+
+      return out;
     },
 
     selectedVersion() {
@@ -1036,7 +1063,7 @@ export default {
               <LabeledSelect
                 v-model="agentConfig['cloud-provider-name']"
                 :mode="mode"
-                :options="agentArgs['cloud-provider-name'].options"
+                :options="cloudProviderOptions"
                 label="Cloud Provider"
               />
             </div>
@@ -1109,13 +1136,6 @@ export default {
                 :mode="mode"
                 :label="opt.label"
                 :value-when-true="opt.value"
-              />
-              <Checkbox
-                v-if="serverArgs['disable-kube-proxy']"
-                :value="serverConfig['disable-kube-proxy'] !== true"
-                :mode="mode"
-                label="Kube Proxy"
-                @input="val => serverConfig['disable-kube-proxy'] = !val"
               />
             </div>
           </div>

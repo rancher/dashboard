@@ -150,7 +150,7 @@ export default {
   async fetch() {
     this.errors = [];
 
-    this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.cloudCredentialId });
+    this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.credentialId });
   },
 
   data() {
@@ -261,10 +261,6 @@ export default {
       return this.vappMode === 'manual';
     },
 
-    cloudCredentialId() {
-      return this.credentialId.split(/[:/]/)[1];
-    },
-
     host: {
       get() {
         return this.value.hostsystem === '' ? SENTINEL : this.value.hostsystem;
@@ -290,7 +286,7 @@ export default {
   },
 
   watch: {
-    cloudCredentialId() {
+    credentialId() {
       this.$fetch();
     },
 
@@ -335,15 +331,15 @@ export default {
 
   methods: {
     stringify,
-    async requestOptions(resource, secretId, dataCenter, library) {
+    async requestOptions(resource, dataCenter, library) {
       const datacenterLessResources = ['tag-categories', 'tags', 'data-centers', 'custom-attributes'];
 
-      if (!secretId || (!datacenterLessResources.includes(resource) && !dataCenter)) {
+      if (!this.cloudCredentialId || (!datacenterLessResources.includes(resource) && !dataCenter)) {
         return [];
       }
 
       const queryParams = Object.entries({
-        secretId,
+        cloudCredentialId: this.cloudCredentialId,
         dataCenter,
         library
       })
@@ -362,7 +358,7 @@ export default {
     },
 
     async loadDataCenters() {
-      const options = await this.requestOptions('data-centers', this.cloudCredentialId);
+      const options = await this.requestOptions('data-centers');
       const content = this.mapPathOptionsToContent(options);
       const valueInContent = content.find(c => c.value === this.value.datacenter );
 
@@ -376,8 +372,8 @@ export default {
     },
 
     async loadTags() {
-      const categoriesPromise = this.requestOptions('tag-categories', this.cloudCredentialId);
-      const optionsPromise = this.requestOptions('tags', this.cloudCredentialId);
+      const categoriesPromise = this.requestOptions('tag-categories');
+      const optionsPromise = this.requestOptions('tags');
       const [categories, options] = await Promise.all([categoriesPromise, optionsPromise]);
       const content = this.mapTagsToContent(options).map(option => ({
         ...option,
@@ -390,17 +386,13 @@ export default {
     },
 
     async loadCustomAttributes() {
-      const options = await this.requestOptions('custom-attributes', this.cloudCredentialId);
+      const options = await this.requestOptions('custom-attributes');
 
       this.$set(this, 'attributeKeysResults', this.mapCustomAttributesToContent(options));
     },
 
     async loadHosts() {
-      const options = await this.requestOptions(
-        'hosts',
-        this.cloudCredentialId,
-        this.value.datacenter
-      );
+      const options = await this.requestOptions('hosts', this.value.datacenter);
       const content = this.mapHostOptionsToContent(options);
 
       this.resetValueIfNecessary('hostsystem', content, options);
@@ -409,11 +401,7 @@ export default {
     },
 
     async loadResourcePools() {
-      const options = await this.requestOptions(
-        'resource-pools',
-        this.cloudCredentialId,
-        this.value.datacenter
-      );
+      const options = await this.requestOptions('resource-pools', this.value.datacenter);
 
       const content = this.mapPoolOptionsToContent(options);
 
@@ -423,11 +411,7 @@ export default {
     },
 
     async loadDataStores() {
-      const options = await this.requestOptions(
-        'data-stores',
-        this.cloudCredentialId,
-        this.value.datacenter
-      );
+      const options = await this.requestOptions('data-stores', this.value.datacenter);
       const content = this.mapPathOptionsToContent(options);
 
       this.resetValueIfNecessary('datastore', content, options);
@@ -436,11 +420,7 @@ export default {
     },
 
     async loadDataStoreClusters() {
-      const options = await this.requestOptions(
-        'data-store-clusters',
-        this.cloudCredentialId,
-        this.value.datacenter
-      );
+      const options = await this.requestOptions('data-store-clusters', this.value.datacenter);
       const content = this.mapPathOptionsToContent(options);
 
       this.resetValueIfNecessary('datastoreCluster', content, options);
@@ -449,11 +429,7 @@ export default {
     },
 
     async loadFolders() {
-      const options = await this.requestOptions(
-        'folders',
-        this.cloudCredentialId,
-        this.value.datacenter
-      );
+      const options = await this.requestOptions('folders', this.value.datacenter);
       const content = this.mapFolderOptionsToContent(options);
 
       this.resetValueIfNecessary('folder', content, options);
@@ -462,11 +438,7 @@ export default {
     },
 
     async loadNetworks() {
-      const options = await this.requestOptions(
-        'networks',
-        this.cloudCredentialId,
-        this.value.datacenter
-      );
+      const options = await this.requestOptions('networks', this.value.datacenter);
       const content = this.mapPathOptionsToContent(options);
 
       this.resetValueIfNecessary('network', content, options, true);
@@ -475,11 +447,7 @@ export default {
     },
 
     async loadContentLibraries() {
-      const options = await this.requestOptions(
-        'content-libraries',
-        this.cloudCredentialId,
-        this.value.datacenter
-      );
+      const options = await this.requestOptions('content-libraries', this.value.datacenter);
       const content = this.mapPathOptionsToContent(options);
 
       this.resetValueIfNecessary('contentLibrary', content, options);
@@ -494,12 +462,7 @@ export default {
         return [];
       }
 
-      const options = await this.requestOptions(
-        'library-templates',
-        this.cloudCredentialId,
-        undefined,
-        contentLibrary
-      );
+      const options = await this.requestOptions('library-templates', undefined, contentLibrary);
 
       const content = this.mapPathOptionsToContent(options);
 
@@ -509,11 +472,7 @@ export default {
     },
 
     async loadVirtualMachines() {
-      const options = await this.requestOptions(
-        'virtual-machines',
-        this.cloudCredentialId,
-        this.value.datacenter
-      );
+      const options = await this.requestOptions('virtual-machines', this.value.datacenter);
 
       const content = this.mapPathOptionsToContent(options);
 
@@ -523,11 +482,7 @@ export default {
     },
 
     async loadTemplates() {
-      const options = await this.requestOptions(
-        'templates',
-        this.cloudCredentialId,
-        this.value.datacenter
-      );
+      const options = await this.requestOptions('templates', this.value.datacenter);
 
       const content = this.mapPathOptionsToContent(options);
 
