@@ -44,6 +44,16 @@ export default {
     return this.parseConfig.ipam?.type === 'static';
   },
 
+  vlanType() {
+    const type = this.parseConfig.type;
+
+    return type === 'bridge' ? 'L2VlanNetwork' : type;
+  },
+
+  vlanId() {
+    return this.parseConfig.vlan;
+  },
+
   customValidationRules() {
     const rules = [
       {

@@ -133,22 +133,6 @@ export default {
     };
   },
 
-  // cloneTemplate() {
-  //   return (moreQuery = {}) => {
-  //     const router = this.currentRouter();
-
-  //     router.push({
-  //       name:   `c-cluster-product-resource-create`,
-  //       params: { resource: HCI.VM_VERSION },
-  //       query:  {
-  //         [MODE]:     _CREATE,
-  //         templateId: this.templateId,
-  //         versionId:  this.id,
-  //       }
-  //     });
-  //   };
-  // },
-
   cloneTemplate() {
     return (moreQuery = {}) => {
       const location = this.detailLocation;

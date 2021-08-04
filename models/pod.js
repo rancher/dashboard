@@ -191,8 +191,12 @@ export default {
   },
 
   // harvester
+  inStore() {
+    return this.$rootGetters['currentProduct'].inStore;
+  },
+
   nodes() {
-    return this.$rootGetters['virtual/all'](NODE);
+    return this.$rootGetters[`${ this.inStore }/all`](NODE);
   },
 
   node() {

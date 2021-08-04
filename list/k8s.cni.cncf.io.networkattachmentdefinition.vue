@@ -46,7 +46,7 @@ export default {
       hosts:                 [],
       hostNetworks:          [],
       clusterNetworkSetting: [],
-      to:                    `${ HCI.CLUSTER_NETWORK }/harvester-system/vlan?mode=edit`
+      to:                    `${ HCI.CLUSTER_NETWORK }/vlan?mode=edit`
     };
   },
 

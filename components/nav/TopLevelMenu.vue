@@ -58,7 +58,7 @@ export default {
 
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      let out = all.filter(c => c.status?.provider !== VIRTUAL_PROVIDER).map((x) => {
+      let out = all.map((x) => {
         return {
           id:      x.id,
           label:   x.nameDisplay,

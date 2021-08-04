@@ -104,7 +104,6 @@ export default {
   getVMIApiPath() {
     const clusterId = this.$rootGetters['clusterId'];
 
-    console.log('----getVMIApiPath', this.$rootGetters['isMultiVirtualCluster']);
     if (this.$rootGetters['isMultiVirtualCluster']) {
       const prefix = `/k8s/clusters/${ clusterId }`;
 

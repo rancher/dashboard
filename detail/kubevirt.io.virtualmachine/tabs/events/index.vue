@@ -17,8 +17,8 @@ export default {
   data() {
     const reason = {
       ...REASON,
-      ...{ canBeVariable: true },
-      width: 180
+      canBeVariable: true,
+      width:         180
     };
 
     const eventHeaders = [

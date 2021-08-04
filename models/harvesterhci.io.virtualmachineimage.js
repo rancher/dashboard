@@ -6,6 +6,7 @@ import {
 } from '@/config/labels-annotations';
 import { get } from '@/utils/object';
 import { findBy } from '@/utils/array';
+import { getFileSize } from '@/utils/units';
 
 export default {
   availableActions() {
@@ -93,6 +94,10 @@ export default {
 
   annotationsToIgnoreRegexes() {
     return [DESCRIPTION].concat(ANNOTATIONS_TO_IGNORE_REGEX);
+  },
+
+  downSize() {
+    return getFileSize(this.status?.size);
   },
 
   customValidationRules() {

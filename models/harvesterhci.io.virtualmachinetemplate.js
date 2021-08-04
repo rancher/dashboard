@@ -39,7 +39,6 @@ export default {
       router.push({
         name:   `c-cluster-product-resource-create`,
         params: { resource: HCI.VM },
-        // query:  { templateId: this.id, version: this.spec.defaultVersionId }
         query:  { templateId: this.id, versionId: this.spec.defaultVersionId }
       });
     };

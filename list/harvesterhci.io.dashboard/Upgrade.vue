@@ -47,7 +47,7 @@ export default {
     },
 
     currentVersion() {
-      const serverVersion = this.$store.getters['cluster/byId'](HCI.SETTING, 'server-version');
+      const serverVersion = this.$store.getters['virtual/byId'](HCI.SETTING, 'server-version');
 
       return serverVersion.currentVersion || '';
     },
@@ -95,7 +95,7 @@ export default {
         spec: { version: this.version }
       };
 
-      const proxyResource = await this.$store.dispatch('cluster/create', upgradeValue);
+      const proxyResource = await this.$store.dispatch('virtual/create', upgradeValue);
 
       try {
         await proxyResource.save();
