@@ -128,7 +128,7 @@ export default {
     }
 
     if ( this.value.spec.cloudCredentialSecretName ) {
-      this.credentialId = `${ this.value.metadata.namespace }/${ this.value.spec.cloudCredentialSecretName }`;
+      this.credentialId = `${ this.value.spec.cloudCredentialSecretName }`;
     }
 
     if ( !this.value.spec.kubernetesVersion ) {
