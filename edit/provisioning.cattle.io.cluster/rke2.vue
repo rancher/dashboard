@@ -644,6 +644,7 @@ export default {
             id,
             remove: false,
             create:  false,
+            update: true,
             pool:    clone(pool),
             config:  await this.$store.dispatch('management/clone', { resource: config }),
           });
@@ -674,6 +675,7 @@ export default {
         config,
         remove: false,
         create:  true,
+        update: false,
         pool:    {
           name,
           etcdRole:         numCurrentPools === 0,
@@ -731,7 +733,7 @@ export default {
           entry.config = neu;
           entry.pool.machineConfigRef.name = neu.metadata.name;
           entry.create = false;
-        } else {
+        } else if (entry.update) {
           const response = await entry.config.save();
 
           entry.config = response;
