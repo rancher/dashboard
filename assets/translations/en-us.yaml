@@ -901,8 +901,8 @@ cluster:
     registrationCommand:
       label: Registration Command
       linuxDetail: Run this command on each of the existing Linux machines you want to register.
-      windowsDetail: Run this command on each of the existing Windows machines you want to register.  Windows nodes can only be workers.
-      windowsNotReady: The cluster must be up and running with Linux etcd and Control Plane nodes before you can add Windows workers.
+      windowsDetail: Run this command in Powershell on each of the existing Windows machines you want to register.
+      windowsNotReady: The cluster must be up and running with Linux etcd and Control Plane nodes before the registration command for adding Windows workers will display.
       insecure: "Insecure: Select this to skip TLS verification if your server has a self-signed certificate."
   credential:
     aws:
