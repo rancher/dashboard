@@ -169,7 +169,7 @@ export default {
     <Tabbed ref="tabbed" :side-tabs="true" default-tab="overview" @changed="tabChanged">
       <Tab :label="t('generic.overview')" :weight="receiverTypes.length" name="overview">
         <div class="box-container create-resource-container ">
-          <div v-for="(receiverType, i) in receiverTypes" :key="i" class="mb-10 subtype-banner" primary-color-var="--primary-color" @click.native="navigateTo(receiverType)">
+          <div v-for="(receiverType, i) in receiverTypes" :key="i" class="mb-10 subtype-banner" primary-color-var="--primary-color" @click="navigateTo(receiverType)">
             <div class="left">
               <div class="logo">
                 <img :src="receiverType.logo" />
