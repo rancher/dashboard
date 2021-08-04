@@ -499,5 +499,16 @@ export default {
     }
 
     return true;
-  }
+  },
+
+  customValidationRules() {
+    return [
+      {
+        path:           'metadata.name',
+        translationKey: 'cluster.name.label',
+        validators:     [`clusterName:${ this.isRke2 }`],
+      },
+    ];
+  },
+
 };
