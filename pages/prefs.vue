@@ -209,8 +209,8 @@ export default {
       </div>
     </div>
     <hr />
-    <div class="row">
-      <div class="col">
+    <div class="row mb-20">
+      <div class="col span-12">
         <h4 v-t="'prefs.helm.label'" />
         <ButtonGroup v-model="showPreRelease" :options="helmOptions" />
       </div>

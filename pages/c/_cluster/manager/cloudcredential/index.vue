@@ -2,8 +2,8 @@
 import Loading from '@/components/Loading';
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
-import { SECRET } from '@/config/types';
-import { AGE, NAME, STATE } from '@/config/table-headers';
+import { NORMAN, SECRET } from '@/config/types';
+import { AGE_NORMAN, DESCRIPTION, NAME_UNLINKED } from '@/config/table-headers';
 import { CLOUD_CREDENTIAL, _FLAGGED } from '@/config/query-params';
 
 export default {
@@ -13,48 +13,41 @@ export default {
 
   async fetch() {
     this.allSecrets = await this.$store.dispatch('management/findAll', { type: SECRET });
+    this.allCredentials = await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
   },
 
   data() {
     return {
-      allSecrets: null,
-      resource:   SECRET,
-      schema:     this.$store.getters['management/schemaFor'](SECRET),
+      allCredentials: null,
+      resource:       NORMAN.CLOUD_CREDENTIAL,
+      schema:         this.$store.getters['rancher/schemaFor'](NORMAN.CLOUD_CREDENTIAL),
     };
   },
 
   computed: {
     rows() {
-      return this.allSecrets.filter(x => x.isCloudCredential);
+      return this.allCredentials || [];
     },
 
     headers() {
       return [
-        STATE,
-        NAME,
-        {
-          name:        'provider',
-          label:       'Provider',
-          value:       'cloudCredentialProviderDisplay',
-          sort:        'cloudCredentialProviderDisplay',
-          search:      'cloudCredentialProviderDisplay',
-          dashIfEmpty: true,
-        },
+        NAME_UNLINKED,
         {
           name:        'apikey',
           label:       'API Key',
-          value:       'cloudCredentialPublicData',
-          sort:        'cloudCredentialPublicData',
-          search:      'cloudCredentialPublicData',
+          value:       'publicData',
+          sort:        'publicData',
+          search:      'publicData',
           dashIfEmpty: true,
         },
-        AGE
+        DESCRIPTION,
+        AGE_NORMAN,
       ];
     },
 
     createLocation() {
       return {
-        name:   'c-cluster-product-resource-create',
+        name:   'c-cluster-manager-cloudCredential-create',
         params: {
           product:  this.$store.getters['currentProduct'].name,
           resource: this.resource
@@ -80,9 +73,10 @@ export default {
       type-display="Cloud Credentials"
     />
 
-    <ResourceTable :schema="schema" :rows="rows" :headers="headers" :namespaced="false">
+    <ResourceTable :schema="schema" :rows="rows" :headers="headers" :namespaced="false" group-by="providerDisplay">
       <template #cell:apikey="{row}">
-        <span v-html="row.cloudCredentialPublicData" />
+        <span v-if="row.publicData" v-html="row.publicData" />
+        <span v-else class="text-muted">&mdash;</span>
       </template>
     </ResourceTable>
   </div>

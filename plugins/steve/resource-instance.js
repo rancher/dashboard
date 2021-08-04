@@ -320,7 +320,7 @@ export default {
   },
 
   nameDisplay() {
-    return this.displayName || this.spec?.displayName || this.metadata?.annotations?.[NORMAN_NAME] || this.metadata?.name || this.name || this.id;
+    return this.displayName || this.spec?.displayName || this.metadata?.annotations?.[NORMAN_NAME] || this.name || this.metadata?.name || this.id;
   },
 
   nameSort() {
@@ -881,6 +881,10 @@ export default {
 
       if (opt?.data._type) {
         opt.data.type = opt.data._type;
+      }
+
+      if (opt?.data._name) {
+        opt.data.name = opt.data._name;
       }
 
       try {

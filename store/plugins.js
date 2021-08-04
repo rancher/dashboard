@@ -22,10 +22,36 @@ const credentialOptions = {
   },
 };
 
+export const rke1Supports = [
+  'aws',
+  'azure',
+  'digitalocean',
+  'gcp',
+  'harvester',
+  'linode',
+  'oracle',
+  'pnap',
+  'vmwarevsphere'
+];
+
 const driverMap = {
-  amazonec2: 'aws',
-  amazoneks: 'aws',
-  aks:       'azure',
+  aks:                             'azure',
+  amazonec2:                       'aws',
+  amazoneks:                       'aws',
+  amazonelasticcontainerservice:   'aws',
+  azurekubernetesservice:          'azure',
+  google:                          'gcp',
+  googlekubernetesengine:          'gcp',
+  huaweicontainercloudengine:      'huawei',
+  linodekubernetesengine:          'linode',
+  oci:                             'oracle',
+  opentelekomcloudcontainerengine: 'otc',
+  oraclecontainerengine:           'oracle',
+};
+
+const driverToFieldMap = {
+  aws: 'amazonec2',
+  gcp: 'google',
 };
 
 export const likelyFields = [
@@ -82,13 +108,25 @@ export const getters = {
 
   credentialOptions() {
     return (name) => {
+      name = (name || '').toLowerCase();
+
       return credentialOptions[name] || {};
     };
   },
 
   credentialDriverFor() {
     return (name) => {
+      name = (name || '').toLowerCase();
+
       return driverMap[name] || name;
+    };
+  },
+
+  credentialFieldForDriver() {
+    return (name) => {
+      name = (name || '').toLowerCase();
+
+      return driverToFieldMap[name] || name;
     };
   },
 
@@ -120,7 +158,10 @@ export const getters = {
       const schema = getters.schemaForDriver(name);
 
       if ( !schema ) {
-        throw new Error(`Machine Driver Config schema not found for ${ name }`);
+        // eslint-disable-next-line no-console
+        console.error(`Machine Driver Config schema not found for ${ name }`);
+
+        return [];
       }
 
       const out = Object.keys(schema?.resourceFields || {});

@@ -946,6 +946,21 @@ cluster:
         password:
           label: Password
         note: 'Note: The free ESXi license does not support API access. Only servers with a valid or evaluation license are supported.'
+    gcp:
+      authEncodedJson:
+        label: Service Account
+        placeholder: Service Account private key JSON file
+        help: |-
+          <p>Create a <a href="https://console.cloud.google.com/projectselector/iam-admin/serviceaccounts" target="_blank" rel="noopener noreferrer nofollow">Service Account</a> with a JSON private key and provide the JSON here.
+          These IAM roles are required:</p>
+          <ul>
+          <li><b>Compute Engine:</b> Compute Viewer (roles/compute.viewer)</li>
+          <li><b>Project:</b> Viewer (roles/viewer)</li>
+          <li><b>Kubernetes Engine:</b> Kubernetes Engine Admin (roles/container.admin)</li>
+          <li><b>Service Accounts:</b> Service Account User (roles/iam.serviceAccountUser)</li>
+          </ul>
+          More info on roles can be found <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/iam-integration" target="_blank" rel="noopener noreferrer nofollow">here</a>.
+
     harvester:
       import: Imported Harvester
       external: External Harvester
@@ -1179,7 +1194,7 @@ cluster:
     aliyun:  Alibaba ACK
     amazonec2: Amazon EC2
     amazoneks: Amazon EKS
-    aws: Amazon AWS
+    aws: Amazon
     azure: Azure
     azureaks: Azure AKS
     aks: Azure AKS
@@ -1192,9 +1207,11 @@ cluster:
     docker: Docker
     eks: Amazon EKS
     exoscale: Exoscale
+    gcp: Google
     google: Google GCE
     googlegke: Google GKE
     gke: Google GKE
+    harvester: Harvester
     huaweicce: Huawei CCE
     import: Generic
     imported: Imported
@@ -1208,6 +1225,7 @@ cluster:
     openstack: OpenStack
     opentelekomcloudcontainerengine: Open Telekom Cloud CCE
     otccce: Open Telekom Cloud CCE
+    oracle: Oracle
     oracleoke: Oracle OKE
     otc: Open Telekom Cloud
     other: Other
@@ -1222,7 +1240,7 @@ cluster:
     softlayer: IBM Cloud
     tencenttke: Tencent TKE
     upcloud: UpCloud
-    vmwarevsphere: vSphere
+    vmwarevsphere: VMware vSphere
     zstack: ZStack
   providerGroup:
     create-custom1: Use existing nodes and create a cluster using RKE
@@ -4632,15 +4650,20 @@ typeLabel:
       one { Namespaced Repo }
       other { Namespaced Repos }
     }
-  chartInstallAction: |-
+  chartinstallaction: |-
     {count, plural,
       one { App }
       other { Apps }
     }
-  chartUpgradeAction: |-
+  chartupgradeaction: |-
     {count, plural,
       one { App }
       other { Apps }
+    }
+  cloudcredential: |-
+    {count, plural,
+      one { Cloud Credential }
+      other { Cloud Credentials }
     }
   endpoints: |-
     {count, plural,

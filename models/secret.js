@@ -1,11 +1,9 @@
 import r from 'jsrsasign';
-import { CAPI, CERTMANAGER, KUBERNETES } from '@/config/labels-annotations';
+import { CERTMANAGER, KUBERNETES } from '@/config/labels-annotations';
 import { base64Decode, base64Encode } from '@/utils/crypto';
 import { removeObjects } from '@/utils/array';
 import { SERVICE_ACCOUNT } from '@/config/types';
-import { isEmpty, set } from '@/utils/object';
-import { escapeHtml } from '@/utils/string';
-import { fullFields, prefixFields, simplify, suffixFields } from '@/store/plugins';
+import { set } from '@/utils/object';
 import { NAME as MANAGER } from '@/config/product/manager';
 
 export const TYPES = {
@@ -35,7 +33,7 @@ export default {
   },
 
   isCloudCredential() {
-    return this._type === TYPES.CLOUD_CREDENTIAL;
+    return this._type === TYPES.CLOUD_CREDENTIAL || (this.metadata.namespace === 'cattle-global-data' && this.metadata.generateName === 'cc-');
   },
 
   dockerJSON() {
@@ -336,6 +334,7 @@ export default {
     };
   },
 
+  /*
   cloudCredentialProvider() {
     return this.metadata?.annotations?.[CAPI.CREDENTIAL_DRIVER];
   },
@@ -391,6 +390,7 @@ export default {
       return escapeHtml(val);
     }
   },
+*/
 
   doneRoute() {
     if ( this.$rootGetters['currentProduct'].name === MANAGER ) {

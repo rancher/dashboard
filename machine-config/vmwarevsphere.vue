@@ -3,7 +3,7 @@ import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledSelect from '@/components/form/LabeledSelect';
 // import Checkbox from '@/components/form/Checkbox';
-import { SECRET } from '@/config/types';
+import { NORMAN } from '@/config/types';
 import { stringify } from '@/utils/error';
 import Banner from '@/components/Banner';
 import UnitInput from '@/components/form/UnitInput';
@@ -150,7 +150,7 @@ export default {
   async fetch() {
     this.errors = [];
 
-    this.credential = await this.$store.dispatch('management/find', { type: SECRET, id: this.cloudCredentialId });
+    this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.cloudCredentialId });
   },
 
   data() {
@@ -262,7 +262,7 @@ export default {
     },
 
     cloudCredentialId() {
-      return this.credentialId.split('/')[1];
+      return this.credentialId.split(/[:/]/)[1];
     },
 
     host: {

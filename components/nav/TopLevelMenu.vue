@@ -69,8 +69,10 @@ export default {
         };
       });
 
-      if (this.clusterFilter.length > 0) {
-        out = out.filter(item => item.label.indexOf(this.clusterFilter) === 0);
+      const search = (this.clusterFilter || '').toLowerCase();
+
+      if ( search ) {
+        out = out.filter(item => item.label.toLowerCase().includes(search));
       }
 
       const sorted = sortBy(out, ['ready:desc', 'label']);
