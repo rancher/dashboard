@@ -136,11 +136,19 @@ export default {
     }
 
     for ( const k in this.serverArgs ) {
-      set(this.serverConfig, k, this.serverConfig[k] || this.serverArgs[k].default || undefined);
+      if ( this.serverConfig[k] === undefined ) {
+        const def = this.serverArgs[k].default;
+
+        set(this.serverConfig, k, (def !== undefined ? undefined : def));
+      }
     }
 
     for ( const k in this.agentArgs ) {
-      set(this.agentConfig, k, this.agentConfig[k] || this.agentArgs[k].default || undefined);
+      if ( this.agentConfig[k] === undefined ) {
+        const def = this.agentArgs[k].default;
+
+        set(this.agentConfig, k, (def !== undefined ? undefined : def));
+      }
     }
 
     if ( !this.serverConfig.profile ) {
