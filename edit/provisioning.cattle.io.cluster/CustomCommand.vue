@@ -172,15 +172,21 @@ function sanitizeValue(v) {
       <template v-if="cluster.supportsWindows">
         <hr class="mt-20 mb-20" />
         <h4 v-t="'cluster.custom.registrationCommand.windowsDetail'" />
-        <CopyCode v-if="isClusterReady" class="m-10 p-10">
-          {{ windowsCommand }}
-        </CopyCode>
-        <Checkbox
-          v-if="isClusterReady && clusterToken.insecureWindowsNodeCommand"
-          v-model="insecureWindows"
-          label-key="cluster.custom.registrationCommand.insecure"
+        <template v-if="isClusterReady">
+          <CopyCode class="m-10 p-10">
+            {{ windowsCommand }}
+          </CopyCode>
+          <Checkbox
+            v-if="clusterToken.insecureWindowsNodeCommand"
+            v-model="insecureWindows"
+            label-key="cluster.custom.registrationCommand.insecure"
+          />
+        </template>
+        <Banner
+          v-else
+          color="info"
+          :label="t('cluster.custom.registrationCommand.windowsNotReady')"
         />
-        <Banner color="info" :label="t('cluster.custom.registrationCommand.windowsNotReady')" />
       </template>
     </InfoBox>
   </div>
