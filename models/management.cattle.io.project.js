@@ -23,6 +23,16 @@ export default {
     });
   },
 
+  warnDeletionMessage() {
+    return (toRemove = []) => {
+      return this.$rootGetters['i18n/t']('project.warnDeletion', { count: toRemove.length });
+    };
+  },
+
+  confirmRemove() {
+    return true;
+  },
+
   listLocation() {
     return { name: 'c-cluster-product-projectsnamespaces' };
   },

@@ -2903,6 +2903,11 @@ project:
   containerDefaultResourceLimit: Container Default Resource Limit
   resourceQuotas: Resource Quotas
   haveOneOwner: There must be at least one member with the Owner role.
+  warnDeletion:  |-
+    {count, plural,
+    =1 { Deleting a project will delete all associated namespaces that were created through the Rancher UI. }
+    other { Deleting these projects will delete all associated namespaces that were created through the Rancher UI. }
+    }
 
 projectMembers:
   project:
