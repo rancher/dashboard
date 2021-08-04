@@ -31,6 +31,7 @@ export default {
       controlPlane:    true,
       worker:          true,
       insecure:        false,
+      insecureWindows: true,
       address:         '',
       internalAddress: '',
       nodeName:        '',
@@ -73,7 +74,7 @@ export default {
     },
 
     windowsCommand() {
-      const out = [this.clusterToken.windowsNodeCommand];
+      const out = this.insecureWindows ? [this.clusterToken.insecureWindowsNodeCommand] : [this.clusterToken.windowsNodeCommand];
 
       this.address && out.push(`-Address "${ sanitizeValue(this.address) }"`);
       this.internalAddress && out.push(`-InternalAddress "${ sanitizeValue(this.internalAddress) }"`);
@@ -170,6 +171,11 @@ function sanitizeValue(v) {
         <CopyCode v-if="cluster.mgmt && cluster.mgmt.isReady" class="m-10 p-10">
           {{ windowsCommand }}
         </CopyCode>
+        <Checkbox
+          v-if="clusterToken.insecureWindowsNodeCommand"
+          v-model="insecureWindows"
+          label-key="cluster.custom.registrationCommand.insecure"
+        />
         <Banner color="info" :label="t('cluster.custom.registrationCommand.windowsNotReady')" />
       </template>
     </InfoBox>
