@@ -96,7 +96,7 @@ export default {
         v-bind="$attrs"
         :headers="headers"
         default-sort-by="age"
-        :rows="[...rows]"
+        :rows="rows"
         key-field="_key"
         v-on="$listeners"
       >

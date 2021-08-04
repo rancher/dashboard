@@ -166,7 +166,7 @@ export default {
     },
 
     parent() {
-      const displayName = this.$store.getters['type-map/labelFor'](this.schema);
+      const displayName = this.value.displayNameOverride || this.$store.getters['type-map/labelFor'](this.schema);
       const product = this.$store.getters['currentProduct'].name;
 
       const defaultLocation = {

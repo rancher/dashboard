@@ -3962,6 +3962,9 @@ harvester:
         label: 模版
       version:
         label: 版本
+    promptRemove:
+      title: '需要您要删除的卷:'
+      deleteAll: 全部删除
     restartTip: 现在重新启动虚拟机以使配置更改生效.
     createRunning: 创建时启动虚拟机
     restartNow: 现在重启

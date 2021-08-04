@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import { HCI } from '@/config/types';
 import { isEmpty } from '@/utils/object';
 import Parse from 'url-parse';
@@ -27,6 +28,8 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
     removeNameArr() {
       const out = {};
 
@@ -113,7 +116,7 @@ export default {
 
 <template>
   <div class="mt-10">
-    <span class="text-info">Select the volume you want to delete:</span>
+    <span class="text-info">{{ t('harvester.virtualMachine.promptRemove.title') }}</span>
     <br />
     <div v-if="value.length === 1">
       <span v-for="name in removeNameArr[value[0].id]" :key="name">
@@ -133,7 +136,7 @@ export default {
           class="checkbox-custom mr-5"
           role="checkbox"
         />
-        Delete All
+        {{ t('harvester.virtualMachine.promptRemove.deleteAll') }}
       </label>
     </div>
   </div>

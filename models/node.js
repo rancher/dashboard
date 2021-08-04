@@ -6,6 +6,12 @@ import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
 import { PRIVATE } from '@/plugins/steve/resource-proxy';
 
 export default {
+  displayNameOverride() {
+    if (this.$rootGetters['currentProduct'].inStore === VIRTUAL) {
+      return this.$rootGetters['i18n/t'](`typeLabel.host`, { count: 1 });
+    }
+  },
+
   _availableActions() {
     // Harvester node actions
     const cordonHarvester = {

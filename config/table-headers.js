@@ -832,9 +832,8 @@ export const STATE_NORMAN = {
 export const IMAGE_DOWNLOAD_SIZE = {
   name:      'downloadedBytes',
   labelKey:  'tableHeaders.size',
-  value:     'status.size',
+  value:     'downSize',
   sort:      'status.size',
-  formatter: 'ByteFormat',
   width:     120
 };
 
@@ -864,19 +863,15 @@ export const FINGERPRINT = {
 // network
 export const NETWORK_TYPE = {
   name:      'type',
-  value:     'spec.config',
+  value:     'vlanType',
   sort:      'spec.config',
-  type:      'type',
-  formatter: 'ParseNetworkConfig',
   labelKey:  'tableHeaders.networkType'
 };
 
 export const NETWORK_VLAN = {
   name:      'vlan',
-  value:     'spec.config',
+  value:     'vlanId',
   sort:      'spec.config',
-  type:      'vlan',
-  formatter: 'ParseNetworkConfig',
   labelKey:  'tableHeaders.networkVlan'
 };
 
