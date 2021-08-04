@@ -3955,6 +3955,8 @@ validation:
     min: '"{key}" should contain at least {count} {count, plural, =1 {item} other {items}}'
   boolean: '"{key}" must be a boolean value.'
   chars: '"{key}" contains {count, plural, =1 {an invalid character} other {# invalid characters}}: {chars}'
+  cluster:
+    name: Cluster name cannot be 'local' or take the form 'c-xxxxx'
   custom:
     missing: 'No validtor exists for { validatorName }! Does the validtor exist in custom-validtors? Is the name spelled correctly?'
   dns:
