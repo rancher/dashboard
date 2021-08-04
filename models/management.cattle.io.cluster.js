@@ -263,7 +263,6 @@ export default {
 
       return res.config;
     };
-
   },
 
   downloadKubeConfig() {
