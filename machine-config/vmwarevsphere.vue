@@ -3,7 +3,7 @@ import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledSelect from '@/components/form/LabeledSelect';
 // import Checkbox from '@/components/form/Checkbox';
-import { NORMAN, SECRET } from '@/config/types';
+import { NORMAN } from '@/config/types';
 import { stringify } from '@/utils/error';
 import Banner from '@/components/Banner';
 import UnitInput from '@/components/form/UnitInput';

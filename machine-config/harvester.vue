@@ -11,7 +11,7 @@ import Banner from '@/components/Banner';
 import { get } from '@/utils/object';
 import { mapGetters } from 'vuex';
 import {
-  SECRET, HCI, NAMESPACE, MANAGEMENT, CONFIG_MAP, NORMAN
+  HCI, NAMESPACE, MANAGEMENT, CONFIG_MAP, NORMAN
 } from '@/config/types';
 import { base64Decode, base64Encode } from '@/utils/crypto';
 import { allHashSettled } from '@/utils/promise';

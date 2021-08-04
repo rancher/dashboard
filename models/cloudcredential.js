@@ -6,6 +6,25 @@ import { escapeHtml } from '~/utils/string';
 
 export default {
   hasSensitiveData: () => true,
+  canCustomEdit:    () => true,
+
+  _detailLocation() {
+    return {
+      name:   `c-cluster-manager-cloudCredential-id`,
+      params: {
+        product: this.$rootGetters['productId'],
+        cluster: this.$rootGetters['clusterId'],
+        id:      this.id,
+      }
+    };
+  },
+
+  parentLocationOverride() {
+    return {
+      name:   `c-cluster-manager-cloudCredential`,
+      params: { cluster: this.$rootGetters['clusterId'] }
+    };
+  },
 
   secret() {
     return this.$rootGetters['management/byId'](SECRET, this.id.replace(':', '/'));
@@ -66,8 +85,8 @@ export default {
     return (key, value) => { // or (mapOfNewData)
       const isMap = key && typeof key === 'object';
 
-      if ( !this.data || isMap ) {
-        set(this, 'data', {});
+      if ( !this[this.configKey] || isMap ) {
+        set(this, this.configKey, {});
       }
 
       let neu;
@@ -80,7 +99,7 @@ export default {
 
       for ( const k in neu ) {
         // The key is quoted so that keys like '.dockerconfigjson' that contain dot don't get parsed into an object path
-        set(this.decodedData, `"${ k }"`, neu[k]);
+        set(this, `"${ this.configKey }"."${ k }"`, neu[k]);
       }
     };
   },

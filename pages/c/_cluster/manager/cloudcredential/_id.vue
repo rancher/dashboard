@@ -2,7 +2,7 @@
 import ResourceDetail from '@/components/ResourceDetail';
 
 export default {
-  name:       'CloudCredentialCreate',
+  name:       'CloudCredentialEdit',
   components: { ResourceDetail },
 };
 </script>

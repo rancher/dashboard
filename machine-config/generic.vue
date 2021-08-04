@@ -3,7 +3,7 @@ import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
 import CreateEditView from '@/mixins/create-edit-view';
 import { exceptionToErrorsArray, stringify } from '@/utils/error';
-import { NORMAN, SECRET } from '@/config/types';
+import { NORMAN } from '@/config/types';
 import Questions from '@/components/Questions';
 import { iffyFields, simplify } from '@/store/plugins';
 import { isEmpty } from '@/utils/object';

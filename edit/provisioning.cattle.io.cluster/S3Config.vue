@@ -52,8 +52,6 @@ export default {
     update() {
       const out = { ...this.config };
 
-      console.log('emit', out);
-
       this.$emit('input', out);
     },
   },
