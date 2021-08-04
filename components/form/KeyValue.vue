@@ -628,7 +628,7 @@ export default {
       }
 
       &.value textarea{
-        padding: 21px 10px 10px 10px;
+        padding: 10px 10px 10px 10px;
       }
 
       .text-monospace:not(.conceal) {
