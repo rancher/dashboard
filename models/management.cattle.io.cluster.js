@@ -259,10 +259,7 @@ export default {
 
   generateKubeConfig() {
     return async() => {
-      const res = await this.$dispatch('request', {
-        method: 'post',
-        url:    `/v3/clusters/${ this.id }?action=generateKubeconfig`
-      });
+      const res = await this.doAction('generateKubeconfig');
 
       return res.config;
     };
