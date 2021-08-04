@@ -102,6 +102,10 @@ export default {
       return out.join(' ');
     },
 
+    isClusterReady() {
+      return this.cluster.mgmt && this.cluster.mgmt.isReady;
+    }
+
   },
 
   methods: {
@@ -168,11 +172,11 @@ function sanitizeValue(v) {
       <template v-if="cluster.supportsWindows">
         <hr class="mt-20 mb-20" />
         <h4 v-t="'cluster.custom.registrationCommand.windowsDetail'" />
-        <CopyCode v-if="cluster.mgmt && cluster.mgmt.isReady" class="m-10 p-10">
+        <CopyCode v-if="isClusterReady" class="m-10 p-10">
           {{ windowsCommand }}
         </CopyCode>
         <Checkbox
-          v-if="clusterToken.insecureWindowsNodeCommand"
+          v-if="isClusterReady && clusterToken.insecureWindowsNodeCommand"
           v-model="insecureWindows"
           label-key="cluster.custom.registrationCommand.insecure"
         />
