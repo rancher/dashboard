@@ -61,6 +61,11 @@ export default {
       },
     },
 
+    keyEditable: {
+      type:    Boolean,
+      default: true,
+    },
+
     // Offer a set of suggestions for the keys as a Select instead of Input
     keyOptions: {
       type:    Array,
@@ -523,7 +528,7 @@ export default {
               v-else
               ref="key"
               v-model="row[keyName]"
-              :disabled="isView"
+              :disabled="isView || !keyEditable"
               :placeholder="keyPlaceholder"
               @input="queueUpdate"
               @paste="onPaste(i, $event)"

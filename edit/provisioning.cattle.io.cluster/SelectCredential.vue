@@ -1,7 +1,7 @@
 <script>
 import Loading from '@/components/Loading';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import { SECRET } from '@/config/types';
+import { NORMAN, SECRET } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -40,11 +40,7 @@ export default {
   },
 
   async fetch() {
-    const secretSchema = this.$store.getters['management/schemaFor'](SECRET);
-
-    if (secretSchema?.collectionMethods.find(x => x.toLowerCase() === 'get')) {
-      this.allSecrets = await this.$store.dispatch('management/findAll', { type: SECRET });
-    }
+    this.allCredentials = await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
 
     this.newCredential = await this.$store.dispatch('management/create', {
       type:     SECRET,
@@ -56,17 +52,17 @@ export default {
       data: {},
     });
 
-    if ( this.filteredSecrets.length === 1 ) {
+    if ( this.filteredCredentials.length === 1 ) {
       // Auto pick the first credential if there's only one
-      this.credentialId = this.filteredSecrets[0].id;
-    } else if ( !this.filteredSecrets.length ) {
+      this.credentialId = this.filteredCredentials[0].id;
+    } else if ( !this.filteredCredentials.length ) {
       this.credentialId = _NEW;
     }
   },
 
   data() {
     return {
-      allSecrets:             [],
+      allCredentials:         [],
       nodeComponent:          null,
       credentialId:           this.value || _NONE,
       newCredential:          null,
@@ -96,19 +92,12 @@ export default {
       return driver;
     },
 
-    filteredSecrets() {
-      // @TODO better thing to filter secrets by, limit to matching provider
-      const out = this.allSecrets.filter((obj) => {
-        return obj.metadata.namespace === DEFAULT_WORKSPACE &&
-          obj.metadata.annotations?.[CAPI.CREDENTIAL_DRIVER] === this.driverName;
-      });
-
-      return out;
+    filteredCredentials() {
+      return this.allCredentials.filter(x => x.provider === this.driverName);
     },
 
     options() {
-      // @TODO better thing to filter secrets by, limit to matching provider
-      const out = this.filteredSecrets.map((obj) => {
+      const out = this.filteredCredentials.map((obj) => {
         return {
           label: obj.nameDisplay,
           value: obj.id,

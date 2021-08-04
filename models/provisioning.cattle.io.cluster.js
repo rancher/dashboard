@@ -418,7 +418,8 @@ export default {
           method:        'post',
         }, { root: true });
       } else {
-        const args = {};
+        const now = this.spec?.rkeConfig?.etcdSnapshotCreate.generation || 1;
+        const args = { generation: now + 1 };
 
         if ( this.spec?.rkeConfig?.etcd?.s3 ) {
           args.s3 = this.spec.rkeConfig.etcd.s3;

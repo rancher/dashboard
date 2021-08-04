@@ -6,7 +6,7 @@ import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
 
 import CreateEditView from '@/mixins/create-edit-view';
-import { CAPI, MANAGEMENT, SECRET } from '@/config/types';
+import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
 import { _CREATE, _EDIT } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
@@ -117,6 +117,14 @@ export default {
 
     if ( !this.value.spec ) {
       set(this.value, 'spec', {});
+    }
+
+    if ( !this.value.spec.machineSelectorConfig ) {
+      set(this.value.spec, 'machineSelectorConfig', []);
+    }
+
+    if ( !this.value.spec.machineSelectorConfig.find(x => !x.machineLabelSelector) ) {
+      this.value.spec.machineSelectorConfig.unshift({ config: {} });
     }
 
     if ( this.value.spec.cloudCredentialSecretName ) {
@@ -585,12 +593,20 @@ export default {
   },
 
   watch: {
+    s3Backup(neu) {
+      if ( neu ) {
+        set(this.rkeConfig.etcd, 's3', {});
+      } else {
+        set(this.rkeConfig.etcd, 's3', null);
+      }
+    },
+
     credentialId(val) {
       if ( val ) {
-        this.credential = this.$store.getters['management/byId'](SECRET, this.credentialId);
+        this.credential = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.credentialId);
 
         if ( this.credential ) {
-          this.value.spec.cloudCredentialSecretName = this.credential.metadata.name;
+          this.value.spec.cloudCredentialSecretName = this.credential.id;
         } else {
           this.value.spec.cloudCredentialSecretName = null;
         }
@@ -1145,7 +1161,7 @@ export default {
             />
 
             <S3Config
-              v-if="s3Backup"
+              v-if="rkeConfig.etcd.s3"
               v-model="rkeConfig.etcd.s3"
               :namespace="value.metadata.namespace"
               :register-before-hook="registerBeforeHook"
@@ -1302,7 +1318,7 @@ export default {
                   <h3>Add additional Kubelet args:</h3>
                 </template>
                 <h3 v-else>
-                  For all nodes:
+                  For all machines:
                 </h3>
 
                 <ArrayList

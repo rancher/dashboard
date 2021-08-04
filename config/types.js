@@ -16,6 +16,7 @@ export const NORMAN = {
   ETCD_BACKUP:                   'etcdbackup',
   CLUSTER_TOKEN:                 'clusterregistrationtoken',
   CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterRoleTemplateBinding',
+  CLOUD_CREDENTIAL:              'cloudcredential',
   GROUP:                         'group',
   // Note - This allows access to node resources, not schema's or custom components (both are accessed via 'type' which clashes with kube node)
   NODE:                          'node',
