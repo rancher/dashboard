@@ -260,6 +260,7 @@ export default {
   generateKubeConfig() {
     return async() => {
       const res = await this.doAction('generateKubeconfig');
+
       return res.config;
     };
 
