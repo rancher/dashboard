@@ -1,14 +1,13 @@
 <script>
 import Loading from '@/components/Loading';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import { NORMAN, SECRET } from '@/config/types';
+import { NORMAN } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Banner from '@/components/Banner';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { importCloudCredential } from '@/utils/dynamic-importer';
-import { TYPES } from '@/models/secret';
 import { CAPI } from '@/config/labels-annotations';
 import { clear } from '@/utils/array';
 
@@ -42,14 +41,15 @@ export default {
   async fetch() {
     this.allCredentials = await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
 
-    this.newCredential = await this.$store.dispatch('management/create', {
-      type:     SECRET,
-      _type:    TYPES.CLOUD_CREDENTIAL,
+    const field = this.$store.getters['plugins/credentialFieldForDriver'](this.driverName);
+
+    this.newCredential = await this.$store.dispatch('rancher/create', {
+      type:     NORMAN.CLOUD_CREDENTIAL,
       metadata: {
         namespace:   DEFAULT_WORKSPACE,
         annotations: { [CAPI.CREDENTIAL_DRIVER]: this.driverName }
       },
-      data: {},
+      [`${ field }credentialConfig`]: {}
     });
 
     if ( this.filteredCredentials.length === 1 ) {
