@@ -3931,6 +3931,7 @@ harvester:
       storage: 存储
       networkType: 类型
       nic: 物理网卡
+      notRecommended: 不推荐
     enableMaintenance:
       title: 开启节点维护模式
       protip: 此操作会迁移当前节点上的所有虚拟机.

@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import Footer from '@/components/form/Footer';
@@ -36,7 +37,7 @@ export default {
       this.hostNetowrkResource = hostNetowrkResource;
       this.nic = hostNetowrkResource.spec?.nic;
       this.type = hostNetowrkResource.spec?.type;
-      this.physicalNics = hostNetowrkResource.physicalNics;
+      this.nics = hostNetowrkResource.nics;
     }
   },
   data() {
@@ -47,17 +48,20 @@ export default {
       customName,
       type:                'vlan',
       nic:                 '',
-      physicalNics:        []
+      nics:                []
     };
   },
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
     nicsOptions() {
-      return this.physicalNics.map( (N) => {
+      return this.nics.map( (N) => {
         const isRecommended = N.usedByManagementNetwork ? this.$store.getters['i18n/t']('harvester.host.detail.notRecommended') : '';
 
         return {
-          value: N.name,
-          label: `${ N.name } ${ isRecommended } `
+          value:                   N.name,
+          label:                   `${ N.name }    (${ isRecommended })`,
+          state:                   N.state,
+          usedByManagementNetwork: N.usedByManagementNetwork,
         };
       });
     }
@@ -121,7 +125,15 @@ export default {
                 :mode="mode"
                 :disabled="!hostNetowrkResource"
                 @input="update"
-              />
+              >
+                <template v-slot:option="option">
+                  <template>
+                    <div class="nicOption">
+                      <span>{{ option.value }} </span><span>{{ option.state }}</span> <span class="pull-right">{{ option.usedByManagementNetwork ? t('harvester.host.detail.notRecommended') : '' }}</span>
+                    </div>
+                  </template>
+                </template>
+              </LabeledSelect>
             </div>
           </div>
         </InfoBox>
@@ -133,5 +145,9 @@ export default {
 <style lang="scss" scoped>
 .wrapper{
   position: relative;
+}
+.nicOption {
+  display: flex;
+  justify-content: space-between;
 }
 </style>
