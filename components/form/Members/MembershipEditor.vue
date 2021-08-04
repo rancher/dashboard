@@ -9,6 +9,9 @@ function normalizeId(id) {
   return id?.replace(':', '/') || id;
 }
 
+// Matches creator-cluster-owner and creator-project-owner
+const CREATOR_OWNER_REGEX = /creator-(cluster|project)-owner/g;
+
 export default {
   components: { ArrayList, Loading },
 
@@ -52,15 +55,17 @@ export default {
     ];
     const allBindings = this.schema ? await this.$store.dispatch(`management/findAll`, { type: this.type }) : [];
     const bindings = allBindings
-      .filter(b => !b.isSystem)
-      .filter(b => !b.user?.isSystem)
+      .filter(b => !b.isSystem || CREATOR_OWNER_REGEX.test(b.metadata.name || ''))
       .filter(b => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
 
     this.$set(this, 'lastSavedBindings', [...bindings]);
 
     // Add the current user as the project owner. This will get created by default
     if (this.mode === _CREATE && bindings.length === 0 && this.defaultBindingHandler) {
-      bindings.push(await this.defaultBindingHandler());
+      const defaultBinding = await this.defaultBindingHandler();
+
+      defaultBinding.isDefaultBinding = true;
+      bindings.push(defaultBinding);
     }
 
     const [users] = await Promise.all(userHydration);
@@ -84,7 +89,7 @@ export default {
     },
     newBindings() {
       return this.bindings
-        .filter(binding => !binding.id && !this.lastSavedBindings.includes(binding));
+        .filter(binding => !binding.id && !this.lastSavedBindings.includes(binding) && !binding.isDefaultBinding);
     },
     removedBindings() {
       return this.lastSavedBindings
