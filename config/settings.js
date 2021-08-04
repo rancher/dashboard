@@ -97,7 +97,7 @@ const HCI_SETTING = {
   UI_INDEX:                         'ui-index',
   UPGRADE_CHECKER_ENABLED:          'upgrade-checker-enabled',
   UPGRADE_CHECKER_URL:              'upgrade-checker-url',
-  VLAN:                             'harvester-system/vlan',
+  VLAN:                             'vlan',
   // DEFAULT_STORAGE_CLASS:            'default-storage-class'
 };
 

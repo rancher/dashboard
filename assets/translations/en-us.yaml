@@ -4698,7 +4698,7 @@ harvester:
       compute: Compute Node
       storage: Storage Size
       nic: Physical NIC
-      notRecommended: '   (Not recommended)'
+      notRecommended: 'Not recommended'
       networkType: Type
     enableMaintenance:
       title: Enable Maintenance Mode

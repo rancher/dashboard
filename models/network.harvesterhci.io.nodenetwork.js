@@ -14,8 +14,8 @@ export default {
     return (findBy(conditions, 'type', 'Ready') || {})?.status === 'True';
   },
 
-  physicalNics() {
-    return this?.status?.physicalNICs || [];
+  nics() {
+    return this?.status?.nics || [];
   },
 
   attachNodeName() {
