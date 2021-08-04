@@ -38,12 +38,18 @@ export default {
       assignLocation:   {
         path:   `/c/local/${ NAME }/${ NORMAN.SPOOFED.GROUP_PRINCIPAL }/assign-edit`,
         query: { [MODE]: _EDIT }
-      }
+      },
+      initialLoad: true,
     };
   },
   computed: { ...mapState('action-menu', ['showPromptRemove', 'toRemove']) },
   watch:    {
     async toRemove(resources) {
+      if (this.initialLoad) {
+        this.initialLoad = false;
+
+        return;
+      }
       if (resources?.length === 0) {
         await this.refreshGroupMemberships(() => {});
         // spoofed collections normally get updated when promptRemove has completed (given the resources are of a spoofed type)..
