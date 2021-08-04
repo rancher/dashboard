@@ -31,7 +31,7 @@ export default {
       controlPlane:    true,
       worker:          true,
       insecure:        false,
-      insecureWindows: true,
+      insecureWindows: false,
       address:         '',
       internalAddress: '',
       nodeName:        '',
