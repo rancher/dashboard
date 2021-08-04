@@ -286,6 +286,10 @@ export default {
 
       return false;
     },
+
+    isClusterReady() {
+      return this.value.mgmt?.isReady;
+    }
   },
 
   mounted() {
@@ -444,7 +448,12 @@ export default {
         :search="false"
       >
         <template #header-right>
-          <AsyncButton mode="snapshot" class="btn role-primary" @click="takeSnapshot" />
+          <AsyncButton
+            mode="snapshot"
+            class="btn role-primary"
+            :disabled="!isClusterReady"
+            @click="takeSnapshot"
+          />
         </template>
       </SortableTable>
     </Tab>
