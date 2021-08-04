@@ -994,6 +994,7 @@ cluster:
   kubernetesVersion:
     label: Kubernetes Version
   toolsTip: Use the new Cluster Tools to manage and install Monitoring, Logging and other tools
+  legacyWarning: The legacy feature flag is enabled and not all legacy features are supported in Kubernetes 1.21+.
   name:
     label: Cluster Name
     placeholder: A unique name for the cluster

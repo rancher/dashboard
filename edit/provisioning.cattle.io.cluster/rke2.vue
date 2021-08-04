@@ -37,6 +37,8 @@ import Questions from '@/components/Questions';
 
 import { normalizeName } from '@/components/form/NameNsDescription.vue';
 import ClusterMembershipEditor from '@/components/form/Members/ClusterMembershipEditor';
+import { LEGACY } from '@/store/features';
+import semver from 'semver';
 import ACE from './ACE';
 import AgentEnv from './AgentEnv';
 import DrainOptions from './DrainOptions';
@@ -239,6 +241,7 @@ export default {
 
   computed: {
     ...mapGetters({ allCharts: 'catalog/charts' }),
+    ...mapGetters({ features: 'features/get' }),
 
     rkeConfig() {
       return this.value.spec.rkeConfig;
@@ -590,6 +593,17 @@ export default {
 
       return versions.filter(x => !!x);
     },
+
+    showk8s21LegacyWarning() {
+      const isLegacyEnabled = this.features(LEGACY);
+
+      if (!isLegacyEnabled) {
+        return false;
+      }
+      const selectedVersion = semver.coerce(this.value.spec.kubernetesVersion);
+
+      return semver.satisfies(selectedVersion, '>=1.21.0');
+    }
   },
 
   watch: {
@@ -1014,7 +1028,7 @@ export default {
       <Tabbed :side-tabs="true">
         <Tab name="basic" label-key="cluster.tabs.basic" :weight="11" @active="refreshYamls">
           <Banner v-if="!haveArgInfo" color="warning" label="Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor." />
-
+          <Banner v-if="showk8s21LegacyWarning" color="warning" :label="t('cluster.legacyWarning')" />
           <div class="row">
             <div class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
               <LabeledSelect
