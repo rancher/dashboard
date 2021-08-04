@@ -936,6 +936,7 @@ export default {
     :resource="value"
     :errors="errors"
     :cancel-event="true"
+    :done-route="doneRoute"
     @done="done"
     @finish="saveOverride"
     @cancel="cancel"
