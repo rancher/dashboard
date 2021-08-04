@@ -87,6 +87,14 @@ export default {
       return this.mode === _EDIT;
     }
   },
+
+  mounted() {
+    this.$nextTick(() => {
+      if (this.$refs.name) {
+        this.$refs.name.focus();
+      }
+    });
+  },
   methods: {
     async save(buttonDone) {
       this.errors = [];
@@ -185,6 +193,7 @@ export default {
         <div class="row">
           <div class="col span-4">
             <LabeledInput
+              ref="name"
               v-model="form.username"
               label-key="user.edit.credentials.username.label"
               placeholder-key="user.edit.credentials.username.placeholder"
