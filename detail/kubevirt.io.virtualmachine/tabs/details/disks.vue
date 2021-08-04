@@ -34,18 +34,5 @@ export default {
 <template>
   <div class="vm-inventory">
     <Volume v-model="diskRows" mode="view" />
-
-    <!-- <ModalWithCard ref="CDROM" name="CDROM" close-text="No" save-text="Yes" @beforeClose="beforeClose">
-      <template #title>
-        Eject CDROM
-      </template>
-
-      <template #content>
-        <div>
-          Are you sure you want to eject CD-ROM
-          <span class="text-info">{{ nameString }}</span>, this action will restart the virtual machine
-        </div>
-      </template>
-    </ModalWithCard> -->
   </div>
 </template>

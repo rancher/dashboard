@@ -1,5 +1,5 @@
 <script>
-import ConsumptionGauge from '@/components/NodeConsumptionGauge';
+import ConsumptionGauge from '@/components/ConsumptionGauge';
 import { METRIC } from '@/config/types';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
 

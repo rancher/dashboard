@@ -65,20 +65,6 @@ export default {
       return this.backupTargetResource?.errMessage;
     },
   },
-
-  // watch: {
-  //   errorMessage: {
-  //     handler(neu) {
-  //       const setting = !!neu ? '' : this.to;
-
-  //       this.$store.commit('virtual/setConfig', { // Provide a shortcut link, when the configuration is correct
-  //         type: this.resource,
-  //         data: { setting }
-  //       });
-  //     },
-  //     immediate: true
-  //   }
-  // },
 };
 </script>
 
@@ -118,7 +104,6 @@ export default {
     <Banner
       v-else
       color="info"
-      :closable="true"
     >
       <MessageLink
         :to="to"

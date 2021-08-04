@@ -1,11 +1,3 @@
-export const mapKind = {
-  VirtualMachine:              'Virtual Machine',
-  Node:                        'Host',
-  NetworkAttachmentDefinition: 'Network',
-  VirtualMachineImage:         'Image',
-  DataVolume:                  'Volume'
-};
-
 export const MemoryUnit = [{
   label: 'Mi',
   value: 'Mi'

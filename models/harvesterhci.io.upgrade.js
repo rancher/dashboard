@@ -7,7 +7,7 @@ export default {
   },
 
   nodes() {
-    return this.$rootGetters['cluster/all'](NODE);
+    return this.$rootGetters['virtual/all'](NODE);
   },
 
   upgradeMessage() {

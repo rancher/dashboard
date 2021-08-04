@@ -4856,6 +4856,7 @@ harvester:
     cordon:
       title: Cordon
       protip: This operation will mark the node { node } as unschedulable.
+
   virtualMachine:
     label: Virtual Machines
     instance:
@@ -4882,6 +4883,9 @@ harvester:
         label: template
       version:
         label: version
+    promptRemove:
+      title: 'Select the volume you want to delete:'
+      deleteAll: Delete All
     restartTip: Restart the virtual machine now to take effect of the configuration changes.
     createRunning: Start virtual machine on creation
     restartNow: Restart Now

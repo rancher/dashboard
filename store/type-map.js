@@ -124,7 +124,6 @@ import {
 
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { NAME as VIRTUAL } from '@/config/product/virtual';
-import { mapKind } from '@/config/map';
 import isObject from 'lodash/isObject';
 import { normalizeType } from '@/plugins/steve/normalize';
 import { sortBy } from '@/utils/sort';
@@ -346,14 +345,12 @@ export const getters = {
       return _applyMapping(schema, state.typeMappings, 'id', false, () => {
         const key = `typeLabel."${ schema.id.toLowerCase() }"`;
 
-        if ( rootGetters['i18n/exists'](key) && (rootGetters['currentProduct']?.inStore !== VIRTUAL || !mapKind[schema?.attributes?.kind])) {
+        if ( rootGetters['i18n/exists'](key) ) {
         // if ( rootGetters['i18n/exists'](key) ) {
           return rootGetters['i18n/t'](key, { count }).trim();
         }
 
-        // need to discuss
-        // const out = schema?.attributes?.kind || schema.id || '?';
-        const out = mapKind[schema?.attributes?.kind] || schema?.attributes?.actuallyKind || schema?.attributes?.kind || schema.id || '?';
+        const out = schema?.attributes?.kind || schema.id || '?';
 
         // Add spaces, but breaks typing names into jump menu naturally
         // out = ucFirst(out.replace(/([a-z])([A-Z])/g,'$1 $2'));

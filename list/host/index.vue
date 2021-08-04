@@ -83,7 +83,7 @@ export default {
   },
   methods: {
     async loadMetrics() {
-      const schema = this.$store.getters['cluster/schemaFor'](METRIC.NODE);
+      const schema = this.$store.getters['virtual/schemaFor'](METRIC.NODE);
 
       if (schema) {
         await this.$store.dispatch('virtual/findAll', {
@@ -101,7 +101,7 @@ export default {
     let paramSchema = schema;
 
     if (type !== schema.id) {
-      paramSchema = this.$store.getters['cluster/schemaFor'](type);
+      paramSchema = this.$store.getters['virtual/schemaFor'](type);
     }
 
     return this.$store.getters['type-map/labelFor'](paramSchema, 99);
