@@ -548,7 +548,9 @@ export default {
       if (!isValueInContent()) {
         const value = isArray ? [] : content[0]?.value;
 
-        this.$set(this.value, key, value);
+        if (value !== SENTINEL) {
+          this.$set(this.value, key, value);
+        }
       }
     },
 
