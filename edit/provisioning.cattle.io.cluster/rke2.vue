@@ -395,6 +395,25 @@ export default {
       });
     },
 
+    cloudProviderOptions() {
+      const out = [{ label: '(None)', value: '' }];
+
+      for ( const opt of this.agentArgs['cloud-provider-name'].options ) {
+        out.push({
+          label: opt,
+          value: opt,
+        });
+      }
+
+      const cur = this.agentConfig['cloud-provider-name'];
+
+      if ( cur && !out.find(x => x.value === cur) ) {
+        out.unshift({ label: `${ cur } (Current)`, value: cur });
+      }
+
+      return out;
+    },
+
     selectedVersion() {
       const str = this.value.spec.kubernetesVersion;
 
@@ -1036,7 +1055,7 @@ export default {
               <LabeledSelect
                 v-model="agentConfig['cloud-provider-name']"
                 :mode="mode"
-                :options="agentArgs['cloud-provider-name'].options"
+                :options="cloudProviderOptions"
                 label="Cloud Provider"
               />
             </div>
