@@ -4,7 +4,7 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { MANAGEMENT } from '@/config/types';
-import { CONTAINER_DEFAULT_RESOURCE_LIMIT, PROJECT } from '@/config/labels-annotations';
+import { CONTAINER_DEFAULT_RESOURCE_LIMIT, CREATOR_ID, PROJECT } from '@/config/labels-annotations';
 import ContainerResourceLimit from '@/components/ContainerResourceLimit';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
@@ -102,10 +102,12 @@ export default {
   methods: {
     willSave() {
       const cluster = this.$store.getters['currentCluster'];
-      const annotation = this.project ? `${ cluster.id }:${ this.project }` : null;
+      const projectAnnotation = this.project ? `${ cluster.id }:${ this.project }` : null;
+      const creatorAnnotation = this.$store.getters['auth/principalId'];
 
       this.value.setLabel(PROJECT, this.project);
-      this.value.setAnnotation(PROJECT, annotation);
+      this.value.setAnnotation(PROJECT, projectAnnotation);
+      this.value.setAnnotation(CREATOR_ID, creatorAnnotation);
     },
 
     getDefaultContainerResourceLimits(projectName) {
