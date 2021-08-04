@@ -6,6 +6,7 @@ import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import { MANAGEMENT } from '@/config/types';
 import { _VIEW } from '@/config/query-params';
+import { FLEET } from '@/config/labels-annotations';
 
 export default {
   name: 'CruFleetCluster',
@@ -27,9 +28,11 @@ export default {
   },
 
   async fetch() {
+    const clusterId = this.value?.metadata?.labels[FLEET.CLUSTER_NAME];
+
     this.rancherCluster = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.CLUSTER,
-      id:   this.$route.params.id
+      id:   clusterId
     });
   },
 
@@ -72,12 +75,12 @@ export default {
     @finish="save"
     @cancel="done"
   >
-    <NameNsDescription v-if="!isView" v-model="value" :mode="mode" :namespaced="isNamespaced" />
+    <NameNsDescription v-model="value" :mode="mode" :namespaced="isNamespaced" />
 
-    <hr v-if="!isView" class="mt-20 mb-20" />
+    <hr class="mt-20 mb-20" />
 
     <Labels
-      v-if="!isView"
+
       default-section-class="mt-20"
       :value="rancherCluster"
       :mode="mode"
