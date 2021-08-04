@@ -3020,10 +3020,10 @@ promptRestore:
   title: Restore Snapshot
 
 promptSaveAsRKETemplate:
-  title: Create RKE Template from {cluster}
+  title: Convert {cluster} to new RKE Template
   name: Cluster Template Name
   description: Create a new RKE cluster template and initial revision from the current cluster configuration.
-  warning: This will modify the cluster, setting it up to use the newly created cluster template and revision.
+  warning: This will modify the cluster, setting it up to use the newly created cluster template and revision. This can not be undone.
 
 promptRotateEncryptionKey:
   title: Rotate Encryption Keys
