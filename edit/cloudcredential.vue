@@ -39,6 +39,10 @@ export default {
     if ( !this.value._name ) {
       set(this.value, '_name', '');
     }
+
+    if ( this.value.provider ) {
+      this.selectType(this.value.provider);
+    }
   },
 
   data() {
@@ -56,9 +60,7 @@ export default {
     },
 
     driverName() {
-      const driver = this.value.provider;
-
-      return driver;
+      return this.value?.provider;
     },
 
     cloudComponent() {
@@ -133,12 +135,12 @@ export default {
     },
 
     doneRoute() {
-      return 'c-cluster-manager-cloudcredential';
+      return 'c-cluster-manager-cloudCredential';
     },
   },
 
   methods: {
-    async saveSecret(btnCb) {
+    async saveCredential(btnCb) {
       if ( this.errors ) {
         clear(this.errors);
       }
@@ -218,7 +220,8 @@ export default {
       :errors="errors"
       :done-route="doneRoute"
       :subtypes="secretSubTypes"
-      @finish="saveSecret"
+      :can-yaml="false"
+      @finish="saveCredential"
       @select-type="selectType"
       @error="e=>errors = e"
     >

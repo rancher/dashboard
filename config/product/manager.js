@@ -1,5 +1,5 @@
 import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
-import { CAPI } from '@/config/types';
+import { CAPI, NORMAN } from '@/config/types';
 import { MULTI_CLUSTER } from '@/store/features';
 import { DSL } from '@/store/type-map';
 
@@ -32,7 +32,7 @@ export function init(store) {
     namespaced:  false,
     icon:       'globe',
     weight:      99,
-    route:       { name: 'c-cluster-manager-cloudcredential' },
+    route:       { name: 'c-cluster-manager-cloudCredential' },
   });
 
   virtualType({
@@ -56,6 +56,9 @@ export function init(store) {
   configureType(CAPI.RANCHER_CLUSTER, { showListMasthead: false, namespaced: false });
   // configureType(NORMAN.CLOUD_CREDENTIAL, { showListMasthead: false, namespaced: false });
   weightType(CAPI.RANCHER_CLUSTER, 100, true);
+  configureType(NORMAN.CLOUD_CREDENTIAL, {
+    showState: false, showAge: false, canYaml: false
+  });
 
   virtualType({
     label:      'Drivers',

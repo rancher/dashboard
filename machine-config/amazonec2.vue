@@ -8,7 +8,7 @@ import KeyValue from '@/components/form/KeyValue';
 import UnitInput from '@/components/form/UnitInput';
 import RadioGroup from '@/components/form/RadioGroup';
 import Checkbox from '@/components/form/Checkbox';
-import { NORMAN, SECRET } from '@/config/types';
+import { NORMAN } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { addObject, addObjects, findBy } from '@/utils/array';
 import { sortBy } from '@/utils/sort';

@@ -47,7 +47,7 @@ export default {
 
     createLocation() {
       return {
-        name:   'c-cluster-manager-cloudcredential-create',
+        name:   'c-cluster-manager-cloudCredential-create',
         params: {
           product:  this.$store.getters['currentProduct'].name,
           resource: this.resource
