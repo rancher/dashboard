@@ -52,6 +52,7 @@ const driverMap = {
 const driverToFieldMap = {
   aws: 'amazonec2',
   gcp: 'google',
+  oracle: 'oci',
 };
 
 export const likelyFields = [
