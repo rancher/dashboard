@@ -141,7 +141,7 @@ export default {
       if ( this.serverConfig[k] === undefined ) {
         const def = this.serverArgs[k].default;
 
-        set(this.serverConfig, k, (def !== undefined ? undefined : def));
+        set(this.serverConfig, k, (def !== undefined ? def : undefined));
       }
     }
 
@@ -149,7 +149,7 @@ export default {
       if ( this.agentConfig[k] === undefined ) {
         const def = this.agentArgs[k].default;
 
-        set(this.agentConfig, k, (def !== undefined ? undefined : def));
+        set(this.agentConfig, k, (def !== undefined ? def : undefined));
       }
     }
 
