@@ -1,6 +1,7 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledInput from '@/components/form/LabeledInput';
+import { NORMAN } from '~/config/types';
 
 export default {
   components: { LabeledInput },
@@ -16,8 +17,28 @@ export default {
   },
 
   methods: {
-    test() {
-      // Vsphere doesn't have a test function. The credential has to be created before we can make calls.
+    async test() {
+      // The vsphere apis require that an existing cloudCredentialId be passed in order to use the API.
+      // We create a temporary credential and attempt to invoke one of the basic APIs to authenticate the user.
+      // We then delete the temporary credential since the existing system will create one after we authenticate.
+      const temporaryCredential = await this.$store.dispatch('rancher/create', {
+        type:                          NORMAN.CLOUD_CREDENTIAL,
+        vmwarevspherecredentialConfig: this.value.decodedData
+      });
+
+      try {
+        await temporaryCredential.save();
+
+        await this.$store.dispatch('management/request', {
+          url:                  `/meta/vsphere/data-centers?cloudCredentialId=${ temporaryCredential.id }`,
+          redirectUnauthorized: false,
+        }, { root: true });
+      } catch (ex) {
+        return false;
+      } finally {
+        await temporaryCredential.remove();
+      }
+
       return true;
     }
   }
