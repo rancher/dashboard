@@ -2,7 +2,8 @@
 import { MANAGEMENT, NORMAN, VIRTUAL_TYPES } from '@/config/types';
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
-import { NAME } from '@/config/product/explorer';
+import { NAME as EXPLORER } from '@/config/product/explorer';
+import { NAME as VIRTUAL } from '@/config/product/virtual';
 import Masthead from '@/components/ResourceList/Masthead';
 import { AGE, ROLE, STATE, PRINCIPAL } from '@/config/table-headers';
 import { canViewClusterPermissionsEditor } from '@/components/form/Members/ClusterPermissionsEditor.vue';
@@ -29,6 +30,8 @@ export default {
   },
 
   data() {
+    const product = this.$store.getters['currentProduct'].inStore === VIRTUAL ? VIRTUAL : EXPLORER;
+
     return {
       schema:         this.$store.getters[`management/schemaFor`](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING),
       headers:        [
@@ -40,7 +43,7 @@ export default {
       createLocation: {
         name:   'c-cluster-product-resource-create',
         params: {
-          product:  NAME,
+          product,
           resource: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
         }
       },

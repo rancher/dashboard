@@ -20,8 +20,6 @@ export default {
       return this.isEmpty(this.value);
     },
     url() {
-      // const isDev = process.env.dev;
-
       const ip = `${ window.location.hostname }:${ window.location.port }`;
 
       return `wss://${ ip }${ this.value?.getVMIApiPath }`;

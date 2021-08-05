@@ -21,12 +21,8 @@ export default {
   },
 
   computed: {
-    isDown() {
-      return this.isEmpty(this.resource);
-    },
-
     isRunning() {
-      return this.resource.actualState === 'Running';
+      return !!this.resource.isRunning;
     },
 
     options() {
