@@ -1,4 +1,4 @@
-import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
+import { AGE, NAME as NAME_COL, RANCHER_CLUSTER_NAME, STATE } from '@/config/table-headers';
 import { CAPI, NORMAN } from '@/config/types';
 import { MULTI_CLUSTER } from '@/store/features';
 import { DSL } from '@/store/type-map';
@@ -119,7 +119,7 @@ export function init(store) {
 
   headers(CAPI.RANCHER_CLUSTER, [
     STATE,
-    NAME_COL,
+    RANCHER_CLUSTER_NAME,
     {
       name:   'kubernetesVesion',
       label:  'Version',

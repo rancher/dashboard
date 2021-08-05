@@ -247,6 +247,10 @@ export default {
     return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.mgmtClusterId));
   },
 
+  inactiveNodes() {
+    return this.nodes.filter(node => node.state !== 'active');
+  },
+
   displayName() {
     if ( this.mgmt && !this.isRke2 ) {
       return this.mgmt.spec.displayName;

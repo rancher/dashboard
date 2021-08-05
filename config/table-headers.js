@@ -39,6 +39,15 @@ export const NAME = {
   canBeVariable: true,
 };
 
+export const RANCHER_CLUSTER_NAME = {
+  name:          'name',
+  labelKey:      'tableHeaders.name',
+  value:         'nameDisplay',
+  sort:          ['nameSort'],
+  formatter:     'RancherClusterName',
+  canBeVariable: true,
+};
+
 export const LOGGING_OUTPUT_PROVIDERS = {
   name:          'logging-output-providers',
   labelKey:      'tableHeaders.loggingOutputProviders',

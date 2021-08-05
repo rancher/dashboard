@@ -3036,7 +3036,8 @@ rancherAlertingDrivers:
   msTeams: Enable Microsoft Teams
   sms: Enable SMS
   selectOne: You must select at least one of the options below.
-
+rancherClusterName:
+  tooltip: "Alert: Node {node} is not active."
 rbac:
   roleBinding:
     noData: There are no members associated with this resource.
