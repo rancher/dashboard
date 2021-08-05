@@ -219,7 +219,9 @@ export default {
       showTemplatesResults:     null,
       tagsResults:              null,
       attributeKeysResults:     null,
-      networksResults:           null,
+      networksResults:          null,
+      haveTags:                 null,
+      haveAttributes:           null,
       vAppOptions,
       vappMode:                 getInitialVappMode(this.value)
     };
@@ -334,12 +336,12 @@ export default {
     async requestOptions(resource, dataCenter, library) {
       const datacenterLessResources = ['tag-categories', 'tags', 'data-centers', 'custom-attributes'];
 
-      if (!this.cloudCredentialId || (!datacenterLessResources.includes(resource) && !dataCenter)) {
+      if (!this.credentialId || (!datacenterLessResources.includes(resource) && !dataCenter)) {
         return [];
       }
 
       const queryParams = Object.entries({
-        cloudCredentialId: this.cloudCredentialId,
+        cloudCredentialId: this.credentialId,
         dataCenter,
         library
       })
@@ -372,23 +374,34 @@ export default {
     },
 
     async loadTags() {
-      const categoriesPromise = this.requestOptions('tag-categories');
-      const optionsPromise = this.requestOptions('tags');
-      const [categories, options] = await Promise.all([categoriesPromise, optionsPromise]);
-      const content = this.mapTagsToContent(options).map(option => ({
-        ...option,
-        category: categories.find(c => c.name === option.category)
-      }));
+      try {
+        const categoriesPromise = this.requestOptions('tag-categories');
+        const optionsPromise = this.requestOptions('tags');
 
-      this.resetValueIfNecessary('tag', content, options, true);
+        const [categories, options] = await Promise.all([categoriesPromise, optionsPromise]);
+        const content = this.mapTagsToContent(options).map(option => ({
+          ...option,
+          category: categories.find(c => c.name === option.category)
+        }));
 
-      this.$set(this, 'tagsResults', content);
+        this.resetValueIfNecessary('tag', content, options, true);
+
+        this.$set(this, 'tagsResults', content);
+        this.haveTags = true;
+      } catch (e) {
+        this.haveTags = false;
+      }
     },
 
     async loadCustomAttributes() {
-      const options = await this.requestOptions('custom-attributes');
+      try {
+        const options = await this.requestOptions('custom-attributes');
 
-      this.$set(this, 'attributeKeysResults', this.mapCustomAttributesToContent(options));
+        this.$set(this, 'attributeKeysResults', this.mapCustomAttributesToContent(options));
+        this.haveAttributes = true;
+      } catch (e) {
+        this.haveAttributes = false;
+      }
     },
 
     async loadHosts() {
@@ -789,7 +802,7 @@ export default {
         </div>
       </div>
     </Card>
-    <Card class="m-0 mt-20" :show-highlight-border="false" :show-actions="false">
+    <Card v-if="haveTags" class="m-0 mt-20" :show-highlight-border="false" :show-actions="false">
       <h4 slot="title" class="text-default-text mb-5">
         {{ t('cluster.machineConfig.vsphere.tags.label') }}
         <p class="text-muted text-small">
@@ -800,7 +813,7 @@ export default {
         <ArrayListSelect v-model="value.tag" :options="tags" :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.tags.addTag') }" :loading="tagsLoading" />
       </div>
     </Card>
-    <Card class="m-0 mt-20" :show-highlight-border="false" :show-actions="false">
+    <Card v-if="haveAttributes" class="m-0 mt-20" :show-highlight-border="false" :show-actions="false">
       <h4 slot="title" class="text-default-text mb-5">
         {{ t('cluster.machineConfig.vsphere.customAttributes.label') }}
         <p class="text-muted text-small">
