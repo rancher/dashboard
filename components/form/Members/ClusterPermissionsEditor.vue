@@ -101,7 +101,7 @@ export default {
       permissionGroup: 'member',
       custom:          {},
       roleTemplates:     [],
-      userPrincipalId: '',
+      principalId:     '',
       bindings:        []
     };
   },
@@ -162,8 +162,8 @@ export default {
     }
   },
   methods: {
-    onAdd(userId) {
-      this.$set(this, 'userPrincipalId', userId);
+    onAdd(principalId) {
+      this.$set(this, 'principalId', principalId);
       this.updateBindings();
     },
 
@@ -172,7 +172,7 @@ export default {
         type:              MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
         clusterName:       this.$store.getters['currentCluster'].id,
         roleTemplateName:  id,
-        userPrincipalName: this.userPrincipalId
+        principalName:    this.principalId
       }));
 
       const bindings = await Promise.all(bindingPromises);

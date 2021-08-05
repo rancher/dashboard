@@ -1,7 +1,7 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
-import { MANAGEMENT, NORMAN } from '@/config/types';
+import { MANAGEMENT } from '@/config/types';
 import { PROJECT_ID } from '@/config/query-params';
 import ProjectMemberEditor from '@/components/form/ProjectMemberEditor';
 
@@ -22,7 +22,7 @@ export default {
       binding:         {
         permissionGroup: 'member',
         custom:          {},
-        userPrincipalId: '',
+        principalId:     '',
         projectId:       this.$route.query[PROJECT_ID],
       },
     };
@@ -43,18 +43,15 @@ export default {
     },
   },
   methods: {
-    onAdd(userId) {
-      this.$set(this, 'userPrincipalId', userId);
+    onAdd(principalId) {
+      this.$set(this, 'principalId', principalId);
     },
     async saveOverride() {
-      const asyncBindings = this.binding.roleTemplateIds.map(roleTemplateId => this.$store.dispatch(`rancher/create`, {
-        type:                  NORMAN.PROJECT_ROLE_TEMPLATE_BINDING,
-        roleTemplateId,
-        userPrincipalId:       this.binding.userPrincipalId,
-        projectId:             this.binding.projectId,
-        projectRoleTemplateId: '',
-        subjectKind:           'User',
-        userId:                ''
+      const asyncBindings = this.binding.roleTemplateIds.map(roleTemplateId => this.$store.dispatch(`management/create`, {
+        type:                  MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
+        roleTemplateName:      roleTemplateId,
+        principalName:         this.member.principalId,
+        projectName:           this.member.projectId,
       }));
 
       const bindings = await Promise.all(asyncBindings);
@@ -78,7 +75,7 @@ export default {
     :subtypes="[]"
     :can-yaml="false"
     :cancel-event="true"
-    :validation-passed="!!binding.userPrincipalId && !!binding.projectId"
+    :validation-passed="!!binding.principalId && !!binding.projectId"
     @error="e=>errors = e"
     @finish="saveOverride"
     @cancel="done"
