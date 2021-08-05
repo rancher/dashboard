@@ -143,7 +143,7 @@ export default {
         } else if (item.route) {
           const route = this.$router.resolve(item.route);
 
-          if (this.$route.fullPath === route.href) {
+          if (this.$route.fullPath === route.route.fullPath) {
             return true;
           }
         }
