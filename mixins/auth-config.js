@@ -16,12 +16,12 @@ export default {
   },
 
   async fetch() {
-    const NAME = this.$route.params.id;
+    this.authConfigName = this.$route.params.id;
 
     this.originalModel = await this.$store.dispatch('rancher/find', {
       type: NORMAN.AUTH_CONFIG,
-      id:   NAME,
-      opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ NAME }`, force: true }
+      id:   this.authConfigName,
+      opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ this.authConfigName }`, force: true }
     });
 
     const serverUrl = await this.$store.dispatch('management/find', {
@@ -55,13 +55,14 @@ export default {
 
   data() {
     return {
-      isEnabling:    false,
-      editConfig:    false,
-      model:         null,
-      serverSetting: null,
-      errors:        null,
-      originalModel: null,
-      principals:    []
+      isEnabling:     false,
+      editConfig:     false,
+      model:          null,
+      serverSetting:  null,
+      errors:         null,
+      originalModel:  null,
+      principals:     [],
+      authConfigName: this.$route.params.id,
     };
   },
 
@@ -151,6 +152,15 @@ export default {
             }
             await this.model.doAction('testAndApply', obj, { redirectUnauthorized: false });
           }
+
+          // Reload auth config to get any changes made during testAndApply
+          const newModel = await this.$store.dispatch('rancher/find', {
+            type: NORMAN.AUTH_CONFIG,
+            id:   this.authConfigName,
+            opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ this.authConfigName }`, force: true }
+          });
+
+          this.model = await this.$store.dispatch(`rancher/clone`, { resource: newModel });
 
           // Reload principals to get the new ones from the provider (including 'me')
           this.principals = await this.$store.dispatch('rancher/findAll', {
