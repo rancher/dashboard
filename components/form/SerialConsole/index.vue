@@ -7,7 +7,6 @@ import Socket, {
   EVENT_CONNECTING,
   EVENT_DISCONNECTED,
   EVENT_MESSAGE,
-  //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR,
 } from '@/utils/socket';
 

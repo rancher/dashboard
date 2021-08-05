@@ -1,9 +1,11 @@
 <script>
 import { STATE, AGE, NAME } from '@/config/table-headers';
 import SortableTable from '@/components/SortableTable';
+import Loading from '@/components/Loading';
 import VmState from '@/components/formatter/vmState';
 import { allHash } from '@/utils/promise';
 import { HCI } from '@/config/types';
+import { HOSTNAME } from '@/config/labels-annotations';
 import BackupModal from '@/list/kubevirt.io.virtualmachine/backupModal';
 import RestoreModal from '@/list/kubevirt.io.virtualmachine/restoreModal';
 import MigrationModal from '@/list/kubevirt.io.virtualmachine/MigrationModal';
@@ -14,6 +16,7 @@ export default {
 
   components: {
     SortableTable,
+    Loading,
     VmState,
     BackupModal,
     RestoreModal,
@@ -22,24 +25,39 @@ export default {
   },
 
   props: {
-    rows: {
-      type:     Array,
+    node: {
+      type:     Object,
       required: true,
     },
   },
 
   async fetch() {
     const hash = await allHash({
+      vms:                 this.$store.dispatch('virtual/findAll', { type: HCI.VM }),
+      vmis:                this.$store.dispatch('virtual/findAll', { type: HCI.VMI }),
       allNodeNetwork:      this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK }),
       allClusterNetwork:   this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK }),
+    });
+    const instanceMap = {};
+
+    (hash.vmis || []).forEach((vmi) => {
+      const vmiUID = vmi?.metadata?.ownerReferences?.[0]?.uid;
+
+      if (vmiUID) {
+        instanceMap[vmiUID] = vmi;
+      }
     });
 
     this.allNodeNetwork = hash.allNodeNetwork;
     this.allClusterNetwork = hash.allClusterNetwork;
+    this.rows = hash.vms.filter((row) => {
+      return instanceMap[row.metadata?.uid]?.status?.nodeName === this.node?.metadata?.labels?.[HOSTNAME];
+    });
   },
 
   data() {
     return {
+      rows:              [],
       allNodeNetwork:    [],
       allClusterNetwork: []
     };
@@ -89,7 +107,8 @@ export default {
 </script>
 
 <template>
-  <div class="row host-instances">
+  <Loading v-if="$fetchState.pending" />
+  <div v-else class="row host-instances">
     <div class="col span-12">
       <SortableTable
         v-bind="$attrs"
