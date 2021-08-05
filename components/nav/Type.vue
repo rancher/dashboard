@@ -53,6 +53,14 @@ export default {
 
     removeFavorite() {
       this.$store.dispatch('type-map/removeFavorite', this.type.name);
+    },
+
+    selectType() {
+      const typePath = this.$router.resolve(this.type.route)?.route?.fullPath;
+
+      if (typePath !== this.$route.fullPath) {
+        this.$emit('selected');
+      }
     }
   }
 };
@@ -69,7 +77,7 @@ export default {
     :exact="type.exact"
   >
     <a
-      @click="$emit('selected')"
+      @click="selectType"
       @mouseenter="setNear(true)"
       @mouseleave="setNear(false)"
     >
@@ -89,7 +97,7 @@ export default {
       :href="type.link"
       :target="type.target"
       rel="noopener noreferrer nofollow"
-      @click="$emit('selected')"
+      @click="selectType"
       @mouseenter="setNear(true)"
       @mouseleave="setNear(false)"
     >
