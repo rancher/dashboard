@@ -190,7 +190,7 @@ export const PRINCIPAL = {
   name:      'principal',
   labelKey:  'tableHeaders.name',
   sort:      'principal.loginName',
-  value:     'userPrincipalName',
+  value:     'principalId',
   formatter: 'Principal',
 };
 

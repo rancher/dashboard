@@ -203,8 +203,8 @@ export default {
     }
   },
   methods: {
-    onAdd(userId) {
-      this.$set(this.value, 'userPrincipalId', userId);
+    onAdd(principalId) {
+      this.$set(this.value, 'principalId', principalId);
     },
 
     setRoleTemplateIds(permissionGroup) {

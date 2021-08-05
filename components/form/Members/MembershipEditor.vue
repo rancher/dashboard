@@ -174,7 +174,7 @@ export default {
     <template #columns="{row}">
       <div class="columns row">
         <div class="col span-6">
-          <Principal :key="row.value.userPrincipalName" :value="row.value.userPrincipalName" />
+          <Principal :key="row.value.principalId" :value="row.value.principalId" />
         </div>
         <div class="col span-6 role">
           {{ row.value.roleDisplay }}

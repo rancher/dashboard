@@ -38,7 +38,7 @@ export default {
       return this.$store.dispatch(`management/create`, {
         type:                  MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
         roleTemplateName:      'cluster-owner',
-        userPrincipalName:     this.$store.getters['auth/principalId'],
+        principalName:         this.$store.getters['auth/principalId'],
       });
     }
   }
