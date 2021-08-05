@@ -5,7 +5,7 @@ export default {
   props: {
     value: {
       type:    Number,
-      default: () => []
+      default: () => 0,
     },
 
     opts: {

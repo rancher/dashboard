@@ -225,7 +225,7 @@ export default {
 
     targetPortsStrOrInt(targetPorts = []) {
       const neu = clone(targetPorts);
-      const isNumeric = new RegExp('^\\d+$');
+      const isNumeric = /^\\d+$/;
 
       neu.forEach((port, idx) => {
         if (port?.targetPort && isNumeric.test(port.targetPort)) {

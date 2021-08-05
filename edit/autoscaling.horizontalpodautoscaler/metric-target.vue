@@ -139,6 +139,9 @@ export default {
     },
     updateQuantityValue(val) {
       switch (this.value.type) {
+      case 'Value':
+        this.$set(this.value, 'value', val);
+        break;
       case 'AverageValue':
       default:
         if (this.resourceName === 'cpu') {
@@ -148,9 +151,6 @@ export default {
         } else {
           this.$set(this.value, 'averageValue', val);
         }
-        break;
-      case 'Value':
-        this.$set(this.value, 'value', val);
         break;
       }
     },
