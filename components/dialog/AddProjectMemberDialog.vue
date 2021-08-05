@@ -21,7 +21,7 @@ export default {
       member:       {
         permissionGroup: 'member',
         custom:          {},
-        userPrincipalId: '',
+        principalId:     '',
         projectId:       null,
         roleTemplateIds: []
       }
@@ -48,7 +48,7 @@ export default {
       const promises = this.member.roleTemplateIds.map(roleTemplateId => this.$store.dispatch(`management/create`, {
         type:                  MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
         roleTemplateName:      roleTemplateId,
-        userPrincipalName:     this.member.userPrincipalId,
+        principalName:         this.member.principalId,
         projectName:           this.member.projectId,
       }));
 

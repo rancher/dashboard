@@ -39,7 +39,7 @@ export default {
       return this.$store.dispatch(`management/create`, {
         type:                  MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
         roleTemplateName:      'project-owner',
-        userPrincipalName:     this.$store.getters['auth/principalId'],
+        principalName:         this.$store.getters['auth/principalId'],
       });
     }
   }
