@@ -5,8 +5,7 @@ export default {
   props: {
     value: {
       type:    Number,
-      // eslint-disable-next-line vue/require-valid-default-prop
-      default: () => []
+      default: () => 0,
     },
 
     opts: {
