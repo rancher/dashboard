@@ -18,6 +18,15 @@ export default {
     return this.$rootGetters['management/byId'](MANAGEMENT.USER, this.userName);
   },
 
+  principal() {
+    return this.$rootGetters['rancher/byId'](NORMAN.PRINCIPAL, this.principalId);
+  },
+
+  principalId() {
+    // We've either set it ourselves or it's comes from native properties
+    return this.principalName || this.userPrincipalName || this.groupPrincipalName;
+  },
+
   nameDisplay() {
     return this.user?.nameDisplay;
   },
@@ -105,14 +114,14 @@ export default {
   },
 
   norman() {
+    const principalProperty = this.principal.principalType === 'group' ? 'groupPrincipalId' : 'userPrincipalId';
+
     return this.$dispatch(`rancher/create`, {
       type:                  NORMAN.PROJECT_ROLE_TEMPLATE_BINDING,
       roleTemplateId:        this.roleTemplateName,
-      userPrincipalId:       this.userPrincipalName,
+      [principalProperty]:   this.principal.id,
       projectId:             this.projectName,
       projectRoleTemplateId: '',
-      subjectKind:           'User',
-      userId:                '',
       id:                    this.id?.replace('/', ':')
     }, { root: true });
   },
