@@ -42,7 +42,6 @@ export default {
     return {
       membershipUpdate:  {},
       hasOwner:          false,
-      HARVESTER_CLUSTER: HCI_LABEL.HARVESTER_CLUSTER,
     };
   },
 
@@ -70,7 +69,7 @@ export default {
     async saveOverride() {
       set(this.value, 'metadata.labels', {
         ...(get(this.value, 'metadata.labels') || {}),
-        [this.HARVESTER_CLUSTER]: 'true',
+        [HCI_LABEL.HARVESTER_CLUSTER]: 'true',
       });
 
       set(this.value, 'type', 'provisioning.cattle.io.cluster');
