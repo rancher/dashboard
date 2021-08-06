@@ -968,7 +968,7 @@ export default {
 
     canRemoveKubeletRow(row, idx) {
       return idx !== 0;
-    }
+    },
   },
 };
 </script>
