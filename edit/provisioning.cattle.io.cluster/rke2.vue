@@ -984,6 +984,7 @@ export default {
     :errors="errors"
     :cancel-event="true"
     :done-route="doneRoute"
+    :apply-hooks="applyHooks"
     @done="done"
     @finish="saveOverride"
     @cancel="cancel"

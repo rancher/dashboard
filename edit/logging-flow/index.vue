@@ -298,10 +298,10 @@ export default {
     :subtypes="[]"
     :validation-passed="true"
     :errors="errors"
+    :apply-hooks="applyHooks"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"
-    @apply-hooks="applyHooks"
   >
     <NameNsDescription v-if="!isView" v-model="value" :mode="mode" :namespaced="value.type !== LOGGING.CLUSTER_FLOW" />
 

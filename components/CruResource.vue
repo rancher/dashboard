@@ -77,6 +77,11 @@ export default {
     finishButtonMode: {
       type:    String,
       default: null,
+    },
+
+    applyHooks: {
+      type:    Function,
+      default: null,
     }
   },
 
@@ -191,8 +196,11 @@ export default {
     },
 
     async showPreviewYaml() {
-      await this.$emit('apply-hooks', BEFORE_SAVE_HOOKS);
-      const resourceYaml = this.createResourceYaml(this.resource);
+      if ( this.applyHooks ) {
+        await this.applyHooks(BEFORE_SAVE_HOOKS);
+      }
+
+      const resourceYaml = this.createResourceYaml();
 
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;
@@ -335,7 +343,7 @@ export default {
           :done-route="doneRoute"
           :done-override="resource.doneOverride"
           :errors="errors"
-          @apply-hooks="$emit('apply-hooks', $event)"
+          :apply-hooks="applyHooks"
           @error="e=>$emit('error', e)"
         >
           <template #yamlFooter="{yamlSave, showPreview, yamlPreview, yamlUnpreview}">

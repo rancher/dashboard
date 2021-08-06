@@ -698,10 +698,10 @@ export default {
       :errors="errors"
       :done-route="doneRoute"
       :subtypes="workloadSubTypes"
+      :apply-hooks="applyHooks"
       @finish="save"
       @select-type="selectType"
       @error="e=>errors = e"
-      @apply-hooks="applyHooks"
     >
       <div class="row">
         <div class="col span-12">
