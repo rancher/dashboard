@@ -511,4 +511,7 @@ export default {
     ];
   },
 
+  canClone() {
+    return false;
+  },
 };
