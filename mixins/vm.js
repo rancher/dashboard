@@ -1,23 +1,19 @@
-import cloneDeep from 'lodash/cloneDeep';
 import randomstring from 'randomstring';
-import { safeLoad, safeDump } from 'js-yaml';
+import { load, dump } from 'js-yaml';
 
+import { clone } from '@/utils/object';
 import { allHash } from '@/utils/promise';
-import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { SOURCE_TYPE } from '@/config/map';
-import {
-  PVC, HCI, STORAGE_CLASS, POD, NODE
-} from '@/config/types';
+import { _CLONE } from '@/config/query-params';
+import { PVC, HCI, STORAGE_CLASS, NODE } from '@/config/types';
+import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
-const TEMPORARY_VALUE = '$occupancy_url';
 const MANAGEMENT_NETWORK = 'management Network';
 
 const agentJson = {
   package_update: true,
-  packages:       [
-    'qemu-guest-agent'
-  ],
-  runcmd: [
+  packages:       ['qemu-guest-agent'],
+  runcmd:         [
     [
       'systemctl',
       'enable',
@@ -27,9 +23,10 @@ const agentJson = {
   ]
 };
 
-export default {
-  inheritAttrs: false,
+const DISK = 'disk';
+const CD_ROM = 'cd-rom';
 
+export default {
   props: {
     value: {
       type:     Object,
@@ -38,15 +35,13 @@ export default {
   },
 
   async fetch() {
-    const hash = await allHash({
-      pods:               this.$store.dispatch('virtual/findAll', { type: POD }),
+    await allHash({
       nodes:              this.$store.dispatch('virtual/findAll', { type: NODE }),
       pvcs:               this.$store.dispatch('virtual/findAll', { type: PVC }),
       storageClass:       this.$store.dispatch('virtual/findAll', { type: STORAGE_CLASS }),
       ssh:                this.$store.dispatch('virtual/findAll', { type: HCI.SSH }),
       settings:           this.$store.dispatch('virtual/findAll', { type: HCI.SETTING }),
       images:             this.$store.dispatch('virtual/findAll', { type: HCI.IMAGE }),
-      dataVolume:         this.$store.dispatch('virtual/findAll', { type: HCI.DATA_VOLUME }),
       versions:           this.$store.dispatch('virtual/findAll', { type: HCI.VM_VERSION }),
       templates:          this.$store.dispatch('virtual/findAll', { type: HCI.VM_TEMPLATE }),
       networkAttachment:  this.$store.dispatch('virtual/findAll', { type: HCI.NETWORK_ATTACHMENT }),
@@ -54,16 +49,11 @@ export default {
       vmim:               this.$store.dispatch('virtual/findAll', { type: HCI.VMIM }),
       vm:                 this.$store.dispatch('virtual/findAll', { type: HCI.VM }),
     });
-
-    this.ssh = hash.ssh;
-    this.images = hash.images;
-    this.versions = hash.versions;
-    this.templates = hash.templates;
   },
 
   data() {
     const type = this.$route.params.resource;
-    const isClone = this.$route.query.mode === 'clone';
+    const isClone = this.$route.query.mode === _CLONE;
 
     if (isClone) {
       this.deleteCloneValue();
@@ -80,13 +70,15 @@ export default {
     let machineType = '';
 
     if (type !== HCI.BACKUP) {
-      spec = type === HCI.VM ? this.value.spec : this.value.spec.vm;
+      const vm = type === HCI.VM ? this.value : this.value.spec.vm;
+
+      spec = type === HCI.VM ? this.value.spec : this.value.spec.vm.spec;
 
       sshKey = this.getSSHIDs(spec);
 
-      diskRows = this.getDiskRows(spec);
-      imageId = this.getRootImageId(spec);
-      networkRows = this.getNetworkRows(spec);
+      diskRows = this.getDiskRows(vm);
+      imageId = this.getRootImageId(vm);
+      networkRows = this.getNetworkRows(vm);
       hasCreateVolumes = this.getHasCreatedVolumes(spec);
       ({ userScript, networkScript } = this.getCloudScript(spec));
 
@@ -96,10 +88,6 @@ export default {
     return {
       spec,
       isClone,
-      ssh:                   [],
-      images:                [],
-      versions:              [],
-      templates:             [],
       installAgent:          false,
       sshName:               '',
       publicKey:             '',
@@ -124,6 +112,26 @@ export default {
       return this.$route.params.resource === HCI.VM;
     },
 
+    isVMTemplate() {
+      return this.$route.params.resource === HCI.VM_VERSION;
+    },
+
+    ssh() {
+      return this.$store.getters['virtual/all'](HCI.SSH) || [];
+    },
+
+    images() {
+      return this.$store.getters['virtual/all'](HCI.IMAGE) || [];
+    },
+
+    versions() {
+      return this.$store.getters['virtual/all'](HCI.VM_VERSION) || [];
+    },
+
+    templates() {
+      return this.$store.getters['virtual/all'](HCI.VM_TEMPLATE) || [];
+    },
+
     memory: {
       get() {
         return this.spec.template.spec.domain.resources.requests.memory;
@@ -145,9 +153,7 @@ export default {
 
       try {
         parse = JSON.parse(storageClassValue);
-      } catch {
-        parse = {};
-      }
+      } catch (e) {}
 
       return parse;
     },
@@ -166,19 +172,11 @@ export default {
   },
 
   methods: {
-    normalizeSpec() {
-      this.$set(this.spec.template.spec.domain.machine, 'type', this.machineType);
-
-      this.parseNetworkRows(this.networkRows);
-
-      this.parseDiskRows(this.diskRows);
-    },
-
-    getDiskRows(spec) {
-      const namespace = this.value?.metadata?.namespace;
-      const _volumes = spec.template.spec.volumes || [];
-      const _dataVolumeTemplates = spec.dataVolumeTemplates || [];
-      const _disks = spec.template.spec.domain.devices?.disks || [];
+    getDiskRows(vm) {
+      const namespace = vm.metadata.namespace || this.value.metadata.namespace;
+      const _volumes = vm.spec.template.spec.volumes || [];
+      const _disks = vm.spec.template.spec.domain.devices.disks || [];
+      const _volumeClaimTemplates = this.getVolumeClaimTemplates(vm);
 
       let out = [];
 
@@ -190,7 +188,7 @@ export default {
           bus:              'virtio',
           volumeName:       '',
           size:             '10Gi',
-          type:             'disk',
+          type:             DISK,
           storageClassName: '',
           image:            this.imageId,
           volumeMode:       'Block',
@@ -209,16 +207,16 @@ export default {
           let volumeMode = '';
           let storageClassName = '';
 
-          const type = DISK?.cdrom ? 'cd-rom' : 'disk';
+          const type = DISK?.cdrom ? CD_ROM : 'disk';
 
           if (volume?.containerDisk) { // SOURCE_TYPE.CONTAINER
             source = SOURCE_TYPE.CONTAINER;
             container = volume.containerDisk.image;
           }
 
-          if (volume?.dataVolume && volume?.dataVolume?.name) {
-            volumeName = volume.dataVolume.name;
-            const DVT = _dataVolumeTemplates.find( T => T.metadata.name === volumeName);
+          if (volume.persistentVolumeClaim && volume.persistentVolumeClaim?.claimName) {
+            volumeName = volume.persistentVolumeClaim.claimName;
+            const DVT = _volumeClaimTemplates.find( T => T.metadata.name === volumeName);
 
             realName = volumeName;
 
@@ -232,21 +230,21 @@ export default {
                 source = SOURCE_TYPE.NEW;
               }
 
-              const dataVolumeSpecPVC = DVT?.spec?.pvc || {};
+              const dataVolumeSpecPVC = DVT?.spec || {};
 
               volumeMode = dataVolumeSpecPVC?.volumeMode;
               accessMode = dataVolumeSpecPVC?.accessModes?.[0];
               size = dataVolumeSpecPVC?.resources?.requests?.storage || '10Gi';
               storageClassName = dataVolumeSpecPVC?.storageClassName;
             } else { // SOURCE_TYPE.ATTACH_VOLUME
-              const choices = this.$store.getters['virtual/all'](HCI.DATA_VOLUME);
-              const dvResource = choices.find( O => O.id === `${ namespace }/${ volume?.dataVolume?.name }`);
+              const allPVCs = this.$store.getters['virtual/all'](PVC);
+              const dvResource = allPVCs.find( O => O.id === `${ namespace }/${ volume?.persistentVolumeClaim?.claimName }`);
 
               source = SOURCE_TYPE.ATTACH_VOLUME;
-              accessMode = dvResource?.spec?.pvc?.accessModes?.[0] || 'ReadWriteMany';
-              size = dvResource?.spec?.pvc?.resources?.requests?.storage || '10Gi';
-              storageClassName = dvResource?.spec?.pvc?.storageClassName;
-              volumeMode = dvResource?.spec?.pvc?.volumeMode || 'Block';
+              accessMode = dvResource?.spec?.accessModes?.[0] || 'ReadWriteMany';
+              size = dvResource?.spec?.resources?.requests?.storage || '10Gi';
+              storageClassName = dvResource?.spec?.storageClassName;
+              volumeMode = dvResource?.spec?.volumeMode || 'Block';
               volumeName = dvResource?.metadata?.name || '';
             }
           }
@@ -278,34 +276,43 @@ export default {
       });
     },
 
-    getNetworkRows(spec) {
-      const networks = spec.template.spec?.networks || [];
-      const interfaces = spec.template.spec.domain?.devices?.interfaces || [];
+    getNetworkRows(vm) {
+      const networks = vm.spec.template.spec.networks || [];
+      const interfaces = vm.spec.template.spec.domain.devices.interfaces || [];
 
-      const out = interfaces.map( (O, index) => {
-        const network = networks.find( N => O.name === N.name);
+      const out = interfaces.map( (I, index) => {
+        const network = networks.find( N => I.name === N.name);
 
-        const type = O.sriov ? 'sriov' : O.bridge ? 'bridge' : 'masquerade';
-        const isPod = !!network?.pod;
+        const type = I.sriov ? 'sriov' : I.bridge ? 'bridge' : 'masquerade';
 
         return {
-          ...O,
-          type,
-          model:        O.model || 'virtio',
-          networkName:  network?.multus?.networkName || MANAGEMENT_NETWORK,
+          ...I,
           index,
-          isPod
+          type,
+          isPod:        !!network.pod,
+          model:        I.model || 'virtio',
+          networkName:  network?.multus?.networkName || MANAGEMENT_NETWORK,
         };
       });
 
       return out;
     },
 
+    parseVM() {
+      this.parseOther();
+      this.parseNetworkRows(this.networkRows);
+      this.parseDiskRows(this.diskRows);
+    },
+
+    parseOther() {
+      this.$set(this.spec.template.spec.domain.machine, 'type', this.machineType);
+    },
+
     parseDiskRows(disk) {
       const disks = [];
       const volumes = [];
       const diskNameLables = [];
-      const dataVolumeTemplates = [];
+      const volumeClaimTemplates = [];
 
       disk.forEach( (R, index) => {
         const prefixName = this.value.metadata?.name || '';
@@ -322,14 +329,14 @@ export default {
 
         const _disk = this.parseDisk(R);
         const _volume = this.parseVolume(R, dataVolumeName);
-        const _dataVolumeTemplate = this.parseDateVolumeTemplate(R, dataVolumeName);
+        const _dataVolumeTemplate = this.parseVolumeClaimTemplate(R, dataVolumeName);
 
         disks.push(_disk);
         volumes.push(_volume);
         diskNameLables.push(dataVolumeName);
 
         if (R.source !== SOURCE_TYPE.CONTAINER && R.source !== SOURCE_TYPE.ATTACH_VOLUME) {
-          dataVolumeTemplates.push(_dataVolumeTemplate);
+          volumeClaimTemplates.push(_dataVolumeTemplate);
         }
       });
 
@@ -357,7 +364,6 @@ export default {
       const spec = {
         ...this.spec,
         running:  isRunVM,
-        dataVolumeTemplates,
         template: {
           ...this.spec.template,
           metadata: {
@@ -383,21 +389,19 @@ export default {
         }
       };
 
-      // if (!this.isVM) {
-      //   if (!this.imageId) {
-      //     spec.dataVolumeTemplates[0].metadata.annotations[HCI_ANNOTATIONS.IMAGE_ID] = TEMPORARY_VALUE;
-      //   }
-      // }
-
       if (volumes.length === 0) {
         delete spec.template.spec.volumes;
-        delete spec.dataVolumeTemplates;
       }
 
       if (this.isVM) {
+        this.$set(this.value.metadata, 'annotations', {
+          ...this.value.metadata.annotations,
+          [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: JSON.stringify(volumeClaimTemplates)
+        });
         this.$set(this.value, 'spec', spec);
         this.$set(this, 'spec', spec);
-      } else {
+      } else if (this.isVMTemplate) {
+        this.$set(this.value.spec.vm.metadata, 'annotations', { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: JSON.stringify(volumeClaimTemplates) });
         this.$set(this, 'spec', spec);
       }
     },
@@ -426,13 +430,6 @@ export default {
         networks
       };
 
-      if (!this.spec?.template?.metadata?.annotations) {
-        this.$set(this.spec.template.metadata, 'annotations', {});
-      }
-
-      if (this.isVM) {
-        this.$set(this.value.spec.template, 'spec', spec);
-      }
       this.$set(this.spec.template, 'spec', spec);
     },
 
@@ -443,7 +440,7 @@ export default {
         let newInitScript = {};
 
         if (out) {
-          newInitScript = safeLoad(out);
+          newInitScript = load(out);
         }
 
         if (newInitScript && newInitScript.ssh_authorized_keys) {
@@ -454,10 +451,9 @@ export default {
         } else {
           newInitScript.ssh_authorized_keys = this.getSSHListValue(this.sshKey);
         }
-        out = safeDump(newInitScript);
+        out = dump(newInitScript);
       } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log('has error set', error);
+        new Error(`has error set: ${ error }`);
 
         return '#cloud-config';
       }
@@ -472,87 +468,70 @@ export default {
     },
 
     parseDisk(R) {
-      let _disk = {};
+      const out = { name: R.name };
 
-      if (R.type === 'disk') {
-        _disk = {
-          disk: { bus: R.bus },
-          name: R.name,
-        };
-      } else if (R.type === 'cd-rom') {
-        _disk = {
-          cdrom: { bus: R.bus },
-          name:  R.name,
-        };
+      if (R.type === DISK) {
+        out.disk = { bus: R.bus };
+      } else if (R.type === CD_ROM) {
+        out.cdrom = { bus: R.bus };
       }
 
       if ( R.bootOrder ) {
-        _disk.bootOrder = R.bootOrder;
+        out.bootOrder = R.bootOrder;
       }
 
-      return _disk;
+      return out;
     },
 
     parseVolume(R, dataVolumeName, isCloudInitDisk = false) {
+      const out = { name: R.name };
+
       if (R.source === SOURCE_TYPE.ATTACH_VOLUME) {
         dataVolumeName = R.volumeName || R.name;
       }
 
-      const _volume = { name: R.name };
-
       if (R.source === SOURCE_TYPE.CONTAINER) {
-        _volume.containerDisk = { image: R.container };
+        out.containerDisk = { image: R.container };
       } else if (R.source === SOURCE_TYPE.IMAGE || R.source === SOURCE_TYPE.NEW || R.source === SOURCE_TYPE.ATTACH_VOLUME) {
-        _volume.dataVolume = { name: dataVolumeName };
+        out.persistentVolumeClaim = { claimName: dataVolumeName };
       } else if (isCloudInitDisk) {
         // cloudInitNoCloud
       }
 
-      return _volume;
+      return out;
     },
 
-    parseDateVolumeTemplate(R, dataVolumeName) {
+    parseVolumeClaimTemplate(R, dataVolumeName) {
       if (!String(R.size).includes('Gi')) {
         R.size = `${ R.size }Gi`;
       }
 
-      const _dataVolumeTemplate = {
-        apiVersion: 'cdi.kubevirt.io/v1beta1',
-        kind:       'DataVolume',
+      const out = {
         metadata:   { name: dataVolumeName },
         spec:       {
-          pvc: {
-            accessModes: [R.accessMode],
-            resources:   { requests: { storage: R.size } },
-            volumeMode:  R.volumeMode
-          }
+          accessModes: [R.accessMode],
+          resources:   { requests: { storage: R.size } },
+          volumeMode:  R.volumeMode
         }
       };
 
       switch (R.source) {
       case SOURCE_TYPE.NEW:
-        _dataVolumeTemplate.spec.pvc.storageClassName = this.customDefaultStorageClass || R.storageClassName || this.defaultStorageClass;
-        _dataVolumeTemplate.spec.source = { blank: {} };
+        out.spec.storageClassName = this.customDefaultStorageClass || R.storageClassName || this.defaultStorageClass;
         break;
       case SOURCE_TYPE.IMAGE: {
-        _dataVolumeTemplate.spec.source = { blank: {} };
+        const image = this.images.find( I => R.image === I.id);
 
-        const imageResource = this.getImageResourceById(R.image);
-
-        if (imageResource?.metadata?.name) {
-          _dataVolumeTemplate.spec.pvc.storageClassName = `longhorn-${ imageResource?.metadata?.name }`;
-          _dataVolumeTemplate.metadata.annotations = { [HCI_ANNOTATIONS.IMAGE_ID]: imageResource?.id };
-        } else if (this.isVM) {
-          _dataVolumeTemplate.metadata.annotations = { [HCI_ANNOTATIONS.IMAGE_ID]: undefined };
+        if (image) {
+          out.spec.storageClassName = `longhorn-${ image.metadata.name }`;
+          out.metadata.annotations = { [HCI_ANNOTATIONS.IMAGE_ID]: image.id };
         }
-        //  else { // vmTemplate rootImage can be empty
-        //   _dataVolumeTemplate.metadata.annotations = { [HCI_ANNOTATIONS.IMAGE_ID]: TEMPORARY_VALUE };
-        // }
+
         break;
       }
       }
 
-      return _dataVolumeTemplate;
+      return out;
     },
 
     getSSHValue(id) {
@@ -595,16 +574,17 @@ export default {
     },
 
     parseNetwork(R) {
-      const _network = {};
+      const out = {};
 
       if (R.isPod) {
-        _network.pod = {};
+        out.pod = {};
       } else {
-        _network.multus = { networkName: R.networkName };
+        out.multus = { networkName: R.networkName };
       }
-      _network.name = R.name;
 
-      return _network;
+      out.name = R.name;
+
+      return out;
     },
 
     updateCloudConfig(userData, networkData) {
@@ -616,7 +596,7 @@ export default {
       let parsed;
 
       try {
-        parsed = safeLoad(cloneDeep(userScript)) || {};
+        parsed = load(clone(userScript)) || {};
       } catch (err) {
         parsed = {};
       }
@@ -649,7 +629,7 @@ export default {
     },
 
     deleteGuestAgent(userScript) {
-      const parsed = safeLoad(cloneDeep(userScript)) || {};
+      const parsed = load(clone(userScript)) || {};
 
       if (Array.isArray(parsed.packages)) {
         for (let i = 0; i < parsed.packages.length; i++) {
@@ -686,23 +666,39 @@ export default {
       return parsed;
     },
 
-    getImageResourceById(id) {
-      return this.images.find( I => id === I.id);
+    getVolumeClaimTemplates(vm) {
+      let out = [];
+
+      try {
+        out = JSON.parse(vm.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]);
+      } catch (e) {
+        console.error(`Function: getVolumeClaimTemplates, ${ e }`); // eslint-disable-line no-console
+      }
+
+      return out;
     },
 
-    getRootImageId(spec) {
-      const id = (spec?.dataVolumeTemplates || [])[0]?.metadata?.annotations?.[HCI_ANNOTATIONS.IMAGE_ID] || '';
+    getCloudInitScript(vm) {
+      const cloudInitNoCloud = vm.spec.template.spec.volumes?.find( (V) => {
+        return V.name === 'cloudinitdisk';
+      })?.cloudInitNoCloud || {};
 
-      return id !== TEMPORARY_VALUE ? id : '';
+      return {
+        userData:    cloudInitNoCloud.userData,
+        networkData: cloudInitNoCloud.networkData
+      };
+    },
+
+    getRootImageId(vm) {
+      const volume = this.getVolumeClaimTemplates(vm);
+
+      return volume[0]?.metadata.annotations[HCI_ANNOTATIONS.IMAGE_ID] || '';
     },
 
     deleteCloneValue() {
-      // delete host
       this.value.spec.template.spec.hostname = '';
 
-      // delete macAddress
-      const template = this.value.spec.template;
-      const interfaces = template?.spec?.domain?.devices?.interfaces || [];
+      const interfaces = this.value.spec.template.spec.domain.devices?.interfaces || [];
 
       for (let i = 0; i < interfaces.length; i++) {
         if (interfaces[i].macAddress) {
@@ -712,18 +708,18 @@ export default {
     },
 
     getSSHIDs(spec) {
-      const ids = spec?.template?.metadata?.annotations?.[HCI_ANNOTATIONS.SSH_NAMES] || '[]';
+      const ids = spec.template.metadata.annotations[HCI_ANNOTATIONS.SSH_NAMES] || '[]';
 
-      return JSON.parse(ids) || [];
+      return JSON.parse(ids);
     },
 
     getHasCreatedVolumes(spec) {
       const out = [];
 
-      if (spec?.template?.spec?.volumes?.map) {
-        spec.template.spec.volumes.map((V) => {
-          if (V?.dataVolume?.name) {
-            out.push(V.dataVolume.name);
+      if (spec.template.spec.volumes) {
+        spec.template.spec.volumes.forEach((V) => {
+          if (V?.persistentVolumeClaim?.claimName) {
+            out.push(V.persistentVolumeClaim.claimName);
           }
         });
       }
@@ -732,7 +728,7 @@ export default {
     },
 
     getCloudScript(spec) {
-      const volumes = spec.template?.spec?.volumes || [];
+      const volumes = spec.template.spec.volumes || [];
       let userScript = '';
       let networkScript = '';
 
@@ -765,17 +761,17 @@ export default {
     imageId: {
       handler(neu) {
         if (this.diskRows.length > 0) {
-          const _diskRows = cloneDeep(this.diskRows);
-          const imageResource = this.getImageResourceById(neu);
+          const _diskRows = clone(this.diskRows);
+          const imageResource = this.images.find( I => neu === I.id);
 
           const isIso = /.iso$/.test(imageResource?.spec?.url);
 
           if (this.autoChangeForImage) {
             if (isIso) {
-              _diskRows[0].type = 'cd-rom';
+              _diskRows[0].type = CD_ROM;
               _diskRows[0].bus = 'sata';
             } else {
-              _diskRows[0].type = 'disk';
+              _diskRows[0].type = DISK;
               _diskRows[0].bus = 'virtio';
             }
           }

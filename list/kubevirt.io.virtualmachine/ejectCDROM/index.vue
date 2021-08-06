@@ -101,7 +101,7 @@ export default {
           {{ t('generic.cancel') }}
         </button>
 
-        <button class="btn ml-20" :disabled="isDeleteDisabled" @click="remove">
+        <button class="btn bg-primary ml-20" :disabled="isDeleteDisabled" @click="remove">
           {{ t('harvester.modal.ejectCDROM.delete') }}
         </button>
       </div>

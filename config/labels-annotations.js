@@ -135,4 +135,5 @@ export const HCI = {
   PROMOTE_STATUS:               'harvesterhci.io/promote-status',
   MIGRATION_STATE:              'harvesterhci.io/migrationState',
   HARVESTER_CLUSTER:            'cluster.harvesterhci.io',
+  VOLUME_CLAIM_TEMPLATE:        'harvesterhci.io/volumeClaimTemplates'
 };

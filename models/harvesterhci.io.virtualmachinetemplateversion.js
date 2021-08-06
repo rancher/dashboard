@@ -4,6 +4,7 @@ import { HCI } from '@/config/types';
 import {
   AS, MODE, _VIEW, _CONFIG, _UNFLAG, _EDIT
 } from '@/config/query-params';
+import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 export default {
   availableActions() {
@@ -45,48 +46,50 @@ export default {
     return () => {
       const spec = {
         vm: {
-          dataVolumeTemplates: [],
-          running:             true,
-          template:            {
-            metadata: { annotations: {} },
-            spec:     {
-              domain: {
-                machine: { type: '' },
-                cpu:     {
-                  cores:   null,
-                  sockets: 1,
-                  threads: 1
-                },
-                devices: {
-                  inputs: [{
-                    bus:  'usb',
-                    name: 'tablet',
-                    type: 'tablet'
-                  }],
-                  interfaces: [{
-                    masquerade: {},
-                    model:      'virtio',
-                    name:       'default'
-                  }],
-                  disks: [],
-                },
-                resources: {
-                  requests: {
-                    memory: null,
-                    // cpu:    ''
+          metadata: { annotations: { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: '[]' } },
+          spec:     {
+            running:              true,
+            template:             {
+              metadata: { annotations: {} },
+              spec:     {
+                domain: {
+                  machine: { type: '' },
+                  cpu:     {
+                    cores:   null,
+                    sockets: 1,
+                    threads: 1
                   },
+                  devices: {
+                    inputs: [{
+                      bus:  'usb',
+                      name: 'tablet',
+                      type: 'tablet'
+                    }],
+                    interfaces: [{
+                      masquerade: {},
+                      model:      'virtio',
+                      name:       'default'
+                    }],
+                    disks: [],
+                  },
+                  resources: {
+                    requests: {
+                      memory: null,
+                    // cpu:    ''
+                    },
                   // limits: {
                   //   memory: null,
                   //   cpu:    ''
                   // }
-                }
-              },
-              hostname: '',
-              networks: [{
-                name: 'default',
-                pod:  {}
-              }],
-              volumes: []
+                  }
+                },
+                hostname: '',
+                networks: [{
+                  name: 'default',
+                  pod:  {}
+                }],
+                volumes: []
+              }
             }
           }
         }
@@ -186,31 +189,30 @@ export default {
 
   customValidationRules() {
     const rules = [
-      {
-        nullable:       false,
-        path:           'spec.vm.template.spec.domain.cpu.cores',
-        min:            1,
-        max:            100,
-        required:       true,
-        translationKey: 'harvester.fields.cpu',
-      },
-      {
-        nullable:       false,
-        path:           'spec.vm.template.spec.domain.resources.requests.memory',
-        required:       false,
-        translationKey: 'harvester.fields.memory',
-        validators:     ['vmMemoryUnit'],
-      },
-      {
-        nullable:       false,
-        path:           'spec.vm.template.spec',
-        validators:     ['vmNetworks'],
-      },
-      {
-        nullable:       false,
-        path:           'spec.vm',
-        validators:     ['vmDisks:isVMTemplate'],
-      },
+      // {
+      //   nullable:       false,
+      //   path:           'spec.vm.spec.template.spec.domain.cpu.cores',
+      //   min:            1,
+      //   max:            100,
+      //   required:       true,
+      //   translationKey: 'harvester.fields.cpu',
+      // },
+      // {
+      //   nullable:       false,
+      //   path:           'spec.vm.spec.template.spec.domain.resources.requests.memory',
+      //   required:       false,
+      //   translationKey: 'harvester.fields.memory',
+      // },
+      // {
+      //   nullable:       false,
+      //   path:           'spec.vm.spec.template.spec',
+      //   validators:     ['vmNetworks'],
+      // },
+      // {
+      //   nullable:       false,
+      //   path:           'spec.vm.spec',
+      //   validators:     ['vmDisks:isVMTemplate'],
+      // },
     ];
 
     return rules;

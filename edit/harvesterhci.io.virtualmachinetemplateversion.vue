@@ -71,24 +71,17 @@ export default {
       return this.$route.query?.as === _CONFIG;
     },
 
-    realMode() {
+    realTemplateMode() {
       return this.templateId ? _VIEW : this.mode;
     }
   },
 
   watch: {
-    sshKey(neu) {
-      const out = [];
-
-      this.ssh.map( (I) => {
-        if (neu.includes(I.metadata.name)) {
-          const name = `${ I.metadata.namespace }/${ I.metadata.name }`;
-
-          out.push(name);
-        }
-      });
-
-      this.keyPairIds = out;
+    sshKey: {
+      handler(neu) {
+        this.keyPairIds = neu;
+      },
+      immediate: true
     },
 
     templateId: {
@@ -155,7 +148,7 @@ export default {
 
   methods: {
     async saveVMT(buttonCb) {
-      this.normalizeSpec();
+      this.parseVM();
 
       const templates = await this.$store.dispatch('virtual/findAll', { type: HCI.VM_TEMPLATE });
       const template = templates.find( O => O.metadata.name === this.templateValue.metadata.name);
@@ -193,7 +186,7 @@ export default {
 
       this.$set(this.value.spec, 'templateId', `${ namespace }/${ name }`);
       this.$set(this.value.spec, 'keyPairIds', this.keyPairIds);
-      this.$set(this.value.spec, 'vm', this.spec);
+      this.$set(this.value.spec.vm, 'spec', this.spec);
       await this.save(buttonCb);
     },
 
@@ -206,7 +199,7 @@ export default {
       if (tab.name === 'advanced' && this.$refs.yamlEditor?.refresh) {
         this.$refs.yamlEditor.refresh();
       }
-    },
+    }
   },
 };
 </script>
@@ -224,7 +217,7 @@ export default {
   >
     <NameNsDescription
       v-model="templateValue"
-      :mode="realMode"
+      :mode="realTemplateMode"
       name-label="harvester.vmTemplate.nameNsDescription.name"
       :namespaced="true"
     />

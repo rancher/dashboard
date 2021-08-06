@@ -1,5 +1,6 @@
-import { HCI } from '@/config/types';
+import { PVC } from '@/config/types';
 import { SOURCE_TYPE } from '@/config/map';
+import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 export function vmNetworks(spec, getters, errors, validatorArgs) {
   const { domain: { devices: { interfaces } }, networks } = spec;
@@ -59,16 +60,6 @@ export function vmNetworks(spec, getters, errors, validatorArgs) {
         errors.push(getters['i18n/t']('harvester.validation.vm.network.error', { prefix, message }));
       }
     }
-
-    // if (this.value.isIpamStatic) {
-    //   if (!this.value.cidr) {
-    //     return this.getInvalidMsg('cidr');
-    //   }
-    // }
-
-    // if (this.value.isIpamStatic && this.value.cidr) {
-    //   this.validateCidr(this.value.cidr);
-    // }
   });
 
   if (allNames.size !== interfaces.length) {
@@ -78,11 +69,19 @@ export function vmNetworks(spec, getters, errors, validatorArgs) {
   return errors;
 }
 
-export function vmDisks(spec, getters, errors, validatorArgs) {
-  const _volumes = spec.template.spec?.volumes || [];
-  const _dataVolumeTemplates = spec?.dataVolumeTemplates || [];
-  const _disks = spec.template.spec?.domain?.devices?.disks || [];
+export function vmDisks(spec, getters, errors, validatorArgs, displayKey, value) {
   const isVMTemplate = validatorArgs.includes('isVMTemplate');
+  const data = isVMTemplate ? this.value.spec.vm : value;
+
+  let _volumeClaimTemplates = [];
+  const volumeClaimTemplateString = data.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE];
+
+  try {
+    _volumeClaimTemplates = JSON.parse(volumeClaimTemplateString);
+  } catch (e) {}
+
+  const _volumes = spec.template.spec.volumes || [];
+  const _disks = spec.template.spec.domain.devices.disks || [];
 
   const allNames = new Set();
 
@@ -116,32 +115,37 @@ export function vmDisks(spec, getters, errors, validatorArgs) {
     errors.push(getters['i18n/t']('harvester.validation.vm.volume.duplicatedName'));
   }
 
-  // volume type logic
   _volumes.forEach((V, idx) => {
-    const { type, typeValue } = getVolumeType(V, _dataVolumeTemplates);
+    const { type, typeValue } = getVolumeType(V, _volumeClaimTemplates);
     const prefix = V.name || idx + 1;
 
+    if (idx === 0 && type === SOURCE_TYPE.NEW) { // root iamge
+      const message = getters['i18n/t']('harvester.validation.vm.volume.image');
+
+      errors.push(message);
+    }
+
     if (type === SOURCE_TYPE.NEW || type === SOURCE_TYPE.IMAGE) {
-      if (!/([1-9]|[1-9][0-9]+)[a-zA-Z]+/.test(typeValue?.spec?.pvc?.resources?.requests?.storage)) {
+      if (!/([1-9]|[1-9][0-9]+)[a-zA-Z]+/.test(typeValue?.spec?.resources?.requests?.storage)) {
         const message = getters['i18n/t']('harvester.validation.vm.volume.size');
 
         errors.push(getters['i18n/t']('harvester.validation.vm.volume.error', { prefix, message }));
       }
 
-      if (type === SOURCE_TYPE.IMAGE && !typeValue?.spec?.pvc?.storageClassName && !isVMTemplate) { // type === SOURCE_TYPE.IMAGE
-        if (idx === 0) {
-          errors.push(getters['i18n/t']('harvester.validation.vm.volume.image'));
-        } else {
-          const message = getters['i18n/t']('harvester.validation.vm.volume.image');
+      if (type === SOURCE_TYPE.IMAGE && !typeValue?.spec?.storageClassName && !isVMTemplate) { // type === SOURCE_TYPE.IMAGE
+        const message = getters['i18n/t']('harvester.validation.vm.volume.image');
 
+        if (idx === 0) {
+          errors.push(message);
+        } else {
           errors.push(getters['i18n/t']('harvester.validation.vm.volume.error', { prefix, message }));
         }
       }
     }
 
     if (type === SOURCE_TYPE.ATTACH_VOLUME) {
-      const dvList = getters['virtual/all'](HCI.DATA_VOLUME);
-      const hasExistingVolume = dvList.find(DV => DV.metadata.name === V?.dataVolume?.name);
+      const allPVCs = getters['virtual/all'](PVC);
+      const hasExistingVolume = allPVCs.find(P => P.metadata.name === V?.persistentVolumeClaim?.claimName);
 
       if (!hasExistingVolume) {
         const message = getters['i18n/t']('harvester.validation.vm.volume.volume');
@@ -150,22 +154,12 @@ export function vmDisks(spec, getters, errors, validatorArgs) {
       }
     }
 
-    if (V?.containerDisk) {
-      if (!V.containerDisk.image) {
-        const message = getters['i18n/t']('harvester.validation.vm.volume.docker');
+    if (V?.containerDisk && !V.containerDisk.image) {
+      const message = getters['i18n/t']('harvester.validation.vm.volume.docker');
 
-        errors.push(getters['i18n/t']('harvester.validation.vm.volume.error', { prefix, message }));
-      }
+      errors.push(getters['i18n/t']('harvester.validation.vm.volume.error', { prefix, message }));
     }
   });
-
-  return errors;
-}
-
-export function vmMemoryUnit(spec, getters, errors, validatorArgs) {
-  if (!/([1-9]|[1-9][0-9]+)[a-zA-Z]+/.test(spec)) {
-    errors.push(getters['i18n/t']('harvester.validation.vm.memory'));
-  }
 
   return errors;
 }
@@ -174,16 +168,11 @@ export function isValidMac(value) {
   return /^[A-Fa-f0-9]{2}(-[A-Fa-f0-9]{2}){5}$|^[A-Fa-f0-9]{2}(:[A-Fa-f0-9]{2}){5}$/.test(value);
 }
 
-export function isValidCidr(value) {
-  return !!/^(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([1-9]|[1-2]\d|3[0-2])$/.test(value);
-}
-
 export function getVolumeType(V, DVTS) {
   let outValue = null;
 
-  if (V.dataVolume) { // maybe is new or existing or image type, but existing type can’t find DVT
-    // image type
-    outValue = DVTS.find(DVT => V.dataVolume.name === DVT.metadata?.name && DVT.metadata?.annotations && Object.prototype.hasOwnProperty.call(DVT.metadata.annotations, 'harvesterhci.io/imageId'));
+  if (V.persistentVolumeClaim) {
+    outValue = DVTS.find(DVT => V.persistentVolumeClaim.claimName === DVT.metadata.name && DVT.metadata?.annotations && Object.prototype.hasOwnProperty.call(DVT.metadata.annotations, 'harvesterhci.io/imageId'));
 
     if (outValue) {
       return {
@@ -193,7 +182,7 @@ export function getVolumeType(V, DVTS) {
     }
 
     // new type
-    outValue = DVTS.find(DVT => V.dataVolume.name === DVT.metadata?.name && DVT.spec?.source?.blank);
+    outValue = DVTS.find(DVT => V.persistentVolumeClaim.claimName === DVT.metadata.name);
 
     if (outValue) {
       return {

@@ -255,7 +255,7 @@ export const HCI = {
   VM_VERSION:         'harvesterhci.io.virtualmachinetemplateversion',
   IMAGE:              'harvesterhci.io.virtualmachineimage',
   SSH:                'harvesterhci.io.keypair',
-  DATA_VOLUME:        'cdi.kubevirt.io.datavolume',
+  VOLUME:             'volume',
   USER:               'harvesterhci.io.user',
   SETTING:            'harvesterhci.io.setting',
   UPGRADE:            'harvesterhci.io.upgrade',

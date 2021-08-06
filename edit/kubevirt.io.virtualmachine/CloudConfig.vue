@@ -26,10 +26,6 @@ export default {
     }
   },
 
-  async fetch() {
-    this.configmaps = await this.$store.dispatch('virtual/findAll', { type: CONFIG_MAP });
-  },
-
   data() {
     return {
       userData:         this.userScript,
@@ -38,6 +34,10 @@ export default {
       cloudInitUser:    '',
       cloudInitNetwork: '',
     };
+  },
+
+  async fetch() {
+    this.configmaps = await this.$store.dispatch('virtual/findAll', { type: CONFIG_MAP });
   },
 
   computed: {

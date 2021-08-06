@@ -83,9 +83,7 @@ export default {
     },
 
     templateLabel(group) {
-      const row = group.rows[0];
-
-      return row.id;
+      return group.key;
     },
 
     templateResource(group) {

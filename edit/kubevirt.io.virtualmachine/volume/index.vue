@@ -1,7 +1,7 @@
 <script>
 import remove from 'lodash/remove';
 import randomstring from 'randomstring';
-import { PVC, STORAGE_CLASS } from '@/config/types';
+import { STORAGE_CLASS } from '@/config/types';
 import { removeObject } from '@/utils/array';
 import { clone } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
@@ -53,18 +53,10 @@ export default {
     }
   },
 
-  async fetch() {
-    const pvcs = await this.$store.dispatch('virtual/findAll', { type: PVC });
-    const namespace = this.namespace || this.$store.getters['defaultNamespace'];
-
-    this.pvcs = pvcs.filter(pvc => pvc.metadata.namespace === namespace);
-  },
-
   data() {
     return {
       SOURCE_TYPE,
       rows:    clone(this.value),
-      pvcs:    [],
       nameIdx: 1,
       vol:     null
     };
@@ -74,12 +66,15 @@ export default {
     isView() {
       return this.mode === _VIEW;
     },
+
     isEdit() {
       return this.mode === _EDIT;
     },
+
     isDisableClose() {
       return !this.isView;
     },
+
     accessModeOption() {
       return [{
         label: 'Single User(RWO)',
@@ -102,6 +97,7 @@ export default {
         value: 'Block'
       }];
     },
+
     typeOption() {
       return [{
         label: 'disk',
@@ -259,6 +255,7 @@ export default {
             :storage-option="storageOption"
             :interface-option="InterfaceOption"
             :boot-order-option="bootOrderOption"
+            :namespace="namespace"
             :access-mode-option="accessModeOption"
             :volume-mode-option="volumeModeOption"
             :mode="mode"
@@ -269,6 +266,7 @@ export default {
       </InfoBox>
       <Banner v-if="showVolumeTip" color="warning" :label="t('harvester.virtualMachine.volume.volumeTip')" />
     </div>
+
     <div v-if="!isView">
       <button type="button" class="btn btn-sm bg-primary mr-15 mb-10" @click="addVolume(SOURCE_TYPE.NEW)">
         {{ t('harvester.virtualMachine.volume.addVolume') }}
@@ -321,10 +319,4 @@ export default {
   right: 10px;
   padding:0px;
 }
-
-.add-vol:focus{
-  outline: none;
-  box-shadow: none;
-}
-
 </style>

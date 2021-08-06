@@ -529,7 +529,7 @@ export default {
               </button>
               <ButtonDropdown v-if="hasExternalActions" class="external-actions" :disable-button="externalActions.length === 0" size="sm">
                 <template #button-content>
-                  <button class="btn btn-primary mr-0 no-right-border-radius" :disabled="externalActions.length === 0">
+                  <button class="btn bg-primary mr-0 no-right-border-radius" :disabled="externalActions.length === 0">
                     <i class="icon icon-gear" />
                     <span>{{ t('harvester.tableHeaders.actions') }}</span>
                   </button>

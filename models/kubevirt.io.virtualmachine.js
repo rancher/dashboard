@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { safeLoad } from 'js-yaml';
+import { load } from 'js-yaml';
 import { colorForState } from '@/plugins/steve/resource-instance';
 import { POD, NODE, HCI } from '@/config/types';
 import { findBy } from '@/utils/array';
@@ -151,9 +151,8 @@ export default {
   applyDefaults() {
     return () => {
       const spec = {
-        dataVolumeTemplates: [],
-        running:             true,
-        template:            {
+        running:              true,
+        template:             {
           metadata: { annotations: {} },
           spec:     {
             domain: {
@@ -198,6 +197,7 @@ export default {
         }
       };
 
+      Vue.set(this.metadata, 'annotations', { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: '[]' });
       Vue.set(this, 'spec', spec);
     };
   },
@@ -479,7 +479,7 @@ export default {
   },
 
   getDataVolumeTemplates() {
-    return get(this, 'spec.dataVolumeTemplates') === null ? [] : this.spec.dataVolumeTemplates;
+    return get(this, 'spec.volumeClaimTemplates') === null ? [] : this.spec.volumeClaimTemplates;
   },
 
   restoreState() {
@@ -590,7 +590,7 @@ export default {
     });
 
     try {
-      const newInitScript = safeLoad(networkData);
+      const newInitScript = load(networkData);
 
       if (newInitScript?.config && Array.isArray(newInitScript.config)) {
         const config = newInitScript.config;
@@ -676,7 +676,6 @@ export default {
         path:           'spec.template.spec.domain.resources.requests.memory',
         required:       false,
         translationKey: 'harvester.fields.memory',
-        validators:     ['vmMemoryUnit'],
       },
       {
         nullable:       false,

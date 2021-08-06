@@ -3,25 +3,31 @@ import UnitInput from '@/components/form/UnitInput';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import InputOrDisplay from '@/components/InputOrDisplay';
-import { HCI } from '@/config/types';
+import { PVC } from '@/config/types';
 import { sortBy } from '@/utils/sort';
-// import { _EDIT } from '@/config/query-params';
 
 export default {
   name:       'Existing',
   components: {
     UnitInput, LabeledInput, LabeledSelect, InputOrDisplay
   },
+
   props: {
     mode: {
       type:    String,
       default: 'create'
     },
+
     value: {
       type:    Object,
       default: () => {
         return {};
       }
+    },
+
+    namespace: {
+      type:    String,
+      default: null
     },
 
     typeOption: {
@@ -71,33 +77,39 @@ export default {
     }
   },
 
+  async fetch() {
+    await this.$store.dispatch('virtual/findAll', { type: PVC });
+  },
+
   computed: {
+    allPVCs() {
+      return this.$store.getters['virtual/all'](PVC) || [];
+    },
+
     isDisabled() {
-      // return !this.value.newCreateId && this.mode === _EDIT;
       return false;
     },
-    volumeOption() {
-      const choices = this.$store.getters['virtual/all'](HCI.DATA_VOLUME);
 
+    volumeOption() {
       return sortBy(
-        choices
-          .filter( (obj) => {
+        this.allPVCs
+          .filter( (pvc) => {
             let isAvailable = true;
 
             this.rows.forEach( (O) => {
-              if (( O.volumeName !== this.value.volumeName && O.volumeName === obj.metadata.name && O.accessMode === 'ReadWriteOnce')) {
+              if (( O.volumeName !== this.value.volumeName && O.volumeName === pvc.metadata.name && O.accessMode === 'ReadWriteOnce')) {
                 isAvailable = false;
               }
             });
 
-            const isExistingRWO = obj.isRWO && obj.attachVM;
+            const isBeingUsed = pvc.attachVM;
 
-            return obj.phaseStatus === 'Succeeded' && isAvailable && !isExistingRWO;
+            return isAvailable && !isBeingUsed && this.namespace === pvc.metadata.namespace;
           })
-          .map((obj) => {
+          .map((pvc) => {
             return {
-              label: obj.metadata.name,
-              value: obj.metadata.name
+              label: pvc.metadata.name,
+              value: pvc.metadata.name
             };
           }),
         'label'
@@ -107,19 +119,18 @@ export default {
 
   watch: {
     'value.volumeName'(neu) {
-      const choices = this.$store.getters['virtual/all'](HCI.DATA_VOLUME);
-
-      const pvcResource = choices.find( O => O.metadata.name === neu);
+      const pvcResource = this.allPVCs.find( P => P.metadata.name === neu);
 
       if (!pvcResource) {
         return;
       }
 
-      this.value.accessModes = pvcResource?.spec?.pvc?.accessModes[0];
-      this.value.size = pvcResource?.spec?.pvc?.resources?.requests?.storage;
-      this.value.storageClassName = pvcResource?.spec?.pvc?.storageClassName;
-      this.value.volumeMode = pvcResource?.spec?.pvc?.volumeMode;
+      this.value.accessModes = pvcResource.spec.accessModes[0];
+      this.value.size = pvcResource.spec.resources.requests.storage;
+      this.value.storageClassName = pvcResource.spec.storageClassName;
+      this.value.volumeMode = pvcResource.spec.volumeMode;
     },
+
     'value.type'(neu) {
       if (neu === 'cd-rom') {
         this.$set(this.value, 'bus', 'sata');
@@ -209,17 +220,6 @@ export default {
           />
         </InputOrDisplay>
       </div>
-
-      <!-- <div class="col span-6">
-        <LabeledSelect
-          v-model="value.volumeMode"
-          label="Volume Mode"
-          :mode="mode"
-          :options="volumeModeOption"
-          :disabled="true"
-          @input="update"
-        />
-      </div> -->
     </div>
   </div>
 </template>

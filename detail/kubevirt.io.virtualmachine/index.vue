@@ -54,6 +54,7 @@ export default {
     const hash = {
       services: this.$store.dispatch(`${ inStore }/findAll`, { type: SERVICE }),
       events:   this.$store.dispatch(`${ inStore }/findAll`, { type: EVENT }),
+      allSSHs:  this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.SSH }),
     };
 
     await allHash(hash);
@@ -121,8 +122,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div>
     <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true" @changed="tabChanged">
       <Tab name="basics" :label="t('harvester.virtualMachine.detail.tabs.basics')" class="bordered-table" :weight="7">
         <OverviewBasics v-model="value" :resource="vmi" mode="view" />

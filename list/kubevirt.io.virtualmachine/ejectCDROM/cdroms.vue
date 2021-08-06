@@ -15,58 +15,16 @@ export default {
 
   data() {
     return {
-      spec:        this.value.spec,
       rows:        [],
       diskRows:    [],
       checkedList: []
     };
   },
 
-  computed: {
-    headers() {
-      const out = [{
-        name:  'name',
-        label: 'Name',
-        value: 'name',
-      },
-      {
-        name:  'Source',
-        label: 'Source',
-        value: 'source',
-      },
-      {
-        name:      'Size',
-        label:     'Size',
-        value:     'size',
-      },
-      {
-        name:  'Interface',
-        label: 'Bus',
-        value: 'bus',
-      },
-      {
-        name:  'bootOrder',
-        label: 'Boot Order',
-        value: 'bootOrder',
-      }];
-
-      out.unshift({
-        name:  '',
-        label: '',
-        value: '',
-        width: 50,
-        align: 'center'
-      });
-
-      return out;
-    },
-  },
-
   watch: {
     value: {
       handler(neu) {
-        this.$set(this, 'spec', this.value.spec);
-        this.diskRows = this.getDiskRows();
+        this.diskRows = this.getDiskRows(this.value);
       },
       deep: true
     },
@@ -81,11 +39,10 @@ export default {
     checkedList(neu) {
       this.$emit('change', neu);
     },
-
   },
 
   created() {
-    this.diskRows = this.getDiskRows(this.value.spec);
+    this.diskRows = this.getDiskRows(this.value);
   },
 
   methods: {

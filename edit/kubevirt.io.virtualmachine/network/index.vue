@@ -5,10 +5,10 @@ import randomstring from 'randomstring';
 import InfoBox from '@/components/InfoBox';
 import Base from '@/edit/kubevirt.io.virtualmachine/network/base';
 
+import { HCI } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 import { clone } from '@/utils/object';
 import { removeObject } from '@/utils/array';
-import { HCI } from '@/config/types';
 import { _VIEW } from '@/config/query-params';
 
 const MANAGEMENT_NETWORK = 'management Network';
@@ -21,6 +21,7 @@ export default {
       type:    String,
       default: 'create'
     },
+
     value: {
       type:    Array,
       default: () => {
@@ -40,14 +41,15 @@ export default {
     isView() {
       return this.mode === _VIEW;
     },
+
     networkOption() {
       const choices = this.$store.getters['virtual/all'](HCI.NETWORK_ATTACHMENT);
 
       const out = sortBy(
-        choices.map((obj) => {
+        choices.map((N) => {
           return {
-            label: obj.id,
-            value: obj.id
+            label: N.id,
+            value: N.id
           };
         }),
         'label'
@@ -104,11 +106,11 @@ export default {
 
     getName() {
       let name = '';
-      let hasName = true;
+      let hasUsed = true;
 
-      while (hasName) {
+      while (hasUsed) {
         name = `nic-${ this.nameIdx }`;
-        hasName = this.rows.find( O => O.name === name);
+        hasUsed = this.rows.find( O => O.name === name);
         this.nameIdx++;
       }
 
@@ -128,7 +130,9 @@ export default {
       <button v-if="!isView" type="button" class="role-link btn btn-sm remove-vol" @click="removeRow(row)">
         <i class="icon icon-2x icon-x" />
       </button>
+
       <h3> {{ t('harvester.virtualMachine.network.title') }} </h3>
+
       <Base
         v-model="rows[i]"
         :rows="rows"
