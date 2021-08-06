@@ -3,6 +3,7 @@ import { MULTI_CLUSTER } from '@/store/features';
 import { DSL } from '@/store/type-map';
 import { STATE, NAME as NAME_COL, AGE, VERSION } from '@/config/table-headers';
 import { allHash } from '@/utils/promise';
+import { HCI as HCI_LABEL } from '@/config/labels-annotations';
 
 export const NAME = 'virtualManager';
 
@@ -49,7 +50,7 @@ export function init(store) {
     label:      store.getters['i18n/t']('harvester.manager.cluster.label'),
     name:       HCI.CLUSTER,
     type:       HCI.CLUSTER,
-    namespaced: true,
+    namespaced: false,
     weight:     -1,
     route:      {
       name:     'c-cluster-product-resource',
@@ -71,18 +72,22 @@ export function init(store) {
     group:        'Root',
     getInstances: async() => {
       const hash = {
-        clusters: store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-        nodes:    store.dispatch('management/findAll', { type: MANAGEMENT.NODE }),
+        rancherClusters: store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+        clusters:        store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+        nodes:           store.dispatch('management/findAll', { type: MANAGEMENT.NODE }),
       };
 
       const res = await allHash(hash);
 
-      return res.clusters.filter(c => c?.metadata?.labels?.['provider'] === VIRTUAL_PROVIDER).map((c) => {
+      return res.rancherClusters.map((c) => {
+        const cluster = res.clusters.find(cluster => cluster?.metadata?.name === c?.status?.clusterName);
+
         return {
           ...c,
-          type: HCI.CLUSTER,
+          type:     HCI.CLUSTER,
+          provider: cluster?.status?.provider,
         };
-      });
+      }).filter(c => c?.metadata?.labels?.[HCI_LABEL.HARVESTER_CLUSTER] === 'true' || c.provider === VIRTUAL_PROVIDER);
     },
   });
 }
