@@ -1,5 +1,5 @@
 import { MANAGEMENT_NODE } from '@/config/labels-annotations';
-import { CAPI, MANAGEMENT, NODE } from '@/config/types';
+import { CAPI, MANAGEMENT, NODE, NORMAN } from '@/config/types';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { listNodeRoles } from '@/models/cluster/node';
 import { insertAt } from '@/utils/array';
@@ -8,6 +8,7 @@ import { downloadFile } from '@/utils/download';
 export default {
   _availableActions() {
     const out = this._standardActions;
+    const normanAction = this.normanNode?.actions || {};
 
     const downloadKeys = {
       action:     'downloadKeys',
@@ -16,8 +17,17 @@ export default {
       label:      this.t('node.actions.downloadSSHKey'),
     };
 
+    const scaleDown = {
+      action:     'scaleDown',
+      enabled:    !!normanAction.scaledown,
+      icon:       'icon icon-fw icon-x',
+      label:      this.t('node.actions.scaleDown'),
+      bulkable:   true,
+    };
+
     insertAt(out, 0, { divider: true });
     insertAt(out, 0, downloadKeys);
+    insertAt(out, 0, scaleDown);
 
     return out;
   },
@@ -66,9 +76,25 @@ export default {
     return this.$rootGetters['management/byId'](MANAGEMENT.NODE_POOL, nodePoolID);
   },
 
+  normanNode() {
+    const normanNodeId = this.id.replace('/', ':');
+
+    return this.$rootGetters['rancher/byId'](NORMAN.NODE, normanNodeId);
+  },
+
   downloadKeys() {
     return () => {
       downloadFile(this.status.nodeName, this.status.rkeNode.sshKey, 'application/octet-stream');
+    };
+  },
+
+  scaleDown() {
+    return async(resources) => {
+      const safeResources = Array.isArray(resources) ? resources : [this];
+
+      await Promise.all(safeResources.map((node) => {
+        return node.normanNode.doAction('scaledown');
+      }));
     };
   },
 
