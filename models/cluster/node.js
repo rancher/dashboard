@@ -30,6 +30,14 @@ export default {
   _availableActions() {
     const normanAction = this.normanNode?.actions || {};
 
+    const scaleDown = {
+      action:     'scaleDown',
+      enabled:    !!normanAction.scaledown,
+      icon:       'icon icon-fw icon-x',
+      label:      this.t('node.actions.scaleDown'),
+      bulkable:   true,
+    };
+
     const cordon = {
       action:     'cordon',
       enabled:    !!normanAction.cordon,
@@ -83,6 +91,7 @@ export default {
       openSsh,
       downloadKeys,
       { divider: true },
+      scaleDown,
       cordon,
       uncordon,
       drain,
@@ -318,6 +327,16 @@ export default {
 
       await Promise.all(safeResources.map((node) => {
         return node.normanNode.doAction('stopDrain');
+      }));
+    };
+  },
+
+  scaleDown() {
+    return async(resources) => {
+      const safeResources = Array.isArray(resources) ? resources : [this];
+
+      await Promise.all(safeResources.map((node) => {
+        return node.normanNode.doAction('scaledown');
       }));
     };
   },

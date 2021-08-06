@@ -96,7 +96,13 @@ export default {
 
     };
   },
-
+  watch: {
+    showNodes(neu) {
+      if (neu) {
+        this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE });
+      }
+    }
+  },
   computed: {
     defaultTab() {
       if (this.showRegistration && !this.machines?.length) {

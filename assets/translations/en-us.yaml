@@ -2498,6 +2498,7 @@ node:
       taints: Taints
   actions:
     downloadSSHKey: Download SSH Key
+    scaleDown: Scale Down
 
 persistentVolume:
   pluginConfiguration:
