@@ -69,6 +69,11 @@ export default {
       type:    Boolean,
       default: true
     },
+
+    applyHooks: {
+      type:    Function,
+      default: null,
+    }
   },
 
   data() {
@@ -259,7 +264,9 @@ export default {
       const yaml = this.value.yamlForSave(this.currentYaml) || this.currentYaml;
 
       try {
-        await this.$emit('apply-hooks', BEFORE_SAVE_HOOKS);
+        if ( this.applyHooks ) {
+          await this.applyHooks(BEFORE_SAVE_HOOKS);
+        }
 
         try {
           await this.value.saveYaml(yaml);
@@ -267,7 +274,7 @@ export default {
           return onError.call(this, err);
         }
 
-        await this.$emit('apply-hooks', AFTER_SAVE_HOOKS);
+        await this.applyHooks(AFTER_SAVE_HOOKS);
         buttonDone(true);
         this.done();
       } catch (err) {
