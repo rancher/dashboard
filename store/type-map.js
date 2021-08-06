@@ -122,7 +122,6 @@ import {
 } from '@/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@/config/product/explorer';
-import { NAME as VIRTUAL } from '@/config/product/virtual';
 import isObject from 'lodash/isObject';
 import { normalizeType } from '@/plugins/steve/normalize';
 import { sortBy } from '@/utils/sort';

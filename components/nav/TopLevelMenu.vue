@@ -3,7 +3,7 @@ import BrandImage from '@/components/BrandImage';
 import RancherProviderIcon from '@/components/RancherProviderIcon';
 import { mapGetters } from 'vuex';
 import $ from 'jquery';
-import { MANAGEMENT, VIRTUAL_PROVIDER } from '@/config/types';
+import { MANAGEMENT } from '@/config/types';
 import { mapPref, DEV, MENU_MAX_CLUSTERS } from '@/store/prefs';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
