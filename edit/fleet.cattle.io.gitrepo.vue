@@ -260,7 +260,7 @@ export default {
         ];
       } else if ( kind === 'advanced' ) {
         try {
-          const parsed = jsyaml.safeLoad(this.targetAdvanced);
+          const parsed = jsyaml.load(this.targetAdvanced);
 
           spec.targets = parsed;
           this.targetAdvancedErrors = null;

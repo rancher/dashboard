@@ -187,7 +187,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       if (data[key]) {
         try {
           const cleaned = cleanUp(data);
-          const parsedData = jsyaml.safeDump(cleaned[key]);
+          const parsedData = jsyaml.dump(cleaned[key]);
 
           if ( typeof data[key] === 'object' || Array.isArray(data[key]) ) {
             out += `\n${ indent(parsedData.trim()) }`;
@@ -213,7 +213,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       if (data[key]) {
         try {
           const cleaned = cleanUp(data);
-          const parsedData = jsyaml.safeDump(cleaned[key]);
+          const parsedData = jsyaml.dump(cleaned[key]);
 
           out += `\n${ indent(parsedData.trim()) }`;
         } catch (e) {
@@ -241,7 +241,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
           const cleaned = cleanUp(data);
 
           if ( cleaned?.[key] ) {
-            const parsedData = jsyaml.safeDump(cleaned[key]);
+            const parsedData = jsyaml.dump(cleaned[key]);
 
             out += `\n${ indent(parsedData.trim()) }`;
           }
@@ -288,7 +288,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
      */
     if ( type === 'json' || type === '.spec') {
       try {
-        const parsedData = jsyaml.safeDump(data[key]);
+        const parsedData = jsyaml.dump(data[key]);
 
         if (parsedData) {
           out += `\n${ indent(parsedData.trim()) }`;
@@ -324,7 +324,7 @@ function indent(lines, depth = 1) {
 }
 
 function serializeSimpleValue(data) {
-  return jsyaml.safeDump(data).trim();
+  return jsyaml.dump(data).trim();
 }
 
 export function typeRef(type, str) {
@@ -349,7 +349,7 @@ export function typeMunge(type) {
 }
 
 export function saferDump(obj) {
-  const out = jsyaml.safeDump(obj || {});
+  const out = jsyaml.dump(obj || {});
 
   if ( out === '{}\n' ) {
     return '';

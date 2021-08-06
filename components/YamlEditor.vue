@@ -164,7 +164,7 @@ export default {
       }
 
       try {
-        const parsed = jsyaml.safeLoad(value);
+        const parsed = jsyaml.load(value);
 
         if ( this.asObject ) {
           this.$emit('input', parsed);

@@ -157,7 +157,7 @@ export default {
 
   saveYaml() {
     return (yaml) => {
-      const parsed = jsyaml.safeLoad(yaml);
+      const parsed = jsyaml.load(yaml);
 
       Object.assign(this, parsed);
 

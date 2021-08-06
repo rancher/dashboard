@@ -364,6 +364,10 @@ export default {
       return out;
     },
 
+    isK3s() {
+      return (this.value?.spec?.kubernetesVersion || '').includes('k3s');
+    },
+
     profileOptions() {
       const out = (this.agentArgs.profile?.options || []).map((x) => {
         return { label: x, value: x };
@@ -375,6 +379,10 @@ export default {
     },
 
     pspOptions() {
+      if ( this.isK3s ) {
+        return null;
+      }
+
       const out = [{ label: 'RKE2 Default', value: '' }];
 
       if ( this.allPSPs ) {
@@ -396,11 +404,9 @@ export default {
     },
 
     disableOptions() {
-      const isK3s = (this.value?.spec?.kubernetesVersion || '').includes('k3s');
-
       return this.serverArgs.disable.options.map((value) => {
         return {
-          label: this.$store.getters['i18n/withFallback'](`cluster.${ isK3s ? 'k3s' : 'rke2' }.systemService."${ value }"`, null, value.replace(/^(rke2|rancher)-/, '')),
+          label: this.$store.getters['i18n/withFallback'](`cluster.${ this.isK3s ? 'k3s' : 'rke2' }.systemService."${ value }"`, null, value.replace(/^(rke2|rancher)-/, '')),
           value,
         };
       });
@@ -962,7 +968,7 @@ export default {
 
     canRemoveKubeletRow(row, idx) {
       return idx !== 0;
-    }
+    },
   },
 };
 </script>
@@ -978,6 +984,7 @@ export default {
     :errors="errors"
     :cancel-event="true"
     :done-route="doneRoute"
+    :apply-hooks="applyHooks"
     @done="done"
     @finish="saveOverride"
     @cancel="cancel"
@@ -1107,6 +1114,7 @@ export default {
           <div class="row">
             <div class="col span-6">
               <LabeledSelect
+                v-if="pspOptions"
                 v-model="value.spec.defaultPodSecurityPolicyTemplateName"
                 :mode="mode"
                 :options="pspOptions"

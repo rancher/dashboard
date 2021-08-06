@@ -211,7 +211,7 @@ export default {
 
     const targets = this.spec.targets || [];
 
-    advanced = jsyaml.safeDump(targets);
+    advanced = jsyaml.dump(targets);
 
     if ( advanced === '[]\n' ) {
       advanced = `# - name:
