@@ -9,7 +9,8 @@ import ClusterMembershipEditor from '@/components/form/Members/ClusterMembership
 import Banner from '@/components/Banner';
 import Labels from '@/edit/provisioning.cattle.io.cluster/Labels';
 import AgentEnv from '@/edit/provisioning.cattle.io.cluster/AgentEnv';
-import { set } from '@/utils/object';
+import { set, get } from '@/utils/object';
+import { HCI as HCI_LABEL } from '@/config/labels-annotations';
 
 export default {
   components: {
@@ -39,8 +40,9 @@ export default {
 
   data() {
     return {
-      membershipUpdate: {},
-      hasOwner:         false
+      membershipUpdate:  {},
+      hasOwner:          false,
+      HARVESTER_CLUSTER: HCI_LABEL.HARVESTER_CLUSTER,
     };
   },
 
@@ -66,7 +68,11 @@ export default {
       });
     },
     async saveOverride() {
-      set(this.value, 'metadata.labels.provider', 'harvester');
+      set(this.value, 'metadata.labels', {
+        ...(get(this.value, 'metadata.labels') || {}),
+        [this.HARVESTER_CLUSTER]: 'true',
+      });
+
       set(this.value, 'type', 'provisioning.cattle.io.cluster');
 
       await this.save(...arguments);

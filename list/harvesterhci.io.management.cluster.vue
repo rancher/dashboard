@@ -65,6 +65,7 @@ export default {
       :rows="rows"
       :sub-rows="true"
       :is-creatable="true"
+      :namespaced="false"
     >
       <template #col:name="{row}">
         <td>
