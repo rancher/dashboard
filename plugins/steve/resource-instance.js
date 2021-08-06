@@ -1156,7 +1156,7 @@ export default {
   cleanYaml() {
     return (yaml, mode = 'edit') => {
       try {
-        const obj = jsyaml.safeLoad(yaml);
+        const obj = jsyaml.load(yaml);
 
         if (mode !== 'edit') {
           cleanForNew(obj);
@@ -1166,7 +1166,7 @@ export default {
           obj.type = obj._type;
           delete obj._type;
         }
-        const out = jsyaml.safeDump(obj, { skipInvalid: true });
+        const out = jsyaml.dump(obj, { skipInvalid: true });
 
         return out;
       } catch (e) {
@@ -1184,14 +1184,14 @@ export default {
   yamlForSave() {
     return (yaml) => {
       try {
-        const obj = jsyaml.safeLoad(yaml);
+        const obj = jsyaml.load(yaml);
 
         if (obj) {
           if (this._type) {
             obj._type = obj.type;
           }
 
-          return jsyaml.safeDump(obj);
+          return jsyaml.dump(obj);
         }
       } catch (e) {
         return null;
@@ -1201,7 +1201,22 @@ export default {
 
   saveYaml() {
     return async(yaml) => {
-      const parsed = jsyaml.safeLoad(yaml); // will throw on invalid yaml
+      /* Multipart support, but need to know the right cluster and work for management store
+        and "apply" seems to only work for create, not update.
+
+      const ary = jsyaml.loadAll(yaml); // will throw on invalid yaml, and return one or more documents (usually one)
+
+      if ( ary.length > 1 ) {
+        await this.$rootGetters['currentCluster'].doAction('apply', {
+          yaml,
+          defaultNamespace: this.metadata.namespace,
+        });
+      }
+
+      const parsed = ary[0];
+      */
+
+      const parsed = jsyaml.load(yaml); // will throw on invalid yaml, and return one or more documents (usually one)
 
       if ( this.schema?.attributes?.namespaced && !parsed.metadata.namespace ) {
         const err = this.$rootGetters['i18n/t']('resourceYaml.errors.namespaceRequired');
@@ -1230,13 +1245,10 @@ export default {
         });
       }
 
-      // Steve used to return tables and still might, maybe?
-      if ( res && res.kind !== 'Table') {
-        await this.$dispatch(`load`, {
-          data:     res,
-          existing: (isCreate ? this : undefined)
-        });
-      }
+      await this.$dispatch(`load`, {
+        data:     res,
+        existing: (isCreate ? this : undefined)
+      });
 
       if (this.isSpoofed) {
         await this.$dispatch('cluster/findAll', { type: this.type, opt: { force: true } }, { root: true });

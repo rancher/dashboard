@@ -387,8 +387,8 @@ export default {
       }, {
         labelKey: 'catalog.install.section.diff',
         value:    VALUES_STATE.DIFF,
-        // === quite obviously shouldn't work, but has been and still does. When the magic breaks address with heavier stringify/jsyaml.safeDump
-        disabled: this.formYamlOption === VALUES_STATE.FORM ? this.originalYamlValues === jsyaml.safeDump(this.chartValues || {}) : this.originalYamlValues === this.valuesYaml,
+        // === quite obviously shouldn't work, but has been and still does. When the magic breaks address with heavier stringify/jsyaml.dump
+        disabled: this.formYamlOption === VALUES_STATE.FORM ? this.originalYamlValues === jsyaml.dump(this.chartValues || {}) : this.originalYamlValues === this.valuesYaml,
       });
 
       return options;
@@ -522,7 +522,7 @@ export default {
       case VALUES_STATE.YAML:
         // Show the YAML preview
         if (old === VALUES_STATE.FORM) {
-          this.valuesYaml = jsyaml.safeDump(this.chartValues || {});
+          this.valuesYaml = jsyaml.dump(this.chartValues || {});
           this.previousYamlValues = this.valuesYaml;
         }
 
@@ -534,7 +534,7 @@ export default {
       case VALUES_STATE.DIFF:
         // Show the YAML diff
         if (old === VALUES_STATE.FORM) {
-          this.valuesYaml = jsyaml.safeDump(this.chartValues || {});
+          this.valuesYaml = jsyaml.dump(this.chartValues || {});
           this.previousYamlValues = this.valuesYaml;
         }
 
@@ -805,7 +805,7 @@ export default {
 
     applyYamlToValues() {
       try {
-        this.chartValues = jsyaml.safeLoad(this.valuesYaml);
+        this.chartValues = jsyaml.load(this.valuesYaml);
       } catch (err) {
         return { errors: exceptionToErrorsArray(err) };
       }

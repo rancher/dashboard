@@ -41,7 +41,7 @@ export default {
 
       try {
         await this.$store.dispatch('management/request', {
-          url:    '/meta/aksLocations',
+          url:    '/meta/aksCheckCredentials',
           method: 'POST',
           data:   {
             clientId,

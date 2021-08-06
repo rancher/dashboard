@@ -225,7 +225,7 @@ export default {
 
     targetPortsStrOrInt(targetPorts = []) {
       const neu = clone(targetPorts);
-      const isNumeric = new RegExp('^\\d+$');
+      const isNumeric = /^\\d+$/;
 
       neu.forEach((port, idx) => {
         if (port?.targetPort && isNumeric.test(port.targetPort)) {
@@ -256,11 +256,11 @@ export default {
     :subtypes="defaultServiceTypes"
     :validation-passed="true"
     :errors="errors"
+    :apply-hooks="applyHooks"
     @error="(e) => (errors = e)"
     @finish="save"
     @cancel="done"
     @select-type="(st) => (serviceType = st)"
-    @apply-hooks="() => applyHooks('_beforeSaveHooks')"
   >
     <NameNsDescription v-if="!isView" :value="value" :mode="mode" />
 

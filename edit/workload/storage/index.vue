@@ -207,7 +207,7 @@ export default {
 
     yamlDisplay(volume) {
       try {
-        return jsyaml.safeDump(volume);
+        return jsyaml.dump(volume);
       } catch {
         return volume;
       }

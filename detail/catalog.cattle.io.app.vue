@@ -38,7 +38,7 @@ export default {
     valuesYaml() {
       const combined = merge(merge({}, this.value?.spec?.chart?.values || {}), this.value?.spec?.values || {});
 
-      return jsyaml.safeDump(combined);
+      return jsyaml.dump(combined);
     },
   },
 

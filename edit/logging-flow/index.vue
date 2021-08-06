@@ -76,7 +76,7 @@ export default {
     set(this.value, 'spec', this.value.spec || {});
 
     if ( this.value.spec.filters?.length ) {
-      filtersYaml = jsyaml.safeDump(this.value.spec.filters);
+      filtersYaml = jsyaml.dump(this.value.spec.filters);
     } else {
       filtersYaml = createYaml(schemas, LOGGING.SPOOFED.FILTERS, []);
       // createYaml doesn't support passing reference types (array, map) as the first type. As such
@@ -199,7 +199,7 @@ export default {
     filtersYaml: {
       deep: true,
       handler() {
-        const filterJson = jsyaml.safeLoad(this.filtersYaml);
+        const filterJson = jsyaml.load(this.filtersYaml);
 
         if ( isArray(filterJson) ) {
           set(this.value.spec, 'filters', filterJson);
@@ -298,10 +298,10 @@ export default {
     :subtypes="[]"
     :validation-passed="true"
     :errors="errors"
+    :apply-hooks="applyHooks"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"
-    @apply-hooks="applyHooks"
   >
     <NameNsDescription v-if="!isView" v-model="value" :mode="mode" :namespaced="value.type !== LOGGING.CLUSTER_FLOW" />
 

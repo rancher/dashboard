@@ -132,10 +132,10 @@ export default {
     :subtypes="[]"
     :validation-passed="true"
     :errors="errors"
+    :apply-hooks="applyHooks"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"
-    @apply-hooks="applyHooks"
   >
     <NameNsDescription
       v-if="!isView"

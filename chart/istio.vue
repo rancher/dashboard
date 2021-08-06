@@ -83,7 +83,7 @@ export default {
     valuesYaml: {
       get() {
         try {
-          const yaml = jsyaml.safeDump(this.value);
+          const yaml = jsyaml.dump(this.value);
 
           return yaml;
         } catch (e) {
@@ -92,7 +92,7 @@ export default {
       },
       set: debounce(function(neu) {
         try {
-          const obj = jsyaml.safeLoad(neu);
+          const obj = jsyaml.load(neu);
 
           Object.assign(this.value, obj);
         } catch (e) {
@@ -111,7 +111,7 @@ export default {
 
     valuesChanged(value) {
       try {
-        jsyaml.safeLoad(value);
+        jsyaml.load(value);
         if (value === defaultOverlayFile) {
           value = '';
         } else {

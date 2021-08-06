@@ -68,20 +68,32 @@ export default {
       default: () => []
     },
 
+    // Is the edit as yaml button allowed
     canYaml: {
       type:    Boolean,
       default: true,
+    },
+
+    // Call this function instead of the normal one to convert the resource into yaml to display
+    generateYaml: {
+      type:    Function,
+      default: null,
     },
 
     // Override the set of labels shown on the button from the default save/create.
     finishButtonMode: {
       type:    String,
       default: null,
+    },
+
+    applyHooks: {
+      type:    Function,
+      default: null,
     }
   },
 
   data() {
-    const yaml = this.createResourceYaml(this.resource);
+    const yaml = this.createResourceYaml();
 
     return {
       isCancelModal: false,
@@ -180,19 +192,28 @@ export default {
       }
     },
 
-    createResourceYaml(resource) {
-      const inStore = this.$store.getters['currentStore'](resource);
-      const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
-      const clonedResource = clone(resource);
+    createResourceYaml() {
+      const resource = this.resource;
 
-      const out = createYaml(schemas, resource.type, clonedResource);
+      if ( typeof this.generateYaml === 'function' ) {
+        return this.generateYaml.apply(this, resource);
+      } else {
+        const inStore = this.$store.getters['currentStore'](resource);
+        const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
+        const clonedResource = clone(resource);
 
-      return out;
+        const out = createYaml(schemas, resource.type, clonedResource);
+
+        return out;
+      }
     },
 
     async showPreviewYaml() {
-      await this.$emit('apply-hooks', BEFORE_SAVE_HOOKS);
-      const resourceYaml = this.createResourceYaml(this.resource);
+      if ( this.applyHooks ) {
+        await this.applyHooks(BEFORE_SAVE_HOOKS);
+      }
+
+      const resourceYaml = this.createResourceYaml();
 
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;
@@ -335,7 +356,7 @@ export default {
           :done-route="doneRoute"
           :done-override="resource.doneOverride"
           :errors="errors"
-          @apply-hooks="$emit('apply-hooks', $event)"
+          :apply-hooks="applyHooks"
           @error="e=>$emit('error', e)"
         >
           <template #yamlFooter="{yamlSave, showPreview, yamlPreview, yamlUnpreview}">
