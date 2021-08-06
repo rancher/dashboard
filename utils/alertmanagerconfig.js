@@ -42,7 +42,7 @@ function extractConfig(secret) {
   secret.data = secret.data || {};
   const file = secret.data[FILENAME];
   const decodedFile = file ? base64Decode(file) : '{}';
-  const config = jsyaml.safeLoad(decodedFile);
+  const config = jsyaml.load(decodedFile);
 
   config.receivers = config.receivers || [];
   config.route = config.route || {};
@@ -86,7 +86,7 @@ export async function updateConfig(dispatch, path, type, updateFn) {
     config.route = rootRoute;
   }
 
-  const newFile = jsyaml.safeDump(config);
+  const newFile = jsyaml.dump(config);
   const encodedFile = base64Encode(newFile);
 
   secret.data[FILENAME] = encodedFile;

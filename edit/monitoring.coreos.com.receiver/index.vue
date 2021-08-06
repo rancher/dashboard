@@ -49,7 +49,7 @@ export default {
       }
     });
 
-    let suffixYaml = jsyaml.safeDump(suffix);
+    let suffixYaml = jsyaml.dump(suffix);
 
     if (suffixYaml.trim() === '{}') {
       suffixYaml = '';
@@ -91,7 +91,7 @@ export default {
           }
         });
 
-        const suffix = jsyaml.safeLoad(value);
+        const suffix = jsyaml.load(value);
 
         Object.assign(this.value.spec, suffix);
         this.yamlError = '';

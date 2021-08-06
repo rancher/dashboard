@@ -280,7 +280,7 @@ export default {
 
       await eachLimit(items, 10, (item, idx) => {
         return item.generateKubeConfig().then((config) => {
-          const entry = jsyaml.safeLoad(config);
+          const entry = jsyaml.load(config);
 
           if ( first ) {
             obj = entry;
@@ -295,7 +295,7 @@ export default {
 
       delete obj['current-context'];
 
-      const out = jsyaml.safeDump(obj);
+      const out = jsyaml.dump(obj);
 
       downloadFile('kubeconfig.yaml', out, 'application/yaml');
     };
