@@ -9,7 +9,7 @@ import { allHash } from '@/utils/promise';
 import CreateEditView from '@/mixins/create-edit-view';
 import { HCI } from '@/config/types';
 
-import OverviewKeypairs from '@/detail/harvesterhci.io.virtualmachinebackup/keypairs';
+import OverviewKeypairs from '@/detail/kubevirt.io.virtualmachine/tabs/details/keypairs';
 import Volume from '@/edit/kubevirt.io.virtualmachine/volume';
 import Network from '@/edit/kubevirt.io.virtualmachine/network';
 import CloudConfig from '@/edit/kubevirt.io.virtualmachine/CloudConfig';
@@ -44,17 +44,23 @@ export default {
     },
   },
 
+  data() {
+    return { vm: null };
+  },
+
   async fetch() {
-    const hash = await allHash({ backupContents: this.$store.dispatch('virtual/findAll', { type: HCI.BACKUP_CONTENT }) });
+    const hash = await allHash({
+      backupContents: this.$store.dispatch('virtual/findAll', { type: HCI.BACKUP_CONTENT }),
+      allImages:      this.$store.dispatch('virtual/findAll', { type: HCI.IMAGE })
+    });
 
     const content = hash.backupContents.find( O => O.id === `${ this.value.metadata.namespace }/${ this.value?.backupContentName }`);
 
-    const spec = content.spec.source.virtualMachineSpec;
+    const vm = content.spec.source;
 
-    this.spec = spec;
-    this.contentResource = content;
+    this.vm = vm;
 
-    const volumes = spec.template?.spec?.volumes || [];
+    const volumes = vm.spec.template?.spec?.volumes || [];
 
     volumes.forEach((v) => {
       if (v.cloudInitNoCloud) {
@@ -63,13 +69,10 @@ export default {
       }
     });
 
-    this.diskRows = this.getDiskRows(spec);
-    this.networkRows = this.getNetworkRows(spec);
-    this.imageName = this.getRootImageId(spec);
-  },
-
-  data() {
-    return { contentResource: null };
+    this.spec = vm.spec;
+    this.diskRows = this.getDiskRows(vm);
+    this.networkRows = this.getNetworkRows(vm);
+    this.imageName = this.getRootImageId(vm);
   },
 
   methods: {
@@ -92,8 +95,8 @@ export default {
     @apply-hooks="applyHooks"
   >
     <Tabbed :side-tabs="true" @changed="onTabChanged">
-      <Tab name="basics" :label="t('harvester.virtualMachine.detail.tabs.basics')">
-        <OverviewBasics v-if="contentResource" v-model="contentResource.spec.source" mode="view" :memory="memory" />
+      <Tab name="Basics" :label="t('harvester.virtualMachine.detail.tabs.basics')">
+        <OverviewBasics v-if="vm" v-model="vm" mode="view" :memory="memory" />
       </Tab>
 
       <Tab
@@ -113,7 +116,7 @@ export default {
       </Tab>
 
       <Tab name="keypairs" :label="t('harvester.virtualMachine.detail.tabs.keypairs')" class="bordered-table" :weight="-3">
-        <OverviewKeypairs v-if="contentResource" v-model="contentResource.spec.source" />
+        <OverviewKeypairs v-if="vm" v-model="vm" />
       </Tab>
 
       <Tab

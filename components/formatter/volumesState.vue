@@ -1,5 +1,5 @@
 <script>
-import { HCI } from '@/config/types';
+import { HCI, PVC } from '@/config/types';
 
 export default {
   props: {
@@ -18,7 +18,7 @@ export default {
   },
 
   data() {
-    const dataVolumeList = this.$store.getters['virtual/all'](HCI.DATA_VOLUME) || [];
+    const dataVolumeList = this.$store.getters['virtual/all'](PVC) || [];
     const vmList = this.$store.getters['virtual/all'](HCI.VM) || [];
 
     return {

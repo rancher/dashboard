@@ -51,7 +51,6 @@ export default {
         v-model="cloudData.userData"
         class="yaml-editor"
         :editor-mode="editorMode"
-        @onReady="onReady"
       />
       <hr class="section-divider" />
       <h3>{{ t('harvester.virtualMachine.cloudConfig.networkData.title') }}</h3>

@@ -3,6 +3,7 @@ import { HCI } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import CpuMemory from '@/edit/kubevirt.io.virtualmachine/CpuMemory';
 import LabelValue from '@/components/LabelValue';
+import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 const UNDEFINED = 'n/a';
 
@@ -27,29 +28,28 @@ export default {
     }
   },
 
-  data() {
-    return { };
-  },
-
   computed: {
     name() {
       return this.value?.metadata?.name || UNDEFINED;
     },
 
     hostname() {
-      return this.value?.virtualMachineSpec?.template?.spec?.hostname;
+      return this.value?.spec?.template?.spec?.hostname;
     },
 
     imageName() {
       const imageList = this.$store.getters['virtual/all'](HCI.IMAGE) || [];
-      const imageId = this.value?.virtualMachineSpec?.dataVolumeTemplates?.[0]?.metadata?.annotations?.['harvesterhci.io/imageId'] || '';
+      const claimTemplate = this.getVolumeClaimTemplates(this.value);
+
+      const imageId = claimTemplate[0]?.metadata?.annotations?.['harvesterhci.io/imageId'] || '';
+
       const image = imageList.find( I => imageId === I.id);
 
       return image?.spec?.displayName || '-';
     },
 
     disks() {
-      const disks = this.value?.virtualMachineSpec?.template?.spec?.domain?.devices?.disks || [];
+      const disks = this.value?.spec?.template?.spec?.domain?.devices?.disks || [];
 
       return disks.filter((disk) => {
         return !!disk.bootOrder;
@@ -63,7 +63,7 @@ export default {
     },
 
     cdroms() {
-      const disks = this.value?.virtualMachineSpec?.template?.spec?.domain?.devices?.disks || [];
+      const disks = this.value?.spec?.template?.spec?.domain?.devices?.disks || [];
 
       return disks.filter((disk) => {
         return !!disk.cdrom;
@@ -71,7 +71,7 @@ export default {
     },
 
     machineType() {
-      return this.value?.virtualMachineSpec?.template?.spec?.domain?.machine?.type || undefined;
+      return this.value.spec?.template?.spec?.domain?.machine?.type || undefined;
     }
   },
 
@@ -85,7 +85,18 @@ export default {
     },
     isEmpty(o) {
       return o !== undefined && Object.keys(o).length === 0;
-    }
+    },
+    getVolumeClaimTemplates(vm) {
+      let out = [];
+
+      try {
+        out = JSON.parse(vm.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]);
+      } catch (e) {
+        throw new Error(`volumeClaimTemplates parse error: ${ e }`);
+      }
+
+      return out;
+    },
   }
 };
 </script>
@@ -112,7 +123,7 @@ export default {
       </div>
     </div>
 
-    <CpuMemory class="cpuMemory" :cpu="value.virtualMachineSpec.template.spec.domain.cpu.cores" :mode="mode" :memory="memory" />
+    <CpuMemory class="cpuMemory" :cpu="value.spec.template.spec.domain.cpu.cores" :mode="mode" :memory="memory" />
 
     <div class="row">
       <div class="col span-6">

@@ -74,7 +74,7 @@ export default {
 
       userData = userData?.split('- >-').splice(1) || [];
 
-      out = this.allssh.filter(ssh => keys.includes(ssh.metadata.name)).map((ssh) => {
+      out = this.allssh.filter(ssh => keys.includes(ssh.id)).map((ssh) => {
         return {
           ...ssh,
           showKey: false

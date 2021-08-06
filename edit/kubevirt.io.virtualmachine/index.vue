@@ -1,8 +1,7 @@
 <script>
 import isEqual from 'lodash/isEqual';
-import cloneDeep from 'lodash/cloneDeep';
 import { mapGetters } from 'vuex';
-import { safeDump } from 'js-yaml';
+import { dump } from 'js-yaml';
 
 import Banner from '@/components/Banner';
 import Tabbed from '@/components/Tabbed';
@@ -21,6 +20,7 @@ import ImageSelect from '@/edit/kubevirt.io.virtualmachine/Image';
 import CpuMemory from '@/edit/kubevirt.io.virtualmachine/CpuMemory';
 import CloudConfig from '@/edit/kubevirt.io.virtualmachine/CloudConfig';
 
+import { clone } from '@/utils/object';
 import { HCI } from '@/config/types';
 import { cleanForNew } from '@/plugins/steve/normalize';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
@@ -59,7 +59,7 @@ export default {
   },
 
   data() {
-    const cloneDeepVM = cloneDeep(this.value);
+    const cloneDeepVM = clone(this.value);
     const isRestartImmediately = this.value.actualState === 'Running';
 
     return {
@@ -152,7 +152,6 @@ export default {
         if (!id) {
           return;
         }
-
         if (id !== old && !this.templateVersionId) {
           const templates = await this.$store.dispatch('virtual/findAll', { type: HCI.VM_TEMPLATE });
 
@@ -169,17 +168,21 @@ export default {
         }
         const versions = await this.$store.dispatch('virtual/findAll', { type: HCI.VM_VERSION });
         const curVersion = versions.find( V => V.id === id);
-        const sshKey = curVersion.spec?.keyPairIds || [];
 
-        const cloudScript = curVersion?.spec?.vm?.template?.spec?.volumes?.find( (V) => {
-          return V.cloudInitNoCloud !== undefined;
-        })?.cloudInitNoCloud; // TODO: use modals
+        if (curVersion?.spec?.vm) {
+          const sshKey = curVersion.spec.keyPairIds || [];
 
-        this.$set(this, 'userScript', cloudScript?.userData);
-        this.$set(this, 'networkScript', cloudScript?.networkData);
-        this.$set(this, 'sshKey', sshKey);
-        // this.$refs.ssh.updateSSH(sshKey);
-        this.value.spec = curVersion?.spec?.vm;
+          const cloudScript = this.getCloudInitScript(curVersion.spec.vm);
+
+          this.$set(this, 'userScript', cloudScript?.userData);
+          this.$set(this, 'networkScript', cloudScript?.networkData);
+          this.$set(this, 'sshKey', sshKey);
+          this.value.spec = curVersion.spec.vm.spec;
+
+          const claimTemplate = this.getVolumeClaimTemplates(curVersion.spec.vm);
+
+          this.value.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(claimTemplate);
+        }
         this.changeSpec();
       }
     },
@@ -197,11 +200,11 @@ export default {
       let parsed = {};
 
       if (neu) {
-        parsed = this.mergeGuestAgent(cloneDeep(this.userScript));
+        parsed = this.mergeGuestAgent(clone(this.userScript));
       } else {
-        parsed = this.deleteGuestAgent(cloneDeep(this.userScript));
+        parsed = this.deleteGuestAgent(clone(this.userScript));
       }
-      let out = safeDump(parsed);
+      let out = dump(parsed);
 
       if (parsed === '') {
         out = undefined;
@@ -233,28 +236,8 @@ export default {
       this.$set(this.value, 'type', HCI.VM);
     });
 
-    this.registerAfterHook(() => { // may need to restart VM when editing
-      if ( this.mode === 'edit' && this.value.hasAction('restart')) {
-        const cloneDeepNewVM = cloneDeep(this.value);
-
-        delete cloneDeepNewVM.type;
-        delete cloneDeepNewVM?.metadata;
-        delete this.cloneDeepVM.type;
-        delete this.cloneDeepVM?.metadata;
-
-        const dataVolumeTemplates = this.cloneDeepVM?.spec?.dataVolumeTemplates || [];
-
-        for (let i = 0; i < dataVolumeTemplates.length; i++) {
-          delete this.cloneDeepVM.spec.dataVolumeTemplates[i]?.metadata?.creationTimestamp;
-        }
-
-        const oldValue = JSON.parse(JSON.stringify(this.cloneDeepVM));
-        const newValue = JSON.parse(JSON.stringify(cloneDeepNewVM));
-
-        if (!isEqual(oldValue, newValue) && this.isRestartImmediately) {
-          this.value.doAction('restart', {});
-        }
-      }
+    this.registerAfterHook(() => {
+      this.restartVM();
     });
   },
 
@@ -281,7 +264,7 @@ export default {
     },
 
     async saveSingle(buttonCb) {
-      this.normalizeSpec();
+      this.parseVM();
 
       if (!this.value.spec.template.spec.hostname) {
         this.$set(this.value.spec.template.spec, 'hostname', this.value.metadata.name);
@@ -313,7 +296,7 @@ export default {
 
         this.$set(this.value.spec.template.spec, 'hostname', hostname);
 
-        this.normalizeSpec();
+        this.parseVM();
 
         try {
           await this.save(buttonCb);
@@ -324,17 +307,34 @@ export default {
       this.value.id = '';
     },
 
+    restartVM() {
+      if ( this.mode === 'edit' && this.value.hasAction('restart')) {
+        const cloneDeepNewVM = clone(this.value);
+
+        delete cloneDeepNewVM.type;
+        delete cloneDeepNewVM?.metadata;
+        delete this.cloneDeepVM.type;
+        delete this.cloneDeepVM?.metadata;
+
+        const oldVM = JSON.parse(JSON.stringify(this.cloneDeepVM));
+        const newVM = JSON.parse(JSON.stringify(cloneDeepNewVM));
+
+        if (!isEqual(oldVM, newVM) && this.isRestartImmediately) {
+          this.value.doAction('restart', {});
+        }
+      }
+    },
+
     changeSpec() {
-      const spec = this.value.spec;
-      const diskRows = this.getDiskRows(spec);
-      const networkRows = this.getNetworkRows(spec);
-      const imageId = this.getRootImageId(spec);
+      const diskRows = this.getDiskRows(this.value);
+      const networkRows = this.getNetworkRows(this.value);
+      const imageId = this.getRootImageId(this.value);
 
       if (imageId) {
         this.autoChangeForImage = false;
       }
 
-      this.$set(this, 'spec', spec);
+      this.$set(this, 'spec', this.value.spec);
       this.$set(this, 'diskRows', diskRows);
       this.$set(this, 'networkRows', networkRows);
       this.$set(this, 'imageId', imageId);
@@ -458,7 +458,7 @@ export default {
           :label="t('harvester.tab.volume')"
           :weight="-1"
         >
-          <Volume v-model="diskRows" :mode="mode" :custom-volume-mode="customVolumeMode" />
+          <Volume v-model="diskRows" :mode="mode" :custom-volume-mode="customVolumeMode" :namespace="value.metadata.namespace" />
         </Tab>
 
         <Tab

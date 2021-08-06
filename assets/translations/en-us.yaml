@@ -5417,7 +5417,7 @@ typeLabel:
       one { Network }
       other { Networks }
     }
-  cdi.kubevirt.io.datavolume: |-
+  volume: |-
     {count, plural,
       one { Volume }
       other { Volumes }

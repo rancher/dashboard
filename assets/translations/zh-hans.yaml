@@ -4412,7 +4412,7 @@ typeLabel:
   cloudTemplate: Cloud 配置模板
   harvesterhci.io.virtualmachinetemplateversion: 虚拟机模板
   k8s.cni.cncf.io.networkattachmentdefinition: 网络
-  cdi.kubevirt.io.datavolume: 卷
+  volume: 卷
   harvesterhci.io.user: 用户
   harvesterhci.io.setting: 设置
   host: 主机

@@ -9,7 +9,7 @@ import Poller from '@/utils/poller';
 import { parseSi, formatSi, exponentNeeded, UNITS } from '@/utils/units';
 import { REASON } from '@/config/table-headers';
 import {
-  EVENT, METRIC, NODE, HCI, SERVICE
+  EVENT, METRIC, NODE, HCI, SERVICE, PVC
 } from '@/config/types';
 import ResourceSummary from '@/components/ResourceSummary';
 import HardwareResourceGauge from '@/components/HardwareResourceGauge';
@@ -45,7 +45,7 @@ const RESOURCES = [{
     name:     'c-cluster-product-resource',
     params:   { resource: 'host' }
   }
-}, { type: HCI.VM }, { type: HCI.NETWORK_ATTACHMENT }, { type: HCI.IMAGE }, { type: HCI.DATA_VOLUME }];
+}, { type: HCI.VM }, { type: HCI.NETWORK_ATTACHMENT }, { type: HCI.IMAGE }, { type: PVC }];
 
 const VM_DASHBOARD_METRICS_URL = '/api/v1/namespaces/harvester-monitoring/services/http:monitoring-grafana:80/proxy/d/harvester-vm-dashboard-1/vm-dashboard?orgId=1';
 
@@ -239,7 +239,7 @@ export default {
     },
 
     volumeEvents() {
-      return this.events.filter( E => ['DataVolume'].includes(E.involvedObject.kind));
+      return this.events.filter( E => ['PersistentVolumeClaim'].includes(E.involvedObject.kind));
     },
 
     hostEvents() {

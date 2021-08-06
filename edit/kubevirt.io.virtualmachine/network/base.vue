@@ -28,7 +28,7 @@ export const MODEL = [{
 const MANAGEMENT_NETWORK = 'management Network';
 
 export default {
-  name:       'Base',
+  name:       'NetworkBase',
   components: {
     LabeledInput, LabeledSelect, PortInputGroup, InputOrDisplay
   },
@@ -40,6 +40,7 @@ export default {
         return {};
       }
     },
+
     networkOption: {
       type:    Array,
       default: () => {
@@ -71,12 +72,15 @@ export default {
     isDisabled() {
       return this.isMasquerade && !this.value.newCreateId && !this.isCreate;
     },
+
     isView() {
       return this.mode === _VIEW;
     },
+
     isCreate() {
       return this.mode === _CREATE;
     },
+
     modelOption() {
       return MODEL;
     },

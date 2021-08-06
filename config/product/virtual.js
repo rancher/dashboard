@@ -1,5 +1,5 @@
 import {
-  HCI, NODE, CONFIG_MAP, NAMESPACE, VIRTUAL_TYPES, MANAGEMENT
+  HCI, NODE, CONFIG_MAP, NAMESPACE, VIRTUAL_TYPES, MANAGEMENT, PVC
 } from '@/config/types';
 import {
   STATE, NAME_UNLINKED, NAME as NAME_COL, AGE, NAMESPACE_COL, IMAGE_DOWNLOAD_SIZE,
@@ -111,16 +111,25 @@ export function init(store) {
     exact: false,
   });
 
-  basicType([HCI.DATA_VOLUME]);
+  basicType([HCI.VOLUME]);
+  configureType(HCI.VOLUME, {
+    location:    {
+      name:    'c-cluster-product-resource',
+      params:  { resource: HCI.VOLUME },
+    },
+    resource:          PVC,
+    useCustomInImport: true
+  });
   virtualType({
     label:      store.getters['i18n/t']('harvester.volume.label'),
     group:      'root',
-    name:       HCI.DATA_VOLUME,
+    ifHaveType: PVC,
+    name:       HCI.VOLUME,
     namespaced:  true,
     weight:     199,
     route:      {
       name:     'c-cluster-product-resource',
-      params:   { resource: HCI.DATA_VOLUME }
+      params:   { resource: HCI.VOLUME }
     },
     exact: false,
   });

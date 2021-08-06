@@ -123,9 +123,8 @@ export default {
   }
 
   .btn {
-    line-height: normal !important;
+    line-height: normal;
     border: 0px;
-    min-height: 22px !important;
   }
 
   .btn-xs,
@@ -138,7 +137,7 @@ export default {
   // this matches the top/bottom padding of the default button
   $trigger-padding: 15px 10px 15px 10px;
   $xs-trigger-padding: 2px 4px 4px 4px;
-  $sm-trigger-padding: 8px 10px 10px 10px;
+  $sm-trigger-padding: 10px 10px 10px 10px;
   $lg-trigger-padding: 18px 10px 10px 10px;
 
   .v-popover {
@@ -173,7 +172,6 @@ export default {
 
   .dropdown-button {
     background: var(--tooltip-bg);
-    border: solid thin var(--link-text);
     color: var(--link-text);
     padding: 0;
     display: inline-flex;
