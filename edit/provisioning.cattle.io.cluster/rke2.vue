@@ -326,7 +326,7 @@ export default {
         return sortBy(out, 'sort:desc');
       }
 
-      const cur = this.value?.spec?.kubernetesVersion || '';
+      const cur = this.originalValue?.spec?.kubernetesVersion || '';
       const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
       const existingK3s = this.mode === _EDIT && cur.includes('k3s');
       const rke2 = filterAndMap(this.rke2Versions, (existingRke2 ? cur : null));
@@ -357,7 +357,7 @@ export default {
         if ( existing ) {
           existing.disabled = false;
         } else {
-          out.push({ label: `${ cur } (current)`, value: cur });
+          out.unshift({ label: `${ cur } (current)`, value: cur });
         }
       }
 
@@ -1306,7 +1306,7 @@ export default {
             <div v-for="v in addonVersions" :key="v._key">
               <h3>{{ labelForAddon(v.name) }}</h3>
               <Questions
-                v-if="versionInfo[v.name].questions"
+                v-if="versionInfo[v.name] && versionInfo[v.name].questions"
                 v-model="chartValues[v.name]"
                 :mode="mode"
                 :tabbed="false"
@@ -1318,7 +1318,7 @@ export default {
                 ref="yaml-values"
                 :value="chartValues[v.name]"
                 :scrolling="true"
-                :initial-yaml-values="versionInfo[v.name].values"
+                :initial-yaml-values="versionInfo[v.name] ? versionInfo[v.name].values : ''"
                 :as-object="true"
                 :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
                 :hide-preview-buttons="true"
