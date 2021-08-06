@@ -76,7 +76,7 @@ export default {
     set(this.value, 'spec', this.value.spec || {});
 
     if ( this.value.spec.filters?.length ) {
-      filtersYaml = jsyaml.safeDump(this.value.spec.filters);
+      filtersYaml = jsyaml.dump(this.value.spec.filters);
     } else {
       filtersYaml = createYaml(schemas, LOGGING.SPOOFED.FILTERS, []);
       // createYaml doesn't support passing reference types (array, map) as the first type. As such
@@ -199,7 +199,7 @@ export default {
     filtersYaml: {
       deep: true,
       handler() {
-        const filterJson = jsyaml.safeLoad(this.filtersYaml);
+        const filterJson = jsyaml.load(this.filtersYaml);
 
         if ( isArray(filterJson) ) {
           set(this.value.spec, 'filters', filterJson);

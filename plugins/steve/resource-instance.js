@@ -1156,7 +1156,7 @@ export default {
   cleanYaml() {
     return (yaml, mode = 'edit') => {
       try {
-        const obj = jsyaml.safeLoad(yaml);
+        const obj = jsyaml.load(yaml);
 
         if (mode !== 'edit') {
           cleanForNew(obj);
@@ -1166,7 +1166,7 @@ export default {
           obj.type = obj._type;
           delete obj._type;
         }
-        const out = jsyaml.safeDump(obj, { skipInvalid: true });
+        const out = jsyaml.dump(obj, { skipInvalid: true });
 
         return out;
       } catch (e) {
@@ -1184,14 +1184,14 @@ export default {
   yamlForSave() {
     return (yaml) => {
       try {
-        const obj = jsyaml.safeLoad(yaml);
+        const obj = jsyaml.load(yaml);
 
         if (obj) {
           if (this._type) {
             obj._type = obj.type;
           }
 
-          return jsyaml.safeDump(obj);
+          return jsyaml.dump(obj);
         }
       } catch (e) {
         return null;
@@ -1201,7 +1201,7 @@ export default {
 
   saveYaml() {
     return async(yaml) => {
-      const parsed = jsyaml.safeLoad(yaml); // will throw on invalid yaml
+      const parsed = jsyaml.load(yaml); // will throw on invalid yaml
 
       if ( this.schema?.attributes?.namespaced && !parsed.metadata.namespace ) {
         const err = this.$rootGetters['i18n/t']('resourceYaml.errors.namespaceRequired');
