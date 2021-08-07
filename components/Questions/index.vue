@@ -12,22 +12,24 @@ import FloatType from './Float';
 import ArrayType from './Array';
 import MapType from './Map';
 import ReferenceType from './Reference';
+import CloudCredentialType from './CloudCredential';
 
 export const knownTypes = {
-  string:       StringType,
-  hostname:     StringType, // @TODO
-  multiline:    StringType,
-  password:     StringType,
-  boolean:      BooleanType,
-  enum:         EnumType,
-  int:          IntType,
-  float:        FloatType,
-  map:          MapType,
-  reference:    ReferenceType,
-  configmap:    ReferenceType,
-  secret:       ReferenceType,
-  storageclass: ReferenceType,
-  pvc:          ReferenceType,
+  string:          StringType,
+  hostname:        StringType, // @TODO
+  multiline:       StringType,
+  password:        StringType,
+  boolean:         BooleanType,
+  enum:            EnumType,
+  int:             IntType,
+  float:           FloatType,
+  map:             MapType,
+  reference:       ReferenceType,
+  configmap:       ReferenceType,
+  secret:          ReferenceType,
+  storageclass:    ReferenceType,
+  pvc:             ReferenceType,
+  cloudcredential: CloudCredentialType,
 
   // storageclass
   // pvc
@@ -35,13 +37,15 @@ export const knownTypes = {
 };
 
 export function componentForQuestion(q) {
-  if ( knownTypes[q.type] ) {
-    return q.type;
-  } else if ( q.type.startsWith('array[') ) { // This only really works for array[string|multiline], but close enough for now.
+  const type = (q.type || '').toLowerCase();
+
+  if ( knownTypes[type] ) {
+    return type;
+  } else if ( type.startsWith('array[') ) { // This only really works for array[string|multiline], but close enough for now.
     return ArrayType;
-  } else if ( q.type.startsWith('map[') ) { // Same, only works with map[string|multiline]
+  } else if ( type.startsWith('map[') ) { // Same, only works with map[string|multiline]
     return MapType;
-  } else if ( q.type.startsWith('reference[') ) { // Same, only works with map[string|multiline]
+  } else if ( type.startsWith('reference[') ) { // Same, only works with map[string|multiline]
     return ReferenceType;
   }
 

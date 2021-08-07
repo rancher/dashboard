@@ -274,7 +274,10 @@ export default {
           return onError.call(this, err);
         }
 
-        await this.applyHooks(AFTER_SAVE_HOOKS);
+        if ( this.applyHooks ) {
+          await this.applyHooks(AFTER_SAVE_HOOKS);
+        }
+
         buttonDone(true);
         this.done();
       } catch (err) {
