@@ -1364,10 +1364,10 @@ export default {
                     :show-remove="false"
                     :initial-empty-row="true"
                   />
-                  <h3>Add additional Kubelet args:</h3>
+                  <h3>Use the Kubelet args:</h3>
                 </template>
                 <h3 v-else>
-                  For all machines:
+                  For <span v-if="rkeConfig.machineSelectorConfig.length > 1">any</span><span v-else>all</span> machines, use the Kubelet args:
                 </h3>
 
                 <ArrayList
@@ -1378,6 +1378,7 @@ export default {
                 />
               </template>
             </ArrayListGrouped>
+            <Banner v-if="rkeConfig.machineSelectorConfig.length > 1" color="info" label="Note: The last selector that matches wins and only args from it will be used.  Args from other matches above will not combined together or merged." />
 
             <ArrayList v-if="serverArgs['kube-controller-manager-arg']" v-model="serverConfig['kube-controller-manager-arg']" :mode="mode" title="Additional Controller Manager Args" class="mb-20" />
             <ArrayList v-if="serverArgs['kube-apiserver-arg']" v-model="serverConfig['kube-apiserver-arg']" :mode="mode" title="Additional API Server Args" class="mb-20" />
