@@ -292,6 +292,14 @@ export default {
     }
   },
 
+  watch: {
+    showNodes(neu) {
+      if (neu) {
+        this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE });
+      }
+    }
+  },
+
   mounted() {
     window.c = this;
   },
