@@ -6,6 +6,7 @@ import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
 
 import CreateEditView from '@/mixins/create-edit-view';
+
 import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
 import { _CREATE, _EDIT } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
@@ -684,6 +685,7 @@ export default {
   created() {
     this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools');
     this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
+    this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
   },
 
   methods: {
@@ -821,6 +823,14 @@ export default {
       }
     },
 
+    async saveRoleBindings() {
+      await this.value.waitForMgmt();
+
+      if (this.membershipUpdate.save) {
+        await this.membershipUpdate.save(this.value.mgmt.id);
+      }
+    },
+
     validationPassed() {
       return (this.provider === 'custom' || !!this.credentialId) && this.hasOwner;
     },
@@ -876,18 +886,7 @@ export default {
         return;
       }
 
-      try {
-        await this.save();
-        await this.value.waitForMgmt();
-
-        if (this.membershipUpdate.save) {
-          await this.membershipUpdate.save(this.value.mgmt.id);
-        }
-
-        btnCb(true);
-      } catch (e) {
-        btnCb(false);
-      }
+      await this.save(btnCb);
     },
 
     cancel() {
@@ -969,6 +968,7 @@ export default {
     canRemoveKubeletRow(row, idx) {
       return idx !== 0;
     },
+
   },
 };
 </script>

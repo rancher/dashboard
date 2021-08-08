@@ -23,7 +23,7 @@ import ChartMixin from '@/mixins/chart';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import { CATALOG, MANAGEMENT } from '@/config/types';
 import {
-  CHART, FROM_CLUSTER, FROM_TOOLS, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
+  CHART, FROM_CLUSTER, FROM_TOOLS, HIDE_SIDE_NAV, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
 } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@/config/labels-annotations';
 
@@ -40,8 +40,16 @@ const VALUES_STATE = {
   DIFF: 'DIFF'
 };
 
+function isPlainLayout(query) {
+  return Object.keys(query).includes(HIDE_SIDE_NAV);
+}
+
 export default {
   name: 'Install',
+
+  layout(context) {
+    return isPlainLayout(context.query) ? 'plain' : '';
+  },
 
   components: {
     Banner,
@@ -260,7 +268,9 @@ export default {
 
       customSteps: [
 
-      ]
+      ],
+
+      isPlainLayout: isPlainLayout(this.$route.query)
     };
   },
 
@@ -728,12 +738,12 @@ export default {
       const cluster = this.currentCluster;
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
       const serverUrl = this.serverUrlSetting?.value || '';
-      const isWindows = cluster.providerOs === 'windows';
-      const pathPrefix = cluster.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
-      const windowsPathPrefix = cluster.spec?.rancherKubernetesEngineConfig?.winPrefixPath || '';
+      const isWindows = cluster?.providerOs === 'windows';
+      const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
+      const windowsPathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.winPrefixPath || '';
 
-      setIfNotSet(cattle, 'clusterId', cluster.id);
-      setIfNotSet(cattle, 'clusterName', cluster.nameDisplay);
+      setIfNotSet(cattle, 'clusterId', cluster?.id);
+      setIfNotSet(cattle, 'clusterName', cluster?.nameDisplay);
       setIfNotSet(cattle, 'systemDefaultRegistry', defaultRegistry);
       setIfNotSet(global, 'systemDefaultRegistry', defaultRegistry);
       setIfNotSet(cattle, 'url', serverUrl);
@@ -761,13 +771,13 @@ export default {
       const cluster = this.$store.getters['currentCluster'];
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
       const serverUrl = this.serverUrlSetting?.value || '';
-      const isWindows = cluster.providerOs === 'windows';
-      const pathPrefix = cluster.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
-      const windowsPathPrefix = cluster.spec?.rancherKubernetesEngineConfig?.winPrefixPath || '';
+      const isWindows = cluster?.providerOs === 'windows';
+      const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
+      const windowsPathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.winPrefixPath || '';
 
       if ( values.global?.cattle ) {
-        deleteIfEqual(values.global.cattle, 'clusterId', cluster.id);
-        deleteIfEqual(values.global.cattle, 'clusterName', cluster.nameDisplay);
+        deleteIfEqual(values.global.cattle, 'clusterId', cluster?.id);
+        deleteIfEqual(values.global.cattle, 'clusterName', cluster?.nameDisplay);
         deleteIfEqual(values.global.cattle, 'systemDefaultRegistry', defaultRegistry);
         deleteIfEqual(values.global.cattle, 'url', serverUrl);
         deleteIfEqual(values.global.cattle, 'rkePathPrefix', pathPrefix);
@@ -959,7 +969,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else class="install-steps">
+  <div v-else class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
     <Wizard
       v-if="value"
       :steps="steps"
@@ -1264,6 +1274,10 @@ export default {
   .install-steps {
     position: relative;
     overflow: hidden;
+
+    &.isPlainLayout {
+      padding: 20px;
+    }
 
     .description {
       display: flex;
