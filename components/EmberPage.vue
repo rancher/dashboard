@@ -432,6 +432,11 @@ export default {
         this.loaded = false;
         this.iframeEl.remove();
         this.initFrame();
+      } else if ( msg.action === 'logout' ) {
+        this.loaded = false;
+        this.iframeEl.remove();
+        this.initFrame();
+        this.$store.dispatch('auth/logout');
       }
     },
 
