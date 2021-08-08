@@ -31,8 +31,8 @@ export default {
   },
 
   methods: {
-    toggle() {
-      this.state = !this.state;
+    toggle(neu) {
+      this.state = neu === null ? !this.state : neu;
       this.$emit('input', this.state ? this.onValue : this.offValue);
     }
   }
@@ -41,12 +41,12 @@ export default {
 
 <template>
   <span class="toggle-container">
-    <span class="label" :class="{ active: !state}">{{ offLabel }}</span>
-    <label class="switch">
-      <input type="checkbox" :checked="state" @input="toggle">
+    <span class="label no-select hand" :class="{ active: !state}" @click="toggle(false)">{{ offLabel }}</span>
+    <label class="switch hand">
+      <input type="checkbox" :checked="state" @input="toggle(null)">
       <span class="slider round"></span>
     </label>
-    <span class="label" :class="{ active: state}">{{ onLabel }}</span>
+    <span class="label no-select hand" :class="{ active: state}" @click="toggle(true)">{{ onLabel }}</span>
   </span>
 </template>
 
