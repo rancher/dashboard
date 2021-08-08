@@ -29,6 +29,7 @@ import {
   validateLength,
   validateBoolean
 } from '@/utils/validators';
+import waitFor from '@/utils/waitFor';
 
 import { ANNOTATIONS_TO_IGNORE_REGEX, DESCRIPTION, LABELS_TO_IGNORE_REGEX, NORMAN_NAME } from '@/config/labels-annotations';
 import {
@@ -66,9 +67,6 @@ const REMAP_STATE = {
 
 const DEFAULT_COLOR = 'warning';
 const DEFAULT_ICON = 'x';
-
-const DEFAULT_WAIT_INTERVAL = 1000;
-const DEFAULT_WAIT_TMIMEOUT = 30000;
 
 export const STATES = {
   'in-progress':      { color: 'info', icon: 'tag' },
@@ -512,43 +510,7 @@ export default {
   // ------------------------------------------------------------------
 
   waitForTestFn() {
-    return (fn, msg, timeoutMs, intervalMs) => {
-      console.log('Starting wait for', msg); // eslint-disable-line no-console
-
-      if ( !timeoutMs ) {
-        timeoutMs = DEFAULT_WAIT_TMIMEOUT;
-      }
-
-      if ( !intervalMs ) {
-        intervalMs = DEFAULT_WAIT_INTERVAL;
-      }
-
-      return new Promise((resolve, reject) => {
-        // Do a first check immediately
-        if ( fn.apply(this) ) {
-          console.log('Wait for', msg, 'done immediately'); // eslint-disable-line no-console
-          resolve(this);
-        }
-
-        const timeout = setTimeout(() => {
-          console.log('Wait for', msg, 'timed out'); // eslint-disable-line no-console
-          clearInterval(interval);
-          clearTimeout(timeout);
-          reject(new Error(`Failed while: ${ msg }`));
-        }, timeoutMs);
-
-        const interval = setInterval(() => {
-          if ( fn.apply(this) ) {
-            console.log('Wait for', msg, 'done'); // eslint-disable-line no-console
-            clearInterval(interval);
-            clearTimeout(timeout);
-            resolve(this);
-          } else {
-            console.log('Wait for', msg, 'not done yet'); // eslint-disable-line no-console
-          }
-        }, intervalMs);
-      });
-    };
+    return waitFor.testFn;
   },
 
   waitForState() {
@@ -610,10 +572,10 @@ export default {
   },
 
   waitForCondition() {
-    return (name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TMIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) => {
+    return (name, withStatus = 'True') => {
       return this.waitForTestFn(() => {
         return this.isCondition(name, withStatus);
-      }, `condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
+      }, `condition ${ name }=${ withStatus }`);
     };
   },
 

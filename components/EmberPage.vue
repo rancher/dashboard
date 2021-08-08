@@ -5,6 +5,8 @@ import { NAME as MANAGER } from '@/config/product/manager';
 import { CAPI, MANAGEMENT } from '@/config/types';
 import { SETTING } from '@/config/settings';
 
+import DynamicRBAC from '@/mixins/dyanmic-rbac/dyammic-rbac';
+
 const EMBER_FRAME = 'ember-iframe';
 const EMBER_FRAME_HIDE_CLASS = 'ember-iframe-hidden';
 const PAGE_CHECK_TIMEOUT = 30000;
@@ -51,6 +53,10 @@ const INTERCEPTS = {
 export default {
   components: { Loading },
 
+  mixins: [
+    DynamicRBAC
+  ],
+
   props: {
     src: {
       type:     String,
@@ -68,6 +74,10 @@ export default {
       type:    Boolean,
       default: false
     }
+  },
+
+  async fetch() {
+    await this.dynamicRbacFetch();
   },
 
   data() {
@@ -400,7 +410,16 @@ export default {
           }
 
           this.setLoaded(false);
-          this.$router.replace(this.fillRoute(dest));
+
+          if (msg.target === 'global-admin.clusters.index') {
+            this.setDynamicRBACState(true)
+              .then(() => {
+                this.$router.replace(this.fillRoute(dest));
+              })
+              .catch((e) => {
+                console.error(e); // eslint-disable-line no-console
+              });
+          }
         }
       } else if (msg.action === 'loading') {
         this.setLoaded(!msg.state);

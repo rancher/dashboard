@@ -1,4 +1,5 @@
 <script>
+import Vue from 'vue';
 import difference from 'lodash/difference';
 import throttle from 'lodash/throttle';
 import isArray from 'lodash/isArray';
@@ -6,6 +7,7 @@ import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
 
 import CreateEditView from '@/mixins/create-edit-view';
+import DynamicRBACHook from '@/mixins/dyanmic-rbac/dyammic-rbac-hook';
 
 import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
 import { _CREATE, _EDIT } from '@/config/query-params';
@@ -81,7 +83,10 @@ export default {
     YamlEditor,
   },
 
-  mixins: [CreateEditView],
+  mixins: [
+    CreateEditView,
+    DynamicRBACHook
+  ],
 
   props: {
     mode: {
@@ -203,6 +208,8 @@ export default {
     if ( this.value.spec.defaultPodSecurityPolicyTemplateName === undefined ) {
       set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
     }
+
+    await this.dynamicRbacHookFetch();
   },
 
   data() {
@@ -245,6 +252,7 @@ export default {
       versionInfo:      {},
       membershipUpdate: {},
       hasOwner:         false,
+      saving:           false,
     };
   },
 
@@ -824,11 +832,11 @@ export default {
     },
 
     async saveRoleBindings() {
-      await this.value.waitForMgmt();
-
-      if (this.membershipUpdate.save) {
-        await this.membershipUpdate.save(this.value.mgmt.id);
-      }
+      await this.waitForDynamicResources(async(mgmtClusterId) => {
+        if (this.membershipUpdate.save) {
+          await this.membershipUpdate.save(mgmtClusterId);
+        }
+      });
     },
 
     validationPassed() {
@@ -974,7 +982,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading v-if="$fetchState.pending || waitingForResource" />
   <CruResource
     v-else
     ref="cruresource"

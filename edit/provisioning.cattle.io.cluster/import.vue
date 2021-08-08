@@ -1,5 +1,6 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
+import DynamicRBACHook from '@/mixins/dyanmic-rbac/dyammic-rbac-hook';
 
 import CruResource from '@/components/CruResource';
 import Loading from '@/components/Loading';
@@ -25,7 +26,10 @@ export default {
     AgentEnv
   },
 
-  mixins: [CreateEditView],
+  mixins: [
+    CreateEditView,
+    DynamicRBACHook
+  ],
 
   props: {
     mode: {
@@ -44,10 +48,8 @@ export default {
     },
   },
 
-  fetch() {
-    // if ( !this.value.spec.rkeConfig ) {
-    // set(this.value.spec, 'rkeConfig', {});
-    // }
+  async fetch() {
+    await this.dynamicRbacHookFetch();
   },
 
   data() {
@@ -83,11 +85,11 @@ export default {
     },
 
     async saveRoleBindings() {
-      await this.value.waitForMgmt();
-
-      if (this.membershipUpdate.save) {
-        await this.membershipUpdate.save(this.value.mgmt.id);
-      }
+      await this.waitForDynamicResources(async(mgmtClusterId) => {
+        if (this.membershipUpdate.save) {
+          await this.membershipUpdate.save(mgmtClusterId);
+        }
+      });
     },
 
     async saveOverride(btnCb) {
@@ -106,7 +108,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading v-if="$fetchState.pending || waitingForResource" />
   <CruResource
     v-else
     :mode="mode"

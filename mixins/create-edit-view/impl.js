@@ -111,7 +111,7 @@ export default {
       });
     },
 
-    async save(buttonDone, url) {
+    async save(buttonDone, url, callDone = true) {
       if ( this.errors ) {
         clear(this.errors);
       }
@@ -148,7 +148,7 @@ export default {
         await this.applyHooks(AFTER_SAVE_HOOKS);
         buttonDone && buttonDone(true);
 
-        this.done();
+        callDone && this.done();
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
         buttonDone && buttonDone(false);

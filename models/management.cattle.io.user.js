@@ -1,4 +1,4 @@
-import { NORMAN } from '@/config/types';
+import { MANAGEMENT, NORMAN } from '@/config/types';
 
 export default {
   isSystem() {
@@ -15,6 +15,27 @@ export default {
     const currentPrincipal = this.$rootGetters['auth/principalId'];
 
     return !!(this.principalIds || []).find(p => p === currentPrincipal);
+  },
+
+  async isAdmin() {
+    const canSeeSchemas = !!this.$store.getters[`management/schemaFor`](MANAGEMENT.GLOBAL_ROLE) && !!this.$store.getters[`management/schemaFor`](MANAGEMENT.GLOBAL_ROLE);
+
+    if (canSeeSchemas) {
+      // Cannot determine so can't be
+      return false;
+    }
+    const roles = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE });
+    const globalRoleBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE_BINDING });
+
+    return !!globalRoleBindings
+      .find((binding) => {
+        if (binding.userName !== this.id) {
+          return false;
+        }
+        const globalRole = roles.find(r => r.id === binding.globalRoleName);
+
+        return globalRole.id === 'admin';
+      });
   },
 
   principals() {

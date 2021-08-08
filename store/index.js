@@ -40,6 +40,7 @@ export const state = () => {
     error:            null,
     cameFromError:    false,
     pageActions:      [],
+    dynamicRBAC:      false,
   };
 };
 
@@ -355,6 +356,10 @@ export const getters = {
 
     return '/';
   },
+
+  dynamicRBAC(state) {
+    return state.dynamicRBAC;
+  },
 };
 
 export const mutations = {
@@ -417,15 +422,28 @@ export const mutations = {
   cameFromError(state) {
     state.cameFromError = true;
   },
+
+  dynamicRBACStare(state, neu) {
+    state.dynamicRBAC = neu;
+  }
 };
 
 export const actions = {
   async loadManagement({
     getters, state, commit, dispatch
-  }) {
-    if ( state.managementReady) {
+  }, force = false) {
+    if ( state.managementReady && !force) {
       // Do nothing, it's already loaded
       return;
+    }
+
+    if (state.managementReady) {
+      await dispatch('management/unsubscribe');
+      // commit('managementChanged', { ready: false });
+      commit('management/reset');
+
+      await dispatch('rancher/unsubscribe');
+      commit('rancher/reset');
     }
 
     console.log('Loading management...'); // eslint-disable-line no-console
@@ -666,4 +684,7 @@ export const actions = {
     router.replace('/fail-whale');
   },
 
+  setDynamicRBACState({ commit }, neu) {
+    commit('dynamicRBACStare', neu);
+  }
 };

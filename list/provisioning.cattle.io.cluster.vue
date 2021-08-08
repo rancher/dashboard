@@ -1,4 +1,6 @@
 <script>
+import DynamicRBAC from '@/mixins/dyanmic-rbac/dyammic-rbac';
+
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { allHash } from '@/utils/promise';
@@ -8,7 +10,11 @@ import { MODE, _IMPORT } from '@/config/query-params';
 export default {
   components: { ResourceTable, Masthead },
 
+  mixins: [DynamicRBAC],
+
   async fetch() {
+    await this.processDynamicRBAC();
+
     const hash = {
       mgmtClusters:       this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
       rancherClusters:    this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
