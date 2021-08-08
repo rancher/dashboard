@@ -28,9 +28,6 @@ export default {
       name: this.$route.name,
     };
   },
-  mounted() {
-    this.$store.dispatch('prefs/setBrand');
-  },
 
 };
 </script>

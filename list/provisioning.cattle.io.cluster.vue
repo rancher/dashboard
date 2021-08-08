@@ -9,18 +9,31 @@ export default {
   components: { ResourceTable, Masthead },
 
   async fetch() {
-    const hash = await allHash({
+    const hash = {
       mgmtClusters:       this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-      // Used to determine non-rke2 node counts
-      mgmtNodes:          this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE }),
-      mgmtPools:          this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL }),
-      mgmtTemplates:      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE }),
       rancherClusters:    this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-      machineDeployments: this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT })
-    });
+    };
 
-    this.mgmtClusters = hash.mgmtClusters;
-    this.rancherClusters = hash.rancherClusters;
+    if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE) ) {
+      hash.mgmtNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+    }
+
+    if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE_POOL) ) {
+      hash.mgmtPools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+    }
+
+    if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE_TEMPLATE) ) {
+      hash.mgmtTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+    }
+
+    if ( this.$store.getters['management/schemaFor'](CAPI.MACHINE_DEPLOYMENT) ) {
+      hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
+    }
+
+    const res = await allHash(hash);
+
+    this.mgmtClusters = res.mgmtClusters;
+    this.rancherClusters = res.rancherClusters;
   },
 
   data() {
