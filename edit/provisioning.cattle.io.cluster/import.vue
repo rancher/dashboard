@@ -10,7 +10,6 @@ import ClusterMembershipEditor from '@/components/form/Members/ClusterMembership
 import Banner from '@/components/Banner';
 import Labels from './Labels';
 import AgentEnv from './AgentEnv';
-// import { set } from '@/utils/object';
 
 export default {
   components: {
@@ -55,6 +54,7 @@ export default {
   },
 
   computed: {},
+
   watch:    {
     hasOwner() {
       if (this.hasOwner) {
@@ -64,6 +64,11 @@ export default {
       }
     }
   },
+
+  created() {
+    this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
+  },
+
   methods: {
     done() {
       return this.$router.replace({
@@ -75,18 +80,23 @@ export default {
         },
       });
     },
-    async saveOverride() {
-      await this.save(...arguments);
 
-      this.value.waitForMgmt().then(() => {
-        if (this.membershipUpdate.save) {
-          this.membershipUpdate.save(this.value.mgmt.id);
-        }
-      });
+    async saveRoleBindings() {
+      await this.value.waitForMgmt();
+
+      if (this.membershipUpdate.save) {
+        await this.membershipUpdate.save(this.value.mgmt.id);
+      }
     },
+
+    async saveOverride(btnCb) {
+      await this.save(btnCb);
+    },
+
     onMembershipUpdate(update) {
       this.$set(this, 'membershipUpdate', update);
     },
+
     onHasOwnerChanged(hasOwner) {
       this.$set(this, 'hasOwner', hasOwner);
     },
