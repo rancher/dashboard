@@ -14,6 +14,8 @@ import { getVendor, setVendor } from '@/config/private-label';
 import { SETTING, fetchOrCreateSetting } from '@/config/settings';
 import isEmpty from 'lodash/isEmpty';
 import { clone } from '@/utils/object';
+import { _EDIT, _VIEW } from '@/config/query-params';
+
 const Color = require('color');
 const parse = require('url-parse');
 
@@ -95,6 +97,14 @@ export default {
 
       errors: []
     };
+  },
+
+  computed: {
+    mode() {
+      const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
+
+      return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
+    }
   },
 
   watch: {
@@ -223,7 +233,7 @@ export default {
     <div>
       <div class="row mb-20">
         <div class="col span-6">
-          <LabeledInput v-model="uiPLSetting.value" :label="t('branding.uiPL.label')" />
+          <LabeledInput v-model="uiPLSetting.value" :label="t('branding.uiPL.label')" :mode="mode" />
         </div>
       </div>
 
@@ -235,10 +245,10 @@ export default {
       </label>
       <div :style="{'align-items':'center'}" class="row mt-10">
         <div class="col span-6 pb-5">
-          <LabeledInput v-model="uiIssuesSetting.value" :label="t('branding.uiIssues.issuesUrl')" />
+          <LabeledInput v-model="uiIssuesSetting.value" :label="t('branding.uiIssues.issuesUrl')" :mode="mode" />
         </div>
         <div class="col span-6">
-          <Checkbox :value="uiCommunitySetting.value === 'true'" :label="t('branding.uiIssues.communityLinks')" @input="e=>$set(uiCommunitySetting, 'value', e.toString())" />
+          <Checkbox :value="uiCommunitySetting.value === 'true'" :label="t('branding.uiIssues.communityLinks')" :mode="mode" @input="e=>$set(uiCommunitySetting, 'value', e.toString())" />
         </div>
       </div>
 
@@ -250,7 +260,7 @@ export default {
       </label>
 
       <div class="row mt-10 mb-20">
-        <Checkbox v-model="customizeLogo" :label="t('branding.logos.useCustom')" />
+        <Checkbox v-model="customizeLogo" :label="t('branding.logos.useCustom')" :mode="mode" />
       </div>
 
       <div v-if="customizeLogo" class="row mb-20">
@@ -261,6 +271,7 @@ export default {
               :read-as-data-url="true"
               class="role-secondary"
               :label="t('branding.logos.uploadLight')"
+              :mode="mode"
               @error="setError"
               @selected="updateLogo($event, 'uiLogoLight')"
             />
@@ -277,6 +288,7 @@ export default {
               :read-as-data-url="true"
               class="role-secondary"
               :label="t('branding.logos.uploadDark')"
+              :mode="mode"
               @error="setError"
               @selected="updateLogo($event, 'uiLogoDark')"
             />
@@ -295,7 +307,7 @@ export default {
         {{ t('branding.color.tip', {}, true) }}
       </label>
       <div class="row mt-20">
-        <Checkbox v-model="customizeColor" :label="t('branding.color.useCustom')" />
+        <Checkbox v-model="customizeColor" :label="t('branding.color.useCustom')" :mode="mode" />
       </div>
       <div v-if="customizeColor" class="row mt-20 mb-20">
         <ColorInput v-model="uiColor" />
@@ -311,7 +323,7 @@ export default {
       <template>
         <div class="row mt-20 mb-20">
           <div class="col span-6">
-            <Checkbox :value="bannerVal.showHeader==='true'" :label="t('branding.uiBanner.showHeader')" @input="e=>$set(bannerVal, 'showHeader', e.toString())" />
+            <Checkbox :value="bannerVal.showHeader==='true'" :label="t('branding.uiBanner.showHeader')" :mode="mode" @input="e=>$set(bannerVal, 'showHeader', e.toString())" />
           </div>
         </div>
         <div v-if="bannerVal.showHeader==='true'" class="row mb-20">
@@ -333,7 +345,7 @@ export default {
         </div>
         <div class="row">
           <div class="col span-6">
-            <Checkbox :value="bannerVal.showFooter==='true'" :label="t('branding.uiBanner.showFooter')" @input="e=>$set(bannerVal, 'showFooter', e.toString())" />
+            <Checkbox :value="bannerVal.showFooter==='true'" :label="t('branding.uiBanner.showFooter')" :mode="mode" @input="e=>$set(bannerVal, 'showFooter', e.toString())" />
           </div>
         </div>
         <div v-if="bannerVal.showFooter==='true'" class="row">

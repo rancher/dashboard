@@ -208,6 +208,7 @@ export default {
       as:              null,
       value:           null,
       model:           null,
+      notFound:        null,
     };
   },
 
