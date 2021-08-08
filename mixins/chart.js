@@ -67,7 +67,7 @@ export default {
 
       const versions = this.chart?.versions || [];
       const selectedVersion = this.targetVersion;
-      const isWindows = currentCluster.providerOs === 'windows';
+      const isWindows = currentCluster?.providerOs === 'windows';
       const out = [];
 
       versions.forEach((version) => {
@@ -162,8 +162,8 @@ export default {
         const needMemory = parseSi(this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUESTS_MEMORY] || '0');
 
         // Note: These are null if unknown
-        const availableCpu = this.currentCluster.availableCpu;
-        const availableMemory = this.currentCluster.availableMemory;
+        const availableCpu = this.currentCluster?.availableCpu;
+        const availableMemory = this.currentCluster?.availableMemory;
 
         if ( availableCpu !== null && availableCpu < needCpu ) {
           warnings.push(this.t('catalog.install.error.insufficientCpu', {

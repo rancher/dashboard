@@ -46,7 +46,7 @@ export default {
       }
       // There are only 2 actions that can be enabled - Edit Setting or View in API
       // If neither is available for this setting then we hide the action menu button
-      s.hasActions = !s.readOnly || isDev;
+      s.hasActions = (!s.readOnly || isDev) && settingsMap[setting].availableActions?.length;
       settings.push(s);
     });
     this.settings = settings;

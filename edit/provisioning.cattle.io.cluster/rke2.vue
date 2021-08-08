@@ -6,6 +6,7 @@ import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
 
 import CreateEditView from '@/mixins/create-edit-view';
+
 import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
 import { _CREATE, _EDIT } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
@@ -967,6 +968,7 @@ export default {
     canRemoveKubeletRow(row, idx) {
       return idx !== 0;
     },
+
   },
 };
 </script>

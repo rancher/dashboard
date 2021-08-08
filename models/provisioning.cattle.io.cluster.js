@@ -162,7 +162,7 @@ export default {
         // `this` instance isn't getting updated with `status.clusterName`
         // Workaround - Get fresh copy from the store
         const pCluster = this.$getters['byId'](CAPI.RANCHER_CLUSTER, this.id);
-        const name = this.status?.clusterName || pCluster.status?.clusterName;
+        const name = this.status?.clusterName || pCluster?.status?.clusterName;
 
         return name && !!this.$getters['byId'](MANAGEMENT.CLUSTER, name);
       }, `mgmt cluster create`, timeout, interval);

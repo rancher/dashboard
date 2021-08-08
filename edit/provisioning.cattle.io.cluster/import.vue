@@ -1,5 +1,6 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
+
 import CruResource from '@/components/CruResource';
 import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';

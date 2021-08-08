@@ -67,7 +67,7 @@ export const getters = {
     const repoKeys = getters.repos.map(x => x._key);
     let cluster = rootGetters['currentCluster'];
 
-    if ( rootGetters['currentProduct'].inStore === 'management' ) {
+    if ( rootGetters['currentProduct']?.inStore === 'management' ) {
       cluster = null;
     }
 
@@ -319,7 +319,10 @@ export const actions = {
     } = ctx;
 
     let promises = {};
-    const inStore = rootGetters['currentProduct'].inStore;
+    // Installing an app? This is fine (in cluster store)
+    // Fetching list of cluster templates? This is fine (in management store)
+    // Installing a cluster template? This isn't fine (in cluster store as per insalling app, but if there is no cluster we need to default to management)
+    const inStore = rootGetters['currentCluster'] ? rootGetters['currentProduct'].inStore : 'management';
 
     if ( rootGetters[`${ inStore }/schemaFor`](CATALOG.CLUSTER_REPO) ) {
       promises.cluster = dispatch(`${ inStore }/findAll`, { type: CATALOG.CLUSTER_REPO }, { root: true });
