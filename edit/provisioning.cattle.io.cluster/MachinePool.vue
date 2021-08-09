@@ -101,7 +101,6 @@ export default {
           type="number"
           min="0"
           :required="true"
-          :disabled="!!value.config.id"
         />
       </div>
       <div class="col span-6 pt-5">
@@ -109,19 +108,16 @@ export default {
         <Checkbox
           v-model="value.pool.etcdRole"
           :mode="mode"
-          :disabled="!!value.config.id"
           label="etcd"
         />
         <Checkbox
           v-model="value.pool.controlPlaneRole"
           :mode="mode"
-          :disabled="!!value.config.id"
           label="Control Plane"
         />
         <Checkbox
           v-model="value.pool.workerRole"
           :mode="mode"
-          :disabled="!!value.config.id"
           label="Worker"
         />
       </div>
