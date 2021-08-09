@@ -46,8 +46,10 @@ export default {
       total:      1
     };
 
+    let out = this._standardActions;
+
     if (this.$rootGetters['currentProduct'].inStore === VIRTUAL) {
-      return [
+      out = [
         cordonHarvester,
         uncordonHarvester,
         enableMaintenance,
@@ -55,6 +57,8 @@ export default {
         ...this._standardActions
       ];
     }
+
+    return out;
   },
 
   nameDisplay() {
