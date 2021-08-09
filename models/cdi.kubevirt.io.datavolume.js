@@ -127,7 +127,7 @@ export default {
       },
     ];
 
-    if (this.metadata?.annotations?.hasOwnProperty('harvesterhci.io/imageId')) {
+    if (Object.prototype.hasOwnProperty.call(this.metadata.annotations, 'harvesterhci.io/imageId')) {
       out.push({
         nullable:       false,
         path:           'metadata.annotations',

@@ -1,6 +1,5 @@
 import { HCI } from '@/config/types';
 import { SOURCE_TYPE } from '@/config/map';
-import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 export function vmNetworks(spec, getters, errors, validatorArgs) {
   const { domain: { devices: { interfaces } }, networks } = spec;
@@ -184,7 +183,7 @@ export function getVolumeType(V, DVTS) {
 
   if (V.dataVolume) { // maybe is new or existing or image type, but existing type can’t find DVT
     // image type
-    outValue = DVTS.find(DVT => V.dataVolume.name === DVT.metadata?.name && DVT.metadata?.annotations && DVT.metadata?.annotations.hasOwnProperty(HCI_ANNOTATIONS.IMAGE_ID));
+    outValue = DVTS.find(DVT => V.dataVolume.name === DVT.metadata?.name && DVT.metadata?.annotations && Object.prototype.hasOwnProperty.call(DVT.metadata.annotations, 'harvesterhci.io/imageId'));
 
     if (outValue) {
       return {

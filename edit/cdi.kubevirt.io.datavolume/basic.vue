@@ -117,8 +117,7 @@ export default {
 
       return choices.find( (I) => {
         return I.id === this.image;
-      })
-      ?.status?.downloadUrl;
+      })?.status?.downloadUrl;
     }
   },
 

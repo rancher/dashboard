@@ -533,7 +533,7 @@ export default {
                 <i v-if="act.icon" :class="act.icon" />
                 <span v-html="act.label" />
               </button>
-              <ButtonDropdown v-if="hasExternalActions" class="external-actions" :disable-button="externalActions.length === 0" size="med">
+              <ButtonDropdown v-if="hasExternalActions" class="external-actions" :disable-button="externalActions.length === 0" size="sm">
                 <template #button-content>
                   <button class="btn btn-primary mr-0 no-right-border-radius" :disabled="externalActions.length === 0">
                     <i class="icon icon-gear" />
