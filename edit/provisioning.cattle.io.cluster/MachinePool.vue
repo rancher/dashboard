@@ -41,6 +41,11 @@ export default {
       type:     String,
       required: true,
     },
+
+    showWarning: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   data() {
@@ -128,6 +133,7 @@ export default {
     <hr class="mt-10" />
 
     <Banner
+      v-if="showWarning"
       color="info"
       :label="t('cluster.machineConfig.banner.updateInfo')"
     />
