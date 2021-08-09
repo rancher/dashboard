@@ -345,7 +345,6 @@ export const getters = {
         const key = `typeLabel."${ schema.id.toLowerCase() }"`;
 
         if ( rootGetters['i18n/exists'](key) ) {
-        // if ( rootGetters['i18n/exists'](key) ) {
           return rootGetters['i18n/t'](key, { count }).trim();
         }
 
