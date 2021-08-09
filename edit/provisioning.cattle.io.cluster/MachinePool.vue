@@ -7,6 +7,7 @@ import { importMachineConfig } from '@/utils/dynamic-importer';
 import Taints from '@/components/form/Taints.vue';
 import KeyValue from '@/components/form/KeyValue.vue';
 import AdvancedSection from '@/components/AdvancedSection.vue';
+import Banner from '@/components/Banner';
 import { randomStr } from '@/utils/string';
 
 export default {
@@ -17,6 +18,7 @@ export default {
     Taints,
     KeyValue,
     AdvancedSection,
+    Banner,
   },
 
   props: {
@@ -124,6 +126,11 @@ export default {
     </div>
 
     <hr class="mt-10" />
+
+    <Banner
+      color="info"
+      :label="t('cluster.machineConfig.banner.updateInfo')"
+    />
 
     <component
       :is="configComponent"
