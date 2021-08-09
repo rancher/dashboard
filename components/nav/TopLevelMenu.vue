@@ -225,37 +225,40 @@ export default {
               </div>
             </nuxt-link>
           </div>
-          <div class="category">
-            {{ t('nav.categories.explore') }}
-          </div>
-          <div v-if="showClusterSearch" class="search">
-            <input
-              ref="clusterFilter"
-              v-model="clusterFilter"
-              :placeholder="t('nav.search.placeholder')"
-            />
-            <i v-if="clusterFilter.length > 0" class="icon icon-close" @click="clusterFilter=''" />
-          </div>
-          <div ref="clusterList" class="clusters">
-            <div v-for="c in clusters" :key="c.id" @click="hide()">
-              <nuxt-link
-                v-if="c.ready"
-                class="cluster selector option"
-                :to="{ name: 'c-cluster', params: { cluster: c.id } }"
-              >
-                <RancherProviderIcon v-if="c.isLocal" width="24" class="rancher-provider-icon" />
-                <img v-else :src="c.logo" />
-                <div>{{ c.label }}</div>
-              </nuxt-link>
-              <span v-else class="option-disabled cluster selector disabled">
-                <img :src="c.logo" />
-                <div>{{ c.label }}</div>
-              </span>
+          <template v-if="clusters && !!clusters.length">
+            <div class="category">
+              {{ t('nav.categories.explore') }}
             </div>
-            <div v-if="clusters.length === 0" class="none-matching">
-              {{ t('nav.search.noResults') }}
+            <div v-if="showClusterSearch" class="search">
+              <input
+                ref="clusterFilter"
+                v-model="clusterFilter"
+                :placeholder="t('nav.search.placeholder')"
+              />
+              <i v-if="clusterFilter.length > 0" class="icon icon-close" @click="clusterFilter=''" />
             </div>
-          </div>
+            <div ref="clusterList" class="clusters">
+              <div v-for="c in clusters" :key="c.id" @click="hide()">
+                <nuxt-link
+                  v-if="c.ready"
+                  class="cluster selector option"
+                  :to="{ name: 'c-cluster', params: { cluster: c.id } }"
+                >
+                  <RancherProviderIcon v-if="c.isLocal" width="24" class="rancher-provider-icon" />
+                  <img v-else :src="c.logo" />
+                  <div>{{ c.label }}</div>
+                </nuxt-link>
+                <span v-else class="option-disabled cluster selector disabled">
+                  <img :src="c.logo" />
+                  <div>{{ c.label }}</div>
+                </span>
+              </div>
+              <div v-if="clusters.length === 0" class="none-matching">
+                {{ t('nav.search.noResults') }}
+              </div>
+            </div>
+          </template>
+
           <template v-if="multiClusterApps.length">
             <div class="category">
               {{ t('nav.categories.multiCluster') }}

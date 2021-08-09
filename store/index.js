@@ -416,14 +416,14 @@ export const mutations = {
 
   cameFromError(state) {
     state.cameFromError = true;
-  }
+  },
 };
 
 export const actions = {
   async loadManagement({
     getters, state, commit, dispatch
   }) {
-    if ( state.managementReady ) {
+    if ( state.managementReady) {
       // Do nothing, it's already loaded
       return;
     }
@@ -664,5 +664,6 @@ export const actions = {
     const router = state.$router;
 
     router.replace('/fail-whale');
-  }
+  },
+
 };

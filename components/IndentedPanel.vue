@@ -10,6 +10,7 @@ export default {};
 
 <style lang="scss">
   .indented-panel {
+    height: 100%;
     width: 90%;
     margin-left: 5%;
   }

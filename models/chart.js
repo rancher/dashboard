@@ -1,16 +1,17 @@
 import { compatibleVersionsFor } from '@/store/catalog';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, _FLAGGED,
+  REPO_TYPE, REPO, CHART, VERSION, _FLAGGED, HIDE_SIDE_NAV
 } from '@/config/query-params';
+import { BLANK_CLUSTER } from '@/store';
 
 export default {
   queryParams() {
-    return (from) => {
+    return (from, hideSideNav) => {
       let version;
       const chartVersions = this.versions;
       const currentCluster = this.$rootGetters['currentCluster'];
 
-      const clusterProvider = currentCluster.status.provider || 'other';
+      const clusterProvider = currentCluster?.status.provider || 'other';
       const windowsVersions = (chartVersions, 'windows');
       const linuxVersions = compatibleVersionsFor(chartVersions, 'linux');
 
@@ -33,18 +34,22 @@ export default {
         out[from] = _FLAGGED;
       }
 
+      if (hideSideNav) {
+        out[HIDE_SIDE_NAV] = _FLAGGED;
+      }
+
       return out;
     };
   },
 
   goToInstall() {
-    return (from, clusterId) => {
-      const query = this.queryParams(from);
+    return (from, clusterId, hideSideNav) => {
+      const query = this.queryParams(from, hideSideNav);
       const currentCluster = this.$rootGetters['currentCluster'];
 
       this.currentRouter().push({
         name:   'c-cluster-apps-charts-install',
-        params: { cluster: clusterId || currentCluster.id },
+        params: { cluster: clusterId || currentCluster?.id || BLANK_CLUSTER },
         query,
       });
     };
