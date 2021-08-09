@@ -1,3 +1,4 @@
+import { REDIRECTED } from '@/config/cookies';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { SETUP, TIMED_OUT } from '@/config/query-params';
 import { SETTING } from '@/config/settings';
@@ -42,7 +43,7 @@ function setProduct(store, to) {
 }
 
 export default async function({
-  route, app, store, redirect, req, isDev
+  route,  store, redirect, $cookies
 }) {
   if ( route.path && typeof route.path === 'string') {
     // Ignore webpack hot module reload requests
@@ -55,6 +56,14 @@ export default async function({
       return;
     }
   }
+
+  // This tells Ember not to redirect back to us once you've already been to dashboard once.
+  $cookies.set(REDIRECTED, 'true', {
+    path:     '/',
+    sameSite: false,
+    secure:   true,
+  });
+
   // Initial ?setup=admin-password can technically be on any route
   const initialPass = route.query[SETUP];
   let firstLogin = null;
