@@ -303,8 +303,11 @@ export const actions = {
     }
   },
 
-  'ws.ping'({ getters }) {
-    // console.info(`WebSocket Ping [${ getters.storeName }]`); // eslint-disable-line no-console
+  'ws.ping'({ dispatch }, msg) {
+    const version = msg?.data?.version || null;
+
+    dispatch('updateServerVersion', version, {root: true});
+    console.info(`Ping [${ getters.storeName }] from ${version ? version : 'unknown version'}`); // eslint-disable-line no-console
   },
 
   'ws.resource.start'({ getters, commit }, msg) {
@@ -318,7 +321,7 @@ export const actions = {
   },
 
   'ws.resource.error'({ getters, commit, dispatch }, msg) {
-    // console.warn(`Resource error [${ getters.storeName }]`, msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
+    console.warn(`Resource error [${ getters.storeName }]`, msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
 
     const err = msg.data?.error?.toLowerCase();
 
