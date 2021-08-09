@@ -24,7 +24,6 @@ export default {
 
       switch (size) {
       case '':
-      default:
         out = 'btn';
         break;
       case 'xs':
@@ -36,6 +35,7 @@ export default {
       case 'lg':
         out = 'btn btn-lg';
         break;
+      default:
       }
 
       return out;

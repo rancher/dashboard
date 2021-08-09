@@ -53,7 +53,9 @@ export function init(store) {
     'pod-security-policies'
   ]);
 
-  configureType(CAPI.RANCHER_CLUSTER, { showListMasthead: false, namespaced: false, alias: [HCI.CLUSTER] });
+  configureType(CAPI.RANCHER_CLUSTER, {
+    showListMasthead: false, namespaced: false, alias: [HCI.CLUSTER]
+  });
   // configureType(NORMAN.CLOUD_CREDENTIAL, { showListMasthead: false, namespaced: false });
   weightType(CAPI.RANCHER_CLUSTER, 100, true);
   configureType(NORMAN.CLOUD_CREDENTIAL, {
