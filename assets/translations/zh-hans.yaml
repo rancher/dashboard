@@ -124,7 +124,7 @@ product:
   #rio: Rio
   settings: 全局设置
   monitoring: 监控
-  virtualManagement: 虚拟化管理
+  virtualManager: 虚拟化管理
   virtual: Harvester
 
 suffix:

@@ -92,12 +92,12 @@ export default {
     @apply-hooks="applyHooks"
   >
     <Tabbed :side-tabs="true" @changed="onTabChanged">
-      <Tab name="Basics" :label="t('harvester.virtualMachine.detail.tabs.basics')">
+      <Tab name="basics" :label="t('harvester.virtualMachine.detail.tabs.basics')">
         <OverviewBasics v-if="contentResource" v-model="contentResource.spec.source" mode="view" :memory="memory" />
       </Tab>
 
       <Tab
-        name="Volume"
+        name="volume"
         :label="t('harvester.tab.volume')"
         :weight="-1"
       >
@@ -105,7 +105,7 @@ export default {
       </Tab>
 
       <Tab
-        name="Network"
+        name="network"
         :label="t('harvester.tab.network')"
         :weight="-2"
       >

@@ -117,11 +117,11 @@ export default {
           <div v-if="ssh.showKey" class="key-display">
             {{ ssh.spec.publicKey }}
             <button class="btn btn-sm role-link hide-bar" @click="hideKey(index)">
-              <i class="icon icon-x"></i>
+              <i class="icon icon-x" />
             </button>
           </div>
           <button v-else class="btn btn-sm role-link" @click="viewKey(index)">
-            *******<i class="icons icon-h-eye"></i>
+            *******<i class="icons icon-h-eye" />
           </button>
         </div>
       </div>

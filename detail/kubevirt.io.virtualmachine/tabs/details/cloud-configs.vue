@@ -38,13 +38,6 @@ export default {
       return out;
     }
   },
-
-  methods: {
-    onReady(cm) {
-
-    }
-  },
-
 };
 </script>
 

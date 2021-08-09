@@ -434,12 +434,23 @@ export default {
       </div>
 
       <Tabbed :side-tabs="true" @changed="onTabChanged">
-        <Tab name="Basics" :label="t('harvester.virtualMachine.detail.tabs.basics')">
-          <CpuMemory :cpu="spec.template.spec.domain.cpu.cores" :memory="memory" @updateCpuMemory="updateCpuMemory" />
+        <Tab name="basics" :label="t('harvester.virtualMachine.detail.tabs.basics')">
+          <CpuMemory
+            :cpu="spec.template.spec.domain.cpu.cores"
+            :memory="memory"
+            :mode="mode"
+            @updateCpuMemory="updateCpuMemory"
+          />
 
           <ImageSelect v-model="imageId" class="mb-20" :disk-rows="diskRows" :disabled="!isCreate" />
 
-          <SSHKey v-model="sshKey" class="mb-20" :namespace="value.metadata.namespace" @update:sshKey="updateSSHKey" />
+          <SSHKey
+            v-model="sshKey"
+            class="mb-20"
+            :namespace="value.metadata.namespace"
+            :mode="mode"
+            @update:sshKey="updateSSHKey"
+          />
         </Tab>
 
         <Tab
@@ -470,6 +481,7 @@ export default {
                 :label-key="hostnameLabel"
                 :placeholder="hostPlaceholder"
                 required
+                :mode="mode"
               />
             </div>
 
@@ -478,6 +490,7 @@ export default {
                 v-model="machineType"
                 label-key="harvester.virtualMachine.input.MachineType"
                 :options="machineTypeOptions"
+                :mode="mode"
               />
             </div>
           </div>
@@ -490,9 +503,21 @@ export default {
             @updateCloudConfig="updateCloudConfig"
           />
 
-          <Checkbox v-model="isUseMouseEnhancement" class="check mt-20" type="checkbox" label-key="harvester.virtualMachine.enableUsb" />
+          <Checkbox
+            v-model="isUseMouseEnhancement"
+            class="check mt-20"
+            type="checkbox"
+            label-key="harvester.virtualMachine.enableUsb"
+            :mode="mode"
+          />
 
-          <Checkbox v-model="installAgent" class="check" type="checkbox" label-key="harvester.virtualMachine.installAgent" />
+          <Checkbox
+            v-model="installAgent"
+            class="check"
+            type="checkbox"
+            label-key="harvester.virtualMachine.installAgent"
+            :mode="mode"
+          />
         </Tab>
       </Tabbed>
 
@@ -503,6 +528,7 @@ export default {
           class="check mb-20"
           type="checkbox"
           label-key="harvester.virtualMachine.createRunning"
+          :mode="mode"
         />
 
         <span v-if="isEdit" class="restart">
