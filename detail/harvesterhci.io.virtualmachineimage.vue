@@ -1,7 +1,7 @@
 <script>
 import CopyToClipboardText from '@/components/CopyToClipboardText';
 import LabelValue from '@/components/LabelValue';
-import { getFileSize } from '@/utils/units';
+import { formatSi } from '@/utils/units';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
@@ -29,7 +29,12 @@ export default {
 
   computed: {
     formattedValue() {
-      return getFileSize(this.value?.status?.size) || '-';
+      return formatSi(this.value?.status?.size, {
+        increment:    1024,
+        maxPrecision: 2,
+        suffix:       'B',
+        firstSuffix:  'B',
+      }) || '-';
     },
 
     url() {

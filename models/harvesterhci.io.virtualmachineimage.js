@@ -6,7 +6,7 @@ import {
 } from '@/config/labels-annotations';
 import { get } from '@/utils/object';
 import { findBy } from '@/utils/array';
-import { getFileSize } from '@/utils/units';
+import { formatSi } from '@/utils/units';
 
 export default {
   availableActions() {
@@ -97,7 +97,12 @@ export default {
   },
 
   downSize() {
-    return getFileSize(this.status?.size);
+    return formatSi(this.status?.size, {
+      increment:    1024,
+      maxPrecision: 2,
+      suffix:       'B',
+      firstSuffix:  'B',
+    });
   },
 
   customValidationRules() {
