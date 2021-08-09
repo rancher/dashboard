@@ -35,6 +35,11 @@ export default {
       type:     String,
       required: true,
     },
+
+    disabled: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   async fetch() {
@@ -297,6 +302,7 @@ export default {
           output-as="string"
           required
           :mode="mode"
+          :disabled="disabled"
         />
       </div>
 
@@ -308,6 +314,7 @@ export default {
           output-as="string"
           suffix="GiB"
           :mode="mode"
+          :disabled="disabled"
           required
         />
       </div>
@@ -322,6 +329,7 @@ export default {
           output-as="string"
           suffix="GiB"
           :mode="mode"
+          :disabled="disabled"
           required
         />
       </div>
@@ -334,6 +342,7 @@ export default {
           :options="namespaceOptions"
           :searchable="true"
           :required="true"
+          :disabled="disabled"
           label-key="cluster.credential.harvester.namespace"
         />
 
@@ -343,6 +352,7 @@ export default {
           label-key="cluster.credential.harvester.namespace"
           :required="true"
           :mode="mode"
+          :disabled="disabled"
         />
       </div>
     </div>
@@ -354,6 +364,7 @@ export default {
           :mode="mode"
           :options="imageOptions"
           :required="true"
+          :disabled="disabled"
           label-key="cluster.credential.harvester.image"
         />
       </div>
@@ -364,6 +375,7 @@ export default {
           :mode="mode"
           :options="networkOptions"
           :required="true"
+          :disabled="disabled"
           label-key="cluster.credential.harvester.network"
         />
       </div>
@@ -376,6 +388,7 @@ export default {
           :mode="mode"
           :required="true"
           :placeholder="t('cluster.credential.harvester.placeholder')"
+          :disabled="disabled"
           label-key="cluster.credential.harvester.image"
         />
       </div>
@@ -386,6 +399,7 @@ export default {
           :mode="mode"
           :required="true"
           :placeholder="t('cluster.credential.harvester.placeholder')"
+          :disabled="disabled"
           label-key="cluster.credential.harvester.network"
         />
       </div>
@@ -398,6 +412,7 @@ export default {
           label-key="cluster.credential.harvester.sshUser"
           :required="true"
           :mode="mode"
+          :disabled="disabled"
         />
       </div>
     </div>
@@ -412,6 +427,7 @@ export default {
           :options="userDataOptions"
           label-key="cluster.credential.harvester.userData.label"
           :mode="mode"
+          :disabled="disabled"
         />
 
         <YamlEditor
@@ -420,6 +436,7 @@ export default {
           class="yaml-editor mb-20"
           :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
           :value="userData"
+          :disabled="disabled"
           @onInput="valuesChanged($event, 'userData')"
         />
       </div>
@@ -433,6 +450,7 @@ export default {
           :options="networkDataOptions"
           label-key="cluster.credential.harvester.networkData.label"
           :mode="mode"
+          :disabled="disabled"
         />
 
         <YamlEditor
@@ -441,6 +459,7 @@ export default {
           class="yaml-editor mb-10"
           :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
           :value="networkData"
+          :disabled="disabled"
           @onInput="valuesChanged($event, 'networkData')"
         />
       </div>
