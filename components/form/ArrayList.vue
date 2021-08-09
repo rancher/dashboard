@@ -258,6 +258,7 @@ export default {
                 v-model="row.value"
                 :placeholder="valuePlaceholder"
                 :mode="mode"
+                :disabled="disabled"
                 @paste="onPaste(idx, $event)"
                 @input="queueUpdate"
               />
