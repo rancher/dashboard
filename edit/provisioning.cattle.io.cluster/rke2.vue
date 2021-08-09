@@ -798,10 +798,6 @@ export default {
           entry.config = neu;
           entry.pool.machineConfigRef.name = neu.metadata.name;
           entry.create = false;
-        } else if (entry.update) {
-          const response = await entry.config.save();
-
-          entry.config = response;
         }
 
         if ( !entry.pool.hostnamePrefix ) {
