@@ -98,6 +98,7 @@ export default {
     :resource="value"
     :errors="errors"
     :validation-passed="hasOwner"
+    :done-route="doneRoute"
     @finish="saveOverride"
     @error="e=>errors = e"
   >
