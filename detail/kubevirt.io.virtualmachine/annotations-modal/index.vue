@@ -81,7 +81,7 @@ export default {
     <Card>
       <template #title>
         <h4 slot="title" class="text-default-text">
-          Edit Annotations
+          {{ t('annotationsModal.header') }}
         </h4>
       </template>
 
