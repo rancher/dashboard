@@ -85,7 +85,13 @@ export default {
   <div>
     <div class="row">
       <div class="col span-4">
-        <LabeledInput v-model="value.pool.name" :mode="mode" label="Pool Name" :required="true" :disabled="!!value.config.id" />
+        <LabeledInput
+          v-model="value.pool.name"
+          :mode="mode"
+          label="Pool Name"
+          :required="true"
+          :disabled="!!value.config.id"
+        />
       </div>
       <div class="col span-2">
         <LabeledInput
@@ -95,13 +101,29 @@ export default {
           type="number"
           min="0"
           :required="true"
+          :disabled="!!value.config.id"
         />
       </div>
       <div class="col span-6 pt-5">
         <h3>Roles</h3>
-        <Checkbox v-model="value.pool.etcdRole" :mode="mode" label="etcd" />
-        <Checkbox v-model="value.pool.controlPlaneRole" :mode="mode" label="Control Plane" />
-        <Checkbox v-model="value.pool.workerRole" :mode="mode" label="Worker" />
+        <Checkbox
+          v-model="value.pool.etcdRole"
+          :mode="mode"
+          :disabled="!!value.config.id"
+          label="etcd"
+        />
+        <Checkbox
+          v-model="value.pool.controlPlaneRole"
+          :mode="mode"
+          :disabled="!!value.config.id"
+          label="Control Plane"
+        />
+        <Checkbox
+          v-model="value.pool.workerRole"
+          :mode="mode"
+          :disabled="!!value.config.id"
+          label="Worker"
+        />
       </div>
     </div>
 
@@ -115,6 +137,7 @@ export default {
       :value="value.config"
       :provider="provider"
       :credential-id="credentialId"
+      :disabled="!!value.config.id"
       @error="e=>errors = e"
     />
 

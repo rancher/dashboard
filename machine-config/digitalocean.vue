@@ -19,6 +19,11 @@ export default {
       type:     String,
       required: true,
     },
+
+    disabled: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   async fetch() {
@@ -127,6 +132,7 @@ export default {
           :options="regionOptions"
           :searchable="true"
           :required="true"
+          :disabled="disabled"
           label="Region"
         />
       </div>
@@ -137,6 +143,7 @@ export default {
           :options="instanceOptions"
           :searchable="true"
           :required="true"
+          :disabled="disabled"
           label="Size"
         />
       </div>
@@ -150,14 +157,30 @@ export default {
           :options="imageOptions"
           :searchable="true"
           :required="true"
+          :disabled="disabled"
           label="OS Image"
         />
       </div>
       <div class="col span-6 pt-5">
         <h3>Additional DigitalOcean Options</h3>
-        <Checkbox v-model="value.monitoring" :mode="mode" label="Monitoring" />
-        <Checkbox v-model="value.ipv6" :mode="mode" label="IPv6" />
-        <Checkbox v-model="value.privateNetworking" :mode="mode" label="Private Networking" />
+        <Checkbox
+          v-model="value.monitoring"
+          :mode="mode"
+          :disabled="disabled"
+          label="Monitoring"
+        />
+        <Checkbox
+          v-model="value.ipv6"
+          :mode="mode"
+          :disabled="disabled"
+          label="IPv6"
+        />
+        <Checkbox
+          v-model="value.privateNetworking"
+          :mode="mode"
+          :disabled="disabled"
+          label="Private Networking"
+        />
       </div>
     </div>
   </div>

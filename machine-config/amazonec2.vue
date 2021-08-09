@@ -33,6 +33,11 @@ export default {
       type:     String,
       required: true,
     },
+
+    disabled: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   async fetch() {
@@ -382,6 +387,7 @@ export default {
             :options="regionOptions"
             :required="true"
             :searchable="true"
+            :disabled="disabled"
             label="Region"
           />
         </div>
@@ -391,6 +397,7 @@ export default {
             :mode="mode"
             :options="zoneOptions"
             :required="true"
+            :disabled="disabled"
             label="Zone"
           />
         </div>
@@ -404,6 +411,7 @@ export default {
             :required="true"
             :selectable="option => !option.disabled"
             :searchable="true"
+            :disabled="disabled"
             label="Instance Type"
           >
             <template v-slot:option="opt">
@@ -421,6 +429,7 @@ export default {
             v-model="value.rootSize"
             output-as="string"
             :mode="mode"
+            :disabled="disabled"
             placeholder="Default: 16"
             label="Root Disk Size"
             suffix="GB"
@@ -435,6 +444,7 @@ export default {
             :options="networkOptions"
             :searchable="true"
             :required="true"
+            :disabled="disabled"
             label="VPC/Subnet"
             placeholder="Select a VPC or Subnet"
             @input="updateNetwork($event)"
@@ -453,6 +463,7 @@ export default {
           <LabeledInput
             v-model="value.iamInstanceProfile"
             :mode="mode"
+            :disabled="disabled"
             label="IAM Instance Profile Name"
             tooltip="Kubernetes AWS Cloud Provider support requires an appropriate instance profile"
           />
@@ -465,6 +476,7 @@ export default {
             <LabeledInput
               v-model="value.ami"
               :mode="mode"
+              :disabled="disabled"
               label="AMI ID"
               placeholder="Default: A recent Ubuntu LTS"
             />
@@ -474,7 +486,7 @@ export default {
               v-model="value.sshUser"
               :mode="mode"
               label="SSH Username for AMI"
-              :disabled="!value.ami"
+              :disabled="!value.ami || disabled"
               placeholder="Default: ubuntu"
               tooltip="The username that exists in the selected AMI; Provisioning will SSH to the node with this."
             />
@@ -493,7 +505,7 @@ export default {
               v-model="securityGroupMode"
               name="securityGroupMode"
               :mode="mode"
-              :disabled="!value.vpcId"
+              :disabled="!value.vpcId || disabled"
               :labels="[`Standard: Automatically create and use a &quot;${DEFAULT_GROUP}&quot; security group`, 'Choose one or more existing security groups:']"
               :options="['default','custom']"
             />
@@ -501,7 +513,7 @@ export default {
               v-if="value.vpcId && securityGroupMode === 'custom'"
               v-model="value.securityGroup"
               :mode="mode"
-              :disabled="!value.vpcId"
+              :disabled="!value.vpcId || disabled"
               :options="securityGroupOptions"
               :searchable="true"
               :multiple="true"
@@ -515,6 +527,7 @@ export default {
             <LabeledInput
               v-model="value.volumeType"
               :mode="mode"
+              :disabled="disabled"
               label="EBS Root Volume Type"
               placeholder="Default: gp2"
             />
@@ -530,12 +543,14 @@ export default {
                 v-model="value.kmsKey"
                 :mode="mode"
                 :options="kmsOptions"
+                :disabled="disabled"
                 label="KMS Key ARN"
               />
               <template v-else>
                 <LabeledInput
                   v-model="value.kmsKey"
                   :mode="mode"
+                  :disabled="disabled"
                   label="KMS Key ARN"
                 />
                 <p class="text-muted">
@@ -553,6 +568,7 @@ export default {
                 v-model="value.spotPrice"
                 output-as="string"
                 :mode="mode"
+                :disabled="disabled"
                 placeholder="Default: 0.50"
                 label="Spot Price"
                 suffix="Dollars per hour"
@@ -563,10 +579,38 @@ export default {
 
         <div class="row mt-20">
           <div class="col span-12">
-            <div><Checkbox v-model="value.privateAddressOnly" :mode="mode" label="Use only private addresses" /></div>
-            <div><Checkbox v-model="value.useEbsOptimizedInstance" :mode="mode" label="EBS-Optimized Instance" /></div>
-            <div><Checkbox v-model="value.httpEndpoint" :mode="mode" label="Allow access to EC2 metadata" /></div>
-            <div><Checkbox v-model="value.httpTokens" :mode="mode" :disabled="!value.httpEndpoint" label="Use tokens for metadata" /></div>
+            <div>
+              <Checkbox
+                v-model="value.privateAddressOnly"
+                :mode="mode"
+                :disabled="disabled"
+                label="Use only private addresses"
+              />
+            </div>
+            <div>
+              <Checkbox
+                v-model="value.useEbsOptimizedInstance"
+                :mode="mode"
+                :disabled="disabled"
+                label="EBS-Optimized Instance"
+              />
+            </div>
+            <div>
+              <Checkbox
+                v-model="value.httpEndpoint"
+                :mode="mode"
+                :disabled="disabled"
+                label="Allow access to EC2 metadata"
+              />
+            </div>
+            <div>
+              <Checkbox
+                v-model="value.httpTokens"
+                :mode="mode"
+                :disabled="!value.httpEndpoint || disabled"
+                label="Use tokens for metadata"
+              />
+            </div>
           </div>
         </div>
 
@@ -578,6 +622,7 @@ export default {
               :read-allowed="false"
               title="EC2 Tags"
               :add-label="t('labels.addTag')"
+              :disabled="disabled"
               @input="updateTags"
             />
           </div>
