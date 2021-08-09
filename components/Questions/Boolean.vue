@@ -15,6 +15,7 @@ export default {
         :mode="mode"
         :label="displayLabel"
         :value="value"
+        :disabled="disabled"
         @input="$emit('input', $event)"
       />
     </div>
