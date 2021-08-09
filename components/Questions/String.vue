@@ -30,6 +30,7 @@ export default {
         :placeholder="question.default"
         :required="question.required"
         :value="value"
+        :disabled="disabled"
         @input="$emit('input', $event)"
       />
     </div>

@@ -80,6 +80,11 @@ export default {
     loading: {
       type:    Boolean,
       default: false
+    },
+
+    disabled: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -261,7 +266,7 @@ export default {
                 ref="value"
                 v-model="row.value"
                 :placeholder="valuePlaceholder"
-                :disabled="isView"
+                :disabled="isView || disabled"
                 @paste="onPaste(idx, $event)"
                 @input="queueUpdate"
               />

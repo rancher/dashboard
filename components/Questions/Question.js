@@ -21,6 +21,11 @@ export default {
       type:     null,
       required: true,
     },
+
+    disabled: {
+      type:    Boolean,
+      default: false,
+    }
   },
 
   computed: {

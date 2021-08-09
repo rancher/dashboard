@@ -197,6 +197,11 @@ export default {
       type:    Array,
       default: () => [],
     },
+
+    disabled: {
+      type:    Boolean,
+      default: false,
+    }
   },
 
   data() {
@@ -327,6 +332,7 @@ export default {
             :question="q"
             :target-namespace="targetNamespace"
             :value="get(value, q.variable)"
+            :disabled="disabled"
             @input="set(value, q.variable, $event)"
           />
         </div>
@@ -349,6 +355,7 @@ export default {
             :target-namespace="targetNamespace"
             :mode="mode"
             :value="get(value, q.variable)"
+            :disabled="disabled"
             @input="set(value, q.variable, $event)"
           />
         </div>

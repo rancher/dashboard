@@ -23,6 +23,7 @@ export default {
         :title="question.label"
         :mode="mode"
         :protip="false"
+        :disabled="disabled"
         @input="update"
       />
     </div>
