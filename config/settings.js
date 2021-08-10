@@ -124,7 +124,6 @@ export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.VLAN]:                             {
     kind: 'custom', from: 'import', alias: 'vlan'
   },
-  // [HCI_SETTING.DEFAULT_STORAGE_CLASS]: {}
 };
 
 export const fetchOrCreateSetting = async(store, id, val, save = true) => {
