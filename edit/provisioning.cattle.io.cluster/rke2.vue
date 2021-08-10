@@ -169,6 +169,10 @@ export default {
         snapshotRetention:    5,
         snapshotScheduleCron: '0 */5 * * *',
       });
+    } else if (typeof this.rkeConfig.etcd.disableSnapshots === 'undefined') {
+      const disableSnapshots = !this.rkeConfig.etcd.snapshotRetention && !this.rkeConfig.etcd.snapshotScheduleCron;
+
+      set(this.rkeConfig.etcd, 'disableSnapshots', disableSnapshots);
     }
 
     if ( !this.machinePools ) {
