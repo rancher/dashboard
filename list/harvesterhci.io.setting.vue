@@ -4,21 +4,34 @@ import Banner from '@/components/Banner';
 import Loading from '@/components/Loading';
 
 import { DEV } from '@/store/prefs';
-import { HCI } from '@/config/types';
+import { HCI, MANAGEMENT } from '@/config/types';
 import { allHash } from '@/utils/promise';
-import { HCI_ALLOWED_SETTINGS } from '@/config/settings';
+import { HCI_ALLOWED_SETTINGS, ALLOWED_SETTINGS, SETTING } from '@/config/settings';
+import { set } from '@/utils/object';
 
 export default {
   components: { Banner, Loading },
 
   async fetch() {
     const isDev = this.$store.getters['prefs/get'](DEV);
-    const rows = await allHash({
+    const isSingleVirtualCluster = this.$store.getters['isSingleVirtualCluster'];
+
+    const hash = ({
       clusterNetwork:      this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK }),
       haversterSettings:   this.$store.dispatch('virtual/findAll', { type: HCI.SETTING }),
     });
 
-    const allRows = [...rows.clusterNetwork, ...rows.haversterSettings];
+    if (isSingleVirtualCluster) {
+      set(hash, 'settings', this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING }));
+    }
+
+    const rows = await allHash(hash);
+
+    let allRows = [...rows.clusterNetwork, ...rows.haversterSettings];
+
+    if (isSingleVirtualCluster) {
+      allRows = [...allRows, ...rows.settings];
+    }
 
     // Map settings from array to object keyed by id
     const settingsMap = allRows.reduce((res, s) => {
@@ -28,15 +41,28 @@ export default {
     }, {});
 
     const initSettings = [];
+    let SETTINGS = HCI_ALLOWED_SETTINGS;
 
-    Object.keys(HCI_ALLOWED_SETTINGS).forEach((setting) => {
+    if (isSingleVirtualCluster) {
+      SETTINGS = {
+        ...HCI_ALLOWED_SETTINGS,
+        [SETTING.AUTH_USER_INFO_MAX_AGE_SECONDS]: ALLOWED_SETTINGS.AUTH_USER_INFO_MAX_AGE_SECONDS,
+        [SETTING.AUTH_USER_SESSION_TTL_MINUTES]:  ALLOWED_SETTINGS.AUTH_USER_SESSION_TTL_MINUTES,
+        [SETTING.AUTH_TOKEN_MAX_TTL_MINUTES]:     ALLOWED_SETTINGS.AUTH_TOKEN_MAX_TTL_MINUTES,
+        [SETTING.SERVER_URL]:                     ALLOWED_SETTINGS.SERVER_URL,
+        [SETTING.UI_DASHBOARD_INDEX]:             ALLOWED_SETTINGS.UI_DASHBOARD_INDEX,
+        [SETTING.UI_OFFLINE_PREFERRED]:           ALLOWED_SETTINGS.UI_OFFLINE_PREFERRED,
+      };
+    }
+
+    Object.keys(SETTINGS).forEach((setting) => {
       if (!settingsMap[setting]) {
         return;
       }
 
-      const realSetting = HCI_ALLOWED_SETTINGS[setting]?.alias || setting;
+      const realSetting = SETTINGS[setting]?.alias || setting;
       const s = {
-        ...HCI_ALLOWED_SETTINGS[setting],
+        ...SETTINGS[setting],
         id:          realSetting,
         data:        settingsMap[setting],
       };
@@ -116,8 +142,15 @@ export default {
     <div v-for="setting in settings" :key="setting.id" class="advanced-setting mb-20">
       <div class="header">
         <div class="title">
-          <h1>{{ setting.id }}<span v-if="setting.customized" class="modified">Modified</span></h1>
-          <h2>{{ setting.description }}</h2>
+          <h1>
+            {{ setting.id }}
+            <span v-if="setting.customized" class="modified">
+              Modified
+            </span>
+          </h1>
+          <h2>
+            {{ setting.description }}
+          </h2>
         </div>
         <div v-if="setting.hasActions" class="action">
           <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-sm role-multi-action actions" @click="showActionMenu($event, setting)">
