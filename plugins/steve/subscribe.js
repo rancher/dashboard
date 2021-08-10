@@ -1,4 +1,5 @@
 import { remapSpecialKeys } from '@/plugins/steve/resource-proxy';
+import { addObject, removeObject } from '@/utils/array';
 import { get } from '@/utils/object';
 import Socket, {
   EVENT_CONNECTED,
@@ -9,8 +10,33 @@ import Socket, {
 } from '@/utils/socket';
 
 export const NO_WATCH = 'NO_WATCH';
-export const TOO_OLD = 'TOO_OLD';
 export const NO_SCHEMA = 'NO_SCHEMA';
+
+export function keyForSubscribe({
+  resourceType, type, namespace, id, selector, reason
+}) {
+  return `${ resourceType || type || '' }/${ namespace || '' }/${ id || '' }/${ selector || '' }`;
+}
+
+export function equivalentWatch(a, b) {
+  if ( a.type !== b.type ) {
+    return false;
+  }
+
+  if ( a.id !== b.id && (a.id || b.id) ) {
+    return false;
+  }
+
+  if ( a.namespace !== b.namespace && (a.namespace || b.namespace) ) {
+    return false;
+  }
+
+  if ( a.selector !== b.selector && (a.selector || b.selector) ) {
+    return false;
+  }
+
+  return true;
+}
 
 export const actions = {
   subscribe(ctx, opt) {
@@ -118,6 +144,8 @@ export const actions = {
   },
 
   watch({ state, dispatch, getters }, params) {
+    console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
+
     let {
       // eslint-disable-next-line prefer-const
       type, selector, id, revision, namespace, stop, force
@@ -126,12 +154,16 @@ export const actions = {
     type = getters.normalizeType(type);
 
     if ( !stop && !force && !getters.canWatch(params) ) {
+      console.error(`Cannot Watch [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
+
       return;
     }
 
     if ( !stop && getters.watchStarted({
       type, id, selector, namespace
     }) ) {
+      console.debug(`Already Watching [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
+
       return;
     }
 
@@ -170,7 +202,7 @@ export const actions = {
     const promises = [];
 
     for ( const entry of state.started.slice() ) {
-      console.info(`Reconnect [${ getters.storeName }]`, entry); // eslint-disable-line no-console
+      console.info(`Reconnect [${ getters.storeName }]`, JSON.stringify(entry)); // eslint-disable-line no-console
 
       if ( getters.schemaFor(entry.type) ) {
         commit('setWatchStopped', entry);
@@ -213,6 +245,11 @@ export const actions = {
       });
     } else {
       have = getters['all'](resourceType).slice();
+
+      if ( namespace ) {
+        have = have.filter(x => x.metadata?.namespace === namespace);
+      }
+
       want = await dispatch('findAll', {
         type:           resourceType,
         watchNamespace: namespace,
@@ -303,8 +340,13 @@ export const actions = {
     }
   },
 
-  'ws.ping'({ getters }) {
-    // console.info(`WebSocket Ping [${ getters.storeName }]`); // eslint-disable-line no-console
+  'ws.ping'({ getters, dispatch }, msg) {
+    if ( getters.storeName === 'management' ) {
+      const version = msg?.data?.version || null;
+
+      dispatch('updateServerVersion', version, { root: true });
+      console.info(`Ping [${ getters.storeName }] from ${ version || 'unknown version' }`); // eslint-disable-line no-console
+    }
   },
 
   'ws.resource.start'({ getters, commit }, msg) {
@@ -318,7 +360,7 @@ export const actions = {
   },
 
   'ws.resource.error'({ getters, commit, dispatch }, msg) {
-    // console.warn(`Resource error [${ getters.storeName }]`, msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
+    console.warn(`Resource error [${ getters.storeName }]`, msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
 
     const err = msg.data?.error?.toLowerCase();
 
@@ -327,7 +369,6 @@ export const actions = {
     } else if ( err.includes('failed to find schema') ) {
       commit('setInError', { type: msg.resourceType, reason: NO_SCHEMA });
     } else if ( err.includes('too old') ) {
-      commit('setInError', { type: msg.resourceType, reason: TOO_OLD });
       dispatch('resyncWatch', msg);
     }
   },
@@ -357,9 +398,11 @@ export const actions = {
   },
 
   'ws.resource.create'({ getters, state }, { data }) {
+    const type = getters.normalizeType(data.type);
+
     remapSpecialKeys(data);
 
-    if ( !getters.typeRegistered(getters.normalizeType(data.type)) ) {
+    if ( !getters.typeRegistered(type) ) {
       return;
     }
 
@@ -421,5 +464,59 @@ export const actions = {
 export const mutations = {
   setSocket(state, socket) {
     state.socket = socket;
+  },
+
+  setWantSocket(state, want) {
+    state.wantSocket = want;
+  },
+
+  enqueuePending(state, obj) {
+    state.pendingSends.push(obj);
+  },
+
+  dequeuePending(state, obj) {
+    removeObject(state.pendingSends, obj);
+  },
+
+  setWatchStarted(state, obj) {
+    const existing = state.started.find(entry => equivalentWatch(obj, entry));
+
+    if ( !existing ) {
+      addObject(state.started, obj);
+    }
+
+    delete state.inError[keyForSubscribe(obj)];
+  },
+
+  setWatchStopped(state, obj) {
+    const existing = state.started.find(entry => equivalentWatch(obj, entry));
+
+    if ( existing ) {
+      removeObject(state.started, existing);
+    } else {
+      console.warn("Tried to remove a watch that doesn't exist", obj); // eslint-disable-line no-console
+    }
+  },
+
+  setInError(state, msg) {
+    const key = keyForSubscribe(msg);
+
+    state.inError[key] = msg.reason;
+  },
+
+  clearInError(state, msg) {
+    const key = keyForSubscribe(msg);
+
+    delete state.inError[key];
+  }
+};
+
+export const getters = {
+  canWatch: state => (obj) => {
+    return !state.inError[keyForSubscribe(obj)];
+  },
+
+  watchStarted: state => (obj) => {
+    return !!state.started.find(entry => equivalentWatch(obj, entry));
   },
 };

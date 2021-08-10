@@ -4,7 +4,11 @@ import { isArray } from '@/utils/array';
 import actions from './actions';
 import getters from './getters';
 import mutations from './mutations';
-import { mutations as subscribeMutations, actions as subscribeActions } from './subscribe';
+import {
+  mutations as subscribeMutations,
+  actions as subscribeActions,
+  getters as subscribeGetters
+} from './subscribe';
 import { proxyFor } from './resource-proxy';
 import { keyFieldFor } from './normalize';
 
@@ -29,7 +33,11 @@ function SteveFactory(namespace, baseUrl) {
       };
     },
 
-    getters,
+    getters: {
+      ...getters,
+      ...subscribeGetters
+    },
+
     mutations: {
       ...mutations,
       ...subscribeMutations,

@@ -1,5 +1,8 @@
+import { REDIRECTED } from '@/config/cookies';
 import { NAME as EXPLORER } from '@/config/product/explorer';
-import { SETUP, TIMED_OUT } from '@/config/query-params';
+import {
+  SETUP, TIMED_OUT, UPGRADED, _FLAGGED, _UNFLAG
+} from '@/config/query-params';
 import { SETTING } from '@/config/settings';
 import { MANAGEMENT, NORMAN } from '@/config/types';
 import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
@@ -42,7 +45,7 @@ function setProduct(store, to) {
 }
 
 export default async function({
-  route, app, store, redirect, req, isDev
+  route, app, store, redirect, $cookies
 }) {
   if ( route.path && typeof route.path === 'string') {
     // Ignore webpack hot module reload requests
@@ -55,6 +58,26 @@ export default async function({
       return;
     }
   }
+
+  // This tells Ember not to redirect back to us once you've already been to dashboard once.
+  $cookies.set(REDIRECTED, 'true', {
+    path:     '/',
+    sameSite: false,
+    secure:   true,
+  });
+
+  const upgraded = route.query[UPGRADED] === _FLAGGED;
+
+  if ( upgraded ) {
+    store.dispatch('growl/success', {
+      title:   store.getters['i18n/t']('serverUpgrade.title'),
+      message: store.getters['i18n/t']('serverUpgrade.message'),
+      timeout: 0,
+    });
+
+    app.router.applyQuery({ [UPGRADED]: _UNFLAG });
+  }
+
   // Initial ?setup=admin-password can technically be on any route
   const initialPass = route.query[SETUP];
   let firstLogin = null;
