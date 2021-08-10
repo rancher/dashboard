@@ -379,7 +379,7 @@ export default {
         </template>
       </ResourceTable>
     </Tab>
-    <Tab v-else-if="showNodes" name="node-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="3">
+    <Tab v-else-if="showNodes" name="node-pools" :label-key="value.isCustom ? 'cluster.tabs.nodes' : 'cluster.tabs.nodePools'" :weight="3">
       <ResourceTable
         :schema="mgmtNodeSchema"
         :headers="mgmtNodeSchemaHeaders"
