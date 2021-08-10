@@ -8,7 +8,6 @@ import { downloadFile } from '@/utils/download';
 export default {
   _availableActions() {
     const out = this._standardActions;
-    const normanAction = this.normanNode?.actions || {};
 
     const downloadKeys = {
       action:     'downloadKeys',
@@ -19,8 +18,8 @@ export default {
 
     const scaleDown = {
       action:     'scaleDown',
-      enabled:    !!normanAction.scaledown,
-      icon:       'icon icon-fw icon-x',
+      enabled:    !!this.canScaleDown,
+      icon:       'icon icon-chevron-down icon-fw',
       label:      this.t('node.actions.scaleDown'),
       bulkable:   true,
     };
@@ -115,5 +114,13 @@ export default {
 
   canClone() {
     return false;
+  },
+
+  canScaleDown() {
+    const isInOnlyPool = this.pool?.provisioningCluster?.pools?.length === 1;
+    const isOnlyNode = this.pool?.nodes?.length === 1;
+    const hasAction = this.normanNode?.actions?.scaledown;
+
+    return hasAction && (!isInOnlyPool || !isOnlyNode);
   },
 };
