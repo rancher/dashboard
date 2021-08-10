@@ -108,6 +108,10 @@ export default {
       type:     String,
       required: true,
     },
+    disabled: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   async fetch() {
@@ -222,6 +226,7 @@ export default {
           :searchable="false"
           :required="true"
           :label="t('cluster.machineConfig.azure.environment.label')"
+          :disabled="disabled"
         />
       </div>
       <div class="col span-6">
@@ -234,6 +239,7 @@ export default {
           :searchable="true"
           :required="true"
           :label="t('cluster.machineConfig.azure.location.label')"
+          :disabled="disabled"
           @input="setLocation"
         />
       </div>
@@ -244,6 +250,7 @@ export default {
           v-model="value.resourceGroup"
           :mode="mode"
           :label="t('cluster.machineConfig.azure.resourceGroup.label')"
+          :disabled="disabled"
         />
       </div>
       <div class="col span-6">
@@ -251,6 +258,7 @@ export default {
           v-model="value.availabilitySet"
           :mode="mode"
           :label="t('cluster.machineConfig.azure.availabilitySet.label')"
+          :disabled="disabled"
         />
       </div>
     </div>
@@ -262,6 +270,7 @@ export default {
           :mode="mode"
           :label="t('cluster.machineConfig.azure.image.label')"
           :tooltip="t('cluster.machineConfig.azure.image.help')"
+          :disabled="disabled"
         />
       </div>
       <div class="col span-6">
@@ -272,6 +281,7 @@ export default {
           :searchable="true"
           :required="true"
           :label="t('cluster.machineConfig.azure.size.label')"
+          :disabled="disabled"
         />
       </div>
     </div>
@@ -284,6 +294,7 @@ export default {
             :mode="mode"
             :label="t('cluster.machineConfig.azure.faultDomainCount.label')"
             :tooltip="t('cluster.machineConfig.azure.faultDomainCount.help')"
+            :disabled="disabled"
           />
         </div>
         <div class="col span-6">
@@ -292,19 +303,26 @@ export default {
             :mode="mode"
             :label="t('cluster.machineConfig.azure.updateDomainCount.label')"
             :tooltip="t('cluster.machineConfig.azure.updateDomainCount.help')"
+            :disabled="disabled"
           />
         </div>
       </div>
       <hr class="mt-20" />
       <div class="row mt-20">
         <div class="col span-6">
-          <LabeledInput v-model="value.subnet" :mode="mode" :label="t('cluster.machineConfig.azure.subnet.label')" />
+          <LabeledInput
+            v-model="value.subnet"
+            :mode="mode"
+            :label="t('cluster.machineConfig.azure.subnet.label')"
+            :disabled="disabled"
+          />
         </div>
         <div class="col span-6">
           <LabeledInput
             v-model="value.subnetPrefix"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.subnetPrefix.label')"
+            :disabled="disabled"
           />
         </div>
       </div>
@@ -315,6 +333,7 @@ export default {
             :mode="mode"
             :label="t('cluster.machineConfig.azure.vnet.label')"
             :placeholder="t('cluster.machineConfig.azure.vnet.placeholder')"
+            :disabled="disabled"
           />
         </div>
         <div class="col span-6">
@@ -355,6 +374,7 @@ export default {
             class="mt-10"
             :label="t('cluster.machineConfig.azure.nsg.label')"
             :tooltip="t('cluster.machineConfig.azure.nsg.help')"
+            :disabled="disabled"
           />
         </div>
         <div class="col span-6">
@@ -364,6 +384,7 @@ export default {
             class="mt-10"
             :label="t('cluster.machineConfig.azure.dns.label')"
             :tooltip="t('cluster.machineConfig.azure.dns.help')"
+            :disabled="disabled"
           />
         </div>
       </div>
@@ -377,6 +398,7 @@ export default {
             :searchable="false"
             :required="true"
             :label="t('cluster.machineConfig.azure.storageType.label')"
+            :disabled="disabled"
             option-key="value"
             option-label="name"
           />
@@ -388,12 +410,14 @@ export default {
             v-model="value.managedDisks"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.managedDisks.label')"
+            :disabled="disabled"
           />
           <LabeledInput
             v-model="value.diskSize"
             :mode="mode"
             class="mt-10"
             :label="t('cluster.machineConfig.azure.managedDisksSize.label')"
+            :disabled="disabled"
           />
         </div>
       </div>
@@ -403,6 +427,7 @@ export default {
             v-model="value.sshUser"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.sshUser.label')"
+            :disabled="disabled"
           />
         </div>
       </div>
@@ -416,6 +441,7 @@ export default {
             :add-label="t('cluster.machineConfig.azure.openPort.add')"
             :show-protip="true"
             :protip="t('cluster.machineConfig.azure.openPort.help')"
+            :disabled="disabled"
           />
         </div>
       </div>

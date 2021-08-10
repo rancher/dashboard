@@ -24,7 +24,12 @@ export default {
     provider: {
       type:     String,
       required: true,
-    }
+    },
+
+    disabled: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   async fetch() {
@@ -98,6 +103,7 @@ export default {
       :source="fields"
       :ignore-variables="cloudCredentialKeys"
       :target-namespace="value.metadata.namespace"
+      :disabled="disabled"
     />
   </div>
 </template>

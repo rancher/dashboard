@@ -1000,6 +1000,8 @@ cluster:
     label: Cluster Name
     placeholder: A unique name for the cluster
   machineConfig:
+    banner:
+      updateInfo: Create a new pool to update machine configs
     aws:
       sizeLabel: |-
         {apiName}: {cpu}, {memory, number} GiB Memory, {storageSize, plural,

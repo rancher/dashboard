@@ -7,6 +7,7 @@ import { importMachineConfig } from '@/utils/dynamic-importer';
 import Taints from '@/components/form/Taints.vue';
 import KeyValue from '@/components/form/KeyValue.vue';
 import AdvancedSection from '@/components/AdvancedSection.vue';
+import Banner from '@/components/Banner';
 import { randomStr } from '@/utils/string';
 
 export default {
@@ -17,6 +18,7 @@ export default {
     Taints,
     KeyValue,
     AdvancedSection,
+    Banner,
   },
 
   props: {
@@ -39,6 +41,11 @@ export default {
       type:     String,
       required: true,
     },
+
+    showWarning: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   data() {
@@ -85,7 +92,13 @@ export default {
   <div>
     <div class="row">
       <div class="col span-4">
-        <LabeledInput v-model="value.pool.name" :mode="mode" label="Pool Name" :required="true" :disabled="!!value.config.id" />
+        <LabeledInput
+          v-model="value.pool.name"
+          :mode="mode"
+          label="Pool Name"
+          :required="true"
+          :disabled="!!value.config.id"
+        />
       </div>
       <div class="col span-2">
         <LabeledInput
@@ -99,13 +112,31 @@ export default {
       </div>
       <div class="col span-6 pt-5">
         <h3>Roles</h3>
-        <Checkbox v-model="value.pool.etcdRole" :mode="mode" label="etcd" />
-        <Checkbox v-model="value.pool.controlPlaneRole" :mode="mode" label="Control Plane" />
-        <Checkbox v-model="value.pool.workerRole" :mode="mode" label="Worker" />
+        <Checkbox
+          v-model="value.pool.etcdRole"
+          :mode="mode"
+          label="etcd"
+        />
+        <Checkbox
+          v-model="value.pool.controlPlaneRole"
+          :mode="mode"
+          label="Control Plane"
+        />
+        <Checkbox
+          v-model="value.pool.workerRole"
+          :mode="mode"
+          label="Worker"
+        />
       </div>
     </div>
 
     <hr class="mt-10" />
+
+    <Banner
+      v-if="showWarning"
+      color="info"
+      :label="t('cluster.machineConfig.banner.updateInfo')"
+    />
 
     <component
       :is="configComponent"
@@ -115,6 +146,7 @@ export default {
       :value="value.config"
       :provider="provider"
       :credential-id="credentialId"
+      :disabled="!!value.config.id"
       @error="e=>errors = e"
     />
 
