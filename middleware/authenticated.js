@@ -60,11 +60,13 @@ export default async function({
   }
 
   // This tells Ember not to redirect back to us once you've already been to dashboard once.
-  $cookies.set(REDIRECTED, 'true', {
-    path:     '/',
-    sameSite: false,
-    secure:   true,
-  });
+  if ( !$cookies.get(REDIRECTED) ) {
+    $cookies.set(REDIRECTED, 'true', {
+      path:     '/',
+      sameSite: false,
+      secure:   true,
+    });
+  }
 
   const upgraded = route.query[UPGRADED] === _FLAGGED;
 
