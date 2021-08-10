@@ -1291,6 +1291,8 @@ cluster:
     networking: Networking
     machinePools: Machine Pools
     machines: Machines
+    nodePools: Node Pools
+    nodes: Nodes
     memberRoles: Member Roles
     registry: Registries
     upgrade: Upgrade Strategy
