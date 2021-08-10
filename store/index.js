@@ -421,7 +421,7 @@ export const mutations = {
   },
 
   setServerVersion(state, version) {
-    state.serverVersion = verison;
+    state.serverVersion = version;
   }
 };
 
@@ -672,19 +672,17 @@ export const actions = {
     router.replace('/fail-whale');
   },
 
-<<<<<<< Updated upstream
-=======
-  updateServerVersion({commit, state}, neu) {
+  updateServerVersion({ commit, state }, neu) {
     const cur = state.serverVersion;
 
-    if ( cur ) {
+    if ( cur && neu) {
       if ( cur !== neu ) {
         const url = addParam(window.location.href, UPGRADED, _FLAGGED);
+
         window.location.replace(url);
       }
     } else {
       commit('setServerVersion', neu);
     }
   }
->>>>>>> Stashed changes
 };

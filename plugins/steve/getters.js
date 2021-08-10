@@ -4,7 +4,7 @@ import { matches } from '@/utils/selector';
 import { typeMunge, typeRef, SIMPLE_TYPES } from '@/utils/create-yaml';
 import { normalizeType, keyFieldFor, KEY_FIELD_FOR } from './normalize';
 import urlOptions from './urloptions';
-import mutations, { equivalentWatch } from './mutations';
+import mutations from './mutations';
 
 export default {
   all: (state, getters) => (type) => {
@@ -313,14 +313,6 @@ export default {
     }
 
     return null;
-  },
-
-  canWatch: state => (type) => {
-    return !state.inError[type];
-  },
-
-  watchStarted: state => (obj) => {
-    return !!state.started.find(entry => equivalentWatch(obj, entry));
   },
 
   storeName: (state) => {
