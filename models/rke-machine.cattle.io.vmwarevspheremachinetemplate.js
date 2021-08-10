@@ -11,8 +11,8 @@ export default {
   },
 
   providerSize() {
-    const size = formatSi(this.spec.template.spec.size.memorySize * 1048576, 1024, 'iB');
+    const size = formatSi(this.spec.template.spec.memorySize * 1048576, 1024, 'iB');
 
-    return `${ size }, ${ this.spec.template.spec.size.cpuCount } Core`;
+    return `${ size }, ${ this.spec.template.spec.cpuCount } Core`;
   }
 };
