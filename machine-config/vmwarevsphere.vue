@@ -145,6 +145,10 @@ export default {
       type:     String,
       required: true,
     },
+    disabled: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   async fetch() {
@@ -620,6 +624,7 @@ export default {
               :mode="mode"
               :options="dataCenters"
               :label="t('cluster.machineConfig.vsphere.scheduling.dataCenter')"
+              :disabled="disabled"
             />
           </div>
           <div class="col span-6">
@@ -629,6 +634,7 @@ export default {
               :mode="mode"
               :options="resourcePools"
               :label="t('cluster.machineConfig.vsphere.scheduling.resourcePool')"
+              :disabled="disabled"
             />
           </div>
         </div>
@@ -640,6 +646,7 @@ export default {
               :mode="mode"
               :options="dataStores"
               :label="t('cluster.machineConfig.vsphere.scheduling.dataStore')"
+              :disabled="disabled"
             />
           </div>
           <div class="col span-6">
@@ -649,6 +656,7 @@ export default {
               :mode="mode"
               :options="folders"
               :label="t('cluster.machineConfig.vsphere.scheduling.folder')"
+              :disabled="disabled"
             />
           </div>
         </div>
@@ -660,6 +668,7 @@ export default {
               :mode="mode"
               :options="hosts"
               :label="t('cluster.machineConfig.vsphere.scheduling.host.label')"
+              :disabled="disabled"
             />
             <p class="text-muted mt-5">
               {{ t('cluster.machineConfig.vsphere.scheduling.host.note') }}
@@ -683,6 +692,7 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.cpus')"
               :suffix="t('suffix.cores')"
+              :disabled="disabled"
             />
           </div>
           <div class="col span-6">
@@ -691,6 +701,7 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.memory')"
               :suffix="t('suffix.mib')"
+              :disabled="disabled"
             />
           </div>
         </div>
@@ -701,6 +712,7 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.disk')"
               :suffix="t('suffix.mib')"
+              :disabled="disabled"
             />
           </div>
         </div>
@@ -711,6 +723,7 @@ export default {
               :mode="mode"
               :options="creationMethods"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.creationMethod')"
+              :disabled="disabled"
             />
           </div>
           <div v-if="showTemplate" class="col span-6">
@@ -720,6 +733,7 @@ export default {
               :mode="mode"
               :options="templates"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.template')"
+              :disabled="disabled"
             />
           </div>
           <div v-if="showContentLibrary" class="col span-4">
@@ -729,6 +743,7 @@ export default {
               :mode="mode"
               :options="contentLibraries"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.contentLibrary')"
+              :disabled="disabled"
             />
           </div>
           <div v-if="showContentLibrary" class="col span-4">
@@ -739,6 +754,7 @@ export default {
               :options="libraryTemplates"
               :searchable="true"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.libraryTemplate')"
+              :disabled="disabled"
             />
           </div>
           <div v-if="showVirtualMachines" class="col span-6">
@@ -748,6 +764,7 @@ export default {
               :mode="mode"
               :options="virtualMachines"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.virtualMachine')"
+              :disabled="disabled"
             />
           </div>
           <div v-if="showIso" class="col span-6">
@@ -756,6 +773,7 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.osIsoUrl.label')"
               :placeholder="t('cluster.machineConfig.vsphere.instanceOptions.osIsoUrl.placeholder')"
+              :disabled="disabled"
             />
           </div>
         </div>
@@ -766,6 +784,7 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.cloudInit.label')"
               :placeholder="t('cluster.machineConfig.vsphere.instanceOptions.cloudInit.placeholder')"
+              :disabled="disabled"
             />
             <p class="text-muted mt-5">
               {{ t('cluster.machineConfig.vsphere.instanceOptions.cloudInit.note') }}
@@ -779,6 +798,7 @@ export default {
               ref="yaml-additional"
               v-model="value.cloudConfig"
               :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
+              :disabled="disabled"
               initial-yaml-values="# Additional Manifest YAML"
               class="yaml-editor"
             />
@@ -789,7 +809,13 @@ export default {
             <label class="text-label mt-0">
               {{ t('cluster.machineConfig.vsphere.networks.label') }}
             </label>
-            <ArrayListSelect v-model="value.network" :options="networks" :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.networks.add') }" :loading="networksLoading" />
+            <ArrayListSelect
+              v-model="value.network"
+              :options="networks"
+              :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.networks.add') }"
+              :loading="networksLoading"
+              :disabled="disabled"
+            />
           </div>
         </div>
         <div class="row mt-10">
@@ -797,7 +823,14 @@ export default {
             <label class="text-label mt-0">
               {{ t('cluster.machineConfig.vsphere.guestinfo.label') }}
             </label>
-            <KeyValue v-model="cfgparam" :add-label="t('cluster.machineConfig.vsphere.guestinfo.add')" :key-placeholder="t('cluster.machineConfig.vsphere.guestinfo.keyPlaceholder')" :value-placeholder="t('cluster.machineConfig.vsphere.guestinfo.valuePlaceholder')" :read-allowed="false" />
+            <KeyValue
+              v-model="cfgparam"
+              :add-label="t('cluster.machineConfig.vsphere.guestinfo.add')"
+              :key-placeholder="t('cluster.machineConfig.vsphere.guestinfo.keyPlaceholder')"
+              :value-placeholder="t('cluster.machineConfig.vsphere.guestinfo.valuePlaceholder')"
+              :read-allowed="false"
+              :disabled="disabled"
+            />
           </div>
         </div>
       </div>
@@ -810,7 +843,13 @@ export default {
         </p>
       </h4>
       <div slot="body">
-        <ArrayListSelect v-model="value.tag" :options="tags" :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.tags.addTag') }" :loading="tagsLoading" />
+        <ArrayListSelect
+          v-model="value.tag"
+          :options="tags"
+          :array-list-props="{ addLabel: t('cluster.machineConfig.vsphere.tags.addTag') }"
+          :loading="tagsLoading"
+          :disabled="disabled"
+        />
       </div>
     </Card>
     <Card v-if="haveAttributes" class="m-0 mt-20" :show-highlight-border="false" :show-actions="false">
@@ -830,6 +869,7 @@ export default {
           :loading="attributeKeysLoading"
           :key-taggable="false"
           :key-option-unique="true"
+          :disabled="disabled"
         />
       </div>
     </Card>
@@ -848,6 +888,7 @@ export default {
               name="restoreMode"
               :label="t('cluster.machineConfig.vsphere.vAppOptions.restoreType')"
               :options="vAppOptions"
+              :disabled="disabled"
             />
           </div>
         </div>
@@ -859,6 +900,7 @@ export default {
               :label="t('cluster.machineConfig.vsphere.vAppOptions.transport.label')"
               :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.transport.tooltip')"
               :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.transport.placeholder')"
+              :disabled="disabled"
             />
           </div>
           <div class="col span-4">
@@ -868,6 +910,7 @@ export default {
               :label="t('cluster.machineConfig.vsphere.vAppOptions.protocol.label')"
               :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.protocol.tooltip')"
               :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.protocol.placeholder')"
+              :disabled="disabled"
             />
           </div>
           <div class="col span-4">
@@ -877,6 +920,7 @@ export default {
               :label="t('cluster.machineConfig.vsphere.vAppOptions.allocation.label')"
               :tooltip="t('cluster.machineConfig.vsphere.vAppOptions.allocation.tooltip')"
               :placeholder="t('cluster.machineConfig.vsphere.vAppOptions.allocation.placeholder')"
+              :disabled="disabled"
             />
           </div>
         </div>
@@ -889,6 +933,7 @@ export default {
               :value-placeholder="t('cluster.machineConfig.vsphere.vAppOptions.properties.valuePlaceholder')"
               :add-label="t('cluster.machineConfig.vsphere.vAppOptions.properties.add')"
               :read-allowed="false"
+              :disabled="disabled"
             />
           </div>
         </div>

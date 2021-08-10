@@ -20,6 +20,7 @@ export default {
         :placeholder="question.default"
         :required="question.required"
         :value="value"
+        :disabled="disabled"
         @input="val = parseInt($event, 10); if ( !isNaN(val) ) { $emit('input', val) }"
       />
     </div>

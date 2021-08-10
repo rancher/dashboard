@@ -34,7 +34,7 @@ export default {
       <LabeledSelect
         :mode="mode"
         :options="options"
-        :disabled="$fetchState.pending"
+        :disabled="$fetchState.pending || disabled"
         :label="displayLabel"
         :placeholder="question.description"
         :required="question.required"

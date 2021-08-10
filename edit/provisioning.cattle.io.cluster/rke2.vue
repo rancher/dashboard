@@ -798,10 +798,7 @@ export default {
           entry.config = neu;
           entry.pool.machineConfigRef.name = neu.metadata.name;
           entry.create = false;
-        } else if (entry.update) {
-          const response = await entry.config.save();
-
-          entry.config = response;
+          entry.update = true;
         }
 
         if ( !entry.pool.hostnamePrefix ) {
@@ -1051,6 +1048,7 @@ export default {
               :mode="mode"
               :provider="provider"
               :credential-id="credentialId"
+              :show-warning="obj.update"
               @error="e=>errors = e"
             />
           </Tab>
