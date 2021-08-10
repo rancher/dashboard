@@ -3,6 +3,7 @@ import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
 import FileSelector, { createOnSelected } from '@/components/form/FileSelector';
 import { set } from '@/utils/object';
+import isEmpty from 'lodash/isEmpty';
 
 export default {
   components: {
@@ -22,7 +23,7 @@ export default {
   },
 
   data() {
-    if ( !this.value?.spec?.rkeConfig?.localClusterAuthEndpoint ) {
+    if ( isEmpty(this.value?.spec?.rkeConfig?.localClusterAuthEndpoint) ) {
       set(this.value, 'spec.rkeConfig.localClusterAuthEndpoint', {
         enabled: false,
         caCerts: '',
