@@ -301,7 +301,7 @@ export default {
                 <LabeledInput
                   v-if="!firstLogin"
                   ref="username"
-                  v-model="username"
+                  v-model.trim="username"
                   :label="t('login.username')"
                   autocomplete="username"
                 />
