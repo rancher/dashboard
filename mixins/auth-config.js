@@ -5,6 +5,7 @@ import { BASE_SCOPES } from '@/store/auth';
 import { addObject, findBy } from '@/utils/array';
 import { set } from '@/utils/object';
 import { exceptionToErrorsArray } from '@/utils/error';
+import difference from 'lodash/difference';
 
 export default {
   beforeCreate() {
@@ -158,6 +159,17 @@ export default {
             type: NORMAN.AUTH_CONFIG,
             id:   this.authConfigName,
             opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ this.authConfigName }`, force: true }
+          });
+
+          // We want to find and add keys that are in the original model that are missing from the new model.
+          // This is specifically intended for adding secretKeys which aren't returned when fetching. One example
+          // is the applicationSecret key that is present for azureAD auth.
+          const oldKeys = Object.keys(this.model);
+          const newKeys = Object.keys(newModel);
+          const missingNewKeys = difference(oldKeys, newKeys);
+
+          missingNewKeys.forEach((key) => {
+            newModel[key] = this.model[key];
           });
 
           this.model = await this.$store.dispatch(`rancher/clone`, { resource: newModel });
