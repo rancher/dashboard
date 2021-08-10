@@ -2,11 +2,14 @@
 import Header from '@/components/nav/Header';
 import Brand from '@/mixins/brand';
 import FixedBanner from '@/components/FixedBanner';
+import GrowlManager from '@/components/GrowlManager';
 import { mapPref, DEV } from '@/store/prefs';
 
 export default {
 
-  components: { Header, FixedBanner },
+  components: {
+    Header, FixedBanner, GrowlManager
+  },
 
   mixins: [Brand],
 
@@ -41,6 +44,7 @@ export default {
       </main>
     </div>
     <FixedBanner :footer="true" />
+    <GrowlManager />
     <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
   </div>
 </template>

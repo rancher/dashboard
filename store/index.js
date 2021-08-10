@@ -9,9 +9,10 @@ import { sortBy } from '@/utils/sort';
 import { filterBy, findBy } from '@/utils/array';
 import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@/store/type-map';
 import { NAME as EXPLORER } from '@/config/product/explorer';
-import { TIMED_OUT, LOGGED_OUT } from '@/config/query-params';
+import { TIMED_OUT, LOGGED_OUT, _FLAGGED, UPGRADED } from '@/config/query-params';
 import { setVendor } from '@/config/private-label';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
+import { addParam } from '@/utils/url';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -40,6 +41,7 @@ export const state = () => {
     error:            null,
     cameFromError:    false,
     pageActions:      [],
+    serverVersion:    null,
   };
 };
 
@@ -417,6 +419,10 @@ export const mutations = {
   cameFromError(state) {
     state.cameFromError = true;
   },
+
+  setServerVersion(state, version) {
+    state.serverVersion = version;
+  }
 };
 
 export const actions = {
@@ -666,4 +672,17 @@ export const actions = {
     router.replace('/fail-whale');
   },
 
+  updateServerVersion({ commit, state }, neu) {
+    const cur = state.serverVersion;
+
+    if ( cur && neu) {
+      if ( cur !== neu ) {
+        const url = addParam(window.location.href, UPGRADED, _FLAGGED);
+
+        window.location.replace(url);
+      }
+    } else {
+      commit('setServerVersion', neu);
+    }
+  }
 };

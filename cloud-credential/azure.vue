@@ -48,6 +48,7 @@ export default {
             clientSecret,
             subscriptionId,
           },
+          redirectUnauthorized: false,
         });
 
         return true;

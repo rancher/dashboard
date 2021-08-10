@@ -3,6 +3,7 @@ import { addObject, addObjects, clear, removeObject } from '@/utils/array';
 import { SCHEMA } from '@/config/types';
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import { proxyFor, remapSpecialKeys } from './resource-proxy';
+import { keyForSubscribe } from './subscribe';
 
 function registerType(state, type) {
   let cache = state.types[type];
@@ -90,6 +91,19 @@ function load(state, { data, ctx, existing }) {
   }
 }
 
+function forget(state, type) {
+  const cache = state.types[type];
+
+  if ( cache ) {
+    cache.haveAll = false;
+    cache.haveSelector = {};
+    clear(cache.list);
+    cache.map.clear();
+    delete state.types[type];
+    delete state.inError[keyForSubscribe({ type })];
+  }
+}
+
 export default {
   registerType,
   load,
@@ -166,94 +180,21 @@ export default {
   },
 
   reset(state) {
-    for ( const type of Object.keys(state.types) ) {
-      const cache = state.types[type];
+    // eslint-disable-next-line no-console
+    console.log('Reset', state.config.namespace);
 
-      if ( cache ) {
-        cache.haveAll = false;
-        cache.haveSelector = {};
-        clear(cache.list);
-        cache.map.clear();
-      }
+    for ( const type of Object.keys(state.types) ) {
+      forget(state, type);
     }
+
+    clear(state.started);
+    clear(state.pendingSends);
+    clear(state.queue);
+    clearInterval(state.queueTimer);
+    state.queueTimer = null;
   },
 
   forgetType(state, type) {
-    const cache = state.types[type];
-
-    if ( cache ) {
-      cache.haveAll = false;
-      cache.haveSelector = {};
-      clear(cache.list);
-      cache.map.clear();
-    }
+    forget(state, type);
   },
-
-  setWantSocket(state, want) {
-    state.wantSocket = want;
-  },
-
-  enqueuePending(state, obj) {
-    state.pendingSends.push(obj);
-  },
-
-  dequeuePending(state, obj) {
-    removeObject(state.pendingSends, obj);
-  },
-
-  setWatchStarted(state, obj) {
-    const existing = state.started.find(entry => equivalentWatch(obj, entry));
-
-    if ( !existing ) {
-      addObject(state.started, obj);
-    }
-  },
-
-  setWatchStopped(state, obj) {
-    const existing = state.started.find(entry => equivalentWatch(obj, entry));
-
-    if ( existing ) {
-      removeObject(state.started, existing);
-    } else {
-      console.warn("Tried to remove a watch that doesn't exist", obj); // eslint-disable-line no-console
-    }
-  },
-
-  setInError(state, msg) {
-    const key = keyForSubscribe(msg);
-
-    state.inError[key] = msg.reason;
-  },
-
-  clearInError(state, msg) {
-    const key = keyForSubscribe(msg);
-
-    delete state.inError[key];
-  }
 };
-
-export function keyForSubscribe({
-  resourceType, namespace, id, selector, reason
-}) {
-  return `${ resourceType || '' }/${ namespace || '' }/${ id || '' }/${ selector || '' }`;
-}
-
-export function equivalentWatch(a, b) {
-  if ( a.type !== b.type ) {
-    return false;
-  }
-
-  if ( a.id !== b.id && (a.id || b.id) ) {
-    return false;
-  }
-
-  if ( a.namespace !== b.namespace && (a.namespace || b.namespace) ) {
-    return false;
-  }
-
-  if ( a.selector !== b.selector && (a.selector || b.selector) ) {
-    return false;
-  }
-
-  return true;
-}
