@@ -2,7 +2,6 @@
 import CreateEditView from '@/mixins/create-edit-view';
 import KeyValue from '@/components/form/KeyValue';
 import Banner from '@/components/Banner';
-import { _CREATE } from '@/config/query-params';
 import { simplify, iffyFields, likelyFields } from '@/store/plugins';
 
 export default {
@@ -28,23 +27,20 @@ export default {
       keyOptions = this.$store.getters['plugins/fieldNamesForDriver'](this.driverName);
     }
 
-    if ( this.mode === _CREATE ) {
-      // Prepopulate empty values for keys that sound like they're cloud-credential-ey
+    // Prepopulate empty values for keys that sound like they're cloud-credential-ey
+    const keys = [];
 
-      const keys = [];
+    for ( const k of keyOptions ) {
+      const sk = simplify(k);
 
-      for ( const k of keyOptions ) {
-        const sk = simplify(k);
-
-        if ( normanSchema || likelyFields.includes(sk) || iffyFields.includes(sk) ) {
-          keys.push(k);
-        }
+      if ( normanSchema || likelyFields.includes(sk) || iffyFields.includes(sk) ) {
+        keys.push(k);
       }
+    }
 
-      for ( const k of keys ) {
-        if ( !this.value.decodedData[k] ) {
-          this.value.setData(k, '');
-        }
+    for ( const k of keys ) {
+      if ( !this.value.decodedData[k] ) {
+        this.value.setData(k, '');
       }
     }
 
