@@ -263,7 +263,7 @@ export default {
       return deployments;
     }
 
-    return this.$getters['all'](MANAGEMENT.NODE_POOL).filter(pool => pool.spec.clusterName === this.status.clusterName);
+    return this.$getters['all'](MANAGEMENT.NODE_POOL).filter(pool => pool.spec.clusterName === this.status?.clusterName);
   },
 
   desired() {
