@@ -92,29 +92,25 @@
       }
     }
   }
-}
 
-.labeled-select,
-.unlabeled-select {
   &.disabled {
     border: solid var(--border-width) var(--input-disabled-border);
 
     .vs__dropdown-toggle, input {
       cursor: not-allowed;
     }
-  }
 
-  &:not(.view) {
-    &.disabled .v-select {
+    .v-select {
       background-color: var(--input-disabled-bg);
       border-color: var(--input-disabled-border);
       cursor: not-allowed;
 
       .vs__dropdown-toggle, input {
         cursor: not-allowed;
-      }
-      .vs__selected {
-        color: var(--input-disabled-text);
+
+        .vs__selected {
+          color: var(--input-disabled-text);
+        }
       }
     }
   }
