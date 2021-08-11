@@ -65,6 +65,10 @@ export default {
 
   async fetch() {
     const hash = {
+      // These aren't explicitly used, but need to be listening for change events
+      mgmtClusters:     this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+      provClusters:     this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+
       nodeDrivers:      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER }),
       kontainerDrivers: this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTANIER_DRIVER }),
       catalog:          this.$store.dispatch('catalog/load'),
