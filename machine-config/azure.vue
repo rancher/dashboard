@@ -11,6 +11,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
 import ArrayList from '@/components/form/ArrayList';
 import { randomStr } from '@/utils/string';
+import { addParam, addParams } from '@/utils/url';
 
 export const azureEnvironments = [
   { value: 'AzurePublicCloud' },
@@ -145,28 +146,13 @@ export default {
       }
 
       this.locationOptions = await this.$store.dispatch('management/request', {
-        url:    '/meta/aksLocations',
-        method: 'POST',
-        data:   {
-          clientId,
-          clientSecret,
-          subscriptionId,
-          tenantId,
-        },
+        url:    addParam('/meta/aksLocations', 'cloudCredentialId', this.credentialId),
+        method: 'GET',
       });
 
-      const defaultLocation = 'westus';
-
       this.vmSizes = await this.$store.dispatch('management/request', {
-        url:    '/meta/aksVMSizes',
-        method: 'POST',
-        data:   {
-          clientId,
-          clientSecret,
-          subscriptionId,
-          tenantId,
-          region: defaultLocation,
-        },
+        url:    addParams('/meta/aksVMSizes', { cloudCredentialId: this.credentialId, region: 'westus' }),
+        method: 'GET',
       });
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
