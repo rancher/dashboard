@@ -281,7 +281,7 @@ export default {
       const appName = labels[KUBERNETES.MANAGED_NAME] || labels[KUBERNETES.INSTANCE] || '';
 
       return {
-        show:    this.mode === _EDIT && managedBy.toLowerCase() === 'helm',
+        show:    this.mode === _EDIT && !!managedBy,
         type:    value?.kind || '',
         hasName: appName ? 'yes' : 'no',
         appName,
