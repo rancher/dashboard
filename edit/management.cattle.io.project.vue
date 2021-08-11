@@ -30,15 +30,19 @@ export default {
         },
         query: { [PROJECT_ID]: this.project?.id?.replace('/', ':') }
       },
-      resource:         MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
-      saveBindings:     null,
-      hasOwner:         false,
-      membershipUpdate: {}
+      resource:           MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
+      saveBindings:       null,
+      membershipHasOwner:         false,
+      membershipUpdate:   {}
     };
   },
   computed: {
     hasMemberAccess() {
       return !!this.projectRoleTemplateBindingSchema;
+    },
+    hasOwner() {
+      // Users who cannot access binding schema cannot see membership component, though will gain owner binding automatically on project create
+      return !this.hasMemberAccess || this.membershipHasOwner;
     },
     isValid() {
       return this.value.isDefault || this.value.isSystem || this.hasOwner;
@@ -72,7 +76,7 @@ export default {
     },
 
     onHasOwnerChanged(hasOwner) {
-      this.$set(this, 'hasOwner', hasOwner);
+      this.$set(this, 'membershipHasOwner', hasOwner);
     },
 
     onMembershipUpdate(update) {
