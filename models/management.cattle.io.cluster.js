@@ -66,14 +66,7 @@ export default {
   },
 
   provisioner() {
-    const allKeys = Object.keys(this.spec);
-    const configKey = allKeys.find( k => k.endsWith('Config'));
-
-    if ( configKey ) {
-      return configKey.replace(/Config$/, '');
-    } else {
-      return 'imported';
-    }
+    return this.status.driver ? this.status.driver : 'imported';
   },
 
   machineProvider() {
