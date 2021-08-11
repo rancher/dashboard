@@ -196,7 +196,7 @@ export default {
       </button>
     </template>
     <template #remove-button="{remove, i}">
-      <span v-if="(isCreate && i === 0) || isView" />
+      <span v-if="(isCreate && i === 0) || isView || isOnlyRegisteredUser" />
       <button v-else type="button" :disabled="isView" class="btn role-link" @click="remove">
         {{ t('generic.remove') }}
       </button>
