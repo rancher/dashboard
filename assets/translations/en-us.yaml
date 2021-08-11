@@ -3221,7 +3221,7 @@ resourceDetail:
     managedWarning: |-
       This {type} is managed by {hasName, select,
         no {a {managedBy} app}
-        yes {the {managedBy} app {appName}}}; changes made here will likely be overwritten the next time the app is changed.
+        yes {the {managedBy} app {appName}}}; changes made here will likely be overwritten the next time {managedBy} runs.
 resourceList:
   head:
     create: Create
