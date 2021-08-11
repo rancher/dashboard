@@ -3821,8 +3821,8 @@ tableHeaders:
   lastUpdated: Last Updated
   lastSeen: Last Seen
   loggingOutputProviders: Provider
-  machines: Machines/Nodes
-  machineNodeName: K8s Node
+  machines: Machines
+  machineNodeName: Node
   manual: Manual
   matches: Matches
   maxKubernetesVersion: Max Kubernetes Version
@@ -4786,8 +4786,8 @@ typeLabel:
     }
   node: |-
     {count, plural,
-      one { Kube Node }
-      other { Kube Nodes }
+      one { Node }
+      other { Nodes }
     }
   group.principal: |-
     {count, plural,
