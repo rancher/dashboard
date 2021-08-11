@@ -10,7 +10,7 @@ function normalizeId(id) {
 }
 
 // Matches creator-cluster-owner and creator-project-owner
-const CREATOR_OWNER_REGEX = /creator-(cluster|project)-owner/g;
+// const CREATOR_OWNER_REGEX = /creator-(cluster|project)-owner/g;
 
 export default {
   components: { ArrayList, Loading },
@@ -55,7 +55,7 @@ export default {
     ];
     const allBindings = this.schema ? await this.$store.dispatch(`management/findAll`, { type: this.type }) : [];
     const bindings = allBindings
-      .filter(b => !b.isSystem || CREATOR_OWNER_REGEX.test(b.metadata.name || ''))
+      // .filter(b => !b.isSystem || CREATOR_OWNER_REGEX.test(b.metadata.name || ''))
       .filter(b => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
 
     this.$set(this, 'lastSavedBindings', [...bindings]);
