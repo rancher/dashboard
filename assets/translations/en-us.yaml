@@ -3047,6 +3047,9 @@ promptRemove:
 
 promptRestore:
   title: Restore Snapshot
+  name: Name
+  date: Date
+  fromS3: Restore from S3
 
 promptSaveAsRKETemplate:
   title: Convert {cluster} to new RKE Template
@@ -3355,7 +3358,7 @@ selectOrCreateAuthSecret:
     ssh: SSH Key
     aws: AWS/S3
     custom: Secret Name
-  aws:
+  s3:
     accessKey: Access Key
     secretKey: Secret Key
   ssh:

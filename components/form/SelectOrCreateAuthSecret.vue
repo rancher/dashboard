@@ -341,12 +341,12 @@ export default {
       let secret;
 
       if ( this.selected === _S3 ) {
-        const secret = await this.$store.dispatch(`rancher/create`, {
+        secret = await this.$store.dispatch(`rancher/create`, {
           type:               NORMAN.CLOUD_CREDENTIAL,
           s3credentialConfig: {},
         });
       } else {
-        const secret = await this.$store.dispatch(`${ this.inStore }/create`, {
+        secret = await this.$store.dispatch(`${ this.inStore }/create`, {
           type:     SECRET,
           metadata: {
             namespace:    this.namespace,
@@ -383,6 +383,8 @@ export default {
       this.$nextTick(() => {
         this.selected = secret.id;
       });
+
+      return secret;
     },
   },
 };
