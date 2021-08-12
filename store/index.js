@@ -13,6 +13,7 @@ import { TIMED_OUT, LOGGED_OUT, _FLAGGED, UPGRADED } from '@/config/query-params
 import { setVendor } from '@/config/private-label';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { addParam } from '@/utils/url';
+import semver from 'semver';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -675,14 +676,35 @@ export const actions = {
   updateServerVersion({ commit, state }, neu) {
     const cur = state.serverVersion;
 
-    if ( cur && neu) {
-      if ( cur !== neu ) {
-        const url = addParam(window.location.href, UPGRADED, _FLAGGED);
-
-        window.location.replace(url);
-      }
-    } else {
+    if ( !cur ) {
+      // If we haven't heard the current version yet, this is now it.
       commit('setServerVersion', neu);
+
+      return;
+    }
+
+    let changed = false;
+    const semverCur = semver.coerce(cur);
+    const semverNeu = semver.coerce(neu);
+
+    if ( semver.valid(semverCur) && semver.valid(semverNeu) ) {
+      // Regular releases have regular v2.x.y tags, reload only if it's an upgrade
+      // So that we don't flap back and forth if different servers behind a LB
+      //  answer with old and new versions at the same time during an upgrade
+
+      if ( semver.lt(semverCur, semverNeu) ) {
+        changed = true;
+      }
+    } else if ( cur !== neu ) {
+      // Master and other non-releases have random names like master-head
+      // or SHA-sums.  Just look if the value changed instead her
+      changed = true;
+    }
+
+    if ( changed ) {
+      const url = addParam(window.location.href, UPGRADED, _FLAGGED);
+
+      window.location.replace(url);
     }
   }
 };
