@@ -122,12 +122,18 @@ export default {
         x:         this.xKey,
         type:      area(),
         selection: { enabled: selection(), draggable: false },
-        onover(d, element) {
-          element.classList.add('highlight');
+        onover:    (d) => {
+          this.$emit('over', d);
         },
-        onout(d, element) {
-          element.classList.remove('highlight');
+        onout: (d) => {
+          this.$emit('out', d);
         },
+        onselected: (d) => {
+          this.$emit('selected', d);
+        },
+        onunselected: (d) => {
+          this.$emit('unselected', d);
+        }
 
       };
 
