@@ -76,7 +76,10 @@ const CONFIG_KEYS = [
 export default {
   provider() {
     const allKeys = Object.keys(this);
-    const configKey = allKeys.find( k => k.endsWith('Config'));
+
+    const configKey = allKeys
+      .filter(k => this[k] !== null)
+      .find(k => k.endsWith('Config'));
 
     if ( configKey ) {
       return configKey.replace(/config$/i, '');
