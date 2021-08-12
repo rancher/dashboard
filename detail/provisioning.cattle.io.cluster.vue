@@ -41,12 +41,25 @@ export default {
     if (this.value.isImported || this.value.isRke1) {
       // Cluster isn't compatible with machines/machineDeployments, show nodes/node pools instead
 
-      hash.allNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
-      hash.allNodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-      hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+      if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE) ) {
+        hash.allNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      }
+
+      if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE_POOL) ) {
+        hash.allNodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      }
+
+      if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE_TEMPLATE) ) {
+        hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+      }
     } else {
-      hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
-      hash.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+      if ( this.$store.getters['management/schemaFor'](CAPI.MACHINE_DEPLOYMENT) ) {
+        hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
+      }
+
+      if ( this.$store.getters['management/schemaFor'](CAPI.MACHINE) ) {
+        hash.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+      }
     }
 
     if (this.value.isImported || this.value.isCustom) {
@@ -66,30 +79,38 @@ export default {
 
     this.allMachines = res.machines || [];
     this.allMachineDeployments = res.machineDeployments || [];
-
     this.allNodes = res.allNodes || [];
     this.allNodePools = res.allNodePools || [];
+    this.haveMachines = !!res.machines;
+    this.haveDeployments = !!res.machineDeployments;
+    this.haveNodePools = !!res.allNodePools;
+    this.haveNodes = !!res.allNodes;
 
     this.clusterToken = res.clusterToken;
     this.etcdBackups = res.etcdBackups;
 
     const machineDeloymentTemplateType = res.machineDeployments?.[0]?.templateType;
 
-    if (machineDeloymentTemplateType) {
+    if (machineDeloymentTemplateType && this.$store.getters['management/schemaFor'](machineDeloymentTemplateType) ) {
       await this.$store.dispatch('management/findAll', { type: machineDeloymentTemplateType });
     }
   },
 
   data() {
     return {
+
       allMachines:           [],
       allMachineDeployments: [],
+      allNodes:              [],
+      allNodePools:          [],
 
-      mgmtNodeSchema:        this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE),
-      machineSchema:  this.$store.getters[`management/schemaFor`]( CAPI.MACHINE),
+      haveMachines:    false,
+      haveDeployments: false,
+      haveNodes:       false,
+      haveNodePools:   false,
 
-      allNodes:     [],
-      allNodePools: [],
+      mgmtNodeSchema: this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE),
+      machineSchema:  this.$store.getters[`management/schemaFor`](CAPI.MACHINE),
 
       clusterToken: null,
       etcdBackups:  null,
@@ -162,11 +183,11 @@ export default {
     },
 
     showMachines() {
-      return this.value.isRke2 || !!this.machines.length;
+      return this.haveMachines && (this.value.isRke2 || !!this.machines.length);
     },
 
     showNodes() {
-      return !this.showMachines && !!this.nodes.length;
+      return !this.showMachines && this.haveNodes && !!this.nodes.length;
     },
 
     showSnapshots() {
