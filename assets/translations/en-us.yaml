@@ -936,6 +936,30 @@ cluster:
     name:
       label: Credential Name
       placeholder: Name for this credential (optional)
+    s3:
+      accessKey:
+        label: Access Key
+        placeholder: Your API Access Key
+      defaultRegion:
+        label: Default Region
+        placeholder: "Optional: The default region to use"
+      defaultBucket:
+        label: Default Bucket
+        placeholder: "Optional: The default bucket to use"
+      defaultEndpoint:
+        label: Default Endpoint
+        placeholder: "Optional: The default endpoint to use"
+      defaultFolder:
+        label: Default Folder
+        placeholder: "Optional: The default folder to use"
+      defaultEndpointCA:
+        label: Default Endpoint CA Cert
+        placeholder: "Optional: The default CA certificate to use to verify the endpoint"
+      defaultSkipSSLVerify:
+        label: Accept any certificate (insecure)
+      secretKey:
+        label: SecretKey
+        placeholder: Your API Secret Key
     vmwarevsphere:
         server:
           label: vCenter or ESXi Server
@@ -1241,6 +1265,7 @@ cluster:
     rke2: RKE2
     rke: RKE1
     rkeWindows: Windows
+    s3: S3-Compatible
     softlayer: IBM Cloud
     tencenttke: Tencent TKE
     upcloud: UpCloud
@@ -3319,6 +3344,7 @@ secret:
     'helm.sh/release.v1': 'Helm'
     'fleet.cattle.io/cluster-registration-values': 'F'
     'provisioning.cattle.io/cloud-credential': 'CC'
+    's3': 'S3'
   relatedWorkloads: Related Workloads
 
 selectOrCreateAuthSecret:
@@ -3342,7 +3368,7 @@ selectOrCreateAuthSecret:
   chooseExisting: "Choose an existing secret:"
   createSsh: Create a SSH Key Secret
   createBasic: Create a HTTP Basic Auth Secret
-  createAws: Create an AWS/S3 Auth Secret
+  createS3: Create a S3-Compatible Auth Secret
 
 servicePorts:
   header:

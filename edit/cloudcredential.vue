@@ -109,6 +109,10 @@ export default {
         return fields && Object.keys(fields).length > 0;
       });
 
+      if ( schema.resourceFields['s3credentialConfig'] ) {
+        types.push('s3');
+      }
+
       for ( const id of types ) {
         let bannerImage, bannerAbbrv;
 
