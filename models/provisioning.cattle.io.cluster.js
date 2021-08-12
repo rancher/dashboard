@@ -421,7 +421,7 @@ export default {
           method:        'post',
         }, { root: true });
       } else {
-        const now = this.spec?.rkeConfig?.etcdSnapshotCreate?.generation || 1;
+        const now = this.spec?.rkeConfig?.etcdSnapshotCreate?.generation || 0;
         const args = { generation: now + 1 };
 
         if ( this.spec?.rkeConfig?.etcd?.s3 ) {

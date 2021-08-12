@@ -3,16 +3,16 @@ import { _EDIT } from '@/config/query-params';
 import Loading from '@/components/Loading';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import { SECRET } from '@/config/types';
+import { NORMAN, SECRET } from '@/config/types';
 import { TYPES as SECRET_TYPES } from '@/models/secret';
 import { base64Encode } from '@/utils/crypto';
-import { insertAt } from '@/utils/array';
+import { addObjects, insertAt } from '@/utils/array';
 import { sortBy } from '@/utils/sort';
 
 const _NONE = '_none';
 const _BASIC = '_basic';
 const _SSH = '_ssh';
-const _AWS = '_aws';
+const _S3 = '_S3';
 
 export default {
   components: {
@@ -72,7 +72,7 @@ export default {
       default: true,
     },
 
-    allowAws: {
+    allowS3: {
       type:    Boolean,
       default: false,
     },
@@ -94,11 +94,26 @@ export default {
   },
 
   async fetch() {
-    // Avoid an async call and loading screen if already loaded by someone else
-    if ( this.$store.getters[`${ this.inStore }/haveAll`](SECRET) ) {
-      this.allSecrets = this.$store.getters[`${ this.inStore }/all`](SECRET);
+    if ( (this.allowSsh || this.allowBasic) && this.$store.getters[`${ this.inStore }/schemaFor`](SECRET) ) {
+      // Avoid an async call and loading screen if already loaded by someone else
+      if ( this.$store.getters[`${ this.inStore }/haveAll`](SECRET) ) {
+        this.allSecrets = this.$store.getters[`${ this.inStore }/all`](SECRET);
+      } else {
+        this.allSecrets = await this.$store.dispatch(`${ this.inStore }/findAll`, { type: SECRET });
+      }
     } else {
-      this.allSecrets = await this.$store.dispatch(`${ this.inStore }/findAll`, { type: SECRET });
+      this.allSecrets = [];
+    }
+
+    if ( this.allowS3 && this.$store.getters['rancher/schemaFor'](NORMAN.CLOUD_CREDENTIAL) ) {
+      // Avoid an async call and loading screen if already loaded by someone else
+      if ( this.$store.getters['rancher/haveAll'](NORMAN.CLOUD_CREDENTIAL) ) {
+        this.allCloudCreds = this.$store.getters['rancher/all'](NORMAN.CLOUD_CREDENTIAL);
+      } else {
+        this.allCloudCreds = await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
+      }
+    } else {
+      this.allCloudCreds = [];
     }
 
     let selected = _NONE;
@@ -106,7 +121,7 @@ export default {
     if ( this.value ) {
       if ( typeof this.value === 'object' ) {
         selected = `${ this.value.namespace }/${ this.value.name }`;
-      } else if ( this.value.includes('/') ) {
+      } else if ( this.value.includes('/') || this.value.includes(':') ) {
         selected = this.value;
       } else if ( this.namespace ) {
         selected = `${ this.namespace }/${ this.value }`;
@@ -122,8 +137,9 @@ export default {
 
   data() {
     return {
-      allSecrets: null,
-      selected:   null,
+      allCloudCreds: null,
+      allSecrets:    null,
+      selected:      null,
 
       publicKey:  '',
       privateKey: '',
@@ -139,8 +155,8 @@ export default {
       return _BASIC;
     },
 
-    _AWS() {
-      return _AWS;
+    _S3() {
+      return _S3;
     },
 
     options() {
@@ -153,11 +169,6 @@ export default {
 
       if ( this.allowBasic ) {
         types.push(SECRET_TYPES.BASIC);
-      }
-
-      if ( this.allowAws ) {
-        keys.push('accessKey');
-        keys.push('secretKey');
       }
 
       const out = this.allSecrets
@@ -185,6 +196,20 @@ export default {
             value: x.id,
           };
         });
+
+      if ( this.allowS3 ) {
+        const more = this.allCloudCreds
+          .filter(x => ['aws', 's3'].includes(x.provider) )
+          .map((x) => {
+            return {
+              label: `${ x.nameDisplay } (${ x.providerDisplay })`,
+              group: 'Cloud Credentials',
+              value: x.id,
+            };
+          });
+
+        addObjects(out, more);
+      }
 
       if ( !this.limitToNamespace ) {
         sortBy(out, 'group');
@@ -222,10 +247,10 @@ export default {
         });
       }
 
-      if ( this.allowAws ) {
+      if ( this.allowS3 ) {
         out.unshift({
-          label: this.t('selectOrCreateAuthSecret.createAws'),
-          value: _AWS,
+          label: this.t('selectOrCreateAuthSecret.createS3'),
+          value: _S3,
         });
       }
 
@@ -251,7 +276,7 @@ export default {
         return '';
       }
 
-      if ( this.selected === _SSH || this.selected === _BASIC || this.selected === _AWS ) {
+      if ( this.selected === _SSH || this.selected === _BASIC || this.selected === _S3 ) {
         return 'col span-4';
       }
 
@@ -287,8 +312,11 @@ export default {
 
   methods: {
     update() {
-      if ( !this.selected || [_SSH, _BASIC, _AWS, _NONE].includes(this.selected) ) {
+      if ( !this.selected || [_SSH, _BASIC, _S3, _NONE].includes(this.selected) ) {
         this.$emit('input', null);
+      } else if ( this.selected.includes(':') ) {
+        // Cloud creds
+        this.$emit('input', this.selected);
       } else {
         const split = this.selected.split('/');
 
@@ -306,45 +334,49 @@ export default {
     },
 
     async doCreate() {
-      if ( ![_SSH, _BASIC, _AWS].includes(this.selected) ) {
+      if ( ![_SSH, _BASIC, _S3].includes(this.selected) ) {
         return;
       }
 
-      const secret = await this.$store.dispatch(`${ this.inStore }/create`, {
-        type:     SECRET,
-        metadata: {
-          namespace:    this.namespace,
-          generateName: this.generateName
-        },
-      });
+      let secret;
 
-      let type, publicField, privateField;
+      if ( this.selected === _S3 ) {
+        const secret = await this.$store.dispatch(`rancher/create`, {
+          type:               NORMAN.CLOUD_CREDENTIAL,
+          s3credentialConfig: {},
+        });
+      } else {
+        const secret = await this.$store.dispatch(`${ this.inStore }/create`, {
+          type:     SECRET,
+          metadata: {
+            namespace:    this.namespace,
+            generateName: this.generateName
+          },
+        });
 
-      switch ( this.selected ) {
-      case _SSH:
-        type = SECRET_TYPES.SSH;
-        publicField = 'ssh-publickey';
-        privateField = 'ssh-privatekey';
-        break;
-      case _BASIC:
-        type = SECRET_TYPES.BASIC;
-        publicField = 'username';
-        privateField = 'password';
-        break;
-      case _AWS:
-        type = SECRET_TYPES.OPAQUE;
-        publicField = 'accessKey';
-        privateField = 'secretKey';
-        break;
-      default:
-        throw new Error('Uknown type');
+        let type, publicField, privateField;
+
+        switch ( this.selected ) {
+        case _SSH:
+          type = SECRET_TYPES.SSH;
+          publicField = 'ssh-publickey';
+          privateField = 'ssh-privatekey';
+          break;
+        case _BASIC:
+          type = SECRET_TYPES.BASIC;
+          publicField = 'username';
+          privateField = 'password';
+          break;
+        default:
+          throw new Error('Uknown type');
+        }
+
+        secret._type = type;
+        secret.data = {
+          [publicField]:  base64Encode(this.publicKey),
+          [privateField]: base64Encode(this.privateKey),
+        };
       }
-
-      secret._type = type;
-      secret.data = {
-        [publicField]:  base64Encode(this.publicKey),
-        [privateField]: base64Encode(this.privateKey),
-      };
 
       await secret.save();
 
@@ -397,12 +429,12 @@ export default {
           <LabeledInput v-model="privateKey" type="password" label-key="selectOrCreateAuthSecret.basic.password" />
         </div>
       </template>
-      <template v-else-if="selected === _AWS">
+      <template v-else-if="selected === _S3">
         <div :class="moreCols">
-          <LabeledInput v-model="publicKey" label-key="selectOrCreateAuthSecret.aws.accessKey" />
+          <LabeledInput v-model="publicKey" label-key="selectOrCreateAuthSecret.s3.accessKey" />
         </div>
         <div :class="moreCols">
-          <LabeledInput v-model="privateKey" type="password" label-key="selectOrCreateAuthSecret.aws.secretKey" />
+          <LabeledInput v-model="privateKey" type="password" label-key="selectOrCreateAuthSecret.s3.secretKey" />
         </div>
       </template>
     </div>
