@@ -2166,7 +2166,6 @@ membershipEditor:
   label: Members
   user: User
   role: Role
-  onlyUser: You are the only active registered user.
 
 monitoring:
   accessModes:

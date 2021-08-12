@@ -49,7 +49,6 @@ export default {
 
   async fetch() {
     const userHydration = [
-      this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER }),
       this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }),
       this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
     ];
@@ -68,10 +67,9 @@ export default {
       bindings.push(defaultBinding);
     }
 
-    const [users] = await Promise.all(userHydration);
+    await Promise.all(userHydration);
 
     this.$set(this, 'bindings', bindings);
-    this.$set(this, 'users', users);
   },
 
   data() {
@@ -79,7 +77,6 @@ export default {
       schema:            this.$store.getters[`management/schemaFor`](this.type),
       bindings:                  [],
       lastSavedBindings:         [],
-      users:                     [],
     };
   },
 
@@ -123,10 +120,6 @@ export default {
     isView() {
       return this.mode === _VIEW;
     },
-
-    isOnlyRegisteredUser() {
-      return this.users.filter(u => !u.isSystem).length === 1;
-    }
   },
   watch: {
     hasOwnerBinding() {
@@ -186,13 +179,9 @@ export default {
       <button
         type="button"
         class="btn role-primary mt-10"
-        :disabled="isOnlyRegisteredUser"
         @click="addMember"
       >
         {{ t('generic.add') }}
-      </button>
-      <button v-if="isOnlyRegisteredUser" class="btn role-primary mt-10" :disabled="true">
-        {{ t('membershipEditor.onlyUser') }}
       </button>
     </template>
     <template #remove-button="{remove, i}">
