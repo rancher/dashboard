@@ -71,13 +71,13 @@ export default async function({
   const upgraded = route.query[UPGRADED] === _FLAGGED;
 
   if ( upgraded ) {
+    app.router.applyQuery({ [UPGRADED]: _UNFLAG });
+
     store.dispatch('growl/success', {
       title:   store.getters['i18n/t']('serverUpgrade.title'),
       message: store.getters['i18n/t']('serverUpgrade.message'),
       timeout: 0,
     });
-
-    app.router.applyQuery({ [UPGRADED]: _UNFLAG });
   }
 
   // Initial ?setup=admin-password can technically be on any route
