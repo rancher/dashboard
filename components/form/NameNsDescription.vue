@@ -8,7 +8,13 @@ import LabeledInput from '@/components/form/LabeledInput';
 import InputWithSelect from '@/components/form/InputWithSelect';
 
 export function normalizeName(str) {
-  return (str || '').trim().toLowerCase().replace(/\s+/g, '-');
+  return (str || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
 }
 
 export default {

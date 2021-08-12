@@ -22,6 +22,7 @@ export default {
         label:      'Redeploy',
         icon:       'icon icon-spinner',
         enabled:    !!this.links.update,
+        bulkable:   true,
       });
     }
 

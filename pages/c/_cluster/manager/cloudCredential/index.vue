@@ -4,7 +4,6 @@ import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { NORMAN, SECRET } from '@/config/types';
 import { AGE_NORMAN, DESCRIPTION, NAME_UNLINKED } from '@/config/table-headers';
-import { CLOUD_CREDENTIAL, _FLAGGED } from '@/config/query-params';
 
 export default {
   components: {
@@ -12,7 +11,11 @@ export default {
   },
 
   async fetch() {
-    this.allSecrets = await this.$store.dispatch('management/findAll', { type: SECRET });
+    if ( this.$store.getters['management/schemaFor'](SECRET) ) {
+      // Having secrets allows showing the public poirtion of more types but not all users can see them.
+      await this.$store.dispatch('management/findAll', { type: SECRET });
+    }
+
     this.allCredentials = await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
   },
 
@@ -52,7 +55,6 @@ export default {
           product:  this.$store.getters['currentProduct'].name,
           resource: this.resource
         },
-        query: { [CLOUD_CREDENTIAL]: _FLAGGED }
       };
     },
   },

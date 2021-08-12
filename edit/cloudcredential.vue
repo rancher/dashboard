@@ -1,6 +1,6 @@
 <script>
 import { TYPES } from '@/models/secret';
-import { MANAGEMENT, NORMAN } from '@/config/types';
+import { MANAGEMENT, NORMAN, SCHEMA } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CruResource from '@/components/CruResource';
@@ -35,6 +35,38 @@ export default {
   async fetch() {
     this.nodeDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
     this.kontainerDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTANIER_DRIVER });
+
+    // Force reload the cloud cred schema and any missing subtypes because there aren't change events sent when drivers come/go
+    try {
+      const schema = await this.$store.dispatch('rancher/find', {
+        type: SCHEMA,
+        id:   NORMAN.CLOUD_CREDENTIAL,
+        opt:  {
+          force: true,
+          url:   `schemas/${ NORMAN.CLOUD_CREDENTIAL }`,
+        },
+      });
+
+      for ( const k in schema.resourceFields ) {
+        if ( !k.endsWith('Config') ) {
+          continue;
+        }
+
+        const id = schema.resourceFields[k].type;
+
+        if ( !this.$store.getters['rancher/schemaFor'](id) ) {
+          await this.$store.dispatch('rancher/find', {
+            type: SCHEMA,
+            id,
+            opt:  {
+              force: true,
+              url:   `schemas/${ id }`,
+            },
+          });
+        }
+      }
+    } catch (e) {
+    }
 
     if ( !this.value._name ) {
       set(this.value, '_name', '');
@@ -108,6 +140,10 @@ export default {
 
         return fields && Object.keys(fields).length > 0;
       });
+
+      if ( schema.resourceFields['s3credentialConfig'] ) {
+        types.push('s3');
+      }
 
       for ( const id of types ) {
         let bannerImage, bannerAbbrv;
