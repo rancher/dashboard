@@ -1,5 +1,6 @@
 <script>
 import Loading from '@/components/Loading';
+import Banner from '@/components/Banner';
 import ResourceTable from '@/components/ResourceTable';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import SortableTable from '@/components/SortableTable';
@@ -16,6 +17,7 @@ import AsyncButton from '@/components/AsyncButton.vue';
 export default {
   components: {
     Loading,
+    Banner,
     ResourceTable,
     ResourceTabs,
     SortableTable,
@@ -356,137 +358,140 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <ResourceTabs v-else v-model="value" :default-tab="defaultTab">
-    <Tab v-if="showMachines" name="machine-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="3">
-      <ResourceTable
-        :rows="machines"
-        :schema="machineSchema"
-        :headers="machineHeaders"
-        default-sort-by="name"
-        :groupable="false"
-        :group-by="value.isCustom ? null : 'poolId'"
-        group-ref="pool"
-        :group-sort="['pool.nameDisplay']"
-      >
-        <template #main-row:isFake="{fullColspan}">
-          <tr class="main-row">
-            <td :colspan="fullColspan" class="no-entries">
-              {{ t('node.list.noNodes') }}
-            </td>
-          </tr>
-        </template>
+  <div v-else>
+    <Banner v-if="$fetchState.error" color="error" :label="$fetchState.error" />
+    <ResourceTabs v-model="value" :default-tab="defaultTab">
+      <Tab v-if="showMachines" name="machine-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="3">
+        <ResourceTable
+          :rows="machines"
+          :schema="machineSchema"
+          :headers="machineHeaders"
+          default-sort-by="name"
+          :groupable="false"
+          :group-by="value.isCustom ? null : 'poolId'"
+          group-ref="pool"
+          :group-sort="['pool.nameDisplay']"
+        >
+          <template #main-row:isFake="{fullColspan}">
+            <tr class="main-row">
+              <td :colspan="fullColspan" class="no-entries">
+                {{ t('node.list.noNodes') }}
+              </td>
+            </tr>
+          </template>
 
-        <template #group-by="{group}">
-          <div class="pool-row" :class="{'has-description':group.ref && group.ref.template}">
-            <div v-trim-whitespace class="group-tab">
-              <div v-if="group && group.ref" v-html="group.ref.groupByPoolShortLabel" />
-              <div v-else v-html="t('resourceTable.groupLabel.notInANodePool')">
+          <template #group-by="{group}">
+            <div class="pool-row" :class="{'has-description':group.ref && group.ref.template}">
+              <div v-trim-whitespace class="group-tab">
+                <div v-if="group && group.ref" v-html="group.ref.groupByPoolShortLabel" />
+                <div v-else v-html="t('resourceTable.groupLabel.notInANodePool')">
+                </div>
+                <div v-if="group.ref && group.ref.template" class="description text-muted text-small">
+                  {{ group.ref.providerDisplay }} &ndash;  {{ group.ref.providerLocation }} / {{ group.ref.providerSize }} ({{ group.ref.providerName }})
+                </div>
               </div>
-              <div v-if="group.ref && group.ref.template" class="description text-muted text-small">
-                {{ group.ref.providerDisplay }} &ndash;  {{ group.ref.providerLocation }} / {{ group.ref.providerSize }} ({{ group.ref.providerName }})
-              </div>
-            </div>
-            <div v-if="group.ref" class="right mr-45">
-              <template v-if="value.hasLink('update')">
-                <button v-tooltip="t('node.list.scaleDown')" :disabled="group.ref.spec.replicas < 2" type="button" class="btn btn-sm role-secondary" @click="group.ref.scalePool(-1)">
-                  <i class="icon icon-sm icon-minus" />
-                </button>
-                <button v-tooltip="t('node.list.scaleUp')" type="button" class="btn btn-sm role-secondary ml-10" @click="group.ref.scalePool(1)">
-                  <i class="icon icon-sm icon-plus" />
-                </button>
-              </template>
-            </div>
-          </div>
-        </template>
-      </ResourceTable>
-    </Tab>
-    <Tab v-else-if="showNodes" name="node-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="3">
-      <ResourceTable
-        :schema="mgmtNodeSchema"
-        :headers="mgmtNodeSchemaHeaders"
-        :rows="nodes"
-        :groupable="false"
-        :group-by="value.isCustom ? null : 'spec.nodePoolName'"
-        group-ref="pool"
-        :group-sort="['pool.nameDisplay']"
-      >
-        <template #main-row:isFake="{fullColspan}">
-          <tr class="main-row">
-            <td :colspan="fullColspan" class="no-entries">
-              {{ t('node.list.noNodes') }}
-            </td>
-          </tr>
-        </template>
-
-        <template #group-by="{group}">
-          <div class="pool-row" :class="{'has-description':group.ref && group.ref.nodeTemplate}">
-            <div v-trim-whitespace class="group-tab">
-              <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix, count: group.rows.length}, true)">
-              </div>
-              <div v-else v-html="t('resourceTable.groupLabel.notInANodePool')">
-              </div>
-              <div v-if="group.ref && group.ref.nodeTemplate" class="description text-muted text-small">
-                {{ group.ref.providerDisplay }} &ndash;  {{ group.ref.providerLocation }} / {{ group.ref.providerSize }} ({{ group.ref.providerName }})
+              <div v-if="group.ref" class="right mr-45">
+                <template v-if="value.hasLink('update')">
+                  <button v-tooltip="t('node.list.scaleDown')" :disabled="group.ref.spec.replicas < 2" type="button" class="btn btn-sm role-secondary" @click="group.ref.scalePool(-1)">
+                    <i class="icon icon-sm icon-minus" />
+                  </button>
+                  <button v-tooltip="t('node.list.scaleUp')" type="button" class="btn btn-sm role-secondary ml-10" @click="group.ref.scalePool(1)">
+                    <i class="icon icon-sm icon-plus" />
+                  </button>
+                </template>
               </div>
             </div>
-            <div v-if="group.ref" class="right">
-              <template v-if="group.ref.hasLink('update')">
-                <button v-tooltip="t('node.list.scaleDown')" :disabled="group.ref.spec.quantity < 2" type="button" class="btn btn-sm role-secondary" @click="group.ref.scalePool(-1)">
-                  <i class="icon icon-sm icon-minus" />
-                </button>
-                <button v-tooltip="t('node.list.scaleUp')" type="button" class="btn btn-sm role-secondary ml-10" @click="group.ref.scalePool(1)">
-                  <i class="icon icon-sm icon-plus" />
-                </button>
-              </template>
+          </template>
+        </ResourceTable>
+      </Tab>
+      <Tab v-else-if="showNodes" name="node-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="3">
+        <ResourceTable
+          :schema="mgmtNodeSchema"
+          :headers="mgmtNodeSchemaHeaders"
+          :rows="nodes"
+          :groupable="false"
+          :group-by="value.isCustom ? null : 'spec.nodePoolName'"
+          group-ref="pool"
+          :group-sort="['pool.nameDisplay']"
+        >
+          <template #main-row:isFake="{fullColspan}">
+            <tr class="main-row">
+              <td :colspan="fullColspan" class="no-entries">
+                {{ t('node.list.noNodes') }}
+              </td>
+            </tr>
+          </template>
 
-              <button type="button" class="project-action btn btn-sm role-multi-action actions mr-5 ml-15" :class="{invisible: !showPoolActionButton(group.ref)}" @click="showPoolAction($event, group.ref)">
-                <i class="icon icon-actions" />
-              </button>
+          <template #group-by="{group}">
+            <div class="pool-row" :class="{'has-description':group.ref && group.ref.nodeTemplate}">
+              <div v-trim-whitespace class="group-tab">
+                <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix, count: group.rows.length}, true)">
+                </div>
+                <div v-else v-html="t('resourceTable.groupLabel.notInANodePool')">
+                </div>
+                <div v-if="group.ref && group.ref.nodeTemplate" class="description text-muted text-small">
+                  {{ group.ref.providerDisplay }} &ndash;  {{ group.ref.providerLocation }} / {{ group.ref.providerSize }} ({{ group.ref.providerName }})
+                </div>
+              </div>
+              <div v-if="group.ref" class="right">
+                <template v-if="group.ref.hasLink('update')">
+                  <button v-tooltip="t('node.list.scaleDown')" :disabled="group.ref.spec.quantity < 2" type="button" class="btn btn-sm role-secondary" @click="group.ref.scalePool(-1)">
+                    <i class="icon icon-sm icon-minus" />
+                  </button>
+                  <button v-tooltip="t('node.list.scaleUp')" type="button" class="btn btn-sm role-secondary ml-10" @click="group.ref.scalePool(1)">
+                    <i class="icon icon-sm icon-plus" />
+                  </button>
+                </template>
+
+                <button type="button" class="project-action btn btn-sm role-multi-action actions mr-5 ml-15" :class="{invisible: !showPoolActionButton(group.ref)}" @click="showPoolAction($event, group.ref)">
+                  <i class="icon icon-actions" />
+                </button>
+              </div>
             </div>
-          </div>
+          </template>
+        </ResourceTable>
+      </Tab>
+
+      <Tab v-if="showRegistration" name="registration" label="Registration" :weight="2">
+        <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" :cluster="value" />
+        <template v-else>
+          <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
+          <CopyCode class="m-10 p-10">
+            {{ clusterToken.command }}
+          </CopyCode>
+
+          <h4 class="mt-10" v-html="t('cluster.import.commandInstructionsInsecure', null, true)" />
+          <CopyCode class="m-10 p-10">
+            {{ clusterToken.insecureCommand }}
+          </CopyCode>
+
+          <h4 class="mt-10" v-html="t('cluster.import.clusterRoleBindingInstructions', null, true)" />
+          <CopyCode class="m-10 p-10">
+            {{ t('cluster.import.clusterRoleBindingCommand', null, true) }}
+          </CopyCode>
         </template>
-      </ResourceTable>
-    </Tab>
+      </Tab>
 
-    <Tab v-if="showRegistration" name="registration" label="Registration" :weight="2">
-      <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" :cluster="value" />
-      <template v-else>
-        <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
-        <CopyCode class="m-10 p-10">
-          {{ clusterToken.command }}
-        </CopyCode>
-
-        <h4 class="mt-10" v-html="t('cluster.import.commandInstructionsInsecure', null, true)" />
-        <CopyCode class="m-10 p-10">
-          {{ clusterToken.insecureCommand }}
-        </CopyCode>
-
-        <h4 class="mt-10" v-html="t('cluster.import.clusterRoleBindingInstructions', null, true)" />
-        <CopyCode class="m-10 p-10">
-          {{ t('cluster.import.clusterRoleBindingCommand', null, true) }}
-        </CopyCode>
-      </template>
-    </Tab>
-
-    <Tab v-if="showSnapshots" name="snapshots" label="Snapshots" :weight="1">
-      <SortableTable
-        :headers="value.isRke1 ? rke1SnapshotHeaders : rke2SnapshotHeaders"
-        default-sort-by="age"
-        :table-actions="value.isRke1"
-        :rows="value.isRke1 ? rke1Snapshots : rke2Snapshots"
-        :search="false"
-      >
-        <template #header-right>
-          <AsyncButton
-            mode="snapshot"
-            class="btn role-primary"
-            :disabled="!isClusterReady"
-            @click="takeSnapshot"
-          />
-        </template>
-      </SortableTable>
-    </Tab>
-  </ResourceTabs>
+      <Tab v-if="showSnapshots" name="snapshots" label="Snapshots" :weight="1">
+        <SortableTable
+          :headers="value.isRke1 ? rke1SnapshotHeaders : rke2SnapshotHeaders"
+          default-sort-by="age"
+          :table-actions="value.isRke1"
+          :rows="value.isRke1 ? rke1Snapshots : rke2Snapshots"
+          :search="false"
+        >
+          <template #header-right>
+            <AsyncButton
+              mode="snapshot"
+              class="btn role-primary"
+              :disabled="!isClusterReady"
+              @click="takeSnapshot"
+            />
+          </template>
+        </SortableTable>
+      </Tab>
+    </ResourceTabs>
+  </div>
 </template>
 
 <style lang='scss' scoped>
