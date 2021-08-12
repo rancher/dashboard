@@ -9,6 +9,7 @@ import Tabbed from '@/components/Tabbed';
 import { CAPI } from '@/config/types';
 import ClusterMembershipEditor from '@/components/form/Members/ClusterMembershipEditor';
 import Banner from '@/components/Banner';
+import { canViewMembershipEditor } from '@/components/form/Members/MembershipEditor.vue';
 import Labels from './Labels';
 import AgentEnv from './AgentEnv';
 
@@ -54,7 +55,11 @@ export default {
     return { membershipUpdate: {}, hasOwner: false };
   },
 
-  computed: {},
+  computed: {
+    canManageMembers() {
+      return canViewMembershipEditor(this.$store);
+    }
+  },
 
   watch:    {
     hasOwner() {
@@ -112,7 +117,7 @@ export default {
     :mode="mode"
     :resource="value"
     :errors="errors"
-    :validation-passed="hasOwner"
+    :validation-passed="!canManageMembers || hasOwner"
     @finish="saveOverride"
     @error="e=>errors = e"
   >
@@ -130,7 +135,7 @@ export default {
     </div>
 
     <Tabbed :side-tabs="true">
-      <Tab name="memberRoles" label-key="cluster.tabs.memberRoles" :weight="3">
+      <Tab v-if="canManageMembers" name="memberRoles" label-key="cluster.tabs.memberRoles" :weight="3">
         <Banner v-if="isEdit" color="info">
           {{ t('cluster.memberRoles.removeMessage') }}
         </Banner>
