@@ -2,6 +2,7 @@
 import Checkbox from '@/components/form/Checkbox';
 import LabeledInput from '@/components/form/LabeledInput';
 import SelectOrCreateAuthSecret from '@/components/form/SelectOrCreateAuthSecret';
+import { NORMAN } from '~/config/types';
 
 export default {
   components: {
@@ -48,6 +49,20 @@ export default {
     return { config };
   },
 
+  computed: {
+    ccData() {
+      if ( this.config.cloudCredentialName ) {
+        const cred = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.config.cloudCredentialName);
+
+        if ( cred ) {
+          return cred.decodedData;
+        }
+      }
+
+      return {};
+    },
+  },
+
   methods: {
     update() {
       const out = { ...this.config };
@@ -66,7 +81,7 @@ export default {
       in-store="management"
       :allow-ssh="false"
       :allow-basic="false"
-      :allow-aws="true"
+      :allow-s3="true"
       :namespace="namespace"
       generate-name="etcd-backup-s3-"
       @input="update"
@@ -74,26 +89,33 @@ export default {
 
     <div class="row mt-20">
       <div class="col span-6">
-        <LabeledInput v-model="config.bucket" label="Bucket" @input="update" />
+        <LabeledInput v-model="config.bucket" label="Bucket" :placeholder="ccData.defaultBucket" @input="update" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="config.folder" label="Folder" @input="update" />
+        <LabeledInput v-model="config.folder" label="Folder" :placeholder="ccData.defaultFolder" @input="update" />
       </div>
     </div>
 
     <div class="row mt-20">
       <div class="col span-6">
-        <LabeledInput v-model="config.region" label="Region" @input="update" />
+        <LabeledInput v-model="config.region" label="Region" :placeholder="ccData.defaultRegion" @input="update" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="config.endpoint" label="Endpoint" @input="update" />
+        <LabeledInput v-model="config.endpoint" label="Endpoint" :placeholder="ccData.defaultEndpoint" @input="update" />
       </div>
     </div>
 
-    <div class="mt-20">
+    <div v-if="!ccData.defaultSkipSSLVerify" class="mt-20">
       <Checkbox v-model="config.skipSSLVerify" :mode="mode" label="Accept any certificate (insecure)" @input="update" />
 
-      <LabeledInput v-if="!config.skipSSLVerify" v-model="config.endpointCA" type="multiline" label="Endpoint CA Cert" @input="update" />
+      <LabeledInput
+        v-if="!config.skipSSLVerify"
+        v-model="config.endpointCA"
+        type="multiline"
+        label="Endpoint CA Cert"
+        :placeholder="ccData.defaultEndpointCA"
+        @input="update"
+      />
     </div>
   </div>
 </template>

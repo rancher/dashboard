@@ -8,6 +8,8 @@ import RadioGroup from '@/components/form/RadioGroup.vue';
 import { exceptionToErrorsArray } from '@/utils/error';
 import { CAPI } from '@/config/types';
 import { set } from '@/utils/object';
+import SelectOrCreateAuthSecret from '@/components/form/SelectOrCreateAuthSecret';
+import ChildHook, { BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
 
 export default {
   components: {
@@ -16,17 +18,29 @@ export default {
     Banner,
     Date,
     RadioGroup,
+    SelectOrCreateAuthSecret,
   },
+
+  mixins: [
+    ChildHook,
+  ],
 
   data() {
     return {
-      errors:        [],
-      labels:        {},
-      restoreMode:   'all',
-      moveTo:        this.workspace,
-      loaded:        false,
-      allWorkspaces: [],
+      errors:              [],
+      labels:              {},
+      restoreMode:         'all',
+      moveTo:              this.workspace,
+      loaded:              false,
+      allWorkspaces:       [],
+      cloudCredentialName: null,
     };
+  },
+
+  mounted() {
+    const cluster = this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, this.snapshot?.clusterId);
+
+    this.cloudCredentialName = cluster?.spec?.rkeConfig?.etcd?.s3?.cloudCredentialName;
   },
 
   computed:   {
@@ -67,12 +81,20 @@ export default {
         if ( this.isRke2 ) {
           const cluster = this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, this.snapshot.clusterId);
 
+          await this.applyHooks(BEFORE_SAVE_HOOKS);
+
+          const now = this.cluster?.spec?.rkeConfig?.etcSnapshotRestore || 0;
+
           set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', {
-            createdAt: this.snapshot.createdAt,
-            name:      this.snapshot.name,
-            size:      this.snapshot.size,
-            nodeName:  this.snapshot.nodeName,
-            s3:        this.snapshot.s3,
+            generation: now + 1,
+            createdAt:  this.snapshot.createdAt,
+            name:       this.snapshot.name,
+            size:       this.snapshot.size,
+            nodeName:   this.snapshot.nodeName,
+            s3:         {
+              ...this.snapshot.s3,
+              cloudCredentialName: this.cloudCredentialName
+            }
           });
 
           await cluster.save();
@@ -111,17 +133,34 @@ export default {
 
       <div slot="body" class="pl-10 pr-10">
         <form>
-          <h3>Snapshot Name</h3>
+          <h3 v-t="'promptRestore.name'"></h3>
           <div>{{ snapshot.name }}</div>
 
           <div class="spacer" />
 
-          <h3>Snapshot Date</h3>
+          <h3 v-t="'promptRestore.date'"></h3>
           <div><Date :value="snapshot.createdAt || snapshot.created" /></div>
 
-          <template v-if="!isRke2">
-            <div class="spacer" />
+          <div class="spacer" />
 
+          <template v-if="isRke2">
+            <template v-if="snapshot.s3">
+              <h3 v-t="'promptRestore.fromS3'"></h3>
+              <SelectOrCreateAuthSecret
+                ref="selectOrCreate"
+                v-model="cloudCredentialName"
+                in-store="management"
+                generate-name="etcd-restore-s3-"
+                :allow-ssh="false"
+                :allow-basic="false"
+                :allow-s3="true"
+                :namespace="false"
+                :vertical="true"
+                :register-before-hook="registerBeforeHook"
+              />
+            </template>
+          </template>
+          <template v-else>
             <RadioGroup
               v-model="restoreMode"
               name="restoreMode"
