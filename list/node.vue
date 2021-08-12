@@ -8,6 +8,7 @@ import {
 import metricPoller from '@/mixins/metric-poller';
 
 import {
+  CAPI,
   MANAGEMENT, METRIC, NODE, NORMAN, POD
 } from '@/config/types';
 import { allHash } from '@/utils/promise';
@@ -32,18 +33,20 @@ export default {
   async fetch() {
     const hash = { kubeNodes: this.$store.dispatch('cluster/findAll', { type: NODE }) };
 
-    const canViewMgmtNodes = this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE);
-    const canViewNormanNodes = this.$store.getters[`rancher/schemaFor`](NORMAN.NODE);
-
     this.canViewPods = this.$store.getters[`cluster/schemaFor`](POD);
 
-    if (canViewNormanNodes) {
+    if (this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE)) {
       // Required for Drain/Cordon action
       hash.normanNodes = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE });
     }
 
-    if (canViewMgmtNodes) {
+    if (this.$store.getters[`rancher/schemaFor`](NORMAN.NODE)) {
       hash.mgmtNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+    }
+
+    if (this.$store.getters[`management/schemaFor`](CAPI.MACHINE)) {
+      // Required for ssh / download key actions
+      hash.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
     }
 
     if (this.canViewPods) {
