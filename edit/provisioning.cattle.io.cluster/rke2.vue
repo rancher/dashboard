@@ -113,9 +113,13 @@ export default {
 
       const res = await allHash(hash);
 
-      this.rke2Versions = res.rke2Versions.data;
-      this.k3sVersions = res.k3sVersions.data;
       this.allPSPs = res.allPSPs || [];
+      this.rke2Versions = res.rke2Versions.data || [];
+      this.k3sVersions = res.k3sVersions.data || [];
+
+      if ( !this.rke2Versions.length && !this.k3sVersions.length ) {
+        throw new Error('No version info found in KDM');
+      }
     }
 
     if ( !this.value.spec ) {
@@ -135,7 +139,9 @@ export default {
     }
 
     if ( !this.value.spec.kubernetesVersion ) {
-      set(this.value.spec, 'kubernetesVersion', this.versionOptions.find(x => !!x.value).value);
+      const option = this.versionOptions.find(x => !!x.value);
+
+      set(this.value.spec, 'kubernetesVersion', option.value);
     }
 
     for ( const k in this.serverArgs ) {
@@ -976,6 +982,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
+  <Banner v-else-if="$fetchState.error" color="error" :label="$fetchState.error" />
   <CruResource
     v-else
     ref="cruresource"
