@@ -378,7 +378,7 @@ export default {
         return { label: x, value: x };
       });
 
-      out.unshift({ label: '(None)', value: null });
+      out.unshift({ label: '(None)', value: '' });
 
       return out;
     },
