@@ -1,4 +1,4 @@
-import { CAPI, MANAGEMENT } from '@/config/types';
+import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 
 export default {
@@ -47,8 +47,8 @@ export default {
 
   scalePool() {
     return (delta) => {
-      this.spec.quantity += delta;
-      this.save();
+      this.normanPool.quantity += delta;
+      this.normanPool.save();
     };
   },
 
@@ -89,6 +89,12 @@ export default {
     ].filter(x => x.value > 0);
 
     return sortBy(out, 'sort:desc');
+  },
+
+  normanPool() {
+    const id = this.id.replace('/', ':');
+
+    return this.$rootGetters['rancher/byId'](NORMAN.NODE_POOL, id);
   },
 
 };
