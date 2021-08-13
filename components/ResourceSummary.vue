@@ -19,6 +19,7 @@ export function resourceCounts(store, resource) {
   const inStore = store.getters['currentStore'](COUNT);
   const clusterCounts = store.getters[`${ inStore }/all`](COUNT)[0].counts;
   const summary = clusterCounts[resource]?.summary || {};
+
   const counts = {
     total:        summary.count || 0,
     useful:       summary.count || 0,
@@ -50,12 +51,7 @@ export default {
     spoofedCounts: {
       type:    Object,
       default: null
-    },
-
-    spoofedLocation: {
-      type:    [Object, null],
-      default: null,
-    },
+    }
   },
 
   computed: {
@@ -70,10 +66,6 @@ export default {
     location() {
       if (this.spoofedCounts) {
         return this.spoofedCounts.location;
-      }
-
-      if (this.spoofedLocation) {
-        return this.spoofedLocation;
       }
 
       return {

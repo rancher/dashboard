@@ -11,7 +11,7 @@ import { REASON } from '@/config/table-headers';
 import {
   EVENT, METRIC, NODE, HCI, SERVICE, PVC
 } from '@/config/types';
-import ResourceSummary from '@/components/ResourceSummary';
+import ResourceSummary, { resourceCounts } from '@/components/ResourceSummary';
 import HardwareResourceGauge from '@/components/HardwareResourceGauge';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
@@ -41,11 +41,25 @@ const MAX_FAILURES = 2;
 
 const RESOURCES = [{
   type:            NODE,
-  spoofedLocation: {
-    name:     'c-cluster-product-resource',
-    params:   { resource: 'host' }
+  spoofed: {
+    location: {
+      name:     'c-cluster-product-resource',
+      params:   { resource: 'host' }
+    },
+    name: 'Host',
   }
-}, { type: HCI.VM }, { type: HCI.NETWORK_ATTACHMENT }, { type: HCI.IMAGE }, { type: PVC }];
+},
+{ type: HCI.VM }, { type: HCI.NETWORK_ATTACHMENT }, { type: HCI.IMAGE },
+{
+  type:    PVC,
+  spoofed: {
+    location: {
+      name:     'c-cluster-product-resource',
+      params:   { resource: 'volume' }
+    },
+    name: 'Volume'
+  }
+}];
 
 const VM_DASHBOARD_METRICS_URL = '/api/v1/namespaces/harvester-monitoring/services/http:monitoring-grafana:80/proxy/d/harvester-vm-dashboard-1/vm-dashboard?orgId=1';
 
@@ -69,8 +83,8 @@ export default {
       nodes:        this.fetchClusterResources(NODE),
       events:       this.fetchClusterResources(EVENT),
       metricNodes:  this.fetchClusterResources(METRIC.NODE),
-      settings:    this.fetchClusterResources(HCI.SETTING),
-      services:    this.fetchClusterResources(SERVICE),
+      settings:     this.fetchClusterResources(HCI.SETTING),
+      services:     this.fetchClusterResources(SERVICE),
     };
 
     (this.accessibleResources || []).map((a) => {
@@ -136,6 +150,34 @@ export default {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
       return RESOURCES.filter(resource => this.$store.getters[`${ inStore }/schemaFor`](resource.type));
+    },
+
+    totalCountGaugeInput() {
+      const out = {};
+
+      this.accessibleResources.forEach((resource) => {
+        const counts = resourceCounts(this.$store, resource.type);
+
+        out[resource.type] = { resource: resource.type };
+
+        Object.entries(counts).forEach((entry) => {
+          out[resource.type][entry[0]] = entry[1];
+        });
+
+        if (resource.spoofed) {
+          out[resource.type] = {
+            ...out[resource.type],
+            ...resource.spoofed,
+            isSpoofed: true
+          };
+
+          if (out[resource.type].total > 1) {
+            out[resource.type].name = `${ out[resource.type].name }s`;
+          }
+        }
+      });
+
+      return out;
     },
 
     currentVersion() {
@@ -359,10 +401,10 @@ export default {
 
     <div class="resource-gauges">
       <ResourceSummary
-        v-for="resource in accessibleResources"
-        :key="resource.type"
-        :resource="resource.type"
-        :spoofed-location="resource.spoofedLocation"
+        v-for="resource in totalCountGaugeInput"
+        :key="resource.resource"
+        :spoofed-counts="resource.isSpoofed ? resource : null"
+        :resource="resource.resource"
       />
     </div>
 

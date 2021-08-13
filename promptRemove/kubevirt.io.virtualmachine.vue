@@ -14,10 +14,6 @@ export default {
         return [];
       }
     },
-    needsConfirm: {
-      type:     Boolean,
-      required: true
-    }
   },
 
   data() {
@@ -38,8 +34,8 @@ export default {
           return;
         }
         const volumes = crd.spec.template.spec?.volumes || [];
-        const names = volumes.filter(volume => volume.dataVolume ).map((volume) => {
-          if (volume.dataVolume) {
+        const names = volumes.filter(volume => volume.persistentVolumeClaim ).map((volume) => {
+          if (volume.persistentVolumeClaim) {
             return volume.name;
           }
         });

@@ -57,37 +57,6 @@ export default {
     return this.isReady ? 'Active' : Initialized?.message ? 'Failed' : 'In-progress';
   },
 
-  resourcesStatus() {
-    const imageList = this.$rootGetters['virtual/all'](HCI.IMAGE);
-
-    let warningCount = 0;
-    let errorCount = 0;
-
-    imageList.forEach((item) => {
-      const conditions = get(item, 'status.conditions');
-      const status = (findBy(conditions, 'type', 'imported') || {})?.status;
-
-      if (status === 'False') {
-        errorCount += 1;
-      } else if (status === 'Unknown') {
-        warningCount += 1;
-      }
-    });
-
-    return {
-      warningCount,
-      errorCount
-    };
-  },
-
-  warningCount() {
-    return this.resourcesStatus.warningCount;
-  },
-
-  errorCount() {
-    return this.resourcesStatus.errorCount;
-  },
-
   imageSource() {
     return get(this.value, `metadata.annotations."${ HCI_ANNOTATIONS.IMAGE_SOURCE }"`) || 'url'; // url is default source
   },
