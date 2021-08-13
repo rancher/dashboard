@@ -697,10 +697,14 @@ export default {
           return;
         }
         const res = await this.repo.doAction((isUpgrade ? 'upgrade' : 'install'), input);
+        const operationId = `${ res.operationNamespace }/${ res.operationName }`;
+
+        // Non-admins without a cluster won't be able to fetch operations immediately
+        await this.repo.waitForOperation(operationId);
 
         this.operation = await this.$store.dispatch('cluster/find', {
           type: CATALOG.OPERATION,
-          id:   `${ res.operationNamespace }/${ res.operationName }`
+          id:   operationId
         });
 
         try {
