@@ -426,11 +426,15 @@ export default {
     cloudProviderOptions() {
       const out = [{ label: '(None)', value: '' }];
 
+      const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
+
       for ( const opt of this.agentArgs['cloud-provider-name'].options ) {
-        out.push({
-          label: opt,
-          value: opt,
-        });
+        if ( !preferred || opt === preferred || opt === 'external' ) {
+          out.push({
+            label: opt,
+            value: opt,
+          });
+        }
       }
 
       const cur = this.agentConfig['cloud-provider-name'];
