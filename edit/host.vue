@@ -42,10 +42,12 @@ export default {
   },
   data() {
     const customName = this.value.metadata?.annotations?.[HCI_LABELS_ANNOTATIONS.HOST_CUSTOM_NAME] || '';
+    const consoleUrl = this.value.metadata?.annotations?.[HCI_LABELS_ANNOTATIONS.HOST_CONSOLE_URL] || '';
 
     return {
       hostNetowrkResource: null,
       customName,
+      consoleUrl,
       type:                'vlan',
       nic:                 '',
       nics:                []
@@ -69,6 +71,10 @@ export default {
   watch: {
     customName(neu) {
       this.value.setAnnotation(HCI_LABELS_ANNOTATIONS.HOST_CUSTOM_NAME, neu);
+    },
+
+    consoleUrl(neu) {
+      this.value.setAnnotation(HCI_LABELS_ANNOTATIONS.HOST_CONSOLE_URL, neu);
     },
   },
   created() {
@@ -100,6 +106,13 @@ export default {
         <LabeledInput
           v-model="customName"
           :label="t('harvester.host.detail.customName')"
+          class="mb-20"
+          :mode="mode"
+        />
+
+        <LabeledInput
+          v-model="consoleUrl"
+          :label="t('harvester.host.detail.consoleUrl')"
           class="mb-20"
           :mode="mode"
         />

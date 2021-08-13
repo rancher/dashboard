@@ -51,6 +51,24 @@ export default {
       return this.value.metadata?.annotations?.[HCI.HOST_CUSTOM_NAME];
     },
 
+    consoleUrl() {
+      const consoleUrl = this.value.metadata?.annotations?.[HCI.HOST_CONSOLE_URL];
+      let value = consoleUrl;
+
+      if (!consoleUrl) {
+        return '';
+      }
+
+      if (!consoleUrl.startsWith('http://') && !consoleUrl.startsWith('https://')) {
+        value = `http://${ consoleUrl }`;
+      }
+
+      return {
+        display: consoleUrl,
+        value
+      };
+    },
+
     cpuTotal() {
       let out = 0;
 
@@ -211,6 +229,14 @@ export default {
       </div>
       <div class="col span-6">
         <LabelValue :name="t('harvester.host.detail.update')" :value="lastUpdateTime" />
+      </div>
+    </div>
+
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabelValue :name="t('harvester.host.detail.consoleUrl')" :value="consoleUrl.value">
+          <a slot="value" :href="consoleUrl.value" target="_blank">{{ consoleUrl.display }}</a>
+        </LabelValue>
       </div>
     </div>
 
