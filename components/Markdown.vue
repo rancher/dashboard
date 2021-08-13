@@ -44,6 +44,11 @@ export default {
     renderer.link = function(href, title, text) {
       let external = true;
 
+      // Relative links don't work, since they aren't relative to the dashboard page
+      if (href.startsWith('./')) {
+        return text;
+      }
+
       if ( href.startsWith('#') ) {
         href = `${ base }${ href }`;
         external = false;
