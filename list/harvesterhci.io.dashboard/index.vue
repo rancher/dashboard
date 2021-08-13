@@ -5,7 +5,6 @@ import utc from 'dayjs/plugin/utc';
 import Loading from '@/components/Loading';
 import SortableTable from '@/components/SortableTable';
 import { allHash } from '@/utils/promise';
-import Poller from '@/utils/poller';
 import { parseSi, formatSi, exponentNeeded, UNITS } from '@/utils/units';
 import { REASON } from '@/config/table-headers';
 import {
@@ -16,6 +15,7 @@ import HardwareResourceGauge from '@/components/HardwareResourceGauge';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import HarvesterMetrics from '@/components/HarvesterMetrics';
+import metricPoller from '@/mixins/metric-poller';
 import Upgrade from './Upgrade';
 
 dayjs.extend(utc);
@@ -35,9 +35,6 @@ const PARSE_RULES = {
     }
   }
 };
-
-const METRICS_POLL_RATE_MS = 20000;
-const MAX_FAILURES = 2;
 
 const RESOURCES = [{
   type:            NODE,
@@ -64,6 +61,7 @@ const RESOURCES = [{
 const VM_DASHBOARD_METRICS_URL = '/api/v1/namespaces/harvester-monitoring/services/http:monitoring-grafana:80/proxy/d/harvester-vm-dashboard-1/vm-dashboard?orgId=1';
 
 export default {
+  mixins:     [metricPoller],
   components: {
     Loading,
     HardwareResourceGauge,
@@ -85,6 +83,7 @@ export default {
       metricNodes:  this.fetchClusterResources(METRIC.NODE),
       settings:     this.fetchClusterResources(HCI.SETTING),
       services:     this.fetchClusterResources(SERVICE),
+      metric:      this.fetchClusterResources(METRIC.NODE)
     };
 
     (this.accessibleResources || []).map((a) => {
@@ -132,7 +131,6 @@ export default {
     ];
 
     return {
-      metricPoller:   null,
       eventHeaders,
       constraints:       [],
       events:            [],
@@ -299,11 +297,6 @@ export default {
     },
   },
 
-  mounted() {
-    this.metricPoller = new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES);
-    this.metricPoller.start();
-  },
-
   methods: {
     createMemoryValues(total, useful) {
       const parsedTotal = parseSi((total || '0').toString());
@@ -358,11 +351,6 @@ export default {
     async loadMetrics() {
       this.nodeMetrics = await this.fetchClusterResources(METRIC.NODE, { force: true } );
     },
-  },
-
-  beforeRouteLeave(to, from, next) {
-    this.metricPoller.stop();
-    next();
   }
 };
 </script>

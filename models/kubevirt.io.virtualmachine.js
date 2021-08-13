@@ -643,6 +643,18 @@ export default {
     };
   },
 
+  volumeClaimTemplates() {
+    let out = [];
+
+    try {
+      out = JSON.parse(this.metadata?.annotations?.[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]);
+    } catch (e) {
+      console.error(`modal: getVolumeClaimTemplates, ${ e }`); // eslint-disable-line no-console
+    }
+
+    return out;
+  },
+
   restoreName() {
     return get(this, `metadata.annotations."${ HCI_ANNOTATIONS.RESTORE_NAME }"`) || '';
   },
