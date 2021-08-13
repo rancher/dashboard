@@ -22,6 +22,7 @@ const credentialOptions = {
   },
 };
 
+// Credential drivers that rke1 supports
 export const rke1Supports = [
   'aws',
   'azure',
@@ -34,6 +35,8 @@ export const rke1Supports = [
   'vmwarevsphere'
 ];
 
+// Map a credential driver name to a component name
+// e.g. ec2 and eks both use the 'aws' driver to share the same pool of creds.
 const driverMap = {
   aks:                             'azure',
   amazonec2:                       'aws',
@@ -49,12 +52,14 @@ const driverMap = {
   oraclecontainerengine:           'oracle',
 };
 
+// Map a driver component back to the cloud credential field name their data has to be stored in
 const driverToFieldMap = {
   aws:    'amazonec2',
   gcp:    'google',
   oracle: 'oci',
 };
 
+// Machine driver fields that are probably a credential field
 export const likelyFields = [
   'username', 'password',
   'accesskey', 'secretkey',
@@ -64,10 +69,12 @@ export const likelyFields = [
   'clientid', 'clientsecret', 'subscriptionid', 'tenantid',
 ].map(x => simplify(x));
 
+// Machine driver fields that are maaaaybe a credential field
 export const iffyFields = [
   'location', 'region',
 ].map(x => simplify(x));
 
+// Machine driver fields that are safe to display the whole value
 export const fullFields = [
   'username',
   'accesskey',
@@ -75,14 +82,23 @@ export const fullFields = [
   'clientid'
 ].map(x => simplify(x));
 
+// Machine driver fields that are safe to display the beginning of
 export const prefixFields = [
   'token',
   'apikey',
   'secret',
 ].map(x => simplify(x));
 
+// Machine driver fields that are safe to display the end of
 export const suffixFields = [
 ].map(x => simplify(x));
+
+// Machine driver to cloud provider mapping
+const driverToCloudProviderMap = {
+  amazonec2:     'aws',
+  azure:         'azure',
+  vmwarevsphere: 'vsphere'
+};
 
 // Dynamically loaded drivers can call this eventually to register thier options
 export function configureCredential(name, opt) {
@@ -185,6 +201,12 @@ export const getters = {
       }
 
       return out;
+    };
+  },
+
+  cloudProviderForDriver() {
+    return (name) => {
+      return driverToCloudProviderMap[name];
     };
   },
 };
