@@ -6,9 +6,10 @@ export function formatForTimeseries(data) {
       const label = this.$store.getters['i18n/withFallback'](`opni.chart.labels.${ key }`, { count: 1 }, key);
 
       if (!out[label]) {
-        out[label] = [];
+        out[label] = { data: [value] };
+      } else {
+        out[label].data.push(value);
       }
-      out[label].push(value);
     });
   });
 

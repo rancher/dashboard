@@ -5,12 +5,13 @@ import SortableTable from '@/components/SortableTable';
 import SuperDatePicker from '@/components/form/SuperDatePicker';
 import { ALL_TYPES, getAbsoluteValue, LOG_HEADERS } from '@/components/form/SuperDatePicker/util';
 import TimeSeries from '@/components/graph/TimeSeries';
+import Checkbox from '@/components/form/Checkbox';
 import day from 'dayjs';
 import { formatForTimeseries, findBucket, showTooltip } from './util';
 
 export default {
   components: {
-    Card, SuperDatePicker, SortableTable, TimeSeries
+    Card, SuperDatePicker, SortableTable, TimeSeries, Checkbox
   },
 
   async fetch() {
@@ -30,12 +31,13 @@ export default {
     };
 
     return {
-      insights:     [],
-      logs:         [],
-      loading:      false,
-      logHeaders:   LOG_HEADERS,
+      insights:           [],
+      logs:               [],
+      loading:            false,
+      logHeaders:         LOG_HEADERS,
       fromTo,
-      loadedFromTo: { from: { ...fromTo.from }, to: { ...fromTo.to } }
+      loadedFromTo:       { from: { ...fromTo.from }, to: { ...fromTo.to } },
+      highlightAnomalies: false
     };
   },
 
@@ -47,7 +49,15 @@ export default {
       };
     },
     insightSeries() {
-      return this.formatForTimeseries(this.insights);
+      const out = this.formatForTimeseries(this.insights);
+
+      out['Anomalous'].shouldHighlight = true;
+
+      out['Anomalous'].color = 'var(--error)';
+      out['Normal'].color = 'var(--primary)';
+      out['Suspicious'].color = 'var(--warning)';
+
+      return out;
     },
   },
 
@@ -111,7 +121,11 @@ export default {
           :colors="{'Anomalous':'var(--error)', 'Normal': 'var(--primary)', 'Suspicious': 'var(--warning)'}"
           x-key="timestamp"
           :data-series="insightSeries"
-        />
+        >
+          <template v-slot:inputs="{highlightData, unHighlightData}">
+            <Checkbox v-model="highlightAnomalies" class="pull-right" label="Highlight Anomalies" @input="e=>e?highlightData('Anomalous', d=>d>0):unHighlightData()" />
+          </template>
+        </TimeSeries>
       </template>
     </Card>
     <SortableTable
