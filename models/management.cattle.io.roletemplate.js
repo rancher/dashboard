@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import { get } from '@/utils/object';
 import { DESCRIPTION } from '@/config/labels-annotations';
+import { NORMAN } from '@/config/types';
 import Role from './rbac.authorization.k8s.io.role';
 
 export const CATTLE_API_GROUP = '.cattle.io';
@@ -311,6 +312,43 @@ export default {
 
   parentLocationOverride() {
     return this.listLocation;
-  }
+  },
 
+  basicNorman() {
+    if (this.id) {
+      return this.$dispatch(`rancher/find`, { id: this.id, type: NORMAN.ROLE_TEMPLATE }, { root: true });
+    }
+
+    return this.$dispatch(`rancher/create`, { type: NORMAN.ROLE_TEMPLATE, name: this.displayName }, { root: true });
+  },
+
+  async norman() {
+    const norman = await this.basicNorman;
+
+    norman.rules = this.rules;
+    norman.locked = this.locked;
+    norman.clusterCreatorDefault = this.clusterCreatorDefault || false;
+    norman.projectCreatorDefault = this.projectCreatorDefault || false;
+    norman.context = this.context;
+    norman.description = this.description;
+    norman.roleTemplateIds = this.roleTemplateNames;
+
+    return norman;
+  },
+
+  save() {
+    return async() => {
+      const norman = await this.norman;
+
+      return norman.save();
+    };
+  },
+
+  remove() {
+    return async() => {
+      const norman = await this.norman;
+
+      await norman.remove();
+    };
+  }
 };
