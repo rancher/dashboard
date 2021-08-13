@@ -127,6 +127,7 @@ export const HCI = {
   VM_NAME:                      'harvesterhci.io/vmName',
   MAINTENANCE_STATUS:           'harvesterhci.io/maintain-status',
   HOST_CUSTOM_NAME:             'harvesterhci.io/host-custom-name',
+  HOST_CONSOLE_URL:             'harvesterhci.io/host-console-url',
   BACKUP_TARGET:                'backup.harvesterhci.io/backupTarget',
   RESTORE_NAME:                 'restore.harvesterhci.io/name',
   IMAGE_SOURCE:                 'harvesterhci.io/source',

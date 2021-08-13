@@ -50,7 +50,11 @@ export default {
     headers() {
       return [
         STATE,
-        NAME,
+        {
+          ...NAME,
+          width:         300,
+          formatter:     'hostName',
+        },
         HOST_IP,
         {
           name:          'cpu',
