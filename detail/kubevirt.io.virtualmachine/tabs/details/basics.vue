@@ -38,15 +38,7 @@ export default {
     },
   },
 
-  data() {
-    return { };
-  },
-
   computed: {
-    name() {
-      return this.value?.metadata?.name || UNDEFINED;
-    },
-
     creationTimestamp() {
       const date = new Date(this.value?.metadata?.creationTimestamp);
 
@@ -67,7 +59,8 @@ export default {
 
     imageName() {
       const imageList = this.$store.getters['virtual/all'](HCI.IMAGE) || [];
-      const imageId = this.value?.spec?.volumeClaimTemplates?.[0]?.metadata?.annotations?.['harvesterhci.io/imageId'] || '';
+      const imageId = this.value.volumeClaimTemplates[0]?.metadata?.annotations?.['harvesterhci.io/imageId'] || '';
+
       const image = imageList.find( I => imageId === I.id);
 
       return image?.spec?.displayName || '-';
@@ -137,11 +130,11 @@ export default {
   <div class="overview-basics">
     <div class="row">
       <div class="col span-6">
-        <LabelValue :name="t('harvester.virtualMachine.detail.details.name')" :value="name">
+        <LabelValue :name="t('harvester.virtualMachine.detail.details.name')" :value="value.nameDisplay">
           <template #value>
             <div class="smart-row">
               <div class="console">
-                {{ name }} <ConsoleBar :resource="value" class="cosoleBut" />
+                {{ value.nameDisplay }} <ConsoleBar :resource="value" class="cosoleBut" />
               </div>
             </div>
           </template>

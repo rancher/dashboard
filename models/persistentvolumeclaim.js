@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { _CLONE } from '@/config/query-params';
 import { NAME as VIRTUAL } from '@/config/product/virtual';
-import { HCI, PVC } from '@/config/types';
+import { HCI } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { get, clone } from '@/utils/object';
 import { stateDisplay } from '@/plugins/steve/resource-instance';
@@ -92,34 +92,6 @@ export default {
     const ownedId = JSON.parse(ownedBy)[0]?.refs?.[0];
 
     return allVMs.find( D => D.id === ownedId);
-  },
-
-  warningCount() {
-    return this.resourcesStatus.warningCount;
-  },
-
-  errorCount() {
-    return this.resourcesStatus.errorCount;
-  },
-
-  resourcesStatus() {
-    const list = this.$rootGetters['virtual/all'](PVC);
-
-    let warning = 0;
-    let error = 0;
-
-    list.forEach((item) => {
-      if (item.phaseState === 'N/A') {
-        error += 1;
-      } else if (item.phaseState !== 'Bound') {
-        warning += 1;
-      }
-    });
-
-    return {
-      warningCount: warning,
-      errorCount:   error
-    };
   },
 
   volumeSort() {
