@@ -103,7 +103,7 @@ export default {
       <template #default="{row}">
         <div class="row">
           <div class="col span-6">
-            <LabeledInput v-model="row.value.hostname" label="Registry Hostame" :mode="mode" />
+            <LabeledInput v-model="row.value.hostname" label="Registry Hostname" :mode="mode" />
 
             <SelectOrCreateAuthSecret
               v-model="row.value.authConfigSecretName"
