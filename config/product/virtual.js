@@ -85,11 +85,11 @@ export function init(store) {
       return rootGetters['isMultiCluster'];
     },
     label:       store.getters['i18n/t']('members.clusterMembers'),
-    group:      'rbac',
+    group:      'root',
     namespaced:  false,
     name:        VIRTUAL_TYPES.CLUSTER_MEMBERS,
     weight:      100,
-    route:       { name: 'c-cluster-virtual-members' },
+    route:       { name: 'c-cluster-product-members' },
     exact:       true,
     ifHaveType:  {
       type:   MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,

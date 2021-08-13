@@ -1,7 +1,6 @@
 import { CREATOR_ID } from '@/config/labels-annotations';
 import { _CREATE } from '@/config/query-params';
 import { MANAGEMENT, NORMAN } from '@/config/types';
-import { NAME as VIRTUAL } from '@/config/product/virtual';
 
 export default {
   detailPageHeaderActionOverride() {
@@ -84,11 +83,7 @@ export default {
   },
 
   listLocation() {
-    if (this.$rootGetters['currentProduct'].inStore === VIRTUAL) {
-      return { name: 'c-cluster-virtual-members' };
-    }
-
-    return { name: 'c-cluster-explorer-members' };
+    return { name: 'c-cluster-product-members' };
   },
 
   doneOverride() {
