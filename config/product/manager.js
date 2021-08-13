@@ -1,5 +1,5 @@
 import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
-import { CAPI, NORMAN } from '@/config/types';
+import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
 import { MULTI_CLUSTER } from '@/store/features';
 import { DSL } from '@/store/type-map';
 
@@ -100,6 +100,7 @@ export function init(store) {
   weightType(CAPI.MACHINE, 1, true);
 
   basicType([
+    MANAGEMENT.CLUSTER,
     CAPI.MACHINE_DEPLOYMENT,
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
