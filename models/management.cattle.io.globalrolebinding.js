@@ -23,4 +23,38 @@ export default {
     return this.user;
   },
 
+  basicNorman() {
+    if (this.id) {
+      return this.$dispatch(`rancher/find`, { id: this.id, type: NORMAN.GLOBAL_ROLE_BINDING }, { root: true });
+    }
+
+    return this.$dispatch(`rancher/create`, { type: NORMAN.GLOBAL_ROLE_BINDING, name: this.displayName }, { root: true });
+  },
+
+  async norman() {
+    const norman = await this.basicNorman;
+
+    norman.globalRoleId = this.globalRoleName;
+    norman.userId = this.userName;
+    norman.groupPrincipalId = this.groupPrincipalName;
+
+    return norman;
+  },
+
+  save() {
+    return async() => {
+      const norman = await this.norman;
+
+      return norman.save();
+    };
+  },
+
+  remove() {
+    return async() => {
+      const norman = await this.norman;
+
+      await norman.remove();
+    };
+  }
+
 };
