@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { NORMAN } from '@/config/types';
+import { NORMAN, HCI } from '@/config/types';
 import { NAME as VIRTUAL } from '@/config/product/virtual';
 import { ucFirst } from '@/utils/string';
 import { isMac } from '@/utils/platform';
@@ -89,7 +89,18 @@ export default {
         content: this.currentCluster?.nameDisplay,
         delay:   400,
       };
-    }
+    },
+
+    harvesterDashboard() {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          ...this.$route.params,
+          product:  VIRTUAL,
+          resource: HCI.DASHBOARD,
+        }
+      };
+    },
   },
 
   watch: {
@@ -159,11 +170,13 @@ export default {
 <template>
   <header :class="{'simple': simple}">
     <div class="menu-spacer">
-      <img
-        v-if="isSingleVirtualCluster"
-        class="side-menu-logo"
-        src="~/assets/images/providers/harvester.svg"
-      />
+      <n-link :to="harvesterDashboard">
+        <img
+          v-if="isSingleVirtualCluster"
+          class="side-menu-logo"
+          src="~/assets/images/providers/harvester.svg"
+        />
+      </n-link>
     </div>
     <div v-if="!simple" class="product">
       <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster cluster-clipped">

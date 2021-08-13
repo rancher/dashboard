@@ -30,12 +30,10 @@ export default {
     return () => {
       const router = this.currentRouter();
 
-      const image = `${ this.metadata.namespace }/${ this.spec.displayName }`;
-
       router.push({
         name:   `c-cluster-product-resource-create`,
         params: { resource: HCI.VM },
-        query:  { image }
+        query:  { image: this.id }
       });
     };
   },
