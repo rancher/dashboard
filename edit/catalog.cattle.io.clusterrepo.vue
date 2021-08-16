@@ -39,6 +39,12 @@ export default {
       return this.$store.getters['cluster/all'](NAMESPACE)[0]?.id;
     },
   },
+
+  methods: {
+    trimInput(val) {
+      this.value.spec.url = val.trim();
+    }
+  }
 };
 </script>
 
@@ -82,11 +88,12 @@ export default {
 
     <LabeledInput
       v-else
-      v-model="value.spec.url"
+      :value="value.spec.url"
       :required="true"
       :label="t('catalog.repo.url.label')"
       :placeholder="t('catalog.repo.url.placeholder', null, true)"
       :mode="mode"
+      @input="trimInput"
     />
 
     <SelectOrCreateAuthSecret
