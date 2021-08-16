@@ -3,10 +3,6 @@ import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import { EVENT, HCI, SERVICE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
-import BackupModal from '@/list/kubevirt.io.virtualmachine/backupModal';
-import RestoreModal from '@/list/kubevirt.io.virtualmachine/restoreModal';
-import MigrationModal from '@/list/kubevirt.io.virtualmachine/MigrationModal';
-import ejectCDROM from '@/list/kubevirt.io.virtualmachine/ejectCDROM';
 import HarvesterMetrics from '@/components/HarvesterMetrics';
 import { allHash } from '@/utils/promise';
 import OverviewBasics from './tabs/details/basics';
@@ -32,10 +28,6 @@ export default {
     OverviewKeypairs,
     OverviewCloudConfigs,
     Migration,
-    ejectCDROM,
-    BackupModal,
-    RestoreModal,
-    MigrationModal,
     HarvesterMetrics,
   },
 
@@ -164,10 +156,5 @@ export default {
         </template>
       </Tab>
     </Tabbed>
-
-    <BackupModal />
-    <RestoreModal />
-    <MigrationModal />
-    <ejectCDROM />
   </div>
 </template>

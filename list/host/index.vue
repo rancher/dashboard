@@ -5,8 +5,6 @@ import { STATE, NAME, AGE } from '@/config/table-headers';
 import { METRIC, NODE, SCHEMA } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import metricPoller from '@/mixins/metric-poller';
-import MaintenanceModal from './maintenanceModal';
-import CordonModal from './cordonModal';
 
 const schema = {
   id:         'host',
@@ -28,10 +26,8 @@ const HOST_IP = {
 
 export default {
   name:       'ListHost',
-  components: {
-    ResourceTable, Loading, MaintenanceModal, CordonModal
-  },
-  mixins: [metricPoller],
+  components: { ResourceTable, Loading },
+  mixins:     [metricPoller],
 
   async fetch() {
     const hash = await allHash({
@@ -126,10 +122,6 @@ export default {
       :namespaced="false"
       key-field="_key"
       v-on="$listeners"
-    >
-    </ResourceTable>
-
-    <MaintenanceModal />
-    <CordonModal />
+    />
   </div>
 </template>

@@ -232,10 +232,6 @@ export default {
       });
     });
 
-    this.registerFailureHook(() => { // Creating a VM doesn't need type, but the frontend needs to find resources according to type.
-      this.$set(this.value, 'type', HCI.VM);
-    });
-
     this.registerAfterHook(() => {
       this.restartVM();
     });

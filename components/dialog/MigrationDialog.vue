@@ -1,19 +1,25 @@
 <script>
-import { createNamespacedHelpers, mapGetters } from 'vuex';
+import { mapGetters } from 'vuex';
 
 import { NODE, HCI } from '@/config/types';
 import { exceptionToErrorsArray } from '@/utils/error';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
-import ModalWithCard from '@/components/ModalWithCard';
+import Card from '@/components/Card';
+import Banner from '@/components/Banner';
+import AsyncButton from '@/components/AsyncButton';
 import LabeledSelect from '@/components/form/LabeledSelect';
-
-const { mapState } = createNamespacedHelpers(HCI.VM);
 
 export default {
   components: {
-    ModalWithCard,
-    LabeledSelect,
+    AsyncButton, Banner, Card, LabeledSelect
+  },
+
+  props:      {
+    resources: {
+      type:     Array,
+      required: true
+    }
   },
 
   data() {
@@ -25,11 +31,14 @@ export default {
 
   computed:   {
     ...mapGetters({ t: 'i18n/t' }),
-    ...mapState(['isShowMigration', 'actionResources']),
+
+    actionResource() {
+      return this.resources[0];
+    },
 
     vmi() {
       const vmiResources = this.$store.getters['virtual/all'](HCI.VMI);
-      const resource = vmiResources.find(VMI => VMI.id === this.actionResources?.id) || null;
+      const resource = vmiResources.find(VMI => VMI.id === this.actionResource?.id) || null;
 
       return resource;
     },
@@ -57,30 +66,15 @@ export default {
     },
   },
 
-  watch: {
-    isShowMigration: {
-      handler(show) {
-        if (show) {
-          this.$nextTick(() => {
-            this.$modal.show('migration-modal');
-          });
-        } else {
-          this.$modal.hide('migration-modal');
-        }
-      },
-      immediate: true
-    },
-  },
-
   methods: {
     close() {
-      this.$store.commit('kubevirt.io.virtualmachine/toggleMigrationModal');
       this.nodeName = '';
       this.errors = [];
+      this.$emit('close');
     },
 
     async apply(buttonDone) {
-      if (!this.actionResources) {
+      if (!this.actionResource) {
         buttonDone(false);
 
         return;
@@ -97,14 +91,15 @@ export default {
       }
 
       try {
-        await this.actionResources.doAction('migrate', { nodeName: this.nodeName }, {}, false);
+        await this.actionResource.doAction('migrate', { nodeName: this.nodeName }, {}, false);
 
         buttonDone(true);
         this.close();
       } catch (err) {
-        const error = err?.data || exceptionToErrorsArray(err) || err;
+        const error = err?.data || err;
+        const message = exceptionToErrorsArray(error);
 
-        this.$set(this, 'errors', [error]);
+        this.$set(this, 'errors', message);
         buttonDone(false);
       }
     },
@@ -114,21 +109,12 @@ export default {
 </script>
 
 <template>
-  <ModalWithCard
-    ref="migration-modal"
-    name="migration-modal"
-    save-text="migrate"
-    width="40%"
-    :pivot-y="0.001"
-    :errors="errors"
-    @finish="apply"
-    @close="close"
-  >
+  <Card :show-highlight-border="false">
     <template #title>
       {{ t('harvester.modal.migration.title') }}
     </template>
 
-    <template #content>
+    <template #body>
       <LabeledSelect
         v-model="nodeName"
         :label="t('harvester.modal.migration.fields.nodeName.label')"
@@ -136,5 +122,28 @@ export default {
         :options="nodeNameList"
       />
     </template>
-  </ModalWithCard>
+
+    <div slot="actions">
+      <div class="buttons">
+        <button class="btn role-secondary mr-10" @click="close">
+          {{ t('generic.cancel') }}
+        </button>
+
+        <AsyncButton
+          mode="create"
+          :disabled="!backupName"
+          @click="apply"
+        />
+      </div>
+
+      <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+    </div>
+  </Card>
 </template>
+
+<style lang="scss" scoped>
+.buttons {
+  display: flex;
+  width: 100%;
+}
+</style>

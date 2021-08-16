@@ -136,7 +136,7 @@ export default {
 
   cordon() {
     return (resources = this) => {
-      this.$commit('node/toggleCordonModal', resources, { root: true });
+      this.doAction('cordon', {});
     };
   },
 
@@ -146,7 +146,10 @@ export default {
 
   enableMaintenanceMode() {
     return (resources = this) => {
-      this.$commit('node/toggleMaintenanceModal', resources, { root: true });
+      this.$dispatch('promptModal', {
+        resources,
+        component: 'MaintenanceDialog'
+      });
     };
   },
 

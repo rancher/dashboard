@@ -210,13 +210,19 @@ export default {
 
   backupVM() {
     return (resources = this) => {
-      this.$commit('kubevirt.io.virtualmachine/toggleBackupModal', resources, { root: true });
+      this.$dispatch('promptModal', {
+        resources,
+        component: 'BackupModal'
+      });
     };
   },
 
   restoreVM() {
     return (resources = this) => {
-      this.$commit('kubevirt.io.virtualmachine/toggleRestoreModal', resources, { root: true });
+      this.$dispatch('promptModal', {
+        resources,
+        component: 'RestoreDialog'
+      });
     };
   },
 
@@ -266,13 +272,19 @@ export default {
 
   migrateVM() {
     return (resources = this) => {
-      this.$commit('kubevirt.io.virtualmachine/toggleMigrationModal', resources, { root: true });
+      this.$dispatch('promptModal', {
+        resources,
+        component: 'MigrationDialog'
+      });
     };
   },
 
   ejectCDROM() {
     return (resources = this) => {
-      this.$commit('kubevirt.io.virtualmachine/toggleEjectCDROMModal', resources, { root: true });
+      this.$dispatch('promptModal', {
+        resources,
+        component: 'EjectCDROMDialog'
+      });
     };
   },
 
@@ -283,26 +295,11 @@ export default {
   },
 
   createTemplate() {
-    return async(resources = this) => {
-      this.$commit('kubevirt.io.virtualmachine/toggleCloneTemplateModal', resources, { root: true });
-      try {
-        const message = this.t('harvester.modal.createTemplate.message.success');
-        const res = await this.doAction('createTemplate', {});
-
-        if (res._status === 200 || res._status === 204) {
-          this.$store.dispatch('growl/success', {
-            title: this.t('harvester.notification.title.succeed'),
-            message
-          }, { root: true });
-        }
-      } catch (err) {
-        const message = err?.response?.data?.message || err || this.t('harvester.modal.createTemplate.message.failed');
-
-        this.$dispatch('growl/fromError', {
-          title: this.t('harvester.notification.title.error'),
-          err:   message,
-        }, { root: true });
-      }
+    return (resources = this) => {
+      this.$dispatch('promptModal', {
+        resources,
+        component: 'CloneTemplate'
+      });
     };
   },
 
@@ -657,12 +654,6 @@ export default {
 
   restoreName() {
     return get(this, `metadata.annotations."${ HCI_ANNOTATIONS.RESTORE_NAME }"`) || '';
-  },
-
-  actuallyBeforeSave() {
-    return () => {
-      Vue.delete(this, 'type');
-    };
   },
 
   customValidationRules() {

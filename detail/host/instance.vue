@@ -6,10 +6,6 @@ import VmState from '@/components/formatter/vmState';
 import { allHash } from '@/utils/promise';
 import { HCI } from '@/config/types';
 import { HOSTNAME } from '@/config/labels-annotations';
-import BackupModal from '@/list/kubevirt.io.virtualmachine/backupModal';
-import RestoreModal from '@/list/kubevirt.io.virtualmachine/restoreModal';
-import MigrationModal from '@/list/kubevirt.io.virtualmachine/MigrationModal';
-import CloneTemplate from '@/list/kubevirt.io.virtualmachine/cloneTemplate';
 
 export default {
   name: 'InstanceNode',
@@ -18,10 +14,6 @@ export default {
     SortableTable,
     Loading,
     VmState,
-    BackupModal,
-    RestoreModal,
-    MigrationModal,
-    CloneTemplate
   },
 
   props: {
@@ -125,11 +117,6 @@ export default {
         </template>
       </Sortabletable>
     </div>
-
-    <BackupModal />
-    <RestoreModal />
-    <MigrationModal />
-    <CloneTemplate />
   </div>
 </template>
 
