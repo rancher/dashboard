@@ -75,6 +75,8 @@ export default {
 
     if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
       hash.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
+
+      hash.normanNodePools = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
     }
 
     const res = await allHash(hash);
