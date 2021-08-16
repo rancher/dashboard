@@ -12,7 +12,7 @@ function normalizeId(id) {
 export function canViewMembershipEditor(store) {
   return !!store.getters['management/schemaFor'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING) &&
     !!store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE) &&
-    !!store.getters['management/schemaFor'](NORMAN.PRINCIPAL);
+    !!store.getters['rancher/schemaFor'](NORMAN.PRINCIPAL);
 }
 
 // Matches creator-cluster-owner and creator-project-owner
