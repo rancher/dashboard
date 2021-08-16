@@ -152,7 +152,7 @@ export default {
       <i v-if="showRefresh" class="icon icon-refresh doc-refresh" @click="refresh"></i>
     </h1>
     <div v-if="doc" id="doc-content" class="doc-content" :class="{'nuxt-content-side-toc': sideToc}">
-      <nuxt-content ref="scrollPanel" :document="doc" :class="{'nuxt-content-side-toc': sideToc}" />
+      <nuxt-content ref="scrollPanel" :document="doc" class="doc-content-document" :class="{'nuxt-content-side-toc': sideToc}" />
       <div v-if="sideToc" class="toc">
         <a
           v-for="bookmark in doc.toc"
@@ -223,7 +223,7 @@ export default {
     }
 
     &.nuxt-content-side-toc {
-      .nuxt-content-container {
+      .doc-content-document {
         width: 75%;
       }
     }
@@ -237,57 +237,55 @@ export default {
     }
   }
 
-  .nuxt-content-container {
-    .nuxt-content {
-      margin-bottom: 100px;
-      h1:not(:first-child) {
-        margin-top: 30px;
+  .doc-content-document {
+    margin-bottom: 100px;
+    h1:not(:first-child) {
+      margin-top: 30px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin: 25px 0 15px 0;
+      text-decoration: underline;
+    }
+    h3 {
+      font-size: 16px;
+      margin: 10px 0;
+      text-decoration: underline;
+    }
+    p {
+      line-height: 20px;
+    }
+    p:not(:last-child) {
+      margin-bottom: 12px;
+    }
+    ul {
+      > li:not(:last-child) {
+        margin-bottom: 10px;
+      }
+    }
+    blockquote {
+      margin: 1em 0 1em 0;
+      border-left: 4px solid var(--info);
+      padding-left: 5px;
+    }
+    table {
+      border: 1px solid var(--border);
+      border-collapse: collapse;
+
+      thead > tr > th {
+        background-color: var(--sortable-table-header-bg);
       }
 
-      h2 {
-        font-size: 18px;
-        margin: 25px 0 15px 0;
-        text-decoration: underline;
+      tbody > tr.table-group > td {
+        background-color: var(--sortable-table-selected-bg);
       }
-      h3 {
-        font-size: 16px;
-        margin: 10px 0;
-        text-decoration: underline;
-      }
-      p {
-        line-height: 20px;
-      }
-      p:not(:last-child) {
-        margin-bottom: 12px;
-      }
-      ul {
-        > li:not(:last-child) {
-          margin-bottom: 10px;
-        }
-      }
-      blockquote {
-        margin: 1em 0 1em 0;
-        border-left: 4px solid var(--info);
-        padding-left: 5px;
-      }
-      table {
-        border: 1px solid var(--border);
-        border-collapse: collapse;
 
-        thead > tr > th {
-          background-color: var(--sortable-table-header-bg);
-        }
-
-        tbody > tr.table-group > td {
-          background-color: var(--sortable-table-selected-bg);
-        }
-
-        thead, tbody {
-          tr {
-            td, th {
-              border: 1px solid var(--border);
-              padding: 5px 5px;
-            }
+      thead, tbody {
+        tr {
+          td, th {
+            border: 1px solid var(--border);
+            padding: 5px 5px;
           }
         }
       }
