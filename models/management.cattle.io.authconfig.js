@@ -62,11 +62,4 @@ export default {
     return 'inactive';
   },
 
-  disable() {
-    return async() => {
-      this.enabled = false;
-      await this.save();
-      this.currentRouter().push({ name: 'c-cluster-auth-config' });
-    };
-  },
 };
