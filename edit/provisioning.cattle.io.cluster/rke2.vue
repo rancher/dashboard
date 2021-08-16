@@ -498,6 +498,10 @@ export default {
       return true;
     },
 
+    unremovedMachinePools() {
+      return this.machinePools.filter(x => !x.remove);
+    },
+
     machineConfigSchema() {
       if ( !this.hasMachinePools ) {
         return null;
@@ -1056,7 +1060,7 @@ export default {
           @addTab="addMachinePool($event)"
           @removeTab="removeMachinePool($event)"
         >
-          <Tab v-for="obj in machinePools" :key="obj.id" :name="obj.id" :label="obj.pool.name || '(Not Named)'" :show-header="false">
+          <Tab v-for="obj in unremovedMachinePools" :key="obj.id" :name="obj.id" :label="obj.pool.name || '(Not Named)'" :show-header="false">
             <MachinePool
               ref="pool"
               :value="obj"
@@ -1067,6 +1071,9 @@ export default {
               @error="e=>errors = e"
             />
           </Tab>
+          <div v-if="!unremovedMachinePools.length">
+            You do not have any machine pools defined, click the plus to add one.
+          </div>
         </Tabbed>
         <div class="spacer" />
       </template>
