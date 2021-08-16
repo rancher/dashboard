@@ -19,7 +19,13 @@ export default {
   },
 
   principal() {
-    return this.$rootGetters['rancher/byId'](NORMAN.PRINCIPAL, this.principalId);
+    const principalId = this.principalId.replace(/\//g, '%2F');
+
+    return this.$dispatch('rancher/find', {
+      type: NORMAN.PRINCIPAL,
+      id:   this.principalId,
+      opt:  { url: `/v3/principals/${ principalId }` }
+    }, { root: true });
   },
 
   principalId() {
@@ -113,13 +119,14 @@ export default {
     return !this.metadata.annotations[CREATOR_ID];
   },
 
-  norman() {
-    const principalProperty = this.principal.principalType === 'group' ? 'groupPrincipalId' : 'userPrincipalId';
+  async norman() {
+    const principal = await this.principal;
+    const principalProperty = principal.principalType === 'group' ? 'groupPrincipalId' : 'userPrincipalId';
 
     return this.$dispatch(`rancher/create`, {
       type:                  NORMAN.PROJECT_ROLE_TEMPLATE_BINDING,
       roleTemplateId:        this.roleTemplateName,
-      [principalProperty]:   this.principal.id,
+      [principalProperty]:   principal.id,
       projectId:             this.projectName,
       projectRoleTemplateId: '',
       id:                    this.id?.replace('/', ':')
