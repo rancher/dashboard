@@ -7,22 +7,12 @@ import { HCI, NODE } from '@/config/types';
 
 import { allHash } from '@/utils/promise';
 import Loading from '@/components/Loading';
-import BackupModal from './backupModal';
-import RestoreModal from './restoreModal';
-import MigrationModal from './MigrationModal';
-import CloneTemplate from './cloneTemplate';
-import ejectCDROM from './ejectCDROM';
 
 export default {
   name:       'ListVM',
   components: {
     Loading,
     VmState,
-    ejectCDROM,
-    BackupModal,
-    RestoreModal,
-    MigrationModal,
-    CloneTemplate,
     ResourceTable
   },
 
@@ -131,12 +121,6 @@ export default {
         </div>
       </template>
     </ResourceTable>
-
-    <BackupModal />
-    <RestoreModal />
-    <MigrationModal />
-    <CloneTemplate />
-    <ejectCDROM />
   </div>
 </template>
 

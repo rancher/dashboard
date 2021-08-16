@@ -1,17 +1,25 @@
 <script>
-import { HCI } from '@/config/types';
 import { exceptionToErrorsArray } from '@/utils/error';
-import { createNamespacedHelpers, mapGetters } from 'vuex';
+import { mapGetters } from 'vuex';
 
-import ModalWithCard from '@/components/ModalWithCard';
+import Card from '@/components/Card';
+import Banner from '@/components/Banner';
+import AsyncButton from '@/components/AsyncButton';
 import LabeledInput from '@/components/form/LabeledInput';
-
-const { mapState } = createNamespacedHelpers(HCI.VM);
 
 export default {
   name: 'CloneTemplateModal',
 
-  components: { LabeledInput, ModalWithCard },
+  components: {
+    AsyncButton, Banner, Card, LabeledInput
+  },
+
+  props:      {
+    resources: {
+      type:     Array,
+      required: true
+    }
+  },
 
   data() {
     return {
@@ -23,42 +31,22 @@ export default {
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
-    ...mapState(['actionResources', 'isShowCloneTemplate'])
-  },
 
-  watch: {
-    isShowCloneTemplate: {
-      handler(show) {
-        if (show) {
-          this.$nextTick(() => {
-            this.$modal.show('cloneVM-modal');
-          });
-        } else {
-          this.$modal.hide('cloneVM-modal');
-        }
-      },
-      immediate: true
-    }
+    actionResource() {
+      return this.resources[0];
+    },
   },
 
   methods: {
-    closeModal() {
-      this.$store.commit('kubevirt.io.virtualmachine/toggleCloneTemplateModal');
+    close() {
       this.templateName = '';
       this.description = '';
-      this.errors = [];
+      this.$emit('close');
     },
 
     async saveRestore(buttonCb) {
-      if (!this.templateName) {
-        this.$set(this, 'errors', [this.t('harvester.modal.createTemplate.message.tip')]);
-        buttonCb(false);
-
-        return;
-      }
-
       try {
-        const res = await this.actionResources.doAction('createTemplate', { name: this.templateName, description: this.description }, {}, false);
+        const res = await this.actionResource.doAction('createTemplate', { name: this.templateName, description: this.description }, {}, false);
 
         if (res._status === 200 || res._status === 204) {
           this.$store.dispatch('growl/success', {
@@ -66,7 +54,7 @@ export default {
             message: this.t('harvester.modal.createTemplate.message.success', { templateName: this.templateName })
           }, { root: true });
 
-          this.closeModal();
+          this.close();
           buttonCb(true);
         } else {
           const error = res?.data || exceptionToErrorsArray(res) || res;
@@ -75,9 +63,10 @@ export default {
           buttonCb(false);
         }
       } catch (err) {
-        const error = err?.data || exceptionToErrorsArray(err) || err;
+        const error = err?.data || err;
+        const message = exceptionToErrorsArray(error);
 
-        this.$set(this, 'errors', [error]);
+        this.$set(this, 'errors', message);
         buttonCb(false);
       }
     }
@@ -86,20 +75,12 @@ export default {
 </script>
 
 <template>
-  <ModalWithCard
-    ref="cloneVM-modal"
-    name="cloneVM-modal"
-    width="40%"
-    :pivot-y="0.001"
-    :errors="errors"
-    @finish="saveRestore"
-    @close="closeModal"
-  >
+  <Card :show-highlight-border="false">
     <template #title>
       {{ t('harvester.modal.createTemplate.title') }}
     </template>
 
-    <template #content>
+    <template #body>
       <LabeledInput
         v-model="templateName"
         class="mb-20"
@@ -112,5 +93,28 @@ export default {
         :label="t('harvester.modal.createTemplate.description')"
       />
     </template>
-  </ModalWithCard>
+
+    <div slot="actions">
+      <div class="buttons">
+        <button class="btn role-secondary mr-10" @click="close">
+          {{ t('generic.cancel') }}
+        </button>
+
+        <AsyncButton
+          mode="create"
+          :disabled="!templateName"
+          @click="saveRestore"
+        />
+      </div>
+
+      <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+    </div>
+  </Card>
 </template>
+
+<style lang="scss" scoped>
+.buttons {
+  display: flex;
+  width: 100%;
+}
+</style>

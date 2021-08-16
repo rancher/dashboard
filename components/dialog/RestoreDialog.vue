@@ -1,25 +1,34 @@
 <script>
 import randomstring from 'randomstring';
-import { createNamespacedHelpers, mapGetters } from 'vuex';
+import { mapGetters } from 'vuex';
 
 import { HCI } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { exceptionToErrorsArray } from '@/utils/error';
 
-import ModalWithCard from '@/components/ModalWithCard';
+import Card from '@/components/Card';
+import Banner from '@/components/Banner';
+import AsyncButton from '@/components/AsyncButton';
 import LabeledSelect from '@/components/form/LabeledSelect';
-
-const { mapState } = createNamespacedHelpers(HCI.VM);
 
 export default {
   name: 'RestoreModal',
 
-  components: { LabeledSelect, ModalWithCard },
+  components: {
+    AsyncButton, Banner, Card, LabeledSelect
+  },
 
   async fetch() {
     const hash = await allHash({ backups: this.$store.dispatch('virtual/findAll', { type: HCI.BACKUP }) });
 
     this.backups = hash.backups;
+  },
+
+  props:      {
+    resources: {
+      type:     Array,
+      required: true
+    }
   },
 
   data() {
@@ -31,12 +40,15 @@ export default {
   },
 
   computed: {
-    ...mapState(['actionResources', 'isShowRestore']),
     ...mapGetters({ t: 'i18n/t' }),
+
+    actionResource() {
+      return this.resources[0];
+    },
 
     backupOption() {
       const attachBackup = this.backups.filter( (B) => {
-        return B.attachVM === this.actionResources?.metadata?.name;
+        return B.attachVM === this.actionResource?.metadata?.name;
       });
 
       return attachBackup.map( (O) => {
@@ -48,26 +60,11 @@ export default {
     },
   },
 
-  watch: {
-    isShowRestore: {
-      handler(show) {
-        if (show) {
-          this.$nextTick(() => {
-            this.$modal.show('restore-modal');
-          });
-        } else {
-          this.$modal.hide('restore-modal');
-        }
-      },
-      immediate: true
-    }
-  },
-
   methods: {
-    closeRestore() {
-      this.$store.commit('kubevirt.io.virtualmachine/toggleRestoreModal');
+    close() {
       this.backupName = '';
       this.errors = [];
+      this.$emit('close');
     },
 
     async saveRestore(buttonCb) {
@@ -81,7 +78,7 @@ export default {
       }
 
       try {
-        const res = await this.actionResources.doAction('restore', { backupName: this.backupName, name }, {}, false);
+        const res = await this.actionResource.doAction('restore', { backupName: this.backupName, name }, {}, false);
 
         if (res._status === 200 || res._status === 204) {
           this.$store.dispatch('growl/success', {
@@ -89,7 +86,7 @@ export default {
             message: this.t('harvester.modal.restore.success', { name: this.backupName })
           }, { root: true });
 
-          this.closeRestore();
+          this.close();
           buttonCb(true);
         } else {
           const error = res?.data || exceptionToErrorsArray(res) || res;
@@ -98,9 +95,10 @@ export default {
           buttonCb(false);
         }
       } catch (err) {
-        const error = err?.data || exceptionToErrorsArray(err) || err;
+        const error = err?.data || err;
+        const message = exceptionToErrorsArray(error);
 
-        this.$set(this, 'errors', [error]);
+        this.$set(this, 'errors', message);
         buttonCb(false);
       }
     }
@@ -109,20 +107,12 @@ export default {
 </script>
 
 <template>
-  <ModalWithCard
-    ref="restore-modal"
-    name="restore-modal"
-    width="40%"
-    :pivot-y="0.001"
-    :errors="errors"
-    @finish="saveRestore"
-    @close="closeRestore"
-  >
+  <Card :show-highlight-border="false">
     <template #title>
       {{ t('harvester.modal.restore.title') }}
     </template>
 
-    <template #content>
+    <template #body>
       <LabeledSelect
         v-model="backupName"
         :label="t('harvester.modal.restore.selectBackup')"
@@ -131,5 +121,28 @@ export default {
         required
       />
     </template>
-  </ModalWithCard>
+
+    <div slot="actions">
+      <div class="buttons">
+        <button class="btn role-secondary mr-10" @click="close">
+          {{ t('generic.cancel') }}
+        </button>
+
+        <AsyncButton
+          mode="create"
+          :disabled="!backupName"
+          @click="saveRestore"
+        />
+      </div>
+
+      <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+    </div>
+  </Card>
 </template>
+
+<style lang="scss" scoped>
+.buttons {
+  display: flex;
+  width: 100%;
+}
+</style>

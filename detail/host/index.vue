@@ -4,8 +4,6 @@ import Tab from '@/components/Tabbed/Tab';
 import metricPoller from '@/mixins/metric-poller';
 import { METRIC, NODE, HCI } from '@/config/types';
 import { allHash } from '@/utils/promise';
-import MaintenanceModal from '@/list/host/maintenanceModal';
-import CordonModal from '@/list/host/cordonModal';
 import Basic from './basic';
 import Instance from './instance';
 
@@ -17,8 +15,6 @@ export default {
     Tab,
     Basic,
     Instance,
-    MaintenanceModal,
-    CordonModal
   },
   mixins: [metricPoller],
 
@@ -82,8 +78,5 @@ export default {
         <Instance :node="value" />
       </Tab>
     </Tabbed>
-
-    <MaintenanceModal />
-    <CordonModal />
   </div>
 </template>
