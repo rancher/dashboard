@@ -178,12 +178,12 @@ export default {
               resources: {
                 requests: {
                   memory: null,
-                  // cpu:    ''
+                  cpu:    ''
                 },
-                // limits: {
-                //   memory: null,
-                //   cpu:    ''
-                // }
+                limits: {
+                  memory: null,
+                  cpu:    ''
+                }
               }
             },
             evictionStrategy: 'LiveMigrate',
