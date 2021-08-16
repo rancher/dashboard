@@ -25,6 +25,16 @@ export default {
     }
 
     return out;
-  }
+  },
+
+  customValidationRules() {
+    return [
+      {
+        path:           'value',
+        translationKey: 'setting.serverUrl.https',
+        validators:     [`isHttps:${ this.metadata.name }`]
+      },
+    ];
+  },
 
 };
