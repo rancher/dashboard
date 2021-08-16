@@ -305,7 +305,18 @@ export default {
     },
 
     parseOther() {
+      console.log('----vm', this.spec.template.spec.domain.resources.requests.memory);
       this.$set(this.spec.template.spec.domain.machine, 'type', this.machineType);
+
+      if (!this.spec.template.spec.domain.resources.limits) {
+        this.spec.template.spec.domain.resources.limits = {
+          memory: null,
+          cpu:    ''
+        };
+      }
+      this.spec.template.spec.domain.resources.requests.cpu = this.spec.template.spec.domain.cpu.cores;
+      this.spec.template.spec.domain.resources.limits.memory = this.spec.template.spec.domain.resources.requests.memory;
+      this.spec.template.spec.domain.resources.limits.cpu = this.spec.template.spec.domain.cpu.cores;
     },
 
     parseDiskRows(disk) {

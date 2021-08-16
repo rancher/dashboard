@@ -178,7 +178,7 @@ export default {
           this.$set(this, 'networkScript', cloudScript?.networkData);
           this.$set(this, 'sshKey', sshKey);
           this.value.spec = curVersion.spec.vm.spec;
-
+          this.$set(this, 'spec', curVersion.spec.vm.spec);
           const claimTemplate = this.getVolumeClaimTemplates(curVersion.spec.vm);
 
           this.value.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(claimTemplate);
