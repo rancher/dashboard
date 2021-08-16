@@ -201,4 +201,12 @@ export default {
   confirmRemove() {
     return true;
   },
+
+  remove() {
+    return async() => {
+      const norman = await this.$dispatch(`rancher/find`, { id: this.id, type: NORMAN.USER }, { root: true });
+
+      await norman.remove();
+    };
+  }
 };
