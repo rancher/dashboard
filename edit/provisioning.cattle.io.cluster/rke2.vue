@@ -431,7 +431,7 @@ export default {
       for ( const opt of this.agentArgs['cloud-provider-name'].options ) {
         if ( !preferred || opt === preferred || opt === 'external' ) {
           out.push({
-            label: opt,
+            label: this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ opt }".label`, null, opt),
             value: opt,
           });
         }
@@ -600,7 +600,7 @@ export default {
       switch ( name ) {
       case 'none': return false;
       case 'aws': return false;
-      case 'vsphere': return false;
+      case 'rancher-vsphere': return false;
       default: return true;
       }
     },
@@ -612,7 +612,7 @@ export default {
 
       const name = this.agentConfig['cloud-provider-name'];
 
-      return name === 'vsphere';
+      return name === 'rancher-vsphere';
     },
 
     showCni() {
@@ -629,7 +629,7 @@ export default {
         names.push(...parts);
       }
 
-      if ( this.agentConfig['cloud-provider-name'] === 'vsphere' ) {
+      if ( this.agentConfig['cloud-provider-name'] === 'rancher-vsphere' ) {
         names.push('rancher-vsphere-cpi', 'rancher-vsphere-csi');
       }
 
@@ -1104,7 +1104,7 @@ export default {
           </div>
 
           <template v-if="showVsphereNote">
-            <Banner color="warning" label-key="cluster.cloudProvider.vsphere.note" />
+            <Banner color="warning" label-key="cluster.cloudProvider.rancher-vsphere.note" />
           </template>
           <template v-else-if="showCloudConfigYaml">
             <div class="spacer" />
