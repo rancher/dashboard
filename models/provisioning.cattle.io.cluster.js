@@ -71,7 +71,7 @@ export default {
       icon:       'icon icon-snapshot',
       bulkAction: 'snapshotBulk',
       bulkable:   true,
-      enabled:    (this.isRke1 || this.isRke2) && this.mgmt?.isReady,
+      enabled:    (this.isRke1 || this.isRke2) && this.mgmt?.isReady && this.canUpdate,
     });
 
     insertAt(out, idx++, {
