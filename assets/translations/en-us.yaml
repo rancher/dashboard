@@ -2533,6 +2533,7 @@ node:
       taints: Taints
   actions:
     downloadSSHKey: Download SSH Key
+    downloadNodeConfig: Download Keys
     scaleDown: Scale Down
 
 persistentVolume:
