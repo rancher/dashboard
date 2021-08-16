@@ -204,7 +204,7 @@ export default {
 </script>
 
 <template>
-  <div :class="{'side-tabs': (!!sideTabs && tabs.length)}">
+  <div :class="{'side-tabs': !!sideTabs }">
     <ul
       ref="tablist"
       role="tablist"
@@ -232,18 +232,21 @@ export default {
           {{ tab.labelDisplay }}
         </a>
       </li>
+      <li v-if="sideTabs && !sortedTabs.length" class="tab disabled">
+        <a href="#">(None)</a>
+      </li>
       <ul v-if="sideTabs && showTabsAddRemove" class="tab-list-footer">
         <li>
           <button type="button" class="btn bg-transparent" @click="tabAddClicked">
             <i class="icon icon-plus icon-lg" />
           </button>
-          <button type="button" class="btn bg-transparent" @click="tabRemoveClicked">
+          <button type="button" class="btn bg-transparent" :disabled="!sortedTabs.length" @click="tabRemoveClicked">
             <i class="icon icon-minus icon-lg" />
           </button>
         </li>
       </ul>
     </ul>
-    <div :class="{ 'tab-container': !!tabs.length, 'no-content': noContent }">
+    <div :class="{ 'tab-container': !!tabs.length || !!sideTabs, 'no-content': noContent }">
       <slot />
     </div>
   </div>
@@ -337,6 +340,15 @@ export default {
 
           & A{
             color: var(--input-label);
+          }
+        }
+
+        &.disabled {
+          background-color: var(--disabled-bg);
+
+          & A {
+            color: var(--disabled-text);
+            text-decoration: none;
           }
         }
       }
