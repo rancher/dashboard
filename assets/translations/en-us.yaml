@@ -4079,6 +4079,9 @@ validation:
         iana: 'Port Rule [{position}] - Target Port must be an IANA Service Name or Integer'
         ianaAt: 'Port Rule [{position}] - Target Port '
         required: 'Port Rule [{position}] - Target Port is required'
+  setting:
+    serverUrl: 
+      https: server-url must be https.
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
     exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'
