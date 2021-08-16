@@ -884,13 +884,21 @@ cluster:
     rke2-kube-proxy: Kube Proxy Configuration
     rke2-metrics-server: Metrics Server Configuration
     rke2-multus: Multus Configuration
-
   agentEnvVars:
     label: Agent Environment
     detail: Add additional environment variables to the agent container.  This is most commonly useful for configuring a HTTP proxy.
     keyLabel: Variable Name
   cloudProvider:
-    vsphere:
+    aws:
+      label: Amazon
+    azure:
+      label: Azure
+    external:
+      label: External
+    gcp:
+      label: Google
+    rancher-vsphere:
+      label: vSphere
       note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the Add-On Config tab.'
   custom:
     nodeRole:
