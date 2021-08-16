@@ -9,7 +9,7 @@ import Tabbed from '@/components/Tabbed';
 import { CAPI } from '@/config/types';
 import ClusterMembershipEditor from '@/components/form/Members/ClusterMembershipEditor';
 import Banner from '@/components/Banner';
-import { canViewMembershipEditor } from '@/components/form/Members/MembershipEditor.vue';
+import { canViewClusterMembershipEditor } from '@/components/form/Members/ClusterMembershipEditor.vue';
 import Labels from './Labels';
 import AgentEnv from './AgentEnv';
 
@@ -57,7 +57,7 @@ export default {
 
   computed: {
     canManageMembers() {
-      return canViewMembershipEditor(this.$store);
+      return canViewClusterMembershipEditor(this.$store);
     }
   },
 

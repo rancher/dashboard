@@ -40,7 +40,7 @@ import { normalizeName } from '@/components/form/NameNsDescription.vue';
 import ClusterMembershipEditor from '@/components/form/Members/ClusterMembershipEditor';
 import { LEGACY } from '@/store/features';
 import semver from 'semver';
-import { canViewMembershipEditor } from '@/components/form/Members/MembershipEditor.vue';
+import { canViewClusterMembershipEditor } from '@/components/form/Members/ClusterMembershipEditor.vue';
 import ACE from './ACE';
 import AgentEnv from './AgentEnv';
 import DrainOptions from './DrainOptions';
@@ -645,7 +645,7 @@ export default {
     },
 
     canManageMembers() {
-      return canViewMembershipEditor(this.$store);
+      return canViewClusterMembershipEditor(this.$store);
     }
   },
 

@@ -11,7 +11,7 @@ import { MANAGEMENT } from '@/config/types';
 import { NAME } from '@/config/product/explorer';
 import { PROJECT_ID } from '@/config/query-params';
 import ProjectMembershipEditor from '@/components/form/Members/ProjectMembershipEditor';
-import { canViewMembershipEditor } from '@/components/form/Members/MembershipEditor.vue';
+import { canViewProjectMembershipEditor } from '@/components/form/Members/ProjectMembershipEditor.vue';
 
 export default {
   components: {
@@ -39,7 +39,7 @@ export default {
   },
   computed: {
     canManageMembers() {
-      return canViewMembershipEditor(this.$store);
+      return canViewProjectMembershipEditor(this.$store);
     },
     hasOwner() {
       // Users who cannot access binding schema cannot see membership component, though will gain owner binding automatically on project create
