@@ -82,7 +82,7 @@ export default {
 
     <LabeledInput
       v-else
-      v-model="value.spec.url"
+      v-model.trim="value.spec.url"
       :required="true"
       :label="t('catalog.repo.url.label')"
       :placeholder="t('catalog.repo.url.placeholder', null, true)"
