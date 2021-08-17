@@ -1,11 +1,13 @@
 <script>
 import { _VIEW } from '@/config/query-params';
+import { mapGetters } from 'vuex';
 import { get, isEmpty, clone } from '@/utils/object';
 import { NODE } from '@/config/types';
 import MatchExpressions from '@/components/form/MatchExpressions';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { randomStr } from '@/utils/string';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
+import { NAME as VIRTUAL } from '@/config/product/virtual';
 
 export default {
   components: {
@@ -55,6 +57,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
     isView() {
       return this.mode === _VIEW;
     },
@@ -64,6 +67,27 @@ export default {
     node() {
       return NODE;
     },
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === VIRTUAL;
+    },
+    defaultAddValue() {
+      const out = { matchExpressions: [] };
+
+      if (this.isHarvester) {
+        out.weight = 1;
+      }
+
+      return out;
+    },
+    affinityOptions() {
+      const out = [this.t('workload.scheduling.affinity.preferred')];
+
+      if (!this.isHarvester) {
+        out.push(this.t('workload.scheduling.affinity.required'));
+      }
+
+      return out;
+    }
   },
 
   methods: {
@@ -102,7 +126,7 @@ export default {
     },
 
     priorityDisplay(term) {
-      return term.weight ? this.t('workload.scheduling.affinity.preferred') : this.t('workload.scheduling.affinity.required');
+      return term.weight || this.isHarvester ? this.t('workload.scheduling.affinity.preferred') : this.t('workload.scheduling.affinity.required');
     },
 
     get,
@@ -116,12 +140,12 @@ export default {
 <template>
   <div class="row" @input="update">
     <div class="col span-12">
-      <ArrayListGrouped v-model="allSelectorTerms" class="mt-20" :default-add-value="{matchExpressions:[]}" :add-label="t('workload.scheduling.affinity.addNodeSelector')">
+      <ArrayListGrouped v-model="allSelectorTerms" class="mt-20" :mode="mode" :default-add-value="defaultAddValue" :add-label="t('workload.scheduling.affinity.addNodeSelector')">
         <template #default="props">
           <div class="row">
             <div class="col span-6">
               <LabeledSelect
-                :options="[t('workload.scheduling.affinity.preferred'),t('workload.scheduling.affinity.required')]"
+                :options="affinityOptions"
                 :value="priorityDisplay(props.row.value)"
                 :label="t('workload.scheduling.affinity.priority')"
                 :mode="mode"

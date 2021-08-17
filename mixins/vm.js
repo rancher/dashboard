@@ -132,6 +132,12 @@ export default {
       return this.$store.getters['virtual/all'](HCI.VM_TEMPLATE) || [];
     },
 
+    nodesIdOptions() {
+      const nodes = this.$store.getters['virtual/all'](NODE) || [];
+
+      return nodes.map(node => node.id);
+    },
+
     memory: {
       get() {
         return this.spec.template.spec.domain.resources.requests.memory;

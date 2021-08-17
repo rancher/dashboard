@@ -19,6 +19,7 @@ import Network from '@/edit/kubevirt.io.virtualmachine/network';
 import ImageSelect from '@/edit/kubevirt.io.virtualmachine/Image';
 import CpuMemory from '@/edit/kubevirt.io.virtualmachine/CpuMemory';
 import CloudConfig from '@/edit/kubevirt.io.virtualmachine/CloudConfig';
+import NodeScheduling from '@/components/form/NodeScheduling';
 
 import { clone } from '@/utils/object';
 import { HCI } from '@/config/types';
@@ -47,6 +48,7 @@ export default {
     CpuMemory,
     ImageSelect,
     CloudConfig,
+    NodeScheduling,
   },
 
   mixins: [CreateEditView, VM_MIXIN],
@@ -465,10 +467,14 @@ export default {
           <Network v-model="networkRows" :mode="mode" />
         </Tab>
 
+        <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="-3">
+          <NodeScheduling :mode="mode" :value="spec.template.spec" :nodes="nodesIdOptions" />
+        </Tab>
+
         <Tab
           name="advanced"
           :label="t('harvester.tab.advanced')"
-          :weight="-3"
+          :weight="-4"
         >
           <div class="row mb-20">
             <div class="col span-6">

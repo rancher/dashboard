@@ -1,10 +1,11 @@
 <script>
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import { EVENT, HCI, SERVICE } from '@/config/types';
+import { EVENT, HCI, SERVICE, NODE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import HarvesterMetrics from '@/components/HarvesterMetrics';
 import { allHash } from '@/utils/promise';
+import NodeScheduling from '@/components/form/NodeScheduling';
 import OverviewBasics from './tabs/details/basics';
 import OverviewDisks from './tabs/details/disks';
 import OverviewNetworks from './tabs/details/networks';
@@ -27,6 +28,7 @@ export default {
     OverviewNetworks,
     OverviewKeypairs,
     OverviewCloudConfigs,
+    NodeScheduling,
     Migration,
     HarvesterMetrics,
   },
@@ -70,11 +72,19 @@ export default {
 
       return vmi;
     },
+
+    nodesIdOptions() {
+      const nodes = this.$store.getters['virtual/all'](NODE) || [];
+
+      return nodes.map(node => node.id);
+    },
+
     allEvents() {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
       return this.$store.getters[`${ inStore }/all`](EVENT);
     },
+
     events() {
       return this.allEvents.filter((e) => {
         const { name, creationTimestamp } = this.value?.metadata || {};
@@ -120,12 +130,16 @@ export default {
         <OverviewBasics v-model="value" :resource="vmi" mode="view" />
       </Tab>
 
-      <Tab name="disks" :label="t('harvester.tab.volume')" class="bordered-table" :weight="5">
+      <Tab name="disks" :label="t('harvester.tab.volume')" class="bordered-table" :weight="6">
         <OverviewDisks v-model="value" />
       </Tab>
 
-      <Tab name="networks" :label="t('harvester.virtualMachine.detail.tabs.networks')" class="bordered-table" :weight="4">
+      <Tab name="networks" :label="t('harvester.virtualMachine.detail.tabs.networks')" class="bordered-table" :weight="5">
         <OverviewNetworks v-model="value" />
+      </Tab>
+
+      <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="4">
+        <NodeScheduling :mode="mode" :value="value.spec.template.spec" :nodes="nodesIdOptions" />
       </Tab>
 
       <Tab name="keypairs" :label="t('harvester.virtualMachine.detail.tabs.keypairs')" class="bordered-table" :weight="3">

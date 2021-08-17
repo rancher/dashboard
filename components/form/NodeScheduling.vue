@@ -1,7 +1,9 @@
 <script>
+import { mapGetters } from 'vuex';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import NodeAffinity from '@/components/form/NodeAffinity';
+import { NAME as VIRTUAL } from '@/config/product/virtual';
 import { _VIEW } from '@/config/query-params';
 import { isEmpty } from '@/utils/object';
 
@@ -56,8 +58,34 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
     isView() {
       return this.mode === _VIEW;
+    },
+
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === VIRTUAL;
+    },
+
+    selectNodeOptions() {
+      const out = [{
+        label: this.t('workload.scheduling.affinity.anyNode'),
+        value: null
+      },
+      {
+        label: this.t('workload.scheduling.affinity.specificNode'),
+        value: 'nodeSelector'
+      },
+      {
+        label: this.t('workload.scheduling.affinity.schedulingRules'),
+        value: 'affinity'
+      }];
+
+      if (this.isHarvester) {
+        out.splice(1, 1);
+      }
+
+      return out;
     },
 
   },
@@ -100,8 +128,7 @@ export default {
       <RadioGroup
         v-model="selectNode"
         name="selectNode"
-        :options="[null, 'nodeSelector', 'affinity']"
-        :labels="[ t('workload.scheduling.affinity.anyNode'), t('workload.scheduling.affinity.specificNode'), t('workload.scheduling.affinity.schedulingRules') ]"
+        :options="selectNodeOptions"
         :mode="mode"
         @input="update"
       />
