@@ -227,7 +227,7 @@ export function init(store) {
     name:        VIRTUAL_TYPES.CLUSTER_MEMBERS,
     icon:       'globe',
     weight:      100,
-    route:       { name: 'c-cluster-explorer-members' },
+    route:       { name: 'c-cluster-product-members' },
     exact:       true,
     ifHaveType:  {
       type:   MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
