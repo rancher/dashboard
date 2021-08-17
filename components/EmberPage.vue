@@ -4,17 +4,11 @@ import { mapGetters, mapState } from 'vuex';
 import { NAME as MANAGER } from '@/config/product/manager';
 import { CAPI, MANAGEMENT } from '@/config/types';
 import { SETTING } from '@/config/settings';
+import { findEmberPage, clearEmberInactiveTimer, startEmberInactiveTimer, EMBER_FRAME } from '@/utils/ember-page';
 
-const EMBER_FRAME = 'ember-iframe';
 const EMBER_FRAME_HIDE_CLASS = 'ember-iframe-hidden';
 const PAGE_CHECK_TIMEOUT = 30000;
 const WINDOW_MANAGER = 'windowmanager';
-
-// Remove the IFrame if the user has not used an embedded page after this time
-// since last visiting an embedded page
-const INACTIVITY_CHECK_TIMEOUT = 60000;
-
-let inactiveRemoveTimer = null;
 
 // Pages that we should intercept when loaded in the IFRAME and instead
 // navigate to a page in Cluster Dashboard
@@ -111,7 +105,7 @@ export default {
           this.syncSize();
         } else {
           clearTimeout(this.heightSync);
-          const iframeEl = document.getElementById(EMBER_FRAME);
+          const iframeEl = findEmberPage();
 
           // Reset the height when the window manager is closed
           this.heightSync = null;
@@ -127,7 +121,7 @@ export default {
 
   mounted() {
     // Embedded page visited, so cancel time to remove IFRAME when inactive
-    clearTimeout(inactiveRemoveTimer);
+    clearEmberInactiveTimer();
     window.addEventListener('message', this.receiveMessage);
     this.initFrame();
   },
@@ -140,7 +134,7 @@ export default {
     }
 
     if (this.inline) {
-      const iframeEl = document.getElementById(EMBER_FRAME);
+      const iframeEl = findEmberPage();
 
       // Remove the IFRAME - we can't reuse it one its been moved inline
       if (iframeEl) {
@@ -159,13 +153,7 @@ export default {
     }
 
     // Set up a timer to remove the IFrame after a period of inactivity
-    inactiveRemoveTimer = setTimeout(() => {
-      const iframeEl = document.getElementById(EMBER_FRAME);
-
-      if (iframeEl !== null) {
-        iframeEl.remove();
-      }
-    }, INACTIVITY_CHECK_TIMEOUT);
+    startEmberInactiveTimer();
   },
 
   methods: {
@@ -202,7 +190,7 @@ export default {
       this.loadRequired = false;
 
       // Get the existing iframe if it exists
-      let iframeEl = document.getElementById(EMBER_FRAME);
+      let iframeEl = findEmberPage();
 
       // If the iframe already exists, check if it is ready for us to reuse
       // by navigating within the app that is already loaded
@@ -320,7 +308,7 @@ export default {
 
     dosyncSize() {
       if (this.inline) {
-        const iframeEl = document.getElementById(EMBER_FRAME);
+        const iframeEl = findEmberPage();
         const doc = iframeEl.contentWindow.document;
         const app = doc.getElementById('application');
         const h = app?.offsetHeight;
@@ -346,7 +334,7 @@ export default {
 
           if (wmh !== this.wmHeight) {
             // Adjust the bottom
-            const iframeEl = document.getElementById(EMBER_FRAME);
+            const iframeEl = findEmberPage();
 
             iframeEl.style.height = `calc(100vh - var(--header-height) - ${ wmh }px)`;
             this.wmHeight = wmh;
@@ -356,7 +344,7 @@ export default {
     },
 
     notifyTheme(theme) {
-      const iframeEl = document.getElementById(EMBER_FRAME);
+      const iframeEl = findEmberPage();
 
       if (iframeEl) {
         const emberTheme = theme === 'light' ? 'ui-light' : 'ui-dark';
