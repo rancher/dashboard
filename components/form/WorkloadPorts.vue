@@ -308,7 +308,7 @@ $checkbox: 75;
 }
 .ports-headers, .ports-row{
   display: grid;
-  grid-template-columns: 20% 32% 145px 80px .5fr .5fr;
+  grid-template-columns: 20% 32% 145px 90px .5fr .5fr;
   grid-column-gap: $column-gutter;
   margin-bottom: 10px;
   align-items: center;
@@ -318,7 +318,7 @@ $checkbox: 75;
   }
 
   &.show-host{
-    grid-template-columns: 20% 20% 145px 80px 140px .5fr .5fr;
+    grid-template-columns: 20% 20% 145px 90px 140px .5fr .5fr;
   }
 
 }
