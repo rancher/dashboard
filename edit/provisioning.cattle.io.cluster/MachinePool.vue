@@ -97,7 +97,7 @@ export default {
           :mode="mode"
           label="Pool Name"
           :required="true"
-          :disabled="!!value.config.id"
+          :disabled="!value.config || !!value.config.id"
         />
       </div>
       <div class="col span-2">
@@ -133,13 +133,14 @@ export default {
     <hr class="mt-10" />
 
     <Banner
-      v-if="showWarning"
+      v-if="showWarning && value.config"
       color="info"
       :label="t('cluster.machineConfig.banner.updateInfo')"
     />
 
     <component
       :is="configComponent"
+      v-if="value.config"
       ref="configComponent"
       :uuid="uuid"
       :mode="mode"
@@ -149,6 +150,7 @@ export default {
       :disabled="!!value.config.id"
       @error="e=>errors = e"
     />
+    <Banner v-else color="info" label="You do not have access to see this machine pool's configuration." />
 
     <AdvancedSection :mode="mode" class="advanced">
       <portal-target :name="'advanced-' + uuid" multiple />
