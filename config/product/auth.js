@@ -75,8 +75,8 @@ export function init(store) {
     ],
     getInstances: async() => {
       // Determine if the user can get fetch global roles & global role bindings. If not there's not much point in showing the table
-      const canFetchGlobalRoles = !!store.getters[`management/schemaFor`](MANAGEMENT.GLOBAL_ROLE);
-      const canFetchGlobalRoleBindings = !!store.getters[`management/schemaFor`](MANAGEMENT.GLOBAL_ROLE_BINDING);
+      const canFetchGlobalRoles = !!store.getters[`management/canList`](MANAGEMENT.GLOBAL_ROLE);
+      const canFetchGlobalRoleBindings = !!store.getters[`management/canList`](MANAGEMENT.GLOBAL_ROLE_BINDING);
 
       if (!canFetchGlobalRoles || !canFetchGlobalRoleBindings) {
         return [];

@@ -43,23 +43,23 @@ export default {
     if (this.value.isImported || this.value.isRke1) {
       // Cluster isn't compatible with machines/machineDeployments, show nodes/node pools instead
 
-      if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE) ) {
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
         hash.allNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
       }
 
-      if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE_POOL) ) {
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
         hash.allNodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
       }
 
-      if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE_TEMPLATE) ) {
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
         hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
       }
     } else {
-      if ( this.$store.getters['management/schemaFor'](CAPI.MACHINE_DEPLOYMENT) ) {
+      if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
         hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
       }
 
-      if ( this.$store.getters['management/schemaFor'](CAPI.MACHINE) ) {
+      if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
         hash.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
       }
     }

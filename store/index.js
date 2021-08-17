@@ -471,7 +471,7 @@ export const actions = {
       promises['counts'] = dispatch('management/findAll', { type: COUNT });
     }
 
-    if ( getters['management/schemaFor'](MANAGEMENT.SETTING) ) {
+    if ( getters['management/canList'](MANAGEMENT.SETTING) ) {
       promises['settings'] = dispatch('management/findAll', { type: MANAGEMENT.SETTING });
     }
 
