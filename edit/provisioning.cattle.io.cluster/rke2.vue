@@ -38,6 +38,7 @@ import Questions from '@/components/Questions';
 
 import { normalizeName } from '@/components/form/NameNsDescription.vue';
 import ClusterMembershipEditor from '@/components/form/Members/ClusterMembershipEditor';
+import SelectOrCreateAuthSecret from '@/components/form/SelectOrCreateAuthSecret';
 import { LEGACY } from '@/store/features';
 import semver from 'semver';
 import ACE from './ACE';
@@ -49,6 +50,10 @@ import RegistryConfigs from './RegistryConfigs';
 import RegistryMirrors from './RegistryMirrors';
 import S3Config from './S3Config';
 import SelectCredential from './SelectCredential';
+
+const PUBLIC = 'public';
+const PRIVATE = 'private';
+const ADVANCED = 'advanced';
 
 export default {
   components: {
@@ -75,6 +80,7 @@ export default {
     RegistryMirrors,
     S3Config,
     SelectCredential,
+    SelectOrCreateAuthSecret,
     Tab,
     Tabbed,
     UnitInput,
@@ -188,31 +194,12 @@ export default {
       }
     }
 
-    for ( const v of this.addonVersions ) {
-      if ( this.versionInfo[v.name] ) {
-        continue;
-      }
-
-      const res = await this.$store.dispatch('catalog/getVersionInfo', {
-        repoType:    'cluster',
-        repoName:    v.repoName,
-        chartName:   v.name,
-        versionName: v.version
-      });
-
-      this.versionInfo[v.name] = res;
-
-      const fromChart = res.values || {};
-      const fromUser = this.chartValues[v.name] || this.value.spec.rkeConfig.chartValues[v.name] || {};
-
-      const merged = merge(merge({}, fromChart), fromUser);
-
-      set(this.chartValues, v.name, merged);
-    }
-
     if ( this.value.spec.defaultPodSecurityPolicyTemplateName === undefined ) {
       set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
     }
+
+    await this.initAddons();
+    this.initRegistry();
   },
 
   data() {
@@ -255,12 +242,19 @@ export default {
       versionInfo:      {},
       membershipUpdate: {},
       hasOwner:         false,
+      registryMode:     null,
+      registryDefault:  null,
+      registrySecret:   null,
     };
   },
 
   computed: {
     ...mapGetters({ allCharts: 'catalog/charts' }),
     ...mapGetters({ features: 'features/get' }),
+
+    PUBLIC:   () => PUBLIC,
+    PRIVATE:  () => PRIVATE,
+    ADVANCED: () => ADVANCED,
 
     rkeConfig() {
       return this.value.spec.rkeConfig;
@@ -482,6 +476,15 @@ export default {
       return this.provider === 'custom' && ( this.serverArgs.profile || this.agentArgs.profile );
     },
 
+    registryOptions() {
+      return [PUBLIC, PRIVATE, ADVANCED].map((opt) => {
+        return {
+          label: this.$store.getters['i18n/withFallback'](`cluster.privateRegistry.mode."${ opt }"`, null, opt),
+          value: opt,
+        };
+      });
+    },
+
     needCredential() {
       if ( this.provider === 'custom' || this.provider === 'import' || this.mode === _VIEW ) {
         return false;
@@ -693,7 +696,7 @@ export default {
       } else {
         this.errors.push(this.t('cluster.haveOneOwner'));
       }
-    }
+    },
   },
 
   mounted() {
@@ -702,6 +705,7 @@ export default {
 
   created() {
     this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools');
+    this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
     this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
   },
@@ -941,6 +945,30 @@ export default {
       return out;
     },
 
+    async initAddons() {
+      for ( const v of this.addonVersions ) {
+        if ( this.versionInfo[v.name] ) {
+          continue;
+        }
+
+        const res = await this.$store.dispatch('catalog/getVersionInfo', {
+          repoType:    'cluster',
+          repoName:    v.repoName,
+          chartName:   v.name,
+          versionName: v.version
+        });
+
+        this.versionInfo[v.name] = res;
+
+        const fromChart = res.values || {};
+        const fromUser = this.chartValues[v.name] || this.value.spec.rkeConfig.chartValues[v.name] || {};
+
+        const merged = merge(merge({}, fromChart), fromUser);
+
+        set(this.chartValues, v.name, merged);
+      }
+    },
+
     labelForAddon(name) {
       const fallback = `${ camelToTitle(name.replace(/^(rke|rke2|rancher)-/, '')) } Configuration`;
 
@@ -993,6 +1021,76 @@ export default {
       return idx !== 0;
     },
 
+    initRegistry() {
+      let registryMode = PUBLIC;
+      const registryDefault = this.agentConfig?.['system-default-registry'];
+      let registrySecret = null;
+      let regs = this.rkeConfig.registries;
+
+      if ( !regs ) {
+        regs = {};
+        set(this.rkeConfig, 'registries', regs);
+      }
+
+      if ( !regs.configs ) {
+        set(regs, 'configs', []);
+      }
+
+      if ( !regs.mirrors ) {
+        set(regs, 'mirrors', {});
+      }
+
+      if ( registryDefault ) {
+        registryMode = PRIVATE;
+      }
+
+      if ( Object.keys(regs.mirrors || {}).length || regs.configs?.length > 1 ) {
+        registryMode = ADVANCED;
+      } else {
+        const config = regs.configs[0];
+
+        if ( config ) {
+          if ( config.hostname !== registryDefault || config.caBundle || config.insecureSkipVerify || config.tlsSecretName ) {
+            registryMode = ADVANCED;
+          } else {
+            registryMode = PRIVATE;
+            registrySecret = config.authConfigSecretName;
+          }
+        }
+      }
+
+      this.registryMode = registryMode;
+      this.registrySecret = registrySecret;
+    },
+
+    setRegistryConfig() {
+      if ( this.registryMode === ADVANCED ) {
+        return;
+      }
+
+      const hostname = (this.agentConfig['system-default-registry'] || '').trim();
+
+      if ( this.registryMode === PRIVATE && hostname ) {
+        set(this.agentConfig, 'system-default-registry', hostname);
+        set(this.rkeConfig.registries, 'mirrors', {});
+
+        if ( this.registrySecret ) {
+          set(this.rkeConfig.registries, 'configs', [{
+            hostname,
+            authConfigSecretName: this.registrySecret,
+            caBundle:             null,
+            insecureSkipVerify:   false,
+            tlsSecretName:        null,
+          }]);
+        } else {
+          set(this.rkeConfig.registries, 'configs', []);
+        }
+      } else {
+        set(this.agentConfig, 'system-default-registry', null);
+        set(this.rkeConfig.registries, 'configs', []);
+        set(this.rkeConfig.registries, 'mirrors', {});
+      }
+    },
   },
 };
 </script>
@@ -1317,17 +1415,47 @@ export default {
         </Tab>
 
         <Tab name="registry" label-key="cluster.tabs.registry">
-          <RegistryMirrors
-            v-model="value"
+          <RadioGroup
+            v-model="registryMode"
+            name="registry-mode"
+            :options="registryOptions"
             :mode="mode"
           />
 
-          <RegistryConfigs
-            v-model="value"
+          <LabeledInput
+            v-if="registryMode !== PUBLIC"
+            v-model="agentConfig['system-default-registry']"
             class="mt-20"
             :mode="mode"
-            :register-before-hook="registerBeforeHook"
+            :required="true"
+            :label="t('cluster.privateRegistry.systemDefaultRegistry.label')"
           />
+
+          <SelectOrCreateAuthSecret
+            v-if="registryMode === PRIVATE"
+            v-model="registrySecret"
+            :register-before-hook="registerBeforeHook"
+            :hook-priority="1"
+            in-store="management"
+            :allow-ssh="false"
+            :vertical="true"
+            :namespace="value.metadata.namespace"
+            generate-name="registryconfig-auth-"
+          />
+          <template v-else-if="registryMode === ADVANCED">
+            <RegistryMirrors
+              v-model="value"
+              class="mt-20"
+              :mode="mode"
+            />
+
+            <RegistryConfigs
+              v-model="value"
+              class="mt-20"
+              :mode="mode"
+              :register-before-hook="registerBeforeHook"
+            />
+          </template>
         </Tab>
 
         <Tab name="addons" label-key="cluster.tabs.addons" @active="refreshYamls">
