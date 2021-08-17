@@ -103,7 +103,7 @@ module.exports = {
     // debug:   true
   },
 
-  content: { markdown: { prism: { theme: false } } },
+  content: { markdown: { prism: { theme: false } }, liveEdit: false },
 
   router: {
     base:       routerBasePath,
