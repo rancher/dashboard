@@ -9,6 +9,12 @@ import Loading from '@/components/Loading';
 import Checkbox from '@/components/form/Checkbox';
 import { DESCRIPTION } from '@/config/labels-annotations';
 
+export function canViewClusterPermissionsEditor(store) {
+  return !!store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING) &&
+    !!store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE) &&
+    !!store.getters['management/schemaFor'](MANAGEMENT.USER);
+}
+
 export default {
   components: {
     Card,

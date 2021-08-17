@@ -5,6 +5,7 @@ import Loading from '@/components/Loading';
 import { NAME } from '@/config/product/explorer';
 import Masthead from '@/components/ResourceList/Masthead';
 import { AGE, ROLE, STATE, PRINCIPAL } from '@/config/table-headers';
+import { canViewClusterPermissionsEditor } from '@/components/form/Members/ClusterPermissionsEditor.vue';
 
 /**
  * When this metadata.name is used it indicates that the binding was created by the cluster owner.
@@ -57,7 +58,11 @@ export default {
     filteredClusterRoleTemplateBindings() {
       return this.clusterRoleTemplateBindings
         .filter(b => (!b.isSystem || b.metadata.name === CREATOR_CLUSTER_OWNER ) && b.clusterName === this.$store.getters['currentCluster'].id);
-    }
+    },
+
+    canManageMembers() {
+      return canViewClusterPermissionsEditor(this.$store);
+    },
   },
 };
 </script>
@@ -69,6 +74,7 @@ export default {
       :schema="schema"
       :resource="resource"
       :favorite-resource="VIRTUAL_TYPES.CLUSTER_MEMBERS"
+      :is-creatable="canManageMembers"
       :create-location="createLocation"
       :create-button-label="t('members.createActionLabel')"
     />

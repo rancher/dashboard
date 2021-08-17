@@ -41,6 +41,7 @@ import ClusterMembershipEditor from '@/components/form/Members/ClusterMembership
 import SelectOrCreateAuthSecret from '@/components/form/SelectOrCreateAuthSecret';
 import { LEGACY } from '@/store/features';
 import semver from 'semver';
+import { canViewClusterMembershipEditor } from '@/components/form/Members/ClusterMembershipEditor.vue';
 import ACE from './ACE';
 import AgentEnv from './AgentEnv';
 import DrainOptions from './DrainOptions';
@@ -658,6 +659,10 @@ export default {
       const selectedVersion = semver.coerce(this.value.spec.kubernetesVersion);
 
       return semver.satisfies(selectedVersion, '>=1.21.0');
+    },
+
+    canManageMembers() {
+      return canViewClusterMembershipEditor(this.$store);
     }
   },
 
@@ -860,7 +865,7 @@ export default {
     },
 
     validationPassed() {
-      return (this.provider === 'custom' || !!this.credentialId) && this.hasOwner;
+      return (this.provider === 'custom' || !!this.credentialId) && (!this.canManageMembers || this.hasOwner);
     },
 
     cancelCredential() {
@@ -1290,7 +1295,7 @@ export default {
           </div>
         </Tab>
 
-        <Tab name="memberRoles" label-key="cluster.tabs.memberRoles" :weight="10">
+        <Tab v-if="canManageMembers" name="memberRoles" label-key="cluster.tabs.memberRoles" :weight="10">
           <Banner v-if="isEdit" color="info">
             {{ t('cluster.memberRoles.removeMessage') }}
           </Banner>

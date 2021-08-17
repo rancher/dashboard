@@ -2,6 +2,11 @@
 import { MANAGEMENT } from '@/config/types';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import MembershipEditor from '@/components/form/Members/MembershipEditor';
+import { canViewMembershipEditor } from '@/components/form/Members/MembershipEditor.vue';
+
+export function canViewClusterMembershipEditor(store) {
+  return canViewMembershipEditor(store);
+}
 
 export default {
   components: { MembershipEditor },
