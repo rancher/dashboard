@@ -1,5 +1,5 @@
 import { DESCRIPTION } from '@/config/labels-annotations';
-import { SCHEMA } from '@/config/types';
+import { SCHEMA, NORMAN } from '@/config/types';
 import { CATTLE_API_GROUP, SUBTYPE_MAPPING } from '@/models/management.cattle.io.roletemplate';
 import { uniq } from '@/utils/array';
 import Vue from 'vue';
@@ -33,8 +33,8 @@ export default {
     return this.$rootGetters['i18n/withFallback'](`rbac.globalRoles.role.${ this.id }.label`, this.displayName || this.metadata?.name || this.id);
   },
 
-  description() {
-    return this.metadata?.annotations?.[DESCRIPTION] || this.$rootGetters['i18n/withFallback'](`rbac.globalRoles.role.${ this.id }.description`, this.t(`rbac.globalRoles.unknownRole.description`));
+  descriptionDisplay() {
+    return this.description || this.metadata?.annotations?.[DESCRIPTION] || this.$rootGetters['i18n/withFallback'](`rbac.globalRoles.role.${ this.id }.description`, this.t(`rbac.globalRoles.unknownRole.description`));
   },
 
   isSpecial() {
@@ -87,6 +87,41 @@ export default {
 
   parentLocationOverride() {
     return this.listLocation;
-  }
+  },
 
+  basicNorman() {
+    if (this.id) {
+      return this.$dispatch(`rancher/find`, { id: this.id, type: NORMAN.GLOBAL_ROLE }, { root: true });
+    }
+
+    return this.$dispatch(`rancher/create`, { type: NORMAN.GLOBAL_ROLE, name: this.displayName }, { root: true });
+  },
+
+  async norman() {
+    const norman = await this.basicNorman;
+
+    norman.rules = this.rules;
+    norman.newUserDefault = this.newUserDefault;
+    norman.id = this.id;
+    norman.name = this.displayName;
+    norman.description = this.description;
+
+    return norman;
+  },
+
+  save() {
+    return async() => {
+      const norman = await this.norman;
+
+      return norman.save();
+    };
+  },
+
+  remove() {
+    return async() => {
+      const norman = await this.norman;
+
+      await norman.remove();
+    };
+  }
 };

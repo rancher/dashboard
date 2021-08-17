@@ -334,6 +334,8 @@ export default {
         v-model="value"
         :namespaced="isNamespaced"
         :mode="mode"
+        name-key="displayName"
+        description-key="description"
         label="Name"
       />
       <div v-if="isRancherType" class="row">
