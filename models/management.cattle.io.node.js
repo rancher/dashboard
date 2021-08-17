@@ -3,7 +3,7 @@ import { CAPI, MANAGEMENT, NODE, NORMAN } from '@/config/types';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { listNodeRoles } from '@/models/cluster/node';
 import { insertAt } from '@/utils/array';
-import { downloadFile } from '@/utils/download';
+import { downloadUrl } from '@/utils/download';
 
 export default {
   _availableActions() {
@@ -11,9 +11,9 @@ export default {
 
     const downloadKeys = {
       action:     'downloadKeys',
-      enabled:    !!this.status.rkeNode?.sshKey,
+      enabled:    !!this.normanNode?.links?.nodeConfig,
       icon:       'icon icon-fw icon-download',
-      label:      this.t('node.actions.downloadSSHKey'),
+      label:      this.t('node.actions.downloadNodeConfig'),
     };
 
     const scaleDown = {
@@ -83,7 +83,11 @@ export default {
 
   downloadKeys() {
     return () => {
-      downloadFile(this.status.nodeName, this.status.rkeNode.sshKey, 'application/octet-stream');
+      const url = this.normanNode?.links?.nodeConfig;
+
+      if ( url ) {
+        downloadUrl(url);
+      }
     };
   },
 
@@ -92,7 +96,7 @@ export default {
       const safeResources = Array.isArray(resources) ? resources : [this];
 
       await Promise.all(safeResources.map((node) => {
-        return node.normanNode.doAction('scaledown');
+        return node.normanNode?.doAction('scaledown');
       }));
     };
   },

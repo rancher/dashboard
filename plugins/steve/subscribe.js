@@ -40,7 +40,9 @@ export function equivalentWatch(a, b) {
 
 export const actions = {
   subscribe(ctx, opt) {
-    const { state, commit, dispatch } = ctx;
+    const {
+      state, commit, dispatch, getters
+    } = ctx;
     let socket = state.socket;
 
     commit('setWantSocket', true);
@@ -49,7 +51,7 @@ export const actions = {
       return;
     }
 
-    // console.info(`Subscribe [${ ctx.getters.storeName }]`); // eslint-disable-line no-console
+    state.debugSocket && console.info(`Subscribe [${ getters.storeName }]`); // eslint-disable-line no-console
 
     const url = `${ state.config.baseUrl }/subscribe`;
 
@@ -98,7 +100,9 @@ export const actions = {
     }
   },
 
-  async flush({ state, commit, dispatch }) {
+  async flush({
+    state, commit, dispatch, getters
+  }) {
     const queue = state.queue;
     let toLoad = [];
 
@@ -108,7 +112,7 @@ export const actions = {
 
     state.queue = [];
 
-    // console.debug(`Subscribe Flush [${state.storeName}]`, queue.length);
+    state.debugSocket && console.debug(`Subscribe Flush [${ getters.storeName }]`, queue.length); // eslint-disable-line no-console
 
     for ( const { action, event, body } of queue ) {
       if ( action === 'dispatch' && event === 'load' ) {
@@ -144,7 +148,7 @@ export const actions = {
   },
 
   watch({ state, dispatch, getters }, params) {
-    console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
+    state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
 
     let {
       // eslint-disable-next-line prefer-const
@@ -162,7 +166,7 @@ export const actions = {
     if ( !stop && getters.watchStarted({
       type, id, selector, namespace
     }) ) {
-      console.debug(`Already Watching [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
+      state.debugSocket && console.debug(`Already Watching [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
 
       return;
     }
@@ -214,7 +218,9 @@ export const actions = {
     return Promise.all(promises);
   },
 
-  async resyncWatch({ getters, dispatch, commit }, params) {
+  async resyncWatch({
+    state, getters, dispatch, commit
+  }, params) {
     const {
       resourceType, namespace, id, selector
     } = params;
@@ -265,7 +271,7 @@ export const actions = {
 
     for ( const obj of have ) {
       if ( !wantMap[obj.id] ) {
-        // console.info(`Remove stale [${ getters.storeName}]`, resourceType, obj.id); // eslint-disable-line no-console
+        state.debugSocket && console.info(`Remove stale [${ getters.storeName }]`, resourceType, obj.id); // eslint-disable-line no-console
 
         commit('remove', obj);
       }
@@ -273,9 +279,9 @@ export const actions = {
   },
 
   async opened({
-    getters, commit, dispatch, state
+    commit, dispatch, state, getters
   }, event) {
-    // console.info(`WebSocket Opened [${ getters.storeName }]`); // eslint-disable-line no-console
+    state.debugSocket && console.info(`WebSocket Opened [${ getters.storeName }]`); // eslint-disable-line no-console
 
     const socket = event.currentTarget;
 
@@ -310,8 +316,8 @@ export const actions = {
     }
   },
 
-  closed({ getters, state }) {
-    // console.info(`WebSocket Closed [${ getters.storeName }]`); // eslint-disable-line no-console
+  closed({ state, getters }) {
+    state.debugSocket && console.info(`WebSocket Closed [${ getters.storeName }]`); // eslint-disable-line no-console
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
   },
@@ -349,8 +355,8 @@ export const actions = {
     }
   },
 
-  'ws.resource.start'({ getters, commit }, msg) {
-    // console.info(`Resource start: [${ getters.storeName }]`, msg); // eslint-disable-line no-console
+  'ws.resource.start'({ state, getters, commit }, msg) {
+    state.debugSocket && console.info(`Resource start: [${ getters.storeName }]`, msg); // eslint-disable-line no-console
     commit('setWatchStarted', {
       type:      msg.resourceType,
       namespace: msg.namespace,
@@ -508,6 +514,10 @@ export const mutations = {
     const key = keyForSubscribe(msg);
 
     delete state.inError[key];
+  },
+
+  debug(state, on) {
+    state.debugSocket = on !== false;
   }
 };
 

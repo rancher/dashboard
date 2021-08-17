@@ -27,6 +27,7 @@ function SteveFactory(namespace, baseUrl) {
         socket:       null,
         queue:        [],
         wantSocket:   false,
+        debugSocket:  false,
         pendingSends: [],
         started:      [],
         inError:      {},
