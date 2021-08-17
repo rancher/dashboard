@@ -1239,6 +1239,7 @@ cluster:
     azure: Azure
     azureaks: Azure AKS
     aks: Azure AKS
+    azurekubernetesservice: Azure AKS
     baiducloudcontainerengine: Baidu CCE
     baidu: Baidu CCE
     cloudca: Cloud.ca
