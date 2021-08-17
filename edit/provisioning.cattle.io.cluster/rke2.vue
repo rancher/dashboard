@@ -1038,7 +1038,7 @@ export default {
       }
 
       if ( !regs.configs ) {
-        set(regs, 'configs', []);
+        set(regs, 'configs', {});
       }
 
       if ( !regs.mirrors ) {
@@ -1049,13 +1049,14 @@ export default {
         registryMode = PRIVATE;
       }
 
-      if ( Object.keys(regs.mirrors || {}).length || regs.configs?.length > 1 ) {
+      if ( Object.keys(regs.mirrors || {}).length || Object.keys(regs.configs || {}).length > 1 ) {
         registryMode = ADVANCED;
       } else {
-        const config = regs.configs[0];
+        const hostname = Object.keys(regs.configs)[0];
+        const config = regs.configs[hostname];
 
         if ( config ) {
-          if ( config.hostname !== registryDefault || config.caBundle || config.insecureSkipVerify || config.tlsSecretName ) {
+          if ( hostname !== registryDefault || config.caBundle || config.insecureSkipVerify || config.tlsSecretName ) {
             registryMode = ADVANCED;
           } else {
             registryMode = PRIVATE;
@@ -1080,19 +1081,20 @@ export default {
         set(this.rkeConfig.registries, 'mirrors', {});
 
         if ( this.registrySecret ) {
-          set(this.rkeConfig.registries, 'configs', [{
-            hostname,
-            authConfigSecretName: this.registrySecret,
-            caBundle:             null,
-            insecureSkipVerify:   false,
-            tlsSecretName:        null,
-          }]);
+          set(this.rkeConfig.registries, 'configs', {
+            [hostname]: {
+              authConfigSecretName: this.registrySecret,
+              caBundle:             null,
+              insecureSkipVerify:   false,
+              tlsSecretName:        null,
+            }
+          });
         } else {
-          set(this.rkeConfig.registries, 'configs', []);
+          set(this.rkeConfig.registries, 'configs', {});
         }
       } else {
         set(this.agentConfig, 'system-default-registry', null);
-        set(this.rkeConfig.registries, 'configs', []);
+        set(this.rkeConfig.registries, 'configs', {});
         set(this.rkeConfig.registries, 'mirrors', {});
       }
     },
