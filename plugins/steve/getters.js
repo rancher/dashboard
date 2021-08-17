@@ -221,6 +221,12 @@ export default {
     return out;
   },
 
+  canList: (state, getters) => (type) => {
+    const schema = getters.schemaFor(type);
+
+    return schema && schema.hasLink('collection');
+  },
+
   typeRegistered: (state, getters) => (type) => {
     type = getters.normalizeType(type);
 

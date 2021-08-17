@@ -58,7 +58,7 @@ export const getters = {
 
 export const actions = {
   loadServer({ rootGetters, dispatch }) {
-    if ( rootGetters['management/schemaFor'](MANAGEMENT.FEATURE) ) {
+    if ( rootGetters['management/canList'](MANAGEMENT.FEATURE) ) {
       return dispatch('management/findAll', { type: MANAGEMENT.FEATURE }, { root: true });
     }
   },

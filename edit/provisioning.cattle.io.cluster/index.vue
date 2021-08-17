@@ -307,7 +307,7 @@ export default {
         const chart = this.$store.getters['catalog/chart']({ key: parts[1] });
         let localCluster;
 
-        if (!!this.$store.getters[`management/schemaFor`](MANAGEMENT.CLUSTER)) {
+        if (this.$store.getters[`management/canList`](MANAGEMENT.CLUSTER)) {
           localCluster = this.$store.getters['management/all'](MANAGEMENT.CLUSTER).find(x => x.isLocal);
         }
 
