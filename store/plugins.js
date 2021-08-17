@@ -97,7 +97,7 @@ export const suffixFields = [
 const driverToCloudProviderMap = {
   amazonec2:     'aws',
   azure:         'azure',
-  vmwarevsphere: 'vsphere'
+  vmwarevsphere: 'rancher-vsphere'
 };
 
 // Dynamically loaded drivers can call this eventually to register thier options
