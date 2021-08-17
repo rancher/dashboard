@@ -1,4 +1,4 @@
-import { MANAGEMENT } from '@/config/types';
+import { MANAGEMENT, NORMAN } from '@/config/types';
 import { escapeHtml } from '@/utils/string';
 import { insertAt } from '@/utils/array';
 import { FLEET as FLEET_LABELS } from '@/config/labels-annotations';
@@ -116,6 +116,12 @@ export default {
     const mgmt = this.$getters['byId'](MANAGEMENT.CLUSTER, this.metadata.name);
 
     return mgmt;
+  },
+
+  norman() {
+    const norman = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, this.metadata.name);
+
+    return norman;
   },
 
   groupByLabel() {
