@@ -11,6 +11,7 @@ import { MANAGEMENT } from '@/config/types';
 import { NAME } from '@/config/product/explorer';
 import { PROJECT_ID } from '@/config/query-params';
 import ProjectMembershipEditor from '@/components/form/Members/ProjectMembershipEditor';
+import { canViewProjectMembershipEditor } from '@/components/form/Members/ProjectMembershipEditor.vue';
 
 export default {
   components: {
@@ -37,12 +38,12 @@ export default {
     };
   },
   computed: {
-    hasMemberAccess() {
-      return !!this.projectRoleTemplateBindingSchema;
+    canManageMembers() {
+      return canViewProjectMembershipEditor(this.$store);
     },
     hasOwner() {
       // Users who cannot access binding schema cannot see membership component, though will gain owner binding automatically on project create
-      return !this.hasMemberAccess || this.membershipHasOwner;
+      return !this.canManageMembers || this.membershipHasOwner;
     },
     isValid() {
       return this.value.isDefault || this.value.isSystem || this.hasOwner;
@@ -101,7 +102,7 @@ export default {
   >
     <NameNsDescription v-model="value" :mode="mode" :namespaced="false" description-key="spec.description" name-key="spec.displayName" />
     <Tabbed :side-tabs="true">
-      <Tab v-if="hasMemberAccess" name="members" :label="t('project.members.label')" :weight="10">
+      <Tab v-if="canManageMembers" name="members" :label="t('project.members.label')" :weight="10">
         <ProjectMembershipEditor :mode="mode" :parent-id="value.id" @has-owner-changed="onHasOwnerChanged" @membership-update="onMembershipUpdate" />
       </Tab>
       <Tab name="resource-quotas" :label="t('project.resourceQuotas')" :weight="9">

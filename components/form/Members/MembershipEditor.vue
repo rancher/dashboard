@@ -9,6 +9,12 @@ function normalizeId(id) {
   return id?.replace(':', '/') || id;
 }
 
+export function canViewMembershipEditor(store) {
+  return !!store.getters['management/schemaFor'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING) &&
+    !!store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE) &&
+    !!store.getters['rancher/schemaFor'](NORMAN.PRINCIPAL);
+}
+
 // Matches creator-cluster-owner and creator-project-owner
 // const CREATOR_OWNER_REGEX = /creator-(cluster|project)-owner/g;
 
