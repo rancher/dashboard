@@ -199,8 +199,14 @@ export default {
       class="ports-row"
       :class="{'show-host':row._showHost}"
     >
-      <div class="service-type">
-        <LabeledSelect v-model="row._serviceType" :mode="mode" :label="t('workload.container.ports.createService')" :options="serviceTypes" @input="queueUpdate" />
+      <div class="service-type col">
+        <LabeledSelect
+          v-model="row._serviceType"
+          :mode="mode"
+          :label="t('workload.container.ports.createService')"
+          :options="serviceTypes"
+          @input="queueUpdate"
+        />
       </div>
 
       <div class="portName">
@@ -226,7 +232,7 @@ export default {
         />
       </div>
 
-      <div class="protocol">
+      <div class="protocol col">
         <LabeledSelect
           v-model="row.protocol"
           :mode="mode"
