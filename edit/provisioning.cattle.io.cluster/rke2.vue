@@ -107,7 +107,7 @@ export default {
         k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
       };
 
-      if ( this.$store.getters['management/schemaFor'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
+      if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
         hash.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
       }
 
@@ -715,10 +715,19 @@ export default {
 
       if ( existing?.length ) {
         for ( const pool of existing ) {
-          const config = await this.$store.dispatch('management/find', {
-            type: `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`,
-            id:   `${ this.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
-          });
+          const type = `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`;
+          let config;
+
+          if ( this.$store.getters['management/canList'](type) ) {
+            try {
+              config = await this.$store.dispatch('management/find', {
+                type,
+                id: `${ this.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
+              });
+            } catch (e) {
+              // Some users can't see the config, that's ok.
+            }
+          }
 
           // @TODO what if the pool is missing?
           const id = `pool${ ++this.lastIdx }`;
@@ -729,7 +738,7 @@ export default {
             create:  false,
             update: true,
             pool:    clone(pool),
-            config:  await this.$store.dispatch('management/clone', { resource: config }),
+            config:  config ? await this.$store.dispatch('management/clone', { resource: config }) : null,
           });
         }
       }
