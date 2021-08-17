@@ -89,7 +89,7 @@ export default {
 
     <div class="row mt-20">
       <div class="col span-6">
-        <LabeledInput v-model="config.bucket" label="Bucket" :placeholder="ccData.defaultBucket" @input="update" />
+        <LabeledInput v-model="config.bucket" label="Bucket" :placeholder="ccData.defaultBucket" :required="!ccData.defaultBucket" @input="update" />
       </div>
       <div class="col span-6">
         <LabeledInput v-model="config.folder" label="Folder" :placeholder="ccData.defaultFolder" @input="update" />

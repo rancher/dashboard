@@ -91,7 +91,8 @@ export default {
 <template>
   <div>
     <h3>
-      Registry Configuration
+      Registry Authentication
+      <i v-tooltip="'When an image needs to be pulled from the given registry hostname, this information will be used to verify the identity of the registry and authenticate to it.'" class="icon icon-info" />
     </h3>
     <ArrayListGrouped
       v-model="entries"
@@ -103,7 +104,7 @@ export default {
       <template #default="{row}">
         <div class="row">
           <div class="col span-6">
-            <LabeledInput v-model="row.value.hostname" label="Registry Hostame" :mode="mode" />
+            <LabeledInput v-model="row.value.hostname" label="Registry Hostname" :mode="mode" />
 
             <SelectOrCreateAuthSecret
               v-model="row.value.authConfigSecretName"

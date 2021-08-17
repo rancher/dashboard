@@ -5,6 +5,7 @@ import { set } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { compare } from '@/utils/version';
+import { AS, MODE, _EDIT, _YAML } from '~/config/query-params';
 
 export const DEFAULT_WORKSPACE = 'fleet-default';
 
@@ -70,7 +71,7 @@ export default {
       icon:       'icon icon-snapshot',
       bulkAction: 'snapshotBulk',
       bulkable:   true,
-      enabled:    (this.isRke1 || this.isRke2) && this.mgmt?.isReady,
+      enabled:    (this.isRke1 || this.isRke2) && this.mgmt?.isReady && this.canUpdate,
     });
 
     insertAt(out, idx++, {
@@ -98,6 +99,28 @@ export default {
     insertAt(out, idx++, { divider: true });
 
     return out;
+  },
+
+  goToEditYaml() {
+    return () => {
+      let location;
+
+      if ( !this.isRke2 ) {
+        location = this.mgmt?.detailLocation;
+      }
+
+      if ( !location ) {
+        location = this.detailLocation;
+      }
+
+      location.query = {
+        ...location.query,
+        [MODE]: _EDIT,
+        [AS]:   _YAML
+      };
+
+      this.currentRouter().push(location);
+    };
   },
 
   isImported() {

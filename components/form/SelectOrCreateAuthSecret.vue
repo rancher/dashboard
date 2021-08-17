@@ -87,6 +87,11 @@ export default {
       default: 'registerAuthSecret'
     },
 
+    hookPriority: {
+      type:    Number,
+      default: 99,
+    },
+
     vertical: {
       type:    Boolean,
       default: false,
@@ -105,7 +110,7 @@ export default {
       this.allSecrets = [];
     }
 
-    if ( this.allowS3 && this.$store.getters['rancher/schemaFor'](NORMAN.CLOUD_CREDENTIAL) ) {
+    if ( this.allowS3 && this.$store.getters['rancher/canList'](NORMAN.CLOUD_CREDENTIAL) ) {
       // Avoid an async call and loading screen if already loaded by someone else
       if ( this.$store.getters['rancher/haveAll'](NORMAN.CLOUD_CREDENTIAL) ) {
         this.allCloudCreds = this.$store.getters['rancher/all'](NORMAN.CLOUD_CREDENTIAL);
@@ -186,9 +191,9 @@ export default {
             if ( !keys.every(key => dataKeys.includes(key)) ) {
               return false;
             }
-
-            return true;
           }
+
+          return true;
         }).map((x) => {
           return {
             label: `${ x.metadata.name } (${ x.subTypeDisplay })`,
@@ -304,7 +309,7 @@ export default {
 
   created() {
     if (this.registerBeforeHook) {
-      this.registerBeforeHook(this.doCreate, this.hookName);
+      this.registerBeforeHook(this.doCreate, this.hookName, this.hookPriority);
     } else {
       throw new Error('Before Hook is missing');
     }
@@ -380,7 +385,7 @@ export default {
 
       await secret.save();
 
-      this.$nextTick(() => {
+      await this.$nextTick(() => {
         this.selected = secret.id;
       });
 

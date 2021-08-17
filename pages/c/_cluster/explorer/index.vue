@@ -70,11 +70,11 @@ export default {
       events:      this.fetchClusterResources(EVENT),
     };
 
-    if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE_TEMPLATE) ) {
+    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
       hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
     }
 
-    if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE_POOL) ) {
+    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
       hash.rke1NodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
     }
 

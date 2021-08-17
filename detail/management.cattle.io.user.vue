@@ -18,13 +18,13 @@ export default {
     CreateEditView
   ],
   async fetch() {
-    const canSeeGlobalRoles = !!this.$store.getters[`management/schemaFor`](MANAGEMENT.GLOBAL_ROLE);
+    const canSeeGlobalRoles = !!this.$store.getters[`management/canList`](MANAGEMENT.GLOBAL_ROLE);
 
     if (canSeeGlobalRoles) {
       this.data.gp = await this.fetchGlobalRoleBindings(this.value.id);
     }
 
-    const canSeeRoleTemplates = !!this.$store.getters[`management/schemaFor`](MANAGEMENT.ROLE_TEMPLATE);
+    const canSeeRoleTemplates = !!this.$store.getters[`management/canList`](MANAGEMENT.ROLE_TEMPLATE);
 
     if (canSeeRoleTemplates) {
       // Upfront fetch

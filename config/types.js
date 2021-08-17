@@ -139,11 +139,11 @@ export const LONGHORN = {
 export const MANAGEMENT = {
   AUTH_CONFIG:                   'management.cattle.io.authconfig',
   CATALOG_TEMPLATE:              'management.cattle.io.catalogtemplate',
-  CATALOG:                       'management.cattle.io.catalog',
+  // CATALOG:                       'management.cattle.io.catalog',
   CLUSTER:                       'management.cattle.io.cluster',
   CLUSTER_ROLE_TEMPLATE_BINDING: 'management.cattle.io.clusterroletemplatebinding',
   FEATURE:                       'management.cattle.io.feature',
-  GROUP:                         'management.cattle.io.group',
+  // GROUP:                         'management.cattle.io.group',
   KONTANIER_DRIVER:              'management.cattle.io.kontainerdriver',
   NODE:                          'management.cattle.io.node',
   NODE_DRIVER:                   'management.cattle.io.nodedriver',

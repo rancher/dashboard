@@ -14,19 +14,19 @@ export default {
       rancherClusters:    this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
     };
 
-    if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE) ) {
+    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
       hash.mgmtNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
     }
 
-    if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE_POOL) ) {
+    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
       hash.mgmtPools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
     }
 
-    if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE_TEMPLATE) ) {
+    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
       hash.mgmtTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
     }
 
-    if ( this.$store.getters['management/schemaFor'](CAPI.MACHINE_DEPLOYMENT) ) {
+    if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
       hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
     }
 
