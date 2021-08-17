@@ -993,7 +993,6 @@ cluster:
           <li><b>Service Accounts:</b> Service Account User (roles/iam.serviceAccountUser)</li>
           </ul>
           More info on roles can be found <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/iam-integration" target="_blank" rel="noopener noreferrer nofollow">here</a>.
-
     harvester:
       import: Imported Harvester
       external: External Harvester
@@ -1022,7 +1021,6 @@ cluster:
     commandInstructionsInsecure: 'If you get a &quot;certificate signed by unknown authority&quot; error, your {vendor} installation has a self-signed or untrusted SSL certificate.  Run the command below instead to bypass the certificate verification:'
     clusterRoleBindingInstructions: 'If you get permission errors creating some of the resources, your user may not have the <code>cluster-admin</code> role.  Use this command to apply it:'
     clusterRoleBindingCommand: 'kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user <your username from your kubeconfig>'
-
   importAction: Import Existing
   kubernetesVersion:
     label: Kubernetes Version
@@ -1224,6 +1222,13 @@ cluster:
           }
   memberRoles:
     removeMessage: 'Note: Removing a user will not remove their project permissions'
+  privateRegistry:
+    systemDefaultRegistry:
+      label: Registry hostname for {vendor} images
+    mode:
+      public: Pull images for {vendor} from public DockerHub
+      private: Pull images for {vendor} from a private registry
+      advanced: Configure advanced containerd mirroring and registry authentication options
   provider:
     aliyunecs: Aliyun ECS
     aliyunkubernetescontainerservice: Alibaba ACK

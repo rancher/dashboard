@@ -68,7 +68,7 @@ export default {
     <template #title>
       <h3>
         Mirrors
-        <i v-tooltip="'Mirrors redirect image pulls so that they come from a list of endpoints you specify instead of their normal location on the internet.  For example you could point docker.io to your internal registry to mirror DockerHub internally.'" class="icon icon-info" />
+        <i v-tooltip="'Mirrors can be used to redirect requests for images from one registry to actually come from a list of endpoints you specify instead.  For example you could point docker.io to always talk to your internal registry and instead of ever going to the actual DockerHub on the internet.'" class="icon icon-info" />
       </h3>
     </template>
   </KeyValue>
