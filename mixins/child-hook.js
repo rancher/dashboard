@@ -1,4 +1,3 @@
-import { allHash } from '@/utils/promise';
 import { findBy } from '@/utils/array';
 import { sortBy } from '@/utils/sort';
 
@@ -17,19 +16,20 @@ export default {
       this._registerHook(AFTER_SAVE_HOOKS, boundFn, name, priority);
     },
 
-    applyHooks(key, ...args) {
+    async applyHooks(key, ...args) {
       if ( !key ) {
         throw new Error('Must specify key');
       }
 
       const hooks = sortBy(this[key] || [], ['priority', 'name']);
-      const promises = {};
+      const out = {};
 
-      hooks.forEach((x) => {
-        promises[x.name] = x.fn.apply(this, args);
-      });
+      for ( const x of hooks ) {
+        console.debug('Applying hook', x.name); // eslint-disable-line no-console
+        out[x.name] = await x.fn.apply(this, args);
+      }
 
-      return allHash(promises);
+      return out;
     },
 
     _registerHook(key, fn, name, priority) {
