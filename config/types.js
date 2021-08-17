@@ -2,25 +2,22 @@
 // 1. Provided by Steve and always potentialy available
 // --------------------------------------
 
-// Standalone steve
+// Steve-specific virtual types
 // Base: /v1
-export const STEVE = {
-  PREFERENCE: 'userpreference',
-  CLUSTER:    'cluster',
-};
+export const STEVE = { PREFERENCE: 'userpreference' };
 
-// Auth (via Norman)
+// Old APIs via Norman
 // Base: /v3
 export const NORMAN = {
   AUTH_CONFIG:                   'authconfig',
   ETCD_BACKUP:                   'etcdbackup',
+  CLUSTER:                       'cluster',
   CLUSTER_TOKEN:                 'clusterregistrationtoken',
   CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterRoleTemplateBinding',
   CLOUD_CREDENTIAL:              'cloudcredential',
   GLOBAL_ROLE:                   'globalRole',
   GLOBAL_ROLE_BINDING:           'globalRoleBinding',
 
-  GROUP:                         'group',
   NODE_POOL:                     'nodePool',
   // Note - This allows access to node resources, not schema's or custom components (both are accessed via 'type' which clashes with kube node)
   NODE:                          'node',
