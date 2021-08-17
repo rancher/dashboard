@@ -70,7 +70,7 @@ export default {
         this.sortedRoles.custom = this.sortedRoles.custom.sort(sort);
 
         if (!this.isCreate) {
-          this.globalRoleBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE_BINDING });
+          this.globalRoleBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE_BINDING, opt: { force: true } });
         }
 
         this.update();
@@ -234,6 +234,10 @@ export default {
       // Ensure roles are added before removed (in case by removing one user is unable to add another)
       await this.saveAddedRoles(userId);
       await this.saveRemovedRoles();
+      await this.$store.dispatch('management/findAll', {
+        type: MANAGEMENT.GLOBAL_ROLE_BINDING,
+        opt:  { force: true }
+      }, { force: true });
     },
     confirmUserCanLogIn() {
       const allRolesRules = [];
@@ -313,7 +317,7 @@ export default {
                   :value-when-true="role.id"
                   :disabled="!!assignOnlyRoles[role.id]"
                   :label="role.nameDisplay"
-                  :description="role.description"
+                  :description="role.descriptionDisplay"
                   :mode="mode"
                   @input="checkboxChanged"
                 >

@@ -17,6 +17,9 @@ export const NORMAN = {
   CLUSTER_TOKEN:                 'clusterregistrationtoken',
   CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterRoleTemplateBinding',
   CLOUD_CREDENTIAL:              'cloudcredential',
+  GLOBAL_ROLE:                   'globalRole',
+  GLOBAL_ROLE_BINDING:           'globalRoleBinding',
+
   GROUP:                         'group',
   NODE_POOL:                     'nodePool',
   // Note - This allows access to node resources, not schema's or custom components (both are accessed via 'type' which clashes with kube node)
@@ -25,6 +28,7 @@ export const NORMAN = {
   PROJECT:                       'project',
   PROJECT_ROLE_TEMPLATE_BINDING: 'projectRoleTemplateBinding',
   SPOOFED:                       { GROUP_PRINCIPAL: 'group.principal' },
+  ROLE_TEMPLATE:                 'roleTemplate',
   TOKEN:                         'token',
   USER:                          'user',
 };
