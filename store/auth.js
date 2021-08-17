@@ -3,6 +3,7 @@ import { NORMAN } from '@/config/types';
 import { addObjects, findBy } from '@/utils/array';
 import { openAuthPopup, returnTo } from '@/utils/auth';
 import { base64Encode } from '@/utils/crypto';
+import { removeEmberPage } from '@/utils/ember-page';
 import { randomStr } from '@/utils/string';
 import { addParams, parse as parseUrl, removeParam } from '@/utils/url';
 
@@ -314,6 +315,8 @@ export const actions = {
       }, { root: true });
     } catch (e) {
     }
+
+    removeEmberPage();
 
     commit('loggedOut');
     dispatch('onLogout', null, { root: true });
