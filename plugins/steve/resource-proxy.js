@@ -104,4 +104,14 @@ export function remapSpecialKeys(obj) {
     obj._state = obj.state;
     delete obj.state;
   }
+
+  if ( obj.labels ) {
+    obj._labels = obj.labels;
+    delete obj.labels;
+  }
+
+  if ( obj.annotations ) {
+    obj._annotations = obj.annotations;
+    delete obj.annotations;
+  }
 }
