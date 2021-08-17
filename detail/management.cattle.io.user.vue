@@ -21,18 +21,18 @@ export default {
     const canSeeGlobalRoles = !!this.$store.getters[`management/canList`](MANAGEMENT.GLOBAL_ROLE);
 
     if (canSeeGlobalRoles) {
-      this.data.gp = await this.fetchGlobalRoleBindings(this.value.id);
+      this.globalBindings = await this.fetchGlobalRoleBindings(this.value.id);
     }
 
-    const canSeeRoleTemplates = !!this.$store.getters[`management/canList`](MANAGEMENT.ROLE_TEMPLATE);
+    this.canSeeRoleTemplates = !!this.$store.getters[`management/canList`](MANAGEMENT.ROLE_TEMPLATE);
 
-    if (canSeeRoleTemplates) {
-      // Upfront fetch
-      await this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE });
-
-      this.data.cr = await this.fetchClusterRoles(this.value.id);
-
-      this.data.pr = await this.fetchProjectRoles(this.value.id);
+    if (this.canSeeRoleTemplates) {
+      // Upfront fetch, avoid aysnc computes
+      await Promise.all([
+        await this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE }),
+        await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING }),
+        await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING })
+      ]);
     }
   },
   data() {
@@ -102,13 +102,19 @@ export default {
           { ...since }
         ]
       },
-      data: {
-        gp: null,
-        cr: null,
-        pr: null
-      },
-      isAdmin: false,
+      globalBindings:      null,
+      canSeeRoleTemplates: false,
+      isAdmin:             false,
     };
+  },
+  computed: {
+    clusterBindings() {
+      return this.canSeeRoleTemplates ? this.fetchClusterRoles(this.value.id) : null;
+    },
+    projectBindings() {
+      return this.canSeeRoleTemplates ? this.fetchProjectRoles(this.value.id) : null;
+    }
+
   },
   methods: {
     async fetchGlobalRoleBindings(userId) {
@@ -151,27 +157,28 @@ export default {
           });
 
         return out;
-      } catch {
+      } catch (e) {
         // Swallow the error. It's probably due to the user not having the correct permissions to read global roles
+        console.error('Failed to fetch gobal role bindings: ', e); // eslint-disable-line no-console
       }
     },
 
-    async fetchClusterRoles(userId) {
-      const templateBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING });
+    fetchClusterRoles(userId) {
+      const templateBindings = this.$store.getters['management/all'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
       const userTemplateBindings = templateBindings.filter(binding => binding.userName === userId);
 
       // Upront load clusters
-      await Promise.all(userTemplateBindings.map(b => this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: b.clusterName })));
+      userTemplateBindings.map(b => this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: b.clusterName }));
 
       return userTemplateBindings;
     },
 
-    async fetchProjectRoles(userId) {
-      const templateBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING });
+    fetchProjectRoles(userId) {
+      const templateBindings = this.$store.getters['management/all'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING );
       const userTemplateBindings = templateBindings.filter(binding => binding.userName === userId);
 
       // Upfront load projects
-      await Promise.all(userTemplateBindings.map(b => this.$store.dispatch('management/find', { type: MANAGEMENT.PROJECT, id: b.projectId })));
+      userTemplateBindings.map(b => this.$store.dispatch('management/find', { type: MANAGEMENT.PROJECT, id: b.projectId }));
 
       return userTemplateBindings;
     },
@@ -202,7 +209,14 @@ export default {
     getEnabledRoles(globalRole, out) {
       const globalRoleRules = globalRole.rules || [];
 
-      return out.filter(r => (r.rules || []).every(rule => this.containsRule(globalRoleRules, rule)));
+      return out.filter((r) => {
+        // If the global role doesn't contain any rules... don't show the user as having the role (confusing)
+        if (!r?.rules?.length) {
+          return false;
+        }
+
+        return r.rules.every(rule => this.containsRule(globalRoleRules, rule));
+      });
     },
 
   }
@@ -214,7 +228,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <ResourceTabs v-model="value" :mode="mode">
-      <Tab v-if="data.gp" label-key="user.detail.globalPermissions.label" name="gp" :weight="3">
+      <Tab v-if="globalBindings" label-key="user.detail.globalPermissions.label" name="gp" :weight="3">
         <div class="subtext">
           {{ t("user.detail.globalPermissions.description") }}
         </div>
@@ -223,7 +237,7 @@ export default {
         </div>
         <SortableTable
           v-else
-          :rows="data.gp"
+          :rows="globalBindings"
           :headers="headers.gp"
           key-field="id"
           :table-actions="false"
@@ -231,24 +245,24 @@ export default {
           :search="false"
         />
       </Tab>
-      <Tab v-if="data.cr" label-key="user.detail.clusterRoles.label" name="cr" :weight="2">
+      <Tab v-if="clusterBindings" label-key="user.detail.clusterRoles.label" name="cr" :weight="2">
         <div class="subtext">
           {{ t("user.detail.clusterRoles.description") }}
         </div>
         <SortableTable
-          :rows="data.cr"
+          :rows="clusterBindings"
           :headers="headers.cr"
           key-field="id"
           :table-actions="false"
           :search="false"
         />
       </Tab>
-      <Tab v-if="data.pr" label-key="user.detail.projectRoles.label" name="pr" :weight="1">
+      <Tab v-if="projectBindings" label-key="user.detail.projectRoles.label" name="pr" :weight="1">
         <div class="subtext">
           {{ t("user.detail.projectRoles.description") }}
         </div>
         <SortableTable
-          :rows="data.pr"
+          :rows="projectBindings"
           :headers="headers.pr"
           key-field="id"
           :table-actions="false"
