@@ -887,6 +887,14 @@ export default {
         opt.data.name = opt.data._name;
       }
 
+      if (opt?.data._labels) {
+        opt.data.labels = opt.data._labels;
+      }
+
+      if (opt?.data._annotations) {
+        opt.data.annotations = opt.data._annotations;
+      }
+
       try {
         const res = await this.$dispatch('request', opt);
 

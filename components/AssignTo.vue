@@ -1,12 +1,13 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
-import { FLEET } from '@/config/types';
+import { FLEET, NORMAN } from '@/config/types';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import KeyValue from '@/components/form/KeyValue';
 import AsyncButton from '@/components/AsyncButton';
 import Card from '@/components/Card';
 import Banner from '@/components/Banner';
 import { exceptionToErrorsArray } from '@/utils/error';
+import { set } from '@/utils/object';
 
 export default {
   components: {
@@ -33,7 +34,7 @@ export default {
     ...mapGetters(['workspace']),
 
     workspaceOptions() {
-      const out = this.allWorkspaces.map(x => x.metadata?.name).filter(x => !!x);
+      const out = this.allWorkspaces.map(x => x.metadata?.name).filter(x => !!x && x !== 'fleet-local');
 
       return out;
     },
@@ -46,6 +47,7 @@ export default {
   watch: {
     async showAssignTo(show) {
       if (show) {
+        await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER });
         this.allWorkspaces = await this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
         this.moveTo = this.workspace;
         this.loaded = true;
@@ -70,24 +72,20 @@ export default {
       this.errors = [];
 
       for ( const fleetCluster of this.toAssign ) {
-        const c = fleetCluster.mgmt;
+        const c = await this.$store.dispatch(`rancher/clone`, { resource: fleetCluster.norman });
 
         if ( !c ) {
           continue;
         }
 
-        c.spec.fleetWorkspaceName = this.moveTo;
+        c.fleetWorkspaceName = this.moveTo;
 
         for ( const k of Object.keys(this.labels) ) {
-          if ( !c.metadata ) {
-            c.metadata = {};
+          if ( !c._labels ) {
+            set(c, '_labels', {});
           }
 
-          if ( !c.metadata.labels ) {
-            c.metdata.labels = {};
-          }
-
-          c.metadata.labels[k] = this.labels[k];
+          set(c._labels, k, this.labels[k]);
         }
 
         promises.push(c.save());
@@ -114,7 +112,7 @@ export default {
     height="auto"
     :scrollable="true"
   >
-    <Card v-if="loaded">
+    <Card v-if="loaded" :show-highlight-border="false">
       <h4 slot="title" class="text-default-text" v-html="t('assignTo.title', {count: resourceCount}, true)" />
 
       <div slot="body" class="pl-10 pr-10">
