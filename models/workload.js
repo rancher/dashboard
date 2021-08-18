@@ -274,6 +274,10 @@ export default {
   redeploy() {
     const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
 
+    if (!this.spec.template) {
+      set(this.spec, 'template', {});
+    }
+
     if ( !this.spec.template.metadata ) {
       set(this.spec.template, 'metadata', {});
     }
