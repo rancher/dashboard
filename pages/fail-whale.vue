@@ -52,7 +52,7 @@ export default {
         </p>
         <hr>
         <a class="btn role-secondary" @click="$router.go(-1)">
-          Reload
+          {{ t('nav.reload') }}
         </a>
         </p>
       </div>
