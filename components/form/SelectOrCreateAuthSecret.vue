@@ -348,7 +348,10 @@ export default {
       if ( this.selected === _S3 ) {
         secret = await this.$store.dispatch(`rancher/create`, {
           type:               NORMAN.CLOUD_CREDENTIAL,
-          s3credentialConfig: {},
+          s3credentialConfig: {
+            accessKey: this.publicKey,
+            secretKey: this.privateKey,
+          },
         });
       } else {
         secret = await this.$store.dispatch(`${ this.inStore }/create`, {
