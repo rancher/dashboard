@@ -15,9 +15,6 @@ export function canViewMembershipEditor(store) {
     !!store.getters['rancher/schemaFor'](NORMAN.PRINCIPAL);
 }
 
-// Matches creator-cluster-owner and creator-project-owner
-// const CREATOR_OWNER_REGEX = /creator-(cluster|project)-owner/g;
-
 export default {
   components: { ArrayList, Loading },
 
@@ -55,12 +52,15 @@ export default {
 
   async fetch() {
     const userHydration = [
+      this.schema ? await this.$store.dispatch(`management/findAll`, { type: this.type }) : [],
       this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }),
       this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
+      this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER })
     ];
-    const allBindings = this.schema ? await this.$store.dispatch(`management/findAll`, { type: this.type }) : [];
+    const [allBindings] = await Promise.all(userHydration);
+
     const bindings = allBindings
-      // .filter(b => !b.isSystem || CREATOR_OWNER_REGEX.test(b.metadata.name || ''))
+      .filter(b => !b.user.isSystem)
       .filter(b => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
 
     this.$set(this, 'lastSavedBindings', [...bindings]);
@@ -72,8 +72,6 @@ export default {
       defaultBinding.isDefaultBinding = true;
       bindings.push(defaultBinding);
     }
-
-    await Promise.all(userHydration);
 
     this.$set(this, 'bindings', bindings);
   },
@@ -191,7 +189,7 @@ export default {
       </button>
     </template>
     <template #remove-button="{remove, i}">
-      <span v-if="(isCreate && i === 0) || isView || isOnlyRegisteredUser" />
+      <span v-if="(isCreate && i === 0) || isView" />
       <button v-else type="button" :disabled="isView" class="btn role-link" @click="remove">
         {{ t('generic.remove') }}
       </button>
