@@ -294,6 +294,97 @@ account:
       placeholder: Optionally enter a description to help you identify this API Key
 ```
 
+## Custom Form Validators 
+
+Creating custom validators for forms requires three parts
+
+1. Add a new validation function to `utils/validators`
+2. The new validation function is exported by `utils/custom-validators.js`
+3. Add `customValidationRules` prop to a model under `models`
+
+### Add new validation function
+
+Custom validators are stored under `utils/validators`. Validation functions should define positional parameters of `value, getters, errors, validatorArgs` with an optional fifth `displayKey` parameter. 
+
+```javascript
+export function isHttps(value, getters, errors, validatorArgs, displayKey) {
+  const key = validatorArgs[0];
+
+  if (!value.startsWith('https://')) {
+    errors.push(getters['i18n/t']('validation.setting.serverUrl.https'));
+  }
+
+  return errors;
+}
+```
+
+Any failed validations are pushed to `errors`.
+
+> Does a validation function need to return errors?
+
+### Export new validation function
+
+Import your new validator function into `utils/custom-validators.js`
+
+```javascript diff
+import { podAffinity } from '@/utils/validators/pod-affinity';
+import { roleTemplateRules } from '@/utils/validators/role-template';
+import { clusterName } from '@/utils/validators/cluster-name';
++ import { isHttps } from '@/utils/validators/setting';
+```
+
+and add it to the default exports
+
+```javascript diff
+  containerImages,
+  cronSchedule,
+  podAffinity,
+  - roleTemplateRules
+  + roleTemplateRules,
+  + isHttps
+};
+```
+
+### Add `customValidationRules` to model
+
+```javascript
+customValidationRules() {
+  return [
+    {
+      path: 'value',
+      translationKey: 'setting.serverUrl.https',
+      validators: [`isHttps`]
+    }
+  ]
+}
+```
+
+To pass arguments to to validation function
+
+```diff
+customValidationRules() {
+  return [
+    {
+      path: 'value',
+      translationKey: 'setting.serverUrl.https',
+      - validators: [`isHttps`]
+      + validators: [`isHttps:${ this.metadata.name }]
+    }
+  ]
+}
+```
+
+> How do we pass multiple args to validator function? Are they comma separated or separated by colon?
+
+> What is required of a validation rule? It looks like `path` and `validators`? Maybe it's just `path` because I've found a few without `validators` defined? The properties I've found so far are `nullable`, `path`, `required`, `translationKey`, `type`, `validators`, 
+
+`path` string: the model property to validate
+`nullable` boolean: asserts if property accepts `null` value
+`required` boolean: asserts if property requires a value
+`translationKey` string: path to validation key in `assets/translations`
+`type` string: name of built-in validation rule to assert
+`validators` string: name of custom validation rule to assert
+
 ## Other UI Features
 ### Icons 
 Icons are font based and can be shown via the icon class
