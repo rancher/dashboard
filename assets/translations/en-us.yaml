@@ -80,6 +80,7 @@ nav:
   kubeconfig: Download KubeConfig
   import: Import YAML
   home: Home
+  reload: Reload
   shell: Kubectl Shell
   support: |-
     {hasSupport, select,
