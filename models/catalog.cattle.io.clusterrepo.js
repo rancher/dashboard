@@ -2,6 +2,7 @@ import Vue from 'vue';
 import { parse } from '@/utils/url';
 import { CATALOG } from '@/config/labels-annotations';
 import { insertAt } from '@/utils/array';
+import { CATALOG as CATALOG_TYPE } from '@/config/types';
 
 export default {
   applyDefaults() {
@@ -140,4 +141,21 @@ export default {
       },
     ];
   },
+
+  waitForOperation() {
+    return (operationId, timeout, interval = 2000) => {
+      return this.waitForTestFn(() => {
+        if (!this.$getters['schemaFor'](CATALOG_TYPE.OPERATION)) {
+          return false;
+        }
+        if (this.$getters['byId'](CATALOG_TYPE.OPERATION, operationId)) {
+          return true;
+        }
+        this.$dispatch('find', {
+          type: CATALOG_TYPE.OPERATION,
+          id:   operationId
+        });
+      }, `catalog operation fetch`, timeout, interval);
+    };
+  }
 };
