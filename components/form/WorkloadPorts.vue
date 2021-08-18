@@ -199,8 +199,14 @@ export default {
       class="ports-row"
       :class="{'show-host':row._showHost}"
     >
-      <div class="service-type">
-        <LabeledSelect v-model="row._serviceType" :mode="mode" :label="t('workload.container.ports.createService')" :options="serviceTypes" @input="queueUpdate" />
+      <div class="service-type col">
+        <LabeledSelect
+          v-model="row._serviceType"
+          :mode="mode"
+          :label="t('workload.container.ports.createService')"
+          :options="serviceTypes"
+          @input="queueUpdate"
+        />
       </div>
 
       <div class="portName">
@@ -226,7 +232,7 @@ export default {
         />
       </div>
 
-      <div class="protocol">
+      <div class="protocol col">
         <LabeledSelect
           v-model="row.protocol"
           :mode="mode"
@@ -308,7 +314,7 @@ $checkbox: 75;
 }
 .ports-headers, .ports-row{
   display: grid;
-  grid-template-columns: 20% 32% 145px 80px .5fr .5fr;
+  grid-template-columns: 20% 32% 145px 90px .5fr .5fr;
   grid-column-gap: $column-gutter;
   margin-bottom: 10px;
   align-items: center;
@@ -318,7 +324,7 @@ $checkbox: 75;
   }
 
   &.show-host{
-    grid-template-columns: 20% 20% 145px 80px 140px .5fr .5fr;
+    grid-template-columns: 20% 20% 145px 90px 140px .5fr .5fr;
   }
 
 }
