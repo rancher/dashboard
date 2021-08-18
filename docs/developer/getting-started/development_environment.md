@@ -50,7 +50,7 @@ Developers are free to use the IDE and modern browser of their choosing. Here's 
 ### Chrome
 - Install the Chrome `vue-devtools` extension to view the Vuex store.
   
-  > This can consume a lot of the host's resources. It's recommended to pause Vuex history (nav to Vue tab in DevTools and toggle the `Recording` button top right of the history section)
+  > This can consume a lot of the host's resources. It's recommended to pause Vuex history (nav to Vue tab in DevTools and toggle the `Recording` button top right of the history section). Vue devtools will record each mutation, so it's strongly recommended to disable recording early on in debugging, before logging into Rancher. Recording Vuex can then be manually toggled on an as-needed basis to safely investigate shared state
 
 ## Running / Debugging Dashboard
 
