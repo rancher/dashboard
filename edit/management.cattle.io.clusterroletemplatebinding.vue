@@ -51,6 +51,6 @@ export default {
     @finish="saveOverride"
     @cancel="done"
   >
-    <ClusterPermissionsEditor v-model="bindings" />
+    <ClusterPermissionsEditor v-model="bindings" :cluster-name="$store.getters['currentCluster'].id" />
   </CruResource>
 </template>
