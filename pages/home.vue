@@ -156,7 +156,7 @@ export default {
     },
 
     showCommercialSupport() {
-      const canEditSettings = (this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PATCH');
+      const canEditSettings = (this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PUT');
 
       const hasSupport = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED) || {};
 
