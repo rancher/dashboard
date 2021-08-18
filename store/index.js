@@ -670,7 +670,7 @@ export const actions = {
     commit('setError', err);
     const router = state.$router;
 
-    router.replace('/fail-whale');
+    router.push('/fail-whale');
   },
 
   updateServerVersion({ commit, state }, neu) {
