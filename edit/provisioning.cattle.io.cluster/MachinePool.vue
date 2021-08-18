@@ -41,11 +41,6 @@ export default {
       type:     String,
       required: true,
     },
-
-    showWarning: {
-      type:    Boolean,
-      default: false
-    }
   },
 
   data() {
@@ -132,12 +127,6 @@ export default {
 
     <hr class="mt-10" />
 
-    <Banner
-      v-if="showWarning && value.config"
-      color="info"
-      :label="t('cluster.machineConfig.banner.updateInfo')"
-    />
-
     <component
       :is="configComponent"
       v-if="value.config"
@@ -147,7 +136,6 @@ export default {
       :value="value.config"
       :provider="provider"
       :credential-id="credentialId"
-      :disabled="!!value.config.id"
       @error="e=>errors = e"
     />
     <Banner v-else color="info" label="You do not have access to see this machine pool's configuration." />
