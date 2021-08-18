@@ -50,6 +50,11 @@ export default {
             {{ t('nav.home') }}
           </a>
         </p>
+        <hr>
+        <a class="btn role-secondary" @click="$router.go(-1)">
+          Reload
+        </a>
+        </p>
       </div>
     </main>
   </div>
@@ -73,4 +78,21 @@ export default {
       }
     }
   }
+
+  hr {
+    text-align: center;
+    margin-top: 18px;
+    margin-bottom: 18px;
+    max-width: 450px;
+  }
+
+  hr:after {
+    background: var(--body-bg);
+    color: var(--body-text);
+    content: 'or';
+    padding: 0 12px;
+    position: relative;
+    top: -12px;
+  }
+
 </style>
