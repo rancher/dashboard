@@ -17,7 +17,10 @@ export default {
       this.$router.replace('/');
     }
 
-    return { home };
+    return {
+      home,
+      previousRoute: ''
+    };
   },
 
   computed: {
@@ -28,6 +31,11 @@ export default {
     },
   },
 
+  beforeRouteEnter(to, from, next) {
+    next((vm) => {
+      vm.previousRoute = from;
+    });
+  },
 };
 </script>
 
@@ -52,7 +60,7 @@ export default {
         </p>
         <hr>
         <p class="mt-20">
-          <a class="btn role-secondary" @click="$router.go(-1)">
+          <a class="btn role-secondary" @click="$router.push(previousRoute.fullPath)">
             {{ t('nav.reload') }}
           </a>
         </p>
