@@ -92,10 +92,12 @@ export default {
     },
 
     harvesterDashboard() {
+      const cluster = this.$store.getters.defaultClusterId;
+
       return {
         name:   'c-cluster-product-resource',
         params: {
-          ...this.$route.params,
+          cluster,
           product:  VIRTUAL,
           resource: HCI.DASHBOARD,
         }
