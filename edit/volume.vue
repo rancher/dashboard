@@ -112,10 +112,13 @@ export default {
       let storageClassName = 'longhorn';
 
       if (this.isVMImage && this.imageId) {
-        imageAnnotations = { [HCI_ANNOTATIONS.IMAGE_ID]: this.imageId };
+        imageAnnotations = {
+          ...this.value.metadata.annotations,
+          [HCI_ANNOTATIONS.IMAGE_ID]: this.imageId
+        };
         storageClassName = `longhorn-${ this.imageId.split('/')[1] }`;
       } else {
-        imageAnnotations = {};
+        imageAnnotations = { ...this.value.metadata.annotations };
       }
 
       const spec = {
@@ -190,7 +193,7 @@ export default {
             suffix="iB"
             :input-exponent="3"
             :output-exponent="3"
-            :disabled="!isCreate"
+            :mode="mode"
             required
             class="mb-20"
             @input="update"

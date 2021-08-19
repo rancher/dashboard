@@ -27,6 +27,14 @@ export default {
     };
   },
 
+  canUpdate() {
+    if (this.$rootGetters['currentProduct'].inStore === VIRTUAL) {
+      return this.hasLink('update');
+    }
+
+    return this.hasLink('update') && this.$rootGetters['type-map/optionsFor'](this.type).isEditable;
+  },
+
   stateDisplay() {
     if (this.$rootGetters['currentProduct'].inStore === VIRTUAL) {
       const ownedBy = this?.metadata?.annotations?.[HCI_ANNOTATIONS.OWNED_BY];
