@@ -1095,7 +1095,7 @@ export default {
           set(this.rkeConfig.registries, 'configs', {});
         }
       } else {
-        set(this.agentConfig, 'system-default-registry', null);
+        set(this.agentConfig, 'system-default-registry', undefined);
         set(this.rkeConfig.registries, 'configs', {});
         set(this.rkeConfig.registries, 'mirrors', {});
       }
