@@ -51,6 +51,7 @@ import RegistryConfigs from './RegistryConfigs';
 import RegistryMirrors from './RegistryMirrors';
 import S3Config from './S3Config';
 import SelectCredential from './SelectCredential';
+import { SETTING } from '~/config/settings';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';
@@ -200,7 +201,7 @@ export default {
     }
 
     await this.initAddons();
-    this.initRegistry();
+    await this.initRegistry();
   },
 
   data() {
@@ -243,8 +244,9 @@ export default {
       versionInfo:      {},
       membershipUpdate: {},
       hasOwner:         false,
+      systemRegistry:   null,
+      registryHost:     null,
       registryMode:     null,
-      registryDefault:  null,
       registrySecret:   null,
     };
   },
@@ -1028,11 +1030,13 @@ export default {
       return idx !== 0;
     },
 
-    initRegistry() {
+    async initRegistry() {
       let registryMode = PUBLIC;
-      const registryDefault = this.agentConfig?.['system-default-registry'];
+      let registryHost = this.agentConfig?.['system-default-registry'] || '';
       let registrySecret = null;
       let regs = this.rkeConfig.registries;
+
+      this.systemRegistry = (await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.SYSTEM_DEFAULT_REGISTRY })).value || '';
 
       if ( !regs ) {
         regs = {};
@@ -1047,7 +1051,10 @@ export default {
         set(regs, 'mirrors', {});
       }
 
-      if ( registryDefault ) {
+      if ( registryHost ) {
+        registryMode = PRIVATE;
+      } else if ( this.systemRegistry ) {
+        registryHost = this.systemRegistry;
         registryMode = PRIVATE;
       }
 
@@ -1058,7 +1065,7 @@ export default {
         const config = regs.configs[hostname];
 
         if ( config ) {
-          if ( hostname !== registryDefault || config.caBundle || config.insecureSkipVerify || config.tlsSecretName ) {
+          if ( hostname !== registryHost || config.caBundle || config.insecureSkipVerify || config.tlsSecretName ) {
             registryMode = ADVANCED;
           } else {
             registryMode = PRIVATE;
@@ -1067,19 +1074,32 @@ export default {
         }
       }
 
+      this.registryHost = registryHost;
       this.registryMode = registryMode;
       this.registrySecret = registrySecret;
     },
 
     setRegistryConfig() {
-      if ( this.registryMode === ADVANCED ) {
-        return;
+      const hostname = (this.registryHost || '').trim();
+
+      if ( this.registryMode === PUBLIC ) {
+        if ( this.systemRegistry ) {
+          // Empty string overrides the system default to nothing
+          set(this.agentConfig, 'system-default-registry', '');
+        } else {
+          // No need to set anything
+          set(this.agentConfig, 'system-default-registry', undefined);
+        }
+      } else if ( !hostname || hostname === this.systemRegistry ) {
+        // Undefined removes the key which uses the global setting without hardcoding it into the config
+        set(this.agentConfig, 'system-default-registry', undefined);
+      } else {
+        set(this.agentConfig, 'system-default-registry', hostname);
       }
 
-      const hostname = (this.agentConfig['system-default-registry'] || '').trim();
-
-      if ( this.registryMode === PRIVATE && hostname ) {
-        set(this.agentConfig, 'system-default-registry', hostname);
+      if ( this.registryMode === ADVANCED ) {
+        // Leave it alone...
+      } else if ( this.registryMode === PRIVATE ) {
         set(this.rkeConfig.registries, 'mirrors', {});
 
         if ( this.registrySecret ) {
@@ -1095,7 +1115,6 @@ export default {
           set(this.rkeConfig.registries, 'configs', {});
         }
       } else {
-        set(this.agentConfig, 'system-default-registry', undefined);
         set(this.rkeConfig.registries, 'configs', {});
         set(this.rkeConfig.registries, 'mirrors', {});
       }
@@ -1432,7 +1451,7 @@ export default {
 
           <LabeledInput
             v-if="registryMode !== PUBLIC"
-            v-model="agentConfig['system-default-registry']"
+            v-model="registryHost"
             class="mt-20"
             :mode="mode"
             :required="true"
