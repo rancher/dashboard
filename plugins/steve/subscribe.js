@@ -8,6 +8,7 @@ import Socket, {
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR
 } from '@/utils/socket';
+import { normalizeType } from '~/plugins/steve/normalize';
 
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
@@ -36,6 +37,49 @@ export function equivalentWatch(a, b) {
   }
 
   return true;
+}
+
+function queueChange({ getters, state }, { data, revision }, load, label) {
+  const type = getters.normalizeType(data.type);
+
+  remapSpecialKeys(data);
+
+  const entry = getters.typeEntry(type);
+
+  if ( entry ) {
+    entry.revision = Math.max(entry.revision, parseInt(revision, 10));
+  } else {
+    return;
+  }
+
+  // console.log(`${ label } Event [${ state.config.namespace }]`, data.type, data.id); // eslint-disable-line no-console
+
+  if ( load ) {
+    state.queue.push({
+      action: 'dispatch',
+      event:  'load',
+      body:   data
+    });
+  } else {
+    const obj = getters.byId(data.type, data.id);
+
+    if ( obj ) {
+      state.queue.push({
+        action: 'commit',
+        event:  'remove',
+        body:   obj
+      });
+    }
+
+    if ( type === 'schema' ) {
+      // Clear the current records in the store when a type disappears
+      state.queue.push({
+        action: 'commit',
+        event:  'forgetType',
+        body:   data.id
+      });
+    }
+  }
 }
 
 export const actions = {
@@ -403,67 +447,16 @@ export const actions = {
     }
   },
 
-  'ws.resource.create'({ getters, state }, { data }) {
-    const type = getters.normalizeType(data.type);
-
-    remapSpecialKeys(data);
-
-    if ( !getters.typeRegistered(type) ) {
-      return;
-    }
-
-    // console.log(`Create Event [${ state.config.namespace }]`, data.type, data.id); // eslint-disable-line no-console
-
-    state.queue.push({
-      action: 'dispatch',
-      event:  'load',
-      body:   data
-    });
+  'ws.resource.create'(ctx, msg) {
+    queueChange(ctx, msg, true, 'Create');
   },
 
-  'ws.resource.change'({ getters, state }, { data }) {
-    remapSpecialKeys(data);
-
-    if ( !getters.typeRegistered(getters.normalizeType(data.type)) ) {
-      return;
-    }
-
-    // console.log(`Change Event [${ state.config.namespace }]`, data.type, data.id); // eslint-disable-line no-console
-
-    state.queue.push({
-      action: 'dispatch',
-      event:  'load',
-      body:   data
-    });
+  'ws.resource.change'(ctx, msg) {
+    queueChange(ctx, msg, true, 'Change');
   },
 
-  'ws.resource.remove'({ getters, state }, { data }) {
-    const type = getters.normalizeType(data.type);
-
-    if ( !getters.typeRegistered(type) ) {
-      return;
-    }
-
-    // console.log(`Remove Event [${ state.config.namespace }]`, data.type, data.id); // eslint-disable-line no-console
-
-    const obj = getters.byId(data.type, data.id);
-
-    if ( obj ) {
-      state.queue.push({
-        action: 'commit',
-        event:  'remove',
-        body:   obj
-      });
-    }
-
-    if ( type === 'schema' ) {
-      // Clear the current records in the store when a type disappears
-      state.queue.push({
-        action: 'commit',
-        event:  'forgetType',
-        body:   data.id
-      });
-    }
+  'ws.resource.remove'(ctx, msg) {
+    queueChange(ctx, msg, false, 'Remove');
   },
 };
 
@@ -529,4 +522,40 @@ export const getters = {
   watchStarted: state => (obj) => {
     return !!state.started.find(entry => equivalentWatch(obj, entry));
   },
+
+  nextResourceVersion: (state, getters) => (type, id) => {
+    type = normalizeType(type);
+    let revision = 0;
+
+    if ( id ) {
+      const existing = getters['byId'](type, id);
+
+      revision = parseInt(existing?.metadata?.resourceVersion, 10);
+    }
+
+    if ( !revision ) {
+      const cache = state.types[type];
+
+      if ( !cache ) {
+        return null;
+      }
+
+      revision = cache.revision;
+
+      for ( const obj of cache.list ) {
+        if ( obj && obj.metadata ) {
+          const neu = parseInt(obj.metadata.resourceVersion, 10);
+
+          revision = Math.max(revision, neu);
+        }
+      }
+    }
+
+    if ( revision ) {
+      return revision;
+    }
+
+    return null;
+  },
+
 };
