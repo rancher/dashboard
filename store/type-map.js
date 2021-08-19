@@ -35,6 +35,7 @@
 //   ifHave,                  -- Show this product only if the given capability is available
 //   ifHaveGroup,             -- Show this product only if the given group exists in the store [inStore]
 //   ifHaveType,              -- Show this product only if the given type exists in the store [inStore], This can also be specified as an object { type: TYPE, store: 'management' } if the type isn't in the current [inStore]
+//   ifHaveVerb,              -- In combination with ifHaveTYpe, show it only if the type also has this collectionMethod
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
 //   public,                  -- If true, show to all users.  If false, only show when the Developer Tools pref is on (default true)
 //   category,                -- Group to show the product in for the nav hamburger menu
@@ -1127,8 +1128,30 @@ export const getters = {
         return false;
       }
 
-      if ( p.ifHaveType && !knownTypes[module].find(t => t.match(stringToRegex(p.ifHaveType)) ) ) {
-        return false;
+      if ( p.ifHaveType ) {
+        const haveIds = knownTypes[module].filter(t => t.match(stringToRegex(p.ifHaveType)) );
+
+        if ( !haveIds.length ) {
+          return false;
+        }
+
+        if ( p.ifHaveVerb ) {
+          let found = false;
+
+          for ( const haveId of haveIds ) {
+            const schema = rootGetters[`${ module }/schemaFor`](haveId);
+            const want = p.ifHaveVerb.toLowerCase();
+            const have = [...schema.collectionMethods, ...schema.resourceMethods].map(x => x.toLowerCase());
+
+            if ( have.includes(want) || have.includes(`blocked-${ want }`) ) {
+              found = true;
+            }
+          }
+
+          if ( !found ) {
+            return false;
+          }
+        }
       }
 
       if ( p.ifHaveGroup && !knownGroups[module].find(t => t.match(stringToRegex(p.ifHaveGroup)) ) ) {

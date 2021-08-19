@@ -9,7 +9,7 @@ import CommunityLinks from '@/components/CommunityLinks';
 import SimpleBox from '@/components/SimpleBox';
 import LandingPagePreference from '@/components/LandingPagePreference';
 import SingleClusterInfo from '@/components/SingleClusterInfo';
-import { mapGetters } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import { MANAGEMENT, CAPI } from '@/config/types';
 import { NAME as MANAGER } from '@/config/product/manager';
 import { STATE } from '@/config/table-headers';
@@ -70,6 +70,7 @@ export default {
   },
 
   computed: {
+    ...mapState(['managementReady']),
     ...mapGetters(['currentCluster']),
     mcm: mapFeature(MULTI_CLUSTER),
 
@@ -228,7 +229,7 @@ export default {
 
 </script>
 <template>
-  <div class="home-page">
+  <div v-if="managementReady" class="home-page">
     <BannerGraphic :small="true" :title="t('landing.welcomeToRancher', {vendor})" :pref="HIDE_HOME_PAGE_CARDS" pref-key="welcomeBanner" />
     <IndentedPanel class="mt-20 mb-20">
       <div v-if="!readWhatsNewAlready" class="row">
