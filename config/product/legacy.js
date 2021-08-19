@@ -165,6 +165,17 @@ export function init(store) {
     overview:   false,
   });
 
+  virtualType({
+    ifHave:     IF_HAVE.PROJECT,
+    labelKey:   'legacy.secrets',
+    namespaced: true,
+    name:       'project-secrets',
+    weight:     104,
+    route:      { name: 'c-cluster-legacy-project-page', params: { page: 'secrets' } },
+    exact:      true,
+    overview:   false,
+  });
+
   basicType([
     'project-apps',
     'project-alerts',
@@ -173,5 +184,6 @@ export function init(store) {
     'project-istio',
     'project-monitoring',
     'project-pipelines',
+    'project-secrets',
   ], 'Project');
 }

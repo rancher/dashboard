@@ -5103,6 +5103,7 @@ legacy:
   monitoring: Monitoring
   pipelines: Pipelines
   psps: Pod Security Policies
+  secrets: Secrets
 
   project:
     label: Project
