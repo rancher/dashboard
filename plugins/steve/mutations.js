@@ -12,7 +12,8 @@ function registerType(state, type) {
     cache = {
       list:         [],
       haveAll:      false,
-      haveSelector: {}
+      haveSelector: {},
+      revision:     0,
     };
 
     // Not enumerable so they don't get sent back to the client for SSR
