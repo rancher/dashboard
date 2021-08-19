@@ -4932,6 +4932,10 @@ harvester:
         label: Network Data Template
         title: "Network Data:"
         tip: "The network-data configuration allows you to customize the instance’s networking interfaces by assigning subnet configuration, virtual device creation (bonds, bridges, vlans) routes and DNS configuration. <a href='https://cloudinit.readthedocs.io/en/latest/topics/network-config-format-v1.html' target='_blank'>Learn more</a>"
+    scheduling:
+      affinity:
+        anyNode: 'Run virtual machine on any available node'
+        schedulingRules: 'Run virtual machine on node(s) matching scheduling rules'
     input:
       name: Name
       memory: Memory

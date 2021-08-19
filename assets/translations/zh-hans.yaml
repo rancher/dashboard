@@ -4012,6 +4012,10 @@ harvester:
         label: 网络配置模板
         title: "Network Data:"
         tip: '网络设备配置可让您自定义实例的网络接口,例如管理子网分配，虚拟设备创建（bonds，bridges，Vlan）路由和DNS配置。 <a href="https://cloudinit.readthedocs.io/en/latest/topics/network-config-format-v1.html" target="_blank"> 查看更多 </a>'
+    scheduling:
+      affinity:
+        anyNode: '自动匹配节点运行 Virtual Machine'
+        schedulingRules: '通过调度规则匹配节点运行 Virtual Machine'
     input:
       name: 名称
       memory: 内存
