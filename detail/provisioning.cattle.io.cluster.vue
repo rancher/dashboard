@@ -66,13 +66,7 @@ export default {
 
     if (this.value.isImported || this.value.isCustom) {
       hash.clusterToken = this.value.getOrCreateToken();
-    } else if (!this.value.isRke2 ) {
-      // These are needed to resolve references in the mgmt cluster -> node pool -> node template to figure out what provider the cluster is using
-      // so that the edit iframe for ember pages can go to the right place.
-      hash.rke1NodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-      hash.rke1NodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
     }
-
     if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
       hash.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
 
