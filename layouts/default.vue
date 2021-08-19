@@ -140,6 +140,7 @@ export default {
 
       if (this.$store.getters['currentProduct'].name === 'virtual') {
         const setting = this.$store.getters['virtual/byId'](HCI.SETTING, 'server-version');
+
         displayVersion = setting?.value || 'unknown';
       }
 
