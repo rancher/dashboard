@@ -5,7 +5,7 @@ import MembershipEditor from '@/components/form/Members/MembershipEditor';
 import { canViewMembershipEditor } from '@/components/form/Members/MembershipEditor.vue';
 
 export function canViewProjectMembershipEditor(store) {
-  return canViewMembershipEditor(store);
+  return canViewMembershipEditor(store, true);
 }
 
 export default {

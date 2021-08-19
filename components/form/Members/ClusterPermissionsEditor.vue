@@ -35,6 +35,11 @@ export default {
     useTwoColumnsForCustom: {
       type:    Boolean,
       default: false
+    },
+
+    clusterName: {
+      type:    String,
+      default: null
     }
   },
   async fetch() {
@@ -176,7 +181,7 @@ export default {
     async updateBindings() {
       const bindingPromises = this.roleTemplateIds.map(id => this.$store.dispatch(`management/create`, {
         type:              MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
-        clusterName:       this.$store.getters['currentCluster'].id,
+        clusterName:       this.clusterName,
         roleTemplateName:  id,
         principalName:    this.principalId
       }));
