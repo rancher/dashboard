@@ -19,7 +19,8 @@ export default {
 
     return {
       home,
-      previousRoute: ''
+      previousRoute: '',
+      styles:        { '--custom-content': `'${ this.t('nav.failWhale.separator') }'` }
     };
   },
 
@@ -58,10 +59,10 @@ export default {
             {{ t('nav.home') }}
           </a>
         </p>
-        <hr>
+        <hr class="custom-content" :style="styles">
         <p class="mt-20">
           <a class="btn role-secondary" @click="$router.push(previousRoute.fullPath)">
-            {{ t('nav.reload') }}
+            {{ t('nav.failWhale.reload') }}
           </a>
         </p>
       </div>
@@ -88,20 +89,19 @@ export default {
     }
   }
 
-  hr {
+  .custom-content {
     text-align: center;
     margin-top: 18px;
     margin-bottom: 18px;
     max-width: 450px;
-  }
 
-  hr:after {
-    background: var(--body-bg);
-    color: var(--body-text);
-    content: 'or';
-    padding: 0 12px;
-    position: relative;
-    top: -12px;
+    &::after {
+      background: var(--body-bg);
+      color: var(--body-text);
+      content: var(--custom-content);
+      padding: 0 12px;
+      position: relative;
+      top: -12px;
+    }
   }
-
 </style>
