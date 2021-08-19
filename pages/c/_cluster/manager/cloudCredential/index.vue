@@ -3,7 +3,7 @@ import Loading from '@/components/Loading';
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { NORMAN, SECRET } from '@/config/types';
-import { AGE_NORMAN, DESCRIPTION, NAME_UNLINKED } from '@/config/table-headers';
+import { AGE_NORMAN, DESCRIPTION, ID_UNLINKED, NAME_UNLINKED } from '@/config/table-headers';
 
 export default {
   components: {
@@ -34,6 +34,7 @@ export default {
 
     headers() {
       return [
+        ID_UNLINKED,
         NAME_UNLINKED,
         {
           name:        'apikey',
@@ -76,6 +77,9 @@ export default {
     />
 
     <ResourceTable :schema="schema" :rows="rows" :headers="headers" :namespaced="false" group-by="providerDisplay">
+      <template #cell:id="{row}">
+        {{ row.id.replace('cattle-global-data:','') }}
+      </template>
       <template #cell:apikey="{row}">
         <span v-if="row.publicData" v-html="row.publicData" />
         <span v-else class="text-muted">&mdash;</span>
