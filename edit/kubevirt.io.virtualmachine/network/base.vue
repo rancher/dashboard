@@ -2,7 +2,6 @@
 import InputOrDisplay from '@/components/InputOrDisplay';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import PortInputGroup from '@/components/form/PortInputGroup';
 import { _CREATE, _VIEW } from '@/config/query-params';
 
 export const MODEL = [{
@@ -30,7 +29,7 @@ const MANAGEMENT_NETWORK = 'management Network';
 export default {
   name:       'NetworkBase',
   components: {
-    LabeledInput, LabeledSelect, PortInputGroup, InputOrDisplay
+    LabeledInput, LabeledSelect, InputOrDisplay
   },
 
   props: {
@@ -206,9 +205,5 @@ export default {
         </inputordisplay>
       </div>
     </div>
-
-    <hr v-if="isMasquerade" class="mb-20">
-
-    <PortInputGroup v-if="value.type === 'masquerade'" v-model="value" :disabled="isDisabled" :mode="mode" />
   </div>
 </template>
