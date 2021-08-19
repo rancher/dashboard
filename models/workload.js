@@ -16,7 +16,7 @@ export default {
       icon:   'icon icon-plus'
     });
 
-    if (type !== WORKLOAD_TYPES.JOB) {
+    if (type !== WORKLOAD_TYPES.JOB && type !== WORKLOAD_TYPES.CRON_JOB) {
       insertAt(out, 0, {
         action:     'redeploy',
         label:      'Redeploy',
