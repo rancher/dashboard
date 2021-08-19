@@ -68,8 +68,9 @@ export default {
     },
 
     selectNodeOptions() {
+      const prefix = this.isHarvester ? 'harvester.virtualMachine' : 'workload';
       const out = [{
-        label: this.t('workload.scheduling.affinity.anyNode'),
+        label: this.t(`${ prefix }.scheduling.affinity.anyNode`),
         value: null
       },
       {
@@ -77,7 +78,7 @@ export default {
         value: 'nodeSelector'
       },
       {
-        label: this.t('workload.scheduling.affinity.schedulingRules'),
+        label: this.t(`${ prefix }.scheduling.affinity.schedulingRules`),
         value: 'affinity'
       }];
 
