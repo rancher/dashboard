@@ -9,8 +9,8 @@ function normalizeId(id) {
   return id?.replace(':', '/') || id;
 }
 
-export function canViewMembershipEditor(store) {
-  return !!store.getters['management/schemaFor'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING) &&
+export function canViewMembershipEditor(store, needsProject = false) {
+  return (!!store.getters['management/schemaFor'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING) || !needsProject) &&
     !!store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE) &&
     !!store.getters['rancher/schemaFor'](NORMAN.PRINCIPAL);
 }
