@@ -80,7 +80,6 @@ nav:
   kubeconfig: Download KubeConfig
   import: Import YAML
   home: Home
-  reload: Reload
   shell: Kubectl Shell
   support: |-
     {hasSupport, select,
@@ -125,6 +124,9 @@ nav:
     preferences: Preferences
     accountAndKeys: Account & API Keys
     logOut: Log Out
+  failWhale: 
+    reload: Reload
+    separator: or
 
 product:
   apps: Apps & Marketplace
