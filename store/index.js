@@ -1,6 +1,6 @@
 import Steve from '@/plugins/steve';
 import {
-  COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET, UI, VIRTUAL_PROVIDER
+  COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET, UI, VIRTUAL_PROVIDER, HCI
 } from '@/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS, LAST_NAMESPACE, WORKSPACE } from '@/store/prefs';
 import { allHash, allHashSettled } from '@/utils/promise';
@@ -717,6 +717,7 @@ export const actions = {
     await allHash({
       virtualCount:      dispatch('virtual/findAll', { type: COUNT }),
       virtualNamespaces: dispatch('virtual/findAll', { type: NAMESPACE }),
+      settings:          dispatch('virtual/findAll', { type: HCI.SETTING }),
     });
 
     commit('clusterChanged', true);
