@@ -1,5 +1,5 @@
 import { CATALOG } from '@/config/labels-annotations';
-import { FLEET, MANAGEMENT, NODE } from '@/config/types';
+import { CAPI, FLEET, MANAGEMENT, NODE } from '@/config/types';
 import { insertAt } from '@/utils/array';
 import { downloadFile } from '@/utils/download';
 import { parseSi } from '@/utils/units';
@@ -292,6 +292,10 @@ export default {
 
       downloadFile('kubeconfig.yaml', out, 'application/yaml');
     };
+  },
+
+  provisioningCluster() {
+    return this.$getters['all'](CAPI.RANCHER_CLUSTER).find(c => c.name === this.id);
   },
 
   fetchNodeMetrics() {
