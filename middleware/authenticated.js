@@ -235,7 +235,7 @@ export default async function({
     }
   } catch (e) {
     if ( e instanceof ClusterNotFoundError ) {
-      return redirect(302, '/clusters');
+      return redirect(302, '/home');
     } else {
       store.commit('setError', e);
 
