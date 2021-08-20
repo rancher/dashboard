@@ -17,7 +17,11 @@ export default {
       this.$router.replace('/');
     }
 
-    return { home };
+    return {
+      home,
+      previousRoute: '',
+      styles:        { '--custom-content': `'${ this.t('nav.failWhale.separator') }'` }
+    };
   },
 
   computed: {
@@ -28,6 +32,11 @@ export default {
     },
   },
 
+  beforeRouteEnter(to, from, next) {
+    next((vm) => {
+      vm.previousRoute = from;
+    });
+  },
 };
 </script>
 
@@ -48,6 +57,12 @@ export default {
         <p class="mt-20">
           <a :href="home" class="btn role-primary">
             {{ t('nav.home') }}
+          </a>
+        </p>
+        <hr class="custom-content" :style="styles">
+        <p class="mt-20">
+          <a class="btn role-secondary" @click="$router.push(previousRoute.fullPath)">
+            {{ t('nav.failWhale.reload') }}
           </a>
         </p>
       </div>
@@ -71,6 +86,22 @@ export default {
       img {
         max-width: 100%;
       }
+    }
+  }
+
+  .custom-content {
+    text-align: center;
+    margin-top: 18px;
+    margin-bottom: 18px;
+    max-width: 450px;
+
+    &::after {
+      background: var(--body-bg);
+      color: var(--body-text);
+      content: var(--custom-content);
+      padding: 0 12px;
+      position: relative;
+      top: -12px;
     }
   }
 </style>
