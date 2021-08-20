@@ -74,12 +74,6 @@ export default {
     hasWindowsNodes() {
       return this.kubeNodes.some(node => node.status.nodeInfo.operatingSystem === 'windows');
     },
-    currentCluster() {
-      return this.$store.getters['currentCluster'];
-    },
-    clusterSupportsWindows() {
-      return this.currentCluster.provisioningCluster.supportsWindows;
-    },
     tableGroup: mapPref(GROUP_RESOURCES),
 
     headers() {
