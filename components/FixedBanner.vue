@@ -17,10 +17,11 @@ export default {
 
   data() {
     return {
-      showHeader:    false,
-      showFooter:    false,
-      banner:        {},
-      bannerSetting: null
+      showHeader:      false,
+      showFooter:      false,
+      textDecoration:  {},
+      banner:          {},
+      bannerSetting:   null
     };
   },
 
@@ -28,7 +29,11 @@ export default {
     bannerStyle() {
       return {
         color:              this.banner.color,
-        'background-color': this.banner.background
+        'background-color': this.banner.background,
+        'text-align':       this.banner.textAlignment,
+        'font-weight':      this.banner.fontWeight ? 'bold' : '',
+        'font-style':       this.banner.fontStyle ? 'italic' : '',
+        'text-decoration':  this.banner.textDecoration ? 'underline' : ''
       };
     },
 
@@ -83,5 +88,6 @@ export default {
         line-height: 2em;
         height: 2em;
         width: 100%;
+        padding: 0 20px;
     }
 </style>

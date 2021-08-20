@@ -3,6 +3,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import ColorInput from '@/components/form/ColorInput';
 
 import Checkbox from '@/components/form/Checkbox';
+import RadioGroup from '@/components/form/RadioGroup';
 import FileSelector from '@/components/form/FileSelector';
 import SimpleBox from '@/components/SimpleBox';
 import Loading from '@/components/Loading';
@@ -21,14 +22,22 @@ const parse = require('url-parse');
 
 const DEFAULT_BANNER_SETTING = {
   bannerHeader: {
-    background: null,
-    color:      null,
-    text:       null
+    background:      null,
+    color:           null,
+    textAlignment:   null,
+    fontWeight:      null,
+    fontStyle:       null,
+    textDecoration:  null,
+    text:            null
   },
   bannerFooter: {
-    background: null,
-    color:      null,
-    text:       null
+    background:      null,
+    color:           null,
+    textAlignment:   null,
+    fontWeight:      null,
+    fontStyle:       null,
+    textDecoration:  null,
+    text:            null
   },
   showHeader:   'false',
   showFooter:   'false',
@@ -38,7 +47,7 @@ export default {
   layout: 'authenticated',
 
   components: {
-    LabeledInput, Checkbox, FileSelector, Loading, SimpleBox, AsyncButton, Banner, ColorInput
+    LabeledInput, Checkbox, RadioGroup, FileSelector, Loading, SimpleBox, AsyncButton, Banner, ColorInput
   },
 
   async fetch() {
@@ -104,6 +113,36 @@ export default {
       const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
 
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
+    },
+
+    radioOptions() {
+      const options = ['left', 'center', 'right'];
+      const labels = [
+        this.t('branding.uiBanner.bannerAlignment.leftOption'),
+        this.t('branding.uiBanner.bannerAlignment.centerOption'),
+        this.t('branding.uiBanner.bannerAlignment.rightOption'),
+      ];
+
+      return { options, labels };
+    },
+
+    textDecorationOptions() {
+      const options = [
+        {
+          style:  'fontWeight',
+          label:  this.t('branding.uiBanner.bannerDecoration.bannerBold')
+        },
+        {
+          style:  'fontStyle',
+          label:  this.t('branding.uiBanner.bannerDecoration.bannerItalic')
+        },
+        {
+          style:  'textDecoration',
+          label:  this.t('branding.uiBanner.bannerDecoration.bannerUnderline')
+        }
+      ];
+
+      return options;
     }
   },
 
@@ -329,8 +368,33 @@ export default {
         <div v-if="bannerVal.showHeader==='true'" class="row mb-20">
           <div class="col span-12">
             <div class="row">
-              <div class="col span-12">
+              <div class="col span-6">
                 <LabeledInput v-model="bannerVal.bannerHeader.text" :label="t('branding.uiBanner.text')" />
+              </div>
+              <div class="col span-3">
+                <RadioGroup
+                  v-model="bannerVal.bannerHeader.textAlignment"
+                  name="headerAlignment"
+                  :label="t('branding.uiBanner.bannerAlignment.label')"
+                  :options="radioOptions.options"
+                  :labels="radioOptions.labels"
+                  :mode="mode"
+                />
+              </div>
+              <div class="col span-3">
+                <h3>
+                  {{ t('branding.uiBanner.bannerDecoration.label') }}
+                </h3>
+                <div v-for="o in textDecorationOptions" :key="o.style">
+                  <Checkbox
+                    v-model="bannerVal.bannerHeader[o.style]"
+                    name="headerDecoration"
+                    class="header-decoration-checkbox"
+                    :mode="mode"
+                    :label="o.label"
+                    @input="e=>$set(bannerVal, o.style, e.toString())"
+                  />
+                </div>
               </div>
             </div>
             <div class="row mt-10">
@@ -351,8 +415,33 @@ export default {
         <div v-if="bannerVal.showFooter==='true'" class="row">
           <div class="col span-12 mt-20">
             <div class="row">
-              <div class="col span-12">
+              <div class="col span-6">
                 <LabeledInput v-model="bannerVal.bannerFooter.text" :label="t('branding.uiBanner.text')" />
+              </div>
+              <div class="col span-3">
+                <RadioGroup
+                  v-model="bannerVal.bannerFooter.textAlignment"
+                  name="footerAlignment"
+                  :label="t('branding.uiBanner.bannerAlignment.label')"
+                  :options="radioOptions.options"
+                  :labels="radioOptions.labels"
+                  :mode="mode"
+                />
+              </div>
+              <div class="col span-3">
+                <h3>
+                  {{ t('branding.uiBanner.bannerDecoration.label') }}
+                </h3>
+                <div v-for="o in textDecorationOptions" :key="o.style">
+                  <Checkbox
+                    v-model="bannerVal.bannerFooter[o.style]"
+                    name="footerAlignment"
+                    class="banner-decoration-checkbox"
+                    :mode="mode"
+                    :label="o.label"
+                    @input="e=>$set(bannerVal, o.style, e.toString())"
+                  />
+                </div>
               </div>
             </div>
             <div class="row mt-10">
@@ -403,4 +492,15 @@ export default {
     }
 }
 
+.banner-decoration-checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+  border-radius: var(--border-radius);
+  padding-bottom: 5px;
+  height: 24px;
+}
 </style>
