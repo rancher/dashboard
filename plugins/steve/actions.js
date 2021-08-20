@@ -160,7 +160,7 @@ export default {
 
     const res = await dispatch('request', opt);
 
-    let load = _ALL;
+    let load = (opt.load === undefined ? _ALL : opt.load);
 
     if ( opt.load === false || opt.load === _NONE ) {
       load = _NONE;
@@ -169,9 +169,9 @@ export default {
 
       if ( `${ header }` === 'true' || `${ header }` === 'none' ) {
         load = _ALL;
+      } else {
+        load = _MULTI;
       }
-
-      load = _MULTI;
     }
 
     if ( load === _NONE ) {

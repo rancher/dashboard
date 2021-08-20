@@ -18,6 +18,8 @@ export default {
     const store = this.$store;
     const resource = this.resource;
 
+    await store.dispatch(`rancher/findAll`, { type: NORMAN.USER });
+
     this.allUsers = await store.dispatch(`management/findAll`, { type: resource });
 
     this.canRefreshAccess = await this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' })
