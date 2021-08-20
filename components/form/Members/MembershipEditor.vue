@@ -52,15 +52,14 @@ export default {
 
   async fetch() {
     const userHydration = [
-      this.schema ? await this.$store.dispatch(`management/findAll`, { type: this.type }) : [],
-      this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }),
+      this.schema ? this.$store.dispatch(`rancher/findAll`, { type: this.type, opt: { force: true } }) : [],
       this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
+      this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }),
       this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER })
     ];
     const [allBindings] = await Promise.all(userHydration);
 
     const bindings = allBindings
-      .filter(b => !b.user.isSystem)
       .filter(b => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
 
     this.$set(this, 'lastSavedBindings', [...bindings]);
@@ -78,16 +77,13 @@ export default {
 
   data() {
     return {
-      schema:            this.$store.getters[`management/schemaFor`](this.type),
-      bindings:                  [],
-      lastSavedBindings:         [],
+      schema:            this.$store.getters[`rancher/schemaFor`](this.type),
+      bindings:          [],
+      lastSavedBindings: [],
     };
   },
 
   computed: {
-    hasOwnerBinding() {
-      return this.bindings.some(b => b.roleTemplate.id.includes('owner'));
-    },
     newBindings() {
       return this.bindings
         .filter(binding => !binding.id && !this.lastSavedBindings.includes(binding) && !binding.isDefaultBinding);
@@ -126,10 +122,6 @@ export default {
     },
   },
   watch: {
-    hasOwnerBinding() {
-      this.$emit('has-owner-changed', this.hasOwnerBinding);
-    },
-
     membershipUpdate: {
       deep: true,
       handler() {

@@ -2,7 +2,7 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
 import SelectPrincipal from '@/components/auth/SelectPrincipal';
-import { MANAGEMENT } from '@/config/types';
+import { MANAGEMENT, NORMAN } from '@/config/types';
 import RadioGroup from '@/components/form/RadioGroup';
 import Card from '@/components/Card';
 import Loading from '@/components/Loading';
@@ -165,7 +165,16 @@ export default {
           value:       'custom'
         }
       ];
-    }
+    },
+    principal() {
+      const principalId = this.principalId.replace(/\//g, '%2F');
+
+      return this.$store.dispatch('rancher/find', {
+        type: NORMAN.PRINCIPAL,
+        id:   this.principalId,
+        opt:  { url: `/v3/principals/${ principalId }` }
+      }, { root: true });
+    },
   },
   watch: {
     roleTemplateIds() {
@@ -173,17 +182,24 @@ export default {
     }
   },
   methods: {
+    async principalProperty() {
+      const principal = await this.principal;
+
+      return principal.principalType === 'group' ? 'groupPrincipalId' : 'userPrincipalId';
+    },
+
     onAdd(principalId) {
       this.$set(this, 'principalId', principalId);
       this.updateBindings();
     },
 
     async updateBindings() {
-      const bindingPromises = this.roleTemplateIds.map(id => this.$store.dispatch(`management/create`, {
-        type:              MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
-        clusterName:       this.clusterName,
-        roleTemplateName:  id,
-        principalName:    this.principalId
+      const principalProperty = await this.principalProperty();
+      const bindingPromises = this.roleTemplateIds.map(id => this.$store.dispatch(`rancher/create`, {
+        type:                NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING,
+        clusterId:           this.clusterName,
+        roleTemplateId:      id,
+        [principalProperty]: this.principalId
       }));
 
       const bindings = await Promise.all(bindingPromises);
