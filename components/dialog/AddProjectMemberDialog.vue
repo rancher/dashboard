@@ -1,7 +1,7 @@
 <script>
 import Card from '@/components/Card';
 import ProjectMemberEditor from '@/components/form/ProjectMemberEditor';
-import { MANAGEMENT } from '@/config/types';
+import { NORMAN } from '@/config/types';
 
 export default {
   components: {
@@ -32,9 +32,25 @@ export default {
     onAdd() {
       return this.resources[0];
     },
+
+    principal() {
+      const principalId = this.member.principalId.replace(/\//g, '%2F');
+
+      return this.$store.dispatch('rancher/find', {
+        type: NORMAN.PRINCIPAL,
+        id:   this.member.principalId,
+        opt:  { url: `/v3/principals/${ principalId }` }
+      }, { root: true });
+    },
   },
 
   methods: {
+    async principalProperty() {
+      const principal = await this.principal;
+
+      return principal.principalType === 'group' ? 'groupPrincipalId' : 'userPrincipalId';
+    },
+
     close() {
       this.$emit('close');
     },
@@ -44,12 +60,13 @@ export default {
       this.close();
     },
 
-    createBindings() {
-      const promises = this.member.roleTemplateIds.map(roleTemplateId => this.$store.dispatch(`management/create`, {
-        type:                  MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
-        roleTemplateName:      roleTemplateId,
-        principalName:         this.member.principalId,
-        projectName:           this.member.projectId,
+    async createBindings() {
+      const principalProperty = await this.principalProperty();
+      const promises = this.member.roleTemplateIds.map(roleTemplateId => this.$store.dispatch(`rancher/create`, {
+        type:                NORMAN.PROJECT_ROLE_TEMPLATE_BINDING,
+        roleTemplateId,
+        [principalProperty]: this.member.principalId,
+        projectId:           this.member.projectId,
       }));
 
       return Promise.all(promises);
