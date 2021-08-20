@@ -41,13 +41,6 @@ export default {
     canManageMembers() {
       return canViewProjectMembershipEditor(this.$store);
     },
-    hasOwner() {
-      // Users who cannot access binding schema cannot see membership component, though will gain owner binding automatically on project create
-      return !this.canManageMembers || this.membershipHasOwner;
-    },
-    isValid() {
-      return this.value.isDefault || this.value.isSystem || this.hasOwner;
-    }
   },
   watch: {
     hasOwner() {
@@ -95,7 +88,6 @@ export default {
     :resource="value"
     :subtypes="[]"
     :can-yaml="false"
-    :validation-passed="isValid"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"

@@ -243,7 +243,6 @@ export default {
       chartVersionInfo: null,
       versionInfo:      {},
       membershipUpdate: {},
-      hasOwner:         false,
       systemRegistry:   null,
       registryHost:     null,
       registryMode:     null,
@@ -696,14 +695,6 @@ export default {
         this.$fetch();
       }
     },
-
-    hasOwner() {
-      if (this.hasOwner) {
-        this.$set(this, 'errors', this.errors.filter(e => e !== this.t('cluster.haveOneOwner')));
-      } else {
-        this.errors.push(this.t('cluster.haveOneOwner'));
-      }
-    },
   },
 
   mounted() {
@@ -869,7 +860,7 @@ export default {
     },
 
     validationPassed() {
-      return (this.provider === 'custom' || !!this.credentialId) && (!this.canManageMembers || this.hasOwner);
+      return (this.provider === 'custom' || !!this.credentialId);
     },
 
     cancelCredential() {
@@ -1020,10 +1011,6 @@ export default {
 
     onMembershipUpdate(update) {
       this.$set(this, 'membershipUpdate', update);
-    },
-
-    onHasOwnerChanged(hasOwner) {
-      this.$set(this, 'hasOwner', hasOwner);
     },
 
     canRemoveKubeletRow(row, idx) {
@@ -1321,7 +1308,7 @@ export default {
           <Banner v-if="isEdit" color="info">
             {{ t('cluster.memberRoles.removeMessage') }}
           </Banner>
-          <ClusterMembershipEditor :mode="mode" :parent-id="value.mgmt ? value.mgmt.id : null" @membership-update="onMembershipUpdate" @has-owner-changed="onHasOwnerChanged" />
+          <ClusterMembershipEditor :mode="mode" :parent-id="value.mgmt ? value.mgmt.id : null" @membership-update="onMembershipUpdate" />
         </Tab>
 
         <Tab name="etcd" label-key="cluster.tabs.etcd">
