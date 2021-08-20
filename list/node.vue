@@ -60,8 +60,6 @@ export default {
 
     const res = await allHash(hash);
 
-    await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }, { root: true });
-
     this.kubeNodes = res.kubeNodes;
   },
 
@@ -73,6 +71,9 @@ export default {
   },
 
   computed: {
+    hasWindowsNodes() {
+      return this.kubeNodes.some(node => node.status.nodeInfo.operatingSystem === 'windows');
+    },
     currentCluster() {
       return this.$store.getters['currentCluster'];
     },
@@ -128,7 +129,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <Banner
-      v-if="clusterSupportsWindows"
+      v-if="hasWindowsNodes"
       color="info"
       :label="t('cluster.custom.registrationCommand.windowsWarning')"
     />
