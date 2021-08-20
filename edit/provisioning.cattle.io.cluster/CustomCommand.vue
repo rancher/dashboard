@@ -181,6 +181,10 @@ function sanitizeValue(v) {
             v-model="insecureWindows"
             label-key="cluster.custom.registrationCommand.insecure"
           />
+          <Banner
+            color="info"
+            :label="t('cluster.custom.registrationCommand.windowsWarning')"
+          />
         </template>
         <Banner
           v-else

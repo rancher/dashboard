@@ -2,6 +2,7 @@
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
 import Tag from '@/components/Tag';
+import Banner from '@/components/Banner';
 import {
   STATE, NAME, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM, PODS, AGE
 } from '@/config/table-headers';
@@ -19,7 +20,10 @@ import { COLUMN_BREAKPOINTS } from '@/components/SortableTable/index.vue';
 export default {
   name:       'ListNode',
   components: {
-    Loading, ResourceTable, Tag
+    Loading,
+    ResourceTable,
+    Tag,
+    Banner
   },
   mixins: [metricPoller],
 
@@ -61,12 +65,15 @@ export default {
 
   data() {
     return {
-      kubeNodes:     null,
+      kubeNodes:   null,
       canViewPods: false,
     };
   },
 
   computed: {
+    hasWindowsNodes() {
+      return this.kubeNodes.some(node => node.status.nodeInfo.operatingSystem === 'windows');
+    },
     tableGroup: mapPref(GROUP_RESOURCES),
 
     headers() {
@@ -114,33 +121,39 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <ResourceTable
-    v-else
-    v-bind="$attrs"
-    :schema="schema"
-    :headers="headers"
-    :rows="kubeNodes"
-    :sub-rows="true"
-    v-on="$listeners"
-  >
-    <template #sub-row="{fullColspan, row}">
-      <tr class="taints sub-row" :class="{'empty-taints': !row.spec.taints || !row.spec.taints.length}">
-        <template v-if="row.spec.taints && row.spec.taints.length">
-          <td>&nbsp;</td>
-          <td>&nbsp;</td>
-          <td :colspan="fullColspan-2">
-            {{ t('node.list.nodeTaint') }}:
-            <Tag v-for="taint in row.spec.taints" :key="taint.key + taint.value + taint.effect" class="mr-5">
-              {{ taint.key }}={{ taint.value }}:{{ taint.effect }}
-            </Tag>
-          </td>
-        </template>
-        <td v-else :colspan="fullColspan">
+  <div v-else>
+    <Banner
+      v-if="hasWindowsNodes"
+      color="info"
+      :label="t('cluster.custom.registrationCommand.windowsWarning')"
+    />
+    <ResourceTable
+      v-bind="$attrs"
+      :schema="schema"
+      :headers="headers"
+      :rows="kubeNodes"
+      :sub-rows="true"
+      v-on="$listeners"
+    >
+      <template #sub-row="{fullColspan, row}">
+        <tr class="taints sub-row" :class="{'empty-taints': !row.spec.taints || !row.spec.taints.length}">
+          <template v-if="row.spec.taints && row.spec.taints.length">
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td :colspan="fullColspan-2">
+              {{ t('node.list.nodeTaint') }}:
+              <Tag v-for="taint in row.spec.taints" :key="taint.key + taint.value + taint.effect" class="mr-5">
+                {{ taint.key }}={{ taint.value }}:{{ taint.effect }}
+              </Tag>
+            </td>
+          </template>
+          <td v-else :colspan="fullColspan">
 &nbsp;
-        </td>
-      </tr>
-    </template>
-  </ResourceTable>
+          </td>
+        </tr>
+      </template>
+    </ResourceTable>
+  </div>
 </template>
 
 <style lang='scss' scoped>
