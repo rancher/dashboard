@@ -912,7 +912,7 @@ cluster:
       linuxDetail: Run this command on each of the existing Linux machines you want to register.
       windowsDetail: Run this command in Powershell on each of the existing Windows machines you want to register.
       windowsNotReady: The cluster must be up and running with Linux etcd, control plane, and worker nodes before the registration command for adding Windows workers will display.
-      windowsWarning: Workload pods will be scheduled on both Linux and Windows nodes by default;  Use taints & tolerations or node/pod scheduling rules to direct them to be placed onto a compatible node.
+      windowsWarning: Workload pods will be scheduled on both Linux and Windows nodes by default;  Use taints and tolerations or node/pod scheduling rules to direct them to be placed onto a compatible node.
       insecure: "Insecure: Select this to skip TLS verification if your server has a self-signed certificate."
   credential:
     aws:
