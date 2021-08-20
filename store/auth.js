@@ -1,5 +1,6 @@
 import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE } from '@/config/query-params';
 import { NORMAN } from '@/config/types';
+import { _MULTI } from '@/plugins/steve/actions';
 import { addObjects, findBy } from '@/utils/array';
 import { openAuthPopup, returnTo } from '@/utils/auth';
 import { base64Encode } from '@/utils/crypto';
@@ -114,7 +115,11 @@ export const actions = {
     try {
       const user = await dispatch('rancher/findAll', {
         type: NORMAN.USER,
-        opt:  { url: '/v3/users', filter: { me: true } }
+        opt:  {
+          url:    '/v3/users',
+          filter: { me: true },
+          load:   _MULTI
+        }
       }, { root: true });
 
       commit('gotUser', user?.[0]);
