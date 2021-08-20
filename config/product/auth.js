@@ -25,7 +25,8 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    ifHaveType:          MANAGEMENT.USER,
+    ifHaveType:          new RegExp(`${ MANAGEMENT.USER }|${ MANAGEMENT.AUTH_CONFIG }`, 'i'),
+    ifHaveVerb:          'PUT',
     inStore:             'management',
     icon:                'user',
     removable:           false,

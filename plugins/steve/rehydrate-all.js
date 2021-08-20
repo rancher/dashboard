@@ -1,6 +1,12 @@
 export default function() {
   this.nuxt.hook('vue-renderer:ssr:context', (context) => {
-    recurse(context.nuxt.data);
+    if ( context.nuxt.data ) {
+      recurse(context.nuxt.data);
+    }
+
+    if ( context.nuxt.fetch ) {
+      recurse(context.nuxt.fetch);
+    }
 
     function recurse(obj, parent, key) {
       if ( Array.isArray(obj) && obj.__rehydrateAll ) {

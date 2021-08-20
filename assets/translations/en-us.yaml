@@ -3853,6 +3853,7 @@ tableHeaders:
       one { Host }
       other { Hosts }
     }
+  id: ID
   image: Image
   imageSize: Size
   ingressDefaultBackend: Default

@@ -152,10 +152,6 @@ export default {
     };
   },
 
-  canDelete() {
-    return this._canDelete && !this.isCurrentUser;
-  },
-
   _availableActions() {
     return [
       {
@@ -202,11 +198,21 @@ export default {
     return true;
   },
 
-  remove() {
-    return async() => {
-      const norman = await this.$dispatch(`rancher/find`, { id: this.id, type: NORMAN.USER }, { root: true });
+  norman() {
+    return this.$rootGetters['rancher/byId'](NORMAN.USER, this.id);
+  },
 
-      await norman.remove();
+  canDelete() {
+    return this.norman?.hasLink('remove') && !this.isCurrentUser;
+  },
+
+  canUpdate() {
+    return this.norman?.hasLink('update');
+  },
+
+  remove() {
+    return () => {
+      return this.norman?.remove();
     };
   }
 };

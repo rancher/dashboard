@@ -360,6 +360,10 @@ export default {
         return token;
       }
 
+      if ( !this.links.update ) {
+        return;
+      }
+
       token = await this.$dispatch('rancher/create', {
         type:      NORMAN.CLUSTER_TOKEN,
         clusterId: this.mgmt.id

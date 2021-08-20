@@ -119,6 +119,14 @@ export const CLUSTER_OUTPUT = {
   labelKey: 'tableHeaders.clusterOutput',
 };
 
+export const ID_UNLINKED = {
+  name:          'id',
+  labelKey:      'tableHeaders.id',
+  value:         'id',
+  sort:          ['id'],
+  canBeVariable: true,
+};
+
 export const NAME_UNLINKED = {
   name:          'name',
   labelKey:      'tableHeaders.nameUnlinked',
