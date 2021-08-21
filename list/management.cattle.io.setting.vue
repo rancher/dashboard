@@ -23,32 +23,38 @@ export default {
     const settings = [];
 
     // Combine the allowed settings with the data from the API
-    Object.keys(ALLOWED_SETTINGS).forEach((setting) => {
-      if (!settingsMap[setting]) {
+    for ( const id in ALLOWED_SETTINGS ) {
+      const setting = settingsMap[id];
+
+      if ( !setting ) {
         return;
       }
-      const readonly = !!ALLOWED_SETTINGS[setting].readOnly;
+
+      const readonly = !!ALLOWED_SETTINGS[id].readOnly;
       const s = {
-        ...ALLOWED_SETTINGS[setting],
-        id:          setting,
-        description: t(`advancedSettings.descriptions.${ setting }`),
-        data:        settingsMap[setting],
-        customized:  !readonly && settingsMap[setting].value && settingsMap[setting].value !== settingsMap[setting].default
+        ...ALLOWED_SETTINGS[id],
+        id,
+        description: t(`advancedSettings.descriptions.${ id }`),
+        data:        setting,
+        customized:  !readonly && setting.value && setting.value !== setting.default,
+        fromEnv:     setting.fromEnv,
       };
 
       s.hide = s.canHide = (s.kind === 'json' || s.kind === 'multiline');
+
       if (s.kind === 'json') {
         s.json = JSON.stringify(JSON.parse(s.data.value || s.data.default), null, 2);
       } else if (s.kind === 'enum') {
         const v = s.data.value || s.data.default;
 
-        s.enum = `advancedSettings.enum.${ setting }.${ v }`;
+        s.enum = `advancedSettings.enum.${ id }.${ v }`;
       }
       // There are only 2 actions that can be enabled - Edit Setting or View in API
       // If neither is available for this setting then we hide the action menu button
-      s.hasActions = (!s.readOnly || isDev) && settingsMap[setting].availableActions?.length;
+      s.hasActions = (!s.readOnly || isDev) && setting.availableActions?.length;
       settings.push(s);
-    });
+    }
+
     this.settings = settings;
   },
 
@@ -82,7 +88,11 @@ export default {
     <div v-for="setting in settings" :key="setting.id" class="advanced-setting mb-20">
       <div class="header">
         <div class="title">
-          <h1>{{ setting.id }}<span v-if="setting.customized" class="modified">Modified</span></h1>
+          <h1>
+            {{ setting.id }}
+            <span v-if="setting.fromEnv" class="modified">Set by Environment Variable</span>
+            <span v-else-if="setting.customized" class="modified">Modified</span>
+          </h1>
           <h2>{{ setting.description }}</h2>
         </div>
         <div v-if="setting.hasActions" class="action">
