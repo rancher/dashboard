@@ -5,8 +5,6 @@ import CreateEditView from '@/mixins/create-edit-view';
 import { exceptionToErrorsArray, stringify } from '@/utils/error';
 import { NORMAN } from '@/config/types';
 import Questions from '@/components/Questions';
-import { iffyFields, simplify } from '@/store/plugins';
-import { isEmpty } from '@/utils/object';
 
 export default {
   components: {
@@ -57,18 +55,14 @@ export default {
 
   computed: {
     cloudCredentialKeys() {
-      const out = [];
-      const data = this.credential?.decodedData || {};
+      const normanType = this.$store.getters['plugins/credentialFieldForDriver'](this.provider);
+      const normanSchema = this.$store.getters['rancher/schemaFor'](`${ normanType }credentialconfig`);
 
-      for ( const k in data ) {
-        if ( isEmpty(data[k]) || iffyFields.includes(simplify(k)) ) {
-          continue;
-        }
-
-        out.push(k);
+      if ( normanSchema ) {
+        return Object.keys(normanSchema.resourceFields || {});
+      } else {
+        return this.$store.getters['plugins/fieldNamesForDriver'](this.provider);
       }
-
-      return out;
     }
   },
 
