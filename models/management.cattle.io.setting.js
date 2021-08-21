@@ -2,6 +2,10 @@ import { ALLOWED_SETTINGS } from '@/config/settings';
 
 export default {
 
+  fromEnv() {
+    return (this.source || '').toLowerCase() === 'env';
+  },
+
   _availableActions() {
     const toFilter = ['cloneYaml', 'download', 'goToEditYaml', 'goToViewYaml', 'goToViewConfig'];
     const settingMetadata = ALLOWED_SETTINGS[this.id];
@@ -9,7 +13,7 @@ export default {
     let out = this._standardActions;
 
     // Some settings are not editable
-    if (settingMetadata && settingMetadata.readOnly) {
+    if ( settingMetadata?.readOnly || this.fromEnv ) {
       toFilter.push('goToEdit');
     }
 

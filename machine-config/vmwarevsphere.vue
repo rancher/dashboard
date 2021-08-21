@@ -193,21 +193,24 @@ export default {
       },
     ];
 
-    if (this.mode === _CREATE) {
-      this.$set(this.value, 'creationType', creationMethods[0].value);
-      this.$set(this.value, 'cpuCount', '2');
-      this.$set(this.value, 'diskSize', '20000');
-      this.$set(this.value, 'memorySize', '2048');
-      this.$set(this.value, 'hostsystem', '');
-      this.$set(this.value, 'cloudConfig', '#cloud-config\n\n');
-      this.$set(this.value, 'cfgparam', DEFAULT_CFGPARAM);
-      this.$set(this.value, 'vappProperty', this.value.vappProperty);
+    if (this.mode === _CREATE && !this.value.initted) {
+      Object.defineProperty(this.value, 'initted', { value: true, enumerable: false });
+
+      set(this.value, 'creationType', creationMethods[0].value);
+      set(this.value, 'cpuCount', '2');
+      set(this.value, 'diskSize', '20000');
+      set(this.value, 'memorySize', '2048');
+      set(this.value, 'hostsystem', '');
+      set(this.value, 'cloudConfig', '#cloud-config\n\n');
+      set(this.value, 'cfgparam', DEFAULT_CFGPARAM);
+      set(this.value, 'vappProperty', this.value.vappProperty);
       Object.entries(INITIAL_VAPP_OPTIONS).forEach(([key, value]) => {
-        this.$set(this.value, key, value);
+        set(this.value, key, value);
       });
     }
 
     return {
+      initted:                  false,
       credential:               null,
       creationMethods,
       dataCentersResults:       null,
@@ -226,6 +229,7 @@ export default {
       networksResults:          null,
       haveTags:                 null,
       haveAttributes:           null,
+      haveTemplates:            null,
       vAppOptions,
       vappMode:                 getInitialVappMode(this.value)
     };
@@ -274,7 +278,7 @@ export default {
       set(value) {
         const newValue = value === SENTINEL ? '' : value;
 
-        this.$set(this.value, 'hostsystem', newValue);
+        set(this.value, 'hostsystem', newValue);
       }
     },
 
@@ -319,10 +323,10 @@ export default {
       this.loadLibraryTemplates();
     },
     'value.creationType'(value) {
-      this.$set(this.value, 'cloneFrom', '');
+      set(this.value, 'cloneFrom', '');
       const boot2dockerUrl = value === CREATION_METHOD.LEGACY ? BOOT_2_DOCKER_URL : '';
 
-      this.$set(this.value, 'boot2dockerUrl', boot2dockerUrl);
+      set(this.value, 'boot2dockerUrl', boot2dockerUrl);
     },
     vappMode(value) {
       if (value === VAPP_MODE.AUTO) {
@@ -369,12 +373,12 @@ export default {
       const valueInContent = content.find(c => c.value === this.value.datacenter );
 
       if (!valueInContent) {
-        this.$set(this.value, 'datacenter', options[0]);
-        this.$set(this.value, 'cloneFrom', undefined);
-        this.$set(this.value, 'useDataStoreCluster', false);
+        set(this.value, 'datacenter', options[0]);
+        set(this.value, 'cloneFrom', undefined);
+        set(this.value, 'useDataStoreCluster', false);
       }
 
-      this.$set(this, 'dataCentersResults', content);
+      set(this, 'dataCentersResults', content);
     },
 
     async loadTags() {
@@ -390,7 +394,7 @@ export default {
 
         this.resetValueIfNecessary('tag', content, options, true);
 
-        this.$set(this, 'tagsResults', content);
+        set(this, 'tagsResults', content);
         this.haveTags = true;
       } catch (e) {
         this.haveTags = false;
@@ -401,7 +405,7 @@ export default {
       try {
         const options = await this.requestOptions('custom-attributes');
 
-        this.$set(this, 'attributeKeysResults', this.mapCustomAttributesToContent(options));
+        set(this, 'attributeKeysResults', this.mapCustomAttributesToContent(options));
         this.haveAttributes = true;
       } catch (e) {
         this.haveAttributes = false;
@@ -414,7 +418,7 @@ export default {
 
       this.resetValueIfNecessary('hostsystem', content, options);
 
-      this.$set(this, 'hostsResults', content);
+      set(this, 'hostsResults', content);
     },
 
     async loadResourcePools() {
@@ -424,7 +428,7 @@ export default {
 
       this.resetValueIfNecessary('pool', content, options);
 
-      this.$set(this, 'resourcePoolsResults', content);
+      set(this, 'resourcePoolsResults', content);
     },
 
     async loadDataStores() {
@@ -433,7 +437,7 @@ export default {
 
       this.resetValueIfNecessary('datastore', content, options);
 
-      this.$set(this, 'dataStoresResults', content);
+      set(this, 'dataStoresResults', content);
     },
 
     async loadDataStoreClusters() {
@@ -442,7 +446,7 @@ export default {
 
       this.resetValueIfNecessary('datastoreCluster', content, options);
 
-      this.$set(this, 'dataStoreClustersResults', content);
+      set(this, 'dataStoreClustersResults', content);
     },
 
     async loadFolders() {
@@ -451,7 +455,7 @@ export default {
 
       this.resetValueIfNecessary('folder', content, options);
 
-      this.$set(this, 'foldersResults', content);
+      set(this, 'foldersResults', content);
     },
 
     async loadNetworks() {
@@ -460,7 +464,7 @@ export default {
 
       this.resetValueIfNecessary('network', content, options, true);
 
-      this.$set(this, 'networksResults', content);
+      set(this, 'networksResults', content);
     },
 
     async loadContentLibraries() {
@@ -469,7 +473,7 @@ export default {
 
       this.resetValueIfNecessary('contentLibrary', content, options);
 
-      this.$set(this, 'contentLibrariesResults', content);
+      set(this, 'contentLibrariesResults', content);
     },
 
     async loadLibraryTemplates() {
@@ -485,7 +489,7 @@ export default {
 
       this.resetValueIfNecessary('cloneFrom', content, options);
 
-      this.$set(this, 'libraryTemplatesResults', content);
+      set(this, 'libraryTemplatesResults', content);
     },
 
     async loadVirtualMachines() {
@@ -495,17 +499,22 @@ export default {
 
       this.resetValueIfNecessary('cloneFrom', content, options);
 
-      this.$set(this, 'virtualMachinesResults', content);
+      set(this, 'virtualMachinesResults', content);
     },
 
     async loadTemplates() {
-      const options = await this.requestOptions('templates', this.value.datacenter);
+      try {
+        const options = await this.requestOptions('templates', this.value.datacenter);
 
-      const content = this.mapPathOptionsToContent(options);
+        const content = this.mapPathOptionsToContent(options);
 
-      this.resetValueIfNecessary('cloneFrom', content, options);
+        this.resetValueIfNecessary('cloneFrom', content, options);
 
-      this.$set(this, 'templatesResults', content);
+        set(this, 'templatesResults', content);
+        this.haveTemplates = true;
+      } catch (e) {
+        this.haveTemplates = false;
+      }
     },
 
     resetValueIfNecessary(key, content, options, isArray = false) {
@@ -521,13 +530,13 @@ export default {
         const value = isArray ? [] : content[0]?.value;
 
         if (value !== SENTINEL) {
-          this.$set(this.value, key, value);
+          set(this.value, key, value);
         }
       }
     },
 
     mapPathOptionsToContent(pathOptions) {
-      return pathOptions.map((pathOption) => {
+      return (pathOptions || []).map((pathOption) => {
         const split = pathOption.split('/');
 
         return {
@@ -584,10 +593,10 @@ export default {
     },
 
     updateVappOptions(opts) {
-      this.$set(this.value, 'vappIpprotocol', opts.vappIpprotocol);
-      this.$set(this.value, 'vappIpallocationpolicy', opts.vappIpallocationpolicy);
-      this.$set(this.value, 'vappTransport', opts.vappTransport);
-      this.$set(this.value, 'vappProperty', opts.vappProperty);
+      set(this.value, 'vappIpprotocol', opts.vappIpprotocol);
+      set(this.value, 'vappIpallocationpolicy', opts.vappIpallocationpolicy);
+      set(this.value, 'vappTransport', opts.vappTransport);
+      set(this.value, 'vappProperty', opts.vappProperty);
       this.initKeyValueParams('value.vappProperty', 'initVappArray');
     },
   }
@@ -726,7 +735,7 @@ export default {
               :disabled="disabled"
             />
           </div>
-          <div v-if="showTemplate" class="col span-6">
+          <div v-if="haveTemplates && showTemplate" class="col span-6">
             <LabeledSelect
               v-model="value.cloneFrom"
               :loading="templatesLoading"
