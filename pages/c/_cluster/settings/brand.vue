@@ -24,7 +24,7 @@ const DEFAULT_BANNER_SETTING = {
   bannerHeader: {
     background:      null,
     color:           null,
-    textAlignment:   null,
+    textAlignment:   'center',
     fontWeight:      null,
     fontStyle:       null,
     textDecoration:  null,
@@ -33,7 +33,7 @@ const DEFAULT_BANNER_SETTING = {
   bannerFooter: {
     background:      null,
     color:           null,
-    textAlignment:   null,
+    textAlignment:   'center',
     fontWeight:      null,
     fontStyle:       null,
     textDecoration:  null,
