@@ -16,7 +16,6 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import SSHKey from '@/edit/kubevirt.io.virtualmachine/SSHKey';
 import Volume from '@/edit/kubevirt.io.virtualmachine/volume';
 import Network from '@/edit/kubevirt.io.virtualmachine/network';
-import ImageSelect from '@/edit/kubevirt.io.virtualmachine/Image';
 import CpuMemory from '@/edit/kubevirt.io.virtualmachine/CpuMemory';
 import CloudConfig from '@/edit/kubevirt.io.virtualmachine/CloudConfig';
 import NodeScheduling from '@/components/form/NodeScheduling';
@@ -46,7 +45,6 @@ export default {
     SSHKey,
     Network,
     CpuMemory,
-    ImageSelect,
     CloudConfig,
     NodeScheduling,
   },
@@ -327,10 +325,6 @@ export default {
       const networkRows = this.getNetworkRows(this.value);
       const imageId = this.getRootImageId(this.value);
 
-      if (imageId) {
-        this.autoChangeForImage = false;
-      }
-
       this.$set(this, 'spec', this.value.spec);
       this.$set(this, 'diskRows', diskRows);
       this.$set(this, 'networkRows', networkRows);
@@ -438,8 +432,6 @@ export default {
             :mode="mode"
             @updateCpuMemory="updateCpuMemory"
           />
-
-          <ImageSelect v-model="imageId" class="mb-20" :disk-rows="diskRows" :disabled="!isCreate" />
 
           <SSHKey
             v-model="sshKey"

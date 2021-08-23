@@ -115,12 +115,16 @@ export function vmDisks(spec, getters, errors, validatorArgs, displayKey, value)
     errors.push(getters['i18n/t']('harvester.validation.vm.volume.duplicatedName'));
   }
 
+  if (_volumes.length === 0) {
+    errors.push(getters['i18n/t']('harvester.validation.vm.volume.needImageOrExisting'));
+  }
+
   _volumes.forEach((V, idx) => {
     const { type, typeValue } = getVolumeType(V, _volumeClaimTemplates);
     const prefix = V.name || idx + 1;
 
-    if (idx === 0 && type === SOURCE_TYPE.NEW) { // root iamge
-      const message = getters['i18n/t']('harvester.validation.vm.volume.image');
+    if (idx === 0 && type !== SOURCE_TYPE.IMAGE && type !== SOURCE_TYPE.ATTACH_VOLUME) { // root iamge
+      const message = getters['i18n/t']('harvester.validation.vm.volume.needImageOrExisting');
 
       errors.push(message);
     }

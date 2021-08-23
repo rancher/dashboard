@@ -44,13 +44,13 @@ export default {
 
     customAccessMode: {
       type:    String,
-      default: 'ReadWriteOnce'
+      default: 'ReadWriteMany'
     },
 
     secrets: {
       type:    Array,
       default: () => []
-    }
+    },
   },
 
   data() {
@@ -148,7 +148,11 @@ export default {
       }
 
       return false;
-    }
+    },
+
+    needRootDisk() {
+      return this.rows?.[0]?.source !== SOURCE_TYPE.IMAGE && this.rows?.[0]?.source !== SOURCE_TYPE.ATTACH_VOLUME;
+    },
   },
 
   watch: {
@@ -173,7 +177,7 @@ export default {
       };
 
       this.rows.push(neu);
-      this.$emit('input', this.rows);
+      this.update();
     },
 
     getName() {
@@ -197,6 +201,11 @@ export default {
         removeObject(this.rows, vol);
         this.update();
       }
+    },
+
+    setRootDisk(idx) {
+      this.rows = [...this.rows.splice(idx, 1), ...this.rows];
+      this.update();
     },
 
     componentFor(type) {
@@ -242,7 +251,7 @@ export default {
   <div>
     <div v-for="(volume, i) in rows" :key="i">
       <InfoBox class="volume-source">
-        <button v-if="i !== 0 && isDisableClose" type="button" class="role-link btn btn-sm remove-vol" @click="removeVolume(volume)">
+        <button v-if="isDisableClose" type="button" class="role-link btn btn-sm remove-vol" @click="removeVolume(volume)">
           <i class="icon icon-2x icon-x" />
         </button>
         <h3>{{ headerFor(volume.source) }}</h3>
@@ -260,7 +269,9 @@ export default {
             :volume-mode-option="volumeModeOption"
             :mode="mode"
             :idx="i"
+            :need-root-disk="needRootDisk"
             @update="update"
+            @setRootDisk="setRootDisk"
           />
         </div>
       </InfoBox>
@@ -268,7 +279,7 @@ export default {
     </div>
 
     <div v-if="!isView">
-      <button type="button" class="btn btn-sm bg-primary mr-15 mb-10" @click="addVolume(SOURCE_TYPE.NEW)">
+      <button type="button" class="btn btn-sm bg-primary mr-15 mb-10" :disabled="rows.length === 0" @click="addVolume(SOURCE_TYPE.NEW)">
         {{ t('harvester.virtualMachine.volume.addVolume') }}
       </button>
 
@@ -280,7 +291,7 @@ export default {
         {{ t('harvester.virtualMachine.volume.addVmImage') }}
       </button>
 
-      <button type="button" class="btn btn-sm bg-primary mb-10" @click="addVolume(SOURCE_TYPE.CONTAINER)">
+      <button type="button" class="btn btn-sm bg-primary mb-10" :disabled="rows.length === 0" @click="addVolume(SOURCE_TYPE.CONTAINER)">
         {{ t('harvester.virtualMachine.volume.addContainer') }}
       </button>
     </div>

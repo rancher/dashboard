@@ -10,7 +10,6 @@ import Volume from '@/edit/kubevirt.io.virtualmachine/volume';
 import Network from '@/edit/kubevirt.io.virtualmachine/network';
 import CpuMemory from '@/edit/kubevirt.io.virtualmachine/CpuMemory';
 import CloudConfig from '@/edit/kubevirt.io.virtualmachine/CloudConfig';
-import ImageSelect from '@/edit/kubevirt.io.virtualmachine/Image';
 import SSHKey from '@/edit/kubevirt.io.virtualmachine/SSHKey';
 
 import { HCI } from '@/config/types';
@@ -33,7 +32,6 @@ export default {
     Checkbox,
     CpuMemory,
     CruResource,
-    ImageSelect,
     CloudConfig,
     NameNsDescription
   },
@@ -227,10 +225,6 @@ export default {
     <Tabbed :side-tabs="true" @changed="onTabChanged">
       <Tab name="Basics" :label="t('harvester.vmTemplate.tabs.basics')">
         <CpuMemory :cpu="spec.template.spec.domain.cpu.cores" :memory="memory" :mode="mode" :disabled="isConfig" @updateCpuMemory="updateCpuMemory" />
-
-        <div class="mb-20">
-          <ImageSelect v-model="imageId" :disk-rows="diskRows" :required="false" :mode="mode" :disabled="isConfig" />
-        </div>
 
         <div class="mb-20">
           <SSHKey v-model="sshKey" :disable-create="isView" @update:sshKey="updateSSHKey" />

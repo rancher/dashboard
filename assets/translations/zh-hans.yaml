@@ -3882,6 +3882,7 @@ harvester:
         image: '"镜像" 是必填项'
         volume: '"卷" 是必填项'
         docker: '"Docker 镜像" 是必填项'
+        needImageOrExisting: '至少需要一个镜像卷或已存在的系统卷'
 
   dashboard:
     label: 概览
@@ -3987,6 +3988,7 @@ harvester:
       addExistingVolume: 添加已存在的卷
       addVmImage: 添加VM镜像
       addContainer: 添加容器镜像
+      setFirst: 设置为系统卷
       title:
         vmImage: VM镜像
         existingVolume: 已存在的卷

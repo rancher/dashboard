@@ -7,11 +7,13 @@ import { HCI } from '@/config/types';
 import { _CREATE } from '@/config/query-params';
 
 export default {
-  name:       'VmImage',
+  name: 'VmImage',
+
   components: {
     UnitInput, LabeledInput, LabeledSelect, InputOrDisplay
   },
-  props: {
+
+  props:  {
     value: {
       type:    Object,
       default: () => {
@@ -46,34 +48,40 @@ export default {
         return [];
       }
     },
+
     accessModeOption: {
       type:    Array,
       default: () => {
         return [];
       }
     },
+
     volumeModeOption: {
       type:    Array,
       default: () => {
         return [];
       }
     },
+
     mode: {
       type:    String,
       default: 'create'
     },
+
     idx: {
       type:     Number,
       required: true
-    }
+    },
+
+    needRootDisk: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   computed: {
     isCreate() {
       return this.mode === _CREATE;
-    },
-    disabledImageVolume() {
-      return this.idx === 0;
     },
     imagesOption() {
       const choise = this.$store.getters['virtual/all'](HCI.IMAGE);
@@ -104,6 +112,27 @@ export default {
   methods: {
     update() {
       this.$emit('update');
+    },
+
+    onImageChange() {
+      const imageResource = this.$store.getters['virtual/all'](HCI.IMAGE).find( I => this.value.image === I.id);
+      const isIso = /.iso$/.test(imageResource?.spec?.url);
+
+      if (this.idx === 0) {
+        if (isIso) {
+          this.$set(this.value, 'type', 'cd-rom');
+          this.$set(this.value, 'bus', 'sata');
+        } else {
+          this.$set(this.value, 'type', 'disk');
+          this.$set(this.value, 'bus', 'virtio');
+        }
+      }
+
+      this.update();
+    },
+
+    setRootDisk() {
+      this.$emit('setRootDisk', this.idx);
     }
   }
 };
@@ -137,11 +166,11 @@ export default {
         <InputOrDisplay :name="t('harvester.fields.image')" :value="value.image" :mode="mode">
           <LabeledSelect
             v-model="value.image"
-            :disabled="disabledImageVolume || isDisabled"
+            :disabled="idx === 0 && !isCreate && !value.newCreateId"
             :label="t('harvester.fields.image')"
             :options="imagesOption"
             :mode="mode"
-            @input="update"
+            @input="onImageChange"
           />
         </InputOrDisplay>
       </div>
@@ -191,6 +220,14 @@ export default {
           @input="update"
         />
       </div> -->
+    </div>
+
+    <div class="row">
+      <div class="col span-3">
+        <button v-if="needRootDisk" type="button" class="btn bg-primary mr-15" @click="setRootDisk()">
+          {{ t('harvester.virtualMachine.volume.setFirst') }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
