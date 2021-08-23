@@ -388,13 +388,17 @@ customValidationRules() {
   return [
     {
       path: 'value',
-      validators: [`exampleValidator:${ this.metadata.name }]
+      validators: [`exampleValidator:${ this.metadata.name }`]
     }
   ]
 }
 ```
 
-> How do we pass multiple args to validator function? Are they comma separated or separated by colon?
+Multiple custom arguments can be passed to a validator function; each argument is separated by `:`, for example:
+
+```javascript
+validators: [`exampleValidator:${ this.metadata.name }:'customString':42]
+```
 
 ## Other UI Features
 ### Icons 
