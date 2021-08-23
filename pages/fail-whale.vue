@@ -17,10 +17,12 @@ export default {
       this.$router.replace('/');
     }
 
-    return {
-      home,
+    const isSingleVirtualCluster = store.getters.isSingleVirtualCluster;
+
+    return { 
+      home: isSingleVirtualCluster ? 'c/local/virtual/harvesterhci.io.dashboard' : home,
       previousRoute: '',
-      styles:        { '--custom-content': `'${ this.t('nav.failWhale.separator') }'` }
+      styles:        { '--custom-content': `'${ this.t('nav.failWhale.separator') }'` } 
     };
   },
 
