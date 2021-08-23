@@ -150,7 +150,14 @@ function sanitizeValue(v) {
         </div>
       </div>
 
-      <KeyValue v-model="labels" class="mb-10" mode="edit" title="Node Labels" :read-allowed="false" />
+      <KeyValue
+        v-model="labels"
+        class="mb-10"
+        mode="edit"
+        title="Node Labels"
+        add-label="Add Label"
+        :read-allowed="false"
+      />
 
       <Taints v-model="taints" class="mb-10" mode="edit" :value="taints" />
 
