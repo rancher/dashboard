@@ -7,29 +7,25 @@ import Masthead from '@/components/ResourceList/Masthead';
 import { AGE, ROLE, STATE, PRINCIPAL } from '@/config/table-headers';
 import { canViewClusterPermissionsEditor } from '@/components/form/Members/ClusterPermissionsEditor.vue';
 
-/**
- * When this metadata.name is used it indicates that the binding was created by the cluster owner.
- * It's used to preventing filtering out the Default Admin user when filtering out system users.
- */
-const CREATOR_CLUSTER_OWNER = 'creator-cluster-owner';
-
 export default {
   components: {
     Loading, Masthead, ResourceTable
   },
 
   async fetch() {
-    const clusterRoleTemplateBindingSchema = this.$store.getters[`management/schemaFor`](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
+    const clusterRoleTemplateBindingSchema = this.$store.getters[`rancher/schemaFor`](NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING);
 
     const hydration = [
+      clusterRoleTemplateBindingSchema ? this.$store.dispatch(`rancher/findAll`, { type: NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING }, { root: true }) : [],
+      clusterRoleTemplateBindingSchema ? this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING }) : [],
+      this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
       this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER }),
       this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }),
-      this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
     ];
-    const clusterRoleTemplateBindings = clusterRoleTemplateBindingSchema ? await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING }) : [];
+    const [clusterRoleTemplateBindings] = await Promise.all(hydration);
+    const steveBindings = await Promise.all(clusterRoleTemplateBindings.map(b => b.steve));
 
-    await Promise.all(hydration);
-    this.$set(this, 'clusterRoleTemplateBindings', clusterRoleTemplateBindings);
+    this.$set(this, 'clusterRoleTemplateBindings', steveBindings);
   },
 
   data() {
@@ -57,9 +53,8 @@ export default {
   computed: {
     filteredClusterRoleTemplateBindings() {
       return this.clusterRoleTemplateBindings
-        .filter(b => (!b.isSystem || b.metadata.name === CREATOR_CLUSTER_OWNER ) && b.clusterName === this.$store.getters['currentCluster'].id);
+        .filter(b => b.clusterName === this.$store.getters['currentCluster'].id);
     },
-
     canManageMembers() {
       return canViewClusterPermissionsEditor(this.$store);
     },

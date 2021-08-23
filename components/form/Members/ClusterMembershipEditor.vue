@@ -1,5 +1,5 @@
 <script>
-import { MANAGEMENT } from '@/config/types';
+import { NORMAN } from '@/config/types';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import MembershipEditor from '@/components/form/Members/MembershipEditor';
 import { canViewMembershipEditor } from '@/components/form/Members/MembershipEditor.vue';
@@ -25,7 +25,7 @@ export default {
 
   data() {
     return {
-      MANAGEMENT, bindings: [], lastSavedBindings: []
+      NORMAN, bindings: [], lastSavedBindings: []
     };
   },
 
@@ -40,10 +40,10 @@ export default {
   },
   methods: {
     defaultBindingHandler() {
-      return this.$store.dispatch(`management/create`, {
-        type:                  MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
-        roleTemplateName:      'cluster-owner',
-        principalName:         this.$store.getters['auth/principalId'],
+      return this.$store.dispatch(`rancher/create`, {
+        type:            NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING,
+        roleTemplateId:  'cluster-owner',
+        userPrincipalId: this.$store.getters['auth/principalId']
       });
     }
   }
@@ -54,9 +54,9 @@ export default {
     v-bind="$attrs"
     add-member-dialog-name="AddClusterMemberDialog"
     :default-binding-handler="defaultBindingHandler"
-    :type="MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING"
+    :type="NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING"
     :mode="mode"
-    parent-key="clusterName"
+    parent-key="clusterId"
     :parent-id="parentId"
     v-on="$listeners"
   />

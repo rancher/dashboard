@@ -117,7 +117,8 @@ export function init(store) {
   mapGroup(/^(.*\.)?tekton\.dev$/, 'Tekton');
   mapGroup(/^(.*\.)?longhorn(\.rancher)?\.io$/, 'Longhorn');
   mapGroup(/^(.*\.)?(fleet|gitjob)\.cattle\.io$/, 'Fleet');
-  mapGroup(/^(.*\.)?(helm|upgrade|k3s)\.cattle\.io$/, 'K3s');
+  mapGroup(/^(.*\.)?(helm|k3s)\.cattle\.io$/, 'K3s');
+  mapGroup(/^(.*\.)?upgrade\.cattle\.io$/, 'Upgrade Controller');
   mapGroup(/^(.*\.)?cis\.cattle\.io$/, 'CIS');
   mapGroup(/^(.*\.)?traefik\.containo\.us$/, 'Træfik');
   mapGroup(/^(catalog|management|project|ui)\.cattle\.io$/, 'Rancher');
@@ -126,7 +127,7 @@ export function init(store) {
   mapGroup(/^(.*\.)*knative\.(io|dev)$/, 'Knative');
   mapGroup('argoproj.io', 'Argo');
   mapGroup('logging.banzaicloud.io', 'Logging');
-  mapGroup(/.*resources\.cattle\.io.*/, 'Backup-Restore');
+  mapGroup(/^(.*\.)?resources\.cattle\.io$/, 'Backup-Restore');
   mapGroup(/^(.*\.)?cluster\.x-k8s\.io$/, 'Cluster Provisioning');
   mapGroup(/^(aks|eks|gke|rke|rke-machine-config|provisioning)\.cattle\.io$/, 'Cluster Provisioning');
 

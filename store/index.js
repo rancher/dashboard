@@ -561,20 +561,21 @@ export const actions = {
 
       return;
     }
+
     // See if it really exists
-    const cluster = await dispatch('management/find', {
-      type: MANAGEMENT.CLUSTER,
-      id,
-      opt:  { url: `${ MANAGEMENT.CLUSTER }s/${ escape(id) }` }
-    });
-
-    const clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
-
-    if ( !cluster ) {
+    try {
+      await dispatch('management/find', {
+        type: MANAGEMENT.CLUSTER,
+        id,
+        opt:  { url: `${ MANAGEMENT.CLUSTER }s/${ escape(id) }` }
+      });
+    } catch {
       commit('setCluster', null);
       commit('cluster/applyConfig', { baseUrl: null });
       throw new ClusterNotFoundError(id);
     }
+
+    const clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
 
     // Update the Steve client URLs
     commit('cluster/applyConfig', { baseUrl: clusterBase });

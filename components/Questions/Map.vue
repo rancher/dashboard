@@ -3,6 +3,7 @@ import KeyValue from '@/components/form/KeyValue';
 import Question from './Question';
 
 export default {
+  name:       'QuestionMap',
   components: { KeyValue },
   mixins:     [Question],
 

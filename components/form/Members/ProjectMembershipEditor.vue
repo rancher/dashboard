@@ -1,5 +1,5 @@
 <script>
-import { MANAGEMENT } from '@/config/types';
+import { NORMAN } from '@/config/types';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import MembershipEditor from '@/components/form/Members/MembershipEditor';
 import { canViewMembershipEditor } from '@/components/form/Members/MembershipEditor.vue';
@@ -25,7 +25,7 @@ export default {
 
   data() {
     return {
-      MANAGEMENT, bindings: [], lastSavedBindings: []
+      NORMAN, bindings: [], lastSavedBindings: []
     };
   },
 
@@ -42,9 +42,9 @@ export default {
   methods: {
     defaultBindingHandler() {
       return this.$store.dispatch(`management/create`, {
-        type:                  MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
-        roleTemplateName:      'project-owner',
-        principalName:         this.$store.getters['auth/principalId'],
+        type:            NORMAN.PROJECT_ROLE_TEMPLATE_BINDING,
+        roleTemplateId:  'project-owner',
+        userPrincipalId: this.$store.getters['auth/principalId'],
       });
     }
   }
@@ -55,9 +55,9 @@ export default {
     ref="editor"
     add-member-dialog-name="AddProjectMemberDialog"
     :default-binding-handler="defaultBindingHandler"
-    :type="MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING"
+    :type="NORMAN.PROJECT_ROLE_TEMPLATE_BINDING"
     :mode="mode"
-    parent-key="projectName"
+    parent-key="projectId"
     :parent-id="parentId"
     v-on="$listeners"
   />

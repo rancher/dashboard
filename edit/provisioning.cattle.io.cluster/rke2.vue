@@ -202,6 +202,8 @@ export default {
 
     await this.initAddons();
     await this.initRegistry();
+
+    this.loadedOnce = true;
   },
 
   data() {
@@ -231,6 +233,7 @@ export default {
     }
 
     return {
+      loadedOnce:       false,
       lastIdx:          0,
       allPSPs:          null,
       nodeComponent:    null,
@@ -243,7 +246,6 @@ export default {
       chartVersionInfo: null,
       versionInfo:      {},
       membershipUpdate: {},
-      hasOwner:         false,
       systemRegistry:   null,
       registryHost:     null,
       registryMode:     null,
@@ -696,14 +698,6 @@ export default {
         this.$fetch();
       }
     },
-
-    hasOwner() {
-      if (this.hasOwner) {
-        this.$set(this, 'errors', this.errors.filter(e => e !== this.t('cluster.haveOneOwner')));
-      } else {
-        this.errors.push(this.t('cluster.haveOneOwner'));
-      }
-    },
   },
 
   mounted() {
@@ -869,7 +863,7 @@ export default {
     },
 
     validationPassed() {
-      return (this.provider === 'custom' || !!this.credentialId) && (!this.canManageMembers || this.hasOwner);
+      return (this.provider === 'custom' || !!this.credentialId);
     },
 
     cancelCredential() {
@@ -1022,10 +1016,6 @@ export default {
       this.$set(this, 'membershipUpdate', update);
     },
 
-    onHasOwnerChanged(hasOwner) {
-      this.$set(this, 'hasOwner', hasOwner);
-    },
-
     canRemoveKubeletRow(row, idx) {
       return idx !== 0;
     },
@@ -1124,7 +1114,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading v-if="$fetchState.pending && !loadedOnce" />
   <Banner v-else-if="$fetchState.error" color="error" :label="$fetchState.error" />
   <CruResource
     v-else
@@ -1195,16 +1185,18 @@ export default {
           @addTab="addMachinePool($event)"
           @removeTab="removeMachinePool($event)"
         >
-          <Tab v-for="obj in unremovedMachinePools" :key="obj.id" :name="obj.id" :label="obj.pool.name || '(Not Named)'" :show-header="false">
-            <MachinePool
-              ref="pool"
-              :value="obj"
-              :mode="mode"
-              :provider="provider"
-              :credential-id="credentialId"
-              @error="e=>errors = e"
-            />
-          </Tab>
+          <template v-for="obj in machinePools">
+            <Tab v-if="!obj.remove" :key="obj.id" :name="obj.id" :label="obj.pool.name || '(Not Named)'" :show-header="false">
+              <MachinePool
+                ref="pool"
+                :value="obj"
+                :mode="mode"
+                :provider="provider"
+                :credential-id="credentialId"
+                @error="e=>errors = e"
+              />
+            </Tab>
+          </template>
           <div v-if="!unremovedMachinePools.length">
             You do not have any machine pools defined, click the plus to add one.
           </div>
@@ -1321,7 +1313,7 @@ export default {
           <Banner v-if="isEdit" color="info">
             {{ t('cluster.memberRoles.removeMessage') }}
           </Banner>
-          <ClusterMembershipEditor :mode="mode" :parent-id="value.mgmt ? value.mgmt.id : null" @membership-update="onMembershipUpdate" @has-owner-changed="onHasOwnerChanged" />
+          <ClusterMembershipEditor :mode="mode" :parent-id="value.mgmt ? value.mgmt.id : null" @membership-update="onMembershipUpdate" />
         </Tab>
 
         <Tab name="etcd" label-key="cluster.tabs.etcd">
