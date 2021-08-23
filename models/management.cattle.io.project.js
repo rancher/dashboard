@@ -43,6 +43,15 @@ export default {
     };
   },
 
+  remove() {
+    return async() => {
+      const norman = await this.norman;
+
+      await norman.remove(...arguments);
+      this.$commit('management/remove', this, { root: true });
+    };
+  },
+
   norman() {
     return this.id ? this.normanEditProject : this.normanNewProject;
   },
