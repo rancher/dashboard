@@ -103,7 +103,6 @@ export default {
       diskRows,
       networkRows,
       machineType,
-      autoChangeForImage:     true
     };
   },
 
@@ -173,7 +172,7 @@ export default {
     },
 
     customAccessMode() {
-      return this.customStorageClassConfig.accessModes || 'ReadWriteOnce';
+      return this.customStorageClassConfig.accessModes || 'ReadWriteMany';
     }
   },
 
@@ -713,7 +712,7 @@ export default {
     getRootImageId(vm) {
       const volume = this.getVolumeClaimTemplates(vm);
 
-      return volume[0]?.metadata.annotations[HCI_ANNOTATIONS.IMAGE_ID] || '';
+      return volume[0]?.metadata?.annotations?.[HCI_ANNOTATIONS.IMAGE_ID] || '';
     },
 
     deleteCloneValue() {
@@ -778,30 +777,5 @@ export default {
         this.$delete(this.spec.template.spec.domain.devices, 'inputs');
       }
     },
-
-    imageId: {
-      handler(neu) {
-        if (this.diskRows.length > 0) {
-          const _diskRows = clone(this.diskRows);
-          const imageResource = this.images.find( I => neu === I.id);
-
-          const isIso = /.iso$/.test(imageResource?.spec?.url);
-
-          if (this.autoChangeForImage) {
-            if (isIso) {
-              _diskRows[0].type = CD_ROM;
-              _diskRows[0].bus = 'sata';
-            } else {
-              _diskRows[0].type = DISK;
-              _diskRows[0].bus = 'virtio';
-            }
-          }
-
-          this.autoChangeForImage = true;
-          _diskRows[0].image = neu;
-          this.$set(this, 'diskRows', _diskRows);
-        }
-      },
-    }
   }
 };

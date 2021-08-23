@@ -3,7 +3,8 @@ import UnitInput from '@/components/form/UnitInput';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import InputOrDisplay from '@/components/InputOrDisplay';
-import { PVC } from '@/config/types';
+import { HCI, PVC } from '@/config/types';
+import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { sortBy } from '@/utils/sort';
 
 export default {
@@ -69,11 +70,19 @@ export default {
         return [];
       }
     },
+    idx: {
+      type:    Number,
+      default: null
+    },
     rows: {
       type:    Array,
       default: () => {
         return [];
       }
+    },
+    needRootDisk: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -84,6 +93,17 @@ export default {
   computed: {
     allPVCs() {
       return this.$store.getters['virtual/all'](PVC) || [];
+    },
+
+    image() {
+      const pvcResource = this.allPVCs.find( P => P.metadata.name === this.value.volumeName);
+      const imageResource = this.$store.getters['virtual/all'](HCI.IMAGE).find(I => I.id === pvcResource?.metadata?.annotations?.[HCI_ANNOTATIONS.IMAGE_ID]);
+
+      if (!imageResource) {
+        return;
+      }
+
+      return `${ imageResource.metadata.namespace }/${ imageResource.spec.displayName }`;
     },
 
     isDisabled() {
@@ -97,10 +117,14 @@ export default {
             let isAvailable = true;
 
             this.rows.forEach( (O) => {
-              if (( O.volumeName !== this.value.volumeName && O.volumeName === pvc.metadata.name && O.accessMode === 'ReadWriteOnce')) {
+              if (O.volumeName === pvc.metadata.name) {
                 isAvailable = false;
               }
             });
+
+            if (this.idx === 0 && !pvc.metadata?.annotations?.[HCI_ANNOTATIONS.IMAGE_ID]) {
+              return false;
+            }
 
             const isBeingUsed = pvc.attachVM;
 
@@ -139,9 +163,19 @@ export default {
     },
   },
 
+  created() {
+    if (this.idx === 0 && !this.image) {
+      this.value.volumeName = null;
+    }
+  },
+
   methods: {
     update() {
       this.$emit('update');
+    },
+
+    setRootDisk() {
+      this.$emit('setRootDisk', this.idx);
     }
   }
 };
@@ -194,6 +228,12 @@ export default {
     </div>
 
     <div class="row mb-20">
+      <div v-if="!!image" class="col span-6">
+        <InputOrDisplay :name="t('harvester.fields.image')" :value="image" :mode="mode">
+          <LabeledInput v-model="image" :label="t('harvester.fields.image')" :mode="mode" :disabled="true" />
+        </InputOrDisplay>
+      </div>
+
       <div class="col span-3">
         <InputOrDisplay :name="t('harvester.virtualMachine.volume.bus')" :value="value.bus" :mode="mode">
           <LabeledSelect
@@ -219,6 +259,14 @@ export default {
             @input="update"
           />
         </InputOrDisplay>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col span-3">
+        <button v-if="needRootDisk" type="button" class="btn bg-primary mr-15" @click="setRootDisk()">
+          {{ t('harvester.virtualMachine.volume.setFirst') }}
+        </button>
       </div>
     </div>
   </div>

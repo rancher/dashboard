@@ -4707,6 +4707,7 @@ harvester:
         image: '"Image" is required!'
         volume: '"Volume" is required!'
         docker: '"Docker Image" is required!'
+        needImageOrExisting: 'At least an image volume or an existing root-disk volume is required!'
   
   dashboard:
     label: Dashboard
@@ -4819,6 +4820,7 @@ harvester:
       addExistingVolume: Add Existing Volume
       addVmImage: Add VM Image
       addContainer: Add Container
+      setFirst: Set as root volume
       title:
         vmImage: VM Image
         existingVolume: Existing Volume
