@@ -328,16 +328,16 @@ export function exampleValidator(value, getters, errors, validatorArgs, displayK
 
 In order to make a custom validator available for usage in forms and component, it will need to exposed by importing the new validator function into `utils/custom-validators.js`:
 
-```javascript diff
+```diff
 import { podAffinity } from '@/utils/validators/pod-affinity';
 import { roleTemplateRules } from '@/utils/validators/role-template';
 import { clusterName } from '@/utils/validators/cluster-name';
 + import { exampleValidator } from '@/utils/validators/setting';
 ```
 
-and add it to the default exports
+and add it to the default exports:
 
-```javascript diff
+```diff
   containerImages,
   cronSchedule,
   podAffinity,
@@ -349,43 +349,47 @@ and add it to the default exports
 
 ### Add `customValidationRules` to model
 
+Locate the model that will make use of the custom validation function and add `customValidationRules` property if one does not already exist. `customValidationRules` returns a collection of validation rules to run against the model:
+
 ```javascript
 customValidationRules() {
   return [
     {
       path: 'value',
-      translationKey: 'setting.serverUrl.https',
       validators: [`exampleValidator`]
     }
   ]
 }
 ```
 
-To pass arguments to to validation function
+> ### A validation rule can contain the following keys:
+> 
+> `path` {string}: the model property to validate
+> 
+> `nullable` {boolean}: asserts if property accepts `null` value
+> 
+> `required` {boolean}: asserts if property requires a value
+> 
+> `translationKey` {string}: path to validation key in `assets/translations`
+> 
+> `type` {string}: name of built-in validation rule to assert
+> 
+> `validators` {string}: name of custom validation rule to assert
 
-```diff
+Add `:${arg}` to pass custom arguments to a validation function:
+
+```javascript
 customValidationRules() {
   return [
     {
       path: 'value',
-      translationKey: 'setting.serverUrl.https',
-      - validators: [`exampleValidator`]
-      + validators: [`exampleValidator:${ this.metadata.name }]
+      validators: [`exampleValidator:${ this.metadata.name }]
     }
   ]
 }
 ```
 
 > How do we pass multiple args to validator function? Are they comma separated or separated by colon?
-
-> What is required of a validation rule? It looks like `path` and `validators`? Maybe it's just `path` because I've found a few without `validators` defined? The properties I've found so far are `nullable`, `path`, `required`, `translationKey`, `type`, `validators`, 
-
-`path` {string}: the model property to validate
-`nullable` {boolean}: asserts if property accepts `null` value
-`required` {boolean}: asserts if property requires a value
-`translationKey` {string}: path to validation key in `assets/translations`
-`type` {string}: name of built-in validation rule to assert
-`validators` {string}: name of custom validation rule to assert
 
 ## Other UI Features
 ### Icons 
