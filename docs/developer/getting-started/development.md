@@ -342,6 +342,7 @@ import { clusterName } from '@/utils/validators/cluster-name';
 and add it to the default exports:
 
 ```diff
+export default {
   containerImages,
   cronSchedule,
   podAffinity,
