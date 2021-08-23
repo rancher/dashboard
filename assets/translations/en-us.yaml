@@ -5005,6 +5005,16 @@ branding:
     background: Background Color
     showHeader: Show Banner in Header
     showFooter: Show Banner in Footer
+    bannerAlignment:
+      label: Text Alignment
+      leftOption: Left
+      centerOption: Center
+      rightOption: Right
+    bannerDecoration:
+      label: Text Decoration
+      bannerBold: Bold
+      bannerItalic: Italic
+      bannerUnderline: Underline
   color:
     label: Primary Color
     tip: You can override the primary color used throughout the UI with a custom color of your choice.
