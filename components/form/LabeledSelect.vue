@@ -112,6 +112,12 @@ export default {
   methods: {
     // resizeHandler = in mixin
     focusSearch() {
+      const blurredAgo = Date.now() - this.blurred;
+
+      if (!this.focused && blurredAgo < 250) {
+        return;
+      }
+
       this.$nextTick(() => {
         const el = this.$refs['select-input']?.searchEl;
 
