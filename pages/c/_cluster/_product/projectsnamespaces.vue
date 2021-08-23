@@ -43,6 +43,12 @@ export default {
       VIRTUAL_TYPES
     };
   },
+  // watch: {
+  //   projects(neu) {
+  //     console.log('projects list changed');
+  //     console.dir(neu);
+  //   }
+  // },
 
   computed: {
     headers() {

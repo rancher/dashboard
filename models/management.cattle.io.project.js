@@ -41,6 +41,15 @@ export default {
     return this.listLocation;
   },
 
+  remove() {
+    return async() => {
+      const norman = await this.norman;
+
+      await norman.remove(...arguments);
+      this.$commit('management/remove', this, { root: true });
+    };
+  },
+
   save() {
     return async() => {
       const norman = await this.norman;
