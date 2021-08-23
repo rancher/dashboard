@@ -296,41 +296,43 @@ account:
 
 ## Custom Form Validators 
 
-Creating custom validators for forms requires three parts
+Adding custom validation logic to forms and models requires changes to three different parts of Dashboard:
 
-1. Add a new validation function to `utils/validators`
-2. The new validation function is exported by `utils/custom-validators.js`
-3. Add `customValidationRules` prop to a model under `models`
+1. Create a new validation function to `utils/validators`
+2. Export the new validation function `utils/custom-validators.js`
+3. Add `customValidationRules` prop to appropriate model under `models`
 
-### Add new validation function
+### Create a new validation function
 
-Custom validators are stored under `utils/validators`. Validation functions should define positional parameters of `value, getters, errors, validatorArgs` with an optional fifth `displayKey` parameter. 
+Custom validators are stored under `utils/validators`. Validation functions should define positional parameters of `value, getters, errors, validatorArgs` with an optional fifth `displayKey` parameter: 
 
 ```javascript
-export function isHttps(value, getters, errors, validatorArgs, displayKey) {
-  const key = validatorArgs[0];
-
-  if (!value.startsWith('https://')) {
-    errors.push(getters['i18n/t']('validation.setting.serverUrl.https'));
-  }
-
-  return errors;
+export function exampleValidator(value, getters, errors, validatorArgs, displayKey) {
+  ...
 }
 ```
 
-Any failed validations are pushed to `errors`.
+Make sure the validation function pushes a value to the `error` collection in order to display error messages on the form:
 
-> Does a validation function need to return errors?
+> In this example, we're making use of i18n getters to produce a localized error message. 
+
+```javascript
+export function exampleValidator(value, getters, errors, validatorArgs, displayKey) {
+  if (validationFails) {
+    errors.push(getters['i18n/t']('validation.setting.serverUrl.https'));
+  }
+}
+```
 
 ### Export new validation function
 
-Import your new validator function into `utils/custom-validators.js`
+In order to make a custom validator available for usage in forms and component, it will need to exposed by importing the new validator function into `utils/custom-validators.js`:
 
 ```javascript diff
 import { podAffinity } from '@/utils/validators/pod-affinity';
 import { roleTemplateRules } from '@/utils/validators/role-template';
 import { clusterName } from '@/utils/validators/cluster-name';
-+ import { isHttps } from '@/utils/validators/setting';
++ import { exampleValidator } from '@/utils/validators/setting';
 ```
 
 and add it to the default exports
@@ -341,7 +343,7 @@ and add it to the default exports
   podAffinity,
   - roleTemplateRules
   + roleTemplateRules,
-  + isHttps
+  + exampleValidator
 };
 ```
 
@@ -353,7 +355,7 @@ customValidationRules() {
     {
       path: 'value',
       translationKey: 'setting.serverUrl.https',
-      validators: [`isHttps`]
+      validators: [`exampleValidator`]
     }
   ]
 }
@@ -367,8 +369,8 @@ customValidationRules() {
     {
       path: 'value',
       translationKey: 'setting.serverUrl.https',
-      - validators: [`isHttps`]
-      + validators: [`isHttps:${ this.metadata.name }]
+      - validators: [`exampleValidator`]
+      + validators: [`exampleValidator:${ this.metadata.name }]
     }
   ]
 }
@@ -378,12 +380,12 @@ customValidationRules() {
 
 > What is required of a validation rule? It looks like `path` and `validators`? Maybe it's just `path` because I've found a few without `validators` defined? The properties I've found so far are `nullable`, `path`, `required`, `translationKey`, `type`, `validators`, 
 
-`path` string: the model property to validate
-`nullable` boolean: asserts if property accepts `null` value
-`required` boolean: asserts if property requires a value
-`translationKey` string: path to validation key in `assets/translations`
-`type` string: name of built-in validation rule to assert
-`validators` string: name of custom validation rule to assert
+`path` {string}: the model property to validate
+`nullable` {boolean}: asserts if property accepts `null` value
+`required` {boolean}: asserts if property requires a value
+`translationKey` {string}: path to validation key in `assets/translations`
+`type` {string}: name of built-in validation rule to assert
+`validators` {string}: name of custom validation rule to assert
 
 ## Other UI Features
 ### Icons 
