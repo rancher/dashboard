@@ -65,6 +65,7 @@ export default {
     return {
       raised:  this.mode === _VIEW || !!`${ this.value }`,
       focused: false,
+      blurred: null,
     };
   },
 
@@ -129,6 +130,8 @@ export default {
       if ( !this.value ) {
         this.raised = false;
       }
+
+      this.blurred = Date.now();
     }
   }
 };
