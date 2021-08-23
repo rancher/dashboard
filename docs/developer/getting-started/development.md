@@ -318,9 +318,13 @@ Make sure the validation function pushes a value to the `error` collection in or
 
 ```javascript
 export function exampleValidator(value, getters, errors, validatorArgs, displayKey) {
+  ... 
+
   if (validationFails) {
     errors.push(getters['i18n/t']('validation.setting.serverUrl.https'));
   }
+
+  ...
 }
 ```
 
