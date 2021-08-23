@@ -341,9 +341,9 @@ and add it to the default exports:
   containerImages,
   cronSchedule,
   podAffinity,
-  - roleTemplateRules
-  + roleTemplateRules,
-  + exampleValidator
+- roleTemplateRules
++ roleTemplateRules,
++ exampleValidator
 };
 ```
 
