@@ -19,7 +19,6 @@ export default {
     return {
       showHeader:      false,
       showFooter:      false,
-      textDecoration:  {},
       banner:          {},
       bannerSetting:   null
     };
