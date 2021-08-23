@@ -27,6 +27,8 @@ const createRoleTemplate = {
   }
 };
 
+const createVerbs = new Set(['PUT', 'blocked-PUT']);
+
 export default {
   name: 'Roles',
 
@@ -55,7 +57,7 @@ export default {
       tabs: {
         [GLOBAL]: {
           canFetch:       globalRoleSchema?.collectionMethods.find(verb => verb === 'GET'),
-          canCreate:      globalRoleSchema?.resourceMethods.find(verb => verb === 'PUT'),
+          canCreate:      globalRoleSchema?.resourceMethods.find(verb => createVerbs.has(verb)),
           weight:         3,
           labelKey:       SUBTYPE_MAPPING.GLOBAL.labelKey,
           schema:         globalRoleSchema,
@@ -66,7 +68,7 @@ export default {
         },
         [CLUSTER]: {
           canFetch:       roleTemplatesSchema?.collectionMethods.find(verb => verb === 'GET'),
-          canCreate:      roleTemplatesSchema?.resourceMethods.find(verb => verb === 'PUT'),
+          canCreate:      roleTemplatesSchema?.resourceMethods.find(verb => createVerbs.has(verb)),
           labelKey:       SUBTYPE_MAPPING.CLUSTER.labelKey,
           weight:         2,
           schema:         roleTemplatesSchema,
@@ -78,7 +80,7 @@ export default {
         },
         [PROJECT]: {
           canFetch:       roleTemplatesSchema?.collectionMethods.find(verb => verb === 'GET'),
-          canCreate:      roleTemplatesSchema?.resourceMethods.find(verb => verb === 'PUT'),
+          canCreate:      roleTemplatesSchema?.resourceMethods.find(verb => createVerbs.has(verb)),
           labelKey:       SUBTYPE_MAPPING.NAMESPACE.labelKey,
           weight:         1,
           schema:         roleTemplatesSchema,
