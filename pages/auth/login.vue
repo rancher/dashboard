@@ -76,7 +76,7 @@ export default {
 
       brand = await store.dispatch('rancher/find', {
         type: 'setting',
-        id:   SETTING.PL,
+        id:   SETTING.BRAND,
         opt:  { url: `/v3/settings/${ SETTING.BRAND }` }
       });
     }
