@@ -144,7 +144,7 @@ export default {
   },
 
   isImportedRke2() {
-    return this.isImported && this.mgmt?.status?.provider === 'rke2';
+    return this.isImported && this.mgmt?.status?.provider.startsWith('rke2');
   },
 
   isRke2() {

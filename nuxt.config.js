@@ -400,7 +400,7 @@ function onProxyReqWs(proxyReq, req, socket, options, head) {
 }
 
 function onError(err, req, res) {
-  res.statusCode = 500;
+  res.statusCode = 598;
   console.error('Proxy Error:', err); // eslint-disable-line no-console
   res.write(JSON.stringify(err));
 }
