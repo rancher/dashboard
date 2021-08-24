@@ -696,13 +696,16 @@ export default {
 
           return;
         }
+
         const res = await this.repo.doAction((isUpgrade ? 'upgrade' : 'install'), input);
         const operationId = `${ res.operationNamespace }/${ res.operationName }`;
 
         // Non-admins without a cluster won't be able to fetch operations immediately
         await this.repo.waitForOperation(operationId);
+        // Dynamically use store decided when loading catalog (covers standard user case when there's not cluster)
+        const inStore = this.$store.getters['catalog/inStore'];
 
-        this.operation = await this.$store.dispatch('cluster/find', {
+        this.operation = await this.$store.dispatch(`${ inStore }/find`, {
           type: CATALOG.OPERATION,
           id:   operationId
         });
