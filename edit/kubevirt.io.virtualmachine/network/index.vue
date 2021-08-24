@@ -1,5 +1,4 @@
 <script>
-import findIndex from 'lodash/findIndex';
 import randomstring from 'randomstring';
 
 import InfoBox from '@/components/InfoBox';
@@ -10,8 +9,6 @@ import { sortBy } from '@/utils/sort';
 import { clone } from '@/utils/object';
 import { removeObject } from '@/utils/array';
 import { _VIEW } from '@/config/query-params';
-
-const MANAGEMENT_NETWORK = 'management Network';
 
 export default {
   components: { InfoBox, Base },
@@ -55,21 +52,8 @@ export default {
         'label'
       );
 
-      const findPodIndex = findIndex(this.rows, R => R.networkName === MANAGEMENT_NETWORK);
-
-      if (findPodIndex === -1 || (findPodIndex !== -1 && this.rows.length === 1)) {
-        out.push({
-          label: MANAGEMENT_NETWORK,
-          value: MANAGEMENT_NETWORK
-        });
-      }
-
       return out;
     },
-
-    networkName() {
-      return this.networkOption?.[0]?.value || '';
-    }
   },
 
   watch: {
@@ -79,29 +63,24 @@ export default {
   },
 
   methods: {
-    addRow(type) {
+    add(type) {
       const name = this.getName();
 
       const neu = {
         name,
         model:       'virtio',
         type:        'bridge',
-        networkName: '',
+        networkName:  this.networkName,
         newCreateId:      randomstring.generate(10),
       };
 
-      if (this.networkName === MANAGEMENT_NETWORK) {
-        neu.isPod = true;
-      }
-
       this.rows.push(neu);
-      this.$emit('input', this.rows);
-      this.rows[this.rows.length - 1].networkName = this.networkName;
+      this.update();
     },
 
-    removeRow(vol) {
+    remove(vol) {
       removeObject(this.rows, vol);
-      this.$emit('input', this.rows);
+      this.update();
     },
 
     getName() {
@@ -127,7 +106,7 @@ export default {
 <template>
   <div>
     <InfoBox v-for="(row, i) in rows" :key="i" class="infoBox">
-      <button v-if="!isView" type="button" class="role-link btn btn-sm remove-vol" @click="removeRow(row)">
+      <button v-if="!isView" type="button" class="role-link remove-vol" @click="remove(row)">
         <i class="icon icon-2x icon-x" />
       </button>
 
@@ -142,7 +121,7 @@ export default {
       />
     </InfoBox>
 
-    <button v-if="!isView" type="button" class="btn btn-sm bg-primary" @click="addRow">
+    <button v-if="!isView" type="button" class="btn btn-sm bg-primary" @click="add">
       {{ t('harvester.virtualMachine.network.addNetwork') }}
     </button>
   </div>
@@ -156,7 +135,9 @@ export default {
 .remove-vol {
   position: absolute;
   top: 10px;
-  right: 10px;
+  right: 16px;
   padding:0px;
+  max-height: 28px;
+  min-height: 28px;
 }
 </style>

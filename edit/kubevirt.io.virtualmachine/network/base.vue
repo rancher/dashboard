@@ -4,6 +4,8 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { _CREATE, _VIEW } from '@/config/query-params';
 
+const MANAGEMENT_NETWORK = 'management Network';
+
 export const MODEL = [{
   label: 'virtio',
   value: 'virtio'
@@ -24,10 +26,8 @@ export const MODEL = [{
   value: 'rtl8139'
 }];
 
-const MANAGEMENT_NETWORK = 'management Network';
-
 export default {
-  name:       'NetworkBase',
+  name:       'Network',
   components: {
     LabeledInput, LabeledSelect, InputOrDisplay
   },
@@ -61,9 +61,16 @@ export default {
   },
 
   data() {
+    const isManagementNetwork = this.value.isPod;
+
+    if (isManagementNetwork) {
+      this.value.networkName = MANAGEMENT_NETWORK;
+    }
+
     return {
-      rowIndex:   0,
-      errors:     [],
+      errors:   [],
+      rowIndex: 0,
+      isManagementNetwork,
     };
   },
 
@@ -85,7 +92,20 @@ export default {
     },
 
     isMasquerade() {
-      return this.value.networkName === MANAGEMENT_NETWORK;
+      return this.value.isPod;
+    },
+
+    allNetworkOption() {
+      const out = this.networkOption;
+
+      if (this.hasManagementNetwork) {
+        out.unshift({
+          label: MANAGEMENT_NETWORK,
+          value: MANAGEMENT_NETWORK
+        });
+      }
+
+      return out;
     },
 
     typeOpton() {
@@ -108,30 +128,33 @@ export default {
 
       return this.isMasquerade ? masquerade : other;
     },
+
+    hasManagementNetwork() {
+      return !!this.rows.findIndex(N => N.isPod);
+    },
   },
 
   watch: {
     'value.networkName': {
       handler(neu) {
-        if (neu === MANAGEMENT_NETWORK && this.value.masquerade) {
+        if (neu === MANAGEMENT_NETWORK) {
+          this.value.isPod = true;
+        } else {
+          this.value.isPod = false;
+        }
+
+        if (this.value.isPod) {
           this.value.type = 'masquerade';
         } else {
           this.value.type = 'bridge';
         }
       },
       immediate: true
-    }
+    },
   },
 
   methods: {
     update() {
-      const networkName = this.value.networkName;
-
-      if (networkName === MANAGEMENT_NETWORK) {
-        this.value.isPod = true;
-      } else {
-        this.value.isPod = false;
-      }
       this.$emit('update');
     }
   }
@@ -168,7 +191,7 @@ export default {
           <LabeledSelect
             v-model="value.networkName"
             :label="t('harvester.fields.network')"
-            :options="networkOption"
+            :options="allNetworkOption"
             :mode="mode"
             required
             :disabled="isDisabled"
