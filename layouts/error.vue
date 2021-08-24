@@ -17,7 +17,7 @@ export default {
 
   computed: {
     statusCode() {
-      return (this.error && this.error.statusCode) || 500;
+      return (this.error && this.error.statusCode) || 599;
     },
     message() {
       return this.error.message || '';
