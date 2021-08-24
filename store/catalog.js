@@ -37,7 +37,8 @@ export const state = function() {
     namespacedRepos: [],
     charts:          {},
     versionInfos:    {},
-    config:          { namespace: 'catalog' }
+    config:          { namespace: 'catalog' },
+    inStore:         undefined,
   };
 };
 
@@ -283,6 +284,10 @@ export const getters = {
 
       return steps;
     };
+  },
+
+  inStore(state) {
+    return state.inStore;
   }
 };
 
@@ -291,6 +296,10 @@ export const mutations = {
     const newState = state();
 
     Object.assign(currentState, newState);
+  },
+
+  setInStore(state, inStore) {
+    state.inStore = inStore;
   },
 
   setRepos(state, { cluster, namespaced }) {
@@ -321,7 +330,7 @@ export const actions = {
     let promises = {};
     // Installing an app? This is fine (in cluster store)
     // Fetching list of cluster templates? This is fine (in management store)
-    // Installing a cluster template? This isn't fine (in cluster store as per insalling app, but if there is no cluster we need to default to management)
+    // Installing a cluster template? This isn't fine (in cluster store as per installing app, but if there is no cluster we need to default to management)
     const inStore = rootGetters['currentCluster'] ? rootGetters['currentProduct'].inStore : 'management';
 
     if ( rootGetters[`${ inStore }/schemaFor`](CATALOG.CLUSTER_REPO) ) {
@@ -333,6 +342,9 @@ export const actions = {
     }
 
     const hash = await allHash(promises);
+
+    // As per comment above, when there are no clusters this will be management. Store it such that it can be used for those cases
+    commit('setInStore', inStore);
 
     commit('setRepos', hash);
 
