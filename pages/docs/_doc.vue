@@ -235,6 +235,10 @@ export default {
       border-radius: 5px;
       margin: 0 5px;
     }
+
+    svg.doc-icon {
+      fill: var(--body-text);
+    }
   }
 
   .doc-content-document {
