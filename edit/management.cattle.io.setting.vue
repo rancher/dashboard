@@ -5,8 +5,9 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import CreateEditView from '@/mixins/create-edit-view';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 
-import { ALLOWED_SETTINGS } from '@/config/settings';
+import { ALLOWED_SETTINGS, SETTING } from '@/config/settings';
 import RadioGroup from '@/components/form/RadioGroup';
+import { setBrand } from '@/config/private-label';
 
 export default {
   components: {
@@ -60,6 +61,10 @@ export default {
 
           return done(false);
         }
+      }
+
+      if (this.value?.id === SETTING.BRAND) {
+        setBrand(this.value.value);
       }
 
       this.save(done);

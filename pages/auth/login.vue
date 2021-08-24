@@ -17,7 +17,13 @@ import { _ALL_IF_AUTHED, _MULTI } from '@/plugins/steve/actions';
 import { MANAGEMENT, NORMAN } from '@/config/types';
 import { SETTING } from '@/config/settings';
 import { LOGIN_ERRORS } from '@/store/auth';
-import { getVendor, getProduct, setVendor } from '@/config/private-label';
+import {
+  getBrand,
+  getVendor,
+  getProduct,
+  setBrand,
+  setVendor
+} from '@/config/private-label';
 
 export default {
   name:       'Login',
@@ -38,7 +44,7 @@ export default {
       removeObject(providers, 'local');
     }
 
-    let firstLoginSetting, plSetting;
+    let firstLoginSetting, plSetting, brand;
 
     // Load settings.
     // For newer versions this will return all settings if you are somehow logged in,
@@ -53,6 +59,7 @@ export default {
 
       firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
       plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
+      brand = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BRAND);
     } catch (e) {
       // Older versions used Norman API to get these
       firstLoginSetting = await store.dispatch('rancher/find', {
@@ -66,10 +73,20 @@ export default {
         id:   SETTING.PL,
         opt:  { url: `/v3/settings/${ SETTING.PL }` }
       });
+
+      brand = await store.dispatch('rancher/find', {
+        type: 'setting',
+        id:   SETTING.PL,
+        opt:  { url: `/v3/settings/${ SETTING.BRAND }` }
+      });
     }
 
     if (plSetting.value?.length && plSetting.value !== getVendor()) {
       setVendor(plSetting.value);
+    }
+
+    if (brand?.value?.length && brand.value !== getBrand()) {
+      setBrand(brand.value);
     }
 
     let singleProvider;

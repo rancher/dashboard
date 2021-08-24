@@ -10,9 +10,10 @@ import { filterBy, findBy } from '@/utils/array';
 import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@/store/type-map';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { TIMED_OUT, LOGGED_OUT, _FLAGGED, UPGRADED } from '@/config/query-params';
-import { setVendor } from '@/config/private-label';
+import { setBrand, setVendor } from '@/config/private-label';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { addParam } from '@/utils/url';
+import { SETTING } from '@/config/settings';
 import semver from 'semver';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
@@ -494,9 +495,14 @@ export const actions = {
     }
 
     const pl = res.settings?.find(x => x.name === 'ui-pl')?.value;
+    const brand = res.settings?.find(x => x.name === SETTING.BRAND)?.value;
 
     if ( pl ) {
       setVendor(pl);
+    }
+
+    if (brand) {
+      setBrand(brand);
     }
 
     commit('managementChanged', {

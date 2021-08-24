@@ -6,7 +6,7 @@ import IndentedPanel from '@/components/IndentedPanel';
 import Card from '@/components/Card';
 import CommunityLinks from '@/components/CommunityLinks';
 import { MANAGEMENT } from '@/config/types';
-import { getVendor } from '@/config/private-label';
+import { getVendor, setBrand } from '@/config/private-label';
 import { SETTING } from '@/config/settings';
 
 const KEY_REGX = /^[0-9a-fA-F]{16}$/;
@@ -94,6 +94,7 @@ export default {
         this.brandSetting.value = 'suse';
         await Promise.all([this.supportSetting.save(), this.brandSetting.save()]);
         this.$cookies.set('brand', 'suse');
+        setBrand('suse');
         done(true);
         this.$modal.hide('toggle-support');
       } catch {
@@ -109,6 +110,7 @@ export default {
         if (this.$cookies.get('brand')) {
           this.$cookies.remove('brand');
         }
+        setBrand('');
         done(true);
         this.$modal.hide('toggle-support');
       } catch {
