@@ -294,6 +294,112 @@ account:
       placeholder: Optionally enter a description to help you identify this API Key
 ```
 
+## Custom Form Validators 
+
+Adding custom validation logic to forms and models requires changes to three different parts of Dashboard:
+
+1. Create a new validation function to `utils/validators`
+2. Export the new validation function `utils/custom-validators.js`
+3. Add `customValidationRules` prop to appropriate model under `models`
+
+### Create a new validation function
+
+Custom validators are stored under `utils/validators`. Validation functions should define positional parameters of `value, getters, errors, validatorArgs` with an optional fifth `displayKey` parameter: 
+
+```javascript
+export function exampleValidator(value, getters, errors, validatorArgs, displayKey) {
+  ...
+}
+```
+
+Make sure the validation function pushes a value to the `error` collection in order to display error messages on the form:
+
+> In this example, we're making use of i18n getters to produce a localized error message. 
+
+```javascript
+export function exampleValidator(value, getters, errors, validatorArgs, displayKey) {
+  ... 
+
+  if (validationFails) {
+    errors.push(getters['i18n/t']('validation.setting.serverUrl.https'));
+  }
+
+  ...
+}
+```
+
+### Export new validation function
+
+In order to make a custom validator available for usage in forms and component, it will need to exposed by importing the new validator function into `utils/custom-validators.js`:
+
+```diff
+import { podAffinity } from '@/utils/validators/pod-affinity';
+import { roleTemplateRules } from '@/utils/validators/role-template';
+import { clusterName } from '@/utils/validators/cluster-name';
++ import { exampleValidator } from '@/utils/validators/setting';
+```
+
+and add it to the default exports:
+
+```diff
+export default {
+  containerImages,
+  cronSchedule,
+  podAffinity,
+- roleTemplateRules
++ roleTemplateRules,
++ exampleValidator
+};
+```
+
+### Add `customValidationRules` to model
+
+Locate the model that will make use of the custom validation function and add `customValidationRules` property if one does not already exist. `customValidationRules` returns a collection of validation rules to run against the model:
+
+```javascript
+customValidationRules() {
+  return [
+    {
+      path: 'value',
+      validators: [`exampleValidator`]
+    }
+  ]
+}
+```
+
+> ### A validation rule can contain the following keys:
+> 
+> `path` {string}: the model property to validate
+> 
+> `nullable` {boolean}: asserts if property accepts `null` value
+> 
+> `required` {boolean}: asserts if property requires a value
+> 
+> `translationKey` {string}: path to validation key in `assets/translations`
+> 
+> `type` {string}: name of built-in validation rule to assert
+> 
+> `validators` {string}: name of custom validation rule to assert
+
+Add `:${arg}` to pass custom arguments to a validation function:
+
+```javascript
+customValidationRules() {
+  return [
+    {
+      path: 'value',
+      validators: [`exampleValidator:${ this.metadata.name }`]
+    }
+  ]
+}
+```
+
+Multiple custom arguments can be passed to a validator function; each argument is separated by `:`, for example:
+
+```javascript
+validators: [`exampleValidator:${ this.metadata.name }:'customString':42]
+```
+
 ## Other UI Features
 ### Icons 
 Icons are font based and can be shown via the icon class
