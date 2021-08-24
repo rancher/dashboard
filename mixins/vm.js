@@ -1,5 +1,5 @@
+import jsyaml from 'js-yaml';
 import randomstring from 'randomstring';
-import { load, dump } from 'js-yaml';
 
 import { clone } from '@/utils/object';
 import { allHash } from '@/utils/promise';
@@ -7,8 +7,6 @@ import { SOURCE_TYPE } from '@/config/map';
 import { _CLONE } from '@/config/query-params';
 import { PVC, HCI, STORAGE_CLASS, NODE } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
-
-const MANAGEMENT_NETWORK = 'management Network';
 
 const agentJson = {
   package_update: true,
@@ -23,7 +21,7 @@ const agentJson = {
   ]
 };
 
-const DISK = 'disk';
+const HARD_DISK = 'disk';
 const CD_ROM = 'cd-rom';
 
 export default {
@@ -193,7 +191,7 @@ export default {
           bus:              'virtio',
           volumeName:       '',
           size:             '10Gi',
-          type:             DISK,
+          type:             HARD_DISK,
           storageClassName: '',
           image:            this.imageId,
           volumeMode:       'Block',
@@ -212,7 +210,7 @@ export default {
           let volumeMode = '';
           let storageClassName = '';
 
-          const type = DISK?.cdrom ? CD_ROM : 'disk';
+          const type = DISK?.cdrom ? CD_ROM : HARD_DISK;
 
           if (volume?.containerDisk) { // SOURCE_TYPE.CONTAINER
             source = SOURCE_TYPE.CONTAINER;
@@ -296,7 +294,7 @@ export default {
           type,
           isPod:        !!network.pod,
           model:        I.model || 'virtio',
-          networkName:  network?.multus?.networkName || MANAGEMENT_NETWORK,
+          networkName:  network?.multus?.networkName,
         };
       });
 
@@ -460,7 +458,7 @@ export default {
         let newInitScript = {};
 
         if (out) {
-          newInitScript = load(out);
+          newInitScript = jsyaml.load(out);
         }
 
         if (newInitScript && newInitScript.ssh_authorized_keys) {
@@ -471,7 +469,7 @@ export default {
         } else {
           newInitScript.ssh_authorized_keys = this.getSSHListValue(this.sshKey);
         }
-        out = dump(newInitScript);
+        out = jsyaml.dump(newInitScript);
       } catch (error) {
         new Error(`has error set: ${ error }`);
 
@@ -490,7 +488,7 @@ export default {
     parseDisk(R) {
       const out = { name: R.name };
 
-      if (R.type === DISK) {
+      if (R.type === HARD_DISK) {
         out.disk = { bus: R.bus };
       } else if (R.type === CD_ROM) {
         out.cdrom = { bus: R.bus };
@@ -616,7 +614,7 @@ export default {
       let parsed;
 
       try {
-        parsed = load(clone(userScript)) || {};
+        parsed = jsyaml.load(clone(userScript)) || {};
       } catch (err) {
         parsed = {};
       }
@@ -649,7 +647,7 @@ export default {
     },
 
     deleteGuestAgent(userScript) {
-      const parsed = load(clone(userScript)) || {};
+      const parsed = jsyaml.load(clone(userScript)) || {};
 
       if (Array.isArray(parsed.packages)) {
         for (let i = 0; i < parsed.packages.length; i++) {
@@ -776,6 +774,23 @@ export default {
       } else {
         this.$delete(this.spec.template.spec.domain.devices, 'inputs');
       }
+    },
+
+    installAgent(neu) {
+      let parsed = {};
+
+      if (neu) {
+        parsed = this.mergeGuestAgent(clone(this.userScript));
+      } else {
+        parsed = this.deleteGuestAgent(clone(this.userScript));
+      }
+      let out = jsyaml.dump(parsed);
+
+      if (parsed === '') {
+        out = undefined;
+      }
+
+      this.$set(this, 'userScript', out);
     },
   }
 };

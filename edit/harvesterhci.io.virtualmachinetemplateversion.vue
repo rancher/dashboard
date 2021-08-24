@@ -244,6 +244,14 @@ export default {
 
         <div class="spacer"></div>
         <Checkbox v-model="isUseMouseEnhancement" class="check" type="checkbox" :label="t('harvester.virtualMachine.enableUsb')" />
+
+        <Checkbox
+          v-model="installAgent"
+          class="check"
+          type="checkbox"
+          label-key="harvester.virtualMachine.installAgent"
+          :mode="mode"
+        />
       </Tab>
     </Tabbed>
   </CruResource>

@@ -1,7 +1,6 @@
 <script>
 import isEqual from 'lodash/isEqual';
 import { mapGetters } from 'vuex';
-import { dump } from 'js-yaml';
 
 import Banner from '@/components/Banner';
 import Tabbed from '@/components/Tabbed';
@@ -194,23 +193,6 @@ export default {
         this.value.applyDefaults();
         this.changeSpec();
       }
-    },
-
-    installAgent(neu) {
-      let parsed = {};
-
-      if (neu) {
-        parsed = this.mergeGuestAgent(clone(this.userScript));
-      } else {
-        parsed = this.deleteGuestAgent(clone(this.userScript));
-      }
-      let out = dump(parsed);
-
-      if (parsed === '') {
-        out = undefined;
-      }
-
-      this.$set(this, 'userScript', out);
     },
   },
 
