@@ -69,7 +69,13 @@ export default {
         },
         query: { [MODE]: _IMPORT }
       };
-    }
+    },
+
+    canImport() {
+      const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+
+      return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+    },
   },
 
   mounted() {
@@ -85,7 +91,7 @@ export default {
       :resource="resource"
       :create-location="createLocation"
     >
-      <template slot="extraActions">
+      <template v-if="canImport" slot="extraActions">
         <n-link
           :to="importLocation"
           class="btn role-primary"
