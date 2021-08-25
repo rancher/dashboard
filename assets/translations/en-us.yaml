@@ -2951,6 +2951,11 @@ project:
   containerDefaultResourceLimit: Container Default Resource Limit
   resourceQuotas: Resource Quotas
   haveOneOwner: There must be at least one member with the Owner role.
+  psp:
+    default: Cluster Default
+    label: Pod Security Policy
+    current: "{value} (Current)"
+
 
 projectMembers:
   project:
