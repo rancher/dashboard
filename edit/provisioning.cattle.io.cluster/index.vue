@@ -69,22 +69,33 @@ export default {
       mgmtClusters:     this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
       provClusters:     this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
 
-      nodeDrivers:      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER }),
-      kontainerDrivers: this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTANIER_DRIVER }),
-      catalog:          this.$store.dispatch('catalog/load'),
+      catalog: this.$store.dispatch('catalog/load'),
     };
+
+    if (this.$store.getters[`management/canList`](MANAGEMENT.NODE_DRIVER)) {
+      hash.nodeDrivers = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
+    }
+
+    if (this.$store.getters[`management/canList`](MANAGEMENT.KONTANIER_DRIVER)) {
+      hash.kontainerDrivers = this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTANIER_DRIVER });
+    }
 
     if ( this.value.id && !this.value.isRke2 ) {
       // These are needed to resolve references in the mgmt cluster -> node pool -> node template to figure out what provider the cluster is using
       // so that the edit iframe for ember pages can go to the right place.
-      hash.rke1NodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-      hash.rke1NodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+      if (this.$store.getters[`management/canList`](MANAGEMENT.NODE_POOL)) {
+        hash.rke1NodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      }
+
+      if (this.$store.getters[`management/canList`](MANAGEMENT.NODE_TEMPLATE)) {
+        hash.rke1NodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+      }
     }
 
     const res = await allHash(hash);
 
-    this.nodeDrivers = res.nodeDrivers;
-    this.kontainerDrivers = res.kontainerDrivers;
+    this.nodeDrivers = res.nodeDrivers || [];
+    this.kontainerDrivers = res.kontainerDrivers || [];
 
     if ( !this.value.spec ) {
       set(this.value, 'spec', {});
