@@ -89,8 +89,8 @@ export default {
     },
 
     groupSelected() {
-      // Don't do anything if we're in the fixed mode and this is an overview, or the group is the root (so this isn't a true visual group)
-      if (this.fixedOpen || this.group.isRoot) {
+      // Don't auto-select first group entry if we're already expanded
+      if (this.isExpanded) {
         return;
       }
 
