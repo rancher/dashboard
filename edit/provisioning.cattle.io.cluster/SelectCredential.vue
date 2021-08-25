@@ -117,6 +117,13 @@ export default {
         });
       }
 
+      if ( this.value && !out.find(x => x.value === this.value) ) {
+        out.push({
+          label: `{$this.value} (current)`,
+          value: this.value
+        });
+      }
+
       return out;
     },
 

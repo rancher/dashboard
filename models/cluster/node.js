@@ -28,7 +28,7 @@ export const listNodeRoles = (isControlPlane, isWorker, isEtcd, allString) => {
 
 export default {
   _availableActions() {
-    const normanAction = this.normanNode?.actions || {};
+    const normanAction = this.norman?.actions || {};
 
     const cordon = {
       action:     'cordon',
@@ -265,7 +265,7 @@ export default {
       const safeResources = Array.isArray(resources) ? resources : [this];
 
       await Promise.all(safeResources.map((node) => {
-        return node.normanNode.doAction('cordon');
+        return node.norman?.doAction('cordon');
       }));
     };
   },
@@ -275,7 +275,7 @@ export default {
       const safeResources = Array.isArray(resources) ? resources : [this];
 
       await Promise.all(safeResources.map((node) => {
-        return node.normanNode.doAction('uncordon');
+        return node.norman?.doAction('uncordon');
       }));
     };
   },
@@ -296,7 +296,7 @@ export default {
     }
   },
 
-  normanNode() {
+  norman() {
     return this.$rootGetters['rancher/byId'](NORMAN.NODE, this.normanNodeId);
   },
 
@@ -317,7 +317,7 @@ export default {
       const safeResources = Array.isArray(resources) ? resources : [this];
 
       await Promise.all(safeResources.map((node) => {
-        return node.normanNode.doAction('stopDrain');
+        return node.norman?.doAction('stopDrain');
       }));
     };
   },
