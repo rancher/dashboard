@@ -815,6 +815,10 @@ export default {
       const finalPools = [];
 
       for ( const entry of this.machinePools ) {
+        if ( entry.remove ) {
+          continue;
+        }
+
         // Capitals and such aren't allowed;
         set(entry.pool, 'name', normalizeName(entry.pool.name) || 'pool');
 
@@ -847,9 +851,10 @@ export default {
 
     async cleanupMachinePools() {
       for ( const entry of this.machinePools ) {
-        if ( entry.remove ) {
-          await entry.config.remove();
-          entry.remove = false;
+        if ( entry.remove && entry.config ) {
+          try {
+            await entry.config.remove();
+          } catch (e) {}
         }
       }
     },

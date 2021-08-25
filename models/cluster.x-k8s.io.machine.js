@@ -80,16 +80,21 @@ export default {
 
   kubeNodeDetailLocation() {
     const kubeId = this.status?.nodeRef?.name;
+    const cluster = this.cluster?.status?.clusterName;
 
-    return kubeId ? {
-      name:   'c-cluster-product-resource-id',
-      params: {
-        cluster:  this.cluster.status.clusterName,
-        product:  EXPLORER,
-        resource: NODE,
-        id:       kubeId
+    if ( kubeId && cluster ) {
+      return {
+        name:   'c-cluster-product-resource-id',
+        params: {
+          cluster:  this.cluster.status.clusterName,
+          product:  EXPLORER,
+          resource: NODE,
+          id:       kubeId
+        }
       }
-    } : kubeId;
+    }
+
+    return kubeId;
   },
 
   groupByLabel() {
