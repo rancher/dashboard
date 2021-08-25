@@ -85,16 +85,22 @@ export default {
 
           const now = this.cluster?.spec?.rkeConfig?.etcSnapshotRestore || 0;
 
+          let s3 = undefined;
+
+          if ( this.snapshot.s3 ) {
+            s3 = {
+              ...this.snapshot.s3,
+              cloudCredentialName: this.cloudCredentialName
+            };
+          }
+
           set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', {
             generation: now + 1,
             createdAt:  this.snapshot.createdAt,
             name:       this.snapshot.name,
             size:       this.snapshot.size,
             nodeName:   this.snapshot.nodeName,
-            s3:         {
-              ...this.snapshot.s3,
-              cloudCredentialName: this.cloudCredentialName
-            }
+            s3,
           });
 
           await cluster.save();
