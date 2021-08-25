@@ -3312,6 +3312,8 @@ resourceDetail:
       {count, plural,
       =1 {Owner}
       other {Owners}}
+    hideLabels: Hide system labels
+    showLabels: Show all labels
     hideAnnotations: |-
       {annotations, plural,
       =1 {Hide 1 annotation}

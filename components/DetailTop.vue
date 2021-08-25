@@ -24,7 +24,11 @@ export default {
   },
 
   data() {
-    return { annotationsVisible: false, view: _VIEW };
+    return {
+      annotationsVisible: false,
+      showAllLabels:      false,
+      view:               _VIEW
+    };
   },
 
   computed: {
@@ -36,7 +40,11 @@ export default {
     },
 
     labels() {
-      return this.value?.labels || {};
+      if (this.showAllLabels || !this.showFilteredSystemLabels) {
+        return this.value?.labels || {};
+      }
+
+      return this.value?.filteredSystemLabels;
     },
 
     annotations() {
@@ -72,8 +80,16 @@ export default {
 
       return !hasAnything;
     },
+
+    showFilteredSystemLabels() {
+      return !!this.value.filteredSystemLabels;
+    },
   },
   methods: {
+    toggleLabels() {
+      this.showAllLabels = !this.showAllLabels;
+    },
+
     toggleAnnotations(ev) {
       this.annotationsVisible = !this.annotationsVisible;
     }
@@ -113,6 +129,9 @@ export default {
         <Tag v-for="(prop, key) in labels" :key="key + prop">
           {{ key }}<span v-if="prop">: </span>{{ prop }}
         </Tag>
+        <a v-if="showFilteredSystemLabels" href="#" class="detail-top__label-button" @click.prevent="toggleLabels">
+          {{ t(`resourceDetail.detailTop.${showAllLabels? 'hideLabels' : 'showLabels'}`) }}
+        </a>
       </div>
     </div>
 
@@ -165,6 +184,10 @@ export default {
     .label {
       color: var(--input-label);
       margin: 0 4px 0 0;
+    }
+
+    &__label-button {
+      padding: 4px;
     }
 
     .details {

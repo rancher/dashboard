@@ -1,3 +1,4 @@
+import pickBy from 'lodash/pickBy';
 import { HCI } from '@/config/labels-annotations';
 import { NAME as VIRTUAL } from '@/config/product/virtual';
 import { clone } from '@/utils/object';
@@ -59,6 +60,18 @@ export default {
     }
 
     return out;
+  },
+
+  filteredSystemLabels() {
+    const reg = /(k3s|kubernetes|kubevirt|harvesterhci|k3os)+\.io/;
+
+    if (this.$rootGetters['currentProduct'].inStore !== VIRTUAL) {
+      return null;
+    }
+
+    return pickBy(this.labels, (value, key) => {
+      return !reg.test(key);
+    });
   },
 
   nameDisplay() {

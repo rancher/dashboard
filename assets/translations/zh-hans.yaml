@@ -2458,6 +2458,8 @@ resourceDetail:
       {count, plural,
       =1 {Owner}
       other {Owners}}
+    hideLabels: 隐藏系统标签
+    showLabels: 显示全部标签
     hideAnnotations: |-
       {annotations, plural,
       =1 {Hide 1 annotation}
