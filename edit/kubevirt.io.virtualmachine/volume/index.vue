@@ -1,13 +1,13 @@
 <script>
 import remove from 'lodash/remove';
 import randomstring from 'randomstring';
-import { STORAGE_CLASS } from '@/config/types';
+import { STORAGE_CLASS, PVC } from '@/config/types';
 import { removeObject } from '@/utils/array';
 import { clone } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
 import { SOURCE_TYPE, InterfaceOption } from '@/config/map';
 import ModalWithCard from '@/components/ModalWithCard';
-import { _VIEW, _EDIT } from '@/config/query-params';
+import { _VIEW, _EDIT, _CREATE } from '@/config/query-params';
 import InfoBox from '@/components/InfoBox';
 import Banner from '@/components/Banner';
 import UnitInput from '@/components/form/UnitInput';
@@ -20,6 +20,13 @@ export default {
   },
 
   props:      {
+    vm: {
+      type:       Object,
+      default: () => {
+        return {};
+      }
+    },
+
     mode: {
       type:    String,
       default: 'create'
@@ -46,11 +53,10 @@ export default {
       type:    String,
       default: 'ReadWriteMany'
     },
+  },
 
-    secrets: {
-      type:    Array,
-      default: () => []
-    },
+  async fetch() {
+    await this.$store.dispatch('virtual/findAll', { type: PVC });
   },
 
   data() {
@@ -63,6 +69,9 @@ export default {
   },
 
   computed: {
+    isCreate() {
+      return this.mode === _CREATE;
+    },
     isView() {
       return this.mode === _VIEW;
     },
@@ -242,7 +251,7 @@ export default {
 
     cancel() {
       this.$refs.deleteTip.hide();
-    }
+    },
   }
 };
 </script>
@@ -265,6 +274,10 @@ export default {
             :interface-option="InterfaceOption"
             :boot-order-option="bootOrderOption"
             :namespace="namespace"
+            :is-create="isCreate"
+            :is-edit="isEdit"
+            :is-view="isView"
+            :vm="vm"
             :access-mode-option="accessModeOption"
             :volume-mode-option="volumeModeOption"
             :mode="mode"

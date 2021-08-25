@@ -202,6 +202,10 @@ export default {
     };
   },
 
+  canUpdate() {
+    return this.hasLink('update') && this.isOff?.status === OFF;
+  },
+
   restartVM() {
     return () => {
       this.doAction('restart', {});

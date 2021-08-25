@@ -1,19 +1,32 @@
 <script>
+import Banner from '@/components/Banner';
+import Loading from '@/components/Loading';
+import AsyncButton from '@/components/AsyncButton';
 import UnitInput from '@/components/form/UnitInput';
+import InputOrDisplay from '@/components/InputOrDisplay';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import InputOrDisplay from '@/components/InputOrDisplay';
+
+import { PVC } from '@/config/types';
+import { exceptionToErrorsArray } from '@/utils/error';
 
 export default {
   name:       'Volume',
   components: {
-    UnitInput, LabeledInput, LabeledSelect, InputOrDisplay
+    AsyncButton, Banner, InputOrDisplay, Loading, LabeledInput, LabeledSelect, UnitInput,
   },
+
   props: {
     mode: {
       type:    String,
       default: 'create'
     },
+
+    isEdit: {
+      type:    Boolean,
+      default: false
+    },
+
     value: {
       type:    Object,
       default: () => {
@@ -21,14 +34,12 @@ export default {
       }
     },
 
-    typeOption: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
+    namespace: {
+      type:     String,
+      required: true
     },
 
-    storageOption: {
+    typeOption: {
       type:    Array,
       default: () => {
         return [];
@@ -48,29 +59,24 @@ export default {
         return [];
       }
     },
-    accessModeOption: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
-    },
-    volumeModeOption: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
-    },
   },
 
   data() {
-    return {};
+    return {
+      loading: false,
+      errors:  []
+    };
   },
 
   computed: {
-    isDisabled() {
-      // fix: https://github.com/harvester/harvester/issues/813
-      // return !this.value.newCreateId && this.mode === _EDIT;
-      return false;
+    pvcsResource() {
+      const allPVCs = this.$store.getters['virtual/all'](PVC) || [];
+
+      return allPVCs.find(P => P.metadata.name === this.value.volumeName);
+    },
+
+    needSetPVC() {
+      return !!this.errors.length || (!this.value.newCreateId && this.isEdit && this.value.size !== this.pvcsResource?.spec?.resources?.requests?.storage);
     }
   },
 
@@ -81,11 +87,42 @@ export default {
         this.update();
       }
     },
+
+    pvcsResource: {
+      handler(pvc) {
+        if (pvc?.spec?.resources?.requests?.storage) {
+          this.value.size = pvc.spec.resources.requests.storage;
+        }
+      },
+      deep:      true,
+      immediate: true
+    },
   },
 
   methods: {
     update() {
       this.$emit('update');
+    },
+
+    async savePVC(done) {
+      this.$set(this.pvcsResource.spec.resources.requests, 'storage', this.value.size);
+
+      this.loading = true;
+      try {
+        await this.pvcsResource.save();
+        this.errors = [];
+
+        this.$store.dispatch('growl/success', {
+          title:   this.t('harvester.notification.title.succeed'),
+          message: this.t('harvester.virtualMachine.volume.volumeUpdate', { name: this.value.volumeName })
+        }, { root: true });
+
+        done(true);
+      } catch (err) {
+        done(false);
+        this.$set(this, 'errors', exceptionToErrorsArray(err));
+      }
+      this.loading = false;
     }
   },
 };
@@ -93,13 +130,13 @@ export default {
 
 <template>
   <div @input="update">
+    <Loading mode="relative" :loading="loading" />
     <div class="row mb-20">
       <div class="col span-6">
         <InputOrDisplay :name="t('harvester.fields.name')" :value="value.name" :mode="mode">
           <LabeledInput
             v-model="value.name"
             :label="t('harvester.fields.name')"
-            :disabled="isDisabled"
             :mode="mode"
             required
           />
@@ -113,7 +150,6 @@ export default {
             :label="t('harvester.fields.type')"
             :options="typeOption"
             required
-            :disabled="isDisabled"
             :mode="mode"
             @input="update"
           />
@@ -124,7 +160,14 @@ export default {
     <div class="row">
       <div class="col span-6">
         <InputOrDisplay :name="t('harvester.fields.size')" :value="value.size" :mode="mode">
-          <UnitInput v-model="value.size" :mode="mode" :label="t('harvester.fields.size')" suffix="GiB" :disabled="isDisabled" />
+          <UnitInput
+            v-model="value.size"
+            output-suffic-text="Gi"
+            output-as="string"
+            :mode="mode"
+            :label="t('harvester.fields.size')"
+            suffix="GiB"
+          />
         </InputOrDisplay>
       </div>
 
@@ -136,7 +179,6 @@ export default {
             class="mb-20"
             :mode="mode"
             :options="interfaceOption"
-            :disabled="isDisabled"
             required
             @input="update"
           />
@@ -152,47 +194,35 @@ export default {
             :mode="mode"
             :clearable="true"
             :searchable="false"
-            :disabled="isDisabled"
             :options="bootOrderOption"
             @input="update"
           />
         </InputOrDisplay>
       </div>
     </div>
-    <!--
-    <div class="row">
-      <div class="col span-6">
-        <LabeledSelect
-          v-model="value.volumeMode"
-          :mode="mode"
-          label="Volume Mode"
-          class="mb-20"
-          :options="volumeModeOption"
-          @input="update"
-        />
-      </div>
 
-      <div class="col span-3">
-        <LabeledSelect
-          v-model="value.accessMode"
-          :mode="mode"
-          label="Access Mode"
-          class="mb-20"
-          :options="accessModeOption"
-          @input="update"
-        />
-      </div>
+    <div class="action">
+      <AsyncButton
+        v-show="needSetPVC"
+        mode="refresh"
+        size="sm"
+        :action-label="t('harvester.virtualMachine.volume.saveVolume')"
+        :waiting-label="t('harvester.virtualMachine.volume.saveVolume')"
+        :success-label="t('harvester.virtualMachine.volume.saveVolume')"
+        :error-label="t('harvester.virtualMachine.volume.saveVolume')"
+        @click="savePVC"
+      />
+    </div>
 
-      <div class="col span-3">
-        <LabeledSelect
-          v-model="value.storageClassName"
-          label="Storage Class"
-          :options="storageOption"
-          :mode="mode"
-          required
-          @input="update"
-        />
-      </div>
-    </div> -->
+    <div v-for="(err,idx) in errors" :key="idx">
+      <Banner color="error" :label="err" />
+    </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.action {
+  display: flex;
+  flex-direction: row-reverse;
+}
+</style>

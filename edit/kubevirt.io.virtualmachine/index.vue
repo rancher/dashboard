@@ -20,7 +20,7 @@ import CloudConfig from '@/edit/kubevirt.io.virtualmachine/CloudConfig';
 import NodeScheduling from '@/components/form/NodeScheduling';
 
 import { clone } from '@/utils/object';
-import { HCI } from '@/config/types';
+import { HCI, PVC } from '@/config/types';
 import { cleanForNew } from '@/plugins/steve/normalize';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
@@ -49,6 +49,10 @@ export default {
   },
 
   mixins: [CreateEditView, VM_MIXIN],
+
+  async asyncData({ store }) {
+    return { pvcs: await store.dispatch(`virtual/findAll`, { type: PVC }) };
+  },
 
   props: {
     value: {
@@ -429,7 +433,7 @@ export default {
           :label="t('harvester.tab.volume')"
           :weight="-1"
         >
-          <Volume v-model="diskRows" :mode="mode" :custom-volume-mode="customVolumeMode" :namespace="value.metadata.namespace" />
+          <Volume v-model="diskRows" :mode="mode" :custom-volume-mode="customVolumeMode" :namespace="value.metadata.namespace" :vm="value" />
         </Tab>
 
         <Tab

@@ -3,7 +3,6 @@ import { HCI } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import CpuMemory from '@/edit/kubevirt.io.virtualmachine/CpuMemory';
 import LabelValue from '@/components/LabelValue';
-import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 const UNDEFINED = 'n/a';
 
@@ -39,7 +38,7 @@ export default {
 
     imageName() {
       const imageList = this.$store.getters['virtual/all'](HCI.IMAGE) || [];
-      const claimTemplate = this.getVolumeClaimTemplates(this.value);
+      const claimTemplate = this.volumeClaimTemplates;
 
       const imageId = claimTemplate[0]?.metadata?.annotations?.['harvesterhci.io/imageId'] || '';
 
@@ -85,18 +84,7 @@ export default {
     },
     isEmpty(o) {
       return o !== undefined && Object.keys(o).length === 0;
-    },
-    getVolumeClaimTemplates(vm) {
-      let out = [];
-
-      try {
-        out = JSON.parse(vm.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]);
-      } catch (e) {
-        throw new Error(`volumeClaimTemplates parse error: ${ e }`);
-      }
-
-      return out;
-    },
+    }
   }
 };
 </script>
