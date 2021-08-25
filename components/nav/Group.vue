@@ -89,8 +89,8 @@ export default {
     },
 
     groupSelected() {
-      // Don't do anything if we're in the fixed mode and this is an overview
-      if (this.fixedOpen) {
+      // Don't auto-select first group entry if we're already expanded
+      if (this.isExpanded) {
         return;
       }
 
