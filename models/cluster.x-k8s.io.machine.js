@@ -91,7 +91,7 @@ export default {
           resource: NODE,
           id:       kubeId
         }
-      }
+      };
     }
 
     return kubeId;

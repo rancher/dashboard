@@ -30,7 +30,10 @@ export default {
     this.errors = [];
 
     try {
-      this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.credentialId });
+      if ( this.credentialId ) {
+        this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.credentialId });
+      }
+
       this.regionOptions = await this.$store.dispatch('digitalocean/regionOptions', { credentialId: this.credentialId });
 
       let defaultRegion = 'sfo3';
@@ -39,7 +42,7 @@ export default {
         defaultRegion = this.regionOptions[0]?.value;
       }
 
-      const region = this.value.region || this.credential.defaultRegion || defaultRegion;
+      const region = this.value.region || this.credential?.defaultRegion || defaultRegion;
 
       if ( !this.value.region ) {
         this.value.region = region;

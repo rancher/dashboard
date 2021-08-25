@@ -64,7 +64,6 @@ export default {
   },
 
   async fetch() {
-    console.log('1');
     const hash = {
       // These aren't explicitly used, but need to be listening for change events
       mgmtClusters:     this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
@@ -81,8 +80,6 @@ export default {
       hash.kontainerDrivers = this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTANIER_DRIVER });
     }
 
-    console.log('2');
-
     if ( this.value.id && !this.value.isRke2 ) {
       // These are needed to resolve references in the mgmt cluster -> node pool -> node template to figure out what provider the cluster is using
       // so that the edit iframe for ember pages can go to the right place.
@@ -95,10 +92,7 @@ export default {
       }
     }
 
-    console.log('3', hash);
     const res = await allHash(hash);
-
-    console.log('4', res);
 
     this.nodeDrivers = res.nodeDrivers || [];
     this.kontainerDrivers = res.kontainerDrivers || [];
