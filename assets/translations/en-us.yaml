@@ -1169,7 +1169,9 @@ cluster:
         memory: Memory
         disk: Disk
         creationMethod: Creation method
-        template: Template
+        template: 
+          label: Template
+          none: No Templates Found
         contentLibrary: Content library
         libraryTemplate: Library template
         virtualMachine: Virtual machine

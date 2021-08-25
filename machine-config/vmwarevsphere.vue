@@ -271,6 +271,18 @@ export default {
       return this.vappMode === 'manual';
     },
 
+    failedToLoadTemplates() {
+      return !this.templatesLoading && !this.haveTemplates;
+    },
+
+    templateStatus() {
+      return this.failedToLoadTemplates ? 'error' : null;
+    },
+
+    templateTooltip() {
+      return this.failedToLoadTemplates ? this.t('cluster.machineConfig.vsphere.instanceOptions.template.none') : null;
+    },
+
     host: {
       get() {
         return this.value.hostsystem === '' ? SENTINEL : this.value.hostsystem;
@@ -487,7 +499,9 @@ export default {
 
       const content = this.mapPathOptionsToContent(options);
 
-      this.resetValueIfNecessary('cloneFrom', content, options);
+      if (this.showContentLibrary) {
+        this.resetValueIfNecessary('cloneFrom', content, options);
+      }
 
       set(this, 'libraryTemplatesResults', content);
     },
@@ -497,7 +511,9 @@ export default {
 
       const content = this.mapPathOptionsToContent(options);
 
-      this.resetValueIfNecessary('cloneFrom', content, options);
+      if (this.showVirtualMachines) {
+        this.resetValueIfNecessary('cloneFrom', content, options);
+      }
 
       set(this, 'virtualMachinesResults', content);
     },
@@ -508,7 +524,9 @@ export default {
 
         const content = this.mapPathOptionsToContent(options);
 
-        this.resetValueIfNecessary('cloneFrom', content, options);
+        if (this.showTemplate) {
+          this.resetValueIfNecessary('cloneFrom', content, options);
+        }
 
         set(this, 'templatesResults', content);
         this.haveTemplates = true;
@@ -735,14 +753,16 @@ export default {
               :disabled="disabled"
             />
           </div>
-          <div v-if="haveTemplates && showTemplate" class="col span-6">
+          <div v-if="showTemplate" class="col span-6">
             <LabeledSelect
               v-model="value.cloneFrom"
               :loading="templatesLoading"
               :mode="mode"
               :options="templates"
-              :label="t('cluster.machineConfig.vsphere.instanceOptions.template')"
+              :label="t('cluster.machineConfig.vsphere.instanceOptions.template.label')"
               :disabled="disabled"
+              :status="templateStatus"
+              :tooltip="templateTooltip"
             />
           </div>
           <div v-if="showContentLibrary" class="col span-4">
