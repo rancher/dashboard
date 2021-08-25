@@ -482,7 +482,8 @@ export default {
     },
 
     registryOptions() {
-      return [PUBLIC, PRIVATE /*, ADVANCED no advanced for 2.6.0... */].map((opt) => {
+      // return [PUBLIC, PRIVATE, ADVANCED no advanced for 2.6.0... ].map((opt) => {
+      return [PUBLIC, PRIVATE].map((opt) => {
         return {
           label: this.$store.getters['i18n/withFallback'](`cluster.privateRegistry.mode."${ opt }"`, null, opt),
           value: opt,
@@ -682,13 +683,11 @@ export default {
     credentialId(val) {
       if ( val ) {
         this.credential = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.credentialId);
-
-        if ( this.credential ) {
-          this.value.spec.cloudCredentialSecretName = this.credential.id;
-        } else {
-          this.value.spec.cloudCredentialSecretName = null;
-        }
+      } else {
+        this.credential = null;
       }
+
+      this.value.spec.cloudCredentialSecretName = val;
     },
 
     addonNames(neu, old) {
