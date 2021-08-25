@@ -85,7 +85,7 @@ export default {
 
           const now = this.cluster?.spec?.rkeConfig?.etcSnapshotRestore || 0;
 
-          let s3 = undefined;
+          let s3; //  = undefined;
 
           if ( this.snapshot.s3 ) {
             s3 = {
