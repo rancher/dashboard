@@ -21,8 +21,8 @@ const agentJson = {
   ]
 };
 
-const HARD_DISK = 'disk';
 const CD_ROM = 'cd-rom';
+const HARD_DISK = 'disk';
 
 export default {
   props: {
@@ -129,6 +129,10 @@ export default {
       return this.$store.getters['virtual/all'](HCI.VM_TEMPLATE) || [];
     },
 
+    pvcs() {
+      return this.$store.getters['virtual/all'](PVC) || [];
+    },
+
     nodesIdOptions() {
       const nodes = this.$store.getters['virtual/all'](NODE) || [];
 
@@ -222,7 +226,6 @@ export default {
             const DVT = _volumeClaimTemplates.find( T => T.metadata.name === volumeName);
 
             realName = volumeName;
-
             // If the DVT can be found, it cannot be an existing volume
             if (DVT) {
               // has annotation (HCI_ANNOTATIONS.IMAGE_ID) => SOURCE_TYPE.IMAGE
@@ -241,14 +244,14 @@ export default {
               storageClassName = dataVolumeSpecPVC?.storageClassName;
             } else { // SOURCE_TYPE.ATTACH_VOLUME
               const allPVCs = this.$store.getters['virtual/all'](PVC);
-              const dvResource = allPVCs.find( O => O.id === `${ namespace }/${ volume?.persistentVolumeClaim?.claimName }`);
+              const pvcResource = allPVCs.find( O => O.id === `${ namespace }/${ volume?.persistentVolumeClaim?.claimName }`);
 
               source = SOURCE_TYPE.ATTACH_VOLUME;
-              accessMode = dvResource?.spec?.accessModes?.[0] || 'ReadWriteMany';
-              size = dvResource?.spec?.resources?.requests?.storage || '10Gi';
-              storageClassName = dvResource?.spec?.storageClassName;
-              volumeMode = dvResource?.spec?.volumeMode || 'Block';
-              volumeName = dvResource?.metadata?.name || '';
+              accessMode = pvcResource?.spec?.accessModes?.[0] || 'ReadWriteMany';
+              size = pvcResource?.spec?.resources?.requests?.storage || '10Gi';
+              storageClassName = pvcResource?.spec?.storageClassName;
+              volumeMode = pvcResource?.spec?.volumeMode || 'Block';
+              volumeName = pvcResource?.metadata?.name || '';
             }
           }
 
@@ -694,6 +697,12 @@ export default {
       }
 
       return out;
+    },
+
+    getVolumeNames(vm) {
+      return vm.spec.template.spec.volumes?.map( (V) => {
+        return V.persistentVolumeClaim.claimName;
+      }) || [];
     },
 
     getCloudInitScript(vm) {

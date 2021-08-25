@@ -4816,6 +4816,7 @@ harvester:
     volume:
       volumeTip: The VM only contains a cd-rom volume. You may want to add additional disk volumes.
       macTip: "Protip: MAC address as seen inside the guest system."
+      volumeUpdate: 'Set volume { name } successfully'
       type: Type
       size: Size
       bus:  Bus
@@ -4827,6 +4828,7 @@ harvester:
       addVmImage: Add VM Image
       addContainer: Add Container
       setFirst: Set as root volume
+      saveVolume: Update Volume
       title:
         vmImage: VM Image
         existingVolume: Existing Volume

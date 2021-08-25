@@ -3983,6 +3983,7 @@ harvester:
     title: 虚拟机
     volume:
       volumeTip: VM仅包含一个cd-rom卷。 您可能要添加其他磁盘卷。
+      volumeUpdate: '设置卷 { name } 成功'
       macTip: 提示：安装的操作系统内显示的MAC地址
       type: 类型
       size: 大小
@@ -3995,6 +3996,7 @@ harvester:
       addVmImage: 添加VM镜像
       addContainer: 添加容器镜像
       setFirst: 设置为系统卷
+      saveVolume: 更新卷
       title:
         vmImage: VM镜像
         existingVolume: 已存在的卷
