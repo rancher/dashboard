@@ -1,8 +1,10 @@
 <script>
+import { mapGetters } from 'vuex';
 import ContainerResourceLimit from '@/components/ContainerResourceLimit';
 import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
 import Labels from '@/components/form/Labels';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import ResourceQuota from '@/components/form/ResourceQuota';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
@@ -15,13 +17,21 @@ import { canViewProjectMembershipEditor } from '@/components/form/Members/Projec
 
 export default {
   components: {
-    ContainerResourceLimit, CruResource, Labels, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab
+    ContainerResourceLimit, CruResource, Labels, LabeledSelect, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab
   },
 
   mixins: [CreateEditView],
-
+  async fetch() {
+    if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
+      this.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
+    }
+  },
   data() {
+    this.$set(this.value, 'spec', this.value.spec || {});
+    this.$set(this.value.spec, 'podSecurityPolicyTemplateId', this.value.status?.podSecurityPolicyTemplateId || '');
+
     return {
+      allPSPs:                          [],
       projectRoleTemplateBindingSchema:         this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING),
       createLocation:                   {
         name:   'c-cluster-product-resource-create',
@@ -38,8 +48,39 @@ export default {
     };
   },
   computed: {
+    ...mapGetters(['currentCluster']),
+
     canManageMembers() {
       return canViewProjectMembershipEditor(this.$store);
+    },
+
+    isK3s() {
+      return (this.currentCluster?.spec?.kubernetesVersion || '').includes('k3s');
+    },
+
+    pspOptions() {
+      if ( this.isK3s || !this.currentCluster.spec.defaultPodSecurityPolicyTemplateName ) {
+        return null;
+      }
+
+      const out = [{ label: this.t('project.psp.default'), value: '' }];
+
+      if ( this.allPSPs ) {
+        for ( const pspt of this.allPSPs ) {
+          out.push({
+            label: pspt.nameDisplay,
+            value: pspt.id,
+          });
+        }
+      }
+
+      const cur = this.value.status?.podSecurityPolicyTemplateId;
+
+      if ( cur && !out.find(x => x.value === cur) ) {
+        out.unshift({ label: this.t('project.psp.current', { value: cur }), value: cur });
+      }
+
+      return out;
     },
   },
   watch: {
@@ -93,6 +134,18 @@ export default {
     @cancel="done"
   >
     <NameNsDescription v-model="value" :mode="mode" :namespaced="false" description-key="spec.description" name-key="spec.displayName" />
+    <div class="row">
+      <div class="col span-12">
+        <LabeledSelect
+          v-if="pspOptions"
+          v-model="value.spec.podSecurityPolicyTemplateId"
+          class="psp"
+          :mode="mode"
+          :options="pspOptions"
+          :label="t('project.psp.label')"
+        />
+      </div>
+    </div>
     <Tabbed :side-tabs="true">
       <Tab v-if="canManageMembers" name="members" :label="t('project.members.label')" :weight="10">
         <ProjectMembershipEditor :mode="mode" :parent-id="value.id" @has-owner-changed="onHasOwnerChanged" @membership-update="onMembershipUpdate" />
@@ -125,6 +178,11 @@ export default {
     .tabs {
       min-width: 250px;
     }
+  }
+
+  .psp {
+    position: relative;
+    top: -20px;
   }
 }
 </style>
