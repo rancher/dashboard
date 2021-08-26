@@ -3885,6 +3885,9 @@ harvester:
         volume: '"卷" 是必填项'
         docker: '"Docker 镜像" 是必填项'
         needImageOrExisting: '至少需要一个镜像卷或已存在的系统卷'
+    image:
+      ruleTip: '仅支持镜像后缀为 .img, .iso, .qcow, .qcow2, .raw'
+      ruleFileTip: '仅支持镜像后缀为 .img, .iso, .qcow, .qcow2, .raw'
 
   dashboard:
     label: 概览
@@ -4085,6 +4088,8 @@ harvester:
     url: 镜像地址
     size: 大小
     urlTip: '<a href="https://www.qemu.org/docs/master/system/images.html#disk-image-file-formats" target="_blank">qemu</a> 支持 <code>raw</code> 和 <code>qcow2</code> 镜像格式. 可启动的ISO镜像也可以是类似 <code>raw</code> 格式的镜像.'
+    fileName: 文件名
+    uploadFile: 上传文件
 
   vmTemplate:
     label: 虚拟机模板
