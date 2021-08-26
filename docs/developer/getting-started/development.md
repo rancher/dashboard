@@ -294,7 +294,22 @@ account:
       placeholder: Optionally enter a description to help you identify this API Key
 ```
 
-## Custom Form Validators 
+## Forms 
+
+### UX
+
+Automatically give focus to the first field in a form with the `v-focus` directive. Auto-focusing the first form element saves the user an additional click and provides a clear starting point.
+
+Example:
+
+```html
+  <LabeledInput 
+    v-focus
+    v-model="value" 
+  />
+```
+
+### Custom Form Validators 
 
 Adding custom validation logic to forms and models requires changes to three different parts of Dashboard:
 
@@ -302,7 +317,7 @@ Adding custom validation logic to forms and models requires changes to three dif
 2. Export the new validation function `utils/custom-validators.js`
 3. Add `customValidationRules` prop to appropriate model under `models`
 
-### Create a new validation function
+#### Create a new validation function
 
 Custom validators are stored under `utils/validators`. Validation functions should define positional parameters of `value, getters, errors, validatorArgs` with an optional fifth `displayKey` parameter: 
 
@@ -328,7 +343,7 @@ export function exampleValidator(value, getters, errors, validatorArgs, displayK
 }
 ```
 
-### Export new validation function
+#### Export new validation function
 
 In order to make a custom validator available for usage in forms and component, it will need to exposed by importing the new validator function into `utils/custom-validators.js`:
 
@@ -352,7 +367,7 @@ export default {
 };
 ```
 
-### Add `customValidationRules` to model
+#### Add `customValidationRules` to model
 
 Locate the model that will make use of the custom validation function and add `customValidationRules` property if one does not already exist. `customValidationRules` returns a collection of validation rules to run against the model:
 
@@ -367,7 +382,7 @@ customValidationRules() {
 }
 ```
 
-> ### A validation rule can contain the following keys:
+> ##### A validation rule can contain the following keys:
 > 
 > `path` {string}: the model property to validate
 > 
