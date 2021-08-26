@@ -59,6 +59,7 @@ export default {
       outline: none;
       box-shadow: 0 0 0 var(--outline-width) var(--outline);
       background: var(--input-focus-bg);
+      color: var(--outline);
     }
   }
 

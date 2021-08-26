@@ -27,22 +27,28 @@ export default {
 
   data() {
     return {
-      mode:    'edit',
-      tooltip: '',
-      a:       'a',
-      b:       'b',
-      c:       'c',
-      d:       42,
-      e:       'e',
-      f:       'f',
-      g:       'g',
-      h:       'h',
-      i:       'i',
-      n:       'n',
-      m:       'm',
-      x:       'x',
-      cb:      false,
-      ts:      false,
+      mode:      'edit',
+      tooltip:   '',
+      a:         'a',
+      b:         'b',
+      c:         'c',
+      d:         42,
+      e:         'e',
+      f:         'f',
+      g:         'g',
+      h:         'h',
+      i:         'i',
+      n:         'n',
+      m:         'm',
+      x:         'x',
+      inactive:  'inactive',
+      activated: 'activated',
+      focused:   'focused',
+      hover:     'hover',
+      disabled:  'disabled',
+      error:     'error',
+      cb:        false,
+      ts:        false,
     };
   },
 
@@ -253,6 +259,71 @@ export default {
     </div>
     <div class="m-20">
       <ToggleSwitch :value="ts" :labels="['RKE', 'RKE2']" />
+    </div>
+    <hr>
+    <div class="row m-20">
+      <div class="col span-6">
+        <h3>Inactive - Placeholder</h3>
+        <div class="pb-30">
+          <LabeledInput
+            placeholder="placeholder"
+            label="Labeled Input"
+            :mode="mode"
+            :tooltip="tooltip"
+          />
+        </div>
+        <h3>Activated - Filled Input</h3>
+        <div class="pb-30">
+          <LabeledInput
+            v-model="activated"
+            label="Labeled Input"
+            :mode="mode"
+            :tooltip="tooltip"
+          />
+        </div>
+        <h3>Error</h3>
+        <div class="pb-30">
+          <LabeledInput
+            v-model="error"
+            label="Labeled Input"
+            class="error"
+            :mode="mode"
+            :tooltip="tooltip"
+          />
+        </div>
+      </div>
+      <div class="col span-6">
+        <h3>Hover</h3>
+        <div class="pb-30">
+          <LabeledInput
+            v-model="hovered"
+            label="Labeled Input"
+            class="hover"
+            :mode="mode"
+            :tooltip="tooltip"
+          />
+        </div>
+        <h3>Disabled</h3>
+        <div class="pb-30">
+          <LabeledInput
+            v-model="disabled"
+            label="Labeled Input"
+            class="disabled"
+            :mode="mode"
+            :tooltip="tooltip"
+          />
+        </div>
+        <h3>Focused</h3>
+        <div class="pb-30">
+          <LabeledInput
+            v-model="focused"
+            label="Labeled Input"
+            class="focused"
+            :mode="mode"
+            :tooltip="tooltip"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>

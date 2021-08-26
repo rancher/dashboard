@@ -372,8 +372,9 @@ BODY, .theme-light {
   --input-border               : var(--border);
   --input-bg                   : var(--body-bg);
   --input-bg-accent            : #{darken($light, 2%)};
-  --input-hover-bg             : var(--box-bg);
-  --input-focus-bg             : var(--box-bg);
+  --input-hover-bg             : var(--input-bg);
+  --input-hover-border         : #{$secondary};
+  --input-focus-bg             : var(--input-bg);
   --input-disabled-text        : #{darken($disabled, 60%)};
   --input-disabled-label       : #{darken($disabled, 40%)};
   --input-disabled-bg          : #{$disabled};
