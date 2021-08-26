@@ -21,7 +21,7 @@
   "eslint.packageManager": "yarn",
   "eslint.validate": ["vue","html","javascript","typescript"],
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": false
   },
   "javascript.preferences.importModuleSpecifier": "non-relative",
   "typescript.preferences.importModuleSpecifier": "non-relative",

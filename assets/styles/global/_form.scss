@@ -33,6 +33,7 @@ TEXTAREA,
   &:hover {
     &, .vs__dropdown-menu {
       background: var(--input-hover-bg);
+      border-color: var(--input-hover-border);
     }
   }
 
