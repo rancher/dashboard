@@ -3,6 +3,7 @@ import InputOrDisplay from '@/components/InputOrDisplay';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { _CREATE, _VIEW } from '@/config/query-params';
+import { clone } from '@/utils/object';
 
 const MANAGEMENT_NETWORK = 'management Network';
 
@@ -96,9 +97,9 @@ export default {
     },
 
     allNetworkOption() {
-      const out = this.networkOption;
+      const out = clone(this.networkOption);
 
-      if (this.hasManagementNetwork) {
+      if (!this.hasManagementNetwork) {
         out.unshift({
           label: MANAGEMENT_NETWORK,
           value: MANAGEMENT_NETWORK
@@ -150,7 +151,7 @@ export default {
         }
       },
       immediate: true
-    },
+    }
   },
 
   methods: {

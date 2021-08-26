@@ -87,7 +87,7 @@ export default {
       </div>
     </div>
 
-    <div class="row">
+    <div class="row mb-20">
       <div class="col span-6">
         <InputOrDisplay :name="t('harvester.virtualMachine.volume.dockerImage')" :value="value.container" :mode="mode">
           <LabeledInput v-model="value.container" :label="t('harvester.virtualMachine.volume.dockerImage')" :mode="mode" required @input="update" />

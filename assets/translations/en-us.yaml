@@ -4830,7 +4830,7 @@ harvester:
       setFirst: Set as root volume
       saveVolume: Update Volume
       title:
-        vmImage: VM Image
+        vmImage: Image Volume
         existingVolume: Existing Volume
         volume: Volume
         container: Container

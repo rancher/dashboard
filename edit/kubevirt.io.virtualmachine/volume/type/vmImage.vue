@@ -42,13 +42,6 @@ export default {
       }
     },
 
-    bootOrderOption: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
-    },
-
     mode: {
       type:    String,
       default: 'create'
@@ -143,10 +136,6 @@ export default {
       this.update();
     },
 
-    setRootDisk() {
-      this.$emit('setRootDisk', this.idx);
-    },
-
     async savePVC(done) {
       this.$set(this.pvcsResource.spec.resources.requests, 'storage', this.value.size);
 
@@ -233,26 +222,9 @@ export default {
           />
         </InputOrDisplay>
       </div>
-
-      <div class="col span-3">
-        <InputOrDisplay :name="t('harvester.virtualMachine.volume.bootOrder')" :value="value.bootOrder" :mode="mode">
-          <LabeledSelect
-            v-model="value.bootOrder"
-            :label="t('harvester.virtualMachine.volume.bootOrder')"
-            :mode="mode"
-            :searchable="false"
-            :options="bootOrderOption"
-            @input="update"
-          />
-        </InputOrDisplay>
-      </div>
     </div>
 
     <div class="action">
-      <button v-if="needRootDisk" type="button" class="btn bg-primary mr-15" @click="setRootDisk()">
-        {{ t('harvester.virtualMachine.volume.setFirst') }}
-      </button>
-
       <AsyncButton
         v-show="needSetPVC"
         mode="refresh"

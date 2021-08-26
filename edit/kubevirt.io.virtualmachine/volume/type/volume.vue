@@ -52,13 +52,6 @@ export default {
         return [];
       }
     },
-
-    bootOrderOption: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
-    },
   },
 
   data() {
@@ -180,21 +173,6 @@ export default {
             :mode="mode"
             :options="interfaceOption"
             required
-            @input="update"
-          />
-        </InputOrDisplay>
-      </div>
-
-      <div class="col span-3">
-        <InputOrDisplay :name="t('harvester.virtualMachine.volume.bootOrder')" :value="value.bootOrder" :mode="mode">
-          <LabeledSelect
-            v-model="value.bootOrder"
-            :label="t('harvester.virtualMachine.volume.bootOrder')"
-            class="mb-20"
-            :mode="mode"
-            :clearable="true"
-            :searchable="false"
-            :options="bootOrderOption"
             @input="update"
           />
         </InputOrDisplay>
