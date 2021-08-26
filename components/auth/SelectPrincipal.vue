@@ -135,6 +135,7 @@ export default {
 <template>
   <LabeledSelect
     v-model="newValue"
+    v-focus
     :mode="mode"
     :label="retainSelection ? `Select Member` : `Add Member`"
     placeholder="Start typing to search for principals"
