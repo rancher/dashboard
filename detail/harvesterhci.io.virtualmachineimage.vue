@@ -2,7 +2,7 @@
 import CopyToClipboardText from '@/components/CopyToClipboardText';
 import LabelValue from '@/components/LabelValue';
 import { formatSi } from '@/utils/units';
-import { DESCRIPTION } from '@/config/labels-annotations';
+import { DESCRIPTION, HCI } from '@/config/labels-annotations';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import { findBy } from '@/utils/array';
@@ -49,7 +49,15 @@ export default {
       const conditions = get(this.value, 'status.conditions');
 
       return findBy(conditions, 'type', 'imported')?.reason || '-';
-    }
+    },
+
+    isUpload() {
+      return this.value?.spec?.sourceType === 'upload';
+    },
+
+    imageName() {
+      return this.value?.metadata?.annotations?.[HCI.IMAGE_NAME] || '-';
+    },
   }
 };
 </script>
@@ -59,7 +67,8 @@ export default {
     <Tab name="detail" :label="t('harvester.virtualMachine.detail.tabs.basics')" class="bordered-table">
       <div class="row">
         <div class="col span-12">
-          <LabelValue :name="t('harvester.image.url')" :value="url" class="mb-20">
+          <LabelValue v-if="isUpload" :name="t('harvester.image.fileName')" :value="imageName" class="mb-20" />
+          <LabelValue v-else :name="t('harvester.image.url')" :value="url" class="mb-20">
             <template #value>
               <div v-if="url !== '-'">
                 <CopyToClipboardText :text="url" />

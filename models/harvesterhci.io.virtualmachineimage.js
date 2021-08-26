@@ -2,7 +2,6 @@ import { HCI } from '@/config/types';
 import {
   DESCRIPTION,
   ANNOTATIONS_TO_IGNORE_REGEX,
-  HCI as HCI_ANNOTATIONS
 } from '@/config/labels-annotations';
 import { get } from '@/utils/object';
 import { findBy } from '@/utils/array';
@@ -56,7 +55,7 @@ export default {
   },
 
   imageSource() {
-    return get(this.value, `metadata.annotations."${ HCI_ANNOTATIONS.IMAGE_SOURCE }"`) || 'url'; // url is default source
+    return get(this, `spec.sourceType`) || 'url'; // url is default source
   },
 
   annotationsToIgnoreRegexes() {
@@ -92,8 +91,14 @@ export default {
       out.push(urlFormat, urlRequired);
     }
 
-    if (this.imageSource === 'file') {
-      // File is required!
+    if (this.imageSource === 'upload') {
+      const fileRequired = {
+        nullable:       false,
+        path:           'metadata.annotations',
+        validators:     ['fileRequired'],
+      };
+
+      out.push(fileRequired);
     }
 
     return [
