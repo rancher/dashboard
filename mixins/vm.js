@@ -257,7 +257,7 @@ export default {
 
           const bus = DISK?.disk?.bus || DISK?.cdrom?.bus;
 
-          const bootOrder = DISK?.bootOrder;
+          const bootOrder = index;
 
           return {
             bootOrder,
@@ -291,13 +291,15 @@ export default {
 
         const type = I.sriov ? 'sriov' : I.bridge ? 'bridge' : 'masquerade';
 
+        const isPod = !!network.pod;
+
         return {
           ...I,
           index,
           type,
-          isPod:        !!network.pod,
+          isPod,
           model:        I.model || 'virtio',
-          networkName:  network?.multus?.networkName,
+          networkName:  isPod ? 'management Network' : network?.multus?.networkName,
         };
       });
 
@@ -348,7 +350,7 @@ export default {
           dataVolumeName = R.realName;
         }
 
-        const _disk = this.parseDisk(R);
+        const _disk = this.parseDisk(R, index);
         const _volume = this.parseVolume(R, dataVolumeName);
         const _dataVolumeTemplate = this.parseVolumeClaimTemplate(R, dataVolumeName);
 
@@ -488,7 +490,7 @@ export default {
       this.$set(this, 'sshKey', neu);
     },
 
-    parseDisk(R) {
+    parseDisk(R, index) {
       const out = { name: R.name };
 
       if (R.type === HARD_DISK) {
@@ -497,9 +499,7 @@ export default {
         out.cdrom = { bus: R.bus };
       }
 
-      if ( R.bootOrder ) {
-        out.bootOrder = R.bootOrder;
-      }
+      out.bootOrder = index + 1;
 
       return out;
     },

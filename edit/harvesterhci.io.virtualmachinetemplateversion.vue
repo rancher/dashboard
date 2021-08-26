@@ -232,7 +232,7 @@ export default {
       </Tab>
 
       <Tab name="Volume" :label="t('harvester.tab.volume')" :weight="-1">
-        <Volume v-model="diskRows" :mode="mode" />
+        <Volume v-model="diskRows" :mode="mode" :namespace="value.metadata.namespace" />
       </Tab>
 
       <Tab name="Network" :label="t('harvester.tab.network')" :weight="-2">

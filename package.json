@@ -91,6 +91,7 @@
     "vue-select": "^3.13.0",
     "vue-shortkey": "^3.1.7",
     "vue2-transitions": "^0.3.0",
+    "vuedraggable": "^2.24.3",
     "xterm": "^4.9.0",
     "xterm-addon-fit": "^0.4.0",
     "xterm-addon-search": "^0.7.0",

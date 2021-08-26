@@ -3998,7 +3998,7 @@ harvester:
       setFirst: 设置为系统卷
       saveVolume: 更新卷
       title:
-        vmImage: VM镜像
+        vmImage: 镜像卷
         existingVolume: 已存在的卷
         volume: 卷
         container: 容器镜像
