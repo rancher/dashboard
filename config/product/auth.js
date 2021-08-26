@@ -5,6 +5,7 @@ import {
   GROUP_NAME, GROUP_ROLE_NAME,
   RBAC_BUILTIN, RBAC_DEFAULT, STATE, NAME as HEADER_NAME, AGE, SIMPLE_NAME
 } from '@/config/table-headers';
+import { MULTI_CLUSTER } from '@/store/features';
 
 export const NAME = 'auth';
 
@@ -27,6 +28,7 @@ export function init(store) {
   product({
     ifHaveType:          new RegExp(`${ MANAGEMENT.USER }|${ MANAGEMENT.AUTH_CONFIG }`, 'i'),
     ifHaveVerb:          'PUT',
+    ifFeature:           MULTI_CLUSTER,
     inStore:             'management',
     icon:                'user',
     removable:           false,
