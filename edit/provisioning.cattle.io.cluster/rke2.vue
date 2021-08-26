@@ -482,8 +482,7 @@ export default {
     },
 
     registryOptions() {
-      // return [PUBLIC, PRIVATE, ADVANCED no advanced for 2.6.0... ].map((opt) => {
-      return [PUBLIC, PRIVATE].map((opt) => {
+      return [PUBLIC, PRIVATE, ADVANCED].map((opt) => {
         return {
           label: this.$store.getters['i18n/withFallback'](`cluster.privateRegistry.mode."${ opt }"`, null, opt),
           value: opt,
