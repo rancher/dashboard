@@ -13,7 +13,9 @@ import Group from '@/components/nav/Group';
 import Header from '@/components/nav/Header';
 import Brand from '@/mixins/brand';
 import FixedBanner from '@/components/FixedBanner';
-import { COUNT, SCHEMA, MANAGEMENT, UI } from '@/config/types';
+import {
+  COUNT, SCHEMA, MANAGEMENT, UI, CATALOG
+} from '@/config/types';
 import { BASIC, FAVORITE, USED } from '@/store/type-map';
 import { addObjects, replaceWith, clear, addObject } from '@/utils/array';
 import { NAME as EXPLORER } from '@/config/product/explorer';
@@ -129,6 +131,12 @@ export default {
 
       return {};
     },
+
+    showClusterTools() {
+      return this.isExplorer &&
+             this.$store.getters['cluster/canList'](CATALOG.CLUSTER_REPO) &&
+             this.$store.getters['cluster/canList'](CATALOG.APP);
+    }
   },
 
   watch: {
@@ -506,7 +514,7 @@ export default {
             </Group>
           </template>
         </div>
-        <n-link v-if="isExplorer" tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools', params: {cluster: clusterId}}">
+        <n-link v-if="showClusterTools" tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools', params: {cluster: clusterId}}">
           <a class="tools-button" @click="collapseAll()">
             <i class="icon icon-gear" />
             <span>{{ t('nav.clusterTools') }}</span>
