@@ -89,6 +89,7 @@ export default {
       const enabledCharts = (this.allCharts || []);
 
       let charts = filterAndArrangeCharts(enabledCharts, {
+        isWindows:      this.currentCluster.providerOs === 'windows',
         clusterProvider,
         showDeprecated: this.showDeprecated,
         showHidden:     this.showHidden,

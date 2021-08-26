@@ -158,7 +158,7 @@ export default {
   },
 
   providerOs() {
-    if ( this.status?.provider === 'rke.windows' ) {
+    if ( this.status?.provider.endsWith('.windows') ) {
       return 'windows';
     }
 
