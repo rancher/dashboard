@@ -72,6 +72,10 @@ export default {
 
       return out;
     },
+
+    label() {
+      return this.retainSelection ? this.t('cluster.memberRoles.addClusterMember.labelSelect') : this.t('cluster.memberRoles.addClusterMember.labelAdd');
+    }
   },
 
   created() {
@@ -137,8 +141,8 @@ export default {
     v-model="newValue"
     v-focus
     :mode="mode"
-    :label="retainSelection ? `Select Member` : `Add Member`"
-    placeholder="Start typing to search for principals"
+    :label="label"
+    :placeholder="t('cluster.memberRoles.addClusterMember.placeholder')"
     :options="options"
     :searchable="true"
     :filterable="false"
