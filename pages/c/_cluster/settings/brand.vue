@@ -384,10 +384,15 @@ export default {
         />
       </div>
       <div v-if="customizeLinkColor" class="row mt-20 mb-20">
-        <ColorInput v-model="uiLinkColor" />
-        <nuxt-link :to="{name: 'support'}">
-          NOT FAIL
-        </nuxt-link>
+        <ColorInput
+          v-model="uiLinkColor"
+          class="col"
+        />
+        <span class="col link-example">
+          <a>
+            Link Example
+          </a>
+        </span>
       </div>
 
       <h3 class="mb-5 pb-5 mt-40">
@@ -504,6 +509,15 @@ export default {
 </template>
 
 <style scoped lang='scss'>
+.link-example {
+  display: flex;
+  align-content: center;
+
+  a {
+    margin: auto;
+  }
+}
+
 .logo-container {
     display: flex;
     flex-direction: column;
