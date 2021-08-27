@@ -101,7 +101,7 @@ export default {
 
   setEnabled() {
     return async(enabled) => {
-      const clone = await this.$dispatch('clone', { resource: this });
+      const clone = await this.$dispatch('clone', { resource: this.norman });
 
       clone.enabled = enabled;
       await clone.save();
