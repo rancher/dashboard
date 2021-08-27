@@ -82,7 +82,7 @@ export default {
       this.customizeColor = true;
     }
     if (hash.uiLinkColorSetting.value) {
-      this.uiLinkColorSetting = Color(hash.uiLinkColorSetting.value).hex();
+      this.uiLinkColor = Color(hash.uiLinkColorSetting.value).hex();
       this.customizeLinkColor = true;
     }
   },
@@ -396,6 +396,9 @@ export default {
       </div>
       <div v-if="customizeLinkColor" class="row mt-20 mb-20">
         <ColorInput v-model="uiLinkColor" />
+        <nuxt-link :to="{name: 'support'}">
+          NOT FAIL
+        </nuxt-link>
       </div>
 
       <h3 class="mb-5 pb-5 mt-40">
