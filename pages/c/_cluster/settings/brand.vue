@@ -167,17 +167,6 @@ export default {
   },
 
   mounted() {
-    /*
-      --link: #3d98d3;
-      --link-text: #fff;
-      --link-hover-bg: #297db4;
-      --link-hover-text: #fff;
-      --link-active-bg: #1b5276;
-      --link-active-text: #fff;
-      --link-border: #($link);
-      --link-banner-bg: rgba(61,152,211,0.15);
-      --link-light-bg: rgba(61,152,211,0.05);
-    */
     let uiColor = getComputedStyle(document.body).getPropertyValue('--primary');
     let uiLinkColor = getComputedStyle(document.body).getPropertyValue('--link');
     const suse = document.querySelector('.suse');
