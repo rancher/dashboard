@@ -33,7 +33,11 @@ export default {
       if ( this.credentialId ) {
         this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.credentialId });
       }
+    } catch (e) {
+      this.credential = null;
+    }
 
+    try {
       this.regionOptions = await this.$store.dispatch('digitalocean/regionOptions', { credentialId: this.credentialId });
 
       let defaultRegion = 'sfo3';

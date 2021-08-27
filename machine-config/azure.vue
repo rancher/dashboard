@@ -1,7 +1,6 @@
 <script>
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
-import { NORMAN } from '@/config/types';
 import { stringify, exceptionToErrorsArray } from '@/utils/error';
 import Banner from '@/components/Banner';
 import merge from 'lodash/merge';
@@ -119,8 +118,6 @@ export default {
     this.errors = [];
 
     try {
-      this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.credentialId });
-
       const {
         clientId,
         clientSecret,
