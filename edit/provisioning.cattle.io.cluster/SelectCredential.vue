@@ -52,7 +52,9 @@ export default {
       [`${ field }credentialConfig`]: {}
     });
 
-    if ( this.filteredCredentials.length === 1 ) {
+    if ( this.value ) {
+      this.credentialId = this.value;
+    } else if ( this.filteredCredentials.length === 1 ) {
       // Auto pick the first credential if there's only one
       this.credentialId = this.filteredCredentials[0].id;
     } else if ( !this.filteredCredentials.length ) {
@@ -119,7 +121,7 @@ export default {
 
       if ( this.value && !out.find(x => x.value === this.value) ) {
         out.push({
-          label: `{$this.value} (current)`,
+          label: `${ this.value.replace(/^cattle-global-data:/, '') } (current)`,
           value: this.value
         });
       }
