@@ -4855,6 +4855,9 @@ workload:
         exists: Exists
       tolerationSeconds: Toleration Seconds
       value: Value
+  serviceAccountName:
+    label: Service Account Name
+    createMessage: The service name [ {name} ] does not exist in this namespace, you will need to create it manually.
   serviceName: Service Name
   storage:
     subtypes:

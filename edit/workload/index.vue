@@ -10,6 +10,7 @@ import { allHash } from '@/utils/promise';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
+import ServiceNameSelect from '@/components/form/ServiceNameSelect';
 import HealthCheck from '@/components/form/HealthCheck';
 import Security from '@/components/form/Security';
 import Upgrading from '@/edit/workload/Upgrading';
@@ -57,6 +58,7 @@ export default {
     NameNsDescription,
     LabeledSelect,
     LabeledInput,
+    ServiceNameSelect,
     KeyValue,
     Tabbed,
     Tab,
@@ -99,6 +101,8 @@ export default {
       nodes:      this.$store.dispatch('cluster/findAll', { type: NODE }),
       services:   this.$store.dispatch('cluster/findAll', { type: SERVICE }),
       pvcs:       this.$store.dispatch('cluster/findAll', { type: PVC })
+      pvcs:       this.$store.dispatch('cluster/findAll', { type: PVC }),
+      sas:        this.$store.dispatch('cluster/findAll', { type: SERVICE_ACCOUNT })
     };
 
     if ( this.$store.getters['cluster/schemaFor'](SECRET) ) {
@@ -114,6 +118,7 @@ export default {
     this.allNodes = hash.nodes.map(node => node.id);
     this.allServices = hash.services;
     this.pvcs = hash.pvcs;
+    this.sas = hash.sas;
   },
 
   data() {
@@ -163,6 +168,7 @@ export default {
       allServices:       [],
       name:              this.value?.metadata?.name || null,
       pvcs:              [],
+      sas:               [],
       showTabs:          false,
       pullPolicyOptions: ['Always', 'IfNotPresent', 'Never'],
       spec,
@@ -367,6 +373,18 @@ export default {
         );
       } else {
         return this.allConfigMaps;
+      }
+    },
+
+    namespacedServiceNames() {
+      const namespace = this.value?.metadata?.namespace;
+
+      if (namespace) {
+        return this.sas.filter(
+          serviceName => serviceName.metadata.namespace === namespace
+        );
+      } else {
+        return this.sas;
       }
     },
 
@@ -861,7 +879,26 @@ export default {
             <h3>{{ t('workload.container.titles.command') }}</h3>
             <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
           </div>
-
+          
+          <div>
+            <div class="spacer"></div>
+            <h3 class="mb-10">
+              {{ t('workload.serviceAccountName.label') }}
+            </h3>
+            <div class="row">
+              <div class="col span-6">
+                <ServiceNameSelect
+                  v-model="podTemplateSpec.serviceAccount"
+                  :mode="mode"
+                  :select-label="t('workload.serviceAccountName.label')"
+                  :select-placeholder="t('workload.serviceAccountName.label')"
+                  :options="namespacedServiceNames"
+                  option-label="metadata.name"
+                  :searchable="true"
+                />
+              </div>
+            </div>
+          </div>
           <div class="spacer"></div>
           <div>
             <h3>{{ t('workload.container.titles.lifecycle') }}</h3>
