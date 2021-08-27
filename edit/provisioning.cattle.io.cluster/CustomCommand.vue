@@ -140,13 +140,13 @@ function sanitizeValue(v) {
 
       <div class="row mb-10">
         <div class="col span-4">
-          <LabeledInput v-model="nodeName" label="Node Name" />
+          <LabeledInput v-model="nodeName" label-key="cluster.custom.advanced.nodeName" />
         </div>
         <div class="col span-4">
-          <LabeledInput v-model="address" label="Node Public IP" />
+          <LabeledInput v-model="address" label-key="cluster.custom.advanced.publicIp" />
         </div>
         <div class="col span-4">
-          <LabeledInput v-model="internalAddress" label="Node Private IP" />
+          <LabeledInput v-model="internalAddress" label-key="cluster.custom.advanced.privateIp" />
         </div>
       </div>
 
@@ -154,8 +154,8 @@ function sanitizeValue(v) {
         v-model="labels"
         class="mb-10"
         mode="edit"
-        title="Node Labels"
-        add-label="Add Label"
+        :title="t('cluster.custom.advanced.nodeLabel.title')"
+        :add-label="t('cluster.custom.advanced.nodeLabel.label')"
         :read-allowed="false"
       />
 
