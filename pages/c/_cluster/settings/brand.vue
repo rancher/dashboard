@@ -390,7 +390,7 @@ export default {
         />
         <span class="col link-example">
           <a>
-            Link Example
+            {{ t('branding.linkColor.example') }}
           </a>
         </span>
       </div>

@@ -5030,6 +5030,7 @@ branding:
     label: Link Color
     tip: You can override the link color used throughout the UI with a custom color of your choice.
     useCustom: Use a Custom Link Color
+    example: Link Example
 
 resourceQuota:
   configMaps: Config Maps
