@@ -1,24 +1,39 @@
 <script>
 
+/**
+ * Badge state component.
+ * <p>Represents a badge whose label and color is either taken from the value property or
+ * from the label and color properties. The state property takes precedence.</p>
+ */
 export default {
   props: {
-    // Set either value or color+label
-    // A resource with stateBackground and stateDisplay
+    /**
+     * A value having the properties `stateBackground` and `stateDisplay`
+     */
     value: {
       type:    Object,
       default: null,
     },
 
+    /**
+     * Badge color. `stateBackground` of the value property takes precedence if supplied
+     */
     color: {
       type:    String,
       default: null,
     },
 
+    /**
+     * Optional icon to be shown before the label
+     */
     icon: {
       type:    String,
       default: null
     },
 
+    /**
+     * Label to display in the badge. `stateDisplay` of the value property takes precedence if supplied
+     */
     label: {
       type:    String,
       default: null,

@@ -63,12 +63,12 @@ button,
   background: var(--primary);
   color: var(--primary-text);
 
-  &:hover {
+  &:hover, &._hover {
     background-color: var(--primary-hover-bg);
     color: var(--primary-text);
   }
 
-  &:focus {
+  &:focus, &._focus {
     background-color: var(--primary-hover-bg);
     color: var(--primary-text);
   }

@@ -22,7 +22,11 @@
     "generate": "./node_modules/.bin/nuxt generate",
     "dev-debug": "node --inspect ./node_modules/.bin/nuxt",
     "cy:open": "cypress open",
-    "e2e:dev": "NODE_ENV=dev START_SERVER_AND_TEST_INSECURE=1 start-server-and-test dev https://localhost:8005 cy:open"
+    "e2e:dev": "NODE_ENV=dev START_SERVER_AND_TEST_INSECURE=1 start-server-and-test dev https://localhost:8005 cy:open",
+    "storybook": "start-storybook -s ./ -p 6006",
+    "build-storybook": "build-storybook",
+    "install-storybook": "./scripts/storybook-install",
+    "remove-storybook": "./scripts/storybook-install -d"
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.1.0",
