@@ -7,7 +7,6 @@ import { createCssVars } from '@/utils/color';
 export default {
   async fetch() {
     this.globalSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING);
-    console.debug(this.globalSettings);
   },
 
   data() {
@@ -24,15 +23,11 @@ export default {
     color() {
       const setting = findBy(this.globalSettings, 'id', SETTING.PRIMARY_COLOR);
 
-      console.debug('COLOR', setting);
-
       return setting?.value;
     },
 
     linkColor() {
       const setting = findBy(this.globalSettings, 'id', SETTING.LINK_COLOR);
-
-      console.debug('LINK COLOR', setting);
 
       return setting?.value;
     },
@@ -45,58 +40,38 @@ export default {
   watch: {
     color(neu) {
       if (neu) {
-        this.setCustomPrimaryColor(neu);
+        this.setCustomColor(neu);
       } else {
-        this.removePrimaryCustomColor();
+        this.removeCustomColor();
       }
     },
     linkColor(neu) {
       if (neu) {
-        console.debug('SETTING LINK COLOR');
-        this.setCustomLinkColor(neu);
+        this.setCustomColor(neu, 'link');
       } else {
-        this.removeCustomLinkColor();
+        this.removeCustomColor('link');
       }
     },
     theme() {
       if (this.color) {
-        this.setCustomPrimaryColor(this.color);
+        this.setCustomColor(this.color);
       }
       if (this.linkColor) {
-        this.setCustomLinkColor(this.linkColor);
+        this.setCustomColor(this.linkColor, 'link');
       }
     },
   },
   methods: {
-    setCustomPrimaryColor(color) {
-      const vars = createCssVars(color, this.theme);
+    setCustomColor(color, name = 'primary') {
+      const vars = createCssVars(color, this.theme, name);
 
       for (const prop in vars) {
         document.body.style.setProperty(prop, vars[prop]);
       }
     },
 
-    removePrimaryCustomColor() {
-      const vars = createCssVars('rgb(0,0,0)', this.theme);
-
-      for (const prop in vars) {
-        document.body.style.removeProperty(prop);
-      }
-    },
-
-    setCustomLinkColor(color) {
-      console.debug('SET LINK COLOR');
-      const vars = createCssVars(color, this.theme, 'link');
-
-      console.debug('~~~~~', vars, color, this.theme);
-
-      for (const prop in vars) {
-        document.body.style.setProperty(prop, vars[prop]);
-      }
-    },
-
-    removeCustomLinkColor() {
-      const vars = createCssVars('rgb(0,0,0)', this.theme);
+    removeCustomColor(name = 'primary') {
+      const vars = createCssVars('rgb(0,0,0)', this.theme, name);
 
       for (const prop in vars) {
         document.body.style.removeProperty(prop);
