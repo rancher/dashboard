@@ -5026,6 +5026,10 @@ branding:
     label: Primary Color
     tip: You can override the primary color used throughout the UI with a custom color of your choice.
     useCustom: Use a Custom Color
+  linkColor:
+    label: Link Color
+    tip: You can override the link color used throughout the UI with a custom color of your choice.
+    useCustom: Use a Custom Link Color
 
 resourceQuota:
   configMaps: Config Maps

@@ -48,6 +48,7 @@ export const SETTING = {
   LOGO_LIGHT:                       'ui-logo-light',
   LOGO_DARK:                        'ui-logo-dark',
   PRIMARY_COLOR:                    'ui-primary-color',
+  LINK_COLOR:                       'ui-link-color',
   COMMUNITY_LINKS:                  'ui-community-links'
 };
 
