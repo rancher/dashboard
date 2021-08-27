@@ -50,20 +50,23 @@ export default {
       if ( this.credential?.id !== this.credentialId ) {
         this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.credentialId });
       }
+    } catch (e) {
+      this.credential = null;
+    }
 
+    try {
       if ( !this.instanceInfo ) {
         this.instanceInfo = await this.$store.dispatch('aws/instanceInfo');
       }
 
       const region = this.value.region || this.credential?.decodedData.defaultRegion || this.$store.getters['aws/defaultRegion'];
-      const cloudCredentialId = this.credential.id;
 
       if ( !this.value.region ) {
         this.$set(this.value, 'region', region);
       }
 
-      this.ec2Client = await this.$store.dispatch('aws/ec2', { region, cloudCredentialId });
-      this.kmsClient = await this.$store.dispatch('aws/kms', { region, cloudCredentialId });
+      this.ec2Client = await this.$store.dispatch('aws/ec2', { region, cloudCredentialId: this.credentialId });
+      this.kmsClient = await this.$store.dispatch('aws/kms', { region, cloudCredentialId: this.credentialId });
 
       const hash = {};
 
