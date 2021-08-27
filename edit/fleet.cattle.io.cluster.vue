@@ -4,9 +4,8 @@ import CruResource from '@/components/CruResource';
 import Labels from '@/components/form/Labels';
 import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
-import { MANAGEMENT } from '@/config/types';
 import { _VIEW } from '@/config/query-params';
-import { FLEET } from '@/config/labels-annotations';
+import { NORMAN } from '~/config/types';
 
 export default {
   name: 'CruFleetCluster',
@@ -28,16 +27,21 @@ export default {
   },
 
   async fetch() {
-    const clusterId = this.value?.metadata?.labels[FLEET.CLUSTER_NAME];
+    const norman = await this.$store.dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.value.metadata.name });
+    const nc = await this.$store.dispatch(`rancher/clone`, { resource: norman });
 
-    this.rancherCluster = await this.$store.dispatch('management/find', {
-      type: MANAGEMENT.CLUSTER,
-      id:   clusterId
-    });
+    if ( !nc.metadata ) {
+      nc.metadata = {};
+    }
+
+    nc.metadata.labels = nc._labels || {};
+    nc.metadata.annotations = nc._annotations || {};
+
+    this.normanCluster = nc;
   },
 
   data() {
-    return { rancherCluster: null };
+    return { normanCluster: null };
   },
 
   computed: {
@@ -50,7 +54,13 @@ export default {
     async save(buttonDone) {
       try {
         await this.value.save();
-        await this.rancherCluster.save();
+
+        const nc = this.normanCluster;
+
+        nc._labels = nc.metadata.labels;
+        nc._annotations = nc.metadata.annotations;
+        await nc.save();
+
         this.done();
         buttonDone(true);
       } catch (e) {
@@ -80,9 +90,8 @@ export default {
     <hr class="mt-20 mb-20" />
 
     <Labels
-
       default-section-class="mt-20"
-      :value="rancherCluster"
+      :value="normanCluster"
       :mode="mode"
       :display-side-by-side="false"
     />

@@ -682,13 +682,11 @@ export default {
     credentialId(val) {
       if ( val ) {
         this.credential = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.credentialId);
-
-        if ( this.credential ) {
-          this.value.spec.cloudCredentialSecretName = this.credential.id;
-        } else {
-          this.value.spec.cloudCredentialSecretName = null;
-        }
+      } else {
+        this.credential = null;
       }
+
+      this.value.spec.cloudCredentialSecretName = val;
     },
 
     addonNames(neu, old) {
@@ -815,6 +813,10 @@ export default {
       const finalPools = [];
 
       for ( const entry of this.machinePools ) {
+        if ( entry.remove ) {
+          continue;
+        }
+
         // Capitals and such aren't allowed;
         set(entry.pool, 'name', normalizeName(entry.pool.name) || 'pool');
 
@@ -847,9 +849,10 @@ export default {
 
     async cleanupMachinePools() {
       for ( const entry of this.machinePools ) {
-        if ( entry.remove ) {
-          await entry.config.remove();
-          entry.remove = false;
+        if ( entry.remove && entry.config ) {
+          try {
+            await entry.config.remove();
+          } catch (e) {}
         }
       }
     },
@@ -1343,7 +1346,7 @@ export default {
             </div>
           </div>
 
-          <template v-if="rkeConfig.etcd.disableSnapshots !== true">
+          <template v-if="false && rkeConfig.etcd.disableSnapshots !== true">
             <div class="spacer" />
 
             <RadioGroup

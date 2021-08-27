@@ -127,7 +127,7 @@ export default {
         environment,
         subscriptionId,
         tenantId,
-      } = this.credential.decodedData;
+      } = (this.credential?.decodedData || {});
 
       if (!isEmpty(clientId)) {
         this.value.clientId = clientId;

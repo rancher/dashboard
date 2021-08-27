@@ -1,7 +1,9 @@
 <script>
 import RancherProviderIcon from '@/components/RancherProviderIcon';
 import ResourceSummary, { resourceCounts } from '@/pages/c/_cluster/explorer/ResourceSummary';
-import { NAMESPACE, MANAGEMENT, NODE, COUNT } from '@/config/types';
+import {
+  NAMESPACE, MANAGEMENT, NODE, COUNT, CATALOG
+} from '@/config/types';
 import { RESOURCES } from '@/pages/c/_cluster/explorer/index';
 
 export default {
@@ -64,6 +66,11 @@ export default {
 
     canAccessNamespaces() {
       return !!this.clusterCounts?.[0]?.counts?.[NAMESPACE];
+    },
+
+    showClusterTools() {
+      return this.$store.getters['cluster/canList'](CATALOG.CLUSTER_REPO) &&
+             this.$store.getters['cluster/canList'](CATALOG.APP);
     }
   },
 
@@ -111,7 +118,7 @@ export default {
           {{ t('nav.categories.explore') }}
         </nuxt-link>
       </div>
-      <div class="glance-item">
+      <div v-if="showClusterTools" class="glance-item">
         <nuxt-link :to="clusterToolsLink" class="cluster-link">
           {{ t('nav.clusterTools') }}
         </nuxt-link>

@@ -11,7 +11,7 @@ export default {
 
     const downloadKeys = {
       action:     'downloadKeys',
-      enabled:    !!this.normanNode?.links?.nodeConfig,
+      enabled:    !!this.norman?.links?.nodeConfig,
       icon:       'icon icon-fw icon-download',
       label:      this.t('node.actions.downloadNodeConfig'),
     };
@@ -75,15 +75,29 @@ export default {
     return this.$rootGetters['management/byId'](MANAGEMENT.NODE_POOL, nodePoolID);
   },
 
-  normanNode() {
-    const normanNodeId = this.id.replace('/', ':');
+  norman() {
+    const id = this.id.replace('/', ':');
 
-    return this.$rootGetters['rancher/byId'](NORMAN.NODE, normanNodeId);
+    return this.$rootGetters['rancher/byId'](NORMAN.NODE, id);
+  },
+
+  canDelete() {
+    return this.norman?.hasLink('remove');
+  },
+
+  canUpdate() {
+    return this.norman?.hasLink('update');
+  },
+
+  remove() {
+    return () => {
+      return this.norman?.remove();
+    };
   },
 
   downloadKeys() {
     return () => {
-      const url = this.normanNode?.links?.nodeConfig;
+      const url = this.norman?.links?.nodeConfig;
 
       if ( url ) {
         downloadUrl(url);
@@ -96,7 +110,7 @@ export default {
       const safeResources = Array.isArray(resources) ? resources : [this];
 
       await Promise.all(safeResources.map((node) => {
-        return node.normanNode?.doAction('scaledown');
+        return node.norman?.doAction('scaledown');
       }));
     };
   },
@@ -123,7 +137,7 @@ export default {
   canScaleDown() {
     const isInOnlyPool = this.pool?.provisioningCluster?.pools?.length === 1;
     const isOnlyNode = this.pool?.nodes?.length === 1;
-    const hasAction = this.normanNode?.actions?.scaledown;
+    const hasAction = this.norman?.actions?.scaledown;
 
     return hasAction && (!isInOnlyPool || !isOnlyNode);
   },
