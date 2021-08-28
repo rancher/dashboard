@@ -160,7 +160,7 @@ export const actions = {
       url += opt.url.replace(/^https?:\/\//, '');
     } else {
       url += `${ ENDPOINT }/${ command }`;
-      url = addParam(url, 'per_page', opt.per_page || 100);
+      url = addParam(url, 'per_page', opt.per_page || 1000);
       url = addParams(url, opt.params || {});
     }
 
