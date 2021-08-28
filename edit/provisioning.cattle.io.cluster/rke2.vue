@@ -1462,6 +1462,7 @@ export default {
             :hook-priority="1"
             in-store="management"
             :allow-ssh="false"
+            :allow-rke="true"
             :vertical="true"
             :namespace="value.metadata.namespace"
             generate-name="registryconfig-auth-"
