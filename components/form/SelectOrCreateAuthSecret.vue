@@ -77,6 +77,11 @@ export default {
       default: false,
     },
 
+    allowRke: {
+      type:    Boolean,
+      default: false,
+    },
+
     registerBeforeHook: {
       type:     Function,
       required: true,
@@ -99,7 +104,7 @@ export default {
   },
 
   async fetch() {
-    if ( (this.allowSsh || this.allowBasic) && this.$store.getters[`${ this.inStore }/schemaFor`](SECRET) ) {
+    if ( (this.allowSsh || this.allowBasic || this.allowRke) && this.$store.getters[`${ this.inStore }/schemaFor`](SECRET) ) {
       // Avoid an async call and loading screen if already loaded by someone else
       if ( this.$store.getters[`${ this.inStore }/haveAll`](SECRET) ) {
         this.allSecrets = this.$store.getters[`${ this.inStore }/all`](SECRET);
@@ -174,6 +179,10 @@ export default {
 
       if ( this.allowBasic ) {
         types.push(SECRET_TYPES.BASIC);
+      }
+
+      if ( this.allowRke ) {
+        types.push(SECRET_TYPES.RKE_AUTH_CONFIG);
       }
 
       const out = this.allSecrets
