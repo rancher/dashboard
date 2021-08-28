@@ -19,6 +19,7 @@ export const TYPES = {
   HELM_RELEASE:     'helm.sh/release.v1',
   FLEET_CLUSTER:    'fleet.cattle.io/cluster-registration-values',
   CLOUD_CREDENTIAL: 'provisioning.cattle.io/cloud-credential',
+  RKE_AUTH_CONFIG:  'rke.cattle.io/auth-config'
 };
 
 export default {
