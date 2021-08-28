@@ -3360,6 +3360,7 @@ secret:
     'helm.sh/release.v1': 'Helm Release'
     'fleet.cattle.io/cluster-registration-values': 'Fleet Cluster'
     'provisioning.cattle.io/cloud-credential': 'Cloud Credential'
+    'rke.cattle.io/auth-config': 'RKE Auth Config'
   initials:
     'opaque': 'O'
     'kubernetes.io/service-account-token': 'SAT'
