@@ -54,10 +54,11 @@ export default {
   computed:   {
     ...mapGetters(['currentCluster']),
     containers() {
-      const { containerStatuses = [] } = this.value.status;
+      const containers = this.allContainers;
+      const statuses = this.allStatuses;
 
-      return (this.value.spec.containers || []).map((container) => {
-        container.status = findBy(containerStatuses, 'name', container.name) || {};
+      return (containers || []).map((container) => {
+        container.status = findBy(statuses, 'name', container.name) || {};
         container.stateDisplay = this.value.containerStateDisplay(container);
         container.stateBackground = this.value.containerStateColor(container).replace('text', 'bg');
         container.nameSort = sortableNumericSuffix(container.name).toLowerCase();
@@ -65,6 +66,19 @@ export default {
 
         return container;
       });
+    },
+
+    allContainers() {
+      const containers = this.value.spec.containers || [];
+      const initContainers = this.value.spec.initContainers || [];
+
+      return [...containers, ...initContainers];
+    },
+
+    allStatuses() {
+      const { containerStatuses = [], initContainerStatuses = [] } = this.value.status;
+
+      return [...containerStatuses, ...initContainerStatuses];
     },
 
     containerHeaders() {
