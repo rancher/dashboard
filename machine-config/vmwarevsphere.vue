@@ -215,7 +215,7 @@ export default {
       set(this.value, 'creationType', creationMethods[0].value);
       set(this.value, 'cpuCount', '2');
       set(this.value, 'diskSize', '20000');
-      set(this.value, 'memorySize', '2048');
+      set(this.value, 'memorySize', '4096');
       set(this.value, 'hostsystem', '');
       set(this.value, 'cloudConfig', '#cloud-config\n\n');
       set(this.value, 'cfgparam', DEFAULT_CFGPARAM);
