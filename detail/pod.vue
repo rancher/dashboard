@@ -69,8 +69,7 @@ export default {
     },
 
     allContainers() {
-      const containers = this.value.spec.containers || [];
-      const initContainers = this.value.spec.initContainers || [];
+      const { containers = [], initContainers = [] } = this.value.spec;
 
       return [...containers, ...initContainers];
     },
