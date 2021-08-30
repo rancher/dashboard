@@ -27,7 +27,7 @@ export function init(store) {
     inStore:             'virtual',
     removable:           false,
     showNamespaceFilter: true,
-    showClusterSwitcher: false,
+    showClusterSwitcher: true,
     typeStoreMap:        {
       [MANAGEMENT.PROJECT]:                       'management',
       [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',

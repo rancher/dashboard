@@ -84,6 +84,10 @@ export default {
       return this.currentProduct?.inStore === 'cluster';
     },
 
+    showImportYaml() {
+      return this.currentProduct?.inStore !== 'virtual';
+    },
+
     nameTooltip() {
       return !this.showTooltip ? {} : {
         content: this.currentCluster?.nameDisplay,
@@ -219,6 +223,7 @@ export default {
     <div v-if="currentCluster && !simple" class="header-buttons">
       <template v-if="currentProduct && currentProduct.showClusterSwitcher">
         <button
+          v-if="showImportYaml"
           v-tooltip="t('nav.import')"
           :disabled="!importEnabled"
           type="button"
