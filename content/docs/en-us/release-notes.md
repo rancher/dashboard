@@ -259,6 +259,8 @@ The following legacy features are no longer supported on Kubernetes 1.21+ cluste
     - Istio 1.9 support ends on August 18th, 2021.
     - Istio 1.5 is not supported in air gapped environments. Please note that the Istio project has ended support for Istio 1.5.
     - The Kiali dashboard bundled with 100.0.0+up1.10.2 errors on a page refresh. Instead of refreshing the page when needed, simply access Kiali using the dashboard link again. The everything else works in Kiali as expected, including the graph auto-fresh. See [#33739](https://github.com/rancher/rancher/issues/33739).
+  - **Legacy Istio**
+    - The user should ignore the Istio section in the top-level nav when they have v1 Istio installed and use the functionality under the Legacy top-level nav instead.
   - **Legacy Monitoring**
     - The Grafana instance inside Cluster Manager's Monitoring is not compatible with Kubernetes 1.21. See [#33465](https://github.com/rancher/rancher/issues/33465).
     - In air gapped setups, the generated `rancher-images.txt` that is used to mirror images on private registries does not contain the images required to run Legacy Monitoring, also called Monitoring V1, which is compatible with Kubernetes 1.15 clusters. If you are running Kubernetes 1.15 clusters in an air gapped environment, and you want to either install Monitoring V1 or upgrade Monitoring V1 to the latest that is offered by Rancher for Kubernetes 1.15 clusters, you will need to take one of the following actions:
