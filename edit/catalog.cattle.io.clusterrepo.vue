@@ -62,7 +62,7 @@ export default {
     <div v-if="isGit" class="row mb-10">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.gitRepo"
+          v-model.trim="value.spec.gitRepo"
           :required="true"
           :label="t('catalog.repo.gitRepo.label')"
           :placeholder="t('catalog.repo.gitRepo.placeholder', null, true)"
@@ -71,7 +71,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.spec.gitBranch"
+          v-model.trim="value.spec.gitBranch"
           :required="true"
           :label="t('catalog.repo.gitBranch.label')"
           :placeholder="t('catalog.repo.gitBranch.placeholder', null, true)"
