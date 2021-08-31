@@ -129,7 +129,7 @@ export default {
       </tr>
     </table>
     <p class="pt-20">
-      <nuxt-link :to="{ path: 'docs/release-notes'}">
+      <nuxt-link :to="{ path: 'docs/whats-new'}">
         {{ t('about.versions.releaseNotes') }}
       </nuxt-link>
     </p>
