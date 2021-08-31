@@ -6,14 +6,15 @@ import LabeledInput from '@/components/form/LabeledInput';
 import KeyValue from '@/components/form/KeyValue';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import RadioGroup from '@/components/form/RadioGroup';
+import LabelValue from '@/components/LabelValue';
 import CreateEditView from '@/mixins/create-edit-view';
 import { _EDIT } from '@/config/query-params';
 import { IMAGE_FILE_FORMAT } from '@/config/constant';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { exceptionToErrorsArray } from '@/utils/error';
 
+const DOWNLOAD = 'download';
 const UPLOAD = 'upload';
-const URL = 'url';
 
 export default {
   name: 'EditImage',
@@ -26,6 +27,7 @@ export default {
     LabeledInput,
     NameNsDescription,
     RadioGroup,
+    LabelValue,
   },
 
   mixins: [CreateEditView],
@@ -39,18 +41,16 @@ export default {
 
   data() {
     if ( !this.value.spec ) {
-      this.$set(this.value, 'spec', {});
+      this.$set(this.value, 'spec', { sourceType: DOWNLOAD });
     }
 
     return {
       url:         this.value.spec.url,
-      uploadMode:  this.value.spec.sourceType === UPLOAD ? UPLOAD : URL,
       files:       [],
       displayName: '',
       resource:    '',
       headers:     {},
       fileUrl:     '',
-      fileSize:    { 'File-Size': '' },
       file:        '',
     };
   },
@@ -62,7 +62,11 @@ export default {
 
     isEdit() {
       return this.mode === _EDIT;
-    }
+    },
+
+    imageName() {
+      return this.value?.metadata?.annotations?.[HCI_ANNOTATIONS.IMAGE_NAME] || '-';
+    },
   },
 
   watch: {
@@ -83,44 +87,37 @@ export default {
       this.displayName = neu;
     },
 
-    uploadMode(neu) {
+    'value.spec.sourceType'() {
       this.$set(this, 'file', null);
       this.url = '';
 
       if (this.$refs?.file?.value) {
         this.$refs.file.value = null;
       }
-    }
+    },
   },
 
   methods: {
     async saveImage(buttonCb) {
       this.value.metadata.generateName = 'image-';
 
-      Object.assign(this.value.metadata.annotations, {
-        ...this.value.metadata.annotations,
-        [HCI_ANNOTATIONS.IMAGE_SOURCE]: this.uploadMode // url or file
-      });
-
-      if (this.uploadMode !== 'url') {
+      if (this.value.spec.sourceType === UPLOAD && this.isCreate) {
         try {
-          this.value.spec.sourceType = UPLOAD;
           this.value.spec.url = '';
 
-          Object.assign(this.value.metadata.annotations, {
-            ...this.value.metadata.annotations,
-            [HCI_ANNOTATIONS.IMAGE_NAME]: this.file?.name,
-          });
+          if (!this.value.metadata.annotations) {
+            this.value.metadata.annotations = {};
+          }
+
+          this.value.metadata.annotations[HCI_ANNOTATIONS.IMAGE_NAME] = this.file?.name;
 
           const res = await this.value.save({ extend: { isRes: true } });
-
-          await new Promise(resolve => setTimeout(resolve, 15000));
 
           const formData = new FormData();
 
           formData.append('chunk', this.file);
 
-          await this.$axios.post(`/v1/harvester/harvesterhci.io.virtualmachineimages/${ res.id }?action=upload&size=${ this.file.size }`, formData, {
+          this.$axios.post(`/v1/harvester/harvesterhci.io.virtualmachineimages/${ res.id }?action=upload&size=${ this.file.size }`, formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
               'File-Size':    this.file.size,
@@ -139,7 +136,13 @@ export default {
     },
 
     handleFileUpload() {
-      this.file = this.$refs.file.files[0];
+      const file = this.$refs.file.files[0];
+
+      this.file = file;
+
+      if (!this.value.spec.displayName) {
+        this.$refs.nd.changeNameAndNamespace({ text: file?.name });
+      }
     },
 
     selectFile() {
@@ -175,16 +178,22 @@ export default {
       <Tab name="basic" :label="t('harvester.image.tabs.basics')" :weight="3" class="bordered-table">
         <RadioGroup
           v-if="isCreate"
-          v-model="uploadMode"
+          v-model="value.spec.sourceType"
           name="model"
-          :options="['url','file']"
-          :labels="['URL', 'File']"
+          :options="[
+            'download',
+            'upload',
+          ]"
+          :labels="[
+            t('harvester.image.sourceType.download'),
+            t('harvester.image.sourceType.upload'),
+          ]"
           :mode="mode"
         />
         <div class="row mb-20 mt-20">
-          <div class="col span-12">
+          <div v-if="isCreate" class="col span-12">
             <LabeledInput
-              v-if="uploadMode === 'url'"
+              v-if="value.spec.sourceType === 'download'"
               v-model="value.spec.url"
               :mode="mode"
               :disabled="isEdit"
@@ -226,6 +235,15 @@ export default {
                 {{ uploadFileName }}
               </div>
             </div>
+          </div>
+          <div
+            v-else
+            class="col span-12"
+          >
+            <LabelValue
+              :name="t('harvester.image.fileName')"
+              :value="imageName"
+            />
           </div>
         </div>
       </Tab>

@@ -130,7 +130,6 @@ export const HCI = {
   HOST_CONSOLE_URL:             'harvesterhci.io/host-console-url',
   BACKUP_TARGET:                'backup.harvesterhci.io/backupTarget',
   RESTORE_NAME:                 'restore.harvesterhci.io/name',
-  IMAGE_SOURCE:                 'harvesterhci.io/source',
   NODE_ROLE_MASTER:             'node-role.kubernetes.io/master',
   NODE_ROLE_CONTROL_PLANE:      'node-role.kubernetes.io/control-plane',
   PROMOTE_STATUS:               'harvesterhci.io/promote-status',

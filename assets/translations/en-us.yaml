@@ -69,6 +69,7 @@ generic:
         1d: 1d
         7d: 7d
         30d: 30d
+  completed: Completed
 
 locale:
   en-us: English
@@ -5034,6 +5035,9 @@ harvester:
     urlTip: 'supports the <code>raw</code> and <code>qcow2</code> image formats which are supported by <a href="https://www.qemu.org/docs/master/system/images.html#disk-image-file-formats" target="_blank">qemu</a>. Bootable ISO images can also be used and are treated like <code>raw</code> images.'
     fileName: File Name
     uploadFile: Upload File
+    sourceType:
+      download: URL
+      upload: File
 
   vmTemplate:
     label: Templates

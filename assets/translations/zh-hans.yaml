@@ -62,6 +62,7 @@ generic:
         1d: 1小时
         7d: 7天
         30d: 30天
+  completed: 已完成
 
 #locale:
   #en-us: English
@@ -4090,6 +4091,9 @@ harvester:
     urlTip: '<a href="https://www.qemu.org/docs/master/system/images.html#disk-image-file-formats" target="_blank">qemu</a> 支持 <code>raw</code> 和 <code>qcow2</code> 镜像格式. 可启动的ISO镜像也可以是类似 <code>raw</code> 格式的镜像.'
     fileName: 文件名
     uploadFile: 上传文件
+    sourceType:
+      download: URL
+      upload: 文件
 
   vmTemplate:
     label: 虚拟机模板
