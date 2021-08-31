@@ -217,7 +217,7 @@ export default {
     showWhatsNew() {
       // Update the value, so that the message goes away
       markReadReleaseNotes(this.$store);
-      this.$router.push({ name: 'docs-doc', params: { doc: 'release-notes' } });
+      this.$router.push({ name: 'docs-doc', params: { doc: 'whats-new' } });
     },
 
     async resetCards() {
