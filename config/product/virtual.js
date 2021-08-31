@@ -3,7 +3,7 @@ import {
 } from '@/config/types';
 import {
   STATE, NAME_UNLINKED, NAME as NAME_COL, AGE, NAMESPACE_COL, IMAGE_DOWNLOAD_SIZE,
-  FINGERPRINT
+  FINGERPRINT, IMAGE_PROGRESS
 } from '@/config/table-headers';
 
 import { DSL } from '@/store/type-map';
@@ -135,7 +135,7 @@ export function init(store) {
   });
 
   basicType([HCI.IMAGE]);
-  headers(HCI.IMAGE, [STATE, NAME_COL, NAMESPACE_COL, /* IMAGE_PROGRESS, IMAGE_MESSAGE, */IMAGE_DOWNLOAD_SIZE, AGE]);
+  headers(HCI.IMAGE, [STATE, NAME_COL, NAMESPACE_COL, IMAGE_PROGRESS, IMAGE_DOWNLOAD_SIZE, AGE]);
   virtualType({
     label:      store.getters['i18n/t']('harvester.image.label'),
     group:      'root',
