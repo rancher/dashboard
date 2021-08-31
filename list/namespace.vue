@@ -24,7 +24,7 @@ export default {
       } else {
         return this.rows;
       }
-    }
+    },
   }
 };
 </script>
@@ -33,7 +33,7 @@ export default {
   <ResourceTable
     v-bind="$attrs"
     :rows="filterRow"
-    :groupable="true"
+    :groupable="false"
     :schema="schema"
     key-field="_key"
     v-on="$listeners"

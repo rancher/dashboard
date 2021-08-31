@@ -5460,7 +5460,7 @@ typeLabel:
       one { Cluster }
       other { Clusters }
     }
-  cloudTemplate: |-
+  cloudtemplate: |-
     {count, plural,
       one { Cloud Config Template }
       other { Cloud Config Templates }
