@@ -170,7 +170,7 @@ export function init(store) {
     showMenuFun(state, getters, rootState, rootGetters) {
       return rootGetters['isSingleVirtualCluster'];
     },
-    label:                  'Namespace',
+    label:                  store.getters['i18n/t'](`typeLabel.${ NAMESPACE }`, { count: 2 }),
     name:                   NAMESPACE,
     namespaced:             true,
     weight:                 89,
@@ -253,7 +253,6 @@ export function init(store) {
   });
   virtualType({
     label:        store.getters['i18n/t']('harvester.cloudTemplate.label'),
-    labelDisplay: 'harvester.typeLabel.host',
     name:         CLOUD_TEMPLATE,
     namespaced:   true,
     weight:       87,

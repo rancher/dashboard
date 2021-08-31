@@ -52,15 +52,8 @@ export default {
   },
 
   typeDisplay() {
-    const { params:{ resource: type } } = this.$route;
-    let paramSchema = schema;
-
-    if (type !== schema.id) {
-      paramSchema = this.$store.getters['cluster/schemaFor'](type);
-    }
-
-    return this.$store.getters['type-map/labelFor'](paramSchema, 99);
-  },
+    return this.$store.getters['type-map/labelFor'](schema, 99);
+  }
 };
 </script>
 

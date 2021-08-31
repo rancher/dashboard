@@ -4,7 +4,7 @@ import { clone } from '@/utils/object';
 export default {
   displayNameOverride() {
     if (this.$rootGetters['currentProduct'].inStore === VIRTUAL) {
-      return this.$rootGetters['i18n/t'](`typeLabel.cloudTemplate`, { count: 1 });
+      return this.$rootGetters['i18n/t'](`typeLabel.cloudtemplate`, { count: 1 });
     }
   },
 
