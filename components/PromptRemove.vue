@@ -1,13 +1,25 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
+import { CATALOG } from '@/config/types';
 import { get, isEmpty } from '@/utils/object';
 import Card from '@/components/Card';
+import Checkbox from '@/components/form/Checkbox';
 import { alternateLabel } from '@/utils/platform';
 import { uniq } from '@/utils/array';
 import AsyncButton from '@/components/AsyncButton';
+import find from 'lodash/find';
 
 export default {
-  components: { Card, AsyncButton },
+  components: {
+    Card,
+    Checkbox,
+    AsyncButton
+  },
+
+  async fetch() {
+    this.allInstalled = await this.$store.dispatch('cluster/findAll', { type: CATALOG.APP });
+  },
+
   data() {
     const { resource } = this.$route.params;
 
@@ -18,9 +30,12 @@ export default {
       error:           '',
       warning:         '',
       preventDelete:   false,
-      removeComponent: this.$store.getters['type-map/importCustomPromptRemove'](resource)
+      removeComponent: this.$store.getters['type-map/importCustomPromptRemove'](resource),
+      deleteCrd:        false,
+      allInstalled:     null
     };
   },
+
   computed:   {
     names() {
       return this.toRemove.map(obj => obj.nameDisplay).slice(0, 5);
@@ -139,6 +154,22 @@ export default {
 
         return res;
       }, '');
+    },
+
+    checkForCrd() {
+      if (this.allInstalled !== null) {
+        const crd = this.allInstalled.find(installed => installed.metadata.name === `${ this.names }-crd`);
+
+        if (crd) {
+          return true;
+        } else if (this.toRemove.length > 1 && find(this.toRemove, this.names.forEach(name => name))) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
     }
   },
 
@@ -196,6 +227,16 @@ export default {
       this.$store.commit('action-menu/togglePromptRemove');
     },
 
+    addCrdToRemove() {
+      const crd = this.allInstalled.find(res => res.metadata.name === `${ this.names }-crd`);
+
+      if (crd) {
+        this.toRemove.push(crd);
+      } else if (!this.deleteCrd) {
+        this.toRemove.pop();
+      }
+    },
+
     remove(btnCB) {
       if (this.hasCustomRemove && this.$refs?.customPrompt?.remove) {
         this.$refs.customPrompt.remove();
@@ -234,9 +275,11 @@ export default {
         }
         btnCB(true);
         this.close();
+        this.deleteCrd = false;
       } catch (err) {
         this.error = err;
         btnCB(false);
+        this.deleteCrd = false;
       }
     },
 
@@ -252,9 +295,11 @@ export default {
         }
         btnCB(true);
         this.close();
+        this.deleteCrd = false;
       } catch (err) {
         this.error = err;
         btnCB(false);
+        this.deleteCrd = false;
       }
     },
 
@@ -323,6 +368,7 @@ export default {
         <div v-if="!needsConfirm" class="text-info mt-20">
           {{ protip }}
         </div>
+        <Checkbox v-if="checkForCrd" v-model="deleteCrd" label-key="promptRemove.removePlusOne" class="mt-10 type" @input="addCrdToRemove" />
       </div>
       <template #actions>
         <button class="btn role-secondary" @click="close">
