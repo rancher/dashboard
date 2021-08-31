@@ -198,7 +198,11 @@ export default {
       </div>
     </div>
     <div v-else class="simple-title">
-      <div v-if="!isSingleVirtualCluster" class="side-menu-logo">
+      <div v-if="isSingleVirtualCluster" class="product-name">
+        {{ t('product.virtual') }}
+      </div>
+
+      <div v-else class="side-menu-logo">
         <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
       </div>
     </div>
