@@ -49,14 +49,13 @@ export default {
   },
 
   async fetch() {
-    const hash = await allHash({
-      backupContents: this.$store.dispatch('virtual/findAll', { type: HCI.BACKUP_CONTENT }),
-      allImages:      this.$store.dispatch('virtual/findAll', { type: HCI.IMAGE })
+    await allHash({ allImages: this.$store.dispatch('virtual/findAll', { type: HCI.IMAGE }) });
+
+    const source = this.value.status.source;
+    const vm = await this.$store.dispatch('virtual/create', {
+      ...source,
+      type: HCI.VM
     });
-
-    const content = hash.backupContents.find( O => O.id === `${ this.value.metadata.namespace }/${ this.value?.backupContentName }`);
-
-    const vm = content.spec.source;
 
     this.vm = vm;
 

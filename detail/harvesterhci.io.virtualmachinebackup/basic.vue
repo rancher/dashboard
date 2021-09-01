@@ -38,7 +38,7 @@ export default {
 
     imageName() {
       const imageList = this.$store.getters['virtual/all'](HCI.IMAGE) || [];
-      const claimTemplate = this.volumeClaimTemplates;
+      const claimTemplate = this.value.volumeClaimTemplates;
 
       const imageId = claimTemplate[0]?.metadata?.annotations?.['harvesterhci.io/imageId'] || '';
 

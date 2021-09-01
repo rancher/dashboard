@@ -6,7 +6,8 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import CreateEditView from '@/mixins/create-edit-view';
 import { allHash } from '@/utils/promise';
 import { exceptionToErrorsArray } from '@/utils/error';
-import { HCI } from '@/config/types';
+import { HCI, NAMESPACE } from '@/config/types';
+import { sortBy } from '@/utils/sort';
 
 const createObject = {
   apiVersion: 'harvesterhci.io/v1beta1',
@@ -31,7 +32,7 @@ export default {
     Footer,
     RadioGroup,
     LabeledInput,
-    LabeledSelect
+    LabeledSelect,
   },
 
   mixins: [CreateEditView],
@@ -58,6 +59,7 @@ export default {
       name:           '',
       description:    '',
       deletionPolicy: 'delete',
+      namespace:      ''
     };
   },
 
@@ -103,7 +105,24 @@ export default {
       const backupList = this.$store.getters['virtual/all'](HCI.BACKUP);
 
       return backupList.find( B => B.metadata.name === this.backupName)?.metadata?.namespace;
-    }
+    },
+
+    namespaces() {
+      const inStore = this.$store.getters['currentStore'](NAMESPACE);
+      const choices = this.$store.getters[`${ inStore }/all`](NAMESPACE);
+
+      const out = sortBy(
+        choices.map((obj) => {
+          return {
+            label: obj.nameDisplay,
+            value: obj.id,
+          };
+        }),
+        'label'
+      );
+
+      return out;
+    },
   },
 
   watch: {
@@ -127,6 +146,13 @@ export default {
         this.name = this?.currentBackupResource?.attachVM;
       }
     },
+
+    backupNamespace: {
+      handler(neu) {
+        this.namespace = neu;
+      },
+      immediate: true
+    }
   },
 
   methods: {
@@ -135,7 +161,8 @@ export default {
 
       const proxyResource = await this.$store.dispatch('virtual/create', this.restoreResource);
 
-      proxyResource.metadata.namespace = this.backupNamespace;
+      proxyResource.metadata.namespace = this.namespace;
+      proxyResource.spec.virtualMachineBackupNamespace = this.backupNamespace;
 
       try {
         await proxyResource.save();
@@ -186,13 +213,26 @@ export default {
       />
     </div>
 
-    <LabeledInput
-      v-model="name"
-      :disabled="!restoreNewVm"
-      :label="t('harvester.backup.restore.virtualMachineName')"
-      :placeholder="t('nameNsDescription.name.placeholder')"
-      class="mb-20"
-    />
+    <div class="row">
+      <div class="col span-6">
+        <LabeledSelect
+          v-model="namespace"
+          :disabled="!restoreNewVm"
+          :label="t('nameNsDescription.namespace.label')"
+          :options="namespaces"
+        />
+      </div>
+
+      <div class="col span-6">
+        <LabeledInput
+          v-model="name"
+          :disabled="!restoreNewVm"
+          :label="t('harvester.backup.restore.virtualMachineName')"
+          :placeholder="t('nameNsDescription.name.placeholder')"
+          class="mb-20"
+        />
+      </div>
+    </div>
 
     <LabeledSelect v-model="backupName" class="mb-20" :label="t('harvester.backup.restore.backup')" :options="backupOption" />
 
