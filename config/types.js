@@ -261,7 +261,6 @@ export const HCI = {
   UPGRADE:            'harvesterhci.io.upgrade',
   BACKUP:             'harvesterhci.io.virtualmachinebackup',
   RESTORE:            'harvesterhci.io.virtualmachinerestore',
-  BACKUP_CONTENT:     'harvesterhci.io.virtualmachinebackupcontent',
   NODE_NETWORK:       'network.harvesterhci.io.nodenetwork',
   CLUSTER_NETWORK:    'network.harvesterhci.io.clusternetwork',
   SUPPORT_BUNDLE:     'harvesterhci.io.supportbundle',

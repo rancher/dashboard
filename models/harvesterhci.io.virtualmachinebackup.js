@@ -63,12 +63,12 @@ export default {
   state() {
     let out = 'Pending';
     const conditions = get(this, 'status.conditions');
-    const isProgress = findBy(conditions, 'type', 'InProgress') === 'True';
-    const isReady = findBy(conditions, 'type', 'Ready') === 'True';
+    const isProgress = findBy(conditions, 'type', 'InProgress')?.status === 'True';
+    const isReady = findBy(conditions, 'type', 'Ready')?.status === 'True';
 
     if (this?.status?.readyToUse) {
       out = 'Ready';
-    } else if (isProgress === 'True') {
+    } else if (isProgress) {
       out = 'Progressing';
     } else if (!isReady) {
       out = 'error';

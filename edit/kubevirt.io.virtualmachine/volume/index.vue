@@ -191,10 +191,10 @@ export default {
 
     headerFor(type) {
       return {
-          'New': this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.volume'), // eslint-disable-line
+        'New': this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.volume'), // eslint-disable-line
         'VM Image':        this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.vmImage'),
         'Existing Volume': this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.existingVolume'),
-          'Container': this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.container'), // eslint-disable-line
+        'Container': this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.container'), // eslint-disable-line
       }[type];
     },
 
@@ -223,7 +223,7 @@ export default {
 
 <template>
   <div>
-    <Banner color="info" label="Try drag and drop to change bootOrder." />
+    <Banner v-if="!isView" color="info" label="Try drag and drop to change bootOrder." />
     <draggable v-model="rows" @end="update">
       <transition-group>
         <div v-for="(volume, i) in rows" :key="i">
@@ -259,7 +259,7 @@ export default {
               />
             </div>
             <div class="bootOrder">
-              <div>
+              <div v-if="!isView">
                 <button :disabled="i === 0" class="btn btn-sm role-primary" @click.prevent="changeSort(i, false)">
                   <i class="icon icon-lg icon-chevron-up"></i>
                 </button>

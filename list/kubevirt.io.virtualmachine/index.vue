@@ -30,6 +30,7 @@ export default {
       vmis:              this.$store.dispatch('virtual/findAll', { type: HCI.VMI }),
       nodeNetworks:      this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK }),
       clusterNetworks:   this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK }),
+      restore:           this.$store.dispatch('virtual/findAll', { type: HCI.RESTORE }),
     });
 
     this.allVMs = hash.vms;
