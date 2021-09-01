@@ -121,7 +121,7 @@ export default {
 
     out = {
       bodyAttrs: { class: cssClass },
-      title:     getVendor(),,
+      title:     getVendor(),
       ...out,
     };
 

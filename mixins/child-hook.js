@@ -21,7 +21,7 @@ export default {
       this._registerHook(AFTER_FAILURE_HOOKS, boundFn, name, priority);
     },
 
-    applyHooks(key, ...args) {
+    async applyHooks(key, ...args) {
       if ( !key ) {
         throw new Error('Must specify key');
       }

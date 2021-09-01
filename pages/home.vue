@@ -10,7 +10,7 @@ import SimpleBox from '@/components/SimpleBox';
 import LandingPagePreference from '@/components/LandingPagePreference';
 import SingleClusterInfo from '@/components/SingleClusterInfo';
 import { mapGetters, mapState } from 'vuex';
-import { MANAGEMENT, CAPI, VIRTUAL_PROVIDER } from '@/config/types';
+import { MANAGEMENT, CAPI } from '@/config/types';
 import { NAME as MANAGER } from '@/config/product/manager';
 import { STATE } from '@/config/table-headers';
 import { MODE, _IMPORT } from '@/config/query-params';
