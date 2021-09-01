@@ -7,13 +7,14 @@ import { CATALOG, MANAGEMENT, NORMAN } from '@/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
 import LazyImage from '@/components/LazyImage';
 import AppSummaryGraph from '@/components/formatter/AppSummaryGraph';
+import PromptRemoveApp from '@/components/PromptRemoveApp';
 import { sortBy } from '@/utils/sort';
 import { LEGACY } from '@/store/features';
 import { isAlternate } from '@/utils/platform';
 
 export default {
   components: {
-    AppSummaryGraph, LazyImage, Loading
+    AppSummaryGraph, LazyImage, Loading, PromptRemoveApp
   },
 
   async fetch() {
@@ -194,7 +195,7 @@ export default {
       const alt = isAlternate(event);
 
       if (!alt) {
-        app.promptRemove();
+        app.promptRemoveApp();
       } else {
         // User held alt key, so don't prompt
         app.remove();
@@ -442,5 +443,6 @@ export default {
         </div>
       </div>
     </div>
+    <PromptRemoveApp />
   </div>
 </template>

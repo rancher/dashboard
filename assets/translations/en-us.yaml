@@ -3371,7 +3371,9 @@ promptRemove:
   attemptingToRemove: "You are attempting to delete the {type}"
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
   confirmName: "Enter <b>{nameToMatch}</b> below to confirm:"
-  removePlusOne: "Delete the CRD associated with this app"
+
+promptRemoveApp:
+  removeCrd: "Delete the CRD associated with this app"
 
 promptRestore:
   title: Restore Snapshot

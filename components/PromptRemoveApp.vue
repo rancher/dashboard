@@ -1,28 +1,37 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
+import { CATALOG } from '@/config/types';
 import { get, isEmpty } from '@/utils/object';
 import Card from '@/components/Card';
+import Checkbox from '@/components/form/Checkbox';
 import { alternateLabel } from '@/utils/platform';
 import { uniq } from '@/utils/array';
 import AsyncButton from '@/components/AsyncButton';
+import find from 'lodash/find';
 
 export default {
-  components: { Card, AsyncButton },
-  data() {
-    const { resource } = this.$route.params;
+  components: {
+    Card,
+    Checkbox,
+    AsyncButton
+  },
 
+  async fetch() {
+    this.allInstalled = await this.$store.dispatch('cluster/findAll', { type: CATALOG.APP });
+  },
+
+  data() {
     return {
-      hasCustomRemove: false,
-      randomPosition:  Math.random(),
-      confirmName:     '',
-      error:           '',
-      warning:         '',
-      preventDelete:   false,
-      removeComponent: this.$store.getters['type-map/importCustomPromptRemove'](resource),
+      randomPosition:   Math.random(),
+      confirmName:      '',
+      error:            '',
+      warning:          '',
+      preventDelete:    false,
       deleteCrd:        false,
       allInstalled:     null
     };
   },
+
   computed:   {
     names() {
       return this.toRemove.map(obj => obj.nameDisplay).slice(0, 5);
@@ -124,7 +133,7 @@ export default {
       return this.preventDelete || confirmFailed;
     },
 
-    ...mapState('action-menu', ['showPromptRemove', 'toRemove']),
+    ...mapState('action-menu', ['showPromptRemoveApp', 'toRemove']),
     ...mapGetters({ t: 'i18n/t' }),
 
     resourceNames() {
@@ -141,25 +150,31 @@ export default {
 
         return res;
       }, '');
+    },
+
+    checkForCrd() {
+      if (this.allInstalled !== null) {
+        const crd = this.allInstalled.find(installed => installed.metadata.name === `${ this.names }-crd`);
+
+        if (crd) {
+          return true;
+        } else if (this.toRemove.length > 1 && find(this.toRemove, this.names.forEach(name => name))) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
     }
   },
 
   watch:    {
-    showPromptRemove(show) {
+    showPromptRemoveApp(show) {
       if (show) {
-        this.$modal.show('promptRemove');
-
-        let { resource } = this.$route.params;
-
-        if (this.toRemove.length > 0) {
-          resource = this.toRemove[0].type;
-        }
-
-        this.hasCustomRemove = this.$store.getters['type-map/hasCustomPromptRemove'](resource);
-
-        this.removeComponent = this.$store.getters['type-map/importCustomPromptRemove'](resource);
+        this.$modal.show('promptRemoveApp');
       } else {
-        this.$modal.hide('promptRemove');
+        this.$modal.hide('promptRemoveApp');
       }
     },
 
@@ -195,16 +210,21 @@ export default {
     close() {
       this.confirmName = '';
       this.error = '';
-      this.$store.commit('action-menu/togglePromptRemove');
+      this.$store.commit('action-menu/togglePromptRemoveApp');
+      this.deleteCrd = false;
+    },
+
+    addCrdToRemove() {
+      const crd = this.allInstalled.find(res => res.metadata.name === `${ this.names }-crd`);
+
+      if (crd) {
+        this.toRemove.push(crd);
+      } else if (!this.deleteCrd) {
+        this.toRemove.pop();
+      }
     },
 
     remove(btnCB) {
-      if (this.hasCustomRemove && this.$refs?.customPrompt?.remove) {
-        this.$refs.customPrompt.remove();
-
-        return;
-      }
-
       let goTo;
 
       if (this.doneLocation) {
@@ -236,9 +256,11 @@ export default {
         }
         btnCB(true);
         this.close();
+        this.deleteCrd = false;
       } catch (err) {
         this.error = err;
         btnCB(false);
+        this.deleteCrd = false;
       }
     },
 
@@ -254,9 +276,11 @@ export default {
         }
         btnCB(true);
         this.close();
+        this.deleteCrd = false;
       } catch (err) {
         this.error = err;
         btnCB(false);
+        this.deleteCrd = false;
       }
     },
 
@@ -268,8 +292,7 @@ export default {
 
     // If spoofed we need to reload the values as the server can't have watchers for them.
     refreshSpoofedTypes(types) {
-      const inStore = this.$store.getters['currentProduct'].inStore;
-      const promises = types.map(type => this.$store.dispatch(`${ inStore }/findAll`, { type, opt: { force: true } }, { root: true }));
+      const promises = types.map(type => this.$store.dispatch('cluster/findAll', { type, opt: { force: true } }, { root: true }));
 
       return Promise.all(promises);
     }
@@ -280,7 +303,7 @@ export default {
 <template>
   <modal
     class="remove-modal"
-    name="promptRemove"
+    name="promptRemoveApp"
     :width="350"
     height="auto"
     styles="max-height: 100vh;"
@@ -292,31 +315,15 @@ export default {
       </h4>
       <div slot="body">
         <div class="mb-10">
-          <template v-if="!hasCustomRemove">
-            {{ t('promptRemove.attemptingToRemove', { type }) }} <span v-html="resourceNames"></span>
-          </template>
-
-          <template>
-            <component
-              :is="removeComponent"
-              v-if="hasCustomRemove"
-              ref="customPrompt"
-              v-model="toRemove"
-              v-bind="_data"
-              :needs-confirm="needsConfirm"
-              :value="toRemove"
-              :names="names"
-              :type="type"
-            />
-            <div v-if="needsConfirm" class="mt-10">
-              <span
-                v-html="t('promptRemove.confirmName', { nameToMatch }, true)"
-              ></span>
-            </div>
-          </template>
+          {{ t('promptRemove.attemptingToRemove', { type }) }} <span v-html="resourceNames"></span>
+          <div v-if="needsConfirm" class="mt-10">
+            <span
+              v-html="t('promptRemove.confirmName', { nameToMatch }, true)"
+            ></span>
+          </div>
         </div>
         <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
-        <div class="text-warning mb-10">
+        <div class="mb-10">
           {{ warning }}
         </div>
         <div class="text-error mb-10">
@@ -325,6 +332,7 @@ export default {
         <div v-if="!needsConfirm" class="text-info mt-20">
           {{ protip }}
         </div>
+        <Checkbox v-if="checkForCrd" v-model="deleteCrd" label-key="promptRemoveApp.removeCrd" class="mt-10 type" @input="addCrdToRemove" />
       </div>
       <template #actions>
         <button class="btn role-secondary" @click="close">

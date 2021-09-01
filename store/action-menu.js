@@ -2,24 +2,25 @@ import { filterBy, isArray } from '@/utils/array';
 
 export const state = function() {
   return {
-    show:              false,
-    tableSelected:     [],
-    tableAll:          [],
-    resources:         [],
-    elem:              null,
-    event:             null,
-    showPromptMove:    false,
-    showPromptRemove:  false,
-    showPromptRestore: false,
-    showAssignTo:      false,
-    showPromptUpdate:  false,
-    showModal:         false,
-    toMove:            [],
-    toRemove:          [],
-    toRestore:         [],
-    toAssign:          [],
-    toUpdate:          [],
-    modalData:         {},
+    show:                 false,
+    tableSelected:        [],
+    tableAll:             [],
+    resources:            [],
+    elem:                 null,
+    event:                null,
+    showPromptMove:       false,
+    showPromptRemove:     false,
+    showPromptRemoveApp:  false,
+    showPromptRestore:    false,
+    showAssignTo:         false,
+    showPromptUpdate:     false,
+    showModal:            false,
+    toMove:               [],
+    toRemove:             [],
+    toRestore:            [],
+    toAssign:             [],
+    toUpdate:             [],
+    modalData:            {},
   };
 };
 
@@ -84,6 +85,19 @@ export const mutations = {
       resources = [];
     } else {
       state.showPromptRemove = !state.showPromptRemove;
+      if (!isArray(resources)) {
+        resources = [resources];
+      }
+    }
+    state.toRemove = resources;
+  },
+
+  togglePromptRemoveApp(state, resources) {
+    if (!resources) {
+      state.showPromptRemoveApp = false;
+      resources = [];
+    } else {
+      state.showPromptRemoveApp = !state.showPromptRemoveApp;
       if (!isArray(resources)) {
         resources = [resources];
       }
