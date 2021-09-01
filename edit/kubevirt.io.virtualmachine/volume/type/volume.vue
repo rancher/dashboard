@@ -34,11 +34,6 @@ export default {
       }
     },
 
-    namespace: {
-      type:     String,
-      required: true
-    },
-
     typeOption: {
       type:    Array,
       default: () => {

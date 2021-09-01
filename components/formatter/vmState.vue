@@ -52,7 +52,7 @@ export default {
       const out = [];
 
       if (this.networkImpassability) {
-        out.push(this.t('harvester.networkPage.message.vlanInactive', { name: this.row.realAttachNodeName }));
+        out.push(this.t('harvester.network.message.vlanInactive', { name: this.row.realAttachNodeName }));
       }
 
       if (this.row.warningMessage?.pod) {

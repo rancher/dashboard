@@ -42,7 +42,7 @@ export default {
 
     namespace: {
       type:     String,
-      required: true
+      default:  null
     },
 
     typeOption: {
@@ -90,7 +90,9 @@ export default {
 
   computed: {
     allPVCs() {
-      return this.$store.getters['virtual/all'](PVC).filter(P => this.namespace === P.metadata.namespace) || [];
+      return this.$store.getters['virtual/all'](PVC).filter((P) => {
+        return this.namespace ? this.namespace === P.metadata.namespace : true;
+      }) || [];
     },
 
     image() {

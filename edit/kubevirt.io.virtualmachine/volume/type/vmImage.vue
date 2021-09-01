@@ -25,7 +25,7 @@ export default {
 
     namespace: {
       type:     String,
-      required: true
+      default:  null
     },
 
     typeOption: {
@@ -88,7 +88,9 @@ export default {
     pvcsResource() {
       const allPVCs = this.$store.getters['virtual/all'](PVC) || [];
 
-      return allPVCs.find(P => P.id === `${ this.namespace }/${ this.value.volumeName }`);
+      return allPVCs.find((P) => {
+        return this.namespace ? P.id === `${ this.namespace }/${ this.value.volumeName }` : true;
+      });
     },
 
     needSetPVC() {
