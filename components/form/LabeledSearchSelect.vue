@@ -7,9 +7,11 @@ import LabeledTooltip from '@/components/form/LabeledTooltip';
 import VueSelectOverrides from '@/mixins/vue-select-overrides';
 import $ from 'jquery';
 import { onClickOption } from '@/utils/select';
+
 export default {
   components: { LabeledTooltip },
-  mixins:     [LabeledFormElement, VueSelectOverrides],
+
+  mixins: [LabeledFormElement, VueSelectOverrides],
 
   props: {
     appendToBody: {
@@ -91,9 +93,14 @@ export default {
       default: true
     },
   },
+
   data() {
-    return { selectedVisibility: 'visible' };
+    return {
+      selectedVisibility: 'visible',
+      Deselect:           { render: createElement => createElement('span', 'X') }
+    };
   },
+
   computed: {
     currentLabel() {
       const entry = findBy(this.options || [], 'value', this.value);
@@ -105,6 +112,7 @@ export default {
       return this.getOptionLabel(this.value);
     },
   },
+
   methods: {
     // resizeHandler = in mixin
     focusSearch() {
@@ -121,14 +129,26 @@ export default {
         }
       });
     },
+
     onFocus() {
       this.selectedVisibility = 'hidden';
       this.onFocusLabeled();
     },
+
     onBlur() {
       this.selectedVisibility = 'visible';
       this.onBlurLabeled();
     },
+
+    handleSearchBlur() {
+      const searched = this.$refs['select-input'];
+
+      if (searched !== undefined) {
+        this.$emit('blur-create', searched.search);
+        searched.search = '';
+      }
+    },
+
     getOptionLabel(option) {
       if (!option) {
         return;
@@ -150,6 +170,7 @@ export default {
         return option;
       }
     },
+
     withPopper(dropdownList, component, { width }) {
       /**
        * We need to explicitly define the dropdown width since
@@ -201,6 +222,7 @@ export default {
        */
       return () => popper.destroy();
     },
+
     get,
     onClickOption(option, event) {
       onClickOption.call(this, option, event);
@@ -208,6 +230,7 @@ export default {
   },
 };
 </script>
+
 <template>
   <div
     ref="select"
@@ -247,6 +270,8 @@ export default {
       "
       :get-option-label="(opt) => getOptionLabel(opt)"
       :create-option="(name) => (name)"
+      :clear-search-on-blur="handleSearchBlur"
+      :clearable="true"
       :label="optionLabel"
       :options="options"
       :map-keydown="mappedKeys"
@@ -285,6 +310,7 @@ export default {
     />
   </div>
 </template>
+
 <style lang='scss' scoped>
 .labeled-select {
   position: relative;

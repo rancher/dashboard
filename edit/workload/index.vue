@@ -880,25 +880,15 @@ export default {
             <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
           </div>
           
-          <div>
-            <div class="spacer"></div>
-            <h3 class="mb-10">
-              {{ t('workload.serviceAccountName.label') }}
-            </h3>
-            <div class="row">
-              <div class="col span-6">
-                <ServiceNameSelect
-                  v-model="podTemplateSpec.serviceAccount"
-                  :mode="mode"
-                  :select-label="t('workload.serviceAccountName.label')"
-                  :select-placeholder="t('workload.serviceAccountName.label')"
-                  :options="namespacedServiceNames"
-                  option-label="metadata.name"
-                  :searchable="true"
-                />
-              </div>
-            </div>
-          </div>
+          <ServiceNameSelect
+            v-model="podTemplateSpec.serviceAccount"
+            :mode="mode"
+            :select-label="t('workload.serviceAccountName.label')"
+            :select-placeholder="t('workload.serviceAccountName.label')"
+            :options="namespacedServiceNames"
+            option-label="metadata.name"
+            :searchable="true"
+          />
           <div class="spacer"></div>
           <div>
             <h3>{{ t('workload.container.titles.lifecycle') }}</h3>

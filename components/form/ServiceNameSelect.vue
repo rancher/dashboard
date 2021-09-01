@@ -84,7 +84,7 @@ export default {
       if (this.selected !== null) {
         const findSelected = this.options.find(name => this.selected.includes(name.id));
 
-        if (findSelected === undefined) {
+        if (findSelected === undefined && findSelected !== '') {
           isNew = true;
         } else {
           isNew = false;
@@ -114,44 +114,75 @@ export default {
           }
         }
       }
+    },
+
+    blurCreate(e) {
+      const searched = e;
+
+      if (searched !== undefined && searched !== '') {
+        this.selected = searched;
+        this.$emit('input', searched);
+      }
+    },
+
+    clearSearch(event) {
+      if (event.pointerId === 1) {
+        this.selected = null;
+        this.$emit('input', null);
+      }
     }
   },
 };
 </script>
 
 <template>
-  <div
-    :class="{ 'select-after': !selectBeforeText }"
-    class="servicename-select input-container container-flex"
-    @input="change"
-  >
-    <LabeledSearchSelect
-      v-if="selectLabel"
-      v-model="selected"
-      :label="selectLabel"
-      :class="{ 'in-input': !isView }"
-      :options="options"
-      :searchable="true"
-      :clearable="true"
-      :disabled="disabled || isView"
-      :taggable="taggable"
-      :create-option="(name) => (name)"
-      :reduce="(name) => `${name}`"
-      :multiple="false"
-      :mode="mode"
-      :option-label="optionLabel"
-      :placement="$attrs.placement ? $attrs.placement : null"
-      :v-bind="$attrs"
-      @input="change"
-    />
-    <div class="step__values__controls--spacer" style="flex:1">
-      &nbsp;
+  <div>
+    <div class="spacer"></div>
+    <div class="row mb-10">
+      <h3 class="col span-6">
+        {{ t('workload.serviceAccountName.label') }}
+      </h3>
+    </div>
+    <div class="row">
+      <div class="col span-5">
+        <div
+          :class="{ 'select-after': !selectBeforeText }"
+          class="servicename-select input-container container-flex"
+          @input="change"
+        >
+          <LabeledSearchSelect
+            v-if="selectLabel"
+            v-model="selected"
+            :label="selectLabel"
+            :class="{ 'in-input': !isView }"
+            :options="options"
+            :searchable="true"
+            :clearable="true"
+            :disabled="disabled || isView"
+            :taggable="taggable"
+            :create-option="(name) => (name)"
+            :reduce="(name) => `${name}`"
+            :multiple="false"
+            :mode="mode"
+            :option-label="optionLabel"
+            :placement="$attrs.placement ? $attrs.placement : null"
+            :v-bind="$attrs"
+            @input="change"
+            @blur-create="blurCreate"
+          />
+        </div>
+      </div>
+      <button class="btn btn-sm role-secondary col span-1" @click="clearSearch($event)">
+        <i class="icon icon-delete icon-lg" />
+      </button>
     </div>
     <template v-if="serviceNameNew">
-      <Banner
-        color="info"
-        v-html="t('workload.serviceAccountName.createMessage', {name: selected}) "
-      ></Banner>
+      <div class="row span-6">
+        <Banner
+          color="info"
+          v-html="t('workload.serviceAccountName.createMessage', {name: selected}) "
+        ></Banner>
+      </div>
     </template>
   </div>
 </template>
