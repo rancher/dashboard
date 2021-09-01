@@ -8,8 +8,8 @@ import { cronSchedule } from '@/utils/validators/cron-schedule';
 import { podAffinity } from '@/utils/validators/pod-affinity';
 import { roleTemplateRules } from '@/utils/validators/role-template';
 import { clusterName } from '@/utils/validators/cluster-name';
-import { isHttps } from '@/utils/validators/setting';
-import { backupTarget } from '@/utils/validators/setting';
+import { isHttps, backupTarget } from '@/utils/validators/setting';
+
 import { imageUrl, fileRequired } from '@/utils/validators/vm-image';
 import { vmNetworks, vmDisks } from '@/utils/validators/vm';
 import { dataVolumeSize } from '@/utils/validators/vm-datavolumes';
@@ -34,8 +34,8 @@ export default {
   cronSchedule,
   podAffinity,
   roleTemplateRules,
-  isHttps
-  backupTarget
+  isHttps,
+  backupTarget,
   imageUrl,
   dataVolumeSize,
   vmNetworks,

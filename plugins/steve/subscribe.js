@@ -478,6 +478,7 @@ export const actions = {
     queueChange(ctx, msg, false, 'Remove');
 
     const data = msg.data;
+    const type = data.type;
     const typeOption = ctx.rootGetters['type-map/optionsFor'](type);
 
     if (typeOption?.alias?.length > 0) {
