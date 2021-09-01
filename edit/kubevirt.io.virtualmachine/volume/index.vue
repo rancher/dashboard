@@ -44,6 +44,11 @@ export default {
       default: null
     },
 
+    existingVolumeDisabled: {
+      type:    Boolean,
+      default: false
+    },
+
     customVolumeMode: {
       type:    String,
       default: 'Block'
@@ -288,7 +293,7 @@ export default {
         {{ t('harvester.virtualMachine.volume.addVolume') }}
       </button>
 
-      <button type="button" class="btn btn-sm bg-primary mr-15 mb-10" @click="addVolume(SOURCE_TYPE.ATTACH_VOLUME)">
+      <button v-if="!existingVolumeDisabled" type="button" class="btn btn-sm bg-primary mr-15 mb-10" @click="addVolume(SOURCE_TYPE.ATTACH_VOLUME)">
         {{ t('harvester.virtualMachine.volume.addExistingVolume') }}
       </button>
 
