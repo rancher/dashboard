@@ -151,6 +151,19 @@ export default {
     @input="add"
     @search="onSearch"
   >
+    <template v-slot:no-options="{ search: searchVal , searching }">
+      <template v-if="searching">
+        <span class="search-slot">
+          No results found for <em>{{ searchVal }}</em>
+        </span>
+      </template>
+      <div v-else>
+        <em class="search-slot">
+          {{ t('cluster.memberRoles.addClusterMember.searchPlaceholder') }}
+        </em>
+      </div>
+    </template>
+
     <template v-if="!searchStr && options.length" #list-header>
       <li class="pl-10 text-muted">
         Your Groups:
@@ -168,6 +181,10 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .search-slot{
+    color: var(--body-text);
+  }
+
   .select-principal {
     &.retain-selection {
       min-height: 86px;
