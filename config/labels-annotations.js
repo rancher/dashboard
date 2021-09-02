@@ -128,7 +128,7 @@ export const HCI = {
   MAINTENANCE_STATUS:           'harvesterhci.io/maintain-status',
   HOST_CUSTOM_NAME:             'harvesterhci.io/host-custom-name',
   HOST_CONSOLE_URL:             'harvesterhci.io/host-console-url',
-  BACKUP_TARGET:                'backup.harvesterhci.io/backupTarget',
+  BACKUP_TARGET:                'backup.harvesterhci.io/backup-target',
   RESTORE_NAME:                 'restore.harvesterhci.io/name',
   NODE_ROLE_MASTER:             'node-role.kubernetes.io/master',
   NODE_ROLE_CONTROL_PLANE:      'node-role.kubernetes.io/control-plane',
