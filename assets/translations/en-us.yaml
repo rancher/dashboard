@@ -4705,6 +4705,12 @@ harvester:
       warnTip: Eject volume will restart the virtual machine.
       operationTip: 'Select the volume you want to delete:'
       delete: Delete
+    bundle:
+      title: Generate Support Bundle
+      url: Issue URL
+      description: Description
+      requiredDesc: Description is required!
+      titleDescription: Collect system-related log in Harvester, to help with troubleshooting and support.
   notification:
     title:
       succeed: Succeed

@@ -18,5 +18,16 @@ export default {
 
   precent() {
     return this?.status?.progress / 100 || 0;
-  }
+  },
+
+  customValidationRules() {
+    return [
+      {
+        nullable:       false,
+        path:           'spec.description',
+        required:       true,
+        translationKey: 'harvester.modal.bundle.description',
+      },
+    ];
+  },
 };

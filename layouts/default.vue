@@ -56,7 +56,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct']),
+    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isVirtualCluster']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel' }),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -145,6 +145,20 @@ export default {
       }
 
       return displayVersion;
+    },
+
+    showProductSupport() {
+      if (this.isVirtualCluster) {
+        return true;
+      } else {
+        return false;
+      }
+    },
+
+    supportLink() {
+      const product = this.$store.getters['currentProduct'].name;
+
+      return { name: `c-cluster-${ product }-support` };
     },
   },
 
@@ -531,6 +545,13 @@ export default {
         </n-link>
         <div class="version text-muted">
           {{ displayVersion }}
+          <nuxt-link
+            v-if="showProductSupport"
+            :to="supportLink"
+            class="pull-right"
+          >
+            {{ t('nav.support', {hasSupport: true}) }}
+          </nuxt-link>
         </div>
       </nav>
       <main v-if="clusterReady">

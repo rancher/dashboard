@@ -27,11 +27,13 @@ export default {
     ]),
 
     options() {
+      const product = this.$store.getters['currentProduct'].name;
+
       if (this.communitySetting?.value === 'false') {
-        return options(this.uiIssuesSetting?.value, true);
+        return options(this.uiIssuesSetting?.value, true, product);
       }
 
-      return options( this.uiIssuesSetting?.value);
+      return options( this.uiIssuesSetting?.value, false, product);
     },
   },
   methods: {

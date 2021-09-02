@@ -1,0 +1,213 @@
+<script>
+import randomstring from 'randomstring';
+import { exceptionToErrorsArray, stringify } from '@/utils/error';
+import { HCI } from '@/config/types';
+import LabeledInput from '@/components/form/LabeledInput';
+import AsyncButton from '@/components/AsyncButton';
+import GraphCircle from '@/components/graph/Circle';
+import Banner from '@/components/Banner';
+
+export default {
+  name: 'SuppportBundle',
+
+  components: {
+    LabeledInput,
+    GraphCircle,
+    AsyncButton,
+    Banner,
+  },
+
+  data() {
+    return {
+      url:         '',
+      description: '',
+      errors:      [],
+    };
+  },
+
+  computed: {
+    bundlePending() {
+      return this.$store.getters['common/isBundlePending'];
+    },
+
+    isShowBundleModal() {
+      return this.$store.getters['common/isShowBundleModal'];
+    },
+
+    percentage() {
+      return this.$store.getters['common/getBundlePercentage'];
+    }
+  },
+
+  watch: {
+    isShowBundleModal: {
+      handler(show) {
+        if (show) {
+          this.$nextTick(() => {
+            this.$modal.show('bundle-modal');
+          });
+        } else {
+          this.$modal.hide('bundle-modal');
+          this.url = '';
+          this.description = '';
+        }
+      },
+      immediate: true
+    },
+  },
+
+  methods: {
+    stringify,
+
+    close() {
+      this.$store.commit('common/toggleBundleModal', false);
+      this.backUpName = '';
+    },
+
+    async save(buttonCb) {
+      this.errors = [];
+
+      const name = `bundle-${ randomstring.generate(5).toLowerCase() }`;
+      const namespace = 'harvester-system';
+
+      const bundleCrd = {
+        apiVersion: 'harvesterhci.io/v1beta1',
+        type:       HCI.SUPPORT_BUNDLE,
+        kind:       'SupportBundle',
+        metadata:   {
+          name,
+          namespace
+        },
+        spec: {
+          issueURL:    this.url,
+          description: this.description
+        }
+      };
+
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const bundleValue = await this.$store.dispatch(`${ inStore }/create`, bundleCrd);
+
+      try {
+        await bundleValue.save({ extend: { isRes: true } });
+
+        this.$store.commit('common/setLatestBundleId', `${ namespace }/${ name }`, { root: true });
+        this.$store.dispatch('common/bundleProgress', { root: true });
+      } catch (err) {
+        this.errors = exceptionToErrorsArray(err);
+        buttonCb(false);
+      }
+    },
+  }
+};
+</script>
+
+<template>
+  <div class="bundleModal">
+    <modal
+      styles="background-color: var(--default) !important; border-radius: var(--border-radius); max-height: 100vh;"
+      name="bundle-modal"
+      :click-to-close="false"
+      :width="550"
+      :height="390"
+      class="remove-modal"
+    >
+      <div class="p-20">
+        <h2>
+          {{ t('harvester.modal.bundle.title') }}
+        </h2>
+
+        <div
+          v-if="!bundlePending"
+          class="content"
+        >
+          <LabeledInput
+            v-model="url"
+            :label="t('harvester.modal.bundle.url')"
+            class="mb-20"
+          />
+
+          <LabeledInput
+            v-model="description"
+            :label="t('harvester.modal.bundle.description')"
+            type="multiline"
+            :min-height="120"
+            required
+          />
+        </div>
+
+        <div
+          v-else
+          class="content"
+        >
+          <div class="circle">
+            <GraphCircle
+              primary-stroke-color="green"
+              secondary-stroke-color="white"
+              :stroke-width="6"
+              :percentage="percentage"
+              :show-text="true"
+            />
+          </div>
+        </div>
+
+        <div
+          v-for="(err, idx) in errors"
+          :key="idx"
+        >
+          <Banner
+            color="error"
+            :label="stringify(err)"
+          />
+        </div>
+
+        <div class="footer mt-20">
+          <button
+            class="btn btn-sm role-secondary mr-10"
+            @click="close"
+          >
+            {{ t('generic.close') }}
+          </button>
+
+          <AsyncButton
+            type="submit"
+            mode="create"
+            class="btn btn-sm bg-primary"
+            :disabled="bundlePending"
+            @click="save"
+          />
+        </div>
+      </div>
+    </modal>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.bundleModal {
+  .bundle {
+    cursor: pointer;
+    color: var(--primary);
+  }
+
+  .icon-spinner {
+    font-size: 100px;
+  }
+
+  .content {
+    height: 218px;
+
+    .circle {
+      padding-top: 20px;
+      height: 160px;
+    }
+  }
+
+  div {
+    line-height: normal;
+  }
+
+  .footer {
+    display: flex;
+    justify-content: center;
+  }
+}
+</style>

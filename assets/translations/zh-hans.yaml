@@ -3791,6 +3791,12 @@ harvester:
       warnTip: 弹出卷将导致重新启动虚拟机.
       operationTip: '选择您要删除的卷:'
       delete: 删除
+    bundle:
+      title: 创建支持包
+      url: Issue地址
+      description: 描述
+      requiredDesc: 描述是必填项!
+      titleDescription: 收集Harvester系统相关日志, 以便定位问题和获取支持.
   notification:
     title:
       succeed: 成功

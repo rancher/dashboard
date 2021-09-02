@@ -93,7 +93,7 @@ export const actions = {
           commit('setBundlePercentage', 0);
         }, 600);
 
-        window.location.href = `${ parse.origin }/v1/supportbundles/${ name }/download`;
+        window.location.href = `${ parse.origin }/v1/harvester/supportbundles/${ name }/download`;
         clearInterval(timer);
       }
     }, 1000);
