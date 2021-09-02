@@ -47,7 +47,8 @@ export default {
 
       // Hide top-level groups with no children (or one child that is an overview)
       this.groups.forEach((g) => {
-        const hidden = g.children?.length === 0 || (g.children?.length === 1 && g.children[0].overview);
+        const isRoot = g.isRoot || g.name === 'Root';
+        const hidden = isRoot || g.children?.length === 0 || (g.children?.length === 1 && g.children[0].overview);
 
         g.hidden = !!hidden;
       });
