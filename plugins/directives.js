@@ -16,6 +16,8 @@ const getElement = (vnode) => {
     return vnode.componentInstance.$refs.value;
 
   case 'LabeledSelect':
+    vnode.componentInstance.shouldOpen = false;
+
     return vnode.componentInstance.$refs['select-input'].$refs.search;
   }
 };

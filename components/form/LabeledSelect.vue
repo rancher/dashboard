@@ -94,7 +94,10 @@ export default {
   },
 
   data() {
-    return { selectedVisibility: 'visible' };
+    return {
+      selectedVisibility: 'visible',
+      shouldOpen:         true
+    };
   },
 
   computed: {
