@@ -49,6 +49,7 @@ generic:
   hideAdvanced: Hide Advanced
   type: Type
   unknown: Unknown
+  provisioning: '—'
   key: Key
   value: Value
   yes: Yes

@@ -142,7 +142,7 @@ export default {
   },
 
   kubernetesVersion() {
-    return this.kubernetesVersionRaw || this.$rootGetters['i18n/t']('generic.unknown');
+    return this.kubernetesVersionRaw || this.$rootGetters['i18n/t']('generic.provisioning');
   },
 
   kubernetesVersionBase() {
