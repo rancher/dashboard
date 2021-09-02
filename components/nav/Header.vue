@@ -186,14 +186,19 @@ export default {
     </div>
     <div v-if="!simple" class="product">
       <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster cluster-clipped">
-        <RancherProviderIcon v-if="currentCluster && currentCluster.isLocal" class="mr-10 cluster-local-logo" width="25" />
-        <img v-else-if="currentCluster && currentCluster.providerLogo" class="cluster-os-logo" :src="currentCluster.providerLogo" />
-        <div v-if="currentCluster" ref="clusterName" class="cluster-name">
-          {{ currentCluster.spec.displayName }}
+        <div v-if="isSingleVirtualCluster" class="product-name">
+          {{ t('product.virtual') }}
         </div>
-        <div v-else class="simple-title">
-          <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
-        </div>
+        <template v-else>
+          <RancherProviderIcon v-if="currentCluster && currentCluster.isLocal" class="mr-10 cluster-local-logo" width="25" />
+          <img v-else-if="currentCluster && currentCluster.providerLogo" class="cluster-os-logo" :src="currentCluster.providerLogo" />
+          <div v-if="currentCluster" ref="clusterName" class="cluster-name">
+            {{ currentCluster.spec.displayName }}
+          </div>
+          <div v-else class="simple-title">
+            <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
+          </div>
+        </template>
       </div>
       <div v-if="currentProduct && !currentProduct.showClusterSwitcher" class="cluster">
         <div class="product-name">
