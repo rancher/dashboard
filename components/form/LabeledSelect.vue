@@ -214,6 +214,17 @@ export default {
     get,
     onClickOption(option, event) {
       onClickOption.call(this, option, event);
+    },
+    dropdownShouldOpen(instance) {
+      const { noDrop, open, mutableLoading } = instance;
+      const shouldOpen = this.shouldOpen;
+
+      if (shouldOpen === false) {
+        this.shouldOpen = true;
+        instance.open = false;
+      }
+
+      return noDrop ? false : open && shouldOpen && !mutableLoading;
     }
   },
 };
@@ -266,6 +277,7 @@ export default {
       :searchable="isSearchable"
       :selectable="selectable"
       :value="value != null && !loading ? value : ''"
+      :dropdown-should-open="dropdownShouldOpen"
       v-on="$listeners"
       @search:blur="onBlur"
       @search:focus="onFocus"
