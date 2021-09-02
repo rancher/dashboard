@@ -8,9 +8,9 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import ModalWithCard from '@/components/ModalWithCard';
 
+import { PVC } from '@/config/types';
 import { clone } from '@/utils/object';
 import { removeObject } from '@/utils/array';
-import { PVC } from '@/config/types';
 import { SOURCE_TYPE, InterfaceOption } from '@/config/map';
 import { _VIEW, _EDIT, _CREATE } from '@/config/query-params';
 
@@ -263,8 +263,9 @@ export default {
                 @update="update"
               />
             </div>
+
             <div class="bootOrder">
-              <div v-if="!isView">
+              <div v-if="!isView" class="mr-15">
                 <button :disabled="i === 0" class="btn btn-sm role-primary" @click.prevent="changeSort(i, false)">
                   <i class="icon icon-lg icon-chevron-up"></i>
                 </button>
@@ -273,7 +274,8 @@ export default {
                   <i class="icon icon-lg icon-chevron-down"></i>
                 </button>
               </div>
-              <div class="ml-15 text-muted">
+
+              <div class="text-muted">
                 bootOrder: {{ i + 1 }}
               </div>
             </div>

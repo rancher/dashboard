@@ -1,5 +1,26 @@
 <script>
-export default {
+import Vue from 'vue';
+
+const component = Vue.component('InputOrDisplay', {
+  render(h) {
+    if (this.isView) {
+      return h('div',
+        { attrs: { class: 'label' } },
+        [
+          h('div',
+            { attrs: { class: 'text-label' } },
+            this.$slots.name ? this.$slots.name : this.name
+          ),
+          h('div',
+            { attrs: { class: 'value' } },
+            this.$slots.value ? this.$slots.value : this.displayValue
+          )
+        ]
+      );
+    } else {
+      return this.$slots.default;
+    }
+  },
   props: {
     name: {
       type:     String,
@@ -14,7 +35,6 @@ export default {
       default: 'edit'
     }
   },
-
   computed: {
     isView() {
       return this.mode === 'view';
@@ -28,27 +48,10 @@ export default {
       }
     }
   }
-};
+});
+
+export default component;
 </script>
-
-<template>
-  <div>
-    <div v-if="isView" class="label">
-      <div class="text-label">
-        <slot name="name">
-          {{ name }}
-        </slot>
-      </div>
-
-      <div class="value">
-        <slot name="value">
-          {{ displayValue }}
-        </slot>
-      </div>
-    </div>
-    <slot v-else />
-  </div>
-</template>
 
 <style lang="scss" scoped>
 .label {
