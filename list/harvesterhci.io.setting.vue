@@ -30,7 +30,7 @@ export default {
     let allRows = [...rows.clusterNetwork, ...rows.haversterSettings];
 
     if (isSingleVirtualCluster) {
-      allRows = [...allRows, ...rows.settings];
+      allRows = [...rows.settings, ...allRows];
     }
 
     // Map settings from array to object keyed by id
@@ -46,12 +46,8 @@ export default {
     if (isSingleVirtualCluster) {
       SETTINGS = {
         ...HCI_ALLOWED_SETTINGS,
-        [SETTING.AUTH_USER_INFO_MAX_AGE_SECONDS]: ALLOWED_SETTINGS.AUTH_USER_INFO_MAX_AGE_SECONDS,
-        [SETTING.AUTH_USER_SESSION_TTL_MINUTES]:  ALLOWED_SETTINGS.AUTH_USER_SESSION_TTL_MINUTES,
-        [SETTING.AUTH_TOKEN_MAX_TTL_MINUTES]:     ALLOWED_SETTINGS.AUTH_TOKEN_MAX_TTL_MINUTES,
         [SETTING.SERVER_URL]:                     ALLOWED_SETTINGS.SERVER_URL,
         [SETTING.UI_DASHBOARD_INDEX]:             ALLOWED_SETTINGS.UI_DASHBOARD_INDEX,
-        [SETTING.UI_OFFLINE_PREFERRED]:           ALLOWED_SETTINGS.UI_OFFLINE_PREFERRED,
       };
     }
 
@@ -59,7 +55,6 @@ export default {
       if (!settingsMap[setting]) {
         return;
       }
-
       const realSetting = SETTINGS[setting]?.alias || setting;
       const s = {
         ...SETTINGS[setting],
@@ -100,7 +95,7 @@ export default {
         return {
           ...s,
           description: this.t(`advancedSettings.descriptions.${ s.id }`),
-          customized:  (!s.readonly && s.data.value && s.data.value !== s.data.default) || s.data.hasCustomized
+          customized:  (!s.readOnly && s.data.value && s.data.value !== s.data.default) || s.data.hasCustomized
         };
       });
     }

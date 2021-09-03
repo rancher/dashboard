@@ -88,11 +88,8 @@ export const ALLOWED_SETTINGS = {
 
 // harvester Settings ID
 const HCI_SETTING = {
-  API_UI_SOURCE:                    'api-ui-source',
-  AUTH_TOKEN_MAX_TTL_MINUTES:       'auth-token-max-ttl-minutes',
   BACKUP_TARGET:                    'backup-target',
   LOG_LEVEL:                        'log-level',
-  RANCHER_ENABLED:                  'rancher-enabled',
   SERVER_URL:                       'server-url',
   SERVER_VERSION:                   'server-version',
   UI_INDEX:                         'ui-index',
@@ -103,11 +100,6 @@ const HCI_SETTING = {
 };
 
 export const HCI_ALLOWED_SETTINGS = {
-  [HCI_SETTING.API_UI_SOURCE]: {
-    kind:    'enum',
-    options: ['auto', 'external', 'bundled']
-  },
-  [HCI_SETTING.AUTH_TOKEN_MAX_TTL_MINUTES]:       {},
   [HCI_SETTING.BACKUP_TARGET]:                    {
     kind: 'json', from: 'import', disableReset: true
   },
@@ -115,10 +107,8 @@ export const HCI_ALLOWED_SETTINGS = {
     kind:    'enum',
     options: ['info', 'debug', 'trace']
   },
-  [HCI_SETTING.RANCHER_ENABLED]:                  { kind: 'boolean' },
-  [HCI_SETTING.SERVER_VERSION]:                   {},
+  [HCI_SETTING.SERVER_VERSION]:                   { readOnly: true },
   [HCI_SETTING.SERVER_URL]:                       {},
-  [HCI_SETTING.UI_INDEX]:                         { kind: 'url' },
   [HCI_SETTING.UPGRADE_CHECKER_ENABLED]:          { kind: 'boolean' },
   [HCI_SETTING.UPGRADE_CHECKER_URL]:              { kind: 'url' },
   [HCI_SETTING.VLAN]:                             {

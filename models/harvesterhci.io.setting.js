@@ -3,35 +3,28 @@ import { HCI_ALLOWED_SETTINGS } from '@/config/settings';
 
 export default {
   _availableActions() {
-    const out = this._standardActions;
-
     const toFilter = ['cloneYaml', 'download', 'goToEditYaml', 'goToViewYaml', 'goToViewConfig', 'promptRemove'];
+    const settingMetadata = HCI_ALLOWED_SETTINGS[this.id];
 
-    const actions = out.map((O) => {
-      const enabled = toFilter.includes(O.action) ? false : O.enabled;
-      const bulkable = toFilter.includes(O.action) ? false : O?.bulkable;
+    let out = this._standardActions;
 
-      return {
-        ...O,
-        enabled,
-        bulkable
-      };
+    // Some settings are not editable
+    if ( settingMetadata?.readOnly || this.fromEnv ) {
+      toFilter.push('goToEdit');
+    }
+
+    out = out.filter((action) => {
+      return (!toFilter.includes(action.action));
     });
 
-    const editAction = actions.find(action => action.action === 'goToEdit');
+    // Change the label on the first action (edit)
+    const editAction = out.find(action => action.action === 'goToEdit');
 
     if (editAction) {
       editAction.label = this.t('advancedSettings.edit.label');
     }
 
-    return actions;
-  },
-
-  hasCustomized() {
-    const setting = HCI_ALLOWED_SETTINGS[this.id];
-    const readonly = !!setting.readOnly;
-
-    return !readonly && this.value && this.value !== this.default;
+    return out;
   },
 
   backupTagetetIsEmpty() {
