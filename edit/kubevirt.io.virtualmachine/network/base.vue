@@ -131,7 +131,7 @@ export default {
     },
 
     hasManagementNetwork() {
-      return !!this.rows.findIndex(N => N.isPod);
+      return !!this.rows.some(N => N.isPod);
     },
   },
 
