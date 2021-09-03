@@ -2,6 +2,7 @@
 import BrandImage from '@/components/BrandImage';
 import { mapState } from 'vuex';
 import { stringify } from '@/utils/error';
+import { getVendor } from '@/config/private-label';
 
 export default {
   layout: 'home',
@@ -17,10 +18,10 @@ export default {
       this.$router.replace('/');
     }
 
-    const isSingleVirtualCluster = store.getters.isSingleVirtualCluster;
+    const isOnlyHarvester = getVendor();
 
     return {
-      home:          isSingleVirtualCluster ? 'c/local/virtual/harvesterhci.io.dashboard' : home,
+      home:          isOnlyHarvester ? 'c/local/virtual/harvesterhci.io.dashboard' : home,
       previousRoute: '',
       styles:        { '--custom-content': `'${ this.t('nav.failWhale.separator') }'` }
     };
