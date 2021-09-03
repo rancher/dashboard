@@ -226,6 +226,9 @@ export default {
   mounted() {
     this.imageId = this.$route.query?.image || this.imageId;
 
+    const diskRows = this.getDiskRows(this.value);
+
+    this.$set(this, 'diskRows', diskRows);
     const templateId = this.$route.query.templateId;
     const templateVersionId = this.$route.query.versionId;
 
@@ -433,7 +436,13 @@ export default {
           :label="t('harvester.tab.volume')"
           :weight="-1"
         >
-          <Volume v-model="diskRows" :mode="mode" :custom-volume-mode="customVolumeMode" :namespace="value.metadata.namespace" :vm="value" />
+          <Volume
+            v-model="diskRows"
+            :mode="mode"
+            :custom-volume-mode="customVolumeMode"
+            :namespace="value.metadata.namespace"
+            :vm="value"
+          />
         </Tab>
 
         <Tab
