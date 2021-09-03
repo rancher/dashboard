@@ -122,7 +122,7 @@ export const MONITORING = {
 export const LONGHORN = {
   ENGINES:       'longhorn.io.engine',
   ENGINE_IMAGES: 'longhorn.io.engineimage',
-  NODES:         'longhorn.io.node',
+  NODE:          'longhorn.io.node',
   REPLICAS:      'longhorn.io.replica',
   SETTINGS:      'longhorn.io.setting',
   VOLUMES:       'longhorn.io.volume',

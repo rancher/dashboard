@@ -8,7 +8,7 @@ import { allHash } from '@/utils/promise';
 import { parseSi, formatSi, exponentNeeded, UNITS } from '@/utils/units';
 import { REASON } from '@/config/table-headers';
 import {
-  EVENT, METRIC, NODE, HCI, SERVICE, PVC
+  EVENT, METRIC, NODE, HCI, SERVICE, PVC, LONGHORN
 } from '@/config/types';
 import ResourceSummary, { resourceCounts } from '@/components/ResourceSummary';
 import HardwareResourceGauge from '@/components/HardwareResourceGauge';
@@ -83,7 +83,8 @@ export default {
       metricNodes:  this.fetchClusterResources(METRIC.NODE),
       settings:     this.fetchClusterResources(HCI.SETTING),
       services:     this.fetchClusterResources(SERVICE),
-      metric:      this.fetchClusterResources(METRIC.NODE)
+      metric:       this.fetchClusterResources(METRIC.NODE),
+      longhornNode: this.fetchClusterResources(LONGHORN.NODE)
     };
 
     (this.accessibleResources || []).map((a) => {
@@ -242,8 +243,14 @@ export default {
     storageUsage() {
       let out = 0;
 
-      this.metricNodes.forEach((node) => {
-        out += node.storageUsage;
+      this.longhornNode.filter(n => n.spec.allowScheduling).forEach((node) => {
+        const diskStatus = node?.status?.diskStatus || {};
+
+        Object.values(diskStatus).map((disk) => {
+          if (disk?.storageAvailable && disk?.storageMaximum) {
+            out += disk.storageMaximum - disk.storageAvailable;
+          }
+        });
       });
 
       return out;
@@ -262,7 +269,7 @@ export default {
     cpuUsed() {
       return {
         total:  this.cpusTotal,
-        useful: this.cpusUsageTotal,
+        useful: Number(formatSi(this.cpusUsageTotal)),
       };
     },
 
@@ -402,15 +409,15 @@ export default {
     <div class="hardware-resource-gauges">
       <HardwareResourceGauge
         :name="t('harvester.dashboard.hardwareResourceGauge.cpu')"
-        :reserved="cpuUsed"
+        :used="cpuUsed"
       />
       <HardwareResourceGauge
         :name="t('harvester.dashboard.hardwareResourceGauge.memory')"
-        :reserved="memoryUsed"
+        :used="memoryUsed"
       />
       <HardwareResourceGauge
         :name="t('harvester.dashboard.hardwareResourceGauge.storage')"
-        :reserved="storageUsed"
+        :used="storageUsed"
         :units="storageUsed.units"
       />
     </div>
