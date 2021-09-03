@@ -2,8 +2,9 @@
 import InputOrDisplay from '@/components/InputOrDisplay';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import { _CREATE, _VIEW } from '@/config/query-params';
+
 import { clone } from '@/utils/object';
+import { _CREATE, _VIEW } from '@/config/query-params';
 
 const MANAGEMENT_NETWORK = 'management Network';
 
@@ -69,9 +70,10 @@ export default {
     }
 
     return {
-      errors:   [],
-      rowIndex: 0,
+      errors:       [],
+      rowIndex:     0,
       isManagementNetwork,
+      isMasquerade: false
     };
   },
 
@@ -90,10 +92,6 @@ export default {
 
     modelOption() {
       return MODEL;
-    },
-
-    isMasquerade() {
-      return this.value.isPod;
     },
 
     allNetworkOption() {
@@ -140,9 +138,12 @@ export default {
       handler(neu) {
         if (neu === MANAGEMENT_NETWORK) {
           this.value.isPod = true;
+          this.value.macAddress = '';
         } else {
           this.value.isPod = false;
         }
+
+        this.$set(this, 'isMasquerade', this.value.isPod);
 
         if (this.value.isPod) {
           this.value.type = 'masquerade';
