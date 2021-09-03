@@ -483,7 +483,7 @@ export default {
       <template v-if="rows.length || isView">
         <label class="text-label">
           {{ keyLabel }}
-          <i v-if="protip && !isView" v-tooltip="protip" class="icon icon-info" />
+          <i v-if="protip && !isView && addAllowed" v-tooltip="protip" class="icon icon-info" />
         </label>
         <label class="text-label">
           {{ valueLabel }}
