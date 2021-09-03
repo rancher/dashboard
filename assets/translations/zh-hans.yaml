@@ -260,7 +260,7 @@ authConfig:
           5: '在OAuth凭证框中上传下载的JSON文件。'
       3:
         title: '第三步：创建服务账户凭证'
-        introduction: '按照<a href="https://rancher.com/docs/rancher/v2.x/en/admin-settings/authentication/google/#creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">这里</a>指南。'
+        introduction: '按照<a href="{docsBase}/admin-settings/authentication/google/#creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">这里</a>指南。'
         body:
           1: 创建一个 service account。
           2: 为这个service account生成密钥。
@@ -665,7 +665,7 @@ chartHeading:
 
 cis:
   addTest: 添加测试 ID
-  alertNeeded: Alerting must be enabled within the CIS chart questions.yaml. This requires that <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's Monitoring and Alerting app</a> is installed and the Receivers and Routes are <a target="_blank" rel='noopener nofollow' href='https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/configuration/#alertmanager-config'> configured to send out alerts.</a>
+  alertNeeded: Alerting must be enabled within the CIS chart questions.yaml. This requires that <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's Monitoring and Alerting app</a> is installed and the Receivers and Routes are <a target="_blank" rel='noopener nofollow' href='{docsBase}/monitoring-alerting/configuration/#alertmanager-configuration'> configured to send out alerts.</a>
   alertOnComplete: 扫描完成告警
   alertOnFailure: 扫描失败告警
   benchmarkVersion: Benchmark 版本  

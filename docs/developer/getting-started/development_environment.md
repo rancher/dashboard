@@ -26,18 +26,18 @@ HTTP Proxy middleware | https://github.com/nuxt-community/proxy-module (https://
 The Dashboard is shipped with the Rancher package which contains the Rancher API. When developing locally the Dashboard must point to an instance of the Rancher API.
 
 ### Installing Rancher
-See https://rancher.com/docs/rancher/v2.x/en/installation/. This covers two methods confirmed to work with the Dashboard
-- [Single Docker Container](https://rancher.com/docs/rancher/v2.x/en/installation/other-installation-methods/single-node-docker/)
-- [Kube Cluster (via Helm)](https://rancher.com/docs/rancher/v2.x/en/installation/install-rancher-on-k8s/)
+See https://rancher.com/docs/rancher/v2.6/en/installation/. This covers two methods confirmed to work with the Dashboard
+- [Single Docker Container](https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/)
+- [Kube Cluster (via Helm)](https://rancher.com/docs/rancher/v2.6/en/installation/install-rancher-on-k8s/)
 
 Also for consideration
-- [RKE in a binary (rancherd)](https://rancher.com/docs/rancher/v2.x/en/installation/install-rancher-on-linux/)
+- [RKE2 in a binary (rancherd)](https://rancher.com/docs/rancher/v2.5/en/installation/install-rancher-on-linux/) Note: RancherD is being rewritten as of Rancher v2.6.
 
 You should be able to reach the older Ember UI by navigating to the Rancher API url. This same API Url will be used later when starting up the Dashboard.
 
 ### Uninstalling Rancher
 - Docker - This should be a simple `docker stop` & `docker rm`
-- Kube Cluster -  Use `helm delete` as usual and then the `remove` command from [System Tools](https://rancher.com/docs/rancher/v2.x/en/system-tools/) client 
+- Kube Cluster -  Use `helm delete` as usual and then the `remove` command from [System Tools](https://rancher.com/docs/rancher/v2.6/en/system-tools/) client 
 
 
 ## Environment
