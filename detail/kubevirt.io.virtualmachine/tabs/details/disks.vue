@@ -33,6 +33,6 @@ export default {
 
 <template>
   <div class="vm-inventory">
-    <Volume v-model="diskRows" mode="view" />
+    <Volume v-model="diskRows" :namespace="value.metadata.namespace" mode="view" />
   </div>
 </template>
