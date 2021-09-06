@@ -70,10 +70,10 @@ export default {
     }
 
     return {
-      errors:       [],
-      rowIndex:     0,
+      errors:               [],
       isManagementNetwork,
-      isMasquerade: false
+      isMasquerade:         false,
+      hasManagementNetwork: false
     };
   },
 
@@ -126,11 +126,7 @@ export default {
       }];
 
       return this.isMasquerade ? masquerade : other;
-    },
-
-    hasManagementNetwork() {
-      return !!this.rows.some(N => N.isPod);
-    },
+    }
   },
 
   watch: {
@@ -150,8 +146,20 @@ export default {
         } else {
           this.value.type = 'bridge';
         }
+
+        this.update();
       },
       immediate: true
+    },
+
+    rows: {
+      handler(neu) {
+        const hasManagementNetwork = !!neu.some(N => N.isPod);
+
+        this.$set(this, 'hasManagementNetwork', hasManagementNetwork);
+      },
+      immediate: true,
+      deep:      true
     }
   },
 
