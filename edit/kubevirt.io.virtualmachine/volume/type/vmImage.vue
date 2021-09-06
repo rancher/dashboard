@@ -123,7 +123,7 @@ export default {
 
     onImageChange() {
       const imageResource = this.$store.getters['virtual/all'](HCI.IMAGE).find( I => this.value.image === I.id);
-      const isIso = /.iso$/.test(imageResource?.spec?.url);
+      const isIso = /.iso$/i.test(imageResource?.spec?.url);
 
       if (this.idx === 0) {
         if (isIso) {
