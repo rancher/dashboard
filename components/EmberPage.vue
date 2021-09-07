@@ -176,16 +176,6 @@ export default {
       }
     },
 
-    getBooleanAttr(el, attr) {
-      if (!el) {
-        return false;
-      }
-
-      const v = el.getAttribute(attr);
-
-      return (v !== null) && (v !== 'false');
-    },
-
     async initFrame() {
       const bannerSetting = await this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
 
@@ -205,8 +195,8 @@ export default {
       // If the iframe already exists, check if it is ready for us to reuse
       // by navigating within the app that is already loaded
       if (iframeEl !== null) {
-        const ready = this.getBooleanAttr(iframeEl, 'data-ready');
-        const lastDidLoad = this.getBooleanAttr(iframeEl, 'data-loaded');
+        const ready = iframeEl.getAttribute('data-ready') === 'true';
+        const lastDidLoad = iframeEl.getAttribute('data-loaded') === 'true';
         const doNotReuse = !!this.inline && !this.forceReuse;
         // Was not inline but now is - can't reuse
         const inlineChanged = !!this.inline && (iframeEl.parentElement === document.body);
