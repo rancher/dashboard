@@ -735,7 +735,7 @@ export default {
     },
 
     getSSHIDs(spec) {
-      const ids = spec.template.metadata.annotations[HCI_ANNOTATIONS.SSH_NAMES] || '[]';
+      const ids = spec?.template?.metadata?.annotations?.[HCI_ANNOTATIONS.SSH_NAMES] || '[]';
 
       return JSON.parse(ids);
     },

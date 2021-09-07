@@ -3797,6 +3797,9 @@ harvester:
       description: 描述
       requiredDesc: 描述是必填项!
       titleDescription: 收集Harvester系统相关日志, 以便定位问题和获取支持.
+    hotplug:
+      success: '{ diskName } 已挂载到 { vm }'
+      title: 添加卷
   notification:
     title:
       succeed: 成功
@@ -3826,6 +3829,7 @@ harvester:
     disableMaintenance: 关闭维护模式
     cordon: 封锁
     uncordon: 解除封锁
+    addHotplug: 添加卷
   tableHeaders:
     size: 大小
     progress: 进度

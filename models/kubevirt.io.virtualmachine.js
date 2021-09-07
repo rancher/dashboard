@@ -139,6 +139,12 @@ export default {
         label:      this.t('harvester.action.abortMigration'),
       },
       {
+        action:     'addHotplug',
+        enabled:    !!this.actions?.addVolume,
+        icon:       'icon icon-plus',
+        label:      this.t('harvester.action.addHotplug'),
+      },
+      {
         action:     'createTemplate',
         enabled:    !!this.actions?.createTemplate,
         icon:       'icon icon-copy',
@@ -303,6 +309,15 @@ export default {
       this.$dispatch('promptModal', {
         resources,
         component: 'CloneTemplate'
+      });
+    };
+  },
+
+  addHotplug() {
+    return (resources = this) => {
+      this.$dispatch('promptModal', {
+        resources,
+        component: 'AddHotplugModal'
       });
     };
   },

@@ -4711,6 +4711,9 @@ harvester:
       description: Description
       requiredDesc: Description is required!
       titleDescription: Collect system-related log in Harvester, to help with troubleshooting and support.
+    hotplug:
+      success: 'Volume { diskName } is mounted to the VM { vm }.'
+      title: Add Volume
   notification:
     title:
       succeed: Succeed
@@ -4740,6 +4743,7 @@ harvester:
     disableMaintenance: Disable Maintenance Mode
     cordon: Cordon
     uncordon: Uncordon
+    addHotplug: Add Volume
   tableHeaders:
     size: Size
     progress: Progress
