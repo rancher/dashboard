@@ -4,6 +4,7 @@ import CruResource from '@/components/CruResource';
 import { MANAGEMENT } from '@/config/types';
 import Loading from '@/components/Loading';
 import ClusterPermissionsEditor from '@/components/form/Members/ClusterPermissionsEditor';
+import { exceptionToErrorsArray } from '@/utils/error';
 
 export default {
   components: {
@@ -18,7 +19,7 @@ export default {
     this.roleTemplates = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE });
   },
   data() {
-    return { bindings: [] };
+    return { bindings: [], errors: [] };
   },
   computed: {
     doneLocationOverride() {
@@ -26,8 +27,18 @@ export default {
     },
   },
   methods: {
-    async saveOverride() {
-      await Promise.all(this.bindings.map(binding => binding.save()));
+    async saveOverride(btnCb) {
+      this.errorrs = [];
+      try {
+        await Promise.all(this.bindings.map(binding => binding.save()));
+
+        btnCb(true);
+      } catch (err) {
+        this.errors = exceptionToErrorsArray(err);
+        btnCb(false);
+
+        return;
+      }
 
       this.$router.replace(this.value.listLocation);
     }
@@ -52,5 +63,6 @@ export default {
     @cancel="done"
   >
     <ClusterPermissionsEditor v-model="bindings" :cluster-name="$store.getters['currentCluster'].id" />
+    <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
   </CruResource>
 </template>
