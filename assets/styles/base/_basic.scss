@@ -71,7 +71,11 @@ TEXTAREA,
 .checkbox-custom,
 .radio-custom {
   &:focus, &.focused {
-    @include form-focus }
+    @include form-focus;
+    > label {
+      color: var(--primary);
+    }
+  }
 }
 
 BUTTON,
