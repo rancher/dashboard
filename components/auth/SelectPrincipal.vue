@@ -187,7 +187,7 @@ export default {
 
   .select-principal {
     &.retain-selection {
-      min-height: 86px;
+      min-height: 91px;
       &.focused {
         .principal {
           display: none;
