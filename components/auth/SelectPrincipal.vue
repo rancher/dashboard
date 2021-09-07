@@ -151,10 +151,10 @@ export default {
     @input="add"
     @search="onSearch"
   >
-    <template v-slot:no-options="{ search: searchVal , searching }">
+    <template v-slot:no-options="{ searching }">
       <template v-if="searching">
         <span class="search-slot">
-          No results found for <em>{{ searchVal }}</em>
+          {{ t('cluster.memberRoles.addClusterMember.noResults') }}
         </span>
       </template>
       <div v-else>
