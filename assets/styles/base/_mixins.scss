@@ -146,7 +146,12 @@
 
     &.error {
       border: solid 1px var(--error);
+<<<<<<< HEAD
       input, .selected {
+=======
+
+      > label {
+>>>>>>> dc51665a... growl and input states
         color: var(--error);
       }
 
