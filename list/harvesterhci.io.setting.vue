@@ -94,7 +94,7 @@ export default {
 
         return {
           ...s,
-          description: this.t(`advancedSettings.descriptions.${ s.id }`),
+          description: `advancedSettings.descriptions.${ s.id }`,
           customized:  (!s.readOnly && s.data.value && s.data.value !== s.data.default) || s.data.hasCustomized
         };
       });
@@ -143,8 +143,7 @@ export default {
               Modified
             </span>
           </h1>
-          <h2>
-            {{ setting.description }}
+          <h2 v-html="t(setting.description, {}, true)">
           </h2>
         </div>
         <div v-if="setting.hasActions" class="action">
