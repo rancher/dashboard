@@ -11,13 +11,23 @@ Vue.directive('focus', {
 });
 
 const getElement = (vnode) => {
-  switch (vnode.componentOptions.tag) {
-  case 'LabeledInput':
-    return vnode.componentInstance.$refs.value;
+  const { componentInstance, componentOptions: { tag } } = vnode;
 
-  case 'LabeledSelect':
-    vnode.componentInstance.shouldOpen = false;
+  if (tag === 'LabeledInput') {
+    return componentInstance.$refs.value;
+  }
 
-    return vnode.componentInstance.$refs['select-input'].$refs.search;
+  if (tag === 'LabeledSelect') {
+    componentInstance.shouldOpen = false;
+
+    return componentInstance.$refs['select-input'].$refs.search;
+  }
+
+  if (tag === 'SelectPrincipal') {
+    const labeledSelect = componentInstance.$refs['labeled-select'];
+
+    labeledSelect.shouldOpen = false;
+
+    return labeledSelect.$refs['select-input'].$refs.search;
   }
 };
