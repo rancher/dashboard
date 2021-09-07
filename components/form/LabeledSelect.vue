@@ -215,9 +215,16 @@ export default {
     onClickOption(option, event) {
       onClickOption.call(this, option, event);
     },
-    dropdownShouldOpen(instance) {
-      const { noDrop, open, mutableLoading } = instance;
+    dropdownShouldOpen(instance, forceOpen = false) {
+      const { noDrop, mutableLoading } = instance;
+      const { open } = instance;
       const shouldOpen = this.shouldOpen;
+
+      if (forceOpen) {
+        instance.open = true;
+
+        return true;
+      }
 
       if (shouldOpen === false) {
         this.shouldOpen = true;
@@ -225,6 +232,9 @@ export default {
       }
 
       return noDrop ? false : open && shouldOpen && !mutableLoading;
+    },
+    onSearch(newSearchString, toggleLoading) {
+      this.dropdownShouldOpen(this.$refs['select-input'], true);
     }
   },
 };
@@ -281,6 +291,7 @@ export default {
       v-on="$listeners"
       @search:blur="onBlur"
       @search:focus="onFocus"
+      @search="onSearch"
       @open="resizeHandler"
     >
       <template #option="option">
