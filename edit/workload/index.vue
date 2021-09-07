@@ -156,6 +156,7 @@ export default {
       isInitContainer,
       container,
       containerChange:   0,
+      podFsGroup:        podTemplateSpec.securityContext?.fsGroup
     };
   },
 
@@ -531,6 +532,7 @@ export default {
       this.fixNodeAffinity(nodeAffinity);
       this.fixPodAffinity(podAffinity);
       this.fixPodAffinity(podAntiAffinity);
+      this.fixPodSecurityContext(this.podTemplateSpec);
 
       // delete this.value.kind;
       if (this.container && !this.container.name) {
@@ -607,6 +609,20 @@ export default {
       });
 
       return podAffinity;
+    },
+
+    fixPodSecurityContext(podTempSpec) {
+      if (this.podFsGroup) {
+        podTempSpec.securityContext = podTempSpec.securityContext || {};
+        podTempSpec.securityContext.fsGroup = this.podFsGroup;
+      } else {
+        if (podTempSpec.securityContext?.fsGroup) {
+          delete podTempSpec.securityContext.fsGroup;
+        }
+        if (Object.keys(podTempSpec.securityContext || {}).length === 0) {
+          delete podTempSpec.securityContext;
+        }
+      }
     },
 
     selectType(type) {
@@ -875,6 +891,15 @@ export default {
         </Tab>
         <Tab :label="t('workload.container.titles.securityContext')" name="securityContext">
           <Security v-model="container.securityContext" :mode="mode" />
+          <div class="spacer"></div>
+          <div>
+            <h3>{{ t('workload.container.security.podFsGroup') }}</h3>
+            <div class="row">
+              <div class="col span-6">
+                <LabeledInput v-model.number="podFsGroup" :mode="mode" :label="t('workload.container.security.fsGroup')" />
+              </div>
+            </div>
+          </div>
         </Tab>
         <Tab :label="t('workload.container.titles.networking')" name="networking">
           <Networking v-model="podTemplateSpec" :mode="mode" />
