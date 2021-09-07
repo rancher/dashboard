@@ -39,20 +39,7 @@ export default {
   },
 
   data() {
-    return {
-      membershipUpdate:  {},
-      hasOwner:          false,
-    };
-  },
-
-  watch:    {
-    hasOwner() {
-      if (this.hasOwner) {
-        this.$set(this, 'errors', this.errors.filter(e => e !== this.t('cluster.haveOneOwner')));
-      } else {
-        this.errors.push(this.t('cluster.haveOneOwner'));
-      }
-    }
+    return { membershipUpdate: {} };
   },
 
   methods: {
@@ -84,10 +71,7 @@ export default {
     },
     onMembershipUpdate(update) {
       this.$set(this, 'membershipUpdate', update);
-    },
-    onHasOwnerChanged(hasOwner) {
-      this.$set(this, 'hasOwner', hasOwner);
-    },
+    }
   },
 };
 </script>
@@ -97,7 +81,7 @@ export default {
     :mode="mode"
     :resource="value"
     :errors="errors"
-    :validation-passed="hasOwner"
+    :validation-passed="true"
     :done-route="doneRoute"
     @finish="saveOverride"
     @error="e=>errors = e"
@@ -120,7 +104,7 @@ export default {
         <Banner v-if="isEdit" color="info">
           {{ t('cluster.memberRoles.removeMessage') }}
         </Banner>
-        <ClusterMembershipEditor :mode="mode" :parent-id="value.mgmt ? value.mgmt.id : null" @membership-update="onMembershipUpdate" @has-owner-changed="onHasOwnerChanged" />
+        <ClusterMembershipEditor :mode="mode" :parent-id="value.mgmt ? value.mgmt.id : null" @membership-update="onMembershipUpdate" />
       </Tab>
       <AgentEnv v-model="value" :mode="mode" />
       <Labels v-model="value" :mode="mode" />

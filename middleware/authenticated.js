@@ -83,7 +83,7 @@ export default async function({
   }
 
   // Initial ?setup=admin-password can technically be on any route
-  const initialPass = route.query[SETUP];
+  let initialPass = route.query[SETUP];
   let firstLogin = null;
 
   try {
@@ -96,8 +96,13 @@ export default async function({
     });
 
     const res = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
+    const plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
 
     firstLogin = res?.value === 'true';
+
+    if (!initialPass && plSetting?.value === 'Harvester') {
+      initialPass = 'admin';
+    }
   } catch (e) {
   }
 
@@ -110,6 +115,16 @@ export default async function({
       });
 
       firstLogin = res?.value === 'true';
+
+      const plSetting = await store.dispatch('rancher/find', {
+        type: 'setting',
+        id:   SETTING.PL,
+        opt:  { url: `/v3/settings/${ SETTING.PL }` }
+      });
+
+      if (!initialPass && plSetting?.value === 'Harvester') {
+        initialPass = 'admin';
+      }
     } catch (e) {
     }
   }
