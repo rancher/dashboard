@@ -138,8 +138,8 @@ export default {
 
 <template>
   <LabeledSelect
+    ref="labeled-select"
     v-model="newValue"
-    v-focus
     :mode="mode"
     :label="label"
     :placeholder="t('cluster.memberRoles.addClusterMember.placeholder')"
