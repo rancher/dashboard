@@ -607,8 +607,10 @@ export const actions = {
       navLinks:   !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
     });
 
+    await dispatch('cleanNamespaces');
+
     commit('updateNamespaces', {
-      filters: getters['prefs/get'](NAMESPACE_FILTERS),
+      filters: getters['prefs/get'](NAMESPACE_FILTERS)?.[id] || [],
       all:     res.namespaces
     });
 
@@ -617,9 +619,38 @@ export const actions = {
     console.log('Done loading cluster.'); // eslint-disable-line no-console
   },
 
-  switchNamespaces({ commit, dispatch }, value) {
-    dispatch('prefs/set', { key: NAMESPACE_FILTERS, value });
+  switchNamespaces({ commit, dispatch, getters }, value) {
+    const filters = getters['prefs/get'](NAMESPACE_FILTERS);
+    const clusterId = getters['clusterId'];
+
+    dispatch('prefs/set', {
+      key:   NAMESPACE_FILTERS,
+      value: {
+        ...filters,
+        [clusterId]: value
+      }
+    });
     commit('updateNamespaces', { filters: value });
+  },
+
+  async cleanNamespaces({ commit, getters, dispatch }) {
+    const clusters = await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+    const filters = getters['prefs/get'](NAMESPACE_FILTERS);
+    const cleanFilters = {};
+
+    Object.entries(filters).forEach(([clusterId, pref]) => {
+      if (clusters.find(c => c.id === clusterId)) {
+        cleanFilters[clusterId] = pref;
+      }
+    });
+
+    if (Object.keys(filters).length !== Object.keys(cleanFilters).length) {
+      console.debug('Unknown clusters have been removed from namespace filters list (before/after)', filters, cleanFilters); // eslint-disable-line no-console
+      dispatch('prefs/set', {
+        key:   NAMESPACE_FILTERS,
+        value: cleanFilters
+      });
+    }
   },
 
   async onLogout({ dispatch, commit, state }) {

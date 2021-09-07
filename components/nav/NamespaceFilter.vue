@@ -180,7 +180,10 @@ export default {
 
     value: {
       get() {
-        const values = this.$store.getters['prefs/get'](NAMESPACE_FILTERS);
+        const prefs = this.$store.getters['prefs/get'](NAMESPACE_FILTERS);
+        const clusterId = this.$store.getters['clusterId'];
+        const values = prefs[clusterId];
+
         const options = this.options;
 
         if (!values) {
