@@ -263,6 +263,8 @@ export default {
 
   .accordion {
     &.depth-0 {
+      // background: aliceblue;
+
       > .header {
         padding: 8px 0;
 
@@ -274,6 +276,13 @@ export default {
           font-size: 14px;
           text-transform: none;
           padding-left: 10px;
+          // background: pink;
+
+          > I {
+            color: red;
+            font-size: 20px;
+            line-height: 0;
+          }
         }
 
         > I {

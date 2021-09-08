@@ -7,6 +7,8 @@ export const CHART_NAME = 'longhorn';
 export function init(store) {
   const { product, basicType, virtualType } = DSL(store, NAME);
 
+  product({ icon: 'longhorn' });
+
   /*
   const {
     ENGINES,
