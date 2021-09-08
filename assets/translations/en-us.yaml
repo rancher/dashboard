@@ -1302,6 +1302,8 @@ cluster:
     create-template: Use a Catalog Template to create a cluster (Tech Preview)
     register-custom: Import any Kubernetes cluster
   rke2:
+    snapshots:
+      suffix: Snapshots pre node
     systemService:
       rke2-coredns: 'CoreDNS'
       rke2-ingress-nginx: 'NGINX Ingress'
