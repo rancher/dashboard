@@ -228,14 +228,16 @@ export default {
 
       if (shouldOpen === false) {
         this.shouldOpen = true;
-        instance.open = false;
+        instance.closeSearchOptions();
       }
 
       return noDrop ? false : open && shouldOpen && !mutableLoading;
     },
-    onSearch(newSearchString, toggleLoading) {
-      this.dropdownShouldOpen(this.$refs['select-input'], true);
-    }
+    onSearch(newSearchString) {
+      if (newSearchString) {
+        this.dropdownShouldOpen(this.$refs['select-input'], true);
+      }
+    },
   },
 };
 </script>
