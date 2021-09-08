@@ -896,7 +896,7 @@ export default {
             <h3>{{ t('workload.container.security.podFsGroup') }}</h3>
             <div class="row">
               <div class="col span-6">
-                <LabeledInput v-model.number="podFsGroup" :mode="mode" :label="t('workload.container.security.fsGroup')" />
+                <LabeledInput v-model.number="podFsGroup" type="number" :mode="mode" :label="t('workload.container.security.fsGroup')" />
               </div>
             </div>
           </div>
