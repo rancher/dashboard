@@ -7,7 +7,7 @@ import ResourceTable from '@/components/ResourceTable';
 import {
   NAME, NETWORK_TYPE, NETWORK_VLAN, AGE, NAMESPACE
 } from '@/config/table-headers';
-import { HCI, NODE } from '@/config/types';
+import { HCI } from '@/config/types';
 
 import { findBy } from '@/utils/array';
 import { allHash } from '@/utils/promise';
@@ -29,12 +29,12 @@ export default {
     const hash = await allHash({
       clusterNetworkSetting:  this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK }),
       hostNetworks:           this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK }),
-      hosts:                  this.$store.dispatch('virtual/findAll', { type: NODE }),
+      // hosts:                  this.$store.dispatch('virtual/findAll', { type: NODE }),
       rows:                   this.$store.dispatch('virtual/findAll', { type: HCI.NETWORK_ATTACHMENT }),
     });
 
     this.rows = hash.rows;
-    this.hosts = hash.hosts;
+    // this.hosts = hash.hosts;
     this.hostNetworks = hash.hostNetworks;
     this.clusterNetworkSetting = hash.clusterNetworkSetting;
   },
@@ -73,12 +73,12 @@ export default {
       return notReadyCrd.map( O => O.linkMessage);
     },
 
-    disableCreate() {
-      const hostsLength = this.hosts.length;
-      const abnormalNetworkLength = this.abnormalNetwork.length;
+    // disableCreate() {
+    //   const hostsLength = this.hosts.length;
+    //   const abnormalNetworkLength = this.abnormalNetwork.length;
 
-      return this.isVlanDisable || !(hostsLength - abnormalNetworkLength);
-    }
+    //   return this.isVlanDisable || !(hostsLength - abnormalNetworkLength);
+    // }
   },
 
   // watch: {

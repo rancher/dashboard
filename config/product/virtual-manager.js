@@ -74,8 +74,11 @@ export function init(store) {
       const hash = {
         rancherClusters: store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
         clusters:        store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-        nodes:           store.dispatch('management/findAll', { type: MANAGEMENT.NODE }),
       };
+
+      if (store.getters['management/schemaFor'](MANAGEMENT.NODE)) {
+        hash.nodes = store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      }
 
       const res = await allHash(hash);
 
