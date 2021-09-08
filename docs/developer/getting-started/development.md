@@ -180,7 +180,7 @@ $store.getters['<store type>/schemaFor'](<resource type>)`
 SSR causes certain NUXT component functions to execute server side, for example `async fetch`, `asyncData` and `nuxtServerInit`. State returned by these and the core Vuex store is transferred back to the client by the `window.__NUXT__` property. As these contain resources that should be Proxy objects the Dashboard rehydrates them as such via `plugins/steve/index.js`. There you can see any resource tagged with `__rehydrate` or array with  `__rehydrateAll__<x>` will be converted into back into a Proxy object in the client.
 
 ## Products & Side Nav
-Products are top level features that are reached via the header top left menu. Some are built in (`Cluster Explorer`, `Apps & Marketplace`, `Users & Authentication`) and some are enabled after installing the required helm charts via `Apps & Marketplace` (see 'Rancher' charts in the `Charts` page ).
+Products are top level features that are reached via the header top left menu. Some are built in (`Cluster Explorer`, `Apps`, `Users & Authentication`) and some are enabled after installing the required helm charts via `Apps` (see 'Rancher' charts in the `Charts` page ).
 
 Configuration for each product can be found in `/config/product`. These define the product itself, menu items in side nav, spoofed types, etc. These settings are stored in the `type-map` section of the store and manipulated with functions in `/store/type-map.js`. Some stand out functions include
 

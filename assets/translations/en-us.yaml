@@ -132,7 +132,7 @@ nav:
     separator: or
 
 product:
-  apps: Apps & Marketplace
+  apps: Apps
   auth: Users & Authentication
   backup: Rancher Backups
   cis: CIS Benchmark
