@@ -26,6 +26,12 @@ export default {
       return setting?.value;
     },
 
+    linkColor() {
+      const setting = findBy(this.globalSettings, 'id', SETTING.LINK_COLOR);
+
+      return setting?.value;
+    },
+
     theme() {
       return this.$store.getters['prefs/theme'];
     }
@@ -34,28 +40,38 @@ export default {
   watch: {
     color(neu) {
       if (neu) {
-        this.setCustomPrimaryColor(neu);
+        this.setCustomColor(neu);
       } else {
-        this.removePrimaryCustomColor();
+        this.removeCustomColor();
+      }
+    },
+    linkColor(neu) {
+      if (neu) {
+        this.setCustomColor(neu, 'link');
+      } else {
+        this.removeCustomColor('link');
       }
     },
     theme() {
       if (this.color) {
-        this.setCustomPrimaryColor(this.color);
+        this.setCustomColor(this.color);
+      }
+      if (this.linkColor) {
+        this.setCustomColor(this.linkColor, 'link');
       }
     },
   },
   methods: {
-    setCustomPrimaryColor(color) {
-      const vars = createCssVars(color, this.theme);
+    setCustomColor(color, name = 'primary') {
+      const vars = createCssVars(color, this.theme, name);
 
       for (const prop in vars) {
         document.body.style.setProperty(prop, vars[prop]);
       }
     },
 
-    removePrimaryCustomColor() {
-      const vars = createCssVars('rgb(0,0,0)', this.theme);
+    removeCustomColor(name = 'primary') {
+      const vars = createCssVars('rgb(0,0,0)', this.theme, name);
 
       for (const prop in vars) {
         document.body.style.removeProperty(prop);

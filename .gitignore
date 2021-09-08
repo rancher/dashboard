@@ -90,3 +90,7 @@ sw.*
 
 # Mac OSX
 .DS_Store
+
+
+cypress/videos
+cypress/screenshots

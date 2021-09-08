@@ -1007,7 +1007,9 @@ export default {
         const fromUser = this.chartValues[k];
         const different = diff(fromChart, fromUser);
 
-        if ( !isEmpty(different) ) {
+        if ( isEmpty(different) ) {
+          out[k] = {};
+        } else {
           out[k] = different;
         }
       }
@@ -1460,6 +1462,7 @@ export default {
             :hook-priority="1"
             in-store="management"
             :allow-ssh="false"
+            :allow-rke="true"
             :vertical="true"
             :namespace="value.metadata.namespace"
             generate-name="registryconfig-auth-"
