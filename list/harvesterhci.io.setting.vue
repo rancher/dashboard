@@ -7,7 +7,6 @@ import { DEV } from '@/store/prefs';
 import { HCI, MANAGEMENT } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { HCI_ALLOWED_SETTINGS, ALLOWED_SETTINGS, SETTING } from '@/config/settings';
-import { set } from '@/utils/object';
 
 export default {
   components: { Banner, Loading },
@@ -16,18 +15,25 @@ export default {
     const isDev = this.$store.getters['prefs/get'](DEV);
     const isSingleVirtualCluster = this.$store.getters['isSingleVirtualCluster'];
 
-    const hash = ({
-      clusterNetwork:      this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK }),
-      haversterSettings:   this.$store.dispatch('virtual/findAll', { type: HCI.SETTING }),
-    });
+    const hash = { haversterSettings: this.$store.dispatch('virtual/findAll', { type: HCI.SETTING }) };
 
     if (isSingleVirtualCluster) {
-      set(hash, 'settings', this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING }));
+      hash.settings = this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
+    }
+
+    if (this.$store.getters['virtual/schemaFor'](HCI.CLUSTER_NETWORK)) {
+      hash.clusterNetwork = this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK });
     }
 
     const rows = await allHash(hash);
 
-    let allRows = [...rows.clusterNetwork, ...rows.haversterSettings];
+    let allRows = [];
+
+    if (rows.clusterNetwork) {
+      allRows = [...rows.clusterNetwork, ...rows.haversterSettings];
+    } else {
+      allRows = rows.haversterSettings;
+    }
 
     if (isSingleVirtualCluster) {
       allRows = [...rows.settings, ...allRows];

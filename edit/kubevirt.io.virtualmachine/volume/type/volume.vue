@@ -1,7 +1,6 @@
 <script>
 import Banner from '@/components/Banner';
 import Loading from '@/components/Loading';
-import AsyncButton from '@/components/AsyncButton';
 import UnitInput from '@/components/form/UnitInput';
 import InputOrDisplay from '@/components/InputOrDisplay';
 import LabeledInput from '@/components/form/LabeledInput';
@@ -13,7 +12,7 @@ import { exceptionToErrorsArray } from '@/utils/error';
 export default {
   name:       'Volume',
   components: {
-    AsyncButton, Banner, InputOrDisplay, Loading, LabeledInput, LabeledSelect, UnitInput,
+    Banner, InputOrDisplay, Loading, LabeledInput, LabeledSelect, UnitInput,
   },
 
   props: {
@@ -65,7 +64,11 @@ export default {
 
     needSetPVC() {
       return !!this.errors.length || (!this.value.newCreateId && this.isEdit && this.value.size !== this.pvcsResource?.spec?.resources?.requests?.storage);
-    }
+    },
+
+    isDisabled() {
+      return !this.value.newCreateId && this.isEdit;
+    },
   },
 
   watch: {
@@ -155,6 +158,7 @@ export default {
             :mode="mode"
             :label="t('harvester.fields.size')"
             suffix="GiB"
+            :disabled="isDisabled"
           />
         </InputOrDisplay>
       </div>
@@ -174,7 +178,7 @@ export default {
       </div>
     </div>
 
-    <div class="action">
+    <!-- <div class="action">
       <AsyncButton
         v-show="needSetPVC"
         mode="refresh"
@@ -185,7 +189,7 @@ export default {
         :error-label="t('harvester.virtualMachine.volume.saveVolume')"
         @click="savePVC"
       />
-    </div>
+    </div> -->
 
     <div v-for="(err,idx) in errors" :key="idx">
       <Banner color="error" :label="err" />

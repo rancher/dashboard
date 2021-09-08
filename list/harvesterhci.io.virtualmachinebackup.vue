@@ -61,6 +61,10 @@ export default {
       return this.backupTargetResource.backupTagetetIsEmpty;
     },
 
+    canUpdate() {
+      return this?.backupTargetResource?.canUpdate;
+    },
+
     errorMessage() {
       return this.backupTargetResource?.errMessage;
     },
@@ -78,7 +82,7 @@ export default {
     />
 
     <Banner
-      v-if="errorMessage || isEmptyValue"
+      v-if="(errorMessage || isEmptyValue) && canUpdate"
       color="error"
     >
       <MessageLink
@@ -102,7 +106,7 @@ export default {
     </Banner>
 
     <Banner
-      v-else
+      v-else-if="canUpdate"
       color="info"
     >
       <MessageLink

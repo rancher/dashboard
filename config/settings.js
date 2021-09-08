@@ -90,7 +90,6 @@ export const ALLOWED_SETTINGS = {
 const HCI_SETTING = {
   BACKUP_TARGET:                    'backup-target',
   LOG_LEVEL:                        'log-level',
-  SERVER_URL:                       'server-url',
   SERVER_VERSION:                   'server-version',
   UI_INDEX:                         'ui-index',
   UPGRADE_CHECKER_ENABLED:          'upgrade-checker-enabled',
@@ -108,7 +107,6 @@ export const HCI_ALLOWED_SETTINGS = {
     options: ['info', 'debug', 'trace']
   },
   [HCI_SETTING.SERVER_VERSION]:                   { readOnly: true },
-  [HCI_SETTING.SERVER_URL]:                       {},
   [HCI_SETTING.UPGRADE_CHECKER_ENABLED]:          { kind: 'boolean' },
   [HCI_SETTING.UPGRADE_CHECKER_URL]:              { kind: 'url' },
   [HCI_SETTING.VLAN]:                             {

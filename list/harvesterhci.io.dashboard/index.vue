@@ -403,24 +403,26 @@ export default {
       />
     </div>
 
-    <h3 class="mt-40">
-      {{ t('clusterIndexPage.sections.capacity.label') }}
-    </h3>
-    <div class="hardware-resource-gauges">
-      <HardwareResourceGauge
-        :name="t('harvester.dashboard.hardwareResourceGauge.cpu')"
-        :used="cpuUsed"
-      />
-      <HardwareResourceGauge
-        :name="t('harvester.dashboard.hardwareResourceGauge.memory')"
-        :used="memoryUsed"
-      />
-      <HardwareResourceGauge
-        :name="t('harvester.dashboard.hardwareResourceGauge.storage')"
-        :used="storageUsed"
-        :units="storageUsed.units"
-      />
-    </div>
+    <template v-if="nodes.length">
+      <h3 class="mt-40">
+        {{ t('clusterIndexPage.sections.capacity.label') }}
+      </h3>
+      <div class="hardware-resource-gauges">
+        <HardwareResourceGauge
+          :name="t('harvester.dashboard.hardwareResourceGauge.cpu')"
+          :used="cpuUsed"
+        />
+        <HardwareResourceGauge
+          :name="t('harvester.dashboard.hardwareResourceGauge.memory')"
+          :used="memoryUsed"
+        />
+        <HardwareResourceGauge
+          :name="t('harvester.dashboard.hardwareResourceGauge.storage')"
+          :used="storageUsed"
+          :units="storageUsed.units"
+        />
+      </div>
+    </template>
 
     <Tabbed
       v-if="hasMetrics"

@@ -1,6 +1,7 @@
 import jsyaml from 'js-yaml';
 import randomstring from 'randomstring';
 
+import { sortBy } from '@/utils/sort';
 import { clone } from '@/utils/object';
 import { allHash } from '@/utils/promise';
 import { SOURCE_TYPE } from '@/config/map';
@@ -33,8 +34,7 @@ export default {
   },
 
   async fetch() {
-    await allHash({
-      nodes:              this.$store.dispatch('virtual/findAll', { type: NODE }),
+    const hash = {
       pvcs:               this.$store.dispatch('virtual/findAll', { type: PVC }),
       storageClass:       this.$store.dispatch('virtual/findAll', { type: STORAGE_CLASS }),
       ssh:                this.$store.dispatch('virtual/findAll', { type: HCI.SSH }),
@@ -46,7 +46,12 @@ export default {
       vmi:                this.$store.dispatch('virtual/findAll', { type: HCI.VMI }),
       vmim:               this.$store.dispatch('virtual/findAll', { type: HCI.VMIM }),
       vm:                 this.$store.dispatch('virtual/findAll', { type: HCI.VM }),
-    });
+    };
+
+    if (this.$store.getters['virtual/schemaFor'](NODE)) {
+      hash.nodes = this.$store.dispatch('virtual/findAll', { type: NODE });
+    }
+    await allHash(hash);
   },
 
   data() {
@@ -257,7 +262,7 @@ export default {
 
           const bus = DISK?.disk?.bus || DISK?.cdrom?.bus;
 
-          const bootOrder = index;
+          const bootOrder = DISK?.bootOrder ? DISK?.bootOrder : index;
 
           return {
             bootOrder,
@@ -276,6 +281,8 @@ export default {
           };
         });
       }
+
+      out = sortBy(out, 'bootOrder');
 
       return out.filter( (O) => {
         return O.name !== 'cloudinitdisk';

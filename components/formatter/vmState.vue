@@ -51,10 +51,6 @@ export default {
     warningMessage() {
       const out = [];
 
-      if (this.networkImpassability) {
-        out.push(this.t('harvester.network.message.vlanInactive', { name: this.row.realAttachNodeName }));
-      }
-
       if (this.row.warningMessage?.pod) {
         const pod = this.row.warningMessage?.pod;
 

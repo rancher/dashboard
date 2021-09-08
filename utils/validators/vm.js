@@ -119,14 +119,16 @@ export function vmDisks(spec, getters, errors, validatorArgs, displayKey, value)
     errors.push(getters['i18n/t']('harvester.validation.vm.volume.needImageOrExisting'));
   }
 
+  let hasImageVolumeOrExistingVolume = false;
+
   _volumes.forEach((V, idx) => {
     const { type, typeValue } = getVolumeType(V, _volumeClaimTemplates);
     const prefix = V.name || idx + 1;
 
-    if (idx === 0 && type !== SOURCE_TYPE.IMAGE && type !== SOURCE_TYPE.ATTACH_VOLUME) { // root iamge
-      const message = getters['i18n/t']('harvester.validation.vm.volume.needImageOrExisting');
-
-      errors.push(message);
+    if (type === SOURCE_TYPE.IMAGE || type === SOURCE_TYPE.ATTACH_VOLUME) { // root iamge
+      // const message = getters['i18n/t']('harvester.validation.vm.volume.needImageOrExisting');
+      hasImageVolumeOrExistingVolume = true;
+      // errors.push(message);
     }
 
     if (type === SOURCE_TYPE.NEW || type === SOURCE_TYPE.IMAGE) {
@@ -164,6 +166,12 @@ export function vmDisks(spec, getters, errors, validatorArgs, displayKey, value)
       errors.push(getters['i18n/t']('harvester.validation.vm.volume.error', { prefix, message }));
     }
   });
+
+  if (!hasImageVolumeOrExistingVolume && !value.links) {
+    const message = getters['i18n/t']('harvester.validation.vm.volume.needImageOrExisting');
+
+    errors.push(message);
+  }
 
   return errors;
 }

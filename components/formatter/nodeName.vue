@@ -1,9 +1,9 @@
 <script>
 import { HCI, NODE } from '@/config/types';
-import CopyToClipboardText from '@/components/CopyToClipboardText';
+import CopyToClipboard from '@/components/CopyToClipboard';
 
 export default {
-  components: { CopyToClipboardText },
+  components: { CopyToClipboard },
   props:      {
     value: {
       type:     String,
@@ -37,5 +37,13 @@ export default {
 </script>
 
 <template>
-  <CopyToClipboardText v-if="nodeName " :text="nodeName" />
+  <div>
+    {{ nodeName }}
+    <CopyToClipboard
+      :text="nodeName"
+      label-as="tooltip"
+      class="icon-btn"
+      action-color="bg-transparent"
+    />
+  </div>
 </template>

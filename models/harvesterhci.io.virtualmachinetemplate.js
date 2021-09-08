@@ -19,7 +19,7 @@ export default {
       {
         action:     'createFromTemplate',
         enabled:    true,
-        icon:       'icons icon-h-display',
+        icon:       'icon plus',
         label:      this.t('harvester.action.createVM'),
       },
       {

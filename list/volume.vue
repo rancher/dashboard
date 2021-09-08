@@ -26,6 +26,12 @@ export default {
       vms:  this.$store.dispatch('virtual/findAll', { type: HCI.VM })
     });
 
+    const pvcSchema = this.$store.getters['virtual/schemaFor'](PVC);
+
+    if (!pvcSchema?.collectionMethods.find(x => x.toLowerCase() === 'post')) {
+      this.$store.dispatch('type-map/configureType', { match: HCI.VOLUME, isCreatable: false });
+    }
+
     this.rows = hash.pvcs;
   },
 

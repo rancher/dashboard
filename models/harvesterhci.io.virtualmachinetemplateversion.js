@@ -20,7 +20,7 @@ export default {
     return [
       {
         action:     'launchFromTemplate',
-        icon:       'icons icon-h-display',
+        icon:       'icon plus',
         label:      this.t('harvester.action.launchFormTemplate'),
       },
       {

@@ -4156,7 +4156,7 @@ harvester:
       viewSetting:
         prefix: 点击
         middle: 这里
-        suffic: 查看网络的配置详情.
+        suffic: 查看集群网络配置.
       errorTip:
         prefix: 非法的网络
         middle: 配置

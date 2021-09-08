@@ -1,6 +1,5 @@
 <script>
 import Banner from '@/components/Banner';
-import AsyncButton from '@/components/AsyncButton';
 import UnitInput from '@/components/form/UnitInput';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -14,7 +13,7 @@ import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 export default {
   name:       'Existing',
   components: {
-    AsyncButton, Banner, UnitInput, LabeledInput, LabeledSelect, InputOrDisplay
+    Banner, UnitInput, LabeledInput, LabeledSelect, InputOrDisplay
   },
 
   props: {
@@ -89,6 +88,10 @@ export default {
   },
 
   computed: {
+    isDisabled() {
+      return !this.value.newCreateId && this.isEdit;
+    },
+
     allPVCs() {
       return this.$store.getters['virtual/all'](PVC).filter((P) => {
         return this.namespace ? this.namespace === P.metadata.namespace : true;
@@ -281,7 +284,7 @@ export default {
       </div>
     </div>
 
-    <div class="action">
+    <!-- <div class="action">
       <AsyncButton
         v-show="needSetPVC"
         mode="refresh"
@@ -292,7 +295,7 @@ export default {
         :error-label="t('harvester.virtualMachine.volume.saveVolume')"
         @click="savePVC"
       />
-    </div>
+    </div> -->
 
     <div v-for="(err,index) in errors" :key="index">
       <Banner color="error" :label="err" />

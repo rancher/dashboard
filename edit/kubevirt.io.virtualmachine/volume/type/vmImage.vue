@@ -1,6 +1,5 @@
 <script>
 import Banner from '@/components/Banner';
-import AsyncButton from '@/components/AsyncButton';
 import UnitInput from '@/components/form/UnitInput';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -12,7 +11,7 @@ export default {
   name: 'VMImage',
 
   components: {
-    AsyncButton, Banner, UnitInput, LabeledInput, LabeledSelect, InputOrDisplay
+    Banner, UnitInput, LabeledInput, LabeledSelect, InputOrDisplay
   },
 
   props:  {
@@ -95,7 +94,11 @@ export default {
 
     needSetPVC() {
       return !!this.errors.length || (!this.value.newCreateId && this.isEdit && this.value.size !== this.pvcsResource?.spec?.resources?.requests?.storage);
-    }
+    },
+
+    isDisabled() {
+      return !this.value.newCreateId && this.isEdit;
+    },
   },
 
   watch: {
@@ -207,6 +210,7 @@ export default {
             :label="t('harvester.fields.size')"
             :mode="mode"
             suffix="GiB"
+            :disabled="isDisabled"
           />
         </InputOrDisplay>
       </div>
@@ -226,7 +230,7 @@ export default {
       </div>
     </div>
 
-    <div class="action">
+    <!-- <div class="action">
       <AsyncButton
         v-show="needSetPVC"
         mode="refresh"
@@ -237,7 +241,7 @@ export default {
         :error-label="t('harvester.virtualMachine.volume.saveVolume')"
         @click="savePVC"
       />
-    </div>
+    </div> -->
 
     <div v-for="(err,index) in errors" :key="index">
       <Banner color="error" :label="err" />

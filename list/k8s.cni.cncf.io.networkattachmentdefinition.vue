@@ -26,17 +26,21 @@ export default {
   },
 
   async fetch() {
-    const hash = await allHash({
-      clusterNetworkSetting:  this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK }),
-      hostNetworks:           this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK }),
-      // hosts:                  this.$store.dispatch('virtual/findAll', { type: NODE }),
-      rows:                   this.$store.dispatch('virtual/findAll', { type: HCI.NETWORK_ATTACHMENT }),
-    });
+    const _hash = { rows: this.$store.dispatch('virtual/findAll', { type: HCI.NETWORK_ATTACHMENT }) };
+
+    if (this.$store.getters['virtual/schemaFor'](HCI.NODE_NETWORK)) {
+      _hash.hostNetworks = this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK });
+    }
+
+    if (this.$store.getters['virtual/schemaFor'](HCI.CLUSTER_NETWORK)) {
+      _hash.clusterNetworkSetting = this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK });
+    }
+
+    const hash = await allHash(_hash);
 
     this.rows = hash.rows;
-    // this.hosts = hash.hosts;
-    this.hostNetworks = hash.hostNetworks;
-    this.clusterNetworkSetting = hash.clusterNetworkSetting;
+    this.hostNetworks = hash.hostNetworks || [];
+    this.clusterNetworkSetting = hash.clusterNetworkSetting || [];
   },
 
   data() {
@@ -67,40 +71,23 @@ export default {
       return !vlan.canUseVlan;
     },
 
+    hasClusterNetwork() {
+      return this.$store.getters['virtual/schemaFor'](HCI.CLUSTER_NETWORK);
+    },
+
     abnormalNetwork() {
       const notReadyCrd = this.hostNetworks.filter( O => !O.isReady);
 
       return notReadyCrd.map( O => O.linkMessage);
     },
-
-    // disableCreate() {
-    //   const hostsLength = this.hosts.length;
-    //   const abnormalNetworkLength = this.abnormalNetwork.length;
-
-    //   return this.isVlanDisable || !(hostsLength - abnormalNetworkLength);
-    // }
   },
-
-  // watch: {
-  //   disableCreate: {
-  //     handler(neu) {
-  //       const type = this.$route.params.resource;
-
-  //       this.$store.commit('virtual/setConfig', {
-  //         type,
-  //         data: { disableCreateButton: neu }
-  //       });
-  //     },
-  //     immediate: true
-  //   }
-  // },
 };
 </script>
 
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <template v-if="isVlanDisable">
+    <template v-if="isVlanDisable && hasClusterNetwork">
       <Banner color="error">
         <MessageLink
           :to="to"
@@ -112,7 +99,7 @@ export default {
     </template>
 
     <template v-else>
-      <Banner color="info">
+      <Banner v-if="hasClusterNetwork" color="info">
         <MessageLink
           :to="to"
           prefix-label="harvester.network.message.viewSetting.prefix"

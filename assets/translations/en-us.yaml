@@ -5108,7 +5108,7 @@ harvester:
       viewSetting:
         prefix: Click
         middle: here
-        suffic: to view the network config.
+        suffic: to view default cluster network config.
       errorTip:
         prefix: Physical NIC value in
         middle: Setting

@@ -266,7 +266,17 @@ export function init(store) {
   // settings
   configureType(HCI.SETTING, { isCreatable: false });
   virtualType({
-    ifHaveType: HCI.SETTING,
+    showMenuFun(state, getters, rootState, rootGetters, out) {
+      const schema = rootGetters['virtual/schemaFor'](HCI.SETTING);
+
+      if (schema?.collectionMethods.find(x => x.toLowerCase() === 'post')) {
+        return true;
+      }
+      // TODO: use cb
+      delete out[HCI.SETTING];
+
+      return false;
+    },
     label:      store.getters['i18n/t']('harvester.setting.label'),
     name:       HCI.SETTING,
     namespaced: true,

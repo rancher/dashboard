@@ -75,7 +75,7 @@ export default {
       {
         action:     'stopVM',
         enabled:    !!this.actions?.stop,
-        icon:       'icons icon-h-stop',
+        icon:       'icon icon-close',
         label:      this.t('harvester.action.stop'),
         bulkable:   true,
         external:   true,
@@ -83,7 +83,7 @@ export default {
       {
         action:     'pauseVM',
         enabled:    !!this.actions?.pause,
-        icon:       'icons icon-h-pause',
+        icon:       'icon icon-pause',
         label:      this.t('harvester.action.pause'),
       },
       {
@@ -95,7 +95,7 @@ export default {
       {
         action:     'restartVM',
         enabled:    !!this.actions?.restart,
-        icon:       'icons icon-h-restart',
+        icon:       'icon icon-refresh',
         label:      this.t('harvester.action.restart'),
         bulkable:   true,
         external:   true,
@@ -111,13 +111,13 @@ export default {
       {
         action:     'backupVM',
         enabled:    !!this.actions?.backup,
-        icon:       'icons icon-h-restore-existing',
+        icon:       'icon icon-backup',
         label:      this.t('harvester.action.backup'),
       },
       {
         action:     'restoreVM',
         enabled:    !!this.actions?.restore,
-        icon:       'icons icon-h-restore-new',
+        icon:       'icon icon-backup-restore',
         label:      this.t('harvester.action.restore'),
       },
       {
@@ -129,7 +129,7 @@ export default {
       {
         action:     'migrateVM',
         enabled:    !!this.actions?.migrate,
-        icon:       'icons icon-h-migrate',
+        icon:       'icon icon-copy',
         label:      this.t('harvester.action.migrate'),
       },
       {
@@ -206,10 +206,6 @@ export default {
       Vue.set(this.metadata, 'annotations', { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: '[]' });
       Vue.set(this, 'spec', spec);
     };
-  },
-
-  canUpdate() {
-    return this.hasLink('update') && this.isOff?.status === OFF;
   },
 
   restartVM() {

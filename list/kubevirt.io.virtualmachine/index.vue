@@ -24,19 +24,30 @@ export default {
   },
 
   async fetch() {
-    const hash = await allHash({
-      nodes:             this.$store.dispatch('virtual/findAll', { type: NODE }),
+    const _hash = {
       vms:               this.$store.dispatch('virtual/findAll', { type: HCI.VM }),
       vmis:              this.$store.dispatch('virtual/findAll', { type: HCI.VMI }),
-      nodeNetworks:      this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK }),
-      clusterNetworks:   this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK }),
       restore:           this.$store.dispatch('virtual/findAll', { type: HCI.RESTORE }),
-    });
+    };
+
+    if (this.$store.getters['virtual/schemaFor'](NODE)) {
+      _hash.nodes = this.$store.dispatch('virtual/findAll', { type: NODE });
+    }
+
+    if (this.$store.getters['virtual/schemaFor'](HCI.NODE_NETWORK)) {
+      _hash.nodeNetworks = this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK });
+    }
+
+    if (this.$store.getters['virtual/schemaFor'](HCI.CLUSTER_NETWORK)) {
+      _hash.clusterNetworks = this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK });
+    }
+
+    const hash = await allHash(_hash);
 
     this.allVMs = hash.vms;
     this.allVMIs = hash.vmis;
-    this.allNodeNetworks = hash.nodeNetworks;
-    this.allClusterNetworks = hash.clusterNetworks;
+    this.allNodeNetworks = hash.nodeNetworks || [];
+    this.allClusterNetworks = hash.clusterNetworks || [];
   },
 
   data() {

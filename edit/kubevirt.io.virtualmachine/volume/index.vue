@@ -117,7 +117,7 @@ export default {
     value: {
       handler(neu) {
         const rows = neu.map((V) => {
-          if (!this.isCreate && V.source !== SOURCE_TYPE.CONTAINER) {
+          if (!this.isCreate && V.source !== SOURCE_TYPE.CONTAINER && !V.newCreateId) {
             V.to = {
               name:   'c-cluster-product-resource-namespace-id',
               params: {
@@ -126,6 +126,7 @@ export default {
                 namespace: this.namespace,
                 id:        V.realName
               },
+              query: { mode: _EDIT }
             };
           }
 
@@ -238,7 +239,7 @@ export default {
             </button>
             <h3>
               <n-link v-if="volume.to" :to="volume.to">
-                {{ headerFor(volume.source) }}
+                Edit {{ headerFor(volume.source) }}
               </n-link>
 
               <span v-else>
