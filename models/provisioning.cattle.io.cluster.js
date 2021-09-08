@@ -49,6 +49,11 @@ export default {
       }
     }
 
+    // No actions for Harvester clusters
+    if (this.isHarvester) {
+      return [];
+    }
+
     insertAt(out, idx++, {
       action:     'openShell',
       label:      'Kubectl Shell',
@@ -153,6 +158,10 @@ export default {
 
   isRke1() {
     return !!this.mgmt?.spec?.rancherKubernetesEngineConfig;
+  },
+
+  isHarvester() {
+    return !!this.mgmt?.isHarvester;
   },
 
   mgmtClusterId() {
@@ -502,6 +511,15 @@ export default {
   },
 
   stateObj() {
+    if (this.isHarvester) {
+      return {
+        error:         true,
+        message:       this.$rootGetters['i18n/t']('cluster.harvester.warning.label'),
+        name:          this.$rootGetters['i18n/t']('cluster.harvester.warning.state'),
+        transitioning: false
+      };
+    }
+
     if (!this.isRke2) {
       return this.mgmt?.stateObj || this.metadata?.state;
     }
