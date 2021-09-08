@@ -123,6 +123,11 @@ export default {
 
       const includedNamespaces = this.$store.getters['namespaces']();
 
+      // Shouldn't happen, but does for resources like management.cattle.io.preference
+      if (!this.rows) {
+        return [];
+      }
+
       return this.rows.filter((row) => {
         return !!includedNamespaces[row.metadata.namespace];
       });

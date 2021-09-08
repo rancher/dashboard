@@ -21,6 +21,7 @@ import { getVendor } from '@/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@/store/features';
 import { SETTING } from '@/config/settings';
 import { BLANK_CLUSTER } from '@/store';
+import { filterOnlyKubernetesClusters } from '@/utils/cluster';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 const RESET_CARDS_ACTION = 'reset-homepage-cards';
@@ -174,7 +175,11 @@ export default {
       return hasSomethingToShow && !hiddenByPreference;
     },
 
-    ...mapGetters(['currentCluster', 'defaultClusterId'])
+    ...mapGetters(['currentCluster', 'defaultClusterId']),
+
+    kubeClusters() {
+      return filterOnlyKubernetesClusters(this.clusters);
+    }
   },
 
   async created() {
@@ -264,7 +269,7 @@ export default {
           </SimpleBox>
           <div class="row panel">
             <div v-if="mcm" class="col span-12">
-              <SortableTable :table-actions="false" :row-actions="false" key-field="id" :rows="clusters" :headers="clusterHeaders">
+              <SortableTable :table-actions="false" :row-actions="false" key-field="id" :rows="kubeClusters" :headers="clusterHeaders">
                 <template #header-left>
                   <div class="row table-heading">
                     <h2 class="mb-0">

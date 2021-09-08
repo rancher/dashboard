@@ -4,6 +4,7 @@ import Masthead from '@/components/ResourceList/Masthead';
 import { allHash } from '@/utils/promise';
 import { CAPI, MANAGEMENT } from '@/config/types';
 import { MODE, _IMPORT } from '@/config/query-params';
+import { filterOnlyKubernetesClusters } from '@/utils/cluster';
 
 export default {
   components: { ResourceTable, Masthead },
@@ -47,7 +48,7 @@ export default {
 
   computed: {
     rows() {
-      return this.rancherClusters;
+      return filterOnlyKubernetesClusters(this.rancherClusters);
     },
 
     createLocation() {
