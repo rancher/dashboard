@@ -24,7 +24,8 @@ export default {
     this.projectSchema = this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT);
 
     if ( !this.schema ) {
-      this.$store.dispatch('loadingError', `Type ${ NAMESPACE } not found`);
+      // clusterReady:   When switching routes, it will cause clusterReady to change, causing itself to repeat rendering。
+      // this.$store.dispatch('loadingError', `Type ${ NAMESPACE } not found`);
 
       return;
     }
