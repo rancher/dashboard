@@ -7,7 +7,7 @@ import { filterOnlyKubernetesClusters } from '@/utils/cluster';
 export default {
   name:       'ListMgmtClusters',
   components: { Loading, ResourceTable },
-  // fetch nodes before loading this page, as they may be referenced in the Target table column
+
   async fetch() {
     await this.$store.dispatch(`management/findAll`, { type: this.$attrs.resource });
   },
