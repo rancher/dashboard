@@ -16,6 +16,8 @@ import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 // If the logo is not named with the provider name, add an override here
 const PROVIDER_LOGO_OVERRIDE = {};
 
+const HARVESTER_LABEL = 'cluster.harvesterhci.io';
+
 export default {
   details() {
     const out = [
