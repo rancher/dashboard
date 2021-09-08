@@ -1303,7 +1303,7 @@ cluster:
     register-custom: Import any Kubernetes cluster
   rke2:
     snapshots:
-      suffix: Snapshots pre node
+      suffix: Snapshots per node
     systemService:
       rke2-coredns: 'CoreDNS'
       rke2-ingress-nginx: 'NGINX Ingress'
