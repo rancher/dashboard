@@ -911,6 +911,12 @@ cluster:
     advanced:
       label: Advanced
       detail: Additional control over how the node will be registered.  These values will often need to be different for each node registered.
+      nodeName: Node Name
+      publicIp: Node Public IP
+      privateIp: Node Private IP
+      nodeLabel:
+        title: Node Labels
+        label: Add Label
     registrationCommand:
       label: Registration Command
       linuxDetail: Run this command on each of the existing Linux machines you want to register.
