@@ -312,7 +312,7 @@ authConfig:
           5: 'Upload the downloaded JSON file in the OAuth credentials box.'
       3:
         title: 'Create Service Account credentials'
-        introduction: 'Follow <a href="{docsBase}/admin-settings/authentication/google/#creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:'
+        introduction: 'Follow <a href="{docsBase}/admin-settings/authentication/google/#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:'
         body:
           1: Create a service account.
           2: Generate a key for the service account.
@@ -823,7 +823,7 @@ cis:
   alertNeeded: |-
     Alerting must be enabled within the CIS chart values.yaml.
     This requires that the <a tabindex="0" href="{link}">{vendor} Monitoring and Alerting app</a> is installed
-    and the Receivers and Routes are <a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/monitoring-alerting/v2.5/configuration/#alertmanager-config'> configured to send out alerts.</a>
+    and the Receivers and Routes are <a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/monitoring-alerting/configuration/#alertmanager-configuration/'> configured to send out alerts.</a>
   alertOnComplete: Alert on scan completion
   alertOnFailure: Alert on scan failure
   benchmarkVersion: Benchmark Version
@@ -2368,7 +2368,7 @@ monitoring:
       stepTitle: Uninstall V1
       stepSubtext: Uninstall Previous Monitoring
       warning1: V1 Monitoring is currently deployed. This needs to be uninstalled before V2 monitoring can be installed.
-      warning2: <a target="blank" href="{docsBase}/monitoring-alerting/v2.5/migrating/#migrating-from-monitoring-v1-to-monitoring-v2" target='_blank' rel='noopener nofollow'>Learn more</a> about the migration steps to V2 Monitoring.
+      warning2: <a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/" target='_blank' rel='noopener nofollow'>Learn more</a> about the migration steps to V2 Monitoring.
       promptDescription: <div class="mt-20 mb-20">You are attempting to uninstall V1 Monitoring. Please ensure you have read the migration steps.</div>
       success1: V1 monitoring successfully uninstalled.
       success2: Press Next to continue
@@ -3377,6 +3377,22 @@ secret:
     'provisioning.cattle.io/cloud-credential': 'CC'
     's3': 'S3'
   relatedWorkloads: Related Workloads
+  typeDescriptions:
+    'kubernetes.io/basic-auth':
+      description: 'Authentication with a username and password'
+      docLink: https://kubernetes.io/docs/concepts/configuration/secret/#basic-authentication-secret
+    'Opaque': 
+      description: Default type of Secret using key-value pairs
+      docLink: https://kubernetes.io/docs/concepts/configuration/secret/#opaque-secrets
+    'kubernetes.io/dockerconfigjson':
+      description: Authenticated registry for pulling container images
+      docLink: https://kubernetes.io/docs/concepts/configuration/secret/#docker-config-secrets
+    'kubernetes.io/ssh-auth':
+      description: Public key and private key for SSH authentication
+      docLink: https://kubernetes.io/docs/concepts/configuration/secret/#ssh-authentication-secrets
+    'kubernetes.io/tls':
+      description: Store a certificate and key for TLS
+      docLink: https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
 
 selectOrCreateAuthSecret:
   label: Authentication
@@ -5111,10 +5127,10 @@ embedding:
 v1ClusterTools:
   monitoring:
     label: Monitoring (Legacy)
-    description: 'Legacy V1 monitoring. V1 Monitoring is deprecated since Rancher 2.5.0. <a target="blank" href="{docsBase}/monitoring-alerting/v2.5/migrating/#migrating-from-monitoring-v1-to-monitoring-v2">Learn more</a> about the migration steps to V2 Monitoring.'
+    description: 'Legacy V1 monitoring. V1 Monitoring is deprecated since Rancher 2.5.0. <a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/">Learn more</a> about the migration steps to V2 Monitoring.'
   logging:
     label: Logging (Legacy)
-    description: 'Legacy V1 logging. V1 Logging is deprecated since Rancher 2.5.0. <a target="blank" href="{docsBase}/logging/v2.5/migrating/">Learn more</a> about migrating to V2 Logging.'
+    description: 'Legacy V1 logging. V1 Logging is deprecated since Rancher 2.5.0. <a target="blank" href="{docsBase}/logging/migrating/">Learn more</a> about migrating to V2 Logging.'
   istio:
     label: Istio (Legacy)
     description: 'Legacy V1 Istio. Istio v1.5 has been deprecated since Rancher 2.5.0. <a target="blank" href="{docsBase}/istio/#migrate-from-previous-istio-version">Learn more</a> about migrating to the latest version.'

@@ -3,6 +3,7 @@ import { SETTING } from './settings';
 export const ANY = 0;
 export const STANDARD = 1;
 export const CUSTOM = 2;
+export const DOCS_BASE = 'https://rancher.com/docs/rancher/v2.6/en';
 
 const STANDARD_VENDOR = 'Rancher';
 const STANDARD_PRODUCT = 'Explorer';
