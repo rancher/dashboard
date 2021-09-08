@@ -2,6 +2,7 @@
 import FleetClusters from '@/components/FleetClusters';
 import { FLEET, MANAGEMENT } from '@/config/types';
 import Loading from '@/components/Loading';
+import { filterOnlyKubernetesClusters } from '@/utils/cluster';
 
 export default {
   name:       'ListCluster',
@@ -28,6 +29,9 @@ export default {
   },
 
   computed: {
+    kubeMgmtClusters() {
+      return filterOnlyKubernetesClusters(this.allMgmt);
+    },
     rows() {
       const out = this.allFleet.slice();
 
@@ -37,7 +41,7 @@ export default {
         known[c.metadata.name] = true;
       }
 
-      for ( const c of this.allMgmt ) {
+      for ( const c of this.kubeMgmtClusters ) {
         if ( !known[c.metadata.name] ) {
           out.push(c);
         }
