@@ -636,6 +636,17 @@ export const actions = {
   async cleanNamespaces({ commit, getters, dispatch }) {
     const clusters = await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
     const filters = getters['prefs/get'](NAMESPACE_FILTERS);
+
+    // Convert pre 2.6.1 setting to new format
+    if (Array.isArray(filters)) {
+      dispatch('prefs/set', {
+        key:   NAMESPACE_FILTERS,
+        value: { }
+      });
+
+      return;
+    }
+
     const cleanFilters = {};
 
     Object.entries(filters).forEach(([clusterId, pref]) => {
