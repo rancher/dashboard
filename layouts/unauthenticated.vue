@@ -1,12 +1,20 @@
 <script>
 import Brand from '@/mixins/brand';
+import FixedBanner from '@/components/FixedBanner';
 
-export default { mixins: [Brand] };
+export default {
+  mixins:     [Brand],
+  components: { FixedBanner }
+};
 </script>
 
 <template>
   <main>
-    <nuxt />
+    <div class="dashboard-root">
+      <FixedBanner />
+      <nuxt />
+      <FixedBanner :footer="true" />
+    </div>
   </main>
 </template>
 
