@@ -2,7 +2,7 @@ import IntlMessageFormat from 'intl-messageformat';
 import { LOCALE } from '@/config/cookies';
 import { get } from '@/utils/object';
 import en from '@/assets/translations/en-us.yaml';
-import { getProduct, getVendor } from '@/config/private-label';
+import { getProduct, getVendor, DOCS_BASE } from '@/config/private-label';
 import { loadTranslation } from '@/utils/dynamic-importer';
 
 const NONE = 'none';
@@ -96,7 +96,7 @@ export const getters = {
       const moreArgs = {
         vendor:   getVendor(),
         appName:  getProduct(),
-        docsBase: 'https://rancher.com/docs/rancher/v2.6/en',
+        docsBase: DOCS_BASE,
         ...args
       };
 

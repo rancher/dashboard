@@ -33,7 +33,7 @@ Use the steps below to set up a Keycloak instance for dev environments and confi
    > Ensure that the admin user has a first name, last name and email. These fields are referenced in the Keycloak client's mappers which are then referenced in the Rancher's auth provider config.
 
    > Double check the client has the correct checkboxes set, specifically the Mappers `group` entry.
-1. Using either the Ember or Vue UI set up the Keycloak auth provider by follow the instructions at [here](https://rancher.com/docs/rancher/v2.x/en/admin-settings/authentication/keycloak/)
+1. Using either the Ember or Vue UI set up the Keycloak auth provider by follow the instructions at [here](https://rancher.com/docs/rancher/v2.6/en/admin-settings/authentication/keycloak-saml/)
    | Field | Value |
    |-------|-------|
    | Display Name Field | givenName |
