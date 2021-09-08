@@ -4847,6 +4847,7 @@ harvester:
       basics: Basics
       instance: Virtual Machines
       monitor: Monitor Data
+      disk: Disks
     detail:
       title:
         network: Network Configuration
@@ -4873,6 +4874,16 @@ harvester:
     cordon:
       title: Cordon
       protip: This operation will mark the node { node } as unschedulable.
+    disk:
+      add: Add Disk
+      path:
+        label: Path
+      storageReserved:
+        label: Storage Reserved
+      allowScheduling:
+        label: Scheduling
+      evictionRequested:
+        label: Eviction Requested
 
   virtualMachine:
     label: Virtual Machines

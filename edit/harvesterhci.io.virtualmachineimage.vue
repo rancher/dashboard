@@ -67,6 +67,10 @@ export default {
     imageName() {
       return this.value?.metadata?.annotations?.[HCI_ANNOTATIONS.IMAGE_NAME] || '-';
     },
+
+    isCreateEdit() {
+      return this.isCreate || this.isEdit;
+    },
   },
 
   watch: {
@@ -191,7 +195,7 @@ export default {
           :mode="mode"
         />
         <div class="row mb-20 mt-20">
-          <div v-if="isCreate" class="col span-12">
+          <div v-if="isCreateEdit" class="col span-12">
             <LabeledInput
               v-if="value.spec.sourceType === 'download'"
               v-model="value.spec.url"

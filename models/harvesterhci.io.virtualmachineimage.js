@@ -44,9 +44,9 @@ export default {
 
   isReady() {
     const initialized = this.getStatusConditionOfType('Initialized');
-    const uploaded = this.getStatusConditionOfType('Uploaded');
+    const imported = this.getStatusConditionOfType('Imported');
 
-    if ([initialized?.status, uploaded?.status].includes('False')) {
+    if ([initialized?.status, imported?.status].includes('False')) {
       return false;
     } else {
       return true;
@@ -55,13 +55,17 @@ export default {
 
   stateDisplay() {
     const initialized = this.getStatusConditionOfType('Initialized');
-    const uploaded = this.getStatusConditionOfType('Uploaded');
+    const imported = this.getStatusConditionOfType('Imported');
 
-    if (uploaded?.status === 'Unknown') {
-      return 'Uploading';
+    if (imported?.status === 'Unknown') {
+      if (this.spec.sourceType === 'download') {
+        return 'Downloading';
+      } else {
+        return 'Uploading';
+      }
     }
 
-    if (initialized?.message || uploaded?.message) {
+    if (initialized?.message || imported?.message) {
       return 'Failed';
     }
 
@@ -151,9 +155,9 @@ export default {
   stateObj() {
     const state = clone(this.metadata?.state);
     const initialized = this.getStatusConditionOfType('Initialized');
-    const uploaded = this.getStatusConditionOfType('Uploaded');
+    const imported = this.getStatusConditionOfType('Imported');
 
-    if ([initialized?.status, uploaded?.status].includes('False')) {
+    if ([initialized?.status, imported?.status].includes('False')) {
       state.error = true;
     }
 
@@ -161,10 +165,10 @@ export default {
   },
 
   stateDescription() {
-    const uploaded = this.getStatusConditionOfType('Uploaded');
+    const imported = this.getStatusConditionOfType('Imported');
 
-    const status = uploaded?.status;
-    const message = uploaded?.message;
+    const status = imported?.status;
+    const message = imported?.message;
 
     return status === 'False' ? ucFirst(message) : '';
   },

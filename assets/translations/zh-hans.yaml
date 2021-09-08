@@ -3929,6 +3929,7 @@ harvester:
       promoteSucceed: 角色升级完成
     tabs:
       network: 网络
+      disk: 硬盘
     detail:
       title:
         network: 网络配置
@@ -3955,6 +3956,10 @@ harvester:
     cordon:
       title: 封锁
       protip: 此操作将会标记节点 { node } 为不可调度.
+    disk:
+      add: 添加硬盘
+      path:
+        label: 路径
   virtualMachine:
     label: 虚拟机
     instance:

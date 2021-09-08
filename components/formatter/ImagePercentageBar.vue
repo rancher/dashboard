@@ -45,11 +45,7 @@ export default {
     },
 
     completed() {
-      if (this.row.spec.sourceType === 'download') {
-        return true;
-      } else {
-        return Number.parseFloat(this.value) === 100 && !this.failed;
-      }
+      return Number.parseFloat(this.value) === 100 && !this.failed;
     },
   },
 };

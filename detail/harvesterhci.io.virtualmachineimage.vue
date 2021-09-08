@@ -42,7 +42,7 @@ export default {
     errorMessage() {
       const conditions = get(this.value, 'status.conditions');
 
-      return findBy(conditions, 'type', 'Uploaded')?.message || '-';
+      return findBy(conditions, 'type', 'Imported')?.message || '-';
     },
 
     isUpload() {
