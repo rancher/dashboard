@@ -63,7 +63,7 @@ export default {
           label:   x.nameDisplay,
           ready:   x.isReady,
           osLogo:  x.providerOsLogo,
-          logo:    x.providerLogo,
+          logo:    x?.status?.provider === 'harvester' ? require(`~/assets/images/providers/kubernetes.svg`) : x.providerLogo,
           isLocal: x.isLocal
         };
       });
