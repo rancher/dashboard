@@ -138,7 +138,7 @@ export default {
     displayVersion() {
       let { displayVersion } = getVersionInfo(this.$store);
 
-      if (this.$store.getters['currentProduct'].name === 'virtual') {
+      if (this.isVirtualProduct) {
         const setting = this.$store.getters['virtual/byId'](HCI.SETTING, 'server-version');
 
         displayVersion = setting?.value || 'unknown';
@@ -148,11 +148,15 @@ export default {
     },
 
     showProductSupport() {
-      if (this.isVirtualCluster) {
+      if (this.isVirtualProduct) {
         return true;
       } else {
         return false;
       }
+    },
+
+    isVirtualProduct() {
+      return this.$store.getters['currentProduct'].name === 'virtual';
     },
 
     supportLink() {
