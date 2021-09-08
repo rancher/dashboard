@@ -1162,12 +1162,6 @@ export default {
     };
   },
 
-  promptRemoveApp() {
-    return (resources = this) => {
-      this.$dispatch('promptRemoveApp', resources);
-    };
-  },
-
   confirmRemove() {
     return false;
   },

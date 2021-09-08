@@ -496,10 +496,6 @@ export default {
     commit('action-menu/togglePromptRemove', resources, { root: true });
   },
 
-  promptRemoveApp({ commit, state }, resources ) {
-    commit('action-menu/togglePromptRemoveApp', resources, { root: true });
-  },
-
   promptRestore({ commit, state }, resources ) {
     commit('action-menu/togglePromptRestore', resources, { root: true });
   },

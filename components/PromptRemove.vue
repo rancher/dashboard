@@ -2,25 +2,32 @@
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@/utils/object';
 import Card from '@/components/Card';
+import Checkbox from '@/components/form/Checkbox';
 import { alternateLabel } from '@/utils/platform';
 import { uniq } from '@/utils/array';
 import AsyncButton from '@/components/AsyncButton';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
+import { CATALOG } from '@/config/types';
 
 export default {
-  components: { Card, AsyncButton },
+  components: {
+    Card, Checkbox, AsyncButton
+  },
   data() {
     const { resource } = this.$route.params;
 
     return {
-      hasCustomRemove: false,
-      randomPosition:  Math.random(),
-      confirmName:     '',
-      error:           '',
-      warning:         '',
-      preventDelete:   false,
-      removeComponent: this.$store.getters['type-map/importCustomPromptRemove'](resource),
-      deleteCrd:        false,
-      allInstalled:     null
+      hasCustomRemove:     false,
+      randomPosition:      Math.random(),
+      confirmName:         '',
+      error:               '',
+      warning:             '',
+      preventDelete:       false,
+      removeComponent:     this.$store.getters['type-map/importCustomPromptRemove'](resource),
+      deleteCrd:           false,
+      allInstalled:        null,
+      chartsToRemoveIsApp: false,
+      chartsDeleteCrd:     false
     };
   },
   computed:   {
@@ -147,6 +154,9 @@ export default {
   watch:    {
     showPromptRemove(show) {
       if (show) {
+        if (this.currentRouter?.currentRoute?.name === 'c-cluster-explorer-tools' && this.toRemove[0].type === CATALOG.APP && this.toRemove[0].spec?.chart?.metadata?.annotations[CATALOG_ANNOTATIONS.AUTO_INSTALL]) {
+          this.chartsToRemoveIsApp = true;
+        }
         this.$modal.show('promptRemove');
 
         let { resource } = this.$route.params;
@@ -195,6 +205,8 @@ export default {
     close() {
       this.confirmName = '';
       this.error = '';
+      this.chartsDeleteCrd = false;
+      this.chartsToRemoveIsApp = false;
       this.$store.commit('action-menu/togglePromptRemove');
     },
 
@@ -272,6 +284,21 @@ export default {
       const promises = types.map(type => this.$store.dispatch(`${ inStore }/findAll`, { type, opt: { force: true } }, { root: true }));
 
       return Promise.all(promises);
+    },
+
+    async chartAddCrdToRemove() {
+      try {
+        const res = await this.toRemove[0].relatedResourcesToRemove();
+
+        if (!this.toRemove.includes(res)) {
+          this.toRemove.push(res);
+        } else if (!this.deleteCrd) {
+          this.toRemove.pop(res);
+        }
+      } catch (err) {
+        this.error = err;
+        this.chartsDeleteCrd = false;
+      }
     }
   }
 };
@@ -325,6 +352,7 @@ export default {
         <div v-if="!needsConfirm" class="text-info mt-20">
           {{ protip }}
         </div>
+        <Checkbox v-if="chartsToRemoveIsApp" v-model="chartsDeleteCrd" label-key="promptRemoveApp.removeCrd" class="mt-10 type" @input="chartAddCrdToRemove" />
       </div>
       <template #actions>
         <button class="btn role-secondary" @click="close">
