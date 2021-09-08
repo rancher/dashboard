@@ -4272,6 +4272,7 @@ workload:
       fsGroup: Filesystem Group
       hostIPC: Use Host IPC Namespace
       hostPID: Use Host PID Namespace
+      podFsGroup: Pod Filesystem Group
       privileged:
         label: Privileged
         'false': No
