@@ -3377,6 +3377,22 @@ secret:
     'provisioning.cattle.io/cloud-credential': 'CC'
     's3': 'S3'
   relatedWorkloads: Related Workloads
+  typeDescriptions:
+    'kubernetes.io/basic-auth':
+      description: 'Authentication with a username and password'
+      docLink: https://kubernetes.io/docs/concepts/configuration/secret/#basic-authentication-secret
+    'Opaque': 
+      description: Default type of Secret using key-value pairs
+      docLink: https://kubernetes.io/docs/concepts/configuration/secret/#opaque-secrets
+    'kubernetes.io/dockerconfigjson':
+      description: Authenticated registry for pulling container images
+      docLink: https://kubernetes.io/docs/concepts/configuration/secret/#docker-config-secrets
+    'kubernetes.io/ssh-auth':
+      description: Public key and private key for SSH authentication
+      docLink: https://kubernetes.io/docs/concepts/configuration/secret/#ssh-authentication-secrets
+    'kubernetes.io/tls':
+      description: Store a certificate and key for TLS
+      docLink: https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
 
 selectOrCreateAuthSecret:
   label: Authentication

@@ -143,7 +143,9 @@ export default {
           out.push({
             id,
             label:       this.typeDisplay(id),
-            bannerAbbrv: this.initialDisplayFor(id)
+            bannerAbbrv: this.initialDisplayFor(id),
+            description: this.t(`secret.typeDescriptions.'${ id }'.description`),
+            docLink:     this.t(`secret.typeDescriptions.'${ id }'.docLink`)
           });
         }
       }
