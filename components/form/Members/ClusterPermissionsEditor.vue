@@ -214,7 +214,13 @@ export default {
   <div v-else class="cluster-permissions-editor">
     <div class="row mt-10">
       <div class="col span-12">
-        <SelectPrincipal class="mb-20" :mode="mode" :retain-selection="true" @add="onAdd" />
+        <SelectPrincipal
+          v-focus
+          class="mb-20"
+          :mode="mode"
+          :retain-selection="true"
+          @add="onAdd"
+        />
       </div>
     </div>
 

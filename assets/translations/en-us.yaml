@@ -1235,6 +1235,12 @@ cluster:
           }
   memberRoles:
     removeMessage: 'Note: Removing a user will not remove their project permissions'
+    addClusterMember:
+      labelSelect: Select Member
+      labelAdd: Add Member
+      placeholder: Search for a member to provide cluster access
+      searchPlaceholder: Start typing to search
+      noResults: No results found
   privateRegistry:
     systemDefaultRegistry:
       label: Registry hostname for {vendor} images
