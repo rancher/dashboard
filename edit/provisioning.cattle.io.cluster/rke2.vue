@@ -1343,7 +1343,7 @@ export default {
                 v-model="rkeConfig.etcd.snapshotRetention"
                 :mode="mode"
                 label="Keep the last"
-                suffix="Snapshots"
+                :suffix="t('cluster.rke2.snapshots.suffix')"
               />
             </div>
           </div>
