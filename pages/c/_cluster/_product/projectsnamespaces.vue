@@ -187,23 +187,23 @@ export default {
     >
       <template #group-by="group">
         <div class="project-bar" :class="{'has-description': projectDescription(group.group)}">
-          <div v-trim-whitespace class="group-tab">
+          <div v-trim-whitespace class="">
             <div class="project-name" v-html="projectLabel(group.group)" />
             <div v-if="projectDescription(group.group)" class="description text-muted text-small">
               {{ projectDescription(group.group) }}
             </div>
           </div>
-          <div class="right">
-            <n-link
-              class="create-namespace btn btn-sm role-secondary"
-              :to="createNamespaceLocation(group.group)"
-            >
-              {{ t('projectNamespaces.createNamespace') }}
-            </n-link>
-            <button type="button" class="project-action btn btn-sm role-multi-action actions mr-5" :class="{invisible: !showProjectActionButton(group.group)}" @click="showProjectAction($event, group.group)">
-              <i class="icon icon-actions" />
-            </button>
-          </div>
+          <!-- <div class="right"> -->
+          <n-link
+            class="create-namespace btn btn-sm role-secondary"
+            :to="createNamespaceLocation(group.group)"
+          >
+            {{ t('projectNamespaces.createNamespace') }}
+          </n-link>
+          <button type="button" class="project-action btn btn-sm role-multi-action actions" :class="{invisible: !showProjectActionButton(group.group)}" @click="showProjectAction($event, group.group)">
+            <i class="icon icon-actions" />
+          </button>
+          <!-- </div> -->
         </div>
       </template>
       <template #cell:project="{row}">
@@ -232,6 +232,7 @@ export default {
       display: flex;
       flex-direction: row;
       justify-content: space-between;
+      align-items: center;
 
       &.has-description {
         .right {

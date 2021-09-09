@@ -839,16 +839,11 @@ $spacing: 10px;
     }
 
     &.group {
-      &:before {
-        content: "";
-        display: block;
-        height: 20px;
-        background-color: transparent;
-      }
+      border-bottom: solid 2px var(--border);
     }
 
     tr.group-row {
-      background-color: initial;
+      background-color: var(--sortable-table-row-bg);
 
       &:first-child {
         border-bottom: 2px solid var(--sortable-table-row-bg);
@@ -859,42 +854,11 @@ $spacing: 10px;
       }
 
       td {
-        padding: 0;
+        // padding: 0;
 
         &:first-of-type {
           border-left: 1px solid var(--sortable-table-accent-bg);
         }
-      }
-
-      .group-tab {
-        @include clearfix;
-        height: $group-row-height;
-        line-height: $group-row-height;
-        padding: 0 10px;
-        border-radius: 4px 4px 0px 0px;
-        background-color: var(--sortable-table-row-bg);
-        position: relative;
-        top: 1px;
-        display: inline-block;
-        z-index: z-index('tableGroup');
-        min-width: $group-row-height * 1.8;
-
-        > SPAN {
-          color: var(--sortable-table-group-label);
-        }
-      }
-
-      .group-tab:after {
-        height: $group-row-height;
-        width: 70px;
-        border-radius: 5px 5px 0px 0px;
-        background-color: var(--sortable-table-row-bg);
-        content: "";
-        position: absolute;
-        right: -15px;
-        top: 0px;
-        transform: skewX(40deg);
-        z-index: -1;
       }
     }
   }
