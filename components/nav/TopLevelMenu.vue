@@ -51,14 +51,13 @@ export default {
     },
 
     showClusterSearch() {
-      const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-
-      return all.length > this.maxClustersToShow;
+      return this.clusters.length > this.maxClustersToShow;
     },
 
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      let out = all.map((x) => {
+
+      return all.map((x) => {
         return {
           id:      x.id,
           label:   x.nameDisplay,
@@ -68,12 +67,12 @@ export default {
           isLocal: x.isLocal
         };
       });
+    },
 
+    clustersFiltered() {
       const search = (this.clusterFilter || '').toLowerCase();
 
-      if ( search ) {
-        out = out.filter(item => item.label.toLowerCase().includes(search));
-      }
+      const out = search ? this.clusters.filter(item => item.label.toLowerCase().includes(search)) : this.clusters;
 
       const sorted = sortBy(out, ['ready:desc', 'label']);
 
@@ -235,10 +234,10 @@ export default {
                 v-model="clusterFilter"
                 :placeholder="t('nav.search.placeholder')"
               />
-              <i v-if="clusterFilter.length > 0" class="icon icon-close" @click="clusterFilter=''" />
+              <i v-if="clusterFilter" class="icon icon-close" @click="clusterFilter=''" />
             </div>
             <div ref="clusterList" class="clusters">
-              <div v-for="c in clusters" :key="c.id" @click="hide()">
+              <div v-for="c in clustersFiltered" :key="c.id" @click="hide()">
                 <nuxt-link
                   v-if="c.ready"
                   class="cluster selector option"
@@ -253,7 +252,7 @@ export default {
                   <div>{{ c.label }}</div>
                 </span>
               </div>
-              <div v-if="clusters.length === 0" class="none-matching">
+              <div v-if="clustersFiltered.length === 0" class="none-matching">
                 {{ t('nav.search.noResults') }}
               </div>
             </div>
@@ -563,7 +562,7 @@ export default {
         > i {
           position: absolute;
           font-size: $clear-search-size;
-          top: ($option-height - $clear-search-size) / 2;
+          top: 9px;
           right: 8px;
           opacity: 0.7;
           cursor: pointer;
