@@ -854,8 +854,6 @@ $spacing: 10px;
       }
 
       td {
-        // padding: 0;
-
         &:first-of-type {
           border-left: 1px solid var(--sortable-table-accent-bg);
         }
