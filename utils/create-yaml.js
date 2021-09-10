@@ -57,7 +57,6 @@ const ACTIVELY_REMOVE = [
   'metadata.managedFields',
   'metadata.relationships',
   'metadata.state',
-  'spec._type',
   'status',
   'links',
   'type',
