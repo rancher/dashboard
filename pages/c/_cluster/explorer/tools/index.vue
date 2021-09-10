@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import Loading from '@/components/Loading';
 import { _FLAGGED, DEPRECATED, HIDDEN, FROM_TOOLS } from '@/config/query-params';
 import { filterAndArrangeCharts } from '@/store/catalog';
-import { CATALOG, MANAGEMENT } from '@/config/types';
+import { CATALOG, MANAGEMENT, NORMAN } from '@/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
 import LazyImage from '@/components/LazyImage';
 import AppSummaryGraph from '@/components/formatter/AppSummaryGraph';
@@ -42,6 +42,19 @@ export default {
       } else {
         this.v1SystemCatalog = {};
       }
+
+      // Need the project ID of the system project in order to get the apps
+      const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+      const systemProject = projects.find(p => p.spec?.displayName === 'System');
+
+      if (systemProject) {
+        const id = systemProject.id.replace('/', ':');
+
+        this.v1Apps = await this.$store.dispatch('rancher/findAll', {
+          type: NORMAN.APP,
+          opt:  { url: `/v3/project/${ id }/apps` }
+        });
+      }
     }
   },
 
@@ -50,6 +63,7 @@ export default {
 
     return {
       allInstalled:    null,
+      v1Apps:          null,
       v1SystemCatalog: null,
       legacyEnabled
     };
@@ -112,9 +126,9 @@ export default {
 
       // V1 Legacy support
       if (this.legacyEnabled) {
-        this.moveAppWhenLegacy(chartsWithApps, 'v1-monitoring', 'rancher-monitoring');
-        this.moveAppWhenLegacy(chartsWithApps, 'v1-logging', 'rancher-logging');
-        this.moveAppWhenLegacy(chartsWithApps, 'v1-istio', 'rancher-istio');
+        this.checkLegacyApp(chartsWithApps, 'v1-monitoring', 'rancher-monitoring', 'cluster-monitoring');
+        this.checkLegacyApp(chartsWithApps, 'v1-istio', 'rancher-istio', 'cluster-istio');
+        this.checkLegacyApp(chartsWithApps, 'v1-logging', 'rancher-logging', 'rancher-logging');
       }
 
       return chartsWithApps;
@@ -195,26 +209,18 @@ export default {
       return versions;
     },
 
-    moveAppWhenLegacy(chartsWithApps, v1ChartName, v2ChartName) {
+    checkLegacyApp(chartsWithApps, v1ChartName, v2ChartName, v1AppName) {
       const v1 = chartsWithApps.find(a => a.chart.chartName === v1ChartName);
       const v2 = chartsWithApps.find(a => a.chart.chartName === v2ChartName);
 
-      // Check app on v2
-      if (v1 && v2 && v2.app) {
-        const appVersion = v2.app.spec?.chart?.metadata?.version;
+      if (v1) {
+        if (v2 && v2.app) {
+          v1.blocked = true;
+        } else {
+          const v1App = this.v1Apps.find(a => a.id.indexOf(v1AppName) > 0);
 
-        if (appVersion) {
-          const isV1Version = v1.chart.versions.find(v => v.version === appVersion);
-
-          if (isV1Version) {
-            // Move the app data to the v1 chart
-            v1.app = v2.app;
-            v2.app = undefined;
-            v2.blocked = true;
-          } else {
-            // V2 is installed, so block V1
-            v1.blocked = true;
-          }
+          v1.app = v1App;
+          v2.blocked = !!v1App;
         }
       }
     }
@@ -380,7 +386,7 @@ export default {
         <div class="description">
           <div class="description-content" v-html="opt.chart.chartDescription" />
         </div>
-        <div v-if="opt.app" class="state">
+        <div v-if="opt.app && !opt.chart.legacy" class="state">
           <AppSummaryGraph :row="opt.app" label-key="generic.resourceCount" :link-to="opt.app.detailLocation" />
         </div>
         <div class="action">

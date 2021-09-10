@@ -147,6 +147,7 @@ export const IF_HAVE = {
   V2_MONITORING: 'v2-monitoring',
   PROJECT:       'project',
   NO_PROJECT:    'no-project',
+  NOT_V1_ISTIO:  'not-v1-istio',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -1547,9 +1548,19 @@ function ifHave(getters, option) {
   case IF_HAVE.NO_PROJECT: {
     return !project(getters);
   }
+  case IF_HAVE.NOT_V1_ISTIO: {
+    return !isV1Istio(getters);
+  }
   default:
     return false;
   }
+}
+
+// Is V1 Istio installed?
+function isV1Istio(getters) {
+  const cluster = getters['currentCluster'];
+
+  return !!cluster?.status?.istioEnabled;
 }
 
 // Look at the namespace filters to determine if a project is selected

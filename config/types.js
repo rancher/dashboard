@@ -9,6 +9,7 @@ export const STEVE = { PREFERENCE: 'userpreference' };
 // Old APIs via Norman
 // Base: /v3
 export const NORMAN = {
+  APP:                           'app',
   AUTH_CONFIG:                   'authconfig',
   ETCD_BACKUP:                   'etcdbackup',
   CLUSTER:                       'cluster',
