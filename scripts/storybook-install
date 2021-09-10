@@ -13,9 +13,14 @@ const { spawn } = require("child_process");
 
 async function main() {
   let remove = false;
-  if (process.argv.length > 2 && process.argv[2] === '-d') {
+  let doInstall = true;
+  if (process.argv.length > 2 && (process.argv[2] === '-d' || process.argv[2] === '-r')) {
     remove = true;
     console.log('Removing storybook from package.json');
+
+    if (process.argv[2] === '-d') {
+      doInstall = false;
+    }
   }
 
   const rootFolder = path.resolve(__dirname, '..');
@@ -61,7 +66,7 @@ async function main() {
     });
   }
 
-  if (didChange) {
+  if (didChange && doInstall) {
     console.log('Updating dependencies...');
     await yarnInstall();
   }

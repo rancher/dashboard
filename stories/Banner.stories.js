@@ -19,29 +19,29 @@ export default {
     },
     icon: {
       description: 'Optional icon to show before the label'
-    }
+    },
   }
 };
 
-const Template = (args, { argTypes}) => ({
+const Template = (args, { argTypes, events }) => ({
   components: { Banner },
   props: Object.keys(argTypes),
-  // props: argTypes,
-  template: '<Banner v-bind="$props" />',
+  template: '<Banner v-on="events" v-bind="$props" />',
+  data: () => ({ events }),
 });
 
 export const Primary = Template.bind({});
 Primary.args = {
   label: 'Banner Component - Primary',
   closable: false,
-  color: 'primary'
+  color: 'primary',
 };
 
 export const Info = Template.bind({});
 Info.args = {
   label: 'Banner Component - Info',
   closable: false,
-  color: 'info'
+  color: 'info',
 };
 
 export const Warning = Template.bind({});

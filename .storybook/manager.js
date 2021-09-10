@@ -1,27 +1,39 @@
-// .storybook/manager.js
-
 import { addons } from '@storybook/addons';
 import rancherTheme from './theme';
+import installShortcut from './theme-shortcut';
 
 addons.setConfig({
   panelPosition: 'right',
   theme: rancherTheme
 });
 
+const loader = window.onload;
+window.onload = () => {
+  const ch = addons.getChannel();
+  ch.on('shortcut-toggle-dark-mode', (a) => {
+    const toolbar = document.getElementsByClassName('os-content');
+    if (toolbar.length > 2) {
+      const aTags = toolbar[1].getElementsByTagName("button");
+      const searchText = "Change theme to ";
+      let found;
 
-// let firstLoad = true;
-// addons.register('my-organisation/my-addon', (storybookAPI) => {
-//   storybookAPI.on(SET_CURRENT_STORY, ((kind, story) => {
+      for (var i = 0; i < aTags.length; i++) {
+        if (aTags[i].title && aTags[i].title.indexOf(searchText) === 0) {
+          found = aTags[i];
+          break;
+        }
+      }
 
-//     console.log('<<<<<<<<<<<<<<<<<<<<<<<<<');
-//     // when you enter a story, if you are just loading storybook up, default to a specific kind/story. 
-//     if (firstLoad) {
-//       firstLoad = false; // make sure to set this flag to false, otherwise you will never be able to look at another story.
+      if (found) {
+        found.click();
+      }
+    }
+  });
 
-//       console.log('selecting story....');
-//       console.log(kind);
-//       console.log(story);
-//       storybookAPI.selectStory('BadgeState', 'Primary');
-//     }
-//   }));
-// });
+  // Add keyboard shortcut to toggle between dark and light modes
+  installShortcut();
+
+  if (loader) {
+    loader();
+  }
+}

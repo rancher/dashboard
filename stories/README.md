@@ -1,6 +1,6 @@
 # Storybook
 
-By default the Storybook dependencies are not included in the main package file.
+By default the Storybook dependencies are not included in the main package file (it adds a lot of weight to the install process).
 
 If you run any of the targets:
 
@@ -19,16 +19,24 @@ You can remove the Storybook dependencies with:
 
 - yarn remove-storybook
 
+# Running Storybook
+
+Just run the command:
+
+```
+yarn storybook
+```
+
+You can access Storybook at the URL: http://127.0.0.1:6006
+
 ## TODO
 
-- Make 'Introduction' the landing story
-- Add light/dark theme support with keyboard shortcut (Command-T) to toggle
-- Add Icons page (maybe generated from the info in assets/fonts/icons/variables.scss)
+- Port design-system pages to Storybook
 - Add Typography page (for headers etc and padding and margin classes)
 - Write short developer reference for how to document components and write stories
 - Build out stories for components
 - Auto-build via CI and publish to Github pages ?
-- Add some content to the Introduction page
+- Add some content to the Welcome page
 - Get i18n working
 - Get store working (where required by a component)
 

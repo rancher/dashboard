@@ -68,7 +68,7 @@ button,
     color: var(--primary-text);
   }
 
-  &:focus, &._focus {
+  &:focus, &.focused {
     background-color: var(--primary-hover-bg);
     color: var(--primary-text);
   }
