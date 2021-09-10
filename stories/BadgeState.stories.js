@@ -3,33 +3,30 @@
 import BadgeState from '../components/BadgeState.vue';
 
 export default {
-  component: BadgeState,
-  title: 'Components/BadgeState',
-  parameters: {
-    docs: {
-      description: {
-        // component: 'Badge component'
-      }
-    }
-  },
-  argTypes: {
+  component:   BadgeState,
+  title:      'Components/BadgeState',
+  // parameters: {
+  //   docs: {
+  //     description: {
+  //       component: 'Badge component'
+  //     }
+  //   }
+  // },
+  argTypes:   {
     color: {
       control: {
-         type: 'select',
-         options: ['bg-info', 'bg-warning', 'bg-error']
+        type:    'select',
+        options: ['bg-info', 'bg-warning', 'bg-error']
       }
     },
-    icon: {
-      description: 'Optional icon to show before the label'
-    }
+    icon: { description: 'Optional icon to show before the label' }
   }
 };
 
-const Template = (args, { argTypes}) => ({
+const Template = (args, { argTypes }) => ({
   components: { BadgeState },
-  props: Object.keys(argTypes),
-  // props: argTypes,
-  template: '<BadgeState v-bind="$props" />',
+  props:      Object.keys(argTypes),
+  template:   '<BadgeState v-bind="$props" />',
 });
 
 export const Info = Template.bind({});

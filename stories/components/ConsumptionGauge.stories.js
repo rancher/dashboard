@@ -3,12 +3,11 @@ import ConsumptionGauge from '@/components/ConsumptionGauge';
 export default {
   title:       'Components/ConsumptionGauge',
   component:   ConsumptionGauge,
- 
 };
 
-export const Story = (args, { argTypes}) => ({
+export const Story = (args, { argTypes }) => ({
   components: { ConsumptionGauge },
-  props: Object.keys(argTypes),
+  props:      Object.keys(argTypes),
   methods:     {
     formatter(value) {
       const valueAsArray = value.toString().split('');
@@ -26,8 +25,8 @@ export const Story = (args, { argTypes}) => ({
 
 Story.story = { name: 'ConsumptionGauge' };
 Story.args = {
-  used: 300,
-  capacity: 789,
-  units: 'GB',
+  used:         300,
+  capacity:     789,
+  units:        'GB',
   resourceName: 'DISK'
-}
+};

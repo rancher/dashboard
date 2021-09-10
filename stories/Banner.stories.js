@@ -2,58 +2,49 @@ import Banner from '../components/Banner.vue';
 
 export default {
   component: Banner,
-  title: 'Components/Banner',
-  parameters: {
-    docs: {
-      description: {
-        // component: 'Badge component'
-      }
-    }
-  },
-  argTypes: {
+  title:     'Components/Banner',
+  argTypes:  {
     color: {
       control: {
-         type: 'select',
-         options: ['primary', 'secondary', 'info', 'warning', 'error']
+        type:    'select',
+        options: ['primary', 'secondary', 'info', 'warning', 'error']
       }
     },
-    icon: {
-      description: 'Optional icon to show before the label'
-    },
+    icon: { description: 'Optional icon to show before the label' }
   }
 };
 
 const Template = (args, { argTypes, events }) => ({
   components: { Banner },
-  props: Object.keys(argTypes),
-  template: '<Banner v-on="events" v-bind="$props" />',
-  data: () => ({ events }),
+  props:      Object.keys(argTypes),
+  template:   '<Banner v-on="events" v-bind="$props" />',
+  data:       () => ({ events }),
 });
 
 export const Primary = Template.bind({});
 Primary.args = {
-  label: 'Banner Component - Primary',
+  label:    'Banner Component - Primary',
   closable: false,
-  color: 'primary',
+  color:    'primary',
 };
 
 export const Info = Template.bind({});
 Info.args = {
-  label: 'Banner Component - Info',
+  label:    'Banner Component - Info',
   closable: false,
-  color: 'info',
+  color:    'info',
 };
 
 export const Warning = Template.bind({});
 Warning.args = {
-  label: 'Banner Component - Warning',
+  label:    'Banner Component - Warning',
   closable: false,
-  color: 'warning'
+  color:    'warning'
 };
 
 export const Error = Template.bind({});
 Error.args = {
-  label: 'Banner Component - Error',
+  label:    'Banner Component - Error',
   closable: false,
-  color: 'error'
+  color:    'error'
 };
