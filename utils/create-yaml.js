@@ -118,7 +118,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
   const commentFields = Object.keys(schema.resourceFields || {});
 
   commentFields.forEach((key) => {
-    if ( typeof data[key] !== 'undefined' || key === '_type' ) {
+    if ( typeof data[key] !== 'undefined' || (key === '_type' && !regularFields.includes('type')) ) {
       addObject(regularFields, key);
     }
   });
