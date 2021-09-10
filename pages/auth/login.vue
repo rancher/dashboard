@@ -261,9 +261,7 @@ export default {
           {{ t('login.welcome', {vendor}) }}
         </h1>
         <div class="login-messages">
-          <h4 v-if="errorMessage" class="text-error text-center">
-            {{ errorMessage }}
-          </h4>
+          <Banner v-if="errorMessage" :label="errorMessage" color="error" />
           <h4 v-else-if="loggedOut" class="text-success text-center">
             {{ t('login.loggedOut') }}
           </h4>
@@ -387,10 +385,6 @@ export default {
       .text-error, .banner {
         max-width: 80%;
       }
-    }
-
-    .login-messages {
-      height: 20px;
     }
 
     .first-login-message {
