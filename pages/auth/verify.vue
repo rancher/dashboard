@@ -36,6 +36,22 @@ export default {
       return;
     }
 
+    const {
+      error, error_description: errorDescription, errorCode, errorMsg
+    } = route.query;
+
+    if (error || errorDescription || errorCode || errorMsg) {
+      let out = errorDescription || error || errorCode;
+
+      if (errorMsg) {
+        out = store.getters['i18n/withFallback'](`login.serverError.${ errorMsg }`, null, errorMsg);
+      }
+
+      redirect(`/auth/login?err=${ escape(out) }`);
+
+      return;
+    }
+
     try {
       const res = await store.dispatch('auth/verifyOAuth', {
         code,
@@ -73,8 +89,15 @@ export default {
   mounted() {
     if ( this.testing ) {
       try {
-        const { error: respError, error_description: respErrorDescription, [GITHUB_CODE]: code } = this.$route.query;
-        const error = respErrorDescription || respError || (!code ? 'No code supplied by auth provider' : null);
+        const {
+          error: respError, error_description: respErrorDescription, [GITHUB_CODE]: code, errorMsg
+        } = this.$route.query;
+
+        let error = respErrorDescription || respError || (!code ? 'No code supplied by auth provider' : null);
+
+        if (errorMsg) {
+          error = this.$store.getters['i18n/withFallback'](`login.serverError.${ errorMsg }`, null, errorMsg);
+        }
 
         reply(error, code );
       } catch (e) {
@@ -95,7 +118,7 @@ export default {
         }
       }
     }
-  },
+  }
 };
 </script>
 

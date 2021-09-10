@@ -2182,6 +2182,12 @@ login:
   welcome: Welcome to {vendor}
   loggedOut: You have been logged out.
   loginAgain: Log in again to continue.
+  serverError:  
+    authFailedCreds: "Logging in failed: Check credentials, or your account may not be authorized to log in."
+    authFailed: "Logging in failed: Your account may not be authorized to log in."
+    unknown: "An unknown error occured while attempting to login. Please contact your system administrator."
+    invalidSamlAttrs: "Invalid saml attributes"
+    noResponse: "No response received"
   error: An error occured logging in. Please try again.
   clientError: Invalid username or password. Please try again.
   useLocal: Use a local user
