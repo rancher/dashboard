@@ -124,7 +124,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
   });
 
   for ( const key in data ) {
-    if ( typeof data[key] !== 'undefined' ) {
+    if (shouldAddKey(key, data, regularFields)) {
       addObject(regularFields, key);
     }
   }
@@ -325,6 +325,14 @@ function indent(lines, depth = 1) {
 
 function serializeSimpleValue(data) {
   return jsyaml.dump(data).trim();
+}
+
+function shouldAddKey(key, data, regularFields) {
+  if (typeof data[key] === 'undefined') {
+    return false;
+  }
+
+  return key !== 'type' || !regularFields.includes('_type');
 }
 
 export function typeRef(type, str) {
