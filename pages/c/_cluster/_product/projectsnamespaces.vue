@@ -193,7 +193,6 @@ export default {
               {{ projectDescription(group.group) }}
             </div>
           </div>
-          <!-- <div class="right"> -->
           <n-link
             class="create-namespace btn btn-sm role-secondary"
             :to="createNamespaceLocation(group.group)"
@@ -203,7 +202,6 @@ export default {
           <button type="button" class="project-action btn btn-sm role-multi-action actions" :class="{invisible: !showProjectActionButton(group.group)}" @click="showProjectAction($event, group.group)">
             <i class="icon icon-actions" />
           </button>
-          <!-- </div> -->
         </div>
       </template>
       <template #cell:project="{row}">
