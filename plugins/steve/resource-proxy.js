@@ -1,9 +1,9 @@
 import { lookup } from './model-loader';
+import { Resource } from './resource-class';
 import ResourceInstance from './resource-instance';
 
 export const SELF = '__[[SELF]]__';
 export const ALREADY_A_PROXY = '__[[PROXY]]__';
-export const PRIVATE = '__[[PRIVATE]]__';
 
 const FAKE_CONSTRUCTOR = function() {};
 
@@ -14,11 +14,23 @@ FAKE_CONSTRUCTOR.toString = function() {
 const nativeProperties = ['description'];
 
 export function proxyFor(ctx, obj, isClone = false) {
-  // Attributes associated to the proxy, but not stored on the actual backing object
-  let priv;
-
-  if ( obj[ALREADY_A_PROXY] ) {
+  if ( obj[ALREADY_A_PROXY] || obj instanceof Resource ) {
     return obj;
+  }
+
+  remapSpecialKeys(obj);
+
+  const mappedType = ctx.rootGetters['type-map/componentFor'](obj.type);
+  let customModel = lookup(ctx.state.config.namespace, mappedType, obj?.metadata?.name);
+
+  if ( !customModel ) {
+    customModel = Resource;
+  }
+
+  if ( customModel?.prototype ) {
+    const out = new customModel(obj, ctx, (process.server ? ctx.state.config.namespace : null), isClone);
+
+    return out;
   }
 
   if ( process.server ) {
@@ -37,11 +49,8 @@ export function proxyFor(ctx, obj, isClone = false) {
       });
     }
   }
-  const mappedType = ctx.rootGetters['type-map/componentFor'](obj.type);
-  const customModel = lookup(ctx.state.config.namespace, mappedType, obj?.metadata?.name);
-  const model = customModel || ResourceInstance;
 
-  remapSpecialKeys(obj);
+  const model = customModel || ResourceInstance;
 
   const proxy = new Proxy(obj, {
     get(target, name) {
@@ -60,12 +69,6 @@ export function proxyFor(ctx, obj, isClone = false) {
         return ctx;
       } else if ( name.startsWith('$') ) {
         return ctx[name.substr(1)];
-      } else if ( name === PRIVATE ) {
-        if ( !priv ) {
-          priv = {};
-        }
-
-        return priv;
       }
 
       let fn;
@@ -98,6 +101,11 @@ export function remapSpecialKeys(obj) {
   if ( obj.name ) {
     obj._name = obj.name;
     delete obj.name;
+  }
+
+  if ( obj.description ) {
+    obj._description = obj.description;
+    delete obj.description;
   }
 
   if ( obj.state ) {
