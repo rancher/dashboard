@@ -31,7 +31,24 @@ export default {
     },
 
     arrangedRows() {
-      return sortBy(this.filteredRows, this.sortFields, this.descending);
+      let key;
+
+      if ( this.sortGenerationFn ) {
+        key = `${ this.sortGenerationFn.apply(this) }/${ this.filteredRows.length }/${ this.descending }/${ this.sortFields.join(',') }`;
+
+        if ( this.cacheKey === key ) {
+          return this.cachedRows;
+        }
+      }
+
+      const out = sortBy(this.filteredRows, this.sortFields, this.descending);
+
+      if ( key ) {
+        this.cacheKey = key;
+        this.cachedRows = out;
+      }
+
+      return out;
     },
   },
 
@@ -75,7 +92,9 @@ export default {
 
     return {
       sortBy,
-      descending
+      descending,
+      cachedRows: null,
+      cacheKey:   null,
     };
   },
 

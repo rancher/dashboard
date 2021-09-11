@@ -13,7 +13,8 @@ function registerType(state, type) {
       list:         [],
       haveAll:      false,
       haveSelector: {},
-      revision:     0,
+      revision:     0, // The highest known resourceVersion from the server for this type
+      generation:   0, // Updated every time something is loaded for this type
     };
 
     // Not enumerable so they don't get sent back to the client for SSR
@@ -42,6 +43,8 @@ function load(state, { data, ctx, existing }) {
   const id = data[keyField];
 
   let cache = registerType(state, type);
+
+  cache.generation++;
 
   let entry;
 
@@ -98,6 +101,8 @@ function forget(state, type) {
   if ( cache ) {
     cache.haveAll = false;
     cache.haveSelector = {};
+    cache.revision = 0;
+    cache.generation = 0;
     clear(cache.list);
     cache.map.clear();
     delete state.types[type];
@@ -147,6 +152,7 @@ export default {
 
     clear(cache.list);
     cache.map.clear();
+    cache.generation++;
 
     addObjects(cache.list, proxies);
 

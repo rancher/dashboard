@@ -241,8 +241,12 @@ export default {
     showHeaders: {
       type:    Boolean,
       default: true
-    }
+    },
 
+    sortGenerationFn: {
+      type:    Function,
+      default: null,
+    },
   },
 
   data() {

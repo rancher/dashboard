@@ -558,4 +558,15 @@ export const getters = {
     return null;
   },
 
+  currentGeneration: state => (type) => {
+    type = normalizeType(type);
+
+    const cache = state.types[type];
+
+    if ( !cache ) {
+      return null;
+    }
+
+    return cache.generation;
+  },
 };
