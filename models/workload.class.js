@@ -3,10 +3,11 @@ import { TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED } from '@/config/labels-annotat
 import { WORKLOAD_TYPES, SERVICE } from '@/config/types';
 import { clone, get, set } from '@/utils/object';
 import day from 'dayjs';
+import { Resource } from '@/plugins/steve/resource-class';
 
-export default {
+export default class Workload extends Resource {
   // remove clone as yaml/edit as yaml until API supported
-  _availableActions() {
+  get _availableActions() {
     let out = this._standardActions;
     const type = this._type ? this._type : this.type;
 
@@ -35,57 +36,55 @@ export default {
     });
 
     return out;
-  },
+  }
 
-  applyDefaults() {
-    return (vm, mode) => {
-      const { spec = {} } = this;
+  applyDefaults(vm) {
+    const { spec = {} } = this;
 
-      if (this.type === WORKLOAD_TYPES.CRON_JOB) {
-        if (!spec.jobTemplate) {
-          spec.jobTemplate = {
-            spec: {
-              template: {
-                spec: {
-                  restartPolicy: 'Never', containers: [{ imagePullPolicy: 'Always', name: 'container-0' }], initContainers: []
-                }
+    if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+      if (!spec.jobTemplate) {
+        spec.jobTemplate = {
+          spec: {
+            template: {
+              spec: {
+                restartPolicy: 'Never', containers: [{ imagePullPolicy: 'Always', name: 'container-0' }], initContainers: []
               }
             }
-          };
-        }
-      } else {
-        if (!spec.replicas && spec.replicas !== 0) {
-          spec.replicas = 1;
-        }
-
-        if (!spec.template) {
-          spec.template = {
-            spec: {
-              restartPolicy: this.type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always', containers: [{ imagePullPolicy: 'Always', name: 'container-0' }], initContainers: []
-            }
-          };
-        }
-        if (!spec.selector) {
-          spec.selector = {};
-        }
+          }
+        };
       }
-      vm.$set(this, 'spec', spec);
-    };
-  },
+    } else {
+      if (!spec.replicas && spec.replicas !== 0) {
+        spec.replicas = 1;
+      }
+
+      if (!spec.template) {
+        spec.template = {
+          spec: {
+            restartPolicy: this.type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always', containers: [{ imagePullPolicy: 'Always', name: 'container-0' }], initContainers: []
+          }
+        };
+      }
+      if (!spec.selector) {
+        spec.selector = {};
+      }
+    }
+    vm.$set(this, 'spec', spec);
+  }
 
   addSidecar() {
     return this.goToEdit({ sidecar: true });
-  },
+  }
 
-  hasSidecars() {
+  get hasSidecars() {
     const podTemplateSpec = this.type === WORKLOAD_TYPES.CRON_JOB ? this?.spec?.jobTemplate?.spec?.template?.spec : this.spec?.template?.spec;
 
     const { containers = [], initContainers = [] } = podTemplateSpec;
 
     return containers.length > 1 || initContainers.length;
-  },
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     const type = this._type ? this._type : this.type;
 
     const podSpecPath = type === WORKLOAD_TYPES.CRON_JOB ? 'spec.jobTemplate.spec.template.spec' : 'spec.template.spec';
@@ -150,9 +149,9 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  containers() {
+  get containers() {
     if (this.type === WORKLOAD_TYPES.CRON_JOB) {
       // cronjob pod template is nested slightly different than other types
       const { spec: { jobTemplate: { spec: { template: { spec: { containers } } } } } } = this;
@@ -162,9 +161,9 @@ export default {
     const { spec:{ template:{ spec:{ containers } } } } = this;
 
     return containers;
-  },
+  }
 
-  initContainers() {
+  get initContainers() {
     if (this.type === WORKLOAD_TYPES.CRON_JOB) {
       // cronjob pod template is nested slightly different than other types
       const { spec: { jobTemplate: { spec: { template: { spec: { initContainers } } } } } } = this;
@@ -174,9 +173,9 @@ export default {
     const { spec:{ template:{ spec:{ initContainers } } } } = this;
 
     return initContainers;
-  },
+  }
 
-  details() {
+  get details() {
     const out = [];
     const type = this._type ? this._type : this.type;
 
@@ -234,24 +233,22 @@ export default {
     });
 
     return out;
-  },
+  }
 
-  getServicesOwned() {
-    return async() => {
-      const relationships = get(this, 'metadata.relationships') || [];
-      const serviceRelationships = relationships.filter(relationship => relationship.toType === SERVICE && relationship.rel === 'owner');
+  async getServicesOwned() {
+    const relationships = get(this, 'metadata.relationships') || [];
+    const serviceRelationships = relationships.filter(relationship => relationship.toType === SERVICE && relationship.rel === 'owner');
 
-      if (serviceRelationships.length) {
-        const svcs = await Promise.all(serviceRelationships.map(rel => this.$dispatch('cluster/find', { type: SERVICE, id: rel.toId }, { root: true })));
+    if (serviceRelationships.length) {
+      const svcs = await Promise.all(serviceRelationships.map(rel => this.$dispatch('cluster/find', { type: SERVICE, id: rel.toId }, { root: true })));
 
-        return svcs.filter(svc => svc?.metadata?.annotations[UI_MANAGED]);
-      }
+      return svcs.filter(svc => svc?.metadata?.annotations[UI_MANAGED]);
+    }
 
-      return [];
-    };
-  },
+    return [];
+  }
 
-  imageNames() {
+  get imageNames() {
     let containers;
     const images = [];
 
@@ -269,7 +266,7 @@ export default {
     }
 
     return images.map((x = '') => x.replace(/^(index\.)?docker.io\/(library\/)?/, '').replace(/:latest$/, '') );
-  },
+  }
 
   redeploy() {
     const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
@@ -284,242 +281,238 @@ export default {
     set(this.spec.template.metadata, 'annotations', annotations);
 
     this.save();
-  },
+  }
 
-  workloadSelector() {
+  get workloadSelector() {
     return {
       'workload.user.cattle.io/workloadselector': `${ this._type ? this._type : this.type }-${
         this.metadata.namespace
       }-${ this.metadata.name }`
     };
-  },
+  }
 
   // match existing container ports with services created for this workload
-  getPortsWithServiceType() {
-    return async() => {
-      const ports = [];
+  async getPortsWithServiceType() {
+    const ports = [];
 
-      this.containers.forEach(container => ports.push(...(container.ports || [])));
-      (this.initContainers || []).forEach(container => ports.push(...(container.ports || [])));
+    this.containers.forEach(container => ports.push(...(container.ports || [])));
+    (this.initContainers || []).forEach(container => ports.push(...(container.ports || [])));
 
-      const services = await this.getServicesOwned();
-      const clusterIPServicePorts = [];
-      const loadBalancerServicePorts = [];
-      const nodePortServicePorts = [];
+    const services = await this.getServicesOwned();
+    const clusterIPServicePorts = [];
+    const loadBalancerServicePorts = [];
+    const nodePortServicePorts = [];
 
-      if (services.length) {
-        services.forEach((svc) => {
-          switch (svc.spec.type) {
-          case 'ClusterIP':
-            clusterIPServicePorts.push(...(svc?.spec?.ports || []));
-            break;
-          case 'LoadBalancer':
-            loadBalancerServicePorts.push(...(svc?.spec?.ports || []));
-            break;
-          case 'NodePort':
-            nodePortServicePorts.push(...(svc?.spec?.ports || []));
-            break;
-          default:
-            break;
-          }
-        });
-      }
-      ports.forEach((port) => {
-        const name = port.name ? port.name : `${ port.containerPort }${ port.protocol.toLowerCase() }${ port.hostPort || port._listeningPort || '' }`;
-
-        port.name = name;
-        if (loadBalancerServicePorts.length) {
-          const portSpec = findBy(loadBalancerServicePorts, 'name', name);
-
-          if (portSpec) {
-            port._listeningPort = portSpec.port;
-
-            port._serviceType = 'LoadBalancer';
-
-            return;
-          }
-        } if (nodePortServicePorts.length) {
-          const portSpec = findBy(nodePortServicePorts, 'name', name);
-
-          if (portSpec) {
-            port._listeningPort = portSpec.nodePort;
-
-            port._serviceType = 'NodePort';
-
-            return;
-          }
-        } if (clusterIPServicePorts.length) {
-          if (findBy(clusterIPServicePorts, 'name', name)) {
-            port._serviceType = 'ClusterIP';
-          }
+    if (services.length) {
+      services.forEach((svc) => {
+        switch (svc.spec.type) {
+        case 'ClusterIP':
+          clusterIPServicePorts.push(...(svc?.spec?.ports || []));
+          break;
+        case 'LoadBalancer':
+          loadBalancerServicePorts.push(...(svc?.spec?.ports || []));
+          break;
+        case 'NodePort':
+          nodePortServicePorts.push(...(svc?.spec?.ports || []));
+          break;
+        default:
+          break;
         }
       });
+    }
+    ports.forEach((port) => {
+      const name = port.name ? port.name : `${ port.containerPort }${ port.protocol.toLowerCase() }${ port.hostPort || port._listeningPort || '' }`;
 
-      return ports;
-    };
-  },
+      port.name = name;
+      if (loadBalancerServicePorts.length) {
+        const portSpec = findBy(loadBalancerServicePorts, 'name', name);
+
+        if (portSpec) {
+          port._listeningPort = portSpec.port;
+
+          port._serviceType = 'LoadBalancer';
+
+          return;
+        }
+      } if (nodePortServicePorts.length) {
+        const portSpec = findBy(nodePortServicePorts, 'name', name);
+
+        if (portSpec) {
+          port._listeningPort = portSpec.nodePort;
+
+          port._serviceType = 'NodePort';
+
+          return;
+        }
+      } if (clusterIPServicePorts.length) {
+        if (findBy(clusterIPServicePorts, 'name', name)) {
+          port._serviceType = 'ClusterIP';
+        }
+      }
+    });
+
+    return ports;
+  }
 
   // create clusterip, nodeport, loadbalancer services from container port spec
-  servicesFromContainerPorts() {
-    return async(mode, ports) => {
-      if (!ports.length) {
-        return;
-      }
+  async servicesFromContainerPorts(mode, ports) {
+    if (!ports.length) {
+      return;
+    }
 
-      const ownerRef = {
-        apiVersion: this.apiVersion,
-        controller: true,
-        kind:       this.kind,
-        name:       this.metadata.name,
-        uid:        this.metadata.uid
-      };
+    const ownerRef = {
+      apiVersion: this.apiVersion,
+      controller: true,
+      kind:       this.kind,
+      name:       this.metadata.name,
+      uid:        this.metadata.uid
+    };
 
-      let clusterIP = {
-        type: SERVICE,
-        spec: {
-          ports:    [],
-          selector: this.workloadSelector,
-          type:     'ClusterIP'
-        },
-        metadata: {
-          name:            this.metadata.name,
-          namespace:       this.metadata.namespace,
-          annotations:     { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
-          ownerReferences: [ownerRef]
-        },
-      };
+    let clusterIP = {
+      type: SERVICE,
+      spec: {
+        ports:    [],
+        selector: this.workloadSelector,
+        type:     'ClusterIP'
+      },
+      metadata: {
+        name:            this.metadata.name,
+        namespace:       this.metadata.namespace,
+        annotations:     { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
+        ownerReferences: [ownerRef]
+      },
+    };
 
-      let nodePort = {
-        type: SERVICE,
-        spec: {
-          ports:    [],
-          selector: this.workloadSelector,
-          type:     'NodePort'
-        },
-        metadata: {
-          name:            `${ this.metadata.name }-nodeport`,
-          namespace:       this.metadata.namespace,
-          annotations:     { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
-          ownerReferences: [ownerRef]
-        },
-      };
+    let nodePort = {
+      type: SERVICE,
+      spec: {
+        ports:    [],
+        selector: this.workloadSelector,
+        type:     'NodePort'
+      },
+      metadata: {
+        name:            `${ this.metadata.name }-nodeport`,
+        namespace:       this.metadata.namespace,
+        annotations:     { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
+        ownerReferences: [ownerRef]
+      },
+    };
 
-      let loadBalancer = {
-        type: SERVICE,
-        spec: {
-          ports:                 [],
-          selector:              this.workloadSelector,
-          type:                  'LoadBalancer',
-          externalTrafficPolicy: 'Cluster'
-        },
-        metadata: {
-          name:            `${ this.metadata.name }-loadbalancer`,
-          namespace:       this.metadata.namespace,
-          annotations:     { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
-          ownerReferences: [ownerRef]
-        },
-      };
+    let loadBalancer = {
+      type: SERVICE,
+      spec: {
+        ports:                 [],
+        selector:              this.workloadSelector,
+        type:                  'LoadBalancer',
+        externalTrafficPolicy: 'Cluster'
+      },
+      metadata: {
+        name:            `${ this.metadata.name }-loadbalancer`,
+        namespace:       this.metadata.namespace,
+        annotations:     { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
+        ownerReferences: [ownerRef]
+      },
+    };
 
-      const existing = await this.getServicesOwned();
+    const existing = await this.getServicesOwned();
 
-      if (existing && existing.length) {
-        existing.forEach((service) => {
-          switch (service.spec.type) {
-          case 'ClusterIP':
-            clusterIP = service;
-            clusterIP.spec.ports = [];
-            break;
-          case 'NodePort':
-            nodePort = service;
-            nodePort.spec.ports = [];
-            break;
-          case 'LoadBalancer':
-            loadBalancer = service;
-            loadBalancer.spec.ports = [];
-            break;
-          default:
-            break;
-          }
-        });
-      }
-
-      ports.forEach((port) => {
-        const portSpec = {
-          name: port.name, protocol: port.protocol, port: port.containerPort, targetPort: port.containerPort
-        };
-
-        if (port._serviceType !== '') {
-          clusterIP.spec.ports.push(portSpec);
-          switch (port._serviceType) {
-          case 'NodePort': {
-            const npPort = clone(portSpec);
-
-            if (port._listeningPort) {
-              npPort.nodePort = port._listeningPort;
-            }
-            nodePort.spec.ports.push(npPort);
-            break; }
-          case 'LoadBalancer': {
-            const lbPort = clone(portSpec);
-
-            if (port._listeningPort) {
-              lbPort.port = port._listeningPort;
-            }
-            loadBalancer.spec.ports.push(lbPort);
-            break; }
-          default:
-            break;
-          }
+    if (existing && existing.length) {
+      existing.forEach((service) => {
+        switch (service.spec.type) {
+        case 'ClusterIP':
+          clusterIP = service;
+          clusterIP.spec.ports = [];
+          break;
+        case 'NodePort':
+          nodePort = service;
+          nodePort.spec.ports = [];
+          break;
+        case 'LoadBalancer':
+          loadBalancer = service;
+          loadBalancer.spec.ports = [];
+          break;
+        default:
+          break;
         }
       });
+    }
 
-      const toSave = [];
-      const toRemove = [];
-      let clusterIPProxy;
+    ports.forEach((port) => {
+      const portSpec = {
+        name: port.name, protocol: port.protocol, port: port.containerPort, targetPort: port.containerPort
+      };
 
-      if (clusterIP.spec.ports.length > 0) {
-        if (clusterIP.id) {
-          clusterIPProxy = clusterIP;
-        } else {
-          clusterIPProxy = await this.$dispatch(`cluster/create`, clusterIP, { root: true });
+      if (port._serviceType !== '') {
+        clusterIP.spec.ports.push(portSpec);
+        switch (port._serviceType) {
+        case 'NodePort': {
+          const npPort = clone(portSpec);
+
+          if (port._listeningPort) {
+            npPort.nodePort = port._listeningPort;
+          }
+          nodePort.spec.ports.push(npPort);
+          break; }
+        case 'LoadBalancer': {
+          const lbPort = clone(portSpec);
+
+          if (port._listeningPort) {
+            lbPort.port = port._listeningPort;
+          }
+          loadBalancer.spec.ports.push(lbPort);
+          break; }
+        default:
+          break;
         }
-        toSave.push(clusterIPProxy);
-      } else if (clusterIP.id) {
-        toRemove.push(clusterIP);
       }
-      if (nodePort.spec.ports.length > 0) {
-        let nodePortProxy;
+    });
 
-        // if id is defined it's a preexisting service
-        if (nodePort.id) {
-          nodePortProxy = nodePort;
-        } else {
-          nodePortProxy = await this.$dispatch(`cluster/create`, nodePort, { root: true });
-        }
-        toSave.push(nodePortProxy);
-        // if id defined but no ports, the service already exists but should be removed (user has removed all container ports mapping to it)
-      } else if (nodePort.id) {
-        toRemove.push(nodePort);
+    const toSave = [];
+    const toRemove = [];
+    let clusterIPProxy;
+
+    if (clusterIP.spec.ports.length > 0) {
+      if (clusterIP.id) {
+        clusterIPProxy = clusterIP;
+      } else {
+        clusterIPProxy = await this.$dispatch(`cluster/create`, clusterIP, { root: true });
       }
+      toSave.push(clusterIPProxy);
+    } else if (clusterIP.id) {
+      toRemove.push(clusterIP);
+    }
+    if (nodePort.spec.ports.length > 0) {
+      let nodePortProxy;
 
-      if (loadBalancer.spec.ports.length > 0) {
-        let loadBalancerProxy;
-
-        if (loadBalancer.id) {
-          loadBalancerProxy = loadBalancer;
-        } else {
-          loadBalancerProxy = await this.$dispatch(`cluster/create`, loadBalancer, { root: true });
-        }
-        toSave.push(loadBalancerProxy);
-      } else if (loadBalancer.id) {
-        toRemove.push(loadBalancer);
+      // if id is defined it's a preexisting service
+      if (nodePort.id) {
+        nodePortProxy = nodePort;
+      } else {
+        nodePortProxy = await this.$dispatch(`cluster/create`, nodePort, { root: true });
       }
+      toSave.push(nodePortProxy);
+      // if id defined but no ports, the service already exists but should be removed (user has removed all container ports mapping to it)
+    } else if (nodePort.id) {
+      toRemove.push(nodePort);
+    }
 
-      return { toSave, toRemove };
-    };
-  },
+    if (loadBalancer.spec.ports.length > 0) {
+      let loadBalancerProxy;
 
-  showAsWorkload() {
+      if (loadBalancer.id) {
+        loadBalancerProxy = loadBalancer;
+      } else {
+        loadBalancerProxy = await this.$dispatch(`cluster/create`, loadBalancer, { root: true });
+      }
+      toSave.push(loadBalancerProxy);
+    } else if (loadBalancer.id) {
+      toRemove.push(loadBalancer);
+    }
+
+    return { toSave, toRemove };
+  }
+
+  get showAsWorkload() {
     const types = Object.values(WORKLOAD_TYPES);
 
     if (this.metadata?.ownerReferences) {
@@ -533,5 +526,5 @@ export default {
     }
 
     return true;
-  },
-};
+  }
+}

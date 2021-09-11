@@ -1,3 +1,4 @@
-import Workload from './workload';
+import Workload from './workload.class';
 
-export default Workload;
+export default class Job extends Workload {
+}
