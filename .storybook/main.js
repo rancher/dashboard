@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 
 module.exports = {
   "stories": [
@@ -20,6 +21,20 @@ module.exports = {
       loader: 'sass-loader',
       options: {
         prependData: `@import '~assets/styles/app.scss'; @import '~stories/global.scss'; `,
+        sassOptions: {
+          importer: (url, prev, done) => {
+            if (url.indexOf('~/') === 0) {
+              const file = path.resolve(baseFolder, url.substr(2));
+              return fs.exists(file, (ok) => {
+                if (ok) {
+                  return done({ file });
+                }
+                return done(null);
+              });
+            }
+            done(null);
+          }
+        }
       },
     }
 

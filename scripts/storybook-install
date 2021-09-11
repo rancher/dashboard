@@ -13,13 +13,16 @@ const { spawn } = require("child_process");
 
 async function main() {
   let remove = false;
-  let doInstall = true;
-  if (process.argv.length > 2 && (process.argv[2] === '-d' || process.argv[2] === '-r')) {
-    remove = true;
-    console.log('Removing storybook from package.json');
+  let doYarnInstall = true;
+  
+  if (process.argv.length > 2) {
+    const removeAndUpdate = process.argv[2] === '-d';
+    const removeOnly = process.argv[2] === '-r';
 
-    if (process.argv[2] === '-d') {
-      doInstall = false;
+    if (removeAndUpdate || removeOnly) {
+      remove = true;
+      doYarnInstall = !removeOnly;
+      console.log('Removing storybook from package.json');
     }
   }
 
@@ -66,7 +69,7 @@ async function main() {
     });
   }
 
-  if (didChange && doInstall) {
+  if (didChange && doYarnInstall) {
     console.log('Updating dependencies...');
     await yarnInstall();
   }

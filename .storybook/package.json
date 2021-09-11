@@ -17,7 +17,6 @@
     "@storybook/addon-a11y": "^6.3.8",
     "@storybook/vue": "^6.3.8",
     "storybook-dark-mode": "^1.0.8",
-    "storybook-auto-events": "^0.1.1",
-    "vue-loader": "^15.9.8"
+    "storybook-auto-events": "^0.1.1"
   }
 }
