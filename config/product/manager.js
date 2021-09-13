@@ -1,5 +1,5 @@
 import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
-import { CAPI, MANAGEMENT, NORMAN, HCI } from '@/config/types';
+import { CAPI, CATALOG, MANAGEMENT, NORMAN, HCI } from '@/config/types';
 import { MULTI_CLUSTER } from '@/store/features';
 import { DSL } from '@/store/type-map';
 
@@ -50,7 +50,8 @@ export function init(store) {
     CAPI.RANCHER_CLUSTER,
     'cloud-credentials',
     'drivers',
-    'pod-security-policies'
+    CATALOG.CLUSTER_REPO,
+    'pod-security-policies',
   ]);
 
   configureType(CAPI.RANCHER_CLUSTER, {
@@ -58,6 +59,10 @@ export function init(store) {
   });
   // configureType(NORMAN.CLOUD_CREDENTIAL, { showListMasthead: false, namespaced: false });
   weightType(CAPI.RANCHER_CLUSTER, 100, true);
+  weightType('cloud-credentials', 99, true);
+  weightType('drivers', 98, true);
+  weightType(CATALOG.CLUSTER_REPO, 97, true);
+
   configureType(NORMAN.CLOUD_CREDENTIAL, {
     showState: false, showAge: false, canYaml: false
   });
