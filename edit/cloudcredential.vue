@@ -17,7 +17,7 @@ import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { set } from '@/utils/object';
 import { mapFeature, RKE2 as RKE2_FEATURE } from '@/store/features';
-import { rke1Supports } from '~/store/plugins';
+import { rke1Supports } from '@/store/plugins';
 
 export default {
   name: 'CruCloudCredential',

@@ -8,7 +8,7 @@ import Socket, {
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR
 } from '@/utils/socket';
-import { normalizeType } from '~/plugins/steve/normalize';
+import { normalizeType } from '@/plugins/steve/normalize';
 
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
