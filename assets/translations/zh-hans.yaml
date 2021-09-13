@@ -474,7 +474,7 @@ backupRestoreOperator:
           label: 存储类
         tip: '配置一个默认保存所有备份的存储位置。您可以选择对每个备份进行覆盖，但仅限于使用与 S3 兼容的对象存储。'
         warning: '此 {type} 没有将其回收策略设置为 "保留"。 如果卷被更改或未绑定，您的备份可能会丢失。'
-  encryption: '这个{type}没有将其回收策略设置为 "保留"。 如果该卷被改变或变得不受约束，你的备份可能会丢失。' 
+  encryption: '加密' 
   encryptionConfigName:
     backuptip: '<code>cattle-resource-system</code>命名空间中具有<code>encryption-provider-config.yaml</code>密钥的任何秘密。<br/>此文件的内容是从此备份中执行还原所必需的，Rancher Backup 不会存储这些内容。'
     label: 加密配置密钥 
