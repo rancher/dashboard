@@ -126,7 +126,7 @@ export default {
 
           if ((!findBy(this.disks || [], 'name', d.metadata.name) &&
                 d?.spec?.nodeName === this.value.id &&
-                addedToNodeCondition?.status === 'False' &&
+                (!addedToNodeCondition || addedToNodeCondition?.status === 'False') &&
                 !d.spec?.fileSystem?.provisioned &&
                 !isAdded) ||
                 isRemoved
