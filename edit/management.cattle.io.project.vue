@@ -149,7 +149,14 @@ export default {
     @finish="save"
     @cancel="done"
   >
-    <NameNsDescription v-model="value" :mode="mode" :namespaced="false" description-key="spec.description" name-key="spec.displayName" />
+    <NameNsDescription
+      v-model="value"
+      :mode="mode"
+      :namespaced="false"
+      description-key="spec.description"
+      name-key="spec.displayName"
+      :normalize-name="false"
+    />
     <div class="row">
       <div class="col span-12">
         <LabeledSelect

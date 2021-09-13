@@ -62,6 +62,10 @@ export default {
       type:    Boolean,
       default: true,
     },
+    nameNormalized: {
+      type:    Boolean,
+      default: true,
+    },
     namespaced: {
       type:    Boolean,
       default: true,
@@ -221,7 +225,9 @@ export default {
 
   watch: {
     name(val) {
-      val = normalizeName(val);
+      if ( this.normalizeName ) {
+        val = normalizeName(val);
+      }
 
       if (this.nameKey) {
         set(this.value, this.nameKey, val);
