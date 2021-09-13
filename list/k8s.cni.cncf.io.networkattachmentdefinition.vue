@@ -4,9 +4,7 @@ import Loading from '@/components/Loading';
 import MessageLink from '@/components/MessageLink';
 import ResourceTable from '@/components/ResourceTable';
 
-import {
-  NAME, NETWORK_TYPE, NETWORK_VLAN, AGE, NAMESPACE
-} from '@/config/table-headers';
+import { NAME, AGE, NAMESPACE } from '@/config/table-headers';
 import { HCI } from '@/config/types';
 
 import { findBy } from '@/utils/array';
@@ -59,8 +57,18 @@ export default {
       return [
         NAME,
         NAMESPACE,
-        NETWORK_TYPE,
-        NETWORK_VLAN,
+        {
+          name:      'type',
+          value:     'vlanType',
+          sort:      'spec.config',
+          labelKey:  'tableHeaders.networkType'
+        },
+        {
+          name:      'vlan',
+          value:     'vlanId',
+          sort:      'spec.config',
+          labelKey:  'tableHeaders.networkVlan'
+        },
         AGE
       ];
     },

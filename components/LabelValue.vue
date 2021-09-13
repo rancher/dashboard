@@ -36,7 +36,7 @@ export default {
 
   .value {
     font-size: 14px;
-    line-height: 18px;
+    line-height: $input-line-height;
   }
 }
 </style>

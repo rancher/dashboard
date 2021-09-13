@@ -11,7 +11,7 @@ import ModalWithCard from '@/components/ModalWithCard';
 import { PVC } from '@/config/types';
 import { clone } from '@/utils/object';
 import { removeObject } from '@/utils/array';
-import { SOURCE_TYPE, InterfaceOption } from '@/config/map';
+import { SOURCE_TYPE, InterfaceOption } from '@/config/harvester-map';
 import { _VIEW, _EDIT, _CREATE } from '@/config/query-params';
 
 export default {
@@ -185,13 +185,13 @@ export default {
     componentFor(type) {
       switch (type) {
       case SOURCE_TYPE.NEW:
-        return require(`@/edit/kubevirt.io.virtualmachine/volume/type/volume.vue`).default;
+        return require(`@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume/type/volume.vue`).default;
       case SOURCE_TYPE.IMAGE:
-        return require(`@/edit/kubevirt.io.virtualmachine/volume/type/vmImage.vue`).default;
+        return require(`@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume/type/vmImage.vue`).default;
       case SOURCE_TYPE.ATTACH_VOLUME:
-        return require(`@/edit/kubevirt.io.virtualmachine/volume/type/existing.vue`).default;
+        return require(`@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume/type/existing.vue`).default;
       case SOURCE_TYPE.CONTAINER:
-        return require(`@/edit/kubevirt.io.virtualmachine/volume/type/container.vue`).default;
+        return require(`@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume/type/container.vue`).default;
       }
     },
 
@@ -229,7 +229,7 @@ export default {
 
 <template>
   <div>
-    <Banner v-if="!isView" color="info" label="Try drag and drop to change bootOrder." />
+    <Banner v-if="!isView" color="info" :label="t('harvester.virtualMachine.volume.dragTip')" />
     <draggable v-model="rows" @end="update">
       <transition-group>
         <div v-for="(volume, i) in rows" :key="i">

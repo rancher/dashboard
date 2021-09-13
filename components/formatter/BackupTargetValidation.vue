@@ -1,5 +1,4 @@
 <script>
-import { allHash } from '@/utils/promise';
 import { HCI } from '@/config/types';
 
 export default {
@@ -11,9 +10,9 @@ export default {
   },
 
   async fetch() {
-    const hash = await allHash({ harvesterSettings: this.$store.dispatch('virtual/findAll', { type: HCI.SETTING }) });
+    const harvesterSettings = await this.$store.dispatch('virtual/findAll', { type: HCI.SETTING });
 
-    this.harvesterSettings = hash.harvesterSettings;
+    this.harvesterSettings = harvesterSettings;
   },
 
   data() {

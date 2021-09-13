@@ -65,7 +65,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 $yaml-height: 200px;
 
 .test {
@@ -77,10 +77,10 @@ $yaml-height: 200px;
   display: flex;
   flex-direction: column;
 
-  & .yaml-editor{
+  ::v-deep .yaml-editor{
     flex: 1;
     min-height: $yaml-height;
-    & .code-mirror .CodeMirror {
+    ::v-deep .code-mirror .CodeMirror {
       position: initial;
       height: auto;
       min-height: $yaml-height;

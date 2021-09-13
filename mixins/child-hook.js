@@ -5,7 +5,6 @@ let NEXT_ID = 1;
 
 export const BEFORE_SAVE_HOOKS = '_beforeSaveHooks';
 export const AFTER_SAVE_HOOKS = '_afterSaveHooks';
-export const AFTER_FAILURE_HOOKS = '_afterFailureHooks';
 
 export default {
   methods: {
@@ -15,10 +14,6 @@ export default {
 
     registerAfterHook(boundFn, name, priority) {
       this._registerHook(AFTER_SAVE_HOOKS, boundFn, name, priority);
-    },
-
-    registerFailureHook(boundFn, name, priority) {
-      this._registerHook(AFTER_FAILURE_HOOKS, boundFn, name, priority);
     },
 
     async applyHooks(key, ...args) {

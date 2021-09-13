@@ -1,6 +1,6 @@
 <script>
 import VM_MIXIN from '@/mixins/vm';
-import Volume from '@/edit/kubevirt.io.virtualmachine/volume';
+import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
 
 export default {
   name: 'Disks',

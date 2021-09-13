@@ -41,9 +41,11 @@ export default {
 
     this.value.value = this.value.value || this.value.default;
 
+    const isHarvester = this.value?.type?.includes('harvesterhci');
+
     return {
       setting,
-      description:          t(`advancedSettings.descriptions.${ this.value.id }`),
+      description:          isHarvester ? t(`advancedSettings.descriptions.harv-${ this.value.id }`) : t(`advancedSettings.descriptions.${ this.value.id }`),
       editHelp:             t(`advancedSettings.editHelp.${ this.value.id }`),
       enumOptions,
       canReset,
@@ -66,7 +68,7 @@ export default {
     const name = this.value.metadata.name;
     const path = `${ resource }/${ name }`;
 
-    const hasCustomComponent = this.$store.getters['type-map/haveComponent'](path);
+    const hasCustomComponent = this.$store.getters['type-map/hasComponent'](path);
 
     if ( hasCustomComponent ) {
       customComponent = this.$store.getters['type-map/importComponent'](path);

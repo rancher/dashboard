@@ -68,7 +68,7 @@ export default {
       :resource="value"
       :mode="mode"
       :errors="errors"
-      @apply-hooks="applyHooks"
+      :apply-hooks="applyHooks"
       @finish="save"
     >
       <div class="header mb-20">

@@ -2,7 +2,7 @@
 import randomstring from 'randomstring';
 
 import InfoBox from '@/components/InfoBox';
-import Base from '@/edit/kubevirt.io.virtualmachine/network/base';
+import Base from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork/base';
 
 import { HCI } from '@/config/types';
 import { sortBy } from '@/utils/sort';

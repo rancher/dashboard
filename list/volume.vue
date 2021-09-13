@@ -61,7 +61,6 @@ export default {
           type:      'attached',
           value:     'spec.claimRef',
           sort:      'name',
-          formatter: 'volumesState'
         },
         {
           ...STATE,
@@ -73,6 +72,16 @@ export default {
         AGE,
       ];
     },
+  },
+
+  methods: {
+    goTo(row) {
+      return row?.attachVM?.detailLocation;
+    },
+
+    getVMName(row) {
+      return row.attachVM?.metadata?.name || '';
+    }
   },
 
   typeDisplay() {
@@ -93,5 +102,13 @@ export default {
     :schema="schema"
     key-field="_key"
     v-on="$listeners"
-  />
+  >
+    <template slot="cell:AttachedVM" slot-scope="scope">
+      <div>
+        <n-link v-if="getVMName(scope.row)" :to="goTo(scope.row)">
+          {{ getVMName(scope.row) }}
+        </n-link>
+      </div>
+    </template>
+  </ResourceTable>
 </template>

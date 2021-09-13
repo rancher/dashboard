@@ -100,7 +100,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else class="row host-instances">
+  <div v-else id="host-instances" class="row">
     <div class="col span-12">
       <SortableTable
         v-bind="$attrs"
@@ -120,16 +120,18 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
-.bordered-table .host-instances thead th {
-  vertical-align: middle;
-}
+<style lang="scss" scoped>
+#host-instances {
+  ::v-deep thead th {
+    vertical-align: middle;
+  }
 
-.bordered-table .host-instances .state {
-  display: flex;
+  ::v-deep .state {
+    display: flex;
 
-  .vmstate {
-    margin-right: 6px;
+    .vmstate {
+      margin-right: 6px;
+    }
   }
 }
 </style>

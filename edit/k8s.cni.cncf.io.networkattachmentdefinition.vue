@@ -69,7 +69,7 @@ export default {
     :resource="value"
     :mode="mode"
     :errors="errors"
-    @apply-hooks="applyHooks"
+    :apply-hooks="applyHooks"
     @finish="saveNetwork"
   >
     <NameNsDescription

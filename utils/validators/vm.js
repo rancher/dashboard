@@ -1,5 +1,5 @@
 import { PVC } from '@/config/types';
-import { SOURCE_TYPE } from '@/config/map';
+import { SOURCE_TYPE } from '@/config/harvester-map';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 export function vmNetworks(spec, getters, errors, validatorArgs) {

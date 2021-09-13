@@ -6,8 +6,8 @@ import Checkbox from '@/components/form/Checkbox';
 import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
 
-import Volume from '@/edit/kubevirt.io.virtualmachine/volume';
-import Network from '@/edit/kubevirt.io.virtualmachine/network';
+import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
+import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
 import CpuMemory from '@/edit/kubevirt.io.virtualmachine/CpuMemory';
 import CloudConfig from '@/edit/kubevirt.io.virtualmachine/CloudConfig';
 import SSHKey from '@/edit/kubevirt.io.virtualmachine/SSHKey';
@@ -210,7 +210,7 @@ export default {
     :can-yaml="false"
     :mode="mode"
     :errors="errors"
-    @apply-hooks="applyHooks"
+    :apply-hooks="applyHooks"
     @finish="saveVMT"
   >
     <NameNsDescription

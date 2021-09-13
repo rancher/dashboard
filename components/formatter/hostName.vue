@@ -47,7 +47,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
   .host-list {
     display: flex;
     justify-content: space-between;

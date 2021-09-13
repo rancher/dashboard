@@ -1,5 +1,5 @@
 <script>
-import { mapGetters } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 import { HCI } from '@/config/types';
 import { isEmpty } from '@/utils/object';
 import Parse from 'url-parse';
@@ -14,6 +14,18 @@ export default {
         return [];
       }
     },
+
+    names: {
+      type:    Array,
+      default: () => {
+        return [];
+      }
+    },
+
+    type: {
+      type:     String,
+      required: true
+    }
   },
 
   data() {
@@ -24,6 +36,7 @@ export default {
   },
 
   computed: {
+    ...mapState('action-menu', ['toRemove']),
     ...mapGetters({ t: 'i18n/t' }),
 
     removeNameArr() {
@@ -45,6 +58,28 @@ export default {
 
       return out;
     },
+
+    plusMore() {
+      const remaining = this.toRemove.length - this.names.length;
+
+      return this.t('promptRemove.andOthers', { count: remaining });
+    },
+
+    resourceNames() {
+      return this.names.reduce((res, name, i) => {
+        if (i >= 5) {
+          return res;
+        }
+        res += `<b>${ name }</b>`;
+        if (i === this.names.length - 1) {
+          res += this.plusMore;
+        } else {
+          res += i === this.toRemove.length - 2 ? ' and ' : ', ';
+        }
+
+        return res;
+      }, '');
+    }
   },
 
   watch: {
@@ -112,8 +147,12 @@ export default {
 
 <template>
   <div class="mt-10">
-    <span class="text-info">{{ t('harvester.virtualMachine.promptRemove.title') }}</span>
-    <br />
+    {{ t('promptRemove.attemptingToRemove', {type}) }}
+    <span v-html="resourceNames"></span>
+
+    <div class="mt-10">
+      {{ t('harvester.virtualMachine.promptRemove.title') }}
+    </div>
     <div v-if="value.length === 1">
       <span v-for="name in removeNameArr[value[0].id]" :key="name">
         <label class="checkbox-container mr-15"><input v-model="checkedList" type="checkbox" :label="name" :value="name" />

@@ -10,8 +10,8 @@ import CreateEditView from '@/mixins/create-edit-view';
 import { HCI } from '@/config/types';
 
 import OverviewKeypairs from '@/detail/kubevirt.io.virtualmachine/tabs/details/keypairs';
-import Volume from '@/edit/kubevirt.io.virtualmachine/volume';
-import Network from '@/edit/kubevirt.io.virtualmachine/network';
+import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
+import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
 import CloudConfig from '@/edit/kubevirt.io.virtualmachine/CloudConfig';
 import OverviewBasics from '@/detail/harvesterhci.io.virtualmachinebackup/basic';
 
@@ -91,7 +91,7 @@ export default {
     :done-route="doneRoute"
     :resource="value"
     :mode="mode"
-    @apply-hooks="applyHooks"
+    :apply-hooks="applyHooks"
   >
     <Tabbed :side-tabs="true" @changed="onTabChanged">
       <Tab name="Basics" :label="t('harvester.virtualMachine.detail.tabs.basics')">

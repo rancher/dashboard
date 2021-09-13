@@ -7,9 +7,7 @@ import ResourceTable from '@/components/ResourceTable';
 
 import { HCI } from '@/config/types';
 import { allHash } from '@/utils/promise';
-import {
-  STATE, AGE, NAME, NAMESPACE, TARGET_VM, BACKUP_TARGET, READY_TO_USE
-} from '@/config/table-headers';
+import { STATE, AGE, NAME, NAMESPACE } from '@/config/table-headers';
 
 export default {
   name:       'ListBackup',
@@ -50,7 +48,32 @@ export default {
 
   computed: {
     headers() {
-      return [STATE, NAME, NAMESPACE, TARGET_VM, BACKUP_TARGET, READY_TO_USE, AGE];
+      return [
+        STATE,
+        NAME,
+        NAMESPACE,
+        {
+          name:      'targetVM',
+          labelKey:  'tableHeaders.targetVm',
+          value:     'attachVM',
+          align:     'left',
+          formatter: 'AttachVMWithName'
+        },
+        {
+          name:      'backupTarget',
+          labelKey:  'tableHeaders.backupTarget',
+          value:     'backupTarget',
+          align:     'left',
+          formatter: 'BackupTargetValidation'
+        },
+        {
+          name:     'readyToUse',
+          labelKey:  'tableHeaders.readyToUse',
+          value:    'status.readyToUse',
+          align:    'left',
+        },
+        AGE
+      ];
     },
 
     backupTargetResource() {

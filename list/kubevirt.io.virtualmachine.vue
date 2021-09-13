@@ -1,6 +1,8 @@
 <script>
 import VmState from '@/components/formatter/vmState';
+import ConsoleBar from '@/components/form/ConsoleBar';
 import ResourceTable from '@/components/ResourceTable';
+import LinkDetail from '@/components/formatter/LinkDetail';
 
 import { STATE, AGE, NAME, NAMESPACE } from '@/config/table-headers';
 import { HCI, NODE } from '@/config/types';
@@ -13,6 +15,8 @@ export default {
   components: {
     Loading,
     VmState,
+    LinkDetail,
+    ConsoleBar,
     ResourceTable
   },
 
@@ -55,7 +59,8 @@ export default {
       allVMs:             [],
       allVMIs:            [],
       allNodeNetworks:    [],
-      allClusterNetworks: []
+      allClusterNetworks: [],
+      HCI
     };
   },
 
@@ -132,6 +137,17 @@ export default {
           <VmState class="vmstate" :row="scope.row" :all-node-network="allNodeNetworks" :all-cluster-network="allClusterNetworks" />
         </div>
       </template>
+
+      <template slot="cell:name" slot-scope="scope">
+        <div class="name-console">
+          <LinkDetail v-if="scope.row.type !== HCI.VMI" v-model="scope.row.metadata.name" :row="scope.row" />
+          <span v-else>
+            {{ scope.row.metadata.name }}
+          </span>
+
+          <ConsoleBar :resource="scope.row" class="console mr-10" />
+        </div>
+      </template>
     </ResourceTable>
   </div>
 </template>
@@ -143,5 +159,19 @@ export default {
   .vmstate {
     margin-right: 6px;
   }
+}
+
+.name-console {
+  span {
+    line-height: 26px;
+    width:160px;
+    overflow:hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    -o-text-overflow:ellipsis;
+  }
+
+  display: flex;
+  justify-content: space-around
 }
 </style>

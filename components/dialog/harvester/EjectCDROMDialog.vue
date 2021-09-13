@@ -5,6 +5,7 @@ import Card from '@/components/Card';
 import Banner from '@/components/Banner';
 import AsyncButton from '@/components/AsyncButton';
 import Checkbox from '@/components/form/Checkbox';
+import { exceptionToErrorsArray } from '@/utils/error';
 
 export default {
   name: 'EjectCDROMModal',
@@ -59,12 +60,17 @@ export default {
       this.diskNames = names;
     },
 
-    async remove() {
+    async remove(buttonDone) {
       try {
         await this.actionResource.doAction('ejectCdRom', { diskNames: this.diskNames });
         this.close();
+        buttonDone(true);
       } catch (err) {
-        this.errors.push(err);
+        const error = err?.data || err;
+        const message = exceptionToErrorsArray(error);
+
+        this.$set(this, 'errors', message);
+        buttonDone(false);
       }
     },
 

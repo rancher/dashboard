@@ -14,18 +14,6 @@ export default {
 
   mixins: [CreateEditView],
 
-  props:      {
-    value: {
-      type:     Object,
-      required: true,
-    },
-
-    mode: {
-      type:    String,
-      default: 'create',
-    },
-  },
-
   data() {
     let parseDefaultValue = {};
 

@@ -84,14 +84,6 @@ export function loadTranslation(name) {
   return import(/* webpackChunkName: "[request]" */ `@/assets/translations/${name}.yaml`);
 }
 
-export function importComponent(path) {
-  if ( !path ) {
-    throw new Error('Path required');
-  }
-
-  return () => import(/* webpackChunkName: "import-component" */ `@/edit/${ path }`);
-}
-
 export function importCustomPromptRemove(name) {
   return () => import(/* webpackChunkName: "custom-prompt-remove" */ `@/promptRemove/${ name }`);
 }

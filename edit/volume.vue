@@ -9,7 +9,7 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import { get } from '@/utils/object';
 import { HCI } from '@/config/types';
 import { sortBy } from '@/utils/sort';
-import { InterfaceOption } from '@/config/map';
+import { InterfaceOption } from '@/config/harvester-map';
 import { _CREATE } from '@/config/query-params';
 import { formatSi, parseSi } from '@/utils/units';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -157,7 +157,7 @@ export default {
       :resource="value"
       :mode="mode"
       :errors="errors"
-      @apply-hooks="applyHooks"
+      :apply-hooks="applyHooks"
       @finish="save"
     >
       <NameNsDescription :value="value" :namespaced="true" :mode="mode" />

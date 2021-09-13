@@ -65,7 +65,7 @@ export default {
     :click-to-close="false"
     :height="height"
     v-bind="$attrs"
-    styles="background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 100vh;"
+    class="modal"
   >
     <Card class="modal" :show-highlight-border="false">
       <template #title>
@@ -114,6 +114,9 @@ export default {
 
 <style lang="scss">
 .modal {
+  border-radius: var(--border-radius);
+  max-height: 100vh;
+
   &.card-container {
     box-shadow: none;
   }

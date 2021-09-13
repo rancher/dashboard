@@ -22,7 +22,7 @@ export default {
 
   methods: {
     open() {
-      this.$store.commit('common/toggleBundleModal', true);
+      this.$store.commit('harvester/toggleBundleModal', true);
     },
   },
 };

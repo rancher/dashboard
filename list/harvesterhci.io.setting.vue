@@ -98,9 +98,11 @@ export default {
           s.custom = s.data.customValue;
         }
 
+        const isHarvester = s.data?.type?.includes('harvesterhci');
+
         return {
           ...s,
-          description: `advancedSettings.descriptions.${ s.id }`,
+          description: isHarvester ? `advancedSettings.descriptions.harv-${ s.id }` : `advancedSettings.descriptions.${ s.id }`,
           customized:  (!s.readOnly && s.data.value && s.data.value !== s.data.default) || s.data.hasCustomized
         };
       });

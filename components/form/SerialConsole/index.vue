@@ -247,7 +247,7 @@ export default {
 </script>
 
 <template>
-  <div class="shell-container">
+  <div class="harvester-shell-container">
     <div ref="xterm" class="shell-body" />
     <resize-observer @notify="fit" />
   </div>
@@ -256,12 +256,12 @@ export default {
 <style lang="scss">
   @import '@/node_modules/xterm/css/xterm.css';
 
-  .shell-container {
+  .harvester-shell-container {
     height: 100%;
     overflow: hidden;
-  }
 
-  .shell-body, .terminal.xterm {
-    height: 100%;
+    .shell-body, .terminal.xterm {
+      height: 100%;
+    }
   }
 </style>

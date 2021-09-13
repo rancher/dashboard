@@ -4,7 +4,7 @@ import randomstring from 'randomstring';
 import { sortBy } from '@/utils/sort';
 import { clone } from '@/utils/object';
 import { allHash } from '@/utils/promise';
-import { SOURCE_TYPE } from '@/config/map';
+import { SOURCE_TYPE } from '@/config/harvester-map';
 import { _CLONE } from '@/config/query-params';
 import { PVC, HCI, STORAGE_CLASS, NODE } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';

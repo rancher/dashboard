@@ -1,5 +1,5 @@
 <script>
-import Network from '@/edit/kubevirt.io.virtualmachine/network';
+import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
 import VM_MIXIN from '@/mixins/vm';
 
 export default {

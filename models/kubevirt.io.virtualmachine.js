@@ -218,7 +218,7 @@ export default {
     return (resources = this) => {
       this.$dispatch('promptModal', {
         resources,
-        component: 'BackupModal'
+        component: 'harvester/BackupModal'
       });
     };
   },
@@ -227,7 +227,7 @@ export default {
     return (resources = this) => {
       this.$dispatch('promptModal', {
         resources,
-        component: 'RestoreDialog'
+        component: 'harvester/RestoreDialog'
       });
     };
   },
@@ -280,7 +280,7 @@ export default {
     return (resources = this) => {
       this.$dispatch('promptModal', {
         resources,
-        component: 'MigrationDialog'
+        component: 'harvester/MigrationDialog'
       });
     };
   },
@@ -289,7 +289,7 @@ export default {
     return (resources = this) => {
       this.$dispatch('promptModal', {
         resources,
-        component: 'EjectCDROMDialog'
+        component: 'harvester/EjectCDROMDialog'
       });
     };
   },
@@ -304,7 +304,7 @@ export default {
     return (resources = this) => {
       this.$dispatch('promptModal', {
         resources,
-        component: 'CloneTemplate'
+        component: 'harvester/CloneTemplate'
       });
     };
   },
@@ -313,7 +313,7 @@ export default {
     return (resources = this) => {
       this.$dispatch('promptModal', {
         resources,
-        component: 'AddHotplugModal'
+        component: 'harvester/AddHotplugModal'
       });
     };
   },

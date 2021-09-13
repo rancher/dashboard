@@ -13,14 +13,14 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import NameNsDescription from '@/components/form/NameNsDescription';
 
 import SSHKey from '@/edit/kubevirt.io.virtualmachine/SSHKey';
-import Volume from '@/edit/kubevirt.io.virtualmachine/volume';
-import Network from '@/edit/kubevirt.io.virtualmachine/network';
+import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
+import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
 import CpuMemory from '@/edit/kubevirt.io.virtualmachine/CpuMemory';
 import CloudConfig from '@/edit/kubevirt.io.virtualmachine/CloudConfig';
 import NodeScheduling from '@/components/form/NodeScheduling';
 
 import { clone } from '@/utils/object';
-import { HCI, PVC } from '@/config/types';
+import { HCI } from '@/config/types';
 import { cleanForNew } from '@/plugins/steve/normalize';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
@@ -49,10 +49,6 @@ export default {
   },
 
   mixins: [CreateEditView, VM_MIXIN],
-
-  async asyncData({ store }) {
-    return { pvcs: await store.dispatch(`virtual/findAll`, { type: PVC }) };
-  },
 
   props: {
     value: {
@@ -352,7 +348,7 @@ export default {
       :can-yaml="false"
       :mode="mode"
       :errors="errors"
-      @apply-hooks="applyHooks"
+      :apply-hooks="applyHooks"
       @finish="saveVM"
     >
       <RadioGroup

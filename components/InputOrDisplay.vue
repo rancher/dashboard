@@ -1,5 +1,6 @@
 <script>
 import Vue from 'vue';
+import { _VIEW } from '@/config/query-params';
 
 const component = Vue.component('InputOrDisplay', {
   render(h) {
@@ -37,7 +38,7 @@ const component = Vue.component('InputOrDisplay', {
   },
   computed: {
     isView() {
-      return this.mode === 'view';
+      return this.mode === _VIEW;
     },
 
     displayValue() {
@@ -60,7 +61,7 @@ export default component;
 
   .value {
     font-size: 14px;
-    line-height: 18px;
+    line-height: $input-line-height;
   }
 }
 </style>

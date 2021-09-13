@@ -2,9 +2,10 @@ import {
   HCI, NODE, CONFIG_MAP, NAMESPACE, VIRTUAL_TYPES, MANAGEMENT, PVC
 } from '@/config/types';
 import {
-  STATE, NAME_UNLINKED, NAME as NAME_COL, AGE, NAMESPACE_COL, IMAGE_DOWNLOAD_SIZE,
-  FINGERPRINT, IMAGE_PROGRESS
+  STATE, NAME_UNLINKED, NAME as NAME_COL, AGE, NAMESPACE_COL,
 } from '@/config/table-headers';
+
+import { IMAGE_DOWNLOAD_SIZE, FINGERPRINT, IMAGE_PROGRESS } from '@/config/harvester-table-headers';
 
 import { DSL } from '@/store/type-map';
 

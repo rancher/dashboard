@@ -4923,6 +4923,7 @@ harvester:
     sshTitle: Add Public SSH Key
     imageTip: An external URL to the .iso, .img, .qcow2 or .raw that the virtual machine should be created from.
     volume:
+      dragTip: Try drag and drop to change bootOrder.
       volumeTip: The VM only contains a cd-rom volume. You may want to add additional disk volumes.
       macTip: "Protip: MAC address as seen inside the guest system."
       volumeUpdate: 'Set volume { name } successfully'
@@ -5585,14 +5586,12 @@ advancedSettings:
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
     'ui-default-landing': 'The default page users land on after login.'
     'brand': Folder name for an alternative theme defined in '/assets/brand'
-    'vlan': Default physical NIC name of the VLAN network.
-    'api-ui-source': Config how to load the API and UI source.
-    'backup-target': Custom back target to store VM backups.
-    'log-level': Configure Harvester server log level. Default to info.
-    'rancher-enabled': Specify whether to display the Rancher UI navigation button or not.
-    'server-version': Harvester server version.
-    'upgrade-checker-enabled': Specify whether to enable Harvester upgrade check or not. Default is true.
-    'upgrade-checker-url': Default Harvester upgrade check url. Only used when the <code>upgrade-checker-enabled</code>  is equal to true.
+    'harv-vlan': Default physical NIC name of the VLAN network.
+    'harv-backup-target': Custom back target to store VM backups.
+    'harv-log-level': Configure Harvester server log level. Default to info.
+    'harv-server-version': Harvester server version.
+    'harv-upgrade-checker-enabled': Specify whether to enable Harvester upgrade check or not. Default is true.
+    'harv-upgrade-checker-url': Default Harvester upgrade check url. Only used when the <code>upgrade-checker-enabled</code>  is equal to true.
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:

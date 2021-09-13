@@ -166,7 +166,7 @@ export default {
     :mode="mode"
     :errors="errors"
     :can-yaml="false"
-    @apply-hooks="applyHooks"
+    :apply-hooks="applyHooks"
     @finish="saveImage"
   >
     <NameNsDescription

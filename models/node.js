@@ -161,7 +161,7 @@ export default {
     return (resources = this) => {
       this.$dispatch('promptModal', {
         resources,
-        component: 'MaintenanceDialog'
+        component: 'harvester/MaintenanceDialog'
       });
     };
   },

@@ -46,7 +46,6 @@ export default {
         {
           name:           'defaultVersion',
           value:          'id',
-          formatter:      'defaultVersion',
           labelKey:       'tableHeaders.defaultVersion'
         },
         AGE
@@ -88,6 +87,10 @@ export default {
 
     templateResource(group) {
       return group?.rows?.[0].template;
+    },
+
+    isDefaultVersion(row) {
+      return row.defaultVersion === row?.status?.version;
     }
   },
 };
@@ -125,6 +128,13 @@ export default {
           </button>
         </div>
       </div>
+    </template>
+
+    <template #col:defaultVersion="{row}">
+      <td v-if="isDefaultVersion(row)">
+        <i class="icon icon-lg icon-checkmark" />
+      </td>
+      <td v-else></td>
     </template>
   </ResourceTable>
 </template>

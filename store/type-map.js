@@ -119,7 +119,7 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@/utils/string';
 import {
-  importList, importDetail, importEdit, loadProduct, importComponent, importCustomPromptRemove
+  importList, importDetail, importEdit, loadProduct, importCustomPromptRemove
 } from '@/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@/config/product/explorer';
@@ -1002,7 +1002,7 @@ export const getters = {
     };
   },
 
-  haveComponent(state, getters) {
+  hasComponent(state, getters) {
     return (path) => {
       try {
         require.resolve(`@/edit/${ path }`);
@@ -1037,7 +1037,7 @@ export const getters = {
 
   importComponent(state, getters) {
     return (path) => {
-      return importComponent(path);
+      return importEdit(path);
     };
   },
 

@@ -7,7 +7,6 @@ import InputOrDisplay from '@/components/InputOrDisplay';
 
 import { sortBy } from '@/utils/sort';
 import { HCI, PVC } from '@/config/types';
-import { exceptionToErrorsArray } from '@/utils/error';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 export default {
@@ -184,27 +183,6 @@ export default {
     update() {
       this.$emit('update');
     },
-
-    async savePVC(done) {
-      this.$set(this.pvcsResource.spec.resources.requests, 'storage', this.value.size);
-
-      this.loading = true;
-      try {
-        await this.pvcsResource.save();
-        this.errors = [];
-
-        this.$store.dispatch('growl/success', {
-          title:   this.t('harvester.notification.title.succeed'),
-          message: this.t('harvester.virtualMachine.volume.volumeUpdate', { name: this.value.volumeName })
-        }, { root: true });
-
-        done(true);
-      } catch (err) {
-        done(false);
-        this.$set(this, 'errors', exceptionToErrorsArray(err));
-      }
-      this.loading = false;
-    }
   }
 };
 </script>
@@ -283,19 +261,6 @@ export default {
         </InputOrDisplay>
       </div>
     </div>
-
-    <!-- <div class="action">
-      <AsyncButton
-        v-show="needSetPVC"
-        mode="refresh"
-        size="sm"
-        :action-label="t('harvester.virtualMachine.volume.saveVolume')"
-        :waiting-label="t('harvester.virtualMachine.volume.saveVolume')"
-        :success-label="t('harvester.virtualMachine.volume.saveVolume')"
-        :error-label="t('harvester.virtualMachine.volume.saveVolume')"
-        @click="savePVC"
-      />
-    </div> -->
 
     <div v-for="(err,index) in errors" :key="index">
       <Banner color="error" :label="err" />
