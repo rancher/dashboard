@@ -42,7 +42,6 @@ export default {
         <LabeledInput v-model="value.endpoint" :mode="mode" :disabled="disabled" :label="t('logging.cloudwatch.endpoint')" />
       </div>
     </div>
-    <div class="spacer"></div>
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.access') }}</h3>
@@ -70,5 +69,24 @@ export default {
         />
       </div>
     </div>
+    <div class="row">
+      <div class="col span-6">
+        <h3>{{ t('logging.output.sections.configuration') }}</h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col span-6">
+        <LabeledInput v-model="value.log_group_name" :mode="mode" :disabled="disabled" :label="t('logging.cloudwatch.logGroupName')" />
+      </div>
+      <div class="col span-6">
+        <LabeledInput v-model="value.log_stream_name" :mode="mode" :disabled="disabled" :label="t('logging.cloudwatch.logStreamName')" />
+      </div>
+    </div>
   </div>
 </template>
+
+<style>
+h3 {
+  margin-top: 10px;
+}
+</style>

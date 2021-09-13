@@ -2050,6 +2050,8 @@ logging:
     secretKey: Secret Key from Secret
     endpoint: Endpoint
     region: Region
+    logGroupName: Log Group Name
+    logStreamName: Log Stream Name
   datadog:
     apiKey: API Key from Secret
     useSSL: Use SSL
@@ -2119,6 +2121,7 @@ logging:
       access: Access
       certificate: Connection
       labels: Labels
+      configuration: Configuration
   outputProviders:
     elasticsearch: Elasticsearch
     splunkHec: Splunk
