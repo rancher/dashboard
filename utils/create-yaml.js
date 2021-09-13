@@ -118,13 +118,13 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
   const commentFields = Object.keys(schema.resourceFields || {});
 
   commentFields.forEach((key) => {
-    if ( typeof data[key] !== 'undefined' || (key === '_type' && !regularFields.includes('type')) ) {
+    if ( typeof data[key] !== 'undefined' || (depth === 0 && key === '_type') ) {
       addObject(regularFields, key);
     }
   });
 
   for ( const key in data ) {
-    if (shouldAddKey(key, data, regularFields)) {
+    if (( typeof data[key] !== 'undefined' )) {
       addObject(regularFields, key);
     }
   }
@@ -325,14 +325,6 @@ function indent(lines, depth = 1) {
 
 function serializeSimpleValue(data) {
   return jsyaml.dump(data).trim();
-}
-
-function shouldAddKey(key, data, regularFields) {
-  if (typeof data[key] === 'undefined') {
-    return false;
-  }
-
-  return key !== 'type' || !regularFields.includes('_type');
 }
 
 export function typeRef(type, str) {
