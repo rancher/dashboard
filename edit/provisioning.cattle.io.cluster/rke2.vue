@@ -333,7 +333,21 @@ export default {
           };
         });
 
-        return sortBy(out, 'sort:desc');
+        const sorted = sortBy(out, 'sort:desc');
+
+        return sorted.filter((version, idx) => {
+          if (semver.prerelease(version.value)) {
+            return true;
+          }
+
+          const nextHighest = sorted[idx - 1];
+
+          if (nextHighest && semver.minor(nextHighest.value) === semver.minor(version.value)) {
+            return false;
+          }
+
+          return true;
+        });
       }
 
       const cur = this.originalValue?.spec?.kubernetesVersion || '';
