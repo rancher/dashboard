@@ -124,7 +124,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
   });
 
   for ( const key in data ) {
-    if (( typeof data[key] !== 'undefined' )) {
+    if ( typeof data[key] !== 'undefined' ) {
       addObject(regularFields, key);
     }
   }
