@@ -39,7 +39,7 @@ export default {
     ...mapGetters(['currentCluster']),
 
     versionOptions() {
-      const settings = this.$store.getters['virtual/all'](HCI.SETTING);
+      const settings = this.$store.getters['harvester/all'](HCI.SETTING);
 
       const upgradeVersion = settings.find( S => S.id === 'upgradable-versions');
 
@@ -47,7 +47,7 @@ export default {
     },
 
     currentVersion() {
-      const serverVersion = this.$store.getters['virtual/byId'](HCI.SETTING, 'server-version');
+      const serverVersion = this.$store.getters['harvester/byId'](HCI.SETTING, 'server-version');
 
       return serverVersion.currentVersion || '';
     },
@@ -95,7 +95,7 @@ export default {
         spec: { version: this.version }
       };
 
-      const proxyResource = await this.$store.dispatch('virtual/create', upgradeValue);
+      const proxyResource = await this.$store.dispatch('harvester/create', upgradeValue);
 
       try {
         await proxyResource.save();

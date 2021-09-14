@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import NodeAffinity from '@/components/form/NodeAffinity';
-import { NAME as VIRTUAL } from '@/config/product/virtual';
+import { NAME as VIRTUAL } from '@/config/product/harvester';
 import { _VIEW } from '@/config/query-params';
 import { isEmpty } from '@/utils/object';
 

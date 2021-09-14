@@ -139,7 +139,7 @@ export default {
       let { displayVersion } = getVersionInfo(this.$store);
 
       if (this.isVirtualProduct) {
-        const setting = this.$store.getters['virtual/byId'](HCI.SETTING, 'server-version');
+        const setting = this.$store.getters['harvester/byId'](HCI.SETTING, 'server-version');
 
         displayVersion = setting?.value || 'unknown';
       }
@@ -156,7 +156,7 @@ export default {
     },
 
     isVirtualProduct() {
-      return this.$store.getters['currentProduct'].name === 'virtual';
+      return this.$store.getters['currentProduct'].name === 'harvester';
     },
 
     supportLink() {

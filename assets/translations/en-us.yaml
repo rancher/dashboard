@@ -148,7 +148,7 @@ product:
   monitoring: Monitoring
   mcapps: Multi-cluster Apps
   virtualManager: Virtualization Management
-  virtual: Harvester
+  harvester: Harvester
 
 suffix:
   percent: "%"
@@ -4932,6 +4932,7 @@ harvester:
       volumeUpdate: 'Set volume { name } successfully'
       type: Type
       size: Size
+      edit: Edit
       bus:  Bus
       bootOrder: Boot Order
       volume: Volume

@@ -126,7 +126,7 @@ product:
   settings: 全局设置
   monitoring: 监控
   virtualManager: 虚拟化管理
-  virtual: Harvester
+  harvester: Harvester
 
 suffix:
   #percent: "%"
@@ -4006,6 +4006,7 @@ harvester:
       macTip: 提示：安装的操作系统内显示的MAC地址
       type: 类型
       size: 大小
+      edit: 编辑
       bus:  Bus
       bootOrder: 引导顺序
       volume: 卷

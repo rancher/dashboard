@@ -16,7 +16,7 @@ import { addParam } from '@/utils/url';
 import { SETTING } from '@/config/settings';
 import semver from 'semver';
 import { BY_TYPE, NORMAN as NORMAN_CLASS } from '@/plugins/steve/resource-proxy';
-import { NAME as VIRTUAL } from '@/config/product/virtual';
+import { NAME as VIRTUAL } from '@/config/product/harvester';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -30,7 +30,7 @@ export const plugins = [
   }),
   Steve({ namespace: 'cluster', baseUrl: '' }), // URL dynamically set for the selected cluster
   Steve({ namespace: 'rancher', baseUrl: '/v3' }),
-  Steve({ namespace: 'virtual', baseUrl: '' }),
+  Steve({ namespace: 'harvester', baseUrl: '' }),
 ];
 
 export const state = () => {
@@ -676,8 +676,8 @@ export const actions = {
     if ( state.clusterId && id ) {
       commit('clusterChanged', false);
 
-      await dispatch('virtual/unsubscribe');
-      commit('virtual/reset');
+      await dispatch('harvester/unsubscribe');
+      commit('harvester/reset');
     }
 
     if (id) {
@@ -701,23 +701,23 @@ export const actions = {
 
     if ( !cluster ) {
       commit('setCluster', null);
-      commit('virtual/applyConfig', { baseUrl: null });
+      commit('harvester/applyConfig', { baseUrl: null });
       throw new ClusterNotFoundError(id);
     }
 
     // Update the Steve client URLs
-    commit('virtual/applyConfig', { baseUrl: virtualBase });
+    commit('harvester/applyConfig', { baseUrl: virtualBase });
 
     await Promise.all([
-      dispatch('virtual/loadSchemas', true),
+      dispatch('harvester/loadSchemas', true),
     ]);
 
-    dispatch('virtual/subscribe');
+    dispatch('harvester/subscribe');
 
     await allHash({
-      virtualCount:      dispatch('virtual/findAll', { type: COUNT }),
-      virtualNamespaces: dispatch('virtual/findAll', { type: NAMESPACE }),
-      settings:          dispatch('virtual/findAll', { type: HCI.SETTING }),
+      virtualCount:      dispatch('harvester/findAll', { type: COUNT }),
+      virtualNamespaces: dispatch('harvester/findAll', { type: NAMESPACE }),
+      settings:          dispatch('harvester/findAll', { type: HCI.SETTING }),
     });
 
     commit('clusterChanged', true);

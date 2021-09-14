@@ -370,8 +370,8 @@ export default {
   },
 
   podResource() {
-    const vmiResource = this.$rootGetters['virtual/byId'](HCI.VMI, this.id);
-    const podList = this.$rootGetters['virtual/all'](POD);
+    const vmiResource = this.$rootGetters['harvester/byId'](HCI.VMI, this.id);
+    const podList = this.$rootGetters['harvester/all'](POD);
 
     return podList.find( (P) => {
       return vmiResource?.metadata?.name === P.metadata?.ownerReferences?.[0].name;
@@ -403,7 +403,7 @@ export default {
   },
 
   vmi() {
-    return this.$rootGetters['virtual/byId'](HCI.VMI, this.id);
+    return this.$rootGetters['harvester/byId'](HCI.VMI, this.id);
   },
 
   isError() {
@@ -499,7 +499,7 @@ export default {
       if (!id) {
         id = `${ this.metadata.namespace }/${ get(vmResource, `metadata.annotations."${ HCI_ANNOTATIONS.RESTORE_NAME }"`) }`;
       }
-      const restoreResource = this.$rootGetters['virtual/byId'](HCI.RESTORE, id);
+      const restoreResource = this.$rootGetters['harvester/byId'](HCI.RESTORE, id);
 
       if (!restoreResource) {
         return true;
@@ -635,7 +635,7 @@ export default {
   },
 
   resourcesStatus() {
-    const vmList = this.$rootGetters['virtual/all'](HCI.VM);
+    const vmList = this.$rootGetters['harvester/all'](HCI.VM);
     let warningCount = 0;
     let errorCount = 0;
 

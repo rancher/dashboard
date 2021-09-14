@@ -37,14 +37,14 @@ export default {
     },
 
     vmi() {
-      const vmiResources = this.$store.getters['virtual/all'](HCI.VMI);
+      const vmiResources = this.$store.getters['harvester/all'](HCI.VMI);
       const resource = vmiResources.find(VMI => VMI.id === this.actionResource?.id) || null;
 
       return resource;
     },
 
     nodeNameList() {
-      const nodes = this.$store.getters['virtual/all'](NODE);
+      const nodes = this.$store.getters['harvester/all'](NODE);
 
       return nodes.filter((n) => {
         // do not allow to migrate to self node

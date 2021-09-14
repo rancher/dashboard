@@ -22,11 +22,11 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      pvcs: this.$store.dispatch('virtual/findAll', { type: PVC }),
-      vms:  this.$store.dispatch('virtual/findAll', { type: HCI.VM })
+      pvcs: this.$store.dispatch('harvester/findAll', { type: PVC }),
+      vms:  this.$store.dispatch('harvester/findAll', { type: HCI.VM })
     });
 
-    const pvcSchema = this.$store.getters['virtual/schemaFor'](PVC);
+    const pvcSchema = this.$store.getters['harvester/schemaFor'](PVC);
 
     if (!pvcSchema?.collectionMethods.find(x => x.toLowerCase() === 'post')) {
       this.$store.dispatch('type-map/configureType', { match: HCI.VOLUME, isCreatable: false });

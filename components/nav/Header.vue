@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import { NORMAN, HCI } from '@/config/types';
-import { NAME as VIRTUAL } from '@/config/product/virtual';
+import { NAME as VIRTUAL } from '@/config/product/harvester';
 import { ucFirst } from '@/utils/string';
 import { isMac } from '@/utils/platform';
 import Import from '@/components/Import';
@@ -85,7 +85,7 @@ export default {
     },
 
     showImportYaml() {
-      return this.currentProduct?.inStore !== 'virtual';
+      return this.currentProduct?.inStore !== 'harvester';
     },
 
     nameTooltip() {
@@ -187,7 +187,7 @@ export default {
     <div v-if="!simple" class="product">
       <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster cluster-clipped">
         <div v-if="isSingleVirtualCluster" class="product-name">
-          {{ t('product.virtual') }}
+          {{ t('product.harvester') }}
         </div>
         <template v-else>
           <RancherProviderIcon v-if="currentCluster && currentCluster.isLocal" class="mr-10 cluster-local-logo" width="25" />
@@ -208,7 +208,7 @@ export default {
     </div>
     <div v-else class="simple-title">
       <div v-if="isSingleVirtualCluster" class="product-name">
-        {{ t('product.virtual') }}
+        {{ t('product.harvester') }}
       </div>
 
       <div v-else class="side-menu-logo">

@@ -39,8 +39,8 @@ export default {
 
   async fetch() {
     await allHash({
-      backups:         this.$store.dispatch('virtual/findAll', { type: HCI.BACKUP }),
-      vms:             this.$store.dispatch('virtual/findAll', { type: HCI.VM }),
+      backups:         this.$store.dispatch('harvester/findAll', { type: HCI.BACKUP }),
+      vms:             this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
     });
   },
 
@@ -65,7 +65,7 @@ export default {
 
   computed: {
     backupOption() {
-      const choices = this.$store.getters['virtual/all'](HCI.BACKUP);
+      const choices = this.$store.getters['harvester/all'](HCI.BACKUP);
 
       return choices.filter( (T) => {
         const hasVM = this.restoreNewVm || T.attachVmExisting;
@@ -92,7 +92,7 @@ export default {
     currentBackupResource() {
       const name = this.backupName;
 
-      const backupList = this.$store.getters['virtual/all'](HCI.BACKUP);
+      const backupList = this.$store.getters['harvester/all'](HCI.BACKUP);
 
       return backupList.find( O => O.name === name);
     },
@@ -102,7 +102,7 @@ export default {
     },
 
     backupNamespace() {
-      const backupList = this.$store.getters['virtual/all'](HCI.BACKUP);
+      const backupList = this.$store.getters['harvester/all'](HCI.BACKUP);
 
       return backupList.find( B => B.metadata.name === this.backupName)?.metadata?.namespace;
     },
@@ -159,7 +159,7 @@ export default {
     async saveRestore(buttonCb) {
       this.update();
 
-      const proxyResource = await this.$store.dispatch('virtual/create', this.restoreResource);
+      const proxyResource = await this.$store.dispatch('harvester/create', this.restoreResource);
 
       proxyResource.metadata.namespace = this.namespace;
       proxyResource.spec.virtualMachineBackupNamespace = this.backupNamespace;

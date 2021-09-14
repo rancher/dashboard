@@ -10,8 +10,8 @@ import { applyProducts } from '@/store/type-map';
 import { findBy } from '@/utils/array';
 import { ClusterNotFoundError } from '@/utils/error';
 import { get } from '@/utils/object';
-import { NAME as VIRTUAL } from '@/config/product/virtual';
 import { AFTER_LOGIN_ROUTE } from '@/store/prefs';
+import { NAME as VIRTUAL } from '@/config/product/harvester';
 
 let beforeEachSetup = false;
 

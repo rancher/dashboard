@@ -22,8 +22,8 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      template:           this.$store.dispatch('virtual/findAll', { type: HCI.VM_TEMPLATE }),
-      templateVersion:    this.$store.dispatch('virtual/findAll', { type: HCI.VM_VERSION }),
+      template:           this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE }),
+      templateVersion:    this.$store.dispatch('harvester/findAll', { type: HCI.VM_VERSION }),
     });
 
     this.template = hash.template;

@@ -59,11 +59,11 @@ export default {
     },
 
     ssh() {
-      return this.$store.getters['virtual/all'](HCI.SSH);
+      return this.$store.getters['harvester/all'](HCI.SSH);
     },
 
     sshOption() {
-      const choise = this.$store.getters['virtual/all'](HCI.SSH);
+      const choise = this.$store.getters['harvester/all'](HCI.SSH);
 
       return choise.map( (O) => {
         return {
@@ -137,7 +137,7 @@ export default {
       }
 
       try {
-        const sshValue = await this.$store.dispatch('virtual/create', {
+        const sshValue = await this.$store.dispatch('harvester/create', {
           metadata: {
             name:      this.sshName,
             namespace: this.namespace

@@ -21,7 +21,7 @@ export default {
     const isOnlyHarvester = getVendor();
 
     return {
-      home:          isOnlyHarvester ? 'c/local/virtual/harvesterhci.io.dashboard' : home,
+      home:          isOnlyHarvester ? 'c/local/harvester/harvesterhci.io.dashboard' : home,
       previousRoute: '',
       styles:        { '--custom-content': `'${ this.t('nav.failWhale.separator') }'` }
     };

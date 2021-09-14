@@ -49,10 +49,10 @@ export default {
   },
 
   async fetch() {
-    await allHash({ allImages: this.$store.dispatch('virtual/findAll', { type: HCI.IMAGE }) });
+    await allHash({ allImages: this.$store.dispatch('harvester/findAll', { type: HCI.IMAGE }) });
 
     const source = this.value.status.source;
-    const vm = await this.$store.dispatch('virtual/create', {
+    const vm = await this.$store.dispatch('harvester/create', {
       ...source,
       type: HCI.VM
     });

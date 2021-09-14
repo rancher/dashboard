@@ -25,10 +25,10 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      vms:                 this.$store.dispatch('virtual/findAll', { type: HCI.VM }),
-      vmis:                this.$store.dispatch('virtual/findAll', { type: HCI.VMI }),
-      allNodeNetwork:      this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK }),
-      allClusterNetwork:   this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK }),
+      vms:                 this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
+      vmis:                this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
+      allNodeNetwork:      this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK }),
+      allClusterNetwork:   this.$store.dispatch('harvester/findAll', { type: HCI.CLUSTER_NETWORK }),
     });
     const instanceMap = {};
 

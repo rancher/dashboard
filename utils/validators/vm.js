@@ -150,7 +150,7 @@ export function vmDisks(spec, getters, errors, validatorArgs, displayKey, value)
     }
 
     if (type === SOURCE_TYPE.ATTACH_VOLUME) {
-      const allPVCs = getters['virtual/all'](PVC);
+      const allPVCs = getters['harvester/all'](PVC);
       const hasExistingVolume = allPVCs.find(P => P.metadata.name === V?.persistentVolumeClaim?.claimName);
 
       if (!hasExistingVolume) {

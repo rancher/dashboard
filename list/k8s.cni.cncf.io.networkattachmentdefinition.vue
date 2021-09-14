@@ -24,14 +24,14 @@ export default {
   },
 
   async fetch() {
-    const _hash = { rows: this.$store.dispatch('virtual/findAll', { type: HCI.NETWORK_ATTACHMENT }) };
+    const _hash = { rows: this.$store.dispatch('harvester/findAll', { type: HCI.NETWORK_ATTACHMENT }) };
 
-    if (this.$store.getters['virtual/schemaFor'](HCI.NODE_NETWORK)) {
-      _hash.hostNetworks = this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK });
+    if (this.$store.getters['harvester/schemaFor'](HCI.NODE_NETWORK)) {
+      _hash.hostNetworks = this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK });
     }
 
-    if (this.$store.getters['virtual/schemaFor'](HCI.CLUSTER_NETWORK)) {
-      _hash.clusterNetworkSetting = this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK });
+    if (this.$store.getters['harvester/schemaFor'](HCI.CLUSTER_NETWORK)) {
+      _hash.clusterNetworkSetting = this.$store.dispatch('harvester/findAll', { type: HCI.CLUSTER_NETWORK });
     }
 
     const hash = await allHash(_hash);
@@ -80,7 +80,7 @@ export default {
     },
 
     hasClusterNetwork() {
-      return this.$store.getters['virtual/schemaFor'](HCI.CLUSTER_NETWORK);
+      return this.$store.getters['harvester/schemaFor'](HCI.CLUSTER_NETWORK);
     },
 
     abnormalNetwork() {

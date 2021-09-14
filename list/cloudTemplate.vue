@@ -20,9 +20,9 @@ export default {
   components: { ResourceTable, Loading },
 
   async fetch() {
-    this.rows = await this.$store.dispatch('virtual/findAll', { type: CONFIG_MAP });
+    this.rows = await this.$store.dispatch('harvester/findAll', { type: CONFIG_MAP });
 
-    const configSchema = this.$store.getters['virtual/schemaFor'](CONFIG_MAP);
+    const configSchema = this.$store.getters['harvester/schemaFor'](CONFIG_MAP);
 
     if (!configSchema?.collectionMethods.find(x => x.toLowerCase() === 'post')) {
       this.$store.dispatch('type-map/configureType', { match: 'cloudTemplate', isCreatable: false });

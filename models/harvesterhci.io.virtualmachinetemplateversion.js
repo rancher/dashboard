@@ -100,7 +100,7 @@ export default {
   },
 
   template() {
-    return this.$rootGetters['virtual/all'](HCI.VM_TEMPLATE).find((T) => {
+    return this.$rootGetters['harvester/all'](HCI.VM_TEMPLATE).find((T) => {
       return T.id === this.spec.templateId;
     });
   },
@@ -110,7 +110,7 @@ export default {
   },
 
   templates() {
-    return this.$rootGetters['virtual/all'](HCI.VM_TEMPLATE);
+    return this.$rootGetters['harvester/all'](HCI.VM_TEMPLATE);
   },
 
   machineType() {
@@ -181,7 +181,7 @@ export default {
   },
 
   defaultVersion() {
-    const templates = this.$rootGetters['virtual/all'](HCI.VM_TEMPLATE);
+    const templates = this.$rootGetters['harvester/all'](HCI.VM_TEMPLATE);
     const template = templates.find(T => this.templateId === T.id);
 
     return template?.status?.defaultVersion;

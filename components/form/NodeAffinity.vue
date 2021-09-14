@@ -7,7 +7,7 @@ import MatchExpressions from '@/components/form/MatchExpressions';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { randomStr } from '@/utils/string';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
-import { NAME as VIRTUAL } from '@/config/product/virtual';
+import { NAME as VIRTUAL } from '@/config/product/harvester';
 
 export default {
   components: {

@@ -74,7 +74,7 @@ export default {
     },
 
     nodesIdOptions() {
-      const nodes = this.$store.getters['virtual/all'](NODE) || [];
+      const nodes = this.$store.getters['harvester/all'](NODE) || [];
 
       return nodes.map(node => node.id);
     },

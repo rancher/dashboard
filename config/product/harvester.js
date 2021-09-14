@@ -9,7 +9,7 @@ import { IMAGE_DOWNLOAD_SIZE, FINGERPRINT, IMAGE_PROGRESS } from '@/config/harve
 
 import { DSL } from '@/store/type-map';
 
-export const NAME = 'virtual';
+export const NAME = 'harvester';
 
 const TEMPLATE = HCI.VM_VERSION;
 const CLOUD_TEMPLATE = 'cloudTemplate';
@@ -25,7 +25,7 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    inStore:             'virtual',
+    inStore:             'harvester',
     removable:           false,
     showNamespaceFilter: true,
     showClusterSwitcher: true,
@@ -268,7 +268,7 @@ export function init(store) {
   configureType(HCI.SETTING, { isCreatable: false });
   virtualType({
     showMenuFun(state, getters, rootState, rootGetters, out) {
-      const schema = rootGetters['virtual/schemaFor'](HCI.SETTING);
+      const schema = rootGetters['harvester/schemaFor'](HCI.SETTING);
 
       if (schema?.collectionMethods.find(x => x.toLowerCase() === 'post')) {
         return true;

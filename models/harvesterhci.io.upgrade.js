@@ -7,7 +7,7 @@ export default {
   },
 
   nodes() {
-    return this.$rootGetters['virtual/all'](NODE);
+    return this.$rootGetters['harvester/all'](NODE);
   },
 
   upgradeMessage() {

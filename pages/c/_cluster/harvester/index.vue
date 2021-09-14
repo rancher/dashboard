@@ -1,5 +1,5 @@
 <script>
-import { NAME } from '@/config/product/virtual';
+import { NAME } from '@/config/product/harvester';
 import { HCI } from '@/config/types';
 
 export default {
@@ -19,6 +19,6 @@ export default {
 
 <template>
   <div>
-    This is Virtual Dashboard.
+    This is harvester Dashboard.
   </div>
 </template>

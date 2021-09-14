@@ -96,14 +96,14 @@ export default {
   },
 
   isMatchWithCurrentBakcupTarget() {
-    const allSetting = this.$rootGetters['virtual/all'](HCI.SETTING);
+    const allSetting = this.$rootGetters['harvester/all'](HCI.SETTING);
     const backupTargetResource = allSetting.find( O => O.id === 'backup-target');
 
     return this.backupTarget === backupTargetResource?.parseValue?.endpoint;
   },
 
   attachVmExisting() {
-    const vmList = this.$rootGetters['virtual/all'](HCI.VM);
+    const vmList = this.$rootGetters['harvester/all'](HCI.VM);
 
     return !!vmList.find( V => V.metadata.name === this.attachVM);
   }

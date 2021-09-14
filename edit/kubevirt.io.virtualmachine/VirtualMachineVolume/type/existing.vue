@@ -92,13 +92,13 @@ export default {
     },
 
     allPVCs() {
-      return this.$store.getters['virtual/all'](PVC).filter((P) => {
+      return this.$store.getters['harvester/all'](PVC).filter((P) => {
         return this.namespace ? this.namespace === P.metadata.namespace : true;
       }) || [];
     },
 
     image() {
-      const imageResource = this.$store.getters['virtual/all'](HCI.IMAGE).find(I => I.id === this.pvcResource?.metadata?.annotations?.[HCI_ANNOTATIONS.IMAGE_ID]);
+      const imageResource = this.$store.getters['harvester/all'](HCI.IMAGE).find(I => I.id === this.pvcResource?.metadata?.annotations?.[HCI_ANNOTATIONS.IMAGE_ID]);
 
       if (!imageResource) {
         return;

@@ -61,7 +61,7 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('virtual/findAll', { type: PVC });
+    await this.$store.dispatch('harvester/findAll', { type: PVC });
   },
 
   data() {
@@ -121,7 +121,7 @@ export default {
             V.to = {
               name:   'c-cluster-product-resource-namespace-id',
               params: {
-                product:   'virtual',
+                product:   'harvester',
                 resource:  'volume',
                 namespace: this.namespace,
                 id:        V.realName
@@ -239,7 +239,7 @@ export default {
             </button>
             <h3>
               <n-link v-if="volume.to" :to="volume.to">
-                Edit {{ headerFor(volume.source) }}
+                {{ t('harvester.virtualMachine.volume.edit') }} {{ headerFor(volume.source) }}
               </n-link>
 
               <span v-else>

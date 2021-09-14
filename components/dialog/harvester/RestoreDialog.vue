@@ -19,7 +19,7 @@ export default {
   },
 
   async fetch() {
-    const hash = await allHash({ backups: this.$store.dispatch('virtual/findAll', { type: HCI.BACKUP }) });
+    const hash = await allHash({ backups: this.$store.dispatch('harvester/findAll', { type: HCI.BACKUP }) });
 
     this.backups = hash.backups;
   },

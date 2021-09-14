@@ -84,7 +84,7 @@ export default {
 
     templateId: {
       async handler(neu) {
-        const templates = await this.$store.dispatch('virtual/findAll', { type: HCI.VM_TEMPLATE });
+        const templates = await this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE });
         let templateValue = templates.find( V => V.id === neu) || null;
         let templateSpec = templateValue?.spec;
 
@@ -94,7 +94,7 @@ export default {
             defaultVersionId: ''
           };
 
-          templateValue = await this.$store.dispatch('virtual/create', {
+          templateValue = await this.$store.dispatch('harvester/create', {
             metadata: {
               name:      '',
               namespace: ''
@@ -119,7 +119,7 @@ export default {
     this.registerAfterHook(async() => {
       if (this.isDefaultVersion) {
         // Set the default version according to annotation:[HCI_ANNOTATIONS.TEMPLATE_VERSION_CUSTOM_NAME]
-        const versions = await this.$store.dispatch('virtual/findAll', { type: HCI.VM_VERSION, opt: { force: true } });
+        const versions = await this.$store.dispatch('harvester/findAll', { type: HCI.VM_VERSION, opt: { force: true } });
 
         const version = versions.find( V => V?.metadata?.annotations?.[HCI_ANNOTATIONS.TEMPLATE_VERSION_CUSTOM_NAME] === this.customName);
 
@@ -148,7 +148,7 @@ export default {
     async saveVMT(buttonCb) {
       this.parseVM();
 
-      const templates = await this.$store.dispatch('virtual/findAll', { type: HCI.VM_TEMPLATE });
+      const templates = await this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE });
       const template = templates.find( O => O.metadata.name === this.templateValue.metadata.name);
 
       if (!this.templateId) {

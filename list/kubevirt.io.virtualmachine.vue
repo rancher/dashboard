@@ -29,21 +29,21 @@ export default {
 
   async fetch() {
     const _hash = {
-      vms:               this.$store.dispatch('virtual/findAll', { type: HCI.VM }),
-      vmis:              this.$store.dispatch('virtual/findAll', { type: HCI.VMI }),
-      restore:           this.$store.dispatch('virtual/findAll', { type: HCI.RESTORE }),
+      vms:               this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
+      vmis:              this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
+      restore:           this.$store.dispatch('harvester/findAll', { type: HCI.RESTORE }),
     };
 
-    if (this.$store.getters['virtual/schemaFor'](NODE)) {
-      _hash.nodes = this.$store.dispatch('virtual/findAll', { type: NODE });
+    if (this.$store.getters['harvester/schemaFor'](NODE)) {
+      _hash.nodes = this.$store.dispatch('harvester/findAll', { type: NODE });
     }
 
-    if (this.$store.getters['virtual/schemaFor'](HCI.NODE_NETWORK)) {
-      _hash.nodeNetworks = this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK });
+    if (this.$store.getters['harvester/schemaFor'](HCI.NODE_NETWORK)) {
+      _hash.nodeNetworks = this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK });
     }
 
-    if (this.$store.getters['virtual/schemaFor'](HCI.CLUSTER_NETWORK)) {
-      _hash.clusterNetworks = this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK });
+    if (this.$store.getters['harvester/schemaFor'](HCI.CLUSTER_NETWORK)) {
+      _hash.clusterNetworks = this.$store.dispatch('harvester/findAll', { type: HCI.CLUSTER_NETWORK });
     }
 
     const hash = await allHash(_hash);

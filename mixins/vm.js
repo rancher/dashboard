@@ -35,21 +35,21 @@ export default {
 
   async fetch() {
     const hash = {
-      pvcs:               this.$store.dispatch('virtual/findAll', { type: PVC }),
-      storageClass:       this.$store.dispatch('virtual/findAll', { type: STORAGE_CLASS }),
-      ssh:                this.$store.dispatch('virtual/findAll', { type: HCI.SSH }),
-      settings:           this.$store.dispatch('virtual/findAll', { type: HCI.SETTING }),
-      images:             this.$store.dispatch('virtual/findAll', { type: HCI.IMAGE }),
-      versions:           this.$store.dispatch('virtual/findAll', { type: HCI.VM_VERSION }),
-      templates:          this.$store.dispatch('virtual/findAll', { type: HCI.VM_TEMPLATE }),
-      networkAttachment:  this.$store.dispatch('virtual/findAll', { type: HCI.NETWORK_ATTACHMENT }),
-      vmi:                this.$store.dispatch('virtual/findAll', { type: HCI.VMI }),
-      vmim:               this.$store.dispatch('virtual/findAll', { type: HCI.VMIM }),
-      vm:                 this.$store.dispatch('virtual/findAll', { type: HCI.VM }),
+      pvcs:               this.$store.dispatch('harvester/findAll', { type: PVC }),
+      storageClass:       this.$store.dispatch('harvester/findAll', { type: STORAGE_CLASS }),
+      ssh:                this.$store.dispatch('harvester/findAll', { type: HCI.SSH }),
+      settings:           this.$store.dispatch('harvester/findAll', { type: HCI.SETTING }),
+      images:             this.$store.dispatch('harvester/findAll', { type: HCI.IMAGE }),
+      versions:           this.$store.dispatch('harvester/findAll', { type: HCI.VM_VERSION }),
+      templates:          this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE }),
+      networkAttachment:  this.$store.dispatch('harvester/findAll', { type: HCI.NETWORK_ATTACHMENT }),
+      vmi:                this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
+      vmim:               this.$store.dispatch('harvester/findAll', { type: HCI.VMIM }),
+      vm:                 this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
     };
 
-    if (this.$store.getters['virtual/schemaFor'](NODE)) {
-      hash.nodes = this.$store.dispatch('virtual/findAll', { type: NODE });
+    if (this.$store.getters['harvester/schemaFor'](NODE)) {
+      hash.nodes = this.$store.dispatch('harvester/findAll', { type: NODE });
     }
     await allHash(hash);
   },
@@ -119,27 +119,27 @@ export default {
     },
 
     ssh() {
-      return this.$store.getters['virtual/all'](HCI.SSH) || [];
+      return this.$store.getters['harvester/all'](HCI.SSH) || [];
     },
 
     images() {
-      return this.$store.getters['virtual/all'](HCI.IMAGE) || [];
+      return this.$store.getters['harvester/all'](HCI.IMAGE) || [];
     },
 
     versions() {
-      return this.$store.getters['virtual/all'](HCI.VM_VERSION) || [];
+      return this.$store.getters['harvester/all'](HCI.VM_VERSION) || [];
     },
 
     templates() {
-      return this.$store.getters['virtual/all'](HCI.VM_TEMPLATE) || [];
+      return this.$store.getters['harvester/all'](HCI.VM_TEMPLATE) || [];
     },
 
     pvcs() {
-      return this.$store.getters['virtual/all'](PVC) || [];
+      return this.$store.getters['harvester/all'](PVC) || [];
     },
 
     nodesIdOptions() {
-      const nodes = this.$store.getters['virtual/all'](NODE) || [];
+      const nodes = this.$store.getters['harvester/all'](NODE) || [];
 
       return nodes.map(node => node.id);
     },
@@ -154,13 +154,13 @@ export default {
     },
 
     defaultStorageClass() {
-      const defaultStorage = this.$store.getters['virtual/all'](STORAGE_CLASS).find( O => O.isDefault);
+      const defaultStorage = this.$store.getters['harvester/all'](STORAGE_CLASS).find( O => O.isDefault);
 
       return defaultStorage?.metadata?.name || 'longhorn';
     },
 
     customStorageClassConfig() {
-      const storageClassValue = this.$store.getters['virtual/all'](HCI.SETTING).find( O => O.id === 'default-storage-class')?.value || '{}';
+      const storageClassValue = this.$store.getters['harvester/all'](HCI.SETTING).find( O => O.id === 'default-storage-class')?.value || '{}';
       let parse = {};
 
       try {
@@ -248,7 +248,7 @@ export default {
               size = dataVolumeSpecPVC?.resources?.requests?.storage || '10Gi';
               storageClassName = dataVolumeSpecPVC?.storageClassName;
             } else { // SOURCE_TYPE.ATTACH_VOLUME
-              const allPVCs = this.$store.getters['virtual/all'](PVC);
+              const allPVCs = this.$store.getters['harvester/all'](PVC);
               const pvcResource = allPVCs.find( O => O.id === `${ namespace }/${ volume?.persistentVolumeClaim?.claimName }`);
 
               source = SOURCE_TYPE.ATTACH_VOLUME;

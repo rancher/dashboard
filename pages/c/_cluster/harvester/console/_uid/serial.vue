@@ -1,15 +1,15 @@
 <script>
 import { HCI } from '@/config/types';
-import NovncConsoleWrapper from '@/components/NovncConsoleWrapper';
+import SerialConsole from '@/components/form/SerialConsole';
 import Loading from '@/components/Loading';
 
 export default {
   layout: 'blank',
 
-  components: { NovncConsoleWrapper, Loading },
+  components: { SerialConsole, Loading },
 
   async fetch() {
-    this.rows = await this.$store.dispatch('virtual/findAll', { type: HCI.VMI });
+    this.rows = await this.$store.dispatch('harvester/findAll', { type: HCI.VMI });
   },
 
   data() {
@@ -18,8 +18,7 @@ export default {
 
   computed: {
     vmi() {
-      const vmiList = this.$store.getters['virtual/all'](HCI.VMI) || [];
-
+      const vmiList = this.$store.getters['harvester/all'](HCI.VMI) || [];
       const vmi = vmiList.find( (VMI) => {
         return VMI?.metadata?.ownerReferences?.[0]?.uid === this.uid;
       });
@@ -30,7 +29,7 @@ export default {
 
   mounted() {
     window.addEventListener('beforeunload', () => {
-      this.$refs.console.close();
+      this.$refs.serialConsole.close();
     });
   },
 
@@ -42,5 +41,11 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <NovncConsoleWrapper v-else ref="console" v-model="vmi" class="novnc-wrapper" />
+  <SerialConsole v-else ref="serialConsole" v-model="vmi" />
 </template>
+
+<style lang="scss" scoped>
+  body, #__nuxt, #__layout, main {
+    height: 100%;
+  }
+</style>

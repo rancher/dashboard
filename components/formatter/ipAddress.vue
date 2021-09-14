@@ -44,7 +44,7 @@ export default {
     },
 
     vmiIp() {
-      const vmiResources = this.$store.getters['virtual/all'](HCI.VMI);
+      const vmiResources = this.$store.getters['harvester/all'](HCI.VMI);
       const resource = vmiResources.find(VMI => VMI.id === this.value) || null;
       const out = resource?.status?.interfaces?.[0]?.ipAddress || '';
 

@@ -24,7 +24,7 @@ export default {
 
   computed: {
     metrics() {
-      return this.$store.getters['virtual/byId'](METRIC.NODE, this.row.id);
+      return this.$store.getters['harvester/byId'](METRIC.NODE, this.row.id);
     },
 
     cpuTotal() {

@@ -66,7 +66,7 @@ export default {
   },
 
   attachVM() {
-    const allVMs = this.$rootGetters['virtual/all'](HCI.VM);
+    const allVMs = this.$rootGetters['harvester/all'](HCI.VM);
     const ownedBy = get(this, `metadata.annotations."${ HCI_ANNOTATIONS.OWNED_BY }"`) || '';
 
     if (!ownedBy) {

@@ -10,7 +10,7 @@ export default {
   },
 
   async fetch() {
-    const harvesterSettings = await this.$store.dispatch('virtual/findAll', { type: HCI.SETTING });
+    const harvesterSettings = await this.$store.dispatch('harvester/findAll', { type: HCI.SETTING });
 
     this.harvesterSettings = harvesterSettings;
   },
@@ -21,7 +21,7 @@ export default {
 
   computed: {
     isMatch() {
-      const harvesterSettings = this.$store.getters['virtual/all'](HCI.SETTING) || [];
+      const harvesterSettings = this.$store.getters['harvester/all'](HCI.SETTING) || [];
       const resource = harvesterSettings.find( V => V.id === 'backup-target');
 
       return this.value === resource?.parseValue?.endpoint;

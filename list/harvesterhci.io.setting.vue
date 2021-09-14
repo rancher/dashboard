@@ -15,14 +15,14 @@ export default {
     const isDev = this.$store.getters['prefs/get'](DEV);
     const isSingleVirtualCluster = this.$store.getters['isSingleVirtualCluster'];
 
-    const hash = { haversterSettings: this.$store.dispatch('virtual/findAll', { type: HCI.SETTING }) };
+    const hash = { haversterSettings: this.$store.dispatch('harvester/findAll', { type: HCI.SETTING }) };
 
     if (isSingleVirtualCluster) {
       hash.settings = this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
     }
 
-    if (this.$store.getters['virtual/schemaFor'](HCI.CLUSTER_NETWORK)) {
-      hash.clusterNetwork = this.$store.dispatch('virtual/findAll', { type: HCI.CLUSTER_NETWORK });
+    if (this.$store.getters['harvester/schemaFor'](HCI.CLUSTER_NETWORK)) {
+      hash.clusterNetwork = this.$store.dispatch('harvester/findAll', { type: HCI.CLUSTER_NETWORK });
     }
 
     const rows = await allHash(hash);

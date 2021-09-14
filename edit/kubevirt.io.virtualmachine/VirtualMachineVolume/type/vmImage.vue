@@ -73,7 +73,7 @@ export default {
 
   computed: {
     imagesOption() {
-      const choise = this.$store.getters['virtual/all'](HCI.IMAGE);
+      const choise = this.$store.getters['harvester/all'](HCI.IMAGE);
 
       return choise.map( (I) => {
         return {
@@ -84,7 +84,7 @@ export default {
     },
 
     pvcsResource() {
-      const allPVCs = this.$store.getters['virtual/all'](PVC) || [];
+      const allPVCs = this.$store.getters['harvester/all'](PVC) || [];
 
       return allPVCs.find((P) => {
         return this.namespace ? P.id === `${ this.namespace }/${ this.value.volumeName }` : true;
@@ -124,7 +124,7 @@ export default {
     },
 
     onImageChange() {
-      const imageResource = this.$store.getters['virtual/all'](HCI.IMAGE).find( I => this.value.image === I.id);
+      const imageResource = this.$store.getters['harvester/all'](HCI.IMAGE).find( I => this.value.image === I.id);
       const isIso = /.iso$/i.test(imageResource?.spec?.url);
 
       if (this.idx === 0) {

@@ -36,8 +36,8 @@ export default {
     const inStore = this.$store.getters['currentProduct'].inStore;
 
     const hash = {
-      nodes:         this.$store.dispatch('virtual/findAll', { type: NODE }),
-      hostNetworks:  this.$store.dispatch('virtual/findAll', { type: HCI.NODE_NETWORK }),
+      nodes:         this.$store.dispatch('harvester/findAll', { type: NODE }),
+      hostNetworks:  this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK }),
       longhornNodes: this.$store.dispatch(`${ inStore }/findAll`, { type: LONGHORN.NODE }),
       blockDevices:   this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.BLOCK_DEVICE }),
     };
@@ -124,10 +124,10 @@ export default {
 
   methods: {
     async loadMetrics() {
-      const schema = this.$store.getters['virtual/schemaFor'](METRIC.NODE);
+      const schema = this.$store.getters['harvester/schemaFor'](METRIC.NODE);
 
       if (schema) {
-        this.metrics = await this.$store.dispatch('virtual/find', {
+        this.metrics = await this.$store.dispatch('harvester/find', {
           type: METRIC.NODE,
           id:   this.value.id,
           opt:  { force: true, watch: false }

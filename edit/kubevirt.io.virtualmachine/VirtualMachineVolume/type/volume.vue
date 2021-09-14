@@ -56,7 +56,7 @@ export default {
 
   computed: {
     pvcsResource() {
-      const allPVCs = this.$store.getters['virtual/all'](PVC) || [];
+      const allPVCs = this.$store.getters['harvester/all'](PVC) || [];
 
       return allPVCs.find(P => P.metadata.name === this.value.volumeName);
     },

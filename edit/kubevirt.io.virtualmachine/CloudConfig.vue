@@ -37,7 +37,7 @@ export default {
   },
 
   async fetch() {
-    this.configmaps = await this.$store.dispatch('virtual/findAll', { type: CONFIG_MAP });
+    this.configmaps = await this.$store.dispatch('harvester/findAll', { type: CONFIG_MAP });
   },
 
   computed: {

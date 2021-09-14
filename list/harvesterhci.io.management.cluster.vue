@@ -1,7 +1,7 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
-import { NAME as VIRTUAL } from '@/config/product/virtual';
+import { NAME as VIRTUAL } from '@/config/product/harvester';
 import { CAPI } from '@/config/types';
 
 export default {

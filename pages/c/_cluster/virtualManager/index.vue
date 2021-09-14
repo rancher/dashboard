@@ -1,5 +1,5 @@
 <script>
-import { NAME } from '@/config/product/virtual-manager';
+import { NAME } from '@/config/product/harvester-manager';
 import { HCI } from '@/config/types';
 
 export default {
@@ -19,6 +19,6 @@ export default {
 
 <template>
   <div>
-    This is virtual Manager.
+    This is harvester Manager.
   </div>
 </template>

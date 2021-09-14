@@ -21,7 +21,7 @@ export default {
     },
 
     vmi() {
-      const vmiResources = this.$store.getters['virtual/all'](HCI.VMI);
+      const vmiResources = this.$store.getters['harvester/all'](HCI.VMI);
       const resource = vmiResources.find(VMI => VMI.id === this.row.id) || null;
 
       return resource;
@@ -30,7 +30,7 @@ export default {
     node() {
       const nodeName = this.vmi?.status?.nodeName;
 
-      return this.$store.getters['virtual/byId'](NODE, nodeName);
+      return this.$store.getters['harvester/byId'](NODE, nodeName);
     },
   },
 };

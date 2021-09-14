@@ -16,7 +16,7 @@ export default {
   },
 
   data() {
-    const vmList = this.$store.getters['virtual/all'](HCI.VM) || [];
+    const vmList = this.$store.getters['harvester/all'](HCI.VM) || [];
 
     return { vmList };
   },

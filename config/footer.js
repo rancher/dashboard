@@ -10,7 +10,7 @@ export function options(issues, hideRancher, product) {
     return { 'footer.issue': issues };
   }
 
-  if (product === 'virtual') {
+  if (product === 'harvester') {
     return {
       'footer.docs':   'https://github.com/harvester/harvester/tree/master/docs',
       'footer.forums': 'https://forums.rancher.com/',

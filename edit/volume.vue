@@ -29,20 +29,8 @@ export default {
 
   mixins: [CreateEditView],
 
-  props: {
-    value: {
-      type:     Object,
-      required: true,
-    },
-
-    mode: {
-      type:     String,
-      required: true,
-    },
-  },
-
   async fetch() {
-    await this.$store.dispatch('virtual/findAll', { type: HCI.IMAGE });
+    await this.$store.dispatch('harvester/findAll', { type: HCI.IMAGE });
   },
 
   data() {
@@ -63,10 +51,6 @@ export default {
   },
 
   computed: {
-    isCreate() {
-      return this.mode === 'create';
-    },
-
     isBlank() {
       return this.source === 'blank';
     },
@@ -90,7 +74,7 @@ export default {
     },
 
     imageOption() {
-      const choices = this.$store.getters['virtual/all'](HCI.IMAGE);
+      const choices = this.$store.getters['harvester/all'](HCI.IMAGE);
 
       return sortBy(
         choices

@@ -25,7 +25,7 @@ export default {
   },
 
   async fetch() {
-    this.allPVCs = await this.$store.dispatch('virtual/findAll', { type: PVC });
+    this.allPVCs = await this.$store.dispatch('harvester/findAll', { type: PVC });
   },
 
   data() {

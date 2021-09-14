@@ -31,8 +31,8 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      nodes:      this.$store.dispatch('virtual/findAll', { type: NODE }),
-      metric:   this.$store.dispatch('virtual/findAll', { type: METRIC.NODE }),
+      nodes:      this.$store.dispatch('harvester/findAll', { type: NODE }),
+      metric:   this.$store.dispatch('harvester/findAll', { type: METRIC.NODE }),
     });
 
     this.rows = hash.nodes;
@@ -83,10 +83,10 @@ export default {
   },
   methods: {
     async loadMetrics() {
-      const schema = this.$store.getters['virtual/schemaFor'](METRIC.NODE);
+      const schema = this.$store.getters['harvester/schemaFor'](METRIC.NODE);
 
       if (schema) {
-        await this.$store.dispatch('virtual/findAll', {
+        await this.$store.dispatch('harvester/findAll', {
           type: METRIC.NODE,
           opt:  { force: true }
         });
@@ -101,7 +101,7 @@ export default {
     let paramSchema = schema;
 
     if (type !== schema.id) {
-      paramSchema = this.$store.getters['virtual/schemaFor'](type);
+      paramSchema = this.$store.getters['harvester/schemaFor'](type);
     }
 
     return this.$store.getters['type-map/labelFor'](paramSchema, 99);

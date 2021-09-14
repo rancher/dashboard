@@ -152,7 +152,7 @@ export default {
           return;
         }
         if (id !== old && !this.templateVersionId) {
-          const templates = await this.$store.dispatch('virtual/findAll', { type: HCI.VM_TEMPLATE });
+          const templates = await this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE });
 
           this.templateVersionId = templates.find( O => O.id === id)?.defaultVersionId;
         }
@@ -165,7 +165,7 @@ export default {
         if (!id) {
           return;
         }
-        const versions = await this.$store.dispatch('virtual/findAll', { type: HCI.VM_VERSION });
+        const versions = await this.$store.dispatch('harvester/findAll', { type: HCI.VM_VERSION });
         const curVersion = versions.find( V => V.id === id);
 
         if (curVersion?.spec?.vm) {

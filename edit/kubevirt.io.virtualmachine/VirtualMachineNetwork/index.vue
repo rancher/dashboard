@@ -40,7 +40,7 @@ export default {
     },
 
     networkOption() {
-      const choices = this.$store.getters['virtual/all'](HCI.NETWORK_ATTACHMENT);
+      const choices = this.$store.getters['harvester/all'](HCI.NETWORK_ATTACHMENT);
 
       const out = sortBy(
         choices.map((N) => {
