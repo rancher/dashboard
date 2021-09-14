@@ -1,5 +1,5 @@
 <script>
-import randomstring from 'randomstring';
+import { randomStr } from '@/utils/string';
 import { exceptionToErrorsArray, stringify } from '@/utils/error';
 import { HCI } from '@/config/types';
 import LabeledInput from '@/components/form/LabeledInput';
@@ -67,7 +67,7 @@ export default {
     async save(buttonCb) {
       this.errors = [];
 
-      const name = `bundle-${ randomstring.generate(5).toLowerCase() }`;
+      const name = `bundle-${ randomStr(5).toLowerCase() }`;
       const namespace = 'harvester-system';
 
       const bundleCrd = {

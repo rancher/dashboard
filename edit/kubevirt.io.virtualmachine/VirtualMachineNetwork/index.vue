@@ -1,12 +1,11 @@
 <script>
-import randomstring from 'randomstring';
-
 import InfoBox from '@/components/InfoBox';
 import Base from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork/base';
 
 import { HCI } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 import { clone } from '@/utils/object';
+import { randomStr } from '@/utils/string';
 import { removeObject } from '@/utils/array';
 import { _VIEW } from '@/config/query-params';
 
@@ -71,7 +70,7 @@ export default {
         model:       'virtio',
         type:        'bridge',
         networkName:  this.networkName,
-        newCreateId:      randomstring.generate(10),
+        newCreateId:      randomStr(10),
       };
 
       this.rows.push(neu);

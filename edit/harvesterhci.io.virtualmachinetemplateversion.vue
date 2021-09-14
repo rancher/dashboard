@@ -1,5 +1,4 @@
 <script>
-import randomstring from 'randomstring';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import Checkbox from '@/components/form/Checkbox';
@@ -13,11 +12,12 @@ import CloudConfig from '@/edit/kubevirt.io.virtualmachine/CloudConfig';
 import SSHKey from '@/edit/kubevirt.io.virtualmachine/SSHKey';
 
 import { HCI } from '@/config/types';
+import { randomStr } from '@/utils/string';
 import { _CONFIG, _EDIT, _VIEW } from '@/config/query-params';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { cleanForNew } from '@/plugins/steve/normalize';
 
-import VM_MIXIN from '@/mixins/vm';
+import VM_MIXIN from '@/mixins/harvester-vm';
 import CreateEditView from '@/mixins/create-edit-view';
 
 export default {
@@ -169,7 +169,7 @@ export default {
       }
 
       cleanForNew(this.value);
-      this.customName = randomstring.generate(10);
+      this.customName = randomStr(10);
       this.$set(this.value.metadata, 'annotations', {
         ...this.value.metadata.annotations,
         [HCI_ANNOTATIONS.TEMPLATE_VERSION_CUSTOM_NAME]: this.customName

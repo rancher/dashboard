@@ -3,6 +3,7 @@ import BrandImage from '@/components/BrandImage';
 import { mapState } from 'vuex';
 import { stringify } from '@/utils/error';
 import { getVendor } from '@/config/private-label';
+import { NAME as HARVESTER } from '@/config/product/harvester';
 
 export default {
   layout: 'home',
@@ -18,7 +19,7 @@ export default {
       this.$router.replace('/');
     }
 
-    const isOnlyHarvester = getVendor();
+    const isOnlyHarvester = getVendor() === HARVESTER;
 
     return {
       home:          isOnlyHarvester ? 'c/local/harvester/harvesterhci.io.dashboard' : home,

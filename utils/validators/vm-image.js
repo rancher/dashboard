@@ -1,4 +1,4 @@
-import { VM_IMAGE_FILE_FORMAT } from '@/models/harvesterhci.io.virtualmachineimage';
+import { VM_IMAGE_FILE_FORMAT } from '@/models/harvester/harvesterhci.io.virtualmachineimage';
 import { HCI } from '@/config/labels-annotations';
 
 export function imageUrl(url, getters, errors, validatorArgs, type) {

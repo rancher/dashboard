@@ -1,5 +1,5 @@
 <script>
-import VM_MIXIN from '@/mixins/vm';
+import VM_MIXIN from '@/mixins/harvester-vm';
 import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
 
 export default {

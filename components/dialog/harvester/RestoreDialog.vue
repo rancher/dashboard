@@ -1,7 +1,7 @@
 <script>
-import randomstring from 'randomstring';
 import { mapGetters } from 'vuex';
 
+import { randomStr } from '@/utils/string';
 import { HCI } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { exceptionToErrorsArray } from '@/utils/error';
@@ -68,7 +68,7 @@ export default {
     },
 
     async saveRestore(buttonCb) {
-      const name = `restore-${ this.backupName }-${ randomstring.generate(5).toLowerCase() }`;
+      const name = `restore-${ this.backupName }-${ randomStr(5).toLowerCase() }`;
 
       if (!this.backupName) {
         this.$set(this, 'errors', [this.t('harvester.modal.restore.message.backup')]);

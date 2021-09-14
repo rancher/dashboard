@@ -24,7 +24,7 @@ import { HCI } from '@/config/types';
 import { cleanForNew } from '@/plugins/steve/normalize';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
-import VM_MIXIN from '@/mixins/vm';
+import VM_MIXIN from '@/mixins/harvester-vm';
 import CreateEditView from '@/mixins/create-edit-view';
 
 export default {

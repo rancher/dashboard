@@ -148,7 +148,7 @@ product:
   monitoring: Monitoring
   mcapps: Multi-cluster Apps
   harvesterManager: Virtualization Management
-  virtual: Harvester
+  harvester: Harvester
 
 suffix:
   percent: "%"

@@ -1,6 +1,6 @@
 <script>
 import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
-import VM_MIXIN from '@/mixins/vm';
+import VM_MIXIN from '@/mixins/harvester-vm';
 
 export default {
   name:       'Networks',

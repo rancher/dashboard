@@ -1,5 +1,4 @@
 <script>
-import randomstring from 'randomstring';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import CruResource from '@/components/CruResource';
@@ -7,6 +6,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import FileSelector, { createOnSelected } from '@/components/form/FileSelector';
 
+import { randomStr } from '@/utils/string';
 import CreateEditView from '@/mixins/create-edit-view';
 
 export default {
@@ -51,7 +51,7 @@ export default {
       if (splitSSH.length === 3) {
         if (splitSSH[2].includes('@') && !this.value.metadata.name) {
           this.value.metadata.name = splitSSH[2].split('@')[0];
-          this.randomString = randomstring.generate(10).toLowerCase();
+          this.randomString = randomStr(10).toLowerCase();
         }
       }
     }

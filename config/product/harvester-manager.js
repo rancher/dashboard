@@ -27,7 +27,7 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    ifFeature:           HARVESTER,
+    ifFeature:           MULTI_CLUSTER,
     inStore:             'management',
     icon:                'harvester',
     removable:           false,

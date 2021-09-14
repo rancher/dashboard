@@ -126,7 +126,7 @@ product:
   settings: 全局设置
   monitoring: 监控
   harvesterManager: 虚拟化管理
-  virtual: Harvester
+  harvester: Harvester
 
 suffix:
   #percent: "%"

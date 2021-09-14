@@ -1,9 +1,9 @@
 import jsyaml from 'js-yaml';
-import randomstring from 'randomstring';
 
 import { sortBy } from '@/utils/sort';
 import { clone } from '@/utils/object';
 import { allHash } from '@/utils/promise';
+import { randomStr } from '@/utils/string';
 import { SOURCE_TYPE } from '@/config/harvester-map';
 import { _CLONE } from '@/config/query-params';
 import { PVC, HCI, STORAGE_CLASS, NODE } from '@/config/types';
@@ -350,7 +350,7 @@ export default {
         let dataVolumeName = '';
 
         if (this.isClone || !this.hasCreateVolumes.includes(R.realName)) {
-          dataVolumeName = `${ prefixName }-${ R.name }-${ randomstring.generate(5).toLowerCase() }`;
+          dataVolumeName = `${ prefixName }-${ R.name }-${ randomStr(5).toLowerCase() }`;
         } else if (R.source === SOURCE_TYPE.ATTACH_VOLUME) {
           dataVolumeName = R.volumeName;
         } else {

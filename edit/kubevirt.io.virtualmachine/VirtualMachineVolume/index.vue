@@ -1,6 +1,5 @@
 <script>
 import draggable from 'vuedraggable';
-import randomstring from 'randomstring';
 import InfoBox from '@/components/InfoBox';
 import Banner from '@/components/Banner';
 import UnitInput from '@/components/form/UnitInput';
@@ -11,6 +10,7 @@ import ModalWithCard from '@/components/ModalWithCard';
 import { PVC } from '@/config/types';
 import { clone } from '@/utils/object';
 import { removeObject } from '@/utils/array';
+import { randomStr } from '@/utils/string';
 import { SOURCE_TYPE, InterfaceOption } from '@/config/harvester-map';
 import { _VIEW, _EDIT, _CREATE } from '@/config/query-params';
 
@@ -152,7 +152,7 @@ export default {
         volumeMode:  this.customVolumeMode,
         volumeName:  '',
         bus:         'virtio',
-        newCreateId: randomstring.generate(10), // judge whether it is a disk that has been created
+        newCreateId: randomStr(10), // judge whether it is a disk that has been created
       };
 
       this.rows.push(neu);

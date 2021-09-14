@@ -4,7 +4,7 @@ import Tab from '@/components/Tabbed/Tab';
 import Loading from '@/components/Loading';
 import CruResource from '@/components/CruResource';
 import Checkbox from '@/components/form/Checkbox';
-import VM_MIXIN from '@/mixins/vm';
+import VM_MIXIN from '@/mixins/harvester-vm';
 import { allHash } from '@/utils/promise';
 import CreateEditView from '@/mixins/create-edit-view';
 import { HCI } from '@/config/types';
