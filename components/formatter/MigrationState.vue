@@ -42,9 +42,6 @@ export default {
   <div v-if="state">
     <span v-if="!showSuccess">/</span>
     <BadgeState :label="vmiResource.migrationState.status" :color="vmiResource.migrationStateBackground" />
-    <!-- <span :class="{'badge-state': true, [vmiResource.migrationStateBackground]: true}">
-      {{ state }}
-    </span> -->
   </div>
 </template>
 

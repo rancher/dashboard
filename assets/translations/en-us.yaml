@@ -5454,7 +5454,7 @@ typeLabel:
       one { SSH Key }
       other { SSH Keys }
     }
-  host: |-
+  harvesterhci.io.host: |-
     {count, plural,
       one { Host }
       other { Hosts }
@@ -5464,7 +5464,7 @@ typeLabel:
       one { Network }
       other { Networks }
     }
-  volume: |-
+  harvesterhci.io.volume: |-
     {count, plural,
       one { Volume }
       other { Volumes }
@@ -5494,7 +5494,7 @@ typeLabel:
       one { Cluster }
       other { Clusters }
     }
-  cloudtemplate: |-
+  harvesterhci.io.cloudtemplate: |-
     {count, plural,
       one { Cloud Config Template }
       other { Cloud Config Templates }

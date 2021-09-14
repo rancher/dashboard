@@ -6,7 +6,7 @@ import { get, clone } from '@/utils/object';
 
 export default {
   displayNameOverride() {
-    return this.$rootGetters['i18n/t'](`typeLabel.volume`, { count: 1 });
+    return this.$rootGetters['i18n/t'](`typeLabel."${ HCI.VOLUME }"`, { count: 1 });
   },
 
   applyDefaults() {
@@ -41,7 +41,7 @@ export default {
   detailLocation() {
     const detailLocation = clone(this._detailLocation);
 
-    detailLocation.params.resource = 'volume';
+    detailLocation.params.resource = HCI.VOLUME;
 
     return detailLocation;
   },
@@ -51,7 +51,7 @@ export default {
 
     delete detailLocation.params.namespace;
     delete detailLocation.params.id;
-    detailLocation.params.resource = 'volume';
+    detailLocation.params.resource = HCI.VOLUME;
     detailLocation.name = 'c-cluster-product-resource';
 
     return detailLocation;

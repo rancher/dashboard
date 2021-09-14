@@ -7,13 +7,13 @@ import { PVC, SCHEMA, HCI } from '@/config/types';
 import { STATE, AGE, NAME, NAMESPACE } from '@/config/table-headers';
 
 const schema = {
-  id:         'volume',
+  id:         HCI.VOLUME,
   type:       SCHEMA,
   attributes: {
-    kind:       'volume',
+    kind:       HCI.VOLUME,
     namespaced: true
   },
-  metadata: { name: 'volume' },
+  metadata: { name: HCI.VOLUME },
 };
 
 export default {

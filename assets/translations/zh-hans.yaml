@@ -4450,13 +4450,13 @@ typeLabel:
   kubevirt.io.virtualmachine: 虚拟机
   harvesterhci.io.virtualmachineimage: 镜像
   harvesterhci.io.keypair: SSH 密钥
-  cloudtemplate: Cloud 配置模板
+  harvesterhci.io.cloudtemplate: Cloud 配置模板
   harvesterhci.io.virtualmachinetemplateversion: 虚拟机模板
   k8s.cni.cncf.io.networkattachmentdefinition: 网络
-  volume: 卷
+  harvesterhci.io.volume: 卷
   harvesterhci.io.user: 用户
   harvesterhci.io.setting: 设置
-  host: 主机
+  harvesterhci.io.host: 主机
   harvesterhci.io.virtualmachinebackup: 备份
 
 action:

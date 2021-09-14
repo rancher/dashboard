@@ -1,5 +1,6 @@
 import pickBy from 'lodash/pickBy';
-import { HCI } from '@/config/labels-annotations';
+import { HCI } from '@/config/types';
+import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { clone } from '@/utils/object';
 import findLast from 'lodash/findLast';
 import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
@@ -7,7 +8,7 @@ import { PRIVATE } from '@/plugins/steve/resource-proxy';
 
 export default {
   displayNameOverride() {
-    return this.$rootGetters['i18n/t'](`typeLabel.host`, { count: 1 });
+    return this.$rootGetters['i18n/t'](`typeLabel."${ HCI.HOST }"`, { count: 1 });
   },
 
   _availableActions() {
@@ -61,7 +62,7 @@ export default {
   },
 
   nameDisplay() {
-    return this.metadata?.annotations?.[HCI.HOST_CUSTOM_NAME] || this.name;
+    return this.metadata?.annotations?.[HCI_ANNOTATIONS.HOST_CUSTOM_NAME] || this.name;
   },
 
   stateDisplay() {
@@ -87,7 +88,7 @@ export default {
   detailLocation() {
     const detailLocation = clone(this._detailLocation);
 
-    detailLocation.params.resource = 'host';
+    detailLocation.params.resource = HCI.HOST;
 
     return detailLocation;
   },
@@ -97,7 +98,7 @@ export default {
 
     delete detailLocation.params.namespace;
     delete detailLocation.params.id;
-    detailLocation.params.resource = 'host';
+    detailLocation.params.resource = HCI.HOST;
     detailLocation.name = 'c-cluster-product-resource';
 
     return detailLocation;
@@ -114,7 +115,7 @@ export default {
   },
 
   isMaster() {
-    return this.metadata?.labels?.[HCI.NODE_ROLE_MASTER] !== undefined || this.metadata?.labels?.[HCI.NODE_ROLE_CONTROL_PLANE] !== undefined;
+    return this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_ROLE_MASTER] !== undefined || this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_ROLE_CONTROL_PLANE] !== undefined;
   },
 
   cordon() {
@@ -145,11 +146,11 @@ export default {
   },
 
   isEnteringMaintenance() {
-    return this.metadata?.annotations?.[HCI.MAINTENANCE_STATUS] === 'running';
+    return this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] === 'running';
   },
 
   isMaintenance() {
-    return this.metadata?.annotations?.[HCI.MAINTENANCE_STATUS] === 'completed';
+    return this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] === 'completed';
   },
 
 };

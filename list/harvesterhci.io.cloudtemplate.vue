@@ -1,18 +1,18 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
-import { CONFIG_MAP, SCHEMA } from '@/config/types';
+import { CONFIG_MAP, SCHEMA, HCI } from '@/config/types';
 import { NAME, AGE, NAMESPACE } from '@/config/table-headers';
-import { HCI } from '@/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 const schema = {
-  id:         'cloudTemplate',
+  id:         HCI.CLOUD_TEMPLATE,
   type:       SCHEMA,
   attributes: {
-    kind:       'cloudTemplate',
+    kind:       HCI.CLOUD_TEMPLATE,
     namespaced: true
   },
-  metadata: { name: 'cloudTemplate' },
+  metadata: { name: HCI.CLOUD_TEMPLATE },
 };
 
 export default {
@@ -25,7 +25,7 @@ export default {
     const configSchema = this.$store.getters['harvester/schemaFor'](CONFIG_MAP);
 
     if (!configSchema?.collectionMethods.find(x => x.toLowerCase() === 'post')) {
-      this.$store.dispatch('type-map/configureType', { match: 'cloudTemplate', isCreatable: false });
+      this.$store.dispatch('type-map/configureType', { match: HCI.CLOUD_TEMPLATE, isCreatable: false });
     }
   },
 
@@ -49,7 +49,7 @@ export default {
     },
 
     filterdRows() {
-      return this.rows.filter(r => !!r.metadata?.labels?.[HCI.CLOUD_INIT]);
+      return this.rows.filter(r => !!r.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT]);
     },
 
     schema() {

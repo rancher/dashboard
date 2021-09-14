@@ -2,18 +2,18 @@
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
 import { STATE, NAME, AGE } from '@/config/table-headers';
-import { METRIC, NODE, SCHEMA } from '@/config/types';
+import { METRIC, NODE, SCHEMA, HCI } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import metricPoller from '@/mixins/metric-poller';
 
 const schema = {
-  id:         'host',
+  id:         HCI.HOST,
   type:       SCHEMA,
   attributes: {
-    kind:       'host',
+    kind:       HCI.HOST,
     namespaced: true
   },
-  metadata: { name: 'host' },
+  metadata: { name: HCI.HOST },
 };
 
 const HOST_IP = {

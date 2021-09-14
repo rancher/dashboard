@@ -12,8 +12,6 @@ import { DSL } from '@/store/type-map';
 export const NAME = 'harvester';
 
 const TEMPLATE = HCI.VM_VERSION;
-const CLOUD_TEMPLATE = 'cloudTemplate';
-const HOST = 'host';
 
 export function init(store) {
   const {
@@ -52,27 +50,27 @@ export function init(store) {
   });
   configureType(HCI.DASHBOARD, { showListMasthead: false });
 
-  configureType(HOST, {
+  configureType(HCI.HOST, {
     location:    {
       name:    'c-cluster-product-resource',
-      params:  { resource: HOST },
+      params:  { resource: HCI.HOST },
     },
     resource:          NODE,
     useCustomInImport: true
   });
 
-  configureType(HOST, { isCreatable: false, isEditable: true });
-  basicType([HOST]);
+  configureType(HCI.HOST, { isCreatable: false, isEditable: true });
+  basicType([HCI.HOST]);
   virtualType({
     ifHaveType:    NODE,
     label:         store.getters['i18n/t']('harvester.host.label'),
     group:        'Root',
-    name:         HOST,
+    name:         HCI.HOST,
     namespaced:   true,
     weight:       399,
     route:        {
       name:   'c-cluster-product-resource',
-      params: { resource: HOST }
+      params: { resource: HCI.HOST }
     },
     exact: false,
   });
@@ -187,7 +185,7 @@ export function init(store) {
     HCI.NETWORK_ATTACHMENT,
     HCI.BACKUP,
     HCI.SSH,
-    CLOUD_TEMPLATE,
+    HCI.CLOUD_TEMPLATE,
     HCI.SETTING
   ], 'Advanced');
 
@@ -244,22 +242,22 @@ export function init(store) {
     exact: false,
   });
 
-  configureType(CLOUD_TEMPLATE, {
+  configureType(HCI.CLOUD_TEMPLATE, {
     location:    {
       name:    'c-cluster-product-resource',
-      params:  { resource: CLOUD_TEMPLATE },
+      params:  { resource: HCI.CLOUD_TEMPLATE },
     },
     resource:          CONFIG_MAP,
     useCustomInImport: true
   });
   virtualType({
     label:        store.getters['i18n/t']('harvester.cloudTemplate.label'),
-    name:         CLOUD_TEMPLATE,
+    name:         HCI.CLOUD_TEMPLATE,
     namespaced:   true,
     weight:       87,
     route:        {
       name:      'c-cluster-product-resource',
-      params:    { resource: CLOUD_TEMPLATE }
+      params:    { resource: HCI.CLOUD_TEMPLATE }
     },
     exact: false,
   });
