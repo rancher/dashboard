@@ -1,5 +1,6 @@
 <script>
 import { HCI } from '@/config/labels-annotations';
+import { mapGetters } from 'vuex';
 
 export default {
   props: {
@@ -12,8 +13,10 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
     displayLabel() {
-      return this.value?.[HCI.CLOUD_INIT] === 'user' ? 'User Data' : 'Network Data';
+      return this.value?.[HCI.CLOUD_INIT] === 'user' ? this.t('harvester.cloudTemplate.userData') : this.t('harvester.cloudTemplate.networkData');
     }
   },
 };

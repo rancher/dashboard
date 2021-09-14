@@ -1,7 +1,10 @@
 <script>
 import { HCI } from '@/config/types';
+import BadgeState from '@/components/BadgeState';
 
 export default {
+  components: { BadgeState },
+
   props: {
     vmResource: {
       type:     Object,
@@ -38,9 +41,10 @@ export default {
 <template>
   <div v-if="state">
     <span v-if="!showSuccess">/</span>
-    <span :class="{'badge-state': true, [vmiResource.migrationStateBackground]: true}">
+    <BadgeState :label="vmiResource.migrationState.status" :color="vmiResource.migrationStateBackground" />
+    <!-- <span :class="{'badge-state': true, [vmiResource.migrationStateBackground]: true}">
       {{ state }}
-    </span>
+    </span> -->
   </div>
 </template>
 

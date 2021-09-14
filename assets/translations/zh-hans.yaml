@@ -4187,6 +4187,8 @@ harvester:
   cloudTemplate:
     label: Cloud 配置模板
     templateType: 模板类型
+    userData: User Data
+    networkData: Network Data
 
 ##############################
 # Model Properties
