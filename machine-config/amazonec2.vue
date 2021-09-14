@@ -142,6 +142,13 @@ export default {
   },
 
   computed: {
+    securityGroupLabels() {
+      return [
+        this.t('cluster.machineConfig.amazonEc2.securityGroup.mode.default', { defaultGroup: DEFAULT_GROUP }),
+        this.t('cluster.machineConfig.amazonEc2.securityGroup.mode.custom')
+      ];
+    },
+
     instanceOptions() {
       let lastGroup;
 
@@ -393,7 +400,7 @@ export default {
               :required="true"
               :searchable="true"
               :disabled="disabled"
-              label="Region"
+              :label="t('cluster.machineConfig.amazonEc2.region')"
             />
           </div>
           <div class="col span-6">
@@ -403,7 +410,7 @@ export default {
               :options="zoneOptions"
               :required="true"
               :disabled="disabled"
-              label="Zone"
+              :label="t('cluster.machineConfig.amazonEc2.zone')"
             />
           </div>
         </div>
@@ -417,7 +424,7 @@ export default {
               :selectable="option => !option.disabled"
               :searchable="true"
               :disabled="disabled"
-              label="Instance Type"
+              :label="t('cluster.machineConfig.amazonEc2.instanceType')"
             >
               <template v-slot:option="opt">
                 <template v-if="opt.kind === 'group'">
@@ -435,9 +442,9 @@ export default {
               output-as="string"
               :mode="mode"
               :disabled="disabled"
-              placeholder="Default: 16"
-              label="Root Disk Size"
-              suffix="GB"
+              :placeholder="t('cluster.machineConfig.amazonEc2.rootSize.placeholder')"
+              :label="t('cluster.machineConfig.amazonEc2.rootSize.label')"
+              :suffix="t('cluster.machineConfig.amazonEc2.rootSize.suffix')"
             />
           </div>
         </div>
@@ -450,8 +457,8 @@ export default {
               :searchable="true"
               :required="true"
               :disabled="disabled"
-              label="VPC/Subnet"
-              placeholder="Select a VPC or Subnet"
+              :placeholder="t('cluster.machineConfig.amazonEc2.selectedNetwork.placeholder')"
+              :label="t('cluster.machineConfig.amazonEc2.selectedNetwork.label')"
               @input="updateNetwork($event)"
             >
               <template v-slot:option="opt">
@@ -469,8 +476,8 @@ export default {
               v-model="value.iamInstanceProfile"
               :mode="mode"
               :disabled="disabled"
-              label="IAM Instance Profile Name"
-              tooltip="Kubernetes AWS Cloud Provider support requires an appropriate instance profile"
+              :tooltip="t('cluster.machineConfig.amazonEc2.iamInstanceProfile.tooltip')"
+              :label="t('cluster.machineConfig.amazonEc2.iamInstanceProfile.label')"
             />
           </div>
         </div>
@@ -482,18 +489,18 @@ export default {
                 v-model="value.ami"
                 :mode="mode"
                 :disabled="disabled"
-                label="AMI ID"
-                placeholder="Default: A recent Ubuntu LTS"
+                :placeholder="t('cluster.machineConfig.amazonEc2.ami.placeholder')"
+                :label="t('cluster.machineConfig.amazonEc2.ami.label')"
               />
             </div>
             <div class="col span-6">
               <LabeledInput
                 v-model="value.sshUser"
                 :mode="mode"
-                label="SSH Username for AMI"
+                :label="t('cluster.machineConfig.amazonEc2.sshUser.label')"
                 :disabled="!value.ami || disabled"
-                placeholder="Default: ubuntu"
-                tooltip="The username that exists in the selected AMI; Provisioning will SSH to the node with this."
+                :tooltip="t('cluster.machineConfig.amazonEc2.sshUser.tooltip')"
+                :placeholder="t('cluster.machineConfig.amazonEc2.sshUser.placeholder')"
               />
             </div>
           </div>
@@ -501,9 +508,9 @@ export default {
           <div class="row mt-20">
             <div class="col span-12">
               <h3>
-                Security Group
+                {{ t('cluster.machineConfig.amazonEc2.securityGroup.title') }}
                 <span v-if="!value.vpcId" class="text-muted text-small">
-                  (select a VPC/Subnet first)
+                  {{ t('cluster.machineConfig.amazonEc2.securityGroup.vpcId') }}
                 </span>
               </h3>
               <RadioGroup
@@ -511,7 +518,7 @@ export default {
                 name="securityGroupMode"
                 :mode="mode"
                 :disabled="!value.vpcId || disabled"
-                :labels="[`Standard: Automatically create and use a &quot;${DEFAULT_GROUP}&quot; security group`, 'Choose one or more existing security groups:']"
+                :labels="securityGroupLabels"
                 :options="['default','custom']"
               />
               <LabeledSelect
@@ -533,15 +540,19 @@ export default {
                 v-model="value.volumeType"
                 :mode="mode"
                 :disabled="disabled"
-                label="EBS Root Volume Type"
-                placeholder="Default: gp2"
+                :label="t('cluster.machineConfig.amazonEc2.volumeType.label')"
+                :placeholder="t('cluster.machineConfig.amazonEc2.volumeType.placeholder')"
               />
             </div>
           </div>
 
           <div class="row mt-20">
             <div class="col span-12">
-              <Checkbox v-model="value.encryptEbsVolume" :mode="mode" label="Encrypt EBS Volume" />
+              <Checkbox
+                v-model="value.encryptEbsVolume"
+                :mode="mode"
+                :label="t('cluster.machineConfig.amazonEc2.encryptEbsVolume')"
+              />
               <div v-if="value.encryptEbsVolume" class="mt-10">
                 <LabeledSelect
                   v-if="canReadKms"
@@ -549,17 +560,17 @@ export default {
                   :mode="mode"
                   :options="kmsOptions"
                   :disabled="disabled"
-                  label="KMS Key ARN"
+                  :label="t('cluster.machineConfig.amazonEc2.kmsKey.label')"
                 />
                 <template v-else>
                   <LabeledInput
                     v-model="value.kmsKey"
                     :mode="mode"
                     :disabled="disabled"
-                    label="KMS Key ARN"
+                    :label="t('cluster.machineConfig.amazonEc2.kmsKey.label')"
                   />
                   <p class="text-muted">
-                    You do not have permission to list KMS keys, but may still be able to enter a Key ARN if you know one.
+                    {{ t('cluster.machineConfig.amazonEc2.kmsKey.text') }}
                   </p>
                 </template>
               </div>
@@ -567,16 +578,20 @@ export default {
           </div>
           <div class="row mt-20">
             <div class="col span-6">
-              <Checkbox v-model="value.requestSpotInstance" :mode="mode" label="Request Spot Instance" />
+              <Checkbox
+                v-model="value.requestSpotInstance"
+                :mode="mode"
+                :label="t('cluster.machineConfig.amazonEc2.requestSpotInstance')"
+              />
               <div v-if="value.requestSpotInstance" class="mt-10">
                 <UnitInput
                   v-model="value.spotPrice"
                   output-as="string"
                   :mode="mode"
                   :disabled="disabled"
-                  placeholder="Default: 0.50"
-                  label="Spot Price"
-                  suffix="Dollars per hour"
+                  :placeholder="t('cluster.machineConfig.amazonEc2.spotPrice.placeholder')"
+                  :label="t('cluster.machineConfig.amazonEc2.spotPrice.label')"
+                  :suffix="t('cluster.machineConfig.amazonEc2.spotPrice.suffix')"
                 />
               </div>
             </div>
@@ -589,7 +604,7 @@ export default {
                   v-model="value.privateAddressOnly"
                   :mode="mode"
                   :disabled="disabled"
-                  label="Use only private addresses"
+                  :label="t('cluster.machineConfig.amazonEc2.privateAddressOnly')"
                 />
               </div>
               <div>
@@ -597,7 +612,7 @@ export default {
                   v-model="value.useEbsOptimizedInstance"
                   :mode="mode"
                   :disabled="disabled"
-                  label="EBS-Optimized Instance"
+                  :label="t('cluster.machineConfig.amazonEc2.useEbsOptimizedInstance')"
                 />
               </div>
               <div>
@@ -605,7 +620,7 @@ export default {
                   v-model="value.httpEndpoint"
                   :mode="mode"
                   :disabled="disabled"
-                  label="Allow access to EC2 metadata"
+                  :label="t('cluster.machineConfig.amazonEc2.httpEndpoint')"
                 />
               </div>
               <div>
@@ -613,7 +628,7 @@ export default {
                   v-model="value.httpTokens"
                   :mode="mode"
                   :disabled="!value.httpEndpoint || disabled"
-                  label="Use tokens for metadata"
+                  :label="t('cluster.machineConfig.amazonEc2.httpTokens')"
                 />
               </div>
             </div>
@@ -625,7 +640,7 @@ export default {
                 :value="tags"
                 :mode="mode"
                 :read-allowed="false"
-                title="EC2 Tags"
+                :label="t('cluster.machineConfig.amazonEc2.tagTitle')"
                 :add-label="t('labels.addTag')"
                 :disabled="disabled"
                 @input="updateTags"
