@@ -3,8 +3,6 @@ import isEmpty from 'lodash/isEmpty';
 import isFunction from 'lodash/isFunction';
 import isString from 'lodash/isString';
 import jsyaml from 'js-yaml';
-import omitBy from 'lodash/omitBy';
-import pickBy from 'lodash/pickBy';
 import forIn from 'lodash/forIn';
 import uniq from 'lodash/uniq';
 import Vue from 'vue';
@@ -19,7 +17,6 @@ import { sortableNumericSuffix } from '@/utils/sort';
 import {
   coerceStringTypeToScalarType,
   escapeHtml,
-  matchesSomeRegex,
   ucFirst
 } from '@/utils/string';
 import {
@@ -30,7 +27,7 @@ import {
   validateBoolean
 } from '@/utils/validators';
 
-import { ANNOTATIONS_TO_IGNORE_REGEX, DESCRIPTION, LABELS_TO_IGNORE_REGEX, NORMAN_NAME } from '@/config/labels-annotations';
+import { NORMAN_NAME } from '@/config/labels-annotations';
 import {
   AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG, _CONFIG
 } from '@/config/query-params';
@@ -335,30 +332,6 @@ export class Resource {
     return `[${ this.type }: ${ this.id }]`;
   }
 
-  get description() {
-    return this.metadata?.annotations?.[DESCRIPTION] || this.spec?.description || this._description;
-  }
-
-  set description(val) {
-    // @TODO
-  }
-
-  get labels() {
-    const all = this.metadata?.labels || {};
-
-    return omitBy(all, (value, key) => {
-      return matchesSomeRegex(key, this.labelsToIgnoreRegexes);
-    });
-  }
-
-  get annotations() {
-    const all = this.metadata?.annotations || {};
-
-    return omitBy(all, (value, key) => {
-      return matchesSomeRegex(key, this.annotationsToIgnoreRegexes);
-    });
-  }
-
   get typeDisplay() {
     const schema = this.schema;
 
@@ -392,14 +365,6 @@ export class Resource {
     return sortableNumericSuffix(this.namespacedName).toLowerCase();
   }
 
-  get name() {
-    return this._name || this.metadata?.name;
-  }
-
-  get namespace() {
-    return this.metadata?.namespace;
-  }
-
   get groupByLabel() {
     const name = this.metadata?.namespace;
     let out;
@@ -413,77 +378,20 @@ export class Resource {
     return out;
   }
 
-  get labelsToIgnoreRegexes() {
-    return LABELS_TO_IGNORE_REGEX;
+  setLabels(/* val */) {
+    throw new Error('Implement setLabels in subclass');
   }
 
-  setLabels(val) {
-    if ( !this.metadata ) {
-      this.metadata = {};
-    }
-
-    const all = this.metadata.labels || {};
-    const wasIgnored = pickBy(all, (value, key) => {
-      return matchesSomeRegex(key, this.labelsToIgnoreRegexes);
-    });
-
-    Vue.set(this.metadata, 'labels', { ...wasIgnored, ...val });
-  }
-
-  setLabel(key, val) {
-    if ( val ) {
-      if ( !this.metadata ) {
-        this.metadata = {};
-      }
-
-      if ( !this.metadata.labels ) {
-        this.metadata.labels = {};
-      }
-
-      Vue.set(this.metadata.labels, key, val);
-    } else if ( this.metadata?.labels ) {
-      Vue.set(this.metadata.labels, key, undefined);
-      delete this.metadata.labels[key];
-    }
-  }
-
-  get annotationsToIgnoreRegexes() {
-    return ANNOTATIONS_TO_IGNORE_REGEX;
+  setLabel(/* key, val */) {
+    throw new Error('Implement setLabel in subclass');
   }
 
   setAnnotations(val) {
-    if ( !this.metadata ) {
-      this.metadata = {};
-    }
-
-    const all = this.metadata.annotations || {};
-    const wasIgnored = pickBy(all, (value, key) => {
-      return matchesSomeRegex(key, this.annotationsToIgnoreRegexes);
-    });
-
-    Vue.set(this.metadata, 'annotations', { ...wasIgnored, ...val });
+    throw new Error('Implement setAnnotations in subclass');
   }
 
   setAnnotation(key, val) {
-    if ( val ) {
-      if ( !this.metadata ) {
-        this.metadata = {};
-      }
-
-      if ( !this.metadata.annotations ) {
-        this.metadata.annotations = {};
-      }
-
-      Vue.set(this.metadata.annotations, key, val);
-    } else if ( this.metadata?.annotations ) {
-      Vue.set(this.metadata.annotations, key, undefined);
-      delete this.metadata.annotations[key];
-    }
-  }
-
-  // You can override the state by providing your own state (and possibly reading metadata.state)
-  get state() {
-    return this.stateObj?.name || this._state || 'unknown';
+    throw new Error('Implement setAnnotation in subclass');
   }
 
   // You can override the displayed by providing your own stateDisplay (and possibly using the function exported above)
@@ -844,6 +752,7 @@ export class Resource {
 
   async _save(opt = {}) {
     delete this.__rehydrate;
+    delete this.__clone;
     const forNew = !this.id;
 
     const errors = await this.validationErrors(this, opt.ignoreFields);

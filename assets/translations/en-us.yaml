@@ -2488,7 +2488,7 @@ nameNsDescription:
     placeholder: 'A unique name'
   namespace:
     label: Namespace
-    placeholder:
+    placeholder: ''
   workspace:
     label: Workspace
     placeholder:

@@ -1,4 +1,3 @@
-import { remapSpecialKeys } from '@/plugins/steve/resource-proxy';
 import { addObject, removeObject } from '@/utils/array';
 import { get } from '@/utils/object';
 import Socket, {
@@ -41,8 +40,6 @@ export function equivalentWatch(a, b) {
 
 function queueChange({ getters, state }, { data, revision }, load, label) {
   const type = getters.normalizeType(data.type);
-
-  remapSpecialKeys(data);
 
   const entry = getters.typeEntry(type);
 
@@ -154,9 +151,11 @@ export const actions = {
       return;
     }
 
+    const started = new Date().getTime();
+
     state.queue = [];
 
-    state.debugSocket && console.debug(`Subscribe Flush [${ getters.storeName }]`, queue.length); // eslint-disable-line no-console
+    state.debugSocket && console.debug(`Subscribe Flush [${ getters.storeName }]`, queue.length, 'items'); // eslint-disable-line no-console
 
     for ( const { action, event, body } of queue ) {
       if ( action === 'dispatch' && event === 'load' ) {
@@ -183,6 +182,8 @@ export const actions = {
     if ( toLoad.length ) {
       await dispatch('loadMulti', toLoad);
     }
+
+    state.debugSocket && console.debug(`Subscribe Flush [${ getters.storeName }] finished`, (new Date().getTime()) - started, 'ms'); // eslint-disable-line no-console
   },
 
   rehydrateSubscribe({ state, dispatch }) {

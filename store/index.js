@@ -15,6 +15,7 @@ import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { addParam } from '@/utils/url';
 import { SETTING } from '@/config/settings';
 import semver from 'semver';
+import { BY_TYPE, NORMAN as NORMAN_CLASS } from '@/plugins/steve/resource-proxy';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -23,9 +24,13 @@ export const strict = false;
 export const BLANK_CLUSTER = '_';
 
 export const plugins = [
-  Steve({ namespace: 'management', baseUrl: '/v1' }),
+  Steve({
+    namespace: 'management', baseUrl: '/v1', modelBaseClass: BY_TYPE
+  }),
   Steve({ namespace: 'cluster', baseUrl: '' }), // URL dynamically set for the selected cluster
-  Steve({ namespace: 'rancher', baseUrl: '/v3' }),
+  Steve({
+    namespace: 'rancher', baseUrl: '/v3', modelBaseClass: NORMAN_CLASS
+  }),
 ];
 
 export const state = () => {

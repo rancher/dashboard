@@ -38,9 +38,6 @@ function find(cache, type) {
 /**
  * This will lookup and load a model based on the type
  *
- * We want to have the ability to treat chart apps as if they were native resources.
- * As part of this desire to treat apps as a native resource we also want to be able to customize their models.
- * if the file exists.
  * @param {*} store the name of the store that the type comes from
  * @param {*} type the type we'd like to lookup
  */
