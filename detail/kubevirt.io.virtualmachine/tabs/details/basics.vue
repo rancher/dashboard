@@ -1,6 +1,6 @@
 <script>
 import IPAddress from '@/components/formatter/ipAddress';
-import ConsoleBar from '@/components/form/ConsoleBar';
+import VMConsoleBar from '@/components/VMConsoleBar';
 import LabelValue from '@/components/LabelValue';
 import InputOrDisplay from '@/components/InputOrDisplay';
 import { HCI } from '@/config/types';
@@ -12,7 +12,7 @@ export default {
   name: 'Details',
 
   components: {
-    ConsoleBar,
+    VMConsoleBar,
     IPAddress,
     LabelValue,
     InputOrDisplay
@@ -134,7 +134,7 @@ export default {
           <template #value>
             <div class="smart-row">
               <div class="console">
-                {{ value.nameDisplay }} <ConsoleBar :resource="value" class="cosoleBut" />
+                {{ value.nameDisplay }} <VMConsoleBar :resource="value" class="cosoleBut" />
               </div>
             </div>
           </template>

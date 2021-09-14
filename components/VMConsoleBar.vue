@@ -1,8 +1,9 @@
 <script>
 import ButtonDropdown from '@/components/ButtonDropdown';
+import { mapGetters } from 'vuex';
 
 export default {
-  name: 'ConsoleBar',
+  name: 'VMConsoleBar',
 
   components: { ButtonDropdown },
 
@@ -21,16 +22,18 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
     isRunning() {
       return !!this.resource.isRunning;
     },
 
     options() {
       return [{
-        label:  'Open in Web VNC',
+        label:  this.t('harvester.virtualMachine.console.novnc'),
         value:  'vnc',
       }, {
-        label:  'Open in Serial Console',
+        label:  this.t('harvester.virtualMachine.console.serial'),
         value:  'serial',
       }];
     }

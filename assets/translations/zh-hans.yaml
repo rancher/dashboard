@@ -3984,6 +3984,9 @@ harvester:
         label: 模版
       version:
         label: 版本
+    console:
+      novnc: 在 Web VNC 中打开
+      serial: 在 Serial Console 中打开
     promptRemove:
       title: '需要您要删除的卷:'
       deleteAll: 全部删除

@@ -67,6 +67,7 @@ export default {
           ref="popover"
           placement="top"
           trigger="click"
+          offset="-485"
         >
           <button class="btn btn-sm bg-primary">
             <i class="icon icon-actions"></i>
@@ -128,6 +129,19 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .vm-console {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  .vm-console, ::v-deep .vm-console > DIV, ::v-deep .vm-console > DIV > DIV {
+    height: 100%;
+  }
+
   .combination-keys {
     position: fixed;
     right: 0;
