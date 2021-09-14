@@ -1,6 +1,5 @@
 import pickBy from 'lodash/pickBy';
 import { HCI } from '@/config/labels-annotations';
-import { NAME as VIRTUAL } from '@/config/product/virtual';
 import { clone } from '@/utils/object';
 import findLast from 'lodash/findLast';
 import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
@@ -8,14 +7,11 @@ import { PRIVATE } from '@/plugins/steve/resource-proxy';
 
 export default {
   displayNameOverride() {
-    if (this.$rootGetters['currentProduct'].inStore === VIRTUAL) {
-      return this.$rootGetters['i18n/t'](`typeLabel.host`, { count: 1 });
-    }
+    return this.$rootGetters['i18n/t'](`typeLabel.host`, { count: 1 });
   },
 
   _availableActions() {
-    // Harvester node actions
-    const cordonHarvester = {
+    const cordon = {
       action:     'cordon',
       enabled:    this.hasAction('cordon'),
       icon:       'icon icon-fw icon-pause',
@@ -23,7 +19,7 @@ export default {
       total:      1,
     };
 
-    const uncordonHarvester = {
+    const uncordon = {
       action:     'uncordon',
       enabled:    this.hasAction('uncordon'),
       icon:       'icon icon-fw icon-play',
@@ -47,27 +43,17 @@ export default {
       total:      1
     };
 
-    let out = this._standardActions;
-
-    if (this.$rootGetters['currentProduct'].inStore === VIRTUAL) {
-      out = [
-        cordonHarvester,
-        uncordonHarvester,
-        enableMaintenance,
-        disableMaintenance,
-        ...this._standardActions
-      ];
-    }
-
-    return out;
+    return [
+      cordon,
+      uncordon,
+      enableMaintenance,
+      disableMaintenance,
+      ...this._standardActions
+    ];
   },
 
   filteredSystemLabels() {
     const reg = /(k3s|kubernetes|kubevirt|harvesterhci|k3os)+\.io/;
-
-    if (this.$rootGetters['currentProduct'].inStore !== VIRTUAL) {
-      return null;
-    }
 
     return pickBy(this.labels, (value, key) => {
       return !reg.test(key);
@@ -75,10 +61,6 @@ export default {
   },
 
   nameDisplay() {
-    if (this.$rootGetters['currentProduct'].inStore !== VIRTUAL) {
-      return this.name;
-    }
-
     return this.metadata?.annotations?.[HCI.HOST_CUSTOM_NAME] || this.name;
   },
 
@@ -103,10 +85,6 @@ export default {
   },
 
   detailLocation() {
-    if (this.$rootGetters['currentProduct'].name !== VIRTUAL) {
-      return this._detailLocation;
-    }
-
     const detailLocation = clone(this._detailLocation);
 
     detailLocation.params.resource = 'host';
@@ -115,10 +93,6 @@ export default {
   },
 
   doneOverride() {
-    if (this.$rootGetters['currentProduct'].name !== VIRTUAL) {
-      return;
-    }
-
     const detailLocation = clone(this._detailLocation);
 
     delete detailLocation.params.namespace;
@@ -130,10 +104,6 @@ export default {
   },
 
   parentLocationOverride() {
-    if (this.$rootGetters['currentProduct'].name !== VIRTUAL) {
-      return;
-    }
-
     return this.doneOverride;
   },
 

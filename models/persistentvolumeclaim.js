@@ -1,18 +1,8 @@
-import Vue from 'vue';
+
 import { _CLONE } from '@/config/query-params';
-import { NAME as VIRTUAL } from '@/config/product/virtual';
-import { HCI } from '@/config/types';
-import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
-import { get, clone } from '@/utils/object';
-import { stateDisplay } from '@/plugins/steve/resource-instance';
+import Vue from 'vue';
 
 export default {
-  displayNameOverride() {
-    if (this.$rootGetters['currentProduct'].inStore === VIRTUAL) {
-      return this.$rootGetters['i18n/t'](`typeLabel.volume`, { count: 1 });
-    }
-  },
-
   applyDefaults() {
     return (_, realMode) => {
       const accessModes = realMode === _CLONE ? this.spec.accessModes : [];
@@ -25,86 +15,5 @@ export default {
         resources:        { requests: { storage } }
       });
     };
-  },
-
-  canUpdate() {
-    if (this.$rootGetters['currentProduct'].inStore === VIRTUAL) {
-      return this.hasLink('update');
-    }
-
-    return this.hasLink('update') && this.$rootGetters['type-map/optionsFor'](this.type).isEditable;
-  },
-
-  stateDisplay() {
-    if (this.$rootGetters['currentProduct'].inStore === VIRTUAL) {
-      const ownedBy = this?.metadata?.annotations?.[HCI_ANNOTATIONS.OWNED_BY];
-      const status = this?.status?.phase === 'Bound' ? 'Ready' : 'NotReady';
-
-      if (ownedBy) {
-        return 'In-use';
-      } else {
-        return status;
-      }
-    }
-
-    return stateDisplay(this.state);
-  },
-
-  detailLocation() {
-    if (this.$rootGetters['currentProduct'].inStore !== VIRTUAL) {
-      return this._detailLocation;
-    }
-
-    const detailLocation = clone(this._detailLocation);
-
-    detailLocation.params.resource = 'volume';
-
-    return detailLocation;
-  },
-
-  doneOverride() {
-    if (this.$rootGetters['currentProduct'].inStore !== VIRTUAL) {
-      return;
-    }
-
-    const detailLocation = clone(this._detailLocation);
-
-    delete detailLocation.params.namespace;
-    delete detailLocation.params.id;
-    detailLocation.params.resource = 'volume';
-    detailLocation.name = 'c-cluster-product-resource';
-
-    return detailLocation;
-  },
-
-  parentLocationOverride() {
-    if (this.$rootGetters['currentProduct'].inStore !== VIRTUAL) {
-      return;
-    }
-
-    return this.doneOverride;
-  },
-
-  phaseState() {
-    return this.status?.phase || 'N/A';
-  },
-
-  attachVM() {
-    const allVMs = this.$rootGetters['virtual/all'](HCI.VM);
-    const ownedBy = get(this, `metadata.annotations."${ HCI_ANNOTATIONS.OWNED_BY }"`) || '';
-
-    if (!ownedBy) {
-      return;
-    }
-
-    const ownedId = JSON.parse(ownedBy)[0]?.refs?.[0];
-
-    return allVMs.find( D => D.id === ownedId);
-  },
-
-  volumeSort() {
-    const volume = this.spec?.resources?.requests?.storage || 0;
-
-    return parseInt(volume);
   },
 };

@@ -1,6 +1,6 @@
 <script>
 import VmState from '@/components/formatter/vmState';
-import ConsoleBar from '@/components/form/ConsoleBar';
+import ConsoleBar from '@/components/VMConsoleBar';
 import ResourceTable from '@/components/ResourceTable';
 import LinkDetail from '@/components/formatter/LinkDetail';
 
