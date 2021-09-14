@@ -188,7 +188,7 @@ export default {
         </button>
       </div>
     </div>
-    <button v-if="!isView" type="button" class="btn role-tertiary" @click="addToleration">
+    <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addToleration">
       <t k="workload.scheduling.tolerations.addToleration" />
     </button>
   </div>

@@ -73,6 +73,15 @@ button,
   background: var(--accent-btn);
   border: solid 1px var(--primary);
   color: var(--primary);
+
+  &.add {
+    &:before {
+      content: "\e91e";
+      font-family: "icons";
+      display: inline-block;
+      vertical-align: middle;
+    }
+  }
 }
 
 .role-link {

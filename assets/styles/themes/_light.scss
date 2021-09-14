@@ -337,7 +337,7 @@ BODY, .theme-light {
   --outline                    : var(--primary);
   --outline-width              : 1px;
 
-  --accent-btn                 : var(--primary-banner-bg);
+  --accent-btn                 : transparent;
   --accent-btn-hover           : var(--primary);
   --accent-btn-hover-text      : #{$lightest};
 

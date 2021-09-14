@@ -71,7 +71,7 @@
   --topmost-shadow             : #{lighten($darkest, 5%)};
   --topmost-light-hover        : #{$medium};
 
-  --accent-btn                 : var(--primary-banner-bg);
+  --accent-btn                 : transparent;
   --accent-btn-hover           : var(--primary);
   --accent-btn-hover-text      : #{$lightest};
 
