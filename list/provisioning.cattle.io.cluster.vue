@@ -117,10 +117,10 @@ export default {
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>
       <template #cell:explorer="{row}">
-        <n-link v-if="row.mgmt && row.mgmt.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}">
+        <n-link v-if="row.mgmt && row.mgmt.isReady" class="btn role-primary" :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}">
           Explore
         </n-link>
-        <button v-else :disabled="true" class="btn btn-sm role-primary">
+        <button v-else :disabled="true" class="btn role-primary">
           Explore
         </button>
       </template>

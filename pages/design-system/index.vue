@@ -64,19 +64,19 @@ export default { layout: 'unauthenticated' };
       <h3>small</h3>
       <button
         type="button"
-        class="btn role-primary btn-sm"
+        class="btn role-primary"
       >
         Primary
       </button>
       <button
         type="button"
-        class="btn role-secondary btn-sm"
+        class="btn role-secondary"
       >
         Secondary
       </button>
       <button
         type="button"
-        class="btn role-tertiary btn-sm"
+        class="btn role-tertiary"
       >
         <t k="generic.default" />
       </button>

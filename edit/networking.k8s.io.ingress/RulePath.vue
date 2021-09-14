@@ -135,7 +135,7 @@ export default {
         @input="queueUpdate"
       />
     </div>
-    <button class="btn btn-sm role-link col" @click="$emit('remove')">
+    <button class="btn role-link col" @click="$emit('remove')">
       {{ t('ingress.rules.removePath') }}
     </button>
   </div>

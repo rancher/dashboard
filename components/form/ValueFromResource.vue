@@ -351,7 +351,7 @@ export default {
       </div>
     </template>
 
-    <button v-if="!isView" type="button" class="btn btn-sm role-link" @click.stop="$emit('remove')">
+    <button v-if="!isView" type="button" class="btn role-link" @click.stop="$emit('remove')">
       {{ t('generic.remove') }}
     </button>
   </div>

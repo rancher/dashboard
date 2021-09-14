@@ -179,7 +179,7 @@ export default {
           :value="overlayFile"
           @onInput="valuesChanged"
         />
-        <FileSelector class="role-primary  btn-sm" :label="t('generic.readFromFile')" @selected="onFileSelected" />
+        <FileSelector class="role-primary" :label="t('generic.readFromFile')" @selected="onFileSelected" />
       </div>
     </Tab>
   </div>

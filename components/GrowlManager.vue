@@ -88,7 +88,7 @@ export default {
       </div>
     </div>
     <div v-if="stack.length > 1" class="text-right mr-10 mt-10">
-      <button type="button" class="btn btn-sm role-primary" @click="closeAll">
+      <button type="button" class="btn role-primary" @click="closeAll">
         Clear All Notifications
       </button>
     </div>

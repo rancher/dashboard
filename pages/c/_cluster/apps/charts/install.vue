@@ -1108,7 +1108,7 @@ export default {
 &nbsp;
           </div>
           <div class="btn-group">
-            <button type="button" class="btn bg-primary btn-sm" :disabled="!hasReadme || showingReadmeWindow" @click="showSlideIn = !showSlideIn">
+            <button type="button" class="btn bg-primary" :disabled="!hasReadme || showingReadmeWindow" @click="showSlideIn = !showSlideIn">
               {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
             </button>
           </div>
@@ -1122,8 +1122,8 @@ export default {
           <ButtonGroup
             v-model="preFormYamlOption"
             :options="formYamlOptions"
-            inactive-class="bg-disabled btn-sm"
-            active-class="bg-primary btn-sm"
+            inactive-class="bg-disabled"
+            active-class="bg-primary"
             :disabled="preFormYamlOption != formYamlOption"
           ></ButtonGroup>
           <div class="step__values__controls--spacer">
@@ -1133,11 +1133,11 @@ export default {
             v-if="showDiff"
             v-model="diffMode"
             :options="yamlDiffModeOptions"
-            inactive-class="bg-disabled btn-sm"
-            active-class="bg-primary btn-sm"
+            inactive-class="bg-disabled"
+            active-class="bg-primary"
           ></ButtonGroup>
           <div v-if="hasReadme && !showingReadmeWindow" class="btn-group">
-            <button type="button" class="btn bg-primary btn-sm" @click="showSlideIn = !showSlideIn">
+            <button type="button" class="btn bg-primary" @click="showSlideIn = !showSlideIn">
               {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
             </button>
           </div>

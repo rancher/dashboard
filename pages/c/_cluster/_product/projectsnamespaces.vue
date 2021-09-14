@@ -195,12 +195,12 @@ export default {
           </div>
           <div class="right">
             <n-link
-              class="create-namespace btn btn-sm role-secondary"
+              class="create-namespace btn role-secondary"
               :to="createNamespaceLocation(group.group)"
             >
               {{ t('projectNamespaces.createNamespace') }}
             </n-link>
-            <button type="button" class="project-action btn btn-sm role-multi-action actions mr-5" :class="{invisible: !showProjectActionButton(group.group)}" @click="showProjectAction($event, group.group)">
+            <button type="button" class="project-action btn role-multi-action actions mr-5" :class="{invisible: !showProjectActionButton(group.group)}" @click="showProjectAction($event, group.group)">
               <i class="icon icon-actions" />
             </button>
           </div>

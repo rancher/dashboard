@@ -94,7 +94,7 @@ export default {
         <Checkbox v-model="volumeMount.readOnly" :mode="mode" />
       </div>
       <div class="remove">
-        <button v-if="mode!=='view'" type="button" class="btn btn-sm role-link" @click="remove(volumeMount)">
+        <button v-if="mode!=='view'" type="button" class="btn role-link" @click="remove(volumeMount)">
           {{ t('generic.remove') }}
         </button>
       </div>

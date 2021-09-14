@@ -386,10 +386,10 @@ export default {
               </div>
               <div v-if="group.ref" class="right mr-45">
                 <template v-if="value.hasLink('update')">
-                  <button v-tooltip="t('node.list.scaleDown')" :disabled="group.ref.spec.replicas < 2" type="button" class="btn btn-sm role-secondary" @click="group.ref.scalePool(-1)">
+                  <button v-tooltip="t('node.list.scaleDown')" :disabled="group.ref.spec.replicas < 2" type="button" class="btn role-secondary" @click="group.ref.scalePool(-1)">
                     <i class="icon icon-sm icon-minus" />
                   </button>
-                  <button v-tooltip="t('node.list.scaleUp')" type="button" class="btn btn-sm role-secondary ml-10" @click="group.ref.scalePool(1)">
+                  <button v-tooltip="t('node.list.scaleUp')" type="button" class="btn role-secondary ml-10" @click="group.ref.scalePool(1)">
                     <i class="icon icon-sm icon-plus" />
                   </button>
                 </template>
@@ -429,15 +429,15 @@ export default {
               </div>
               <div v-if="group.ref" class="right">
                 <template v-if="group.ref.hasLink('update')">
-                  <button v-tooltip="t('node.list.scaleDown')" :disabled="group.ref.spec.quantity < 2" type="button" class="btn btn-sm role-secondary" @click="group.ref.scalePool(-1)">
+                  <button v-tooltip="t('node.list.scaleDown')" :disabled="group.ref.spec.quantity < 2" type="button" class="btn role-secondary" @click="group.ref.scalePool(-1)">
                     <i class="icon icon-sm icon-minus" />
                   </button>
-                  <button v-tooltip="t('node.list.scaleUp')" type="button" class="btn btn-sm role-secondary ml-10" @click="group.ref.scalePool(1)">
+                  <button v-tooltip="t('node.list.scaleUp')" type="button" class="btn role-secondary ml-10" @click="group.ref.scalePool(1)">
                     <i class="icon icon-sm icon-plus" />
                   </button>
                 </template>
 
-                <button type="button" class="project-action btn btn-sm role-multi-action actions mr-5 ml-15" :class="{invisible: !showPoolActionButton(group.ref)}" @click="showPoolAction($event, group.ref)">
+                <button type="button" class="project-action btn role-multi-action actions mr-5 ml-15" :class="{invisible: !showPoolActionButton(group.ref)}" @click="showPoolAction($event, group.ref)">
                   <i class="icon icon-actions" />
                 </button>
               </div>

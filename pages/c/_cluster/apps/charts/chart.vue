@@ -147,7 +147,7 @@ export default {
             <DateFormatter :value="vers.created" :show-time="false" />
           </div>
           <div class="mt-10 chart-content__right-bar__section--showMore">
-            <button v-if="mappedVersions.length > showLastVersions" type="button" class="btn btn-sm role-link" @click="showMoreVersions = !showMoreVersions">
+            <button v-if="mappedVersions.length > showLastVersions" type="button" class="btn role-link" @click="showMoreVersions = !showMoreVersions">
               {{ t(`catalog.chart.info.chartVersions.${showMoreVersions ? 'showLess' : 'showMore'}`) }}
             </button>
           </div>

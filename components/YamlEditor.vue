@@ -195,16 +195,16 @@ export default {
 <template>
   <div class="yaml-editor">
     <div class="text-right">
-      <span v-if="isPreview && !hidePreviewButtons" v-trim-whitespace class="btn-group btn-sm diff-mode">
+      <span v-if="isPreview && !hidePreviewButtons" v-trim-whitespace class="btn-group diff-mode">
         <button
           type="button"
-          class="btn btn-sm bg-default"
+          class="btn bg-default"
           :class="{'active': diffMode !== 'split'}"
           @click="diffMode='unified'"
         >Unified</button>
         <button
           type="button"
-          class="btn btn-sm bg-default"
+          class="btn bg-default"
           :class="{'active': diffMode === 'split'}"
           @click="diffMode='split'"
         >Split</button>

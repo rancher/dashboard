@@ -632,7 +632,7 @@ export default {
                 </template>
                 <td v-if="rowActions" align="middle">
                   <slot name="row-actions" :row="row">
-                    <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-sm role-multi-action actions">
+                    <button aria-haspopup="true" aria-expanded="false" type="button" class="btn role-multi-action actions">
                       <i class="icon icon-actions" />
                     </button>
                   </slot>
@@ -661,7 +661,7 @@ export default {
     <div v-if="showPaging" class="paging">
       <button
         type="button"
-        class="btn btn-sm role-multi-action"
+        class="btn role-multi-action"
         :disabled="page == 1"
         @click="goToPage('first')"
       >
@@ -669,7 +669,7 @@ export default {
       </button>
       <button
         type="button"
-        class="btn btn-sm role-multi-action"
+        class="btn role-multi-action"
         :disabled="page == 1"
         @click="goToPage('prev')"
       >
@@ -680,7 +680,7 @@ export default {
       </span>
       <button
         type="button"
-        class="btn btn-sm role-multi-action"
+        class="btn role-multi-action"
         :disabled="page == totalPages"
         @click="goToPage('next')"
       >
@@ -688,7 +688,7 @@ export default {
       </button>
       <button
         type="button"
-        class="btn btn-sm role-multi-action"
+        class="btn role-multi-action"
         :disabled="page == totalPages"
         @click="goToPage('last')"
       >

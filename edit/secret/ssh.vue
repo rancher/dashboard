@@ -56,7 +56,7 @@ export default {
           required
           placeholder="Paste in your public key"
         />
-        <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onUsernameSelected" />
+        <FileSelector class="btn bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onUsernameSelected" />
       </div>
       <div class="col span-6">
         <LabeledInput
@@ -67,7 +67,7 @@ export default {
           required
           placeholder="Paste in your private key"
         />
-        <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onPasswordSelected" />
+        <FileSelector class="btn bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onPasswordSelected" />
       </div>
     </div>
   </div>

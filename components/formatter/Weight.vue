@@ -122,7 +122,7 @@ export default {
               </div>
             </template>
           </LabeledInput>
-          <button type="submit" class="btn bg-primary btn-sm mt-20" :disabled="!newWeightValid" @click.stop.prevent="setWeight">
+          <button type="submit" class="btn bg-primary mt-20" :disabled="!newWeightValid" @click.stop.prevent="setWeight">
             Set
           </button>
         </form>

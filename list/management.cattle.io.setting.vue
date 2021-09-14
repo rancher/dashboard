@@ -96,14 +96,14 @@ export default {
           <h2>{{ setting.description }}</h2>
         </div>
         <div v-if="setting.hasActions" class="action">
-          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-sm role-multi-action actions" @click="showActionMenu($event, setting)">
+          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn role-multi-action actions" @click="showActionMenu($event, setting)">
             <i class="icon icon-actions" />
           </button>
         </div>
       </div>
       <div value>
         <div v-if="setting.hide">
-          <button class="btn btn-sm role-primary" @click="setting.hide = !setting.hide">
+          <button class="btn role-primary" @click="setting.hide = !setting.hide">
             {{ t('advancedSettings.show') }} {{ setting.id }}
           </button>
         </div>
@@ -115,7 +115,7 @@ export default {
           <pre v-else class="text-muted">&lt;{{ t('advancedSettings.none') }}&gt;</pre>
         </div>
         <div v-if="setting.canHide && !setting.hide">
-          <button class="btn btn-sm role-primary" @click="setting.hide = !setting.hide">
+          <button class="btn role-primary" @click="setting.hide = !setting.hide">
             {{ t('advancedSettings.hide') }} {{ setting.id }}
           </button>
         </div>

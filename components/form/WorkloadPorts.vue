@@ -270,7 +270,7 @@ export default {
       </div>
 
       <div v-if="!row._showHost && row._serviceType !== 'LoadBalancer' && row._serviceType !== 'NodePort'" class="add-host">
-        <button :disabled="mode==='view'" type="button" class="btn btn-sm role-tertiary" @click="row._showHost = true">
+        <button :disabled="mode==='view'" type="button" class="btn role-tertiary" @click="row._showHost = true">
           {{ t('workloadPorts.addHost') }}
         </button>
       </div>

@@ -67,10 +67,10 @@ export default {
 
     <template #popover>
       <div v-if="canAdjust" class="text-center pb-5">
-        <button type="button" class="btn btn-sm bg-primary scale-btn" @click="scaleDown">
+        <button type="button" class="btn bg-primary scale-btn" @click="scaleDown">
           <i class="icon icon-minus" />
         </button>
-        <button type="button" class="btn btn-sm bg-primary scale-btn" @click="scaleUp">
+        <button type="button" class="btn bg-primary scale-btn" @click="scaleUp">
           <i class="icon icon-plus" />
         </button>
       </div>

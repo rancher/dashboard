@@ -74,7 +74,7 @@ export default {
             type="multiline"
             tooltip="Certificates required for the client to successfully verify the validity of the certificate returned by the endpoint."
           />
-          <FileSelector :mode="mode" class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onCertSelected" />
+          <FileSelector :mode="mode" class="btn bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onCertSelected" />
         </div>
       </div>
     </template>

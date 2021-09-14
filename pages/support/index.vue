@@ -165,7 +165,7 @@ export default {
             <div>
               {{ t('support.subscription.haveSupport') }}
             </div>
-            <button class="ml-5 btn role-secondary btn-sm" type="button" @click="showDialog(false)">
+            <button class="ml-5 btn role-secondary" type="button" @click="showDialog(false)">
               {{ t('support.subscription.addSubscription') }}
             </button>
           </div>

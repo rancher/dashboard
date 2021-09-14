@@ -347,7 +347,7 @@ export default {
         </template>
       </Select>
       <div class="pull-left ml-5">
-        <button class="btn btn-sm bg-primary" @click="clear">
+        <button class="btn bg-primary" @click="clear">
           <t k="wm.containerShell.clear" />
         </button>
       </div>
