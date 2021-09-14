@@ -13,7 +13,7 @@ export default function() {
         parent[`__rehydrateAll__${ key }`] = obj.__rehydrateAll;
       } else if ( obj && typeof obj === 'object' ) {
         if ( obj.toJSON ) {
-          obj = obj.toObject();
+          obj = obj.toJSON();
           parent[key] = obj;
         }
 

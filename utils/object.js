@@ -1,7 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep';
 import flattenDeep from 'lodash/flattenDeep';
 import compact from 'lodash/compact';
-import jsonpath from 'jsonpath';
+import { JSONPath } from 'jsonpath-plus';
 import Vue from 'vue';
 import transform from 'lodash/transform';
 import isObject from 'lodash/isObject';
@@ -46,9 +46,14 @@ export function set(obj, path, value) {
 export function get(obj, path) {
   if ( path.startsWith('$') ) {
     try {
-      return jsonpath.query(obj, path)[0];
+      return JSONPath({
+        path,
+        json:        obj,
+        preventEval: true,
+        wrap:        false,
+      });
     } catch (e) {
-      console.log('JSON Path error', e); // eslint-disable-line no-console
+      console.log('JSON Path error', e, path, obj); // eslint-disable-line no-console
 
       return '(JSON Path err)';
     }

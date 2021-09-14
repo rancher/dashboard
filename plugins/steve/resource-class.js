@@ -1487,13 +1487,13 @@ export class Resource {
     return splitId.length > 1 ? splitId[1] : splitId[0];
   }
 
-  toObject() {
+  toJSON() {
     const out = {};
     const keys = Object.keys(this);
 
     for ( const k of keys ) {
-      if ( this[k]?.toObject ) {
-        out[k] = this[k].toObject();
+      if ( this[k]?.toJSON ) {
+        out[k] = this[k].toJSON();
       } else {
         out[k] = this[k];
       }

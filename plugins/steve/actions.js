@@ -378,7 +378,7 @@ export default {
   },
 
   clone(ctx, { resource } = {}) {
-    const copy = cloneDeep(resource.toObject());
+    const copy = cloneDeep(resource.toJSON());
 
     return proxyFor(ctx, copy, true);
   },

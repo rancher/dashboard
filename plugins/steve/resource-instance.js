@@ -290,7 +290,7 @@ export default {
     };
   },
 
-  toObject() {
+  toJSON() {
     return () => {
       return this[SELF];
     };
