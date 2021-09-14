@@ -1,13 +1,9 @@
-import { ANNOTATIONS_TO_IGNORE_REGEX, DESCRIPTION, LABELS_TO_IGNORE_REGEX } from '@/config/labels-annotations';
-import omitBy from 'lodash/omitBy';
-import pickBy from 'lodash/pickBy';
-import Vue from 'vue';
-import { matchesSomeRegex } from '@/utils/string';
-import { Resource } from './resource-class';
+import { DESCRIPTION } from '@/config/labels-annotations';
+import HybridModel from './hybrid-class';
 
-export default class SteveModel extends Resource {
+export default class SteveModel extends HybridModel {
   get name() {
-    return this._name || this.metadata?.name;
+    return this.metadata?.name;
   }
 
   get namespace() {
@@ -15,86 +11,6 @@ export default class SteveModel extends Resource {
   }
 
   get description() {
-    return this.metadata?.annotations?.[DESCRIPTION] || this.spec?.description || this._description;
-  }
-
-  get labels() {
-    const all = this.metadata?.labels || {};
-
-    return omitBy(all, (value, key) => {
-      return matchesSomeRegex(key, LABELS_TO_IGNORE_REGEX);
-    });
-  }
-
-  setLabels(val) {
-    if ( !this.metadata ) {
-      this.metadata = {};
-    }
-
-    const all = this.metadata.labels || {};
-    const wasIgnored = pickBy(all, (value, key) => {
-      return matchesSomeRegex(key, LABELS_TO_IGNORE_REGEX);
-    });
-
-    Vue.set(this.metadata, 'labels', { ...wasIgnored, ...val });
-  }
-
-  setLabel(key, val) {
-    if ( val ) {
-      if ( !this.metadata ) {
-        this.metadata = {};
-      }
-
-      if ( !this.metadata.labels ) {
-        this.metadata.labels = {};
-      }
-
-      Vue.set(this.metadata.labels, key, val);
-    } else if ( this.metadata?.labels ) {
-      Vue.set(this.metadata.labels, key, undefined);
-      delete this.metadata.labels[key];
-    }
-  }
-
-  get annotations() {
-    const all = this.metadata?.annotations || {};
-
-    return omitBy(all, (value, key) => {
-      return matchesSomeRegex(key, ANNOTATIONS_TO_IGNORE_REGEX);
-    });
-  }
-
-  setAnnotations(val) {
-    if ( !this.metadata ) {
-      this.metadata = {};
-    }
-
-    const all = this.metadata.annotations || {};
-    const wasIgnored = pickBy(all, (value, key) => {
-      return matchesSomeRegex(key, ANNOTATIONS_TO_IGNORE_REGEX);
-    });
-
-    Vue.set(this.metadata, 'annotations', { ...wasIgnored, ...val });
-  }
-
-  setAnnotation(key, val) {
-    if ( val ) {
-      if ( !this.metadata ) {
-        this.metadata = {};
-      }
-
-      if ( !this.metadata.annotations ) {
-        this.metadata.annotations = {};
-      }
-
-      Vue.set(this.metadata.annotations, key, val);
-    } else if ( this.metadata?.annotations ) {
-      Vue.set(this.metadata.annotations, key, undefined);
-      delete this.metadata.annotations[key];
-    }
-  }
-
-  get state() {
-    return this.stateObj?.name || 'unknown';
+    return this.metadata?.annotations?.[DESCRIPTION] || this.spec?.description;
   }
 }
