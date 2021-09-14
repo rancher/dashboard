@@ -1,5 +1,5 @@
 import { HCI, MANAGEMENT, VIRTUAL_PROVIDER, CAPI } from '@/config/types';
-import { MULTI_CLUSTER } from '@/store/features';
+import { HARVESTER } from '@/store/features';
 import { DSL } from '@/store/type-map';
 import { STATE, NAME as NAME_COL, AGE, VERSION } from '@/config/table-headers';
 import { allHash } from '@/utils/promise';
@@ -27,7 +27,7 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    ifFeature:           MULTI_CLUSTER,
+    ifFeature:           HARVESTER,
     inStore:             'management',
     icon:                'harvester',
     removable:           false,
