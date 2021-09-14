@@ -1198,6 +1198,50 @@ cluster:
         label: Custom attributes (legacy)
         description: Custom attributes allow you to attach metadata to objects in the vSphere inventory to make it easier to sort and search for these objects.
         add: Add custom attribute
+    amazonEc2: 
+      region: Region
+      zone: Zone
+      instanceType: Instance Type
+      rootSize:
+        placeholder: 'Default: 16'
+        label: Root Disk Size
+        suffix: GB
+      selectedNetwork:
+        label: 'VPC/Subnet'
+        placeholder: Select a VPC or Subnet
+      iamInstanceProfile:
+        label: IAM Instance Profile Name
+        tooltip: Kubernetes AWS Cloud Provider support requires an appropriate instance profile
+      ami:
+        label: AMI ID
+        placeholder: 'Default: A recent Ubuntu LTS'
+      sshUser: 
+        label: SSH Username for AMI
+        placeholder: 'Default: ubuntu'
+        tooltip: 'The username that exists in the selected AMI; Provisioning will SSH to the node with this.'
+      securityGroup:
+        title: Security Group
+        vpcId: '(select a VPC/Subnet first)'
+        mode: 
+          default: 'Standard: Automatically create and use a "{defaultGroup}"; security group'
+          custom: 'Choose one or more existing security groups:'
+      volumeType:
+        label: EBS Root Volume Type
+        placeholder: 'Default: gp2'
+      encryptEbsVolume: Encrypt EBS Volume
+      kmsKey: 
+        label: KMS Key ARN
+        text: 'You do not have permission to list KMS keys, but may still be able to enter a Key ARN if you know one.'
+      requestSpotInstance: Request Spot Instance
+      spotPrice:
+        label: Spot Price
+        placeholder: 'Default: 0.50'
+        suffix: Dollars per hour
+      privateAddressOnly: Use only private address
+      useEbsOptimizedInstance: EBS-Optimized Instance
+      httpEndpoint: Allow access to EC2 metadata
+      httpTokens: Use tokens for metadata
+      tagTitle: EC2 Tags
 
   machinePool:
     name:
