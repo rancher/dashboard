@@ -8,7 +8,7 @@ import CruResource from '@/components/CruResource';
 import Labels from '@/components/form/Labels';
 import Tabbed from '@/components/Tabbed';
 import { get, set } from '@/utils/object';
-import { TYPES } from '@/models/secret';
+import { TYPES } from '@/models/secret.class';
 import DefaultBackend from './DefaultBackend';
 import Certificates from './Certificates';
 import Rules from './Rules';

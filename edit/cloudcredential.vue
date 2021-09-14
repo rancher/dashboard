@@ -1,5 +1,5 @@
 <script>
-import { TYPES } from '@/models/secret';
+import { TYPES } from '@/models/secret.class';
 import { MANAGEMENT, NORMAN, SCHEMA } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -17,7 +17,7 @@ import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { set } from '@/utils/object';
 import { mapFeature, RKE2 as RKE2_FEATURE } from '@/store/features';
-import { rke1Supports } from '~/store/plugins';
+import { rke1Supports } from '@/store/plugins';
 
 export default {
   name: 'CruCloudCredential',

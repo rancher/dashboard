@@ -139,14 +139,18 @@ export default {
     type = getters.normalizeType(type);
     const schemas = state.types[SCHEMA];
     const keyField = KEY_FIELD_FOR[SCHEMA] || KEY_FIELD_FOR['default'];
-    const entry = schemas.list.find((x) => {
+    const entries = schemas.list.filter((x) => {
       const thisOne = getters.normalizeType(x[keyField]);
 
       return thisOne === type || thisOne.endsWith(`.${ type }`);
+    }).map((x) => {
+      return x[keyField];
+    }).sort((a, b) => {
+      return a.length - b.length;
     });
 
-    if ( entry ) {
-      return entry[keyField];
+    if ( entries[0] ) {
+      return entries[0];
     }
 
     return type;

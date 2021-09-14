@@ -2,7 +2,7 @@
 import Checkbox from '@/components/form/Checkbox';
 import LabeledInput from '@/components/form/LabeledInput';
 import SelectOrCreateAuthSecret from '@/components/form/SelectOrCreateAuthSecret';
-import { NORMAN } from '~/config/types';
+import { NORMAN } from '@/config/types';
 
 export default {
   components: {

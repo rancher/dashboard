@@ -12,6 +12,11 @@ export default function() {
       if ( Array.isArray(obj) && obj.__rehydrateAll ) {
         parent[`__rehydrateAll__${ key }`] = obj.__rehydrateAll;
       } else if ( obj && typeof obj === 'object' ) {
+        if ( obj.toJSON ) {
+          obj = obj.toJSON();
+          parent[key] = obj;
+        }
+
         for ( const k of Object.keys(obj) ) {
           if ( k === '__rehydrate' || k === '__clone' ) {
             continue;

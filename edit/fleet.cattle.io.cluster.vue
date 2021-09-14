@@ -5,7 +5,7 @@ import Labels from '@/components/form/Labels';
 import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import { _VIEW } from '@/config/query-params';
-import { NORMAN } from '~/config/types';
+import { NORMAN } from '@/config/types';
 
 export default {
   name: 'CruFleetCluster',

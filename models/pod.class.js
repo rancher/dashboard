@@ -1,6 +1,7 @@
 import { insertAt } from '@/utils/array';
 import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
 import { NODE, WORKLOAD_TYPES } from '@/config/types';
+import { Resource } from '@/plugins/steve/resource-class';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -12,8 +13,8 @@ export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 7,
 };
 
-export default {
-  _availableActions() {
+export default class Pod extends Resource {
+  get _availableActions() {
     const out = this._standardActions;
 
     const openShell = {
@@ -37,9 +38,9 @@ export default {
     insertAt(out, 0, openShell);
 
     return out;
-  },
+  }
 
-  defaultContainerName() {
+  get defaultContainerName() {
     const containers = this.spec.containers;
     const desirable = containers.filter(c => c.name !== 'istio-proxy');
 
@@ -48,61 +49,53 @@ export default {
     }
 
     return containers[0]?.name;
-  },
+  }
 
   openShell() {
-    return () => {
-      this.$dispatch('wm/open', {
-        id:        `${ this.id }-shell`,
-        label:     this.nameDisplay,
-        icon:      'terminal',
-        component: 'ContainerShell',
-        attrs:     {
-          pod:       this,
-          container: this.defaultContainerName
-        }
-      }, { root: true });
-    };
-  },
+    this.$dispatch('wm/open', {
+      id:        `${ this.id }-shell`,
+      label:     this.nameDisplay,
+      icon:      'terminal',
+      component: 'ContainerShell',
+      attrs:     {
+        pod:       this,
+        container: this.defaultContainerName
+      }
+    }, { root: true });
+  }
 
   openLogs() {
-    return () => {
-      this.$dispatch('wm/open', {
-        id:        `${ this.id }-logs`,
-        label:     this.nameDisplay,
-        icon:      'file',
-        component: 'ContainerLogs',
-        attrs:     {
-          pod:       this,
-          container: this.defaultContainerName
-        }
-      }, { root: true });
-    };
-  },
+    this.$dispatch('wm/open', {
+      id:        `${ this.id }-logs`,
+      label:     this.nameDisplay,
+      icon:      'file',
+      component: 'ContainerLogs',
+      attrs:     {
+        pod:       this,
+        container: this.defaultContainerName
+      }
+    }, { root: true });
+  }
 
-  containerStateDisplay() {
-    return (container) => {
-      const state = Object.keys(container.state || {})[0];
+  containerStateDisplay(container) {
+    const state = Object.keys(container.state || {})[0];
 
-      return stateDisplay(state);
-    };
-  },
+    return stateDisplay(state);
+  }
 
-  containerStateColor() {
-    return (container) => {
-      const state = Object.keys(container.state || {})[0];
+  containerStateColor(container) {
+    const state = Object.keys(container.state || {})[0];
 
-      return colorForState(state);
-    };
-  },
+    return colorForState(state);
+  }
 
-  imageNames() {
+  get imageNames() {
     return this.spec.containers.map(container => container.image).map((image) => {
       return image.replace(/^(index\.)?docker.io\/(library\/)?/, '').replace(/:latest$/, '');
     });
-  },
+  }
 
-  workloadRef() {
+  get workloadRef() {
     const owners = this.getOwners() || [];
     const workloads = owners.filter((owner) => {
       return Object.values(WORKLOAD_TYPES).includes(owner.type);
@@ -115,9 +108,9 @@ export default {
     });
 
     return workloads[0];
-  },
+  }
 
-  details() {
+  get details() {
     const out = [
       {
         label:   this.t('workload.detailTop.podIP'),
@@ -148,9 +141,9 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  isRunning() {
+  get isRunning() {
     return this.status.phase === 'Running';
   }
-};
+}

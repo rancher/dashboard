@@ -2,7 +2,7 @@ import { normalizeType } from './normalize';
 
 const cache = {};
 
-function find(cache, type, appSpecializationName) {
+function find(cache, type) {
   const impl = cache[type];
 
   if ( impl ) {
@@ -13,16 +13,16 @@ function find(cache, type, appSpecializationName) {
 
   try {
     const base = require(`@/models/${ type }`);
-    const model = { ...base.default };
 
-    // @TODO this doesn't work at all, types are cached by only the type name, and the name of apps is `project.cattle.io.app`.
-    if (type === 'app' && appSpecializationName) {
-      const loaded = require(`@/models/app/${ appSpecializationName }`);
+    // New Class models
+    if ( base?.default?.prototype ) {
+      cache[type] = base.default;
 
-      if ( loaded?.default ) {
-        Object.assign(model, loaded.default);
-      }
+      return base.default;
     }
+
+    // Older proxy models
+    const model = { ...base.default };
 
     cache[type] = model;
 
@@ -36,19 +36,28 @@ function find(cache, type, appSpecializationName) {
 }
 
 /**
- * This will lookup and load a model based on the type and appSpecializationName if specified.
+ * This will lookup and load a model based on the type
  *
- * We want to have the ability to treat chart apps as if they were native resources.
- * As part of this desire to treat apps as a native resource we also want to be able to customize their models.
- * If we attempt to load an 'app' type with an 'appSpecializationName' we will first
- * load the 'app' type and then merge that with a model found in '@/models/apps/${appSpecializationName}'
- * if the file exists.
  * @param {*} store the name of the store that the type comes from
  * @param {*} type the type we'd like to lookup
- * @param {*} appSpecializationName the name of the app so we can lookup a model with the given name and merge that with the app base type.
  */
-export function lookup(store, type, appSpecializationName) {
+export function lookup(store, type) {
   type = normalizeType(type).replace(/\//g, '');
 
-  return find(cache, `${ store }/${ type }`, appSpecializationName) || find(cache, type, appSpecializationName) || null;
+  let out;
+  const tries = [
+    `${ store }/${ type }.class`,
+    `${ type }.class`,
+    `${ store }/${ type }`,
+    type
+  ];
+
+  for ( const t of tries ) {
+    out = find(cache, t);
+    if ( out ) {
+      return out;
+    }
+  }
+
+  return null;
 }

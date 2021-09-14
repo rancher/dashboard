@@ -2488,7 +2488,7 @@ nameNsDescription:
     placeholder: 'A unique name'
   namespace:
     label: Namespace
-    placeholder:
+    placeholder: ''
   workspace:
     label: Workspace
     placeholder:
@@ -4464,6 +4464,9 @@ workload:
         label: Topology Key
         placeholder: e.g. failure-domain.beta.kubernetes.io/zone
       type: Type
+      weight:
+        label: Weight
+        placeholder: Must be a weight between 1 and 100
     priority:
       className: Priority Class Name
       priority: Priority
