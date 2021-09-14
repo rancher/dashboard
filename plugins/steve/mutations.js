@@ -2,7 +2,7 @@ import Vue from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@/utils/array';
 import { SCHEMA } from '@/config/types';
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
-import { proxyFor, remapSpecialKeys } from './resource-proxy';
+import { proxyFor } from './resource-proxy';
 import { keyForSubscribe } from './subscribe';
 
 function registerType(state, type) {
@@ -13,7 +13,8 @@ function registerType(state, type) {
       list:         [],
       haveAll:      false,
       haveSelector: {},
-      revision:     0,
+      revision:     0, // The highest known resourceVersion from the server for this type
+      generation:   0, // Updated every time something is loaded for this type
     };
 
     // Not enumerable so they don't get sent back to the client for SSR
@@ -43,14 +44,14 @@ function load(state, { data, ctx, existing }) {
 
   let cache = registerType(state, type);
 
+  cache.generation++;
+
   let entry;
 
   function replace(existing, data) {
     for ( const k of Object.keys(existing) ) {
       delete existing[k];
     }
-
-    remapSpecialKeys(data);
 
     for ( const k of Object.keys(data) ) {
       Vue.set(existing, k, data[k]);
@@ -98,6 +99,8 @@ function forget(state, type) {
   if ( cache ) {
     cache.haveAll = false;
     cache.haveSelector = {};
+    cache.revision = 0;
+    cache.generation = 0;
     clear(cache.list);
     cache.map.clear();
     delete state.types[type];
@@ -147,6 +150,7 @@ export default {
 
     clear(cache.list);
     cache.map.clear();
+    cache.generation++;
 
     addObjects(cache.list, proxies);
 

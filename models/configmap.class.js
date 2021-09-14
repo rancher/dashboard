@@ -1,5 +1,7 @@
-export default {
-  keysDisplay() {
+import { Resource } from '@/plugins/steve/resource-class';
+
+export default class ConfigMap extends Resource {
+  get keysDisplay() {
     const keys = [
       ...Object.keys(this.data || []),
       ...Object.keys(this.binaryData || [])
@@ -14,5 +16,5 @@ export default {
     // }
 
     return keys.join(', ');
-  },
-};
+  }
+}

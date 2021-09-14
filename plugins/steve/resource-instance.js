@@ -35,6 +35,7 @@ import {
   AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG, _CONFIG
 } from '@/config/query-params';
 
+import { SELF } from '@/plugins/steve/resource-proxy';
 import { cleanForNew, normalizeType } from './normalize';
 
 const STRING_LIKE_TYPES = [
@@ -286,6 +287,12 @@ export default {
   toString() {
     return () => {
       return `[${ this.type }: ${ this.id }]`;
+    };
+  },
+
+  toJSON() {
+    return () => {
+      return this[SELF];
     };
   },
 
@@ -833,6 +840,7 @@ export default {
   _save() {
     return async(opt = {}) => {
       delete this.__rehydrate;
+      delete this.__clone;
       const forNew = !this.id;
 
       const errors = await this.validationErrors(this, opt.ignoreFields);

@@ -6,7 +6,7 @@ import { createYaml } from '@/utils/create-yaml';
 import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@/store/type-map';
 import { addParam } from '@/utils/url';
 import { normalizeType } from './normalize';
-import { proxyFor, SELF } from './resource-proxy';
+import { proxyFor } from './resource-proxy';
 
 export const _ALL = 'all';
 export const _MULTI = 'multi';
@@ -378,7 +378,7 @@ export default {
   },
 
   clone(ctx, { resource } = {}) {
-    const copy = cloneDeep(resource[SELF]);
+    const copy = cloneDeep(resource.toJSON());
 
     return proxyFor(ctx, copy, true);
   },

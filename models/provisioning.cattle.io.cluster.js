@@ -5,7 +5,7 @@ import { set } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { compare } from '@/utils/version';
-import { AS, MODE, _EDIT, _YAML } from '~/config/query-params';
+import { AS, MODE, _EDIT, _YAML } from '@/config/query-params';
 
 export const DEFAULT_WORKSPACE = 'fleet-default';
 

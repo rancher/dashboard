@@ -170,14 +170,6 @@ export default {
     },
 
     /**
-     * Emphasize the text within tbody to have a brighter color.
-     */
-    emphasizedBody: {
-      type:    Boolean,
-      default: true
-    },
-
-    /**
      * If pagination of the data is enabled or not
      */
     paging: {
@@ -241,8 +233,12 @@ export default {
     showHeaders: {
       type:    Boolean,
       default: true
-    }
+    },
 
+    sortGenerationFn: {
+      type:    Function,
+      default: null,
+    },
   },
 
   data() {
@@ -371,7 +367,6 @@ export default {
     classObject() {
       return {
         'top-divider':     this.topDivider,
-        'emphasized-body': this.emphasizedBody,
         'body-dividers':   this.bodyDividers
       };
     }
@@ -803,17 +798,6 @@ $spacing: 10px;
       &.state-description > td {
         font-size: 13px;
         padding-top: 0;
-      }
-    }
-
-    td {
-      &:first-of-type {
-        // border-left: 1px solid var(--sortable-table-accent-bg);
-      }
-
-      &:last-of-type {
-        /* Not sure why 2 but one doesn't show up.. */
-        // border-right: 2px solid var(--sortable-table-accent-bg);
       }
     }
 

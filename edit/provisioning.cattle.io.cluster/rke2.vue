@@ -42,6 +42,7 @@ import SelectOrCreateAuthSecret from '@/components/form/SelectOrCreateAuthSecret
 import { LEGACY } from '@/store/features';
 import semver from 'semver';
 import { canViewClusterMembershipEditor } from '@/components/form/Members/ClusterMembershipEditor.vue';
+import { SETTING } from '@/config/settings';
 import ACE from './ACE';
 import AgentEnv from './AgentEnv';
 import DrainOptions from './DrainOptions';
@@ -51,7 +52,6 @@ import RegistryConfigs from './RegistryConfigs';
 import RegistryMirrors from './RegistryMirrors';
 import S3Config from './S3Config';
 import SelectCredential from './SelectCredential';
-import { SETTING } from '~/config/settings';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';

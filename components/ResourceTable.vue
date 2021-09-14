@@ -61,7 +61,6 @@ export default {
       type:    String,
       default: 'resourceTable.groupBy.namespace',
     },
-
   },
 
   computed: {
@@ -218,7 +217,21 @@ export default {
 
     clearSelection() {
       this.$refs.table.clearSelection();
-    }
+    },
+
+    sortGenerationFn() {
+      if ( !this.schema ) {
+        return null;
+      }
+
+      const resource = this.schema.id;
+      const inStore = this.$store.getters['currentStore'](resource);
+      const generation = this.$store.getters[`${ inStore }/currentGeneration`](resource);
+
+      if ( generation ) {
+        return `${ resource }/${ generation }`;
+      }
+    },
   }
 };
 </script>
@@ -236,6 +249,7 @@ export default {
     :paging-label="pagingLabel"
     :table-actions="_showBulkActions"
     key-field="_key"
+    :sort-generation-fn="sortGenerationFn"
     v-on="$listeners"
   >
     <template v-if="showGrouping" #header-middle>

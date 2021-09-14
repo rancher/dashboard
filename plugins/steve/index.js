@@ -21,7 +21,7 @@ function SteveFactory(namespace, baseUrl) {
       return {
         config: {
           baseUrl,
-          namespace
+          namespace,
         },
         types:        {},
         socket:       null,
