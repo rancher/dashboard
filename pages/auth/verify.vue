@@ -20,22 +20,7 @@ export default {
 
   async fetch({ store, route, redirect }) {
     const code = route.query[GITHUB_CODE];
-    const stateStr = route.query[GITHUB_NONCE] || '';
-
-    let parsed;
-
-    try {
-      parsed = JSON.parse(base64Decode((stateStr)));
-    } catch {
-      return;
-    }
-
-    const { test, provider, nonce } = parsed;
-
-    if (test) {
-      return;
-    }
-
+    const stateStr = route.query[GITHUB_NONCE];
     const {
       error, error_description: errorDescription, errorCode, errorMsg
     } = route.query;
@@ -49,6 +34,19 @@ export default {
 
       redirect(`/auth/login?err=${ escape(out) }`);
 
+      return;
+    }
+    let parsed;
+
+    try {
+      parsed = JSON.parse(base64Decode((stateStr)));
+    } catch (err) {
+      return;
+    }
+
+    const { test, provider, nonce } = parsed;
+
+    if (test) {
       return;
     }
 
