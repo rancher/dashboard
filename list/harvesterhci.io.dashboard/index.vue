@@ -14,9 +14,9 @@ import ResourceSummary, { resourceCounts } from '@/components/ResourceSummary';
 import HardwareResourceGauge from '@/components/HardwareResourceGauge';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import HarvesterMetrics from '@/components/HarvesterMetrics';
+import DashboardMetrics from '@/components/DashboardMetrics';
 import metricPoller from '@/mixins/metric-poller';
-import Upgrade from './Upgrade';
+import Upgrade from './HarvesterUpgrade';
 
 dayjs.extend(utc);
 dayjs.extend(minMax);
@@ -70,7 +70,7 @@ export default {
     ResourceSummary,
     Tabbed,
     Tab,
-    HarvesterMetrics,
+    DashboardMetrics,
   },
 
   async fetch() {
@@ -84,7 +84,7 @@ export default {
       settings:     this.fetchClusterResources(HCI.SETTING),
       services:     this.fetchClusterResources(SERVICE),
       metric:       this.fetchClusterResources(METRIC.NODE),
-      longhornNode: this.fetchClusterResources(LONGHORN.NODE)
+      longhornNode: this.fetchClusterResources(LONGHORN.NODES)
     };
 
     (this.accessibleResources || []).map((a) => {
@@ -432,10 +432,10 @@ export default {
         name="metric"
         label="Metric"
       >
-        <HarvesterMetrics
+        <DashboardMetrics
           :detail-url="VM_DASHBOARD_METRICS_URL"
           graph-height="825px"
-          :has-sumarry-and-detail="false"
+          :has-summary-and-detail="false"
         />
       </Tab>
     </Tabbed>

@@ -9,7 +9,7 @@ export default {
       type:     Object,
       required: true,
     },
-    hasSumarryAndDetail: {
+    hasSummaryAndDetail: {
       type:    Boolean,
       default: true,
     },
@@ -102,7 +102,7 @@ export default {
 
 <template>
   <div class="graph-options">
-    <div v-if="hasSumarryAndDetail">
+    <div v-if="hasSummaryAndDetail">
       <ButtonGroup v-model="value.type" :options="detailSummaryOptions" />
     </div>
     <div v-else>

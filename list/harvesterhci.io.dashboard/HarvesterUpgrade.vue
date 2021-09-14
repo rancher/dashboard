@@ -51,10 +51,6 @@ export default {
 
       return serverVersion.currentVersion || '';
     },
-
-    // version() {
-    //   return this.versionOptions[0]?.value || '';
-    // }
   },
 
   watch: {

@@ -51,7 +51,12 @@ export default {
     spoofedCounts: {
       type:    Object,
       default: null
-    }
+    },
+
+    cluster: {
+      type:    String,
+      default: null,
+    },
   },
 
   computed: {
@@ -68,13 +73,19 @@ export default {
         return this.spoofedCounts.location;
       }
 
-      return {
+      const route = {
         name:     'c-cluster-product-resource',
         params:   {
           product:  this.$store.getters['currentProduct'].name,
           resource: this.resource,
         }
       };
+
+      if (this.cluster) {
+        route.params.cluster = this.cluster;
+      }
+
+      return route;
     },
 
     name() {

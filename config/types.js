@@ -122,7 +122,7 @@ export const MONITORING = {
 export const LONGHORN = {
   ENGINES:       'longhorn.io.engine',
   ENGINE_IMAGES: 'longhorn.io.engineimage',
-  NODE:          'longhorn.io.node',
+  NODES:         'longhorn.io.node',
   REPLICAS:      'longhorn.io.replica',
   SETTINGS:      'longhorn.io.setting',
   VOLUMES:       'longhorn.io.volume',
@@ -271,4 +271,4 @@ export const HCI = {
   BLOCK_DEVICE:       'harvesterhci.io.blockdevice',
 };
 
-export const VIRTUAL_PROVIDER = 'harvester';
+export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';

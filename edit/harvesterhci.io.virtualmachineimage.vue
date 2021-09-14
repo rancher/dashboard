@@ -8,8 +8,7 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabelValue from '@/components/LabelValue';
 import CreateEditView from '@/mixins/create-edit-view';
-import { _EDIT } from '@/config/query-params';
-import { IMAGE_FILE_FORMAT } from '@/config/constant';
+import { VM_IMAGE_FILE_FORMAT } from '@/models/harvesterhci.io.virtualmachineimage';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { exceptionToErrorsArray } from '@/utils/error';
 
@@ -60,10 +59,6 @@ export default {
       return this.file?.name || '';
     },
 
-    isEdit() {
-      return this.mode === _EDIT;
-    },
-
     imageName() {
       return this.value?.metadata?.annotations?.[HCI_ANNOTATIONS.IMAGE_NAME] || '-';
     },
@@ -80,7 +75,7 @@ export default {
       const fileSuffiic = suffixName.split('.').pop().toLowerCase();
 
       this.value.spec.url = url;
-      if (IMAGE_FILE_FORMAT.includes(fileSuffiic)) {
+      if (VM_IMAGE_FILE_FORMAT.includes(fileSuffiic)) {
         if (!this.value.spec.displayName) {
           this.$refs.nd.changeNameAndNamespace({ text: suffixName });
         }
@@ -113,20 +108,13 @@ export default {
             this.value.metadata.annotations = {};
           }
 
-          this.value.metadata.annotations[HCI_ANNOTATIONS.IMAGE_NAME] = this.file?.name;
+          const file = this.file;
+
+          this.value.metadata.annotations[HCI_ANNOTATIONS.IMAGE_NAME] = file?.name;
 
           const res = await this.value.save({ extend: { isRes: true } });
 
-          const formData = new FormData();
-
-          formData.append('chunk', this.file);
-
-          this.$axios.post(`/v1/harvester/harvesterhci.io.virtualmachineimages/${ res.id }?action=upload&size=${ this.file.size }`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'File-Size':    this.file.size,
-            }
-          });
+          res.uploadImage(file);
 
           buttonCb(true);
           this.done();

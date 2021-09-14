@@ -38,7 +38,7 @@ export default {
     const hash = {
       nodes:         this.$store.dispatch('harvester/findAll', { type: NODE }),
       hostNetworks:  this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK }),
-      longhornNodes: this.$store.dispatch(`${ inStore }/findAll`, { type: LONGHORN.NODE }),
+      longhornNodes: this.$store.dispatch(`${ inStore }/findAll`, { type: LONGHORN.NODES }),
       blockDevices:   this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.BLOCK_DEVICE }),
     };
 
@@ -89,7 +89,7 @@ export default {
   computed: {
     longhornDisks() {
       const inStore = this.$store.getters['currentProduct'].inStore;
-      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODE, `longhorn-system/${ this.value.id }`);
+      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.value.id }`);
       const diskStatus = longhornNode?.status?.diskStatus || {};
       const diskSpec = longhornNode.spec?.disks || {};
 

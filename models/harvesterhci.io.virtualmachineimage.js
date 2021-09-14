@@ -8,6 +8,8 @@ import { formatSi } from '@/utils/units';
 import { ucFirst } from '@/utils/string';
 import { stateDisplay } from '@/plugins/steve/resource-instance';
 
+export const VM_IMAGE_FILE_FORMAT = ['qcow', 'qcow2', 'raw', 'img', 'iso'];
+
 export default {
   availableActions() {
     let out = this._standardActions;
@@ -172,4 +174,20 @@ export default {
 
     return status === 'False' ? ucFirst(message) : '';
   },
+
+  uploadImage() {
+    return (file) => {
+      const formData = new FormData();
+
+      formData.append('chunk', file);
+
+      this.doAction('upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'File-Size':    file.size,
+        },
+        params: { size: file.size },
+      });
+    };
+  }
 };

@@ -1,7 +1,7 @@
 <script>
 import BannerGraphic from '@/components/BannerGraphic';
 import IndentedPanel from '@/components/IndentedPanel';
-import SupportBundle from '@/components/SupportBundle';
+import SupportBundle from '@/components/dialog/SupportBundle';
 import CommunityLinks from '@/components/CommunityLinks';
 
 export default {
@@ -12,6 +12,17 @@ export default {
     IndentedPanel,
     CommunityLinks,
     SupportBundle,
+  },
+
+  data() {
+    return {
+      options: {
+        'footer.docs':   'https://docs.harvesterhci.io/',
+        'footer.forums': 'https://forums.rancher.com/',
+        'footer.slack':  'https://slack.rancher.io',
+        'footer.issue':  'https://github.com/harvester/harvester/issues/new/choose',
+      },
+    };
   },
 
   computed: {
@@ -50,7 +61,9 @@ export default {
           </div>
         </div>
         <div class="community">
-          <CommunityLinks />
+          <CommunityLinks
+            :link-options="options"
+          />
         </div>
       </div>
     </IndentedPanel>

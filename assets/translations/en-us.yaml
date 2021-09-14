@@ -147,8 +147,8 @@ product:
   clusterManagement: Cluster Management
   monitoring: Monitoring
   mcapps: Multi-cluster Apps
-  virtualManager: Virtualization Management
-  harvester: Harvester
+  harvesterManager: Virtualization Management
+  virtual: Harvester
 
 suffix:
   percent: "%"

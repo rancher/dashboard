@@ -1,5 +1,4 @@
 <script>
-import cloneDeep from 'lodash/cloneDeep';
 import ProgressBarMulti from '@/components/ProgressBarMulti';
 export default {
   components: { ProgressBarMulti },
@@ -39,8 +38,6 @@ export default {
     },
 
     state() {
-      cloneDeep(this.row);
-
       return this.row.stateDisplay;
     },
 
@@ -68,7 +65,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .parent {
   display: grid;
   grid-template-areas: "progress text";

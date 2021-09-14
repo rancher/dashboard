@@ -1,6 +1,6 @@
 import Steve from '@/plugins/steve';
 import {
-  COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET, UI, VIRTUAL_PROVIDER, HCI
+  COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET, UI, VIRTUAL_HARVESTER_PROVIDER, HCI
 } from '@/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS, LAST_NAMESPACE, WORKSPACE } from '@/store/prefs';
 import { allHash, allHashSettled } from '@/utils/promise';
@@ -370,19 +370,19 @@ export const getters = {
     const clusterId = getters.defaultClusterId;
     const cluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, clusterId);
 
-    return !getters.isMultiCluster && cluster?.status?.provider === VIRTUAL_PROVIDER;
+    return !getters.isMultiCluster && cluster?.status?.provider === VIRTUAL_HARVESTER_PROVIDER;
   },
 
   isMultiVirtualCluster(state, getters, rootState, rootGetters) {
     const localCluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, 'local');
 
-    return getters.isMultiCluster && localCluster?.status?.provider !== VIRTUAL_PROVIDER;
+    return getters.isMultiCluster && localCluster?.status?.provider !== VIRTUAL_HARVESTER_PROVIDER;
   },
 
   isVirtualCluster(state, getters) {
     const cluster = getters['currentCluster'];
 
-    return cluster?.status?.provider === VIRTUAL_PROVIDER;
+    return cluster?.status?.provider === VIRTUAL_HARVESTER_PROVIDER;
   }
 };
 

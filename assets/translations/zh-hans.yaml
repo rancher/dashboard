@@ -125,8 +125,8 @@ product:
   #rio: Rio
   settings: 全局设置
   monitoring: 监控
-  virtualManager: 虚拟化管理
-  harvester: Harvester
+  harvesterManager: 虚拟化管理
+  virtual: Harvester
 
 suffix:
   #percent: "%"

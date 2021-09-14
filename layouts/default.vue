@@ -56,7 +56,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isVirtualCluster']),
+    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleVirtualCluster']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel' }),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -138,7 +138,7 @@ export default {
     displayVersion() {
       let { displayVersion } = getVersionInfo(this.$store);
 
-      if (this.isVirtualProduct) {
+      if (this.isVirtualProduct && this.isSingleVirtualCluster) {
         const setting = this.$store.getters['harvester/byId'](HCI.SETTING, 'server-version');
 
         displayVersion = setting?.value || 'unknown';

@@ -3,7 +3,7 @@ import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import { EVENT, HCI, SERVICE, NODE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
-import HarvesterMetrics from '@/components/HarvesterMetrics';
+import DashboardMetrics from '@/components/DashboardMetrics';
 import { allHash } from '@/utils/promise';
 import NodeScheduling from '@/components/form/NodeScheduling';
 import OverviewBasics from './tabs/details/basics';
@@ -30,7 +30,7 @@ export default {
     OverviewCloudConfigs,
     NodeScheduling,
     Migration,
-    HarvesterMetrics,
+    DashboardMetrics,
   },
 
   mixins: [CreateEditView],
@@ -158,13 +158,13 @@ export default {
         <Migration v-model="value" :vmi-resource="vmi" />
       </Tab>
 
-      <Tab v-if="hasMetrics" :label="t('harvester.virtualMachine.detail.tabs.metrics')" name="vm-metrics" :weight="2.5">
+      <Tab :label="t('harvester.virtualMachine.detail.tabs.metrics')" name="vm-metrics" :weight="2.5">
         <template #default="props">
-          <HarvesterMetrics
+          <DashboardMetrics
             v-if="props.active"
             :detail-url="VM_METRICS_DETAIL_URL"
             graph-height="550px"
-            :has-sumarry-and-detail="false"
+            :has-summary-and-detail="false"
             :vars="graphVars"
           />
         </template>

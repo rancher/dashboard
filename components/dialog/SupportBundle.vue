@@ -104,12 +104,11 @@ export default {
 <template>
   <div class="bundleModal">
     <modal
-      styles="background-color: var(--default) !important; border-radius: var(--border-radius); max-height: 100vh;"
       name="bundle-modal"
       :click-to-close="false"
       :width="550"
       :height="390"
-      class="remove-modal"
+      class="remove-modal support-modal"
     >
       <div class="p-20">
         <h2>
@@ -183,6 +182,11 @@ export default {
 
 <style lang="scss" scoped>
 .bundleModal {
+  .support-modal {
+    border-radius: var(--border-radius);
+    max-height: 100vh;
+  }
+
   .bundle {
     cursor: pointer;
     color: var(--primary);

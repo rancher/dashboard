@@ -1,4 +1,4 @@
-import { IMAGE_FILE_FORMAT } from '@/config/constant';
+import { VM_IMAGE_FILE_FORMAT } from '@/models/harvesterhci.io.virtualmachineimage';
 import { HCI } from '@/config/labels-annotations';
 
 export function imageUrl(url, getters, errors, validatorArgs, type) {
@@ -11,7 +11,7 @@ export function imageUrl(url, getters, errors, validatorArgs, type) {
   const suffixName = url.split('/').pop();
   const fileSuffiic = suffixName.split('.').pop().toLowerCase();
 
-  if (!IMAGE_FILE_FORMAT.includes(fileSuffiic)) {
+  if (!VM_IMAGE_FILE_FORMAT.includes(fileSuffiic)) {
     const tipString = type === 'file' ? 'harvester.validation.image.ruleFileTip' : 'harvester.validation.image.ruleTip';
 
     errors.push(t(tipString));

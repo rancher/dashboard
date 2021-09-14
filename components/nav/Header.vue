@@ -176,9 +176,8 @@ export default {
 <template>
   <header :class="{'simple': simple}">
     <div class="menu-spacer">
-      <n-link :to="harvesterDashboard">
+      <n-link v-if="isSingleVirtualCluster" :to="harvesterDashboard">
         <img
-          v-if="isSingleVirtualCluster"
           class="side-menu-logo"
           src="~/assets/images/providers/harvester.svg"
         />
