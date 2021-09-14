@@ -40,22 +40,10 @@ button,
   padding: 0;
   line-height: initial;
 
-  &.btn-sm {
-    padding: 0;
-  }
-
   span {
     padding: 0 10px 0 5px;
     vertical-align: middle;
   }
-}
-
-.btn-sm,
-.btn-group-sm > .btn,
-.btn-sm .btn-label {
-  padding: $btn-sm-padding;
-  min-height: $btn-sm-height;
-  line-height: 28px;
 }
 
 //btn roles
@@ -79,10 +67,6 @@ button,
   color: var(--primary) !important;
   border: solid 1px var(--primary);
   line-height: $btn-height - 2px;
-
-  &.btn-sm {
-    line-height: $btn-sm-height;
-  }
 }
 
 .role-tertiary {
