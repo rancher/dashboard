@@ -1,6 +1,7 @@
 import { lookup } from './model-loader';
 import { Resource } from './resource-class';
 import SteveModel from './steve-class';
+import HybridModel from './hybrid-class';
 import NormanModel from './norman-class';
 import ResourceInstance from './resource-instance';
 
@@ -31,7 +32,13 @@ export function proxyFor(ctx, obj, isClone = false) {
   if ( !customModel ) {
     const which = ctx.state.config.modelBaseClass || STEVE;
 
-    if ( which === NORMAN || (which === BY_TYPE && (obj?.type?.startsWith('management.cattle.io.') || obj?.type?.startsWith('project.cattle.io.')) ) ) {
+    if ( which === BY_TYPE ) {
+      if ( obj?.type?.startsWith('management.cattle.io.') || obj?.type?.startsWith('project.cattle.io.')) {
+        customModel = HybridModel;
+      } else {
+        customModel = SteveModel;
+      }
+    } else if ( which === NORMAN ) {
       customModel = NormanModel;
     } else {
       customModel = SteveModel;
