@@ -633,12 +633,12 @@ export const actions = {
     commit('updateNamespaces', { filters: value });
   },
 
-  async cleanNamespaces({ commit, getters, dispatch }) {
+  async cleanNamespaces({ getters, dispatch }) {
+    // Initialise / Remove any filters that the user no-longer has access to
     const clusters = await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
     const filters = getters['prefs/get'](NAMESPACE_FILTERS);
 
-    // Convert pre 2.6.1 setting to new format
-    if (Array.isArray(filters)) {
+    if (!filters || !filters.length) {
       dispatch('prefs/set', {
         key:   NAMESPACE_FILTERS,
         value: { }
