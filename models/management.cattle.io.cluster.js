@@ -9,6 +9,7 @@ import { addParams } from '@/utils/url';
 import { isEmpty } from '@/utils/object';
 import { NAME as HARVESTER } from '@/config/product/harvester';
 import { isHarvesterCluster } from '@/utils/cluster';
+import { NAME as HARVESTER } from '@/config/product/harvester';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 
 // See translation file cluster.providers for list of providers
