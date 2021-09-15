@@ -5,6 +5,7 @@ import { STATE, NAME, AGE } from '@/config/table-headers';
 import { METRIC, NODE, SCHEMA, HCI } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import metricPoller from '@/mixins/metric-poller';
+import CopyToClipboard from '@/components/CopyToClipboard';
 
 const schema = {
   id:         HCI.HOST,
@@ -16,18 +17,12 @@ const schema = {
   metadata: { name: HCI.HOST },
 };
 
-const HOST_IP = {
-  name:      'host-ip',
-  labelKey:  'tableHeaders.hostIp',
-  search:    ['internalIp'],
-  value:     'internalIp',
-  formatter: 'HostIp'
-};
-
 export default {
-  name:       'ListHost',
-  components: { ResourceTable, Loading },
-  mixins:     [metricPoller],
+  name:       'HarvesterListHost',
+  components: {
+    CopyToClipboard, ResourceTable, Loading
+  },
+  mixins: [metricPoller],
 
   async fetch() {
     const hash = await allHash({
@@ -51,7 +46,12 @@ export default {
           width:         300,
           formatter:     'hostName',
         },
-        HOST_IP,
+        {
+          name:      'host-ip',
+          labelKey:  'tableHeaders.hostIp',
+          search:    ['internalIp'],
+          value:     'internalIp',
+        },
         {
           name:          'cpu',
           labelKey:      'node.detail.glance.consumptionGauge.cpu',
@@ -122,6 +122,12 @@ export default {
       :namespaced="false"
       key-field="_key"
       v-on="$listeners"
-    />
+    >
+      <template slot="cell:host-ip" slot-scope="scope">
+        <div class="name-console">
+          {{ scope.row.internalIp }}<CopyToClipboard :text="scope.row.internalIp" label-as="tooltip" class="icon-btn" action-color="bg-transparent" />
+        </div>
+      </template>
+    </ResourceTable>
   </div>
 </template>
