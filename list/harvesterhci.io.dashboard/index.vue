@@ -440,112 +440,117 @@ export default {
       </Tab>
     </Tabbed>
 
-    <Tabbed class="mt-20">
-      <Tab
-        name="host"
-        label="Hosts"
-        :weight="98"
-      >
-        <SortableTable
-          :rows="hostEvents"
-          :headers="eventHeaders"
-          key-field="id"
-          :search="false"
-          :table-actions="false"
-          :row-actions="false"
-          :paging="true"
-          :rows-per-page="10"
-          default-sort-by="date"
+    <div class="mb-40 mt-40">
+      <h3>
+        {{ hasMonitoring ?t('clusterIndexPage.sections.alerts.label') :t('clusterIndexPage.sections.events.label') }}
+      </h3>
+      <Tabbed class="mt-20">
+        <Tab
+          name="host"
+          label="Hosts"
+          :weight="98"
         >
-          <template #cell:resource="{row, value}">
-            <div class="text-info">
-              {{ value }}
-            </div>
-            <div v-if="row.message">
-              {{ row.displayMessage }}
-            </div>
-          </template>
-        </SortableTable>
-      </Tab>
-      <Tab
-        name="vm"
-        label="VMs"
-        :weight="99"
-      >
-        <SortableTable
-          :rows="vmEvents"
-          :headers="eventHeaders"
-          key-field="id"
-          :search="false"
-          :table-actions="false"
-          :row-actions="false"
-          :paging="true"
-          :rows-per-page="10"
-          default-sort-by="date"
+          <SortableTable
+            :rows="hostEvents"
+            :headers="eventHeaders"
+            key-field="id"
+            :search="false"
+            :table-actions="false"
+            :row-actions="false"
+            :paging="true"
+            :rows-per-page="10"
+            default-sort-by="date"
+          >
+            <template #cell:resource="{row, value}">
+              <div class="text-info">
+                {{ value }}
+              </div>
+              <div v-if="row.message">
+                {{ row.displayMessage }}
+              </div>
+            </template>
+          </SortableTable>
+        </Tab>
+        <Tab
+          name="vm"
+          label="VMs"
+          :weight="99"
         >
-          <template #cell:resource="{row, value}">
-            <div class="text-info">
-              {{ value }}
-            </div>
-            <div v-if="row.message">
-              {{ row.displayMessage }}
-            </div>
-          </template>
-        </SortableTable>
-      </Tab>
-      <Tab
-        name="volume"
-        label="Volumes"
-        :weight="97"
-      >
-        <SortableTable
-          :rows="volumeEvents"
-          :headers="eventHeaders"
-          key-field="id"
-          :search="false"
-          :table-actions="false"
-          :row-actions="false"
-          :paging="true"
-          :rows-per-page="10"
-          default-sort-by="date"
+          <SortableTable
+            :rows="vmEvents"
+            :headers="eventHeaders"
+            key-field="id"
+            :search="false"
+            :table-actions="false"
+            :row-actions="false"
+            :paging="true"
+            :rows-per-page="10"
+            default-sort-by="date"
+          >
+            <template #cell:resource="{row, value}">
+              <div class="text-info">
+                {{ value }}
+              </div>
+              <div v-if="row.message">
+                {{ row.displayMessage }}
+              </div>
+            </template>
+          </SortableTable>
+        </Tab>
+        <Tab
+          name="volume"
+          label="Volumes"
+          :weight="97"
         >
-          <template #cell:resource="{row, value}">
-            <div class="text-info">
-              {{ value }}
-            </div>
-            <div v-if="row.message">
-              {{ row.displayMessage }}
-            </div>
-          </template>
-        </SortableTable>
-      </Tab>
-      <Tab
-        name="image"
-        label="Images"
-        :weight="96"
-      >
-        <SortableTable
-          :rows="imageEvents"
-          :headers="eventHeaders"
-          key-field="id"
-          :search="false"
-          :table-actions="false"
-          :row-actions="false"
-          :paging="true"
-          :rows-per-page="10"
-          default-sort-by="date"
+          <SortableTable
+            :rows="volumeEvents"
+            :headers="eventHeaders"
+            key-field="id"
+            :search="false"
+            :table-actions="false"
+            :row-actions="false"
+            :paging="true"
+            :rows-per-page="10"
+            default-sort-by="date"
+          >
+            <template #cell:resource="{row, value}">
+              <div class="text-info">
+                {{ value }}
+              </div>
+              <div v-if="row.message">
+                {{ row.displayMessage }}
+              </div>
+            </template>
+          </SortableTable>
+        </Tab>
+        <Tab
+          name="image"
+          label="Images"
+          :weight="96"
         >
-          <template #cell:resource="{row, value}">
-            <div class="text-info">
-              {{ value }}
-            </div>
-            <div v-if="row.message">
-              {{ row.displayMessage }}
-            </div>
-          </template>
-        </SortableTable>
-      </Tab>
-    </Tabbed>
+          <SortableTable
+            :rows="imageEvents"
+            :headers="eventHeaders"
+            key-field="id"
+            :search="false"
+            :table-actions="false"
+            :row-actions="false"
+            :paging="true"
+            :rows-per-page="10"
+            default-sort-by="date"
+          >
+            <template #cell:resource="{row, value}">
+              <div class="text-info">
+                {{ value }}
+              </div>
+              <div v-if="row.message">
+                {{ row.displayMessage }}
+              </div>
+            </template>
+          </SortableTable>
+        </Tab>
+      </Tabbed>
+    </div>
   </section>
 </template>
 

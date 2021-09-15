@@ -27,7 +27,7 @@ export default {
 
   computed: {
     title() {
-      return 'support.community.title';
+      return 'harvester.support.title';
     },
   },
 

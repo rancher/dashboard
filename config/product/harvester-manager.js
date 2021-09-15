@@ -32,6 +32,7 @@ export function init(store) {
     icon:                'harvester',
     removable:           false,
     showClusterSwitcher: false,
+    weight:              100,
   });
 
   configureType(HCI.CLUSTER, { showListMasthead: false });
@@ -43,7 +44,13 @@ export function init(store) {
       value: 'kubernetesVersion'
     },
     MACHINE_POOLS,
-    AGE
+    AGE,
+    {
+      name:  'harvester',
+      label: ' ',
+      align: 'right',
+      width: 65,
+    },
   ]);
   basicType([HCI.CLUSTER]);
   spoofedType({

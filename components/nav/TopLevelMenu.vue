@@ -136,7 +136,7 @@ export default {
         };
       });
 
-      return entries;
+      return sortBy(entries, ['weight']);
     },
 
     canEditSettings() {

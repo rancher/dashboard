@@ -52,9 +52,10 @@ export default {
       }
 
       const host = window.location.host;
-      const pathname = window.location.pathname.replace('/kubevirt.io.virtualmachine', '');
+      const prefix = window.location.pathname.replace(this.$route.path, '');
+      const params = this.$route?.params;
 
-      const url = `https://${ host }${ pathname }/console/${ uid }/${ type }`;
+      const url = `https://${ host }${ prefix }/c/${ params.cluster }/${ params.product }/console/${ uid }/${ type }`;
 
       window.open(url, '_blank', 'toolbars=0,width=900,height=700,left=0,top=0');
     },

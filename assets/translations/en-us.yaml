@@ -5144,7 +5144,9 @@ harvester:
   manager:
     cluster:
       label: Clusters
-
+  
+  support:
+    title: Harvester Support
 ##############################
 # Model Properties
 ##############################

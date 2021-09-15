@@ -1,6 +1,6 @@
 import { DOCS_BASE } from '@/config/private-label';
 
-export function options(issues, hideRancher, product) {
+export function options(issues, hideRancher) {
   if (!issues) {
     if (hideRancher) {
       return { };

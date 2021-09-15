@@ -191,14 +191,9 @@ export default {
               :disabled="isEdit"
               class="labeled-input--tooltip"
               required
-            >
-              <template #label>
-                <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
-                  {{ t('harvester.image.url') }}
-                  <i v-tooltip="t('harvester.image.urlTip', {}, raw=true)" class="icon icon-info" style="font-size: 14px" />
-                </label>
-              </template>
-            </LabeledInput>
+              label-key="harvester.image.url"
+              :tooltip="t('harvester.image.urlTip', {}, true)"
+            />
 
             <div v-else>
               <button
