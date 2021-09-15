@@ -51,7 +51,7 @@ export default {
         const id = systemProject.id.replace('/', ':');
 
         this.systemProject = id;
-        this.v1Apps = await this.$store.dispatch('rancher/findAll', {
+        await this.$store.dispatch('rancher/findAll', {
           type: NORMAN.APP,
           opt:  { url: `/v3/project/${ id }/apps`, force: true }
         });
@@ -64,7 +64,6 @@ export default {
 
     return {
       allInstalled:    null,
-      v1Apps:          null,
       v1SystemCatalog: null,
       systemProject:   null,
       legacyEnabled
@@ -75,6 +74,10 @@ export default {
     ...mapGetters(['currentCluster']),
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
     ...mapGetters({ t: 'i18n/t' }),
+
+    v1Apps() {
+      return this.$store.getters['rancher/all']('app');
+    },
 
     namespaces() {
       return this.$store.getters['namespaces']();
@@ -151,10 +154,10 @@ export default {
   },
 
   watch: {
-    async namespaces(old) {
+    namespaces() {
       // When the namespaces change, check the v1 apps - might indicate add or removal of a v1 app
       if (this.legacyEnabled && this.systemProject) {
-        this.v1Apps = await this.$store.dispatch('rancher/findAll', {
+        this.$store.dispatch('rancher/findAll', {
           type: NORMAN.APP,
           opt:  { url: `/v3/project/${ this.systemProject }/apps`, force: true }
         });
@@ -232,13 +235,16 @@ export default {
       const v2 = chartsWithApps.find(a => a.chart.chartName === v2ChartName);
 
       if (v1) {
-        if (v2 && v2.app) {
-          v1.blocked = true;
-        } else {
-          const v1App = v1Apps.find(a => a.id.indexOf(v1AppName) > 0);
+        const v1App = v1Apps.find(a => a.id.indexOf(v1AppName) > 0);
 
-          v1.app = v1App;
-          v2.blocked = !!v1App;
+        v1.app = v1App;
+
+        if (v2) {
+          if (v2.app) {
+            v1.blocked = true;
+          } else {
+            v2.blocked = !!v1App;
+          }
         }
       }
     }
