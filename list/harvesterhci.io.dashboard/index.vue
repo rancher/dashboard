@@ -442,7 +442,7 @@ export default {
 
     <div class="mb-40 mt-40">
       <h3>
-        {{ hasMonitoring ?t('clusterIndexPage.sections.alerts.label') :t('clusterIndexPage.sections.events.label') }}
+        {{ t('clusterIndexPage.sections.events.label') }}
       </h3>
       <Tabbed class="mt-20">
         <Tab
