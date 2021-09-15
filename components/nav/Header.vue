@@ -190,7 +190,7 @@ export default {
         </div>
         <template v-else>
           <RancherProviderIcon v-if="currentCluster && currentCluster.isLocal" class="mr-10 cluster-local-logo" width="25" />
-          <img v-else-if="currentCluster && currentCluster.providerLogo" class="cluster-os-logo" :src="currentCluster.providerLogo" />
+          <img v-else-if="currentCluster && currentCluster.providerNavLogo" class="cluster-os-logo" :src="currentCluster.providerNavLogo" />
           <div v-if="currentCluster" ref="clusterName" class="cluster-name">
             {{ currentCluster.spec.displayName }}
           </div>

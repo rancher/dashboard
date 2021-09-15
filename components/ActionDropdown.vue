@@ -60,34 +60,14 @@ export default {
       class="dropdown-button bg-primary"
       :class="{'one-action':!dualAction, [buttonSize]:true, 'disabled': disableButton}"
     >
-      <slot v-if="dualAction" name="button-content" :buttonSize="buttonSize">
-        <button
-          class="bg-transparent"
-          :class="buttonSize"
-          disabled="true"
-          type="button"
-        >
-          Button
-        </button>
-      </slot>
-      <div
-        v-else
-        :class="buttonSize"
-        type="button"
-      >
-        <slot name="button-content" />
-      </div>
-      <div v-if="hasSlot('popover-content') && dualAction" class="button-divider"></div>
-
       <v-popover
         v-if="hasSlot('popover-content')"
         placement="bottom"
         :container="false"
-        offset="10"
         :disabled="disableButton"
         :popper-options="{modifiers: { flip: { enabled: false } } }"
       >
-        <slot name="button-toggle-content" :buttonSize="buttonSize">
+        <slot name="button-content" :buttonSize="buttonSize">
           <button
             ref="popoverButton"
             class="icon-container bg-primary no-left-border-radius"
@@ -95,7 +75,7 @@ export default {
             :disabled="disableButton"
             type="button"
           >
-            <i class="icon icon-chevron-down" />
+            Button <i class="icon icon-chevron-down" />
           </button>
         </slot>
 
@@ -187,10 +167,6 @@ export default {
       background-color: rgba(0,0,0,0);
     }
 
-    .button-divider {
-      border-right: 1px solid var(--link-text);
-    }
-
     &.bg-primary:hover {
       background: var(--accent-btn-hover);
     }
@@ -219,6 +195,8 @@ export default {
     border: none;
   }
   .tooltip {
+    margin-top: 0px;
+
     &[x-placement^="bottom"] {
       .tooltip-arrow {
         border-bottom-color: var(--dropdown-border);

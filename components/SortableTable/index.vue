@@ -4,7 +4,7 @@ import { dasherize, ucFirst } from '@/utils/string';
 import { get, clone } from '@/utils/object';
 import { removeObject, filterBy } from '@/utils/array';
 import Checkbox from '@/components/form/Checkbox';
-import ButtonDropdown from '@/components/Dropdown';
+import ActionDropdown from '@/components/ActionDropdown';
 import $ from 'jquery';
 import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
@@ -43,7 +43,7 @@ export const COLUMN_BREAKPOINTS = {
 export default {
   name:       'SortableTable',
   components: {
-    THead, Checkbox, ButtonDropdown
+    THead, Checkbox, ActionDropdown
   },
   mixins: [filtering, sorting, paging, grouping, selection],
 
@@ -533,11 +533,12 @@ export default {
                 <i v-if="act.icon" :class="act.icon" />
                 <span v-html="act.label" />
               </button>
-              <ButtonDropdown v-if="hasExternalActions" class="external-actions" :disable-button="externalActions.length === 0" size="sm">
+              <ActionDropdown v-if="hasExternalActions" class="external-actions" :disable-button="externalActions.length === 0" size="sm">
                 <template #button-content>
-                  <button class="btn bg-primary mr-0 no-right-border-radius" :disabled="externalActions.length === 0">
+                  <button class="btn bg-primary mr-0" :disabled="externalActions.length === 0">
                     <i class="icon icon-gear" />
                     <span>{{ t('harvester.tableHeaders.actions') }}</span>
+                    <i class="ml-10 icon icon-chevron-down" />
                   </button>
                 </template>
                 <template #popover-content>
@@ -555,7 +556,7 @@ export default {
                     </li>
                   </ul>
                 </template>
-              </ButtonDropdown>
+              </ActionDropdown>
               <span />
               <label v-if="actionAvailability" class="action-availability">
                 {{ actionAvailability }}
