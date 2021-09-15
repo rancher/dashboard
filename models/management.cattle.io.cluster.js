@@ -10,13 +10,12 @@ import { isEmpty } from '@/utils/object';
 import { NAME as HARVESTER } from '@/config/product/harvester';
 import { isHarvesterCluster } from '@/utils/cluster';
 import { NAME as HARVESTER } from '@/config/product/harvester';
+import { isHarvesterCluster } from '@/utils/cluster';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 
 // See translation file cluster.providers for list of providers
 // If the logo is not named with the provider name, add an override here
 const PROVIDER_LOGO_OVERRIDE = {};
-
-const HARVESTER_LABEL = 'cluster.harvesterhci.io';
 
 export default {
   details() {
