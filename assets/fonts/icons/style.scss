@@ -3,9 +3,9 @@
 @font-face {
   font-family: '#{$icomoon-font-family}';
   src:
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?8jruhj') format('truetype'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?8jruhj') format('woff'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?8jruhj##{$icomoon-font-family}') format('svg');
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?e6rm5s') format('truetype'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?e6rm5s') format('woff'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?e6rm5s##{$icomoon-font-family}') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -241,6 +241,11 @@
     content: $icon-backup; 
   }
 }
+.icon-history {
+  &:before {
+    content: $icon-history; 
+  }
+}
 .icon-globe {
   &:before {
     content: $icon-globe; 
@@ -394,6 +399,11 @@
 .icon-cluster-management {
   &:before {
     content: $icon-cluster-management; 
+  }
+}
+.icon-storage-1 {
+  &:before {
+    content: $icon-storage-1; 
   }
 }
 .icon-cluster {
