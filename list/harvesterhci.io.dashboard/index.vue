@@ -58,7 +58,7 @@ const RESOURCES = [{
   }
 }];
 
-const VM_DASHBOARD_METRICS_URL = '/api/v1/namespaces/harvester-monitoring/services/http:monitoring-grafana:80/proxy/d/harvester-vm-dashboard-1/vm-dashboard?orgId=1';
+const VM_DASHBOARD_METRICS_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/harvester-vm-dashboard-1/vm-dashboard?orgId=1';
 
 export default {
   mixins:     [metricPoller],
@@ -300,7 +300,7 @@ export default {
     hasMetrics() {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
-      return !!this.$store.getters[`${ inStore }/byId`]('service', 'harvester-monitoring/monitoring-grafana');
+      return !!this.$store.getters[`${ inStore }/byId`]('service', 'cattle-monitoring-system/rancher-monitoring-grafana');
     },
   },
 
