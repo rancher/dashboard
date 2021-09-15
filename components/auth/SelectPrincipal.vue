@@ -20,7 +20,7 @@ export default {
     showMyGroupTypes: {
       type: Array,
       default() {
-        return ['group'];
+        return ['group', 'user'];
       },
     },
 
@@ -162,12 +162,6 @@ export default {
           {{ t('cluster.memberRoles.addClusterMember.searchPlaceholder') }}
         </em>
       </div>
-    </template>
-
-    <template v-if="!searchStr && options.length" #list-header>
-      <li class="pl-10 text-muted">
-        Your Groups:
-      </li>
     </template>
 
     <template #option="option">
