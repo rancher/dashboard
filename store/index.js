@@ -29,7 +29,9 @@ export const plugins = [
     namespace: 'management', baseUrl: '/v1', modelBaseClass: BY_TYPE
   }),
   Steve({ namespace: 'cluster', baseUrl: '' }), // URL dynamically set for the selected cluster
-  Steve({ namespace: 'rancher', baseUrl: '/v3' }),
+  Steve({
+    namespace: 'rancher', baseUrl: '/v3', modelBaseClass: NORMAN_CLASS
+  }),
   Steve({ namespace: 'harvester', baseUrl: '' }),
 ];
 

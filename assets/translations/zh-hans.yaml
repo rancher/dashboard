@@ -3929,7 +3929,7 @@ harvester:
       promoteSucceed: 角色升级完成
     tabs:
       network: 网络
-      disk: 硬盘
+      disk: 硬盘
     detail:
       title:
         network: 网络配置
@@ -4000,7 +4000,7 @@ harvester:
     imageTip: 创建虚拟机所需的.iso，.img，.qcow2或.raw的外部镜像地址
     title: 虚拟机
     volume:
-      dragTip: 试着用拖放的方式改变bootOrder。
+      dragTip: 拖放卷或使用卷的箭头来更改引导顺序。
       volumeTip: VM仅包含一个cd-rom卷。 您可能要添加其他磁盘卷。
       volumeUpdate: '设置卷 { name } 成功'
       macTip: 提示：安装的操作系统内显示的MAC地址

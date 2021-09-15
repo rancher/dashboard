@@ -4,7 +4,6 @@ import {
   CAPI, MANAGEMENT, METRIC, NORMAN, POD
 } from '@/config/types';
 import { parseSi } from '@/utils/units';
-import { PRIVATE } from '@/plugins/steve/resource-proxy';
 import findLast from 'lodash/findLast';
 
 export const listNodeRoles = (isControlPlane, isWorker, isEtcd, allString) => {

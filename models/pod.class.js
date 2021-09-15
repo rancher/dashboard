@@ -181,16 +181,16 @@ export default class Pod extends Resource {
 
   get isRunning() {
     return this.status.phase === 'Running';
-  },
+  }
 
   // harvester
   inStore() {
     return this.$rootGetters['currentProduct'].inStore;
-  },
+  }
 
   nodes() {
     return this.$rootGetters[`${ this.inStore }/all`](NODE);
-  },
+  }
 
   node() {
     const { nodeName } = this.spec;
@@ -198,7 +198,7 @@ export default class Pod extends Resource {
     return this.nodes.filter((node) => {
       return node?.metadata?.name === nodeName;
     })[0];
-  },
+  }
 
   getPodStatus() {
     return this.isNotSchedulable ||
@@ -206,7 +206,7 @@ export default class Pod extends Resource {
     this.isContainerFailing ||
     this.isNotReady ||
     this.hasOkStatus || { status: POD_STATUS_UNKNOWN };
-  },
+  }
 
   isNotSchedulable() {
     if (!this.isPodSchedulable) {
@@ -217,7 +217,7 @@ export default class Pod extends Resource {
     }
 
     return null;
-  },
+  }
 
   hasErrorStatus() {
     const status = errorStatusMapper[this?.status?.phase];
@@ -230,7 +230,7 @@ export default class Pod extends Resource {
     }
 
     return null;
-  },
+  }
 
   isPodSchedulable() {
     const conditions = get(this, 'status.conditions');
@@ -241,7 +241,7 @@ export default class Pod extends Resource {
       podScheduledCond.status !== 'True' &&
       podScheduledCond.reason === 'Unschedulable'
     );
-  },
+  }
 
   findFailingContainerStatus() {
     return (get(this, 'status.containerStatuses'), []).find((container) => {
@@ -249,7 +249,7 @@ export default class Pod extends Resource {
       (includes(failedWaitingContainerReasons, get(container, 'state.waiting.reason')) ||
       includes(failedTerminationContaineReasons, get(container, 'state.terminated.reason')));
     });
-  },
+  }
 
   getContainerStatusReason() {
     return (containerStatus) => {
@@ -271,7 +271,7 @@ export default class Pod extends Resource {
 
       return undefined;
     };
-  },
+  }
 
   isContainerFailing() {
     const failingContainer = this.findFailingContainerStatus;
@@ -284,7 +284,7 @@ export default class Pod extends Resource {
     }
 
     return null;
-  },
+  }
 
   isNotReady() {
     const message = this.findPodFalseStatusConditionMessage;
@@ -297,7 +297,7 @@ export default class Pod extends Resource {
     }
 
     return null;
-  },
+  }
 
   hasOkStatus() {
     const status = okStatusMapper[this?.status?.phase];
@@ -307,7 +307,7 @@ export default class Pod extends Resource {
     }
 
     return null;
-  },
+  }
 
   findPodFalseStatusConditionMessage() {
     const notReadyConditions = this.getPodFalseStatusConditions;
@@ -317,11 +317,11 @@ export default class Pod extends Resource {
     }
 
     return undefined;
-  },
+  }
 
   getPodFalseStatusConditions() {
     const conditions = get(this, 'status.conditions') || [];
 
     return conditions.filter(condition => condition.status !== 'True');
   }
-};
+}

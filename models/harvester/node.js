@@ -4,7 +4,6 @@ import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { clone } from '@/utils/object';
 import findLast from 'lodash/findLast';
 import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
-import { PRIVATE } from '@/plugins/steve/resource-proxy';
 
 export default {
   displayNameOverride() {
@@ -74,7 +73,7 @@ export default {
       return 'Maintenance mode';
     }
 
-    if ( !this[PRIVATE].isDetailPage && this.isCordoned ) {
+    if (this.isCordoned ) {
       return 'Cordoned';
     }
 

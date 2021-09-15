@@ -33,7 +33,7 @@ export default {
 
   methods: {
     open() {
-      this.$store.commit('harvester/toggleBundleModal', true);
+      this.$store.commit('harvester-common/toggleBundleModal', true);
     },
   },
 };

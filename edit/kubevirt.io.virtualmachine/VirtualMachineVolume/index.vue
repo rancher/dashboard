@@ -229,7 +229,7 @@ export default {
 
 <template>
   <div>
-    <Banner v-if="!isView" color="info" :label="t('harvester.virtualMachine.volume.dragTip')" />
+    <Banner v-if="!isView" color="info" label-key="harvester.virtualMachine.volume.dragTip" />
     <draggable v-model="rows" @end="update">
       <transition-group>
         <div v-for="(volume, i) in rows" :key="i">

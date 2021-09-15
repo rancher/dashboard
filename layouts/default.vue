@@ -20,6 +20,7 @@ import { BASIC, FAVORITE, USED } from '@/store/type-map';
 import { addObjects, replaceWith, clear, addObject } from '@/utils/array';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { NAME as NAVLINKS } from '@/config/product/navlinks';
+import { NAME as HARVESTER } from '@/config/product/harvester';
 import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@/utils/string';
 import { getVersionInfo, markSeenReleaseNotes } from '@/utils/version';
@@ -156,7 +157,7 @@ export default {
     },
 
     isVirtualProduct() {
-      return this.$store.getters['currentProduct'].name === 'harvester';
+      return this.$store.getters['currentProduct'].name === HARVESTER;
     },
 
     supportLink() {

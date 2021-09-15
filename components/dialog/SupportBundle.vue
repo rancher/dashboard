@@ -27,15 +27,15 @@ export default {
 
   computed: {
     bundlePending() {
-      return this.$store.getters['harvester/isBundlePending'];
+      return this.$store.getters['harvester-common/isBundlePending'];
     },
 
     isShowBundleModal() {
-      return this.$store.getters['harvester/isShowBundleModal'];
+      return this.$store.getters['harvester-common/isShowBundleModal'];
     },
 
     percentage() {
-      return this.$store.getters['harvester/getBundlePercentage'];
+      return this.$store.getters['harvester-common/getBundlePercentage'];
     }
   },
 
@@ -60,7 +60,7 @@ export default {
     stringify,
 
     close() {
-      this.$store.commit('harvester/toggleBundleModal', false);
+      this.$store.commit('harvester-common/toggleBundleModal', false);
       this.backUpName = '';
     },
 
@@ -90,8 +90,8 @@ export default {
       try {
         await bundleValue.save({ extend: { isRes: true } });
 
-        this.$store.commit('harvester/setLatestBundleId', `${ namespace }/${ name }`, { root: true });
-        this.$store.dispatch('harvester/bundleProgress', { root: true });
+        this.$store.commit('harvester-common/setLatestBundleId', `${ namespace }/${ name }`, { root: true });
+        this.$store.dispatch('harvester-common/bundleProgress', { root: true });
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
         buttonCb(false);

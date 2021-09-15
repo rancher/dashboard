@@ -109,7 +109,7 @@ export default {
 </script>
 
 <template>
-  <Card ref="modal" name="modal">
+  <Card ref="modal" name="modal" :show-highlight-border="false">
     <h4 slot="title" class="text-default-text" v-html="t('harvester.modal.hotplug.title')" />
 
     <template #body>
@@ -128,7 +128,7 @@ export default {
       />
     </template>
 
-    <div slot="actions">
+    <div slot="actions" class="actions">
       <div class="buttons">
         <button type="button" class="btn role-secondary mr-10" @click="close">
           {{ t('generic.cancel') }}
@@ -147,8 +147,13 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.actions {
+  width: 100%;
+}
+
 .buttons {
   display: flex;
+  justify-content: flex-end;
   width: 100%;
 }
 </style>

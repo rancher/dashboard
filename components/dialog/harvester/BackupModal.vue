@@ -86,7 +86,7 @@ export default {
       />
     </template>
 
-    <div slot="actions">
+    <div slot="actions" class="actions">
       <div class="buttons">
         <button class="btn role-secondary mr-10" @click="close">
           {{ t('generic.cancel') }}
@@ -105,8 +105,13 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.actions {
+  width: 100%;
+}
+
 .buttons {
   display: flex;
+  justify-content: flex-end;
   width: 100%;
 }
 </style>

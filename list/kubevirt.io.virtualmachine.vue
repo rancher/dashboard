@@ -70,8 +70,7 @@ export default {
         STATE,
         {
           ...NAME,
-          width:         300,
-          formatter:     'vmName',
+          width: 300,
         },
         NAMESPACE,
         {
