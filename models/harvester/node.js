@@ -6,10 +6,6 @@ import findLast from 'lodash/findLast';
 import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
 
 export default {
-  displayNameOverride() {
-    return this.$rootGetters['i18n/t'](`typeLabel."${ HCI.HOST }"`, { count: 1 });
-  },
-
   _availableActions() {
     const cordon = {
       action:     'cordon',
@@ -105,6 +101,10 @@ export default {
     detailLocation.name = 'c-cluster-product-resource';
 
     return detailLocation;
+  },
+
+  parentNameOverride() {
+    return this.$rootGetters['i18n/t'](`typeLabel."${ HCI.HOST }"`, { count: 1 })?.trim();
   },
 
   parentLocationOverride() {

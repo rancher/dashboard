@@ -5,9 +5,6 @@ import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { get, clone } from '@/utils/object';
 
 export default {
-  displayNameOverride() {
-    return this.$rootGetters['i18n/t'](`typeLabel."${ HCI.VOLUME }"`, { count: 1 });
-  },
 
   applyDefaults() {
     return (_, realMode) => {
@@ -55,6 +52,10 @@ export default {
     detailLocation.name = 'c-cluster-product-resource';
 
     return detailLocation;
+  },
+
+  parentNameOverride() {
+    return this.$rootGetters['i18n/t'](`typeLabel."${ HCI.VOLUME }"`, { count: 1 }).trim();
   },
 
   parentLocationOverride() {
