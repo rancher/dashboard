@@ -3930,6 +3930,7 @@ harvester:
     tabs:
       network: 网络
       disk: 硬盘
+      labels: 标签
     detail:
       title:
         network: 网络配置

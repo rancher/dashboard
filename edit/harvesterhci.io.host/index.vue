@@ -1,4 +1,5 @@
 <script>
+import pickBy from 'lodash/pickBy';
 import { mapGetters } from 'vuex';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
@@ -15,8 +16,10 @@ import { HCI, LONGHORN } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { formatSi } from '@/utils/units';
 import { findBy, uniq } from '@/utils/array';
+import { matchesSomeRegex } from '@/utils/string';
 import { clone } from '@/utils/object';
 import { exceptionToErrorsArray } from '@/utils/error';
+import KeyValue from '@/components/form/KeyValue';
 import HarvesterDisk from './HarvesterDisk';
 
 export default {
@@ -32,6 +35,7 @@ export default {
     ArrayListGrouped,
     HarvesterDisk,
     ButtonDropdown,
+    KeyValue,
   },
   mixins: [CreateEditView],
   props:  {
@@ -293,7 +297,22 @@ export default {
       }
 
       scope.remove();
-    }
+    },
+
+    updateHostLabels(val) {
+      const reg = /(k3s|kubernetes|kubevirt|harvesterhci|k3os)+\.io/;
+      const all = this.value.metadata.labels || {};
+      const wasFiltered = pickBy(all, (value, key) => {
+        return reg.test(key);
+      });
+      const wasIgnored = pickBy(all, (value, key) => {
+        return matchesSomeRegex(key, this.value.labelsToIgnoreRegexes);
+      });
+
+      this.$set(this.value.metadata, 'labels', {
+        ...wasIgnored, ...wasFiltered, ...val
+      });
+    },
   },
 };
 </script>
@@ -392,6 +411,18 @@ export default {
             <span v-else />
           </template>
         </ArrayListGrouped>
+      </Tab>
+      <Tab name="labels" label-key="harvester.host.tabs.labels">
+        <KeyValue
+          key="labels"
+          :value="value.filteredSystemLabels"
+          :add-label="t('labels.addLabel')"
+          :mode="mode"
+          :title="t('labels.labels.title')"
+          :read-allowed="false"
+          :value-can-be-empty="true"
+          @input="updateHostLabels"
+        />
       </Tab>
     </Tabbed>
     <Footer :mode="mode" :errors="errors" @save="save" @done="done" />

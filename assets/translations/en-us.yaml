@@ -4848,6 +4848,7 @@ harvester:
       instance: Virtual Machines
       monitor: Monitor Data
       disk: Disks
+      labels: Labels
     detail:
       title:
         network: Network Configuration
