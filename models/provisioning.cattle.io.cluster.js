@@ -1,7 +1,7 @@
 import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
 import { proxyFor } from '@/plugins/steve/resource-proxy';
 import { findBy, insertAt } from '@/utils/array';
-import { set } from '@/utils/object';
+import { set, get } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { compare } from '@/utils/version';
@@ -569,5 +569,45 @@ export default {
 
   canClone() {
     return false;
+  },
+
+  remove() {
+    return async(opt = {}) => {
+      if ( !opt.url ) {
+        opt.url = (this.links || {})['self'];
+      }
+
+      opt.method = 'delete';
+
+      const res = await this.$dispatch('request', opt);
+
+      const pool = (this.spec?.rkeConfig?.machinePools || [])[0];
+
+      if (pool?.machineConfigRef?.kind === 'HarvesterConfig') {
+        const cloudCredentialSecretName = this.spec.cloudCredentialSecretName;
+
+        await this.$dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL }, { root: true });
+
+        const credential = this.$rootGetters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, cloudCredentialSecretName);
+
+        if (credential) {
+          const harvesterClusterId = get(credential, 'decodedData.clusterId');
+
+          const poolConfig = await this.$dispatch('management/find', {
+            type: `${ CAPI.MACHINE_CONFIG_GROUP }.${ (pool?.machineConfigRef?.kind || '').toLowerCase() }`,
+            id:   `${ this.metadata.namespace }/${ pool?.machineConfigRef?.name }`,
+          }, { root: true });
+
+          await this.$dispatch('management/request', {
+            url:                  `/k8s/clusters/${ harvesterClusterId }/v1/harvester/serviceaccounts/${ poolConfig.vmNamespace }/${ this.metadata.name }`,
+            method:               'DELETE',
+          }, { root: true });
+        }
+      }
+
+      if ( res?._status === 204 ) {
+        await this.$dispatch('ws.resource.remove', { data: this });
+      }
+    };
   },
 };

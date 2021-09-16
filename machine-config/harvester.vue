@@ -47,10 +47,10 @@ export default {
 
     try {
       this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.credentialId });
-      const clusterId = get(this.credential, `metadata.annotations."${ HCI_ANNOTATIONS.CLUSTER_ID }"`);
+      const clusterId = get(this.credential, 'decodedData.clusterId');
 
       const url = `/k8s/clusters/${ clusterId }/v1`;
-      const isImportCluster = this.credential.decodedData.clusterType === 'import';
+      const isImportCluster = this.credential.decodedData.clusterType === 'imported';
 
       this.isImportCluster = isImportCluster;
 

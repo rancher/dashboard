@@ -12,7 +12,9 @@ import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
 import { findBy, removeObject, clear } from '@/utils/array';
-import { clone, diff, isEmpty, set } from '@/utils/object';
+import {
+  clone, diff, isEmpty, set, get
+} from '@/utils/object';
 import { allHash } from '@/utils/promise';
 import { sortBy } from '@/utils/sort';
 import { camelToTitle, nlToBr } from '@/utils/string';
@@ -56,6 +58,8 @@ import SelectCredential from './SelectCredential';
 const PUBLIC = 'public';
 const PRIVATE = 'private';
 const ADVANCED = 'advanced';
+
+const HARVESTER = 'harvester';
 
 export default {
   components: {
@@ -143,13 +147,20 @@ export default {
     }
 
     if ( this.value.spec.cloudCredentialSecretName ) {
+      await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
       this.credentialId = `${ this.value.spec.cloudCredentialSecretName }`;
     }
 
     if ( !this.value.spec.kubernetesVersion ) {
       const option = this.versionOptions.find(x => !!x.value);
+      const rke2 = this.filterAndMap(this.rke2Versions, null);
+      const showRke2 = rke2.length;
 
-      set(this.value.spec, 'kubernetesVersion', option.value);
+      if (this.isHarvesterDriver && showRke2) {
+        this.setHarvesterK8sDefaultVersion();
+      } else {
+        set(this.value.spec, 'kubernetesVersion', option.value);
+      }
     }
 
     for ( const k in this.serverArgs ) {
@@ -198,6 +209,10 @@ export default {
 
     if ( this.value.spec.defaultPodSecurityPolicyTemplateName === undefined ) {
       set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+    }
+
+    if (this.isHarvesterDriver && this.mode === _CREATE) {
+      this.agentConfig['cloud-provider-name'] = HARVESTER;
     }
 
     await this.initAddons();
@@ -447,7 +462,7 @@ export default {
       const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
 
       for ( const opt of this.agentArgs['cloud-provider-name'].options ) {
-        if ( !preferred || opt === preferred || opt === 'external' ) {
+        if ( (!preferred && opt !== HARVESTER) || opt === preferred || opt === 'external' || preferred === HARVESTER) {
           out.push({
             label: this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ opt }".label`, null, opt),
             value: opt,
@@ -632,6 +647,7 @@ export default {
       case 'none': return false;
       case 'aws': return false;
       case 'rancher-vsphere': return false;
+      case HARVESTER: return false;
       default: return true;
       }
     },
@@ -686,7 +702,11 @@ export default {
 
     canManageMembers() {
       return canViewClusterMembershipEditor(this.$store);
-    }
+    },
+
+    isHarvesterDriver() {
+      return this.$route.query.type === HARVESTER;
+    },
   },
 
   watch: {
@@ -933,10 +953,31 @@ export default {
         }
       }
 
+      if (!this.value.metadata.name && this.agentConfig['cloud-provider-name'] === HARVESTER) {
+        this.errors.push(this.t('validation.required', { key: this.t('cluster.name.label') }, true));
+      }
+
       if (this.errors.length) {
         btnCb(false);
 
         return;
+      }
+
+      if (this.agentConfig['cloud-provider-name'] === HARVESTER) {
+        const namespace = this.machinePools?.[0]?.config?.vmNamespace;
+        const clusterId = get(this.credential, 'decodedData.clusterId') || '';
+
+        const res = await this.$store.dispatch('management/request', {
+          url:                  `/k8s/clusters/${ clusterId }/v1/harvester/kubeconfig`,
+          method:               'POST',
+          data:                 {
+            clusterRoleName:    'harvesterhci.io:cloudprovider',
+            namespace,
+            serviceAccountName: this.value.metadata.name,
+          },
+        });
+
+        set(this.agentConfig, 'cloud-provider-config', res.data);
       }
 
       await this.save(btnCb);
@@ -1131,6 +1172,46 @@ export default {
       } else {
         set(this.rkeConfig.registries, 'configs', {});
         set(this.rkeConfig.registries, 'mirrors', {});
+      }
+    },
+
+    filterAndMap(versions, minVersion) {
+      const out = (versions || []).filter(obj => !!obj.serverArgs).map((obj) => {
+        let disabled = false;
+
+        if ( minVersion ) {
+          disabled = compare(obj.id, minVersion) < 0;
+        }
+
+        return {
+          label:      obj.id,
+          value:      obj.id,
+          sort:       sortable(obj.id),
+          serverArgs: obj.serverArgs,
+          agentArgs:  obj.agentArgs,
+          charts:     obj.charts,
+          disabled,
+        };
+      });
+
+      return sortBy(out, 'sort:desc');
+    },
+
+    setHarvesterK8sDefaultVersion() {
+      const rke2 = this.filterAndMap(this.rke2Versions, null);
+
+      const satisfiesVersion = rke2.filter((v) => {
+        const rkeVersion = v.value.replace(/.+rke2r/i, '');
+
+        return semver.satisfies(semver.coerce(v.value), '>=v1.21.4+rke2r4') && Number(rkeVersion) >= 4;
+      }) || [];
+
+      if (satisfiesVersion.length > 0) {
+        set(this.value.spec, 'kubernetesVersion', satisfiesVersion[0]?.value);
+      } else {
+        const option = this.versionOptions.find(x => !!x.value);
+
+        set(this.value.spec, 'kubernetesVersion', option.value);
       }
     },
   },
