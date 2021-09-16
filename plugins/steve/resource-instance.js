@@ -297,7 +297,7 @@ export default {
   },
 
   description() {
-    return this.metadata?.annotations?.[DESCRIPTION] || this.spec?.description;
+    return this.metadata?.annotations?.[DESCRIPTION] || this.spec?.description || this._description;
   },
 
   labels() {
