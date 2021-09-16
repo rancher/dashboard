@@ -53,17 +53,13 @@ export default {
 
     showClusterSearch() {
       return this.clusters.length > this.maxClustersToShow;
-      const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      const kubeClusters = filterOnlyKubernetesClusters(all);
-
-      return kubeClusters.length > this.maxClustersToShow;
     },
 
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
       const kubeClusters = filterOnlyKubernetesClusters(all);
 
-      let out = kubeClusters.map((x) => {
+      return kubeClusters.map((x) => {
         return {
           id:      x.id,
           label:   x.nameDisplay,
