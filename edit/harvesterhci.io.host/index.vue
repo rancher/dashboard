@@ -104,11 +104,13 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
     nicsOptions() {
       return this.nics.map( (N) => {
-        const isRecommended = N.usedByManagementNetwork ? this.$store.getters['i18n/t']('harvester.host.detail.notRecommended') : '';
+        const isRecommended = N.usedByManagementNetwork ? `(${ this.$store.getters['i18n/t']('harvester.host.detail.notRecommended') })` : '';
+
+        const label = `${ N.name }(${ N.state })   ${ isRecommended }`;
 
         return {
           value:                   N.name,
-          label:                   `${ N.name }    (${ isRecommended })`,
+          label,
           state:                   N.state,
           usedByManagementNetwork: N.usedByManagementNetwork,
         };
