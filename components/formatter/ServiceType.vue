@@ -18,14 +18,14 @@ export default {
   },
   data() {
     const { row } = this;
-    let cloned = this.value.toLowerCase().slice();
+    let cloned = this.value.toLowerCase();
 
     if (this.value === 'ClusterIP' && row?.spec?.clusterIP === 'None') {
       cloned = 'headless';
     }
 
     const match = DEFAULT_SERVICE_TYPES.find(s => s.id.toLowerCase() === cloned);
-    const translationLabel = match.label;
+    const translationLabel = match?.label;
     let translated;
 
     if (translationLabel && this.$store.getters['i18n/exists'](translationLabel)) {

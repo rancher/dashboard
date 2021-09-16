@@ -6,6 +6,7 @@ import { removeObject } from '@/utils/array';
 import Checkbox from '@/components/form/Checkbox';
 import $ from 'jquery';
 import throttle from 'lodash/throttle';
+import debounce from 'lodash/debounce';
 import THead from './THead';
 import filtering from './filtering';
 import selection from './selection';
@@ -33,8 +34,8 @@ export const COLUMN_BREAKPOINTS = {
 
 // Data Flow:
 // rows prop
-// -> filteredRows (filtering.js)
 // -> arrangedRows (sorting.js)
+// -> filteredRows (filtering.js)
 // -> pagedRows    (paging.js)
 // -> groupedRows  (grouping.js)
 
@@ -242,7 +243,17 @@ export default {
   },
 
   data() {
-    return { expanded: {} };
+    return {
+      expanded:            {},
+      searchQuery:         '',
+      eventualSearchQuery: '',
+    };
+  },
+
+  watch: {
+    eventualSearchQuery: debounce(function(q) {
+      this.searchQuery = q;
+    }, 100),
   },
 
   computed: {
@@ -525,7 +536,7 @@ export default {
           <input
             v-if="search"
             ref="searchQuery"
-            v-model="searchQuery"
+            v-model="eventualSearchQuery"
             type="search"
             class="input-sm"
             :placeholder="t('sortableTable.search')"

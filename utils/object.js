@@ -43,10 +43,6 @@ export function set(obj, path, value) {
 }
 
 export function get(obj, path) {
-  if ( !path.includes('.') ) {
-    return obj?.[path];
-  }
-
   if ( path.startsWith('$') ) {
     try {
       return JSONPath({
@@ -60,6 +56,10 @@ export function get(obj, path) {
 
       return '(JSON Path err)';
     }
+  }
+
+  if ( !path.includes('.') ) {
+    return obj?.[path];
   }
 
   let parts;
