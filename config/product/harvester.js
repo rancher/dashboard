@@ -1,5 +1,5 @@
 import {
-  HCI, NODE, CONFIG_MAP, NAMESPACE, VIRTUAL_TYPES, MANAGEMENT, PVC
+  HCI, NODE, CONFIG_MAP, NAMESPACE, VIRTUAL_TYPES, MANAGEMENT, PVC, CAPI
 } from '@/config/types';
 import {
   STATE, NAME_UNLINKED, NAME as NAME_COL, AGE, NAMESPACE_COL,
@@ -7,7 +7,7 @@ import {
 
 import { IMAGE_DOWNLOAD_SIZE, FINGERPRINT, IMAGE_PROGRESS } from '@/config/harvester-table-headers';
 
-import { DSL } from '@/store/type-map';
+import { DSL, IF_HAVE } from '@/store/type-map';
 
 export const NAME = 'harvester';
 
@@ -61,6 +61,7 @@ export function init(store) {
 
   configureType(HCI.HOST, { isCreatable: false, isEditable: true });
   basicType([HCI.HOST]);
+
   virtualType({
     ifHaveType:    NODE,
     label:         store.getters['i18n/t']('harvester.host.label'),
@@ -80,9 +81,7 @@ export function init(store) {
     'cluster-members',
   ], 'rbac');
   virtualType({
-    showMenuFun(state, getters, rootState, rootGetters) {
-      return rootGetters['isMultiCluster'];
-    },
+    ifHave:     IF_HAVE.MULTI_CLUSTER,
     label:       store.getters['i18n/t']('members.clusterMembers'),
     group:      'root',
     namespaced:  false,
@@ -150,9 +149,7 @@ export function init(store) {
 
   basicType(['projects-namespaces']);
   virtualType({
-    showMenuFun(state, getters, rootState, rootGetters) {
-      return rootGetters['isMultiCluster'];
-    },
+    ifHave:     IF_HAVE.MULTI_CLUSTER,
     label:            'Projects/Namespaces',
     group:            'root',
     namespaced:       true,
@@ -166,9 +163,7 @@ export function init(store) {
   headers(NAMESPACE, [STATE, NAME_UNLINKED, AGE]);
   basicType([NAMESPACE]);
   virtualType({
-    showMenuFun(state, getters, rootState, rootGetters) {
-      return rootGetters['isSingleVirtualCluster'];
-    },
+    ifHave:     IF_HAVE.HARVESTER_SINGLE_CLUSTER,
     label:                  store.getters['i18n/t'](`typeLabel.${ NAMESPACE }`, { count: 2 }),
     name:                   NAMESPACE,
     namespaced:             true,
@@ -265,21 +260,13 @@ export function init(store) {
   // settings
   configureType(HCI.SETTING, { isCreatable: false });
   virtualType({
-    showMenuFun(state, getters, rootState, rootGetters, out) {
-      const schema = rootGetters['harvester/schemaFor'](HCI.SETTING);
-
-      if (schema?.collectionMethods.find(x => x.toLowerCase() === 'post')) {
-        return true;
-      }
-      // TODO: use cb
-      delete out[HCI.SETTING];
-
-      return false;
-    },
+    ifHaveType:          HCI.SETTING,
+    ifHaveVerb:          'POST',
     label:      store.getters['i18n/t']('harvester.setting.label'),
     name:       HCI.SETTING,
     namespaced: true,
     weight:     -1,
+    icon:       'folder',
     route:      {
       name:     'c-cluster-product-resource',
       params:   { resource: HCI.SETTING }

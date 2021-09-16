@@ -27,6 +27,7 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
+    ifHaveType:          CAPI.RANCHER_CLUSTER,
     ifFeature:           MULTI_CLUSTER,
     inStore:             'management',
     icon:                'harvester',

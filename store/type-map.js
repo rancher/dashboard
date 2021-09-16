@@ -112,7 +112,7 @@ import { AGE, NAME, NAMESPACE, STATE } from '@/config/table-headers';
 import { COUNT, SCHEMA, MANAGEMENT } from '@/config/types';
 import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import {
-  addObject, findBy, insertAt, isArray, removeObject
+  addObject, findBy, insertAt, isArray, removeObject, filterBy
 } from '@/utils/array';
 import { clone, get } from '@/utils/object';
 import {
@@ -145,11 +145,13 @@ export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 const instanceMethods = {};
 
 export const IF_HAVE = {
-  V1_MONITORING: 'v1-monitoring',
-  V2_MONITORING: 'v2-monitoring',
-  PROJECT:       'project',
-  NO_PROJECT:    'no-project',
-  NOT_V1_ISTIO:  'not-v1-istio',
+  V1_MONITORING:            'v1-monitoring',
+  V2_MONITORING:            'v2-monitoring',
+  PROJECT:                  'project',
+  NO_PROJECT:               'no-project',
+  NOT_V1_ISTIO:             'not-v1-istio',
+  MULTI_CLUSTER:            'multi-cluster',
+  HARVESTER_SINGLE_CLUSTER: 'harv-multi-cluster',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -777,6 +779,12 @@ export const getters = {
           const id = item.name;
           const weight = type.weight || getters.typeWeightFor(item.label, isBasic);
 
+          // Is there a virtual/spoofed type override for schema type?
+          // Currently used by harvester, this should be investigated and removed if possible
+          if (out[id]) {
+            delete out[id];
+          }
+
           if ( item['public'] === false && !isDev ) {
             continue;
           }
@@ -789,7 +797,13 @@ export const getters = {
             const targetedSchemas = typeof item.ifHaveType === 'string' ? schemas : rootGetters[`${ item.ifHaveType.store }/all`](SCHEMA);
             const type = typeof item.ifHaveType === 'string' ? item.ifHaveType : item.ifHaveType?.type;
 
-            if (!findBy(targetedSchemas, 'id', normalizeType(type))) {
+            const haveIds = filterBy(targetedSchemas, 'id', normalizeType(type)).map(s => s.id);
+
+            if (!haveIds.length) {
+              continue;
+            }
+
+            if (item.ifHaveVerb && !ifHaveVerb(rootGetters, module, item.ifHaveVerb, haveIds)) {
               continue;
             }
           }
@@ -805,10 +819,6 @@ export const getters = {
           }
 
           if ( typeof item.ifRancherCluster !== 'undefined' && item.ifRancherCluster !== rootGetters.isRancher ) {
-            continue;
-          }
-
-          if (item.showMenuFun && typeof item.showMenuFun === 'function' && !item.showMenuFun(state, getters, rootState, rootGetters, out)) {
             continue;
           }
 
@@ -1190,22 +1200,8 @@ export const getters = {
           return false;
         }
 
-        if ( p.ifHaveVerb ) {
-          let found = false;
-
-          for ( const haveId of haveIds ) {
-            const schema = rootGetters[`${ module }/schemaFor`](haveId);
-            const want = p.ifHaveVerb.toLowerCase();
-            const have = [...schema.collectionMethods, ...schema.resourceMethods].map(x => x.toLowerCase());
-
-            if ( have.includes(want) || have.includes(`blocked-${ want }`) ) {
-              found = true;
-            }
-          }
-
-          if ( !found ) {
-            return false;
-          }
+        if ( p.ifHaveVerb && !ifHaveVerb(rootGetters, module, p.ifHaveVerb, haveIds)) {
+          return false;
         }
       }
 
@@ -1605,6 +1601,12 @@ function ifHave(getters, option) {
   case IF_HAVE.NOT_V1_ISTIO: {
     return !isV1Istio(getters);
   }
+  case IF_HAVE.MULTI_CLUSTER: {
+    return getters.isMultiCluster;
+  }
+  case IF_HAVE.HARVESTER_SINGLE_CLUSTER: {
+    return getters.isSingleVirtualCluster;
+  }
   default:
     return false;
   }
@@ -1615,6 +1617,20 @@ function isV1Istio(getters) {
   const cluster = getters['currentCluster'];
 
   return !!cluster?.status?.istioEnabled;
+}
+
+function ifHaveVerb(rootGetters, module, verb, haveIds) {
+  for ( const haveId of haveIds ) {
+    const schema = rootGetters[`${ module }/schemaFor`](haveId);
+    const want = verb.toLowerCase();
+    const have = [...schema.collectionMethods, ...schema.resourceMethods].map(x => x.toLowerCase());
+
+    if ( !have.includes(want) && !have.includes(`blocked-${ want }`) ) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 // Look at the namespace filters to determine if a project is selected
