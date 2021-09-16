@@ -1,5 +1,5 @@
 import {
-  HCI, NODE, CONFIG_MAP, NAMESPACE, VIRTUAL_TYPES, MANAGEMENT, PVC, CAPI
+  HCI, NODE, CONFIG_MAP, NAMESPACE, VIRTUAL_TYPES, MANAGEMENT, PVC
 } from '@/config/types';
 import {
   STATE, NAME_UNLINKED, NAME as NAME_COL, AGE, NAMESPACE_COL,
@@ -55,8 +55,9 @@ export function init(store) {
       name:    'c-cluster-product-resource',
       params:  { resource: HCI.HOST },
     },
-    resource:          NODE,
-    useCustomInImport: true
+    resource:       NODE,
+    resourceDetail: HCI.HOST,
+    resourceEdit:   HCI.HOST,
   });
 
   configureType(HCI.HOST, { isCreatable: false, isEditable: true });
@@ -115,8 +116,9 @@ export function init(store) {
       name:    'c-cluster-product-resource',
       params:  { resource: HCI.VOLUME },
     },
-    resource:          PVC,
-    useCustomInImport: true
+    resource:       PVC,
+    resourceDetail: HCI.VOLUME,
+    resourceEdit:   HCI.VOLUME,
   });
   virtualType({
     label:      store.getters['i18n/t']('harvester.volume.label'),
@@ -242,8 +244,9 @@ export function init(store) {
       name:    'c-cluster-product-resource',
       params:  { resource: HCI.CLOUD_TEMPLATE },
     },
-    resource:          CONFIG_MAP,
-    useCustomInImport: true
+    resource:       CONFIG_MAP,
+    resourceDetail: HCI.CLOUD_TEMPLATE,
+    resourceEdit:   HCI.CLOUD_TEMPLATE,
   });
   virtualType({
     label:        store.getters['i18n/t']('harvester.cloudTemplate.label'),

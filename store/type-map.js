@@ -91,6 +91,9 @@
 //                               showState: true,  -- If false, hide state in columns and masthead
 //                               showAge: true,    -- If false, hide age in columns and masthead
 //                               canYaml: true,
+//                               resource: undefined       -- Use this resource in ResourceDetails instead
+//                               resourceDetail: undefined -- Use this resource specifically for ResourceDetail's detail component
+//                               resourceEdit: undefined   -- Use this resource specifically for ResourceDetail's edit component
 //                           }
 // )
 // ignoreGroup(group):        Never show group or any types in it
