@@ -9,7 +9,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import { PVC } from '@/config/types';
 
 export default {
-  name:       'Volume',
+  name:       'HarvesterEditVolume',
   components: {
     Banner, InputOrDisplay, Loading, LabeledInput, LabeledSelect, UnitInput,
   },

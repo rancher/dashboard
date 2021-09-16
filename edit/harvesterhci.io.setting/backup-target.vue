@@ -6,7 +6,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 
 export default {
-  name: 'HarvesterBackupTarget',
+  name: 'HarvesterEditBackupTarget',
 
   components: {
     LabeledInput, LabeledSelect, Tip, Password

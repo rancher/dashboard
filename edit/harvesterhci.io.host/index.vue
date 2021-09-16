@@ -20,7 +20,7 @@ import { exceptionToErrorsArray } from '@/utils/error';
 import HarvesterDisk from './HarvesterDisk';
 
 export default {
-  name:       'EditNode',
+  name:       'HarvesterEditNode',
   components: {
     Footer,
     Tabbed,

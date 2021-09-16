@@ -7,7 +7,7 @@ import InputOrDisplay from '@/components/InputOrDisplay';
 import { HCI, PVC } from '@/config/types';
 
 export default {
-  name: 'VMImage',
+  name: 'HarvesterEditVMImage',
 
   components: {
     Banner, UnitInput, LabeledInput, LabeledSelect, InputOrDisplay

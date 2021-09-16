@@ -4,7 +4,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import InputOrDisplay from '@/components/InputOrDisplay';
 
 export default {
-  name:       'Container',
+  name:       'HarvesterEditContainer',
   components: {
     LabeledInput, LabeledSelect, InputOrDisplay
   },

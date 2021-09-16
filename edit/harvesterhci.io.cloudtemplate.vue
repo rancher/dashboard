@@ -10,7 +10,7 @@ import CreateEditView from '@/mixins/create-edit-view';
 import { HCI } from '@/config/labels-annotations';
 
 export default {
-  name: 'EditCloudTemplate',
+  name: 'HarvesterEditCloudTemplate',
 
   components: {
     Tab,

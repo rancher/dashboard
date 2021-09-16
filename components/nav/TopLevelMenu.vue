@@ -392,7 +392,7 @@ export default {
 
 <style lang="scss" scoped>
   $clear-search-size: 20px;
-  $icon-size: 24px;
+  $icon-size: 25px;
   $option-padding: 4px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
@@ -414,6 +414,7 @@ export default {
     }
 
     > i {
+      width: $icon-size;
       font-size: $icon-size;
       margin-right: 8px;
     }

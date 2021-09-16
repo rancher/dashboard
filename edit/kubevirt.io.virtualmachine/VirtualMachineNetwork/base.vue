@@ -29,7 +29,7 @@ export const MODEL = [{
 }];
 
 export default {
-  name:       'Network',
+  name:       'HarvesterEditNetwork',
   components: {
     LabeledInput, LabeledSelect, InputOrDisplay
   },

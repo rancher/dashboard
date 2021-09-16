@@ -21,7 +21,7 @@ import VM_MIXIN from '@/mixins/harvester-vm';
 import CreateEditView from '@/mixins/create-edit-view';
 
 export default {
-  name: 'EditVMTemplate',
+  name: 'HarvesterEditVMTemplate',
 
   components: {
     Tab,

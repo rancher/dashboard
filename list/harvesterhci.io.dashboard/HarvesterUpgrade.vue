@@ -8,7 +8,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import Banner from '@/components/Banner';
 
 export default {
-  name: 'HarvesterUpgrade',
+  name: 'HarvesterListUpgrade',
 
   components: {
     ModalWithCard, LabeledSelect, Banner

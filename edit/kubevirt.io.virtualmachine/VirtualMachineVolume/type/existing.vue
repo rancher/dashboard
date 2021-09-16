@@ -10,7 +10,7 @@ import { HCI, PVC } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 export default {
-  name:       'Existing',
+  name:       'HarvesterEditExisting',
   components: {
     Banner, UnitInput, LabeledInput, LabeledSelect, InputOrDisplay
   },

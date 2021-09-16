@@ -16,7 +16,7 @@ import CreateEditView from '@/mixins/create-edit-view';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 export default {
-  name: 'Volume',
+  name: 'HarvesterVolume',
 
   components: {
     Tab,

@@ -10,7 +10,7 @@ import { randomStr } from '@/utils/string';
 import CreateEditView from '@/mixins/create-edit-view';
 
 export default {
-  name: 'EditSSH',
+  name: 'HarvesterEditKeypair',
 
   components: {
     Tab,
