@@ -34,14 +34,14 @@ export default {
       let key;
 
       if ( this.sortGenerationFn ) {
-        key = `${ this.sortGenerationFn.apply(this) }/${ this.filteredRows.length }/${ this.descending }/${ this.sortFields.join(',') }`;
+        key = `${ this.sortGenerationFn.apply(this) }/${ this.rows.length }/${ this.descending }/${ this.sortFields.join(',') }`;
 
         if ( this.cacheKey === key ) {
           return this.cachedRows;
         }
       }
 
-      const out = sortBy(this.filteredRows, this.sortFields, this.descending);
+      const out = sortBy(this.rows, this.sortFields, this.descending);
 
       if ( key ) {
         this.cacheKey = key;
