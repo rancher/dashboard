@@ -534,6 +534,10 @@ asyncButton:
     action: Restore
     waiting: Restoring&hellip;
     success: Restored
+  rollback:
+    action: Roll Back
+    success: Rolled Back
+    waiting: Rolling Back Workload
   rotate:
     action: Rotate
     waiting: Rotating&hellip;
@@ -1414,7 +1418,6 @@ cluster:
   toggle:
     v1: RKE1
     v2: RKE2/K3s
-
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -3151,6 +3154,17 @@ promptRestore:
   name: Name
   date: Date
   fromS3: Restore from S3
+
+promptRollback:
+  modalTitle: Roll Back {workloadName}
+  dropdownTitle: Roll Back to Revision
+  placeholder: Choose a Revision...
+  attemptingToRollBack: Attempting to roll back workload...
+  differences: Differences
+  revisionOption: "Revision {revisionNumber}, created {revisionAge} {units} ago {currentLabel}"
+  currentLabel: "(Current)"
+  multipleWorkloadError: "Only one workload can be rolled back at a time."
+  singleRevisionBanner: There are no revisions to roll back to.
 
 promptSaveAsRKETemplate:
   title: Convert {cluster} to new RKE Template

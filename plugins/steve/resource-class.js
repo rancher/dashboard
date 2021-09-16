@@ -733,18 +733,18 @@ export class Resource {
 
   // ------------------------------------------------------------------
 
-  // patch(data, opt = {}) {
-  //     if ( !opt.url ) {
-  //       opt.url = this.linkFor('self');
-  //     }
+  patch(data, opt = {}) {
+    if ( !opt.url ) {
+      opt.url = this.linkFor('self');
+    }
 
-  //     opt.method = 'patch';
-  //     opt.headers = opt.headers || {};
-  //     opt.headers['content-type'] = 'application/json-patch+json';
-  //     opt.data = data;
+    opt.method = 'patch';
+    opt.headers = opt.headers || {};
+    opt.headers['content-type'] = 'application/json-patch+json';
+    opt.data = data;
 
-  //     return this.$dispatch('request', opt);
-  // }
+    return this.$dispatch('request', opt);
+  }
 
   save() {
     return this._save(...arguments);
