@@ -130,8 +130,8 @@ export default {
         </button>
 
         <AsyncButton
-          mode="create"
-          :disabled="!backupName"
+          mode="apply"
+          :disabled="!nodeName"
           @click="apply"
         />
       </div>
