@@ -278,6 +278,20 @@ this.$store.getters['i18n/exists']('<path to localisation>')
 this.$store.getters['i18n/withFallback']('<path to localisation>', null, '<fallback>'))
 ```
 
+#### Using Variables in i18n Paths
+
+In Javascript files, variables in localisation paths must be wrapped in quotation marks when the variable contains a slash.
+
+For example, if we want to dynamically fill in the description of a resource based on its type, we can use a `type` variable when referencing the localisation path to the description:
+
+```
+{
+  description: this.t(`secret.typeDescriptions.'${ type }'.description`),
+}
+```
+
+In this case, the quotation marks are required because some Secret types, such as `kubernetes.io/basic-auth`, include a slash.
+
 ### i10n 
 
 Localisation files can be found in `./assets/translations/en-us.yaml`.
