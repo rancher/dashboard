@@ -1,4 +1,4 @@
-import { COUNT, FLEET } from '@/config/types';
+import { COUNT, FLEET, NORMAN } from '@/config/types';
 import { filterBy } from '@/utils/array';
 
 export default {
@@ -32,4 +32,37 @@ export default {
 
     return forWorkspace;
   },
+
+  basicNorman() {
+    if (this.id) {
+      return this.$dispatch(`rancher/find`, { id: this.id, type: NORMAN.FLEET_WORKSPACES }, { root: true });
+    }
+
+    return this.$dispatch(`rancher/create`, { type: NORMAN.FLEET_WORKSPACES, name: this.metadata.name }, { root: true });
+  },
+
+  async norman() {
+    const norman = await this.basicNorman;
+
+    norman.annotations = this.metadata.annotations;
+    norman.labels = this.metadata.labels;
+
+    return norman;
+  },
+
+  save() {
+    return async() => {
+      const norman = await this.norman;
+
+      return norman.save();
+    };
+  },
+
+  remove() {
+    return async() => {
+      const norman = await this.norman;
+
+      await norman.remove();
+    };
+  }
 };

@@ -6,6 +6,8 @@ import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import { MANAGEMENT } from '@/config/types';
 import { _VIEW } from '@/config/query-params';
+import { NORMAN } from '@/config/types';
+import { FLEET } from '@/config/labels-annotations';
 
 export default {
   name: 'CruFleetCluster',
@@ -31,6 +33,17 @@ export default {
       type: MANAGEMENT.CLUSTER,
       id:   this.$route.params.id
     });
+    const norman = await this.$store.dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.value.metadata.labels[FLEET.CLUSTER_NAME] });
+    const nc = await this.$store.dispatch(`rancher/clone`, { resource: norman });
+
+    if ( !nc.metadata ) {
+      nc.metadata = {};
+    }
+
+    nc.metadata.labels = nc._labels || {};
+    nc.metadata.annotations = nc._annotations || {};
+
+    this.normanCluster = nc;
   },
 
   data() {

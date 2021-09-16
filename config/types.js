@@ -14,6 +14,7 @@ export const NORMAN = {
   CLUSTER_TOKEN:                 'clusterregistrationtoken',
   CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterRoleTemplateBinding',
   CLOUD_CREDENTIAL:              'cloudcredential',
+  FLEET_WORKSPACES:              'fleetworkspace',
   GLOBAL_ROLE:                   'globalRole',
   GLOBAL_ROLE_BINDING:           'globalRoleBinding',
 
