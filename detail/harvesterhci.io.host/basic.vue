@@ -37,7 +37,7 @@ export default {
       default:  'view'
     },
 
-    hostNetowrkResource: {
+    hostNetworkResource: {
       type:     Object,
       required: false,
       default:  () => {
@@ -167,15 +167,15 @@ export default {
     },
 
     networkType() {
-      return this.hostNetowrkResource?.spec?.type;
+      return this.hostNetworkResource?.spec?.type;
     },
 
     nic() {
-      return this.hostNetowrkResource?.spec?.nic;
+      return this.hostNetworkResource?.spec?.nic;
     },
 
     networkMessage() {
-      return this.hostNetowrkResource?.message;
+      return this.hostNetworkResource?.message;
     }
   },
 

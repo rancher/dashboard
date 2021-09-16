@@ -4,7 +4,7 @@ import { METRIC } from '@/config/types';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
 
 export default {
-  name:       'StorageUsed',
+  name:       'HarvesterMemoryUsed',
   components: { ConsumptionGauge },
 
   props:      {
@@ -28,28 +28,28 @@ export default {
       return this.$store.getters['harvester/byId'](METRIC.NODE, this.row.id);
     },
 
-    storageUsage() {
+    memoryTotal() {
       let out = 0;
 
       if (this.metrics) {
-        out = this.metrics.storageUsage;
+        out = this.metrics.memoryCapacity;
       }
 
       return out;
     },
 
-    storageTotal() {
+    memoryUsage() {
       let out = 0;
 
       if (this.metrics) {
-        out = this.metrics.storageTotal;
+        out = this.metrics.memoryUsage;
       }
 
       return out;
     },
 
-    storageUnits() {
-      const exponent = exponentNeeded(this.storageTotal, 1024);
+    memoryUnits() {
+      const exponent = exponentNeeded(this.memoryTotal, 1024);
 
       return `${ UNITS[exponent] }iB`;
     },
@@ -70,5 +70,5 @@ export default {
 </script>
 
 <template>
-  <ConsumptionGauge :capacity="storageTotal" :used="storageUsage" :units="storageUnits" :number-formatter="memoryFormatter" />
+  <ConsumptionGauge :capacity="memoryTotal" :used="memoryUsage" :units="memoryUnits" :number-formatter="memoryFormatter" />
 </template>

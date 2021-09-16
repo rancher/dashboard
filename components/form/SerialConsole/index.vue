@@ -141,11 +141,7 @@ export default {
     },
 
     getSocketUrl() {
-      const isDev = process.env.dev;
-
-      const ip = !isDev ? `` : `wss://${ process.env.api.split('//')[1] }`;
-
-      return `${ ip }${ this.value?.getSerialConsolePath }`;
+      return `${ this.value?.getSerialConsolePath }`;
     },
 
     async connect() {

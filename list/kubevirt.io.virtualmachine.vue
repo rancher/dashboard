@@ -1,5 +1,5 @@
 <script>
-import VmState from '@/components/formatter/vmState';
+import HarvesterVmState from '@/components/formatter/HarvesterVmState';
 import ConsoleBar from '@/components/VMConsoleBar';
 import ResourceTable from '@/components/ResourceTable';
 import LinkDetail from '@/components/formatter/LinkDetail';
@@ -14,7 +14,7 @@ export default {
   name:       'ListVM',
   components: {
     Loading,
-    VmState,
+    HarvesterVmState,
     LinkDetail,
     ConsoleBar,
     ResourceTable
@@ -91,7 +91,7 @@ export default {
           name:      'ip',
           label:     'IP Address',
           value:     'id',
-          formatter: 'ipAddress',
+          formatter: 'HarvesterIpAddress',
           labelKey:  'tableHeaders.ipAddress'
         },
         {
@@ -99,7 +99,7 @@ export default {
           label:     'Node',
           value:     'id',
           sort:      ['nameSort'],
-          formatter: 'nodeName',
+          formatter: 'HarvesterNodeName',
           labelKey:  'tableHeaders.node'
         },
         {
@@ -133,7 +133,7 @@ export default {
     >
       <template slot="cell:state" slot-scope="scope" class="state-col">
         <div class="state">
-          <VmState class="vmstate" :row="scope.row" :all-node-network="allNodeNetworks" :all-cluster-network="allClusterNetworks" />
+          <HarvesterVmState class="vmstate" :row="scope.row" :all-node-network="allNodeNetworks" :all-cluster-network="allClusterNetworks" />
         </div>
       </template>
 

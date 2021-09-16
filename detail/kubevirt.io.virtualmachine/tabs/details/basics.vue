@@ -1,5 +1,5 @@
 <script>
-import IPAddress from '@/components/formatter/ipAddress';
+import HarvesterIpAddress from '@/components/formatter/HarvesterIpAddress';
 import VMConsoleBar from '@/components/VMConsoleBar';
 import LabelValue from '@/components/LabelValue';
 import InputOrDisplay from '@/components/InputOrDisplay';
@@ -13,7 +13,7 @@ export default {
 
   components: {
     VMConsoleBar,
-    IPAddress,
+    HarvesterIpAddress,
     LabelValue,
     InputOrDisplay
   },
@@ -178,7 +178,7 @@ export default {
       <div class="col span-6">
         <LabelValue :name="t('harvester.virtualMachine.detail.details.ipAddress')">
           <template #value>
-            <IPAddress v-model="value.id" :row="value" />
+            <HarvesterIpAddress v-model="value.id" :row="value" />
           </template>
         </LabelValue>
       </div>

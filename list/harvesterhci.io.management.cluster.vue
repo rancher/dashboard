@@ -67,25 +67,41 @@ export default {
       :is-creatable="true"
       :namespaced="false"
     >
+      <template #col:name="{row}">
+        <td>
+          <span>
+            <n-link
+              v-if="row.isReady"
+              :to="{
+                name: `c-cluster-${VIRTUAL}`,
+                params: {
+                  cluster: row.status.clusterName,
+                }
+              }"
+            >
+              {{ row.nameDisplay }}
+            </n-link>
+            <span v-else>
+              {{ row.nameDisplay }}
+            </span>
+          </span>
+        </td>
+      </template>
+
       <template #cell:harvester="{row}">
         <n-link
           v-if="row.isReady"
           class="btn btn-sm role-primary"
-          :to="{
-            name: `c-cluster-${VIRTUAL}`,
-            params: {
-              cluster: row.status.clusterName,
-            }
-          }"
+          :to="row.detailLocation"
         >
-          Harvester
+          {{ t('harvester.virtualizationManagement.manage') }}
         </n-link>
         <button
           v-else
           :disabled="true"
           class="btn btn-sm role-primary"
         >
-          Harvester
+          {{ t('harvester.virtualizationManagement.manage') }}
         </button>
       </template>
     </ResourceTable>

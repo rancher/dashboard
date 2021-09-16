@@ -52,6 +52,10 @@ export default {
     ];
   },
 
+  confirmRemove() {
+    return true;
+  },
+
   filteredSystemLabels() {
     const reg = /(k3s|kubernetes|kubevirt|harvesterhci|k3os)+\.io/;
 

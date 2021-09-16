@@ -93,7 +93,15 @@ export const actions = {
           commit('setBundlePercentage', 0);
         }, 600);
 
-        window.location.href = `${ parse.origin }/v1/harvester/supportbundles/${ name }/download`;
+        if (rootGetters['isMultiVirtualCluster']) {
+          const clusterId = rootGetters['clusterId'];
+          const prefix = `/k8s/clusters/${ clusterId }`;
+
+          window.location.href = `${ parse.origin }${ prefix }/v1/harvester/supportbundles/${ name }/download`;
+        } else {
+          window.location.href = `${ parse.origin }/v1/harvester/supportbundles/${ name }/download`;
+        }
+
         clearInterval(timer);
       }
     }, 1000);

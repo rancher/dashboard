@@ -5,7 +5,7 @@ import { isEmpty } from '@/utils/object';
 import Parse from 'url-parse';
 
 export default {
-  name: 'PromptRemove',
+  name: 'HarvesterPromptRemove',
 
   props: {
     value: {

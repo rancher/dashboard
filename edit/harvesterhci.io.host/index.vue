@@ -50,13 +50,13 @@ export default {
     });
 
     const hostNetworks = hash.hostNetworks;
-    const hostNetowrkResource = hostNetworks.find( O => this.value.id === O.attachNodeName);
+    const hostNetworkResource = hostNetworks.find( O => this.value.id === O.attachNodeName);
 
-    if (hostNetowrkResource) {
-      this.hostNetowrkResource = hostNetowrkResource;
-      this.nic = hostNetowrkResource.spec?.nic;
-      this.type = hostNetowrkResource.spec?.type;
-      this.nics = hostNetowrkResource.nics;
+    if (hostNetworkResource) {
+      this.hostNetworkResource = hostNetworkResource;
+      this.nic = hostNetworkResource.spec?.nic;
+      this.type = hostNetworkResource.spec?.type;
+      this.nics = hostNetworkResource.nics;
     }
 
     const blockDevices = this.$store.getters[`${ inStore }/all`](HCI.BLOCK_DEVICE);
@@ -88,7 +88,7 @@ export default {
     const consoleUrl = this.value.metadata?.annotations?.[HCI_LABELS_ANNOTATIONS.HOST_CONSOLE_URL] || '';
 
     return {
-      hostNetowrkResource:  null,
+      hostNetworkResource:  null,
       customName,
       consoleUrl,
       type:                 'vlan',
@@ -204,12 +204,12 @@ export default {
 
   methods: {
     saveHostNetwork() {
-      if (this.hostNetowrkResource) {
-        this.hostNetowrkResource.save();
+      if (this.hostNetworkResource) {
+        this.hostNetworkResource.save();
       }
     },
     update() {
-      this.$set(this.hostNetowrkResource.spec, 'nic', this.nic);
+      this.$set(this.hostNetworkResource.spec, 'nic', this.nic);
     },
     addDisk(id) {
       const removedDisk = findBy(this.removedDisks, 'blockDevice.id', id);
@@ -337,13 +337,13 @@ export default {
                 :label="t('harvester.fields.PhysicalNic')"
                 class="mb-20"
                 :mode="mode"
-                :disabled="!hostNetowrkResource"
+                :disabled="!hostNetworkResource"
                 @input="update"
               >
                 <template v-slot:option="option">
                   <template>
                     <div class="nicOption">
-                      <span>{{ option.value }} </span><span>{{ option.state }}</span> <span class="pull-right">{{ option.usedByManagementNetwork ? t('harvester.host.detail.notRecommended') : '' }}</span>
+                      <span>{{ option.value }}({{ option.state }}) </span> <span class="pull-right">{{ option.usedByManagementNetwork ? t('harvester.host.detail.notRecommended') : '' }}</span>
                     </div>
                   </template>
                 </template>

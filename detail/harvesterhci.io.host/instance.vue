@@ -2,7 +2,7 @@
 import { STATE, AGE, NAME } from '@/config/table-headers';
 import SortableTable from '@/components/SortableTable';
 import Loading from '@/components/Loading';
-import VmState from '@/components/formatter/vmState';
+import HarvesterVmState from '@/components/formatter/HarvesterVmState';
 import { allHash } from '@/utils/promise';
 import { HCI } from '@/config/types';
 import { HOSTNAME } from '@/config/labels-annotations';
@@ -13,7 +13,7 @@ export default {
   components: {
     SortableTable,
     Loading,
-    VmState,
+    HarvesterVmState,
   },
 
   props: {
@@ -112,7 +112,7 @@ export default {
       >
         <template slot="cell:state" slot-scope="scope" class="state-col">
           <div class="state">
-            <VmState class="vmstate" :row="scope.row" :all-node-network="allNodeNetwork" :all-cluster-network="allClusterNetwork" />
+            <HarvesterVmState class="vmstate" :row="scope.row" :all-node-network="allNodeNetwork" :all-cluster-network="allClusterNetwork" />
           </div>
         </template>
       </Sortabletable>

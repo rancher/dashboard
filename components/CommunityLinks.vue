@@ -36,17 +36,11 @@ export default {
     ]),
 
     options() {
-      if (Object.keys(this.linkOptions).length > 0) {
-        return this.linkOptions;
-      }
-
-      const product = this.$store.getters['currentProduct'].name;
-
       if (this.communitySetting?.value === 'false') {
-        return options(this.uiIssuesSetting?.value, true, product);
+        return options(this.uiIssuesSetting?.value, true);
       }
 
-      return options( this.uiIssuesSetting?.value, false, product);
+      return options( this.uiIssuesSetting?.value);
     },
   },
   methods: {

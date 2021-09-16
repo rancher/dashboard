@@ -3960,6 +3960,10 @@ harvester:
       add: 添加硬盘
       path:
         label: 路径
+
+  virtualizationManagement:
+    manage: 管理
+
   virtualMachine:
     label: 虚拟机
     instance:

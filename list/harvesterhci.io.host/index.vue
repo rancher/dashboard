@@ -44,7 +44,7 @@ export default {
         {
           ...NAME,
           width:         300,
-          formatter:     'hostName',
+          formatter:     'HarvesterHostName',
         },
         {
           name:      'host-ip',
@@ -57,21 +57,21 @@ export default {
           labelKey:      'node.detail.glance.consumptionGauge.cpu',
           value:         'id',
           width:         230,
-          formatter:     'CPUUsed',
+          formatter:     'HarvesterCPUUsed',
         },
         {
           name:          'memory',
           labelKey:      'node.detail.glance.consumptionGauge.memory',
           value:         'id',
           width:         230,
-          formatter:     'MemoryUsed',
+          formatter:     'HarvesterMemoryUsed',
         },
         {
           name:          'storage',
           labelKey:      'tableHeaders.storage',
           value:         'id',
           width:         230,
-          formatter:     'StorageUsed',
+          formatter:     'HarvesterStorageUsed',
         },
         AGE,
       ];

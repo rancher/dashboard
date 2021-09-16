@@ -43,12 +43,12 @@ export default {
     };
 
     const res = await allHash(hash);
-    const hostNetowrkResource = res.hostNetworks.find( O => this.value.id === O.attachNodeName);
+    const hostNetworkResource = res.hostNetworks.find( O => this.value.id === O.attachNodeName);
 
     this.loadMetrics();
 
-    if (hostNetowrkResource) {
-      this.hostNetowrkResource = hostNetowrkResource;
+    if (hostNetworkResource) {
+      this.hostNetworkResource = hostNetworkResource;
     }
 
     const blockDevices = this.$store.getters[`${ inStore }/all`](HCI.BLOCK_DEVICE);
@@ -80,7 +80,7 @@ export default {
     return {
       metrics:             null,
       mode:                'view',
-      hostNetowrkResource: null,
+      hostNetworkResource: null,
       newDisks:            [],
       disks:               [],
     };
@@ -145,7 +145,7 @@ export default {
   <div>
     <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
       <Tab name="basics" :label="t('harvester.host.tabs.basics')" :weight="3" class="bordered-table">
-        <Basic v-model="value" :metrics="metrics" :mode="mode" :host-netowrk-resource="hostNetowrkResource" />
+        <Basic v-model="value" :metrics="metrics" :mode="mode" :host-netowrk-resource="hostNetworkResource" />
       </Tab>
       <Tab name="instance" :label="t('harvester.host.tabs.instance')" :weight="2" class="bordered-table">
         <Instance :node="value" />

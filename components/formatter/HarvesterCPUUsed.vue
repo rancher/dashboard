@@ -3,7 +3,7 @@ import ConsumptionGauge from '@/components/ConsumptionGauge';
 import { METRIC } from '@/config/types';
 
 export default {
-  name:       'CpuUsed',
+  name:       'HarvesterCpuUsed',
   components: { ConsumptionGauge },
 
   props:      {

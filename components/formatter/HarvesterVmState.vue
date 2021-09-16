@@ -1,9 +1,9 @@
 <script>
 import VMState from '@/components/formatter/BadgeStateFormatter';
-import MigrationState from '@/components/formatter/MigrationState';
+import HarvesterMigrationState from '@/components/formatter/HarvesterMigrationState';
 
 export default {
-  components: { VMState, MigrationState },
+  components: { VMState, HarvesterMigrationState },
   props:      {
     value: {
       type:     String,
@@ -81,7 +81,7 @@ export default {
 
 <template>
   <span>
-    <MigrationState v-show="isMigrating" :vm-resource="row" @state-changed="migrationStateChanged" />
+    <HarvesterMigrationState v-show="isMigrating" :vm-resource="row" @state-changed="migrationStateChanged" />
     <div v-show="!isMigrating" class="state">
       <VMState :row="row" />
       <v-popover
