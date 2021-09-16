@@ -1,11 +1,17 @@
 <script>
+import TypeDescription from '@/components/TypeDescription';
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
-import { CAPI } from '@/config/types';
+import { CAPI, HCI } from '@/config/types';
 
 export default {
-  components: { ResourceTable, Masthead },
+  components: {
+    ResourceTable,
+    Masthead,
+    TypeDescription
+  },
+
   props:      {
     schema: {
       type:     Object,
@@ -24,6 +30,7 @@ export default {
     return {
       VIRTUAL,
       resource,
+      hResource:  HCI.CLUSTER,
       realSchema: this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
     };
   },
@@ -59,6 +66,8 @@ export default {
       </template>
     </Masthead>
 
+    <TypeDescription :resource="hResource" />
+
     <ResourceTable
       :schema="schema"
       :rows="rows"
@@ -89,19 +98,11 @@ export default {
 
       <template #cell:harvester="{row}">
         <n-link
-          v-if="row.isReady"
           class="btn btn-sm role-primary"
           :to="row.detailLocation"
         >
           {{ t('harvester.virtualizationManagement.manage') }}
         </n-link>
-        <button
-          v-else
-          :disabled="true"
-          class="btn btn-sm role-primary"
-        >
-          {{ t('harvester.virtualizationManagement.manage') }}
-        </button>
       </template>
     </ResourceTable>
   </div>
