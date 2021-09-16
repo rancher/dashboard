@@ -11,7 +11,7 @@ import { findBy } from '@/utils/array';
 import { allHash } from '@/utils/promise';
 
 export default {
-  name:       'LNetworks',
+  name:       'HarvesterListNetworks',
   components: {
     ResourceTable, Banner, Loading, MessageLink
   },

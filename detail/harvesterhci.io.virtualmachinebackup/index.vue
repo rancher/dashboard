@@ -9,11 +9,11 @@ import { allHash } from '@/utils/promise';
 import CreateEditView from '@/mixins/create-edit-view';
 import { HCI } from '@/config/types';
 
-import OverviewKeypairs from '@/detail/kubevirt.io.virtualmachine/tabs/details/keypairs';
+import OverviewKeypairs from '@/detail/kubevirt.io.virtualmachine/VirtualMachineTabs/VirtualMachineKeypairs';
 import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
 import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
-import CloudConfig from '@/edit/kubevirt.io.virtualmachine/CloudConfig';
-import OverviewBasics from '@/detail/harvesterhci.io.virtualmachinebackup/basic';
+import CloudConfig from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
+import OverviewBasics from '@/detail/harvesterhci.io.virtualmachinebackup/VirtualmachineBackUpBasic';
 
 export default {
   name: 'BackupDetail',

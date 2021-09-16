@@ -12,11 +12,11 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import NameNsDescription from '@/components/form/NameNsDescription';
 
-import SSHKey from '@/edit/kubevirt.io.virtualmachine/SSHKey';
+import SSHKey from '@/edit/kubevirt.io.virtualmachine/VirtualMachineSSHKey';
 import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
 import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
-import CpuMemory from '@/edit/kubevirt.io.virtualmachine/CpuMemory';
-import CloudConfig from '@/edit/kubevirt.io.virtualmachine/CloudConfig';
+import CpuMemory from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCpuMemory';
+import CloudConfig from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
 import NodeScheduling from '@/components/form/NodeScheduling';
 
 import { clone } from '@/utils/object';

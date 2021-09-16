@@ -17,7 +17,7 @@ import { formatSi } from '@/utils/units';
 import { findBy, uniq } from '@/utils/array';
 import { clone } from '@/utils/object';
 import { exceptionToErrorsArray } from '@/utils/error';
-import Disk from './Disk';
+import HarvesterDisk from './HarvesterDisk';
 
 export default {
   name:       'EditNode',
@@ -30,7 +30,7 @@ export default {
     LabeledSelect,
     NameNsDescription,
     ArrayListGrouped,
-    Disk,
+    HarvesterDisk,
     ButtonDropdown,
   },
   mixins: [CreateEditView],
@@ -364,7 +364,7 @@ export default {
           :mode="mode"
         >
           <template #default="props">
-            <Disk
+            <HarvesterDisk
               v-model="props.row.value"
               class="mb-20"
               :mode="mode"

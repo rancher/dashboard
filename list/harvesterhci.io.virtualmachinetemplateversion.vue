@@ -8,7 +8,7 @@ import { allHash } from '@/utils/promise';
 import { STATE, AGE, NAME, NAMESPACE } from '@/config/table-headers';
 
 export default {
-  name:       'ListTemplate',
+  name:       'HarvesterListTemplate',
   components: {
     ResourceTable, LiveData, Loading
   },

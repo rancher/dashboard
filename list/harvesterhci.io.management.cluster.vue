@@ -5,7 +5,6 @@ import { NAME as VIRTUAL } from '@/config/product/harvester';
 import { CAPI } from '@/config/types';
 
 export default {
-
   components: { ResourceTable, Masthead },
   props:      {
     schema: {

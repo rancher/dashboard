@@ -17,7 +17,7 @@ const schema = {
 };
 
 export default {
-  name:       'ListVolume',
+  name:       'HarvesterListVolume',
   components: { Loading, ResourceTable },
 
   async fetch() {

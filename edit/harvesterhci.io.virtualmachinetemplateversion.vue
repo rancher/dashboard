@@ -7,9 +7,9 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 
 import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
 import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
-import CpuMemory from '@/edit/kubevirt.io.virtualmachine/CpuMemory';
-import CloudConfig from '@/edit/kubevirt.io.virtualmachine/CloudConfig';
-import SSHKey from '@/edit/kubevirt.io.virtualmachine/SSHKey';
+import CpuMemory from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCpuMemory';
+import CloudConfig from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
+import SSHKey from '@/edit/kubevirt.io.virtualmachine/VirtualMachineSSHKey';
 
 import { HCI } from '@/config/types';
 import { randomStr } from '@/utils/string';

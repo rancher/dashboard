@@ -16,7 +16,7 @@ const schema = {
 };
 
 export default {
-  name:       'ListCloudTemplate',
+  name:       'HarvesterListCloudTemplate',
   components: { ResourceTable, Loading },
 
   async fetch() {

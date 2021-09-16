@@ -16,7 +16,7 @@ import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import metricPoller from '@/mixins/metric-poller';
-import Upgrade from './HarvesterUpgrade';
+import HarvesterUpgrade from './HarvesterUpgrade';
 
 dayjs.extend(utc);
 dayjs.extend(minMax);
@@ -41,7 +41,7 @@ const RESOURCES = [{
   spoofed: {
     location: {
       name:     'c-cluster-product-resource',
-      params:   { resource: 'host' }
+      params:   { resource: HCI.HOST }
     },
     name: 'Host',
   }
@@ -52,7 +52,7 @@ const RESOURCES = [{
   spoofed: {
     location: {
       name:     'c-cluster-product-resource',
-      params:   { resource: 'volume' }
+      params:   { resource: HCI.VOLUME }
     },
     name: 'Volume'
   }
@@ -66,7 +66,7 @@ export default {
     Loading,
     HardwareResourceGauge,
     SortableTable,
-    Upgrade,
+    HarvesterUpgrade,
     ResourceSummary,
     Tabbed,
     Tab,
@@ -365,7 +365,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <section v-else>
-    <Upgrade />
+    <HarvesterUpgrade />
 
     <div
       class="cluster-dashboard-glance"

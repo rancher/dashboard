@@ -6,7 +6,7 @@ import Tip from '@/components/Tip';
 import CreateEditView from '@/mixins/create-edit-view';
 
 export default {
-  name:       'EditVlan',
+  name:       'EditHarvesterVlan',
   components: {
     LabeledInput,
     RadioGroup,

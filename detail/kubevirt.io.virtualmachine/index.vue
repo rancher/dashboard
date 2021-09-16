@@ -6,13 +6,13 @@ import CreateEditView from '@/mixins/create-edit-view';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import { allHash } from '@/utils/promise';
 import NodeScheduling from '@/components/form/NodeScheduling';
-import OverviewBasics from './tabs/details/basics';
-import OverviewDisks from './tabs/details/disks';
-import OverviewNetworks from './tabs/details/networks';
-import OverviewKeypairs from './tabs/details/keypairs';
-import OverviewCloudConfigs from './tabs/details/cloud-configs';
-import Migration from './tabs/migration';
-import Events from './tabs/events/';
+import OverviewBasics from './VirtualMachineTabs/VirtualMachineBasics';
+import OverviewDisks from './VirtualMachineTabs/VirtualMachineDisks';
+import OverviewNetworks from './VirtualMachineTabs/VirtualMachineNetworks';
+import OverviewKeypairs from './VirtualMachineTabs/VirtualMachineKeypairs';
+import OverviewCloudConfigs from './VirtualMachineTabs/VirtualMachineCloudConfigs';
+import Migration from './VirtualMachineTabs/VirtualMachineMigration';
+import Events from './VirtualMachineTabs/VirtualMachineEvents';
 
 const VM_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/harvester-vm-detail-1/vm-info-detail?orgId=1';
 

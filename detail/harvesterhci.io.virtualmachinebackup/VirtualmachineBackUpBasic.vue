@@ -1,7 +1,7 @@
 <script>
 import { HCI } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
-import CpuMemory from '@/edit/kubevirt.io.virtualmachine/CpuMemory';
+import CpuMemory from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCpuMemory';
 import LabelValue from '@/components/LabelValue';
 
 const UNDEFINED = 'n/a';

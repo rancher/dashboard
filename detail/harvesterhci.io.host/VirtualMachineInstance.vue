@@ -84,7 +84,7 @@ export default {
           label:     'IP Address',
           labelKey:  'harvester.tableHeaders.vm.ipAddress',
           value:     'id',
-          formatter: 'ipAddress'
+          formatter: 'HarvesterIpAddress'
         },
         {
           ...AGE,

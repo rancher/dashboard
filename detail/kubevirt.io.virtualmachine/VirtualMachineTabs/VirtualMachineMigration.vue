@@ -2,7 +2,7 @@
 import LabelValue from '@/components/LabelValue';
 
 export default {
-  name: 'Migration',
+  name: 'VirtualMachineMigration',
 
   components: { LabelValue },
 

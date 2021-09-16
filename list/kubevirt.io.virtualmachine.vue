@@ -11,7 +11,7 @@ import { allHash } from '@/utils/promise';
 import Loading from '@/components/Loading';
 
 export default {
-  name:       'ListVM',
+  name:       'HarvesterListVM',
   components: {
     Loading,
     HarvesterVmState,

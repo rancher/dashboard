@@ -10,7 +10,7 @@ import { allHash } from '@/utils/promise';
 import { STATE, AGE, NAME, NAMESPACE } from '@/config/table-headers';
 
 export default {
-  name:       'ListBackup',
+  name:       'HarvesterListBackup',
   components: {
     ResourceTable, Banner, Loading, Masthead, MessageLink
   },
