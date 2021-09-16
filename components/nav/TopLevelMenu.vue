@@ -170,7 +170,7 @@ export default {
 
       if (el) {
         const $el = $(el);
-        const h = 32 * max;
+        const h = 33 * max;
 
         $el.css('height', `${ h }px`);
       }
