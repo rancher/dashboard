@@ -1,5 +1,11 @@
 import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
-import { CAPI, CATALOG, MANAGEMENT, NORMAN, HCI } from '@/config/types';
+import {
+  CAPI,
+  CATALOG,
+  MANAGEMENT,
+  NORMAN,
+  HCI
+} from '@/config/types';
 import { MULTI_CLUSTER } from '@/store/features';
 import { DSL } from '@/store/type-map';
 
