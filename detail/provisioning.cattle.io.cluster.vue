@@ -156,13 +156,24 @@ export default {
     },
 
     machines() {
-      const machines = this.allMachines.filter((x) => {
-        if ( x.metadata?.namespace !== this.value.metadata.namespace ) {
-          return false;
-        }
+      const machines = this.allMachines
+        .filter((x) => {
+          if ( x.metadata?.namespace !== this.value.metadata.namespace ) {
+            return false;
+          }
 
-        return x.spec?.clusterName === this.value.metadata.name;
-      });
+          return x.spec?.clusterName === this.value.metadata.name;
+        })
+        .reduce((prev, curr) => {
+          const kubeNode = this.kubeNodes?.find(x => x.id === curr.status.nodeRef.name);
+
+          curr.status.nodeInfo = kubeNode?.status?.nodeInfo;
+
+          return [
+            curr,
+            ...prev
+          ];
+        }, []);
 
       return [...machines, ...this.fakeMachines];
     },
