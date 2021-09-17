@@ -1,5 +1,11 @@
 import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
-import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
+import {
+  CAPI,
+  CATALOG,
+  MANAGEMENT,
+  NORMAN,
+  HCI
+} from '@/config/types';
 import { MULTI_CLUSTER } from '@/store/features';
 import { DSL } from '@/store/type-map';
 
@@ -50,12 +56,18 @@ export function init(store) {
     CAPI.RANCHER_CLUSTER,
     'cloud-credentials',
     'drivers',
-    'pod-security-policies'
+    'pod-security-policies',
   ]);
 
-  configureType(CAPI.RANCHER_CLUSTER, { showListMasthead: false, namespaced: false });
+  configureType(CAPI.RANCHER_CLUSTER, {
+    showListMasthead: false, namespaced: false, alias: [HCI.CLUSTER]
+  });
   // configureType(NORMAN.CLOUD_CREDENTIAL, { showListMasthead: false, namespaced: false });
   weightType(CAPI.RANCHER_CLUSTER, 100, true);
+  weightType('cloud-credentials', 99, true);
+  weightType('drivers', 98, true);
+  weightType(CATALOG.CLUSTER_REPO, 97, true);
+
   configureType(NORMAN.CLOUD_CREDENTIAL, {
     showState: false, showAge: false, canYaml: false
   });
@@ -98,12 +110,16 @@ export function init(store) {
   weightType(CAPI.MACHINE_DEPLOYMENT, 3, true);
   weightType(CAPI.MACHINE_SET, 2, true);
   weightType(CAPI.MACHINE, 1, true);
+  weightType(CATALOG.CLUSTER_REPO, 0, true);
+
+  configureType(CATALOG.CLUSTER_REPO, { showListMasthead: false });
 
   basicType([
     MANAGEMENT.CLUSTER,
     CAPI.MACHINE_DEPLOYMENT,
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
+    CATALOG.CLUSTER_REPO,
   ], 'Advanced');
 
   weightGroup('Advanced', -1, true);

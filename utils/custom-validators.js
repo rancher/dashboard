@@ -8,7 +8,11 @@ import { cronSchedule } from '@/utils/validators/cron-schedule';
 import { podAffinity } from '@/utils/validators/pod-affinity';
 import { roleTemplateRules } from '@/utils/validators/role-template';
 import { clusterName } from '@/utils/validators/cluster-name';
-import { isHttps } from '@/utils/validators/setting';
+import { isHttps, backupTarget } from '@/utils/validators/setting';
+
+import { imageUrl, fileRequired } from '@/utils/validators/vm-image';
+import { vmNetworks, vmDisks } from '@/utils/validators/vm';
+import { dataVolumeSize } from '@/utils/validators/vm-datavolumes';
 
 /**
 * Custom validation functions beyond normal scalr types
@@ -30,5 +34,11 @@ export default {
   cronSchedule,
   podAffinity,
   roleTemplateRules,
-  isHttps
+  isHttps,
+  backupTarget,
+  imageUrl,
+  dataVolumeSize,
+  vmNetworks,
+  vmDisks,
+  fileRequired,
 };

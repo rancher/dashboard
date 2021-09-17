@@ -35,6 +35,15 @@ export default {
     return out;
   },
 
+  availableActions() {
+    // No actions for Harvester clusters
+    if (this.isHarvester) {
+      return [];
+    }
+
+    return this._availableActions;
+  },
+
   _availableActions() {
     const out = this._standardActions;
     let idx = 0;
@@ -153,6 +162,10 @@ export default {
 
   isRke1() {
     return !!this.mgmt?.spec?.rancherKubernetesEngineConfig;
+  },
+
+  isHarvester() {
+    return !!this.mgmt?.isHarvester;
   },
 
   mgmtClusterId() {
@@ -502,6 +515,19 @@ export default {
   },
 
   stateObj() {
+    if ( this.isHarvester) {
+      return {
+        error:         true,
+        message:       this.$rootGetters['i18n/t']('cluster.harvester.warning.label'),
+        name:          this.$rootGetters['i18n/t']('cluster.harvester.warning.state'),
+        transitioning: false
+      };
+    }
+
+    return this._stateObj;
+  },
+
+  _stateObj() {
     if (!this.isRke2) {
       return this.mgmt?.stateObj || this.metadata?.state;
     }

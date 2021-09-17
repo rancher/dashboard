@@ -7,6 +7,8 @@ import jsyaml from 'js-yaml';
 import { eachLimit } from '@/utils/promise';
 import { addParams } from '@/utils/url';
 import { isEmpty } from '@/utils/object';
+import { NAME as HARVESTER } from '@/config/product/harvester';
+import { isHarvesterCluster } from '@/utils/cluster';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 
 // See translation file cluster.providers for list of providers
@@ -173,6 +175,10 @@ export default {
     return this.spec?.internal === true;
   },
 
+  isHarvester() {
+    return isHarvesterCluster(this);
+  },
+
   providerLogo() {
     const provider = this.status?.provider || 'kubernetes';
     // Only interested in the part before the period
@@ -191,6 +197,22 @@ export default {
     }
 
     return icon;
+  },
+
+  providerMenuLogo() {
+    if (this?.status?.provider === HARVESTER) {
+      return require(`~/assets/images/providers/kubernetes.svg`);
+    }
+
+    return this.providerLogo;
+  },
+
+  providerNavLogo() {
+    if (this?.status?.provider === HARVESTER && this.$rootGetters['currentProduct'].inStore !== HARVESTER) {
+      return require(`~/assets/images/providers/kubernetes.svg`);
+    }
+
+    return this.providerLogo;
   },
 
   scope() {
@@ -324,4 +346,7 @@ export default {
     };
   },
 
+  nodes() {
+    return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.id));
+  },
 };

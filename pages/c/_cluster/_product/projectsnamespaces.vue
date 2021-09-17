@@ -24,7 +24,8 @@ export default {
     this.projectSchema = this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT);
 
     if ( !this.schema ) {
-      this.$store.dispatch('loadingError', `Type ${ NAMESPACE } not found`);
+      // clusterReady:   When switching routes, it will cause clusterReady to change, causing itself to repeat rendering。
+      // this.$store.dispatch('loadingError', `Type ${ NAMESPACE } not found`);
 
       return;
     }
@@ -108,7 +109,11 @@ export default {
         return this.namespaces;
       }
 
-      return this.namespaces.filter(namespace => !namespace.isObscure);
+      const isVirtualCluster = this.$store.getters['isVirtualCluster'];
+
+      return this.namespaces.filter((namespace) => {
+        return isVirtualCluster ? (!namespace.isSystem && !namespace.isObscure) : !namespace.isObscure;
+      });
     }
   },
   methods: {

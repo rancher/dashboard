@@ -1,6 +1,5 @@
 <script>
 import SimpleBox from '@/components/SimpleBox';
-import { NAME as EXPLORER } from '@/config/product/explorer';
 import { COUNT } from '@/config/types';
 import { colorForState } from '@/plugins/steve/resource-instance';
 
@@ -20,6 +19,7 @@ export function resourceCounts(store, resource) {
   const inStore = store.getters['currentStore'](COUNT);
   const clusterCounts = store.getters[`${ inStore }/all`](COUNT)[0].counts;
   const summary = clusterCounts[resource]?.summary || {};
+
   const counts = {
     total:        summary.count || 0,
     useful:       summary.count || 0,
@@ -55,8 +55,8 @@ export default {
 
     cluster: {
       type:    String,
-      default: null
-    }
+      default: null,
+    },
   },
 
   computed: {
@@ -75,7 +75,10 @@ export default {
 
       const route = {
         name:     'c-cluster-product-resource',
-        params:   { product: EXPLORER, resource: this.resource }
+        params:   {
+          product:  this.$store.getters['currentProduct'].name,
+          resource: this.resource,
+        }
       };
 
       if (this.cluster) {

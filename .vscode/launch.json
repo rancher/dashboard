@@ -5,9 +5,17 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Debug in Browser",
+      "request": "launch",
+      "type": "pwa-chrome",
+      "url": "https://localhost:8005",
+      "webRoot": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+    },
+    {
       "type": "node",
       "request": "launch",
-      "name": "Launch Program",
+      "name": "Debug Node.js",
       "program": "${workspaceFolder}/node_modules/.bin/nuxt",
       "outFiles": [
         "${workspaceFolder}/**/*.js"

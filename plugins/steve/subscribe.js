@@ -1,3 +1,4 @@
+import { remapSpecialKeys } from '@/plugins/steve/resource-proxy';
 import { addObject, removeObject } from '@/utils/array';
 import { get } from '@/utils/object';
 import Socket, {
@@ -40,6 +41,8 @@ export function equivalentWatch(a, b) {
 
 function queueChange({ getters, state }, { data, revision }, load, label) {
   const type = getters.normalizeType(data.type);
+
+  remapSpecialKeys(data);
 
   const entry = getters.typeEntry(type);
 
@@ -454,10 +457,47 @@ export const actions = {
 
   'ws.resource.change'(ctx, msg) {
     queueChange(ctx, msg, true, 'Change');
+
+    const data = msg.data;
+    const type = data.type;
+    const typeOption = ctx.rootGetters['type-map/optionsFor'](type);
+
+    if (typeOption?.alias?.length > 0) {
+      const alias = typeOption?.alias || [];
+
+      alias.map((type) => {
+        ctx.state.queue.push({
+          action: 'dispatch',
+          event:  'load',
+          body:   {
+            ...data,
+            type,
+          },
+        });
+      });
+    }
   },
 
   'ws.resource.remove'(ctx, msg) {
     queueChange(ctx, msg, false, 'Remove');
+
+    const data = msg.data;
+    const type = data.type;
+    const typeOption = ctx.rootGetters['type-map/optionsFor'](type);
+
+    if (typeOption?.alias?.length > 0) {
+      const alias = typeOption?.alias || [];
+
+      alias.map((type) => {
+        const obj = getters.byId(type, data.id);
+
+        ctx.state.queue.push({
+          action: 'commit',
+          event:  'remove',
+          body:   obj,
+        });
+      });
+    }
   },
 };
 

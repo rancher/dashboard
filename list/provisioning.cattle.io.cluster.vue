@@ -4,6 +4,8 @@ import Masthead from '@/components/ResourceList/Masthead';
 import { allHash } from '@/utils/promise';
 import { CAPI, MANAGEMENT } from '@/config/types';
 import { MODE, _IMPORT } from '@/config/query-params';
+import { filterOnlyKubernetesClusters } from '@/utils/cluster';
+import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@/store/features';
 
 export default {
   components: { ResourceTable, Masthead },
@@ -47,6 +49,12 @@ export default {
 
   computed: {
     rows() {
+      // If Harvester feature is enabled, hide Harvester Clusters
+      if (this.harvesterEnabled) {
+        return filterOnlyKubernetesClusters(this.rancherClusters);
+      }
+
+      // Otherwise, show Harvester clusters - these will be shown with a warning
       return this.rancherClusters;
     },
 
@@ -76,6 +84,8 @@ export default {
 
       return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
     },
+
+    harvesterEnabled: mapFeature(HARVESTER_FEATURE),
   },
 
   mounted() {
@@ -117,7 +127,8 @@ export default {
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>
       <template #cell:explorer="{row}">
-        <n-link v-if="row.mgmt && row.mgmt.isReady" class="btn role-primary" :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}">
+        <span v-if="row.mgmt && row.mgmt.isHarvester"></span>
+        <n-link v-else-if="row.mgmt && row.mgmt.isReady" class="btn role-primary" :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}">
           Explore
         </n-link>
         <button v-else :disabled="true" class="btn role-primary">

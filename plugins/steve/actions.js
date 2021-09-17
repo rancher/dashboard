@@ -5,6 +5,7 @@ import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@/store/type-map';
 import { addParam } from '@/utils/url';
+import { isArray } from '@/utils/array';
 import { normalizeType } from './normalize';
 import { proxyFor } from './resource-proxy';
 
@@ -113,7 +114,11 @@ export default {
     const res = await dispatch('findAll', { type: SCHEMA, opt: { url: 'schemas', load: false } });
     const spoofedTypes = rootGetters['type-map/allSpoofedSchemas'] ;
 
-    res.data = res.data.concat(spoofedTypes);
+    if (isArray(res.data)) {
+      res.data = res.data.concat(spoofedTypes);
+    } else if (isArray(res)) {
+      res.data = res.concat(spoofedTypes);
+    }
 
     res.data.forEach((schema) => {
       schema._id = normalizeType(schema.id);

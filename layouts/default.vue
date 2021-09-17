@@ -14,12 +14,13 @@ import Header from '@/components/nav/Header';
 import Brand from '@/mixins/brand';
 import FixedBanner from '@/components/FixedBanner';
 import {
-  COUNT, SCHEMA, MANAGEMENT, UI, CATALOG
+  COUNT, SCHEMA, MANAGEMENT, UI, CATALOG, HCI
 } from '@/config/types';
 import { BASIC, FAVORITE, USED } from '@/store/type-map';
 import { addObjects, replaceWith, clear, addObject } from '@/utils/array';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { NAME as NAVLINKS } from '@/config/product/navlinks';
+import { NAME as HARVESTER } from '@/config/product/harvester';
 import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@/utils/string';
 import { getVersionInfo, markSeenReleaseNotes } from '@/utils/version';
@@ -46,11 +47,8 @@ export default {
   mixins: [PageHeaderActions, Brand],
 
   data() {
-    const { displayVersion } = getVersionInfo(this.$store);
-
     return {
       groups:         [],
-      displayVersion,
       wantNavSync:    false
     };
   },
@@ -59,7 +57,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct']),
+    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleVirtualCluster']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel' }),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -136,7 +134,37 @@ export default {
       return this.isExplorer &&
              this.$store.getters['cluster/canList'](CATALOG.CLUSTER_REPO) &&
              this.$store.getters['cluster/canList'](CATALOG.APP);
-    }
+    },
+
+    displayVersion() {
+      let { displayVersion } = getVersionInfo(this.$store);
+
+      if (this.isVirtualProduct && this.isSingleVirtualCluster) {
+        const setting = this.$store.getters['harvester/byId'](HCI.SETTING, 'server-version');
+
+        displayVersion = setting?.value || 'unknown';
+      }
+
+      return displayVersion;
+    },
+
+    showProductSupport() {
+      if (this.isVirtualProduct) {
+        return true;
+      } else {
+        return false;
+      }
+    },
+
+    isVirtualProduct() {
+      return this.$store.getters['currentProduct'].name === HARVESTER;
+    },
+
+    supportLink() {
+      const product = this.$store.getters['currentProduct'].name;
+
+      return { name: `c-cluster-${ product }-support` };
+    },
   },
 
   watch: {
@@ -522,6 +550,13 @@ export default {
         </n-link>
         <div class="version text-muted">
           {{ displayVersion }}
+          <nuxt-link
+            v-if="showProductSupport"
+            :to="supportLink"
+            class="pull-right"
+          >
+            {{ t('nav.support', {hasSupport: true}) }}
+          </nuxt-link>
         </div>
       </nav>
       <main v-if="clusterReady">

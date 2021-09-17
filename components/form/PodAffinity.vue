@@ -106,14 +106,14 @@ export default {
       this.allSelectorTerms.forEach((term) => {
         if (term._anti) {
           if (term.weight) {
-            const neu = { podAffinityTerm: term, weight: 1 };
+            const neu = { podAffinityTerm: term, weight: term.weight || this.defaultWeight };
 
             podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution.push(neu);
           } else {
             podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.push(term);
           }
         } else if (term.weight) {
-          const neu = { podAffinityTerm: term, weight: 1 };
+          const neu = { podAffinityTerm: term, weight: term.weight || this.defaultWeight };
 
           podAffinity.preferredDuringSchedulingIgnoredDuringExecution.push(neu);
         } else {
@@ -139,7 +139,7 @@ export default {
       if (term.weight) {
         delete term.weight;
       } else {
-        term.weight = 1;
+        term.weight = this.defaultWeight;
       }
 
       this.$set(this.allSelectorTerms, idx, clone(term));
@@ -235,6 +235,21 @@ export default {
                 required
                 :label="t('workload.scheduling.affinity.topologyKey.label')"
                 :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
+              />
+            </div>
+          </div>
+
+          <div class="spacer"></div>
+          <div class="row">
+            <div class="col span-6">
+              <LabeledInput
+                v-model.number="props.row.value.weight"
+                :mode="mode"
+                type="number"
+                min="1"
+                max="100"
+                :label="t('workload.scheduling.affinity.weight.label')"
+                :placeholder="t('workload.scheduling.affinity.weight.placeholder')"
               />
             </div>
           </div>
