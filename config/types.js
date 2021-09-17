@@ -256,15 +256,21 @@ export const HCI = {
   VM_VERSION:         'harvesterhci.io.virtualmachinetemplateversion',
   IMAGE:              'harvesterhci.io.virtualmachineimage',
   SSH:                'harvesterhci.io.keypair',
-  DATA_VOLUME:        'cdi.kubevirt.io.datavolume',
+  VOLUME:             'harvesterhci.io.volume',
   USER:               'harvesterhci.io.user',
   SETTING:            'harvesterhci.io.setting',
   UPGRADE:            'harvesterhci.io.upgrade',
   BACKUP:             'harvesterhci.io.virtualmachinebackup',
   RESTORE:            'harvesterhci.io.virtualmachinerestore',
-  BACKUP_CONTENT:     'harvesterhci.io.virtualmachinebackupcontent',
   NODE_NETWORK:       'network.harvesterhci.io.nodenetwork',
   CLUSTER_NETWORK:    'network.harvesterhci.io.clusternetwork',
   SUPPORT_BUNDLE:     'harvesterhci.io.supportbundle',
   NETWORK_ATTACHMENT: 'k8s.cni.cncf.io.networkattachmentdefinition',
+  CLUSTER:            'harvesterhci.io.management.cluster',
+  DASHBOARD:          'harvesterhci.io.dashboard',
+  BLOCK_DEVICE:       'harvesterhci.io.blockdevice',
+  CLOUD_TEMPLATE:     'harvesterhci.io.cloudtemplate',
+  HOST:               'harvesterhci.io.host',
 };
+
+export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';

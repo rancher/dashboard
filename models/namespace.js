@@ -40,7 +40,7 @@ export default {
       });
     }
 
-    if (this.$rootGetters['isRancher']) {
+    if (this.$rootGetters['isRancher'] && !this.$rootGetters['isSingleVirtualCluster']) {
       insertAt(out, 0, {
         action:     'move',
         label:      this.t('namespace.move'),
@@ -158,6 +158,10 @@ export default {
   },
 
   listLocation() {
+    if (this.$rootGetters['isSingleVirtualCluster']) {
+      return { name: 'c-cluster-product-resource' };
+    }
+
     return { name: this.$rootGetters['isRancher'] ? 'c-cluster-product-projectsnamespaces' : 'c-cluster-product-namespaces' };
   },
 

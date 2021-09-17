@@ -277,15 +277,14 @@ export default {
   created() {
     // eslint-disable-next-line prefer-const
     const id = this.$route.params.id;
-    let resource = this.resourceOverride || this.$route.params.resource;
+    const resource = this.resourceOverride || this.$route.params.resource;
     const options = this.$store.getters[`type-map/optionsFor`](resource);
 
-    if ( options.resource ) {
-      resource = options.resource;
-    }
+    const detailResource = options.resourceDetail || options.resource || resource;
+    const editResource = options.resourceEdit || options.resource || resource;
 
-    this.detailComponent = this.$store.getters['type-map/importDetail'](resource, id);
-    this.editComponent = this.$store.getters['type-map/importEdit'](resource, id);
+    this.detailComponent = this.$store.getters['type-map/importDetail'](detailResource, id);
+    this.editComponent = this.$store.getters['type-map/importEdit'](editResource, id);
   },
 
   methods: {

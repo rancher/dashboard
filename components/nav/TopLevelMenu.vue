@@ -63,7 +63,7 @@ export default {
           label:   x.nameDisplay,
           ready:   x.isReady,
           osLogo:  x.providerOsLogo,
-          logo:    x.providerLogo,
+          logo:    x.providerMenuLogo,
           isLocal: x.isLocal
         };
       });
@@ -136,7 +136,7 @@ export default {
         };
       });
 
-      return entries;
+      return sortBy(entries, ['weight']);
     },
 
     canEditSettings() {
@@ -170,7 +170,7 @@ export default {
 
       if (el) {
         const $el = $(el);
-        const h = 32 * max;
+        const h = 33 * max;
 
         $el.css('height', `${ h }px`);
       }
@@ -392,7 +392,7 @@ export default {
 
 <style lang="scss" scoped>
   $clear-search-size: 20px;
-  $icon-size: 24px;
+  $icon-size: 25px;
   $option-padding: 4px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
@@ -414,6 +414,7 @@ export default {
     }
 
     > i {
+      width: $icon-size;
       font-size: $icon-size;
       margin-right: 8px;
     }

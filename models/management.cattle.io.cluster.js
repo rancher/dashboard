@@ -7,6 +7,7 @@ import jsyaml from 'js-yaml';
 import { eachLimit } from '@/utils/promise';
 import { addParams } from '@/utils/url';
 import { isEmpty } from '@/utils/object';
+import { NAME as HARVESTER } from '@/config/product/harvester';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 
 // See translation file cluster.providers for list of providers
@@ -193,6 +194,22 @@ export default {
     return icon;
   },
 
+  providerMenuLogo() {
+    if (this?.status?.provider === HARVESTER) {
+      return require(`~/assets/images/providers/kubernetes.svg`);
+    }
+
+    return this.providerLogo;
+  },
+
+  providerNavLogo() {
+    if (this?.status?.provider === HARVESTER && this.$rootGetters['currentProduct'].inStore !== HARVESTER) {
+      return require(`~/assets/images/providers/kubernetes.svg`);
+    }
+
+    return this.providerLogo;
+  },
+
   scope() {
     return this.isLocal ? CATALOG._MANAGEMENT : CATALOG._DOWNSTREAM;
   },
@@ -324,4 +341,7 @@ export default {
     };
   },
 
+  nodes() {
+    return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.id));
+  },
 };

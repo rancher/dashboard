@@ -1,5 +1,5 @@
 <script>
-
+import { mapGetters } from 'vuex';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -52,8 +52,9 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['isSingleVirtualCluster']),
     extraColumns() {
-      if ( this.$store.getters['isRancher'] ) {
+      if ( this.$store.getters['isRancher'] && !this.isSingleVirtualCluster) {
         return ['project-col'];
       }
 
@@ -144,13 +145,13 @@ export default {
       :mode="mode"
       :extra-columns="extraColumns"
     >
-      <template #project-col>
+      <template v-if="!isSingleVirtualCluster" #project-col>
         <LabeledSelect v-model="project" :label="t('namespace.project.label')" :options="projectOpts" />
       </template>
     </NameNsDescription>
 
     <Tabbed :side-tabs="true">
-      <Tab name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
+      <Tab v-if="!isSingleVirtualCluster" name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
         <ContainerResourceLimit
           :key="JSON.stringify(containerResourceLimits)"
           :value="containerResourceLimits"

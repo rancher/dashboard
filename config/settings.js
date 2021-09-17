@@ -86,6 +86,34 @@ export const ALLOWED_SETTINGS = {
   },
 };
 
+// harvester Settings ID
+const HCI_SETTING = {
+  BACKUP_TARGET:                    'backup-target',
+  LOG_LEVEL:                        'log-level',
+  SERVER_VERSION:                   'server-version',
+  UI_INDEX:                         'ui-index',
+  UPGRADE_CHECKER_ENABLED:          'upgrade-checker-enabled',
+  UPGRADE_CHECKER_URL:              'upgrade-checker-url',
+  VLAN:                             'vlan',
+  // DEFAULT_STORAGE_CLASS:            'default-storage-class'
+};
+
+export const HCI_ALLOWED_SETTINGS = {
+  [HCI_SETTING.BACKUP_TARGET]:                    {
+    kind: 'json', from: 'import', disableReset: true
+  },
+  [HCI_SETTING.LOG_LEVEL]:                  {
+    kind:    'enum',
+    options: ['info', 'debug', 'trace']
+  },
+  [HCI_SETTING.SERVER_VERSION]:                   { readOnly: true },
+  [HCI_SETTING.UPGRADE_CHECKER_ENABLED]:          { kind: 'boolean' },
+  [HCI_SETTING.UPGRADE_CHECKER_URL]:              { kind: 'url' },
+  [HCI_SETTING.VLAN]:                             {
+    kind: 'custom', from: 'import', alias: 'vlan'
+  },
+};
+
 export const fetchOrCreateSetting = async(store, id, val, save = true) => {
   let setting;
 

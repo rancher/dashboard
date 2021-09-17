@@ -8,7 +8,11 @@ export default {
     value: {
       type:     Object,
       required: true,
-    }
+    },
+    hasSummaryAndDetail: {
+      type:    Boolean,
+      default: true,
+    },
   },
   data() {
     return {
@@ -98,7 +102,12 @@ export default {
 
 <template>
   <div class="graph-options">
-    <ButtonGroup v-model="value.type" :options="detailSummaryOptions" />
+    <div v-if="hasSummaryAndDetail">
+      <ButtonGroup v-model="value.type" :options="detailSummaryOptions" />
+    </div>
+    <div v-else>
+      <div />
+    </div>
     <div class="range-refresh">
       <LabeledSelect v-model="value.range" :options="rangeOptions" :label="t('graphOptions.range')" />
       <LabeledSelect v-model="value.refreshRate" :options="refreshOptions" :label="t('graphOptions.refresh')" />

@@ -1,6 +1,6 @@
 import Steve from '@/plugins/steve';
 import {
-  COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET, UI
+  COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET, UI, VIRTUAL_HARVESTER_PROVIDER, HCI
 } from '@/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS, LAST_NAMESPACE, WORKSPACE } from '@/store/prefs';
 import { allHash, allHashSettled } from '@/utils/promise';
@@ -16,6 +16,7 @@ import { addParam } from '@/utils/url';
 import { SETTING } from '@/config/settings';
 import semver from 'semver';
 import { BY_TYPE, NORMAN as NORMAN_CLASS } from '@/plugins/steve/resource-proxy';
+import { NAME as VIRTUAL } from '@/config/product/harvester';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -31,24 +32,25 @@ export const plugins = [
   Steve({
     namespace: 'rancher', baseUrl: '/v3', modelBaseClass: NORMAN_CLASS
   }),
+  Steve({ namespace: 'harvester', baseUrl: '' }),
 ];
 
 export const state = () => {
   return {
-    managementReady:  false,
-    clusterReady:     false,
-    isMultiCluster:   false,
-    isRancher:        false,
-    namespaceFilters: [],
-    allNamespaces:    null,
-    allWorkspaces:    null,
-    clusterId:        null,
-    productId:        null,
-    workspace:        null,
-    error:            null,
-    cameFromError:    false,
-    pageActions:      [],
-    serverVersion:    null,
+    managementReady:     false,
+    clusterReady:        false,
+    isMultiCluster:      false,
+    isRancher:           false,
+    namespaceFilters:    [],
+    allNamespaces:       null,
+    allWorkspaces:       null,
+    clusterId:           null,
+    productId:           null,
+    workspace:           null,
+    error:               null,
+    cameFromError:       false,
+    pageActions:         [],
+    serverVersion:       null,
   };
 };
 
@@ -130,6 +132,7 @@ export const getters = {
   defaultClusterId(state, getters) {
     const all = getters['management/all'](MANAGEMENT.CLUSTER);
     const clusters = sortBy(filterBy(all, 'isReady'), 'nameDisplay');
+
     const desired = getters['prefs/get'](CLUSTER_PREF);
 
     if ( clusters.find(x => x.id === desired) ) {
@@ -364,6 +367,25 @@ export const getters = {
 
     return '/';
   },
+
+  isSingleVirtualCluster(state, getters, rootState, rootGetters) {
+    const clusterId = getters.defaultClusterId;
+    const cluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, clusterId);
+
+    return !getters.isMultiCluster && cluster?.status?.provider === VIRTUAL_HARVESTER_PROVIDER;
+  },
+
+  isMultiVirtualCluster(state, getters, rootState, rootGetters) {
+    const localCluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, 'local');
+
+    return getters.isMultiCluster && localCluster?.status?.provider !== VIRTUAL_HARVESTER_PROVIDER;
+  },
+
+  isVirtualCluster(state, getters) {
+    const cluster = getters['currentCluster'];
+
+    return cluster?.status?.provider === VIRTUAL_HARVESTER_PROVIDER;
+  }
 };
 
 export const mutations = {
@@ -528,11 +550,11 @@ export const actions = {
 
   async loadCluster({
     state, commit, dispatch, getters
-  }, id) {
+  }, { id, oldProduct }) {
     const isMultiCluster = getters['isMultiCluster'];
     const isRancher = getters['isRancher'];
 
-    if ( state.clusterId && state.clusterId === id ) {
+    if ( state.clusterId && state.clusterId === id && oldProduct !== VIRTUAL) {
       // Do nothing, we're already connected/connecting to this cluster
       return;
     }
@@ -589,7 +611,8 @@ export const actions = {
     const clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
 
     // Update the Steve client URLs
-    commit('cluster/applyConfig', { baseUrl: clusterBase });
+    commit('cluster/applyConfig',
+      { baseUrl: clusterBase });
 
     await Promise.all([
       dispatch('cluster/loadSchemas', true),
@@ -606,10 +629,10 @@ export const actions = {
     };
 
     const res = await allHash({
-      projects:   isRancher && dispatch('management/findAll', projectArgs),
-      counts:     dispatch('cluster/findAll', { type: COUNT }),
-      namespaces: dispatch('cluster/findAll', { type: NAMESPACE }),
-      navLinks:   !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
+      projects:          isRancher && dispatch('management/findAll', projectArgs),
+      counts:            dispatch('cluster/findAll', { type: COUNT }),
+      namespaces:        dispatch('cluster/findAll', { type: NAMESPACE }),
+      navLinks:          !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
     });
 
     await dispatch('cleanNamespaces');
@@ -636,6 +659,81 @@ export const actions = {
       }
     });
     commit('updateNamespaces', { filters: value });
+  },
+
+  async loadVirtual({
+    state, commit, dispatch, getters
+  }, { id, oldProduct }) {
+    const isMultiCluster = getters['isMultiCluster'];
+
+    if (isMultiCluster && id === 'local') {
+      return;
+    }
+
+    if ( state.clusterId && state.clusterId === id && oldProduct === VIRTUAL) {
+      // Do nothing, we're already connected/connecting to this cluster
+      return;
+    }
+
+    if ( state.clusterId && id ) {
+      commit('clusterChanged', false);
+
+      await dispatch('harvester/unsubscribe');
+      commit('harvester/reset');
+    }
+
+    if (id) {
+      commit('setCluster', id);
+    }
+
+    console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
+
+    // See if it really exists
+    const cluster = await dispatch('management/find', {
+      type: MANAGEMENT.CLUSTER,
+      id,
+      opt:  { url: `${ MANAGEMENT.CLUSTER }s/${ escape(id) }` }
+    });
+
+    let virtualBase = `/k8s/clusters/${ escape(id) }/v1/harvester`;
+
+    if (id === 'local') {
+      virtualBase = `/v1/harvester`;
+    }
+
+    if ( !cluster ) {
+      commit('setCluster', null);
+      commit('harvester/applyConfig', { baseUrl: null });
+      throw new ClusterNotFoundError(id);
+    }
+
+    // Update the Steve client URLs
+    commit('harvester/applyConfig', { baseUrl: virtualBase });
+
+    await Promise.all([
+      dispatch('harvester/loadSchemas', true),
+    ]);
+
+    dispatch('harvester/subscribe');
+
+    await allHash({
+      virtualCount:      dispatch('harvester/findAll', { type: COUNT }),
+      virtualNamespaces: dispatch('harvester/findAll', { type: NAMESPACE }),
+      settings:          dispatch('harvester/findAll', { type: HCI.SETTING }),
+    });
+
+    commit('clusterChanged', true);
+
+    console.log('Done loading virtual cluster.'); // eslint-disable-line no-console
+  },
+
+  async resetStore({
+    state, commit, dispatch, getters
+  }, { id, store }) {
+    if ( state.clusterId && id && store) {
+      await dispatch(`${ store }/unsubscribe`);
+      commit(`${ store }/reset`);
+    }
   },
 
   async cleanNamespaces({ getters, dispatch }) {

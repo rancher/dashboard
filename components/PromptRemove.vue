@@ -9,8 +9,16 @@ import AsyncButton from '@/components/AsyncButton';
 export default {
   components: { Card, AsyncButton },
   data() {
+    const { resource } = this.$route.params;
+
     return {
-      randomPosition: Math.random(), confirmName: '', error: '', warning: '', preventDelete: false
+      hasCustomRemove: false,
+      randomPosition:  Math.random(),
+      confirmName:     '',
+      error:           '',
+      warning:         '',
+      preventDelete:   false,
+      removeComponent: this.$store.getters['type-map/importCustomPromptRemove'](resource)
     };
   },
   computed:   {
@@ -138,6 +146,16 @@ export default {
     showPromptRemove(show) {
       if (show) {
         this.$modal.show('promptRemove');
+
+        let { resource } = this.$route.params;
+
+        if (this.toRemove.length > 0) {
+          resource = this.toRemove[0].type;
+        }
+
+        this.hasCustomRemove = this.$store.getters['type-map/hasCustomPromptRemove'](resource);
+
+        this.removeComponent = this.$store.getters['type-map/importCustomPromptRemove'](resource);
       } else {
         this.$modal.hide('promptRemove');
       }
@@ -179,6 +197,12 @@ export default {
     },
 
     remove(btnCB) {
+      if (this.hasCustomRemove && this.$refs?.customPrompt?.remove) {
+        this.$refs.customPrompt.remove();
+
+        return;
+      }
+
       let goTo;
 
       if (this.doneLocation) {
@@ -265,12 +289,28 @@ export default {
       </h4>
       <div slot="body">
         <div class="mb-10">
-          {{ t('promptRemove.attemptingToRemove', { type }) }} <span v-html="resourceNames"></span>
-          <div v-if="needsConfirm" class="mt-10">
-            <span
-              v-html="t('promptRemove.confirmName', { nameToMatch }, true)"
-            ></span>
-          </div>
+          <template v-if="!hasCustomRemove">
+            {{ t('promptRemove.attemptingToRemove', { type }) }} <span v-html="resourceNames"></span>
+          </template>
+
+          <template>
+            <component
+              :is="removeComponent"
+              v-if="hasCustomRemove"
+              ref="customPrompt"
+              v-model="toRemove"
+              v-bind="_data"
+              :needs-confirm="needsConfirm"
+              :value="toRemove"
+              :names="names"
+              :type="type"
+            />
+            <div v-if="needsConfirm" class="mt-10">
+              <span
+                v-html="t('promptRemove.confirmName', { nameToMatch }, true)"
+              ></span>
+            </div>
+          </template>
         </div>
         <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
         <div class="mb-10">

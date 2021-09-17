@@ -75,7 +75,7 @@ export default {
         >
           <template #title>
             <span>
-              {{ t('clusterIndexPage.hardwareResourceGauge.reserved') }} <span class="values text-muted">{{ reserved.useful }} / {{ reserved.total }} {{ reserved.units }}</span>
+              {{ t('clusterIndexPage.hardwareResourceGauge.reserved') }} <span class="values text-muted">{{ maxDecimalPlaces(reserved.useful) }} / {{ maxDecimalPlaces(reserved.total) }} {{ reserved.units }}</span>
             </span>
             <span>
               {{ percentage(reserved) }}

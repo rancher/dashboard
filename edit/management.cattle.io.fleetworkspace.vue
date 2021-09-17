@@ -12,7 +12,7 @@ import { SCOPE_NAMESPACE, SCOPE_CLUSTER } from '@/components/RoleBindings.vue';
 import { NAME as FLEET_NAME } from '@/config/product/fleet';
 
 export default {
-  name: 'CruWorkspace',
+  name: 'FleetCruWorkspace',
 
   components: {
     CruResource,

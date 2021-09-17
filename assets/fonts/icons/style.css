@@ -24,6 +24,9 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-harvester:before {
+  content: "\e948";
+}
 .icon-show:before {
   content: "\e93a";
 }
