@@ -511,7 +511,7 @@ export default {
   },
 
   stateObj() {
-    if (this.isHarvester) {
+    if ( this.isHarvester) {
       return {
         error:         true,
         message:       this.$rootGetters['i18n/t']('cluster.harvester.warning.label'),
@@ -520,6 +520,10 @@ export default {
       };
     }
 
+    return this._stateObj;
+  },
+
+  _stateObj() {
     if (!this.isRke2) {
       return this.mgmt?.stateObj || this.metadata?.state;
     }
