@@ -73,12 +73,15 @@ export default {
       hash.normanNodePools = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
     }
 
+    hash.kubeNodes = this.$store.dispatch('cluster/findAll', { type: NODE });
+
     const res = await allHash(hash);
 
     this.allMachines = res.machines || [];
     this.allMachineDeployments = res.machineDeployments || [];
     this.allNodes = res.allNodes || [];
     this.allNodePools = res.allNodePools || [];
+    this.kubeNodes = res.kubeNodes || [];
     this.haveMachines = !!res.machines;
     this.haveDeployments = !!res.machineDeployments;
     this.haveNodePools = !!res.allNodePools;
@@ -101,6 +104,7 @@ export default {
       allMachineDeployments: [],
       allNodes:              [],
       allNodePools:          [],
+      kubeNodes:             [],
 
       haveMachines:    false,
       haveDeployments: false,
