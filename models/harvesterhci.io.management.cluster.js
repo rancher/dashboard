@@ -4,6 +4,14 @@ import cluster, { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.clus
 export default {
   ...cluster,
 
+  availableActions() {
+    return this._availableActions;
+  },
+
+  stateObj() {
+    return this._stateObj;
+  },
+
   applyDefaults() {
     return () => {
       if ( !this.spec ) {

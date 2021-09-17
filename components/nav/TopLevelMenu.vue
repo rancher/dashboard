@@ -11,6 +11,7 @@ import { KEY } from '@/utils/platform';
 import { getVersionInfo } from '@/utils/version';
 import { LEGACY } from '@/store/features';
 import { SETTING } from '@/config/settings';
+import { filterOnlyKubernetesClusters } from '@/utils/cluster';
 
 const UNKNOWN = 'unknown';
 const UI_VERSION = process.env.VERSION || UNKNOWN;
@@ -56,8 +57,9 @@ export default {
 
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
+      const kubeClusters = filterOnlyKubernetesClusters(all);
 
-      return all.map((x) => {
+      return kubeClusters.map((x) => {
         return {
           id:      x.id,
           label:   x.nameDisplay,
