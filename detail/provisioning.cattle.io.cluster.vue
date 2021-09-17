@@ -7,9 +7,9 @@ import SortableTable from '@/components/SortableTable';
 import CopyCode from '@/components/CopyCode';
 import Tab from '@/components/Tabbed/Tab';
 import { allHash } from '@/utils/promise';
-import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
+import { CAPI, MANAGEMENT, NORMAN, NODE } from '@/config/types';
 import {
-  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES,
+  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES, OS
 } from '@/config/table-headers';
 import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@/components/AsyncButton.vue';
@@ -219,6 +219,7 @@ export default {
           formatter:     'LinkDetail',
           formatterOpts: { reference: 'kubeNodeDetailLocation' }
         },
+        OS,
         ROLES,
         AGE,
       ];
