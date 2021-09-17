@@ -165,7 +165,7 @@ export default {
           return x.spec?.clusterName === this.value.metadata.name;
         })
         .reduce((prev, curr) => {
-          const kubeNode = this.kubeNodes?.find(x => x.id === curr.status.nodeRef.name);
+          const kubeNode = this.kubeNodes?.find(x => x.id === curr?.status?.nodeRef?.name);
 
           curr.status.nodeInfo = kubeNode?.status?.nodeInfo;
 
