@@ -25,6 +25,8 @@ export function proxyFor(ctx, obj, isClone = false) {
     return obj;
   }
 
+  remapSpecialKeys(obj);
+
   const mappedType = ctx.rootGetters['type-map/componentFor'](obj.type);
   let customModel = lookup(ctx.state.config.namespace, mappedType, obj?.metadata?.name);
 
@@ -114,4 +116,32 @@ export function proxyFor(ctx, obj, isClone = false) {
   }
 
   return out;
+}
+
+export function remapSpecialKeys(obj) {
+  // Hack for now, the resource-instance name() overwrites the model name.
+  if ( obj.name ) {
+    obj._name = obj.name;
+    delete obj.name;
+  }
+
+  if ( obj.description ) {
+    obj._description = obj.description;
+    delete obj.description;
+  }
+
+  if ( obj.state ) {
+    obj._state = obj.state;
+    delete obj.state;
+  }
+
+  if ( obj.labels ) {
+    obj._labels = obj.labels;
+    delete obj.labels;
+  }
+
+  if ( obj.annotations ) {
+    obj._annotations = obj.annotations;
+    delete obj.annotations;
+  }
 }

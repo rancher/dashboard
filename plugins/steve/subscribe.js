@@ -1,3 +1,4 @@
+import { remapSpecialKeys } from '@/plugins/steve/resource-proxy';
 import { addObject, removeObject } from '@/utils/array';
 import { get } from '@/utils/object';
 import Socket, {
@@ -40,6 +41,8 @@ export function equivalentWatch(a, b) {
 
 function queueChange({ getters, state }, { data, revision }, load, label) {
   const type = getters.normalizeType(data.type);
+
+  remapSpecialKeys(data);
 
   const entry = getters.typeEntry(type);
 
