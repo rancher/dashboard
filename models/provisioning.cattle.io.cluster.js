@@ -35,6 +35,15 @@ export default {
     return out;
   },
 
+  availableActions() {
+    // No actions for Harvester clusters
+    if (this.isHarvester) {
+      return [];
+    }
+
+    return this._availableActions;
+  },
+
   _availableActions() {
     const out = this._standardActions;
     let idx = 0;
@@ -47,11 +56,6 @@ export default {
       if (remove > -1) {
         out.splice(remove, 1);
       }
-    }
-
-    // No actions for Harvester clusters
-    if (this.isHarvester) {
-      return [];
     }
 
     insertAt(out, idx++, {
