@@ -50,7 +50,6 @@ export function init(store) {
     CAPI.RANCHER_CLUSTER,
     'cloud-credentials',
     'drivers',
-    CATALOG.CLUSTER_REPO,
     'pod-security-policies',
   ]);
 
@@ -105,12 +104,16 @@ export function init(store) {
   weightType(CAPI.MACHINE_DEPLOYMENT, 3, true);
   weightType(CAPI.MACHINE_SET, 2, true);
   weightType(CAPI.MACHINE, 1, true);
+  weightType(CATALOG.CLUSTER_REPO, 0, true);
+
+  configureType(CATALOG.CLUSTER_REPO, { showListMasthead: false });
 
   basicType([
     MANAGEMENT.CLUSTER,
     CAPI.MACHINE_DEPLOYMENT,
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
+    CATALOG.CLUSTER_REPO,
   ], 'Advanced');
 
   weightGroup('Advanced', -1, true);
