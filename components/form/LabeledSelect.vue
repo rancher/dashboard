@@ -325,6 +325,8 @@ export default {
 <style lang='scss' scoped>
 .labeled-select {
   position: relative;
+  min-height: $input-height;
+  padding-bottom: calc(10px/2);
 
   .icon-spinner {
     position: absolute;
