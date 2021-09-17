@@ -4,7 +4,7 @@ import Loading from '@/components/Loading';
 import Tag from '@/components/Tag';
 import Banner from '@/components/Banner';
 import {
-  STATE, NAME, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM, PODS, AGE
+  STATE, NAME, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM, PODS, AGE, OS
 } from '@/config/table-headers';
 import metricPoller from '@/mixins/metric-poller';
 
@@ -77,13 +77,20 @@ export default {
     tableGroup: mapPref(GROUP_RESOURCES),
 
     headers() {
-      const headers = [STATE, NAME, ROLES, VERSION, INTERNAL_EXTERNAL_IP, {
-        ...CPU,
-        breakpoint: COLUMN_BREAKPOINTS.LAPTOP
-      }, {
-        ...RAM,
-        breakpoint: COLUMN_BREAKPOINTS.LAPTOP
-      }];
+      const headers = [
+        STATE,
+        NAME,
+        ROLES,
+        VERSION,
+        INTERNAL_EXTERNAL_IP,
+        OS,
+        {
+          ...CPU,
+          breakpoint: COLUMN_BREAKPOINTS.LAPTOP
+        }, {
+          ...RAM,
+          breakpoint: COLUMN_BREAKPOINTS.LAPTOP
+        }];
 
       if (this.canViewPods) {
         headers.push({
