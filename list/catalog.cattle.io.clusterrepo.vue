@@ -6,7 +6,7 @@ import Banner from '@/components/Banner';
 import { HIDE_DESC, mapPref } from '@/store/prefs';
 
 export default {
-  name:       'ListClisterReposApps',
+  name:       'ListClusterReposApps',
   components: {
     Banner,
     Masthead,
@@ -35,7 +35,9 @@ export default {
     hideDescriptions: mapPref(HIDE_DESC),
 
     typeDescriptionKey() {
-      return this.currentCluster.isLocal ? 'typeDescription."catalog.cattle.io.clusterrepo.local"' : 'typeDescription."catalog.cattle.io.clusterrepo"';
+      // Show a different message to cover support for RKE templates in the local cluster
+      // (no current cluster means catalog requests default to local)
+      return !this.currentCluster || this.currentCluster.isLocal ? 'typeDescription."catalog.cattle.io.clusterrepo.local"' : 'typeDescription."catalog.cattle.io.clusterrepo"';
     }
   }
 };
