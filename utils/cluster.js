@@ -1,14 +1,14 @@
-const HARVESTER_LABEL = 'cluster.harvesterhci.io';
-const VIRTUAL_HARVESTER_PROVIDER = 'harvester';
+import { VIRTUAL_HARVESTER_PROVIDER } from '@/config/types';
+import { HCI } from '@/config/labels-annotations';
 
 // Filter out any clusters that are not Kubernetes Clusters
 // Currently this removes Harvester clusters
-export function filterOnlyKubernetesClusters(clusters) {
-  return clusters.filter((c) => {
+export function filterOnlyKubernetesClusters(mgmtClusters) {
+  return mgmtClusters.filter((c) => {
     return !c.isHarvester;
   });
 }
 
-export function isHarvesterCluster(cluster) {
-  return cluster.metadata?.labels?.[HARVESTER_LABEL] === 'true' || cluster.provider === VIRTUAL_HARVESTER_PROVIDER;
+export function isHarvesterCluster(mgmtCluster) {
+  return mgmtCluster.metadata?.labels?.[HCI.HARVESTER_CLUSTER] === 'true' || mgmtCluster.provider === VIRTUAL_HARVESTER_PROVIDER;
 }

@@ -1,9 +1,9 @@
-import { HCI, MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER, CAPI } from '@/config/types';
+import { HCI, MANAGEMENT, CAPI } from '@/config/types';
 import { HARVESTER, MULTI_CLUSTER } from '@/store/features';
 import { DSL } from '@/store/type-map';
 import { STATE, NAME as NAME_COL, AGE, VERSION } from '@/config/table-headers';
 import { allHash } from '@/utils/promise';
-import { HCI as HCI_LABEL } from '@/config/labels-annotations';
+import { isHarvesterCluster } from '@/utils/cluster';
 
 export const NAME = 'harvesterManager';
 
@@ -98,7 +98,7 @@ export function init(store) {
           type:     HCI.CLUSTER,
           provider: cluster?.status?.provider,
         };
-      }).filter(c => c?.metadata?.labels?.[HCI_LABEL.HARVESTER_CLUSTER] === 'true' || c.provider === VIRTUAL_HARVESTER_PROVIDER);
+      }).filter(c => isHarvesterCluster(c));
     },
   });
 }
