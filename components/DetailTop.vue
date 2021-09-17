@@ -132,7 +132,7 @@ export default {
 
 <style lang="scss">
   .detail-top {
-    $spacing: 5px;
+    $spacing: 4px;
 
     &:not(.empty) {
       // Flip of .masthead padding/margin
