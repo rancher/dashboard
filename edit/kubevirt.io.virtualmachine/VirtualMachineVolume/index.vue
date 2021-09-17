@@ -144,6 +144,7 @@ export default {
     addVolume(type) {
       const name = this.getName();
       const neu = {
+        id:          randomStr(5),
         name,
         source:      type,
         size:        '10Gi',
@@ -232,7 +233,7 @@ export default {
     <Banner v-if="!isView" color="info" label-key="harvester.virtualMachine.volume.dragTip" />
     <draggable v-model="rows" @end="update">
       <transition-group>
-        <div v-for="(volume, i) in rows" :key="volume.to.params.id">
+        <div v-for="(volume, i) in rows" :key="volume.id">
           <InfoBox class="volume-source">
             <button v-if="!isView" type="button" class="role-link btn btn-sm remove-vol" @click="removeVolume(volume)">
               <i class="icon icon-2x icon-x" />

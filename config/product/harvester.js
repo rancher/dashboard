@@ -269,7 +269,6 @@ export function init(store) {
     name:       HCI.SETTING,
     namespaced: true,
     weight:     -1,
-    icon:       'folder',
     route:      {
       name:     'c-cluster-product-resource',
       params:   { resource: HCI.SETTING }

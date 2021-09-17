@@ -194,6 +194,7 @@ export default {
 
       if (_disks.length === 0) {
         out.push({
+          id:               randomStr(5),
           source:           SOURCE_TYPE.IMAGE,
           name:             'disk-0',
           accessMode:       'ReadWriteMany',
@@ -265,6 +266,7 @@ export default {
           const bootOrder = DISK?.bootOrder ? DISK?.bootOrder : index;
 
           return {
+            id:           randomStr(5),
             bootOrder,
             source,
             name:          DISK.name,

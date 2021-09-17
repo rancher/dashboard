@@ -1,5 +1,6 @@
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
+import { HCI } from '@/config/types';
 
 export default {
   message() {
@@ -26,7 +27,7 @@ export default {
     return {
       name:    this.attachNodeName,
       message: this.message,
-      to:      `host/${ this.attachNodeName }?mode=edit`
+      to:      `${ HCI.HOST }/${ this.attachNodeName }?mode=edit`
     };
   }
 };

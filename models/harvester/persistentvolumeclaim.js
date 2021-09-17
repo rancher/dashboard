@@ -2,6 +2,7 @@ import Vue from 'vue';
 import { _CLONE } from '@/config/query-params';
 import { HCI } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
+import { findBy } from '@/utils/array';
 import { get, clone } from '@/utils/object';
 
 export default {
@@ -26,7 +27,13 @@ export default {
 
   stateDisplay() {
     const ownedBy = this?.metadata?.annotations?.[HCI_ANNOTATIONS.OWNED_BY];
-    const status = this?.status?.phase === 'Bound' ? 'Ready' : 'NotReady';
+    let status = this?.status?.phase === 'Bound' ? 'Ready' : 'NotReady';
+
+    const conditions = this?.status?.conditions || [];
+
+    if (findBy(conditions, 'type', 'Resizing')?.status === 'True') {
+      status = 'Resizing';
+    }
 
     if (ownedBy) {
       return 'In-use';
