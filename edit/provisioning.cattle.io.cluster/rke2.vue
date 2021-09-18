@@ -963,9 +963,10 @@ export default {
         return;
       }
 
-      if (this.agentConfig['cloud-provider-name'] === HARVESTER) {
+      const clusterId = get(this.credential, 'decodedData.clusterId') || '';
+
+      if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId) {
         const namespace = this.machinePools?.[0]?.config?.vmNamespace;
-        const clusterId = get(this.credential, 'decodedData.clusterId') || '';
 
         const res = await this.$store.dispatch('management/request', {
           url:                  `/k8s/clusters/${ clusterId }/v1/harvester/kubeconfig`,

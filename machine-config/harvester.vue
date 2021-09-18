@@ -50,6 +50,7 @@ export default {
       const clusterId = get(this.credential, 'decodedData.clusterId');
 
       const url = `/k8s/clusters/${ clusterId }/v1`;
+
       const isImportCluster = this.credential.decodedData.clusterType === 'imported';
 
       this.isImportCluster = isImportCluster;
@@ -191,16 +192,24 @@ export default {
     };
   },
 
-  computed: { ...mapGetters({ t: 'i18n/t' }) },
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
+    disabledEdit() {
+      return this.disabled || !!(this.isEdit && this.value.id);
+    }
+  },
 
   watch: {
     'credentialId'() {
-      this.imageOptions = [];
-      this.networkOptions = [];
-      this.namespaceOptions = [];
-      this.value.imageName = '';
-      this.value.networkName = '';
-      this.value.vmNamespace = '';
+      if (!this.isEdit) {
+        this.imageOptions = [];
+        this.networkOptions = [];
+        this.namespaceOptions = [];
+        this.value.imageName = '';
+        this.value.networkName = '';
+        this.value.vmNamespace = '';
+      }
 
       this.$fetch();
     },
@@ -342,7 +351,7 @@ export default {
           :options="namespaceOptions"
           :searchable="true"
           :required="true"
-          :disabled="disabled"
+          :disabled="disabledEdit"
           label-key="cluster.credential.harvester.namespace"
         />
 
@@ -352,7 +361,7 @@ export default {
           label-key="cluster.credential.harvester.namespace"
           :required="true"
           :mode="mode"
-          :disabled="disabled"
+          :disabled="disabledEdit"
         />
       </div>
     </div>
@@ -364,7 +373,7 @@ export default {
           :mode="mode"
           :options="imageOptions"
           :required="true"
-          :disabled="disabled"
+          :disabled="disabledEdit"
           label-key="cluster.credential.harvester.image"
         />
       </div>
@@ -375,7 +384,7 @@ export default {
           :mode="mode"
           :options="networkOptions"
           :required="true"
-          :disabled="disabled"
+          :disabled="disabledEdit"
           label-key="cluster.credential.harvester.network"
         />
       </div>
@@ -388,7 +397,7 @@ export default {
           :mode="mode"
           :required="true"
           :placeholder="t('cluster.credential.harvester.placeholder')"
-          :disabled="disabled"
+          :disabled="disabledEdit"
           label-key="cluster.credential.harvester.image"
         />
       </div>
@@ -399,7 +408,7 @@ export default {
           :mode="mode"
           :required="true"
           :placeholder="t('cluster.credential.harvester.placeholder')"
-          :disabled="disabled"
+          :disabled="disabledEdit"
           label-key="cluster.credential.harvester.network"
         />
       </div>
