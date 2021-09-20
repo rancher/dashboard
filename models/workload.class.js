@@ -535,6 +535,6 @@ export default class Workload extends Resource {
   }
 
   get isFromNorman() {
-    return get(this.metadata.labels, 'cattle.io/creator') === 'norman';
+    return (this.metadata.labels || {})['cattle.io/creator'] === 'norman';
   }
 }
