@@ -61,6 +61,7 @@ export default {
 
       if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
         hash.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+        hash.kubeNodes = this.$store.dispatch('cluster/findAll', { type: NODE });
       }
     }
 
@@ -72,8 +73,6 @@ export default {
 
       hash.normanNodePools = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
     }
-
-    hash.kubeNodes = this.$store.dispatch('cluster/findAll', { type: NODE });
 
     const res = await allHash(hash);
 
