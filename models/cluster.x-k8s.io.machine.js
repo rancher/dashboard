@@ -79,7 +79,7 @@ export default {
   },
 
   kubeNode() {
-    const nodeName = this.status.nodeRef.name;
+    const nodeName = this.status?.nodeRef?.name;
     const kubeNode = this.$rootGetters['cluster/byId'](NODE, nodeName);
 
     return kubeNode;
