@@ -3,7 +3,7 @@ import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
 import ResourceTable from '@/components/ResourceTable';
 import ResourceTabs from '@/components/form/ResourceTabs';
-import SortableTable from '@/components/SortableTable';
+import SortableTable, { COLUMN_BREAKPOINTS } from '@/components/SortableTable';
 import CopyCode from '@/components/CopyCode';
 import Tab from '@/components/Tabbed/Tab';
 import { allHash } from '@/utils/promise';
@@ -219,7 +219,10 @@ export default {
           formatter:     'LinkDetail',
           formatterOpts: { reference: 'kubeNodeDetailLocation' }
         },
-        KUBE_NODE_OS,
+        {
+          ...KUBE_NODE_OS,
+          breakpoint: COLUMN_BREAKPOINTS.LAPTOP
+        },
         ROLES,
         AGE,
       ];

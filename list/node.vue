@@ -83,7 +83,10 @@ export default {
         ROLES,
         VERSION,
         INTERNAL_EXTERNAL_IP,
-        KUBE_NODE_OS,
+        {
+          ...KUBE_NODE_OS,
+          breakpoint: COLUMN_BREAKPOINTS.LAPTOP
+        },
         {
           ...CPU,
           breakpoint: COLUMN_BREAKPOINTS.LAPTOP
