@@ -537,4 +537,12 @@ export default class Workload extends Resource {
   get isFromNorman() {
     return (this.metadata.labels || {})['cattle.io/creator'] === 'norman';
   }
+
+  get warnDeletionMessage() {
+    if (this.isFromNorman) {
+      return this.t('workload.normanWarning');
+    } else {
+      return null;
+    }
+  }
 }

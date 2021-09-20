@@ -4487,6 +4487,7 @@ workload:
     subdomain:
       label: Subdomain
       placeholder: e.g. web
+  normanWarning: It looks like this workload was created in the legacy Rancher UI. You may need to manually delete any services that were automatically created for it.
   validation:
     containers: Containers
     containerImage: Container {name} - "Container Image" is required.
