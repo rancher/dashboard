@@ -335,7 +335,7 @@ export default {
   }
 
   .labeled-container {
-    padding: $input-padding-sm 0 1px $input-padding-sm;
+    padding: $input-padding-sm 0 2px $input-padding-sm;
 
     label {
       margin: 0;

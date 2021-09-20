@@ -274,5 +274,23 @@ export default {
     &:not(.view){
       grid-template-columns: 1fr 1fr 1fr 100px;
     }
+
+    INPUT:not([type]),
+    INPUT[type='text'],
+    INPUT[type='password'],
+    INPUT[type='number'],
+    INPUT[type='date'],
+    INPUT[type='email'],
+    INPUT[type='search']:not(.vs__search),
+    INPUT[type='tel'],
+    INPUT[type='url'],
+    SELECT,
+    TEXTAREA,
+    .labeled-input,
+    .labeled-select,
+    .unlabeled-input,
+    .unlabeled-select {
+      height: $input-height;
+    }
   }
 </style>

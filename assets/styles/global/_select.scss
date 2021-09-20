@@ -20,6 +20,11 @@
 .unlabeled-select {
   min-width: 75px;
   // line-height: $input-line-height;
+  
+  &.create {
+    padding: 0;
+    height: $input-height;
+  }
 
   .required {
     color: var(--error);
@@ -137,6 +142,10 @@
       .vs__actions {
         width: auto;
       }
+
+      &.vs--single:not(.vs--searching) .vs__selected-options .vs__selected {
+        padding: $input-padding-sm 0;
+      }
     }
   }
 
@@ -154,16 +163,5 @@
 
   .labeled-tooltip .status-icon {
     top: $input-padding-sm;
-  }
-
-  &.create {
-    padding: 0;
-    .v-select {
-      &.inline {
-        .vs__dropdown-toggle {
-          height: $input-height;
-        }
-      }
-    }
   }
 }
