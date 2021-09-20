@@ -314,7 +314,7 @@ export default {
     },
 
     versionOptions() {
-      function filterAndMap(versions, minVersion) {
+      function filterAndMap(versions, minVersion, currentVersion) {
         const out = (versions || []).filter(obj => !!obj.serverArgs).map((obj) => {
           let disabled = false;
 
@@ -334,27 +334,32 @@ export default {
         });
 
         const sorted = sortBy(out, 'sort:desc');
+        const versionMap = {};
 
-        return sorted.filter((version, idx) => {
+        return sorted.filter((version) => {
+          // Always show pre-releases
           if (semver.prerelease(version.value)) {
             return true;
           }
 
-          const nextHighest = sorted[idx - 1];
+          const major = semver.major(version.value);
 
-          if (nextHighest && semver.minor(nextHighest.value) === semver.minor(version.value)) {
-            return false;
+          // Always show current version, else show if we haven't shown anything for this major version yet
+          if (version === currentVersion || !versionMap[major]) {
+            versionMap[major] = version;
+
+            return true;
           }
 
-          return true;
+          return false;
         });
       }
 
       const cur = this.originalValue?.spec?.kubernetesVersion || '';
       const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
       const existingK3s = this.mode === _EDIT && cur.includes('k3s');
-      const rke2 = filterAndMap(this.rke2Versions, (existingRke2 ? cur : null));
-      const k3s = filterAndMap(this.k3sVersions, (existingK3s ? cur : null));
+      const rke2 = filterAndMap(this.rke2Versions, (existingRke2 ? cur : null), cur);
+      const k3s = filterAndMap(this.k3sVersions, (existingK3s ? cur : null), cur);
       const showRke2 = rke2.length && !existingK3s;
       const showK3s = k3s.length && !existingRke2;
       const out = [];
