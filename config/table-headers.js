@@ -848,7 +848,7 @@ export const MACHINE_NODE_OS = {
   formatter: 'Capitalize'
 };
 
-export const NODE_OS = {
+export const MANAGEMENT_NODE_OS = {
   name:      'operating-system',
   labelKey:  'tableHeaders.operatingSystem',
   value:     'status.internalNodeStatus.nodeInfo.operatingSystem',
