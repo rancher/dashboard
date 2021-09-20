@@ -832,7 +832,7 @@ export const STATE_NORMAN = {
   formatter: 'BadgeStateFormatter',
 };
 
-export const OS = {
+export const KUBE_NODE_OS = {
   name:      'operating-system',
   labelKey:  'tableHeaders.operatingSystem',
   value:     'status.nodeInfo.operatingSystem',
