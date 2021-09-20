@@ -78,6 +78,13 @@ export default {
     return this.$rootGetters['management/byId'](CAPI.MACHINE_DEPLOYMENT, this.poolId);
   },
 
+  kubeNode() {
+    const nodeName = this.status.nodeRef.name;
+    const kubeNode = this.$rootGetters['cluster/byId'](NODE, nodeName);
+
+    return kubeNode;
+  },
+
   kubeNodeDetailLocation() {
     const kubeId = this.status?.nodeRef?.name;
     const cluster = this.cluster?.status?.clusterName;
