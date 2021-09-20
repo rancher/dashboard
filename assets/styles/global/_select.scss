@@ -12,7 +12,7 @@
   > .labeled-select:not(.taggable),
   > .unlabeled-select:not(.taggable) {
     min-height: $input-height;
-    padding-bottom: calc(#{$input-padding-sm}/2);
+    // padding-bottom: calc(#{$input-padding-sm}/2);
   }
 }
 
@@ -154,5 +154,16 @@
 
   .labeled-tooltip .status-icon {
     top: $input-padding-sm;
+  }
+
+  &.create {
+    padding: 0;
+    .v-select {
+      &.inline {
+        .vs__dropdown-toggle {
+          height: $input-height;
+        }
+      }
+    }
   }
 }
