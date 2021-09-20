@@ -342,11 +342,11 @@ export default {
             return true;
           }
 
-          const major = semver.major(version.value);
+          const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
 
-          // Always show current version, else show if we haven't shown anything for this major version yet
-          if (version === currentVersion || !versionMap[major]) {
-            versionMap[major] = version;
+          // Always show current version, else show if we haven't shown anything for this major.minor version yet
+          if (version === currentVersion || !versionMap[majorMinor]) {
+            versionMap[majorMinor] = true;
 
             return true;
           }
