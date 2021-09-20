@@ -835,7 +835,15 @@ export const STATE_NORMAN = {
 export const KUBE_NODE_OS = {
   name:      'operating-system',
   labelKey:  'tableHeaders.operatingSystem',
-  value:     'status.nodeInfo.operatingSystem',
-  sort:      ['status.nodeInfo.operatingSystem'],
+  value:     'kubeNode.status.nodeInfo.operatingSystem',
+  sort:      ['kubeNode.status.nodeInfo.operatingSystem'],
+  formatter: 'Capitalize'
+};
+
+export const NODE_OS = {
+  name:      'operating-system',
+  labelKey:  'tableHeaders.operatingSystem',
+  value:     'status.internalNodeStatus.nodeInfo.operatingSystem',
+  sort:      ['status.internalNodeStatus.nodeInfo.operatingSystem'],
   formatter: 'Capitalize'
 };
