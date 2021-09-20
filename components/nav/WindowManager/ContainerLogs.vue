@@ -87,8 +87,8 @@ export default {
 
   computed: {
     containerChoices() {
-      const containers = this.pod?.spec?.containers?.map(x => x.name) || [];
-      const initContainers = this.pod?.spec?.initContainers.map(x => x.name) || [];
+      const containers = (this.pod?.spec?.containers || []).map(x => x.name);
+      const initContainers = (this.pod?.spec?.initContainers || []).map(x => x.name);
 
       return [...containers, ...initContainers];
     },
