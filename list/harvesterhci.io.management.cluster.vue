@@ -56,6 +56,10 @@ export default {
       :resource="resource"
       :is-creatable="false"
     >
+      <template #typeDescription>
+        <TypeDescription :resource="hResource" />
+      </template>
+
       <template slot="extraActions">
         <n-link
           :to="importLocation"
@@ -65,8 +69,6 @@ export default {
         </n-link>
       </template>
     </Masthead>
-
-    <TypeDescription :resource="hResource" />
 
     <ResourceTable
       :schema="schema"
