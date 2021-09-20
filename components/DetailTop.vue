@@ -106,7 +106,7 @@ export default {
       <span class="content">{{ description }}</span>
     </div>
 
-    <div class="details">
+    <div v-if="hasDetails" class="details">
       <div v-for="detail in details" :key="detail.label || detail.slotName" class="detail">
         <span class="label">
           {{ detail.label }}:
@@ -151,10 +151,11 @@ export default {
 
 <style lang="scss">
   .detail-top {
-    $spacing: 5px;
+    $spacing: 4px;
 
     &:not(.empty) {
-      padding-top: 5px;
+      // Flip of .masthead padding/margin
+      padding-top: 10px;
       border-top: 1px solid var(--border);
       margin-top: 10px;
     }
@@ -172,7 +173,7 @@ export default {
       }
 
       .tag {
-        margin: $spacing/2 $spacing $spacing $spacing/2;
+        margin: $spacing/2 $spacing 0 $spacing/2;
         font-size: 12px;
       }
     }
@@ -194,10 +195,15 @@ export default {
       display: flex;
       flex-direction: row;
       flex-wrap: wrap;
-      margin-bottom: 5px;
 
       .detail {
         margin-right: 20px;
+      }
+    }
+
+    & > div {
+      &:not(:last-of-type) {
+        margin-bottom: $spacing;
       }
     }
   }
