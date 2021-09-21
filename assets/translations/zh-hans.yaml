@@ -62,6 +62,7 @@ generic:
         1d: 1小时
         7d: 7天
         30d: 30天
+  completed: 已完成
 
 #locale:
   #en-us: English
@@ -124,6 +125,8 @@ product:
   #rio: Rio
   settings: 全局设置
   monitoring: 监控
+  harvesterManager: 虚拟化管理
+  harvester: Harvester
 
 suffix:
   #percent: "%"
@@ -2456,6 +2459,8 @@ resourceDetail:
       {count, plural,
       =1 {Owner}
       other {Owners}}
+    hideLabels: 隐藏系统标签
+    showLabels: 显示全部标签
     hideAnnotations: |-
       {annotations, plural,
       =1 {Hide 1 annotation}
@@ -3142,6 +3147,18 @@ tableHeaders:
   value: 值
   version: 版本号
   weight: 权重
+  progress: 进度
+  fingerprint: 唯一标识
+  networkType: 类型
+  networkVlan: Vlan ID
+  backupTarget: 备份路径
+  targetVm: 目标VM
+  hostIp: 主机IP
+  attachedVM: 被挂载到
+  phase: 阶段
+  storage: 存储
+  defaultVersion: 默认版本
+  ipAddress: IP 地址
 
 target:
   router:
@@ -3743,6 +3760,440 @@ workload:
       tip: 杀死 Pod 前所需的等待时间
     title: 升级中
 
+harvester:
+  modal:
+    backup:
+      success: '已启动备份 { backUpName }.'
+      addBackup: 添加备份
+    restore:
+      success: '虚拟机{ name }恢复成功.'
+      title: 恢复备份
+      selectBackup: 选择备份
+      message:
+        backup: 请选择需要还原的备份.
+    createTemplate:
+      title: '生成模版'
+      name: 名称
+      description: 描述
+      message: 
+        tip: '请输入模版名称！'
+        success: '模板 { templateName } 创建成功.'
+        failed: '生成模板失败！'
+    migration:
+      failedMessage: 最新迁移失败!
+      title: 迁移
+      fields:
+        nodeName: 
+          label: 目标节点
+          placeholder: 请选择目标节点
+    ejectCDROM:
+      title: 弹出 CDROM
+      warnTip: 弹出卷将导致重新启动虚拟机.
+      operationTip: '选择您要删除的卷:'
+      delete: 删除
+    bundle:
+      title: 创建支持包
+      url: Issue地址
+      description: 描述
+      requiredDesc: 描述是必填项!
+      titleDescription: 收集Harvester系统相关日志, 以便定位问题和获取支持.
+    hotplug:
+      success: '{ diskName } 已挂载到 { vm }'
+      title: 添加卷
+  notification:
+    title:
+      succeed: 成功
+      info: 提示
+      warning: 警告
+      error: 错误
+  action:
+    createVM: 创建虚拟机
+    start: 启动
+    restart: 重启
+    stop: 停止
+    pause: 暂停
+    unpause: 取消暂停
+    ejectCDROM: 弹出 CDROM
+    launchFormTemplate: 从模板启动实例
+    modifyTemplate: 修改模版 (创建新版本)
+    setDefaultVersion: 设置默认版本
+    addTemplateVersion: 添加模版版本
+    backup: 备份
+    restore: 恢复
+    restoreNewVM: 恢复新的虚拟机
+    restoreExistingVM: 恢复现存的虚拟机
+    migrate: 迁移
+    abortMigration: 取消迁移
+    createTemplate: 生成模板
+    enableMaintenance: 开启维护模式
+    disableMaintenance: 关闭维护模式
+    cordon: 封锁
+    uncordon: 解除封锁
+    addHotplug: 添加卷
+  tableHeaders:
+    size: 大小
+    progress: 进度
+    phase: 阶段
+    message: 消息
+    attachedVM: 挂载VM
+    fingerprint: 唯一标识
+    value: 值
+    actions: 操作
+    readyToUse: 可用
+    backupTarget: 备份路径
+    targetVm: 目标VM
+    hostIp: 主机IP
+    vm:
+      ipAddress: IP 地址
+      node: 主机
+      defaultVersion: 默认版本
+    network:
+      type: 类型
+      vlan: Vlan ID
+  fields:
+    version: 版本
+    name: 名称
+    type: 类型
+    image: 镜像
+    size: 大小
+    volume: 卷
+    network: 网络
+    model: 模式
+    macAddress: mac地址
+    port: 端口
+    protocol: 协议
+    remove: 删除
+    count: 数量
+    PhysicalNic: 物理网卡
+    cpu: Cpu
+    memory: 内存
+    virtaulName: 虚拟机名称
+  tab:
+    volume: 卷
+    network: 网络
+    advanced: 高级选项
+
+  validation:
+    custom:
+      tooLongName: '"名称" 不能超过 {max} 个字符'
+      cidr: '非法的CIRD'
+    vm:
+      name: '"名称" 是必填项'
+      memory: '"内存" 是必填项'
+      network:
+        error: '网络 {prefix}: {message}'
+        name: '"网络名称" 是必填项'
+        macFormat: 'MAC 地址格式不正确'
+        duplicatedName: '网络名称重复'
+        duplicatedPortName: '端口名重复'
+        duplicatedPortNumber: '端口号重复'
+      volume:
+        error: '卷 {prefix}: {message}'
+        type: '"类型" 是必填项'
+        duplicatedName: '卷名称重复'
+        size: '"大小" 是必填项'
+        image: '"镜像" 是必填项'
+        volume: '"卷" 是必填项'
+        docker: '"Docker 镜像" 是必填项'
+        needImageOrExisting: '至少需要一个镜像卷或已存在的系统卷'
+    image:
+      ruleTip: '仅支持镜像后缀为 .img, .iso, .qcow, .qcow2, .raw'
+      ruleFileTip: '仅支持镜像后缀为 .img, .iso, .qcow, .qcow2, .raw'
+
+  dashboard:
+    label: 概览
+    header: 仪表盘
+    hardwareResourceGauge:
+      cpu: CPU
+      memory: 内存
+      storage: 存储
+    sections:
+      events:
+        label: 事件
+    upgrade:
+      upgradeApp: 升级软件
+      upgrade: 升级
+      upgradeTip: 请选中要升级到的版本
+      currentVersion: 当前版本
+      versionLabel: 可用的兼容版本
+      upgradeNode: 升级节点
+      upgradeSysService: 升级系统服务
+  host:
+    label: 主机
+    promote:
+      none: ' '
+      running: 角色升级中
+      failed: 角色升级失败
+      unknown: 角色升级中断
+      promoteRestart: 角色升级重启中
+      promoteSucceed: 角色升级完成
+    tabs:
+      network: 网络
+      disk: 硬盘
+      labels: 标签
+    detail:
+      title:
+        network: 网络配置
+      hostIP: 节点IP
+      role: 角色
+      os: 操作系统
+      create: 创建时间
+      update: 最近更新时间
+      customName: 自定义名称
+      consoleUrl: Console 地址
+      more: 更多信息
+      uuid: UUID
+      containerRuntime: 容器运行时
+      kernel: 内核
+      management: 管理节点
+      compute: 计算节点
+      storage: 存储
+      networkType: 类型
+      nic: 物理网卡
+      notRecommended: 不推荐
+    enableMaintenance:
+      title: 开启节点维护模式
+      protip: 此操作会迁移当前节点上的所有虚拟机.
+    cordon:
+      title: 封锁
+      protip: 此操作将会标记节点 { node } 为不可调度.
+    disk:
+      add: 添加硬盘
+      path:
+        label: 路径
+
+  virtualizationManagement:
+    manage: 管理
+
+  virtualMachine:
+    label: 虚拟机
+    instance:
+      single:
+        label: 单个实例
+        nameLabel: 名称
+        host: 
+          label: 主机名
+          placeholder: 默认为虚拟机名称
+      multiple:
+        label: 多个实例
+        nameNsDescription: 每个实例的名称前缀
+        count: 数量
+        countTip: 创建虚拟机的实例数量必须大于 1 小于 10
+        nameLabel: 名称前缀
+        host: 
+          label: 主机名前缀
+          placeholder: 默认为虚拟机名称
+    useTemplate:
+      label: "使用模版:"
+      template:
+        label: 模版
+      version:
+        label: 版本
+    console:
+      novnc: 在 Web VNC 中打开
+      serial: 在 Serial Console 中打开
+    promptRemove:
+      title: '需要您要删除的卷:'
+      deleteAll: 全部删除
+    restartTip: 现在重新启动虚拟机以使配置更改生效.
+    createRunning: 创建时启动虚拟机
+    restartNow: 现在重启
+    createSSHKey: 创建SSH密钥
+    installAgent: 安装 qemu-guest-agent
+    enableUsb: 启动 USB Tablet 增强
+    sshTitle: 添加SSH公钥
+    imageTip: 创建虚拟机所需的.iso，.img，.qcow2或.raw的外部镜像地址
+    title: 虚拟机
+    volume:
+      dragTip: 拖放卷或使用卷的箭头来更改引导顺序。
+      volumeTip: VM仅包含一个cd-rom卷。 您可能要添加其他磁盘卷。
+      volumeUpdate: '设置卷 { name } 成功'
+      macTip: 提示：安装的操作系统内显示的MAC地址
+      type: 类型
+      size: 大小
+      edit: 编辑
+      bus:  Bus
+      bootOrder: 引导顺序
+      volume: 卷
+      dockerImage: Docker镜像
+      addVolume: 添加卷
+      addExistingVolume: 添加已存在的卷
+      addVmImage: 添加VM镜像
+      addContainer: 添加容器镜像
+      setFirst: 设置为系统卷
+      saveVolume: 更新卷
+      title:
+        vmImage: 镜像卷
+        existingVolume: 已存在的卷
+        volume: 卷
+        container: 容器镜像
+      unmount:
+        title: 你确定吗?
+        message: 您确定要卸载此卷吗？
+    network:
+      title: 网络
+      addNetwork: 添加网络
+      addPort:  添加端口
+    cloudConfig:
+      title: Cloud配置
+      cloudInit:
+        label: Cloud Init
+        placeholder: 请选择...
+      userData:
+        label: 用户配置模板
+        title: "User Data:"
+        tip: '您可以指定Cloud-init相关的用户数据以在启动期间配置实例或运行配置脚本。 如果一次启动多个实例，则该配置会对所有实例生效。<a href="https://cloudinit.readthedocs.io/en/latest/topics/examples.html" target="_blank"> 查看更多 </a>'
+      networkData:
+        label: 网络配置模板
+        title: "Network Data:"
+        tip: '网络设备配置可让您自定义实例的网络接口,例如管理子网分配，虚拟设备创建（bonds，bridges，Vlan）路由和DNS配置。 <a href="https://cloudinit.readthedocs.io/en/latest/topics/network-config-format-v1.html" target="_blank"> 查看更多 </a>'
+    scheduling:
+      affinity:
+        anyNode: '自动匹配节点运行 Virtual Machine'
+        schedulingRules: '通过调度规则匹配节点运行 Virtual Machine'
+    input:
+      name: 名称
+      memory: 内存
+      image: 镜像
+      sshKey: SSH 密钥
+      sshKeyValue: SSH 公钥
+      MachineType: 机器类型
+    machineTypeTip: '指定一个处理器架构来模拟。 要查看支持的体系结构列表，请运行：qemu-system-x86_64 -cpu？'
+    detail:
+      details:
+        name: 名称
+        namespace: 命名空间
+        created: 创建时间
+        hostname: 节点名称
+        node: 主机
+        ipAddress: IP 地址
+        bootOrder: 启动顺序
+        CDROMs: CD-ROMs
+        operatingSystem: 操作系统
+        kernelRelease: 内核版本
+        flavor: 规格
+        down: 虚拟机未启动
+        sourceNode: 源节点
+        targetNode: 目标节点
+        started: 开始时间
+        ended: 结束时间
+        metrics: 虚拟机指标
+      notAvailable: 不可用
+      GuestAgentNotInstalled: 访客代理未准备就绪
+      tabs:
+        overview: 概览
+        details: 详情
+        environment: 环境
+        events: 事件
+        migration: 迁移
+        console: 控制台
+        networkInterfaces: 网络接口
+        disks: 硬盘
+        networks: 网络
+        basics: 基本信息
+        configurations: 配置
+        instance: 虚拟机
+        monitor: 监控数据
+        keypairs: 公共密钥
+        cloudConfig: Cloud 配置
+      console:
+        down: 请启动虚拟机以访问控制台.
+
+  volume: 
+    label: 卷
+    size: 大小
+    source: 资源类型
+    sourceOptions:
+      new: New
+      vmImage: VM Image
+    image: 镜像
+    imageName: 镜像
+
+  image:
+    label: 镜像
+    tabs:
+      basics: 基本信息
+    url: 镜像地址
+    size: 大小
+    urlTip: '<a href="https://www.qemu.org/docs/master/system/images.html#disk-image-file-formats" target="_blank">qemu</a> 支持 <code>raw</code> 和 <code>qcow2</code> 镜像格式. 可启动的ISO镜像也可以是类似 <code>raw</code> 格式的镜像.'
+    fileName: 文件名
+    uploadFile: 上传文件
+    sourceType:
+      download: URL
+      upload: 文件
+
+  vmTemplate:
+    label: 虚拟机模板
+    tabs:
+      basics: 基本信息
+    nameNsDescription:
+      name: 模板名称
+
+  backup:
+    label: 备份
+    createText: 恢复备份
+    title: 恢复虚拟机
+    backupTargetTip: 用于访问备份存储的端点。 支持NFS和S3。
+    message:
+      noSetting:
+        prefix: '在创建新备份之前, 必须在'
+        middle: '设置'
+        suffic: '中配置备份目标.'
+      errorTip:
+        prefix: 非法的备份目标
+        middle: 设置
+        suffic: ",错误信息： "
+      viewSetting:
+        prefix: 点击
+        middle: 这里
+        suffic: 查看备份的配置详情.
+    restore:
+      backup: 备份名称
+      deletePreviousVolumes: 历史卷清除策略
+      createNew: 新建虚拟机
+      replaceExisting: 选择已存在的虚拟机
+      virtualMachineName: 虚拟机名称
+    matchTarget: 当前备份目标与现有目标不匹配。
+
+  network:
+    label: 网络
+    message:
+      vlanInactive: 'VLAN网络在主机 {name} 上处于非活动状态'
+      premise: 
+        prefix: '您必须先配置网络'
+        middle: '设置'
+        suffic: ',然后才能创建新网络。'
+      viewSetting:
+        prefix: 点击
+        middle: 这里
+        suffic: 查看集群网络配置.
+      errorTip:
+        prefix: 非法的网络
+        middle: 配置
+        suffic: ",错误信息： "
+
+  sshKey:
+    label: SSH 秘钥
+    keypair: SSH 公钥
+    tabs:
+      basics: 基本信息
+
+  setting:
+    label: 设置
+    validation:
+      physicalNIC: DefaultPhysicalNIC
+    placeholder:
+      accessKeyId: 指定您的访问密钥ID
+      secretAccessKey: 指定您的私密访问密钥
+      cert: 上传自签名SSL证书
+    vlanChangeTip: 新修改的默认物理网卡仅适用于新增节点，不适用于现有节点
+    defaultPhysicalNIC: 默认物理网卡
+
+  cloudTemplate:
+    label: Cloud 配置模板
+    templateType: 模板类型
+    userData: User Data
+    networkData: Network Data
 
 ##############################
 # Model Properties
@@ -4001,6 +4452,17 @@ typeLabel:
       one { API密钥 }
       other { API密钥 }
     }
+  kubevirt.io.virtualmachine: 虚拟机
+  harvesterhci.io.virtualmachineimage: 镜像
+  harvesterhci.io.keypair: SSH 密钥
+  harvesterhci.io.cloudtemplate: Cloud 配置模板
+  harvesterhci.io.virtualmachinetemplateversion: 虚拟机模板
+  k8s.cni.cncf.io.networkattachmentdefinition: 网络
+  harvesterhci.io.volume: 卷
+  harvesterhci.io.user: 用户
+  harvesterhci.io.setting: 设置
+  harvesterhci.io.host: 主机
+  harvesterhci.io.virtualmachinebackup: 备份
 
 action:
   clone: 克隆
@@ -4087,9 +4549,23 @@ advancedSettings:
     'rke-metadata-config': '配置RKE元数据刷新参数。'
     'ui-banners': '分类横幅是用来在页眉、页脚或两者中显示一个自定义的固定横幅。'
     'ui-default-landing': '用户在登录后登陆的默认页面。'
+    'harv-vlan': VLAN网络的默认物理NIC名称.
+    'harv-backup-target': 自定义备份目标用于存储VM备份.
+    'harv-log-level': 配置Harvester服务器日志级别. 默认为信息
+    'harv-server-version': Harvester服务器版本.
+    'harv-upgrade-checker-enabled': 指定是否启用Harvester升级检查. 默认为true.
+    'harv-upgrade-checker-url': 默认的Harvester升级检查地址。 仅在<code> upgrade-checker-enabled </code> 等于true时使用。
   editHelp:
     'ui-banners': 这个设置需要一个JSON对象，包含3个根参数；<code>banner</code>, <code>showHeader</code>, <code>showFooter</code>。<code>banner</code>是一个包含；<code>textColor</code>, <code>background</code>, 和<code>text</code>的对象，其中<code>textColor</code>和<code>background</code>是任何有效的CSS颜色值。
-  #enum:
+  enum:
+    'api-ui-source':
+      auto: 'Auto'
+      bundled: 'Bundled'
+      external: 'External'
+    'log-level':
+      info: Info
+      debug: Debug
+      trace: Trace
     #'ui-default-landing':
      # ember: Cluster Manager
       #vue: Cluster Explorer

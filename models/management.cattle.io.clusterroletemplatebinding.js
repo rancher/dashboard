@@ -10,6 +10,7 @@ export default {
       }
     };
   },
+
   canCustomEdit() {
     return false;
   },
@@ -82,7 +83,7 @@ export default {
   },
 
   listLocation() {
-    return { name: 'c-cluster-explorer-members' };
+    return { name: 'c-cluster-product-members' };
   },
 
   doneOverride() {

@@ -6,7 +6,11 @@ export default {
   data() {
     const searchQuery = this.$route.query.q || null;
 
-    return { searchQuery };
+    return {
+      searchQuery,
+      previousFilter: null,
+      previousResult: null,
+    };
   },
 
   computed: {
@@ -27,13 +31,24 @@ export default {
       return out.addObjects(get(this, 'extraSearchSubFields') || []);
     }),
     */
-
     filteredRows() {
-      const out = (this.rows || []).slice();
       const searchText = (this.searchQuery || '').trim().toLowerCase();
+      let out;
+
+      if ( searchText && this.previousResult && searchText.startsWith(this.previousFilter) ) {
+        // If the new search is an addition to the last one, we can start with the same set of results as last time
+        // and filter those down, since adding more searchText can only reduce the number of results.
+        out = this.previousResult.slice();
+      } else {
+        this.previousResult = null;
+        out = (this.arrangedRows || []).slice();
+      }
+
+      this.previousFilter = searchText;
 
       if ( !searchText.length ) {
         this.subMatches = null;
+        this.previousResult = null;
 
         return out;
       }
@@ -99,6 +114,7 @@ export default {
       }
 
       this.subMatches = subMatches;
+      this.previousResult = out;
 
       return out;
     },
@@ -107,6 +123,11 @@ export default {
   watch: {
     searchQuery(q) {
       this.$router.applyQuery({ [SEARCH_QUERY]: q || undefined });
+    },
+
+    arrangedRows(q) {
+      // The rows changed so the old filter result is no longer useful
+      this.previousResult = null;
     }
   },
 };

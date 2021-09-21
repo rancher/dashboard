@@ -387,6 +387,17 @@ export default {
     return false;
   },
 
+  canDelete() {
+    const provider = this.$rootGetters['currentCluster'].provisioner.toLowerCase();
+    const cloudProviders = [
+      'aks', 'azureaks', 'azurekubernetesservice',
+      'eks', 'amazoneks',
+      'gke', 'googlegke'
+    ];
+
+    return !cloudProviders.includes(provider);
+  },
+
   // You need to preload CAPI.MACHINEs to use this
   provisionedMachine() {
     const namespace = this.metadata?.annotations?.[CAPI_ANNOTATIONS.CLUSTER_NAMESPACE];

@@ -2,7 +2,6 @@
 import { MANAGEMENT, NORMAN, VIRTUAL_TYPES } from '@/config/types';
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
-import { NAME } from '@/config/product/explorer';
 import Masthead from '@/components/ResourceList/Masthead';
 import { AGE, ROLE, STATE, PRINCIPAL } from '@/config/table-headers';
 import { canViewClusterPermissionsEditor } from '@/components/form/Members/ClusterPermissionsEditor.vue';
@@ -40,7 +39,7 @@ export default {
       createLocation: {
         name:   'c-cluster-product-resource-create',
         params: {
-          product:  NAME,
+          product:  this.$store.getters['currentProduct'].name,
           resource: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
         }
       },

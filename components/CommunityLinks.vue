@@ -9,6 +9,15 @@ import { mapGetters } from 'vuex';
 export default {
   components: { SimpleBox },
 
+  props: {
+    linkOptions: {
+      type:    Object,
+      default: () => {
+        return {};
+      },
+    },
+  },
+
   mixins: [Closeable],
 
   async fetch() {

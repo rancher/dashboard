@@ -2,6 +2,7 @@
 import FleetClusters from '@/components/FleetClusters';
 import { FLEET, MANAGEMENT } from '@/config/types';
 import Loading from '@/components/Loading';
+import { isHarvesterCluster } from '@/utils/cluster';
 
 export default {
   name:       'ListCluster',
@@ -43,7 +44,7 @@ export default {
         }
       }
 
-      return out;
+      return out.filter(c => !isHarvesterCluster(c));
     },
   },
 };

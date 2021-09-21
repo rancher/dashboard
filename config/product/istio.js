@@ -1,6 +1,6 @@
-import { DSL } from '@/store/type-map';
+import { AGE, NAME as NAME_HEADER, STATE } from '@/config/table-headers';
 import { ISTIO } from '@/config/types';
-import { STATE, NAME as NAME_HEADER, AGE } from '@/config/table-headers';
+import { DSL, IF_HAVE } from '@/store/type-map';
 
 export const NAME = 'istio';
 export const CHART_NAME = 'rancher-istio';
@@ -15,6 +15,7 @@ export function init(store) {
 
   product({
     ifHaveGroup: /^(.*\.)*istio\.io$/,
+    ifHave:      IF_HAVE.NOT_V1_ISTIO,
     icon:        'istio',
   });
 

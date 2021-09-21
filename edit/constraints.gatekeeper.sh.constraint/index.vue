@@ -15,7 +15,7 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import CruResource from '@/components/CruResource';
 import { ENFORCEMENT_ACTION_VALUES } from '@/models/constraints.gatekeeper.sh.constraint';
 import { saferDump } from '@/utils/create-yaml';
-import NamespaceList, { NAMESPACE_FILTERS } from './NamespaceList';
+import NamespaceList, { NAMESPACE_FILTERS_HELPER } from './NamespaceList';
 import MatchKinds from './MatchKinds';
 import Scope, { SCOPE_OPTIONS } from './Scope';
 
@@ -98,7 +98,7 @@ export default {
         }
       ],
       enforcementActionLabels: Object.values(ENFORCEMENT_ACTION_VALUES).map(ucFirst),
-      NAMESPACE_FILTERS,
+      NAMESPACE_FILTERS_HELPER,
     };
   },
 
@@ -273,7 +273,7 @@ export default {
                   :label="t('gatekeeperConstraint.tab.namespaces.sub.namespaces')"
                   tooltip="If defined, a constraint will only apply to resources in a listed namespace."
                   :mode="mode"
-                  :namespace-filter="NAMESPACE_FILTERS.nonSystem"
+                  :namespace-filter="NAMESPACE_FILTERS_HELPER.nonSystem"
                   add-label="Add Namespace"
                 />
               </div>

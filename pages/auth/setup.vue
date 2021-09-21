@@ -7,7 +7,7 @@ import { LOGGED_OUT, SETUP } from '@/config/query-params';
 import { NORMAN, MANAGEMENT } from '@/config/types';
 import { findBy } from '@/utils/array';
 import Checkbox from '@/components/form/Checkbox';
-import { getVendor, getProduct } from '@/config/private-label';
+import { getVendor, getProduct, setVendor } from '@/config/private-label';
 import RadioGroup from '@/components/form/RadioGroup';
 import { setSetting, SETTING } from '@/config/settings';
 import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
@@ -78,6 +78,30 @@ export default {
       telemetry = telemetrySetting.value !== 'out';
     } else if (!rancherVersionSetting?.value || isDevBuild(rancherVersionSetting?.value)) {
       telemetry = false;
+    }
+
+    let plSetting;
+
+    try {
+      await store.dispatch('management/findAll', {
+        type: MANAGEMENT.SETTING,
+        opt:  {
+          load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
+        },
+      });
+
+      plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
+    } catch (e) {
+      // Older versions used Norman API to get these
+      plSetting = await store.dispatch('rancher/find', {
+        type: 'setting',
+        id:   SETTING.PL,
+        opt:  { url: `/v3/settings/${ SETTING.PL }` }
+      });
+    }
+
+    if (plSetting.value?.length && plSetting.value !== getVendor()) {
+      setVendor(plSetting.value);
     }
 
     const principals = await store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });

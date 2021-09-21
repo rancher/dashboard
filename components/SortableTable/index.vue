@@ -2,10 +2,12 @@
 import { mapState } from 'vuex';
 import { dasherize, ucFirst } from '@/utils/string';
 import { get, clone } from '@/utils/object';
-import { removeObject } from '@/utils/array';
+import { removeObject, filterBy } from '@/utils/array';
 import Checkbox from '@/components/form/Checkbox';
+import ActionDropdown from '@/components/ActionDropdown';
 import $ from 'jquery';
 import throttle from 'lodash/throttle';
+import debounce from 'lodash/debounce';
 import THead from './THead';
 import filtering from './filtering';
 import selection from './selection';
@@ -33,15 +35,17 @@ export const COLUMN_BREAKPOINTS = {
 
 // Data Flow:
 // rows prop
-// -> filteredRows (filtering.js)
 // -> arrangedRows (sorting.js)
+// -> filteredRows (filtering.js)
 // -> pagedRows    (paging.js)
 // -> groupedRows  (grouping.js)
 
 export default {
   name:       'SortableTable',
-  components: { THead, Checkbox },
-  mixins:     [filtering, sorting, paging, grouping, selection],
+  components: {
+    THead, Checkbox, ActionDropdown
+  },
+  mixins: [filtering, sorting, paging, grouping, selection],
 
   props: {
     headers: {
@@ -242,7 +246,17 @@ export default {
   },
 
   data() {
-    return { expanded: {} };
+    return {
+      expanded:            {},
+      searchQuery:         '',
+      eventualSearchQuery: '',
+    };
+  },
+
+  watch: {
+    eventualSearchQuery: debounce(function(q) {
+      this.searchQuery = q;
+    }, 100),
   },
 
   computed: {
@@ -330,7 +344,17 @@ export default {
     },
 
     availableActions() {
-      return this.$store.getters[`${ this.storeName }/forTable`];
+      return this.$store.getters[`${ this.storeName }/forTable`].filter(act => !act.external);
+    },
+
+    hasExternalActions() {
+      return filterBy(this.$store.getters[`${ this.storeName }/forTable`], 'external', true).length > 0;
+    },
+
+    externalActions() {
+      return this.$store.getters[`${ this.storeName }/forTable`].filter((act) => {
+        return act.external && act.enabled;
+      });
     },
 
     actionAvailability() {
@@ -509,6 +533,30 @@ export default {
                 <i v-if="act.icon" :class="act.icon" />
                 <span v-html="act.label" />
               </button>
+              <ActionDropdown v-if="hasExternalActions" class="external-actions" :disable-button="externalActions.length === 0" size="sm">
+                <template #button-content>
+                  <button class="btn bg-primary mr-0" :disabled="externalActions.length === 0">
+                    <i class="icon icon-gear" />
+                    <span>{{ t('harvester.tableHeaders.actions') }}</span>
+                    <i class="ml-10 icon icon-chevron-down" />
+                  </button>
+                </template>
+                <template #popover-content>
+                  <ul class="list-unstyled menu">
+                    <li
+                      v-for="act in externalActions"
+                      :key="act.action"
+                      v-close-popover
+                      @click="applyTableAction(act, null, $event)"
+                      @mouseover="setBulkActionOfInterest(act)"
+                      @mouseleave="setBulkActionOfInterest(null)"
+                    >
+                      <i v-if="act.icon" :class="act.icon" />
+                      <span v-html="act.label" />
+                    </li>
+                  </ul>
+                </template>
+              </ActionDropdown>
               <span />
               <label v-if="actionAvailability" class="action-availability">
                 {{ actionAvailability }}
@@ -525,7 +573,7 @@ export default {
           <input
             v-if="search"
             ref="searchQuery"
-            v-model="searchQuery"
+            v-model="eventualSearchQuery"
             type="search"
             class="input-sm"
             :placeholder="t('sortableTable.search')"
@@ -952,6 +1000,39 @@ $spacing: 10px;
   .search {
     grid-area: search;
     text-align: right;
+  }
+
+  .external-actions {
+    display:inline-block;
+
+    .dropdown-button {
+      background-color: var(--primary);
+
+      &:hover {
+        background-color: var(--primary-hover-bg);
+        color: var(--primary-hover-text);
+      }
+
+      > *, .icon-chevron-down {
+        color: var(--primary-text);
+      }
+
+      .button-divider {
+        border-color: var(--primary-text);
+      }
+
+      &.disabled {
+        border-color: var(--disabled-bg);
+
+        .icon-chevron-down {
+          color: var(--disabled-text) !important;
+        }
+
+        .button-divider {
+          border-color: var(--disabled-text);
+        }
+      }
+    }
   }
 }
 

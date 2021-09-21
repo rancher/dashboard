@@ -235,17 +235,24 @@ export default class Workload extends Resource {
     return out;
   }
 
-  async getServicesOwned() {
-    const relationships = get(this, 'metadata.relationships') || [];
-    const serviceRelationships = relationships.filter(relationship => relationship.toType === SERVICE && relationship.rel === 'owner');
+  async getServicesOwned(force = false) {
+    const normanTypes = {
+      [WORKLOAD_TYPES.REPLICA_SET]:  'replicaSet',
+      [WORKLOAD_TYPES.DEPLOYMENT]:   'deployment',
+      [WORKLOAD_TYPES.STATEFUL_SET]: 'statefulSet',
+      [WORKLOAD_TYPES.DAEMON_SET]:   'daemonSet'
+    };
+    const selectorKey = Object.keys(this.workloadSelector)[0];
 
-    if (serviceRelationships.length) {
-      const svcs = await Promise.all(serviceRelationships.map(rel => this.$dispatch('cluster/find', { type: SERVICE, id: rel.toId }, { root: true })));
+    const normanSelectorValue =
+      `${ normanTypes[this._type ? this._type : this.type] }-${
+        this.metadata.namespace
+      }-${ this.metadata.name }`;
 
-      return svcs.filter(svc => svc?.metadata?.annotations[UI_MANAGED]);
-    }
+    const steveSelectorValue = this.workloadSelector[selectorKey];
+    const allSvc = await this.$dispatch('cluster/findAll', { type: SERVICE, opt: { force } }, { root: true });
 
-    return [];
+    return (allSvc || []).filter(svc => (svc.spec?.selector || {})[selectorKey] === steveSelectorValue || (svc.spec?.selector || {})[selectorKey] === normanSelectorValue );
   }
 
   get imageNames() {
@@ -356,10 +363,6 @@ export default class Workload extends Resource {
 
   // create clusterip, nodeport, loadbalancer services from container port spec
   async servicesFromContainerPorts(mode, ports) {
-    if (!ports.length) {
-      return;
-    }
-
     const ownerRef = {
       apiVersion: this.apiVersion,
       controller: true,
@@ -367,6 +370,8 @@ export default class Workload extends Resource {
       name:       this.metadata.name,
       uid:        this.metadata.uid
     };
+
+    const annotations = { [TARGET_WORKLOADS]: JSON.stringify([`${ this.metadata.namespace }/${ this.metadata.name }`]), [UI_MANAGED]: 'true' };
 
     let clusterIP = {
       type: SERVICE,
@@ -378,7 +383,7 @@ export default class Workload extends Resource {
       metadata: {
         name:            this.metadata.name,
         namespace:       this.metadata.namespace,
-        annotations:     { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
+        annotations,
         ownerReferences: [ownerRef]
       },
     };
@@ -393,7 +398,7 @@ export default class Workload extends Resource {
       metadata: {
         name:            `${ this.metadata.name }-nodeport`,
         namespace:       this.metadata.namespace,
-        annotations:     { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
+        annotations,
         ownerReferences: [ownerRef]
       },
     };
@@ -409,12 +414,12 @@ export default class Workload extends Resource {
       metadata: {
         name:            `${ this.metadata.name }-loadbalancer`,
         namespace:       this.metadata.namespace,
-        annotations:     { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
+        annotations,
         ownerReferences: [ownerRef]
       },
     };
 
-    const existing = await this.getServicesOwned();
+    const existing = await this.getServicesOwned(this.isFromNorman);
 
     if (existing && existing.length) {
       existing.forEach((service) => {
@@ -481,6 +486,7 @@ export default class Workload extends Resource {
     } else if (clusterIP.id) {
       toRemove.push(clusterIP);
     }
+
     if (nodePort.spec.ports.length > 0) {
       let nodePortProxy;
 
@@ -526,5 +532,9 @@ export default class Workload extends Resource {
     }
 
     return true;
+  }
+
+  get isFromNorman() {
+    return (this.metadata.labels || {})['cattle.io/creator'] === 'norman';
   }
 }

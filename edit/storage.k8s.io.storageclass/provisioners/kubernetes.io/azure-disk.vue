@@ -31,6 +31,12 @@ export default {
       },
     ];
 
+    // The 'shared' kind was removed by azure so we don't want to create any new ones. However we still should
+    // show the option for existing storage classes.
+    if (this.value.parameters.kind !== 'shared') {
+      kindOptions.shift();
+    }
+
     if (this.mode === _CREATE) {
       this.$set(this.value.parameters, 'kind', this.value.parameters.kind || kindOptions[0].value);
     }

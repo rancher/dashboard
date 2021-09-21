@@ -43,7 +43,9 @@ const asCookie = true; // Store as a cookie so that it's available before auth +
 // Keys must be lowercase and valid dns label (a-z 0-9 -)
 export const CLUSTER = create('cluster', '');
 export const LAST_NAMESPACE = create('last-namespace', '');
-export const NAMESPACE_FILTERS = create('ns', ['all://user'], { parseJSON });
+// Pre-2.6.1 value which may exist when switching between version
+// export const NAMESPACE_FILTERS_LEGACY = create('ns', ['all://user'], { parseJSON });
+export const NAMESPACE_FILTERS = create('ns-by-cluster', {}, { parseJSON });
 export const WORKSPACE = create('workspace', '');
 export const EXPANDED_GROUPS = create('open-groups', ['cluster', 'rbac', 'serviceDiscovery', 'storage', 'workload'], { parseJSON });
 export const FAVORITE_TYPES = create('fav-type', [], { parseJSON });
