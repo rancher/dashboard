@@ -30,4 +30,8 @@ const getElement = (vnode) => {
 
     return labeledSelect.$refs['select-input'].$refs.search;
   }
+
+  if (tag === 'TextAreaAutoGrow') {
+    return componentInstance.$refs.ta;
+  }
 };
