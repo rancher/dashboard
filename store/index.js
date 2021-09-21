@@ -554,9 +554,14 @@ export const actions = {
     const isMultiCluster = getters['isMultiCluster'];
     const isRancher = getters['isRancher'];
 
-    if ( state.clusterId && state.clusterId === id && oldProduct !== VIRTUAL) {
+    if ( state.clusterId && state.clusterId === id) {
       // Do nothing, we're already connected/connecting to this cluster
       return;
+    }
+
+    if (oldProduct === VIRTUAL) {
+      await dispatch('harvester/unsubscribe');
+      commit('harvester/reset');
     }
 
     if ( state.clusterId && id ) {
@@ -670,9 +675,14 @@ export const actions = {
       return;
     }
 
-    if ( state.clusterId && state.clusterId === id && oldProduct === VIRTUAL) {
+    if ( state.clusterId && state.clusterId === id) {
       // Do nothing, we're already connected/connecting to this cluster
       return;
+    }
+
+    if (oldProduct !== VIRTUAL) {
+      await dispatch('cluster/unsubscribe');
+      commit('cluster/reset');
     }
 
     if ( state.clusterId && id ) {
@@ -725,15 +735,6 @@ export const actions = {
     commit('clusterChanged', true);
 
     console.log('Done loading virtual cluster.'); // eslint-disable-line no-console
-  },
-
-  async resetStore({
-    state, commit, dispatch, getters
-  }, { id, store }) {
-    if ( state.clusterId && id && store) {
-      await dispatch(`${ store }/unsubscribe`);
-      commit(`${ store }/reset`);
-    }
   },
 
   async cleanNamespaces({ getters, dispatch }) {
