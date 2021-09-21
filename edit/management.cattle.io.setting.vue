@@ -126,12 +126,14 @@ export default {
       <div v-else-if="setting.kind === 'multiline' || setting.kind === 'json'">
         <TextAreaAutoGrow
           v-model="value.value"
+          v-focus
           :min-height="254"
         />
       </div>
       <div v-else>
         <LabeledInput
           v-model="value.value"
+          v-focus
           :label="t('advancedSettings.edit.value')"
         />
       </div>
