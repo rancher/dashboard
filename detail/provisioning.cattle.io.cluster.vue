@@ -3,13 +3,13 @@ import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
 import ResourceTable from '@/components/ResourceTable';
 import ResourceTabs from '@/components/form/ResourceTabs';
-import SortableTable, { COLUMN_BREAKPOINTS } from '@/components/SortableTable';
+import SortableTable from '@/components/SortableTable';
 import CopyCode from '@/components/CopyCode';
 import Tab from '@/components/Tabbed/Tab';
 import { allHash } from '@/utils/promise';
-import { CAPI, MANAGEMENT, NORMAN, NODE } from '@/config/types';
+import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
 import {
-  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS
+  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES,
 } from '@/config/table-headers';
 import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@/components/AsyncButton.vue';
@@ -61,7 +61,6 @@ export default {
 
       if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
         hash.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
-        hash.kubeNodes = this.$store.dispatch('cluster/findAll', { type: NODE });
       }
     }
 
@@ -80,7 +79,6 @@ export default {
     this.allMachineDeployments = res.machineDeployments || [];
     this.allNodes = res.allNodes || [];
     this.allNodePools = res.allNodePools || [];
-    this.kubeNodes = res.kubeNodes || [];
     this.haveMachines = !!res.machines;
     this.haveDeployments = !!res.machineDeployments;
     this.haveNodePools = !!res.allNodePools;
@@ -103,7 +101,6 @@ export default {
       allMachineDeployments: [],
       allNodes:              [],
       allNodePools:          [],
-      kubeNodes:             [],
 
       haveMachines:    false,
       haveDeployments: false,
@@ -207,10 +204,6 @@ export default {
           formatter:     'LinkDetail',
           formatterOpts: { reference: 'kubeNodeDetailLocation' }
         },
-        {
-          ...MACHINE_NODE_OS,
-          breakpoint: COLUMN_BREAKPOINTS.LAPTOP
-        },
         ROLES,
         AGE,
       ];
@@ -227,7 +220,6 @@ export default {
           formatter:     'LinkDetail',
           formatterOpts: { reference: 'kubeNodeDetailLocation' }
         },
-        MANAGEMENT_NODE_OS,
         ROLES,
         AGE
       ];
