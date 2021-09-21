@@ -1509,6 +1509,7 @@ export default {
               <Questions
                 v-if="versionInfo[v.name] && versionInfo[v.name].questions"
                 v-model="chartValues[v.name]"
+                in-store="management"
                 :mode="mode"
                 :tabbed="false"
                 :source="versionInfo[v.name]"
