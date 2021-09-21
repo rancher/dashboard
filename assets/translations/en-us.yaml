@@ -1027,12 +1027,12 @@ cluster:
         label: KubeconfigContent
       placeholder: 'Namespace/Name'
   description:
+    label: Cluster Description
+    placeholder: Any text you want that better describes this cluster
   harvester:
     warning:
       label: This is a Harvester Cluster - enable the Harvester feature flag to manage it
       state: Warning
-    label: Cluster Description
-    placeholder: Any text you want that better describes this cluster
   haveOneOwner: There must be at least one member with the Owner role.
   import:
     commandInstructions: 'Run the <code>kubectl</code> command below on an existing Kubernetes cluster running a supported Kubernetes version to import it into {vendor}:'
