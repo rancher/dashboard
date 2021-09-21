@@ -8,6 +8,7 @@ import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
 import config from '@/edit/auth/ldap/config';
 import AuthConfig from '@/mixins/auth-config';
 import AuthBanner from '@/components/auth/AuthBanner';
+import Password from '@/components/form/Password';
 
 const AUTH_TYPE = 'ldap';
 
@@ -19,7 +20,8 @@ export default {
     Banner,
     AllowedPrincipals,
     config,
-    AuthBanner
+    AuthBanner,
+    Password
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -115,9 +117,8 @@ export default {
             />
           </div>
           <div class="col span-6">
-            <LabeledInput
+            <Password
               v-model="password"
-              type="password"
               :label="t(`authConfig.${AUTH_TYPE}.password`)"
               :mode="mode"
               required

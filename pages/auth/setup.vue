@@ -13,6 +13,7 @@ import { setSetting, SETTING } from '@/config/settings';
 import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
 import { isDevBuild } from '@/utils/version';
 import { exceptionToErrorsArray } from '@/utils/error';
+import Password from '@/components/form/Password';
 
 const calcIsFirstLogin = (store) => {
   const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
@@ -65,7 +66,7 @@ export default {
   },
 
   components: {
-    AsyncButton, LabeledInput, CopyToClipboard, Checkbox, RadioGroup
+    AsyncButton, LabeledInput, CopyToClipboard, Checkbox, RadioGroup, Password
   },
 
   async asyncData({ route, req, store }) {
@@ -192,8 +193,8 @@ export default {
       } else {
         this.password = '';
         this.$nextTick(() => {
-          this.$refs.password.focus();
-          this.$refs.password.select();
+          this.$refs.password.$refs.input.focus();
+          this.$refs.password.$refs.input.select();
         });
       }
     }
@@ -279,13 +280,14 @@ export default {
               v-html="t(isFirstLogin ? 'setup.setPassword' : 'setup.newUserSetPassword', { username }, true)"
             ></p>
 
-            <LabeledInput
+            <Password
               v-if="!haveCurrent"
               v-model.trim="current"
               autocomplete="current-password"
               type="password"
-              label-key="setup.currentPassword"
+              :label="t('setup.currentPassword')"
               class="mb-20"
+              :required="true"
             />
 
             <!-- For password managers... -->
@@ -295,6 +297,7 @@ export default {
             </div>
             <div class="mb-20">
               <LabeledInput
+                v-if="useRandom"
                 ref="password"
                 v-model.trim="password"
                 :type="useRandom ? 'text' : 'password'"
@@ -307,13 +310,20 @@ export default {
                   </div>
                 </template>
               </LabeledInput>
+              <Password
+                v-else
+                ref="password"
+                v-model.trim="password"
+                :label="t('setup.newPassword')"
+                :required="true"
+              />
             </div>
-            <LabeledInput
+            <Password
               v-show="!useRandom"
               v-model.trim="confirm"
               autocomplete="new-password"
-              type="password"
-              label-key="setup.confirmPassword"
+              :label="t('setup.confirmPassword')"
+              :required="true"
             />
           </template>
 
