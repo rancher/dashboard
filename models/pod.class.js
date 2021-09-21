@@ -1,7 +1,7 @@
 import { insertAt } from '@/utils/array';
 import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
 import { NODE, WORKLOAD_TYPES } from '@/config/types';
-import { Resource } from '@/plugins/steve/resource-class';
+import SteveModel from '@/plugins/steve/steve-class';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -13,7 +13,7 @@ export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 7,
 };
 
-export default class Pod extends Resource {
+export default class Pod extends SteveModel {
   get _availableActions() {
     const out = this._standardActions;
 

@@ -3,9 +3,9 @@ import { TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED } from '@/config/labels-annotat
 import { WORKLOAD_TYPES, SERVICE } from '@/config/types';
 import { clone, get, set } from '@/utils/object';
 import day from 'dayjs';
-import { Resource } from '@/plugins/steve/resource-class';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default class Workload extends Resource {
+export default class Workload extends SteveModel {
   // remove clone as yaml/edit as yaml until API supported
   get _availableActions() {
     let out = this._standardActions;
