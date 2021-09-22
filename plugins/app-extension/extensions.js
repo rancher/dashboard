@@ -1,11 +1,9 @@
-// import { EPINIO_PRODUCT_NAME } from '@/plugins/app-extension/epinio/types';
-// import epinio from './epinio/index';
+import { EPINIO_PRODUCT_NAME } from '@/plugins/app-extension/epinio/types';
+import epinio from './epinio/index';
 
 // Note - Extensions need to be directly imported here rather than importing this file and applying themselves to this file
 // (extensions are required by `store/index`, which executes after anything imported here)
-const extensions = { // eslint-disable-line object-curly-newline
-  // [EPINIO_PRODUCT_NAME]: epinio
-}; // eslint-disable-line object-curly-newline
+const extensions = { [EPINIO_PRODUCT_NAME]: epinio };
 
 export default {
 
