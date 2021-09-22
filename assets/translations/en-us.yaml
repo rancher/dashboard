@@ -5655,7 +5655,16 @@ typeLabel:
       one { Cloud Config Template }
       other { Cloud Config Templates }
     }
-  
+  orgs: |-
+    {count, plural,
+      one { Organisation }
+      other { Organisations }
+    }
+  applications: |-
+    {count, plural,
+      one { Application }
+      other { Applications }
+    }
 
 action:
   clone: Clone
@@ -5949,3 +5958,15 @@ legacy:
 serverUpgrade:
   title: "{vendor} Server Changed"
   message: "The page reloaded because the version of {vendor} running on your server changed."
+
+##############################
+### Plugins
+##############################
+epinio:
+  tableHeaders:
+    active: Active
+    organization: Organization
+    username: Username
+    status: Status
+    route: Route
+    boundServices: Bound Services
