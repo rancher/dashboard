@@ -49,6 +49,7 @@ export default {
   data() {
     return {
       groups:         [],
+      gettingGroups:  false,
       wantNavSync:    false
     };
   },
@@ -310,8 +311,15 @@ export default {
     },
 
     getGroups() {
+      if ( this.gettingGroups ) {
+        return;
+      }
+
+      this.gettingGroups = true;
+
       if ( !this.clusterReady ) {
         clear(this.groups);
+        this.gettingGroups = false;
 
         return;
       }
@@ -445,6 +453,7 @@ export default {
       }
 
       replaceWith(this.groups, ...sortBy(out, ['weight:desc', 'label']));
+      this.gettingGroups = false;
     },
 
     toggleNoneLocale() {
