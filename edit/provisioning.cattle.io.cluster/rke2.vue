@@ -265,6 +265,12 @@ export default {
       return this.value.spec.rkeConfig;
     },
 
+    advancedTitleAlt() {
+      const machineSelectorLength = this.rkeConfig.machineSelectorConfig.length;
+
+      return this.t('cluster.advanced.argInfo.machineSelector.titleAlt', { count: machineSelectorLength });
+    },
+
     chartValues() {
       return this.value.spec.rkeConfig.chartValues;
     },
@@ -1532,8 +1538,11 @@ export default {
 
           <div>
             <h3>
-              Additional Manifest
-              <i v-tooltip="'Additional Kubernetes Manifet YAML to be applied to the cluster on startup.'" class="icon icon-info" />
+              {{ t('cluster.addOns.additionalManifest.title') }}
+              <i
+                v-tooltip="t('cluster.addOns.additionalManifest.tooltip')"
+                class="icon icon-info"
+              />
             </h3>
             <YamlEditor
               ref="yaml-additional"
@@ -1545,20 +1554,25 @@ export default {
           </div>
         </Tab>
 
-        <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="-1" @active="refreshYamls">
+        <Tab
+          name="advanced"
+          label-key="cluster.tabs.advanced"
+          :weight="-1"
+          @active="refreshYamls"
+        >
           <template v-if="haveArgInfo">
-            <h3>Additional Kubelet Args</h3>
+            <h3>{{ t('cluster.advanced.argInfo.title') }}</h3>
             <ArrayListGrouped
               v-if="agentArgs['kubelet-arg']"
               v-model="rkeConfig.machineSelectorConfig"
               class="mb-20"
-              add-label="Add Machine Selector"
+              :add-label="t('cluster.advanced.argInfo.machineSelector.label')"
               :can-remove="canRemoveKubeletRow"
               :default-add-value="{machineLabelSelector: { matchExpressions: [], matchLabels: {} }, config: {'kubelet-arg': []}}"
             >
               <template #default="{row}">
                 <template v-if="row.value.machineLabelSelector">
-                  <h3>For machines with labels matching:</h3>
+                  <h3>{{ t('cluster.advanced.argInfo.machineSelector.title') }}</h3>
                   <MatchExpressions
                     v-model="row.value.machineLabelSelector"
                     class="mb-20"
@@ -1566,32 +1580,57 @@ export default {
                     :show-remove="false"
                     :initial-empty-row="true"
                   />
-                  <h3>Use the Kubelet args:</h3>
+                  <h3>{{ t('cluster.advanced.argInfo.machineSelector.subTitle') }}</h3>
                 </template>
                 <h3 v-else>
-                  For <span v-if="rkeConfig.machineSelectorConfig.length > 1">any</span><span v-else>all</span> machines, use the Kubelet args:
+                  {{ advancedTitleAlt }}
                 </h3>
 
                 <ArrayList
                   v-model="row.value.config['kubelet-arg']"
                   :mode="mode"
-                  add-label="Add Argument"
+                  :add-label="t('cluster.advanced.argInfo.machineSelector.listLabel')"
                   :initial-empty-row="!!row.value.machineLabelSelector"
                 />
               </template>
             </ArrayListGrouped>
-            <Banner v-if="rkeConfig.machineSelectorConfig.length > 1" color="info" label="Note: The last selector that matches wins and only args from it will be used.  Args from other matches above will not combined together or merged." />
+            <Banner
+              v-if="rkeConfig.machineSelectorConfig.length > 1"
+              color="info"
+              :label="t('cluster.advanced.argInfo.machineSelector.bannerLabel')"
+            />
 
-            <ArrayList v-if="serverArgs['kube-controller-manager-arg']" v-model="serverConfig['kube-controller-manager-arg']" :mode="mode" title="Additional Controller Manager Args" class="mb-20" />
-            <ArrayList v-if="serverArgs['kube-apiserver-arg']" v-model="serverConfig['kube-apiserver-arg']" :mode="mode" title="Additional API Server Args" class="mb-20" />
-            <ArrayList v-if="serverArgs['kube-scheduler-arg']" v-model="serverConfig['kube-scheduler-arg']" :mode="mode" title="Additional Scheduler Args" />
+            <ArrayList
+              v-if="serverArgs['kube-controller-manager-arg']"
+              v-model="serverConfig['kube-controller-manager-arg']"
+              :mode="mode"
+              :title="t('cluster.advanced.argInfo.machineSelector.kubeControllerManagerTitle')"
+              class="mb-20"
+            />
+            <ArrayList
+              v-if="serverArgs['kube-apiserver-arg']"
+              v-model="serverConfig['kube-apiserver-arg']"
+              :mode="mode"
+              :title="t('cluster.advanced.argInfo.machineSelector.kubeApiServerTitle')"
+              class="mb-20"
+            />
+            <ArrayList
+              v-if="serverArgs['kube-scheduler-arg']"
+              v-model="serverConfig['kube-scheduler-arg']"
+              :mode="mode"
+              :title="t('cluster.advanced.argInfo.machineSelector.kubeSchedulerTitle')"
+            />
           </template>
           <template v-if="agentArgs['protect-kernel-defaults']">
             <div class="spacer" />
 
             <div class="row">
               <div class="col span-12">
-                <Checkbox v-model="agentConfig['protect-kernel-defaults']" :mode="mode" label="Raise error if kernel parameters are different than the expected kubelet defaults" />
+                <Checkbox
+                  v-model="agentConfig['protect-kernel-defaults']"
+                  :mode="mode"
+                  :label="t('cluster.advanced.agentArgs.label')"
+                />
               </div>
             </div>
           </template>
@@ -1602,7 +1641,11 @@ export default {
       </Tabbed>
     </div>
 
-    <Banner v-if="unsupportedSelectorConfig" color="warning" label="This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration." />
+    <Banner
+      v-if="unsupportedSelectorConfig"
+      color="warning"
+      :label="t('cluster.banner.warning')"
+    />
 
     <template v-if="needCredential && !credentialId" #form-footer>
       <div><!-- Hide the outer footer --></div>

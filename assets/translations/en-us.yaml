@@ -1253,6 +1253,31 @@ cluster:
       httpEndpoint: Allow access to EC2 metadata
       httpTokens: Use tokens for metadata
       tagTitle: EC2 Tags
+  addOns: 
+    additionalManifest:
+      title: Additional Manifest
+      tooltip: 'Additional Kubernetes Manifet YAML to be applied to the cluster on startup.'
+  advanced:
+    argInfo:
+      title: Additional Kubelet Args
+      machineSelector:
+        label: Add Machine Selector
+        listLabel: Add Argument
+        bannerLabel: 'Note: The last selector that matches wins and only args from it will be used.  Args from other matches above will not combined together or merged.'
+        title: 'For machines with labels matching:'
+        subTitle: 'Use the Kubelet args:'
+        titleAlt:  |-
+          {count, plural,
+            =1 { For all machines, use the Kubelet args: }
+            other { For any machines, use the Kubelet args: }
+          }
+        kubeControllerManagerTitle: Additional Controller Manager Args
+        kubeApiServerTitle: Additional API Server Args
+        kubeSchedulerTitle: Additional Scheduler Args
+    agentArgs:
+      label: Raise error if kernel parameters are different than the expected kubelet defaults
+  banner:
+    warning: 'This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration.'
 
   machinePool:
     name:
