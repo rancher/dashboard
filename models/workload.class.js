@@ -25,6 +25,13 @@ export default class Workload extends SteveModel {
         enabled:    !!this.links.update,
         bulkable:   true,
       });
+
+      insertAt(out, 0, {
+        action:  'toggleRollbackModal',
+        label:   'Rollback',
+        icon:    'icon icon-history',
+        enabled: !!this.links.update,
+      });
     }
 
     const toFilter = ['cloneYaml'];
@@ -70,6 +77,25 @@ export default class Workload extends SteveModel {
       }
     }
     vm.$set(this, 'spec', spec);
+  }
+
+  toggleRollbackModal( resources = this ) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'RollbackWorkloadDialog'
+    });
+  }
+
+  async rollBackWorkload( workload, rollbackRequestData ) {
+    const rollbackRequestBody = JSON.stringify(rollbackRequestData);
+
+    if ( Array.isArray( workload ) ) {
+      throw new TypeError(this.t('promptRollback.multipleWorkloadError'));
+    }
+    const namespace = workload.metadata.namespace;
+    const workloadName = workload.metadata.name;
+
+    await this.patch(rollbackRequestBody, { url: `/apis/apps/v1/namespaces/${ namespace }/deployments/${ workloadName }` });
   }
 
   addSidecar() {
