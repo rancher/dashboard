@@ -4331,6 +4331,51 @@ workload:
     imagePullPolicy: Pull Policy
     imagePullSecrets: Pull Secrets
     init: Init Container
+    lifecycleHook:
+      postStart: 
+        label: PostStart
+        add: Add PostStart Hook
+      preStop: 
+        label: PreStop
+        add: Add PreStop Hook
+      exec:
+        title: Exec
+        add: Add command to execute
+        command:
+          label: Command
+          placeholder: e.g. sh -c sleep 10
+      httpGet:
+        title: HttpGet
+        add: Create HTTP request
+        host:
+          label: Host IP
+          placeholder: e.g. 172.17.0.2
+        path:
+          label: Path
+          placeholder: e.g. /bin/sh
+        port:
+          label: Port
+          placeholder: e.g. 3000
+        scheme:
+          label: Scheme
+          placeholder: e.g. HTTP
+      httpHeaders:
+        title: HTTP Headers
+        name:
+          label: Name
+          placeholder: e.g. accept-ranges
+        value:
+          label: Value
+          placeholder: e.g. bytes
+      tcpSocket:
+        title: TCPSocket
+        add: Open a TCP socket
+        host:
+          label: Host
+          placeholder: e.g. 192.168.0.1
+        port:
+          label: Port
+          placeholder: e.g. 80
     name: Container Name
     noResourceLimits: There are no resource requirements configured.
     noPorts: There are no ports configured.
@@ -4387,6 +4432,7 @@ workload:
       general: General
       healthCheck: Health Check
       image: Image
+      lifecycle: Lifecycle Hooks
       networking: Networking
       networkSettings: Network Settings
       podAnnotations: Pod Annotations
