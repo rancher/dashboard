@@ -4555,10 +4555,11 @@ advancedSettings:
     'harv-server-version': Harvester服务器版本.
     'harv-upgrade-checker-enabled': 指定是否启用Harvester升级检查. 默认为true.
     'harv-upgrade-checker-url': 默认的Harvester升级检查地址。 仅在<code> upgrade-checker-enabled </code> 等于true时使用。
+    'harv-ui-source': 配置如何加载UI资源.
   editHelp:
     'ui-banners': 这个设置需要一个JSON对象，包含3个根参数；<code>banner</code>, <code>showHeader</code>, <code>showFooter</code>。<code>banner</code>是一个包含；<code>textColor</code>, <code>background</code>, 和<code>text</code>的对象，其中<code>textColor</code>和<code>background</code>是任何有效的CSS颜色值。
   enum:
-    'api-ui-source':
+    'ui-source':
       auto: 'Auto'
       bundled: 'Bundled'
       external: 'External'
