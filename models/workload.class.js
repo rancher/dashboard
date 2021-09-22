@@ -87,7 +87,7 @@ export default class Workload extends SteveModel {
   }
 
   async rollBackWorkload( workload, rollbackRequestData ) {
-    const rollbackRequestBody = JSON.stringify(rollbackRequestData)
+    const rollbackRequestBody = JSON.stringify(rollbackRequestData);
 
     if ( Array.isArray( workload ) ) {
       throw new TypeError(this.t('promptRollback.multipleWorkloadError'));
