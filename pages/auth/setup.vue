@@ -193,19 +193,9 @@ export default {
       } else {
         this.password = '';
         this.$nextTick(() => {
-          this.$refs.password.$refs.input.focus();
-          this.$refs.password.$refs.input.select();
+          this.$refs.password.focus();
         });
       }
-    }
-  },
-
-  mounted() {
-    const el = this.$refs.password;
-
-    if ( el ) {
-      el.focus();
-      el.select();
     }
   },
 

@@ -80,6 +80,9 @@ export default {
     },
     show(reveal) {
       this.reveal = reveal;
+    },
+    focus() {
+      this.$refs.input.$refs.value.focus();
     }
   }
 };
