@@ -23,14 +23,14 @@ function SteveFactory(namespace, baseUrl) {
           baseUrl,
           namespace,
         },
-        types:        {},
-        socket:       null,
-        queue:        [],
-        wantSocket:   false,
-        debugSocket:  false,
-        pendingSends: [],
-        started:      [],
-        inError:      {},
+        types:         {},
+        socket:        null,
+        queue:         [], // For change event coalescing
+        wantSocket:    false,
+        debugSocket:   false,
+        pendingFrames: [],
+        started:       [],
+        inError:       {},
       };
     },
 
