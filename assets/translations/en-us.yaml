@@ -4003,6 +4003,7 @@ tableHeaders:
   nodesReady: Nodes Ready
   nodePort: Node Port
   object: Object
+  operatingSystem: OS
   output: Output
   p95: 95%tile
   persistentVolumeClaim: Persistent Volume Claim
