@@ -241,3 +241,15 @@ export function ensureRegex(strOrRegex, exact = true) {
 export function nlToBr(value) {
   return escapeHtml(value || '').replace(/(\r\n|\r|\n)/g, '<br/>\n');
 }
+
+const quotedMatch = /[^."']+|"([^"]*)"|'([^']*)'/g;
+
+export function splitObjectPath(path) {
+  if ( path.includes('"') || path.includes("'") ) {
+    // Path with quoted section
+    return path.match(quotedMatch).map(x => x.replace(/['"]/g, ''));
+  }
+
+  // Regular path
+  return path.split('.');
+}

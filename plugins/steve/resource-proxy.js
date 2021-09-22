@@ -25,8 +25,6 @@ export function proxyFor(ctx, obj, isClone = false) {
     return obj;
   }
 
-  remapSpecialKeys(obj);
-
   const mappedType = ctx.rootGetters['type-map/componentFor'](obj.type);
   let customModel = lookup(ctx.state.config.namespace, mappedType, obj?.metadata?.name);
 
@@ -55,6 +53,8 @@ export function proxyFor(ctx, obj, isClone = false) {
   } else {
     // Old Proxy-based models that will eventually go away
     const model = customModel || ResourceInstance;
+
+    remapSpecialKeys(obj);
 
     out = new Proxy(obj, {
       get(target, name) {
