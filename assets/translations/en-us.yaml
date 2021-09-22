@@ -3044,6 +3044,7 @@ projectMembers:
     label: Project Permissions
     description: Controls what access users have to the Project
     noDescription: User created - no description
+    searchForMember: Search for a member to provide project access
     owner:
       label: Owner
       description: Owners have full control over the Project and all resources inside it.
