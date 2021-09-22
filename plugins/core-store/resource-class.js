@@ -32,7 +32,7 @@ import {
   AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG, _CONFIG
 } from '@/config/query-params';
 
-import { cleanForNew, normalizeType } from './normalize';
+import { normalizeType } from './normalize';
 
 const STRING_LIKE_TYPES = [
   'string',
@@ -1061,7 +1061,7 @@ export class Resource {
       const obj = jsyaml.load(yaml);
 
       if (mode !== 'edit') {
-        cleanForNew(obj);
+        this.$dispatch(`cleanForNew`, obj);
       }
 
       if (obj._type) {
@@ -1077,7 +1077,7 @@ export class Resource {
   }
 
   cleanForNew() {
-    cleanForNew(this);
+    this.$dispatch(`cleanForNew`, this);
   }
 
   yamlForSave(yaml) {

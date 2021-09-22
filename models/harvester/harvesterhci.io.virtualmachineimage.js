@@ -6,7 +6,7 @@ import {
 import { get, clone } from '@/utils/object';
 import { formatSi } from '@/utils/units';
 import { ucFirst } from '@/utils/string';
-import { stateDisplay } from '@/plugins/steve/resource-instance';
+import { stateDisplay } from '@/plugins/core-store/resource-instance';
 
 export const VM_IMAGE_FILE_FORMAT = ['qcow', 'qcow2', 'raw', 'img', 'iso'];
 

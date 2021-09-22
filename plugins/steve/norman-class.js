@@ -2,7 +2,7 @@ import { ANNOTATIONS_TO_IGNORE_REGEX, LABELS_TO_IGNORE_REGEX } from '@/config/la
 import pickBy from 'lodash/pickBy';
 import Vue from 'vue';
 import { matchesSomeRegex } from '@/utils/string';
-import { Resource } from './resource-class';
+import { Resource } from '../core-store/resource-class';
 
 export default class NormanModel extends Resource {
   setLabels(val) {

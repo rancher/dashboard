@@ -13,10 +13,26 @@ import { get } from '@/utils/object';
 import { AFTER_LOGIN_ROUTE } from '@/store/prefs';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
 
+import { EXTENSION_PREFIX } from '@/utils/extensions';
+
+import extensions from '@/plugins/app-extension/extensions';
+
 let beforeEachSetup = false;
+
+const extRegEx = new RegExp(`\/${ EXTENSION_PREFIX }\/([^\/]+)`);
 
 function setProduct(store, to) {
   let product = to.params?.product;
+
+  // Product is the extensions
+  // When switching products to an extensions the format is different
+  if (to.path.startsWith(`/${ EXTENSION_PREFIX }`)) {
+    const match = extRegEx.exec(to.path);
+
+    if ( match ) {
+      product = match[1];
+    }
+  }
 
   if ( !product ) {
     const match = to.name?.match(/^c-cluster-([^-]+)/);
@@ -209,6 +225,7 @@ export default async function({
 
   // Load stuff
   await applyProducts(store);
+  extensions.applyProducts(store);
 
   // Setup a beforeEach hook once to keep track of the current product
   if ( !beforeEachSetup ) {
@@ -236,6 +253,7 @@ export default async function({
     let clusterId = get(route, 'params.cluster');
     const product = get(route, 'params.product');
     const oldProduct = from?.params?.product;
+    const isExt = route.name.startsWith(EXTENSION_PREFIX);
 
     if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name.startsWith(`c-cluster-${ VIRTUAL }-`)) {
       const res = [
@@ -247,7 +265,7 @@ export default async function({
       ];
 
       await Promise.all(res);
-    } else if ( clusterId ) {
+    } else if ( clusterId || isExt) {
       // Run them in parallel
       const res = [
         store.dispatch('loadManagement'),
@@ -255,6 +273,7 @@ export default async function({
           id: clusterId,
           product,
           oldProduct,
+          isExt
         }),
       ];
 

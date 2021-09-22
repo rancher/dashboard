@@ -231,7 +231,7 @@ export default {
 
       const resource = this.schema.id;
       const inStore = this.$store.getters['currentStore'](resource);
-      const generation = this.$store.getters[`${ inStore }/currentGeneration`](resource);
+      const generation = this.$store.getters[`${ inStore }/currentGeneration`]?.(resource);
 
       if ( generation ) {
         return `${ resource }/${ generation }`;

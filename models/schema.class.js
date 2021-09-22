@@ -1,4 +1,4 @@
-import { Resource } from '~/plugins/steve/resource-class';
+import { Resource } from '@/plugins/core-store/resource-class';
 
 export default class Schema extends Resource {
   get groupName() {

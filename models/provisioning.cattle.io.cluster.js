@@ -1,11 +1,11 @@
 import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
-import { proxyFor } from '@/plugins/steve/resource-proxy';
 import { findBy, insertAt } from '@/utils/array';
 import { set } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { compare } from '@/utils/version';
 import { AS, MODE, _EDIT, _YAML } from '@/config/query-params';
+import { proxyFor } from '@/plugins/core-store/resource-proxy';
 
 export const DEFAULT_WORKSPACE = 'fleet-default';
 

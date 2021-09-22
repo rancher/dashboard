@@ -47,6 +47,10 @@ export function importDetail(name) {
     throw new Error('Name required');
   }
 
+  if (name.plugin) {
+    return () => import(/* webpackChunkName: "plugins/app-extension" */ `@/plugins/app-extension/${ name.plugin }/detail/${name.type}`);
+  }
+
   return () => import(/* webpackChunkName: "detail" */ `@/detail/${name}`);
 }
 
@@ -55,11 +59,15 @@ export function importEdit(name) {
     throw new Error('Name required');
   }
 
+  if (name.plugin) {
+    return () => import(/* webpackChunkName: "plugins/app-extension" */ `@/plugins/app-extension/${ name.plugin }/edit/${name.type}`);
+  }
+
   return () => import(/* webpackChunkName: "edit" */ `@/edit/${name}`);
 }
 
 export function importDialog(name) {
-  if ( !name ) {
+  if (!name) {
     throw new Error('Name required');
   }
 
@@ -76,7 +84,7 @@ export function loadProduct(name) {
 }
 
 export function loadTranslation(name) {
-  if ( !name ) {
+  if (!name) {
     throw new Error('Name required');
   }
 

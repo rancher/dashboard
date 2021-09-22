@@ -1,8 +1,8 @@
 <script>
 import day from 'dayjs';
 import BadgeState from '@/components/BadgeState';
-import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
 import { safeSetTimeout } from '@/utils/time';
+import { colorForState, stateDisplay } from '@/plugins/core-store/resource-instance';
 
 export default {
   components: { BadgeState },

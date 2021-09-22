@@ -1,6 +1,6 @@
-import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
+import { colorForState, stateDisplay } from '@/plugins/core-store/resource-instance';
 export default {
   canUpdate() {
     return this?.metadata?.state?.error;

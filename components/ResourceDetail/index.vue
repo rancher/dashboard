@@ -10,7 +10,7 @@ import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
 import DetailTop from '@/components/DetailTop';
-import { clone, set, diff } from '@/utils/object';
+import { clone, diff } from '@/utils/object';
 import IconMessage from '@/components/IconMessage';
 
 function modeFor(route) {
@@ -159,18 +159,8 @@ export default {
       }
     }
 
-    // Ensure labels & annotations exists, since lots of things need them
-    if ( !model.metadata ) {
-      set(model, 'metadata', {});
-    }
-
-    if ( !model.metadata.annotations ) {
-      set(model, 'metadata.annotations', {});
-    }
-
-    if ( !model.metadata.labels ) {
-      set(model, 'metadata.labels', {});
-    }
+    // Ensure common properties exists
+    model = await store.dispatch(`${ inStore }/cleanForDetail`, model);
 
     const out = {
       hasCustomDetail,

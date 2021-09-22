@@ -1,7 +1,7 @@
 <script>
 import SimpleBox from '@/components/SimpleBox';
 import { COUNT } from '@/config/types';
-import { colorForState } from '@/plugins/steve/resource-instance';
+import { colorForState } from '@/plugins/core-store/resource-instance';
 
 export function colorToCountName(color) {
   switch (color) {
@@ -17,8 +17,8 @@ export function colorToCountName(color) {
 
 export function resourceCounts(store, resource) {
   const inStore = store.getters['currentStore'](COUNT);
-  const clusterCounts = store.getters[`${ inStore }/all`](COUNT)[0].counts;
-  const summary = clusterCounts[resource]?.summary || {};
+  const clusterCounts = store.getters[`${ inStore }/all`](COUNT)?.[0]?.counts;
+  const summary = clusterCounts?.[resource]?.summary || {};
 
   const counts = {
     total:        summary.count || 0,

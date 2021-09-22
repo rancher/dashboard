@@ -15,8 +15,8 @@ import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { addParam } from '@/utils/url';
 import { SETTING } from '@/config/settings';
 import semver from 'semver';
-import { BY_TYPE, NORMAN as NORMAN_CLASS } from '@/plugins/steve/resource-proxy';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
+import extensions from '@/plugins/app-extension/extensions';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -25,14 +25,11 @@ export const strict = false;
 export const BLANK_CLUSTER = '_';
 
 export const plugins = [
-  Steve({
-    namespace: 'management', baseUrl: '/v1', modelBaseClass: BY_TYPE
-  }),
+  Steve({ namespace: 'management', baseUrl: '/v1' }),
   Steve({ namespace: 'cluster', baseUrl: '' }), // URL dynamically set for the selected cluster
-  Steve({
-    namespace: 'rancher', baseUrl: '/v3', modelBaseClass: NORMAN_CLASS
-  }),
+  Steve({ namespace: 'rancher', baseUrl: '/v3' }),
   Steve({ namespace: 'harvester', baseUrl: '' }),
+  ...extensions.createStores(),
 ];
 
 export const state = () => {
@@ -550,7 +547,7 @@ export const actions = {
 
   async loadCluster({
     state, commit, dispatch, getters
-  }, { id, oldProduct }) {
+  }, { id, oldProduct, isExt }) {
     const isMultiCluster = getters['isMultiCluster'];
     const isRancher = getters['isRancher'];
 
@@ -594,11 +591,13 @@ export const actions = {
 
     console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
 
-    if (id === BLANK_CLUSTER) {
+    if (id === BLANK_CLUSTER || isExt) {
       commit('clusterChanged', true);
 
       return;
     }
+
+    // Rancher `cluster` store specific, only applies to kube clusters
 
     // See if it really exists
     try {
@@ -782,6 +781,8 @@ export const actions = {
     await dispatch('rancher/unsubscribe');
     commit('rancher/reset');
     commit('catalog/reset');
+
+    extensions.stores().forEach(store => commit(`${ store }/reset`));
 
     const router = state.$router;
     const route = router.currentRoute;
