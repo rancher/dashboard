@@ -548,7 +548,7 @@ export default {
     }
 
     const vmiConditions = get(this.vmi, 'status.conditions');
-    const vmiFailureCond = (findBy(vmiConditions, 'type', 'Failure') || {});
+    const vmiFailureCond = findBy(vmiConditions, 'type', 'Failure');
 
     if (vmiFailureCond) {
       return { status: 'VMI error', detailedMessage: vmiFailureCond.message };
