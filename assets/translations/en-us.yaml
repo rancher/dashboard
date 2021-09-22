@@ -5723,6 +5723,7 @@ advancedSettings:
     'harv-upgrade-checker-enabled': Specify whether to enable Harvester upgrade check or not. Default is true.
     'harv-upgrade-checker-url': Default Harvester upgrade check url. Only used when the <code>upgrade-checker-enabled</code>  is equal to true.
     'harv-ui-source': Config how to load the UI source.
+    'harv-ui-index': 'HTML index location for the UI.'
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:

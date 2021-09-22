@@ -7,7 +7,7 @@ import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 
 import CreateEditView from '@/mixins/create-edit-view';
 
-import { HCI_ALLOWED_SETTINGS } from '@/config/settings';
+import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING } from '@/config/settings';
 
 export default {
   components: {
@@ -22,7 +22,7 @@ export default {
 
   data() {
     const t = this.$store.getters['i18n/t'];
-    const setting = HCI_ALLOWED_SETTINGS[this.value.id];
+    const setting = HCI_ALLOWED_SETTINGS[this.value.id] || HCI_SINGLE_CLUSTER_ALLOWED_SETTING[this.value.id];
 
     let enumOptions = [];
 
