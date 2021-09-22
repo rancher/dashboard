@@ -3,7 +3,7 @@ import { HCI } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { clone } from '@/utils/object';
 import findLast from 'lodash/findLast';
-import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
+import { colorForState, stateDisplay } from '@/plugins/core-store/resource-instance';
 
 export default {
   _availableActions() {

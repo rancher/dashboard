@@ -1,13 +1,7 @@
 import { lookup } from './model-loader';
 import { Resource } from './resource-class';
-import SteveModel from './steve-class';
-import HybridModel from './hybrid-class';
-import NormanModel from './norman-class';
-import ResourceInstance from './resource-instance';
 
-export const NORMAN = 'norman';
-export const BY_TYPE = 'byType';
-export const STEVE = 'steve';
+import ResourceInstance from './resource-instance';
 
 export const SELF = '__[[SELF]]__';
 export const ALREADY_A_PROXY = '__[[PROXY]]__';
@@ -26,23 +20,11 @@ export function proxyFor(ctx, obj, isClone = false) {
   }
 
   const mappedType = ctx.rootGetters['type-map/componentFor'](obj.type);
-  let customModel = lookup(ctx.state.config.namespace, mappedType, obj?.metadata?.name);
+  let customModel = lookup(ctx.state.config.namespace, mappedType.type || mappedType, obj?.metadata?.name);
 
   // Uncomment this to make everything a class by default instead of a proxy
   if ( !customModel ) {
-    const which = ctx.state.config.modelBaseClass || STEVE;
-
-    if ( which === BY_TYPE ) {
-      if ( obj?.type?.startsWith('management.cattle.io.') || obj?.type?.startsWith('project.cattle.io.')) {
-        customModel = HybridModel;
-      } else {
-        customModel = SteveModel;
-      }
-    } else if ( which === NORMAN ) {
-      customModel = NormanModel;
-    } else {
-      customModel = SteveModel;
-    }
+    customModel = ctx.getters['defaultModel'](obj);
   }
 
   let out;

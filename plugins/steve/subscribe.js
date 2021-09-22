@@ -1,4 +1,4 @@
-import { addObject, removeObject } from '@/utils/array';
+import { addObject, clear, removeObject } from '@/utils/array';
 import { get } from '@/utils/object';
 import Socket, {
   EVENT_CONNECTED,
@@ -7,7 +7,8 @@ import Socket, {
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR
 } from '@/utils/socket';
-import { normalizeType } from '@/plugins/steve/normalize';
+// import { remapSpecialKeys } from '@/plugins/core-store/resource-proxy';
+import { normalizeType } from '@/plugins/core-store/normalize';
 
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
@@ -549,6 +550,15 @@ export const mutations = {
 
   debug(state, on) {
     state.debugSocket = on !== false;
+  },
+
+  resetSubscriptions(state) {
+    clear(state.started);
+    clear(state.pendingSends);
+    clear(state.queue);
+    clearInterval(state.queueTimer);
+    state.deferredRequests = {};
+    state.queueTimer = null;
   }
 };
 

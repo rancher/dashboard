@@ -8,8 +8,8 @@ import FleetSummary from '@/components/FleetSummary';
 import ResourceTabs from '@/components/form/ResourceTabs';
 
 import { COUNT } from '@/config/types';
-import { getStatesByType } from '@/plugins/steve/resource-instance';
 import MoveModal from '@/components/MoveModal';
+import { getStatesByType } from '@/plugins/core-store/resource-instance';
 
 export default {
   components: {

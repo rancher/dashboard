@@ -1,7 +1,7 @@
 // Helpers for determining if V2 or v1 Monitoring are installed
 
 import { SCHEMA, MONITORING, WORKLOAD_TYPES } from '@/config/types';
-import { normalizeType } from '@/plugins/steve/normalize';
+import { normalizeType } from '@/plugins/core-store/normalize';
 import { findBy } from '@/utils/array';
 import { isEmpty } from '@/utils/object';
 
