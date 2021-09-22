@@ -265,17 +265,10 @@ export default {
       return this.value.spec.rkeConfig;
     },
 
-    machineSelectorLength() {
-      return this.rkeConfig.machineSelectorConfig.length > 1 ? 'any' : 'all';
-    },
-
     advancedTitleAlt() {
-      const machineSelectorLength = this.machineSelectorLength;
+      const machineSelectorLength = this.rkeConfig.machineSelectorConfig.length;
 
-      return this.t(
-        'cluster.advanced.argInfo.machineSelector.titleAlt',
-        { selection: machineSelectorLength }
-      );
+      return this.t('cluster.advanced.argInfo.machineSelector.titleAlt', { count: machineSelectorLength });
     },
 
     chartValues() {

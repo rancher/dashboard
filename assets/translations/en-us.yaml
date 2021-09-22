@@ -1255,7 +1255,11 @@ cluster:
         bannerLabel: 'Note: The last selector that matches wins and only args from it will be used.  Args from other matches above will not combined together or merged.'
         title: 'For machines with labels matching:'
         subTitle: 'Use the Kubelet args:'
-        titleAlt: 'For {selection} machines, use the Kubelet args:'
+        titleAlt:  |-
+          {count, plural,
+            =1 { For all machines, use the Kubelet args: }
+            other { For any machines, use the Kubelet args: }
+          }
         kubeControllerManagerTitle: Additional Controller Manager Args
         kubeApiServerTitle: Additional API Server Args
         kubeSchedulerTitle: Additional Scheduler Args
