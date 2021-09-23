@@ -9,6 +9,10 @@ export default {
       if (_machinePools[idx]) {
         const copyConfig = _machinePools[idx]?.config;
 
+        delete copyConfig.id;
+        delete copyConfig.links;
+        delete copyConfig.metadata;
+        delete copyConfig.apiVersion;
         merge(this, copyConfig);
       }
     };

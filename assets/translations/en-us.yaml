@@ -911,6 +911,8 @@ cluster:
     rancher-vsphere:
       label: vSphere
       note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the Add-On Config tab.'
+    harvester:
+      label: Harvester
   custom:
     nodeRole:
       label: Node Role
@@ -1030,6 +1032,7 @@ cluster:
       kubeconfigContent:
         label: KubeconfigContent
       placeholder: 'Namespace/Name'
+      cluster: Cluster
   description:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster

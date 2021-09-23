@@ -98,7 +98,7 @@ export default {
       return null;
     }
 
-    const clusterId = this.$rootGetters['currentCluster'].id;
+    const clusterId = this.$rootGetters['currentCluster']?.id;
     const project = this.$rootGetters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ this.projectId }`);
 
     return project;
