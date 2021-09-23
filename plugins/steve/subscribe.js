@@ -489,7 +489,7 @@ export const actions = {
       const alias = typeOption?.alias || [];
 
       alias.map((type) => {
-        const obj = getters.byId(type, data.id);
+        const obj = ctx.getters.byId(type, data.id);
 
         ctx.state.queue.push({
           action: 'commit',
