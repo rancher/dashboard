@@ -1037,6 +1037,7 @@ cluster:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
   harvester:
+    importNotice: Import Harvester Clusters via 
     warning:
       label: This is a Harvester Cluster - enable the Harvester feature flag to manage it
       state: Warning
