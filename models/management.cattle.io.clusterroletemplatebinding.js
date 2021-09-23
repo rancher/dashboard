@@ -42,7 +42,7 @@ export default {
   },
 
   nameDisplay() {
-    return this.user?.nameDisplay;
+    return this.user?.nameDisplay || this.userName || this.principalId;
   },
 
   roleDisplay() {
