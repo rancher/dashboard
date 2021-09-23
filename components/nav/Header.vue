@@ -200,6 +200,7 @@ export default {
         </template>
       </div>
       <div v-if="currentProduct && !currentProduct.showClusterSwitcher" class="cluster">
+        <img v-if="currentProduct.iconHeader" v-bind="$attrs" :src="currentProduct.iconHeader" class="cluster-os-logo" style="width: 44px; height: 36px;" />
         <div class="product-name">
           {{ prod }}
         </div>
@@ -354,6 +355,7 @@ export default {
     </div>
   </header>
 </template>
+
 <style lang="scss" scoped>
   HEADER {
     display: grid;

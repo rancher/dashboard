@@ -1,4 +1,4 @@
-import { NAME, SIMPLE_NAME } from '@/config/table-headers';
+import { NAME, SIMPLE_NAME, STATE } from '@/config/table-headers';
 import { DSL } from '@/store/type-map';
 import { createEpinioRoute, rootEpinioRoute } from '@/plugins/app-extension/epinio/utils/custom-routing';
 import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/plugins/app-extension/epinio/types';
@@ -20,7 +20,8 @@ export function init(store) {
     category:            EPINIO_PRODUCT_NAME,
     isMultiClusterApp:   true,
     inStore:             EPINIO_PRODUCT_NAME,
-    icon:                'cluster-management',
+    icon:                'dock',
+    iconHeader:          require(`~/plugins/app-extension/epinio/assets/epinio.png`),
     removable:           false,
     showClusterSwitcher: false,
     to:                  rootEpinioRoute()
@@ -39,48 +40,49 @@ export function init(store) {
     customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.APP })
   });
 
-  configureType(EPINIO_TYPES.ORG, {
+  configureType(EPINIO_TYPES.NAMESPACE, {
     isCreatable: false,
     showState:   false,
     showAge:     false,
     canYaml:     false,
-    customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.ORG })
+    customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE })
   });
 
   basicType([
     EPINIO_TYPES.APP,
-    EPINIO_TYPES.ORG
+    EPINIO_TYPES.NAMESPACE
   ]);
 
   headers(EPINIO_TYPES.APP, [
-    // STATE,
+    STATE,
     NAME, {
-      name:     'active',
-      labelKey: 'epinio.tableHeaders.active',
-      value:    'active',
-      sort:     ['active'],
-    }, {
-      name:          'org',
+    //   name:     'active',
+    //   labelKey: 'epinio.tableHeaders.active',
+    //   value:    'active',
+    //   sort:     ['active'],
+    // }, {
+      name:          'namespace',
       labelKey:      'epinio.tableHeaders.organization',
-      value:         'organization',
-      sort:          ['organization'],
+      value:         'namespace',
+      sort:          ['namespace'],
       formatter:     'LinkDetail',
-      formatterOpts: { reference: 'orgLocation' }
+      formatterOpts: { reference: 'nsLocation' }
     }, {
-      name:     'username',
-      labelKey: 'epinio.tableHeaders.username',
-      value:    'username',
-      sort:     ['username'],
-    }, {
-      name:     'status',
-      labelKey: 'epinio.tableHeaders.status',
-      value:    'status',
-      sort:     ['status'],
-    }, {
-      name:     'route',
-      labelKey: 'epinio.tableHeaders.route',
-      value:    'route',
-      sort:     ['route'],
+    //   name:     'username',
+    //   labelKey: 'epinio.tableHeaders.username',
+    //   value:    'username',
+    //   sort:     ['username'],
+    // }, {
+    //   name:     'status',
+    //   labelKey: 'epinio.tableHeaders.status',
+    //   value:    'status',
+    //   sort:     ['status'],
+    // }, {
+      name:      'route',
+      labelKey:  'epinio.tableHeaders.route',
+      value:     'routeLocation',
+      sort:      ['route'],
+      formatter:     'Link',
     }, {
       name:      'services',
       labelKey:  'epinio.tableHeaders.boundServices',
@@ -90,7 +92,7 @@ export function init(store) {
     },
   ]);
 
-  headers(EPINIO_TYPES.ORG, [
+  headers(EPINIO_TYPES.NAMESPACE, [
     NAME,
   ]);
 

@@ -90,7 +90,10 @@ export default {
       type:    Boolean,
       default: false,
     },
-
+    namespacesOverride: {
+      type:    Array,
+      default: () => null,
+    },
     descriptionLabel: {
       type:    String,
       default: 'nameNsDescription.description.label',
@@ -182,7 +185,7 @@ export default {
 
     namespaces() {
       const inStore = this.$store.getters['currentStore'](this.namespaceType);
-      const choices = this.$store.getters[`${ inStore }/all`](this.namespaceType);
+      const choices = this.namespacesOverride || this.$store.getters[`${ inStore }/all`](this.namespaceType);
 
       const out = sortBy(
         choices.map((obj) => {
