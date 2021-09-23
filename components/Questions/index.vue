@@ -30,10 +30,6 @@ export const knownTypes = {
   storageclass:    ReferenceType,
   pvc:             ReferenceType,
   cloudcredential: CloudCredentialType,
-
-  // storageclass
-  // pvc
-  // secret
 };
 
 export function componentForQuestion(q) {
@@ -201,6 +197,11 @@ export default {
     disabled: {
       type:    Boolean,
       default: false,
+    },
+
+    inStore: {
+      type:    String,
+      default: 'cluster'
     }
   },
 
@@ -329,6 +330,7 @@ export default {
         <div class="col span-12">
           <component
             :is="componentForQuestion(q)"
+            :in-store="inStore"
             :question="q"
             :target-namespace="targetNamespace"
             :value="get(value, q.variable)"
@@ -351,6 +353,7 @@ export default {
         <div class="col span-12">
           <component
             :is="componentForQuestion(q)"
+            :in-store="inStore"
             :question="q"
             :target-namespace="targetNamespace"
             :mode="mode"

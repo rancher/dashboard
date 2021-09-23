@@ -534,6 +534,10 @@ asyncButton:
     action: Restore
     waiting: Restoring&hellip;
     success: Restored
+  rollback:
+    action: Roll Back
+    success: Rolled Back
+    waiting: Rolling Back Workload
   rotate:
     action: Rotate
     waiting: Rotating&hellip;
@@ -907,6 +911,8 @@ cluster:
     rancher-vsphere:
       label: vSphere
       note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the Add-On Config tab.'
+    harvester:
+      label: Harvester
   custom:
     nodeRole:
       label: Node Role
@@ -1026,13 +1032,14 @@ cluster:
       kubeconfigContent:
         label: KubeconfigContent
       placeholder: 'Namespace/Name'
+      cluster: Cluster
   description:
+    label: Cluster Description
+    placeholder: Any text you want that better describes this cluster
   harvester:
     warning:
       label: This is a Harvester Cluster - enable the Harvester feature flag to manage it
       state: Warning
-    label: Cluster Description
-    placeholder: Any text you want that better describes this cluster
   haveOneOwner: There must be at least one member with the Owner role.
   import:
     commandInstructions: 'Run the <code>kubectl</code> command below on an existing Kubernetes cluster running a supported Kubernetes version to import it into {vendor}:'
@@ -1249,6 +1256,31 @@ cluster:
       httpEndpoint: Allow access to EC2 metadata
       httpTokens: Use tokens for metadata
       tagTitle: EC2 Tags
+  addOns: 
+    additionalManifest:
+      title: Additional Manifest
+      tooltip: 'Additional Kubernetes Manifet YAML to be applied to the cluster on startup.'
+  advanced:
+    argInfo:
+      title: Additional Kubelet Args
+      machineSelector:
+        label: Add Machine Selector
+        listLabel: Add Argument
+        bannerLabel: 'Note: The last selector that matches wins and only args from it will be used.  Args from other matches above will not combined together or merged.'
+        title: 'For machines with labels matching:'
+        subTitle: 'Use the Kubelet args:'
+        titleAlt:  |-
+          {count, plural,
+            =1 { For all machines, use the Kubelet args: }
+            other { For any machines, use the Kubelet args: }
+          }
+        kubeControllerManagerTitle: Additional Controller Manager Args
+        kubeApiServerTitle: Additional API Server Args
+        kubeSchedulerTitle: Additional Scheduler Args
+    agentArgs:
+      label: Raise error if kernel parameters are different than the expected kubelet defaults
+  banner:
+    warning: 'This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration.'
 
   machinePool:
     name:
@@ -1414,7 +1446,6 @@ cluster:
   toggle:
     v1: RKE1
     v2: RKE2/K3s
-
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -3041,6 +3072,7 @@ projectMembers:
     label: Project Permissions
     description: Controls what access users have to the Project
     noDescription: User created - no description
+    searchForMember: Search for a member to provide project access
     owner:
       label: Owner
       description: Owners have full control over the Project and all resources inside it.
@@ -3151,6 +3183,17 @@ promptRestore:
   name: Name
   date: Date
   fromS3: Restore from S3
+
+promptRollback:
+  modalTitle: Roll Back {workloadName}
+  dropdownTitle: Roll Back to Revision
+  placeholder: Choose a Revision...
+  attemptingToRollBack: Attempting to roll back workload...
+  differences: Differences
+  revisionOption: "Revision {revisionNumber}, created {revisionAge} {units} ago {currentLabel}"
+  currentLabel: "(Current)"
+  multipleWorkloadError: "Only one workload can be rolled back at a time."
+  singleRevisionBanner: There are no revisions to roll back to.
 
 promptSaveAsRKETemplate:
   title: Convert {cluster} to new RKE Template
@@ -3989,6 +4032,7 @@ tableHeaders:
   nodesReady: Nodes Ready
   nodePort: Node Port
   object: Object
+  operatingSystem: OS
   output: Output
   p95: 95%tile
   persistentVolumeClaim: Persistent Volume Claim
@@ -4487,6 +4531,7 @@ workload:
     subdomain:
       label: Subdomain
       placeholder: e.g. web
+  normanWarning: It looks like this workload was created in the legacy Rancher UI. You may need to manually delete any services that were automatically created for it.
   validation:
     containers: Containers
     containerImage: Container {name} - "Container Image" is required.

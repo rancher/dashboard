@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@/utils/array';
 import { SCHEMA } from '@/config/types';
+import { Resource } from '@/plugins/steve/resource-class';
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import { proxyFor, remapSpecialKeys } from './resource-proxy';
 import { keyForSubscribe } from './subscribe';
@@ -53,7 +54,9 @@ function load(state, { data, ctx, existing }) {
       delete existing[k];
     }
 
-    remapSpecialKeys(data);
+    if ( !(existing instanceof Resource) ) {
+      remapSpecialKeys(data);
+    }
 
     for ( const k of Object.keys(data) ) {
       Vue.set(existing, k, data[k]);
@@ -195,9 +198,10 @@ export default {
     }
 
     clear(state.started);
-    clear(state.pendingSends);
+    clear(state.pendingFrames);
     clear(state.queue);
     clearInterval(state.queueTimer);
+    state.deferredRequests = {};
     state.queueTimer = null;
   },
 

@@ -3,9 +3,9 @@ import { TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED } from '@/config/labels-annotat
 import { WORKLOAD_TYPES, SERVICE } from '@/config/types';
 import { clone, get, set } from '@/utils/object';
 import day from 'dayjs';
-import { Resource } from '@/plugins/steve/resource-class';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default class Workload extends Resource {
+export default class Workload extends SteveModel {
   // remove clone as yaml/edit as yaml until API supported
   get _availableActions() {
     let out = this._standardActions;
@@ -24,6 +24,13 @@ export default class Workload extends Resource {
         icon:       'icon icon-spinner',
         enabled:    !!this.links.update,
         bulkable:   true,
+      });
+
+      insertAt(out, 0, {
+        action:  'toggleRollbackModal',
+        label:   'Rollback',
+        icon:    'icon icon-history',
+        enabled: !!this.links.update,
       });
     }
 
@@ -70,6 +77,25 @@ export default class Workload extends Resource {
       }
     }
     vm.$set(this, 'spec', spec);
+  }
+
+  toggleRollbackModal( resources = this ) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'RollbackWorkloadDialog'
+    });
+  }
+
+  async rollBackWorkload( workload, rollbackRequestData ) {
+    const rollbackRequestBody = JSON.stringify(rollbackRequestData);
+
+    if ( Array.isArray( workload ) ) {
+      throw new TypeError(this.t('promptRollback.multipleWorkloadError'));
+    }
+    const namespace = workload.metadata.namespace;
+    const workloadName = workload.metadata.name;
+
+    await this.patch(rollbackRequestBody, { url: `/apis/apps/v1/namespaces/${ namespace }/deployments/${ workloadName }` });
   }
 
   addSidecar() {
@@ -536,5 +562,13 @@ export default class Workload extends Resource {
 
   get isFromNorman() {
     return (this.metadata.labels || {})['cattle.io/creator'] === 'norman';
+  }
+
+  get warnDeletionMessage() {
+    if (this.isFromNorman) {
+      return this.t('workload.normanWarning');
+    } else {
+      return null;
+    }
   }
 }

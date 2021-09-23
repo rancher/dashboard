@@ -1,7 +1,7 @@
 import { MODE, _EDIT } from '@/config/query-params';
-import { Resource } from '@/plugins/steve/resource-class';
+import NormanModel from '@/plugins/steve/norman-class';
 
-export default class App extends Resource {
+export default class App extends NormanModel {
   get appEditUrl() {
     return this.detailLocation;
   }

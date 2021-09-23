@@ -22,6 +22,7 @@ export default {
     },
 
     component() {
+      // Looks for a dialog component by looking up @/components/dialog/${name}.
       return importDialog(this.modalData?.component);
     },
   },

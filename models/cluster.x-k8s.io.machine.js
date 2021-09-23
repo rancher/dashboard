@@ -78,6 +78,10 @@ export default {
     return this.$rootGetters['management/byId'](CAPI.MACHINE_DEPLOYMENT, this.poolId);
   },
 
+  operatingSystem() {
+    return this.metadata?.labels['cattle.io/os'] || 'linux';
+  },
+
   kubeNodeDetailLocation() {
     const kubeId = this.status?.nodeRef?.name;
     const cluster = this.cluster?.status?.clusterName;

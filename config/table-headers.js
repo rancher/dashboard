@@ -831,3 +831,27 @@ export const STATE_NORMAN = {
   default:   'unknown',
   formatter: 'BadgeStateFormatter',
 };
+
+export const KUBE_NODE_OS = {
+  name:      'operating-system',
+  labelKey:  'tableHeaders.operatingSystem',
+  value:     'status.nodeInfo.operatingSystem',
+  sort:      ['status.nodeInfo.operatingSystem'],
+  formatter: 'Capitalize'
+};
+
+export const MACHINE_NODE_OS = {
+  name:      'operating-system',
+  labelKey:  'tableHeaders.operatingSystem',
+  value:     'operatingSystem',
+  sort:      ['operatingSystem'],
+  formatter: 'Capitalize'
+};
+
+export const MANAGEMENT_NODE_OS = {
+  name:      'operating-system',
+  labelKey:  'tableHeaders.operatingSystem',
+  value:     'status.internalNodeStatus.nodeInfo.operatingSystem',
+  sort:      ['status.internalNodeStatus.nodeInfo.operatingSystem'],
+  formatter: 'Capitalize'
+};

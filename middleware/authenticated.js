@@ -238,11 +238,6 @@ export default async function({
     const oldProduct = from?.params?.product;
 
     if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name.startsWith(`c-cluster-${ VIRTUAL }-`)) {
-      await store.dispatch('resetStore', {
-        id:    clusterId,
-        store: 'cluster',
-      });
-
       const res = [
         store.dispatch('loadManagement'),
         store.dispatch('loadVirtual', {
@@ -253,11 +248,6 @@ export default async function({
 
       await Promise.all(res);
     } else if ( clusterId ) {
-      await store.dispatch('resetStore', {
-        id:    clusterId,
-        store: VIRTUAL,
-      });
-
       // Run them in parallel
       const res = [
         store.dispatch('loadManagement'),

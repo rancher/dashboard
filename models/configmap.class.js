@@ -1,6 +1,6 @@
-import { Resource } from '@/plugins/steve/resource-class';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default class ConfigMap extends Resource {
+export default class ConfigMap extends SteveModel {
   get keysDisplay() {
     const keys = [
       ...Object.keys(this.data || []),

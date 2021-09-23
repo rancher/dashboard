@@ -3,6 +3,7 @@ import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
 import isEqual from 'lodash/isEqual';
 import { mapPref, DIFF } from '@/store/prefs';
+import { mapGetters } from 'vuex';
 
 import Banner from '@/components/Banner';
 import ButtonGroup from '@/components/ButtonGroup';
@@ -275,6 +276,8 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ inStore: 'catalog/inStore' }),
+
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
       const want = this.value?.metadata?.namespace;
@@ -702,10 +705,9 @@ export default {
 
         // Non-admins without a cluster won't be able to fetch operations immediately
         await this.repo.waitForOperation(operationId);
-        // Dynamically use store decided when loading catalog (covers standard user case when there's not cluster)
-        const inStore = this.$store.getters['catalog/inStore'];
 
-        this.operation = await this.$store.dispatch(`${ inStore }/find`, {
+        // Dynamically use store decided when loading catalog (covers standard user case when there's not cluster)
+        this.operation = await this.$store.dispatch(`${ this.inStore }/find`, {
           type: CATALOG.OPERATION,
           id:   operationId
         });
@@ -1196,6 +1198,7 @@ export default {
             >
               <Questions
                 v-model="chartValues"
+                :in-store="inStore"
                 :mode="mode"
                 :source="versionInfo"
                 tabbed="multiple"

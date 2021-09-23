@@ -113,7 +113,7 @@ export default {
   },
 
   mgmt() {
-    const mgmt = this.$getters['byId'](MANAGEMENT.CLUSTER, this.metadata.name);
+    const mgmt = this.$getters['byId'](MANAGEMENT.CLUSTER, this.metadata?.labels?.[FLEET_LABELS.CLUSTER_NAME]);
 
     return mgmt;
   },

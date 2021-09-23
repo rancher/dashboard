@@ -12,7 +12,9 @@ import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
 import { findBy, removeObject, clear } from '@/utils/array';
-import { clone, diff, isEmpty, set } from '@/utils/object';
+import {
+  clone, diff, isEmpty, set, get
+} from '@/utils/object';
 import { allHash } from '@/utils/promise';
 import { sortBy } from '@/utils/sort';
 import { camelToTitle, nlToBr } from '@/utils/string';
@@ -56,6 +58,8 @@ import SelectCredential from './SelectCredential';
 const PUBLIC = 'public';
 const PRIVATE = 'private';
 const ADVANCED = 'advanced';
+
+const HARVESTER = 'harvester';
 
 export default {
   components: {
@@ -143,13 +147,20 @@ export default {
     }
 
     if ( this.value.spec.cloudCredentialSecretName ) {
+      await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
       this.credentialId = `${ this.value.spec.cloudCredentialSecretName }`;
     }
 
     if ( !this.value.spec.kubernetesVersion ) {
       const option = this.versionOptions.find(x => !!x.value);
+      const rke2 = this.filterAndMap(this.rke2Versions, null);
+      const showRke2 = rke2.length;
 
-      set(this.value.spec, 'kubernetesVersion', option.value);
+      if (this.isHarvesterDriver && showRke2) {
+        this.setHarvesterK8sDefaultVersion();
+      } else {
+        set(this.value.spec, 'kubernetesVersion', option.value);
+      }
     }
 
     for ( const k in this.serverArgs ) {
@@ -198,6 +209,10 @@ export default {
 
     if ( this.value.spec.defaultPodSecurityPolicyTemplateName === undefined ) {
       set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+    }
+
+    if (this.isHarvesterDriver && this.mode === _CREATE) {
+      this.agentConfig['cloud-provider-name'] = HARVESTER;
     }
 
     await this.initAddons();
@@ -263,6 +278,12 @@ export default {
 
     rkeConfig() {
       return this.value.spec.rkeConfig;
+    },
+
+    advancedTitleAlt() {
+      const machineSelectorLength = this.rkeConfig.machineSelectorConfig.length;
+
+      return this.t('cluster.advanced.argInfo.machineSelector.titleAlt', { count: machineSelectorLength });
     },
 
     chartValues() {
@@ -447,7 +468,7 @@ export default {
       const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
 
       for ( const opt of this.agentArgs['cloud-provider-name'].options ) {
-        if ( !preferred || opt === preferred || opt === 'external' ) {
+        if ( (!preferred && opt !== HARVESTER) || opt === preferred || opt === 'external' || preferred === HARVESTER) {
           out.push({
             label: this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ opt }".label`, null, opt),
             value: opt,
@@ -632,6 +653,7 @@ export default {
       case 'none': return false;
       case 'aws': return false;
       case 'rancher-vsphere': return false;
+      case HARVESTER: return false;
       default: return true;
       }
     },
@@ -686,7 +708,11 @@ export default {
 
     canManageMembers() {
       return canViewClusterMembershipEditor(this.$store);
-    }
+    },
+
+    isHarvesterDriver() {
+      return this.$route.query.type === HARVESTER;
+    },
   },
 
   watch: {
@@ -933,10 +959,32 @@ export default {
         }
       }
 
+      if (!this.value.metadata.name && this.agentConfig['cloud-provider-name'] === HARVESTER) {
+        this.errors.push(this.t('validation.required', { key: this.t('cluster.name.label') }, true));
+      }
+
       if (this.errors.length) {
         btnCb(false);
 
         return;
+      }
+
+      const clusterId = get(this.credential, 'decodedData.clusterId') || '';
+
+      if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId && this.isCreate) {
+        const namespace = this.machinePools?.[0]?.config?.vmNamespace;
+
+        const res = await this.$store.dispatch('management/request', {
+          url:                  `/k8s/clusters/${ clusterId }/v1/harvester/kubeconfig`,
+          method:               'POST',
+          data:                 {
+            clusterRoleName:    'harvesterhci.io:cloudprovider',
+            namespace,
+            serviceAccountName: this.value.metadata.name,
+          },
+        });
+
+        set(this.agentConfig, 'cloud-provider-config', res.data);
       }
 
       await this.save(btnCb);
@@ -1131,6 +1179,46 @@ export default {
       } else {
         set(this.rkeConfig.registries, 'configs', {});
         set(this.rkeConfig.registries, 'mirrors', {});
+      }
+    },
+
+    filterAndMap(versions, minVersion) {
+      const out = (versions || []).filter(obj => !!obj.serverArgs).map((obj) => {
+        let disabled = false;
+
+        if ( minVersion ) {
+          disabled = compare(obj.id, minVersion) < 0;
+        }
+
+        return {
+          label:      obj.id,
+          value:      obj.id,
+          sort:       sortable(obj.id),
+          serverArgs: obj.serverArgs,
+          agentArgs:  obj.agentArgs,
+          charts:     obj.charts,
+          disabled,
+        };
+      });
+
+      return sortBy(out, 'sort:desc');
+    },
+
+    setHarvesterK8sDefaultVersion() {
+      const rke2 = this.filterAndMap(this.rke2Versions, null);
+
+      const satisfiesVersion = rke2.filter((v) => {
+        const rkeVersion = v.value.replace(/.+rke2r/i, '');
+
+        return semver.satisfies(semver.coerce(v.value), '>=v1.21.4+rke2r4') && Number(rkeVersion) >= 4;
+      }) || [];
+
+      if (satisfiesVersion.length > 0) {
+        set(this.value.spec, 'kubernetesVersion', satisfiesVersion[0]?.value);
+      } else {
+        const option = this.versionOptions.find(x => !!x.value);
+
+        set(this.value.spec, 'kubernetesVersion', option.value);
       }
     },
   },
@@ -1509,6 +1597,7 @@ export default {
               <Questions
                 v-if="versionInfo[v.name] && versionInfo[v.name].questions"
                 v-model="chartValues[v.name]"
+                in-store="management"
                 :mode="mode"
                 :tabbed="false"
                 :source="versionInfo[v.name]"
@@ -1531,8 +1620,11 @@ export default {
 
           <div>
             <h3>
-              Additional Manifest
-              <i v-tooltip="'Additional Kubernetes Manifet YAML to be applied to the cluster on startup.'" class="icon icon-info" />
+              {{ t('cluster.addOns.additionalManifest.title') }}
+              <i
+                v-tooltip="t('cluster.addOns.additionalManifest.tooltip')"
+                class="icon icon-info"
+              />
             </h3>
             <YamlEditor
               ref="yaml-additional"
@@ -1544,20 +1636,25 @@ export default {
           </div>
         </Tab>
 
-        <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="-1" @active="refreshYamls">
+        <Tab
+          name="advanced"
+          label-key="cluster.tabs.advanced"
+          :weight="-1"
+          @active="refreshYamls"
+        >
           <template v-if="haveArgInfo">
-            <h3>Additional Kubelet Args</h3>
+            <h3>{{ t('cluster.advanced.argInfo.title') }}</h3>
             <ArrayListGrouped
               v-if="agentArgs['kubelet-arg']"
               v-model="rkeConfig.machineSelectorConfig"
               class="mb-20"
-              add-label="Add Machine Selector"
+              :add-label="t('cluster.advanced.argInfo.machineSelector.label')"
               :can-remove="canRemoveKubeletRow"
               :default-add-value="{machineLabelSelector: { matchExpressions: [], matchLabels: {} }, config: {'kubelet-arg': []}}"
             >
               <template #default="{row}">
                 <template v-if="row.value.machineLabelSelector">
-                  <h3>For machines with labels matching:</h3>
+                  <h3>{{ t('cluster.advanced.argInfo.machineSelector.title') }}</h3>
                   <MatchExpressions
                     v-model="row.value.machineLabelSelector"
                     class="mb-20"
@@ -1565,32 +1662,57 @@ export default {
                     :show-remove="false"
                     :initial-empty-row="true"
                   />
-                  <h3>Use the Kubelet args:</h3>
+                  <h3>{{ t('cluster.advanced.argInfo.machineSelector.subTitle') }}</h3>
                 </template>
                 <h3 v-else>
-                  For <span v-if="rkeConfig.machineSelectorConfig.length > 1">any</span><span v-else>all</span> machines, use the Kubelet args:
+                  {{ advancedTitleAlt }}
                 </h3>
 
                 <ArrayList
                   v-model="row.value.config['kubelet-arg']"
                   :mode="mode"
-                  add-label="Add Argument"
+                  :add-label="t('cluster.advanced.argInfo.machineSelector.listLabel')"
                   :initial-empty-row="!!row.value.machineLabelSelector"
                 />
               </template>
             </ArrayListGrouped>
-            <Banner v-if="rkeConfig.machineSelectorConfig.length > 1" color="info" label="Note: The last selector that matches wins and only args from it will be used.  Args from other matches above will not combined together or merged." />
+            <Banner
+              v-if="rkeConfig.machineSelectorConfig.length > 1"
+              color="info"
+              :label="t('cluster.advanced.argInfo.machineSelector.bannerLabel')"
+            />
 
-            <ArrayList v-if="serverArgs['kube-controller-manager-arg']" v-model="serverConfig['kube-controller-manager-arg']" :mode="mode" title="Additional Controller Manager Args" class="mb-20" />
-            <ArrayList v-if="serverArgs['kube-apiserver-arg']" v-model="serverConfig['kube-apiserver-arg']" :mode="mode" title="Additional API Server Args" class="mb-20" />
-            <ArrayList v-if="serverArgs['kube-scheduler-arg']" v-model="serverConfig['kube-scheduler-arg']" :mode="mode" title="Additional Scheduler Args" />
+            <ArrayList
+              v-if="serverArgs['kube-controller-manager-arg']"
+              v-model="serverConfig['kube-controller-manager-arg']"
+              :mode="mode"
+              :title="t('cluster.advanced.argInfo.machineSelector.kubeControllerManagerTitle')"
+              class="mb-20"
+            />
+            <ArrayList
+              v-if="serverArgs['kube-apiserver-arg']"
+              v-model="serverConfig['kube-apiserver-arg']"
+              :mode="mode"
+              :title="t('cluster.advanced.argInfo.machineSelector.kubeApiServerTitle')"
+              class="mb-20"
+            />
+            <ArrayList
+              v-if="serverArgs['kube-scheduler-arg']"
+              v-model="serverConfig['kube-scheduler-arg']"
+              :mode="mode"
+              :title="t('cluster.advanced.argInfo.machineSelector.kubeSchedulerTitle')"
+            />
           </template>
           <template v-if="agentArgs['protect-kernel-defaults']">
             <div class="spacer" />
 
             <div class="row">
               <div class="col span-12">
-                <Checkbox v-model="agentConfig['protect-kernel-defaults']" :mode="mode" label="Raise error if kernel parameters are different than the expected kubelet defaults" />
+                <Checkbox
+                  v-model="agentConfig['protect-kernel-defaults']"
+                  :mode="mode"
+                  :label="t('cluster.advanced.agentArgs.label')"
+                />
               </div>
             </div>
           </template>
@@ -1601,7 +1723,11 @@ export default {
       </Tabbed>
     </div>
 
-    <Banner v-if="unsupportedSelectorConfig" color="warning" label="This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration." />
+    <Banner
+      v-if="unsupportedSelectorConfig"
+      color="warning"
+      :label="t('cluster.banner.warning')"
+    />
 
     <template v-if="needCredential && !credentialId" #form-footer>
       <div><!-- Hide the outer footer --></div>
