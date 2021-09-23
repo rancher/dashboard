@@ -1387,6 +1387,9 @@ cluster:
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
+  providerDescription:
+    rke1:
+      harvester: Tech Preview
   providerGroup:
     create-custom1: Use existing nodes and create a cluster using RKE
     create-custom2: Use existing nodes and create a cluster using RKE2/K3s (Tech Preview)

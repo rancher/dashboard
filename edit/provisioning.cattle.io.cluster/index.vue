@@ -244,7 +244,7 @@ export default {
 
       function addType(id, group, disabled = false, link = null) {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
-        const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
+        const description = getters['i18n/withFallback'](`cluster.providerDescription.${ group }."${ id }"`, null, '');
         let icon = require('~/assets/images/generic-driver.svg');
 
         try {
@@ -414,6 +414,7 @@ export default {
     </template>
   </CruResource>
 </template>
+
 <style lang='scss'>
   .grouped-type {
     position: relative;
