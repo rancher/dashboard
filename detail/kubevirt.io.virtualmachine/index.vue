@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import { EVENT, HCI, SERVICE, NODE } from '@/config/types';
@@ -6,6 +7,7 @@ import CreateEditView from '@/mixins/create-edit-view';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import { allHash } from '@/utils/promise';
 import NodeScheduling from '@/components/form/NodeScheduling';
+import { allDashboardsExist } from '@/utils/grafana';
 import OverviewBasics from './VirtualMachineTabs/VirtualMachineBasics';
 import OverviewDisks from './VirtualMachineTabs/VirtualMachineDisks';
 import OverviewNetworks from './VirtualMachineTabs/VirtualMachineNetworks';
@@ -52,16 +54,21 @@ export default {
     };
 
     await allHash(hash);
+
+    this.showVmMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [VM_METRICS_DETAIL_URL], 'harvester');
   },
 
   data() {
     return {
       switchToCloud: false,
       VM_METRICS_DETAIL_URL,
+      showVmMetrics: false,
     };
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
+
     vmi() {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
@@ -158,7 +165,12 @@ export default {
         <Migration v-model="value" :vmi-resource="vmi" />
       </Tab>
 
-      <Tab name="vm-metrics" :label="t('harvester.virtualMachine.detail.tabs.metrics')" :weight="2.5">
+      <Tab
+        v-if="showVmMetrics"
+        name="vm-metrics"
+        :label="t('harvester.virtualMachine.detail.tabs.metrics')"
+        :weight="2.5"
+      >
         <template #default="props">
           <DashboardMetrics
             v-if="props.active"

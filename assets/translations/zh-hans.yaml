@@ -3910,6 +3910,8 @@ harvester:
     sections:
       events:
         label: 事件
+      vmMetrics:
+        label: VM指标
     upgrade:
       upgradeApp: 升级软件
       upgrade: 升级
@@ -4100,6 +4102,7 @@ harvester:
         monitor: 监控数据
         keypairs: 公共密钥
         cloudConfig: Cloud 配置
+        metrics: VM指标
       console:
         down: 请启动虚拟机以访问控制台.
 
