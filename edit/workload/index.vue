@@ -34,6 +34,20 @@ import RadioGroup from '@/components/form/RadioGroup';
 import { UI_MANAGED } from '@/config/labels-annotations';
 import { removeObject } from '@/utils/array';
 
+const TAB_WEIGHT_MAP = {
+  general:              99,
+  healthCheck:          98,
+  labels:               97,
+  networking:           96,
+  nodeScheduling:       95,
+  podScheduling:        94,
+  resources:            93,
+  upgrading:            92,
+  securityContext:      91,
+  storage:              90,
+  volumeClaimTemplates: 89,
+};
+
 export default {
   name:       'CruWorkload',
   components: {
@@ -155,6 +169,7 @@ export default {
       portsForServices:  [],
       isInitContainer,
       container,
+      tabWeightMap:       TAB_WEIGHT_MAP,
     };
   },
 
@@ -738,7 +753,7 @@ export default {
         </div>
       </div>
       <Tabbed :key="allContainers.indexOf(container)" :side-tabs="true">
-        <Tab :label="t('workload.container.titles.general')" name="general">
+        <Tab :label="t('workload.container.titles.general')" name="general" :weight="tabWeightMap['general']">
           <div>
             <div :style="{'align-items':'center'}" class="row mb-20">
               <div class="col span-6">
@@ -805,7 +820,7 @@ export default {
             <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
           </div>
         </Tab>
-        <Tab :label="t('workload.storage.title')" name="storage">
+        <Tab :label="t('workload.storage.title')" name="storage" :weight="tabWeightMap['storage']">
           <Storage
             v-model="podTemplateSpec"
             :namespace="value.metadata.namespace"
@@ -816,7 +831,7 @@ export default {
             :container="container"
           />
         </Tab>
-        <Tab :label="t('workload.container.titles.resources')" name="resources">
+        <Tab :label="t('workload.container.titles.resources')" name="resources" :weight="tabWeightMap['resources']">
           <h3 class="mb-10">
             <t k="workload.scheduling.titles.limits" />
           </h3>
@@ -848,29 +863,29 @@ export default {
             </div>
           </template>
         </Tab>
-        <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling">
+        <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling" :weight="tabWeightMap['podScheduling']">
           <PodAffinity :mode="mode" :value="podTemplateSpec" />
         </Tab>
-        <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
+        <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="tabWeightMap['nodeScheduling']">
           <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" />
         </Tab>
-        <Tab :label="t('workload.container.titles.upgrading')" name="upgrading">
+        <Tab :label="t('workload.container.titles.upgrading')" name="upgrading" :weight="tabWeightMap['upgrading']">
           <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
           <Upgrading v-else v-model="spec" :mode="mode" :type="type" />
         </Tab>
-        <Tab v-if="!isInitContainer" :label="t('workload.container.titles.healthCheck')" name="healthCheck">
+        <Tab v-if="!isInitContainer" :label="t('workload.container.titles.healthCheck')" name="healthCheck" :weight="tabWeightMap['healthCheck']">
           <HealthCheck v-model="healthCheck" :mode="mode" />
         </Tab>
-        <Tab :label="t('workload.container.titles.securityContext')" name="securityContext">
+        <Tab :label="t('workload.container.titles.securityContext')" name="securityContext" :weight="tabWeightMap['securityContext']">
           <Security v-model="container.securityContext" :mode="mode" />
         </Tab>
-        <Tab :label="t('workload.container.titles.networking')" name="networking">
+        <Tab :label="t('workload.container.titles.networking')" name="networking" :weight="tabWeightMap['networking']">
           <Networking v-model="podTemplateSpec" :mode="mode" />
         </Tab>
-        <Tab v-if="isStatefulSet" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates">
+        <Tab v-if="isStatefulSet" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates" :weight="tabWeightMap['volumeClaimTemplates']">
           <VolumeClaimTemplate v-model="spec" :mode="mode" />
         </Tab>
-        <Tab name="labels" :label="t('generic.labelsAndAnnotations')">
+        <Tab name="labels" :label="t('generic.labelsAndAnnotations')" :weight="tabWeightMap['labels']">
           <Labels v-model="value" :mode="mode" />
           <div class="spacer"></div>
 
