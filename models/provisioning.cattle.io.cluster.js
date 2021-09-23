@@ -593,15 +593,19 @@ export default {
         if (credential) {
           const harvesterClusterId = get(credential, 'decodedData.clusterId');
 
-          const poolConfig = await this.$dispatch('management/find', {
-            type: `${ CAPI.MACHINE_CONFIG_GROUP }.${ (pool?.machineConfigRef?.kind || '').toLowerCase() }`,
-            id:   `${ this.metadata.namespace }/${ pool?.machineConfigRef?.name }`,
-          }, { root: true });
+          try {
+            const poolConfig = await this.$dispatch('management/find', {
+              type: `${ CAPI.MACHINE_CONFIG_GROUP }.${ (pool?.machineConfigRef?.kind || '').toLowerCase() }`,
+              id:   `${ this.metadata.namespace }/${ pool?.machineConfigRef?.name }`,
+            }, { root: true });
 
-          await this.$dispatch('management/request', {
-            url:                  `/k8s/clusters/${ harvesterClusterId }/v1/harvester/serviceaccounts/${ poolConfig.vmNamespace }/${ this.metadata.name }`,
-            method:               'DELETE',
-          }, { root: true });
+            await this.$dispatch('management/request', {
+              url:                  `/k8s/clusters/${ harvesterClusterId }/v1/harvester/serviceaccounts/${ poolConfig.vmNamespace }/${ this.metadata.name }`,
+              method:               'DELETE',
+            }, { root: true });
+          } catch (e) {
+            console.error(e); // eslint-disable-line no-console
+          }
         }
       }
 
