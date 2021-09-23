@@ -28,6 +28,7 @@ import PodAffinity from '@/components/form/PodAffinity';
 import Tolerations from '@/components/form/Tolerations';
 import CruResource from '@/components/CruResource';
 import Command from '@/components/form/Command';
+import LifecycleHooks from '@/components/form/LifecycleHooks';
 import Storage from '@/edit/workload/storage';
 import Labels from '@/components/form/Labels';
 import RadioGroup from '@/components/form/RadioGroup';
@@ -56,6 +57,7 @@ export default {
     Tolerations,
     CruResource,
     Command,
+    LifecycleHooks,
     Storage,
     VolumeClaimTemplate,
     Labels,
@@ -831,6 +833,12 @@ export default {
           <div>
             <h3>{{ t('workload.container.titles.command') }}</h3>
             <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
+          </div>
+
+          <div class="spacer"></div>
+          <div>
+            <h3>{{ t('workload.container.titles.lifecycle') }}</h3>
+            <LifecycleHooks v-model="container.lifecycle" :mode="mode" />
           </div>
         </Tab>
         <Tab :label="t('workload.storage.title')" name="storage">
