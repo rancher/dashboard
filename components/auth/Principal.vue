@@ -117,7 +117,7 @@ export default {
       "avatar name"
       "avatar description";
     grid-template-columns: $size auto;
-    grid-template-rows: $size/2 $size/2;
+    grid-template-rows: math.div($size, 2) math.div($size, 2);
     column-gap: 10px;
 
     &.showLabels {
@@ -156,12 +156,12 @@ export default {
 
     .name {
       grid-area: name;
-      line-height: $size/2;
+      line-height: math.div($size, 2);
     }
 
     .description {
       grid-area: description;
-      line-height: $size/2;
+      line-height: math.div($size, 2);
     }
   }
 </style>

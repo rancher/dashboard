@@ -70,7 +70,7 @@ export default {
       h1 {
         font-size: 40px;
         line-height: 36px;
-        padding-bottom: $padding / 2;
+        padding-bottom: math.div($padding, 2);
         margin-bottom: 5px;
       }
 

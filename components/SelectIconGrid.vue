@@ -200,7 +200,7 @@ export default {
         text-align: center;
         position: absolute;
         left: $side+$margin;
-        top: ($height - $logo)/2;
+        top: math.div(($height - $logo), 2);
         width: $logo;
         height: $logo;
         border-radius: calc(2 * var(--border-radius));
