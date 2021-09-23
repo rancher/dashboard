@@ -4,21 +4,50 @@ import { isEmpty } from '@/utils/object';
 import EpinioResource from './epinio-resource-instance.class';
 
 export default class EpinioApplication extends EpinioResource {
-  get orgLocation() {
+  get state() {
+    return this.active ? '' : 'in-progress';
+  }
+
+  get stateObj() {
+    return this.active ? {} : {
+      transitioning: true,
+      message:       this.status
+    };
+  }
+
+  get _availableActions() {
+    return [
+      {
+        action:     '', // TODO: RC
+        label:      'Show Logs', // TODO: RC
+        icon:       'icon icon-fw icon-chevron-right',
+        enabled:    true, // tODO: RC
+      },
+      { divider: true },
+      ...this._standardActions
+    ];
+  }
+
+  get routeLocation() {
+    // TODO: RC
+    return { url: this.route ? `https://${ this.route }` : '' };
+  }
+
+  get nsLocation() {
     // return this.$getters['byId'](EPINIO_TYPES.ORG, this.organization).
     return createEpinioRoute(`c-cluster-resource-id`, {
       cluster:   this.$rootGetters['clusterId'],
-      resource:  EPINIO_TYPES.ORG,
-      id:       this.organization
+      resource:  EPINIO_TYPES.NAMESPACE,
+      id:       this.namespace
     });
   }
 
   get links() {
     // TODO: RC API v1/apps available?
     return {
-      update: `/proxy/api/v1/orgs/${ this.organization }/applications/${ this.id }`,
-      self:   `/proxy/api/v1/orgs/${ this.organization }/applications/${ this.id }`,
-      remove: `/proxy/api/v1/orgs/${ this.organization }/applications/${ this.id }`
+      update: `/proxy/api/v1/namespaces/${ this.namespace }/applications/${ this.id }`,
+      self:   `/proxy/api/v1/namespaces/${ this.namespace }/applications/${ this.id }`,
+      remove: `/proxy/api/v1/namespaces/${ this.namespace }/applications/${ this.id }`
     };
   }
 

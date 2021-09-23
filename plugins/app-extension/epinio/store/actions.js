@@ -20,7 +20,7 @@ export default {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
     opt.headers = {
-      'x-api-host':    'https://epinio.172.27.0.2.omg.howdoi.website', // TODO: RC FIX fetch from cluster
+      'x-api-host':    'https://epinio.172.31.0.2.omg.howdoi.website', // TODO: RC FIX fetch from cluster
       Authorization: 'Basic <snip>' // TODO: RC AUTH fetch from cluster
     };
 
@@ -72,7 +72,8 @@ export default {
         out = {};
       }
 
-      // TODO: API - orgs call returns array of strings!
+      // TODO: API - namespaces call returns array of strings!
+      debugger;
       if (Array.isArray(out)) {
         out = {
           data: out.map((o) => {
@@ -121,14 +122,14 @@ export default {
         id:                EPINIO_TYPES.APP,
         type:              'schema',
         // TODO: RC API v1/apps available?
-        links:             { collection: 'api/v1/orgs/workspace/applications' },
+        links:             { collection: 'api/v1/namespaces/workspace/applications' },
         collectionMethods: ['get', 'post'],
         resourceFields:    {}
       }, {
         product:           EPINIO_PRODUCT_NAME,
-        id:                EPINIO_TYPES.ORG,
+        id:                EPINIO_TYPES.NAMESPACE,
         type:              'schema',
-        links:             { collection: 'api/v1/orgs' },
+        links:             { collection: 'api/v1/namespaces' },
         collectionMethods: ['get'],
       }]
     };

@@ -5655,10 +5655,10 @@ typeLabel:
       one { Cloud Config Template }
       other { Cloud Config Templates }
     }
-  orgs: |-
+  namespaces: |-
     {count, plural,
-      one { Organisation }
-      other { Organisations }
+      one { Namespaces }
+      other { Namespaces }
     }
   applications: |-
     {count, plural,
