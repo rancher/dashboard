@@ -3,6 +3,7 @@ import Vue from 'vue';
 
 import HookOption from '@/components/form/HookOption';
 import { _VIEW } from '@/config/query-params';
+import { isEmpty } from '@/utils/object';
 
 export default {
   components: { HookOption },
@@ -46,7 +47,7 @@ export default {
       for (const prop in out) {
         const val = out[prop];
 
-        if (val === '' || typeof val === 'undefined' || val === null || val === {}) {
+        if (val === '' || typeof val === 'undefined' || val === null || isEmpty(val)) {
           Vue.delete(this.value, prop);
         } else {
           Vue.set(this.value, prop, val);
@@ -60,20 +61,20 @@ export default {
 </script>
 
 <template>
-  <div @input="update">
+  <div>
     <template>
       <div class="mb-20">
         <h3 class="clearfix">
           {{ t('workload.container.lifecycleHook.postStart.label') }}
         </h3>
-        <HookOption v-model="postStart" :mode="mode" />
+        <HookOption v-model="postStart" :mode="mode" @input="update" />
       </div>
 
       <div>
         <h3 class="clearfix">
           {{ t('workload.container.lifecycleHook.preStop.label') }}
         </h3>
-        <HookOption v-model="preStop" :mode="mode" />
+        <HookOption v-model="preStop" :mode="mode" @input="update" />
       </div>
     </template>
   </div>
