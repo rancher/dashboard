@@ -1,4 +1,3 @@
-import { remapSpecialKeys } from '@/plugins/steve/resource-proxy';
 import { addObject, removeObject } from '@/utils/array';
 import { get } from '@/utils/object';
 import Socket, {
