@@ -965,7 +965,7 @@ export default {
 
       const clusterId = get(this.credential, 'decodedData.clusterId') || '';
 
-      if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId) {
+      if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId && this.isCreate) {
         const namespace = this.machinePools?.[0]?.config?.vmNamespace;
 
         const res = await this.$store.dispatch('management/request', {
