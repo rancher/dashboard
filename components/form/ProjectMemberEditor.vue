@@ -244,7 +244,7 @@ export default {
   <div v-else>
     <div class="row mt-10">
       <div class="col span-12">
-        <SelectPrincipal class="mb-20" :mode="mode" :retain-selection="true" @add="onAdd" />
+        <SelectPrincipal project class="mb-20" :mode="mode" :retain-selection="true" @add="onAdd" />
       </div>
     </div>
     <Card class="m-0" :show-highlight-border="false" :show-actions="false">
