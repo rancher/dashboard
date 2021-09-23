@@ -198,9 +198,10 @@ export default {
     }
 
     clear(state.started);
-    clear(state.pendingSends);
+    clear(state.pendingFrames);
     clear(state.queue);
     clearInterval(state.queueTimer);
+    state.deferredRequests = {};
     state.queueTimer = null;
   },
 
