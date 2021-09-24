@@ -147,6 +147,8 @@ export default {
       metricNodes:        [],
       vms:                [],
       VM_DASHBOARD_METRICS_URL,
+      CLUSTER_METRICS_SUMMARY_URL,
+      CLUSTER_METRICS_DETAIL_URL,
       showClusterMetrics: false,
       showVmMetrics:      false,
     };
@@ -457,11 +459,14 @@ export default {
         :label="t('harvester.dashboard.sections.vmMetrics.label')"
         :weight="98"
       >
-        <DashboardMetrics
-          :detail-url="VM_DASHBOARD_METRICS_URL"
-          graph-height="825px"
-          :has-summary-and-detail="false"
-        />
+        <template #default="props">
+          <DashboardMetrics
+            v-if="props.active"
+            :detail-url="VM_DASHBOARD_METRICS_URL"
+            graph-height="825px"
+            :has-summary-and-detail="false"
+          />
+        </template>
       </Tab>
     </Tabbed>
 
