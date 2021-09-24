@@ -123,6 +123,7 @@ export default {
       } else {
         this.$set(term, 'weight', 1);
       }
+      this.update();
     },
 
     priorityDisplay(term) {
