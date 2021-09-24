@@ -9,6 +9,7 @@ import { _CLONE } from '@/config/query-params';
 import { PVC, HCI, STORAGE_CLASS, NODE } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
+const QEMU_RESERVE = 0.1;
 const agentJson = {
   package_update: true,
   packages:       ['qemu-guest-agent'],
@@ -335,9 +336,20 @@ export default {
         };
       }
 
+      if (!this.spec.template.spec.domain.guest) {
+        this.spec.template.spec.domain = {
+          ...this.spec.template.spec.domain,
+          memory: { guest: '' }
+        };
+      }
+
       this.spec.template.spec.domain.resources.requests.cpu = this.spec.template.spec.domain.cpu.cores;
       this.spec.template.spec.domain.resources.limits.memory = this.spec.template.spec.domain.resources.requests.memory;
       this.spec.template.spec.domain.resources.limits.cpu = this.spec.template.spec.domain.cpu.cores;
+
+      const [memoryValue, memoryUnit] = this.memory?.split(/(?=([a-zA-Z]+))/g);
+
+      this.spec.template.spec.domain.memory.guest = `${ memoryValue - QEMU_RESERVE }${ memoryUnit }`;
     },
 
     parseDiskRows(disk) {
