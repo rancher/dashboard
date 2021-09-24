@@ -51,7 +51,7 @@ export default {
     },
 
     rows() {
-      return this.allClusters.filter(c => !isHarvesterCluster(c));
+      return this.fleetClusters.filter(c => !isHarvesterCluster(c));
     },
 
     fleetClusters() {
