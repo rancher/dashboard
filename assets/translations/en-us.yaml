@@ -1042,6 +1042,11 @@ cluster:
     warning:
       label: This is a Harvester Cluster - enable the Harvester feature flag to manage it
       state: Warning
+    clusterWarning: |-
+      There {count, plural,
+      =1 {is 1 Harvester cluster that is not shown}
+      other {are # Harvester clusters that are not shown}
+      }  
   haveOneOwner: There must be at least one member with the Owner role.
   import:
     commandInstructions: 'Run the <code>kubectl</code> command below on an existing Kubernetes cluster running a supported Kubernetes version to import it into {vendor}:'
