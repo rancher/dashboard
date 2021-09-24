@@ -81,7 +81,9 @@ export default {
       const fileSystem = this.value?.blockDevice?.status?.deviceStatus?.fileSystem;
       const partitioned = this.value?.blockDevice?.status?.deviceStatus?.partitioned;
 
-      if (lastFormattedAt || fileSystem || partitioned) {
+      if (fileSystem) {
+        return false;
+      } else if (lastFormattedAt || partitioned) {
         return true;
       } else if (!fileSystem && !partitioned) {
         return true;

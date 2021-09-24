@@ -3972,6 +3972,7 @@ harvester:
         label: 路径
       forceFormatted:
         label: 格式化
+        toolTip: 格式化将会清除磁盘数据, 请确保对数据进行备份以免丢失.
       description:
         label: 描述
 

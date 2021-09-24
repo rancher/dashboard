@@ -16,11 +16,12 @@ import { HCI, LONGHORN } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { formatSi } from '@/utils/units';
 import { findBy, uniq } from '@/utils/array';
-import { matchesSomeRegex, randomStr } from '@/utils/string';
+import { matchesSomeRegex } from '@/utils/string';
 import { clone } from '@/utils/object';
 import { exceptionToErrorsArray } from '@/utils/error';
 import KeyValue from '@/components/form/KeyValue';
 import { sortBy } from '@/utils/sort';
+import Banner from '@/components/Banner';
 import HarvesterDisk from './HarvesterDisk';
 
 const LONGHORN_SYSTEM = 'longhorn-system';
@@ -39,6 +40,7 @@ export default {
     HarvesterDisk,
     ButtonDropdown,
     KeyValue,
+    Banner,
   },
   mixins: [CreateEditView],
   props:  {
@@ -202,6 +204,12 @@ export default {
 
       return longhornDisks;
     },
+
+    showFormattedWarning() {
+      const out = this.newDisks.filter(d => d.forceFormatted && d.isNew) || [];
+
+      return out.length > 0;
+    },
   },
   watch: {
     customName(neu) {
@@ -241,16 +249,21 @@ export default {
       const mountPoint = disk?.spec?.fileSystem?.mountPoint;
 
       let forceFormatted;
+      const deviceType = disk?.status?.deviceStatus?.details?.deviceType;
 
       if (disk?.status?.deviceStatus?.fileSystem?.type) {
         forceFormatted = false;
-      } else {
+      } else if (deviceType === 'part') {
+        forceFormatted = false;
+      } else if (deviceType === 'disk') {
         forceFormatted = !disk?.status?.deviceStatus?.partitioned;
       }
 
+      const name = disk?.metadata?.name;
+
       this.newDisks.push({
-        name:              disk?.metadata?.name,
-        path:              mountPoint || `/var/lib/harvester/extra-disks/${ randomStr(11) }`,
+        name,
+        path:              mountPoint || `/var/lib/harvester/extra-disks/${ name }`,
         allowScheduling:   false,
         evictionRequested: false,
         storageReserved:   0,
@@ -448,6 +461,11 @@ export default {
         />
       </Tab>
     </Tabbed>
+    <Banner
+      v-if="showFormattedWarning"
+      color="warning"
+      :label="t('harvester.host.disk.forceFormatted.toolTip')"
+    />
     <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
   </div>
 </template>

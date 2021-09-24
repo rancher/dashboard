@@ -153,15 +153,6 @@ export default {
           :value="value.path"
         />
       </div>
-      <div class="col span-4">
-        <LabelValue
-          :name="t('harvester.host.disk.forceFormatted.label')"
-        >
-          <template #value>
-            {{ value.forceFormatted ? t('generic.yes') : t('generic.no') }}
-          </template>
-        </LabelValue>
-      </div>
     </div>
   </div>
 </template>
