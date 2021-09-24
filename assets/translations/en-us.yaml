@@ -5277,7 +5277,7 @@ harvester:
 
   manager:
     cluster:
-      label: Clusters
+      label: Harvester Clusters
   
   support:
     title: Harvester Support
@@ -5629,8 +5629,8 @@ typeLabel:
     }
   harvesterhci.io.management.cluster: |-
     {count, plural,
-      one { Cluster }
-      other { Clusters }
+      one { Harvester Cluster }
+      other { Harvester Clusters }
     }
   harvesterhci.io.cloudtemplate: |-
     {count, plural,

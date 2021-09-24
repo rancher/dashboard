@@ -4477,6 +4477,7 @@ typeLabel:
   harvesterhci.io.setting: 设置
   harvesterhci.io.host: 主机
   harvesterhci.io.virtualmachinebackup: 备份
+  harvesterhci.io.management.cluster: Harvester集群
 
 action:
   clone: 克隆

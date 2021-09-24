@@ -48,6 +48,10 @@ export default {
 
       return clusters.filter(c => c?.metadata?.labels?.[HCI_LABEL.HARVESTER_CLUSTER] === 'true' || c.provider === VIRTUAL_HARVESTER_PROVIDER);
     },
+
+    typeDisplay() {
+      return this.t(`typeLabel."${ HCI.CLUSTER }"`, { count: this.row?.length || 0 });
+    },
   }
 };
 </script>
@@ -58,6 +62,7 @@ export default {
       :schema="realSchema"
       :resource="resource"
       :is-creatable="false"
+      :type-display="typeDisplay"
     >
       <template #typeDescription>
         <TypeDescription :resource="hResource" />
