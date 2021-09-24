@@ -14,6 +14,7 @@ import SortableTable from '@/components/SortableTable';
 import { _DETAIL } from '@/config/query-params';
 import { SUBTYPE_MAPPING, VERBS } from '@/models/management.cattle.io.roletemplate';
 import Loading from '@/components/Loading';
+import capitalize from 'lodash/capitalize';
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 const CLUSTER = SUBTYPE_MAPPING.CLUSTER.key;
@@ -93,7 +94,7 @@ export default {
 
     return {
       defaultRule: {
-        apiGroups:       [],
+        apiGroups:       [''],
         nonResourceURLs: [],
         resourceNames:   [],
         resources:       [],
@@ -126,7 +127,7 @@ export default {
     resourceOptions() {
       return this.value.resources.map(resource => ({
         value: resource.toLowerCase(),
-        label: resource
+        label: capitalize(resource)
       }));
     },
     newUserDefaultOptions() {
