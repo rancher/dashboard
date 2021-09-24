@@ -47,6 +47,7 @@ generic:
   save: Save
   showAdvanced: Show Advanced
   hideAdvanced: Hide Advanced
+  techPreview: Tech Preview
   type: Type
   unknown: Unknown
   provisioning: '—'
@@ -1388,14 +1389,16 @@ cluster:
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
+  providerTag:
+    harvester: '{techPreview}'
   providerGroup:
     create-custom1: Use existing nodes and create a cluster using RKE
-    create-custom2: Use existing nodes and create a cluster using RKE2/K3s (Tech Preview)
+    create-custom2: Use existing nodes and create a cluster using RKE2/K3s
     create-kontainer: Create a cluster in a hosted Kubernetes provider
     register-kontainer: Register an existing cluster in a hosted Kubernetes provider
     create-rke1: Provision new nodes and create a cluster using RKE
-    create-rke2: Provision new nodes and create a cluster using RKE2/K3s (Tech Preview)
-    create-template: Use a Catalog Template to create a cluster (Tech Preview)
+    create-rke2: Provision new nodes and create a cluster using RKE2/K3s
+    create-template: Use a Catalog Template to create a cluster
     register-custom: Import any Kubernetes cluster
   rke2:
     snapshots:
