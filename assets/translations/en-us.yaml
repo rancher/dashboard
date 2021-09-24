@@ -1563,6 +1563,18 @@ fleet:
   cluster:
     summary: Resource Summary
     nonReady: Non-Ready Bundles
+  clusters:
+    harvester: |-
+      There {count, plural,
+      =1 {is 1 Harvester cluster that is hidden as this can not be used with Continuous Delivery}
+      other {are # Harvester clusters that are hidden as they can not be used with Continuous Delivery}
+      }  
+  tokens:
+    harvester: |-
+      {count, plural,
+      =1 {1 token is hidden as it belongs to a Harvester cluster that can not be used with Continuous Delivery}
+      other {# tokens are hidden as they belong to Harvester clusters that can not be used with Continuous Delivery}
+      }  
   fleetSummary:
     state:
       success: 'Ready'
