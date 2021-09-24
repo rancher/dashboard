@@ -4809,6 +4809,12 @@ harvester:
         tip: Please enter a template name!
         success: 'Template { templateName } created successfully.'
         failed: 'Failed generated template!'
+    exportImage:
+      title: Export Image
+      name: Name
+      namespace: Namespace
+      message:
+        success: 'Image { name } created successfully.'
     migration:
       failedMessage: Latest migration failed!
       title: Migration
@@ -4860,6 +4866,7 @@ harvester:
     cordon: Cordon
     uncordon: Uncordon
     addHotplug: Add Volume
+    exportImage: Export Image
   tableHeaders:
     size: Size
     progress: Progress

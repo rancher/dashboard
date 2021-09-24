@@ -6,7 +6,6 @@ import { findBy } from '@/utils/array';
 import { get, clone } from '@/utils/object';
 
 export default {
-
   applyDefaults() {
     return (_, realMode) => {
       const accessModes = realMode === _CLONE ? this.spec.accessModes : [];
@@ -17,6 +16,26 @@ export default {
         storageClassName: '',
         volumeName:       '',
         resources:        { requests: { storage } }
+      });
+    };
+  },
+
+  availableActions() {
+    return [
+      {
+        action:     'exportImage',
+        enabled:    true,
+        icon:       'icon icon-copy',
+        label:      this.t('harvester.action.exportImage'),
+      }
+    ];
+  },
+
+  exportImage() {
+    return (resources = this) => {
+      this.$dispatch('promptModal', {
+        resources,
+        component: 'harvester/ExportImageDialog'
       });
     };
   },

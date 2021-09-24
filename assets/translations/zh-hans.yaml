@@ -3779,6 +3779,12 @@ harvester:
         tip: '请输入模版名称！'
         success: '模板 { templateName } 创建成功.'
         failed: '生成模板失败！'
+    exportImage:
+      title: 导出镜像
+      name: 镜像名称
+      namespace: 镜像命名空间
+      messae:
+        success: '镜像 { name } 创建成功.'
     migration:
       failedMessage: 最新迁移失败!
       title: 迁移
@@ -3830,6 +3836,7 @@ harvester:
     cordon: 封锁
     uncordon: 解除封锁
     addHotplug: 添加卷
+    exportImage: 导出镜像
   tableHeaders:
     size: 大小
     progress: 进度
