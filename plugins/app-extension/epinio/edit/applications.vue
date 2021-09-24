@@ -1,4 +1,6 @@
 <script lang="ts">
+import Vue, { PropType } from 'vue';
+import Application from '@/plugins/app-extension/epinio/models/applications.class';
 import CreateEditView from '@/mixins/create-edit-view';
 import Loading from '@/components/Loading.vue';
 import NameNsDescription from '@/components/form/NameNsDescription.vue';
@@ -6,13 +8,27 @@ import FileSelector from '@/components/form/FileSelector.vue';
 import CruResource from '@/components/CruResource.vue';
 
 import { EPINIO_TYPES } from '@/plugins/app-extension/epinio/types';
+// import { exceptionToErrorsArray } from '@/utils/error';
 
-export default {
+// interface ComponentData {
+//   value: Application;
+//   errors: string[]
+// }
+
+export default Vue.extend({
+
   components: {
     Loading,
     CruResource,
     NameNsDescription,
     FileSelector
+  },
+
+  props: {
+    value: {
+      type:     Object as PropType<Application>,
+      required: true
+    },
   },
 
   mixins:     [
@@ -24,7 +40,7 @@ export default {
   },
 
   data() {
-    return {};
+    return { errors: [] };
   },
 
   computed: {
@@ -33,7 +49,7 @@ export default {
       return this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE);
     },
     valid() {
-      return false;
+      return false; // TODO: RC
     },
   },
 
@@ -41,10 +57,24 @@ export default {
     onFileSelected(value: { name: string, value: any }) {
       const { name: fileName, value: fileContent } = value;
 
-      console.log(fileName, fileContent);
+      console.log(fileName, fileContent); // eslint-disable-line no-console
     },
+
+    async saveOverride(buttonDone: (res: boolean) => void) {
+      try {
+        const res = await this.value.save();
+
+        console.warn(res); // eslint-disable-line no-console
+
+        //  this.done();
+        buttonDone(true);
+      } catch (e) {
+        // this.errors = exceptionToErrorsArray(e); // TODO: RC invalid reference
+        buttonDone(false);
+      }
+    }
   }
-};
+});
 </script>
 
 <template>
@@ -55,7 +85,9 @@ export default {
     :resource="value"
     :done-route="doneRoute"
     :can-yaml="false"
-    @finish="save"
+    :errors="errors"
+    @error="e=>errors = e"
+    @finish="saveOverride"
     @cancel="done"
   >
     <div>
