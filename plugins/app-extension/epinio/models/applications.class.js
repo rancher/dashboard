@@ -4,6 +4,8 @@ import { isEmpty } from '@/utils/object';
 import EpinioResource from './epinio-resource-instance.class';
 
 export default class EpinioApplication extends EpinioResource {
+  // name;// string
+
   get state() {
     return this.active ? '' : 'in-progress';
   }
@@ -18,10 +20,10 @@ export default class EpinioApplication extends EpinioResource {
   get _availableActions() {
     return [
       {
-        action:     '', // TODO: RC
-        label:      'Show Logs', // TODO: RC
+        action:     '', // TODO: RC tidy after screenshots
+        label:      'Show Logs', // TODO: RC tidy after screenshots
         icon:       'icon icon-fw icon-chevron-right',
-        enabled:    true, // tODO: RC
+        enabled:    true, // TODO: RC tidy after screenshots
       },
       { divider: true },
       ...this._standardActions
@@ -29,12 +31,11 @@ export default class EpinioApplication extends EpinioResource {
   }
 
   get routeLocation() {
-    // TODO: RC
+    // TODO: RC tidy after screenshots
     return { url: this.route ? `https://${ this.route }` : '' };
   }
 
   get nsLocation() {
-    // return this.$getters['byId'](EPINIO_TYPES.ORG, this.organization).
     return createEpinioRoute(`c-cluster-resource-id`, {
       cluster:   this.$rootGetters['clusterId'],
       resource:  EPINIO_TYPES.NAMESPACE,
@@ -43,7 +44,7 @@ export default class EpinioApplication extends EpinioResource {
   }
 
   get links() {
-    // TODO: RC API v1/apps available?
+    // TODO: RC from v0.1.1 switch to all apps endpoint
     return {
       update: `/proxy/api/v1/namespaces/${ this.namespace }/applications/${ this.id }`,
       self:   `/proxy/api/v1/namespaces/${ this.namespace }/applications/${ this.id }`,
@@ -65,6 +66,7 @@ export default class EpinioApplication extends EpinioResource {
 
   async _save(opt = {}) {
     delete this.__rehydrate;
+    delete this.__clone;
     const forNew = !this.id;
 
     const errors = await this.validationErrors(this, opt.ignoreFields);
@@ -119,14 +121,14 @@ export default class EpinioApplication extends EpinioResource {
       //   await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined ) });
       // }
     } catch (e) {
-      if ( this.type && this.id && e?._status === 409) {
-        // If there's a conflict, try to load the new version
-        await this.$dispatch('find', {
-          type: this.type,
-          id:   this.id,
-          opt:  { force: true }
-        });
-      }
+      // if ( this.type && this.id && e?._status === 409) {
+      //   // If there's a conflict, try to load the new version
+      //   await this.$dispatch('find', {
+      //     type: this.type,
+      //     id:   this.id,
+      //     opt:  { force: true }
+      //   });
+      // }
 
       return Promise.reject(e);
     }
