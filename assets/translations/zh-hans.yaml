@@ -3961,6 +3961,10 @@ harvester:
       add: 添加硬盘
       path:
         label: 路径
+      forceFormatted:
+        label: 格式化
+      description:
+        label: 描述
 
   virtualizationManagement:
     manage: 管理

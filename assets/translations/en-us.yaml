@@ -5001,6 +5001,11 @@ harvester:
         label: Scheduling
       evictionRequested:
         label: Eviction Requested
+      forceFormatted:
+        label: Force Formatted
+        toolTip: Force formatted will cleanup disk data, make sure you backup all available data to prevent data loss.
+      description:
+        label: Description
 
   virtualizationManagement:
     manage: Manage
