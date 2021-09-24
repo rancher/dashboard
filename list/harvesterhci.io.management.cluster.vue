@@ -3,7 +3,8 @@ import TypeDescription from '@/components/TypeDescription';
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
-import { CAPI, HCI } from '@/config/types';
+import { CAPI, HCI, VIRTUAL_HARVESTER_PROVIDER } from '@/config/types';
+import { HCI as HCI_LABEL } from '@/config/labels-annotations';
 
 export default {
   components: {
@@ -15,11 +16,6 @@ export default {
   props:      {
     schema: {
       type:     Object,
-      required: true,
-    },
-
-    rows: {
-      type:     Array,
       required: true,
     },
   },
@@ -44,6 +40,13 @@ export default {
           resource: this.schema.id,
         },
       };
+    },
+
+    rows() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const clusters = this.$store.getters[`${ inStore }/all`](HCI.CLUSTER);
+
+      return clusters.filter(c => c?.metadata?.labels?.[HCI_LABEL.HARVESTER_CLUSTER] === 'true' || c.provider === VIRTUAL_HARVESTER_PROVIDER);
     },
   }
 };
