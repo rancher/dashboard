@@ -9,6 +9,7 @@ import { removeObject, addObject } from '@/utils/array';
 import { STORAGE_CLASS, PV } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { get } from '@/utils/object';
+
 export default {
 
   components: {
@@ -32,6 +33,12 @@ export default {
       type:    Function,
       default: null,
     },
+
+    savePvcHookName: {
+      type:     String,
+      default:  '',
+      required: true
+    },
   },
   async fetch() {
     const hash = await allHash({
@@ -53,7 +60,11 @@ export default {
     this.$set(this.value.spec, 'accessModes', this.value.spec.accessModes || []);
 
     return {
-      storageClasses: [], persistentVolumes: [], createPV: true, spec
+      storageClasses:    [],
+      persistentVolumes: [],
+      createPV:          true,
+      spec,
+      uniqueId:          new Date().getTime() // Allows form state to be individually deleted
     };
   },
 
@@ -88,12 +99,16 @@ export default {
         this.spec.storageClassName = '';
         this.spec.resources.requests.storage = null;
       }
-    }
+    },
   },
 
   created() {
+    this.value.uniqueId = this.uniqueId;
+    this.$emit('createUniqueId');
     if (this.registerBeforeHook) {
-      this.registerBeforeHook(this.value.save);
+      // Append the uniqueID to the PVC hook name so that
+      // form state for each can be deleted individually
+      this.registerBeforeHook(this.value.save, this.savePvcHookName + this.uniqueId);
     }
   },
 
@@ -123,9 +138,7 @@ export default {
     volumeName(vol) {
       return get(vol, 'metadata.name') || vol;
     }
-
   }
-
 };
 </script>
 

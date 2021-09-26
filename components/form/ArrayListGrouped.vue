@@ -42,7 +42,20 @@ export default {
       </InfoBox>
     </template>
     <template v-slot:remove-button="scope">
-      <button v-if="canRemoveRow(scope.row, scope.i)" type="button" class="btn role-link close btn-sm" @click="scope.remove">
+      <button
+        v-if="canRemoveRow(scope.row, scope.i)"
+        type="button"
+        class="btn role-link close btn-sm"
+        @click="() => {
+          scope.remove()
+          if ( scope.row.value.pvcData ) {
+            // If a PVC hook is removed, include the unique ID
+            // of the PVC so that we can delete only the
+            // save hook for this PVC.
+            $emit('closePvcForm', scope.row.value.pvcData.uniqueId);
+          }
+        }"
+      >
         <i class="icon icon-2x icon-x" />
       </button>
       <span v-else></span>

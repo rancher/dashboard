@@ -48,6 +48,11 @@ export default {
       type:    Function,
       default: null,
     },
+
+    savePvcHookName: {
+      type:     String,
+      required: true
+    },
   },
 
   async fetch() {
@@ -85,6 +90,15 @@ export default {
     'pvc.metadata.name'(neu) {
       this.value.persistentVolumeClaim.claimName = neu;
     }
+  },
+
+  methods: {
+    setUniqueId() {
+      // This makes it so that the unique ID of the PVC
+      // will be available at the scope of the ArrayListGroup
+      // when the delete button is clicked.
+      this.value.pvcData = this.pvc;
+    }
   }
 };
 </script>
@@ -93,7 +107,14 @@ export default {
   <div>
     <div>
       <div v-if="createNew" class="bordered-section">
-        <PersistentVolumeClaim v-if="pvc" v-model="pvc" :register-before-hook="registerBeforeHook" :mode="mode" />
+        <PersistentVolumeClaim
+          v-if="pvc"
+          v-model="pvc"
+          :mode="mode"
+          :register-before-hook="registerBeforeHook"
+          :save-pvc-hook-name="savePvcHookName"
+          @createUniqueId="setUniqueId"
+        />
       </div>
       <div class="row mb-10">
         <div class="col span-6">

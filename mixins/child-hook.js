@@ -12,6 +12,14 @@ export default {
       this._registerHook(BEFORE_SAVE_HOOKS, boundFn, name, priority);
     },
 
+    unregisterBeforeSaveHook(name) {
+      this[BEFORE_SAVE_HOOKS] = this[BEFORE_SAVE_HOOKS].filter((hook) => {
+        // BEFORE_SAVE_HOOKS is an array of objects with keys
+        // fn, name and priority.
+        return hook.name !== name;
+      });
+    },
+
     registerAfterHook(boundFn, name, priority) {
       this._registerHook(AFTER_SAVE_HOOKS, boundFn, name, priority);
     },
