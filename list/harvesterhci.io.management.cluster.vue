@@ -3,8 +3,8 @@ import TypeDescription from '@/components/TypeDescription';
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
-import { CAPI, HCI, VIRTUAL_HARVESTER_PROVIDER } from '@/config/types';
-import { HCI as HCI_LABEL } from '@/config/labels-annotations';
+import { CAPI, HCI, VIRTUAL_HARVESTER_PROVIDER, MANAGEMENT } from '@/config/types';
+import { isHarvesterCluster } from '@/utils/cluster';
 
 export default {
   components: {
@@ -45,8 +45,17 @@ export default {
     rows() {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const clusters = this.$store.getters[`${ inStore }/all`](HCI.CLUSTER);
+      const manageClusters = this.$store.getters[`${ inStore }/all`](MANAGEMENT.CLUSTER);
 
-      return clusters.filter(c => c?.metadata?.labels?.[HCI_LABEL.HARVESTER_CLUSTER] === 'true' || c.provider === VIRTUAL_HARVESTER_PROVIDER);
+      return clusters.filter((c) => {
+        const cluster = manageClusters.find(cluster => cluster?.metadata?.name === c?.status?.clusterName);
+
+        if (cluster?.status?.provider && cluster?.status?.provider !== VIRTUAL_HARVESTER_PROVIDER) {
+          return false;
+        }
+
+        return isHarvesterCluster(cluster);
+      });
     },
 
     typeDisplay() {

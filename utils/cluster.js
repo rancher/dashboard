@@ -10,5 +10,5 @@ export function filterOnlyKubernetesClusters(mgmtClusters) {
 }
 
 export function isHarvesterCluster(mgmtCluster) {
-  return mgmtCluster.metadata?.labels?.[HCI.HARVESTER_CLUSTER] === 'true' || mgmtCluster.provider === VIRTUAL_HARVESTER_PROVIDER;
+  return mgmtCluster?.metadata?.labels?.[HCI.HARVESTER_CLUSTER] === 'true' || mgmtCluster?.status?.provider === VIRTUAL_HARVESTER_PROVIDER;
 }
