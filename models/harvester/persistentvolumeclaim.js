@@ -27,7 +27,8 @@ export default {
         enabled:    true,
         icon:       'icon icon-copy',
         label:      this.t('harvester.action.exportImage'),
-      }
+      },
+      ...this._standardActions
     ];
   },
 
