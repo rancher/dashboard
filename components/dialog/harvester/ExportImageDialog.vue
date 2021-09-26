@@ -25,9 +25,11 @@ export default {
   },
 
   data() {
+    const namespace = this.$store.getters['defaultNamespace'] || '';
+
     return {
       name:      '',
-      namespace: '',
+      namespace,
       errors:       []
     };
   },
@@ -40,7 +42,7 @@ export default {
     },
 
     namespaces() {
-      const choices = this.$store.getters['harvester/all'](NAMESPACE);
+      const choices = this.$store.getters['harvester/all'](NAMESPACE).filter( N => !N.isSystem);
 
       const out = sortBy(
         choices.map((obj) => {
@@ -104,18 +106,17 @@ export default {
     </template>
 
     <template #body>
-      <LabeledInput
-        v-model="name"
-        class="mb-20"
-        :label="t('harvester.modal.exportImage.name')"
-        required
-      />
-
       <LabeledSelect
         v-model="namespace"
         :label="t('harvester.modal.exportImage.namespace')"
         :options="namespaces"
-        class="mt-20"
+        class="mb-20"
+        required
+      />
+
+      <LabeledInput
+        v-model="name"
+        :label="t('harvester.modal.exportImage.name')"
         required
       />
     </template>

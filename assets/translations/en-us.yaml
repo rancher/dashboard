@@ -4816,7 +4816,7 @@ harvester:
         success: 'Template { templateName } created successfully.'
         failed: 'Failed generated template!'
     exportImage:
-      title: Export Image
+      title: Export to Image
       name: Name
       namespace: Namespace
       message:
