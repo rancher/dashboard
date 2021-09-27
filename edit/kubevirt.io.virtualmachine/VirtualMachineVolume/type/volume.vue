@@ -45,6 +45,11 @@ export default {
         return [];
       }
     },
+
+    validateRequired: {
+      type:     Boolean,
+      required: true
+    }
   },
 
   data() {
@@ -134,6 +139,7 @@ export default {
             output-suffic-text="Gi"
             output-as="string"
             :mode="mode"
+            :required="validateRequired"
             :label="t('harvester.fields.size')"
             suffix="GiB"
             :disabled="isDisabled"

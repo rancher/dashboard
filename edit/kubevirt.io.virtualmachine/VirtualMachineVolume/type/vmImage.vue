@@ -61,6 +61,11 @@ export default {
     isEdit: {
       type:    Boolean,
       default: false
+    },
+
+    validateRequired: {
+      type:     Boolean,
+      required: true
     }
   },
 
@@ -174,6 +179,7 @@ export default {
             :label="t('harvester.fields.image')"
             :options="imagesOption"
             :mode="mode"
+            :required="validateRequired"
             @input="onImageChange"
           />
         </InputOrDisplay>
@@ -187,6 +193,7 @@ export default {
             output-as="string"
             :label="t('harvester.fields.size')"
             :mode="mode"
+            :required="validateRequired"
             suffix="GiB"
             :disabled="isDisabled"
           />

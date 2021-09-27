@@ -5034,7 +5034,7 @@ harvester:
         label: Single Instance
         nameLabel: Name
         host: 
-          label: Host Name
+          label: Hostname
           placeholder: default to the virtual machine name.
       multiple:
         label: Multiple Instance
@@ -5119,7 +5119,7 @@ harvester:
       image: Image
       sshKey: SSHKey
       sshKeyValue: SSH-Key
-      MachineType: MachineType
+      MachineType: Machine Type
     machineTypeTip: 'Specify a processor architecture to emulate. To see a list of supported architectures, run: qemu-system-x86_64 -cpu ?'
     detail:
       tabs:

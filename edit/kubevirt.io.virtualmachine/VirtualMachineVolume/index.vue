@@ -49,6 +49,11 @@ export default {
       default: false
     },
 
+    validateRequired: {
+      type:    Boolean,
+      default: false
+    },
+
     customVolumeMode: {
       type:    String,
       default: 'Block'
@@ -261,6 +266,7 @@ export default {
                 :vm="vm"
                 :mode="mode"
                 :idx="i"
+                :validate-required="validateRequired"
                 :need-root-disk="needRootDisk"
                 @update="update"
               />
