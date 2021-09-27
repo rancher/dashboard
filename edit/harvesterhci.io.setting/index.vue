@@ -28,7 +28,7 @@ export default {
 
     if (setting.kind === 'enum' ) {
       enumOptions = setting.options.map(id => ({
-        label: `advancedSettings.enum.${ this.value.id }.${ id }`,
+        label: `advancedSettings.enum.harv-${ this.value.id }.${ id }`,
         value: id,
       }));
     }

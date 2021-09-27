@@ -5754,11 +5754,11 @@ advancedSettings:
       dynamic: Dynamic
       true: Local
       false: Remote
-    'ui-source':
+    'harv-ui-source':
       auto: 'Auto'
       bundled: 'Bundled'
       external: 'External'
-    'log-level':
+    'harv-log-level':
       info: Info
       debug: Debug
       trace: Trace

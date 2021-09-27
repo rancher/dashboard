@@ -88,17 +88,17 @@ export default {
       return this.initSettings.map((setting) => {
         const s = setting;
 
+        const isHarvester = s.data?.type?.includes('harvesterhci');
+
         if (s.kind === 'json') {
           s.json = JSON.stringify(JSON.parse(s.data.value || s.data.default), null, 2);
         } else if (s.kind === 'enum') {
           const v = s.data.value || s.data.default;
 
-          s.enum = `advancedSettings.enum.${ s.id }.${ v }`;
+          s.enum = isHarvester ? `advancedSettings.enum.harv-${ s.id }.${ v }` : `advancedSettings.enum.${ s.id }.${ v }`;
         } else if (s.kind === 'custom') {
           s.custom = s.data.customValue;
         }
-
-        const isHarvester = s.data?.type?.includes('harvesterhci');
 
         return {
           ...s,

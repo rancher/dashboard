@@ -4578,11 +4578,11 @@ advancedSettings:
   editHelp:
     'ui-banners': 这个设置需要一个JSON对象，包含3个根参数；<code>banner</code>, <code>showHeader</code>, <code>showFooter</code>。<code>banner</code>是一个包含；<code>textColor</code>, <code>background</code>, 和<code>text</code>的对象，其中<code>textColor</code>和<code>background</code>是任何有效的CSS颜色值。
   enum:
-    'ui-source':
+    'har-ui-source':
       auto: 'Auto'
       bundled: 'Bundled'
       external: 'External'
-    'log-level':
+    'har-log-level':
       info: Info
       debug: Debug
       trace: Trace
