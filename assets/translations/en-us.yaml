@@ -5019,8 +5019,13 @@ harvester:
       forceFormatted:
         label: Force Formatted
         toolTip: Force formatted will cleanup disk data, make sure you backup all available data to prevent data loss.
+        yes: Yes (Ext4 File System)
       description:
         label: Description
+      lastFormattedAt:
+        info: The disk has already been force-formatted
+      notification:
+        success: 'Update host "{name}" configurations successfully.'
 
   virtualizationManagement:
     manage: Manage

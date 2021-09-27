@@ -249,13 +249,11 @@ export default {
       const mountPoint = disk?.spec?.fileSystem?.mountPoint;
 
       let forceFormatted;
-      const deviceType = disk?.status?.deviceStatus?.details?.deviceType;
+      const systems = ['ext4', 'XFS'];
 
-      if (disk?.status?.deviceStatus?.fileSystem?.type) {
+      if (systems.includes(disk?.status?.deviceStatus?.fileSystem?.type)) {
         forceFormatted = false;
-      } else if (deviceType === 'part') {
-        forceFormatted = false;
-      } else if (deviceType === 'disk') {
+      } else {
         forceFormatted = !disk?.status?.deviceStatus?.partitioned;
       }
 
@@ -316,6 +314,11 @@ export default {
 
           return blockDevice.save();
         }));
+
+        this.$store.dispatch('growl/success', {
+          title:   this.t('harvester.notification.title.succeed'),
+          message: this.t('harvester.host.disk.notification.success', { name: this.value.metadata?.name || '' }),
+        }, { root: true });
       } catch (err) {
         return Promise.reject(exceptionToErrorsArray(err));
       }

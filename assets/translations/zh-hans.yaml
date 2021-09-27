@@ -3973,8 +3973,13 @@ harvester:
       forceFormatted:
         label: 格式化
         toolTip: 格式化将会清除磁盘数据, 请确保对数据进行备份以免丢失.
+        yes: 是 (Ext4文件系统)
       description:
         label: 描述
+      lastFormattedAt:
+        info: 当前磁盘已完成格式化
+      notification:
+        success: '已更新主机"{name}"配置'
 
   virtualizationManagement:
     manage: 管理

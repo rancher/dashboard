@@ -78,7 +78,7 @@ export default {
 
     forceFormattedDisabled() {
       const lastFormattedAt = this.value?.blockDevice?.status?.deviceStatus?.fileSystem?.lastFormattedAt;
-      const fileSystem = this.value?.blockDevice?.status?.deviceStatus?.fileSystem;
+      const fileSystem = this.value?.blockDevice?.status?.deviceStatus?.fileSystem.type;
       const partitioned = this.value?.blockDevice?.status?.deviceStatus?.partitioned;
 
       if (fileSystem) {
@@ -103,6 +103,10 @@ export default {
 
       return false;
     },
+
+    isFormatted() {
+      return !!this.value?.blockDevice?.status?.deviceStatus?.fileSystem?.lastFormattedAt;
+    },
   },
   methods: {
     update() {
@@ -119,6 +123,11 @@ export default {
       v-if="mountedMessage && isProvisioned"
       color="error"
       :label="mountedMessage"
+    />
+    <Banner
+      v-if="isFormatted"
+      color="info"
+      :label="t('harvester.host.disk.lastFormattedAt.info')"
     />
     <div v-if="!value.isNew">
       <div class="row">
@@ -184,7 +193,7 @@ export default {
           :mode="mode"
           name="forceFormatted"
           label-key="harvester.host.disk.forceFormatted.label"
-          :labels="[t('generic.no'),t('generic.yes')]"
+          :labels="[t('generic.no'),t('harvester.host.disk.forceFormatted.yes')]"
           :options="[false, true]"
           :disabled="forceFormattedDisabled"
           tooltip-key="harvester.host.disk.forceFormatted.toolTip"
