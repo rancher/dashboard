@@ -4125,7 +4125,7 @@ tableHeaders:
   fingerprint: Fingerprint
   networkType: Type
   networkVlan: Vlan ID
-  readyToUse: ReadyToUse
+  readyToUse: Ready To Use
   backupTarget: Backup Target
   targetVm: Target VM
   phase: Phase
@@ -4882,7 +4882,7 @@ harvester:
     fingerprint: Fingerprint
     value: Value
     actions: Actions
-    readyToUse: ReadyToUse
+    readyToUse: Ready To Use
     backupTarget: Backup Target
     targetVm: Target VM
     hostIp: Host IP

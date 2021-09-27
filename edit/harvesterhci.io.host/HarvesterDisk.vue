@@ -81,7 +81,9 @@ export default {
       const fileSystem = this.value?.blockDevice?.status?.deviceStatus?.fileSystem.type;
       const partitioned = this.value?.blockDevice?.status?.deviceStatus?.partitioned;
 
-      if (fileSystem) {
+      const systems = ['ext4', 'XFS'];
+
+      if (systems.includes(fileSystem)) {
         return false;
       } else if (lastFormattedAt || partitioned) {
         return true;
