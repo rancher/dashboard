@@ -675,7 +675,7 @@ export const actions = {
       return;
     }
 
-    if ( state.clusterId && state.clusterId === id) {
+    if ( state.clusterId && state.clusterId === id && oldProduct === VIRTUAL) {
       // Do nothing, we're already connected/connecting to this cluster
       return;
     }
