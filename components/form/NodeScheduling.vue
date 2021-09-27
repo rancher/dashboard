@@ -35,13 +35,20 @@ export default {
   },
 
   data() {
-    const { affinity = {}, nodeName = '', nodeSelector = {} } = this.value;
+    const isHarvester = this.$store.getters['currentProduct'].inStore === VIRTUAL;
+
+    let { nodeName = '' } = this.value;
+    const { affinity = {}, nodeSelector = {} } = this.value;
+
     const { nodeAffinity = {} } = affinity;
 
     let selectNode = null;
 
     if (this.value.nodeName) {
       selectNode = 'nodeSelector';
+    } else if (isHarvester && this.value.nodeSelector) {
+      selectNode = 'nodeSelector';
+      nodeName = nodeSelector[HOSTNAME];
     } else if (!isEmpty(nodeAffinity)) {
       selectNode = 'affinity';
     }
