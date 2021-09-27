@@ -2,6 +2,7 @@
 import dayjs from 'dayjs';
 import minMax from 'dayjs/plugin/minMax';
 import utc from 'dayjs/plugin/utc';
+import { mapGetters } from 'vuex';
 import Loading from '@/components/Loading';
 import SortableTable from '@/components/SortableTable';
 import { allHash } from '@/utils/promise';
@@ -16,6 +17,7 @@ import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import metricPoller from '@/mixins/metric-poller';
+import { allDashboardsExist } from '@/utils/grafana';
 import HarvesterUpgrade from './HarvesterUpgrade';
 
 dayjs.extend(utc);
@@ -58,6 +60,8 @@ const RESOURCES = [{
   }
 }];
 
+const CLUSTER_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-cluster-nodes-1/rancher-cluster-nodes?orgId=1';
+const CLUSTER_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-cluster-1/rancher-cluster?orgId=1';
 const VM_DASHBOARD_METRICS_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/harvester-vm-dashboard-1/vm-dashboard?orgId=1';
 
 export default {
@@ -98,6 +102,9 @@ export default {
     for ( const k in res ) {
       this[k] = res[k];
     }
+
+    this.showClusterMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL], 'harvester');
+    this.showVmMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [VM_DASHBOARD_METRICS_URL], 'harvester');
   },
 
   data() {
@@ -133,18 +140,23 @@ export default {
 
     return {
       eventHeaders,
-      constraints:       [],
-      events:            [],
-      nodeMetrics:       [],
-      nodes:             [],
-      metricNodes:       [],
-      vms:               [],
-      currentCluster:    'local',
+      constraints:        [],
+      events:             [],
+      nodeMetrics:        [],
+      nodes:              [],
+      metricNodes:        [],
+      vms:                [],
       VM_DASHBOARD_METRICS_URL,
+      CLUSTER_METRICS_SUMMARY_URL,
+      CLUSTER_METRICS_DETAIL_URL,
+      showClusterMetrics: false,
+      showVmMetrics:      false,
     };
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
+
     accessibleResources() {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
@@ -297,10 +309,8 @@ export default {
       return this.events.filter( E => ['VirtualMachineImage'].includes(E.involvedObject.kind));
     },
 
-    hasMetrics() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
-
-      return !!this.$store.getters[`${ inStore }/byId`]('service', 'cattle-monitoring-system/rancher-monitoring-grafana');
+    hasMetricsTabs() {
+      return this.showClusterMetrics || this.showVmMetrics;
     },
   },
 
@@ -425,18 +435,38 @@ export default {
     </template>
 
     <Tabbed
-      v-if="hasMetrics"
-      class="mt-20"
+      v-if="hasMetricsTabs"
+      class="mt-30"
     >
       <Tab
-        name="metric"
-        label="Metric"
+        v-if="showClusterMetrics"
+        name="cluster-metrics"
+        :label="t('clusterIndexPage.sections.clusterMetrics.label')"
+        :weight="99"
       >
-        <DashboardMetrics
-          :detail-url="VM_DASHBOARD_METRICS_URL"
-          graph-height="825px"
-          :has-summary-and-detail="false"
-        />
+        <template #default="props">
+          <DashboardMetrics
+            v-if="props.active"
+            :detail-url="CLUSTER_METRICS_DETAIL_URL"
+            :summary-url="CLUSTER_METRICS_SUMMARY_URL"
+            graph-height="825px"
+          />
+        </template>
+      </Tab>
+      <Tab
+        v-if="showVmMetrics"
+        name="vm-metric"
+        :label="t('harvester.dashboard.sections.vmMetrics.label')"
+        :weight="98"
+      >
+        <template #default="props">
+          <DashboardMetrics
+            v-if="props.active"
+            :detail-url="VM_DASHBOARD_METRICS_URL"
+            graph-height="825px"
+            :has-summary-and-detail="false"
+          />
+        </template>
       </Tab>
     </Tabbed>
 

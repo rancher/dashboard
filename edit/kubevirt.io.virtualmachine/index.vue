@@ -354,7 +354,7 @@ export default {
       <RadioGroup
         v-if="isCreate"
         v-model="isSingle"
-        class="mb-20"
+        class="mb-20 vm-radio-group"
         name="createInstanceMode"
         :options="[true,false]"
         :labels="[t('harvester.virtualMachine.instance.single.label'), t('harvester.virtualMachine.instance.multiple.label')]"
@@ -534,7 +534,7 @@ export default {
 
 <style lang="scss" scoped>
 #vm {
-  ::v-deep .radio-group {
+  ::v-deep .vm-radio-group .radio-group {
     display: flex;
     .radio-container {
       margin-right: 30px;

@@ -56,9 +56,9 @@ export default {
 
             buttonCb(true);
           } else {
-            const error = res?.data || exceptionToErrorsArray(res) || res;
+            const error = [res?.data] || exceptionToErrorsArray(res);
 
-            this.$set(this, 'errors', [error]);
+            this.$set(this, 'errors', error);
             buttonCb(false);
           }
         } catch (err) {

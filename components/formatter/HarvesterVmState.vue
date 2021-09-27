@@ -52,7 +52,7 @@ export default {
       const out = [];
 
       if (this.row.warningMessage?.pod) {
-        const pod = this.row.warningMessage?.pod;
+        const pod = this.row.warningMessage.pod;
 
         if (pod.metadata?.state?.error && !/pod has unbound immediate PersistentVolumeClaims/.test(pod.metadata?.state?.message)) {
           out.push(pod.metadata?.state?.message);

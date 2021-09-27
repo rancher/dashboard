@@ -95,6 +95,7 @@ const HCI_SETTING = {
   UPGRADE_CHECKER_ENABLED:          'upgrade-checker-enabled',
   UPGRADE_CHECKER_URL:              'upgrade-checker-url',
   VLAN:                             'vlan',
+  UI_SOURCE:                        'ui-source',
   // DEFAULT_STORAGE_CLASS:            'default-storage-class'
 };
 
@@ -112,6 +113,14 @@ export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.VLAN]:                             {
     kind: 'custom', from: 'import', alias: 'vlan'
   },
+};
+
+export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
+  [HCI_SETTING.UI_SOURCE]:                        {
+    kind:    'enum',
+    options: ['auto', 'external', 'bundled']
+  },
+  [HCI_SETTING.UI_INDEX]: { kind: 'url' }
 };
 
 export const fetchOrCreateSetting = async(store, id, val, save = true) => {

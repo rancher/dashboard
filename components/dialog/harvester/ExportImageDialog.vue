@@ -1,27 +1,20 @@
 <script>
 import { mapGetters } from 'vuex';
-
-import { randomStr } from '@/utils/string';
-import { HCI } from '@/config/types';
-import { allHash } from '@/utils/promise';
 import { exceptionToErrorsArray } from '@/utils/error';
 
+import { sortBy } from '@/utils/sort';
 import Card from '@/components/Card';
 import Banner from '@/components/Banner';
 import AsyncButton from '@/components/AsyncButton';
+import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import { NAMESPACE } from '@/config/types';
 
 export default {
-  name: 'RestoreModal',
+  name: 'HarvesterExportImageDialog',
 
   components: {
-    AsyncButton, Banner, Card, LabeledSelect
-  },
-
-  async fetch() {
-    const hash = await allHash({ backups: this.$store.dispatch('harvester/findAll', { type: HCI.BACKUP }) });
-
-    this.backups = hash.backups;
+    AsyncButton, Banner, Card, LabeledInput, LabeledSelect
   },
 
   props:      {
@@ -33,9 +26,9 @@ export default {
 
   data() {
     return {
-      backups:    [],
-      backupName: '',
-      errors:     []
+      name:      '',
+      namespace: '',
+      errors:       []
     };
   },
 
@@ -46,44 +39,42 @@ export default {
       return this.resources[0];
     },
 
-    backupOption() {
-      const attachBackup = this.backups.filter( (B) => {
-        return B.attachVM === this.actionResource?.metadata?.name;
-      });
+    namespaces() {
+      const choices = this.$store.getters['harvester/all'](NAMESPACE);
 
-      return attachBackup.map( (O) => {
-        return {
-          value: O.metadata.name,
-          label: O.metadata.name
-        };
-      });
+      const out = sortBy(
+        choices.map((obj) => {
+          return {
+            label: obj.nameDisplay,
+            value: obj.id,
+          };
+        }),
+        'label'
+      );
+
+      return out;
     },
+
+    disableSave() {
+      return !(this.name && this.namespace);
+    }
   },
 
   methods: {
     close() {
-      this.backupName = '';
-      this.errors = [];
+      this.name = '';
+      this.namespace = '';
       this.$emit('close');
     },
 
-    async saveRestore(buttonCb) {
-      const name = `restore-${ this.backupName }-${ randomStr(5).toLowerCase() }`;
-
-      if (!this.backupName) {
-        this.$set(this, 'errors', [this.t('harvester.modal.restore.message.backup')]);
-        buttonCb(false);
-
-        return;
-      }
-
+    async save(buttonCb) {
       try {
-        const res = await this.actionResource.doAction('restore', { backupName: this.backupName, name }, {}, false);
+        const res = await this.actionResource.doAction('export', { displayName: this.name, namespace: this.namespace });
 
         if (res._status === 200 || res._status === 204) {
           this.$store.dispatch('growl/success', {
             title:   this.t('harvester.notification.title.succeed'),
-            message: this.t('harvester.modal.restore.success', { name: this.backupName })
+            message: this.t('harvester.modal.exportImage.message.success', { name: this.name })
           }, { root: true });
 
           this.close();
@@ -109,15 +100,22 @@ export default {
 <template>
   <Card :show-highlight-border="false">
     <template #title>
-      {{ t('harvester.modal.restore.title') }}
+      {{ t('harvester.modal.exportImage.title') }}
     </template>
 
     <template #body>
+      <LabeledInput
+        v-model="name"
+        class="mb-20"
+        :label="t('harvester.modal.exportImage.name')"
+        required
+      />
+
       <LabeledSelect
-        v-model="backupName"
-        :label="t('harvester.modal.restore.selectBackup')"
-        :localized-label="true"
-        :options="backupOption"
+        v-model="namespace"
+        :label="t('harvester.modal.exportImage.namespace')"
+        :options="namespaces"
+        class="mt-20"
         required
       />
     </template>
@@ -130,8 +128,8 @@ export default {
 
         <AsyncButton
           mode="create"
-          :disabled="!backupName"
-          @click="saveRestore"
+          :disabled="disableSave"
+          @click="save"
         />
       </div>
 

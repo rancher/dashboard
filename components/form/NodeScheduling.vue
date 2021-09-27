@@ -6,6 +6,7 @@ import NodeAffinity from '@/components/form/NodeAffinity';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
 import { _VIEW } from '@/config/query-params';
 import { isEmpty } from '@/utils/object';
+import { HOSTNAME } from '@/config/labels-annotations';
 
 export default {
   components: {
@@ -74,17 +75,13 @@ export default {
         value: null
       },
       {
-        label: this.t('workload.scheduling.affinity.specificNode'),
+        label: this.t(`${ prefix }.scheduling.affinity.specificNode`),
         value: 'nodeSelector'
       },
       {
         label: this.t(`${ prefix }.scheduling.affinity.schedulingRules`),
         value: 'affinity'
       }];
-
-      if (this.isHarvester) {
-        out.splice(1, 1);
-      }
 
       return out;
     },
@@ -96,7 +93,11 @@ export default {
 
       switch (this.selectNode) {
       case 'nodeSelector':
-        Object.assign(this.value, { nodeSelector, nodeName });
+        if (this.isHarvester) {
+          Object.assign(this.value, { nodeSelector: { [HOSTNAME]: nodeName } });
+        } else {
+          Object.assign(this.value, { nodeSelector, nodeName });
+        }
         if (this.value?.affinity?.nodeAffinity) {
           delete this.value.affinity.nodeAffinity;
         }

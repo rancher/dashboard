@@ -1,11 +1,11 @@
 <script>
-import HarvesterVmState from '@/components/formatter/HarvesterVmState';
 import ConsoleBar from '@/components/VMConsoleBar';
 import ResourceTable from '@/components/ResourceTable';
 import LinkDetail from '@/components/formatter/LinkDetail';
+import HarvesterVmState from '@/components/formatter/HarvesterVmState';
 
 import { STATE, AGE, NAME, NAMESPACE } from '@/config/table-headers';
-import { HCI, NODE } from '@/config/types';
+import { HCI, NODE, POD } from '@/config/types';
 
 import { allHash } from '@/utils/promise';
 import Loading from '@/components/Loading';
@@ -30,6 +30,7 @@ export default {
   async fetch() {
     const _hash = {
       vms:               this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
+      pod:               this.$store.dispatch('harvester/findAll', { type: POD }),
       vmis:              this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
       restore:           this.$store.dispatch('harvester/findAll', { type: HCI.RESTORE }),
     };

@@ -33,14 +33,7 @@ export default {
       default: () => {
         return [];
       }
-    },
-
-    bootOrderOption: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
-    },
+    }
   },
 
   data() {
@@ -97,19 +90,6 @@ export default {
       <div class="col span-3">
         <InputOrDisplay :name="t('harvester.virtualMachine.volume.bus')" :value="value.bus" :mode="mode">
           <LabeledSelect v-model="value.bus" :label="t('harvester.virtualMachine.volume.bus')" :options="interfaceOption" :mode="mode" @input="update" />
-        </InputOrDisplay>
-      </div>
-
-      <div class="col span-3">
-        <InputOrDisplay :name="t('harvester.virtualMachine.volume.bootOrder')" :value="value.bootOrder" :mode="mode">
-          <LabeledSelect
-            v-model="value.bootOrder"
-            :label="t('harvester.virtualMachine.volume.bootOrder')"
-            :searchable="false"
-            :mode="mode"
-            :options="bootOrderOption"
-            @input="update"
-          />
         </InputOrDisplay>
       </div>
     </div>

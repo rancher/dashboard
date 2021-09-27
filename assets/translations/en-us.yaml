@@ -4815,6 +4815,12 @@ harvester:
         tip: Please enter a template name!
         success: 'Template { templateName } created successfully.'
         failed: 'Failed generated template!'
+    exportImage:
+      title: Export Image
+      name: Name
+      namespace: Namespace
+      message:
+        success: 'Image { name } created successfully.'
     migration:
       failedMessage: Latest migration failed!
       title: Migration
@@ -4866,6 +4872,7 @@ harvester:
     cordon: Cordon
     uncordon: Uncordon
     addHotplug: Add Volume
+    exportImage: Export Image
   tableHeaders:
     size: Size
     progress: Progress
@@ -4945,6 +4952,8 @@ harvester:
     sections:
       events:
         label: Events
+      vmMetrics:
+        label: VM Metrics
     upgrade:
       upgradeApp: Upgrade Software
       upgrade: Upgrade
@@ -5007,6 +5016,11 @@ harvester:
         label: Scheduling
       evictionRequested:
         label: Eviction Requested
+      forceFormatted:
+        label: Force Formatted
+        toolTip: Force formatted will cleanup disk data, make sure you backup all available data to prevent data loss.
+      description:
+        label: Description
 
   virtualizationManagement:
     manage: Manage
@@ -5096,8 +5110,9 @@ harvester:
         tip: "The network-data configuration allows you to customize the instance’s networking interfaces by assigning subnet configuration, virtual device creation (bonds, bridges, vlans) routes and DNS configuration. <a href='https://cloudinit.readthedocs.io/en/latest/topics/network-config-format-v1.html' target='_blank'>Learn more</a>"
     scheduling:
       affinity:
-        anyNode: 'Run virtual machine on any available node'
-        schedulingRules: 'Run virtual machine on node(s) matching scheduling rules'
+        anyNode: 'Run VM on any available node'
+        schedulingRules: 'Run VM on node(s) matching scheduling rules'
+        specificNode: Run VM on specific node(s) - (Live migration is not supported)
     input:
       name: Name
       memory: Memory
@@ -5125,7 +5140,7 @@ harvester:
         monitor: Monitor Data
         keypairs: SSH Keys
         cloudConfig: Cloud Config
-        metrics: Metrics
+        metrics: VM Metrics
       details:
         title:
           vmDetails: Virtual Machine Details
@@ -5189,6 +5204,7 @@ harvester:
     urlTip: 'supports the <code>raw</code> and <code>qcow2</code> image formats which are supported by <a href="https://www.qemu.org/docs/master/system/images.html#disk-image-file-formats" target="_blank">qemu</a>. Bootable ISO images can also be used and are treated like <code>raw</code> images.'
     fileName: File Name
     uploadFile: Upload File
+    source: Source
     sourceType:
       download: URL
       upload: File
@@ -5269,7 +5285,7 @@ harvester:
 
   manager:
     cluster:
-      label: Clusters
+      label: Harvester Clusters
   
   support:
     title: Harvester Support
@@ -5621,8 +5637,8 @@ typeLabel:
     }
   harvesterhci.io.management.cluster: |-
     {count, plural,
-      one { Cluster }
-      other { Clusters }
+      one { Harvester Cluster }
+      other { Harvester Clusters }
     }
   harvesterhci.io.cloudtemplate: |-
     {count, plural,
@@ -5728,6 +5744,8 @@ advancedSettings:
     'harv-server-version': Harvester server version.
     'harv-upgrade-checker-enabled': Specify whether to enable Harvester upgrade check or not. Default is true.
     'harv-upgrade-checker-url': Default Harvester upgrade check url. Only used when the <code>upgrade-checker-enabled</code>  is equal to true.
+    'harv-ui-source': Config how to load the UI source.
+    'harv-ui-index': 'HTML index location for the UI.'
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:
@@ -5742,11 +5760,11 @@ advancedSettings:
       dynamic: Dynamic
       true: Local
       false: Remote
-    'api-ui-source':
+    'harv-ui-source':
       auto: 'Auto'
       bundled: 'Bundled'
       external: 'External'
-    'log-level':
+    'harv-log-level':
       info: Info
       debug: Debug
       trace: Trace

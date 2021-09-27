@@ -185,6 +185,15 @@ export default {
         <div class="row mb-20 mt-20">
           <div v-if="isCreateEdit" class="col span-12">
             <LabeledInput
+              v-if="isEdit"
+              v-model="value.spec.sourceType"
+              :mode="mode"
+              class="mb-20"
+              :disabled="isEdit"
+              label-key="harvester.image.source"
+            />
+
+            <LabeledInput
               v-if="value.spec.sourceType === 'download'"
               v-model="value.spec.url"
               :mode="mode"
@@ -197,6 +206,7 @@ export default {
 
             <div v-else>
               <button
+                v-if="isCreate"
                 type="button"
                 class="btn role-primary"
                 @click="selectFile"
