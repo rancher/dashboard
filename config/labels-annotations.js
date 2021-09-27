@@ -89,6 +89,7 @@ export const FLEET = {
   CLUSTER_DISPLAY_NAME: 'management.cattle.io/cluster-display-name',
   CLUSTER_NAME:         'management.cattle.io/cluster-name',
   BUNDLE_ID:            'fleet.cattle.io/bundle-id',
+  MANAGED:              'fleet.cattle.io/managed'
 };
 
 export const RBAC = { PRODUCT: 'management.cattle.io/ui-product' };

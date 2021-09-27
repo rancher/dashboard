@@ -607,6 +607,16 @@ export default {
     };
   },
 
+  isSystemResource() {
+    const systemNamespaces = this.$rootGetters['systemNamespaces'];
+
+    if ( systemNamespaces.includes(this.metadata?.namespace) ) {
+      return true;
+    }
+
+    return false;
+  },
+
   isCondition() {
     return (condition, withStatus = 'True') => {
       if ( !this.status || !this.status.conditions ) {
