@@ -77,7 +77,7 @@ export default {
     },
 
     forceFormattedDisabled() {
-      const lastFormattedAt = this.value?.blockDevice?.status?.deviceStatus?.fileSystem?.lastFormattedAt;
+      const lastFormattedAt = this.value?.blockDevice?.status?.deviceStatus?.fileSystem?.LastFormattedAt;
       const fileSystem = this.value?.blockDevice?.status?.deviceStatus?.fileSystem.type;
       const partitioned = this.value?.blockDevice?.status?.deviceStatus?.partitioned;
 
@@ -107,7 +107,7 @@ export default {
     },
 
     isFormatted() {
-      return !!this.value?.blockDevice?.status?.deviceStatus?.fileSystem?.lastFormattedAt;
+      return !!this.value?.blockDevice?.status?.deviceStatus?.fileSystem?.LastFormattedAt;
     },
   },
   methods: {
@@ -188,7 +188,7 @@ export default {
         />
       </div>
     </div>
-    <div v-if="value.isNew" class="row mt-10">
+    <div v-if="value.isNew && !isFormatted" class="row mt-10">
       <div class="col span-6">
         <RadioGroup
           v-model="value.forceFormatted"
