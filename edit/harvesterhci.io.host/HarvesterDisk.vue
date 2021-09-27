@@ -4,6 +4,7 @@ import LabelValue from '@/components/LabelValue';
 import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
 import RadioGroup from '@/components/form/RadioGroup';
+import RadioButton from '@/components/form/RadioButton';
 
 export default {
   components: {
@@ -12,6 +13,7 @@ export default {
     BadgeState,
     Banner,
     RadioGroup,
+    RadioButton,
   },
 
   props:      {
@@ -199,7 +201,17 @@ export default {
           :options="[false, true]"
           :disabled="forceFormattedDisabled"
           tooltip-key="harvester.host.disk.forceFormatted.toolTip"
-        />
+        >
+          <template #1="{option, listeners}">
+            <RadioButton
+              :label="option.label"
+              :val="option.value"
+              :value="value.forceFormatted"
+              :disabled="forceFormattedDisabled && !value.forceFormatted"
+              v-on="listeners"
+            />
+          </template>
+        </RadioGroup>
       </div>
     </div>
   </div>
