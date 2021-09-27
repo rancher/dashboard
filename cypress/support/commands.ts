@@ -1,5 +1,5 @@
-Cypress.Commands.add('login', (username = Cypress.env('username'), password = Cypress.env('password'), cacheSession = true) => {
-  const login = () => {
+Cypress.Commands.add('login', (username = Cypress.env('username'), password = Cypress.env('password')) => {
+  cy.session([username, password], () => {
     cy.intercept('POST', '/v3-public/localProviders/local*').as('loginReq');
     cy.visit('/auth/login');
 
@@ -13,13 +13,7 @@ Cypress.Commands.add('login', (username = Cypress.env('username'), password = Cy
 
     cy.get('button').click();
     cy.wait('@loginReq');
-  };
-
-  if (cacheSession) {
-    cy.session([username, password], login);
-  } else {
-    login();
-  }
+  });
 });
 
 Cypress.Commands.add('byLabel', (label) => {
