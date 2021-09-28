@@ -88,6 +88,12 @@ export default {
       });
     },
 
+    imageName() {
+      const image = this.imagesOption.find(I => I.value === this.value.image);
+
+      return image ? image.label : '-';
+    },
+
     pvcsResource() {
       const allPVCs = this.$store.getters['harvester/all'](PVC) || [];
 
@@ -172,7 +178,7 @@ export default {
 
     <div class="row mb-20">
       <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.image')" :value="value.image" :mode="mode">
+        <InputOrDisplay :name="t('harvester.fields.image')" :value="imageName" :mode="mode">
           <LabeledSelect
             v-model="value.image"
             :disabled="idx === 0 && !isCreate && !value.newCreateId"
