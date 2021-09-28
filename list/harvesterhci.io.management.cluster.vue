@@ -1,4 +1,5 @@
 <script>
+import BrandImage from '@/components/BrandImage';
 import TypeDescription from '@/components/TypeDescription';
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
@@ -8,6 +9,7 @@ import { isHarvesterCluster } from '@/utils/cluster';
 
 export default {
   components: {
+    BrandImage,
     ResourceTable,
     Masthead,
     TypeDescription
@@ -88,6 +90,7 @@ export default {
     </Masthead>
 
     <ResourceTable
+      v-if="rows && rows.length"
       :schema="schema"
       :rows="rows"
       :sub-rows="true"
@@ -124,5 +127,49 @@ export default {
         </n-link>
       </template>
     </ResourceTable>
+    <div v-else>
+      <div class="no-clusters">
+        {{ t('harvester.manager.cluster.none') }}
+      </div>
+      <hr class="info-section" />
+      <div class="logo">
+        <BrandImage file-name="harvester.png" height="64" />
+      </div>
+      <div class="tagline">
+        <div>{{ t('harvester.manager.cluster.description') }}</div>
+      </div>
+      <div class="tagline sub-tagline">
+        <div v-html="t('harvester.manager.cluster.learnMore', {}, true)"></div>
+      </div>
+    </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+  .no-clusters {
+    text-align: center;
+  }
+
+  .info-section {
+    margin-top: 60px;
+  }
+
+  .logo {
+    display: flex;
+    justify-content: center;
+    margin: 60px 0 40px 0;
+  }
+
+  .tagline {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+
+    > div {
+      font-size: 16px;
+      line-height: 22px;
+      max-width: 80%;
+      text-align: center;
+    }
+  }
+</style>
