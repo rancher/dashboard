@@ -212,7 +212,7 @@ export default {
     setRule(key, rule, event) {
       const value = event.label ? event.label : event;
 
-      if (value) {
+      if (value || (key === 'apiGroups' && value === '')) {
         this.$set(rule, key, [value]);
       } else {
         this.$set(rule, key, []);
@@ -249,7 +249,7 @@ export default {
       return (role.rules || []).map((rule, i) => {
         const tableRule = {
           index:           i,
-          apiGroups:       rule.apiGroups || [],
+          apiGroups:       rule.apiGroups || [''],
           resources:       rule.resources || [],
           nonResourceURLs: rule.nonResourceURLs || []
         };
