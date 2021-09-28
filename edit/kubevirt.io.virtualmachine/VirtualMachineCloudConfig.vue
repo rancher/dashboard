@@ -119,6 +119,7 @@ export default {
       }
 
       this.update();
+      this.$refs['yamlUser'].updateValue(neu);
     },
 
     cloudInitNetwork(neu) {
@@ -129,6 +130,7 @@ export default {
       }
 
       this.update();
+      this.$refs['yamlNetwork'].updateValue(neu);
     },
   },
 
@@ -169,11 +171,9 @@ export default {
       <div class="resource-yaml">
         <YamlEditor
           ref="yamlUser"
-          :key="userData"
-          :value="userData"
+          v-model="userData"
           class="yaml-editor"
           :editor-mode="editorMode"
-          @onInput="valuesChanged($event, 'userData')"
         />
       </div>
     </div>
@@ -195,7 +195,6 @@ export default {
       <div class="resource-yaml">
         <YamlEditor
           ref="yamlNetwork"
-          :key="networkData"
           :value="networkData"
           class="yaml-editor"
           :editor-mode="editorMode"

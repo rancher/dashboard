@@ -142,6 +142,14 @@ export default {
       if (neu) {
         this.$refs.yamluploader.click();
       }
+    },
+
+    value(neu) {
+      if ( this.asObject ) {
+        this.curValue = saferDump(neu);
+      } else {
+        this.curValue = neu;
+      }
     }
   },
 
