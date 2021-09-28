@@ -4,13 +4,17 @@ import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
-import { HCI } from '@/config/types';
+import { HCI, SCHEMA, CAPI } from '@/config/types';
 import ClusterMembershipEditor from '@/components/form/Members/ClusterMembershipEditor';
 import Banner from '@/components/Banner';
 import Labels from '@/edit/provisioning.cattle.io.cluster/Labels';
 import AgentEnv from '@/edit/provisioning.cattle.io.cluster/AgentEnv';
-import { set, get } from '@/utils/object';
+import { set, get, clone } from '@/utils/object';
 import { HCI as HCI_LABEL } from '@/config/labels-annotations';
+
+import { createYaml } from '@/utils/create-yaml';
+
+const REAL_TYPE = CAPI.RANCHER_CLUSTER;
 
 export default {
   components: {
@@ -42,6 +46,24 @@ export default {
     return { membershipUpdate: {} };
   },
 
+  computed: {
+    generateYaml() {
+      return () => {
+        const resource = this.value;
+
+        const inStore = this.$store.getters['currentStore'](resource);
+        const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
+        const clonedResource = clone(resource);
+
+        delete clonedResource.isSpoofed;
+
+        const out = createYaml(schemas, REAL_TYPE, clonedResource);
+
+        return out;
+      };
+    },
+  },
+
   methods: {
     done() {
       return this.$router.replace({
@@ -59,7 +81,7 @@ export default {
         [HCI_LABEL.HARVESTER_CLUSTER]: 'true',
       });
 
-      set(this.value, 'type', 'provisioning.cattle.io.cluster');
+      set(this.value, 'type', REAL_TYPE);
 
       await this.save(...arguments);
 
@@ -71,7 +93,7 @@ export default {
     },
     onMembershipUpdate(update) {
       this.$set(this, 'membershipUpdate', update);
-    }
+    },
   },
 };
 </script>
@@ -83,6 +105,7 @@ export default {
     :errors="errors"
     :validation-passed="true"
     :done-route="doneRoute"
+    :generate-yaml="generateYaml"
     @finish="saveOverride"
     @error="e=>errors = e"
   >

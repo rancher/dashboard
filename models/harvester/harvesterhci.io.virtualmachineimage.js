@@ -6,7 +6,7 @@ import {
 import { get, clone } from '@/utils/object';
 import { formatSi } from '@/utils/units';
 import { ucFirst } from '@/utils/string';
-import { stateDisplay } from '@/plugins/steve/resource-instance';
+import { stateDisplay, colorForState } from '@/plugins/steve/resource-instance';
 
 export const VM_IMAGE_FILE_FORMAT = ['qcow', 'qcow2', 'raw', 'img', 'iso'];
 
@@ -62,8 +62,10 @@ export default {
     if (imported?.status === 'Unknown') {
       if (this.spec.sourceType === 'download') {
         return 'Downloading';
-      } else {
+      } else if (this.spec.sourceType === 'upload') {
         return 'Uploading';
+      } else {
+        return 'Exporting';
       }
     }
 
@@ -72,6 +74,10 @@ export default {
     }
 
     return stateDisplay(this.metadata.state.name);
+  },
+
+  stateBackground() {
+    return colorForState(this.stateDisplay).replace('text-', 'bg-');
   },
 
   imageSource() {

@@ -4125,7 +4125,7 @@ tableHeaders:
   fingerprint: Fingerprint
   networkType: Type
   networkVlan: Vlan ID
-  readyToUse: ReadyToUse
+  readyToUse: Ready To Use
   backupTarget: Backup Target
   targetVm: Target VM
   phase: Phase
@@ -4816,7 +4816,7 @@ harvester:
         success: 'Template { templateName } created successfully.'
         failed: 'Failed generated template!'
     exportImage:
-      title: Export Image
+      title: Export to Image
       name: Name
       namespace: Namespace
       message:
@@ -4882,7 +4882,7 @@ harvester:
     fingerprint: Fingerprint
     value: Value
     actions: Actions
-    readyToUse: ReadyToUse
+    readyToUse: Ready To Use
     backupTarget: Backup Target
     targetVm: Target VM
     hostIp: Host IP
@@ -5019,8 +5019,13 @@ harvester:
       forceFormatted:
         label: Force Formatted
         toolTip: Force formatted will cleanup disk data, make sure you backup all available data to prevent data loss.
+        yes: Yes (Ext4 File System)
       description:
         label: Description
+      lastFormattedAt:
+        info: The disk has already been force-formatted
+      notification:
+        success: 'Update host "{name}" configurations successfully.'
 
   virtualizationManagement:
     manage: Manage
@@ -5034,7 +5039,7 @@ harvester:
         label: Single Instance
         nameLabel: Name
         host: 
-          label: Host Name
+          label: Hostname
           placeholder: default to the virtual machine name.
       multiple:
         label: Multiple Instance
@@ -5119,7 +5124,7 @@ harvester:
       image: Image
       sshKey: SSHKey
       sshKeyValue: SSH-Key
-      MachineType: MachineType
+      MachineType: Machine Type
     machineTypeTip: 'Specify a processor architecture to emulate. To see a list of supported architectures, run: qemu-system-x86_64 -cpu ?'
     detail:
       tabs:

@@ -51,6 +51,7 @@ export const state = () => {
     cameFromError:       false,
     pageActions:         [],
     serverVersion:       null,
+    systemNamespaces:    []
   };
 };
 
@@ -81,6 +82,10 @@ export const getters = {
 
   pageActions(state) {
     return state.pageActions;
+  },
+
+  systemNamespaces(state) {
+    return state.systemNamespaces;
   },
 
   currentCluster(state, getters) {
@@ -451,6 +456,10 @@ export const mutations = {
 
   setServerVersion(state, version) {
     state.serverVersion = version;
+  },
+
+  setSystemNamespaces(state, namespaces) {
+    state.systemNamespaces = namespaces;
   }
 };
 
@@ -523,6 +532,7 @@ export const actions = {
 
     const pl = res.settings?.find(x => x.name === 'ui-pl')?.value;
     const brand = res.settings?.find(x => x.name === SETTING.BRAND)?.value;
+    const systemNamespaces = res.settings?.find(x => x.name === SETTING.SYSTEM_NAMESPACES);
 
     if ( pl ) {
       setVendor(pl);
@@ -530,6 +540,12 @@ export const actions = {
 
     if (brand) {
       setBrand(brand);
+    }
+
+    if (systemNamespaces) {
+      const namespace = (systemNamespaces.value || systemNamespaces.default)?.split(',');
+
+      commit('setSystemNamespaces', namespace);
     }
 
     commit('managementChanged', {

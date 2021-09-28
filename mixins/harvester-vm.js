@@ -347,9 +347,11 @@ export default {
       this.spec.template.spec.domain.resources.limits.memory = this.spec.template.spec.domain.resources.requests.memory;
       this.spec.template.spec.domain.resources.limits.cpu = this.spec.template.spec.domain.cpu.cores;
 
-      const [memoryValue, memoryUnit] = this.memory?.split(/(?=([a-zA-Z]+))/g);
+      if ( this.memory) {
+        const [memoryValue, memoryUnit] = this.memory?.split(/(?=([a-zA-Z]+))/g);
 
-      this.spec.template.spec.domain.memory.guest = `${ memoryValue - QEMU_RESERVE }${ memoryUnit }`;
+        this.spec.template.spec.domain.memory.guest = `${ memoryValue - QEMU_RESERVE }${ memoryUnit }`;
+      }
     },
 
     parseDiskRows(disk) {

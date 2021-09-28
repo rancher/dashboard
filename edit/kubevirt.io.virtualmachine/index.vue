@@ -438,6 +438,7 @@ export default {
             :custom-volume-mode="customVolumeMode"
             :namespace="value.metadata.namespace"
             :vm="value"
+            :validate-required="true"
           />
         </Tab>
 
@@ -464,7 +465,6 @@ export default {
                 v-model="hostname"
                 :label-key="hostnameLabel"
                 :placeholder="hostPlaceholder"
-                required
                 :mode="mode"
               />
             </div>

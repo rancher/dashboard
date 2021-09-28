@@ -1,10 +1,12 @@
 <script>
+import { mapGetters } from 'vuex';
 import { get } from '@/utils/object';
 import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
 import ButtonGroup from '@/components/ButtonGroup';
 import SortableTable from '@/components/SortableTable';
 import { NAMESPACE } from '@/config/table-headers';
 import { findBy } from '@/utils/array';
+import { NAME as HARVESTER } from '@/config/product/harvester';
 
 export default {
   components: { ButtonGroup, SortableTable },
@@ -64,6 +66,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['isVirtualCluster']),
     isNamespaced() {
       if ( this.namespaced !== null ) {
         return this.namespaced;
@@ -115,9 +118,10 @@ export default {
 
     filteredRows() {
       const isAll = this.$store.getters['isAllNamespaces'];
+      const isVirutalProduct = this.$store.getters['currentProduct'].name === HARVESTER;
 
       // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
-      if ( !this.isNamespaced || isAll ) {
+      if ( (!this.isNamespaced || isAll) && !isVirutalProduct) {
         return this.rows || [];
       }
 
@@ -129,7 +133,11 @@ export default {
       }
 
       return this.rows.filter((row) => {
-        return !!includedNamespaces[row.metadata.namespace];
+        if (this.isVirtualCluster && this.isNamespaced) {
+          return !!includedNamespaces[row.metadata.namespace] && !row.isSystemResource;
+        } else {
+          return !!includedNamespaces[row.metadata.namespace];
+        }
       });
     },
 
