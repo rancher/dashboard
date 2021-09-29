@@ -174,6 +174,7 @@ export default {
           v-model="userData"
           class="yaml-editor"
           :editor-mode="editorMode"
+          @onInput="valuesChanged($event, 'userData')"
         />
       </div>
     </div>
