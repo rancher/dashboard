@@ -2,6 +2,7 @@ import { insertAt } from '@/utils/array';
 import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
 import { NODE, WORKLOAD_TYPES } from '@/config/types';
 import SteveModel from '@/plugins/steve/steve-class';
+import { shortenedImage } from '@/utils/string';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -104,9 +105,7 @@ export default class Pod extends SteveModel {
   }
 
   get imageNames() {
-    return this.spec.containers.map(container => container.image).map((image) => {
-      return image.replace(/^(index\.)?docker.io\/(library\/)?/, '').replace(/:latest$/, '');
-    });
+    return this.spec.containers.map(container => shortenedImage(container.image));
   }
 
   get workloadRef() {
