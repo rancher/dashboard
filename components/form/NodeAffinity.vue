@@ -79,7 +79,6 @@ export default {
 
   methods: {
     update() {
-      console.log('update()...');
       this.$nextTick(() => {
         const out = {};
         const requiredDuringSchedulingIgnoredDuringExecution = { nodeSelectorTerms: [] };
