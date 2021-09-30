@@ -82,7 +82,9 @@ locale:
 nav:
   backToRancher: Cluster Manager
   clusterTools: Cluster Tools
-  kubeconfig: Download KubeConfig
+  kubeconfigDownload: Download KubeConfig
+  kubeconfigCopy: Copy KubeConfig to Clipboard
+  kubeconfigOptions: KubeConfig Options
   import: Import YAML
   home: Home
   shell: Kubectl Shell

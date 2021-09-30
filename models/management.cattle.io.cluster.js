@@ -316,16 +316,13 @@ export default class MgmtCluster extends HybridModel {
     const out = jsyaml.dump(obj);
 
     downloadFile('kubeconfig.yaml', out, 'application/yaml');
-    };
-  },
+  }
 
-  copyKubeConfig() {
-    return async() => {
-      const config = await this.generateKubeConfig();
+  async copyKubeConfig() {
+    const config = await this.generateKubeConfig();
 
-      Vue.prototype.$copyText(config);
-    };
-  },
+    Vue.prototype.$copyText(config);
+  }
 
   async fetchNodeMetrics() {
     const nodes = await this.$dispatch('cluster/findAll', { type: NODE }, { root: true });

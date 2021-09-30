@@ -68,14 +68,11 @@ export default class Namespace extends SteveModel {
 
   move(resources = this) {
     this.$dispatch('promptMove', resources);
-    };
-  },
+  }
 
-  copy() {
-    return (resource = this) => {
-      Vue.prototype.$copyText(JSON.stringify(resource));
-    };
-  },
+  copy(resource = this) {
+    Vue.prototype.$copyText(JSON.stringify(resource));
+  }
 
   get isSystem() {
     if ( this.metadata?.annotations?.[SYSTEM_NAMESPACE] === 'true' ) {

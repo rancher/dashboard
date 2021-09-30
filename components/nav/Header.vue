@@ -24,7 +24,7 @@ export default {
     TopLevelMenu,
     Jump,
     BrandImage,
-    RancherProviderIcon,
+    RancherProviderIcon
   },
 
   props: {
@@ -156,6 +156,16 @@ export default {
       this.$modal.hide('searchModal');
     },
 
+    showKubeConfigActions(show) {
+      if (this.$refs.kubeConfigActions) {
+        if (show) {
+          this.$refs.kubeConfigActions.show();
+        } else {
+          this.$refs.kubeConfigActions.hide();
+        }
+      }
+    },
+
     showPageActionsMenu(show) {
       if (this.$refs.pageActions) {
         if (show) {
@@ -271,22 +281,49 @@ export default {
           v-if="showKubeConfig"
           v-tooltip="t('nav.kubeconfig')"
           :disabled="!kubeConfigEnabled"
-          type="button"
           class="btn header-btn role-tertiary"
-          @click="currentCluster.downloadKubeConfig()"
+          type="button"
+          @blur="showKubeConfigActions(false)"
+          @click="showKubeConfigActions(true)"
+          @focus.capture="showKubeConfigActions(true)"
         >
-          <i class="icon icon-file icon-lg" />
+          <i class="icon icon-chevron-down icon-lg" />
         </button>
+        <v-popover
+          ref="kubeConfigActions"
+          placement="bottom-end"
+          offset="0"
+          trigger="manual"
+          :delay="{show: 0, hide: 0}"
+          :popper-options="{modifiers: { flip: { enabled: false } } }"
+          :container="false"
+        >
+          <template slot="popover" class="user-menu">
+            <ul class="list-unstyled dropdown config-actions" @click.stop="showKubeConfigActions(false)">
+              <li
+                class="user-menu-item"
+              >
+                <a @click="currentCluster.downloadKubeConfig()">
+                  <i class="icon icon-file" />
+                  {{ t('nav.kubeconfigDownload') }}
+                </a>
+              </li>
 
-        <button
-          v-tooltip="t('nav.kubeconfig')"
-          :disabled="!kubeConfigEnabled"
-          type="button"
-          class="btn header-btn role-tertiary"
-          @click="currentCluster.copyKubeConfig()"
-        >
-          <i class="icon icon-copy icon-lg" />
-        </button>
+              <div class="menu-seperator">
+                <div class="menu-seperator-line" />
+              </div>
+
+              <li
+                class="user-menu-item"
+              >
+                <a @click="currentCluster.copyKubeConfig()">
+                  <i class="icon icon-copy" />
+                  {{ t('nav.kubeconfigCopy') }}
+                </a>
+              </li>
+            </ul>
+          </template>
+        </v-popover>
       </template>
 
       <button
@@ -670,6 +707,23 @@ export default {
         padding: 10px 20px;
         border-bottom: solid 1px var(--border);
         min-width: 200px;
+      }
+    }
+  }
+
+  .config-actions {
+    li {
+      a {
+        justify-content: start;
+        align-items: center;
+
+        & .icon {
+          margin: 0 4px;
+        }
+
+        &:hover {
+          cursor: pointer;
+        }
       }
     }
   }
