@@ -16,7 +16,9 @@ export default {
       return [];
     }
 
-    const all = this.$rootGetters['cluster/all'](NAMESPACE);
+    const inStore = this.$rootGetters['currentProduct'].inStore;
+
+    const all = this.$rootGetters[`${ inStore }/all`](NAMESPACE);
 
     return all.filter((ns) => {
       return ns.projectId === this.metadata.name;

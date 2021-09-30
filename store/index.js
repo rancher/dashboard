@@ -706,6 +706,14 @@ export const actions = {
 
       await dispatch('harvester/unsubscribe');
       commit('harvester/reset');
+
+      await dispatch('management/watch', {
+        type:      MANAGEMENT.PROJECT,
+        namespace: state.clusterId,
+        stop:      true
+      });
+
+      commit('management/forgetType', MANAGEMENT.PROJECT);
     }
 
     if (id) {
@@ -742,7 +750,21 @@ export const actions = {
 
     dispatch('harvester/subscribe');
 
+    let isRancher = false;
+    const projectArgs = {
+      type: MANAGEMENT.PROJECT,
+      opt:  {
+        url:            `${ MANAGEMENT.PROJECT }/${ escape(id) }`,
+        watchNamespace: id
+      }
+    };
+
+    if (getters['management/schemaFor'](MANAGEMENT.PROJECT)) {
+      isRancher = true;
+    }
+
     await allHash({
+      projects:          isRancher && dispatch('management/findAll', projectArgs),
       virtualCount:      dispatch('harvester/findAll', { type: COUNT }),
       virtualNamespaces: dispatch('harvester/findAll', { type: NAMESPACE }),
       settings:          dispatch('harvester/findAll', { type: HCI.SETTING }),

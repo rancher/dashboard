@@ -67,10 +67,11 @@ export default {
           formatter: 'BackupTargetValidation'
         },
         {
-          name:     'readyToUse',
+          name:      'readyToUse',
           labelKey:  'tableHeaders.readyToUse',
-          value:    'status.readyToUse',
-          align:    'left',
+          value:     'status.readyToUse',
+          align:     'left',
+          formatter: 'Checked',
         },
         AGE
       ];

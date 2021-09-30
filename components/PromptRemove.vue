@@ -266,7 +266,8 @@ export default {
 
     // If spoofed we need to reload the values as the server can't have watchers for them.
     refreshSpoofedTypes(types) {
-      const promises = types.map(type => this.$store.dispatch('cluster/findAll', { type, opt: { force: true } }, { root: true }));
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const promises = types.map(type => this.$store.dispatch(`${ inStore }/findAll`, { type, opt: { force: true } }, { root: true }));
 
       return Promise.all(promises);
     }

@@ -105,10 +105,12 @@ export default {
   watch: {
     userScript(neu) {
       this.userData = neu;
+      this.$refs['yamlUser'].updateValue(neu);
     },
 
     networkScript(neu) {
       this.networkData = neu;
+      this.$refs['yamlNetwork'].updateValue(neu);
     },
 
     cloudInitUser(neu) {
@@ -119,6 +121,7 @@ export default {
       }
 
       this.update();
+      this.$refs['yamlUser'].updateValue(neu);
     },
 
     cloudInitNetwork(neu) {
@@ -129,6 +132,7 @@ export default {
       }
 
       this.update();
+      this.$refs['yamlNetwork'].updateValue(neu);
     },
   },
 
@@ -149,7 +153,7 @@ export default {
 </script>
 
 <template>
-  <div @input="update">
+  <div>
     <h2>{{ t('harvester.virtualMachine.cloudConfig.title') }}</h2>
 
     <div class="mb-20">
@@ -169,11 +173,9 @@ export default {
       <div class="resource-yaml">
         <YamlEditor
           ref="yamlUser"
-          :key="userData"
-          :value="userData"
+          v-model="userData"
           class="yaml-editor"
           :editor-mode="editorMode"
-          @onInput="valuesChanged($event, 'userData')"
         />
       </div>
     </div>
@@ -195,11 +197,9 @@ export default {
       <div class="resource-yaml">
         <YamlEditor
           ref="yamlNetwork"
-          :key="networkData"
-          :value="networkData"
+          v-model="networkData"
           class="yaml-editor"
           :editor-mode="editorMode"
-          @onInput="valuesChanged($event, 'networkData')"
         />
       </div>
     </div>

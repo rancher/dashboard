@@ -87,7 +87,7 @@ export default {
 
       if (systems.includes(fileSystem)) {
         return false;
-      } else if (lastFormattedAt || partitioned) {
+      } else if (lastFormattedAt) {
         return true;
       } else if (!fileSystem && !partitioned) {
         return true;

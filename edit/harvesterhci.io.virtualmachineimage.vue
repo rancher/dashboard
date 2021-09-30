@@ -100,6 +100,8 @@ export default {
     async saveImage(buttonCb) {
       this.value.metadata.generateName = 'image-';
 
+      this.value.spec.displayName = (this.value.spec.displayName || '').trim();
+
       if (this.value.spec.sourceType === UPLOAD && this.isCreate) {
         try {
           this.value.spec.url = '';

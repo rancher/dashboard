@@ -244,7 +244,7 @@ export default {
               <i class="icon icon-2x icon-x" />
             </button>
             <h3>
-              <n-link v-if="volume.to" :to="volume.to">
+              <n-link v-if="volume.to && !isView" :to="volume.to">
                 {{ t('harvester.virtualMachine.volume.edit') }} {{ headerFor(volume.source) }}
               </n-link>
 

@@ -135,6 +135,8 @@ export default {
       return this.rows.filter((row) => {
         if (this.isVirtualCluster && this.isNamespaced) {
           return !!includedNamespaces[row.metadata.namespace] && !row.isSystemResource;
+        } else if (!this.isNamespaced) {
+          return true;
         } else {
           return !!includedNamespaces[row.metadata.namespace];
         }
