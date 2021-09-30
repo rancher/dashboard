@@ -73,8 +73,13 @@ export default {
     }
   },
 
+  mounted() {
+    this.update();
+  },
+
   methods: {
     update() {
+      console.log('update()...');
       this.$nextTick(() => {
         const out = {};
         const requiredDuringSchedulingIgnoredDuringExecution = { nodeSelectorTerms: [] };
