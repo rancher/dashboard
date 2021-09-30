@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import { load } from 'js-yaml';
-import { colorForState } from '@/plugins/steve/resource-instance';
+import ResourceInstance, { colorForState } from '@/plugins/steve/resource-instance';
 import { POD, NODE, HCI } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
@@ -724,5 +724,13 @@ export default {
     const memory = this?.spec?.template?.spec?.domain?.resources?.requests?.memory || 0;
 
     return parseInt(memory);
-  }
+  },
+
+  stateDescription() {
+    if (this.isOff) {
+      return '';
+    }
+
+    return ResourceInstance.stateDescription.call(this);
+  },
 };
