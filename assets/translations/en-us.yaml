@@ -2743,6 +2743,7 @@ namespace:
   enableAutoInjection: Enable Istio Auto Injection
   disableAutoInjection: Disable Istio Auto Injection
   move: Move
+  copy: Copy Config to Clipboard
   resourceStates:
       success: 'Active'
       info: 'Transitioning'

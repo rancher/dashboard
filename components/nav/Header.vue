@@ -277,6 +277,16 @@ export default {
         >
           <i class="icon icon-file icon-lg" />
         </button>
+
+        <button
+          v-tooltip="t('nav.kubeconfig')"
+          :disabled="!kubeConfigEnabled"
+          type="button"
+          class="btn header-btn role-tertiary"
+          @click="currentCluster.copyKubeConfig()"
+        >
+          <i class="icon icon-copy icon-lg" />
+        </button>
       </template>
 
       <button

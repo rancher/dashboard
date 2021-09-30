@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import SYSTEM_NAMESPACES from '@/config/system-namespaces';
 import { PROJECT, SYSTEM_NAMESPACE, ISTIO as ISTIO_LABELS, FLEET } from '@/config/labels-annotations';
 import { ISTIO, MANAGEMENT } from '@/config/types';
@@ -53,12 +54,28 @@ export default class Namespace extends SteveModel {
       });
     }
 
+    insertAt(out, 5, {
+      action:     'copy',
+      label:      this.t('namespace.copy'),
+      bulkable:   false,
+      enabled:    true,
+      icon:       'icon icon-copy',
+      weight:     3,
+    });
+
     return out;
   }
 
   move(resources = this) {
     this.$dispatch('promptMove', resources);
-  }
+    };
+  },
+
+  copy() {
+    return (resource = this) => {
+      Vue.prototype.$copyText(JSON.stringify(resource));
+    };
+  },
 
   get isSystem() {
     if ( this.metadata?.annotations?.[SYSTEM_NAMESPACE] === 'true' ) {
