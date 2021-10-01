@@ -253,7 +253,7 @@ export default {
 <template>
   <main class="login">
     <div class="row gutless mb-20">
-      <div class="col span-6 p-20">
+      <div class="col sm-span-12 span-6 p-20">
         <p class="text-center">
           {{ t('login.howdy') }}
         </p>
@@ -360,7 +360,7 @@ export default {
         </template>
       </div>
 
-      <BrandImage class="col span-6 landscape" file-name="login-landscape.svg" />
+      <BrandImage class="col span-6 sm-span-0 landscape brand-image" file-name="login-landscape.svg" />
     </div>
   </main>
 </template>

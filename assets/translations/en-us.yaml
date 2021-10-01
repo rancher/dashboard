@@ -80,6 +80,7 @@ locale:
   none: (None)
 
 nav:
+  menu: Menu
   backToRancher: Cluster Manager
   clusterTools: Cluster Tools
   kubeconfig: Download KubeConfig

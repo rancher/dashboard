@@ -532,7 +532,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div class="table-wrapper">
     <div :class="{'titled': $slots.title && $slots.title.length}" class="sortable-table-header">
       <slot name="title" />
       <div v-if="showHeaderRow" class="fixed-header-actions">
@@ -774,6 +774,10 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .table-wrapper {
+    overflow-x: scroll;
+  }
+
   // Remove colors from multi-action buttons in the table
   td {
     .actions.role-multi-action {

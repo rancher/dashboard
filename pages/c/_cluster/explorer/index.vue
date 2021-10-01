@@ -455,6 +455,7 @@ export default {
   border-bottom: 1px solid var(--border);
   padding: 20px 0px;
   display: flex;
+  flex-wrap: wrap;
 
   &>*:not(:last-child) {
     margin-right: 40px;
