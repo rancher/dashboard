@@ -30,6 +30,16 @@ export default {
     },
   },
 
+  watch: {
+    rows() {
+      for (let i = 0 ; i < this.rows.length ; i++) {
+        if (this.rows[i].metadata.generation > this.rows[i].status.observedGeneration) {
+          this.rows[i].metadata.state.transitioning = false;
+        }
+      }
+    }
+  },
+
   computed: {
     ...mapGetters(['currentCluster']),
     hideDescriptions: mapPref(HIDE_DESC),
@@ -38,7 +48,7 @@ export default {
       // Show a different message to cover support for RKE templates in the local cluster
       // (no current cluster means catalog requests default to local)
       return !this.currentCluster || this.currentCluster.isLocal ? 'typeDescription."catalog.cattle.io.clusterrepo.local"' : 'typeDescription."catalog.cattle.io.clusterrepo"';
-    }
+    },
   }
 };
 </script>
