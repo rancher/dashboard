@@ -30,7 +30,7 @@ export default {
 
     const upgrade = {
       action:     'goToUpgrade',
-      enabled:    true,
+      enabled:    !this.currentVersionHasNoChart,
       icon:       'icon icon-fw icon-edit',
       label:      this.t('catalog.install.action.goToUpgrade'),
     };
