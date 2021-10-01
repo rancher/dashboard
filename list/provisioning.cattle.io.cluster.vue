@@ -1,4 +1,5 @@
 <script>
+import Banner from '@/components/Banner';
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { allHash } from '@/utils/promise';
@@ -6,9 +7,12 @@ import { CAPI, MANAGEMENT } from '@/config/types';
 import { MODE, _IMPORT } from '@/config/query-params';
 import { filterOnlyKubernetesClusters } from '@/utils/cluster';
 import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@/store/features';
+import { NAME as EXPLORER } from '@/config/product/explorer';
 
 export default {
-  components: { ResourceTable, Masthead },
+  components: {
+    Banner, ResourceTable, Masthead
+  },
 
   async fetch() {
     const hash = {
@@ -58,6 +62,18 @@ export default {
       return this.rancherClusters;
     },
 
+    hiddenHarvesterCount() {
+      const product = this.$store.getters['currentProduct'];
+      const isExplorer = product?.name === EXPLORER;
+
+      // Don't show Harveser banner message on the cluster management page or if Harvester if not enabled
+      if (!isExplorer || !this.harvesterEnabled) {
+        return 0;
+      }
+
+      return this.rancherClusters.length - filterOnlyKubernetesClusters(this.rancherClusters).length;
+    },
+
     createLocation() {
       return {
         name:   'c-cluster-product-resource-create',
@@ -96,6 +112,8 @@ export default {
 
 <template>
   <div>
+    <Banner v-if="hiddenHarvesterCount" color="info" :label="t('cluster.harvester.clusterWarning', {count: hiddenHarvesterCount} )" />
+
     <Masthead
       :schema="schema"
       :resource="resource"

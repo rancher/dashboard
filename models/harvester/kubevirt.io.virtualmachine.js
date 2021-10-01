@@ -1,10 +1,11 @@
 import Vue from 'vue';
 import { load } from 'js-yaml';
-import { colorForState } from '@/plugins/steve/resource-instance';
+import ResourceInstance, { colorForState } from '@/plugins/steve/resource-instance';
 import { POD, NODE, HCI } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
+import { _CLONE } from '@/config/query-params';
 
 const VMI_WAITING_MESSAGE = 'The virtual machine is waiting for resources to become available.';
 const VM_ERROR = 'VM error';
@@ -155,7 +156,7 @@ export default {
   },
 
   applyDefaults() {
-    return () => {
+    return (resources = this, realMode) => {
       const spec = {
         running:              true,
         template:             {
@@ -203,8 +204,10 @@ export default {
         }
       };
 
-      Vue.set(this.metadata, 'annotations', { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: '[]' });
-      Vue.set(this, 'spec', spec);
+      if (realMode !== _CLONE) {
+        Vue.set(this.metadata, 'annotations', { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: '[]' });
+        Vue.set(this, 'spec', spec);
+      }
     };
   },
 
@@ -548,7 +551,7 @@ export default {
     }
 
     const vmiConditions = get(this.vmi, 'status.conditions');
-    const vmiFailureCond = (findBy(vmiConditions, 'type', 'Failure') || {});
+    const vmiFailureCond = findBy(vmiConditions, 'type', 'Failure');
 
     if (vmiFailureCond) {
       return { status: 'VMI error', detailedMessage: vmiFailureCond.message };
@@ -721,5 +724,13 @@ export default {
     const memory = this?.spec?.template?.spec?.domain?.resources?.requests?.memory || 0;
 
     return parseInt(memory);
-  }
+  },
+
+  stateDescription() {
+    if (this.isOff) {
+      return '';
+    }
+
+    return ResourceInstance.stateDescription.call(this);
+  },
 };

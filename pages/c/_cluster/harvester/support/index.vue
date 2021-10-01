@@ -3,6 +3,7 @@ import BannerGraphic from '@/components/BannerGraphic';
 import IndentedPanel from '@/components/IndentedPanel';
 import SupportBundle from '@/components/dialog/SupportBundle';
 import CommunityLinks from '@/components/CommunityLinks';
+import { SCHEMA, HCI } from '@/config/types';
 
 export default {
   layout: 'home',
@@ -17,8 +18,8 @@ export default {
   data() {
     return {
       options: {
-        'footer.docs':   'https://docs.harvesterhci.io/',
-        'footer.forums': 'https://forums.rancher.com/',
+        'footer.docs':   'https://docs.harvesterhci.io/latest/',
+        'footer.forums': 'https://forums.rancher.com/c/harvester/',
         'footer.slack':  'https://slack.rancher.io',
         'footer.issue':  'https://github.com/harvester/harvester/issues/new/choose',
       },
@@ -28,6 +29,12 @@ export default {
   computed: {
     title() {
       return 'harvester.support.title';
+    },
+
+    showSupportBundle() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return !!this.$store.getters[`${ inStore }/byId`](SCHEMA, HCI.SUPPORT_BUNDLE);
     },
   },
 
@@ -44,8 +51,8 @@ export default {
     <BannerGraphic :title="t(title, {}, true)" />
 
     <IndentedPanel>
-      <div class="content mt-20">
-        <div class="promo">
+      <div class="content mt-20" :class="!showSupportBundle && 'only-community'">
+        <div v-if="showSupportBundle" class="promo">
           <div class="box mb-20 box-primary">
             <h2>
               {{ t('harvester.modal.bundle.title') }}
@@ -60,14 +67,16 @@ export default {
             </div>
           </div>
         </div>
-        <div class="community">
+        <div class="community" :class="!showSupportBundle && 'community-center'">
           <CommunityLinks
             :link-options="options"
           />
         </div>
       </div>
     </IndentedPanel>
-    <SupportBundle />
+    <SupportBundle
+      v-if="showSupportBundle"
+    />
   </div>
 </template>
 
@@ -77,6 +86,11 @@ export default {
   grid-column-gap: 20px;
   grid-row-gap: 20px;
   grid-template-columns: 70% 30%;
+}
+
+.only-community {
+  display: grid;
+  grid-template-columns: 100%;
 }
 
 .community {
@@ -90,6 +104,11 @@ export default {
   .support-link {
     margin: 10px 0;
   }
+}
+
+.community-center {
+  padding-left: 0px;
+  border-left: none;
 }
 
 .box {

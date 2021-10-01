@@ -5,6 +5,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import ShellInput from '@/components/form/ShellInput';
 import debounce from 'lodash/debounce';
 import { _VIEW } from '@/config/query-params';
+import { isEmpty } from '@/utils/object';
 
 export default {
   props: {
@@ -58,6 +59,11 @@ export default {
     if (this.value) {
       this.selectHook = Object.keys(this.value)[0];
     }
+
+    if (isEmpty(this.value)) {
+      this.selectHook = 'none';
+    }
+
     this.queueUpdate = debounce(this.update, 500);
   },
 

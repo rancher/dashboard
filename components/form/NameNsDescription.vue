@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import { get, set } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
 import { NAMESPACE } from '@/config/types';
@@ -170,6 +171,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['isVirtualCluster']),
     namespaceReallyDisabled() {
       return (
         !!this.forceNamespace || this.namespaceDisabled || this.mode === _EDIT
@@ -185,7 +187,9 @@ export default {
       const choices = this.$store.getters[`${ inStore }/all`](this.namespaceType);
 
       const out = sortBy(
-        choices.map((obj) => {
+        choices.filter( (N) => {
+          return this.isVirtualCluster ? !N.isSystem && !N.isFleetManaged : true;
+        }).map((obj) => {
           return {
             label: obj.nameDisplay,
             value: obj.id,

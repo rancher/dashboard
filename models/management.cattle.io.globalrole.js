@@ -64,7 +64,7 @@ export default {
   },
 
   resources() {
-    return uniq(this.globalResources.map(r => r.attributes?.kind)).sort();
+    return uniq(this.globalResources.map(r => r.attributes?.resource)).sort();
   },
 
   listLocation() {

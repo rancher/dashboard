@@ -3779,6 +3779,12 @@ harvester:
         tip: '请输入模版名称！'
         success: '模板 { templateName } 创建成功.'
         failed: '生成模板失败！'
+    exportImage:
+      title: 导出镜像
+      name: 镜像名称
+      namespace: 镜像命名空间
+      messae:
+        success: '镜像 { name } 创建成功.'
     migration:
       failedMessage: 最新迁移失败!
       title: 迁移
@@ -3830,6 +3836,7 @@ harvester:
     cordon: 封锁
     uncordon: 解除封锁
     addHotplug: 添加卷
+    exportImage: 导出镜像
   tableHeaders:
     size: 大小
     progress: 进度
@@ -3910,6 +3917,8 @@ harvester:
     sections:
       events:
         label: 事件
+      vmMetrics:
+        label: VM指标
     upgrade:
       upgradeApp: 升级软件
       upgrade: 升级
@@ -3961,6 +3970,16 @@ harvester:
       add: 添加硬盘
       path:
         label: 路径
+      forceFormatted:
+        label: 格式化
+        toolTip: 格式化将会清除磁盘数据, 请确保对数据进行备份以免丢失.
+        yes: 是 (Ext4文件系统)
+      description:
+        label: 描述
+      lastFormattedAt:
+        info: 当前磁盘已完成格式化
+      notification:
+        success: '已更新主机"{name}"配置'
 
   virtualizationManagement:
     manage: 管理
@@ -4049,8 +4068,9 @@ harvester:
         tip: '网络设备配置可让您自定义实例的网络接口,例如管理子网分配，虚拟设备创建（bonds，bridges，Vlan）路由和DNS配置。 <a href="https://cloudinit.readthedocs.io/en/latest/topics/network-config-format-v1.html" target="_blank"> 查看更多 </a>'
     scheduling:
       affinity:
-        anyNode: '自动匹配节点运行 Virtual Machine'
-        schedulingRules: '通过调度规则匹配节点运行 Virtual Machine'
+        anyNode: '自动匹配节点运行 VM'
+        schedulingRules: '通过调度规则匹配节点运行 VM'
+        specificNode: 指定节点运行 VM
     input:
       name: 名称
       memory: 内存
@@ -4096,6 +4116,7 @@ harvester:
         monitor: 监控数据
         keypairs: 公共密钥
         cloudConfig: Cloud 配置
+        metrics: VM指标
       console:
         down: 请启动虚拟机以访问控制台.
 
@@ -4118,6 +4139,7 @@ harvester:
     urlTip: '<a href="https://www.qemu.org/docs/master/system/images.html#disk-image-file-formats" target="_blank">qemu</a> 支持 <code>raw</code> 和 <code>qcow2</code> 镜像格式. 可启动的ISO镜像也可以是类似 <code>raw</code> 格式的镜像.'
     fileName: 文件名
     uploadFile: 上传文件
+    source: 来源
     sourceType:
       download: URL
       upload: 文件
@@ -4463,6 +4485,7 @@ typeLabel:
   harvesterhci.io.setting: 设置
   harvesterhci.io.host: 主机
   harvesterhci.io.virtualmachinebackup: 备份
+  harvesterhci.io.management.cluster: Harvester集群
 
 action:
   clone: 克隆
@@ -4555,14 +4578,16 @@ advancedSettings:
     'harv-server-version': Harvester服务器版本.
     'harv-upgrade-checker-enabled': 指定是否启用Harvester升级检查. 默认为true.
     'harv-upgrade-checker-url': 默认的Harvester升级检查地址。 仅在<code> upgrade-checker-enabled </code> 等于true时使用。
+    'harv-ui-source': 配置如何加载UI资源.
+    'harv-ui-index': 'UI的HTML索引。'
   editHelp:
     'ui-banners': 这个设置需要一个JSON对象，包含3个根参数；<code>banner</code>, <code>showHeader</code>, <code>showFooter</code>。<code>banner</code>是一个包含；<code>textColor</code>, <code>background</code>, 和<code>text</code>的对象，其中<code>textColor</code>和<code>background</code>是任何有效的CSS颜色值。
   enum:
-    'api-ui-source':
+    'har-ui-source':
       auto: 'Auto'
       bundled: 'Bundled'
       external: 'External'
-    'log-level':
+    'har-log-level':
       info: Info
       debug: Debug
       trace: Trace

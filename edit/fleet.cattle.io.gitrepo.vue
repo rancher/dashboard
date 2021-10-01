@@ -19,6 +19,7 @@ import YamlEditor from '@/components/YamlEditor';
 import { base64Decode, base64Encode } from '@/utils/crypto';
 import SelectOrCreateAuthSecret from '@/components/form/SelectOrCreateAuthSecret';
 import { _CREATE } from '@/config/query-params';
+import { isHarvesterCluster } from '@/utils/cluster';
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
@@ -139,18 +140,19 @@ export default {
           label: 'Advanced',
           value: 'advanced'
         },
-        { kind: 'divider', disabled: true },
       ];
 
       const clusters = this.allClusters
         .filter((x) => {
           return x.metadata.namespace === this.value.metadata.namespace;
         })
+        .filter(x => !isHarvesterCluster(x))
         .map((x) => {
           return { label: x.nameDisplay, value: `cluster://${ x.metadata.name }` };
         });
 
       if ( clusters.length ) {
+        out.push({ kind: 'divider', disabled: true });
         out.push({
           kind:     'title',
           label:    'Clusters',
@@ -167,6 +169,7 @@ export default {
         });
 
       if ( groups.length ) {
+        out.push({ kind: 'divider', disabled: true });
         out.push({
           kind:     'title',
           label:    'Cluster Groups',

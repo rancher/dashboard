@@ -68,7 +68,7 @@ export default {
   },
 
   provisioner() {
-    return this.status.driver ? this.status.driver : 'imported';
+    return this.status?.driver ? this.status.driver : 'imported';
   },
 
   machineProvider() {
