@@ -1,7 +1,7 @@
 import { NAME, SIMPLE_NAME, STATE } from '@/config/table-headers';
 import { DSL } from '@/store/type-map';
-import { createEpinioRoute, rootEpinioRoute } from '@/plugins/app-extension/epinio/utils/custom-routing';
-import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/plugins/app-extension/epinio/types';
+import { createEpinioRoute, rootEpinioRoute } from '@/products/epinio/utils/custom-routing';
+import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 
 // TODO: RC DISCUSS Handle localisation in plugins
 
@@ -21,7 +21,7 @@ export function init(store) {
     isMultiClusterApp:   true,
     inStore:             EPINIO_PRODUCT_NAME,
     icon:                'dock',
-    iconHeader:          require(`~/plugins/app-extension/epinio/assets/epinio.png`),
+    iconHeader:          require(`@/products/epinio/assets/epinio.png`),
     removable:           false,
     showClusterSwitcher: false,
     to:                  rootEpinioRoute()

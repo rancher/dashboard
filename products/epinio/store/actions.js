@@ -1,7 +1,7 @@
 import https from 'https';
 
 import { SCHEMA } from '@/config/types';
-import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/plugins/app-extension/epinio/types';
+import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import { normalizeType } from '@/plugins/core-store/normalize';
 import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 
@@ -20,7 +20,7 @@ export default {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
     opt.headers = {
-      'x-api-host':    'https://epinio.172.31.0.2.omg.howdoi.website', // TODO: RC FIX fetch from cluster
+      'x-api-host':    'https://epinio.192.168.0.2.omg.howdoi.website', // TODO: RC FIX fetch from cluster
       Authorization: 'Basic <snip>' // TODO: RC AUTH fetch from cluster
     };
 
@@ -73,7 +73,6 @@ export default {
       }
 
       // TODO: API - namespaces call returns array of strings!
-      debugger;
       if (Array.isArray(out)) {
         out = {
           data: out.map((o) => {
@@ -130,7 +129,7 @@ export default {
         id:                EPINIO_TYPES.NAMESPACE,
         type:              'schema',
         links:             { collection: 'api/v1/namespaces' },
-        collectionMethods: ['get'],
+        collectionMethods: ['get', 'post'],
       }]
     };
 

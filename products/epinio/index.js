@@ -1,8 +1,8 @@
 
-import { init as productInit } from '@/plugins/app-extension/epinio/config/product/epinio';
-import storeInit from '@/plugins/app-extension/epinio/store';
+import { init as productInit } from '@/products/epinio/config/product/epinio';
+import storeInit from '@/products/epinio/store';
 
-import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/plugins/app-extension/epinio/types';
+import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 
 let applied = false;
 

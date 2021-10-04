@@ -16,7 +16,7 @@ import { addParam } from '@/utils/url';
 import { SETTING } from '@/config/settings';
 import semver from 'semver';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
-import extensions from '@/plugins/app-extension/extensions';
+import extensions from '@/product-extension/extensions';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.

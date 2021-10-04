@@ -989,7 +989,7 @@ export const getters = {
 
       try {
         if ( key.plugin) {
-          require.resolve(`@/plugins/app-extension/${ key.plugin }/detail/${ key.type }`);
+          require.resolve(`@/products/${ key.plugin }/detail/${ key.type }`);
         } else {
           require.resolve(`@/detail/${ key }`);
         }
@@ -1015,7 +1015,7 @@ export const getters = {
 
       try {
         if ( key.plugin) {
-          require.resolve(`@/plugins/app-extension/${ key.plugin }/edit/${ key.type }`);
+          require.resolve(`@/products/${ key.plugin }/edit/${ key.type }`);
         } else {
           require.resolve(`@/edit/${ key }`);
         }

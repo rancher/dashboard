@@ -1,13 +1,13 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import Application from '@/plugins/app-extension/epinio/models/applications.class';
+import Application from '@/products/epinio/models/applications.class';
 import CreateEditView from '@/mixins/create-edit-view';
 import Loading from '@/components/Loading.vue';
 import NameNsDescription from '@/components/form/NameNsDescription.vue';
 import FileSelector from '@/components/form/FileSelector.vue';
 import CruResource from '@/components/CruResource.vue';
 
-import { EPINIO_TYPES } from '@/plugins/app-extension/epinio/types';
+import { EPINIO_TYPES } from '@/products/epinio/types';
 // import { exceptionToErrorsArray } from '@/utils/error';
 
 // interface ComponentData {

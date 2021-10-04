@@ -1,4 +1,4 @@
-import { createEpinioRoute } from '@/plugins/app-extension/epinio/utils/custom-routing';
+import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import { Resource } from '@/plugins/core-store/resource-class';
 
 export default class EpinioResource extends Resource {

@@ -1,5 +1,5 @@
-import { EPINIO_TYPES } from '@/plugins/app-extension/epinio/types';
-import { createEpinioRoute } from '@/plugins/app-extension/epinio/utils/custom-routing';
+import { EPINIO_TYPES } from '@/products/epinio/types';
+import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import { isEmpty } from '@/utils/object';
 import EpinioResource from './epinio-resource-instance.class';
 

@@ -1,4 +1,4 @@
-import { EPINIO_PRODUCT_NAME } from '@/plugins/app-extension/epinio/config/product/epinio';
+import { EPINIO_PRODUCT_NAME } from '@/products/epinio/config/product/epinio';
 import { EXTENSION_PREFIX } from '@/utils/extensions';
 
 export const rootEpinioRoute = () => ({

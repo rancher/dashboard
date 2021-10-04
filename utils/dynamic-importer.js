@@ -48,7 +48,7 @@ export function importDetail(name) {
   }
 
   if (name.plugin) {
-    return () => import(/* webpackChunkName: "plugins/app-extension" */ `@/plugins/app-extension/${ name.plugin }/detail/${name.type}`);
+    return () => import(/* webpackChunkName: "products" */ `@/products/${ name.plugin }/detail/${name.type}`);
   }
 
   return () => import(/* webpackChunkName: "detail" */ `@/detail/${name}`);
@@ -60,7 +60,7 @@ export function importEdit(name) {
   }
 
   if (name.plugin) {
-    return () => import(/* webpackChunkName: "plugins/app-extension" */ `@/plugins/app-extension/${ name.plugin }/edit/${name.type}`);
+    return () => import(/* webpackChunkName: "products" */ `@/products/${ name.plugin }/edit/${name.type}`);
   }
 
   return () => import(/* webpackChunkName: "edit" */ `@/edit/${name}`);
