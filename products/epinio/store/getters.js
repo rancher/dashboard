@@ -1,4 +1,4 @@
-import { EPINIO_TYPES } from '@/plugins/app-extension/epinio/types';
+import { EPINIO_TYPES } from '@/products/epinio/types';
 
 export default {
 

@@ -50,7 +50,7 @@ export function lookup(store, type) {
 
   for ( const t of tries ) {
     try {
-      out = find(cache, require(`@/plugins/app-extension/${ store }/models/${ t }`), type);
+      out = find(cache, require(`@/products/${ store }/models/${ t }`), type);
       if ( out ) {
         return out;
       }

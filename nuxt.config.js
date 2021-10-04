@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import extensionRoutes from './plugins/app-extension/extension-routes';
+import extensionRoutes from './product-extension/extension-routes';
 import { STANDARD } from './config/private-label';
 import { directiveSsr as t } from './plugins/i18n';
 import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
@@ -293,8 +293,6 @@ module.exports = {
 
   // Vue plugins
   plugins: [
-    // '~/plugins/app-extension/epinio',
-
     // Third-party
     '~/plugins/axios',
     '~/plugins/tooltip',

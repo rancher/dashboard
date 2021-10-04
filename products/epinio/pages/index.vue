@@ -3,7 +3,7 @@ import Vue from 'vue';
 
 import Loading from '@/components/Loading.vue';
 import ResourceTable from '@/components/ResourceTable.vue';
-import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/plugins/app-extension/epinio/types';
+import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 
 export default Vue.extend({
   components: { Loading, ResourceTable },
@@ -13,6 +13,13 @@ export default Vue.extend({
   async fetch() {
     this.clusters = await this.$store.dispatch(`${ EPINIO_PRODUCT_NAME }/findAll`, { type: EPINIO_TYPES.INSTANCE });
   },
+
+  // props: {
+  //   value: {
+  //     type:     Object as PropType<String>,
+  //     required: true
+  //   },
+  // },
 
   data() {
     return {
@@ -29,7 +36,14 @@ export default Vue.extend({
     product(): string {
       return this.$route.params.product;
     }
-  }
+  },
+
+  // methods: {
+  //   a() {
+  //     this.clusters = ['a'];
+  //   }
+  // }
+
 });
 </script>
 

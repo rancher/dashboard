@@ -15,7 +15,7 @@ import { NAME as VIRTUAL } from '@/config/product/harvester';
 
 import { EXTENSION_PREFIX } from '@/utils/extensions';
 
-import extensions from '@/plugins/app-extension/extensions';
+import extensions from '@/product-extension/extensions';
 
 let beforeEachSetup = false;
 

@@ -1,4 +1,4 @@
-import { EXTENSION_PREFIX } from '../../../utils/extensions';
+import { EXTENSION_PREFIX } from '../../utils/extensions';
 import { EPINIO_PRODUCT_NAME } from './types';
 
 export default resolve => [{

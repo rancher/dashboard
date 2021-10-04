@@ -1,5 +1,5 @@
 import coreStore, { coreStoreModule, coreStoreState } from '@/plugins/core-store/index';
-import { EPINIO_PRODUCT_NAME } from '@/plugins/app-extension/epinio/types';
+import { EPINIO_PRODUCT_NAME } from '@/products/epinio/types';
 
 import getters from './getters';
 import mutations from './mutations';
