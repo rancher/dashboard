@@ -1,4 +1,5 @@
 <script>
+import debounce from 'lodash/debounce';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -34,7 +35,7 @@ export default {
         path:        '',
         port:        null,
         scheme:      '',
-        httpHeaders: [{ name: '', value: '' }]
+        httpHeaders: null
       }
     };
 
@@ -60,11 +61,17 @@ export default {
     if (isEmpty(this.value)) {
       this.selectHook = 'none';
     }
+
+    this.queueUpdate = debounce(this.update, 500);
   },
 
   methods: {
     addHeader() {
       const header = { name: '', value: '' };
+
+      if (!this.value.httpGet.httpHeaders) {
+        this.$set(this.value.httpGet, 'httpHeaders', []);
+      }
 
       this.value.httpGet.httpHeaders.push(header);
     },
@@ -171,7 +178,7 @@ export default {
       </div>
 
       <h4>{{ t('workload.container.lifecycleHook.httpHeaders.title') }}</h4>
-      <div v-for="(header, index) in value.httpGet.httpHeaders" :key="header.vKey" class="var-row">
+      <div v-for="(header, index) in value.httpGet.httpHeaders" :key="header.id" class="var-row">
         <template @input="update">
           <LabeledInput
             v-model="value.httpGet.httpHeaders[index].name"
@@ -187,17 +194,19 @@ export default {
             class="single-value"
             :mode="mode"
           />
-          <button
-            v-if="!isView"
-            type="button"
-            class="btn role-link"
-            :disabled="mode==='view'"
-            @click.stop="removeHeader(index)"
-          >
-            <t k="generic.remove" />
-          </button>
         </template>
+
+        <button
+          v-if="!isView"
+          type="button"
+          class="btn role-link"
+          :disabled="mode==='view'"
+          @click.stop="removeHeader(index)"
+        >
+          <t k="generic.remove" />
+        </button>
       </div>
+
       <div>
         <button
           v-if="!isView"
@@ -223,6 +232,10 @@ export default {
 
   .single-value {
     grid-column: span 2;
+  }
+
+  .labeled-select {
+    min-height: 61px;
   }
 }
 </style>
