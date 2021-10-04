@@ -237,9 +237,9 @@ export default {
       }
     },
 
-    closePvcForm(uniqueId) {
-      this.$emit('closePvcForm', uniqueId);
-    },
+    removePvcForm(hookName) {
+      this.$emit('removePvcForm', hookName);
+    }
   },
 };
 </script>
@@ -247,8 +247,8 @@ export default {
 <template>
   <div>
     <ArrayListGrouped
+      :key="containerVolumes.length"
       v-model="containerVolumes"
-      @closePvcForm="closePvcForm"
     >
       <template #default="props">
         <h3>{{ headerFor(volumeType(props.row.value)) }}</h3>
@@ -256,6 +256,7 @@ export default {
           <component
             :is="componentFor(volumeType(props.row.value))"
             v-if="componentFor(volumeType(props.row.value))"
+            :key="props.row.value"
             :value="props.row.value"
             :pod-spec="value"
             :mode="mode"
@@ -265,6 +266,7 @@ export default {
             :pvcs="pvcNames"
             :register-before-hook="registerBeforeHook"
             :save-pvc-hook-name="savePvcHookName"
+            @removePvcForm="removePvcForm"
           />
           <div v-else-if="isView">
             <CodeMirror

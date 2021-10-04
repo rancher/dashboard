@@ -56,6 +56,10 @@ export default {
   },
 
   async fetch() {
+    // Create the new PVC form state if it doesn't exist
+    if (this.value._newPvc) {
+      return;
+    }
     const namespace = this.namespace || this.$store.getters['defaultNamespace'];
 
     const data = { type: PVC };
@@ -65,12 +69,7 @@ export default {
     const pvc = await this.$store.dispatch('cluster/create', data);
 
     pvc.applyDefaults();
-
-    this.pvc = pvc;
-  },
-
-  data() {
-    return { pvc: null };
+    this.$set(this.value, '_newPvc', pvc);
   },
 
   computed: {
@@ -84,20 +83,17 @@ export default {
 
   watch: {
     namespace(neu) {
-      this.pvc.metadata.namespace = neu;
+      this._newPvc.metadata.namespace = neu;
     },
 
-    'pvc.metadata.name'(neu) {
+    'value._newPvc.metadata.name'(neu) {
       this.value.persistentVolumeClaim.claimName = neu;
     }
   },
 
   methods: {
-    setUniqueId() {
-      // This makes it so that the unique ID of the PVC
-      // will be available at the scope of the ArrayListGroup
-      // when the delete button is clicked.
-      this.value.pvcData = this.pvc;
+    removePvcForm(hookName) {
+      this.$emit('removePvcForm', hookName);
     }
   }
 };
@@ -108,12 +104,12 @@ export default {
     <div>
       <div v-if="createNew" class="bordered-section">
         <PersistentVolumeClaim
-          v-if="pvc"
-          v-model="pvc"
+          v-if="value._newPvc"
+          v-model="value._newPvc"
           :mode="mode"
           :register-before-hook="registerBeforeHook"
           :save-pvc-hook-name="savePvcHookName"
-          @createUniqueId="setUniqueId"
+          @removePvcForm="removePvcForm"
         />
       </div>
       <div class="row mb-10">

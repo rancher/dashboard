@@ -701,13 +701,13 @@ export default {
       }
       this.isInitContainer = neu;
     },
-    clearPvcFormState(uniqueId) {
+    clearPvcFormState(hookName) {
       // On the `closePvcForm` event, remove the
       // before save hook to prevent the PVC from
       // being created. Use the PVC's unique ID to distinguish
       // between hooks for different PVCs.
       if (this[BEFORE_SAVE_HOOKS]) {
-        this.unregisterBeforeSaveHook(this.savePvcHookName + uniqueId);
+        this.unregisterBeforeSaveHook(hookName);
       }
     }
   }
@@ -855,7 +855,7 @@ export default {
             :config-maps="namespacedConfigMaps"
             :container="container"
             :save-pvc-hook-name="savePvcHookName"
-            @closePvcForm="clearPvcFormState"
+            @removePvcForm="clearPvcFormState"
           />
         </Tab>
         <Tab :label="t('workload.container.titles.resources')" name="resources">

@@ -112,6 +112,10 @@ export default {
     }
   },
 
+  beforeDestroy() {
+    this.$emit('removePvcForm', this.savePvcHookName + this.uniqueId);
+  },
+
   methods: {
     updateMode(mode, enabled) {
       if (enabled) {
@@ -146,7 +150,7 @@ export default {
   <div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.metadata.name" :mode="mode" :required="true" :label="t('persistentVolumeClaim.volumeName')" @input="$emit('input', value)" />
+        <LabeledInput v-model="value.metadata.name" :mode="mode" :label="t('persistentVolumeClaim.name')" @input="$emit('input', value)" />
       </div>
     </div>
     <div class="row mb-10">
