@@ -13,6 +13,7 @@ A good base knowledge of Vue, Vuex and Nuxt should be reached before going throu
 Description | Link
 -----| ---
 Core Vue Docs | https://vuejs.org/v2/guide
+Typescript in Vue | https://vuejs.org/v2/guide/typescript.html
 Vue Template/Directive Shorthands | https://vuejs.org/v2/guide/syntax.html
 Vue Conditional rendering | https://vuejs.org/v2/guide/conditional.html
 Vuex Core Docs | https://vuex.vuejs.org/
@@ -30,8 +31,15 @@ See https://rancher.com/docs/rancher/v2.6/en/installation/. This covers two meth
 - [Single Docker Container](https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/)
 - [Kube Cluster (via Helm)](https://rancher.com/docs/rancher/v2.6/en/installation/install-rancher-on-k8s/)
 
-Also for consideration
+Note that for Rancher to provision and manage downstream clusters, the Rancher server URL must be accessible from the Internet. If you’re running Rancher in Docker Desktop, the Rancher server URL is `https://localhost`. To make Rancher accessible to downstream clusters for development, you can:
+
+- Use ngrok to test provisioning with a local rancher server
+- Install Rancher on a virtual machine in Digital Ocean or Amazon EC2
+- Change the Rancher server URL using `<dashboard url>c/local/settings/management.cattle.io.setting`
+
+Also for consideration:
 - [RKE2 in a binary (rancherd)](https://rancher.com/docs/rancher/v2.5/en/installation/install-rancher-on-linux/) Note: RancherD is being rewritten as of Rancher v2.6.
+- [K3s](https://k3d.io/v4.4.8/#installation) lets you immediately install a Kubernetes cluster in a Docker container and interact with it with kubectl for development and testing purposes.
 
 You should be able to reach the older Ember UI by navigating to the Rancher API url. This same API Url will be used later when starting up the Dashboard.
 
@@ -46,6 +54,7 @@ Developers are free to use the IDE and modern browser of their choosing. Here's 
 
 ### VS Code
 - Install the `vetur` extension. This contains syntax highlighting, IntelliSense, snippets, formatting, etc)
+- Install the `ESLint` extension to underline linting issues. It can also be used to auto-fix errors on save by using **Command + Shift + P > ESLint: Fix all auto-fixable Problems.**
 
 ### Chrome
 - Install the Chrome `vue-devtools` extension to view the Vuex store.
@@ -87,4 +96,20 @@ The API serves up an interface to [browse both Norman and Steve APIs](https://gi
 
 The dashboard will proxy requests to the API, so the interfaces are available via `<Dashboard URL>/v3` (Norman) and `<Dashboard URL>/v1` (Steve)
 
+### Debug Output for kubectl
 
+You can increase the verbosity level of kubectl to see the actual HTTP requests that it makes to the Kubernetes API, including the request and response bodies. For example, to see the request and response for rolling back a workload, you could run:
+
+```
+kubectl rollout undo deployment/[deployment name] --to-revision=[revision number] -v=8
+```
+
+### GitHub CLI
+
+When reviewing a pull request, it can be useful to pull down someone's PR using the GitHub CLI. For example:
+
+```
+gh pr checkout 4284
+```
+
+The GitHub CLI installation instructions are [here.](https://github.com/cli/cli#installation)
