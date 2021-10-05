@@ -829,7 +829,7 @@ export const actions = {
     } else {
       const QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT;
 
-      router.replace(`/auth/login?${ QUERY }`);
+      router.replace(`/auth/login?${ QUERY }`).catch(() => {});
     }
   },
 
