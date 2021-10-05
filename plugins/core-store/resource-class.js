@@ -709,7 +709,7 @@ export class Resource {
       throw new Error(`Unknown link ${ linkName } on ${ this.type } ${ this.id }`);
     }
 
-    return this.$dispatch('request', opt);
+    return this.$dispatch('request', { opt, type: this.type } );
   }
 
   // ------------------------------------------------------------------
@@ -743,7 +743,7 @@ export class Resource {
     opt.headers['content-type'] = 'application/json-patch+json';
     opt.data = data;
 
-    return this.$dispatch('request', opt);
+    return this.$dispatch('request', { opt, type: this.type } );
   }
 
   save() {
@@ -816,7 +816,7 @@ export class Resource {
     }
 
     try {
-      const res = await this.$dispatch('request', opt);
+      const res = await this.$dispatch('request', { opt, type: this.type } );
 
       // console.log('### Resource Save', this.type, this.id);
 
@@ -847,7 +847,7 @@ export class Resource {
 
     opt.method = 'delete';
 
-    const res = await this.$dispatch('request', opt);
+    const res = await this.$dispatch('request', { opt, type: this.type } );
 
     if ( res?._status === 204 ) {
       // If there's no body, assume the resource was immediately deleted
