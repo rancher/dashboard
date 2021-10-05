@@ -4,6 +4,7 @@ import { SCHEMA } from '@/config/types';
 import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import { normalizeType } from '@/plugins/core-store/normalize';
 import { handleSpoofedRequest } from '@/plugins/core-store/actions';
+import { base64Encode } from '@/utils/crypto';
 
 export default {
   async request({ rootGetters }, { opt, type }) {
@@ -19,9 +20,13 @@ export default {
 
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+
+    const currentClusterId = rootGetters['clusterId'];
+    const currentCluster = rootGetters['epinio/byId'](EPINIO_TYPES.INSTANCE, currentClusterId);
+
     opt.headers = {
-      'x-api-host':    'https://epinio.192.168.0.2.omg.howdoi.website', // TODO: RC FIX fetch from cluster
-      Authorization: 'Basic <snip>' // TODO: RC AUTH fetch from cluster
+      'x-api-host':  currentCluster.api,
+      Authorization: `Basic ${ base64Encode(`${ currentCluster.username }:${ currentCluster.password }`) }`
     };
 
     return this.$axios(opt).then((res) => {
