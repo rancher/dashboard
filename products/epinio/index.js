@@ -19,11 +19,11 @@ export default {
     store.dispatch(`${ EPINIO_PRODUCT_NAME }/loadAll`, {
       type:     EPINIO_TYPES.INSTANCE,
       data: [{
-        id:       '1',
+        id:       'epinio_cluster_id',
         name:     'my epinio instance',
-        api:      '<url of epinio api>',
-        username: 'usfds',
-        password: 'pasd',
+        api:      process.env.epinioUrl,
+        username: process.env.epinioUser,
+        password: process.env.epinioPassword,
         type:     EPINIO_TYPES.INSTANCE
       }]
     });

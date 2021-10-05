@@ -73,6 +73,10 @@ module.exports = {
     version,
     dev,
     pl,
+    // TODO: RC Remove
+    epinioUrl:      process.env.EPINIO_URL,
+    epinioUser:     process.env.EPINIO_USER,
+    epinioPassword: process.env.EPINIO_PASSWORD,
   },
 
   buildDir: dev ? '.nuxt' : '.nuxt-prod',
