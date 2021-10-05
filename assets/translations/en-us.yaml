@@ -642,7 +642,9 @@ catalog:
     section:
       notes: Release Notes
       readme: Chart README
-      resources: Resources
+      resources: 
+        label: Resources
+        busy: The related resources will appear when {app} is fully installed.
       values: Values YAML
   chart:
     header:
