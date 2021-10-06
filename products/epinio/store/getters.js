@@ -13,7 +13,7 @@ export default {
     switch (type) {
     case EPINIO_TYPES.APP:
       return 'name';
-    case EPINIO_TYPES.ORG:
+    case EPINIO_TYPES.NAMESPACE:
     default:
       return 'id';
     }
