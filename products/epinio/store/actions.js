@@ -7,6 +7,10 @@ import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 import { base64Encode } from '@/utils/crypto';
 
 export default {
+  remove({ commit }, obj ) {
+    commit('remove', obj);
+  },
+
   async request({ rootGetters }, { opt, type }) {
     const spoofedRes = await handleSpoofedRequest(rootGetters, EPINIO_PRODUCT_NAME, opt);
 
@@ -25,6 +29,7 @@ export default {
     const currentCluster = rootGetters['epinio/byId'](EPINIO_TYPES.INSTANCE, currentClusterId);
 
     opt.headers = {
+      ...opt.headers,
       'x-api-host':  currentCluster.api,
       Authorization: `Basic ${ base64Encode(`${ currentCluster.username }:${ currentCluster.password }`) }`
     };
@@ -47,6 +52,24 @@ export default {
       if ( opt.responseType ) {
         return res;
       } else {
+        const out = res.data || {};
+
+        // TODO: API - namespaces call returns array of strings!
+        if (Array.isArray(out)) {
+          res.data = {
+            data: out.map(o => ({
+              ...o,
+              type // TODO: RC get from url
+            }))
+          };
+        } else {
+          // `find` action turns this into `{data: out}`
+          res.data = {
+            ...out,
+            type
+          };
+        }
+
         return responseObject(res);
       }
     }).catch((err) => {
@@ -77,30 +100,6 @@ export default {
         out = {};
       }
 
-      // TODO: API - namespaces call returns array of strings!
-      if (Array.isArray(out)) {
-        out = {
-          data: out.map((o) => {
-            if (typeof o === 'string') {
-              return { id: o, type };
-            }
-
-            return {
-              ...o,
-              id: o.name,
-              type // TODO: RC get from url
-            };
-          })
-        };
-      } else {
-        // `find` action turns this into `{data: out}`
-        out = {
-          ...out,
-          id: out.name,
-          type
-        };
-      }
-
       Object.defineProperties(out, {
         _status:     { value: res.status },
         _statusText: { value: res.statusText },
@@ -125,8 +124,7 @@ export default {
         product:           EPINIO_PRODUCT_NAME,
         id:                EPINIO_TYPES.APP,
         type:              'schema',
-        // TODO: RC API v1/apps available?
-        links:             { collection: 'api/v1/namespaces/workspace/applications' },
+        links:             { collection: 'api/v1/applications' },
         collectionMethods: ['get', 'post'],
         resourceFields:    {}
       }, {

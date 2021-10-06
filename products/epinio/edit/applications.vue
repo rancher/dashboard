@@ -4,24 +4,27 @@ import Application from '@/products/epinio/models/applications.class';
 import CreateEditView from '@/mixins/create-edit-view';
 import Loading from '@/components/Loading.vue';
 import NameNsDescription from '@/components/form/NameNsDescription.vue';
-import FileSelector from '@/components/form/FileSelector.vue';
+// import FileSelector from '@/components/form/FileSelector.vue';
 import CruResource from '@/components/CruResource.vue';
 
 import { EPINIO_TYPES } from '@/products/epinio/types';
-// import { exceptionToErrorsArray } from '@/utils/error';
+import { exceptionToErrorsArray } from '@/utils/error';
+import { isEmpty } from '@/utils/object';
 
-// interface ComponentData {
-//   value: Application;
-//   errors: string[]
-// }
+interface Data {
+  errors: string[],
+  tarball?: string,
+}
 
-export default Vue.extend({
+// Data, Methods, Computed, Props
+export default Vue.extend<Data, any, any, any>({
+  // TODO: RC View/Edit ... Refresh on page ... we won't have the namespace so fails
 
   components: {
     Loading,
     CruResource,
     NameNsDescription,
-    FileSelector
+    // FileSelector,
   },
 
   props: {
@@ -40,7 +43,10 @@ export default Vue.extend({
   },
 
   data() {
-    return { errors: [] };
+    return {
+      errors:  [],
+      tarBall: null
+    };
   },
 
   computed: {
@@ -55,21 +61,59 @@ export default Vue.extend({
 
   methods: {
     onFileSelected(value: { name: string, value: any }) {
-      const { name: fileName, value: fileContent } = value;
+      const file = this.$refs.file.files[0];
+      // lastModified: 1633451677134
+      // lastModifiedDate: Tue Oct 05 2021 17:34:37 GMT+0100 (British Summer Time) {}
+      // name: "sample-app.tar.gz"
+      // size: 256
+      // type: "application/gzip"
+      // webkitRelativePath: ""
 
-      console.log(fileName, fileContent); // eslint-disable-line no-console
+      this.tarball = file;
+
+      // const { name: fileName, value: fileContent, ...others } = value;
+
+      // console.log(fileName, fileContent, others); // eslint-disable-line no-console
+      // this.tarball = value;
     },
 
-    async saveOverride(buttonDone: (res: boolean) => void) {
+    async saveOverride(buttonDone: (res: boolean) => void): Promise<void> {
+      this.errors = [];
       try {
-        const res = await this.value.save();
+        delete this.__rehydrate;
+        delete this.__clone;
 
-        console.warn(res); // eslint-disable-line no-console
+        const errors = await this.value.validationErrors(this);
 
-        //  this.done();
-        buttonDone(true);
+        if (!isEmpty(errors)) {
+          return Promise.reject(errors);
+        }
+
+        try {
+          if (this.isCreate) {
+            await this.value.create();
+            const blobuid = await this.value.storeArchive(this.tarball);
+            const { image, stage } = await this.value.stage(blobuid);
+
+            this.value.showStagingLog(stage.id);
+            await this.value.waitForStaging(stage.id);
+            await this.value.deploy(stage.id, image);
+          } else {
+            throw new Error('Not implemented');
+          }
+
+          //  this.done(); // TODO: RC nav to apps?
+          buttonDone(true);
+        } catch (err) {
+          console.error(err);// eslint-disable-line no-console
+          throw err;
+        } finally {
+          // TODO: RC `find` DOESN'T WORK... id doesn't contain namespace
+          this.$dispatch('findAll', { type: this.type, opt: { force: true } });
+          // await this.$dispatch('findAll', { type: this.type, opt: { force: true } });
+        }
       } catch (e) {
-        // this.errors = exceptionToErrorsArray(e); // TODO: RC invalid reference
+        this.errors = exceptionToErrorsArray(e);
         buttonDone(false);
       }
     }
@@ -91,23 +135,39 @@ export default Vue.extend({
     @cancel="done"
   >
     <div>
+      <!-- TODO: RC switches do odd value on refresh -->
       <NameNsDescription
         name-key="name"
-        namespace-key="workload"
+        namespace-key="namespace"
         :namespaces-override="namespaces"
         :description-hidden="true"
         :value="value"
         :mode="mode"
         class="mt-10"
       />
-      <!-- TODO: Label -->
-      <FileSelector class="role-tertiary add mt-5" :label="t('generic.readFromFile')" :include-file-name="true" :mode="mode" @selected="onFileSelected" />
+      <!-- TODO: Switch back -->
+      <input
+        id="file"
+        ref="file"
+        type="file"
+        @change="onFileSelected"
+      />
+
+      <!-- <FileSelector
+          class="role-tertiary add mt-5"
+          :label="t('generic.readFromFile')"
+          :include-file-name="true"
+          :mode="mode"
+          :read-as-data-url="true"
+          @selected="onFileSelected"
+        /> -->
 
       <br><br>
       Debug<br>
       Mode: {{ mode }}<br>
       Value: {{ JSON.stringify(value) }}<br>
       originalValue: {{ JSON.stringify(originalValue) }}<br>
+      tarball: {{ tarball }}
     </div>
   </CruResource>
 </template>
