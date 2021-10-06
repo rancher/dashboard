@@ -4415,6 +4415,12 @@ workload:
         command:
           label: Command
           placeholder: e.g. sh -c sleep 10
+        gracePeriod:
+          label: Termination Grace Period Seconds
+          placeholder: e.g. 120
+          options:
+            default: Default (30 seconds)
+            custom: Custom
       httpGet:
         title: HttpGet
         add: Create HTTP request
@@ -4501,6 +4507,7 @@ workload:
       env: Environment Variables
       events: Events
       general: General
+      gracePeriod: Termination Grace Period
       healthCheck: Health Check
       image: Image
       lifecycle: Lifecycle Hooks

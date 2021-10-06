@@ -14,13 +14,18 @@ export default {
       required: true,
     },
 
-    // container spec
+    // container.lifecycle spec
     value: {
       type:    Object,
       default: () => {
         return {};
       }
     },
+
+    podTemplateSpec: {
+      type:     Object,
+      required: true
+    }
   },
 
   data() {
@@ -66,14 +71,21 @@ export default {
       <h3 class="clearfix">
         {{ t('workload.container.lifecycleHook.postStart.label') }}
       </h3>
-      <HookOption v-model="postStart" :mode="mode" @input="update" />
+      <HookOption v-model="postStart" type="postStart" :mode="mode" @input="update" />
     </div>
 
     <div>
       <h3 class="clearfix">
         {{ t('workload.container.lifecycleHook.preStop.label') }}
       </h3>
-      <HookOption v-model="preStop" :mode="mode" @input="update" />
+      <HookOption
+        v-model="preStop"
+        type="preStop"
+        :mode="mode"
+        :grace-period="podTemplateSpec.terminationGracePeriodSeconds"
+        @input="update"
+        @update:grace-period="podTemplateSpec.terminationGracePeriodSeconds = $event"
+      />
     </div>
   </div>
 </template>

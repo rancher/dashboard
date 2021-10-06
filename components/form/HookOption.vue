@@ -18,6 +18,15 @@ export default {
       default: () => {
         return {};
       }
+    },
+    // hook type
+    type: {
+      type:    String,
+      default: null
+    },
+    gracePeriod: {
+      type:    Number,
+      default: null
     }
   },
 
@@ -38,19 +47,22 @@ export default {
         httpHeaders: null
       }
     };
+    const gracePeriodSeconds = this.gracePeriod;
 
     return {
       selectHook,
       defaultExec,
       defaultHttpGet,
-      schemeOptions: ['HTTP', 'HTTPS']
+      schemeOptions:                 ['HTTP', 'HTTPS'],
+      selectGracePeriod:             'default',
+      gracePeriodSeconds
     };
   },
 
   computed: {
     isView() {
       return this.mode === _VIEW;
-    },
+    }
   },
 
   created() {
@@ -60,6 +72,10 @@ export default {
 
     if (isEmpty(this.value)) {
       this.selectHook = 'none';
+    }
+
+    if (this.gracePeriod && this.gracePeriod !== 30) {
+      this.selectGracePeriod = 'custom';
     }
 
     this.queueUpdate = debounce(this.update, 500);
@@ -86,6 +102,10 @@ export default {
       switch (this.selectHook) {
       case 'none':
         this.deleteLeftovers(leftovers);
+        if (this.type === 'preStop') {
+          this.selectGracePeriod = 'default';
+          this.updateGracePeriod();
+        }
         break;
       case 'exec':
         this.deleteLeftovers(leftovers);
@@ -100,6 +120,21 @@ export default {
       }
 
       this.$emit('input', this.value);
+    },
+
+    updateGracePeriod() {
+      switch (this.selectGracePeriod) {
+      case 'default':
+        this.gracePeriodSeconds = null;
+        break;
+      case 'custom':
+        this.gracePeriodSeconds = this.gracePeriod;
+        break;
+      default:
+        break;
+      }
+
+      this.$emit('update:grace-period', this.gracePeriodSeconds);
     },
 
     deleteLeftovers(leftovers) {
@@ -142,6 +177,36 @@ export default {
           />
         </div>
       </div>
+      <template v-if="type === 'preStop'">
+        <div class="mb-20">
+          <h4>{{ t('workload.container.titles.gracePeriod') }}</h4>
+          <RadioGroup
+            v-model="selectGracePeriod"
+            name="selectGracePeriod"
+            class="mb-20"
+            :options="['default', 'custom']"
+            :labels="[
+              t('workload.container.lifecycleHook.exec.gracePeriod.options.default'),
+              t('workload.container.lifecycleHook.exec.gracePeriod.options.custom')
+            ]"
+            :mode="mode"
+            @input="updateGracePeriod"
+          />
+          <template v-if="selectGracePeriod === 'custom'">
+            <div class="var-row">
+              <LabeledInput
+                v-model.number="gracePeriodSeconds"
+                type="number"
+                :label="t('workload.container.lifecycleHook.exec.gracePeriod.label')"
+                :placeholder="t('workload.container.lifecycleHook.exec.gracePeriod.placeholder')"
+                class="single-value"
+                :mode="mode"
+                @input="$emit('update:grace-period', gracePeriodSeconds)"
+              />
+            </div>
+          </template>
+        </div>
+      </template>
     </template>
 
     <template v-if="selectHook === 'httpGet'">
@@ -211,7 +276,7 @@ export default {
         <button
           v-if="!isView"
           type="button"
-          class="btn role-link mb-20"
+          class="btn role-tertiary add mb-20"
           :disabled="mode === 'view'"
           @click.stop="addHeader"
         >

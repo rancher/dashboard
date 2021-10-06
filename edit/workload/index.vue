@@ -838,7 +838,7 @@ export default {
           <div class="spacer"></div>
           <div>
             <h3>{{ t('workload.container.titles.lifecycle') }}</h3>
-            <LifecycleHooks v-model="container.lifecycle" :mode="mode" />
+            <LifecycleHooks v-model="container.lifecycle" :pod-template-spec="podTemplateSpec" :mode="mode" />
           </div>
         </Tab>
         <Tab :label="t('workload.storage.title')" name="storage">
