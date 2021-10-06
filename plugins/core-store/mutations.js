@@ -171,8 +171,8 @@ export default {
 
     addObjects(cache.list, proxies);
 
-    for ( let i = 0 ; i < data.length ; i++ ) {
-      cache.map.set(data[i][keyField], proxies[i]);
+    for ( let i = 0 ; i < proxies.length ; i++ ) {
+      cache.map.set(proxies[i][keyField], proxies[i]);
     }
 
     cache.haveAll = true;

@@ -1,10 +1,12 @@
 import { EPINIO_TYPES } from '@/products/epinio/types';
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
-import { isEmpty } from '@/utils/object';
 import EpinioResource from './epinio-resource-instance.class';
 
 export default class EpinioApplication extends EpinioResource {
-  // name;// string
+  get id() {
+    return `${ this.name }`;
+    // return `${ this.namespace }-${ this.name }`; // TODO: RC id needs to contain the namespace... however this will break fetch/get by id
+  }
 
   get state() {
     return this.active ? '' : 'in-progress';
@@ -44,11 +46,14 @@ export default class EpinioApplication extends EpinioResource {
   }
 
   get links() {
-    // TODO: RC from v0.1.1 switch to all apps endpoint
     return {
-      update: `/proxy/api/v1/namespaces/${ this.namespace }/applications/${ this.id }`,
-      self:   `/proxy/api/v1/namespaces/${ this.namespace }/applications/${ this.id }`,
-      remove: `/proxy/api/v1/namespaces/${ this.namespace }/applications/${ this.id }`
+      update: this.getUrl(),
+      self:   this.getUrl(),
+      remove: this.getUrl(),
+      create: this.getUrl(this.namespace, null),
+      store:  `${ this.getUrl() }/store`,
+      stage:  `${ this.getUrl() }/stage`,
+      deploy:  `${ this.getUrl() }/deploy`,
     };
   }
 
@@ -61,79 +66,116 @@ export default class EpinioApplication extends EpinioResource {
   get canViewInApi() {
     return false;
   }
+  // ------------------------------------------------------------------
+
+  getUrl(namespace = this.namespace, name = this.name) {
+    // Add baseUrl in a generic way
+    return this.$getters['urlFor'](this.type, this.id, { url: `api/v1/namespaces/${ namespace }/applications/${ name || '' }` });
+  }
 
   // ------------------------------------------------------------------
 
-  async _save(opt = {}) {
-    delete this.__rehydrate;
-    delete this.__clone;
-    const forNew = !this.id;
+  trace(text, ...args) {
+    console.log(`### Application: ${ text }`, this.id, args);// eslint-disable-line no-console
+  }
 
-    const errors = await this.validationErrors(this, opt.ignoreFields);
+  async create() {
+    this.trace('Create the application resource');
 
-    if (!isEmpty(errors)) {
-      return Promise.reject(errors);
-    }
-
-    if ( !opt.url ) {
-      const schema = this.$getters['schemaFor'](this.type);
-
-      if ( forNew ) {
-        // const schema = this.$getters['schemaFor'](this.type);
-        // let url = schema.linkFor('collection');
-
-        // if ( schema.attributes && schema.attributes.namespaced && this.metadata && this.metadata.namespace ) {
-        //   url += `/${ this.metadata.namespace }`;
-        // }
-
-        opt.url = schema.linkFor('collection');
-      } else {
-        opt.url = this.linkFor('update') || this.linkFor('self');
+    await this.followLink('create', {
+      method:  'post',
+      headers: {
+        'content-type': 'application/json',
+        accept:         'application/json'
+      },
+      data: {
+        name:          this.name,
+        configuration: {
+          instances:   1,
+          services:    [],
+          environment: []
+        }
       }
-    }
+    });
+  }
 
-    if ( !opt.method ) {
-      opt.method = ( forNew ? 'post' : 'patch' );
-    }
+  async storeArchive(data) {
+    this.trace('Storing Application archive');
 
-    if ( !opt.headers ) {
-      opt.headers = {};
-    }
+    const formData = new FormData();
 
-    if ( !opt.headers['content-type'] ) {
-      opt.headers['content-type'] = ( forNew ? 'application/json' : 'application/json-patch+json' );
-    }
+    formData.append('file', data);
 
-    if ( !opt.headers['accept'] ) {
-      opt.headers['accept'] = 'application/json';
-    }
+    const res = await this.followLink('store', {
+      method:         'post',
+      headers: {
+        'content-type': 'multipart/form-data',
+        'File-Size':    data.size,
+      },
+      data: formData
+    });
 
-    opt.data = { ...this };
+    return res.blobuid;
+  }
 
-    try {
-      const res = await this.$dispatch('request', { opt, type: this.type });
+  async stage(blobuid) {
+    this.trace('Staging Application bits');
 
-      console.log('### Resource Save', this.type, this.id, res);// eslint-disable-line no-console
+    return await this.followLink('stage', {
+      method:  'post',
+      headers: { 'content-type': 'application/json' },
+      data:    {
+        app: {
+          name:      this.name,
+          namespace: this.namespace
+        },
+        blobuid,
+        builderimage: 'paketobuildpacks/builder:full'
+      }
+    });
+  }
 
-      // TODO: RC HANDLE
-      // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
-      // if ( res && res.kind !== 'Table') {
-      //   await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined ) });
-      // }
-    } catch (e) {
-      // if ( this.type && this.id && e?._status === 409) {
-      //   // If there's a conflict, try to load the new version
-      //   await this.$dispatch('find', {
-      //     type: this.type,
-      //     id:   this.id,
-      //     opt:  { force: true }
-      //   });
-      // }
+  showAppLog(Id) {
+    // https://github.com/epinio/epinio/blob/6ef5cc0044f71c01cf90ed83bcdda18251c594a7/internal/cli/usercmd/client.go
+  }
 
-      return Promise.reject(e);
-    }
+  showStagingLog(stageId) {
+    // https://github.com/epinio/epinio/blob/6ef5cc0044f71c01cf90ed83bcdda18251c594a7/internal/cli/usercmd/client.go
+  }
 
-    return this;
+  async waitForStaging(stageId) {
+    this.trace('Waiting for Application bits to be staged');
+
+    const opt = {
+      url:     this.$getters['urlFor'](this.type, this.id, { url: `api/v1/namespaces/${ this.namespace }/staging/${ stageId }/complete` }),
+      method:         'get',
+      headers: {
+        'content-type': 'application/json',
+        accept:         'application/json'
+      },
+    };
+
+    await this.$dispatch('request', { opt, type: this.type });
+    // TODO: RC API assume any acceptable response is 'ok' ({ status: ok })
+  }
+
+  async deploy(stageId, image) {
+    this.trace('Deploying Application bits');
+
+    const res = await this.followLink('deploy', {
+      method:         'post',
+      headers: { 'content-type': 'application/json' },
+      data:    {
+        app: {
+          name:      this.name,
+          namespace: this.namespace
+        },
+        stage: { id: stageId },
+        image
+      }
+    });
+
+    this.route = res.route;
   }
 
   async remove(opt = {}) {
@@ -146,6 +188,8 @@ export default class EpinioApplication extends EpinioResource {
     const res = await this.$dispatch('request', { opt, type: this.type });
 
     console.log('### Resource Remove', this.type, this.id, res);// eslint-disable-line no-console
+
+    this.$dispatch('remove', this);
     // if ( res?._status === 204 ) {
     //   // If there's no body, assume the resource was immediately deleted
     //   // and drop it from the store as if a remove event happened.
