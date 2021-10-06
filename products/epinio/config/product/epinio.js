@@ -40,8 +40,11 @@ export function init(store) {
     customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.APP })
   });
 
+  componentForType(EPINIO_TYPES.NAMESPACE, undefined, EPINIO_PRODUCT_NAME);
   configureType(EPINIO_TYPES.NAMESPACE, {
-    isCreatable: false,
+    isCreatable: true,
+    isEditable:  true,
+    isRemovable: true,
     showState:   false,
     showAge:     false,
     canYaml:     false,
