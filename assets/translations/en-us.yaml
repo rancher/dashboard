@@ -5830,7 +5830,7 @@ serverUpgrade:
   message: "The page reloaded because the version of {vendor} running on your server changed."
 
 ##############################
-### Plugins
+### Products
 ##############################
 epinio:
   tableHeaders:
@@ -5870,3 +5870,4 @@ epinio:
       progress:
         label: Progress
         subtext: Status of create
+  namespaceName: Name
