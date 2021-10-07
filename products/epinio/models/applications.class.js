@@ -1,4 +1,4 @@
-import { EPINIO_TYPES } from '@/products/epinio/types';
+import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import EpinioResource from './epinio-resource-instance.class';
 
@@ -22,10 +22,10 @@ export default class EpinioApplication extends EpinioResource {
   get _availableActions() {
     return [
       {
-        action:     '', // TODO: RC tidy after screenshots
-        label:      'Show Logs', // TODO: RC tidy after screenshots
+        action:     'showAppLog',
+        label:      'View Logs', // TODO: RC tidy after screenshots
         icon:       'icon icon-fw icon-chevron-right',
-        enabled:    true, // TODO: RC tidy after screenshots
+        enabled:    this.active,
       },
       { divider: true },
       ...this._standardActions
@@ -54,6 +54,7 @@ export default class EpinioApplication extends EpinioResource {
       store:  `${ this.getUrl() }/store`,
       stage:  `${ this.getUrl() }/stage`,
       deploy:  `${ this.getUrl() }/deploy`,
+      logs:   `${ this.getUrl() }/logs`,
     };
   }
 
@@ -135,12 +136,26 @@ export default class EpinioApplication extends EpinioResource {
     });
   }
 
-  showAppLog(Id) {
-    // https://github.com/epinio/epinio/blob/6ef5cc0044f71c01cf90ed83bcdda18251c594a7/internal/cli/usercmd/client.go
+  showAppLog() {
+    this.$dispatch('wm/open', {
+      id:        `epinio-${ this.id }-logs`,
+      label:     this.name,
+      product:   EPINIO_PRODUCT_NAME,
+      icon:      'file',
+      component: 'ApplicationLogs',
+      attrs:     { application: this }
+    }, { root: true });
   }
 
   showStagingLog(stageId) {
-    // https://github.com/epinio/epinio/blob/6ef5cc0044f71c01cf90ed83bcdda18251c594a7/internal/cli/usercmd/client.go
+    this.$dispatch('wm/open', {
+      id:        `epinio-${ this.id }-logs`,
+      label:     `${ this.name } - Staging - ${ stageId }`,
+      product:   EPINIO_PRODUCT_NAME,
+      icon:      'file',
+      component: 'StagingLogs',
+      attrs:     { application: this }
+    }, { root: true });
   }
 
   async waitForStaging(stageId) {

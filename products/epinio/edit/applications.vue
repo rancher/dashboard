@@ -109,7 +109,7 @@ export default Vue.extend<Data, any, any, any>({
           throw err;
         } finally {
           // TODO: RC `find` DOESN'T WORK... id doesn't contain namespace
-          this.$dispatch('findAll', { type: this.type, opt: { force: true } });
+          this.$store.dispatch('epinio/findAll', { type: this.type, opt: { force: true } });
           // await this.$dispatch('findAll', { type: this.type, opt: { force: true } });
         }
       } catch (e) {
@@ -167,7 +167,6 @@ export default Vue.extend<Data, any, any, any>({
       Mode: {{ mode }}<br>
       Value: {{ JSON.stringify(value) }}<br>
       originalValue: {{ JSON.stringify(originalValue) }}<br>
-      tarball: {{ tarball }}
     </div>
   </CruResource>
 </template>
