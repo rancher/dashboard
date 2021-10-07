@@ -4,8 +4,7 @@ import EpinioResource from './epinio-resource-instance.class';
 
 export default class EpinioApplication extends EpinioResource {
   get id() {
-    return `${ this.name }`;
-    // return `${ this.namespace }-${ this.name }`; // TODO: RC id needs to contain the namespace... however this will break fetch/get by id
+    return this.__clone ? undefined : `${ this.name }`;
   }
 
   get state() {
@@ -180,24 +179,5 @@ export default class EpinioApplication extends EpinioResource {
     });
 
     this.route = res.route;
-  }
-
-  async remove(opt = {}) {
-    if ( !opt.url ) {
-      opt.url = (this.links || {})['self'];
-    }
-
-    opt.method = 'delete';
-
-    const res = await this.$dispatch('request', { opt, type: this.type });
-
-    console.log('### Resource Remove', this.type, this.id, res);// eslint-disable-line no-console
-
-    this.$dispatch('remove', this);
-    // if ( res?._status === 204 ) {
-    //   // If there's no body, assume the resource was immediately deleted
-    //   // and drop it from the store as if a remove event happened.
-    //   await this.$dispatch('ws.resource.remove', { data: this });
-    // }
   }
 }

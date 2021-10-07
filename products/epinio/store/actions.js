@@ -127,7 +127,7 @@ export default {
         product:           EPINIO_PRODUCT_NAME,
         id:                EPINIO_TYPES.NAMESPACE,
         type:              'schema',
-        links:             { collection: 'api/v1/namespaces' },
+        links:             { collection: '/proxy/api/v1/namespaces' },
         collectionMethods: ['get', 'post'],
       }]
     };

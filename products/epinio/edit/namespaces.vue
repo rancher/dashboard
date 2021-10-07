@@ -37,6 +37,7 @@ export default Vue.extend({
 
 <template>
   <Loading v-if="!value" />
+  <!-- :valid="false" -->
   <CruResource
     v-else
     :mode="mode"
@@ -44,6 +45,8 @@ export default Vue.extend({
     :can-yaml="false"
     :errors="errors"
     @error="(e) => (errors = e)"
+    @finish="save"
+    @cancel="done"
   >
     <LabeledInput
       v-model="value.name"

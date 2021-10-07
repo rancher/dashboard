@@ -752,8 +752,9 @@ export class Resource {
 
   async _save(opt = {}) {
     delete this.__rehydrate;
-    delete this.__clone;
     const forNew = !this.id;
+
+    delete this.__clone;
 
     const errors = await this.validationErrors(this, opt.ignoreFields);
 

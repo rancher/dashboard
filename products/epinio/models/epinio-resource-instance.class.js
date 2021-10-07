@@ -54,4 +54,22 @@ export default class EpinioResource extends Resource {
     return false;
   }
   // ------------------------------------------------------------------
+  async remove(opt = {}) {
+    if ( !opt.url ) {
+      opt.url = (this.links || {})['self'];
+    }
+
+    opt.method = 'delete';
+
+    const res = await this.$dispatch('request', { opt, type: this.type });
+
+    console.log('### Resource Remove', this.type, this.id, res);// eslint-disable-line no-console
+
+    this.$dispatch('remove', this);
+    // if ( res?._status === 204 ) {
+    //   // If there's no body, assume the resource was immediately deleted
+    //   // and drop it from the store as if a remove event happened.
+    //   await this.$dispatch('ws.resource.remove', { data: this });
+    // }
+  }
 }
