@@ -3,33 +3,13 @@ import EpinioResource from './epinio-resource-instance.class';
 
 export default class EpinioNamespaces extends EpinioResource {
   get id() {
-    return `${ this.name }`;
-  }
-
-  get _availableActions() {
-    return [
-      {
-        action:     'promptRemove',
-        altAction:  'remove',
-        label:      this.t('action.remove'),
-        icon:       'icon icon-trash',
-        bulkable:   true,
-        enabled:    true,
-        bulkAction: 'promptRemove',
-        weight:     -10, // Delete always goes last
-      },
-      ...this._standardActions
-    ];
+    return this.__clone ? undefined : `${ this.name }`;
   }
 
   get links() {
-    const { epinioUrl } = process.env;
-    const { name } = this;
-
     return {
-      self:   `${ epinioUrl }/api/v1/namespaces/${ name }`,
-      remove: `${ epinioUrl }/api/v1/namespaces/${ name }`,
-      create: `${ epinioUrl }/api/v1/namespaces/`,
+      self:   this.getUrl(),
+      remove: this.getUrl(),
     };
   }
 
@@ -44,23 +24,11 @@ export default class EpinioNamespaces extends EpinioResource {
     });
   }
 
-  // async create() {
-  //   const requestBody = JSON.stringify({ name: this.name });
-  //   const { epinioUrl } = process.env;
-
-  //   await axios.post(`${ epinioUrl }/api/v1/namespaces/`, requestBody)
-  // }
-
-  async remove(opt = {}) {
-    opt.url = this.links.remove;
-
-    opt.method = 'delete';
-
-    const res = await this.$dispatch('request', { opt, type: this.type });
-
-    console.log('### Resource Remove', this.type, this.id, res);// eslint-disable-line no-console
-
-    this.$dispatch('remove', this);
+  async save() {
+    await this._save(...arguments);
+    await this.$dispatch('findAll', { type: this.type, opt: { force: true } });
+    // Find new namespace
+    // return new namespace
   }
 
   get canClone() {
@@ -74,4 +42,14 @@ export default class EpinioNamespaces extends EpinioResource {
   get canCustomEdit() {
     return false;
   }
+
+  // ------------------------------------------------------------------
+
+  getUrl() {
+    // TODO: RC Tidy up
+    // Add baseUrl in a generic way
+    return this.$getters['urlFor'](this.type, this.id, { url: `api/v1/namespaces/${ this.name }` });
+  }
+
+  // ------------------------------------------------------------------
 }
