@@ -4,7 +4,7 @@ import { Resource } from '@/plugins/core-store/resource-class';
 export default class EpinioResource extends Resource {
   get id() {
     // Epinio resources don't have id's... so default to name... use model specific override
-    throw new Error('Not Implememtned');
+    throw new Error('Not Implemented');
   }
 
   get listLocation() {
