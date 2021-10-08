@@ -94,6 +94,7 @@
 //                               resource: undefined       -- Use this resource in ResourceDetails instead
 //                               resourceDetail: undefined -- Use this resource specifically for ResourceDetail's detail component
 //                               resourceEdit: undefined   -- Use this resource specifically for ResourceDetail's edit component
+//                               resourceEditMasthead: true   -- Show the Masthead in the edit resource component
 //                               customRoute: undefined,
 //                           }
 // )
@@ -418,14 +419,15 @@ export const getters = {
 
   optionsFor(state) {
     const def = {
-      isCreatable: true,
-      isEditable:  true,
-      isRemovable: true,
-      showState:   true,
-      showAge:     true,
-      canYaml:     true,
-      namespaced:  null,
-      customRoute: undefined,
+      isCreatable:          true,
+      isEditable:           true,
+      isRemovable:          true,
+      showState:            true,
+      showAge:              true,
+      canYaml:              true,
+      namespaced:           null,
+      customRoute:          undefined,
+      resourceEditMasthead: true,
     };
 
     return (schemaOrType) => {

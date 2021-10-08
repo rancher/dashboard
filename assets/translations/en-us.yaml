@@ -5970,3 +5970,21 @@ epinio:
     status: Status
     route: Route
     boundServices: Bound Services
+  applications:
+    create:
+      title: Application
+      titleSubText: Epinio
+      instances: Instances
+    steps:
+      basics:
+        label: Details
+        subtext: Basic info about your app
+      source:
+        label: Source
+        subtext: Provide the source
+      services:
+        label: Service
+        subtext: Bind a service
+      progress:
+        label: Progress
+        subtext: Status of create

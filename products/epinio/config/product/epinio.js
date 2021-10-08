@@ -31,13 +31,14 @@ export function init(store) {
 
   componentForType(EPINIO_TYPES.APP, undefined, EPINIO_PRODUCT_NAME);
   configureType(EPINIO_TYPES.APP, {
-    isCreatable: true,
-    isEditable:  true,
-    isRemovable: true,
-    showState:   false,
-    showAge:     false,
-    canYaml:     false,
-    customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.APP })
+    isCreatable:          true,
+    isEditable:           true,
+    isRemovable:          true,
+    showState:            false,
+    showAge:              false,
+    canYaml:              false,
+    resourceEditMasthead: false,
+    customRoute:          createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.APP })
   });
 
   componentForType(EPINIO_TYPES.NAMESPACE, undefined, EPINIO_PRODUCT_NAME);
@@ -91,7 +92,7 @@ export function init(store) {
       labelKey:  'epinio.tableHeaders.boundServices',
       value:     'bound_services',
       sort:      ['bound_services'],
-      formatter:     'List',
+      // formatter:     'List', // TODO: RC bound_services is somehow an empty string... rather than undefined
     },
   ]);
 
