@@ -64,6 +64,10 @@ export default class EpinioApplication extends EpinioResource {
     return false;
   }
 
+  get canYaml() {
+    return false;
+  }
+
   get canViewInApi() {
     return false;
   }

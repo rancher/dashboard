@@ -1307,7 +1307,7 @@ export class Resource {
   }
 
   get ownersByType() {
-    const { metadata:{ ownerReferences = [] } } = this;
+    const ownerReferences = this.metadata?.ownerReferences || [];
     const ownersByType = {};
 
     ownerReferences.forEach((owner) => {

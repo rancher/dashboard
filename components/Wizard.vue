@@ -234,26 +234,28 @@ export default {
       <div class="header">
         <div class="title">
           <div v-if="showBanner" class="top choice-banner">
-            <div v-show="initialTitle || activeStepIndex > 0" class="title">
-              <!-- Logo -->
-              <slot name="bannerTitleImage">
-                <div v-if="bannerImage" class="round-image">
-                  <LazyImage :src="bannerImage" class="logo" />
+            <slot name="bannerTitle">
+              <div v-show="initialTitle || activeStepIndex > 0" class="title">
+                <!-- Logo -->
+                <slot name="bannerTitleImage">
+                  <div v-if="bannerImage" class="round-image">
+                    <LazyImage :src="bannerImage" class="logo" />
+                  </div>
+                </slot>
+                <!-- Title with subtext -->
+                <div class="subtitle">
+                  <h2 v-if="bannerTitle">
+                    {{ bannerTitle }}
+                  </h2>
+                  <span v-if="bannerTitleSubtext" class="subtext">{{ bannerTitleSubtext }}</span>
                 </div>
-              </slot>
-              <!-- Title with subtext -->
-              <div class="subtitle">
-                <h2 v-if="bannerTitle">
-                  {{ bannerTitle }}
-                </h2>
-                <span v-if="bannerTitleSubtext" class="subtext">{{ bannerTitleSubtext }}</span>
               </div>
-            </div>
+            </slot>
             <!-- Step number with subtext -->
             <div v-if="activeStep && showSteps" class="subtitle">
               <h2>{{ t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
               <slot name="bannerSubtext">
-                <span class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
+                <span v-if="activeStep.subtext !== null" class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
               </slot>
             </div>
           </div>
