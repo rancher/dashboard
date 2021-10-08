@@ -92,7 +92,9 @@ export default {
     },
 
     allPVCs() {
-      return this.$store.getters['harvester/all'](PVC).filter((P) => {
+      const allPVCs = this.$store.getters['harvester/all'](PVC);
+
+      return allPVCs.filter((P) => {
         return this.namespace ? this.namespace === P.metadata.namespace : true;
       }) || [];
     },
@@ -171,6 +173,16 @@ export default {
         this.update();
       }
     },
+
+    pvcResource: {
+      handler(pvc) {
+        if (!this.value.volumeName && pvc?.metadata?.name) {
+          this.value.volumeName = pvc.metadata.name;
+        }
+      },
+      deep:      true,
+      immediate: true
+    },
   },
 
   created() {
@@ -215,7 +227,7 @@ export default {
         <InputOrDisplay :name="t('harvester.fields.volume')" :value="value.volumeName" :mode="mode">
           <LabeledSelect
             v-model="value.volumeName"
-            :disabled="isEdit"
+            :disabled="isDisabled"
             :label="t('harvester.fields.volume')"
             :mode="mode"
             :options="volumeOption"
