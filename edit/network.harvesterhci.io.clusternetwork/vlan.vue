@@ -75,13 +75,6 @@ export default {
       :labels="[t('generic.enabled'), t('generic.disabled')]"
     />
 
-    <!-- <LabeledInput
-      v-if="value.enable"
-      v-model="value.config.defaultPhysicalNIC"
-      :label="t('harvester.setting.defaultPhysicalNIC')"
-      class="mb-5"
-    /> -->
-
     <LabeledSelect
       v-if="value.enable"
       v-model="value.config.defaultPhysicalNIC"
