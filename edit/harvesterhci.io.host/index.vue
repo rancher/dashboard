@@ -113,18 +113,22 @@ export default {
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     nicsOptions() {
-      return this.nics.map( (N) => {
-        const isRecommended = N.usedByManagementNetwork ? `(${ this.$store.getters['i18n/t']('harvester.host.detail.notRecommended') })` : '';
+      return this.nics.filter((N) => {
+        return !(N.masterIndex !== undefined && N.usedByVlanNetwork === undefined);
+      })
+        .map( (N) => {
+          const isRecommended = N.usedByManagementNetwork ? `(${ this.$store.getters['i18n/t']('harvester.host.detail.notRecommended') })` : '';
 
-        const label = `${ N.name }(${ N.state })   ${ isRecommended }`;
+          const label = `${ N.name }(${ N.type }, ${ N.state })   ${ isRecommended }`;
 
-        return {
-          value:                   N.name,
-          label,
-          state:                   N.state,
-          usedByManagementNetwork: N.usedByManagementNetwork,
-        };
-      });
+          return {
+            value:                   N.name,
+            label,
+            state:                   N.state,
+            type:                    N.type,
+            usedByManagementNetwork: N.usedByManagementNetwork,
+          };
+        });
     },
     blockDeviceOpts() {
       const inStore = this.$store.getters['currentProduct'].inStore;
@@ -403,7 +407,7 @@ export default {
                 <template v-slot:option="option">
                   <template>
                     <div class="nicOption">
-                      <span>{{ option.value }}({{ option.state }}) </span> <span class="pull-right">{{ option.usedByManagementNetwork ? t('harvester.host.detail.notRecommended') : '' }}</span>
+                      <span>{{ option.value }}({{ option.type }}, {{ option.state }}) </span> <span class="pull-right">{{ option.usedByManagementNetwork ? t('harvester.host.detail.notRecommended') : '' }}</span>
                     </div>
                   </template>
                 </template>

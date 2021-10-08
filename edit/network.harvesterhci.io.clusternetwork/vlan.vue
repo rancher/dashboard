@@ -1,14 +1,17 @@
 <script>
 import Vue from 'vue';
-import LabeledInput from '@/components/form/LabeledInput';
+import { intersection } from 'lodash';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import RadioGroup from '@/components/form/RadioGroup';
 import Tip from '@/components/Tip';
 import CreateEditView from '@/mixins/create-edit-view';
+import { allHash } from '@/utils/promise';
+import { HCI } from '@/config/types';
 
 export default {
   name:       'EditHarvesterVlan',
   components: {
-    LabeledInput,
+    LabeledSelect,
     RadioGroup,
     Tip
   },
@@ -22,17 +25,41 @@ export default {
     },
   },
 
+  async fetch() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+
+    const hash = await allHash({ nodeNetworks: this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.NODE_NETWORK }) });
+
+    this.nodeNetworks = hash.nodeNetworks;
+  },
+
   data() {
     if (!this.value.config) {
       Vue.set(this.value, 'config', { defaultPhysicalNIC: '' });
     }
 
-    return {};
+    return { nodeNetworks: [] };
   },
 
   computed: {
     doneLocationOverride() {
       return this.value.listLocation;
+    },
+
+    nicOptions() {
+      if (this.nodeNetworks.length === 0) {
+        return [];
+      }
+
+      const out = this.nodeNetworks.map((N) => {
+        if (N?.nics?.length > 0) {
+          return N.nics.map(nic => nic.name);
+        } else {
+          return [];
+        }
+      });
+
+      return intersection(...out);
     }
   },
 };
@@ -48,9 +75,17 @@ export default {
       :labels="[t('generic.enabled'), t('generic.disabled')]"
     />
 
-    <LabeledInput
+    <!-- <LabeledInput
       v-if="value.enable"
       v-model="value.config.defaultPhysicalNIC"
+      :label="t('harvester.setting.defaultPhysicalNIC')"
+      class="mb-5"
+    /> -->
+
+    <LabeledSelect
+      v-if="value.enable"
+      v-model="value.config.defaultPhysicalNIC"
+      :options="nicOptions"
       :label="t('harvester.setting.defaultPhysicalNIC')"
       class="mb-5"
     />
