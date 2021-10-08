@@ -1,4 +1,3 @@
-import Vue from 'vue';
 import {
   NAMESPACE, NAME, REPO, REPO_TYPE, CHART, VERSION, _VIEW, FROM_TOOLS, _FLAGGED
 } from '@/config/query-params';
@@ -7,25 +6,24 @@ import { compare, isPrerelease, sortable } from '@/utils/version';
 import { filterBy } from '@/utils/array';
 import { CATALOG } from '@/config/types';
 import { SHOW_PRE_RELEASE } from '@/store/prefs';
+import { set } from '@/utils/object';
 
-export default {
-  showMasthead() {
-    return (mode) => {
-      return mode === _VIEW;
-    };
-  },
+import SteveModel from '@/plugins/steve/steve-class';
+
+export default class CatalogApp extends SteveModel {
+  showMasthead(mode) {
+    return mode === _VIEW;
+  }
 
   applyDefaults() {
-    return () => {
-      Vue.set(this, 'disableOpenApiValidation', false);
-      Vue.set(this, 'noHooks', false);
-      Vue.set(this, 'skipCRDs', false);
-      Vue.set(this, 'timeout', 300);
-      Vue.set(this, 'wait', true);
-    };
-  },
+    set(this, 'disableOpenApiValidation', false);
+    set(this, 'noHooks', false);
+    set(this, 'skipCRDs', false);
+    set(this, 'timeout', 300);
+    set(this, 'wait', true);
+  }
 
-  _availableActions() {
+  get _availableActions() {
     const out = this._standardActions;
 
     const upgrade = {
@@ -38,35 +36,33 @@ export default {
     out.unshift(upgrade);
 
     return out;
-  },
+  }
 
-  matchingChart() {
-    return (includeHidden) => {
-      const chart = this.spec?.chart;
+  matchingChart(includeHidden) {
+    const chart = this.spec?.chart;
 
-      if ( !chart ) {
-        return;
-      }
+    if ( !chart ) {
+      return;
+    }
 
-      const chartName = chart.metadata?.name;
-      const preferRepoType = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE];
-      const preferRepoName = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME];
-      const match = this.$rootGetters['catalog/chart']({
-        chartName,
-        preferRepoType,
-        preferRepoName,
-        includeHidden
-      });
+    const chartName = chart.metadata?.name;
+    const preferRepoType = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE];
+    const preferRepoName = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME];
+    const match = this.$rootGetters['catalog/chart']({
+      chartName,
+      preferRepoType,
+      preferRepoName,
+      includeHidden
+    });
 
-      return match;
-    };
-  },
+    return match;
+  }
 
-  currentVersion() {
+  get currentVersion() {
     return this.spec?.chart?.metadata?.version;
-  },
+  }
 
-  upgradeAvailable() {
+  get upgradeAvailable() {
     // false = does not apply (managed by fleet)
     // null = no upgrade found
     // object = version available to upgrade to
@@ -110,9 +106,9 @@ export default {
     }
 
     return null;
-  },
+  }
 
-  upgradeAvailableSort() {
+  get upgradeAvailableSort() {
     const version = this.upgradeAvailable;
 
     if ( !version ) {
@@ -120,40 +116,38 @@ export default {
     }
 
     return sortable(version);
-  },
+  }
 
-  goToUpgrade() {
-    return (forceVersion, fromTools) => {
-      const match = this.matchingChart(true);
-      const versionName = this.spec?.chart?.metadata?.version;
-      const query = {
-        [NAMESPACE]: this.metadata.namespace,
-        [NAME]:      this.metadata.name,
-        [VERSION]:   forceVersion || versionName,
-      };
-
-      if ( match ) {
-        query[REPO] = match.repoName;
-        query[REPO_TYPE] = match.repoType;
-        query[CHART] = match.chartName;
-      }
-
-      if ( fromTools ) {
-        query[FROM_TOOLS] = _FLAGGED;
-      }
-
-      this.currentRouter().push({
-        name:   'c-cluster-apps-charts-install',
-        params: {
-          product:   this.$rootGetters['productId'],
-          cluster:   this.$rootGetters['clusterId'],
-        },
-        query,
-      });
+  goToUpgrade(forceVersion, fromTools) {
+    const match = this.matchingChart(true);
+    const versionName = this.spec?.chart?.metadata?.version;
+    const query = {
+      [NAMESPACE]: this.metadata.namespace,
+      [NAME]:      this.metadata.name,
+      [VERSION]:   forceVersion || versionName,
     };
-  },
 
-  details() {
+    if ( match ) {
+      query[REPO] = match.repoName;
+      query[REPO_TYPE] = match.repoType;
+      query[CHART] = match.chartName;
+    }
+
+    if ( fromTools ) {
+      query[FROM_TOOLS] = _FLAGGED;
+    }
+
+    this.currentRouter().push({
+      name:   'c-cluster-apps-charts-install',
+      params: {
+        product:   this.$rootGetters['productId'],
+        cluster:   this.$rootGetters['clusterId'],
+      },
+      query,
+    });
+  }
+
+  get details() {
     const t = this.$rootGetters['i18n/t'];
 
     const first = this.spec?.info?.firstDeployed;
@@ -170,54 +164,52 @@ export default {
     }
 
     return [];
-  },
+  }
 
-  nameDisplay() {
+  get nameDisplay() {
     const out = this.spec?.name || this.metadata?.name || this.id || '';
 
     return out;
-  },
+  }
 
-  chartDisplay() {
+  get chartDisplay() {
     const name = this.spec?.chart?.metadata?.name || '?';
 
     return `${ name }:${ this.versionDisplay }`;
-  },
+  }
 
-  versionDisplay() {
+  get versionDisplay() {
     return cleanupVersion(this.spec?.chart?.metadata?.version);
-  },
+  }
 
-  versionSort() {
+  get versionSort() {
     return sortable(this.versionDisplay);
-  },
+  }
 
-  remove() {
-    return async(opt = {}) => {
-      const res = await this.doAction('uninstall', opt);
+  async remove(opt = {}) {
+    const res = await this.doAction('uninstall', opt);
 
-      const operation = await this.$dispatch('find', {
-        type: CATALOG.OPERATION,
-        id:   `${ res.operationNamespace }/${ res.operationName }`
-      });
+    const operation = await this.$dispatch('find', {
+      type: CATALOG.OPERATION,
+      id:   `${ res.operationNamespace }/${ res.operationName }`
+    });
 
-      try {
-        await operation.waitForLink('logs');
-        operation.openLogs();
-      } catch (e) {
-        // The wait times out eventually, move on...
-      }
-    };
-  },
+    try {
+      await operation.waitForLink('logs');
+      operation.openLogs();
+    } catch (e) {
+      // The wait times out eventually, move on...
+    }
+  }
 
-  canDelete() {
+  get canDelete() {
     return this.hasAction('uninstall');
-  },
+  }
 
-  deployedResources() {
+  get deployedResources() {
     return filterBy(this.metadata?.relationships || [], 'rel', 'helmresource');
-  },
-};
+  }
+}
 
 function cleanupVersion(version) {
   if ( !version ) {
