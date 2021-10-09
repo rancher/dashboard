@@ -53,7 +53,9 @@ export default {
 
       const out = this.nodeNetworks.map((N) => {
         if (N?.nics?.length > 0) {
-          return N.nics.map(nic => nic.name);
+          return N.nics.filter((nic) => {
+            return !(nic.masterIndex !== undefined && nic.usedByVlanNetwork === undefined);
+          }).map(nic => nic.name);
         } else {
           return [];
         }
