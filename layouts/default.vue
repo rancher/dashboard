@@ -59,7 +59,7 @@ export default {
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
     ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleVirtualCluster']),
-    ...mapGetters({ locale: 'i18n/selectedLocaleLabel' }),
+    ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
     ...mapGetters('type-map', ['activeProducts']),
 
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
@@ -149,7 +149,7 @@ export default {
       return displayVersion;
     },
 
-    showProductSupport() {
+    showProductFooter() {
       if (this.isVirtualProduct) {
         return true;
       } else {
@@ -516,6 +516,10 @@ export default {
         });
       }
     },
+
+    switchLocale(locale) {
+      this.$store.dispatch('i18n/switchTo', locale);
+    },
   }
 };
 </script>
@@ -548,15 +552,48 @@ export default {
             <span>{{ t('nav.clusterTools') }}</span>
           </a>
         </n-link>
-        <div class="version text-muted">
-          {{ displayVersion }}
+        <div v-if="showProductFooter" class="footer">
           <nuxt-link
-            v-if="showProductSupport"
             :to="supportLink"
             class="pull-right"
           >
             {{ t('nav.support', {hasSupport: true}) }}
           </nuxt-link>
+
+          <span
+            v-tooltip="{content: displayVersion, placement: 'top'}"
+            class="clip version text-muted"
+          >
+            {{ displayVersion }}
+          </span>
+
+          <span>
+            <v-popover
+              popover-class="localeSelector"
+              placement="top"
+              trigger="click"
+            >
+              <a class="locale-chooser">
+                {{ locale }}
+              </a>
+
+              <template slot="popover">
+                <ul class="list-unstyled dropdown" style="margin: -1px;">
+                  <li
+                    v-for="(label, name) in availableLocales"
+                    :key="name"
+                    class="hand"
+                    @click="switchLocale(name)"
+                  >
+                    {{ label }}
+                  </li>
+                </ul>
+              </template>
+            </v-popover>
+          </span>
+        </div>
+        <div v-else class="version text-muted">
+          {{ displayVersion }}
         </div>
       </nav>
       <main v-if="clusterReady">
@@ -669,6 +706,37 @@ export default {
       cursor: default;
       margin: 0 10px 10px 10px;
     }
+
+    NAV .footer {
+      margin: 20px;
+
+      display: flex;
+      flex: 0;
+      flex-direction: row;
+      > * {
+        flex: 1;
+        color: var(--link);
+
+        &:last-child {
+          text-align: right;
+        }
+
+        &:first-child {
+          text-align: left;
+        }
+
+        text-align: center;
+      }
+
+      .version {
+        cursor: default;
+        margin: 0px;
+      }
+
+      .locale-chooser {
+        cursor: pointer;
+      }
+    }
   }
 
   MAIN {
@@ -727,5 +795,29 @@ export default {
     grid-area: wm;
     overflow-y: hidden;
     z-index: 1;
+  }
+
+  .localeSelector {
+    ::v-deep .popover-inner {
+      padding: 50px 0;
+    }
+
+    ::v-deep .popover-arrow {
+      display: none;
+    }
+
+    ::v-deep .popover:focus {
+      outline: 0;
+    }
+
+    li {
+      padding: 8px 20px;
+
+      &:hover {
+        background-color: var(--primary-hover-bg);
+        color: var(--primary-hover-text);
+        text-decoration: none;
+      }
+    }
   }
 </style>
