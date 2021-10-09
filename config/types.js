@@ -2,17 +2,15 @@
 // 1. Provided by Steve and always potentialy available
 // --------------------------------------
 
-// Standalone steve
+// Steve-specific virtual types
 // Base: /v1
-export const STEVE = {
-  PREFERENCE: 'userpreference',
-  CLUSTER:    'cluster',
-};
+export const STEVE = { PREFERENCE: 'userpreference' };
 
-// Auth (via Norman)
+// Old APIs via Norman
 // Base: /v3
 export const NORMAN = {
   AUTH_CONFIG: 'authconfig',
+  CLUSTER:                       'cluster',
   PRINCIPAL:   'principal',
   USER:        'user',
   TOKEN:       'token',
