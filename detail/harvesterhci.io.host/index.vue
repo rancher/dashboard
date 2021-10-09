@@ -147,7 +147,7 @@ export default {
   <div>
     <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
       <Tab name="basics" :label="t('harvester.host.tabs.basics')" :weight="3" class="bordered-table">
-        <Basic v-model="value" :metrics="metrics" :mode="mode" :host-netowrk-resource="hostNetworkResource" />
+        <Basic v-model="value" :metrics="metrics" :mode="mode" :host-network-resource="hostNetworkResource" />
       </Tab>
       <Tab name="instance" :label="t('harvester.host.tabs.instance')" :weight="2" class="bordered-table">
         <Instance :node="value" />

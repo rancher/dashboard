@@ -317,7 +317,7 @@ export default {
     },
 
     parseVM() {
-      this.$refs.yamlEditor.update();
+      this.$refs.yamlEditor?.update();
       this.parseOther();
       this.parseNetworkRows(this.networkRows);
       this.parseDiskRows(this.diskRows);

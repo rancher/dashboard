@@ -174,11 +174,11 @@ export default {
     },
 
     networkType() {
-      return this.hostNetworkResource?.spec?.type;
+      return this.hostNetworkResource?.spec?.type || '-';
     },
 
     nic() {
-      return this.hostNetworkResource?.spec?.nic;
+      return this.hostNetworkResource?.spec?.nic || '-';
     },
 
     networkMessage() {
