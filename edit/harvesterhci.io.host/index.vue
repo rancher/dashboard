@@ -157,15 +157,26 @@ export default {
           const deviceType = d.status?.deviceStatus?.details?.deviceType;
           const sizeBytes = d.status?.deviceStatus?.capacity?.sizeBytes;
           const size = formatSi(sizeBytes, { increment: 1024 });
+          const parentDevice = d.status?.deviceStatus?.parentDevice;
+
+          let label = `${ devPath } (Type: ${ deviceType }, Size: ${ size })`;
+
+          if (parentDevice) {
+            label = `- ${ label }`;
+          }
 
           return {
-            label:  `${ devPath } (Type: ${ deviceType }, Size: ${ size })`,
-            value:  d.id,
-            action: this.addDisk,
+            label,
+            value:    d.id,
+            action:   this.addDisk,
+            kind:     !parentDevice ? 'group' : '',
+            disabled: !!(d.childParts.length > 0 && d.isChildPartProvisioned),
+            group:    parentDevice || devPath,
+            isParent: !!parentDevice,
           };
         });
 
-      return sortBy(out, 'label');
+      return sortBy(out, ['group', 'isParent', 'label']);
     },
     removedDisks() {
       const out = this.disks.filter((d) => {
@@ -356,6 +367,13 @@ export default {
         ...wasIgnored, ...wasFiltered, ...val
       });
     },
+    selectable(opt) {
+      if ( opt.disabled) {
+        return false;
+      }
+
+      return true;
+    }
   },
 };
 </script>
@@ -439,8 +457,20 @@ export default {
               :button-label="t('harvester.host.disk.add')"
               :dropdown-options="blockDeviceOpts"
               size="sm"
+              :selectable="selectable"
               @click-action="e=>addDisk(e.value)"
-            />
+            >
+              <template #option="option">
+                <template v-if="option.kind === 'group'">
+                  <b>
+                    {{ option.label }}
+                  </b>
+                </template>
+                <div v-else>
+                  {{ option.label }}
+                </div>
+              </template>
+            </ButtonDropdown>
           </template>
           <template #remove-button="scope">
             <button
