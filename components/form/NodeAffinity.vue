@@ -73,6 +73,10 @@ export default {
     }
   },
 
+  mounted() {
+    this.update();
+  },
+
   methods: {
     update() {
       this.$nextTick(() => {
