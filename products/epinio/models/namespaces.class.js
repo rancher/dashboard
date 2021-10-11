@@ -26,9 +26,17 @@ export default class EpinioNamespaces extends EpinioResource {
 
   async save() {
     await this._save(...arguments);
-    await this.$dispatch('findAll', { type: this.type, opt: { force: true } });
-    // Find new namespace
-    // return new namespace
+    const namespaces = await this.$dispatch('findAll', { type: this.type, opt: { force: true } });
+
+    try {
+      // Find new namespace
+      // return new namespace
+      const newNamespace = namespaces.filter(n => n.name === this.name)[0];
+
+      return newNamespace;
+    } catch (e) {
+      throw new Error(e);
+    }
   }
 
   get canClone() {
@@ -59,5 +67,9 @@ export default class EpinioNamespaces extends EpinioResource {
         validators: [`namespaceName`]
       }
     ];
+  }
+
+  confirmRemove() {
+    return true;
   }
 }

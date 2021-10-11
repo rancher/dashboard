@@ -32,6 +32,9 @@ export default Vue.extend({
       return false;
     },
   },
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
+  },
 });
 </script>
 
