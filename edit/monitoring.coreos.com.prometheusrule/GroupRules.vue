@@ -126,7 +126,7 @@ export default {
           <span v-else></span>
         </template>
         <template v-slot:remove-button="props">
-          <button v-if="!isView" type="button" class="btn role-link close btn-sm" @click="removeRule(props.i)">
+          <button v-if="!isView" type="button" class="btn role-link close" @click="removeRule(props.i)">
             <i class="icon icon-2x icon-x" />
           </button>
           <span v-else></span>
@@ -170,7 +170,7 @@ export default {
           <span v-else></span>
         </template>
         <template v-slot:remove-button="props">
-          <button v-if="!isView" type="button" class="btn role-link close btn-sm" @click="removeRule(props.i)">
+          <button v-if="!isView" type="button" class="btn role-link close" @click="removeRule(props.i)">
             <i class="icon icon-2x icon-x" />
           </button>
           <span v-else></span>

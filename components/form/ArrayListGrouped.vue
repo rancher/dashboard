@@ -42,7 +42,7 @@ export default {
       </InfoBox>
     </template>
     <template v-slot:remove-button="scope">
-      <button v-if="canRemoveRow(scope.row, scope.i)" type="button" class="btn role-link close btn-sm" @click="scope.remove">
+      <button v-if="canRemoveRow(scope.row, scope.i)" type="button" class="btn role-link close" @click="scope.remove">
         <i class="icon icon-2x icon-x" />
       </button>
       <span v-else></span>

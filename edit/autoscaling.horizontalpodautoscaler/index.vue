@@ -208,7 +208,7 @@ export default {
               <button
                 v-if="value.spec.metrics.length > 1"
                 type="button"
-                class="btn role-link close btn-sm"
+                class="btn role-link close"
                 @click="removeProps.remove"
               >
                 <i class="icon icon-2x icon-x" />

@@ -11,8 +11,9 @@ export default {
 
 <template>
   <div :class="{'stepped': !!step}" class="info-box">
+    <h2>Name</h2>
     <div v-if="step" class="step-number mb-10">
-      <h2>Step {{ step }}</h2>
+      <h3>Step {{ step }}</h3>
     </div>
     <slot />
   </div>
@@ -22,7 +23,6 @@ export default {
   .info-box {
     background-color: var(--tabbed-container-bg);
     border: .5px solid var(--tabbed-border);
-    box-shadow: 0 0 10px var(--shadow);
     padding: 20px;
     margin-bottom: 20px;
     border-radius: var(--border-radius);

@@ -157,3 +157,8 @@ fieldset[disabled] .btn {
     border: inherit;
   }
 }
+
+.btn.close {
+  padding: 0;
+  line-height: 0;
+}
