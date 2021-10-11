@@ -11,8 +11,18 @@ export function init(store) {
     basicType,
     headers,
     configureType,
-    componentForType
+    componentForType,
+    virtualType
   } = DSL(store, EPINIO_PRODUCT_NAME);
+
+  virtualType({
+    label:       store.getters['i18n/t']('clusterIndexPage.header'),
+    namespaced:  false,
+    name:        'cluster-dashboard',
+    weight:      1000,
+    route:       createEpinioRoute('c-cluster'),
+    exact:       true,
+  });
 
   product({
     // ifHaveType:          CAPI.RANCHER_CLUSTER,
@@ -38,7 +48,7 @@ export function init(store) {
     showAge:              false,
     canYaml:              false,
     resourceEditMasthead: false,
-    customRoute:          createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.APP })
+    customRoute:          createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.APP }),
   });
 
   componentForType(EPINIO_TYPES.NAMESPACE, undefined, EPINIO_PRODUCT_NAME);
@@ -49,10 +59,11 @@ export function init(store) {
     showState:   false,
     showAge:     false,
     canYaml:     false,
-    customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE })
+    customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE }),
   });
 
   basicType([
+    'cluster-dashboard',
     EPINIO_TYPES.APP,
     EPINIO_TYPES.NAMESPACE
   ]);
