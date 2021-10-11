@@ -1,6 +1,7 @@
 @import "variables";
 
 @font-face {
+<<<<<<< HEAD
   font-family: "#{$icomoon-font-family}";
   src: url("#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?e6rm5s")
       format("truetype"),
@@ -8,6 +9,13 @@
       format("woff"),
     url("#{$icomoon-font-path}/#{$icomoon-font-family}.svg?e6rm5s##{$icomoon-font-family}")
       format("svg");
+=======
+  font-family: '#{$icomoon-font-family}';
+  src:
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?5vs7wc') format('truetype'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?5vs7wc') format('woff'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?5vs7wc##{$icomoon-font-family}') format('svg');
+>>>>>>> 975573ca... icon styling and correct icon
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -411,6 +419,11 @@
 .icon-storage-1 {
   &:before {
     content: $icon-storage-1;
+  }
+}
+.icon-storage {
+  &:before {
+    content: $icon-storage; 
   }
 }
 .icon-cluster {

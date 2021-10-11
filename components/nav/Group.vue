@@ -276,12 +276,14 @@ export default {
           font-size: 14px;
           text-transform: none;
           padding-left: 10px;
-          // background: pink;
+          display: flex;
+          align-items: center;
 
-          > I {
-            color: red;
+          ::v-deep .icon {
             font-size: 20px;
-            line-height: 0;
+            padding-right: 5px;
+            position: relative;
+            color: var(--muted);
           }
         }
 

@@ -139,15 +139,7 @@ export function init(store) {
 
   setGroupDefaultType('serviceDiscovery', SERVICE);
 
-  configureType('cluster', {
-    displayName: 'cluster',
-    location:    {
-      // name:   'c-cluster-product-resource',
-      params: { resource: 'cluster' },
-    },
-    // resource: WORKLOAD_TYPES.DEPLOYMENT,
-    icon: 'cluster'
-  });
+  configureType('cluster', { icon: 'cluster' });
 
   configureType('workload', {
     displayName: 'Workload',
@@ -159,35 +151,9 @@ export function init(store) {
     icon:     'globe'
   });
 
-  configureType('rbac', {
-    displayName: 'rbac',
-    location:    {
-      // name:   'c-cluster-product-resource',
-      params: { resource: 'rbac' },
-    },
-    // resource: WORKLOAD_TYPES.DEPLOYMENT,
-    icon: 'linux'
-  });
-
-  configureType('serviceDiscovery', {
-    displayName: 'serviceDiscovery',
-    location:    {
-      // name:   'c-cluster-product-resource',
-      params: { resource: 'serviceDiscovery' },
-    },
-    // resource: WORKLOAD_TYPES.DEPLOYMENT,
-    icon: 'compass'
-  });
-
-  configureType('storage', {
-    displayName: 'storage',
-    location:    {
-      // name:   'c-cluster-product-resource',
-      params: { resource: 'storage' },
-    },
-    // resource: WORKLOAD_TYPES.DEPLOYMENT,
-    icon: 'linux'
-  });
+  configureType('rbac', { icon: 'user' });
+  configureType('serviceDiscovery', { icon: 'compass' });
+  configureType('storage', { icon: 'storage' });
 
   headers(PV, [STATE, NAME_COL, RECLAIM_POLICY, PERSISTENT_VOLUME_CLAIM, PERSISTENT_VOLUME_SOURCE, PV_REASON, AGE]);
   headers(CONFIG_MAP, [NAME_COL, NAMESPACE_COL, KEYS, AGE]);

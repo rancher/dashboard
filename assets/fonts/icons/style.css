@@ -1,9 +1,15 @@
 @font-face {
   font-family: 'icons';
   src:
+<<<<<<< HEAD
     url('fonts/icons.ttf?e6rm5s') format('truetype'),
     url('fonts/icons.woff?e6rm5s') format('woff'),
     url('fonts/icons.svg?e6rm5s#icons') format('svg');
+=======
+    url('fonts/icons.ttf?5vs7wc') format('truetype'),
+    url('fonts/icons.woff?5vs7wc') format('woff'),
+    url('fonts/icons.svg?5vs7wc#icons') format('svg');
+>>>>>>> 975573ca... icon styling and correct icon
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -252,7 +258,11 @@
 .icon-cluster-management:before {
   content: "\e941";
 }
+<<<<<<< HEAD
 .icon-storage-1:before {
+=======
+.icon-storage:before {
+>>>>>>> 975573ca... icon styling and correct icon
   content: "\e948";
 }
 .icon-cluster:before {
