@@ -139,7 +139,7 @@ export default Vue.extend<Data, any, any, any>({
             throw new Error('Not implemented');
           }
 
-          //  this.done(); // TODO: RC nav to apps?
+          this.done();
           buttonDone(true);
         } catch (err) {
           console.error(err);// eslint-disable-line no-console
@@ -174,7 +174,7 @@ export default Vue.extend<Data, any, any, any>({
       :banner-title-subtext="t('epinio.applications.create.titleSubText')"
       :finish-mode="action"
       @cancel="cancel"
-      @finish="done"
+      @finish="saveOverride"
     >
       <template #basics>
         <AppInfo
