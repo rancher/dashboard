@@ -32,6 +32,16 @@ describe('TopLevelMenu', () => {
     topLevelMenu.links().each((link, idx) => {
       topLevelMenu.openIfClosed();
       topLevelMenu.links().eq(idx).click();
+
+      return topLevelMenu.links().eq(idx).then((linkEl) => {
+        return cy.location('href').then((url) => {
+          if (url.includes('explorer')) {
+            cy.intercept(/.+\/v1\/nodes$/).as('nodeRequest');
+            cy.wait(['@nodeRequest']);
+          }
+          cy.location('href').should('include', linkEl.prop('href'));
+        });
+      });
     });
   });
 });

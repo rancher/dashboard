@@ -33,27 +33,29 @@ describe('Default Layout Side Nav', () => {
     cy.get('@openGroup').find('ul').should('have.length', 0);
   });
 
-  it('navigates to group item when group is expanded', () => {
+  it('navigates to a group item when group is expanded', () => {
     defaultnav.groups().not('.expanded').eq(0)
       .as('closedGroup');
     cy.get('@closedGroup').click();
-    cy.get('@closedGroup').find('.header.active').then((activeHeader) => {
-      if (!activeHeader) {
-        cy.get('@closedGroup').find('.nuxt-link-active').should('have.lenght.gt', 0);
-      }
-    });
+    cy.get('@closedGroup').find('.nuxt-link-active').should('have.length.gt', 0);
   });
 
   it('contains only valid links', () => {
+    // iterate through top-level groups
     defaultnav.groups().each((group, index) => {
+      // expand current top-level group
       defaultnav.groups().eq(index).click();
+      // check if it has sub-groups and expand them
       defaultnav.groups().eq(index).then((group) => {
         if (group.find('.accordion').length) {
           cy.wrap(group).get('.accordion .accordion').click({ multiple: true });
         }
       });
+      // iterate through links
       defaultnav.visibleNavTypes().each((link, idx) => {
+        // visit each link
         defaultnav.visibleNavTypes().eq(idx).click();
+        // confirm the app has navigated to that location
         defaultnav.visibleNavTypes().eq(idx).then((linkEl) => {
           cy.location('href').should('equal', linkEl.prop('href'));
         });
