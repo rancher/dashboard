@@ -7,6 +7,7 @@ import transform from 'lodash/transform';
 import isObject from 'lodash/isObject';
 import isEqual from 'lodash/isEqual';
 import difference from 'lodash/difference';
+import isArray from 'lodash/isArray';
 import { splitObjectPath } from '@/utils/string';
 
 export function set(obj, path, value) {
@@ -61,7 +62,12 @@ export function get(obj, path) {
       return;
     }
 
-    obj = obj[parts[i]];
+    // only does one level of arrays which is all we need right now, we can make it recursive later if we need more...
+    if (isArray(obj)) {
+      obj = obj.map(val => val?.[parts[i]]);
+    } else {
+      obj = obj?.[parts[i]];
+    }
   }
 
   return obj;

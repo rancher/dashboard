@@ -59,17 +59,27 @@ export default {
       type:    [String, Number, Object],
       default: ''
     },
+
+    rules: {
+      default:   () => [],
+      type:      Array,
+      // we only want functions in the rules array
+      validator: rules => rules.every(rule => ['function'].includes(typeof rule)),
+    },
   },
 
   data() {
     return {
-      raised:  this.mode === _VIEW || !!`${ this.value }`,
-      focused: false,
-      blurred: null,
+      raised:            this.mode === _VIEW || !!`${ this.value }`,
+      focused:           false,
+      blurred:           null
     };
   },
 
   computed: {
+    requiredField() {
+      return (this.required || this.rules.some(rule => rule.name === 'required'));
+    },
     empty() {
       return !!`${ this.value }`;
     },
@@ -92,6 +102,32 @@ export default {
 
       return false;
     },
+    validationMessage() {
+      let ruleMessages = [];
+      const value = this.value;
+
+      for (const rule of this.rules) {
+        const message = rule(value);
+
+        if (!!message) {
+          if (
+            rule.name === 'required' &&
+            this.blurred &&
+            !this.focused
+          ) {
+            ruleMessages = [message];
+            break;
+          } else if (rule.name !== 'required') {
+            ruleMessages.push(message);
+          }
+        }
+      }
+      if (ruleMessages.length > 0) {
+        return ruleMessages.join(', ');
+      } else {
+        return undefined;
+      }
+    }
   },
 
   methods: {

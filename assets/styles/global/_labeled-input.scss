@@ -13,6 +13,7 @@
     transition-timing-function: ease-in-out;
     color: var(--input-label);
     pointer-events: none;
+    width: calc(100% - 20px);
     i {
       pointer-events: initial;
     }
@@ -30,6 +31,18 @@
 
   .required {
     color: var(--error);
+  }
+
+  .validation-message {
+    color: var(--error);
+    float: right;
+    text-overflow: ellipsis;
+    display: block;
+    max-width: 50%;
+    word-wrap: break-word;
+    overflow: hidden;
+    line-height: 1em;
+    max-height: 3.6em;
   }
 
   INPUT, SELECT {

@@ -112,7 +112,8 @@ export default {
         <t v-if="labelKey" :k="labelKey" />
         <template v-else-if="label">{{ label }}</template>
 
-        <span v-if="required" class="required">*</span>
+        <span v-if="requiredField" class="required">*</span>
+        <span v-if="validationMessage" class="validation-message"> {{ validationMessage }} </span>
       </label>
     </slot>
 

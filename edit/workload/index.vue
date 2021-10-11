@@ -6,6 +6,7 @@ import {
 } from '@/config/types';
 import Tab from '@/components/Tabbed/Tab';
 import CreateEditView from '@/mixins/create-edit-view';
+import FormValidation from '@/mixins/form-validation';
 import { allHash } from '@/utils/promise';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -65,7 +66,7 @@ export default {
     RadioGroup,
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   props: {
     value: {
@@ -160,12 +161,29 @@ export default {
       container,
       containerChange:   0,
       podFsGroup:        podTemplateSpec.securityContext?.fsGroup,
-      savePvcHookName:   'savePvcHook'
+      savePvcHookName:   'savePvcHook',
+      formRulesets:      [
+        {
+          path:  'spec.replicas',
+          rules: ['greaterThanZero', 'required']
+        },
+        {
+          path:  'spec.template.spec.containers.securityContext.runAsUser',
+          rules: ['noSpaces', 'noPeriods']
+        },
+        {
+          path:  'spec.template.spec.containers.image',
+          rules: ['required']
+        }
+      ],
+      pathAliases:       [
+        { original: 'spec.template.spec.containers', alias: 'container' },
+        { original: 'spec.template.spec.containers.securityContext', alias: 'securityContext' }
+      ]
     };
   },
 
   computed: {
-
     isEdit() {
       return this.mode === _EDIT;
     },
@@ -263,7 +281,12 @@ export default {
         each._init = true;
 
         return each;
-      })];
+      })].map(container => ({
+        ...container,
+        // throwing container in an object here because 'container' is part of the path that'll be tested for these.
+        error: this.formError(['container'], { container })
+      })
+      );
     },
 
     flatResources: {
@@ -466,6 +489,11 @@ export default {
   },
 
   methods: {
+    containersHaveErrors() {
+      const t = this.$store.getters['i18n/t'];
+
+      return this.formError(['spec.template.spec.containers'], this.value) ? t('formValidation.containersHaveErrors') : undefined;
+    },
     nameDisplayFor(type) {
       const schema = this.$store.getters['cluster/schemaFor'](type);
 
@@ -721,7 +749,7 @@ export default {
 
   <form v-else>
     <CruResource
-      :validation-passed="true"
+      :validation-passed="formIsValid"
       :selected-subtype="type"
       :resource="value"
       :mode="mode"
@@ -751,8 +779,8 @@ export default {
                 v-model.number="spec.replicas"
                 type="number"
                 min="0"
-                required
                 :mode="mode"
+                :rules="getRuleFunctionArray('spec.replicas')"
                 :label="t('workload.replicas')"
               />
             </template>
@@ -771,7 +799,14 @@ export default {
       </div>
       <div v-if="containerOptions.length > 1" class="container-row">
         <div class="col span-4">
-          <LabeledSelect :value="container" option-label="name" :label="t('workload.container.titles.container')" :options="containerOptions" @input="selectContainer" />
+          <LabeledSelect
+            :value="container"
+            option-label="name"
+            :label="t('workload.container.titles.container')"
+            :options="containerOptions"
+            :rules="[containersHaveErrors]"
+            @input="selectContainer"
+          />
         </div>
         <div v-if="allContainers.length > 1 && !isView" class="col">
           <button type="button" class="btn-sm role-link" @click="removeContainer(container)">
@@ -911,8 +946,8 @@ export default {
         <Tab v-if="!isInitContainer" :label="t('workload.container.titles.healthCheck')" name="healthCheck">
           <HealthCheck v-model="healthCheck" :mode="mode" />
         </Tab>
-        <Tab :label="t('workload.container.titles.securityContext')" name="securityContext">
-          <Security v-model="container.securityContext" :mode="mode" />
+        <Tab :label="t('workload.container.titles.securityContext')" name="securityContext" :error="formError(['securityContext'], container)">
+          <Security v-model="container.securityContext" :mode="mode" :rules="formRuleMap('securityContext')" />
           <div class="spacer"></div>
           <div>
             <h3>{{ t('workload.container.security.podFsGroup') }}</h3>

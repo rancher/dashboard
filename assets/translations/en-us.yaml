@@ -1522,6 +1522,14 @@ cruResource:
   reviewYaml: "Keep editing YAML"
   previewYaml: Edit as YAML
 
+formValidation:
+  required: 'This field is required'
+  noSpaces: 'No spaces allowed in this field'
+  noPeriods: 'No periods allowed in this field'
+  noDashes: 'No dashes allowed in this field'
+  greaterThanZero: 'Value must be greater than zero'
+  containersHaveErrors: 'One or more containers have errors'
+
 detailText:
   collapse: Hide
   binary: '<Binary Data: {n, number} bytes>'

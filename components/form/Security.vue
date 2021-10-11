@@ -19,6 +19,12 @@ export default {
         return {};
       }
     },
+    rules: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
+    },
     mode: { type: String, default: 'edit' }
   },
 
@@ -165,7 +171,7 @@ export default {
 
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model.number="runAsUser" :label="t('workload.container.security.runAsUser')" :mode="mode" />
+        <LabeledInput v-model="runAsUser" :label="t('workload.container.security.runAsUser')" :mode="mode" :rules="rules['securityContext.runAsUser']" />
       </div>
     </div>
 
