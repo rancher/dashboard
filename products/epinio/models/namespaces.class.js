@@ -138,4 +138,12 @@ export default class EpinioNamespaces extends EpinioResource {
   }
 
   // ------------------------------------------------------------------
+  customValidationRules() {
+    return [
+      {
+        path:       'metadata.name',
+        validators: [`namespaceName`]
+      }
+    ];
+  }
 }
