@@ -39,21 +39,12 @@ export default Vue.extend({
 </script>
 
 <template>
-  <Loading v-if="!value" />
   <!-- :valid="false" -->
-  <CruResource
-    v-else
-    :mode="mode"
-    :resource="value"
-    :can-yaml="false"
-    :errors="errors"
-    @error="(e) => (errors = e)"
-    @finish="save"
-    @cancel="done"
-  >
-    <LabeledInput
-      v-model="value.name"
-      :label="t('epinio.namespaceName')"
+  <div class="row">
+    <Loading v-if="!value" />
+    <CruResource
+      v-else
+      class="col span-6"
       :mode="mode"
       :done-route="doneRoute"
       :resource="value"
@@ -61,7 +52,15 @@ export default Vue.extend({
       :errors="errors"
       :valid="valid"
       @error="(e) => (errors = e)"
-    />
-  </CruResource>
-</div>
+      @finish="save"
+      @cancel="done"
+    >
+      <LabeledInput
+        v-model="value.name"
+        :label="t('epinio.namespaceName')"
+        :mode="mode"
+        :required="true"
+      />
+    </CruResource>
+  </div>
 </template>
