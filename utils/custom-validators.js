@@ -9,6 +9,7 @@ import { podAffinity } from '@/utils/validators/pod-affinity';
 import { roleTemplateRules } from '@/utils/validators/role-template';
 import { clusterName } from '@/utils/validators/cluster-name';
 import { isHttps, backupTarget } from '@/utils/validators/setting';
+import { namespaceName } from '@/utils/validators/namespace-name';
 
 import { imageUrl, fileRequired } from '@/utils/validators/vm-image';
 import { vmNetworks, vmDisks } from '@/utils/validators/vm';
@@ -41,4 +42,5 @@ export default {
   vmNetworks,
   vmDisks,
   fileRequired,
+  namespaceName
 };
