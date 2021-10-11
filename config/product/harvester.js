@@ -152,8 +152,8 @@ export function init(store) {
 
   basicType(['projects-namespaces']);
   virtualType({
-    ifHave:     IF_HAVE.MULTI_CLUSTER,
-    label:            'Projects/Namespaces',
+    ifHave:           IF_HAVE.MULTI_CLUSTER,
+    labelKey:         'harvester.projectNamespace.label',
     group:            'root',
     namespaced:       true,
     name:             'projects-namespaces',
@@ -166,8 +166,8 @@ export function init(store) {
   headers(NAMESPACE, [STATE, NAME_UNLINKED, AGE]);
   basicType([NAMESPACE]);
   virtualType({
-    ifHave:     IF_HAVE.HARVESTER_SINGLE_CLUSTER,
-    label:                  store.getters['i18n/t'](`typeLabel.${ NAMESPACE }`, { count: 2 }),
+    ifHave:                 IF_HAVE.HARVESTER_SINGLE_CLUSTER,
+    labelKey:               'harvester.namespace.label',
     name:                   NAMESPACE,
     namespaced:             true,
     weight:                 89,
@@ -185,7 +185,7 @@ export function init(store) {
     HCI.SSH,
     HCI.CLOUD_TEMPLATE,
     HCI.SETTING
-  ], 'Advanced');
+  ], 'advanced');
 
   configureType(HCI.CLUSTER_NETWORK, { realResource: HCI.SETTING, showState: false });
   virtualType({
