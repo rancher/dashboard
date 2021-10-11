@@ -1,8 +1,8 @@
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import Vue from 'vue';
 import EpinioInstance from '@/products/epinio/models/instance.class';
 import { EPINIO_TYPES } from '@/products/epinio/types';
-import ResourceSummary, { resourceCounts } from '@/components/ResourceSummary.vue';
+import ResourceSummary from '@/components/ResourceSummary.vue';
 import Loading from '@/components/Loading.vue';
 
 interface Data {
@@ -21,7 +21,7 @@ export default Vue.extend<Data, any, any, any>({
     await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.INSTANCE });
     await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE });
     await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.APP });
-    debugger;
+
     const currentClusterId = this.$store.getters['clusterId'];
 
     this.cluster = this.$store.getters['epinio/byId'](EPINIO_TYPES.INSTANCE, currentClusterId);
