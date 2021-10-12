@@ -157,5 +157,12 @@ export default {
         });
       }, `catalog operation fetch`, timeout, interval);
     };
+  },
+
+  stateObj() {
+    return this.metadata ? {
+      ...this.metadata.state,
+      transitioning: this.metadata.generation > this.status.observedGeneration ? false : this.metadata.state.transitioning
+    } : undefined;
   }
 };

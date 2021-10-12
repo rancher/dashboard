@@ -30,16 +30,6 @@ export default {
     },
   },
 
-  watch: {
-    rows() {
-      for (let i = 0 ; i < this.rows.length ; i++) {
-        if (this.rows[i].metadata.generation > this.rows[i].status.observedGeneration) {
-          this.rows[i].metadata.state.transitioning = false;
-        }
-      }
-    }
-  },
-
   computed: {
     ...mapGetters(['currentCluster']),
     hideDescriptions: mapPref(HIDE_DESC),
