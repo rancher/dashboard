@@ -2976,6 +2976,7 @@ persistentVolume:
       label: Read Only
 
 persistentVolumeClaim:
+  name: Persistent Volume Claim Name
   accessModes: Access Modes
   capacity: Capacity
   storageClass: Storage Class
