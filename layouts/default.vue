@@ -544,11 +544,7 @@ export default {
               :show-header="!g.isRoot"
               @selected="groupSelected($event)"
               @expand="groupSelected($event)"
-            >
-              <template #header>
-                <h6>{{ g.label }}</h6>
-              </template>
-            </Group>
+            />
           </template>
         </div>
         <n-link v-if="showClusterTools" tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools', params: {cluster: clusterId}}">
