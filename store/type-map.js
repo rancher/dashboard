@@ -721,6 +721,22 @@ export const getters = {
     return Object.values(state.spoofedTypes).flat();
   },
 
+  spoofedSchemas(state, getters, rootState, rootGetters) {
+    return (product) => {
+      debugger;
+      const types = state.spoofedTypes[product] || [];
+
+      return types.flatMap((type) => {
+        const schemas = type.schemas || [];
+
+        return schemas.map(schema => ({
+          ...schema,
+          isSpoofed: true
+        }));
+      });
+    };
+  },
+
   allSpoofedSchemas(state, getters, rootState, rootGetters) {
     return getters.allSpoofedTypes.flatMap((type) => {
       const schemas = type.schemas || [];

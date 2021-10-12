@@ -39,4 +39,19 @@ export default class EpinioResource extends Resource {
       id:       this.id
     });
   }
+
+  // ------------------------------------------------------------------
+
+  get canClone() {
+    return false;
+  }
+
+  get canYaml() {
+    return false;
+  }
+
+  get canViewInApi() {
+    return false;
+  }
+  // ------------------------------------------------------------------
 }

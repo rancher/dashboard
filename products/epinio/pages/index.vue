@@ -4,22 +4,29 @@ import Vue from 'vue';
 import Loading from '@/components/Loading.vue';
 import ResourceTable from '@/components/ResourceTable.vue';
 import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
+import EpinioInstance from '@/products/epinio/models/instance.class';
 
-export default Vue.extend({
+interface Data {
+  clusters: EpinioInstance[],
+}
+
+// Data, Methods, Computed, Props
+export default Vue.extend<Data, any, any, any>({
   components: { Loading, ResourceTable },
 
   layout: 'plain',
 
   async fetch() {
     this.clusters = await this.$store.dispatch(`${ EPINIO_PRODUCT_NAME }/findAll`, { type: EPINIO_TYPES.INSTANCE });
-  },
 
-  // props: {
-  //   value: {
-  //     type:     Object as PropType<String>,
-  //     required: true
-  //   },
-  // },
+    if (this.clusters.length === 1 ) {
+      // TODO: RC
+      // this.$router.replace({
+      //   name:   createEpinioRoute(`c-cluster`),
+      //   params: { cluster: this.clusters[0].id }
+      // });
+    }
+  },
 
   data() {
     return {
@@ -38,24 +45,23 @@ export default Vue.extend({
     }
   },
 
-  // methods: {
-  //   a() {
-  //     this.clusters = ['a'];
-  //   }
-  // }
-
 });
 </script>
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else class="select-epinio">
+  <div v-else-if="clusters.length === 0" class="root">
+    <h2>No instances of Epinio were found</h2>
+    <p>To view an Epinio cluster be sure to import a Cluster where one is installed</p>
+  </div>
+  <div v-else class="root">
     <div class="epinios-table">
-      <h4>Select/Setup your Epinio instance</h4>
+      <h2>Select your Epinio instance</h2>
 
       <ResourceTable
         :rows="clusters"
         :schema="clustersSchema"
+        :table-actions="false"
       >
         <template #cell:pick="{row}">
           <n-link class="btn btn-sm role-primary" :to="{name: 'ext-epinio-c-cluster', params: {cluster: row.id}}">
@@ -69,10 +75,10 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 
-.select-epinio {
-
-    display: flex;
-    align-items: center;
+div.root {
+  align-items: center;
+  padding-top: 50px;
+  display: flex;
 
   .epinios-table {
     & > h4 {
