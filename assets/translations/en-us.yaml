@@ -5835,11 +5835,14 @@ serverUpgrade:
 epinio:
   tableHeaders:
     active: Active
-    organization: Organization
+    namespace: Namespace
     username: Username
     status: Status
     route: Route
     boundServices: Bound Services
+  instances:
+    api: URL
+    explore: Explore
   applications:
     create:
       title: Application

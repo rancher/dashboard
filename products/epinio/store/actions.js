@@ -117,11 +117,6 @@ export default {
     const res = {
       data: [{
         product:           EPINIO_PRODUCT_NAME,
-        id:                EPINIO_TYPES.INSTANCE,
-        type:              'schema',
-        collectionMethods: ['post'],
-      }, {
-        product:           EPINIO_PRODUCT_NAME,
         id:                EPINIO_TYPES.APP,
         type:              'schema',
         links:             { collection: 'api/v1/applications' },
@@ -136,9 +131,9 @@ export default {
       }]
     };
 
-    const spoofedTypes = rootGetters['type-map/allSpoofedSchemas'].filter(st => st.product === EPINIO_PRODUCT_NAME);
+    const spoofedSchemas = rootGetters['type-map/spoofedSchemas'](EPINIO_PRODUCT_NAME);
 
-    res.data = res.data.concat(spoofedTypes);
+    res.data = res.data.concat(spoofedSchemas);
 
     res.data.forEach((schema) => {
       schema._id = normalizeType(schema.id);

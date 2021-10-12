@@ -58,21 +58,6 @@ export default class EpinioApplication extends EpinioResource {
     };
   }
 
-  // ------------------------------------------------------------------
-
-  get canClone() {
-    return false;
-  }
-
-  get canYaml() {
-    return false;
-  }
-
-  get canViewInApi() {
-    return false;
-  }
-  // ------------------------------------------------------------------
-
   getUrl(namespace = this.namespace, name = this.name) {
     // Add baseUrl in a generic way
     return this.$getters['urlFor'](this.type, this.id, { url: `api/v1/namespaces/${ namespace }/applications/${ name || '' }` });

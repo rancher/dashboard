@@ -2,6 +2,7 @@ import { NAME, SIMPLE_NAME, STATE } from '@/config/table-headers';
 import { DSL } from '@/store/type-map';
 import { createEpinioRoute, rootEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
+import EpinioDiscovery from '@/products/epinio/utils/epinio-discovery';
 
 // TODO: RC DISCUSS Handle localisation in plugins
 
@@ -12,7 +13,8 @@ export function init(store) {
     headers,
     configureType,
     componentForType,
-    virtualType
+    virtualType,
+    spoofedType
   } = DSL(store, EPINIO_PRODUCT_NAME);
 
   virtualType({
@@ -22,6 +24,32 @@ export function init(store) {
     weight:      1000,
     route:       createEpinioRoute('c-cluster'),
     exact:       true,
+  });
+
+  spoofedType({
+    label:             store.getters['type-map/labelFor']({ id: EPINIO_TYPES.INSTANCE }, 2),
+    type:              EPINIO_TYPES.INSTANCE,
+    product:           EPINIO_PRODUCT_NAME,
+    collectionMethods: [],
+    schemas:           [
+      {
+        id:                EPINIO_TYPES.INSTANCE,
+        type:              'schema',
+        collectionMethods: [],
+        resourceFields:    {},
+      }
+    ],
+    getInstances: async() => {
+      return await EpinioDiscovery.discover(store);
+    }
+  });
+  configureType(EPINIO_TYPES.INSTANCE, {
+    isCreatable:          false,
+    isEditable:           false,
+    isRemovable:          false,
+    showState:            false,
+    showAge:              false,
+    canYaml:              false,
   });
 
   product({
@@ -65,7 +93,7 @@ export function init(store) {
   basicType([
     'cluster-dashboard',
     EPINIO_TYPES.APP,
-    EPINIO_TYPES.NAMESPACE
+    EPINIO_TYPES.NAMESPACE,
   ]);
 
   headers(EPINIO_TYPES.APP, [
@@ -77,7 +105,7 @@ export function init(store) {
     //   sort:     ['active'],
     // }, {
       name:          'namespace',
-      labelKey:      'epinio.tableHeaders.organization',
+      labelKey:      'epinio.tableHeaders.namespace',
       value:         'namespace',
       sort:          ['namespace'],
       formatter:     'LinkDetail',
@@ -114,13 +142,13 @@ export function init(store) {
   headers(EPINIO_TYPES.INSTANCE, [
     SIMPLE_NAME, {
       name:     'api',
-      labelKey: 'API', // TODO: RC i10n
+      labelKey: 'epinio.instances.api',
       value:    'api',
       sort:     ['api'],
     },
     {
       name:     'pick',
-      labelKey: 'Pick', // TODO: RC i10n
+      labelKey: 'epinio.instances.explore',
     }
   ]);
 }
