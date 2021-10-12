@@ -27,7 +27,6 @@ export default class EpinioResource extends Resource {
     });
   }
 
-<<<<<<< HEAD
   // ------------------------------------------------------------------
 
   get canClone() {
@@ -42,8 +41,7 @@ export default class EpinioResource extends Resource {
     return false;
   }
   // ------------------------------------------------------------------
-=======
->>>>>>> Namespace fixes
+
   async remove(opt = {}) {
     if ( !opt.url ) {
       opt.url = (this.links || {})['self'];

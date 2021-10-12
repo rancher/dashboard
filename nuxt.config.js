@@ -63,7 +63,7 @@ if ( pl !== STANDARD ) {
 }
 
 console.log(`API: ${ api }`); // eslint-disable-line no-console
-
+console.log('env', process.env)
 module.exports = {
   dev,
 

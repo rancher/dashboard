@@ -1,13 +1,11 @@
-<script lang="ts">
-import Vue, { PropType } from 'vue';
+<script>
 import CreateEditView from '@/mixins/create-edit-view';
 import Loading from '@/components/Loading.vue';
 import CruResource from '@/components/CruResource.vue';
-import Namespace from '@/products/epinio/models/namespaces.class';
 import LabeledInput from '@/components/form/LabeledInput.vue';
 import { mapGetters } from 'vuex';
 
-export default Vue.extend({
+export default {
   components: {
     Loading,
     CruResource,
@@ -21,7 +19,7 @@ export default Vue.extend({
 
   props: {
     value: {
-      type:     Object as PropType<Namespace>,
+      type:     Object,
       required: true,
     },
   },
@@ -35,7 +33,7 @@ export default Vue.extend({
   created() {
     this.registerBeforeHook(this.willSave, 'willSave');
   },
-});
+};
 </script>
 
 <template>
@@ -44,7 +42,6 @@ export default Vue.extend({
     <Loading v-if="!value" />
     <CruResource
       v-else
-      class="col span-6"
       :mode="mode"
       :done-route="doneRoute"
       :resource="value"
@@ -57,6 +54,7 @@ export default Vue.extend({
     >
       <LabeledInput
         v-model="value.name"
+        class="col span-6"
         :label="t('epinio.namespaceName')"
         :mode="mode"
         :required="true"
