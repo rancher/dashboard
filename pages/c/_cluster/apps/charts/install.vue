@@ -3,6 +3,7 @@ import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
 import isEqual from 'lodash/isEqual';
 import { mapPref, DIFF } from '@/store/prefs';
+import { mapFeature, MULTI_CLUSTER, LEGACY } from '@/store/features';
 import { mapGetters } from 'vuex';
 
 import Banner from '@/components/Banner';
@@ -101,6 +102,12 @@ export default {
       this.forceNamespace = this.query.appNamespace;
     } else {
       this.forceNamespace = null;
+    }
+
+    const isMultiClusterApp = await this.existing.deployedAsMultiCluster();
+
+    if ( isMultiClusterApp ) {
+      this.mcapp = true;
     }
 
     this.value = await this.$store.dispatch('cluster/create', {
@@ -215,6 +222,7 @@ export default {
       forceNamespace:         null,
       loadedVersion:          null,
       loadedVersionValues:    null,
+      mcapp:                  null,
       mode:                   null,
       value:                  null,
       valuesComponent:        null,
@@ -275,12 +283,19 @@ export default {
 
       ],
 
-      isPlainLayout: isPlainLayout(this.$route.query)
+      isPlainLayout: isPlainLayout(this.$route.query),
+
+      legacyPath: {
+        name:   'c-cluster-product-resource',
+        params: { product: 'settings', resource: 'management.cattle.io.feature' }
+      },
+      mcmPath: { name: 'c-cluster-mcapps' }
     };
   },
 
   computed: {
-    ...mapGetters({ inStore: 'catalog/inStore' }),
+    ...mapGetters({ inStore: 'catalog/inStore', features: 'features/get' }),
+    mcm: mapFeature(MULTI_CLUSTER),
 
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
@@ -494,7 +509,11 @@ export default {
 
     namespaceNewAllowed() {
       return !this.existing && !this.forceNamespace;
-    }
+    },
+
+    legacyEnabled() {
+      return this.features(LEGACY);
+    },
   },
 
   watch: {
@@ -984,7 +1003,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
+  <div v-else-if="!mcapp" class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
     <Wizard
       v-if="value"
       :steps="steps"
@@ -1280,6 +1299,55 @@ export default {
       <ChartReadme v-if="hasReadme" :version-info="versionInfo" class="chart-content__tabs" />
     </div>
   </div>
+
+  <!-- App is deployed with MultiCluster, don't let user update from here -->
+  <div v-else class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
+    <div class="outer-container">
+      <div class="header mb-20">
+        <div class="title">
+          <div class="top choice-banner">
+            <div class="title">
+              <!-- Logo -->
+              <slot name="bannerTitleImage">
+                <div class="round-image">
+                  <LazyImage :src="chart ? chart.icon : ''" class="logo" />
+                </div>
+              </slot>
+              <!-- Title with subtext -->
+              <div class="subtitle">
+                <h2 v-if="stepperName">
+                  {{ stepperName }}
+                </h2>
+                <span v-if="stepperSubtext" class="subtext">{{ stepperSubtext }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Banner color="warning" class="description">
+        <span>
+          {{ t('catalog.install.multiCluster.label') }}
+        </span>
+        <template v-if="!legacyEnabled">
+          <span>
+            {{ t('catalog.install.multiCluster.legacy.label') }}
+            <nuxt-link :to="legacyPath">
+              {{ t('catalog.install.multiCluster.legacy.target') }}
+            </nuxt-link>
+          </span>
+        </template>
+        <template v-else-if="legacyEnabled && mcm">
+          <span>
+            {{ t('catalog.install.multiCluster.mcm.label') }}
+            <nuxt-link :to="mcmPath">
+              {{ t('catalog.install.multiCluster.mcm.target') }}
+            </nuxt-link>
+          </span>
+        </template>
+      </Banner>
+    </div>
+  </div>
 </template>
 
 <style lang="scss" scoped>
@@ -1445,5 +1513,81 @@ export default {
   ::v-deep .yaml-editor {
     flex: 1
   }
+
+.outer-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 0;
+}
+
+.header {
+  display: flex;
+  align-content: space-between;
+  align-items: center;
+
+  border-bottom: var(--header-border-size) solid var(--header-border);
+
+  & > .title {
+    flex: 1;
+    min-height: 75px;
+  }
+
+  .choice-banner {
+
+    flex-basis: 40%;
+    display: flex;
+    align-items: center;
+
+    &.top {
+
+      H2 {
+        margin: 0px;
+      }
+
+      .title{
+        display: flex;
+        align-items: center;
+        justify-content: space-evenly;
+
+        & > .subtitle {
+          margin: 0 20px;
+        }
+      }
+
+      .subtitle{
+        display: flex;
+        flex-direction: column;
+        & .subtext {
+          color: var(--input-label);
+        }
+      }
+
+    }
+
+    &:not(.top){
+      box-shadow: 0px 0px 12px 3px var(--box-bg);
+      flex-direction: row;
+      align-items: center;
+      justify-content: start;
+      &:hover{
+        outline: var(--outline-width) solid var(--outline);
+        cursor: pointer;
+      }
+    }
+
+    & .round-image {
+      min-width: 50px;
+      height: 50px;
+      margin: 10px 10px 10px 0;
+      border-radius: 50%;
+      overflow: hidden;
+      .logo {
+        min-width: 50px;
+        height: 50px;
+      }
+    }
+  }
+}
 
 </style>
