@@ -27,6 +27,7 @@ export function init(store) {
     removable:           false,
     showNamespaceFilter: true,
     hideKubeShell:       true,
+    hideKubeConfig:      true,
     showClusterSwitcher: true,
     typeStoreMap:        {
       [MANAGEMENT.PROJECT]:                       'management',

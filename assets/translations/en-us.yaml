@@ -5414,6 +5414,9 @@ harvester:
 
   support:
     title: Harvester Support
+    kubeconfig:
+      title: Download KubeConfig
+      titleDescription: Download kubeconfig for debugging or importing as an external cluster to Rancher. 
   
   namespace:
     label: Namespaces

@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import BannerGraphic from '@/components/BannerGraphic';
 import IndentedPanel from '@/components/IndentedPanel';
 import SupportBundle from '@/components/dialog/SupportBundle';
@@ -27,6 +28,8 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
+
     title() {
       return 'harvester.support.title';
     },
@@ -51,9 +54,9 @@ export default {
     <BannerGraphic :title="t(title, {}, true)" />
 
     <IndentedPanel>
-      <div class="content mt-20" :class="!showSupportBundle && 'only-community'">
-        <div v-if="showSupportBundle" class="promo">
-          <div class="box mb-20 box-primary">
+      <div class="content mt-20">
+        <div class="promo">
+          <div v-if="showSupportBundle" class="box mb-20 box-primary">
             <h2>
               {{ t('harvester.modal.bundle.title') }}
             </h2>
@@ -66,8 +69,25 @@ export default {
               </button>
             </div>
           </div>
+          <div class="box mb-20 box-primary">
+            <h2>
+              {{ t('harvester.support.kubeconfig.title') }}
+            </h2>
+            <div>
+              <p class="pb-10">
+                {{ t('harvester.support.kubeconfig.titleDescription') }}
+              </p>
+              <button
+                class="btn role-secondary btn-sm"
+                type="button"
+                @click="currentCluster.downloadKubeConfig()"
+              >
+                {{ t('harvester.support.kubeconfig.title') }}
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="community" :class="!showSupportBundle && 'community-center'">
+        <div class="community">
           <CommunityLinks
             :link-options="options"
           />
@@ -106,11 +126,6 @@ export default {
   }
 }
 
-.community-center {
-  padding-left: 0px;
-  border-left: none;
-}
-
 .box {
   padding: 20px;
   border: 1px solid var(--border);
@@ -128,6 +143,12 @@ export default {
     font-weight: 300;
     line-height: 18px;
     opacity: 0.8;
+  }
+}
+
+.role-secondary {
+  &:focus {
+    background-color: transparent;
   }
 }
 </style>

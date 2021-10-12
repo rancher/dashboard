@@ -4507,6 +4507,9 @@ harvester:
 
   support:
     title: Harvester支持
+    kubeconfig:
+      title: 下载KubeConfig
+      titleDescription: 下载kubeconfig用于调试或作为外部集群导入到Rancher
   
   namespace:
     label: 命名空间
