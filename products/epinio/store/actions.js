@@ -11,7 +11,7 @@ export default {
     commit('remove', obj);
   },
 
-  async request({ rootGetters }, { opt, type }) {
+  async request({ rootGetters, dispatch }, { opt, type }) {
     const spoofedRes = await handleSpoofedRequest(rootGetters, EPINIO_PRODUCT_NAME, opt);
 
     if (spoofedRes) {
@@ -25,6 +25,7 @@ export default {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
+    await dispatch('findAll', { type: EPINIO_TYPES.INSTANCE });
     const currentClusterId = rootGetters['clusterId'];
     const currentCluster = rootGetters['epinio/byId'](EPINIO_TYPES.INSTANCE, currentClusterId);
 

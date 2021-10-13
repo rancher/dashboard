@@ -723,7 +723,6 @@ export const getters = {
 
   spoofedSchemas(state, getters, rootState, rootGetters) {
     return (product) => {
-      debugger;
       const types = state.spoofedTypes[product] || [];
 
       return types.flatMap((type) => {

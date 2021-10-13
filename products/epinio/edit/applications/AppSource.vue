@@ -1,17 +1,19 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
 import Application from '@/products/epinio/models/applications.class';
+import Select from '@/components/form/Select.vue';
 // import FileSelector from '@/components/form/FileSelector.vue';
 
 interface Data {
   errors: string[],
   tarball: string,
+  builderImage: string,
 }
 
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
 
-  components: { }, // FileSelector,
+  components: { Select }, // FileSelector,
 
   props: {
     application: {
@@ -25,10 +27,18 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   data() {
+    const buildPacks = ['paketobuildpacks/builder:full'];
+
     return {
-      errors:        [],
-      tarball: '',
+      errors:              [],
+      tarball:             '',
+      builderImage:        buildPacks[0],
+      builderImageOptions: buildPacks
     };
+  },
+
+  mounted() {
+    this.update();
   },
 
   methods: {
@@ -52,17 +62,21 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     update() {
-      this.$emit('change', { tarball: this.tarball });
+      this.$emit('change', { tarball: this.tarball, builderImage: this.builderImage });
     }
 
   },
 
-  watch: {}
+  watch: {
+    builderImage() {
+      this.update();
+    }
+  }
 });
 </script>
 
 <template>
-  <div>
+  <div class="col span-6">
     <!-- TODO: Switch back -->
     <input
       id="file"
@@ -70,7 +84,6 @@ export default Vue.extend<Data, any, any, any>({
       type="file"
       @change="onFileSelected"
     />
-
     <!-- <FileSelector
           class="role-tertiary add mt-5"
           :label="t('generic.readFromFile')"
@@ -79,6 +92,16 @@ export default Vue.extend<Data, any, any, any>({
           :read-as-data-url="true"
           @selected="onFileSelected"
         /> -->
+
+    <Select
+      v-model="builderImage"
+      :mode="mode"
+      :searchable="true"
+      :clearable="false"
+      :options="builderImageOptions"
+      class="mt-20"
+    />
+    <!-- // TODO: RC fetch builder image options? -->
 
     <!-- <br><br> -->
     <!-- Debug<br>
