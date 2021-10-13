@@ -1,7 +1,7 @@
 <script>
 import { exceptionToErrorsArray } from '@/utils/error';
 import { mapGetters } from 'vuex';
-import { FLEET } from '@/config/types';
+import { FLEET, VIRTUAL_HARVESTER_PROVIDER } from '@/config/types';
 import { set } from '@/utils/object';
 import ArrayList from '@/components/form/ArrayList';
 import Banner from '@/components/Banner';
@@ -20,6 +20,7 @@ import { base64Decode, base64Encode } from '@/utils/crypto';
 import SelectOrCreateAuthSecret from '@/components/form/SelectOrCreateAuthSecret';
 import { _CREATE } from '@/config/query-params';
 import { isHarvesterCluster } from '@/utils/cluster';
+import { CAPI } from '@/config/labels-annotations';
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
@@ -250,7 +251,17 @@ export default {
       }
 
       if ( kind === 'all' ) {
-        spec.targets = [{ clusterSelector: {} }];
+        spec.targets = [{
+          clusterSelector: {
+            matchExpressions: [{
+              key:      CAPI.PROVIDER,
+              operator: 'NotIn',
+              values:   [
+                VIRTUAL_HARVESTER_PROVIDER
+              ],
+            }],
+          },
+        }];
       } else if ( kind === 'none' ) {
         spec.targets = [];
       } else if ( kind === 'cluster' ) {

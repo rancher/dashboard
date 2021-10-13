@@ -39,6 +39,11 @@ export default {
       },
     },
 
+    savePvcHookName: {
+      type:     String,
+      required: true,
+    },
+
     // namespaced configmaps and secrets
     configMaps: {
       type:    Array,
@@ -78,10 +83,14 @@ export default {
       return names.includes(volume.name);
     });
 
-    return { pvcs: [], containerVolumes };
+    return {
+      pvcs: [],
+      containerVolumes,
+    };
   },
 
   computed: {
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -227,19 +236,27 @@ export default {
         this.$refs.cm.forEach(component => component.refresh());
       }
     },
+
+    removePvcForm(hookName) {
+      this.$emit('removePvcForm', hookName);
+    }
   },
 };
 </script>
 
 <template>
   <div>
-    <ArrayListGrouped v-model="containerVolumes">
+    <ArrayListGrouped
+      :key="containerVolumes.length"
+      v-model="containerVolumes"
+    >
       <template #default="props">
         <h3>{{ headerFor(volumeType(props.row.value)) }}</h3>
         <div class="bordered-section">
           <component
             :is="componentFor(volumeType(props.row.value))"
             v-if="componentFor(volumeType(props.row.value))"
+            :key="props.row.value"
             :value="props.row.value"
             :pod-spec="value"
             :mode="mode"
@@ -248,6 +265,8 @@ export default {
             :config-maps="configMaps"
             :pvcs="pvcNames"
             :register-before-hook="registerBeforeHook"
+            :save-pvc-hook-name="savePvcHookName"
+            @removePvcForm="removePvcForm"
           />
           <div v-else-if="isView">
             <CodeMirror

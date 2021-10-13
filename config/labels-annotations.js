@@ -47,6 +47,7 @@ export const CAPI = {
   CREDENTIAL_DRIVER: 'provisioning.cattle.io/driver',
   CLUSTER_NAMESPACE: 'cluster.x-k8s.io/cluster-namespace',
   MACHINE_NAME:      'cluster.x-k8s.io/machine',
+  PROVIDER:          'provider.cattle.io'
 };
 
 export const CATALOG = {
@@ -135,7 +136,6 @@ export const HCI = {
   NODE_ROLE_CONTROL_PLANE:      'node-role.kubernetes.io/control-plane',
   PROMOTE_STATUS:               'harvesterhci.io/promote-status',
   MIGRATION_STATE:              'harvesterhci.io/migrationState',
-  HARVESTER_CLUSTER:            'cluster.harvesterhci.io',
   VOLUME_CLAIM_TEMPLATE:        'harvesterhci.io/volumeClaimTemplates',
   IMAGE_NAME:                   'harvesterhci.io/image-name',
 };
