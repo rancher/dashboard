@@ -37,12 +37,7 @@ export default {
   },
 
   async fetch() {
-    const inStore = this.$store.getters['currentProduct'].inStore;
-
-    // Don't wait for provisioner if the product is not mgmt (e.g. if viewing in the local cluster from 'more resources')
-    if (inStore === 'management') {
-      await this.value.waitForProvisioner();
-    }
+    await this.value.waitForProvisioner();
     const hash = {};
 
     if (this.value.isImported || this.value.isRke1) {
