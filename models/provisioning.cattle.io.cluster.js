@@ -178,7 +178,7 @@ export default class ProvCluster extends SteveModel {
       return null;
     }
 
-    const out = this.$getters['byId'](MANAGEMENT.CLUSTER, name);
+    const out = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, name);
 
     return out;
   }
@@ -193,10 +193,10 @@ export default class ProvCluster extends SteveModel {
     return this.waitForTestFn(() => {
       // `this` instance isn't getting updated with `status.clusterName`
       // Workaround - Get fresh copy from the store
-      const pCluster = this.$getters['byId'](CAPI.RANCHER_CLUSTER, this.id);
+      const pCluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, this.id);
       const name = this.status?.clusterName || pCluster?.status?.clusterName;
 
-      return name && !!this.$getters['byId'](MANAGEMENT.CLUSTER, name);
+      return name && !!this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, name);
     }, `mgmt cluster create`, timeout, interval);
   }
 
@@ -280,7 +280,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get nodes() {
-    return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.mgmtClusterId));
+    return this.$rootGetters['management/all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.mgmtClusterId));
   }
 
   get displayName() {
@@ -292,13 +292,13 @@ export default class ProvCluster extends SteveModel {
   }
 
   get pools() {
-    const deployments = this.$getters['all'](CAPI.MACHINE_DEPLOYMENT).filter(pool => pool.spec?.clusterName === this.metadata.name);
+    const deployments = this.$rootGetters['management/all'](CAPI.MACHINE_DEPLOYMENT).filter(pool => pool.spec?.clusterName === this.metadata.name);
 
     if (!!deployments.length) {
       return deployments;
     }
 
-    return this.$getters['all'](MANAGEMENT.NODE_POOL).filter(pool => pool.spec.clusterName === this.status?.clusterName);
+    return this.$rootGetters['management/all'](MANAGEMENT.NODE_POOL).filter(pool => pool.spec.clusterName === this.status?.clusterName);
   }
 
   get desired() {
