@@ -3,6 +3,7 @@ import Vue, { PropType } from 'vue';
 import Application from '@/products/epinio/models/applications.class';
 import NameNsDescription from '@/components/form/NameNsDescription.vue';
 import LabeledInput from '@/components/form/LabeledInput.vue';
+import EnvVars from '@/components/form/EnvVars.vue';
 
 import { EPINIO_TYPES } from '@/products/epinio/types';
 import { sortBy } from '@/utils/sort';
@@ -14,7 +15,8 @@ interface Data {
         name: string,
         namespace: string
     },
-    instances: number
+    instances: number,
+    envvars: {}
   }
 }
 
@@ -23,7 +25,8 @@ export default Vue.extend<Data, any, any, any>({
 
   components: {
     NameNsDescription,
-    LabeledInput
+    LabeledInput,
+    EnvVars
   },
 
   props: {
@@ -45,7 +48,8 @@ export default Vue.extend<Data, any, any, any>({
           name:      this.application.name,
           namespace: this.application.namespace
         },
-        instances: this.application.instances || 1
+        instances: this.application.instances || 1,
+        envvars:   { env: this.application.envvars }
       }
     };
   },
@@ -54,6 +58,10 @@ export default Vue.extend<Data, any, any, any>({
     'values.instances'() {
       this.update();
     },
+
+    'values.envvars'() {
+      this.update();
+    }
   },
 
   computed: {
@@ -67,9 +75,11 @@ export default Vue.extend<Data, any, any, any>({
       this.$emit('change', {
         name:      this.values.nameNamespace.name,
         namespace: this.values.nameNamespace.namespace,
-        instances: this.values.instances
+        instances: this.values.instances,
+        envvars:   this.values.envvars.env
       });
     },
+
   },
 
 });
@@ -77,16 +87,17 @@ export default Vue.extend<Data, any, any, any>({
 
 <template>
   <div>
-    <NameNsDescription
-      name-key="name"
-      namespace-key="namespace"
-      :namespaces-override="namespaces"
-      :description-hidden="true"
-      :value="values.nameNamespace"
-      :mode="mode"
-      class="mt-10"
-      @change="update"
-    />
+    <div class="col">
+      <NameNsDescription
+        name-key="name"
+        namespace-key="namespace"
+        :namespaces-override="namespaces"
+        :description-hidden="true"
+        :value="values.nameNamespace"
+        :mode="mode"
+        @change="update"
+      />
+    </div>
     <div class="col span-6">
       <LabeledInput
         v-model.number="values.instances"
@@ -95,6 +106,16 @@ export default Vue.extend<Data, any, any, any>({
         required
         :mode="mode"
         :label="t('epinio.applications.create.instances')"
+      />
+    </div>
+    <div class="spacer"></div>
+    <div class="col span-8">
+      <EnvVars
+        :mode="mode"
+        :value="values.envvars"
+        :config-maps="[]"
+        :secrets="[]"
+        single-type="single"
       />
     </div>
   </div>

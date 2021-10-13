@@ -108,7 +108,7 @@ export default class EpinioApplication extends EpinioResource {
     return res.blobuid;
   }
 
-  async stage(blobuid) {
+  async stage(blobuid, builderImage) {
     this.trace('Staging Application bits');
 
     return await this.followLink('stage', {
@@ -120,7 +120,7 @@ export default class EpinioApplication extends EpinioResource {
           namespace: this.namespace
         },
         blobuid,
-        builderimage: 'paketobuildpacks/builder:full'
+        builderimage: builderImage
       }
     });
   }

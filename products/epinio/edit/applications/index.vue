@@ -57,7 +57,10 @@ export default Vue.extend<Data, any, any, any>({
   data() {
     return {
       errors:  [],
-      tarBall: null,
+      source: {
+        tarBall:      null,
+        builderImage: null
+      },
       steps:   [{
         name:           'basics',
         label:          this.t('epinio.applications.steps.basics.label'),
@@ -111,7 +114,8 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     updateSource(change: any) {
-      this.tarball = change.tarball;
+      Vue.set(this.source, 'tarball', change.tarball);
+      Vue.set(this.source, 'builderImage', change.builderImage);
     },
 
     async saveOverride(buttonDone: (res: boolean) => void): Promise<void> {
@@ -129,8 +133,8 @@ export default Vue.extend<Data, any, any, any>({
         try {
           if (this.isCreate) {
             await this.value.create();
-            const blobuid = await this.value.storeArchive(this.tarball);
-            const { image, stage } = await this.value.stage(blobuid);
+            const blobuid = await this.value.storeArchive(this.source.tarball);
+            const { image, stage } = await this.value.stage(blobuid, this.source.builderImage);
 
             this.value.showStagingLog(stage.id);
             await this.value.waitForStaging(stage.id);
@@ -207,7 +211,8 @@ export default Vue.extend<Data, any, any, any>({
     Debug<br>
     Mode: {{ mode }}<br>
     Value: {{ jsonValue }}<br>
-    originalValue: {{ JSON.stringify(originalValue) }}<br> -->
+    originalValue: {{ JSON.stringify(originalValue) }}<br>
+    source: {{ JSON.stringify(source) }}<br> -->
   </div>
 </template>
 
