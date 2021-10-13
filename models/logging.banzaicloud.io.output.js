@@ -35,6 +35,11 @@ export const PROVIDERS = [
     default:  { servers: [{}] },
   },
   {
+    name:     'gelf',
+    labelKey: 'logging.outputProviders.gelf',
+    default:  { },
+  },
+  {
     name:     'gcs',
     labelKey: 'logging.outputProviders.gcs',
     default:  { },

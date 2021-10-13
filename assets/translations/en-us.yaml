@@ -2116,6 +2116,17 @@ logging:
       label: Client Key from Secret
       placeholder: Paste in the client key
     clientKeyPass: Client Key Pass from Secret
+  gelf:
+    host: Host
+    port: Port
+    protocol: Protocol
+    tls: Enable TLS
+    tlsOptions:
+      clientCert: Client Cert
+      clientKey: Client Cert Key
+      allCiphers: Allow any ciphers to be used
+      tlsVersion: TLS version
+      noVerify: Skip TLS verification
   kafka:
     brokers: Brokers
     defaultTopic: Default Topic
@@ -2236,6 +2247,7 @@ logging:
     splunkHec: Splunk
     kafka: Kafka
     forward: Fluentd
+    gelf: GELF
     loki: Loki
     awsElasticsearch: Amazon Elasticsearch
     azurestorage: Azure Storage
