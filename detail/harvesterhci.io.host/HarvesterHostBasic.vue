@@ -127,11 +127,17 @@ export default {
     },
 
     storageTotal() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.row.id }`);
       let out = 0;
 
-      if (this.metrics) {
-        out = this.metrics.storageTotal;
-      }
+      const diskStatus = longhornNode?.status?.diskStatus || {};
+
+      Object.values(diskStatus).map((disk) => {
+        if (disk?.storageMaximum) {
+          out += disk.storageMaximum;
+        }
+      });
 
       return out;
     },

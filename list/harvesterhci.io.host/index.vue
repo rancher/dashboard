@@ -2,7 +2,9 @@
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
 import { STATE, NAME, AGE } from '@/config/table-headers';
-import { METRIC, NODE, SCHEMA, HCI } from '@/config/types';
+import {
+  METRIC, NODE, SCHEMA, HCI, LONGHORN
+} from '@/config/types';
 import { allHash } from '@/utils/promise';
 import metricPoller from '@/mixins/metric-poller';
 import CopyToClipboard from '@/components/CopyToClipboard';
@@ -25,7 +27,10 @@ export default {
   mixins: [metricPoller],
 
   async fetch() {
-    const _hash = { nodes: this.$store.dispatch('harvester/findAll', { type: NODE }) };
+    const _hash = {
+      nodes:         this.$store.dispatch('harvester/findAll', { type: NODE }),
+      longhornNodes: this.$store.dispatch('harvester/findAll', { type: LONGHORN.NODES }),
+    };
 
     if (this.$store.getters['harvester/schemaFor'](METRIC.NODE)) {
       _hash.metric = this.$store.dispatch('harvester/findAll', { type: METRIC.NODE });

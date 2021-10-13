@@ -255,12 +255,12 @@ export default {
     storageUsage() {
       let out = 0;
 
-      this.longhornNode.filter(n => n.spec.allowScheduling).forEach((node) => {
+      this.longhornNode.forEach((node) => {
         const diskStatus = node?.status?.diskStatus || {};
 
         Object.values(diskStatus).map((disk) => {
-          if (disk?.storageAvailable && disk?.storageMaximum) {
-            out += disk.storageMaximum - disk.storageAvailable;
+          if (disk?.conditions?.Schedulable?.status === 'True' && disk?.storageAvailable && disk?.storageMaximum) {
+            out += (disk.storageMaximum - disk.storageAvailable);
           }
         });
       });
@@ -271,8 +271,14 @@ export default {
     storageTotal() {
       let out = 0;
 
-      this.metricNodes.forEach((node) => {
-        out += node.storageTotal;
+      this.longhornNode.forEach((node) => {
+        const diskStatus = node?.status?.diskStatus || {};
+
+        Object.values(diskStatus).map((disk) => {
+          if (disk?.storageMaximum) {
+            out += disk.storageMaximum;
+          }
+        });
       });
 
       return out;
