@@ -26,10 +26,6 @@ export default {
       default: () => {
         return {};
       }
-    },
-    singleType: {
-      type:    String,
-      default: ''
     }
   },
 
@@ -106,7 +102,6 @@ export default {
         :all-secrets="secrets"
         :all-config-maps="configMaps"
         :mode="mode"
-        :single-type="singleType"
         @remove="removeRow(i)"
         @input="updateRow"
       />

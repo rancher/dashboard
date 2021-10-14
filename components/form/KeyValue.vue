@@ -423,7 +423,6 @@ export default {
           return entry;
         });
       }
-
       this.$emit('input', out);
     },
 
@@ -446,7 +445,8 @@ export default {
       const keyValues = splits.map(split => ({
         [this.keyName]:   (split[0] || '').trim(),
         [this.valueName]: (split[1] || '').trim(),
-        binary:           !asciiLike(split[1])
+        binary:           !asciiLike(split[1]),
+        supported:        true
       }));
 
       this.rows.splice(index, 1, ...keyValues);
