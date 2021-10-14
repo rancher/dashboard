@@ -5,6 +5,7 @@ const request = require('./request');
 const IN_REVIEW_LABEL = '[zube]: Review';
 const IN_TEST_LABEL = '[zube]: To Test';
 const DONE_LABEL = '[zube]: Done';
+const BACKEND_BLOCKED_LABEL = '[zube]: Backend Blocked';
 
 // The event object
 const event = require(process.env.GITHUB_EVENT_PATH);
@@ -178,11 +179,15 @@ async function processOpenOrEditAction() {
       console.log('')
       console.log('Processing Issue #' + i + ' - ' + iss.title);
 
-      if (!hasLabel(iss, IN_REVIEW_LABEL)) {
-          // Add the In Review label to the issue as it does not have it
-          await resetZubeLabels(iss, IN_REVIEW_LABEL);
+      if (hasLabel(iss, BACKEND_BLOCKED_LABEL)) {
+        console.log('    Issue will not be moved to In Review (Backend Blocked)');
       } else {
-          console.log('    Issue already has the In Review label');
+        if (!hasLabel(iss, IN_REVIEW_LABEL)) {
+            // Add the In Review label to the issue as it does not have it
+            await resetZubeLabels(iss, IN_REVIEW_LABEL);
+        } else {
+            console.log('    Issue already has the In Review label');
+        }
       }
 
       if (iss.milestone) {
@@ -196,7 +201,7 @@ async function processOpenOrEditAction() {
     } else if (keys.length > 1) {
       console.log('More than one milestone on issues for this PR');
     } else {
-      // There is excatly 1 milestone, so use that for the PR
+      // There is exactly 1 milestone, so use that for the PR
       const milestoneNumber = milestones[keys[0]];
 
       if (event.pull_request.milestone?.number !== milestoneNumber) {
