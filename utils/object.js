@@ -40,7 +40,6 @@ export function get(obj, path) {
       return JSONPath({
         path,
         json:        obj,
-        preventEval: true,
         wrap:        false,
       });
     } catch (e) {

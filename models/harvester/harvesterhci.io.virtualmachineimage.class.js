@@ -6,7 +6,7 @@ import {
 import { get, clone } from '@/utils/object';
 import { formatSi } from '@/utils/units';
 import { ucFirst } from '@/utils/string';
-import { stateDisplay, colorForState } from '@/plugins/steve/resource-instance';
+import { stateDisplay, colorForState } from '@/plugins/steve/resource-class';
 import SteveModel from '@/plugins/steve/steve-class';
 
 export default class HciVmImage extends SteveModel {

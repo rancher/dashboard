@@ -3,7 +3,7 @@ import { addObject, addObjects, clear, removeObject } from '@/utils/array';
 import { SCHEMA } from '@/config/types';
 import Resource from '@/plugins/steve/resource-class';
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
-import { proxyFor, remapSpecialKeys } from './resource-proxy';
+import { proxyFor } from './resource-proxy';
 import { keyForSubscribe } from './subscribe';
 
 function registerType(state, type) {
@@ -52,10 +52,6 @@ function load(state, { data, ctx, existing }) {
   function replace(existing, data) {
     for ( const k of Object.keys(existing) ) {
       delete existing[k];
-    }
-
-    if ( !(existing instanceof Resource) ) {
-      remapSpecialKeys(data);
     }
 
     for ( const k of Object.keys(data) ) {

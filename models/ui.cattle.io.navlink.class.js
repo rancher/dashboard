@@ -34,5 +34,5 @@ export default class extends SteveModel {
 
   get actualTarget() {
     return (this.spec.target || '').trim() || '_blank';
-  },
-};
+  }
+}
