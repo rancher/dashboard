@@ -1561,6 +1561,8 @@ fleet:
       warning: 'Warning'
       error: 'Error'
       unknown: 'Unknown'
+      notReady: Not Ready
+      waitApplied: Wait Applied
   gitRepo:
     tabs:
       resources: Resources

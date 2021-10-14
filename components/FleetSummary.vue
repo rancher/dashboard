@@ -21,7 +21,7 @@ export default {
   computed: {
     counts() {
       const out = {
-        success: {
+        ready: {
           count: 0,
           color: 'success',
           label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.success`, null, 'Success')
@@ -80,9 +80,10 @@ export default {
 </script>
 
 <template>
-  <div class="row">
-    <div v-for="(v, k) in counts" :key="k" class="col span-2-of-10">
+  <div class="row flexwrap">
+    <div v-for="(v, k) in counts" :key="k" class="col countbox">
       <CountBox
+        :compact="true"
         :count="v['count']"
         :name="v.label"
         :primary-color-var="'--sizzle-' + v.color"
@@ -90,3 +91,13 @@ export default {
     </div>
   </div>
 </template>
+<style lang="scss" scoped>
+  .flexwrap {
+    flex-wrap: wrap;
+  }
+  .countbox {
+    min-width: 150px;
+    width: 12.5%;
+    margin-bottom: 10px;
+  }
+</style>
