@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@/utils/array';
 import { SCHEMA } from '@/config/types';
-import { Resource } from '@/plugins/steve/resource-class';
+import Resource from '@/plugins/steve/resource-class';
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import { proxyFor, remapSpecialKeys } from './resource-proxy';
 import { keyForSubscribe } from './subscribe';

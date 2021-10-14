@@ -232,7 +232,7 @@ function maybeFn(val) {
   return val;
 }
 
-export class Resource {
+export default class Resource {
   constructor(data, ctx, rehydrateNamespace = null, setClone = false) {
     for ( const k in data ) {
       this[k] = data[k];

@@ -17,7 +17,7 @@ import { clear, uniq } from '@/utils/array';
 import { importCloudCredential } from '@/utils/dynamic-importer';
 import { NAME as MANAGER } from '@/config/product/manager';
 import SelectIconGrid from '@/components/SelectIconGrid';
-import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
+import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster.class';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 

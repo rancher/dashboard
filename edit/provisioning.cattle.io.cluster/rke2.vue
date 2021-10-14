@@ -9,7 +9,7 @@ import CreateEditView from '@/mixins/create-edit-view';
 
 import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
-import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
+import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster.class';
 
 import { findBy, removeObject, clear } from '@/utils/array';
 import {

@@ -10,7 +10,7 @@ import Tab from '@/components/Tabbed/Tab';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import CreateEditView from '@/mixins/create-edit-view';
 import jsyaml from 'js-yaml';
-import { RECEIVERS_TYPES } from '@/models/monitoring.coreos.com.receiver';
+import { RECEIVERS_TYPES } from '@/models/monitoring.coreos.com.receiver.class';
 import ButtonDropdown from '@/components/ButtonDropdown';
 
 export default {

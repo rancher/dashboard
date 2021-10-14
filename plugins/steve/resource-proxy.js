@@ -1,5 +1,5 @@
 import { lookup } from './model-loader';
-import { Resource } from './resource-class';
+import Resource from './resource-class';
 import SteveModel from './steve-class';
 import HybridModel from './hybrid-class';
 import NormanModel from './norman-class';

@@ -6,9 +6,9 @@ import { createYaml } from '@/utils/create-yaml';
 import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@/store/type-map';
 import { addParam } from '@/utils/url';
 import { isArray } from '@/utils/array';
+import { deferred } from '@/utils/promise';
 import { normalizeType } from './normalize';
 import { proxyFor } from './resource-proxy';
-import { deferred } from '~/utils/promise';
 
 export const _ALL = 'all';
 export const _MULTI = 'multi';

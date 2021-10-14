@@ -33,7 +33,7 @@ import { clone, diff, get, set } from '@/utils/object';
 import { findBy, insertAt } from '@/utils/array';
 import Vue from 'vue';
 import { saferDump } from '@/utils/create-yaml';
-import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
+import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster.class';
 
 const VALUES_STATE = {
   FORM: 'FORM',

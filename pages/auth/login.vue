@@ -10,7 +10,7 @@ import Banner from '@/components/Banner';
 import { LOCAL, LOGGED_OUT, TIMED_OUT, _FLAGGED } from '@/config/query-params';
 import Checkbox from '@/components/form/Checkbox';
 import { sortBy } from '@/utils/sort';
-import { configType } from '@/models/management.cattle.io.authconfig';
+import { configType } from '@/models/management.cattle.io.authconfig.class';
 import { mapGetters } from 'vuex';
 import { importLogin } from '@/utils/dynamic-importer';
 import { _ALL_IF_AUTHED, _MULTI } from '@/plugins/steve/actions';

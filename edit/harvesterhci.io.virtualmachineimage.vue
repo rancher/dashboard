@@ -8,7 +8,7 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabelValue from '@/components/LabelValue';
 import CreateEditView from '@/mixins/create-edit-view';
-import { VM_IMAGE_FILE_FORMAT } from '@/models/harvester/harvesterhci.io.virtualmachineimage';
+import { VM_IMAGE_FILE_FORMAT } from '@/utils/validators/vm-image';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { exceptionToErrorsArray } from '@/utils/error';
 

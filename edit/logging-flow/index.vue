@@ -12,7 +12,7 @@ import { createYaml } from '@/utils/create-yaml';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import { allHash } from '@/utils/promise';
 import { isArray, uniq } from '@/utils/array';
-import { matchRuleIsPopulated } from '@/models/logging.banzaicloud.io.flow';
+import { matchRuleIsPopulated } from '@/models/logging.banzaicloud.io.flow.class';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { clone, set } from '@/utils/object';
 import isEmpty from 'lodash/isEmpty';

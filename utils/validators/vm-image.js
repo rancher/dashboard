@@ -1,5 +1,6 @@
-import { VM_IMAGE_FILE_FORMAT } from '@/models/harvester/harvesterhci.io.virtualmachineimage';
 import { HCI } from '@/config/labels-annotations';
+
+export const VM_IMAGE_FILE_FORMAT = ['qcow', 'qcow2', 'raw', 'img', 'iso'];
 
 export function imageUrl(url, getters, errors, validatorArgs, type) {
   const t = getters['i18n/t'];

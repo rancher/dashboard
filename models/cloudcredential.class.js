@@ -3,9 +3,9 @@ import { fullFields, prefixFields, simplify, suffixFields } from '@/store/plugin
 import { isEmpty, set } from '@/utils/object';
 import { SECRET } from '@/config/types';
 import { escapeHtml } from '@/utils/string';
-import SteveModel from '@/plugins/steve/steve-class';
+import NormanModel from '@/plugins/steve/norman-class';
 
-export default class extends SteveModel {
+export default class CloudCredential extends NormanModel {
   hasSensitiveData = true
   canCustomEdit = true
 

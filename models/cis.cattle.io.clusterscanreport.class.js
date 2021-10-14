@@ -1,7 +1,7 @@
 import { compare } from '@/utils/sort';
 import SteveModel from '@/plugins/steve/steve-class';
 
-export default class extends SteveModel {
+export default class CISReport extends SteveModel {
   get aggregatedTests() {
     const json = this.parsedReport;
     const results = json?.results;
