@@ -111,11 +111,11 @@ export function init(store) {
       formatter:     'LinkDetail',
       formatterOpts: { reference: 'nsLocation' }
     }, {
-    //   name:     'username',
-    //   labelKey: 'epinio.tableHeaders.username',
-    //   value:    'username',
-    //   sort:     ['username'],
-    // }, {
+      name:     'username',
+      labelKey: 'epinio.tableHeaders.owner',
+      value:    'username',
+      sort:     ['username'],
+    }, {
     //   name:     'status',
     //   labelKey: 'epinio.tableHeaders.status',
     //   value:    'status',

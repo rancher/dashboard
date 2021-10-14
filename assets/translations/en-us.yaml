@@ -5966,7 +5966,7 @@ epinio:
   tableHeaders:
     active: Active
     namespace: Namespace
-    username: Username
+    owner: Owner
     status: Status
     route: Route
     boundServices: Bound Services
