@@ -5984,6 +5984,9 @@ epinio:
         keyName: name
         valueLabel: Value
         valueName: value
+      builderimage:
+        label: Paketo builder image
+        tooltip: Used for staging
     steps:
       basics:
         label: Details
