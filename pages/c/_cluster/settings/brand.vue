@@ -43,8 +43,14 @@ const DEFAULT_BANNER_SETTING = {
     textDecoration:  null,
     text:            null
   },
+  consentBanner: {
+    background: null,
+    color:      null,
+    text:       null,
+  },
   showHeader:   'false',
   showFooter:   'false',
+  showConsent:  'false'
 };
 
 export default {
@@ -189,9 +195,11 @@ export default {
 
   methods: {
     checkOrUpdateLegacyUIBannerSetting(parsedBanner) {
-      const { bannerHeader, bannerFooter, banner } = parsedBanner;
+      const {
+        bannerHeader, bannerFooter, consentBanner, banner
+      } = parsedBanner;
 
-      if (isEmpty(bannerHeader) && isEmpty(bannerFooter)) {
+      if (isEmpty(bannerHeader) && isEmpty(bannerFooter) && isEmpty(consentBanner)) {
         let neu = DEFAULT_BANNER_SETTING;
 
         if (!isEmpty(banner)) {
@@ -203,10 +211,12 @@ export default {
           }
 
           neu = {
-            bannerHeader: { ...cloned },
-            bannerFooter: { ...cloned },
-            showHeader:   parsedBanner?.showHeader === 'true' ? 'true' : 'false',
-            showFooter:   parsedBanner?.showFooter === 'true' ? 'true' : 'false',
+            bannerHeader:  { ...cloned },
+            bannerFooter:  { ...cloned },
+            consentBanner: { ...cloned },
+            showHeader:    parsedBanner?.showHeader === 'true' ? 'true' : 'false',
+            showFooter:    parsedBanner?.showFooter === 'true' ? 'true' : 'false',
+            showConsent:   parsedBanner?.showConsent === 'true' ? 'true' : 'false'
           };
         }
 
@@ -215,6 +225,7 @@ export default {
 
       return parsedBanner;
     },
+
     updateLogo(img, key) {
       this[key] = img;
     },
@@ -243,6 +254,7 @@ export default {
       this.uiPLSetting.value = this.uiPLSetting.value.replaceAll(/[\<>&=#()"]/gm, '');
 
       this.uiBannerSetting.value = JSON.stringify(this.bannerVal);
+
       if (this.customizeLogo) {
         this.uiLogoLightSetting.value = this.uiLogoLight;
         this.uiLogoDarkSetting.value = this.uiLogoDark;
@@ -517,6 +529,36 @@ export default {
               </div>
               <div class="col span-6">
                 <ColorInput v-model="bannerVal.bannerFooter.background" :label="t('branding.uiBanner.background')" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <h3 class="mb-5 pb-5 mt-40">
+        {{ t('branding.uiBanner.consent') }}
+      </h3>
+      <label class="text-label">
+        {{ t(`advancedSettings.descriptions.${ 'ui-consent-banner' }`, {}, true) }}
+      </label>
+
+      <template>
+        <div class="row mt-20 mb-20">
+          <div class="col span-6">
+            <Checkbox :value="bannerVal.showConsent === 'true'" :label="t('branding.uiBanner.showConsent')" :mode="mode" @input="e => $set(bannerVal, 'showConsent', e.toString())" />
+          </div>
+        </div>
+        <div v-if="bannerVal.showConsent === 'true'" class="row mb-20">
+          <div class="col span-12">
+            <div class="row">
+              <LabeledInput v-model="bannerVal.consentBanner.text" :label="t('branding.uiBanner.text')" />
+            </div>
+            <div class="row mt-10">
+              <div class="col span-6">
+                <ColorInput v-model="bannerVal.consentBanner.color" :label="t('branding.uiBanner.textColor')" />
+              </div>
+              <div class="col span-6">
+                <ColorInput v-model="bannerVal.consentBanner.background" :label="t('branding.uiBanner.background')" />
               </div>
             </div>
           </div>

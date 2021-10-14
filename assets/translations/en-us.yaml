@@ -5953,6 +5953,7 @@ advancedSettings:
     'kubeconfig-token-ttl-minutes': 'Custom max TTL (in minutes) on a kubeconfig token.'
     'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
+    'ui-consent-banner': 'Banner is used to display a custom consent banner presented to users during login.'
     'ui-default-landing': 'The default page users land on after login.'
     'brand': Folder name for an alternative theme defined in '/assets/brand'
     'harv-vlan': Default Network Interface name of the VLAN network.
@@ -6030,6 +6031,7 @@ branding:
     background: Background Color
     showHeader: Show Banner in Header
     showFooter: Show Banner in Footer
+    showConsent: Show Banner on Login Screen
     bannerAlignment:
       label: Text Alignment
       leftOption: Left
@@ -6042,6 +6044,7 @@ branding:
       bannerUnderline: Underline
     bannerFontSize:
       label: 'Font Size'
+    consent: Consent Banner
   color:
     label: Primary Color
     tip: You can override the primary color used throughout the UI with a custom color of your choice.
