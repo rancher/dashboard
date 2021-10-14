@@ -2,11 +2,6 @@ import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import { Resource } from '@/plugins/core-store/resource-class';
 
 export default class EpinioResource extends Resource {
-  get id() {
-    // Epinio resources don't have id's... so default to name... use model specific override
-    throw new Error('Not Implemented');
-  }
-
   get listLocation() {
     return this.$rootGetters['type-map/optionsFor'](this.type).customRoute || createEpinioRoute(`c-cluster-resource`, {
       cluster:   this.$rootGetters['clusterId'],

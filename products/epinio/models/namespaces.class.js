@@ -2,10 +2,6 @@
 import EpinioResource from './epinio-resource-instance.class';
 
 export default class EpinioNamespaces extends EpinioResource {
-  get id() {
-    return this.__clone ? undefined : `${ this.name }`;
-  }
-
   get links() {
     return {
       self:   this.getUrl(),
@@ -60,11 +56,14 @@ export default class EpinioNamespaces extends EpinioResource {
   }
 
   // ------------------------------------------------------------------
-  customValidationRules() {
+  get customValidationRules() {
     return [
       {
-        path:       'metadata.name',
-        validators: [`namespaceName`]
+        nullable:       false,
+        path:           'name',
+        required:       true,
+        translationKey: 'generic.name',
+        validators:     [`namespaceName`]
       }
     ];
   }

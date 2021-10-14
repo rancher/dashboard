@@ -60,6 +60,7 @@ export default {
           res.data = {
             data: out.map(o => ({
               ...o,
+              id: o.name,
               type // TODO: RC get from url
             }))
           };
@@ -67,6 +68,7 @@ export default {
           // `find` action turns this into `{data: out}`
           res.data = {
             ...out,
+            id: out.name,
             type
           };
         }
@@ -97,7 +99,11 @@ export default {
     function responseObject(res) {
       let out = res.data;
 
-      if ( res.status === 204 || out === null ) {
+      if (typeof out === 'string') {
+        out = {};
+      }
+
+      if ( res.status === 204 || out === null || typeof out === 'string') {
         out = {};
       }
 
