@@ -28,7 +28,7 @@ export default {
           type:     EPINIO_TYPES.INSTANCE,
         });
       } catch (err) {
-        console.log(`Skipping epinio discovery for ${ c.name }`, err);
+        console.log(`Skipping epinio discovery for ${ c.name }`, err); // eslint-disable-line no-console
       }
     }
 
