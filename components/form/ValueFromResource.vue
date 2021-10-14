@@ -35,14 +35,10 @@ export default {
       type:    Boolean,
       default: true
     },
-    singleType: {
-      type:    String,
-      default: ''
-    }
   },
 
   data() {
-    const allTypeOpts = [
+    const typeOpts = [
       { value: 'simple', label: 'Key/Value Pair' },
       { value: 'resourceFieldRef', label: 'Resource' },
       { value: 'configMapKeyRef', label: 'ConfigMap Key' },
@@ -51,8 +47,6 @@ export default {
       { value: 'secretRef', label: 'Secret' },
       { value: 'configMapRef', label: 'ConfigMap' },
     ];
-
-    const typeOpts = this.singleType ? allTypeOpts.filter(t => t.value === this.singleType) : allTypeOpts;
 
     const resourceKeyOpts = ['limits.cpu', 'limits.ephemeral-storage', 'limits.memory', 'requests.cpu', 'requests.ephemeral-storage', 'requests.memory'];
     let type;
@@ -261,8 +255,8 @@ export default {
 </script>
 
 <template>
-  <div class="var-row" :class="{'single-type': typeOpts.length < 2}">
-    <div v-if="typeOpts.length > 2" class="type">
+  <div class="var-row">
+    <div class="type">
       <LabeledSelect
         v-model="type"
         :mode="mode"
@@ -370,10 +364,6 @@ export default {
   grid-column-gap: 20px;
   margin-bottom: 10px;
   align-items: center;
-
-  &.single-type {
-    grid-template-columns: 1fr 1fr 1fr 100px;
-  }
 
   .single-value {
     grid-column: span 2;

@@ -3,7 +3,7 @@ import Vue, { PropType } from 'vue';
 import Application from '@/products/epinio/models/applications.class';
 import NameNsDescription from '@/components/form/NameNsDescription.vue';
 import LabeledInput from '@/components/form/LabeledInput.vue';
-import EnvVars from '@/components/form/EnvVars.vue';
+import KeyValue from '@/components/form/KeyValue.vue';
 
 import { EPINIO_TYPES } from '@/products/epinio/types';
 import { sortBy } from '@/utils/sort';
@@ -26,7 +26,7 @@ export default Vue.extend<Data, any, any, any>({
   components: {
     NameNsDescription,
     LabeledInput,
-    EnvVars
+    KeyValue
   },
 
   props: {
@@ -49,7 +49,7 @@ export default Vue.extend<Data, any, any, any>({
           namespace: this.application.namespace
         },
         instances: this.application.instances || 1,
-        envvars:   { env: this.application.envvars }
+        envvars:   this.application.envvars
       }
     };
   },
@@ -58,10 +58,6 @@ export default Vue.extend<Data, any, any, any>({
     'values.instances'() {
       this.update();
     },
-
-    'values.envvars'() {
-      this.update();
-    }
   },
 
   computed: {
@@ -76,9 +72,23 @@ export default Vue.extend<Data, any, any, any>({
         name:      this.values.nameNamespace.name,
         namespace: this.values.nameNamespace.namespace,
         instances: this.values.instances,
-        envvars:   this.values.envvars.env
+        envvars:   this.values.envvars
       });
     },
+
+    updateEnvVars(envvars: {[key: string] : string }) {
+      const env = Object.entries(envvars).reduce((res, [key, value]) => {
+        res.push({
+          name: key,
+          value
+        });
+
+        return res;
+      }, [] as { name: string, value: string }[]);
+
+      Vue.set(this.values, 'envvars', env);
+      this.update();
+    }
 
   },
 
@@ -110,12 +120,15 @@ export default Vue.extend<Data, any, any, any>({
     </div>
     <div class="spacer"></div>
     <div class="col span-8">
-      <EnvVars
+      <KeyValue
         :mode="mode"
         :value="values.envvars"
-        :config-maps="[]"
-        :secrets="[]"
-        single-type="single"
+        :title="t('epinio.applications.create.envvar.title')"
+        :key-label="t('epinio.applications.create.envvar.keyLabel')"
+        :key-name="t('epinio.applications.create.envvar.keyName')"
+        :value-label="t('epinio.applications.create.envvar.valueLabel')"
+        :value-name="t('epinio.applications.create.envvar.valueName')"
+        @input="updateEnvVars"
       />
     </div>
   </div>

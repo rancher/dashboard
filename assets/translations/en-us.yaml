@@ -5848,6 +5848,12 @@ epinio:
       title: Application
       titleSubText: Epinio
       instances: Instances
+      envvar:
+        title: Environment Variables
+        keyLabel: Name
+        keyName: name
+        valueLabel: Value
+        valueName: value
     steps:
       basics:
         label: Details
