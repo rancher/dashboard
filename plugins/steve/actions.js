@@ -8,7 +8,7 @@ import { addParam } from '@/utils/url';
 import { isArray } from '@/utils/array';
 import { deferred } from '@/utils/promise';
 import { normalizeType } from './normalize';
-import { proxyFor } from './resource-proxy';
+import { classify } from './classify';
 
 export const _ALL = 'all';
 export const _MULTI = 'multi';
@@ -413,7 +413,7 @@ export default {
   },
 
   create(ctx, data) {
-    return proxyFor(ctx, data);
+    return classify(ctx, data);
   },
 
   createPopulated(ctx, userData) {
@@ -421,13 +421,13 @@ export default {
 
     merge(data, userData);
 
-    return proxyFor(ctx, data);
+    return classify(ctx, data);
   },
 
   clone(ctx, { resource } = {}) {
     const copy = cloneDeep(resource.toJSON());
 
-    return proxyFor(ctx, copy, true);
+    return classify(ctx, copy, true);
   },
 
   promptMove({ commit, state }, resources) {

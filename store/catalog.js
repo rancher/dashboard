@@ -5,7 +5,7 @@ import { allHash, allHashSettled } from '@/utils/promise';
 import { clone } from '@/utils/object';
 import { findBy, addObject, filterBy } from '@/utils/array';
 import { stringify } from '@/utils/error';
-import { proxyFor } from '@/plugins/steve/resource-proxy';
+import { classify } from '@/plugins/steve/classify';
 import { sortBy } from '@/utils/sort';
 import { importChart } from '@/utils/dynamic-importer';
 import { ensureRegex } from '@/utils/string';
@@ -431,7 +431,7 @@ export const actions = {
 
     Object.entries(state.charts).forEach(([key, chart]) => {
       if (chart.__rehydrate) {
-        charts[key] = proxyFor(ctx, chart);
+        charts[key] = classify(ctx, chart);
       }
     });
     commit('setCharts', {
@@ -487,7 +487,7 @@ function addChart(ctx, map, chart, repo) {
 
   if ( !obj ) {
     if ( ctx ) { }
-    obj = proxyFor(ctx, {
+    obj = classify(ctx, {
       key,
       type:             'chart',
       id:               key,

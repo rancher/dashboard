@@ -9,10 +9,9 @@ export const BY_TYPE = 'byType';
 export const STEVE = 'steve';
 
 export const SELF = '__[[SELF]]__';
-export const ALREADY_A_PROXY = '__[[PROXY]]__';
 
-export function proxyFor(ctx, obj, isClone = false) {
-  if ( obj instanceof Resource || obj[ALREADY_A_PROXY] ) {
+export function classify(ctx, obj, isClone = false) {
+  if ( obj instanceof Resource ) {
     return obj;
   }
 

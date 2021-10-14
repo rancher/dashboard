@@ -35,7 +35,7 @@ import {
   AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG, _CONFIG
 } from '@/config/query-params';
 
-import { SELF } from '@/plugins/steve/resource-proxy';
+import { SELF } from '@/plugins/steve/classify';
 import { cleanForNew, normalizeType } from './normalize';
 
 const STRING_LIKE_TYPES = [
