@@ -8,5 +8,5 @@ export default Vue.extend<Data, any, any, any>({});
 </script>
 
 <template>
-  <div>SOURCE</div>
+  <div>SERVICE</div>
 </template>
