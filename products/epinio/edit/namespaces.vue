@@ -33,6 +33,12 @@ export default {
   created() {
     this.registerBeforeHook(this.willSave, 'willSave');
   },
+
+  methods: {
+    willSave() {
+
+    }
+  }
 };
 </script>
 

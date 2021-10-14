@@ -3,10 +3,6 @@ import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import EpinioResource from './epinio-resource-instance.class';
 
 export default class EpinioApplication extends EpinioResource {
-  get id() {
-    return this.__clone ? undefined : `${ this.name }`;
-  }
-
   get state() {
     return this.active ? '' : 'in-progress';
   }
