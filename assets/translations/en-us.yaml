@@ -4424,7 +4424,7 @@ workload:
           placeholder: e.g. 172.17.0.2
         path:
           label: Path
-          placeholder: e.g. /bin/sh
+          placeholder: e.g. app/bin/endpoint?param=value
         port:
           label: Port
           placeholder: e.g. 3000
