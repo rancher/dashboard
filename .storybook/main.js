@@ -31,7 +31,12 @@ module.exports = {
                 }
                 return done(null);
               });
+            } else if (url.indexOf('@/node_modules') === 0) {
+              const file = path.resolve(baseFolder, url.substr(2));
+
+              return done({ file });
             }
+
             done(null);
           }
         }

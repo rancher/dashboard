@@ -13,7 +13,7 @@ You can manually install them with the target:
 
 - yarn install-storybook
 
-> Important: Do not commit an updated `package.json` file withe the Stotybook dependencies
+> Important: Do not commit an updated `package.json` file withe the Storybook dependencies
 
 You can remove the Storybook dependencies with:
 
@@ -29,7 +29,7 @@ yarn storybook
 
 You can access Storybook at the URL: http://127.0.0.1:6006
 
-## TODO
+## Next Steps
 
 - Port design-system pages to Storybook
 - Add Typography page (for headers etc and padding and margin classes)
