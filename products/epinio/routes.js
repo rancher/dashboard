@@ -25,4 +25,8 @@ export default resolve => [{
   name:      `${ EXTENSION_PREFIX }-${ EPINIO_PRODUCT_NAME }-c-cluster-resource-id`,
   path:      `/${ EXTENSION_PREFIX }/epinio/c/:cluster/:resource/:id`,
   component: resolve(__dirname, 'pages/c/_cluster/_resource/_id.vue')
+}, {
+  name:      `${ EXTENSION_PREFIX }-${ EPINIO_PRODUCT_NAME }-c-cluster-resource-namespace-id`,
+  path:      `/${ EXTENSION_PREFIX }/epinio/c/:cluster/:resource/:namespace/:id`,
+  component: resolve(__dirname, 'pages/c/_cluster/_resource/_namespace/_id.vue')
 }];

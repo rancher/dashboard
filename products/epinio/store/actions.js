@@ -6,12 +6,20 @@ import { normalizeType } from '@/plugins/core-store/normalize';
 import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 import { base64Encode } from '@/utils/crypto';
 
+const createId = (schema, resource) => {
+  if (schema.attributes?.namespaced && resource.namespace) {
+    return `${ resource.namespace }/${ resource.name }`;
+  }
+
+  return resource.name;
+};
+
 export default {
   remove({ commit }, obj ) {
     commit('remove', obj);
   },
 
-  async request({ rootGetters, dispatch }, { opt, type }) {
+  async request({ rootGetters, dispatch, getters }, { opt, type }) {
     const spoofedRes = await handleSpoofedRequest(rootGetters, EPINIO_PRODUCT_NAME, opt);
 
     if (spoofedRes) {
@@ -25,18 +33,21 @@ export default {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
-    await dispatch('findAll', { type: EPINIO_TYPES.INSTANCE });
-    const currentClusterId = rootGetters['clusterId'];
-    const currentCluster = rootGetters['epinio/byId'](EPINIO_TYPES.INSTANCE, currentClusterId);
+    return await dispatch('findAll', { type: EPINIO_TYPES.INSTANCE })
+      .then(() => {
+        const currentClusterId = rootGetters['clusterId'];
+        const currentCluster = rootGetters['epinio/byId'](EPINIO_TYPES.INSTANCE, currentClusterId);
 
-    opt.headers = {
-      ...opt.headers,
-      'x-api-host':  currentCluster.api,
-      Authorization: `Basic ${ base64Encode(`${ currentCluster.username }:${ currentCluster.password }`) }`
-    };
+        opt.headers = {
+          ...opt.headers,
+          'x-api-host':  currentCluster.api,
+          Authorization: `Basic ${ base64Encode(`${ currentCluster.username }:${ currentCluster.password }`) }`
+        };
 
-    return this.$axios(opt).then((res) => {
-      if ( opt.depaginate ) {
+        return this.$axios(opt);
+      })
+      .then((res) => {
+        if ( opt.depaginate ) {
         // @TODO but API never sends it
         /*
         return new Promise((resolve, reject) => {
@@ -48,56 +59,63 @@ export default {
           dispatch('request')
         });
         */
-      }
-
-      if ( opt.responseType ) {
-        return res;
-      } else {
-        const out = res.data || {};
-
-        // TODO: API - namespaces call returns array of strings!
-        if (Array.isArray(out)) {
-          res.data = {
-            data: out.map(o => ({
-              ...o,
-              type // TODO: RC get from url
-            }))
-          };
-        } else {
-          // `find` action turns this into `{data: out}`
-          res.data = {
-            ...out,
-            type
-          };
         }
 
-        return responseObject(res);
-      }
-    }).catch((err) => {
-      if ( !err || !err.response ) {
-        return Promise.reject(err);
-      }
+        if ( opt.responseType ) {
+          return res;
+        } else {
+          const out = res.data || {};
 
-      const res = err.response;
+          const schema = getters.schemaFor(type);
 
-      // Go to the logout page for 401s, unless redirectUnauthorized specifically disables (for the login page)
-      if ( opt.redirectUnauthorized !== false && process.client && res.status === 401 ) {
-        return Promise.reject(err);
+          if (Array.isArray(out)) {
+            res.data = {
+              data: out.map(o => ({
+                ...o,
+                id: createId(schema, o),
+                type // TODO: RC get from url
+              }))
+            };
+          } else {
+            // `find` action turns this into `{data: out}`
+            res.data = {
+              ...out,
+              id: createId(schema, out),
+              type
+            };
+          }
+
+          return responseObject(res);
+        }
+      }).catch((err) => {
+        if ( !err || !err.response ) {
+          return Promise.reject(err);
+        }
+
+        const res = err.response;
+
+        // Go to the logout page for 401s, unless redirectUnauthorized specifically disables (for the login page)
+        if ( opt.redirectUnauthorized !== false && process.client && res.status === 401 ) {
+          return Promise.reject(err);
         // TODO: RC DISCUSS Handle unauthed epinio calls
         // dispatch('auth/logout', opt.logoutOnError, { root: true });
-      }
+        }
 
-      if ( typeof res.data !== 'undefined' ) {
-        return Promise.reject(responseObject(res));
-      }
+        if ( typeof res.data !== 'undefined' ) {
+          return Promise.reject(responseObject(res));
+        }
 
-      return Promise.reject(err);
-    });
+        return Promise.reject(err);
+      });
 
     function responseObject(res) {
       let out = res.data;
 
-      if ( res.status === 204 || out === null ) {
+      if (typeof out === 'string') {
+        out = {};
+      }
+
+      if ( res.status === 204 || out === null || typeof out === 'string') {
         out = {};
       }
 
@@ -122,7 +140,8 @@ export default {
         type:              'schema',
         links:             { collection: 'api/v1/applications' },
         collectionMethods: ['get', 'post'],
-        resourceFields:    {}
+        resourceFields:    { },
+        attributes:        { namespaced: true }
       }, {
         product:           EPINIO_PRODUCT_NAME,
         id:                EPINIO_TYPES.NAMESPACE,

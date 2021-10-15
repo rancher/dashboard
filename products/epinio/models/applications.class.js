@@ -3,11 +3,6 @@ import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import EpinioResource from './epinio-resource-instance.class';
 
 export default class EpinioApplication extends EpinioResource {
-  get id() {
-    return `${ this.name }`;
-    // return `${ this.namespace }-${ this.name }`; // TODO: RC id needs to contain the namespace... however this will break fetch/get by id
-  }
-
   get state() {
     return this.active ? '' : 'in-progress';
   }
@@ -61,6 +56,29 @@ export default class EpinioApplication extends EpinioResource {
   getUrl(namespace = this.namespace, name = this.name) {
     // Add baseUrl in a generic way
     return this.$getters['urlFor'](this.type, this.id, { url: `api/v1/namespaces/${ namespace }/applications/${ name || '' }` });
+  }
+
+  // ------------------------------------------------------------------
+  // Methods here are required for generic components to handle `namespaced` concept
+
+  set metadata(metadata) {
+    this.namespace = metadata.namespace;
+    this.name = metadata.name;
+  }
+
+  get metadata() {
+    return {
+      namespace: this.namespace,
+      name:      this.name
+    };
+  }
+
+  get namespaceLocation() {
+    return createEpinioRoute(`c-cluster-resource-id`, {
+      cluster:   this.$rootGetters['clusterId'],
+      resource:  EPINIO_TYPES.NAMESPACE,
+      id:       this.metadata.namespace,
+    });
   }
 
   // ------------------------------------------------------------------
