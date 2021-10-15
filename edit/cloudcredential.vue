@@ -262,15 +262,16 @@ export default {
       @error="e=>errors = e"
     >
       <NameNsDescription v-model="value" name-key="_name" :mode="mode" :namespaced="false" />
-
-      <component
-        :is="cloudComponent"
-        ref="cloudComponent"
-        :driver-name="driverName"
-        :value="value"
-        :mode="mode"
-        :hide-sensitive-data="hideSensitiveData"
-      />
+      <keep-alive>
+        <component
+          :is="cloudComponent"
+          ref="cloudComponent"
+          :driver-name="driverName"
+          :value="value"
+          :mode="mode"
+          :hide-sensitive-data="hideSensitiveData"
+        />
+      </keep-alive>
     </CruResource>
   </form>
 </template>
