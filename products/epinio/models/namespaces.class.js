@@ -1,4 +1,3 @@
-// import axios from '@nuxtjs/axios';
 import EpinioResource from './epinio-resource-instance.class';
 
 export default class EpinioNamespaces extends EpinioResource {
@@ -56,17 +55,6 @@ export default class EpinioNamespaces extends EpinioResource {
   }
 
   // ------------------------------------------------------------------
-  get customValidationRules() {
-    return [
-      {
-        nullable:       false,
-        path:           'name',
-        required:       true,
-        translationKey: 'generic.name',
-        validators:     [`namespaceName`]
-      }
-    ];
-  }
 
   confirmRemove() {
     return true;

@@ -89,6 +89,13 @@ export default {
     applyHooks: {
       type:    Function,
       default: null,
+    },
+
+    // Can be set to false if there are form validation
+    // errors while the user is typing
+    enableSaveButton: {
+      type:    Boolean,
+      default: true
     }
   },
 
@@ -111,6 +118,12 @@ export default {
 
   computed: {
     canSave() {
+      // Disable the save button if there are form validation
+      // errors while the user is typing.
+      if (!this.enableSaveButton) {
+        return false;
+      }
+
       const { validationPassed, showAsForm } = this;
 
       if (showAsForm) {

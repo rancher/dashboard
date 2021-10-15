@@ -34,7 +34,18 @@ export default {
     ignorePasswordManagers: {
       default: false,
       type:    Boolean,
-    }
+    },
+
+    validators: {
+      type:    Array,
+      default: () => {
+        return [];
+      },
+    },
+  },
+
+  data() {
+    return { touched: false };
   },
 
   computed: {
@@ -71,14 +82,39 @@ export default {
       }
 
       return '';
-    }
+    },
+
+    validationErrors() {
+      if (!this.touched) {
+        return '';
+      }
+
+      // Combine all active validation
+      // errors into a string to be displayed
+      // beneath the input.
+      return this.validators
+        .map((validator) => {
+          try {
+            const validationResult = validator(this.value);
+
+            if (!validationResult.isValid) {
+              return validationResult.errorMessage;
+            }
+
+            return '';
+          } catch {
+            alert(`Could not validate the field using the validator ${ validator.name }.`);
+          }
+        })
+        .join('');
+    },
   },
 
   methods: {
     focus() {
       const comp = this.$refs.value;
 
-      if ( comp ) {
+      if (comp) {
         comp.focus();
       }
     },
@@ -86,13 +122,14 @@ export default {
     select() {
       const comp = this.$refs.value;
 
-      if ( comp ) {
+      if (comp) {
         comp.select();
       }
     },
 
     onFocus() {
       this.onFocusLabeled();
+      this.touched = true;
     },
 
     onBlur() {
@@ -100,68 +137,94 @@ export default {
       this.onBlurLabeled();
     },
 
-    escapeHtml
-  }
+    updateSubmitButton() {
+      // If there are form validation
+      // errors, the submit/save button is grayed out.
+      if (this.validationErrors) {
+        this.$emit('disableSubmitButton');
+      } else {
+        this.$emit('enableSubmitButton');
+      }
+    },
+
+    escapeHtml,
+  },
 };
 </script>
 
 <template>
-  <div :class="{'labeled-input': true, focused, [mode]: true, disabled: isDisabled, [status]: status, suffix:hasSuffix}">
-    <slot name="label">
-      <label>
-        <t v-if="labelKey" :k="labelKey" />
-        <template v-else-if="label">{{ label }}</template>
+  <div>
+    <div
+      :class="{
+        'labeled-input': true,
+        focused,
+        [mode]: true,
+        disabled: isDisabled,
+        [status]: status,
+        suffix: hasSuffix,
+      }"
+    >
+      <slot name="label">
+        <label>
+          <t v-if="labelKey" :k="labelKey" />
+          <template v-else-if="label">{{ label }}</template>
 
-        <span v-if="required" class="required">*</span>
-      </label>
-    </slot>
+          <span v-if="required" class="required">*</span>
+        </label>
+      </slot>
 
-    <slot name="prefix" />
+      <slot name="prefix" />
 
-    <slot name="field">
-      <TextAreaAutoGrow
-        v-if="type === 'multiline' || type === 'multiline-password'"
-        ref="value"
-        v-bind="$attrs"
-        :disabled="isDisabled"
-        :value="value"
-        :placeholder="_placeholder"
-        autocapitalize="off"
-        :class="{'conceal':type === 'multiline-password' }"
-        @input="$emit('input', $event)"
-        @focus="onFocus"
-        @blur="onBlur"
+      <slot name="field">
+        <TextAreaAutoGrow
+          v-if="type === 'multiline' || type === 'multiline-password'"
+          ref="value"
+          v-bind="$attrs"
+          :disabled="isDisabled"
+          :value="value"
+          :placeholder="_placeholder"
+          autocapitalize="off"
+          :class="{ conceal: type === 'multiline-password' }"
+          @input="$emit('input', $event)"
+          @focus="onFocus"
+          @blur="onBlur"
+        />
+        <input
+          v-else
+          ref="value"
+          :class="{ 'no-label': !hasLabel }"
+          v-bind="$attrs"
+          :disabled="isDisabled"
+          :type="type === 'cron' ? 'text' : type"
+          :value="value"
+          :placeholder="_placeholder"
+          autocomplete="off"
+          autocapitalize="off"
+          :data-lpignore="ignorePasswordManagers"
+          @input="$emit('input', $event.target.value)"
+          @focus="onFocus"
+          @blur="onBlur"
+          @keyup="updateSubmitButton"
+        />
+      </slot>
+
+      <slot name="suffix" />
+      <LabeledTooltip
+        v-if="tooltipKey && !focused"
+        :hover="hoverTooltip"
+        :value="t(tooltipKey)"
+        :status="status"
       />
-      <input
-        v-else
-        ref="value"
-        :class="{'no-label': !hasLabel}"
-        v-bind="$attrs"
-        :disabled="isDisabled"
-        :type="type === 'cron' ? 'text' : type"
-        :value="value"
-        :placeholder="_placeholder"
-        autocomplete="off"
-        autocapitalize="off"
-        :data-lpignore="ignorePasswordManagers"
-        @input="$emit('input', $event.target.value)"
-        @focus="onFocus"
-        @blur="onBlur"
-      >
-    </slot>
-    <slot name="suffix" />
-    <LabeledTooltip
-      v-if="tooltipKey && !focused"
-      :hover="hoverTooltip"
-      :value="t(tooltipKey)"
-      :status="status"
-    />
-    <LabeledTooltip
-      v-else-if="tooltip && !focused"
-      :hover="hoverTooltip"
-      :value="tooltip"
-      :status="status"
-    />
-    <label v-if="cronHint" class="cron-label">{{ cronHint }}</label>
+      <LabeledTooltip
+        v-else-if="tooltip && !focused"
+        :hover="hoverTooltip"
+        :value="tooltip"
+        :status="status"
+      />
+      <label v-if="cronHint" class="cron-label">{{ cronHint }}</label>
+    </div>
+    <span v-if="validationErrors.length > 0" class="validation-message">
+      {{ validationErrors }}
+    </span>
   </div>
 </template>
