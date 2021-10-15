@@ -1,6 +1,6 @@
 <script>
 import ConsumptionGauge from '@/components/ConsumptionGauge';
-import { METRIC, LONGHORN } from '@/config/types';
+import { LONGHORN } from '@/config/types';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
 
 export default {
@@ -24,10 +24,6 @@ export default {
   },
 
   computed: {
-    metrics() {
-      return this.$store.getters['harvester/byId'](METRIC.NODE, this.row.id);
-    },
-
     storageUsage() {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.row.id }`);

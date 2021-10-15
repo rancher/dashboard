@@ -20,16 +20,21 @@ const schema = {
 };
 
 export default {
-  name:       'HarvesterListHost',
+  name: 'HarvesterListHost',
+
   components: {
-    CopyToClipboard, ResourceTable, Loading
+    CopyToClipboard,
+    ResourceTable,
+    Loading,
   },
+
   mixins: [metricPoller],
 
   async fetch() {
     const _hash = {
       nodes:         this.$store.dispatch('harvester/findAll', { type: NODE }),
       longhornNodes: this.$store.dispatch('harvester/findAll', { type: LONGHORN.NODES }),
+      blockDevices:  this.$store.dispatch('harvester/findAll', { type: HCI.BLOCK_DEVICE }),
     };
 
     if (this.$store.getters['harvester/schemaFor'](METRIC.NODE)) {
@@ -65,6 +70,13 @@ export default {
           value:     'internalIp',
         },
         AGE,
+        {
+          name:          'diskState',
+          labelKey:      'tableHeaders.diskState',
+          value:         'diskState',
+          formatter:     'HarvesterDiskState',
+          width:         130,
+        },
       ];
 
       if (this.hasMetricSchema) {

@@ -1,5 +1,5 @@
 import pickBy from 'lodash/pickBy';
-import { HCI } from '@/config/types';
+import { HCI, LONGHORN } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { clone } from '@/utils/object';
 import findLast from 'lodash/findLast';
@@ -151,5 +151,28 @@ export default class HciNode extends SteveModel {
 
   get isMaintenance() {
     return this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] === 'completed';
+  }
+
+  get longhornDisks() {
+    const inStore = this.$rootGetters['currentProduct'].inStore;
+    const longhornNode = this.$rootGetters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.id }`);
+    const diskStatus = longhornNode?.status?.diskStatus || {};
+    const diskSpec = longhornNode.spec?.disks || {};
+
+    const longhornDisks = Object.keys(diskStatus).map((key) => {
+      return {
+        ...diskSpec[key],
+        ...diskStatus[key],
+        name:                  key,
+        storageReserved:       diskSpec[key]?.storageReserved,
+        storageAvailable:      diskStatus[key]?.storageAvailable,
+        storageMaximum:        diskStatus[key]?.storageMaximum,
+        storageScheduled:      diskStatus[key]?.storageScheduled,
+        readyCondiction:       diskStatus[key]?.conditions?.Ready || {},
+        schedulableCondiction: diskStatus[key]?.conditions?.Schedulable || {},
+      };
+    });
+
+    return longhornDisks;
   }
 }

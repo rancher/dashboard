@@ -128,7 +128,7 @@ export default {
 
     storageTotal() {
       const inStore = this.$store.getters['currentProduct'].inStore;
-      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.row.id }`);
+      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.value.id }`);
       let out = 0;
 
       const diskStatus = longhornNode?.status?.diskStatus || {};
