@@ -285,6 +285,8 @@ export default class RoleTemplate extends HybridModel {
   }
 
   get resources() {
+    debugger;
+
     // List is hardcoded instead of determined from available schemas (we don't know which cluster/project roles will be applied to)
     return RESOURCES;
   }

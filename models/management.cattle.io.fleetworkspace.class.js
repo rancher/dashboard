@@ -42,13 +42,15 @@ export default class Workspace extends HybridModel {
     return this.$dispatch(`rancher/create`, { type: NORMAN.FLEET_WORKSPACES, name: this.metadata.name }, { root: true });
   }
 
-  async get norman() {
-    const norman = await this.basicNorman;
+  get norman() {
+    return (async() => {
+      const norman = await this.basicNorman;
 
-    norman.annotations = this.metadata.annotations;
-    norman.labels = this.metadata.labels;
+      norman.annotations = this.metadata.annotations;
+      norman.labels = this.metadata.labels;
 
-    return norman;
+      return norman;
+    })();
   }
 
   async save() {

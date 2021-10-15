@@ -101,17 +101,19 @@ export default class CRTB extends HybridModel {
     return !this.metadata.annotations[CREATOR_ID];
   }
 
-  async get norman() {
-    const principal = await this.principal;
-    const principalProperty = principal.principalType === 'group' ? 'groupPrincipalId' : 'userPrincipalId';
+  get norman() {
+    return (async() => {
+      const principal = await this.principal;
+      const principalProperty = principal.principalType === 'group' ? 'groupPrincipalId' : 'userPrincipalId';
 
-    return this.$dispatch(`rancher/create`, {
-      type:                  NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING,
-      roleTemplateId:        this.roleTemplateName,
-      [principalProperty]:   principal.id,
-      clusterId:             this.clusterName,
-      id:                    this.id?.replace('/', ':')
-    }, { root: true });
+      return this.$dispatch(`rancher/create`, {
+        type:                  NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING,
+        roleTemplateId:        this.roleTemplateName,
+        [principalProperty]:   principal.id,
+        clusterId:             this.clusterName,
+        id:                    this.id?.replace('/', ':')
+      }, { root: true });
+    })();
   }
 
   async save() {

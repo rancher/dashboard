@@ -117,7 +117,7 @@ export default class User extends HybridModel {
     await this.setEnabled(false);
   }
 
-  deactivateBulk(items) {
+  async deactivateBulk(items) {
     await Promise.all(items.map(item => item.setEnabled(false)));
   }
 

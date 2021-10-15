@@ -96,16 +96,18 @@ export default class GlobalRole extends HybridModel {
     return this.$dispatch(`rancher/create`, { type: NORMAN.GLOBAL_ROLE, name: this.displayName }, { root: true });
   }
 
-  async get norman() {
-    const norman = await this.basicNorman;
+  get norman() {
+    return (async() => {
+      const norman = await this.basicNorman;
 
-    norman.rules = this.rules;
-    norman.newUserDefault = this.newUserDefault;
-    norman.id = this.id;
-    norman.name = this.displayName;
-    norman.description = this.description;
+      norman.rules = this.rules;
+      norman.newUserDefault = this.newUserDefault;
+      norman.id = this.id;
+      norman.name = this.displayName;
+      norman.description = this.description;
 
-    return norman;
+      return norman;
+    })();
   }
 
   async save() {

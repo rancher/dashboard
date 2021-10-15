@@ -52,7 +52,11 @@ export default class AuthConfig extends HybridModel {
   }
 
   get icon() {
-    return require(`~/assets/images/vendor/${ imageOverrides[this.id] || this.id }.svg`);
+    try {
+      return require(`~/assets/images/vendor/${ imageOverrides[this.id] || this.id }.svg`);
+    } catch (e) {
+      return '';
+    }
   }
 
   get state() {

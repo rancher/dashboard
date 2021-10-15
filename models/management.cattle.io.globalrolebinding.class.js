@@ -32,14 +32,16 @@ export default class GRB extends HybridModel {
     return this.$dispatch(`rancher/create`, { type: NORMAN.GLOBAL_ROLE_BINDING, name: this.displayName }, { root: true });
   }
 
-  async get norman() {
-    const norman = await this.basicNorman;
+  get norman() {
+    return (async() => {
+      const norman = await this.basicNorman;
 
-    norman.globalRoleId = this.globalRoleName;
-    norman.userId = this.userName;
-    norman.groupPrincipalId = this.groupPrincipalName;
+      norman.globalRoleId = this.globalRoleName;
+      norman.userId = this.userName;
+      norman.groupPrincipalId = this.groupPrincipalName;
 
-    return norman;
+      return norman;
+    })();
   }
 
   async save() {

@@ -6,8 +6,13 @@ import { escapeHtml } from '@/utils/string';
 import NormanModel from '@/plugins/steve/norman-class';
 
 export default class CloudCredential extends NormanModel {
-  hasSensitiveData = true
-  canCustomEdit = true
+  get hasSensitiveData() {
+    return true;
+  }
+
+  get canCustomEdit() {
+    return true;
+  }
 
   get _detailLocation() {
     return {

@@ -234,6 +234,7 @@ export default {
         v-model="newCredential"
         :namespaced="false"
         :description-hidden="true"
+        name-key="name"
         name-label="cluster.credential.name.label"
         name-placeholder="cluster.credential.name.placeholder"
         :name-required="false"

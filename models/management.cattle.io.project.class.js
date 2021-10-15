@@ -50,47 +50,51 @@ export default class Project extends HybridModel {
     const norman = await this.norman;
 
     await norman.remove(...arguments);
-    this.$commit('management/remove', this, { root: true });
+    this.$dispatch('management/remove', this, { root: true });
   }
 
   get norman() {
     return this.id ? this.normanEditProject : this.normanNewProject;
   }
 
-  async get normanNewProject() {
-    const normanProject = await this.$dispatch('rancher/create', {
-      type:                          NORMAN.PROJECT,
-      name:                          this.spec.displayName,
-      description:                   this.spec.description,
-      annotations:                   this.metadata.annotations,
-      labels:                        this.metadata.labels,
-      clusterId:                     this.$rootGetters['currentCluster'].id,
-      creatorId:                     this.$rootGetters['auth/principalId'],
-      containerDefaultResourceLimit: this.spec.containerDefaultResourceLimit,
-      namespaceDefaultResourceQuota: this.spec.namespaceDefaultResourceQuota,
-      resourceQuota:                 this.spec.resourceQuota,
-    }, { root: true });
+  get normanNewProject() {
+    return (async() => {
+      const normanProject = await this.$dispatch('rancher/create', {
+        type:                          NORMAN.PROJECT,
+        name:                          this.spec.displayName,
+        description:                   this.spec.description,
+        annotations:                   this.metadata.annotations,
+        labels:                        this.metadata.labels,
+        clusterId:                     this.$rootGetters['currentCluster'].id,
+        creatorId:                     this.$rootGetters['auth/principalId'],
+        containerDefaultResourceLimit: this.spec.containerDefaultResourceLimit,
+        namespaceDefaultResourceQuota: this.spec.namespaceDefaultResourceQuota,
+        resourceQuota:                 this.spec.resourceQuota,
+      }, { root: true });
 
-    // The backend seemingly required both labels/annotation and metadata.labels/annotations or it doesn't save the labels and annotations
-    normanProject.setAnnotations(this.metadata.annotations);
-    normanProject.setLabels(this.metadata.labels);
+      // The backend seemingly required both labels/annotation and metadata.labels/annotations or it doesn't save the labels and annotations
+      normanProject.setAnnotations(this.metadata.annotations);
+      normanProject.setLabels(this.metadata.labels);
 
-    return normanProject;
+      return normanProject;
+    })();
   }
 
-  async get normanEditProject() {
-    const normanProject = await this.$dispatch('rancher/find', {
-      type:       NORMAN.PROJECT,
-      id:         this.id.replace('/', ':'),
-    }, { root: true });
+  get normanEditProject() {
+    return (async() => {
+      const normanProject = await this.$dispatch('rancher/find', {
+        type:       NORMAN.PROJECT,
+        id:         this.id.replace('/', ':'),
+      }, { root: true });
 
-    normanProject.setAnnotations(this.metadata.annotations);
-    normanProject.setLabels(this.metadata.labels);
-    normanProject.description = this.spec.description;
-    normanProject.containerDefaultResourceLimit = this.spec.containerDefaultResourceLimit;
-    normanProject.namespaceDefaultResourceQuota = this.spec.namespaceDefaultResourceQuota;
-    normanProject.resourceQuota = this.spec.resourceQuota;
+      normanProject.setAnnotations(this.metadata.annotations);
+      normanProject.setLabels(this.metadata.labels);
+      normanProject.description = this.spec.description;
+      normanProject.containerDefaultResourceLimit = this.spec.containerDefaultResourceLimit;
+      normanProject.namespaceDefaultResourceQuota = this.spec.namespaceDefaultResourceQuota;
+      normanProject.resourceQuota = this.spec.resourceQuota;
 
-    return normanProject;
+      return normanProject;
+    })();
   }
 }

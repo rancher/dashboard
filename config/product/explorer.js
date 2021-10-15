@@ -115,6 +115,7 @@ export function init(store) {
   mapGroup(/^(.+\.)?(gateway|gloo)\.solo\.io$/, 'Gloo');
   mapGroup(/^(.*\.)?monitoring\.coreos\.com$/, 'Monitoring');
   mapGroup(/^(.*\.)?tekton\.dev$/, 'Tekton');
+  mapGroup(/^(.*\.)?tigera\.io$/, 'Tigera');
   mapGroup(/^(.*\.)?longhorn(\.rancher)?\.io$/, 'Longhorn');
   mapGroup(/^(.*\.)?(fleet|gitjob)\.cattle\.io$/, 'Fleet');
   mapGroup(/^(.*\.)?(helm|k3s)\.cattle\.io$/, 'K3s');

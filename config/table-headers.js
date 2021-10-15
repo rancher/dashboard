@@ -800,11 +800,12 @@ export const EXPIRES = {
 
 export const RESTART = {
   name:      'restart',
-  label:     'Restart',
+  label:     'Restart Required',
   value:     'restartRequired',
   sort:      ['restartRequired', 'nameSort'],
   formatter: 'Checked',
   width:     75,
+  align:     'center'
 };
 
 export const ROLE = {
