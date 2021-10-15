@@ -14,7 +14,8 @@ export function init(store) {
     configureType,
     componentForType,
     virtualType,
-    spoofedType
+    spoofedType,
+    weightType
   } = DSL(store, EPINIO_PRODUCT_NAME);
 
   virtualType({
@@ -67,6 +68,7 @@ export function init(store) {
 
   configureType(EPINIO_TYPES.INSTANCE, { customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.INSTANCE }) });
 
+  weightType(EPINIO_TYPES.APP, 200, true);
   componentForType(EPINIO_TYPES.APP, undefined, EPINIO_PRODUCT_NAME);
   configureType(EPINIO_TYPES.APP, {
     isCreatable:          true,
@@ -79,6 +81,7 @@ export function init(store) {
     customRoute:          createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.APP }),
   });
 
+  weightType(EPINIO_TYPES.NAMESPACE, 100, true);
   componentForType(EPINIO_TYPES.NAMESPACE, undefined, EPINIO_PRODUCT_NAME);
   configureType(EPINIO_TYPES.NAMESPACE, {
     isCreatable: true,

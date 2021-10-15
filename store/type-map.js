@@ -977,27 +977,27 @@ export const getters = {
   // ------------------------------------
   hasCustomList(state, getters) {
     return (rawType) => {
-      const type = getters.componentFor(rawType);
+      const { type: key } = getters.componentFor(rawType);
       const cache = state.cache.list;
 
-      if ( cache[type] !== undefined ) {
-        return cache[type];
+      if ( cache[key] !== undefined ) {
+        return cache[key];
       }
 
       try {
-        require.resolve(`@/list/${ type }`);
-        cache[type] = true;
+        require.resolve(`@/list/${ key }`);
+        cache[key] = true;
       } catch (e) {
-        cache[type] = false;
+        cache[key] = false;
       }
 
-      return cache[type];
+      return cache[key];
     };
   },
 
   hasCustomDetail(state, getters) {
     return (rawType, subType) => {
-      const key = getters.componentFor(rawType, subType);
+      const { type: key, plugin } = getters.componentFor(rawType, subType);
       const cache = state.cache.detail;
 
       if ( cache[key] !== undefined ) {
@@ -1005,8 +1005,8 @@ export const getters = {
       }
 
       try {
-        if ( key.plugin) {
-          require.resolve(`@/products/${ key.plugin }/detail/${ key.type }`);
+        if ( plugin) {
+          require.resolve(`@/products/${ plugin }/detail/${ key }`);
         } else {
           require.resolve(`@/detail/${ key }`);
         }
@@ -1022,7 +1022,7 @@ export const getters = {
 
   hasCustomEdit(state, getters) {
     return (rawType, subType) => {
-      const key = getters.componentFor(rawType, subType);
+      const { type: key, plugin } = getters.componentFor(rawType, subType);
 
       const cache = state.cache.edit;
 
@@ -1031,8 +1031,8 @@ export const getters = {
       }
 
       try {
-        if ( key.plugin) {
-          require.resolve(`@/products/${ key.plugin }/edit/${ key.type }`);
+        if ( plugin) {
+          require.resolve(`@/products/${ plugin }/edit/${ key }`);
         } else {
           require.resolve(`@/edit/${ key }`);
         }
@@ -1060,22 +1060,22 @@ export const getters = {
 
   hasCustomPromptRemove(state, getters) {
     return (rawType) => {
-      const type = getters.componentFor(rawType);
+      const { type: key } = getters.componentFor(rawType);
 
       const cache = state.cache.promptRemove;
 
-      if ( cache[type] !== undefined ) {
-        return cache[type];
+      if ( cache[key] !== undefined ) {
+        return cache[key];
       }
 
       try {
-        require.resolve(`@/promptRemove/${ type }`);
-        cache[type] = true;
+        require.resolve(`@/promptRemove/${ key }`);
+        cache[key] = true;
       } catch (e) {
-        cache[type] = false;
+        cache[key] = false;
       }
 
-      return cache[type];
+      return cache[key];
     };
   },
 
@@ -1095,17 +1095,17 @@ export const getters = {
 
   importDetail(state, getters) {
     return (rawType, subType) => {
-      const key = getters.componentFor(rawType, subType);
+      const type = getters.componentFor(rawType, subType);
 
-      return importDetail(key);
+      return importDetail(type);
     };
   },
 
   importEdit(state, getters) {
     return (rawType, subType) => {
-      const key = getters.componentFor(rawType, subType);
+      const type = getters.componentFor(rawType, subType);
 
-      return importEdit(key);
+      return importEdit(type);
     };
   },
 
@@ -1129,7 +1129,7 @@ export const getters = {
         return state.cache.componentFor[key];
       }
 
-      let out = type;
+      let out = { plugin: null, type };
 
       const mapping = state.typeToComponentMappings.find((mapping) => {
         const re = stringToRegex(mapping.match);
@@ -1141,7 +1141,7 @@ export const getters = {
         if (mapping.plugin) {
           out = { plugin: mapping.plugin, type };
         } else {
-          out = mapping.replace;
+          out = { plugin: null, type: mapping.replace };
         }
       } else if ( subType ) {
         // Try again without the subType

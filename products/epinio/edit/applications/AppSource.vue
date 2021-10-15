@@ -1,7 +1,7 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
 import Application from '@/products/epinio/models/applications.class';
-import LabeledInput from '@/components/form/LabeledInput';
+import LabeledInput from '@/components/form/LabeledInput.vue';
 // import Select from '@/components/form/Select.vue';
 // import FileSelector from '@/components/form/FileSelector.vue';
 
