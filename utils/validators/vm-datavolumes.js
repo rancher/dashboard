@@ -16,7 +16,7 @@ export function dataVolumeSize(storage, getters, errors, validatorArgs) {
   const integerRegex = /^[1-9]\d*$/;
 
   if (!integerRegex.test(size) || size > max) {
-    errors.push(t('harvester.validation.sizeRange'));
+    errors.push(t('harvester.validation.volume.sizeRange'));
   }
 
   return errors;

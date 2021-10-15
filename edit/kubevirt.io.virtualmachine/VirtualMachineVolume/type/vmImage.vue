@@ -61,6 +61,11 @@ export default {
     isEdit: {
       type:    Boolean,
       default: false
+    },
+
+    validateRequired: {
+      type:     Boolean,
+      required: true
     }
   },
 
@@ -81,6 +86,12 @@ export default {
           value: I.id
         };
       });
+    },
+
+    imageName() {
+      const image = this.imagesOption.find(I => I.value === this.value.image);
+
+      return image ? image.label : '-';
     },
 
     pvcsResource() {
@@ -167,13 +178,14 @@ export default {
 
     <div class="row mb-20">
       <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.image')" :value="value.image" :mode="mode">
+        <InputOrDisplay :name="t('harvester.fields.image')" :value="imageName" :mode="mode">
           <LabeledSelect
             v-model="value.image"
             :disabled="idx === 0 && !isCreate && !value.newCreateId"
             :label="t('harvester.fields.image')"
             :options="imagesOption"
             :mode="mode"
+            :required="validateRequired"
             @input="onImageChange"
           />
         </InputOrDisplay>
@@ -187,6 +199,7 @@ export default {
             output-as="string"
             :label="t('harvester.fields.size')"
             :mode="mode"
+            :required="validateRequired"
             suffix="GiB"
             :disabled="isDisabled"
           />

@@ -3,10 +3,10 @@ import compact from 'lodash/compact';
 import { get } from '@/utils/object';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { HCI } from '@/config/types';
-import CopyToClipboardText from '@/components/CopyToClipboardText';
+import CopyToClipboard from '@/components/CopyToClipboard';
 
 export default {
-  components: { CopyToClipboardText },
+  components: { CopyToClipboard },
   props:      {
     value: {
       type:     String,
@@ -57,7 +57,7 @@ export default {
 <template>
   <div>
     <span v-for="(ipValue, index) in ip" :key="index">
-      <CopyToClipboardText :text="ipValue" /> <span v-if="index !== ip.length-1">, </span>
+      {{ ipValue }}<CopyToClipboard :text="ipValue" label-as="tooltip" class="icon-btn" action-color="bg-transparent" />
     </span>
   </div>
 </template>

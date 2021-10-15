@@ -80,6 +80,9 @@ export default {
     },
     show(reveal) {
       this.reveal = reveal;
+    },
+    focus() {
+      this.$refs.input.$refs.value.focus();
     }
   }
 };
@@ -88,6 +91,7 @@ export default {
 <template>
   <div class="password">
     <LabeledInput
+      ref="input"
       v-model="password"
       v-bind="attributes"
       :type="isRandom || reveal ? 'text' : 'password'"
@@ -103,8 +107,8 @@ export default {
           <a href="#" @click.prevent.stop="$copyText(password)">{{ t('action.copy') }}</a>
         </div>
         <div v-else class="addon">
-          <a v-if="reveal" href="#" @click.prevent.stop="reveal = false">{{ t('action.hide') }}</a>
-          <a v-else href="#" @click.prevent.stop="reveal=true">{{ t('action.show') }}</a>
+          <a v-if="reveal" tabindex="-1" href="#" @click.prevent.stop="reveal = false">{{ t('action.hide') }}</a>
+          <a v-else tabindex="-1" href="#" @click.prevent.stop="reveal=true">{{ t('action.show') }}</a>
         </div>
       </template>
     </LabeledInput>

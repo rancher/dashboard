@@ -8,6 +8,7 @@ import { allHash } from '@/utils/promise';
 import { exceptionToErrorsArray } from '@/utils/error';
 import { HCI, NAMESPACE } from '@/config/types';
 import { sortBy } from '@/utils/sort';
+import { clone } from '@/utils/object';
 
 const createObject = {
   apiVersion: 'harvesterhci.io/v1beta1',
@@ -48,7 +49,7 @@ export default {
     const restoreMode = this.$route.query?.restoreMode;
     const backupName = this.$route.query?.backupName;
 
-    const restoreResource = createObject;
+    const restoreResource = clone(createObject);
 
     const restoreNewVm = restoreMode === 'new' || restoreMode === undefined;
 

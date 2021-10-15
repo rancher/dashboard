@@ -5,7 +5,7 @@ import {
 } from '@/config/query-params';
 import { SETTING } from '@/config/settings';
 import { MANAGEMENT, NORMAN } from '@/config/types';
-import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
+import { _ALL_IF_AUTHED } from '@/plugins/core-store/actions';
 import { applyProducts } from '@/store/type-map';
 import { findBy } from '@/utils/array';
 import { ClusterNotFoundError } from '@/utils/error';

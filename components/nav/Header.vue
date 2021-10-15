@@ -70,6 +70,10 @@ export default {
       return !!this.currentCluster?.links?.shell;
     },
 
+    showKubeShell() {
+      return !this.currentProduct?.hideKubeShell;
+    },
+
     importEnabled() {
       return !!this.currentCluster?.actions?.apply;
     },
@@ -248,6 +252,7 @@ export default {
         </modal>
 
         <button
+          v-if="showKubeShell"
           v-tooltip="t('nav.shell')"
           :disabled="!shellEnabled"
           type="button"

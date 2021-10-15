@@ -1,12 +1,15 @@
 <script>
+import BrandImage from '@/components/BrandImage';
 import TypeDescription from '@/components/TypeDescription';
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
-import { CAPI, HCI } from '@/config/types';
+import { CAPI, HCI, VIRTUAL_HARVESTER_PROVIDER, MANAGEMENT } from '@/config/types';
+import { isHarvesterCluster } from '@/utils/cluster';
 
 export default {
   components: {
+    BrandImage,
     ResourceTable,
     Masthead,
     TypeDescription
@@ -15,11 +18,6 @@ export default {
   props:      {
     schema: {
       type:     Object,
-      required: true,
-    },
-
-    rows: {
-      type:     Array,
       required: true,
     },
   },
@@ -45,6 +43,26 @@ export default {
         },
       };
     },
+
+    rows() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const clusters = this.$store.getters[`${ inStore }/all`](HCI.CLUSTER);
+      const manageClusters = this.$store.getters[`${ inStore }/all`](MANAGEMENT.CLUSTER);
+
+      return clusters.filter((c) => {
+        const cluster = manageClusters.find(cluster => cluster?.metadata?.name === c?.status?.clusterName);
+
+        if (cluster?.status?.provider && cluster?.status?.provider !== VIRTUAL_HARVESTER_PROVIDER) {
+          return false;
+        }
+
+        return isHarvesterCluster(cluster);
+      });
+    },
+
+    typeDisplay() {
+      return this.t(`typeLabel."${ HCI.CLUSTER }"`, { count: this.row?.length || 0 });
+    },
   }
 };
 </script>
@@ -55,6 +73,7 @@ export default {
       :schema="realSchema"
       :resource="resource"
       :is-creatable="false"
+      :type-display="typeDisplay"
     >
       <template #typeDescription>
         <TypeDescription :resource="hResource" />
@@ -71,6 +90,7 @@ export default {
     </Masthead>
 
     <ResourceTable
+      v-if="rows && rows.length"
       :schema="schema"
       :rows="rows"
       :sub-rows="true"
@@ -107,5 +127,49 @@ export default {
         </n-link>
       </template>
     </ResourceTable>
+    <div v-else>
+      <div class="no-clusters">
+        {{ t('harvester.manager.cluster.none') }}
+      </div>
+      <hr class="info-section" />
+      <div class="logo">
+        <BrandImage file-name="harvester.png" height="64" />
+      </div>
+      <div class="tagline">
+        <div>{{ t('harvester.manager.cluster.description') }}</div>
+      </div>
+      <div class="tagline sub-tagline">
+        <div v-html="t('harvester.manager.cluster.learnMore', {}, true)"></div>
+      </div>
+    </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+  .no-clusters {
+    text-align: center;
+  }
+
+  .info-section {
+    margin-top: 60px;
+  }
+
+  .logo {
+    display: flex;
+    justify-content: center;
+    margin: 60px 0 40px 0;
+  }
+
+  .tagline {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+
+    > div {
+      font-size: 16px;
+      line-height: 22px;
+      max-width: 80%;
+      text-align: center;
+    }
+  }
+</style>

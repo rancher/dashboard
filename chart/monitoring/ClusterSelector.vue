@@ -159,7 +159,7 @@ export default {
       }
 
       if (clusterType.group === 'k3s') {
-        this.$set(this.value.prometheus.prometheusSpec.resources.limits, 'memory', '2500Mi');
+        this.$set(this.value.prometheus.prometheusSpec.resources.limits, 'memory', '3000Mi');
         this.$set(this.value.prometheus.prometheusSpec.resources.requests, 'memory', '1750Mi');
       }
 

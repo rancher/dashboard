@@ -839,3 +839,19 @@ export const KUBE_NODE_OS = {
   sort:      ['status.nodeInfo.operatingSystem'],
   formatter: 'Capitalize'
 };
+
+export const MACHINE_NODE_OS = {
+  name:      'operating-system',
+  labelKey:  'tableHeaders.operatingSystem',
+  value:     'operatingSystem',
+  sort:      ['operatingSystem'],
+  formatter: 'Capitalize'
+};
+
+export const MANAGEMENT_NODE_OS = {
+  name:      'operating-system',
+  labelKey:  'tableHeaders.operatingSystem',
+  value:     'status.internalNodeStatus.nodeInfo.operatingSystem',
+  sort:      ['status.internalNodeStatus.nodeInfo.operatingSystem'],
+  formatter: 'Capitalize'
+};

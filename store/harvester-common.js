@@ -76,11 +76,12 @@ export const actions = {
         commit('setBundlePercentage', percentage);
 
         if (bundleCrd?.bundleMessage) {
-          const error = bundleCrd?.bundleMessage;
+          const err = bundleCrd?.bundleMessage;
 
-          this.$store.dispatch('growl/fromError', { title: t('harvester.notification.title.error'), error }, { root: true });
+          dispatch('growl/fromError', { title: t('harvester.notification.title.error'), err }, { root: true });
           clearInterval(timer);
           commit('setBundlePending', false);
+          commit('toggleBundleModal', false);
         }
       } else {
         const name = id.split('/')[1];

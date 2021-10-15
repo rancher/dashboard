@@ -17,13 +17,14 @@ function SteveFactory(namespace, baseUrl) {
     state() {
       return {
         ...coreStoreState(namespace, baseUrl),
-        socket:       null,
-        queue:        [],
-        wantSocket:   false,
-        debugSocket:  false,
-        pendingSends: [],
-        started:      [],
-        inError:      {},
+        socket:           null,
+        queue:            [], // For change event coalescing
+        wantSocket:       false,
+        debugSocket:      false,
+        pendingFrames:    [],
+        deferredRequests: {},
+        started:          [],
+        inError:          {},
       };
     },
 

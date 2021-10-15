@@ -98,6 +98,7 @@ export default {
     :headers="headers"
     :groupable="true"
     default-sort-by="age"
+    :namespaced="true"
     :rows="rows"
     :schema="schema"
     key-field="_key"
