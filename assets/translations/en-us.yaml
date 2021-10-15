@@ -4162,7 +4162,6 @@ validation:
   flowOutput:
     both: Requires "Output" or "Cluster Output" to be selected.
     global: Requires "Cluster Output" to be selected.
-  namespaceName: Must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name', or '123-abc'
   output:
     logdna:
       apiKey: Required an "Api Key" to be set.
@@ -5871,4 +5870,7 @@ epinio:
       progress:
         label: Progress
         subtext: Status of create
-  namespaceName: Name
+  namespaceName:
+    name: Name
+    validation:
+      characters:  Must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name', or '123-abc'

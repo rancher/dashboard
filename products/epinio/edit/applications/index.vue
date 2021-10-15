@@ -4,7 +4,6 @@ import Application from '@/products/epinio/models/applications.class';
 import CreateEditView from '@/mixins/create-edit-view/impl';
 import Loading from '@/components/Loading.vue';
 import Wizard from '@/components/Wizard.vue';
-
 import { EPINIO_TYPES } from '@/products/epinio/types';
 import { exceptionToErrorsArray } from '@/utils/error';
 import { isEmpty } from '@/utils/object';
