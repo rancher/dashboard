@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import cluster, { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
-import ResourceInstance from '@/plugins/steve/resource-instance';
+import ResourceInstance from '@/plugins/core-store/resource-instance';
 
 export default {
   ...cluster,

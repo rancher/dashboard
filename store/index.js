@@ -442,6 +442,7 @@ export const mutations = {
     const err = new ApiError(obj);
 
     console.log('Loading error', err); // eslint-disable-line no-console
+    console.log('(actual error)', obj); // eslint-disable-line no-console
 
     state.error = err;
     state.cameFromError = true;
