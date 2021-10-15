@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import ProvCluster, { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster.class';
+import ProvCluster, { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
 export default class HciCluster extends ProvCluster {
   get availableActions() {

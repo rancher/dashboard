@@ -1,6 +1,6 @@
 import { MANAGEMENT, NORMAN } from '@/config/types';
 import { clone } from '@/utils/object';
-import Principal from './principal.class';
+import Principal from './principal';
 
 export default class Group extends Principal {
   get canViewInApi() {

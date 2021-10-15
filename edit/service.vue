@@ -11,7 +11,7 @@ import ServicePorts from '@/components/form/ServicePorts';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import UnitInput from '@/components/form/UnitInput';
-import { DEFAULT_SERVICE_TYPES, HEADLESS, CLUSTERIP } from '@/models/service.class';
+import { DEFAULT_SERVICE_TYPES, HEADLESS, CLUSTERIP } from '@/models/service';
 import { ucFirst } from '@/utils/string';
 import CruResource from '@/components/CruResource';
 import Banner from '@/components/Banner';

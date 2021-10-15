@@ -3,7 +3,7 @@ import { base64Decode, base64Encode } from '@/utils/crypto';
 import { MONITORING, SECRET } from '@/config/types';
 import { get, set } from '@/utils/object';
 import isEmpty from 'lodash/isEmpty';
-import { ROOT_NAME } from '@/models/monitoring.coreos.com.route.class';
+import { ROOT_NAME } from '@/models/monitoring.coreos.com.route';
 
 const DEFAULT_SECRET_ID = 'cattle-monitoring-system/alertmanager-rancher-monitoring-alertmanager';
 const ALERTMANAGER_ID = 'cattle-monitoring-system/rancher-monitoring-alertmanager';

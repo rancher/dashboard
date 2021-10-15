@@ -1,5 +1,5 @@
 <script>
-import { DEFAULT_SERVICE_TYPES } from '@/models/service.class';
+import { DEFAULT_SERVICE_TYPES } from '@/models/service';
 
 export default {
   props: {

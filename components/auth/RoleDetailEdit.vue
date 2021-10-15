@@ -12,7 +12,7 @@ import Tabbed from '@/components/Tabbed';
 import { ucFirst } from '@/utils/string';
 import SortableTable from '@/components/SortableTable';
 import { _DETAIL } from '@/config/query-params';
-import { SUBTYPE_MAPPING, VERBS } from '@/models/management.cattle.io.roletemplate.class';
+import { SUBTYPE_MAPPING, VERBS } from '@/models/management.cattle.io.roletemplate';
 import Loading from '@/components/Loading';
 import capitalize from 'lodash/capitalize';
 

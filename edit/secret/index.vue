@@ -1,5 +1,6 @@
 <script>
-import { TYPES } from '@/models/secret.class';
+import { TYPES } from '@/models/secret';
+import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { MANAGEMENT, NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -17,7 +18,6 @@ import { clear, uniq } from '@/utils/array';
 import { importCloudCredential } from '@/utils/dynamic-importer';
 import { NAME as MANAGER } from '@/config/product/manager';
 import SelectIconGrid from '@/components/SelectIconGrid';
-import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster.class';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 

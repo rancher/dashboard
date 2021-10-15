@@ -4,7 +4,7 @@ import Tabbed from '@/components/Tabbed';
 import { MANAGEMENT } from '@/config/types';
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
-import { SUBTYPE_MAPPING } from '@/models/management.cattle.io.roletemplate.class';
+import { SUBTYPE_MAPPING } from '@/models/management.cattle.io.roletemplate';
 import { NAME } from '@/config/product/auth';
 import { BLANK_CLUSTER } from '@/store';
 

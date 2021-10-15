@@ -14,7 +14,7 @@ import uniq from 'lodash/uniq';
 import UnitInput from '@/components/form/UnitInput';
 import { NODE, PVC, STORAGE_CLASS } from '@/config/types';
 import Loading from '@/components/Loading';
-import { LONGHORN_PLUGIN, VOLUME_PLUGINS } from '@/models/persistentvolume.class';
+import { LONGHORN_PLUGIN, VOLUME_PLUGINS } from '@/models/persistentvolume';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import { clone } from '@/utils/object';
 import { parseSi } from '@/utils/units';

@@ -1,5 +1,5 @@
 import { SCHEMA } from '@/config/types';
-import { CATTLE_API_GROUP, SUBTYPE_MAPPING } from '@/models/management.cattle.io.roletemplate.class';
+import { CATTLE_API_GROUP, SUBTYPE_MAPPING } from '@/models/management.cattle.io.roletemplate';
 import { uniq } from '@/utils/array';
 import SteveModel from '@/plugins/steve/steve-class';
 

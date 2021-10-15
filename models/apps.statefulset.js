@@ -1,4 +1,4 @@
-import Workload from './workload.class';
+import Workload from './workload';
 
 export default class StatefulSet extends Workload {
 }

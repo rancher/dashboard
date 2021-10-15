@@ -1,4 +1,4 @@
-import { proxyUrlFromParts } from '@/models/service.class';
+import { proxyUrlFromParts } from '@/models/service';
 import SteveModel from '@/plugins/steve/steve-class';
 
 export default class extends SteveModel {

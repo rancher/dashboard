@@ -43,8 +43,6 @@ export function lookup(store, type) {
 
   let out;
   const tries = [
-    `${ store }/${ type }.class`,
-    `${ type }.class`,
     `${ store }/${ type }`,
     type
   ];

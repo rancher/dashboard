@@ -8,7 +8,7 @@ import Tabbed from '@/components/Tabbed';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { _CREATE, _VIEW } from '@/config/query-params';
-import { PROVISIONER_OPTIONS } from '@/models/storage.k8s.io.storageclass.class';
+import { PROVISIONER_OPTIONS } from '@/models/storage.k8s.io.storageclass';
 import { mapFeature, UNSUPPORTED_STORAGE_DRIVERS } from '@/store/features';
 
 export default {

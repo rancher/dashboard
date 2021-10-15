@@ -8,7 +8,7 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import Labels from '@/components/form/Labels';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Banner from '@/components/Banner';
-import { PROVIDERS } from '@/models/logging.banzaicloud.io.output.class';
+import { PROVIDERS } from '@/models/logging.banzaicloud.io.output';
 import { _VIEW } from '@/config/query-params';
 import { clone } from '@/utils/object';
 import isEqual from 'lodash/isEqual';

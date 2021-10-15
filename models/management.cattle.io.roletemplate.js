@@ -3,7 +3,7 @@ import { get } from '@/utils/object';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import { NORMAN } from '@/config/types';
 import HybridModel from '@/plugins/steve/hybrid-class';
-import Role from './rbac.authorization.k8s.io.role.class';
+import Role from './rbac.authorization.k8s.io.role';
 
 export const CATTLE_API_GROUP = '.cattle.io';
 
@@ -285,8 +285,6 @@ export default class RoleTemplate extends HybridModel {
   }
 
   get resources() {
-    debugger;
-
     // List is hardcoded instead of determined from available schemas (we don't know which cluster/project roles will be applied to)
     return RESOURCES;
   }

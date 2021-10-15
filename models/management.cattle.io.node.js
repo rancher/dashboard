@@ -1,7 +1,7 @@
 import { MANAGEMENT_NODE } from '@/config/labels-annotations';
 import { CAPI, MANAGEMENT, NODE, NORMAN } from '@/config/types';
 import { NAME as EXPLORER } from '@/config/product/explorer';
-import { listNodeRoles } from '@/models/cluster/node.class';
+import { listNodeRoles } from '@/models/cluster/node';
 import { insertAt } from '@/utils/array';
 import { downloadUrl } from '@/utils/download';
 import HybridModel from '@/plugins/steve/hybrid-class';

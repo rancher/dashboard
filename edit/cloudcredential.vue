@@ -1,5 +1,5 @@
 <script>
-import { TYPES } from '@/models/secret.class';
+import { TYPES } from '@/models/secret';
 import { MANAGEMENT, NORMAN, SCHEMA } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -12,7 +12,7 @@ import { CAPI } from '@/config/labels-annotations';
 import { clear, uniq } from '@/utils/array';
 import { importCloudCredential } from '@/utils/dynamic-importer';
 import SelectIconGrid from '@/components/SelectIconGrid';
-import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster.class';
+import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { set } from '@/utils/object';

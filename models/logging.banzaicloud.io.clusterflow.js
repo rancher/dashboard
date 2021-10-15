@@ -1,6 +1,6 @@
 import { LOGGING } from '@/config/types';
 import uniq from 'lodash/uniq';
-import Flow from './logging.banzaicloud.io.flow.class';
+import Flow from './logging.banzaicloud.io.flow';
 
 export default class LogClusterFlow extends Flow {
   get allOutputs() {

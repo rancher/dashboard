@@ -1,5 +1,5 @@
 <script>
-import { TYPES } from '@/models/secret.class';
+import { TYPES } from '@/models/secret';
 import { base64Decode } from '@/utils/crypto';
 import CreateEditView from '@/mixins/create-edit-view';
 import ResourceTabs from '@/components/form/ResourceTabs';

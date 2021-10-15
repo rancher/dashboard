@@ -6,7 +6,7 @@ import SelectIconGrid from '@/components/SelectIconGrid';
 import EmberPage from '@/components/EmberPage';
 import ToggleSwitch from '@/components/form/ToggleSwitch';
 import { CHART, FROM_CLUSTER, SUB_TYPE, _IMPORT } from '@/config/query-params';
-import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster.class';
+import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@/utils/sort';
 import { set } from '@/utils/object';
