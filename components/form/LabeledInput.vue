@@ -37,6 +37,13 @@ export default {
     },
 
     validators: {
+      // validators is expected to be an array of functions
+      // where each function takes the input value as an
+      // argument. If the validation passes, the function
+      // returns { isValid: true }. If the validation fails,
+      // the function returns:
+      //
+      // { isValid: false, errorMessage: "Error goes here." }
       type:    Array,
       default: () => {
         return [];
@@ -45,7 +52,10 @@ export default {
   },
 
   data() {
-    return { touched: false };
+    return {
+      touched:          false,
+      validationErrors: ''
+    };
   },
 
   computed: {
@@ -82,32 +92,7 @@ export default {
       }
 
       return '';
-    },
-
-    validationErrors() {
-      if (!this.touched) {
-        return '';
-      }
-
-      // Combine all active validation
-      // errors into a string to be displayed
-      // beneath the input.
-      return this.validators
-        .map((validator) => {
-          try {
-            const validationResult = validator(this.value);
-
-            if (!validationResult.isValid) {
-              return validationResult.errorMessage;
-            }
-
-            return '';
-          } catch {
-            alert(`Could not validate the field using the validator ${ validator.name }.`);
-          }
-        })
-        .join('');
-    },
+    }
   },
 
   methods: {
@@ -137,14 +122,35 @@ export default {
       this.onBlurLabeled();
     },
 
-    updateSubmitButton() {
-      // If there are form validation
-      // errors, the submit/save button is grayed out.
-      if (this.validationErrors) {
-        this.$emit('disableSubmitButton');
-      } else {
-        this.$emit('enableSubmitButton');
+    updateValidationErrors() {
+      // Can be used to update the validity of a form as a whole.
+      this.$emit('setValid');
+
+      // Don't show error messages if the user hasn't entered input or
+      // if no validators apply.
+      if (!this.touched || this.value.length === 0 || this.validators.length === 0) {
+        return;
       }
+
+      // Combine all active validation errors for this field
+      // into a string to be displayed beneath the input.
+      const errorMessageReducer = ( previousValue, currentValidator ) => {
+        try {
+          const validationResult = currentValidator(this.value);
+
+          if (!validationResult.isValid) {
+            return `${ previousValue } ${ validationResult.errorMessage }`;
+          }
+
+          return previousValue;
+        } catch (error) {
+          alert(`Could not validate the field using the validator ${ currentValidator.name }. ${ error }`);
+        }
+      };
+
+      const errorString = this.validators.reduce(errorMessageReducer, '');
+
+      this.validationErrors = errorString;
     },
 
     escapeHtml,
@@ -204,7 +210,7 @@ export default {
           @input="$emit('input', $event.target.value)"
           @focus="onFocus"
           @blur="onBlur"
-          @keyup="updateSubmitButton"
+          @keyup="updateValidationErrors"
         />
       </slot>
 
@@ -223,8 +229,17 @@ export default {
       />
       <label v-if="cronHint" class="cron-label">{{ cronHint }}</label>
     </div>
-    <span v-if="validationErrors.length > 0" class="validation-message">
+    <div
+      v-if="validationErrors.length > 0"
+      class="validation-message"
+    >
       {{ validationErrors }}
-    </span>
+    </div>
   </div>
 </template>
+
+<style>
+.validation-message {
+  padding: 5px;
+}
+</style>
