@@ -52,10 +52,7 @@ export default {
   },
 
   data() {
-    return {
-      touched:          false,
-      validationErrors: ''
-    };
+    return { touched: false };
   },
 
   computed: {

@@ -118,24 +118,8 @@ export default {
 
   computed: {
     canSave() {
-<<<<<<< HEAD
       // Don't apply validation rules if the form is not shown.
       if (!this.showAsForm) {
-=======
-      // Disable the save button if there are form validation
-      // errors while the user is typing.
-      if (!this.enableSaveButton) {
-        return false;
-      }
-
-      const { validationPassed, showAsForm } = this;
-
-      if (showAsForm) {
-        if (validationPassed) {
-          return true;
-        }
-      } else {
->>>>>>> 49591d68a5312fb0bde5035a40ee395dbb8706be
         return true;
       }
 
