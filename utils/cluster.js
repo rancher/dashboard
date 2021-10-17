@@ -1,5 +1,5 @@
+import { CAPI } from '@/config/labels-annotations';
 import { VIRTUAL_HARVESTER_PROVIDER } from '@/config/types';
-import { HCI } from '@/config/labels-annotations';
 
 // Filter out any clusters that are not Kubernetes Clusters
 // Currently this removes Harvester clusters
@@ -10,5 +10,8 @@ export function filterOnlyKubernetesClusters(mgmtClusters) {
 }
 
 export function isHarvesterCluster(mgmtCluster) {
-  return mgmtCluster.metadata?.labels?.[HCI.HARVESTER_CLUSTER] === 'true' || mgmtCluster.provider === VIRTUAL_HARVESTER_PROVIDER;
+  // Use the provider if it is set otherwise use the label
+  const provider = mgmtCluster?.status?.provider || mgmtCluster?.metadata?.labels?.[CAPI.PROVIDER];
+
+  return provider === VIRTUAL_HARVESTER_PROVIDER;
 }

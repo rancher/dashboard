@@ -14,6 +14,7 @@ import SortableTable from '@/components/SortableTable';
 import { _DETAIL } from '@/config/query-params';
 import { SUBTYPE_MAPPING, VERBS } from '@/models/management.cattle.io.roletemplate';
 import Loading from '@/components/Loading';
+import capitalize from 'lodash/capitalize';
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 const CLUSTER = SUBTYPE_MAPPING.CLUSTER.key;
@@ -93,7 +94,7 @@ export default {
 
     return {
       defaultRule: {
-        apiGroups:       [],
+        apiGroups:       [''],
         nonResourceURLs: [],
         resourceNames:   [],
         resources:       [],
@@ -126,7 +127,7 @@ export default {
     resourceOptions() {
       return this.value.resources.map(resource => ({
         value: resource.toLowerCase(),
-        label: resource
+        label: capitalize(resource)
       }));
     },
     newUserDefaultOptions() {
@@ -211,7 +212,7 @@ export default {
     setRule(key, rule, event) {
       const value = event.label ? event.label : event;
 
-      if (value) {
+      if (value || (key === 'apiGroups' && value === '')) {
         this.$set(rule, key, [value]);
       } else {
         this.$set(rule, key, []);
@@ -248,7 +249,7 @@ export default {
       return (role.rules || []).map((rule, i) => {
         const tableRule = {
           index:           i,
-          apiGroups:       rule.apiGroups || [],
+          apiGroups:       rule.apiGroups || [''],
           resources:       rule.resources || [],
           nonResourceURLs: rule.nonResourceURLs || []
         };

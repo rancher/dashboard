@@ -98,12 +98,14 @@ export const STATES = {
   disconnected:       { color: 'warning', icon: 'error' },
   drained:            { color: 'info', icon: 'tag' },
   draining:           { color: 'warning', icon: 'tag' },
+  downloading:        { color: 'info', icon: 'tag' },
   enteringMaintain:   { color: 'info', icon: 'tag' },
   errapplied:         { color: 'error', icon: 'error' },
   error:              { color: 'error', icon: 'error' },
   erroring:           { color: 'error', icon: 'error' },
   errors:             { color: 'error', icon: 'error' },
   expired:            { color: 'warning', icon: 'error' },
+  exporting:          { color: 'info', icon: 'tag' },
   fail:               { color: 'error', icon: 'error' },
   failed:             { color: 'error', icon: 'error' },
   healthy:            { color: 'success', icon: 'dot-open' },
@@ -158,6 +160,7 @@ export const STATES = {
   uninstalling:       { color: 'info', icon: 'trash' },
   unknown:            { color: 'warning', icon: 'x' },
   untriggered:        { color: 'success', icon: 'tag' },
+  uploading:          { color: 'info', icon: 'tag' },
   updating:           { color: 'warning', icon: 'tag' },
   waitapplied:        { color: 'info', icon: 'tag' },
   waitcheckin:        { color: 'warning', icon: 'tag' },
@@ -602,6 +605,16 @@ export default {
     return (condition) => {
       return this.isCondition(condition, null);
     };
+  },
+
+  isSystemResource() {
+    const systemNamespaces = this.$rootGetters['systemNamespaces'];
+
+    if ( systemNamespaces.includes(this.metadata?.namespace) ) {
+      return true;
+    }
+
+    return false;
   },
 
   isCondition() {

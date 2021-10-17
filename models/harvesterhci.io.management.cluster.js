@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import cluster, { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
+import ResourceInstance from '@/plugins/core-store/resource-instance';
 
 export default {
   ...cluster,
@@ -34,4 +35,6 @@ export default {
   canEdit() {
     return false;
   },
+
+  goToEditYaml: ResourceInstance.goToEditYaml,
 };

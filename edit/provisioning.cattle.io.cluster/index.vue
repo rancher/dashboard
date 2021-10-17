@@ -222,6 +222,7 @@ export default {
             description: chart.chartDescription,
             icon:        chart.icon || require('~/assets/images/generic-catalog.svg'),
             group:       'template',
+            tag:         getters['i18n/t']('generic.techPreview')
           });
         });
 
@@ -245,6 +246,9 @@ export default {
       function addType(id, group, disabled = false, link = null) {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
+        const techPreview = getters['i18n/t']('generic.techPreview');
+        const isTechPreview = group === 'rke2' || group === 'custom2';
+        const tag = isTechPreview ? techPreview : getters['i18n/withFallback'](`cluster.providerTag."${ id }"`, { techPreview }, '');
         let icon = require('~/assets/images/generic-driver.svg');
 
         try {
@@ -258,7 +262,8 @@ export default {
           icon,
           group,
           disabled,
-          link
+          link,
+          tag
         };
 
         out.push(subtype);
@@ -389,6 +394,7 @@ export default {
           :rows="obj.types"
           key-field="id"
           name-field="label"
+          side-label-field="tag"
           :color-for="colorFor"
           @clicked="clickedType"
         />
@@ -414,6 +420,7 @@ export default {
     </template>
   </CruResource>
 </template>
+
 <style lang='scss'>
   .grouped-type {
     position: relative;

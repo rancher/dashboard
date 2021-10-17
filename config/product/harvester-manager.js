@@ -3,7 +3,6 @@ import { HARVESTER, MULTI_CLUSTER } from '@/store/features';
 import { DSL } from '@/store/type-map';
 import { STATE, NAME as NAME_COL, AGE, VERSION } from '@/config/table-headers';
 import { allHash } from '@/utils/promise';
-import { isHarvesterCluster } from '@/utils/cluster';
 
 export const NAME = 'harvesterManager';
 
@@ -91,14 +90,11 @@ export function init(store) {
       const res = await allHash(hash);
 
       return res.rancherClusters.map((c) => {
-        const cluster = res.clusters.find(cluster => cluster?.metadata?.name === c?.status?.clusterName);
-
         return {
           ...c,
-          type:     HCI.CLUSTER,
-          provider: cluster?.status?.provider,
+          type: HCI.CLUSTER,
         };
-      }).filter(c => isHarvesterCluster(c));
+      });
     },
   });
 }

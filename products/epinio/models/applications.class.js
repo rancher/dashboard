@@ -59,6 +59,29 @@ export default class EpinioApplication extends EpinioResource {
   }
 
   // ------------------------------------------------------------------
+  // Methods here are required for generic components to handle `namespaced` concept
+
+  set metadata(metadata) {
+    this.namespace = metadata.namespace;
+    this.name = metadata.name;
+  }
+
+  get metadata() {
+    return {
+      namespace: this.namespace,
+      name:      this.name
+    };
+  }
+
+  get namespaceLocation() {
+    return createEpinioRoute(`c-cluster-resource-id`, {
+      cluster:   this.$rootGetters['clusterId'],
+      resource:  EPINIO_TYPES.NAMESPACE,
+      id:       this.metadata.namespace,
+    });
+  }
+
+  // ------------------------------------------------------------------
 
   trace(text, ...args) {
     console.log(`### Application: ${ text }`, this.id, args);// eslint-disable-line no-console

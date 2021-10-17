@@ -48,6 +48,7 @@ export const state = () => {
     cameFromError:       false,
     pageActions:         [],
     serverVersion:       null,
+    systemNamespaces:    []
   };
 };
 
@@ -78,6 +79,10 @@ export const getters = {
 
   pageActions(state) {
     return state.pageActions;
+  },
+
+  systemNamespaces(state) {
+    return state.systemNamespaces;
   },
 
   currentCluster(state, getters) {
@@ -437,6 +442,7 @@ export const mutations = {
     const err = new ApiError(obj);
 
     console.log('Loading error', err); // eslint-disable-line no-console
+    console.log('(actual error)', obj); // eslint-disable-line no-console
 
     state.error = err;
     state.cameFromError = true;
@@ -448,6 +454,10 @@ export const mutations = {
 
   setServerVersion(state, version) {
     state.serverVersion = version;
+  },
+
+  setSystemNamespaces(state, namespaces) {
+    state.systemNamespaces = namespaces;
   }
 };
 
@@ -520,6 +530,7 @@ export const actions = {
 
     const pl = res.settings?.find(x => x.name === 'ui-pl')?.value;
     const brand = res.settings?.find(x => x.name === SETTING.BRAND)?.value;
+    const systemNamespaces = res.settings?.find(x => x.name === SETTING.SYSTEM_NAMESPACES);
 
     if ( pl ) {
       setVendor(pl);
@@ -527,6 +538,12 @@ export const actions = {
 
     if (brand) {
       setBrand(brand);
+    }
+
+    if (systemNamespaces) {
+      const namespace = (systemNamespaces.value || systemNamespaces.default)?.split(',');
+
+      commit('setSystemNamespaces', namespace);
     }
 
     commit('managementChanged', {
@@ -674,7 +691,7 @@ export const actions = {
       return;
     }
 
-    if ( state.clusterId && state.clusterId === id) {
+    if ( state.clusterId && state.clusterId === id && oldProduct === VIRTUAL) {
       // Do nothing, we're already connected/connecting to this cluster
       return;
     }
@@ -689,6 +706,14 @@ export const actions = {
 
       await dispatch('harvester/unsubscribe');
       commit('harvester/reset');
+
+      await dispatch('management/watch', {
+        type:      MANAGEMENT.PROJECT,
+        namespace: state.clusterId,
+        stop:      true
+      });
+
+      commit('management/forgetType', MANAGEMENT.PROJECT);
     }
 
     if (id) {
@@ -725,7 +750,21 @@ export const actions = {
 
     dispatch('harvester/subscribe');
 
+    let isRancher = false;
+    const projectArgs = {
+      type: MANAGEMENT.PROJECT,
+      opt:  {
+        url:            `${ MANAGEMENT.PROJECT }/${ escape(id) }`,
+        watchNamespace: id
+      }
+    };
+
+    if (getters['management/schemaFor'](MANAGEMENT.PROJECT)) {
+      isRancher = true;
+    }
+
     await allHash({
+      projects:          isRancher && dispatch('management/findAll', projectArgs),
       virtualCount:      dispatch('harvester/findAll', { type: COUNT }),
       virtualNamespaces: dispatch('harvester/findAll', { type: NAMESPACE }),
       settings:          dispatch('harvester/findAll', { type: HCI.SETTING }),

@@ -1,7 +1,8 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
 import Application from '@/products/epinio/models/applications.class';
-import Select from '@/components/form/Select.vue';
+import LabeledInput from '@/components/form/LabeledInput.vue';
+// import Select from '@/components/form/Select.vue';
 // import FileSelector from '@/components/form/FileSelector.vue';
 
 interface Data {
@@ -13,7 +14,9 @@ interface Data {
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
 
-  components: { Select }, // FileSelector,
+  components: { LabeledInput },
+  // Select
+  // FileSelector,
 
   props: {
     application: {
@@ -27,13 +30,10 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   data() {
-    const buildPacks = ['paketobuildpacks/builder:full'];
-
     return {
       errors:              [],
       tarball:             '',
-      builderImage:        buildPacks[0],
-      builderImageOptions: buildPacks
+      builderImage:        'paketobuildpacks/builder:full',
     };
   },
 
@@ -77,13 +77,14 @@ export default Vue.extend<Data, any, any, any>({
 
 <template>
   <div class="col span-6">
-    <!-- TODO: Switch back -->
-    <input
-      id="file"
-      ref="file"
-      type="file"
-      @change="onFileSelected"
-    />
+    <div class="">
+      <!-- TODO: Switch back -->
+      <input
+        id="file"
+        ref="file"
+        type="file"
+        @change="onFileSelected"
+      />
     <!-- <FileSelector
           class="role-tertiary add mt-5"
           :label="t('generic.readFromFile')"
@@ -92,17 +93,22 @@ export default Vue.extend<Data, any, any, any>({
           :read-as-data-url="true"
           @selected="onFileSelected"
         /> -->
-
-    <Select
-      v-model="builderImage"
-      :mode="mode"
-      :searchable="true"
-      :clearable="false"
-      :options="builderImageOptions"
-      class="mt-20"
-    />
-    <!-- // TODO: RC fetch builder image options? -->
-
+    </div>
+    <div class="spacer">
+      <LabeledInput
+        v-model="builderImage"
+        :label="t('epinio.applications.create.builderimage.label')"
+        :tooltip="t('epinio.applications.create.builderimage.tooltip')"
+        :mode="mode"
+      />
+      <!-- <Select
+        v-model="builderImage"
+        :mode="mode"
+        :searchable="true"
+        :clearable="false"
+        :options="builderImageOptions"
+      /> -->
+    </div>
     <!-- <br><br> -->
     <!-- Debug<br>
         Mode: {{ mode }}<br>

@@ -26,6 +26,7 @@ export function init(store) {
     inStore:             'harvester',
     removable:           false,
     showNamespaceFilter: true,
+    hideKubeShell:       true,
     showClusterSwitcher: true,
     typeStoreMap:        {
       [MANAGEMENT.PROJECT]:                       'management',

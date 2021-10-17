@@ -25,21 +25,28 @@ export default {
   mixins: [metricPoller],
 
   async fetch() {
-    const hash = await allHash({
-      nodes:      this.$store.dispatch('harvester/findAll', { type: NODE }),
-      metric:   this.$store.dispatch('harvester/findAll', { type: METRIC.NODE }),
-    });
+    const _hash = { nodes: this.$store.dispatch('harvester/findAll', { type: NODE }) };
+
+    if (this.$store.getters['harvester/schemaFor'](METRIC.NODE)) {
+      _hash.metric = this.$store.dispatch('harvester/findAll', { type: METRIC.NODE });
+    } else {
+      this.hasMetricSchema = false;
+    }
+    const hash = await allHash(_hash);
 
     this.rows = hash.nodes;
   },
 
   data() {
-    return { rows: [] };
+    return {
+      rows:            [],
+      hasMetricSchema: true
+    };
   },
 
   computed: {
     headers() {
-      return [
+      const out = [
         STATE,
         {
           ...NAME,
@@ -52,29 +59,38 @@ export default {
           search:    ['internalIp'],
           value:     'internalIp',
         },
-        {
-          name:          'cpu',
-          labelKey:      'node.detail.glance.consumptionGauge.cpu',
-          value:         'id',
-          width:         230,
-          formatter:     'HarvesterCPUUsed',
-        },
-        {
-          name:          'memory',
-          labelKey:      'node.detail.glance.consumptionGauge.memory',
-          value:         'id',
-          width:         230,
-          formatter:     'HarvesterMemoryUsed',
-        },
-        {
-          name:          'storage',
-          labelKey:      'tableHeaders.storage',
-          value:         'id',
-          width:         230,
-          formatter:     'HarvesterStorageUsed',
-        },
         AGE,
       ];
+
+      if (this.hasMetricSchema) {
+        const metricCol = [
+          {
+            name:          'cpu',
+            labelKey:      'node.detail.glance.consumptionGauge.cpu',
+            value:         'id',
+            width:         '230',
+            formatter:     'HarvesterCPUUsed',
+          },
+          {
+            name:          'memory',
+            labelKey:      'node.detail.glance.consumptionGauge.memory',
+            value:         'id',
+            width:         '230',
+            formatter:     'HarvesterMemoryUsed'
+          },
+          {
+            name:          'storage',
+            labelKey:      'tableHeaders.storage',
+            value:         'id',
+            width:         '230',
+            formatter:     'HarvesterStorageUsed',
+          }
+        ];
+
+        out.splice(-1, 0, ...metricCol);
+      }
+
+      return out;
     },
 
     schema() {

@@ -61,12 +61,13 @@ export default {
     })
       .map((d) => {
         return {
-          isNew:       true,
-          name:        d?.metadata?.name,
-          originPath:  d?.spec?.fileSystem?.mountPoint,
-          path:        d?.spec?.fileSystem?.mountPoint,
-          blockDevice: d,
-          displayName: d?.spec?.devPath,
+          isNew:          true,
+          name:           d?.metadata?.name,
+          originPath:     d?.spec?.fileSystem?.mountPoint,
+          path:           d?.spec?.fileSystem?.mountPoint,
+          blockDevice:    d,
+          displayName:    d?.spec?.devPath,
+          forceFormatted: d?.spec?.fileSystem?.forceFormatted || false,
         };
       });
 
@@ -115,6 +116,7 @@ export default {
           storageScheduled: formatSi(diskStatus[key]?.storageScheduled, formatOptions),
           blockDevice,
           displayName:      blockDevice?.spec?.devPath || key,
+          forceFormatted:   blockDevice?.spec?.fileSystem?.forceFormatted || false,
         };
       });
 

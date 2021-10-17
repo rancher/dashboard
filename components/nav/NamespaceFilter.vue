@@ -5,6 +5,7 @@ import { NAMESPACE, MANAGEMENT } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 import { isArray, addObjects, findBy, filterBy } from '@/utils/array';
 import Select from '@/components/form/Select';
+import { NAME as HARVESTER } from '@/config/product/harvester';
 
 export default {
   components: { Select },
@@ -76,7 +77,12 @@ export default {
       const namespaces = sortBy(
         this.$store.getters[`${ inStore }/all`](NAMESPACE),
         ['nameDisplay']
-      ).filter( N => this.isVirtualCluster ? !N.isSystem : true);
+      ).filter( (N) => {
+        const needFilter = !N.isSystem && !N.isFleetManaged;
+        const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
+
+        return this.isVirtualCluster && isVirtualProduct ? needFilter : true;
+      });
 
       if (this.$store.getters['isRancher'] || this.isMultiVirtualCluster) {
         const cluster = this.$store.getters['currentCluster'];
@@ -104,7 +110,7 @@ export default {
             projectId = null;
           }
 
-          let entry = namespacesByProject[namespace.projectId];
+          let entry = namespacesByProject[projectId];
 
           if (!entry) {
             entry = [];

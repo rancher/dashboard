@@ -7,7 +7,7 @@ import Socket, {
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR
 } from '@/utils/socket';
-import { remapSpecialKeys } from '@/plugins/core-store/resource-proxy';
+// import { remapSpecialKeys } from '@/plugins/core-store/resource-proxy';
 import { normalizeType } from '@/plugins/core-store/normalize';
 
 export const NO_WATCH = 'NO_WATCH';
@@ -41,8 +41,6 @@ export function equivalentWatch(a, b) {
 
 function queueChange({ getters, state }, { data, revision }, load, label) {
   const type = getters.normalizeType(data.type);
-
-  remapSpecialKeys(data);
 
   const entry = getters.typeEntry(type);
 
@@ -357,8 +355,8 @@ export const actions = {
 
     // Try resending any frames that were attempted to be sent while the socket was down, once.
     if ( !process.server ) {
-      for ( const obj of state.pendingSends.slice() ) {
-        commit('dequeuePending', obj);
+      for ( const obj of state.pendingFrames.slice() ) {
+        commit('dequeuePendingFrame', obj);
         dispatch('sendImmediate', obj);
       }
     }
@@ -385,7 +383,7 @@ export const actions = {
       }
     }
 
-    commit('enqueuePending', obj);
+    commit('enqueuePendingFrame', obj);
   },
 
   sendImmediate({ state }, obj) {
@@ -489,7 +487,7 @@ export const actions = {
       const alias = typeOption?.alias || [];
 
       alias.map((type) => {
-        const obj = getters.byId(type, data.id);
+        const obj = ctx.getters.byId(type, data.id);
 
         ctx.state.queue.push({
           action: 'commit',
@@ -510,12 +508,12 @@ export const mutations = {
     state.wantSocket = want;
   },
 
-  enqueuePending(state, obj) {
-    state.pendingSends.push(obj);
+  enqueuePendingFrame(state, obj) {
+    state.pendingFrames.push(obj);
   },
 
-  dequeuePending(state, obj) {
-    removeObject(state.pendingSends, obj);
+  dequeuePendingFrame(state, obj) {
+    removeObject(state.pendingFrames, obj);
   },
 
   setWatchStarted(state, obj) {
@@ -556,9 +554,10 @@ export const mutations = {
 
   resetSubscriptions(state) {
     clear(state.started);
-    clear(state.pendingSends);
+    clear(state.pendingFrames);
     clear(state.queue);
     clearInterval(state.queueTimer);
+    state.deferredRequests = {};
     state.queueTimer = null;
   }
 };

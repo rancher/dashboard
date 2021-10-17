@@ -1,4 +1,3 @@
-import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
 import { getVendor } from '@/config/private-label';
 import { SETTING } from '@/config/settings';
@@ -15,7 +14,6 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isSingleVirtualCluster']),
     brand() {
       const setting = findBy(this.globalSettings, 'id', SETTING.BRAND);
 
@@ -86,7 +84,7 @@ export default {
 
     let brandMeta;
 
-    if (this.isSingleVirtualCluster) {
+    if (getVendor() === 'Harvester') {
       const ico = require(`~/assets/images/pl/harvester.png`);
 
       out = {

@@ -28,11 +28,13 @@ import PodAffinity from '@/components/form/PodAffinity';
 import Tolerations from '@/components/form/Tolerations';
 import CruResource from '@/components/CruResource';
 import Command from '@/components/form/Command';
+import LifecycleHooks from '@/components/form/LifecycleHooks';
 import Storage from '@/edit/workload/storage';
 import Labels from '@/components/form/Labels';
 import RadioGroup from '@/components/form/RadioGroup';
 import { UI_MANAGED } from '@/config/labels-annotations';
 import { removeObject } from '@/utils/array';
+import { BEFORE_SAVE_HOOKS } from '~/mixins/child-hook';
 
 export default {
   name:       'CruWorkload',
@@ -56,6 +58,7 @@ export default {
     Tolerations,
     CruResource,
     Command,
+    LifecycleHooks,
     Storage,
     VolumeClaimTemplate,
     Labels,
@@ -156,11 +159,13 @@ export default {
       isInitContainer,
       container,
       containerChange:   0,
-      podFsGroup:        podTemplateSpec.securityContext?.fsGroup
+      podFsGroup:        podTemplateSpec.securityContext?.fsGroup,
+      savePvcHookName:   'savePvcHook'
     };
   },
 
   computed: {
+
     isEdit() {
       return this.mode === _EDIT;
     },
@@ -698,6 +703,15 @@ export default {
       }
       this.isInitContainer = neu;
     },
+    clearPvcFormState(hookName) {
+      // On the `closePvcForm` event, remove the
+      // before save hook to prevent the PVC from
+      // being created. Use the PVC's unique ID to distinguish
+      // between hooks for different PVCs.
+      if (this[BEFORE_SAVE_HOOKS]) {
+        this.unregisterBeforeSaveHook(hookName);
+      }
+    }
   }
 };
 </script>
@@ -832,6 +846,12 @@ export default {
             <h3>{{ t('workload.container.titles.command') }}</h3>
             <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
           </div>
+
+          <div class="spacer"></div>
+          <div>
+            <h3>{{ t('workload.container.titles.lifecycle') }}</h3>
+            <LifecycleHooks v-model="container.lifecycle" :mode="mode" />
+          </div>
         </Tab>
         <Tab :label="t('workload.storage.title')" name="storage">
           <Storage
@@ -842,6 +862,8 @@ export default {
             :secrets="namespacedSecrets"
             :config-maps="namespacedConfigMaps"
             :container="container"
+            :save-pvc-hook-name="savePvcHookName"
+            @removePvcForm="clearPvcFormState"
           />
         </Tab>
         <Tab :label="t('workload.container.titles.resources')" name="resources">

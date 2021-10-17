@@ -49,6 +49,11 @@ export default {
       default: false
     },
 
+    validateRequired: {
+      type:    Boolean,
+      default: false
+    },
+
     customVolumeMode: {
       type:    String,
       default: 'Block'
@@ -239,7 +244,7 @@ export default {
               <i class="icon icon-2x icon-x" />
             </button>
             <h3>
-              <n-link v-if="volume.to" :to="volume.to">
+              <n-link v-if="volume.to && !isView" :to="volume.to">
                 {{ t('harvester.virtualMachine.volume.edit') }} {{ headerFor(volume.source) }}
               </n-link>
 
@@ -261,6 +266,7 @@ export default {
                 :vm="vm"
                 :mode="mode"
                 :idx="i"
+                :validate-required="validateRequired"
                 :need-root-disk="needRootDisk"
                 @update="update"
               />

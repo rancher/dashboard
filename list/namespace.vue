@@ -1,6 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import ResourceTable from '@/components/ResourceTable';
+
 export default {
   name:       'ListNamespace',
   components: { ResourceTable },
@@ -16,11 +17,13 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isSingleVirtualCluster']),
+    ...mapGetters(['isVirtualCluster']),
 
     filterRow() {
-      if (this.isSingleVirtualCluster) {
-        return this.rows.filter( N => !N.isSystem);
+      if (this.isVirtualCluster) {
+        return this.rows.filter( (N) => {
+          return !N.isSystem && !N.isFleetManaged;
+        });
       } else {
         return this.rows;
       }

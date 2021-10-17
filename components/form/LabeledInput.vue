@@ -92,7 +92,32 @@ export default {
       }
 
       return '';
-    }
+    },
+
+    validationErrors() {
+      if (!this.touched) {
+        return '';
+      }
+
+      // Combine all active validation
+      // errors into a string to be displayed
+      // beneath the input.
+      return this.validators
+        .map((validator) => {
+          try {
+            const validationResult = validator(this.value);
+
+            if (!validationResult.isValid) {
+              return validationResult.errorMessage;
+            }
+
+            return '';
+          } catch {
+            alert(`Could not validate the field using the validator ${ validator.name }.`);
+          }
+        })
+        .join('');
+    },
   },
 
   methods: {
