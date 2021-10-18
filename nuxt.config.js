@@ -234,8 +234,7 @@ module.exports = {
       },
       plugins: [
         ['@babel/plugin-transform-modules-commonjs'],
-        // Should be resolved in nuxt  v.2.15.5, see https://github.com/nuxt/nuxt.js/issues/9224#issuecomment-835742221
-        ['@babel/plugin-proposal-private-methods', { loose: true }]
+        ['@babel/plugin-proposal-private-property-in-object', { loose: true }]
       ],
     }
   },

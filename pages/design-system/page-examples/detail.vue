@@ -1,11 +1,9 @@
 <script>
-import ResourceDetail, { asyncData, watchQuery } from '@/components/ResourceDetail';
+import ResourceDetail from '@/components/ResourceDetail';
 
 export default {
   name:       'ClusterResourceCreate',
   components: { ResourceDetail },
-  asyncData,
-  watchQuery,
 };
 </script>
 
