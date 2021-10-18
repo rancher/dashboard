@@ -233,7 +233,8 @@ module.exports = {
         ];
       },
       plugins: [
-        ['@babel/plugin-transform-modules-commonjs'],
+        // TODO: Browser support
+        //['@babel/plugin-transform-modules-commonjs'],
         ['@babel/plugin-proposal-private-property-in-object', { loose: true }]
       ],
     }
