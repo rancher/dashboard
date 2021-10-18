@@ -4,7 +4,6 @@ import Loading from '@/components/Loading.vue';
 import CruResource from '@/components/CruResource.vue';
 import LabeledInput from '@/components/form/LabeledInput.vue';
 import { mapGetters } from 'vuex';
-import { countErrors } from '@/utils/validators/beforeSaveValidation/error-counter';
 import { validateKubernetesName } from '@/utils/validators/kubernetes-name';
 
 export default {
@@ -18,8 +17,7 @@ export default {
   data() {
     return {
       errors:           [],
-      countErrors,
-      validationPassed: false
+      validFields: { name: false }
     };
   },
 
@@ -30,7 +28,13 @@ export default {
     },
   },
 
-  computed: { ...mapGetters({ t: 'i18n/t' }) },
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
+    validationPassed() {
+      return !Object.values(this.validFields).includes(false);
+    }
+  },
 
   methods: {
     meetsNameRequirements( name = '') {
@@ -39,27 +43,17 @@ export default {
       if (nameErrors.length > 0) {
         return {
           isValid:      false,
-          errorMessage: nameErrors.join('')
+          errorMessage: nameErrors.join(', ')
         };
       }
 
       return { isValid: true };
     },
 
-    updateFormValidity() {
-      const formValidators = [
-        // Array of validation checks for the form
-        () => this.meetsNameRequirements(this.value.name),
-      ];
-      const numberOfErrors = countErrors(formValidators);
+    setValid(field, valid) {
+      this.validFields[field] = valid;
+    },
 
-      if (numberOfErrors === 0) {
-        this.validationPassed = true;
-
-        return;
-      }
-      this.validationPassed = false;
-    }
   }
 };
 </script>
@@ -87,7 +81,7 @@ export default {
         :mode="mode"
         :required="true"
         :validators="[ meetsNameRequirements ]"
-        @setValid="updateFormValidity"
+        @setValid="setValid('name', $event)"
       />
     </CruResource>
   </div>

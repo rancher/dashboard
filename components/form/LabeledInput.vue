@@ -52,7 +52,10 @@ export default {
   },
 
   data() {
-    return { touched: false };
+    return {
+      updated:          false,
+      validationErrors: '',
+    };
   },
 
   computed: {
@@ -91,30 +94,6 @@ export default {
       return '';
     },
 
-    validationErrors() {
-      if (!this.touched) {
-        return '';
-      }
-
-      // Combine all active validation
-      // errors into a string to be displayed
-      // beneath the input.
-      return this.validators
-        .map((validator) => {
-          try {
-            const validationResult = validator(this.value);
-
-            if (!validationResult.isValid) {
-              return validationResult.errorMessage;
-            }
-
-            return '';
-          } catch {
-            alert(`Could not validate the field using the validator ${ validator.name }.`);
-          }
-        })
-        .join('');
-    },
   },
 
   methods: {
@@ -134,9 +113,24 @@ export default {
       }
     },
 
+    onUpdate(value) {
+      const haveValidators = this.validators.length > 0;
+
+      if (!haveValidators && !this.updated) {
+        // When no validators are here emit a valid state of true. If the gate to only run once causes issues it can be removed
+        this.$emit('setValid', true);
+      }
+
+      if (haveValidators) {
+        this.updateValidationErrors(value);
+      }
+
+      this.updated = true;
+      this.$emit('input', value);
+    },
+
     onFocus() {
       this.onFocusLabeled();
-      this.touched = true;
     },
 
     onBlur() {
@@ -144,24 +138,15 @@ export default {
       this.onBlurLabeled();
     },
 
-    updateValidationErrors() {
-      // Can be used to update the validity of a form as a whole.
-      this.$emit('setValid');
-
-      // Don't show error messages if the user hasn't entered input or
-      // if no validators apply.
-      if (!this.touched || this.value.length === 0 || this.validators.length === 0) {
-        return;
-      }
-
+    updateValidationErrors(value) {
       // Combine all active validation errors for this field
       // into a string to be displayed beneath the input.
       const errorMessageReducer = ( previousValue, currentValidator ) => {
         try {
-          const validationResult = currentValidator(this.value);
+          const validationResult = currentValidator(value);
 
           if (!validationResult.isValid) {
-            return `${ previousValue } ${ validationResult.errorMessage }`;
+            previousValue.push(validationResult.errorMessage);
           }
 
           return previousValue;
@@ -170,9 +155,12 @@ export default {
         }
       };
 
-      const errorString = this.validators.reduce(errorMessageReducer, '');
+      const errorString = this.validators.reduce(errorMessageReducer, []);
 
-      this.validationErrors = errorString;
+      this.validationErrors = errorString.join(', ');
+
+      // Can be used to update the validity of a form as a whole.
+      this.$emit('setValid', !this.validationErrors.length);
     },
 
     escapeHtml,
@@ -213,7 +201,7 @@ export default {
           :placeholder="_placeholder"
           autocapitalize="off"
           :class="{ conceal: type === 'multiline-password' }"
-          @input="$emit('input', $event)"
+          @input="onUpdate($event)"
           @focus="onFocus"
           @blur="onBlur"
         />
@@ -229,10 +217,9 @@ export default {
           autocomplete="off"
           autocapitalize="off"
           :data-lpignore="ignorePasswordManagers"
-          @input="$emit('input', $event.target.value)"
+          @input="onUpdate($event.target.value)"
           @focus="onFocus"
           @blur="onBlur"
-          @keyup="updateValidationErrors"
         />
       </slot>
 
