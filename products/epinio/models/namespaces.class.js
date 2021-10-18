@@ -59,20 +59,4 @@ export default class EpinioNamespaces extends EpinioResource {
   confirmRemove() {
     return true;
   }
-
-  get _availableActions() {
-    return [
-      {
-        action:     'promptRemove',
-        altAction:  'remove',
-        label:      this.t('action.remove'),
-        icon:       'icon icon-trash',
-        bulkable:   true,
-        enabled:    true,
-        bulkAction: 'promptRemove',
-        weight:     -10, // Delete always goes last
-      },
-      ...this._standardActions
-    ];
-  }
 }

@@ -6,6 +6,14 @@ import { normalizeType } from '@/plugins/core-store/normalize';
 import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 import { base64Encode } from '@/utils/crypto';
 
+const createId = (schema, resource) => {
+  if (schema.attributes?.namespaced && resource.namespace) {
+    return `${ resource.namespace }/${ resource.name }`;
+  }
+
+  return resource.name;
+};
+
 export default {
   remove({ commit }, obj ) {
     commit('remove', obj);
@@ -57,13 +65,14 @@ export default {
           return res;
         } else {
           const out = res.data || {};
+          const schema = getters.schemaFor(type);
 
           // TODO: API - namespaces call returns array of strings!
           if (Array.isArray(out)) {
             res.data = {
               data: out.map(o => ({
                 ...o,
-                id: o.name,
+                id: createId(schema, o),
                 type // TODO: RC get from url
               }))
             };
@@ -71,7 +80,7 @@ export default {
           // `find` action turns this into `{data: out}`
             res.data = {
               ...out,
-              id: out.name,
+              id: createId(schema, out),
               type
             };
           }
