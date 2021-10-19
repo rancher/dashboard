@@ -223,6 +223,10 @@ export default {
   },
 
   created() {
+    if (this.isCreate && this.value.type === LOGGING.CLUSTER_FLOW) {
+      this.value.metadata.namespace = 'cattle-logging-system';
+    }
+
     this.registerBeforeHook(this.willSave, 'willSave');
   },
 
