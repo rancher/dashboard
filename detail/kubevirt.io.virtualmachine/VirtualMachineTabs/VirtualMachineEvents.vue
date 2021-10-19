@@ -3,7 +3,7 @@ import { REASON } from '@/config/table-headers';
 import SortableTable from '@/components/SortableTable';
 
 export default {
-  name: 'Events',
+  name: 'VirtualMachineEvents',
 
   components: { SortableTable },
 

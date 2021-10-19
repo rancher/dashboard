@@ -76,8 +76,8 @@ export default {
 
   methods: {
     onTabChanged({ tab }) {
-      if (tab.name === 'advanced' && this.$refs.yamlEditor?.refresh) {
-        this.$refs.yamlEditor.refresh();
+      if (tab.name === 'advanced') {
+        this.$refs.yamlEditor?.refresh();
       }
     },
   }
@@ -123,10 +123,15 @@ export default {
         :label="t('harvester.tab.advanced')"
         :weight="-4"
       >
-        <CloudConfig ref="yamlEditor" :user-script="userScript" :mode="mode" :network-script="networkScript" @updateCloudConfig="updateCloudConfig" />
+        <CloudConfig
+          ref="yamlEditor"
+          :user-script="userScript"
+          :mode="mode"
+          :network-script="networkScript"
+        />
 
         <div class="spacer"></div>
-        <Checkbox v-model="isUseMouseEnhancement" :mode="mode" class="check" type="checkbox" :label="t('harvester.virtualMachine.enableUsb')" />
+        <Checkbox v-model="installUSBTablet" :mode="mode" class="check" type="checkbox" :label="t('harvester.virtualMachine.enableUsb')" />
       </Tab>
     </Tabbed>
   </CruResource>

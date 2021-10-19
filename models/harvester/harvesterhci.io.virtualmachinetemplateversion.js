@@ -34,13 +34,13 @@ export default class HciVmTemplateVersion extends SteveModel {
       },
       {
         action:     'cloneTemplate',
-        enabled:    this.currentTemplate.canCreate,
+        enabled:    this.currentTemplate?.canCreate,
         icon:       'icon icon-fw icon-edit',
         label:      this.t('harvester.action.modifyTemplate'),
       },
       {
         action:     'setDefaultVersion',
-        enabled:    this.currentTemplate.canCreate,
+        enabled:    this.currentTemplate?.canCreate,
         icon:       'icon icon-fw icon-checkmark',
         label:      this.t('harvester.action.setDefaultVersion'),
       },

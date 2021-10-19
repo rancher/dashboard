@@ -188,6 +188,10 @@ export default {
       }
     },
 
+    unplugVolume(volume) {
+      this.vm.unplugVolume(volume.name);
+    },
+
     componentFor(type) {
       switch (type) {
       case SOURCE_TYPE.NEW:
@@ -228,6 +232,10 @@ export default {
       // true: down, false: up
       this.rows.splice(type ? idx : idx - 1, 1, ...this.rows.splice(type ? idx + 1 : idx, 1, this.rows[type ? idx : idx - 1]));
       this.update();
+    },
+
+    unplugAble(volume) {
+      return volume.hotpluggable && this.isView;
     }
   },
 };
@@ -236,12 +244,15 @@ export default {
 <template>
   <div>
     <Banner v-if="!isView" color="info" label-key="harvester.virtualMachine.volume.dragTip" />
-    <draggable v-model="rows" @end="update">
+    <draggable v-model="rows" :disabled="isView" @end="update">
       <transition-group>
         <div v-for="(volume, i) in rows" :key="volume.id">
           <InfoBox class="volume-source">
             <button v-if="!isView" type="button" class="role-link btn btn-sm remove-vol" @click="removeVolume(volume)">
               <i class="icon icon-2x icon-x" />
+            </button>
+            <button v-if="unplugAble(volume)" type="button" class="role-link btn btn-sm remove-vol" @click="unplugVolume(volume)">
+              Detach Volume
             </button>
             <h3>
               <n-link v-if="volume.to && !isView" :to="volume.to">
@@ -263,7 +274,6 @@ export default {
                 :is-create="isCreate"
                 :is-edit="isEdit"
                 :is-view="isView"
-                :vm="vm"
                 :mode="mode"
                 :idx="i"
                 :validate-required="validateRequired"

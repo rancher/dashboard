@@ -4960,6 +4960,8 @@ harvester:
     hotplug:
       success: 'Volume { diskName } is mounted to the VM { vm }.'
       title: Add Volume
+    hotunplug:
+      success: 'Volume { name } is detach successfully.'
   notification:
     title:
       succeed: Succeed
@@ -5181,10 +5183,13 @@ harvester:
     promptRemove:
       title: 'Select the volume you want to delete:'
       deleteAll: Delete All
+    unplug:
+      title: 'Are you sure that you want to detach volume {name} ?'
+      actionLabel: Detach
     restartTip: Restart the virtual machine now to take effect of the configuration changes.
     createRunning: Start virtual machine on creation
     restartNow: Restart Now
-    createSSHKey: Create SSH Key
+    createSSHKey: Create a New...
     installAgent: Install guest agent
     enableUsb: Enable USB Tablet
     sshTitle: Add Public SSH Key
@@ -5221,14 +5226,16 @@ harvester:
       addPort:  Add Port
     cloudConfig:
       title: Cloud Config
+      createTemplateTitle: 'Create {name}.'
+      createNew: Create new...
       cloudInit:
         label: Cloud Init
-        placeholder: Choose a template
-      userData:
+        placeholder: Select a template
+      user:
         label: User Data Template
         title: "User Data:"
         tip: "You can specify user data to configure an instance or run a configuration script during launch. If you launch more than one instance at a time, the user data is available to all the instances in that reservation. <a href='https://cloudinit.readthedocs.io/en/latest/topics/examples.html' target='_blank'>Learn more</a>"
-      networkData:
+      network:
         label: Network Data Template
         title: "Network Data:"
         tip: "The network-data configuration allows you to customize the instance’s networking interfaces by assigning subnet configuration, virtual device creation (bonds, bridges, vlans) routes and DNS configuration. <a href='https://cloudinit.readthedocs.io/en/latest/topics/network-config-format-v1.html' target='_blank'>Learn more</a>"

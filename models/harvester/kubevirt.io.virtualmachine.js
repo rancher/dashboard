@@ -211,21 +211,39 @@ export default class VirtVm extends SteveModel {
   }
 
   restartVM() {
-    this.doAction('restart', {});
+    return () => {
+      this.doAction('restart', {});
+    };
   }
 
-  backupVM(resources = this) {
-    this.$dispatch('promptModal', {
-      resources,
-      component: 'harvester/BackupModal'
-    });
+  backupVM() {
+    return (resources = this) => {
+      this.$dispatch('promptModal', {
+        resources,
+        component: 'harvester/BackupModal'
+      });
+    };
   }
 
-  restoreVM(resources = this) {
-    this.$dispatch('promptModal', {
-      resources,
-      component: 'harvester/RestoreDialog'
-    });
+  unplugVolume() {
+    const resources = this;
+
+    return (diskName) => {
+      this.$dispatch('promptModal', {
+        resources,
+        diskName,
+        component: 'harvester/UnplugVolume'
+      });
+    };
+  }
+
+  restoreVM() {
+    return (resources = this) => {
+      this.$dispatch('promptModal', {
+        resources,
+        component: 'harvester/RestoreDialog'
+      });
+    };
   }
 
   get machineType() {

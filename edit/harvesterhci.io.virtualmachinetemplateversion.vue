@@ -4,6 +4,7 @@ import Tab from '@/components/Tabbed/Tab';
 import Checkbox from '@/components/form/Checkbox';
 import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
+import LabeledSelect from '@/components/form/LabeledSelect';
 
 import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
 import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
@@ -33,6 +34,7 @@ export default {
     CpuMemory,
     CruResource,
     CloudConfig,
+    LabeledSelect,
     NameNsDescription
   },
 
@@ -60,13 +62,12 @@ export default {
       description:      '',
       defaultVersion:   null,
       isDefaultVersion: false,
-      keyPairIds:       [],
     };
   },
 
   computed: {
     isConfig() {
-      return this.$route.query?.as === _CONFIG;
+      return this.$route.query?.as === _CONFIG || this.isView;
     },
 
     realTemplateMode() {
@@ -75,13 +76,6 @@ export default {
   },
 
   watch: {
-    sshKey: {
-      handler(neu) {
-        this.keyPairIds = neu;
-      },
-      immediate: true
-    },
-
     templateId: {
       async handler(neu) {
         const templates = await this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE });
@@ -183,7 +177,6 @@ export default {
       }
 
       this.$set(this.value.spec, 'templateId', `${ namespace }/${ name }`);
-      this.$set(this.value.spec, 'keyPairIds', this.keyPairIds);
       this.$set(this.value.spec.vm, 'spec', this.spec);
       await this.save(buttonCb);
     },
@@ -224,11 +217,18 @@ export default {
 
     <Tabbed :side-tabs="true" @changed="onTabChanged">
       <Tab name="Basics" :label="t('harvester.vmTemplate.tabs.basics')">
-        <CpuMemory :cpu="spec.template.spec.domain.cpu.cores" :memory="memory" :mode="mode" :disabled="isConfig" @updateCpuMemory="updateCpuMemory" />
+        <CpuMemory :cpu="spec.template.spec.domain.cpu.cores" :memory="memory" :disabled="isConfig" @updateCpuMemory="updateCpuMemory" />
 
         <div class="mb-20">
-          <SSHKey v-model="sshKey" :disable-create="isView" @update:sshKey="updateSSHKey" />
+          <SSHKey v-model="sshKey" :disable-create="isView" :mode="mode" @update:sshKey="updateSSHKey" />
         </div>
+
+        <LabeledSelect
+          v-model="osType"
+          label="OS"
+          :mode="mode"
+          :options="OS"
+        />
       </Tab>
 
       <Tab name="Volume" :label="t('harvester.tab.volume')" :weight="-1">
@@ -240,10 +240,16 @@ export default {
       </Tab>
 
       <Tab name="advanced" :label="t('harvester.tab.advanced')" :weight="-3">
-        <CloudConfig ref="yamlEditor" :user-script="userScript" :network-script="networkScript" @updateCloudConfig="updateCloudConfig" />
+        <CloudConfig
+          ref="yamlEditor"
+          :user-script="userScript"
+          :network-script="networkScript"
+          @updateUserData="updateUserData"
+          @updateNetworkData="updateNetworkData"
+        />
 
         <div class="spacer"></div>
-        <Checkbox v-model="isUseMouseEnhancement" class="check" type="checkbox" :label="t('harvester.virtualMachine.enableUsb')" />
+        <Checkbox v-model="installUSBTablet" class="check" type="checkbox" :label="t('harvester.virtualMachine.enableUsb')" />
 
         <Checkbox
           v-model="installAgent"

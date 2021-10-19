@@ -26,13 +26,6 @@ export default {
       default: false
     },
 
-    vm: {
-      type:    Object,
-      default: () => {
-        return {};
-      }
-    },
-
     value: {
       type:     Object,
       required: true

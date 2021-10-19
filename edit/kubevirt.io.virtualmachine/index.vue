@@ -58,15 +58,14 @@ export default {
   },
 
   data() {
-    const cloneDeepVM = clone(this.value);
+    const cloneVM = clone(this.value);
     const isRestartImmediately = this.value.actualState === 'Running';
 
     return {
-      cloneDeepVM,
+      cloneVM,
       count:                 2,
-      realHostname:          '',
       templateId:            '',
-      templateVersionId:       '',
+      templateVersionId:     '',
       isSingle:              true,
       isRunning:             true,
       useTemplate:           false,
@@ -114,10 +113,6 @@ export default {
 
     curTemplateResource() {
       return this.templates.find( O => O.id === this.templateId);
-    },
-
-    curVersionResource() {
-      return this.versions.find( O => O.id === this.templateVersionId);
     },
 
     nameLabel() {
@@ -169,17 +164,31 @@ export default {
         const curVersion = versions.find( V => V.id === id);
 
         if (curVersion?.spec?.vm) {
-          const sshKey = curVersion.spec.keyPairIds || [];
+          const {
+            spec,
+            osType,
+            sshKey,
+            userScript,
+            networkData,
+            installAgent,
+            installUSBTablet
+          } = this.getInitConfig({
+            value:    curVersion.spec.vm,
+            type:     this.type,
+            isCreate: this.isCreate,
+          });
 
-          const cloudScript = this.getCloudInitScript(curVersion.spec.vm);
-
-          this.$set(this, 'userScript', cloudScript?.userData);
-          this.$set(this, 'networkScript', cloudScript?.networkData);
+          this.$set(this, 'spec', spec);
+          this.$set(this, 'osType', osType);
           this.$set(this, 'sshKey', sshKey);
-          this.value.spec = curVersion.spec.vm.spec;
-          this.$set(this, 'spec', curVersion.spec.vm.spec);
+          this.$set(this, 'userScript', userScript);
+          this.$set(this, 'networkScript', networkData);
+          this.$set(this, 'installAgent', installAgent);
+          this.$set(this, 'installUSBTablet', installUSBTablet);
+
           const claimTemplate = this.getVolumeClaimTemplates(curVersion.spec.vm);
 
+          this.value.spec = spec;
           this.value.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(claimTemplate);
         }
         this.changeSpec();
@@ -197,26 +206,7 @@ export default {
   },
 
   created() {
-    this.registerBeforeHook(() => {
-      Object.assign(this.value.metadata.labels, {
-        ...this.value.metadata.labels,
-        [HCI_ANNOTATIONS.CREATOR]: 'harvester',
-      });
-
-      Object.assign(this.value.spec.template.metadata.annotations, {
-        ...this.value.spec.template.metadata.annotations,
-        [HCI_ANNOTATIONS.SSH_NAMES]: JSON.stringify(this.sshKey)
-      });
-
-      Object.assign(this.value.metadata.annotations, {
-        ...this.value.metadata.annotations,
-        [HCI_ANNOTATIONS.NETWORK_IPS]: JSON.stringify(this.value.networkIps)
-      });
-    });
-
-    this.registerAfterHook(() => {
-      this.restartVM();
-    });
+    this.registerAfterHook(this.restartVM, 'restartVM');
   },
 
   mounted() {
@@ -297,10 +287,10 @@ export default {
 
         delete cloneDeepNewVM.type;
         delete cloneDeepNewVM?.metadata;
-        delete this.cloneDeepVM.type;
-        delete this.cloneDeepVM?.metadata;
+        delete this.cloneVM.type;
+        delete this.cloneVM?.metadata;
 
-        const oldVM = JSON.parse(JSON.stringify(this.cloneDeepVM));
+        const oldVM = JSON.parse(JSON.stringify(this.cloneVM));
         const newVM = JSON.parse(JSON.stringify(cloneDeepNewVM));
 
         if (!isEqual(oldVM, newVM) && this.isRestartImmediately) {
@@ -331,15 +321,15 @@ export default {
       this.$set(this, 'memory', memory);
     },
 
-    onTabChanged({ tab }) {
-      if (tab.name === 'advanced' && this.$refs.yamlEditor?.refresh) {
-        this.$refs.yamlEditor.refresh();
-      }
-    },
-
     updateTemplateId() {
       this.templateVersionId = '';
-    }
+    },
+
+    onTabChanged({ tab }) {
+      if (tab.name === 'advanced') {
+        this.$refs.yamlEditor?.refresh();
+      }
+    },
   },
 };
 </script>
@@ -427,15 +417,19 @@ export default {
             class="mb-20"
             :namespace="value.metadata.namespace"
             :mode="mode"
+            :disabled="isWindows"
             @update:sshKey="updateSSHKey"
+          />
+
+          <LabeledSelect
+            v-model="osType"
+            label="OS"
+            :options="OS"
+            :disabled="!isCreate"
           />
         </Tab>
 
-        <Tab
-          name="Volume"
-          :label="t('harvester.tab.volume')"
-          :weight="-1"
-        >
+        <Tab name="Volume" :label="t('harvester.tab.volume')" :weight="-1">
           <Volume
             v-model="diskRows"
             :mode="mode"
@@ -446,15 +440,11 @@ export default {
           />
         </Tab>
 
-        <Tab
-          name="Network"
-          :label="t('harvester.tab.network')"
-          :weight="-2"
-        >
+        <Tab name="Network" :label="t('harvester.tab.network')" :weight="-2">
           <Network v-model="networkRows" :mode="mode" />
         </Tab>
 
-        <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="-3">
+        <Tab name="nodeScheduling" :label="t('workload.container.titles.nodeScheduling')" :weight="-3">
           <NodeScheduling :mode="mode" :value="spec.template.spec" :nodes="nodesIdOptions" />
         </Tab>
 
@@ -487,12 +477,14 @@ export default {
             ref="yamlEditor"
             :user-script="userScript"
             :mode="mode"
+            :namespace="value.metadata.namespace"
             :network-script="networkScript"
-            @updateCloudConfig="updateCloudConfig"
+            @updateUserData="updateUserData"
+            @updateNetworkData="updateNetworkData"
           />
 
           <Checkbox
-            v-model="isUseMouseEnhancement"
+            v-model="installUSBTablet"
             class="check mt-20"
             type="checkbox"
             label-key="harvester.virtualMachine.enableUsb"
@@ -503,6 +495,7 @@ export default {
             v-model="installAgent"
             class="check"
             type="checkbox"
+            :disabled="isWindows"
             label-key="harvester.virtualMachine.installAgent"
             :mode="mode"
           />

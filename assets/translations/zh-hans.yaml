@@ -4087,6 +4087,8 @@ harvester:
     hotplug:
       success: '{ diskName } 已挂载到 { vm }'
       title: 添加卷
+    hotunplug:
+      success: '卷{ name } 拔出成功.'
   notification:
     title:
       succeed: 成功
@@ -4295,10 +4297,13 @@ harvester:
     promptRemove:
       title: '需要您要删除的卷:'
       deleteAll: 全部删除
+    unplug:
+      title: '你确定要拔掉卷{name} ?'
+      actionLabel: 拔出
     restartTip: 现在重新启动虚拟机以使配置更改生效.
     createRunning: 创建时启动虚拟机
     restartNow: 现在重启
-    createSSHKey: 创建SSH密钥
+    createSSHKey: 创建新SSH密钥
     installAgent: 安装 qemu-guest-agent
     enableUsb: 启动 USB Tablet 增强
     sshTitle: 添加SSH公钥
@@ -4336,6 +4341,8 @@ harvester:
       addPort:  添加端口
     cloudConfig:
       title: Cloud配置
+      createTemplateTitle: '创建 {name}.'
+      createNew: 创建新模板...
       cloudInit:
         label: Cloud Init
         placeholder: 请选择...

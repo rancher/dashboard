@@ -2,19 +2,21 @@
 import { mapGetters } from 'vuex';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import { EVENT, HCI, SERVICE, NODE } from '@/config/types';
+import { EVENT, HCI, SERVICE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
+import VM_MIXIN from '@/mixins/harvester-vm';
+import impl from '@/mixins/harvester-vm/impl';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import { allHash } from '@/utils/promise';
-import NodeScheduling from '@/components/form/NodeScheduling';
 import { allDashboardsExist } from '@/utils/grafana';
-import OverviewBasics from './VirtualMachineTabs/VirtualMachineBasics';
-import OverviewDisks from './VirtualMachineTabs/VirtualMachineDisks';
-import OverviewNetworks from './VirtualMachineTabs/VirtualMachineNetworks';
-import OverviewKeypairs from './VirtualMachineTabs/VirtualMachineKeypairs';
-import OverviewCloudConfigs from './VirtualMachineTabs/VirtualMachineCloudConfigs';
-import Migration from './VirtualMachineTabs/VirtualMachineMigration';
+
+import CloudConfig from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
+import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
+import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
 import Events from './VirtualMachineTabs/VirtualMachineEvents';
+import Migration from './VirtualMachineTabs/VirtualMachineMigration';
+import OverviewBasics from './VirtualMachineTabs/VirtualMachineBasics';
+import OverviewKeypairs from './VirtualMachineTabs/VirtualMachineKeypairs';
 
 const VM_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/harvester-vm-detail-1/vm-info-detail?orgId=1';
 
@@ -26,16 +28,15 @@ export default {
     Tabbed,
     Events,
     OverviewBasics,
-    OverviewDisks,
-    OverviewNetworks,
+    Volume,
+    Network,
     OverviewKeypairs,
-    OverviewCloudConfigs,
-    NodeScheduling,
+    CloudConfig,
     Migration,
     DashboardMetrics,
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, impl, VM_MIXIN],
 
   props: {
     value: {
@@ -80,10 +81,13 @@ export default {
       return vmi;
     },
 
-    nodesIdOptions() {
-      const nodes = this.$store.getters['harvester/all'](NODE) || [];
+    cloudData() {
+      const out = this.getCloudScript(this.value?.spec);
 
-      return nodes.map(node => node.id);
+      return {
+        userData:    out.userScript,
+        networkData: out.networkScript
+      };
     },
 
     allEvents() {
@@ -123,30 +127,44 @@ export default {
   },
 
   methods: {
-    tabChanged({ tab = {} }) {
-      this.switchToCloud = tab.name === 'cloudConfig';
+    onTabChanged({ tab }) {
+      if (tab.name === 'cloudConfig') {
+        this.$refs.yamlEditor?.refresh();
+      }
     },
+  },
+
+  watch: {
+    value: {
+      handler(neu) {
+        const diskRows = this.getDiskRows(neu);
+
+        this.$set(this, 'diskRows', diskRows);
+      },
+      deep: true
+    }
   }
 };
 </script>
 
 <template>
   <div>
-    <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true" @changed="tabChanged">
+    <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true" @changed="onTabChanged">
       <Tab name="basics" :label="t('harvester.virtualMachine.detail.tabs.basics')" class="bordered-table" :weight="7">
         <OverviewBasics v-model="value" :resource="vmi" mode="view" />
       </Tab>
 
       <Tab name="disks" :label="t('harvester.tab.volume')" class="bordered-table" :weight="6">
-        <OverviewDisks v-model="value" />
+        <Volume
+          v-model="diskRows"
+          mode="view"
+          :namespace="value.metadata.namespace"
+          :vm="value"
+        />
       </Tab>
 
       <Tab name="networks" :label="t('harvester.virtualMachine.detail.tabs.networks')" class="bordered-table" :weight="5">
-        <OverviewNetworks v-model="value" />
-      </Tab>
-
-      <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="4">
-        <NodeScheduling :mode="mode" :value="value.spec.template.spec" :nodes="nodesIdOptions" />
+        <Network v-model="networkRows" mode="view" />
       </Tab>
 
       <Tab name="keypairs" :label="t('harvester.virtualMachine.detail.tabs.keypairs')" class="bordered-table" :weight="3">
@@ -154,7 +172,12 @@ export default {
       </Tab>
 
       <Tab name="cloudConfig" :label="t('harvester.virtualMachine.detail.tabs.cloudConfig')" class="bordered-table" :weight="2">
-        <OverviewCloudConfigs v-model="value" :active="switchToCloud" />
+        <CloudConfig
+          ref="yamlEditor"
+          mode="view"
+          :user-script="cloudData.userData"
+          :network-script="cloudData.networkData"
+        />
       </Tab>
 
       <Tab name="event" :label="t('harvester.virtualMachine.detail.tabs.events')" :weight="1">
