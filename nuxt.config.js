@@ -82,7 +82,8 @@ module.exports = {
   ],
   styleResources: {
     // only import functions, mixins, or variables, NEVER import full styles https://github.com/nuxt-community/style-resources-module#warning
-    scss: [
+    hoistUseStatements: true,
+    scss:               [
       '~assets/styles/base/_variables.scss',
       '~assets/styles/base/_functions.scss',
       '~assets/styles/base/_mixins.scss',
