@@ -547,7 +547,7 @@ export default {
     },
 
     parseVolumeClaimTemplate(R, dataVolumeName) {
-      if (!String(R.size).includes('Gi')) {
+      if (!String(R.size).includes('Gi') && R.size) {
         R.size = `${ R.size }Gi`;
       }
 

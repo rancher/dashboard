@@ -147,10 +147,6 @@ export default {
         'label'
       );
     },
-
-    needSetPVC() {
-      return !!this.errors.length || (!this.value.newCreateId && this.isEdit && this.value.size !== this.pvcResource?.spec?.resources?.requests?.storage);
-    }
   },
 
   watch: {
