@@ -3,9 +3,9 @@
 @font-face {
   font-family: '#{$icomoon-font-family}';
   src:
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?tmrtyk') format('truetype'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?tmrtyk') format('woff'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?tmrtyk##{$icomoon-font-family}') format('svg');
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?kpjkh8') format('truetype'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?kpjkh8') format('woff'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?kpjkh8##{$icomoon-font-family}') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -366,6 +366,11 @@
     content: $icon-istio; 
   }
 }
+.icon-harvester {
+  &:before {
+    content: $icon-harvester; 
+  }
+}
 .icon-gatekeeper {
   &:before {
     content: $icon-gatekeeper; 
@@ -384,11 +389,6 @@
 .icon-rio {
   &:before {
     content: $icon-rio; 
-  }
-}
-.icon-epinio {
-  &:before {
-    content: $icon-epinio; 
   }
 }
 .icon-marketplace {
