@@ -120,7 +120,7 @@ export default {
   <ArrayList
     v-model="types"
     label="Resources"
-    add-label="Add Resource"
+    :add-label="t('resourceQuota.add.label')"
     :default-add-value="remainingTypes()[0] ? remainingTypes()[0].value : ''"
     :add-allowed="remainingTypes().length > 0"
     :mode="mode"

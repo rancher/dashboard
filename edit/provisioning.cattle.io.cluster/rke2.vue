@@ -1335,7 +1335,7 @@ export default {
                 v-model="serverConfig.cni"
                 :mode="mode"
                 :options="serverArgs.cni.options"
-                label="Container Network Provider"
+                :label="t('cluster.rke2.cni.label')"
               />
             </div>
             <div v-if="agentArgs['cloud-provider-name']" class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
@@ -1343,7 +1343,7 @@ export default {
                 v-model="agentConfig['cloud-provider-name']"
                 :mode="mode"
                 :options="cloudProviderOptions"
-                label="Cloud Provider"
+                :label="t('cluster.rke2.cloudProvider.label')"
               />
             </div>
           </div>
@@ -1355,7 +1355,9 @@ export default {
             <div class="spacer" />
 
             <div class="col span-12">
-              <h3>Cloud Provider Config</h3>
+              <h3>
+                {{ t('cluster.rke2.cloudProvider.header') }}
+              </h3>
               <YamlEditor
                 ref="yaml"
                 v-model="agentConfig['cloud-provider-config']"
@@ -1368,7 +1370,9 @@ export default {
 
           <div class="spacer" />
 
-          <h3>Security</h3>
+          <h3>
+            {{ t('cluster.rke2.security.header') }}
+          </h3>
           <div class="row">
             <div class="col span-6">
               <LabeledSelect
@@ -1376,7 +1380,7 @@ export default {
                 v-model="value.spec.defaultPodSecurityPolicyTemplateName"
                 :mode="mode"
                 :options="pspOptions"
-                label="Default Pod Security Policy"
+                :label="t('cluster.rke2.defaultPodSecurityPolicyTemplateName.label')"
               />
             </div>
             <div v-if="showCisProfile" class="col span-6">
@@ -1399,7 +1403,7 @@ export default {
           <div class="row">
             <div class="col span-12 mt-20">
               <Checkbox v-if="serverArgs['secrets-encryption']" v-model="serverConfig['secrets-encryption']" :mode="mode" label="Encrypt Secrets" />
-              <Checkbox v-model="value.spec.enableNetworkPolicy" :mode="mode" label="Project Network Isolation" />
+              <Checkbox v-model="value.spec.enableNetworkPolicy" :mode="mode" :label="t('cluster.rke2.enableNetworkPolicy.label')" />
               <Checkbox v-if="agentArgs.selinux" v-model="agentConfig.selinux" :mode="mode" label="SELinux" />
             </div>
           </div>
@@ -1408,7 +1412,11 @@ export default {
 
           <div v-if="serverArgs.disable" class="row">
             <div class="col span-12">
-              <div><h3>System Services</h3></div>
+              <div>
+                <h3>
+                  {{ t('cluster.rke2.systemService.header') }}
+                </h3>
+              </div>
               <Checkbox
                 v-for="opt in disableOptions"
                 :key="opt.value"
@@ -1435,21 +1443,25 @@ export default {
                 v-model="rkeConfig.etcd.disableSnapshots"
                 name="etcd-disable-snapshots"
                 :options="[true, false]"
-                label="Automatic Snapshots"
-                :labels="['Disable','Enable']"
+                :label="t('cluster.rke2.etcd.disableSnapshots.label')"
+                :labels="[t('generic.disable'), t('generic.enable')]"
                 :mode="mode"
               />
             </div>
           </div>
           <div v-if="rkeConfig.etcd.disableSnapshots !== true" class="row">
             <div class="col span-6">
-              <LabeledInput v-model="rkeConfig.etcd.snapshotScheduleCron" :mode="mode" label="Cron Schedule" />
+              <LabeledInput
+                v-model="rkeConfig.etcd.snapshotScheduleCron"
+                :mode="mode"
+                :label="t('cluster.rke2.etcd.snapshotScheduleCron.label')"
+              />
             </div>
             <div class="col span-6">
               <UnitInput
                 v-model="rkeConfig.etcd.snapshotRetention"
                 :mode="mode"
-                label="Keep the last"
+                :label="t('cluster.rke2.etcd.snapshotRetention.label')"
                 :suffix="t('cluster.rke2.snapshots.suffix')"
               />
             </div>
@@ -1485,8 +1497,8 @@ export default {
                 v-model="serverConfig['etcd-expose-metrics']"
                 name="etcd-expose-metrics"
                 :options="[false, true]"
-                label="Metrics"
-                :labels="['Only available inside the cluster','Exposed to the public interface']"
+                :label="t('cluster.rke2.etcd.exportMetric.label')"
+                :labels="[t('cluster.rke2.etcd.exportMetric.false'), t('cluster.rke2.etcd.exportMetric.true')]"
                 :mode="mode"
               />
             </div>
@@ -1494,34 +1506,61 @@ export default {
         </Tab>
 
         <Tab v-if="haveArgInfo" name="networking" label-key="cluster.tabs.networking">
-          <h3>Addressing</h3>
+          <h3>
+            {{ t('cluster.rke2.address.header') }}
+          </h3>
           <div class="row mb-20">
             <div v-if="serverArgs['cluster-cidr']" class="col span-6">
-              <LabeledInput v-model="serverConfig['cluster-cidr']" :mode="mode" label="Cluster CIDR" />
+              <LabeledInput
+                v-model="serverConfig['cluster-cidr']"
+                :mode="mode"
+                :label="t('cluster.rke2.address.clusterCidr.label')"
+              />
             </div>
             <div v-if="serverArgs['service-cidr']" class="col span-6">
-              <LabeledInput v-model="serverConfig['service-cidr']" :mode="mode" label="Service CIDR" />
+              <LabeledInput
+                v-model="serverConfig['service-cidr']"
+                :mode="mode"
+                :label="t('cluster.rke2.address.serviceCidr.label')"
+              />
             </div>
           </div>
 
           <div class="row mb-20">
             <div v-if="serverArgs['cluster-dns']" class="col span-6">
-              <LabeledInput v-model="serverConfig['cluster-dns']" :mode="mode" label="Cluster DNS" />
+              <LabeledInput
+                v-model="serverConfig['cluster-dns']"
+                :mode="mode"
+                :label="t('cluster.rke2.address.dns.label')"
+              />
             </div>
             <div v-if="serverArgs['cluster-domain']" class="col span-6">
-              <LabeledInput v-model="serverConfig['cluster-domain']" :mode="mode" label="Cluster Domain" />
+              <LabeledInput
+                v-model="serverConfig['cluster-domain']"
+                :mode="mode"
+                :label="t('cluster.rke2.address.domain.label')"
+              />
             </div>
           </div>
 
           <div v-if="serverArgs['service-node-port-range']" class="row mb-20">
             <div class="col span-6">
-              <LabeledInput v-model="serverConfig['service-node-port-range']" :mode="mode" label="NodePort Service Port Range" />
+              <LabeledInput
+                v-model="serverConfig['service-node-port-range']"
+                :mode="mode"
+                :label="t('cluster.rke2.address.nodePortRange.label')"
+              />
             </div>
           </div>
 
           <div v-if="serverArgs['tls-san']" class="row mb-20">
             <div class="col span-6">
-              <ArrayList v-model="serverConfig['tls-san']" :protip="false" :mode="mode" title="TLS Alternate Names" />
+              <ArrayList
+                v-model="serverConfig['tls-san']"
+                :protip="false"
+                :mode="mode"
+                :title="t('cluster.rke2.address.tlsSan.label')"
+              />
             </div>
           </div>
 
@@ -1532,13 +1571,25 @@ export default {
           <div class="row">
             <div class="col span-6">
               <h3>Control Plane</h3>
-              <LabeledInput v-model="rkeConfig.upgradeStrategy.controlPlaneConcurrency" :mode="mode" label="Control Plane Concurrency" tooltip="This can be either a fixed number of nodes (e.g. 1) at a time of a percentage (e.g. 10%)" />
+              <LabeledInput
+                v-model="rkeConfig.upgradeStrategy.controlPlaneConcurrency"
+                :mode="mode"
+                :label="t('cluster.rke2.controlPlaneConcurrency.label')"
+                :tooltip="t('cluster.rke2.controlPlaneConcurrency.toolTip')"
+              />
               <div class="spacer" />
               <DrainOptions v-model="rkeConfig.upgradeStrategy.controlPlaneDrainOptions" :mode="mode" />
             </div>
             <div class="col span-6">
-              <h3>Worker Nodes</h3>
-              <LabeledInput v-model="rkeConfig.upgradeStrategy.workerConcurrency" :mode="mode" label="Worker Concurrency" tooltip="This can be either a fixed number of nodes (e.g. 1) at a time of a percentage (e.g. 10%)" />
+              <h3>
+                {{ t('cluster.rke2.workNode.label') }}
+              </h3>
+              <LabeledInput
+                v-model="rkeConfig.upgradeStrategy.workerConcurrency"
+                :mode="mode"
+                :label="t('cluster.rke2.workerConcurrency.label')"
+                :tooltip="t('cluster.rke2.workerConcurrency.toolTip')"
+              />
               <div class="spacer" />
               <DrainOptions v-model="rkeConfig.upgradeStrategy.workerDrainOptions" :mode="mode" />
             </div>

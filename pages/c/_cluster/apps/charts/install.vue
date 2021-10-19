@@ -307,7 +307,7 @@ export default {
 
       out.unshift({
         id:    'none',
-        label: '(None)',
+        label: `(${ this.t('generic.none') })`,
         value: '',
       });
 

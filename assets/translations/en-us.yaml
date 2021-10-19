@@ -71,6 +71,8 @@ generic:
         7d: 7d
         30d: 30d
   completed: Completed
+  enable: Enable
+  disable: Disable
 
 locale:
   en-us: English
@@ -935,6 +937,18 @@ cluster:
       windowsWarning: Workload pods, including some deployed by Rancher charts, will be scheduled on both Linux and Windows nodes by default. Edit NodeSelector in the chart to direct them to be placed onto a compatible node.
       insecure: "Insecure: Select this to skip TLS verification if your server has a self-signed certificate."
   credential:
+    banner:
+      createCredential: |-
+        {length, plural,
+          =0 {First you'll need to create a credential to talk to the cloud provider}
+          other {Ok, Let's create a new credential}
+        }
+    selectExisting:
+      label: Select Existing
+    select:
+      option:
+        new: Create new...
+        none: Select a credential...
     aws:
       accessKey:
         label: Access Key
@@ -1323,6 +1337,12 @@ cluster:
             =1 { A cluster with only one worker node is not fault-tolerant. }
             other {}
           }
+    quantity:
+      label: Machine Count
+    role:
+      label: Roles
+    labels:
+      label: Kubernetes Node Labels
   memberRoles:
     removeMessage: 'Note: Removing a user will not remove their project permissions'
     addClusterMember:
@@ -1413,6 +1433,60 @@ cluster:
       rke2-ingress-nginx: 'NGINX Ingress'
       rke2-kube-proxy: 'Kube Proxy'
       rke2-metrics-server: 'Metrics Server'
+      header: System Services
+    cni:
+      label: Container Network 
+    cloudProvider:
+      label: Cloud Provider
+      header: Cloud Provider Config
+    security:
+      header: Security
+    defaultPodSecurityPolicyTemplateName:
+      label: Default Pod Security Policy
+    enableNetworkPolicy:
+      label: Project Network Isolation
+    workNode:
+      label: Worker Nodes
+    controlPlaneConcurrency:
+      label: Control Plane Concurrency
+      toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time of a percentage (e.g. 10%)"
+    workerConcurrency:
+      label: Worker Concurrency
+      toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time of a percentage (e.g. 10%)"
+    drain:
+      label: Drain Nodes
+      toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed.
+    address:
+      header: Addressing
+      clusterCidr:
+        label: Cluster CIDR
+      serviceCidr:
+        label: Service CIDR
+      dns:
+        label: Cluster DNS
+      domain:
+        label: Cluster Domain
+      nodePortRange:
+        label: NodePort Service Port Range
+      tlsSan:
+        label: TLS Alternate Names
+      fqdn:
+        toolTip: A FQDN which will resolve to the healthy control plane nodes of the cluster.
+      caCerts:
+        label: CA Certificates
+        toolTip: Certificates required for the client to successfully verify the validity of the certificate returned by the endpoint.
+    etcd:
+      disableSnapshots:
+        label: Automatic Snapshots
+      snapshotScheduleCron:
+        label: Cron Schedule
+      snapshotRetention:
+        label: Keep the last
+      exportMetric:
+        label: Metrics
+        false: Only available inside the cluster
+        true: Exposed to the public interface
+
   k3s:
     systemService:
       coredns: 'CoreDNS'
@@ -5703,6 +5777,16 @@ keyValue:
   keyPlaceholder: e.g. foo
   valuePlaceholder: e.g. bar
 
+registryMirror:
+  header: Mirrors
+  toolTip: 'Mirrors can be used to redirect requests for images from one registry to actually come from a list of endpoints you specify instead.  For example you could point docker.io to always talk to your internal registry and instead of ever going to the actual DockerHub on the internet.'
+  addLabel: Add Mirror
+
+registryConfig:
+  header: Registry Authentication 
+  toolTip: 'When an image needs to be pulled from the given registry hostname, this information will be used to verify the identity of the registry and authenticate to it.'
+  addLabel: Add Registry
+
 ##############################
 ### Advanced Settings
 ##############################
@@ -5870,6 +5954,8 @@ resourceQuota:
     unitlessPlaceholder: e.g. 10
   resourceType:
     label: Resource Type
+  add:
+    label: Add Resource
 
 
 ##############################
