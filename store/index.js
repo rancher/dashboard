@@ -207,7 +207,7 @@ export const getters = {
 
     // Explicitly asking
     if ( filters.includes('namespaced://true') ) {
-      return NAMESPACED;
+      return BOTH;
     } else if ( filters.includes('namespaced://false') ) {
       return CLUSTER_LEVEL;
     }
@@ -221,7 +221,7 @@ export const getters = {
     }
 
     if ( byKind['project'] > 0 || byKind['ns'] > 0 ) {
-      return NAMESPACED;
+      return BOTH;
     }
 
     return BOTH;
