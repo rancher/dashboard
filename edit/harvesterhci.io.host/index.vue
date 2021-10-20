@@ -92,6 +92,7 @@ export default {
 
     this.disks = disks;
     this.newDisks = clone(disks);
+    this.blockDeviceOpts = this.getBlockDeviceOpts();
   },
   data() {
     const customName = this.value.metadata?.annotations?.[HCI_LABELS_ANNOTATIONS.HOST_CUSTOM_NAME] || '';
@@ -108,6 +109,7 @@ export default {
       newDisks:             [],
       blockDevice:          [],
       dismountBlockDevices: {},
+      blockDeviceOpts:      [],
     };
   },
   computed: {
@@ -129,54 +131,6 @@ export default {
             usedByManagementNetwork: N.usedByManagementNetwork,
           };
         });
-    },
-    blockDeviceOpts() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
-      const blockDevices = this.$store.getters[`${ inStore }/all`](HCI.BLOCK_DEVICE);
-
-      const out = blockDevices
-        .filter((d) => {
-          const addedToNodeCondition = findBy(d?.status?.conditions || [], 'type', 'AddedToNode');
-          const isAdded = findBy(this.newDisks, 'name', d.metadata.name);
-          const isRemoved = findBy(this.removedDisks, 'name', d.metadata.name);
-
-          if ((!findBy(this.disks || [], 'name', d.metadata.name) &&
-                d?.spec?.nodeName === this.value.id &&
-                (!addedToNodeCondition || addedToNodeCondition?.status === 'False') &&
-                !d.spec?.fileSystem?.provisioned &&
-                !isAdded) ||
-                isRemoved
-          ) {
-            return true;
-          } else {
-            return false;
-          }
-        })
-        .map((d) => {
-          const devPath = d.spec?.devPath;
-          const deviceType = d.status?.deviceStatus?.details?.deviceType;
-          const sizeBytes = d.status?.deviceStatus?.capacity?.sizeBytes;
-          const size = formatSi(sizeBytes, { increment: 1024 });
-          const parentDevice = d.status?.deviceStatus?.parentDevice;
-
-          let label = `${ devPath } (Type: ${ deviceType }, Size: ${ size })`;
-
-          if (parentDevice) {
-            label = `- ${ label }`;
-          }
-
-          return {
-            label,
-            value:    d.id,
-            action:   this.addDisk,
-            kind:     !parentDevice ? 'group' : '',
-            disabled: !!(d.childParts.length > 0 && d.isChildPartProvisioned),
-            group:    parentDevice || devPath,
-            isParent: !!parentDevice,
-          };
-        });
-
-      return sortBy(out, ['group', 'isParent', 'label']);
     },
     removedDisks() {
       const out = this.disks.filter((d) => {
@@ -373,7 +327,55 @@ export default {
       }
 
       return true;
-    }
+    },
+    getBlockDeviceOpts() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const blockDevices = this.$store.getters[`${ inStore }/all`](HCI.BLOCK_DEVICE);
+
+      const out = blockDevices
+        .filter((d) => {
+          const addedToNodeCondition = findBy(d?.status?.conditions || [], 'type', 'AddedToNode');
+          const isAdded = findBy(this.newDisks, 'name', d.metadata.name);
+          const isRemoved = findBy(this.removedDisks, 'name', d.metadata.name);
+
+          if ((!findBy(this.disks || [], 'name', d.metadata.name) &&
+                d?.spec?.nodeName === this.value.id &&
+                (!addedToNodeCondition || addedToNodeCondition?.status === 'False') &&
+                !d.spec?.fileSystem?.provisioned &&
+                !isAdded) ||
+                isRemoved
+          ) {
+            return true;
+          } else {
+            return false;
+          }
+        })
+        .map((d) => {
+          const devPath = d.spec?.devPath;
+          const deviceType = d.status?.deviceStatus?.details?.deviceType;
+          const sizeBytes = d.status?.deviceStatus?.capacity?.sizeBytes;
+          const size = formatSi(sizeBytes, { increment: 1024 });
+          const parentDevice = d.status?.deviceStatus?.parentDevice;
+
+          let label = `${ devPath } (Type: ${ deviceType }, Size: ${ size })`;
+
+          if (parentDevice) {
+            label = `- ${ label }`;
+          }
+
+          return {
+            label,
+            value:    d.id,
+            action:   this.addDisk,
+            kind:     !parentDevice ? 'group' : '',
+            disabled: !!(d.childParts.length > 0 && d.isChildPartProvisioned),
+            group:    parentDevice || devPath,
+            isParent: !!parentDevice,
+          };
+        });
+
+      return sortBy(out, ['group', 'isParent', 'label']);
+    },
   },
 };
 </script>
