@@ -34,9 +34,8 @@ export function init(store) {
     NAME_HEADER,
     {
       name:          'kubewardenPolicyServers',
-      label:         'Policy Servers',
-      value:         'spec',
-      formatter:     'Link',
+      label:         'Image',
+      value:         'spec.image',
       formatterOpts: {
         options: { internal: true },
         to:      {
@@ -44,6 +43,12 @@ export function init(store) {
           params: { resource: KUBEWARDEN.POLICY_SERVER }
         }
       },
+    },
+    {
+      name:      'psCreated',
+      label:     'Created',
+      value:     'metadata.creationTimestamp',
+      formatter: 'LiveDate'
     }
   ]);
 
@@ -52,9 +57,8 @@ export function init(store) {
     NAME_HEADER,
     {
       name:          'kubewardenClusterAdmissionPolicies',
-      label:         'Cluster Admission Policies',
-      value:         'spec',
-      formatter:     'Link',
+      label:         'Module',
+      value:         'spec.module',
       formatterOpts: {
         options: { internal: true },
         to:      {
@@ -62,6 +66,17 @@ export function init(store) {
           params: { resource: KUBEWARDEN.CLUSTER_ADMISSION_POLICY }
         }
       },
+    },
+    {
+      name:      'capPolicyStatus',
+      label:     'Policy Status',
+      value:     'status.policyStatus',
+    },
+    {
+      name:      'capCreated',
+      label:     'Created',
+      value:     'metadata.creationTimestamp',
+      formatter: 'LiveDate'
     }
   ]);
 }
