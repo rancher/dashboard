@@ -276,3 +276,8 @@ export const HCI = {
 };
 
 export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';
+
+export const KUBEWARDEN = {
+  CLUSTER_ADMISSION_POLICY: 'policies.kubewarden.io.clusteradmissionpolicy',
+  POLICY_SERVER:            'policies.kubewarden.io.policyserver'
+};
