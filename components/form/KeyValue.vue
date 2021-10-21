@@ -632,9 +632,9 @@ export default {
         align-self: flex-start;
       }
 
-      &.value textarea{
-        padding: 10px 10px 10px 10px;
-      }
+      // &.value textarea{
+      //   padding: 10px 10px 10px 10px;
+      // }
 
       .text-monospace:not(.conceal) {
         font-family: monospace, monospace;

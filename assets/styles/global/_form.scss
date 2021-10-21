@@ -66,9 +66,10 @@ INPUT[type='search']:not(.vs__search) {
 }
 
 TEXTAREA {
-  padding: $input-padding-lg 10px 10px 10px;
-  line-height: $input-line-height;
+  padding: calc(#{$input-padding-lg} + 2px) 10px 10px 10px;
+  line-height: calc(#{$input-line-height} + 2px);
 }
+
 
 FORM {
   LABEL {
