@@ -345,7 +345,7 @@ export default {
             />
           </div>
         </div>
-        <div class="row">
+        <div class="row mb-20">
           <div class="col span-7">
             <ArrayList
               key="clusterExternalIpAddresses"
@@ -355,6 +355,20 @@ export default {
               :mode="mode"
               :protip="false"
               @input="(e) => $set(value.spec, 'externalIPs', e)"
+            />
+          </div>
+        </div>
+        <div v-if="checkTypeIs('LoadBalancer')" class="row">
+          <div class="col span-6">
+            <LabeledInput
+              v-model="value.spec.loadBalancerIP"
+              :mode="mode"
+              :label="t('servicesPage.ips.loadBalancerIp.label')"
+              :placeholder="t('servicesPage.ips.loadBalancerIp.placeholder')"
+              :tooltip-key="
+                hasClusterIp ? 'servicesPage.ips.loadBalancerIp.helpText' : null
+              "
+              @input="(e) => $set(value.spec, 'loadBalancerIP', e)"
             />
           </div>
         </div>

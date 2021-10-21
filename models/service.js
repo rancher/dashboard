@@ -87,12 +87,21 @@ export default {
       content: this.serviceType?.id || this.serviceType,
     }];
 
-    const { clusterIP, externalName, sessionAffinity } = this.spec;
+    const {
+      clusterIP, externalName, sessionAffinity, loadBalancerIP
+    } = this.spec;
 
     if (clusterIP) {
       out.push({
         label:   'ClusterIP',
         content: clusterIP,
+      });
+    }
+
+    if (loadBalancerIP && this.serviceType === 'LoadBalancer') {
+      out.push({
+        label:   'Load Balancer IP',
+        content: loadBalancerIP
       });
     }
 

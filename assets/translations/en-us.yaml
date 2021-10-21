@@ -3621,6 +3621,10 @@ servicesPage:
       label: Cluster IP
       placeholder: e.g. 10.43.xxx.xxx
     label: IP Addresses
+    loadBalancerIp:
+      label: Load Balancer IP
+      placeholder: e.g. 192.0.xxx.xxx
+      helpText: If you specify a loadBalancerIP but your cloud provider does not support the feature, the loadBalancerIP field that you set is ignored.
   pods:
     label: Pods
   ports:
