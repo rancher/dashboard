@@ -7,7 +7,7 @@ import { allHash, allHashSettled } from '@/utils/promise';
 import { ClusterNotFoundError, ApiError } from '@/utils/error';
 import { sortBy } from '@/utils/sort';
 import { filterBy, findBy } from '@/utils/array';
-import { BOTH, CLUSTER_LEVEL } from '@/store/type-map';
+import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@/store/type-map';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { TIMED_OUT, LOGGED_OUT, _FLAGGED, UPGRADED } from '@/config/query-params';
 import { setBrand, setVendor } from '@/config/private-label';
@@ -207,7 +207,7 @@ export const getters = {
 
     // Explicitly asking
     if ( filters.includes('namespaced://true') ) {
-      return BOTH;
+      return NAMESPACED;
     } else if ( filters.includes('namespaced://false') ) {
       return CLUSTER_LEVEL;
     }
@@ -221,7 +221,7 @@ export const getters = {
     }
 
     if ( byKind['project'] > 0 || byKind['ns'] > 0 ) {
-      return BOTH;
+      return NAMESPACED;
     }
 
     return BOTH;
