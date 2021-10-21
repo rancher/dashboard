@@ -7,7 +7,7 @@ import { allHash, allHashSettled } from '@/utils/promise';
 import { ClusterNotFoundError, ApiError } from '@/utils/error';
 import { sortBy } from '@/utils/sort';
 import { filterBy, findBy } from '@/utils/array';
-import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@/store/type-map';
+import { BOTH, CLUSTER_LEVEL } from '@/store/type-map';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { TIMED_OUT, LOGGED_OUT, _FLAGGED, UPGRADED } from '@/config/query-params';
 import { setBrand, setVendor } from '@/config/private-label';
