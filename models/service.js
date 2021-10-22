@@ -93,28 +93,28 @@ export default {
 
     if (clusterIP) {
       out.push({
-        label:   'ClusterIP',
+        label:   this.t('servicesPage.serviceTypes.clusterIp.label'),
         content: clusterIP,
       });
     }
 
     if (loadBalancerIP && this.serviceType === 'LoadBalancer') {
       out.push({
-        label:   'Load Balancer IP',
+        label:   this.t('servicesPage.ips.loadBalancerIp.label'),
         content: loadBalancerIP
       });
     }
 
     if (externalName) {
       out.push({
-        label:   'External Name',
+        label:   this.t('servicesPage.serviceTypes.externalName.label'),
         content: externalName,
       });
     }
 
     if (sessionAffinity) {
       out.push({
-        label:   'Session Affinity',
+        label:   this.t('servicesPage.affinity.label'),
         content: sessionAffinity,
       });
     }
