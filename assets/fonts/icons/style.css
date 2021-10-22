@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'icons';
   src:
-    url('fonts/icons.ttf?kpjkh8') format('truetype'),
-    url('fonts/icons.woff?kpjkh8') format('woff'),
-    url('fonts/icons.svg?kpjkh8#icons') format('svg');
+    url('fonts/icons.ttf?5qy235') format('truetype'),
+    url('fonts/icons.woff?5qy235') format('woff'),
+    url('fonts/icons.svg?5qy235#icons') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -242,6 +242,9 @@
 }
 .icon-rio:before {
   content: "\e930";
+}
+.icon-epinio:before {
+  content: "\e94b";
 }
 .icon-marketplace:before {
   content: "\e92b";
