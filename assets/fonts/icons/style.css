@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'icons';
   src:
-    url('fonts/icons.ttf?e6rm5s') format('truetype'),
-    url('fonts/icons.woff?e6rm5s') format('woff'),
-    url('fonts/icons.svg?e6rm5s#icons') format('svg');
+    url('fonts/icons.ttf?5qy235') format('truetype'),
+    url('fonts/icons.woff?5qy235') format('woff'),
+    url('fonts/icons.svg?5qy235#icons') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -24,9 +24,6 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-harvester:before {
-  content: "\e948";
-}
 .icon-show:before {
   content: "\e93a";
 }
@@ -231,6 +228,9 @@
 .icon-istio:before {
   content: "\e92f";
 }
+.icon-harvester:before {
+  content: "\e94a";
+}
 .icon-gatekeeper:before {
   content: "\e938";
 }
@@ -242,6 +242,9 @@
 }
 .icon-rio:before {
   content: "\e930";
+}
+.icon-epinio:before {
+  content: "\e94b";
 }
 .icon-marketplace:before {
   content: "\e92b";
