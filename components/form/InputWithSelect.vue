@@ -74,7 +74,7 @@ export default {
 
   data() {
     return {
-      selected: this.selectValue || this.options[0],
+      selected: this.selectValue || this.options[0].value,
       string:   this.textValue,
     };
   },

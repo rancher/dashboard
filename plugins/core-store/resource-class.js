@@ -32,7 +32,7 @@ import {
   AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG, _CONFIG
 } from '@/config/query-params';
 
-import { cleanForNew, normalizeType } from './normalize';
+import { normalizeType } from './normalize';
 
 const STRING_LIKE_TYPES = [
   'string',
@@ -709,7 +709,7 @@ export class Resource {
       throw new Error(`Unknown link ${ linkName } on ${ this.type } ${ this.id }`);
     }
 
-    return this.$dispatch('request', opt);
+    return this.$dispatch('request', { opt, type: this.type } );
   }
 
   // ------------------------------------------------------------------
@@ -743,7 +743,7 @@ export class Resource {
     opt.headers['content-type'] = 'application/json-patch+json';
     opt.data = data;
 
-    return this.$dispatch('request', opt);
+    return this.$dispatch('request', { opt, type: this.type } );
   }
 
   save() {
@@ -752,8 +752,9 @@ export class Resource {
 
   async _save(opt = {}) {
     delete this.__rehydrate;
-    delete this.__clone;
     const forNew = !this.id;
+
+    delete this.__clone;
 
     const errors = await this.validationErrors(this, opt.ignoreFields);
 
@@ -816,7 +817,7 @@ export class Resource {
     }
 
     try {
-      const res = await this.$dispatch('request', opt);
+      const res = await this.$dispatch('request', { opt, type: this.type } );
 
       // console.log('### Resource Save', this.type, this.id);
 
@@ -847,7 +848,7 @@ export class Resource {
 
     opt.method = 'delete';
 
-    const res = await this.$dispatch('request', opt);
+    const res = await this.$dispatch('request', { opt, type: this.type } );
 
     if ( res?._status === 204 ) {
       // If there's no body, assume the resource was immediately deleted
@@ -1061,7 +1062,7 @@ export class Resource {
       const obj = jsyaml.load(yaml);
 
       if (mode !== 'edit') {
-        cleanForNew(obj);
+        this.$dispatch(`cleanForNew`, obj);
       }
 
       if (obj._type) {
@@ -1077,7 +1078,7 @@ export class Resource {
   }
 
   cleanForNew() {
-    cleanForNew(this);
+    this.$dispatch(`cleanForNew`, this);
   }
 
   yamlForSave(yaml) {
@@ -1307,7 +1308,7 @@ export class Resource {
   }
 
   get ownersByType() {
-    const { metadata:{ ownerReferences = [] } } = this;
+    const ownerReferences = this.metadata?.ownerReferences || [];
     const ownersByType = {};
 
     ownerReferences.forEach((owner) => {

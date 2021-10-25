@@ -5,11 +5,11 @@ import { allHash, allHashSettled } from '@/utils/promise';
 import { clone } from '@/utils/object';
 import { findBy, addObject, filterBy } from '@/utils/array';
 import { stringify } from '@/utils/error';
-import { proxyFor } from '@/plugins/steve/resource-proxy';
 import { sortBy } from '@/utils/sort';
 import { importChart } from '@/utils/dynamic-importer';
 import { ensureRegex } from '@/utils/string';
 import { isPrerelease } from '@/utils/version';
+import { proxyFor } from '@/plugins/core-store/resource-proxy';
 
 const ALLOWED_CATEGORIES = [
   'Storage',

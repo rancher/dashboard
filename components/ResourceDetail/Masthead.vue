@@ -48,6 +48,11 @@ export default {
       default: false
     },
 
+    canViewYaml: {
+      type:    Boolean,
+      default: true
+    },
+
     storeOverride: {
       type:    String,
       default: null,
@@ -102,7 +107,7 @@ export default {
 
     namespaceLocation() {
       if (!this.isNamespace) {
-        return {
+        return this.value.namespaceLocation || {
           name:   'c-cluster-product-resource-id',
           params: {
             cluster:  this.$route.params.cluster,
@@ -227,15 +232,16 @@ export default {
         });
       }
 
-      if ( !out.length ) {
-        // If there's only YAML, return nothing and the button group will be hidden entirely
-        return null;
+      if ( this.canViewYaml ) {
+        out.push({
+          labelKey: 'resourceDetail.masthead.yaml',
+          value:    'yaml',
+        });
       }
 
-      out.push({
-        labelKey: 'resourceDetail.masthead.yaml',
-        value:    'yaml',
-      });
+      if ( out.length < 2 ) {
+        return null;
+      }
 
       return out;
     },

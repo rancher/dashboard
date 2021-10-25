@@ -3,7 +3,7 @@ import omitBy from 'lodash/omitBy';
 import pickBy from 'lodash/pickBy';
 import Vue from 'vue';
 import { matchesSomeRegex } from '@/utils/string';
-import { Resource } from './resource-class';
+import { Resource } from '../core-store/resource-class';
 
 export default class HybridModel extends Resource {
   get labels() {

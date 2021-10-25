@@ -34,32 +34,44 @@ export function importChart(name) {
   return () => import(/* webpackChunkName: "chart" */ `@/chart/${name}`);
 }
 
-export function importList(name) {
+export function importList({ type: name, plugin }) {
   if (!name) {
     throw new Error('Name required');
+  }
+
+  if (plugin) {
+    return () => import(/* webpackChunkName: "products" */ `@/products/${ plugin }/list/${name}`);
   }
 
   return () => import(/* webpackChunkName: "list" */ `@/list/${name}`);
 }
 
-export function importDetail(name) {
+export function importDetail({ type: name, plugin }) {
   if (!name) {
     throw new Error('Name required');
+  }
+
+  if (plugin) {
+    return () => import(/* webpackChunkName: "products" */ `@/products/${ plugin }/detail/${name}`);
   }
 
   return () => import(/* webpackChunkName: "detail" */ `@/detail/${name}`);
 }
 
-export function importEdit(name) {
+export function importEdit({ type: name, plugin }) {
   if (!name) {
     throw new Error('Name required');
+  }
+
+  if (plugin) {
+    return () => import(/* webpackChunkName: "products" */ `@/products/${ plugin }/edit/${name}`);
   }
 
   return () => import(/* webpackChunkName: "edit" */ `@/edit/${name}`);
 }
 
 export function importDialog(name) {
-  if ( !name ) {
+  if (!name) {
     throw new Error('Name required');
   }
 
@@ -76,7 +88,7 @@ export function loadProduct(name) {
 }
 
 export function loadTranslation(name) {
-  if ( !name ) {
+  if (!name) {
     throw new Error('Name required');
   }
 
@@ -84,6 +96,10 @@ export function loadTranslation(name) {
   return import(/* webpackChunkName: "[request]" */ `@/assets/translations/${name}.yaml`);
 }
 
-export function importCustomPromptRemove(name) {
+export function importCustomPromptRemove({ type: name, plugin }) {
+  if (plugin) {
+    return () => import(/* webpackChunkName: "products" */ `@/products/${ plugin }/promptRemove/${name}`);
+  }
+
   return () => import(/* webpackChunkName: "custom-prompt-remove" */ `@/promptRemove/${ name }`);
 }

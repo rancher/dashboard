@@ -1,10 +1,10 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
-import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
 import { NAME, NAMESPACE, STATE, TYPE } from '@/config/table-headers';
 import { sortableNumericSuffix } from '@/utils/sort';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import BadgeState from '@/components/BadgeState';
+import { colorForState, stateDisplay } from '@/plugins/core-store/resource-instance';
 
 export default {
   components: { ResourceTable, BadgeState },

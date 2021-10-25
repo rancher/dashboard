@@ -35,8 +35,8 @@ import {
   AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG, _CONFIG
 } from '@/config/query-params';
 
-import { SELF } from '@/plugins/steve/resource-proxy';
-import { cleanForNew, normalizeType } from './normalize';
+import { SELF } from '@/plugins/core-store/resource-proxy';
+import { normalizeType } from './normalize';
 
 const STRING_LIKE_TYPES = [
   'string',
@@ -808,7 +808,7 @@ export default {
         throw new Error(`Unknown link ${ linkName } on ${ this.type } ${ this.id }`);
       }
 
-      return this.$dispatch('request', opt);
+      return this.$dispatch('request', { opt, type: this.type });
     };
   },
 
@@ -850,7 +850,7 @@ export default {
       opt.headers['content-type'] = 'application/json-patch+json';
       opt.data = data;
 
-      return this.$dispatch('request', opt);
+      return this.$dispatch('request', { opt, type: this.type });
     };
   },
 
@@ -925,7 +925,7 @@ export default {
       }
 
       try {
-        const res = await this.$dispatch('request', opt);
+        const res = await this.$dispatch('request', { opt, type: this.type });
 
         // console.log('### Resource Save', this.type, this.id);
 
@@ -958,7 +958,7 @@ export default {
 
       opt.method = 'delete';
 
-      const res = await this.$dispatch('request', opt);
+      const res = await this.$dispatch('request', opt, { opt, type: this.type });
 
       if ( res?._status === 204 ) {
         // If there's no body, assume the resource was immediately deleted
@@ -1196,7 +1196,7 @@ export default {
         const obj = jsyaml.load(yaml);
 
         if (mode !== 'edit') {
-          cleanForNew(obj);
+          this.$dispatch(`cleanForNew`, obj);
         }
 
         if (obj._type) {
@@ -1214,7 +1214,7 @@ export default {
 
   cleanForNew() {
     return () => {
-      cleanForNew(this);
+      this.$dispatch(`cleanForNew`, this);
     };
   },
 

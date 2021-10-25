@@ -3,15 +3,37 @@ import isUrl from 'is-url';
 import { get } from '@/utils/object';
 import isEmpty from 'lodash/isEmpty';
 
+function tlsHosts(spec) {
+  const tls = spec.tls || [];
+
+  return tls.flatMap(tls => tls.hosts || []);
+}
+
+function isTlsHost(spec, host) {
+  return tlsHosts(spec).includes(host);
+}
+
+export function ingressFullPath(resource, rule) {
+  const spec = resource.spec;
+  const hostValue = rule.host || '';
+  const path = rule?.http?.paths || [];
+  const pathValue = path.path || '';
+  let protocol = '';
+
+  if (hostValue) {
+    protocol = isTlsHost(spec, hostValue) ? 'https://' : 'http://';
+  }
+
+  return `${ protocol }${ hostValue }${ pathValue }`;
+}
+
 export default {
   tlsHosts() {
-    const tls = this.spec.tls || [];
-
-    return tls.flatMap(tls => tls.hosts || []);
+    return tlsHosts(this.spec);
   },
 
   isTlsHost() {
-    return host => this.tlsHosts.includes(host);
+    return host => isTlsHost(this.spec, host);
   },
 
   targetTo() {
@@ -54,10 +76,8 @@ export default {
 
   createPathForListPage() {
     return (workloads, rule, path, certificates) => {
-      const hostValue = rule.host || '';
-      const pathValue = path.path || '';
       const serviceName = get(path?.backend, this.serviceNamePath);
-      const fullPath = this.fullPath(hostValue, pathValue);
+      const fullPath = this.fullPath(rule);
 
       return {
         // isUrl thinks urls which contain '*' are valid so I'm adding an additional check for '*'
@@ -74,15 +94,7 @@ export default {
   },
 
   fullPath() {
-    return (hostValue, pathValue) => {
-      let protocol = '';
-
-      if (hostValue) {
-        protocol = this.isTlsHost(hostValue) ? 'https://' : 'http://';
-      }
-
-      return `${ protocol }${ hostValue }${ pathValue }`;
-    };
+    return rule => ingressFullPath(this, rule);
   },
 
   certLink() {

@@ -34,7 +34,7 @@ export default {
     namespaced: {
       type:    Boolean,
       default: true
-    }
+    },
   },
 
   data() {
@@ -356,11 +356,9 @@ export default {
     </button>
   </div>
 </template>
-  </div>
-</template>
 
 <style lang='scss' scoped>
-.var-row{
+.var-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 100px;
   grid-column-gap: 20px;

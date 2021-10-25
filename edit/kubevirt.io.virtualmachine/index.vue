@@ -21,7 +21,6 @@ import NodeScheduling from '@/components/form/NodeScheduling';
 
 import { clone } from '@/utils/object';
 import { HCI } from '@/config/types';
-import { cleanForNew } from '@/plugins/steve/normalize';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 import VM_MIXIN from '@/mixins/harvester-vm';
@@ -270,7 +269,7 @@ export default {
 
         const suffix = i < 10 ? `0${ i }` : i;
 
-        cleanForNew(this.value);
+        this.value.cleanForNew();
         this.value.metadata.name = `${ namePrefix }${ join }${ suffix }`;
         const hostname = `${ baseHostname }${ join }${ suffix }`;
 

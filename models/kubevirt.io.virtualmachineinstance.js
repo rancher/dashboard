@@ -1,4 +1,4 @@
-import { colorForState } from '@/plugins/steve/resource-instance';
+import { colorForState } from '@/plugins/core-store/resource-instance';
 import { HCI } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
