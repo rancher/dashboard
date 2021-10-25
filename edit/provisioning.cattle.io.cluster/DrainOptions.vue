@@ -76,9 +76,9 @@ export default {
       v-model="enabled"
       name="enabled"
       :options="[false, true]"
-      label="Drain Nodes"
-      :labels="['No','Yes']"
-      tooltip="Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed."
+      :label="t('cluster.rke2.drain.label')"
+      :labels="[t('generic.no'), t('generic.yes')]"
+      :tooltip="t('cluster.rke2.drain.toolTip')"
       :mode="mode"
       @input="update"
     />

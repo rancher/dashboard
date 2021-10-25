@@ -90,7 +90,7 @@ export default {
         <LabeledInput
           v-model="value.pool.name"
           :mode="mode"
-          label="Pool Name"
+          :label="t('cluster.machinePool.name.label')"
           :required="true"
           :disabled="!value.config || !!value.config.id"
         />
@@ -99,14 +99,16 @@ export default {
         <LabeledInput
           v-model.number="value.pool.quantity"
           :mode="mode"
-          label="Machine Count"
+          :label="t('cluster.machinePool.quantity.label')"
           type="number"
           min="0"
           :required="true"
         />
       </div>
       <div class="col span-6 pt-5">
-        <h3>Roles</h3>
+        <h3>
+          {{ t('cluster.machinePool.role.label') }}
+        </h3>
         <Checkbox
           v-model="value.pool.etcdRole"
           :mode="mode"
@@ -149,7 +151,7 @@ export default {
         v-model="value.pool.labels"
         :add-label="t('labels.addLabel')"
         :mode="mode"
-        title="Kubernetes Node Labels"
+        :title="t('cluster.machinePool.labels.label')"
         :read-allowed="false"
         :value-can-be-empty="true"
       />

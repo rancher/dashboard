@@ -60,7 +60,7 @@ export default {
 
     insertAt(out, idx++, {
       action:     'openShell',
-      label:      'Kubectl Shell',
+      label:      this.$rootGetters['i18n/t']('nav.shell'),
       icon:       'icon icon-terminal',
       enabled:    !!this.mgmt?.links.shell && this.mgmt?.isReady,
     });
@@ -68,7 +68,7 @@ export default {
     insertAt(out, idx++, {
       action:     'downloadKubeConfig',
       bulkAction: 'downloadKubeConfigBulk',
-      label:      'Download KubeConfig',
+      label:      this.$rootGetters['i18n/t']('nav.kubeconfig'),
       icon:       'icon icon-download',
       bulkable:   true,
       enabled:    this.$rootGetters['isRancher'] && this.mgmt?.isReady,
