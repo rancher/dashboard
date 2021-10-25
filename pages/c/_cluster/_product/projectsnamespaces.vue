@@ -47,6 +47,9 @@ export default {
   },
 
   computed: {
+    isNamespaceCreatable() {
+      return (this.schema?.resourceMethods || []).includes('PUT');
+    },
     headers() {
       const project = {
         name:          'project',
@@ -202,6 +205,7 @@ export default {
           </div>
           <div class="right">
             <n-link
+              v-if="isNamespaceCreatable"
               class="create-namespace btn btn-sm role-secondary"
               :to="createNamespaceLocation(group.group)"
             >
