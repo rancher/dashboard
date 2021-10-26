@@ -1,10 +1,12 @@
 <script>
+import { mapGetters } from 'vuex';
 import isEmpty from 'lodash/isEmpty';
 import throttle from 'lodash/throttle';
 import ArrayList from '@/components/form/ArrayList';
 import CreateEditView from '@/mixins/create-edit-view';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import RadioGroup from '@/components/form/RadioGroup';
 import ServicePorts from '@/components/form/ServicePorts';
@@ -16,9 +18,10 @@ import { ucFirst } from '@/utils/string';
 import CruResource from '@/components/CruResource';
 import Banner from '@/components/Banner';
 import Labels from '@/components/form/Labels';
-import { clone } from '@/utils/object';
+import { clone, get } from '@/utils/object';
 import { POD } from '@/config/types';
 import { matching } from '@/utils/selector';
+import { NAME as HARVESTER } from '@/config/product/harvester';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:     'None',
@@ -31,6 +34,32 @@ const SESSION_AFFINITY_ACTION_LABELS = {
 };
 
 const SESSION_STICKY_TIME_DEFAULT = 10800;
+
+const HARVESTER_ADD_ON_CONFIG = [{
+  variableName: 'ipam',
+  key:          'cloudprovider.harvesterhci.io/ipam',
+  default:      'dhcp'
+}, {
+  variableName: 'healthcheckPort',
+  key:          'cloudprovider.harvesterhci.io/healthcheck-port',
+  default:      80,
+}, {
+  variableName: 'healthCheckSuccessThreshold',
+  key:          'cloudprovider.harvesterhci.io/healthcheck-success-threshold',
+  default:      1,
+}, {
+  variableName: 'healthCheckFailureThreshold',
+  key:          'cloudprovider.harvesterhci.io/healthcheck-failure-threshold',
+  default:      3,
+}, {
+  variableName: 'healthCheckPeriod',
+  key:          'cloudprovider.harvesterhci.io/healthcheck-periodseconds',
+  default:      5,
+}, {
+  variableName: 'healthCheckTimeout',
+  key:          'cloudprovider.harvesterhci.io/healthcheck-timeoutseconds',
+  default:      3,
+}];
 
 export default {
   // Props are found in CreateEditView
@@ -49,6 +78,7 @@ export default {
     Tab,
     Tabbed,
     UnitInput,
+    LabeledSelect,
   },
 
   mixins: [CreateEditView],
@@ -75,6 +105,12 @@ export default {
       total:   0,
     };
 
+    const harvesterAddOnConfig = {};
+
+    HARVESTER_ADD_ON_CONFIG.forEach((c) => {
+      harvesterAddOnConfig[c.variableName] = this.value.metadata.labels[c.key] || c.default;
+    });
+
     return {
       matchingPods,
       allPods:                     [],
@@ -86,10 +122,13 @@ export default {
       sessionAffinityActionOptions: Object.values(
         SESSION_AFFINITY_ACTION_VALUES
       ),
+      ...harvesterAddOnConfig,
     };
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
+
     showSelectorWarning() {
       const selector = this.value.spec?.selector;
 
@@ -144,6 +183,20 @@ export default {
         this.checkTypeIs('LoadBalancer') ||
         this.checkTypeIs('NodePort')
       );
+    },
+
+    ipamOptions() {
+      return [{
+        label: 'dhcp',
+        value: 'dhcp',
+      }, {
+        label: 'pool',
+        value: 'pool',
+      }];
+    },
+
+    showHarvesterAddOnConfig() {
+      return this.checkTypeIs('LoadBalancer') && this.currentCluster?.status?.provider === HARVESTER;
     },
   },
 
@@ -237,10 +290,28 @@ export default {
     },
 
     willSave() {
+      const errors = [];
+
+      if (this.showHarvesterAddOnConfig) {
+        if (!this.healthcheckPort) {
+          errors.push(this.t('validation.required', { key: this.t('harvester.service.healthCheckPort.label') }, true));
+        }
+      }
+
+      if (errors.length > 0) {
+        return Promise.reject(errors);
+      }
+
       const { ports = [] } = this.value.spec;
 
       if (ports && ports.length > 0) {
         this.value.spec.ports = this.targetPortsStrOrInt(this.value.spec.ports);
+      }
+
+      if (this.showHarvesterAddOnConfig) {
+        HARVESTER_ADD_ON_CONFIG.forEach((c) => {
+          this.value.metadata.labels[c.key] = String(get(this, c.variableName));
+        });
       }
     },
   },
@@ -374,6 +445,71 @@ export default {
         </div>
       </Tab>
       <Tab
+        v-if="showHarvesterAddOnConfig"
+        name="add-on-config"
+        :label="t('harvester.service.title')"
+        :weight="-1"
+      >
+        <div class="row mt-30">
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="ipam"
+              :mode="mode"
+              :options="ipamOptions"
+              :label="t('harvester.service.ipam.label')"
+            />
+          </div>
+          <div class="col span-6">
+            <LabeledInput
+              v-model="healthcheckPort"
+              :mode="mode"
+              required
+              type="number"
+              :label="t('harvester.service.healthCheckPort.label')"
+              :tooltip="t('harvester.service.healthCheckPort.description')"
+            />
+          </div>
+        </div>
+        <div class="row mt-10">
+          <div class="col span-6">
+            <LabeledInput
+              v-model="healthCheckSuccessThreshold"
+              :mode="mode"
+              type="number"
+              :label="t('harvester.service.healthCheckSuccessThreshold.label')"
+              :tooltip="t('harvester.service.healthCheckSuccessThreshold.description')"
+            />
+          </div>
+          <div class="col span-6">
+            <LabeledInput
+              v-model="healthCheckFailureThreshold"
+              :mode="mode"
+              type="number"
+              :label="t('harvester.service.healthCheckFailureThreshold.label')"
+              :tooltip="t('harvester.service.healthCheckFailureThreshold.description')"
+            />
+          </div>
+        </div>
+        <div class="row mt-10">
+          <div class="col span-6">
+            <LabeledInput
+              v-model="healthCheckPeriod"
+              :mode="mode"
+              type="number"
+              :label="t('harvester.service.healthCheckPeriod.label')"
+            />
+          </div>
+          <div class="col span-6">
+            <LabeledInput
+              v-model="healthCheckTimeout"
+              :mode="mode"
+              type="number"
+              :label="t('harvester.service.healthCheckTimeout.label')"
+            />
+          </div>
+        </div>
+      </Tab>
+      <Tab
         v-if="!checkTypeIs('ExternalName') && !checkTypeIs('Headless')"
         name="session-affinity"
         :label="t('servicesPage.affinity.label')"
@@ -417,7 +553,7 @@ export default {
         v-if="!isView"
         name="labels-and-annotations"
         :label="t('servicesPage.labelsAnnotations.label', {}, true)"
-        :weight="-1"
+        :weight="-2"
       >
         <Labels
           :default-container-class="'labels-and-annotations-container'"
