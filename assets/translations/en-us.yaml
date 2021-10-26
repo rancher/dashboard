@@ -6122,5 +6122,6 @@ epinio:
       deploy:
         label: Deploy
         description: Deploy and start the Application
-  namespaceName:
+  namespace:
     name: Name
+    deleteWarning: All applications and services in a namespace will be deleted.

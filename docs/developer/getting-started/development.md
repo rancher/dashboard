@@ -493,6 +493,28 @@ The forms for creating and editing resources are in the `edit` directory. Common
 
 If a form element was repeated for every row in a table, it would make the UI slower. To increase performance, components such as `ActionMenu` and `PromptModal` are not repeated for every row in a table, and they don't directly interact with the data from a table row. Instead, they communicate with each row indirectly through the store. All the information about the actions that should be available for a certain resource is contained in a model, and the `ActionMenu` or `PromptModal` components take that information about the selected resource from the store. Modals and menus are opened by telling the store that they should be opened. For example, this call to the store  `this.$store.commit('action-menu/togglePromptModal');` is used to open the action menu. Then each component uses the `dispatch` method to get all the information it needs from the store.
 
+### Customize Deletion Warnings
+
+To warn users about deleting a certain resource, you can customize the message that is shown to the user when they attempt to delete a resource.
+
+If the resource model is a class model, you can add the error message to the model in this format:
+
+```
+get warnDeletionMessage() {
+  return this.t('epinio.namespace.deleteWarning');
+}
+```
+
+If the resource model is a proxy model, you can add the error message in this format:
+
+```
+warnDeletionMessage() {
+  return (toRemove = []) => {
+    return this.$rootGetters['i18n/t']('cis.deleteProfileWarning', { count: toRemove.length });
+  };
+},
+```
+
 
 ## Other UI Features
 ### Icons 

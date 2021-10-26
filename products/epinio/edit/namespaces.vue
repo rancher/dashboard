@@ -38,7 +38,7 @@ export default {
 
   methods: {
     meetsNameRequirements( name = '') {
-      const nameErrors = validateKubernetesName(name, this.t('epinio.namespaceName.name'), this.$store.getters, undefined, []);
+      const nameErrors = validateKubernetesName(name, this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
 
       if (nameErrors.length > 0) {
         return {
@@ -77,7 +77,7 @@ export default {
     >
       <LabeledInput
         v-model="value.name"
-        :label="t('epinio.namespaceName.name')"
+        :label="t('epinio.namespace.name')"
         :mode="mode"
         :required="true"
         :validators="[ meetsNameRequirements ]"
