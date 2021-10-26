@@ -99,7 +99,7 @@ export default class EpinioApplication extends EpinioResource {
       update: this.getUrl(),
       self:   this.getUrl(),
       remove: this.getUrl(),
-      create: this.getUrl(this.meta.namespace, null), // ensure name is null
+      create: this.getUrl(this.meta?.namespace, null), // ensure name is null
       store:  `${ this.getUrl() }/store`,
       stage:  `${ this.getUrl() }/stage`,
       deploy: `${ this.getUrl() }/deploy`,
@@ -107,7 +107,7 @@ export default class EpinioApplication extends EpinioResource {
     };
   }
 
-  getUrl(namespace = this.meta.namespace, name = this.meta.name) {
+  getUrl(namespace = this.meta?.namespace, name = this.meta?.name) {
     // Add baseUrl in a generic way
     return this.$getters['urlFor'](this.type, this.id, { url: `api/v1/namespaces/${ namespace }/applications/${ name || '' }` });
   }
