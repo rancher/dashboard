@@ -34,6 +34,25 @@ export default class EpinioNamespaces extends EpinioResource {
     }
   }
 
+  async remove(opt = {}) {
+    // Override the remove method on epinio-resource-instance.class.js
+    // so that apps can be refetched when a namespace is deleted.
+    if ( !opt.url ) {
+      opt.url = (this.links || {})['self'];
+    }
+
+    opt.method = 'delete';
+
+    const res = await this.$dispatch('request', { opt, type: this.type });
+
+    console.log('### Resource Remove', this.type, this.id, res);// eslint-disable-line no-console
+
+    this.$dispatch('remove', this);
+
+    // Refetch apps
+    this.$dispatch('findAll', { type: 'applications', opt: { force: true } });
+  }
+
   get canClone() {
     return false;
   }
