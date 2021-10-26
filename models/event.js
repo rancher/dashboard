@@ -1,8 +1,9 @@
 import isEmpty from 'lodash/isEmpty';
 import { ucFirst } from '@/utils/string';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  displayInvolvedObject() {
+export default class K8sEvent extends SteveModel {
+  get displayInvolvedObject() {
     const involvedObject = this.involvedObject;
 
     if (isEmpty(involvedObject)) {
@@ -10,9 +11,9 @@ export default {
     }
 
     return `${ involvedObject.kind } ${ involvedObject.name }`;
-  },
+  }
 
-  displayMessage() {
+  get displayMessage() {
     return ucFirst(this.message);
   }
-};
+}

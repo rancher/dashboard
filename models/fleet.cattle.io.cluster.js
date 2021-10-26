@@ -2,9 +2,10 @@ import { MANAGEMENT, NORMAN } from '@/config/types';
 import { escapeHtml } from '@/utils/string';
 import { insertAt } from '@/utils/array';
 import { FLEET as FLEET_LABELS } from '@/config/labels-annotations';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  _availableActions() {
+export default class FleetCluster extends SteveModel {
+  get _availableActions() {
     const out = this._standardActions;
 
     insertAt(out, 0, {
@@ -43,54 +44,50 @@ export default {
     insertAt(out, 4, { divider: true });
 
     return out;
-  },
+  }
 
   pause() {
     this.spec.paused = true;
     this.save();
-  },
+  }
 
   unpause() {
     this.spec.paused = false;
     this.save();
-  },
+  }
 
   forceUpdate() {
     const now = this.spec.redeployAgentGeneration || 1;
 
     this.spec.redeployAgentGeneration = now + 1;
     this.save();
-  },
+  }
 
   assignTo() {
-    return () => {
-      this.$dispatch('assignTo', [this]);
-    };
-  },
+    this.$dispatch('assignTo', [this]);
+  }
 
-  assignToBulk() {
-    return (items) => {
-      this.$dispatch('assignTo', items);
-    };
-  },
+  assignToBulk(items) {
+    this.$dispatch('assignTo', items);
+  }
 
-  canDelete() {
+  get canDelete() {
     return false;
-  },
+  }
 
-  nameDisplay() {
+  get nameDisplay() {
     return this.metadata?.labels?.[FLEET_LABELS.CLUSTER_DISPLAY_NAME] || this.metadata?.name || this.id;
-  },
+  }
 
-  state() {
+  get state() {
     if ( this.spec?.paused === true ) {
       return 'paused';
     }
 
     return this.metadata?.state?.name || 'unknown';
-  },
+  }
 
-  nodeInfo() {
+  get nodeInfo() {
     const ready = this.status?.agent?.readyNodes || 0;
     const unready = this.status?.agent?.nonReadyNodes || 0;
 
@@ -99,9 +96,9 @@ export default {
       unready,
       total: ready + unready,
     };
-  },
+  }
 
-  repoInfo() {
+  get repoInfo() {
     const ready = this.status?.readyGitRepos || 0;
     const total = this.status?.desiredReadyGitRepos || 0;
 
@@ -110,21 +107,21 @@ export default {
       unready: total - ready,
       total,
     };
-  },
+  }
 
-  mgmt() {
+  get mgmt() {
     const mgmt = this.$getters['byId'](MANAGEMENT.CLUSTER, this.metadata?.labels?.[FLEET_LABELS.CLUSTER_NAME]);
 
     return mgmt;
-  },
+  }
 
-  norman() {
+  get norman() {
     const norman = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, this.metadata.name);
 
     return norman;
-  },
+  }
 
-  groupByLabel() {
+  get groupByLabel() {
     const name = this.metadata.namespace;
 
     if ( name ) {
@@ -132,5 +129,5 @@ export default {
     } else {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
     }
-  },
-};
+  }
+}

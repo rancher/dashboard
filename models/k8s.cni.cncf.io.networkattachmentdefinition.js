@@ -1,7 +1,8 @@
 import Vue from 'vue';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  _availableActions() {
+export default class NetworkAttachmentDef extends SteveModel {
+  get _availableActions() {
     let out = this._standardActions;
     const toFilter = ['goToClone', 'cloneYaml', 'goToViewConfig', 'goToEditYaml', 'goToEdit'];
 
@@ -12,49 +13,47 @@ export default {
     });
 
     return out;
-  },
+  }
 
   applyDefaults() {
-    return () => {
-      const spec = this.spec || {
-        config: JSON.stringify({
-          cniVersion:  '0.3.1',
-          name:        '',
-          type:        'bridge',
-          bridge:      'harvester-br0',
-          promiscMode: true,
-          vlan:        '',
-          ipam:        {}
-        })
-      };
-
-      Vue.set(this, 'spec', spec);
+    const spec = this.spec || {
+      config: JSON.stringify({
+        cniVersion:  '0.3.1',
+        name:        '',
+        type:        'bridge',
+        bridge:      'harvester-br0',
+        promiscMode: true,
+        vlan:        '',
+        ipam:        {}
+      })
     };
-  },
 
-  parseConfig() {
+    Vue.set(this, 'spec', spec);
+  }
+
+  get parseConfig() {
     try {
       return JSON.parse(this.spec.config) || {};
     } catch (err) {
       return {};
     }
-  },
+  }
 
-  isIpamStatic() {
+  get isIpamStatic() {
     return this.parseConfig.ipam?.type === 'static';
-  },
+  }
 
-  vlanType() {
+  get vlanType() {
     const type = this.parseConfig.type;
 
     return type === 'bridge' ? 'L2VlanNetwork' : type;
-  },
+  }
 
-  vlanId() {
+  get vlanId() {
     return this.parseConfig.vlan;
-  },
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     const rules = [
       {
         nullable:       false,
@@ -67,5 +66,5 @@ export default {
     ];
 
     return rules;
-  },
-};
+  }
+}

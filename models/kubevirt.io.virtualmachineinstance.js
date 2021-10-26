@@ -1,6 +1,7 @@
-import { colorForState } from '@/plugins/steve/resource-instance';
+import { colorForState } from '@/plugins/steve/resource-class';
 import { HCI } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
+import SteveModel from '@/plugins/steve/steve-class';
 
 const PAUSED = 'Paused';
 const PAUSED_VM_MODAL_MESSAGE = 'This VM has been paused. If you wish to unpause it, please click the Unpause button below. For further details, please check with your system administrator.';
@@ -14,8 +15,8 @@ const VMIPhase = {
   Unknown:    'Unknown',
 };
 
-export default {
-  _availableActions() {
+export default class VirtVmInstance extends SteveModel {
+  get _availableActions() {
     const out = this._standardActions;
 
     const actions = out.find((O) => {
@@ -23,28 +24,28 @@ export default {
     });
 
     return [actions];
-  },
+  }
 
-  stateDisplay() {
+  get stateDisplay() {
     // const phase = this?.status?.phase;
     if (this?.metadata?.deletionTimestamp) {
       return 'Terminating';
     }
 
     return this?.status?.phase;
-  },
+  }
 
-  stateBackground() {
+  get stateBackground() {
     return colorForState(this.stateDisplay).replace('text-', 'bg-');
-  },
+  }
 
-  stateColor() {
+  get stateColor() {
     const state = this.stateDisplay;
 
     return colorForState(state);
-  },
+  }
 
-  vmimResource() {
+  get vmimResource() {
     const all = this.$rootGetters['harvester/all'](HCI.VMIM) || [];
     const vmimList = all.filter(vmim => vmim.spec?.vmiName === this.metadata?.name);
 
@@ -57,9 +58,9 @@ export default {
     });
 
     return vmimList[0];
-  },
+  }
 
-  migrationState() {
+  get migrationState() {
     const state = this.metadata?.annotations?.[HCI_ANNOTATIONS.MIGRATION_STATE];
 
     if (this.vmimResource?.status?.phase === VMIPhase.Failed) {
@@ -75,15 +76,17 @@ export default {
         status: state
       };
     }
-  },
 
-  migrationStateBackground() {
+    return null;
+  }
+
+  get migrationStateBackground() {
     const state = this.migrationState.status;
 
     return colorForState(state).replace('text-', 'bg-');
-  },
+  }
 
-  isPaused() {
+  get isPaused() {
     const conditions = this?.status?.conditions || [];
     const isPause = conditions.filter(cond => cond.type === PAUSED).length > 0;
 
@@ -91,17 +94,17 @@ export default {
       status:  PAUSED,
       message: PAUSED_VM_MODAL_MESSAGE
     } : null;
-  },
+  }
 
-  isRunning() {
+  get isRunning() {
     if (this?.status?.phase === VMIPhase.Running) {
       return { status: VMIPhase.Running };
     }
 
     return null;
-  },
+  }
 
-  getVMIApiPath() {
+  get getVMIApiPath() {
     const clusterId = this.$rootGetters['clusterId'];
 
     if (this.$rootGetters['isMultiVirtualCluster']) {
@@ -111,9 +114,9 @@ export default {
     } else {
       return `/apis/subresources.kubevirt.io/v1/namespaces/${ this.metadata.namespace }/virtualmachineinstances/${ this.name }/vnc`;
     }
-  },
+  }
 
-  getSerialConsolePath() {
+  get getSerialConsolePath() {
     const clusterId = this.$rootGetters['clusterId'];
 
     if (this.$rootGetters['isMultiVirtualCluster']) {
@@ -124,4 +127,4 @@ export default {
       return `/apis/subresources.kubevirt.io/v1/namespaces/${ this.metadata.namespace }/virtualmachineinstances/${ this.name }/console`;
     }
   }
-};
+}

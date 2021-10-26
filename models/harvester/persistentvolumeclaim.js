@@ -4,23 +4,22 @@ import { HCI } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { findBy } from '@/utils/array';
 import { get, clone } from '@/utils/object';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  applyDefaults() {
-    return (_, realMode) => {
-      const accessModes = realMode === _CLONE ? this.spec.accessModes : [];
-      const storage = realMode === _CLONE ? this.spec.resources.requests.storage : null;
+export default class HciPv extends SteveModel {
+  applyDefaults(_, realMode) {
+    const accessModes = realMode === _CLONE ? this.spec.accessModes : [];
+    const storage = realMode === _CLONE ? this.spec.resources.requests.storage : null;
 
-      Vue.set(this, 'spec', {
-        accessModes,
-        storageClassName: '',
-        volumeName:       '',
-        resources:        { requests: { storage } }
-      });
-    };
-  },
+    Vue.set(this, 'spec', {
+      accessModes,
+      storageClassName: '',
+      volumeName:       '',
+      resources:        { requests: { storage } }
+    });
+  }
 
-  availableActions() {
+  get availableActions() {
     return [
       {
         action:     'exportImage',
@@ -30,22 +29,20 @@ export default {
       },
       ...this._standardActions
     ];
-  },
+  }
 
-  exportImage() {
-    return (resources = this) => {
-      this.$dispatch('promptModal', {
-        resources,
-        component: 'harvester/ExportImageDialog'
-      });
-    };
-  },
+  exportImage(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'harvester/ExportImageDialog'
+    });
+  }
 
-  canUpdate() {
+  get canUpdate() {
     return this.hasLink('update');
-  },
+  }
 
-  stateDisplay() {
+  get stateDisplay() {
     const ownedBy = this?.metadata?.annotations?.[HCI_ANNOTATIONS.OWNED_BY];
     let status = this?.status?.phase === 'Bound' ? 'Ready' : 'NotReady';
 
@@ -60,17 +57,17 @@ export default {
     } else {
       return status;
     }
-  },
+  }
 
-  detailLocation() {
+  get detailLocation() {
     const detailLocation = clone(this._detailLocation);
 
     detailLocation.params.resource = HCI.VOLUME;
 
     return detailLocation;
-  },
+  }
 
-  doneOverride() {
+  get doneOverride() {
     const detailLocation = clone(this._detailLocation);
 
     delete detailLocation.params.namespace;
@@ -79,36 +76,36 @@ export default {
     detailLocation.name = 'c-cluster-product-resource';
 
     return detailLocation;
-  },
+  }
 
-  parentNameOverride() {
+  get parentNameOverride() {
     return this.$rootGetters['i18n/t'](`typeLabel."${ HCI.VOLUME }"`, { count: 1 }).trim();
-  },
+  }
 
-  parentLocationOverride() {
+  get parentLocationOverride() {
     return this.doneOverride;
-  },
+  }
 
-  phaseState() {
+  get phaseState() {
     return this.status?.phase || 'N/A';
-  },
+  }
 
-  attachVM() {
+  get attachVM() {
     const allVMs = this.$rootGetters['harvester/all'](HCI.VM);
     const ownedBy = get(this, `metadata.annotations."${ HCI_ANNOTATIONS.OWNED_BY }"`) || '';
 
     if (!ownedBy) {
-      return;
+      return null;
     }
 
     const ownedId = JSON.parse(ownedBy)[0]?.refs?.[0];
 
     return allVMs.find( D => D.id === ownedId);
-  },
+  }
 
-  volumeSort() {
+  get volumeSort() {
     const volume = this.spec?.resources?.requests?.storage || 0;
 
     return parseInt(volume);
-  },
-};
+  }
+}

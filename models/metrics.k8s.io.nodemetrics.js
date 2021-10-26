@@ -1,40 +1,41 @@
 import { NODE } from '@/config/types';
 import { parseSi } from '@/utils/units';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  cpuUsage() {
+export default class NodeMetric extends SteveModel {
+  get cpuUsage() {
     return parseSi(this?.usage?.cpu || '0');
-  },
+  }
 
-  cpuCapacity() {
+  get cpuCapacity() {
     return parseSi(this.$rootGetters[`${ this.inStore }/byId`](NODE, this.id)?.status?.allocatable?.cpu || '0');
-  },
+  }
 
-  cpuUsagePercentage() {
+  get cpuUsagePercentage() {
     return ((this.cpuUsage * 10000) / this.cpuCapacity).toString();
-  },
+  }
 
-  memoryUsage() {
+  get memoryUsage() {
     return parseSi(this?.usage?.memory || '0');
-  },
+  }
 
-  memoryCapacity() {
+  get memoryCapacity() {
     return parseSi(this.$rootGetters[`${ this.inStore }/byId`](NODE, this.id)?.status?.capacity?.memory || '0');
-  },
+  }
 
-  memoryUsagePercentage() {
+  get memoryUsagePercentage() {
     return ((this.ramUsage * 10000) / this.ramCapacity).toString();
-  },
+  }
 
-  storageUsage() {
+  get storageUsage() {
     return parseSi(this.$rootGetters[`${ this.inStore }/byId`](NODE, this.id)?.status?.capacity?.['ephemeral-storage']) - parseSi(this.$rootGetters[`${ this.inStore }/byId`](NODE, this.id)?.status?.allocatable?.['ephemeral-storage']);
-  },
+  }
 
-  storageTotal() {
+  get storageTotal() {
     return parseSi(this.$rootGetters[`${ this.inStore }/byId`](NODE, this.id)?.status?.capacity?.['ephemeral-storage']);
-  },
+  }
 
-  inStore() {
+  get inStore() {
     return this.$rootGetters['currentProduct'].inStore;
-  },
-};
+  }
+}

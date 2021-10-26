@@ -3,10 +3,11 @@ import { HCI } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { clone } from '@/utils/object';
 import findLast from 'lodash/findLast';
-import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
+import { colorForState, stateDisplay } from '@/plugins/steve/resource-class';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  _availableActions() {
+export default class HciNode extends SteveModel {
+  get _availableActions() {
     const cordon = {
       action:     'cordon',
       enabled:    this.hasAction('cordon'),
@@ -46,25 +47,25 @@ export default {
       disableMaintenance,
       ...this._standardActions
     ];
-  },
+  }
 
-  confirmRemove() {
+  get confirmRemove() {
     return true;
-  },
+  }
 
-  filteredSystemLabels() {
+  get filteredSystemLabels() {
     const reg = /(k3s|kubernetes|kubevirt|harvesterhci|k3os)+\.io/;
 
     return pickBy(this.labels, (value, key) => {
       return !reg.test(key);
     });
-  },
+  }
 
-  nameDisplay() {
+  get nameDisplay() {
     return this.metadata?.annotations?.[HCI_ANNOTATIONS.HOST_CUSTOM_NAME] || this.name;
-  },
+  }
 
-  stateDisplay() {
+  get stateDisplay() {
     if (this.isEnteringMaintenance) {
       return 'Entering maintenance mode';
     }
@@ -78,21 +79,21 @@ export default {
     }
 
     return stateDisplay(this.state);
-  },
+  }
 
-  stateBackground() {
+  get stateBackground() {
     return colorForState(this.stateDisplay).replace('text-', 'bg-');
-  },
+  }
 
-  detailLocation() {
+  get detailLocation() {
     const detailLocation = clone(this._detailLocation);
 
     detailLocation.params.resource = HCI.HOST;
 
     return detailLocation;
-  },
+  }
 
-  doneOverride() {
+  get doneOverride() {
     const detailLocation = clone(this._detailLocation);
 
     delete detailLocation.params.namespace;
@@ -101,59 +102,54 @@ export default {
     detailLocation.name = 'c-cluster-product-resource';
 
     return detailLocation;
-  },
+  }
 
-  parentNameOverride() {
+  get parentNameOverride() {
     return this.$rootGetters['i18n/t'](`typeLabel."${ HCI.HOST }"`, { count: 1 })?.trim();
-  },
+  }
 
-  parentLocationOverride() {
+  get parentLocationOverride() {
     return this.doneOverride;
-  },
+  }
 
-  internalIp() {
+  get internalIp() {
     const addresses = this.status?.addresses || [];
 
     return findLast(addresses, address => address.type === 'InternalIP')?.address;
-  },
+  }
 
-  isMaster() {
+  get isMaster() {
     return this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_ROLE_MASTER] !== undefined || this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_ROLE_CONTROL_PLANE] !== undefined;
-  },
+  }
 
   cordon() {
-    return (resources = this) => {
-      this.doAction('cordon', {});
-    };
-  },
+    this.doAction('cordon', {});
+  }
 
   uncordon() {
     this.doAction('uncordon', {});
-  },
+  }
 
-  enableMaintenanceMode() {
-    return (resources = this) => {
-      this.$dispatch('promptModal', {
-        resources,
-        component: 'harvester/MaintenanceDialog'
-      });
-    };
-  },
+  enableMaintenanceMode(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'harvester/MaintenanceDialog'
+    });
+  }
 
   disableMaintenanceMode() {
     this.doAction('disableMaintenanceMode', {});
-  },
+  }
 
-  isCordoned() {
+  get isCordoned() {
     return !!this.spec.unschedulable;
-  },
+  }
 
-  isEnteringMaintenance() {
+  get isEnteringMaintenance() {
     return this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] === 'running';
-  },
+  }
 
-  isMaintenance() {
+  get isMaintenance() {
     return this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] === 'completed';
-  },
-
-};
+  }
+}

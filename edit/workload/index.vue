@@ -34,7 +34,7 @@ import Labels from '@/components/form/Labels';
 import RadioGroup from '@/components/form/RadioGroup';
 import { UI_MANAGED } from '@/config/labels-annotations';
 import { removeObject } from '@/utils/array';
-import { BEFORE_SAVE_HOOKS } from '~/mixins/child-hook';
+import { BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
 
 const TAB_WEIGHT_MAP = {
   general:              99,

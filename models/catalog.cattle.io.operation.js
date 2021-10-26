@@ -1,8 +1,10 @@
 import { findBy, insertAt } from '@/utils/array';
 import { ucFirst } from '@/utils/string';
 
-export default {
-  _availableActions() {
+import SteveModel from '@/plugins/steve/steve-class';
+
+export default class CatalogOperation extends SteveModel {
+  get _availableActions() {
     const out = this._standardActions;
 
     const removeAction = findBy(out, 'altAction', ' remove');
@@ -24,20 +26,18 @@ export default {
     insertAt(out, idx + 2, { divider: true });
 
     return out;
-  },
+  }
 
   openLogs() {
-    return () => {
-      this.$dispatch('wm/open', {
-        id:        `${ this.id }-logs`,
-        label:     `${ ucFirst(this.status.action) } ${ this.status.namespace }:${ this.status?.releaseName || 'chart' }`,
-        icon:      'file',
-        component: 'ContainerLogs',
-        attrs:     {
-          pod: this, // Not quite a pod, but close enough
-          url: this.links.logs,
-        }
-      }, { root: true });
-    };
-  },
-};
+    this.$dispatch('wm/open', {
+      id:        `${ this.id }-logs`,
+      label:     `${ ucFirst(this.status.action) } ${ this.status.namespace }:${ this.status?.releaseName || 'chart' }`,
+      icon:      'file',
+      component: 'ContainerLogs',
+      attrs:     {
+        pod: this, // Not quite a pod, but close enough
+        url: this.links.logs,
+      }
+    }, { root: true });
+  }
+}

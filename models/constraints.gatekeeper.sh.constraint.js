@@ -1,65 +1,57 @@
 import jsyaml from 'js-yaml';
 import { cleanForNew } from '@/plugins/steve/normalize';
+import SteveModel from '@/plugins/steve/steve-class';
 
 export const ENFORCEMENT_ACTION_VALUES = {
   DENY:   'deny',
   DRYRUN: 'dryrun'
 };
 
-export default {
-  save() {
-    return async() => {
-      let constraint;
+export default class GateKeeperConstraint extends SteveModel {
+  async save() {
+    let constraint;
 
-      if (this.constraint) {
-        constraint = await this.findLatestConstraint();
-      } else {
-        constraint = await this.$dispatch('cluster/create', { type: `constraints.gatekeeper.sh.${ this.kind.toLowerCase() }` }, { root: true });
-      }
+    if (this.constraint) {
+      constraint = await this.findLatestConstraint();
+    } else {
+      constraint = await this.$dispatch('cluster/create', { type: `constraints.gatekeeper.sh.${ this.kind.toLowerCase() }` }, { root: true });
+    }
 
-      constraint.spec = this.spec;
-      constraint.metadata = this.metadata;
+    constraint.spec = this.spec;
+    constraint.metadata = this.metadata;
 
-      await constraint.save();
-    };
-  },
+    await constraint.save();
+  }
 
   cleanForNew() {
-    return () => {
-      cleanForNew(this);
-      if (this.constraint) {
-        delete this.constraint;
-      }
-    };
-  },
+    cleanForNew(this);
 
-  saveYaml() {
-    return (yaml) => {
-      const parsed = jsyaml.load(yaml);
+    if (this.constraint) {
+      delete this.constraint;
+    }
+  }
 
-      Object.assign(this, parsed);
+  saveYaml(yaml) {
+    const parsed = jsyaml.load(yaml);
 
-      return this.save();
-    };
-  },
+    Object.assign(this, parsed);
 
-  remove() {
-    return async() => {
-      const constraint = await this.findLatestConstraint();
+    return this.save();
+  }
 
-      return constraint.remove();
-    };
-  },
+  async remove() {
+    const constraint = await this.findLatestConstraint();
+
+    return constraint.remove();
+  }
 
   findLatestConstraint() {
-    return () => {
-      return this.$dispatch('cluster/find', {
-        type: this.constraint.type, id: this.constraint.id, opt: { force: true }
-      }, { root: true });
-    };
-  },
+    return this.$dispatch('cluster/find', {
+      type: this.constraint.type, id: this.constraint.id, opt: { force: true }
+    }, { root: true });
+  }
 
-  violations() {
+  get violations() {
     const violations = this.status?.violations || [];
 
     return violations.map((violation) => {
@@ -81,4 +73,4 @@ export default {
       };
     });
   }
-};
+}

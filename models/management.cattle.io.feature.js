@@ -1,28 +1,28 @@
 import { ONE_WAY } from '@/config/features';
+import HybridModel from '@/plugins/steve/hybrid-class';
 
-export default {
-
-  state() {
+export default class Feature extends HybridModel {
+  get state() {
     return this.enabled ? 'active' : 'off';
-  },
+  }
 
-  enabled() {
+  get enabled() {
     return (this.spec.value !== null) ? this.spec.value : this.status.default;
-  },
+  }
 
-  restartRequired() {
+  get restartRequired() {
     return !this.status.dynamic;
-  },
+  }
 
-  canYaml() {
+  get canYaml() {
     return false;
-  },
+  }
 
-  canDisable() {
+  get canDisable() {
     return this.canUpdate && !ONE_WAY.includes(this.id);
-  },
+  }
 
-  _availableActions() {
+  get _availableActions() {
     const out = this._standardActions;
     const state = this.enabled;
 
@@ -37,12 +37,9 @@ export default {
     out.unshift(enableAction);
 
     return out;
-  },
-
-  toggleFeatureFlag() {
-    return (resources = this) => {
-      this.$dispatch('promptUpdate', resources);
-    };
   }
 
-};
+  toggleFeatureFlag(resources = this) {
+    this.$dispatch('promptUpdate', resources);
+  }
+}

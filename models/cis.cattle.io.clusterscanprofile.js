@@ -1,14 +1,14 @@
 
-export default {
-  warnDeletionMessage() {
-    return (toRemove = []) => {
-      return this.$rootGetters['i18n/t']('cis.deleteProfileWarning', { count: toRemove.length });
-    };
-  },
+import SteveModel from '@/plugins/steve/steve-class';
 
-  numberTestsSkipped() {
+export default class CISProfile extends SteveModel {
+  warnDeletionMessage(toRemove = []) {
+    return this.$rootGetters['i18n/t']('cis.deleteProfileWarning', { count: toRemove.length });
+  }
+
+  get numberTestsSkipped() {
     const { skipTests = [] } = this.spec;
 
     return skipTests.length;
   }
-};
+}

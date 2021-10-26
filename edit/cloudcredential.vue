@@ -1,5 +1,5 @@
 <script>
-import { TYPES } from '@/models/secret.class';
+import { TYPES } from '@/models/secret';
 import { MANAGEMENT, NORMAN, SCHEMA } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';

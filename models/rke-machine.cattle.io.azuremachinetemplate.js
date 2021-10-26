@@ -1,18 +1,19 @@
-export default {
+import SteveModel from '@/plugins/steve/steve-class';
 
-  nameDisplay() {
+export default class AzureMachineTemplate extends SteveModel {
+  get nameDisplay() {
     return this.name.replace(`${ this.metadata.annotations['objectset.rio.cattle.io/owner-name'] }-`, '');
-  },
+  }
 
-  provider() {
+  get provider() {
     return 'azure';
-  },
+  }
 
-  providerLocation() {
+  get providerLocation() {
     return this.spec.template.spec.location ;
-  },
+  }
 
-  providerSize() {
+  get providerSize() {
     return this.spec.template.spec.size;
   }
-};
+}

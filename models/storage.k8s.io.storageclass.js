@@ -1,5 +1,6 @@
 import { STORAGE } from '@/config/labels-annotations';
 import { STORAGE_CLASS } from '@/config/types';
+import SteveModel from '@/plugins/steve/steve-class';
 
 export const PROVISIONER_OPTIONS = [
   {
@@ -66,43 +67,37 @@ export const PROVISIONER_OPTIONS = [
   }
 ];
 
-export default {
-  provisionerDisplay() {
+export default class extends SteveModel {
+  get provisionerDisplay() {
     const option = PROVISIONER_OPTIONS.find(o => o.value === this.provisioner);
 
     return option ? this.t(option.labelKey) : this.provisioner;
-  },
+  }
 
-  isDefault() {
+  get isDefault() {
     return this.annotations[STORAGE.DEFAULT_STORAGE_CLASS] === 'true';
-  },
+  }
 
-  updateDefault() {
-    return (value) => {
-      this.setAnnotation(STORAGE.DEFAULT_STORAGE_CLASS, value.toString());
-      this.setAnnotation(STORAGE.BETA_DEFAULT_STORAGE_CLASS, value.toString());
-      this.save();
-    };
-  },
+  updateDefault(value) {
+    this.setAnnotation(STORAGE.DEFAULT_STORAGE_CLASS, value.toString());
+    this.setAnnotation(STORAGE.BETA_DEFAULT_STORAGE_CLASS, value.toString());
+    this.save();
+  }
 
   setDefault() {
-    return () => {
-      const allStorageClasses = this.$rootGetters['cluster/all'](STORAGE_CLASS) || [];
+    const allStorageClasses = this.$rootGetters['cluster/all'](STORAGE_CLASS) || [];
 
-      allStorageClasses.forEach(storageClass => storageClass.resetDefault());
-      this.updateDefault(true);
-    };
-  },
+    allStorageClasses.forEach(storageClass => storageClass.resetDefault());
+    this.updateDefault(true);
+  }
 
   resetDefault() {
-    return () => {
-      if (this.isDefault) {
-        this.updateDefault(false);
-      }
-    };
-  },
+    if (this.isDefault) {
+      this.updateDefault(false);
+    }
+  }
 
-  _availableActions() {
+  get _availableActions() {
     const out = this._standardActions;
 
     if (this.isDefault) {
@@ -122,5 +117,5 @@ export default {
     }
 
     return out;
-  },
-};
+  }
+}

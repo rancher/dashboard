@@ -20,14 +20,11 @@ function find(cache, type) {
 
       return base.default;
     }
-
-    // Older proxy models
-    const model = { ...base.default };
-
-    cache[type] = model;
-
-    return model;
   } catch (e) {
+    if ( e?.code !== 'MODULE_NOT_FOUND' ) {
+      // eslint-disable-next-line no-console
+      console.error('Find error', type, e);
+    }
   }
 
   cache[type] = null;
@@ -46,8 +43,6 @@ export function lookup(store, type) {
 
   let out;
   const tries = [
-    `${ store }/${ type }.class`,
-    `${ type }.class`,
     `${ store }/${ type }`,
     type
   ];

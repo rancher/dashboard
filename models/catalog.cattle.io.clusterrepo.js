@@ -4,17 +4,16 @@ import { CATALOG } from '@/config/labels-annotations';
 import { insertAt } from '@/utils/array';
 import { CATALOG as CATALOG_TYPE } from '@/config/types';
 
-export default {
-  applyDefaults() {
-    return () => {
-      if ( !this.spec ) {
-        Vue.set(this, 'spec', { url: '' });
-      }
-    };
-  },
+import SteveModel from '@/plugins/steve/steve-class';
 
-  // remove clone as yaml/edit as yaml until API supported
-  _availableActions() {
+export default class ClusterRepo extends SteveModel {
+  applyDefaults() {
+    if ( !this.spec ) {
+      Vue.set(this, 'spec', { url: '' });
+    }
+  }
+
+  get _availableActions() {
     const out = this._standardActions;
 
     insertAt(out, 0, { divider: true });
@@ -28,22 +27,20 @@ export default {
     });
 
     return out;
-  },
+  }
 
   refresh() {
-    return () => {
-      const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
+    const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
 
-      this.spec.forceUpdate = now;
-      this.save();
-    };
-  },
+    this.spec.forceUpdate = now;
+    this.save();
+  }
 
-  isGit() {
+  get isGit() {
     return !!this.spec?.gitRepo;
-  },
+  }
 
-  isRancherSource() {
+  get isRancherSource() {
     let parsed;
 
     if ( this.spec?.url && this.spec?.gitRepo ) {
@@ -72,17 +69,17 @@ export default {
 
       return host === 'rancher.io' || host.endsWith('.rancher.io');
     }
-  },
+  }
 
-  isRancher() {
+  get isRancher() {
     return this.isRancherSource && this.metadata.name === 'rancher-charts';
-  },
+  }
 
-  isPartner() {
+  get isPartner() {
     return this.isRancherSource && this.metadata.name === 'rancher-partner-charts';
-  },
+  }
 
-  color() {
+  get color() {
     if ( this.isRancher ) {
       return 'rancher';
     } else if ( this.isPartner ) {
@@ -96,13 +93,13 @@ export default {
 
       return `color${ color }`;
     }
-  },
+  }
 
-  canLoad() {
+  get canLoad() {
     return this.metadata?.state?.name === 'active';
-  },
+  }
 
-  typeDisplay() {
+  get typeDisplay() {
     if ( this.spec.gitRepo ) {
       return 'git';
     } else if ( this.spec.url ) {
@@ -110,24 +107,24 @@ export default {
     } else {
       return '?';
     }
-  },
+  }
 
-  nameDisplay() {
+  get nameDisplay() {
     const name = this.metadata?.name;
     const key = `catalog.repo.name."${ name }"`;
 
     return this.$rootGetters['i18n/withFallback'](key, null, name);
-  },
+  }
 
-  urlDisplay() {
+  get urlDisplay() {
     return this.status?.url || this.spec.gitRepo || this.spec.url;
-  },
+  }
 
-  branchDisplay() {
+  get branchDisplay() {
     return this.spec?.gitBranch || '(default)';
-  },
+  }
 
-  details() {
+  get details() {
     return [
       {
         label:     'Type',
@@ -140,22 +137,20 @@ export default {
         formatterOpts: { addSuffix: true },
       },
     ];
-  },
-
-  waitForOperation() {
-    return (operationId, timeout, interval = 2000) => {
-      return this.waitForTestFn(() => {
-        if (!this.$getters['schemaFor'](CATALOG_TYPE.OPERATION)) {
-          return false;
-        }
-        if (this.$getters['byId'](CATALOG_TYPE.OPERATION, operationId)) {
-          return true;
-        }
-        this.$dispatch('find', {
-          type: CATALOG_TYPE.OPERATION,
-          id:   operationId
-        });
-      }, `catalog operation fetch`, timeout, interval);
-    };
   }
-};
+
+  waitForOperation(operationId, timeout, interval = 2000) {
+    return this.waitForTestFn(() => {
+      if (!this.$getters['schemaFor'](CATALOG_TYPE.OPERATION)) {
+        return false;
+      }
+      if (this.$getters['byId'](CATALOG_TYPE.OPERATION, operationId)) {
+        return true;
+      }
+      this.$dispatch('find', {
+        type: CATALOG_TYPE.OPERATION,
+        id:   operationId
+      });
+    }, `catalog operation fetch`, timeout, interval);
+  }
+}

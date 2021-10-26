@@ -1,33 +1,34 @@
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
 import { HCI } from '@/config/types';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  message() {
+export default class HciNodeNetwork extends SteveModel {
+  get message() {
     const conditions = get(this, 'status.conditions');
 
     return (findBy(conditions, 'type', 'Ready') || {}).message ;
-  },
+  }
 
-  isReady() {
+  get isReady() {
     const conditions = get(this, 'status.conditions');
 
     return (findBy(conditions, 'type', 'Ready') || {})?.status === 'True';
-  },
+  }
 
-  nics() {
+  get nics() {
     return this?.status?.nics || [];
-  },
+  }
 
-  attachNodeName() {
+  get attachNodeName() {
     return get(this, `metadata.labels."network.harvesterhci.io/nodename"`) || '';
-  },
+  }
 
-  linkMessage() {
+  get linkMessage() {
     return {
       name:    this.attachNodeName,
       message: this.message,
       to:      `${ HCI.HOST }/${ this.attachNodeName }?mode=edit`
     };
   }
-};
+}

@@ -1,11 +1,12 @@
 import { proxyUrlFromParts } from '@/models/service';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  labelDisplay() {
+export default class extends SteveModel {
+  get labelDisplay() {
     return this.spec?.label || this.metadata.name || '?';
-  },
+  }
 
-  link() {
+  get link() {
     if ( this.spec?.toURL ) {
       return this.spec.toURL;
     } else if ( this.spec?.toService ) {
@@ -15,9 +16,9 @@ export default {
     } else {
       return null;
     }
-  },
+  }
 
-  normalizedGroup() {
+  get normalizedGroup() {
     if ( !this.spec.group ) {
       return null;
     }
@@ -29,9 +30,9 @@ export default {
       .replace(/-+/g, '-')
       .replace(/^-+/, '')
       .replace(/-+$/, '');
-  },
+  }
 
-  actualTarget() {
+  get actualTarget() {
     return (this.spec.target || '').trim() || '_blank';
-  },
-};
+  }
+}

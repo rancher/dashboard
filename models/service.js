@@ -1,5 +1,6 @@
 import find from 'lodash/find';
 import { POD } from '@/config/types';
+import SteveModel from '@/plugins/steve/steve-class';
 
 export const DEFAULT_SERVICE_TYPES = [
   {
@@ -46,9 +47,8 @@ export const CLUSTERIP = (() => {
   return clusterIp.id;
 })();
 
-export default {
-  // if not a function it does exist, why?
-  customValidationRules() {
+export default class extends SteveModel {
+  get customValidationRules() {
     return [
       {
         nullable:       false,
@@ -79,9 +79,9 @@ export default {
         validators:     ['externalName'],
       },
     ];
-  },
+  }
 
-  details() {
+  get details() {
     const out = [{
       label:   this.t('generic.type'),
       content: this.serviceType?.id || this.serviceType,
@@ -111,9 +111,9 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  pods() {
+  get pods() {
     const { metadata:{ relationships = [] } } = this;
 
     return async() => {
@@ -126,9 +126,9 @@ export default {
 
       return pods;
     };
-  },
+  }
 
-  serviceType() {
+  get serviceType() {
     const serviceType = this.spec?.type;
     const clusterIp = this.spec?.clusterIP;
     const defaultService = find(DEFAULT_SERVICE_TYPES, ['id', CLUSTERIP]);
@@ -142,17 +142,15 @@ export default {
     }
 
     return defaultService;
-  },
-
-  proxyUrl() {
-    return (scheme, port) => {
-      const view = this.linkFor('view');
-      const idx = view.lastIndexOf(`/`);
-
-      return proxyUrlFromBase(view.slice(0, idx), scheme, this.metadata.name, port);
-    };
   }
-};
+
+  proxyUrl(scheme, port) {
+    const view = this.linkFor('view');
+    const idx = view.lastIndexOf(`/`);
+
+    return proxyUrlFromBase(view.slice(0, idx), scheme, this.metadata.name, port);
+  }
+}
 
 export function proxyUrlFromParts(clusterId, namespace, name, scheme, port, path) {
   const base = `/k8s/clusters/${ escape(clusterId) }/api/v1/namespaces/${ escape(namespace) }/services`;

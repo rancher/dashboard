@@ -1,16 +1,17 @@
 import { NODE } from '@/config/types';
+import SteveModel from '@/plugins/steve/steve-class';
 const LATEST_UPGRADE_RESOURCE = 'harvesterhci.io/latestUpgrade';
 
-export default {
-  isCurrentUpgrade() {
+export default class HciUpgrade extends SteveModel {
+  get isCurrentUpgrade() {
     return this?.metadata?.labels?.[LATEST_UPGRADE_RESOURCE] === 'true';
-  },
+  }
 
-  nodes() {
+  get nodes() {
     return this.$rootGetters['harvester/all'](NODE);
-  },
+  }
 
-  upgradeMessage() {
+  get upgradeMessage() {
     const upgradeMessage = [];
     const nodeStatuses = this?.status?.nodeStatuses || {};
     const conditions = this?.status?.conditions || [];
@@ -45,9 +46,9 @@ export default {
     }
 
     return upgradeMessage;
-  },
+  }
 
-  nodeUpgradeMessage() {
+  get nodeUpgradeMessage() {
     const message = [];
     const nodeStatuses = this?.status?.nodeStatuses || {};
 
@@ -84,9 +85,9 @@ export default {
     }
 
     return message;
-  },
+  }
 
-  nodeTotalPercent() {
+  get nodeTotalPercent() {
     let out = 0;
 
     for (let i = 0; i < this.nodeUpgradeMessage.length; i++) {
@@ -102,9 +103,9 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  sysServiceUpgradeMessage() {
+  get sysServiceUpgradeMessage() {
     let percent = 0;
     let state = 'Pending';
     const message = [];
@@ -139,12 +140,12 @@ export default {
     }
 
     return message;
-  },
+  }
 
-  totalPercent() {
+  get totalPercent() {
     const nodePercent = this.nodeTotalPercent * this.nodeUpgradeMessage.length;
     const servicePercent = this.sysServiceUpgradeMessage?.[0].percent;
 
     return Math.floor((nodePercent + servicePercent) / (this.nodeUpgradeMessage.length + 1));
   }
-};
+}

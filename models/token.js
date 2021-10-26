@@ -1,20 +1,19 @@
 import day from 'dayjs';
+import NormanModel from '@/plugins/steve/norman-class';
 
-export default {
-
-  _availableActions() {
+export default class extends NormanModel {
+  get _availableActions() {
     return this._standardActions.filter(a => ['viewInApi', 'promptRemove'].includes(a.action));
-  },
+  }
 
-  state() {
+  get state() {
     return this.isExpired ? 'expired' : 'active';
-  },
+  }
 
-  isExpired() {
+  get isExpired() {
     // Keep this updated, don't trust `expired`
     const expiry = day(this.expiresAt);
 
     return expiry.isBefore(day());
   }
-
-};
+}

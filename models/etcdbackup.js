@@ -1,5 +1,7 @@
-export default {
-  _availableActions() {
+import SteveModel from '@/plugins/steve/steve-class';
+
+export default class EtcdBackup extends SteveModel {
+  get _availableActions() {
     const out = this._standardActions;
 
     const restore = {
@@ -12,11 +14,9 @@ export default {
     out.unshift(restore);
 
     return out;
-  },
+  }
 
   promptRestore() {
-    return () => {
-      this.$dispatch('promptRestore', [this]);
-    };
-  },
-};
+    this.$dispatch('promptRestore', [this]);
+  }
+}

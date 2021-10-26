@@ -15,7 +15,7 @@ import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { addParam } from '@/utils/url';
 import { SETTING } from '@/config/settings';
 import semver from 'semver';
-import { BY_TYPE, NORMAN as NORMAN_CLASS } from '@/plugins/steve/resource-proxy';
+import { BY_TYPE, NORMAN as NORMAN_CLASS } from '@/plugins/steve/classify';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations

@@ -1,16 +1,16 @@
 import { HCI } from '@/config/types';
 import { get } from '@/utils/object';
 import { findBy } from '@/utils/array';
-import { colorForState } from '@/plugins/steve/resource-instance';
+import { colorForState } from '@/plugins/steve/resource-class';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
+export default class HciVmBackup extends SteveModel {
   detailPageHeaderActionOverride() {
-    return () => {
-      return this.t('harvester.backup.title');
-    };
-  },
-  _availableActions() {
+    return this.t('harvester.backup.title');
+  }
+
+  get _availableActions() {
     const toFilter = ['goToEdit', 'cloneYaml', 'goToClone', 'download'];
 
     const out = this._standardActions.filter((action) => {
@@ -34,33 +34,29 @@ export default {
       },
       ...out
     ];
-  },
+  }
 
-  restoreExistingVM() {
-    return (resource = this) => {
-      const router = this.currentRouter();
+  restoreExistingVM(resource = this) {
+    const router = this.currentRouter();
 
-      router.push({
-        name:   `c-cluster-product-resource-create`,
-        params: { resource: HCI.BACKUP },
-        query:  { restoreMode: 'existing', backupName: resource.name }
-      });
-    };
-  },
+    router.push({
+      name:   `c-cluster-product-resource-create`,
+      params: { resource: HCI.BACKUP },
+      query:  { restoreMode: 'existing', backupName: resource.name }
+    });
+  }
 
-  restoreNewVM() {
-    return (resource = this) => {
-      const router = this.currentRouter();
+  restoreNewVM(resource = this) {
+    const router = this.currentRouter();
 
-      router.push({
-        name:   `c-cluster-product-resource-create`,
-        params: { resource: HCI.BACKUP },
-        query:  { restoreMode: 'new', backupName: resource.name }
-      });
-    };
-  },
+    router.push({
+      name:   `c-cluster-product-resource-create`,
+      params: { resource: HCI.BACKUP },
+      query:  { restoreMode: 'new', backupName: resource.name }
+    });
+  }
 
-  state() {
+  get state() {
     let out = 'Pending';
     const conditions = get(this, 'status.conditions');
     const isProgress = findBy(conditions, 'type', 'InProgress')?.status === 'True';
@@ -75,36 +71,29 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  stateColor() {
+  get stateColor() {
     const state = this.state;
 
     return colorForState(state);
-  },
+  }
 
-  attachVM() {
+  get attachVM() {
     return this.spec.source.name;
-  },
+  }
 
-  backupContentName() {
+  get backupContentName() {
     return this?.status?.virtualMachineBackupContentName || '';
-  },
+  }
 
-  backupTarget() {
+  get backupTarget() {
     return get(this, `metadata.annotations."${ HCI_ANNOTATIONS.BACKUP_TARGET }"`) || '';
-  },
+  }
 
-  isMatchWithCurrentBakcupTarget() {
-    const allSetting = this.$rootGetters['harvester/all'](HCI.SETTING);
-    const backupTargetResource = allSetting.find( O => O.id === 'backup-target');
-
-    return this.backupTarget === backupTargetResource?.parseValue?.endpoint;
-  },
-
-  attachVmExisting() {
+  get attachVmExisting() {
     const vmList = this.$rootGetters['harvester/all'](HCI.VM);
 
     return !!vmList.find( V => V.metadata.name === this.attachVM);
   }
-};
+}

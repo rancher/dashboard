@@ -2,7 +2,7 @@
 import { mapState } from 'vuex';
 import { dasherize, ucFirst } from '@/utils/string';
 import { get, clone } from '@/utils/object';
-import { removeObject, filterBy } from '@/utils/array';
+import { isArray, removeObject, filterBy } from '@/utils/array';
 import Checkbox from '@/components/form/Checkbox';
 import ActionDropdown from '@/components/ActionDropdown';
 import $ from 'jquery';
@@ -416,6 +416,10 @@ export default {
 
       if ( out === null || out === undefined ) {
         return '';
+      }
+
+      if ( isArray(out) ) {
+        return out[0];
       }
 
       return out;

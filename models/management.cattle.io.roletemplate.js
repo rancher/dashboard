@@ -2,6 +2,7 @@ import Vue from 'vue';
 import { get } from '@/utils/object';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import { NORMAN } from '@/config/types';
+import HybridModel from '@/plugins/steve/hybrid-class';
 import Role from './rbac.authorization.k8s.io.role';
 
 export const CATTLE_API_GROUP = '.cattle.io';
@@ -225,12 +226,12 @@ const RESOURCES = [
   'WorkloadEntries'
 ];
 
-export default {
-  customValidationRules() {
+export default class RoleTemplate extends HybridModel {
+  get customValidationRules() {
     return Role.customValidationRules();
-  },
+  }
 
-  details() {
+  get details() {
     const out = this._details;
 
     out.unshift({
@@ -244,13 +245,13 @@ export default {
     });
 
     return out;
-  },
+  }
 
-  state() {
+  get state() {
     return this.locked ? 'locked' : this.metadata?.state?.name || 'unknown';
-  },
+  }
 
-  subtype() {
+  get subtype() {
     if (this._subtype) {
       return this._subtype;
     }
@@ -264,91 +265,85 @@ export default {
     }
 
     return null;
-  },
+  }
 
-  updateSubtype() {
-    return (subtype) => {
-      Vue.set(this, '_subtype', subtype);
-      this.context = SUBTYPE_MAPPING[subtype].context;
-    };
-  },
+  updateSubtype(subtype) {
+    Vue.set(this, '_subtype', subtype);
+    this.context = SUBTYPE_MAPPING[subtype].context;
+  }
 
-  default() {
+  get default() {
     const defaultKey = SUBTYPE_MAPPING[this.subtype]?.defaultKey;
 
     return !!this[defaultKey];
-  },
+  }
 
-  updateDefault() {
-    return (value) => {
-      const defaultKey = SUBTYPE_MAPPING[this.subtype].defaultKey;
+  updateDefault(value) {
+    const defaultKey = SUBTYPE_MAPPING[this.subtype].defaultKey;
 
-      Vue.set(this, defaultKey, value);
-    };
-  },
+    Vue.set(this, defaultKey, value);
+  }
 
-  resources() {
+  get resources() {
     // List is hardcoded instead of determined from available schemas (we don't know which cluster/project roles will be applied to)
     return RESOURCES;
-  },
+  }
 
-  listLocation() {
+  get listLocation() {
     return {
       name: `c-cluster-auth-roles`,
       hash: `#${ this.subtype }`
     };
-  },
+  }
 
-  detailLocation() {
+  get detailLocation() {
     return {
       ...this._detailLocation,
       name: `c-cluster-auth-roles-resource-id`,
     };
-  },
+  }
 
-  doneOverride() {
+  get doneOverride() {
     return this.listLocation;
-  },
+  }
 
-  parentLocationOverride() {
+  get parentLocationOverride() {
     return this.listLocation;
-  },
+  }
 
-  basicNorman() {
+  get basicNorman() {
     if (this.id) {
       return this.$dispatch(`rancher/find`, { id: this.id, type: NORMAN.ROLE_TEMPLATE }, { root: true });
     }
 
     return this.$dispatch(`rancher/create`, { type: NORMAN.ROLE_TEMPLATE, name: this.displayName }, { root: true });
-  },
-
-  async norman() {
-    const norman = await this.basicNorman;
-
-    norman.rules = this.rules;
-    norman.locked = this.locked;
-    norman.clusterCreatorDefault = this.clusterCreatorDefault || false;
-    norman.projectCreatorDefault = this.projectCreatorDefault || false;
-    norman.context = this.context;
-    norman.description = this.description;
-    norman.roleTemplateIds = this.roleTemplateNames;
-
-    return norman;
-  },
-
-  save() {
-    return async() => {
-      const norman = await this.norman;
-
-      return norman.save();
-    };
-  },
-
-  remove() {
-    return async() => {
-      const norman = await this.norman;
-
-      await norman.remove();
-    };
   }
-};
+
+  get norman() {
+    return (async() => {
+      const norman = await this.basicNorman;
+
+      norman.rules = this.rules;
+      norman.locked = this.locked;
+      norman.clusterCreatorDefault = this.clusterCreatorDefault || false;
+      norman.projectCreatorDefault = this.projectCreatorDefault || false;
+      norman.context = this.context;
+      norman.description = this.description;
+      norman.roleTemplateIds = this.roleTemplateNames;
+
+      return norman;
+    })();
+  }
+
+  async save() {
+    const norman = await this.norman;
+
+    return norman.save();
+  }
+
+  async remove() {
+    const norman = await this.norman;
+
+    await norman.remove();
+  }
+}

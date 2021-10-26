@@ -4,6 +4,7 @@ import { WORKLOAD_TYPES, SERVICE } from '@/config/types';
 import { clone, get, set } from '@/utils/object';
 import day from 'dayjs';
 import SteveModel from '@/plugins/steve/steve-class';
+import { shortenedImage } from '@/utils/string';
 
 export default class Workload extends SteveModel {
   // remove clone as yaml/edit as yaml until API supported
@@ -298,7 +299,7 @@ export default class Workload extends SteveModel {
       });
     }
 
-    return images.map((x = '') => x.replace(/^(index\.)?docker.io\/(library\/)?/, '').replace(/:latest$/, '') );
+    return images.map(shortenedImage);
   }
 
   redeploy() {

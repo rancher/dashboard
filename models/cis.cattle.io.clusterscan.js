@@ -5,9 +5,10 @@ import { downloadFile, generateZip } from '@/utils/download';
 import { get, isEmpty, set } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
 import day from 'dayjs';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  _availableActions() {
+export default class ClusterScan extends SteveModel {
+  get _availableActions() {
     let out = this._standardActions;
 
     const toFilter = ['cloneYaml', 'goToEditYaml', 'download'];
@@ -46,69 +47,84 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  applyDefaults() {
-    return (vm, mode) => {
-      if (mode === _CREATE || mode === _EDIT) {
-        const includeScheduling = this.canBeScheduled();
-        const spec = this.spec || {};
+  applyDefaults(vm, mode) {
+    if (mode === _CREATE || mode === _EDIT) {
+      const includeScheduling = this.canBeScheduled();
+      const spec = this.spec || {};
 
-        spec.scanProfileName = null;
-        if (includeScheduling) {
-          spec.scoreWarning = 'pass';
-          spec.scheduledScanConfig = { scanAlertRule: {}, retentionCount: 3 };
-        }
-        set(this, 'spec', spec);
+      spec.scanProfileName = null;
+      if (includeScheduling) {
+        spec.scoreWarning = 'pass';
+        spec.scheduledScanConfig = { scanAlertRule: {}, retentionCount: 3 };
       }
-    };
-  },
+      set(this, 'spec', spec);
+    }
+  }
 
   canBeScheduled() {
-    return () => {
-      const schema = this.$getters['schemaFor'](this.type);
-      const specSchema = this.$getters['schemaFor'](get(schema, 'resourceFields.spec.type') || '');
+    const schema = this.$getters['schemaFor'](this.type);
+    const specSchema = this.$getters['schemaFor'](get(schema, 'resourceFields.spec.type') || '');
 
-      if (!specSchema) {
-        return false;
-      }
+    if (!specSchema) {
+      return false;
+    }
 
-      return !!get(specSchema, 'resourceFields.scheduledScanConfig');
-    };
-  },
+    return !!get(specSchema, 'resourceFields.scheduledScanConfig');
+  }
 
-  isScheduled() {
+  get isScheduled() {
     return !!get(this, 'spec.scheduledScanConfig.cronSchedule');
-  },
+  }
 
-  canUpdate() {
+  get canUpdate() {
     return this.hasLink('update') && this.isScheduled;
-  },
+  }
 
-  hasReports() {
+  get hasReports() {
     const { relationships = [] } = this.metadata;
 
     const reportRel = findBy(relationships, 'toType', CIS.REPORT);
 
     return !!reportRel;
-  },
+  }
 
-  getReports() {
-    return async() => {
-      const owned = await this.findOwned();
+  async getReports() {
+    const owned = await this.findOwned();
 
-      const reports = owned.filter(obj => obj.type === CIS.REPORT) || [];
+    const reports = owned.filter(obj => obj.type === CIS.REPORT) || [];
 
-      return sortBy(reports, 'metadata.creationTimestamp', true);
-    };
-  },
+    return sortBy(reports, 'metadata.creationTimestamp', true);
+  }
 
-  downloadLatestReport() {
-    return async() => {
-      const reports = await this.getReports() || [];
-      const report = sortBy(reports, 'metadata.creationTimestamp', true)[0];
-      const Papa = await import(/* webpackChunkName: "csv" */'papaparse');
+  async downloadLatestReport() {
+    const reports = await this.getReports() || [];
+    const report = sortBy(reports, 'metadata.creationTimestamp', true)[0];
+    const Papa = await import(/* webpackChunkName: "csv" */'papaparse');
 
+    try {
+      const testResults = (report.aggregatedTests || []).map((result) => {
+        delete result.actual_value_per_node;
+
+        return result;
+      });
+
+      const csv = Papa.unparse(testResults);
+
+      downloadFile(`${ labelFor(report) }.csv`, csv, 'application/csv');
+    } catch (err) {
+      this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
+    }
+  }
+
+  async downloadAllReports() {
+    const toZip = {};
+    const reports = await this.getReports() || [];
+
+    const Papa = await import(/* webpackChunkName: "csv" */'papaparse');
+
+    reports.forEach((report) => {
       try {
         const testResults = (report.aggregatedTests || []).map((result) => {
           delete result.actual_value_per_node;
@@ -118,44 +134,18 @@ export default {
 
         const csv = Papa.unparse(testResults);
 
-        downloadFile(`${ labelFor(report) }.csv`, csv, 'application/csv');
+        toZip[`${ labelFor(report) }.csv`] = csv;
       } catch (err) {
         this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
       }
-    };
-  },
-
-  downloadAllReports() {
-    return async() => {
-      const toZip = {};
-      const reports = await this.getReports() || [];
-
-      const Papa = await import(/* webpackChunkName: "csv" */'papaparse');
-
-      reports.forEach((report) => {
-        try {
-          const testResults = (report.aggregatedTests || []).map((result) => {
-            delete result.actual_value_per_node;
-
-            return result;
-          });
-
-          const csv = Papa.unparse(testResults);
-
-          toZip[`${ labelFor(report) }.csv`] = csv;
-        } catch (err) {
-          this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
-        }
+    });
+    if (!isEmpty(toZip)) {
+      generateZip(toZip).then((zip) => {
+        downloadFile(`${ this.id }-reports`, zip, 'application/zip');
       });
-      if (!isEmpty(toZip)) {
-        generateZip(toZip).then((zip) => {
-          downloadFile(`${ this.id }-reports`, zip, 'application/zip');
-        });
-      }
-    };
-  },
-
-};
+    }
+  }
+}
 
 const labelFor = (report) => {
   const { creationTimestamp } = report.metadata;

@@ -1,33 +1,32 @@
 import { CREATOR_ID } from '@/config/labels-annotations';
 import { _CREATE } from '@/config/query-params';
 import { MANAGEMENT, NORMAN } from '@/config/types';
+import HybridModel from '@/plugins/steve/hybrid-class';
 
-export default {
-  detailPageHeaderActionOverride() {
-    return (realMode) => {
-      if (realMode === _CREATE) {
-        return this.t('members.createActionLabel');
-      }
-    };
-  },
+export default class CRTB extends HybridModel {
+  detailPageHeaderActionOverride(realMode) {
+    if (realMode === _CREATE) {
+      return this.t('members.createActionLabel');
+    }
+  }
 
-  canCustomEdit() {
+  get canCustomEdit() {
     return false;
-  },
+  }
 
-  canYaml() {
+  get canYaml() {
     return false;
-  },
+  }
 
-  canClone() {
+  get canClone() {
     return false;
-  },
+  }
 
-  user() {
+  get user() {
     return this.$rootGetters['management/byId'](MANAGEMENT.USER, this.userName);
-  },
+  }
 
-  principal() {
+  get principal() {
     const principalId = this.principalId.replace(/\//g, '%2F');
 
     return this.$dispatch('rancher/find', {
@@ -35,38 +34,38 @@ export default {
       id:   this.principalId,
       opt:  { url: `/v3/principals/${ principalId }` }
     }, { root: true });
-  },
+  }
 
-  principalId() {
+  get principalId() {
     // We've either set it ourselves or it's comes from native properties
     return this.principalName || this.userPrincipalName || this.groupPrincipalName;
-  },
+  }
 
-  nameDisplay() {
+  get nameDisplay() {
     return this.user?.nameDisplay || this.userName || this.principalId;
-  },
+  }
 
-  roleDisplay() {
+  get roleDisplay() {
     return this.roleTemplate.nameDisplay;
-  },
+  }
 
-  roleDescription() {
+  get roleDescription() {
     return this.roleTemplate.description;
-  },
+  }
 
-  roleTemplate() {
+  get roleTemplate() {
     return this.$rootGetters['management/byId'](MANAGEMENT.ROLE_TEMPLATE, this.roleTemplateName);
-  },
+  }
 
-  cluster() {
+  get cluster() {
     return this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, this.clusterName);
-  },
+  }
 
-  clusterDisplayName() {
+  get clusterDisplayName() {
     return this.cluster ? this.cluster.nameDisplay : this.clusterName;
-  },
+  }
 
-  clusterDetailLocation() {
+  get clusterDetailLocation() {
     if (this.cluster) {
       return this.cluster.detailLocation;
     }
@@ -80,54 +79,52 @@ export default {
     };
 
     return { name, params };
-  },
+  }
 
-  listLocation() {
+  get listLocation() {
     return { name: 'c-cluster-product-members' };
-  },
+  }
 
-  doneOverride() {
+  get doneOverride() {
     return this.listLocation;
-  },
+  }
 
-  parentLocationOverride() {
+  get parentLocationOverride() {
     return this.listLocation;
-  },
+  }
 
-  subSearch() {
+  get subSearch() {
     return [{ nameDisplay: this.nameDisplay }];
-  },
+  }
 
-  isSystem() {
+  get isSystem() {
     return !this.metadata.annotations[CREATOR_ID];
-  },
+  }
 
-  async norman() {
-    const principal = await this.principal;
-    const principalProperty = principal.principalType === 'group' ? 'groupPrincipalId' : 'userPrincipalId';
+  get norman() {
+    return (async() => {
+      const principal = await this.principal;
+      const principalProperty = principal.principalType === 'group' ? 'groupPrincipalId' : 'userPrincipalId';
 
-    return this.$dispatch(`rancher/create`, {
-      type:                  NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING,
-      roleTemplateId:        this.roleTemplateName,
-      [principalProperty]:   principal.id,
-      clusterId:             this.clusterName,
-      id:                    this.id?.replace('/', ':')
-    }, { root: true });
-  },
+      return this.$dispatch(`rancher/create`, {
+        type:                  NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING,
+        roleTemplateId:        this.roleTemplateName,
+        [principalProperty]:   principal.id,
+        clusterId:             this.clusterName,
+        id:                    this.id?.replace('/', ':')
+      }, { root: true });
+    })();
+  }
 
-  save() {
-    return async() => {
-      const norman = await this.norman;
+  async save() {
+    const norman = await this.norman;
 
-      return norman.save();
-    };
-  },
+    return norman.save();
+  }
 
-  remove() {
-    return async() => {
-      const norman = await this.norman;
+  async remove() {
+    const norman = await this.norman;
 
-      await norman.remove({ url: `/v3/clusterRoleTemplateBindings/${ norman.id }` });
-    };
-  },
-};
+    await norman.remove({ url: `/v3/clusterRoleTemplateBindings/${ norman.id }` });
+  }
+}

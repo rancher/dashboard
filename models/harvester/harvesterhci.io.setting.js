@@ -1,8 +1,9 @@
 import { findBy } from '@/utils/array';
 import { HCI_ALLOWED_SETTINGS } from '@/config/settings';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  _availableActions() {
+export default class HciSetting extends SteveModel {
+  get _availableActions() {
     const toFilter = ['cloneYaml', 'download', 'goToEditYaml', 'goToViewYaml', 'goToViewConfig', 'promptRemove'];
     const settingMetadata = HCI_ALLOWED_SETTINGS[this.id];
 
@@ -25,29 +26,29 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  backupTagetetIsEmpty() {
+  get backupTagetetIsEmpty() {
     return !this.value;
-  },
+  }
 
-  errMessage() {
+  get errMessage() {
     if (this.metadata?.state?.error === true) {
       return this.metadata.state.message;
     } else {
       return false;
     }
-  },
+  }
 
-  configuredCondition() {
+  get configuredCondition() {
     return findBy((this?.status?.conditions || []), 'type', 'configured') || {};
-  },
+  }
 
-  valueOrDefaultValue() {
+  get valueOrDefaultValue() {
     return this.value || this.default;
-  },
+  }
 
-  upgradeableVersion() {
+  get upgradeableVersion() {
     const value = this.value || '';
 
     if (!value) {
@@ -62,21 +63,21 @@ export default {
         value: V
       };
     });
-  },
+  }
 
-  currentVersion() {
+  get currentVersion() {
     return this.value || '';
-  },
+  }
 
-  displayValue() { // Select the field you want to display
+  get displayValue() { // Select the field you want to display
     if (this.id === 'backup-target') {
       return this.parseValue?.endpoint || ' ';
     }
 
     return null;
-  },
+  }
 
-  parseValue() {
+  get parseValue() {
     let parseDefaultValue = {};
 
     try {
@@ -86,17 +87,17 @@ export default {
     }
 
     return parseDefaultValue;
-  },
+  }
 
-  isS3() {
+  get isS3() {
     return this.parseValue.type === 's3';
-  },
+  }
 
-  isNFS() {
+  get isNFS() {
     return this.parseValue.type === 'nfs';
-  },
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     const id = this.id;
 
     const out = [];
@@ -114,5 +115,5 @@ export default {
     }
 
     return out;
-  },
-};
+  }
+}

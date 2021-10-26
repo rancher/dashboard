@@ -5,6 +5,7 @@ import { FLEET } from '@/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@/config/labels-annotations';
 import { addObject, addObjects, findBy, insertAt } from '@/utils/array';
 import { set } from '@/utils/object';
+import SteveModel from '@/plugins/steve/steve-class';
 
 function quacksLikeAHash(str) {
   if ( str.match(/^[a-f0-9]{40,}$/i) ) {
@@ -14,29 +15,27 @@ function quacksLikeAHash(str) {
   return false;
 }
 
-export default {
+export default class GitRepo extends SteveModel {
   applyDefaults() {
-    return () => {
-      const spec = this.spec || {};
-      const meta = this.metadata || {};
+    const spec = this.spec || {};
+    const meta = this.metadata || {};
 
-      meta.namespace = this.$rootGetters['workspace'];
+    meta.namespace = this.$rootGetters['workspace'];
 
-      spec.repo = spec.repo || '';
+    spec.repo = spec.repo || '';
 
-      if ( !spec.branch && !spec.revision ) {
-        spec.branch = 'master';
-      }
+    if ( !spec.branch && !spec.revision ) {
+      spec.branch = 'master';
+    }
 
-      spec.paths = spec.paths || [];
-      spec.clientSecretName = spec.clientSecretName || null;
+    spec.paths = spec.paths || [];
+    spec.clientSecretName = spec.clientSecretName || null;
 
-      set(this, 'spec', spec);
-      set(this, 'metadata', meta);
-    };
-  },
+    set(this, 'spec', spec);
+    set(this, 'metadata', meta);
+  }
 
-  _availableActions() {
+  get _availableActions() {
     const out = this._standardActions;
 
     insertAt(out, 0, {
@@ -66,34 +65,34 @@ export default {
     insertAt(out, 3, { divider: true });
 
     return out;
-  },
+  }
 
   pause() {
     this.spec.paused = true;
     this.save();
-  },
+  }
 
   unpause() {
     this.spec.paused = false;
     this.save();
-  },
-
-  state() {
-    if ( this.spec?.paused === true ) {
-      return 'paused';
-    }
-
-    return this.metadata?.state?.name || 'unknown';
-  },
+  }
 
   forceUpdate() {
     const now = this.spec.forceSyncGeneration || 1;
 
     this.spec.forceSyncGeneration = now + 1;
     this.save();
-  },
+  }
 
-  targetClusters() {
+  get state() {
+    if ( this.spec?.paused === true ) {
+      return 'paused';
+    }
+
+    return this.metadata?.state?.name || 'unknown';
+  }
+
+  get targetClusters() {
     const workspace = this.$getters['byId'](FLEET.WORKSPACE, this.metadata.namespace);
     const clusters = workspace?.clusters || [];
     const groups = workspace?.clusterGroups || [];
@@ -141,9 +140,9 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  github() {
+  get github() {
     const match = this.spec.repo.match(/^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/);
 
     if ( match ) {
@@ -151,15 +150,17 @@ export default {
     }
 
     return false;
-  },
+  }
 
-  repoIcon() {
+  get repoIcon() {
     if ( this.github ) {
       return 'icon icon-github';
     }
-  },
 
-  repoDisplay() {
+    return '';
+  }
+
+  get repoDisplay() {
     let repo = this.spec.repo;
 
     repo = repo.replace(/.git$/, '');
@@ -171,14 +172,14 @@ export default {
     }
 
     return repo;
-  },
+  }
 
-  commitDisplay() {
+  get commitDisplay() {
     const spec = this.spec;
     const hash = this.status?.commit?.substr(0, 7);
 
     if ( !spec || !spec.repo ) {
-      return;
+      return null;
     }
 
     if ( spec.revision && quacksLikeAHash(spec.revision) ) {
@@ -190,9 +191,9 @@ export default {
     }
 
     return hash;
-  },
+  }
 
-  clusterInfo() {
+  get clusterInfo() {
     const ready = this.status?.readyClusters || 0;
     const total = this.status?.desiredReadyClusters || 0;
 
@@ -201,9 +202,9 @@ export default {
       unready: total - ready,
       total,
     };
-  },
+  }
 
-  targetInfo() {
+  get targetInfo() {
     let mode = null;
     let cluster = null;
     let clusterGroup = null;
@@ -284,9 +285,9 @@ export default {
       clusterGroup,
       advanced
     };
-  },
+  }
 
-  groupByLabel() {
+  get groupByLabel() {
     const name = this.metadata.namespace;
 
     if ( name ) {
@@ -294,5 +295,5 @@ export default {
     } else {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
     }
-  },
-};
+  }
+}
