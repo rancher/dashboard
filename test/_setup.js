@@ -1,6 +1,6 @@
 // Setup browser environment
 import hooks from 'require-extension-hooks';
-import { config } from 'vue';
+import { config } from 'vue'; // eslint-disable-line import/named
 
 require('jsdom-global')();
 require('browser-env')();

@@ -1,4 +1,4 @@
-import IntlMessageFormat from 'intl-messageformat';
+import IntlMessageFormatClass from 'intl-messageformat';
 import { LOCALE } from '@/config/cookies';
 import { get } from '@/utils/object';
 import en from '@/assets/translations/en-us.yaml';
@@ -81,7 +81,7 @@ export const getters = {
       }
 
       if ( msg?.includes('{')) {
-        formatter = new IntlMessageFormat(msg, state.selected);
+        formatter = new IntlMessageFormatClass(msg, state.selected);
       } else {
         formatter = msg;
       }
