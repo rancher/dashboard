@@ -547,7 +547,7 @@ asyncButton:
     success: Rotated
   snapshot:
     action: Snapshot Now
-    waiting: Snapshotting&hellip;
+    waiting: Snapshot Initiated&hellip;
     success: Snapshot Creating
   uninstall:
     action: Uninstall
