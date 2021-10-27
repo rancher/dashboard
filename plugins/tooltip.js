@@ -1,4 +1,4 @@
 import Vue from 'vue';
-import VTooltipComponent from 'v-tooltip';
+import VTooltip from 'v-tooltip';
 
-Vue.use(VTooltipComponent);
+Vue.use(VTooltip);
