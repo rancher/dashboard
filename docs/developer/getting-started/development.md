@@ -25,6 +25,8 @@ There are other factors that assist in this, namely values from the `type-map`. 
 
 > When catching exceptions thrown by anything that contacts the API use `utils/error exceptionToErrorsArray` to correctly parse the response into a commonly accepted array of errors
 
+> If you need to add an endpoint to an unauthenticated route for loading from the store before login, you will need to add it [here](https://github.com/rancher/rancher/blob/cb7de4e6c3d7e783828dc662b1142c1f9ae5edbe/pkg/multiclustermanager/routes.go#L69).
+
 ## Store
 State is cached locally via [Vuex](https://vuex.vuejs.org/). See the Model section for retrieving information from the store.
 
