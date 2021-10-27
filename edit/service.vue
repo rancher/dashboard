@@ -108,7 +108,7 @@ export default {
     const harvesterAddOnConfig = {};
 
     HARVESTER_ADD_ON_CONFIG.forEach((c) => {
-      harvesterAddOnConfig[c.variableName] = this.value.metadata.labels[c.key] || c.default;
+      harvesterAddOnConfig[c.variableName] = this.value.metadata.annotations[c.key] || c.default;
     });
 
     return {
@@ -310,7 +310,7 @@ export default {
 
       if (this.showHarvesterAddOnConfig) {
         HARVESTER_ADD_ON_CONFIG.forEach((c) => {
-          this.value.metadata.labels[c.key] = String(get(this, c.variableName));
+          this.value.metadata.annotations[c.key] = String(get(this, c.variableName));
         });
       }
     },
