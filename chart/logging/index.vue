@@ -49,6 +49,18 @@ export default {
         <LabeledInput v-model="value.global.dockerRootDirectory" :label="t('logging.install.dockerRootDirectory')" />
       </div>
     </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.systemdLogPath"
+          :placeholder="t('logging.install.default')"
+          :label="t('logging.install.systemdLogPath')"
+          :tooltip="t('logging.install.tooltip', {}, true)"
+        />
+        <p class="mt-6" v-html="t('logging.install.url', {}, true)">
+        </p>
+      </div>
+    </div>
     <div class="row">
       <div class="col span-6">
         <Checkbox v-model="value.additionalLoggingSources[provider].enabled" :label="t('logging.install.enableAdditionalLoggingSources')" />

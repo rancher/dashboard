@@ -2173,6 +2173,10 @@ logging:
     k3sContainerEngine: K3S Container Engine
     enableAdditionalLoggingSources: Enable enhanced cloud provider logging
     dockerRootDirectory: Docker Root Directory
+    systemdLogPath: systemd Log Path
+    tooltip: 'Some kubernetes distributions log to <code>journald</code>. In order to collect these logs the <code>systemdLogPath</code> needs to be defined. While the <code>/run/log/journal</code> directory is used by default, some Linux distributions do not default to this path.'
+    url: '<a href="https://rancher.com/docs/rancher/v2.6/en/logging/helm-chart-options/" target="_blank" rel="noopener nofollow noreferrer">Learn more</a>'
+    default: /run/log/journal
   elasticsearch:
     host: Host
     scheme: Scheme
