@@ -4432,6 +4432,8 @@ harvester:
     sourceType:
       download: URL
       upload: 文件
+    warning:
+      uploading: "{count} 个镜像正在上传中，请不要刷新或关闭当前页面."
 
   vmTemplate:
     label: 虚拟机模板
