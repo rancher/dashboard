@@ -1,7 +1,7 @@
 import jsyaml from 'js-yaml';
 import isEqual from 'lodash/isEqual';
 import { clone } from '@/utils/object';
-import { HCI } from '@/config/types';
+import { HCI, SECRET } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 export const QGA_JSON = {
@@ -49,7 +49,7 @@ export default {
     getMatchQGA(osType) {
       const _QGA_JSON = clone(QGA_JSON);
 
-      if (osType === 'opensuse') {
+      if (osType === 'openSUSE') {
         _QGA_JSON.runcmd[0][3] = QGA_MAP['suse'];
       } else {
         _QGA_JSON.runcmd[0][3] = QGA_MAP['default'];
@@ -58,7 +58,7 @@ export default {
       return _QGA_JSON;
     },
 
-    hasInstallAgent(userScript, osType) {
+    hasInstallAgent(userScript, osType, oldValue) {
       let dataFormat = {};
       const _QGA_JSON = this.getMatchQGA(osType);
 
@@ -66,6 +66,8 @@ export default {
         dataFormat = jsyaml.load(userScript) || {};
       } catch (e) {
         new Error('Function(hasInstallAgent) error');
+
+        return oldValue;
       }
 
       return dataFormat?.packages?.includes('qemu-guest-agent') && !!dataFormat?.runcmd?.find( S => S.join('-') === _QGA_JSON.runcmd[0].join('-'));
@@ -83,19 +85,26 @@ export default {
       }
     },
 
-    getCloudScript(spec) {
-      const volumes = spec.template.spec.volumes || [];
-      let userScript = '';
-      let networkScript = '';
+    getSecretCloudData(spec, type) {
+      const secret = this.getSecret(spec);
 
-      volumes.forEach((v) => {
-        if (v.cloudInitNoCloud) {
-          userScript = v.cloudInitNoCloud.userData;
-          networkScript = v.cloudInitNoCloud.networkData;
-        }
-      });
+      const userData = secret?.decodedData?.userdata;
+      const networkData = secret?.decodedData?.networkdata;
 
-      return { userScript, networkScript };
+      return { userData, networkData };
+    },
+
+    getSecret(spec) {
+      const cloudInitNoCloud = spec?.template?.spec?.volumes?.find( (V) => {
+        return V.name === 'cloudinitdisk';
+      })?.cloudInitNoCloud || {};
+      const secrets = this.$store.getters['harvester/all'](SECRET) || [];
+
+      const secretName = cloudInitNoCloud?.secretRef?.name || cloudInitNoCloud?.networkDataSecretRef?.name;
+
+      const secret = secrets.find(s => s.metadata.name === secretName);
+
+      return secret;
     },
 
     getVolumeClaimTemplates(vm) {
@@ -122,7 +131,7 @@ export default {
       return JSON.parse(ids);
     },
 
-    convertToJson(script) {
+    convertToJson(script = '') {
       let out = {};
 
       try {
@@ -146,7 +155,7 @@ export default {
 
     mergeAllSSHs(spec) {
       const keys = this.getSSHFromAnnotation(spec);
-      const { userScript: userData } = this.getCloudScript(spec);
+      const { userScript: userData } = this.getSecretCloudData(spec);
 
       if (!keys.length < 0 && !userData) {
         return [];

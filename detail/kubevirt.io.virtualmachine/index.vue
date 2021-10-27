@@ -5,7 +5,6 @@ import Tab from '@/components/Tabbed/Tab';
 import { EVENT, HCI, SERVICE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import VM_MIXIN from '@/mixins/harvester-vm';
-import impl from '@/mixins/harvester-vm/impl';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import { allHash } from '@/utils/promise';
 import { allDashboardsExist } from '@/utils/grafana';
@@ -36,7 +35,7 @@ export default {
     DashboardMetrics,
   },
 
-  mixins: [CreateEditView, impl, VM_MIXIN],
+  mixins: [CreateEditView, VM_MIXIN],
 
   props: {
     value: {
@@ -79,15 +78,6 @@ export default {
       });
 
       return vmi;
-    },
-
-    cloudData() {
-      const out = this.getCloudScript(this.value?.spec);
-
-      return {
-        userData:    out.userScript,
-        networkData: out.networkScript
-      };
     },
 
     allEvents() {
@@ -171,23 +161,6 @@ export default {
         <OverviewKeypairs v-model="value" />
       </Tab>
 
-      <Tab name="cloudConfig" :label="t('harvester.virtualMachine.detail.tabs.cloudConfig')" class="bordered-table" :weight="2">
-        <CloudConfig
-          ref="yamlEditor"
-          mode="view"
-          :user-script="cloudData.userData"
-          :network-script="cloudData.networkData"
-        />
-      </Tab>
-
-      <Tab name="event" :label="t('harvester.virtualMachine.detail.tabs.events')" :weight="1">
-        <Events :resource="vmi" :events="events" />
-      </Tab>
-
-      <Tab name="migration" :label="t('harvester.virtualMachine.detail.tabs.migration')">
-        <Migration v-model="value" :vmi-resource="vmi" />
-      </Tab>
-
       <Tab
         v-if="showVmMetrics"
         name="vm-metrics"
@@ -203,6 +176,23 @@ export default {
             :vars="graphVars"
           />
         </template>
+      </Tab>
+
+      <Tab name="cloudConfig" :label="t('harvester.virtualMachine.detail.tabs.cloudConfig')" class="bordered-table" :weight="2">
+        <CloudConfig
+          ref="yamlEditor"
+          mode="view"
+          :user-script="userScript"
+          :network-script="networkScript"
+        />
+      </Tab>
+
+      <Tab name="event" :label="t('harvester.virtualMachine.detail.tabs.events')" :weight="1">
+        <Events :resource="vmi" :events="events" />
+      </Tab>
+
+      <Tab name="migration" :label="t('harvester.virtualMachine.detail.tabs.migration')">
+        <Migration v-model="value" :vmi-resource="vmi" />
       </Tab>
     </Tabbed>
   </div>

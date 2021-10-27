@@ -6,9 +6,12 @@ import difference from 'lodash/difference';
 import { sortBy } from '@/utils/sort';
 import { allHash } from '@/utils/promise';
 import { randomStr } from '@/utils/string';
+import { base64Decode } from '@/utils/crypto';
 import { SOURCE_TYPE } from '@/config/harvester-map';
-import { _CLONE, _CREATE } from '@/config/query-params';
-import { PVC, HCI, STORAGE_CLASS, NODE } from '@/config/types';
+import { _CLONE } from '@/config/query-params';
+import {
+  PVC, HCI, STORAGE_CLASS, NODE, SECRET
+} from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import impl, { QGA_JSON, USB_TABLET } from '@/mixins/harvester-vm/impl';
 
@@ -37,8 +40,8 @@ const OS = [{
   label: 'Red Hat',
   value: 'redhat'
 }, {
-  label: 'openSuse',
-  value: 'opensuse'
+  label: 'openSUSE',
+  value: 'openSUSE'
 }, {
   label: 'Turbolinux',
   value: 'turbolinux'
@@ -81,6 +84,7 @@ export default {
       vmi:                this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
       vmim:               this.$store.dispatch('harvester/findAll', { type: HCI.VMIM }),
       vm:                 this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
+      secret:             this.$store.dispatch('harvester/findAll', { type: SECRET }),
     };
 
     if (this.$store.getters['harvester/schemaFor'](NODE)) {
@@ -90,7 +94,6 @@ export default {
   },
 
   data() {
-    const isCreate = this.mode === _CREATE;
     const isClone = this.realMode === _CLONE;
     const type = this.$route.params.resource;
 
@@ -98,43 +101,26 @@ export default {
       this.deleteCloneValue();
     }
 
-    const {
-      osType,
-      installAgent,
-      machineType,
-      userScript,
-      networkScript,
-      hasCreateVolumes,
-      networkRows,
-      imageId,
-      diskRows,
-      sshKey,
-      spec,
-      installUSBTablet
-    } = this.getInitConfig({
-      type,
-      isCreate,
-      value: this.value,
-    });
-
     return {
       OS,
-      spec,
       type,
-      osType,
       isClone,
-      sshKey,
-      installAgent,
-      hasCreateVolumes,
-      installUSBTablet,
-      networkScript,
-      userScript,
-      imageId,
-      diskRows,
-      networkRows,
-      machineType,
-      sshName:                '',
-      publicKey:              '',
+      spec:               null,
+      osType:             'linux',
+      sshKey:             [],
+      installAgent:       true,
+      hasCreateVolumes:   [],
+      installUSBTablet:   true,
+      networkScript:      '',
+      userScript:         '',
+      imageId:            '',
+      diskRows:           [],
+      networkRows:        [],
+      machineType:        '',
+      publicKey:          '',
+      secretName:         '',
+      secretRef:          null,
+      showAdvanced:       false
     };
   },
 
@@ -210,58 +196,77 @@ export default {
 
     isWindows() {
       return this.osType === 'windows';
+    },
+
+    needNewSecret() {
+      if (this.type === HCI.VM_VERSION) {
+        return true;
+      }
     }
+  },
+
+  async created() {
+    await this.$store.dispatch('harvester/findAll', { type: SECRET });
+
+    this.getInitConfig({ value: this.value });
   },
 
   methods: {
     getInitConfig(config) {
-      const { value, type, isCreate } = config;
+      const { value } = config;
 
-      let spec;
-      let sshKey = [];
-      let diskRows = [];
-      let imageId = '';
-      let networkRows = [];
-      let hasCreateVolumes = [];
-      let userScript = null;
-      let networkScript = null;
-      let machineType = '';
-      let vm = null;
+      const vm = this.type === HCI.VM ? value : this.type === HCI.BACKUP ? this.value.status?.source : value.spec.vm;
 
-      if (type !== HCI.BACKUP) {
-        vm = type === HCI.VM ? value : value.spec.vm;
-
-        spec = type === HCI.VM ? value.spec : value.spec.vm.spec;
-
-        sshKey = this.getSSHFromAnnotation(spec);
-
-        diskRows = this.getDiskRows(vm);
-        imageId = this.getRootImageId(vm);
-        networkRows = this.getNetworkRows(vm);
-        hasCreateVolumes = this.getHasCreatedVolumes(spec);
-        ({ userScript, networkScript } = this.getCloudScript(spec));
-
-        machineType = value.machineType;
+      if (!(vm && vm.spec)) {
+        return;
       }
+      const spec = vm.spec;
 
+      const machineType = value.machineType;
+      const sshKey = this.getSSHFromAnnotation(spec) || [];
+
+      const imageId = this.getRootImageId(vm) || '';
+      const diskRows = this.getDiskRows(vm) || [];
+      const networkRows = this.getNetworkRows(vm) || [];
+      const hasCreateVolumes = this.getHasCreatedVolumes(spec) || [];
+
+      let { userData = null, networkData = null } = this.getSecretCloudData(spec);
+
+      if (this.type === HCI.BACKUP) {
+        const secretBackups = this.value.status.secretBackups;
+
+        if (secretBackups) {
+          userData = base64Decode(secretBackups[0]?.data?.userdata);
+          networkData = base64Decode(secretBackups[0]?.data?.networkdata);
+        }
+      }
       const osType = this.getOsType(vm);
-      const installAgent = isCreate ? true : this.hasInstallAgent(userScript, osType);
-      const installUSBTablet = this.isInstallUSBTablet(spec);
 
-      return {
-        osType,
-        installAgent,
-        machineType,
-        userScript,
-        networkScript,
-        hasCreateVolumes,
-        networkRows,
-        installUSBTablet,
-        imageId,
-        diskRows,
-        sshKey,
-        spec
-      };
+      userData = this.isCreate ? this.getInitUserData({ osType }) : userData;
+      const installUSBTablet = this.isInstallUSBTablet(spec);
+      const installAgent = this.isCreate ? true : this.hasInstallAgent(userData, osType, true);
+
+      const secretRef = this.getSecret(spec);
+
+      this.$set(this, 'spec', spec);
+      this.$set(this, 'secretRef', secretRef);
+      this.$set(this, 'userScript', userData);
+      this.$set(this, 'networkScript', networkData);
+
+      this.$set(this, 'sshKey', sshKey);
+      this.$set(this, 'osType', osType);
+      this.$set(this, 'installAgent', installAgent);
+
+      this.$set(this, 'machineType', machineType);
+
+      this.$set(this, 'installUSBTablet', installUSBTablet);
+
+      this.$set(this, 'hasCreateVolumes', hasCreateVolumes);
+      this.$set(this, 'networkRows', networkRows);
+      this.$set(this, 'imageId', imageId);
+
+      this.$set(this, 'diskRows', diskRows);
+      this.$set(this, 'networkRows', networkRows);
     },
 
     getDiskRows(vm) {
@@ -469,6 +474,10 @@ export default {
         }
       });
 
+      if (!this.secretName || this.needNewSecret) {
+        this.secretName = this.generateSecretName(this.secretNamePrefix);
+      }
+
       if (!disks.find( D => D.name === 'cloudinitdisk')) {
         if (this.networkScript || this.userScript || this.sshKey.length > 0) {
           disks.push({
@@ -476,13 +485,11 @@ export default {
             disk: { bus: 'virtio' }
           });
 
-          const userData = this.getUserData({ osType: this.osType, installAgent: this.installAgent });
-
           volumes.push({
             name:             'cloudinitdisk',
             cloudInitNoCloud: {
-              userData,
-              networkData: this.networkScript
+              secretRef:            { name: this.secretName },
+              networkDataSecretRef: { name: this.secretName }
             }
           });
         }
@@ -540,6 +547,7 @@ export default {
         this.$set(this.value, 'spec', spec);
         this.$set(this, 'spec', spec);
       } else if (this.type === HCI.VM_VERSION) {
+        this.$set(this.value.spec.vm, 'spec', spec);
         this.$set(this.value.spec.vm.metadata, 'annotations', { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: JSON.stringify(volumeClaimTemplates) });
         this.$set(this.value.spec.vm.metadata, 'labels', { [HCI_ANNOTATIONS.OS]: this.osType });
         this.$set(this, 'spec', spec);
@@ -573,6 +581,13 @@ export default {
       this.$set(this.spec.template, 'spec', spec);
     },
 
+    getInitUserData(config) {
+      const _QGA_JSON = this.getMatchQGA(config.osType);
+      const out = jsyaml.dump(_QGA_JSON);
+
+      return out.startsWith('#cloud-config') ? out : `#cloud-config\n${ out }`;
+    },
+
     getUserData(config) {
       const { returnType = 'string' } = config;
 
@@ -599,12 +614,17 @@ export default {
 
         return out.startsWith('#cloud-config') ? out : `#cloud-config\n${ out }`;
       } else {
-        return jsyaml.load(userDataJson);
+        return userDataJson;
       }
     },
 
     updateSSHKey(neu) {
       this.$set(this, 'sshKey', neu);
+    },
+
+    updateCpuMemory(cpu, memory) {
+      this.$set(this.spec.template.spec.domain.cpu, 'cores', cpu);
+      this.$set(this, 'memory', memory);
     },
 
     parseDisk(R, index) {
@@ -810,6 +830,52 @@ export default {
       }) || [];
     },
 
+    generateSecretName(name) {
+      return `${ name }-${ randomStr(5).toLowerCase() }`;
+    },
+
+    getOwnerReferencesFromVM(resource) {
+      const name = resource.metadata.name;
+      const kind = resource.kind;
+      const apiVersion = this.type === HCI.VM ? 'kubevirt.io/v1' : 'harvesterhci.io/v1beta1';
+      const uid = resource?.metadata?.uid;
+
+      return [{
+        name,
+        kind,
+        uid,
+        apiVersion,
+      }];
+    },
+
+    async saveSecret(vm) {
+      let secret = this.getSecret(vm.spec);
+
+      const userData = this.getUserData({ osType: this.osType, installAgent: this.installAgent });
+
+      if (!secret || this.needNewSecret) {
+        secret = await this.$store.dispatch('harvester/create', {
+          metadata: {
+            name:            this.secretName,
+            namespace:       this.value.metadata.namespace,
+            labels:          { [HCI_ANNOTATIONS.CLOUD_INIT]: 'harvester' },
+            ownerReferences: this.getOwnerReferencesFromVM(vm)
+          },
+          type: SECRET
+        });
+      }
+
+      try {
+        if (secret) {
+          secret.setData('userdata', userData);
+          secret.setData('networkdata', this.networkScript);
+          await secret.save();
+        }
+      } catch (e) {
+        new Error(`Function(saveSecret) error ${ e }`);
+      }
+    },
+
     deleteCloneValue() {
       this.value.spec.template.spec.hostname = '';
 
@@ -885,13 +951,34 @@ export default {
       }
 
       this.$set(this, 'userScript', userDataJson);
+      this.refreshYamlEditor();
+    },
+
+    refreshYamlEditor() {
       this.$nextTick(() => {
         this.$refs.yamlEditor?.updateValue();
       });
-    }
+    },
+
+    toggleAdvanced() {
+      this.showAdvanced = !this.showAdvanced;
+    },
   },
 
   watch: {
+    secretRef: {
+      handler(secret) {
+        if (secret && this.type !== HCI.BACKUP) {
+          this.userScript = secret?.decodedData?.userdata;
+          this.networkScript = secret?.decodedData?.networkdata;
+          this.secretName = secret?.metadata.name;
+          this.refreshYamlEditor();
+        }
+      },
+      immediate: true,
+      deep:      true
+    },
+
     isWindows(val) {
       if (val) {
         this.$set(this, 'sshKey', []);
@@ -912,9 +999,7 @@ export default {
         const out = this.getUserData({ installAgent: neu, osType: this.osType });
 
         this.$set(this, 'userScript', out);
-        this.$nextTick(() => {
-          this.$refs.yamlEditor?.updateValue();
-        });
+        this.refreshYamlEditor();
       },
       immediate: true
     },
@@ -923,13 +1008,13 @@ export default {
       const out = this.getUserData({ installAgent: this.installAgent, osType: neu });
 
       this.$set(this, 'userScript', out);
-      this.$nextTick(() => {
-        this.$refs.yamlEditor?.updateValue();
-      });
+      this.refreshYamlEditor();
     },
 
     userScript(neu) {
-      this.installAgent = this.hasInstallAgent(neu, this.osType);
+      const hasInstallAgent = this.hasInstallAgent(neu, this.osType, this.installAgent);
+
+      this.installAgent = hasInstallAgent;
     },
 
     sshKey(neu, old) {

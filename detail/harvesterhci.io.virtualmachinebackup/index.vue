@@ -4,16 +4,18 @@ import Tab from '@/components/Tabbed/Tab';
 import Loading from '@/components/Loading';
 import CruResource from '@/components/CruResource';
 import Checkbox from '@/components/form/Checkbox';
+import LabelValue from '@/components/LabelValue';
 import VM_MIXIN from '@/mixins/harvester-vm';
 import { allHash } from '@/utils/promise';
 import CreateEditView from '@/mixins/create-edit-view';
 import { HCI } from '@/config/types';
+import CpuMemory from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCpuMemory';
 
 import OverviewKeypairs from '@/detail/kubevirt.io.virtualmachine/VirtualMachineTabs/VirtualMachineKeypairs';
 import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
 import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
 import CloudConfig from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
-import OverviewBasics from '@/detail/harvesterhci.io.virtualmachinebackup/VirtualmachineBackUpBasic';
+const UNDEFINED = 'n/a';
 
 export default {
   name: 'BackupDetail',
@@ -24,11 +26,12 @@ export default {
     CruResource,
     Tabbed,
     Loading,
+    LabelValue,
     Tab,
     CloudConfig,
     Checkbox,
+    CpuMemory,
     OverviewKeypairs,
-    OverviewBasics
   },
 
   mixins: [CreateEditView, VM_MIXIN],
@@ -44,43 +47,71 @@ export default {
     },
   },
 
+  async fetch() {
+    await allHash({ allImages: this.$store.dispatch('harvester/findAll', { type: HCI.IMAGE }) });
+  },
+
   data() {
     return { vm: null };
   },
 
-  async fetch() {
-    await allHash({ allImages: this.$store.dispatch('harvester/findAll', { type: HCI.IMAGE }) });
+  computed: {
+    name() {
+      return this.value?.metadata?.name || UNDEFINED;
+    },
 
-    const source = this.value.status.source;
-    const vm = await this.$store.dispatch('harvester/create', {
-      ...source,
-      type: HCI.VM
-    });
+    hostname() {
+      return this?.spec?.template?.spec?.hostname;
+    },
 
-    this.vm = vm;
+    imageName() {
+      const imageList = this.$store.getters['harvester/all'](HCI.IMAGE) || [];
 
-    const volumes = vm.spec.template?.spec?.volumes || [];
+      const image = imageList.find( I => this.imageId === I.id);
 
-    volumes.forEach((v) => {
-      if (v.cloudInitNoCloud) {
-        this.userScript = v.cloudInitNoCloud.userData;
-        this.networkScript = v.cloudInitNoCloud.networkData;
-      }
-    });
+      return image?.spec?.displayName || '-';
+    },
 
-    this.spec = vm.spec;
-    this.diskRows = this.getDiskRows(vm);
-    this.networkRows = this.getNetworkRows(vm);
-    this.imageName = this.getRootImageId(vm);
+    disks() {
+      const disks = this?.spec?.template?.spec?.domain?.devices?.disks || [];
+
+      return disks.filter((disk) => {
+        return !!disk.bootOrder;
+      }).sort((a, b) => {
+        if (a.bootOrder < b.bootOrder) {
+          return -1;
+        }
+
+        return 1;
+      });
+    },
+
+    cdroms() {
+      const disks = this?.spec?.template?.spec?.domain?.devices?.disks || [];
+
+      return disks.filter((disk) => {
+        return !!disk.cdrom;
+      });
+    },
   },
 
   methods: {
+    getDeviceType(o) {
+      if (o.disk) {
+        return 'Disk';
+      } else {
+        return 'CD-ROM';
+      }
+    },
+    isEmpty(o) {
+      return o !== undefined && Object.keys(o).length === 0;
+    },
     onTabChanged({ tab }) {
       if (tab.name === 'advanced') {
         this.$refs.yamlEditor?.refresh();
       }
-    },
-  }
+    }
+  },
 };
 </script>
 
@@ -93,9 +124,61 @@ export default {
     :mode="mode"
     :apply-hooks="applyHooks"
   >
-    <Tabbed :side-tabs="true" @changed="onTabChanged">
+    <Tabbed v-if="spec" :side-tabs="true" @changed="onTabChanged">
       <Tab name="Basics" :label="t('harvester.virtualMachine.detail.tabs.basics')">
-        <OverviewBasics v-if="vm" v-model="vm" mode="view" :memory="memory" />
+        <div class="row">
+          <div class="col span-6">
+            <LabelValue :name="t('harvester.virtualMachine.detail.details.name')" :value="name" />
+          </div>
+
+          <div class="col span-6">
+            <LabelValue :name="t('harvester.fields.image')" :value="imageName" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col span-6">
+            <LabelValue :name="t('harvester.virtualMachine.detail.details.hostname')" :value="hostname" />
+          </div>
+
+          <div class="col span-6">
+            <LabelValue :name="t('harvester.virtualMachine.input.MachineType')" :value="machineType" />
+          </div>
+        </div>
+
+        <CpuMemory :cpu="spec.template.spec.domain.cpu.cores" :mode="mode" :memory="memory" />
+
+        <div class="row">
+          <div class="col span-6">
+            <LabelValue :name="t('harvester.virtualMachine.detail.details.bootOrder')">
+              <template #value>
+                <div>
+                  <ul>
+                    <li v-for="(disk) in disks" :key="disk.bootOrder">
+                      {{ disk.bootOrder }}. {{ disk.name }} ({{ getDeviceType(disk) }})
+                    </li>
+                  </ul>
+                </div>
+              </template>
+            </LabelValue>
+          </div>
+          <div class="col span-6">
+            <LabelValue :name="t('harvester.virtualMachine.detail.details.CDROMs')">
+              <template #value>
+                <div>
+                  <ul v-if="cdroms.length > 0">
+                    <li v-for="(rom) in cdroms" :key="rom.name">
+                      {{ rom.name }}
+                    </li>
+                  </ul>
+                  <span v-else>
+                    {{ t("harvester.virtualMachine.detail.notAvailable") }}
+                  </span>
+                </div>
+              </template>
+            </LabelValue>
+          </div>
+        </div>
       </Tab>
 
       <Tab

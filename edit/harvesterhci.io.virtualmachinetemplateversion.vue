@@ -72,6 +72,9 @@ export default {
 
     realTemplateMode() {
       return this.templateId ? _VIEW : this.mode;
+    },
+    secretNamePrefix() {
+      return this.templateValue?.metadata?.name;
     }
   },
 
@@ -106,10 +109,6 @@ export default {
   },
 
   created() {
-    this.registerBeforeHook(() => {
-      Object.assign(this.spec.template.metadata.annotations, { [HCI_ANNOTATIONS.SSH_NAMES]: JSON.stringify(this.sshKey) });
-    });
-
     this.registerAfterHook(async() => {
       if (this.isDefaultVersion) {
         // Set the default version according to annotation:[HCI_ANNOTATIONS.TEMPLATE_VERSION_CUSTOM_NAME]
@@ -135,7 +134,7 @@ export default {
   },
 
   mounted() {
-    this.imageId = this.diskRows[0].image || '';
+    this.imageId = this.diskRows[0]?.image || '';
   },
 
   methods: {
@@ -177,18 +176,15 @@ export default {
       }
 
       this.$set(this.value.spec, 'templateId', `${ namespace }/${ name }`);
-      this.$set(this.value.spec.vm, 'spec', this.spec);
-      await this.save(buttonCb);
-    },
+      const res = await this.value.save();
 
-    updateCpuMemory(cpu, memory) {
-      this.$set(this.spec.template.spec.domain.cpu, 'cores', cpu);
-      this.$set(this, 'memory', memory);
+      await this.saveSecret(res);
+      this.done();
     },
 
     onTabChanged({ tab }) {
-      if (tab.name === 'advanced' && this.$refs.yamlEditor?.refresh) {
-        this.$refs.yamlEditor.refresh();
+      if (tab.name === 'advanced') {
+        this.refreshYamlEditor();
       }
     }
   },
@@ -197,7 +193,7 @@ export default {
 
 <template>
   <CruResource
-    v-if="templateSpec"
+    v-if="templateSpec && spec"
     :done-route="doneRoute"
     :resource="value"
     :can-yaml="false"
@@ -222,13 +218,6 @@ export default {
         <div class="mb-20">
           <SSHKey v-model="sshKey" :disable-create="isView" :mode="mode" @update:sshKey="updateSSHKey" />
         </div>
-
-        <LabeledSelect
-          v-model="osType"
-          label="OS"
-          :mode="mode"
-          :options="OS"
-        />
       </Tab>
 
       <Tab name="Volume" :label="t('harvester.tab.volume')" :weight="-1">
@@ -240,8 +229,17 @@ export default {
       </Tab>
 
       <Tab name="advanced" :label="t('harvester.tab.advanced')" :weight="-3">
+        <LabeledSelect
+          v-model="osType"
+          label-key="harvester.virtualMachine.osType"
+          :mode="mode"
+          :options="OS"
+          class="mb-20"
+        />
+
         <CloudConfig
           ref="yamlEditor"
+          :mode="mode"
           :user-script="userScript"
           :network-script="networkScript"
           @updateUserData="updateUserData"

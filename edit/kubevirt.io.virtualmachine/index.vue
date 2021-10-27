@@ -138,6 +138,9 @@ export default {
         }
       }
     },
+    secretNamePrefix() {
+      return this.value?.metadata?.name;
+    }
   },
 
   watch: {
@@ -163,35 +166,11 @@ export default {
         const versions = await this.$store.dispatch('harvester/findAll', { type: HCI.VM_VERSION });
         const curVersion = versions.find( V => V.id === id);
 
-        if (curVersion?.spec?.vm) {
-          const {
-            spec,
-            osType,
-            sshKey,
-            userScript,
-            networkData,
-            installAgent,
-            installUSBTablet
-          } = this.getInitConfig({
-            value:    curVersion.spec.vm,
-            type:     this.type,
-            isCreate: this.isCreate,
-          });
+        this.getInitConfig({ value: curVersion.spec.vm });
 
-          this.$set(this, 'spec', spec);
-          this.$set(this, 'osType', osType);
-          this.$set(this, 'sshKey', sshKey);
-          this.$set(this, 'userScript', userScript);
-          this.$set(this, 'networkScript', networkData);
-          this.$set(this, 'installAgent', installAgent);
-          this.$set(this, 'installUSBTablet', installUSBTablet);
+        const claimTemplate = this.getVolumeClaimTemplates(curVersion.spec.vm);
 
-          const claimTemplate = this.getVolumeClaimTemplates(curVersion.spec.vm);
-
-          this.value.spec = spec;
-          this.value.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(claimTemplate);
-        }
-        this.changeSpec();
+        this.value.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(claimTemplate);
       }
     },
 
@@ -200,7 +179,7 @@ export default {
         this.templateId = '';
         this.templateVersionId = '';
         this.value.applyDefaults();
-        this.changeSpec();
+        this.getInitConfig({ value: this.value });
       }
     },
   },
@@ -241,6 +220,10 @@ export default {
       }
 
       await this.save(buttonCb);
+
+      const res = this.$store.getters['harvester/byId'](HCI.VM, `${ this.value.metadata.namespace }/${ this.value.metadata.name }`);
+
+      await this.saveSecret(res);
     },
 
     async saveMultiple(buttonCb) {
@@ -266,7 +249,7 @@ export default {
 
         this.$set(this.value.spec.template.spec, 'hostname', hostname);
 
-        this.parseVM();
+        await this.parseVM();
         const basicValue = await this.$store.dispatch('harvester/create', clone(this.value));
 
         try {
@@ -275,6 +258,9 @@ export default {
           } else {
             basicValue.save();
           }
+          const res = this.$store.getters['harvester/byId'](HCI.VM, `${ this.value.metadata.namespace }/${ this.value.metadata.name }`);
+
+          await this.saveSecret(res);
         } catch (err) {
           return Promise.reject(new Error(err));
         }
@@ -299,26 +285,10 @@ export default {
       }
     },
 
-    changeSpec() {
-      const diskRows = this.getDiskRows(this.value);
-      const networkRows = this.getNetworkRows(this.value);
-      const imageId = this.getRootImageId(this.value);
-
-      this.$set(this, 'spec', this.value.spec);
-      this.$set(this, 'diskRows', diskRows);
-      this.$set(this, 'networkRows', networkRows);
-      this.$set(this, 'imageId', imageId);
-    },
-
     validataCount(count) {
       if (count > 10) {
         this.$set(this, 'count', 10);
       }
-    },
-
-    updateCpuMemory(cpu, memory) {
-      this.$set(this.spec.template.spec.domain.cpu, 'cores', cpu);
-      this.$set(this, 'memory', memory);
     },
 
     updateTemplateId() {
@@ -335,7 +305,7 @@ export default {
 </script>
 
 <template>
-  <div id="vm">
+  <div v-if="spec" id="vm">
     <CruResource
       :done-route="doneRoute"
       :resource="value"
@@ -420,13 +390,6 @@ export default {
             :disabled="isWindows"
             @update:sshKey="updateSSHKey"
           />
-
-          <LabeledSelect
-            v-model="osType"
-            label="OS"
-            :options="OS"
-            :disabled="!isCreate"
-          />
         </Tab>
 
         <Tab name="Volume" :label="t('harvester.tab.volume')" :weight="-1">
@@ -455,11 +418,11 @@ export default {
         >
           <div class="row mb-20">
             <div class="col span-6">
-              <LabeledInput
-                v-model="hostname"
-                :label-key="hostnameLabel"
-                :placeholder="hostPlaceholder"
-                :mode="mode"
+              <LabeledSelect
+                v-model="osType"
+                label-key="harvester.virtualMachine.osType"
+                :options="OS"
+                :disabled="!isCreate"
               />
             </div>
 
@@ -468,6 +431,22 @@ export default {
                 v-model="machineType"
                 label-key="harvester.virtualMachine.input.MachineType"
                 :options="machineTypeOptions"
+                :mode="mode"
+              />
+            </div>
+          </div>
+
+          <div class="row mb-20">
+            <a v-if="showAdvanced" v-t="'generic.hideAdvanced'" @click="toggleAdvanced" />
+            <a v-else v-t="'generic.showAdvanced'" @click="toggleAdvanced" />
+          </div>
+
+          <div v-if="showAdvanced" class="mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model="hostname"
+                :label-key="hostnameLabel"
+                :placeholder="hostPlaceholder"
                 :mode="mode"
               />
             </div>
