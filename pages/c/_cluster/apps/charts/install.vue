@@ -1201,7 +1201,7 @@ export default {
                 :in-store="inStore"
                 :mode="mode"
                 :source="versionInfo"
-                :tabbed="multiple"
+                tabbed="multiple"
                 :target-namespace="targetNamespace"
               />
             </Tabbed>

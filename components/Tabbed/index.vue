@@ -233,7 +233,7 @@ export default {
         </a>
       </li>
       <li v-if="sideTabs && !sortedTabs.length" class="tab disabled">
-        <a href="#">(None)</a>
+        <a href="#" @click.prevent>(None)</a>
       </li>
       <ul v-if="sideTabs && showTabsAddRemove" class="tab-list-footer">
         <li>
