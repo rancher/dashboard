@@ -149,10 +149,6 @@ module.exports = {
       }
     ],
 
-    'sort-imports': [0],
-
-    'import/order': [0],
-
     // FIXME: The following is disabled due to new linter and old JS code. These should all be enabled and underlying issues fixed
     'vue/order-in-components':              'off',
     'vue/no-lone-template':                 'off',

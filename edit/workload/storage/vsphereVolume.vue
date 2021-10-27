@@ -1,6 +1,6 @@
 <script>
-import { mapGetters } from 'vuex';
 import LabeledInput from '@/components/form/LabeledInput';
+import { mapGetters } from 'vuex';
 
 export default {
   components: { LabeledInput },
