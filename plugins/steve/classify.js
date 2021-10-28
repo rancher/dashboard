@@ -15,8 +15,7 @@ export function classify(ctx, obj, isClone = false) {
     return obj;
   }
 
-  const mappedType = ctx.rootGetters['type-map/componentFor'](obj.type);
-  let customModel = lookup(ctx.state.config.namespace, mappedType, obj?.metadata?.name);
+  let customModel = lookup(ctx.state.config.namespace, obj?.type, obj?.metadata?.name);
 
   if ( !customModel ) {
     const which = ctx.state.config.modelBaseClass || BY_TYPE;

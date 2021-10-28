@@ -16,11 +16,14 @@ export default class CronJob extends Workload {
     const out = super._availableActions;
     const suspended = this.spec?.suspend || false;
 
+    const jobSchema = this.$getters['schemaFor'](WORKLOAD_TYPES.JOB);
+    const canRunNow = !!jobSchema?.collectionMethods.find(x => ['blocked-post', 'post'].includes(x.toLowerCase()));
+
     insertAt(out, 0, {
       action:     'runNow',
       label:      'Run Now',
       icon:       'icon icon-spinner',
-      enabled:    true,
+      enabled:    canRunNow,
       bulkable:   true,
     });
 
@@ -28,7 +31,7 @@ export default class CronJob extends Workload {
       action:     'suspend',
       label:      'Suspend',
       icon:       'icon icon-pause',
-      enabled:    !suspended,
+      enabled:    !suspended && this.canUpdate,
       bulkable:   true,
     });
 
@@ -36,7 +39,7 @@ export default class CronJob extends Workload {
       action:     'resume',
       label:      'Resume',
       icon:       'icon icon-play',
-      enabled:    suspended,
+      enabled:    suspended && this.canUpdate,
       bulkable:   true,
     });
 

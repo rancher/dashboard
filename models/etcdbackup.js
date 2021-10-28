@@ -1,6 +1,6 @@
-import SteveModel from '@/plugins/steve/steve-class';
+import NormanModel from '@/plugins/steve/norman-class';
 
-export default class EtcdBackup extends SteveModel {
+export default class EtcdBackup extends NormanModel {
   get _availableActions() {
     const out = this._standardActions;
 
