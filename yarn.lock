@@ -2748,8 +2748,7 @@
 
 "@novnc/novnc@^1.2.0":
   version "1.2.0"
-  resolved "https://registry.npm.taobao.org/@novnc/novnc/download/@novnc/novnc-1.2.0.tgz#535ffd7d074022d35205deae2753100f1f2b29f3"
-  integrity sha1-U1/9fQdAItNSBd6uJ1MQDx8rKfM=
+  resolved "https://registry.yarnpkg.com/@novnc/novnc/-/novnc-1.2.0.tgz#535ffd7d074022d35205deae2753100f1f2b29f3"
 
 "@nuxt/babel-preset-app@2.14.6":
   version "2.14.6"
