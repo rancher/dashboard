@@ -1,5 +1,7 @@
 export const EPINIO_PRODUCT_NAME = 'epinio';
 
+export const EPINIO_MGMT_STORE = 'epiniomgmt';
+
 export const EPINIO_TYPES = {
   // From API
   APP:        'applications',

@@ -12,7 +12,7 @@ export default {
   },
 
   createStores() {
-    return [].concat.apply([], Object.values(extensions).map(ext => ext.store()));
+    return Object.values(extensions).reduce((r, ext) => r.concat(...ext.stores.map(s => s())), []);
   },
 
   stores() {

@@ -42,7 +42,7 @@ export default {
   },
 
   urlOptions: () => (url, opt) => {
-    // TODO: RC API determine handle filter, limit, sort
+    // This is where Epinio API filter, limit, sort will be applied
     return url;
   },
 

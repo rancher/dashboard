@@ -62,6 +62,13 @@ function setProduct(store, to) {
   }
 }
 
+function extensionProduct(routeName) {
+  const newName = routeName.replace(`${ EXTENSION_PREFIX }-`, '');
+  const hyphen = newName.indexOf('-');
+
+  return hyphen >= 1 ? newName.substring(0, hyphen) : newName;
+}
+
 export default async function({
   route, app, store, redirect, $cookies, req, isDev, from
 }) {
@@ -254,9 +261,18 @@ export default async function({
 
   try {
     let clusterId = get(route, 'params.cluster');
-    const product = get(route, 'params.product');
-    const oldProduct = from?.params?.product;
+
     const isExt = route.name.startsWith(EXTENSION_PREFIX);
+    const product = isExt ? extensionProduct(route.name) : get(route, 'params.product');
+
+    const oldIsExt = from.name.startsWith(EXTENSION_PREFIX);
+    const oldProduct = oldIsExt ? extensionProduct(from.name) : from?.params?.product;
+
+    if (oldIsExt && oldProduct && oldProduct !== product) {
+      // If we've left a product ensure we reset it
+      await store.dispatch(`${ oldProduct }/unsubscribe`);
+      await store.commit(`${ oldProduct }/reset`);
+    }
 
     if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name.startsWith(`c-cluster-${ VIRTUAL }-`)) {
       const res = [
@@ -268,7 +284,21 @@ export default async function({
       ];
 
       await Promise.all(res);
-    } else if ( clusterId || isExt) {
+    } else if (isExt && product) {
+      await Promise.all([
+        store.dispatch('loadManagement'),
+        store.dispatch(`${ product }/loadManagement`),
+      ]);
+      if (clusterId) {
+        await store.dispatch('loadCluster', {
+          id: clusterId,
+          product,
+          oldProduct,
+          isExt,
+          oldIsExt
+        });
+      }
+    } else if ( clusterId ) {
       // Run them in parallel
       const res = [
         store.dispatch('loadManagement'),
@@ -276,7 +306,8 @@ export default async function({
           id: clusterId,
           product,
           oldProduct,
-          isExt
+          isExt,
+          oldIsExt
         }),
       ];
 
@@ -305,6 +336,7 @@ export default async function({
           id: clusterId,
           product,
           oldProduct,
+          oldIsExt
         });
       }
     }

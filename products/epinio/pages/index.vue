@@ -3,7 +3,7 @@ import Vue from 'vue';
 
 import Loading from '@/components/Loading.vue';
 import ResourceTable from '@/components/ResourceTable.vue';
-import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
+import { EPINIO_MGMT_STORE, EPINIO_TYPES } from '@/products/epinio/types';
 import EpinioInstance from '@/products/epinio/models/instance.class';
 
 interface Data {
@@ -17,7 +17,7 @@ export default Vue.extend<Data, any, any, any>({
   layout: 'plain',
 
   async fetch() {
-    this.clusters = await this.$store.dispatch(`${ EPINIO_PRODUCT_NAME }/findAll`, { type: EPINIO_TYPES.INSTANCE });
+    this.clusters = await this.$store.dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE });
 
     if (this.clusters.length === 1 ) {
       // TODO: RC
@@ -31,7 +31,7 @@ export default Vue.extend<Data, any, any, any>({
   data() {
     return {
       clusters:       [],
-      clustersSchema: this.$store.getters[`${ EPINIO_PRODUCT_NAME }/schemaFor`](EPINIO_TYPES.INSTANCE)
+      clustersSchema: this.$store.getters[`${ EPINIO_MGMT_STORE }/schemaFor`](EPINIO_TYPES.INSTANCE)
     };
   },
 

@@ -112,7 +112,6 @@ export default Vue.extend<Data, any, any, any>({
     </div>
     <div class="spacer"></div>
     <div class="col span-8">
-      <!-- TODO: RC show current env vars if editing -->
       <KeyValue
         v-model="values.configuration.environment"
         :mode="mode"

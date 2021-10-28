@@ -6103,9 +6103,9 @@ epinio:
         containerUrl:
           label: Container Image
           url:
-            label: Container Image Url
-            inputLabel: Url
-            tooltip: Container Image Url for the app workload image
+            label: Container Image
+            inputLabel: Image
+            tooltip: Container Image for the app workload
       services:
         label: Service
         subtext: Bind a service
