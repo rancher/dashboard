@@ -16,9 +16,10 @@ export default class Workload extends SteveModel {
     const index = editYaml ? out.indexOf(editYaml) + 1 : 0;
 
     insertAt(out, index, {
-      action: 'addSidecar',
-      label:  'Add Sidecar',
-      icon:   'icon icon-plus'
+      action:  'addSidecar',
+      label:   'Add Sidecar',
+      icon:    'icon icon-plus',
+      enabled: !!this.links.update,
     });
 
     if (type !== WORKLOAD_TYPES.JOB && type !== WORKLOAD_TYPES.CRON_JOB) {
