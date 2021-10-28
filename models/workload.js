@@ -12,7 +12,10 @@ export default class Workload extends SteveModel {
     let out = this._standardActions;
     const type = this._type ? this._type : this.type;
 
-    insertAt(out, 0, {
+    const editYaml = findBy(out, 'action', 'goToEditYaml');
+    const index = editYaml ? out.indexOf(editYaml) + 1 : 0;
+
+    insertAt(out, index, {
       action: 'addSidecar',
       label:  'Add Sidecar',
       icon:   'icon icon-plus'
@@ -20,18 +23,18 @@ export default class Workload extends SteveModel {
 
     if (type !== WORKLOAD_TYPES.JOB && type !== WORKLOAD_TYPES.CRON_JOB) {
       insertAt(out, 0, {
+        action:  'toggleRollbackModal',
+        label:   'Rollback',
+        icon:    'icon icon-history',
+        enabled: !!this.links.update,
+      });
+
+      insertAt(out, 0, {
         action:     'redeploy',
         label:      'Redeploy',
         icon:       'icon icon-spinner',
         enabled:    !!this.links.update,
         bulkable:   true,
-      });
-
-      insertAt(out, 0, {
-        action:  'toggleRollbackModal',
-        label:   'Rollback',
-        icon:    'icon icon-history',
-        enabled: !!this.links.update,
       });
     }
 
