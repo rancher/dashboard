@@ -5,7 +5,7 @@ import { EPINIO_MGMT_STORE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products
 
 export default {
 
-  async request({ rootGetters, dispatch, getters }, { opt, type }) {
+  async request({ rootGetters }, { opt }) {
     const spoofedRes = await handleSpoofedRequest(rootGetters, EPINIO_MGMT_STORE, opt);
 
     if (spoofedRes) {
@@ -15,9 +15,7 @@ export default {
     throw new Error('Not Implemented');
   },
 
-  onLogout({
-    getters, state, commit, dispatch
-  }) {
+  onLogout({ commit, dispatch }) {
     commit('managementChanged', { ready: false });
     dispatch('reset');
   },

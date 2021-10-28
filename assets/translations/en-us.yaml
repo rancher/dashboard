@@ -5745,6 +5745,7 @@ typeLabel:
       one { Cloud Config Template }
       other { Cloud Config Templates }
     }
+  # TODO: RC Epinio resources
   namespaces: |-
     {count, plural,
       one { Namespaces }
@@ -5754,6 +5755,11 @@ typeLabel:
     {count, plural,
       one { Application }
       other { Applications }
+    }
+  services: |-
+    {count, plural,
+      one { Service }
+      other { Services }
     }
 
 action:
@@ -6069,6 +6075,7 @@ epinio:
     namespace: Namespace
     route: Route
     boundServices: Bound Services
+    boundApps: Bound Apps
     deployedBy: Last Deployed By
   instances:
     api: URL

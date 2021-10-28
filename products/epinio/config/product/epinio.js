@@ -17,6 +17,20 @@ export function init(store) {
     weightType
   } = DSL(store, EPINIO_PRODUCT_NAME);
 
+  product({
+    // ifHaveType:          CAPI.RANCHER_CLUSTER,
+    // ifFeature:           MULTI_CLUSTER,
+    category:            EPINIO_PRODUCT_NAME,
+    isMultiClusterApp:   true,
+    inStore:             EPINIO_PRODUCT_NAME,
+    icon:                'epinio',
+    iconHeader:          require(`@/products/epinio/assets/logo-epinio.svg`),
+    removable:           false,
+    showClusterSwitcher: false,
+    to:                  rootEpinioRoute()
+  });
+
+  // Internal Types
   spoofedType({
     label:             store.getters['type-map/labelFor']({ id: EPINIO_TYPES.INSTANCE }, 2),
     type:              EPINIO_TYPES.INSTANCE,
@@ -40,36 +54,34 @@ export function init(store) {
     showAge:              false,
     canYaml:              false,
   });
-
-  product({
-    // ifHaveType:          CAPI.RANCHER_CLUSTER,
-    // ifFeature:           MULTI_CLUSTER,
-    category:            EPINIO_PRODUCT_NAME,
-    isMultiClusterApp:   true,
-    inStore:             EPINIO_PRODUCT_NAME,
-    icon:                'epinio',
-    iconHeader:          require(`@/products/epinio/assets/logo-epinio.svg`),
-    removable:           false,
-    showClusterSwitcher: false,
-    to:                  rootEpinioRoute()
-  });
-
-  // Internal Types
   configureType(EPINIO_TYPES.INSTANCE, { customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.INSTANCE }) });
   componentForType(EPINIO_TYPES.APP_ACTION, undefined, EPINIO_PRODUCT_NAME);
 
   // App resource
-  weightType(EPINIO_TYPES.APP, 200, true);
+  weightType(EPINIO_TYPES.APP, 300, true);
   componentForType(EPINIO_TYPES.APP, undefined, EPINIO_PRODUCT_NAME);
   configureType(EPINIO_TYPES.APP, {
     isCreatable:          true,
     isEditable:           true,
     isRemovable:          true,
-    showState:            false,
+    showState:            true,
     showAge:              false,
     canYaml:              false,
     resourceEditMasthead: true, // TODO: RC REMOVE?
     customRoute:          createEpinioRoute('c-cluster-applications', { }),
+  });
+
+  // Service resource
+  weightType(EPINIO_TYPES.SERVICE, 200, true);
+  componentForType(EPINIO_TYPES.SERVICE, undefined, EPINIO_PRODUCT_NAME);
+  configureType(EPINIO_TYPES.SERVICE, {
+    isCreatable: true,
+    isEditable:  true,
+    isRemovable: true,
+    showState:   false,
+    showAge:     false,
+    canYaml:     false,
+    customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.SERVICE }),
   });
 
   // Namespace resource
@@ -88,6 +100,7 @@ export function init(store) {
   basicType([
     EPINIO_TYPES.APP,
     EPINIO_TYPES.NAMESPACE,
+    EPINIO_TYPES.SERVICE
   ]);
 
   headers(EPINIO_TYPES.APP, [
@@ -118,7 +131,7 @@ export function init(store) {
       name:      'services',
       labelKey:  'epinio.tableHeaders.boundServices',
       value:     'configuration.services',
-      formatter: 'List',
+      formatter: 'List', // TODO: RC turn into links
     },
     {
       name:     'deployedBy',
@@ -143,5 +156,23 @@ export function init(store) {
       name:     'pick',
       labelKey: 'epinio.instances.explore',
     }
+  ]);
+
+  headers(EPINIO_TYPES.SERVICE, [
+    NAME,
+    {
+      name:          'namespace',
+      labelKey:      'epinio.tableHeaders.namespace',
+      value:         'meta.namespace',
+      sort:          ['meta.namespace'],
+      formatter:     'LinkDetail',
+      formatterOpts: { reference: 'nsLocation' }
+    },
+    {
+      name:      'boundApps',
+      labelKey:  'epinio.tableHeaders.boundApps',
+      value:     'boundapps',
+      formatter: 'List', // TODO: RC turn into links
+    },
   ]);
 }
