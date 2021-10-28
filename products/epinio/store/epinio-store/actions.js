@@ -162,6 +162,14 @@ export default {
         type:              'schema',
         links:             { collection: '/proxy/api/v1/namespaces' },
         collectionMethods: ['get', 'post'],
+      }, {
+        product:           EPINIO_PRODUCT_NAME,
+        id:                EPINIO_TYPES.SERVICE,
+        type:              'schema',
+        links:             { collection: 'api/v1/namespaces/workspace/services' },
+        collectionMethods: ['get', 'post'],
+        resourceFields:    { },
+        attributes:        { namespaced: true }
       }]
     };
 

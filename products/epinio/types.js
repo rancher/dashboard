@@ -6,6 +6,7 @@ export const EPINIO_TYPES = {
   // From API
   APP:        'applications',
   NAMESPACE:      'namespaces',
+  SERVICE:    'services',
   // Internal
   INSTANCE:   'instance',
   APP_ACTION: 'application-action'
