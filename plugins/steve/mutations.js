@@ -168,6 +168,21 @@ export default {
     cache.haveAll = true;
   },
 
+  forgetAll(state, { type }) {
+    const cache = registerType(state, type);
+
+    clear(cache.list);
+    cache.map.clear();
+    cache.generation++;
+  },
+
+  loadedAll(state, { type }) {
+    const cache = registerType(state, type);
+
+    cache.generation++;
+    cache.haveAll = true;
+  },
+
   remove(state, obj) {
     let type = normalizeType(obj.type);
     const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
