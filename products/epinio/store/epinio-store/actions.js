@@ -1,7 +1,7 @@
 import https from 'https';
 
 import { SCHEMA } from '@/config/types';
-import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
+import { EPINIO_MGMT_STORE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import { normalizeType } from '@/plugins/core-store/normalize';
 import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 import { base64Encode } from '@/utils/crypto';
@@ -18,6 +18,7 @@ const createId = (schema, resource) => {
 };
 
 export default {
+
   remove({ commit }, obj ) {
     commit('remove', obj);
   },
@@ -36,10 +37,10 @@ export default {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
-    return await dispatch('findAll', { type: EPINIO_TYPES.INSTANCE })
+    return await dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE }, { root: true })
       .then(() => {
         const currentClusterId = rootGetters['clusterId'];
-        const currentCluster = rootGetters['epinio/byId'](EPINIO_TYPES.INSTANCE, currentClusterId);
+        const currentCluster = rootGetters[`${ EPINIO_MGMT_STORE }/byId`](EPINIO_TYPES.INSTANCE, currentClusterId);
 
         opt.headers = {
           ...opt.headers,
@@ -70,7 +71,6 @@ export default {
           const out = res.data || {};
           const schema = getters.schemaFor(type);
 
-          // TODO: API - namespaces call returns array of strings!
           if (Array.isArray(out)) {
             res.data = {
               data: out.map(o => ({
@@ -134,8 +134,19 @@ export default {
     }
   },
 
-  loadSchemas: (ctx) => {
+  loadManagement(ctx) {
+    const { dispatch } = ctx;
+
+    dispatch(`${ EPINIO_MGMT_STORE }/loadManagement`, null, { root: true });
+  },
+
+  onLogout({ dispatch }) {
+    dispatch('reset');
+  },
+
+  loadSchemas: ( ctx ) => {
     const { commit, rootGetters } = ctx;
+
     const res = {
       data: [{
         product:           EPINIO_PRODUCT_NAME,
@@ -155,8 +166,9 @@ export default {
     };
 
     const spoofedSchemas = rootGetters['type-map/spoofedSchemas'](EPINIO_PRODUCT_NAME);
+    const excludeInstances = spoofedSchemas.filter(schema => schema.id !== EPINIO_TYPES.INSTANCE);
 
-    res.data = res.data.concat(spoofedSchemas);
+    res.data = res.data.concat(excludeInstances);
 
     res.data.forEach((schema) => {
       schema._id = normalizeType(schema.id);

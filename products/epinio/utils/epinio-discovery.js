@@ -21,6 +21,7 @@ export default {
         const password = epinioAuthData.data.pass;
 
         epinioClusters.push({
+          id:       c.spec.displayName,
           name:     c.spec.displayName,
           api:      url,
           username: base64Decode(username),
@@ -32,13 +33,14 @@ export default {
       }
     }
 
-    // TODO: RC Remove later on
+    // FIXME: See epinio/ui #34
     const api = process.env.epinioUrl;
     const username = process.env.epinioUser;
     const password = process.env.epinioPassword;
 
     if (api && username && password) {
       epinioClusters.push({
+        id:   'epinio-from-env-var',
         name:     'epinio-from-env-var',
         api,
         username,

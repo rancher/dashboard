@@ -73,7 +73,7 @@ module.exports = {
     version,
     dev,
     pl,
-    // TODO: RC Remove
+    // FIXME: See epinio/ui #34
     epinioUrl:      process.env.EPINIO_URL,
     epinioUser:     process.env.EPINIO_USER,
     epinioPassword: process.env.EPINIO_PASSWORD,

@@ -564,7 +564,9 @@ export const actions = {
 
   async loadCluster({
     state, commit, dispatch, getters
-  }, { id, oldProduct, isExt }) {
+  }, {
+    id, product, oldProduct, isExt
+  }) {
     const isMultiCluster = getters['isMultiCluster'];
     const isRancher = getters['isRancher'];
 
@@ -595,6 +597,12 @@ export const actions = {
 
       commit('management/forgetType', MANAGEMENT.PROJECT);
       commit('catalog/reset');
+
+      if (isExt && product) {
+        // If we've left a cluster of a product ensure we reset it
+        await dispatch(`${ oldProduct }/unsubscribe`);
+        await commit(`${ oldProduct }/reset`);
+      }
     }
 
     if ( id ) {
@@ -608,8 +616,15 @@ export const actions = {
 
     console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
 
-    if (id === BLANK_CLUSTER || isExt) {
+    if (id === BLANK_CLUSTER) {
       commit('clusterChanged', true);
+
+      return;
+    }
+
+    if (isExt && product) {
+      commit('clusterChanged', true);
+      dispatch(`${ product }/loadSchemas`, true);
 
       return;
     }
@@ -821,7 +836,7 @@ export const actions = {
     commit('rancher/reset');
     commit('catalog/reset');
 
-    extensions.stores().forEach(store => commit(`${ store }/reset`));
+    extensions.stores().forEach(store => commit(`${ store }/onLogout`));
 
     const router = state.$router;
     const route = router.currentRoute;

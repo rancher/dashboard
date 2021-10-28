@@ -264,7 +264,6 @@ export default class EpinioApplication extends EpinioResource {
     };
 
     await this.$dispatch('request', { opt, type: this.type });
-    // TODO: RC API assume any acceptable response is 'ok' ({ status: ok })
   }
 
   async deploy(stageId, image) {

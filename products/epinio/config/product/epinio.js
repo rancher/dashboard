@@ -30,9 +30,7 @@ export function init(store) {
         resourceFields:    {},
       }
     ],
-    getInstances: async() => {
-      return await EpinioDiscovery.discover(store);
-    }
+    getInstances: async() => await EpinioDiscovery.discover(store),
   });
   configureType(EPINIO_TYPES.INSTANCE, {
     isCreatable:          false,
