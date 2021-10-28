@@ -32,7 +32,7 @@ export default class Workload extends SteveModel {
       insertAt(out, 0, {
         action:     'redeploy',
         label:      'Redeploy',
-        icon:       'icon icon-spinner',
+        icon:       'icon icon-refresh',
         enabled:    !!this.links.update,
         bulkable:   true,
       });
