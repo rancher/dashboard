@@ -1,5 +1,5 @@
 import { insertAt } from '@/utils/array';
-import HybridModel from '@/plugins/steve/hybrid-class';
+import SteveModel from '@/plugins/steve/steve-class';
 
 export const configType = {
   activedirectory: 'ldap',
@@ -19,7 +19,7 @@ export const configType = {
 
 const imageOverrides = { keycloakoidc: 'keycloak' };
 
-export default class AuthConfig extends HybridModel {
+export default class AuthConfig extends SteveModel {
   get _availableActions() {
     const out = this._standardActions;
 
