@@ -21,7 +21,7 @@ const imageOverrides = { keycloakoidc: 'keycloak' };
 
 export default class AuthConfig extends HybridModel {
   get _availableActions() {
-    const out = this._standardActions;
+    const out = super._availableActions;
 
     insertAt(out, 0, {
       action:     'disable',

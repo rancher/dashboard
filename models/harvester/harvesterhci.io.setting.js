@@ -7,7 +7,7 @@ export default class HciSetting extends SteveModel {
     const toFilter = ['cloneYaml', 'download', 'goToEditYaml', 'goToViewYaml', 'goToViewConfig', 'promptRemove'];
     const settingMetadata = HCI_ALLOWED_SETTINGS[this.id];
 
-    let out = this._standardActions;
+    let out = super._availableActions;
 
     // Some settings are not editable
     if ( settingMetadata?.readOnly || this.fromEnv ) {

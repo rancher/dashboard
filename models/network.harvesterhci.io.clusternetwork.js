@@ -4,7 +4,7 @@ import SteveModel from '@/plugins/steve/steve-class';
 
 export default class HciClusterNetwork extends SteveModel {
   get availableActions() {
-    let out = this._standardActions;
+    let out = super._availableActions;
     const toFilter = ['goToClone', 'cloneYaml', 'goToViewYaml', 'goToViewConfig', 'promptRemove', 'goToEditYaml', 'download'];
 
     out = out.filter((action) => {

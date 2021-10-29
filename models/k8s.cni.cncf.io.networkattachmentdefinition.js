@@ -3,7 +3,7 @@ import SteveModel from '@/plugins/steve/steve-class';
 
 export default class NetworkAttachmentDef extends SteveModel {
   get _availableActions() {
-    let out = this._standardActions;
+    let out = super._availableActions;
     const toFilter = ['goToClone', 'cloneYaml', 'goToViewConfig', 'goToEditYaml', 'goToEdit'];
 
     out = out.filter((action) => {

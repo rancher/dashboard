@@ -9,7 +9,7 @@ import { shortenedImage } from '@/utils/string';
 export default class Workload extends SteveModel {
   // remove clone as yaml/edit as yaml until API supported
   get _availableActions() {
-    let out = this._standardActions;
+    let out = super._availableActions;
     const type = this._type ? this._type : this.type;
 
     const editYaml = findBy(out, 'action', 'goToEditYaml');
