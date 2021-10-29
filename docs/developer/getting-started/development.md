@@ -78,72 +78,15 @@ Spoofed Types, like virtual types, add menu items but also define a spoofed sche
 
 > Any resources returned by `getInstances` should have a `kind` matching required type. This results in the tables showing the correct actions, handling create/edit, etc.
 
-
 ### Model Architecture
 
-There are two types of models used to represent resources: proxy models and ES6 class models. In both cases, the models apply properties and methods to the resource, which defines how the resource can function in the UI and what other components can do with it. Different APIs return models in different structures, but the implementation of the models allows some common functionality to be available for any of them, such as `someModel.name`, `someModel.description`, `setLabels` or `setAnnotations`.
+ES6 class models are used to represent Kubernetes resources. The class applies properties and methods to the resource, which defines how the resource can function in the UI and what other components can do with it. Different APIs return models in different structures, but the implementation of the models allows some common functionality to be available for any of them, such as `someModel.name`, `someModel.description`, `setLabels` or `setAnnotations`.
 
-Originally only [proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) models were used. In September 2021, class-based model support was added to increase performance because proxies were about 1/100th the speed of native property access in Firefox and Safari.
+In the `models` directory, the class-based models end in `.class.js`.
 
-In the `models` directory, the proxy-based models are the `.js` files and the class-based models end in `.class.js`.
-
-Much of the reused functionality for each model is taken from the Steve plugin. The proxy-based models use functionality from `plugins/steve/resource-instance.js`, while the class-based models use functionality from `plugins/steve/resource-class.js`. Those two files share a lot of duplicated functionality, and if one is changed, the other probably needs to be changed to match until we drop support for proxy-based models.
+Much of the reused functionality for each model is taken from the Steve plugin. The class-based models use functionality from `plugins/steve/resource-class.js`.
 
 The `Resource` class in `plugins/steve/resource-class.js` should not have any fields defined that conflict with any key ever returned by the APIs (e.g. name, description, state, etc used to be a problem). The `SteveModel` (`plugins/steve/steve-class.js`) and `NormanModel` (`plugins/steve/norman-class.js`) know how to handle those keys separately now, so the computed name/description/etc is only in the Steve implementation. It is no longer needed to use names like `_name` to avoid naming conflicts.
-
-### Proxy Models
-
-For proxy models, when resources are retrieved from the store they will be wrapped in a Proxy object - `/plugins/steve/resource-proxy.js`. This exposes common properties and functions from `/plugins/steve/resource-instance.js`. These can be overridden per resource type via optional files in `/models`. For example the `nameDisplay` value for the type `management.cattle.io.user` avoids using the `nameDisplay` from `resource-instance` by adding a `nameDisplay` function to `/models/management.cattle.io.user.js`.
-
-To avoid naming conflicts with fields defined on models that come in from an API, some fields were renamed to `_name` or similar because a property on a model couldn't override the getter defined in the proxy.
-
-> As resources are proxy instances spreading (`{ ...<resource>}`) will not work as expected. In such cases it's normally better to first `clone` (see below) and then make the required changes.
-
-Common functionality provided by `resource-instance` includes information on how to display common properties, capabilities of the resource type and actions to execute such as `save`, `remove`, `goToEdit`
-
-```
-
-<user object>.save();
-
-<project object>.remove();
-
-<role binding object>.goToEdit();
-
-```
-
-> Note the `toString` property in `resource-instance`. This will change how the object is presented via console.log, etc. Read on to understand other ways to view resource properties.
-
-
-### Converting Proxy Models to Class Models
-
-To convert models from a proxy-based implementation to a class implementation, properties structured like this:
-
-```
-property() {
-  ...
-}
-```
-should be changed to:
-```
-get property() {
-  ....
-}
-```
-and 
-```
-methods() {
-  return () => {
-    ...
-  }
-}
-```
-should be converted to:
-```
-method() {
-  ...
-}
-```
-Examples of the conversion are in [this PR](https://github.com/rancher/dashboard/pull/4153), which converted some of the high-volume models. The rest should be converted as well.
 
 ### Extending Models
 
