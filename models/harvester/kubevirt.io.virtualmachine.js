@@ -686,7 +686,7 @@ export default class VirtVm extends SteveModel {
       {
         nullable:       false,
         path:           'spec.template.spec.domain.resources.requests.memory',
-        required:       false,
+        required:       true,
         translationKey: 'harvester.fields.memory',
       },
       {

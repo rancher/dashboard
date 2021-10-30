@@ -63,6 +63,9 @@ export default {
       } else {
         memory = `${ this.localMemory }Gi`;
       }
+      if (memory.includes('null')) {
+        memory = null;
+      }
       this.$emit('updateCpuMemory', this.localCpu, memory);
     },
 
