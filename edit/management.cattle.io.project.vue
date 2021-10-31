@@ -14,6 +14,7 @@ import { NAME } from '@/config/product/explorer';
 import { PROJECT_ID } from '@/config/query-params';
 import ProjectMembershipEditor from '@/components/form/Members/ProjectMembershipEditor';
 import { canViewProjectMembershipEditor } from '@/components/form/Members/ProjectMembershipEditor.vue';
+import { NAME as HARVESTER } from '@/config/product/harvester';
 
 export default {
   components: {
@@ -81,6 +82,18 @@ export default {
       }
 
       return out;
+    },
+
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === HARVESTER;
+    },
+
+    resourceQuotaLabel() {
+      if (this.isHarvester) {
+        return this.t('project.vmDefaultResourceLimit');
+      }
+
+      return this.t('project.containerDefaultResourceLimit');
     },
   },
   watch: {
@@ -176,7 +189,7 @@ export default {
       <Tab name="resource-quotas" :label="t('project.resourceQuotas')" :weight="9">
         <ResourceQuota v-model="value" :mode="mode" />
       </Tab>
-      <Tab name="container-default-resource-limit" :label="t('project.containerDefaultResourceLimit')" :weight="8">
+      <Tab name="container-default-resource-limit" :label="resourceQuotaLabel" :weight="8">
         <ContainerResourceLimit v-model="value.spec.containerDefaultResourceLimit" :mode="mode" :show-tip="false" :register-before-hook="registerBeforeHook" />
       </Tab>
       <Tab

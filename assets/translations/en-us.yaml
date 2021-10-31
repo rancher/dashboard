@@ -3197,6 +3197,7 @@ project:
   members:
     label: Members
   containerDefaultResourceLimit: Container Default Resource Limit
+  vmDefaultResourceLimit: VM Default Resource Limit
   resourceQuotas: Resource Quotas
   haveOneOwner: There must be at least one member with the Owner role.
   psp:

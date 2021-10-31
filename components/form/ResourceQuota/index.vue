@@ -1,5 +1,6 @@
 <script>
 import ArrayList from '@/components/form/ArrayList';
+import { NAME as HARVESTER } from '@/config/product/harvester';
 import Row from './Row';
 
 export const TYPES = [
@@ -70,6 +71,34 @@ export const TYPES = [
   },
 ];
 
+const HARVESTER_TYPES = [
+  {
+    key:      'configMaps',
+    units:    'unitless',
+    labelKey: 'harvester.cloudTemplate.label'
+  },
+  {
+    key:      'limitsCpu',
+    units:    'cpu',
+    labelKey: 'resourceQuota.limitsCpu'
+  },
+  {
+    key:      'limitsMemory',
+    units:    'memory',
+    labelKey: 'resourceQuota.limitsMemory'
+  },
+  {
+    key:      'requestsCpu',
+    units:    'cpu',
+    labelKey: 'resourceQuota.requestsCpu'
+  },
+  {
+    key:      'requestsMemory',
+    units:    'memory',
+    labelKey: 'resourceQuota.requestsMemory'
+  },
+];
+
 export default {
   components: { ArrayList, Row },
 
@@ -96,13 +125,17 @@ export default {
 
   computed: {
     mappedTypes() {
-      return TYPES
+      return (this.isHarvester ? HARVESTER_TYPES : TYPES)
         .map(type => ({
           label: this.t(type.labelKey),
           units: type.units,
           value: type.key
         }));
-    }
+    },
+
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === HARVESTER;
+    },
   },
 
   methods: {
