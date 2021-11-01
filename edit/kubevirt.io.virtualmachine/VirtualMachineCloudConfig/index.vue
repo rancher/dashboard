@@ -183,13 +183,15 @@ export default {
           @keydown.native.enter.prevent="()=>{}"
         />
 
-        <div class="resource-yaml">
-          <YamlEditor
-            ref="createTemplate"
-            v-model="cloudTemplate"
-            class="yaml-editor"
-            :editor-mode="editorMode"
-          />
+        <div class="yaml">
+          <div class="resource-yaml">
+            <YamlEditor
+              ref="createTemplate"
+              v-model="cloudTemplate"
+              class="yaml-editor"
+              :editor-mode="editorMode"
+            />
+          </div>
         </div>
       </template>
     </ModalWithCard>
@@ -197,7 +199,12 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-$yaml-height: 200px;
+$yaml-height: 350px;
+
+.yaml {
+  height: $yaml-height;
+  overflow: auto;
+}
 
 ::v-deep .resource-yaml {
   flex: 1;
