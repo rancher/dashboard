@@ -1,6 +1,5 @@
 <script>
 import Vue from 'vue';
-import { intersection } from 'lodash';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import RadioGroup from '@/components/form/RadioGroup';
 import Tip from '@/components/Tip';
@@ -47,21 +46,45 @@ export default {
     },
 
     nicOptions() {
+      const allNics = [];
+      const out = [];
+
       if (this.nodeNetworks.length === 0) {
-        return [];
+        return out;
       }
 
-      const out = this.nodeNetworks.map((N) => {
+      this.nodeNetworks.map((N) => {
         if (N?.nics?.length > 0) {
-          return N.nics.filter((nic) => {
+          const nics = N.nics.filter((nic) => {
             return !(nic.masterIndex !== undefined && nic.usedByVlanNetwork === undefined);
           }).map(nic => nic.name);
+
+          allNics.push(...nics);
         } else {
           return [];
         }
       });
 
-      return intersection(...out);
+      allNics.map((N) => {
+        const index = out.findIndex(nic => nic.value === N);
+
+        if (index > -1) {
+          out[index].num = out[index].num + 1;
+        } else {
+          out.push({
+            label: N,
+            value: N,
+            num:   1,
+          });
+        }
+      });
+
+      return out.map((option) => {
+        return {
+          ...option,
+          percent: `${ (option.num / this.nodeNetworks.length) * 100 } %`
+        };
+      });
     }
   },
 };
@@ -83,7 +106,17 @@ export default {
       :options="nicOptions"
       :label="t('harvester.setting.defaultPhysicalNIC')"
       class="mb-5"
-    />
+      :tooltip="mode === 'view' ? null : t('harvester.setting.percentTip')"
+      :hover-tooltip="true"
+    >
+      <template v-slot:option="option">
+        <template>
+          <div class="nicOption">
+            <span>{{ option.label }}({{ option.percent }}) </span>
+          </div>
+        </template>
+      </template>
+    </LabeledSelect>
 
     <Tip v-if="value.enable" icon="icons icon-h-question" :text="t('harvester.setting.vlanChangeTip')" />
   </div>

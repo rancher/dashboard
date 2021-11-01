@@ -4498,7 +4498,8 @@ harvester:
       secretAccessKey: 指定您的私密访问密钥
       cert: 上传自签名SSL证书
     vlanChangeTip: 新修改的默认物理网卡仅适用于新增节点，不适用于现有节点
-    defaultPhysicalNIC: 默认物理网卡
+    defaultPhysicalNIC: 默认网络接口
+    percentTip: 括号内的数值代表所有主机上的网络接口的分布比例。如果选择了一个小于100%的接口，用户需要手动指定vlan网络配置失败的主机上的网络接口。
 
   cloudTemplate:
     label: Cloud 配置模板
@@ -4894,7 +4895,7 @@ advancedSettings:
     'rke-metadata-config': '配置RKE元数据刷新参数。'
     'ui-banners': '分类横幅是用来在页眉、页脚或两者中显示一个自定义的固定横幅。'
     'ui-default-landing': '用户在登录后登陆的默认页面。'
-    'harv-vlan': VLAN网络的默认物理NIC名称.
+    'harv-vlan': VLAN网络的默认NIC名称.
     'harv-backup-target': 自定义备份目标用于存储VM备份.
     'harv-log-level': 配置Harvester服务器日志级别. 默认为信息
     'harv-server-version': Harvester服务器版本.

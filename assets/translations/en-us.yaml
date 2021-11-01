@@ -5407,7 +5407,8 @@ harvester:
       secretAccessKey: specify your secret access key
       cert: upload a self-signed SSL certificate
     vlanChangeTip: The newly modified default physical NIC only applies to newly added nodes, not existing ones
-    defaultPhysicalNIC: Default Physical NIC
+    defaultPhysicalNIC: Default Network Interface
+    percentTip: The value in parentheses represents the distribution percentage of the network interface on all hosts. If an interface less than 100% is selected, the user needs to manually specify the network interface on the host where the vlan network configuration fails.
 
   cloudTemplate:
     label: Cloud Config Templates
@@ -5892,7 +5893,7 @@ advancedSettings:
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
     'ui-default-landing': 'The default page users land on after login.'
     'brand': Folder name for an alternative theme defined in '/assets/brand'
-    'harv-vlan': Default physical NIC name of the VLAN network.
+    'harv-vlan': Default Network Interface name of the VLAN network.
     'harv-backup-target': Custom back target to store VM backups.
     'harv-log-level': Configure Harvester server log level. Default to info.
     'harv-server-version': Harvester server version.
