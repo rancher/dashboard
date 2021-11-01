@@ -592,12 +592,8 @@ export default class Resource {
     return out;
   }
 
-  // You can add custom actions by overriding your own availableActions (and probably reading _standardActions)
+  // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
   get _availableActions() {
-    return this._standardActions;
-  }
-
-  get _standardActions() {
     const all = [
       { divider: true },
       {

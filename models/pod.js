@@ -16,7 +16,7 @@ export const WORKLOAD_PRIORITY = {
 
 export default class Pod extends SteveModel {
   get _availableActions() {
-    const out = this._standardActions;
+    const out = super._availableActions;
 
     // Add backwards, each one to the top
     insertAt(out, 0, { divider: true });

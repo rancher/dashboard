@@ -5,7 +5,7 @@ import SteveModel from '@/plugins/steve/steve-class';
 
 export default class CatalogOperation extends SteveModel {
   get _availableActions() {
-    const out = this._standardActions;
+    const out = super._availableActions;
 
     const removeAction = findBy(out, 'altAction', ' remove');
     let idx = out.length - 1;

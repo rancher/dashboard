@@ -11,7 +11,7 @@ import SteveModel from '@/plugins/steve/steve-class';
 
 export default class HciVmImage extends SteveModel {
   get availableActions() {
-    let out = this._standardActions;
+    let out = super._availableActions;
     const toFilter = ['goToEditYaml'];
 
     out = out.filter( A => !toFilter.includes(A.action));

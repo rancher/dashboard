@@ -45,7 +45,7 @@ export default class HciNode extends SteveModel {
       uncordon,
       enableMaintenance,
       disableMaintenance,
-      ...this._standardActions
+      ...super._availableActions
     ];
   }
 

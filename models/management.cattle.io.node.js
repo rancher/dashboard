@@ -8,7 +8,7 @@ import HybridModel from '@/plugins/steve/hybrid-class';
 
 export default class MgmtNode extends HybridModel {
   get _availableActions() {
-    const out = this._standardActions;
+    const out = super._availableActions;
 
     const downloadKeys = {
       action:     'downloadKeys',

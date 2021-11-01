@@ -71,7 +71,7 @@ const VMIPhase = {
 
 export default class VirtVm extends SteveModel {
   get availableActions() {
-    const out = this._standardActions;
+    const out = super._availableActions;
 
     return [
       {

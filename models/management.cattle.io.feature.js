@@ -23,7 +23,7 @@ export default class Feature extends HybridModel {
   }
 
   get _availableActions() {
-    const out = this._standardActions;
+    const out = super._availableActions;
     const state = this.enabled;
 
     // Prepend action to enable or disable this feature flag
