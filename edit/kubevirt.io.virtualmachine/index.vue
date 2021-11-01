@@ -389,6 +389,7 @@ export default {
             :mode="mode"
             :disabled="isWindows"
             @update:sshKey="updateSSHKey"
+            @register-after-hook="registerAfterHook"
           />
         </Tab>
 

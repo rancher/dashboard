@@ -114,7 +114,7 @@ export default {
 
           this.value.metadata.annotations[HCI_ANNOTATIONS.IMAGE_NAME] = file?.name;
 
-          const res = await this.value.save({ extend: { isRes: true } });
+          const res = await this.value.save();
 
           res.uploadImage(file);
 

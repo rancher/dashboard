@@ -168,9 +168,9 @@ export default {
           type:       HCI.SSH
         });
 
-        const res = await sshValue.save({ extend: { isRes: true } });
+        const res = await sshValue.save();
 
-        if (res._status === 200 || res._status === 201 || res._status === 204) {
+        if (res.id) {
           this.checkedSsh.push(`${ this.namespace }/${ this.sshName }`);
         }
 
