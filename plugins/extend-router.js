@@ -11,14 +11,14 @@ VueRouter.prototype.push = function push(location, onResolve, onReject) {
     return originalPush.call(this, location, onResolve, onReject);
   }
 
-  return originalPush.call(this, location).catch((err) => {
+  return originalPush?.call(this, location)?.catch((err) => {
     if (VueRouter.isNavigationFailure(err)) {
-      // resolve err
-      return err;
+      // If there really is an error, throw it
+      return Promise.reject(err);
     }
 
-    // rethrow error
-    return Promise.reject(err);
+    // Otherwise resolve to false to indicate the original push call didn't go to its original destination.
+    return Promise.resolve(false);
   });
 };
 
