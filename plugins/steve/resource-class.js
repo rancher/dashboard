@@ -680,7 +680,7 @@ export default class Resource {
   }
 
   get canYaml() {
-    return this.hasLink('view');
+    return this.hasLink('view') && !this.schema?.resourceMethods.find(x => x === 'blocked-PUT'); // 'blocked-PUT' will prevent config from saving when editing as yaml
   }
 
   // ------------------------------------------------------------------
