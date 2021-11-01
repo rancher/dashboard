@@ -46,7 +46,6 @@ export default {
     return {
       url:         this.value.spec.url,
       files:       [],
-      displayName: '',
       resource:    '',
       headers:     {},
       fileUrl:     '',
@@ -80,10 +79,6 @@ export default {
           this.$refs.nd.changeNameAndNamespace({ text: suffixName });
         }
       }
-    },
-
-    'value.spec.displayName'(neu) {
-      this.displayName = neu;
     },
 
     'value.spec.sourceType'() {
@@ -160,10 +155,9 @@ export default {
   >
     <NameNsDescription
       ref="nd"
-      :key="value.spec.displayName"
       v-model="value"
       :mode="mode"
-      label="Name"
+      :label="t('generic.name')"
       name-key="spec.displayName"
     />
 
