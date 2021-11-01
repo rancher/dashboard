@@ -19,9 +19,11 @@ import CruResource from '@/components/CruResource';
 import Banner from '@/components/Banner';
 import Labels from '@/components/form/Labels';
 import { clone, get } from '@/utils/object';
-import { POD } from '@/config/types';
+import { POD, CAPI } from '@/config/types';
 import { matching } from '@/utils/selector';
 import { NAME as HARVESTER } from '@/config/product/harvester';
+import { allHash } from '@/utils/promise';
+import { isHarvesterSatisfiesVersion } from '@/utils/cluster';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:     'None',
@@ -42,7 +44,7 @@ const HARVESTER_ADD_ON_CONFIG = [{
 }, {
   variableName: 'healthcheckPort',
   key:          'cloudprovider.harvesterhci.io/healthcheck-port',
-  default:      80,
+  default:      '',
 }, {
   variableName: 'healthCheckSuccessThreshold',
   key:          'cloudprovider.harvesterhci.io/healthcheck-success-threshold',
@@ -196,7 +198,20 @@ export default {
     },
 
     showHarvesterAddOnConfig() {
-      return this.checkTypeIs('LoadBalancer') && this.currentCluster?.status?.provider === HARVESTER;
+      const machineSelectorConfig = this.provisioningCluster?.spec?.rkeConfig?.machineSelectorConfig || {};
+      const agentConfig = (machineSelectorConfig[0] || {}).config;
+      const cloudProvider = agentConfig?.['cloud-provider-name'];
+      const version = this.provisioningCluster?.spec?.kubernetesVersion;
+
+      return this.checkTypeIs('LoadBalancer') &&
+              cloudProvider === HARVESTER &&
+              isHarvesterSatisfiesVersion(version);
+    },
+
+    provisioningCluster() {
+      const out = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find(c => c?.status?.clusterName === this.currentCluster.metadata.name);
+
+      return out;
     },
   },
 
@@ -257,7 +272,14 @@ export default {
       try {
         const inStore = this.$store.getters['currentStore'](POD);
 
-        this.allPods = await this.$store.dispatch(`${ inStore }/findAll`, { type: POD });
+        const hash = {
+          provClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+          pods:         this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
+        };
+
+        const res = await allHash(hash);
+
+        this.allPods = res.pods;
         this.updateMatchingPods();
       } catch (e) { }
     },
@@ -452,14 +474,6 @@ export default {
       >
         <div class="row mt-30">
           <div class="col span-6">
-            <LabeledSelect
-              v-model="ipam"
-              :mode="mode"
-              :options="ipamOptions"
-              :label="t('harvester.service.ipam.label')"
-            />
-          </div>
-          <div class="col span-6">
             <LabeledInput
               v-model="healthcheckPort"
               :mode="mode"
@@ -467,6 +481,14 @@ export default {
               type="number"
               :label="t('harvester.service.healthCheckPort.label')"
               :tooltip="t('harvester.service.healthCheckPort.description')"
+            />
+          </div>
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="ipam"
+              :mode="mode"
+              :options="ipamOptions"
+              :label="t('harvester.service.ipam.label')"
             />
           </div>
         </div>

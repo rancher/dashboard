@@ -5344,8 +5344,8 @@ harvester:
     warning:
       uploading: |-
         {count, plural,
-        =1 {1 image is uploading, please do not refresh or close current page.}
-        other {{count} images are uploading, please do not refresh or close current page.}
+        =1 {1 image is uploading, please do not refresh or close the page.}
+        other {{count} images are uploading, please do not refresh or close the page.}
         }
 
   vmTemplate:
@@ -5443,7 +5443,7 @@ harvester:
     label: Projects/Namespaces
   
   service:
-    title: Add-On Config
+    title: Add-on Config
     ipam:
       label: IPAM
     healthCheckPort:

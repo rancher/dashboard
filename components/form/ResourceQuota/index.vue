@@ -72,31 +72,10 @@ export const TYPES = [
 ];
 
 const HARVESTER_TYPES = [
-  {
-    key:      'configMaps',
-    units:    'unitless',
-    labelKey: 'harvester.cloudTemplate.label'
-  },
-  {
-    key:      'limitsCpu',
-    units:    'cpu',
-    labelKey: 'resourceQuota.limitsCpu'
-  },
-  {
-    key:      'limitsMemory',
-    units:    'memory',
-    labelKey: 'resourceQuota.limitsMemory'
-  },
-  {
-    key:      'requestsCpu',
-    units:    'cpu',
-    labelKey: 'resourceQuota.requestsCpu'
-  },
-  {
-    key:      'requestsMemory',
-    units:    'memory',
-    labelKey: 'resourceQuota.requestsMemory'
-  },
+  'limitsCpu',
+  'limitsMemory',
+  'requestsCpu',
+  'requestsMemory',
 ];
 
 export default {
@@ -125,7 +104,7 @@ export default {
 
   computed: {
     mappedTypes() {
-      return (this.isHarvester ? HARVESTER_TYPES : TYPES)
+      return (this.isHarvester ? this.harvesterTypes : TYPES)
         .map(type => ({
           label: this.t(type.labelKey),
           units: type.units,
@@ -135,6 +114,10 @@ export default {
 
     isHarvester() {
       return this.$store.getters['currentProduct'].inStore === HARVESTER;
+    },
+
+    harvesterTypes() {
+      return TYPES.filter(t => HARVESTER_TYPES.includes(t.key));
     },
   },
 
