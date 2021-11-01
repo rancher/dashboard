@@ -849,6 +849,10 @@ export default {
     },
 
     async saveSecret(vm) {
+      if (!vm?.spec) {
+        return true;
+      }
+
       let secret = this.getSecret(vm.spec);
 
       const userData = this.getUserData({ osType: this.osType, installAgent: this.installAgent });

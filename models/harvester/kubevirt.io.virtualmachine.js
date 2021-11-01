@@ -697,7 +697,7 @@ export default class VirtVm extends SteveModel {
       {
         nullable:       false,
         path:           'spec',
-        validators:     ['vmDisks'],
+        validators:     [`vmDisks`],
       },
     ];
 

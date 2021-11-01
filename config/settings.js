@@ -121,7 +121,8 @@ export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
     kind:    'enum',
     options: ['auto', 'external', 'bundled']
   },
-  [HCI_SETTING.UI_INDEX]: { kind: 'url' }
+  [HCI_SETTING.UI_INDEX]: { kind: 'url' },
+  [SETTING.SERVER_URL]:   { kind: 'url' },
 };
 
 export const fetchOrCreateSetting = async(store, id, val, save = true) => {
