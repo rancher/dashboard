@@ -155,7 +155,6 @@ export default {
     :resource="value"
     :mode="mode"
     :errors="errors"
-    :can-yaml="false"
     :apply-hooks="applyHooks"
     @finish="saveImage"
   >

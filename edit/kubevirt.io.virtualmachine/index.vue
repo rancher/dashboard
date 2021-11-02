@@ -309,7 +309,6 @@ export default {
     <CruResource
       :done-route="doneRoute"
       :resource="value"
-      :can-yaml="false"
       :mode="mode"
       :errors="errors"
       :apply-hooks="applyHooks"
