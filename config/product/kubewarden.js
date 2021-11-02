@@ -10,7 +10,6 @@ export function init(store) {
     product,
     basicType,
     weightType,
-    configureType,
     headers
   } = DSL(store, NAME);
 
@@ -26,8 +25,6 @@ export function init(store) {
     'policies.kubewarden.io.policyserver',
     'policies.kubewarden.io.clusteradmissionpolicy'
   ]);
-
-  configureType(KUBEWARDEN.POLICY_SERVER, { canYaml: false, showAge: false });
 
   headers(KUBEWARDEN.POLICY_SERVER, [
     STATE,
