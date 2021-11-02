@@ -6,8 +6,9 @@ import { createYaml } from '@/utils/create-yaml';
 import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@/store/type-map';
 import { addParam } from '@/utils/url';
 import { isArray } from '@/utils/array';
+import { deferred } from '@/utils/promise';
 import { normalizeType } from './normalize';
-import { proxyFor } from './resource-proxy';
+import { classify } from './classify';
 
 export const _ALL = 'all';
 export const _MULTI = 'multi';
@@ -15,7 +16,7 @@ export const _ALL_IF_AUTHED = 'allIfAuthed';
 export const _NONE = 'none';
 
 export default {
-  async request({ dispatch, rootGetters }, opt) {
+  async request({ state, dispatch, rootGetters }, opt) {
     // Handle spoofed types instead of making an actual request
     // Spoofing is handled here to ensure it's done for both yaml and form editing.
     // It became apparent that this was the only place that both intersected
@@ -33,9 +34,30 @@ export default {
       return id && !isApi ? data : { data };
     }
 
-    // @TODO queue/defer duplicate requests
     opt.depaginate = opt.depaginate !== false;
     opt.url = opt.url.replace(/\/*$/g, '');
+
+    const method = (opt.method || 'get').toLowerCase();
+    const key = JSON.stringify(opt.headers || {}) + method + opt.url;
+    let waiting;
+
+    if ( (method === 'get') ) {
+      waiting = state.deferredRequests[key];
+
+      if ( waiting ) {
+        const later = deferred();
+
+        waiting.push(later);
+
+        // console.log('Deferred request for', key, waiting.length);
+
+        return later.promise;
+      } else {
+        // Set it to something so that future requests know to defer.
+        waiting = [];
+        state.deferredRequests[key] = waiting;
+      }
+    }
 
     opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
@@ -54,29 +76,49 @@ export default {
         */
       }
 
+      let out;
+
       if ( opt.responseType ) {
-        return res;
+        out = res;
       } else {
-        return responseObject(res);
+        out = responseObject(res);
       }
+
+      finishDeferred(key, out, 'resolve');
+
+      return out;
     }).catch((err) => {
-      if ( !err || !err.response ) {
-        return Promise.reject(err);
+      let out = err;
+
+      if ( err?.response ) {
+        const res = err.response;
+
+        // Go to the logout page for 401s, unless redirectUnauthorized specifically disables (for the login page)
+        if ( opt.redirectUnauthorized !== false && process.client && res.status === 401 ) {
+          dispatch('auth/logout', opt.logoutOnError, { root: true });
+        }
+
+        if ( typeof res.data !== 'undefined' ) {
+          out = responseObject(res);
+        }
       }
 
-      const res = err.response;
+      finishDeferred(key, out, 'reject');
 
-      // Go to the logout page for 401s, unless redirectUnauthorized specifically disables (for the login page)
-      if ( opt.redirectUnauthorized !== false && process.client && res.status === 401 ) {
-        dispatch('auth/logout', opt.logoutOnError, { root: true });
-      }
-
-      if ( typeof res.data !== 'undefined' ) {
-        return Promise.reject(responseObject(res));
-      }
-
-      return Promise.reject(err);
+      return Promise.reject(out);
     });
+
+    function finishDeferred(key, res, action = 'resolve') {
+      const waiting = state.deferredRequests[key] || [];
+
+      // console.log('Resolving deferred for', key, waiting.length);
+
+      while ( waiting.length ) {
+        waiting.pop()[action](res);
+      }
+
+      delete state.deferredRequests[key];
+    }
 
     function responseObject(res) {
       let out = res.data;
@@ -371,7 +413,7 @@ export default {
   },
 
   create(ctx, data) {
-    return proxyFor(ctx, data);
+    return classify(ctx, data);
   },
 
   createPopulated(ctx, userData) {
@@ -379,13 +421,13 @@ export default {
 
     merge(data, userData);
 
-    return proxyFor(ctx, data);
+    return classify(ctx, data);
   },
 
   clone(ctx, { resource } = {}) {
     const copy = cloneDeep(resource.toJSON());
 
-    return proxyFor(ctx, copy, true);
+    return classify(ctx, copy, true);
   },
 
   promptMove({ commit, state }, resources) {

@@ -1,4 +1,5 @@
 import { formatSi } from '@/utils/units';
+import HybridModel from '@/plugins/steve/hybrid-class';
 
 const CONFIG_KEYS = [
   {
@@ -73,8 +74,8 @@ const CONFIG_KEYS = [
   },
 ];
 
-export default {
-  provider() {
+export default class NodeTemplate extends HybridModel {
+  get provider() {
     const allKeys = Object.keys(this);
 
     const configKey = allKeys
@@ -84,19 +85,21 @@ export default {
     if ( configKey ) {
       return configKey.replace(/config$/i, '');
     }
-  },
 
-  providerConfig() {
+    return null;
+  }
+
+  get providerConfig() {
     return this[`${ this.provider }Config`];
-  },
+  }
 
-  providerDisplay() {
+  get providerDisplay() {
     const provider = (this.provider || '').toLowerCase();
 
     return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, 'generic.unknown', true);
-  },
+  }
 
-  providerLocation() {
+  get providerLocation() {
     if (this.provider) {
       const config = CONFIG_KEYS.find(k => k.driver === this.provider);
 
@@ -113,9 +116,9 @@ export default {
     }
 
     return this.providerConfig?.region || this.t('node.list.poolDescription.noLocation');
-  },
+  }
 
-  providerSize() {
+  get providerSize() {
     if (this.provider) {
       const config = CONFIG_KEYS.find(k => k.driver === this.provider);
 
@@ -133,4 +136,4 @@ export default {
 
     return this.providerConfig?.size || this.t('node.list.poolDescription.noSize');
   }
-};
+}

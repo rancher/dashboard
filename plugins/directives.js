@@ -34,4 +34,8 @@ const getElement = (vnode) => {
   if (tag === 'TextAreaAutoGrow') {
     return componentInstance.$refs.ta;
   }
+
+  if (tag === 'Password') {
+    return componentInstance.$refs.input.$refs.value;
+  }
 };

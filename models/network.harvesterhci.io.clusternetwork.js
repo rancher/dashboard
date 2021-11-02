@@ -1,9 +1,10 @@
 import { HCI } from '@/config/types';
 import { clone } from '@/utils/object';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  availableActions() {
-    let out = this._standardActions;
+export default class HciClusterNetwork extends SteveModel {
+  get availableActions() {
+    let out = super._availableActions;
     const toFilter = ['goToClone', 'cloneYaml', 'goToViewYaml', 'goToViewConfig', 'promptRemove', 'goToEditYaml', 'download'];
 
     out = out.filter((action) => {
@@ -19,17 +20,17 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  doneOverride() {
+  get doneOverride() {
     const detailLocation = clone(this.listLocation);
 
     detailLocation.params.resource = HCI.SETTING;
 
     return detailLocation;
-  },
+  }
 
-  parentLocationOverride() {
+  get parentLocationOverride() {
     return {
       ...this.listLocation,
       params: {
@@ -37,49 +38,51 @@ export default {
         resource: HCI.SETTING
       }
     };
-  },
+  }
 
   // vlan
-  canUseVlan() {
+  get canUseVlan() {
     return this.isVlanOpen && this.defaultPhysicalNic.length > 0;
-  },
+  }
 
-  canReset() {
+  get canReset() {
     return true;
-  },
+  }
 
-  defaultValue() {
+  get defaultValue() {
     this.enable = false;
     if (this.config) { // initializing: the config value is empty
       this.config.defaultPhysicalNIC = '';
     }
 
     return this;
-  },
+  }
 
-  isVlanOpen() {
+  get isVlanOpen() {
     return !!this.enable;
-  },
+  }
 
-  defaultPhysicalNic() {
+  get defaultPhysicalNic() {
     return this?.config?.defaultPhysicalNIC;
-  },
+  }
 
-  displayValue() { // Select the field you want to display
+  get displayValue() { // Select the field you want to display
     if (this.enable) {
       return this?.config?.defaultPhysicalNIC || '';
     }
-  },
 
-  customValue() {
+    return '';
+  }
+
+  get customValue() {
     return this.enable ? this?.config?.defaultPhysicalNIC : null;
-  },
+  }
 
-  hasCustomized() {
+  get hasCustomized() {
     return this.enable;
-  },
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     const out = [];
 
     if (this.enable) {
@@ -93,6 +96,5 @@ export default {
     }
 
     return out;
-  },
-
-};
+  }
+}

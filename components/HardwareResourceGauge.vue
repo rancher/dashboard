@@ -67,7 +67,7 @@ export default {
       <h3>
         {{ name }}
       </h3>
-      <div v-if=" reserved && (reserved.total || reserved.useful)" class="">
+      <div v-if=" reserved && (reserved.total || reserved.useful)">
         <ConsumptionGauge
           :capacity="reserved.total"
           :used="reserved.useful"
@@ -83,7 +83,7 @@ export default {
           </template>
         </ConsumptionGauge>
       </div>
-      <div v-if=" used && used.useful">
+      <div v-if=" used && used.useful" class="mt-20">
         <ConsumptionGauge
           :capacity="used.total"
           :used="used.useful"
@@ -91,7 +91,7 @@ export default {
         >
           <template #title>
             <span>
-              {{ t('clusterIndexPage.hardwareResourceGauge.used') }} <span class="values text-muted">{{ used.useful }} / {{ used.total }} {{ used.units }}</span>
+              {{ t('clusterIndexPage.hardwareResourceGauge.used') }} <span class="values text-muted">{{ maxDecimalPlaces(used.useful) }} / {{ maxDecimalPlaces(used.total) }} {{ used.units }}</span>
             </span>
             <span>
               {{ percentage(used) }}

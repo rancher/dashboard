@@ -6,13 +6,12 @@ import {
 import { get, clone } from '@/utils/object';
 import { formatSi } from '@/utils/units';
 import { ucFirst } from '@/utils/string';
-import { stateDisplay } from '@/plugins/steve/resource-instance';
+import { stateDisplay, colorForState } from '@/plugins/steve/resource-class';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export const VM_IMAGE_FILE_FORMAT = ['qcow', 'qcow2', 'raw', 'img', 'iso'];
-
-export default {
-  availableActions() {
-    let out = this._standardActions;
+export default class HciVmImage extends SteveModel {
+  get availableActions() {
+    let out = super._availableActions;
     const toFilter = ['goToEditYaml'];
 
     out = out.filter( A => !toFilter.includes(A.action));
@@ -26,25 +25,23 @@ export default {
       },
       ...out
     ];
-  },
+  }
 
   createFromImage() {
-    return () => {
-      const router = this.currentRouter();
+    const router = this.currentRouter();
 
-      router.push({
-        name:   `c-cluster-product-resource-create`,
-        params: { resource: HCI.VM },
-        query:  { image: this.id }
-      });
-    };
-  },
+    router.push({
+      name:   `c-cluster-product-resource-create`,
+      params: { resource: HCI.VM },
+      query:  { image: this.id }
+    });
+  }
 
-  nameDisplay() {
+  get nameDisplay() {
     return this.spec?.displayName;
-  },
+  }
 
-  isReady() {
+  get isReady() {
     const initialized = this.getStatusConditionOfType('Initialized');
     const imported = this.getStatusConditionOfType('Imported');
 
@@ -53,17 +50,19 @@ export default {
     } else {
       return true;
     }
-  },
+  }
 
-  stateDisplay() {
+  get stateDisplay() {
     const initialized = this.getStatusConditionOfType('Initialized');
     const imported = this.getStatusConditionOfType('Imported');
 
     if (imported?.status === 'Unknown') {
       if (this.spec.sourceType === 'download') {
         return 'Downloading';
-      } else {
+      } else if (this.spec.sourceType === 'upload') {
         return 'Uploading';
+      } else {
+        return 'Exporting';
       }
     }
 
@@ -72,17 +71,21 @@ export default {
     }
 
     return stateDisplay(this.metadata.state.name);
-  },
+  }
 
-  imageSource() {
+  get stateBackground() {
+    return colorForState(this.stateDisplay).replace('text-', 'bg-');
+  }
+
+  get imageSource() {
     return get(this, `spec.sourceType`) || 'download';
-  },
+  }
 
-  annotationsToIgnoreRegexes() {
+  get annotationsToIgnoreRegexes() {
     return [DESCRIPTION].concat(ANNOTATIONS_TO_IGNORE_REGEX);
-  },
+  }
 
-  downSize() {
+  get downSize() {
     const size = this.status?.size;
 
     if (!size) {
@@ -95,9 +98,9 @@ export default {
       suffix:       'B',
       firstSuffix:  'B',
     });
-  },
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     const out = [];
 
     if (this.imageSource === 'download') {
@@ -144,17 +147,15 @@ export default {
       },
       ...out
     ];
-  },
+  }
 
-  getStatusConditionOfType() {
-    return (type, defaultValue = []) => {
-      const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
+  getStatusConditionOfType(type, defaultValue = []) {
+    const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
 
-      return conditions.find( cond => cond.type === type);
-    };
-  },
+    return conditions.find( cond => cond.type === type);
+  }
 
-  stateObj() {
+  get stateObj() {
     const state = clone(this.metadata?.state);
     const initialized = this.getStatusConditionOfType('Initialized');
     const imported = this.getStatusConditionOfType('Imported');
@@ -164,30 +165,28 @@ export default {
     }
 
     return state;
-  },
+  }
 
-  stateDescription() {
+  get stateDescription() {
     const imported = this.getStatusConditionOfType('Imported');
 
     const status = imported?.status;
     const message = imported?.message;
 
     return status === 'False' ? ucFirst(message) : '';
-  },
-
-  uploadImage() {
-    return (file) => {
-      const formData = new FormData();
-
-      formData.append('chunk', file);
-
-      this.doAction('upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'File-Size':    file.size,
-        },
-        params: { size: file.size },
-      });
-    };
   }
-};
+
+  uploadImage(file) {
+    const formData = new FormData();
+
+    formData.append('chunk', file);
+
+    this.doAction('upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'File-Size':    file.size,
+      },
+      params: { size: file.size },
+    });
+  }
+}

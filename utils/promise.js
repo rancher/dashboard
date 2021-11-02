@@ -82,3 +82,14 @@ export function eachLimit(items, limit, iterator, debug = false) {
     }
   });
 }
+
+export function deferred(name) {
+  const out = {};
+
+  out.promise = new Promise((resolve, reject) => {
+    out.resolve = resolve;
+    out.reject = reject;
+  }, name);
+
+  return out;
+}

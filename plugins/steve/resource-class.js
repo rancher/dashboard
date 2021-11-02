@@ -232,7 +232,7 @@ function maybeFn(val) {
   return val;
 }
 
-export class Resource {
+export default class Resource {
   constructor(data, ctx, rehydrateNamespace = null, setClone = false) {
     for ( const k in data ) {
       this[k] = data[k];
@@ -592,12 +592,8 @@ export class Resource {
     return out;
   }
 
-  // You can add custom actions by overriding your own availableActions (and probably reading _standardActions)
+  // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
   get _availableActions() {
-    return this._standardActions;
-  }
-
-  get _standardActions() {
     const all = [
       { divider: true },
       {
@@ -613,20 +609,27 @@ export class Resource {
         enabled: this.canYaml,
       },
       {
-        action:     'download',
-        label:      this.t('action.download'),
-        icon:       'icon icon-download',
-        bulkable:   true,
-        bulkAction: 'downloadBulk',
-        enabled:    this.canYaml
-      },
-      {
         action:  (this.canCustomEdit ? 'goToClone' : 'cloneYaml'),
         label:   this.t('action.clone'),
         icon:    'icon icon-copy',
         enabled:  this.canClone && this.canCreate && (this.canCustomEdit || this.canYaml),
       },
       { divider: true },
+      {
+        action:     'download',
+        label:      this.t('action.download'),
+        icon:       'icon icon-download',
+        bulkable:   true,
+        bulkAction: 'downloadBulk',
+        enabled:    this.canYaml,
+        weight:     -9,
+      },
+      {
+        action:  'viewInApi',
+        label:   this.t('action.viewInApi'),
+        icon:    'icon icon-external-link',
+        enabled:  this.canViewInApi,
+      },
       {
         action:     'promptRemove',
         altAction:  'remove',
@@ -637,12 +640,6 @@ export class Resource {
         bulkAction: 'promptRemove',
         weight:     -10, // Delete always goes last
       },
-      {
-        action:  'viewInApi',
-        label:   this.t('action.viewInApi'),
-        icon:    'icon icon-external-link',
-        enabled:  this.canViewInApi,
-      }
     ];
 
     return all;
@@ -733,18 +730,18 @@ export class Resource {
 
   // ------------------------------------------------------------------
 
-  // patch(data, opt = {}) {
-  //     if ( !opt.url ) {
-  //       opt.url = this.linkFor('self');
-  //     }
+  patch(data, opt = {}) {
+    if ( !opt.url ) {
+      opt.url = this.linkFor('self');
+    }
 
-  //     opt.method = 'patch';
-  //     opt.headers = opt.headers || {};
-  //     opt.headers['content-type'] = 'application/json-patch+json';
-  //     opt.data = data;
+    opt.method = 'patch';
+    opt.headers = opt.headers || {};
+    opt.headers['content-type'] = 'application/json-patch+json';
+    opt.data = data;
 
-  //     return this.$dispatch('request', opt);
-  // }
+    return this.$dispatch('request', opt);
+  }
 
   save() {
     return this._save(...arguments);

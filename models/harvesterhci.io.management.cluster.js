@@ -1,27 +1,23 @@
 import Vue from 'vue';
-import cluster, { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
+import ProvCluster, { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
-export default {
-  ...cluster,
-
-  availableActions() {
+export default class HciCluster extends ProvCluster {
+  get availableActions() {
     return this._availableActions;
-  },
+  }
 
-  stateObj() {
+  get stateObj() {
     return this._stateObj;
-  },
+  }
 
   applyDefaults() {
-    return () => {
-      if ( !this.spec ) {
-        Vue.set(this, 'spec', { agentEnvVars: [] });
-        Vue.set(this, 'metadata', { namespace: DEFAULT_WORKSPACE });
-      }
-    };
-  },
+    if ( !this.spec ) {
+      Vue.set(this, 'spec', { agentEnvVars: [] });
+      Vue.set(this, 'metadata', { namespace: DEFAULT_WORKSPACE });
+    }
+  }
 
-  isReady() {
+  get isReady() {
     // If the Connected condition exists, use that (2.6+)
     if ( this.hasCondition('Connected') ) {
       return this.isCondition('Connected');
@@ -29,9 +25,9 @@ export default {
 
     // Otherwise use Ready (older)
     return this.isCondition('Ready');
-  },
+  }
 
-  canEdit() {
+  get canEdit() {
     return false;
-  },
-};
+  }
+}

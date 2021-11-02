@@ -20,7 +20,11 @@ import { matchesSomeRegex } from '@/utils/string';
 import { clone } from '@/utils/object';
 import { exceptionToErrorsArray } from '@/utils/error';
 import KeyValue from '@/components/form/KeyValue';
+import { sortBy } from '@/utils/sort';
+import Banner from '@/components/Banner';
 import HarvesterDisk from './HarvesterDisk';
+
+const LONGHORN_SYSTEM = 'longhorn-system';
 
 export default {
   name:       'HarvesterEditNode',
@@ -36,6 +40,7 @@ export default {
     HarvesterDisk,
     ButtonDropdown,
     KeyValue,
+    Banner,
   },
   mixins: [CreateEditView],
   props:  {
@@ -73,12 +78,13 @@ export default {
     })
       .map((d) => {
         return {
-          isNew:       true,
-          name:        d?.metadata?.name,
-          originPath:  d?.spec?.fileSystem?.mountPoint,
-          path:        d?.spec?.fileSystem?.mountPoint,
-          blockDevice: d,
-          displayName: d?.spec?.devPath,
+          isNew:          true,
+          name:           d?.metadata?.name,
+          originPath:     d?.spec?.fileSystem?.mountPoint,
+          path:           d?.spec?.fileSystem?.mountPoint,
+          blockDevice:    d,
+          displayName:    d?.spec?.devPath,
+          forceFormatted: d?.spec?.fileSystem?.forceFormatted || false,
         };
       });
 
@@ -124,7 +130,7 @@ export default {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const blockDevices = this.$store.getters[`${ inStore }/all`](HCI.BLOCK_DEVICE);
 
-      return blockDevices
+      const out = blockDevices
         .filter((d) => {
           const addedToNodeCondition = findBy(d?.status?.conditions || [], 'type', 'AddedToNode');
           const isAdded = findBy(this.newDisks, 'name', d.metadata.name);
@@ -143,12 +149,19 @@ export default {
           }
         })
         .map((d) => {
+          const devPath = d.spec?.devPath;
+          const deviceType = d.status?.deviceStatus?.details?.deviceType;
+          const sizeBytes = d.status?.deviceStatus?.capacity?.sizeBytes;
+          const size = formatSi(sizeBytes, { increment: 1024 });
+
           return {
-            label:  d.spec?.devPath,
+            label:  `${ devPath } (Type: ${ deviceType }, Size: ${ size })`,
             value:  d.id,
             action: this.addDisk,
           };
         });
+
+      return sortBy(out, 'label');
     },
     removedDisks() {
       const out = this.disks.filter((d) => {
@@ -159,7 +172,7 @@ export default {
     },
     longhornDisks() {
       const inStore = this.$store.getters['currentProduct'].inStore;
-      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.value.id }`);
+      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `${ LONGHORN_SYSTEM }/${ this.value.id }`);
       const diskStatus = longhornNode?.status?.diskStatus || {};
       const diskSpec = longhornNode.spec?.disks || {};
 
@@ -172,7 +185,7 @@ export default {
       };
 
       const longhornDisks = Object.keys(diskStatus).map((key) => {
-        const blockDevice = this.$store.getters[`${ inStore }/byId`](HCI.BLOCK_DEVICE, `longhorn-system/${ key }`);
+        const blockDevice = this.$store.getters[`${ inStore }/byId`](HCI.BLOCK_DEVICE, `${ LONGHORN_SYSTEM }/${ key }`);
 
         return {
           ...diskStatus[key],
@@ -185,10 +198,17 @@ export default {
           storageScheduled: formatSi(diskStatus[key]?.storageScheduled, formatOptions),
           blockDevice,
           displayName:      blockDevice?.spec?.devPath || key,
+          forceFormatted:   blockDevice?.spec?.fileSystem?.forceFormatted || false,
         };
       });
 
       return longhornDisks;
+    },
+
+    showFormattedWarning() {
+      const out = this.newDisks.filter(d => d.forceFormatted && d.isNew) || [];
+
+      return out.length > 0;
     },
   },
   watch: {
@@ -226,10 +246,22 @@ export default {
 
       const inStore = this.$store.getters['currentProduct'].inStore;
       const disk = this.$store.getters[`${ inStore }/byId`](HCI.BLOCK_DEVICE, id);
+      const mountPoint = disk?.spec?.fileSystem?.mountPoint;
+
+      let forceFormatted;
+      const systems = ['ext4', 'XFS'];
+
+      if (systems.includes(disk?.status?.deviceStatus?.fileSystem?.type)) {
+        forceFormatted = false;
+      } else {
+        forceFormatted = !disk?.status?.deviceStatus?.partitioned;
+      }
+
+      const name = disk?.metadata?.name;
 
       this.newDisks.push({
-        name:              disk?.metadata?.name,
-        path:              disk?.spec?.fileSystem?.mountPoint,
+        name,
+        path:              mountPoint || `/var/lib/harvester/extra-disks/${ name }`,
         allowScheduling:   false,
         evictionRequested: false,
         storageReserved:   0,
@@ -237,6 +269,7 @@ export default {
         originPath:        disk?.spec?.fileSystem?.mountPoint,
         blockDevice:       disk,
         displayName:       disk?.spec?.devPath,
+        forceFormatted,
       });
     },
     async saveDisk() {
@@ -264,22 +297,28 @@ export default {
 
       try {
         await Promise.all(addDisks.map((d) => {
-          const blockDevice = this.$store.getters[`${ inStore }/byId`](HCI.BLOCK_DEVICE, `longhorn-system/${ d.name }`);
+          const blockDevice = this.$store.getters[`${ inStore }/byId`](HCI.BLOCK_DEVICE, `${ LONGHORN_SYSTEM }/${ d.name }`);
 
           blockDevice.spec.fileSystem.provisioned = true;
           blockDevice.spec.fileSystem.mountPoint = d.path;
+          blockDevice.spec.fileSystem.forceFormatted = d.forceFormatted;
 
           return blockDevice.save();
         }));
 
         await Promise.all(removeDisks.map((d) => {
-          const blockDevice = this.$store.getters[`${ inStore }/byId`](HCI.BLOCK_DEVICE, `longhorn-system/${ d.name }`);
+          const blockDevice = this.$store.getters[`${ inStore }/byId`](HCI.BLOCK_DEVICE, `${ LONGHORN_SYSTEM }/${ d.name }`);
 
           blockDevice.spec.fileSystem.provisioned = false;
           blockDevice.spec.fileSystem.mountPoint = this.dismountBlockDevices[blockDevice.id];
 
           return blockDevice.save();
         }));
+
+        this.$store.dispatch('growl/success', {
+          title:   this.t('harvester.notification.title.succeed'),
+          message: this.t('harvester.host.disk.notification.success', { name: this.value.metadata?.name || '' }),
+        }, { root: true });
       } catch (err) {
         return Promise.reject(exceptionToErrorsArray(err));
       }
@@ -425,6 +464,11 @@ export default {
         />
       </Tab>
     </Tabbed>
+    <Banner
+      v-if="showFormattedWarning"
+      color="warning"
+      :label="t('harvester.host.disk.forceFormatted.toolTip')"
+    />
     <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
   </div>
 </template>

@@ -108,12 +108,12 @@ export default {
 
       if ( out.length ) {
         out.unshift({
-          label: 'Create new...',
+          label: this.t('cluster.credential.select.option.new'),
           value: _NEW,
         });
 
         out.unshift({
-          label:    'Select a credential...',
+          label:    this.t('cluster.credential.select.option.none'),
           value:    _NONE,
           disabled: true,
         });
@@ -228,13 +228,13 @@ export default {
     @error="e=>errors = e"
   >
     <div v-if="isNew">
-      <Banner v-if="options.length" label="Ok, Let's create a new credential" color="info" />
-      <Banner v-else label="First you'll need to create a credential to talk to the cloud provider" color="info" />
+      <Banner :label="t('cluster.credential.banner.createCredential', {length: options.length}, true)" color="info" />
 
       <NameNsDescription
         v-model="newCredential"
         :namespaced="false"
         :description-hidden="true"
+        name-key="name"
         name-label="cluster.credential.name.label"
         name-placeholder="cluster.credential.name.placeholder"
         :name-required="false"
@@ -264,7 +264,7 @@ export default {
 
     <template v-if="isNew && options.length" #footer-prefix>
       <button class="btn role-secondary" @click="backToExisting()">
-        Select Existing
+        {{ t('cluster.credential.selectExisting.label') }}
       </button>
     </template>
 

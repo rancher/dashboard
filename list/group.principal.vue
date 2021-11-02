@@ -32,9 +32,9 @@ export default {
   },
   data() {
     return {
-      rows:             null,
+      rows:             [],
       hasGroups:        false,
-      canRefreshAccess:     false,
+      canRefreshAccess: false,
       assignLocation:   {
         path:   `/c/local/${ NAME }/${ NORMAN.SPOOFED.GROUP_PRINCIPAL }/assign-edit`,
         query: { [MODE]: _EDIT }

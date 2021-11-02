@@ -1,40 +1,40 @@
 import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
 import { sortBy } from '@/utils/sort';
+import HybridModel from '@/plugins/steve/hybrid-class';
 
-export default {
-
-  nodeTemplate() {
+export default class MgmtNodePool extends HybridModel {
+  get nodeTemplate() {
     const id = (this.spec?.nodeTemplateName || '').replace(/:/, '/');
     const template = this.$getters['byId'](MANAGEMENT.NODE_TEMPLATE, id);
 
     return template;
-  },
+  }
 
-  provider() {
+  get provider() {
     return this.nodeTemplate?.provider;
-  },
+  }
 
-  providerName() {
+  get providerName() {
     return this.nodeTemplate?.nameDisplay;
-  },
+  }
 
-  providerDisplay() {
+  get providerDisplay() {
     return this.nodeTemplate?.providerDisplay;
-  },
+  }
 
-  providerLocation() {
+  get providerLocation() {
     return this.nodeTemplate?.providerLocation;
-  },
+  }
 
-  providerSize() {
+  get providerSize() {
     return this.nodeTemplate?.providerSize;
-  },
+  }
 
-  provisioningCluster() {
+  get provisioningCluster() {
     return this.$getters['all'](CAPI.RANCHER_CLUSTER).find(c => c.name === this.spec.clusterName);
-  },
+  }
 
-  doneOverride() {
+  get doneOverride() {
     return {
       name:   'c-cluster-product-resource-namespace-id',
       params: {
@@ -43,34 +43,32 @@ export default {
         id:        this.spec.clusterName
       }
     };
-  },
+  }
 
-  scalePool() {
-    return (delta) => {
-      this.normanPool.quantity += delta;
-      this.normanPool.save();
-    };
-  },
+  scalePool(delta) {
+    this.normanPool.quantity += delta;
+    this.normanPool.save();
+  }
 
-  nodes() {
+  get nodes() {
     const nodePoolName = this.id.replace('/', ':');
 
     return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.spec.nodePoolName === nodePoolName);
-  },
+  }
 
-  desired() {
+  get desired() {
     return this.spec?.quantity || 0;
-  },
+  }
 
-  pending() {
+  get pending() {
     return Math.max(0, this.desired - (this.nodes?.length || 0));
-  },
+  }
 
-  ready() {
+  get ready() {
     return Math.max(0, (this.nodes?.length || 0) - (this.pending || 0));
-  },
+  }
 
-  stateParts() {
+  get stateParts() {
     const out = [
       {
         label:     'Pending',
@@ -89,12 +87,11 @@ export default {
     ].filter(x => x.value > 0);
 
     return sortBy(out, 'sort:desc');
-  },
+  }
 
-  normanPool() {
+  get normanPool() {
     const id = this.id.replace('/', ':');
 
     return this.$rootGetters['rancher/byId'](NORMAN.NODE_POOL, id);
-  },
-
-};
+  }
+}

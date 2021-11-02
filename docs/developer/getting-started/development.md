@@ -25,6 +25,8 @@ There are other factors that assist in this, namely values from the `type-map`. 
 
 > When catching exceptions thrown by anything that contacts the API use `utils/error exceptionToErrorsArray` to correctly parse the response into a commonly accepted array of errors
 
+> If you need to add an endpoint to an unauthenticated route for loading from the store before login, you will need to add it [here](https://github.com/rancher/rancher/blob/cb7de4e6c3d7e783828dc662b1142c1f9ae5edbe/pkg/multiclustermanager/routes.go#L69).
+
 ## Store
 State is cached locally via [Vuex](https://vuex.vuejs.org/). See the Model section for retrieving information from the store.
 
@@ -76,8 +78,24 @@ Spoofed Types, like virtual types, add menu items but also define a spoofed sche
 
 > Any resources returned by `getInstances` should have a `kind` matching required type. This results in the tables showing the correct actions, handling create/edit, etc.
 
-### Proxy Object and Common Functionality
-When resources are retrieved from the store they will be wrapped in a Proxy object - `/plugins/steve/resource-proxy.js`. This exposes common properties and functions from `/plugins/steve/resource-instance.js`. These can be overridden per resource type via optional files in `/models`. For example the `nameDisplay` value for the type `management.cattle.io.user` avoids using the `nameDisplay` from `resource-instance` by adding a `nameDisplay` function to `/models/management.cattle.io.user.js`.
+
+### Model Architecture
+
+There are two types of models used to represent resources: proxy models and ES6 class models. In both cases, the models apply properties and methods to the resource, which defines how the resource can function in the UI and what other components can do with it. Different APIs return models in different structures, but the implementation of the models allows some common functionality to be available for any of them, such as `someModel.name`, `someModel.description`, `setLabels` or `setAnnotations`.
+
+Originally only [proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) models were used. In September 2021, class-based model support was added to increase performance because proxies were about 1/100th the speed of native property access in Firefox and Safari.
+
+In the `models` directory, the proxy-based models are the `.js` files and the class-based models end in `.class.js`.
+
+Much of the reused functionality for each model is taken from the Steve plugin. The proxy-based models use functionality from `plugins/steve/resource-instance.js`, while the class-based models use functionality from `plugins/steve/resource-class.js`. Those two files share a lot of duplicated functionality, and if one is changed, the other probably needs to be changed to match until we drop support for proxy-based models.
+
+The `Resource` class in `plugins/steve/resource-class.js` should not have any fields defined that conflict with any key ever returned by the APIs (e.g. name, description, state, etc used to be a problem). The `SteveModel` (`plugins/steve/steve-class.js`) and `NormanModel` (`plugins/steve/norman-class.js`) know how to handle those keys separately now, so the computed name/description/etc is only in the Steve implementation. It is no longer needed to use names like `_name` to avoid naming conflicts.
+
+### Proxy Models
+
+For proxy models, when resources are retrieved from the store they will be wrapped in a Proxy object - `/plugins/steve/resource-proxy.js`. This exposes common properties and functions from `/plugins/steve/resource-instance.js`. These can be overridden per resource type via optional files in `/models`. For example the `nameDisplay` value for the type `management.cattle.io.user` avoids using the `nameDisplay` from `resource-instance` by adding a `nameDisplay` function to `/models/management.cattle.io.user.js`.
+
+To avoid naming conflicts with fields defined on models that come in from an API, some fields were renamed to `_name` or similar because a property on a model couldn't override the getter defined in the proxy.
 
 > As resources are proxy instances spreading (`{ ...<resource>}`) will not work as expected. In such cases it's normally better to first `clone` (see below) and then make the required changes.
 
@@ -94,6 +112,48 @@ Common functionality provided by `resource-instance` includes information on how
 ```
 
 > Note the `toString` property in `resource-instance`. This will change how the object is presented via console.log, etc. Read on to understand other ways to view resource properties.
+
+
+### Converting Proxy Models to Class Models
+
+To convert models from a proxy-based implementation to a class implementation, properties structured like this:
+
+```
+property() {
+  ...
+}
+```
+should be changed to:
+```
+get property() {
+  ....
+}
+```
+and 
+```
+methods() {
+  return () => {
+    ...
+  }
+}
+```
+should be converted to:
+```
+method() {
+  ...
+}
+```
+Examples of the conversion are in [this PR](https://github.com/rancher/dashboard/pull/4153), which converted some of the high-volume models. The rest should be converted as well.
+
+### Extending Models
+
+The `Resource` class in `plugins/steve/resource-class.js` is the base class for everything and should not be directly extended. (There is a proxy-based counterpart of `Resource` which is the default export from `plugins/steve/resource-instance.js` as well.) If a model needs to extend the basic functionality of a resource, it should extend one of these three models:
+
+- `NormanModel`: For a Rancher management type being loaded via the Norman API (/v3, the Rancher store). These have names, descriptions and labels at the root of the object. 
+- `HybridModel`: This model is used for old Rancher types, such as a Project (mostly in management.cattle.io), that are loaded with the Steve API (/v1, the cluster/management stores). These have the name and description at the root, but labels under metadata.
+- `SteveModel`: Use this model for normal Kubernetes types such as workloads and secrets. The name, description and labels are under metadata.
+
+The Norman and Hybrid models extend the basic Resource class. The Hybrid model is extended by the Steve model.
 
 ### Create and Fetch Resource/s
 
@@ -331,7 +391,7 @@ Adding custom validation logic to forms and models requires changes to three dif
 2. Export the new validation function `utils/custom-validators.js`
 3. Add `customValidationRules` prop to appropriate model under `models`
 
-#### Create a new validation function
+#### 1. Create a new validation function
 
 Custom validators are stored under `utils/validators`. Validation functions should define positional parameters of `value, getters, errors, validatorArgs` with an optional fifth `displayKey` parameter: 
 
@@ -357,7 +417,7 @@ export function exampleValidator(value, getters, errors, validatorArgs, displayK
 }
 ```
 
-#### Export new validation function
+#### 2. Export new validation function
 
 In order to make a custom validator available for usage in forms and component, it will need to exposed by importing the new validator function into `utils/custom-validators.js`:
 
@@ -381,7 +441,7 @@ export default {
 };
 ```
 
-#### Add `customValidationRules` to model
+#### 3. Add `customValidationRules` to model
 
 Locate the model that will make use of the custom validation function and add `customValidationRules` property if one does not already exist. `customValidationRules` returns a collection of validation rules to run against the model:
 
@@ -428,6 +488,13 @@ Multiple custom arguments can be passed to a validator function; each argument i
 ```javascript
 validators: [`exampleValidator:${ this.metadata.name }:'customString':42]
 ```
+
+### Form Architecture
+
+The forms for creating and editing resources are in the `edit` directory. Common functionality for the create/edit forms is reused by importing `CreateEditView` from `/mixins/create-edit-view`. For example, the `registerBeforeHook` is used across many create/edit forms to save the form data before a resource is created.
+
+If a form element was repeated for every row in a table, it would make the UI slower. To increase performance, components such as `ActionMenu` and `PromptModal` are not repeated for every row in a table, and they don't directly interact with the data from a table row. Instead, they communicate with each row indirectly through the store. All the information about the actions that should be available for a certain resource is contained in a model, and the `ActionMenu` or `PromptModal` components take that information about the selected resource from the store. Modals and menus are opened by telling the store that they should be opened. For example, this call to the store  `this.$store.commit('action-menu/togglePromptModal');` is used to open the action menu. Then each component uses the `dispatch` method to get all the information it needs from the store.
+
 
 ## Other UI Features
 ### Icons 

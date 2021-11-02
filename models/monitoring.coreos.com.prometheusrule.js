@@ -1,6 +1,7 @@
-export default {
-  // if not a function it does exist, why?
-  customValidationRules() {
+import SteveModel from '@/plugins/steve/steve-class';
+
+export default class PrometheusRule extends SteveModel {
+  get customValidationRules() {
     return [
       {
         nullable:       false,
@@ -24,5 +25,5 @@ export default {
         validators: ['groupsAreValid'],
       },
     ];
-  },
-};
+  }
+}

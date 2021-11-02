@@ -47,6 +47,7 @@ generic:
   save: Save
   showAdvanced: Show Advanced
   hideAdvanced: Hide Advanced
+  techPreview: Tech Preview
   type: Type
   unknown: Unknown
   provisioning: '—'
@@ -70,6 +71,8 @@ generic:
         7d: 7d
         30d: 30d
   completed: Completed
+  enable: Enable
+  disable: Disable
 
 locale:
   en-us: English
@@ -534,13 +537,17 @@ asyncButton:
     action: Restore
     waiting: Restoring&hellip;
     success: Restored
+  rollback:
+    action: Roll Back
+    success: Rolled Back
+    waiting: Rolling Back Workload
   rotate:
     action: Rotate
     waiting: Rotating&hellip;
     success: Rotated
   snapshot:
     action: Snapshot Now
-    waiting: Snapshotting&hellip;
+    waiting: Snapshot Initiated&hellip;
     success: Snapshot Creating
   uninstall:
     action: Uninstall
@@ -637,7 +644,9 @@ catalog:
     section:
       notes: Release Notes
       readme: Chart README
-      resources: Resources
+      resources: 
+        label: Resources
+        busy: The related resources will appear when {app} is fully installed.
       values: Values YAML
   chart:
     header:
@@ -907,6 +916,8 @@ cluster:
     rancher-vsphere:
       label: vSphere
       note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the Add-On Config tab.'
+    harvester:
+      label: Harvester
   custom:
     nodeRole:
       label: Node Role
@@ -928,6 +939,18 @@ cluster:
       windowsWarning: Workload pods, including some deployed by Rancher charts, will be scheduled on both Linux and Windows nodes by default. Edit NodeSelector in the chart to direct them to be placed onto a compatible node.
       insecure: "Insecure: Select this to skip TLS verification if your server has a self-signed certificate."
   credential:
+    banner:
+      createCredential: |-
+        {length, plural,
+          =0 {First you'll need to create a credential to talk to the cloud provider}
+          other {Ok, Let's create a new credential}
+        }
+    selectExisting:
+      label: Select Existing
+    select:
+      option:
+        new: Create new...
+        none: Select a credential...
     aws:
       accessKey:
         label: Access Key
@@ -1026,13 +1049,20 @@ cluster:
       kubeconfigContent:
         label: KubeconfigContent
       placeholder: 'Namespace/Name'
+      cluster: Cluster
   description:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
   harvester:
+    importNotice: Import Harvester Clusters via 
     warning:
       label: This is a Harvester Cluster - enable the Harvester feature flag to manage it
       state: Warning
+    clusterWarning: |-
+      There {count, plural,
+      =1 {is 1 Harvester cluster that is not shown}
+      other {are # Harvester clusters that are not shown}
+      }  
   haveOneOwner: There must be at least one member with the Owner role.
   import:
     commandInstructions: 'Run the <code>kubectl</code> command below on an existing Kubernetes cluster running a supported Kubernetes version to import it into {vendor}:'
@@ -1249,6 +1279,31 @@ cluster:
       httpEndpoint: Allow access to EC2 metadata
       httpTokens: Use tokens for metadata
       tagTitle: EC2 Tags
+  addOns: 
+    additionalManifest:
+      title: Additional Manifest
+      tooltip: 'Additional Kubernetes Manifet YAML to be applied to the cluster on startup.'
+  advanced:
+    argInfo:
+      title: Additional Kubelet Args
+      machineSelector:
+        label: Add Machine Selector
+        listLabel: Add Argument
+        bannerLabel: 'Note: The last selector that matches wins and only args from it will be used.  Args from other matches above will not combined together or merged.'
+        title: 'For machines with labels matching:'
+        subTitle: 'Use the Kubelet args:'
+        titleAlt:  |-
+          {count, plural,
+            =1 { For all machines, use the Kubelet args: }
+            other { For any machines, use the Kubelet args: }
+          }
+        kubeControllerManagerTitle: Additional Controller Manager Args
+        kubeApiServerTitle: Additional API Server Args
+        kubeSchedulerTitle: Additional Scheduler Args
+    agentArgs:
+      label: Raise error if kernel parameters are different than the expected kubelet defaults
+  banner:
+    warning: 'This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration.'
 
   machinePool:
     name:
@@ -1284,6 +1339,12 @@ cluster:
             =1 { A cluster with only one worker node is not fault-tolerant. }
             other {}
           }
+    quantity:
+      label: Machine Count
+    role:
+      label: Roles
+    labels:
+      label: Kubernetes Node Labels
   memberRoles:
     removeMessage: 'Note: Removing a user will not remove their project permissions'
     addClusterMember:
@@ -1355,14 +1416,16 @@ cluster:
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
+  providerTag:
+    harvester: '{techPreview}'
   providerGroup:
     create-custom1: Use existing nodes and create a cluster using RKE
-    create-custom2: Use existing nodes and create a cluster using RKE2/K3s (Tech Preview)
+    create-custom2: Use existing nodes and create a cluster using RKE2/K3s
     create-kontainer: Create a cluster in a hosted Kubernetes provider
     register-kontainer: Register an existing cluster in a hosted Kubernetes provider
     create-rke1: Provision new nodes and create a cluster using RKE
-    create-rke2: Provision new nodes and create a cluster using RKE2/K3s (Tech Preview)
-    create-template: Use a Catalog Template to create a cluster (Tech Preview)
+    create-rke2: Provision new nodes and create a cluster using RKE2/K3s
+    create-template: Use a Catalog Template to create a cluster
     register-custom: Import any Kubernetes cluster
   rke2:
     snapshots:
@@ -1372,6 +1435,60 @@ cluster:
       rke2-ingress-nginx: 'NGINX Ingress'
       rke2-kube-proxy: 'Kube Proxy'
       rke2-metrics-server: 'Metrics Server'
+      header: System Services
+    cni:
+      label: Container Network 
+    cloudProvider:
+      label: Cloud Provider
+      header: Cloud Provider Config
+    security:
+      header: Security
+    defaultPodSecurityPolicyTemplateName:
+      label: Default Pod Security Policy
+    enableNetworkPolicy:
+      label: Project Network Isolation
+    workNode:
+      label: Worker Nodes
+    controlPlaneConcurrency:
+      label: Control Plane Concurrency
+      toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time of a percentage (e.g. 10%)"
+    workerConcurrency:
+      label: Worker Concurrency
+      toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time of a percentage (e.g. 10%)"
+    drain:
+      label: Drain Nodes
+      toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed.
+    address:
+      header: Addressing
+      clusterCidr:
+        label: Cluster CIDR
+      serviceCidr:
+        label: Service CIDR
+      dns:
+        label: Cluster DNS
+      domain:
+        label: Cluster Domain
+      nodePortRange:
+        label: NodePort Service Port Range
+      tlsSan:
+        label: TLS Alternate Names
+      fqdn:
+        toolTip: A FQDN which will resolve to the healthy control plane nodes of the cluster.
+      caCerts:
+        label: CA Certificates
+        toolTip: Certificates required for the client to successfully verify the validity of the certificate returned by the endpoint.
+    etcd:
+      disableSnapshots:
+        label: Automatic Snapshots
+      snapshotScheduleCron:
+        label: Cron Schedule
+      snapshotRetention:
+        label: Keep the last
+      exportMetric:
+        label: Metrics
+        false: Only available inside the cluster
+        true: Exposed to the public interface
+
   k3s:
     systemService:
       coredns: 'CoreDNS'
@@ -1414,7 +1531,6 @@ cluster:
   toggle:
     v1: RKE1
     v2: RKE2/K3s
-
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -1523,6 +1639,24 @@ fleet:
   cluster:
     summary: Resource Summary
     nonReady: Non-Ready Bundles
+  clusters:
+    harvester: |-
+      There {count, plural,
+      =1 {is 1 Harvester cluster that is hidden as this can not be used with Continuous Delivery}
+      other {are # Harvester clusters that are hidden as they can not be used with Continuous Delivery}
+      }  
+  tokens:
+    harvester: |-
+      {count, plural,
+      =1 {1 token is hidden as it belongs to a Harvester cluster that can not be used with Continuous Delivery}
+      other {# tokens are hidden as they belong to Harvester clusters that can not be used with Continuous Delivery}
+      }  
+  bundles:
+    harvester: |-
+      {count, plural,
+      =1 {1 bundle is hidden as it belongs to a Harvester cluster that can not be used with Continuous Delivery}
+      other {# bundles are hidden as they belong to Harvester clusters that can not be used with Continuous Delivery}
+      }  
   fleetSummary:
     state:
       success: 'Ready'
@@ -1530,6 +1664,8 @@ fleet:
       warning: 'Warning'
       error: 'Error'
       unknown: 'Unknown'
+      notReady: Not Ready
+      waitApplied: Wait Applied
   gitRepo:
     tabs:
       resources: Resources
@@ -1812,8 +1948,7 @@ istio:
   customOverlayFile:
     label: Custom Overlay File
     tip: 'The <a target="_blank" rel="noopener noreferrer nofollow" href="https://istio.io/latest/docs/setup/install/istioctl/#customizing-the-configuration">overlay file</a> allows for additional configuration on top of the base {vendor} Istio installation. You can utilize the <a href="https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/" target="_blank" rel="noopener noreferrer nofollow" >IstioOperator API</a> to make changes and additions for all components and apply those changes via this overlay YAML file.'
-  description: '{vendor} Istio helm chart installs a minimal Istio configuration for you to get started integrating with your applications.
-  If you would like to get additional information about Istio, visit <a target="_blank" href="https://istio.io/latest/docs/concepts/what-is-istio" rel="noopener noreferrer nofollow">https://istio.io/latest/docs/concepts/what-is-istio/</a>'
+  description: '{vendor} Istio helm chart installs a minimal Istio configuration for you to get started integrating with your applications.  If you would like to get additional information about Istio, visit <a target="_blank" href="https://istio.io/latest/docs/concepts/what-is-istio" rel="noopener noreferrer nofollow">https://istio.io/latest/docs/concepts/what-is-istio/</a>'
   destinationRule:
     title:
       new: Add Destination Rule
@@ -2042,6 +2177,10 @@ logging:
     k3sContainerEngine: K3S Container Engine
     enableAdditionalLoggingSources: Enable enhanced cloud provider logging
     dockerRootDirectory: Docker Root Directory
+    systemdLogPath: systemd Log Path
+    tooltip: 'Some kubernetes distributions log to <code>journald</code>. In order to collect these logs the <code>systemdLogPath</code> needs to be defined. While the <code>/run/log/journal</code> directory is used by default, some Linux distributions do not default to this path.'
+    url: '<a href="https://rancher.com/docs/rancher/v2.6/en/logging/helm-chart-options/" target="_blank" rel="noopener nofollow noreferrer">Learn more</a>'
+    default: /run/log/journal
   elasticsearch:
     host: Host
     scheme: Scheme
@@ -2918,6 +3057,7 @@ persistentVolume:
       label: Read Only
 
 persistentVolumeClaim:
+  name: Persistent Volume Claim Name
   accessModes: Access Modes
   capacity: Capacity
   storageClass: Storage Class
@@ -3041,6 +3181,7 @@ projectMembers:
     label: Project Permissions
     description: Controls what access users have to the Project
     noDescription: User created - no description
+    searchForMember: Search for a member to provide project access
     owner:
       label: Owner
       description: Owners have full control over the Project and all resources inside it.
@@ -3151,6 +3292,17 @@ promptRestore:
   name: Name
   date: Date
   fromS3: Restore from S3
+
+promptRollback:
+  modalTitle: Roll Back {workloadName}
+  dropdownTitle: Roll Back to Revision
+  placeholder: Choose a Revision...
+  attemptingToRollBack: Attempting to roll back workload...
+  differences: Differences
+  revisionOption: "Revision {revisionNumber}, created {revisionAge} {units} ago {currentLabel}"
+  currentLabel: "(Current)"
+  multipleWorkloadError: "Only one workload can be rolled back at a time."
+  singleRevisionBanner: There are no revisions to roll back to.
 
 promptSaveAsRKETemplate:
   title: Convert {cluster} to new RKE Template
@@ -3550,6 +3702,10 @@ servicesPage:
       label: Cluster IP
       placeholder: e.g. 10.43.xxx.xxx
     label: IP Addresses
+    loadBalancerIp:
+      label: Load Balancer IP
+      placeholder: e.g. 192.0.xxx.xxx
+      helpText: If you specify a loadBalancerIP but your cloud provider does not support the feature, the loadBalancerIP field that you set is ignored.
   pods:
     label: Pods
   ports:
@@ -3989,6 +4145,7 @@ tableHeaders:
   nodesReady: Nodes Ready
   nodePort: Node Port
   object: Object
+  operatingSystem: OS
   output: Output
   p95: 95%tile
   persistentVolumeClaim: Persistent Volume Claim
@@ -4054,7 +4211,7 @@ tableHeaders:
   fingerprint: Fingerprint
   networkType: Type
   networkVlan: Vlan ID
-  readyToUse: ReadyToUse
+  readyToUse: Ready To Use
   backupTarget: Backup Target
   targetVm: Target VM
   phase: Phase
@@ -4331,6 +4488,51 @@ workload:
     imagePullPolicy: Pull Policy
     imagePullSecrets: Pull Secrets
     init: Init Container
+    lifecycleHook:
+      postStart: 
+        label: PostStart
+        add: Add PostStart Hook
+      preStop: 
+        label: PreStop
+        add: Add PreStop Hook
+      exec:
+        title: Exec
+        add: Add command to execute
+        command:
+          label: Command
+          placeholder: e.g. sh -c sleep 10
+      httpGet:
+        title: HttpGet
+        add: Create HTTP request
+        host:
+          label: Host IP
+          placeholder: e.g. 172.17.0.2
+        path:
+          label: Path
+          placeholder: e.g. app/bin/endpoint?param=value
+        port:
+          label: Port
+          placeholder: e.g. 3000
+        scheme:
+          label: Scheme
+          placeholder: e.g. HTTP
+      httpHeaders:
+        title: HTTP Headers
+        name:
+          label: Name
+          placeholder: e.g. accept-ranges
+        value:
+          label: Value
+          placeholder: e.g. bytes
+      tcpSocket:
+        title: TCPSocket
+        add: Open a TCP socket
+        host:
+          label: Host
+          placeholder: e.g. 192.168.0.1
+        port:
+          label: Port
+          placeholder: e.g. 80
     name: Container Name
     noResourceLimits: There are no resource requirements configured.
     noPorts: There are no ports configured.
@@ -4387,6 +4589,7 @@ workload:
       general: General
       healthCheck: Health Check
       image: Image
+      lifecycle: Lifecycle Hooks
       networking: Networking
       networkSettings: Network Settings
       podAnnotations: Pod Annotations
@@ -4698,6 +4901,12 @@ harvester:
         tip: Please enter a template name!
         success: 'Template { templateName } created successfully.'
         failed: 'Failed generated template!'
+    exportImage:
+      title: Export to Image
+      name: Name
+      namespace: Namespace
+      message:
+        success: 'Image { name } created successfully.'
     migration:
       failedMessage: Latest migration failed!
       title: Migration
@@ -4749,6 +4958,7 @@ harvester:
     cordon: Cordon
     uncordon: Uncordon
     addHotplug: Add Volume
+    exportImage: Export Image
   tableHeaders:
     size: Size
     progress: Progress
@@ -4758,7 +4968,7 @@ harvester:
     fingerprint: Fingerprint
     value: Value
     actions: Actions
-    readyToUse: ReadyToUse
+    readyToUse: Ready To Use
     backupTarget: Backup Target
     targetVm: Target VM
     hostIp: Host IP
@@ -4828,6 +5038,8 @@ harvester:
     sections:
       events:
         label: Events
+      vmMetrics:
+        label: VM Metrics
     upgrade:
       upgradeApp: Upgrade Software
       upgrade: Upgrade
@@ -4890,6 +5102,16 @@ harvester:
         label: Scheduling
       evictionRequested:
         label: Eviction Requested
+      forceFormatted:
+        label: Force Formatted
+        toolTip: Force formatted will cleanup disk data, make sure you backup all available data to prevent data loss.
+        yes: Yes (Ext4 File System)
+      description:
+        label: Description
+      lastFormattedAt:
+        info: The disk has already been force-formatted
+      notification:
+        success: 'Update host "{name}" configurations successfully.'
 
   virtualizationManagement:
     manage: Manage
@@ -4903,7 +5125,7 @@ harvester:
         label: Single Instance
         nameLabel: Name
         host: 
-          label: Host Name
+          label: Hostname
           placeholder: default to the virtual machine name.
       multiple:
         label: Multiple Instance
@@ -4979,15 +5201,16 @@ harvester:
         tip: "The network-data configuration allows you to customize the instance’s networking interfaces by assigning subnet configuration, virtual device creation (bonds, bridges, vlans) routes and DNS configuration. <a href='https://cloudinit.readthedocs.io/en/latest/topics/network-config-format-v1.html' target='_blank'>Learn more</a>"
     scheduling:
       affinity:
-        anyNode: 'Run virtual machine on any available node'
-        schedulingRules: 'Run virtual machine on node(s) matching scheduling rules'
+        anyNode: 'Run VM on any available node'
+        schedulingRules: 'Run VM on node(s) matching scheduling rules'
+        specificNode: Run VM on specific node(s) - (Live migration is not supported)
     input:
       name: Name
       memory: Memory
       image: Image
       sshKey: SSHKey
       sshKeyValue: SSH-Key
-      MachineType: MachineType
+      MachineType: Machine Type
     machineTypeTip: 'Specify a processor architecture to emulate. To see a list of supported architectures, run: qemu-system-x86_64 -cpu ?'
     detail:
       tabs:
@@ -5008,7 +5231,7 @@ harvester:
         monitor: Monitor Data
         keypairs: SSH Keys
         cloudConfig: Cloud Config
-        metrics: Metrics
+        metrics: VM Metrics
       details:
         title:
           vmDetails: Virtual Machine Details
@@ -5072,6 +5295,7 @@ harvester:
     urlTip: 'supports the <code>raw</code> and <code>qcow2</code> image formats which are supported by <a href="https://www.qemu.org/docs/master/system/images.html#disk-image-file-formats" target="_blank">qemu</a>. Bootable ISO images can also be used and are treated like <code>raw</code> images.'
     fileName: File Name
     uploadFile: Upload File
+    source: Source
     sourceType:
       download: URL
       upload: File
@@ -5152,7 +5376,11 @@ harvester:
 
   manager:
     cluster:
-      label: Clusters
+      label: Harvester Clusters
+      none: There are no Harvester Clusters
+      learnMore: Learn more about Harvester from the <a target="_blank" href="https://harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester Web Site</a> or read the the <a target="_blank" href="https://docs.harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester Docs</a>
+      description: Harvester is a modern Hyperconverged infrastructure (HCI) solution built for bare metal servers using enterprise-grade open source technologies including Kubernetes, Kubevirt and Longhorn.
+
   
   support:
     title: Harvester Support
@@ -5504,8 +5732,8 @@ typeLabel:
     }
   harvesterhci.io.management.cluster: |-
     {count, plural,
-      one { Cluster }
-      other { Clusters }
+      one { Harvester Cluster }
+      other { Harvester Clusters }
     }
   harvesterhci.io.cloudtemplate: |-
     {count, plural,
@@ -5560,6 +5788,16 @@ keyValue:
   keyPlaceholder: e.g. foo
   valuePlaceholder: e.g. bar
 
+registryMirror:
+  header: Mirrors
+  toolTip: 'Mirrors can be used to redirect requests for images from one registry to actually come from a list of endpoints you specify instead.  For example you could point docker.io to always talk to your internal registry and instead of ever going to the actual DockerHub on the internet.'
+  addLabel: Add Mirror
+
+registryConfig:
+  header: Registry Authentication 
+  toolTip: 'When an image needs to be pulled from the given registry hostname, this information will be used to verify the identity of the registry and authenticate to it.'
+  addLabel: Add Registry
+
 ##############################
 ### Advanced Settings
 ##############################
@@ -5611,6 +5849,8 @@ advancedSettings:
     'harv-server-version': Harvester server version.
     'harv-upgrade-checker-enabled': Specify whether to enable Harvester upgrade check or not. Default is true.
     'harv-upgrade-checker-url': Default Harvester upgrade check url. Only used when the <code>upgrade-checker-enabled</code>  is equal to true.
+    'harv-ui-source': Config how to load the UI source.
+    'harv-ui-index': 'HTML index location for the UI.'
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:
@@ -5625,11 +5865,11 @@ advancedSettings:
       dynamic: Dynamic
       true: Local
       false: Remote
-    'api-ui-source':
+    'harv-ui-source':
       auto: 'Auto'
       bundled: 'Bundled'
       external: 'External'
-    'log-level':
+    'harv-log-level':
       info: Info
       debug: Debug
       trace: Trace
@@ -5725,6 +5965,8 @@ resourceQuota:
     unitlessPlaceholder: e.g. 10
   resourceType:
     label: Resource Type
+  add:
+    label: Add Resource
 
 
 ##############################

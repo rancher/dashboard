@@ -1,6 +1,8 @@
-export default {
-  _availableActions() {
-    const out = this._standardActions;
+import NormanModel from '@/plugins/steve/norman-class';
+
+export default class EtcdBackup extends NormanModel {
+  get _availableActions() {
+    const out = super._availableActions;
 
     const restore = {
       action:     'promptRestore',
@@ -12,11 +14,9 @@ export default {
     out.unshift(restore);
 
     return out;
-  },
+  }
 
   promptRestore() {
-    return () => {
-      this.$dispatch('promptRestore', [this]);
-    };
-  },
-};
+    this.$dispatch('promptRestore', [this]);
+  }
+}

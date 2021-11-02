@@ -7,24 +7,16 @@ import transform from 'lodash/transform';
 import isObject from 'lodash/isObject';
 import isEqual from 'lodash/isEqual';
 import difference from 'lodash/difference';
-
-const quotedMatch = /[^."']+|"([^"]*)"|'([^']*)'/g;
+import { splitObjectPath } from '@/utils/string';
 
 export function set(obj, path, value) {
   let ptr = obj;
-  let parts;
 
   if (!ptr) {
     return;
   }
 
-  if ( path.includes('"') || path.includes("'") ) {
-    // Path with quoted section
-    parts = path.match(quotedMatch).map(x => x.replace(/['"]/g, ''));
-  } else {
-    // Regular path
-    parts = path.split('.');
-  }
+  const parts = splitObjectPath(path);
 
   for (let i = 0; i < parts.length; i++) {
     const key = parts[i];
@@ -48,7 +40,6 @@ export function get(obj, path) {
       return JSONPath({
         path,
         json:        obj,
-        preventEval: true,
         wrap:        false,
       });
     } catch (e) {
@@ -62,15 +53,7 @@ export function get(obj, path) {
     return obj?.[path];
   }
 
-  let parts;
-
-  if ( path.includes('"') || path.includes("'") ) {
-    // Path with quoted section
-    parts = path.match(quotedMatch).map(x => x.replace(/['"]/g, ''));
-  } else {
-    // Regular path
-    parts = path.split('.');
-  }
+  const parts = splitObjectPath(path);
 
   for (let i = 0; i < parts.length; i++) {
     if (!obj) {

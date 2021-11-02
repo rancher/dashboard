@@ -2,6 +2,7 @@ import Vue from 'vue';
 import { get } from '@/utils/object';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import { NORMAN } from '@/config/types';
+import HybridModel from '@/plugins/steve/hybrid-class';
 import Role from './rbac.authorization.k8s.io.role';
 
 export const CATTLE_API_GROUP = '.cattle.io';
@@ -55,182 +56,182 @@ export const VERBS = [
 ];
 
 const RESOURCES = [
-  'APIGroup',
-  'APIService',
-  'Alertmanager',
-  'App',
-  'AppRevision',
-  'AuthConfig',
-  'AuthorizationPolicy',
-  'Bundle',
-  'BundleDeployment',
-  'BundleNamespaceMapping',
-  'CSIDriver',
-  'CSINode',
-  'Catalog',
-  'CatalogTemplate',
-  'CatalogTemplateVersion',
-  'Certificate',
-  'CertificateRequest',
-  'CertificateSigningRequest',
-  'Challenge',
-  'CisBenchmarkVersion',
-  'CisConfig',
-  'Cluster',
-  'ClusterAlert',
-  'ClusterAlertGroup',
-  'ClusterAlertRule',
-  'ClusterCatalog',
-  'ClusterFlow',
-  'ClusterGroup',
-  'ClusterIssuer',
-  'ClusterLogging',
-  'ClusterMonitorGraph',
-  'ClusterOutput',
-  'ClusterRegistration',
-  'ClusterRegistrationToken',
-  'ClusterRepo',
-  'ClusterRole',
-  'ClusterRoleBinding',
-  'ClusterRoleTemplateBinding',
-  'ClusterScan',
-  'ClusterTemplate',
-  'ClusterTemplateRevision',
-  'ComponentStatus',
-  'ComposeConfig',
-  'Config',
-  'ConfigMap',
-  'ConstraintPodStatus',
-  'ConstraintTemplate',
-  'ConstraintTemplatePodStatus',
-  'Content',
-  'ControllerRevision',
-  'CronJob',
-  'CustomResourceDefinition',
-  'DaemonSet',
-  'Deployment',
-  'DestinationRule',
-  'DynamicSchema',
-  'EndpointSlice',
+  'APIGroups',
+  'APIServices',
+  'Alertmanagers',
+  'Apps',
+  'AppRevisions',
+  'AuthConfigs',
+  'AuthorizationPolicys',
+  'Bundles',
+  'BundleDeployments',
+  'BundleNamespaceMappings',
+  'CSIDrivers',
+  'CSINodes',
+  'Catalogs',
+  'CatalogTemplates',
+  'CatalogTemplateVersions',
+  'Certificates',
+  'CertificateRequests',
+  'CertificateSigningRequests',
+  'Challenges',
+  'CisBenchmarkVersions',
+  'CisConfigs',
+  'Clusters',
+  'ClusterAlerts',
+  'ClusterAlertGroups',
+  'ClusterAlertRules',
+  'ClusterCatalogs',
+  'ClusterFlows',
+  'ClusterGroups',
+  'ClusterIssuers',
+  'ClusterLoggings',
+  'ClusterMonitorGraphs',
+  'ClusterOutputs',
+  'ClusterRegistrations',
+  'ClusterRegistrationTokens',
+  'ClusterRepos',
+  'ClusterRoles',
+  'ClusterRoleBindings',
+  'ClusterRoleTemplateBindings',
+  'ClusterScans',
+  'ClusterTemplates',
+  'ClusterTemplateRevisions',
+  'ComponentStatuses',
+  'ComposeConfigs',
+  'Configs',
+  'ConfigMaps',
+  'ConstraintPodStatuses',
+  'ConstraintTemplates',
+  'ConstraintTemplatePodStatuses',
+  'Contents',
+  'ControllerRevisions',
+  'CronJobs',
+  'CustomResourceDefinitions',
+  'DaemonSets',
+  'Deployments',
+  'DestinationRules',
+  'DynamicSchemas',
+  'EndpointSlices',
   'Endpoints',
-  'EnvoyFilter',
-  'EtcdBackup',
-  'Event',
-  'Feature',
-  'FleetWorkspace',
-  'Flow',
-  'Gateway',
-  'GitJob',
-  'GitRepo',
-  'GitRepoRestriction',
-  'GlobalDns',
-  'GlobalDnsProvider',
-  'GlobalRole',
-  'GlobalRoleBinding',
-  'Group',
-  'GroupMember',
-  'HTTPAPISpec',
-  'HTTPAPISpecBinding',
-  'HorizontalPodAutoscaler',
-  'Ingress',
-  'IngressClass',
-  'Issuer',
-  'IstioOperator',
-  'Job',
+  'EnvoyFilters',
+  'EtcdBackups',
+  'Events',
+  'Features',
+  'FleetWorkspaces',
+  'Flows',
+  'Gateways',
+  'GitJobs',
+  'GitRepos',
+  'GitRepoRestrictions',
+  'GlobalDnses',
+  'GlobalDnsProviders',
+  'GlobalRoles',
+  'GlobalRoleBindings',
+  'Groups',
+  'GroupMembers',
+  'HTTPAPISpecs',
+  'HTTPAPISpecBindings',
+  'HorizontalPodAutoscalers',
+  'Ingresses',
+  'IngressClasses',
+  'Issuers',
+  'IstioOperators',
+  'Jobs',
   'K8sAllowedRepos',
   'K8sRequiredLabels',
-  'KontainerDriver',
-  'Lease',
-  'LimitRange',
-  'Logging',
-  'MonitorMetric',
-  'MonitoringDashboard',
-  'MultiClusterApp',
-  'MultiClusterAppRevision',
-  'MutatingWebhookConfiguration',
-  'Namespace',
-  'NetworkPolicy',
-  'Node',
-  'NodeDriver',
+  'KontainerDrivers',
+  'Leases',
+  'LimitRanges',
+  'Loggings',
+  'MonitorMetrics',
+  'MonitoringDashboards',
+  'MultiClusterApps',
+  'MultiClusterAppRevisions',
+  'MutatingWebhookConfigurations',
+  'Namespaces',
+  'NetworkPolicies',
+  'Nodes',
+  'NodeDrivers',
   'NodeMetrics',
-  'NodePool',
-  'NodeTemplate',
-  'Notifier',
-  'Operation',
-  'Order',
-  'Output',
-  'PeerAuthentication',
-  'PersistentVolume',
-  'PersistentVolumeClaim',
-  'Pipeline',
-  'PipelineExecution',
-  'PipelineSetting',
-  'Pod',
-  'PodDisruptionBudget',
+  'NodePools',
+  'NodeTemplates',
+  'Notifiers',
+  'Operations',
+  'Orders',
+  'Outputs',
+  'PeerAuthentications',
+  'PersistentVolumes',
+  'PersistentVolumeClaims',
+  'Pipelines',
+  'PipelineExecutions',
+  'PipelineSettings',
+  'Pods',
+  'PodDisruptionBudgets',
   'PodMetrics',
-  'PodMonitor',
-  'PodSecurityPolicy',
-  'PodSecurityPolicyTemplate',
-  'PodSecurityPolicyTemplateProjectBinding',
-  'PodTemplate',
-  'Preference',
-  'PriorityClass',
-  'Project',
-  'ProjectAlert',
-  'ProjectAlertGroup',
-  'ProjectAlertRule',
-  'ProjectCatalog',
-  'ProjectLogging',
-  'ProjectMonitorGraph',
-  'ProjectNetworkPolicy',
-  'ProjectRoleTemplateBinding',
-  'Prometheus',
-  'PrometheusRule',
-  'QuotaSpec',
-  'QuotaSpecBinding',
-  'ReplicaSet',
-  'ReplicationController',
-  'RequestAuthentication',
-  'ResourceQuota',
-  'RkeAddon',
-  'RkeK8sServiceOption',
-  'RkeK8sSystemImage',
-  'Role',
-  'RoleBinding',
-  'RoleTemplate',
-  'RoleTemplateBinding',
-  'RuntimeClass',
-  'SamlToken',
-  'Secret',
-  'Service',
-  'ServiceAccount',
-  'ServiceEntry',
-  'ServiceMonitor',
-  'Setting',
-  'Sidecar',
-  'SourceCodeCredential',
-  'SourceCodeProviderConfig',
-  'SourceCodeRepository',
-  'StatefulSet',
-  'StorageClass',
-  'Template',
-  'TemplateContent',
-  'TemplateVersion',
-  'Token',
-  'User',
-  'UserAttribute',
-  'ValidatingWebhookConfiguration',
-  'VirtualService',
-  'VolumeAttachment',
-  'WorkloadEntry'
+  'PodMonitors',
+  'PodSecurityPolicies',
+  'PodSecurityPolicyTemplates',
+  'PodSecurityPolicyTemplateProjectBindings',
+  'PodTemplates',
+  'Preferences',
+  'PriorityClasses',
+  'Projects',
+  'ProjectAlerts',
+  'ProjectAlertGroups',
+  'ProjectAlertRules',
+  'ProjectCatalogs',
+  'ProjectLoggings',
+  'ProjectMonitorGraphs',
+  'ProjectNetworkPolicies',
+  'ProjectRoleTemplateBindings',
+  'Prometheuses',
+  'PrometheusRules',
+  'QuotaSpecs',
+  'QuotaSpecBindings',
+  'ReplicaSets',
+  'ReplicationControllers',
+  'RequestAuthentications',
+  'ResourceQuotas',
+  'RkeAddons',
+  'RkeK8sServiceOptions',
+  'RkeK8sSystemImages',
+  'Roles',
+  'RoleBindings',
+  'RoleTemplates',
+  'RoleTemplateBindings',
+  'RuntimeClasses',
+  'SamlTokens',
+  'Secrets',
+  'Services',
+  'ServiceAccounts',
+  'ServiceEntries',
+  'ServiceMonitors',
+  'Settings',
+  'Sidecars',
+  'SourceCodeCredentials',
+  'SourceCodeProviderConfigs',
+  'SourceCodeRepositorys',
+  'StatefulSets',
+  'StorageClasses',
+  'Templates',
+  'TemplateContents',
+  'TemplateVersions',
+  'Tokens',
+  'Users',
+  'UserAttributes',
+  'ValidatingWebhookConfigurations',
+  'VirtualServices',
+  'VolumeAttachments',
+  'WorkloadEntries'
 ];
 
-export default {
-  customValidationRules() {
+export default class RoleTemplate extends HybridModel {
+  get customValidationRules() {
     return Role.customValidationRules();
-  },
+  }
 
-  details() {
+  get details() {
     const out = this._details;
 
     out.unshift({
@@ -244,13 +245,13 @@ export default {
     });
 
     return out;
-  },
+  }
 
-  state() {
+  get state() {
     return this.locked ? 'locked' : this.metadata?.state?.name || 'unknown';
-  },
+  }
 
-  subtype() {
+  get subtype() {
     if (this._subtype) {
       return this._subtype;
     }
@@ -264,91 +265,85 @@ export default {
     }
 
     return null;
-  },
+  }
 
-  updateSubtype() {
-    return (subtype) => {
-      Vue.set(this, '_subtype', subtype);
-      this.context = SUBTYPE_MAPPING[subtype].context;
-    };
-  },
+  updateSubtype(subtype) {
+    Vue.set(this, '_subtype', subtype);
+    this.context = SUBTYPE_MAPPING[subtype].context;
+  }
 
-  default() {
+  get default() {
     const defaultKey = SUBTYPE_MAPPING[this.subtype]?.defaultKey;
 
     return !!this[defaultKey];
-  },
+  }
 
-  updateDefault() {
-    return (value) => {
-      const defaultKey = SUBTYPE_MAPPING[this.subtype].defaultKey;
+  updateDefault(value) {
+    const defaultKey = SUBTYPE_MAPPING[this.subtype].defaultKey;
 
-      Vue.set(this, defaultKey, value);
-    };
-  },
+    Vue.set(this, defaultKey, value);
+  }
 
-  resources() {
+  get resources() {
     // List is hardcoded instead of determined from available schemas (we don't know which cluster/project roles will be applied to)
     return RESOURCES;
-  },
+  }
 
-  listLocation() {
+  get listLocation() {
     return {
       name: `c-cluster-auth-roles`,
       hash: `#${ this.subtype }`
     };
-  },
+  }
 
-  detailLocation() {
+  get detailLocation() {
     return {
       ...this._detailLocation,
       name: `c-cluster-auth-roles-resource-id`,
     };
-  },
+  }
 
-  doneOverride() {
+  get doneOverride() {
     return this.listLocation;
-  },
+  }
 
-  parentLocationOverride() {
+  get parentLocationOverride() {
     return this.listLocation;
-  },
+  }
 
-  basicNorman() {
+  get basicNorman() {
     if (this.id) {
       return this.$dispatch(`rancher/find`, { id: this.id, type: NORMAN.ROLE_TEMPLATE }, { root: true });
     }
 
     return this.$dispatch(`rancher/create`, { type: NORMAN.ROLE_TEMPLATE, name: this.displayName }, { root: true });
-  },
-
-  async norman() {
-    const norman = await this.basicNorman;
-
-    norman.rules = this.rules;
-    norman.locked = this.locked;
-    norman.clusterCreatorDefault = this.clusterCreatorDefault || false;
-    norman.projectCreatorDefault = this.projectCreatorDefault || false;
-    norman.context = this.context;
-    norman.description = this.description;
-    norman.roleTemplateIds = this.roleTemplateNames;
-
-    return norman;
-  },
-
-  save() {
-    return async() => {
-      const norman = await this.norman;
-
-      return norman.save();
-    };
-  },
-
-  remove() {
-    return async() => {
-      const norman = await this.norman;
-
-      await norman.remove();
-    };
   }
-};
+
+  get norman() {
+    return (async() => {
+      const norman = await this.basicNorman;
+
+      norman.rules = this.rules;
+      norman.locked = this.locked;
+      norman.clusterCreatorDefault = this.clusterCreatorDefault || false;
+      norman.projectCreatorDefault = this.projectCreatorDefault || false;
+      norman.context = this.context;
+      norman.description = this.description;
+      norman.roleTemplateIds = this.roleTemplateNames;
+
+      return norman;
+    })();
+  }
+
+  async save() {
+    const norman = await this.norman;
+
+    return norman.save();
+  }
+
+  async remove() {
+    const norman = await this.norman;
+
+    await norman.remove();
+  }
+}

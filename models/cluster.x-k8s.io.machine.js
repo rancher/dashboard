@@ -5,10 +5,11 @@ import { listNodeRoles } from '@/models/cluster/node';
 import { escapeHtml } from '@/utils/string';
 import { insertAt } from '@/utils/array';
 import { downloadUrl } from '@/utils/download';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  _availableActions() {
-    const out = this._standardActions;
+export default class CapiMachine extends SteveModel {
+  get _availableActions() {
+    const out = super._availableActions;
 
     const openSsh = {
       action:     'openSsh',
@@ -28,31 +29,27 @@ export default {
     insertAt(out, 0, openSsh);
 
     return out;
-  },
+  }
 
-  canClone() {
+  get canClone() {
     return false;
-  },
+  }
 
   openSsh() {
-    return () => {
-      this.$dispatch('wm/open', {
-        id:        `${ this.id }-ssh`,
-        label:     this.nameDisplay,
-        icon:      'terminal',
-        component: 'MachineSsh',
-        attrs:     { machine: this, pod: {} }
-      }, { root: true });
-    };
-  },
+    this.$dispatch('wm/open', {
+      id:        `${ this.id }-ssh`,
+      label:     this.nameDisplay,
+      icon:      'terminal',
+      component: 'MachineSsh',
+      attrs:     { machine: this, pod: {} }
+    }, { root: true });
+  }
 
   downloadKeys() {
-    return () => {
-      downloadUrl(this.links.sshkeys);
-    };
-  },
+    downloadUrl(this.links.sshkeys);
+  }
 
-  cluster() {
+  get cluster() {
     if ( !this.spec.clusterName ) {
       return null;
     }
@@ -62,23 +59,27 @@ export default {
     const cluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, clusterId);
 
     return cluster;
-  },
+  }
 
-  poolName() {
+  get poolName() {
     return this.metadata?.labels?.[ CAPI_LABELS.DEPLOYMENT_NAME ] || '';
-  },
+  }
 
-  poolId() {
+  get poolId() {
     const poolId = `${ this.metadata.namespace }/${ this.poolName }`;
 
     return poolId;
-  },
+  }
 
-  pool() {
+  get pool() {
     return this.$rootGetters['management/byId'](CAPI.MACHINE_DEPLOYMENT, this.poolId);
-  },
+  }
 
-  kubeNodeDetailLocation() {
+  get operatingSystem() {
+    return this.metadata?.labels['cattle.io/os'] || 'linux';
+  }
+
+  get kubeNodeDetailLocation() {
     const kubeId = this.status?.nodeRef?.name;
     const cluster = this.cluster?.status?.clusterName;
 
@@ -95,33 +96,33 @@ export default {
     }
 
     return kubeId;
-  },
+  }
 
-  groupByLabel() {
+  get groupByLabel() {
     const name = this.cluster?.nameDisplay || this.spec.clusterName;
 
     return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: escapeHtml(name) });
-  },
+  }
 
-  labels() {
+  get labels() {
     return this.metadata?.labels || {};
-  },
+  }
 
-  isWorker() {
+  get isWorker() {
     return `${ this.labels[MACHINE_ROLES.WORKER] }` === 'true';
-  },
+  }
 
-  isControlPlane() {
+  get isControlPlane() {
     return `${ this.labels[MACHINE_ROLES.CONTROL_PLANE] }` === 'true';
-  },
+  }
 
-  isEtcd() {
+  get isEtcd() {
     return `${ this.labels[MACHINE_ROLES.ETCD] }` === 'true';
-  },
+  }
 
-  roles() {
+  get roles() {
     const { isControlPlane, isWorker, isEtcd } = this;
 
     return listNodeRoles(isControlPlane, isWorker, isEtcd, this.t('generic.all'));
-  },
-};
+  }
+}

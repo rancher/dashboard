@@ -6,12 +6,18 @@ import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
-import { CAPI } from '@/config/types';
+import { CAPI, HCI } from '@/config/types';
 import ClusterMembershipEditor from '@/components/form/Members/ClusterMembershipEditor';
 import Banner from '@/components/Banner';
 import { canViewClusterMembershipEditor } from '@/components/form/Members/ClusterMembershipEditor.vue';
+import { NAME as HARVESTER_MANAGER } from '@/config/product/harvester-manager';
+import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@/store/features';
+import { addObject } from '@/utils/array';
+import { HIDE_DESC, mapPref } from '@/store/prefs';
 import Labels from './Labels';
 import AgentEnv from './AgentEnv';
+
+const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 
 export default {
   components: {
@@ -58,6 +64,20 @@ export default {
   computed: {
     canManageMembers() {
       return canViewClusterMembershipEditor(this.$store);
+    },
+
+    hideDescriptions: mapPref(HIDE_DESC),
+
+    harvesterEnabled: mapFeature(HARVESTER_FEATURE),
+
+    harvesterLocation() {
+      return this.isCreate && !this.hideDescriptions.includes(HARVESTER_HIDE_KEY) && this.harvesterEnabled ? {
+        name:   `c-cluster-product-resource`,
+        params: {
+          product:   HARVESTER_MANAGER,
+          resource:  HCI.CLUSTER,
+        }
+      } : null;
     }
   },
 
@@ -92,6 +112,14 @@ export default {
     onMembershipUpdate(update) {
       this.$set(this, 'membershipUpdate', update);
     },
+
+    hideHarvesterNotice() {
+      const neu = this.hideDescriptions.slice();
+
+      addObject(neu, HARVESTER_HIDE_KEY);
+
+      this.hideDescriptions = neu;
+    },
   },
 };
 </script>
@@ -107,6 +135,19 @@ export default {
     @error="e=>errors = e"
   >
     <div class="mt-20">
+      <Banner
+        v-if="harvesterLocation"
+        color="info"
+        :closable="true"
+        class="mb-20"
+        @close="hideHarvesterNotice"
+      >
+        {{ t('cluster.harvester.importNotice') }}
+        <nuxt-link :to="harvesterLocation">
+          {{ t('product.harvesterManager') }}
+        </nuxt-link>
+      </Banner>
+
       <NameNsDescription
         v-if="!isView"
         v-model="value"

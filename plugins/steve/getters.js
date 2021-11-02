@@ -1,8 +1,9 @@
 import { SCHEMA } from '@/config/types';
-import { COLLECTION_TYPES, PRIMITIVE_TYPES } from '@/config/schema';
 import { matches } from '@/utils/selector';
 import { typeMunge, typeRef, SIMPLE_TYPES } from '@/utils/create-yaml';
-import { normalizeType, keyFieldFor, KEY_FIELD_FOR } from './normalize';
+import { splitObjectPath } from '@/utils/string';
+import { parseType } from '@/models/schema';
+import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import urlOptions from './urloptions';
 import mutations from './mutations';
 
@@ -37,85 +38,27 @@ export default {
     }
   },
 
-  expandedArraySchema: (state, getters) => (type) => {
-    const unwrappedType = type.match(new RegExp(`^${ COLLECTION_TYPES.array }\\[(.*)\\]$`))[1];
-
-    return {
-      type:            COLLECTION_TYPES.array,
-      subType:         unwrappedType,
-      expandedSubType: getters.expandedSchema(unwrappedType)
-    };
-  },
-
-  expandedMapSchema: (state, getters) => (type) => {
-    const unwrappedType = type.match(new RegExp(`^${ COLLECTION_TYPES.map }\\[(.*)\\]$`))[1];
-
-    return {
-      type:            COLLECTION_TYPES.map,
-      subType:         unwrappedType,
-      expandedSubType: getters.expandedSchema(unwrappedType)
-    };
-  },
-
-  expandedResourceFields: (state, getters) => (schema) => {
-    return Object.keys(schema.resourceFields || {}).reduce((agg, key) => {
-      const field = schema.resourceFields[key];
-
-      return {
-        ...agg,
-        [key]: getters.expandedSchema(field)
-      };
-    }, {});
-  },
-
-  expandedSchema: (state, getters) => (typeInput) => {
-    const type = (typeof typeInput === 'string') ? typeInput : (typeInput.type || typeInput.id);
-
-    if (Object.values(PRIMITIVE_TYPES).includes(type)) {
-      return { type, isPrimitive: true };
-    }
-
-    const schema = getters.schema(type) || { type: typeInput };
-
-    if (type.startsWith(COLLECTION_TYPES.array)) {
-      return getters.expandedArraySchema(type);
-    }
-
-    if (type.startsWith(COLLECTION_TYPES.map)) {
-      return getters.expandedMapSchema(type);
-    }
-
-    if (!schema.resourceFields) {
-      return schema;
-    }
-
-    const keyField = keyFieldFor(type);
-
-    return {
-      ...schema,
-      type:                   schema[keyField],
-      expandedResourceFields: getters.expandedResourceFields(schema)
-    };
-  },
-
   pathExistsInSchema: (state, getters) => (type, path) => {
-    let schema = getters.expandedSchema(type);
-    const splitPath = path.split('.');
+    let schema = getters.schemaFor(type);
+    const parts = splitObjectPath(path);
 
-    while (splitPath.length > 0) {
-      const pathPart = splitPath.shift();
+    while ( parts.length ) {
+      const key = parts.shift();
 
-      if (schema?.expandedResourceFields?.[pathPart]) {
-        schema = schema.expandedResourceFields[pathPart];
-        continue;
+      type = schema.resourceFields?.[key]?.type;
+
+      if ( !type ) {
+        return false;
       }
 
-      if (schema.expandedSubType?.expandedResourceFields?.[pathPart]) {
-        schema = schema.expandedSubType.expandedResourceFields[pathPart];
-        continue;
-      }
+      if ( parts.length ) {
+        type = parseType(type).pop(); // Get the main part of array[map[something]] => something
+        schema = getters.schemaFor(type);
 
-      return false;
+        if ( !schema ) {
+          return false;
+        }
+      }
     }
 
     return true;

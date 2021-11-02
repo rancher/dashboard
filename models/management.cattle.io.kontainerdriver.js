@@ -1,3 +1,5 @@
+import HybridModel from '@/plugins/steve/hybrid-class';
+
 const HIDDEN = ['rke', 'rancherkubernetesengine'];
 const V2 = ['amazoneks', 'googlegke', 'azureaks'];
 const IMPORTABLE = ['amazoneks', 'googlegke', 'azureaks'];
@@ -31,20 +33,20 @@ export const DRIVER_TO_IMPORT = {
   azureaks:  'aks',
 };
 
-export default {
-  showCreate() {
+export default class KontainerDriver extends HybridModel {
+  get showCreate() {
     if ( HIDDEN.includes(this.driverName) ) {
       return false;
     }
 
     return !!this.spec.active;
-  },
+  }
 
-  showImport() {
+  get showImport() {
     return this.showCreate && IMPORTABLE.includes(this.driverName);
-  },
+  }
 
-  emberCreatePath() {
+  get emberCreatePath() {
     let driver = this.driverName;
 
     if ( V2.includes(driver) && !driver.endsWith('v2') ) {
@@ -52,15 +54,15 @@ export default {
     }
 
     return `/g/clusters/add/launch/${ driver }`;
-  },
+  }
 
-  emberImportPath() {
+  get emberImportPath() {
     const provider = DRIVER_TO_IMPORT[this.driverName] || this.driverName;
 
     return `/g/clusters/add/launch/import?importProvider=${ provider }`;
-  },
+  }
 
-  driverName() {
+  get driverName() {
     return KONTAINER_TO_DRIVER[this.id] || this.id;
-  },
-};
+  }
+}

@@ -2,7 +2,7 @@ import Vue from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@/utils/array';
 import { SCHEMA } from '@/config/types';
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
-import { proxyFor, remapSpecialKeys } from './resource-proxy';
+import { classify } from './classify';
 import { keyForSubscribe } from './subscribe';
 
 function registerType(state, type) {
@@ -53,8 +53,6 @@ function load(state, { data, ctx, existing }) {
       delete existing[k];
     }
 
-    remapSpecialKeys(data);
-
     for ( const k of Object.keys(data) ) {
       Vue.set(existing, k, data[k]);
     }
@@ -78,7 +76,7 @@ function load(state, { data, ctx, existing }) {
       // console.log('### Mutation Updated', type, id);
     } else {
       // There's no entry, make a new proxy
-      entry = proxyFor(ctx, data);
+      entry = classify(ctx, data);
       addObject(cache.list, entry);
       cache.map.set(id, entry);
       // console.log('### Mutation', type, id);
@@ -147,7 +145,7 @@ export default {
     }
 
     const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
-    const proxies = data.map(x => proxyFor(ctx, x));
+    const proxies = data.map(x => classify(ctx, x));
     const cache = registerType(state, type);
 
     clear(cache.list);
@@ -195,9 +193,10 @@ export default {
     }
 
     clear(state.started);
-    clear(state.pendingSends);
+    clear(state.pendingFrames);
     clear(state.queue);
     clearInterval(state.queueTimer);
+    state.deferredRequests = {};
     state.queueTimer = null;
   },
 

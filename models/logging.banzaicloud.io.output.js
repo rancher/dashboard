@@ -1,3 +1,5 @@
+import SteveModel from '@/plugins/steve/steve-class';
+
 export const PROVIDERS = [
   {
     name:     'awsElasticsearch',
@@ -92,49 +94,47 @@ export const PROVIDERS = [
   },
 ];
 
-export default {
-  canCustomEdit() {
+export default class LogOutput extends SteveModel {
+  get canCustomEdit() {
     return this.allProvidersSupported;
-  },
+  }
 
-  providers() {
+  get providers() {
     const spec = this.spec || {};
 
     return Object.keys(spec)
       .filter(provider => provider !== 'loggingRef');
-  },
+  }
 
-  providersDisplay() {
+  get providersDisplay() {
     return this.providers.map((p) => {
       const translation = this.t(`logging.outputProviders.${ p }`);
 
       return translation || this.t('logging.outputProviders.unknown');
     });
-  },
+  }
 
-  isSupportedProvider() {
-    return (provider) => {
-      return !!PROVIDERS.find(p => p.name === provider);
-    };
-  },
+  isSupportedProvider(provider) {
+    return !!PROVIDERS.find(p => p.name === provider);
+  }
 
-  allProvidersSupported() {
+  get allProvidersSupported() {
     return this.providers.every(this.isSupportedProvider);
-  },
+  }
 
-  providersSortable() {
+  get providersSortable() {
     const copy = [...this.providersDisplay];
 
     copy.sort();
 
     return copy.join('');
-  },
+  }
 
-  text() {
+  get text() {
     return this.nameDisplay;
-  },
+  }
 
-  url() {
+  get url() {
     return {
       name:   'c-cluster-product-resource-namespace-id',
       params:   {
@@ -143,14 +143,14 @@ export default {
         namespace: this.namespace
       }
     };
-  },
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     return [
       {
         path:           'spec.logdna',
         validators:     ['logdna'],
       }
     ];
-  },
-};
+  }
+}

@@ -92,7 +92,7 @@ export default {
       :target="get(r, targetField)"
       :rel="rel"
       class="item"
-      :class="{'has-description': !!get(r, descriptionField), [colorFor(r, idx)]: true, disabled: get(r, disabledField) === true}"
+      :class="{'has-description': !!get(r, descriptionField), 'has-side-label': !!get(r, sideLabelField), [colorFor(r, idx)]: true, disabled: get(r, disabledField) === true}"
       @click="select(r, idx)"
     >
       <div class="side-label" :class="{'indicator': true }" />
@@ -151,6 +151,8 @@ export default {
       }
     }
 
+    $color: var(--body-text) !important;
+
     .item {
       height: $height;
       margin: $margin;
@@ -159,7 +161,7 @@ export default {
       //border-radius: calc( 1.5 * var(--border-radius));
       border: 1px solid var(--border);
       text-decoration: none !important;
-      color: var(--body-text) !important;
+      color: $color;
 
       &:hover:not(.disabled) {
         box-shadow: 0 0 30px var(--shadow);
@@ -172,7 +174,7 @@ export default {
         position: absolute;
         top: 10px;
         right: 10px;
-        padding: 2px 10px;
+        padding: 2px 5px;
 
         &.indicator {
           top: 0;
@@ -187,6 +189,9 @@ export default {
           display: block;
           white-space: no-wrap;
           text-overflow: ellipsis;
+          // Override default form label properties
+          color: $color;
+          margin: 0;
         }
 
       }
@@ -195,7 +200,7 @@ export default {
         text-align: center;
         position: absolute;
         left: $side+$margin;
-        top: ($height - $logo)/2;
+        top: math.div(($height - $logo), 2);
         width: $logo;
         height: $logo;
         border-radius: calc(2 * var(--border-radius));
@@ -287,9 +292,17 @@ export default {
         margin-left: $side+$logo+$margin;
       }
 
-      &.has-description .name {
-        margin-top: $margin;
-        line-height: initial;
+      &.has-description {
+        .name {
+          margin-top: $margin;
+          line-height: initial;
+        }
+
+        &.has-side-label {
+          .name {
+            margin-top: $margin + 5px;
+          }
+        }
       }
 
       .description {

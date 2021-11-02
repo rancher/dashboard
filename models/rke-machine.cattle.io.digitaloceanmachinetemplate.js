@@ -1,18 +1,19 @@
-export default {
+import SteveModel from '@/plugins/steve/steve-class';
 
-  nameDisplay() {
+export default class DigialoceanMachineTemplate extends SteveModel {
+  get nameDisplay() {
     return this.name.replace(`${ this.metadata.annotations['objectset.rio.cattle.io/owner-name'] }-`, '');
-  },
+  }
 
-  provider() {
+  get provider() {
     return 'digitalocean';
-  },
+  }
 
-  providerLocation() {
+  get providerLocation() {
     return this.spec.template.spec.region ;
-  },
+  }
 
-  providerSize() {
+  get providerSize() {
     return this.spec.template.spec.size;
   }
-};
+}

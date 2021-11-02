@@ -1,7 +1,8 @@
 import { insertAt } from '@/utils/array';
-import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
+import { colorForState, stateDisplay } from '@/plugins/steve/resource-class';
 import { NODE, WORKLOAD_TYPES } from '@/config/types';
 import SteveModel from '@/plugins/steve/steve-class';
+import { shortenedImage } from '@/utils/string';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -15,27 +16,41 @@ export const WORKLOAD_PRIORITY = {
 
 export default class Pod extends SteveModel {
   get _availableActions() {
-    const out = this._standardActions;
+    const out = super._availableActions;
 
-    const openShell = {
+    // Add backwards, each one to the top
+    insertAt(out, 0, { divider: true });
+    insertAt(out, 0, this.openLogsMenuItem);
+    insertAt(out, 0, this.openShellMenuItem);
+
+    return out;
+  }
+
+  get openShellMenuItem() {
+    return {
       action:     'openShell',
       enabled:    !!this.links.view && this.isRunning,
       icon:       'icon icon-fw icon-chevron-right',
       label:      'Execute Shell',
       total:      1,
     };
-    const openLogs = {
+  }
+
+  get openLogsMenuItem() {
+    return {
       action:     'openLogs',
       enabled:    !!this.links.view,
       icon:       'icon icon-fw icon-chevron-right',
       label:      'View Logs',
       total:      1,
     };
+  }
 
-    // Add backwards, each one to the top
-    insertAt(out, 0, { divider: true });
-    insertAt(out, 0, openLogs);
-    insertAt(out, 0, openShell);
+  get containerActions() {
+    const out = [];
+
+    insertAt(out, 0, this.openLogsMenuItem);
+    insertAt(out, 0, this.openShellMenuItem);
 
     return out;
   }
@@ -51,28 +66,28 @@ export default class Pod extends SteveModel {
     return containers[0]?.name;
   }
 
-  openShell() {
+  openShell(containerName = this.defaultContainerName) {
     this.$dispatch('wm/open', {
       id:        `${ this.id }-shell`,
       label:     this.nameDisplay,
       icon:      'terminal',
       component: 'ContainerShell',
       attrs:     {
-        pod:       this,
-        container: this.defaultContainerName
+        pod:              this,
+        initialContainer: containerName
       }
     }, { root: true });
   }
 
-  openLogs() {
+  openLogs(containerName = this.defaultContainerName) {
     this.$dispatch('wm/open', {
       id:        `${ this.id }-logs`,
       label:     this.nameDisplay,
       icon:      'file',
       component: 'ContainerLogs',
       attrs:     {
-        pod:       this,
-        container: this.defaultContainerName
+        pod:              this,
+        initialContainer: containerName
       }
     }, { root: true });
   }
@@ -90,9 +105,7 @@ export default class Pod extends SteveModel {
   }
 
   get imageNames() {
-    return this.spec.containers.map(container => container.image).map((image) => {
-      return image.replace(/^(index\.)?docker.io\/(library\/)?/, '').replace(/:latest$/, '');
-    });
+    return this.spec.containers.map(container => shortenedImage(container.image));
   }
 
   get workloadRef() {

@@ -4,24 +4,36 @@ import { WORKLOAD_TYPES, SERVICE } from '@/config/types';
 import { clone, get, set } from '@/utils/object';
 import day from 'dayjs';
 import SteveModel from '@/plugins/steve/steve-class';
+import { shortenedImage } from '@/utils/string';
 
 export default class Workload extends SteveModel {
   // remove clone as yaml/edit as yaml until API supported
   get _availableActions() {
-    let out = this._standardActions;
+    let out = super._availableActions;
     const type = this._type ? this._type : this.type;
 
-    insertAt(out, 0, {
-      action: 'addSidecar',
-      label:  'Add Sidecar',
-      icon:   'icon icon-plus'
+    const editYaml = findBy(out, 'action', 'goToEditYaml');
+    const index = editYaml ? out.indexOf(editYaml) + 1 : 0;
+
+    insertAt(out, index, {
+      action:  'addSidecar',
+      label:   'Add Sidecar',
+      icon:    'icon icon-plus',
+      enabled: !!this.links.update,
     });
 
     if (type !== WORKLOAD_TYPES.JOB && type !== WORKLOAD_TYPES.CRON_JOB) {
       insertAt(out, 0, {
+        action:  'toggleRollbackModal',
+        label:   'Rollback',
+        icon:    'icon icon-history',
+        enabled: !!this.links.update,
+      });
+
+      insertAt(out, 0, {
         action:     'redeploy',
         label:      'Redeploy',
-        icon:       'icon icon-spinner',
+        icon:       'icon icon-refresh',
         enabled:    !!this.links.update,
         bulkable:   true,
       });
@@ -70,6 +82,25 @@ export default class Workload extends SteveModel {
       }
     }
     vm.$set(this, 'spec', spec);
+  }
+
+  toggleRollbackModal( resources = this ) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'RollbackWorkloadDialog'
+    });
+  }
+
+  async rollBackWorkload( workload, rollbackRequestData ) {
+    const rollbackRequestBody = JSON.stringify(rollbackRequestData);
+
+    if ( Array.isArray( workload ) ) {
+      throw new TypeError(this.t('promptRollback.multipleWorkloadError'));
+    }
+    const namespace = workload.metadata.namespace;
+    const workloadName = workload.metadata.name;
+
+    await this.patch(rollbackRequestBody, { url: `/apis/apps/v1/namespaces/${ namespace }/deployments/${ workloadName }` });
   }
 
   addSidecar() {
@@ -272,7 +303,7 @@ export default class Workload extends SteveModel {
       });
     }
 
-    return images.map((x = '') => x.replace(/^(index\.)?docker.io\/(library\/)?/, '').replace(/:latest$/, '') );
+    return images.map(shortenedImage);
   }
 
   redeploy() {

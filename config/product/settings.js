@@ -2,9 +2,9 @@ import { DSL } from '@/store/type-map';
 import { MANAGEMENT } from '@/config/types';
 import {
   STATE,
-  SIMPLE_NAME,
   FEATURE_DESCRIPTION,
   RESTART,
+  NAME_UNLINKED,
 } from '@/config/table-headers';
 
 export const NAME = 'settings';
@@ -95,9 +95,9 @@ export function init(store) {
 
   headers(MANAGEMENT.FEATURE, [
     STATE,
-    RESTART,
-    SIMPLE_NAME,
+    NAME_UNLINKED,
     FEATURE_DESCRIPTION,
+    RESTART,
   ]);
 
   hideBulkActions(MANAGEMENT.FEATURE, true);

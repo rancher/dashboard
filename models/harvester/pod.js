@@ -2,7 +2,7 @@ import includes from 'lodash/includes';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
 import { NODE } from '@/config/types';
-import { Resource } from '@/plugins/steve/resource-class';
+import Resource from '@/plugins/steve/resource-class';
 
 const POD_STATUS_NOT_SCHEDULABLE = 'POD_NOT_SCHEDULABLE';
 
@@ -38,16 +38,16 @@ const stateReasonResolver = {
   waiting:    ({ reason }) => `Waiting (${ reason }).`,
 };
 
-export default class Pod extends Resource {
-  inStore() {
+export default class HciPod extends Resource {
+  get inStore() {
     return this.$rootGetters['currentProduct'].inStore;
   }
 
-  nodes() {
+  get nodes() {
     return this.$rootGetters[`${ this.inStore }/all`](NODE);
   }
 
-  node() {
+  get node() {
     const { nodeName } = this.spec;
 
     return this.nodes.filter((node) => {
@@ -55,7 +55,7 @@ export default class Pod extends Resource {
     })[0];
   }
 
-  getPodStatus() {
+  get getPodStatus() {
     return this.isNotSchedulable ||
     this.hasErrorStatus ||
     this.isContainerFailing ||
@@ -63,18 +63,21 @@ export default class Pod extends Resource {
     this.hasOkStatus || { status: POD_STATUS_UNKNOWN };
   }
 
-  isNotSchedulable() {
+  get isNotSchedulable() {
     if (!this.isPodSchedulable) {
+      const conditions = get(this, 'status.conditions');
+      const podScheduledCond = findBy(conditions, 'type', 'PodScheduled');
+
       return {
         status:  POD_STATUS_NOT_SCHEDULABLE,
-        message: 'Pod scheduling failed.',
+        message: podScheduledCond.message || 'Pod scheduling failed.',
       };
     }
 
     return null;
   }
 
-  hasErrorStatus() {
+  get hasErrorStatus() {
     const status = errorStatusMapper[this?.status?.phase];
 
     if (status) {
@@ -87,7 +90,7 @@ export default class Pod extends Resource {
     return null;
   }
 
-  isPodSchedulable() {
+  get isPodSchedulable() {
     const conditions = get(this, 'status.conditions');
     const podScheduledCond = findBy(conditions, 'type', 'PodScheduled');
 
@@ -98,7 +101,7 @@ export default class Pod extends Resource {
     );
   }
 
-  findFailingContainerStatus() {
+  get findFailingContainerStatus() {
     return (get(this, 'status.containerStatuses'), []).find((container) => {
       return !container.ready &&
       (includes(failedWaitingContainerReasons, get(container, 'state.waiting.reason')) ||
@@ -106,7 +109,7 @@ export default class Pod extends Resource {
     });
   }
 
-  getContainerStatusReason() {
+  get getContainerStatusReason() {
     return (containerStatus) => {
       if (containerStatus) {
         const stateName = Object.getOwnPropertyNames(containerStatus.state).find(
@@ -128,7 +131,7 @@ export default class Pod extends Resource {
     };
   }
 
-  isContainerFailing() {
+  get isContainerFailing() {
     const failingContainer = this.findFailingContainerStatus;
 
     if (failingContainer) {
@@ -141,7 +144,7 @@ export default class Pod extends Resource {
     return null;
   }
 
-  isNotReady() {
+  get isNotReady() {
     const message = this.findPodFalseStatusConditionMessage;
 
     if (message) {
@@ -154,7 +157,7 @@ export default class Pod extends Resource {
     return null;
   }
 
-  hasOkStatus() {
+  get hasOkStatus() {
     const status = okStatusMapper[this?.status?.phase];
 
     if (status) {
@@ -164,7 +167,7 @@ export default class Pod extends Resource {
     return null;
   }
 
-  findPodFalseStatusConditionMessage() {
+  get findPodFalseStatusConditionMessage() {
     const notReadyConditions = this.getPodFalseStatusConditions;
 
     if (notReadyConditions.length > 0) {
@@ -174,7 +177,7 @@ export default class Pod extends Resource {
     return undefined;
   }
 
-  getPodFalseStatusConditions() {
+  get getPodFalseStatusConditions() {
     const conditions = get(this, 'status.conditions') || [];
 
     return conditions.filter(condition => condition.status !== 'True');

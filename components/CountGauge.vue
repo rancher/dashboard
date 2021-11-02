@@ -128,7 +128,7 @@ export default {
         h1 {
           font-size: 40px;
           line-height: 36px;
-          padding-bottom: $padding / 2;
+          padding-bottom: math.div($padding, 2);
           margin-bottom: 0;
         }
 
@@ -142,7 +142,7 @@ export default {
         .alerts {
             position: absolute;
             right: $padding;
-            top: $padding / 2;
+            top: math.div($padding, 2);
             font-size: 15px;
 
             .text-error {

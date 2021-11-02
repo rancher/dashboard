@@ -4,6 +4,7 @@ import LabelValue from '@/components/LabelValue';
 import Banner from '@/components/Banner';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
 import { HCI } from '@/config/labels-annotations';
+import { LONGHORN } from '@/config/types';
 
 const COMPLETE = 'complete';
 const NONE = 'none';
@@ -110,11 +111,17 @@ export default {
     },
 
     storageUsage() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.value.id }`);
       let out = 0;
 
-      if (this.metrics) {
-        out = this.metrics.storageUsage;
-      }
+      const diskStatus = longhornNode?.status?.diskStatus || {};
+
+      Object.values(diskStatus).map((disk) => {
+        if (disk?.storageAvailable && disk?.storageMaximum) {
+          out += disk.storageMaximum - disk.storageAvailable;
+        }
+      });
 
       return out;
     },

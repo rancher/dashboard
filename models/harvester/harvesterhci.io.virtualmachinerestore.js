@@ -1,16 +1,18 @@
-export default {
-  isComplete() {
-    return this?.status?.complete || false;
-  },
+import SteveModel from '@/plugins/steve/steve-class';
 
-  pvcNames() {
+export default class HciVmRestore extends SteveModel {
+  get isComplete() {
+    return this?.status?.complete || false;
+  }
+
+  get pvcNames() {
     const restores = this?.status?.restores || [];
     const out = restores.map( O => O?.persistentVolumeClaimSpec?.name);
 
     return out;
-  },
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     const isNew = this.spec?.newVM;
 
     const rules = [{
@@ -37,5 +39,5 @@ export default {
     }
 
     return rules;
-  },
-};
+  }
+}

@@ -1,5 +1,5 @@
 <script>
-import { colorForState, stateDisplay, stateSort } from '@/plugins/steve/resource-instance';
+import { colorForState, stateDisplay, stateSort } from '@/plugins/steve/resource-class';
 import SortableTable from '@/components/SortableTable';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { FLEET as FLEET_ANNOTATIONS } from '@/config/labels-annotations';

@@ -3,12 +3,18 @@ import { fullFields, prefixFields, simplify, suffixFields } from '@/store/plugin
 import { isEmpty, set } from '@/utils/object';
 import { SECRET } from '@/config/types';
 import { escapeHtml } from '@/utils/string';
+import NormanModel from '@/plugins/steve/norman-class';
 
-export default {
-  hasSensitiveData: () => true,
-  canCustomEdit:    () => true,
+export default class CloudCredential extends NormanModel {
+  get hasSensitiveData() {
+    return true;
+  }
 
-  _detailLocation() {
+  get canCustomEdit() {
+    return true;
+  }
+
+  get _detailLocation() {
     return {
       name:   `c-cluster-manager-cloudCredential-id`,
       params: {
@@ -17,24 +23,24 @@ export default {
         id:      this.id,
       }
     };
-  },
+  }
 
-  parentLocationOverride() {
+  get parentLocationOverride() {
     return {
       name:   `c-cluster-manager-cloudCredential`,
       params: { cluster: this.$rootGetters['clusterId'] }
     };
-  },
+  }
 
-  secret() {
+  get secret() {
     return this.$rootGetters['management/byId'](SECRET, this.id.replace(':', '/'));
-  },
+  }
 
-  configKey() {
+  get configKey() {
     return Object.keys(this).find( k => k.endsWith('credentialConfig'));
-  },
+  }
 
-  provider() {
+  get provider() {
     const annotation = this.annotations?.[CAPI.CREDENTIAL_DRIVER];
 
     if ( annotation ) {
@@ -51,27 +57,25 @@ export default {
     }
 
     return null;
-  },
+  }
 
-  setProvider() {
-    return (neu) => {
-      this.setAnnotation(CAPI.CREDENTIAL_DRIVER, neu);
+  setProvider(neu) {
+    this.setAnnotation(CAPI.CREDENTIAL_DRIVER, neu);
 
-      Object.keys(this).forEach((k) => {
-        k = k.toLowerCase();
+    Object.keys(this).forEach((k) => {
+      k = k.toLowerCase();
 
-        if ( k.endsWith('config') && k !== `${ neu }config` ) {
-          set(this, k, null);
-        }
-      });
-
-      if ( !this[`${ neu }credentialConfig`] ) {
-        set(this, `${ neu }credentialConfig`, {});
+      if ( k.endsWith('config') && k !== `${ neu }config` ) {
+        set(this, k, null);
       }
-    };
-  },
+    });
 
-  decodedData() {
+    if ( !this[`${ neu }credentialConfig`] ) {
+      set(this, `${ neu }credentialConfig`, {});
+    }
+  }
+
+  get decodedData() {
     const k = this.configKey;
 
     if ( k ) {
@@ -79,38 +83,36 @@ export default {
     }
 
     return {};
-  },
+  }
 
-  setData() {
-    return (key, value) => { // or (mapOfNewData)
-      const isMap = key && typeof key === 'object';
+  setData(key, value) { // or (mapOfNewData)
+    const isMap = key && typeof key === 'object';
 
-      if ( !this[this.configKey] || isMap ) {
-        set(this, this.configKey, {});
-      }
+    if ( !this[this.configKey] || isMap ) {
+      set(this, this.configKey, {});
+    }
 
-      let neu;
+    let neu;
 
-      if ( isMap ) {
-        neu = key;
-      } else {
-        neu = { [key]: value };
-      }
+    if ( isMap ) {
+      neu = key;
+    } else {
+      neu = { [key]: value };
+    }
 
-      for ( const k in neu ) {
-        // The key is quoted so that keys like '.dockerconfigjson' that contain dot don't get parsed into an object path
-        set(this, `"${ this.configKey }"."${ k }"`, neu[k]);
-      }
-    };
-  },
+    for ( const k in neu ) {
+      // The key is quoted so that keys like '.dockerconfigjson' that contain dot don't get parsed into an object path
+      set(this, `"${ this.configKey }"."${ k }"`, neu[k]);
+    }
+  }
 
-  providerDisplay() {
+  get providerDisplay() {
     const provider = (this.provider || '').toLowerCase();
 
     return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, provider);
-  },
+  }
 
-  publicData() {
+  get publicData() {
     let { publicKey, publicMode } = this.$rootGetters['plugins/credentialOptions'](this.provider);
 
     const options = {
@@ -140,7 +142,7 @@ export default {
     }
 
     if ( !publicKey ) {
-      return;
+      return null;
     }
 
     let val = this.decodedData[publicKey];
@@ -150,7 +152,7 @@ export default {
     }
 
     if ( !val ) {
-      return;
+      return null;
     }
 
     const maxLength = Math.min(8, Math.floor(val.length / 2));
@@ -162,9 +164,9 @@ export default {
     } else {
       return escapeHtml(val);
     }
-  },
+  }
 
-  doneRoute() {
+  get doneRoute() {
     return 'c-cluster-manager-secret';
-  },
-};
+  }
+}

@@ -1,5 +1,5 @@
 <script>
-import { TYPES } from '@/models/secret.class';
+import { TYPES } from '@/models/secret';
 import { MANAGEMENT, NORMAN, SCHEMA } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -262,15 +262,16 @@ export default {
       @error="e=>errors = e"
     >
       <NameNsDescription v-model="value" name-key="_name" :mode="mode" :namespaced="false" />
-
-      <component
-        :is="cloudComponent"
-        ref="cloudComponent"
-        :driver-name="driverName"
-        :value="value"
-        :mode="mode"
-        :hide-sensitive-data="hideSensitiveData"
-      />
+      <keep-alive>
+        <component
+          :is="cloudComponent"
+          ref="cloudComponent"
+          :driver-name="driverName"
+          :value="value"
+          :mode="mode"
+          :hide-sensitive-data="hideSensitiveData"
+        />
+      </keep-alive>
     </CruResource>
   </form>
 </template>

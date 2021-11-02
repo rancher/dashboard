@@ -1,10 +1,12 @@
 import Vue from 'vue';
 import { load } from 'js-yaml';
-import { colorForState } from '@/plugins/steve/resource-instance';
+import { colorForState } from '@/plugins/steve/resource-class';
 import { POD, NODE, HCI } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
+import { _CLONE } from '@/config/query-params';
+import SteveModel from '@/plugins/steve/steve-class';
 
 const VMI_WAITING_MESSAGE = 'The virtual machine is waiting for resources to become available.';
 const VM_ERROR = 'VM error';
@@ -67,9 +69,9 @@ const VMIPhase = {
   Unknown:    'Unknown',
 };
 
-export default {
-  availableActions() {
-    const out = this._standardActions;
+export default class VirtVm extends SteveModel {
+  get availableActions() {
+    const out = super._availableActions;
 
     return [
       {
@@ -152,185 +154,161 @@ export default {
       },
       ...out
     ];
-  },
+  }
 
-  applyDefaults() {
-    return () => {
-      const spec = {
-        running:              true,
-        template:             {
-          metadata: { annotations: {} },
-          spec:     {
-            domain: {
-              machine: { type: '' },
-              cpu:     {
-                cores:   null,
-                sockets: 1,
-                threads: 1
-              },
-              devices: {
-                inputs: [{
-                  bus:  'usb',
-                  name: 'tablet',
-                  type: 'tablet'
-                }],
-                interfaces: [{
-                  masquerade: {},
-                  model:      'virtio',
-                  name:       'default'
-                }],
-                disks: [],
-              },
-              resources: {
-                requests: {
-                  memory: null,
-                  cpu:    ''
-                },
-                limits: {
-                  memory: null,
-                  cpu:    ''
-                }
-              }
+  applyDefaults(resources = this, realMode) {
+    const spec = {
+      running:              true,
+      template:             {
+        metadata: { annotations: {} },
+        spec:     {
+          domain: {
+            machine: { type: '' },
+            cpu:     {
+              cores:   null,
+              sockets: 1,
+              threads: 1
             },
-            evictionStrategy: 'LiveMigrate',
-            hostname:         '',
-            networks:         [{
-              name: 'default',
-              pod:  {}
-            }],
-            volumes: []
-          }
+            devices: {
+              inputs: [{
+                bus:  'usb',
+                name: 'tablet',
+                type: 'tablet'
+              }],
+              interfaces: [{
+                masquerade: {},
+                model:      'virtio',
+                name:       'default'
+              }],
+              disks: [],
+            },
+            resources: {
+              requests: {
+                memory: null,
+                cpu:    ''
+              },
+              limits: {
+                memory: null,
+                cpu:    ''
+              }
+            }
+          },
+          evictionStrategy: 'LiveMigrate',
+          hostname:         '',
+          networks:         [{
+            name: 'default',
+            pod:  {}
+          }],
+          volumes: []
         }
-      };
+      }
+    };
 
+    if (realMode !== _CLONE) {
       Vue.set(this.metadata, 'annotations', { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: '[]' });
       Vue.set(this, 'spec', spec);
-    };
-  },
+    }
+  }
 
   restartVM() {
-    return () => {
-      this.doAction('restart', {});
-    };
-  },
+    this.doAction('restart', {});
+  }
 
-  backupVM() {
-    return (resources = this) => {
-      this.$dispatch('promptModal', {
-        resources,
-        component: 'harvester/BackupModal'
-      });
-    };
-  },
+  backupVM(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'harvester/BackupModal'
+    });
+  }
 
-  restoreVM() {
-    return (resources = this) => {
-      this.$dispatch('promptModal', {
-        resources,
-        component: 'harvester/RestoreDialog'
-      });
-    };
-  },
+  restoreVM(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'harvester/RestoreDialog'
+    });
+  }
 
-  machineType() {
+  get machineType() {
     return this.spec?.template?.spec?.domain?.machine?.type || '';
-  },
+  }
 
-  realAttachNodeName() {
+  get realAttachNodeName() {
     const vmi = this.$getters['byId'](HCI.VMI, this.id);
     const nodeName = vmi?.status?.nodeName;
     const node = this.$getters['byId'](NODE, nodeName);
 
     return node?.nameDisplay || '';
-  },
+  }
 
-  nodeName() {
+  get nodeName() {
     const vmi = this.$getters['byId'](HCI.VMI, this.id);
     const nodeName = vmi?.status?.nodeName;
     const node = this.$getters['byId'](NODE, nodeName);
 
     return node?.id;
-  },
+  }
 
   pauseVM() {
-    return () => {
-      this.doAction('pause', {});
-    };
-  },
+    this.doAction('pause', {});
+  }
 
   unpauseVM() {
-    return () => {
-      this.doAction('unpause', {});
-    };
-  },
+    this.doAction('unpause', {});
+  }
 
   stopVM() {
-    return () => {
-      this.doAction('stop', {});
-    };
-  },
+    this.doAction('stop', {});
+  }
 
   startVM() {
-    return () => {
-      this.doAction('start', {});
-    };
-  },
+    this.doAction('start', {});
+  }
 
-  migrateVM() {
-    return (resources = this) => {
-      this.$dispatch('promptModal', {
-        resources,
-        component: 'harvester/MigrationDialog'
-      });
-    };
-  },
+  migrateVM(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'harvester/MigrationDialog'
+    });
+  }
 
-  ejectCDROM() {
-    return (resources = this) => {
-      this.$dispatch('promptModal', {
-        resources,
-        component: 'harvester/EjectCDROMDialog'
-      });
-    };
-  },
+  ejectCDROM(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'harvester/EjectCDROMDialog'
+    });
+  }
 
   abortMigrationVM() {
-    return () => {
-      this.doAction('abortMigration', {});
-    };
-  },
+    this.doAction('abortMigration', {});
+  }
 
-  createTemplate() {
-    return (resources = this) => {
-      this.$dispatch('promptModal', {
-        resources,
-        component: 'harvester/CloneTemplate'
-      });
-    };
-  },
+  createTemplate(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'harvester/CloneTemplate'
+    });
+  }
 
-  addHotplug() {
-    return (resources = this) => {
-      this.$dispatch('promptModal', {
-        resources,
-        component: 'harvester/AddHotplugModal'
-      });
-    };
-  },
+  addHotplug(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'harvester/AddHotplugModal'
+    });
+  }
 
-  isOff() {
+  get isOff() {
     return !this.isVMExpectedRunning ? { status: OFF } : null;
-  },
+  }
 
-  isWaitingForVMI() {
+  get isWaitingForVMI() {
     if (this && this.isVMExpectedRunning && !this.isVMCreated) {
       return { status: WAITING, message: VMI_WAITING_MESSAGE };
     }
 
     return null;
-  },
+  }
 
-  isVMExpectedRunning() {
+  get isVMExpectedRunning() {
     if (!this?.spec) {
       return false;
     }
@@ -367,18 +345,18 @@ export default {
     }
 
     return false;
-  },
+  }
 
-  podResource() {
+  get podResource() {
     const vmiResource = this.$rootGetters['harvester/byId'](HCI.VMI, this.id);
     const podList = this.$rootGetters['harvester/all'](POD);
 
     return podList.find( (P) => {
       return vmiResource?.metadata?.name === P.metadata?.ownerReferences?.[0].name;
     });
-  },
+  }
 
-  isPaused() {
+  get isPaused() {
     const conditions = this.vmi?.status?.conditions || [];
     const isPause = conditions.filter(cond => cond.type === PAUSED).length > 0;
 
@@ -386,9 +364,9 @@ export default {
       status:  PAUSED,
       message: PAUSED_VM_MODAL_MESSAGE
     } : null;
-  },
+  }
 
-  isVMError() {
+  get isVMError() {
     const conditions = get(this, 'status.conditions');
     const vmFailureCond = findBy(conditions, 'type', 'Failure');
 
@@ -400,13 +378,13 @@ export default {
     }
 
     return null;
-  },
+  }
 
-  vmi() {
+  get vmi() {
     return this.$rootGetters['harvester/byId'](HCI.VMI, this.id);
-  },
+  }
 
-  isError() {
+  get isError() {
     const conditions = get(this.vmi, 'status.conditions');
     const vmiFailureCond = findBy(conditions, 'type', 'Failure');
 
@@ -427,25 +405,25 @@ export default {
     }
 
     return this?.vmi?.status?.phase;
-  },
+  }
 
-  isRunning() {
+  get isRunning() {
     if (this.vmi?.status?.phase === VMIPhase.Running) {
       return { status: VMIPhase.Running };
     }
 
     return null;
-  },
+  }
 
-  isBeingStopped() {
+  get isBeingStopped() {
     if (this && !this.isVMExpectedRunning && this.isVMCreated) {
       return { status: STOPPING };
     }
 
     return null;
-  },
+  }
 
-  isStarting() {
+  get isStarting() {
     if (this.isVMExpectedRunning && this.isVMCreated) {
       // created but not yet ready
       if (this.podResource) {
@@ -468,9 +446,9 @@ export default {
     }
 
     return null;
-  },
+  }
 
-  otherState() {
+  get otherState() {
     const state = (this.vmi && [VMIPhase.Scheduling, VMIPhase.Scheduled].includes(this.vmi?.status?.phase) && {
       status:  'Starting',
       message: STARTING_MESSAGE,
@@ -484,32 +462,30 @@ export default {
     { status: 'UNKNOWN' };
 
     return state;
-  },
+  }
 
-  isVMCreated() {
+  get isVMCreated() {
     return !!this?.status?.created;
-  },
+  }
 
-  getDataVolumeTemplates() {
+  get getDataVolumeTemplates() {
     return get(this, 'spec.volumeClaimTemplates') === null ? [] : this.spec.volumeClaimTemplates;
-  },
+  }
 
-  restoreState() {
-    return (vmResource = this, id) => {
-      if (!id) {
-        id = `${ this.metadata.namespace }/${ get(vmResource, `metadata.annotations."${ HCI_ANNOTATIONS.RESTORE_NAME }"`) }`;
-      }
-      const restoreResource = this.$rootGetters['harvester/byId'](HCI.RESTORE, id);
+  restoreState(vmResource = this, id) {
+    if (!id) {
+      id = `${ this.metadata.namespace }/${ get(vmResource, `metadata.annotations."${ HCI_ANNOTATIONS.RESTORE_NAME }"`) }`;
+    }
+    const restoreResource = this.$rootGetters['harvester/byId'](HCI.RESTORE, id);
 
-      if (!restoreResource) {
-        return true;
-      }
+    if (!restoreResource) {
+      return true;
+    }
 
-      return restoreResource?.isComplete;
-    };
-  },
+    return restoreResource?.isComplete;
+  }
 
-  actualState() {
+  get actualState() {
     if (!this.restoreState()) {
       return 'Restoring';
     }
@@ -534,9 +510,9 @@ export default {
       this.otherState?.status;
 
     return state;
-  },
+  }
 
-  warningMessage() {
+  get warningMessage() {
     const conditions = get(this, 'status.conditions');
     const vmFailureCond = findBy(conditions, 'type', 'Failure');
 
@@ -548,7 +524,7 @@ export default {
     }
 
     const vmiConditions = get(this.vmi, 'status.conditions');
-    const vmiFailureCond = (findBy(vmiConditions, 'type', 'Failure') || {});
+    const vmiFailureCond = findBy(vmiConditions, 'type', 'Failure');
 
     if (vmiFailureCond) {
       return { status: 'VMI error', detailedMessage: vmiFailureCond.message };
@@ -567,9 +543,9 @@ export default {
     }
 
     return null;
-  },
+  }
 
-  migrationMessage() {
+  get migrationMessage() {
     if (!!this?.vmi?.migrationState && this.vmi.migrationState.status === 'Failed') {
       return {
         ...this.actualState,
@@ -578,19 +554,19 @@ export default {
     }
 
     return null;
-  },
+  }
 
-  stateDisplay() {
+  get stateDisplay() {
     return this.actualState;
-  },
+  }
 
-  stateColor() {
+  get stateColor() {
     const state = this.actualState;
 
     return colorForState(state);
-  },
+  }
 
-  networkIps() {
+  get networkIps() {
     let networkData = '';
     const out = [];
     const arrVolumes = this.spec.template?.spec?.volumes || [];
@@ -624,17 +600,17 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  warningCount() {
+  get warningCount() {
     return this.resourcesStatus.warningCount;
-  },
+  }
 
-  errorCount() {
+  get errorCount() {
     return this.resourcesStatus.errorCount;
-  },
+  }
 
-  resourcesStatus() {
+  get resourcesStatus() {
     const vmList = this.$rootGetters['harvester/all'](HCI.VM);
     let warningCount = 0;
     let errorCount = 0;
@@ -653,9 +629,9 @@ export default {
       warningCount,
       errorCount
     };
-  },
+  }
 
-  volumeClaimTemplates() {
+  get volumeClaimTemplates() {
     let out = [];
 
     try {
@@ -665,13 +641,13 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  restoreName() {
+  get restoreName() {
     return get(this, `metadata.annotations."${ HCI_ANNOTATIONS.RESTORE_NAME }"`) || '';
-  },
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     const rules = [
       {
         nullable:       false,
@@ -708,18 +684,26 @@ export default {
     ];
 
     return rules;
-  },
+  }
 
-  attachNetwork() {
+  get attachNetwork() {
     const networks = this.spec?.template?.spec?.networks || [];
     const hasMultus = networks.find( N => N.multus);
 
     return !!hasMultus;
-  },
+  }
 
-  memorySort() {
+  get memorySort() {
     const memory = this?.spec?.template?.spec?.domain?.resources?.requests?.memory || 0;
 
     return parseInt(memory);
   }
-};
+
+  get stateDescription() {
+    if (this.isOff) {
+      return '';
+    }
+
+    return super.stateDescription;
+  }
+}

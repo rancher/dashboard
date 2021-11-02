@@ -97,7 +97,7 @@ export default {
       .graphic {
         height: $banner-height-small;
         img.banner {
-          margin-top: ($banner-height-small - $banner-height)/2;
+          margin-top: math.div(($banner-height-small - $banner-height), 2);
         }
       }
     }

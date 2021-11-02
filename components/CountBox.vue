@@ -14,6 +14,10 @@ export default {
       type:     String,
       required: true
     },
+    compact: {
+      type:    Boolean,
+      default: false
+    }
   },
   computed: {
     sideStyle() {
@@ -36,7 +40,7 @@ export default {
 <template>
   <div class="count-container" :style="sideStyle">
     <div class="count" :primary-color-var="primaryColorVar" :style="mainStyle">
-      <div class="data">
+      <div class="data" :class="{ 'compact': compact }">
         <h1>{{ count }}</h1>
         <label>{{ name }}</label>
       </div>
@@ -65,12 +69,26 @@ export default {
         label {
           opacity: 0.7;
         }
+
+        &.compact {
+          align-items: center;
+          flex-direction: row;
+
+          h1 {
+            margin-bottom: 0;
+            padding-bottom: 0;
+          }
+
+          label {
+            margin-left: 5px;
+          }
+        }
       }
 
       h1 {
         font-size: 40px;
         line-height: 36px;
-        padding-bottom: $padding / 2;
+        padding-bottom: math.div($padding, 2);
         margin-bottom: 5px;
       }
 
