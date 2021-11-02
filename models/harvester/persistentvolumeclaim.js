@@ -27,7 +27,7 @@ export default class HciPv extends SteveModel {
         icon:       'icon icon-copy',
         label:      this.t('harvester.action.exportImage'),
       },
-      ...this._standardActions
+      ...super._availableActions
     ];
   }
 

@@ -13,7 +13,7 @@ export default class HciVmBackup extends SteveModel {
   get _availableActions() {
     const toFilter = ['goToEdit', 'cloneYaml', 'goToClone', 'download'];
 
-    const out = this._standardActions.filter((action) => {
+    const out = super._availableActions.filter((action) => {
       if (!toFilter.includes(action.action)) {
         return action;
       }

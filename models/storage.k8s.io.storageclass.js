@@ -98,7 +98,7 @@ export default class extends SteveModel {
   }
 
   get _availableActions() {
-    const out = this._standardActions;
+    const out = super._availableActions;
 
     if (this.isDefault) {
       out.unshift({

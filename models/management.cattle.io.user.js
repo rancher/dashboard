@@ -164,7 +164,7 @@ export default class User extends HybridModel {
         enabled: this.canRefreshAccess
       },
       { divider: true },
-      ...this._standardActions,
+      ...super._availableActions,
     ];
   }
 

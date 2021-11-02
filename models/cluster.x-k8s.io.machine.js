@@ -9,7 +9,7 @@ import SteveModel from '@/plugins/steve/steve-class';
 
 export default class CapiMachine extends SteveModel {
   get _availableActions() {
-    const out = this._standardActions;
+    const out = super._availableActions;
 
     const openSsh = {
       action:     'openSsh',

@@ -2,7 +2,7 @@ import NormanModel from '@/plugins/steve/norman-class';
 
 export default class EtcdBackup extends NormanModel {
   get _availableActions() {
-    const out = this._standardActions;
+    const out = super._availableActions;
 
     const restore = {
       action:     'promptRestore',

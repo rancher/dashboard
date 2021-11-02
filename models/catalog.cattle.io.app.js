@@ -24,7 +24,7 @@ export default class CatalogApp extends SteveModel {
   }
 
   get _availableActions() {
-    const out = this._standardActions;
+    const out = super._availableActions;
 
     const upgrade = {
       action:     'goToUpgrade',

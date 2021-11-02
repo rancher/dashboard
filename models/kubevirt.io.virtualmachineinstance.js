@@ -17,7 +17,7 @@ const VMIPhase = {
 
 export default class VirtVmInstance extends SteveModel {
   get _availableActions() {
-    const out = this._standardActions;
+    const out = super._availableActions;
 
     const actions = out.find((O) => {
       return O.action === 'promptRemove';

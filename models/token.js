@@ -3,7 +3,7 @@ import NormanModel from '@/plugins/steve/norman-class';
 
 export default class extends NormanModel {
   get _availableActions() {
-    return this._standardActions.filter(a => ['viewInApi', 'promptRemove'].includes(a.action));
+    return super._availableActions.filter(a => ['viewInApi', 'promptRemove'].includes(a.action));
   }
 
   get state() {

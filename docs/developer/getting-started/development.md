@@ -80,6 +80,7 @@ Spoofed Types, like virtual types, add menu items but also define a spoofed sche
 
 ### Model Architecture
 
+
 The ES6 class models in the `models` directory are used to represent Kubernetes resources. The class applies properties and methods to the resource, which defines how the resource can function in the UI and what other components can do with it. Different APIs return models in different structures, but the implementation of the models allows some common functionality to be available for any of them, such as `someModel.name`, `someModel.description`, `setLabels` or `setAnnotations`.
 
 Much of the reused functionality for each model is taken from the Steve plugin. The class-based models use functionality from `plugins/steve/resource-class.js`.

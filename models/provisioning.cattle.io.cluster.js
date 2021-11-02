@@ -46,7 +46,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get _availableActions() {
-    const out = this._standardActions;
+    const out = super._availableActions;
     let idx = 0;
     const isLocal = this.mgmt?.isLocal;
 

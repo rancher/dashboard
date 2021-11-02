@@ -6,7 +6,7 @@ export default class HciVmTemplate extends SteveModel {
   get availableActions() {
     const toFilter = ['goToEdit', 'cloneYaml', 'goToClone', 'goToEditYaml', 'download'];
 
-    const out = this._standardActions.filter((action) => {
+    const out = super._availableActions.filter((action) => {
       if (action.altAction === 'remove') {
         action.bulkable = false;
       }

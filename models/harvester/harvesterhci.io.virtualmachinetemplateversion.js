@@ -9,7 +9,7 @@ import SteveModel from '@/plugins/steve/steve-class';
 
 export default class HciVmTemplateVersion extends SteveModel {
   get availableActions() {
-    let out = this._standardActions;
+    let out = super._availableActions;
     const toFilter = ['goToClone', 'cloneYaml', 'goToViewConfig', 'goToEditYaml', 'goToViewYaml'];
 
     out = out.filter((action) => {

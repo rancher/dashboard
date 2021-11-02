@@ -9,7 +9,7 @@ import SteveModel from '@/plugins/steve/steve-class';
 
 export default class ClusterScan extends SteveModel {
   get _availableActions() {
-    let out = this._standardActions;
+    let out = super._availableActions;
 
     const toFilter = ['cloneYaml', 'goToEditYaml', 'download'];
 

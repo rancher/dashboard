@@ -36,7 +36,7 @@ export default class GitRepo extends SteveModel {
   }
 
   get _availableActions() {
-    const out = this._standardActions;
+    const out = super._availableActions;
 
     insertAt(out, 0, {
       action:     'pause',
