@@ -216,13 +216,11 @@ export default class VirtVm extends SteveModel {
     };
   }
 
-  backupVM() {
-    return (resources = this) => {
-      this.$dispatch('promptModal', {
-        resources,
-        component: 'harvester/BackupModal'
-      });
-    };
+  backupVM(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'harvester/BackupModal'
+    });
   }
 
   unplugVolume() {
@@ -237,13 +235,11 @@ export default class VirtVm extends SteveModel {
     };
   }
 
-  restoreVM() {
-    return (resources = this) => {
-      this.$dispatch('promptModal', {
-        resources,
-        component: 'harvester/RestoreDialog'
-      });
-    };
+  restoreVM(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'harvester/RestoreDialog'
+    });
   }
 
   get machineType() {
