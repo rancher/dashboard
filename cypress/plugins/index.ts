@@ -8,7 +8,11 @@ require('dotenv').config();
 module.exports = (on: Cypress.PluginEvents, config: Cypress.PluginConfigOptions) => {
   // `on` is used to hook into various events Cypress emits
   // `config` is the resolved Cypress config
-  config.baseUrl = process.env.DEV_UI || 'https://localhost:8005';
+
+  const url = process.env.DEV_UI || 'https://localhost:8005';
+
+  config.baseUrl = url.replace(/\/$/, '');
+
   config.env.username = process.env.TEST_USERNAME;
   config.env.password = process.env.TEST_PASSWORD;
 

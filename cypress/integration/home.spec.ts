@@ -3,6 +3,7 @@ import { TopLevelMenu } from '~/cypress/integration/util/toplevelmenu';
 describe('Home Page', () => {
   beforeEach(() => {
     cy.login();
+    cy.visit('/home');
   });
 
   it('Renders', () => {
