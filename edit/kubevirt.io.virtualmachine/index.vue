@@ -437,8 +437,8 @@ export default {
           </div>
 
           <div class="row mb-20">
-            <a v-if="showAdvanced" v-t="'generic.hideAdvanced'" @click="toggleAdvanced" />
-            <a v-else v-t="'generic.showAdvanced'" @click="toggleAdvanced" />
+            <a v-if="showAdvanced" v-t="'harvester.generic.showMore'" role="button" @click="toggleAdvanced" />
+            <a v-else v-t="'harvester.generic.showMore'" role="button" @click="toggleAdvanced" />
           </div>
 
           <div v-if="showAdvanced" class="mb-20">

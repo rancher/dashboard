@@ -5035,6 +5035,9 @@ harvester:
     cpu: Cpu
     memory: Memory
     virtaulName: Virtual machine name
+  generic:
+    showMore: Show More
+    hideMore: Hide More
   
   validation:
     custom:
