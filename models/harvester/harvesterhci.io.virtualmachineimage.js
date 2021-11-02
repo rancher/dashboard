@@ -183,17 +183,27 @@ export default class HciVmImage extends SteveModel {
     return status === 'False' ? ucFirst(message) : '';
   }
 
-  uploadImage(file) {
-    const formData = new FormData();
+  get uploadImage() {
+    return async(file) => {
+      const formData = new FormData();
 
-    formData.append('chunk', file);
+      formData.append('chunk', file);
 
-    this.doAction('upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        'File-Size':    file.size,
-      },
-      params: { size: file.size },
-    });
+      try {
+        this.$ctx.commit('harvester-common/uploadStart', this.metadata.name, { root: true });
+
+        await this.doAction('upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'File-Size':    file.size,
+          },
+          params: { size: file.size },
+        });
+      } catch (err) {
+        return Promise.reject(err);
+      }
+
+      this.$ctx.commit('harvester-common/uploadEnd', this.metadata.name, { root: true });
+    };
   }
 }
