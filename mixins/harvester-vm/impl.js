@@ -58,6 +58,18 @@ export default {
       return _QGA_JSON;
     },
 
+    getSimilarRuncmd(osType) {
+      const _QGA_JSON = clone(QGA_JSON);
+
+      if (osType === 'openSUSE') {
+        _QGA_JSON.runcmd[0][3] = QGA_MAP['default'];
+      } else {
+        _QGA_JSON.runcmd[0][3] = QGA_MAP['suse'];
+      }
+
+      return _QGA_JSON.runcmd[0];
+    },
+
     hasInstallAgent(userScript, osType, oldValue) {
       let dataFormat = {};
       const _QGA_JSON = this.getMatchQGA(osType);

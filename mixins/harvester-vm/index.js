@@ -4,6 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import difference from 'lodash/difference';
 
 import { sortBy } from '@/utils/sort';
+import { clone } from '@/utils/object';
 import { allHash } from '@/utils/promise';
 import { randomStr } from '@/utils/string';
 import { base64Decode } from '@/utils/crypto';
@@ -41,6 +42,7 @@ const OS = [{
   value: 'redhat'
 }, {
   label: 'openSUSE',
+  match: ['suse', 'opensuse'],
   value: 'openSUSE'
 }, {
   label: 'Turbolinux',
@@ -607,7 +609,7 @@ export default {
         delete userDataJson.ssh_authorized_keys;
       }
 
-      userDataJson = config.installAgent ? this.mergeQGA({ userDataJson, ...config }) : this.deleteQGA({ userDataJson, ...config });
+      userDataJson = config.installAgent ? this.mergeQGA({ userDataJson: clone(userDataJson), ...config }) : this.deleteQGA({ userDataJson, ...config });
 
       if (returnType === 'string') {
         const out = jsyaml.dump(userDataJson);
@@ -755,7 +757,6 @@ export default {
       const _QGA_JSON = this.getMatchQGA(osType);
 
       userDataJson.package_update = true;
-
       if (Array.isArray(userDataJson.packages) && !userDataJson.packages.includes('qemu-guest-agent')) {
         userDataJson.packages.push('qemu-guest-agent');
       } else {
@@ -763,13 +764,17 @@ export default {
       }
 
       if (Array.isArray(userDataJson.runcmd)) {
-        let findIndex = 0;
+        let findIndex = -1;
         const hasSameRuncmd = userDataJson.runcmd.find( S => S.join('-') === _QGA_JSON.runcmd[0].join('-'));
 
         const hasSimilarRuncmd = userDataJson.runcmd.find( (S, index) => {
-          findIndex = index;
+          if (S.join('-') === this.getSimilarRuncmd(osType).join('-')) {
+            findIndex = index;
 
-          return S.join('-') === QGA_JSON.runcmd[0].join('-');
+            return true;
+          }
+
+          return false;
         });
 
         if (hasSimilarRuncmd) {
@@ -970,6 +975,40 @@ export default {
   },
 
   watch: {
+    diskRows: {
+      handler(neu, old) {
+        if (Array.isArray(neu)) {
+          const imageId = neu[0]?.image;
+          const image = this.images.find( I => imageId === I.id);
+          const imageName = image?.spec?.displayName;
+
+          const oldImageId = old[0]?.image;
+
+          if (imageName && this.isCreate && oldImageId === imageId) {
+            OS.find( (os) => {
+              if (os.match) {
+                const hasMatch = os.match.find(mactchValue => imageName.toLowerCase().includes(mactchValue));
+
+                if (hasMatch) {
+                  this.osType = os.value;
+
+                  return true;
+                }
+              } else {
+                const hasMatch = imageName.toLowerCase().includes(os.value);
+
+                if (hasMatch) {
+                  this.osType = os.value;
+
+                  return true;
+                }
+              }
+            });
+          }
+        }
+      }
+    },
+
     secretRef: {
       handler(secret) {
         if (secret && this.type !== HCI.BACKUP) {
