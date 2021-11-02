@@ -36,6 +36,13 @@ export default {
       type:    Boolean,
     },
 
+    minHeight: {
+      // Prevent buttons from shifting when error
+      // messages appear
+      type:    String,
+      default: '0'
+    },
+
     validators: {
       // validators is expected to be an array of functions
       // where each function takes the input value as an
@@ -169,7 +176,9 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div
+    :style="{'min-height': minHeight}"
+  >
     <div
       :class="{
         'labeled-input': true,

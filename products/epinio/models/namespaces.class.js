@@ -8,17 +8,6 @@ export default class EpinioNamespaces extends EpinioResource {
     };
   }
 
-  async create() {
-    await this.followLink('create', {
-      method:  'post',
-      headers: {
-        'content-type': 'application/json',
-        accept:         'application/json'
-      },
-      data: { name: this.name }
-    });
-  }
-
   async save() {
     await this._save(...arguments);
     const namespaces = await this.$dispatch('findAll', { type: this.type, opt: { force: true } });

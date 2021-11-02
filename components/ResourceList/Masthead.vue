@@ -147,20 +147,22 @@ export default {
           <slot name="extraActions">
           </slot>
 
-          <n-link
-            v-if="hasEditComponent && _isCreatable"
-            :to="_createLocation"
-            class="btn role-primary"
-          >
-            {{ _createButtonlabel }}
-          </n-link>
-          <n-link
-            v-else-if="_isYamlCreatable"
-            :to="_yamlCreateLocation"
-            class="btn role-primary"
-          >
-            {{ t("resourceList.head.createFromYaml") }}
-          </n-link>
+          <slot name="createButton">
+            <n-link
+              v-if="hasEditComponent && _isCreatable"
+              :to="_createLocation"
+              class="btn role-primary"
+            >
+              {{ _createButtonlabel }}
+            </n-link>
+            <n-link
+              v-else-if="_isYamlCreatable"
+              :to="_yamlCreateLocation"
+              class="btn role-primary"
+            >
+              {{ t("resourceList.head.createFromYaml") }}
+            </n-link>
+          </slot>
         </div>
       </slot>
     </div>

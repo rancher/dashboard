@@ -86,6 +86,7 @@ export default {
      align-self: end;
      display: flex;
      padding-top: 20px;
+     float: right;
    }
 
    & .card-title {
