@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@/utils/array';
 import { SCHEMA } from '@/config/types';
+import HybridModel, { cleanHybridResources } from '@/plugins/steve/hybrid-class';
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import { classify } from './classify';
 import { keyForSubscribe } from './subscribe';
@@ -49,6 +50,12 @@ function load(state, { data, ctx, existing }) {
   let entry;
 
   function replace(existing, data) {
+    const typeSuperClass = Object.getPrototypeOf(Object.getPrototypeOf(existing)).constructor;
+
+    if (typeSuperClass === HybridModel) {
+      data = cleanHybridResources(data);
+    }
+
     for ( const k of Object.keys(existing) ) {
       delete existing[k];
     }
