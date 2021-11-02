@@ -88,13 +88,14 @@ export function init(store) {
   weightType(EPINIO_TYPES.NAMESPACE, 100, true);
   componentForType(EPINIO_TYPES.NAMESPACE, undefined, EPINIO_PRODUCT_NAME);
   configureType(EPINIO_TYPES.NAMESPACE, {
-    isCreatable: true,
-    isEditable:  true,
-    isRemovable: true,
-    showState:   false,
-    showAge:     false,
-    canYaml:     false,
-    customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE }),
+    isCreatable:      true,
+    isEditable:       true,
+    isRemovable:      true,
+    showState:        false,
+    showAge:          false,
+    canYaml:          false,
+    customRoute:      createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE }),
+    showListMasthead: false // Disable default masthead because we provide a custom one.
   });
 
   basicType([
