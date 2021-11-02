@@ -139,6 +139,13 @@ export default class ClusterRepo extends SteveModel {
     ];
   }
 
+  get stateObj() {
+    return this.metadata?.state ? {
+      ...this.metadata.state,
+      transitioning: this.metadata.generation > this.status.observedGeneration ? false : this.metadata.state.transitioning
+    } : undefined;
+  }
+
   waitForOperation(operationId, timeout, interval = 2000) {
     return this.waitForTestFn(() => {
       if (!this.$getters['schemaFor'](CATALOG_TYPE.OPERATION)) {
