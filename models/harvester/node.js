@@ -141,6 +141,10 @@ export default class HciNode extends SteveModel {
     this.doAction('disableMaintenanceMode', {});
   }
 
+  get isUnSchedulable() {
+    return this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_SCHEDULABLE] === 'false' || this.spec.unschedulable;
+  }
+
   get isCordoned() {
     return !!this.spec.unschedulable;
   }

@@ -150,7 +150,7 @@ export default {
     nodesIdOptions() {
       const nodes = this.$store.getters['harvester/all'](NODE) || [];
 
-      return nodes.map((node) => {
+      return nodes.filter(N => !N.isUnSchedulable).map((node) => {
         return {
           label: node.nameDisplay,
           value: node.id
