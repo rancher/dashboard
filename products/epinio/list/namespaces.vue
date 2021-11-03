@@ -3,7 +3,7 @@ import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import Banner from '@/components/Banner';
 import Card from '@/components/Card';
-import { mapGetters } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import LabeledInput from '@/components/form/LabeledInput.vue';
 import { validateKubernetesName } from '@/utils/validators/kubernetes-name';
 import AsyncButton from '@/components/AsyncButton';
@@ -35,7 +35,8 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
     validationPassed() {
       return !Object.values(this.validFields).includes(false);
-    }
+    },
+    ...mapState('action-menu', ['showPromptRemove']),
   },
   props:      {
     schema: {
@@ -46,6 +47,14 @@ export default {
       type:     Array,
       required: true,
     },
+  },
+  watch: {
+    showPromptRemove(oldState, newState) {
+      if (oldState === true && newState === false) {
+        // Refetch apps when namespace is deleted
+        this.$store.dispatch('findAll', { type: 'applications', opt: { force: true } });
+      }
+    }
   },
   methods: {
     async openCreateModal() {
