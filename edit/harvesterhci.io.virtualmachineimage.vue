@@ -76,7 +76,10 @@ export default {
       this.value.spec.url = url;
       if (VM_IMAGE_FILE_FORMAT.includes(fileSuffiic)) {
         if (!this.value.spec.displayName) {
-          this.$refs.nd.changeNameAndNamespace({ text: suffixName });
+          this.$refs.nd.changeNameAndNamespace({
+            text:     suffixName,
+            selected: this.value.metadata.namespace,
+          });
         }
       }
     },
@@ -130,7 +133,10 @@ export default {
       this.file = file;
 
       if (!this.value.spec.displayName) {
-        this.$refs.nd.changeNameAndNamespace({ text: file?.name });
+        this.$refs.nd.changeNameAndNamespace({
+          text:     file?.name,
+          selected: this.value.metadata.namespace,
+        });
       }
     },
 
