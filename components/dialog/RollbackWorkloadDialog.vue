@@ -5,6 +5,7 @@ import Card from '@/components/Card';
 import { exceptionToErrorsArray } from '@/utils/error';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Banner from '@/components/Banner';
+import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import { WORKLOAD_TYPES } from '@/config/types';
 import { diffFrom } from '@/utils/time';
 import { mapGetters } from 'vuex';
@@ -14,7 +15,8 @@ export default {
     Card,
     AsyncButton,
     LabeledSelect,
-    Banner
+    Banner,
+    YamlEditor,
   },
   props:      {
     resources: {
@@ -28,6 +30,8 @@ export default {
       selectedRevision:   null,
       currentRevision:    null,
       revisions:          [],
+      editorMode:       EDITOR_MODES.DIFF_CODE,
+      hiddenFields:     ['created', 'creatorId', 'links', 'name', 'ownerReferences', 'removed', 'scale', 'state', 'uuid', 'workloadLabels', 'workloadAnnotations']
     };
   },
   computed: {
@@ -72,6 +76,9 @@ export default {
       ];
 
       return body;
+    },
+    selectedRevisionId() {
+      return this.selectedRevision.id;
     }
   },
   fetch() {
@@ -167,6 +174,7 @@ export default {
       <Banner v-if="revisions.length === 1" color="info" :label="t('promptRollback.singleRevisionBanner')" />
       <form>
         <LabeledSelect
+
           v-model="selectedRevision"
           class="provider"
           :label="t('promptRollback.dropdownTitle')"
@@ -176,6 +184,15 @@ export default {
         />
       </form>
       <Banner v-for="(error, i) in errors" :key="i" class="" color="error" :label="error" />
+      <YamlEditor
+        v-if="selectedRevision"
+        :key="selectedRevisionId"
+        v-model="selectedRevision"
+        :initial-yaml-values="currentRevision"
+        class="yaml-editor"
+        :editor-mode="editorMode"
+        :as-object="true"
+      />
     </div>
     <div slot="actions" class="buttons right-align">
       <button class="btn role-secondary mr-10" @click="close">
@@ -194,6 +211,8 @@ export default {
 <style lang='scss' scoped>
   .prompt-rollback {
     margin: 0;
+    position: absolute;
+    left: 10px;
   }
   .right-align {
     margin-right: 0;
