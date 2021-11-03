@@ -4,7 +4,6 @@ import { mapGetters } from 'vuex';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 
-import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { _VIEW } from '@/config/query-params';
 import { CONFIG_MAP } from '@/config/types';
 
@@ -27,7 +26,7 @@ export default {
       type:    String,
       default: ''
     },
-    configmaps: {
+    options: {
       type:    Array,
       default: () => {
         return [];
@@ -55,31 +54,6 @@ export default {
 
     isView() {
       return this.mode === _VIEW;
-    },
-
-    options() {
-      const out = [];
-
-      for (const config of this.configmaps) {
-        if (config.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT] === this.type) {
-          out.push({
-            label: config?.id,
-            value: config?.id
-          });
-        }
-      }
-
-      out.unshift({
-        label: this.t('harvester.virtualMachine.cloudConfig.createNew'),
-        value: _NEW,
-      });
-
-      out.unshift({
-        label:    this.t('harvester.virtualMachine.cloudConfig.cloudInit.placeholder'),
-        value:    _NONE,
-      });
-
-      return out;
     },
   },
 

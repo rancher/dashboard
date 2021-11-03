@@ -10,6 +10,9 @@ import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { _VIEW } from '@/config/query-params';
 import DataTemplate from './DataTemplate';
 
+const _NEW = '_NEW';
+const _NONE = '_NONE';
+
 export default {
   components: {
     DataTemplate, YamlEditor, LabeledInput, ModalWithCard
@@ -42,11 +45,55 @@ export default {
       cloudTemplateName: '',
       configUserId:      '',
       configNetworkId:   '',
+      optionUser:        [],
+      optionNetwork:     []
     };
   },
 
   async fetch() {
-    await this.$store.dispatch('harvester/findAll', { type: CONFIG_MAP });
+    const configs = await this.$store.dispatch('harvester/findAll', { type: CONFIG_MAP });
+
+    const optionUser = [];
+    const optionNetwork = [];
+
+    for (const config of configs) {
+      if (config.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT] === 'user') {
+        optionUser.push({
+          label: config?.id,
+          value: config?.id
+        });
+      }
+
+      if (config.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT] === 'network') {
+        optionNetwork.push({
+          label: config?.id,
+          value: config?.id
+        });
+      }
+    }
+
+    optionUser.unshift({
+      label: this.t('harvester.virtualMachine.cloudConfig.createNew'),
+      value: _NEW,
+    });
+
+    optionUser.unshift({
+      label:    this.t('harvester.virtualMachine.cloudConfig.cloudInit.placeholder'),
+      value:    _NONE,
+    });
+
+    optionNetwork.unshift({
+      label: this.t('harvester.virtualMachine.cloudConfig.createNew'),
+      value: _NEW,
+    });
+
+    optionNetwork.unshift({
+      label:    this.t('harvester.virtualMachine.cloudConfig.cloudInit.placeholder'),
+      value:    _NONE,
+    });
+
+    this.optionUser = optionUser;
+    this.optionNetwork = optionNetwork;
   },
 
   computed: {
@@ -56,10 +103,6 @@ export default {
       const label = `harvester.virtualMachine.cloudConfig.${ this.templateType }.label`;
 
       return this.t(label);
-    },
-
-    configmaps() {
-      return this.$store.getters['harvester/all'](CONFIG_MAP) || [];
     },
 
     editorMode() {
@@ -106,6 +149,7 @@ export default {
 
         if (res.id) {
           this.templateType === 'user' ? this.configUserId = res.id : this.configNetworkId = res.id;
+          this.$fetch();
         }
         buttonCb(true);
         this.cancel();
@@ -143,7 +187,7 @@ export default {
         type="user"
         :mode="mode"
         :config-id="configUserId"
-        :configmaps="configmaps"
+        :options="optionUser"
         @show="show"
         @update="update"
       />
@@ -156,7 +200,7 @@ export default {
         type="network"
         :mode="mode"
         :config-id="configNetworkId"
-        :configmaps="configmaps"
+        :options="optionNetwork"
         @show="show"
         @update="update"
       />
