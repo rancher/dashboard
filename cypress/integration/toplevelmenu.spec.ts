@@ -3,6 +3,7 @@ import { TopLevelMenu } from '~/cypress/integration/util/toplevelmenu';
 describe('Cluster Dashboard', () => {
   beforeEach(() => {
     cy.login();
+    cy.visit('/home');
   });
 
   const topLevelMenu = new TopLevelMenu();

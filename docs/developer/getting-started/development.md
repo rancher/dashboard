@@ -80,9 +80,8 @@ Spoofed Types, like virtual types, add menu items but also define a spoofed sche
 
 ### Model Architecture
 
-ES6 class models are used to represent Kubernetes resources. The class applies properties and methods to the resource, which defines how the resource can function in the UI and what other components can do with it. Different APIs return models in different structures, but the implementation of the models allows some common functionality to be available for any of them, such as `someModel.name`, `someModel.description`, `setLabels` or `setAnnotations`.
 
-In the `models` directory, the class-based models end in `.class.js`.
+The ES6 class models in the `models` directory are used to represent Kubernetes resources. The class applies properties and methods to the resource, which defines how the resource can function in the UI and what other components can do with it. Different APIs return models in different structures, but the implementation of the models allows some common functionality to be available for any of them, such as `someModel.name`, `someModel.description`, `setLabels` or `setAnnotations`.
 
 Much of the reused functionality for each model is taken from the Steve plugin. The class-based models use functionality from `plugins/steve/resource-class.js`.
 
@@ -438,6 +437,11 @@ The forms for creating and editing resources are in the `edit` directory. Common
 
 If a form element was repeated for every row in a table, it would make the UI slower. To increase performance, components such as `ActionMenu` and `PromptModal` are not repeated for every row in a table, and they don't directly interact with the data from a table row. Instead, they communicate with each row indirectly through the store. All the information about the actions that should be available for a certain resource is contained in a model, and the `ActionMenu` or `PromptModal` components take that information about the selected resource from the store. Modals and menus are opened by telling the store that they should be opened. For example, this call to the store  `this.$store.commit('action-menu/togglePromptModal');` is used to open the action menu. Then each component uses the `dispatch` method to get all the information it needs from the store.
 
+## Testing
+### E2E Tests
+This repo is configured for end-to-end testing with [Cypress](https://docs.cypress.io/api/table-of-contents). 
+#### Initial Setup
+For the cypress test runner to consume the UI, you must specify two environment variables, `TEST_USERNAME` and `TEST_PASSWORD`. By default the test runner will attempt to visit a locally running dashboard at `https://localhost:8005`. This may be overwritten with the `DEV_UI` environment variable. Run `yarn e2e:dev` to start the dashboard in SSR mode and open the cypress test runner. Run tests through the cypress GUI once the UI is built. Cypress tests will automatically re-run if they are altered (hot reloading). Alternatively the dashboard ui and cypress may be run separately with `yarn dev` and `yarn cypress open`. 
 
 ## Other UI Features
 ### Icons 

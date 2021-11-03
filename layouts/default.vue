@@ -293,15 +293,10 @@ export default {
     },
 
     getLoginRoute() {
-      // Cluster Explorer
-      if (this.currentProduct.inStore === 'cluster') {
-        return {
-          name:   'c-cluster-explorer',
-          params: { cluster: this.clusterId }
-        };
-      }
-
-      return this.$route;
+      return {
+        name:   this.$route.name,
+        params: this.$route.params
+      };
     },
 
     collapseAll() {
