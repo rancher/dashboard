@@ -603,8 +603,8 @@ export default class Resource {
         enabled:  this.canCustomEdit,
       },
       {
-        action:  this.canUpdate ? 'goToEditYaml' : 'goToViewYaml',
-        label:   this.t(this.canUpdate ? 'action.editYaml' : 'action.viewYaml'),
+        action:  this.canEditYaml ? 'goToEditYaml' : 'goToViewYaml',
+        label:   this.t(this.canEditYaml ? 'action.editYaml' : 'action.viewYaml'),
         icon:    'icon icon-file',
         enabled: this.canYaml,
       },
@@ -680,7 +680,11 @@ export default class Resource {
   }
 
   get canYaml() {
-    return this.hasLink('view') && !this.schema?.resourceMethods.find(x => x === 'blocked-PUT'); // 'blocked-PUT' will prevent config from saving when editing as yaml
+    return this.hasLink('view');
+  }
+
+  get canEditYaml() {
+    return this.schema?.resourceMethods.find(x => x === 'blocked-PUT') ? false : this.canUpdate;
   }
 
   // ------------------------------------------------------------------
