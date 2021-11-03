@@ -21,7 +21,6 @@
     "start": "./node_modules/.bin/nuxt start",
     "generate": "./node_modules/.bin/nuxt generate",
     "dev-debug": "node --inspect ./node_modules/.bin/nuxt",
-    "cy:run": "cypress run",
     "cy:open": "cypress open",
     "e2e:dev": "NODE_ENV=dev START_SERVER_AND_TEST_INSECURE=1 start-server-and-test dev https://localhost:8005 cy:open"
   },
