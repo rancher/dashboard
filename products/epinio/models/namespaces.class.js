@@ -12,15 +12,9 @@ export default class EpinioNamespaces extends EpinioResource {
     await this._save(...arguments);
     const namespaces = await this.$dispatch('findAll', { type: this.type, opt: { force: true } });
 
-    try {
-      // Find new namespace
-      // return new namespace
-      const newNamespace = namespaces.filter(n => n.name === this.name)[0];
-
-      return newNamespace;
-    } catch (e) {
-      throw new Error(e);
-    }
+    // Find new namespace
+    // return new namespace
+    return namespaces.filter(n => n.name === this.name)?.[0];
   }
 
   get canClone() {

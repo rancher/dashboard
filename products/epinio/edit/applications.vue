@@ -8,7 +8,7 @@ import Tab from '@/components/Tabbed/Tab.vue';
 import Loading from '@/components/Loading.vue';
 import AppInfo from '@/products/epinio/components/application/AppInfo.vue';
 import AppService from '@/products/epinio/components/application/AppService.vue';
-import { exceptionToErrorsArray } from '@/utils/error';
+import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 
 interface Data {
 }
@@ -54,7 +54,7 @@ export default Vue.extend<Data, any, any, any>({
         saveCb(true);
         this.done();
       } catch (err) {
-        this.errors = exceptionToErrorsArray(err);
+        this.errors = epinioExceptionToErrorsArray(err);
         saveCb(false);
       }
     },

@@ -1,6 +1,7 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
+import Banner from '@/components/Banner';
 import Card from '@/components/Card';
 import { mapGetters } from 'vuex';
 import LabeledInput from '@/components/form/LabeledInput.vue';
@@ -8,11 +9,12 @@ import { validateKubernetesName } from '@/utils/validators/kubernetes-name';
 import AsyncButton from '@/components/AsyncButton';
 import { _CREATE } from '@/config/query-params';
 import { EPINIO_TYPES } from '@/products/epinio/types';
-import { exceptionToErrorsArray } from '@/utils/error';
+import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 
 export default {
   name:       'EpinioNamespaceList',
   components: {
+    Banner,
     ResourceTable,
     Masthead,
     Card,
@@ -53,15 +55,17 @@ export default {
     },
     closeCreateModal() {
       this.showCreateModal = false;
+      this.errors = [];
     },
-    onSubmit() {
+    async onSubmit(buttonCb) {
       try {
-        this.value.save();
-        this.close();
+        await this.value.save();
+        this.closeCreateModal();
+        buttonCb(true);
       } catch (e) {
-        this.errors = exceptionToErrorsArray(e);
+        this.errors = epinioExceptionToErrorsArray(e);
+        buttonCb(false);
       }
-      this.closeCreateModal();
     },
     meetsNameRequirements( name = '') {
       const nameErrors = validateKubernetesName(name, this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
@@ -94,7 +98,7 @@ export default {
           class="btn role-primary"
           @click="openCreateModal"
         >
-          Create
+          {{ t('generic.create') }}
         </button>
       </template>
     </Masthead>
@@ -111,24 +115,23 @@ export default {
         class="modal-content"
         :show-actions="true"
       >
-        <span class="close" @click="closeCreateModal">&times;</span>
         <h4 slot="title" v-html="t('epinio.namespace.create')" />
         <div slot="body">
           <LabeledInput
             v-model="value.name"
-            :min-height="'100px'"
+            :min-height="'90px'"
             :label="t('epinio.namespace.name')"
             :mode="mode"
             :required="true"
             :validators="[ meetsNameRequirements ]"
             @setValid="setValid('name', $event)"
           />
+          <Banner v-for="(err, i) in errors" :key="i" color="error" :label="JSON.stringify(err)" />
         </div>
-        <Banner v-for="(err, i) in errors" :key="i" color="error" :label="JSON.stringify(err)" />
 
         <div slot="actions">
           <button class="btn role-secondary" @click="closeCreateModal">
-            Cancel
+            {{ t('generic.cancel') }}
           </button>
           <AsyncButton
             :disabled="!validationPassed"
