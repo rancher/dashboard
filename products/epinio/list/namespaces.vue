@@ -110,7 +110,7 @@ export default {
       key-field="_key"
       v-on="$listeners"
     />
-    <div v-show="showCreateModal" class="modal">
+    <div v-if="showCreateModal" class="modal">
       <Card
         class="modal-content"
         :show-actions="true"
