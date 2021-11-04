@@ -146,7 +146,7 @@ export default class HciNode extends SteveModel {
   }
 
   get isCordoned() {
-    return !!this.spec.unschedulable;
+    return this.isUnSchedulable;
   }
 
   get isEnteringMaintenance() {

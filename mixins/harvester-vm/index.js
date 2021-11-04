@@ -882,6 +882,8 @@ export default {
         }
       } catch (e) {
         new Error(`Function(saveSecret) error ${ e }`);
+
+        return Promise.reject(e);
       }
     },
 

@@ -144,42 +144,43 @@ export default {
       const templates = await this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE });
       const template = templates.find( O => O.metadata.name === this.templateValue.metadata.name);
 
-      if (!this.templateId) {
-        if (this.templateValue?.metadata?.name) {
-          try {
+      try {
+        if (!this.templateId) {
+          if (this.templateValue?.metadata?.name) {
             await this.templateValue.save();
-          } catch (err) {
-            this.errors = [err];
+          } else {
+            this.errors = ['"Name" is required'];
+            buttonCb(false);
+
+            return;
           }
         } else {
-          this.errors = ['"Name" is required'];
-          buttonCb(false);
-
-          return;
+          template.save();
         }
-      } else {
-        template.save();
+
+        cleanForNew(this.value);
+        this.customName = randomStr(10);
+        this.$set(this.value.metadata, 'annotations', {
+          ...this.value.metadata.annotations,
+          [HCI_ANNOTATIONS.TEMPLATE_VERSION_CUSTOM_NAME]: this.customName
+        });
+
+        const name = this.templateValue.metadata.name || template.metadata.name;
+        const namespace = this.templateValue.metadata.namespace || template.metadata.namespace;
+
+        if (this.isCreate) {
+          this.value.metadata.namespace = namespace;
+        }
+
+        this.$set(this.value.spec, 'templateId', `${ namespace }/${ name }`);
+        const res = await this.value.save();
+
+        await this.saveSecret(res);
+        this.done();
+      } catch (e) {
+        this.errors = [e];
+        buttonCb(false);
       }
-
-      cleanForNew(this.value);
-      this.customName = randomStr(10);
-      this.$set(this.value.metadata, 'annotations', {
-        ...this.value.metadata.annotations,
-        [HCI_ANNOTATIONS.TEMPLATE_VERSION_CUSTOM_NAME]: this.customName
-      });
-
-      const name = this.templateValue.metadata.name || template.metadata.name;
-      const namespace = this.templateValue.metadata.namespace || template.metadata.namespace;
-
-      if (this.isCreate) {
-        this.value.metadata.namespace = namespace;
-      }
-
-      this.$set(this.value.spec, 'templateId', `${ namespace }/${ name }`);
-      const res = await this.value.save();
-
-      await this.saveSecret(res);
-      this.done();
     },
 
     onTabChanged({ tab }) {

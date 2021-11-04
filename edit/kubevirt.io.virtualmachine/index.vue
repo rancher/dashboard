@@ -19,10 +19,13 @@ import CpuMemory from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCpuMemory
 import CloudConfig from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
 import NodeScheduling from '@/components/form/NodeScheduling';
 
+import { clear } from '@/utils/array';
 import { clone } from '@/utils/object';
 import { HCI } from '@/config/types';
+import { exceptionToErrorsArray } from '@/utils/error';
 import { cleanForNew } from '@/plugins/steve/normalize';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
+import { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 
 import VM_MIXIN from '@/mixins/harvester-vm';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -219,11 +222,15 @@ export default {
         this.$set(this.value.spec.template.spec, 'hostname', this.value.metadata.name);
       }
 
-      await this.save(buttonCb);
+      try {
+        await this._save(this.value, buttonCb);
+        buttonCb(true);
 
-      const res = this.$store.getters['harvester/byId'](HCI.VM, `${ this.value.metadata.namespace }/${ this.value.metadata.name }`);
-
-      await this.saveSecret(res);
+        this.done();
+      } catch (e) {
+        this.errors = exceptionToErrorsArray(e);
+        buttonCb(false);
+      }
     },
 
     async saveMultiple(buttonCb) {
@@ -248,23 +255,36 @@ export default {
         const hostname = `${ baseHostname }${ join }${ suffix }`;
 
         this.$set(this.value.spec.template.spec, 'hostname', hostname);
-
+        this.secretName = '';
         await this.parseVM();
-        const basicValue = await this.$store.dispatch('harvester/create', clone(this.value));
+        const basicValue = await this.$store.dispatch('harvester/clone', { resource: this.value });
 
         try {
-          if (i === 1) {
-            await this.save();
-          } else {
-            basicValue.save();
-          }
-          const res = this.$store.getters['harvester/byId'](HCI.VM, `${ this.value.metadata.namespace }/${ this.value.metadata.name }`);
+          await this._save(basicValue);
 
-          await this.saveSecret(res);
-        } catch (err) {
-          return Promise.reject(new Error(err));
+          if (i === this.count) {
+            buttonCb(true);
+            this.done();
+          }
+        } catch (e) {
+          this.errors = exceptionToErrorsArray(e);
+          buttonCb(false);
         }
       }
+    },
+
+    async _save(value) {
+      if ( this.errors ) {
+        clear(this.errors);
+      }
+
+      await this.applyHooks(BEFORE_SAVE_HOOKS);
+
+      const res = await value.save();
+
+      await this.applyHooks(AFTER_SAVE_HOOKS);
+
+      await this.saveSecret(res);
     },
 
     restartVM() {
