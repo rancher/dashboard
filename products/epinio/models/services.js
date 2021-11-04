@@ -56,5 +56,12 @@ export default class EpinioService extends EpinioResource {
     });
   }
 
+  get hasCustomList() {
+    return true;
+  }
+
+  get _key() {
+    return this.name;
+  }
   // ------------------------------------------------------------------
 }

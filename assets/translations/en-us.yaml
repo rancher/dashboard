@@ -6082,6 +6082,8 @@ epinio:
     tableHeaders:
       api: URL
       explore: Explore
+  services:
+    pairs: Configure data that will be available to a container
   applications:
     tableHeaders:
       route: Route
