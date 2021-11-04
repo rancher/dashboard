@@ -67,7 +67,6 @@ export function init(store) {
     showState:            true,
     showAge:              false,
     canYaml:              false,
-    resourceEditMasthead: true, // TODO: RC REMOVE?
     customRoute:          createEpinioRoute('c-cluster-applications', { }),
   });
 
