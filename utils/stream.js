@@ -8,8 +8,20 @@ export function streamJson(url, opt, onData) {
   let buf = '';
 
   return fetch(url, opt)
-    .then(res => res.body.getReader())
-    .then((reader) => {
+    .then((res) => {
+      if ( res.status >= 400 ) {
+        // eslint-disable-next-line no-console
+        console.error('Error Streaming', res);
+
+        const out = { message: 'Error Streaming' };
+
+        out.response = res;
+
+        return Promise.reject(out);
+      } else {
+        return res.body.getReader();
+      }
+    }).then((reader) => {
       return reader.read().then(function process({ value, done }) {
         if (done) {
           onData(JSON.parse(buf));

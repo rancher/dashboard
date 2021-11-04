@@ -63,18 +63,15 @@ export default {
     }
 
     if ( opt.stream && state.config.supportsStream && typeof TextDecoderStream !== 'undefined') {
-      console.log('Using Streaming for', opt.url);
+      // console.log('Using Streaming for', opt.url);
 
       return streamJson(opt.url, opt, opt.onData).then(() => {
         return { finishDeferred: finishDeferred.bind(null, key, 'resolve') };
       }).catch((err) => {
-        // @TODO look for 401
-        err.finishDeferred = finishDeferred.bind(null, key, 'resolve');
-
-        return Promise.reject(err);
+        return onError(err);
       });
     } else {
-      console.log('NOT Using Streaming for', opt.url);
+      // console.log('NOT Using Streaming for', opt.url);
     }
 
     return this.$axios(opt).then((res) => {
@@ -236,7 +233,7 @@ export default {
     console.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
-    opt.stream = load !== _NONE;
+    opt.stream = opt.stream !== false && load !== _NONE;
     let streamStarted = false;
     let out;
 
@@ -285,9 +282,7 @@ export default {
         out = res;
       }
     } catch (e) {
-      if ( streamStarted ) {
-        e.finishDeferred(e);
-      }
+      return Promise.reject(e);
     }
 
     if ( load === _NONE ) {
