@@ -234,6 +234,8 @@ export default {
       if (this.uiIssuesSetting.value && !this.validateUrl(this.uiIssuesSetting.value)) {
         return btnCB(false);
       }
+      this.uiPLSetting.value = this.uiPLSetting.value.replaceAll(/[\<>&=#()"]/gm, '');
+
       this.uiBannerSetting.value = JSON.stringify(this.bannerVal);
       if (this.customizeLogo) {
         this.uiLogoLightSetting.value = this.uiLogoLight;
