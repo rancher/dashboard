@@ -58,7 +58,7 @@ export default class MgmtCluster extends HybridModel {
 
     insertAt(out, 2, {
       action:     'copyKubeConfig',
-      label:      this.t('namespace.copy'),
+      label:      this.t('cluster.copyConfig'),
       bulkable:   false,
       enabled:    true,
       icon:       'icon icon-copy',
