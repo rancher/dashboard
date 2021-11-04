@@ -58,6 +58,10 @@ export default Vue.extend<Data, any, any, any>({
     };
   },
 
+  mounted() {
+    this.$emit('valid', this.valid);
+  },
+
   watch: {
     'values.configuration.instances'() {
       this.update();
@@ -66,12 +70,24 @@ export default Vue.extend<Data, any, any, any>({
     'values.configuration.environment'() {
       this.update();
     },
+
+    valid() {
+      this.$emit('valid', this.valid);
+    }
   },
 
   computed: {
     namespaces() {
       return sortBy(this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE), 'name');
     },
+
+    valid() {
+      const validName = !!this.values.meta?.name;
+      const validNamespace = !!this.values.meta?.namespace;
+      const validInstances = typeof this.values.configuration?.instances !== 'string' && this.values.configuration?.instances >= 0;
+
+      return validName && validNamespace && validInstances;
+    }
   },
 
   methods: {

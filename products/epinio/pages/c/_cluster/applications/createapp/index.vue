@@ -59,12 +59,12 @@ export default Vue.extend<Data, any, any, any>({
         name:           'basics',
         label:          this.t('epinio.applications.steps.basics.label'),
         subtext:        this.t('epinio.applications.steps.basics.subtext'),
-        ready:          true,
+        ready:          false,
       }, {
         name:           'source',
         label:          this.t('epinio.applications.steps.source.label'),
         subtext:        this.t('epinio.applications.steps.source.subtext'),
-        ready:          true,
+        ready:          false,
       }, {
         name:           'services',
         label:          this.t('epinio.applications.steps.services.label'),
@@ -146,6 +146,7 @@ export default Vue.extend<Data, any, any, any>({
           :application="value"
           :mode="mode"
           @change="updateInfo"
+          @valid="steps[0].ready = $event"
         ></AppInfo>
       </template>
       <template #source>
@@ -153,12 +154,14 @@ export default Vue.extend<Data, any, any, any>({
           :application="value"
           :mode="mode"
           @change="updateSource"
+          @valid="steps[1].ready = $event"
         ></AppSource>
       </template>
       <template #services>
         <AppService
           :application="value"
           :mode="mode"
+          @valid="steps[2].ready = $event"
         ></AppService>
       </template>
       <template #progress="{step}">

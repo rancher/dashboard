@@ -113,6 +113,22 @@ export default Vue.extend<Data, any, any, any>({
       this.update();
     },
 
+    valid() {
+      this.$emit('valid', this.valid);
+    }
+  },
+
+  computed: {
+    valid() {
+      switch (this.type) {
+      case APPLICATION_SOURCE_TYPE.ARCHIVE:
+        return !!this.archive.tarball && !!this.archive.builderImage;
+      case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
+        return !!this.containerUrl.url;
+      }
+
+      return false;
+    }
   }
 });
 </script>
