@@ -5753,12 +5753,12 @@ typeLabel:
     }
   applications: |-
     {count, plural,
-      one { Application }
+      one { Applications }
       other { Applications }
     }
   services: |-
     {count, plural,
-      one { Service }
+      one { Services }
       other { Services }
     }
 
