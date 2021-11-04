@@ -6129,5 +6129,7 @@ epinio:
       deploy:
         label: Deploy
         description: Deploy and start the Application
-  namespaceName:
+  namespace:
     name: Name
+    create: Create a Namespace
+    
