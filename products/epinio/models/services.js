@@ -88,9 +88,10 @@ export default class EpinioService extends EpinioResource {
       },
       data: {
         name:          this.meta.name,
-        data:          this.data
+        data:          this.keyValuePairs
       }
     });
+    await this._save(...arguments);
     const services = await this.$dispatch('findAll', { type: this.type, opt: { force: true } });
 
     // Find new namespace

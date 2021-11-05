@@ -68,11 +68,11 @@ export default Vue.extend({
         namespace-key="namespace"
         :namespaces-override="namespaces"
         :description-hidden="true"
-        :value="value.meta"
+        :value="value.metadata"
         :mode="mode"
       />
       <KeyValue
-        v-model="value.data"
+        v-model="value.keyValuePairs"
         :mode="mode"
         :title="t('epinio.services.pairs')"
         :key-label="t('epinio.applications.create.envvar.keyLabel')"
