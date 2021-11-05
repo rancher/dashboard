@@ -17,6 +17,8 @@ import isEmpty from 'lodash/isEmpty';
 import { clone } from '@/utils/object';
 import { _EDIT, _VIEW } from '@/config/query-params';
 
+import Brand from '@/mixins/brand';
+
 const Color = require('color');
 const parse = require('url-parse');
 
@@ -49,6 +51,8 @@ export default {
   components: {
     LabeledInput, Checkbox, RadioGroup, FileSelector, Loading, SimpleBox, AsyncButton, Banner, ColorInput
   },
+
+  mixins: [Brand],
 
   async fetch() {
     const hash = await allHash({
@@ -184,6 +188,9 @@ export default {
   methods: {
     checkOrUpdateLegacyUIBannerSetting(parsedBanner) {
       const { bannerHeader, bannerFooter, banner } = parsedBanner;
+
+      bannerHeader.color = this.themeVars.primaryText;
+      bannerFooter.color = this.themeVars.primaryText;
 
       if (isEmpty(bannerHeader) && isEmpty(bannerFooter)) {
         let neu = DEFAULT_BANNER_SETTING;

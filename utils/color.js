@@ -13,6 +13,8 @@ Primary color classes from _light.scss
 
 */
 
+import * as scssVars from '@/assets/styles/themes/_exports.scss';
+
 const Color = require('color');
 
 export function createCssVars(color, theme = 'light', name = 'primary') {
@@ -74,4 +76,16 @@ function contrastColor(color, contrastOptions = LIGHT_CONTRAST_COLORS) {
   }
 
   return out;
+}
+
+export function getThemeVars(themeName = 'light', themeVars = scssVars) {
+  return Object.keys(themeVars).reduce((themeMap, varKey) => {
+    const [theme, key] = varKey.split('-');
+
+    if (theme === themeName) {
+      themeMap[key] = themeVars[varKey];
+    }
+
+    return themeMap;
+  }, {});
 }

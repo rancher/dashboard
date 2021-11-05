@@ -2,7 +2,7 @@ import { MANAGEMENT } from '@/config/types';
 import { getVendor } from '@/config/private-label';
 import { SETTING } from '@/config/settings';
 import { findBy } from '@/utils/array';
-import { createCssVars } from '@/utils/color';
+import { createCssVars, getThemeVars } from '@/utils/color';
 
 export default {
   async fetch() {
@@ -18,6 +18,10 @@ export default {
       const setting = findBy(this.globalSettings, 'id', SETTING.BRAND);
 
       return setting?.value;
+    },
+
+    themeVars() {
+      return getThemeVars(this.$store.getters['prefs/theme']);
     },
 
     color() {
