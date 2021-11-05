@@ -73,6 +73,7 @@ export default Vue.extend({
       />
       <KeyValue
         v-model="value.keyValuePairs"
+        :initial-empty-row="true"
         :mode="mode"
         :title="t('epinio.services.pairs')"
         :key-label="t('epinio.applications.create.envvar.keyLabel')"
