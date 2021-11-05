@@ -64,7 +64,7 @@ export default class EpinioService extends EpinioResource {
     return this.name;
   }
 
-  async save() {
+  async create() {
     await this.followLink('create', {
       method:  'post',
       headers: {
@@ -72,16 +72,31 @@ export default class EpinioService extends EpinioResource {
         accept:         'application/json'
       },
       data: {
-        name:          this.meta.name,
-        data:          this.keyValuePairs
+        name: this.meta.name,
+        data: this.keyValuePairs
       }
     });
+  }
+
+  async save() {
     await this._save(...arguments);
     const services = await this.$dispatch('findAll', { type: this.type, opt: { force: true } });
 
     // Find new namespace
     // return new namespace
     return services.filter(n => n.name === this.name)?.[0];
+  }
+
+  get canClone() {
+    return false;
+  }
+
+  get canViewInApi() {
+    return false;
+  }
+
+  get canCustomEdit() {
+    return false;
   }
   // ------------------------------------------------------------------
 }
