@@ -104,11 +104,7 @@ export default {
       this.forceNamespace = null;
     }
 
-    const isMultiClusterApp = await this.existing.deployedAsMultiCluster();
-
-    if ( isMultiClusterApp ) {
-      this.mcapp = true;
-    }
+    this.mcapp = await this.existing.deployedAsMultiCluster();
 
     this.value = await this.$store.dispatch('cluster/create', {
       type:     'chartInstallAction',
@@ -284,12 +280,6 @@ export default {
       ],
 
       isPlainLayout: isPlainLayout(this.$route.query),
-
-      legacyPath: {
-        name:   'c-cluster-product-resource',
-        params: { product: 'settings', resource: 'management.cattle.io.feature' }
-      },
-      mcmPath: { name: 'c-cluster-mcapps' }
     };
   },
 
@@ -514,6 +504,21 @@ export default {
     legacyEnabled() {
       return this.features(LEGACY);
     },
+
+    legacyPath() {
+      const path = {
+        name:   'c-cluster-product-resource',
+        params: { product: 'settings', resource: 'management.cattle.io.feature' }
+      };
+
+      return this.$router.resolve(path).href;
+    },
+
+    mcmPath() {
+      const path = { name: 'c-cluster-mcapps' };
+
+      return this.$router.resolve(path).href;
+    }
   },
 
   watch: {
@@ -1330,20 +1335,10 @@ export default {
           {{ t('catalog.install.multiCluster.label') }}
         </span>
         <template v-if="!legacyEnabled">
-          <span>
-            {{ t('catalog.install.multiCluster.legacy.label') }}
-            <nuxt-link :to="legacyPath">
-              {{ t('catalog.install.multiCluster.legacy.target') }}
-            </nuxt-link>
-          </span>
+          <span v-html="t('catalog.install.multiCluster.legacy.description', { target: legacyPath }, true)" />
         </template>
         <template v-else-if="legacyEnabled && mcm">
-          <span>
-            {{ t('catalog.install.multiCluster.mcm.label') }}
-            <nuxt-link :to="mcmPath">
-              {{ t('catalog.install.multiCluster.mcm.target') }}
-            </nuxt-link>
-          </span>
+          <span v-html="t('catalog.install.multiCluster.mcm.description', { target: mcmPath }, true)" />
         </template>
       </Banner>
     </div>
