@@ -237,21 +237,14 @@ export default {
     let streamStarted = false;
     let out;
 
-    // opt.onData = function(data) {
-    //   if ( streamStarted ) {
-    //     out.data.push(data);
-    //   } else {
-    //     streamStarted = true;
-    //     out = data;
-    //     out.data = [];
-    //   }
-    // };
-
     let queue = [];
+    let streamCollection;
 
     opt.onData = function(data) {
       if ( streamStarted ) {
+        // Batch loads into groups of 10 to reduce vuex overhead
         queue.push(data);
+
         if ( queue.length > 10 ) {
           const tmp = queue;
 
@@ -259,8 +252,10 @@ export default {
           commit('loadMulti', { ctx, data: tmp });
         }
       } else {
+        // The first line is the collection object (sans `data`)
         commit('forgetAll', { type });
         streamStarted = true;
+        streamCollection = data;
       }
     };
 
@@ -268,6 +263,7 @@ export default {
       const res = await dispatch('request', opt);
 
       if ( streamStarted ) {
+        // Flush any remaining entries left over that didn't get loaded by onData
         if ( queue.length ) {
           commit('loadMulti', { ctx, data: queue });
           queue = [];
@@ -276,8 +272,7 @@ export default {
         const all = getters.all(type);
 
         res.finishDeferred(all);
-
-        return all;
+        out = streamCollection;
       } else {
         out = res;
       }
