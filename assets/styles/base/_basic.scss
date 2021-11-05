@@ -77,7 +77,7 @@ TEXTAREA,
 BUTTON,
 .btn {
    &:focus, &.focused {
-     outline: none;
+    outline: none;
     box-shadow: 0 0 0 var(--outline-width) var(--outline);
     background: var(--primary-hover-bg);
    }
