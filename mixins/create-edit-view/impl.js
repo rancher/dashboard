@@ -79,6 +79,10 @@ export default {
     },
 
     doneParams() {
+      if ( this.value?.doneParams ) {
+        return this.value.doneParams;
+      }
+
       const out = { ...this.$route.params };
 
       delete out.namespace;
