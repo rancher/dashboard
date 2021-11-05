@@ -376,12 +376,15 @@ export const actions = {
           force:                true,
           watch:                false,
           redirectUnauthorized: false,
+          stream:               false,
         }
       }, { root: true });
 
       server = all?.[0];
     } catch (e) {
       console.error('Error loading preferences', e); // eslint-disable-line no-console
+
+      return server;
     }
 
     if ( !server?.data ) {
