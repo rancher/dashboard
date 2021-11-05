@@ -21,9 +21,7 @@ export default Vue.extend({
   data() {
     return {
       errors:        [],
-      value:         {} as PropType<ServiceModel>,
-      originalValue: {} as PropType<ServiceModel>,
-      namespaces: []
+      namespaces:    []
     };
   },
 
@@ -32,15 +30,20 @@ export default Vue.extend({
       type:     String,
       required: true
     },
+    value: {
+      type:     Object as PropType<ServiceModel>,
+      required: true
+    },
+    originalValue: {
+      type:     Object as PropType<ServiceModel>,
+      required: true
+    }
   },
 
   computed: { ...mapGetters({ t: 'i18n/t' }) },
 
   async fetch() {
     this.namespaces = await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE });
-    this.originalValue = await this.$store.dispatch(`epinio/create`, { type: EPINIO_TYPES.SERVICE });
-    // Dissassociate the original model & model. This fixes `Create` after refreshing page with SSR on
-    this.value = await this.$store.dispatch(`epinio/clone`, { resource: this.originalValue });
   },
 });
 </script>
@@ -50,12 +53,15 @@ export default Vue.extend({
     <Loading v-if="!value || namespaces.length === 0" />
     <CruResource
       v-if="value && namespaces.length > 0"
-      :can-yaml="false"
+      :min-height="'7em'"
       :mode="mode"
+      :done-route="doneRoute"
       :resource="value"
+      :can-yaml="false"
       :errors="errors"
-      @error="e=>errors = e"
+      @error="(e) => (errors = e)"
       @finish="save"
+      @cancel="done"
     >
       <NameNsDescription
         name-key="name"
@@ -66,7 +72,7 @@ export default Vue.extend({
         :mode="mode"
       />
       <KeyValue
-        v-model="values.keyValuePairs"
+        v-model="value.data"
         :mode="mode"
         :title="t('epinio.services.pairs')"
         :key-label="t('epinio.applications.create.envvar.keyLabel')"
