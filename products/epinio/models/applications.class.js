@@ -112,6 +112,20 @@ export default class EpinioApplication extends EpinioResource {
     return this.$getters['urlFor'](this.type, this.id, { url: `api/v1/namespaces/${ namespace }/applications/${ name || '' }` });
   }
 
+  get services() {
+    const all = this.$getters['all'](EPINIO_TYPES.SERVICE);
+
+    return this.configuration.services.reduce((res, serviceName) => {
+      const s = all.find(allS => allS.name === serviceName);
+
+      if (s) {
+        res.push(s);
+      }
+
+      return res;
+    }, []);
+  }
+
   // ------------------------------------------------------------------
   // Methods here are required for generic components to handle `namespaced` concept
 

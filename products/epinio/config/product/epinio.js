@@ -130,8 +130,7 @@ export function init(store) {
     {
       name:      'services',
       labelKey:  'epinio.tableHeaders.boundServices',
-      value:     'configuration.services',
-      formatter: 'List', // TODO: RC turn into links
+      search:    ['configuration.services'],
     },
     {
       name:     'deployedBy',
@@ -171,8 +170,7 @@ export function init(store) {
     {
       name:      'boundApps',
       labelKey:  'epinio.tableHeaders.boundApps',
-      value:     'boundapps',
-      formatter: 'List', // TODO: RC turn into links
+      search:    ['boundapps'],
     },
   ]);
 }

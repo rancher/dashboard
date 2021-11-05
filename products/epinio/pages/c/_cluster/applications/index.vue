@@ -2,18 +2,25 @@
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
 import Masthead from '@/components/ResourceList/Masthead';
+import LinkDetail from '@/components/formatter/LinkDetail';
 import { EPINIO_TYPES } from '@/products/epinio/types';
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 
 export default {
   components: {
     Loading,
+    LinkDetail,
     ResourceTable,
     Masthead
   },
 
   async fetch() {
-    this.rows = await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP });
+    const all = await Promise.all([
+      this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP }),
+      this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE })
+    ]);
+
+    this.rows = all[0];
   },
 
   data() {
@@ -59,6 +66,16 @@ export default {
       :rows="rows"
       :headers="headers"
       :group-by="groupBy"
-    />
+    >
+      <template #cell:services="{ row }">
+        <span v-if="row.services.length">
+          <template v-for="(service, index) in row.services">
+            <LinkDetail :key="service.id" :row="service" :value="service.name" />
+            <span v-if="index < row.services.length - 1" :key="service.id + 'i'">, </span>
+          </template>
+        </span>
+        <span v-else class="text-muted">&nbsp;</span>
+      </template>
+    </ResourceTable>
   </div>
 </template>
