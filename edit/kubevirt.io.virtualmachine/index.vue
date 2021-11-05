@@ -170,6 +170,7 @@ export default {
         const curVersion = versions.find( V => V.id === id);
 
         this.getInitConfig({ value: curVersion.spec.vm });
+        this.$set(this, 'hasCreateVolumes', []); // When using the template, all volume names need to be newly created
 
         const claimTemplate = this.getVolumeClaimTemplates(curVersion.spec.vm);
 
