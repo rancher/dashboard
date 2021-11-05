@@ -705,7 +705,8 @@ export default class Resource {
     if ( !opt.url ) {
       throw new Error(`Unknown link ${ linkName } on ${ this.type } ${ this.id }`);
     }
-
+    const res = this.$dispatch('request', { opt, type: this.type } )
+    debugger;
     return this.$dispatch('request', { opt, type: this.type } );
   }
 
