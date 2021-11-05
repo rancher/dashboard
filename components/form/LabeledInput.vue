@@ -36,7 +36,7 @@ export default {
       type:    Boolean,
     },
 
-    minHeight: {
+    minInputHeight: {
       // Prevent buttons from shifting when error
       // messages appear
       type:    Number,
@@ -177,7 +177,7 @@ export default {
 
 <template>
   <div
-    :style="{'min-height': `${minHeight}px`}"
+    :style="{'min-height': minInputHeight}"
   >
     <div
       :class="{

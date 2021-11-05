@@ -11,7 +11,7 @@ export default class EpinioService extends EpinioResource {
       update: this.getUrl(),
       self:   this.getUrl(),
       remove: this.getUrl(),
-      create: this.getUrl(this.meta?.namespace, null), // ensure name is null
+      create: this.getUrl(this.meta?.namespace, null),
     };
   }
 
@@ -62,6 +62,25 @@ export default class EpinioService extends EpinioResource {
 
   get _key() {
     return this.name;
+  }
+
+  async save() {
+    await this.followLink('create', {
+      method:  'post',
+      headers: {
+        'content-type': 'application/json',
+        accept:         'application/json'
+      },
+      data: {
+        name:          this.meta.name,
+        data:          this.data
+      }
+    });
+    const services = await this.$dispatch('findAll', { type: this.type, opt: { force: true } });
+
+    // Find new namespace
+    // return new namespace
+    return services.filter(n => n.name === this.name)?.[0];
   }
   // ------------------------------------------------------------------
 }
