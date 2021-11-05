@@ -128,7 +128,7 @@ export default {
   },
 
   loadMulti(state, { data, ctx }) {
-    // console.log('### Mutation loadMulti', data.length);
+    // console.log('### Mutation loadMulti', data?.length);
     for ( const entry of data ) {
       load(state, { data: entry, ctx });
     }

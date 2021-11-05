@@ -282,23 +282,25 @@ export default {
 
     if ( load === _NONE ) {
       return out;
-    } else if ( load === _MULTI ) {
-      // This has the effect of adding the response to the store,
-      // without replacing all the existing content for that type,
-      // and without marking that type as having 'all 'loaded.
-      //
-      // This is used e.g. to load a partial list of settings before login
-      // while still knowing we need to load the full list later.
-      commit('loadMulti', {
-        ctx,
-        data: out.data
-      });
-    } else {
-      commit('loadAll', {
-        ctx,
-        type,
-        data: out.data
-      });
+    } else if ( out.data ) {
+      if ( load === _MULTI ) {
+        // This has the effect of adding the response to the store,
+        // without replacing all the existing content for that type,
+        // and without marking that type as having 'all 'loaded.
+        //
+        // This is used e.g. to load a partial list of settings before login
+        // while still knowing we need to load the full list later.
+        commit('loadMulti', {
+          ctx,
+          data: out.data
+        });
+      } else {
+        commit('loadAll', {
+          ctx,
+          type,
+          data: out.data
+        });
+      }
     }
 
     if ( opt.watch !== false ) {
