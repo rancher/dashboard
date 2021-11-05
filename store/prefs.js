@@ -258,6 +258,7 @@ export const actions = {
 
       this.$cookies.set(`${ cookiePrefix }${ key }`.toUpperCase(), value, opt);
     }
+
     if ( definition.asUserPreference ) {
       try {
         server = await dispatch('loadServer', key); // There's no watch on prefs, so get before set...
@@ -384,7 +385,7 @@ export const actions = {
     } catch (e) {
       console.error('Error loading preferences', e); // eslint-disable-line no-console
 
-      return server;
+      return;
     }
 
     if ( !server?.data ) {

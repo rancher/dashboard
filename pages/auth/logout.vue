@@ -6,13 +6,7 @@ export default {
 
   async asyncData({ redirect, store, router }) {
     await store.dispatch('auth/logout', null, { root: true });
-    const url = `/auth/login?${ LOGGED_OUT }`;
-
-    if ( process.server ) {
-      redirect(302, url);
-    } else {
-      window.location.href = url;
-    }
+    redirect(302, `/auth/login?${ LOGGED_OUT }`);
   }
 };
 </script>
