@@ -7,6 +7,7 @@ import { _VIEW } from '@/config/query-params';
 import CodeMirror from '@/components/CodeMirror';
 import jsyaml from 'js-yaml';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
+import { randomStr } from '@/utils/string';
 
 export default {
   components: {
@@ -148,7 +149,7 @@ export default {
 
   methods: {
     addVolume(type) {
-      const name = `vol${ this.value.volumes.length }`;
+      const name = `vol-${ randomStr(5).toLowerCase() }`;
 
       if (type === 'createPVC') {
         this.containerVolumes.push({
