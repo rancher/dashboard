@@ -7,7 +7,6 @@ import NameNsDescription from '@/components/form/NameNsDescription.vue';
 import { mapGetters } from 'vuex';
 import ServiceModel from '@/products/epinio/models/services.class';
 import { EPINIO_TYPES } from '@/products/epinio/types';
-import { sortBy } from '@/utils/sort';
 import KeyValue from '@/components/form/KeyValue.vue';
 
 export default Vue.extend({
@@ -21,27 +20,14 @@ export default Vue.extend({
 
   data() {
     return {
-      errors: [],
-      values: {
-        meta: {
-          name:      this.value.meta?.name,
-          namespace: this.value.meta?.namespace
-        },
-        keyValuePairs: this.value.keyValuePairs,
-      },
+      errors:        [],
+      value:         {} as PropType<ServiceModel>,
+      originalValue: {} as PropType<ServiceModel>,
       namespaces: []
     };
   },
 
   props: {
-    value: {
-      type:     Object as PropType<ServiceModel>,
-      required: true,
-    },
-    originalValue: {
-      type:     Object as PropType<ServiceModel>,
-      required: true
-    },
     mode: {
       type:     String,
       required: true
@@ -50,10 +36,12 @@ export default Vue.extend({
 
   computed: { ...mapGetters({ t: 'i18n/t' }) },
 
-  fetch() {
-    this.namespaces = sortBy(this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE), 'name');
+  async fetch() {
+    this.namespaces = await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE });
+    this.originalValue = await this.$store.dispatch(`epinio/create`, { type: EPINIO_TYPES.SERVICE });
+    // Dissassociate the original model & model. This fixes `Create` after refreshing page with SSR on
+    this.value = await this.$store.dispatch(`epinio/clone`, { resource: this.originalValue });
   },
-
 });
 </script>
 
@@ -74,7 +62,7 @@ export default Vue.extend({
         namespace-key="namespace"
         :namespaces-override="namespaces"
         :description-hidden="true"
-        :value="values.meta"
+        :value="value.meta"
         :mode="mode"
       />
       <KeyValue
