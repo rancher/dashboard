@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import Checkbox from '@/components/form/Checkbox';
@@ -66,6 +67,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
     isConfig() {
       return this.$route.query?.as === _CONFIG || this.isView;
     },
@@ -149,7 +151,7 @@ export default {
           if (this.templateValue?.metadata?.name) {
             await this.templateValue.save();
           } else {
-            this.errors = ['"Name" is required'];
+            this.errors = [this.t('validation.required', { key: this.t('harvester.vmTemplate.nameNsDescription.name') })];
             buttonCb(false);
 
             return;
