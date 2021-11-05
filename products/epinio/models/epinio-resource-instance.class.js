@@ -1,5 +1,6 @@
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import { Resource } from '@/plugins/core-store/resource-class';
+import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 
 export default class EpinioResource extends Resource {
   get listLocation() {
@@ -35,7 +36,15 @@ export default class EpinioResource extends Resource {
   get canViewInApi() {
     return false;
   }
+
   // ------------------------------------------------------------------
+  async _save(opt = {}) {
+    try {
+      return await super._save(opt);
+    } catch (e) {
+      throw epinioExceptionToErrorsArray(e);
+    }
+  }
 
   async remove(opt = {}) {
     if ( !opt.url ) {
@@ -44,11 +53,15 @@ export default class EpinioResource extends Resource {
 
     opt.method = 'delete';
 
-    const res = await this.$dispatch('request', { opt, type: this.type });
+    try {
+      const res = await this.$dispatch('request', { opt, type: this.type });
 
-    console.log('### Resource Remove', this.type, this.id, res);// eslint-disable-line no-console
+      console.log('### Resource Remove', this.type, this.id, res);// eslint-disable-line no-console
+      this.$dispatch('remove', this);
+    } catch (e) {
+      throw epinioExceptionToErrorsArray(e);
+    }
 
-    this.$dispatch('remove', this);
     // if ( res?._status === 204 ) {
     //   // If there's no body, assume the resource was immediately deleted
     //   // and drop it from the store as if a remove event happened.

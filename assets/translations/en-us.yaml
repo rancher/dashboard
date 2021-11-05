@@ -6143,4 +6143,7 @@ epinio:
   namespace:
     name: Name
     create: Create a Namespace
+  services:
+    promptRemove:
+      unbind: Unbind from applications before deleting
     

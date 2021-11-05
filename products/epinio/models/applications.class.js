@@ -115,7 +115,7 @@ export default class EpinioApplication extends EpinioResource {
   get services() {
     const all = this.$getters['all'](EPINIO_TYPES.SERVICE);
 
-    return this.configuration.services.reduce((res, serviceName) => {
+    return (this.configuration.services || []).reduce((res, serviceName) => {
       const s = all.find(allS => allS.name === serviceName);
 
       if (s) {

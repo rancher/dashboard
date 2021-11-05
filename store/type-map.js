@@ -1064,8 +1064,8 @@ export const getters = {
   },
 
   hasCustomPromptRemove(state, getters) {
-    return (rawType) => {
-      const { type: key } = getters.componentFor(rawType);
+    return (rawType, subType) => {
+      const { type: key, plugin } = getters.componentFor(rawType, subType);
 
       const cache = state.cache.promptRemove;
 
@@ -1074,7 +1074,11 @@ export const getters = {
       }
 
       try {
-        require.resolve(`@/promptRemove/${ key }`);
+        if ( plugin) {
+          require.resolve(`@/products/${ plugin }/promptRemove/${ key }`);
+        } else {
+          require.resolve(`@/promptRemove/${ key }`);
+        }
         cache[key] = true;
       } catch (e) {
         cache[key] = false;
@@ -1115,8 +1119,8 @@ export const getters = {
   },
 
   importCustomPromptRemove(state, getters) {
-    return (rawType) => {
-      const type = getters.componentFor(rawType);
+    return (rawType, subType) => {
+      const type = getters.componentFor(rawType, subType);
 
       return importCustomPromptRemove(type);
     };
