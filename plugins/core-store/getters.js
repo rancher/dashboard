@@ -4,7 +4,8 @@ import { SCHEMA } from '@/config/types';
 import { matches } from '@/utils/selector';
 import { typeMunge, typeRef, SIMPLE_TYPES } from '@/utils/create-yaml';
 import { splitObjectPath } from '@/utils/string';
-import { parseType } from '@/models/schema.class';
+import { parseType } from '@/models/schema';
+import Resource from '@/plugins/core-store/resource-class';
 import mutations from './mutations';
 import { keyFieldFor, normalizeType } from './normalize';
 import { lookup } from './model-loader';
@@ -267,10 +268,7 @@ export default {
   },
 
   classify: state => (obj) => {
-    debugger;
-
-    // TODO: RC get ctx
-    return lookup(state.config.namespace, obj?.type, obj?.metadata?.name);
+    return lookup(state.config.namespace, obj?.type, obj?.metadata?.name) || Resource;
   },
 
   cleanResource: (existing, data) => {

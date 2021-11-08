@@ -1,4 +1,5 @@
 import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
+import { classify } from '@/plugins/core-store/classify';
 import { findBy, insertAt } from '@/utils/array';
 import { set, get } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
@@ -465,7 +466,7 @@ export default class ProvCluster extends SteveModel {
       x.clusterId = this.id;
       x.rke2 = true;
 
-      return this.$getters['classify'](this.$ctx, x);
+      return classify(this.$ctx, x);
     });
   }
 

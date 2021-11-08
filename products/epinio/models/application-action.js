@@ -1,4 +1,4 @@
-import { Resource } from '@/plugins/core-store/resource-class';
+import Resource from '@/plugins/core-store/resource-class';
 import { APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE } from '@/products/epinio/types';
 import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 import Vue from 'vue';

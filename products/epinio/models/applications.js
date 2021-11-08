@@ -1,6 +1,6 @@
 import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
-import EpinioResource from './epinio-resource-instance.class';
+import EpinioResource from './epinio-resource';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
 const STATES = {
@@ -78,7 +78,7 @@ export default class EpinioApplication extends EpinioResource {
         enabled:    this.active,
       },
       { divider: true },
-      ...this._standardActions
+      ...super._availableActions
     ];
   }
 

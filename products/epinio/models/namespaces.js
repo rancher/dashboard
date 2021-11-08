@@ -1,4 +1,4 @@
-import EpinioResource from './epinio-resource-instance.class';
+import EpinioResource from './epinio-resource';
 
 export default class EpinioNamespaces extends EpinioResource {
   get links() {

@@ -76,8 +76,6 @@ export default {
   },
 
   classify: state => (obj) => {
-    debugger;
-    // TODO: RC get ctx
     const customModel = lookup(state.config.namespace, obj?.type, obj?.metadata?.name);
 
     if (customModel) {

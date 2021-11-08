@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue from 'vue';
-import Application from '@/products/epinio/models/applications.class';
+import Application from '@/products/epinio/models/applications';
 import CreateEditView from '@/mixins/create-edit-view/impl';
 import Loading from '@/components/Loading.vue';
 import Wizard from '@/components/Wizard.vue';

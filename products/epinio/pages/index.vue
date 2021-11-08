@@ -4,10 +4,10 @@ import Vue from 'vue';
 import Loading from '@/components/Loading.vue';
 import ResourceTable from '@/components/ResourceTable.vue';
 import { EPINIO_MGMT_STORE, EPINIO_TYPES } from '@/products/epinio/types';
-import EpinioInstance from '@/products/epinio/models/instance.class';
+import Resource from '@/plugins/core-store/resource-class';
 
 interface Data {
-  clusters: EpinioInstance[],
+  clusters: Resource[],
 }
 
 // Data, Methods, Computed, Props

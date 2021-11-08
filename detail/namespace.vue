@@ -9,7 +9,7 @@ import ResourceTabs from '@/components/form/ResourceTabs';
 
 import { COUNT } from '@/config/types';
 import MoveModal from '@/components/MoveModal';
-import { getStatesByType } from '@/plugins/core-store/resource-instance';
+import { getStatesByType } from '@/plugins/core-store/resource-class';
 
 export default {
   components: {

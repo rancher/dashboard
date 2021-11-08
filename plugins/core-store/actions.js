@@ -4,6 +4,7 @@ import merge from 'lodash/merge';
 import { SCHEMA } from '@/config/types';
 import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@/store/type-map';
 import { createYaml } from '@/utils/create-yaml';
+import { classify } from '@/plugins/core-store/classify';
 import { normalizeType } from './normalize';
 
 export const _ALL = 'all';
@@ -345,7 +346,7 @@ export default {
   },
 
   create(ctx, data) {
-    return this.getters['classify'](data);
+    return classify(ctx, data);
   },
 
   createPopulated(ctx, userData) {
@@ -353,13 +354,13 @@ export default {
 
     merge(data, userData);
 
-    return this.getters['classify'](data);
+    return classify(ctx, data);
   },
 
   clone(ctx, { resource } = {}) {
     const copy = cloneDeep(resource.toJSON());
 
-    return this.getters['classify'](copy, true);
+    return classify(ctx, copy, true);
   },
 
   promptRemove({ commit, state }, resources ) {

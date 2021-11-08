@@ -1,6 +1,7 @@
 import Vue from 'vue';
 
 import { isArray } from '@/utils/array';
+import { classify } from '@/plugins/core-store/classify';
 import actions from './actions';
 import getters from './getters';
 import mutations from './mutations';
@@ -69,7 +70,7 @@ export default (vuexModule, config) => {
         const map = new Map();
 
         for ( let i = 0 ; i < cache.list.length ; i++ ) {
-          const proxy = store.getters['classify'](cache.list[i]);
+          const proxy = classify(ctx, cache.list[i]);
 
           cache.list[i] = proxy;
           map.set(proxy[keyField], proxy);
@@ -136,7 +137,7 @@ export default (vuexModule, config) => {
           // Or just return a proxied object
           delete obj.__rehydrate;
 
-          return store.getters['classify'](obj);
+          return classify(ctx, obj);
         } else {
           for ( const k of Object.keys(obj) ) {
             if ( k.startsWith('__rehydrateAll__') ) {

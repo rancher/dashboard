@@ -41,7 +41,7 @@ export function lookup(store, type) {
 
   let out;
   const tries = [
-    `${ store }/${ type }`,
+    // `${ store }/${ type }`,TODO: RC fix
     type
   ];
 

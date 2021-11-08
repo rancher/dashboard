@@ -1,6 +1,6 @@
 import { EPINIO_TYPES } from '@/products/epinio/types';
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
-import EpinioResource from './epinio-resource-instance.class';
+import EpinioResource from './epinio-resource';
 
 // POST - {"name":"my-service","data":{"foo":"bar"}}
 // GET - { "boundapps": null, "name": "my-service" }

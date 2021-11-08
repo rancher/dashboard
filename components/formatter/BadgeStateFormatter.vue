@@ -1,6 +1,6 @@
 <script>
 import BadgeState from '@/components/BadgeState';
-import { colorForState, stateDisplay } from '@/plugins/core-store/resource-instance';
+import { colorForState, stateDisplay } from '@/plugins/core-store/resource-class';
 export default {
   components: { BadgeState },
   props:      {

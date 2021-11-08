@@ -1,5 +1,5 @@
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
-import { Resource } from '@/plugins/core-store/resource-class';
+import Resource from '@/plugins/core-store/resource-class';
 import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 
 export default class EpinioResource extends Resource {

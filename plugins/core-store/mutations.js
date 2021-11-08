@@ -2,6 +2,7 @@ import Vue from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@/utils/array';
 import { SCHEMA } from '@/config/types';
 import { normalizeType } from '@/plugins/core-store/normalize';
+import { classify } from '@/plugins/core-store/classify';
 
 function registerType(state, type) {
   let cache = state.types[type];
@@ -77,7 +78,7 @@ function load(state, { data, ctx, existing }) {
       // console.log('### Mutation Updated', type, id);
     } else {
       // There's no entry, make a new proxy
-      entry = getters.classify(data);
+      entry = classify(ctx, data);
       addObject(cache.list, entry);
       cache.map.set(id, entry);
       // console.log('### Mutation', type, id);
@@ -158,7 +159,7 @@ export default {
     }
 
     const keyField = getters.keyFieldForType(type);
-    const proxies = data.map(x => getters.classify(x));
+    const proxies = data.map(x => classify(ctx, x));
     const cache = registerType(state, type);
 
     clear(cache.list);

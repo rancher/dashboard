@@ -1,7 +1,7 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import Application from '@/products/epinio/models/applications.class';
-import ApplicationAction, { APPLICATION_ACTION_TYPE } from '@/products/epinio/models/application-action.class';
+import Application from '@/products/epinio/models/applications';
+import ApplicationAction, { APPLICATION_ACTION_TYPE } from '@/products/epinio/models/application-action';
 
 import SortableTable from '@/components/SortableTable/index.vue';
 import Checkbox from '@/components/form/Checkbox.vue';

@@ -2,7 +2,7 @@
 import SortableTable from '@/components/SortableTable';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { FLEET as FLEET_ANNOTATIONS } from '@/config/labels-annotations';
-import { colorForState, stateDisplay, stateSort } from '@/plugins/core-store/resource-instance';
+import { colorForState, stateDisplay, stateSort } from '@/plugins/core-store/resource-class';
 
 export default {
   components: { SortableTable },

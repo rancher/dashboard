@@ -21,7 +21,7 @@ export default {
         const password = epinioAuthData.data.pass;
 
         epinioClusters.push({
-          id:       c.spec.displayName,
+          id:       c.spec.displayName, // TODO: RC tidy
           name:     c.spec.displayName,
           api:      url,
           username: base64Decode(username),

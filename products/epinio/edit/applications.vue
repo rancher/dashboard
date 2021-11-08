@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import Application from '@/products/epinio/models/applications.class';
+import Application from '@/products/epinio/models/applications';
 import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource.vue';
 import ResourceTabs from '@/components/form/ResourceTabs/index.vue';

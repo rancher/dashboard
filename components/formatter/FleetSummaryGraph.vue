@@ -2,7 +2,7 @@
 import ProgressBarMulti from '@/components/ProgressBarMulti';
 import { ucFirst } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
-import { colorForState, stateSort } from '@/plugins/core-store/resource-instance';
+import { colorForState, stateSort } from '@/plugins/core-store/resource-class';
 
 export default {
   components: { ProgressBarMulti },

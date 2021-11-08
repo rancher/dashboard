@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import Application from '@/products/epinio/models/applications.class';
+import Application from '@/products/epinio/models/applications';
 import NameNsDescription from '@/components/form/NameNsDescription.vue';
 import LabeledInput from '@/components/form/LabeledInput.vue';
 import KeyValue from '@/components/form/KeyValue.vue';

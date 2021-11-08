@@ -10,6 +10,7 @@ import { importChart } from '@/utils/dynamic-importer';
 import { ensureRegex } from '@/utils/string';
 import { isPrerelease } from '@/utils/version';
 import { lookup } from '@/plugins/core-store/model-loader';
+import { classify } from '@/plugins/core-store/classify';
 
 const ALLOWED_CATEGORIES = [
   'Storage',
@@ -291,9 +292,6 @@ export const getters = {
   },
 
   classify: state => (obj) => {
-    debugger;
-
-    // TODO: RC get ctx
     return lookup(state.config.namespace, obj?.type, obj?.metadata?.name);
   },
 };
