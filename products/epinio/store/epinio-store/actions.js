@@ -6,6 +6,9 @@ import { normalizeType } from '@/plugins/core-store/normalize';
 import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 import { base64Encode } from '@/utils/crypto';
 
+// TODO: RC remove actiosn from instances table
+// TODO: RC add which cluster you're in
+
 const createId = (schema, resource) => {
   const name = resource.meta?.name || resource.name;
   const namespace = resource.meta?.namespace || resource.namespace;
@@ -16,6 +19,15 @@ const createId = (schema, resource) => {
 
   return name;
 };
+
+const epiniofy = (obj, schema, type) => ({
+  ...obj,
+  'dashboard-meta': {
+    // Bag of properties that aren't contained in the core object but used by generics (except type, we need that top level)
+    id: createId(schema, obj),
+  },
+  type
+});
 
 export default {
 
@@ -45,7 +57,7 @@ export default {
 
         opt.headers = {
           ...opt.headers,
-          'x-api-host':  currentCluster.api,
+          'x-api-host':  `${ currentCluster.api }`,
           Authorization: `Basic ${ base64Encode(`${ currentCluster.username }:${ currentCluster.password }`) }`
         };
 
@@ -79,25 +91,17 @@ export default {
               });
             }
 
-            res.data = {
-              data: out.map(o => ({
-                ...o,
-                id: createId(schema, o),
-                type // TODO: RC get from url
-              }))
-            };
+            res.data = { data: out.map(o => epiniofy(o, schema, type)) };
           } else {
-          // `find` action turns this into `{data: out}`
-            res.data = {
-              ...out,
-              id: createId(schema, out),
-              type
-            };
+            // `find` action turns this into `{data: out}`
+            res.data = epiniofy(out, schema, type);
           }
 
           return responseObject(res);
         }
       }).catch((err) => {
+        dispatch('growl/fromError', { title: `Epinio Request to ${ opt.url }`, err }, { root: true });
+
         if ( !err || !err.response ) {
           return Promise.reject(err);
         }

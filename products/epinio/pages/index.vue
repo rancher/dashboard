@@ -49,14 +49,14 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading v-if="$fetchState.pending" mode="main" />
   <div v-else-if="clusters.length === 0" class="root">
-    <h2>No instances of Epinio were found</h2>
-    <p>To view an Epinio cluster be sure to import a Cluster where one is installed</p>
+    <h2>{{ t('epinio.instances.none.header') }}</h2>
+    <p>{{ t('epinio.instances.none.description') }}</p>
   </div>
   <div v-else class="root">
     <div class="epinios-table">
-      <h2>Select your Epinio instance</h2>
+      <h2>{{ t('epinio.instances.header') }}</h2>
 
       <ResourceTable
         :rows="clusters"

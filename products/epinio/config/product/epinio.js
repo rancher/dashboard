@@ -4,8 +4,6 @@ import { createEpinioRoute, rootEpinioRoute } from '@/products/epinio/utils/cust
 import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import EpinioDiscovery from '@/products/epinio/utils/epinio-discovery';
 
-// TODO: RC DISCUSS Handle localisation in plugins
-
 export function init(store) {
   const {
     product,
@@ -122,38 +120,38 @@ export function init(store) {
     },
     {
       name:      'route',
-      labelKey:  'epinio.tableHeaders.route',
+      labelKey:  'epinio.applications.tableHeaders.route',
       value:     'routeLocation',
       sort:      ['route'],
       formatter: 'Link',
     },
     {
       name:      'services',
-      labelKey:  'epinio.tableHeaders.boundServices',
+      labelKey:  'epinio.applications.tableHeaders.boundServices',
       search:    ['configuration.services'],
     },
     {
       name:     'deployedBy',
-      labelKey: 'epinio.tableHeaders.deployedBy',
+      labelKey: 'epinio.applications.tableHeaders.deployedBy',
       value:    'deployment.username',
       sort:     ['deployment.username'],
     }
   ]);
 
   headers(EPINIO_TYPES.NAMESPACE, [
-    NAME,
+    SIMPLE_NAME,
   ]);
 
   headers(EPINIO_TYPES.INSTANCE, [
     SIMPLE_NAME, {
       name:     'api',
-      labelKey: 'epinio.instances.api',
+      labelKey: 'epinio.instances.tableHeaders.api',
       value:    'api',
       sort:     ['api'],
     },
     {
       name:     'pick',
-      labelKey: 'epinio.instances.explore',
+      labelKey: 'epinio.instances.tableHeaders.explore',
     }
   ]);
 
@@ -169,7 +167,7 @@ export function init(store) {
     },
     {
       name:      'boundApps',
-      labelKey:  'epinio.tableHeaders.boundApps',
+      labelKey:  'epinio.services.tableHeaders.boundApps',
       search:    ['boundapps'],
     },
   ]);

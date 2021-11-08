@@ -118,6 +118,8 @@ export default {
     padding: 10px;
     margin: 10px;
     position: relative;
+    word-break: break-all;
+    z-index: 100;
 
     .close {
       position: absolute;

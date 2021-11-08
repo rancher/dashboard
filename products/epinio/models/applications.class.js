@@ -73,7 +73,7 @@ export default class EpinioApplication extends EpinioResource {
     return [
       {
         action:     'showAppLog',
-        label:      'View Logs', // TODO: RC i10n
+        label:      this.t('epinio.applications.actions.viewAppLogs.label'),
         icon:       'icon icon-fw icon-chevron-right',
         enabled:    this.active,
       },

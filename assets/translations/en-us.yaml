@@ -6070,17 +6070,23 @@ serverUpgrade:
 ##############################
 ### Products
 ##############################
+# TODO: RC DISCUSS Handle localisation in plugins
 epinio:
   tableHeaders:
     namespace: Namespace
-    route: Route
-    boundServices: Bound Services
-    boundApps: Bound Apps
-    deployedBy: Last Deployed By
   instances:
-    api: URL
-    explore: Explore
+    header: Select your Epinio instance
+    none:
+      header: No instances of Epinio were found
+      description: To view an Epinio cluster be sure to import a Cluster where one is installed
+    tableHeaders:
+      api: URL
+      explore: Explore
   applications:
+    tableHeaders:
+      route: Route
+      boundServices: Bound Services
+      deployedBy: Last Deployed By
     create:
       title: Application
       titleSubText: Epinio
@@ -6140,10 +6146,15 @@ epinio:
       deploy:
         label: Deploy
         description: Deploy and start the Application
+    actions:
+      viewAppLogs:
+        label: View Logs
   namespace:
     name: Name
     create: Create a Namespace
   services:
+    tableHeaders:
+      boundApps: Bound Applications
     promptRemove:
       unbind: Unbind from applications before deleting
     
