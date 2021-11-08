@@ -3,6 +3,7 @@ import { DSL } from '@/store/type-map';
 import { createEpinioRoute, rootEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import EpinioDiscovery from '@/products/epinio/utils/epinio-discovery';
+import { MULTI_CLUSTER } from '@/store/features';
 
 export function init(store) {
   const {
@@ -17,7 +18,7 @@ export function init(store) {
 
   product({
     // ifHaveType:          CAPI.RANCHER_CLUSTER,
-    // ifFeature:           MULTI_CLUSTER,
+    ifFeature:           MULTI_CLUSTER,
     category:            EPINIO_PRODUCT_NAME,
     isMultiClusterApp:   true,
     inStore:             EPINIO_PRODUCT_NAME,
@@ -121,9 +122,7 @@ export function init(store) {
     {
       name:      'route',
       labelKey:  'epinio.applications.tableHeaders.route',
-      value:     'routeLocation',
-      sort:      ['route'],
-      formatter: 'Link',
+      search:      ['configuration.route'],
     },
     {
       name:      'services',

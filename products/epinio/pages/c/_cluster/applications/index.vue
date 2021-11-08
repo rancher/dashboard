@@ -76,6 +76,15 @@ export default {
         </span>
         <span v-else class="text-muted">&nbsp;</span>
       </template>
+      <template #cell:route="{ row }">
+        <span v-if="row.configuration.routes.length">
+          <template v-for="(route, index) in row.configuration.routes">
+            <a :key="route.id" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
+            <span v-if="index < row.configuration.routes.length - 1" :key="route.id + 'i'">, </span>
+          </template>
+        </span>
+        <span v-else class="text-muted">&nbsp;</span>
+      </template>
     </ResourceTable>
   </div>
 </template>

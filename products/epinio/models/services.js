@@ -38,29 +38,14 @@ export default class EpinioService extends EpinioResource {
   // Methods here are required for generic components to handle `namespaced` concept
 
   set metadata(metadata) {
-    // FIXME: Remove once #943 resolved
-    this.namespace = metadata.namespace;
-    this.name = metadata.name;
-
-    // FIXME: uncomment once #943 resolved
-    // this.meta = {
-    //   namespace: metadata.namespace,
-    //   name:      metadata.name,
-    // };
+    this.meta = {
+      namespace: metadata.namespace,
+      name:      metadata.name,
+    };
   }
 
   get metadata() {
-    return this.meta || {
-      namespace: this.namespace, // FIXME: Remove once #943 resolved
-      name:      this.name // FIXME: Remove once #943 resolved
-    };
-  }
-
-  get meta() {
-    return {
-      namespace: this.namespace, // FIXME: Remove once #943 resolved
-      name:      this.name, // FIXME: Remove once #943 resolved
-    };
+    return this.meta;
   }
 
   get namespaceLocation() {

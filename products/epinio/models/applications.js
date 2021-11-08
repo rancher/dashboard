@@ -82,10 +82,6 @@ export default class EpinioApplication extends EpinioResource {
     ];
   }
 
-  get routeLocation() {
-    return { url: this.deployment?.route ? `https://${ this.deployment?.route }` : '' };
-  }
-
   get nsLocation() {
     return createEpinioRoute(`c-cluster-resource-id`, {
       cluster:   this.$rootGetters['clusterId'],

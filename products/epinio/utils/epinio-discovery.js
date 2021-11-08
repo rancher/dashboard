@@ -9,19 +9,19 @@ export default {
     const allClusters = await store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }, { root: true });
     const epinioClusters = [];
 
-    for (const c of allClusters) {
+    for (const c of allClusters.filter(c => c.isReady)) {
       try {
         const epinioIngress = await store.dispatch(`cluster/request`, { url: `/k8s/clusters/${ c.id }/v1/networking.k8s.io.ingresses/epinio/epinio` }, { root: true });
 
         const url = ingressFullPath(epinioIngress, epinioIngress.spec.rules?.[0]);
 
-        const epinioAuthData = await store.dispatch(`cluster/request`, { url: `/k8s/clusters/${ c.id }/v1/secrets/epinio/epinio-api-auth-data` }, { root: true });
+        const epinioAuthData = await store.dispatch(`cluster/request`, { url: `/k8s/clusters/${ c.id }/v1/secrets/epinio/default-epinio-user` }, { root: true });
 
-        const username = epinioAuthData.data.user;
-        const password = epinioAuthData.data.pass;
+        const username = epinioAuthData.data.username;
+        const password = epinioAuthData.data.password;
 
         epinioClusters.push({
-          id:       c.spec.displayName, // TODO: RC tidy
+          id:       c.id,
           name:     c.spec.displayName,
           api:      url,
           username: base64Decode(username),
@@ -29,7 +29,7 @@ export default {
           type:     EPINIO_TYPES.INSTANCE,
         });
       } catch (err) {
-        console.info(`Skipping epinio discovery for ${ c.name }`, err); // eslint-disable-line no-console
+        console.info(`Skipping epinio discovery for ${ c.spec.displayName }`, err); // eslint-disable-line no-console
       }
     }
 

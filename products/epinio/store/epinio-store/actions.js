@@ -85,12 +85,6 @@ export default {
           const schema = getters.schemaFor(type);
 
           if (Array.isArray(out)) {
-            if (type === EPINIO_TYPES.SERVICE) { // FIXME: Remove once #943 resolved
-              out.forEach((s) => {
-                s.namespace = 'workspace';
-              });
-            }
-
             res.data = { data: out.map(o => epiniofy(o, schema, type)) };
           } else {
             // `find` action turns this into `{data: out}`
@@ -177,7 +171,7 @@ export default {
         product:           EPINIO_PRODUCT_NAME,
         id:                EPINIO_TYPES.SERVICE,
         type:              'schema',
-        links:             { collection: 'api/v1/namespaces/workspace/services' }, // FIXME: change to `api/v1/services` once #943 resolved
+        links:             { collection: 'api/v1/services' },
         collectionMethods: ['get', 'post'],
         resourceFields:    { },
         attributes:        { namespaced: true }
