@@ -186,10 +186,6 @@ export default class VirtVm extends SteveModel {
               requests: {
                 memory: null,
                 cpu:    ''
-              },
-              limits: {
-                memory: null,
-                cpu:    ''
               }
             }
           },

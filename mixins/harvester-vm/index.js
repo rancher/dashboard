@@ -419,13 +419,6 @@ export default {
         this.$set(this.spec.template.spec.domain.machine, 'type', this.machineType);
       }
 
-      if (!this.spec.template.spec.domain.resources.limits) {
-        this.spec.template.spec.domain.resources.limits = {
-          memory: null,
-          cpu:    ''
-        };
-      }
-
       if (!this.spec.template.spec.domain.guest) {
         this.spec.template.spec.domain = {
           ...this.spec.template.spec.domain,
@@ -434,8 +427,6 @@ export default {
       }
 
       this.spec.template.spec.domain.resources.requests.cpu = this.spec.template.spec.domain.cpu.cores;
-      this.spec.template.spec.domain.resources.limits.memory = this.spec.template.spec.domain.resources.requests.memory;
-      this.spec.template.spec.domain.resources.limits.cpu = this.spec.template.spec.domain.cpu.cores;
 
       if ( this.memory) {
         const [memoryValue, memoryUnit] = this.memory?.split(/(?=([a-zA-Z]+))/g);
