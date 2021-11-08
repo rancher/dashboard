@@ -2,14 +2,18 @@
 export default {
   props: {
     value: {
-      type:     Array,
+      type:     [Array, String],
       default: () => []
     }
   },
 
   computed: {
     string() {
-      return this.value.join(', ');
+      if (Array.isArray(this.value)) {
+        return this.value.join(', ');
+      }
+
+      return this.value;
     }
   },
 };
