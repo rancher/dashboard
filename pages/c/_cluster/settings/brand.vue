@@ -164,7 +164,7 @@ export default {
         try {
           const parsedBanner = JSON.parse(neu.value);
 
-          this.bannerVal = this.checkOrUpdateLegacyUIBannerSetting(parsedBanner);
+          this.bannerVal = this.getBannerSettings(parsedBanner);
         } catch {}
       }
     }
@@ -186,11 +186,15 @@ export default {
   },
 
   methods: {
-    applyDefaultThemeSettings(bannerSettings) {
-      const { bannerHeader, bannerFooter } = bannerSettings;
+    getBannerSettings(bannerSettings) {
+      // Update legacy banner settings
+      const updatedBannerSetting = this.checkOrUpdateLegacyUIBannerSetting(bannerSettings);
 
+      const { bannerHeader, bannerFooter } = updatedBannerSetting;
+
+      // Merge default theme settings/scss vars and return
       return {
-        ...bannerSettings,
+        ...updatedBannerSetting,
         bannerHeader: {
           ...bannerHeader,
           color: bannerHeader.color || this.themeVars.primaryText
@@ -207,7 +211,7 @@ export default {
 
       // In legacy banner there is no bannerHeader or bannerFooter
       if (isEmpty(bannerHeader) && isEmpty(bannerFooter)) {
-        let neu = this.applyDefaultThemeSettings(DEFAULT_BANNER_SETTING);
+        let neu = DEFAULT_BANNER_SETTING;
 
         const banner = parsedBanner.banner;
 
@@ -216,7 +220,7 @@ export default {
           const cloned = clone(( banner ?? {} ));
 
           if (cloned?.textColor) {
-            cloned.color = cloned.textColor || this.themeVars.primaryText;
+            cloned.color = cloned.textColor;
             delete cloned.textColor;
           }
 
@@ -231,7 +235,7 @@ export default {
         return neu;
       }
 
-      return this.applyDefaultThemeSettings(parsedBanner);
+      return parsedBanner;
     },
     updateLogo(img, key) {
       this[key] = img;
