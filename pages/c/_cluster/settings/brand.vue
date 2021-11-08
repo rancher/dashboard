@@ -186,24 +186,32 @@ export default {
   },
 
   methods: {
+    applyDefaultThemeSettings(bannerSettings) {
+      const { bannerHeader, bannerFooter } = bannerSettings;
+
+      return {
+        ...bannerSettings,
+        bannerHeader: {
+          ...bannerHeader,
+          color: bannerHeader.color || this.themeVars.primaryText
+        },
+        bannerFooter: {
+          ...bannerFooter,
+          color: bannerFooter.color || this.themeVars.primaryText
+        }
+      };
+    },
+
     checkOrUpdateLegacyUIBannerSetting(parsedBanner) {
-      let { bannerHeader, bannerFooter } = parsedBanner;
+      const { bannerHeader, bannerFooter } = parsedBanner;
 
-      bannerHeader = {
-        color: this.themeVars.primaryText,
-        ...bannerHeader
-      };
-
-      bannerFooter = {
-        color: this.themeVars.primaryText,
-        ...bannerFooter
-      };
-
+      // In legacy banner there is no bannerHeader or bannerFooter
       if (isEmpty(bannerHeader) && isEmpty(bannerFooter)) {
-        let neu = DEFAULT_BANNER_SETTING;
+        let neu = this.applyDefaultThemeSettings(DEFAULT_BANNER_SETTING);
 
         const banner = parsedBanner.banner;
 
+        // Legacy banner to new banner
         if (!isEmpty(banner)) {
           const cloned = clone(( banner ?? {} ));
 
@@ -223,7 +231,7 @@ export default {
         return neu;
       }
 
-      return parsedBanner;
+      return this.applyDefaultThemeSettings(parsedBanner);
     },
     updateLogo(img, key) {
       this[key] = img;
