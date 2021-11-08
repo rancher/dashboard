@@ -5035,6 +5035,8 @@ harvester:
     cpu: Cpu
     memory: Memory
     virtaulName: Virtual machine name
+    promiscuous: Promiscuous
+    ipv4Address: IPv4 Address
   generic:
     showMore: Show More
     hideMore: Hide More

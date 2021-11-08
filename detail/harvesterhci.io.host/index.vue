@@ -11,6 +11,7 @@ import { clone } from '@/utils/object';
 import Basic from './HarvesterHostBasic';
 import Instance from './VirtualMachineInstance';
 import Disk from './HarvesterHostDisk';
+import Network from './HarvesterHostNetwork';
 
 export default {
   name: 'DetailHost',
@@ -22,6 +23,7 @@ export default {
     Instance,
     ArrayListGrouped,
     Disk,
+    Network,
   },
   mixins: [metricPoller],
 
@@ -122,6 +124,29 @@ export default {
 
       return longhornDisks;
     },
+
+    network() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const networks = this.$store.getters[`${ inStore }/all`](HCI.NODE_NETWORK);
+
+      return findBy(networks, 'spec.nodeName', this.value.id) || {};
+    },
+
+    networkLinks() {
+      const networkLinkStatus = this.network?.status?.networkLinkStatus || {};
+
+      const out = Object.keys(networkLinkStatus).map((key) => {
+        const obj = networkLinkStatus[key] || {};
+
+        return {
+          ...obj,
+          name:        key,
+          promiscuous: obj.promiscuous ? 'true' : 'false',
+        };
+      });
+
+      return out;
+    },
   },
 
   methods: {
@@ -146,11 +171,30 @@ export default {
 <template>
   <div>
     <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
-      <Tab name="basics" :label="t('harvester.host.tabs.basics')" :weight="3" class="bordered-table">
+      <Tab name="basics" :label="t('harvester.host.tabs.basics')" :weight="4" class="bordered-table">
         <Basic v-model="value" :metrics="metrics" :mode="mode" :host-network-resource="hostNetworkResource" />
       </Tab>
-      <Tab name="instance" :label="t('harvester.host.tabs.instance')" :weight="2" class="bordered-table">
+      <Tab name="instance" :label="t('harvester.host.tabs.instance')" :weight="3" class="bordered-table">
         <Instance :node="value" />
+      </Tab>
+      <Tab
+        name="network"
+        :label="t('harvester.host.tabs.network')"
+        :weight="2"
+        class="bordered-table"
+      >
+        <ArrayListGrouped
+          v-model="networkLinks"
+          :mode="mode"
+          :can-remove="false"
+        >
+          <template #default="props">
+            <Network
+              :value="props.row.value"
+              :mode="mode"
+            />
+          </template>
+        </ArrayListGrouped>
       </Tab>
       <Tab
         name="disk"

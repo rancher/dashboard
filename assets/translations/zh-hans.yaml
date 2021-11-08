@@ -4158,6 +4158,7 @@ harvester:
     cpu: Cpu
     memory: 内存
     virtaulName: 虚拟机名称
+    ipv4Address: IPv4地址
   tab:
     volume: 卷
     network: 网络
