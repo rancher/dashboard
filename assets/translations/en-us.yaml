@@ -1113,6 +1113,9 @@ cluster:
         add: Add Port
         help: When using an existing NSG, Open Ports are ignored.
         label: Open Port
+      plan:
+        label: Purchase Plan
+        placeholder: publisher:product:plan
       privateIp:
         label: Private IP Address
       publicIpOptions:
