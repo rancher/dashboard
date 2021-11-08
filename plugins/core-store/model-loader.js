@@ -2,7 +2,7 @@ import { normalizeType } from './normalize';
 
 const cache = {};
 
-function find(cache, type) {
+function find(cache, base, type) {
   const impl = cache[type];
 
   if ( impl ) {
@@ -12,8 +12,6 @@ function find(cache, type) {
   }
 
   try {
-    const base = require(`@/models/${ type }`);
-
     // New Class models
     if ( base?.default?.prototype ) {
       cache[type] = base.default;
@@ -48,9 +46,28 @@ export function lookup(store, type) {
   ];
 
   for ( const t of tries ) {
-    out = find(cache, t);
-    if ( out ) {
-      return out;
+    try {
+      out = find(cache, require(`@/products/${ store }/models/${ t }`), `${ store }/${ type }`);
+      if ( out ) {
+        return out;
+      }
+    } catch (e) {
+    }
+
+    try {
+      out = find(cache, require(`@/models/${ store }/${ t }`), `${ store }/${ type }`);
+      if ( out ) {
+        return out;
+      }
+    } catch (e) {
+    }
+
+    try {
+      out = find(cache, require(`@/models/${ t }`), type);
+      if ( out ) {
+        return out;
+      }
+    } catch (e) {
     }
   }
 

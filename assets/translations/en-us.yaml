@@ -545,6 +545,10 @@ asyncButton:
     action: Rotate
     waiting: Rotating&hellip;
     success: Rotated
+  run:
+    action: Run
+    waiting: Running&hellip;
+    success: Completed
   snapshot:
     action: Snapshot Now
     waiting: Snapshot Initiated&hellip;
@@ -4309,6 +4313,7 @@ validation:
       apiKey: Required an "Api Key" to be set.
   invalidCron: Invalid cron schedule
   k8s:
+    name: Must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name', or '123-abc').
     identifier:
       emptyLabel: '"{key}" cannot have an empty key'
       emptyPrefix: '"{key}" cannot have an empty prefix'
@@ -5740,7 +5745,16 @@ typeLabel:
       one { Cloud Config Template }
       other { Cloud Config Templates }
     }
-  
+  namespaces: |-
+    {count, plural,
+      one { Namespaces }
+      other { Namespaces }
+    }
+  applications: |-
+    {count, plural,
+      one { Application }
+      other { Applications }
+    }
 
 action:
   clone: Clone
@@ -6046,3 +6060,78 @@ legacy:
 serverUpgrade:
   title: "{vendor} Server Changed"
   message: "The page reloaded because the version of {vendor} running on your server changed."
+
+##############################
+### Products
+##############################
+epinio:
+  tableHeaders:
+    namespace: Namespace
+    route: Route
+    boundServices: Bound Services
+    deployedBy: Last Deployed By
+  instances:
+    api: URL
+    explore: Explore
+  applications:
+    create:
+      title: Application
+      titleSubText: Epinio
+      instances: Instances
+      envvar:
+        title: Environment Variables
+        keyLabel: Name
+        valueLabel: Value
+    steps:
+      basics:
+        label: Details
+        subtext: Basic info about your app
+      source:
+        label: Source
+        subtext: Provide the source
+        archive:
+          label: Archive
+          file:
+            label: Archive File
+            inputLabel: File Name
+            tooltip: This should be a compressed file containing your application
+          builderimage:
+            label: Paketo Builder Image
+            tooltip: Paketo builder image to use for staging
+            default: Default Image
+            custom: Custom Image
+        containerUrl:
+          label: Container Image
+          url:
+            label: Container Image Url
+            inputLabel: Url
+            tooltip: Container Image Url for the app workload image
+      services:
+        label: Service
+        subtext: Bind a service
+        next: Create
+      progress:
+        label: Progress
+        subtext: Status of create
+        table:
+          stage:
+            label: Stage
+          description: Description
+          status: Status
+          run:
+            label: Run
+    action:
+      create:
+        label: Create
+        description: The Application will be created ready to deploy source to
+      upload:
+        label: Upload
+        description: Upload the source for the Application
+      build:
+        label: Build
+        description: Build the source for the Application
+      deploy:
+        label: Deploy
+        description: Deploy and start the Application
+  namespaceName:
+    name: Name

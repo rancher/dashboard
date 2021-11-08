@@ -5,11 +5,11 @@ import { allHash, allHashSettled } from '@/utils/promise';
 import { clone } from '@/utils/object';
 import { findBy, addObject, filterBy } from '@/utils/array';
 import { stringify } from '@/utils/error';
-import { classify } from '@/plugins/steve/classify';
 import { sortBy } from '@/utils/sort';
 import { importChart } from '@/utils/dynamic-importer';
 import { ensureRegex } from '@/utils/string';
 import { isPrerelease } from '@/utils/version';
+import { lookup } from '@/plugins/core-store/model-loader';
 
 const ALLOWED_CATEGORIES = [
   'Storage',
@@ -288,7 +288,14 @@ export const getters = {
 
   inStore(state) {
     return state.inStore;
-  }
+  },
+
+  classify: state => (obj) => {
+    debugger;
+
+    // TODO: RC get ctx
+    return lookup(state.config.namespace, obj?.type, obj?.metadata?.name);
+  },
 };
 
 export const mutations = {

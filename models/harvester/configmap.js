@@ -1,6 +1,6 @@
 import { clone } from '@/utils/object';
 import { HCI } from '@/config/types';
-import Resource from '@/plugins/steve/resource-class';
+import Resource from '@/plugins/core-store/resource-class';
 
 export default class HciConfigMap extends Resource {
   get detailLocation() {

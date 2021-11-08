@@ -35,6 +35,13 @@ export default {
       if a step has ready=true, the wizard also allows navigation *back* to it
     hidden: Don't show step, though include in DOM (dynamic steps must be in DOM to determine if they will include themselves in wizard)
     loading: Wizard will block until all steps are not loading
+    nextButton?: {
+      labelKey?: default to `wizard.next`
+      style?:  defaults to `btn role-primary`
+    },
+    previousButton: {
+      disable: defaults to false
+    }
   }
   */
     steps: {
@@ -79,6 +86,12 @@ export default {
     },
 
     bannerTitleSubtext: {
+      type:    String,
+      default: null
+    },
+
+    // Verb shown in the header, defaults to finishMode
+    headerMode: {
       type:    String,
       default: null
     },
@@ -129,6 +142,10 @@ export default {
       return false;
     },
 
+    canPrevious() {
+      return !this.activeStep?.previousButton?.disable && (this.activeStepIndex > 1 || this.editFirstStep);
+    },
+
     canNext() {
       return (this.activeStepIndex < this.visibleSteps.length - 1) && this.activeStep.ready;
     },
@@ -147,6 +164,14 @@ export default {
 
     visibleSteps() {
       return this.steps.filter(step => !step.hidden);
+    },
+
+    nextButtonStyle() {
+      return this.activeStep.nextButton?.style || `btn role-primary`;
+    },
+
+    nextButtonLabel() {
+      return this.activeStep.nextButton?.labelKey || `wizard.next`;
     }
   },
 
@@ -234,26 +259,28 @@ export default {
       <div class="header">
         <div class="title">
           <div v-if="showBanner" class="top choice-banner">
-            <div v-show="initialTitle || activeStepIndex > 0" class="title">
-              <!-- Logo -->
-              <slot name="bannerTitleImage">
-                <div v-if="bannerImage" class="round-image">
-                  <LazyImage :src="bannerImage" class="logo" />
+            <slot name="bannerTitle">
+              <div v-show="initialTitle || activeStepIndex > 0" class="title">
+                <!-- Logo -->
+                <slot name="bannerTitleImage">
+                  <div v-if="bannerImage" class="round-image">
+                    <LazyImage :src="bannerImage" class="logo" />
+                  </div>
+                </slot>
+                <!-- Title with subtext -->
+                <div class="subtitle">
+                  <h2 v-if="bannerTitle">
+                    {{ bannerTitle }}
+                  </h2>
+                  <span v-if="bannerTitleSubtext" class="subtext">{{ bannerTitleSubtext }}</span>
                 </div>
-              </slot>
-              <!-- Title with subtext -->
-              <div class="subtitle">
-                <h2 v-if="bannerTitle">
-                  {{ bannerTitle }}
-                </h2>
-                <span v-if="bannerTitleSubtext" class="subtext">{{ bannerTitleSubtext }}</span>
               </div>
-            </div>
+            </slot>
             <!-- Step number with subtext -->
             <div v-if="activeStep && showSteps" class="subtitle">
-              <h2>{{ t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
+              <h2>{{ t(`asyncButton.${headerMode || finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
               <slot name="bannerSubtext">
-                <span class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
+                <span v-if="activeStep.subtext !== null" class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
               </slot>
             </div>
           </div>
@@ -314,7 +341,7 @@ export default {
 
           <div class="controls-steps">
             <slot v-if="showPrevious" name="back" :back="back">
-              <button :disabled="!editFirstStep && activeStepIndex===1" type="button" class="btn role-secondary" @click="back()">
+              <button :disabled="!canPrevious" type="button" class="btn role-secondary" @click="back()">
                 <t k="wizard.previous" />
               </button>
             </slot>
@@ -326,8 +353,8 @@ export default {
               />
             </slot>
             <slot v-else name="next" :next="next">
-              <button :disabled="!canNext" type="button" class="btn role-primary" @click="next()">
-                <t k="wizard.next" />
+              <button :disabled="!canNext" type="button" :class="nextButtonStyle" @click="next()">
+                <t :k="nextButtonLabel" />
               </button>
             </slot>
           </div>

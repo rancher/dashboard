@@ -157,6 +157,10 @@ export default {
     },
 
     componentFor(tab) {
+      if (tab.product) {
+        return require(`@/products/${ tab.product }/components/nav/WindowManager/${ tab.component }`).default;
+      }
+
       return require(`@/components/nav/WindowManager/${ tab.component }`).default;
     }
   }

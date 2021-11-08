@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
+import extensionRoutes from './product-extension/extension-routes';
 import { STANDARD } from './config/private-label';
 import { directiveSsr as t } from './plugins/i18n';
 import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
@@ -73,6 +74,10 @@ module.exports = {
     version,
     dev,
     pl,
+    // TODO: RC Remove
+    epinioUrl:      process.env.EPINIO_URL,
+    epinioUser:     process.env.EPINIO_USER,
+    epinioPassword: process.env.EPINIO_PASSWORD,
   },
 
   buildDir: dev ? '.nuxt' : '.nuxt-prod',
@@ -110,6 +115,9 @@ module.exports = {
   router: {
     base:       routerBasePath,
     middleware: ['i18n'],
+    extendRoutes(routes, resolve) {
+      routes.push(...extensionRoutes.routes(resolve));
+    }
   },
 
   build: {
@@ -285,7 +293,7 @@ module.exports = {
     '@nuxtjs/webpack-profile',
     'cookie-universal-nuxt',
     'portal-vue/nuxt',
-    '~/plugins/steve/rehydrate-all',
+    '~/plugins/core-store/rehydrate-all',
     '@nuxt/content',
   ],
 
@@ -322,6 +330,7 @@ module.exports = {
     '/apis':         proxyWsOpts(api), // Management k8s API
     '/v1':           proxyWsOpts(api), // Management Steve API
     '/v3':           proxyWsOpts(api), // Rancher API
+    '/proxy':        genericProxy(api), // api can be anything
     '/v3-public':    proxyOpts(api), // Rancher Unauthed API
     '/api-ui':       proxyOpts(api), // Browser API UI
     '/meta':         proxyOpts(api), // Browser API UI
@@ -357,6 +366,19 @@ module.exports = {
 
   typescript: { typeCheck: { eslint: { files: './**/*.{ts,js,vue}' } } }
 };
+
+function genericProxy(target) {
+  return {
+    target,
+    secure:       !dev,
+    pathRewrite:  { '^/proxy': '' },
+    changeOrigin: true,
+    router(req) {
+      return req.headers['x-api-host'];
+    },
+    onError
+  };
+}
 
 function proxyOpts(target) {
   return {

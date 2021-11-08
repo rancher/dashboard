@@ -1,7 +1,7 @@
 import { HCI } from '@/config/types';
 import { get } from '@/utils/object';
 import { findBy } from '@/utils/array';
-import { colorForState } from '@/plugins/steve/resource-class';
+import { colorForState } from '@/plugins/core-store/resource-class';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import SteveModel from '@/plugins/steve/steve-class';
 

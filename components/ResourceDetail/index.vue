@@ -10,7 +10,7 @@ import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
 import DetailTop from '@/components/DetailTop';
-import { clone, set, diff } from '@/utils/object';
+import { clone, diff } from '@/utils/object';
 import IconMessage from '@/components/IconMessage';
 
 function modeFor(route) {
@@ -100,6 +100,9 @@ export default {
 
     const options = store.getters[`type-map/optionsFor`](resource);
 
+    this.showMasthead = [_CREATE, _EDIT].includes(mode) ? options.resourceEditMasthead : true;
+    const canViewYaml = options.canYaml;
+
     if ( options.resource ) {
       resource = options.resource;
     }
@@ -159,22 +162,13 @@ export default {
       }
     }
 
-    // Ensure labels & annotations exists, since lots of things need them
-    if ( !model.metadata ) {
-      set(model, 'metadata', {});
-    }
-
-    if ( !model.metadata.annotations ) {
-      set(model, 'metadata.annotations', {});
-    }
-
-    if ( !model.metadata.labels ) {
-      set(model, 'metadata.labels', {});
-    }
+    // Ensure common properties exists
+    model = await store.dispatch(`${ inStore }/cleanForDetail`, model);
 
     const out = {
       hasCustomDetail,
       hasCustomEdit,
+      canViewYaml,
       resource,
       as,
       yaml,
@@ -318,6 +312,7 @@ export default {
   </div>
   <div v-else>
     <Masthead
+      v-if="showMasthead"
       :resource="resource"
       :value="originalModel"
       :mode="mode"
@@ -325,6 +320,7 @@ export default {
       :as="as"
       :has-detail="hasCustomDetail"
       :has-edit="hasCustomEdit"
+      :can-view-yaml="canViewYaml"
       :resource-subtype="resourceSubtype"
       :parent-route-override="parentRouteOverride"
       :store-override="storeOverride"

@@ -94,6 +94,8 @@
 //                               resource: undefined       -- Use this resource in ResourceDetails instead
 //                               resourceDetail: undefined -- Use this resource specifically for ResourceDetail's detail component
 //                               resourceEdit: undefined   -- Use this resource specifically for ResourceDetail's edit component
+//                               resourceEditMasthead: true   -- Show the Masthead in the edit resource component
+//                               customRoute: undefined,
 //                           }
 // )
 // ignoreGroup(group):        Never show group or any types in it
@@ -127,7 +129,7 @@ import {
 
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import isObject from 'lodash/isObject';
-import { normalizeType } from '@/plugins/steve/normalize';
+import { normalizeType } from '@/plugins/core-store/normalize';
 import { sortBy } from '@/utils/sort';
 import { haveV1Monitoring, haveV2Monitoring } from '@/utils/monitoring';
 
@@ -211,8 +213,10 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/configureType`, { ...options, match });
     },
 
-    componentForType(match, replace) {
-      store.commit(`${ module }/componentForType`, { match, replace });
+    componentForType(match, replace, plugin) {
+      store.commit(`${ module }/componentForType`, {
+        match, replace, plugin
+      });
     },
 
     ignoreType(regexOrString) {
@@ -291,11 +295,10 @@ export async function applyProducts(store) {
   }
 
   called = true;
-  const ctx = require.context('@/config/product', true, /.*/);
+  const builtIn = require.context('@/config/product', true, /.*/);
+  const builtInProducts = builtIn.keys().filter(path => !path.endsWith('.js')).map(path => path.substr(2));
 
-  const products = ctx.keys().filter(path => !path.endsWith('.js')).map(path => path.substr(2));
-
-  for ( const product of products ) {
+  for ( const product of builtInProducts ) {
     const impl = await loadProduct(product);
 
     if ( impl?.init ) {
@@ -416,13 +419,15 @@ export const getters = {
 
   optionsFor(state) {
     const def = {
-      isCreatable: true,
-      isEditable:  true,
-      isRemovable: true,
-      showState:   true,
-      showAge:     true,
-      canYaml:     true,
-      namespaced:  null,
+      isCreatable:          true,
+      isEditable:           true,
+      isRemovable:          true,
+      showState:            true,
+      showAge:              true,
+      canYaml:              true,
+      namespaced:           null,
+      customRoute:          undefined,
+      resourceEditMasthead: true,
     };
 
     return (schemaOrType) => {
@@ -716,6 +721,21 @@ export const getters = {
     return Object.values(state.spoofedTypes).flat();
   },
 
+  spoofedSchemas(state, getters, rootState, rootGetters) {
+    return (product) => {
+      const types = state.spoofedTypes[product] || [];
+
+      return types.flatMap((type) => {
+        const schemas = type.schemas || [];
+
+        return schemas.map(schema => ({
+          ...schema,
+          isSpoofed: true
+        }));
+      });
+    };
+  },
+
   allSpoofedSchemas(state, getters, rootState, rootGetters) {
     return getters.allSpoofedTypes.flatMap((type) => {
       const schemas = type.schemas || [];
@@ -768,6 +788,7 @@ export const getters = {
           count:       count ? count.summary.count || 0 : null,
           byNamespace: count ? count.namespaces : {},
           revision:    count ? count.revision : null,
+          route:       typeOptions.customRoute
         };
       }
 
@@ -956,27 +977,32 @@ export const getters = {
   // ------------------------------------
   hasCustomList(state, getters) {
     return (rawType) => {
-      const type = getters.componentFor(rawType);
+      const { type: key, plugin } = getters.componentFor(rawType);
       const cache = state.cache.list;
 
-      if ( cache[type] !== undefined ) {
-        return cache[type];
+      if ( cache[key] !== undefined ) {
+        return cache[key];
       }
 
       try {
-        require.resolve(`@/list/${ type }`);
-        cache[type] = true;
+        if ( plugin) {
+          require.resolve(`@/products/${ plugin }/list/${ key }`);
+        } else {
+          require.resolve(`@/list/${ key }`);
+        }
+
+        cache[key] = true;
       } catch (e) {
-        cache[type] = false;
+        cache[key] = false;
       }
 
-      return cache[type];
+      return cache[key];
     };
   },
 
   hasCustomDetail(state, getters) {
     return (rawType, subType) => {
-      const key = getters.componentFor(rawType, subType);
+      const { type: key, plugin } = getters.componentFor(rawType, subType);
       const cache = state.cache.detail;
 
       if ( cache[key] !== undefined ) {
@@ -984,7 +1010,12 @@ export const getters = {
       }
 
       try {
-        require.resolve(`@/detail/${ key }`);
+        if ( plugin) {
+          require.resolve(`@/products/${ plugin }/detail/${ key }`);
+        } else {
+          require.resolve(`@/detail/${ key }`);
+        }
+
         cache[key] = true;
       } catch (e) {
         cache[key] = false;
@@ -996,7 +1027,7 @@ export const getters = {
 
   hasCustomEdit(state, getters) {
     return (rawType, subType) => {
-      const key = getters.componentFor(rawType, subType);
+      const { type: key, plugin } = getters.componentFor(rawType, subType);
 
       const cache = state.cache.edit;
 
@@ -1005,7 +1036,12 @@ export const getters = {
       }
 
       try {
-        require.resolve(`@/edit/${ key }`);
+        if ( plugin) {
+          require.resolve(`@/products/${ plugin }/edit/${ key }`);
+        } else {
+          require.resolve(`@/edit/${ key }`);
+        }
+
         cache[key] = true;
       } catch (e) {
         cache[key] = false;
@@ -1029,22 +1065,22 @@ export const getters = {
 
   hasCustomPromptRemove(state, getters) {
     return (rawType) => {
-      const type = getters.componentFor(rawType);
+      const { type: key } = getters.componentFor(rawType);
 
       const cache = state.cache.promptRemove;
 
-      if ( cache[type] !== undefined ) {
-        return cache[type];
+      if ( cache[key] !== undefined ) {
+        return cache[key];
       }
 
       try {
-        require.resolve(`@/promptRemove/${ type }`);
-        cache[type] = true;
+        require.resolve(`@/promptRemove/${ key }`);
+        cache[key] = true;
       } catch (e) {
-        cache[type] = false;
+        cache[key] = false;
       }
 
-      return cache[type];
+      return cache[key];
     };
   },
 
@@ -1064,17 +1100,17 @@ export const getters = {
 
   importDetail(state, getters) {
     return (rawType, subType) => {
-      const key = getters.componentFor(rawType, subType);
+      const type = getters.componentFor(rawType, subType);
 
-      return importDetail(key);
+      return importDetail(type);
     };
   },
 
   importEdit(state, getters) {
     return (rawType, subType) => {
-      const key = getters.componentFor(rawType, subType);
+      const type = getters.componentFor(rawType, subType);
 
-      return importEdit(key);
+      return importEdit(type);
     };
   },
 
@@ -1098,7 +1134,7 @@ export const getters = {
         return state.cache.componentFor[key];
       }
 
-      let out = type;
+      let out = { plugin: null, type };
 
       const mapping = state.typeToComponentMappings.find((mapping) => {
         const re = stringToRegex(mapping.match);
@@ -1107,7 +1143,11 @@ export const getters = {
       });
 
       if ( mapping ) {
-        out = mapping.replace;
+        if (mapping.plugin) {
+          out = { plugin: mapping.plugin, type };
+        } else {
+          out = { plugin: null, type: mapping.replace };
+        }
       } else if ( subType ) {
         // Try again without the subType
         out = getters.componentFor(type);
@@ -1419,10 +1459,12 @@ export const mutations = {
     _addMapping(state.typeMoveMappings, match, group, weight);
   },
 
-  componentForType(state, { match, replace }) {
+  componentForType(state, { match, replace, plugin }) {
     match = ensureRegex(match);
     match = regexToString(match);
-    state.typeToComponentMappings.push({ match, replace });
+    state.typeToComponentMappings.push({
+      match, replace, plugin
+    });
   },
 
   configureType(state, options) {

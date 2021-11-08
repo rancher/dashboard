@@ -1,5 +1,5 @@
 import { insertAt } from '@/utils/array';
-import { colorForState, stateDisplay } from '@/plugins/steve/resource-class';
+import { colorForState, stateDisplay } from '@/plugins/core-store/resource-class';
 import { NODE, WORKLOAD_TYPES } from '@/config/types';
 import SteveModel from '@/plugins/steve/steve-class';
 import { shortenedImage } from '@/utils/string';

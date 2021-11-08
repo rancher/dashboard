@@ -47,7 +47,12 @@ export default {
 
     readAsDataUrl: {
       type:    Boolean,
-      default: false
+      default:    false
+    },
+
+    rawData: {
+      type:    Boolean,
+      default:    false
     }
   },
 
@@ -77,6 +82,15 @@ export default {
           }
         }
       }
+
+      if (this.rawData) {
+        const unboxedContents = !this.multiple && files.length === 1 ? files[0] : files;
+
+        this.$emit('selected', unboxedContents);
+
+        return;
+      }
+
       try {
         const asyncFileContents = files.map(this.getFileContents);
         const fileContents = await Promise.all(asyncFileContents);
