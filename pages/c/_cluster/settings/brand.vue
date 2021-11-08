@@ -234,6 +234,8 @@ export default {
       if (this.uiIssuesSetting.value && !this.validateUrl(this.uiIssuesSetting.value)) {
         return btnCB(false);
       }
+      this.uiPLSetting.value = this.uiPLSetting.value.replaceAll(/[\<>&=#()"]/gm, '');
+
       this.uiBannerSetting.value = JSON.stringify(this.bannerVal);
       if (this.customizeLogo) {
         this.uiLogoLightSetting.value = this.uiLogoLight;
@@ -290,7 +292,7 @@ export default {
     <div>
       <div class="row mb-20">
         <div class="col span-6">
-          <LabeledInput v-model="uiPLSetting.value" :label="t('branding.uiPL.label')" :mode="mode" />
+          <LabeledInput v-model="uiPLSetting.value" :label="t('branding.uiPL.label')" :mode="mode" :maxlength="100" />
         </div>
       </div>
 
