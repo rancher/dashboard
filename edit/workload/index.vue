@@ -2,7 +2,7 @@
 import omitBy from 'lodash/omitBy';
 import { cleanUp } from '@/utils/object';
 import {
-  CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC
+  CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC, SERVICE_ACCOUNT
 } from '@/config/types';
 import Tab from '@/components/Tabbed/Tab';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -100,7 +100,6 @@ export default {
       configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
       nodes:      this.$store.dispatch('cluster/findAll', { type: NODE }),
       services:   this.$store.dispatch('cluster/findAll', { type: SERVICE }),
-      pvcs:       this.$store.dispatch('cluster/findAll', { type: PVC })
       pvcs:       this.$store.dispatch('cluster/findAll', { type: PVC }),
       sas:        this.$store.dispatch('cluster/findAll', { type: SERVICE_ACCOUNT })
     };
@@ -879,7 +878,7 @@ export default {
             <h3>{{ t('workload.container.titles.command') }}</h3>
             <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
           </div>
-          
+
           <ServiceNameSelect
             v-model="podTemplateSpec.serviceAccount"
             :mode="mode"
@@ -889,6 +888,7 @@ export default {
             option-label="metadata.name"
             :searchable="true"
           />
+
           <div class="spacer"></div>
           <div>
             <h3>{{ t('workload.container.titles.lifecycle') }}</h3>

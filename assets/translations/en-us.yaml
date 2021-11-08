@@ -6,6 +6,7 @@ generic:
   all: All
   back: Back
   cancel: Cancel
+  clear: Clear
   close: Close
   comingSoon: Coming Soon
   copy: Copy

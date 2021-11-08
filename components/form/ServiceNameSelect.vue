@@ -130,6 +130,8 @@ export default {
         this.selected = null;
         this.$emit('input', null);
       }
+
+      event.preventDefault();
     }
   },
 };
@@ -172,8 +174,8 @@ export default {
           />
         </div>
       </div>
-      <button class="btn btn-sm role-secondary col span-1" @click="clearSearch($event)">
-        <i class="icon icon-delete icon-lg" />
+      <button class="btn btn-sm clear-btn role-secondary col span-1" @click="clearSearch($event);">
+        {{ t('generic.clear') }}
       </button>
     </div>
     <template v-if="serviceNameNew">
@@ -188,6 +190,11 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+.clear-btn {
+  align-self: center;
+  height: 30px;
+}
+
 .input-container {
   display: flex;
 
