@@ -138,7 +138,7 @@ export default {
             v-model="value.exec.command"
             :mode="mode"
             :label="t('workload.container.lifecycleHook.exec.command.label')"
-            :placeholder="t('workload.container.lifecycleHook.exec.command.placeholder')"
+            :placeholder="t('workload.container.lifecycleHook.exec.command.placeholder', null, true)"
             required
           />
         </div>
