@@ -187,19 +187,28 @@ export default {
 
   methods: {
     checkOrUpdateLegacyUIBannerSetting(parsedBanner) {
-      const { bannerHeader, bannerFooter, banner } = parsedBanner;
+      let { bannerHeader, bannerFooter } = parsedBanner;
 
-      bannerHeader.color = this.themeVars.primaryText;
-      bannerFooter.color = this.themeVars.primaryText;
+      bannerHeader = {
+        color: this.themeVars.primaryText,
+        ...bannerHeader
+      };
+
+      bannerFooter = {
+        color: this.themeVars.primaryText,
+        ...bannerFooter
+      };
 
       if (isEmpty(bannerHeader) && isEmpty(bannerFooter)) {
         let neu = DEFAULT_BANNER_SETTING;
+
+        const banner = parsedBanner.banner;
 
         if (!isEmpty(banner)) {
           const cloned = clone(( banner ?? {} ));
 
           if (cloned?.textColor) {
-            cloned['color'] = cloned.textColor;
+            cloned.color = cloned.textColor || this.themeVars.primaryText;
             delete cloned.textColor;
           }
 
