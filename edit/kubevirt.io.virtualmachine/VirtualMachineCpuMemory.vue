@@ -115,7 +115,6 @@ export default {
           suffix="iB"
           :mode="mode"
           :input-exponent="3"
-          :output-exponent="3"
           :disabled="disabled"
           required
           class="mb-20"

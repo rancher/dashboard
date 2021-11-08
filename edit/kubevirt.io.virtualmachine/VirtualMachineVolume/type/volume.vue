@@ -132,7 +132,7 @@ export default {
         <InputOrDisplay :name="t('harvester.fields.size')" :value="value.size" :mode="mode">
           <UnitInput
             v-model="value.size"
-            output-suffic-text="Gi"
+            output-suffix-text="Gi"
             output-as="string"
             :mode="mode"
             :required="validateRequired"

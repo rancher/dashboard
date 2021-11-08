@@ -1,5 +1,5 @@
 <script>
-import { parseSi, UNITS, FRACTIONAL } from '@/utils/units';
+import { parseSi, formatSi, UNITS, FRACTIONAL } from '@/utils/units';
 import LabeledInput from '@/components/form/LabeledInput';
 import { _EDIT } from '@/config/query-params';
 
@@ -7,6 +7,33 @@ export default {
   components: { LabeledInput },
 
   props: {
+    // Convert to string
+    outputAs: {
+      type:    String,
+      default: 'number', // or string
+    },
+    // Set suffix text on output
+    outputSuffixText: {
+      type:    String,
+      default: null
+    },
+    // Set modifier on suffix
+    inputExponent: {
+      type:    Number,
+      default: 0,
+    },
+
+    increment: {
+      type:    Number,
+      default: 1000,
+    },
+
+    suffix: {
+      type:    String,
+      default: 'B',
+    },
+
+    // Standard Input Props
     mode: {
       type:    String,
       default: _EDIT
@@ -15,36 +42,6 @@ export default {
     value: {
       type:    [Number, String],
       default: null
-    },
-
-    outputAs: {
-      type:    String,
-      default: 'number', // or string
-    },
-
-    outputSufficText: {
-      type:    String,
-      default: ''
-    },
-
-    inputExponent: {
-      type:    Number,
-      default: 0,
-    },
-
-    increment: {
-      type:    Number,
-      default: 1,
-    },
-
-    suffix: {
-      type:    [String, Boolean],
-      default: 'B',
-    },
-
-    outputExponent: {
-      type:    Number,
-      default: 0,
     },
 
     label: {
@@ -94,32 +91,37 @@ export default {
         return FRACTIONAL[-1 * this.inputExponent];
       }
     },
-    userValue() {
-      let userValue = '';
 
-      if ( this.value !== null && this.value !== undefined && this.value !== '' && this.value !== 'null') {
-        userValue = parseSi(`${ this.value } ${ this.unit || '' }`, {
-          addSuffix:   false,
-          increment:   this.increment,
-          minExponent: this.inputExponent,
-          maxExponent: this.outputExponent,
+    // Parse string with unit modifier to base unit eg "1m" -> 0.001
+    parsedValue() {
+      return typeof this.value === 'string' ? parseSi(this.value) : this.value;
+    },
+
+    // Convert integer value
+    displayValue() {
+      let displayValue = '';
+
+      if ( this.parsedValue || this.parsedValue === 0) {
+        displayValue = formatSi(this.parsedValue, {
+          increment:        this.increment,
+          addSuffix:        false,
+          maxExponent:      this.inputExponent,
         });
       }
 
-      return userValue ;
+      return displayValue ;
     }
   },
 
   methods: {
-    update(userValue) {
+    update(displayValue) {
       let out = null;
 
-      if ( userValue ) {
-        out = parseSi(`${ userValue } ${ this.unit || '' }`, { increment: this.increment });
+      if ( displayValue ) {
+        out = parseSi(`${ displayValue } ${ this.unit || '' }`, { increment: this.increment });
       }
-
-      if (this.outputAs === 'string' && this.outputSufficText) {
-        out = out === null ? '' : `${ out }${ this.outputSufficText }`;
+      if (this.outputSuffixText) {
+        out = out === null ? null : `${ displayValue }${ this.outputSuffixText }`;
       } else if ( this.outputAs === 'string' ) {
         out = out === null ? '' : `${ out }`;
       }
@@ -132,7 +134,7 @@ export default {
 
 <template>
   <LabeledInput
-    :value="userValue"
+    :value="displayValue"
     v-bind="$attrs"
     type="number"
     :min="min"

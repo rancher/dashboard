@@ -176,7 +176,6 @@ export default {
             :label="t('harvester.volume.size')"
             suffix="iB"
             :input-exponent="3"
-            :output-exponent="3"
             :mode="mode"
             required
             class="mb-20"

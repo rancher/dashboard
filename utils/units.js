@@ -13,11 +13,20 @@ export function formatSi(inValue, {
 } = {}) {
   let val = inValue;
   let exp = startingExponent;
+  const divide = maxExponent >= 0;
 
   // TODO More to think about re: min > max
-  while ( ( val >= increment && exp + 1 < UNITS.length && exp < maxExponent ) || exp < minExponent ) {
-    val = val / increment;
-    exp++;
+
+  if (divide) {
+    while ( ( val >= increment && exp + 1 < UNITS.length && exp < maxExponent ) || exp < minExponent ) {
+      val = val / increment;
+      exp++;
+    }
+  } else {
+    while ( ( val < increment && exp + 1 < FRACTIONAL.length && exp < (maxExponent * -1) ) || exp < minExponent ) {
+      val = val * increment;
+      exp++;
+    }
   }
 
   let out = '';
@@ -32,7 +41,7 @@ export function formatSi(inValue, {
     if ( exp === 0 && firstSuffix !== null) {
       out += ` ${ firstSuffix }`;
     } else {
-      out += ` ${ UNITS[exp] }${ suffix }` || '';
+      out += ` ${ divide ? UNITS[exp] : FRACTIONAL[exp] }${ suffix }` || '';
     }
   }
 
