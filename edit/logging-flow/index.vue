@@ -17,6 +17,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import { clone, set } from '@/utils/object';
 import isEmpty from 'lodash/isEmpty';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
+import { exceptionToErrorsArray } from '@/utils/error';
 import Match from './Match';
 
 function emptyMatch(include = true) {
@@ -199,12 +200,16 @@ export default {
     filtersYaml: {
       deep: true,
       handler() {
-        const filterJson = jsyaml.load(this.filtersYaml);
+        try {
+          const filterJson = jsyaml.load(this.filtersYaml);
 
-        if ( isArray(filterJson) ) {
-          set(this.value.spec, 'filters', filterJson);
-        } else {
-          set(this.value.spec, 'filters', undefined);
+          if ( isArray(filterJson) ) {
+            set(this.value.spec, 'filters', filterJson);
+          } else {
+            set(this.value.spec, 'filters', undefined);
+          }
+        } catch (e) {
+          this.errors = exceptionToErrorsArray(e);
         }
       }
     },
