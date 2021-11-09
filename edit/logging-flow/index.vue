@@ -146,7 +146,7 @@ export default {
     clusterOutputChoices() {
       return this.allClusterOutputs
         .filter((clusterOutput) => {
-          return clusterOutput.namespace === this.value.namespace;
+          return clusterOutput.namespace === 'cattle-logging-system';
         })
         .map((clusterOutput) => {
           return { label: clusterOutput.metadata.name, value: clusterOutput.metadata.name };
@@ -341,7 +341,7 @@ export default {
       </Tab>
 
       <Tab name="outputs" :label="t('logging.flow.outputs.label')" :weight="2">
-        <Banner label="Output must reside in same namespace as the flow." color="info" />
+        <Banner v-if="value.type !== LOGGING.CLUSTER_FLOW" label="Output must reside in same namespace as the flow." color="info" />
         <LabeledSelect
           v-model="globalOutputRefs"
           :label="t('logging.flow.clusterOutputs.label')"
