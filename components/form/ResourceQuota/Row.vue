@@ -100,70 +100,66 @@ export default {
       v-if="isCpu"
       v-model="value.spec.resourceQuota.limit[type]"
       class="mr-10"
-      :suffix="t('suffix.cpus')"
       :mode="mode"
       :label="t('resourceQuota.projectLimit.label')"
       :placeholder="t('resourceQuota.projectLimit.cpuPlaceholder')"
-      output-suffix-text="m"
       :input-exponent="-1"
+      :base-unit="t('suffix.cpus')"
+      :output-modifier="true"
     />
     <UnitInput
       v-if="isCpu"
       v-model="value.spec.namespaceDefaultResourceQuota.limit[type]"
-      :suffix="t('suffix.cpus')"
       :mode="mode"
       :label="t('resourceQuota.namespaceDefaultLimit.label')"
       :placeholder="t('resourceQuota.namespaceDefaultLimit.cpuPlaceholder')"
-      output-suffix-text="m"
       :input-exponent="-1"
+      :base-unit="t('suffix.cpus')"
+      :output-modifier="true"
     />
 
     <UnitInput
       v-if="isMemory"
       v-model="value.spec.resourceQuota.limit[type]"
       class="mr-10"
-      :suffix="t('suffix.ib')"
       :mode="mode"
       :label="t('resourceQuota.projectLimit.label')"
       :placeholder="t('resourceQuota.projectLimit.memoryPlaceholder')"
-      output-suffix-text="Mi"
       :input-exponent="2"
       :increment="1024"
+      :output-modifier="true"
     />
     <UnitInput
       v-if="isMemory"
       v-model="value.spec.namespaceDefaultResourceQuota.limit[type]"
-      :suffix="t('suffix.ib')"
       :mode="mode"
       :label="t('resourceQuota.namespaceDefaultLimit.label')"
       :placeholder="t('resourceQuota.namespaceDefaultLimit.memoryPlaceholder')"
-      output-suffix-text="Mi"
       :input-exponent="2"
       :increment="1024"
+      :output-modifier="true"
     />
 
     <UnitInput
       v-if="isStorage"
       v-model="value.spec.resourceQuota.limit[type]"
       class="mr-10"
-      :suffix="t('suffix.ib')"
       :mode="mode"
       :placeholder="t('resourceQuota.projectLimit.storagePlaceholder')"
       :label="t('resourceQuota.projectLimit.label')"
-      output-suffix-text="Gi"
       :input-exponent="3"
       :increment="1024"
+      :output-modifier="true"
     />
     <UnitInput
       v-if="isStorage"
       v-model="value.spec.namespaceDefaultResourceQuota.limit[type]"
-      :suffix="t('suffix.ib')"
       :mode="mode"
       :label="t('resourceQuota.namespaceDefaultLimit.label')"
       :placeholder="t('resourceQuota.namespaceDefaultLimit.storagePlaceholder')"
-      output-suffix-text="Gi"
       :input-exponent="3"
       :increment="1024"
+      :output-modifier="true"
     />
   </div>
 </template>

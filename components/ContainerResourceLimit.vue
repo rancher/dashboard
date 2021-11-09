@@ -178,7 +178,7 @@ export default {
           :label="t('containerResourceLimit.requestsCpu')"
           :input-exponent="-1"
           :mode="mode"
-          output-suffix-text="m"
+          :output-modifier="true"
           @input="updateLimits"
         />
       </span>
@@ -191,7 +191,7 @@ export default {
           :input-exponent="2"
           :increment="1024"
           :mode="mode"
-          output-suffix-text="Mi"
+          :output-modifier="true"
           @input="updateLimits"
         />
       </span>
@@ -206,7 +206,7 @@ export default {
           :label="t('containerResourceLimit.limitsCpu')"
           :input-exponent="-1"
           :mode="mode"
-          output-suffix-text="m"
+          :output-modifier="true"
           @input="updateLimits"
         />
       </span>
@@ -219,7 +219,7 @@ export default {
           :input-exponent="2"
           :increment="1024"
           :mode="mode"
-          output-suffix-text="Mi"
+          :output-modifier="true"
           @input="updateLimits"
         />
       </span>

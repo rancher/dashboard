@@ -7,33 +7,53 @@ export default {
   components: { LabeledInput },
 
   props: {
-    // Convert to string
+    // Convert output to string
     outputAs: {
       type:    String,
-      default: 'number', // or string
+      default: 'number',
     },
     // Set suffix text on output
     outputSuffixText: {
       type:    String,
       default: null
     },
-    // Set modifier on suffix
+
+    /* Append exponential modifier in output, eg "123Mi"
+      If this is false while inputExponent is true, the output val will be converted to base units
+      eg user is views in terms of MiB but integer values corresponding to B are actually emitted
+    */
+    outputModifier: {
+      type:    Boolean,
+      default: false
+    },
+
+    /* Set modifier on base unit - positive vals map to UNITS array, negative to FRACTIONAL
+      String input values with si notation will be converted to this measurement unit,
+      eg "1Gi" will become "1024Mi" if this is set to 2 */
     inputExponent: {
       type:    Number,
       default: 0,
     },
 
+    // Combines with inputExponent to make displayed unit. Use 'suffix' if the input's units are strictly for display
+    baseUnit: {
+      type:    String,
+      default: 'B',
+    },
+
+    // If set to 1024, binary modifier will be used eg MiB instead of MB
     increment: {
       type:    Number,
       default: 1000,
     },
 
+    // Ignore baseUnit and inputExponent in favor of a display-only suffix; display/emit integers without SI conversion
     suffix: {
       type:    String,
-      default: 'B',
+      default: null,
     },
 
-    // Standard Input Props
+    // LabeledInput Props
     mode: {
       type:    String,
       default: _EDIT
@@ -85,11 +105,18 @@ export default {
     },
 
     unit() {
+      let out;
+
       if ( this.inputExponent >= 0 ) {
-        return UNITS[this.inputExponent];
+        out = UNITS[this.inputExponent];
       } else {
-        return FRACTIONAL[-1 * this.inputExponent];
+        out = FRACTIONAL[-1 * this.inputExponent];
       }
+      if (this.increment === 1024 && out) {
+        out += 'i';
+      }
+
+      return out;
     },
 
     // Parse string with unit modifier to base unit eg "1m" -> 0.001
@@ -110,20 +137,25 @@ export default {
       }
 
       return displayValue ;
+    },
+
+    displayUnit() {
+      if (this.suffix) {
+        return this.suffix;
+      }
+
+      return this.unit + this.baseUnit;
     }
   },
 
   methods: {
-    update(displayValue) {
-      let out = null;
+    update(inputValue) {
+      let out = inputValue === '' ? null : inputValue;
 
-      if ( displayValue ) {
-        out = parseSi(`${ displayValue } ${ this.unit || '' }`, { increment: this.increment });
-      }
-      if (this.outputSuffixText) {
-        out = out === null ? null : `${ displayValue }${ this.outputSuffixText }`;
+      if (this.outputModifier) {
+        out = out === null ? null : `${ inputValue }${ this.unit }`;
       } else if ( this.outputAs === 'string' ) {
-        out = out === null ? '' : `${ out }`;
+        out = out === null ? '' : `${ inputValue }`;
       }
 
       this.$emit('input', out);
@@ -147,8 +179,8 @@ export default {
     @input="update($event)"
   >
     <template #suffix>
-      <div v-if="addon" class="addon" :class="{'with-tooltip': tooltip || tooltipKey}">
-        {{ addon }}
+      <div v-if="displayUnit" class="addon" :class="{'with-tooltip': tooltip || tooltipKey}">
+        {{ displayUnit }}
       </div>
     </template>
   </LabeledInput>
