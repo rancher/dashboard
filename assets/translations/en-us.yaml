@@ -520,6 +520,11 @@ asyncButton:
     action: Install
     success: Installing
     waiting: Starting&hellip;
+  pause:
+    action: Pause Orchestration
+    success: Paused Orchestration
+    waiting: Pausing Orchestration
+    description: New revisions will not be deployed because orchestration is temporarily paused. To deploy new revisions, resume orchestration.
   refresh:
     action: ''
     actionIcon: refresh
@@ -537,6 +542,10 @@ asyncButton:
     action: Restore
     waiting: Restoring&hellip;
     success: Restored
+  resume:
+    action: Resume Orchestration
+    success: Resumed Orchestration
+    waiting: Resuming Orchestration
   rollback:
     action: Roll Back
     success: Rolled Back
@@ -2700,6 +2709,10 @@ namespace:
       warning: 'Warning'
       error: 'Error'
       unknown: 'Unknown'
+      paused:
+        stateName: 'Inactive'
+        shortDescription: Deployment is paused
+        longDescription: Deployment is paused. Pausing stops the controller from deploying revisions.
 
 
 namespaceFilter:
@@ -4940,7 +4953,7 @@ harvester:
     restart: Restart
     stop: Stop
     pause: Pause
-    unpause: unpasue
+    unpause: Unpause
     ejectCDROM: Eject CDROM
     launchFormTemplate: Launch instance from template
     modifyTemplate: Modify template (Create new version)
