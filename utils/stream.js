@@ -39,3 +39,11 @@ export function streamJson(url, opt, onData) {
       });
     });
 }
+
+export function streamingSupported() {
+  const supported = typeof TextDecoder !== 'undefined';
+
+  // console.log('Streaming Supported: ', supported);
+
+  return supported;
+}

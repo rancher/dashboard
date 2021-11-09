@@ -7,7 +7,7 @@ import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@/store/type-map';
 import { addParam } from '@/utils/url';
 import { isArray } from '@/utils/array';
 import { deferred } from '@/utils/promise';
-import { streamJson } from '@/utils/stream';
+import { streamingSupported, streamJson } from '@/utils/stream';
 import { normalizeType } from './normalize';
 import { classify } from './classify';
 
@@ -62,7 +62,7 @@ export default {
       }
     }
 
-    if ( opt.stream && state.config.supportsStream && typeof TextDecoderStream !== 'undefined') {
+    if ( opt.stream && state.allowStreaming && state.config.supportsStream && streamingSupported() ) {
       // console.log('Using Streaming for', opt.url);
 
       return streamJson(opt.url, opt, opt.onData).then(() => {

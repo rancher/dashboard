@@ -28,6 +28,7 @@ function SteveFactory(namespace, baseUrl) {
         queue:            [], // For change event coalescing
         wantSocket:       false,
         debugSocket:      false,
+        allowStreaming:   true,
         pendingFrames:    [],
         deferredRequests: {},
         started:          [],
