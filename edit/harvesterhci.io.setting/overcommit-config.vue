@@ -56,7 +56,7 @@ export default {
         <UnitInput
           v-model="parseDefaultValue.cpu"
           v-int-number
-          label="CPU"
+          label-key="harvester.generic.cpu"
           suffix="%"
           required
           :mode="mode"
@@ -66,7 +66,7 @@ export default {
         <UnitInput
           v-model="parseDefaultValue.memory"
           v-int-number
-          label="Memory"
+          label-key="harvester.generic.memory"
           suffix="%"
           required
           :mode="mode"
@@ -76,7 +76,7 @@ export default {
         <UnitInput
           v-model="parseDefaultValue.storage"
           v-int-number
-          label="Storage"
+          label-key="harvester.generic.storage"
           suffix="%"
           required
           :mode="mode"

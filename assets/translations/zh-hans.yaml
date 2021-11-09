@@ -4163,6 +4163,12 @@ harvester:
     volume: 卷
     network: 网络
     advanced: 高级选项
+  generic:
+    showMore: 显示更多
+    hideMore: 隐藏更多
+    memory: 内存
+    cpu: CPU
+    storage: 存储
 
   validation:
     custom:

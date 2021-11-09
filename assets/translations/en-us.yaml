@@ -5040,6 +5040,9 @@ harvester:
   generic:
     showMore: Show More
     hideMore: Hide More
+    memory: Memory
+    cpu: CPU
+    storage: Storage
   
   validation:
     custom:
@@ -5074,7 +5077,7 @@ harvester:
     hardwareResourceGauge:
       cpu: CPU
       memory: Memory
-      storage: Storage Size
+      storage: Storage
     sections:
       events:
         label: Events
@@ -5122,7 +5125,7 @@ harvester:
       kernel: Kernel
       management: Management Node
       compute: Compute Node
-      storage: Storage Size
+      storage: Storage
       nic: Physical NIC
       notRecommended: 'Not recommended'
       networkType: Type
