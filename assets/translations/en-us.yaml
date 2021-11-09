@@ -2313,6 +2313,8 @@ logging:
     path: Path
     overwriteExistingPath: Overwrite Existing Path
   output:
+    buffer:
+      label: Output Buffer
     selectOutputs: Select Outputs
     selectBanner: Select to configure an output
     sections:
