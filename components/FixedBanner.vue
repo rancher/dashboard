@@ -32,6 +32,7 @@ export default {
         'text-align':       this.banner.textAlignment,
         'font-weight':      this.banner.fontWeight ? 'bold' : '',
         'font-style':       this.banner.fontStyle ? 'italic' : '',
+        'font-size':        this.banner.fontSize,
         'text-decoration':  this.banner.textDecoration ? 'underline' : ''
       };
     },

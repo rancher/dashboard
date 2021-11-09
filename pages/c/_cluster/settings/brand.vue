@@ -1,4 +1,6 @@
 <script>
+import isEmpty from 'lodash/isEmpty';
+
 import LabeledInput from '@/components/form/LabeledInput';
 import ColorInput from '@/components/form/ColorInput';
 
@@ -9,11 +11,11 @@ import SimpleBox from '@/components/SimpleBox';
 import Loading from '@/components/Loading';
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import { allHash } from '@/utils/promise';
 import { MANAGEMENT } from '@/config/types';
 import { getVendor, setVendor } from '@/config/private-label';
 import { SETTING, fetchOrCreateSetting } from '@/config/settings';
-import isEmpty from 'lodash/isEmpty';
 import { clone } from '@/utils/object';
 import { _EDIT, _VIEW } from '@/config/query-params';
 
@@ -27,6 +29,7 @@ const DEFAULT_BANNER_SETTING = {
     textAlignment:   'center',
     fontWeight:      null,
     fontStyle:       null,
+    fontSize:        '14px',
     textDecoration:  null,
     text:            null
   },
@@ -36,6 +39,7 @@ const DEFAULT_BANNER_SETTING = {
     textAlignment:   'center',
     fontWeight:      null,
     fontStyle:       null,
+    fontSize:        '14px',
     textDecoration:  null,
     text:            null
   },
@@ -47,7 +51,7 @@ export default {
   layout: 'authenticated',
 
   components: {
-    LabeledInput, Checkbox, RadioGroup, FileSelector, Loading, SimpleBox, AsyncButton, Banner, ColorInput
+    LabeledInput, Checkbox, RadioGroup, FileSelector, Loading, SimpleBox, AsyncButton, Banner, ColorInput, LabeledSelect
   },
 
   async fetch() {
@@ -112,7 +116,9 @@ export default {
 
       uiCommunitySetting: {},
 
-      errors: []
+      errors: [],
+
+      uiBannerFontSizeOptions: ['10px', '12px', '14px', '16px', '18px', '20px']
     };
   },
 
@@ -405,6 +411,7 @@ export default {
       </label>
 
       <template>
+        <!-- Header Settings -->
         <div class="row mt-20 mb-20">
           <div class="col span-6">
             <Checkbox :value="bannerVal.showHeader==='true'" :label="t('branding.uiBanner.showHeader')" :mode="mode" @input="e=>$set(bannerVal, 'showHeader', e.toString())" />
@@ -416,7 +423,7 @@ export default {
               <div class="col span-6">
                 <LabeledInput v-model="bannerVal.bannerHeader.text" :label="t('branding.uiBanner.text')" />
               </div>
-              <div class="col span-3">
+              <div class="col span-2">
                 <RadioGroup
                   v-model="bannerVal.bannerHeader.textAlignment"
                   name="headerAlignment"
@@ -426,7 +433,7 @@ export default {
                   :mode="mode"
                 />
               </div>
-              <div class="col span-3">
+              <div class="col span-2">
                 <h3>
                   {{ t('branding.uiBanner.bannerDecoration.label') }}
                 </h3>
@@ -441,6 +448,13 @@ export default {
                   />
                 </div>
               </div>
+              <div class="col span-2">
+                <LabeledSelect
+                  v-model="bannerVal.bannerHeader.fontSize"
+                  :label="t('branding.uiBanner.bannerFontSize.label')"
+                  :options="uiBannerFontSizeOptions"
+                />
+              </div>
             </div>
             <div class="row mt-10">
               <div class="col span-6">
@@ -452,6 +466,7 @@ export default {
             </div>
           </div>
         </div>
+        <!-- Footer settings -->
         <div class="row">
           <div class="col span-6">
             <Checkbox :value="bannerVal.showFooter==='true'" :label="t('branding.uiBanner.showFooter')" :mode="mode" @input="e=>$set(bannerVal, 'showFooter', e.toString())" />
@@ -463,7 +478,7 @@ export default {
               <div class="col span-6">
                 <LabeledInput v-model="bannerVal.bannerFooter.text" :label="t('branding.uiBanner.text')" />
               </div>
-              <div class="col span-3">
+              <div class="col span-2">
                 <RadioGroup
                   v-model="bannerVal.bannerFooter.textAlignment"
                   name="footerAlignment"
@@ -473,7 +488,7 @@ export default {
                   :mode="mode"
                 />
               </div>
-              <div class="col span-3">
+              <div class="col span-2">
                 <h3>
                   {{ t('branding.uiBanner.bannerDecoration.label') }}
                 </h3>
@@ -487,6 +502,13 @@ export default {
                     @input="e=>$set(bannerVal, o.style, e.toString())"
                   />
                 </div>
+              </div>
+              <div class="col span-2">
+                <LabeledSelect
+                  v-model="bannerVal.bannerFooter.fontSize"
+                  :label="t('branding.uiBanner.bannerFontSize.label')"
+                  :options="uiBannerFontSizeOptions"
+                />
               </div>
             </div>
             <div class="row mt-10">
