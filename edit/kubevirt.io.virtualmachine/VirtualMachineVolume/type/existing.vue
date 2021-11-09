@@ -230,10 +230,10 @@ export default {
         <InputOrDisplay :name="t('harvester.fields.size')" :value="value.size" :mode="mode">
           <UnitInput
             v-model="value.size"
-            output-suffix-text="Gi"
-            output-as="string"
+            :output-modifier="true"
+            :increment="1024"
+            :input-exponent="3"
             :label="t('harvester.fields.size')"
-            suffix="GiB"
             :mode="mode"
             :disabled="true"
           />

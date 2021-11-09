@@ -8,14 +8,10 @@ export default {
 
   props: {
     // Convert output to string
+    // Output will also be a string regardless of this prop if outputModifer = true
     outputAs: {
       type:    String,
       default: 'number',
-    },
-    // Set suffix text on output
-    outputSuffixText: {
-      type:    String,
-      default: null
     },
 
     /* Append exponential modifier in output, eg "123Mi"
@@ -29,13 +25,18 @@ export default {
 
     /* Set modifier on base unit - positive vals map to UNITS array, negative to FRACTIONAL
       String input values with si notation will be converted to this measurement unit,
-      eg "1Gi" will become "1024Mi" if this is set to 2 */
+      eg "1Gi" will become "1024Mi" if this is set to 2
+      UNITS = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'];
+      FRACTIONAL = ['', 'm', 'u', 'n', 'p', 'f', 'a', 'z', 'y'];
+    */
     inputExponent: {
       type:    Number,
       default: 0,
     },
 
-    // Combines with inputExponent to make displayed unit. Use 'suffix' if the input's units are strictly for display
+    /* Combines with inputExponent to make displayed unit.
+      Use 'suffix' if the input's units are strictly for display
+    */
     baseUnit: {
       type:    String,
       default: 'B',
@@ -47,13 +48,15 @@ export default {
       default: 1000,
     },
 
-    // Ignore baseUnit and inputExponent in favor of a display-only suffix; display/emit integers without SI conversion
+    /* Ignore baseUnit and inputExponent in favor of a display-only suffix
+        display/emit integers without SI conversion
+    */
     suffix: {
       type:    String,
       default: null,
     },
 
-    // LabeledInput Props
+    // LabeledInput props vv
     mode: {
       type:    String,
       default: _EDIT
@@ -133,6 +136,7 @@ export default {
           increment:        this.increment,
           addSuffix:        false,
           maxExponent:      this.inputExponent,
+          minExponent:      this.inputExponent,
         });
       }
 
@@ -156,6 +160,8 @@ export default {
         out = out === null ? null : `${ inputValue }${ this.unit }`;
       } else if ( this.outputAs === 'string' ) {
         out = out === null ? '' : `${ inputValue }`;
+      } else if (out) {
+        out = this.unit ? parseSi(`out${ this.unit }`) : parseInt(out);
       }
 
       this.$emit('input', out);

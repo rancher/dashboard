@@ -187,7 +187,8 @@ export default {
           :mode="mode"
           :placeholder="t('containerResourceLimit.cpuPlaceholder')"
           :required="true"
-          :suffix="t('suffix.cpus')"
+          :base-unit="t('suffix.cpus')"
+          :output-modifier="true"
           @input="updateQuantityValue"
         />
         <UnitInput
@@ -198,7 +199,8 @@ export default {
           :mode="mode"
           :placeholder="t('containerResourceLimit.memPlaceholder')"
           :required="true"
-          :suffix="t('suffix.ib')"
+          :output-modifier="true"
+          :increment="1024"
           @input="updateQuantityValue"
         />
       </div>

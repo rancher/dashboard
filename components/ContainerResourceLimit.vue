@@ -2,8 +2,6 @@
 import isEmpty from 'lodash/isEmpty';
 import UnitInput from '@/components/form/UnitInput';
 import { CONTAINER_DEFAULT_RESOURCE_LIMIT } from '@/config/labels-annotations';
-import { _VIEW } from '@/config/query-params';
-import { parseSi, formatSi } from '@/utils/units';
 import { cleanUp } from '@/utils/object';
 
 export default {
@@ -43,36 +41,8 @@ export default {
       limitsCpu, limitsMemory, requestsCpu, requestsMemory
     } = this.value;
 
-    // // Convert string inputs w/ increment modifiers to integers eg "1m" CPUS -> .001 CPUS
-    // const parsed = {
-    //   limitsCpu:      limitsCpu ? parseSi(limitsCpu) : null,
-    //   limitsMemory:   limitsMemory ? parseSi(limitsMemory) : null,
-    //   requestsCpu:    requestsCpu ? parseSi(requestsCpu) : null,
-    //   requestsMemory: requestsMemory ? parseSi(requestsMemory) : null,
-    // };
-
-    // // debugger;
-    // // format cpu integers to milliCPU and Bytes integers to MiB
-    // const formatted = {
-    //   limitsCpu:  parsed.limitsCpu ? formatSi(parsed.limitsCpu, {
-    //     minExponent: 1, maxExponent: 1, addSuffix: true, increment: 1 / 1000
-    //   }) : null,
-    //   limitsMemory: parsed.limitsMemory ? formatSi(parsed.limitsMemory, {
-    //     minExponent: 2, maxExponent: 2, addSuffix: true, increment: 1024,
-    //   }) : null,
-    //   requestsCpu:  parsed.requestsCpu ? formatSi(parsed.requestsCpu, {
-    //     minExponent: 1, maxExponent: 1, addSuffix: true, increment: 1 / 1000,
-    //   }) : null,
-    //   requestsMemory: parsed.requestsMemory ? formatSi(parsed.requestsMemory, {
-    //     minExponent: 2, maxExponent: 2, addSuffix: true, increment: 1024,
-    //   }) : null,
-    //   viewMode: _VIEW,
-    // };
-
     return {
-      ...{
-        limitsCpu, limitsMemory, requestsCpu, requestsMemory
-      }
+      limitsCpu, limitsMemory, requestsCpu, requestsMemory
     };
   },
 
@@ -173,24 +143,23 @@ export default {
       <span class="col span-6">
         <UnitInput
           v-model="requestsCpu"
-          :suffix="t('suffix.cpus')"
           :placeholder="t('containerResourceLimit.cpuPlaceholder')"
           :label="t('containerResourceLimit.requestsCpu')"
-          :input-exponent="-1"
           :mode="mode"
+          :input-exponent="-1"
           :output-modifier="true"
+          :base-unit="t('suffix.cpus')"
           @input="updateLimits"
         />
       </span>
       <span class="col span-6">
         <UnitInput
           v-model="requestsMemory"
-          :suffix="t('suffix.ib')"
           :placeholder="t('containerResourceLimit.memPlaceholder')"
           :label="t('containerResourceLimit.requestsMemory')"
+          :mode="mode"
           :input-exponent="2"
           :increment="1024"
-          :mode="mode"
           :output-modifier="true"
           @input="updateLimits"
         />
@@ -201,24 +170,23 @@ export default {
       <span class="col span-6">
         <UnitInput
           v-model="limitsCpu"
-          :suffix="t('suffix.cpus')"
           :placeholder="t('containerResourceLimit.cpuPlaceholder')"
           :label="t('containerResourceLimit.limitsCpu')"
-          :input-exponent="-1"
           :mode="mode"
+          :input-exponent="-1"
           :output-modifier="true"
+          :base-unit="t('suffix.cpus')"
           @input="updateLimits"
         />
       </span>
       <span class="col span-6">
         <UnitInput
           v-model="limitsMemory"
-          :suffix="t('suffix.ib')"
           :placeholder="t('containerResourceLimit.memPlaceholder')"
           :label="t('containerResourceLimit.limitsMemory')"
+          :mode="mode"
           :input-exponent="2"
           :increment="1024"
-          :mode="mode"
           :output-modifier="true"
           @input="updateLimits"
         />

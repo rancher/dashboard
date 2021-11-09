@@ -174,8 +174,7 @@ export default {
           <UnitInput
             v-model="storage"
             :label="t('harvester.volume.size')"
-            suffix="iB"
-            :input-exponent="3"
+            suffix="MiB"
             :mode="mode"
             required
             class="mb-20"

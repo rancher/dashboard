@@ -16,14 +16,13 @@ export function formatSi(inValue, {
   const divide = maxExponent >= 0;
 
   // TODO More to think about re: min > max
-
   if (divide) {
     while ( ( val >= increment && exp + 1 < UNITS.length && exp < maxExponent ) || exp < minExponent ) {
       val = val / increment;
       exp++;
     }
   } else {
-    while ( ( val < increment && exp + 1 < FRACTIONAL.length && exp < (maxExponent * -1) ) || exp < minExponent ) {
+    while ( ( val < increment && exp + 1 < FRACTIONAL.length && exp < (maxExponent * -1) ) || exp < (minExponent * -1) ) {
       val = val * increment;
       exp++;
     }
