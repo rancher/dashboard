@@ -97,8 +97,8 @@ export default {
     }
   },
 
-  cleanResource: (existing, data) => {
-    const typeSuperClass = Object.getPrototypeOf(Object.getPrototypeOf(existing)).constructor;
+  cleanResource: () => (existing, data) => {
+    const typeSuperClass = Object.getPrototypeOf(Object.getPrototypeOf(existing))?.constructor;
 
     return typeSuperClass === HybridModel ? cleanHybridResources(data) : data;
   }

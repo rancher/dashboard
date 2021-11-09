@@ -271,7 +271,7 @@ export default {
     return lookup(state.config.namespace, obj?.type, obj?.metadata?.name) || Resource;
   },
 
-  cleanResource: (existing, data) => {
+  cleanResource: () => (existing, data) => {
     return existing;
   }
 
