@@ -1,5 +1,3 @@
-import https from 'https';
-
 import { SCHEMA } from '@/config/types';
 import { EPINIO_MGMT_STORE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import { normalizeType } from '@/plugins/core-store/normalize';
@@ -22,7 +20,7 @@ const createId = (schema, resource) => {
 
 const epiniofy = (obj, schema, type) => ({
   ...obj,
-  'dashboard-meta': {
+  dashboardMeta: {
     // Bag of properties that aren't contained in the core object but used by generics (except type, we need that top level)
     id: createId(schema, obj),
   },
@@ -46,10 +44,6 @@ export default {
     opt.depaginate = opt.depaginate !== false;
     opt.url = opt.url.replace(/\/*$/g, '');
 
-    // TODO: RC Fix once CORS completed
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-    opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
-
     return await dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE }, { root: true })
       .then(() => {
         const currentClusterId = rootGetters['clusterId'];
@@ -57,7 +51,6 @@ export default {
 
         opt.headers = {
           ...opt.headers,
-          'x-api-host':  `${ currentCluster.api }`,
           Authorization: `Basic ${ base64Encode(`${ currentCluster.username }:${ currentCluster.password }`) }`
         };
 

@@ -33,7 +33,7 @@ export default class EpinioNamespaces extends EpinioResource {
 
   getUrl() {
     // Add baseUrl in a generic way
-    return this.$getters['urlFor'](this.type, this.id, { url: `api/v1/namespaces/${ this.name }` });
+    return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ this.name }` });
   }
 
   // ------------------------------------------------------------------

@@ -30,12 +30,6 @@ export default {
       }
     }
 
-    if ( !url.startsWith('/') && !url.startsWith('http') ) {
-      const baseUrl = state.config.baseUrl.replace(/\/$/, '');
-
-      url = `${ baseUrl }/${ url }`;
-    }
-
     url = getters.urlOptions(url, opt);
 
     return url;

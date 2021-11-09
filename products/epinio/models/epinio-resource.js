@@ -4,7 +4,7 @@ import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 
 export default class EpinioResource extends Resource {
   get id() {
-    return this['dashboard-meta'].id;
+    return this.dashboardMeta?.id;
   }
 
   get listLocation() {

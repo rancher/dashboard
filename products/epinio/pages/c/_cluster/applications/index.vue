@@ -15,12 +15,10 @@ export default {
   },
 
   async fetch() {
-    const all = await Promise.all([
+    await Promise.all([
       this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP }),
       this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE })
     ]);
-
-    this.rows = all[0];
   },
 
   data() {
@@ -30,9 +28,6 @@ export default {
     return {
       schema,
       resource,
-
-      // Provided by fetch later
-      rows: null,
     };
   },
 
@@ -47,7 +42,11 @@ export default {
 
     createLocation() {
       return createEpinioRoute(`c-cluster-applications-createapp`, { cluster: this.$store.getters['clusterId'] });
-    }
+    },
+
+    rows() {
+      return this.$store.getters['epinio/all'](this.resource);
+    },
   },
 
 };
@@ -70,7 +69,7 @@ export default {
       <template #cell:services="{ row }">
         <span v-if="row.services.length">
           <template v-for="(service, index) in row.services">
-            <LinkDetail :key="service.id" :row="service" :value="service.name" />
+            <LinkDetail :key="service.id" :row="service" :value="service.meta.name" />
             <span v-if="index < row.services.length - 1" :key="service.id + 'i'">, </span>
           </template>
         </span>

@@ -17,7 +17,7 @@ export default class EpinioService extends EpinioResource {
 
   getUrl(namespace = this.meta?.namespace, name = this.meta?.name) {
     // Add baseUrl in a generic way
-    return this.$getters['urlFor'](this.type, this.id, { url: `api/v1/namespaces/${ namespace }/services/${ name || '' }` });
+    return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ namespace }/services/${ name || '' }` });
   }
 
   get applications() {

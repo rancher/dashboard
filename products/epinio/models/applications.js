@@ -105,14 +105,14 @@ export default class EpinioApplication extends EpinioResource {
 
   getUrl(namespace = this.meta?.namespace, name = this.meta?.name) {
     // Add baseUrl in a generic way
-    return this.$getters['urlFor'](this.type, this.id, { url: `api/v1/namespaces/${ namespace }/applications/${ name || '' }` });
+    return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ namespace }/applications/${ name || '' }` });
   }
 
   get services() {
     const all = this.$getters['all'](EPINIO_TYPES.SERVICE);
 
     return (this.configuration.services || []).reduce((res, serviceName) => {
-      const s = all.find(allS => allS.name === serviceName);
+      const s = all.find(allS => allS.meta.name === serviceName);
 
       if (s) {
         res.push(s);
@@ -265,7 +265,7 @@ export default class EpinioApplication extends EpinioResource {
     this.trace('Waiting for Application bits to be staged');
 
     const opt = {
-      url:     this.$getters['urlFor'](this.type, this.id, { url: `api/v1/namespaces/${ this.meta.namespace }/staging/${ stageId }/complete` }),
+      url:     this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ this.meta.namespace }/staging/${ stageId }/complete` }),
       method:         'get',
       headers: {
         'content-type': 'application/json',

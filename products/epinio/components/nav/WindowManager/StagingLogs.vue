@@ -143,12 +143,12 @@ export default {
         id:     '1',
         time:   '',
         rawMsg: 'HELLOW WORLD',
-        msg:    'Staging Logs Will Appear Here'
+        msg:    'Staging logs...'
       }];
 
       // https://github.com/epinio/epinio/blob/6ef5cc0044f71c01cf90ed83bcdda18251c594a7/internal/cli/usercmd/client.go
       // /namespaces/:org/staging/:stage_id/logs
-      // this.$getters['urlFor'](this.type, this.id, { url: `api/v1/namespaces/${ this.namespace }/staging/${ stageId }/logs` }),
+      // this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ this.namespace }/staging/${ stageId }/logs` }),
 
       // const params = { follow: true }; // TODO: RC
 

@@ -35,9 +35,6 @@ function EpinioFactory(namespace, baseUrl) {
 export default () => {
   return coreStore(
     EpinioFactory({ namespace: EPINIO_PRODUCT_NAME }),
-    {
-      namespace: EPINIO_PRODUCT_NAME,
-      baseUrl:   `/proxy`
-    },
+    { namespace: EPINIO_PRODUCT_NAME },
   );
 };

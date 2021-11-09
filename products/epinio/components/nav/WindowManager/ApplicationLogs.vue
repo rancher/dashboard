@@ -18,6 +18,7 @@ import Socket, {
   EVENT_CONNECT_ERROR
 } from '@/utils/socket';
 import Window from '@/components/nav/WindowManager/Window';
+import { EPINIO_MGMT_STORE, EPINIO_TYPES } from '@/products/epinio/types';
 
 const lastId = 1;
 const ansiup = new AnsiUp();
@@ -132,6 +133,17 @@ export default {
   },
 
   methods: {
+    getSocketUrl() {
+      const currentClusterId = this.$store.getters['clusterId'];
+      const currentCluster = this.$store.getters[`${ EPINIO_MGMT_STORE }/byId`](EPINIO_TYPES.INSTANCE, currentClusterId);
+      const api = currentCluster.api;
+      const endpoint = this.application.linkFor('logs');
+      const url = addParams(`${ api }${ endpoint }`, { follow: true });
+
+      return url.replace(/^http/, 'ws');
+      // return url;
+    },
+
     async connect() {
       if ( this.socket ) {
         await this.socket.disconnect();
@@ -143,17 +155,14 @@ export default {
         id:     '1',
         time:   '',
         rawMsg: 'HELLOW WORLD',
-        msg:    'Application Logs Will Appear Here'
+        msg:    'Application Logs ...'
       }];
 
       // https://github.com/epinio/epinio/blob/6ef5cc0044f71c01cf90ed83bcdda18251c594a7/internal/cli/usercmd/client.go
 
-      // const params = { follow: true }; // TODO: RC
+      // const url = this.getSocketUrl();
 
-      // const wss = ''; // RODO: RC Fetch from cluster
-      // const endpoint = this.application.linkFor('logs');
-
-      // const url = addParams(`${ wss }/${ endpoint }`, params);
+      // console.warn('!!!!!!!!!!!: ', url);
 
       // this.socket = new Socket(url, false, 0, 'base64.binary.k8s.io');
       // this.socket.addEventListener(EVENT_CONNECTED, (e) => {
