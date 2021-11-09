@@ -10,8 +10,12 @@ import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import CruResource from '@/components/CruResource';
 import Labels from '@/components/form/Labels';
-import { PROJECT_ID } from '@/config/query-params';
+import { PROJECT_ID, _VIEW } from '@/config/query-params';
 import MoveModal from '@/components/MoveModal';
+import ResourceQuota from '@/components/form/ResourceQuota/Namespace';
+import Loading from '@/components/Loading';
+import { HARVESTER_TYPES, RANCHER_TYPES } from '@/components/form/ResourceQuota/shared';
+import { NAME as HARVESTER } from '@/config/product/harvester';
 
 export default {
   components: {
@@ -19,7 +23,9 @@ export default {
     CruResource,
     LabeledSelect,
     Labels,
+    Loading,
     NameNsDescription,
+    ResourceQuota,
     Tab,
     Tabbed,
     MoveModal
@@ -27,32 +33,38 @@ export default {
 
   mixins: [CreateEditView],
 
+  async fetch() {
+    const projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
+    const projectName = this.value?.metadata?.labels?.[PROJECT] || this.$route.query[PROJECT_ID];
+
+    this.project = projects.find(p => p.id.includes(projectName));
+  },
+
   data() {
     let originalQuotaId = null;
 
     if ( this.liveValue?.metadata?.name ) {
       originalQuotaId = `${ this.liveValue.metadata.name }/default-quota`;
     }
-    let projectName = this.value?.metadata?.labels?.[PROJECT] || this.$route.query[PROJECT_ID];
-    const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
-    const project = projects.find(p => p.id.includes(projectName));
-
-    // namespaces' project label remains when a project has been deleted: verify this project still exists
-    if (!project && this.value?.metadata?.labels?.[PROJECT]) {
-      delete this.value.metadata.labels[PROJECT];
-      projectName = null;
-    }
+    const projectName = this.value?.metadata?.labels?.[PROJECT] || this.$route.query[PROJECT_ID];
 
     return {
       originalQuotaId,
-      project:                 projectName,
-      containerResourceLimits: this.value.annotations[CONTAINER_DEFAULT_RESOURCE_LIMIT] || this.getDefaultContainerResourceLimits(projectName)
+      project:                 null,
+      viewMode:                _VIEW,
+      containerResourceLimits: this.value.annotations[CONTAINER_DEFAULT_RESOURCE_LIMIT] || this.getDefaultContainerResourceLimits(projectName),
+      projectName,
+      HARVESTER_TYPES,
+      RANCHER_TYPES,
     };
   },
 
   computed: {
     ...mapGetters(['isSingleVirtualCluster']),
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === HARVESTER;
+    },
     extraColumns() {
       if ( this.$store.getters['isRancher'] && !this.isSingleVirtualCluster) {
         return ['project-col'];
@@ -103,9 +115,10 @@ export default {
   methods: {
     willSave() {
       const cluster = this.$store.getters['currentCluster'];
-      const annotation = this.project ? `${ cluster.id }:${ this.project }` : null;
+      const projectId = this.project?.id.split('/')[1];
+      const annotation = projectId ? `${ cluster.id }:${ projectId }` : null;
 
-      this.value.setLabel(PROJECT, this.project);
+      this.value.setLabel(PROJECT, projectId);
       this.value.setAnnotation(PROJECT, annotation);
     },
 
@@ -118,7 +131,7 @@ export default {
 
       const project = projects.find(p => p.id.includes(projectName));
 
-      return project.spec.containerDefaultResourceLimit || {};
+      return project?.spec?.containerDefaultResourceLimit || {};
     }
   }
 
@@ -126,7 +139,9 @@ export default {
 </script>
 
 <template>
+  <Loading v-if="$fetchState.pending" />
   <CruResource
+    v-else
     :done-route="doneLocationOverride.name"
     :mode="mode"
     :resource="value"
@@ -146,12 +161,23 @@ export default {
       :extra-columns="extraColumns"
     >
       <template v-if="!isSingleVirtualCluster" #project-col>
-        <LabeledSelect v-model="project" :label="t('namespace.project.label')" :options="projectOpts" />
+        <LabeledSelect v-model="projectName" :label="t('namespace.project.label')" :options="projectOpts" />
       </template>
     </NameNsDescription>
 
     <Tabbed :side-tabs="true">
-      <Tab v-if="!isSingleVirtualCluster" name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
+      <Tab v-if="!isSingleVirtualCluster" :weight="1" name="container-resource-quotas" :label="t('namespace.resourceQuotas')">
+        <div class="row">
+          <div class="col span-12">
+            <p class="helper-text mb-10">
+              <t v-if="mode === viewMode" k="resourceQuota.helpTextDetail" />
+              <t v-else k="resourceQuota.helpText" />
+            </p>
+          </div>
+        </div>
+        <ResourceQuota v-model="value" :mode="mode" :project="project" :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES" />
+      </Tab>
+      <Tab v-if="!isSingleVirtualCluster" :weight="0" name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
         <ContainerResourceLimit
           :key="JSON.stringify(containerResourceLimits)"
           :value="containerResourceLimits"

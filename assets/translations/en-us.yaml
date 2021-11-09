@@ -1623,6 +1623,7 @@ containerResourceLimit:
   requestsCpu: CPU Reservation
   requestsMemory: Memory Reservation
 
+
 cruResource:
   backToForm: Back to Form
   backBody: You will lose any changes made to the YAML.
@@ -2737,6 +2738,7 @@ nameNsDescription:
 
 namespace:
   containerResourceLimit: Container Resource Limit
+  resourceQuotas: Resource Quotas
   project:
     label: Project
   resources: Resources
@@ -6053,6 +6055,15 @@ branding:
     example: Link Example
 
 resourceQuota:
+  label: Resource Quotas
+  headers:
+    limit: Limit
+    namespaceDefaultLimit: Namespace Default Limit
+    projectLimit: Project Limit
+    projectResourceAvailability: Project Resource Availability
+    resourceType: Resource Type
+  helpText: Configure how much of the resources the namesapce as a whole can consume.
+  helpTextDetail: The amount of resources the namespace as a whole can consume.
   configMaps: Config Maps
   limitsCpu: CPU Limit
   limitsMemory: Memory Limit
@@ -6066,6 +6077,8 @@ resourceQuota:
   services: Services
   servicesLoadBalancers: Services Load Balancers
   servicesNodePorts: Service Node Ports
+  namespaceLimit: 
+    label: Limit
   projectLimit:
     label: Project Limit
     cpuPlaceholder: e.g. 2000
@@ -6078,8 +6091,6 @@ resourceQuota:
     memoryPlaceholder: e.g. 1024
     storagePlaceholder: e.g. 10
     unitlessPlaceholder: e.g. 10
-  resourceType:
-    label: Resource Type
   add:
     label: Add Resource
 

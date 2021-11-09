@@ -110,7 +110,8 @@ export default {
       const namespace = this.namespace;
       const defaults = namespace?.metadata?.annotations[CONTAINER_DEFAULT_RESOURCE_LIMIT];
 
-      if (!isEmpty(defaults)) {
+      // Ember UI can set the defaults to the string literal 'null'
+      if (!isEmpty(defaults) && defaults !== 'null') {
         const {
           limitsCpu,
           limitsMemory,
