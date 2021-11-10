@@ -169,7 +169,7 @@ export default {
       const keys = this.getSSHFromAnnotation(spec);
       const { userScript: userData } = this.getSecretCloudData(spec);
 
-      if (!keys.length < 0 && !userData) {
+      if (!keys?.length < 0 && !userData) {
         return [];
       }
 
@@ -177,7 +177,7 @@ export default {
 
       const allSSHs = this.$store.getters['harvester/all'](HCI.SSH) || [];
 
-      out = keys.map((id) => {
+      out = (keys || []).map((id) => {
         const hasSSHResource = allSSHs.find(ssh => ssh.id === id);
 
         if (hasSSHResource) {
