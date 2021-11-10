@@ -111,7 +111,28 @@ export default {
       });
     },
 
-    async save(buttonDone, url) {
+    async conflict(err) {
+      console.log('Conflict');
+      console.log('Error', err);
+      console.log('Orig', this.originalValue);
+      console.log('Model', this.value);
+
+      const inStore = this.storeOverride || this.$store.getters['currentStore'](this.value.type);
+      const cur = await this.store.$dispatch(`${ inStore }/find`, {
+        type: this.value.type,
+        id:   this.value.id,
+        opt:  { force: true }
+      });
+
+      console.log('Cur', cur);
+
+      debugger;
+
+      // Return true if resolved and save should retry.
+      return false;
+    },
+
+    async save(buttonDone, url, depth = 0) {
       if ( this.errors ) {
         clear(this.errors);
       }
@@ -150,6 +171,15 @@ export default {
 
         this.done();
       } catch (err) {
+        // Conflict, the resource being edited has changed since starting editing
+        if ( err.status === 409 && depth == 0 ) {
+          const resolved = await this.conflict(err);
+
+          if ( resolved ) {
+            return this.save(buttonDone, url, depth + 1);
+          }
+        }
+
         this.errors = exceptionToErrorsArray(err);
         buttonDone && buttonDone(false);
       }
