@@ -1,10 +1,11 @@
 import pickBy from 'lodash/pickBy';
-import { HCI, LONGHORN } from '@/config/types';
+import { HCI, LONGHORN, POD } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { clone } from '@/utils/object';
 import findLast from 'lodash/findLast';
 import { colorForState, stateDisplay } from '@/plugins/steve/resource-class';
 import SteveModel from '@/plugins/steve/steve-class';
+import { parseSi } from '@/utils/units';
 
 export default class HciNode extends SteveModel {
   get _availableActions() {
@@ -178,5 +179,48 @@ export default class HciNode extends SteveModel {
     });
 
     return longhornDisks;
+  }
+
+  get pods() {
+    const inStore = this.$rootGetters['currentProduct'].inStore;
+    const pods = this.$rootGetters[`${ inStore }/all`](POD) || [];
+
+    return pods.filter(p => p?.spec?.nodeName === this.id && p?.metadata?.name !== 'removing');
+  }
+
+  get cpuReserved() {
+    const out = this.pods.reduce((sum, pod) => {
+      const containers = pod?.spec?.containers || [];
+
+      const containerCpuReserved = containers.reduce((sum, c) => {
+        sum += parseSi(c?.resources?.requests?.cpu || '0m');
+
+        return sum;
+      }, 0);
+
+      sum += containerCpuReserved;
+
+      return sum;
+    }, 0);
+
+    return out;
+  }
+
+  get memoryReserved() {
+    const out = this.pods.reduce((sum, pod) => {
+      const containers = pod?.spec?.containers || [];
+
+      const containerMemoryReserved = containers.reduce((sum, c) => {
+        sum += parseSi(c?.resources?.requests?.memory || '0m', { increment: 1024 });
+
+        return sum;
+      }, 0);
+
+      sum += containerMemoryReserved;
+
+      return sum;
+    }, 0);
+
+    return out;
   }
 }

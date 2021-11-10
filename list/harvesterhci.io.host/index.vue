@@ -3,7 +3,7 @@ import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
 import { STATE, NAME, AGE } from '@/config/table-headers';
 import {
-  METRIC, NODE, SCHEMA, HCI, LONGHORN
+  METRIC, NODE, SCHEMA, HCI, LONGHORN, POD
 } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import metricPoller from '@/mixins/metric-poller';
@@ -35,6 +35,7 @@ export default {
       nodes:         this.$store.dispatch('harvester/findAll', { type: NODE }),
       longhornNodes: this.$store.dispatch('harvester/findAll', { type: LONGHORN.NODES }),
       blockDevices:  this.$store.dispatch('harvester/findAll', { type: HCI.BLOCK_DEVICE }),
+      pods:          this.$store.dispatch('harvester/findAll', { type: POD }),
     };
 
     if (this.$store.getters['harvester/schemaFor'](METRIC.NODE)) {
