@@ -60,8 +60,7 @@ export default {
         STATE,
         {
           ...NAME,
-          width:         300,
-          formatter:     'HarvesterHostName',
+          formatter: 'HarvesterHostName',
         },
         {
           name:      'host-ip',
@@ -69,7 +68,6 @@ export default {
           search:    ['internalIp'],
           value:     'internalIp',
         },
-        AGE,
         {
           name:          'diskState',
           labelKey:      'tableHeaders.diskState',
@@ -107,7 +105,7 @@ export default {
         out.splice(-1, 0, ...metricCol);
       }
 
-      return out;
+      return [...out, AGE];
     },
 
     schema() {
