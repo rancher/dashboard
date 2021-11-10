@@ -4,14 +4,11 @@ import { normalizeType } from '@/plugins/core-store/normalize';
 import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 import { base64Encode } from '@/utils/crypto';
 
-// TODO: RC remove actions from instances table (if not needed for cert check below)
-// TODO: RC add check for cert
-
 const createId = (schema, resource) => {
   const name = resource.meta?.name || resource.name;
   const namespace = resource.meta?.namespace || resource.namespace;
 
-  if (schema.attributes?.namespaced && namespace) {
+  if (schema?.attributes?.namespaced && namespace) {
     return `${ namespace }/${ name }`;
   }
 
@@ -31,7 +28,9 @@ export default {
     commit('remove', obj);
   },
 
-  async request({ rootGetters, dispatch, getters }, { opt, type }) {
+  async request({ rootGetters, dispatch, getters }, {
+    opt, type, clusterId, growlOnError = true
+  }) {
     const spoofedRes = await handleSpoofedRequest(rootGetters, EPINIO_PRODUCT_NAME, opt);
 
     if (spoofedRes) {
@@ -44,7 +43,7 @@ export default {
 
     return await dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE }, { root: true })
       .then(() => {
-        const currentClusterId = rootGetters['clusterId'];
+        const currentClusterId = clusterId || rootGetters['clusterId'];
         const currentCluster = rootGetters[`${ EPINIO_MGMT_STORE }/byId`](EPINIO_TYPES.INSTANCE, currentClusterId);
 
         opt.headers = {
@@ -87,7 +86,9 @@ export default {
           return responseObject(res);
         }
       }).catch((err) => {
-        dispatch('growl/fromError', { title: `Epinio Request to ${ opt.url }`, err }, { root: true });
+        if (growlOnError) {
+          dispatch('growl/fromError', { title: `Epinio Request to ${ opt.url }`, err }, { root: true });
+        }
 
         if ( !err || !err.response ) {
           return Promise.reject(err);

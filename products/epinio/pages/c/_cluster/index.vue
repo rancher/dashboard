@@ -6,8 +6,12 @@ import ResourceTable from '@/components/ResourceTable.vue';
 import { EPINIO_MGMT_STORE, EPINIO_TYPES } from '@/products/epinio/types';
 import Resource from '@/plugins/core-store/resource-class';
 
+interface Cluster extends Resource{
+  id: string,
+}
+
 interface Data {
-  clusters: Resource[],
+  clusters: Cluster[],
 }
 
 // Data, Methods, Computed, Props
@@ -19,10 +23,7 @@ export default Vue.extend<Data, any, any, any>({
   async fetch() {
     this.clusters = await this.$store.dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE });
 
-    // if (this.clusters.length === 1) {
-    //   // TODO: RC Epinio cluster --> Epinio
-    //   this.$router.replace(createEpinioRoute(`c-cluster-resource`, { cluster: this.clusters[0].id, resource: EPINIO_TYPES.APP }));
-    // }
+    this.clusters.forEach((c: Cluster) => this.testCluster(c));
   },
 
   data() {
@@ -42,6 +43,47 @@ export default Vue.extend<Data, any, any, any>({
     }
   },
 
+  methods: {
+    setClusterState(cluster: Cluster, state: string, metadataStateObj: { transitioning: boolean, error: boolean, message: string }) {
+      Vue.set(cluster, 'state', state);
+      Vue.set(cluster, 'metadata', metadataStateObj);
+    },
+
+    testCluster(c: Cluster) {
+      // Call '/ready' on each cluster. If there's a network error there's a good chance the user has to permit an invalid cert
+      this.setClusterState(c, 'updating', {
+        state: {
+          transitioning: true,
+          message:       'Contacting...'
+        }
+      });
+
+      this.$store.dispatch('epinio/request', {
+        opt: { url: `/ready` }, clusterId: c.id, growlOnError: false
+      })
+        .then(() => {
+          this.setClusterState(c, 'available', { state: { transitioning: false } });
+        })
+        .catch((e: Error) => {
+          if (e.message === 'Network Error') {
+            this.setClusterState(c, 'error', {
+              state: {
+                error:   true,
+                message: `Network Error. If this instance uses an invalid certificate visit the URL in your browser to bypass checks and refresh`
+              }
+            });
+          } else {
+            this.setClusterState(c, 'error', {
+              state: {
+                error:   true,
+                message: `Failed to check the ready state: ${ e }`
+              }
+            });
+          }
+        });
+    }
+  }
+
 });
 </script>
 
@@ -59,11 +101,15 @@ export default Vue.extend<Data, any, any, any>({
         :rows="clusters"
         :schema="clustersSchema"
         :table-actions="false"
+        :row-actions="false"
       >
-        <template #cell:pick="{row}">
-          <n-link class="btn btn-sm role-primary" :to="{name: 'ext-epinio-c-cluster-applications', params: {cluster: row.id}}">
-            {{ t('landing.clusters.explore') }}
+        <template #cell:name="{row}">
+          <n-link v-if="row.state === 'available'" :to="{name: 'ext-epinio-c-cluster-applications', params: {cluster: row.id}}">
+            {{ row.name }}
           </n-link>
+          <template v-else>
+            {{ row.name }}
+          </template>
         </template>
       </ResourceTable>
     </div>

@@ -78,6 +78,7 @@ export const STATES = {
   backedup:           { color: 'success', icon: 'backup' },
   bound:              { color: 'success', icon: 'dot' },
   building:           { color: 'success', icon: 'dot-open' },
+  checking:           { color: 'info', icon: 'dot' },
   completed:          { color: 'success', icon: 'dot' },
   cordoned:           { color: 'info', icon: 'tag' },
   count:              { color: 'success', icon: 'dot-open' },

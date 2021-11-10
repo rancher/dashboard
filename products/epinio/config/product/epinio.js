@@ -142,16 +142,18 @@ export function init(store) {
   ]);
 
   headers(EPINIO_TYPES.INSTANCE, [
-    SIMPLE_NAME, {
-      name:     'api',
-      labelKey: 'epinio.instances.tableHeaders.api',
-      value:    'api',
-      sort:     ['api'],
+    STATE,
+    {
+      name:          'name',
+      labelKey:      'tableHeaders.simpleName',
+      sort:     ['name'],
     },
     {
-      name:     'pick',
-      labelKey: 'epinio.instances.tableHeaders.explore',
-    }
+      name:      'api',
+      labelKey:  'epinio.instances.tableHeaders.api',
+      value:     'api',
+      sort:      ['api'],
+    },
   ]);
 
   headers(EPINIO_TYPES.SERVICE, [
