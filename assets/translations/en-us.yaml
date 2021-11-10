@@ -4527,7 +4527,7 @@ workload:
         add: Add command to execute
         command:
           label: Command
-          placeholder: e.g. sh -c 'sleep 10'
+          placeholder: "e.g. sh -c 'sleep 10'"
       httpGet:
         title: HttpGet
         add: Create HTTP request
