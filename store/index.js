@@ -545,8 +545,8 @@ export const actions = {
     }
 
     const pl = res.settings?.find(x => x.id === 'ui-pl')?.value;
-    const brand = res.settings?.find(x => x.name === SETTING.BRAND)?.value;
-    const systemNamespaces = res.settings?.find(x => x.name === SETTING.SYSTEM_NAMESPACES);
+    const brand = res.settings?.find(x => x.id === SETTING.BRAND)?.value;
+    const systemNamespaces = res.settings?.find(x => x.id === SETTING.SYSTEM_NAMESPACES);
 
     if ( pl ) {
       setVendor(pl);

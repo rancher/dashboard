@@ -108,4 +108,14 @@ export default class HciPv extends SteveModel {
 
     return parseInt(volume);
   }
+
+  get isSystemResource() {
+    const systemNamespaces = this.$rootGetters['systemNamespaces'];
+
+    if ( systemNamespaces.includes(this.metadata?.namespace) ) {
+      return true;
+    }
+
+    return false;
+  }
 }
