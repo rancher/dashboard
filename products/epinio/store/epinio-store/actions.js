@@ -4,8 +4,8 @@ import { normalizeType } from '@/plugins/core-store/normalize';
 import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 import { base64Encode } from '@/utils/crypto';
 
-// TODO: RC remove actiosn from instances table
-// TODO: RC add which cluster you're in
+// TODO: RC remove actions from instances table (if not needed for cert check below)
+// TODO: RC add check for cert
 
 const createId = (schema, resource) => {
   const name = resource.meta?.name || resource.name;

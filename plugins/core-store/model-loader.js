@@ -40,35 +40,29 @@ export function lookup(store, type) {
   type = normalizeType(type).replace(/\//g, '');
 
   let out;
-  const tries = [
-    // `${ store }/${ type }`,TODO: RC fix
-    type
-  ];
 
-  for ( const t of tries ) {
-    try {
-      out = find(cache, require(`@/products/${ store }/models/${ t }`), `${ store }/${ type }`);
-      if ( out ) {
-        return out;
-      }
-    } catch (e) {
+  try {
+    out = find(cache, require(`@/products/${ store }/models/${ type }`), `${ store }/${ type }`);
+    if ( out ) {
+      return out;
     }
+  } catch (e) {
+  }
 
-    try {
-      out = find(cache, require(`@/models/${ store }/${ t }`), `${ store }/${ type }`);
-      if ( out ) {
-        return out;
-      }
-    } catch (e) {
+  try {
+    out = find(cache, require(`@/models/${ store }/${ type }`), `${ store }/${ type }`);
+    if ( out ) {
+      return out;
     }
+  } catch (e) {
+  }
 
-    try {
-      out = find(cache, require(`@/models/${ t }`), type);
-      if ( out ) {
-        return out;
-      }
-    } catch (e) {
+  try {
+    out = find(cache, require(`@/models/${ type }`), type);
+    if ( out ) {
+      return out;
     }
+  } catch (e) {
   }
 
   return null;

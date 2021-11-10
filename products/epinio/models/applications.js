@@ -1,4 +1,4 @@
-import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
+import { EPINIO_TYPES } from '@/products/epinio/types';
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import EpinioResource from './epinio-resource';
 
@@ -240,25 +240,29 @@ export default class EpinioApplication extends EpinioResource {
   }
 
   showAppLog() {
-    this.$dispatch('wm/open', {
-      id:        `epinio-${ this.id }-logs`,
-      label:     `${ this.meta.name }`,
-      product:   EPINIO_PRODUCT_NAME,
-      icon:      'file',
-      component: 'ApplicationLogs',
-      attrs:     { application: this }
-    }, { root: true });
+    // Streaming logs over socket isn't supported at the moment (requires auth changes to backend or un-CORS-ing)
+    // https://github.com/epinio/ui/issues/3
+    // this.$dispatch('wm/open', {
+    //   id:        `epinio-${ this.id }-logs`,
+    //   label:     `${ this.meta.name }`,
+    //   product:   EPINIO_PRODUCT_NAME,
+    //   icon:      'file',
+    //   component: 'ApplicationLogs',
+    //   attrs:     { application: this }
+    // }, { root: true });
   }
 
   showStagingLog(stageId) {
-    this.$dispatch('wm/open', {
-      id:        `epinio-${ this.id }-logs-${ stageId }`,
-      label:     `${ this.meta.name } - Staging - ${ stageId }`,
-      product:   EPINIO_PRODUCT_NAME,
-      icon:      'file',
-      component: 'StagingLogs',
-      attrs:     { application: this }
-    }, { root: true });
+    // Streaming logs over socket isn't supported at the moment (requires auth changes to backend or un-CORS-ing)
+    // https://github.com/epinio/ui/issues/3
+    // this.$dispatch('wm/open', {
+    //   id:        `epinio-${ this.id }-logs-${ stageId }`,
+    //   label:     `${ this.meta.name } - Staging - ${ stageId }`,
+    //   product:   EPINIO_PRODUCT_NAME,
+    //   icon:      'file',
+    //   component: 'StagingLogs',
+    //   attrs:     { application: this }
+    // }, { root: true });
   }
 
   async waitForStaging(stageId) {
