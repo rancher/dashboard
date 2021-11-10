@@ -1,3 +1,4 @@
+import { _MERGE } from '@/plugins/core-store/actions';
 import PollerSequential from '@/utils/poller-sequential';
 
 const polling = {};
@@ -23,7 +24,9 @@ export const actions = {
     polling[type] = new PollerSequential(
       async() => {
         console.debug('Epinio: Polling: ', type); // eslint-disable-line no-console
-        await dispatch('findAll', { type, opt: { force: true } });
+        // NOTE - In order for lists to automatically update resources opt to MERGE data in place instead of replace
+        // (in rancher land these are all handled individually, here we have bulk changes)
+        await dispatch('findAll', { type, opt: { force: true, load: _MERGE } });
       },
       POLL_INTERVAL,
       5

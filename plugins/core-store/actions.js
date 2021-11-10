@@ -8,6 +8,7 @@ import { classify } from '@/plugins/core-store/classify';
 import { normalizeType } from './normalize';
 
 export const _ALL = 'all';
+export const _MERGE = 'merge';
 export const _MULTI = 'multi';
 export const _ALL_IF_AUTHED = 'allIfAuthed';
 export const _NONE = 'none';
@@ -165,6 +166,16 @@ export default {
         commit('loadMulti', {
           ctx,
           data: out.data
+        });
+      } else if (load === _MERGE) {
+        // This is like loadMulti (updates existing entries) but also removes entries that no longer exist
+        // This allows changes to existing resources to be reflected in place in the UI
+        // (normally not needed as Rancher updates come over socket and are handled individually)
+        commit('loadMerge', {
+          ctx,
+          type,
+          data:     out.data,
+          existing: true
         });
       } else {
         commit('loadAll', {

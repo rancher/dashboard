@@ -20,11 +20,9 @@ const createId = (schema, resource) => {
 
 const epiniofy = (obj, schema, type) => ({
   ...obj,
-  dashboardMeta: {
-    // Bag of properties that aren't contained in the core object but used by generics (except type, we need that top level)
-    id: createId(schema, obj),
-  },
-  type
+  // Note - these must be applied here ... so things that need an id before classifying have access to them
+  id: createId(schema, obj),
+  type,
 });
 
 export default {
@@ -53,6 +51,7 @@ export default {
           ...opt.headers,
           Authorization: `Basic ${ base64Encode(`${ currentCluster.username }:${ currentCluster.password }`) }`
         };
+
         opt.url = `${ currentCluster.api }${ opt.url }`;
 
         return this.$axios(opt);

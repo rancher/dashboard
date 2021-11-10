@@ -175,6 +175,27 @@ export default {
     cache.haveAll = true;
   },
 
+  loadMerge(state, { type, data: allLatest, ctx }) {
+    const { commit, getters } = ctx;
+    // const allLatest = await dispatch('findAll', { type, opt: { force: true, load, _NONE } });
+    // const allExisting = getters.all({type});
+    const keyField = getters.keyFieldForType(type);
+    const cache = state.types[type];
+
+    allLatest.forEach((entry) => {
+      const existing = state.types[type].map.get(entry[keyField]);
+
+      load(state, {
+        data: entry, ctx, existing
+      });
+    });
+    cache.list.forEach((entry) => {
+      if (!allLatest.find(toLoadEntry => toLoadEntry.id === entry.id)) {
+        commit('remove', entry);
+      }
+    });
+  },
+
   forgetAll(state, { type }) {
     const cache = registerType(state, type);
 

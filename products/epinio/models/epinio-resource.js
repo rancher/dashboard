@@ -3,10 +3,6 @@ import Resource from '@/plugins/core-store/resource-class';
 import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 
 export default class EpinioResource extends Resource {
-  get id() {
-    return this.dashboardMeta?.id;
-  }
-
   get listLocation() {
     return this.$rootGetters['type-map/optionsFor'](this.type).customRoute || createEpinioRoute(`c-cluster-resource`, {
       cluster:   this.$rootGetters['clusterId'],

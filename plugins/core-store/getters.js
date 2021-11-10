@@ -272,7 +272,7 @@ export default {
   },
 
   cleanResource: () => (existing, data) => {
-    return existing;
+    return data;
   }
 
 };
