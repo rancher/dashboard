@@ -55,7 +55,7 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     noServices(neu) {
-      if (neu && this.values.length) {
+      if (neu && this.values?.length) {
         // Selected services are no longer valid
         this.values = [];
       }
