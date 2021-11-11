@@ -381,14 +381,19 @@ $spacer: 10px;
 
   border-bottom: var(--header-border-size) solid var(--header-border);
 
+  $minHeight: 75px;
   & > .title {
     flex: 1;
-    min-height: 75px;
+    min-height: $minHeight;
+    display: flex;
   }
   .step-sequence {
     flex:1;
+    min-height: $minHeight;
+    display: flex;
 
     .steps {
+      flex: 1;
       margin: 0 30px;
       display:flex;
       justify-content: space-between;
@@ -406,6 +411,10 @@ $spacer: 10px;
         flex-grow: 1;
         align-items: center;
 
+        & > span > span:last-of-type {
+          padding-bottom: 0;
+        }
+
         &:last-of-type{
           flex-grow: 0;
         }
@@ -416,8 +425,9 @@ $spacer: 10px;
           align-items: center;
           width: 40px;
           overflow: visible;
+          padding-top: 15px;
           & > span {
-            padding-bottom: 10px;
+            margin-bottom: 10px;
             white-space: nowrap;
           }
         }
@@ -445,14 +455,14 @@ $spacer: 10px;
         flex-basis: 100%;
         border-top: 1px solid var(--border);
         position: relative;
-        top: 5px;
+        top: 26px;
       }
     }
   }
 
   .choice-banner {
 
-    flex-basis: 40%;
+    // flex-basis: 40%;
     display: flex;
     align-items: center;
 
@@ -472,7 +482,7 @@ $spacer: 10px;
         justify-content: space-evenly;
 
         & > .subtitle {
-          margin: 0 20px;
+          margin-right: 20px;
         }
       }
 
