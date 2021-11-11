@@ -8,6 +8,7 @@ import Checkbox from '@/components/form/Checkbox.vue';
 import BadgeState from '@/components/BadgeState.vue';
 import { STATE, DESCRIPTION } from '@/config/table-headers';
 import { EPINIO_TYPES, APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE } from '@/products/epinio/types';
+import { EpinioAppSource } from '@/products/epinio/components/application/AppSource.vue';
 
 interface Data {
   running: boolean;
@@ -29,14 +30,7 @@ export default Vue.extend<Data, any, any, any>({
       required: true
     },
     source: {
-      type: Object as PropType<{
-        type: string, // APPLICATION_SOURCE_TYPE,
-        // Docker
-        url?: string
-        // Archive
-        tarball?: string,
-        builderImage?: string,
-      }>,
+      type:     Object as PropType<EpinioAppSource>,
       required: true
     },
     mode: {

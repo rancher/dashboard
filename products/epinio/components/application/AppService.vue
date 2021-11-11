@@ -5,16 +5,13 @@ import Application from '@/products/epinio/models/applications';
 import { EPINIO_TYPES } from '@/products/epinio/types';
 import { sortBy } from '@/utils/sort';
 import LabeledSelect from '@/components/form/LabeledSelect.vue';
-import Loading from '@/components/Loading.vue';
 import EpinioService from '@/products/epinio/models/services';
 
 interface Data {
+  values: string[]
 }
 export default Vue.extend<Data, any, any, any>({
-  components: {
-    LabeledSelect,
-    Loading
-  },
+  components: { LabeledSelect },
 
   props: {
     application: {
@@ -32,10 +29,7 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   data() {
-    return {
-      errors: [],
-      values: this.application.configuration.services,
-    };
+    return { values: this.application.configuration.services };
   },
 
   computed: {

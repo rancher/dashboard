@@ -7,7 +7,7 @@ import Wizard from '@/components/Wizard.vue';
 import { EPINIO_TYPES } from '@/products/epinio/types';
 import { _CREATE } from '@/config/query-params';
 import AppInfo from '@/products/epinio/components/application/AppInfo.vue';
-import AppSource from '@/products/epinio/components/application/AppSource.vue';
+import AppSource, { EpinioAppSource } from '@/products/epinio/components/application/AppSource.vue';
 import AppService from '@/products/epinio/components/application/AppService.vue';
 import AppProgress from '@/products/epinio/components/application/AppProgress.vue';
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
@@ -17,7 +17,7 @@ interface Data {
   originalValue?: Application,
   mode: string,
   errors: string[],
-  source: any,
+  source?: EpinioAppSource,
   steps: any[],
 }
 
@@ -51,11 +51,8 @@ export default Vue.extend<Data, any, any, any>({
       originalValue: undefined,
       mode:          _CREATE,
       errors:        [],
-      source:        {
-        tarball:      null,
-        builderImage: null
-      },
-      steps:   [{
+      source:        undefined,
+      steps:         [{
         name:           'basics',
         label:          this.t('epinio.applications.steps.basics.label'),
         subtext:        this.t('epinio.applications.steps.basics.subtext'),
@@ -150,6 +147,7 @@ export default Vue.extend<Data, any, any, any>({
       <template #source>
         <AppSource
           :application="value"
+          :source="source"
           :mode="mode"
           @change="updateSource"
           @valid="steps[1].ready = $event"

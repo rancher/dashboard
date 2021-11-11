@@ -78,11 +78,11 @@ export default class ApplicationActionResource extends Resource {
   }
 
   async upload({ source }) {
-    await this.application.storeArchive(source.tarball);
+    await this.application.storeArchive(source.archive.tarball);
   }
 
   async build({ source }) {
-    const { stage } = await this.application.stage(this.application.buildCache.store.blobUid, source.builderImage);
+    const { stage } = await this.application.stage(this.application.buildCache.store.blobUid, source.archive.builderImage);
 
     this.application.showStagingLog(stage.id);
 
@@ -92,7 +92,7 @@ export default class ApplicationActionResource extends Resource {
   async deploy({ source }) {
     this.application.showAppLog();
     const stageId = source.type === APPLICATION_SOURCE_TYPE.ARCHIVE ? this.application.buildCache.stage.stage.id : null;
-    const image = source.type === APPLICATION_SOURCE_TYPE.CONTAINER_URL ? source.url : this.application.buildCache.stage.image;
+    const image = source.type === APPLICATION_SOURCE_TYPE.CONTAINER_URL ? source.container.url : this.application.buildCache.stage.image;
 
     await this.application.deploy(stageId, image);
   }
