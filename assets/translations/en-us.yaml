@@ -5954,6 +5954,8 @@ branding:
       bannerBold: Bold
       bannerItalic: Italic
       bannerUnderline: Underline
+    bannerFontSize:
+      label: 'Font Size'
   color:
     label: Primary Color
     tip: You can override the primary color used throughout the UI with a custom color of your choice.
