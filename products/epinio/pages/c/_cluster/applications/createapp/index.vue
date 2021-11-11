@@ -84,12 +84,6 @@ export default Vue.extend<Data, any, any, any>({
     };
   },
 
-  computed: {
-    jsonValue() {
-      return JSON.stringify(this.value);
-    }
-  },
-
   methods: {
     set(obj: { [key: string]: string}, changes: { [key: string]: string}) {
       Object.entries(changes).forEach(([key, value]: [string, any]) => {
@@ -107,6 +101,10 @@ export default Vue.extend<Data, any, any, any>({
     updateSource(changes: any) {
       this.source = {};
       this.set(this.source, changes);
+    },
+
+    updateServices(changes: string[]) {
+      this.set(this.value.configuration, { services: changes });
     },
 
     cancel() {
@@ -161,7 +159,7 @@ export default Vue.extend<Data, any, any, any>({
         <AppService
           :application="value"
           :mode="mode"
-          @valid="steps[2].ready = $event"
+          @change="updateServices"
         ></AppService>
       </template>
       <template #progress="{step}">
@@ -176,7 +174,7 @@ export default Vue.extend<Data, any, any, any>({
     <!-- <br><br>
     Debug<br>
     Mode: {{ mode }}<br>
-    Value: {{ jsonValue }}<br>
+    Value: {{ JSON.stringify(value) }}<br>
     originalValue: {{ JSON.stringify(originalValue) }}<br>
     source: {{ JSON.stringify(source) }}<br> -->
   </div>

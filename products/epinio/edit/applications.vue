@@ -59,11 +59,21 @@ export default Vue.extend<Data, any, any, any>({
       }
     },
 
+    set(obj: { [key: string]: string}, changes: { [key: string]: string}) {
+      Object.entries(changes).forEach(([key, value]: [string, any]) => {
+        Vue.set(obj, key, value);
+      });
+    },
+
     updateInfo(changes: any) {
       this.value.meta = this.value.meta || {};
       this.value.configuration = this.value.configuration || {};
-      Vue.set(this.value, 'meta', changes.meta);
-      Vue.set(this.value, 'configuration', changes.configuration);
+      this.set(this.value.meta, changes.meta);
+      this.set(this.value.configuration, changes.configuration);
+    },
+
+    updateServices(changes: string[]) {
+      this.set(this.value.configuration, { services: changes });
     },
   }
 
@@ -93,6 +103,7 @@ export default Vue.extend<Data, any, any, any>({
         <AppService
           :application="value"
           :mode="mode"
+          @change="updateServices"
         ></AppService>
       </Tab>
     </ResourceTabs>

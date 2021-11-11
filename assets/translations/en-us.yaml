@@ -6122,6 +6122,9 @@ epinio:
       services:
         label: Service
         subtext: Bind a service
+        select:
+          placeholderWithOptions: Select services to bind app to
+          placeholderNoOptions: There are no services in this namespace
         next: Create
       progress:
         label: Progress
