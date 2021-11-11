@@ -76,9 +76,10 @@ export default {
         <span v-else class="text-muted">&nbsp;</span>
       </template>
       <template #cell:route="{ row }">
-        <span v-if="row.configuration.routes.length">
+        <span v-if="row.configuration.routes.length" class="route">
           <template v-for="(route, index) in row.configuration.routes">
-            <a :key="route.id" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
+            <a v-if="row.state === 'running'" :key="route.id" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
+            <span v-else :key="route.id">{{ `https://${route}` }}</span>
             <span v-if="index < row.configuration.routes.length - 1" :key="route.id + 'i'">, </span>
           </template>
         </span>
@@ -87,3 +88,9 @@ export default {
     </ResourceTable>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.route {
+  word-break: break-all;
+}
+</style>
