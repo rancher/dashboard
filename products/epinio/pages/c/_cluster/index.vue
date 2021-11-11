@@ -2,6 +2,7 @@
 import Vue from 'vue';
 
 import Loading from '@/components/Loading.vue';
+import Link from '@/components/formatter/Link.vue';
 import ResourceTable from '@/components/ResourceTable.vue';
 import { EPINIO_MGMT_STORE, EPINIO_TYPES } from '@/products/epinio/types';
 import Resource from '@/plugins/core-store/resource-class';
@@ -16,7 +17,9 @@ interface Data {
 
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
-  components: { Loading, ResourceTable },
+  components: {
+    Loading, Link, ResourceTable
+  },
 
   layout: 'plain',
 
@@ -69,7 +72,7 @@ export default Vue.extend<Data, any, any, any>({
             this.setClusterState(c, 'error', {
               state: {
                 error:   true,
-                message: `Network Error. If this instance uses an invalid certificate visit the URL in your browser to bypass checks and refresh`
+                message: `Network Error. If this instance uses an invalid certificate click on the URL above to bypass checks and refresh`
               }
             });
           } else {
@@ -109,6 +112,12 @@ export default Vue.extend<Data, any, any, any>({
           </n-link>
           <template v-else>
             {{ row.name }}
+          </template>
+        </template>
+        <template #cell:api="{row}">
+          <Link v-if="row.state !== 'available'" :row="row" :value="{ text: row.api, url: row.readyApi }" />
+          <template v-else>
+            {{ row.api }}
           </template>
         </template>
       </ResourceTable>

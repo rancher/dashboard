@@ -151,7 +151,6 @@ export function init(store) {
     {
       name:      'api',
       labelKey:  'epinio.instances.tableHeaders.api',
-      value:     'api',
       sort:      ['api'],
     },
   ]);

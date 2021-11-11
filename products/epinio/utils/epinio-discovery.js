@@ -24,6 +24,7 @@ export default {
           id:       c.id,
           name:     c.spec.displayName,
           api:      url,
+          readyApi: `${ url }/ready`,
           username: base64Decode(username),
           password: base64Decode(password),
           type:     EPINIO_TYPES.INSTANCE,
