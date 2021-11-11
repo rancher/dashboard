@@ -6075,7 +6075,7 @@ epinio:
   tableHeaders:
     namespace: Namespace
   instances:
-    header: Select your Epinio instance
+    header: Epinio instances
     none:
       header: No instances of Epinio were found
       description: To view an Epinio cluster be sure to import a Cluster where one is installed
