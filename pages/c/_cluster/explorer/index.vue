@@ -35,8 +35,9 @@ import { allDashboardsExist } from '@/utils/grafana';
 import EtcdInfoBanner from '@/components/EtcdInfoBanner';
 import metricPoller from '@/mixins/metric-poller';
 import EmberPage from '@/components/EmberPage';
-import ResourceSummary, { resourceCounts } from './ResourceSummary';
-import HardwareResourceGauge from './HardwareResourceGauge';
+import ResourceSummary, { resourceCounts } from '@/components/ResourceSummary';
+import HardwareResourceGauge from '@/components/HardwareResourceGauge';
+import { isEmpty } from '@/utils/object';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -87,7 +88,6 @@ export default {
     for ( const k in res ) {
       this[k] = res[k];
     }
-    this.metricAggregations = await this.currentCluster.fetchNodeMetrics();
   },
 
   data() {
@@ -136,7 +136,6 @@ export default {
       nodeMetrics:         [],
       nodeTemplates:       [],
       nodes:               [],
-      metricAggregations: {},
       showClusterMetrics: false,
       showK8sMetrics:     false,
       showEtcdMetrics:    false,
@@ -228,6 +227,31 @@ export default {
 
     ramReserved() {
       return createMemoryValues(this.currentCluster?.status?.allocatable?.memory, this.currentCluster?.status?.requested?.memory);
+    },
+
+    metricAggregations() {
+      const nodes = this.nodes;
+      const someNonWorkerRoles = this.nodes.some(node => node.hasARole && !node.isWorker);
+      const metrics = this.nodeMetrics.filter((nodeMetrics) => {
+        const node = nodes.find(nd => nd.id === nodeMetrics.id);
+
+        return node && (!someNonWorkerRoles || node.isWorker);
+      });
+      const initialAggregation = {
+        cpu:    0,
+        memory: 0
+      };
+
+      if (isEmpty(metrics)) {
+        return null;
+      }
+
+      return metrics.reduce((agg, metric) => {
+        agg.cpu += parseSi(metric.usage.cpu);
+        agg.memory += parseSi(metric.usage.memory);
+
+        return agg;
+      }, initialAggregation);
     },
 
     cpuUsed() {

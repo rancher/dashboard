@@ -115,6 +115,7 @@ export function init(store) {
   mapGroup(/^(.+\.)?(gateway|gloo)\.solo\.io$/, 'Gloo');
   mapGroup(/^(.*\.)?monitoring\.coreos\.com$/, 'Monitoring');
   mapGroup(/^(.*\.)?tekton\.dev$/, 'Tekton');
+  mapGroup(/^(.*\.)?tigera\.io$/, 'Tigera');
   mapGroup(/^(.*\.)?longhorn(\.rancher)?\.io$/, 'Longhorn');
   mapGroup(/^(.*\.)?(fleet|gitjob)\.cattle\.io$/, 'Fleet');
   mapGroup(/^(.*\.)?(helm|k3s)\.cattle\.io$/, 'K3s');
@@ -227,7 +228,7 @@ export function init(store) {
     name:        VIRTUAL_TYPES.CLUSTER_MEMBERS,
     icon:       'globe',
     weight:      100,
-    route:       { name: 'c-cluster-explorer-members' },
+    route:       { name: 'c-cluster-product-members' },
     exact:       true,
     ifHaveType:  {
       type:   MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,

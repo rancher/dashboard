@@ -194,17 +194,19 @@ export default {
     },
 
     async updateBindings() {
-      const principalProperty = await this.principalProperty();
-      const bindingPromises = this.roleTemplateIds.map(id => this.$store.dispatch(`rancher/create`, {
-        type:                NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING,
-        clusterId:           this.clusterName,
-        roleTemplateId:      id,
-        [principalProperty]: this.principalId
-      }));
+      if (this.principalId) {
+        const principalProperty = await this.principalProperty();
+        const bindingPromises = this.roleTemplateIds.map(id => this.$store.dispatch(`rancher/create`, {
+          type:                NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING,
+          clusterId:           this.clusterName,
+          roleTemplateId:      id,
+          [principalProperty]: this.principalId
+        }));
 
-      const bindings = await Promise.all(bindingPromises);
+        const bindings = await Promise.all(bindingPromises);
 
-      this.$emit('input', bindings);
+        this.$emit('input', bindings);
+      }
     }
   }
 };
@@ -214,7 +216,13 @@ export default {
   <div v-else class="cluster-permissions-editor">
     <div class="row mt-10">
       <div class="col span-12">
-        <SelectPrincipal class="mb-20" :mode="mode" :retain-selection="true" @add="onAdd" />
+        <SelectPrincipal
+          v-focus
+          class="mb-20"
+          :mode="mode"
+          :retain-selection="true"
+          @add="onAdd"
+        />
       </div>
     </div>
 

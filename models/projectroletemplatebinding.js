@@ -1,19 +1,20 @@
 import { MANAGEMENT } from '@/config/types';
+import NormanModel from '@/plugins/steve/norman-class';
 
-export default {
-  principalId() {
+export default class PRTB extends NormanModel {
+  get principalId() {
     return this.userPrincipalId || this.groupPrincipalId;
-  },
+  }
 
-  roleDisplay() {
+  get roleDisplay() {
     return this.roleTemplate.nameDisplay;
-  },
+  }
 
-  roleDescription() {
+  get roleDescription() {
     return this.roleTemplate.description;
-  },
+  }
 
-  roleTemplate() {
+  get roleTemplate() {
     return this.$rootGetters['management/byId'](MANAGEMENT.ROLE_TEMPLATE, this.roleTemplateId);
-  },
-};
+  }
+}

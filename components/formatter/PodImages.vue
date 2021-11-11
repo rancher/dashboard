@@ -17,20 +17,16 @@ export default {
       }
     }
   },
-
-  data() {
-    let images = [];
-
-    if ( this.row?.imageNames ) {
-      images = this.row.imageNames;
-    } else {
-      images = this.value;
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+    images() {
+      if ( this.row?.imageNames ) {
+        return this.row.imageNames;
+      } else {
+        return this.value;
+      }
     }
-
-    return { images };
-  },
-
-  computed: { ...mapGetters({ t: 'i18n/t' }) }
+  }
 
 };
 </script>

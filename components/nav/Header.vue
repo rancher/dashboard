@@ -1,6 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
-import { NORMAN } from '@/config/types';
+import { NORMAN, HCI } from '@/config/types';
+import { NAME as VIRTUAL } from '@/config/product/harvester';
 import { ucFirst } from '@/utils/string';
 import { isMac } from '@/utils/platform';
 import Import from '@/components/Import';
@@ -40,12 +41,13 @@ export default {
       show:        false,
       showTooltip: false,
       searchShortcut,
+      VIRTUAL,
     };
   },
 
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isMultiCluster', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions']),
+      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleVirtualCluster']),
     ...mapGetters('type-map', ['activeProducts']),
 
     appName() {
@@ -68,6 +70,10 @@ export default {
       return !!this.currentCluster?.links?.shell;
     },
 
+    showKubeShell() {
+      return !this.currentProduct?.hideKubeShell;
+    },
+
     importEnabled() {
       return !!this.currentCluster?.actions?.apply;
     },
@@ -82,12 +88,29 @@ export default {
       return this.currentProduct?.inStore === 'cluster';
     },
 
+    showImportYaml() {
+      return this.currentProduct?.inStore !== 'harvester';
+    },
+
     nameTooltip() {
       return !this.showTooltip ? {} : {
         content: this.currentCluster?.nameDisplay,
         delay:   400,
       };
-    }
+    },
+
+    harvesterDashboard() {
+      const cluster = this.$store.getters.defaultClusterId;
+
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster,
+          product:  VIRTUAL,
+          resource: HCI.DASHBOARD,
+        }
+      };
+    },
   },
 
   watch: {
@@ -156,17 +179,29 @@ export default {
 
 <template>
   <header :class="{'simple': simple}">
-    <div class="menu-spacer"></div>
+    <div class="menu-spacer">
+      <n-link v-if="isSingleVirtualCluster" :to="harvesterDashboard">
+        <img
+          class="side-menu-logo"
+          src="~/assets/images/providers/harvester.svg"
+        />
+      </n-link>
+    </div>
     <div v-if="!simple" class="product">
       <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster cluster-clipped">
-        <RancherProviderIcon v-if="currentCluster && currentCluster.isLocal" class="mr-10 cluster-local-logo" width="25" />
-        <img v-else-if="currentCluster && currentCluster.providerLogo" class="cluster-os-logo" :src="currentCluster.providerLogo" />
-        <div v-if="currentCluster" ref="clusterName" class="cluster-name">
-          {{ currentCluster.spec.displayName }}
+        <div v-if="isSingleVirtualCluster" class="product-name">
+          {{ t('product.harvester') }}
         </div>
-        <div v-else class="simple-title">
-          <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
-        </div>
+        <template v-else>
+          <RancherProviderIcon v-if="currentCluster && currentCluster.isLocal" class="mr-10 cluster-local-logo" width="25" />
+          <img v-else-if="currentCluster && currentCluster.providerNavLogo" class="cluster-os-logo" :src="currentCluster.providerNavLogo" />
+          <div v-if="currentCluster" ref="clusterName" class="cluster-name">
+            {{ currentCluster.spec.displayName }}
+          </div>
+          <div v-else class="simple-title">
+            <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
+          </div>
+        </template>
       </div>
       <div v-if="currentProduct && !currentProduct.showClusterSwitcher" class="cluster">
         <div class="product-name">
@@ -175,12 +210,18 @@ export default {
       </div>
     </div>
     <div v-else class="simple-title">
-      <div class="side-menu-logo">
+      <div v-if="isSingleVirtualCluster" class="product-name">
+        {{ t('product.harvester') }}
+      </div>
+
+      <div v-else class="side-menu-logo">
         <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
       </div>
     </div>
 
-    <TopLevelMenu></TopLevelMenu>
+    <div>
+      <TopLevelMenu v-if="isMultiCluster || !isSingleVirtualCluster"></TopLevelMenu>
+    </div>
 
     <div v-if="currentCluster && !simple" class="top">
       <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
@@ -190,6 +231,7 @@ export default {
     <div v-if="currentCluster && !simple" class="header-buttons">
       <template v-if="currentProduct && currentProduct.showClusterSwitcher">
         <button
+          v-if="showImportYaml"
           v-tooltip="t('nav.import')"
           :disabled="!importEnabled"
           type="button"
@@ -209,6 +251,7 @@ export default {
         </modal>
 
         <button
+          v-if="showKubeShell"
           v-tooltip="t('nav.shell')"
           :disabled="!shellEnabled"
           type="button"

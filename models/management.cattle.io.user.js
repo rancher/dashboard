@@ -1,7 +1,8 @@
 import { NORMAN } from '@/config/types';
+import HybridModel from '@/plugins/steve/hybrid-class';
 
-export default {
-  isSystem() {
+export default class User extends HybridModel {
+  get isSystem() {
     for ( const p of this.principalIds || [] ) {
       if ( p.startsWith('system://') ) {
         return true;
@@ -9,25 +10,25 @@ export default {
     }
 
     return false;
-  },
+  }
 
-  isCurrentUser() {
+  get isCurrentUser() {
     const currentPrincipal = this.$rootGetters['auth/principalId'];
 
     return !!(this.principalIds || []).find(p => p === currentPrincipal);
-  },
+  }
 
-  principals() {
+  get principals() {
     return this.principalIds
       .map(id => this.$rootGetters['rancher/byId'](NORMAN.PRINCIPAL, id))
       .filter(p => p);
-  },
+  }
 
-  nameDisplay() {
+  get nameDisplay() {
     return this.displayName || this.username || this.id;
-  },
+  }
 
-  labelForSelect() {
+  get labelForSelect() {
     const name = this.nameDisplay;
     const id = this.id;
 
@@ -36,9 +37,9 @@ export default {
     } else {
       return `${ name } (${ id })`;
     }
-  },
+  }
 
-  provider() {
+  get provider() {
     const principals = this.principalIds || [];
     let isSystem = false;
     let isLocal = true;
@@ -74,85 +75,69 @@ export default {
     }
 
     return key;
-  },
+  }
 
-  providerDisplay() {
+  get providerDisplay() {
     return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.provider }"`, null, this.provider);
-  },
+  }
 
-  state() {
+  get state() {
     if ( this.enabled === false ) {
       return 'inactive';
     }
 
     return this.metadata?.state?.name || 'unknown';
-  },
+  }
 
-  save() {
-    return async(opt) => {
-      const clone = await this.$dispatch('clone', { resource: this });
+  async save(opt) {
+    const clone = await this.$dispatch('clone', { resource: this });
 
-      // Remove local properties
-      delete clone.canRefreshAccess;
+    // Remove local properties
+    delete clone.canRefreshAccess;
 
-      return clone._save(opt);
-    };
-  },
+    return clone._save(opt);
+  }
 
-  setEnabled() {
-    return async(enabled) => {
-      const clone = await this.$dispatch('clone', { resource: this });
+  async setEnabled(enabled) {
+    const clone = await this.$dispatch('rancher/clone', { resource: this.norman }, { root: true });
 
-      clone.enabled = enabled;
-      await clone.save();
-    };
-  },
+    clone.enabled = enabled;
+    await clone.save();
+  }
 
-  activate() {
-    return async() => {
-      await this.setEnabled(true);
-    };
-  },
+  async activate() {
+    await this.setEnabled(true);
+  }
 
-  activateBulk() {
-    return async(items) => {
-      await Promise.all(items.map(item => item.setEnabled(true)));
-    };
-  },
+  async activateBulk(items) {
+    await Promise.all(items.map(item => item.setEnabled(true)));
+  }
 
-  deactivate() {
-    return async() => {
-      await this.setEnabled(false);
-    };
-  },
+  async deactivate() {
+    await this.setEnabled(false);
+  }
 
-  deactivateBulk() {
-    return async(items) => {
-      await Promise.all(items.map(item => item.setEnabled(false)));
-    };
-  },
+  async deactivateBulk(items) {
+    await Promise.all(items.map(item => item.setEnabled(false)));
+  }
 
-  refreshGroupMembership() {
-    return async() => {
-      const user = await this.$dispatch('rancher/find', {
-        type:       NORMAN.USER,
-        id:   this.id,
-      }, { root: true });
+  async refreshGroupMembership() {
+    const user = await this.$dispatch('rancher/find', {
+      type:       NORMAN.USER,
+      id:   this.id,
+    }, { root: true });
 
-      await user.doAction('refreshauthprovideraccess');
-    };
-  },
+    await user.doAction('refreshauthprovideraccess');
+  }
 
-  canActivate() {
-    return (state) => {
-      const stateOk = state ? this.state === 'inactive' : this.state === 'active';
-      const permissionOk = this.hasLink('update'); // Not canUpdate, only gate on api not whether editable pages should be visible
+  canActivate(state) {
+    const stateOk = state ? this.state === 'inactive' : this.state === 'active';
+    const permissionOk = this.hasLink('update'); // Not canUpdate, only gate on api not whether editable pages should be visible
 
-      return stateOk && permissionOk && !this.isCurrentUser;
-    };
-  },
+    return stateOk && permissionOk && !this.isCurrentUser;
+  }
 
-  _availableActions() {
+  get _availableActions() {
     return [
       {
         action:     'activate',
@@ -179,11 +164,11 @@ export default {
         enabled: this.canRefreshAccess
       },
       { divider: true },
-      ...this._standardActions,
+      ...super._availableActions,
     ];
-  },
+  }
 
-  details() {
+  get details() {
     return [
       {
         label:     this.t('user.detail.username'),
@@ -192,27 +177,25 @@ export default {
       },
       ...this._details
     ];
-  },
+  }
 
-  confirmRemove() {
+  get confirmRemove() {
     return true;
-  },
+  }
 
-  norman() {
+  get norman() {
     return this.$rootGetters['rancher/byId'](NORMAN.USER, this.id);
-  },
+  }
 
-  canDelete() {
+  get canDelete() {
     return this.norman?.hasLink('remove') && !this.isCurrentUser;
-  },
+  }
 
-  canUpdate() {
+  get canUpdate() {
     return this.norman?.hasLink('update');
-  },
+  }
 
   remove() {
-    return () => {
-      return this.norman?.remove();
-    };
+    return this.norman?.remove();
   }
-};
+}

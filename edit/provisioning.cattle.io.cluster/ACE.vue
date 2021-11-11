@@ -52,7 +52,7 @@ export default {
       v-model="config.enabled"
       name="enabled"
       :options="[false, true]"
-      :labels="['Disabled','Enabled']"
+      :labels="[t('generic.disabled'), t('generic.enabled')]"
       :mode="mode"
     />
 
@@ -63,16 +63,16 @@ export default {
             v-model="config.fqdn"
             :mode="mode"
             label="FQDN"
-            tooltip="A FQDN which will resolve to the healthy control plane nodes of the cluster."
+            :tooltip="t('cluster.rke2.address.fqdn.toolTip')"
           />
         </div>
         <div class="col span-6">
           <LabeledInput
             v-model="config.caCerts"
             :mode="mode"
-            label="CA Certificates"
+            :label="t('cluster.rke2.address.caCerts.label')"
             type="multiline"
-            tooltip="Certificates required for the client to successfully verify the validity of the certificate returned by the endpoint."
+            :tooltip="t('cluster.rke2.address.caCerts.toolTip')"
           />
           <FileSelector :mode="mode" class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onCertSelected" />
         </div>

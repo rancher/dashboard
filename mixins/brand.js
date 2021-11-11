@@ -26,6 +26,12 @@ export default {
       return setting?.value;
     },
 
+    linkColor() {
+      const setting = findBy(this.globalSettings, 'id', SETTING.LINK_COLOR);
+
+      return setting?.value;
+    },
+
     theme() {
       return this.$store.getters['prefs/theme'];
     }
@@ -34,28 +40,38 @@ export default {
   watch: {
     color(neu) {
       if (neu) {
-        this.setCustomPrimaryColor(neu);
+        this.setCustomColor(neu);
       } else {
-        this.removePrimaryCustomColor();
+        this.removeCustomColor();
+      }
+    },
+    linkColor(neu) {
+      if (neu) {
+        this.setCustomColor(neu, 'link');
+      } else {
+        this.removeCustomColor('link');
       }
     },
     theme() {
       if (this.color) {
-        this.setCustomPrimaryColor(this.color);
+        this.setCustomColor(this.color);
+      }
+      if (this.linkColor) {
+        this.setCustomColor(this.linkColor, 'link');
       }
     },
   },
   methods: {
-    setCustomPrimaryColor(color) {
-      const vars = createCssVars(color, this.theme);
+    setCustomColor(color, name = 'primary') {
+      const vars = createCssVars(color, this.theme, name);
 
       for (const prop in vars) {
         document.body.style.setProperty(prop, vars[prop]);
       }
     },
 
-    removePrimaryCustomColor() {
-      const vars = createCssVars('rgb(0,0,0)', this.theme);
+    removeCustomColor(name = 'primary') {
+      const vars = createCssVars('rgb(0,0,0)', this.theme, name);
 
       for (const prop in vars) {
         document.body.style.removeProperty(prop);
@@ -64,16 +80,31 @@ export default {
   },
   head() {
     let cssClass = `overflow-hidden dashboard-body`;
+    const out = {
+      bodyAttrs: { class: `theme-${ this.theme } ${ cssClass }` },
+      title:     getVendor(),
+    };
+
+    if (getVendor() === 'Harvester') {
+      const ico = require(`~/assets/images/pl/harvester.png`);
+
+      out.title = 'Harvester';
+      out.link = [{
+        hid:  'icon',
+        rel:  'icon',
+        type: 'image/x-icon',
+        href: ico
+      }];
+    }
 
     let brandMeta;
 
-    try {
-      brandMeta = require(`~/assets/brand/${ this.brand }/metadata.json`);
-    } catch {
-      return {
-        bodyAttrs: { class: `theme-${ this.theme } ${ cssClass }` },
-        title:     getVendor(),
-      };
+    if ( this.brand ) {
+      try {
+        brandMeta = require(`~/assets/brand/${ this.brand }/metadata.json`);
+      } catch {
+        return out;
+      }
     }
 
     if (brandMeta?.hasStylesheet === 'true') {
@@ -83,10 +114,9 @@ export default {
       this.$store.dispatch('prefs/setBrandStyle', this.theme === 'dark');
     }
 
-    return {
-      bodyAttrs: { class: cssClass },
-      title:     getVendor(),
-    };
+    out.bodyAttrs.class = cssClass;
+
+    return out;
   },
 
 };

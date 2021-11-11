@@ -154,6 +154,14 @@ export default {
       this.$emit('input', out);
     },
 
+    selectServiceType(row) {
+      delete row.name;
+      if (row._listeningPort) {
+        delete row._listeningPort;
+      }
+      this.queueUpdate();
+    },
+
     setServiceType(row) {
       const { _name } = row;
 
@@ -205,7 +213,7 @@ export default {
           :mode="mode"
           :label="t('workload.container.ports.createService')"
           :options="serviceTypes"
-          @input="queueUpdate"
+          @input="selectServiceType(row)"
         />
       </div>
 

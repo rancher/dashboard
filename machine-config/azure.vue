@@ -1,7 +1,6 @@
 <script>
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
-import { NORMAN } from '@/config/types';
 import { stringify, exceptionToErrorsArray } from '@/utils/error';
 import Banner from '@/components/Banner';
 import merge from 'lodash/merge';
@@ -119,8 +118,6 @@ export default {
     this.errors = [];
 
     try {
-      this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.credentialId });
-
       const {
         clientId,
         clientSecret,
@@ -289,6 +286,18 @@ export default {
             :mode="mode"
             :label="t('cluster.machineConfig.azure.updateDomainCount.label')"
             :tooltip="t('cluster.machineConfig.azure.updateDomainCount.help')"
+            :disabled="disabled"
+          />
+        </div>
+      </div>
+      <hr class="mt-20" />
+      <div class="row mt-20">
+        <div class="col span-6">
+          <LabeledInput
+            v-model="value.plan"
+            :mode="mode"
+            :label="t('cluster.machineConfig.azure.plan.label')"
+            :placeholder="t('cluster.machineConfig.azure.plan.placeholder')"
             :disabled="disabled"
           />
         </div>

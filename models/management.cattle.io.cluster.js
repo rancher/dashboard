@@ -1,5 +1,5 @@
 import { CATALOG } from '@/config/labels-annotations';
-import { FLEET, MANAGEMENT, NODE } from '@/config/types';
+import { NODE, FLEET, MANAGEMENT } from '@/config/types';
 import { insertAt } from '@/utils/array';
 import { downloadFile } from '@/utils/download';
 import { parseSi } from '@/utils/units';
@@ -7,14 +7,17 @@ import jsyaml from 'js-yaml';
 import { eachLimit } from '@/utils/promise';
 import { addParams } from '@/utils/url';
 import { isEmpty } from '@/utils/object';
+import { NAME as HARVESTER } from '@/config/product/harvester';
+import { isHarvesterCluster } from '@/utils/cluster';
+import HybridModel from '@/plugins/steve/hybrid-class';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 
 // See translation file cluster.providers for list of providers
 // If the logo is not named with the provider name, add an override here
 const PROVIDER_LOGO_OVERRIDE = {};
 
-export default {
-  details() {
+export default class MgmtCluster extends HybridModel {
+  get details() {
     const out = [
       {
         label:   'Provisioner',
@@ -31,10 +34,10 @@ export default {
     ];
 
     return out;
-  },
+  }
 
-  _availableActions() {
-    const out = this._standardActions;
+  get _availableActions() {
+    const out = super._availableActions;
 
     insertAt(out, 0, {
       action:     'openShell',
@@ -53,23 +56,23 @@ export default {
     });
 
     return out;
-  },
+  }
 
-  canDelete() {
+  get canDelete() {
     return this.hasLink('remove') && !this?.spec?.internal;
-  },
+  }
 
-  machinePools() {
+  get machinePools() {
     const pools = this.$getters['all'](MANAGEMENT.NODE_POOL);
 
     return pools.filter(x => x.spec?.clusterName === this.id);
-  },
+  }
 
-  provisioner() {
-    return this.status.driver ? this.status.driver : 'imported';
-  },
+  get provisioner() {
+    return this.status?.driver ? this.status.driver : 'imported';
+  }
 
-  machineProvider() {
+  get machineProvider() {
     const kind = this.machinePools?.[0]?.provider;
 
     if ( kind ) {
@@ -77,9 +80,11 @@ export default {
     } else if ( this.spec?.internal ) {
       return 'local';
     }
-  },
 
-  emberEditPath() {
+    return null;
+  }
+
+  get emberEditPath() {
     // Ember wants one word called provider to tell what component to show, but has much indirect mapping to figure out what it is.
     let provider;
 
@@ -118,13 +123,13 @@ export default {
     }
 
     return addParams(`/c/${ escape(this.id) }/edit`, qp);
-  },
+  }
 
-  groupByLabel() {
+  get groupByLabel() {
     return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
-  },
+  }
 
-  isReady() {
+  get isReady() {
     // If the Connected condition exists, use that (2.6+)
     if ( this.hasCondition('Connected') ) {
       return this.isCondition('Connected');
@@ -132,48 +137,52 @@ export default {
 
     // Otherwise use Ready (older)
     return this.isCondition('Ready');
-  },
+  }
 
-  kubernetesVersionRaw() {
+  get kubernetesVersionRaw() {
     const fromStatus = this.status?.version?.gitVersion;
     const fromSpec = this.spec?.[`${ this.provisioner }Config`]?.kubernetesVersion;
 
     return fromStatus || fromSpec;
-  },
+  }
 
-  kubernetesVersion() {
-    return this.kubernetesVersionRaw || this.$rootGetters['i18n/t']('generic.unknown');
-  },
+  get kubernetesVersion() {
+    return this.kubernetesVersionRaw || this.$rootGetters['i18n/t']('generic.provisioning');
+  }
 
-  kubernetesVersionBase() {
+  get kubernetesVersionBase() {
     return this.kubernetesVersion.replace(/[+-].*$/, '');
-  },
+  }
 
-  kubernetesVersionExtension() {
+  get kubernetesVersionExtension() {
     if ( this.kubernetesVersion.match(/[+-]]/) ) {
       return this.kubernetesVersion.replace(/^.*([+-])/, '$1');
     }
 
     return '';
-  },
+  }
 
-  providerOs() {
-    if ( this.status?.provider === 'rke.windows' ) {
+  get providerOs() {
+    if ( this.status?.provider.endsWith('.windows') ) {
       return 'windows';
     }
 
     return 'linux';
-  },
+  }
 
-  providerOsLogo() {
+  get providerOsLogo() {
     return require(`~/assets/images/vendor/${ this.providerOs }.svg`);
-  },
+  }
 
-  isLocal() {
+  get isLocal() {
     return this.spec?.internal === true;
-  },
+  }
 
-  providerLogo() {
+  get isHarvester() {
+    return isHarvesterCluster(this);
+  }
+
+  get providerLogo() {
     const provider = this.status?.provider || 'kubernetes';
     // Only interested in the part before the period
     const prv = provider.split('.')[0];
@@ -191,29 +200,43 @@ export default {
     }
 
     return icon;
-  },
+  }
 
-  scope() {
+  get providerMenuLogo() {
+    if (this?.status?.provider === HARVESTER) {
+      return require(`~/assets/images/providers/kubernetes.svg`);
+    }
+
+    return this.providerLogo;
+  }
+
+  get providerNavLogo() {
+    if (this?.status?.provider === HARVESTER && this.$rootGetters['currentProduct'].inStore !== HARVESTER) {
+      return require(`~/assets/images/providers/kubernetes.svg`);
+    }
+
+    return this.providerLogo;
+  }
+
+  get scope() {
     return this.isLocal ? CATALOG._MANAGEMENT : CATALOG._DOWNSTREAM;
-  },
+  }
 
-  setClusterNameLabel() {
-    return (andSave) => {
-      if ( this.ownerReferences?.length || this.metadata?.labels?.[FLEET.CLUSTER_NAME] === this.id ) {
-        return;
-      }
+  setClusterNameLabel(andSave) {
+    if ( this.ownerReferences?.length || this.metadata?.labels?.[FLEET.CLUSTER_NAME] === this.id ) {
+      return;
+    }
 
-      this.metadata = this.metadata || {};
-      this.metadata.labels = this.metadata.labels || {};
-      this.metadata.labels[FLEET.CLUSTER_NAME] = this.id;
+    this.metadata = this.metadata || {};
+    this.metadata.labels = this.metadata.labels || {};
+    this.metadata.labels[FLEET.CLUSTER_NAME] = this.id;
 
-      if ( andSave ) {
-        return this.save();
-      }
-    };
-  },
+    if ( andSave ) {
+      return this.save();
+    }
+  }
 
-  availableCpu() {
+  get availableCpu() {
     const reserved = parseSi(this.status.requested?.cpu);
     const allocatable = parseSi(this.status.allocatable?.cpu);
 
@@ -222,9 +245,9 @@ export default {
     } else {
       return null;
     }
-  },
+  }
 
-  availableMemory() {
+  get availableMemory() {
     const reserved = parseSi(this.status.requested?.memory);
     const allocatable = parseSi(this.status.allocatable?.memory);
 
@@ -233,95 +256,88 @@ export default {
     } else {
       return null;
     }
-  },
+  }
 
   openShell() {
-    return () => {
-      this.$dispatch('wm/open', {
-        id:        `kubectl-${ this.id }`,
-        label:     this.$rootGetters['i18n/t']('wm.kubectlShell.title', { name: this.nameDisplay }),
-        icon:      'terminal',
-        component: 'KubectlShell',
-        attrs:     {
-          cluster: this,
-          pod:     {}
-        }
-      }, { root: true });
-    };
-  },
-
-  generateKubeConfig() {
-    return async() => {
-      const res = await this.doAction('generateKubeconfig');
-
-      return res.config;
-    };
-  },
-
-  downloadKubeConfig() {
-    return async() => {
-      const config = await this.generateKubeConfig();
-
-      downloadFile(`${ this.nameDisplay }.yaml`, config, 'application/yaml');
-    };
-  },
-
-  downloadKubeConfigBulk() {
-    return async(items) => {
-      let obj = {};
-      let first = true;
-
-      await eachLimit(items, 10, (item, idx) => {
-        return item.generateKubeConfig().then((config) => {
-          const entry = jsyaml.load(config);
-
-          if ( first ) {
-            obj = entry;
-            first = false;
-          } else {
-            obj.clusters.push(...entry.clusters);
-            obj.users.push(...entry.users);
-            obj.contexts.push(...entry.contexts);
-          }
-        });
-      });
-
-      delete obj['current-context'];
-
-      const out = jsyaml.dump(obj);
-
-      downloadFile('kubeconfig.yaml', out, 'application/yaml');
-    };
-  },
-
-  fetchNodeMetrics() {
-    return async() => {
-      const nodes = await this.$dispatch('cluster/findAll', { type: NODE }, { root: true });
-      const nodeMetrics = await this.$dispatch('cluster/findAll', { type: NODE }, { root: true });
-
-      const someNonWorkerRoles = nodes.some(node => node.hasARole && !node.isWorker);
-
-      const metrics = nodeMetrics.filter((metric) => {
-        const node = nodes.find(nd => nd.id === metric.id);
-
-        return node && (!someNonWorkerRoles || node.isWorker);
-      });
-      const initialAggregation = {
-        cpu:    0,
-        memory: 0
-      };
-
-      if (isEmpty(metrics)) {
-        return null;
+    this.$dispatch('wm/open', {
+      id:        `kubectl-${ this.id }`,
+      label:     this.$rootGetters['i18n/t']('wm.kubectlShell.title', { name: this.nameDisplay }),
+      icon:      'terminal',
+      component: 'KubectlShell',
+      attrs:     {
+        cluster: this,
+        pod:     {}
       }
+    }, { root: true });
+  }
 
-      return metrics.reduce((agg, metric) => {
-        agg.cpu += parseSi(metric?.usage?.cpu);
-        agg.memory += parseSi(metric?.usage?.memory);
+  async generateKubeConfig() {
+    const res = await this.doAction('generateKubeconfig');
 
-        return agg;
-      }, initialAggregation);
+    return res.config;
+  }
+
+  async downloadKubeConfig() {
+    const config = await this.generateKubeConfig();
+
+    downloadFile(`${ this.nameDisplay }.yaml`, config, 'application/yaml');
+  }
+
+  async downloadKubeConfigBulk(items) {
+    let obj = {};
+    let first = true;
+
+    await eachLimit(items, 10, (item, idx) => {
+      return item.generateKubeConfig().then((config) => {
+        const entry = jsyaml.load(config);
+
+        if ( first ) {
+          obj = entry;
+          first = false;
+        } else {
+          obj.clusters.push(...entry.clusters);
+          obj.users.push(...entry.users);
+          obj.contexts.push(...entry.contexts);
+        }
+      });
+    });
+
+    delete obj['current-context'];
+
+    const out = jsyaml.dump(obj);
+
+    downloadFile('kubeconfig.yaml', out, 'application/yaml');
+  }
+
+  async fetchNodeMetrics() {
+    const nodes = await this.$dispatch('cluster/findAll', { type: NODE }, { root: true });
+    const nodeMetrics = await this.$dispatch('cluster/findAll', { type: NODE }, { root: true });
+
+    const someNonWorkerRoles = nodes.some(node => node.hasARole && !node.isWorker);
+
+    const metrics = nodeMetrics.filter((metric) => {
+      const node = nodes.find(nd => nd.id === metric.id);
+
+      return node && (!someNonWorkerRoles || node.isWorker);
+    });
+    const initialAggregation = {
+      cpu:    0,
+      memory: 0
     };
-  },
 
-};
+    if (isEmpty(metrics)) {
+      return null;
+    }
+
+    return metrics.reduce((agg, metric) => {
+      agg.cpu += parseSi(metric?.usage?.cpu);
+      agg.memory += parseSi(metric?.usage?.memory);
+
+      return agg;
+    }, initialAggregation);
+  }
+
+  get nodes() {
+    return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.id));
+  }
+}

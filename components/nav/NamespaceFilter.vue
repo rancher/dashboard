@@ -1,9 +1,11 @@
 <script>
+import { mapGetters } from 'vuex';
 import { NAMESPACE_FILTERS } from '@/store/prefs';
 import { NAMESPACE, MANAGEMENT } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 import { isArray, addObjects, findBy, filterBy } from '@/utils/array';
 import Select from '@/components/form/Select';
+import { NAME as HARVESTER } from '@/config/product/harvester';
 
 export default {
   components: { Select },
@@ -17,6 +19,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['isVirtualCluster', 'isSingleVirtualCluster', 'isMultiVirtualCluster']),
     filterIsHovered() {
       return this.isHovered;
     },
@@ -36,44 +39,52 @@ export default {
 
     options() {
       const t = this.$store.getters['i18n/t'];
+      let out = [];
 
-      const out = [
-        {
-          id:    'all',
-          kind:  'special',
-          label: t('nav.ns.all'),
-        },
-        {
-          id:    'all://user',
-          kind:  'special',
-          label: t('nav.ns.user'),
-        },
-        {
-          id:    'all://system',
-          kind:  'special',
-          label: t('nav.ns.system'),
-        },
-        {
-          id:    'namespaced://true',
-          kind:  'special',
-          label: t('nav.ns.namespaced'),
-        },
-        {
-          id:    'namespaced://false',
-          kind:  'special',
-          label: t('nav.ns.clusterLevel'),
-        },
-      ];
+      if (!this.isVirtualCluster) {
+        out = [
+          {
+            id:    'all',
+            kind:  'special',
+            label: t('nav.ns.all'),
+          },
+          {
+            id:    'all://user',
+            kind:  'special',
+            label: t('nav.ns.user'),
+          },
+          {
+            id:    'all://system',
+            kind:  'special',
+            label: t('nav.ns.system'),
+          },
+          {
+            id:    'namespaced://true',
+            kind:  'special',
+            label: t('nav.ns.namespaced'),
+          },
+          {
+            id:    'namespaced://false',
+            kind:  'special',
+            label: t('nav.ns.clusterLevel'),
+          },
+        ];
 
-      divider();
+        divider();
+      }
 
       const inStore = this.$store.getters['currentStore'](NAMESPACE);
       const namespaces = sortBy(
         this.$store.getters[`${ inStore }/all`](NAMESPACE),
         ['nameDisplay']
-      );
+      ).filter( (N) => {
+        const needFilter = !N.isSystem && !N.isFleetManaged;
+        const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
 
-      if (this.$store.getters['isRancher']) {
+        return this.isVirtualCluster && isVirtualProduct ? needFilter : true;
+      });
+
+      if (this.$store.getters['isRancher'] || this.isMultiVirtualCluster) {
         const cluster = this.$store.getters['currentCluster'];
         let projects = this.$store.getters['management/all'](
           MANAGEMENT.PROJECT
@@ -87,7 +98,6 @@ export default {
         let firstProject = true;
 
         namespacesByProject[null] = []; // For namespaces not in a project
-
         for (const project of projects) {
           projectsById[project.metadata.name] = project;
         }
@@ -100,13 +110,12 @@ export default {
             projectId = null;
           }
 
-          let entry = namespacesByProject[namespace.projectId];
+          let entry = namespacesByProject[projectId];
 
           if (!entry) {
             entry = [];
             namespacesByProject[namespace.projectId] = entry;
           }
-
           entry.push(namespace);
         }
 
@@ -180,12 +189,10 @@ export default {
 
     value: {
       get() {
-        const values = this.$store.getters['prefs/get'](NAMESPACE_FILTERS);
+        const prefs = this.$store.getters['prefs/get'](NAMESPACE_FILTERS);
+        const clusterId = this.$store.getters['clusterId'];
+        const values = prefs[clusterId] || ['all://user'];
         const options = this.options;
-
-        if (!values) {
-          return [];
-        }
 
         // Remove values that are not valid options
         const out = values

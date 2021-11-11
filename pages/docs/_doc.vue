@@ -91,6 +91,10 @@ export default {
       this.doc.toc.forEach((item) => {
         const tocElm = document.getElementById(`toc-link-${ item.id }`);
 
+        if ( !tocElm ) {
+          return;
+        }
+
         if (item.id === id) {
           tocElm.classList.add('active');
         } else {
@@ -112,6 +116,10 @@ export default {
           const elm = document.getElementById(item.id);
           const tocElm = document.getElementById(`toc-link-${ item.id }`);
 
+          if ( !tocElm ) {
+            return;
+          }
+
           let active;
 
           if (this.selected) {
@@ -132,7 +140,9 @@ export default {
           const last = this.doc.toc[this.doc.toc.length - 1].id;
           const tocElm = document.getElementById(`toc-link-${ last }`);
 
-          tocElm.classList.add('active');
+          if ( tocElm ) {
+            tocElm.classList.add('active');
+          }
         }
 
         this.selected = null;

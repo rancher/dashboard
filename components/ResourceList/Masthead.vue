@@ -133,7 +133,9 @@ export default {
 
 <template>
   <header>
-    <TypeDescription :resource="resource" />
+    <slot name="typeDescription">
+      <TypeDescription :resource="resource" />
+    </slot>
     <div class="title">
       <h1 class="m-0">
         {{ _typeDisplay }} <Favorite v-if="isExplorer" :resource="favoriteResource || resource" />

@@ -90,3 +90,10 @@ sw.*
 
 # Mac OSX
 .DS_Store
+
+# Cypress e2e testing
+cypress/videos
+cypress/screenshots
+
+# Storybook
+storybook-static/

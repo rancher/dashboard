@@ -1,5 +1,7 @@
-export default {
-  keysDisplay() {
+import SteveModel from '@/plugins/steve/steve-class';
+
+export default class ConfigMap extends SteveModel {
+  get keysDisplay() {
     const keys = [
       ...Object.keys(this.data || []),
       ...Object.keys(this.binaryData || [])
@@ -14,5 +16,5 @@ export default {
     // }
 
     return keys.join(', ');
-  },
-};
+  }
+}

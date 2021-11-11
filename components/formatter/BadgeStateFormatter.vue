@@ -1,6 +1,6 @@
 <script>
 import BadgeState from '@/components/BadgeState';
-import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
+import { colorForState, stateDisplay } from '@/plugins/steve/resource-class';
 export default {
   components: { BadgeState },
   props:      {
@@ -24,16 +24,24 @@ export default {
   },
 
   data() {
-    const out = {};
+    return {
+      stateDisplay:    '',
+      stateBackground: ''
+    };
+  },
 
-    if (this.arbitrary) {
-      const color = colorForState(this.value);
+  watch: {
+    value: {
+      handler() {
+        if (this.arbitrary) {
+          const color = colorForState(this.value);
 
-      out.stateDisplay = stateDisplay(this.value);
-      out.stateBackground = color.replace('text-', 'bg-');
+          this.stateDisplay = stateDisplay(this.value);
+          this.stateBackground = color.replace('text-', 'bg-');
+        }
+      },
+      immediate: true
     }
-
-    return out;
   }
 };
 </script>

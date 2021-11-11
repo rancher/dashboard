@@ -22,6 +22,11 @@ export default {
       default: 'number', // or string
     },
 
+    outputSufficText: {
+      type:    String,
+      default: ''
+    },
+
     inputExponent: {
       type:    Number,
       default: 0,
@@ -113,7 +118,9 @@ export default {
         out = parseSi(`${ userValue } ${ this.unit || '' }`, { increment: this.increment });
       }
 
-      if ( this.outputAs === 'string' ) {
+      if (this.outputAs === 'string' && this.outputSufficText) {
+        out = out === null ? '' : `${ out }${ this.outputSufficText }`;
+      } else if ( this.outputAs === 'string' ) {
         out = out === null ? '' : `${ out }`;
       }
 

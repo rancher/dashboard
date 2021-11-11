@@ -96,6 +96,22 @@ export default {
   methods: {
     async save(saveCb) {
       try {
+        if ( this.value.spec?.resourceQuota?.limit && !Object.keys(this.value.spec.resourceQuota.limit).length ) {
+          delete this.value.spec.resourceQuota.limit;
+        }
+
+        if ( this.value.spec?.resourceQuota && !Object.keys(this.value.spec.resourceQuota).length ) {
+          delete this.value.spec.resourceQuota;
+        }
+
+        if ( this.value.spec?.namespaceDefaultResourceQuota?.limit && !Object.keys(this.value.spec.namespaceDefaultResourceQuota.limit).length ) {
+          delete this.value.spec.namespaceDefaultResourceQuota.limit;
+        }
+
+        if ( this.value.spec?.namespaceDefaultResourceQuota && !Object.keys(this.value.spec.namespaceDefaultResourceQuota).length ) {
+          delete this.value.spec.namespaceDefaultResourceQuota;
+        }
+
         const savedProject = await this.value.save();
 
         if (this.membershipUpdate.save) {
@@ -133,7 +149,14 @@ export default {
     @finish="save"
     @cancel="done"
   >
-    <NameNsDescription v-model="value" :mode="mode" :namespaced="false" description-key="spec.description" name-key="spec.displayName" />
+    <NameNsDescription
+      v-model="value"
+      :mode="mode"
+      :namespaced="false"
+      description-key="spec.description"
+      name-key="spec.displayName"
+      :normalize-name="false"
+    />
     <div class="row">
       <div class="col span-12">
         <LabeledSelect

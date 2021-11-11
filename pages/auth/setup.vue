@@ -7,12 +7,13 @@ import { LOGGED_OUT, SETUP } from '@/config/query-params';
 import { NORMAN, MANAGEMENT } from '@/config/types';
 import { findBy } from '@/utils/array';
 import Checkbox from '@/components/form/Checkbox';
-import { getVendor, getProduct } from '@/config/private-label';
+import { getVendor, getProduct, setVendor } from '@/config/private-label';
 import RadioGroup from '@/components/form/RadioGroup';
 import { setSetting, SETTING } from '@/config/settings';
 import { _ALL_IF_AUTHED } from '@/plugins/steve/actions';
 import { isDevBuild } from '@/utils/version';
 import { exceptionToErrorsArray } from '@/utils/error';
+import Password from '@/components/form/Password';
 
 const calcIsFirstLogin = (store) => {
   const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
@@ -65,7 +66,7 @@ export default {
   },
 
   components: {
-    AsyncButton, LabeledInput, CopyToClipboard, Checkbox, RadioGroup
+    AsyncButton, LabeledInput, CopyToClipboard, Checkbox, RadioGroup, Password
   },
 
   async asyncData({ route, req, store }) {
@@ -78,6 +79,30 @@ export default {
       telemetry = telemetrySetting.value !== 'out';
     } else if (!rancherVersionSetting?.value || isDevBuild(rancherVersionSetting?.value)) {
       telemetry = false;
+    }
+
+    let plSetting;
+
+    try {
+      await store.dispatch('management/findAll', {
+        type: MANAGEMENT.SETTING,
+        opt:  {
+          load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
+        },
+      });
+
+      plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
+    } catch (e) {
+      // Older versions used Norman API to get these
+      plSetting = await store.dispatch('rancher/find', {
+        type: 'setting',
+        id:   SETTING.PL,
+        opt:  { url: `/v3/settings/${ SETTING.PL }` }
+      });
+    }
+
+    if (plSetting.value?.length && plSetting.value !== getVendor()) {
+      setVendor(plSetting.value);
     }
 
     const principals = await store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
@@ -169,18 +194,8 @@ export default {
         this.password = '';
         this.$nextTick(() => {
           this.$refs.password.focus();
-          this.$refs.password.select();
         });
       }
-    }
-  },
-
-  mounted() {
-    const el = this.$refs.password;
-
-    if ( el ) {
-      el.focus();
-      el.select();
     }
   },
 
@@ -255,13 +270,14 @@ export default {
               v-html="t(isFirstLogin ? 'setup.setPassword' : 'setup.newUserSetPassword', { username }, true)"
             ></p>
 
-            <LabeledInput
+            <Password
               v-if="!haveCurrent"
               v-model.trim="current"
               autocomplete="current-password"
               type="password"
-              label-key="setup.currentPassword"
+              :label="t('setup.currentPassword')"
               class="mb-20"
+              :required="true"
             />
 
             <!-- For password managers... -->
@@ -271,6 +287,7 @@ export default {
             </div>
             <div class="mb-20">
               <LabeledInput
+                v-if="useRandom"
                 ref="password"
                 v-model.trim="password"
                 :type="useRandom ? 'text' : 'password'"
@@ -283,13 +300,20 @@ export default {
                   </div>
                 </template>
               </LabeledInput>
+              <Password
+                v-else
+                ref="password"
+                v-model.trim="password"
+                :label="t('setup.newPassword')"
+                :required="true"
+              />
             </div>
-            <LabeledInput
+            <Password
               v-show="!useRandom"
               v-model.trim="confirm"
               autocomplete="new-password"
-              type="password"
-              label-key="setup.confirmPassword"
+              :label="t('setup.confirmPassword')"
+              :required="true"
             />
           </template>
 

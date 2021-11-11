@@ -47,6 +47,7 @@ export const CAPI = {
   CREDENTIAL_DRIVER: 'provisioning.cattle.io/driver',
   CLUSTER_NAMESPACE: 'cluster.x-k8s.io/cluster-namespace',
   MACHINE_NAME:      'cluster.x-k8s.io/machine',
+  PROVIDER:          'provider.cattle.io'
 };
 
 export const CATALOG = {
@@ -89,6 +90,7 @@ export const FLEET = {
   CLUSTER_DISPLAY_NAME: 'management.cattle.io/cluster-display-name',
   CLUSTER_NAME:         'management.cattle.io/cluster-name',
   BUNDLE_ID:            'fleet.cattle.io/bundle-id',
+  MANAGED:              'fleet.cattle.io/managed'
 };
 
 export const RBAC = { PRODUCT: 'management.cattle.io/ui-product' };
@@ -113,6 +115,27 @@ export const ANNOTATIONS_TO_FOLD = [
 ];
 
 export const HCI = {
-  CLUSTER_ID: 'harvesterhci.io/clusterId',
-  CLOUD_INIT: 'harvesterhci.io/cloud-init-template'
+  CLUSTER_ID:                   'harvesterhci.io/clusterId',
+  CLOUD_INIT:                   'harvesterhci.io/cloud-init-template',
+  OWNED_BY:                     'harvesterhci.io/owned-by',
+  CREATED_BY:                   'kubevirt.io/created-by',
+  IMAGE_ID:                     'harvesterhci.io/imageId',
+  SSH_NAMES:                    'harvesterhci.io/sshNames',
+  CIRD_NETWORK:                 'k8s.v1.cni.cncf.io/networks',
+  NETWORK_IPS:                  'networks.harvesterhci.io/ips',
+  TEMPLATE_VERSION_CUSTOM_NAME: 'template-version.harvesterhci.io/customName',
+  CREATOR:                      'harvesterhci.io/creator',
+  NETWORK_TYPE:                 'networks.harvesterhci.io/type',
+  VM_NAME:                      'harvesterhci.io/vmName',
+  MAINTENANCE_STATUS:           'harvesterhci.io/maintain-status',
+  HOST_CUSTOM_NAME:             'harvesterhci.io/host-custom-name',
+  HOST_CONSOLE_URL:             'harvesterhci.io/host-console-url',
+  BACKUP_TARGET:                'backup.harvesterhci.io/backup-target',
+  RESTORE_NAME:                 'restore.harvesterhci.io/name',
+  NODE_ROLE_MASTER:             'node-role.kubernetes.io/master',
+  NODE_ROLE_CONTROL_PLANE:      'node-role.kubernetes.io/control-plane',
+  PROMOTE_STATUS:               'harvesterhci.io/promote-status',
+  MIGRATION_STATE:              'harvesterhci.io/migrationState',
+  VOLUME_CLAIM_TEMPLATE:        'harvesterhci.io/volumeClaimTemplates',
+  IMAGE_NAME:                   'harvesterhci.io/image-name',
 };

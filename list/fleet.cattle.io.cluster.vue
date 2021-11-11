@@ -2,10 +2,14 @@
 import FleetClusters from '@/components/FleetClusters';
 import { FLEET, MANAGEMENT } from '@/config/types';
 import Loading from '@/components/Loading';
+import { isHarvesterCluster } from '@/utils/cluster';
+import Banner from '@/components/Banner';
 
 export default {
   name:       'ListCluster',
-  components: { FleetClusters, Loading },
+  components: {
+    Banner, FleetClusters, Loading
+  },
 
   props: {
     schema: {
@@ -28,7 +32,7 @@ export default {
   },
 
   computed: {
-    rows() {
+    allClusters() {
       const out = this.allFleet.slice();
 
       const known = {};
@@ -45,15 +49,31 @@ export default {
 
       return out;
     },
+
+    rows() {
+      return this.fleetClusters.filter(c => !isHarvesterCluster(c));
+    },
+
+    fleetClusters() {
+      return this.allClusters.filter(c => c.type === FLEET.CLUSTER);
+    },
+
+    hiddenHarvesterCount() {
+      return this.fleetClusters.length - this.rows.length;
+    },
   },
 };
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <FleetClusters
-    v-else
-    :rows="rows"
-    :schema="schema"
-  />
+  <div>
+    <Loading v-if="$fetchState.pending" />
+    <div v-else>
+      <Banner v-if="hiddenHarvesterCount" color="info" :label="t('fleet.clusters.harvester', {count: hiddenHarvesterCount} )" />
+      <FleetClusters
+        :rows="rows"
+        :schema="schema"
+      />
+    </div>
+  </div>
 </template>

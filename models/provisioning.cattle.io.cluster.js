@@ -1,16 +1,17 @@
 import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
-import { proxyFor } from '@/plugins/steve/resource-proxy';
+import { classify } from '@/plugins/steve/classify';
 import { findBy, insertAt } from '@/utils/array';
-import { set } from '@/utils/object';
+import { set, get } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { compare } from '@/utils/version';
-import { AS, MODE, _EDIT, _YAML } from '~/config/query-params';
+import { AS, MODE, _EDIT, _YAML } from '@/config/query-params';
+import SteveModel from '@/plugins/steve/steve-class';
 
 export const DEFAULT_WORKSPACE = 'fleet-default';
 
-export default {
-  details() {
+export default class ProvCluster extends SteveModel {
+  get details() {
     const out = [
       {
         label:   'Provisioner',
@@ -33,10 +34,19 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  _availableActions() {
-    const out = this._standardActions;
+  get availableActions() {
+    // No actions for Harvester clusters
+    if (this.isHarvester) {
+      return [];
+    }
+
+    return this._availableActions;
+  }
+
+  get _availableActions() {
+    const out = super._availableActions;
     let idx = 0;
     const isLocal = this.mgmt?.isLocal;
 
@@ -51,7 +61,7 @@ export default {
 
     insertAt(out, idx++, {
       action:     'openShell',
-      label:      'Kubectl Shell',
+      label:      this.$rootGetters['i18n/t']('nav.shell'),
       icon:       'icon icon-terminal',
       enabled:    !!this.mgmt?.links.shell && this.mgmt?.isReady,
     });
@@ -59,7 +69,7 @@ export default {
     insertAt(out, idx++, {
       action:     'downloadKubeConfig',
       bulkAction: 'downloadKubeConfigBulk',
-      label:      'Download KubeConfig',
+      label:      this.$rootGetters['i18n/t']('nav.kubeconfig'),
       icon:       'icon icon-download',
       bulkable:   true,
       enabled:    this.$rootGetters['isRancher'] && this.mgmt?.isReady,
@@ -99,35 +109,33 @@ export default {
     insertAt(out, idx++, { divider: true });
 
     return out;
-  },
+  }
 
   goToEditYaml() {
-    return () => {
-      let location;
+    let location;
 
-      if ( !this.isRke2 ) {
-        location = this.mgmt?.detailLocation;
-      }
+    if ( !this.isRke2 ) {
+      location = this.mgmt?.detailLocation;
+    }
 
-      if ( !location ) {
-        location = this.detailLocation;
-      }
+    if ( !location ) {
+      location = this.detailLocation;
+    }
 
-      location.query = {
-        ...location.query,
-        [MODE]: _EDIT,
-        [AS]:   _YAML
-      };
-
-      this.currentRouter().push(location);
+    location.query = {
+      ...location.query,
+      [MODE]: _EDIT,
+      [AS]:   _YAML
     };
-  },
 
-  isImported() {
+    this.currentRouter().push(location);
+  }
+
+  get isImported() {
     return this.provisioner === 'imported';
-  },
+  }
 
-  isCustom() {
+  get isCustom() {
     if ( this.isRke2 ) {
       return !(this.spec?.rkeConfig?.machinePools?.length);
     }
@@ -137,62 +145,62 @@ export default {
     }
 
     return false;
-  },
+  }
 
-  isImportedK3s() {
+  get isImportedK3s() {
     return this.isImported && this.mgmt?.status?.provider === 'k3s';
-  },
+  }
 
-  isImportedRke2() {
+  get isImportedRke2() {
     return this.isImported && this.mgmt?.status?.provider.startsWith('rke2');
-  },
+  }
 
-  isRke2() {
+  get isRke2() {
     return !!this.spec?.rkeConfig;
-  },
+  }
 
-  isRke1() {
+  get isRke1() {
     return !!this.mgmt?.spec?.rancherKubernetesEngineConfig;
-  },
+  }
 
-  mgmtClusterId() {
+  get isHarvester() {
+    return !!this.mgmt?.isHarvester;
+  }
+
+  get mgmtClusterId() {
     return this.mgmt?.id || this.id.replace(`${ this.metadata.namespace }/`, '');
-  },
+  }
 
-  mgmt() {
+  get mgmt() {
     const name = this.status?.clusterName;
 
     if ( !name ) {
       return null;
     }
 
-    const out = this.$getters['byId'](MANAGEMENT.CLUSTER, name);
+    const out = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, name);
 
     return out;
-  },
+  }
 
-  waitForProvisioner() {
-    return (timeout, interval) => {
-      return this.waitForTestFn(() => {
-        return !!this.provisioner;
-      }, `set provisioner`, timeout, interval);
-    };
-  },
+  waitForProvisioner(timeout, interval) {
+    return this.waitForTestFn(() => {
+      return !!this.provisioner;
+    }, `set provisioner`, timeout, interval);
+  }
 
-  waitForMgmt() {
-    return (timeout, interval) => {
-      return this.waitForTestFn(() => {
-        // `this` instance isn't getting updated with `status.clusterName`
-        // Workaround - Get fresh copy from the store
-        const pCluster = this.$getters['byId'](CAPI.RANCHER_CLUSTER, this.id);
-        const name = this.status?.clusterName || pCluster?.status?.clusterName;
+  waitForMgmt(timeout, interval) {
+    return this.waitForTestFn(() => {
+      // `this` instance isn't getting updated with `status.clusterName`
+      // Workaround - Get fresh copy from the store
+      const pCluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, this.id);
+      const name = this.status?.clusterName || pCluster?.status?.clusterName;
 
-        return name && !!this.$getters['byId'](MANAGEMENT.CLUSTER, name);
-      }, `mgmt cluster create`, timeout, interval);
-    };
-  },
+      return name && !!this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, name);
+    }, `mgmt cluster create`, timeout, interval);
+  }
 
-  provisioner() {
+  get provisioner() {
     if ( this.isRke2 ) {
       const allKeys = Object.keys(this.spec);
       const configKey = allKeys.find( k => k.endsWith('Config'));
@@ -204,12 +212,12 @@ export default {
       }
     } else if ( this.mgmt ) {
       return this.mgmt.provisioner;
-    } else {
-      return null;
     }
-  },
 
-  provisionerDisplay() {
+    return null;
+  }
+
+  get provisionerDisplay() {
     let provisioner = (this.provisioner || '').toLowerCase();
 
     // RKE provisioner can actually do K3s too...
@@ -222,9 +230,9 @@ export default {
     }
 
     return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provisioner }"`, null, ucFirst(provisioner));
-  },
+  }
 
-  kubernetesVersion() {
+  get kubernetesVersion() {
     const unknown = this.$rootGetters['i18n/t']('generic.unknown');
 
     if ( this.isRke2 ) {
@@ -237,9 +245,9 @@ export default {
     } else {
       return unknown;
     }
-  },
+  }
 
-  machineProvider() {
+  get machineProvider() {
     if ( this.isImported ) {
       return null;
     } else if ( this.isRke2 ) {
@@ -253,9 +261,11 @@ export default {
     } else if ( this.mgmt?.machineProvider ) {
       return this.mgmt.machineProvider.toLowerCase();
     }
-  },
 
-  machineProviderDisplay() {
+    return null;
+  }
+
+  get machineProviderDisplay() {
     if ( this.isImported ) {
       return null;
     }
@@ -267,49 +277,51 @@ export default {
     } else {
       return this.$rootGetters['i18n/t']('generic.unknown');
     }
-  },
+  }
 
-  nodes() {
-    return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.mgmtClusterId));
-  },
+  get nodes() {
+    return this.$rootGetters['management/all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.mgmtClusterId));
+  }
 
-  displayName() {
+  get displayName() {
     if ( this.mgmt && !this.isRke2 ) {
       return this.mgmt.spec.displayName;
     }
-  },
 
-  pools() {
-    const deployments = this.$getters['all'](CAPI.MACHINE_DEPLOYMENT).filter(pool => pool.spec?.clusterName === this.metadata.name);
+    return null;
+  }
+
+  get pools() {
+    const deployments = this.$rootGetters['management/all'](CAPI.MACHINE_DEPLOYMENT).filter(pool => pool.spec?.clusterName === this.metadata.name);
 
     if (!!deployments.length) {
       return deployments;
     }
 
-    return this.$getters['all'](MANAGEMENT.NODE_POOL).filter(pool => pool.spec.clusterName === this.status?.clusterName);
-  },
+    return this.$rootGetters['management/all'](MANAGEMENT.NODE_POOL).filter(pool => pool.spec.clusterName === this.status?.clusterName);
+  }
 
-  desired() {
+  get desired() {
     return this.pools.reduce((acc, pool) => acc + (pool.desired || 0), 0);
-  },
+  }
 
-  pending() {
+  get pending() {
     return this.pools.reduce((acc, pool) => acc + (pool.pending || 0), 0);
-  },
+  }
 
-  outdated() {
+  get outdated() {
     return this.pools.reduce((acc, pool) => acc + (pool.outdated || 0), 0);
-  },
+  }
 
-  ready() {
+  get ready() {
     return this.pools.reduce((acc, pool) => acc + (pool.ready || 0), 0);
-  },
+  }
 
-  unavailable() {
+  get unavailable() {
     return this.pools.reduce((acc, pool) => acc + (pool.unavailable || 0), 0);
-  },
+  }
 
-  stateParts() {
+  get stateParts() {
     const out = [
       {
         label:     'Pending',
@@ -342,127 +354,111 @@ export default {
     ].filter(x => x.value > 0);
 
     return sortBy(out, 'sort:desc');
-  },
+  }
 
-  getOrCreateToken() {
-    return async() => {
-      await this.waitForMgmt();
+  async getOrCreateToken() {
+    await this.waitForMgmt();
 
-      if ( !this.mgmt ) {
-        return;
-      }
+    if ( !this.mgmt ) {
+      return;
+    }
 
-      const tokens = await this.$dispatch('rancher/findAll', { type: NORMAN.CLUSTER_TOKEN, force: true }, { root: true });
+    const tokens = await this.$dispatch('rancher/findAll', { type: NORMAN.CLUSTER_TOKEN, force: true }, { root: true });
 
-      let token = findBy(tokens, 'clusterId', this.mgmt.id);
+    let token = findBy(tokens, 'clusterId', this.mgmt.id);
 
-      if ( token ) {
-        return token;
-      }
+    if ( token ) {
+      return token;
+    }
 
-      if ( !this.links.update ) {
-        return;
-      }
+    if ( !this.links.update ) {
+      return;
+    }
 
-      token = await this.$dispatch('rancher/create', {
-        type:      NORMAN.CLUSTER_TOKEN,
-        clusterId: this.mgmt.id
-      }, { root: true });
+    token = await this.$dispatch('rancher/create', {
+      type:      NORMAN.CLUSTER_TOKEN,
+      clusterId: this.mgmt.id
+    }, { root: true });
 
-      return token.save();
-    };
-  },
+    return token.save();
+  }
 
   openShell() {
-    return () => {
-      return this.mgmt?.openShell();
-    };
-  },
+    return this.mgmt?.openShell();
+  }
 
   generateKubeConfig() {
-    return () => {
-      return this.mgmt?.generateKubeConfig();
-    };
-  },
+    return this.mgmt?.generateKubeConfig();
+  }
 
   downloadKubeConfig() {
-    return () => {
-      return this.mgmt?.downloadKubeConfig();
-    };
-  },
+    return this.mgmt?.downloadKubeConfig();
+  }
 
-  downloadKubeConfigBulk() {
-    return (items) => {
-      return this.mgmt?.downloadKubeConfigBulk(items);
-    };
-  },
+  downloadKubeConfigBulk(items) {
+    return this.mgmt?.downloadKubeConfigBulk(items);
+  }
 
-  snapshotAction() {
-    return async() => {
-      try {
-        await this.takeSnapshot();
-        this.$dispatch('growl/success', {
-          title:   this.$rootGetters['i18n/t']('cluster.snapshot.successTitle', { name: this.nameDisplay }),
-          message: this.$rootGetters['i18n/t']('cluster.snapshot.successMessage', { name: this.nameDisplay })
-        }, { root: true });
-      } catch (err) {
+  async snapshotAction() {
+    try {
+      await this.takeSnapshot();
+      this.$dispatch('growl/success', {
+        title:   this.$rootGetters['i18n/t']('cluster.snapshot.successTitle', { name: this.nameDisplay }),
+        message: this.$rootGetters['i18n/t']('cluster.snapshot.successMessage', { name: this.nameDisplay })
+      }, { root: true });
+    } catch (err) {
+      this.$dispatch('growl/fromError', {
+        title: this.$rootGetters['i18n/t']('cluster.snapshot.errorTitle', { name: this.nameDisplay }),
+        err,
+      }, { root: true });
+    }
+  }
+
+  async snapshotBulk(items) {
+    const res = await Promise.allSettled(items.map((row) => {
+      return row.takeSnapshot();
+    }));
+
+    const successful = res.filter( x => x.status === 'fulfilled').length;
+
+    if ( successful ) {
+      this.$dispatch('growl/success', {
+        title:   this.$rootGetters['i18n/t']('cluster.snapshot.bulkSuccessTitle'),
+        message: this.$rootGetters['i18n/t']('cluster.snapshot.bulkSuccessMessage', { count: successful })
+      }, { root: true });
+    }
+
+    for ( let i = 0 ; i < res.length ; i++ ) {
+      if ( res[i].status !== 'fulfilled' ) {
         this.$dispatch('growl/fromError', {
-          title: this.$rootGetters['i18n/t']('cluster.snapshot.errorTitle', { name: this.nameDisplay }),
-          err,
+          title: this.$rootGetters['i18n/t']('cluster.snapshot.errorTitle', { name: items[i].nameDisplay }),
+          err:   res[i].value,
         }, { root: true });
       }
-    };
-  },
-
-  snapshotBulk() {
-    return async(items) => {
-      const res = await Promise.allSettled(items.map((row) => {
-        return row.takeSnapshot();
-      }));
-
-      const successful = res.filter( x => x.status === 'fulfilled').length;
-
-      if ( successful ) {
-        this.$dispatch('growl/success', {
-          title:   this.$rootGetters['i18n/t']('cluster.snapshot.bulkSuccessTitle'),
-          message: this.$rootGetters['i18n/t']('cluster.snapshot.bulkSuccessMessage', { count: successful })
-        }, { root: true });
-      }
-
-      for ( let i = 0 ; i < res.length ; i++ ) {
-        if ( res[i].status !== 'fulfilled' ) {
-          this.$dispatch('growl/fromError', {
-            title: this.$rootGetters['i18n/t']('cluster.snapshot.errorTitle', { name: items[i].nameDisplay }),
-            err:   res[i].value,
-          }, { root: true });
-        }
-      }
-    };
-  },
+    }
+  }
 
   takeSnapshot() {
-    return () => {
-      if ( this.isRke1 ) {
-        return this.$dispatch('rancher/request', {
-          url:           `/v3/clusters/${ escape(this.mgmt.id) }?action=backupEtcd`,
-          method:        'post',
-        }, { root: true });
-      } else {
-        const now = this.spec?.rkeConfig?.etcdSnapshotCreate?.generation || 0;
-        const args = { generation: now + 1 };
+    if ( this.isRke1 ) {
+      return this.$dispatch('rancher/request', {
+        url:           `/v3/clusters/${ escape(this.mgmt.id) }?action=backupEtcd`,
+        method:        'post',
+      }, { root: true });
+    } else {
+      const now = this.spec?.rkeConfig?.etcdSnapshotCreate?.generation || 0;
+      const args = { generation: now + 1 };
 
-        if ( this.spec?.rkeConfig?.etcd?.s3 ) {
-          args.s3 = this.spec.rkeConfig.etcd.s3;
-        }
-
-        set(this.spec.rkeConfig, 'etcdSnapshotCreate', args);
-
-        return this.save();
+      if ( this.spec?.rkeConfig?.etcd?.s3 ) {
+        args.s3 = this.spec.rkeConfig.etcd.s3;
       }
-    };
-  },
 
-  etcdSnapshots() {
+      set(this.spec.rkeConfig, 'etcdSnapshotCreate', args);
+
+      return this.save();
+    }
+  }
+
+  get etcdSnapshots() {
     return (this.status?.etcdSnapshots || []).map((x) => {
       x.id = x.name || x._name;
       x.type = 'etcdBackup';
@@ -470,46 +466,53 @@ export default {
       x.clusterId = this.id;
       x.rke2 = true;
 
-      return proxyFor(this.$ctx, x);
+      return classify(this.$ctx, x);
     });
-  },
+  }
 
-  saveAsRKETemplate() {
-    return (resources = this) => {
-      this.$dispatch('promptModal', {
-        resources,
-        component: 'SaveAsRKETemplateDialog'
-      });
-    };
-  },
+  saveAsRKETemplate(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'SaveAsRKETemplateDialog'
+    });
+  }
 
-  rotateCertificates() {
-    return (resources = this) => {
-      this.$dispatch('promptModal', {
-        resources,
-        component: 'RotateCertificatesDialog'
-      });
-    };
-  },
+  rotateCertificates(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'RotateCertificatesDialog'
+    });
+  }
 
-  rotateEncryptionKey() {
-    return (resources = this) => {
-      this.$dispatch('promptModal', {
-        resources,
-        component: 'RotateEncryptionKeyDialog'
-      });
-    };
-  },
+  rotateEncryptionKey(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'RotateEncryptionKeyDialog'
+    });
+  }
 
-  stateObj() {
+  get stateObj() {
+    if ( this.isHarvester) {
+      return {
+        error:         true,
+        message:       this.$rootGetters['i18n/t']('cluster.harvester.warning.label'),
+        name:          this.$rootGetters['i18n/t']('cluster.harvester.warning.state'),
+        transitioning: false
+      };
+    }
+
+    return this._stateObj;
+  }
+
+  get _stateObj() {
     if (!this.isRke2) {
       return this.mgmt?.stateObj || this.metadata?.state;
     }
 
     return this.metadata?.state;
-  },
+  }
 
-  supportsWindows() {
+  get supportsWindows() {
     if ( this.isRke1 ) {
       return this.mgmt?.spec?.windowsPreferedCluster || false;
     }
@@ -529,9 +532,9 @@ export default {
     }
 
     return true;
-  },
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     return [
       {
         path:           'metadata.name',
@@ -539,9 +542,51 @@ export default {
         validators:     [`clusterName:${ this.isRke2 }`],
       },
     ];
-  },
+  }
 
-  canClone() {
+  get canClone() {
     return false;
-  },
-};
+  }
+
+  async remove(opt = {}) {
+    if ( !opt.url ) {
+      opt.url = (this.links || {})['self'];
+    }
+
+    opt.method = 'delete';
+
+    const res = await this.$dispatch('request', opt);
+
+    const pool = (this.spec?.rkeConfig?.machinePools || [])[0];
+
+    if (pool?.machineConfigRef?.kind === 'HarvesterConfig') {
+      const cloudCredentialSecretName = this.spec.cloudCredentialSecretName;
+
+      await this.$dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL }, { root: true });
+
+      const credential = this.$rootGetters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, cloudCredentialSecretName);
+
+      if (credential) {
+        const harvesterClusterId = get(credential, 'decodedData.clusterId');
+
+        try {
+          const poolConfig = await this.$dispatch('management/find', {
+            type: `${ CAPI.MACHINE_CONFIG_GROUP }.${ (pool?.machineConfigRef?.kind || '').toLowerCase() }`,
+            id:   `${ this.metadata.namespace }/${ pool?.machineConfigRef?.name }`,
+          }, { root: true });
+
+          await this.$dispatch('management/request', {
+            url:                  `/k8s/clusters/${ harvesterClusterId }/v1/harvester/serviceaccounts/${ poolConfig.vmNamespace }/${ this.metadata.name }`,
+            method:               'DELETE',
+          }, { root: true });
+        } catch (e) {
+          console.error(e); // eslint-disable-line no-console
+        }
+      }
+    }
+
+    if ( res?._status === 204 ) {
+      await this.$dispatch('ws.resource.remove', { data: this });
+    }
+  }
+}

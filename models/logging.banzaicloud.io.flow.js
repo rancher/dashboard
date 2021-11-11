@@ -1,6 +1,7 @@
 import { LOGGING } from '@/config/types';
 import { set } from '@/utils/object';
 import uniq from 'lodash/uniq';
+import SteveModel from '@/plugins/steve/steve-class';
 
 export function matchRuleIsPopulated(rule) {
   if ( !rule ) {
@@ -22,18 +23,16 @@ export function matchRuleIsPopulated(rule) {
   return false;
 }
 
-export default {
+export default class LogFlow extends SteveModel {
   applyDefaults() {
-    return () => {
-      set(this, 'spec', this.spec || {});
-      set(this.spec, 'match', this.spec.match || []);
-      set(this.spec, 'filters', this.spec.filters || []);
-      set(this.spec, 'localOutputRefs', this.spec.localOutputRefs || []);
-      set(this.spec, 'globalOutputRefs', this.spec.globalOutputRefs || []);
-    };
-  },
+    set(this, 'spec', this.spec || {});
+    set(this.spec, 'match', this.spec.match || []);
+    set(this.spec, 'filters', this.spec.filters || []);
+    set(this.spec, 'localOutputRefs', this.spec.localOutputRefs || []);
+    set(this.spec, 'globalOutputRefs', this.spec.globalOutputRefs || []);
+  }
 
-  canCustomEdit() {
+  get canCustomEdit() {
     if ( !this.spec?.match?.length ) {
       return true;
     }
@@ -48,58 +47,58 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  allOutputs() {
+  get allOutputs() {
     return this.$rootGetters['cluster/all'](LOGGING.OUTPUT) || [];
-  },
+  }
 
-  allClusterOutputs() {
+  get allClusterOutputs() {
     return this.$rootGetters['cluster/all'](LOGGING.CLUSTER_OUTPUT) || [];
-  },
+  }
 
-  outputs() {
+  get outputs() {
     const localOutputRefs = this.spec?.localOutputRefs || [];
 
     return this.allOutputs.filter(output => localOutputRefs.includes(output.name));
-  },
+  }
 
-  outputsSortable() {
+  get outputsSortable() {
     const displays = this.outputs.map(o => o.nameDisplay);
 
     displays.sort();
 
     return displays.join('');
-  },
+  }
 
-  clusterOutputs() {
+  get clusterOutputs() {
     const globalOutputRefs = this.spec?.globalOutputRefs || [];
 
     return this.allClusterOutputs.filter(output => globalOutputRefs.includes(output.name));
-  },
+  }
 
-  clusterOutputsSortable() {
+  get clusterOutputsSortable() {
     const displays = this.clusterOutputs.map(o => o.nameDisplay);
 
     displays.sort();
 
     return displays.join('');
-  },
+  }
 
-  providersDisplay() {
+  get providersDisplay() {
     const combinedOutputs = [...this.outputs, ...this.clusterOutputs];
     const duplicatedProviders = combinedOutputs
       .flatMap(output => output.providersDisplay);
 
     return uniq(duplicatedProviders) || [];
-  },
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     return [
       {
         path:           'spec',
         validators:     ['flowOutput:verifyLocal'],
       },
     ];
-  },
-};
+  }
+}

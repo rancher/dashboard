@@ -91,12 +91,12 @@ export default {
 <template>
   <div>
     <h3>
-      Registry Authentication
-      <i v-tooltip="'When an image needs to be pulled from the given registry hostname, this information will be used to verify the identity of the registry and authenticate to it.'" class="icon icon-info" />
+      {{ t('registryConfig.header') }}
+      <i v-tooltip="t('registryConfig.toolTip')" class="icon icon-info" />
     </h3>
     <ArrayListGrouped
       v-model="entries"
-      add-label="Add Registry"
+      :add-label="t('registryConfig.addLabel')"
       :default-add-value="defaultAddValue"
       :mode="mode"
       @input="update()"
@@ -111,6 +111,7 @@ export default {
               :register-before-hook="registerBeforeHook"
               in-store="management"
               :allow-ssh="false"
+              :allow-rke="true"
               :vertical="true"
               :namespace="value.metadata.namespace"
               generate-name="registryconfig-auth-"

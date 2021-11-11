@@ -49,7 +49,7 @@ export default {
   <div class="taints">
     <KeyValue
       v-model="localValue"
-      title="Taints"
+      :title="t('tableHeaders.taints')"
       :mode="mode"
       :as-map="false"
       :read-allowed="false"
@@ -61,7 +61,7 @@ export default {
       :add-label="t('labels.addTaint')"
     >
       <template #label:effect>
-        Effect
+        {{ t('tableHeaders.effect') }}
       </template>
 
       <template #col:effect="{row, queueUpdate}">

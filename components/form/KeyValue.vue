@@ -483,7 +483,7 @@ export default {
       <template v-if="rows.length || isView">
         <label class="text-label">
           {{ keyLabel }}
-          <i v-if="protip && !isView" v-tooltip="protip" class="icon icon-info" />
+          <i v-if="protip && !isView && addAllowed" v-tooltip="protip" class="icon icon-info" />
         </label>
         <label class="text-label">
           {{ valueLabel }}
@@ -633,7 +633,7 @@ export default {
       }
 
       &.value textarea{
-        padding: 21px 10px 10px 10px;
+        padding: 10px 10px 10px 10px;
       }
 
       .text-monospace:not(.conceal) {

@@ -28,11 +28,27 @@ import PodAffinity from '@/components/form/PodAffinity';
 import Tolerations from '@/components/form/Tolerations';
 import CruResource from '@/components/CruResource';
 import Command from '@/components/form/Command';
+import LifecycleHooks from '@/components/form/LifecycleHooks';
 import Storage from '@/edit/workload/storage';
 import Labels from '@/components/form/Labels';
 import RadioGroup from '@/components/form/RadioGroup';
 import { UI_MANAGED } from '@/config/labels-annotations';
 import { removeObject } from '@/utils/array';
+import { BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
+
+const TAB_WEIGHT_MAP = {
+  general:              99,
+  healthCheck:          98,
+  labels:               97,
+  networking:           96,
+  nodeScheduling:       95,
+  podScheduling:        94,
+  resources:            93,
+  upgrading:            92,
+  securityContext:      91,
+  storage:              90,
+  volumeClaimTemplates: 89,
+};
 
 export default {
   name:       'CruWorkload',
@@ -56,6 +72,7 @@ export default {
     Tolerations,
     CruResource,
     Command,
+    LifecycleHooks,
     Storage,
     VolumeClaimTemplate,
     Labels,
@@ -156,10 +173,14 @@ export default {
       isInitContainer,
       container,
       containerChange:   0,
+      podFsGroup:        podTemplateSpec.securityContext?.fsGroup,
+      savePvcHookName:   'savePvcHook',
+      tabWeightMap:      TAB_WEIGHT_MAP,
     };
   },
 
   computed: {
+
     isEdit() {
       return this.mode === _EDIT;
     },
@@ -531,6 +552,7 @@ export default {
       this.fixNodeAffinity(nodeAffinity);
       this.fixPodAffinity(podAffinity);
       this.fixPodAffinity(podAntiAffinity);
+      this.fixPodSecurityContext(this.podTemplateSpec);
 
       // delete this.value.kind;
       if (this.container && !this.container.name) {
@@ -609,6 +631,20 @@ export default {
       return podAffinity;
     },
 
+    fixPodSecurityContext(podTempSpec) {
+      if (this.podFsGroup) {
+        podTempSpec.securityContext = podTempSpec.securityContext || {};
+        podTempSpec.securityContext.fsGroup = this.podFsGroup;
+      } else {
+        if (podTempSpec.securityContext?.fsGroup) {
+          delete podTempSpec.securityContext.fsGroup;
+        }
+        if (Object.keys(podTempSpec.securityContext || {}).length === 0) {
+          delete podTempSpec.securityContext;
+        }
+      }
+    },
+
     selectType(type) {
       if (!this.type && type) {
         this.$router.replace({ params: { resource: type } });
@@ -682,6 +718,15 @@ export default {
       }
       this.isInitContainer = neu;
     },
+    clearPvcFormState(hookName) {
+      // On the `closePvcForm` event, remove the
+      // before save hook to prevent the PVC from
+      // being created. Use the PVC's unique ID to distinguish
+      // between hooks for different PVCs.
+      if (this[BEFORE_SAVE_HOOKS]) {
+        this.unregisterBeforeSaveHook(hookName);
+      }
+    }
   }
 };
 </script>
@@ -750,7 +795,7 @@ export default {
         </div>
       </div>
       <Tabbed :key="containerChange" :side-tabs="true">
-        <Tab :label="t('workload.container.titles.general')" name="general">
+        <Tab :label="t('workload.container.titles.general')" name="general" :weight="tabWeightMap['general']">
           <div>
             <div :style="{'align-items':'center'}" class="row mb-20">
               <div class="col span-6">
@@ -771,7 +816,7 @@ export default {
             <div class="row mb-20">
               <div class="col span-6">
                 <LabeledInput
-                  v-model="container.image"
+                  v-model.trim="container.image"
                   :mode="mode"
                   :label="t('workload.container.image')"
                   placeholder="e.g. nginx:latest"
@@ -816,8 +861,14 @@ export default {
             <h3>{{ t('workload.container.titles.command') }}</h3>
             <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
           </div>
+
+          <div class="spacer"></div>
+          <div>
+            <h3>{{ t('workload.container.titles.lifecycle') }}</h3>
+            <LifecycleHooks v-model="container.lifecycle" :mode="mode" />
+          </div>
         </Tab>
-        <Tab :label="t('workload.storage.title')" name="storage">
+        <Tab :label="t('workload.storage.title')" name="storage" :weight="tabWeightMap['storage']">
           <Storage
             v-model="podTemplateSpec"
             :namespace="value.metadata.namespace"
@@ -826,9 +877,11 @@ export default {
             :secrets="namespacedSecrets"
             :config-maps="namespacedConfigMaps"
             :container="container"
+            :save-pvc-hook-name="savePvcHookName"
+            @removePvcForm="clearPvcFormState"
           />
         </Tab>
-        <Tab :label="t('workload.container.titles.resources')" name="resources">
+        <Tab :label="t('workload.container.titles.resources')" name="resources" :weight="tabWeightMap['resources']">
           <h3 class="mb-10">
             <t k="workload.scheduling.titles.limits" />
           </h3>
@@ -860,29 +913,38 @@ export default {
             </div>
           </template>
         </Tab>
-        <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling">
+        <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling" :weight="tabWeightMap['podScheduling']">
           <PodAffinity :mode="mode" :value="podTemplateSpec" />
         </Tab>
-        <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
+        <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="tabWeightMap['nodeScheduling']">
           <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" />
         </Tab>
-        <Tab :label="t('workload.container.titles.upgrading')" name="upgrading">
+        <Tab :label="t('workload.container.titles.upgrading')" name="upgrading" :weight="tabWeightMap['upgrading']">
           <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
           <Upgrading v-else v-model="spec" :mode="mode" :type="type" />
         </Tab>
-        <Tab v-if="!isInitContainer" :label="t('workload.container.titles.healthCheck')" name="healthCheck">
+        <Tab v-if="!isInitContainer" :label="t('workload.container.titles.healthCheck')" name="healthCheck" :weight="tabWeightMap['healthCheck']">
           <HealthCheck v-model="healthCheck" :mode="mode" />
         </Tab>
-        <Tab :label="t('workload.container.titles.securityContext')" name="securityContext">
+        <Tab :label="t('workload.container.titles.securityContext')" name="securityContext" :weight="tabWeightMap['securityContext']">
           <Security v-model="container.securityContext" :mode="mode" />
+          <div class="spacer"></div>
+          <div>
+            <h3>{{ t('workload.container.security.podFsGroup') }}</h3>
+            <div class="row">
+              <div class="col span-6">
+                <LabeledInput v-model.number="podFsGroup" type="number" :mode="mode" :label="t('workload.container.security.fsGroup')" />
+              </div>
+            </div>
+          </div>
         </Tab>
-        <Tab :label="t('workload.container.titles.networking')" name="networking">
+        <Tab :label="t('workload.container.titles.networking')" name="networking" :weight="tabWeightMap['networking']">
           <Networking v-model="podTemplateSpec" :mode="mode" />
         </Tab>
-        <Tab v-if="isStatefulSet" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates">
+        <Tab v-if="isStatefulSet" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates" :weight="tabWeightMap['volumeClaimTemplates']">
           <VolumeClaimTemplate v-model="spec" :mode="mode" />
         </Tab>
-        <Tab name="labels" label-key="generic.labelsAndAnnotations">
+        <Tab name="labels" label-key="generic.labelsAndAnnotations" :weight="tabWeightMap['labels']">
           <Labels v-model="value" :mode="mode" />
           <div class="spacer"></div>
 

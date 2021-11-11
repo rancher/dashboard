@@ -1,6 +1,6 @@
 import Steve from '@/plugins/steve';
 import {
-  COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET, UI
+  COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET, UI, VIRTUAL_HARVESTER_PROVIDER, HCI
 } from '@/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS, LAST_NAMESPACE, WORKSPACE } from '@/store/prefs';
 import { allHash, allHashSettled } from '@/utils/promise';
@@ -15,6 +15,8 @@ import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { addParam } from '@/utils/url';
 import { SETTING } from '@/config/settings';
 import semver from 'semver';
+import { BY_TYPE, NORMAN as NORMAN_CLASS } from '@/plugins/steve/classify';
+import { NAME as VIRTUAL } from '@/config/product/harvester';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -23,27 +25,47 @@ export const strict = false;
 export const BLANK_CLUSTER = '_';
 
 export const plugins = [
-  Steve({ namespace: 'management', baseUrl: '/v1' }),
-  Steve({ namespace: 'cluster', baseUrl: '' }), // URL dynamically set for the selected cluster
-  Steve({ namespace: 'rancher', baseUrl: '/v3' }),
+  Steve({
+    namespace:      'management',
+    baseUrl:        '/v1',
+    modelBaseClass: BY_TYPE,
+    supportsStream: true,
+  }),
+  Steve({
+    namespace:      'cluster',
+    baseUrl:        '', // URL is dynamically set for the selected cluster
+    supportsStream: true,
+  }),
+  Steve({
+    namespace:      'rancher',
+    baseUrl:        '/v3',
+    supportsStream: false,
+    modelBaseClass: NORMAN_CLASS,
+  }),
+  Steve({
+    namespace:      'harvester',
+    baseUrl:        '', // URL is dynamically set for the selected cluster
+    supportsStream: true,
+  }),
 ];
 
 export const state = () => {
   return {
-    managementReady:  false,
-    clusterReady:     false,
-    isMultiCluster:   false,
-    isRancher:        false,
-    namespaceFilters: [],
-    allNamespaces:    null,
-    allWorkspaces:    null,
-    clusterId:        null,
-    productId:        null,
-    workspace:        null,
-    error:            null,
-    cameFromError:    false,
-    pageActions:      [],
-    serverVersion:    null,
+    managementReady:     false,
+    clusterReady:        false,
+    isMultiCluster:      false,
+    isRancher:           false,
+    namespaceFilters:    [],
+    allNamespaces:       null,
+    allWorkspaces:       null,
+    clusterId:           null,
+    productId:           null,
+    workspace:           null,
+    error:               null,
+    cameFromError:       false,
+    pageActions:         [],
+    serverVersion:       null,
+    systemNamespaces:    []
   };
 };
 
@@ -74,6 +96,10 @@ export const getters = {
 
   pageActions(state) {
     return state.pageActions;
+  },
+
+  systemNamespaces(state) {
+    return state.systemNamespaces;
   },
 
   currentCluster(state, getters) {
@@ -125,6 +151,7 @@ export const getters = {
   defaultClusterId(state, getters) {
     const all = getters['management/all'](MANAGEMENT.CLUSTER);
     const clusters = sortBy(filterBy(all, 'isReady'), 'nameDisplay');
+
     const desired = getters['prefs/get'](CLUSTER_PREF);
 
     if ( clusters.find(x => x.id === desired) ) {
@@ -359,6 +386,25 @@ export const getters = {
 
     return '/';
   },
+
+  isSingleVirtualCluster(state, getters, rootState, rootGetters) {
+    const clusterId = getters.defaultClusterId;
+    const cluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, clusterId);
+
+    return !getters.isMultiCluster && cluster?.status?.provider === VIRTUAL_HARVESTER_PROVIDER;
+  },
+
+  isMultiVirtualCluster(state, getters, rootState, rootGetters) {
+    const localCluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, 'local');
+
+    return getters.isMultiCluster && localCluster?.status?.provider !== VIRTUAL_HARVESTER_PROVIDER;
+  },
+
+  isVirtualCluster(state, getters) {
+    const cluster = getters['currentCluster'];
+
+    return cluster?.status?.provider === VIRTUAL_HARVESTER_PROVIDER;
+  }
 };
 
 export const mutations = {
@@ -424,6 +470,10 @@ export const mutations = {
 
   setServerVersion(state, version) {
     state.serverVersion = version;
+  },
+
+  setSystemNamespaces(state, namespaces) {
+    state.systemNamespaces = namespaces;
   }
 };
 
@@ -496,6 +546,7 @@ export const actions = {
 
     const pl = res.settings?.find(x => x.name === 'ui-pl')?.value;
     const brand = res.settings?.find(x => x.name === SETTING.BRAND)?.value;
+    const systemNamespaces = res.settings?.find(x => x.name === SETTING.SYSTEM_NAMESPACES);
 
     if ( pl ) {
       setVendor(pl);
@@ -503,6 +554,12 @@ export const actions = {
 
     if (brand) {
       setBrand(brand);
+    }
+
+    if (systemNamespaces) {
+      const namespace = (systemNamespaces.value || systemNamespaces.default)?.split(',');
+
+      commit('setSystemNamespaces', namespace);
     }
 
     commit('managementChanged', {
@@ -523,13 +580,18 @@ export const actions = {
 
   async loadCluster({
     state, commit, dispatch, getters
-  }, id) {
+  }, { id, oldProduct }) {
     const isMultiCluster = getters['isMultiCluster'];
     const isRancher = getters['isRancher'];
 
-    if ( state.clusterId && state.clusterId === id ) {
+    if ( state.clusterId && state.clusterId === id) {
       // Do nothing, we're already connected/connecting to this cluster
       return;
+    }
+
+    if (oldProduct === VIRTUAL) {
+      await dispatch('harvester/unsubscribe');
+      commit('harvester/reset');
     }
 
     if ( state.clusterId && id ) {
@@ -584,7 +646,8 @@ export const actions = {
     const clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
 
     // Update the Steve client URLs
-    commit('cluster/applyConfig', { baseUrl: clusterBase });
+    commit('cluster/applyConfig',
+      { baseUrl: clusterBase });
 
     await Promise.all([
       dispatch('cluster/loadSchemas', true),
@@ -601,14 +664,16 @@ export const actions = {
     };
 
     const res = await allHash({
-      projects:   isRancher && dispatch('management/findAll', projectArgs),
-      counts:     dispatch('cluster/findAll', { type: COUNT }),
-      namespaces: dispatch('cluster/findAll', { type: NAMESPACE }),
-      navLinks:   !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
+      projects:          isRancher && dispatch('management/findAll', projectArgs),
+      counts:            dispatch('cluster/findAll', { type: COUNT }),
+      namespaces:        dispatch('cluster/findAll', { type: NAMESPACE }),
+      navLinks:          !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
     });
 
+    await dispatch('cleanNamespaces');
+
     commit('updateNamespaces', {
-      filters: getters['prefs/get'](NAMESPACE_FILTERS),
+      filters: getters['prefs/get'](NAMESPACE_FILTERS)?.[id] || [],
       all:     res.namespaces
     });
 
@@ -617,9 +682,142 @@ export const actions = {
     console.log('Done loading cluster.'); // eslint-disable-line no-console
   },
 
-  switchNamespaces({ commit, dispatch }, value) {
-    dispatch('prefs/set', { key: NAMESPACE_FILTERS, value });
+  switchNamespaces({ commit, dispatch, getters }, value) {
+    const filters = getters['prefs/get'](NAMESPACE_FILTERS);
+    const clusterId = getters['clusterId'];
+
+    dispatch('prefs/set', {
+      key:   NAMESPACE_FILTERS,
+      value: {
+        ...filters,
+        [clusterId]: value
+      }
+    });
     commit('updateNamespaces', { filters: value });
+  },
+
+  async loadVirtual({
+    state, commit, dispatch, getters
+  }, { id, oldProduct }) {
+    const isMultiCluster = getters['isMultiCluster'];
+
+    if (isMultiCluster && id === 'local') {
+      return;
+    }
+
+    if ( state.clusterId && state.clusterId === id && oldProduct === VIRTUAL) {
+      // Do nothing, we're already connected/connecting to this cluster
+      return;
+    }
+
+    if (oldProduct !== VIRTUAL) {
+      await dispatch('cluster/unsubscribe');
+      commit('cluster/reset');
+    }
+
+    if ( state.clusterId && id ) {
+      commit('clusterChanged', false);
+
+      await dispatch('harvester/unsubscribe');
+      commit('harvester/reset');
+
+      await dispatch('management/watch', {
+        type:      MANAGEMENT.PROJECT,
+        namespace: state.clusterId,
+        stop:      true
+      });
+
+      commit('management/forgetType', MANAGEMENT.PROJECT);
+    }
+
+    if (id) {
+      commit('setCluster', id);
+    }
+
+    console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
+
+    // See if it really exists
+    const cluster = await dispatch('management/find', {
+      type: MANAGEMENT.CLUSTER,
+      id,
+      opt:  { url: `${ MANAGEMENT.CLUSTER }s/${ escape(id) }` }
+    });
+
+    let virtualBase = `/k8s/clusters/${ escape(id) }/v1/harvester`;
+
+    if (id === 'local') {
+      virtualBase = `/v1/harvester`;
+    }
+
+    if ( !cluster ) {
+      commit('setCluster', null);
+      commit('harvester/applyConfig', { baseUrl: null });
+      throw new ClusterNotFoundError(id);
+    }
+
+    // Update the Steve client URLs
+    commit('harvester/applyConfig', { baseUrl: virtualBase });
+
+    await Promise.all([
+      dispatch('harvester/loadSchemas', true),
+    ]);
+
+    dispatch('harvester/subscribe');
+
+    let isRancher = false;
+    const projectArgs = {
+      type: MANAGEMENT.PROJECT,
+      opt:  {
+        url:            `${ MANAGEMENT.PROJECT }/${ escape(id) }`,
+        watchNamespace: id
+      }
+    };
+
+    if (getters['management/schemaFor'](MANAGEMENT.PROJECT)) {
+      isRancher = true;
+    }
+
+    await allHash({
+      projects:          isRancher && dispatch('management/findAll', projectArgs),
+      virtualCount:      dispatch('harvester/findAll', { type: COUNT }),
+      virtualNamespaces: dispatch('harvester/findAll', { type: NAMESPACE }),
+      settings:          dispatch('harvester/findAll', { type: HCI.SETTING }),
+    });
+
+    commit('clusterChanged', true);
+
+    console.log('Done loading virtual cluster.'); // eslint-disable-line no-console
+  },
+
+  async cleanNamespaces({ getters, dispatch }) {
+    // Initialise / Remove any filters that the user no-longer has access to
+    const clusters = await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+    const filters = getters['prefs/get'](NAMESPACE_FILTERS);
+
+    if (!filters || !filters.length) {
+      dispatch('prefs/set', {
+        key:   NAMESPACE_FILTERS,
+        value: { }
+      });
+
+      return;
+    }
+
+    const cleanFilters = {};
+
+    Object.entries(filters).forEach(([clusterId, pref]) => {
+      if (clusters.find(c => c.id === clusterId)) {
+        cleanFilters[clusterId] = pref;
+      }
+    });
+
+    if (Object.keys(filters).length !== Object.keys(cleanFilters).length) {
+      console.debug('Unknown clusters have been removed from namespace filters list (before/after)', filters, cleanFilters); // eslint-disable-line no-console
+      dispatch('prefs/set', {
+        key:   NAMESPACE_FILTERS,
+        value: cleanFilters
+      });
+    }
   },
 
   async onLogout({ dispatch, commit, state }) {

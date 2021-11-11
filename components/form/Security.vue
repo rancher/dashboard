@@ -95,7 +95,7 @@ export default {
         capabilities:             { add: this.add, drop: this.drop },
         privileged:               this.privileged,
         allowPrivilegeEscalation: this.allowPrivilegeEscalation,
-        runAsUser:                this.runAsUser
+        runAsUser:                this.runAsUser,
       };
 
       this.$emit('input', securityContext);

@@ -10,6 +10,8 @@ import { applyProducts } from '@/store/type-map';
 import { findBy } from '@/utils/array';
 import { ClusterNotFoundError } from '@/utils/error';
 import { get } from '@/utils/object';
+import { AFTER_LOGIN_ROUTE } from '@/store/prefs';
+import { NAME as VIRTUAL } from '@/config/product/harvester';
 
 let beforeEachSetup = false;
 
@@ -45,7 +47,7 @@ function setProduct(store, to) {
 }
 
 export default async function({
-  route, app, store, redirect, $cookies
+  route, app, store, redirect, $cookies, req, isDev, from
 }) {
   if ( route.path && typeof route.path === 'string') {
     // Ignore webpack hot module reload requests
@@ -81,7 +83,7 @@ export default async function({
   }
 
   // Initial ?setup=admin-password can technically be on any route
-  const initialPass = route.query[SETUP];
+  let initialPass = route.query[SETUP];
   let firstLogin = null;
 
   try {
@@ -94,8 +96,13 @@ export default async function({
     });
 
     const res = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
+    const plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
 
     firstLogin = res?.value === 'true';
+
+    if (!initialPass && plSetting?.value === 'Harvester') {
+      initialPass = 'admin';
+    }
   } catch (e) {
   }
 
@@ -108,6 +115,16 @@ export default async function({
       });
 
       firstLogin = res?.value === 'true';
+
+      const plSetting = await store.dispatch('rancher/find', {
+        type: 'setting',
+        id:   SETTING.PL,
+        opt:  { url: `/v3/settings/${ SETTING.PL }` }
+      });
+
+      if (!initialPass && plSetting?.value === 'Harvester') {
+        initialPass = 'admin';
+      }
     } catch (e) {
     }
   }
@@ -182,6 +199,9 @@ export default async function({
             notLoggedIn();
           } else {
             store.commit('setError', e);
+            if ( process.server ) {
+              redirect(302, '/fail-whale');
+            }
           }
 
           return;
@@ -217,20 +237,56 @@ export default async function({
 
   try {
     let clusterId = get(route, 'params.cluster');
+    const product = get(route, 'params.product');
+    const oldProduct = from?.params?.product;
 
-    if ( clusterId ) {
+    if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name.startsWith(`c-cluster-${ VIRTUAL }-`)) {
+      const res = [
+        store.dispatch('loadManagement'),
+        store.dispatch('loadVirtual', {
+          id: clusterId,
+          oldProduct,
+        }),
+      ];
+
+      await Promise.all(res);
+    } else if ( clusterId ) {
       // Run them in parallel
-      await Promise.all([
-        await store.dispatch('loadManagement'),
-        await store.dispatch('loadCluster', clusterId),
-      ]);
+      const res = [
+        store.dispatch('loadManagement'),
+        store.dispatch('loadCluster', {
+          id: clusterId,
+          product,
+          oldProduct,
+        }),
+      ];
+
+      await Promise.all(res);
     } else {
       await store.dispatch('loadManagement');
 
       clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
+      const isSingleVirtualCluster = store.getters['isSingleVirtualCluster'];
 
-      if ( clusterId ) {
-        await store.dispatch('loadCluster', clusterId);
+      if (isSingleVirtualCluster) {
+        const value = {
+          name:   'c-cluster-product',
+          params: {
+            cluster: clusterId,
+            product: VIRTUAL,
+          },
+        };
+
+        await store.dispatch('prefs/set', {
+          key: AFTER_LOGIN_ROUTE,
+          value,
+        });
+      } else if ( clusterId) {
+        await store.dispatch('loadCluster', {
+          id: clusterId,
+          product,
+          oldProduct,
+        });
       }
     }
   } catch (e) {

@@ -4,6 +4,7 @@ import Loading from '@/components/Loading';
 import Markdown from '@/components/Markdown';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
+import Banner from '@/components/Banner';
 import RelatedResources from '@/components/RelatedResources';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
@@ -12,7 +13,7 @@ export default {
   name: 'DetailRelease',
 
   components: {
-    Markdown, Tabbed, Tab, Loading, YamlEditor, RelatedResources
+    Markdown, Tabbed, Tab, Loading, YamlEditor, Banner, RelatedResources
   },
 
   props: {
@@ -40,6 +41,14 @@ export default {
 
       return jsyaml.dump(combined);
     },
+
+    isBusy() {
+      if (this.value?.metadata?.state?.transitioning && this.value?.metadata?.state?.name === 'pending-install') {
+        return true;
+      }
+
+      return false;
+    }
   },
 
   methods: {
@@ -64,8 +73,9 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <Tabbed v-else class="mt-20" default-tab="resources" @changed="tabChanged($event)">
-    <Tab name="resources" :label="t('catalog.app.section.resources')" :weight="4">
-      <RelatedResources :value="value" rel="helmresource" />
+    <Tab name="resources" :label="t('catalog.app.section.resources.label')" :weight="4">
+      <Banner v-if="isBusy" color="info" :label="t('catalog.app.section.resources.busy', { app: value.metadata.name })" />
+      <RelatedResources v-else :value="value" rel="helmresource" />
     </Tab>
     <Tab name="values-yaml" :label="t('catalog.app.section.values')" :weight="3">
       <YamlEditor

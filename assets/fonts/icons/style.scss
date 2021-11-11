@@ -3,9 +3,9 @@
 @font-face {
   font-family: '#{$icomoon-font-family}';
   src:
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?8jruhj') format('truetype'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?8jruhj') format('woff'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?8jruhj##{$icomoon-font-family}') format('svg');
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?5qy235') format('truetype'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?5qy235') format('woff'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?5qy235##{$icomoon-font-family}') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -241,6 +241,11 @@
     content: $icon-backup; 
   }
 }
+.icon-history {
+  &:before {
+    content: $icon-history; 
+  }
+}
 .icon-globe {
   &:before {
     content: $icon-globe; 
@@ -361,6 +366,11 @@
     content: $icon-istio; 
   }
 }
+.icon-harvester {
+  &:before {
+    content: $icon-harvester; 
+  }
+}
 .icon-gatekeeper {
   &:before {
     content: $icon-gatekeeper; 
@@ -381,6 +391,11 @@
     content: $icon-rio; 
   }
 }
+.icon-epinio {
+  &:before {
+    content: $icon-epinio; 
+  }
+}
 .icon-marketplace {
   &:before {
     content: $icon-marketplace; 
@@ -394,6 +409,11 @@
 .icon-cluster-management {
   &:before {
     content: $icon-cluster-management; 
+  }
+}
+.icon-storage-1 {
+  &:before {
+    content: $icon-storage-1; 
   }
 }
 .icon-cluster {

@@ -54,17 +54,42 @@ export default {
   computed:   {
     ...mapGetters(['currentCluster']),
     containers() {
-      const { containerStatuses = [] } = this.value.status;
+      const containers = this.allContainers;
+      const statuses = this.allStatuses;
 
-      return (this.value.spec.containers || []).map((container) => {
-        container.status = findBy(containerStatuses, 'name', container.name) || {};
+      return (containers || []).map((container) => {
+        container.status = findBy(statuses, 'name', container.name) || {};
         container.stateDisplay = this.value.containerStateDisplay(container);
         container.stateBackground = this.value.containerStateColor(container).replace('text', 'bg');
         container.nameSort = sortableNumericSuffix(container.name).toLowerCase();
         container.readyIcon = container?.status?.ready ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-x icon-2x text-error ml-5';
+        container.availableActions = this.value.containerActions;
+
+        container.openShell = () => {
+          // Call openShell here so that opening the shell
+          // at the container level still has 'this' in scope.
+          this.value.openShell(container.name);
+        };
+        container.openLogs = () => {
+          // Call openLogs here so that opening the logs
+          // at the container level still has 'this' in scope.
+          this.value.openLogs(container.name);
+        };
 
         return container;
       });
+    },
+
+    allContainers() {
+      const { containers = [], initContainers = [] } = this.value.spec;
+
+      return [...containers, ...initContainers];
+    },
+
+    allStatuses() {
+      const { containerStatuses = [], initContainerStatuses = [] } = this.value.status;
+
+      return [...containerStatuses, ...initContainerStatuses];
     },
 
     containerHeaders() {
@@ -153,7 +178,7 @@ export default {
         :mode="mode"
         key-field="name"
         :search="false"
-        :row-actions="false"
+        :row-actions="true"
         :table-actions="false"
       />
     </Tab>

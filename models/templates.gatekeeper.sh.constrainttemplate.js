@@ -1,5 +1,7 @@
-export default {
-  constraints() {
+import SteveModel from '@/plugins/steve/steve-class';
+
+export default class extends SteveModel {
+  get constraints() {
     const type = `constraints.gatekeeper.sh.${ this.id }`;
 
     if (!this.$rootGetters['cluster/haveAll'](type)) {
@@ -7,13 +9,15 @@ export default {
     }
 
     return this.$rootGetters['cluster/all'](type);
-  },
+  }
 
-  preventDeletionMessage() {
+  get preventDeletionMessage() {
     const constraints = this.constraints;
 
     if ( constraints.length > 0 ) {
       return `There are still constaints using this template. You cannot delete this template while it's in use.`;
     }
-  },
-};
+
+    return null;
+  }
+}

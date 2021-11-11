@@ -1,7 +1,8 @@
 import { compare } from '@/utils/sort';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  aggregatedTests() {
+export default class CISReport extends SteveModel {
+  get aggregatedTests() {
     const json = this.parsedReport;
     const results = json?.results;
 
@@ -40,13 +41,13 @@ export default {
     });
 
     return sorted;
-  },
+  }
 
-  nodes() {
+  get nodes() {
     return this.parsedReport ? this.parsedReport.nodes : {};
-  },
+  }
 
-  parsedReport() {
+  get parsedReport() {
     try {
       const json = this.spec?.reportJSON;
 
@@ -55,5 +56,7 @@ export default {
       return parsed;
     } catch (e) {
     }
-  },
-};
+
+    return null;
+  }
+}

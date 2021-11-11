@@ -94,7 +94,10 @@ export default {
   },
 
   data() {
-    return { selectedVisibility: 'visible' };
+    return {
+      selectedVisibility: 'visible',
+      shouldOpen:         true
+    };
   },
 
   computed: {
@@ -211,7 +214,30 @@ export default {
     get,
     onClickOption(option, event) {
       onClickOption.call(this, option, event);
-    }
+    },
+    dropdownShouldOpen(instance, forceOpen = false) {
+      const { noDrop, mutableLoading } = instance;
+      const { open } = instance;
+      const shouldOpen = this.shouldOpen;
+
+      if (forceOpen) {
+        instance.open = true;
+
+        return true;
+      }
+
+      if (shouldOpen === false) {
+        this.shouldOpen = true;
+        instance.closeSearchOptions();
+      }
+
+      return noDrop ? false : open && shouldOpen && !mutableLoading;
+    },
+    onSearch(newSearchString) {
+      if (newSearchString) {
+        this.dropdownShouldOpen(this.$refs['select-input'], true);
+      }
+    },
   },
 };
 </script>
@@ -263,9 +289,11 @@ export default {
       :searchable="isSearchable"
       :selectable="selectable"
       :value="value != null && !loading ? value : ''"
+      :dropdown-should-open="dropdownShouldOpen"
       v-on="$listeners"
       @search:blur="onBlur"
       @search:focus="onFocus"
+      @search="onSearch"
       @open="resizeHandler"
     >
       <template #option="option">

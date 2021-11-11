@@ -9,6 +9,15 @@ import { mapGetters } from 'vuex';
 export default {
   components: { SimpleBox },
 
+  props: {
+    linkOptions: {
+      type:    Object,
+      default: () => {
+        return {};
+      },
+    },
+  },
+
   mixins: [Closeable],
 
   async fetch() {
@@ -27,6 +36,10 @@ export default {
     ]),
 
     options() {
+      if (Object.keys(this.linkOptions).length > 0) {
+        return this.linkOptions;
+      }
+
       if (this.communitySetting?.value === 'false') {
         return options(this.uiIssuesSetting?.value, true);
       }

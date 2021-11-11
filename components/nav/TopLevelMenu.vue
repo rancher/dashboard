@@ -11,6 +11,7 @@ import { KEY } from '@/utils/platform';
 import { getVersionInfo } from '@/utils/version';
 import { LEGACY } from '@/store/features';
 import { SETTING } from '@/config/settings';
+import { filterOnlyKubernetesClusters } from '@/utils/cluster';
 
 const UNKNOWN = 'unknown';
 const UI_VERSION = process.env.VERSION || UNKNOWN;
@@ -51,29 +52,29 @@ export default {
     },
 
     showClusterSearch() {
-      const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-
-      return all.length > this.maxClustersToShow;
+      return this.clusters.length > this.maxClustersToShow;
     },
 
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      let out = all.map((x) => {
+      const kubeClusters = filterOnlyKubernetesClusters(all);
+
+      return kubeClusters.map((x) => {
         return {
           id:      x.id,
           label:   x.nameDisplay,
           ready:   x.isReady,
           osLogo:  x.providerOsLogo,
-          logo:    x.providerLogo,
+          logo:    x.providerMenuLogo,
           isLocal: x.isLocal
         };
       });
+    },
 
+    clustersFiltered() {
       const search = (this.clusterFilter || '').toLowerCase();
 
-      if ( search ) {
-        out = out.filter(item => item.label.toLowerCase().includes(search));
-      }
+      const out = search ? this.clusters.filter(item => item.label.toLowerCase().includes(search)) : this.clusters;
 
       const sorted = sortBy(out, ['ready:desc', 'label']);
 
@@ -137,7 +138,7 @@ export default {
         };
       });
 
-      return entries;
+      return sortBy(entries, ['weight']);
     },
 
     canEditSettings() {
@@ -171,7 +172,7 @@ export default {
 
       if (el) {
         const $el = $(el);
-        const h = 32 * max;
+        const h = 33 * max;
 
         $el.css('height', `${ h }px`);
       }
@@ -201,7 +202,7 @@ export default {
 </script>
 <template>
   <div>
-    <div class="menu" :class="{'raised': shown}" @click="toggle()">
+    <div class="menu" :class="{'raised': shown, 'unraised':!shown}" @click="toggle()">
       <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none" /><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" /></svg>
     </div>
     <div v-if="shown" class="side-menu-glass" @click="hide()"></div>
@@ -235,10 +236,10 @@ export default {
                 v-model="clusterFilter"
                 :placeholder="t('nav.search.placeholder')"
               />
-              <i v-if="clusterFilter.length > 0" class="icon icon-close" @click="clusterFilter=''" />
+              <i v-if="clusterFilter" class="icon icon-close" @click="clusterFilter=''" />
             </div>
             <div ref="clusterList" class="clusters">
-              <div v-for="c in clusters" :key="c.id" @click="hide()">
+              <div v-for="c in clustersFiltered" :key="c.id" @click="hide()">
                 <nuxt-link
                   v-if="c.ready"
                   class="cluster selector option"
@@ -253,7 +254,7 @@ export default {
                   <div>{{ c.label }}</div>
                 </span>
               </div>
-              <div v-if="clusters.length === 0" class="none-matching">
+              <div v-if="clustersFiltered.length === 0" class="none-matching">
                 {{ t('nav.search.noResults') }}
               </div>
             </div>
@@ -393,7 +394,7 @@ export default {
 
 <style lang="scss" scoped>
   $clear-search-size: 20px;
-  $icon-size: 24px;
+  $icon-size: 25px;
   $option-padding: 4px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
@@ -415,6 +416,7 @@ export default {
     }
 
     > i {
+      width: $icon-size;
       font-size: $icon-size;
       margin-right: 8px;
     }
@@ -563,7 +565,7 @@ export default {
         > i {
           position: absolute;
           font-size: $clear-search-size;
-          top: ($option-height - $clear-search-size) / 2;
+          top: 9px;
           right: 8px;
           opacity: 0.7;
           cursor: pointer;

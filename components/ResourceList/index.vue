@@ -98,8 +98,8 @@ export default {
 
     this.listComponent = listComponent;
   },
-
-}; </script>
+};
+</script>
 
 <template>
   <Loading v-if="$fetchState.pending" />
@@ -117,7 +117,13 @@ export default {
         v-bind="$data"
       />
     </div>
-    <ResourceTable v-else :schema="schema" :rows="rows" :headers="headers" :group-by="groupBy" />
+    <ResourceTable
+      v-else
+      :schema="schema"
+      :rows="rows"
+      :headers="headers"
+      :group-by="groupBy"
+    />
   </div>
 </template>
 

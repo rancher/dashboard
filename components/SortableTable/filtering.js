@@ -6,7 +6,11 @@ export default {
   data() {
     const searchQuery = this.$route.query.q || null;
 
-    return { searchQuery };
+    return {
+      searchQuery,
+      previousFilter: null,
+      previousResult: null,
+    };
   },
 
   computed: {
@@ -27,13 +31,24 @@ export default {
       return out.addObjects(get(this, 'extraSearchSubFields') || []);
     }),
     */
-
     filteredRows() {
-      const out = (this.rows || []).slice();
       const searchText = (this.searchQuery || '').trim().toLowerCase();
+      let out;
+
+      if ( searchText && this.previousResult && searchText.startsWith(this.previousFilter) ) {
+        // If the new search is an addition to the last one, we can start with the same set of results as last time
+        // and filter those down, since adding more searchText can only reduce the number of results.
+        out = this.previousResult.slice();
+      } else {
+        this.previousResult = null;
+        out = (this.arrangedRows || []).slice();
+      }
+
+      this.previousFilter = searchText;
 
       if ( !searchText.length ) {
         this.subMatches = null;
+        this.previousResult = null;
 
         return out;
       }
@@ -99,6 +114,7 @@ export default {
       }
 
       this.subMatches = subMatches;
+      this.previousResult = out;
 
       return out;
     },
@@ -107,6 +123,11 @@ export default {
   watch: {
     searchQuery(q) {
       this.$router.applyQuery({ [SEARCH_QUERY]: q || undefined });
+    },
+
+    arrangedRows(q) {
+      // The rows changed so the old filter result is no longer useful
+      this.previousResult = null;
     }
   },
 };
@@ -134,58 +155,60 @@ function columnsToSearchField(columns) {
   return out.filter(x => !!x);
 }
 
+const ipLike = /^[0-9a-f\.:]+$/i;
+
 function matches(fields, token, item) {
-  const tokenMayBeIp = /^[0-9a-f\.:]+$/i.test(token);
+  for ( let field of fields ) {
+    if ( !field ) {
+      continue;
+    }
 
-  for ( let i = 0 ; i < fields.length ; i++ ) {
-    let field = fields[i];
+    let modifier;
+    const idx = field.indexOf(':');
 
-    if ( field ) {
-      const idx = field.indexOf(':');
-      let modifier = null;
+    if ( idx > 0 ) {
+      modifier = field.substr(idx + 1);
+      field = field.substr(0, idx);
+    }
 
-      if ( idx > 0 ) {
-        modifier = field.substr(idx + 1);
-        field = field.substr(0, idx);
+    let val;
+
+    if ( field.includes('.') ) {
+      val = get(item, field);
+    } else {
+      val = item[field];
+    }
+
+    if ( val === undefined ) {
+      continue;
+    }
+
+    val = (`${ val }`).toLowerCase();
+    if ( !val ) {
+      continue;
+    }
+
+    if ( !modifier ) {
+      if ( val.includes(token) ) {
+        return true;
       }
-
-      let val = get(item, field);
-
-      if ( val === undefined ) {
-        continue;
+    } else if ( modifier === 'exact' ) {
+      if ( val === token ) {
+        return true;
       }
-      val = (`${ val }`).toLowerCase();
-      if ( !val ) {
-        continue;
-      }
+    } else if ( modifier === 'ip' ) {
+      const tokenMayBeIp = ipLike.test(token);
 
-      switch ( modifier ) {
-      case 'exact':
-        if ( val === token ) {
+      if ( tokenMayBeIp ) {
+        const re = new RegExp(`(?:^|\.)${ token }(?:\.|$)`);
+
+        if ( re.test(val) ) {
           return true;
         }
-        break;
-
-      case 'ip':
-        if ( tokenMayBeIp ) {
-          const re = new RegExp(`(?:^|\.)${ token }(?:\.|$)`);
-
-          if ( re.test(val) ) {
-            return true;
-          }
-        }
-        break;
-
-      case 'prefix':
-        if ( val.indexOf(token) === 0) {
-          return true;
-        }
-        break;
-
-      default:
-        if ( val.includes(token) ) {
-          return true;
-        }
+      }
+    } else if ( modifier === 'prefix' ) {
+      if ( val.indexOf(token) === 0) {
+        return true;
       }
     }
   }

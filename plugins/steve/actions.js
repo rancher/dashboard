@@ -5,8 +5,11 @@ import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@/store/type-map';
 import { addParam } from '@/utils/url';
+import { isArray } from '@/utils/array';
+import { deferred } from '@/utils/promise';
+import { streamingSupported, streamJson } from '@/utils/stream';
 import { normalizeType } from './normalize';
-import { proxyFor, SELF } from './resource-proxy';
+import { classify } from './classify';
 
 export const _ALL = 'all';
 export const _MULTI = 'multi';
@@ -14,7 +17,7 @@ export const _ALL_IF_AUTHED = 'allIfAuthed';
 export const _NONE = 'none';
 
 export default {
-  async request({ dispatch, rootGetters }, opt) {
+  async request({ state, dispatch, rootGetters }, opt) {
     // Handle spoofed types instead of making an actual request
     // Spoofing is handled here to ensure it's done for both yaml and form editing.
     // It became apparent that this was the only place that both intersected
@@ -32,11 +35,44 @@ export default {
       return id && !isApi ? data : { data };
     }
 
-    // @TODO queue/defer duplicate requests
     opt.depaginate = opt.depaginate !== false;
     opt.url = opt.url.replace(/\/*$/g, '');
-
     opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+
+    const method = (opt.method || 'get').toLowerCase();
+    const headers = (opt.headers || {});
+    const key = JSON.stringify(headers) + method + opt.url;
+    let waiting;
+
+    if ( (method === 'get') ) {
+      waiting = state.deferredRequests[key];
+
+      if ( waiting ) {
+        const later = deferred();
+
+        waiting.push(later);
+
+        // console.log('Deferred request for', key, waiting.length);
+
+        return later.promise;
+      } else {
+        // Set it to something so that future requests know to defer.
+        waiting = [];
+        state.deferredRequests[key] = waiting;
+      }
+    }
+
+    if ( opt.stream && state.allowStreaming && state.config.supportsStream && streamingSupported() ) {
+      // console.log('Using Streaming for', opt.url);
+
+      return streamJson(opt.url, opt, opt.onData).then(() => {
+        return { finishDeferred: finishDeferred.bind(null, key, 'resolve') };
+      }).catch((err) => {
+        return onError(err);
+      });
+    } else {
+      // console.log('NOT Using Streaming for', opt.url);
+    }
 
     return this.$axios(opt).then((res) => {
       if ( opt.depaginate ) {
@@ -53,29 +89,30 @@ export default {
         */
       }
 
+      let out;
+
       if ( opt.responseType ) {
-        return res;
+        out = res;
       } else {
-        return responseObject(res);
-      }
-    }).catch((err) => {
-      if ( !err || !err.response ) {
-        return Promise.reject(err);
+        out = responseObject(res);
       }
 
-      const res = err.response;
+      finishDeferred(key, 'resolve', out);
 
-      // Go to the logout page for 401s, unless redirectUnauthorized specifically disables (for the login page)
-      if ( opt.redirectUnauthorized !== false && process.client && res.status === 401 ) {
-        dispatch('auth/logout', opt.logoutOnError, { root: true });
+      return out;
+    }).catch(onError);
+
+    function finishDeferred(key, action = 'resolve', res) {
+      const waiting = state.deferredRequests[key] || [];
+
+      // console.log('Resolving deferred for', key, waiting.length);
+
+      while ( waiting.length ) {
+        waiting.pop()[action](res);
       }
 
-      if ( typeof res.data !== 'undefined' ) {
-        return Promise.reject(responseObject(res));
-      }
-
-      return Promise.reject(err);
-    });
+      delete state.deferredRequests[key];
+    }
 
     function responseObject(res) {
       let out = res.data;
@@ -104,6 +141,27 @@ export default {
 
       return out;
     }
+
+    function onError(err) {
+      let out = err;
+
+      if ( err?.response ) {
+        const res = err.response;
+
+        // Go to the logout page for 401s, unless redirectUnauthorized specifically disables (for the login page)
+        if ( opt.redirectUnauthorized !== false && process.client && res.status === 401 ) {
+          dispatch('auth/logout', opt.logoutOnError, { root: true });
+        }
+
+        if ( typeof res.data !== 'undefined' ) {
+          out = responseObject(res);
+        }
+      }
+
+      finishDeferred(key, 'reject', out);
+
+      return Promise.reject(out);
+    }
   },
 
   async loadSchemas(ctx, watch = true) {
@@ -113,7 +171,11 @@ export default {
     const res = await dispatch('findAll', { type: SCHEMA, opt: { url: 'schemas', load: false } });
     const spoofedTypes = rootGetters['type-map/allSpoofedSchemas'] ;
 
-    res.data = res.data.concat(spoofedTypes);
+    if (isArray(res.data)) {
+      res.data = res.data.concat(spoofedTypes);
+    } else if (isArray(res)) {
+      res.data = res.concat(spoofedTypes);
+    }
 
     res.data.forEach((schema) => {
       schema._id = normalizeType(schema.id);
@@ -154,12 +216,6 @@ export default {
       return getters.all(type);
     }
 
-    console.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
-    opt = opt || {};
-    opt.url = getters.urlFor(type, null, opt);
-
-    const res = await dispatch('request', opt);
-
     let load = (opt.load === undefined ? _ALL : opt.load);
 
     if ( opt.load === false || opt.load === _NONE ) {
@@ -174,31 +230,83 @@ export default {
       }
     }
 
+    console.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
+    opt = opt || {};
+    opt.url = getters.urlFor(type, null, opt);
+    opt.stream = opt.stream !== false && load !== _NONE;
+    let streamStarted = false;
+    let out;
+
+    let queue = [];
+    let streamCollection;
+
+    opt.onData = function(data) {
+      if ( streamStarted ) {
+        // Batch loads into groups of 10 to reduce vuex overhead
+        queue.push(data);
+
+        if ( queue.length > 10 ) {
+          const tmp = queue;
+
+          queue = [];
+          commit('loadMulti', { ctx, data: tmp });
+        }
+      } else {
+        // The first line is the collection object (sans `data`)
+        commit('forgetAll', { type });
+        streamStarted = true;
+        streamCollection = data;
+      }
+    };
+
+    try {
+      const res = await dispatch('request', opt);
+
+      if ( streamStarted ) {
+        // Flush any remaining entries left over that didn't get loaded by onData
+        if ( queue.length ) {
+          commit('loadMulti', { ctx, data: queue });
+          queue = [];
+        }
+        commit('loadedAll', { type });
+        const all = getters.all(type);
+
+        res.finishDeferred(all);
+        out = streamCollection;
+      } else {
+        out = res;
+      }
+    } catch (e) {
+      return Promise.reject(e);
+    }
+
     if ( load === _NONE ) {
-      return res;
-    } else if ( load === _MULTI ) {
-      // This has the effect of adding the response to the store,
-      // without replacing all the existing content for that type,
-      // and without marking that type as having 'all 'loaded.
-      //
-      // This is used e.g. to load a partial list of settings before login
-      // while still knowing we need to load the full list later.
-      commit('loadMulti', {
-        ctx,
-        data: res.data
-      });
-    } else {
-      commit('loadAll', {
-        ctx,
-        type,
-        data: res.data
-      });
+      return out;
+    } else if ( out.data ) {
+      if ( load === _MULTI ) {
+        // This has the effect of adding the response to the store,
+        // without replacing all the existing content for that type,
+        // and without marking that type as having 'all 'loaded.
+        //
+        // This is used e.g. to load a partial list of settings before login
+        // while still knowing we need to load the full list later.
+        commit('loadMulti', {
+          ctx,
+          data: out.data
+        });
+      } else {
+        commit('loadAll', {
+          ctx,
+          type,
+          data: out.data
+        });
+      }
     }
 
     if ( opt.watch !== false ) {
       dispatch('watch', {
         type,
-        revision:  res.revision,
+        revision:  out.revision,
         namespace: opt.watchNamespace
       });
     }
@@ -366,7 +474,7 @@ export default {
   },
 
   create(ctx, data) {
-    return proxyFor(ctx, data);
+    return classify(ctx, data);
   },
 
   createPopulated(ctx, userData) {
@@ -374,13 +482,13 @@ export default {
 
     merge(data, userData);
 
-    return proxyFor(ctx, data);
+    return classify(ctx, data);
   },
 
   clone(ctx, { resource } = {}) {
-    const copy = cloneDeep(resource[SELF]);
+    const copy = cloneDeep(resource.toJSON());
 
-    return proxyFor(ctx, copy, true);
+    return classify(ctx, copy, true);
   },
 
   promptMove({ commit, state }, resources) {

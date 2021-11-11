@@ -1,3 +1,5 @@
+import { DOCS_BASE } from '@/config/private-label';
+
 export function options(issues, hideRancher) {
   if (!issues) {
     if (hideRancher) {
@@ -9,7 +11,7 @@ export function options(issues, hideRancher) {
   }
 
   return {
-    'footer.docs':   'https://rancher.com/docs/rancher/v2.x/en/',
+    'footer.docs':    DOCS_BASE,
     'footer.forums': 'https://forums.rancher.com/',
     'footer.slack':  'https://slack.rancher.io',
     'footer.issue':  issues,

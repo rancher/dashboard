@@ -32,9 +32,7 @@ export default {
     <div v-if="titleKey" class="title">
       <t :k="titleKey" />
     </div>
-    <h1 v-else-if="title" class="title">
-      {{ title }}
-    </h1>
+    <h1 v-else-if="title" class="title" v-html="title"></h1>
     <div v-if="pref" class="close-button" @click="hide()">
       <i class="icon icon-close" />
     </div>
@@ -97,7 +95,7 @@ export default {
       .graphic {
         height: $banner-height-small;
         img.banner {
-          margin-top: ($banner-height-small - $banner-height)/2;
+          margin-top: math.div(($banner-height-small - $banner-height), 2);
         }
       }
     }

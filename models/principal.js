@@ -2,9 +2,10 @@ import Identicon from 'identicon.js';
 import { md5 } from '@/utils/crypto';
 import { addParam } from '@/utils/url';
 import { ucFirst } from '@/utils/string';
+import NormanModel from '@/plugins/steve/norman-class';
 
-export default {
-  avatarSrc() {
+export default class Principal extends NormanModel {
+  get avatarSrc() {
     if ( this.provider === 'github' ) {
       return addParam(this.profilePicture, 's', 80); // Double the size it will be rendered, for @2x displays
     } else {
@@ -17,13 +18,13 @@ export default {
 
       return out;
     }
-  },
+  }
 
-  roundAvatar() {
+  get roundAvatar() {
     return this.provider === 'github';
-  },
+  }
 
-  providerSpecificType() {
+  get providerSpecificType() {
     const parts = this.id.replace(/:.*$/, '').split('_', 2);
 
     if ( parts.length === 2 ) {
@@ -31,11 +32,11 @@ export default {
     }
 
     return null;
-  },
+  }
 
-  displayType() {
+  get displayType() {
     const provider = this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.provider }"`, null, this.provider);
 
     return `${ provider } ${ ucFirst(this.providerSpecificType) }`;
-  },
-};
+  }
+}

@@ -83,7 +83,7 @@ export default {
 
           await this.applyHooks(BEFORE_SAVE_HOOKS);
 
-          const now = this.cluster?.spec?.rkeConfig?.etcSnapshotRestore || 0;
+          const now = cluster.spec?.rkeConfig?.etcdSnapshotRestore?.generation || 0;
 
           let s3; //  = undefined;
 

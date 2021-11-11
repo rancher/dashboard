@@ -79,7 +79,7 @@ chart | Custom components to present when installing a Product chart
 detail | Custom components to show as the detail view for a particular resource instance
 edit | Custom components to show as the edit (or view config) view for a particular resource instance
 list | Custom components to show as the list view for a resource type
-models | Custom logic extending the standard `resource-instance` "class" for each API type and model returned by the API
+models | Custom logic extending the standard resource class for each API type and model returned by the API
 
 There is one `Config` entry for each "product", which are the result of installing one of our helm charts to add a feature into Rancher such as Istio, monitoring, logging, CIS scans, etc.  The config defines things like:
   - The condition for when that product should appear (usually the presence of a type in a certain k8s API group)
@@ -92,7 +92,12 @@ Similarly, instead of a generic YAML detail or edit screen, you can provide your
 
 To customize the list view for a type, you can either change the header definitions (in `config/`) or provide a `list/<type>.vue` component to use instead of the standard one.
 
-All objects returned from the API have a "base-class" (technically not _really_, but logically) of `resource-instance`.  Every individual type can add additional behavior to its "sub-class" in `models/<type>.js`.
+All objects returned from the API have a base-class of Resource, and extend from one of 3 sub-classes:
+  - SteveModel: For regular resources accessed through the Steve API (/v1)
+  - HybridModel For Rancher-defined resources with non-standard behaviors (e.g. name and description at the top-level) accessed through Steve (/v1).  Primarily `management.cattle.io.*`.
+  - NormanModel: For Rancher-defined resources accessed through the older Norman API (/v3)
+
+Additional customization can be done on a per-type basis by defining a `models/<type>.js`.
 
 All `<type>`s throughout are the **lowercased** version of the k8s API group and kind, such as `apps.deployment`.  Lowercase won't matter in case-insensitive macOS but will break when built in CI or on Linux.  Use the "Jump" menu in the UI to find the type you want and then copy the string out of the URL.
 

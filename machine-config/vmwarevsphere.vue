@@ -3,8 +3,7 @@ import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledSelect from '@/components/form/LabeledSelect';
 // import Checkbox from '@/components/form/Checkbox';
-import { NORMAN } from '@/config/types';
-import { stringify } from '@/utils/error';
+import { exceptionToErrorsArray, stringify } from '@/utils/error';
 import Banner from '@/components/Banner';
 import UnitInput from '@/components/form/UnitInput';
 import Card from '@/components/Card';
@@ -154,7 +153,24 @@ export default {
   async fetch() {
     this.errors = [];
 
-    this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.credentialId });
+    try {
+      await this.loadDataCenters();
+    } catch (e) {
+      this.errors = exceptionToErrorsArray(e);
+    }
+
+    this.loadResourcePools();
+    this.loadDataStores();
+    this.loadFolders();
+    this.loadHosts();
+    this.loadTemplates();
+    this.loadTags();
+    this.loadCustomAttributes();
+    // This is currently broken in the backend. Once fixed we can add this back
+    // this.loadContentLibraries();
+    this.loadLibraryTemplates();
+    this.loadVirtualMachines();
+    this.loadNetworks();
   },
 
   data() {
@@ -199,7 +215,7 @@ export default {
       set(this.value, 'creationType', creationMethods[0].value);
       set(this.value, 'cpuCount', '2');
       set(this.value, 'diskSize', '20000');
-      set(this.value, 'memorySize', '2048');
+      set(this.value, 'memorySize', '4096');
       set(this.value, 'hostsystem', '');
       set(this.value, 'cloudConfig', '#cloud-config\n\n');
       set(this.value, 'cfgparam', DEFAULT_CFGPARAM);
@@ -308,27 +324,10 @@ export default {
   },
 
   watch: {
-    credentialId() {
-      this.$fetch();
-    },
-
-    credential() {
-      this.loadDataCenters();
-    },
-
-    dataCentersResults() {
-      this.loadResourcePools();
-      this.loadDataStores();
-      this.loadFolders();
-      this.loadHosts();
-      this.loadTemplates();
-      this.loadTags();
-      this.loadCustomAttributes();
-      // This is currently broken in the backend. Once fixed we can add this back
-      // this.loadContentLibraries();
-      this.loadLibraryTemplates();
-      this.loadVirtualMachines();
-      this.loadNetworks();
+    credentialId(neu, old) {
+      if ( neu !== old ) {
+        this.$fetch();
+      }
     },
 
     'value.contentLibrary'() {

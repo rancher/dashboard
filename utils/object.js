@@ -1,31 +1,22 @@
 import cloneDeep from 'lodash/cloneDeep';
 import flattenDeep from 'lodash/flattenDeep';
 import compact from 'lodash/compact';
-import jsonpath from 'jsonpath';
+import { JSONPath } from 'jsonpath-plus';
 import Vue from 'vue';
 import transform from 'lodash/transform';
 import isObject from 'lodash/isObject';
 import isEqual from 'lodash/isEqual';
 import difference from 'lodash/difference';
-
-const quotedKey = /['"]/;
-const quotedMatch = /[^."']+|"([^"]*)"|'([^']*)'/g;
+import { splitObjectPath } from '@/utils/string';
 
 export function set(obj, path, value) {
   let ptr = obj;
-  let parts;
 
   if (!ptr) {
     return;
   }
 
-  if ( path.match(quotedKey) ) {
-    // Path with quoted section
-    parts = path.match(quotedMatch).map(x => x.replace(/['"]/g, ''));
-  } else {
-    // Regular path
-    parts = path.split('.');
-  }
+  const parts = splitObjectPath(path);
 
   for (let i = 0; i < parts.length; i++) {
     const key = parts[i];
@@ -46,23 +37,23 @@ export function set(obj, path, value) {
 export function get(obj, path) {
   if ( path.startsWith('$') ) {
     try {
-      return jsonpath.query(obj, path)[0];
+      return JSONPath({
+        path,
+        json:        obj,
+        wrap:        false,
+      });
     } catch (e) {
-      console.log('JSON Path error', e); // eslint-disable-line no-console
+      console.log('JSON Path error', e, path, obj); // eslint-disable-line no-console
 
       return '(JSON Path err)';
     }
   }
 
-  let parts;
-
-  if ( path.match(quotedKey) ) {
-    // Path with quoted section
-    parts = path.match(/[^."']+|"([^"]*)"|'([^']*)'/g).map(x => x.replace(/['"]/g, ''));
-  } else {
-    // Regular path
-    parts = path.split('.');
+  if ( !path.includes('.') ) {
+    return obj?.[path];
   }
+
+  const parts = splitObjectPath(path);
 
   for (let i = 0; i < parts.length; i++) {
     if (!obj) {

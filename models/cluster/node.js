@@ -4,30 +4,12 @@ import {
   CAPI, MANAGEMENT, METRIC, NORMAN, POD
 } from '@/config/types';
 import { parseSi } from '@/utils/units';
-import { PRIVATE } from '@/plugins/steve/resource-proxy';
 import findLast from 'lodash/findLast';
 
-export const listNodeRoles = (isControlPlane, isWorker, isEtcd, allString) => {
-  const res = [];
+import SteveModel from '@/plugins/steve/steve-class';
 
-  if (isControlPlane) {
-    res.push('Control Plane');
-  }
-  if (isWorker) {
-    res.push('Worker');
-  }
-  if (isEtcd) {
-    res.push('Etcd');
-  }
-  if (res.length === 3 || res.length === 0) {
-    return allString;
-  }
-
-  return res.join(', ');
-};
-
-export default {
-  _availableActions() {
+export default class ClusterNode extends SteveModel {
+  get _availableActions() {
     const normanAction = this.norman?.actions || {};
 
     const cordon = {
@@ -88,53 +70,49 @@ export default {
       drain,
       stopDrain,
       { divider: true },
-      ...this._standardActions
+      ...super._availableActions
     ];
-  },
+  }
 
   openSsh() {
-    return () => {
-      this.provisionedMachine.openSsh();
-    };
-  },
+    this.provisionedMachine.openSsh();
+  }
 
   downloadKeys() {
-    return () => {
-      this.provisionedMachine.downloadKeys();
-    };
-  },
+    this.provisionedMachine.downloadKeys();
+  }
 
-  showDetailStateBadge() {
+  get showDetailStateBadge() {
     return true;
-  },
+  }
 
-  name() {
+  get name() {
     return this.metadata.name;
-  },
+  }
 
-  internalIp() {
+  get internalIp() {
     const addresses = this.status?.addresses || [];
 
     return findLast(addresses, address => address.type === 'InternalIP')?.address;
-  },
+  }
 
-  externalIp() {
+  get externalIp() {
     const addresses = this.status?.addresses || [];
     const annotationAddress = this.metadata.annotations[RKE.EXTERNAL_IP];
     const statusAddress = findLast(addresses, address => address.type === 'ExternalIP')?.address;
 
     return statusAddress || annotationAddress;
-  },
+  }
 
-  labels() {
+  get labels() {
     return this.metadata?.labels || {};
-  },
+  }
 
-  isWorker() {
+  get isWorker() {
     return this.managementNode ? this.managementNode.isWorker : `${ this.labels[NODE_ROLES.WORKER] }` === 'true';
-  },
+  }
 
-  isControlPlane() {
+  get isControlPlane() {
     if (this.managementNode) {
       return this.managementNode.isControlPlane;
     } else if (
@@ -145,13 +123,13 @@ export default {
     }
 
     return false;
-  },
+  }
 
-  isEtcd() {
+  get isEtcd() {
     return this.managementNode ? this.managementNode.isEtcd : `${ this.labels[NODE_ROLES.ETCD] }` === 'true';
-  },
+  }
 
-  hasARole() {
+  get hasARole() {
     const roleLabelKeys = Object.values(NODE_ROLES);
 
     return Object.keys(this.labels)
@@ -161,79 +139,79 @@ export default {
 
         return hasRoleLabel && isExpectedValue;
       });
-  },
+  }
 
-  roles() {
+  get roles() {
     const { isControlPlane, isWorker, isEtcd } = this;
 
     return listNodeRoles(isControlPlane, isWorker, isEtcd, this.t('generic.all'));
-  },
+  }
 
-  version() {
+  get version() {
     return this.status.nodeInfo.kubeletVersion;
-  },
+  }
 
-  cpuUsage() {
+  get cpuUsage() {
     return parseSi(this.$rootGetters['cluster/byId'](METRIC.NODE, this.id)?.usage?.cpu || '0');
-  },
+  }
 
-  cpuCapacity() {
+  get cpuCapacity() {
     return parseSi(this.status.allocatable.cpu);
-  },
+  }
 
-  cpuUsagePercentage() {
+  get cpuUsagePercentage() {
     return ((this.cpuUsage * 100) / this.cpuCapacity).toString();
-  },
+  }
 
-  ramUsage() {
+  get ramUsage() {
     return parseSi(this.$rootGetters['cluster/byId'](METRIC.NODE, this.id)?.usage?.memory || '0');
-  },
+  }
 
-  ramCapacity() {
+  get ramCapacity() {
     return parseSi(this.status.capacity.memory);
-  },
+  }
 
-  ramUsagePercentage() {
+  get ramUsagePercentage() {
     return ((this.ramUsage * 100) / this.ramCapacity).toString();
-  },
+  }
 
-  podUsage() {
+  get podUsage() {
     return calculatePercentage(this.status.allocatable.pods, this.status.capacity.pods);
-  },
+  }
 
-  podConsumedUsage() {
+  get podConsumedUsage() {
     return ((this.podConsumed / this.podCapacity) * 100).toString();
-  },
+  }
 
-  podCapacity() {
+  get podCapacity() {
     return Number.parseInt(this.status.capacity.pods);
-  },
+  }
 
-  podConsumed() {
+  get podConsumed() {
     return this.runningPods.length;
-  },
+  }
 
-  isPidPressureOk() {
+  get isPidPressureOk() {
     return this.isCondition('PIDPressure', 'False');
-  },
+  }
 
-  isDiskPressureOk() {
+  get isDiskPressureOk() {
     return this.isCondition('DiskPressure', 'False');
-  },
+  }
 
-  isMemoryPressureOk() {
+  get isMemoryPressureOk() {
     return this.isCondition('MemoryPressure', 'False');
-  },
+  }
 
-  isKubeletOk() {
+  get isKubeletOk() {
     return this.isCondition('Ready');
-  },
+  }
 
-  isCordoned() {
+  get isCordoned() {
     return !!this.spec.unschedulable;
-  },
+  }
 
-  drainedState() {
+  get drainedState() {
     const sNodeCondition = this.managementNode?.status.conditions.find(c => c.type === 'Drained');
 
     if (sNodeCondition) {
@@ -246,47 +224,43 @@ export default {
     }
 
     return null;
-  },
+  }
 
-  containerRuntimeVersion() {
+  get containerRuntimeVersion() {
     return this.status.nodeInfo.containerRuntimeVersion.replace('docker://', '');
-  },
+  }
 
-  containerRuntimeIcon() {
+  get containerRuntimeIcon() {
     if ( this.status.nodeInfo.containerRuntimeVersion.includes('docker') ) {
       return 'icon-docker';
     }
 
     return '';
-  },
+  }
 
-  cordon() {
-    return async(resources) => {
-      const safeResources = Array.isArray(resources) ? resources : [this];
+  async cordon(resources) {
+    const safeResources = Array.isArray(resources) ? resources : [this];
 
-      await Promise.all(safeResources.map((node) => {
-        return node.norman?.doAction('cordon');
-      }));
-    };
-  },
+    await Promise.all(safeResources.map((node) => {
+      return node.norman?.doAction('cordon');
+    }));
+  }
 
-  uncordon() {
-    return async(resources) => {
-      const safeResources = Array.isArray(resources) ? resources : [this];
+  async uncordon(resources) {
+    const safeResources = Array.isArray(resources) ? resources : [this];
 
-      await Promise.all(safeResources.map((node) => {
-        return node.norman?.doAction('uncordon');
-      }));
-    };
-  },
+    await Promise.all(safeResources.map((node) => {
+      return node.norman?.doAction('uncordon');
+    }));
+  }
 
-  clusterId() {
+  get clusterId() {
     const parts = this.links.self.split('/');
 
     return parts[parts.length - 4];
-  },
+  }
 
-  normanNodeId() {
+  get normanNodeId() {
     const managementNode = (this.$rootGetters['management/all'](MANAGEMENT.NODE) || []).find((n) => {
       return n.id.startsWith(this.clusterId) && n.status.nodeName === this.name;
     });
@@ -294,46 +268,45 @@ export default {
     if (managementNode) {
       return managementNode.id.replace('/', ':');
     }
-  },
 
-  norman() {
+    return null;
+  }
+
+  get norman() {
     return this.$rootGetters['rancher/byId'](NORMAN.NODE, this.normanNodeId);
-  },
+  }
 
-  managementNode() {
+  get managementNode() {
     return this.$rootGetters['management/all'](MANAGEMENT.NODE).find((mNode) => {
       return mNode.id.startsWith(this.clusterId) && mNode.status.nodeName === this.id;
     });
-  },
+  }
 
-  drain() {
-    return (resources) => {
-      this.$dispatch('promptModal', { component: 'DrainNode', resources: [resources || [this], this.normanNodeId] });
-    };
-  },
+  drain(resources) {
+    this.$dispatch('promptModal', { component: 'DrainNode', resources: [resources || [this], this.normanNodeId] });
+  }
 
-  stopDrain() {
-    return async(resources) => {
-      const safeResources = Array.isArray(resources) ? resources : [this];
+  async stopDrain(resources) {
+    const safeResources = Array.isArray(resources) ? resources : [this];
 
-      await Promise.all(safeResources.map((node) => {
-        return node.norman?.doAction('stopDrain');
-      }));
-    };
-  },
+    await Promise.all(safeResources.map((node) => {
+      return node.norman?.doAction('stopDrain');
+    }));
+  }
 
-  state() {
+  get state() {
     if (this.drainedState) {
       return this.drainedState;
     }
-    if ( !this[PRIVATE].isDetailPage && this.isCordoned ) {
+
+    if ( this.isCordoned ) {
       return 'cordoned';
     }
 
     return this.metadata?.state?.name || 'unknown';
-  },
+  }
 
-  details() {
+  get details() {
     const details = [
       {
         label:    this.t('node.detail.detailTop.version'),
@@ -367,37 +340,49 @@ export default {
     }
 
     return details;
-  },
+  }
 
-  pods() {
+  get pods() {
     const allPods = this.$rootGetters['cluster/all'](POD);
 
     return allPods.filter(pod => pod.spec.nodeName === this.name);
-  },
+  }
 
-  runningPods() {
+  get runningPods() {
     return this.pods.filter(pod => pod.isRunning);
-  },
+  }
 
-  confirmRemove() {
+  get confirmRemove() {
     return true;
-  },
+  }
 
-  canClone() {
+  get canClone() {
     return false;
-  },
+  }
+
+  get canDelete() {
+    const provider = this.$rootGetters['currentCluster'].provisioner.toLowerCase();
+    const cloudProviders = [
+      'aks', 'azureaks', 'azurekubernetesservice',
+      'eks', 'amazoneks',
+      'gke', 'googlegke'
+    ];
+
+    return !cloudProviders.includes(provider);
+  }
 
   // You need to preload CAPI.MACHINEs to use this
-  provisionedMachine() {
+  get provisionedMachine() {
     const namespace = this.metadata?.annotations?.[CAPI_ANNOTATIONS.CLUSTER_NAMESPACE];
     const name = this.metadata?.annotations?.[CAPI_ANNOTATIONS.MACHINE_NAME];
 
     if ( namespace && name ) {
       return this.$rootGetters['management/byId'](CAPI.MACHINE, `${ namespace }/${ name }`);
     }
-  },
 
-};
+    return null;
+  }
+}
 
 function calculatePercentage(allocatable, capacity) {
   const c = Number.parseFloat(capacity);
@@ -405,4 +390,26 @@ function calculatePercentage(allocatable, capacity) {
   const percent = (((c - a) / c) * 100);
 
   return formatPercent(percent);
+}
+
+export function listNodeRoles(isControlPlane, isWorker, isEtcd, allString) {
+  const res = [];
+
+  if (isControlPlane) {
+    res.push('Control Plane');
+  }
+
+  if (isWorker) {
+    res.push('Worker');
+  }
+
+  if (isEtcd) {
+    res.push('Etcd');
+  }
+
+  if (res.length === 3 || res.length === 0) {
+    return allString;
+  }
+
+  return res.join(', ');
 }

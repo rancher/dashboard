@@ -1,6 +1,6 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
-import { SECRET, LOGGING } from '@/config/types';
+import { SECRET, LOGGING, SCHEMA } from '@/config/types';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import CruResource from '@/components/CruResource';
@@ -10,13 +10,16 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import Banner from '@/components/Banner';
 import { PROVIDERS } from '@/models/logging.banzaicloud.io.output';
 import { _VIEW } from '@/config/query-params';
-import { clone } from '@/utils/object';
+import { clone, set } from '@/utils/object';
 import isEqual from 'lodash/isEqual';
 import isEmpty from 'lodash/isEmpty';
+import jsyaml from 'js-yaml';
+import { createYaml } from '@/utils/create-yaml';
+import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 
 export default {
   components: {
-    Banner, CruResource, Labels, LabeledSelect, NameNsDescription, Tab, Tabbed
+    Banner, CruResource, Labels, LabeledSelect, NameNsDescription, Tab, Tabbed, YamlEditor
   },
 
   mixins: [CreateEditView],
@@ -26,9 +29,13 @@ export default {
   },
 
   data() {
+    const schemas = this.$store.getters['cluster/all'](SCHEMA);
+
     if (this.isCreate) {
       this.value.metadata.namespace = 'default';
     }
+
+    set(this.value, 'spec', this.value.spec || {});
 
     const providers = PROVIDERS.map(provider => ({
       ...provider,
@@ -51,9 +58,26 @@ export default {
       return !isEmpty(correctedSpecProvider) && !isEqual(correctedSpecProvider, provider.default);
     });
 
+    const selectedProvider = selectedProviders?.[0]?.value || providers[0].value;
+
+    let bufferYaml;
+
+    if ( !isEmpty(this.value.spec[selectedProvider]?.buffer) ) {
+      bufferYaml = jsyaml.dump(this.value.spec[selectedProvider].buffer);
+    } else {
+      bufferYaml = createYaml(schemas, `logging.banzaicloud.io.v1beta1.output.spec.${ selectedProvider }.buffer`, []);
+      // createYaml doesn't support passing reference types (array, map) as the first type. As such
+      // I'm manipulating the output since I'm not sure it's something we want to actually support
+      // seeing as it's really createResourceYaml and this here is a gray area between spoofed types
+      // and just a field within a spec.
+      bufferYaml = bufferYaml.substring(bufferYaml.indexOf('\n') + 1).replaceAll('#  ', '#');
+    }
+
     return {
+      bufferYaml,
+      initialBufferYaml:           bufferYaml,
       providers,
-      selectedProvider:            selectedProviders?.[0]?.value || providers[0].value,
+      selectedProvider,
       hasMultipleProvdersSelected: selectedProviders.length > 1,
       selectedProviders,
       LOGGING
@@ -61,6 +85,9 @@ export default {
   },
 
   computed: {
+    EDITOR_MODES() {
+      return EDITOR_MODES;
+    },
     enabledProviders() {
       return this.providers.filter(p => p.enabled);
     },
@@ -85,7 +112,30 @@ export default {
     },
     willSave() {
       this.value.spec = { [this.selectedProvider]: this.value.spec[this.selectedProvider] };
-    }
+
+      const bufferJson = jsyaml.load(this.bufferYaml);
+
+      if (!isEmpty(bufferJson)) {
+        this.value.spec[this.selectedProvider].buffer = bufferJson;
+      } else {
+        this.$delete(this.value.spec[this.selectedProvider], 'buffer');
+      }
+    },
+    tabChanged({ tab }) {
+      if ( tab.name === 'buffer' ) {
+        this.$nextTick(() => {
+          if ( this.$refs.yaml ) {
+            this.$refs.yaml.refresh();
+            this.$refs.yaml.focus();
+          }
+        });
+      }
+    },
+    onYamlEditorReady(cm) {
+      cm.getMode().fold = 'yamlcomments';
+      cm.execCommand('foldAll');
+      cm.execCommand('unfold');
+    },
   }
 };
 </script>
@@ -118,8 +168,8 @@ export default {
       <Banner v-else-if="!value.allProvidersSupported" color="info">
         This output is configured with providers we don't support yet. You can view or edit the YAML.
       </Banner>
-      <Tabbed v-else ref="tabbed" :side-tabs="true">
-        <Tab name="Output" label="Output" :weight="1">
+      <Tabbed v-else ref="tabbed" :side-tabs="true" @changed="tabChanged($event)">
+        <Tab name="Output" label="Output" :weight="2">
           <div class="row">
             <div class="col span-6">
               <LabeledSelect v-model="selectedProvider" label="Output" :options="providers" :mode="mode" />
@@ -127,6 +177,16 @@ export default {
           </div>
           <div class="spacer"></div>
           <component :is="getComponent(selectedProvider)" :value="value.spec[selectedProvider]" :namespace="value.namespace" :mode="mode" />
+        </Tab>
+        <Tab name="buffer" :label="t('logging.output.buffer.label')" :weight="1">
+          <YamlEditor
+            ref="yaml"
+            v-model="bufferYaml"
+            :scrolling="false"
+            :initial-yaml-values="initialBufferYaml"
+            :editor-mode="isView ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE"
+            @onReady="onYamlEditorReady"
+          />
         </Tab>
         <Tab
           v-if="!isView"

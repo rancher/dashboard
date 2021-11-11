@@ -153,6 +153,13 @@ export default {
         };
       }
 
+      if (this.value?.spec?.paused) {
+        return {
+          color:   'info',
+          message: this.t('asyncButton.pause.description')
+        };
+      }
+
       if (this.value?.stateObj?.transitioning) {
         const defaultTransitioningMessage = this.t('resourceDetail.masthead.defaultBannerMessage.transitioning', undefined, true);
 
@@ -166,7 +173,7 @@ export default {
     },
 
     parent() {
-      const displayName = this.$store.getters['type-map/labelFor'](this.schema);
+      const displayName = this.value.parentNameOverride || this.$store.getters['type-map/labelFor'](this.schema);
       const product = this.$store.getters['currentProduct'].name;
 
       const defaultLocation = {

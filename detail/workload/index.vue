@@ -18,7 +18,8 @@ const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system
 const WORKLOAD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-1/rancher-workload?orgId=1';
 
 export const WORKLOAD_TYPE_TO_KIND_MAPPING = {
-  [WORKLOAD_TYPES.DEPLOYMENT]:             'Deployment',
+  // Each deployment creates a replicaset and the metrics are published for a replicaset.
+  [WORKLOAD_TYPES.DEPLOYMENT]:             'ReplicaSet',
   [WORKLOAD_TYPES.CRON_JOB]:               'CronJob',
   [WORKLOAD_TYPES.DAEMON_SET]:             'DaemonSet',
   [WORKLOAD_TYPES.JOB]:                    'Job',
@@ -30,7 +31,8 @@ export const WORKLOAD_TYPE_TO_KIND_MAPPING = {
 const METRICS_SUPPORTED_KINDS = [
   WORKLOAD_TYPES.DAEMON_SET,
   WORKLOAD_TYPES.REPLICA_SET,
-  WORKLOAD_TYPES.STATEFUL_SET
+  WORKLOAD_TYPES.STATEFUL_SET,
+  WORKLOAD_TYPES.DEPLOYMENT
 ];
 
 export default {
@@ -232,11 +234,15 @@ export default {
       ];
     },
 
+    graphVarsWorkload() {
+      return this.value.type === WORKLOAD_TYPES.DEPLOYMENT ? this.value.replicaSetId : this.value.shortId;
+    },
+
     graphVars() {
       return {
         namespace: this.value.namespace,
         kind:      WORKLOAD_TYPE_TO_KIND_MAPPING[this.value.type],
-        workload:  this.value.shortId
+        workload:  this.graphVarsWorkload
       };
     }
   },

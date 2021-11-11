@@ -61,7 +61,7 @@
 
     &:not(.top) {
       align-items: top;
-      flex-direction: row;
+      flex-direction: column;
       justify-content: start;
       &:hover {
         cursor: pointer;

@@ -14,6 +14,7 @@ const version = process.env.VERSION ||
   require('./package.json').version;
 
 const dev = (process.env.NODE_ENV !== 'production');
+const devPorts = dev || process.env.DEV_PORTS === 'true';
 const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
 
@@ -82,7 +83,8 @@ module.exports = {
   ],
   styleResources: {
     // only import functions, mixins, or variables, NEVER import full styles https://github.com/nuxt-community/style-resources-module#warning
-    scss: [
+    hoistUseStatements: true,
+    scss:               [
       '~assets/styles/base/_variables.scss',
       '~assets/styles/base/_functions.scss',
       '~assets/styles/base/_mixins.scss',
@@ -268,6 +270,7 @@ module.exports = {
       }
     ],
     link: [{
+      hid:  'icon',
       rel:  'icon',
       type: 'image/x-icon',
       href: `${ resourceBase || '/' }favicon.png`
@@ -293,6 +296,7 @@ module.exports = {
     '~/plugins/tooltip',
     '~/plugins/vue-clipboard2',
     '~/plugins/v-select',
+    '~/plugins/directives',
     '~/plugins/transitions',
     { src: '~plugins/vue-js-modal' },
     { src: '~/plugins/js-yaml', ssr: false },
@@ -335,11 +339,11 @@ module.exports = {
 
   // Nuxt server
   server: {
-    https: (dev ? {
+    https: (devPorts ? {
       key:  fs.readFileSync(path.resolve(__dirname, 'server/server.key')),
       cert: fs.readFileSync(path.resolve(__dirname, 'server/server.crt'))
     } : null),
-    port:      (dev ? 8005 : 80),
+    port:      (devPorts ? 8005 : 80),
     host:      '0.0.0.0',
   },
 

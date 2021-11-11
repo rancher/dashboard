@@ -1,16 +1,15 @@
 import { ALLOWED_SETTINGS } from '@/config/settings';
+import HybridModel from '@/plugins/steve/hybrid-class';
 
-export default {
-
-  fromEnv() {
+export default class Setting extends HybridModel {
+  get fromEnv() {
     return (this.source || '').toLowerCase() === 'env';
-  },
+  }
 
-  _availableActions() {
+  get _availableActions() {
     const toFilter = ['cloneYaml', 'download', 'goToEditYaml', 'goToViewYaml', 'goToViewConfig'];
     const settingMetadata = ALLOWED_SETTINGS[this.id];
-
-    let out = this._standardActions;
+    let out = super._availableActions;
 
     // Some settings are not editable
     if ( settingMetadata?.readOnly || this.fromEnv ) {
@@ -29,9 +28,9 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     return [
       {
         path:           'value',
@@ -39,6 +38,5 @@ export default {
         validators:     [`isHttps:${ this.metadata.name }`]
       },
     ];
-  },
-
-};
+  }
+}

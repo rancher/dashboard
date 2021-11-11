@@ -1,10 +1,12 @@
 <script>
+import { mapGetters } from 'vuex';
 import { get } from '@/utils/object';
 import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
 import ButtonGroup from '@/components/ButtonGroup';
 import SortableTable from '@/components/SortableTable';
 import { NAMESPACE } from '@/config/table-headers';
 import { findBy } from '@/utils/array';
+import { NAME as HARVESTER } from '@/config/product/harvester';
 
 export default {
   components: { ButtonGroup, SortableTable },
@@ -61,10 +63,10 @@ export default {
       type:    String,
       default: 'resourceTable.groupBy.namespace',
     },
-
   },
 
   computed: {
+    ...mapGetters(['isVirtualCluster']),
     isNamespaced() {
       if ( this.namespaced !== null ) {
         return this.namespaced;
@@ -116,16 +118,28 @@ export default {
 
     filteredRows() {
       const isAll = this.$store.getters['isAllNamespaces'];
+      const isVirutalProduct = this.$store.getters['currentProduct'].name === HARVESTER;
 
       // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
-      if ( !this.isNamespaced || isAll ) {
+      if ( (!this.isNamespaced || isAll) && !isVirutalProduct) {
         return this.rows || [];
       }
 
       const includedNamespaces = this.$store.getters['namespaces']();
 
+      // Shouldn't happen, but does for resources like management.cattle.io.preference
+      if (!this.rows) {
+        return [];
+      }
+
       return this.rows.filter((row) => {
-        return !!includedNamespaces[row.metadata.namespace];
+        if (this.isVirtualCluster && this.isNamespaced) {
+          return !!includedNamespaces[row.metadata.namespace] && !row.isSystemResource;
+        } else if (!this.isNamespaced) {
+          return true;
+        } else {
+          return !!includedNamespaces[row.metadata.namespace];
+        }
       });
     },
 
@@ -218,7 +232,21 @@ export default {
 
     clearSelection() {
       this.$refs.table.clearSelection();
-    }
+    },
+
+    sortGenerationFn() {
+      if ( !this.schema ) {
+        return null;
+      }
+
+      const resource = this.schema.id;
+      const inStore = this.$store.getters['currentStore'](resource);
+      const generation = this.$store.getters[`${ inStore }/currentGeneration`](resource);
+
+      if ( generation ) {
+        return `${ resource }/${ generation }`;
+      }
+    },
   }
 };
 </script>
@@ -236,6 +264,7 @@ export default {
     :paging-label="pagingLabel"
     :table-actions="_showBulkActions"
     key-field="_key"
+    :sort-generation-fn="sortGenerationFn"
     v-on="$listeners"
   >
     <template v-if="showGrouping" #header-middle>

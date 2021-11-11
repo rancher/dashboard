@@ -17,7 +17,7 @@ import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { set } from '@/utils/object';
 import { mapFeature, RKE2 as RKE2_FEATURE } from '@/store/features';
-import { rke1Supports } from '~/store/plugins';
+import { rke1Supports } from '@/store/plugins';
 
 export default {
   name: 'CruCloudCredential',
@@ -262,15 +262,16 @@ export default {
       @error="e=>errors = e"
     >
       <NameNsDescription v-model="value" name-key="_name" :mode="mode" :namespaced="false" />
-
-      <component
-        :is="cloudComponent"
-        ref="cloudComponent"
-        :driver-name="driverName"
-        :value="value"
-        :mode="mode"
-        :hide-sensitive-data="hideSensitiveData"
-      />
+      <keep-alive>
+        <component
+          :is="cloudComponent"
+          ref="cloudComponent"
+          :driver-name="driverName"
+          :value="value"
+          :mode="mode"
+          :hide-sensitive-data="hideSensitiveData"
+        />
+      </keep-alive>
     </CruResource>
   </form>
 </template>
