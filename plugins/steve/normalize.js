@@ -1,4 +1,5 @@
 import { SCHEMA } from '@/config/types';
+import isObject from 'lodash/isObject';
 
 export const KEY_FIELD_FOR = {
   [SCHEMA]:  '_id',
@@ -69,12 +70,27 @@ export function cleanForDiff(obj) {
     m.annotations = {};
   }
 
+  dropUnderscores(obj);
   dropKeys(obj, diffRootKeys);
   dropKeys(m, diffMetadataKeys);
   dropCattleKeys(m.annotations);
   dropCattleKeys(m.labels);
 
   return obj;
+}
+
+function dropUnderscores(obj) {
+  for ( const k in obj ) {
+    if ( k.startsWith('__') ) {
+      delete obj[k];
+    } else {
+      const v = obj[k];
+
+      if ( isObject(v) ) {
+        dropUnderscores(v);
+      }
+    }
+  }
 }
 
 function dropKeys(obj, keys) {
