@@ -177,7 +177,7 @@ export default {
 
 <template>
   <div
-    :style="{'min-height': `${minHeight}px`}"
+    :style="{'min-height': minHeight}"
   >
     <div
       :class="{

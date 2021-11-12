@@ -152,14 +152,6 @@ export default class EpinioApplication extends EpinioResource {
     console.log(`### Application: ${ text }`, `${ this.meta.namespace }/${ this.meta.name }`, args);// eslint-disable-line no-console
   }
 
-  async forceFetch() {
-    await this.$dispatch('find', {
-      type: this.type,
-      id:   `${ this.meta.namespace }/${ this.meta.name }`,
-      opt:  { force: true }
-    });
-  }
-
   async create() {
     this.trace('Create the application resource');
 

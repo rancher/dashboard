@@ -6156,6 +6156,9 @@ epinio:
     name: Name
     create: Create a Namespace
   services:
+    pairs:
+      label: Service Data
+      tooltip: Data made available to bound applications
     tableHeaders:
       boundApps: Bound Applications
     promptRemove:
