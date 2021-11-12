@@ -6082,8 +6082,6 @@ epinio:
     tableHeaders:
       api: URL
       explore: Explore
-  services:
-    pairs: Configure data that will be available to a container
   applications:
     tableHeaders:
       route: Route
@@ -6158,6 +6156,7 @@ epinio:
     name: Name
     create: Create a Namespace
   services:
+    pairs: Configure data that will be available to a container
     tableHeaders:
       boundApps: Bound Applications
     promptRemove:

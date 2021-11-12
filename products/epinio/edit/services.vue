@@ -5,11 +5,15 @@ import Loading from '@/components/Loading.vue';
 import CruResource from '@/components/CruResource.vue';
 import NameNsDescription from '@/components/form/NameNsDescription.vue';
 import { mapGetters } from 'vuex';
-import ServiceModel from '@/products/epinio/models/services.class';
+import ServiceModel from '@/products/epinio/models/services';
 import { EPINIO_TYPES } from '@/products/epinio/types';
 import KeyValue from '@/components/form/KeyValue.vue';
+import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 
-export default Vue.extend({
+interface Data {
+}
+
+export default Vue.extend<Data, any, any, any>({
   components: {
     Loading,
     CruResource,
@@ -45,6 +49,27 @@ export default Vue.extend({
   async fetch() {
     this.namespaces = await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE });
   },
+
+  methods: {
+    async save(saveCb: (success: boolean) => void) {
+      this.errors = [];
+      try {
+        if (this.mode === 'create') {
+          await this.value.create();
+        }
+
+        if (this.mode === 'edit') {
+          await this.value.update();
+        }
+        await this.value.forceFetch();
+        saveCb(true);
+        this.done();
+      } catch (err) {
+        this.errors = epinioExceptionToErrorsArray(err);
+        saveCb(false);
+      }
+    },
+  }
 });
 </script>
 
@@ -72,7 +97,7 @@ export default Vue.extend({
         :mode="mode"
       />
       <KeyValue
-        v-model="value.keyValuePairs"
+        v-model="value.data"
         :initial-empty-row="true"
         :mode="mode"
         :title="t('epinio.services.pairs')"

@@ -8,16 +8,16 @@ import EpinioResource from './epinio-resource';
 export default class EpinioService extends EpinioResource {
   get links() {
     return {
-      update: this.getUrl(),
-      self:   this.getUrl(),
-      remove: this.getUrl(),
-      create: this.getUrl(this.meta?.namespace, null),
+      update: this.getUrl(this.meta?.namespace, this.meta?.name),
+      self:   this.getUrl(this.meta?.namespace, this.meta?.name),
+      remove: this.getUrl(this.meta?.namespace, this.meta?.name),
+      create: this.getUrl(this.meta?.namespace, ''),
     };
   }
 
-  getUrl(namespace = this.meta?.namespace, name = this.meta?.name) {
-    // Add baseUrl in a generic way
-    return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ namespace }/services/${ name || '' }` });
+  getUrl(namespace = this.meta?.namespace) {
+    // Don't include the name when creating a service.
+    return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ namespace }/services/${ name }` });
   }
 
   get applications() {
@@ -64,7 +64,13 @@ export default class EpinioService extends EpinioResource {
     return this.name;
   }
 
+  trace(text, ...args) {
+    console.log(`### Service: ${ text }`, `${ this.meta.namespace }/${ this.meta.name }`, args);// eslint-disable-line no-console
+  }
+
   async create() {
+    this.trace('Create the application resource');
+
     await this.followLink('create', {
       method:  'post',
       headers: {
@@ -72,8 +78,23 @@ export default class EpinioService extends EpinioResource {
         accept:         'application/json'
       },
       data: {
-        name: this.meta.name,
-        data: this.keyValuePairs
+        name:          this.meta.name,
+        data: { ...this.data }
+      }
+    });
+  }
+
+  async update() {
+    this.trace('Update the application resource');
+    await this.followLink('update', {
+      method:  'patch',
+      headers: {
+        'content-type': 'application/json',
+        accept:         'application/json'
+      },
+      data: {
+        name:          this.meta.name,
+        data: { ...this.keyValuePairs }
       }
     });
   }
