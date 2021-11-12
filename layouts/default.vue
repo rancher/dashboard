@@ -528,10 +528,10 @@ export default {
       <Header />
       <nav v-if="clusterReady" class="side-nav">
         <div class="nav">
-          <template v-for="(g, idx) in groups">
+          <template v-for="(g) in groups">
             <Group
               ref="groups"
-              :key="idx"
+              :key="g.name"
               id-prefix=""
               class="package"
               :group="g"
