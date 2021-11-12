@@ -190,7 +190,7 @@ export default {
           white-space: no-wrap;
           text-overflow: ellipsis;
           // Override default form label properties
-          color: $color;
+          color: white;
           margin: 0;
         }
 
