@@ -9,6 +9,7 @@ import isArray from 'lodash/isArray';
 import isEqual from 'lodash/isEqual';
 import difference from 'lodash/difference';
 import { splitObjectPath, joinObjectPath } from '@/utils/string';
+import { addObject } from '@/utils/array';
 
 export function set(obj, path, value) {
   let ptr = obj;
@@ -230,46 +231,89 @@ export function changeset(from, to, parentPath = []) {
 }
 
 export function changesetConflicts(a, b) {
-  const keys = Object.keys(a);
+  let keys = Object.keys(a).sort();
   const out = [];
+  const seen = {};
 
   for ( const k of keys ) {
+    let ok = true;
     const aa = a[k];
     const bb = b[k];
 
-    if ( !bb ) {
-      continue;
+    // If we've seen a change for a parent of this key before (e.g. looking at `spec.replicas` and there's already been a change to `spec`), assume they conflict
+    for ( const parentKey of parentKeys(k) ) {
+      if ( seen[parentKey] ) {
+        ok = false;
+        break;
+      }
     }
 
-    let ok = true;
+    seen[k] = true;
 
-    switch ( `${ aa.op }-${ bb.op }` ) {
-    case 'add-add':
-    case 'add-change':
-    case 'change-add':
-    case 'change-change':
-      ok = isEqual(aa.value, bb.value);
-      break;
+    if ( ok && bb ) {
+      switch ( `${ aa.op }-${ bb.op }` ) {
+      case 'add-add':
+      case 'add-change':
+      case 'change-add':
+      case 'change-change':
+        ok = isEqual(aa.value, bb.value);
+        break;
 
-    case 'add-remove':
-    case 'change-remove':
-    case 'remove-add':
-    case 'remove-change':
-      ok = false;
-      break;
+      case 'add-remove':
+      case 'change-remove':
+      case 'remove-add':
+      case 'remove-change':
+        ok = false;
+        break;
 
-    case 'remove-remove':
-    default:
-      ok = true;
-      break;
+      case 'remove-remove':
+      default:
+        ok = true;
+        break;
+      }
     }
 
     if ( !ok ) {
-      out.push(k);
+      addObject(out, k);
     }
   }
 
-  return out;
+  // Check parent keys going the other way
+  keys = Object.keys(b).sort();
+  for ( const k of keys ) {
+    let ok = true;
+
+    for ( const parentKey of parentKeys(k) ) {
+      if ( seen[parentKey] ) {
+        ok = false;
+        break;
+      }
+    }
+
+    seen[k] = true;
+
+    if ( !ok ) {
+      addObject(out, k);
+    }
+  }
+
+  return out.sort();
+
+  function parentKeys(k) {
+    const out = [];
+    const parts = splitObjectPath(k);
+
+    parts.pop();
+
+    while ( parts.length ) {
+      const path = joinObjectPath(parts);
+
+      out.push(path);
+      parts.pop();
+    }
+
+    return out;
+  }
 }
 
 export function applyChangeset(obj, changeset) {
