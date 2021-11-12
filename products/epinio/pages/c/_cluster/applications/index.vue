@@ -15,10 +15,8 @@ export default {
   },
 
   async fetch() {
-    await Promise.all([
-      this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP }),
-      this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE })
-    ]);
+    await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP });
+    this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE });
   },
 
   data() {

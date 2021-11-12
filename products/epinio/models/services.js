@@ -11,12 +11,11 @@ export default class EpinioService extends EpinioResource {
       update: this.getUrl(),
       self:   this.getUrl(),
       remove: this.getUrl(),
-      create: this.getUrl(this.meta?.namespace, null), // ensure name is null
+      create: this.getUrl(this.meta?.namespace, null),
     };
   }
 
   getUrl(namespace = this.meta?.namespace, name = this.meta?.name) {
-    // Add baseUrl in a generic way
     return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ namespace }/services/${ name || '' }` });
   }
 
@@ -54,6 +53,50 @@ export default class EpinioService extends EpinioResource {
       resource:  EPINIO_TYPES.NAMESPACE,
       id:       this.meta.namespace,
     });
+  }
+
+  trace(text, ...args) {
+    console.log(`### Service: ${ text }`, `${ this.meta.namespace }/${ this.meta.name }`, args);// eslint-disable-line no-console
+  }
+
+  async create() {
+    this.trace('Create the application resource');
+
+    await this.followLink('create', {
+      method:  'post',
+      headers: {
+        'content-type': 'application/json',
+        accept:         'application/json'
+      },
+      data: {
+        name:          this.meta.name,
+        data: { ...this.data }
+      }
+    });
+  }
+
+  async update() {
+    this.trace('Update the application resource');
+    await this.followLink('update', {
+      method:  'patch',
+      headers: {
+        'content-type': 'application/json',
+        accept:         'application/json'
+      },
+      data: {
+        name:          this.meta.name,
+        data: { ...this.keyValuePairs }
+      }
+    });
+  }
+
+  async save() {
+    await this._save(...arguments);
+    const services = await this.$dispatch('findAll', { type: this.type, opt: { force: true } });
+
+    // Find new namespace
+    // return new namespace
+    return services.filter(n => n.name === this.name)?.[0];
   }
 
   // ------------------------------------------------------------------

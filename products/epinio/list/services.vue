@@ -10,12 +10,8 @@ export default {
     ResourceTable,
   },
   async fetch() {
-    const all = await Promise.all([
-      this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP }),
-      this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE })
-    ]);
-
-    this.rows = all[1];
+    this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP });
+    await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE });
   },
   props:      {
     schema: {
@@ -23,6 +19,12 @@ export default {
       required: true,
     },
   },
+
+  computed: {
+    rows() {
+      return this.$store.getters['epinio/all'](EPINIO_TYPES.SERVICE);
+    },
+  }
 };
 </script>
 
