@@ -6108,6 +6108,10 @@ epinio:
         title: Environment Variables
         keyLabel: Name
         valueLabel: Value
+      routes:
+        title: Routes
+        tooltip: Replace the default route (app name with your Epinio domain) with one ore more custom routes
+        placeholder: e.g. my-custom-route.com/my-app
     steps:
       basics:
         label: Details

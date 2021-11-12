@@ -54,8 +54,8 @@ export default Vue.extend<Data, any, any, any>({
         },
         configuration: {
           instances:   this.application.configuration?.instances || 1,
-          environment:   this.application.configuration?.environment || {},
-          routes:      this.application.configuration?.routes || {},
+          environment: this.application.configuration?.environment || {},
+          routes:      this.application.configuration?.routes || [],
         },
       }
     };
@@ -135,22 +135,22 @@ export default Vue.extend<Data, any, any, any>({
     </div>
     <div class="spacer"></div>
     <div class="col span-8">
+      <ArrayList
+        v-model="values.configuration.routes"
+        :title="t('epinio.applications.create.routes.title')"
+        :protip="t('epinio.applications.create.routes.tooltip')"
+        :mode="mode"
+        :value-placeholder="t('epinio.applications.create.routes.placeholder')"
+      />
+    </div>
+    <div class="spacer"></div>
+    <div class="col span-8">
       <KeyValue
         v-model="values.configuration.environment"
         :mode="mode"
         :title="t('epinio.applications.create.envvar.title')"
         :key-label="t('epinio.applications.create.envvar.keyLabel')"
         :value-label="t('epinio.applications.create.envvar.valueLabel')"
-      />
-    </div>
-    <div class="spacer"></div>
-    <div class="col span-8">
-      <ArrayList
-        v-model="values.configuration.routes"
-        title="Routes"
-        protip="Replace the default route (app name with your Epinio domain) with one ore more custom routes"
-        :mode="mode"
-        :value-placeholder="'e.g. my-custom-route.com/my-app'"
       />
     </div>
   </div>
