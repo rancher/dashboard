@@ -6158,7 +6158,7 @@ epinio:
   services:
     pairs:
       label: Service Data
-      tooltip: Data made available to bound applications
+      tooltip: Data made available to bound applications via the path <code>/services/&lt;service name&gt;/&lt;data name&gt;/</code>
     tableHeaders:
       boundApps: Bound Applications
     promptRemove:
