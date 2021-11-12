@@ -1,5 +1,6 @@
 import { EPINIO_TYPES } from '@/products/epinio/types';
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
+import { formatSi } from '@/utils/units';
 import EpinioResource from './epinio-resource';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
@@ -21,6 +22,23 @@ const STATES_MAPPED = {
 
 export default class EpinioApplication extends EpinioResource {
   buildCache = {};
+
+  get details() {
+    const res = [];
+
+    if (this.state === !!this.deployment) {
+      res.push({
+        label:     'Last Deployed By',
+        content:     this.deployment.username,
+      }, {
+        label:     'Age',
+        content:     this.deployment.createdAt,
+        formatter: 'LiveDate'
+      });
+    }
+
+    return res;
+  }
 
   get listLocation() {
     return this.$rootGetters['type-map/optionsFor'](this.type).customRoute || createEpinioRoute(`c-cluster-applications`, { cluster: this.$rootGetters['clusterId'] });
@@ -126,6 +144,34 @@ export default class EpinioApplication extends EpinioResource {
 
       return res;
     }, []);
+  }
+
+  get envCount() {
+    return Object.keys(this.configuration?.environment || []).length;
+  }
+
+  get serviceCount() {
+    return this.configuration?.services.length;
+  }
+
+  get routeCount() {
+    return this.configuration?.routes.length;
+  }
+
+  get memory() {
+    return formatSi(this.deployment?.memoryBytes);
+  }
+
+  get desiredInstances() {
+    return this.deployment?.desiredreplicas;
+  }
+
+  get readyInstances() {
+    return this.deployment?.readyreplicas;
+  }
+
+  get cpu() {
+    return this.deployment?.millicpus;
   }
 
   // ------------------------------------------------------------------

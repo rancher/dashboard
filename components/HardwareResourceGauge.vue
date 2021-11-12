@@ -83,7 +83,7 @@ export default {
           </template>
         </ConsumptionGauge>
       </div>
-      <div v-if=" used && used.useful" class="mt-20">
+      <div v-if="used && used.useful" class="mt-20">
         <ConsumptionGauge
           :capacity="used.total"
           :used="used.useful"

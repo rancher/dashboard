@@ -6084,9 +6084,22 @@ epinio:
       explore: Explore
   applications:
     tableHeaders:
-      route: Route
+      route: Routes
       boundServices: Bound Services
       deployedBy: Last Deployed By
+    detail:
+      counts:
+        label: Counts
+        service: Services
+        routes: Routes
+        envVars: Environment Vars
+      routes:
+        label: Routes
+      deployment:
+        label: Counts
+        instances: Instances
+        memory: Memory
+        cpu: CPU
     create:
       title: Application
       titleSubText: Epinio
