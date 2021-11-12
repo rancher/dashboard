@@ -871,10 +871,6 @@ export default {
         values,
       };
 
-      if (this.migratedApp) {
-        chart.annotations[CATALOG_ANNOTATIONS.MIGRATED] = 'true';
-      }
-
       if ( isUpgrade ) {
         chart.resetValues = this.cmdOptions.resetValues;
       }
