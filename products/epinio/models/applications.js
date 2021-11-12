@@ -30,6 +30,10 @@ export default class EpinioApplication extends EpinioResource {
     return this.listLocation;
   }
 
+  get doneRoute() {
+    return this.listLocation.name;
+  }
+
   get state() {
     return STATES_MAPPED[this.status] || STATES_MAPPED.unknown;
   }
