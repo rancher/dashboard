@@ -183,7 +183,7 @@ export default {
     <ResourceTable :schema="schema" :rows="filteredRows">
       <template slot="cell:name" slot-scope="scope">
         <div class="feature-name">
-          <div>{{ scope.row.name }}</div>
+          <div>{{ scope.row.nameDisplay }}</div>
           <i v-if="scope.row.status.lockedValue" class="icon icon-lock" />
         </div>
       </template>
