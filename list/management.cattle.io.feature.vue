@@ -180,7 +180,14 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <ResourceTable :schema="schema" :rows="filteredRows" />
+    <ResourceTable :schema="schema" :rows="filteredRows">
+      <template slot="cell:name" slot-scope="scope">
+        <div class="feature-name">
+          <div>{{ scope.row.name }}</div>
+          <i v-if="scope.row.status.lockedValue" class="icon icon-lock" />
+        </div>
+      </template>
+    </ResourceTable>
     <modal
       class="update-modal"
       name="toggleFlag"
@@ -275,6 +282,15 @@ export default {
 
     > I {
     font-size: 24px;
+    }
+  }
+
+  .feature-name {
+    align-items: center;
+    display: flex;
+
+    > i {
+      margin-left: 10px;
     }
   }
 </style>

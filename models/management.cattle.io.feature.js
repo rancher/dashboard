@@ -34,6 +34,9 @@ export default class Feature extends HybridModel {
       enabled: state ? this.canDisable : this.canUpdate,
     };
 
+    // Can't disable or enable if the feature flag is locked
+    enableAction.enabled = enableAction.enabled && !this.status.lockedValue;
+
     out.unshift(enableAction);
 
     return out;
