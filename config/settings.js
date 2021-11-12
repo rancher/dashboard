@@ -100,6 +100,7 @@ const HCI_SETTING = {
   HTTP_PROXY:                       'http-proxy',
   ADDITIONAL_CA:                    'additional-ca',
   OVERCOMMIT_CONFIG:                'overcommit-config'
+  CLUSTER_REGISTRATION_URL:         'cluster-registration-url',
   // DEFAULT_STORAGE_CLASS:            'default-storage-class'
 };
 
@@ -129,6 +130,7 @@ export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
   },
   [HCI_SETTING.UI_INDEX]: { kind: 'url' },
   [SETTING.SERVER_URL]:   { kind: 'url' },
+  [HCI_SETTING.CLUSTER_REGISTRATION_URL]: { kind: 'url' },
 };
 
 export const fetchOrCreateSetting = async(store, id, val, save = true) => {
