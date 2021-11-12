@@ -10,49 +10,19 @@ export default {
     ResourceTable,
   },
   async fetch() {
-    const all = await Promise.all([
-      this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP }),
-      this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE })
-    ]);
-
-    this.rows = all[1];
+    this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP });
+    await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE });
   },
   props:      {
     schema: {
       type:     Object,
       required: true,
     },
-    rows: {
-      type:     Array,
-      required: true,
-    },
   },
 
   computed: {
-
-    filterRows() {
-      // A custom list component is needed
-      // because the backend gives a null value for
-      // boundapps of a service that is not bound
-      // to any apps.
-      // ResourceTable needs the value to be
-      // an array because boundapps is defined as a list
-      // in the service type.
-      return this.rows.map((row) => {
-        if (!row.boundapps) {
-          row.boundapps = [];
-        }
-
-        // SortableTable also checks for the namespace
-        // name in the metadata, so we put it in meta.
-        row.meta = {
-          name:      row.name,
-          namespace: row.namespace
-        };
-        delete row.namespace;
-
-        return row;
-      });
+    rows() {
+      return this.$store.getters['epinio/all'](EPINIO_TYPES.SERVICE);
     },
   }
 };

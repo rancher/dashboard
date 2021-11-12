@@ -128,7 +128,7 @@ export default {
         <div slot="body">
           <LabeledInput
             v-model="value.name"
-            :min-input-height="'90px'"
+            :min-height="90"
             :label="t('epinio.namespace.name')"
             :mode="mode"
             :required="true"

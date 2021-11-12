@@ -8,16 +8,15 @@ import EpinioResource from './epinio-resource';
 export default class EpinioService extends EpinioResource {
   get links() {
     return {
-      update: this.getUrl(this.meta?.namespace, this.meta?.name),
-      self:   this.getUrl(this.meta?.namespace, this.meta?.name),
-      remove: this.getUrl(this.meta?.namespace, this.meta?.name),
-      create: this.getUrl(this.meta?.namespace, ''),
+      update: this.getUrl(),
+      self:   this.getUrl(),
+      remove: this.getUrl(),
+      create: this.getUrl(this.meta?.namespace, null),
     };
   }
 
-  getUrl(namespace = this.meta?.namespace) {
-    // Don't include the name when creating a service.
-    return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ namespace }/services/${ name }` });
+  getUrl(namespace = this.meta?.namespace, name = this.meta?.name) {
+    return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ namespace }/services/${ name || '' }` });
   }
 
   get applications() {
@@ -54,14 +53,6 @@ export default class EpinioService extends EpinioResource {
       resource:  EPINIO_TYPES.NAMESPACE,
       id:       this.meta.namespace,
     });
-  }
-
-  get hasCustomList() {
-    return true;
-  }
-
-  get _key() {
-    return this.name;
   }
 
   trace(text, ...args) {
@@ -108,16 +99,5 @@ export default class EpinioService extends EpinioResource {
     return services.filter(n => n.name === this.name)?.[0];
   }
 
-  get canClone() {
-    return false;
-  }
-
-  get canViewInApi() {
-    return false;
-  }
-
-  get canCustomEdit() {
-    return false;
-  }
   // ------------------------------------------------------------------
 }

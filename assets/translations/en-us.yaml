@@ -6156,7 +6156,9 @@ epinio:
     name: Name
     create: Create a Namespace
   services:
-    pairs: Configure data that will be available to a container
+    pairs:
+      label: Service Data
+      tooltip: Data made available to bound applications
     tableHeaders:
       boundApps: Bound Applications
     promptRemove:

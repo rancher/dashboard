@@ -43,6 +43,10 @@ export default {
       type:    String,
       default: ''
     },
+    titleProtip: {
+      type:    String,
+      default: ''
+    },
     protip: {
       type:    [String, Boolean],
       default: 'Paste lines of <em>key=value</em> or <em>key: value</em> into any key field for easy bulk entry',
@@ -475,6 +479,7 @@ export default {
       <slot name="title">
         <h3>
           {{ title }}
+          <i v-if="titleProtip" v-tooltip="titleProtip" class="icon icon-info" />
         </h3>
       </slot>
     </div>

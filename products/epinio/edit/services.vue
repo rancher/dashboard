@@ -96,14 +96,19 @@ export default Vue.extend<Data, any, any, any>({
         :value="value.metadata"
         :mode="mode"
       />
-      <KeyValue
-        v-model="value.data"
-        :initial-empty-row="true"
-        :mode="mode"
-        :title="t('epinio.services.pairs')"
-        :key-label="t('epinio.applications.create.envvar.keyLabel')"
-        :value-label="t('epinio.applications.create.envvar.valueLabel')"
-      />
+      <div class="row">
+        <div class="col span-11">
+          <KeyValue
+            v-model="value.data"
+            :initial-empty-row="true"
+            :mode="mode"
+            :title="t('epinio.services.pairs.label')"
+            :title-protip="t('epinio.services.pairs.tooltip')"
+            :key-label="t('epinio.applications.create.envvar.keyLabel')"
+            :value-label="t('epinio.applications.create.envvar.valueLabel')"
+          />
+        </div>
+      </div>
     </CruResource>
   </div>
 </template>
