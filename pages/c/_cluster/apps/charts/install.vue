@@ -186,6 +186,12 @@ export default {
     this.updateStepOneReady();
 
     this.preFormYamlOption = this.valuesComponent || this.hasQuestions ? VALUES_STATE.FORM : VALUES_STATE.YAML;
+
+    // Look for annotation to say this app is a legacy migrated app (we look in either place for now)
+    if ((this.existing.metadata?.annotations?.[CATALOG_ANNOTATIONS.MIGRATED] === 'true') ||
+       (this.existing.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MIGRATED] === 'true')) {
+      this.migratedApp = true;
+    }
   },
 
   data() {
@@ -217,6 +223,7 @@ export default {
       valuesComponent:        null,
       valuesYaml:             '',
       project:                null,
+      migratedApp:            false,
 
       defaultCmdOpts,
       customCmdOpts: { ...defaultCmdOpts },
@@ -850,18 +857,23 @@ export default {
       this.addGlobalValuesTo(values);
 
       const form = JSON.parse(JSON.stringify(this.value));
-
+      const migratedAnnotations = this.migratedApp ? { [CATALOG_ANNOTATIONS.MIGRATED]: 'true' } : {};
       const chart = {
         chartName:   this.chart.chartName,
         version:     this.version?.version || this.query.versionName,
         releaseName: form.metadata.name,
         description: this.customCmdOpts.description,
         annotations: {
+          ...migratedAnnotations,
           [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: this.chart.repoType,
           [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: this.chart.repoName
         },
         values,
       };
+
+      if (this.migratedApp) {
+        chart.annotations[CATALOG_ANNOTATIONS.MIGRATED] = 'true';
+      }
 
       if ( isUpgrade ) {
         chart.resetValues = this.cmdOptions.resetValues;
@@ -928,6 +940,7 @@ export default {
           projectId:   this.project,
           values:      this.addGlobalValuesTo({}),
           annotations: {
+            ...migratedAnnotations,
             [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: dependency.repoType,
             [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: dependency.repoName
           },
