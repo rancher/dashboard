@@ -7,6 +7,12 @@ export default class Feature extends HybridModel {
   }
 
   get enabled() {
+    // If lockedValue is not null, then this is the value that the flag is locked to, so that should be used
+    if (this.status.lockedValue !== null) {
+      return this.status.lockedValue;
+    }
+
+    // Otherwise, use spec.value if set, otherwise fallback to status.default
     return (this.spec.value !== null) ? this.spec.value : this.status.default;
   }
 
@@ -34,8 +40,10 @@ export default class Feature extends HybridModel {
       enabled: state ? this.canDisable : this.canUpdate,
     };
 
-    // Can't disable or enable if the feature flag is locked
-    enableAction.enabled = enableAction.enabled && !this.status.lockedValue;
+    // User can not disable or enable if the feature flag is locked
+    // Note: lockedValue is the value that the feature flag is locked to, so it can be true or false
+    // It can also be null, which indicates that the feature flag is not locked
+    enableAction.enabled = enableAction.enabled && (this.status.lockedValue === null);
 
     out.unshift(enableAction);
 

@@ -184,7 +184,7 @@ export default {
       <template slot="cell:name" slot-scope="scope">
         <div class="feature-name">
           <div>{{ scope.row.nameDisplay }}</div>
-          <i v-if="scope.row.status.lockedValue" class="icon icon-lock" />
+          <i v-if="scope.row.status.lockedValue !== null" class="icon icon-lock" />
         </div>
       </template>
     </ResourceTable>
