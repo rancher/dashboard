@@ -71,13 +71,15 @@ export default class EpinioApplication extends EpinioResource {
 
   get _availableActions() {
     return [
-      {
-        action:     'showAppLog',
-        label:      this.t('epinio.applications.actions.viewAppLogs.label'),
-        icon:       'icon icon-fw icon-chevron-right',
-        enabled:    this.active,
-      },
-      { divider: true },
+      // Streaming logs over socket isn't supported at the moment (requires auth changes to backend or un-CORS-ing)
+      // https://github.com/epinio/ui/issues/3
+      // {
+      //   action:     'showAppLog',
+      //   label:      this.t('epinio.applications.actions.viewAppLogs.label'),
+      //   icon:       'icon icon-fw icon-chevron-right',
+      //   enabled:    this.active,
+      // },
+      // { divider: true },
       ...super._availableActions
     ];
   }

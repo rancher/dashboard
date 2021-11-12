@@ -39,8 +39,8 @@ export default {
     minHeight: {
       // Prevent buttons from shifting when error
       // messages appear
-      type:    String,
-      default: '0'
+      type:    Number,
+      default: 0
     },
 
     validators: {
@@ -177,7 +177,7 @@ export default {
 
 <template>
   <div
-    :style="{'min-height': minHeight}"
+    :style="{'min-height': `${minHeight}px`}"
   >
     <div
       :class="{

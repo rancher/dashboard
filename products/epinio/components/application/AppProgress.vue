@@ -121,7 +121,7 @@ export default Vue.extend<Data, any, any, any>({
   methods: {
     async fetchApp() {
       try {
-        await this.aaplication.forceFetch();
+        await this.application.forceFetch();
       } catch (err) {
 
       }

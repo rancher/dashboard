@@ -6,34 +6,34 @@ import Link from '@/components/formatter/Link.vue';
 import ResourceTable from '@/components/ResourceTable.vue';
 import { EPINIO_MGMT_STORE, EPINIO_TYPES } from '@/products/epinio/types';
 import Resource from '@/plugins/core-store/resource-class';
+import AsyncButton from '@/components/AsyncButton.vue';
+import { _MERGE } from '@/plugins/core-store/actions';
 
 interface Cluster extends Resource{
   id: string,
+  state: string,
 }
 
 interface Data {
-  clusters: Cluster[],
+  clustersSchema: any;
 }
 
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
   components: {
-    Loading, Link, ResourceTable
+    AsyncButton, Loading, Link, ResourceTable
   },
 
   layout: 'plain',
 
   async fetch() {
-    this.clusters = await this.$store.dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE });
+    await this.$store.dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE });
 
     this.clusters.forEach((c: Cluster) => this.testCluster(c));
   },
 
   data() {
-    return {
-      clusters:       [],
-      clustersSchema: this.$store.getters[`${ EPINIO_MGMT_STORE }/schemaFor`](EPINIO_TYPES.INSTANCE)
-    };
+    return { clustersSchema: this.$store.getters[`${ EPINIO_MGMT_STORE }/schemaFor`](EPINIO_TYPES.INSTANCE) };
   },
 
   computed: {
@@ -43,10 +43,24 @@ export default Vue.extend<Data, any, any, any>({
 
     product(): string {
       return this.$route.params.product;
+    },
+
+    canRediscover() {
+      return !this.clusters.find((c: Cluster) => c.state === 'updating');
+    },
+
+    clusters() {
+      return this.$store.getters[`${ EPINIO_MGMT_STORE }/all`](EPINIO_TYPES.INSTANCE);
     }
   },
 
   methods: {
+    async rediscover(buttonCb: (success: boolean) => void) {
+      await this.$store.dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE, opt: { force: true, load: _MERGE } });
+      this.clusters.forEach((c: Cluster) => this.testCluster(c));
+      buttonCb(true);
+    },
+
     setClusterState(cluster: Cluster, state: string, metadataStateObj: { transitioning: boolean, error: boolean, message: string }) {
       Vue.set(cluster, 'state', state);
       Vue.set(cluster, 'metadata', metadataStateObj);
@@ -99,13 +113,21 @@ export default Vue.extend<Data, any, any, any>({
   <div v-else class="root">
     <div class="epinios-table">
       <h2>{{ t('epinio.instances.header') }}</h2>
-
       <ResourceTable
         :rows="clusters"
         :schema="clustersSchema"
         :table-actions="false"
         :row-actions="false"
       >
+        <template #header-left>
+          <AsyncButton
+            mode="refresh"
+            size="sm"
+            :disabled="!canRediscover"
+            @click="rediscover"
+          />
+        </template>
+
         <template #cell:name="{row}">
           <n-link v-if="row.state === 'available'" :to="{name: 'ext-epinio-c-cluster-applications', params: {cluster: row.id}}">
             {{ row.name }}
