@@ -217,6 +217,7 @@ export default class EpinioApplication extends EpinioResource {
           instances:   this.configuration.instances,
           services:    this.configuration.services,
           environment: this.configuration.environment,
+          routes:      this.configuration.routes,
         }
       }
     });
@@ -234,6 +235,7 @@ export default class EpinioApplication extends EpinioResource {
         instances:   this.configuration.instances,
         services:    this.configuration.services,
         environment: this.configuration.environment,
+        routes:      this.configuration.routes,
       }
     });
   }

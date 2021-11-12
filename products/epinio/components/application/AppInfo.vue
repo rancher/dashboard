@@ -4,6 +4,7 @@ import Application from '@/products/epinio/models/applications';
 import NameNsDescription from '@/components/form/NameNsDescription.vue';
 import LabeledInput from '@/components/form/LabeledInput.vue';
 import KeyValue from '@/components/form/KeyValue.vue';
+import ArrayList from '@/components/form/ArrayList.vue';
 
 import { EPINIO_TYPES } from '@/products/epinio/types';
 import { sortBy } from '@/utils/sort';
@@ -26,6 +27,7 @@ interface Data {
 export default Vue.extend<Data, any, any, any>({
 
   components: {
+    ArrayList,
     NameNsDescription,
     LabeledInput,
     KeyValue
@@ -52,7 +54,8 @@ export default Vue.extend<Data, any, any, any>({
         },
         configuration: {
           instances:   this.application.configuration?.instances || 1,
-          environment:   this.application.configuration?.environment || {}
+          environment:   this.application.configuration?.environment || {},
+          routes:      this.application.configuration?.routes || {},
         },
       }
     };
@@ -68,6 +71,10 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     'values.configuration.environment'() {
+      this.update();
+    },
+
+    'values.configuration.routes'() {
       this.update();
     },
 
@@ -134,6 +141,16 @@ export default Vue.extend<Data, any, any, any>({
         :title="t('epinio.applications.create.envvar.title')"
         :key-label="t('epinio.applications.create.envvar.keyLabel')"
         :value-label="t('epinio.applications.create.envvar.valueLabel')"
+      />
+    </div>
+    <div class="spacer"></div>
+    <div class="col span-8">
+      <ArrayList
+        v-model="values.configuration.routes"
+        title="Routes"
+        protip="Replace the default route (app name with your Epinio domain) with one ore more custom routes"
+        :mode="mode"
+        :value-placeholder="'e.g. my-custom-route.com/my-app'"
       />
     </div>
   </div>

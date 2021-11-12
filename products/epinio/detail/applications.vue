@@ -64,10 +64,9 @@ export default Vue.extend<Data, any, any, any>({
     </h3>
     <div>
       <ul>
-        <li v-for="(route, index) in value.configuration.routes" :key="route.id">
+        <li v-for="(route) in value.configuration.routes" :key="route.id">
           <a v-if="value.state === 'running'" :key="route.id + 'a'" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
           <span v-else :key="route.id + 'a'">{{ `https://${route}` }}</span>
-          <span v-if="index < value.configuration.routes.length - 1" :key="route.id + 'i'">, </span>
         </li>
       </ul>
     </div>
