@@ -410,7 +410,8 @@ export default {
     <Rke2Config
       v-else-if="subType"
       v-model="value"
-      :original-value="originalValue"
+      :initial-value="initialValue"
+      :live-value="liveValue"
       :mode="mode"
       :provider="subType"
     />

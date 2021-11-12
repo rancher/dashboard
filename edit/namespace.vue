@@ -30,8 +30,8 @@ export default {
   data() {
     let originalQuotaId = null;
 
-    if ( this.originalValue?.metadata?.name ) {
-      originalQuotaId = `${ this.originalValue.metadata.name }/default-quota`;
+    if ( this.liveValue?.metadata?.name ) {
+      originalQuotaId = `${ this.liveValue.metadata.name }/default-quota`;
     }
     let projectName = this.value?.metadata?.labels?.[PROJECT] || this.$route.query[PROJECT_ID];
     const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);

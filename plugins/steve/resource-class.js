@@ -11,7 +11,7 @@ import { addObject, addObjects, findBy, removeAt } from '@/utils/array';
 import CustomValidators from '@/utils/custom-validators';
 import { downloadFile, generateZip } from '@/utils/download';
 import { eachLimit } from '@/utils/promise';
-import { get } from '@/utils/object';
+import { clone, get } from '@/utils/object';
 import { DEV } from '@/store/prefs';
 import { sortableNumericSuffix } from '@/utils/sort';
 import {
@@ -1492,7 +1492,7 @@ export default class Resource {
       if ( this[k]?.toJSON ) {
         out[k] = this[k].toJSON();
       } else {
-        out[k] = this[k];
+        out[k] = clone(this[k]);
       }
     }
 

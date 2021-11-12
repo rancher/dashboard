@@ -5,9 +5,10 @@ import { JSONPath } from 'jsonpath-plus';
 import Vue from 'vue';
 import transform from 'lodash/transform';
 import isObject from 'lodash/isObject';
+import isArray from 'lodash/isArray';
 import isEqual from 'lodash/isEqual';
 import difference from 'lodash/difference';
-import { splitObjectPath } from '@/utils/string';
+import { splitObjectPath, joinObjectPath } from '@/utils/string';
 
 export function set(obj, path, value) {
   let ptr = obj;
@@ -61,6 +62,20 @@ export function get(obj, path) {
     }
 
     obj = obj[parts[i]];
+  }
+
+  return obj;
+}
+
+export function remove(obj, path) {
+  const parentAry = splitObjectPath(path);
+  const leafKey = parentAry.pop();
+
+  const parent = get(obj, joinObjectPath(parentAry));
+
+  if ( parent ) {
+    Vue.set(parent, leafKey, undefined);
+    delete parent[leafKey];
   }
 
   return obj;
@@ -182,26 +197,95 @@ export function diff(from, to) {
   return out;
 }
 
-export function nonEmptyValueKeys(obj) {
-  const validKeys = Object.keys(obj).map((key) => {
-    const val = obj[key];
+export function changeset(from, to, parentPath = []) {
+  let out = {};
 
-    if ( isObject(val) ) {
-      const recursed = nonEmptyValueKeys(val);
+  if ( isEqual(from, to) ) {
+    return out;
+  }
 
-      if (recursed) {
-        return recursed.map((subkey) => {
-          return `"${ key }"."${ subkey }"`;
-        });
-      }
-    } else if ( Array.isArray(val) ) {
-      if (compact(val).length) {
-        return key;
-      }
-    } else if (!!val || val === false || val === 0) {
-      return key;
+  for ( const k in from ) {
+    const path = joinObjectPath([...parentPath, k]);
+
+    if ( !(k in to) ) {
+      out[path] = { op: 'remove', path };
+    } else if ( (isObject(from[k]) && isObject(to[k])) || (isArray(from[k]) && isArray(to[k])) ) {
+      out = { ...out, ...changeset(from[k], to[k], [...parentPath, k]) };
+    } else if ( !isEqual(from[k], to[k]) ) {
+      out[path] = {
+        op: 'change', from: from[k], value: to[k]
+      };
     }
-  });
+  }
 
-  return compact(flattenDeep(validKeys));
+  for ( const k in to ) {
+    if ( !(k in from) ) {
+      const path = joinObjectPath([...parentPath, k]);
+
+      out[path] = { op: 'add', value: to[k] };
+    }
+  }
+
+  return out;
+}
+
+export function changesetConflicts(a, b) {
+  const keys = Object.keys(a);
+  const out = [];
+
+  for ( const k of keys ) {
+    const aa = a[k];
+    const bb = b[k];
+
+    if ( !bb ) {
+      continue;
+    }
+
+    let ok = true;
+
+    switch ( `${ aa.op }-${ bb.op }` ) {
+    case 'add-add':
+    case 'add-change':
+    case 'change-add':
+    case 'change-change':
+      ok = isEqual(aa.value, bb.value);
+      break;
+
+    case 'add-remove':
+    case 'change-remove':
+    case 'remove-add':
+    case 'remove-change':
+      ok = false;
+      break;
+
+    case 'remove-remove':
+    default:
+      ok = true;
+      break;
+    }
+
+    if ( !ok ) {
+      out.push(k);
+    }
+  }
+
+  return out;
+}
+
+export function applyChangeset(obj, changeset) {
+  let entry;
+
+  for ( const path in changeset ) {
+    entry = changeset[path];
+
+    if ( entry.op === 'add' || entry.op === 'change' ) {
+      set(obj, path, entry.value);
+    } else if ( entry.op === 'remove' ) {
+      remove(obj, path);
+    } else {
+      throw new Error(`Unknown operation:${ entry.op }`);
+    }
+  }
+
+  return obj;
 }
