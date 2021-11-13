@@ -2,7 +2,7 @@
 import { mapState } from 'vuex';
 import { dasherize, ucFirst } from '@/utils/string';
 import { get, clone } from '@/utils/object';
-import { isArray, removeObject, filterBy } from '@/utils/array';
+import { removeObject, filterBy } from '@/utils/array';
 import Checkbox from '@/components/form/Checkbox';
 import ActionDropdown from '@/components/ActionDropdown';
 import $ from 'jquery';
@@ -418,11 +418,26 @@ export default {
         return '';
       }
 
-      if ( isArray(out) ) {
-        return out[0];
+      return out;
+    },
+
+    /**
+     * Format values to render in the sorted table
+     * In the absence of predefined formatter table would use this
+     *
+     * @param {Object} row
+     * @param {Object} col
+     *
+     * @return {String}
+     */
+    formatValue(row, col) {
+      const valFor = this.valueFor(row, col);
+
+      if ( Array.isArray(valFor) ) {
+        return valFor.join(', ');
       }
 
-      return out;
+      return valFor;
     },
 
     isExpanded(row) {
@@ -673,7 +688,7 @@ export default {
                           v-bind="col.formatterOpts"
                         />
                         <template v-else-if="valueFor(row,col) !== ''">
-                          {{ valueFor(row,col) }}
+                          {{ formatValue(row,col) }}
                         </template>
                         <template v-else-if="col.dashIfEmpty">
                           <span class="text-muted">&mdash;</span>
