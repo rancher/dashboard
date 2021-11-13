@@ -9,3 +9,4 @@ First take some time to understand the [README](../../../README.md). This covers
 1. [Terminology](./terminology.md)
 1. [Development Environment](./development_environment.md)
 1. [Development](./development.md)
+1. [Background concepts about Rancher, Kubernetes and containers](./concepts.md)
