@@ -1,4 +1,4 @@
-# Create/Edit Forms
+# Create/Edit Components
 
 # Standard Create/Edit Form Architecture
 
@@ -14,19 +14,19 @@ Rancher’s reusable forms are intended to be flexible enough to allow YAML file
 
 This section describes the workflow for creating forms to create or edit resources in Rancher. We recommend using the CruResource component for create/edit forms because it is designed to handle resource that can also be managed through YAML config files, with process automated through GitOps.
 
-You will need to create a file for the create/edit form. For normal Kubernetes resources, this file should be located in the `@/components/edit` directory. For projects maintained in non-Rancher repositories, all files related to that project should be kept in a product-specific folder in `/products`.
+You will need to create a file for the create/edit form. For normal Kubernetes resources, this file should be located in the `@/components/edit` directory.
 
 The file will need these imports:
 ```
 import CreateEditView from '@/mixins/create-edit-view/impl';
 // An example types file 
-import { EPINIO_TYPES } from '@/products/epinio/types';
+import { POD } from '@/config/types';
 import { exceptionToErrorsArray } from '@/utils/error';
 import CruResource from '@/components/CruResource.vue';
 
 ```
 
-The edit component takes a `value` as a prop. This value is created for all /edit components by calling the store to get a new instance of a resource using the resource’s class model. This allows the component to access any prop or method on the resource model by taking it from the newly instantiated value. The value is then passed into CruResource using the`resource` prop.
+The edit component takes a `value` as a prop. For all `/edit` components, the store creates a new instance of the model to use as the `value`. This allows the component to access any prop or method on the resource model by taking it from the newly instantiated value. The value is then passed into CruResource using the`resource` prop.
 
 The CruResource component takes a few important props, such as `save` and `done`, that you don’t have to pass in manually because they are automatically made available from the `CreateEditView` mixin:
 
@@ -46,7 +46,6 @@ A custom create component would typically need at least these imports:
 ```
 import AsyncButton from '@/components/AsyncButton';
 import { _CREATE } from '@/config/query-params';
-import { EPINIO_TYPES } from '@/products/epinio/types';
 import { exceptionToErrorsArray } from '@/utils/error';
 ```
 
@@ -78,20 +77,40 @@ You will also need to provide the resource schema so that it can be used by `sav
 When a skeleton resource is not passed into your create/edit form as a value, you can create the new resource instance with a `dispatch` to the store as soon as the form is rendered. Then you can use it as the initial value for your form. An example of calling the store to create the initial resource value is below:
 
 ```
-this.value = await this.$store.dispatch(`epinio/create`, { type: EPINIO_TYPES.NAMESPACE });
-```
-
-When the resource is saved, it should call a `save` method. This can be the `save`defined in the CreateEditView mixin, or it can be a `save` method defined on the resource model, which overrides the mixin:
-
-```
-onSubmit() {
-  try {
-    this.value.save();
-    this.close();
-  } catch (e) {
-    this.errors = exceptionToErrorsArray(e);
+this.value = await this.$store.dispatch('cluster/create', {
+  type:     'chartInstallAction',
+  metadata: {
+    namespace: this.forceNamespace || this.$store.getters['defaultNamespace'],
+    name:      this.existing?.spec?.name || this.query.appName || '',
   }
-},
+});
+```
+
+When the resource is saved, it should call a `save` method. This can be the `save`defined in the CreateEditView mixin, or it can be a `save` method defined a form containing an AsyncButton. For example, this method is used in the `PromptChangePassword` component and provides a `buttonCb` callback to the AsyncButton:
+
+```
+async submit(buttonCb) {
+  try {
+    await this.$refs.changePassword.save();
+    this.show(false);
+    buttonCb(true);
+  } catch (err) {
+    buttonCb(false);
+  }
+}
+```
+
+The corresponding AsyncButton is:
+
+```
+<AsyncButton
+  type="submit"
+  mode="apply"
+  class="btn bg-error ml-10"
+  :disabled="!valid"
+  value="LOGIN"
+  @click="submit"
+/>
 ```
 
 Whichever implementation of `save()` is used, it will need to call `_save()` on the resource. That `_save` method is defined on the root `resource-class` model, which every other model extends.
