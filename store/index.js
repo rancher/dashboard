@@ -29,23 +29,23 @@ export const plugins = [
     namespace:      'management',
     baseUrl:        '/v1',
     modelBaseClass: BY_TYPE,
-    supportsStream: true,
+    supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
   }),
   Steve({
     namespace:      'cluster',
     baseUrl:        '', // URL is dynamically set for the selected cluster
-    supportsStream: true,
+    supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
   }),
   Steve({
     namespace:      'rancher',
     baseUrl:        '/v3',
-    supportsStream: false,
+    supportsStream: false, // The norman API doesn't support streaming
     modelBaseClass: NORMAN_CLASS,
   }),
   Steve({
     namespace:      'harvester',
     baseUrl:        '', // URL is dynamically set for the selected cluster
-    supportsStream: true,
+    supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
   }),
 ];
 
