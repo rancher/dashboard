@@ -6110,7 +6110,7 @@ epinio:
         valueLabel: Value
       routes:
         title: Routes
-        tooltip: Replace the default route (app name with your Epinio domain) with one ore more custom routes
+        tooltip: Replace the default route (<app name>.<epinio domain>) with one or more custom routes
         placeholder: e.g. my-custom-route.com/my-app
     steps:
       basics:
