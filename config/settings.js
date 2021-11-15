@@ -88,7 +88,7 @@ export const ALLOWED_SETTINGS = {
 };
 
 // harvester Settings ID
-const HCI_SETTING = {
+export const HCI_SETTING = {
   BACKUP_TARGET:                    'backup-target',
   LOG_LEVEL:                        'log-level',
   SERVER_VERSION:                   'server-version',
