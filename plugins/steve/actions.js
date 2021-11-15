@@ -1,5 +1,4 @@
 import https from 'https';
-import cloneDeep from 'lodash/cloneDeep';
 import merge from 'lodash/merge';
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
