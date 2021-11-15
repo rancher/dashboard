@@ -486,9 +486,7 @@ export default {
   },
 
   clone(ctx, { resource } = {}) {
-    const copy = cloneDeep(resource.toJSON());
-
-    return classify(ctx, copy, true);
+    return classify(ctx, resource.toJSON(), true);
   },
 
   promptMove({ commit, state }, resources) {
