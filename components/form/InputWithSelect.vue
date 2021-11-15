@@ -70,6 +70,13 @@ export default {
       type:    String,
       default: '',
     },
+
+    validators: {
+      type:    Array,
+      default: () => {
+        return [];
+      }
+    }
   },
 
   data() {
@@ -105,7 +112,7 @@ export default {
       v-if="selectLabel"
       v-model="selected"
       :label="selectLabel"
-      :class="{ 'in-input': !isView }"
+      :class="{ 'in-input': !isView, 'validation-space': true}"
       :options="options"
       :searchable="false"
       :clearable="false"
@@ -146,7 +153,9 @@ export default {
       :disabled="disabled"
       :required="textRequired"
       :mode="mode"
+      :validators="validators"
       v-bind="$attrs"
+      @setValid="(isValid) => { $emit('setValid', isValid) }"
     >
       <template #label>
         <slot name="label" />
@@ -245,5 +254,11 @@ export default {
       }
     }
   }
+}
+
+.validation-space {
+  // Prevent an input from growing if the input next to
+  // it has validation errors
+  height: 61px;
 }
 </style>
