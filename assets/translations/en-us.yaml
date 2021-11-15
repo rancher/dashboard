@@ -5430,6 +5430,11 @@ harvester:
     vlanChangeTip: The newly modified default physical NIC only applies to newly added nodes, not existing ones
     defaultPhysicalNIC: Default Network Interface
     percentTip: The value in parentheses represents the distribution percentage of the network interface on all hosts. If an interface less than 100% is selected, the user needs to manually specify the network interface on the host where the vlan network configuration fails.
+    message:
+      ca:
+        prefix: 'Click'
+        middle: 'here'
+        suffic: 'to add a custom certificate.'
 
   cloudTemplate:
     label: Cloud Config Templates

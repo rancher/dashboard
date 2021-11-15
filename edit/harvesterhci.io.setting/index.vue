@@ -39,7 +39,7 @@ export default {
       this.$set(this.value, 'value', null);
     }
 
-    this.value.value = this.value.value || this.value.default;
+    this.value.value = this.value.value || this.value.default || '';
 
     const isHarvester = this.value?.type?.includes('harvesterhci');
 

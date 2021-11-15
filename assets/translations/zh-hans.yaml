@@ -4511,6 +4511,11 @@ harvester:
     vlanChangeTip: 新修改的默认物理网卡仅适用于新增节点，不适用于现有节点
     defaultPhysicalNIC: 默认网络接口
     percentTip: 括号内的数值代表所有主机上的网络接口的分布比例。如果选择了一个小于100%的接口，用户需要手动指定vlan网络配置失败的主机上的网络接口。
+    message:
+      ca:
+        prefix: '点击'
+        middle: '这里'
+        suffic: '添加一个自定义证书.'
 
   cloudTemplate:
     label: Cloud 配置模板
