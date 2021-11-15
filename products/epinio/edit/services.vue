@@ -9,6 +9,7 @@ import ServiceModel from '@/products/epinio/models/services';
 import { EPINIO_TYPES } from '@/products/epinio/types';
 import KeyValue from '@/components/form/KeyValue.vue';
 import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
+import { validateKubernetesName } from '@/utils/validators/kubernetes-name';
 
 interface Data {
 }
@@ -25,7 +26,8 @@ export default Vue.extend<Data, any, any, any>({
   data() {
     return {
       errors:        [],
-      namespaces:    []
+      namespaces:    [],
+      validFields:     { name: false },
     };
   },
 
@@ -44,7 +46,12 @@ export default Vue.extend<Data, any, any, any>({
     }
   },
 
-  computed: { ...mapGetters({ t: 'i18n/t' }) },
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+    validationPassed() {
+      return !Object.values(this.validFields).includes(false);
+    },
+  },
 
   async fetch() {
     this.namespaces = await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE });
@@ -69,6 +76,21 @@ export default Vue.extend<Data, any, any, any>({
         saveCb(false);
       }
     },
+    setValid(field: string, valid: boolean) {
+      this.validFields[field] = valid;
+    },
+    meetsNameRequirements( name = '') {
+      const nameErrors = validateKubernetesName(name, this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
+
+      if (nameErrors.length > 0) {
+        return {
+          isValid:      false,
+          errorMessage: nameErrors.join(', ')
+        };
+      }
+
+      return { isValid: true };
+    },
   }
 });
 </script>
@@ -84,6 +106,7 @@ export default Vue.extend<Data, any, any, any>({
       :resource="value"
       :can-yaml="false"
       :errors="errors"
+      :validation-passed="validationPassed"
       @error="(e) => (errors = e)"
       @finish="save"
       @cancel="done"
@@ -95,7 +118,11 @@ export default Vue.extend<Data, any, any, any>({
         :description-hidden="true"
         :value="value.metadata"
         :mode="mode"
+        :min-height="90"
+        :validators="[ meetsNameRequirements ]"
+        @setValid="setValid('name', $event)"
       />
+
       <div class="row">
         <div class="col span-11">
           <KeyValue
@@ -112,3 +139,5 @@ export default Vue.extend<Data, any, any, any>({
     </CruResource>
   </div>
 </template>
+<style>
+</style>
