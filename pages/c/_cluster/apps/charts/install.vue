@@ -104,6 +104,7 @@ export default {
       this.forceNamespace = null;
     }
 
+    this.legacyApp = await this.existing.deployedAsLegacy();
     this.mcapp = await this.existing.deployedAsMultiCluster();
 
     this.value = await this.$store.dispatch('cluster/create', {
@@ -218,6 +219,7 @@ export default {
       forceNamespace:         null,
       loadedVersion:          null,
       loadedVersionValues:    null,
+      legacyApp:              null,
       mcapp:                  null,
       mode:                   null,
       value:                  null,
@@ -280,6 +282,11 @@ export default {
       ],
 
       isPlainLayout: isPlainLayout(this.$route.query),
+
+      legacyDefs: {
+        legacy: this.t('catalog.install.error.legacy.category.legacy'),
+        mcm:    this.t('catalog.install.error.legacy.category.mcm')
+      }
     };
   },
 
@@ -505,11 +512,17 @@ export default {
       return this.features(LEGACY);
     },
 
-    legacyPath() {
+    legacyFeaturePath() {
       const path = {
         name:   'c-cluster-product-resource',
         params: { product: 'settings', resource: 'management.cattle.io.feature' }
       };
+
+      return this.$router.resolve(path).href;
+    },
+
+    legacyAppPath() {
+      const path = { name: 'c-cluster-legacy-project' };
 
       return this.$router.resolve(path).href;
     },
@@ -1008,7 +1021,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else-if="!mcapp" class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
+  <div v-else-if="!legacyApp && !mcapp" class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
     <Wizard
       v-if="value"
       :steps="steps"
@@ -1305,7 +1318,7 @@ export default {
     </div>
   </div>
 
-  <!-- App is deployed with MultiCluster, don't let user update from here -->
+  <!-- App is deployed as a Legacy or MultiCluster app, don't let user update from here -->
   <div v-else class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
     <div class="outer-container">
       <div class="header mb-20">
@@ -1332,13 +1345,13 @@ export default {
 
       <Banner color="warning" class="description">
         <span>
-          {{ t('catalog.install.multiCluster.label') }}
+          {{ t('catalog.install.error.legacy.label', { legacyType: legacyApp ? legacyDefs.legacy : legacyDefs.mcm }, true) }}
         </span>
         <template v-if="!legacyEnabled">
-          <span v-html="t('catalog.install.multiCluster.legacy.description', { target: legacyPath }, true)" />
+          <span v-html="t('catalog.install.error.legacy.enableLegacy', { target: legacyFeaturePath }, true)" />
         </template>
-        <template v-else-if="legacyEnabled && mcm">
-          <span v-html="t('catalog.install.multiCluster.mcm.description', { target: mcmPath }, true)" />
+        <template v-else>
+          <span v-html="t('catalog.install.error.legacy.navigate', { target: legacyApp ? legacyAppPath : mcmPath, legacyType: legacyApp ? legacyDefs.legacy : legacyDefs.mcm }, true)" />
         </template>
       </Banner>
     </div>

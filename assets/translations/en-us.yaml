@@ -697,6 +697,13 @@ catalog:
       requiresMissing: 'This chart requires another chart that provides {name}, but none was was found.'
       insufficientCpu: 'This chart requires {need, number} CPU cores, but the cluster only has {have, number} available.'
       insufficientMemory: 'This chart requires {need} of memory, but the cluster only has {have} available.'
+      legacy:
+        label: This is a {legacyType} App and it cannot be modified here.
+        enableLegacy: You will need to enable <a href="{target}">Legacy Features</a> to edit this App.
+        navigate: Navigate to <a href="{target}">{legacyType} Apps</a>
+        category:
+          legacy: Legacy
+          mcm: Multi-cluster
     header:
       install: 'Install {name}'
       installGeneric: Install Chart
@@ -728,12 +735,6 @@ catalog:
             other { seconds }
           }
       wait: Wait
-    multiCluster:
-      label: This is a Multi-cluster App and it cannot be modified here.
-      legacy:
-        description: 'You will need to enable <a href="{target}">Legacy Features</a>'
-      mcm:
-        description: Navigate to <a href="{target}">Multi-cluster Apps</a>
     namespaceIsInProject: "This chart's target namespace, <code>{namespace}</code>, already exists and cannot be added to a different project."
     project: Install into Project
     section:
