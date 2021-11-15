@@ -74,10 +74,6 @@ module.exports = {
     version,
     dev,
     pl,
-    // FIXME: See epinio/ui #34
-    epinioUrl:      process.env.EPINIO_URL,
-    epinioUser:     process.env.EPINIO_USER,
-    epinioPassword: process.env.EPINIO_PASSWORD,
   },
 
   buildDir: dev ? '.nuxt' : '.nuxt-prod',

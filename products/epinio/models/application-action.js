@@ -97,8 +97,6 @@ export default class ApplicationActionResource extends Resource {
     await this.application.deploy(stageId, image);
   }
 
-  // TODO: RC Wait for `running`?
-
   // Public ---------------------------------------------------
 
   async execute(params) {

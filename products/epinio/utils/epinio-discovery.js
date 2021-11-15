@@ -34,22 +34,6 @@ export default {
       }
     }
 
-    // FIXME: See epinio/ui #34
-    const api = process.env.epinioUrl;
-    const username = process.env.epinioUser;
-    const password = process.env.epinioPassword;
-
-    if (api && username && password) {
-      epinioClusters.push({
-        id:   'epinio-from-env-var',
-        name:     'epinio-from-env-var',
-        api,
-        username,
-        password,
-        type:     EPINIO_TYPES.INSTANCE
-      });
-    }
-
     return epinioClusters;
   }
 };
