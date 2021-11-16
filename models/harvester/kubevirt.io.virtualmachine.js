@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { load } from 'js-yaml';
 import { colorForState } from '@/plugins/steve/resource-class';
-import { POD, NODE, HCI } from '@/config/types';
+import { POD, NODE, HCI, PVC } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
@@ -665,6 +665,34 @@ export default class VirtVm extends SteveModel {
     }
 
     return out;
+  }
+
+  get rootImageId() {
+    let imageId = '';
+    const pvcs = this.$rootGetters[`harvester/all`](PVC) || [];
+
+    const volumes = this.spec.template.spec.volumes || [];
+
+    const firstVolumeName = volumes[0]?.persistentVolumeClaim?.claimName;
+    const isNoExistingVolume = this.volumeClaimTemplates.find((volume) => {
+      return firstVolumeName === volume?.metadata?.name;
+    });
+
+    if (!isNoExistingVolume) {
+      const existingVolume = pvcs.find(P => P.id === `${ this.metadata.namespace }/${ firstVolumeName }`);
+
+      if (existingVolume) {
+        return existingVolume?.metadata?.annotations?.['harvesterhci.io/imageId'];
+      }
+    }
+
+    this.volumeClaimTemplates.find( (volume) => {
+      imageId = volume?.metadata?.annotations?.['harvesterhci.io/imageId'];
+
+      return !!imageId;
+    });
+
+    return imageId;
   }
 
   get restoreName() {

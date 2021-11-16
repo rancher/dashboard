@@ -44,7 +44,15 @@ export default {
     },
   },
 
-  async fetch() {
+  data() {
+    return {
+      switchToCloud: false,
+      VM_METRICS_DETAIL_URL,
+      showVmMetrics: false,
+    };
+  },
+
+  async created() {
     const inStore = this.$store.getters['currentProduct'].inStore;
 
     const hash = {
@@ -56,14 +64,6 @@ export default {
     await allHash(hash);
 
     this.showVmMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [VM_METRICS_DETAIL_URL], 'harvester');
-  },
-
-  data() {
-    return {
-      switchToCloud: false,
-      VM_METRICS_DETAIL_URL,
-      showVmMetrics: false,
-    };
   },
 
   computed: {
