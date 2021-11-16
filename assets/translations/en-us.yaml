@@ -5196,6 +5196,8 @@ harvester:
     unplug:
       title: 'Are you sure that you want to detach volume {name} ?'
       actionLabel: Detach
+      detachVolume:
+        Detach Volume
     restartTip: Restart the virtual machine now to take effect of the configuration changes.
     createRunning: Start virtual machine on creation
     restartNow: Restart Now

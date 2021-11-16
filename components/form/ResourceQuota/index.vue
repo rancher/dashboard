@@ -1,6 +1,5 @@
 <script>
 import ArrayList from '@/components/form/ArrayList';
-import { NAME as HARVESTER } from '@/config/product/harvester';
 import Row from './Row';
 
 export const TYPES = [
@@ -71,13 +70,6 @@ export const TYPES = [
   },
 ];
 
-const HARVESTER_TYPES = [
-  'limitsCpu',
-  'limitsMemory',
-  'requestsCpu',
-  'requestsMemory',
-];
-
 export default {
   components: { ArrayList, Row },
 
@@ -91,6 +83,12 @@ export default {
       default: () => {
         return {};
       }
+    },
+    typeOverride: {
+      type:    Array,
+      default: () => {
+        return [];
+      }
     }
   },
 
@@ -99,26 +97,21 @@ export default {
     this.$set(this.value.spec, 'namespaceDefaultResourceQuota', this.value.spec.namespaceDefaultResourceQuota || { limit: {} });
     this.$set(this.value.spec, 'resourceQuota', this.value.spec.resourceQuota || { limit: {} });
 
-    return { types: Object.keys(this.value.spec.resourceQuota.limit) };
+    return {
+      types:          Object.keys(this.value.spec.resourceQuota.limit),
+      TYPES_OVERRIDE: this.typeOverride.length > 0 ? this.typeOverride : TYPES
+    };
   },
 
   computed: {
     mappedTypes() {
-      return (this.isHarvester ? this.harvesterTypes : TYPES)
+      return this.TYPES_OVERRIDE
         .map(type => ({
           label: this.t(type.labelKey),
           units: type.units,
           value: type.key
         }));
-    },
-
-    isHarvester() {
-      return this.$store.getters['currentProduct'].inStore === HARVESTER;
-    },
-
-    harvesterTypes() {
-      return TYPES.filter(t => HARVESTER_TYPES.includes(t.key));
-    },
+    }
   },
 
   methods: {

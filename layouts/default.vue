@@ -150,7 +150,7 @@ export default {
     },
 
     showProductFooter() {
-      if (this.isVirtualProduct) {
+      if (this.isVirtualProduct && this.isSingleVirtualCluster) {
         return true;
       } else {
         return false;

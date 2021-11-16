@@ -4308,6 +4308,8 @@ harvester:
     unplug:
       title: '你确定要拔掉卷{name} ?'
       actionLabel: 拔出
+      detachVolume:
+        拔出卷
     restartTip: 现在重新启动虚拟机以使配置更改生效.
     createRunning: 创建时启动虚拟机
     restartNow: 现在重启

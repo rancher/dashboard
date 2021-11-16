@@ -106,7 +106,9 @@ export default {
         out.splice(-1, 0, ...metricCol);
       }
 
-      return [...out, AGE];
+      out.push(AGE);
+
+      return out;
     },
 
     schema() {

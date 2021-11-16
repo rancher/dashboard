@@ -252,7 +252,7 @@ export default {
               <i class="icon icon-2x icon-x" />
             </button>
             <button v-if="unplugAble(volume)" type="button" class="role-link btn btn-sm remove-vol" @click="unplugVolume(volume)">
-              Detach Volume
+              {{ t('harvester.virtualMachine.unplug.detachVolume') }}
             </button>
             <h3>
               <n-link v-if="volume.to && !isView" :to="volume.to">

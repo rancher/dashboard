@@ -16,6 +16,29 @@ import ProjectMembershipEditor from '@/components/form/Members/ProjectMembership
 import { canViewProjectMembershipEditor } from '@/components/form/Members/ProjectMembershipEditor.vue';
 import { NAME as HARVESTER } from '@/config/product/harvester';
 
+const HARVESTER_TYPES = [
+  {
+    key:      'limitsCpu',
+    units:    'cpu',
+    labelKey: 'resourceQuota.limitsCpu'
+  },
+  {
+    key:      'limitsMemory',
+    units:    'memory',
+    labelKey: 'resourceQuota.limitsMemory'
+  },
+  {
+    key:      'requestsCpu',
+    units:    'cpu',
+    labelKey: 'resourceQuota.requestsCpu'
+  },
+  {
+    key:      'requestsMemory',
+    units:    'memory',
+    labelKey: 'resourceQuota.requestsMemory'
+  },
+];
+
 export default {
   components: {
     ContainerResourceLimit, CruResource, Labels, LabeledSelect, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab
@@ -45,7 +68,8 @@ export default {
       resource:           MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
       saveBindings:       null,
       membershipHasOwner:         false,
-      membershipUpdate:   {}
+      membershipUpdate:   {},
+      HARVESTER_TYPES
     };
   },
   computed: {
@@ -187,7 +211,7 @@ export default {
         <ProjectMembershipEditor :mode="mode" :parent-id="value.id" @has-owner-changed="onHasOwnerChanged" @membership-update="onMembershipUpdate" />
       </Tab>
       <Tab name="resource-quotas" :label="t('project.resourceQuotas')" :weight="9">
-        <ResourceQuota v-model="value" :mode="mode" />
+        <ResourceQuota v-model="value" :mode="mode" :type-override="isHarvester ? HARVESTER_TYPES : []" />
       </Tab>
       <Tab name="container-default-resource-limit" :label="resourceQuotaLabel" :weight="8">
         <ContainerResourceLimit v-model="value.spec.containerDefaultResourceLimit" :mode="mode" :show-tip="false" :register-before-hook="registerBeforeHook" />

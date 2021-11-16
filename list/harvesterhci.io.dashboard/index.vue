@@ -88,8 +88,8 @@ export default {
       settings:     this.fetchClusterResources(HCI.SETTING),
       services:     this.fetchClusterResources(SERVICE),
       metric:       this.fetchClusterResources(METRIC.NODE),
-      longhornNode: this.fetchClusterResources(LONGHORN.NODES),
-      pods:         this.$store.dispatch('harvester/findAll', { type: POD }),
+      longhornNode: this.fetchClusterResources(LONGHORN.NODES) || [],
+      _pods:        this.$store.dispatch('harvester/findAll', { type: POD }),
     };
 
     (this.accessibleResources || []).map((a) => {
@@ -256,7 +256,7 @@ export default {
     storageUsage() {
       let out = 0;
 
-      this.longhornNode.forEach((node) => {
+      (this.longhornNode || []).forEach((node) => {
         const diskStatus = node?.status?.diskStatus || {};
 
         Object.values(diskStatus).map((disk) => {
@@ -272,7 +272,7 @@ export default {
     storageTotal() {
       let out = 0;
 
-      this.longhornNode.forEach((node) => {
+      (this.longhornNode || []).forEach((node) => {
         const diskStatus = node?.status?.diskStatus || {};
 
         Object.values(diskStatus).map((disk) => {
