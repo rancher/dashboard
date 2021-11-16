@@ -5780,6 +5780,7 @@ workloadPorts:
   addPort: Add Port
   remove: Remove
   addHost: Add Host
+  warning: 'The service port name: "{ originalName }" is already in use, please enter a new name or delete the service.'
 
 podAffinity:
   addLabel: Add Pod Selector
