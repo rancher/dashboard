@@ -59,11 +59,12 @@ export default {
 
     imageName() {
       const imageList = this.$store.getters['harvester/all'](HCI.IMAGE) || [];
-      const imageId = this.value.volumeClaimTemplates[0]?.metadata?.annotations?.['harvesterhci.io/imageId'] || '';
 
-      const image = imageList.find( I => imageId === I.id);
+      const image = imageList.find( (I) => {
+        return this.value.rootImageId === I.id;
+      });
 
-      return image?.spec?.displayName || '-';
+      return image?.spec?.displayName || 'N/A';
     },
 
     disks() {
