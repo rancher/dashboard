@@ -150,7 +150,7 @@ export default {
     },
 
     showProductFooter() {
-      if (this.isVirtualProduct && this.isSingleVirtualCluster) {
+      if (this.isVirtualProduct) {
         return true;
       } else {
         return false;
@@ -567,7 +567,7 @@ export default {
             {{ displayVersion }}
           </span>
 
-          <span>
+          <span v-if="isSingleVirtualCluster">
             <v-popover
               popover-class="localeSelector"
               placement="top"
