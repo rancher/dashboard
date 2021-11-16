@@ -19,7 +19,6 @@ import { allHash } from '@/utils/promise';
 import { sortBy } from '@/utils/sort';
 import { camelToTitle, nlToBr } from '@/utils/string';
 import { compare, sortable } from '@/utils/version';
-import { isHarvesterSatisfiesVersion } from '@/utils/cluster';
 
 import ArrayList from '@/components/form/ArrayList';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
@@ -1209,7 +1208,9 @@ export default {
       const rke2 = this.filterAndMap(this.rke2Versions, null);
 
       const satisfiesVersion = rke2.filter((v) => {
-        return isHarvesterSatisfiesVersion(v.value);
+        const rkeVersion = v.value.replace(/.+rke2r/i, '');
+
+        return semver.satisfies(semver.coerce(v.value), '>=v1.21.4+rke2r4') && Number(rkeVersion) >= 4;
       }) || [];
 
       if (satisfiesVersion.length > 0) {
