@@ -254,6 +254,24 @@ export function splitObjectPath(path) {
   return path.split('.');
 }
 
+export function joinObjectPath(ary) {
+  let out = '';
+
+  for ( const p of ary ) {
+    if ( p.includes('.') ) {
+      out += `."${ p }"`;
+    } else {
+      out += `.${ p }`;
+    }
+  }
+
+  if ( out.startsWith('.') ) {
+    out = out.substr(1);
+  }
+
+  return out;
+}
+
 export function shortenedImage(image) {
   return (image || '')
     .replace(/^(index\.)?docker.io\/(library\/)?/, '')
