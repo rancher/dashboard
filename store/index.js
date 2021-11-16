@@ -26,13 +26,27 @@ export const BLANK_CLUSTER = '_';
 
 export const plugins = [
   Steve({
-    namespace: 'management', baseUrl: '/v1', modelBaseClass: BY_TYPE
+    namespace:      'management',
+    baseUrl:        '/v1',
+    modelBaseClass: BY_TYPE,
+    supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
   }),
-  Steve({ namespace: 'cluster', baseUrl: '' }), // URL dynamically set for the selected cluster
   Steve({
-    namespace: 'rancher', baseUrl: '/v3', modelBaseClass: NORMAN_CLASS
+    namespace:      'cluster',
+    baseUrl:        '', // URL is dynamically set for the selected cluster
+    supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
   }),
-  Steve({ namespace: 'harvester', baseUrl: '' }),
+  Steve({
+    namespace:      'rancher',
+    baseUrl:        '/v3',
+    supportsStream: false, // The norman API doesn't support streaming
+    modelBaseClass: NORMAN_CLASS,
+  }),
+  Steve({
+    namespace:      'harvester',
+    baseUrl:        '', // URL is dynamically set for the selected cluster
+    supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
+  }),
 ];
 
 export const state = () => {

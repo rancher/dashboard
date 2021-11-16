@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@/utils/array';
 import { SCHEMA } from '@/config/types';
+import HybridModel, { cleanHybridResources } from '@/plugins/steve/hybrid-class';
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import { classify } from './classify';
 import { keyForSubscribe } from './subscribe';
@@ -49,6 +50,12 @@ function load(state, { data, ctx, existing }) {
   let entry;
 
   function replace(existing, data) {
+    const typeSuperClass = Object.getPrototypeOf(Object.getPrototypeOf(existing)).constructor;
+
+    if (typeSuperClass === HybridModel) {
+      data = cleanHybridResources(data);
+    }
+
     for ( const k of Object.keys(existing) ) {
       delete existing[k];
     }
@@ -121,7 +128,7 @@ export default {
   },
 
   loadMulti(state, { data, ctx }) {
-    // console.log('### Mutation loadMulti', data.length);
+    // console.log('### Mutation loadMulti', data?.length);
     for ( const entry of data ) {
       load(state, { data: entry, ctx });
     }
@@ -158,6 +165,21 @@ export default {
       cache.map.set(data[i][keyField], proxies[i]);
     }
 
+    cache.haveAll = true;
+  },
+
+  forgetAll(state, { type }) {
+    const cache = registerType(state, type);
+
+    clear(cache.list);
+    cache.map.clear();
+    cache.generation++;
+  },
+
+  loadedAll(state, { type }) {
+    const cache = registerType(state, type);
+
+    cache.generation++;
     cache.haveAll = true;
   },
 

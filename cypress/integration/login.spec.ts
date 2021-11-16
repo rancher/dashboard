@@ -13,6 +13,7 @@ describe('Local authentication', () => {
 
   it('Cannot login with invalid creds', () => {
     cy.visit('/auth/login');
+
     cy.intercept('POST', '/v3-public/localProviders/local*').as('loginReq');
 
     cy.login(Cypress.env('username'), `${ Cypress.env('password') }abc`, false);

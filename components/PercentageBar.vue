@@ -25,7 +25,7 @@ export default {
     },
 
     /**
-     * A value which indicates which direction is better so we can change the color appropriately.
+     * A value which indicates which direction is better so we can change the color appropriately (Valid values: 'LESS' or 'MORE')
      */
     preferredDirection: {
       type:    String,

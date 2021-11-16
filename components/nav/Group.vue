@@ -69,7 +69,7 @@ export default {
         if (overviewRoute && grp.overview) {
           const route = this.$router.resolve(overviewRoute || {});
 
-          return this.$route.fullPath === route.href;
+          return this.$route.fullPath === route?.route?.fullPath;
         }
       }
 

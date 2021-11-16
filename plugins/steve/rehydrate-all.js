@@ -1,3 +1,5 @@
+const MAX_DEPTH = 20;
+
 export default function() {
   this.nuxt.hook('vue-renderer:ssr:context', (context) => {
     if ( context.nuxt.data ) {
@@ -8,7 +10,15 @@ export default function() {
       recurse(context.nuxt.fetch);
     }
 
-    function recurse(obj, parent, key) {
+    function recurse(obj, parent, key, depth = 0, path = '') {
+      if ( depth >= MAX_DEPTH ) {
+        return obj;
+      }
+
+      if ( key === '_error' ) {
+        return null;
+      }
+
       if ( Array.isArray(obj) && obj.__rehydrateAll ) {
         parent[`__rehydrateAll__${ key }`] = obj.__rehydrateAll;
       } else if ( obj && typeof obj === 'object' ) {
@@ -18,11 +28,11 @@ export default function() {
         }
 
         for ( const k of Object.keys(obj) ) {
-          if ( k === '__rehydrate' || k === '__clone' ) {
+          if ( k === '__rehydrate' || k === '__clone') {
             continue;
           }
 
-          obj[k] = recurse(obj[k], obj, k);
+          obj[k] = recurse(obj[k], obj, k, depth + 1, (path ? `${ path }.${ k }` : k));
         }
       }
 

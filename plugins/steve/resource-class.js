@@ -1165,7 +1165,7 @@ export default class Resource {
 
     if ( !schema ) {
       // eslint-disable-next-line
-      console.warn(this.t('validation.noSchema'), originalType, data);
+      // console.warn(this.t('validation.noSchema'), originalType, data);
 
       return errors;
     }

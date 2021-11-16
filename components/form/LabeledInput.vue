@@ -17,13 +17,13 @@ export default {
     },
 
     status: {
-      type:      String,
-      default:   null
+      type:    String,
+      default: null,
     },
 
     tooltip: {
       default: null,
-      type:    [String, Object]
+      type:    [String, Object],
     },
 
     hoverTooltip: {
@@ -34,7 +34,12 @@ export default {
     ignorePasswordManagers: {
       default: false,
       type:    Boolean,
-    }
+    },
+
+    maxlength: {
+      type:    Number,
+      default: null,
+    },
   },
 
   computed: {
@@ -71,14 +76,22 @@ export default {
       }
 
       return '';
-    }
+    },
+
+    _maxlength() {
+      if (this.type === 'text' && this.maxlength) {
+        return this.maxlength;
+      }
+
+      return null;
+    },
   },
 
   methods: {
     focus() {
       const comp = this.$refs.value;
 
-      if ( comp ) {
+      if (comp) {
         comp.focus();
       }
     },
@@ -86,7 +99,7 @@ export default {
     select() {
       const comp = this.$refs.value;
 
-      if ( comp ) {
+      if (comp) {
         comp.select();
       }
     },
@@ -100,13 +113,22 @@ export default {
       this.onBlurLabeled();
     },
 
-    escapeHtml
-  }
+    escapeHtml,
+  },
 };
 </script>
 
 <template>
-  <div :class="{'labeled-input': true, focused, [mode]: true, disabled: isDisabled, [status]: status, suffix:hasSuffix}">
+  <div
+    :class="{
+      'labeled-input': true,
+      focused,
+      [mode]: true,
+      disabled: isDisabled,
+      [status]: status,
+      suffix: hasSuffix,
+    }"
+  >
     <slot name="label">
       <label>
         <t v-if="labelKey" :k="labelKey" />
@@ -123,11 +145,12 @@ export default {
         v-if="type === 'multiline' || type === 'multiline-password'"
         ref="value"
         v-bind="$attrs"
+        :maxlength="_maxlength"
         :disabled="isDisabled"
         :value="value"
         :placeholder="_placeholder"
         autocapitalize="off"
-        :class="{'conceal':type === 'multiline-password' }"
+        :class="{ conceal: type === 'multiline-password' }"
         @input="$emit('input', $event)"
         @focus="onFocus"
         @blur="onBlur"
@@ -135,8 +158,9 @@ export default {
       <input
         v-else
         ref="value"
-        :class="{'no-label': !hasLabel}"
+        :class="{ 'no-label': !hasLabel }"
         v-bind="$attrs"
+        :maxlength="_maxlength"
         :disabled="isDisabled"
         :type="type === 'cron' ? 'text' : type"
         :value="value"
@@ -147,7 +171,7 @@ export default {
         @input="$emit('input', $event.target.value)"
         @focus="onFocus"
         @blur="onBlur"
-      >
+      />
     </slot>
     <slot name="suffix" />
     <LabeledTooltip

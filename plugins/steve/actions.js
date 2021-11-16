@@ -7,6 +7,7 @@ import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@/store/type-map';
 import { addParam } from '@/utils/url';
 import { isArray } from '@/utils/array';
 import { deferred } from '@/utils/promise';
+import { streamingSupported, streamJson } from '@/utils/stream';
 import { normalizeType } from './normalize';
 import { classify } from './classify';
 
@@ -36,9 +37,11 @@ export default {
 
     opt.depaginate = opt.depaginate !== false;
     opt.url = opt.url.replace(/\/*$/g, '');
+    opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
     const method = (opt.method || 'get').toLowerCase();
-    const key = JSON.stringify(opt.headers || {}) + method + opt.url;
+    const headers = (opt.headers || {});
+    const key = JSON.stringify(headers) + method + opt.url;
     let waiting;
 
     if ( (method === 'get') ) {
@@ -59,7 +62,17 @@ export default {
       }
     }
 
-    opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+    if ( opt.stream && state.allowStreaming && state.config.supportsStream && streamingSupported() ) {
+      // console.log('Using Streaming for', opt.url);
+
+      return streamJson(opt.url, opt, opt.onData).then(() => {
+        return { finishDeferred: finishDeferred.bind(null, key, 'resolve') };
+      }).catch((err) => {
+        return onError(err);
+      });
+    } else {
+      // console.log('NOT Using Streaming for', opt.url);
+    }
 
     return this.$axios(opt).then((res) => {
       if ( opt.depaginate ) {
@@ -84,31 +97,12 @@ export default {
         out = responseObject(res);
       }
 
-      finishDeferred(key, out, 'resolve');
+      finishDeferred(key, 'resolve', out);
 
       return out;
-    }).catch((err) => {
-      let out = err;
+    }).catch(onError);
 
-      if ( err?.response ) {
-        const res = err.response;
-
-        // Go to the logout page for 401s, unless redirectUnauthorized specifically disables (for the login page)
-        if ( opt.redirectUnauthorized !== false && process.client && res.status === 401 ) {
-          dispatch('auth/logout', opt.logoutOnError, { root: true });
-        }
-
-        if ( typeof res.data !== 'undefined' ) {
-          out = responseObject(res);
-        }
-      }
-
-      finishDeferred(key, out, 'reject');
-
-      return Promise.reject(out);
-    });
-
-    function finishDeferred(key, res, action = 'resolve') {
+    function finishDeferred(key, action = 'resolve', res) {
       const waiting = state.deferredRequests[key] || [];
 
       // console.log('Resolving deferred for', key, waiting.length);
@@ -146,6 +140,27 @@ export default {
       });
 
       return out;
+    }
+
+    function onError(err) {
+      let out = err;
+
+      if ( err?.response ) {
+        const res = err.response;
+
+        // Go to the logout page for 401s, unless redirectUnauthorized specifically disables (for the login page)
+        if ( opt.redirectUnauthorized !== false && process.client && res.status === 401 ) {
+          dispatch('auth/logout', opt.logoutOnError, { root: true });
+        }
+
+        if ( typeof res.data !== 'undefined' ) {
+          out = responseObject(res);
+        }
+      }
+
+      finishDeferred(key, 'reject', out);
+
+      return Promise.reject(out);
     }
   },
 
@@ -201,12 +216,6 @@ export default {
       return getters.all(type);
     }
 
-    console.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
-    opt = opt || {};
-    opt.url = getters.urlFor(type, null, opt);
-
-    const res = await dispatch('request', opt);
-
     let load = (opt.load === undefined ? _ALL : opt.load);
 
     if ( opt.load === false || opt.load === _NONE ) {
@@ -221,31 +230,83 @@ export default {
       }
     }
 
+    console.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
+    opt = opt || {};
+    opt.url = getters.urlFor(type, null, opt);
+    opt.stream = opt.stream !== false && load !== _NONE;
+    let streamStarted = false;
+    let out;
+
+    let queue = [];
+    let streamCollection;
+
+    opt.onData = function(data) {
+      if ( streamStarted ) {
+        // Batch loads into groups of 10 to reduce vuex overhead
+        queue.push(data);
+
+        if ( queue.length > 10 ) {
+          const tmp = queue;
+
+          queue = [];
+          commit('loadMulti', { ctx, data: tmp });
+        }
+      } else {
+        // The first line is the collection object (sans `data`)
+        commit('forgetAll', { type });
+        streamStarted = true;
+        streamCollection = data;
+      }
+    };
+
+    try {
+      const res = await dispatch('request', opt);
+
+      if ( streamStarted ) {
+        // Flush any remaining entries left over that didn't get loaded by onData
+        if ( queue.length ) {
+          commit('loadMulti', { ctx, data: queue });
+          queue = [];
+        }
+        commit('loadedAll', { type });
+        const all = getters.all(type);
+
+        res.finishDeferred(all);
+        out = streamCollection;
+      } else {
+        out = res;
+      }
+    } catch (e) {
+      return Promise.reject(e);
+    }
+
     if ( load === _NONE ) {
-      return res;
-    } else if ( load === _MULTI ) {
-      // This has the effect of adding the response to the store,
-      // without replacing all the existing content for that type,
-      // and without marking that type as having 'all 'loaded.
-      //
-      // This is used e.g. to load a partial list of settings before login
-      // while still knowing we need to load the full list later.
-      commit('loadMulti', {
-        ctx,
-        data: res.data
-      });
-    } else {
-      commit('loadAll', {
-        ctx,
-        type,
-        data: res.data
-      });
+      return out;
+    } else if ( out.data ) {
+      if ( load === _MULTI ) {
+        // This has the effect of adding the response to the store,
+        // without replacing all the existing content for that type,
+        // and without marking that type as having 'all 'loaded.
+        //
+        // This is used e.g. to load a partial list of settings before login
+        // while still knowing we need to load the full list later.
+        commit('loadMulti', {
+          ctx,
+          data: out.data
+        });
+      } else {
+        commit('loadAll', {
+          ctx,
+          type,
+          data: out.data
+        });
+      }
     }
 
     if ( opt.watch !== false ) {
       dispatch('watch', {
         type,
-        revision:  res.revision,
+        revision:  out.revision,
         namespace: opt.watchNamespace
       });
     }

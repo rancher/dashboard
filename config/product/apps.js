@@ -24,10 +24,11 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    removable:   false,
-    weight:      97,
-    ifHaveGroup: 'catalog.cattle.io',
-    icon:        'marketplace',
+    removable:           false,
+    weight:              97,
+    ifHaveGroup:         'catalog.cattle.io',
+    icon:                'marketplace',
+    showNamespaceFilter: true
   });
 
   virtualType({
