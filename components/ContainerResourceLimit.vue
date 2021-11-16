@@ -3,6 +3,7 @@ import isEmpty from 'lodash/isEmpty';
 import UnitInput from '@/components/form/UnitInput';
 import { CONTAINER_DEFAULT_RESOURCE_LIMIT } from '@/config/labels-annotations';
 import { cleanUp } from '@/utils/object';
+import { _VIEW } from '@/config/query-params';
 
 export default {
   components: { UnitInput },
@@ -42,7 +43,7 @@ export default {
     } = this.value;
 
     return {
-      limitsCpu, limitsMemory, requestsCpu, requestsMemory
+      limitsCpu, limitsMemory, requestsCpu, requestsMemory, viewMode: _VIEW
     };
   },
 

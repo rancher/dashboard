@@ -56,7 +56,7 @@ export default {
       default: null,
     },
 
-    // LabeledInput props vv
+    // LabeledInput props
     mode: {
       type:    String,
       default: _EDIT
