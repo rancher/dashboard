@@ -19,10 +19,13 @@ import CpuMemory from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCpuMemory
 import CloudConfig from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
 import NodeScheduling from '@/components/form/NodeScheduling';
 
+import { clear } from '@/utils/array';
 import { clone } from '@/utils/object';
 import { HCI } from '@/config/types';
+import { exceptionToErrorsArray } from '@/utils/error';
 import { cleanForNew } from '@/plugins/steve/normalize';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
+import { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 
 import VM_MIXIN from '@/mixins/harvester-vm';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -58,15 +61,14 @@ export default {
   },
 
   data() {
-    const cloneDeepVM = clone(this.value);
+    const cloneVM = clone(this.value);
     const isRestartImmediately = this.value.actualState === 'Running';
 
     return {
-      cloneDeepVM,
+      cloneVM,
       count:                 2,
-      realHostname:          '',
       templateId:            '',
-      templateVersionId:       '',
+      templateVersionId:     '',
       isSingle:              true,
       isRunning:             true,
       useTemplate:           false,
@@ -116,10 +118,6 @@ export default {
       return this.templates.find( O => O.id === this.templateId);
     },
 
-    curVersionResource() {
-      return this.versions.find( O => O.id === this.templateVersionId);
-    },
-
     nameLabel() {
       return this.isSingle ? 'harvester.virtualMachine.instance.single.nameLabel' : 'harvester.virtualMachine.instance.multiple.nameLabel';
     },
@@ -143,6 +141,9 @@ export default {
         }
       }
     },
+    secretNamePrefix() {
+      return this.value?.metadata?.name;
+    }
   },
 
   watch: {
@@ -168,21 +169,12 @@ export default {
         const versions = await this.$store.dispatch('harvester/findAll', { type: HCI.VM_VERSION });
         const curVersion = versions.find( V => V.id === id);
 
-        if (curVersion?.spec?.vm) {
-          const sshKey = curVersion.spec.keyPairIds || [];
+        this.getInitConfig({ value: curVersion.spec.vm });
+        this.$set(this, 'hasCreateVolumes', []); // When using the template, all volume names need to be newly created
 
-          const cloudScript = this.getCloudInitScript(curVersion.spec.vm);
+        const claimTemplate = this.getVolumeClaimTemplates(curVersion.spec.vm);
 
-          this.$set(this, 'userScript', cloudScript?.userData);
-          this.$set(this, 'networkScript', cloudScript?.networkData);
-          this.$set(this, 'sshKey', sshKey);
-          this.value.spec = curVersion.spec.vm.spec;
-          this.$set(this, 'spec', curVersion.spec.vm.spec);
-          const claimTemplate = this.getVolumeClaimTemplates(curVersion.spec.vm);
-
-          this.value.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(claimTemplate);
-        }
-        this.changeSpec();
+        this.value.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(claimTemplate);
       }
     },
 
@@ -191,32 +183,13 @@ export default {
         this.templateId = '';
         this.templateVersionId = '';
         this.value.applyDefaults();
-        this.changeSpec();
+        this.getInitConfig({ value: this.value });
       }
     },
   },
 
   created() {
-    this.registerBeforeHook(() => {
-      Object.assign(this.value.metadata.labels, {
-        ...this.value.metadata.labels,
-        [HCI_ANNOTATIONS.CREATOR]: 'harvester',
-      });
-
-      Object.assign(this.value.spec.template.metadata.annotations, {
-        ...this.value.spec.template.metadata.annotations,
-        [HCI_ANNOTATIONS.SSH_NAMES]: JSON.stringify(this.sshKey)
-      });
-
-      Object.assign(this.value.metadata.annotations, {
-        ...this.value.metadata.annotations,
-        [HCI_ANNOTATIONS.NETWORK_IPS]: JSON.stringify(this.value.networkIps)
-      });
-    });
-
-    this.registerAfterHook(() => {
-      this.restartVM();
-    });
+    this.registerAfterHook(this.restartVM, 'restartVM');
   },
 
   mounted() {
@@ -250,7 +223,15 @@ export default {
         this.$set(this.value.spec.template.spec, 'hostname', this.value.metadata.name);
       }
 
-      await this.save(buttonCb);
+      try {
+        await this._save(this.value, buttonCb);
+        buttonCb(true);
+
+        this.done();
+      } catch (e) {
+        this.errors = exceptionToErrorsArray(e);
+        buttonCb(false);
+      }
     },
 
     async saveMultiple(buttonCb) {
@@ -275,16 +256,36 @@ export default {
         const hostname = `${ baseHostname }${ join }${ suffix }`;
 
         this.$set(this.value.spec.template.spec, 'hostname', hostname);
-
-        this.parseVM();
+        this.secretName = '';
+        await this.parseVM();
+        const basicValue = await this.$store.dispatch('harvester/clone', { resource: this.value });
 
         try {
-          await this.save(buttonCb);
-        } catch (err) {
-          return Promise.reject(new Error(err));
+          await this._save(basicValue);
+
+          if (i === this.count) {
+            buttonCb(true);
+            this.done();
+          }
+        } catch (e) {
+          this.errors = exceptionToErrorsArray(e);
+          buttonCb(false);
         }
       }
-      this.value.id = '';
+    },
+
+    async _save(value) {
+      if ( this.errors ) {
+        clear(this.errors);
+      }
+
+      await this.applyHooks(BEFORE_SAVE_HOOKS);
+
+      const res = await value.save();
+
+      await this.applyHooks(AFTER_SAVE_HOOKS);
+
+      await this.saveSecret(res);
     },
 
     restartVM() {
@@ -293,10 +294,10 @@ export default {
 
         delete cloneDeepNewVM.type;
         delete cloneDeepNewVM?.metadata;
-        delete this.cloneDeepVM.type;
-        delete this.cloneDeepVM?.metadata;
+        delete this.cloneVM.type;
+        delete this.cloneVM?.metadata;
 
-        const oldVM = JSON.parse(JSON.stringify(this.cloneDeepVM));
+        const oldVM = JSON.parse(JSON.stringify(this.cloneVM));
         const newVM = JSON.parse(JSON.stringify(cloneDeepNewVM));
 
         if (!isEqual(oldVM, newVM) && this.isRestartImmediately) {
@@ -305,47 +306,30 @@ export default {
       }
     },
 
-    changeSpec() {
-      const diskRows = this.getDiskRows(this.value);
-      const networkRows = this.getNetworkRows(this.value);
-      const imageId = this.getRootImageId(this.value);
-
-      this.$set(this, 'spec', this.value.spec);
-      this.$set(this, 'diskRows', diskRows);
-      this.$set(this, 'networkRows', networkRows);
-      this.$set(this, 'imageId', imageId);
-    },
-
     validataCount(count) {
       if (count > 10) {
         this.$set(this, 'count', 10);
       }
     },
 
-    updateCpuMemory(cpu, memory) {
-      this.$set(this.spec.template.spec.domain.cpu, 'cores', cpu);
-      this.$set(this, 'memory', memory);
+    updateTemplateId() {
+      this.templateVersionId = '';
     },
 
     onTabChanged({ tab }) {
-      if (tab.name === 'advanced' && this.$refs.yamlEditor?.refresh) {
-        this.$refs.yamlEditor.refresh();
+      if (tab.name === 'advanced') {
+        this.$refs.yamlEditor?.refresh();
       }
     },
-
-    updateTemplateId() {
-      this.templateVersionId = '';
-    }
   },
 };
 </script>
 
 <template>
-  <div id="vm">
+  <div v-if="spec" id="vm">
     <CruResource
       :done-route="doneRoute"
       :resource="value"
-      :can-yaml="false"
       :mode="mode"
       :errors="errors"
       :apply-hooks="applyHooks"
@@ -423,15 +407,13 @@ export default {
             class="mb-20"
             :namespace="value.metadata.namespace"
             :mode="mode"
+            :disabled="isWindows"
             @update:sshKey="updateSSHKey"
+            @register-after-hook="registerAfterHook"
           />
         </Tab>
 
-        <Tab
-          name="Volume"
-          :label="t('harvester.tab.volume')"
-          :weight="-1"
-        >
+        <Tab name="Volume" :label="t('harvester.tab.volume')" :weight="-1">
           <Volume
             v-model="diskRows"
             :mode="mode"
@@ -442,15 +424,11 @@ export default {
           />
         </Tab>
 
-        <Tab
-          name="Network"
-          :label="t('harvester.tab.network')"
-          :weight="-2"
-        >
+        <Tab name="Network" :label="t('harvester.tab.network')" :weight="-2">
           <Network v-model="networkRows" :mode="mode" />
         </Tab>
 
-        <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="-3">
+        <Tab name="nodeScheduling" :label="t('workload.container.titles.nodeScheduling')" :weight="-3">
           <NodeScheduling :mode="mode" :value="spec.template.spec" :nodes="nodesIdOptions" />
         </Tab>
 
@@ -461,11 +439,11 @@ export default {
         >
           <div class="row mb-20">
             <div class="col span-6">
-              <LabeledInput
-                v-model="hostname"
-                :label-key="hostnameLabel"
-                :placeholder="hostPlaceholder"
-                :mode="mode"
+              <LabeledSelect
+                v-model="osType"
+                label-key="harvester.virtualMachine.osType"
+                :options="OS"
+                :disabled="!isCreate"
               />
             </div>
 
@@ -479,16 +457,34 @@ export default {
             </div>
           </div>
 
+          <div class="row mb-20">
+            <a v-if="showAdvanced" v-t="'harvester.generic.showMore'" role="button" @click="toggleAdvanced" />
+            <a v-else v-t="'harvester.generic.showMore'" role="button" @click="toggleAdvanced" />
+          </div>
+
+          <div v-if="showAdvanced" class="mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model="hostname"
+                :label-key="hostnameLabel"
+                :placeholder="hostPlaceholder"
+                :mode="mode"
+              />
+            </div>
+          </div>
+
           <CloudConfig
             ref="yamlEditor"
             :user-script="userScript"
             :mode="mode"
+            :namespace="value.metadata.namespace"
             :network-script="networkScript"
-            @updateCloudConfig="updateCloudConfig"
+            @updateUserData="updateUserData"
+            @updateNetworkData="updateNetworkData"
           />
 
           <Checkbox
-            v-model="isUseMouseEnhancement"
+            v-model="installUSBTablet"
             class="check mt-20"
             type="checkbox"
             label-key="harvester.virtualMachine.enableUsb"
@@ -499,6 +495,7 @@ export default {
             v-model="installAgent"
             class="check"
             type="checkbox"
+            :disabled="isWindows"
             label-key="harvester.virtualMachine.installAgent"
             :mode="mode"
           />

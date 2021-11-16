@@ -88,7 +88,7 @@ export default {
       const bundleValue = await this.$store.dispatch(`${ inStore }/create`, bundleCrd);
 
       try {
-        await bundleValue.save({ extend: { isRes: true } });
+        await bundleValue.save();
 
         this.$store.commit('harvester-common/setLatestBundleId', `${ namespace }/${ name }`, { root: true });
         this.$store.dispatch('harvester-common/bundleProgress', { root: true });

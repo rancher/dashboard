@@ -90,6 +90,7 @@ nav:
     storage: 存储
     workload: 工作负载
     monitoring: 监控
+    advanced: 高级
   ns:
     all: 全部命名空间
     clusterLevel: 集群资源
@@ -4086,6 +4087,8 @@ harvester:
     hotplug:
       success: '{ diskName } 已挂载到 { vm }'
       title: 添加卷
+    hotunplug:
+      success: '卷{ name } 拔出成功.'
   notification:
     title:
       succeed: 成功
@@ -4155,10 +4158,17 @@ harvester:
     cpu: Cpu
     memory: 内存
     virtaulName: 虚拟机名称
+    ipv4Address: IPv4地址
   tab:
     volume: 卷
     network: 网络
     advanced: 高级选项
+  generic:
+    showMore: 显示更多
+    hideMore: 隐藏更多
+    memory: 内存
+    cpu: CPU
+    storage: 存储
 
   validation:
     custom:
@@ -4266,6 +4276,7 @@ harvester:
 
   virtualMachine:
     label: 虚拟机
+    osType: 系统类型
     instance:
       single:
         label: 单个实例
@@ -4294,10 +4305,15 @@ harvester:
     promptRemove:
       title: '需要您要删除的卷:'
       deleteAll: 全部删除
+    unplug:
+      title: '你确定要拔掉卷{name} ?'
+      actionLabel: 拔出
+      detachVolume:
+        拔出卷
     restartTip: 现在重新启动虚拟机以使配置更改生效.
     createRunning: 创建时启动虚拟机
     restartNow: 现在重启
-    createSSHKey: 创建SSH密钥
+    createSSHKey: 创建新SSH密钥
     installAgent: 安装 qemu-guest-agent
     enableUsb: 启动 USB Tablet 增强
     sshTitle: 添加SSH公钥
@@ -4335,6 +4351,8 @@ harvester:
       addPort:  添加端口
     cloudConfig:
       title: Cloud配置
+      createTemplateTitle: '创建 {name}.'
+      createNew: 创建新模板...
       cloudInit:
         label: Cloud Init
         placeholder: 请选择...
@@ -4423,6 +4441,8 @@ harvester:
     sourceType:
       download: URL
       upload: 文件
+    warning:
+      uploading: "{count} 个镜像正在上传中，请不要刷新或关闭当前页面."
 
   vmTemplate:
     label: 虚拟机模板
@@ -4489,7 +4509,8 @@ harvester:
       secretAccessKey: 指定您的私密访问密钥
       cert: 上传自签名SSL证书
     vlanChangeTip: 新修改的默认物理网卡仅适用于新增节点，不适用于现有节点
-    defaultPhysicalNIC: 默认物理网卡
+    defaultPhysicalNIC: 默认网络接口
+    percentTip: 括号内的数值代表所有主机上的网络接口的分布比例。如果选择了一个小于100%的接口，用户需要手动指定vlan网络配置失败的主机上的网络接口。
 
   cloudTemplate:
     label: Cloud 配置模板
@@ -4497,6 +4518,24 @@ harvester:
     userData: User Data
     networkData: Network Data
 
+  manager:
+    cluster:
+      label: Harvester集群
+      none: 没有内容显示
+      learnMore: 了解更多的harvester可以通过<a target="_blank" href="https://harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester网站</a>或者阅读<a target="_blank" href="https://docs.harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester文档</a>
+      description: Harvester是一个采用企业级开源技术，包括Kubernetes、Kubevirt和Longhorn，为裸金属服务器打造的现代超融合基础设施（HCI）解决方案.
+
+  support:
+    title: Harvester支持
+    kubeconfig:
+      title: 下载KubeConfig
+      titleDescription: 下载kubeconfig用于调试或作为外部集群导入到Rancher
+  
+  namespace:
+    label: 命名空间
+
+  projectNamespace:
+    label: 项目/命名空间
 ##############################
 # Model Properties
 ##############################
@@ -4867,7 +4906,7 @@ advancedSettings:
     'rke-metadata-config': '配置RKE元数据刷新参数。'
     'ui-banners': '分类横幅是用来在页眉、页脚或两者中显示一个自定义的固定横幅。'
     'ui-default-landing': '用户在登录后登陆的默认页面。'
-    'harv-vlan': VLAN网络的默认物理NIC名称.
+    'harv-vlan': VLAN网络的默认NIC名称.
     'harv-backup-target': 自定义备份目标用于存储VM备份.
     'harv-log-level': 配置Harvester服务器日志级别. 默认为信息
     'harv-server-version': Harvester服务器版本.

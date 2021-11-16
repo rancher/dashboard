@@ -97,31 +97,38 @@ const HCI_SETTING = {
   UPGRADE_CHECKER_URL:              'upgrade-checker-url',
   VLAN:                             'vlan',
   UI_SOURCE:                        'ui-source',
+  HTTP_PROXY:                       'http-proxy',
+  ADDITIONAL_CA:                    'additional-ca',
+  OVERCOMMIT_CONFIG:                'overcommit-config'
   // DEFAULT_STORAGE_CLASS:            'default-storage-class'
 };
 
 export const HCI_ALLOWED_SETTINGS = {
-  [HCI_SETTING.BACKUP_TARGET]:                    {
+  [HCI_SETTING.BACKUP_TARGET]: {
     kind: 'json', from: 'import', disableReset: true
   },
-  [HCI_SETTING.LOG_LEVEL]:                  {
+  [HCI_SETTING.LOG_LEVEL]: {
     kind:    'enum',
     options: ['info', 'debug', 'trace']
+  },
+  [HCI_SETTING.VLAN]: {
+    kind: 'custom', from: 'import', alias: 'vlan'
   },
   [HCI_SETTING.SERVER_VERSION]:                   { readOnly: true },
   [HCI_SETTING.UPGRADE_CHECKER_ENABLED]:          { kind: 'boolean' },
   [HCI_SETTING.UPGRADE_CHECKER_URL]:              { kind: 'url' },
-  [HCI_SETTING.VLAN]:                             {
-    kind: 'custom', from: 'import', alias: 'vlan'
-  },
+  [HCI_SETTING.HTTP_PROXY]:                       { kind: 'json', from: 'import' },
+  [HCI_SETTING.ADDITIONAL_CA]:                    { kind: 'multiline' },
+  [HCI_SETTING.OVERCOMMIT_CONFIG]:                { kind: 'json', from: 'import' },
 };
 
 export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
-  [HCI_SETTING.UI_SOURCE]:                        {
+  [HCI_SETTING.UI_SOURCE]: {
     kind:    'enum',
     options: ['auto', 'external', 'bundled']
   },
-  [HCI_SETTING.UI_INDEX]: { kind: 'url' }
+  [HCI_SETTING.UI_INDEX]: { kind: 'url' },
+  [SETTING.SERVER_URL]:   { kind: 'url' },
 };
 
 export const fetchOrCreateSetting = async(store, id, val, save = true) => {

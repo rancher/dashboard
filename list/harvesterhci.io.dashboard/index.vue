@@ -9,7 +9,7 @@ import { allHash } from '@/utils/promise';
 import { parseSi, formatSi, exponentNeeded, UNITS } from '@/utils/units';
 import { REASON } from '@/config/table-headers';
 import {
-  EVENT, METRIC, NODE, HCI, SERVICE, PVC, LONGHORN
+  EVENT, METRIC, NODE, HCI, SERVICE, PVC, LONGHORN, POD
 } from '@/config/types';
 import ResourceSummary, { resourceCounts } from '@/components/ResourceSummary';
 import HardwareResourceGauge from '@/components/HardwareResourceGauge';
@@ -88,7 +88,8 @@ export default {
       settings:     this.fetchClusterResources(HCI.SETTING),
       services:     this.fetchClusterResources(SERVICE),
       metric:       this.fetchClusterResources(METRIC.NODE),
-      longhornNode: this.fetchClusterResources(LONGHORN.NODES)
+      longhornNode: this.fetchClusterResources(LONGHORN.NODES) || [],
+      _pods:        this.$store.dispatch('harvester/findAll', { type: POD }),
     };
 
     (this.accessibleResources || []).map((a) => {
@@ -255,12 +256,12 @@ export default {
     storageUsage() {
       let out = 0;
 
-      this.longhornNode.filter(n => n.spec.allowScheduling).forEach((node) => {
+      (this.longhornNode || []).forEach((node) => {
         const diskStatus = node?.status?.diskStatus || {};
 
         Object.values(diskStatus).map((disk) => {
-          if (disk?.storageAvailable && disk?.storageMaximum) {
-            out += disk.storageMaximum - disk.storageAvailable;
+          if (disk?.conditions?.Schedulable?.status === 'True' && disk?.storageAvailable && disk?.storageMaximum) {
+            out += (disk.storageMaximum - disk.storageAvailable);
           }
         });
       });
@@ -271,22 +272,17 @@ export default {
     storageTotal() {
       let out = 0;
 
-      this.metricNodes.forEach((node) => {
-        out += node.storageTotal;
+      (this.longhornNode || []).forEach((node) => {
+        const diskStatus = node?.status?.diskStatus || {};
+
+        Object.values(diskStatus).map((disk) => {
+          if (disk?.storageMaximum) {
+            out += disk.storageMaximum;
+          }
+        });
       });
 
       return out;
-    },
-
-    cpuUsed() {
-      return {
-        total:  this.cpusTotal,
-        useful: Number(formatSi(this.cpusUsageTotal)),
-      };
-    },
-
-    memoryUsed() {
-      return this.createMemoryValues(this.memorysTotal, this.memorysUsageTotal);
     },
 
     storageUsed() {
@@ -311,6 +307,52 @@ export default {
 
     hasMetricsTabs() {
       return this.showClusterMetrics || this.showVmMetrics;
+    },
+
+    pods() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const pods = this.$store.getters[`${ inStore }/all`](POD) || [];
+
+      return pods.filter(p => p?.metadata?.name !== 'removing');
+    },
+
+    cpuReserved() {
+      const useful = this.pods.reduce((sum, pod) => {
+        const containers = pod?.spec?.containers || [];
+
+        const containerCpuReserved = containers.reduce((sum, c) => {
+          sum += parseSi(c?.resources?.requests?.cpu || '0m');
+
+          return sum;
+        }, 0);
+
+        sum += containerCpuReserved;
+
+        return sum;
+      }, 0);
+
+      return {
+        total:  this.cpusTotal,
+        useful: Number(formatSi(useful)),
+      };
+    },
+
+    ramReserved() {
+      const useful = this.pods.reduce((sum, pod) => {
+        const containers = pod?.spec?.containers || [];
+
+        const containerMemoryReserved = containers.reduce((sum, c) => {
+          sum += parseSi(c?.resources?.requests?.memory || '0m', { increment: 1024 });
+
+          return sum;
+        }, 0);
+
+        sum += containerMemoryReserved;
+
+        return sum;
+      }, 0);
+
+      return this.createMemoryValues(this.memorysTotal, useful);
     },
   },
 
@@ -420,11 +462,11 @@ export default {
       <div class="hardware-resource-gauges">
         <HardwareResourceGauge
           :name="t('harvester.dashboard.hardwareResourceGauge.cpu')"
-          :used="cpuUsed"
+          :reserved="cpuReserved"
         />
         <HardwareResourceGauge
           :name="t('harvester.dashboard.hardwareResourceGauge.memory')"
-          :used="memoryUsed"
+          :reserved="ramReserved"
         />
         <HardwareResourceGauge
           :name="t('harvester.dashboard.hardwareResourceGauge.storage')"

@@ -74,6 +74,10 @@ export default {
       return !this.currentProduct?.hideKubeShell;
     },
 
+    showKubeConfig() {
+      return !this.currentProduct?.hideKubeConfig;
+    },
+
     importEnabled() {
       return !!this.currentCluster?.actions?.apply;
     },
@@ -264,6 +268,7 @@ export default {
         </button>
 
         <button
+          v-if="showKubeConfig"
           v-tooltip="t('nav.kubeconfig')"
           :disabled="!kubeConfigEnabled"
           type="button"

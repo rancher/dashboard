@@ -1291,7 +1291,7 @@ export default class Resource {
           const validatorExists = Object.prototype.hasOwnProperty.call(CustomValidators, validatorName);
 
           if (!isEmpty(validatorName) && validatorExists) {
-            CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey);
+            CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
           } else if (!isEmpty(validatorName) && !validatorExists) {
             // eslint-disable-next-line
             console.warn(this.t('validation.custom.missing', { validatorName }));

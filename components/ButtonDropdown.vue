@@ -47,6 +47,18 @@ export default {
       default: 'bottom-start',
       type:    String
     },
+    selectable: {
+      default: (opt) => {
+        if ( opt ) {
+          if ( opt.disabled || opt.kind === 'group' || opt.kind === 'divider' || opt.loading ) {
+            return false;
+          }
+        }
+
+        return true;
+      },
+      type: Function
+    },
   },
   data() {
     return { focused: false };
@@ -177,6 +189,7 @@ export default {
       (opt) => (optionKey ? get(opt, optionKey) : getOptionLabel(opt))
     "
     :get-option-label="(opt) => getOptionLabel(opt)"
+    :selectable="selectable"
     @search:blur="onBlur"
     @search:focus="onFocus"
     @input="$emit('click-action', $event)"

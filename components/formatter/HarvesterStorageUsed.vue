@@ -1,6 +1,6 @@
 <script>
 import ConsumptionGauge from '@/components/ConsumptionGauge';
-import { METRIC } from '@/config/types';
+import { LONGHORN } from '@/config/types';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
 
 export default {
@@ -24,26 +24,34 @@ export default {
   },
 
   computed: {
-    metrics() {
-      return this.$store.getters['harvester/byId'](METRIC.NODE, this.row.id);
-    },
-
     storageUsage() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.row.id }`);
       let out = 0;
 
-      if (this.metrics) {
-        out = this.metrics.storageUsage;
-      }
+      const diskStatus = longhornNode?.status?.diskStatus || {};
+
+      Object.values(diskStatus).map((disk) => {
+        if (disk?.storageAvailable && disk?.storageMaximum) {
+          out += disk.storageMaximum - disk.storageAvailable;
+        }
+      });
 
       return out;
     },
 
     storageTotal() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.row.id }`);
       let out = 0;
 
-      if (this.metrics) {
-        out = this.metrics.storageTotal;
-      }
+      const diskStatus = longhornNode?.status?.diskStatus || {};
+
+      Object.values(diskStatus).map((disk) => {
+        if (disk?.storageMaximum) {
+          out += disk.storageMaximum;
+        }
+      });
 
       return out;
     },
@@ -56,11 +64,12 @@ export default {
   },
 
   methods: {
-    memoryFormatter(value, exponent) {
+    memoryFormatter(value) {
+      const minExponent = exponentNeeded(this.storageTotal, 1024);
       const formatOptions = {
         addSuffix:   false,
         increment:   1024,
-        minExponent: exponent
+        minExponent,
       };
 
       return formatSi(value, formatOptions);

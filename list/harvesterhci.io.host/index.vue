@@ -2,7 +2,9 @@
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
 import { STATE, NAME, AGE } from '@/config/table-headers';
-import { METRIC, NODE, SCHEMA, HCI } from '@/config/types';
+import {
+  METRIC, NODE, SCHEMA, HCI, LONGHORN, POD
+} from '@/config/types';
 import { allHash } from '@/utils/promise';
 import metricPoller from '@/mixins/metric-poller';
 import CopyToClipboard from '@/components/CopyToClipboard';
@@ -18,14 +20,23 @@ const schema = {
 };
 
 export default {
-  name:       'HarvesterListHost',
+  name: 'HarvesterListHost',
+
   components: {
-    CopyToClipboard, ResourceTable, Loading
+    CopyToClipboard,
+    ResourceTable,
+    Loading,
   },
+
   mixins: [metricPoller],
 
   async fetch() {
-    const _hash = { nodes: this.$store.dispatch('harvester/findAll', { type: NODE }) };
+    const _hash = {
+      nodes:         this.$store.dispatch('harvester/findAll', { type: NODE }),
+      longhornNodes: this.$store.dispatch('harvester/findAll', { type: LONGHORN.NODES }),
+      blockDevices:  this.$store.dispatch('harvester/findAll', { type: HCI.BLOCK_DEVICE }),
+      pods:          this.$store.dispatch('harvester/findAll', { type: POD }),
+    };
 
     if (this.$store.getters['harvester/schemaFor'](METRIC.NODE)) {
       _hash.metric = this.$store.dispatch('harvester/findAll', { type: METRIC.NODE });
@@ -50,8 +61,7 @@ export default {
         STATE,
         {
           ...NAME,
-          width:         300,
-          formatter:     'HarvesterHostName',
+          formatter: 'HarvesterHostName',
         },
         {
           name:      'host-ip',
@@ -59,7 +69,13 @@ export default {
           search:    ['internalIp'],
           value:     'internalIp',
         },
-        AGE,
+        {
+          name:          'diskState',
+          labelKey:      'tableHeaders.diskState',
+          value:         'diskState',
+          formatter:     'HarvesterDiskState',
+          width:         130,
+        },
       ];
 
       if (this.hasMetricSchema) {
@@ -89,6 +105,8 @@ export default {
 
         out.splice(-1, 0, ...metricCol);
       }
+
+      out.push(AGE);
 
       return out;
     },

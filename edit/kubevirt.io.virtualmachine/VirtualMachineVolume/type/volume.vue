@@ -66,10 +66,6 @@ export default {
       return allPVCs.find(P => P.metadata.name === this.value.volumeName);
     },
 
-    needSetPVC() {
-      return !!this.errors.length || (!this.value.newCreateId && this.isEdit && this.value.size !== this.pvcsResource?.spec?.resources?.requests?.storage);
-    },
-
     isDisabled() {
       return !this.value.newCreateId && this.isEdit;
     },
