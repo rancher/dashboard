@@ -4,6 +4,8 @@ import { exceptionToErrorsArray } from '@/utils/error';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import { clear } from '@/utils/array';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
+import { applyChangeset, changeset, changesetConflicts } from '@/utils/object';
+import { cleanForDiff } from '@/plugins/steve/normalize';
 
 export default {
   mixins: [ChildHook],
@@ -79,6 +81,10 @@ export default {
     },
 
     doneParams() {
+      if ( this.value?.doneParams ) {
+        return this.value.doneParams;
+      }
+
       const out = { ...this.$route.params };
 
       delete out.namespace;
@@ -111,7 +117,37 @@ export default {
       });
     },
 
-    async save(buttonDone, url) {
+    // Detect and resolve conflicts from a 409 response.
+    // If they are resolved, return a false-y value
+    // Else they can't be resolved, return an array of errors to show to the user.
+    conflict() {
+      const orig = cleanForDiff(this.initialValue.toJSON());
+      const user = cleanForDiff(this.value.toJSON());
+      const cur = cleanForDiff(this.liveValue.toJSON());
+
+      const bgChange = changeset(orig, cur);
+      const userChange = changeset(orig, user);
+      const actualConflicts = changesetConflicts(bgChange, userChange);
+
+      console.log('Background Change', bgChange); // eslint-disable-line no-console
+      console.log('User Change', userChange); // eslint-disable-line no-console
+      console.log('Conflicts', actualConflicts); // eslint-disable-line no-console
+
+      this.value.metadata.resourceVersion = this.liveValue.metadata.resourceVersion;
+      applyChangeset(this.value, bgChange);
+
+      if ( actualConflicts.length ) {
+        // Stop the save and let the user inspect and continue editing
+        const out = [this.$store.getters['i18n/t']('validation.conflict', { fields: actualConflicts.join(', '), fieldCount: actualConflicts.length })];
+
+        return out;
+      } else {
+        // The save can continue
+        return false;
+      }
+    },
+
+    async save(buttonDone, url, depth = 0) {
       if ( this.errors ) {
         clear(this.errors);
       }
@@ -150,7 +186,20 @@ export default {
 
         this.done();
       } catch (err) {
-        this.errors = exceptionToErrorsArray(err);
+        // Conflict, the resource being edited has changed since starting editing
+        if ( err.status === 409 && depth === 0 ) {
+          const errors = await this.conflict(err);
+
+          if ( errors === false ) {
+            // It was automatically figured out, save again
+            return this.save(buttonDone, url, depth + 1);
+          } else {
+            this.errors = errors;
+          }
+        } else {
+          this.errors = exceptionToErrorsArray(err);
+        }
+
         buttonDone && buttonDone(false);
       }
     },

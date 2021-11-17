@@ -83,6 +83,12 @@ export default {
       default: () => {
         return {};
       }
+    },
+    typeOverride: {
+      type:    Array,
+      default: () => {
+        return [];
+      }
     }
   },
 
@@ -91,12 +97,15 @@ export default {
     this.$set(this.value.spec, 'namespaceDefaultResourceQuota', this.value.spec.namespaceDefaultResourceQuota || { limit: {} });
     this.$set(this.value.spec, 'resourceQuota', this.value.spec.resourceQuota || { limit: {} });
 
-    return { types: Object.keys(this.value.spec.resourceQuota.limit) };
+    return {
+      types:          Object.keys(this.value.spec.resourceQuota.limit),
+      TYPES_OVERRIDE: this.typeOverride.length > 0 ? this.typeOverride : TYPES
+    };
   },
 
   computed: {
     mappedTypes() {
-      return TYPES
+      return this.TYPES_OVERRIDE
         .map(type => ({
           label: this.t(type.labelKey),
           units: type.units,

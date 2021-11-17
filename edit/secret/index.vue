@@ -53,7 +53,7 @@ export default {
   data() {
     const newCloudCred = this.$route.query[CLOUD_CREDENTIAL] === _FLAGGED;
     const editCloudCred = this.mode === _EDIT && this.value._type === TYPES.CLOUD_CREDENTIAL;
-    const cloneCloudCred = this.realMode === _CLONE && this.originalValue._type === TYPES.CLOUD_CREDENTIAL;
+    const cloneCloudCred = this.realMode === _CLONE && this.liveValue._type === TYPES.CLOUD_CREDENTIAL;
     const isCloud = newCloudCred || editCloudCred || cloneCloudCred;
 
     if ( newCloudCred ) {

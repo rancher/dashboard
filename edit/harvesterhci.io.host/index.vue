@@ -92,6 +92,7 @@ export default {
 
     this.disks = disks;
     this.newDisks = clone(disks);
+    this.blockDeviceOpts = this.getBlockDeviceOpts();
   },
   data() {
     const customName = this.value.metadata?.annotations?.[HCI_LABELS_ANNOTATIONS.HOST_CUSTOM_NAME] || '';
@@ -108,60 +109,28 @@ export default {
       newDisks:             [],
       blockDevice:          [],
       dismountBlockDevices: {},
+      blockDeviceOpts:      [],
     };
   },
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     nicsOptions() {
-      return this.nics.map( (N) => {
-        const isRecommended = N.usedByManagementNetwork ? `(${ this.$store.getters['i18n/t']('harvester.host.detail.notRecommended') })` : '';
+      return this.nics.filter((N) => {
+        return !(N.masterIndex !== undefined && N.usedByVlanNetwork === undefined);
+      })
+        .map( (N) => {
+          const isRecommended = N.usedByManagementNetwork ? `(${ this.$store.getters['i18n/t']('harvester.host.detail.notRecommended') })` : '';
 
-        const label = `${ N.name }(${ N.state })   ${ isRecommended }`;
-
-        return {
-          value:                   N.name,
-          label,
-          state:                   N.state,
-          usedByManagementNetwork: N.usedByManagementNetwork,
-        };
-      });
-    },
-    blockDeviceOpts() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
-      const blockDevices = this.$store.getters[`${ inStore }/all`](HCI.BLOCK_DEVICE);
-
-      const out = blockDevices
-        .filter((d) => {
-          const addedToNodeCondition = findBy(d?.status?.conditions || [], 'type', 'AddedToNode');
-          const isAdded = findBy(this.newDisks, 'name', d.metadata.name);
-          const isRemoved = findBy(this.removedDisks, 'name', d.metadata.name);
-
-          if ((!findBy(this.disks || [], 'name', d.metadata.name) &&
-                d?.spec?.nodeName === this.value.id &&
-                (!addedToNodeCondition || addedToNodeCondition?.status === 'False') &&
-                !d.spec?.fileSystem?.provisioned &&
-                !isAdded) ||
-                isRemoved
-          ) {
-            return true;
-          } else {
-            return false;
-          }
-        })
-        .map((d) => {
-          const devPath = d.spec?.devPath;
-          const deviceType = d.status?.deviceStatus?.details?.deviceType;
-          const sizeBytes = d.status?.deviceStatus?.capacity?.sizeBytes;
-          const size = formatSi(sizeBytes, { increment: 1024 });
+          const label = `${ N.name }(${ N.type }, ${ N.state })   ${ isRecommended }`;
 
           return {
-            label:  `${ devPath } (Type: ${ deviceType }, Size: ${ size })`,
-            value:  d.id,
-            action: this.addDisk,
+            value:                   N.name,
+            label,
+            state:                   N.state,
+            type:                    N.type,
+            usedByManagementNetwork: N.usedByManagementNetwork,
           };
         });
-
-      return sortBy(out, 'label');
     },
     removedDisks() {
       const out = this.disks.filter((d) => {
@@ -352,6 +321,61 @@ export default {
         ...wasIgnored, ...wasFiltered, ...val
       });
     },
+    selectable(opt) {
+      if ( opt.disabled) {
+        return false;
+      }
+
+      return true;
+    },
+    getBlockDeviceOpts() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const blockDevices = this.$store.getters[`${ inStore }/all`](HCI.BLOCK_DEVICE);
+
+      const out = blockDevices
+        .filter((d) => {
+          const addedToNodeCondition = findBy(d?.status?.conditions || [], 'type', 'AddedToNode');
+          const isAdded = findBy(this.newDisks, 'name', d.metadata.name);
+          const isRemoved = findBy(this.removedDisks, 'name', d.metadata.name);
+
+          if ((!findBy(this.disks || [], 'name', d.metadata.name) &&
+                d?.spec?.nodeName === this.value.id &&
+                (!addedToNodeCondition || addedToNodeCondition?.status === 'False') &&
+                !d.spec?.fileSystem?.provisioned &&
+                !isAdded) ||
+                isRemoved
+          ) {
+            return true;
+          } else {
+            return false;
+          }
+        })
+        .map((d) => {
+          const devPath = d.spec?.devPath;
+          const deviceType = d.status?.deviceStatus?.details?.deviceType;
+          const sizeBytes = d.status?.deviceStatus?.capacity?.sizeBytes;
+          const size = formatSi(sizeBytes, { increment: 1024 });
+          const parentDevice = d.status?.deviceStatus?.parentDevice;
+
+          let label = `${ devPath } (Type: ${ deviceType }, Size: ${ size })`;
+
+          if (parentDevice) {
+            label = `- ${ label }`;
+          }
+
+          return {
+            label,
+            value:    d.id,
+            action:   this.addDisk,
+            kind:     !parentDevice ? 'group' : '',
+            disabled: !!(d.childParts.length > 0 && d.isChildPartProvisioned),
+            group:    parentDevice || devPath,
+            isParent: !!parentDevice,
+          };
+        });
+
+      return sortBy(out, ['group', 'isParent', 'label']);
+    },
   },
 };
 </script>
@@ -403,7 +427,7 @@ export default {
                 <template v-slot:option="option">
                   <template>
                     <div class="nicOption">
-                      <span>{{ option.value }}({{ option.state }}) </span> <span class="pull-right">{{ option.usedByManagementNetwork ? t('harvester.host.detail.notRecommended') : '' }}</span>
+                      <span>{{ option.value }}({{ option.type }}, {{ option.state }}) </span> <span class="pull-right">{{ option.usedByManagementNetwork ? t('harvester.host.detail.notRecommended') : '' }}</span>
                     </div>
                   </template>
                 </template>
@@ -435,8 +459,20 @@ export default {
               :button-label="t('harvester.host.disk.add')"
               :dropdown-options="blockDeviceOpts"
               size="sm"
+              :selectable="selectable"
               @click-action="e=>addDisk(e.value)"
-            />
+            >
+              <template #option="option">
+                <template v-if="option.kind === 'group'">
+                  <b>
+                    {{ option.label }}
+                  </b>
+                </template>
+                <div v-else>
+                  {{ option.label }}
+                </div>
+              </template>
+            </ButtonDropdown>
           </template>
           <template #remove-button="scope">
             <button

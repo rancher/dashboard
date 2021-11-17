@@ -26,13 +26,6 @@ export default {
       default: false
     },
 
-    vm: {
-      type:    Object,
-      default: () => {
-        return {};
-      }
-    },
-
     value: {
       type:     Object,
       required: true
@@ -92,7 +85,9 @@ export default {
     },
 
     allPVCs() {
-      return this.$store.getters['harvester/all'](PVC).filter((P) => {
+      const allPVCs = this.$store.getters['harvester/all'](PVC);
+
+      return allPVCs.filter((P) => {
         return this.namespace ? this.namespace === P.metadata.namespace : true;
       }) || [];
     },
@@ -145,10 +140,6 @@ export default {
         'label'
       );
     },
-
-    needSetPVC() {
-      return !!this.errors.length || (!this.value.newCreateId && this.isEdit && this.value.size !== this.pvcResource?.spec?.resources?.requests?.storage);
-    }
   },
 
   watch: {
@@ -170,6 +161,16 @@ export default {
         this.$set(this.value, 'bus', 'sata');
         this.update();
       }
+    },
+
+    pvcResource: {
+      handler(pvc) {
+        if (!this.value.volumeName && pvc?.metadata?.name) {
+          this.value.volumeName = pvc.metadata.name;
+        }
+      },
+      deep:      true,
+      immediate: true
     },
   },
 
@@ -215,7 +216,7 @@ export default {
         <InputOrDisplay :name="t('harvester.fields.volume')" :value="value.volumeName" :mode="mode">
           <LabeledSelect
             v-model="value.volumeName"
-            :disabled="isEdit"
+            :disabled="isDisabled"
             :label="t('harvester.fields.volume')"
             :mode="mode"
             :options="volumeOption"

@@ -33,6 +33,16 @@ export default {
     };
   },
 
+  computed: {
+    cupDisplay() {
+      return `${ this.localCpu } C`;
+    },
+
+    memoryDisplay() {
+      return `${ this.localMemory } GiB`;
+    }
+  },
+
   watch: {
     cpu(neu) {
       this.localCpu = neu;
@@ -52,6 +62,9 @@ export default {
         memory = this.localMemory;
       } else {
         memory = `${ this.localMemory }Gi`;
+      }
+      if (memory.includes('null')) {
+        memory = null;
       }
       this.$emit('updateCpuMemory', this.localCpu, memory);
     },
@@ -77,7 +90,7 @@ export default {
 <template>
   <div class="row" @input="change">
     <div class="col span-6">
-      <InputOrDisplay name="CPU" :value="localCpu" :mode="mode" class="mb-20">
+      <InputOrDisplay name="CPU" :value="cupDisplay" :mode="mode" class="mb-20">
         <UnitInput
           v-model="localCpu"
           v-int-number
@@ -94,7 +107,7 @@ export default {
     </div>
 
     <div class="col span-6">
-      <InputOrDisplay name="CPU" :value="localCpu" :mode="mode" class="mb-20">
+      <InputOrDisplay :name="t('harvester.virtualMachine.input.memory')" :value="memoryDisplay" :mode="mode" class="mb-20">
         <UnitInput
           v-model="localMemory"
           v-int-number

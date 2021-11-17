@@ -36,16 +36,19 @@ export default {
       this.$emit('close');
     },
 
-    apply(buttonDone) {
+    async apply(buttonCb) {
       this.errors = [];
 
       try {
-        this.actionResource.doAction('enableMaintenanceMode', {});
-        buttonDone(true);
+        await this.actionResource.doAction('enableMaintenanceMode', {});
+
+        buttonCb(true);
         this.close();
       } catch (e) {
-        this.errors = exceptionToErrorsArray(e);
-        buttonDone(false);
+        const error = [e?.data] || exceptionToErrorsArray(e);
+
+        this.errors = error;
+        buttonCb(false);
       }
     }
   }
@@ -65,7 +68,7 @@ export default {
 
     <div slot="actions" class="actions">
       <div class="buttons">
-        <button class="btn role-secondary" @click="close">
+        <button class="btn role-secondary mr-10" @click="close">
           {{ t('generic.cancel') }}
         </button>
 

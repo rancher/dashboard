@@ -23,7 +23,7 @@ export default class HciPv extends SteveModel {
     return [
       {
         action:     'exportImage',
-        enabled:    true,
+        enabled:    this.hasAction('export'),
         icon:       'icon icon-copy',
         label:      this.t('harvester.action.exportImage'),
       },
@@ -107,5 +107,15 @@ export default class HciPv extends SteveModel {
     const volume = this.spec?.resources?.requests?.storage || 0;
 
     return parseInt(volume);
+  }
+
+  get isSystemResource() {
+    const systemNamespaces = this.$rootGetters['systemNamespaces'];
+
+    if ( systemNamespaces.includes(this.metadata?.namespace) ) {
+      return true;
+    }
+
+    return false;
   }
 }

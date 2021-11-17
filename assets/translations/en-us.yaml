@@ -100,6 +100,7 @@ nav:
     storage: Storage
     workload: Workload
     monitoring: Monitoring
+    advanced: Advanced
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources
@@ -3196,6 +3197,7 @@ project:
   members:
     label: Members
   containerDefaultResourceLimit: Container Default Resource Limit
+  vmDefaultResourceLimit: VM Default Resource Limit
   resourceQuotas: Resource Quotas
   haveOneOwner: There must be at least one member with the Owner role.
   psp:
@@ -4250,6 +4252,7 @@ tableHeaders:
   storage: Storage Size
   defaultVersion: Default version
   ipAddress: IP Address
+  diskState: Disk State
 
 target:
   router:
@@ -4311,6 +4314,10 @@ validation:
   chars: '"{key}" contains {count, plural, =1 {an invalid character} other {# invalid characters}}: {chars}'
   cluster:
     name: Cluster name cannot be 'local' or take the form 'c-xxxxx'
+  conflict: |-
+    This resource has been modified since you started editing it, and some of those modifications conflict with your changes.
+    This screen has been updated to reflect the current values on the cluster. Review and reapply the changes you wanted to make, then Save again.
+    Conflicting {fieldCount, plural, =1 {field} other {fields}}: {fields}
   custom:
     missing: 'No validtor exists for { validatorName }! Does the validtor exist in custom-validtors? Is the name spelled correctly?'
   dns:
@@ -4958,6 +4965,8 @@ harvester:
     hotplug:
       success: 'Volume { diskName } is mounted to the VM { vm }.'
       title: Add Volume
+    hotunplug:
+      success: 'Volume { name } is detach successfully.'
   notification:
     title:
       succeed: Succeed
@@ -5030,6 +5039,14 @@ harvester:
     cpu: Cpu
     memory: Memory
     virtaulName: Virtual machine name
+    promiscuous: Promiscuous
+    ipv4Address: IPv4 Address
+  generic:
+    showMore: Show More
+    hideMore: Hide More
+    memory: Memory
+    cpu: CPU
+    storage: Storage
   
   validation:
     custom:
@@ -5064,7 +5081,7 @@ harvester:
     hardwareResourceGauge:
       cpu: CPU
       memory: Memory
-      storage: Storage Size
+      storage: Storage
     sections:
       events:
         label: Events
@@ -5112,7 +5129,7 @@ harvester:
       kernel: Kernel
       management: Management Node
       compute: Compute Node
-      storage: Storage Size
+      storage: Storage
       nic: Physical NIC
       notRecommended: 'Not recommended'
       networkType: Type
@@ -5142,12 +5159,14 @@ harvester:
         info: The disk has already been force-formatted
       notification:
         success: 'Update host "{name}" configurations successfully.'
+      error: Host has unready or unschedulable disks.
 
   virtualizationManagement:
     manage: Manage
 
   virtualMachine:
     label: Virtual Machines
+    osType: OS Type
     instance:
       singleInstance: 
       multipleInstance: 
@@ -5178,10 +5197,15 @@ harvester:
     promptRemove:
       title: 'Select the volume you want to delete:'
       deleteAll: Delete All
+    unplug:
+      title: 'Are you sure that you want to detach volume {name} ?'
+      actionLabel: Detach
+      detachVolume:
+        Detach Volume
     restartTip: Restart the virtual machine now to take effect of the configuration changes.
     createRunning: Start virtual machine on creation
     restartNow: Restart Now
-    createSSHKey: Create SSH Key
+    createSSHKey: Create a New...
     installAgent: Install guest agent
     enableUsb: Enable USB Tablet
     sshTitle: Add Public SSH Key
@@ -5218,14 +5242,16 @@ harvester:
       addPort:  Add Port
     cloudConfig:
       title: Cloud Config
+      createTemplateTitle: 'Create {name}.'
+      createNew: Create new...
       cloudInit:
         label: Cloud Init
-        placeholder: Choose a template
-      userData:
+        placeholder: Select a template
+      user:
         label: User Data Template
         title: "User Data:"
         tip: "You can specify user data to configure an instance or run a configuration script during launch. If you launch more than one instance at a time, the user data is available to all the instances in that reservation. <a href='https://cloudinit.readthedocs.io/en/latest/topics/examples.html' target='_blank'>Learn more</a>"
-      networkData:
+      network:
         label: Network Data Template
         title: "Network Data:"
         tip: "The network-data configuration allows you to customize the instance’s networking interfaces by assigning subnet configuration, virtual device creation (bonds, bridges, vlans) routes and DNS configuration. <a href='https://cloudinit.readthedocs.io/en/latest/topics/network-config-format-v1.html' target='_blank'>Learn more</a>"
@@ -5329,6 +5355,12 @@ harvester:
     sourceType:
       download: URL
       upload: File
+    warning:
+      uploading: |-
+        {count, plural,
+        =1 {1 image is uploading, please do not refresh or close the page.}
+        other {{count} images are uploading, please do not refresh or close the page.}
+        }
 
   vmTemplate:
     label: Templates
@@ -5396,7 +5428,8 @@ harvester:
       secretAccessKey: specify your secret access key
       cert: upload a self-signed SSL certificate
     vlanChangeTip: The newly modified default physical NIC only applies to newly added nodes, not existing ones
-    defaultPhysicalNIC: Default Physical NIC
+    defaultPhysicalNIC: Default Network Interface
+    percentTip: The value in parentheses represents the distribution percentage of the network interface on all hosts. If an interface less than 100% is selected, the user needs to manually specify the network interface on the host where the vlan network configuration fails.
 
   cloudTemplate:
     label: Cloud Config Templates
@@ -5411,9 +5444,18 @@ harvester:
       learnMore: Learn more about Harvester from the <a target="_blank" href="https://harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester Web Site</a> or read the the <a target="_blank" href="https://docs.harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester Docs</a>
       description: Harvester is a modern Hyperconverged infrastructure (HCI) solution built for bare metal servers using enterprise-grade open source technologies including Kubernetes, Kubevirt and Longhorn.
 
-  
   support:
     title: Harvester Support
+    kubeconfig:
+      title: Download KubeConfig
+      titleDescription: Download kubeconfig for debugging or importing as an external cluster to Rancher. 
+  
+  namespace:
+    label: Namespaces
+
+  projectNamespace:
+    label: Projects/Namespaces
+  
 ##############################
 # Model Properties
 ##############################
@@ -5873,7 +5915,7 @@ advancedSettings:
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
     'ui-default-landing': 'The default page users land on after login.'
     'brand': Folder name for an alternative theme defined in '/assets/brand'
-    'harv-vlan': Default physical NIC name of the VLAN network.
+    'harv-vlan': Default Network Interface name of the VLAN network.
     'harv-backup-target': Custom back target to store VM backups.
     'harv-log-level': Configure Harvester server log level. Default to info.
     'harv-server-version': Harvester server version.

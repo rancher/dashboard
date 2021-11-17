@@ -1,5 +1,4 @@
 import https from 'https';
-import cloneDeep from 'lodash/cloneDeep';
 import merge from 'lodash/merge';
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
@@ -486,9 +485,7 @@ export default {
   },
 
   clone(ctx, { resource } = {}) {
-    const copy = cloneDeep(resource.toJSON());
-
-    return classify(ctx, copy, true);
+    return classify(ctx, resource.toJSON(), true);
   },
 
   promptMove({ commit, state }, resources) {
