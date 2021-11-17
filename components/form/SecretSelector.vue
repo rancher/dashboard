@@ -28,6 +28,10 @@ export default {
       type:    Boolean,
       default: false
     },
+    mountKey: {
+      type:    String,
+      default: 'valueFrom'
+    },
     nameKey: {
       type:    String,
       default: 'name'
@@ -57,7 +61,7 @@ export default {
   computed: {
     name: {
       get() {
-        const name = this.showKeySelector ? this.value?.valueFrom?.secretKeyRef?.[this.nameKey] : this.value;
+        const name = this.showKeySelector ? this.value?.[this.mountKey]?.secretKeyRef?.[this.nameKey] : this.value;
 
         return name || NONE;
       },
@@ -66,7 +70,7 @@ export default {
         const correctedName = isNone ? undefined : name;
 
         if (this.showKeySelector) {
-          this.$emit('input', { valueFrom: { secretKeyRef: { [this.nameKey]: correctedName, [this.keyKey]: '' } } });
+          this.$emit('input', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: correctedName, [this.keyKey]: '' } } });
         } else {
           this.$emit('input', correctedName);
         }
@@ -75,10 +79,10 @@ export default {
 
     key: {
       get() {
-        return this.value?.valueFrom?.secretKeyRef?.[this.keyKey] || '';
+        return this.value?.[this.mountKey]?.secretKeyRef?.[this.keyKey] || '';
       },
       set(key) {
-        this.$emit('input', { valueFrom: { secretKeyRef: { [this.nameKey]: this.name, [this.keyKey]: key } } });
+        this.$emit('input', { [this.mountKey]: { secretKeyRef: { [this.nameKey]: this.name, [this.keyKey]: key } } });
       }
     },
     secrets() {

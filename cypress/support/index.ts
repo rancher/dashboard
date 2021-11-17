@@ -5,7 +5,7 @@ declare global {
   // eslint-disable-next-line no-unused-vars
   namespace Cypress {
     interface Chainable {
-      login(username?: string, password?: string): Chainable<Element>;
+      login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
 
       byLabel(label: string,): Chainable<Element>;
 

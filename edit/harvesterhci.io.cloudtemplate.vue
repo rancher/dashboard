@@ -67,7 +67,6 @@ export default {
     :done-route="doneRoute"
     :mode="mode"
     :resource="value"
-    :can-yaml="false"
     :errors="errors"
     @finish="saveConfig"
     @cancel="done"

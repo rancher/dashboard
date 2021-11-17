@@ -1,9 +1,11 @@
 <script>
+import { mapGetters } from 'vuex';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import Checkbox from '@/components/form/Checkbox';
 import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
+import LabeledSelect from '@/components/form/LabeledSelect';
 
 import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
 import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
@@ -33,6 +35,7 @@ export default {
     CpuMemory,
     CruResource,
     CloudConfig,
+    LabeledSelect,
     NameNsDescription
   },
 
@@ -60,28 +63,24 @@ export default {
       description:      '',
       defaultVersion:   null,
       isDefaultVersion: false,
-      keyPairIds:       [],
     };
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
     isConfig() {
-      return this.$route.query?.as === _CONFIG;
+      return this.$route.query?.as === _CONFIG || this.isView;
     },
 
     realTemplateMode() {
       return this.templateId ? _VIEW : this.mode;
+    },
+    secretNamePrefix() {
+      return this.templateValue?.metadata?.name;
     }
   },
 
   watch: {
-    sshKey: {
-      handler(neu) {
-        this.keyPairIds = neu;
-      },
-      immediate: true
-    },
-
     templateId: {
       async handler(neu) {
         const templates = await this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE });
@@ -112,10 +111,6 @@ export default {
   },
 
   created() {
-    this.registerBeforeHook(() => {
-      Object.assign(this.spec.template.metadata.annotations, { [HCI_ANNOTATIONS.SSH_NAMES]: JSON.stringify(this.sshKey) });
-    });
-
     this.registerAfterHook(async() => {
       if (this.isDefaultVersion) {
         // Set the default version according to annotation:[HCI_ANNOTATIONS.TEMPLATE_VERSION_CUSTOM_NAME]
@@ -141,7 +136,7 @@ export default {
   },
 
   mounted() {
-    this.imageId = this.diskRows[0].image || '';
+    this.imageId = this.diskRows[0]?.image || '';
   },
 
   methods: {
@@ -151,51 +146,48 @@ export default {
       const templates = await this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE });
       const template = templates.find( O => O.metadata.name === this.templateValue.metadata.name);
 
-      if (!this.templateId) {
-        if (this.templateValue?.metadata?.name) {
-          try {
+      try {
+        if (!this.templateId) {
+          if (this.templateValue?.metadata?.name) {
             await this.templateValue.save();
-          } catch (err) {
-            this.errors = [err];
+          } else {
+            this.errors = [this.t('validation.required', { key: this.t('harvester.vmTemplate.nameNsDescription.name') })];
+            buttonCb(false);
+
+            return;
           }
         } else {
-          this.errors = ['"Name" is required'];
-          buttonCb(false);
-
-          return;
+          template.save();
         }
-      } else {
-        template.save();
+
+        cleanForNew(this.value);
+        this.customName = randomStr(10);
+        this.$set(this.value.metadata, 'annotations', {
+          ...this.value.metadata.annotations,
+          [HCI_ANNOTATIONS.TEMPLATE_VERSION_CUSTOM_NAME]: this.customName
+        });
+
+        const name = this.templateValue.metadata.name || template.metadata.name;
+        const namespace = this.templateValue.metadata.namespace || template.metadata.namespace;
+
+        if (this.isCreate) {
+          this.value.metadata.namespace = namespace;
+        }
+
+        this.$set(this.value.spec, 'templateId', `${ namespace }/${ name }`);
+        const res = await this.value.save();
+
+        await this.saveSecret(res);
+        this.done();
+      } catch (e) {
+        this.errors = [e];
+        buttonCb(false);
       }
-
-      cleanForNew(this.value);
-      this.customName = randomStr(10);
-      this.$set(this.value.metadata, 'annotations', {
-        ...this.value.metadata.annotations,
-        [HCI_ANNOTATIONS.TEMPLATE_VERSION_CUSTOM_NAME]: this.customName
-      });
-
-      const name = this.templateValue.metadata.name || template.metadata.name;
-      const namespace = this.templateValue.metadata.namespace || template.metadata.namespace;
-
-      if (this.isCreate) {
-        this.value.metadata.namespace = namespace;
-      }
-
-      this.$set(this.value.spec, 'templateId', `${ namespace }/${ name }`);
-      this.$set(this.value.spec, 'keyPairIds', this.keyPairIds);
-      this.$set(this.value.spec.vm, 'spec', this.spec);
-      await this.save(buttonCb);
-    },
-
-    updateCpuMemory(cpu, memory) {
-      this.$set(this.spec.template.spec.domain.cpu, 'cores', cpu);
-      this.$set(this, 'memory', memory);
     },
 
     onTabChanged({ tab }) {
-      if (tab.name === 'advanced' && this.$refs.yamlEditor?.refresh) {
-        this.$refs.yamlEditor.refresh();
+      if (tab.name === 'advanced') {
+        this.refreshYamlEditor();
       }
     }
   },
@@ -204,7 +196,7 @@ export default {
 
 <template>
   <CruResource
-    v-if="templateSpec"
+    v-if="templateSpec && spec"
     :done-route="doneRoute"
     :resource="value"
     :can-yaml="false"
@@ -224,10 +216,10 @@ export default {
 
     <Tabbed :side-tabs="true" @changed="onTabChanged">
       <Tab name="Basics" :label="t('harvester.vmTemplate.tabs.basics')">
-        <CpuMemory :cpu="spec.template.spec.domain.cpu.cores" :memory="memory" :mode="mode" :disabled="isConfig" @updateCpuMemory="updateCpuMemory" />
+        <CpuMemory :cpu="spec.template.spec.domain.cpu.cores" :memory="memory" :disabled="isConfig" @updateCpuMemory="updateCpuMemory" />
 
         <div class="mb-20">
-          <SSHKey v-model="sshKey" :disable-create="isView" @update:sshKey="updateSSHKey" />
+          <SSHKey v-model="sshKey" :disable-create="isView" :mode="mode" @update:sshKey="updateSSHKey" />
         </div>
       </Tab>
 
@@ -240,10 +232,25 @@ export default {
       </Tab>
 
       <Tab name="advanced" :label="t('harvester.tab.advanced')" :weight="-3">
-        <CloudConfig ref="yamlEditor" :user-script="userScript" :network-script="networkScript" @updateCloudConfig="updateCloudConfig" />
+        <LabeledSelect
+          v-model="osType"
+          label-key="harvester.virtualMachine.osType"
+          :mode="mode"
+          :options="OS"
+          class="mb-20"
+        />
+
+        <CloudConfig
+          ref="yamlEditor"
+          :mode="mode"
+          :user-script="userScript"
+          :network-script="networkScript"
+          @updateUserData="updateUserData"
+          @updateNetworkData="updateNetworkData"
+        />
 
         <div class="spacer"></div>
-        <Checkbox v-model="isUseMouseEnhancement" class="check" type="checkbox" :label="t('harvester.virtualMachine.enableUsb')" />
+        <Checkbox v-model="installUSBTablet" class="check" type="checkbox" :label="t('harvester.virtualMachine.enableUsb')" />
 
         <Checkbox
           v-model="installAgent"

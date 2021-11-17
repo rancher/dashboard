@@ -125,6 +125,7 @@ export const HCI = {
   NETWORK_IPS:                  'networks.harvesterhci.io/ips',
   TEMPLATE_VERSION_CUSTOM_NAME: 'template-version.harvesterhci.io/customName',
   CREATOR:                      'harvesterhci.io/creator',
+  OS:                           'harvesterhci.io/os',
   NETWORK_TYPE:                 'networks.harvesterhci.io/type',
   VM_NAME:                      'harvesterhci.io/vmName',
   MAINTENANCE_STATUS:           'harvesterhci.io/maintain-status',
@@ -138,4 +139,5 @@ export const HCI = {
   MIGRATION_STATE:              'harvesterhci.io/migrationState',
   VOLUME_CLAIM_TEMPLATE:        'harvesterhci.io/volumeClaimTemplates',
   IMAGE_NAME:                   'harvesterhci.io/image-name',
+  NODE_SCHEDULABLE:             'kubevirt.io/schedulabl'
 };

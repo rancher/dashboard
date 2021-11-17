@@ -376,7 +376,7 @@ export default {
         });
       }
 
-      const cur = this.originalValue?.spec?.kubernetesVersion || '';
+      const cur = this.liveValue?.spec?.kubernetesVersion || '';
       const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
       const existingK3s = this.mode === _EDIT && cur.includes('k3s');
       const rke2 = filterAndMap(this.rke2Versions, (existingRke2 ? cur : null), cur);

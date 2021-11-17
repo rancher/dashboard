@@ -1,9 +1,12 @@
 <script>
+import isString from 'lodash/isString';
 import { HCI } from '@/config/types';
 import { allHash } from '@/utils/promise';
-import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
+import impl from '@/mixins/harvester-vm/impl';
 
 export default {
+  mixins: [impl],
+
   props: {
     value: {
       type:     Object,
@@ -12,9 +15,7 @@ export default {
   },
 
   async fetch() {
-    const inStore = this.$store.getters['currentProduct'].inStore;
-
-    const hash = await allHash({ allSSHs: this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.SSH }) });
+    const hash = await allHash({ allSSHs: this.$store.dispatch('harvester/findAll', { type: HCI.SSH }) });
 
     this.allSSHs = hash.allSSHs;
   },
@@ -37,64 +38,11 @@ export default {
     },
 
     getKeys() {
-      const keys = this.value?.spec?.template?.metadata?.annotations?.[HCI_ANNOTATIONS.SSH_NAMES];
-      const volumes = this.value?.spec?.template?.spec?.volumes;
-      let userData = null;
-
-      // find userData
-      volumes.forEach((v) => {
-        if (v.cloudInitNoCloud) {
-          userData = v.cloudInitNoCloud.userData;
-        }
-      });
-
-      if (!keys && !userData) {
-        return [];
-      }
-
-      return this.serializing(this.allSSHs, keys, userData) || [];
-    },
-
-    serializing(allSSHs, keys = '', userData = '') {
-      let out = [];
-      const r = /(\r\n\t|\n|\r\t)|(\s*)/gm;
-
-      keys = keys.split('').filter((k) => {
-        return !['[', ']', '"'].includes(k);
-      });
-
-      keys = keys.join('').split(',');
-
-      userData = userData?.split('- >-').splice(1) || [];
-
-      out = allSSHs.filter(ssh => keys.includes(ssh.id)).map((ssh) => {
-        return {
-          data:    ssh,
-          showKey: this.isShow(ssh.id)
-        };
-      });
-
-      for (const ssh of out) {
-        userData = userData.filter((data) => {
-          return data.replace(r, '') !== ssh.data.spec.publicKey.replace(r, '');
-        });
-      }
-
-      userData = userData.map((pub) => {
-        return {
-          data: {
-            id:   'Unknown',
-            spec: { publicKey: pub },
-          },
-          showKey: this.isShow()
-        };
-      });
-
-      return out.concat(userData);
+      return this.mergeAllSSHs(this.value?.spec);
     },
 
     isShow(id = '') {
-      const ssh = this.sshKeys.find(O => O.data.id === id) || {};
+      const ssh = this.sshKeys.find(O => O?.data?.id === id) || {};
 
       return ssh.showKey || false;
     }
@@ -102,7 +50,15 @@ export default {
 
   watch: {
     allSSHs(neu) {
-      this.sshKeys = this.getKeys();
+      const out = this.getKeys().map((ssh) => {
+        return {
+          id:          ssh.id,
+          publicKey:   isString(ssh.data) ? ssh.data : ssh.data?.spec?.publicKey,
+          showKey:     this.isShow(ssh.id)
+        };
+      });
+
+      this.$set(this, 'sshKeys', out);
     }
   }
 };
@@ -112,11 +68,11 @@ export default {
   <div class="overview-sshKeys">
     <div v-for="(ssh, index) in sshKeys" :key="index" class="row overview-sshKeys__item">
       <div class="col span-4">
-        {{ ssh.data.id }}
+        {{ ssh.id }}
       </div>
       <div class="col span-7 offset-1">
         <div v-if="ssh.showKey" class="key-display">
-          {{ ssh.data.spec.publicKey }}
+          {{ ssh.publicKey }}
           <button class="btn btn-sm role-link hide-bar" @click="toggleShow(index)">
             <i class="icon icon-x"></i>
           </button>

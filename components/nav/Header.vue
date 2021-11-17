@@ -74,6 +74,10 @@ export default {
       return !this.currentProduct?.hideKubeShell;
     },
 
+    showKubeConfig() {
+      return !this.currentProduct?.hideKubeConfig;
+    },
+
     importEnabled() {
       return !!this.currentCluster?.actions?.apply;
     },
@@ -222,8 +226,10 @@ export default {
     <div>
       <TopLevelMenu v-if="isMultiCluster || !isSingleVirtualCluster"></TopLevelMenu>
     </div>
-
-    <div v-if="currentCluster && !simple" class="top">
+    <div
+      v-if="currentCluster && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
+      class="top"
+    >
       <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
       <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
     </div>
@@ -262,6 +268,7 @@ export default {
         </button>
 
         <button
+          v-if="showKubeConfig"
           v-tooltip="t('nav.kubeconfig')"
           :disabled="!kubeConfigEnabled"
           type="button"

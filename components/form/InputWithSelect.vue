@@ -92,6 +92,12 @@ export default {
       this.$emit('input', { selected: this.selected, text: this.string });
     },
   },
+
+  watch: {
+    textValue(value) {
+      this.string = value;
+    },
+  },
 };
 </script>
 

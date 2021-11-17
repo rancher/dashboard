@@ -1,8 +1,9 @@
 describe('Local authentication', () => {
   it('Log in with valid creds', () => {
+    cy.visit('/auth/login');
     cy.intercept('POST', '/v3-public/localProviders/local*').as('loginReq');
 
-    cy.login(Cypress.env('username'), Cypress.env('password'));
+    cy.login(Cypress.env('username'), Cypress.env('password'), false);
 
     cy.wait('@loginReq').then((login) => {
       expect(login.response?.statusCode).to.equal(200);
@@ -11,9 +12,11 @@ describe('Local authentication', () => {
   });
 
   it('Cannot login with invalid creds', () => {
+    cy.visit('/auth/login');
+
     cy.intercept('POST', '/v3-public/localProviders/local*').as('loginReq');
 
-    cy.login(Cypress.env('username'), `${ Cypress.env('password') }abc`);
+    cy.login(Cypress.env('username'), `${ Cypress.env('password') }abc`, false);
 
     cy.wait('@loginReq').then((login) => {
       expect(login.response?.statusCode).to.not.equal(200);

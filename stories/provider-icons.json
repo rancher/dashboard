@@ -1,0 +1,18 @@
+[
+  "aliyunecs",
+  "amazonec2",
+  "amazoneks",
+  "azureaks",
+  "digitalocean",
+  "equinix",
+  "googlegke",
+  "k3s",
+  "kubernetes",
+  "linodelke",
+  "minikube",
+  "oci",
+  "openstack",
+  "otc",
+  "pinganyunecs",
+  "pnap"
+]

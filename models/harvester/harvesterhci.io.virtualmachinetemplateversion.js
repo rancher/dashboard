@@ -18,19 +18,29 @@ export default class HciVmTemplateVersion extends SteveModel {
       }
     });
 
+    const schema = this.$getters['schemaFor'](HCI.VM);
+    let canCreateVM = true;
+
+    if ( schema && !schema?.collectionMethods.find(x => ['post'].includes(x.toLowerCase())) ) {
+      canCreateVM = false;
+    }
+
     return [
       {
         action:     'launchFromTemplate',
         icon:       'icon plus',
+        enabled:    canCreateVM,
         label:      this.t('harvester.action.launchFormTemplate'),
       },
       {
         action:     'cloneTemplate',
+        enabled:    this.currentTemplate?.canCreate,
         icon:       'icon icon-fw icon-edit',
         label:      this.t('harvester.action.modifyTemplate'),
       },
       {
         action:     'setDefaultVersion',
+        enabled:    this.currentTemplate?.canCreate,
         icon:       'icon icon-fw icon-checkmark',
         label:      this.t('harvester.action.setDefaultVersion'),
       },

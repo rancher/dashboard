@@ -199,6 +199,9 @@ export default async function({
             notLoggedIn();
           } else {
             store.commit('setError', e);
+            if ( process.server ) {
+              redirect(302, '/fail-whale');
+            }
           }
 
           return;

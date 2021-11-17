@@ -31,7 +31,6 @@ export default {
     const _hash = {
       vms:               this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
       pod:               this.$store.dispatch('harvester/findAll', { type: POD }),
-      vmis:              this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
       restore:           this.$store.dispatch('harvester/findAll', { type: HCI.RESTORE }),
     };
 
@@ -50,7 +49,6 @@ export default {
     const hash = await allHash(_hash);
 
     this.allVMs = hash.vms;
-    this.allVMIs = hash.vmis;
     this.allNodeNetworks = hash.nodeNetworks || [];
     this.allClusterNetworks = hash.clusterNetworks || [];
   },
@@ -116,6 +114,14 @@ export default {
       return [...this.allVMs, ...matchVMIs];
     }
   },
+
+  async created() {
+    const vmis = await this.$store.dispatch('harvester/findAll', { type: HCI.VMI });
+
+    await this.$store.dispatch('harvester/findAll', { type: HCI.VMIM });
+
+    this.$set(this, 'allVMIs', vmis);
+  }
 };
 </script>
 

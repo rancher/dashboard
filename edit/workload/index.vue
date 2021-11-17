@@ -419,7 +419,7 @@ export default {
       const out = [...this.allContainers];
 
       if (!this.isView) {
-        out.push({ name: 'Add Container', _add: true });
+        out.push({ name: 'Add Container', __add: true });
       }
 
       return out;
@@ -467,7 +467,7 @@ export default {
 
     container(neu) {
       const containers = this.isInitContainer ? this.podTemplateSpec.initContainers : this.podTemplateSpec.containers;
-      const existing = containers.filter(container => container._active)[0];
+      const existing = containers.filter(container => container.__active)[0];
 
       Object.assign(existing, neu);
     }
@@ -654,17 +654,17 @@ export default {
     },
 
     selectContainer(container) {
-      if (container._add) {
+      if (container.__add) {
         this.addContainer();
 
         return;
       }
       (this.allContainers || []).forEach((container) => {
-        if (container._active) {
-          delete container._active;
+        if (container.__active) {
+          delete container.__active;
         }
       });
-      container._active = true;
+      container.__active = true;
       this.container = container;
       this.isInitContainer = !!container._init;
       this.containerChange++;
@@ -816,7 +816,7 @@ export default {
             <div class="row mb-20">
               <div class="col span-6">
                 <LabeledInput
-                  v-model="container.image"
+                  v-model.trim="container.image"
                   :mode="mode"
                   :label="t('workload.container.image')"
                   placeholder="e.g. nginx:latest"

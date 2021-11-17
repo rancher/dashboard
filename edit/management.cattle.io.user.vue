@@ -235,7 +235,7 @@ export default {
       <div v-if="showGlobalRoles" class="global-permissions">
         <GlobalRoleBindings
           ref="grb"
-          :user-id="value.id || originalValue.id"
+          :user-id="value.id || liveValue.id"
           :mode="mode"
           :real-mode="realMode"
           type="user"
