@@ -184,7 +184,7 @@ export default class VirtVm extends SteveModel {
               disks: [],
             },
             resources: {
-              requests: {
+              limits: {
                 memory: null,
                 cpu:    ''
               }
@@ -719,7 +719,7 @@ export default class VirtVm extends SteveModel {
       },
       {
         nullable:       false,
-        path:           'spec.template.spec.domain.resources.requests.memory',
+        path:           'spec.template.spec.domain.resources.limits.memory',
         required:       true,
         translationKey: 'harvester.fields.memory',
       },
