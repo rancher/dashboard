@@ -75,7 +75,12 @@ export default {
     min: {
       type:    [Number, String],
       default: 0
-    }
+    },
+
+    placeholder: {
+      type:    [String, Number],
+      default: ''
+    },
   },
 
   computed: {
@@ -142,6 +147,7 @@ export default {
     :tooltip="tooltip"
     :tooltip-key="tooltipKey"
     :required="required"
+    :placeholder="placeholder"
     @input="update($event)"
   >
     <template #suffix>
