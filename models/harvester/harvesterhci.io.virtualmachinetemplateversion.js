@@ -83,10 +83,6 @@ export default class HciVmTemplateVersion extends SteveModel {
                   disks: [],
                 },
                 resources: {
-                  requests: {
-                    memory: null,
-                    cpu:    ''
-                  },
                   limits: {
                     memory: null,
                     cpu:    ''

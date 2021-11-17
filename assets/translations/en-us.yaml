@@ -6000,7 +6000,7 @@ advancedSettings:
     'ui-default-landing': 'The default page users land on after login.'
     'brand': Folder name for an alternative theme defined in '/assets/brand'
     'harv-vlan': Default Network Interface name of the VLAN network.
-    'harv-backup-target': Custom back target to store VM backups.
+    'harv-backup-target': Custom backup target to store VM backups.
     'harv-log-level': Configure Harvester server log level. Default to info.
     'harv-server-version': Harvester server version.
     'harv-upgrade-checker-enabled': Specify whether to enable Harvester upgrade check or not. Default is true.

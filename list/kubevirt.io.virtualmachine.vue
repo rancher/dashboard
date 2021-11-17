@@ -81,7 +81,7 @@ export default {
         },
         {
           name:      'Memory',
-          value:     'spec.template.spec.domain.resources.requests.memory',
+          value:     'spec.template.spec.domain.resources.limits.memory',
           sort:      ['memorySort'],
           align:     'center',
           labelKey:  'tableHeaders.memory'

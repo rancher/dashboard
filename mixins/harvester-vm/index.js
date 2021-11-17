@@ -61,8 +61,6 @@ const OS = [{
 const CD_ROM = 'cd-rom';
 const HARD_DISK = 'disk';
 
-const QEMU_RESERVE = 0.1;
-
 export default {
   mixins: [impl],
 
@@ -160,10 +158,10 @@ export default {
 
     memory: {
       get() {
-        return this.spec.template.spec.domain.resources.requests.memory;
+        return this.spec.template.spec.domain.resources.limits.memory;
       },
       set(neu) {
-        this.$set(this.spec.template.spec.domain.resources.requests, 'memory', neu);
+        this.$set(this.spec.template.spec.domain.resources.limits, 'memory', neu);
       }
     },
 
@@ -419,20 +417,7 @@ export default {
         this.$set(this.spec.template.spec.domain.machine, 'type', this.machineType);
       }
 
-      if (!this.spec.template.spec.domain.guest) {
-        this.spec.template.spec.domain = {
-          ...this.spec.template.spec.domain,
-          memory: { guest: '' }
-        };
-      }
-
-      this.spec.template.spec.domain.resources.requests.cpu = this.spec.template.spec.domain.cpu.cores;
-
-      if ( this.memory) {
-        const [memoryValue, memoryUnit] = this.memory?.split(/(?=([a-zA-Z]+))/g);
-
-        this.spec.template.spec.domain.memory.guest = `${ memoryValue - QEMU_RESERVE }${ memoryUnit }`;
-      }
+      this.spec.template.spec.domain.resources.limits.cpu = this.spec.template.spec.domain.cpu.cores;
     },
 
     parseDiskRows(disk) {
