@@ -115,6 +115,7 @@ export default {
         buttonDone(false);
       }
     },
+
     async createUser() {
       // Ensure username is unique (this does not happen in the backend)
       const users = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER });
@@ -137,6 +138,7 @@ export default {
 
       return this.$store.dispatch('management/find', { type: MANAGEMENT.USER, id: newNormanUser.id });
     },
+
     async editUser() {
       if (!this.credentialsChanged) {
         return;
@@ -150,7 +152,7 @@ export default {
       // Save change of password
       // - Password must be changed before editing mustChangePassword (setpassword action sets this to false)
       if (this.form.password.password) {
-        this.$refs.changePassword.save(normanUser);
+        await this.$refs.changePassword.save(normanUser);
 
         // Why the wait? Without these the user updates below are ignored
         // - The update request succeeds and shows the correct values in it's response.
@@ -164,8 +166,10 @@ export default {
       normanUser.description = this.form.description;
       normanUser._name = this.form.displayName;
       normanUser.mustChangePassword = this.form.password.userChangeOnLogin;
-      await normanUser.save();
+
+      return normanUser.save();
     },
+
     async updateRoles(userId) {
       if (this.$refs.grb) {
         await this.$refs.grb.save(userId);
