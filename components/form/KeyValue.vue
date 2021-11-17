@@ -231,7 +231,7 @@ export default {
     },
     parseLinesFromFile: {
       default: false,
-      type: Boolean
+      type:    Boolean
     }
   },
 
@@ -360,13 +360,14 @@ export default {
     onFileSelected(file) {
       const { name, value } = this.fileModifier(file.name, file.value);
 
-      if(!this.parseLinesFromFile) {
+      if (!this.parseLinesFromFile) {
         this.add(name, value, !asciiLike(value));
       } else {
         const lines = value.split('\n');
 
-        lines.forEach(line => {
+        lines.forEach((line) => {
           const [key, value] = line.split('=');
+
           this.add(key, value);
         });
       }
