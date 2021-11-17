@@ -13,7 +13,7 @@ export default class CapiMachine extends SteveModel {
 
     const openSsh = {
       action:     'openSsh',
-      enabled:    !!this.links.shell,
+      enabled:    !!this.links.shell && this.isRunning,
       icon:       'icon icon-fw icon-chevron-right',
       label:      'SSH Shell',
     };
@@ -124,5 +124,9 @@ export default class CapiMachine extends SteveModel {
     const { isControlPlane, isWorker, isEtcd } = this;
 
     return listNodeRoles(isControlPlane, isWorker, isEtcd, this.t('generic.all'));
+  }
+
+  get isRunning() {
+    return this.status.phase === 'Running';
   }
 }
