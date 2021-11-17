@@ -104,13 +104,13 @@ export default class HciSetting extends SteveModel {
 
     switch (id) {
     case 'backup-target':
-      out.push( {
-        nullable:       false,
-        path:           'value',
-        required:       true,
-        type:           'string',
-        validators:     ['backupTarget'],
-      });
+      // out.push( {
+      //   nullable:       false,
+      //   path:           'value',
+      //   required:       true,
+      //   type:           'string',
+      //   validators:     ['backupTarget'],
+      // });
       break;
     }
 

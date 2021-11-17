@@ -77,6 +77,15 @@ export default {
       delete this.parseDefaultValue.bucketName;
       delete this.parseDefaultValue.bucketRegion;
       delete this.parseDefaultValue.endpoint;
+    },
+
+    value: {
+      handler(neu) {
+        const parseDefaultValue = JSON.parse(neu.value);
+
+        this.$set(this, 'parseDefaultValue', parseDefaultValue);
+      },
+      deep: true
     }
   },
 
