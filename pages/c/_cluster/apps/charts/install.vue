@@ -188,10 +188,7 @@ export default {
     this.preFormYamlOption = this.valuesComponent || this.hasQuestions ? VALUES_STATE.FORM : VALUES_STATE.YAML;
 
     // Look for annotation to say this app is a legacy migrated app (we look in either place for now)
-    if ((this.existing.metadata?.annotations?.[CATALOG_ANNOTATIONS.MIGRATED] === 'true') ||
-       (this.existing.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MIGRATED] === 'true')) {
-      this.migratedApp = true;
-    }
+    this.migratedApp = (this.existing?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MIGRATED] === 'true');
   },
 
   data() {
