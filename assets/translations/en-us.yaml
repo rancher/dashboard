@@ -3446,8 +3446,8 @@ rbac:
         label: Configure Authentication
         description: Allows the user to enable, configure, and disable all Authentication provider settings.
       catalogs-manage:
-        label: Configure Catalogs
-        description: Allows the user to add, edit, and remove Catalogs.
+        label: Legacy Configure Catalogs
+        description: Allows the user to add, edit, and remove management.cattle.io based catalogs resources.
       clusters-manage:
         label: Manage all Clusters
         description: Allows the user to manage all clusters, including ones they are not a member of.
