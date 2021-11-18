@@ -59,8 +59,6 @@ export function fitOnScreen(contentElem, triggerElemOrEvent, opt) {
     positionY = AUTO, // Preferred vertical position
   } = opt || {};
 
-  const { fixed = false } = opt || {};
-
   // console.log(positionX, positionY);
 
   const {
@@ -85,7 +83,7 @@ export function fitOnScreen(contentElem, triggerElemOrEvent, opt) {
   // console.log('trigger', trigger);
   // console.log('content', content);
 
-  const style = { position: fixed ? 'fixed' : 'absolute' };
+  const style = { position: 'absolute' };
 
   const originFor = {
     left:   (overlapX ? trigger.left : trigger.right ),
