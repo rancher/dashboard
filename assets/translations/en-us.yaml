@@ -1074,6 +1074,27 @@ cluster:
       =1 {is 1 Harvester cluster that is not shown}
       other {are # Harvester clusters that are not shown}
       }  
+    registration:
+      step1: "1. Go to the <code>Global Settings / Advanced Settings</code> page of the target Harvester's UI."
+      step2: '2. Find the <code>cluster-registration-url</code> setting and click the <code><i class="icon icon-actions" ></i></code> -> <code>Edit Setting</code> button.'
+      step3: "3. Input the following registration URL and click the <code>Save</code> button."
+      step4: "Registration URL"
+    machinePool:
+      cpu: 
+        placeholder: e.g. 2
+      memory:
+        placeholder: e.g. 4
+      disk:
+        placeholder: e.g. 4
+      namespace:
+        placeholder: e.g. default
+      image:
+        placeholder: Please select a image
+      network:
+        placeholder: Please select a network
+      sshUser:
+        placeholder: e.g. ubuntu
+        toolTip: SSH user to login with the selected OS image.
   haveOneOwner: There must be at least one member with the Owner role.
   import:
     commandInstructions: 'Run the <code>kubectl</code> command below on an existing Kubernetes cluster running a supported Kubernetes version to import it into {vendor}:'
@@ -1536,6 +1557,7 @@ cluster:
     memberRoles: Member Roles
     registry: Registries
     upgrade: Upgrade Strategy
+    registration: Registration
   rotateCertificates:
     label: Rotate Certificates
     modalTitle: Rotate Cluster Certificates
@@ -5942,6 +5964,7 @@ advancedSettings:
     'harv-upgrade-checker-url': Default Harvester upgrade check url. Only used when the <code>upgrade-checker-enabled</code>  is equal to true.
     'harv-ui-source': Config how to load the UI source.
     'harv-ui-index': 'HTML index location for the UI.'
+    'harv-cluster-registration-url': Registration URL for mutil-cluster management.
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:

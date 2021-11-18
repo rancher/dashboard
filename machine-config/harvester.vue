@@ -312,6 +312,7 @@ export default {
           required
           :mode="mode"
           :disabled="disabled"
+          :placeholder="t('cluster.harvester.machinePool.cpu.placeholder')"
         />
       </div>
 
@@ -325,6 +326,7 @@ export default {
           :mode="mode"
           :disabled="disabled"
           required
+          :placeholder="t('cluster.harvester.machinePool.memory.placeholder')"
         />
       </div>
     </div>
@@ -340,6 +342,7 @@ export default {
           :mode="mode"
           :disabled="disabled"
           required
+          :placeholder="t('cluster.harvester.machinePool.disk.placeholder')"
         />
       </div>
 
@@ -353,6 +356,7 @@ export default {
           :required="true"
           :disabled="disabledEdit"
           label-key="cluster.credential.harvester.namespace"
+          :placeholder="t('cluster.harvester.machinePool.namespace.placeholder')"
         />
 
         <LabeledInput
@@ -362,6 +366,7 @@ export default {
           :required="true"
           :mode="mode"
           :disabled="disabledEdit"
+          :placeholder="t('cluster.harvester.machinePool.namespace.placeholder')"
         />
       </div>
     </div>
@@ -375,6 +380,7 @@ export default {
           :required="true"
           :disabled="disabledEdit"
           label-key="cluster.credential.harvester.image"
+          :placeholder="t('cluster.harvester.machinePool.image.placeholder')"
         />
       </div>
 
@@ -386,6 +392,7 @@ export default {
           :required="true"
           :disabled="disabledEdit"
           label-key="cluster.credential.harvester.network"
+          :placeholder="t('cluster.harvester.machinePool.network.placeholder')"
         />
       </div>
     </div>
@@ -422,6 +429,8 @@ export default {
           :required="true"
           :mode="mode"
           :disabled="disabled"
+          :placeholder="t('cluster.harvester.machinePool.sshUser.placeholder')"
+          tooltip-key="cluster.harvester.machinePool.sshUser.toolTip"
         />
       </div>
     </div>
