@@ -92,7 +92,7 @@ export default {
     flavor() {
       const domain = this.value?.spec?.template?.spec?.domain;
 
-      return `${ domain.cpu.cores } vCPU , ${ domain.resources.limits.memory } Memory`;
+      return `${ domain.cpu.cores } vCPU , ${ domain.resources?.limits?.memory } ${ this.t('harvester.virtualMachine.input.memory') }`;
     },
 
     kernelRelease() {
