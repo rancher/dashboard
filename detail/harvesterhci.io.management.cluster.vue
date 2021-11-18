@@ -76,9 +76,9 @@ export default {
       :weight="2"
       class="p-10"
     >
-      <h4>
-        {{ t('cluster.harvester.registration.step1') }}
-      </h4>
+      <h4
+        v-html="t('cluster.harvester.registration.step1', null, true)"
+      />
 
       <h4
         class="mt-10"
