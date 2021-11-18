@@ -21,8 +21,18 @@ export default {
     }
   },
 
+  async fetch() {
+    const ref = this.machine.spec.infrastructureRef;
+    const id = `${ ref.namespace }/${ ref.name }`;
+    const kind = `rke-machine.cattle.io.${ ref.kind.toLowerCase() }`;
+
+    this.machineRef = await this.$store.dispatch('management/find', { type: kind, id });
+  },
+
   data() {
-    return { errors: [], confirmName: '' };
+    return {
+      errors: [], confirmName: '', machineRef: null
+    };
   },
 
   computed: {
@@ -52,9 +62,9 @@ export default {
 
     async remove(buttonDone) {
       try {
-        await this.machine.forceMachineRemove();
-        this.close();
+        await this.machine.forceMachineRemove(this.machineRef);
         buttonDone(true);
+        this.close();
       } catch (e) {
         this.errors = exceptionToErrorsArray(e);
         buttonDone(false);

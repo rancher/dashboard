@@ -64,9 +64,9 @@ export default class CapiMachine extends SteveModel {
     });
   }
 
-  async forceMachineRemove() {
-    this.setAnnotation('provisioning.cattle.io/force-machine-remove', 'true');
-    await this.save();
+  async forceMachineRemove(machine) {
+    await machine.setAnnotation('provisioning.cattle.io/force-machine-remove', 'true');
+    await machine.save();
   }
 
   get cluster() {
