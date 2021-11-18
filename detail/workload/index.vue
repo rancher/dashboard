@@ -324,9 +324,15 @@ export default {
   .gauges {
     display: flex;
     justify-content: space-around;
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-7')) {
+      flex-direction: column;
+    }
     &>*{
-    flex: 1;
-    margin-right: $column-gutter;
+      flex: 1;
+      margin-right: $column-gutter;
+      @media only screen and (max-width: map-get($breakpoints, '--viewport-7')) {
+        margin-top: 1rem;
+      }
+    }
   }
-}
 </style>

@@ -13,6 +13,7 @@ import Group from '@/components/nav/Group';
 import Header from '@/components/nav/Header';
 import Brand from '@/mixins/brand';
 import FixedBanner from '@/components/FixedBanner';
+import NavDropdown from '@/components/NavDropdown';
 import {
   COUNT, SCHEMA, MANAGEMENT, UI, CATALOG, HCI
 } from '@/config/types';
@@ -41,7 +42,8 @@ export default {
     Group,
     GrowlManager,
     WindowManager,
-    FixedBanner
+    FixedBanner,
+    NavDropdown
   },
 
   mixins: [PageHeaderActions, Brand],
@@ -322,6 +324,7 @@ export default {
       const clusterId = this.$store.getters['clusterId'];
       const currentProduct = this.$store.getters['productId'];
       const currentType = this.$route.params.resource || '';
+
       let namespaces = null;
 
       if ( !this.$store.getters['isAllNamespaces'] ) {
@@ -527,7 +530,6 @@ export default {
 <template>
   <div class="dashboard-root">
     <FixedBanner />
-
     <div v-if="managementReady" class="dashboard-content">
       <Header />
       <nav v-if="clusterReady" class="side-nav">
@@ -597,6 +599,53 @@ export default {
         </div>
       </nav>
       <main v-if="clusterReady">
+        <NavDropdown class="dropdown-nav">
+          <template #button-content>
+            <button class="btn bg-primary">
+              <span>{{ t('nav.menu') }}</span>
+              <i class="ml-10 icon icon-chevron-down" />
+            </button>
+          </template>
+          <template #popover-content>
+            <nav v-if="clusterReady" class="modal-nav">
+              <div class="nav">
+                <template v-for="(g, idx) in groups">
+                  <Group
+                    ref="groups"
+                    :key="idx"
+                    id-prefix=""
+                    class="package"
+                    :group="g"
+                    :can-collapse="!g.isRoot"
+                    :show-header="!g.isRoot"
+                    @selected="groupSelected($event)"
+                    @expand="groupSelected($event)"
+                  >
+                    <template #header>
+                      <h6>{{ g.label }}</h6>
+                    </template>
+                  </Group>
+                </template>
+              </div>
+              <n-link v-if="showClusterTools" tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools', params: {cluster: clusterId}}">
+                <a class="tools-button" @click="collapseAll()">
+                  <i class="icon icon-gear" />
+                  <span>{{ t('nav.clusterTools') }}</span>
+                </a>
+              </n-link>
+              <div class="version text-muted">
+                {{ displayVersion }}
+                <nuxt-link
+                  v-if="showProductSupport"
+                  :to="supportLink"
+                  class="pull-right"
+                >
+                  {{ t('nav.support', {hasSupport: true}) }}
+                </nuxt-link>
+              </div>
+            </nav>
+          </template>
+        </NavDropdown>
         <nuxt class="outlet" />
         <ActionMenu />
         <PromptRemove />
@@ -617,7 +666,62 @@ export default {
   </div>
 </template>
 <style lang="scss" scoped>
+  .dropdown-nav {
+    @media only screen and (min-width: map-get($breakpoints, '--viewport-4')) {
+      display: none !important;
+    }
+    display:inline-block;
+
+    .dropdown-button {
+      background-color: var(--primary);
+
+      &:hover {
+        background-color: var(--primary-hover-bg);
+        color: var(--primary-hover-text);
+      }
+
+      > *, .icon-chevron-down {
+        color: var(--primary-text);
+      }
+
+      .button-divider {
+        border-color: var(--primary-text);
+      }
+
+      &.disabled {
+        border-color: var(--disabled-bg);
+
+        .icon-chevron-down {
+          color: var(--disabled-text) !important;
+        }
+
+        .button-divider {
+          border-color: var(--disabled-text);
+        }
+      }
+    }
+  }
+  .navModal {
+    border-radius: var(--border-radius);
+    overflow: scroll;
+    max-height: 100vh;
+    width: 100vw;
+    & ::-webkit-scrollbar-corner {
+      background: rgba(0,0,0,0);
+    }
+  }
   .side-nav {
+    display: flex;
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-4')) {
+      display: none !important;
+    }
+    flex-direction: column;
+    .nav {
+      flex: 1;
+      overflow-y: auto;
+    }
+  }
+  .modal-nav {
     display: flex;
     flex-direction: column;
     .nav {
@@ -648,6 +752,15 @@ export default {
 
     grid-template-columns: var(--nav-width)     auto;
     grid-template-rows:    var(--header-height) auto  var(--wm-height, 0px);
+
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-4')) {
+      flex: 1 auto;
+      grid-template-areas:
+        "header"
+        "main"
+        "wm";
+      grid-template-columns: calc(100vw - 50px);
+    }
 
     > HEADER {
       grid-area: header;
@@ -742,6 +855,10 @@ export default {
   MAIN {
     grid-area: main;
     overflow: auto;
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-4')) {
+      width: calc(100% + 50px);
+    }
+    width: calc(100%);
 
     .outlet {
       display: flex;

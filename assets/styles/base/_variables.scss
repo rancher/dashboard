@@ -46,3 +46,11 @@ $breakpoints: (
   '--viewport-9':  992px, // Laptop/Desktop
   '--viewport-12': 1281px, // Desktop
 );
+
+
+$screen-sizes: (
+  'xs': '--viewport-4', // Phone
+  'sm': '--viewport-7', // Tablet
+  'med': '--viewport-9', // Laptop/Desktop
+  'lrg': '--viewport-12', // Desktop
+);

@@ -32,7 +32,15 @@ $DEFAULT_COLUMNS: 12;
 /* ROWS */
 .row {
   display: flex;
-  // margin-bottom: 20px;
+  flex-direction: row;
+
+  @each $size, $viewport in $screen-sizes {
+    @media only screen and (max-width: map-get($breakpoints, $viewport)) {
+      &.#{$size}-column {
+        flex-direction: column;
+      }
+    }
+  }
 }
 
 .row:before,
@@ -59,6 +67,18 @@ $DEFAULT_COLUMNS: 12;
 
     // Gutterless column
     .gutless .span-#{$span}#{$suffix} { margin-right: 0; width: decimal-round( math.div($span, $cols) * 100%, 3, 'floor'); }
+    
+    @each $size, $viewport in $screen-sizes {
+      @media only screen and (max-width: map-get($breakpoints, $viewport)) {
+        .#{$size}-span-#{$span}#{$suffix} {
+          width: decimal-round( (((100 - ($column-gutter * ($cols - 1))) / $cols) * $span) + (($span - 1) * $column-gutter) , 3, 'floor') !important; 
+        }
+        .gutless .#{$size}-span-#{$span}#{$suffix} {
+          margin-right: 0;
+          width: decimal-round( $span / $cols * 100%, 3, 'floor') !important;
+        }
+      }
+    }
 
     // Offsets
     .offset-#{$span}#{$suffix} {
@@ -69,6 +89,17 @@ $DEFAULT_COLUMNS: 12;
     .gutless .offset-#{$span}#{$suffix} { margin-left: decimal-round( (math.div($span, $cols)*100%), 3, 'floor' ); }
 
     $span: $span - 1;
+  }
+  
+  // Span should be 0 now, that's short-hand for "Don't show this"
+  .span-#{$span}#{$suffix} { width: 0 !important; }
+
+  @each $size, $viewport in $screen-sizes {
+    @media only screen and (max-width: map-get($breakpoints, $viewport)) {
+      .#{$size}-span-#{$span}#{$suffix} {
+        width: 0 !important;
+      }
+    }
   }
 }
 

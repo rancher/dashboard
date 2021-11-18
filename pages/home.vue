@@ -237,7 +237,7 @@ export default {
   <div v-if="managementReady" class="home-page">
     <BannerGraphic :small="true" :title="t('landing.welcomeToRancher', {vendor})" :pref="HIDE_HOME_PAGE_CARDS" pref-key="welcomeBanner" />
     <IndentedPanel class="mt-20 mb-20">
-      <div v-if="!readWhatsNewAlready" class="row">
+      <div v-if="!readWhatsNewAlready" class="row sm-column">
         <div class="col span-12">
           <Banner color="info whats-new">
             <div>{{ t('landing.seeWhatsNew') }}</div>
@@ -246,8 +246,8 @@ export default {
         </div>
       </div>
 
-      <div class="row">
-        <div :class="{'span-9': showSidePanel, 'span-12': !showSidePanel }" class="col">
+      <div class="row sm-column">
+        <div :class="{'span-9': showSidePanel, 'span-12': !showSidePanel , 'sm-span-12': true}" class="col">
           <SimpleBox
             id="migration"
             class="panel"
@@ -267,7 +267,7 @@ export default {
           <SimpleBox :title="t('landing.landingPrefs.title')" :pref="HIDE_HOME_PAGE_CARDS" pref-key="setLoginPage" class="panel">
             <LandingPagePreference />
           </SimpleBox>
-          <div class="row panel">
+          <div class="row sm-column panel">
             <div v-if="mcm" class="col span-12">
               <SortableTable :table-actions="false" :row-actions="false" key-field="id" :rows="kubeClusters" :headers="clusterHeaders">
                 <template #header-left>
@@ -341,7 +341,7 @@ export default {
             </div>
           </div>
         </div>
-        <div v-if="showSidePanel" class="col span-3">
+        <div v-if="showSidePanel" class="col span-3 sm-span-12">
           <CommunityLinks v-if="showCommunityLinks" :pref="HIDE_HOME_PAGE_CARDS" pref-key="communitySupportTip" class="mb-20" />
           <SimpleBox v-if="showCommercialSupport" :pref="HIDE_HOME_PAGE_CARDS" pref-key="commercialSupportTip" :title="t('landing.commercial.title')">
             <nuxt-link :to="{ path: 'support'}">

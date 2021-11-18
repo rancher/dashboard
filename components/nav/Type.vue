@@ -1,6 +1,7 @@
 <script>
 import Favorite from '@/components/nav/Favorite';
 import { FAVORITE, USED } from '@/store/type-map';
+import $ from 'jquery';
 
 const showFavoritesFor = [FAVORITE, USED];
 
@@ -56,6 +57,11 @@ export default {
     },
 
     selectType() {
+      const navDropdown = $('#navDropdown:visible');
+
+      if (navDropdown.hasClass('open')) {
+        navDropdown.find('button.btn').click();
+      }
       const typePath = this.$router.resolve(this.type.route)?.route?.fullPath;
 
       if (typePath !== this.$route.fullPath) {

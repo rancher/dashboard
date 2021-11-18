@@ -467,6 +467,9 @@ export default {
     grid-template-areas:  "menu product top buttons header-actions cluster user";
     grid-template-columns: var(--header-height) calc(var(--nav-width) - var(--header-height)) auto min-content min-content min-content var(--header-height);
     grid-template-rows:    var(--header-height);
+    overflow-x: scroll;
+    overflow-y: clip;
+    width: 100vw;
 
     &.simple {
       grid-template-columns: var(--header-height) min-content auto min-content min-content min-content var(--header-height);
