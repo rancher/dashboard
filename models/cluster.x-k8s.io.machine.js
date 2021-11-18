@@ -3,7 +3,8 @@ import { CAPI as CAPI_LABELS, MACHINE_ROLES } from '@/config/labels-annotations'
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { listNodeRoles } from '@/models/cluster/node';
 import { escapeHtml } from '@/utils/string';
-import { insertAt } from '@/utils/array';
+import { insertAt, findBy } from '@/utils/array';
+import { get } from '@/utils/object';
 import { downloadUrl } from '@/utils/download';
 import SteveModel from '@/plugins/steve/steve-class';
 
@@ -23,10 +24,17 @@ export default class CapiMachine extends SteveModel {
       icon:       'icon icon-fw icon-download',
       label:      this.t('node.actions.downloadSSHKey'),
     };
+    const forceRemove = {
+      action:     'toggleForceRemoveModal',
+      enabled:    !!this.isRemoveForceable,
+      label:      'Force Delete',
+      icon:       'icon icon-trash',
+    };
 
     insertAt(out, 0, { divider: true });
     insertAt(out, 0, downloadKeys);
     insertAt(out, 0, openSsh);
+    insertAt(out, 0, forceRemove);
 
     return out;
   }
@@ -47,6 +55,18 @@ export default class CapiMachine extends SteveModel {
 
   downloadKeys() {
     downloadUrl(this.links.sshkeys);
+  }
+
+  toggleForceRemoveModal(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'ForceMachineRemoveDialog'
+    });
+  }
+
+  async forceMachineRemove() {
+    this.setAnnotation('provisioning.cattle.io/force-machine-remove', 'true');
+    await this.save();
   }
 
   get cluster() {
@@ -118,6 +138,17 @@ export default class CapiMachine extends SteveModel {
 
   get isEtcd() {
     return `${ this.labels[MACHINE_ROLES.ETCD] }` === 'true';
+  }
+
+  get isRemoveForceable() {
+    const conditions = get(this, 'status.conditions');
+    const reasonMessage = (findBy(conditions, 'type', 'InfrastructureReady') || {}).reason;
+
+    if (reasonMessage === 'DeletionFailed') {
+      return true;
+    }
+
+    return null;
   }
 
   get roles() {

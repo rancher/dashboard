@@ -3307,6 +3307,12 @@ prometheusRule:
     name: Time Series Name
     removeRecord: Remove Record
 
+promptForceRemove:
+  modalTitle: Are you sure?
+  removeWarning: "There was an issue with deleting underlying infrastructure. If you proceed with this action, the Machine <b>{nameToMatch}</b> will be deleted from Rancher only. It's highly recommended to manually delete any referenced infrastructure."
+  forceDelete: Force Delete
+  confirmName: "Enter in the pool name below to confirm:"
+
 promptRemove:
   title: Are you sure?
   andOthers: |-
