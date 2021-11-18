@@ -361,6 +361,10 @@ export default class Workload extends SteveModel {
     ports.forEach((port) => {
       const name = port.name ? port.name : `${ port.containerPort }${ port.protocol.toLowerCase() }${ port.hostPort || port._listeningPort || '' }`;
 
+      if (port._serviceType && port._serviceType !== '') {
+        return;
+      }
+
       port.name = name;
       if (loadBalancerServicePorts.length) {
         const portSpec = findBy(loadBalancerServicePorts, 'name', name);

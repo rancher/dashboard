@@ -3,13 +3,11 @@ import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt, findBy } from '@/utils/array';
 import { clone } from '@/utils/object';
-import Banner from '@/components/Banner';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 
 export default {
   components: {
-    Banner,
     LabeledInput,
     LabeledSelect,
   },
@@ -125,8 +123,6 @@ export default {
         hostIP:        null,
         _showHost:     false,
         _serviceType:  '',
-        _needsNewName: false,
-        _originalName: null
       });
 
       this.queueUpdate();
@@ -156,21 +152,6 @@ export default {
         out.push(value);
       }
       this.$emit('input', out);
-    },
-
-    selectServiceType(row) {
-      this.services.map((svc) => {
-        const selectedService = svc.spec.ports.filter(port => port.name === row._name);
-
-        if (selectedService) {
-          delete row.name;
-
-          row._needsNewName = true;
-          row._originalName = selectedService[0]?.name;
-        }
-      });
-
-      this.queueUpdate();
     },
 
     setServiceType(row) {
@@ -215,106 +196,101 @@ export default {
     <div
       v-for="(row, idx) in rows"
       :key="idx"
+      class="ports-row"
+      :class="{'show-host':row._showHost}"
     >
-      <div
-        class="ports-row"
-        :class="{'show-host':row._showHost}"
-      >
-        <div class="service-type col">
-          <LabeledSelect
-            v-model="row._serviceType"
-            :mode="mode"
-            :label="t('workload.container.ports.createService')"
-            :options="serviceTypes"
-            @input="selectServiceType(row)"
-          />
-        </div>
-
-        <div class="portName">
-          <LabeledInput
-            ref="name"
-            v-model="row.name"
-            :mode="mode"
-            :label="t('workload.container.ports.name')"
-            @input="queueUpdate"
-          />
-        </div>
-
-        <div class="port">
-          <LabeledInput
-            v-model.number="row.containerPort"
-            :mode="mode"
-            type="number"
-            min="1"
-            max="65535"
-            placeholder="e.g. 8080"
-            :label="t('workload.container.ports.containerPort')"
-            @input="queueUpdate"
-          />
-        </div>
-
-        <div class="protocol col">
-          <LabeledSelect
-            v-model="row.protocol"
-            :mode="mode"
-            :options="workloadPortOptions"
-            :multiple="false"
-            :label="t('workload.container.ports.protocol')"
-            @input="queueUpdate"
-          />
-        </div>
-
-        <div v-if="row._showHost" class="targetPort">
-          <LabeledInput
-            ref="port"
-            v-model.number="row.hostPort"
-            :mode="mode"
-            type="number"
-            min="1"
-            max="65535"
-            placeholder="e.g. 80"
-            :label="t('workload.container.ports.hostPort')"
-            @input="queueUpdate"
-          />
-        </div>
-
-        <div v-if="row._showHost" class="hostip">
-          <LabeledInput
-            ref="port"
-            v-model="row.hostIP"
-            :mode="mode"
-            placeholder="e.g. 1.1.1.1"
-            :label="t('workload.container.ports.hostIP')"
-            @input="queueUpdate"
-          />
-        </div>
-
-        <div v-if="!row._showHost && row._serviceType !== 'LoadBalancer' && row._serviceType !== 'NodePort'" class="add-host">
-          <button :disabled="mode==='view'" type="button" class="btn btn-sm role-tertiary" @click="row._showHost = true">
-            {{ t('workloadPorts.addHost') }}
-          </button>
-        </div>
-
-        <div v-if="row._serviceType === 'LoadBalancer' || row._serviceType === 'NodePort'">
-          <LabeledInput
-            ref="port"
-            v-model.number="row._listeningPort"
-            type="number"
-            :mode="mode"
-            :label="t('workload.container.ports.listeningPort')"
-            :required="row._serviceType === 'LoadBalancer' "
-            @input="queueUpdate"
-          />
-        </div>
-
-        <div v-if="showRemove" class="remove">
-          <button type="button" class="btn role-link" @click="remove(idx)">
-            {{ t('workloadPorts.remove') }}
-          </button>
-        </div>
+      <div class="service-type col">
+        <LabeledSelect
+          v-model="row._serviceType"
+          :mode="mode"
+          :label="t('workload.container.ports.createService')"
+          :options="serviceTypes"
+          @input="queueUpdate"
+        />
       </div>
 
-      <Banner v-if="mode === 'edit' && row.name === row._originalName" color="warning" :label="t('workloadPorts.warning', { originalName: row._originalName }, true)" />
+      <div class="portName">
+        <LabeledInput
+          ref="name"
+          v-model="row.name"
+          :mode="mode"
+          :label="t('workload.container.ports.name')"
+          @input="queueUpdate"
+        />
+      </div>
+
+      <div class="port">
+        <LabeledInput
+          v-model.number="row.containerPort"
+          :mode="mode"
+          type="number"
+          min="1"
+          max="65535"
+          placeholder="e.g. 8080"
+          :label="t('workload.container.ports.containerPort')"
+          @input="queueUpdate"
+        />
+      </div>
+
+      <div class="protocol col">
+        <LabeledSelect
+          v-model="row.protocol"
+          :mode="mode"
+          :options="workloadPortOptions"
+          :multiple="false"
+          :label="t('workload.container.ports.protocol')"
+          @input="queueUpdate"
+        />
+      </div>
+
+      <div v-if="row._showHost" class="targetPort">
+        <LabeledInput
+          ref="port"
+          v-model.number="row.hostPort"
+          :mode="mode"
+          type="number"
+          min="1"
+          max="65535"
+          placeholder="e.g. 80"
+          :label="t('workload.container.ports.hostPort')"
+          @input="queueUpdate"
+        />
+      </div>
+
+      <div v-if="row._showHost" class="hostip">
+        <LabeledInput
+          ref="port"
+          v-model="row.hostIP"
+          :mode="mode"
+          placeholder="e.g. 1.1.1.1"
+          :label="t('workload.container.ports.hostIP')"
+          @input="queueUpdate"
+        />
+      </div>
+
+      <div v-if="!row._showHost && row._serviceType !== 'LoadBalancer' && row._serviceType !== 'NodePort'" class="add-host">
+        <button :disabled="mode==='view'" type="button" class="btn btn-sm role-tertiary" @click="row._showHost = true">
+          {{ t('workloadPorts.addHost') }}
+        </button>
+      </div>
+
+      <div v-if="row._serviceType === 'LoadBalancer' || row._serviceType === 'NodePort'">
+        <LabeledInput
+          ref="port"
+          v-model.number="row._listeningPort"
+          type="number"
+          :mode="mode"
+          :label="t('workload.container.ports.listeningPort')"
+          :required="row._serviceType === 'LoadBalancer' "
+          @input="queueUpdate"
+        />
+      </div>
+
+      <div v-if="showRemove" class="remove">
+        <button type="button" class="btn role-link" @click="remove(idx)">
+          {{ t('workloadPorts.remove') }}
+        </button>
+      </div>
     </div>
     <div v-if="showAdd" class="footer">
       <button type="button" class="btn role-tertiary add" @click="add()">
