@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import isEmpty from 'lodash/isEmpty';
 import throttle from 'lodash/throttle';
 import ArrayList from '@/components/form/ArrayList';
@@ -16,9 +17,13 @@ import { ucFirst } from '@/utils/string';
 import CruResource from '@/components/CruResource';
 import Banner from '@/components/Banner';
 import Labels from '@/components/form/Labels';
+import HarvesterServiceAddOnConfig from '@/components/HarvesterServiceAddOnConfig';
 import { clone } from '@/utils/object';
-import { POD } from '@/config/types';
+import { POD, CAPI } from '@/config/types';
 import { matching } from '@/utils/selector';
+import { NAME as HARVESTER } from '@/config/product/harvester';
+import { allHash } from '@/utils/promise';
+import { isHarvesterSatisfiesVersion } from '@/utils/cluster';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:     'None',
@@ -49,6 +54,7 @@ export default {
     Tab,
     Tabbed,
     UnitInput,
+    HarvesterServiceAddOnConfig,
   },
 
   mixins: [CreateEditView],
@@ -90,6 +96,8 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
+
     showSelectorWarning() {
       const selector = this.value.spec?.selector;
 
@@ -144,6 +152,23 @@ export default {
         this.checkTypeIs('LoadBalancer') ||
         this.checkTypeIs('NodePort')
       );
+    },
+
+    showHarvesterAddOnConfig() {
+      const machineSelectorConfig = this.provisioningCluster?.spec?.rkeConfig?.machineSelectorConfig || {};
+      const agentConfig = (machineSelectorConfig[0] || {}).config;
+      const cloudProvider = agentConfig?.['cloud-provider-name'];
+      const version = this.provisioningCluster?.spec?.kubernetesVersion;
+
+      return this.checkTypeIs('LoadBalancer') &&
+              cloudProvider === HARVESTER &&
+              isHarvesterSatisfiesVersion(version);
+    },
+
+    provisioningCluster() {
+      const out = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find(c => c?.status?.clusterName === this.currentCluster.metadata.name);
+
+      return out;
     },
   },
 
@@ -204,7 +229,14 @@ export default {
       try {
         const inStore = this.$store.getters['currentStore'](POD);
 
-        this.allPods = await this.$store.dispatch(`${ inStore }/findAll`, { type: POD });
+        const hash = {
+          provClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+          pods:         this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
+        };
+
+        const res = await allHash(hash);
+
+        this.allPods = res.pods;
         this.updateMatchingPods();
       } catch (e) { }
     },
@@ -374,6 +406,18 @@ export default {
         </div>
       </Tab>
       <Tab
+        v-if="showHarvesterAddOnConfig"
+        name="add-on-config"
+        :label="t('harvester.service.title')"
+        :weight="-1"
+      >
+        <HarvesterServiceAddOnConfig
+          :mode="mode"
+          :value="value"
+          :register-before-hook="registerBeforeHook"
+        />
+      </Tab>
+      <Tab
         v-if="!checkTypeIs('ExternalName') && !checkTypeIs('Headless')"
         name="session-affinity"
         :label="t('servicesPage.affinity.label')"
@@ -417,7 +461,7 @@ export default {
         v-if="!isView"
         name="labels-and-annotations"
         :label="t('servicesPage.labelsAnnotations.label', {}, true)"
-        :weight="-1"
+        :weight="-2"
       >
         <Labels
           :default-container-class="'labels-and-annotations-container'"
