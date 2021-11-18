@@ -487,10 +487,6 @@ export default {
     flex-direction: column;
     padding: 0;
 
-    @media only screen and (max-width: 640px) {
-      width: 100% !important;
-    }
-
     &:focus {
       outline: 0;
     }
@@ -657,16 +653,10 @@ export default {
 
   .fade-leave-to {
     left: -300px;
-    @media only screen and (max-width: 640px) {
-      left: -100% !important;
-    }
   }
 
   .fade-enter {
     left: -300px;
-    @media only screen and (max-width: 640px) {
-      left: -100% !important;
-    }
 
     .side-menu-logo {
       opacity: 0;

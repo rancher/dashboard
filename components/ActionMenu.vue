@@ -70,7 +70,6 @@ export default {
           fudgeY:    elem ? 4 : 0,
           positionX: (elem ? AUTO : CENTER),
           positionY: AUTO,
-          fixed:     true
         });
 
         this.style.visibility = 'visible';
