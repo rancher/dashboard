@@ -1,6 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import { exceptionToErrorsArray } from '@/utils/error';
+import { alternateLabel } from '@/utils/platform';
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
 import Card from '@/components/Card';
@@ -21,18 +22,8 @@ export default {
     }
   },
 
-  async fetch() {
-    const ref = this.machine.spec.infrastructureRef;
-    const id = `${ ref.namespace }/${ ref.name }`;
-    const kind = `rke-machine.cattle.io.${ ref.kind.toLowerCase() }`;
-
-    this.machineRef = await this.$store.dispatch('management/find', { type: kind, id });
-  },
-
   data() {
-    return {
-      errors: [], confirmName: '', machineRef: null
-    };
+    return { errors: [], confirmName: '' };
   },
 
   computed: {
@@ -51,6 +42,10 @@ export default {
 
       return this.preventDelete || confirmFailed;
     },
+
+    protip() {
+      return this.t('promptRemove.protip', { alternateLabel });
+    },
   },
 
   methods: {
@@ -62,7 +57,7 @@ export default {
 
     async remove(buttonDone) {
       try {
-        await this.machine.forceMachineRemove(this.machineRef);
+        await this.machine.forceMachineRemove();
         buttonDone(true);
         this.close();
       } catch (e) {
@@ -90,6 +85,9 @@ export default {
         <CopyToClipboardText :text="nameToMatch" />
       </div>
       <input id="confirm" v-model="confirmName" type="text" />
+      <div class="text-info mt-20">
+        {{ protip }}
+      </div>
       <Banner v-for="(error, i) in errors" :key="i" class="" color="error" :label="error" />
     </div>
     <template #actions>

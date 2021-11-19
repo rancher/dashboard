@@ -26,6 +26,7 @@ export default class CapiMachine extends SteveModel {
     };
     const forceRemove = {
       action:     'toggleForceRemoveModal',
+      altAction:  'forceMachineRemove',
       enabled:    !!this.isRemoveForceable,
       label:      'Force Delete',
       icon:       'icon icon-trash',
@@ -64,9 +65,19 @@ export default class CapiMachine extends SteveModel {
     });
   }
 
-  async forceMachineRemove(machine) {
-    await machine.setAnnotation('provisioning.cattle.io/force-machine-remove', 'true');
+  async forceMachineRemove() {
+    const machine = await this.machineRef();
+
+    machine.setAnnotation('provisioning.cattle.io/force-machine-remove', 'true');
     await machine.save();
+  }
+
+  async machineRef() {
+    const ref = this.spec.infrastructureRef;
+    const id = `${ ref.namespace }/${ ref.name }`;
+    const kind = `rke-machine.cattle.io.${ ref.kind.toLowerCase() }`;
+
+    return await this.$dispatch('find', { type: kind, id });
   }
 
   get cluster() {
