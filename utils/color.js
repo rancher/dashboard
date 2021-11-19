@@ -13,7 +13,7 @@ Primary color classes from _light.scss
 
 */
 
-import * as scssVars from '@/assets/styles/themes/_exports.scss';
+import { listCssCustomProperties } from '~/utils/css-rule-parser';
 
 const Color = require('color');
 
@@ -79,30 +79,28 @@ function contrastColor(color, contrastOptions = LIGHT_CONTRAST_COLORS) {
 }
 
 /**
- * Filters the imported SCSS vars based on the theme.
+ * Filters the imported CSS vars from the document based on the theme.
  *
- * @param {('light' | 'dark' )} themeName - Theme name to filter by
- * @param {Object} themeVars              - imported SCSS vars
+ * @param {('theme-light' | 'theme-dark' )} themeName - Theme name to filter by
  *
- * @description - In SCSS variables are exported as :export { light: { primaryText: $darkest } dark: { primaryText: #B6B6C2 }.
- *                This get converted to  scssVars = { light-primaryText: #000000, dark-primaryText: #B6B6C2 }.
- *                This function splits and filters scssVars based on prefix ('light' | 'dark' ) and return specifc property
+ * @description - listCssCustomProperties will retrieve all the custom css vars associated with that theme.
+ *                It will then translate the kebab-cased vars to camelCase.
+ *                e.g. --header-text-color to headerTextColor.
+ *
  * @example
  * // returns { primaryText: #000000 }
- * getThemeVars('light', scssVars)
+ * getScssThemeVars('thme-light')
  *
  * @example
  * // returns { primaryText: #B6B6C2 }
- * getThemeVars('dark', scssVars)
+ * getScssThemeVars('theme-dark')
  */
-export function getThemeVars(themeName = 'light', themeVars = scssVars) {
-  return Object.keys(themeVars).reduce((themeMap, varKey) => {
-    const [theme, key] = varKey.split('-');
+export function getCssThemeVarsFromDocument(themeName = 'theme-light') {
+  return listCssCustomProperties(themeName).reduce((cssMap, curr) => {
+    const key = curr[0].replace('--', '').replace(/-./g, x => x[1].toUpperCase());
 
-    if (theme === themeName) {
-      themeMap[key] = themeVars[varKey];
-    }
+    cssMap[key] = curr[1];
 
-    return themeMap;
+    return cssMap;
   }, {});
 }

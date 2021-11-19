@@ -186,27 +186,7 @@ export default {
   },
 
   methods: {
-    getBannerSettings(bannerSettings) {
-      // Update legacy banner settings
-      const updatedBannerSetting = this.checkOrUpdateLegacyUIBannerSetting(bannerSettings);
-
-      const { bannerHeader, bannerFooter } = updatedBannerSetting;
-
-      // Merge default theme settings/scss vars and return
-      return {
-        ...updatedBannerSetting,
-        bannerHeader: {
-          ...bannerHeader,
-          color: bannerHeader.color || this.themeVars.primaryText
-        },
-        bannerFooter: {
-          ...bannerFooter,
-          color: bannerFooter.color || this.themeVars.primaryText
-        }
-      };
-    },
-
-    checkOrUpdateLegacyUIBannerSetting(parsedBanner) {
+    getBannerSettings(parsedBanner) {
       const { bannerHeader, bannerFooter } = parsedBanner;
 
       // In legacy banner there is no bannerHeader or bannerFooter
@@ -470,7 +450,7 @@ export default {
             </div>
             <div class="row mt-10">
               <div class="col span-6">
-                <ColorInput v-model="bannerVal.bannerHeader.color" :label="t('branding.uiBanner.textColor')" />
+                <ColorInput v-model="bannerVal.bannerHeader.color" :default-value="themeVars.headerTextColor" :label="t('branding.uiBanner.textColor')" />
               </div>
               <div class="col span-6">
                 <ColorInput v-model="bannerVal.bannerHeader.background" :label="t('branding.uiBanner.background')" />
@@ -517,7 +497,7 @@ export default {
             </div>
             <div class="row mt-10">
               <div class="col span-6">
-                <ColorInput v-model="bannerVal.bannerFooter.color" :label="t('branding.uiBanner.textColor')" />
+                <ColorInput v-model="bannerVal.bannerFooter.color" :default-value="themeVars.footerTextColor" :label="t('branding.uiBanner.textColor')" />
               </div>
               <div class="col span-6">
                 <ColorInput v-model="bannerVal.bannerFooter.background" :label="t('branding.uiBanner.background')" />
