@@ -37,7 +37,7 @@ export default {
       }
 
       return this.$store.getters['cluster/all'](NAMESPACE)[0]?.id;
-    },
+    }
   },
 };
 </script>
@@ -72,7 +72,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model.trim="value.spec.gitBranch"
-          :required="true"
+          :sub-label="!value.spec.gitBranch ? t('catalog.repo.gitBranch.defaultMessage', null, true) : undefined"
           :label="t('catalog.repo.gitBranch.label')"
           :placeholder="t('catalog.repo.gitBranch.placeholder', null, true)"
           :mode="mode"
