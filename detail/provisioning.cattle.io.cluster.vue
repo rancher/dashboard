@@ -448,7 +448,7 @@ export default {
         </ResourceTable>
       </Tab>
 
-      <Tab v-if="showRegistration" name="registration" label="Registration" :weight="2">
+      <Tab v-if="showRegistration" name="registration" :label="t('cluster.tabs.registration')" :weight="2">
         <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" :cluster="value" />
         <template v-else>
           <h4 v-html="t('cluster.import.commandInstructions', null, true)" />

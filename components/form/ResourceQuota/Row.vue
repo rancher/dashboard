@@ -2,9 +2,12 @@
 import { _VIEW } from '@/config/query-params';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import UnitInput from '@/components/form/UnitInput';
+import LabeledInput from '@/components/form/LabeledInput';
 
 export default {
-  components: { LabeledSelect, UnitInput },
+  components: {
+    LabeledSelect, UnitInput, LabeledInput
+  },
 
   props: {
     mode: {
@@ -75,76 +78,88 @@ export default {
   <div class="row">
     <LabeledSelect class="mr-10" :value="type" :options="types" :label="t('resourceQuota.resourceType.label')" @input="updateType($event)" />
 
-    <UnitInput
+    <LabeledInput
       v-if="isUnitless"
-      v-model="value.spec.resourceQuota.limit[type]"
+      v-model.number="value.spec.resourceQuota.limit[type]"
       class="mr-10"
       :mode="mode"
-      :suffix="false"
       :label="t('resourceQuota.projectLimit.label')"
       :placeholder="t('resourceQuota.projectLimit.unitlessPlaceholder')"
+      type="number"
     />
-    <UnitInput
+    <LabeledInput
       v-if="isUnitless"
-      v-model="value.spec.namespaceDefaultResourceQuota.limit[type]"
+      v-model.number="value.spec.namespaceDefaultResourceQuota.limit[type]"
       :mode="mode"
-      :suffix="false"
       :label="t('resourceQuota.namespaceDefaultLimit.label')"
       :placeholder="t('resourceQuota.namespaceDefaultLimit.unitlessPlaceholder')"
+      type="number"
     />
 
     <UnitInput
       v-if="isCpu"
       v-model="value.spec.resourceQuota.limit[type]"
       class="mr-10"
-      :suffix="t('suffix.milliCpus')"
       :mode="mode"
       :label="t('resourceQuota.projectLimit.label')"
       :placeholder="t('resourceQuota.projectLimit.cpuPlaceholder')"
+      :input-exponent="-1"
+      :base-unit="t('suffix.cpus')"
+      :output-modifier="true"
     />
     <UnitInput
       v-if="isCpu"
       v-model="value.spec.namespaceDefaultResourceQuota.limit[type]"
-      :suffix="t('suffix.milliCpus')"
       :mode="mode"
       :label="t('resourceQuota.namespaceDefaultLimit.label')"
       :placeholder="t('resourceQuota.namespaceDefaultLimit.cpuPlaceholder')"
+      :input-exponent="-1"
+      :base-unit="t('suffix.cpus')"
+      :output-modifier="true"
     />
 
     <UnitInput
       v-if="isMemory"
       v-model="value.spec.resourceQuota.limit[type]"
       class="mr-10"
-      :suffix="t('suffix.mib')"
       :mode="mode"
       :label="t('resourceQuota.projectLimit.label')"
       :placeholder="t('resourceQuota.projectLimit.memoryPlaceholder')"
+      :input-exponent="2"
+      :increment="1024"
+      :output-modifier="true"
     />
     <UnitInput
       v-if="isMemory"
       v-model="value.spec.namespaceDefaultResourceQuota.limit[type]"
-      :suffix="t('suffix.mib')"
       :mode="mode"
       :label="t('resourceQuota.namespaceDefaultLimit.label')"
       :placeholder="t('resourceQuota.namespaceDefaultLimit.memoryPlaceholder')"
+      :input-exponent="2"
+      :increment="1024"
+      :output-modifier="true"
     />
 
     <UnitInput
       v-if="isStorage"
       v-model="value.spec.resourceQuota.limit[type]"
       class="mr-10"
-      :suffix="t('suffix.gb')"
       :mode="mode"
       :placeholder="t('resourceQuota.projectLimit.storagePlaceholder')"
       :label="t('resourceQuota.projectLimit.label')"
+      :input-exponent="3"
+      :increment="1024"
+      :output-modifier="true"
     />
     <UnitInput
       v-if="isStorage"
       v-model="value.spec.namespaceDefaultResourceQuota.limit[type]"
-      :suffix="t('suffix.gb')"
       :mode="mode"
       :label="t('resourceQuota.namespaceDefaultLimit.label')"
       :placeholder="t('resourceQuota.namespaceDefaultLimit.storagePlaceholder')"
+      :input-exponent="3"
+      :increment="1024"
+      :output-modifier="true"
     />
   </div>
 </template>

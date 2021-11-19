@@ -932,6 +932,32 @@ cluster:
   description:
     label: 集群描述
     placeholder: （选填项）请输入关于该集群的描述
+  harvester:
+    importNotice: 导入Harvester集群通过
+    warning:
+      label: 这是Harvester集群 - 启用Harvester特性以管理
+      state: 警告
+    registration:
+      step1: "1. 前往目标Harvester UI的设置页面."
+      step2: '2. 找到<code>cluster-registration-url</code>设置并点击<code><i class="icon icon-actions doc-icon" ></i></code> -> <code>编辑设置</code>按钮.'
+      step3: "3. 输入下面的注册URL并点击<code>保存</code>."
+      step4: "注册URL"
+    machinePool:
+      cpu: 
+        placeholder: "例如: 2"
+      memory:
+        placeholder: "例如: 4"
+      disk:
+        placeholder: "例如: 4"
+      namespace:
+        placeholder: "例如: default"
+      image:
+        placeholder: 请选择镜像
+      network:
+        placeholder: 请选择网络
+      sshUser:
+        placeholder: "例如: ubuntu"
+        toolTip: 登录选中的操作系统镜像的SSH用户名.
   importAction: 导入已有集群
   kubernetesVersion:
     label: Kubernetes 版本
@@ -1023,6 +1049,7 @@ cluster:
     memberRoles: 成员角色
     registry: 镜像仓库
     upgrade: 升级策略
+    registration: 注册
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -4536,6 +4563,21 @@ harvester:
 
   projectNamespace:
     label: 项目/命名空间
+  service:
+    title: 附加配置
+    healthCheckPort:
+      label: 健康检查端口
+      description: 探针将访问由后端服务器IP和端口组成的地址.
+    healthCheckSuccessThreshold:
+      label: 健康检查成功阙值
+      description:  如果探针连续检测到一个地址的成功次数达到成功阈值，那么后端服务器就可以开始转发流量.
+    healthCheckFailureThreshold:
+      label: 健康检查失败阙值
+      description: 如果健康检查失败的数量达到失败阈值，后端服务器将停止转发流量。
+    healthCheckPeriod:
+      label: 健康检查周期
+    healthCheckTimeout:
+      label: 健康检查超时
 ##############################
 # Model Properties
 ##############################
@@ -4914,6 +4956,7 @@ advancedSettings:
     'harv-upgrade-checker-url': 默认的Harvester升级检查地址。 仅在<code> upgrade-checker-enabled </code> 等于true时使用。
     'harv-ui-source': 配置如何加载UI资源.
     'harv-ui-index': 'UI的HTML索引。'
+    'harv-cluster-registration-url': 用于多集群管理的注册URL.
   editHelp:
     'ui-banners': 这个设置需要一个JSON对象，包含3个根参数；<code>banner</code>, <code>showHeader</code>, <code>showFooter</code>。<code>banner</code>是一个包含；<code>textColor</code>, <code>background</code>, 和<code>text</code>的对象，其中<code>textColor</code>和<code>background</code>是任何有效的CSS颜色值。
   enum:

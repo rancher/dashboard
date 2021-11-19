@@ -4,7 +4,6 @@ import ResourceTabs from '@/components/form/ResourceTabs';
 import CopyCode from '@/components/CopyCode';
 import Tab from '@/components/Tabbed/Tab';
 import { allHash } from '@/utils/promise';
-import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
 
 export default {
   components: {
@@ -12,7 +11,6 @@ export default {
     ResourceTabs,
     Tab,
     CopyCode,
-    CustomCommand,
   },
 
   props: {
@@ -60,6 +58,10 @@ export default {
 
       return false;
     },
+
+    registrationURL() {
+      return (this.clusterToken?.command || '').replace('kubectl apply -f ', '');
+    },
   },
 };
 </script>
@@ -67,24 +69,29 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <ResourceTabs v-else v-model="value" :default-tab="defaultTab">
-    <Tab v-if="showRegistration" name="registration" label="Registration" :weight="2">
-      <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" />
-      <template v-else>
-        <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
-        <CopyCode class="m-10 p-10">
-          {{ clusterToken.command }}
-        </CopyCode>
+    <Tab
+      v-if="showRegistration"
+      name="registration"
+      :label="t('cluster.tabs.registration')"
+      :weight="2"
+      class="p-10"
+    >
+      <h4
+        v-html="t('cluster.harvester.registration.step1', null, true)"
+      />
 
-        <h4 class="mt-10" v-html="t('cluster.import.commandInstructionsInsecure', null, true)" />
-        <CopyCode class="m-10 p-10">
-          {{ clusterToken.insecureCommand }}
-        </CopyCode>
+      <h4
+        class="mt-10"
+        v-html="t('cluster.harvester.registration.step2', null, true)"
+      />
 
-        <h4 class="mt-10" v-html="t('cluster.import.clusterRoleBindingInstructions', null, true)" />
-        <CopyCode class="m-10 p-10">
-          {{ t('cluster.import.clusterRoleBindingCommand', null, true) }}
-        </CopyCode>
-      </template>
+      <h4
+        class="mt-10"
+        v-html="t('cluster.harvester.registration.step3', null, true)"
+      />
+      <CopyCode class="m-10 p-10">
+        {{ registrationURL }}
+      </CopyCode>
     </Tab>
   </ResourceTabs>
 </template>

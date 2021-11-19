@@ -174,6 +174,7 @@ export default {
     // Catch the 'create' case and there's no content
     this.validate();
   },
+
   methods: {
     passwordsMatch() {
       const match = this.passwordNew === this.passwordConfirm;
@@ -182,9 +183,11 @@ export default {
 
       return match;
     },
+
     baseIsUserGenPasswordValid() {
       return this.passwordsMatch() && !!this.passwordNew;
     },
+
     isValid() {
       if (this.isChange) {
         return !!this.passwordCurrent && (this.isRandomGenerated ? true : this.baseIsUserGenPasswordValid());
@@ -206,6 +209,7 @@ export default {
 
       return false;
     },
+
     validate() {
       const isValid = this.isValid();
 
@@ -220,6 +224,7 @@ export default {
         userChangeOnLogin: this.userChangeOnLogin
       });
     },
+
     async save(user) {
       if (this.isChange) {
         await this.changePassword();
@@ -227,9 +232,10 @@ export default {
           await this.deleteKeys();
         }
       } else if (this.isEdit) {
-        this.setPassword(user);
+        return this.setPassword(user);
       }
     },
+
     async setPassword(user) {
       // Error handling is catered for by caller
       await this.$store.dispatch('rancher/resourceAction', {
@@ -239,6 +245,7 @@ export default {
         body:          { newPassword: this.isRandomGenerated ? this.form.genP : this.form.newP },
       });
     },
+
     async changePassword() {
       try {
         await this.$store.dispatch('rancher/collectionAction', {
@@ -254,6 +261,7 @@ export default {
         throw err;
       }
     },
+
     async deleteKeys() {
       try {
         const tokens = await this.$store.dispatch('rancher/findAll', {
