@@ -190,7 +190,7 @@ export default {
           white-space: no-wrap;
           text-overflow: ellipsis;
           // Override default form label properties
-          color: white;
+          color: var(--card-badge-text);
           margin: 0;
         }
 
@@ -219,7 +219,9 @@ export default {
       &.rancher {
         .side-label {
           background-color: var(--app-rancher-accent);
-          color: var(--app-rancher-accent-text);
+          label {
+            color: var(--app-rancher-accent-text);
+          }
         }
         &:hover:not(.disabled) {
           border-color: var(--app-rancher-accent);
@@ -229,7 +231,9 @@ export default {
       &.partner {
         .side-label {
           background-color: var(--app-partner-accent);
-          color: var(--app-partner-accent-text);
+          label {
+            color: var(--app-partner-accent-text);
+          }
         }
         &:hover:not(.disabled) {
           border-color: var(--app-partner-accent);
@@ -238,35 +242,35 @@ export default {
 
       // @TODO figure out how to templatize these
       &.color1 {
-        .side-label { background-color: var(--app-color1-accent); color: var(--app-color1-accent-text); }
+        .side-label { background-color: var(--app-color1-accent); label { color: var(--app-color1-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color1-accent); }
       }
       &.color2 {
-        .side-label { background-color: var(--app-color2-accent); color: var(--app-color2-accent-text); }
+        .side-label { background-color: var(--app-color2-accent); label { color: var(--app-color2-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color2-accent); }
       }
       &.color3 {
-        .side-label { background-color: var(--app-color3-accent); color: var(--app-color3-accent-text); }
+        .side-label { background-color: var(--app-color3-accent); label { color: var(--app-color3-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color3-accent); }
       }
       &.color4 {
-        .side-label { background-color: var(--app-color4-accent); color: var(--app-color4-accent-text); }
+        .side-label { background-color: var(--app-color4-accent); label { color: var(--app-color4-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color4-accent); }
       }
       &.color5 {
-        .side-label { background-color: var(--app-color5-accent); color: var(--app-color5-accent-text); }
+        .side-label { background-color: var(--app-color5-accent); label { color: var(--app-color5-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color5-accent); }
       }
       &.color6 {
-        .side-label { background-color: var(--app-color6-accent); color: var(--app-color6-accent-text); }
+        .side-label { background-color: var(--app-color6-accent); label { color: var(--app-color6-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color6-accent); }
       }
       &.color7 {
-        .side-label { background-color: var(--app-color7-accent); color: var(--app-color7-accent-text); }
+        .side-label { background-color: var(--app-color7-accent); label { color: var(--app-color7-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color7-accent); }
       }
       &.color8 {
-        .side-label { background-color: var(--app-color8-accent); color: var(--app-color8-accent-text); }
+        .side-label { background-color: var(--app-color8-accent); label { color: var(--app-color8-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color8-accent); }
       }
 
