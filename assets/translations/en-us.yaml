@@ -1109,6 +1109,9 @@ cluster:
     label: Kubernetes Version
   toolsTip: Use the new Cluster Tools to manage and install Monitoring, Logging and other tools
   legacyWarning: The legacy feature flag is enabled and not all legacy features are supported in Kubernetes 1.21+.
+  log:
+    connecting: Connecting…
+    noData: There are no provisioning log entries.
   name:
     label: Cluster Name
     placeholder: A unique name for the cluster
@@ -1526,7 +1529,6 @@ cluster:
         label: Metrics
         false: Only available inside the cluster
         true: Exposed to the public interface
-
   k3s:
     systemService:
       coredns: 'CoreDNS'
@@ -1554,6 +1556,7 @@ cluster:
     basic: Basics
     cluster: Cluster Configuration
     etcd: etcd
+    log: Provisioning Log
     networking: Networking
     machinePools: Machine Pools
     machines: Machines
