@@ -252,6 +252,7 @@ export default {
     },
 
     $route(a, b) {
+      debugger;
       if (this.wantNavSync && !isEqual(a, b)) {
         this.wantNavSync = false;
         this.$nextTick(() => this.syncNav());
