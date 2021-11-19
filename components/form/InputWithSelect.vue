@@ -229,7 +229,6 @@ export default {
     &.unlabeled-select ::v-deep {
       box-shadow: none;
       width: 20%;
-      background-color: var(--input-bg-accent);
       border: solid 1px var(--input-border);
       margin-right: 1px; // push the input box right so the full focus outline of the select can be seen, z-index borks
       // position: relative;
