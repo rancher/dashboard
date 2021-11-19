@@ -35,9 +35,6 @@ export default {
       nc.metadata = {};
     }
 
-    nc.metadata.labels = nc.labels || {};
-    nc.metadata.annotations = nc.annotations || {};
-
     this.normanCluster = nc;
   },
 
