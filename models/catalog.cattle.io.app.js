@@ -194,7 +194,6 @@ export default class CatalogApp extends SteveModel {
       id:   `${ res.operationNamespace }/${ res.operationName }`
     });
 
-<<<<<<< HEAD
     try {
       await operation.waitForLink('logs');
       operation.openLogs();
@@ -203,9 +202,7 @@ export default class CatalogApp extends SteveModel {
     }
   }
 
-  get canDelete() {
-=======
-  relatedResourcesToRemove() {
+  get relatedResourcesToRemove() {
     return async() => {
       const crd = this.spec.chart.metadata.annotations[CATALOG_ANNOTATIONS.AUTO_INSTALL].replace('=match', '');
 
@@ -214,10 +211,9 @@ export default class CatalogApp extends SteveModel {
         id:   `${ this.metadata.namespace }/${ crd }`
       });
     };
-  },
+  }
 
-  canDelete() {
->>>>>>> 20c89dfb (PR changes addressed. Removed PromptRemoveApp and unnecessary additions)
+  get canDelete() {
     return this.hasAction('uninstall');
   }
 
