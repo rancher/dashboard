@@ -28,11 +28,6 @@ export default {
       default: '',
     },
 
-    selectValue: {
-      type:    String,
-      default: null,
-    },
-
     optionLabel: {
       type:    String,
       default: 'label',
@@ -48,16 +43,6 @@ export default {
       default: true,
     },
 
-    textValue: {
-      type:    [String, Number],
-      default: '',
-    },
-
-    placeholder: {
-      type:    String,
-      default: '',
-    },
-
     reduce: {
       default: (e) => {
         if (e && typeof e === 'object' && e.value !== undefined) {
@@ -71,27 +56,20 @@ export default {
   },
 
   data() {
-    return {
-      selected:         this.selectValue || null,
-      string:           this.textValue,
-    };
+    return { selected: this.value || null };
   },
 
   computed: {
     serviceNameNew() {
-      let isNew = false;
+      if (this.value !== null) {
+        const findSelected = this.options.find(option => this.value === option.metadata.name);
 
-      if (this.selected !== null) {
-        const findSelected = this.options.find(name => this.selected.includes(name.id));
-
-        if (findSelected === undefined && findSelected !== '') {
-          isNew = true;
-        } else {
-          isNew = false;
+        if (!findSelected) {
+          return true;
         }
       }
 
-      return isNew;
+      return false;
     }
   },
 
@@ -105,31 +83,25 @@ export default {
     },
 
     change() {
-      if (this.selected !== null && this.selected.metadata !== undefined) {
-        this.$emit('input', this.selected.metadata.name);
-      } else {
-        for (let i = 0; i < this.options.length; i++) {
-          if (this.selected !== null && this.selected.includes(this.options[i].id)) {
-            this.$emit('input', this.options[i].metadata.name);
-          }
-        }
+      const selectedOption = this.options.find(option => option.metadata.id === this.selected.serviceAccount);
+
+      if (selectedOption) {
+        this.$emit('input', selectedOption.metadata.name);
       }
     },
 
     blurCreate(e) {
       const searched = e;
 
-      if (searched !== undefined && searched !== '') {
+      if (searched) {
         this.selected = searched;
         this.$emit('input', searched);
       }
     },
 
     clearSearch(event) {
-      if (event.pointerId === 1) {
-        this.selected = null;
-        this.$emit('input', null);
-      }
+      this.selected = null;
+      this.$emit('input', null);
 
       event.preventDefault();
     }
