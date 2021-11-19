@@ -445,11 +445,9 @@ export default {
       const text = event.clipboardData.getData('text/plain');
       const lines = text.split('\n');
       const splits = lines.map((line) => {
-        if (line.includes(':')) {
-          return line.split(':');
-        }
+        const splitter = !line.includes(':') || ((line.indexOf('=') < line.indexOf(':')) && line.includes(':')) ? '=' : ':';
 
-        return line.split('=');
+        return line.split(splitter);
       });
 
       if (splits.length === 0 || (splits.length === 1 && splits[0].length < 2)) {
@@ -460,6 +458,7 @@ export default {
       const keyValues = splits.map(split => ({
         [this.keyName]:   (split[0] || '').trim(),
         [this.valueName]: (split[1] || '').trim(),
+        supported:        true,
         binary:           !asciiLike(split[1])
       }));
 
