@@ -33,7 +33,7 @@ export default {
       }));
     }
 
-    const canReset = !setting.disableReset && (!!this.value.default || this.value.canReset);
+    const canReset = setting.canReset || (!!this.value.default || this.value.canReset);
 
     if (this.value.value === undefined) {
       this.$set(this.value, 'value', null);
@@ -102,11 +102,7 @@ export default {
         ev.srcElement.blur();
       }
 
-      if (this.value.default) {
-        this.value.value = this.value.default;
-      } else {
-        this.value = this.value.defaultValue;
-      }
+      this.value.value = this.value.default || '';
     },
   }
 };

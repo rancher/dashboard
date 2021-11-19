@@ -5977,6 +5977,9 @@ advancedSettings:
     'harv-ui-source': Config how to load the UI source.
     'harv-ui-index': 'HTML index location for the UI.'
     'harv-cluster-registration-url': Registration URL for mutil-cluster management.
+    'harv-http-proxy': 'HTTP proxy for Harvester to access external services.'
+    'harv-additional-ca': 'Custom CA root certificates for TLS validation.'
+    'harv-overcommit-config ': 'Resource overcommit configuration.'
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:

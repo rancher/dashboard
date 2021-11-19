@@ -68,7 +68,7 @@ export const ALLOWED_SETTINGS = {
   [SETTING.KUBECONFIG_GENERATE_TOKEN]:      { kind: 'boolean' },
   [SETTING.KUBECONFIG_TOKEN_TTL_MINUTES]:   {},
   [SETTING.AUTH_USER_INFO_RESYNC_CRON]:     {},
-  [SETTING.SERVER_URL]:                     { kind: 'url' },
+  [SETTING.SERVER_URL]:                     { kind: 'url', canReset: true },
   [SETTING.RKE_METADATA_CONFIG]:            { kind: 'json' },
   // [SETTING.BANNERS]:                        { kind: 'json' },
   [SETTING.SYSTEM_DEFAULT_REGISTRY]:        {},
@@ -117,7 +117,7 @@ export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.UPGRADE_CHECKER_ENABLED]:          { kind: 'boolean' },
   [HCI_SETTING.UPGRADE_CHECKER_URL]:              { kind: 'url' },
   [HCI_SETTING.HTTP_PROXY]:                       { kind: 'json', from: 'import' },
-  [HCI_SETTING.ADDITIONAL_CA]:                    { kind: 'multiline' },
+  [HCI_SETTING.ADDITIONAL_CA]:                    { kind: 'multiline', canReset: true },
   [HCI_SETTING.OVERCOMMIT_CONFIG]:                { kind: 'json', from: 'import' },
 };
 

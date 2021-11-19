@@ -34,6 +34,17 @@ export default {
 
       this.$set(this.value, 'value', value);
     }
+  },
+
+  watch: {
+    value: {
+      handler(neu) {
+        const parseDefaultValue = JSON.parse(neu.value);
+
+        this.$set(this, 'parseDefaultValue', parseDefaultValue);
+      },
+      deep: true
+    }
   }
 };
 </script>
