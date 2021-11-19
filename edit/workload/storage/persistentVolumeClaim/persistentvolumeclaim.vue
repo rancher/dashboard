@@ -187,7 +187,14 @@ export default {
         </div>
       </div>
       <div v-if="createPV" class="col span-6">
-        <UnitInput :value="spec.resources.requests.storage" :mode="mode" :label="t('persistentVolumeClaim.capacity')" suffix="GiB" @input="updateStorage" />
+        <UnitInput
+          v-model="spec.resources.requests.storage"
+          :mode="mode"
+          :label="t('persistentVolumeClaim.capacity')"
+          :increment="1024"
+          :input-exponent="3"
+          :output-modifier="true"
+        />
       </div>
     </div>
   </div>
