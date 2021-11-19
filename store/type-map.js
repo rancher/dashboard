@@ -934,13 +934,14 @@ export const getters = {
         const labelKey = `tableHeaders.${ col.name }`;
 
         return {
-          name:  col.name.toLowerCase(),
-          label: exists(labelKey) ? t(labelKey) : col.name,
-          value: col.field.startsWith('.') ? `$${ col.field }` : col.field,
-          sort:  [col.field],
+          name:    col.name.toLowerCase(),
+          label:   exists(labelKey) ? t(labelKey) : col.name,
+          value:   col.field.startsWith('.') ? `$${ col.field }` : col.field,
+          sort:    [col.field],
           formatter,
           formatterOpts,
           width,
+          tooltip: col.description
         };
       }
     };

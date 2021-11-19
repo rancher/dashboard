@@ -1,6 +1,6 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
-import { WORKLOAD_TYPES, SCHEMA, NODE } from '@/config/types';
+import { WORKLOAD_TYPES, SCHEMA, NODE, POD } from '@/config/types';
 import Loading from '@/components/Loading';
 
 const schema = {
@@ -27,6 +27,8 @@ export default {
     } catch {}
 
     let resources;
+
+    this.loadHeathResources();
 
     if ( this.allTypes ) {
       resources = await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => {
@@ -86,6 +88,24 @@ export default {
 
       return out;
     },
+  },
+
+  methods: {
+    loadHeathResources() {
+      // Fetch these in the background to populate workload health
+      if ( this.allTypes ) {
+        this.$store.dispatch('cluster/findAll', { type: POD });
+        this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB });
+      } else {
+        const type = this.$route.params.resource;
+
+        if (type === WORKLOAD_TYPES.CRON_JOB) {
+          this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB });
+        } else {
+          this.$store.dispatch('cluster/findAll', { type: POD });
+        }
+      }
+    }
   },
 
   typeDisplay() {

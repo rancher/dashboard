@@ -397,6 +397,7 @@ export default {
   },
 
   methods: {
+
     get,
     dasherize,
 
@@ -675,7 +676,7 @@ export default {
                       :key="col.name"
                       :data-title="labelFor(col)"
                       :align="col.align || 'left'"
-                      :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter, [col.breakpoint]: !!col.breakpoint}"
+                      :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter, [col.breakpoint]: !!col.breakpoint, ['skip-select']: col.skipSelect}"
                       :width="col.width"
                     >
                       <slot :name="'cell:' + col.name" :row="row" :col="col" :value="valueFor(row,col)">
@@ -686,6 +687,7 @@ export default {
                           :row="row"
                           :col="col"
                           v-bind="col.formatterOpts"
+                          :row-key="get(row,keyField)"
                         />
                         <template v-else-if="valueFor(row,col) !== ''">
                           {{ formatValue(row,col) }}

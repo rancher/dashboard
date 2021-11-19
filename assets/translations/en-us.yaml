@@ -4183,6 +4183,7 @@ tableHeaders:
       one { Host }
       other { Hosts }
     }
+  health: Health
   id: ID
   image: Image
   imageSize: Size

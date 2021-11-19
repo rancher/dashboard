@@ -1,5 +1,6 @@
 import { CATTLE_PUBLIC_ENDPOINTS } from '@/config/labels-annotations';
 import { NODE as NODE_TYPE } from '@/config/types';
+import { COLUMN_BREAKPOINTS } from '@/components/SortableTable/index.vue';
 
 // Note: 'id' is always the last sort, so you don't have to specify it here.
 
@@ -602,7 +603,11 @@ export const WORKSPACE = {
   sort:  ['metadata.namespace', 'nameSort'],
 };
 
-export const WORKLOAD_IMAGES = { ...POD_IMAGES, value: '' };
+export const WORKLOAD_IMAGES = {
+  ...POD_IMAGES,
+  value:      '',
+  breakpoint: COLUMN_BREAKPOINTS.LAPTOP
+};
 
 export const WORKLOAD_ENDPOINTS = {
   name:        'workloadEndpoints',
@@ -610,6 +615,15 @@ export const WORKLOAD_ENDPOINTS = {
   value:       `$['metadata']['annotations']['${ CATTLE_PUBLIC_ENDPOINTS }']`,
   formatter:   'Endpoints',
   dashIfEmpty: true,
+  breakpoint:  COLUMN_BREAKPOINTS.DESKTOP
+};
+
+export const WORKLOAD_HEALTH_SCALE = {
+  name:        'workloadHealthScale',
+  labelKey:    'tableHeaders.health',
+  formatter:   'WorkloadHealthScale',
+  width:       150,
+  skipSelect:  true
 };
 
 export const FLEET_SUMMARY = {
