@@ -4962,6 +4962,9 @@ advancedSettings:
     'harv-ui-source': 配置如何加载UI资源.
     'harv-ui-index': 'UI的HTML索引。'
     'harv-cluster-registration-url': 用于多集群管理的注册URL.
+    'harv-http-proxy': '用于Harvester访问外部服务的HTTP代理。.'
+    'harv-additional-ca': '用于TLS验证的自定义CA根证书.'
+    'harv-overcommit-config ': '资源超额配置.'
   editHelp:
     'ui-banners': 这个设置需要一个JSON对象，包含3个根参数；<code>banner</code>, <code>showHeader</code>, <code>showFooter</code>。<code>banner</code>是一个包含；<code>textColor</code>, <code>background</code>, 和<code>text</code>的对象，其中<code>textColor</code>和<code>background</code>是任何有效的CSS颜色值。
   enum:
