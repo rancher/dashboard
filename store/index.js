@@ -17,6 +17,7 @@ import { SETTING } from '@/config/settings';
 import semver from 'semver';
 import { BY_TYPE, NORMAN as NORMAN_CLASS } from '@/plugins/steve/classify';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
+import { BACK_TO } from '@/config/local-storage';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -841,6 +842,12 @@ export const actions = {
     if ( route.name === 'index' ) {
       router.replace('/auth/login');
     } else {
+      const backTo = window.localStorage.getItem(BACK_TO);
+
+      if (!backTo && !route.query[LOGGED_OUT]) {
+        window.localStorage.setItem(BACK_TO, window.location.href);
+      }
+
       const QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT;
 
       router.replace(`/auth/login?${ QUERY }`);
