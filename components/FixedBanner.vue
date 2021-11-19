@@ -8,6 +8,10 @@ export default {
     footer: {
       type:    Boolean,
       default: false
+    },
+    unauthenticated: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -19,6 +23,7 @@ export default {
     return {
       showHeader:      false,
       showFooter:      false,
+      showConsent:     false,
       banner:          {},
       bannerSetting:   null
     };
@@ -37,12 +42,38 @@ export default {
       };
     },
 
+    bannerConsentStyle() {
+      const { bannerConsent } = this.banner;
+
+      return {
+        color:              bannerConsent.color,
+        'background-color': bannerConsent.background,
+        'text-align':       bannerConsent.textAlignment,
+        'font-weight':      bannerConsent.fontWeight ? 'bold' : '',
+        'font-style':       bannerConsent.fontStyle ? 'italic' : '',
+        'font-size':        bannerConsent.fontSize,
+        'text-decoration':  bannerConsent.textDecoration ? 'underline' : ''
+      };
+    },
+
     showBanner() {
       if (!this.banner.text && !this.banner.background) {
         return false;
       }
 
       return (this.showHeader && !this.footer) || (this.showFooter && this.footer);
+    },
+
+    showBannerConsent() {
+      if (!this.unauthenticated) {
+        return false;
+      }
+
+      if (this.showConsent && this.banner.bannerConsent) {
+        return (this.showConsent && !this.footer);
+      }
+
+      return false;
     }
   },
 
@@ -52,7 +83,7 @@ export default {
         try {
           const parsed = JSON.parse(neu.value);
           const {
-            bannerHeader, bannerFooter, banner, showHeader, showFooter
+            bannerHeader, bannerFooter, banner, showHeader, showFooter, showConsent
           } = parsed;
           let bannerContent = parsed?.banner || {};
 
@@ -61,6 +92,8 @@ export default {
               bannerContent = bannerFooter || {};
             } else if (showHeader) {
               bannerContent = bannerHeader || {};
+            } else if (showConsent) {
+              bannerContent.bannerConsent = bannerHeader.bannerConsent || {};
             } else {
               bannerContent = {};
             }
@@ -68,6 +101,7 @@ export default {
 
           this.showHeader = showHeader === 'true';
           this.showFooter = showFooter === 'true';
+          this.showConsent = showConsent === 'true';
           this.banner = bannerContent;
         } catch {}
       }
@@ -77,8 +111,13 @@ export default {
 </script>
 
 <template>
-  <div v-if="showBanner" class="banner" :style="bannerStyle">
-    {{ banner.text }}
+  <div>
+    <div v-if="showBanner" class="banner" :style="bannerStyle">
+      {{ banner.text }}
+    </div>
+    <div v-if="showBannerConsent" class="banner" :style="bannerConsentStyle">
+      {{ banner.bannerConsent.text }}
+    </div>
   </div>
 </template>
 

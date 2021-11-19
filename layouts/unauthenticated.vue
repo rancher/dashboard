@@ -1,19 +1,17 @@
 <script>
 import Brand from '@/mixins/brand';
 import FixedBanner from '@/components/FixedBanner';
-import ConsentBanner from '@/components/ConsentBanner';
 
 export default {
   mixins:     [Brand],
-  components: { FixedBanner, ConsentBanner }
+  components: { FixedBanner }
 };
 </script>
 
 <template>
   <main>
     <div class="dashboard-root">
-      <FixedBanner />
-      <ConsentBanner />
+      <FixedBanner :unauthenticated="true" />
       <nuxt />
       <FixedBanner :footer="true" />
     </div>
