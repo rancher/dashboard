@@ -106,9 +106,8 @@ export default {
     this.value.uniqueId = this.uniqueId;
     this.$emit('createUniqueId');
     if (this.registerBeforeHook) {
-      // Append the uniqueID to the PVC hook name so that
-      // form state for each can be deleted individually
-      this.registerBeforeHook(this.value.save, this.savePvcHookName + this.uniqueId);
+      // Append the uniqueID to the PVC hook name so that form state for each can be deleted individually
+      this.registerBeforeHook(this.value.save, this.savePvcHookName + this.uniqueId, undefined, this.value);
     }
   },
 
@@ -179,7 +178,10 @@ export default {
 
     <div class="row mb-10">
       <div class="col span-6">
-        <t class="text-label" k="persistentVolumeClaim.accessModes" />
+        <div class="access-modes">
+          <t class="text-label" k="persistentVolumeClaim.accessModes" />
+          <span class="text-error">*</span>
+        </div>
         <div class="access-modes">
           <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteOnce')" label="Single-Node Read/Write" @input="e=>updateMode('ReadWriteOnce', e)" />
           <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadOnlyMany')" label="Many-Node Read-Only" @input="e=>updateMode('ReadOnlyMany', e)" />
@@ -201,8 +203,8 @@ export default {
 </template>
 
 <style lang='scss'>
-    .access-modes {
-        display: flex;
-        flex-direction: row;
-    }
+.access-modes {
+  display: flex;
+  flex-direction: row;
+}
 </style>

@@ -100,7 +100,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div v-if="value.__newPvc">
     <div>
       <div v-if="createNew" class="bordered-section">
         <PersistentVolumeClaim
@@ -118,7 +118,6 @@ export default {
         </div>
         <div class="col span-6">
           <LabeledSelect v-if="!createNew" v-model="value.persistentVolumeClaim.claimName" :mode="mode" :label="t('workload.storage.subtypes.persistentVolumeClaim')" :options="pvcs" />
-          <LabeledInput v-else-if="pvc" :mode="mode" disabled :label="t('workload.storage.subtypes.persistentVolumeClaim')" :value="pvc.metadata.name" />
         </div>
       </div>
       <div class="row">

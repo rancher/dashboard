@@ -225,7 +225,10 @@ export default {
         </div>
       </Tab>
       <Tab name="customize" :label="t('persistentVolumeClaim.customize.label')" :weight="3">
-        <h3>Access Modes</h3>
+        <div class="access">
+          <h3>{{ t('persistentVolumeClaim.accessModes') }}</h3>
+          <span class="text-error">*</span>
+        </div>
         <div><Checkbox v-model="readWriteOnce" :label="t('persistentVolumeClaim.customize.accessModes.readWriteOnce')" :mode="mode" /></div>
         <div><Checkbox v-model="readOnlyMany" :label="t('persistentVolumeClaim.customize.accessModes.readOnlyMany')" :mode="mode" /></div>
         <div><Checkbox v-model="readWriteMany" :label="t('persistentVolumeClaim.customize.accessModes.readWriteMany')" :mode="mode" /></div>
@@ -236,3 +239,10 @@ export default {
     </ResourceTabs>
   </CruResource>
 </template>
+
+<style lang='scss' scoped>
+.access {
+  display: flex;
+  flex-direction: row;
+}
+</style>

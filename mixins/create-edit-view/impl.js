@@ -199,7 +199,8 @@ export default {
         } else {
           this.errors = exceptionToErrorsArray(err);
         }
-
+        // Provide a stack trace for easier debugging of save errors
+        console.error('CreateEditView mixin failed to save: ', err); // eslint-disable-line no-console
         buttonDone && buttonDone(false);
       }
     },
