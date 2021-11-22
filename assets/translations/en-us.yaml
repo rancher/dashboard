@@ -5081,7 +5081,6 @@ harvester:
   validation:
     custom:
       tooLongName: '"Name" cannot be more than {max} characters.'
-      cidr: 'CIRD is invalid.'
     vm:
       name: 'name is required'
       memory: '"Memory" is required!'
@@ -5509,6 +5508,14 @@ harvester:
     healthCheckTimeout:
       label: Health Check Timeout
   
+  vip:
+    namespace:
+      label: Namespace
+    cidr:
+      label: CIDR
+      invalid: '"CIRD" is invalid.'
+    add:
+      label: Add IP Pools
 ##############################
 # Model Properties
 ##############################
@@ -5980,6 +5987,7 @@ advancedSettings:
     'harv-http-proxy': 'HTTP proxy for Harvester to access external services.'
     'harv-additional-ca': 'Custom CA root certificates for TLS validation.'
     'harv-overcommit-config ': 'Resource overcommit configuration.'
+    'harv-vip-pools': 'Config global or namespace IP address pools of the VIP by CIDR'
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:

@@ -4200,7 +4200,6 @@ harvester:
   validation:
     custom:
       tooLongName: '"名称" 不能超过 {max} 个字符'
-      cidr: '非法的CIRD'
     vm:
       name: '"名称" 是必填项'
       memory: '"内存" 是必填项'
@@ -4583,6 +4582,14 @@ harvester:
       label: 健康检查周期
     healthCheckTimeout:
       label: 健康检查超时
+    
+  vip:
+    namespace:
+      label: 命名空间
+    cidr:
+      invalid: '"CIRD" 不合法.'
+    add:
+      label: 添加IP池
 ##############################
 # Model Properties
 ##############################
@@ -4965,6 +4972,7 @@ advancedSettings:
     'harv-http-proxy': '用于Harvester访问外部服务的HTTP代理。.'
     'harv-additional-ca': '用于TLS验证的自定义CA根证书.'
     'harv-overcommit-config ': '资源超额配置.'
+    'harv-vip-pools': '按CIDR配置VIP全局和命名空间的IP地址池.'
   editHelp:
     'ui-banners': 这个设置需要一个JSON对象，包含3个根参数；<code>banner</code>, <code>showHeader</code>, <code>showFooter</code>。<code>banner</code>是一个包含；<code>textColor</code>, <code>background</code>, 和<code>text</code>的对象，其中<code>textColor</code>和<code>background</code>是任何有效的CSS颜色值。
   enum:

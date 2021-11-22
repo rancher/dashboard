@@ -102,6 +102,7 @@ export const HCI_SETTING = {
   OVERCOMMIT_CONFIG:                'overcommit-config',
   CLUSTER_REGISTRATION_URL:         'cluster-registration-url',
   // DEFAULT_STORAGE_CLASS:            'default-storage-class'
+  VIP:                              'vip-pools',
 };
 
 export const HCI_ALLOWED_SETTINGS = {
@@ -119,6 +120,9 @@ export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.HTTP_PROXY]:                       { kind: 'json', from: 'import' },
   [HCI_SETTING.ADDITIONAL_CA]:                    { kind: 'multiline', canReset: true },
   [HCI_SETTING.OVERCOMMIT_CONFIG]:                { kind: 'json', from: 'import' },
+  [HCI_SETTING.VIP]:                     {
+    kind: 'json', from: 'import', canReset: true
+  },
 };
 
 export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
