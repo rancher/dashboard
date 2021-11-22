@@ -82,7 +82,10 @@ locale:
 nav:
   backToRancher: Cluster Manager
   clusterTools: Cluster Tools
-  kubeconfig: Download KubeConfig
+  kubeconfig:
+    download: Download KubeConfig
+    copy: Copy KubeConfig to Clipboard
+    options: KubeConfig Options
   import: Import YAML
   home: Home
   shell: Kubectl Shell
@@ -928,6 +931,7 @@ cluster:
       note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the Add-On Config tab.'
     harvester:
       label: Harvester
+  copyConfig: Copy Config to Clipboard
   custom:
     nodeRole:
       label: Node Role
