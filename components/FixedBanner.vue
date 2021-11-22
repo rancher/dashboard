@@ -97,10 +97,8 @@ export default {
 </script>
 
 <template>
-  <div>
-    <div v-if="showBanner" class="banner" :style="bannerStyle">
-      {{ banner.text }}
-    </div>
+  <div v-if="showBanner" class="banner" :style="bannerStyle">
+    {{ banner.text }}
   </div>
 </template>
 
