@@ -1635,7 +1635,7 @@ export default {
               v-model="value"
               class="mt-20"
               :mode="mode"
-              :register-before-hook="registerBeforeHook"
+              :cluster-register-before-hook="registerBeforeHook"
             />
           </template>
         </Tab>
