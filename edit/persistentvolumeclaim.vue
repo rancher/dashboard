@@ -104,14 +104,6 @@ export default {
         this.checkboxSetter('ReadWriteMany', value);
       }
     },
-    capacity: {
-      get() {
-        return this.value.spec.resources.requests.storage;
-      },
-      set(value) {
-        this.$set(this.value.spec.resources.requests, 'storage', `${ value || 1 }Gi`);
-      }
-    },
     persistentVolume: {
       get() {
         return this.value.spec.volumeName;
@@ -206,10 +198,12 @@ export default {
             <div class="row">
               <div class="col span-12 mt-10">
                 <UnitInput
-                  v-model="capacity"
+                  v-model="value.spec.resources.requests.storage"
                   :label="t('persistentVolumeClaim.volumeClaim.requestStorage')"
-                  :suffix="'GiB'"
                   :mode="mode"
+                  :input-exponent="3"
+                  :output-modifier="true"
+                  :increment="1024"
                   :min="1"
                 />
               </div>
