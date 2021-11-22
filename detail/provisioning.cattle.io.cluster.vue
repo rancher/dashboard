@@ -402,7 +402,6 @@ export default {
       if ( this.logSocket ) {
         await this.logSocket.disconnect();
         this.logSocket = null;
-        this.logs = [];
       }
 
       const params = {
@@ -415,8 +414,9 @@ export default {
 
       url = addParams(url.replace(/^http/, 'ws'), params);
 
-      this.socket = new Socket(url, false, 0);
+      this.socket = new Socket(url, true, 0);
       this.socket.addEventListener(EVENT_CONNECTED, (e) => {
+        this.logs = [];
         this.logOpen = true;
       });
 
