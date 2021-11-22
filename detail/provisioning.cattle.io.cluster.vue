@@ -414,22 +414,22 @@ export default {
 
       url = addParams(url.replace(/^http/, 'ws'), params);
 
-      this.socket = new Socket(url, true, 0);
-      this.socket.addEventListener(EVENT_CONNECTED, (e) => {
+      this.logSocket = new Socket(url, true, 0);
+      this.logSocket.addEventListener(EVENT_CONNECTED, (e) => {
         this.logs = [];
         this.logOpen = true;
       });
 
-      this.socket.addEventListener(EVENT_DISCONNECTED, (e) => {
+      this.logSocket.addEventListener(EVENT_DISCONNECTED, (e) => {
         this.logOpen = false;
       });
 
-      this.socket.addEventListener(EVENT_CONNECT_ERROR, (e) => {
+      this.logSocket.addEventListener(EVENT_CONNECT_ERROR, (e) => {
         this.logOpen = false;
         console.error('Connect Error', e); // eslint-disable-line no-console
       });
 
-      this.socket.addEventListener(EVENT_MESSAGE, (e) => {
+      this.logSocket.addEventListener(EVENT_MESSAGE, (e) => {
         const line = base64Decode(e.detail.data);
 
         let msg = line;
@@ -455,7 +455,7 @@ export default {
         });
       });
 
-      this.socket.connect();
+      this.logSocket.connect();
     },
 
     format(time) {
