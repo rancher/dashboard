@@ -43,11 +43,12 @@ export const MACHINE_ROLES = {
 };
 
 export const CAPI = {
-  DEPLOYMENT_NAME:   'cluster.x-k8s.io/deployment-name',
-  CREDENTIAL_DRIVER: 'provisioning.cattle.io/driver',
-  CLUSTER_NAMESPACE: 'cluster.x-k8s.io/cluster-namespace',
-  MACHINE_NAME:      'cluster.x-k8s.io/machine',
-  PROVIDER:          'provider.cattle.io'
+  DEPLOYMENT_NAME:      'cluster.x-k8s.io/deployment-name',
+  CREDENTIAL_DRIVER:    'provisioning.cattle.io/driver',
+  CLUSTER_NAMESPACE:    'cluster.x-k8s.io/cluster-namespace',
+  FORCE_MACHINE_REMOVE: 'provisioning.cattle.io/force-machine-remove',
+  MACHINE_NAME:         'cluster.x-k8s.io/machine',
+  PROVIDER:             'provider.cattle.io'
 };
 
 export const CATALOG = {

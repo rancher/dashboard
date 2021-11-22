@@ -28,7 +28,7 @@ export default class CapiMachine extends SteveModel {
       action:     'toggleForceRemoveModal',
       altAction:  'forceMachineRemove',
       enabled:    !!this.isRemoveForceable,
-      label:      'Force Delete',
+      label:      this.t('node.actions.forceDelete'),
       icon:       'icon icon-trash',
     };
 
@@ -68,7 +68,7 @@ export default class CapiMachine extends SteveModel {
   async forceMachineRemove() {
     const machine = await this.machineRef();
 
-    machine.setAnnotation('provisioning.cattle.io/force-machine-remove', 'true');
+    machine.setAnnotation(CAPI_LABELS.FORCE_MACHINE_REMOVE, 'true');
     await machine.save();
   }
 

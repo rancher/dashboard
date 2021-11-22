@@ -2792,6 +2792,7 @@ node:
     downloadSSHKey: Download SSH Key
     downloadNodeConfig: Download Keys
     scaleDown: Scale Down
+    forceDelete: Force Delete
 
 persistentVolume:
   pluginConfiguration:
