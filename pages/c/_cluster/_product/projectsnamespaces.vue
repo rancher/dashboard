@@ -78,7 +78,9 @@ export default {
       return this.projects.filter(project => project.spec.clusterName === clusterId);
     },
     projectsWithoutNamespaces() {
-      return this.clusterProjects.filter(project => !!this.projectIdsWithNamespaces.find(item => item.endsWith(`/${ project.id }`)));
+      return this.clusterProjects.filter((project) => {
+        return !this.projectIdsWithNamespaces.find(item => project?.id?.endsWith(`/${ item }`));
+      });
     },
     // We're using this because we need to show projects as groups even if the project doesn't have any namespaces.
     rowsWithFakeNamespaces() {
