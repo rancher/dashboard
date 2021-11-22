@@ -269,7 +269,7 @@ export default {
 
         <button
           v-if="showKubeConfig"
-          v-tooltip="t('nav.kubeconfig')"
+          v-tooltip="t('nav.kubeconfig.download')"
           :disabled="!kubeConfigEnabled"
           type="button"
           class="btn header-btn role-tertiary"
