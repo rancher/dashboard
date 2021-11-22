@@ -1,12 +1,12 @@
+import { _EDIT, _YAML, AS, MODE } from '@/config/query-params';
 import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
 import { classify } from '@/plugins/steve/classify';
+import SteveModel from '@/plugins/steve/steve-class';
 import { findBy, insertAt } from '@/utils/array';
-import { set, get } from '@/utils/object';
+import { get, set } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { compare } from '@/utils/version';
-import { AS, MODE, _EDIT, _YAML } from '@/config/query-params';
-import SteveModel from '@/plugins/steve/steve-class';
 
 export const DEFAULT_WORKSPACE = 'fleet-default';
 
@@ -59,6 +59,8 @@ export default class ProvCluster extends SteveModel {
       }
     }
 
+    const canSnapshot = (this.isRke2 && this.mgmt?.isReady && this.canUpdate) || (this.isRke1 && this.mgmt?.hasAction('backupEtcd') && this.mgmt?.isReady);
+
     insertAt(out, idx++, {
       action:     'openShell',
       label:      this.$rootGetters['i18n/t']('nav.shell'),
@@ -72,7 +74,7 @@ export default class ProvCluster extends SteveModel {
       label:      this.$rootGetters['i18n/t']('nav.kubeconfig'),
       icon:       'icon icon-download',
       bulkable:   true,
-      enabled:    this.$rootGetters['isRancher'] && this.mgmt?.isReady,
+      enabled:    this.mgmt?.hasAction('generateKubeconfig') && this.mgmt?.isReady,
     });
 
     insertAt(out, idx++, {
@@ -81,7 +83,7 @@ export default class ProvCluster extends SteveModel {
       icon:       'icon icon-snapshot',
       bulkAction: 'snapshotBulk',
       bulkable:   true,
-      enabled:    (this.isRke1 || this.isRke2) && this.mgmt?.isReady && this.canUpdate,
+      enabled:    canSnapshot,
     });
 
     insertAt(out, idx++, {
@@ -89,7 +91,6 @@ export default class ProvCluster extends SteveModel {
       label:      'Rotate Certificates',
       icon:       'icon icon-backup',
       enabled:    this.mgmt?.hasAction('rotateCertificates') && this.mgmt?.isReady,
-
     });
 
     insertAt(out, idx++, {

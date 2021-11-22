@@ -53,7 +53,7 @@ export default class MgmtCluster extends HybridModel {
       label:      'Download KubeConfig',
       icon:       'icon icon-download',
       bulkable:   true,
-      enabled:    this.$rootGetters['isRancher'],
+      enabled:    this.$rootGetters['isRancher'] && this.hasAction('generateKubeconfig'),
     });
 
     insertAt(out, 2, {
