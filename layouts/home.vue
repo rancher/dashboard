@@ -35,7 +35,7 @@ export default {
 
 <template>
   <div class="dashboard-root">
-    <FixedBanner />
+    <FixedBanner :header="true" />
     <div class="dashboard-content">
       <Header :simple="true" />
 

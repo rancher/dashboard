@@ -5,14 +5,18 @@ import isEmpty from 'lodash/isEmpty';
 
 export default {
   props: {
+    header: {
+      type:    Boolean,
+      default: false
+    },
+    consent: {
+      type:    Boolean,
+      default: false
+    },
     footer: {
       type:    Boolean,
       default: false
     },
-    unauthenticated: {
-      type:    Boolean,
-      default: false
-    }
   },
 
   async fetch() {
@@ -42,38 +46,20 @@ export default {
       };
     },
 
-    bannerConsentStyle() {
-      const { bannerConsent } = this.banner;
-
-      return {
-        color:              bannerConsent.color,
-        'background-color': bannerConsent.background,
-        'text-align':       bannerConsent.textAlignment,
-        'font-weight':      bannerConsent.fontWeight ? 'bold' : '',
-        'font-style':       bannerConsent.fontStyle ? 'italic' : '',
-        'font-size':        bannerConsent.fontSize,
-        'text-decoration':  bannerConsent.textDecoration ? 'underline' : ''
-      };
-    },
-
     showBanner() {
       if (!this.banner.text && !this.banner.background) {
         return false;
       }
 
-      return (this.showHeader && !this.footer) || (this.showFooter && this.footer);
-    },
-
-    showBannerConsent() {
-      if (!this.unauthenticated) {
-        return false;
+      if (this.header) {
+        return this.showHeader;
+      } else if (this.consent) {
+        return this.showConsent;
+      } else if (this.footer) {
+        return this.showFooter;
       }
 
-      if (this.showConsent && this.banner.bannerConsent) {
-        return (this.showConsent && !this.footer);
-      }
-
-      return false;
+      return null;
     }
   },
 
@@ -83,17 +69,17 @@ export default {
         try {
           const parsed = JSON.parse(neu.value);
           const {
-            bannerHeader, bannerFooter, banner, showHeader, showFooter, showConsent
+            bannerHeader, bannerFooter, bannerConsent, banner, showHeader, showFooter, showConsent
           } = parsed;
           let bannerContent = parsed?.banner || {};
 
           if (isEmpty(banner)) {
-            if (showFooter && this.footer) {
-              bannerContent = bannerFooter || {};
-            } else if (showHeader) {
+            if (showHeader && this.header) {
               bannerContent = bannerHeader || {};
-            } else if (showConsent) {
-              bannerContent.bannerConsent = bannerHeader.bannerConsent || {};
+            } else if (showConsent && this.consent) {
+              bannerContent = bannerConsent || {};
+            } else if (showFooter && this.footer) {
+              bannerContent = bannerFooter || {};
             } else {
               bannerContent = {};
             }
@@ -114,9 +100,6 @@ export default {
   <div>
     <div v-if="showBanner" class="banner" :style="bannerStyle">
       {{ banner.text }}
-    </div>
-    <div v-if="showBannerConsent" class="banner" :style="bannerConsentStyle">
-      {{ banner.bannerConsent.text }}
     </div>
   </div>
 </template>

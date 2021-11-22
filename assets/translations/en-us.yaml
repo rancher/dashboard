@@ -6031,7 +6031,7 @@ branding:
     background: Background Color
     showHeader: Show Banner in Header
     showFooter: Show Banner in Footer
-    showConsent: Show Banner on Login Screen
+    showConsent: Show Consent Banner on Login Screen
     bannerAlignment:
       label: Text Alignment
       leftOption: Left

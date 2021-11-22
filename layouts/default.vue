@@ -526,7 +526,7 @@ export default {
 
 <template>
   <div class="dashboard-root">
-    <FixedBanner />
+    <FixedBanner :header="true" />
 
     <div v-if="managementReady" class="dashboard-content">
       <Header />

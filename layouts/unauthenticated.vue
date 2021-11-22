@@ -11,7 +11,8 @@ export default {
 <template>
   <main>
     <div class="dashboard-root">
-      <FixedBanner :unauthenticated="true" />
+      <FixedBanner :header="true" />
+      <FixedBanner :consent="true" />
       <nuxt />
       <FixedBanner :footer="true" />
     </div>

@@ -26,11 +26,10 @@ export default ({
   },
 
   data() {
-    const { bannerType } = this;
-
-    const banner = bannerType !== 'bannerConsent' ? this.value[bannerType] : this.value.bannerHeader[bannerType];
-
-    return { banner, uiBannerFontSizeOptions: ['10px', '12px', '14px', '16px', '18px', '20px'] };
+    return {
+      banner:                  this.value[this.bannerType],
+      uiBannerFontSizeOptions: ['10px', '12px', '14px', '16px', '18px', '20px']
+    };
   },
 
   computed: {
