@@ -91,7 +91,7 @@ export default {
         const isHarvester = s.data?.type?.includes('harvesterhci');
 
         if (s.kind === 'json') {
-          s.json = JSON.stringify(JSON.parse(s.data.value || s.data.default), null, 2);
+          s.json = JSON.stringify(JSON.parse(s.data.value || s.data.default || '{}'), null, 2);
         } else if (s.kind === 'enum') {
           const v = s.data.value || s.data.default;
 

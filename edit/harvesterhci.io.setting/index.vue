@@ -138,6 +138,8 @@ export default {
           :is="customComponent"
           v-if="hasCustomComponent"
           v-model="value"
+          :register-before-hook="registerBeforeHook"
+          :mode="mode"
         />
       </div>
       <div v-else-if="setting.kind === 'enum'">
