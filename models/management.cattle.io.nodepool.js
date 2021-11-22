@@ -46,8 +46,8 @@ export default class MgmtNodePool extends HybridModel {
   }
 
   scalePool(delta) {
-    this.normanPool.quantity += delta;
-    this.normanPool.save();
+    this.norman.quantity += delta;
+    this.norman.save();
   }
 
   get nodes() {
@@ -89,9 +89,21 @@ export default class MgmtNodePool extends HybridModel {
     return sortBy(out, 'sort:desc');
   }
 
-  get normanPool() {
+  get norman() {
     const id = this.id.replace('/', ':');
 
     return this.$rootGetters['rancher/byId'](NORMAN.NODE_POOL, id);
+  }
+
+  get canDelete() {
+    return this.norman?.hasLink('remove');
+  }
+
+  get canUpdate() {
+    return this.norman?.hasLink('update');
+  }
+
+  remove() {
+    return this.norman?.remove();
   }
 }
