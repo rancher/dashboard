@@ -26,10 +26,7 @@ export default ({
   },
 
   data() {
-    return {
-      banner:                  this.value[this.bannerType],
-      uiBannerFontSizeOptions: ['10px', '12px', '14px', '16px', '18px', '20px']
-    };
+    return { uiBannerFontSizeOptions: ['10px', '12px', '14px', '16px', '18px', '20px'] };
   },
 
   computed: {
@@ -71,11 +68,11 @@ export default ({
     <div class="col span-12">
       <div class="row">
         <div class="col span-6">
-          <LabeledInput v-model="banner.text" :label="t('branding.uiBanner.text')" />
+          <LabeledInput v-model="value[bannerType].text" :label="t('branding.uiBanner.text')" />
         </div>
         <div class="col span-2">
           <RadioGroup
-            v-model="banner.textAlignment"
+            v-model="value[bannerType].textAlignment"
             name="bannerAlignment"
             :label="t('branding.uiBanner.bannerAlignment.label')"
             :options="radioOptions.options"
@@ -89,18 +86,17 @@ export default ({
           </h3>
           <div v-for="o in textDecorationOptions" :key="o.style">
             <Checkbox
-              v-model="banner[o.style]"
+              v-model="value[bannerType][o.style]"
               name="bannerDecoration"
               class="banner-decoration-checkbox"
               :mode="mode"
               :label="o.label"
-              @input="e=>$set(value, o.style, e.toString())"
             />
           </div>
         </div>
         <div class="col span-2">
           <LabeledSelect
-            v-model="banner.fontSize"
+            v-model="value[bannerType].fontSize"
             :label="t('branding.uiBanner.bannerFontSize.label')"
             :options="uiBannerFontSizeOptions"
           />
@@ -108,10 +104,10 @@ export default ({
       </div>
       <div class="row mt-10">
         <div class="col span-6">
-          <ColorInput v-model="banner.color" :label="t('branding.uiBanner.textColor')" />
+          <ColorInput v-model="value[bannerType].color" :label="t('branding.uiBanner.textColor')" />
         </div>
         <div class="col span-6">
-          <ColorInput v-model="banner.background" :label="t('branding.uiBanner.background')" />
+          <ColorInput v-model="value[bannerType].background" :label="t('branding.uiBanner.background')" />
         </div>
       </div>
     </div>
