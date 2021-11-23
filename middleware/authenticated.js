@@ -210,13 +210,14 @@ export default async function({
       }
     }
   }
+  if (!process.server) {
+    const backTo = window.localStorage.getItem(BACK_TO);
 
-  const backTo = window.localStorage.getItem(BACK_TO);
+    if (backTo) {
+      window.localStorage.removeItem(BACK_TO);
 
-  if (backTo) {
-    window.localStorage.removeItem(BACK_TO);
-
-    window.location.href = backTo;
+      window.location.href = backTo;
+    }
   }
 
   // Load stuff

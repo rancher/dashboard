@@ -842,10 +842,12 @@ export const actions = {
     if ( route.name === 'index' ) {
       router.replace('/auth/login');
     } else {
-      const backTo = window.localStorage.getItem(BACK_TO);
+      if (!process.server) {
+        const backTo = window.localStorage.getItem(BACK_TO);
 
-      if (!backTo && !route.query[LOGGED_OUT]) {
-        window.localStorage.setItem(BACK_TO, window.location.href);
+        if (!backTo && !route.query[LOGGED_OUT]) {
+          window.localStorage.setItem(BACK_TO, window.location.href);
+        }
       }
 
       const QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT;
