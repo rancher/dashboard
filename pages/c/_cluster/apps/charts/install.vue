@@ -104,8 +104,8 @@ export default {
       this.forceNamespace = null;
     }
 
-    this.legacyApp = await this.existing.deployedAsLegacy();
-    this.mcapp = await this.existing.deployedAsMultiCluster();
+    this.legacyApp = this.existing ? await this.existing.deployedAsLegacy() : false;
+    this.mcapp = this.existing ? await this.existing.deployedAsMultiCluster() : false;
 
     this.value = await this.$store.dispatch('cluster/create', {
       type:     'chartInstallAction',
@@ -512,25 +512,19 @@ export default {
       return this.features(LEGACY);
     },
 
-    legacyFeaturePath() {
-      const path = {
+    legacyFeatureRoute() {
+      return {
         name:   'c-cluster-product-resource',
         params: { product: 'settings', resource: 'management.cattle.io.feature' }
       };
-
-      return this.$router.resolve(path).href;
     },
 
-    legacyAppPath() {
-      const path = { name: 'c-cluster-legacy-project' };
-
-      return this.$router.resolve(path).href;
+    legacyAppRoute() {
+      return { name: 'c-cluster-legacy-project' };
     },
 
-    mcmPath() {
-      const path = { name: 'c-cluster-mcapps' };
-
-      return this.$router.resolve(path).href;
+    mcmRoute() {
+      return { name: 'c-cluster-mcapps' };
     }
   },
 
@@ -1345,13 +1339,18 @@ export default {
 
       <Banner color="warning" class="description">
         <span>
-          {{ t('catalog.install.error.legacy.label', { legacyType: legacyApp ? legacyDefs.legacy : legacyDefs.mcm }, true) }}
+          {{ t('catalog.install.error.legacy.label', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true) }}
         </span>
         <template v-if="!legacyEnabled">
-          <span v-html="t('catalog.install.error.legacy.enableLegacy', { target: legacyFeaturePath }, true)" />
+          <span v-html="t('catalog.install.error.legacy.enableLegacy.prompt', true)" />
+          <nuxt-link :to="legacyFeatureRoute">
+            {{ t('catalog.install.error.legacy.enableLegacy.goto') }}
+          </nuxt-link>
         </template>
         <template v-else>
-          <span v-html="t('catalog.install.error.legacy.navigate', { target: legacyApp ? legacyAppPath : mcmPath, legacyType: legacyApp ? legacyDefs.legacy : legacyDefs.mcm }, true)" />
+          <nuxt-link :to="mcapp ? mcmRoute : legacyAppRoute">
+            <span v-html="t('catalog.install.error.legacy.navigate', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true)" />
+          </nuxt-link>
         </template>
       </Banner>
     </div>

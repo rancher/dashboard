@@ -698,9 +698,11 @@ catalog:
       insufficientCpu: 'This chart requires {need, number} CPU cores, but the cluster only has {have, number} available.'
       insufficientMemory: 'This chart requires {need} of memory, but the cluster only has {have} available.'
       legacy:
-        label: This is a {legacyType} App and it cannot be modified here.
-        enableLegacy: You will need to enable <a href="{target}">Legacy Features</a> to edit this App.
-        navigate: Navigate to <a href="{target}">{legacyType} Apps</a>
+        label: This is a {legacyType} App and it cannot be modified here
+        enableLegacy:
+          prompt: You will need to enable Legacy Features to edit this App
+          goto: Go to Feature Flag settings
+        navigate: Navigate to {legacyType} Apps
         category:
           legacy: Legacy
           mcm: Multi-cluster
