@@ -99,6 +99,11 @@ export default {
       } else {
         const type = this.$route.params.resource;
 
+        if (type === WORKLOAD_TYPES.JOB) {
+          // Ignore job (we're fetching this anyway, plus they contain their own state)
+          return;
+        }
+
         if (type === WORKLOAD_TYPES.CRON_JOB) {
           this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB });
         } else {

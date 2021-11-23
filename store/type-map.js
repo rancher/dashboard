@@ -932,6 +932,8 @@ export const getters = {
         const exists = rootGetters['i18n/exists'];
         const t = rootGetters['i18n/t'];
         const labelKey = `tableHeaders.${ col.name }`;
+        const description = col.description || '';
+        const tooltip = description && description[description.length - 1] === '.' ? description.slice(0, -1) : description;
 
         return {
           name:    col.name.toLowerCase(),
@@ -941,7 +943,7 @@ export const getters = {
           formatter,
           formatterOpts,
           width,
-          tooltip: col.description
+          tooltip
         };
       }
     };

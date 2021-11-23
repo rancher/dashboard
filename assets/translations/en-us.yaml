@@ -4721,6 +4721,8 @@ workload:
       label: Successful Job History Limit
       tip: The number of successful finished jobs to retain.
     suspend: Suspend
+  list:
+    errorCannotScale: Failed to scale {workloadName} {direction, select, up { up } down { down } }
   metrics:
     pod: Pod Metrics
     metricsView: Metrics View

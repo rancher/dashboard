@@ -67,13 +67,26 @@ export default {
     },
 
     async scaleDown() {
-      Vue.set(this, 'disabled', true);
-      await this.row.scaleDown();
-      Vue.set(this, 'disabled', false);
+      await this.scale(false);
     },
     async scaleUp() {
+      await this.scale(true);
+    },
+    async scale(isUp) {
       Vue.set(this, 'disabled', true);
-      await this.row.scaleUp();
+      try {
+        if (isUp) {
+          await this.row.scaleUp();
+        } else {
+          await this.row.scaleDown();
+        }
+      } catch (err) {
+        this.$store.dispatch('growl/fromError', {
+          title: this.t('workload.list.errorCannotScale', { direction: isUp ? 'up' : 'down', workloadName: this.row.name }),
+          err
+        },
+        { root: true });
+      }
       Vue.set(this, 'disabled', false);
     },
 
