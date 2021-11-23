@@ -5,7 +5,8 @@ import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
 import Labels from '@/components/form/Labels';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import ResourceQuota from '@/components/form/ResourceQuota';
+import ResourceQuota from '@/components/form/ResourceQuota/Project';
+import { HARVESTER_TYPES, RANCHER_TYPES } from '@/components/form/ResourceQuota/shared';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -15,29 +16,6 @@ import { PROJECT_ID } from '@/config/query-params';
 import ProjectMembershipEditor from '@/components/form/Members/ProjectMembershipEditor';
 import { canViewProjectMembershipEditor } from '@/components/form/Members/ProjectMembershipEditor.vue';
 import { NAME as HARVESTER } from '@/config/product/harvester';
-
-const HARVESTER_TYPES = [
-  {
-    key:      'limitsCpu',
-    units:    'cpu',
-    labelKey: 'resourceQuota.limitsCpu'
-  },
-  {
-    key:      'limitsMemory',
-    units:    'memory',
-    labelKey: 'resourceQuota.limitsMemory'
-  },
-  {
-    key:      'requestsCpu',
-    units:    'cpu',
-    labelKey: 'resourceQuota.requestsCpu'
-  },
-  {
-    key:      'requestsMemory',
-    units:    'memory',
-    labelKey: 'resourceQuota.requestsMemory'
-  },
-];
 
 export default {
   components: {
@@ -69,7 +47,8 @@ export default {
       saveBindings:       null,
       membershipHasOwner:         false,
       membershipUpdate:   {},
-      HARVESTER_TYPES
+      HARVESTER_TYPES,
+      RANCHER_TYPES
     };
   },
   computed: {
@@ -211,7 +190,7 @@ export default {
         <ProjectMembershipEditor :mode="mode" :parent-id="value.id" @has-owner-changed="onHasOwnerChanged" @membership-update="onMembershipUpdate" />
       </Tab>
       <Tab name="resource-quotas" :label="t('project.resourceQuotas')" :weight="9">
-        <ResourceQuota v-model="value" :mode="mode" :type-override="isHarvester ? HARVESTER_TYPES : []" />
+        <ResourceQuota v-model="value" :mode="mode" :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES" />
       </Tab>
       <Tab name="container-default-resource-limit" :label="resourceQuotaLabel" :weight="8">
         <ContainerResourceLimit v-model="value.spec.containerDefaultResourceLimit" :mode="mode" :show-tip="false" :register-before-hook="registerBeforeHook" />
