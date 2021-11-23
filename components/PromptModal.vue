@@ -21,10 +21,18 @@ export default {
       return resources || [];
     },
 
+    modalWidth() {
+      // property set from workload.js to overwrite modal default width of 600px, with fallback value as well
+      return this.modalData?.modalWidth || '600px';
+    },
     component() {
       // Looks for a dialog component by looking up @/components/dialog/${name}.
       return importDialog(this.modalData?.component);
     },
+    cssProps() {
+      // this computed property lets us generate scss vars that we can use in the style
+      return { '--custom-width': `${ this.modalWidth }` };
+    }
   },
 
   watch: {
@@ -56,7 +64,7 @@ export default {
   <modal
     class="promptModal-modal"
     name="promptModal"
-    styles="background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 100vh;"
+    :styles="`background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 95vh; maxWidth: ${modalWidth}` "
     height="auto"
     :scrollable="true"
     @closed="close()"
@@ -72,6 +80,12 @@ export default {
     max-height: 100vh;
     & ::-webkit-scrollbar-corner {
       background: rgba(0,0,0,0);
+    }
+    // using a css var appears to be the only way with our implementation of the vue-js-modal library
+    & .v--modal-box.v--modal {
+      width: var(--custom-width) !important;
+      left: unset !important;
+      margin: auto !important
     }
   }
 </style>

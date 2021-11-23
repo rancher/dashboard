@@ -87,7 +87,8 @@ export default class Workload extends SteveModel {
   toggleRollbackModal( resources = this ) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'RollbackWorkloadDialog'
+      component:  'RollbackWorkloadDialog',
+      modalWidth: '85%'
     });
   }
 
