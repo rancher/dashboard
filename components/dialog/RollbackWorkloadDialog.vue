@@ -199,7 +199,6 @@ export default {
         class="mt-10 "
         :editor-mode="editorMode"
         :as-object="true"
-        :hide-preview-buttons="true"
       />
     </div>
     <div slot="actions" class="buttons ">
