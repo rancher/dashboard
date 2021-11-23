@@ -713,7 +713,6 @@ export default class VirtVm extends SteveModel {
         nullable:       false,
         path:           'spec.template.spec.domain.cpu.cores',
         min:            1,
-        max:            100,
         required:       true,
         translationKey: 'harvester.fields.cpu',
       },
