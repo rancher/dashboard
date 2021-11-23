@@ -790,6 +790,7 @@ catalog:
     gitBranch:
       label: Git Branch
       placeholder: e.g. master
+      defaultMessage: 'Will default to "master" if left blank'
     gitRepo:
       label: Git Repo URL
       placeholder: 'e.g. https://github.com/your-company/charts.git'
