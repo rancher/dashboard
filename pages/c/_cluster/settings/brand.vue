@@ -186,7 +186,7 @@ export default {
           neu = {
             bannerHeader:  { ...cloned },
             bannerFooter:  { ...cloned },
-            bannerConsent: { ...cloned },
+            bannerConsent: { ...DEFAULT_BANNER_SETTING.bannerConsent },
             showHeader:    parsedBanner?.showHeader === 'true' ? 'true' : 'false',
             showFooter:    parsedBanner?.showFooter === 'true' ? 'true' : 'false',
             showConsent:   parsedBanner?.showConsent === 'true' ? 'true' : 'false'
@@ -194,6 +194,11 @@ export default {
         }
 
         return neu;
+      }
+
+      // If user has existing banners, they may not have consent banner - use default value
+      if (isEmpty(bannerConsent)) {
+        parsedBanner.bannerConsent = { ...DEFAULT_BANNER_SETTING.bannerConsent };
       }
 
       return parsedBanner;
@@ -405,7 +410,7 @@ export default {
         <BannerSettings v-if="bannerVal.showHeader === 'true'" v-model="bannerVal" banner-type="bannerHeader" :mode="mode" />
 
         <!-- Footer settings -->
-        <div class="row">
+        <div class="row mt-20 mb-20">
           <div class="col span-6">
             <Checkbox :value="bannerVal.showFooter === 'true'" :label="t('branding.uiBanner.showFooter')" :mode="mode" @input="e=>$set(bannerVal, 'showFooter', e.toString())" />
           </div>
