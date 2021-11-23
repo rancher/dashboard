@@ -127,7 +127,7 @@ export default {
       <div class="col span-5">
         <div
           :class="{ 'select-after': !selectBeforeText }"
-          class="servicename-select input-container container-flex"
+          class="input-container container-flex"
         >
           <LabeledSelect
             v-model="selected"
@@ -168,92 +168,5 @@ export default {
 .clear-btn {
   align-self: center;
   height: 30px;
-}
-
-.input-container {
-  display: flex;
-
-  &.select-after {
-    height: 100%;
-    flex-direction: row-reverse;
-
-    & .input-string {
-      border-radius: var(--border-radius) 0 0 var(--border-radius);
-      border-right: 0;
-      border-left: 1px solid var(--border);
-    }
-
-    & .in-input {
-      border-radius: 0 var(--border-radius) var(--border-radius) 0;
-      border-left: 0;
-      border-right: 1px solid var(--border);
-
-      &.labeled-select {
-        .selected {
-          color: var(--input-text);
-          text-align: center;
-          margin-right: 1em;
-        }
-      }
-
-    }
-  }
-
-  & .input-string {
-    padding-right: 0;
-    height: 100%;
-    width: 60%;
-    flex-grow: 1;
-    border-radius: var(--border-radius);
-    margin-left: -1px;
-    position: relative;
-    display: table;
-    border-collapse: separate;
-  }
-
-  & .in-input {
-    margin-right: 0;
-
-    &.labeled-select.focused ::v-deep,
-    &.unlabeled-select.focused ::v-deep {
-      outline: none;
-    }
-
-    &.labeled-select ::v-deep,
-    &.unlabeled-select ::v-deep {
-      box-shadow: none;
-      width: 100%;
-      border: solid 1px var(--input-border);
-      margin-right: 1px; // push the input box right so the full focus outline of the select can be seen, z-index borks
-      // position: relative;
-
-      .vs__selected {
-        color: var(--input-text);
-      }
-
-      .vs__dropdown-menu {
-        box-shadow: none;
-        .vs__dropdown-option {
-          padding: 3px 5px;
-        }
-      }
-
-      .vs__dropdown-toggle {
-        color: var(--primary) !important;
-        border-radius: var(--border-radius) 0 0 var(--border-radius);
-      }
-    }
-  }
-}
-
-.servicename-select ::v-deep {
-  .labeled-select {
-    min-width: 40%;
-    .v-select.inline {
-      &.vs--single {
-        padding-bottom: 2px;
-      }
-    }
-  }
 }
 </style>
