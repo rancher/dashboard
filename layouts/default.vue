@@ -166,6 +166,7 @@ export default {
 
       return { name: `c-cluster-${ product }-support` };
     },
+
   },
 
   watch: {
@@ -195,7 +196,6 @@ export default {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
-        this.wantNavSync = true;
       }
     },
 
@@ -210,7 +210,6 @@ export default {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
-        this.wantNavSync = true;
       }
     },
 
@@ -252,11 +251,9 @@ export default {
     },
 
     $route(a, b) {
-      if (this.wantNavSync && !isEqual(a, b)) {
-        this.wantNavSync = false;
-        this.$nextTick(() => this.syncNav());
-      }
-    }
+      this.$nextTick(() => this.syncNav());
+    },
+
   },
 
   async created() {

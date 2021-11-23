@@ -1,4 +1,3 @@
-import { _EDIT, _YAML, AS, MODE } from '@/config/query-params';
 import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
 import { classify } from '@/plugins/steve/classify';
 import SteveModel from '@/plugins/steve/steve-class';
@@ -7,6 +6,7 @@ import { get, set } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { compare } from '@/utils/version';
+import { AS, MODE, _VIEW, _YAML } from '@/config/query-params';
 
 export const DEFAULT_WORKSPACE = 'fleet-default';
 
@@ -112,7 +112,7 @@ export default class ProvCluster extends SteveModel {
     return out;
   }
 
-  goToEditYaml() {
+  goToViewYaml() {
     let location;
 
     if ( !this.isRke2 ) {
@@ -125,11 +125,19 @@ export default class ProvCluster extends SteveModel {
 
     location.query = {
       ...location.query,
-      [MODE]: _EDIT,
+      [MODE]: _VIEW,
       [AS]:   _YAML
     };
 
     this.currentRouter().push(location);
+  }
+
+  get canEditYaml() {
+    if (!this.isRke2) {
+      return false;
+    }
+
+    return super.canEditYaml;
   }
 
   get isImported() {
