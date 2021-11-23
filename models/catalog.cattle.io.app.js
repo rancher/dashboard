@@ -215,13 +215,7 @@ export default class CatalogApp extends SteveModel {
       const mcapps = await this.$dispatch('management/findAll', { type: MANAGEMENT.MULTI_CLUSTER_APP }, { root: true });
 
       if (mcapps) {
-        for (let i = 0 ; i < mcapps.length ; i++) {
-          const res = mcapps[i].spec?.targets?.find(target => target.appName === this.metadata?.name);
-
-          if (res) {
-            return res;
-          }
-        }
+        return mcapps.find(mcapp => mcapp.spec.targets.find(target => target.appName === this.metadata?.name));
       }
 
       return null;
