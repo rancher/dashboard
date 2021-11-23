@@ -5,6 +5,7 @@ import Card from '@/components/Card';
 import { exceptionToErrorsArray } from '@/utils/error';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Banner from '@/components/Banner';
+import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import { WORKLOAD_TYPES } from '@/config/types';
 import { diffFrom } from '@/utils/time';
 import { mapGetters } from 'vuex';
@@ -14,7 +15,8 @@ export default {
     Card,
     AsyncButton,
     LabeledSelect,
-    Banner
+    Banner,
+    YamlEditor,
   },
   props:      {
     resources: {
@@ -74,6 +76,9 @@ export default {
       ];
 
       return body;
+    },
+    selectedRevisionId() {
+      return this.selectedRevision.id;
     }
   },
   fetch() {
