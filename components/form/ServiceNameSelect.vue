@@ -1,9 +1,11 @@
 <script>
 import labeledFormElement from '@/mixins/labeled-form-element';
-import LabeledSearchSelect from '@/components/form/LabeledSearchSelect';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import Banner from '@/components/Banner';
+import { _VIEW } from '@/config/query-params';
+
 export default {
-  components: { LabeledSearchSelect, Banner },
+  components: { LabeledSelect, Banner },
 
   mixins: [labeledFormElement],
 
@@ -12,37 +14,18 @@ export default {
       type:    Boolean,
       default: false,
     },
-
-    searchable: {
-      type:    Boolean,
-      default: true,
-    },
-
-    taggable: {
-      type:    Boolean,
-      default: true,
-    },
-
-    selectLabel: {
+    mode: {
       type:    String,
-      default: '',
+      default: 'create'
     },
-
     optionLabel: {
       type:    String,
       default: 'label',
     },
-
     options: {
       type:     Array,
       required: true,
     },
-
-    selectBeforeText: {
-      type:    Boolean,
-      default: true,
-    },
-
     reduce: {
       default: (e) => {
         if (e && typeof e === 'object' && e.value !== undefined) {
@@ -53,15 +36,35 @@ export default {
       },
       type: Function
     },
+    searchable: {
+      type:    Boolean,
+      default: true,
+    },
+    selectLabel: {
+      type:    String,
+      default: null,
+    },
+    selectBeforeText: {
+      type:    Boolean,
+      default: true,
+    },
+    taggable: {
+      type:    Boolean,
+      default: true,
+    },
   },
 
   data() {
-    return { selected: this.value || null };
+    return { selected: this.value };
   },
 
   computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
+
     serviceNameNew() {
-      if (this.value !== null) {
+      if (this.selected && this.selected !== '') {
         const findSelected = this.options.find(option => this.value === option.metadata.name);
 
         if (!findSelected) {
@@ -74,6 +77,33 @@ export default {
   },
 
   methods: {
+    changeSelected() {
+      const selectString = this.selected.toString();
+
+      const selectedOption = this.options.find((option) => {
+        const optString = `[${ option.type }: ${ option.id }]`;
+
+        if (optString === selectString) {
+          return option;
+        }
+
+        return null;
+      });
+
+      if (selectedOption) {
+        this.$emit('input', selectedOption.metadata.name);
+      } else {
+        this.$emit('input', null);
+      }
+    },
+
+    clearSearch(event) {
+      this.selected = '';
+      this.$emit('input', null);
+
+      event.preventDefault();
+    },
+
     focus() {
       const comp = this.$refs.text;
 
@@ -81,30 +111,6 @@ export default {
         comp.focus();
       }
     },
-
-    change() {
-      const selectedOption = this.options.find(option => option.metadata.id === this.selected.serviceAccount);
-
-      if (selectedOption) {
-        this.$emit('input', selectedOption.metadata.name);
-      }
-    },
-
-    blurCreate(e) {
-      const searched = e;
-
-      if (searched) {
-        this.selected = searched;
-        this.$emit('input', searched);
-      }
-    },
-
-    clearSearch(event) {
-      this.selected = null;
-      this.$emit('input', null);
-
-      event.preventDefault();
-    }
   },
 };
 </script>
@@ -122,10 +128,8 @@ export default {
         <div
           :class="{ 'select-after': !selectBeforeText }"
           class="servicename-select input-container container-flex"
-          @input="change"
         >
-          <LabeledSearchSelect
-            v-if="selectLabel"
+          <LabeledSelect
             v-model="selected"
             :label="selectLabel"
             :class="{ 'in-input': !isView }"
@@ -141,12 +145,11 @@ export default {
             :option-label="optionLabel"
             :placement="$attrs.placement ? $attrs.placement : null"
             :v-bind="$attrs"
-            @input="change"
-            @blur-create="blurCreate"
+            @input="changeSelected"
           />
         </div>
       </div>
-      <button class="btn btn-sm clear-btn role-secondary col span-1" @click="clearSearch($event);">
+      <button :disabled="isView" type="button" class="btn role-secondary" @click="clearSearch($event);">
         {{ t('generic.clear') }}
       </button>
     </div>
@@ -154,7 +157,7 @@ export default {
       <div class="row span-6">
         <Banner
           color="info"
-          v-html="t('workload.serviceAccountName.createMessage', {name: selected}) "
+          v-html="t('workload.serviceAccountName.createMessage', { name: selected }) "
         ></Banner>
       </div>
     </template>

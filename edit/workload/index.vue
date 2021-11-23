@@ -376,7 +376,7 @@ export default {
     },
 
     namespacedServiceNames() {
-      const namespace = this.value?.metadata?.namespace;
+      const { namespace } = this.value?.metadata;
 
       if (namespace) {
         return this.sas.filter(
