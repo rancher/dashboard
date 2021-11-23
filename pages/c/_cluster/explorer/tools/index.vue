@@ -240,10 +240,11 @@ export default {
         v1.app = v1App;
 
         if (v2) {
-          if (v2.app) {
+          if (v1.app) {
+            v2.app = undefined;
+            v2.blocked = true;
+          } else if (v2.app) {
             v1.blocked = true;
-          } else {
-            v2.blocked = !!v1App;
           }
         }
       }
