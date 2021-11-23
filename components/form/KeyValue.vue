@@ -570,7 +570,7 @@ export default {
               :class="{'conceal': valueConcealed}"
               :mode="mode"
               :placeholder="valuePlaceholder"
-              :min-height="61"
+              :min-height="40"
               :spellcheck="false"
               @input="queueUpdate"
             />
@@ -673,7 +673,8 @@ export default {
   }
 
   input {
-    height: $input-height;
+    height: 40px;
+    line-height: 1;
   }
 
   .footer {
