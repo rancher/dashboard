@@ -23,6 +23,13 @@ import { NAME as VIRTUAL } from '@/config/product/harvester';
 export const strict = false;
 
 export const BLANK_CLUSTER = '_';
+export const ALL = 'all';
+export const ALL_SYSTEM = 'all://system';
+export const ALL_USER = 'all://user';
+export const ALL_ORPHANS = 'all://orphans';
+export const NAMESPACED_PREFIX = 'namespaced://';
+export const NAMESPACED_YES = 'namespaced://true';
+export const NAMESPACED_NO = 'namespaced://false';
 
 export const plugins = [
   Steve({
@@ -178,7 +185,7 @@ export const getters = {
       return true;
     }
 
-    return state.namespaceFilters.filter(x => !`${ x }`.startsWith('namespaced://')).length === 0;
+    return state.namespaceFilters.filter(x => !`${ x }`.startsWith(NAMESPACED_PREFIX)).length === 0;
   },
 
   isMultipleNamespaces(state, getters) {
@@ -206,7 +213,7 @@ export const getters = {
   },
 
   namespaceFilters(state) {
-    const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith('namespaced://'));
+    const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
 
     return filters;
   },
@@ -220,9 +227,9 @@ export const getters = {
     }
 
     // Explicitly asking
-    if ( filters.includes('namespaced://true') ) {
+    if ( filters.includes(NAMESPACED_YES) ) {
       return NAMESPACED;
-    } else if ( filters.includes('namespaced://false') ) {
+    } else if ( filters.includes(NAMESPACED_NO) ) {
       return CLUSTER_LEVEL;
     }
 
@@ -263,11 +270,11 @@ export const getters = {
       }
 
       const namespaces = getters[`${ inStore }/all`](NAMESPACE);
-      const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith('namespaced://'));
+      const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
       const includeAll = getters.isAllNamespaces;
-      const includeSystem = filters.includes('all://system');
-      const includeUser = filters.includes('all://user');
-      const includeOrphans = filters.includes('all://orphans');
+      const includeSystem = filters.includes(ALL_SYSTEM);
+      const includeUser = filters.includes(ALL_USER);
+      const includeOrphans = filters.includes(ALL_ORPHANS);
 
       // Special cases to pull in all the user, system, or orphaned namespaces
       if ( includeAll || includeOrphans || includeSystem || includeUser ) {
@@ -672,8 +679,10 @@ export const actions = {
 
     await dispatch('cleanNamespaces');
 
+    const filters = getters['prefs/get'](NAMESPACE_FILTERS)?.[id];
+
     commit('updateNamespaces', {
-      filters: getters['prefs/get'](NAMESPACE_FILTERS)?.[id] || [],
+      filters: filters || [ALL_USER],
       all:     res.namespaces
     });
 
