@@ -173,6 +173,15 @@ export default {
       default: false
     },
 
+    overflowX: {
+      type:    Boolean,
+      default: false
+    },
+    overflowY: {
+      type:    Boolean,
+      default: false
+    },
+
     /**
      * If pagination of the data is enabled or not
      */
@@ -391,7 +400,9 @@ export default {
     classObject() {
       return {
         'top-divider':     this.topDivider,
-        'body-dividers':   this.bodyDividers
+        'body-dividers':   this.bodyDividers,
+        'overflow-y':      this.overflowY,
+        'overflow-x':      this.overflowX,
       };
     }
   },
@@ -832,6 +843,13 @@ $spacing: 10px;
   overflow: hidden;
   background: var(--sortable-table-bg);
   border-radius: 4px;
+
+  &.overflow-x {
+    overflow-x: visible;
+  }
+  &.overflow-y {
+    overflow-y: visible;
+  }
 
   td {
     padding: 8px 5px;

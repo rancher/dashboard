@@ -128,5 +128,5 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <ResourceTable v-else :schema="schema" :rows="rows" />
+  <ResourceTable v-else :schema="schema" :rows="rows" :overflow-y="true" />
 </template>

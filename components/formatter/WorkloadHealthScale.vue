@@ -101,11 +101,16 @@ export default {
 
   watch: {
     expanded(neu) {
+      // If the drop down content appears outside of the window then move it to be above the trigger
+      // Do this is three steps
+      // expanded: false & expanded-checked = false - Content does not appear in DOM
+      // expanded: true & expanded-checked = false - Content appears in DOM (so it's location can be calcualated to be in or out of an area) but isn't visible (user doesn't see content blip from below to above trigger)
+      // expanded: true & expanded-checked = true - Content appears in DOM and is visible (it's final location is known so user can see)
       setTimeout(() => { // There be beasts without this (classes don't get applied... so drop down never gets shown)
         const dropdown = document.getElementById(this.id);
 
         if (!neu) {
-          dropdown.classList.remove('viewported');
+          dropdown.classList.remove('expanded-checked');
 
           return;
         }
@@ -119,18 +124,14 @@ export default {
           bottom:  window.innerHeight || document.documentElement.clientHeight,
         });
 
-        // Ensure drop down will be inside the table, otherwise the table will overflow:hidden it
-        const table = document.getElementsByClassName('sortable-table')[0];
-        const insideTable = this.insideBounds(bounding, table.getBoundingClientRect());
-
-        if (insideWindow && insideTable) {
-          dropdown.classList.remove('out-of-view-port');
+        if (insideWindow) {
+          dropdown.classList.remove('out-of-view');
         } else {
-          dropdown.classList.add('out-of-view-port');
+          dropdown.classList.add('out-of-view');
         }
 
         // This will trigger the actual display of the drop down (after we've calculated if it goes below or above trigger)
-        dropdown.classList.add('viewported');
+        dropdown.classList.add('expanded-checked');
       });
     }
   }
@@ -158,7 +159,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 
 $height: 30px;
 $width: 150px;
@@ -198,7 +199,7 @@ $width: 150px;
   }
 
   &__content {
-    z-index: 20;
+    z-index: 14;
     width: $width;
 
     border: solid thin var(--sortable-table-top-divider);
@@ -207,15 +208,19 @@ $width: 150px;
     position: absolute;
     margin-top: -1px;
 
+    display: none;
     visibility: hidden;
-    &.viewported {
+    &.expanded {
+      display: inline;
+    }
+    &.expanded-checked {
       visibility: visible;
     }
 
-    &.out-of-view-port {
+    &.out-of-view {
       // Flip to show drop down above trigger
       bottom: 0;
-      margin-bottom: $height;
+      margin-bottom: $height - 1px;
     }
 
     & > div {
