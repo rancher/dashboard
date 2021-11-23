@@ -803,7 +803,7 @@ export const actions = {
     const clusters = await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
     const filters = getters['prefs/get'](NAMESPACE_FILTERS);
 
-    if (!filters || !filters.length) {
+    if ( !filters ) {
       dispatch('prefs/set', {
         key:   NAMESPACE_FILTERS,
         value: { }
