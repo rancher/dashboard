@@ -123,32 +123,26 @@ export default {
         {{ t('workload.serviceAccountName.label') }}
       </h3>
     </div>
-    <div class="row">
-      <div class="col span-5">
-        <div
-          :class="{ 'select-after': !selectBeforeText }"
-          class="input-container container-flex"
-        >
-          <LabeledSelect
-            v-model="selected"
-            :label="selectLabel"
-            :class="{ 'in-input': !isView }"
-            :options="options"
-            :searchable="true"
-            :clearable="true"
-            :disabled="disabled || isView"
-            :taggable="taggable"
-            :create-option="(name) => (name)"
-            :reduce="(name) => `${name}`"
-            :multiple="false"
-            :mode="mode"
-            :option-label="optionLabel"
-            :placement="$attrs.placement ? $attrs.placement : null"
-            :v-bind="$attrs"
-            @input="changeSelected"
-          />
-        </div>
-      </div>
+    <div class="row span-6">
+      <LabeledSelect
+        v-model="selected"
+        :label="selectLabel"
+        class="mr-10"
+        :class="{ 'in-input': !isView }"
+        :options="options"
+        :searchable="true"
+        :clearable="true"
+        :disabled="disabled || isView"
+        :taggable="taggable"
+        :create-option="(name) => (name)"
+        :reduce="(name) => `${name}`"
+        :multiple="false"
+        :mode="mode"
+        :option-label="optionLabel"
+        :placement="$attrs.placement ? $attrs.placement : null"
+        :v-bind="$attrs"
+        @input="changeSelected"
+      />
       <button :disabled="isView" type="button" class="btn role-secondary" @click="clearSearch($event);">
         {{ t('generic.clear') }}
       </button>
@@ -163,10 +157,3 @@ export default {
     </template>
   </div>
 </template>
-
-<style lang='scss' scoped>
-.clear-btn {
-  align-self: center;
-  height: 30px;
-}
-</style>
