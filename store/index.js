@@ -800,7 +800,8 @@ export const actions = {
 
   async cleanNamespaces({ getters, dispatch }) {
     // Initialise / Remove any filters that the user no-longer has access to
-    const clusters = await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+    await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }); // So they can be got byId below
+
     const filters = getters['prefs/get'](NAMESPACE_FILTERS);
 
     if ( !filters ) {
@@ -814,11 +815,11 @@ export const actions = {
 
     const cleanFilters = {};
 
-    Object.entries(filters).forEach(([clusterId, pref]) => {
-      if (clusters.find(c => c.id === clusterId)) {
-        cleanFilters[clusterId] = pref;
+    for ( const id in filters ) {
+      if ( getters['management/byId'](MANAGEMENT.CLUSTER, id) ) {
+        cleanFilters[id] = filters[id];
       }
-    });
+    }
 
     if (Object.keys(filters).length !== Object.keys(cleanFilters).length) {
       console.debug('Unknown clusters have been removed from namespace filters list (before/after)', filters, cleanFilters); // eslint-disable-line no-console
