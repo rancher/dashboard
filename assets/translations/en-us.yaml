@@ -3625,6 +3625,7 @@ resourceYaml:
     continue: Continue Editing
     edit: Edit YAML
     diff: Show Diff
+    hideDiff: Hide Diff
     unified: Unified
     split: Split
 
