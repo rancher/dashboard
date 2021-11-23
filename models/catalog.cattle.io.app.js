@@ -215,7 +215,7 @@ export default {
       const mcapps = await this.$dispatch('management/findAll', { type: MANAGEMENT.MULTI_CLUSTER_APP }, { root: true });
 
       if (mcapps) {
-        return mcapps.find(mcapp => mcapp.spec.targets.find(target => target.appName === this.metadata?.name));
+        return mcapps.find(mcapp => mcapp.spec?.targets?.find(target => target.appName === this.metadata?.name));
       }
 
       return null;
