@@ -158,6 +158,14 @@ export default {
     getOptionLabel(option) {
       return option.label;
     },
+    sizeDialog() {
+      const dialogs = document.getElementsByClassName('v--modal');
+      const width = this.showDiff ? '85%' : '600px';
+
+      if (dialogs.length === 1) {
+        dialogs[0].style.setProperty('--prompt-modal-width', width);
+      }
+    }
   }
 };
 </script>
@@ -199,9 +207,9 @@ export default {
         <button
           :disabled="!selectedRevision"
           class="btn role-secondary diff"
-          @click="showDiff = !showDiff"
+          @click="showDiff = !showDiff; sizeDialog()"
         >
-          {{ t('resourceYaml.buttons.diff') }}
+          {{ showDiff ? t('resourceYaml.buttons.hideDiff') : t('resourceYaml.buttons.diff') }}
         </button>
       </div>
       <div class="right">

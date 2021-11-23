@@ -30,8 +30,8 @@ export default {
       return importDialog(this.modalData?.component);
     },
     cssProps() {
-      // this computed property lets us generate scss vars that we can use in the style
-      return { '--custom-width': `${ this.modalWidth }` };
+      // this computed property lets us generate a scss var that we can use in the style
+      return `--prompt-modal-width: ${ this.modalWidth }`;
     }
   },
 
@@ -64,7 +64,7 @@ export default {
   <modal
     class="promptModal-modal"
     name="promptModal"
-    :styles="`background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 95vh; maxWidth: ${modalWidth}` "
+    :styles="`background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 95vh; ${cssProps}`"
     height="auto"
     :scrollable="true"
     @closed="close()"
@@ -81,9 +81,8 @@ export default {
     & ::-webkit-scrollbar-corner {
       background: rgba(0,0,0,0);
     }
-    // using a css var appears to be the only way with our implementation of the vue-js-modal library
     & .v--modal-box.v--modal {
-      width: var(--custom-width) !important;
+      width: var(--prompt-modal-width) !important;
       left: unset !important;
       margin: auto !important
     }
