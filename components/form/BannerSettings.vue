@@ -26,7 +26,13 @@ export default ({
   },
 
   data() {
-    return { uiBannerFontSizeOptions: ['10px', '12px', '14px', '16px', '18px', '20px'] };
+    return {
+      uiBannerFontSizeOptions: ['10px', '12px', '14px', '16px', '18px', '20px'],
+      themeVars:               {
+        bannerHeader: { textColor: getComputedStyle(document.body).getPropertyValue('--header-text-color') },
+        bannerFooter: { textColor: getComputedStyle(document.body).getPropertyValue('--footer-text-color') }
+      }
+    };
   },
 
   computed: {
@@ -104,7 +110,7 @@ export default ({
       </div>
       <div class="row mt-10">
         <div class="col span-6">
-          <ColorInput v-model="value[bannerType].color" :label="t('branding.uiBanner.textColor')" />
+          <ColorInput v-model="value[bannerType].color" :default-value="themeVars[bannerType].textColor" :label="t('branding.uiBanner.textColor')" />
         </div>
         <div class="col span-6">
           <ColorInput v-model="value[bannerType].background" :label="t('branding.uiBanner.background')" />
