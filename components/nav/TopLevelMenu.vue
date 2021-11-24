@@ -211,7 +211,7 @@ export default {
         <div class="title">
           <div class="menu-spacer"></div>
           <div class="side-menu-logo">
-            <BrandImage file-name="rancher-logo.svg" />
+            <BrandImage file-name="rancher-logo.svg" alt="Rancher Logo" />
           </div>
         </div>
         <div class="body">
@@ -246,11 +246,11 @@ export default {
                   :to="{ name: 'c-cluster', params: { cluster: c.id } }"
                 >
                   <RancherProviderIcon v-if="c.isLocal" width="24" class="rancher-provider-icon" />
-                  <img v-else :src="c.logo" />
+                  <img v-else :src="c.logo" :alt="altText" />
                   <div>{{ c.label }}</div>
                 </nuxt-link>
                 <span v-else class="option-disabled cluster selector disabled">
-                  <img :src="c.logo" />
+                  <img :src="c.logo" :alt="altText" />
                   <div>{{ c.label }}</div>
                 </span>
               </div>

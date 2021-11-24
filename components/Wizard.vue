@@ -238,7 +238,7 @@ export default {
               <!-- Logo -->
               <slot name="bannerTitleImage">
                 <div v-if="bannerImage" class="round-image">
-                  <LazyImage :src="bannerImage" class="logo" />
+                  <LazyImage :src="bannerImage" class="logo" alt="Logo" />
                 </div>
               </slot>
               <!-- Title with subtext -->

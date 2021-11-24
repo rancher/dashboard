@@ -94,7 +94,7 @@ export default {
       <div class="name-logo-install">
         <div class="name-logo">
           <div class="logo-bg">
-            <LazyImage :src="chart.icon" class="logo" />
+            <LazyImage :src="chart.icon" class="logo" alt="chart logo" />
           </div>
           <h1>
             <nuxt-link :to="{ name: 'c-cluster-apps-charts' }">

@@ -360,7 +360,7 @@ export default {
         </template>
       </div>
 
-      <BrandImage class="col span-6 landscape" file-name="login-landscape.svg" />
+      <BrandImage class="col span-6 landscape" file-name="login-landscape.svg" alt="Login landscape image" />
     </div>
   </main>
 </template>

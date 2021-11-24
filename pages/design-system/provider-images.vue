@@ -25,90 +25,90 @@ export default {
     <h2>Full Color Logos</h2>
     <div class="row">
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/aliyunecs.svg" />
+        <img class="" src="~/assets/images/providers/aliyunecs.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/amazonec2.svg" />
+        <img class="" src="~/assets/images/providers/amazonec2.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/amazoneks.svg" />
+        <img class="" src="~/assets/images/providers/amazoneks.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/azureaks.svg" />
+        <img class="" src="~/assets/images/providers/azureaks.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/digitalocean.svg" />
+        <img class="" src="~/assets/images/providers/digitalocean.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/equinix.svg" />
+        <img class="" src="~/assets/images/providers/equinix.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/googlegke.svg" />
+        <img class="" src="~/assets/images/providers/googlegke.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/k3s.svg" />
+        <img class="" src="~/assets/images/providers/k3s.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/kubernetes.svg" />
+        <img class="" src="~/assets/images/providers/kubernetes.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/linodelke.svg" />
+        <img class="" src="~/assets/images/providers/linodelke.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/minikube.svg" />
+        <img class="" src="~/assets/images/providers/minikube.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/otc.svg" />
+        <img class="" src="~/assets/images/providers/otc.svg" alt="altText" />
       </div>
     </div>
     <div class="row">
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/oracleoke.svg" />
+        <img class="" src="~/assets/images/providers/oracleoke.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/packet.svg" />
+        <img class="" src="~/assets/images/providers/packet.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/rackspace.svg" />
+        <img class="" src="~/assets/images/providers/rackspace.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/tencenttke.svg" />
+        <img class="" src="~/assets/images/providers/tencenttke.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/vmwarevsphere.svg" />
+        <img class="" src="~/assets/images/providers/vmwarevsphere.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/aliyun.svg" />
+        <img class="" src="~/assets/images/providers/aliyun.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/baidu.svg" />
+        <img class="" src="~/assets/images/providers/baidu.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/cloudca.svg" />
+        <img class="" src="~/assets/images/providers/cloudca.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/cloudscale.svg" />
+        <img class="" src="~/assets/images/providers/cloudscale.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/huaweicce.svg" />
+        <img class="" src="~/assets/images/providers/huaweicce.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/oci.svg" />
+        <img class="" src="~/assets/images/providers/oci.svg" alt="altText" />
       </div>
     </div>
 
     <div class="row">
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/openstack.svg" />
+        <img class="" src="~/assets/images/providers/openstack.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/otc.svg" />
+        <img class="" src="~/assets/images/providers/otc.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/pinganyunecs.svg" />
+        <img class="" src="~/assets/images/providers/pinganyunecs.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/pnap.svg" />
+        <img class="" src="~/assets/images/providers/pnap.svg" alt="altText" />
       </div>
     </div>
 
@@ -116,90 +116,90 @@ export default {
     <h2>Single Color Logos</h2>
     <div class="row">
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/aliyunecs-black.svg" />
+        <img class="" src="~/assets/images/providers/aliyunecs-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/amazonec2-black.svg" />
+        <img class="" src="~/assets/images/providers/amazonec2-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/amazoneks-black.svg" />
+        <img class="" src="~/assets/images/providers/amazoneks-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/azureaks-black.svg" />
+        <img class="" src="~/assets/images/providers/azureaks-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/digitalocean-black.svg" />
+        <img class="" src="~/assets/images/providers/digitalocean-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/equinix-black.svg" />
+        <img class="" src="~/assets/images/providers/equinix-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/googlegke-black.svg" />
+        <img class="" src="~/assets/images/providers/googlegke-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/k3s-black.svg" />
+        <img class="" src="~/assets/images/providers/k3s-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/kubernetes-black.svg" />
+        <img class="" src="~/assets/images/providers/kubernetes-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/linodelke-black.svg" />
+        <img class="" src="~/assets/images/providers/linodelke-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/minikube-black.svg" />
+        <img class="" src="~/assets/images/providers/minikube-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/otc-black.svg" />
+        <img class="" src="~/assets/images/providers/otc-black.svg" alt="altText" />
       </div>
     </div>
     <div class="row">
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/oracleoke-black.svg" />
+        <img class="" src="~/assets/images/providers/oracleoke-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/packet-black.svg" />
+        <img class="" src="~/assets/images/providers/packet-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/rackspace-black.svg" />
+        <img class="" src="~/assets/images/providers/rackspace-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/tencenttke-black.svg" />
+        <img class="" src="~/assets/images/providers/tencenttke-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/vmwarevsphere-black.svg" />
+        <img class="" src="~/assets/images/providers/vmwarevsphere-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/aliyun-black.svg" />
+        <img class="" src="~/assets/images/providers/aliyun-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/baidu-black.svg" />
+        <img class="" src="~/assets/images/providers/baidu-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/cloudca-black.svg" />
+        <img class="" src="~/assets/images/providers/cloudca-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/cloudscale-black.svg" />
+        <img class="" src="~/assets/images/providers/cloudscale-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/huaweicce-black.svg" />
+        <img class="" src="~/assets/images/providers/huaweicce-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/oci-black.svg" />
+        <img class="" src="~/assets/images/providers/oci-black.svg" alt="altText" />
       </div>
     </div>
 
     <div class="row">
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/openstack-black.svg" />
+        <img class="" src="~/assets/images/providers/openstack-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/otc-black.svg" />
+        <img class="" src="~/assets/images/providers/otc-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/pinganyunecs-black.svg" />
+        <img class="" src="~/assets/images/providers/pinganyunecs-black.svg" alt="altText" />
       </div>
       <div class="col span-1">
-        <img class="" src="~/assets/images/providers/pnap-black.svg" />
+        <img class="" src="~/assets/images/providers/pnap-black.svg" alt="altText" />
       </div>
     </div>
 
@@ -207,57 +207,57 @@ export default {
       <h2>Inverted with CSS - Single Color Logos</h2>
       <div class="row">
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/aliyunecs-black.svg" />
+          <img class="" src="~/assets/images/providers/aliyunecs-black.svg" alt="altText" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/amazonec2-black.svg" />
+          <img class="" src="~/assets/images/providers/amazonec2-black.svg" alt="altText" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/amazoneks-black.svg" />
+          <img class="" src="~/assets/images/providers/amazoneks-black.svg" alt="altText" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/azureaks-black.svg" />
+          <img class="" src="~/assets/images/providers/azureaks-black.svg" alt="altText" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/digitalocean-black.svg" />
+          <img class="" src="~/assets/images/providers/digitalocean-black.svg" alt="altText" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/equinix-black.svg" />
+          <img class="" src="~/assets/images/providers/equinix-black.svg" alt="altText" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/googlegke-black.svg" />
+          <img class="" src="~/assets/images/providers/googlegke-black.svg" alt="altText" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/k3s-black.svg" />
+          <img class="" src="~/assets/images/providers/k3s-black.svg" alt="altText" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/kubernetes-black.svg" />
+          <img class="" src="~/assets/images/providers/kubernetes-black.svg" alt="altText" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/linodelke-black.svg" />
+          <img class="" src="~/assets/images/providers/linodelke-black.svg" alt="altText" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/minikube-black.svg" />
+          <img class="" src="~/assets/images/providers/minikube-black.svg" alt="altText" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/otc-black.svg" />
+          <img class="" src="~/assets/images/providers/otc-black.svg" alt="altText" />
         </div>
       </div>
       <div class="row">
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/oracleoke-black.svg" />
+          <img class="" src="~/assets/images/providers/oracleoke-black.svg" alt="altText" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/packet-black.svg" />
+          <img class="" src="~/assets/images/providers/packet-black.svg" alt="altText" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/rackspace-black.svg" />
+          <img class="" src="~/assets/images/providers/rackspace-black.svg" alt="altText" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/tencenttke-black.svg" />
+          <img class="" src="~/assets/images/providers/tencenttke-black.svg" alt="altText" />
         </div>
         <div class="col span-1">
-          <img class="" src="~/assets/images/providers/vmwarevsphere-black.svg" />
+          <img class="" src="~/assets/images/providers/vmwarevsphere-black.svg" alt="altText" />
         </div>
       </div>
     </div>

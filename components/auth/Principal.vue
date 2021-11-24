@@ -66,7 +66,7 @@ export default {
 
     <template v-else-if="principal">
       <div class="avatar">
-        <img :src="principal.avatarSrc" :class="{'round': principal.roundAvatar}" />
+        <img :src="principal.avatarSrc" :class="{'round': principal.roundAvatar}" :alt="altText" />
       </div>
       <div v-if="showLabels" class="name">
         <table>

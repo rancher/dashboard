@@ -80,7 +80,7 @@ export default {
           @click="launchKiali"
         >
           <div class="link-logo">
-            <img :src="kialiLogo" />
+            <img :src="kialiLogo" alt="Kiali Logo" />
           </div>
           <div class="link-content">
             <a
@@ -110,7 +110,7 @@ export default {
           @click="$refs.jaeger.click()"
         >
           <div class="link-logo">
-            <img :src="jaegerLogo" />
+            <img :src="jaegerLogo" alt="Jaeger Logo" />
           </div>
           <div class="link-content">
             <a

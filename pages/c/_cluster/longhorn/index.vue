@@ -53,7 +53,7 @@ export default {
       <div v-for="fel in externalLinks" :key="fel.label" class="link-container">
         <a :href="fel.link" target="_blank" rel="noopener noreferrer">
           <div class="link-logo">
-            <LazyImage :src="fel.iconSrc" />
+            <LazyImage :src="fel.iconSrc" alt="longhorn logo" />
           </div>
           <div class="link-content">
             <t :k="fel.label" />

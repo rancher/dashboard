@@ -188,6 +188,7 @@ export default {
         <img
           class="side-menu-logo"
           src="~/assets/images/providers/harvester.svg"
+          alt="altText"
         />
       </n-link>
     </div>
@@ -198,12 +199,12 @@ export default {
         </div>
         <template v-else>
           <RancherProviderIcon v-if="currentCluster && currentCluster.isLocal" class="mr-10 cluster-local-logo" width="25" />
-          <img v-else-if="currentCluster && currentCluster.providerNavLogo" class="cluster-os-logo" :src="currentCluster.providerNavLogo" />
+          <img v-else-if="currentCluster && currentCluster.providerNavLogo" class="cluster-os-logo" :src="currentCluster.providerNavLogo" :alt="altText" />
           <div v-if="currentCluster" ref="clusterName" class="cluster-name">
             {{ currentCluster.spec.displayName }}
           </div>
           <div v-else class="simple-title">
-            <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
+            <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" alt="Rancher Logo" />
           </div>
         </template>
       </div>
@@ -219,7 +220,7 @@ export default {
       </div>
 
       <div v-else class="side-menu-logo">
-        <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
+        <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" alt="Rancher Logo" />
       </div>
     </div>
 
@@ -348,7 +349,14 @@ export default {
         :container="false"
       >
         <div class="user-image text-right hand">
-          <img v-if="principal && principal.avatarSrc" :src="principal.avatarSrc" :class="{'avatar-round': principal.roundAvatar}" width="36" height="36" />
+          <img
+            v-if="principal && principal.avatarSrc"
+            :src="principal.avatarSrc"
+            :class="{'avatar-round': principal.roundAvatar}"
+            width="36"
+            height="36"
+            alt="User Avatar"
+          />
           <i v-else class="icon icon-user icon-3x avatar" />
         </div>
         <template slot="popover" class="user-menu">

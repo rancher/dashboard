@@ -173,7 +173,7 @@ export default {
             <div class="subtype-content">
               <div class="title">
                 <div class="subtype-logo round-image">
-                  <LazyImage :src="fel.iconSrc" />
+                  <LazyImage :src="fel.iconSrc" alt="monitoring logo" />
                 </div>
                 <h5>
                   <span>

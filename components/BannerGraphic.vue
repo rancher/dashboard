@@ -27,7 +27,7 @@ export default {
 <template>
   <div v-if="shown" class="banner-graphic" :class="{'small': small}">
     <div class="graphic">
-      <BrandImage class="banner" file-name="banner.svg" :draggable="false" />
+      <BrandImage class="banner" file-name="banner.svg" :draggable="false" alt="Banner Image" />
     </div>
     <div v-if="titleKey" class="title">
       <t :k="titleKey" />

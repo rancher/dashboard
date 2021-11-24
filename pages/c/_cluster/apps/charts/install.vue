@@ -1038,7 +1038,7 @@ export default {
       </template>
       <template #bannerTitleImage>
         <div class="logo-bg">
-          <LazyImage :src="chart ? chart.icon : ''" class="logo" />
+          <LazyImage :src="chart ? chart.icon : ''" class="logo" alt="chart logo" />
         </div>
       </template>
       <template #basics>
@@ -1322,7 +1322,7 @@ export default {
               <!-- Logo -->
               <slot name="bannerTitleImage">
                 <div class="round-image">
-                  <LazyImage :src="chart ? chart.icon : ''" class="logo" />
+                  <LazyImage :src="chart ? chart.icon : ''" class="logo" alt="chart logo" />
                 </div>
               </slot>
               <!-- Title with subtext -->

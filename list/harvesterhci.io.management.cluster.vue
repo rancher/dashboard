@@ -133,7 +133,7 @@ export default {
       </div>
       <hr class="info-section" />
       <div class="logo">
-        <BrandImage file-name="harvester.png" height="64" />
+        <BrandImage file-name="harvester.png" height="64" alt="Rancher Logo" />
       </div>
       <div class="tagline">
         <div>{{ t('harvester.manager.cluster.description') }}</div>

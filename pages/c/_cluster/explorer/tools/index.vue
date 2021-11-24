@@ -390,7 +390,7 @@ export default {
       >
         <div class="logo" :class="{'legacy': opt.chart.legacy}">
           <i v-if="opt.chart.iconName" class="icon" :class="opt.chart.iconName" />
-          <LazyImage v-else :src="opt.chart.icon" />
+          <LazyImage v-else :src="opt.chart.icon" alt="chart icon" />
         </div>
         <div class="name-version">
           <h3 class="name">

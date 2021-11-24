@@ -172,7 +172,7 @@ export default {
           <div v-for="(receiverType, i) in receiverTypes" :key="i" class="mb-10 subtype-banner" primary-color-var="--primary-color" @click="navigateTo(receiverType)">
             <div class="left">
               <div class="logo">
-                <img :src="receiverType.logo" />
+                <img :src="receiverType.logo" :alt="altText" />
               </div>
               <h4 class="name ml-10">
                 <t :k="receiverType.label" />

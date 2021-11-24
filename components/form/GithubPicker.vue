@@ -303,13 +303,13 @@ export default {
           </template>
           <template slot="option" slot-scope="option">
             <div class="d-center">
-              <img :src="option.owner.avatar_url" />
+              <img :src="option.owner.avatar_url" alt="altText" />
               {{ option.full_name }}
             </div>
           </template>
           <template slot="selected-option" slot-scope="option">
             <div class="selected d-center">
-              <img :src="option.owner.avatar_url" />
+              <img :src="option.owner.avatar_url" alt="altText" />
               {{ option.full_name }}
             </div>
           </template>
