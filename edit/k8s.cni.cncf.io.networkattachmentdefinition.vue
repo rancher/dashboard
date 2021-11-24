@@ -35,19 +35,20 @@ export default {
     };
   },
 
+  created() {
+    if (this.registerBeforeHook) {
+      this.registerBeforeHook(this.updateBeforeSave);
+    }
+  },
+
   methods: {
     async saveNetwork(buttonCb) {
-      this.value.setLabel(HCI.NETWORK_TYPE, this.type);
-
       if (!this.config.vlan) {
         this.errors = [this.$store.getters['i18n/t']('validation.required', { key: 'Vlan ID' })];
         buttonCb(false);
 
         return false;
       }
-
-      this.config.name = this.value.metadata.name;
-      this.value.spec.config = JSON.stringify(this.config);
 
       await this.save(buttonCb);
     },
@@ -58,6 +59,12 @@ export default {
       if (!pattern.test(neu) && neu !== '') {
         this.config.vlan = neu > 4094 ? 4094 : 1;
       }
+    },
+
+    updateBeforeSave() {
+      this.value.setLabel(HCI.NETWORK_TYPE, this.type);
+      this.config.name = this.value.metadata.name;
+      this.value.spec.config = JSON.stringify(this.config);
     }
   }
 };

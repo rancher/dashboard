@@ -42,22 +42,27 @@ export default {
     },
   },
 
+  created() {
+    if (this.registerBeforeHook) {
+      this.registerBeforeHook(this.updateBeforeSave);
+    }
+  },
+
   methods: {
-    async saveConfig(buttonCb) {
+    update() {
+      this.value.data = { cloudInit: this.config };
+    },
+
+    updateBeforeSave() {
       if (this.isCreate) {
         this.value.metadata.labels = {
           ...this.value.metadata.labels,
           [HCI.CLOUD_INIT]: this.type,
-          [HCI.CREATOR]:    this.$cookies.get('username') || ''
         };
+
+        this.value.data = { cloudInit: this.config };
       }
-
-      await this.save(buttonCb);
-    },
-
-    update() {
-      this.value.data = { cloudInit: this.config };
-    },
+    }
   }
 };
 </script>
@@ -68,7 +73,8 @@ export default {
     :mode="mode"
     :resource="value"
     :errors="errors"
-    @finish="saveConfig"
+    :apply-hooks="applyHooks"
+    @finish="save"
     @cancel="done"
   >
     <NameNsDescription

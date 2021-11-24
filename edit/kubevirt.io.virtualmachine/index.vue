@@ -22,6 +22,7 @@ import NodeScheduling from '@/components/form/NodeScheduling';
 import { clear } from '@/utils/array';
 import { clone } from '@/utils/object';
 import { HCI } from '@/config/types';
+import { saferDump } from '@/utils/create-yaml';
 import { exceptionToErrorsArray } from '@/utils/error';
 import { cleanForNew } from '@/plugins/steve/normalize';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
@@ -141,6 +142,7 @@ export default {
         }
       }
     },
+
     secretNamePrefix() {
       return this.value?.metadata?.name;
     }
@@ -189,7 +191,18 @@ export default {
   },
 
   created() {
-    this.registerAfterHook(this.restartVM, 'restartVM');
+    this.registerAfterHook(async() => {
+      this.restartVM();
+      if (this.isSingle) {
+        const res = this.$store.getters['harvester/byId'](HCI.VM, this.value.id);
+
+        await this.saveSecret(res);
+      }
+    });
+
+    if (this.registerBeforeHook) {
+      this.registerBeforeHook(this.updateBeforeSave);
+    }
   },
 
   mounted() {
@@ -219,9 +232,6 @@ export default {
 
     async saveSingle(buttonCb) {
       this.parseVM();
-      if (!this.value.spec.template.spec.hostname) {
-        this.$set(this.value.spec.template.spec, 'hostname', this.value.metadata.name);
-      }
 
       try {
         await this._save(this.value, buttonCb);
@@ -285,7 +295,9 @@ export default {
 
       await this.applyHooks(AFTER_SAVE_HOOKS);
 
-      await this.saveSecret(res);
+      if (!this.isSingle) {
+        await this.saveSecret(res);
+      }
     },
 
     restartVM() {
@@ -306,6 +318,14 @@ export default {
       }
     },
 
+    updateBeforeSave() {
+      if (this.isSingle) {
+        if (!this.value.spec.template.spec.hostname) {
+          this.$set(this.value.spec.template.spec, 'hostname', this.value.metadata.name);
+        }
+      }
+    },
+
     validataCount(count) {
       if (count > 10) {
         this.$set(this, 'count', 10);
@@ -321,6 +341,13 @@ export default {
         this.$refs.yamlEditor?.refresh();
       }
     },
+
+    generateYaml() {
+      this.parseVM();
+      const out = saferDump(this.value);
+
+      return out;
+    },
   },
 };
 </script>
@@ -331,7 +358,9 @@ export default {
       :done-route="doneRoute"
       :resource="value"
       :mode="mode"
+      :can-yaml="isSingle ? true : false"
       :errors="errors"
+      :generate-yaml="generateYaml"
       :apply-hooks="applyHooks"
       @finish="saveVM"
     >
