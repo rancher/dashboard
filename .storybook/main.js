@@ -1,5 +1,7 @@
 const path = require('path');
 const fs = require('fs');
+const webpack = require('webpack');
+const NM_REGEX  = /node_modules\/(.*)/
 
 module.exports = {
   "stories": [
@@ -20,7 +22,7 @@ module.exports = {
     const sassLoader = {
       loader: 'sass-loader',
       options: {
-        prependData: `@import '~assets/styles/app.scss'; @import '~stories/global.scss'; `,
+        prependData: `@use "sass:math"; @import '~assets/styles/app.scss'; @import '~stories/global.scss'; `,
         sassOptions: {
           importer: (url, prev, done) => {
             if (url.indexOf('~/') === 0) {
@@ -43,10 +45,26 @@ module.exports = {
       },
     }
 
+    // Replace js-modal and xterm imports with absolute paths
+    const nmrp = new webpack.NormalModuleReplacementPlugin(/js-modal|xterm/, function(resource) {
+      const split = resource.request.split('!');
+      const p = split.pop();
+      const match = p.match(NM_REGEX);
+      if (match) {
+        split.push(path.join(baseFolder, match[0]));
+      } else {
+        split.push(p);
+      }
+
+      resource.request = split.join('!');
+    });
+
+    config.plugins.unshift(nmrp);
+
     config.module.rules.push({
       test: /\.scss$/,
       use: ['style-loader', 'css-loader', sassLoader],
-      include: path.resolve(__dirname, '../'),
+      include: baseFolder,
     });
 
     config.module.rules.unshift({
