@@ -812,7 +812,7 @@ export default {
     },
 
     generateSecretName(name) {
-      return `${ name }-${ randomStr(5).toLowerCase() }`;
+      return name ? `${ name }-${ randomStr(5).toLowerCase() }` : undefined;
     },
 
     getOwnerReferencesFromVM(resource) {
@@ -830,7 +830,7 @@ export default {
     },
 
     async saveSecret(vm) {
-      if (!vm?.spec) {
+      if (!vm?.spec || !this.secretName) {
         return true;
       }
 
