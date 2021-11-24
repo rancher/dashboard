@@ -90,6 +90,7 @@ nav:
     storage: 存储
     workload: 工作负载
     monitoring: 监控
+    advanced: 高级
   ns:
     all: 全部命名空间
     clusterLevel: 集群资源
@@ -931,6 +932,32 @@ cluster:
   description:
     label: 集群描述
     placeholder: （选填项）请输入关于该集群的描述
+  harvester:
+    importNotice: 导入Harvester集群通过
+    warning:
+      label: 这是Harvester集群 - 启用Harvester特性以管理
+      state: 警告
+    registration:
+      step1: "1. 前往目标Harvester UI的设置页面."
+      step2: '2. 找到<code>cluster-registration-url</code>设置并点击<code><i class="icon icon-actions doc-icon" ></i></code> -> <code>编辑设置</code>按钮.'
+      step3: "3. 输入下面的注册URL并点击<code>保存</code>."
+      step4: "注册URL"
+    machinePool:
+      cpu: 
+        placeholder: "例如: 2"
+      memory:
+        placeholder: "例如: 4"
+      disk:
+        placeholder: "例如: 4"
+      namespace:
+        placeholder: "例如: default"
+      image:
+        placeholder: 请选择镜像
+      network:
+        placeholder: 请选择网络
+      sshUser:
+        placeholder: "例如: ubuntu"
+        toolTip: 登录选中的操作系统镜像的SSH用户名.
   importAction: 导入已有集群
   kubernetesVersion:
     label: Kubernetes 版本
@@ -1022,6 +1049,7 @@ cluster:
     memberRoles: 成员角色
     registry: 镜像仓库
     upgrade: 升级策略
+    registration: 注册
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -4086,6 +4114,8 @@ harvester:
     hotplug:
       success: '{ diskName } 已挂载到 { vm }'
       title: 添加卷
+    hotunplug:
+      success: '卷{ name } 拔出成功.'
   notification:
     title:
       succeed: 成功
@@ -4155,10 +4185,17 @@ harvester:
     cpu: Cpu
     memory: 内存
     virtaulName: 虚拟机名称
+    ipv4Address: IPv4地址
   tab:
     volume: 卷
     network: 网络
     advanced: 高级选项
+  generic:
+    showMore: 显示更多
+    hideMore: 隐藏更多
+    memory: 内存
+    cpu: CPU
+    storage: 存储
 
   validation:
     custom:
@@ -4266,6 +4303,7 @@ harvester:
 
   virtualMachine:
     label: 虚拟机
+    osType: 系统类型
     instance:
       single:
         label: 单个实例
@@ -4294,10 +4332,15 @@ harvester:
     promptRemove:
       title: '需要您要删除的卷:'
       deleteAll: 全部删除
+    unplug:
+      title: '你确定要拔掉卷{name} ?'
+      actionLabel: 拔出
+      detachVolume:
+        拔出卷
     restartTip: 现在重新启动虚拟机以使配置更改生效.
     createRunning: 创建时启动虚拟机
     restartNow: 现在重启
-    createSSHKey: 创建SSH密钥
+    createSSHKey: 创建新SSH密钥
     installAgent: 安装 qemu-guest-agent
     enableUsb: 启动 USB Tablet 增强
     sshTitle: 添加SSH公钥
@@ -4335,6 +4378,8 @@ harvester:
       addPort:  添加端口
     cloudConfig:
       title: Cloud配置
+      createTemplateTitle: '创建 {name}.'
+      createNew: 创建新模板...
       cloudInit:
         label: Cloud Init
         placeholder: 请选择...
@@ -4423,6 +4468,8 @@ harvester:
     sourceType:
       download: URL
       upload: 文件
+    warning:
+      uploading: "{count} 个镜像正在上传中，请不要刷新或关闭当前页面."
 
   vmTemplate:
     label: 虚拟机模板
@@ -4489,7 +4536,8 @@ harvester:
       secretAccessKey: 指定您的私密访问密钥
       cert: 上传自签名SSL证书
     vlanChangeTip: 新修改的默认物理网卡仅适用于新增节点，不适用于现有节点
-    defaultPhysicalNIC: 默认物理网卡
+    defaultPhysicalNIC: 默认网络接口
+    percentTip: 括号内的数值代表所有主机上的网络接口的分布比例。如果选择了一个小于100%的接口，用户需要手动指定vlan网络配置失败的主机上的网络接口。
 
   cloudTemplate:
     label: Cloud 配置模板
@@ -4497,6 +4545,39 @@ harvester:
     userData: User Data
     networkData: Network Data
 
+  manager:
+    cluster:
+      label: Harvester集群
+      none: 没有内容显示
+      learnMore: 了解更多的harvester可以通过<a target="_blank" href="https://harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester网站</a>或者阅读<a target="_blank" href="https://docs.harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester文档</a>
+      description: Harvester是一个采用企业级开源技术，包括Kubernetes、Kubevirt和Longhorn，为裸金属服务器打造的现代超融合基础设施（HCI）解决方案.
+
+  support:
+    title: Harvester支持
+    kubeconfig:
+      title: 下载KubeConfig
+      titleDescription: 下载kubeconfig用于调试或作为外部集群导入到Rancher
+  
+  namespace:
+    label: 命名空间
+
+  projectNamespace:
+    label: 项目/命名空间
+  service:
+    title: 附加配置
+    healthCheckPort:
+      label: 健康检查端口
+      description: 探针将访问由后端服务器IP和端口组成的地址.
+    healthCheckSuccessThreshold:
+      label: 健康检查成功阙值
+      description:  如果探针连续检测到一个地址的成功次数达到成功阈值，那么后端服务器就可以开始转发流量.
+    healthCheckFailureThreshold:
+      label: 健康检查失败阙值
+      description: 如果健康检查失败的数量达到失败阈值，后端服务器将停止转发流量。
+    healthCheckPeriod:
+      label: 健康检查周期
+    healthCheckTimeout:
+      label: 健康检查超时
 ##############################
 # Model Properties
 ##############################
@@ -4867,7 +4948,7 @@ advancedSettings:
     'rke-metadata-config': '配置RKE元数据刷新参数。'
     'ui-banners': '分类横幅是用来在页眉、页脚或两者中显示一个自定义的固定横幅。'
     'ui-default-landing': '用户在登录后登陆的默认页面。'
-    'harv-vlan': VLAN网络的默认物理NIC名称.
+    'harv-vlan': VLAN网络的默认NIC名称.
     'harv-backup-target': 自定义备份目标用于存储VM备份.
     'harv-log-level': 配置Harvester服务器日志级别. 默认为信息
     'harv-server-version': Harvester服务器版本.
@@ -4875,6 +4956,7 @@ advancedSettings:
     'harv-upgrade-checker-url': 默认的Harvester升级检查地址。 仅在<code> upgrade-checker-enabled </code> 等于true时使用。
     'harv-ui-source': 配置如何加载UI资源.
     'harv-ui-index': 'UI的HTML索引。'
+    'harv-cluster-registration-url': 用于多集群管理的注册URL.
   editHelp:
     'ui-banners': 这个设置需要一个JSON对象，包含3个根参数；<code>banner</code>, <code>showHeader</code>, <code>showFooter</code>。<code>banner</code>是一个包含；<code>textColor</code>, <code>background</code>, 和<code>text</code>的对象，其中<code>textColor</code>和<code>background</code>是任何有效的CSS颜色值。
   enum:

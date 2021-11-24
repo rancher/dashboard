@@ -69,7 +69,6 @@ export default {
       delete this.parseDefaultValue.secretAccessKey;
       delete this.parseDefaultValue.bucketName;
       delete this.parseDefaultValue.bucketRegion;
-      delete this.parseDefaultValue.cert;
       delete this.parseDefaultValue.endpoint;
     }
   },
@@ -129,16 +128,6 @@ export default {
           :placeholder="t('harvester.setting.placeholder.secretAccessKey')"
           label="Secret Access Key"
           required
-        />
-
-        <LabeledInput
-          v-model="parseDefaultValue.cert"
-          type="multiline"
-          class="mb-20"
-          :placeholder="t('harvester.setting.placeholder.cert')"
-          :mode="mode"
-          :min-height="120"
-          label="Certificate"
         />
 
         <LabeledSelect v-model="parseDefaultValue.virtualHostedStyle" class="mb-20" label="Virtual Hosted-Style" :options="virtualHostedStyleType" @input="update" />

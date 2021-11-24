@@ -12,6 +12,7 @@ import { ClusterNotFoundError } from '@/utils/error';
 import { get } from '@/utils/object';
 import { AFTER_LOGIN_ROUTE } from '@/store/prefs';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
+import { BACK_TO } from '@/config/local-storage';
 
 let beforeEachSetup = false;
 
@@ -199,11 +200,23 @@ export default async function({
             notLoggedIn();
           } else {
             store.commit('setError', e);
+            if ( process.server ) {
+              redirect(302, '/fail-whale');
+            }
           }
 
           return;
         }
       }
+    }
+  }
+  if (!process.server) {
+    const backTo = window.localStorage.getItem(BACK_TO);
+
+    if (backTo) {
+      window.localStorage.removeItem(BACK_TO);
+
+      window.location.href = backTo;
     }
   }
 

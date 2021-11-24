@@ -128,7 +128,7 @@ export default {
   },
 
   loadMulti(state, { data, ctx }) {
-    // console.log('### Mutation loadMulti', data.length);
+    // console.log('### Mutation loadMulti', data?.length);
     for ( const entry of data ) {
       load(state, { data: entry, ctx });
     }
@@ -165,6 +165,21 @@ export default {
       cache.map.set(data[i][keyField], proxies[i]);
     }
 
+    cache.haveAll = true;
+  },
+
+  forgetAll(state, { type }) {
+    const cache = registerType(state, type);
+
+    clear(cache.list);
+    cache.map.clear();
+    cache.generation++;
+  },
+
+  loadedAll(state, { type }) {
+    const cache = registerType(state, type);
+
+    cache.generation++;
     cache.haveAll = true;
   },
 

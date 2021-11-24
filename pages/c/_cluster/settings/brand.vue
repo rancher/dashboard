@@ -1,23 +1,22 @@
 <script>
+import isEmpty from 'lodash/isEmpty';
+
 import LabeledInput from '@/components/form/LabeledInput';
 import ColorInput from '@/components/form/ColorInput';
 
 import Checkbox from '@/components/form/Checkbox';
-import RadioGroup from '@/components/form/RadioGroup';
 import FileSelector from '@/components/form/FileSelector';
 import SimpleBox from '@/components/SimpleBox';
 import Loading from '@/components/Loading';
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
+import BannerSettings from '@/components/form/BannerSettings';
 import { allHash } from '@/utils/promise';
 import { MANAGEMENT } from '@/config/types';
 import { getVendor, setVendor } from '@/config/private-label';
 import { SETTING, fetchOrCreateSetting } from '@/config/settings';
-import isEmpty from 'lodash/isEmpty';
 import { clone } from '@/utils/object';
 import { _EDIT, _VIEW } from '@/config/query-params';
-
-import Brand from '@/mixins/brand';
 
 const Color = require('color');
 const parse = require('url-parse');
@@ -29,8 +28,9 @@ const DEFAULT_BANNER_SETTING = {
     textAlignment:   'center',
     fontWeight:      null,
     fontStyle:       null,
+    fontSize:        '14px',
     textDecoration:  null,
-    text:            null
+    text:            null,
   },
   bannerFooter: {
     background:      null,
@@ -38,21 +38,31 @@ const DEFAULT_BANNER_SETTING = {
     textAlignment:   'center',
     fontWeight:      null,
     fontStyle:       null,
+    fontSize:        '14px',
     textDecoration:  null,
     text:            null
   },
+  bannerConsent:  {
+    background:      null,
+    color:           null,
+    textAlignment:   'center',
+    fontWeight:      null,
+    fontStyle:       null,
+    fontSize:        '14px',
+    textDecoration:  null,
+    text:            null,
+  },
   showHeader:   'false',
   showFooter:   'false',
+  showConsent:  'false'
 };
 
 export default {
   layout: 'authenticated',
 
   components: {
-    LabeledInput, Checkbox, RadioGroup, FileSelector, Loading, SimpleBox, AsyncButton, Banner, ColorInput
+    LabeledInput, Checkbox, FileSelector, Loading, SimpleBox, AsyncButton, Banner, BannerSettings, ColorInput
   },
-
-  mixins: [Brand],
 
   async fetch() {
     const hash = await allHash({
@@ -116,7 +126,8 @@ export default {
 
       uiCommunitySetting: {},
 
-      errors: []
+      errors: [],
+
     };
   },
 
@@ -125,36 +136,6 @@ export default {
       const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
 
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
-    },
-
-    radioOptions() {
-      const options = ['left', 'center', 'right'];
-      const labels = [
-        this.t('branding.uiBanner.bannerAlignment.leftOption'),
-        this.t('branding.uiBanner.bannerAlignment.centerOption'),
-        this.t('branding.uiBanner.bannerAlignment.rightOption'),
-      ];
-
-      return { options, labels };
-    },
-
-    textDecorationOptions() {
-      const options = [
-        {
-          style:  'fontWeight',
-          label:  this.t('branding.uiBanner.bannerDecoration.bannerBold')
-        },
-        {
-          style:  'fontStyle',
-          label:  this.t('branding.uiBanner.bannerDecoration.bannerItalic')
-        },
-        {
-          style:  'textDecoration',
-          label:  this.t('branding.uiBanner.bannerDecoration.bannerUnderline')
-        }
-      ];
-
-      return options;
     }
   },
 
@@ -164,7 +145,7 @@ export default {
         try {
           const parsedBanner = JSON.parse(neu.value);
 
-          this.bannerVal = this.getBannerSettings(parsedBanner);
+          this.bannerVal = this.checkOrUpdateLegacyUIBannerSetting(parsedBanner);
         } catch {}
       }
     }
@@ -186,37 +167,43 @@ export default {
   },
 
   methods: {
-    getBannerSettings(parsedBanner) {
-      const { bannerHeader, bannerFooter } = parsedBanner;
+    checkOrUpdateLegacyUIBannerSetting(parsedBanner) {
+      const {
+        bannerHeader, bannerFooter, bannerConsent, banner
+      } = parsedBanner;
 
-      // In legacy banner there is no bannerHeader or bannerFooter
-      if (isEmpty(bannerHeader) && isEmpty(bannerFooter)) {
+      if (isEmpty(bannerHeader) && isEmpty(bannerFooter) && isEmpty(bannerConsent)) {
         let neu = DEFAULT_BANNER_SETTING;
 
-        const banner = parsedBanner.banner;
-
-        // Legacy banner to new banner
         if (!isEmpty(banner)) {
           const cloned = clone(( banner ?? {} ));
 
           if (cloned?.textColor) {
-            cloned.color = cloned.textColor;
+            cloned['color'] = cloned.textColor;
             delete cloned.textColor;
           }
 
           neu = {
-            bannerHeader: { ...cloned },
-            bannerFooter: { ...cloned },
-            showHeader:   parsedBanner?.showHeader === 'true' ? 'true' : 'false',
-            showFooter:   parsedBanner?.showFooter === 'true' ? 'true' : 'false',
+            bannerHeader:  { ...cloned },
+            bannerFooter:  { ...cloned },
+            bannerConsent: { ...DEFAULT_BANNER_SETTING.bannerConsent },
+            showHeader:    parsedBanner?.showHeader === 'true' ? 'true' : 'false',
+            showFooter:    parsedBanner?.showFooter === 'true' ? 'true' : 'false',
+            showConsent:   parsedBanner?.showConsent === 'true' ? 'true' : 'false'
           };
         }
 
         return neu;
       }
 
+      // If user has existing banners, they may not have consent banner - use default value
+      if (isEmpty(bannerConsent)) {
+        parsedBanner.bannerConsent = { ...DEFAULT_BANNER_SETTING.bannerConsent };
+      }
+
       return parsedBanner;
     },
+
     updateLogo(img, key) {
       this[key] = img;
     },
@@ -242,7 +229,10 @@ export default {
       if (this.uiIssuesSetting.value && !this.validateUrl(this.uiIssuesSetting.value)) {
         return btnCB(false);
       }
+      this.uiPLSetting.value = this.uiPLSetting.value.replaceAll(/[\<>&=#()"]/gm, '');
+
       this.uiBannerSetting.value = JSON.stringify(this.bannerVal);
+
       if (this.customizeLogo) {
         this.uiLogoLightSetting.value = this.uiLogoLight;
         this.uiLogoDarkSetting.value = this.uiLogoDark;
@@ -298,7 +288,7 @@ export default {
     <div>
       <div class="row mb-20">
         <div class="col span-6">
-          <LabeledInput v-model="uiPLSetting.value" :label="t('branding.uiPL.label')" :mode="mode" />
+          <LabeledInput v-model="uiPLSetting.value" :label="t('branding.uiPL.label')" :mode="mode" :maxlength="100" />
         </div>
       </div>
 
@@ -411,100 +401,31 @@ export default {
       </label>
 
       <template>
+        <!-- Header Settings -->
         <div class="row mt-20 mb-20">
           <div class="col span-6">
-            <Checkbox :value="bannerVal.showHeader==='true'" :label="t('branding.uiBanner.showHeader')" :mode="mode" @input="e=>$set(bannerVal, 'showHeader', e.toString())" />
+            <Checkbox :value="bannerVal.showHeader === 'true'" :label="t('branding.uiBanner.showHeader')" :mode="mode" @input="e=>$set(bannerVal, 'showHeader', e.toString())" />
           </div>
         </div>
-        <div v-if="bannerVal.showHeader==='true'" class="row mb-20">
-          <div class="col span-12">
-            <div class="row">
-              <div class="col span-6">
-                <LabeledInput v-model="bannerVal.bannerHeader.text" :label="t('branding.uiBanner.text')" />
-              </div>
-              <div class="col span-3">
-                <RadioGroup
-                  v-model="bannerVal.bannerHeader.textAlignment"
-                  name="headerAlignment"
-                  :label="t('branding.uiBanner.bannerAlignment.label')"
-                  :options="radioOptions.options"
-                  :labels="radioOptions.labels"
-                  :mode="mode"
-                />
-              </div>
-              <div class="col span-3">
-                <h3>
-                  {{ t('branding.uiBanner.bannerDecoration.label') }}
-                </h3>
-                <div v-for="o in textDecorationOptions" :key="o.style">
-                  <Checkbox
-                    v-model="bannerVal.bannerHeader[o.style]"
-                    name="headerDecoration"
-                    class="header-decoration-checkbox"
-                    :mode="mode"
-                    :label="o.label"
-                    @input="e=>$set(bannerVal, o.style, e.toString())"
-                  />
-                </div>
-              </div>
-            </div>
-            <div class="row mt-10">
-              <div class="col span-6">
-                <ColorInput v-model="bannerVal.bannerHeader.color" :default-value="themeVars.headerTextColor" :label="t('branding.uiBanner.textColor')" />
-              </div>
-              <div class="col span-6">
-                <ColorInput v-model="bannerVal.bannerHeader.background" :label="t('branding.uiBanner.background')" />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
+        <BannerSettings v-if="bannerVal.showHeader === 'true'" v-model="bannerVal" banner-type="bannerHeader" :mode="mode" />
+
+        <!-- Footer settings -->
+        <div class="row mt-20 mb-20">
           <div class="col span-6">
-            <Checkbox :value="bannerVal.showFooter==='true'" :label="t('branding.uiBanner.showFooter')" :mode="mode" @input="e=>$set(bannerVal, 'showFooter', e.toString())" />
+            <Checkbox :value="bannerVal.showFooter === 'true'" :label="t('branding.uiBanner.showFooter')" :mode="mode" @input="e=>$set(bannerVal, 'showFooter', e.toString())" />
           </div>
         </div>
-        <div v-if="bannerVal.showFooter==='true'" class="row">
-          <div class="col span-12 mt-20">
-            <div class="row">
-              <div class="col span-6">
-                <LabeledInput v-model="bannerVal.bannerFooter.text" :label="t('branding.uiBanner.text')" />
-              </div>
-              <div class="col span-3">
-                <RadioGroup
-                  v-model="bannerVal.bannerFooter.textAlignment"
-                  name="footerAlignment"
-                  :label="t('branding.uiBanner.bannerAlignment.label')"
-                  :options="radioOptions.options"
-                  :labels="radioOptions.labels"
-                  :mode="mode"
-                />
-              </div>
-              <div class="col span-3">
-                <h3>
-                  {{ t('branding.uiBanner.bannerDecoration.label') }}
-                </h3>
-                <div v-for="o in textDecorationOptions" :key="o.style">
-                  <Checkbox
-                    v-model="bannerVal.bannerFooter[o.style]"
-                    name="footerAlignment"
-                    class="banner-decoration-checkbox"
-                    :mode="mode"
-                    :label="o.label"
-                    @input="e=>$set(bannerVal, o.style, e.toString())"
-                  />
-                </div>
-              </div>
-            </div>
-            <div class="row mt-10">
-              <div class="col span-6">
-                <ColorInput v-model="bannerVal.bannerFooter.color" :default-value="themeVars.footerTextColor" :label="t('branding.uiBanner.textColor')" />
-              </div>
-              <div class="col span-6">
-                <ColorInput v-model="bannerVal.bannerFooter.background" :label="t('branding.uiBanner.background')" />
-              </div>
-            </div>
+        <BannerSettings v-if="bannerVal.showFooter === 'true'" v-model="bannerVal" banner-type="bannerFooter" :mode="mode" />
+      </template>
+
+      <!-- Consent settings -->
+      <template>
+        <div class="row mt-20 mb-20">
+          <div class="col span-6">
+            <Checkbox :value="bannerVal.showConsent === 'true'" :label="t('branding.uiBanner.showConsent')" :mode="mode" @input="e => $set(bannerVal, 'showConsent', e.toString())" />
           </div>
         </div>
+        <BannerSettings v-if="bannerVal.showConsent === 'true'" v-model="bannerVal" banner-type="bannerConsent" :mode="mode" />
       </template>
     </div>
     <template v-for="err in errors">
@@ -550,17 +471,5 @@ export default {
       top: 10px;
       left: 10px;
     }
-}
-
-.banner-decoration-checkbox {
-  position: relative;
-  display: inline-flex;
-  align-items: flex-start;
-  margin: 0;
-  cursor: pointer;
-  user-select: none;
-  border-radius: var(--border-radius);
-  padding-bottom: 5px;
-  height: 24px;
 }
 </style>

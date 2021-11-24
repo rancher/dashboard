@@ -1632,7 +1632,9 @@ function ifHaveVerb(rootGetters, module, verb, haveIds) {
   for ( const haveId of haveIds ) {
     const schema = rootGetters[`${ module }/schemaFor`](haveId);
     const want = verb.toLowerCase();
-    const have = [...schema.collectionMethods, ...schema.resourceMethods].map(x => x.toLowerCase());
+    const collectionMethods = schema.collectionMethods || [];
+    const resourceMethods = schema.resourceMethods || [];
+    const have = [...collectionMethods, ...resourceMethods].map(x => x.toLowerCase());
 
     if ( !have.includes(want) && !have.includes(`blocked-${ want }`) ) {
       return false;

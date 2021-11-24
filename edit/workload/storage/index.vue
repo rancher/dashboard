@@ -250,6 +250,7 @@ export default {
     <ArrayListGrouped
       :key="containerVolumes.length"
       v-model="containerVolumes"
+      :mode="mode"
     >
       <template #default="props">
         <h3>{{ headerFor(volumeType(props.row.value)) }}</h3>
@@ -257,7 +258,6 @@ export default {
           <component
             :is="componentFor(volumeType(props.row.value))"
             v-if="componentFor(volumeType(props.row.value))"
-            :key="props.row.value"
             :value="props.row.value"
             :pod-spec="value"
             :mode="mode"

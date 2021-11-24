@@ -19,6 +19,7 @@ import { allHash } from '@/utils/promise';
 import { sortBy } from '@/utils/sort';
 import { camelToTitle, nlToBr } from '@/utils/string';
 import { compare, sortable } from '@/utils/version';
+import { isHarvesterSatisfiesVersion } from '@/utils/cluster';
 
 import ArrayList from '@/components/form/ArrayList';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
@@ -376,7 +377,7 @@ export default {
         });
       }
 
-      const cur = this.originalValue?.spec?.kubernetesVersion || '';
+      const cur = this.liveValue?.spec?.kubernetesVersion || '';
       const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
       const existingK3s = this.mode === _EDIT && cur.includes('k3s');
       const rke2 = filterAndMap(this.rke2Versions, (existingRke2 ? cur : null), cur);
@@ -1208,9 +1209,7 @@ export default {
       const rke2 = this.filterAndMap(this.rke2Versions, null);
 
       const satisfiesVersion = rke2.filter((v) => {
-        const rkeVersion = v.value.replace(/.+rke2r/i, '');
-
-        return semver.satisfies(semver.coerce(v.value), '>=v1.21.4+rke2r4') && Number(rkeVersion) >= 4;
+        return isHarvesterSatisfiesVersion(v.value);
       }) || [];
 
       if (satisfiesVersion.length > 0) {
@@ -1636,7 +1635,7 @@ export default {
               v-model="value"
               class="mt-20"
               :mode="mode"
-              :register-before-hook="registerBeforeHook"
+              :cluster-register-before-hook="registerBeforeHook"
             />
           </template>
         </Tab>

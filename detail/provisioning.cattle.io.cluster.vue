@@ -13,6 +13,23 @@ import {
 } from '@/config/table-headers';
 import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@/components/AsyncButton.vue';
+import AnsiUp from 'ansi_up';
+import day from 'dayjs';
+import { addParams } from '@/utils/url';
+import { base64Decode } from '@/utils/crypto';
+import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
+import { escapeHtml } from '@/utils/string';
+
+import Socket, {
+  EVENT_CONNECTED,
+  EVENT_DISCONNECTED,
+  EVENT_MESSAGE,
+  //  EVENT_FRAME_TIMEOUT,
+  EVENT_CONNECT_ERROR
+} from '@/utils/socket';
+
+let lastId = 1;
+const ansiup = new AnsiUp();
 
 export default {
   components: {
@@ -94,6 +111,19 @@ export default {
     }
   },
 
+  created() {
+    if ( this.showLog ) {
+      this.connectLog();
+    }
+  },
+
+  beforeDestroy() {
+    if ( this.logSocket ) {
+      this.logSocket.disconnect();
+      this.logSocket = null;
+    }
+  },
+
   data() {
     return {
 
@@ -113,8 +143,12 @@ export default {
       clusterToken: null,
       etcdBackups:  null,
 
+      logOpen:   false,
+      logSocket: null,
+      logs:      [],
     };
   },
+
   watch: {
     showNodes(neu) {
       if (neu) {
@@ -122,6 +156,7 @@ export default {
       }
     }
   },
+
   computed: {
     defaultTab() {
       if (this.showRegistration && !this.machines?.length) {
@@ -316,6 +351,20 @@ export default {
 
     isClusterReady() {
       return this.value.mgmt?.isReady;
+    },
+
+    showLog() {
+      return this.value.mgmt?.hasLink('log');
+    },
+
+    dateTimeFormatStr() {
+      const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));
+
+      return `${ dateFormat } ${ this.timeFormatStr }`;
+    },
+
+    timeFormatStr() {
+      return escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
     }
   },
 
@@ -344,10 +393,85 @@ export default {
         elem:      event.target
       });
     },
+
     showPoolActionButton(pool) {
       return !!pool.availableActions?.length;
     },
 
+    async connectLog() {
+      if ( this.logSocket ) {
+        await this.logSocket.disconnect();
+        this.logSocket = null;
+      }
+
+      const params = {
+        follow:     true,
+        timestamps: true,
+        pretty:     true,
+      };
+
+      let url = this.value.mgmt?.linkFor('log');
+
+      url = addParams(url.replace(/^http/, 'ws'), params);
+
+      this.logSocket = new Socket(url, true, 0);
+      this.logSocket.addEventListener(EVENT_CONNECTED, (e) => {
+        this.logs = [];
+        this.logOpen = true;
+      });
+
+      this.logSocket.addEventListener(EVENT_DISCONNECTED, (e) => {
+        this.logOpen = false;
+      });
+
+      this.logSocket.addEventListener(EVENT_CONNECT_ERROR, (e) => {
+        this.logOpen = false;
+        console.error('Connect Error', e); // eslint-disable-line no-console
+      });
+
+      this.logSocket.addEventListener(EVENT_MESSAGE, (e) => {
+        const line = base64Decode(e.detail.data);
+
+        let msg = line;
+        let time = null;
+
+        const idx = line.indexOf(' ');
+
+        if ( idx > 0 ) {
+          const timeStr = line.substr(0, idx);
+          const date = new Date(timeStr);
+
+          if ( !isNaN(date.getSeconds()) ) {
+            time = date.toISOString();
+            msg = line.substr(idx + 1);
+          }
+        }
+
+        this.logs.push({
+          id:     lastId++,
+          msg:    ansiup.ansi_to_html(msg),
+          rawMsg: msg,
+          time,
+        });
+      });
+
+      this.logSocket.connect();
+    },
+
+    format(time) {
+      if ( !time ) {
+        return '';
+      }
+
+      const val = day(time);
+      const today = day().format('YYYY-MM-DD');
+
+      if ( val.format('YYYY-MM-DD') === today ) {
+        return day(time).format(this.timeFormatStr);
+      } else {
+        return day(time).format(this.dateTimeFormatStr);
+      }
+    },
   }
 };
 </script>
@@ -357,7 +481,7 @@ export default {
   <div v-else>
     <Banner v-if="$fetchState.error" color="error" :label="$fetchState.error" />
     <ResourceTabs v-model="value" :default-tab="defaultTab">
-      <Tab v-if="showMachines" name="machine-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="3">
+      <Tab v-if="showMachines" name="machine-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="4">
         <ResourceTable
           :rows="machines"
           :schema="machineSchema"
@@ -400,7 +524,7 @@ export default {
           </template>
         </ResourceTable>
       </Tab>
-      <Tab v-else-if="showNodes" name="node-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="3">
+      <Tab v-else-if="showNodes" name="node-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="4">
         <ResourceTable
           :schema="mgmtNodeSchema"
           :headers="mgmtNodeSchemaHeaders"
@@ -448,7 +572,22 @@ export default {
         </ResourceTable>
       </Tab>
 
-      <Tab v-if="showRegistration" name="registration" label="Registration" :weight="2">
+      <Tab v-if="showLog" name="log" :label="t('cluster.tabs.log')" :weight="3" class="logs-container">
+        <table class="fixed" cellpadding="0" cellspacing="0">
+          <tbody class="logs-body">
+            <template v-if="logs.length">
+              <tr v-for="line in logs" :key="line.id">
+                <td :key="line.id + '-time'" class="time" v-html="format(line.time)" />
+                <td :key="line.id + '-msg'" class="msg" v-html="line.msg" />
+              </tr>
+            </template>
+            <tr v-else-if="!logOpen" v-t="'cluster.log.connecting'" colspan="2" class="msg text-muted" />
+            <tr v-else v-t="'cluster.log.noData'" colspan="2" class="msg text-muted" />
+          </tbody>
+        </table>
+      </Tab>
+
+      <Tab v-if="showRegistration" name="registration" :label="t('cluster.tabs.registration')" :weight="2">
         <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" :cluster="value" />
         <template v-else>
           <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
@@ -494,6 +633,7 @@ export default {
 .main-row .no-entries {
   text-align: center;
 }
+
 .pool-row {
   display: flex;
   align-items: center;
@@ -516,4 +656,32 @@ export default {
   }
 }
 
+.logs-container {
+  height: 100%;
+  overflow: auto;
+  padding: 5px;
+  background-color: var(--logs-bg);
+  font-family: Menlo,Consolas,monospace;
+  color: var(--logs-text);
+
+  .closed {
+    opacity: 0.25;
+  }
+
+  .time {
+    white-space: nowrap;
+    width: auto;
+    padding-right: 15px;
+    user-select: none;
+  }
+
+  .msg {
+    white-space: normal;
+
+    .highlight {
+      color: var(--logs-highlight);
+      background-color: var(--logs-highlight-bg);
+    }
+  }
+}
 </style>

@@ -13,8 +13,8 @@ export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
 
 export function keyForSubscribe({
-  resourceType, type, namespace, id, selector, reason
-}) {
+  resourceType, type, namespace, id, selector
+} = {}) {
   return `${ resourceType || type || '' }/${ namespace || '' }/${ id || '' }/${ selector || '' }`;
 }
 
@@ -97,6 +97,7 @@ export const actions = {
     const url = `${ state.config.baseUrl }/subscribe`;
 
     if ( socket ) {
+      socket.setAutoReconnect(true);
       socket.setUrl(url);
     } else {
       socket = new Socket(`${ state.config.baseUrl }/subscribe`);

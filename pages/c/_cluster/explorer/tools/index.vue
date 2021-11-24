@@ -20,6 +20,7 @@ export default {
     await this.$store.dispatch('catalog/load');
 
     const query = this.$route.query;
+    const projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
 
     this.showDeprecated = query[DEPRECATED] === _FLAGGED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
@@ -44,7 +45,6 @@ export default {
       }
 
       // Need the project ID of the system project in order to get the apps
-      const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
       const systemProject = projects.find(p => p.spec?.displayName === 'System');
 
       if (systemProject) {
@@ -240,10 +240,11 @@ export default {
         v1.app = v1App;
 
         if (v2) {
-          if (v2.app) {
+          if (v1.app) {
+            v2.app = undefined;
+            v2.blocked = true;
+          } else if (v2.app) {
             v1.blocked = true;
-          } else {
-            v2.blocked = !!v1App;
           }
         }
       }

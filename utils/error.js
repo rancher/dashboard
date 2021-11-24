@@ -19,6 +19,16 @@ export class ApiError extends Error {
   toString() {
     return `[${ this.status } ${ this.statusText }]: ${ this.message }`;
   }
+
+  toJSON() {
+    return {
+      type:       'error',
+      status:     this.status,
+      statusText: this.statusText,
+      message:    this.statusMessage,
+      url:        this.url,
+    };
+  }
 }
 
 export function stringify(err) {

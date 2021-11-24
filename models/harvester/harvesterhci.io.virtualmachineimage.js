@@ -16,10 +16,17 @@ export default class HciVmImage extends SteveModel {
 
     out = out.filter( A => !toFilter.includes(A.action));
 
+    const schema = this.$getters['schemaFor'](HCI.VM);
+    let canCreateVM = true;
+
+    if ( schema && !schema?.collectionMethods.find(x => ['post'].includes(x.toLowerCase())) ) {
+      canCreateVM = false;
+    }
+
     return [
       {
         action:     'createFromImage',
-        enabled:    this.isReady,
+        enabled:    canCreateVM && this.isReady,
         icon:       'icon icon-fw icon-spinner',
         label:      this.t('harvester.action.createVM'),
       },
@@ -176,17 +183,27 @@ export default class HciVmImage extends SteveModel {
     return status === 'False' ? ucFirst(message) : '';
   }
 
-  uploadImage(file) {
-    const formData = new FormData();
+  get uploadImage() {
+    return async(file) => {
+      const formData = new FormData();
 
-    formData.append('chunk', file);
+      formData.append('chunk', file);
 
-    this.doAction('upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        'File-Size':    file.size,
-      },
-      params: { size: file.size },
-    });
+      try {
+        this.$ctx.commit('harvester-common/uploadStart', this.metadata.name, { root: true });
+
+        await this.doAction('upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'File-Size':    file.size,
+          },
+          params: { size: file.size },
+        });
+      } catch (err) {
+        return Promise.reject(err);
+      }
+
+      this.$ctx.commit('harvester-common/uploadEnd', this.metadata.name, { root: true });
+    };
   }
 }

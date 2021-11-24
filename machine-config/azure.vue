@@ -294,6 +294,18 @@ export default {
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
+            v-model="value.plan"
+            :mode="mode"
+            :label="t('cluster.machineConfig.azure.plan.label')"
+            :placeholder="t('cluster.machineConfig.azure.plan.placeholder')"
+            :disabled="disabled"
+          />
+        </div>
+      </div>
+      <hr class="mt-20" />
+      <div class="row mt-20">
+        <div class="col span-6">
+          <LabeledInput
             v-model="value.subnet"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.subnet.label')"

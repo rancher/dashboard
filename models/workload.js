@@ -37,6 +37,20 @@ export default class Workload extends SteveModel {
         enabled:    !!this.links.update,
         bulkable:   true,
       });
+
+      insertAt(out, 0, {
+        action:  'pause',
+        label:   this.t('asyncButton.pause.action'),
+        icon:    'icon icon-pause',
+        enabled: !!this.links.update && !this.spec?.paused
+      });
+
+      insertAt(out, 0, {
+        action:  'resume',
+        label:   this.t('asyncButton.resume.action'),
+        icon:    'icon icon-play',
+        enabled: !!this.links.update && this.spec?.paused === true
+      });
     }
 
     const toFilter = ['cloneYaml'];
@@ -101,6 +115,24 @@ export default class Workload extends SteveModel {
     const workloadName = workload.metadata.name;
 
     await this.patch(rollbackRequestBody, { url: `/apis/apps/v1/namespaces/${ namespace }/deployments/${ workloadName }` });
+  }
+
+  pause() {
+    set(this.spec, 'paused', true);
+    this.save();
+  }
+
+  resume() {
+    set(this.spec, 'paused', false);
+    this.save();
+  }
+
+  get state() {
+    if ( this.spec?.paused === true ) {
+      return 'paused';
+    }
+
+    return super.state;
   }
 
   addSidecar() {
@@ -360,6 +392,10 @@ export default class Workload extends SteveModel {
     }
     ports.forEach((port) => {
       const name = port.name ? port.name : `${ port.containerPort }${ port.protocol.toLowerCase() }${ port.hostPort || port._listeningPort || '' }`;
+
+      if (port._serviceType && port._serviceType !== '') {
+        return;
+      }
 
       port.name = name;
       if (loadBalancerServicePorts.length) {

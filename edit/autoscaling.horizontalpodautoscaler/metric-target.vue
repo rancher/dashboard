@@ -40,7 +40,6 @@ export default {
         value:      'AverageValue',
         specKey:    'averageValue',
         validTypes: ['resource', 'pod', 'object', 'external'],
-        default:    '80',
       },
       {
         label:      this.t('hpa.metricTarget.utilization.label'),
@@ -54,7 +53,6 @@ export default {
         value:      'Value',
         specKey:    'value',
         validTypes: ['object', 'external'],
-        default:    '80',
       },
     ];
 
@@ -74,6 +72,7 @@ export default {
 
   watch: {
     resourceName(newRn, _oldRn) {
+      // debugger;
       const {
         value: { type: metricType },
         targetTypes,
@@ -90,10 +89,11 @@ export default {
       }
 
       this.$set(this.value, match?.specKey, nueDefault);
-      this.quantity = match?.default ?? null;
+      this.quantity = nueDefault;
     },
 
     'value.type'(targetType, oldType) {
+      // debugger;
       const { targetTypes, resourceName } = this;
       const toDelete = findBy(targetTypes, { value: oldType });
       const nue = findBy(targetTypes, { value: targetType });
@@ -110,7 +110,7 @@ export default {
       delete this.value[toDelete.specKey];
 
       this.$set(this.value, nue?.specKey, nueDefault);
-      this.quantity = nue?.default ?? null;
+      this.quantity = nueDefault;
     },
   },
 
@@ -138,20 +138,10 @@ export default {
       return quantity;
     },
     updateQuantityValue(val) {
-      switch (this.value.type) {
-      case 'Value':
+      if (this.value?.type === 'Value') {
         this.$set(this.value, 'value', val);
-        break;
-      case 'AverageValue':
-      default:
-        if (this.resourceName === 'cpu') {
-          this.$set(this.value, 'averageValue', `${ val }m`);
-        } else if (this.resourceName === 'memory') {
-          this.$set(this.value, 'averageValue', `${ val }Mi`);
-        } else {
-          this.$set(this.value, 'averageValue', val);
-        }
-        break;
+      } else {
+        this.$set(this.value, 'averageValue', val);
       }
     },
   },
@@ -187,7 +177,8 @@ export default {
           :mode="mode"
           :placeholder="t('containerResourceLimit.cpuPlaceholder')"
           :required="true"
-          :suffix="t('suffix.cpus')"
+          :base-unit="t('suffix.cpus')"
+          :output-modifier="true"
           @input="updateQuantityValue"
         />
         <UnitInput
@@ -198,7 +189,8 @@ export default {
           :mode="mode"
           :placeholder="t('containerResourceLimit.memPlaceholder')"
           :required="true"
-          :suffix="t('suffix.ib')"
+          :output-modifier="true"
+          :increment="1024"
           @input="updateQuantityValue"
         />
       </div>

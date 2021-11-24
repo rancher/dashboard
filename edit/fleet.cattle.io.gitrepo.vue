@@ -319,8 +319,8 @@ export default {
           spec.insecureSkipTLSVerify = false;
         }
 
-        if ( this.originalValue.caBundle ) {
-          spec.caBundle = this.originalValue.caBundle;
+        if ( this.liveValue.caBundle ) {
+          spec.caBundle = this.liveValue.caBundle;
         } else {
           delete spec.caBundle;
         }

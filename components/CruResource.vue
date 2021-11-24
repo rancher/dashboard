@@ -128,6 +128,13 @@ export default {
       return this.initialYaml !== this.resourceYaml;
     },
 
+    canEditYaml() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+      const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource.type);
+
+      return !schema.resourceMethods?.find(x => x === 'blocked-PUT');
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -321,7 +328,7 @@ export default {
               <template #default>
                 <div v-if="!isView">
                   <button
-                    v-if="canYaml && (_selectedSubtype || !subtypes.length)"
+                    v-if="canYaml && (_selectedSubtype || !subtypes.length) && canEditYaml"
                     type="button"
                     class="btn role-secondary"
                     @click="showPreviewYaml"

@@ -5,10 +5,18 @@ import isEmpty from 'lodash/isEmpty';
 
 export default {
   props: {
+    header: {
+      type:    Boolean,
+      default: false
+    },
+    consent: {
+      type:    Boolean,
+      default: false
+    },
     footer: {
       type:    Boolean,
       default: false
-    }
+    },
   },
 
   async fetch() {
@@ -19,6 +27,7 @@ export default {
     return {
       showHeader:      false,
       showFooter:      false,
+      showConsent:     false,
       banner:          {},
       bannerSetting:   null
     };
@@ -32,6 +41,7 @@ export default {
         'text-align':       this.banner.textAlignment,
         'font-weight':      this.banner.fontWeight ? 'bold' : '',
         'font-style':       this.banner.fontStyle ? 'italic' : '',
+        'font-size':        this.banner.fontSize,
         'text-decoration':  this.banner.textDecoration ? 'underline' : ''
       };
     },
@@ -41,7 +51,15 @@ export default {
         return false;
       }
 
-      return (this.showHeader && !this.footer) || (this.showFooter && this.footer);
+      if (this.header) {
+        return this.showHeader;
+      } else if (this.consent) {
+        return this.showConsent;
+      } else if (this.footer) {
+        return this.showFooter;
+      }
+
+      return null;
     }
   },
 
@@ -51,15 +69,17 @@ export default {
         try {
           const parsed = JSON.parse(neu.value);
           const {
-            bannerHeader, bannerFooter, banner, showHeader, showFooter
+            bannerHeader, bannerFooter, bannerConsent, banner, showHeader, showFooter, showConsent
           } = parsed;
           let bannerContent = parsed?.banner || {};
 
           if (isEmpty(banner)) {
-            if (showFooter && this.footer) {
-              bannerContent = bannerFooter || {};
-            } else if (showHeader) {
+            if (showHeader && this.header) {
               bannerContent = bannerHeader || {};
+            } else if (showConsent && this.consent) {
+              bannerContent = bannerConsent || {};
+            } else if (showFooter && this.footer) {
+              bannerContent = bannerFooter || {};
             } else {
               bannerContent = {};
             }
@@ -67,6 +87,7 @@ export default {
 
           this.showHeader = showHeader === 'true';
           this.showFooter = showFooter === 'true';
+          this.showConsent = showConsent === 'true';
           this.banner = bannerContent;
         } catch {}
       }

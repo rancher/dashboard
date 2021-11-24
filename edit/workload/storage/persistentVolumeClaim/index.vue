@@ -57,7 +57,7 @@ export default {
 
   async fetch() {
     // Create the new PVC form state if it doesn't exist
-    if (this.value._newPvc) {
+    if (this.value.__newPvc) {
       return;
     }
     const namespace = this.namespace || this.$store.getters['defaultNamespace'];
@@ -69,7 +69,7 @@ export default {
     const pvc = await this.$store.dispatch('cluster/create', data);
 
     pvc.applyDefaults();
-    this.$set(this.value, '_newPvc', pvc);
+    this.$set(this.value, '__newPvc', pvc);
   },
 
   computed: {
@@ -83,10 +83,10 @@ export default {
 
   watch: {
     namespace(neu) {
-      this._newPvc.metadata.namespace = neu;
+      this.__newPvc.metadata.namespace = neu;
     },
 
-    'value._newPvc.metadata.name'(neu) {
+    'value.__newPvc.metadata.name'(neu) {
       this.value.persistentVolumeClaim.claimName = neu;
     }
   },
@@ -100,12 +100,12 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div v-if="value.__newPvc">
     <div>
       <div v-if="createNew" class="bordered-section">
         <PersistentVolumeClaim
-          v-if="value._newPvc"
-          v-model="value._newPvc"
+          v-if="value.__newPvc"
+          v-model="value.__newPvc"
           :mode="mode"
           :register-before-hook="registerBeforeHook"
           :save-pvc-hook-name="savePvcHookName"
@@ -118,7 +118,6 @@ export default {
         </div>
         <div class="col span-6">
           <LabeledSelect v-if="!createNew" v-model="value.persistentVolumeClaim.claimName" :mode="mode" :label="t('workload.storage.subtypes.persistentVolumeClaim')" :options="pvcs" />
-          <LabeledInput v-else-if="pvc" :mode="mode" disabled :label="t('workload.storage.subtypes.persistentVolumeClaim')" :value="pvc.metadata.name" />
         </div>
       </div>
       <div class="row">

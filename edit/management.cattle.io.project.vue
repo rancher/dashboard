@@ -5,7 +5,8 @@ import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
 import Labels from '@/components/form/Labels';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import ResourceQuota from '@/components/form/ResourceQuota';
+import ResourceQuota from '@/components/form/ResourceQuota/Project';
+import { HARVESTER_TYPES, RANCHER_TYPES } from '@/components/form/ResourceQuota/shared';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -14,6 +15,7 @@ import { NAME } from '@/config/product/explorer';
 import { PROJECT_ID } from '@/config/query-params';
 import ProjectMembershipEditor from '@/components/form/Members/ProjectMembershipEditor';
 import { canViewProjectMembershipEditor } from '@/components/form/Members/ProjectMembershipEditor.vue';
+import { NAME as HARVESTER } from '@/config/product/harvester';
 
 export default {
   components: {
@@ -44,7 +46,9 @@ export default {
       resource:           MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
       saveBindings:       null,
       membershipHasOwner:         false,
-      membershipUpdate:   {}
+      membershipUpdate:   {},
+      HARVESTER_TYPES,
+      RANCHER_TYPES
     };
   },
   computed: {
@@ -81,6 +85,18 @@ export default {
       }
 
       return out;
+    },
+
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === HARVESTER;
+    },
+
+    resourceQuotaLabel() {
+      if (this.isHarvester) {
+        return this.t('project.vmDefaultResourceLimit');
+      }
+
+      return this.t('project.containerDefaultResourceLimit');
     },
   },
   watch: {
@@ -174,9 +190,9 @@ export default {
         <ProjectMembershipEditor :mode="mode" :parent-id="value.id" @has-owner-changed="onHasOwnerChanged" @membership-update="onMembershipUpdate" />
       </Tab>
       <Tab name="resource-quotas" :label="t('project.resourceQuotas')" :weight="9">
-        <ResourceQuota v-model="value" :mode="mode" />
+        <ResourceQuota v-model="value" :mode="mode" :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES" />
       </Tab>
-      <Tab name="container-default-resource-limit" :label="t('project.containerDefaultResourceLimit')" :weight="8">
+      <Tab name="container-default-resource-limit" :label="resourceQuotaLabel" :weight="8">
         <ContainerResourceLimit v-model="value.spec.containerDefaultResourceLimit" :mode="mode" :show-tip="false" :register-before-hook="registerBeforeHook" />
       </Tab>
       <Tab

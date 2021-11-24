@@ -31,6 +31,7 @@ export default {
       :read-allowed="true"
       :value-can-be-empty="true"
       :key-label="t('cluster.agentEnvVars.keyLabel')"
+      :parse-lines-from-file="true"
     />
   </Tab>
 </template>

@@ -17,6 +17,7 @@ import { SETTING } from '@/config/settings';
 import semver from 'semver';
 import { BY_TYPE, NORMAN as NORMAN_CLASS } from '@/plugins/steve/classify';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
+import { BACK_TO } from '@/config/local-storage';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -26,13 +27,27 @@ export const BLANK_CLUSTER = '_';
 
 export const plugins = [
   Steve({
-    namespace: 'management', baseUrl: '/v1', modelBaseClass: BY_TYPE
+    namespace:      'management',
+    baseUrl:        '/v1',
+    modelBaseClass: BY_TYPE,
+    supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
   }),
-  Steve({ namespace: 'cluster', baseUrl: '' }), // URL dynamically set for the selected cluster
   Steve({
-    namespace: 'rancher', baseUrl: '/v3', modelBaseClass: NORMAN_CLASS
+    namespace:      'cluster',
+    baseUrl:        '', // URL is dynamically set for the selected cluster
+    supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
   }),
-  Steve({ namespace: 'harvester', baseUrl: '' }),
+  Steve({
+    namespace:      'rancher',
+    baseUrl:        '/v3',
+    supportsStream: false, // The norman API doesn't support streaming
+    modelBaseClass: NORMAN_CLASS,
+  }),
+  Steve({
+    namespace:      'harvester',
+    baseUrl:        '', // URL is dynamically set for the selected cluster
+    supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
+  }),
 ];
 
 export const state = () => {
@@ -530,9 +545,9 @@ export const actions = {
       isMultiCluster = false;
     }
 
-    const pl = res.settings?.find(x => x.name === 'ui-pl')?.value;
-    const brand = res.settings?.find(x => x.name === SETTING.BRAND)?.value;
-    const systemNamespaces = res.settings?.find(x => x.name === SETTING.SYSTEM_NAMESPACES);
+    const pl = res.settings?.find(x => x.id === 'ui-pl')?.value;
+    const brand = res.settings?.find(x => x.id === SETTING.BRAND)?.value;
+    const systemNamespaces = res.settings?.find(x => x.id === SETTING.SYSTEM_NAMESPACES);
 
     if ( pl ) {
       setVendor(pl);
@@ -827,6 +842,14 @@ export const actions = {
     if ( route.name === 'index' ) {
       router.replace('/auth/login');
     } else {
+      if (!process.server) {
+        const backTo = window.localStorage.getItem(BACK_TO);
+
+        if (!backTo && !route.query[LOGGED_OUT]) {
+          window.localStorage.setItem(BACK_TO, window.location.href);
+        }
+      }
+
       const QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT;
 
       router.replace(`/auth/login?${ QUERY }`);

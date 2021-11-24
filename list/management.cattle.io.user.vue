@@ -56,6 +56,10 @@ export default {
     },
 
     users() {
+      if ( !this.allUsers ) {
+        return [];
+      }
+
       // Update the list of users
       // 1) Only show system users in explorer/users and not in auth/users
       // 2) Supplement user with info to enable/disable the refresh group membership action (this is not persisted on save)

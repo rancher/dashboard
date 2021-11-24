@@ -79,7 +79,7 @@ export default {
 
   computed: {
     isClone() {
-      return this.mode === _CREATE && !!this.originalValue.id;
+      return this.mode === _CREATE && !!this.liveValue.id;
     },
 
     availableBackups() {

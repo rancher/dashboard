@@ -24,7 +24,7 @@ export default {
     TopLevelMenu,
     Jump,
     BrandImage,
-    RancherProviderIcon,
+    RancherProviderIcon
   },
 
   props: {
@@ -72,6 +72,10 @@ export default {
 
     showKubeShell() {
       return !this.currentProduct?.hideKubeShell;
+    },
+
+    showKubeConfig() {
+      return !this.currentProduct?.hideKubeConfig;
     },
 
     importEnabled() {
@@ -222,8 +226,10 @@ export default {
     <div>
       <TopLevelMenu v-if="isMultiCluster || !isSingleVirtualCluster"></TopLevelMenu>
     </div>
-
-    <div v-if="currentCluster && !simple" class="top">
+    <div
+      v-if="currentCluster && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
+      class="top"
+    >
       <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
       <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
     </div>
@@ -262,13 +268,24 @@ export default {
         </button>
 
         <button
-          v-tooltip="t('nav.kubeconfig')"
+          v-if="showKubeConfig"
+          v-tooltip="t('nav.kubeconfig.download')"
           :disabled="!kubeConfigEnabled"
           type="button"
           class="btn header-btn role-tertiary"
           @click="currentCluster.downloadKubeConfig()"
         >
-          <i class="icon icon-file icon-lg" />
+          <i class="icon icon-file" />
+        </button>
+
+        <button
+          v-tooltip="t('nav.kubeconfig.copy')"
+          :disabled="!kubeConfigEnabled"
+          type="button"
+          class="btn header-btn role-tertiary"
+          @click="currentCluster.copyKubeConfig()"
+        >
+          <i class="icon icon-copy" />
         </button>
       </template>
 
@@ -653,6 +670,23 @@ export default {
         padding: 10px 20px;
         border-bottom: solid 1px var(--border);
         min-width: 200px;
+      }
+    }
+  }
+
+  .config-actions {
+    li {
+      a {
+        justify-content: start;
+        align-items: center;
+
+        & .icon {
+          margin: 0 4px;
+        }
+
+        &:hover {
+          cursor: pointer;
+        }
       }
     }
   }

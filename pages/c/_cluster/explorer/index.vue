@@ -25,6 +25,7 @@ import {
   WORKLOAD_TYPES,
   COUNT,
   CATALOG,
+  POD,
 } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { mapPref, CLUSTER_TOOLS_TIP } from '@/store/prefs';
@@ -219,9 +220,11 @@ export default {
     },
 
     podsUsed() {
+      const pods = resourceCounts(this.$store, POD);
+
       return {
         total:  parseSi(this.currentCluster?.status?.allocatable?.pods || '0'),
-        useful: parseSi(this.currentCluster?.status?.requested?.pods || '0')
+        useful: pods.total
       };
     },
 
