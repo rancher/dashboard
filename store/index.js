@@ -590,7 +590,6 @@ export const actions = {
     state, commit, dispatch, getters
   }, { id, oldProduct }) {
     const isMultiCluster = getters['isMultiCluster'];
-    const isRancher = getters['isRancher'];
 
     if ( state.clusterId && state.clusterId === id) {
       // Do nothing, we're already connected/connecting to this cluster
@@ -671,8 +670,22 @@ export const actions = {
       }
     };
 
+    const fetchProjects = async() => {
+      let limit = 30000;
+      const sleep = 100;
+
+      while ( limit > 0 && !state.managementReady ) {
+        await setTimeout(() => {}, sleep);
+        limit -= sleep;
+      }
+
+      if ( getters['management/schemaFor'](MANAGEMENT.PROJECT) ) {
+        return dispatch('management/findAll', projectArgs);
+      }
+    };
+
     const res = await allHash({
-      projects:          isRancher && dispatch('management/findAll', projectArgs),
+      projects:          fetchProjects(),
       counts:            dispatch('cluster/findAll', { type: COUNT }),
       namespaces:        dispatch('cluster/findAll', { type: NAMESPACE }),
       navLinks:          !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),

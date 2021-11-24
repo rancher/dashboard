@@ -15,10 +15,6 @@ const SPECIAL = 'special';
 export default {
   components: { Select },
 
-  async fetch() {
-    await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
-  },
-
   data() {
     return {
       isHovered:      false,
