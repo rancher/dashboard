@@ -688,6 +688,10 @@ catalog:
     header: Charts
     noCharts: 'There are no charts available, have you added any repos?'
     noWindows: Your catalogs do not contain any charts capable of being deployed on a Windows cluster.
+    operatingSystems:
+      all: All OSs
+      linux: Linux
+      windows: Windows
     search: Filter
   install:
     action:
