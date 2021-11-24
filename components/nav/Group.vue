@@ -1,6 +1,5 @@
 <script>
 import Type from '@/components/nav/Type';
-import isEqual from 'lodash/isEqual';
 export default {
   name: 'Group',
 
@@ -146,11 +145,10 @@ export default {
         if (item.children && this.hasActiveRoute(item)) {
           return true;
         } else if (item.route) {
-          const { cluster, product, resource } = this.$route.params;
+          const navLevels = ['cluster', 'product', 'resource'];
+          const matchesNavLevel = navLevels.filter(param => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
 
-          if (isEqual({
-            cluster, product, resource
-          }, item.route.params )) {
+          if (matchesNavLevel || this.$router.resolve(item.route).route.fullPath === this.$route.fullPath) {
             return true;
           }
         }
