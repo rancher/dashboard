@@ -2,7 +2,7 @@ import { MANAGEMENT } from '@/config/types';
 import { getVendor } from '@/config/private-label';
 import { SETTING } from '@/config/settings';
 import { findBy } from '@/utils/array';
-import { createCssVars, getCssThemeVarsFromDocument } from '@/utils/color';
+import { createCssVars } from '@/utils/color';
 
 export default {
   async fetch() {
@@ -21,7 +21,7 @@ export default {
     },
 
     themeVars() {
-      return getCssThemeVarsFromDocument(`theme-${ this.$store.getters['prefs/theme'] }`);
+      return { headerTextColor: window.getComputedStyle(document.body).getPropertyValue('--header-text-color') };
     },
 
     color() {
