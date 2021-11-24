@@ -743,6 +743,17 @@ export default {
       if (this[BEFORE_SAVE_HOOKS]) {
         this.unregisterBeforeSaveHook(hookName);
       }
+    },
+
+    updateServiceAccount(neu) {
+      if (neu) {
+        this.podTemplateSpec.serviceAccount = neu;
+        this.podTemplateSpec.serviceAccountName = neu;
+      } else {
+        // Note - both have to be removed in order for removal to work
+        delete this.podTemplateSpec.serviceAccount;
+        delete this.podTemplateSpec.serviceAccountName;
+      }
     }
   }
 };
@@ -878,15 +889,14 @@ export default {
             <h3>{{ t('workload.container.titles.command') }}</h3>
             <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
           </div>
-
           <ServiceNameSelect
-            v-model="podTemplateSpec.serviceAccount"
+            :value="podTemplateSpec.serviceAccountName"
             :mode="mode"
             :select-label="t('workload.serviceAccountName.label')"
             :select-placeholder="t('workload.serviceAccountName.label')"
             :options="namespacedServiceNames"
             option-label="metadata.name"
-            :searchable="true"
+            @input="updateServiceAccount"
           />
 
           <div class="spacer"></div>

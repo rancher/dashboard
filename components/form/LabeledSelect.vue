@@ -159,8 +159,6 @@ export default {
         } else {
           return get(option, this.optionLabel);
         }
-      } else if (typeof option === 'object') {
-        return option['metadata.name'];
       } else {
         return option;
       }

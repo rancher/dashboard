@@ -28,11 +28,19 @@ export default {
     },
     reduce: {
       default: (e) => {
-        if (e && typeof e === 'object' && e.value !== undefined) {
-          return e.value;
+        if (e && typeof e === 'object' && e !== undefined) {
+          return e.metadata.name;
         }
 
         return e;
+      },
+      type: Function
+    },
+    createOption: {
+      default: (text) => {
+        if (text) {
+          return { metadata: { name: text } };
+        }
       },
       type: Function
     },
@@ -64,37 +72,22 @@ export default {
     },
 
     serviceNameNew() {
-      if (this.selected && this.selected !== '') {
-        const findSelected = this.options.find(option => this.value === option.metadata.name);
-
-        if (!findSelected) {
-          return true;
-        }
+      if (!this.selected) {
+        return false;
       }
 
-      return false;
+      return !this.options.find(o => this.reduce(o) === this.serviceName);
+    },
+
+    serviceName() {
+      return this.reduce(this.selected);
     }
+
   },
 
   methods: {
     changeSelected() {
-      const selectString = this.selected.toString();
-
-      const selectedOption = this.options.find((option) => {
-        const optString = `[${ option.type }: ${ option.id }]`;
-
-        if (optString === selectString) {
-          return option;
-        }
-
-        return null;
-      });
-
-      if (selectedOption) {
-        this.$emit('input', selectedOption.metadata.name);
-      } else {
-        this.$emit('input', null);
-      }
+      this.$emit('input', this.serviceName);
     },
 
     clearSearch(event) {
@@ -111,6 +104,7 @@ export default {
         comp.focus();
       }
     },
+
   },
 };
 </script>
@@ -130,12 +124,11 @@ export default {
         class="mr-10"
         :class="{ 'in-input': !isView }"
         :options="options"
-        :searchable="true"
+        :searchable="searchable"
         :clearable="true"
         :disabled="disabled || isView"
         :taggable="taggable"
-        :create-option="(name) => (name)"
-        :reduce="(name) => `${name}`"
+        :create-option="createOption"
         :multiple="false"
         :mode="mode"
         :option-label="optionLabel"
@@ -151,7 +144,7 @@ export default {
       <div class="row span-6">
         <Banner
           color="info"
-          v-html="t('workload.serviceAccountName.createMessage', { name: selected }) "
+          v-html="t('workload.serviceAccountName.createMessage', { name: serviceName }) "
         ></Banner>
       </div>
     </template>
