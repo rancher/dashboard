@@ -1,0 +1,31 @@
+#!/usr/bin/env node
+
+const fs = require('fs-extra');
+const path = require('path');
+
+console.log(__dirname);
+
+const dir = path.resolve('.');
+const pkgs = path.join(dir, 'dist-pkg');
+const port = 4500;
+
+var express = require('express')
+var serveStatic = require('serve-static')
+ 
+var app = express()
+ 
+app.use(serveStatic(pkgs));
+
+const base = `http://127.0.0.1:${ port }`;
+
+console.log(`Serving dist-pkg on ${ base }`);
+console.log('');
+fs.readdirSync(pkgs).forEach((f) => {
+  const main = `${ f }.umd.min.js`;
+
+  if (fs.existsSync(path.join(pkgs, f, main))) {
+    console.log(`  ${ f } available at: ${ base }/${ f }/${ main }`);
+  }
+});
+ 
+app.listen(port)

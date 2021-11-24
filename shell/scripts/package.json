@@ -1,0 +1,13 @@
+{
+  "name": "@@NAME",
+  "version": "1.0.0",
+  "private": false,
+  "publishConfig": {
+    "registry": "http://localhost:4873"
+  },
+  "files": [
+    "**/*"
+  ],
+  "main": "@@NAME.umd.min.js",
+  "ruif" : true
+}

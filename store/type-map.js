@@ -285,7 +285,7 @@ export function DSL(store, product, module = 'type-map') {
 
 let called = false;
 
-export async function applyProducts(store) {
+export async function applyProducts(store, $extension) {
   if (called) {
     return;
   }
@@ -302,6 +302,12 @@ export async function applyProducts(store) {
       impl.init(store);
     }
   }
+  // Load the products from the extensions
+  $extension.loadProducts($extension.products);
+}
+
+export function productsLoaded() {
+  return called;
 }
 
 export const state = function() {
@@ -957,64 +963,27 @@ export const getters = {
   //
   // Note 2: Yes these are editing state in a gettter for caching... it's ok, probably.
   // ------------------------------------
-  hasCustomList(state, getters) {
+  hasCustomList(state, getters, rootState) {
     return (rawType) => {
-      const type = getters.componentFor(rawType);
-      const cache = state.cache.list;
+      const key = getters.componentFor(rawType);
 
-      if ( cache[type] !== undefined ) {
-        return cache[type];
-      }
-
-      try {
-        require.resolve(`@/list/${ type }`);
-        cache[type] = true;
-      } catch (e) {
-        cache[type] = false;
-      }
-
-      return cache[type];
+      return hasCustom(state, rootState, 'list', key, key => require.resolve(`@/list/${ key }`));
     };
   },
 
-  hasCustomDetail(state, getters) {
+  hasCustomDetail(state, getters, rootState) {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
-      const cache = state.cache.detail;
 
-      if ( cache[key] !== undefined ) {
-        return cache[key];
-      }
-
-      try {
-        require.resolve(`@/detail/${ key }`);
-        cache[key] = true;
-      } catch (e) {
-        cache[key] = false;
-      }
-
-      return cache[key];
+      return hasCustom(state, rootState, 'detail', key, key => require.resolve(`@/detail/${ key }`));
     };
   },
 
-  hasCustomEdit(state, getters) {
+  hasCustomEdit(state, getters, rootState) {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      const cache = state.cache.edit;
-
-      if ( cache[key] !== undefined ) {
-        return cache[key];
-      }
-
-      try {
-        require.resolve(`@/edit/${ key }`);
-        cache[key] = true;
-      } catch (e) {
-        cache[key] = false;
-      }
-
-      return cache[key];
+      return hasCustom(state, rootState, 'edit', key, key => require.resolve(`@/edit/${ key }`));
     };
   },
 
@@ -1057,27 +1026,21 @@ export const getters = {
     };
   },
 
-  importList(state, getters) {
+  importList(state, getters, rootState) {
     return (rawType) => {
-      const type = getters.componentFor(rawType);
-
-      return importList(type);
+      return loadExtension(rootState, 'list', getters.componentFor(rawType), importList);
     };
   },
 
-  importDetail(state, getters) {
+  importDetail(state, getters, rootState) {
     return (rawType, subType) => {
-      const key = getters.componentFor(rawType, subType);
-
-      return importDetail(key);
+      return loadExtension(rootState, 'detail', getters.componentFor(rawType, subType), importDetail);
     };
   },
 
-  importEdit(state, getters) {
+  importEdit(state, getters, rootState) {
     return (rawType, subType) => {
-      const key = getters.componentFor(rawType, subType);
-
-      return importEdit(key);
+      return loadExtension(rootState, 'edit', getters.componentFor(rawType, subType), importEdit);
     };
   },
 
@@ -1707,4 +1670,43 @@ export function project(getters) {
   }
 
   return project;
+}
+
+function hasCustom(state, rootState, kind, key, fallback) {
+  const cache = state.cache[kind];
+
+  if ( cache[key] !== undefined ) {
+    return cache[key];
+  }
+
+  // Check to see if the custom kidn is provided by an extension
+  if (!!rootState.$extension.getDynamic(kind, key)) {
+    cache[key] = true;
+
+    return cache[key];
+  }
+
+  // Fallback
+  try {
+    fallback(key);
+    cache[key] = true;
+  } catch (e) {
+    cache[key] = false;
+  }
+
+  return cache[key];
+}
+
+function loadExtension(rootState, kind, key, fallback) {
+  const ext = rootState.$extension.getDynamic(kind, key);
+
+  if (ext) {
+    if (typeof ext === 'function') {
+      return ext;
+    }
+
+    return () => ext;
+  }
+
+  return fallback(key);
 }

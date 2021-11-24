@@ -1,7 +1,6 @@
 <script>
-import { TYPES } from '@/models/secret';
-import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
-import { MANAGEMENT, NAMESPACE } from '@/config/types';
+import { SECRET_TYPES as TYPES } from '@/config/secret';
+import { MANAGEMENT, NAMESPACE, DEFAULT_WORKSPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CruResource from '@/components/CruResource';

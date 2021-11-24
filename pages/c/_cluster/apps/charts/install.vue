@@ -23,7 +23,7 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import Wizard from '@/components/Wizard';
 import ChartMixin from '@/mixins/chart';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
-import { CATALOG, MANAGEMENT } from '@/config/types';
+import { CATALOG, MANAGEMENT, DEFAULT_WORKSPACE } from '@/config/types';
 import {
   CHART, FROM_CLUSTER, FROM_TOOLS, HIDE_SIDE_NAV, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
 } from '@/config/query-params';
@@ -34,7 +34,6 @@ import { clone, diff, get, set } from '@/utils/object';
 import { findBy, insertAt } from '@/utils/array';
 import Vue from 'vue';
 import { saferDump } from '@/utils/create-yaml';
-import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
 const VALUES_STATE = {
   FORM: 'FORM',

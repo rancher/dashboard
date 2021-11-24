@@ -48,7 +48,7 @@ function setProduct(store, to) {
 }
 
 export default async function({
-  route, app, store, redirect, $cookies, req, isDev, from
+  route, app, store, redirect, $cookies, req, isDev, from, $extension
 }) {
   if ( route.path && typeof route.path === 'string') {
     // Ignore webpack hot module reload requests
@@ -221,7 +221,7 @@ export default async function({
   }
 
   // Load stuff
-  await applyProducts(store);
+  await applyProducts(store, $extension);
 
   // Setup a beforeEach hook once to keep track of the current product
   if ( !beforeEachSetup ) {

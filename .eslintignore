@@ -1,4 +1,4 @@
-assets/fonts
+shell/assets/fonts
 coverage
 .nyc_output
 node_modules/
@@ -10,6 +10,6 @@ node_modules/
 .nuxt
 dist
 .DS_Store
-utils/dynamic-importer.js
+shell/utils/dynamic-importer.js
 ksconfig.json
 storybook-static/

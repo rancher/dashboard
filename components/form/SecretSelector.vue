@@ -2,7 +2,7 @@
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { SECRET } from '@/config/types';
 import { _EDIT, _VIEW } from '@/config/query-params';
-import { TYPES } from '@/models/secret';
+import { SECRET_TYPES as TYPES } from '@/config/secret';
 import sortBy from 'lodash/sortBy';
 
 const NONE = '__[[NONE]]__';

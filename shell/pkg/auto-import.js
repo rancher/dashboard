@@ -1,0 +1,65 @@
+const fs = require('fs');
+const path = require('path');
+const contextFolders = ['chart', 'cloud-credential', 'content', 'detail', 'edit', 'list', 'machine-config', 'models', 'promptRemove'];
+const contextMap = contextFolders.reduce((map, obj) => {
+  map[obj] = true;
+
+  return map;
+}, {});
+
+function replaceAll(str, find, replace) {
+  return str.split(find).join(replace);
+}
+
+// This function is used to generate the code to register models, edit, detail, list etc for a type
+// This is used when builing as a library - it does not use require.context - it scans the file system and build time.
+// This ensures that the webpackChunkName is respected (require.context does not support this) - so when build as a library
+// the code splitting will be respected
+function generateTypeImport(pkg, dir) {
+  let content = 'export function importTypes($extension) { \n';
+
+  // Auto-import if the folder exists
+  contextFolders.forEach((f) => {
+    if (fs.existsSync(path.join(dir, f))) {
+      fs.readdirSync(path.join(dir, f)).forEach((file) => {
+        const name = file.replace(/\.[^/.]+$/, '');
+
+        content += `  $extension.registerDynamics({ '${ f }': { '${ name }': () => import(/* webpackChunkName: "${ f }" */'${ pkg }/${ f }/${ file }') } });\n`;
+      });
+    }
+  });
+
+  content += `};\n`;
+
+  return content;
+}
+
+// This function is used to generate the code to register models, edit, detail, list etc for a type
+// This is used when builing for dev when plugins are loaded into the app for development - it use require.context - which ensures
+// theat any changes made will be picked up by hot module replacement. It will not respect code splitting, but this is okay
+// for development. Also note the top-level folders are not watched, so if you don't have a 'list' folder (for example), you must create it
+// and then restart the dev server for it to be picked up.
+function generateDynamicTypeImport(pkg, dir) {
+  const template = fs.readFileSync(path.join(__dirname, 'import.js'), { encoding: 'utf8' });
+  let content = 'export function importTypes($extension) { \n';
+
+  // Auto-import if the folder exists
+  contextFolders.forEach((f) => {
+    if (fs.existsSync(path.join(dir, f))) {
+      const genImport = replaceAll(template, 'NAME', f);
+
+      content += replaceAll(genImport, 'BASE', pkg);
+    }
+  });
+
+  content += `};\n`;
+
+  return content;
+}
+
+module.exports = {
+  contextFolders,
+  contextMap,
+  generateTypeImport,
+  generateDynamicTypeImport
+};

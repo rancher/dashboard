@@ -1,0 +1,121 @@
+#!/bin/bash
+
+# Directories and folders not to replace in
+GREP_EXCLUDES="--exclude-dir=.git --exclude-dir=.nuxt --exclude-dir=node_modules --exclude=rejig --exclude=nuxt.config.js"
+
+echo "Re-jigging codebase"
+
+DIR=$(cd $(dirname $0); cd ..; pwd)
+
+echo $DIR
+
+if [ "$1" == "-d" ]; then
+  echo "Resetting"
+  cp ${DIR}/PLUGINS.md ${TMPDIR}
+  cp ${DIR}/scripts/rejig ${TMPDIR}
+  cp ${DIR}/nuxt.config.js ${TMPDIR}
+  cp ${DIR}/shell/nuxt.config.js ${TMPDIR}/nuxt.config.js.sh
+
+  git reset --hard
+  git clean -fd
+
+  mv ${TMPDIR}/PLUGINS.md ${DIR}
+  mv ${TMPDIR}/rejig ${DIR}/scripts
+  mv ${TMPDIR}/nuxt.config.js ${DIR}
+  mv ${TMPDIR}/nuxt.config.js.sh ${DIR}/shell/nuxt.config.js
+  echo "Reset"
+  exit 0
+fi
+
+function move() {
+  if [ -d $1 ]; then
+    echo "Moving folder: $1"
+    #git mv $1/ ${SHELL}
+    mv $1/ ${SHELL}
+  fi
+}
+
+# Make new folders
+
+pushd $DIR 2>&1 > /dev/null
+
+SHELL=./shell
+
+mkdir -p ${SHELL}
+
+# Remove the design-system pages - we're going to use Storybook
+rm -rf pages/design-system
+
+move ./server
+move ./layouts
+move ./plugins
+move ./utils
+move ./config
+move ./static
+move ./middleware
+move ./mixins
+move ./store
+move ./pages
+move ./components
+move ./assets
+
+move ./chart
+move ./cloud-credential
+move ./detail
+move ./edit
+move ./list
+move ./machine-config
+move ./models
+move ./promptRemove
+
+move ./content
+
+echo "Updating imports ..."
+
+declare -a contextFolders=("chart" "cloud-credential" "content" "detail" "edit" "list" "machine-config" "models" "promptRemove")
+
+for i in "${contextFolders[@]}"
+  do
+    grep -rl ${GREP_EXCLUDES} . -e '@/'"$i"'' | xargs sed -i.bak -e "s/'@\/""$i""/'@shell\/""$i""/g"
+    grep -rl ${GREP_EXCLUDES} . -e '@/'"$i"'' | xargs sed -i.bak -e "s/\`@\/""$i""/\`@shell\/""$i""/g"
+  done
+
+# Update plugins references to use @~plugins
+grep -rl ${GREP_EXCLUDES} . -e '~/plugins' | xargs sed -i.bak -e "s/'~\/plugins/'~shell\/plugins/g"
+grep -rl ${GREP_EXCLUDES} . -e '@/plugins' | xargs sed -i.bak -e "s/'@\/plugins/'@shell\/plugins/g"
+
+# Utils
+grep -rl ${GREP_EXCLUDES} . -e '~/utils' | xargs sed -i.bak -e "s/\'~\/utils/\'~shell\/utils/g"
+grep -rl ${GREP_EXCLUDES} . -e '@/utils' | xargs sed -i.bak -e "s/\'@\/utils/\'@shell\/utils/g"
+
+# Config
+grep -rl ${GREP_EXCLUDES} . -e '@/config' | xargs sed -i.bak -e "s/\'@\/config/\'@shell\/config/g"
+grep -rl ${GREP_EXCLUDES} . -e '@/config' | xargs sed -i.bak -e "s/\`@\/config/\`@shell\/config/g"
+grep -rl ${GREP_EXCLUDES} . -e '~/config' | xargs sed -i.bak -e "s/\'~\/config/\'@shell\/config/g"
+
+# Mixins
+grep -rl ${GREP_EXCLUDES} . -e '~/mixins' | xargs sed -i.bak -e "s/'~\/mixins/'~shell\/mixins/g"
+grep -rl ${GREP_EXCLUDES} . -e '@/mixins' | xargs sed -i.bak -e "s/'@\/mixins/'@shell\/mixins/g"
+
+# Store
+grep -rl ${GREP_EXCLUDES} . -e '~/store' | xargs sed -i.bak -e "s/\'~\/store/\'~shell\/store/g"
+grep -rl ${GREP_EXCLUDES} . -e '@/store' | xargs sed -i.bak -e "s/\'@\/store/\'@shell\/store/g"
+
+# Pages
+grep -rl ${GREP_EXCLUDES} . -e '@/pages' | xargs sed -i.bak -e "s/\'@\/pages/\'@shell\/pages/g"
+
+# Components
+grep -rl ${GREP_EXCLUDES} . -e '@/components' | xargs sed -i.bak -e "s/'@\/components/'@shell\/components/g"
+grep -rl ${GREP_EXCLUDES} . -e '@/components' | xargs sed -i.bak -e "s/\`@\/components/\`@shell\/components/g"
+
+# Asssets
+grep -rl ${GREP_EXCLUDES} . -e '~assets' | xargs sed -i.bak -e "s/~assets/~shell\/assets/g"
+grep -rl ${GREP_EXCLUDES} . -e '~/assets' | xargs sed -i.bak -e "s/~\/assets/~shell\/assets/g"
+grep -rl ${GREP_EXCLUDES} . -e '@/assets' | xargs sed -i.bak -e "s/@\/assets/@shell\/assets/g"
+
+echo "Removing any .bak files ..."
+find . -type f -name "*.bak" -delete
+
+popd 2>&1 > /dev/null
+
+echo "All done"

@@ -1,0 +1,38 @@
+import Vue from 'vue';
+import JSZip from 'jszip';
+import jsyaml from 'js-yaml';
+
+// Load any plugins that are present as npm modules
+// The 'dynamic' module is generated in webpack to load each package
+
+const dynamicLoader = require('@ranch/dynamic');
+
+export default function({
+  app,
+  store,
+  $axios,
+  redirect,
+  $extension,
+  nuxt
+}, inject) {
+  if (dynamicLoader) {
+    dynamicLoader.default(store, app, $extension);
+  }
+
+  // The libraries we build have Vue externalised, so we need to expose Vue as a global for
+  // them to pick up - see: https://cli.vuejs.org/guide/build-targets.html#library
+  window.Vue = Vue;
+
+  // Global libraries - allows us to externalise these to reduce package bundle size
+  window.__jszip = JSZip;
+  window.__jsyaml = jsyaml;
+
+  // Add in the plugins nav
+  store.commit('nav/addNav', {
+    id:       'plugins',
+    label:    'Plugins',
+    icon:     'icon-gear',
+    category: 'configuration',
+    route:    { name: 'plugins' }
+  });
+}

@@ -12,14 +12,18 @@
     "allowJs": true,
     "sourceMap": true,
     "strict": true,
-    "noEmit": true,
+    "noEmit": false,
     "baseUrl": ".",
+    "rootDir": ".",
     "paths": {
       "~/*": [
         "./*"
       ],
       "@/*": [
         "./*"
+      ],
+      "@shell/*": [
+        "./shell/*"
       ]
     },
     "types": [
@@ -28,6 +32,10 @@
       "cypress"
     ]
   },
+  "include": [
+    "**/*.ts",
+    "**/*.vue"
+  ],
   "exclude": [
     "node_modules"
   ]

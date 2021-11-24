@@ -14,7 +14,9 @@
     "LICENSE": true,
     "babel.config.js": true,
     "jsconfig.json": true,
-    "yarn-error.log": true
+    "yarn-error.log": true,
+    "pkg/**/.shell": true,
+    "pkg/**/node_modules": true
   },
   "eslint.format.enable": true,
   "eslint.run": "onSave",
