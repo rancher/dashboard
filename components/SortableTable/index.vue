@@ -865,6 +865,7 @@ $spacing: 10px;
       &.state-description > td {
         font-size: 13px;
         padding-top: 0;
+        overflow-wrap: anywhere;
       }
     }
 
