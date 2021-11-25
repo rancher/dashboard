@@ -47,8 +47,8 @@ verdaccio
 Now, back in the original console window, run:
 
 ```
-yarn publish ./shell/creators/app --non-interactive
-yarn publish ./shell/creators/pkg --non-interactive
+yarn publish ./shell/creators/app --patch
+yarn publish ./shell/creators/pkg --patch
 ```
 
 These steps will publish the two [creator](https://classic.yarnpkg.com/en/docs/cli/create) packages to the local npm registry. If you open a browser to `http://127.0.0.1:4873` you'll see the two packages there.
@@ -56,7 +56,7 @@ These steps will publish the two [creator](https://classic.yarnpkg.com/en/docs/c
 Now we'll publish the `shell` package.
 
 ```
-yarn publish ./shell --non-interactive
+yarn publish ./shell --patch
 ```
 
 At this point, we've published 3 NPM packages:
