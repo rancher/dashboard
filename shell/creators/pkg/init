@@ -1,0 +1,93 @@
+#!/usr/bin/env node
+
+const fs = require('fs-extra');
+const path = require('path');
+
+const targets = {
+  'dev': './node_modules/.bin/nuxt dev',
+  'nuxt': './node_modules/.bin/nuxt',
+};
+
+const files = [
+  'tsconfig.json',
+  'vue.config.js',
+  'babel.config.js',
+  'index.js'
+];
+
+const topLevelScripts = {
+  'build-pkg': './node_modules/@ranch/shell/scripts/build-pkg.sh',
+  'serve-pkgs': './node_modules/@ranch/shell/scripts/serve-pkgs',
+};
+
+console.log('');
+console.log('Creating Skeleton UI Package');
+
+const args = process.argv;
+
+if (args.length !== 3) {
+  console.log('Expected single argument of package name');
+}
+
+const name = args[2];
+const folder = path.resolve('.');
+const pkgFolder = path.join(folder, 'pkg', name);
+
+console.log(`  Creating package folder: ${ pkgFolder}`);
+
+fs.ensureDirSync(pkgFolder);
+
+console.log('  Creating package.json');
+fs.copySync(path.join(__dirname, 'pkg.package.json'), path.join(pkgFolder, 'package.json'));
+
+const rawdata = fs.readFileSync(path.join(pkgFolder, 'package.json'));
+const pkg = JSON.parse(rawdata);
+
+pkg.name = name;
+
+Object.keys(targets).forEach((target) => {
+  if (!pkg.scripts[target]) {
+    pkg.scripts[target] = targets[target];
+    console.log(`  Adding script '${ target }' to package.json`);
+  }
+});
+
+// Add dependencies
+// pkg.dependencies['@ranch/shell'] = '^0.6.2';
+// pkg.dependencies['core-js'] = '3.18.3';
+
+fs.writeFileSync(path.join(pkgFolder, 'package.json'), JSON.stringify(pkg, null, 2));
+
+// Copy base files
+files.forEach((file) => {
+  const src = path.join(__dirname, file);
+  const dest = path.join(path.join(pkgFolder, file));
+
+  if (!fs.existsSync(dest)) {
+    console.log('  Adding file: ' + file);
+    fs.copySync(src, dest);
+  }
+});
+
+// require("child_process").spawn('yarn', ['install'], {
+//   cwd: process.cwd(),
+//   stdio: "inherit"
+// });
+
+const topLevelRawdata = fs.readFileSync(path.join(folder, 'package.json'));
+const topLevelPkg = JSON.parse(topLevelRawdata);
+let updated = false;
+
+Object.keys(topLevelScripts).forEach((target) => {
+  if (!topLevelPkg.scripts[target]) {
+    topLevelPkg.scripts[target] = topLevelScripts[target];
+    console.log(`  Adding script '${ target }' to top-level package.json`);
+    updated = true;
+  }
+});
+
+if (updated) {
+  fs.writeFileSync(path.join(folder, 'package.json'), JSON.stringify(topLevelPkg, null, 2));
+}
+
+console.log('');

@@ -44,6 +44,8 @@ yarn global add verdaccio
 verdaccio
 ```
 
+> TODO: Setting up a user and logging in
+
 Now, back in the original console window, run:
 
 ```
@@ -106,12 +108,12 @@ We have a simple `yarn create` helper to do this.
 Run:
 
 ```
-yarn create @ranch/pkg example
+yarn create @ranch/pkg testplugin
 ```
 
-This will create a new UI Package in the `pkg/example` folder.
+This will create a new UI Package in the `pkg/testplugin` folder.
 
-Replace the contents of the file `pkg/example/index.js` with:
+Replace the contents of the file `pkg/testplugin/index.js` with:
 
 ```
 import { importTypes } from '@ranch/auto-import';
@@ -128,7 +130,7 @@ export default function(router, store, $extension) {
 }
 ```
 
-Next, create a new file `pkg/example/product.js` with this content:
+Next, create a new file `pkg/testplugin/product.js` with this content:
 
 ```
 export const NAME = 'example';
@@ -153,9 +155,9 @@ yarn dev
 
 Open a web browser to https://127.0.0.1:8005 and you'll see a new 'Example' nav item in the top-level slide-in menu.
 
-The example package created here doesn't do much other than add a new product to the UI, which results in the new navigation item,
+The `testplugin` package created here doesn't do much other than add a new product to the UI, which results in the new navigation item,
 
-The developer experience is still the same - you can edit the code in `pkg/example` and the UI will hot-reload to reflect the updates you make.
+The developer experience is still the same - you can edit the code in `pkg/testplugin` and the UI will hot-reload to reflect the updates you make.
 
 ## Use Case: Dynamically loading a UI Plugin
 
@@ -163,11 +165,88 @@ In the previous use case, the UI package we created was statically built into th
 
 This use case illustrates being able to build a UI plugin as a package and then be able to load that into the UI, dynamically at run-time.
 
-First thing to do is to build the UI package for the example plugin that we created previously. Run:
+First thing to do is to build the UI package for the `testplugin` plugin that we created previously. Run:
 
 ```
-yarn build-pkg example
+yarn build-pkg testplugin
 ```
 
-The example plugin will be built and the output placed in `dist-pkg\example`.
+The `testplugin` plugin will be built and the output placed in `dist-pkg\testplugin`.
 
+Next, edit the `nuxt.config.js` file in the root folder and replace it with this:
+
+```
+import config from '@ranch/shell/nuxt.config';
+
+export default config(__dirname, {
+  excludes:   ['testplugin'],
+  autoImport: []
+});
+
+```
+
+What we have done here is add the `testplugin` plugin to the `excludes` configuration - this means that when we build and run the UI, we won't include the `testplugin` plugin.
+
+Run the UI with:
+
+```
+yarn dev
+```
+
+Open a web browser to `https://127.0.0.1:8005` and you'll see that the Example nav item is not present - since the plugin was not loaded.
+
+Bring in the slide-in menu (click on the hamburger menu in the top-left) and click on 'Plugins'.
+
+In the top input box, enter `testplugin` as the Plugin name and click 'Load Plugin' - you should see a notificaton telling you the plugin was loaded and if you bring in the side menu again, you should see the Example nav item there now.
+
+This illustrates dynamically loading a Plugin. Note that when we started the UI, it serves up any plugins in the `dist-pkg` folder under the `/pkg` route of the app - so when we entered the name `testplugin` ast eh plugin, the UI loaded the plugin from:
+
+```
+https://127.0.0.1:8005/pkg/testplugin/testplugin.umd.min.js
+```
+
+If you copy and paste this URL into a browser, you'll see the Javascript for the plugin.
+
+To really convince yourself that the plugin is being dyanmically loaded, reload the app in the browser window (the `testplugin` plugin will no longer be loaded). Go to Plugins and in the `Plugin URL` enter the URL above and click `Load Plugin` - the plugin will load again - if you look in the browser deve tools under the network tab, you'll see the plugin being dynamically loaded.
+
+If you want to, you can run:
+
+```
+yarn serve-pkgs
+```
+
+This will start a web server on port `4500` that is serving up the plugins in the `dist-pkg` folder - it shows the URLs to use for each of the available packages. You can then load these dynamically into any UI that you have running.
+
+## Use Case: Publish a package to NPM
+
+Building on from the previous use case, we can publish a plugin to NPM.
+
+From the top-level folder:
+
+```
+yarn build-pkg testplugin
+cd dist-pkg/testplugin
+yarn publish --patch
+```
+
+Open a web browser and view the Verdaccio UI at http://127.0.0.1:4873 - you'll see we've published our plugin as a package to the registry.
+
+In a new folder, run:
+
+```
+yarn create @ranch/app test2
+cd test2
+yarn install
+```
+
+This will give us a new UI - we can run `yarn dev` and see the UI in the browser - with no plugins.
+
+Now we can add our UI package that we published to the local registry with:
+
+```
+yarn add testplugin
+```
+
+Now when we run the app with `yarn dev` and browse to https://127.0.0.1:8005 you'll see that our `testplugin` plugin ahas been included in the UI.
+
+This supports the use case where we may be developing a UI Package that relies on another UI package - so we can create a skeleton app, add the dependencies we need via NPM and then develop our own plugin in the repository - so the only code we have is the code for out plugin, but we are able to test and run it in a UI locally with the other plugins that it needs.
