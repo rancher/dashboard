@@ -236,8 +236,11 @@ export default {
         const secretBackups = this.value.status.secretBackups;
 
         if (secretBackups) {
-          userData = base64Decode(secretBackups[0]?.data?.userdata);
-          networkData = base64Decode(secretBackups[0]?.data?.networkdata);
+          const secretNetworkData = secretBackups[0]?.data?.networkdata || '';
+          const secretUserData = secretBackups[0]?.data?.userdata || '';
+
+          userData = base64Decode(secretUserData);
+          networkData = base64Decode(secretNetworkData);
         }
       }
       const osType = this.getOsType(vm);
