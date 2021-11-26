@@ -97,6 +97,7 @@ export default {
 
 <style lang="scss" scoped>
   .growl-container {
+    z-index: 15;
     position: absolute;
     top: 0;
     right: 0;

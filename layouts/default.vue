@@ -496,7 +496,13 @@ export default {
         // Only expand one group - so after the first has been expanded, no more will
         // This prevents the 'More Resources' group being expanded in addition to the normal group
         let canExpand = true;
+        const expanded = refs.filter(grp => grp.isExpanded)[0];
 
+        if (expanded && expanded.hasActiveRoute()) {
+          this.$nextTick(() => expanded.syncNav());
+
+          return;
+        }
         refs.forEach((grp) => {
           if (!grp.group.isRoot) {
             grp.isExpanded = false;

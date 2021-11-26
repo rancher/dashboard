@@ -6,6 +6,7 @@ generic:
   all: All
   back: Back
   cancel: Cancel
+  clear: Clear
   close: Close
   comingSoon: Coming Soon
   copy: Copy
@@ -688,6 +689,10 @@ catalog:
     header: Charts
     noCharts: 'There are no charts available, have you added any repos?'
     noWindows: Your catalogs do not contain any charts capable of being deployed on a Windows cluster.
+    operatingSystems:
+      all: All OSs
+      linux: Linux
+      windows: Windows
     search: Filter
   install:
     action:
@@ -4195,6 +4200,7 @@ tableHeaders:
       one { Host }
       other { Hosts }
     }
+  health: Health
   id: ID
   image: Image
   imageSize: Size
@@ -4732,6 +4738,8 @@ workload:
       label: Successful Job History Limit
       tip: The number of successful finished jobs to retain.
     suspend: Suspend
+  list:
+    errorCannotScale: Failed to scale {workloadName} {direction, select, up { up } down { down } }
   metrics:
     pod: Pod Metrics
     metricsView: Metrics View
@@ -4852,6 +4860,9 @@ workload:
         exists: Exists
       tolerationSeconds: Toleration Seconds
       value: Value
+  serviceAccountName:
+    label: Service Account Name
+    createMessage: The service name [ {name} ] does not exist in this namespace, you will need to create it manually.
   serviceName: Service Name
   storage:
     subtypes:

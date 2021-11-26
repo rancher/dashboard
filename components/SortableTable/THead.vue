@@ -135,7 +135,7 @@ export default {
         :class="{ sortable: col.sort, [col.breakpoint]: !!col.breakpoint}"
         @click.prevent="changeSort($event, col)"
       >
-        <span v-if="col.sort" @click="$router.applyQuery(queryFor(col))">
+        <span v-if="col.sort" v-tooltip="col.tooltip" @click="$router.applyQuery(queryFor(col))">
           <span v-html="labelFor(col)" />
           <span class="icon-stack">
             <i class="icon icon-sort icon-stack-1x faded" />
@@ -143,7 +143,7 @@ export default {
             <i v-if="isCurrent(col) && descending" class="icon icon-sort-up icon-stack-1x" />
           </span>
         </span>
-        <span v-else>{{ labelFor(col) }}</span>
+        <span v-else v-tooltip="col.tooltip">{{ labelFor(col) }}</span>
       </th>
       <th v-if="rowActions" :width="rowActionsWidth">
       </th>

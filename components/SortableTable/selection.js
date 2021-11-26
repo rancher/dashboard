@@ -179,6 +179,11 @@ export default {
     async onRowClick(e) {
       const node = this.nodeForEvent(e);
       const td = $(e.target).closest('TD');
+      const skipSelect = td.hasClass('skip-select');
+
+      if (skipSelect) {
+        return;
+      }
       const selection = this.selectedNodes;
       const isCheckbox = this.isSelectionCheckbox(e.target) || td.hasClass('row-check');
       const isExpand = td.hasClass('row-expand');

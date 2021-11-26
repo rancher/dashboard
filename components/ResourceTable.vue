@@ -63,6 +63,15 @@ export default {
       type:    String,
       default: 'resourceTable.groupBy.namespace',
     },
+
+    overflowX: {
+      type:    Boolean,
+      default: false
+    },
+    overflowY: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   computed: {
@@ -263,6 +272,8 @@ export default {
     :paging-params="pagingParams"
     :paging-label="pagingLabel"
     :table-actions="_showBulkActions"
+    :overflow-x="overflowX"
+    :overflow-y="overflowY"
     key-field="_key"
     :sort-generation-fn="sortGenerationFn"
     v-on="$listeners"

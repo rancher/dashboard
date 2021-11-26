@@ -161,7 +161,7 @@ export default {
         const portSpec = findBy(this.loadBalancerServicePorts, 'name', _name);
 
         if (portSpec) {
-          row._listeningPort = portSpec.port;
+          this.$set(row, '_listeningPort', portSpec.port);
 
           row._serviceType = 'LoadBalancer';
 
@@ -171,7 +171,7 @@ export default {
         const portSpec = findBy(this.nodePortServicePorts, 'name', _name);
 
         if (portSpec) {
-          row._listeningPort = portSpec.nodePort;
+          this.$set(row, '_listeningPort', portSpec.nodePort);
 
           row._serviceType = 'NodePort';
 
@@ -186,7 +186,7 @@ export default {
       }
 
       return '';
-    }
+    },
   },
 };
 </script>

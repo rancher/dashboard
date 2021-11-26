@@ -6,6 +6,11 @@ import { sortBy } from '@/utils/sort';
 import { isArray, addObjects, findBy, filterBy } from '@/utils/array';
 import Select from '@/components/form/Select';
 import { NAME as HARVESTER } from '@/config/product/harvester';
+import {
+  ALL_USER, ALL, ALL_SYSTEM, ALL_ORPHANS, NAMESPACED_YES, NAMESPACED_NO
+} from '@/store';
+
+const SPECIAL = 'special';
 
 export default {
   components: { Select },
@@ -44,28 +49,28 @@ export default {
       if (!this.isVirtualCluster) {
         out = [
           {
-            id:    'all',
-            kind:  'special',
+            id:    ALL,
+            kind:  SPECIAL,
             label: t('nav.ns.all'),
           },
           {
-            id:    'all://user',
-            kind:  'special',
+            id:    ALL_USER,
+            kind:  SPECIAL,
             label: t('nav.ns.user'),
           },
           {
-            id:    'all://system',
-            kind:  'special',
+            id:    ALL_SYSTEM,
+            kind:  SPECIAL,
             label: t('nav.ns.system'),
           },
           {
-            id:    'namespaced://true',
-            kind:  'special',
+            id:    NAMESPACED_YES,
+            kind:  SPECIAL,
             label: t('nav.ns.namespaced'),
           },
           {
-            id:    'namespaced://false',
-            kind:  'special',
+            id:    NAMESPACED_NO,
+            kind:  SPECIAL,
             label: t('nav.ns.clusterLevel'),
           },
         ];
@@ -147,7 +152,7 @@ export default {
           }
 
           out.push({
-            id:       'all://orphans',
+            id:       ALL_ORPHANS,
             kind:     'project',
             label:    t('nav.ns.orphan'),
             disabled: true,
@@ -191,7 +196,7 @@ export default {
       get() {
         const prefs = this.$store.getters['prefs/get'](NAMESPACE_FILTERS);
         const clusterId = this.$store.getters['clusterId'];
-        const values = prefs[clusterId] || ['all://user'];
+        const values = prefs[clusterId] || [ALL_USER];
         const options = this.options;
 
         // Remove values that are not valid options
@@ -210,16 +215,16 @@ export default {
         neu = neu.filter(x => !!x.id);
 
         const last = neu[neu.length - 1];
-        const lastIsSpecial = last?.kind === 'special';
-        const hadUser = !!old.find(x => x.id === 'all://user');
-        const hadAll = !!old.find(x => x.id === 'all');
+        const lastIsSpecial = last?.kind === SPECIAL;
+        const hadUser = !!old.find(x => x.id === ALL_USER);
+        const hadAll = !!old.find(x => x.id === ALL);
 
         if (lastIsSpecial) {
           neu = [last];
         }
 
         if (neu.length > 1) {
-          neu = neu.filter(x => x.kind !== 'special');
+          neu = neu.filter(x => x.kind !== SPECIAL);
         }
 
         if (neu.find(x => x.id === 'all')) {
@@ -231,7 +236,7 @@ export default {
         // If there as something selected and you remove it, go back to user by default
         // Unless it was user or all
         if (neu.length === 0 && !hadUser && !hadAll) {
-          ids = ['all://user'];
+          ids = [ALL_USER];
         } else {
           ids = neu.map(x => x.id);
         }
