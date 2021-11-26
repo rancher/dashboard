@@ -304,7 +304,9 @@ BODY, .theme-light {
   --scrollbar-thumb-dropdown   : #{$lighter};
   --scrollbar-track            : transparent;
 
-  --header-text-color          : #{$darkest};
+  // Header, Footer and Consent banner defaults
+  --banner-text-color          : #{$darkest};
+
   --header-bg                  : #{$lightest};
   --header-btn-bg              : transparent;
   --header-btn-text            : #{$darkest};
@@ -320,7 +322,6 @@ BODY, .theme-light {
   --nav-border                 : #{$medium};
   --nav-border-size            : 1px;
 
-  --footer-text-color          : #{$darkest};
   --footer-bg                  : transparent;
   --footer-height              : 0px;
 

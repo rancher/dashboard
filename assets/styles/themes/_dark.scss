@@ -47,20 +47,20 @@
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$medium};
 
-  --header-text-color          : #{$lightest};
   --header-bg                  : #{$darker};
   --header-border              : #{$medium};
   --header-btn-bg              : transparent;
   --header-btn-text            : #{$lightest};
   --header-input-text          : #{$lightest};
 
+  // Header, Footer and Consent banner defaults
+  --banner-text-color          : #{$lightest};
+
   --nav-bg                     : #{$darkest};
   --nav-active                 : var(--primary-active-bg);
   --nav-border                 : #{$medium};
   --nav-hover                  : var(--primary);
   --nav-expander-hover         : var(--primary-banner-bg);
-
-  --footer-text-color          : #{$lightest};
 
   --disabled-bg                : #{darken($disabled, 10%)};
   --disabled-text              : #{$secondary};
