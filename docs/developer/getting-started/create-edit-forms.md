@@ -30,9 +30,15 @@ The edit component takes a `value` as a prop. For all `/edit` components, the st
 
 The CruResource component takes a few important props, such as `save` and `done`, that you don’t have to pass in manually because they are automatically made available from the `CreateEditView` mixin:
 
-- The `save` method from CreateEditView cleans the data. It also populates `exceptionToErrorsArray`, which controls validation errors for the form as a whole. In other words, these validation errors don’t appear next to individual fields, but they each appear at the bottom of the form after the submit button is clicked, and each error includes the name of the field that has a problem. Note: In order to improve the user experience in the future, we are moving toward individual field validation errors that appear as soon as the user types or selects incorrect input. Where possible, you should add pre-submit form validation to input components such as LabeledInput and LabeledSelect. Ideally, the button to submit the form should be disabled by default until the entire form is valid, and no errors should appear next to inputs that haven’t been touched.
+- The `save` method from CreateEditView cleans the data. It also populates `exceptionToErrorsArray`, which controls validation errors for the form as a whole. In other words, these validation errors don’t appear next to individual fields, but they each appear at the bottom of the form after the submit button is clicked, and each error includes the name of the field that has a problem.
 - `done` is used to redirect the user after the form is successfully submitted.
 - `actuallySave` makes the asynchronous API call to create the resource and it gets the appropriate API route from the resource schema itself. So in this way, the `save` method is reused across many create/edit forms, while the API route called to save the resource is still configured at the resource level. However, any method for managing a resource, including `save`, can be overridden by adding methods of the same name to the resource’s class model.
+
+# Validation
+
+In order to improve the user experience in the future, we are moving toward individual field validation errors that appear as soon as the user types or selects incorrect input. Where possible, you should add pre-submit form validation to input components such as LabeledInput and LabeledSelect. Ideally, the button to submit the form should be disabled by default until the entire form is valid, and no errors should appear next to inputs that haven’t been touched.
+
+This section will be expanded with more information on pre-submit form validation.
 
 # Alternative Create/Edit Forms 
 This section describes how to make create/edit forms without CruResource or the CreateEditView mixin.
