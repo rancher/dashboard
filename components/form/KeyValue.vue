@@ -366,9 +366,12 @@ export default {
         const lines = value.split('\n');
 
         lines.forEach((line) => {
-          const [key, value] = line.split('=');
+          // Ignore empty lines
+          if (line.length) {
+            const [key, value] = line.split('=');
 
-          this.add(key, value);
+            this.add(key, value);
+          }
         });
       }
     },
@@ -570,7 +573,7 @@ export default {
               :class="{'conceal': valueConcealed}"
               :mode="mode"
               :placeholder="valuePlaceholder"
-              :min-height="61"
+              :min-height="40"
               :spellcheck="false"
               @input="queueUpdate"
             />
@@ -673,7 +676,8 @@ export default {
   }
 
   input {
-    height: $input-height;
+    height: 40px;
+    line-height: 1;
   }
 
   .footer {

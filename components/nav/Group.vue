@@ -145,9 +145,10 @@ export default {
         if (item.children && this.hasActiveRoute(item)) {
           return true;
         } else if (item.route) {
-          const route = this.$router.resolve(item.route);
+          const navLevels = ['cluster', 'product', 'resource'];
+          const matchesNavLevel = navLevels.filter(param => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
 
-          if (this.$route.fullPath === route.route.fullPath) {
+          if (matchesNavLevel || this.$router.resolve(item.route).route.fullPath === this.$route.fullPath) {
             return true;
           }
         }

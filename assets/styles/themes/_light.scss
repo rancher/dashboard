@@ -363,6 +363,8 @@ BODY, .theme-light {
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
 
+  --card-badge-text            : #ffffff;
+
   // UNUSED?
   --card-header                : var(--primary-banner-bg);
 
@@ -492,7 +494,7 @@ BODY, .theme-light {
   $other                       : #614EA2;
 
   --app-rancher-accent         : #{$rancher};
-  --app-rancher-accent-text    : #{$darkest};
+  --app-rancher-accent-text    : #ffffff;
 
   --app-partner-accent         : #{$partner};
   --app-partner-accent-text    : black;

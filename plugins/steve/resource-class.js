@@ -684,7 +684,7 @@ export default class Resource {
   }
 
   get canEditYaml() {
-    return this.schema?.resourceMethods.find(x => x === 'blocked-PUT') ? false : this.canUpdate;
+    return this.schema?.resourceMethods?.find(x => x === 'blocked-PUT') ? false : this.canUpdate;
   }
 
   // ------------------------------------------------------------------

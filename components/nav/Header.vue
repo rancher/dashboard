@@ -24,7 +24,7 @@ export default {
     TopLevelMenu,
     Jump,
     BrandImage,
-    RancherProviderIcon,
+    RancherProviderIcon
   },
 
   props: {
@@ -269,13 +269,23 @@ export default {
 
         <button
           v-if="showKubeConfig"
-          v-tooltip="t('nav.kubeconfig')"
+          v-tooltip="t('nav.kubeconfig.download')"
           :disabled="!kubeConfigEnabled"
           type="button"
           class="btn header-btn role-tertiary"
           @click="currentCluster.downloadKubeConfig()"
         >
-          <i class="icon icon-file icon-lg" />
+          <i class="icon icon-file" />
+        </button>
+
+        <button
+          v-tooltip="t('nav.kubeconfig.copy')"
+          :disabled="!kubeConfigEnabled"
+          type="button"
+          class="btn header-btn role-tertiary"
+          @click="currentCluster.copyKubeConfig()"
+        >
+          <i class="icon icon-copy" />
         </button>
       </template>
 
@@ -660,6 +670,23 @@ export default {
         padding: 10px 20px;
         border-bottom: solid 1px var(--border);
         min-width: 200px;
+      }
+    }
+  }
+
+  .config-actions {
+    li {
+      a {
+        justify-content: start;
+        align-items: center;
+
+        & .icon {
+          margin: 0 4px;
+        }
+
+        &:hover {
+          cursor: pointer;
+        }
       }
     }
   }

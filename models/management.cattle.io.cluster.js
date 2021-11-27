@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import { CATALOG } from '@/config/labels-annotations';
 import { NODE, FLEET, MANAGEMENT } from '@/config/types';
 import { insertAt } from '@/utils/array';
@@ -52,7 +53,15 @@ export default class MgmtCluster extends HybridModel {
       label:      'Download KubeConfig',
       icon:       'icon icon-download',
       bulkable:   true,
-      enabled:    this.$rootGetters['isRancher'],
+      enabled:    this.$rootGetters['isRancher'] && this.hasAction('generateKubeconfig'),
+    });
+
+    insertAt(out, 2, {
+      action:     'copyKubeConfig',
+      label:      this.t('cluster.copyConfig'),
+      bulkable:   false,
+      enabled:    true,
+      icon:       'icon icon-copy',
     });
 
     return out;
@@ -307,6 +316,12 @@ export default class MgmtCluster extends HybridModel {
     const out = jsyaml.dump(obj);
 
     downloadFile('kubeconfig.yaml', out, 'application/yaml');
+  }
+
+  async copyKubeConfig() {
+    const config = await this.generateKubeConfig();
+
+    Vue.prototype.$copyText(config);
   }
 
   async fetchNodeMetrics() {

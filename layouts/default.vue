@@ -166,6 +166,7 @@ export default {
 
       return { name: `c-cluster-${ product }-support` };
     },
+
   },
 
   watch: {
@@ -195,7 +196,6 @@ export default {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
-        this.wantNavSync = true;
       }
     },
 
@@ -210,7 +210,6 @@ export default {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
-        this.wantNavSync = true;
       }
     },
 
@@ -252,11 +251,9 @@ export default {
     },
 
     $route(a, b) {
-      if (this.wantNavSync && !isEqual(a, b)) {
-        this.wantNavSync = false;
-        this.$nextTick(() => this.syncNav());
-      }
-    }
+      this.$nextTick(() => this.syncNav());
+    },
+
   },
 
   async created() {
@@ -499,7 +496,13 @@ export default {
         // Only expand one group - so after the first has been expanded, no more will
         // This prevents the 'More Resources' group being expanded in addition to the normal group
         let canExpand = true;
+        const expanded = refs.filter(grp => grp.isExpanded)[0];
 
+        if (expanded && expanded.hasActiveRoute()) {
+          this.$nextTick(() => expanded.syncNav());
+
+          return;
+        }
         refs.forEach((grp) => {
           if (!grp.group.isRoot) {
             grp.isExpanded = false;
@@ -526,7 +529,7 @@ export default {
 
 <template>
   <div class="dashboard-root">
-    <FixedBanner />
+    <FixedBanner :header="true" />
 
     <div v-if="managementReady" class="dashboard-content">
       <Header />

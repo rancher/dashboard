@@ -23,8 +23,8 @@ export default {
   },
 
   data() {
-    if ( isEmpty(this.value?.spec?.rkeConfig?.localClusterAuthEndpoint) ) {
-      set(this.value, 'spec.rkeConfig.localClusterAuthEndpoint', {
+    if ( isEmpty(this.value?.spec?.localClusterAuthEndpoint) ) {
+      set(this.value, 'spec.localClusterAuthEndpoint', {
         enabled: false,
         caCerts: '',
         fqdn:    '',
@@ -36,7 +36,7 @@ export default {
 
   computed: {
     config() {
-      return this.value.spec.rkeConfig.localClusterAuthEndpoint;
+      return this.value.spec.localClusterAuthEndpoint;
     },
   },
 

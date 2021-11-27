@@ -47,6 +47,14 @@ export default {
     colorStops: {
       type:    Object,
       default: null
+    },
+
+    /**
+     * Show vertical lines to denote where multiple sources that are contributing to this percentage end
+     */
+    slices: {
+      type:    Array,
+      default: () => []
     }
   },
 
@@ -95,7 +103,7 @@ export default {
 
 <template>
   <span class="percentage-bar">
-    <Bar :percentage="value" :primary-color="primaryColor" />
+    <Bar :percentage="value" :primary-color="primaryColor" :slices="slices" />
     <span v-if="showPercentage" class="ml-5 percentage-value">{{ formattedPercentage }}</span>
   </span>
 </template>

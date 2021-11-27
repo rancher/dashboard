@@ -21,6 +21,11 @@ export default {
       default: null,
     },
 
+    subLabel: {
+      type:    String,
+      default: null,
+    },
+
     tooltip: {
       default: null,
       type:    [String, Object],
@@ -187,5 +192,6 @@ export default {
       :status="status"
     />
     <label v-if="cronHint" class="cron-label">{{ cronHint }}</label>
+    <label v-if="subLabel" class="sub-label">{{ subLabel }}</label>
   </div>
 </template>

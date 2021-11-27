@@ -4,7 +4,7 @@ import {
 import { CATALOG as CATALOG_ANNOTATIONS, FLEET } from '@/config/labels-annotations';
 import { compare, isPrerelease, sortable } from '@/utils/version';
 import { filterBy } from '@/utils/array';
-import { CATALOG } from '@/config/types';
+import { CATALOG, MANAGEMENT, NORMAN } from '@/config/types';
 import { SHOW_PRE_RELEASE } from '@/store/prefs';
 import { set } from '@/utils/object';
 
@@ -208,6 +208,38 @@ export default class CatalogApp extends SteveModel {
 
   get deployedResources() {
     return filterBy(this.metadata?.relationships || [], 'rel', 'helmresource');
+  }
+
+  get deployedAsMultiCluster() {
+    return async() => {
+      const mcapps = await this.$dispatch('management/findAll', { type: MANAGEMENT.MULTI_CLUSTER_APP }, { root: true });
+
+      if (mcapps) {
+        return mcapps.find(mcapp => mcapp.spec?.targets?.find(target => target.appName === this.metadata?.name));
+      }
+
+      return null;
+    };
+  }
+
+  get deployedAsLegacy() {
+    return async() => {
+      if (this.spec.values) {
+        const { clusterName, projectName } = this.spec?.values?.global;
+
+        if (clusterName && projectName) {
+          const legacyApp = await this.$dispatch('rancher/find', {
+            type: NORMAN.APP,
+            id:   `${ projectName }:${ this.metadata?.name }`,
+            opt:  { url: `/v3/project/${ clusterName }:${ projectName }/apps/${ projectName }:${ this.metadata?.name }` }
+          }, { root: true });
+
+          if (legacyApp) {
+            return legacyApp;
+          }
+        }
+      }
+    };
   }
 }
 

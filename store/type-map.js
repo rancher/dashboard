@@ -932,15 +932,18 @@ export const getters = {
         const exists = rootGetters['i18n/exists'];
         const t = rootGetters['i18n/t'];
         const labelKey = `tableHeaders.${ col.name }`;
+        const description = col.description || '';
+        const tooltip = description && description[description.length - 1] === '.' ? description.slice(0, -1) : description;
 
         return {
-          name:  col.name.toLowerCase(),
-          label: exists(labelKey) ? t(labelKey) : col.name,
-          value: col.field.startsWith('.') ? `$${ col.field }` : col.field,
-          sort:  [col.field],
+          name:    col.name.toLowerCase(),
+          label:   exists(labelKey) ? t(labelKey) : col.name,
+          value:   col.field.startsWith('.') ? `$${ col.field }` : col.field,
+          sort:    [col.field],
           formatter,
           formatterOpts,
           width,
+          tooltip
         };
       }
     };
@@ -1632,7 +1635,9 @@ function ifHaveVerb(rootGetters, module, verb, haveIds) {
   for ( const haveId of haveIds ) {
     const schema = rootGetters[`${ module }/schemaFor`](haveId);
     const want = verb.toLowerCase();
-    const have = [...schema.collectionMethods, ...schema.resourceMethods].map(x => x.toLowerCase());
+    const collectionMethods = schema.collectionMethods || [];
+    const resourceMethods = schema.resourceMethods || [];
+    const have = [...collectionMethods, ...resourceMethods].map(x => x.toLowerCase());
 
     if ( !have.includes(want) && !have.includes(`blocked-${ want }`) ) {
       return false;

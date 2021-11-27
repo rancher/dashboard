@@ -11,6 +11,7 @@ export const CATTLE_PUBLIC_ENDPOINTS = 'field.cattle.io/publicEndpoints';
 export const TARGET_WORKLOADS = 'field.cattle.io/targetWorkloadIds';
 export const UI_MANAGED = 'management.cattle.io/ui-managed';
 export const CREATOR_ID = 'field.cattle.io/creatorId';
+export const RESOURCE_QUOTA = 'field.cattle.io/resourceQuota';
 
 export const KUBERNETES = {
   SERVICE_ACCOUNT_UID:  'kubernetes.io/service-account.uid',
@@ -43,11 +44,12 @@ export const MACHINE_ROLES = {
 };
 
 export const CAPI = {
-  DEPLOYMENT_NAME:   'cluster.x-k8s.io/deployment-name',
-  CREDENTIAL_DRIVER: 'provisioning.cattle.io/driver',
-  CLUSTER_NAMESPACE: 'cluster.x-k8s.io/cluster-namespace',
-  MACHINE_NAME:      'cluster.x-k8s.io/machine',
-  PROVIDER:          'provider.cattle.io'
+  DEPLOYMENT_NAME:      'cluster.x-k8s.io/deployment-name',
+  CREDENTIAL_DRIVER:    'provisioning.cattle.io/driver',
+  CLUSTER_NAMESPACE:    'cluster.x-k8s.io/cluster-namespace',
+  FORCE_MACHINE_REMOVE: 'provisioning.cattle.io/force-machine-remove',
+  MACHINE_NAME:         'cluster.x-k8s.io/machine',
+  PROVIDER:             'provider.cattle.io'
 };
 
 export const CATALOG = {
