@@ -14,6 +14,8 @@ describe('Default Layout Side Nav', () => {
 
   it('navigates to menu item on click', () => {
     defaultnav.visibleNavTypes().eq(0).as('firstLink');
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(600);
     cy.get('@firstLink').click();
     cy.get('@firstLink').then((linkEl) => {
       cy.location('href').should('equal', linkEl.prop('href'));
@@ -25,6 +27,7 @@ describe('Default Layout Side Nav', () => {
       .as('closedGroup');
     cy.get('@closedGroup').click();
     cy.get('@closedGroup').find('ul').should('have.length.gt', 0);
+    defaultnav.groups().get('expanded').should('not.be.instanceOf', Array);
   });
 
   it('closes menu groups on click', () => {
