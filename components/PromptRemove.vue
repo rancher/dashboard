@@ -24,8 +24,6 @@ export default {
       warning:             '',
       preventDelete:       false,
       removeComponent:     this.$store.getters['type-map/importCustomPromptRemove'](resource),
-      deleteCrd:           false,
-      allInstalled:        null,
       chartsToRemoveIsApp: false,
       chartsDeleteCrd:     false
     };
@@ -154,15 +152,20 @@ export default {
   watch:    {
     showPromptRemove(show) {
       if (show) {
-        if (this.currentRouter?.currentRoute?.name === 'c-cluster-explorer-tools' && this.toRemove[0].type === CATALOG.APP && this.toRemove[0].spec?.chart?.metadata?.annotations[CATALOG_ANNOTATIONS.AUTO_INSTALL]) {
+        const selected = this.toRemove[0];
+
+        if (this.currentRouter?.currentRoute?.name === 'c-cluster-explorer-tools' &&
+            selected.type === CATALOG.APP &&
+            selected.spec?.chart?.metadata?.annotations[CATALOG_ANNOTATIONS.AUTO_INSTALL]) {
           this.chartsToRemoveIsApp = true;
         }
+
         this.$modal.show('promptRemove');
 
         let { resource } = this.$route.params;
 
         if (this.toRemove.length > 0) {
-          resource = this.toRemove[0].type;
+          resource = selected.type;
         }
 
         this.hasCustomRemove = this.$store.getters['type-map/hasCustomPromptRemove'](resource);
@@ -292,7 +295,7 @@ export default {
 
         if (!this.toRemove.includes(res)) {
           this.toRemove.push(res);
-        } else if (!this.deleteCrd) {
+        } else if (!this.chartsDeleteCrd) {
           this.toRemove.pop(res);
         }
       } catch (err) {
