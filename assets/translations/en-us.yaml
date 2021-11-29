@@ -74,6 +74,14 @@ generic:
   enable: Enable
   disable: Disable
 
+altText:
+  brandImage:
+    bannerGraphic: Banner background image of landscape
+    rancherLogo: Rancher logo
+    harvesterLogo: Harvester logo
+    failWhale: Fail whale error message
+    loginImage: Login backgroudn image of landscape
+
 locale:
   en-us: English
   zh-hans: 简体中文

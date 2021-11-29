@@ -7,7 +7,7 @@ export default {
   mixins:     [Closeable],
 
   props: {
-    title: {
+    title:  {
       type:    String,
       default: null,
     },
@@ -27,7 +27,7 @@ export default {
 <template>
   <div v-if="shown" class="banner-graphic" :class="{'small': small}">
     <div class="graphic">
-      <BrandImage class="banner" file-name="banner.svg" :draggable="false" alt="Banner Image" />
+      <BrandImage class="banner" file-name="banner.svg" :draggable="false" :alt="t('altText.brandImage.bannerGraphic')" />
     </div>
     <div v-if="titleKey" class="title">
       <t :k="titleKey" />

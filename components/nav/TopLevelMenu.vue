@@ -211,7 +211,7 @@ export default {
         <div class="title">
           <div class="menu-spacer"></div>
           <div class="side-menu-logo">
-            <BrandImage file-name="rancher-logo.svg" alt="Rancher Logo" />
+            <BrandImage file-name="rancher-logo.svg" :alt="t('altText.brandImage.rancherLogo')" />
           </div>
         </div>
         <div class="body">

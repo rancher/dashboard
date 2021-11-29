@@ -5,6 +5,14 @@ import { SETTING } from '@/config/settings';
 
 export default {
   props:      {
+    alt:    {
+      type:    String,
+      default: null,
+    },
+    altKey:    {
+      type:    String,
+      default: null,
+    },
     fileName: {
       type:     String,
       required: true
@@ -81,5 +89,5 @@ export default {
 };
 </script>
 <template>
-  <img v-bind="$attrs" :src="pathToBrandedImage" />
+  <img v-bind="$attrs" :src="pathToBrandedImage" :alt="altKey ? t(altKey) : alt" />
 </template>

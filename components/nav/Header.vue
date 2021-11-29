@@ -204,7 +204,7 @@ export default {
             {{ currentCluster.spec.displayName }}
           </div>
           <div v-else class="simple-title">
-            <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" alt="Rancher Logo" />
+            <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" :alt="t('altText.brandImage.rancherLogo')" />
           </div>
         </template>
       </div>
@@ -220,7 +220,7 @@ export default {
       </div>
 
       <div v-else class="side-menu-logo">
-        <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" alt="Rancher Logo" />
+        <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" :alt="t('altText.brandImage.rancherLogo')" />
       </div>
     </div>
 

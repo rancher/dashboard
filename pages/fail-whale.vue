@@ -48,7 +48,7 @@ export default {
   <div v-if="error">
     <main class="error">
       <div class="text-center">
-        <BrandImage file-name="error-desert-landscape.svg" width="900" height="300" alt="Error" />
+        <BrandImage file-name="error-desert-landscape.svg" width="900" height="300" :alt="t('altText.brandImage.failWhale')" />
         <h1 v-if="error.status">
           HTTP Error {{ error.status }}: {{ error.statusText }}
         </h1>
