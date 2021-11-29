@@ -24,7 +24,15 @@ export default {
     rows() {
       return this.$store.getters['epinio/all'](EPINIO_TYPES.SERVICE);
     },
-  }
+  },
+  created() {
+    this.$nuxt.$on('createdService', () => {
+      this.$store.dispatch(`epinio/findAll`, {
+        type: EPINIO_TYPES.SERVICE,
+        opt:  { force: true },
+      });
+    });
+  },
 };
 </script>
 

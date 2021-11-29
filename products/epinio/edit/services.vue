@@ -69,6 +69,7 @@ export default Vue.extend<Data, any, any, any>({
           await this.value.update();
         }
         await this.value.forceFetch();
+        this.$nuxt.$emit('createdService');
         saveCb(true);
         this.done();
       } catch (err) {
