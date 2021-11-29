@@ -66,6 +66,10 @@ export default {
     isCreateEdit() {
       return this.isCreate || this.isEdit;
     },
+
+    showEditAsYaml() {
+      return this.value.spec.sourceType === DOWNLOAD;
+    }
   },
 
   watch: {
@@ -151,6 +155,7 @@ export default {
     :resource="value"
     :mode="mode"
     :errors="errors"
+    :can-yaml="showEditAsYaml ? true : false"
     :apply-hooks="applyHooks"
     @finish="saveImage"
   >
