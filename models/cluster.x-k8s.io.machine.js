@@ -155,7 +155,7 @@ export default class CapiMachine extends SteveModel {
     const conditions = get(this, 'status.conditions');
     const reasonMessage = (findBy(conditions, 'type', 'InfrastructureReady') || {}).reason;
 
-    if (reasonMessage === 'DeletionFailed') {
+    if (reasonMessage === 'DeleteError') {
       return true;
     }
 
