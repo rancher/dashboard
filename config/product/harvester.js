@@ -29,6 +29,7 @@ export function init(store) {
     hideKubeShell:       true,
     hideKubeConfig:      true,
     showClusterSwitcher: true,
+    hideCopyConfig:      true,
     typeStoreMap:        {
       [MANAGEMENT.PROJECT]:                       'management',
       [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',
