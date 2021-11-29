@@ -6172,6 +6172,7 @@ epinio:
   namespace:
     name: Name
     create: Create a Namespace
+    deleteWarning: All applications and services in a namespace will be deleted.
   services:
     pairs:
       label: Service Data
