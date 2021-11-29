@@ -199,7 +199,7 @@ export default {
     },
 
     needNewSecret() {
-      if (this.type === HCI.VM_VERSION) {
+      if (this.type === HCI.VM_VERSION || this.isCreate) {
         return true;
       }
     }

@@ -197,6 +197,8 @@ export default {
         const res = this.$store.getters['harvester/byId'](HCI.VM, this.value.id);
 
         await this.saveSecret(res);
+
+        this.done();
       }
     });
 
@@ -236,8 +238,6 @@ export default {
       try {
         await this._save(this.value, buttonCb);
         buttonCb(true);
-
-        this.done();
       } catch (e) {
         this.errors = exceptionToErrorsArray(e);
         buttonCb(false);
