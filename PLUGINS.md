@@ -41,10 +41,9 @@ In a new console window, install and run [Verdaccio](https://verdaccio.org) (thi
 
 ```
 yarn global add verdaccio
+npm adduser --registry http://localhost:4873  (just add a user with username/password: admin/admin)
 verdaccio
 ```
-
-> TODO: Setting up a user and logging in
 
 Now, back in the original console window, run:
 
@@ -67,7 +66,7 @@ At this point, we've published 3 NPM packages:
 - `@ranch/create-app` - a simple package that can be used with the `yarn create` command to create a new UI
 - `@ranch/create-pkg` - a simple package that can be used with the `yarn create` command to create a new UI Package
 
-Now we can create a new UI, first we need to set the environment variable so that yarn will look for packages in our local registry:
+Now we can create a new UI. First we need to set the environment variable so that yarn will look for packages in our local registry:
 
 ```
 export YARN_REGISTRY=http://127.0.0.1:4873
@@ -81,7 +80,7 @@ Now we can go ahead and create a new UI.
 yarn create @ranch/app my-app
 ```
 
-This will create a new folder `my-app` and populate it with the miniumum files needed. You'll note that there is no code here.
+This will create a new folder `my-app` and populate it with the miniumum files needed.
 
 You can run the app with:
 
@@ -199,7 +198,7 @@ Bring in the slide-in menu (click on the hamburger menu in the top-left) and cli
 
 In the top input box, enter `testplugin` as the Plugin name and click 'Load Plugin' - you should see a notificaton telling you the plugin was loaded and if you bring in the side menu again, you should see the Example nav item there now.
 
-This illustrates dynamically loading a Plugin. Note that when we started the UI, it serves up any plugins in the `dist-pkg` folder under the `/pkg` route of the app - so when we entered the name `testplugin` ast eh plugin, the UI loaded the plugin from:
+This illustrates dynamically loading a Plugin. Note that when we started the UI, it serves up any plugins in the `dist-pkg` folder under the `/pkg` route of the app - so when we entered the name `testplugin` as the plugin, the UI loaded the plugin from:
 
 ```
 https://127.0.0.1:8005/pkg/testplugin/testplugin.umd.min.js
@@ -207,7 +206,7 @@ https://127.0.0.1:8005/pkg/testplugin/testplugin.umd.min.js
 
 If you copy and paste this URL into a browser, you'll see the Javascript for the plugin.
 
-To really convince yourself that the plugin is being dyanmically loaded, reload the app in the browser window (the `testplugin` plugin will no longer be loaded). Go to Plugins and in the `Plugin URL` enter the URL above and click `Load Plugin` - the plugin will load again - if you look in the browser deve tools under the network tab, you'll see the plugin being dynamically loaded.
+To really convince yourself that the plugin is being dyanmically loaded, reload the app in the browser window (the `testplugin` plugin will no longer be loaded). Go to Plugins and in the `Plugin URL` enter the URL above and click `Load Plugin` - the plugin will load again - if you look in the browser developer tools under the network tab, you'll see the plugin being dynamically loaded.
 
 If you want to, you can run:
 
