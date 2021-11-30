@@ -1445,8 +1445,7 @@ istio:
   customOverlayFile:
     label: 自定义覆盖文件
     tip: '<a target="_blank" rel="noopener noreferrer nofollow" href="https://istio.io/latest/docs/setup/install/istioctl/#customizing-the-configuration">覆盖文件</a>允许在基本的 Rancher Istio 安装之上进行额外的配置。您可以利用<a href="https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/" target="_blank" rel="noopener noreferrer nofollow" >IstioOperator API</a>对所有组件进行更改和添加，并通过此覆盖 YAML 文件应用这些更改。'
-  description: 'Rancher Istio Helm Chart 为您安装了一个最小的 Istio 配置，以便您开始与您的应用程序集成。
-  如果您想获得有关 Istio 的更多信息，请访问 <a target="_blank" href="https://istio.io/latest/docs/concepts/what-is-istio" rel="noopener nofollow">https://istio.io/latest/docs/concepts/what-is-istio/</a>。'
+  description: 'Rancher Istio Helm Chart 为您安装了一个最小的 Istio 配置，以便您开始与您的应用程序集成。如果您想获得有关 Istio 的更多信息，请访问 <a target="_blank" href="https://istio.io/latest/docs/concepts/what-is-istio" rel="noopener nofollow">https://istio.io/latest/docs/concepts/what-is-istio/</a>。'
   egressGateway: 启用 Egress 网关
   ingressGateway: 启用 Ingress 网关
   istiodRemote: 启用 istiodRemote
@@ -4505,6 +4504,9 @@ harvester:
 
   network:
     label: 网络
+    tabs:
+      basics: 基础
+      layer3Network: 路由
     message:
       vlanInactive: 'VLAN网络在主机 {name} 上处于非活动状态'
       premise: 
@@ -4519,6 +4521,18 @@ harvester:
         prefix: 非法的网络
         middle: 配置
         suffic: ",错误信息： "
+    layer3Network:
+      mode:
+        label: 模式
+        auto: 自动(DHCP)
+        manual: 手动
+      serverIPAddr:
+        label: DHCP服务IP
+      gateway:
+        label: 网关
+        placeholder: "例如: 172.16.0.1"
+      cidr:
+        placeholder: "例如: 172.16.0.1/24"
 
   sshKey:
     label: SSH 秘钥
