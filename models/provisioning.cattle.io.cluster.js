@@ -87,6 +87,13 @@ export default class ProvCluster extends SteveModel {
     });
 
     insertAt(out, idx++, {
+      action:  'restoreSnapshotAction',
+      label:   'Restore Snapshot',
+      icon:    'icon icon-fw icon-backup-restore',
+      enabled: canSnapshot,
+    });
+
+    insertAt(out, idx++, {
       action:     'rotateCertificates',
       label:      'Rotate Certificates',
       icon:       'icon icon-backup',
@@ -477,6 +484,10 @@ export default class ProvCluster extends SteveModel {
 
       return classify(this.$ctx, x);
     });
+  }
+
+  restoreSnapshotAction(resource = this) {
+    this.$dispatch('promptRestore', [resource]);
   }
 
   saveAsRKETemplate(resources = this) {
