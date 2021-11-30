@@ -25,6 +25,7 @@ describe('Default Layout Side Nav', () => {
       .as('closedGroup');
     cy.get('@closedGroup').click();
     cy.get('@closedGroup').find('ul').should('have.length.gt', 0);
+    defaultnav.groups().get('expanded').should('not.be.instanceOf', Array);
   });
 
   it('closes menu groups on click', () => {
@@ -50,6 +51,8 @@ describe('Default Layout Side Nav', () => {
         if (group.find('.accordion').length) {
           cy.wrap(group).get('.accordion .accordion').click({ multiple: true });
         }
+        // ensure group is expanded
+        cy.wrap(group).find('ul').should('have.length.gt', 0);
       });
       // iterate through links
       defaultnav.visibleNavTypes().each((link, idx) => {
