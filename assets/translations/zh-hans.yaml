@@ -4975,18 +4975,19 @@ advancedSettings:
     'ui-banners': '分类横幅是用来在页眉、页脚或两者中显示一个自定义的固定横幅。'
     'ui-default-landing': '用户在登录后登陆的默认页面。'
     'harv-vlan': VLAN网络的默认NIC名称.
-    'harv-backup-target': 自定义备份目标用于存储VM备份.
-    'harv-log-level': 配置Harvester服务器日志级别. 默认为信息
-    'harv-server-version': Harvester服务器版本.
-    'harv-upgrade-checker-enabled': 指定是否启用Harvester升级检查. 默认为true.
+    'harv-backup-target': 自定义备份目标用于存储VM备份。
+    'harv-log-level': 配置Harvester服务器日志级别. 默认为信息。
+    'harv-server-version': Harvester服务器版本。
+    'harv-upgrade-checker-enabled': 指定是否启用Harvester升级检查. 默认为true。
     'harv-upgrade-checker-url': 默认的Harvester升级检查地址。 仅在<code> upgrade-checker-enabled </code> 等于true时使用。
-    'harv-ui-source': 配置如何加载UI资源.
+    'harv-ui-source': 配置如何加载UI资源。
     'harv-ui-index': 'UI的HTML索引。'
-    'harv-cluster-registration-url': 用于多集群管理的注册URL.
-    'harv-http-proxy': '用于Harvester访问外部服务的HTTP代理。.'
-    'harv-additional-ca': '用于TLS验证的自定义CA根证书.'
-    'harv-overcommit-config ': '资源超额配置.'
-    'harv-vip-pools': '按CIDR配置VIP全局和命名空间的IP地址池.'
+    'harv-cluster-registration-url': 用于多集群管理的注册URL。
+    'harv-http-proxy': '用于Harvester访问外部服务的HTTP代理。'
+    'harv-additional-ca': '用于TLS验证的自定义CA根证书。'
+    'harv-overcommit-config': '资源超额配置。'
+    'harv-vip-pools': '按CIDR配置VIP全局和命名空间的IP地址池。'
+    'harv-support-bundle-timeout': '支持包超时配置（分钟），使用0禁用超时。'
   editHelp:
     'ui-banners': 这个设置需要一个JSON对象，包含3个根参数；<code>banner</code>, <code>showHeader</code>, <code>showFooter</code>。<code>banner</code>是一个包含；<code>textColor</code>, <code>background</code>, 和<code>text</code>的对象，其中<code>textColor</code>和<code>background</code>是任何有效的CSS颜色值。
   enum:
