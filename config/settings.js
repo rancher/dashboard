@@ -104,7 +104,8 @@ export const HCI_SETTING = {
   // DEFAULT_STORAGE_CLASS:            'default-storage-class'
   VIP:                              'vip-pools',
   SUPPORT_BUNDLE_TIMEOUT:           'support-bundle-timeout',
-  VM_FORCE_DELETION_POLICY:         'vm-force-deletion-policy'
+  VM_FORCE_DELETION_POLICY:         'vm-force-deletion-policy',
+  SSL_CERTIFICATES:                 'ssl-certificates'
 };
 
 export const HCI_ALLOWED_SETTINGS = {
@@ -124,6 +125,7 @@ export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.OVERCOMMIT_CONFIG]:                { kind: 'json', from: 'import' },
   [HCI_SETTING.SUPPORT_BUNDLE_TIMEOUT]:           {},
   [HCI_SETTING.VM_FORCE_DELETION_POLICY]:         { kind: 'json', from: 'import' },
+  [HCI_SETTING.SSL_CERTIFICATES]:                 { kind: 'json', from: 'import' },
   [HCI_SETTING.VIP]:                      {
     kind: 'json', from: 'import', canReset: true
   },
