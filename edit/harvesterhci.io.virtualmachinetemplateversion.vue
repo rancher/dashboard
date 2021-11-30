@@ -187,7 +187,7 @@ export default {
 
     onTabChanged({ tab }) {
       if (tab.name === 'advanced') {
-        this.refreshYamlEditor();
+        this.$refs.yamlEditor?.refresh();
       }
     }
   },
