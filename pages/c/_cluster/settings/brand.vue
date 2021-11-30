@@ -333,7 +333,7 @@ export default {
           </div>
           <SimpleBox v-if="uiLogoLight || uiLogoDark" class="theme-light  mb-10">
             <label class="text-muted">{{ t('branding.logos.lightPreview') }}</label>
-            <img class="logo-preview" :src="uiLogoLight ? uiLogoLight : uiLogoDark" :alt="altText" />
+            <img class="logo-preview" :src="uiLogoLight ? uiLogoLight : uiLogoDark" :alt="t('altText.brandImage.genericLogo')" />
           </SimpleBox>
         </div>
         <div class="col logo-container span-6">
@@ -350,7 +350,7 @@ export default {
           </div>
           <SimpleBox v-if="uiLogoDark || uiLogoLight" class="theme-dark  mb-10">
             <label class="text-muted">{{ t('branding.logos.darkPreview') }}</label>
-            <img class="logo-preview" :src="uiLogoDark ? uiLogoDark : uiLogoLight" :alt="altText" />
+            <img class="logo-preview" :src="uiLogoDark ? uiLogoDark : uiLogoLight" :alt="t('altText.brandImage.uiLogoLight')" />
           </SimpleBox>
         </div>
       </div>

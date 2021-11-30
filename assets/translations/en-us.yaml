@@ -78,11 +78,14 @@ altText:
   brandImage:
     bannerGraphic: Banner background image of landscape
     rancherLogo: Rancher logo
+    genericLogo: Logo
     harvesterLogo: Harvester logo
     failWhale: Fail whale error message
     loginImage: Login backgroudn image of landscape
+    uiLogoLight: Logo light theme
+    uiLogoDark: Logo dark theme
   lazyImage:
-  userAvatar: User avatar test test
+  userAvatar: User avatar
   selectIconGrid:
     chart: Chart logo
 

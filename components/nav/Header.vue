@@ -188,7 +188,7 @@ export default {
         <img
           class="side-menu-logo"
           src="~/assets/images/providers/harvester.svg"
-          alt="altText"
+          :alt="t('altText.brandImage.harvesterLogo')"
         />
       </n-link>
     </div>
@@ -199,7 +199,7 @@ export default {
         </div>
         <template v-else>
           <RancherProviderIcon v-if="currentCluster && currentCluster.isLocal" class="mr-10 cluster-local-logo" width="25" />
-          <img v-else-if="currentCluster && currentCluster.providerNavLogo" class="cluster-os-logo" :src="currentCluster.providerNavLogo" :alt="altText" />
+          <img v-else-if="currentCluster && currentCluster.providerNavLogo" class="cluster-os-logo" :src="currentCluster.providerNavLogo" :alt="t('altText.brandImage.genericLogo')" />
           <div v-if="currentCluster" ref="clusterName" class="cluster-name">
             {{ currentCluster.spec.displayName }}
           </div>

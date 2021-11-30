@@ -246,11 +246,11 @@ export default {
                   :to="{ name: 'c-cluster', params: { cluster: c.id } }"
                 >
                   <RancherProviderIcon v-if="c.isLocal" width="24" class="rancher-provider-icon" />
-                  <img v-else :src="c.logo" :alt="altText" />
+                  <img v-else :src="c.logo" :alt="t('altText.brandImage.genericLogo')" />
                   <div>{{ c.label }}</div>
                 </nuxt-link>
                 <span v-else class="option-disabled cluster selector disabled">
-                  <img :src="c.logo" :alt="altText" />
+                  <img :src="c.logo" :alt="t('altText.brandImage.genericLogo')" />
                   <div>{{ c.label }}</div>
                 </span>
               </div>
