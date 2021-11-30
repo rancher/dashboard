@@ -14,8 +14,6 @@ describe('Default Layout Side Nav', () => {
 
   it('navigates to menu item on click', () => {
     defaultnav.visibleNavTypes().eq(0).as('firstLink');
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(600);
     cy.get('@firstLink').click();
     cy.get('@firstLink').then((linkEl) => {
       cy.location('href').should('equal', linkEl.prop('href'));
@@ -53,6 +51,8 @@ describe('Default Layout Side Nav', () => {
         if (group.find('.accordion').length) {
           cy.wrap(group).get('.accordion .accordion').click({ multiple: true });
         }
+        // ensure group is expanded
+        cy.wrap(group).find('ul').should('have.length.gt', 0);
       });
       // iterate through links
       defaultnav.visibleNavTypes().each((link, idx) => {

@@ -39,7 +39,6 @@ describe('TopLevelMenu', () => {
             cy.intercept(/.+\/v1\/nodes$/).as('nodeRequest');
             cy.wait(['@nodeRequest']);
           }
-          // topLevelMenu.openIfClosed();
           cy.location('href').should('include', linkEl.prop('href'));
         });
       });

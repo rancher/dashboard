@@ -113,8 +113,6 @@ export default class GlobalRole extends HybridModel {
   async save() {
     const norman = await this.norman;
 
-    debugger;
-
     return norman.save();
   }
 
