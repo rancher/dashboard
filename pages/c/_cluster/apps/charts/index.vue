@@ -473,6 +473,7 @@ export default {
         name-field="chartNameDisplay"
         description-field="chartDescription"
         :color-for="colorForChart"
+        logo-alt="Chart logo"
         @clicked="(row) => selectChart(row)"
       />
     </div>

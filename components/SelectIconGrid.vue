@@ -42,7 +42,7 @@ export default {
     },
     linkField: {
       type:    String,
-      default: 'link'
+      default: 'link',
     },
     targetField: {
       type:    String,
@@ -50,14 +50,16 @@ export default {
     },
     rel: {
       type:    String,
-      default: 'noopener noreferrer nofollow'
+      default: 'noopener noreferrer nofollow',
     },
-
+    logoAlt: {
+      type:    String,
+      default: 'Icon',
+    },
     noDataKey: {
       type:    String,
       default: 'sortableTable.noRows',
     },
-
     colorFor: {
       type:    Function,
       default: (r, idx) => `color${ (idx % 8) + 1 }`,
@@ -102,7 +104,7 @@ export default {
       </div>
 
       <div class="logo">
-        <LazyImage :src="get(r, iconField)" />
+        <LazyImage :src="get(r, iconField)" :alt="logoAlt" />
       </div>
       <h4 class="name">
         {{ get(r, nameField) }}

@@ -3,6 +3,14 @@ import $ from 'jquery';
 
 export default {
   props: {
+    alt:    {
+      type:    String,
+      default: null,
+    },
+    altKey:    {
+      type:    String,
+      default: null,
+    },
     initialSrc: {
       type:    String,
       default: require('~/assets/images/generic-catalog.svg'),
@@ -51,5 +59,5 @@ export default {
 </script>
 
 <template>
-  <img ref="img" :src="initialSrc" v-bind="$attrs" :alt="altText" />
+  <img ref="img" :src="initialSrc" v-bind="$attrs" :alt="altKey ? t(altKey) : alt" />
 </template>

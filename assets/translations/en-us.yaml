@@ -81,6 +81,10 @@ altText:
     harvesterLogo: Harvester logo
     failWhale: Fail whale error message
     loginImage: Login backgroudn image of landscape
+  lazyImage:
+  userAvatar: User avatar test test
+  selectIconGrid:
+    chart: Chart logo
 
 locale:
   en-us: English

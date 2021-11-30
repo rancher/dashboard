@@ -396,6 +396,7 @@ export default {
           name-field="label"
           side-label-field="tag"
           :color-for="colorFor"
+          logo-alt="Provider logo"
           @clicked="clickedType"
         />
       </div>

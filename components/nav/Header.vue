@@ -355,7 +355,7 @@ export default {
             :class="{'avatar-round': principal.roundAvatar}"
             width="36"
             height="36"
-            alt="User Avatar"
+            :alt="t('altText.userAvatar')"
           />
           <i v-else class="icon icon-user icon-3x avatar" />
         </div>

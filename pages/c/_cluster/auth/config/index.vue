@@ -98,6 +98,7 @@ export default {
       :rows="rows"
       :color-for="colorFor"
       name-field="provider"
+      logo-alt="Provider logo"
       @clicked="(row) => goTo(row.id)"
     />
   </div>
