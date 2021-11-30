@@ -20,7 +20,6 @@ export default {
 
     return {
       parseDefaultValue,
-      errors:                    [],
       caFileName:                '',
       publicCertificateFileName: '',
       privateKeyFileName:        ''
@@ -57,7 +56,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <div class="mb-10">
-          Public Certificate
+          {{ t('harvester.setting.sslCertificates.publicCertificate') }}
         </div>
 
         <div class="chooseFile">
@@ -75,7 +74,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <div class="mb-10">
-          Private Key
+          {{ t('harvester.setting.sslCertificates.privateKey') }}
         </div>
 
         <div class="chooseFile">
@@ -93,7 +92,7 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <div class="mb-10">
-          CA
+          {{ t('harvester.setting.sslCertificates.ca') }}
         </div>
 
         <div class="chooseFile">

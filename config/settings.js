@@ -121,7 +121,9 @@ export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.UPGRADE_CHECKER_ENABLED]:          { kind: 'boolean' },
   [HCI_SETTING.UPGRADE_CHECKER_URL]:              { kind: 'url' },
   [HCI_SETTING.HTTP_PROXY]:                       { kind: 'json', from: 'import' },
-  [HCI_SETTING.ADDITIONAL_CA]:                    { kind: 'multiline', canReset: true },
+  [HCI_SETTING.ADDITIONAL_CA]:                    {
+    kind: 'multiline', canReset: true, from: 'import'
+  },
   [HCI_SETTING.OVERCOMMIT_CONFIG]:                { kind: 'json', from: 'import' },
   [HCI_SETTING.SUPPORT_BUNDLE_TIMEOUT]:           {},
   [HCI_SETTING.VM_FORCE_DELETION_POLICY]:         { kind: 'json', from: 'import' },
