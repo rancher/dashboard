@@ -250,3 +250,26 @@ yarn add testplugin
 Now when we run the app with `yarn dev` and browse to https://127.0.0.1:8005 you'll see that our `testplugin` plugin ahas been included in the UI.
 
 This supports the use case where we may be developing a UI Package that relies on another UI package - so we can create a skeleton app, add the dependencies we need via NPM and then develop our own plugin in the repository - so the only code we have is the code for out plugin, but we are able to test and run it in a UI locally with the other plugins that it needs.
+
+## Use Case: Using Yarn link
+
+Suppose we are creating a new UI - it will include the Rancher Shell code via its npm package, so if we needed to make changes to the shell, we'd have to make those changes, publish them as a new version of the package and update our UI to use it.
+
+We can `yarn link` to improve this workflow.
+
+With the Dashboard repository checked out, we can:
+
+```
+cd shell
+yarn link
+```
+
+Then, in our other app's folder, we can:
+
+```
+yarn link @ranch/shell
+```
+
+This link the package used by the app to the dashboard source code. We can make changes to the shell code in the Rancher Dashboard repository and the separate app will hot-reload.
+
+This allows us to develop a new UI Application and be able to make changes to the Shell - in this use case, we're working against two git repositories, so we need to ensure we commit chanages accordingly.
