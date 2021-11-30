@@ -1,10 +1,11 @@
 import { findBy, insertAt } from '@/utils/array';
 import { TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED } from '@/config/labels-annotations';
-import { POD, WORKLOAD_TYPES, SERVICE } from '@/config/types';
+import { WORKLOAD_TYPES, SERVICE, POD } from '@/config/types';
 import { clone, get, set } from '@/utils/object';
 import day from 'dayjs';
 import SteveModel from '@/plugins/steve/steve-class';
 import { shortenedImage } from '@/utils/string';
+import { convertSelectorObj, matching } from '~/utils/selector';
 
 export default class Workload extends SteveModel {
   // remove clone as yaml/edit as yaml until API supported
@@ -13,7 +14,7 @@ export default class Workload extends SteveModel {
     const type = this._type ? this._type : this.type;
 
     const editYaml = findBy(out, 'action', 'goToEditYaml');
-    const index = editYaml ? out.indexOf(editYaml) + 1 : 0;
+    const index = editYaml ? out.indexOf(editYaml) : 0;
 
     insertAt(out, index, {
       action:  'addSidecar',
@@ -52,6 +53,16 @@ export default class Workload extends SteveModel {
         enabled: !!this.links.update && this.spec?.paused === true
       });
     }
+
+    insertAt(out, 0, { divider: true }) ;
+
+    insertAt(out, 0, {
+      action:     'openShell',
+      enabled:    !!this.links.view,
+      icon:       'icon icon-fw icon-chevron-right',
+      label:      'Execute Shell',
+      total:      1,
+    });
 
     const toFilter = ['cloneYaml'];
 
@@ -147,6 +158,22 @@ export default class Workload extends SteveModel {
     }
 
     return super.state;
+  }
+
+  async openShell() {
+    const pods = await this.matchingPods();
+
+    for ( const pod of pods ) {
+      if ( pod.isRunning ) {
+        pod.openShell();
+        break;
+      }
+    }
+
+    this.$dispatch('growl/error', {
+      title:   'Unavailable',
+      message: 'There are no running pods to execute a shell in.'
+    }, { root: true });
   }
 
   addSidecar() {
@@ -714,5 +741,12 @@ export default class Workload extends SteveModel {
     }
 
     return out;
+  }
+
+  async matchingPods() {
+    const all = await this.$dispatch('findAll', { type: POD });
+    const selector = convertSelectorObj(this.spec.selector);
+
+    return matching(all, selector);
   }
 }
