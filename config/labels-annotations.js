@@ -126,11 +126,11 @@ export const HCI = {
   IMAGE_ID:                     'harvesterhci.io/imageId',
   SSH_NAMES:                    'harvesterhci.io/sshNames',
   CIRD_NETWORK:                 'k8s.v1.cni.cncf.io/networks',
-  NETWORK_IPS:                  'networks.harvesterhci.io/ips',
+  NETWORK_IPS:                  'network.harvesterhci.io/ips',
   TEMPLATE_VERSION_CUSTOM_NAME: 'template-version.harvesterhci.io/customName',
   CREATOR:                      'harvesterhci.io/creator',
   OS:                           'harvesterhci.io/os',
-  NETWORK_TYPE:                 'networks.harvesterhci.io/type',
+  NETWORK_TYPE:                 'network.harvesterhci.io/type',
   VM_NAME:                      'harvesterhci.io/vmName',
   MAINTENANCE_STATUS:           'harvesterhci.io/maintain-status',
   HOST_CUSTOM_NAME:             'harvesterhci.io/host-custom-name',
@@ -143,5 +143,6 @@ export const HCI = {
   MIGRATION_STATE:              'harvesterhci.io/migrationState',
   VOLUME_CLAIM_TEMPLATE:        'harvesterhci.io/volumeClaimTemplates',
   IMAGE_NAME:                   'harvesterhci.io/image-name',
-  NODE_SCHEDULABLE:             'kubevirt.io/schedulabl'
+  NODE_SCHEDULABLE:             'kubevirt.io/schedulabl',
+  NETWORK_ROUTE:                'network.harvesterhci.io/route',
 };

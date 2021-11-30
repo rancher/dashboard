@@ -4308,6 +4308,7 @@ tableHeaders:
   defaultVersion: Default version
   ipAddress: IP Address
   diskState: Disk State
+  routeConnectivity: Route Connectivity
 
 target:
   router:
@@ -5458,6 +5459,7 @@ harvester:
     label: Networks
     tabs:
       basics: Basics
+      layer3Network: Route
     message:
       vlanInactive: 'VLAN network is inactive at {name} host'
       premise: 
@@ -5472,6 +5474,19 @@ harvester:
         prefix: Physical NIC value in
         middle: Setting
         suffic: "is invalid, error: "
+    layer3Network:
+      mode:
+        label: Mode
+        auto: Auto(DHCP)
+        manual: Manual
+      serverIPAddr:
+        label: DHCP Server IP
+      gateway:
+        label: Gateway
+        placeholder: e.g. 172.16.0.1
+      cidr:
+        label: CIDR
+        placeholder: e.g. 172.16.0.1/24
   sshKey:
     label: SSH Keys
     keypair: SSH Key
