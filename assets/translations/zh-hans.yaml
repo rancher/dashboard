@@ -4557,6 +4557,8 @@ harvester:
         prefix: '点击'
         middle: '这里'
         suffic: '添加一个自定义证书.'
+    vmForceDeletionPolicy:
+      period: 周期
 
   cloudTemplate:
     label: Cloud 配置模板
@@ -4575,7 +4577,7 @@ harvester:
     title: Harvester支持
     kubeconfig:
       title: 下载KubeConfig
-      titleDescription: 下载kubeconfig用于调试或作为外部集群导入到Rancher
+      titleDescription: 下载kubeconfig用于调试
   
   namespace:
     label: 命名空间
@@ -4975,7 +4977,7 @@ advancedSettings:
     'rke-metadata-config': '配置RKE元数据刷新参数。'
     'ui-banners': '分类横幅是用来在页眉、页脚或两者中显示一个自定义的固定横幅。'
     'ui-default-landing': '用户在登录后登陆的默认页面。'
-    'harv-vlan': VLAN网络的默认NIC名称.
+    'harv-vlan': VLAN网络的默认NIC名称。
     'harv-backup-target': 自定义备份目标用于存储VM备份。
     'harv-log-level': 配置Harvester服务器日志级别. 默认为信息。
     'harv-server-version': Harvester服务器版本。

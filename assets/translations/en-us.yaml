@@ -5510,6 +5510,12 @@ harvester:
         prefix: 'Click'
         middle: 'here'
         suffic: 'to add a custom certificate.'
+    sslCertificates:
+      publicCertificate: Public Certificate
+      privateKey: Private Key
+      ca: CA
+    vmForceDeletionPolicy:
+      period: Period
 
   cloudTemplate:
     label: Cloud Config Templates
@@ -5528,7 +5534,7 @@ harvester:
     title: Harvester Support
     kubeconfig:
       title: Download KubeConfig
-      titleDescription: Download kubeconfig for debugging or importing as an external cluster to Rancher. 
+      titleDescription: Download kubeconfig for debugging. 
   
   namespace:
     label: Namespaces

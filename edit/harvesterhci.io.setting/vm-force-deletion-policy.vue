@@ -19,10 +19,7 @@ export default {
       parseDefaultValue = JSON.parse(this.value.default);
     }
 
-    return {
-      parseDefaultValue,
-      errors: []
-    };
+    return { parseDefaultValue };
   },
 
   created() {
@@ -65,9 +62,10 @@ export default {
       <LabeledInput
         v-if="parseDefaultValue.enable"
         v-model.number="parseDefaultValue.period"
+        v-int-number
         class="mb-20"
         :mode="mode"
-        label="period"
+        label-key="harvester.setting.vmForceDeletionPolicy.period"
       />
     </div>
   </div>
