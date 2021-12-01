@@ -1,5 +1,5 @@
 <script>
-import { MANAGEMENT } from '@/config/types';
+import { MANAGEMENT, SCHEMA } from '@/config/types';
 import CruResource from '@/components/CruResource';
 import CreateEditView from '@/mixins/create-edit-view';
 import RadioGroup from '@/components/form/RadioGroup';
@@ -15,6 +15,7 @@ import { _DETAIL } from '@/config/query-params';
 import { SUBTYPE_MAPPING, VERBS } from '@/models/management.cattle.io.roletemplate';
 import Loading from '@/components/Loading';
 import capitalize from 'lodash/capitalize';
+import { findBy } from '@/utils/array';
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 const CLUSTER = SUBTYPE_MAPPING.CLUSTER.key;
@@ -52,20 +53,16 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
+    this.allSchemas = await this.$store.dispatch(`management/findAll`, { type: SCHEMA });
+
     if (this.value.subtype === CLUSTER || this.value.subtype === NAMESPACE) {
       this.templateOptions = (await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }))
         .map(option => ({
-          label: `${ option.nameDisplay }: ROLE_TEMPLATE`,
+          // better to have this as a computed prop for reactivity
+          label: option.nameDisplay,
           value: option.id
         }));
-    } else {
-      this.templateOptions.map(option => ({
-        label: `${ option.nameDisplay }: GLOBAL_ROLE`,
-        value: option.id
-      }));
     }
-
-    console.log(`this.templateOptions:`, this.templateOptions);
   },
 
   data() {
@@ -108,7 +105,9 @@ export default {
         verbs:           []
       },
       verbOptions:     VERBS,
-      templateOptions: []
+      templateOptions: [],
+      allSchemas:      []
+
     };
   },
 
@@ -133,10 +132,12 @@ export default {
     },
     resourceOptions() {
       return this.value.resources.map(resource => ({
-        value: resource.toLowerCase(),
-        label: capitalize(resource)
+        value:    resource.toLowerCase(),
+        label:    capitalize(resource),
+        apiGroup: this.getApiGroup(resource),
       }));
     },
+
     newUserDefaultOptions() {
       return [
         {
@@ -288,6 +289,30 @@ export default {
 
       return res;
     },
+    getApiGroup(resource) {
+      // need function to take in chosen resource,
+      // use its name to find schema
+      // schema contains its apigroup
+      // attach value to resource options array
+
+      console.log(`resource:`, resource);
+
+      const resourceSchema = this.allSchemas.filter(schema => schema?.attributes?.resource === resource.toLowerCase())[0];
+
+      console.log(`resourceSchema:`, resourceSchema);
+
+      return resourceSchema ? resourceSchema.attributes.group : '';
+    },
+
+    setResource(event, rule) {
+      this.setRule('apiGroups', rule, event.apiGroups);
+      this.setRule('resources', rule, event.value);
+
+      // rule: {
+      //   resources: [event.value]
+      // }
+    }
+
   }
 };
 </script>
@@ -424,7 +449,7 @@ export default {
                     :searchable="true"
                     :taggable="true"
                     :mode="mode"
-                    @input="setRule('resources', props.row.value, $event)"
+                    @input="setResource($event, props.row.value)"
                   />
                 </div>
                 <div v-if="!isNamespaced" :class="ruleClass">
