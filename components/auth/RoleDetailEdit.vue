@@ -57,17 +57,11 @@ export default {
     if (this.value.subtype === CLUSTER || this.value.subtype === NAMESPACE) {
       this.templateOptions = (await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }))
         .map(option => ({
-          label: `${ option.nameDisplay }: ROLE_TEMPLATE`,
+          // better to have this as a computed prop for reactivity
+          label: option.nameDisplay,
           value: option.id
         }));
-    } else {
-      this.templateOptions.map(option => ({
-        label: `${ option.nameDisplay }: GLOBAL_ROLE`,
-        value: option.id
-      }));
     }
-
-    console.log(`this.templateOptions:`, this.templateOptions);
   },
 
   data() {
