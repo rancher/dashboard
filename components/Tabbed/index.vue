@@ -257,6 +257,8 @@ export default {
     list-style-type: none;
     margin: 0;
     padding: 0;
+    border: solid thin var(--border);
+    border-bottom: 0;
 
     &:focus {
      outline:none;
@@ -270,12 +272,13 @@ export default {
       position: relative;
       top: 1px;
       float: left;
-      margin: 0 8px 0 0;
+      // margin: 0 12px 0 0;
       cursor: pointer;
 
       A {
         display: block;
-        padding: 10px 15px;
+        padding: 15px;
+        color: var(--body-text);
       }
 
       &:last-child {
@@ -283,12 +286,10 @@ export default {
       }
 
       &.active {
-        background-color: var(--tabbed-container-bg);
-        // box-shadow: 0 0 20px var(--shadow);
-        // clip-path: polygon(-100% -100%, 100% -100%, 200% 100%, -100% 100%);
+        border-bottom: solid thin var(--primary);
 
-        A {
-          color: var(--body-text);
+        > A {
+          color: var(--primary);
           text-decoration: none;
         }
       }
@@ -297,7 +298,8 @@ export default {
 
   .tab-container {
     padding: 20px;
-    background-color: var(--tabbed-container-bg);
+    border: solid thin var(--border);
+    // background-color: var(--tabbed-container-bg);
     // box-shadow: 0 0 20px var(--shadow);
 
     &.no-content {
