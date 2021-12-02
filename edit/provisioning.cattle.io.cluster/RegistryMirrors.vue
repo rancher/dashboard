@@ -27,7 +27,6 @@ export default {
         endpoints: (mirrorMap[hostname].endpoint || []).join(', '),
       });
     }
-
     return { entries };
   },
 
