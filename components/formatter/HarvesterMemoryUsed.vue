@@ -17,6 +17,11 @@ export default {
       type:     Object,
       required: true
     },
+
+    resourceName: {
+      type:     String,
+      default: ''
+    },
   },
 
   data() {
@@ -72,6 +77,7 @@ export default {
     :used="node.memoryReserved"
     :units="memoryUnits"
     :number-formatter="memoryFormatter"
+    :resource-name="resourceName"
   >
     <template #title="{amountTemplateValues, formattedPercentage}">
       <span>
