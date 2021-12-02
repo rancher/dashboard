@@ -575,6 +575,10 @@ asyncButton:
     action: Upgrade
     success: Upgrading
     waiting: Starting&hellip;
+  generate:
+    action: Generate
+    success: Generated
+    waiting: Generating&hellip;
 
 backupRestoreOperator:
   backupFilename: Backup Filename
@@ -5502,7 +5506,7 @@ harvester:
       accessKeyId: specify your access key id
       secretAccessKey: specify your secret access key
       cert: upload a self-signed SSL certificate
-    vlanChangeTip: The newly modified default physical NIC only applies to newly added nodes, not existing ones
+    vlanChangeTip: The newly modified default network interface only applies to newly added nodes, not existing ones.
     defaultPhysicalNIC: Default Network Interface
     percentTip: The value in parentheses represents the distribution percentage of the network interface on all hosts. If an interface less than 100% is selected, the user needs to manually specify the network interface on the host where the vlan network configuration fails.
     message:
