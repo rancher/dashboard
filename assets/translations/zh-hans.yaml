@@ -4549,7 +4549,7 @@ harvester:
       accessKeyId: 指定您的访问密钥ID
       secretAccessKey: 指定您的私密访问密钥
       cert: 上传自签名SSL证书
-    vlanChangeTip: 新修改的默认物理网卡仅适用于新增节点，不适用于现有节点
+    vlanChangeTip: 新修改的默认网络接口仅适用于新增节点，不适用于现有节点
     defaultPhysicalNIC: 默认网络接口
     percentTip: 括号内的数值代表所有主机上的网络接口的分布比例。如果选择了一个小于100%的接口，用户需要手动指定vlan网络配置失败的主机上的网络接口。
     message:

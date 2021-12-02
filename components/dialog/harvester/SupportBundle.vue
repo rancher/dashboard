@@ -169,7 +169,7 @@ export default {
 
           <AsyncButton
             type="submit"
-            mode="create"
+            mode="generate"
             class="btn btn-sm bg-primary"
             :disabled="bundlePending"
             @click="save"
