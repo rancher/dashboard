@@ -5,6 +5,8 @@ import Banner from '@/components/Banner';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
 import { HCI } from '@/config/labels-annotations';
 import { LONGHORN } from '@/config/types';
+import HarvesterCPUUsed from '@/components/formatter/HarvesterCPUUsed';
+import HarvesterMemoryUsed from '@/components/formatter/HarvesterMemoryUsed';
 
 const COMPLETE = 'complete';
 const NONE = 'none';
@@ -15,7 +17,11 @@ export default {
   name: 'BasicNode',
 
   components: {
-    ConsumptionGauge, LabelValue, Banner
+    ConsumptionGauge,
+    LabelValue,
+    Banner,
+    HarvesterCPUUsed,
+    HarvesterMemoryUsed,
   },
 
   props: {
@@ -272,10 +278,16 @@ export default {
     <h3>{{ t('harvester.host.tabs.monitor') }}</h3>
     <div class="row mb-20">
       <div class="col span-4">
-        <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.cpu')" :capacity="cpuTotal" :used="cpuUsage" :units="cpuUnits" />
+        <HarvesterCPUUsed
+          :row="value"
+          :resource-name="t('node.detail.glance.consumptionGauge.cpu')"
+        />
       </div>
       <div class="col span-4">
-        <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.memory')" :capacity="memoryTotal" :used="memoryUsage" :units="memoryUnits" :number-formatter="memoryFormatter" />
+        <HarvesterMemoryUsed
+          :row="value"
+          :resource-name="t('node.detail.glance.consumptionGauge.memory')"
+        />
       </div>
       <div class="col span-4">
         <ConsumptionGauge :resource-name="t('harvester.host.detail.storage')" :capacity="storageTotal" :used="storageUsage" :units="storageUnits" :number-formatter="memoryFormatter" />
