@@ -235,8 +235,8 @@ export default {
     },
 
     defaultOperatingSystem() {
-      const linuxCount = this.currentCluster.linuxWorkerCount;
-      const windowsCount = this.currentCluster.windowsWorkerCount;
+      const linuxCount = this.currentCluster.status.linuxWorkerCount;
+      const windowsCount = this.currentCluster.status.windowsWorkerCount;
 
       if (linuxCount > windowsCount) {
         return 'linux';
@@ -250,8 +250,8 @@ export default {
     },
 
     showOperatingSystemOptions() {
-      const linuxCount = this.currentCluster.linuxWorkerCount;
-      const windowsCount = this.currentCluster.windowsWorkerCount;
+      const linuxCount = this.currentCluster.status.linuxWorkerCount;
+      const windowsCount = this.currentCluster.status.windowsWorkerCount;
 
       return linuxCount > 0 && windowsCount > 0;
     }
