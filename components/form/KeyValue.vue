@@ -280,7 +280,6 @@ export default {
         rows.push(entry);
       }
     }
-
     if ( !rows.length && this.initialEmptyRow ) {
       rows.push({
         [this.keyName]:   '',
@@ -511,7 +510,6 @@ export default {
           <span />
         </slot>
       </template>
-
       <template v-if="!rows.length && isView">
         <div class="kv-item key text-muted">
           &mdash;
