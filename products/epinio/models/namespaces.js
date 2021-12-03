@@ -41,4 +41,8 @@ export default class EpinioNamespaces extends EpinioResource {
   confirmRemove() {
     return true;
   }
+
+  get warnDeletionMessage() {
+    return this.t('epinio.namespace.deleteWarning');
+  }
 }
