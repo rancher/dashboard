@@ -14,8 +14,9 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    ifHaveGroup: /^(.*\.)*kubewarden\.io$/,
-    icon:        'kubewarden',
+    ifHaveGroup:         /^(.*\.)*kubewarden\.io$/,
+    icon:                'kubewarden',
+    showNamespaceFilter: true,
   });
 
   weightType(KUBEWARDEN.POLICY_SERVER, 2, true);
