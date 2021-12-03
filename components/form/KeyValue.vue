@@ -271,11 +271,11 @@ export default {
           supported:        this.supported(row),
         };
 
-        for ( const k of this.preserveKeys ) {
+        this.preserveKeys?.map((k) => {
           if ( typeof row[k] !== 'undefined' ) {
             entry[k] = row[k];
           }
-        }
+        });
 
         rows.push(entry);
       }
