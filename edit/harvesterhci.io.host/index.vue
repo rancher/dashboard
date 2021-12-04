@@ -188,6 +188,10 @@ export default {
     consoleUrl(neu) {
       this.value.setAnnotation(HCI_LABELS_ANNOTATIONS.HOST_CONSOLE_URL, neu);
     },
+
+    newDisks() {
+      this.blockDeviceOpts = this.getBlockDeviceOpts();
+    },
   },
 
   created() {
