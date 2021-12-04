@@ -325,9 +325,8 @@ export default {
               <div class="">
                 <Password
                   ref="password"
-                  v-model.trim="password"
+                  v-model="password"
                   :label="t('login.password')"
-                  :required="true"
                   autocomplete="password"
                 />
               </div>
