@@ -5870,7 +5870,7 @@ typeLabel:
   management.cattle.io.setting: |-
     {count, plural,
       one { Advanced Setting }
-      other { Advanced Settings }
+      other { Settings }
     }
   management.cattle.io.fleetworkspace: |-
     {count, plural,
