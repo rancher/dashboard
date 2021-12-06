@@ -55,60 +55,62 @@ export default {
 
   async fetch() {
     await this.value.waitForProvisioner();
-    const hash = {};
+    const fetchOne = {};
 
-    if (this.value.isImported || this.value.isRke1) {
-      // Cluster isn't compatible with machines/machineDeployments, show nodes/node pools instead
+    if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
+      fetchOne.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
+    }
 
-      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
-        hash.allNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
-      }
-
-      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
-        hash.allNodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-      }
-
-      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
-        hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
-      }
-    } else {
-      if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
-        hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
-      }
-
-      if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
-        hash.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
-      }
+    if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
+      fetchOne.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
     }
 
     if (this.value.isImported || this.value.isCustom) {
-      hash.clusterToken = this.value.getOrCreateToken();
+      fetchOne.clusterToken = this.value.getOrCreateToken();
     }
     if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
-      hash.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
+      fetchOne.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
 
-      hash.normanNodePools = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
+      fetchOne.normanNodePools = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
     }
 
-    const res = await allHash(hash);
+    const fetchOneRes = await allHash(fetchOne);
 
-    this.allMachines = res.machines || [];
-    this.allMachineDeployments = res.machineDeployments || [];
-    this.allNodes = res.allNodes || [];
-    this.allNodePools = res.allNodePools || [];
-    this.haveMachines = !!res.machines;
-    this.haveDeployments = !!res.machineDeployments;
-    this.haveNodePools = !!res.allNodePools;
-    this.haveNodes = !!res.allNodes;
+    this.allMachines = fetchOneRes.machines || [];
+    this.allMachineDeployments = fetchOneRes.machineDeployments || [];
+    this.haveMachines = !!fetchOneRes.machines;
+    this.haveDeployments = !!fetchOneRes.machineDeployments;
+    this.clusterToken = fetchOneRes.clusterToken;
+    this.etcdBackups = fetchOneRes.etcdBackups;
 
-    this.clusterToken = res.clusterToken;
-    this.etcdBackups = res.etcdBackups;
+    const fetchTwo = {};
 
-    const machineDeloymentTemplateType = res.machineDeployments?.[0]?.templateType;
+    const machineDeloymentTemplateType = fetchOneRes.machineDeployments?.[0]?.templateType;
 
     if (machineDeloymentTemplateType && this.$store.getters['management/schemaFor'](machineDeloymentTemplateType) ) {
-      await this.$store.dispatch('management/findAll', { type: machineDeloymentTemplateType });
+      fetchTwo.mdtt = this.$store.dispatch('management/findAll', { type: machineDeloymentTemplateType });
     }
+
+    if (!this.showMachines) {
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
+        fetchTwo.allNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      }
+
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
+        fetchTwo.allNodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      }
+
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
+        fetchTwo.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+      }
+    }
+
+    const fetchTwoRes = await allHash(fetchTwo);
+
+    this.allNodes = fetchTwoRes.allNodes || [];
+    this.haveNodes = !!fetchTwoRes.allNodes;
+    this.allNodePools = fetchTwoRes.allNodePools || [];
+    this.haveNodePools = !!fetchTwoRes.allNodePools;
   },
 
   created() {
