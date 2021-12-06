@@ -61,6 +61,7 @@ const PRIVATE = 'private';
 const ADVANCED = 'advanced';
 
 const HARVESTER = 'harvester';
+const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 
 export default {
   components: {
@@ -687,6 +688,10 @@ export default {
         names.push('rancher-vsphere-cpi', 'rancher-vsphere-csi');
       }
 
+      if ( this.agentConfig['cloud-provider-name'] === HARVESTER ) {
+        names.push(HARVESTER_CLOUD_PROVIDER);
+      }
+
       return names;
     },
 
@@ -986,6 +991,7 @@ export default {
         });
 
         set(this.agentConfig, 'cloud-provider-config', res.data);
+        set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.clusterName`, this.value.metadata.name);
       }
 
       await this.save(btnCb);
