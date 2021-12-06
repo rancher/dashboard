@@ -61,8 +61,6 @@ const OS = [{
 const CD_ROM = 'cd-rom';
 const HARD_DISK = 'disk';
 
-const QEMU_RESERVE = 0.1;
-
 export default {
   mixins: [impl],
 
@@ -160,10 +158,10 @@ export default {
 
     memory: {
       get() {
-        return this.spec.template.spec.domain.resources.requests.memory;
+        return this.spec.template.spec.domain.resources.limits.memory;
       },
       set(neu) {
-        this.$set(this.spec.template.spec.domain.resources.requests, 'memory', neu);
+        this.$set(this.spec.template.spec.domain.resources.limits, 'memory', neu);
       }
     },
 
@@ -201,7 +199,7 @@ export default {
     },
 
     needNewSecret() {
-      if (this.type === HCI.VM_VERSION) {
+      if (this.type === HCI.VM_VERSION || this.isCreate) {
         return true;
       }
     }
@@ -238,8 +236,11 @@ export default {
         const secretBackups = this.value.status.secretBackups;
 
         if (secretBackups) {
-          userData = base64Decode(secretBackups[0]?.data?.userdata);
-          networkData = base64Decode(secretBackups[0]?.data?.networkdata);
+          const secretNetworkData = secretBackups[0]?.data?.networkdata || '';
+          const secretUserData = secretBackups[0]?.data?.userdata || '';
+
+          userData = base64Decode(secretUserData);
+          networkData = base64Decode(secretNetworkData);
         }
       }
       const osType = this.getOsType(vm);
@@ -419,20 +420,7 @@ export default {
         this.$set(this.spec.template.spec.domain.machine, 'type', this.machineType);
       }
 
-      if (!this.spec.template.spec.domain.guest) {
-        this.spec.template.spec.domain = {
-          ...this.spec.template.spec.domain,
-          memory: { guest: '' }
-        };
-      }
-
-      this.spec.template.spec.domain.resources.requests.cpu = this.spec.template.spec.domain.cpu.cores;
-
-      if ( this.memory) {
-        const [memoryValue, memoryUnit] = this.memory?.split(/(?=([a-zA-Z]+))/g);
-
-        this.spec.template.spec.domain.memory.guest = `${ memoryValue - QEMU_RESERVE }${ memoryUnit }`;
-      }
+      this.spec.template.spec.domain.resources.limits.cpu = this.spec.template.spec.domain.cpu.cores;
     },
 
     parseDiskRows(disk) {
@@ -827,7 +815,7 @@ export default {
     },
 
     generateSecretName(name) {
-      return `${ name }-${ randomStr(5).toLowerCase() }`;
+      return name ? `${ name }-${ randomStr(5).toLowerCase() }` : undefined;
     },
 
     getOwnerReferencesFromVM(resource) {
@@ -845,7 +833,7 @@ export default {
     },
 
     async saveSecret(vm) {
-      if (!vm?.spec) {
+      if (!vm?.spec || !this.secretName) {
         return true;
       }
 

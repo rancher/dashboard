@@ -2,7 +2,6 @@ import { HCI } from '@/config/types';
 import { get } from '@/utils/object';
 import { findBy } from '@/utils/array';
 import { colorForState } from '@/plugins/steve/resource-class';
-import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import SteveModel from '@/plugins/steve/steve-class';
 
 export default class HciVmBackup extends SteveModel {
@@ -95,7 +94,7 @@ export default class HciVmBackup extends SteveModel {
   }
 
   get backupTarget() {
-    return get(this, `metadata.annotations."${ HCI_ANNOTATIONS.BACKUP_TARGET }"`) || '';
+    return this?.status?.backupTarget?.endpoint || '';
   }
 
   get attachVmExisting() {

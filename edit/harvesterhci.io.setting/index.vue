@@ -33,13 +33,13 @@ export default {
       }));
     }
 
-    const canReset = !setting.disableReset && (!!this.value.default || this.value.canReset);
+    const canReset = setting.canReset || (!!this.value.default || this.value.canReset);
 
     if (this.value.value === undefined) {
       this.$set(this.value, 'value', null);
     }
 
-    this.value.value = this.value.value || this.value.default;
+    this.value.value = this.value.value || this.value.default || '';
 
     const isHarvester = this.value?.type?.includes('harvesterhci');
 
@@ -102,11 +102,7 @@ export default {
         ev.srcElement.blur();
       }
 
-      if (this.value.default) {
-        this.value.value = this.value.default;
-      } else {
-        this.value = this.value.defaultValue;
-      }
+      this.value.value = this.value.default || '';
     },
   }
 };
@@ -142,6 +138,8 @@ export default {
           :is="customComponent"
           v-if="hasCustomComponent"
           v-model="value"
+          :register-before-hook="registerBeforeHook"
+          :mode="mode"
         />
       </div>
       <div v-else-if="setting.kind === 'enum'">

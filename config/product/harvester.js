@@ -2,7 +2,7 @@ import {
   HCI, NODE, CONFIG_MAP, NAMESPACE, VIRTUAL_TYPES, MANAGEMENT, PVC
 } from '@/config/types';
 import {
-  STATE, NAME_UNLINKED, NAME as NAME_COL, AGE, NAMESPACE_COL,
+  STATE, NAME_UNLINKED, NAME as NAME_COL, AGE, NAMESPACE as NAMESPACE_COL,
 } from '@/config/table-headers';
 
 import { IMAGE_DOWNLOAD_SIZE, FINGERPRINT, IMAGE_PROGRESS } from '@/config/harvester-table-headers';
@@ -29,6 +29,7 @@ export function init(store) {
     hideKubeShell:       true,
     hideKubeConfig:      true,
     showClusterSwitcher: true,
+    hideCopyConfig:      true,
     typeStoreMap:        {
       [MANAGEMENT.PROJECT]:                       'management',
       [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',

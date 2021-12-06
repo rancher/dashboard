@@ -187,7 +187,7 @@ export default {
 
     onTabChanged({ tab }) {
       if (tab.name === 'advanced') {
-        this.refreshYamlEditor();
+        this.$refs.yamlEditor?.refresh();
       }
     }
   },
@@ -219,7 +219,7 @@ export default {
         <CpuMemory :cpu="spec.template.spec.domain.cpu.cores" :memory="memory" :disabled="isConfig" @updateCpuMemory="updateCpuMemory" />
 
         <div class="mb-20">
-          <SSHKey v-model="sshKey" :disable-create="isView" :mode="mode" @update:sshKey="updateSSHKey" />
+          <SSHKey v-model="sshKey" :namespace="templateValue.metadata.namespace" :disable-create="isView" :mode="mode" @update:sshKey="updateSSHKey" />
         </div>
       </Tab>
 
@@ -244,6 +244,7 @@ export default {
           ref="yamlEditor"
           :mode="mode"
           :user-script="userScript"
+          :namespace="templateValue.metadata.namespace"
           :network-script="networkScript"
           @updateUserData="updateUserData"
           @updateNetworkData="updateNetworkData"

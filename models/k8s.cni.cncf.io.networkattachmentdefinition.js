@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import SteveModel from '@/plugins/steve/steve-class';
+import { HCI } from '@/config/labels-annotations';
 
 export default class NetworkAttachmentDef extends SteveModel {
   get _availableActions() {
@@ -66,5 +67,27 @@ export default class NetworkAttachmentDef extends SteveModel {
     ];
 
     return rules;
+  }
+
+  get connectivity() {
+    const annotations = this.metadata?.annotations || {};
+    const route = annotations[HCI.NETWORK_ROUTE];
+    let config = {};
+
+    try {
+      config = JSON.parse(route || '{}');
+    } catch {
+      return 'invalid';
+    }
+
+    const connectivity = config.connectivity;
+
+    if (connectivity === 'false') {
+      return 'inactive';
+    } else if (connectivity === 'true') {
+      return 'active';
+    } else {
+      return connectivity;
+    }
   }
 }

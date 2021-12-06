@@ -1,11 +1,12 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledInput from '@/components/form/LabeledInput';
+import RadioGroup from '@/components/form/RadioGroup';
 
 export default {
-  name: 'HarvesterHttpProxy',
+  name: 'HarvesterVMForceDeletePolicy',
 
-  components: { LabeledInput },
+  components: { LabeledInput, RadioGroup },
 
   mixins: [CreateEditView],
 
@@ -18,10 +19,7 @@ export default {
       parseDefaultValue = JSON.parse(this.value.default);
     }
 
-    return {
-      parseDefaultValue,
-      errors: []
-    };
+    return { parseDefaultValue };
   },
 
   created() {
@@ -52,28 +50,32 @@ export default {
 <template>
   <div class="row" @input="update">
     <div class="col span-12">
-      <template>
-        <LabeledInput
-          v-model="parseDefaultValue.httpProxy"
-          class="mb-20"
-          :mode="mode"
-          label="http-proxy"
-        />
+      <RadioGroup
+        v-model="parseDefaultValue.enable"
+        class="mb-20"
+        name="model"
+        :options="[true,false]"
+        :labels="[t('generic.enabled'), t('generic.disabled')]"
+        @input="update"
+      />
 
-        <LabeledInput
-          v-model="parseDefaultValue.httpsProxy"
-          class="mb-20"
-          :mode="mode"
-          label="https-proxy"
-        />
-
-        <LabeledInput
-          v-model="parseDefaultValue.noProxy"
-          class="mb-20"
-          :mode="mode"
-          label="no-proxy"
-        />
-      </template>
+      <LabeledInput
+        v-if="parseDefaultValue.enable"
+        v-model.number="parseDefaultValue.period"
+        v-int-number
+        class="mb-20"
+        :mode="mode"
+        label-key="harvester.setting.vmForceDeletionPolicy.period"
+      />
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+  ::v-deep .radio-group {
+    display: flex;
+    .radio-container {
+      margin-right: 30px;
+    }
+  }
+</style>

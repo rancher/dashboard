@@ -80,9 +80,11 @@ export default {
       });
 
       return out.map((option) => {
+        const percent = ((option.num / this.nodeNetworks.length) * 100).toFixed(2);
+
         return {
           ...option,
-          percent: `${ (option.num / this.nodeNetworks.length) * 100 } %`
+          percent: `${ percent } %`
         };
       });
     }

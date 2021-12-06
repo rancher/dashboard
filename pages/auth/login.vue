@@ -9,6 +9,7 @@ import CopyCode from '@/components/CopyCode';
 import Banner from '@/components/Banner';
 import { LOCAL, LOGGED_OUT, TIMED_OUT, _FLAGGED } from '@/config/query-params';
 import Checkbox from '@/components/form/Checkbox';
+import Password from '@/components/form/Password';
 import { sortBy } from '@/utils/sort';
 import { configType } from '@/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
@@ -29,7 +30,7 @@ export default {
   name:       'Login',
   layout:     'unauthenticated',
   components: {
-    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode
+    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password
   },
 
   async asyncData({ route, redirect, store }) {
@@ -322,10 +323,9 @@ export default {
                 />
               </div>
               <div class="">
-                <LabeledInput
+                <Password
                   ref="password"
                   v-model="password"
-                  type="password"
                   :label="t('login.password')"
                   autocomplete="password"
                 />

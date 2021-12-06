@@ -78,6 +78,10 @@ export default {
       return !this.currentProduct?.hideKubeConfig;
     },
 
+    showCopyConfig() {
+      return !this.currentProduct?.hideCopyConfig;
+    },
+
     importEnabled() {
       return !!this.currentCluster?.actions?.apply;
     },
@@ -279,6 +283,7 @@ export default {
         </button>
 
         <button
+          v-if="showCopyConfig"
           v-tooltip="t('nav.kubeconfig.copy')"
           :disabled="!kubeConfigEnabled"
           type="button"
