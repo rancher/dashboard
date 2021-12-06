@@ -1097,7 +1097,7 @@ cluster:
       other {are # Harvester clusters that are not shown}
       }  
     registration:
-      step1: "1. Go to the <code>Global Settings / Advanced Settings</code> page of the target Harvester's UI."
+      step1: "1. Go to the <code>Advanced / Settings</code> page of the target Harvester's UI."
       step2: '2. Find the <code>cluster-registration-url</code> setting and click the <code><i class="icon icon-actions" ></i></code> -> <code>Edit Setting</code> button.'
       step3: "3. Input the following registration URL and click the <code>Save</code> button."
       step4: "Registration URL"
