@@ -342,6 +342,13 @@ export default {
           const isAdded = findBy(this.newDisks, 'name', d.metadata.name);
           const isRemoved = findBy(this.removedDisks, 'name', d.metadata.name);
 
+          const parentDevice = d.status?.deviceStatus?.parentDevice;
+          const isParentSelected = this.newDisks.find(d => d?.blockDevice?.spec?.devPath === parentDevice);
+
+          if (parentDevice && isParentSelected) {
+            return false;
+          }
+
           if ((!findBy(this.disks || [], 'name', d.metadata.name) &&
                 d?.spec?.nodeName === this.value.id &&
                 (!addedToNodeCondition || addedToNodeCondition?.status === 'False') &&
@@ -360,6 +367,7 @@ export default {
           const sizeBytes = d.status?.deviceStatus?.capacity?.sizeBytes;
           const size = formatSi(sizeBytes, { increment: 1024 });
           const parentDevice = d.status?.deviceStatus?.parentDevice;
+          const isChildAdded = this.newDisks.find(newDisk => newDisk.blockDevice?.status?.deviceStatus?.parentDevice === devPath);
 
           let label = `${ devPath } (Type: ${ deviceType }, Size: ${ size })`;
 
@@ -372,7 +380,7 @@ export default {
             value:    d.id,
             action:   this.addDisk,
             kind:     !parentDevice ? 'group' : '',
-            disabled: !!(d.childParts.length > 0 && d.isChildPartProvisioned),
+            disabled: !!((d.childParts.length > 0 && d.isChildPartProvisioned) || isChildAdded),
             group:    parentDevice || devPath,
             isParent: !!parentDevice,
           };
