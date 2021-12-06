@@ -99,6 +99,7 @@ export const STATES = {
   expired:            { color: 'warning', icon: 'error' },
   fail:               { color: 'error', icon: 'error' },
   failed:             { color: 'error', icon: 'error' },
+  fetching:           { color: 'info', icon: 'tag' },
   healthy:            { color: 'success', icon: 'dot-open' },
   inactive:           { color: 'error', icon: 'dot' },
   initializing:       { color: 'warning', icon: 'error' },

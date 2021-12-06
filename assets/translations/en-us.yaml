@@ -6136,6 +6136,16 @@ epinio:
             label: Container Image
             inputLabel: Image
             tooltip: Container Image for the app workload
+        gitUrl:
+          label: Git URL
+          url:
+            label: URL
+            inputLabel: URL
+            tooltip: URL of the Git Repository
+          branch:
+            label: Branch
+            inputLabel: Branch
+            tooltip: Branch to deploy
       services:
         label: Service
         subtext: Bind a service
@@ -6157,6 +6167,9 @@ epinio:
       create:
         label: Create
         description: The Application will be created ready to deploy source to
+      gitFetch:
+        label: Fetch
+        description: Fetch the files at the git repository's branch
       upload:
         label: Upload
         description: Upload the source for the Application

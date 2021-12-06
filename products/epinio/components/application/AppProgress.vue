@@ -44,32 +44,45 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   async fetch() {
-    this.actions.push(await this.$store.dispatch('epinio/create', {
-      action:      APPLICATION_ACTION_TYPE.CREATE,
+    const coreArgs = {
       application: this.application,
       type:        EPINIO_TYPES.APP_ACTION,
+    };
+
+    this.actions.push(await this.$store.dispatch('epinio/create', {
+      action:      APPLICATION_ACTION_TYPE.CREATE,
       index:       0, // index used for sorting
+      ...coreArgs,
     }));
+
     if (this.source.type === APPLICATION_SOURCE_TYPE.ARCHIVE) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
         action:      APPLICATION_ACTION_TYPE.UPLOAD,
-        application: this.application,
-        type:        EPINIO_TYPES.APP_ACTION,
         index:       1,
+        ...coreArgs,
       }));
+    }
+
+    if (this.source.type === APPLICATION_SOURCE_TYPE.GIT_URL) {
+      this.actions.push(await this.$store.dispatch('epinio/create', {
+        action:      APPLICATION_ACTION_TYPE.GIT_FETCH,
+        index:       1,
+        ...coreArgs,
+      }));
+    }
+
+    if (this.source.type === APPLICATION_SOURCE_TYPE.ARCHIVE || this.source.type === APPLICATION_SOURCE_TYPE.GIT_URL) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
         action:      APPLICATION_ACTION_TYPE.BUILD,
-        application: this.application,
-        type:        EPINIO_TYPES.APP_ACTION,
         index:       2,
+        ...coreArgs,
       }));
     }
 
     this.actions.push(await this.$store.dispatch('epinio/create', {
       action:      APPLICATION_ACTION_TYPE.DEPLOY,
-      application: this.application,
-      type:        EPINIO_TYPES.APP_ACTION,
       index:       3,
+      ...coreArgs,
     }));
 
     this.create();
@@ -169,12 +182,14 @@ export default Vue.extend<Data, any, any, any>({
           <Checkbox v-model="row.run" :disabled="true" />
         </template>
         <template #cell:state="{row}">
-          <i
-            v-if="row.state === APPLICATION_ACTION_STATE.RUNNING"
-            v-tooltip="row.stateDisplay"
-            class="icon icon-lg icon-spinner icon-spin"
-          />
-          <BadgeState v-else :color="row.stateBackground" :label="row.stateDisplay" />
+          <div class="status">
+            <i
+              v-if="row.state === APPLICATION_ACTION_STATE.RUNNING"
+              v-tooltip="row.stateDisplay"
+              class="icon icon-lg icon-spinner icon-spin"
+            />
+            <BadgeState v-else :color="row.stateBackground" :label="row.stateDisplay" class="badge" />
+          </div>
         </template>
       </SortableTable>
     </div>
@@ -187,6 +202,18 @@ export default Vue.extend<Data, any, any, any>({
   justify-content: center;
   .progress {
     padding: 10px 0;
+
+    $statusHeight: 20px;
+    .status {
+      min-height: $statusHeight; // Ensure switching from spinner to badge doesn't wibble
+      display: flex;
+      align-items: center;
+
+      .badge {
+        min-height: $statusHeight;
+      }
+
+    }
   }
 }
 

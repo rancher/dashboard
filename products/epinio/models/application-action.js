@@ -4,10 +4,11 @@ import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 import Vue from 'vue';
 
 export const APPLICATION_ACTION_TYPE = {
-  CREATE: 'create',
-  UPLOAD: 'upload',
-  BUILD:    'build',
-  DEPLOY: 'deploy',
+  CREATE:    'create',
+  GIT_FETCH: 'gitFetch',
+  UPLOAD:    'upload',
+  BUILD:     'build',
+  DEPLOY:    'deploy',
 };
 
 export default class ApplicationActionResource extends Resource {
@@ -61,6 +62,9 @@ export default class ApplicationActionResource extends Resource {
     case APPLICATION_ACTION_TYPE.CREATE:
       await this.create(params);
       break;
+    case APPLICATION_ACTION_TYPE.GIT_FETCH:
+      await this.gitFetch(params);
+      break;
     case APPLICATION_ACTION_TYPE.UPLOAD:
       await this.upload(params);
       break;
@@ -81,8 +85,12 @@ export default class ApplicationActionResource extends Resource {
     await this.application.storeArchive(source.archive.tarball);
   }
 
+  async gitFetch({ source }) {
+    await this.application.gitFetch(source.gitUrl.url, source.gitUrl.branch);
+  }
+
   async build({ source }) {
-    const { stage } = await this.application.stage(this.application.buildCache.store.blobUid, source.archive.builderImage);
+    const { stage } = await this.application.stage(this.application.buildCache.store.blobUid, source.builderImage.value);
 
     this.application.showStagingLog(stage.id);
 

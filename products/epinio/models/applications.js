@@ -8,7 +8,7 @@ const STATES = {
   CREATING: 'created',
   STAGING:  'staging',
   RUNNING:  'running',
-  ERROR:    'error'
+  ERROR:    'error',
 };
 
 // These map to @/plugins/core-store/resource-class STATES
@@ -116,14 +116,15 @@ export default class EpinioApplication extends EpinioResource {
 
   get links() {
     return {
-      update: this.getUrl(),
-      self:   this.getUrl(),
-      remove: this.getUrl(),
-      create: this.getUrl(this.meta?.namespace, null), // ensure name is null
-      store:  `${ this.getUrl() }/store`,
-      stage:  `${ this.getUrl() }/stage`,
-      deploy: `${ this.getUrl() }/deploy`,
-      logs:   `${ this.getUrl() }/logs`,
+      update:    this.getUrl(),
+      self:      this.getUrl(),
+      remove:    this.getUrl(),
+      create:    this.getUrl(this.meta?.namespace, null), // ensure name is null
+      store:     `${ this.getUrl() }/store`,
+      stage:     `${ this.getUrl() }/stage`,
+      deploy:    `${ this.getUrl() }/deploy`,
+      logs:      `${ this.getUrl() }/logs`,
+      importGit:   `${ this.getUrl() }/import-git`,
     };
   }
 
@@ -223,6 +224,27 @@ export default class EpinioApplication extends EpinioResource {
     });
   }
 
+  async gitFetch(url, branch) {
+    this.trace('Downloading and storing git repo');
+    const formData = new FormData();
+
+    formData.append('giturl', url);
+    formData.append('gitrev', branch);
+
+    const res = await this.followLink('importGit', {
+      method:  'post',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+        accept:         'gzip'
+      },
+      data: formData
+    });
+
+    this.buildCache.store = { blobUid: res.blobuid };
+
+    return res.blobuid;
+  }
+
   async update() {
     this.trace('Update the application resource');
     await this.followLink('update', {
@@ -258,7 +280,7 @@ export default class EpinioApplication extends EpinioResource {
 
     this.buildCache.store = { blobUid: res.blobuid };
 
-    return this.lastBlobUid;
+    return res.blobuid;
   }
 
   async stage(blobuid, builderImage) {

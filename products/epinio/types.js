@@ -14,7 +14,8 @@ export const EPINIO_TYPES = {
 
 export const APPLICATION_SOURCE_TYPE = {
   CONTAINER_URL: 'container_url',
-  ARCHIVE:       'archive'
+  ARCHIVE:       'archive',
+  GIT_URL:       'git_url',
 };
 
 export const APPLICATION_ACTION_STATE = {
