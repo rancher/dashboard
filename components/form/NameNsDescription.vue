@@ -135,12 +135,10 @@ export default {
       type:    Boolean,
       default: true,
     },
-    validators: {
-      type:    Array,
-      default: () => {
-        return [];
-      },
-    },
+    errorMessages: {
+      type:    String,
+      default: ''
+    }
   },
 
   data() {
@@ -325,9 +323,8 @@ export default {
             :options="namespaces"
             :searchable="true"
             :taggable="namespaceNewAllowed"
-            :validators="validators"
+            :errorMessages="errorMessages"
             @input="changeNameAndNamespace($event)"
-            @setValid="(isValid) => { $emit('setValid', isValid) }"
           />
           <LabeledInput
             v-else

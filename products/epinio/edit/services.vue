@@ -25,9 +25,12 @@ export default Vue.extend<Data, any, any, any>({
 
   data() {
     return {
-      errors:        [],
-      namespaces:    [],
-      validFields:     { name: false },
+      errors:           [],
+      namespaces:       [],
+      touchedName:      false,
+      touchedData:      false,
+      nameErrorMessage: '',
+      dataErrorMessage: '',
     };
   },
 
@@ -49,7 +52,9 @@ export default Vue.extend<Data, any, any, any>({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     validationPassed() {
-      return !Object.values(this.validFields).includes(false);
+      // Separate field validity from the error messages
+      // so that submit button can be disabled before the form is submitted
+      return this.touchedName && this.nameErrorMessage.length === 0;
     },
   },
 
@@ -79,20 +84,55 @@ export default Vue.extend<Data, any, any, any>({
         saveCb(false);
       }
     },
-    setValid(field: string, valid: boolean) {
-      this.validFields[field] = valid;
+    updateNameErrors(): void {
+      this.touchedName = true;
+      const nameErrors = this.getNameErrors(this.value.metadata.name || '');
+      const nameErrorMessage = nameErrors.join(', ');
+
+      this.nameErrorMessage = nameErrorMessage;
     },
-    meetsNameRequirements( name = '') {
-      const nameErrors = validateKubernetesName(name, this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
+    updateDataErrors(): void {
+      this.touchedData = true;
 
-      if (nameErrors.length > 0) {
-        return {
-          isValid:      false,
-          errorMessage: nameErrors.join(', ')
-        };
+      const keys = Object.keys(this.value.data || {});
+
+      alert(JSON.stringify(this.value));
+      // if (keys.length === 0) {
+      //   const atLeastOneKeyRequired = this.t(
+      //     'epinio.services.pairs.requirement'
+      //   );
+      //   this.dataErrorMessage = atLeastOneKeyRequired;
+      //   return;
+      // }
+      if (keys.includes('')) {
+        const keyCannotBeEmpty = this.t('epinio.services.pairs.empty');
+
+        this.dataErrorMessage = keyCannotBeEmpty;
+
+        return;
       }
+      const regex = /^[a-zA-Z0-9_\-\.]*$/gm;
+      const keyHasInvalidChars = this.t('epinio.services.pairs.characters');
 
-      return { isValid: true };
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+
+        if (!key.match(regex)) {
+          this.dataErrorMessage = keyHasInvalidChars;
+
+          return;
+        }
+      }
+      this.dataErrorMessage = '';
+    },
+    getNameErrors(name: string): string[] {
+      return validateKubernetesName(
+        this.value.metadata.name,
+        this.t('epinio.namespace.name'),
+        this.$store.getters,
+        undefined,
+        []
+      );
     },
   }
 });
@@ -122,8 +162,8 @@ export default Vue.extend<Data, any, any, any>({
         :value="value.metadata"
         :mode="mode"
         :min-height="90"
-        :validators="[ meetsNameRequirements ]"
-        @setValid="setValid('name', $event)"
+        :error-messages="nameErrorMessage"
+        @change="updateNameErrors"
       />
 
       <div class="row">
@@ -137,6 +177,8 @@ export default Vue.extend<Data, any, any, any>({
             :key-label="t('epinio.applications.create.envvar.keyLabel')"
             :value-label="t('epinio.applications.create.envvar.valueLabel')"
             :parse-lines-from-file="true"
+            :error-messages="dataErrorMessage"
+            @updateErrors="updateDataErrors"
           />
         </div>
       </div>

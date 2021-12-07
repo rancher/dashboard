@@ -71,12 +71,10 @@ export default {
       default: '',
     },
 
-    validators: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
-    }
+    errorMessages: {
+      type:    String,
+      default: ''
+    },
   },
 
   data() {
@@ -159,9 +157,8 @@ export default {
       :disabled="disabled"
       :required="textRequired"
       :mode="mode"
-      :validators="validators"
+      :error-messages="errorMessages"
       v-bind="$attrs"
-      @setValid="(isValid) => { $emit('setValid', isValid) }"
     >
       <template #label>
         <slot name="label" />

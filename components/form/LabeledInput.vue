@@ -11,6 +11,11 @@ export default {
   mixins:     [LabeledFormElement],
 
   props: {
+    errorMessages: {
+      type:    String,
+      default: ''
+    },
+
     type: {
       type:    String,
       default: 'text',
@@ -46,26 +51,7 @@ export default {
       // messages appear
       type:    Number,
       default: 0
-    },
-
-    validators: {
-      // validators is expected to be an array of functions
-      // where each function takes the input value as an
-      // argument. If the validation passes, the function
-      // returns { isValid: true }. If the validation fails,
-      // the function returns:
-      //
-      // { isValid: false, errorMessage: "Error goes here." }
-      type:    Array,
-      default: () => {
-        return [];
-      },
-    },
-
-    maxlength: {
-      type:    Number,
-      default: null,
-    },
+    }
   },
 
   data() {
@@ -138,17 +124,6 @@ export default {
     },
 
     onUpdate(value) {
-      const haveValidators = this.validators.length > 0;
-
-      if (!haveValidators && !this.updated) {
-        // When no validators are here emit a valid state of true. If the gate to only run once causes issues it can be removed
-        this.$emit('setValid', true);
-      }
-
-      if (haveValidators) {
-        this.updateValidationErrors(value);
-      }
-
       this.updated = true;
       this.$emit('input', value);
     },
@@ -160,31 +135,6 @@ export default {
     onBlur() {
       this.$emit('blur');
       this.onBlurLabeled();
-    },
-
-    updateValidationErrors(value) {
-      // Combine all active validation errors for this field
-      // into a string to be displayed beneath the input.
-      const errorMessageReducer = ( previousValue, currentValidator ) => {
-        try {
-          const validationResult = currentValidator(value);
-
-          if (!validationResult.isValid) {
-            previousValue.push(validationResult.errorMessage);
-          }
-
-          return previousValue;
-        } catch (error) {
-          alert(`Could not validate the field using the validator ${ currentValidator.name }. ${ error }`);
-        }
-      };
-
-      const errorString = this.validators.reduce(errorMessageReducer, []);
-
-      this.validationErrors = errorString.join(', ');
-
-      // Can be used to update the validity of a form as a whole.
-      this.$emit('setValid', !this.validationErrors.length);
     },
 
     escapeHtml,
@@ -268,10 +218,10 @@ export default {
       <label v-if="subLabel" class="sub-label">{{ subLabel }}</label>
     </div>
     <div
-      v-if="validationErrors.length > 0"
+      v-if="errorMessages.length > 0"
       class="validation-message"
     >
-      {{ validationErrors }}
+      {{ errorMessages }}
     </div>
   </div>
 </template>
