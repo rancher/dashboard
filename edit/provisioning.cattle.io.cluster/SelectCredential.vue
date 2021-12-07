@@ -106,25 +106,23 @@ export default {
         };
       });
 
-      if ( out.length ) {
-        out.unshift({
-          label: this.t('cluster.credential.select.option.new'),
-          value: _NEW,
-        });
-
-        out.unshift({
-          label:    this.t('cluster.credential.select.option.none'),
-          value:    _NONE,
-          disabled: true,
-        });
-      }
-
       if ( this.value && !out.find(x => x.value === this.value) ) {
-        out.push({
+        out.unshift({
           label: `${ this.value.replace(/^cattle-global-data:/, '') } (current)`,
           value: this.value
         });
       }
+
+      out.unshift({
+        label: this.t('cluster.credential.select.option.new'),
+        value: _NEW,
+      });
+
+      out.unshift({
+        label:    this.t('cluster.credential.select.option.none'),
+        value:    _NONE,
+        disabled: true,
+      });
 
       return out;
     },
