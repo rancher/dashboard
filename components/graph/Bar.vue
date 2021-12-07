@@ -41,7 +41,7 @@ export default {
 <template>
   <div class="bar" :style="barStyle">
     <div class="indicator" :style="indicatorStyle" />
-    <div v-for="sliceStyle in sliceStyles" :key="sliceStyle.left" class="slice" :style="sliceStyle" />
+    <div v-for="(sliceStyle, i) in sliceStyles" :key="i" class="slice" :style="sliceStyle" />
   </div>
 </template>
 
