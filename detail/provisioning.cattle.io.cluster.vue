@@ -85,10 +85,10 @@ export default {
 
     const fetchTwo = {};
 
-    const machineDeloymentTemplateType = fetchOneRes.machineDeployments?.[0]?.templateType;
+    const machineDeploymentTemplateType = fetchOneRes.machineDeployments?.[0]?.templateType;
 
-    if (machineDeloymentTemplateType && this.$store.getters['management/schemaFor'](machineDeloymentTemplateType) ) {
-      fetchTwo.mdtt = this.$store.dispatch('management/findAll', { type: machineDeloymentTemplateType });
+    if (machineDeploymentTemplateType && this.$store.getters['management/schemaFor'](machineDeploymentTemplateType) ) {
+      fetchTwo.mdtt = this.$store.dispatch('management/findAll', { type: machineDeploymentTemplateType });
     }
 
     if (!this.showMachines) {
