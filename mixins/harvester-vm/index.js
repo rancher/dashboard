@@ -101,16 +101,18 @@ export default {
       this.deleteCloneValue();
     }
 
-    const resources = this.value.spec.template.spec.domain.resources;
+    if (type === HCI.VM) {
+      const resources = this.value.spec.template.spec.domain.resources;
 
-    if (!resources?.limits || (resources?.limits && !resources?.limits?.memory && resources?.limits?.memory !== null)) {
-      this.value.spec.template.spec.domain.resources = {
-        ...this.value.spec.template.spec.domain.resources,
-        limits: {
-          ...this.value.spec.template.spec.domain.resources.limits,
-          memory: this.value.spec.template.spec.domain.resources.requests.memory
-        }
-      };
+      if (!resources?.limits || (resources?.limits && !resources?.limits?.memory && resources?.limits?.memory !== null)) {
+        this.value.spec.template.spec.domain.resources = {
+          ...this.value.spec.template.spec.domain.resources,
+          limits: {
+            ...this.value.spec.template.spec.domain.resources.limits,
+            memory: this.value.spec.template.spec.domain.resources.requests.memory
+          }
+        };
+      }
     }
 
     return {
