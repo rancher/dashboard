@@ -5,7 +5,7 @@ import NameNsDescription from '@/components/form/NameNsDescription.vue';
 import LabeledInput from '@/components/form/LabeledInput.vue';
 import KeyValue from '@/components/form/KeyValue.vue';
 import ArrayList from '@/components/form/ArrayList.vue';
-
+import { validateKubernetesName } from '@/utils/validators/kubernetes-name';
 import { EPINIO_TYPES } from '@/products/epinio/types';
 import { sortBy } from '@/utils/sort';
 
@@ -113,7 +113,21 @@ export default Vue.extend<Data, any, any, any>({
 <template>
   <div>
     <div class="col">
+      <div v-if="namespaces.length === 0" class="createFirstNamespace">
+        <LabeledInput
+          v-model="values.meta.namespace"
+          :min-height="90"
+          :label="t('epinio.namespace.name')"
+          :mode="mode"
+          :required="true"
+          :validators="[ meetsNameRequirements ]"
+          @setValid="setValid('name', $event)"
+        />
+        <Banner v-for="(err, i) in errors" :key="i" color="error" :label="JSON.stringify(err)" />
+      </div>
+
       <NameNsDescription
+        v-else
         name-key="name"
         namespace-key="namespace"
         :namespaces-override="namespaces"
@@ -156,3 +170,10 @@ export default Vue.extend<Data, any, any, any>({
     </div>
   </div>
 </template>
+<style scoped>
+.createFirstNamespace {
+  margin: 15% auto;
+  padding: 20px;
+  width: 60%;
+}
+</style>
