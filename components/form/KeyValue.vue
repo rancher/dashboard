@@ -238,7 +238,11 @@ export default {
     parseLinesFromFile: {
       default: false,
       type:    Boolean
-    }
+    },
+    errorMessages: {
+      default: '',
+      type:    String
+    },
   },
 
   data() {
@@ -551,6 +555,7 @@ export default {
               :disabled="isView || !keyEditable"
               :placeholder="keyPlaceholder"
               @input="queueUpdate"
+              @keyup="$emit('updateErrors')"
               @paste="onPaste(i, $event)"
             />
           </slot>
@@ -580,6 +585,7 @@ export default {
               :min-height="40"
               :spellcheck="false"
               @input="queueUpdate"
+              @updateErrors="$emit('updateErrors')"
             />
             <input
               v-else
@@ -608,7 +614,9 @@ export default {
         </div>
       </template>
     </div>
-
+    <div class="validation-space">
+      {{ errorMessages }}
+    </div>
     <div v-if="(addAllowed || readAllowed) && !isView" class="footer">
       <slot name="add" :add="add">
         <button v-if="addAllowed" type="button" class="btn role-tertiary add" :disabled="loading || (keyOptions && filteredKeyOptions.length === 0)" @click="add()">
@@ -700,5 +708,9 @@ export default {
     padding: 0px 0px 0px 10px;
   }
 
+}
+.validation-space {
+  height: 20px;
+  margin-bottom: 10px;
 }
 </style>

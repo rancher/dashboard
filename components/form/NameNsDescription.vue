@@ -323,7 +323,7 @@ export default {
             :options="namespaces"
             :searchable="true"
             :taggable="namespaceNewAllowed"
-            :errorMessages="errorMessages"
+            :error-messages="errorMessages"
             @input="changeNameAndNamespace($event)"
           />
           <LabeledInput

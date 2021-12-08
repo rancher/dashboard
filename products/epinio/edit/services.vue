@@ -52,9 +52,7 @@ export default Vue.extend<Data, any, any, any>({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     validationPassed() {
-      // Separate field validity from the error messages
-      // so that submit button can be disabled before the form is submitted
-      return this.touchedName && this.nameErrorMessage.length === 0;
+      return this.touchedName && !this.nameErrorMessage && this.touchedData && !this.dataErrorMessage;
     },
   },
 
@@ -95,21 +93,21 @@ export default Vue.extend<Data, any, any, any>({
       this.touchedData = true;
 
       const keys = Object.keys(this.value.data || {});
+      const values = Object.values(this.value.data || {});
 
-      alert(JSON.stringify(this.value));
-      // if (keys.length === 0) {
-      //   const atLeastOneKeyRequired = this.t(
-      //     'epinio.services.pairs.requirement'
-      //   );
-      //   this.dataErrorMessage = atLeastOneKeyRequired;
-      //   return;
-      // }
-      if (keys.includes('')) {
-        const keyCannotBeEmpty = this.t('epinio.services.pairs.empty');
+      if (keys.length === 0) {
+        const atLeastOnePairRequired = this.t(
+          'epinio.services.pairs.requirement'
+        );
 
-        this.dataErrorMessage = keyCannotBeEmpty;
+        this.dataErrorMessage = atLeastOnePairRequired;
 
         return;
+      }
+      if (keys.includes('') || values.includes('')) {
+        const cannotBeEmpty = this.t('epinio.services.pairs.empty');
+
+        this.dataErrorMessage = cannotBeEmpty;
       }
       const regex = /^[a-zA-Z0-9_\-\.]*$/gm;
       const keyHasInvalidChars = this.t('epinio.services.pairs.characters');
@@ -134,6 +132,17 @@ export default Vue.extend<Data, any, any, any>({
         []
       );
     },
+  },
+  watch: {
+    'value.data': {
+      // We need this deep watcher so that the
+      // error messages for the key-value pairs in data
+      // are updated on every keystroke.
+      handler() {
+        this.updateDataErrors();
+      },
+      deep: true
+    }
   }
 });
 </script>
@@ -178,6 +187,7 @@ export default Vue.extend<Data, any, any, any>({
             :value-label="t('epinio.applications.create.envvar.valueLabel')"
             :parse-lines-from-file="true"
             :error-messages="dataErrorMessage"
+            :emit-errors="true"
             @updateErrors="updateDataErrors"
           />
         </div>

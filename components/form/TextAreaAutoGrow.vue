@@ -120,6 +120,7 @@ export default {
     @input="onInput($event.target.value)"
     @focus="$emit('focus', $event)"
     @blur="$emit('blur', $event)"
+    @keyup="$emit('updateErrors')"
   />
 </template>
 

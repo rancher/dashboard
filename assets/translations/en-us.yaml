@@ -6493,8 +6493,8 @@ epinio:
   services:
     pairs:
       label: Service Data
-      requirement: At least one key is required.
-      empty: Keys cannot be empty.
+      requirement: At least one key-value pair is required.
+      empty: Key and values cannot be empty.
       characters: A valid key must consist of alphanumeric characters, '-', '_' or '.'
       tooltip: Data made available to bound applications via the path <code>/services/&lt;service name&gt;/&lt;data name&gt;/</code>.
     tableHeaders:

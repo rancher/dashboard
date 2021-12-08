@@ -1,7 +1,6 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
-import Banner from '@/components/Banner';
 import Card from '@/components/Card';
 import { mapGetters, mapState } from 'vuex';
 import LabeledInput from '@/components/form/LabeledInput.vue';
@@ -14,7 +13,6 @@ import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 export default {
   name:       'EpinioNamespaceList',
   components: {
-    Banner,
     ResourceTable,
     Masthead,
     Card,
@@ -23,18 +21,18 @@ export default {
   },
   data() {
     return {
-      showCreateModal: false,
-      errors:           [],
-      validFields:     { name: false },
-      value:           { name: '' },
-      submitted:       false,
-      mode:            _CREATE
+      showCreateModal:  false,
+      nameErrorMessage: '',
+      touchedName:      false,
+      value:            { name: '' },
+      submitted:        false,
+      mode:             _CREATE
     };
   },
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     validationPassed() {
-      return !Object.values(this.validFields).includes(false);
+      return this.touchedName && !this.nameErrorMessage;
     },
     ...mapState('action-menu', ['showPromptRemove']),
   },
@@ -76,17 +74,23 @@ export default {
         buttonCb(false);
       }
     },
-    meetsNameRequirements( name = '') {
-      const nameErrors = validateKubernetesName(name, this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
 
-      if (nameErrors.length > 0) {
-        return {
-          isValid:      false,
-          errorMessage: nameErrors.join(', ')
-        };
-      }
+    updateNameErrors() {
+      this.touchedName = true;
+      const nameErrors = this.getNameErrors(this.value.name || '');
+      const nameErrorMessage = nameErrors.join(', ');
 
-      return { isValid: true };
+      this.nameErrorMessage = nameErrorMessage;
+    },
+
+    getNameErrors(name) {
+      return validateKubernetesName(
+        this.value.name,
+        this.t('epinio.namespace.name'),
+        this.$store.getters,
+        undefined,
+        []
+      );
     },
 
     setValid(field, valid) {
@@ -132,10 +136,9 @@ export default {
             :label="t('epinio.namespace.name')"
             :mode="mode"
             :required="true"
-            :validators="[ meetsNameRequirements ]"
-            @setValid="setValid('name', $event)"
+            :error-messages="nameErrorMessage"
+            @input="updateNameErrors"
           />
-          <Banner v-for="(err, i) in errors" :key="i" color="error" :label="JSON.stringify(err)" />
         </div>
 
         <div slot="actions">
