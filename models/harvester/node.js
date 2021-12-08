@@ -83,7 +83,7 @@ export default class HciNode extends SteveModel {
   }
 
   get stateBackground() {
-    return colorForState(this.stateDisplay).replace('text-', 'bg-');
+    return colorForState(this.stateDisplay, this.stateObj?.error, this.stateObj?.transitioning).replace('text-', 'bg-');
   }
 
   get detailLocation() {
@@ -162,7 +162,7 @@ export default class HciNode extends SteveModel {
     const inStore = this.$rootGetters['currentProduct'].inStore;
     const longhornNode = this.$rootGetters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.id }`);
     const diskStatus = longhornNode?.status?.diskStatus || {};
-    const diskSpec = longhornNode.spec?.disks || {};
+    const diskSpec = longhornNode?.spec?.disks || {};
 
     const longhornDisks = Object.keys(diskStatus).map((key) => {
       return {

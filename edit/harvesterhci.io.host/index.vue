@@ -143,7 +143,7 @@ export default {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `${ LONGHORN_SYSTEM }/${ this.value.id }`);
       const diskStatus = longhornNode?.status?.diskStatus || {};
-      const diskSpec = longhornNode.spec?.disks || {};
+      const diskSpec = longhornNode?.spec?.disks || {};
 
       const formatOptions = {
         increment:    1024,
@@ -388,6 +388,10 @@ export default {
 
       return sortBy(out, ['group', 'isParent', 'label']);
     },
+
+    ddButtonAction() {
+      this.blockDeviceOpts = this.getBlockDeviceOpts();
+    },
   },
 };
 </script>
@@ -473,6 +477,7 @@ export default {
               size="sm"
               :selectable="selectable"
               @click-action="e=>addDisk(e.value)"
+              @dd-button-action="ddButtonAction"
             >
               <template #option="option">
                 <template v-if="option.kind === 'group'">
