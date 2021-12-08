@@ -33,6 +33,10 @@ export default {
       });
     });
   },
+
+  beforeDestroy() {
+    this.$nuxt.$off();
+  }
 };
 </script>
 
