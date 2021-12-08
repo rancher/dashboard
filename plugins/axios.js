@@ -42,7 +42,7 @@ export default function({
         delete opt.value;
 
         opt.encode = x => x;
-        opt.sameSite = false;
+        opt.sameSite = true;
         opt.path = '/';
         opt.secure = true;
 
