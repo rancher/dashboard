@@ -205,9 +205,6 @@ export default {
 
     async loginLocal(buttonCb) {
       try {
-        this.err = null;
-        this.timedOut = null;
-        this.loggedOut = null;
         await this.$store.dispatch('auth/login', {
           provider: 'local',
           body:     {
@@ -244,6 +241,9 @@ export default {
         }
       } catch (err) {
         this.err = err;
+        this.timedOut = null;
+        this.loggedOut = null;
+
         buttonCb(false);
       }
     },

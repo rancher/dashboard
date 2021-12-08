@@ -868,7 +868,10 @@ export const actions = {
       if (!process.server) {
         const backTo = window.localStorage.getItem(BACK_TO);
 
-        if (!backTo && !route.query[LOGGED_OUT]) {
+        const isLogin = route.name === 'auth-login';
+        const isLogout = route.name === 'auth-logout';
+
+        if (!backTo && !isLogin && !isLogout) {
           window.localStorage.setItem(BACK_TO, window.location.href);
         }
       }
