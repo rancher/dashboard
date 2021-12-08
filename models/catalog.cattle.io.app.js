@@ -228,17 +228,21 @@ export default {
         const { clusterName, projectName } = this.spec?.values?.global;
 
         if (clusterName && projectName) {
-          const legacyApp = await this.$dispatch('rancher/find', {
-            type: NORMAN.APP,
-            id:   `${ projectName }:${ this.metadata?.name }`,
-            opt:  { url: `/v3/project/${ clusterName }:${ projectName }/apps/${ projectName }:${ this.metadata?.name }` }
-          }, { root: true });
+          try {
+            const legacyApp = await this.$dispatch('rancher/find', {
+              type: NORMAN.APP,
+              id:   `${ projectName }:${ this.metadata?.name }`,
+              opt:  { url: `/v3/project/${ clusterName }:${ projectName }/apps/${ projectName }:${ this.metadata?.name }` }
+            }, { root: true });
 
-          if (legacyApp) {
-            return legacyApp;
-          }
+            if (legacyApp) {
+              return legacyApp;
+            }
+          } catch (e) {}
         }
       }
+
+      return false;
     };
   }
 }
