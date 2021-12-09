@@ -3,7 +3,6 @@ import { mapGetters } from 'vuex';
 import Banner from '@/components/Banner';
 import Loading from '@/components/Loading';
 
-import { DEV } from '@/store/prefs';
 import { HCI, MANAGEMENT } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING, ALLOWED_SETTINGS, SETTING } from '@/config/settings';
@@ -12,7 +11,6 @@ export default {
   components: { Banner, Loading },
 
   async fetch() {
-    const isDev = this.$store.getters['prefs/get'](DEV);
     const isSingleVirtualCluster = this.$store.getters['isSingleVirtualCluster'];
 
     const hash = { haversterSettings: this.$store.dispatch('harvester/findAll', { type: HCI.SETTING }) };
@@ -69,8 +67,6 @@ export default {
       };
 
       s.hide = s.canHide = (s.kind === 'json' || s.kind === 'multiline');
-
-      s.hasActions = !s.readOnly || isDev;
       initSettings.push(s);
     });
 
@@ -154,7 +150,7 @@ export default {
           <h2 v-html="t(setting.description, {}, true)">
           </h2>
         </div>
-        <div v-if="setting.hasActions" class="action">
+        <div class="action">
           <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-sm role-multi-action actions" @click="showActionMenu($event, setting)">
             <i class="icon icon-actions" />
           </button>

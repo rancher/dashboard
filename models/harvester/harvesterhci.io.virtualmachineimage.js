@@ -2,6 +2,7 @@ import { HCI } from '@/config/types';
 import {
   DESCRIPTION,
   ANNOTATIONS_TO_IGNORE_REGEX,
+  HCI as HCI_ANNOTATIONS
 } from '@/config/labels-annotations';
 import { get, clone } from '@/utils/object';
 import { formatSi } from '@/utils/units';
@@ -48,6 +49,10 @@ export default class HciVmImage extends SteveModel {
     return this.spec?.displayName;
   }
 
+  get isOSImage() {
+    return this?.metadata?.annotations?.[HCI_ANNOTATIONS.OS_UPGRADE_IMAGE] === 'True';
+  }
+
   get isReady() {
     const initialized = this.getStatusConditionOfType('Initialized');
     const imported = this.getStatusConditionOfType('Imported');
@@ -80,12 +85,24 @@ export default class HciVmImage extends SteveModel {
     return stateDisplay(this.metadata.state.name);
   }
 
+  get imageMessage() {
+    const conditions = this?.status?.conditions || [];
+    const initialized = conditions.find( cond => cond.type === 'Initialized');
+    const imported = conditions.find( cond => cond.type === 'Imported');
+
+    return initialized?.message || imported?.message;
+  }
+
   get stateBackground() {
     return colorForState(this.stateDisplay).replace('text-', 'bg-');
   }
 
   get imageSource() {
     return get(this, `spec.sourceType`) || 'download';
+  }
+
+  get progress() {
+    return this?.status?.progress || 0;
   }
 
   get annotationsToIgnoreRegexes() {

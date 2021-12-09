@@ -11,6 +11,7 @@ import RancherProviderIcon from '@/components/RancherProviderIcon';
 import { LOGGED_OUT } from '@/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
+import HarvesterUpgrade from './HarvesterUpgrade.vue';
 import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 
@@ -25,7 +26,8 @@ export default {
     TopLevelMenu,
     Jump,
     BrandImage,
-    RancherProviderIcon
+    RancherProviderIcon,
+    HarvesterUpgrade
   },
 
   props: {
@@ -49,7 +51,7 @@ export default {
 
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isMultiCluster', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleVirtualCluster']),
+      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleVirtualCluster', 'isVirtualCluster']),
     ...mapGetters('type-map', ['activeProducts']),
 
     appName() {
@@ -238,6 +240,7 @@ export default {
     >
       <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
       <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
+      <HarvesterUpgrade v-if="isVirtualCluster" />
     </div>
 
     <div v-if="currentCluster && !simple" class="header-buttons">

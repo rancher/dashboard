@@ -81,6 +81,10 @@ export default {
     execute(action, event, args) {
       const opts = { alt: isAlternate(event) };
 
+      if (action.disabled) {
+        return;
+      }
+
       this.$store.dispatch('action-menu/execute', {
         action, args, opts
       });
@@ -98,7 +102,7 @@ export default {
   <div v-if="showing">
     <div class="background" @click="hide" @contextmenu.prevent></div>
     <ul class="list-unstyled menu" :style="style">
-      <li v-for="opt in options" :key="opt.action" :class="{divider: opt.divider}" @click="execute(opt, $event)">
+      <li v-for="opt in options" :key="opt.action" :disabled="opt.disabled" :class="{divider: opt.divider}" @click="execute(opt, $event)">
         <i v-if="opt.icon" :class="{icon: true, [opt.icon]: true}" />
         <span v-html="opt.label" />
       </li>
@@ -130,6 +134,11 @@ export default {
     LI {
       padding: 10px;
       margin: 0;
+
+      &[disabled] {
+        cursor: not-allowed  !important;
+        color: var(--disabled-text);
+      }
 
       &.divider {
         padding: 0;

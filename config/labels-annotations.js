@@ -145,4 +145,8 @@ export const HCI = {
   IMAGE_NAME:                   'harvesterhci.io/image-name',
   NODE_SCHEDULABLE:             'kubevirt.io/schedulabl',
   NETWORK_ROUTE:                'network.harvesterhci.io/route',
+  OS_UPGRADE_IMAGE:             'harvesterhci.io/os-upgrade-image',
+  UPGRADE_IMAGE:                'harvesterhci.io/upgradeImage',
+  LATEST_UPGRADE:               'harvesterhci.io/latestUpgrade',
+  UPGRADE_STATE:                'harvesterhci.io/upgradeState'
 };
