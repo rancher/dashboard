@@ -251,6 +251,14 @@ export default {
       border: 1px solid var(--outline) !important;
     }
 
+    &:hover:not(.focused):not(.disabled) {
+      border: 1px solid var(--input-hover-border) !important;
+    }
+
+    &.focused {
+      border: 1px solid var(--outline) !important;
+    }
+
     &.labeled-select.focused ::v-deep,
     &.unlabeled-select.focused ::v-deep {
       outline: none;
