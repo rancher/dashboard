@@ -214,22 +214,45 @@ export default {
     position: relative;
     display: table;
     border-collapse: separate;
+
+    &:hover:not(.focused):not(.disabled):not(:focus) {
+      border-left: 1px solid var(--input-hover-border);
+      border-right: 1px solid var(--input-hover-border);
+      padding-left: 9px;
+    }
+    &.focused, &:focus {
+      border-left: 1px solid var(--outline) !important;
+      border-right: 1px solid var(--outline) !important;
+      padding-left: 9px;
+    }
   }
 
   & .in-input {
     margin-right: 0;
     border-radius: var(--border-radius) 0 0 var(--border-radius);
 
+    &:hover:not(.focused):not(.disabled) {
+      border: 1px solid var(--input-hover-border) !important;
+    }
+
+    &.focused {
+      border: 1px solid var(--outline) !important;
+    }
+
     &.labeled-select.focused ::v-deep,
     &.unlabeled-select.focused ::v-deep {
       outline: none;
+    }
+
+    &.labeled-select:not(.disabled) ::v-deep,
+    &.unlabeled-select:not(.disabled) ::v-deep {
+      border: solid 1px var(--input-border);
     }
 
     &.labeled-select ::v-deep,
     &.unlabeled-select ::v-deep {
       box-shadow: none;
       width: 20%;
-      border: solid 1px var(--input-border);
       margin-right: 1px; // push the input box right so the full focus outline of the select can be seen, z-index borks
       // position: relative;
 

@@ -1,12 +1,10 @@
 <script>
-import { createPopper } from '@popperjs/core';
 import LabeledFormElement from '@/mixins/labeled-form-element';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
 import LabeledTooltip from '@/components/form/LabeledTooltip';
 import VueSelectOverrides from '@/mixins/vue-select-overrides';
-import $ from 'jquery';
-import { onClickOption } from '@/utils/select';
+import { onClickOption, calculatePosition } from '@/utils/select';
 
 export default {
   name: 'LabeledSelect',
@@ -171,57 +169,8 @@ export default {
       }
     },
 
-    withPopper(dropdownList, component, { width }) {
-      /**
-       * We need to explicitly define the dropdown width since
-       * it is usually inherited from the parent with CSS.
-       */
-      const componentWidth = $(component.$parent.$el).width();
-
-      dropdownList.style['min-width'] = `${ componentWidth }px`;
-      dropdownList.style.width = 'min-content';
-
-      /**
-       * Here we position the dropdownList relative to the $refs.toggle Element.
-       *
-       * The 'offset' modifier aligns the dropdown so that the $refs.toggle and
-       * the dropdownList overlap by 1 pixel.
-       *
-       * The 'toggleClass' modifier adds a 'drop-up' class to the Vue Select
-       * wrapper so that we can set some styles for when the dropdown is placed
-       * above.
-       */
-      const popper = createPopper(component.$refs.toggle, dropdownList, {
-        placement: this.placement || 'bottom-start',
-        modifiers: [
-          {
-            name:    'offset',
-            options: {
-              offset: ({ placement, reference, popper }) => {
-                if (placement.includes('top')) {
-                  return [0, 27];
-                } else {
-                  return [0, 2];
-                }
-              },
-            },
-          },
-          {
-            name:    'toggleClass',
-            enabled: true,
-            phase:   'write',
-            fn({ state }) {
-              component.$el.setAttribute('x-placement', state.placement);
-            },
-          }
-        ],
-      });
-
-      /**
-       * To prevent memory leaks Popper needs to be destroyed.
-       * If you return function, it will be called just before dropdown is removed from DOM.
-       */
-      return () => popper.destroy();
+    positionDropdown(dropdownList, component, { width }) {
+      calculatePosition(dropdownList, component, width, this.placement);
     },
 
     get,
@@ -290,7 +239,7 @@ export default {
       v-bind="$attrs"
       class="inline"
       :append-to-body="appendToBody"
-      :calculate-position="withPopper"
+      :calculate-position="positionDropdown"
       :class="{ 'no-label': !(label || '').length }"
       :disabled="isView || disabled || loading"
       :get-option-key="

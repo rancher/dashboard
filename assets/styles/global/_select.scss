@@ -83,7 +83,6 @@
 
   &.focused {
     outline: none;
-    box-shadow: 0 0 0 var(--outline-width) var(--outline);
     .v-select {
       // Can toggle this to get full width dd - maybe make an option?
       .vs__dropdown-menu {
@@ -144,12 +143,20 @@
     background-color: var(--input-bg);
     border: solid var(--border-width) var(--input-border);
 
-    &:hover {
+    &:hover:not(.focused):not(.disabled) {
       &,
       .vs__dropdown-menu {
-        background: var(--input-hover-bg);
+        border: solid var(--border-width) var(--input-hover-border) !important;
       }
     }
+
+    &.focused {
+      &,
+      .vs__dropdown-menu {
+        border: solid var(--border-width) var(--outline) !important;
+      }
+    }
+
   }
 
   .labeled-tooltip .status-icon {

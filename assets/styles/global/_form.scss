@@ -27,12 +27,22 @@ TEXTAREA,
 
   @include input-status-color;
 
+  &:focus, &.focused {
+    @include form-focus
+  }
+
   LABEL {
     color: var(--input-label);
   }
-  &:hover {
+  &:hover:not(.focused):not(:focus):not(.disabled) {
     &, .vs__dropdown-menu {
-      background: var(--input-hover-bg);
+      border-color: var(--input-hover-border);
+    }
+  }
+
+  &.focused {
+    LABEL {
+      color: var(--outline);
     }
   }
 
