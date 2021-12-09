@@ -35,7 +35,7 @@ export default {
   computed: {
     ...QUOTA_COMPUTED,
     projectResourceQuotaLimits() {
-      return this.project.spec.resourceQuota.limit;
+      return this.project?.spec?.resourceQuota?.limit || {};
     },
     namespaceResourceQuotaLimits() {
       return this.project.namespaces.map(namespace => ({
@@ -83,8 +83,8 @@ export default {
       </div>
     </div>
     <Row
-      v-for="limit in editableLimits"
-      :key="limit"
+      v-for="(limit, i) in editableLimits"
+      :key="project.id + i"
       :value="value.resourceQuota"
       :namespace="value"
       :mode="mode"

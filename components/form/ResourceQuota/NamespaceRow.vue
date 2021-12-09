@@ -56,7 +56,16 @@ export default {
   },
 
   mounted() {
-    this.update(this.defaultResourceQuotaLimits[this.type]);
+    // We want to update the value first so that the value will be rounded to the project limit.
+    // This is relevant when switching projects. If the value is 1200 and the project that it was
+    // switched to only has capacity for 800 more this will force the value to be set to 800.
+    if (this.value?.limit?.[this.type]) {
+      this.update(this.value.limit[this.type]);
+    }
+
+    if (!this.value?.limit?.[this.type]) {
+      this.update(this.defaultResourceQuotaLimits[this.type]);
+    }
   },
 
   computed: {
@@ -114,7 +123,7 @@ export default {
 
       this.$emit('input', this.type, value);
     }
-  },
+  }
 };
 </script>
 <template>
