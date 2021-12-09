@@ -239,6 +239,19 @@ export default {
 
         v1.app = v1App;
 
+        // Add in the upgrade version information for a legacy v1 app
+        if (v1.app) {
+          v1.app.upgradeAvailable = undefined;
+          // Check if an upgrade is available
+          if (v1.chart.versions?.length) {
+            const latest = v1.chart.versions[0]?.version;
+
+            if (v1.app.currentVersion !== latest) {
+              v1.app.upgradeAvailable = latest;
+            }
+          }
+        }
+
         if (v2) {
           if (v1.app) {
             v2.app = undefined;
@@ -397,7 +410,7 @@ export default {
             {{ opt.chart.chartNameDisplay }}
           </h3>
           <div class="version">
-            <template v-if="opt.app && opt.app.upgradeAvailable && !opt.chart.legacy">
+            <template v-if="opt.app && opt.app.upgradeAvailable">
               v{{ opt.app.currentVersion }} <b><i class="icon icon-chevron-right" /> v{{ opt.app.upgradeAvailable }}</b>
             </template>
             <template v-else-if="opt.app">
