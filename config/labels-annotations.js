@@ -149,6 +149,11 @@ export const HCI = {
   NODE_SCHEDULABLE:             'kubevirt.io/schedulable',
   NETWORK_ROUTE:                'network.harvesterhci.io/route',
   CLOUD_PROVIDER_IPAM:          'cloudprovider.harvesterhci.io/ipam',
+  OS_UPGRADE_IMAGE:             'harvesterhci.io/os-upgrade-image',
+  UPGRADE_IMAGE:                'harvesterhci.io/upgradeImage',
+  LATEST_UPGRADE:               'harvesterhci.io/latestUpgrade',
+  UPGRADE_STATE:                'harvesterhci.io/upgradeState',
+  REAY_MESSAGE:                 'harvesterhci.io/read-message'
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge

@@ -177,6 +177,7 @@ product:
   mcapps: Multi-cluster Apps
   harvesterManager: Virtualization Management
   harvester: Harvester
+  rancher: Rancher
 
 suffix:
   percent: "%"
@@ -5268,6 +5269,8 @@ harvester:
     promiscuous: Promiscuous
     ipv4Address: IPv4 Address
   generic:
+    close: Close
+    open: Open
     showMore: Show More
     hideMore: Hide More
     memory: Memory
@@ -5313,14 +5316,7 @@ harvester:
         label: Events
       vmMetrics:
         label: VM Metrics
-    upgrade:
-      upgradeApp: Upgrade Software
-      upgrade: Upgrade
-      upgradeTip: Please select the version you want to upgrade to
-      currentVersion: CURRENT VERSION
-      versionLabel: AVAILABLE COMPATIBLE VERSIONS
-      upgradeNode: Upgrading Nodes
-      upgradeSysService: Upgrading System Services
+
     version: Version
   host:
     label: Hosts
@@ -5596,6 +5592,28 @@ harvester:
     nameNsDescription:
       name: Template Name
 
+  upgradePage:
+    upgradeApp: Upgrade Software
+    upgrade: Upgrade
+    upgradeTip: Please select the version you want to upgrade to
+    currentVersion: CURRENT VERSION
+    versionLabel: AVAILABLE COMPATIBLE VERSIONS
+    upgradeNode: Upgrading Node
+    upgradeSysService: Upgrading System Service
+    upgradeImage: Download Upgrade Image
+    osUpgrade: OS Upgrade
+    uploadNew: Upload New Image
+    selectExisting: Select Existing Image
+    createRepository: Creating Upgrade Repository
+    succeeded: Succeeded
+    pending: Pending
+    repoInfo:
+      os: OS
+      kubernetes: Kubernetes
+      monitoringChart: Monitoring Chart
+      harvesterChart: Harvester Chart
+    dismissMessage: Dismiss it
+
   backup:
     label: Backups
     createText: Restore Backup
@@ -5687,6 +5705,11 @@ harvester:
       repo: Repository
       tag: Tag
 
+    upgrade:
+      selectExitImage: Please select the OS image to upgrade.
+      imageUrl: Please input a valid image url.
+      chooseFile: Please select to upload an image.
+      checksum: Checksum
   cloudTemplate:
     label: Cloud Config Templates
     templateType: Template Type

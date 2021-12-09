@@ -2,6 +2,7 @@ import { HCI } from '@/config/types';
 import {
   DESCRIPTION,
   ANNOTATIONS_TO_IGNORE_REGEX,
+  HCI as HCI_ANNOTATIONS
 } from '@/config/labels-annotations';
 import { get, clone } from '@/utils/object';
 import { formatSi } from '@/utils/units';
@@ -66,6 +67,10 @@ export default class HciVmImage extends SteveModel {
     return this.spec?.displayName;
   }
 
+  get isOSImage() {
+    return this?.metadata?.annotations?.[HCI_ANNOTATIONS.OS_UPGRADE_IMAGE] === 'True';
+  }
+
   get isReady() {
     return isReady.call(this);
   }
@@ -106,6 +111,10 @@ export default class HciVmImage extends SteveModel {
 
   get imageSource() {
     return get(this, `spec.sourceType`) || 'download';
+  }
+
+  get progress() {
+    return this?.status?.progress || 0;
   }
 
   get annotationsToIgnoreRegexes() {

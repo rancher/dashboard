@@ -2,7 +2,6 @@
 import { mapGetters } from 'vuex';
 import Banner from '@/components/Banner';
 import Loading from '@/components/Loading';
-
 import { DEV } from '@/store/prefs';
 import { HCI, MANAGEMENT } from '@/config/types';
 import { allHash } from '@/utils/promise';
@@ -68,7 +67,6 @@ export default {
       };
 
       s.hide = s.canHide = (s.kind === 'json' || s.kind === 'multiline');
-
       s.hasActions = !s.readOnly || isDev;
       initSettings.push(s);
     });
@@ -90,7 +88,12 @@ export default {
         const isHarvester = s.data?.type?.includes('harvesterhci');
 
         if (s.kind === 'json') {
-          s.json = JSON.stringify(JSON.parse(s.data.value || s.data.default || '{}'), null, 2);
+          try {
+            s.json = JSON.stringify(JSON.parse(s.data.value || s.data.default || '{}'), null, 2);
+          } catch (e) {
+            console.error(`${ s.data.id }: wrong format`); // eslint-disable-line no-console
+            s.json = {};
+          }
         } else if (s.kind === 'enum') {
           const v = s.data.value || s.data.default;
 

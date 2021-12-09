@@ -12,6 +12,7 @@ import ClusterBadge from '@/components/ClusterBadge';
 import { LOGGED_OUT } from '@/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
+import HarvesterUpgrade from './HarvesterUpgrade.vue';
 import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 
@@ -27,7 +28,8 @@ export default {
     Jump,
     BrandImage,
     ClusterBadge,
-    ClusterProviderIcon
+    ClusterProviderIcon,
+    HarvesterUpgrade
   },
 
   props: {
@@ -53,7 +55,7 @@ export default {
 
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isMultiCluster', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleVirtualCluster']),
+      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleVirtualCluster', 'isVirtualCluster']),
     ...mapGetters('type-map', ['activeProducts']),
 
     appName() {
@@ -247,6 +249,15 @@ export default {
 
     <div>
       <TopLevelMenu v-if="isMultiCluster || !isSingleVirtualCluster"></TopLevelMenu>
+    </div>
+
+    <div
+      v-if="currentCluster && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
+      class="top"
+    >
+      <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
+      <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
+      <HarvesterUpgrade v-if="isVirtualCluster" />
     </div>
 
     <div class="rd-header-right">
