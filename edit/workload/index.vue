@@ -544,6 +544,7 @@ export default {
     saveWorkload() {
       if (this.type !== WORKLOAD_TYPES.JOB && this.type !== WORKLOAD_TYPES.CRON_JOB && this.mode === _CREATE) {
         this.spec.selector = { matchLabels: this.value.workloadSelector };
+        Object.assign(this.value.metadata.labels, this.value.workloadSelector);
       }
 
       let template;
