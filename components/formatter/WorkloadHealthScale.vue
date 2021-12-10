@@ -147,7 +147,7 @@ export default {
     <div :id="id" class="hs-popover__content" :class="{expanded, [id]:true}">
       <div>
         <div v-for="obj in parts" :key="obj.label" class="counts">
-          <span>{{ obj.label }}</span>
+          <span class="counts-label">{{ obj.label }}</span>
           <span>{{ obj.value }}</span>
         </div>
         <div v-if="canScale" class="text-center scale">
@@ -230,6 +230,12 @@ $width: 150px;
     .counts {
       display: flex;
       justify-content: space-between;
+
+      &-label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
     .scale {
       margin-top: 10px;
