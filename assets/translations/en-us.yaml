@@ -6096,7 +6096,7 @@ epinio:
       routes:
         label: Routes
       deployment:
-        label: Counts
+        label: Deployment
         instances: Instances
         memory: Memory
         cpu: CPU

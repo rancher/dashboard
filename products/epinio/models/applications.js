@@ -1,4 +1,4 @@
-import { EPINIO_TYPES } from '@/products/epinio/types';
+import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_TYPES } from '@/products/epinio/types';
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import { formatSi } from '@/utils/units';
 import EpinioResource from './epinio-resource';
@@ -197,6 +197,37 @@ export default class EpinioApplication extends EpinioResource {
     });
   }
 
+  get sourceInfo() {
+    if (!this.origin) {
+      return undefined;
+    }
+    switch (this.origin.Kind) { // APPLICATION_MANIFEST_SOURCE_TYPE
+    case APPLICATION_MANIFEST_SOURCE_TYPE.PATH:
+      return { label: 'File system' };
+    case APPLICATION_MANIFEST_SOURCE_TYPE.GIT:
+      return {
+        label:   'Git',
+        details: [{
+          label: 'Url',
+          value: this.origin.Git.url
+        }, {
+          label: 'Revision',
+          value: this.origin.Git.revision
+        }]
+      };
+    case APPLICATION_MANIFEST_SOURCE_TYPE.CONTAINER:
+      return {
+        label:   'Container',
+        details: [{
+          label: 'Image',
+          value: this.origin.Container
+        }]
+      };
+    default:
+      return undefined;
+    }
+  }
+
   // ------------------------------------------------------------------
 
   trace(text, ...args) {
@@ -348,7 +379,7 @@ export default class EpinioApplication extends EpinioResource {
     await this.$dispatch('request', { opt, type: this.type });
   }
 
-  async deploy(stageId, image) {
+  async deploy(stageId, image, origin) {
     this.trace('Deploying Application bits');
 
     const stage = { };
@@ -366,7 +397,8 @@ export default class EpinioApplication extends EpinioResource {
           namespace: this.meta.namespace
         },
         stage,
-        image
+        image,
+        origin
       }
     });
 

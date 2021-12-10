@@ -33,7 +33,7 @@ export default Vue.extend<Data, any, any, any>({
     <h3 class="mt-20">
       {{ t('epinio.applications.detail.counts.label') }}
     </h3>
-    <div class="resource-gauges">
+    <div class="simple-box-row">
       <SimpleBox>
         <div class="box">
           <h1>{{ value.serviceCount }}</h1>
@@ -73,7 +73,7 @@ export default Vue.extend<Data, any, any, any>({
     <h3 v-if="value.deployment" class="mt-40">
       {{ t('epinio.applications.detail.deployment.label') }}
     </h3>
-    <div v-if="value.deployment" class="resource-gauges">
+    <div v-if="value.deployment" class="simple-box-row">
       <SimpleBox>
         <ConsumptionGauge
           :resource-name="t('epinio.applications.detail.deployment.instances')"
@@ -100,11 +100,43 @@ export default Vue.extend<Data, any, any, any>({
           </h3>
         </div>
       </SimpleBox>
+      <SimpleBox v-if="value.sourceInfo" class="">
+        <div class="deployment__origin__row">
+          <h4>Origin:</h4><h4>
+            {{ value.sourceInfo.label }}
+          </h4>
+        </div>
+        <div v-for="d of value.sourceInfo.details" :key="d.label" class="deployment__origin__row">
+          <h4>{{ d.label }}:</h4><h4>
+            {{ d.value }}
+          </h4>
+        </div>
+      </SimpleBox>
     </div>
   </div>
 </template>
 <style lang='scss' scoped>
-.resource-gauges {
+.simple-box-row {
+  display: flex;
+  flex-wrap: wrap;
+
+  .simple-box {
+    width: 300px;
+    max-width: 350px;
+    margin-bottom: 20px;
+    &:not(:last-of-type) {
+      margin-right: 20px;
+    }
+
+    .deployment__origin__row {
+      display: flex;
+      justify-content: space-between;
+      h4:nth-of-type(2) {
+        text-align: right;
+        word-break: break-all;
+      }
+    }
+  }
   .box {
     display: flex;
     justify-content: space-between;

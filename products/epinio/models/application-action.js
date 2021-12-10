@@ -1,5 +1,5 @@
 import Resource from '@/plugins/core-store/resource-class';
-import { APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE } from '@/products/epinio/types';
+import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_SOURCE_TYPE } from '@/products/epinio/types';
 import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 import Vue from 'vue';
 
@@ -102,7 +102,30 @@ export default class ApplicationActionResource extends Resource {
     const stageId = source.type === APPLICATION_SOURCE_TYPE.ARCHIVE ? this.application.buildCache.stage.stage.id : null;
     const image = source.type === APPLICATION_SOURCE_TYPE.CONTAINER_URL ? source.container.url : this.application.buildCache.stage.image;
 
-    await this.application.deploy(stageId, image);
+    await this.application.deploy(stageId, image, this.createDeployOrigin(source));
+  }
+
+  createDeployOrigin(source) {
+    switch (source.type) {
+    case APPLICATION_SOURCE_TYPE.ARCHIVE:
+      return {
+        kind: APPLICATION_MANIFEST_SOURCE_TYPE.PATH,
+        path: source.archive.fileName
+      };
+    case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
+      return {
+        kind:      APPLICATION_MANIFEST_SOURCE_TYPE.CONTAINER,
+        container: source.container.url
+      };
+    case APPLICATION_SOURCE_TYPE.GIT_URL:
+      return {
+        kind: APPLICATION_MANIFEST_SOURCE_TYPE.GIT,
+        git:       {
+          revision: source.gitUrl.branch,
+          url:      source.gitUrl.url
+        },
+      };
+    }
   }
 
   // Public ---------------------------------------------------
