@@ -7,7 +7,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import ModalWithCard from '@/components/ModalWithCard';
 
-import { PVC } from '@/config/types';
+import { PVC, HCI } from '@/config/types';
 import { clone } from '@/utils/object';
 import { removeObject } from '@/utils/array';
 import { randomStr } from '@/utils/string';
@@ -127,7 +127,7 @@ export default {
               name:   'c-cluster-product-resource-namespace-id',
               params: {
                 product:   'harvester',
-                resource:  'volume',
+                resource:  HCI.VOLUME,
                 namespace: this.namespace,
                 id:        V.realName
               },

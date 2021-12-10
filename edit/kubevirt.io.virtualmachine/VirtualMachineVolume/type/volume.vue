@@ -7,6 +7,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 
 import { PVC } from '@/config/types';
+import { formatSi, parseSi } from '@/utils/units';
 
 export default {
   name:       'HarvesterEditVolume',
@@ -82,7 +83,16 @@ export default {
     pvcsResource: {
       handler(pvc) {
         if (pvc?.spec?.resources?.requests?.storage) {
-          this.value.size = pvc.spec.resources.requests.storage;
+          const parseValue = parseSi(pvc.spec.resources.requests.storage);
+
+          const formatSize = formatSi(parseValue, {
+            increment:   1024,
+            addSuffix:   false,
+            maxExponent: 3,
+            minExponent: 3,
+          });
+
+          this.value.size = `${ formatSize }Gi`;
         }
       },
       deep:      true,
@@ -127,7 +137,7 @@ export default {
       </div>
     </div>
 
-    <div class="row">
+    <div class="row mb-20">
       <div class="col span-6">
         <InputOrDisplay :name="t('harvester.fields.size')" :value="value.size" :mode="mode">
           <UnitInput
@@ -148,7 +158,6 @@ export default {
           <LabeledSelect
             v-model="value.bus"
             :label="t('harvester.virtualMachine.volume.bus')"
-            class="mb-20"
             :mode="mode"
             :options="interfaceOption"
             required

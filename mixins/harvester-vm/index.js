@@ -8,6 +8,7 @@ import { clone } from '@/utils/object';
 import { allHash } from '@/utils/promise';
 import { randomStr } from '@/utils/string';
 import { base64Decode } from '@/utils/crypto';
+import { formatSi, parseSi } from '@/utils/units';
 import { SOURCE_TYPE } from '@/config/harvester-map';
 import { _CLONE } from '@/config/query-params';
 import {
@@ -370,6 +371,15 @@ export default {
 
           const bootOrder = DISK?.bootOrder ? DISK?.bootOrder : index;
 
+          const parseValue = parseSi(size);
+
+          const formatSize = formatSi(parseValue, {
+            increment:   1024,
+            addSuffix:   false,
+            maxExponent: 3,
+            minExponent: 3,
+          });
+
           return {
             id:           randomStr(5),
             bootOrder,
@@ -380,7 +390,7 @@ export default {
             volumeName,
             container,
             accessMode,
-            size,
+            size:       `${ formatSize }Gi`,
             volumeMode:    volumeMode || this.customVolumeMode,
             image,
             type,
