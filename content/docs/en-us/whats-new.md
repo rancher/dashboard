@@ -1,6 +1,31 @@
 ---
 title: What's New in 2.6
 ---
+
+## New in 2.6.3
+
+## Harvester Integration
+
+- Harvester's integration with Rancher and RKE1 provisioning is now GA. Users can provision Kubernetes clusters with RKE1 and manage multiple Harvester HCI clusters from a single Rancher instance. 
+- RKE2 provisioning on Harvester is still Tech Preview.
+
+## Experimental - Kubernetes 1.22 support
+
+- Support has been added across Rancher distributions and for imported clusters.
+
+## Expanded support for Authorized Cluster Endpoint (ACE)
+
+- Cluster admins can now configure ACE on imported RKE2/K3s clusters.
+
+## Workload UX enhancements
+
+- Added dashboards for workload metrics into the Rancher UI. 
+- Added ability to pause orchestration, update the scale, and visualize the deployment health from within the main list views.
+
+Read the full [release notes](https://github.com/rancher/rancher/releases/tag/v2.6.3) for more details.
+
+## New in 2.6.0
+
 ## Redesigned Rancher User Experience
 
 There is a new refreshed look and feel in the UI making it easy to use for beginner and advanced Kubernetes users:
