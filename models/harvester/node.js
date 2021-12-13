@@ -1,10 +1,11 @@
 import pickBy from 'lodash/pickBy';
-import { HCI } from '@/config/types';
+import { HCI, LONGHORN, POD } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { clone } from '@/utils/object';
 import findLast from 'lodash/findLast';
 import { colorForState, stateDisplay } from '@/plugins/core-store/resource-class';
 import SteveModel from '@/plugins/steve/steve-class';
+import { parseSi } from '@/utils/units';
 
 export default class HciNode extends SteveModel {
   get _availableActions() {
@@ -141,8 +142,12 @@ export default class HciNode extends SteveModel {
     this.doAction('disableMaintenanceMode', {});
   }
 
+  get isUnSchedulable() {
+    return this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_SCHEDULABLE] === 'false' || this.spec.unschedulable;
+  }
+
   get isCordoned() {
-    return !!this.spec.unschedulable;
+    return this.isUnSchedulable;
   }
 
   get isEnteringMaintenance() {
@@ -151,5 +156,71 @@ export default class HciNode extends SteveModel {
 
   get isMaintenance() {
     return this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] === 'completed';
+  }
+
+  get longhornDisks() {
+    const inStore = this.$rootGetters['currentProduct'].inStore;
+    const longhornNode = this.$rootGetters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.id }`);
+    const diskStatus = longhornNode?.status?.diskStatus || {};
+    const diskSpec = longhornNode.spec?.disks || {};
+
+    const longhornDisks = Object.keys(diskStatus).map((key) => {
+      return {
+        ...diskSpec[key],
+        ...diskStatus[key],
+        name:                  key,
+        storageReserved:       diskSpec[key]?.storageReserved,
+        storageAvailable:      diskStatus[key]?.storageAvailable,
+        storageMaximum:        diskStatus[key]?.storageMaximum,
+        storageScheduled:      diskStatus[key]?.storageScheduled,
+        readyCondiction:       diskStatus[key]?.conditions?.Ready || {},
+        schedulableCondiction: diskStatus[key]?.conditions?.Schedulable || {},
+      };
+    });
+
+    return longhornDisks;
+  }
+
+  get pods() {
+    const inStore = this.$rootGetters['currentProduct'].inStore;
+    const pods = this.$rootGetters[`${ inStore }/all`](POD) || [];
+
+    return pods.filter(p => p?.spec?.nodeName === this.id && p?.metadata?.name !== 'removing');
+  }
+
+  get cpuReserved() {
+    const out = this.pods.reduce((sum, pod) => {
+      const containers = pod?.spec?.containers || [];
+
+      const containerCpuReserved = containers.reduce((sum, c) => {
+        sum += parseSi(c?.resources?.requests?.cpu || '0m');
+
+        return sum;
+      }, 0);
+
+      sum += containerCpuReserved;
+
+      return sum;
+    }, 0);
+
+    return out;
+  }
+
+  get memoryReserved() {
+    const out = this.pods.reduce((sum, pod) => {
+      const containers = pod?.spec?.containers || [];
+
+      const containerMemoryReserved = containers.reduce((sum, c) => {
+        sum += parseSi(c?.resources?.requests?.memory || '0m', { increment: 1024 });
+
+        return sum;
+      }, 0);
+
+      sum += containerMemoryReserved;
+
+      return sum;
+    }, 0);
+
+    return out;
   }
 }

@@ -31,7 +31,6 @@ export default {
     const _hash = {
       vms:               this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
       pod:               this.$store.dispatch('harvester/findAll', { type: POD }),
-      vmis:              this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
       restore:           this.$store.dispatch('harvester/findAll', { type: HCI.RESTORE }),
     };
 
@@ -50,7 +49,6 @@ export default {
     const hash = await allHash(_hash);
 
     this.allVMs = hash.vms;
-    this.allVMIs = hash.vmis;
     this.allNodeNetworks = hash.nodeNetworks || [];
     this.allClusterNetworks = hash.clusterNetworks || [];
   },
@@ -82,11 +80,18 @@ export default {
           align:     'center'
         },
         {
-          name:      'Memory',
-          value:     'spec.template.spec.domain.resources.requests.memory',
-          sort:      ['memorySort'],
-          align:     'center',
-          labelKey:  'tableHeaders.memory'
+          name:          'Memory',
+          value:         'spec.template.spec.domain.resources.limits.memory',
+          sort:          ['memorySort'],
+          align:         'center',
+          labelKey:      'tableHeaders.memory',
+          formatter:     'Si',
+          formatterOpts: {
+            opts: {
+              increment: 1024, addSuffix: true, maxExponent: 3, minExponent: 3, suffix: 'i',
+            },
+            needParseSi: true
+          },
         },
         {
           name:      'ip',
@@ -116,6 +121,14 @@ export default {
       return [...this.allVMs, ...matchVMIs];
     }
   },
+
+  async created() {
+    const vmis = await this.$store.dispatch('harvester/findAll', { type: HCI.VMI });
+
+    await this.$store.dispatch('harvester/findAll', { type: HCI.VMIM });
+
+    this.$set(this, 'allVMIs', vmis);
+  }
 };
 </script>
 

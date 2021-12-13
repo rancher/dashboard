@@ -68,9 +68,16 @@ export default {
         <Select
           v-model="row.effect"
           :options="effectOptions"
+          class="compact-select"
           @input="queueUpdate"
         />
       </template>
     </KeyValue>
   </div>
 </template>
+
+<style lang="scss" scoped>
+  .compact-select {
+    height: 40px;
+  }
+</style>

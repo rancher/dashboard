@@ -158,6 +158,13 @@ export default {
         };
       }
 
+      if (this.value?.spec?.paused) {
+        return {
+          color:   'info',
+          message: this.t('asyncButton.pause.description')
+        };
+      }
+
       if (this.value?.stateObj?.transitioning) {
         const defaultTransitioningMessage = this.t('resourceDetail.masthead.defaultBannerMessage.transitioning', undefined, true);
 

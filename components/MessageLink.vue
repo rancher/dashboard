@@ -34,8 +34,13 @@ export default {
     middleLabel: {
       type:    String,
       default: ''
+    },
+
+    target: {
+      type:    String,
+      default: 'self'
     }
-  },
+  }
 };
 </script>
 
@@ -45,7 +50,7 @@ export default {
       <t v-if="prefixLabel" :k="prefixLabel" :raw="true" />
       {{ prefix }}
     </slot>
-    <nuxt-link :to="to">
+    <nuxt-link :to="to" :target="target">
       <slot name="middle">
         <t v-if="middleLabel" :k="middleLabel" :raw="true" />
         {{ middle }}

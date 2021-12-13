@@ -102,10 +102,6 @@ export default {
       });
     },
 
-    needSetPVC() {
-      return !!this.errors.length || (!this.value.newCreateId && this.isEdit && this.value.size !== this.pvcsResource?.spec?.resources?.requests?.storage);
-    },
-
     isDisabled() {
       return !this.value.newCreateId && this.isEdit;
     },
@@ -195,8 +191,9 @@ export default {
         <InputOrDisplay :name="t('harvester.fields.size')" :value="value.size" :mode="mode">
           <UnitInput
             v-model="value.size"
-            output-suffic-text="Gi"
-            output-as="string"
+            :output-modifier="true"
+            :increment="1024"
+            :input-exponent="3"
             :label="t('harvester.fields.size')"
             :mode="mode"
             :required="validateRequired"

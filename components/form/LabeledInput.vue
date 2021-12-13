@@ -17,13 +17,18 @@ export default {
     },
 
     status: {
-      type:      String,
-      default:   null
+      type:    String,
+      default: null,
+    },
+
+    subLabel: {
+      type:    String,
+      default: null,
     },
 
     tooltip: {
       default: null,
-      type:    [String, Object]
+      type:    [String, Object],
     },
 
     hoverTooltip: {
@@ -55,6 +60,11 @@ export default {
       default: () => {
         return [];
       },
+    },
+
+    maxlength: {
+      type:    Number,
+      default: null,
     },
   },
 
@@ -101,6 +111,13 @@ export default {
       return '';
     },
 
+    _maxlength() {
+      if (this.type === 'text' && this.maxlength) {
+        return this.maxlength;
+      }
+
+      return null;
+    },
   },
 
   methods: {
@@ -205,6 +222,7 @@ export default {
           v-if="type === 'multiline' || type === 'multiline-password'"
           ref="value"
           v-bind="$attrs"
+          :maxlength="_maxlength"
           :disabled="isDisabled"
           :value="value"
           :placeholder="_placeholder"
@@ -219,6 +237,7 @@ export default {
           ref="value"
           :class="{ 'no-label': !hasLabel }"
           v-bind="$attrs"
+          :maxlength="_maxlength"
           :disabled="isDisabled"
           :type="type === 'cron' ? 'text' : type"
           :value="value"
@@ -246,6 +265,7 @@ export default {
         :status="status"
       />
       <label v-if="cronHint" class="cron-label">{{ cronHint }}</label>
+      <label v-if="subLabel" class="sub-label">{{ subLabel }}</label>
     </div>
     <div
       v-if="validationErrors.length > 0"

@@ -9,9 +9,9 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import { get } from '@/utils/object';
 import { HCI } from '@/config/types';
 import { sortBy } from '@/utils/sort';
+import { saferDump } from '@/utils/create-yaml';
 import { InterfaceOption } from '@/config/harvester-map';
 import { _CREATE } from '@/config/query-params';
-import { formatSi, parseSi } from '@/utils/units';
 import CreateEditView from '@/mixins/create-edit-view';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
@@ -39,7 +39,7 @@ export default {
       this.value.spec.accessModes = ['ReadWriteMany'];
     }
 
-    const storage = this.getSize(this.value.spec.resources.requests.storage);
+    const storage = this.value?.spec?.resources?.requests?.storage || null;
     const imageId = get(this.value, `metadata.annotations."${ HCI_ANNOTATIONS.IMAGE_ID }"`);
     const source = !imageId ? 'blank' : 'url';
 
@@ -107,7 +107,7 @@ export default {
 
       const spec = {
         ...this.value.spec,
-        resources: { requests: { storage: `${ this.storage }Gi` } },
+        resources: { requests: { storage: this.storage } },
         storageClassName
       };
 
@@ -116,20 +116,11 @@ export default {
       this.$set(this.value, 'spec', spec);
     },
 
-    getSize(storage, addSuffix = false) {
-      if (!storage) {
-        return null;
-      }
+    generateYaml() {
+      const out = saferDump(this.value);
 
-      const kibUnitSize = parseSi(storage);
-
-      return formatSi(kibUnitSize, {
-        addSuffix,
-        increment:   1024,
-        minExponent: 3,
-        maxExponent: 3
-      });
-    }
+      return out;
+    },
   }
 };
 </script>
@@ -141,6 +132,7 @@ export default {
       :resource="value"
       :mode="mode"
       :errors="errors"
+      :generate-yaml="generateYaml"
       :apply-hooks="applyHooks"
       @finish="save"
     >
@@ -174,9 +166,9 @@ export default {
           <UnitInput
             v-model="storage"
             :label="t('harvester.volume.size')"
-            suffix="iB"
             :input-exponent="3"
-            :output-exponent="3"
+            :output-modifier="true"
+            :increment="1024"
             :mode="mode"
             required
             class="mb-20"

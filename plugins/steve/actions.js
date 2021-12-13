@@ -1,9 +1,21 @@
 import https from 'https';
+import merge from 'lodash/merge';
+import { SCHEMA } from '@/config/types';
+import { createYaml } from '@/utils/create-yaml';
+import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@/store/type-map';
 import { addParam } from '@/utils/url';
 import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 import { set } from '@/utils/object';
 import { deferred } from '@/utils/promise';
-import { streamJson } from '@/utils/stream';
+import { streamJson, streamingSupported, streamJson } from '@/utils/stream';
+
+import { normalizeType } from './normalize';
+import { classify } from './classify';
+
+export const _ALL = 'all';
+export const _MULTI = 'multi';
+export const _ALL_IF_AUTHED = 'allIfAuthed';
+export const _NONE = 'none';
 
 export default {
   async request({ state, dispatch, rootGetters }, pOpt ) {
@@ -42,7 +54,7 @@ export default {
       }
     }
 
-    if ( opt.stream && state.config.supportsStream && typeof TextDecoderStream !== 'undefined') {
+    if ( opt.stream && state.allowStreaming && state.config.supportsStream && streamingSupported() ) {
       // console.log('Using Streaming for', opt.url);
 
       return streamJson(opt.url, opt, opt.onData).then(() => {

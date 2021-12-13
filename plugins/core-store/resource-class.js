@@ -11,7 +11,7 @@ import { addObject, addObjects, findBy, removeAt } from '@/utils/array';
 import CustomValidators from '@/utils/custom-validators';
 import { downloadFile, generateZip } from '@/utils/download';
 import { eachLimit } from '@/utils/promise';
-import { get } from '@/utils/object';
+import { clone, get } from '@/utils/object';
 import { DEV } from '@/store/prefs';
 import { sortableNumericSuffix } from '@/utils/sort';
 import {
@@ -605,8 +605,8 @@ export default class Resource {
         enabled:  this.canCustomEdit,
       },
       {
-        action:  this.canUpdate ? 'goToEditYaml' : 'goToViewYaml',
-        label:   this.t(this.canUpdate ? 'action.editYaml' : 'action.viewYaml'),
+        action:  this.canEditYaml ? 'goToEditYaml' : 'goToViewYaml',
+        label:   this.t(this.canEditYaml ? 'action.editYaml' : 'action.viewYaml'),
         icon:    'icon icon-file',
         enabled: this.canYaml,
       },
@@ -683,6 +683,10 @@ export default class Resource {
 
   get canYaml() {
     return this.hasLink('view');
+  }
+
+  get canEditYaml() {
+    return this.schema?.resourceMethods?.find(x => x === 'blocked-PUT') ? false : this.canUpdate;
   }
 
   // ------------------------------------------------------------------
@@ -1293,7 +1297,7 @@ export default class Resource {
           const validatorExists = Object.prototype.hasOwnProperty.call(CustomValidators, validatorName);
 
           if (!isEmpty(validatorName) && validatorExists) {
-            CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey);
+            CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
           } else if (!isEmpty(validatorName) && !validatorExists) {
             // eslint-disable-next-line
             console.warn(this.t('validation.custom.missing', { validatorName }));
@@ -1494,7 +1498,7 @@ export default class Resource {
       if ( this[k]?.toJSON ) {
         out[k] = this[k].toJSON();
       } else {
-        out[k] = this[k];
+        out[k] = clone(this[k]);
       }
     }
 

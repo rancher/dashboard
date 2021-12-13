@@ -29,6 +29,14 @@ export default {
       type:     Object,
       required: true,
     },
+
+    clusterRegisterBeforeHook: {
+      // We use this hook instead of the create hook from the CreateEditView
+      // mixin because this is a form within a form, therefore we
+      // need the hook from the parent component.
+      type:     Function,
+      required: true
+    }
   },
 
   data() {
@@ -108,7 +116,8 @@ export default {
 
             <SelectOrCreateAuthSecret
               v-model="row.value.authConfigSecretName"
-              :register-before-hook="registerBeforeHook"
+              :register-before-hook="clusterRegisterBeforeHook"
+              :append-unique-id-to-hook="true"
               in-store="management"
               :allow-ssh="false"
               :allow-rke="true"

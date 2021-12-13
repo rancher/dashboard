@@ -64,7 +64,7 @@ export default {
           labelKey:  'tableHeaders.backupTarget',
           value:     'backupTarget',
           align:     'left',
-          formatter: 'BackupTargetValidation'
+          formatter: 'HarvesterBackupTargetValidation'
         },
         {
           name:      'readyToUse',
@@ -150,6 +150,23 @@ export default {
       key-field="_key"
       default-sort-by="age"
       v-on="$listeners"
-    />
+    >
+      <template #col:name="{row}">
+        <td>
+          <span>
+            <n-link
+              v-if="row.status && row.status.source"
+              :to="row.detailLocation"
+            >
+              {{ row.nameDisplay }}
+            </n-link>
+            <span v-else>
+              {{ row.nameDisplay }}
+            </span>
+          </span>
+        </td>
+      </template>
+    </resourcetable>
+  </div>
   </div>
 </template>

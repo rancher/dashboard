@@ -35,9 +35,6 @@ export default {
       nc.metadata = {};
     }
 
-    nc.metadata.labels = nc._labels || {};
-    nc.metadata.annotations = nc._annotations || {};
-
     this.normanCluster = nc;
   },
 
@@ -56,11 +53,7 @@ export default {
       try {
         await this.value.save();
 
-        const nc = this.normanCluster;
-
-        nc._labels = nc.metadata.labels;
-        nc._annotations = nc.metadata.annotations;
-        await nc.save();
+        await this.normanCluster.save();
 
         this.done();
         buttonDone(true);

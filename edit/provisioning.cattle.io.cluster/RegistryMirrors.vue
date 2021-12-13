@@ -24,7 +24,7 @@ export default {
     for ( const hostname in mirrorMap ) {
       entries.push({
         hostname,
-        endpoints: (mirrorMap[hostname].entries || []).join(', '),
+        endpoints: (mirrorMap[hostname].endpoint || []).join(', '),
       });
     }
 

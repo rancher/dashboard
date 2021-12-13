@@ -2,7 +2,7 @@
 import omitBy from 'lodash/omitBy';
 import { cleanUp } from '@/utils/object';
 import {
-  CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC
+  CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC, SERVICE_ACCOUNT
 } from '@/config/types';
 import Tab from '@/components/Tabbed/Tab';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -10,6 +10,7 @@ import { allHash } from '@/utils/promise';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
+import ServiceNameSelect from '@/components/form/ServiceNameSelect';
 import HealthCheck from '@/components/form/HealthCheck';
 import Security from '@/components/form/Security';
 import Upgrading from '@/edit/workload/Upgrading';
@@ -57,6 +58,7 @@ export default {
     NameNsDescription,
     LabeledSelect,
     LabeledInput,
+    ServiceNameSelect,
     KeyValue,
     Tabbed,
     Tab,
@@ -98,7 +100,8 @@ export default {
       configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
       nodes:      this.$store.dispatch('cluster/findAll', { type: NODE }),
       services:   this.$store.dispatch('cluster/findAll', { type: SERVICE }),
-      pvcs:       this.$store.dispatch('cluster/findAll', { type: PVC })
+      pvcs:       this.$store.dispatch('cluster/findAll', { type: PVC }),
+      sas:        this.$store.dispatch('cluster/findAll', { type: SERVICE_ACCOUNT })
     };
 
     if ( this.$store.getters['cluster/schemaFor'](SECRET) ) {
@@ -114,6 +117,7 @@ export default {
     this.allNodes = hash.nodes.map(node => node.id);
     this.allServices = hash.services;
     this.pvcs = hash.pvcs;
+    this.sas = hash.sas;
   },
 
   data() {
@@ -163,6 +167,7 @@ export default {
       allServices:       [],
       name:              this.value?.metadata?.name || null,
       pvcs:              [],
+      sas:               [],
       showTabs:          false,
       pullPolicyOptions: ['Always', 'IfNotPresent', 'Never'],
       spec,
@@ -370,6 +375,18 @@ export default {
       }
     },
 
+    namespacedServiceNames() {
+      const { namespace } = this.value?.metadata;
+
+      if (namespace) {
+        return this.sas.filter(
+          serviceName => serviceName.metadata.namespace === namespace
+        );
+      } else {
+        return this.sas;
+      }
+    },
+
     headlessServices() {
       return this.allServices.filter(service => service.spec.clusterIP === 'None' && service.metadata.namespace === this.value.metadata.namespace);
     },
@@ -419,7 +436,7 @@ export default {
       const out = [...this.allContainers];
 
       if (!this.isView) {
-        out.push({ name: 'Add Container', _add: true });
+        out.push({ name: 'Add Container', __add: true });
       }
 
       return out;
@@ -467,7 +484,7 @@ export default {
 
     container(neu) {
       const containers = this.isInitContainer ? this.podTemplateSpec.initContainers : this.podTemplateSpec.containers;
-      const existing = containers.filter(container => container._active)[0];
+      const existing = containers.filter(container => container.__active)[0];
 
       Object.assign(existing, neu);
     }
@@ -527,6 +544,7 @@ export default {
     saveWorkload() {
       if (this.type !== WORKLOAD_TYPES.JOB && this.type !== WORKLOAD_TYPES.CRON_JOB && this.mode === _CREATE) {
         this.spec.selector = { matchLabels: this.value.workloadSelector };
+        Object.assign(this.value.metadata.labels, this.value.workloadSelector);
       }
 
       let template;
@@ -654,17 +672,17 @@ export default {
     },
 
     selectContainer(container) {
-      if (container._add) {
+      if (container.__add) {
         this.addContainer();
 
         return;
       }
       (this.allContainers || []).forEach((container) => {
-        if (container._active) {
-          delete container._active;
+        if (container.__active) {
+          delete container.__active;
         }
       });
-      container._active = true;
+      container.__active = true;
       this.container = container;
       this.isInitContainer = !!container._init;
       this.containerChange++;
@@ -725,6 +743,17 @@ export default {
       // between hooks for different PVCs.
       if (this[BEFORE_SAVE_HOOKS]) {
         this.unregisterBeforeSaveHook(hookName);
+      }
+    },
+
+    updateServiceAccount(neu) {
+      if (neu) {
+        this.podTemplateSpec.serviceAccount = neu;
+        this.podTemplateSpec.serviceAccountName = neu;
+      } else {
+        // Note - both have to be removed in order for removal to work
+        delete this.podTemplateSpec.serviceAccount;
+        delete this.podTemplateSpec.serviceAccountName;
       }
     }
   }
@@ -861,6 +890,15 @@ export default {
             <h3>{{ t('workload.container.titles.command') }}</h3>
             <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
           </div>
+          <ServiceNameSelect
+            :value="podTemplateSpec.serviceAccountName"
+            :mode="mode"
+            :select-label="t('workload.serviceAccountName.label')"
+            :select-placeholder="t('workload.serviceAccountName.label')"
+            :options="namespacedServiceNames"
+            option-label="metadata.name"
+            @input="updateServiceAccount"
+          />
 
           <div class="spacer"></div>
           <div>

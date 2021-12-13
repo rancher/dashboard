@@ -42,11 +42,11 @@ export default {
     if ( !this.value.spec ) {
       this.$set(this.value, 'spec', { sourceType: DOWNLOAD });
     }
+    this.value.metadata.generateName = 'image-';
 
     return {
       url:         this.value.spec.url,
       files:       [],
-      displayName: '',
       resource:    '',
       headers:     {},
       fileUrl:     '',
@@ -66,6 +66,10 @@ export default {
     isCreateEdit() {
       return this.isCreate || this.isEdit;
     },
+
+    showEditAsYaml() {
+      return this.value.spec.sourceType === DOWNLOAD;
+    }
   },
 
   watch: {
@@ -77,13 +81,12 @@ export default {
       this.value.spec.url = url;
       if (VM_IMAGE_FILE_FORMAT.includes(fileSuffiic)) {
         if (!this.value.spec.displayName) {
-          this.$refs.nd.changeNameAndNamespace({ text: suffixName });
+          this.$refs.nd.changeNameAndNamespace({
+            text:     suffixName,
+            selected: this.value.metadata.namespace,
+          });
         }
       }
-    },
-
-    'value.spec.displayName'(neu) {
-      this.displayName = neu;
     },
 
     'value.spec.sourceType'() {
@@ -98,23 +101,17 @@ export default {
 
   methods: {
     async saveImage(buttonCb) {
-      this.value.metadata.generateName = 'image-';
-
       this.value.spec.displayName = (this.value.spec.displayName || '').trim();
 
       if (this.value.spec.sourceType === UPLOAD && this.isCreate) {
         try {
           this.value.spec.url = '';
 
-          if (!this.value.metadata.annotations) {
-            this.value.metadata.annotations = {};
-          }
-
           const file = this.file;
 
           this.value.metadata.annotations[HCI_ANNOTATIONS.IMAGE_NAME] = file?.name;
 
-          const res = await this.value.save({ extend: { isRes: true } });
+          const res = await this.value.save();
 
           res.uploadImage(file);
 
@@ -135,7 +132,10 @@ export default {
       this.file = file;
 
       if (!this.value.spec.displayName) {
-        this.$refs.nd.changeNameAndNamespace({ text: file?.name });
+        this.$refs.nd.changeNameAndNamespace({
+          text:     file?.name,
+          selected: this.value.metadata.namespace,
+        });
       }
     },
 
@@ -155,16 +155,15 @@ export default {
     :resource="value"
     :mode="mode"
     :errors="errors"
-    :can-yaml="false"
+    :can-yaml="showEditAsYaml ? true : false"
     :apply-hooks="applyHooks"
     @finish="saveImage"
   >
     <NameNsDescription
       ref="nd"
-      :key="value.spec.displayName"
       v-model="value"
       :mode="mode"
-      label="Name"
+      :label="t('generic.name')"
       name-key="spec.displayName"
     />
 
@@ -255,7 +254,7 @@ export default {
           :mode="mode"
           :pad-left="false"
           :read-allowed="false"
-          @input="value.setLabels"
+          @input="value.setLabels($event)"
         />
       </Tab>
     </Tabbed>

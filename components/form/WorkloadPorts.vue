@@ -154,14 +154,6 @@ export default {
       this.$emit('input', out);
     },
 
-    selectServiceType(row) {
-      delete row.name;
-      if (row._listeningPort) {
-        delete row._listeningPort;
-      }
-      this.queueUpdate();
-    },
-
     setServiceType(row) {
       const { _name } = row;
 
@@ -169,7 +161,7 @@ export default {
         const portSpec = findBy(this.loadBalancerServicePorts, 'name', _name);
 
         if (portSpec) {
-          row._listeningPort = portSpec.port;
+          this.$set(row, '_listeningPort', portSpec.port);
 
           row._serviceType = 'LoadBalancer';
 
@@ -179,7 +171,7 @@ export default {
         const portSpec = findBy(this.nodePortServicePorts, 'name', _name);
 
         if (portSpec) {
-          row._listeningPort = portSpec.nodePort;
+          this.$set(row, '_listeningPort', portSpec.nodePort);
 
           row._serviceType = 'NodePort';
 
@@ -194,7 +186,7 @@ export default {
       }
 
       return '';
-    }
+    },
   },
 };
 </script>
@@ -213,7 +205,7 @@ export default {
           :mode="mode"
           :label="t('workload.container.ports.createService')"
           :options="serviceTypes"
-          @input="selectServiceType(row)"
+          @input="queueUpdate"
         />
       </div>
 
@@ -253,7 +245,6 @@ export default {
 
       <div v-if="row._showHost" class="targetPort">
         <LabeledInput
-
           ref="port"
           v-model.number="row.hostPort"
           :mode="mode"

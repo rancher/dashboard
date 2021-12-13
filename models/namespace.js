@@ -1,11 +1,14 @@
 import SYSTEM_NAMESPACES from '@/config/system-namespaces';
-import { PROJECT, SYSTEM_NAMESPACE, ISTIO as ISTIO_LABELS, FLEET } from '@/config/labels-annotations';
+import {
+  PROJECT, SYSTEM_NAMESPACE, ISTIO as ISTIO_LABELS, FLEET, RESOURCE_QUOTA
+} from '@/config/labels-annotations';
 import { ISTIO, MANAGEMENT } from '@/config/types';
 
-import { get } from '@/utils/object';
+import { get, set } from '@/utils/object';
 import { escapeHtml } from '@/utils/string';
 import { insertAt, isArray } from '@/utils/array';
 import SteveModel from '@/plugins/steve/steve-class';
+import Vue from 'vue';
 
 const OBSCURE_NAMESPACE_PREFIX = [
   'c-', // cluster namesapce
@@ -15,6 +18,10 @@ const OBSCURE_NAMESPACE_PREFIX = [
 ];
 
 export default class Namespace extends SteveModel {
+  applyDefaults() {
+    set(this, 'disableOpenApiValidation', false);
+  }
+
   get _availableActions() {
     const out = super._availableActions;
 
@@ -170,5 +177,13 @@ export default class Namespace extends SteveModel {
 
   get doneOverride() {
     return this.listLocation;
+  }
+
+  get resourceQuota() {
+    return JSON.parse(this.metadata.annotations[RESOURCE_QUOTA] || `{"limit":{}}`);
+  }
+
+  set resourceQuota(value) {
+    Vue.set(this.metadata.annotations, RESOURCE_QUOTA, JSON.stringify(value));
   }
 }

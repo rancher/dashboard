@@ -1,6 +1,6 @@
 import { findBy, insertAt } from '@/utils/array';
 import { TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED } from '@/config/labels-annotations';
-import { WORKLOAD_TYPES, SERVICE } from '@/config/types';
+import { POD, WORKLOAD_TYPES, SERVICE } from '@/config/types';
 import { clone, get, set } from '@/utils/object';
 import day from 'dayjs';
 import SteveModel from '@/plugins/steve/steve-class';
@@ -36,6 +36,20 @@ export default class Workload extends SteveModel {
         icon:       'icon icon-refresh',
         enabled:    !!this.links.update,
         bulkable:   true,
+      });
+
+      insertAt(out, 0, {
+        action:  'pause',
+        label:   this.t('asyncButton.pause.action'),
+        icon:    'icon icon-pause',
+        enabled: !!this.links.update && !this.spec?.paused
+      });
+
+      insertAt(out, 0, {
+        action:  'resume',
+        label:   this.t('asyncButton.resume.action'),
+        icon:    'icon icon-play',
+        enabled: !!this.links.update && this.spec?.paused === true
       });
     }
 
@@ -101,6 +115,38 @@ export default class Workload extends SteveModel {
     const workloadName = workload.metadata.name;
 
     await this.patch(rollbackRequestBody, { url: `/apis/apps/v1/namespaces/${ namespace }/deployments/${ workloadName }` });
+  }
+
+  pause() {
+    set(this.spec, 'paused', true);
+    this.save();
+  }
+
+  resume() {
+    set(this.spec, 'paused', false);
+    this.save();
+  }
+
+  async scaleDown() {
+    const newScale = this.spec.replicas - 1;
+
+    if (newScale >= 0) {
+      set(this.spec, 'replicas', newScale);
+      await this.save();
+    }
+  }
+
+  async scaleUp() {
+    set(this.spec, 'replicas', this.spec.replicas + 1);
+    await this.save();
+  }
+
+  get state() {
+    if ( this.spec?.paused === true ) {
+      return 'paused';
+    }
+
+    return super.state;
   }
 
   addSidecar() {
@@ -362,6 +408,11 @@ export default class Workload extends SteveModel {
       const name = port.name ? port.name : `${ port.containerPort }${ port.protocol.toLowerCase() }${ port.hostPort || port._listeningPort || '' }`;
 
       port.name = name;
+
+      if (port._serviceType && port._serviceType !== '') {
+        return;
+      }
+
       if (loadBalancerServicePorts.length) {
         const portSpec = findBy(loadBalancerServicePorts, 'name', name);
 
@@ -472,7 +523,6 @@ export default class Workload extends SteveModel {
         }
       });
     }
-
     ports.forEach((port) => {
       const portSpec = {
         name: port.name, protocol: port.protocol, port: port.containerPort, targetPort: port.containerPort
@@ -575,5 +625,94 @@ export default class Workload extends SteveModel {
     } else {
       return null;
     }
+  }
+
+  get pods() {
+    const relationships = get(this, 'metadata.relationships') || [];
+    const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
+
+    if (podRelationship) {
+      return this.$getters['matching'](POD, podRelationship.selector).filter(pod => pod?.metadata?.namespace === this.metadata.namespace);
+    } else {
+      return [];
+    }
+  }
+
+  get podGauges() {
+    const out = {
+      active: { color: 'success' }, transitioning: { color: 'info' }, warning: { color: 'warning' }, error: { color: 'error' }
+    };
+
+    if (!this.pods) {
+      return out;
+    }
+
+    this.pods.map((pod) => {
+      const { status:{ phase } } = pod;
+      let group;
+
+      switch (phase) {
+      case 'Running':
+        group = 'active';
+        break;
+      case 'Pending':
+        group = 'transitioning';
+        break;
+      case 'Failed':
+        group = 'error';
+        break;
+      default:
+        group = 'warning';
+      }
+
+      out[group].count ? out[group].count++ : out[group].count = 1;
+    });
+
+    return out;
+  }
+
+  // Job Specific
+  get jobRelationships() {
+    if (this.type !== WORKLOAD_TYPES.CRON_JOB) {
+      return undefined;
+    }
+
+    return (get(this, 'metadata.relationships') || []).filter(relationship => relationship.toType === WORKLOAD_TYPES.JOB);
+  }
+
+  get jobs() {
+    if (this.type !== WORKLOAD_TYPES.CRON_JOB) {
+      return undefined;
+    }
+
+    return this.jobRelationships.map((obj) => {
+      return this.$getters['byId'](WORKLOAD_TYPES.JOB, obj.toId );
+    }).filter(x => !!x);
+  }
+
+  get jobGauges() {
+    const out = {
+      succeeded: { color: 'success', count: 0 }, running: { color: 'info', count: 0 }, failed: { color: 'error', count: 0 }
+    };
+
+    if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+      this.jobs.forEach((job) => {
+        const { status = {} } = job;
+
+        out.running.count += status.active || 0;
+        out.succeeded.count += status.succeeded || 0;
+        out.failed.count += status.failed || 0;
+      });
+    } else if (this.type === WORKLOAD_TYPES.JOB) {
+      const { status = {} } = this;
+
+      out.running.count = status.active || 0;
+      out.succeeded.count = status.succeeded || 0;
+      out.failed.count = status.failed || 0;
+    } else {
+      return null;
+    }
+
+    return out;
   }
 }

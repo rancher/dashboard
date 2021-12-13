@@ -98,6 +98,7 @@ export const actions = {
     const url = `${ state.config.baseUrl }/subscribe`;
 
     if ( socket ) {
+      socket.setAutoReconnect(true);
       socket.setUrl(url);
     } else {
       socket = new Socket(`${ state.config.baseUrl }/subscribe`);

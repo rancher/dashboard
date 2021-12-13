@@ -37,7 +37,8 @@ export default {
 
   computed: {
     namespacedCounts() {
-      const allClusterResourceCounts = this.$store.getters[`cluster/all`](COUNT)[0].counts;
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const allClusterResourceCounts = this.$store.getters[`${ inStore }/all`](COUNT)[0].counts;
       const statesByType = getStatesByType();
       const totalCountsOut = {
         success: 0,

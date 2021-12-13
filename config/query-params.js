@@ -57,6 +57,7 @@ export const NAME = 'name';
 export const NAMESPACE = 'namespace';
 export const DESCRIPTION = 'description';
 export const CATEGORY = 'category';
+export const OPERATING_SYSTEM = 'os';
 export const DEPRECATED = 'deprecated';
 export const HIDDEN = 'hidden';
 export const FROM_TOOLS = 'tools';

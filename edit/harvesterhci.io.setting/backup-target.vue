@@ -1,6 +1,9 @@
 <script>
 import Tip from '@/components/Tip';
+import { HCI } from '@/config/types';
+import { HCI_SETTING } from '@/config/settings';
 import Password from '@/components/form/Password';
+import MessageLink from '@/components/MessageLink';
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -9,7 +12,7 @@ export default {
   name: 'HarvesterEditBackupTarget',
 
   components: {
-    LabeledInput, LabeledSelect, Tip, Password
+    LabeledInput, LabeledSelect, Tip, Password, MessageLink
   },
 
   mixins: [CreateEditView],
@@ -60,6 +63,10 @@ export default {
 
     endpointPlaceholder() {
       return this.isS3 ? '' : 'nfs://server:/path/';
+    },
+
+    toCA() {
+      return `${ HCI.SETTING }/${ HCI_SETTING.ADDITIONAL_CA }?mode=edit`;
     }
   },
 
@@ -69,8 +76,16 @@ export default {
       delete this.parseDefaultValue.secretAccessKey;
       delete this.parseDefaultValue.bucketName;
       delete this.parseDefaultValue.bucketRegion;
-      delete this.parseDefaultValue.cert;
       delete this.parseDefaultValue.endpoint;
+    },
+
+    value: {
+      handler(neu) {
+        const parseDefaultValue = JSON.parse(neu.value);
+
+        this.$set(this, 'parseDefaultValue', parseDefaultValue);
+      },
+      deep: true
     }
   },
 
@@ -83,7 +98,7 @@ export default {
       const value = JSON.stringify(this.parseDefaultValue);
 
       this.$set(this.value, 'value', value);
-    }
+    },
   }
 };
 </script>
@@ -131,17 +146,19 @@ export default {
           required
         />
 
-        <LabeledInput
-          v-model="parseDefaultValue.cert"
-          type="multiline"
-          class="mb-20"
-          :placeholder="t('harvester.setting.placeholder.cert')"
-          :mode="mode"
-          :min-height="120"
-          label="Certificate"
-        />
-
         <LabeledSelect v-model="parseDefaultValue.virtualHostedStyle" class="mb-20" label="Virtual Hosted-Style" :options="virtualHostedStyleType" @input="update" />
+
+        <div class="mb-20">
+          <Tip icon="icon icon-info">
+            <MessageLink
+              :to="toCA"
+              target="_blank"
+              prefix-label="harvester.setting.message.ca.prefix"
+              middle-label="harvester.setting.message.ca.middle"
+              suffic-label="harvester.setting.message.ca.suffic"
+            />
+          </Tip>
+        </div>
       </template>
     </div>
   </div>
@@ -157,5 +174,9 @@ p {
 }
 .tip {
   font-size: 15px;
+}
+
+.goCA {
+  margin: 0 3px;
 }
 </style>

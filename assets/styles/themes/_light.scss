@@ -304,6 +304,9 @@ BODY, .theme-light {
   --scrollbar-thumb-dropdown   : #{$lighter};
   --scrollbar-track            : transparent;
 
+  // Header, Footer and Consent banner defaults
+  --banner-text-color          : #{$darkest};
+
   --header-bg                  : #{$lightest};
   --header-btn-bg              : transparent;
   --header-btn-text            : #{$darkest};
@@ -318,6 +321,7 @@ BODY, .theme-light {
   --nav-expander-hover         : #{darken($medium, 10%)};
   --nav-border                 : #{$medium};
   --nav-border-size            : 1px;
+
   --footer-bg                  : transparent;
   --footer-height              : 0px;
 
@@ -362,6 +366,8 @@ BODY, .theme-light {
   --dropdown-hover-bg          : var(--primary);
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
+
+  --card-badge-text            : #ffffff;
 
   // UNUSED?
   --card-header                : var(--primary-banner-bg);
@@ -492,7 +498,7 @@ BODY, .theme-light {
   $other                       : #614EA2;
 
   --app-rancher-accent         : #{$rancher};
-  --app-rancher-accent-text    : #{$darkest};
+  --app-rancher-accent-text    : #ffffff;
 
   --app-partner-accent         : #{$partner};
   --app-partner-accent-text    : black;

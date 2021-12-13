@@ -1,5 +1,6 @@
 import { MODE, _EDIT } from '@/config/query-params';
 import NormanModel from '@/plugins/steve/norman-class';
+import { parseHelmExternalId } from '@/utils/parse-externalid';
 
 export default class App extends NormanModel {
   get appEditUrl() {
@@ -16,5 +17,9 @@ export default class App extends NormanModel {
     };
 
     this.currentRouter().push(location);
+  }
+
+  get currentVersion() {
+    return parseHelmExternalId(this.externalId).version;
   }
 }

@@ -1,14 +1,16 @@
 <script>
 import Vue from 'vue';
-import LabeledInput from '@/components/form/LabeledInput';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import RadioGroup from '@/components/form/RadioGroup';
 import Tip from '@/components/Tip';
 import CreateEditView from '@/mixins/create-edit-view';
+import { allHash } from '@/utils/promise';
+import { HCI } from '@/config/types';
 
 export default {
   name:       'EditHarvesterVlan',
   components: {
-    LabeledInput,
+    LabeledSelect,
     RadioGroup,
     Tip
   },
@@ -22,17 +24,69 @@ export default {
     },
   },
 
+  async fetch() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+
+    const hash = await allHash({ nodeNetworks: this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.NODE_NETWORK }) });
+
+    this.nodeNetworks = hash.nodeNetworks;
+  },
+
   data() {
     if (!this.value.config) {
       Vue.set(this.value, 'config', { defaultPhysicalNIC: '' });
     }
 
-    return {};
+    return { nodeNetworks: [] };
   },
 
   computed: {
     doneLocationOverride() {
       return this.value.listLocation;
+    },
+
+    nicOptions() {
+      const allNics = [];
+      const out = [];
+
+      if (this.nodeNetworks.length === 0) {
+        return out;
+      }
+
+      this.nodeNetworks.map((N) => {
+        if (N?.nics?.length > 0) {
+          const nics = N.nics.filter((nic) => {
+            return !(nic.masterIndex !== undefined && nic.usedByVlanNetwork === undefined);
+          }).map(nic => nic.name);
+
+          allNics.push(...nics);
+        } else {
+          return [];
+        }
+      });
+
+      allNics.map((N) => {
+        const index = out.findIndex(nic => nic.value === N);
+
+        if (index > -1) {
+          out[index].num = out[index].num + 1;
+        } else {
+          out.push({
+            label: N,
+            value: N,
+            num:   1,
+          });
+        }
+      });
+
+      return out.map((option) => {
+        const percent = ((option.num / this.nodeNetworks.length) * 100).toFixed(2);
+
+        return {
+          ...option,
+          percent: `${ percent } %`
+        };
+      });
     }
   },
 };
@@ -48,12 +102,23 @@ export default {
       :labels="[t('generic.enabled'), t('generic.disabled')]"
     />
 
-    <LabeledInput
+    <LabeledSelect
       v-if="value.enable"
       v-model="value.config.defaultPhysicalNIC"
+      :options="nicOptions"
       :label="t('harvester.setting.defaultPhysicalNIC')"
       class="mb-5"
-    />
+      :tooltip="mode === 'view' ? null : t('harvester.setting.percentTip')"
+      :hover-tooltip="true"
+    >
+      <template v-slot:option="option">
+        <template>
+          <div class="nicOption">
+            <span>{{ option.label }}({{ option.percent }}) </span>
+          </div>
+        </template>
+      </template>
+    </LabeledSelect>
 
     <Tip v-if="value.enable" icon="icons icon-h-question" :text="t('harvester.setting.vlanChangeTip')" />
   </div>

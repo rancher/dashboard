@@ -1,8 +1,8 @@
 import { clone } from '@/utils/object';
 import { HCI } from '@/config/types';
-import Resource from '@/plugins/core-store/resource-class';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default class HciConfigMap extends Resource {
+export default class HciConfigMap extends SteveModel {
   get detailLocation() {
     const detailLocation = clone(this._detailLocation);
 

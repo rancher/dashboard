@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { load } from 'js-yaml';
 import { colorForState } from '@/plugins/core-store/resource-class';
-import { POD, NODE, HCI } from '@/config/types';
+import { POD, NODE, HCI, PVC } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
@@ -13,6 +13,7 @@ const VM_ERROR = 'VM error';
 const STOPPING = 'Stopping';
 const OFF = 'Off';
 const WAITING = 'Waiting';
+const NOT_READY = 'Not Ready';
 
 const PAUSED = 'Paused';
 const PAUSED_VM_MODAL_MESSAGE = 'This VM has been paused. If you wish to unpause it, please click the Unpause button below. For further details, please check with your system administrator.';
@@ -183,10 +184,6 @@ export default class VirtVm extends SteveModel {
               disks: [],
             },
             resources: {
-              requests: {
-                memory: null,
-                cpu:    ''
-              },
               limits: {
                 memory: null,
                 cpu:    ''
@@ -219,6 +216,18 @@ export default class VirtVm extends SteveModel {
       resources,
       component: 'harvester/BackupModal'
     });
+  }
+
+  unplugVolume() {
+    const resources = this;
+
+    return (diskName) => {
+      this.$dispatch('promptModal', {
+        resources,
+        diskName,
+        component: 'harvester/UnplugVolume'
+      });
+    };
   }
 
   restoreVM(resources = this) {
@@ -408,8 +417,22 @@ export default class VirtVm extends SteveModel {
   }
 
   get isRunning() {
-    if (this.vmi?.status?.phase === VMIPhase.Running) {
+    const conditions = get(this.vmi, 'status.conditions');
+    const isVMIReady = findBy(conditions, 'type', 'Ready')?.status === 'True';
+
+    if (this.vmi?.status?.phase === VMIPhase.Running && isVMIReady) {
       return { status: VMIPhase.Running };
+    }
+
+    return null;
+  }
+
+  get isNotReady() {
+    const conditions = get(this.vmi, 'status.conditions');
+    const VMIReadyCondition = findBy(conditions, 'type', 'Ready');
+
+    if (VMIReadyCondition?.status === 'False' && this.vmi?.status?.phase === VMIPhase.Running) {
+      return { status: NOT_READY };
     }
 
     return null;
@@ -505,6 +528,7 @@ export default class VirtVm extends SteveModel {
       this.isOff?.status ||
       this.isError?.status ||
       this.isRunning?.status ||
+      this.isNotReady?.status ||
       this.isStarting?.status ||
       this.isWaitingForVMI?.state ||
       this.otherState?.status;
@@ -643,6 +667,34 @@ export default class VirtVm extends SteveModel {
     return out;
   }
 
+  get rootImageId() {
+    let imageId = '';
+    const pvcs = this.$rootGetters[`harvester/all`](PVC) || [];
+
+    const volumes = this.spec.template.spec.volumes || [];
+
+    const firstVolumeName = volumes[0]?.persistentVolumeClaim?.claimName;
+    const isNoExistingVolume = this.volumeClaimTemplates.find((volume) => {
+      return firstVolumeName === volume?.metadata?.name;
+    });
+
+    if (!isNoExistingVolume) {
+      const existingVolume = pvcs.find(P => P.id === `${ this.metadata.namespace }/${ firstVolumeName }`);
+
+      if (existingVolume) {
+        return existingVolume?.metadata?.annotations?.['harvesterhci.io/imageId'];
+      }
+    }
+
+    this.volumeClaimTemplates.find( (volume) => {
+      imageId = volume?.metadata?.annotations?.['harvesterhci.io/imageId'];
+
+      return !!imageId;
+    });
+
+    return imageId;
+  }
+
   get restoreName() {
     return get(this, `metadata.annotations."${ HCI_ANNOTATIONS.RESTORE_NAME }"`) || '';
   }
@@ -661,14 +713,13 @@ export default class VirtVm extends SteveModel {
         nullable:       false,
         path:           'spec.template.spec.domain.cpu.cores',
         min:            1,
-        max:            100,
         required:       true,
         translationKey: 'harvester.fields.cpu',
       },
       {
         nullable:       false,
-        path:           'spec.template.spec.domain.resources.requests.memory',
-        required:       false,
+        path:           'spec.template.spec.domain.resources.limits.memory',
+        required:       true,
         translationKey: 'harvester.fields.memory',
       },
       {
@@ -679,7 +730,7 @@ export default class VirtVm extends SteveModel {
       {
         nullable:       false,
         path:           'spec',
-        validators:     ['vmDisks'],
+        validators:     [`vmDisks`],
       },
     ];
 

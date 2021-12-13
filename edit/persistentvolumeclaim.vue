@@ -104,14 +104,6 @@ export default {
         this.checkboxSetter('ReadWriteMany', value);
       }
     },
-    capacity: {
-      get() {
-        return this.value.spec.resources.requests.storage;
-      },
-      set(value) {
-        this.$set(this.value.spec.resources.requests, 'storage', `${ value || 1 }Gi`);
-      }
-    },
     persistentVolume: {
       get() {
         return this.value.spec.volumeName;
@@ -206,10 +198,12 @@ export default {
             <div class="row">
               <div class="col span-12 mt-10">
                 <UnitInput
-                  v-model="capacity"
+                  v-model="value.spec.resources.requests.storage"
                   :label="t('persistentVolumeClaim.volumeClaim.requestStorage')"
-                  :suffix="'GiB'"
                   :mode="mode"
+                  :input-exponent="3"
+                  :output-modifier="true"
+                  :increment="1024"
                   :min="1"
                 />
               </div>
@@ -231,7 +225,10 @@ export default {
         </div>
       </Tab>
       <Tab name="customize" :label="t('persistentVolumeClaim.customize.label')" :weight="3">
-        <h3>Access Modes</h3>
+        <div class="access">
+          <h3>{{ t('persistentVolumeClaim.accessModes') }}</h3>
+          <span class="text-error">*</span>
+        </div>
         <div><Checkbox v-model="readWriteOnce" :label="t('persistentVolumeClaim.customize.accessModes.readWriteOnce')" :mode="mode" /></div>
         <div><Checkbox v-model="readOnlyMany" :label="t('persistentVolumeClaim.customize.accessModes.readOnlyMany')" :mode="mode" /></div>
         <div><Checkbox v-model="readWriteMany" :label="t('persistentVolumeClaim.customize.accessModes.readWriteMany')" :mode="mode" /></div>
@@ -242,3 +239,10 @@ export default {
     </ResourceTabs>
   </CruResource>
 </template>
+
+<style lang='scss' scoped>
+.access {
+  display: flex;
+  flex-direction: row;
+}
+</style>

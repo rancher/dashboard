@@ -20,6 +20,7 @@ export default {
     await this.$store.dispatch('catalog/load');
 
     const query = this.$route.query;
+    const projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
 
     this.showDeprecated = query[DEPRECATED] === _FLAGGED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
@@ -44,7 +45,6 @@ export default {
       }
 
       // Need the project ID of the system project in order to get the apps
-      const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
       const systemProject = projects.find(p => p.spec?.displayName === 'System');
 
       if (systemProject) {
@@ -239,11 +239,25 @@ export default {
 
         v1.app = v1App;
 
+        // Add in the upgrade version information for a legacy v1 app
+        if (v1.app) {
+          v1.app.upgradeAvailable = undefined;
+          // Check if an upgrade is available
+          if (v1.chart.versions?.length) {
+            const latest = v1.chart.versions[0]?.version;
+
+            if (v1.app.currentVersion !== latest) {
+              v1.app.upgradeAvailable = latest;
+            }
+          }
+        }
+
         if (v2) {
-          if (v2.app) {
+          if (v1.app) {
+            v2.app = undefined;
+            v2.blocked = true;
+          } else if (v2.app) {
             v1.blocked = true;
-          } else {
-            v2.blocked = !!v1App;
           }
         }
       }
@@ -396,7 +410,7 @@ export default {
             {{ opt.chart.chartNameDisplay }}
           </h3>
           <div class="version">
-            <template v-if="opt.app && opt.app.upgradeAvailable && !opt.chart.legacy">
+            <template v-if="opt.app && opt.app.upgradeAvailable">
               v{{ opt.app.currentVersion }} <b><i class="icon icon-chevron-right" /> v{{ opt.app.upgradeAvailable }}</b>
             </template>
             <template v-else-if="opt.app">

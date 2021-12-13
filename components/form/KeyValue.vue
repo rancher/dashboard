@@ -233,6 +233,10 @@ export default {
       default: false,
       type:    Boolean
     },
+    parseLinesFromFile: {
+      default: false,
+      type:    Boolean
+    }
   },
 
   data() {
@@ -271,16 +275,15 @@ export default {
           supported:        this.supported(row),
         };
 
-        for ( const k of this.preserveKeys ) {
+        this.preserveKeys?.map((k) => {
           if ( typeof row[k] !== 'undefined' ) {
             entry[k] = row[k];
           }
-        }
+        });
 
         rows.push(entry);
       }
     }
-
     if ( !rows.length && this.initialEmptyRow ) {
       rows.push({
         [this.keyName]:   '',
@@ -360,7 +363,20 @@ export default {
     onFileSelected(file) {
       const { name, value } = this.fileModifier(file.name, file.value);
 
-      this.add(name, value, !asciiLike(value));
+      if (!this.parseLinesFromFile) {
+        this.add(name, value, !asciiLike(value));
+      } else {
+        const lines = value.split('\n');
+
+        lines.forEach((line) => {
+          // Ignore empty lines
+          if (line.length) {
+            const [key, value] = line.split('=');
+
+            this.add(key, value);
+          }
+        });
+      }
     },
 
     download(idx, ev) {
@@ -434,11 +450,9 @@ export default {
       const text = event.clipboardData.getData('text/plain');
       const lines = text.split('\n');
       const splits = lines.map((line) => {
-        if (line.includes(':')) {
-          return line.split(':');
-        }
+        const splitter = !line.includes(':') || ((line.indexOf('=') < line.indexOf(':')) && line.includes(':')) ? '=' : ':';
 
-        return line.split('=');
+        return line.split(splitter);
       });
 
       if (splits.length === 0 || (splits.length === 1 && splits[0].length < 2)) {
@@ -449,8 +463,8 @@ export default {
       const keyValues = splits.map(split => ({
         [this.keyName]:   (split[0] || '').trim(),
         [this.valueName]: (split[1] || '').trim(),
-        binary:           !asciiLike(split[1]),
-        supported:        true
+        supported:        true,
+        binary:           !asciiLike(split[1])
       }));
 
       this.rows.splice(index, 1, ...keyValues);
@@ -500,7 +514,6 @@ export default {
           <span />
         </slot>
       </template>
-
       <template v-if="!rows.length && isView">
         <div class="kv-item key text-muted">
           &mdash;
@@ -562,7 +575,7 @@ export default {
               :class="{'conceal': valueConcealed}"
               :mode="mode"
               :placeholder="valuePlaceholder"
-              :min-height="61"
+              :min-height="40"
               :spellcheck="false"
               @input="queueUpdate"
             />
@@ -665,7 +678,8 @@ export default {
   }
 
   input {
-    height: $input-height;
+    height: 40px;
+    line-height: 1;
   }
 
   .footer {

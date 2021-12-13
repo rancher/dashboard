@@ -19,6 +19,7 @@ import { allHash } from '@/utils/promise';
 import { sortBy } from '@/utils/sort';
 import { camelToTitle, nlToBr } from '@/utils/string';
 import { compare, sortable } from '@/utils/version';
+import { isHarvesterSatisfiesVersion } from '@/utils/cluster';
 
 import ArrayList from '@/components/form/ArrayList';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
@@ -60,6 +61,7 @@ const PRIVATE = 'private';
 const ADVANCED = 'advanced';
 
 const HARVESTER = 'harvester';
+const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 
 export default {
   components: {
@@ -211,13 +213,14 @@ export default {
       set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
     }
 
-    if (this.isHarvesterDriver && this.mode === _CREATE) {
+    if (this.isHarvesterDriver && this.mode === _CREATE && this.agentConfig['cloud-provider-name'] === undefined) {
       this.agentConfig['cloud-provider-name'] = HARVESTER;
     }
 
     await this.initAddons();
     await this.initRegistry();
-
+    // Ensures chartValues is up to date with addonNames (remove any config for addonNames that has been removed)
+    this.initChartValues();
     this.loadedOnce = true;
   },
 
@@ -376,7 +379,7 @@ export default {
         });
       }
 
-      const cur = this.originalValue?.spec?.kubernetesVersion || '';
+      const cur = this.liveValue?.spec?.kubernetesVersion || '';
       const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
       const existingK3s = this.mode === _EDIT && cur.includes('k3s');
       const rke2 = filterAndMap(this.rke2Versions, (existingRke2 ? cur : null), cur);
@@ -672,6 +675,10 @@ export default {
       return !!this.serverArgs.cni;
     },
 
+    showCloudProvider() {
+      return this.agentArgs['cloud-provider-name'];
+    },
+
     addonNames() {
       const names = [];
       const cni = this.serverConfig.cni;
@@ -682,8 +689,14 @@ export default {
         names.push(...parts);
       }
 
-      if ( this.agentConfig['cloud-provider-name'] === 'rancher-vsphere' ) {
-        names.push('rancher-vsphere-cpi', 'rancher-vsphere-csi');
+      if (this.showCloudProvider) { // Shouldn't be removed such that changes to it will re-trigger this watch
+        if ( this.agentConfig['cloud-provider-name'] === 'rancher-vsphere' ) {
+          names.push('rancher-vsphere-cpi', 'rancher-vsphere-csi');
+        }
+
+        if ( this.agentConfig['cloud-provider-name'] === HARVESTER ) {
+          names.push(HARVESTER_CLOUD_PROVIDER);
+        }
       }
 
       return names;
@@ -735,12 +748,37 @@ export default {
     },
 
     addonNames(neu, old) {
-      const diff = difference(neu, old);
+      // To catch the 'some addons' --> 'no addons' case also check array length (`difference([], [1,2,3]) === []`)
+      const diff = old.length !== neu.length || difference(neu, old).length ;
 
-      if (!this.$fetchState.pending && diff.length ) {
+      if (!this.$fetchState.pending && diff) {
         this.$fetch();
       }
     },
+
+    showCni(neu) {
+      // Update `serverConfig.cni to recalculate addonNames...
+      // ... which will eventually update `value.spec.rkeConfig.chartValues`
+      if (neu) {
+        // Type supports CNI, assign default if we can
+        if (!this.serverConfig.cni) {
+          const def = this.serverArgs.cni.default;
+
+          set(this.serverConfig, 'cni', def);
+        }
+      } else {
+        // Type doesn't support cni, clear `cni`
+        set(this.serverConfig, 'cni', undefined);
+      }
+    },
+
+    showCloudProvider(neu) {
+      if (!neu) {
+        // No cloud provider available? Then clear cloud provider setting. This will recalculate addonNames...
+        // ... which will eventually update `value.spec.rkeConfig.chartValues`
+        set(this.agentConfig, 'cloud-provider-name', undefined);
+      }
+    }
   },
 
   mounted() {
@@ -985,6 +1023,8 @@ export default {
         });
 
         set(this.agentConfig, 'cloud-provider-config', res.data);
+        set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.clusterName`, this.value.metadata.name);
+        set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`, '/var/lib/rancher/rke2/etc/config-files/cloud-provider-config');
       }
 
       await this.save(btnCb);
@@ -1066,11 +1106,21 @@ export default {
       this.syncChartValues();
     },
 
+    initChartValues() {
+      // This initialises and for existing chartValues clears out any properties that aren't listed in addonNames
+      const out = {};
+
+      for (const k of this.addonNames) {
+        out[k] = this.chartValues[k] || this.versionInfo[k]?.values;
+      }
+      set(this.value.spec.rkeConfig, 'chartValues', out);
+    },
+
     syncChartValues: throttle(function() {
       const out = {};
 
       for ( const k of this.addonNames ) {
-        const fromChart = this.versionInfo[k].values;
+        const fromChart = this.versionInfo[k]?.values;
         const fromUser = this.chartValues[k];
         const different = diff(fromChart, fromUser);
 
@@ -1208,9 +1258,7 @@ export default {
       const rke2 = this.filterAndMap(this.rke2Versions, null);
 
       const satisfiesVersion = rke2.filter((v) => {
-        const rkeVersion = v.value.replace(/.+rke2r/i, '');
-
-        return semver.satisfies(semver.coerce(v.value), '>=v1.21.4+rke2r4') && Number(rkeVersion) >= 4;
+        return isHarvesterSatisfiesVersion(v.value);
       }) || [];
 
       if (satisfiesVersion.length > 0) {
@@ -1338,7 +1386,7 @@ export default {
                 :label="t('cluster.rke2.cni.label')"
               />
             </div>
-            <div v-if="agentArgs['cloud-provider-name']" class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
+            <div v-if="showCloudProvider" class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
               <LabeledSelect
                 v-model="agentConfig['cloud-provider-name']"
                 :mode="mode"
@@ -1636,7 +1684,7 @@ export default {
               v-model="value"
               class="mt-20"
               :mode="mode"
-              :register-before-hook="registerBeforeHook"
+              :cluster-register-before-hook="registerBeforeHook"
             />
           </template>
         </Tab>
@@ -1657,9 +1705,8 @@ export default {
               <YamlEditor
                 v-else
                 ref="yaml-values"
-                :value="chartValues[v.name]"
+                :value="value.spec.rkeConfig.chartValues[v.name] || versionInfo[v.name] ? versionInfo[v.name].values : ''"
                 :scrolling="true"
-                :initial-yaml-values="versionInfo[v.name] ? versionInfo[v.name].values : ''"
                 :as-object="true"
                 :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
                 :hide-preview-buttons="true"

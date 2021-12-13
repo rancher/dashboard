@@ -88,7 +88,7 @@ export default {
       const bundleValue = await this.$store.dispatch(`${ inStore }/create`, bundleCrd);
 
       try {
-        await bundleValue.save({ extend: { isRes: true } });
+        await bundleValue.save();
 
         this.$store.commit('harvester-common/setLatestBundleId', `${ namespace }/${ name }`, { root: true });
         this.$store.dispatch('harvester-common/bundleProgress', { root: true });
@@ -169,7 +169,7 @@ export default {
 
           <AsyncButton
             type="submit"
-            mode="create"
+            mode="generate"
             class="btn btn-sm bg-primary"
             :disabled="bundlePending"
             @click="save"

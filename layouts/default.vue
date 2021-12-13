@@ -59,7 +59,7 @@ export default {
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
     ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleVirtualCluster']),
-    ...mapGetters({ locale: 'i18n/selectedLocaleLabel' }),
+    ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
     ...mapGetters('type-map', ['activeProducts']),
 
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
@@ -149,7 +149,7 @@ export default {
       return displayVersion;
     },
 
-    showProductSupport() {
+    showProductFooter() {
       if (this.isVirtualProduct) {
         return true;
       } else {
@@ -166,6 +166,7 @@ export default {
 
       return { name: `c-cluster-${ product }-support` };
     },
+
   },
 
   watch: {
@@ -195,7 +196,6 @@ export default {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
-        this.wantNavSync = true;
       }
     },
 
@@ -210,7 +210,6 @@ export default {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
-        this.wantNavSync = true;
       }
     },
 
@@ -252,11 +251,9 @@ export default {
     },
 
     $route(a, b) {
-      if (this.wantNavSync && !isEqual(a, b)) {
-        this.wantNavSync = false;
-        this.$nextTick(() => this.syncNav());
-      }
-    }
+      this.$nextTick(() => this.syncNav());
+    },
+
   },
 
   async created() {
@@ -499,7 +496,13 @@ export default {
         // Only expand one group - so after the first has been expanded, no more will
         // This prevents the 'More Resources' group being expanded in addition to the normal group
         let canExpand = true;
+        const expanded = refs.filter(grp => grp.isExpanded)[0];
 
+        if (expanded && expanded.hasActiveRoute()) {
+          this.$nextTick(() => expanded.syncNav());
+
+          return;
+        }
         refs.forEach((grp) => {
           if (!grp.group.isRoot) {
             grp.isExpanded = false;
@@ -516,22 +519,26 @@ export default {
         });
       }
     },
+
+    switchLocale(locale) {
+      this.$store.dispatch('i18n/switchTo', locale);
+    },
   }
 };
 </script>
 
 <template>
   <div class="dashboard-root">
-    <FixedBanner />
+    <FixedBanner :header="true" />
 
     <div v-if="managementReady" class="dashboard-content">
       <Header />
       <nav v-if="clusterReady" class="side-nav">
         <div class="nav">
-          <template v-for="(g, idx) in groups">
+          <template v-for="(g) in groups">
             <Group
               ref="groups"
-              :key="idx"
+              :key="g.name"
               id-prefix=""
               class="package"
               :group="g"
@@ -548,15 +555,48 @@ export default {
             <span>{{ t('nav.clusterTools') }}</span>
           </a>
         </n-link>
-        <div class="version text-muted">
-          {{ displayVersion }}
+        <div v-if="showProductFooter" class="footer">
           <nuxt-link
-            v-if="showProductSupport"
             :to="supportLink"
             class="pull-right"
           >
             {{ t('nav.support', {hasSupport: true}) }}
           </nuxt-link>
+
+          <span
+            v-tooltip="{content: displayVersion, placement: 'top'}"
+            class="clip version text-muted"
+          >
+            {{ displayVersion }}
+          </span>
+
+          <span v-if="isSingleVirtualCluster">
+            <v-popover
+              popover-class="localeSelector"
+              placement="top"
+              trigger="click"
+            >
+              <a class="locale-chooser">
+                {{ locale }}
+              </a>
+
+              <template slot="popover">
+                <ul class="list-unstyled dropdown" style="margin: -1px;">
+                  <li
+                    v-for="(label, name) in availableLocales"
+                    :key="name"
+                    class="hand"
+                    @click="switchLocale(name)"
+                  >
+                    {{ label }}
+                  </li>
+                </ul>
+              </template>
+            </v-popover>
+          </span>
+        </div>
+        <div v-else class="version text-muted">
+          {{ displayVersion }}
         </div>
       </nav>
       <main v-if="clusterReady">
@@ -669,6 +709,37 @@ export default {
       cursor: default;
       margin: 0 10px 10px 10px;
     }
+
+    NAV .footer {
+      margin: 20px;
+
+      display: flex;
+      flex: 0;
+      flex-direction: row;
+      > * {
+        flex: 1;
+        color: var(--link);
+
+        &:last-child {
+          text-align: right;
+        }
+
+        &:first-child {
+          text-align: left;
+        }
+
+        text-align: center;
+      }
+
+      .version {
+        cursor: default;
+        margin: 0px;
+      }
+
+      .locale-chooser {
+        cursor: pointer;
+      }
+    }
   }
 
   MAIN {
@@ -727,5 +798,29 @@ export default {
     grid-area: wm;
     overflow-y: hidden;
     z-index: 1;
+  }
+
+  .localeSelector {
+    ::v-deep .popover-inner {
+      padding: 50px 0;
+    }
+
+    ::v-deep .popover-arrow {
+      display: none;
+    }
+
+    ::v-deep .popover:focus {
+      outline: 0;
+    }
+
+    li {
+      padding: 8px 20px;
+
+      &:hover {
+        background-color: var(--primary-hover-bg);
+        color: var(--primary-hover-text);
+        text-decoration: none;
+      }
+    }
   }
 </style>

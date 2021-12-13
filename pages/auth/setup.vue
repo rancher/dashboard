@@ -14,6 +14,7 @@ import { _ALL_IF_AUTHED } from '@/plugins/core-store/actions';
 import { isDevBuild } from '@/utils/version';
 import { exceptionToErrorsArray } from '@/utils/error';
 import Password from '@/components/form/Password';
+import { applyProducts } from '@/store/type-map';
 
 const calcIsFirstLogin = (store) => {
   const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
@@ -204,6 +205,7 @@ export default {
       const promises = [];
 
       try {
+        await applyProducts(this.$store);
         await this.$store.dispatch('loadManagement');
 
         if ( this.mustChangePassword ) {

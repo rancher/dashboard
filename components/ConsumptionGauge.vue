@@ -96,7 +96,11 @@ export default {
     </h3>
     <div class="numbers">
       <!-- @slot Optional slot to use as the title rather than showing the resource name -->
-      <slot name="title">
+      <slot
+        name="title"
+        :amountTemplateValues="amountTemplateValues"
+        :formattedPercentage="formattedPercentage"
+      >
         <h4 v-if="usedAsResourceName">
           {{ resourceName }}
         </h4>

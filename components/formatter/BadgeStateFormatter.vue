@@ -48,7 +48,13 @@ export default {
 
 <template>
   <div>
-    <BadgeState v-if="arbitrary" :color="stateBackground" :label="stateDisplay" />
+    <div v-if="arbitrary">
+      <BadgeState
+        v-if="value"
+        :color="stateBackground"
+        :label="stateDisplay"
+      />
+    </div>
     <BadgeState v-else :value="row" />
   </div>
 </template>

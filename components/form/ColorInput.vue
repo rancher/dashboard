@@ -6,6 +6,11 @@ export default {
       default: ''
     },
 
+    defaultValue: {
+      type:    String,
+      default: ''
+    },
+
     label: {
       type:    String,
       default: null
@@ -20,6 +25,15 @@ export default {
       type:    String,
       default: 'edit'
     }
+  },
+
+  computed: {
+    /**
+     * Allow UI to set a default value.
+     */
+    inputValue() {
+      return this.value ? this.value : this.defaultValue;
+    }
   }
 };
 </script>
@@ -28,10 +42,10 @@ export default {
   <div class="color-input" :class="{[mode]:mode}">
     <label class="text-label"><t v-if="labelKey" :k="labelKey" :raw="true" />{{ label }}</label>
     <div class="preview-container" @click.stop="$refs.input.click">
-      <span :style="{'background-color': value}" class="color-display">
-        <input ref="input" type="color" :value="value" @input="$emit('input', $event.target.value)" />
+      <span :style="{'background-color': inputValue}" class="color-display">
+        <input ref="input" type="color" :value="inputValue" @input="$emit('input', $event.target.value)" />
       </span>
-      <span class="text-muted">{{ value }}</span>
+      <span class="text-muted">{{ inputValue }}</span>
     </div>
   </div>
 </template>

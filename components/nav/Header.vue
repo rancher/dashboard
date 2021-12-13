@@ -8,6 +8,7 @@ import Import from '@/components/Import';
 import BrandImage from '@/components/BrandImage';
 import { getProduct } from '@/config/private-label';
 import RancherProviderIcon from '@/components/RancherProviderIcon';
+import { LOGGED_OUT } from '@/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
@@ -24,7 +25,7 @@ export default {
     TopLevelMenu,
     Jump,
     BrandImage,
-    RancherProviderIcon,
+    RancherProviderIcon
   },
 
   props: {
@@ -42,6 +43,7 @@ export default {
       showTooltip: false,
       searchShortcut,
       VIRTUAL,
+      LOGGED_OUT,
     };
   },
 
@@ -72,6 +74,14 @@ export default {
 
     showKubeShell() {
       return !this.currentProduct?.hideKubeShell;
+    },
+
+    showKubeConfig() {
+      return !this.currentProduct?.hideKubeConfig;
+    },
+
+    showCopyConfig() {
+      return !this.currentProduct?.hideCopyConfig;
     },
 
     importEnabled() {
@@ -223,8 +233,10 @@ export default {
     <div>
       <TopLevelMenu v-if="isMultiCluster || !isSingleVirtualCluster"></TopLevelMenu>
     </div>
-
-    <div v-if="currentCluster && !simple" class="top">
+    <div
+      v-if="currentCluster && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
+      class="top"
+    >
       <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
       <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
     </div>
@@ -263,13 +275,25 @@ export default {
         </button>
 
         <button
-          v-tooltip="t('nav.kubeconfig')"
+          v-if="showKubeConfig"
+          v-tooltip="t('nav.kubeconfig.download')"
           :disabled="!kubeConfigEnabled"
           type="button"
           class="btn header-btn role-tertiary"
           @click="currentCluster.downloadKubeConfig()"
         >
-          <i class="icon icon-file icon-lg" />
+          <i class="icon icon-file" />
+        </button>
+
+        <button
+          v-if="showCopyConfig"
+          v-tooltip="t('nav.kubeconfig.copy')"
+          :disabled="!kubeConfigEnabled"
+          type="button"
+          class="btn header-btn role-tertiary"
+          @click="currentCluster.copyKubeConfig()"
+        >
+          <i class="icon icon-copy" />
         </button>
       </template>
 
@@ -351,7 +375,7 @@ export default {
             <nuxt-link v-if="isRancher" tag="li" :to="{name: 'account'}" class="user-menu-item">
               <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }} <i class="icon icon-fw icon-user" /></a>
             </nuxt-link>
-            <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout'}" class="user-menu-item">
+            <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout', query: { [LOGGED_OUT]: true }}" class="user-menu-item">
               <a @blur="showMenu(false)">{{ t('nav.userMenu.logOut') }} <i class="icon icon-fw icon-close" /></a>
             </nuxt-link>
           </ul>
@@ -655,6 +679,23 @@ export default {
         padding: 10px 20px;
         border-bottom: solid 1px var(--border);
         min-width: 200px;
+      }
+    }
+  }
+
+  .config-actions {
+    li {
+      a {
+        justify-content: start;
+        align-items: center;
+
+        & .icon {
+          margin: 0 4px;
+        }
+
+        &:hover {
+          cursor: pointer;
+        }
       }
     }
   }

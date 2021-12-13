@@ -580,7 +580,7 @@ export function compatibleVersionsFor(versions, os, includePrerelease = true) {
       return false;
     }
 
-    if (!osAnnotation || osAnnotation === os) {
+    if (!osAnnotation || !os || osAnnotation === os) {
       return true;
     }
 
@@ -589,7 +589,7 @@ export function compatibleVersionsFor(versions, os, includePrerelease = true) {
 }
 
 export function filterAndArrangeCharts(charts, {
-  isWindows = false,
+  os,
   category,
   searchQuery,
   showDeprecated = false,
@@ -613,11 +613,8 @@ export function filterAndArrangeCharts(charts, {
       return false;
     }
 
-    if ( isWindows && compatibleVersionsFor(chartVersions, 'windows', showPrerelease).length <= 0) {
-      // There's no versions compatible with Windows
-      return false;
-    } else if ( !isWindows && compatibleVersionsFor(chartVersions, 'linux', showPrerelease).length <= 0) {
-      // There's no versions compatible with Linux
+    if (compatibleVersionsFor(chartVersions, os, showPrerelease).length <= 0) {
+      // There's no versions compatible with the specified os
       return false;
     }
 

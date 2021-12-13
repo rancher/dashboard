@@ -1,6 +1,6 @@
 <script>
 import ConsumptionGauge from '@/components/ConsumptionGauge';
-import { METRIC } from '@/config/types';
+import { METRIC, NODE } from '@/config/types';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
 
 export default {
@@ -16,6 +16,11 @@ export default {
     row: {
       type:     Object,
       required: true
+    },
+
+    resourceName: {
+      type:     String,
+      default: ''
     },
   },
 
@@ -38,20 +43,17 @@ export default {
       return out;
     },
 
-    memoryUsage() {
-      let out = 0;
-
-      if (this.metrics) {
-        out = this.metrics.memoryUsage;
-      }
-
-      return out;
-    },
-
     memoryUnits() {
       const exponent = exponentNeeded(this.memoryTotal, 1024);
 
       return `${ UNITS[exponent] }iB`;
+    },
+
+    node() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const node = this.$store.getters[`${ inStore }/byId`](NODE, this.row.id);
+
+      return node;
     },
   },
 
@@ -70,5 +72,22 @@ export default {
 </script>
 
 <template>
-  <ConsumptionGauge :capacity="memoryTotal" :used="memoryUsage" :units="memoryUnits" :number-formatter="memoryFormatter" />
+  <ConsumptionGauge
+    :capacity="memoryTotal"
+    :used="node.memoryReserved"
+    :units="memoryUnits"
+    :number-formatter="memoryFormatter"
+    :resource-name="resourceName"
+  >
+    <template #title="{amountTemplateValues, formattedPercentage}">
+      <span>
+        {{ t('clusterIndexPage.hardwareResourceGauge.reserved') }}
+      </span>
+      <span>
+        {{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }}
+        <span class="ml-10 percentage">/&nbsp;{{ formattedPercentage }}
+        </span>
+      </span>
+    </template>
+  </ConsumptionGauge>
 </template>

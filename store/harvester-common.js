@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import Parse from 'url-parse';
 import { HCI } from '@/config/types';
 
@@ -6,7 +7,8 @@ export const state = function() {
     latestBundleId:   '',
     bundlePending:    false,
     showBundleModal:  false,
-    bundlePercentage: 0
+    bundlePercentage: 0,
+    uploadingImages:  [],
   };
 };
 
@@ -25,7 +27,17 @@ export const mutations = {
 
   setBundlePercentage(state, value) {
     state.bundlePercentage = value;
-  }
+  },
+
+  uploadStart(state, value) {
+    state.uploadingImages.push(value);
+  },
+
+  uploadEnd(state, value) {
+    const filtered = state.uploadingImages.filter(l => l !== value);
+
+    Vue.set(state, 'uploadingImages', filtered);
+  },
 };
 
 export const getters = {
@@ -43,7 +55,11 @@ export const getters = {
 
   getBundlePercentage(state) {
     return state.bundlePercentage;
-  }
+  },
+
+  uploadingImages(state) {
+    return state.uploadingImages;
+  },
 };
 
 export const actions = {
