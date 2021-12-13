@@ -16,7 +16,7 @@ export default Vue.extend<Data, any, any, any>({
       type:     Object as PropType<Application>,
       required: true
     },
-    originalValue: {
+    initialValue: {
       type:     Object as PropType<Application>,
       required: true
     },

@@ -1,6 +1,6 @@
 <script>
 import BadgeState from '@/components/BadgeState';
-import { stateDisplay } from '@/plugins/steve/resource-class';
+import { stateDisplay } from '@/plugins/core-store/resource-class';
 
 const ACTIVE = 'healthy';
 const WARNING = 'warning';

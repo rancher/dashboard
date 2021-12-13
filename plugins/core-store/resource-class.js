@@ -1083,6 +1083,10 @@ export default class Resource {
     this.$dispatch(`cleanForNew`, this);
   }
 
+  cleanForDiff() {
+    this.$dispatch(`cleanForDiff`, this.toJSON());
+  }
+
   yamlForSave(yaml) {
     try {
       const obj = jsyaml.load(yaml);

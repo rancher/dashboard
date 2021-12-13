@@ -35,7 +35,7 @@ export default Vue.extend<Data, any, any, any>({
       type:     Object as PropType<Application>,
       required: true
     },
-    originalValue: {
+    initialValue: {
       type:     Object as PropType<Application>,
       required: true
     },
@@ -112,7 +112,7 @@ export default Vue.extend<Data, any, any, any>({
       Debug<br>
       Mode: {{ mode }}<br><br>
       Value: {{ JSON.stringify(value) }}<br><br>
-      originalValue: {{ JSON.stringify(originalValue) }}<br>
+      initialValue: {{ JSON.stringify(initialValue) }}<br>
     </div> -->
   </CruResource>
 </template>

@@ -1,16 +1,10 @@
 import https from 'https';
-import merge from 'lodash/merge';
-import { SCHEMA } from '@/config/types';
-import { createYaml } from '@/utils/create-yaml';
-import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@/store/type-map';
 import { addParam } from '@/utils/url';
 import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 import { set } from '@/utils/object';
 import { deferred } from '@/utils/promise';
-import { streamJson, streamingSupported, streamJson } from '@/utils/stream';
-
-import { normalizeType } from './normalize';
-import { classify } from './classify';
+import { streamJson, streamingSupported } from '@/utils/stream';
+import isObject from 'lodash/isObject';
 
 export const _ALL = 'all';
 export const _MULTI = 'multi';
@@ -227,30 +221,38 @@ export default {
   },
 
   cleanForNew(ctx, obj) {
-    delete obj.id;
-    delete obj.actions;
-    delete obj.links;
-    delete obj.status;
+    const m = obj.metadata || {};
 
-    if ( obj.metadata ) {
-      const m = obj.metadata;
+    dropKeys(obj, newRootKeys);
+    dropKeys(m, newMetadataKeys);
+    dropCattleKeys(m.annotations);
+    dropCattleKeys(m.labels);
 
-      m.name = '';
-      delete m.uid;
-      delete m.ownerReferences;
-      delete m.generation;
-      delete m.resourceVersion;
-      delete m.selfLink;
-      delete m.creationTimestamp;
-      delete m.deletionTimestamp;
-      delete m.state;
-      dropKeys(m.annotations);
-      dropKeys(m.labels);
-    }
+    m.name = '';
 
     if ( obj?.spec?.crd?.spec?.names?.kind ) {
       obj.spec.crd.spec.names.kind = '';
     }
+
+    return obj;
+  },
+
+  cleanForDiff(ctx, obj) {
+    const m = obj.metadata || {};
+
+    if ( !m.labels ) {
+      m.labels = {};
+    }
+
+    if ( !m.annotations ) {
+      m.annotations = {};
+    }
+
+    dropUnderscores(obj);
+    dropKeys(obj, diffRootKeys);
+    dropKeys(m, diffMetadataKeys);
+    dropCattleKeys(m.annotations);
+    dropCattleKeys(m.labels);
 
     return obj;
   },
@@ -273,8 +275,62 @@ export default {
   },
 };
 
-function dropKeys(obj) {
-  Object.keys(obj || {}).forEach((key) => {
+const diffRootKeys = [
+  'actions', 'links', 'status', '__rehydrate', '__clone'
+];
+
+const diffMetadataKeys = [
+  'ownerReferences',
+  'selfLink',
+  'creationTimestamp',
+  'deletionTimestamp',
+  'state',
+  'fields',
+  'relationships',
+  'generation',
+  'managedFields',
+  'resourceVersion',
+];
+
+const newRootKeys = [
+  'actions', 'links', 'status', 'id'
+];
+
+const newMetadataKeys = [
+  ...diffMetadataKeys,
+  'uid',
+];
+
+function dropUnderscores(obj) {
+  for ( const k in obj ) {
+    if ( k.startsWith('__') ) {
+      delete obj[k];
+    } else {
+      const v = obj[k];
+
+      if ( isObject(v) ) {
+        dropUnderscores(v);
+      }
+    }
+  }
+}
+
+function dropKeys(obj, keys) {
+  if ( !obj ) {
+    return;
+  }
+
+  for ( const k of keys ) {
+    delete obj[k];
+  }
+}
+
+function dropCattleKeys(obj) {
+  if ( !obj ) {
+    return;
+  }
+
+  Object.keys(obj).forEach((key) => {
     if ( !!key.match(/(^|field\.)cattle\.io(\/.*|$)/) ) {
       delete obj[key];
     }

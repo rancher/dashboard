@@ -1,4 +1,3 @@
-import cloneDeep from 'lodash/cloneDeep';
 import merge from 'lodash/merge';
 
 import { SCHEMA } from '@/config/types';
@@ -369,9 +368,7 @@ export default {
   },
 
   clone(ctx, { resource } = {}) {
-    const copy = cloneDeep(resource.toJSON());
-
-    return classify(ctx, copy, true);
+    return classify(ctx, resource.toJSON(), true);
   },
 
   promptRemove({ commit, state }, resources ) {
@@ -395,6 +392,10 @@ export default {
   },
 
   cleanForNew(ctx, resource) {
+    throw new Error('Not Implemented');
+  },
+
+  cleanForDiff(ctx, resource) {
     throw new Error('Not Implemented');
   },
 

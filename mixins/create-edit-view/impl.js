@@ -5,7 +5,6 @@ import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-h
 import { clear } from '@/utils/array';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { applyChangeset, changeset, changesetConflicts } from '@/utils/object';
-import { cleanForDiff } from '@/plugins/steve/normalize';
 
 export default {
   mixins: [ChildHook],
@@ -121,9 +120,9 @@ export default {
     // If they are resolved, return a false-y value
     // Else they can't be resolved, return an array of errors to show to the user.
     conflict() {
-      const orig = cleanForDiff(this.initialValue.toJSON());
-      const user = cleanForDiff(this.value.toJSON());
-      const cur = cleanForDiff(this.liveValue.toJSON());
+      const orig = this.initialValue.cleanForDiff();
+      const user = this.value.cleanForDiff();
+      const cur = this.liveValue.cleanForDiff();
 
       const bgChange = changeset(orig, cur);
       const userChange = changeset(orig, user);

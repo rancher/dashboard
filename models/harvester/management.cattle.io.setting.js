@@ -1,4 +1,4 @@
-import Resource from '@/plugins/steve/resource-class';
+import Resource from '@/plugins/core-store/resource-class';
 import { HCI } from '@/config/types';
 import { clone } from '@/utils/object';
 
