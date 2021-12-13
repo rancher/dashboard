@@ -69,6 +69,7 @@ export default {
       credentialId:           this.value || _NONE,
       newCredential:          null,
       createValidationPassed: false,
+      originalId:             this.value
     };
   },
 
@@ -106,10 +107,10 @@ export default {
         };
       });
 
-      if ( this.value && !out.find(x => x.value === this.value) ) {
+      if ( this.originalId && !out.find(x => x.value === this.originalId) ) {
         out.unshift({
-          label: `${ this.value.replace(/^cattle-global-data:/, '') } (current)`,
-          value: this.value
+          label: `${ this.originalId.replace(/^cattle-global-data:/, '') } (current)`,
+          value: this.originalId
         });
       }
 
