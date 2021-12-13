@@ -63,12 +63,13 @@ export default Vue.extend<Data, any, any, any>({
       try {
         if (this.mode === 'create') {
           await this.value.create();
+          await this.$store.dispatch('epinio/findAll', { type: this.value.type, opt: { force: true } });
         }
 
         if (this.mode === 'edit') {
           await this.value.update();
+          await this.value.forceFetch();
         }
-        await this.value.forceFetch();
         saveCb(true);
         this.done();
       } catch (err) {

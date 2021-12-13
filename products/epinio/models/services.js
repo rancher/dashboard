@@ -90,14 +90,5 @@ export default class EpinioService extends EpinioResource {
     });
   }
 
-  async save() {
-    await this._save(...arguments);
-    const services = await this.$dispatch('findAll', { type: this.type, opt: { force: true } });
-
-    // Find new namespace
-    // return new namespace
-    return services.filter(n => n.name === this.name)?.[0];
-  }
-
   // ------------------------------------------------------------------
 }
