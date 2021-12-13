@@ -166,7 +166,8 @@ export default class Workload extends SteveModel {
     for ( const pod of pods ) {
       if ( pod.isRunning ) {
         pod.openShell();
-        break;
+
+        return;
       }
     }
 
