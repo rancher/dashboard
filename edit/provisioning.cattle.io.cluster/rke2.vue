@@ -213,7 +213,7 @@ export default {
       set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
     }
 
-    if (this.isHarvesterDriver && this.mode === _CREATE) {
+    if (this.isHarvesterDriver && this.mode === _CREATE && this.agentConfig['cloud-provider-name'] === undefined) {
       this.agentConfig['cloud-provider-name'] = HARVESTER;
     }
 
