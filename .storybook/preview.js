@@ -11,6 +11,9 @@ const i18nStrings = require('../assets/translations/en-us.yaml');
 // Register custom i18n plugin
 require('../plugins/i18n');
 
+require('../plugins/v-select');
+require('../plugins/tooltip');
+
 //const store = require('./store');
 
 Vue.use(Vuex);
@@ -74,4 +77,17 @@ export const decorators = [
 // Add keyboard shortcut to toggle between dark and light modes
 window.onload = () => {
   installShortcut();
+
+  // Remove Storybook's custom styling on divs - this affects the styling of our components when in preview
+  // const list = document.getElementsByTagName("div");
+
+  // for (let el of list) {
+  //   if (el.classList.contains('sbdocs-div')) {
+  //     for(let c of el.classList) {
+  //       if (c.indexOf('css-') === 0) {
+  //         el.classList.remove(c);
+  //       }
+  //     }
+  //   }
+  // }
 }
