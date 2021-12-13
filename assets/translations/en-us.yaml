@@ -1476,8 +1476,6 @@ cluster:
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
-  providerTag:
-    harvester: '{techPreview}'
   providerGroup:
     create-custom1: Use existing nodes and create a cluster using RKE
     create-custom2: Use existing nodes and create a cluster using RKE2/K3s
@@ -5678,7 +5676,6 @@ typeDescription:
   logging.banzaicloud.io.flow: A flow defines which logs to collect and filter as well as which output to send the logs. The flow is a namespaced resource, which means logs will only be collected from the namepsace that the flow is deployed in.
   logging.banzaicloud.io.output: An output defines which logging providers that logs can be sent to. The output needs to be in the same namespace as the flow that is using it.
   group.principal: Assigning global roles to a group only works with external auth providers that support groups. Local authorization does not support groups.
-  harvesterhci.io.management.cluster: Virtualization Management is in Tech Preview.
 
 typeLabel:
   management.cattle.io.token: |-
