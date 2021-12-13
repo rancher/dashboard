@@ -23,6 +23,11 @@ export default {
         return {};
       },
     },
+
+    registerBeforeHook: {
+      type:     Function,
+      required: true,
+    },
   },
 
   data() {
@@ -44,9 +49,30 @@ export default {
     };
   },
 
+  created() {
+    if (this.registerBeforeHook) {
+      this.registerBeforeHook(this.willSave, 'willSave');
+    }
+  },
+
   computed: {
     protocolOptions() {
-      return ['SSLv2', 'SSLv3', 'TLSv1', 'TLSv1.1', 'TLSv1.2', 'TLSv1.3'];
+      return [{
+        label: 'SSLv3',
+        value: 'SSLv3',
+      }, {
+        label: 'SSLv2',
+        value: 'SSLv2',
+      }, {
+        label: 'TLSv1.2',
+        value: 'TLSv1.2',
+      }, {
+        label: `TLSv1.1(${ this.t('generic.deprecated') })`,
+        value: 'TLSv1.1',
+      }, {
+        label: `TLSv1(${ this.t('generic.deprecated') })`,
+        value: 'TLSv1',
+      }];
     },
   },
 
@@ -60,6 +86,23 @@ export default {
       const value = JSON.stringify(out);
 
       this.$set(this.value, 'value', value);
+    },
+
+    willSave() {
+      const errors = [];
+
+      const regex = /^(:?[A-Z0-9]+(?:-[A-Z0-9]+)+)+$/gm;
+      const ciphers = this.parsedDefaultValue.ciphers;
+
+      if (ciphers && !ciphers.match(regex)) {
+        errors.push(this.t('validation.invalid', { key: this.t('harvester.sslParameters.ciphers.label') }, true));
+      }
+
+      if (errors.length > 0) {
+        return Promise.reject(errors);
+      } else {
+        return Promise.resolve();
+      }
     },
   },
 
