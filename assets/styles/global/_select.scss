@@ -12,6 +12,13 @@
   height: $unlabeled-input-height;
 }
 
+.col {
+  > .unlabeled-select:not(.taggable) {
+    padding-top: calc(#{$input-height - 32px}/2);
+  }
+}
+
+
 .labeled-select,
 .unlabeled-select {
   min-width: 75px;
