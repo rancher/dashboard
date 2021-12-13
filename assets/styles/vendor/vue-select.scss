@@ -151,7 +151,9 @@
   &:after {
     content: $icon-chevron-down;
     font-family: 'icons';
-    font-size: 2rem;
+    font-size: 24px;
+    height: 32px;
+    padding-top: 3px;
     color: var(--secondary);
   }
 }

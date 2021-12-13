@@ -184,13 +184,11 @@ export default {
     & .input-string {
       border-radius: var(--border-radius) 0 0 var(--border-radius);
       border-right: 0;
-      border-left: 1px solid var(--border);
+      border-left-width: 1px;
     }
 
     & .in-input {
       border-radius: 0 var(--border-radius) var(--border-radius) 0;
-      border-left: 0;
-      border-right: 1px solid var(--border);
 
       &.labeled-select {
         .selected {
@@ -209,7 +207,7 @@ export default {
     width: 60%;
     flex-grow: 1;
     border-radius: 0 var(--border-radius) var(--border-radius) 0;
-    border-left: 0;
+    border-left-width: 0;
     margin-left: -1px;
     position: relative;
     display: table;
@@ -267,9 +265,11 @@ export default {
         }
       }
 
-      .vs__dropdown-toggle {
-        color: var(--primary) !important;
-        border-radius: var(--border-radius) 0 0 var(--border-radius);
+      .v-select:not(.vs--disabled) {
+        .vs__dropdown-toggle {
+          color: var(--primary) !important;
+          border-radius: var(--border-radius) 0 0 var(--border-radius);
+        }
       }
     }
   }

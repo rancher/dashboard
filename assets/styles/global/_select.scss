@@ -16,6 +16,13 @@
   }
 }
 
+.col {
+  > .unlabeled-select:not(.taggable) {
+    padding-top: calc(#{$input-height - 32px}/2);
+  }
+}
+
+
 .labeled-select,
 .unlabeled-select {
   min-width: 75px;
@@ -139,7 +146,7 @@
     }
   }
 
-  &:not(.view) {
+  &:not(.view):not(.disabled) {
     background-color: var(--input-bg);
     border: solid var(--border-width) var(--input-border);
 
