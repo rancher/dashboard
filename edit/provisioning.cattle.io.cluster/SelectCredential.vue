@@ -69,6 +69,7 @@ export default {
       credentialId:           this.value || _NONE,
       newCredential:          null,
       createValidationPassed: false,
+      originalId:             this.value
     };
   },
 
@@ -106,25 +107,23 @@ export default {
         };
       });
 
-      if ( out.length ) {
+      if ( this.originalId && !out.find(x => x.value === this.originalId) ) {
         out.unshift({
-          label: this.t('cluster.credential.select.option.new'),
-          value: _NEW,
-        });
-
-        out.unshift({
-          label:    this.t('cluster.credential.select.option.none'),
-          value:    _NONE,
-          disabled: true,
+          label: `${ this.originalId.replace(/^cattle-global-data:/, '') } (current)`,
+          value: this.originalId
         });
       }
 
-      if ( this.value && !out.find(x => x.value === this.value) ) {
-        out.push({
-          label: `${ this.value.replace(/^cattle-global-data:/, '') } (current)`,
-          value: this.value
-        });
-      }
+      out.unshift({
+        label: this.t('cluster.credential.select.option.new'),
+        value: _NEW,
+      });
+
+      out.unshift({
+        label:    this.t('cluster.credential.select.option.none'),
+        value:    _NONE,
+        disabled: true,
+      });
 
       return out;
     },
