@@ -1024,6 +1024,7 @@ export default {
 
         set(this.agentConfig, 'cloud-provider-config', res.data);
         set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.clusterName`, this.value.metadata.name);
+        set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`, '/var/lib/rancher/rke2/etc/config-files/cloud-provider-config');
       }
 
       await this.save(btnCb);
