@@ -119,6 +119,8 @@ export default {
       const hash = {
         rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
         k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
+        rke2Channels: this.$store.dispatch('management/request', { url: '/v1-rke2-release/channels' }),
+        k3sChannels:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/channels' }),
       };
 
       if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
@@ -130,6 +132,8 @@ export default {
       this.allPSPs = res.allPSPs || [];
       this.rke2Versions = res.rke2Versions.data || [];
       this.k3sVersions = res.k3sVersions.data || [];
+      this.rke2Channels = res.rke2Channels.data || [];
+      this.k3sChannels = res.k3sChannels.data || [];
 
       if ( !this.rke2Versions.length && !this.k3sVersions.length ) {
         throw new Error('No version info found in KDM');
@@ -154,15 +158,7 @@ export default {
     }
 
     if ( !this.value.spec.kubernetesVersion ) {
-      const option = this.versionOptions.find(x => !!x.value);
-      const rke2 = this.filterAndMap(this.rke2Versions, null);
-      const showRke2 = rke2.length;
-
-      if (this.isHarvesterDriver && showRke2) {
-        this.setHarvesterK8sDefaultVersion();
-      } else {
-        set(this.value.spec, 'kubernetesVersion', option.value);
-      }
+      set(this.value.spec, 'kubernetesVersion', this.defaultVersion);
     }
 
     for ( const k in this.serverArgs ) {
@@ -260,6 +256,8 @@ export default {
       machinePools:     null,
       rke2Versions:     null,
       k3sVersions:      null,
+      rke2Channels:     null,
+      k3Channels:       null,
       s3Backup:         false,
       chartVersionInfo: null,
       versionInfo:      {},
@@ -338,52 +336,13 @@ export default {
     },
 
     versionOptions() {
-      function filterAndMap(versions, minVersion, currentVersion) {
-        const out = (versions || []).filter(obj => !!obj.serverArgs).map((obj) => {
-          let disabled = false;
-
-          if ( minVersion ) {
-            disabled = compare(obj.id, minVersion) < 0;
-          }
-
-          return {
-            label:      obj.id,
-            value:      obj.id,
-            sort:       sortable(obj.id),
-            serverArgs: obj.serverArgs,
-            agentArgs:  obj.agentArgs,
-            charts:     obj.charts,
-            disabled,
-          };
-        });
-
-        const sorted = sortBy(out, 'sort:desc');
-        const versionMap = {};
-
-        return sorted.filter((version) => {
-          // Always show pre-releases
-          if (semver.prerelease(version.value)) {
-            return true;
-          }
-
-          const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
-
-          // Always show current version, else show if we haven't shown anything for this major.minor version yet
-          if (version === currentVersion || !versionMap[majorMinor]) {
-            versionMap[majorMinor] = true;
-
-            return true;
-          }
-
-          return false;
-        });
-      }
-
       const cur = this.liveValue?.spec?.kubernetesVersion || '';
       const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
       const existingK3s = this.mode === _EDIT && cur.includes('k3s');
-      const rke2 = filterAndMap(this.rke2Versions, (existingRke2 ? cur : null), cur);
-      const k3s = filterAndMap(this.k3sVersions, (existingK3s ? cur : null), cur);
+      const defaultRke2 = this.rke2Channels.find(x => x.id === 'default')?.latest;
+      const defaultK3s = this.k3sChannels.find(x => x.id === 'default')?.latest;
+      const rke2 = this.filterAndMap(this.rke2Versions, (existingRke2 ? cur : null), cur, defaultRke2);
+      const k3s = this.filterAndMap(this.k3sVersions, (existingK3s ? cur : null), cur, defaultK3s);
       const showRke2 = rke2.length && !existingK3s;
       const showK3s = k3s.length && !existingRke2;
       const out = [];
@@ -725,6 +684,33 @@ export default {
 
     isHarvesterDriver() {
       return this.$route.query.type === HARVESTER;
+    },
+
+    defaultVersion() {
+      const all = this.versionOptions.filter(x => !!x.value);
+      const first = all[0]?.value;
+      const preferredVersion = this.rke2Channels.find(x => x.id === 'default')?.latest;
+      const preferred = all.find(x => x.value === preferredVersion)?.value;
+
+      const rke2 = this.filterAndMap(this.rke2Versions, null);
+      const showRke2 = rke2.length;
+      let out;
+
+      if (this.isHarvesterDriver && showRke2) {
+        const satisfiesVersion = rke2.filter((v) => {
+          return isHarvesterSatisfiesVersion(v.value);
+        }) || [];
+
+        if (satisfiesVersion.length > 0) {
+          out = satisfiesVersion[0]?.value;
+        }
+      }
+
+      if ( !out ) {
+        out = preferred || first;
+      }
+
+      return out;
     },
   },
 
@@ -1232,16 +1218,21 @@ export default {
       }
     },
 
-    filterAndMap(versions, minVersion) {
+    filterAndMap(versions, minVersion, currentVersion, defaultVersion) {
       const out = (versions || []).filter(obj => !!obj.serverArgs).map((obj) => {
         let disabled = false;
+        let experimental = false;
 
         if ( minVersion ) {
           disabled = compare(obj.id, minVersion) < 0;
         }
 
+        if ( defaultVersion ) {
+          experimental = compare(defaultVersion, obj.id) < 0;
+        }
+
         return {
-          label:      obj.id,
+          label:      obj.id + (experimental ? ' (experimental)' : ''),
           value:      obj.id,
           sort:       sortable(obj.id),
           serverArgs: obj.serverArgs,
@@ -1251,23 +1242,26 @@ export default {
         };
       });
 
-      return sortBy(out, 'sort:desc');
-    },
+      const sorted = sortBy(out, 'sort:desc');
+      const versionMap = {};
 
-    setHarvesterK8sDefaultVersion() {
-      const rke2 = this.filterAndMap(this.rke2Versions, null);
+      return sorted.filter((version) => {
+        // Always show pre-releases
+        if (semver.prerelease(version.value)) {
+          return true;
+        }
 
-      const satisfiesVersion = rke2.filter((v) => {
-        return isHarvesterSatisfiesVersion(v.value);
-      }) || [];
+        const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
 
-      if (satisfiesVersion.length > 0) {
-        set(this.value.spec, 'kubernetesVersion', satisfiesVersion[0]?.value);
-      } else {
-        const option = this.versionOptions.find(x => !!x.value);
+        // Always show current version, else show if we haven't shown anything for this major.minor version yet
+        if (version === currentVersion || !versionMap[majorMinor]) {
+          versionMap[majorMinor] = true;
 
-        set(this.value.spec, 'kubernetesVersion', option.value);
-      }
+          return true;
+        }
+
+        return false;
+      });
     },
   },
 };
