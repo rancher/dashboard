@@ -10,7 +10,7 @@ import EnumType from './Enum';
 import IntType from './Int';
 import FloatType from './Float';
 import ArrayType from './Array';
-import MapType from './Map';
+import MapType from './QuestionMap';
 import ReferenceType from './Reference';
 import CloudCredentialType from './CloudCredential';
 
@@ -23,7 +23,7 @@ export const knownTypes = {
   enum:            EnumType,
   int:             IntType,
   float:           FloatType,
-  map:             MapType,
+  questionMap:     MapType,
   reference:       ReferenceType,
   configmap:       ReferenceType,
   secret:          ReferenceType,
@@ -37,6 +37,8 @@ export function componentForQuestion(q) {
 
   if ( knownTypes[type] ) {
     return type;
+  } else if (type === 'map') {
+    return MapType;
   } else if ( type.startsWith('array[') ) { // This only really works for array[string|multiline], but close enough for now.
     return ArrayType;
   } else if ( type.startsWith('map[') ) { // Same, only works with map[string|multiline]
@@ -202,6 +204,11 @@ export default {
     inStore: {
       type:    String,
       default: 'cluster'
+    },
+
+    emit: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -313,6 +320,13 @@ export default {
     get,
     set,
     componentForQuestion,
+
+    update(variable, $event) {
+      set(this.value, variable, $event);
+      if (this.emit) {
+        this.$emit('updated');
+      }
+    }
   },
 };
 </script>
@@ -335,7 +349,7 @@ export default {
             :target-namespace="targetNamespace"
             :value="get(value, q.variable)"
             :disabled="disabled"
-            @input="set(value, q.variable, $event)"
+            @input="update(q.variable, $event)"
           />
         </div>
       </div>
@@ -359,7 +373,7 @@ export default {
             :mode="mode"
             :value="get(value, q.variable)"
             :disabled="disabled"
-            @input="set(value, q.variable, $event)"
+            @input="update(q.variable, $event)"
           />
         </div>
       </div>
