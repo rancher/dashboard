@@ -35,6 +35,7 @@ export function calculatePosition(dropdownList, component, width, placement) {
   const docHeight = document.body.offsetHeight;
   const bottom = docHeight - window.scrollY - r.y - 1;
   let top;
+  const bottom = docHeight - window.scrollY - r.y - 1;
 
   // If placement is not at the top, then position if underneath
   if (!p.includes('top')) {

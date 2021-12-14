@@ -62,6 +62,10 @@ export default {
       return !!this.tooltip || !!this.tooltipKey;
     },
 
+    hasTooltip() {
+      return !!this.tooltip || !!this.tooltipKey;
+    },
+
     hasSuffix() {
       return !!this.$slots.suffix;
     },
