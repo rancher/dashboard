@@ -256,8 +256,8 @@ export default {
       machinePools:     null,
       rke2Versions:     null,
       k3sVersions:      null,
-      rke2Channels:     null,
-      k3Channels:       null,
+      rke2Channels:     [],
+      k3sChannels:      [],
       s3Backup:         false,
       chartVersionInfo: null,
       versionInfo:      {},
@@ -1232,7 +1232,7 @@ export default {
         }
 
         return {
-          label:      obj.id + (experimental ? ' (experimental)' : ''),
+          label:      obj.id + (experimental ? ` (${ this.t('cluster.kubernetesVersion.experimental') })` : ''),
           value:      obj.id,
           sort:       sortable(obj.id),
           serverArgs: obj.serverArgs,

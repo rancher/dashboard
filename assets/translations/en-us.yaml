@@ -1126,6 +1126,7 @@ cluster:
   importAction: Import Existing
   kubernetesVersion:
     label: Kubernetes Version
+    experimental: experimental
   toolsTip: Use the new Cluster Tools to manage and install Monitoring, Logging and other tools
   legacyWarning: The legacy feature flag is enabled and not all legacy features are supported in Kubernetes 1.21+.
   log:
