@@ -74,6 +74,7 @@ generic:
   completed: Completed
   enable: Enable
   disable: Disable
+  experimental: Experimental
 
 locale:
   en-us: English
@@ -1065,7 +1066,7 @@ cluster:
           More info on roles can be found <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/iam-integration" target="_blank" rel="noopener noreferrer nofollow">here</a>.
     harvester:
       import: Imported Harvester
-      external: External Harvester
+      external: External Harvester (Experimental)
       namespace: Namespace
       cpu: CPUs
       memory: Memory
@@ -1476,6 +1477,9 @@ cluster:
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
+  providerTag:
+    rke2:
+      harvester: '{tag}'
   providerGroup:
     create-custom1: Use existing nodes and create a cluster using RKE
     create-custom2: Use existing nodes and create a cluster using RKE2/K3s
