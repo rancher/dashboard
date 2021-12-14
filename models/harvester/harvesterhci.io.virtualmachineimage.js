@@ -200,6 +200,8 @@ export default class HciVmImage extends SteveModel {
           params: { size: file.size },
         });
       } catch (err) {
+        this.$ctx.commit('harvester-common/uploadEnd', this.metadata.name, { root: true });
+
         return Promise.reject(err);
       }
 

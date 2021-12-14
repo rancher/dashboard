@@ -69,6 +69,14 @@ export default {
           sort:      'spec.config',
           labelKey:  'tableHeaders.networkVlan'
         },
+        {
+          name:          'connectivity',
+          value:         'connectivity',
+          labelKey:      'tableHeaders.routeConnectivity',
+          formatter:     'BadgeStateFormatter',
+          formatterOpts: { arbitrary: true },
+          width:         130,
+        },
         AGE
       ];
     },

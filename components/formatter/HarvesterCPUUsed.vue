@@ -16,6 +16,11 @@ export default {
       type:     Object,
       required: true
     },
+
+    resourceName: {
+      type:     String,
+      default: ''
+    },
   },
 
   data() {
@@ -56,6 +61,7 @@ export default {
     :capacity="cpuTotal"
     :used="node.cpuReserved"
     :units="cpuUnits"
+    :resource-name="resourceName"
   >
     <template #title="{amountTemplateValues, formattedPercentage}">
       <span>

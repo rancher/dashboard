@@ -2,7 +2,9 @@
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import metricPoller from '@/mixins/metric-poller';
-import { METRIC, NODE, HCI, LONGHORN } from '@/config/types';
+import {
+  METRIC, NODE, HCI, LONGHORN, POD
+} from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { formatSi } from '@/utils/units';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
@@ -41,7 +43,8 @@ export default {
       nodes:         this.$store.dispatch('harvester/findAll', { type: NODE }),
       hostNetworks:  this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK }),
       longhornNodes: this.$store.dispatch(`${ inStore }/findAll`, { type: LONGHORN.NODES }),
-      blockDevices:   this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.BLOCK_DEVICE }),
+      blockDevices:  this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.BLOCK_DEVICE }),
+      pods:          this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
     };
 
     const res = await allHash(hash);

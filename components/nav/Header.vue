@@ -8,6 +8,7 @@ import Import from '@/components/Import';
 import BrandImage from '@/components/BrandImage';
 import { getProduct } from '@/config/private-label';
 import RancherProviderIcon from '@/components/RancherProviderIcon';
+import { LOGGED_OUT } from '@/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
@@ -42,6 +43,7 @@ export default {
       showTooltip: false,
       searchShortcut,
       VIRTUAL,
+      LOGGED_OUT,
     };
   },
 
@@ -76,6 +78,10 @@ export default {
 
     showKubeConfig() {
       return !this.currentProduct?.hideKubeConfig;
+    },
+
+    showCopyConfig() {
+      return !this.currentProduct?.hideCopyConfig;
     },
 
     importEnabled() {
@@ -279,6 +285,7 @@ export default {
         </button>
 
         <button
+          v-if="showCopyConfig"
           v-tooltip="t('nav.kubeconfig.copy')"
           :disabled="!kubeConfigEnabled"
           type="button"
@@ -367,7 +374,7 @@ export default {
             <nuxt-link v-if="isRancher" tag="li" :to="{name: 'account'}" class="user-menu-item">
               <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }} <i class="icon icon-fw icon-user" /></a>
             </nuxt-link>
-            <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout'}" class="user-menu-item">
+            <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout', query: { [LOGGED_OUT]: true }}" class="user-menu-item">
               <a @blur="showMenu(false)">{{ t('nav.userMenu.logOut') }} <i class="icon icon-fw icon-close" /></a>
             </nuxt-link>
           </ul>

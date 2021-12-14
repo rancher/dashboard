@@ -132,7 +132,7 @@ export default {
       const inStore = this.$store.getters['currentStore'](this.resource);
       const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource.type);
 
-      return !schema.resourceMethods?.find(x => x === 'blocked-PUT');
+      return !(schema?.resourceMethods?.includes('blocked-PUT'));
     },
 
     isView() {

@@ -117,6 +117,7 @@ export default {
             <SelectOrCreateAuthSecret
               v-model="row.value.authConfigSecretName"
               :register-before-hook="clusterRegisterBeforeHook"
+              :append-unique-id-to-hook="true"
               in-store="management"
               :allow-ssh="false"
               :allow-rke="true"

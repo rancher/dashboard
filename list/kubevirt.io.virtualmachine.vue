@@ -80,11 +80,18 @@ export default {
           align:     'center'
         },
         {
-          name:      'Memory',
-          value:     'spec.template.spec.domain.resources.requests.memory',
-          sort:      ['memorySort'],
-          align:     'center',
-          labelKey:  'tableHeaders.memory'
+          name:          'Memory',
+          value:         'spec.template.spec.domain.resources.limits.memory',
+          sort:          ['memorySort'],
+          align:         'center',
+          labelKey:      'tableHeaders.memory',
+          formatter:     'Si',
+          formatterOpts: {
+            opts: {
+              increment: 1024, addSuffix: true, maxExponent: 3, minExponent: 3, suffix: 'i',
+            },
+            needParseSi: true
+          },
         },
         {
           name:      'ip',

@@ -22,6 +22,7 @@ import NodeScheduling from '@/components/form/NodeScheduling';
 import { clear } from '@/utils/array';
 import { clone } from '@/utils/object';
 import { HCI } from '@/config/types';
+import { saferDump } from '@/utils/create-yaml';
 import { exceptionToErrorsArray } from '@/utils/error';
 import { cleanForNew } from '@/plugins/steve/normalize';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
@@ -64,6 +65,8 @@ export default {
     const cloneVM = clone(this.value);
     const isRestartImmediately = this.value.actualState === 'Running';
 
+    const hostname = this.value.spec.template.spec.hostname || '';
+
     return {
       cloneVM,
       count:                 2,
@@ -72,6 +75,7 @@ export default {
       isSingle:              true,
       isRunning:             true,
       useTemplate:           false,
+      hostname,
       isRestartImmediately,
     };
   },
@@ -130,17 +134,6 @@ export default {
       return this.isSingle ? this.t('harvester.virtualMachine.instance.single.host.placeholder') : this.t('harvester.virtualMachine.instance.multiple.host.placeholder');
     },
 
-    hostname: {
-      get() {
-        return this.spec.template.spec?.hostname;
-      },
-
-      set(neu) {
-        if (neu) {
-          this.$set(this.spec.template.spec, 'hostname', neu);
-        }
-      }
-    },
     secretNamePrefix() {
       return this.value?.metadata?.name;
     }
@@ -189,7 +182,26 @@ export default {
   },
 
   created() {
-    this.registerAfterHook(this.restartVM, 'restartVM');
+    this.registerAfterHook(async() => {
+      this.restartVM();
+      const id = `${ this.value.metadata.namespace }/${ this.value.metadata.name }`;
+
+      const res = this.$store.getters['harvester/byId'](HCI.VM, id);
+
+      try {
+        await this.saveSecret(res);
+      } catch (e) {
+        this.errors.push(...exceptionToErrorsArray(e));
+      }
+
+      if (!this.errors.length && this.isSingle) {
+        this.done();
+      }
+    });
+
+    if (this.registerBeforeHook) {
+      this.registerBeforeHook(this.updateBeforeSave);
+    }
   },
 
   mounted() {
@@ -210,6 +222,10 @@ export default {
 
   methods: {
     saveVM(buttonCb) {
+      if ( this.errors ) {
+        clear(this.errors);
+      }
+
       if (this.isSingle) {
         this.saveSingle(buttonCb);
       } else {
@@ -219,24 +235,19 @@ export default {
 
     async saveSingle(buttonCb) {
       this.parseVM();
-      if (!this.value.spec.template.spec.hostname) {
-        this.$set(this.value.spec.template.spec, 'hostname', this.value.metadata.name);
-      }
-
-      try {
-        await this._save(this.value, buttonCb);
+      this.value.spec.template.spec.hostname = this.hostname ? this.hostname : this.value.metadata.name;
+      await this._save(this.value, buttonCb);
+      if (!this.errors.length) {
         buttonCb(true);
-
-        this.done();
-      } catch (e) {
-        this.errors = exceptionToErrorsArray(e);
+      } else {
         buttonCb(false);
       }
     },
 
     async saveMultiple(buttonCb) {
+      const originName = this.value?.metadata?.name;
       const namePrefix = this.value.metadata.name || '';
-      const baseHostname = this.value?.spec?.template?.spec?.hostname ? this.value.spec.template.spec.hostname : this.value.metadata.name;
+      const baseHostname = this.hostname ? this.hostname : this.value.metadata.name;
       const join = namePrefix.endsWith('-') ? '' : '-';
 
       if (this.count < 1) {
@@ -260,32 +271,28 @@ export default {
         await this.parseVM();
         const basicValue = await this.$store.dispatch('harvester/clone', { resource: this.value });
 
-        try {
-          await this._save(basicValue);
+        await this._save(basicValue, buttonCb);
 
-          if (i === this.count) {
-            buttonCb(true);
-            this.done();
-          }
-        } catch (e) {
-          this.errors = exceptionToErrorsArray(e);
+        if (i === this.count && !this.errors.length) {
+          buttonCb(true);
+          this.done();
+        } else if (i === this.count) {
+          this.value.metadata.name = originName;
           buttonCb(false);
         }
       }
     },
 
-    async _save(value) {
-      if ( this.errors ) {
-        clear(this.errors);
+    async _save(value, buttonCb) {
+      await this.applyHooks(BEFORE_SAVE_HOOKS);
+      try {
+        await value.save();
+      } catch (e) {
+        this.errors.push(...exceptionToErrorsArray(e));
+        buttonCb(false);
       }
 
-      await this.applyHooks(BEFORE_SAVE_HOOKS);
-
-      const res = await value.save();
-
       await this.applyHooks(AFTER_SAVE_HOOKS);
-
-      await this.saveSecret(res);
     },
 
     restartVM() {
@@ -306,6 +313,14 @@ export default {
       }
     },
 
+    updateBeforeSave() {
+      if (this.isSingle) {
+        if (!this.value.spec.template.spec.hostname) {
+          this.$set(this.value.spec.template.spec, 'hostname', this.value.metadata.name);
+        }
+      }
+    },
+
     validataCount(count) {
       if (count > 10) {
         this.$set(this, 'count', 10);
@@ -321,6 +336,13 @@ export default {
         this.$refs.yamlEditor?.refresh();
       }
     },
+
+    generateYaml() {
+      this.parseVM();
+      const out = saferDump(this.value);
+
+      return out;
+    },
   },
 };
 </script>
@@ -331,7 +353,9 @@ export default {
       :done-route="doneRoute"
       :resource="value"
       :mode="mode"
+      :can-yaml="isSingle ? true : false"
       :errors="errors"
+      :generate-yaml="generateYaml"
       :apply-hooks="applyHooks"
       @finish="saveVM"
     >

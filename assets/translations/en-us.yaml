@@ -575,6 +575,10 @@ asyncButton:
     action: Upgrade
     success: Upgrading
     waiting: Starting&hellip;
+  generate:
+    action: Generate
+    success: Generated
+    waiting: Generating&hellip;
 
 backupRestoreOperator:
   backupFilename: Backup Filename
@@ -1093,7 +1097,7 @@ cluster:
       other {are # Harvester clusters that are not shown}
       }  
     registration:
-      step1: "1. Go to the <code>Global Settings / Advanced Settings</code> page of the target Harvester's UI."
+      step1: "1. Go to the <code>Advanced / Settings</code> page of the target Harvester's UI."
       step2: '2. Find the <code>cluster-registration-url</code> setting and click the <code><i class="icon icon-actions" ></i></code> -> <code>Edit Setting</code> button.'
       step3: "3. Input the following registration URL and click the <code>Save</code> button."
       step4: "Registration URL"
@@ -1472,8 +1476,6 @@ cluster:
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
-  providerTag:
-    harvester: '{techPreview}'
   providerGroup:
     create-custom1: Use existing nodes and create a cluster using RKE
     create-custom2: Use existing nodes and create a cluster using RKE2/K3s
@@ -4308,6 +4310,7 @@ tableHeaders:
   defaultVersion: Default version
   ipAddress: IP Address
   diskState: Disk State
+  routeConnectivity: Route Connectivity
 
 target:
   router:
@@ -5107,11 +5110,11 @@ harvester:
     memory: Memory
     cpu: CPU
     storage: Storage
+    noFileChosen: No file chosen
   
   validation:
     custom:
       tooLongName: '"Name" cannot be more than {max} characters.'
-      cidr: 'CIRD is invalid.'
     vm:
       name: 'name is required'
       memory: '"Memory" is required!'
@@ -5459,6 +5462,7 @@ harvester:
     label: Networks
     tabs:
       basics: Basics
+      layer3Network: Route
     message:
       vlanInactive: 'VLAN network is inactive at {name} host'
       premise: 
@@ -5473,6 +5477,19 @@ harvester:
         prefix: Physical NIC value in
         middle: Setting
         suffic: "is invalid, error: "
+    layer3Network:
+      mode:
+        label: Mode
+        auto: Auto(DHCP)
+        manual: Manual
+      serverIPAddr:
+        label: DHCP Server IP
+      gateway:
+        label: Gateway
+        placeholder: e.g. 172.16.0.1
+      cidr:
+        label: CIDR
+        placeholder: e.g. 172.16.0.1/24
   sshKey:
     label: SSH Keys
     keypair: SSH Key
@@ -5487,9 +5504,20 @@ harvester:
       accessKeyId: specify your access key id
       secretAccessKey: specify your secret access key
       cert: upload a self-signed SSL certificate
-    vlanChangeTip: The newly modified default physical NIC only applies to newly added nodes, not existing ones
+    vlanChangeTip: The newly modified default network interface only applies to newly added nodes, not existing ones.
     defaultPhysicalNIC: Default Network Interface
     percentTip: The value in parentheses represents the distribution percentage of the network interface on all hosts. If an interface less than 100% is selected, the user needs to manually specify the network interface on the host where the vlan network configuration fails.
+    message:
+      ca:
+        prefix: 'Click'
+        middle: 'here'
+        suffic: 'to add a custom certificate.'
+    sslCertificates:
+      publicCertificate: Public Certificate
+      privateKey: Private Key
+      ca: CA
+    vmForceDeletionPolicy:
+      period: Period
 
   cloudTemplate:
     label: Cloud Config Templates
@@ -5508,7 +5536,7 @@ harvester:
     title: Harvester Support
     kubeconfig:
       title: Download KubeConfig
-      titleDescription: Download kubeconfig for debugging or importing as an external cluster to Rancher. 
+      titleDescription: Download kubeconfig for debugging. 
   
   namespace:
     label: Namespaces
@@ -5534,6 +5562,14 @@ harvester:
     healthCheckTimeout:
       label: Health Check Timeout
   
+  vip:
+    namespace:
+      label: Namespace
+    cidr:
+      label: CIDR
+      invalid: '"CIRD" is invalid.'
+    add:
+      label: Add IP Pools
 ##############################
 # Model Properties
 ##############################
@@ -5640,7 +5676,6 @@ typeDescription:
   logging.banzaicloud.io.flow: A flow defines which logs to collect and filter as well as which output to send the logs. The flow is a namespaced resource, which means logs will only be collected from the namepsace that the flow is deployed in.
   logging.banzaicloud.io.output: An output defines which logging providers that logs can be sent to. The output needs to be in the same namespace as the flow that is using it.
   group.principal: Assigning global roles to a group only works with external auth providers that support groups. Local authorization does not support groups.
-  harvesterhci.io.management.cluster: Virtualization Management is in Tech Preview.
 
 typeLabel:
   management.cattle.io.token: |-
@@ -5995,7 +6030,7 @@ advancedSettings:
     'ui-default-landing': 'The default page users land on after login.'
     'brand': Folder name for an alternative theme defined in '/assets/brand'
     'harv-vlan': Default Network Interface name of the VLAN network.
-    'harv-backup-target': Custom back target to store VM backups.
+    'harv-backup-target': Custom backup target to store VM backups.
     'harv-log-level': Configure Harvester server log level. Default to info.
     'harv-server-version': Harvester server version.
     'harv-upgrade-checker-enabled': Specify whether to enable Harvester upgrade check or not. Default is true.
@@ -6003,6 +6038,12 @@ advancedSettings:
     'harv-ui-source': Config how to load the UI source.
     'harv-ui-index': 'HTML index location for the UI.'
     'harv-cluster-registration-url': Registration URL for mutil-cluster management.
+    'harv-http-proxy': 'HTTP proxy for Harvester to access external services.'
+    'harv-additional-ca': 'Custom CA root certificates for TLS validation.'
+    'harv-overcommit-config': 'Resource overcommit configuration.'
+    'harv-vip-pools': 'Config global or namespace IP address pools of the VIP by CIDR.'
+    'harv-support-bundle-timeout': 'Support Bundle timeout config in minutes, use 0 to disable the timeout.'
+    'harv-vm-force-deletion-policy': Config the force-delete action when a VM is stuck on a node that is down.
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:

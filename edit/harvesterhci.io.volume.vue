@@ -9,6 +9,7 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import { get } from '@/utils/object';
 import { HCI } from '@/config/types';
 import { sortBy } from '@/utils/sort';
+import { saferDump } from '@/utils/create-yaml';
 import { InterfaceOption } from '@/config/harvester-map';
 import { _CREATE } from '@/config/query-params';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -115,6 +116,11 @@ export default {
       this.$set(this.value, 'spec', spec);
     },
 
+    generateYaml() {
+      const out = saferDump(this.value);
+
+      return out;
+    },
   }
 };
 </script>
@@ -126,6 +132,7 @@ export default {
       :resource="value"
       :mode="mode"
       :errors="errors"
+      :generate-yaml="generateYaml"
       :apply-hooks="applyHooks"
       @finish="save"
     >

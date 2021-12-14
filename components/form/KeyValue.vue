@@ -271,16 +271,15 @@ export default {
           supported:        this.supported(row),
         };
 
-        for ( const k of this.preserveKeys ) {
+        this.preserveKeys?.map((k) => {
           if ( typeof row[k] !== 'undefined' ) {
             entry[k] = row[k];
           }
-        }
+        });
 
         rows.push(entry);
       }
     }
-
     if ( !rows.length && this.initialEmptyRow ) {
       rows.push({
         [this.keyName]:   '',
@@ -511,7 +510,6 @@ export default {
           <span />
         </slot>
       </template>
-
       <template v-if="!rows.length && isView">
         <div class="kv-item key text-muted">
           &mdash;
