@@ -218,6 +218,8 @@ export default {
 
   methods: {
     setRule(key, rule, event) {
+      console.log(`key: ${ key }\nrule: ${ JSON.stringify(rule) }\nevent: ${ event }`);
+
       const value = event.label ? event.label : event;
 
       if (value || (key === 'apiGroups' && value === '')) {
@@ -231,6 +233,8 @@ export default {
     },
     updateSelectValue(row, key, event) {
       const value = event.label ? event.value : event;
+
+      console.log(`row: ${ JSON.stringify(row) }\nkey: ${ key }\nevent: ${ event }`);
 
       this.$set(row, key, value);
     },
@@ -295,18 +299,18 @@ export default {
       // schema contains its apigroup
       // attach value to resource options array
 
-      console.log(`resource:`, resource);
-
       const resourceSchema = this.allSchemas.filter(schema => schema?.attributes?.resource === resource.toLowerCase())[0];
 
-      console.log(`resourceSchema:`, resourceSchema);
+      console.log(resource, ': ', resourceSchema);
 
       return resourceSchema ? resourceSchema.attributes.group : '';
     },
 
     setResource(event, rule) {
-      this.setRule('apiGroups', rule, event.apiGroups);
-      this.setRule('resources', rule, event.value);
+      const value = event.label ? event.value : event;
+
+      this.setRule('apiGroups', rule, value);
+      this.setRule('resources', rule, value);
 
       // rule: {
       //   resources: [event.value]
