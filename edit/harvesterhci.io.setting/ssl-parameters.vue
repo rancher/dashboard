@@ -94,8 +94,18 @@ export default {
     willSave() {
       const errors = [];
 
-      const regex = /^(:?[A-Z0-9]+(?:-[A-Z0-9]+)+)+$/gm;
       const ciphers = this.parsedDefaultValue.ciphers;
+      const protocols = this.parsedDefaultValue.protocols || [];
+
+      if (ciphers && protocols.length === 0) {
+        errors.push(this.t('validation.required', { key: this.t('harvester.sslParameters.protocols.label') }, true));
+      }
+
+      if (!ciphers && protocols.length > 0) {
+        errors.push(this.t('validation.required', { key: this.t('harvester.sslParameters.ciphers.label') }, true));
+      }
+
+      const regex = /^(:?[A-Z0-9]+(?:-[A-Z0-9]+)+)+$/gm;
 
       if (ciphers && (!ciphers.match(regex) || ciphers.startsWith(':'))) {
         errors.push(this.t('validation.invalid', { key: this.t('harvester.sslParameters.ciphers.label') }, true));

@@ -4953,7 +4953,7 @@ advancedSettings:
     trueOption: "True"
     falseOption: "False"
     value: 值
-    useDefault: 复制默认值
+    useDefault: 使用默认值
     invalidJSON: 无效的JSON - 请在保存前检查并修改您的输入。
   descriptions:
     'cacerts': "验证服务器的证书所需的CA证书。"
