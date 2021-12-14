@@ -155,10 +155,19 @@ export default {
     },
 
     showHarvesterAddOnConfig() {
-      const machineSelectorConfig = this.provisioningCluster?.spec?.rkeConfig?.machineSelectorConfig || {};
-      const agentConfig = (machineSelectorConfig[0] || {}).config;
-      const cloudProvider = agentConfig?.['cloud-provider-name'];
-      const version = this.provisioningCluster?.spec?.kubernetesVersion;
+      let cloudProvider;
+      const version = this.provisioningCluster?.kubernetesVersion;
+
+      if (this.provisioningCluster?.isRke2) {
+        const machineSelectorConfig = this.provisioningCluster?.spec?.rkeConfig?.machineSelectorConfig || {};
+        const agentConfig = (machineSelectorConfig[0] || {}).config;
+
+        cloudProvider = agentConfig?.['cloud-provider-name'];
+      } else if (this.provisioningCluster?.isRke1) {
+        const currentCluster = this.$store.getters['currentCluster'];
+
+        cloudProvider = currentCluster?.spec?.rancherKubernetesEngineConfig?.cloudProvider?.name;
+      }
 
       return this.checkTypeIs('LoadBalancer') &&
               cloudProvider === HARVESTER &&
