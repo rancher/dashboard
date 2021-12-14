@@ -117,6 +117,7 @@ export default {
   methods: {
     updateValue() {
       this.$refs['userTemplate'].updateValue();
+      this.$refs['networkTemplate'].updateValue();
     },
 
     update(value, type) {

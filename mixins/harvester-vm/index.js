@@ -8,6 +8,7 @@ import { clone } from '@/utils/object';
 import { allHash } from '@/utils/promise';
 import { randomStr } from '@/utils/string';
 import { base64Decode } from '@/utils/crypto';
+import { formatSi, parseSi } from '@/utils/units';
 import { SOURCE_TYPE } from '@/config/harvester-map';
 import { _CLONE } from '@/config/query-params';
 import {
@@ -99,6 +100,20 @@ export default {
 
     if (isClone) {
       this.deleteCloneValue();
+    }
+
+    if (type === HCI.VM) {
+      const resources = this.value.spec.template.spec.domain.resources;
+
+      if (!resources?.limits || (resources?.limits && !resources?.limits?.memory && resources?.limits?.memory !== null)) {
+        this.value.spec.template.spec.domain.resources = {
+          ...this.value.spec.template.spec.domain.resources,
+          limits: {
+            ...this.value.spec.template.spec.domain.resources.limits,
+            memory: this.value.spec.template.spec.domain.resources.requests.memory
+          }
+        };
+      }
     }
 
     return {
@@ -356,6 +371,15 @@ export default {
 
           const bootOrder = DISK?.bootOrder ? DISK?.bootOrder : index;
 
+          const parseValue = parseSi(size);
+
+          const formatSize = formatSi(parseValue, {
+            increment:   1024,
+            addSuffix:   false,
+            maxExponent: 3,
+            minExponent: 3,
+          });
+
           return {
             id:           randomStr(5),
             bootOrder,
@@ -366,7 +390,7 @@ export default {
             volumeName,
             container,
             accessMode,
-            size,
+            size:       `${ formatSize }Gi`,
             volumeMode:    volumeMode || this.customVolumeMode,
             image,
             type,

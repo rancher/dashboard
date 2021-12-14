@@ -97,7 +97,7 @@ export default {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.value.id }`);
       const diskStatus = longhornNode?.status?.diskStatus || {};
-      const diskSpec = longhornNode.spec?.disks || {};
+      const diskSpec = longhornNode?.spec?.disks || {};
 
       const formatOptions = {
         increment:    1024,

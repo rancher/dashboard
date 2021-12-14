@@ -757,4 +757,8 @@ export default class VirtVm extends SteveModel {
 
     return super.stateDescription;
   }
+
+  get displayMemory() {
+    return this.spec.template.spec.domain.resources?.limits?.memory || this.spec.template.spec.domain.resources?.requests?.memory;
+  }
 }

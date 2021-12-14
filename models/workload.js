@@ -667,33 +667,23 @@ export default class Workload extends SteveModel {
   }
 
   get podGauges() {
-    const out = {
-      active: { color: 'success' }, transitioning: { color: 'info' }, warning: { color: 'warning' }, error: { color: 'error' }
-    };
+    const out = { };
 
     if (!this.pods) {
       return out;
     }
 
     this.pods.map((pod) => {
-      const { status:{ phase } } = pod;
-      let group;
+      const { stateColor, stateDisplay } = pod;
 
-      switch (phase) {
-      case 'Running':
-        group = 'active';
-        break;
-      case 'Pending':
-        group = 'transitioning';
-        break;
-      case 'Failed':
-        group = 'error';
-        break;
-      default:
-        group = 'warning';
+      if (out[stateDisplay]) {
+        out[stateDisplay].count++;
+      } else {
+        out[stateDisplay] = {
+          color: stateColor.replace('text-', ''),
+          count: 1
+        };
       }
-
-      out[group].count ? out[group].count++ : out[group].count = 1;
     });
 
     return out;

@@ -5,6 +5,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import InputOrDisplay from '@/components/InputOrDisplay';
 import { HCI, PVC } from '@/config/types';
+import { formatSi, parseSi } from '@/utils/units';
 
 export default {
   name: 'HarvesterEditVMImage',
@@ -117,7 +118,16 @@ export default {
     pvcsResource: {
       handler(pvc) {
         if (pvc?.spec?.resources?.requests?.storage) {
-          this.value.size = pvc.spec.resources.requests.storage;
+          const parseValue = parseSi(pvc.spec.resources.requests.storage);
+
+          const formatSize = formatSi(parseValue, {
+            increment:   1024,
+            addSuffix:   false,
+            maxExponent: 3,
+            minExponent: 3,
+          });
+
+          this.value.size = `${ formatSize }Gi`;
         }
       },
       deep:      true,
