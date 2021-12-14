@@ -4710,10 +4710,6 @@ workload:
     pods: Pods by State
     runs: Runs
   gaugeStates:
-    active: Active
-    transitioning: Transitioning
-    warning: Warning
-    error: Error
     succeeded: Successful
     running: Running
     failed: Failed
