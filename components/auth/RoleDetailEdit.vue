@@ -217,6 +217,8 @@ export default {
 
   methods: {
     setRule(key, rule, event) {
+      console.log(`key: ${ key }\nrule: ${ JSON.stringify(rule) }\nevent: ${ event }`);
+
       const value = event.label ? event.label : event;
 
       if (value || (key === 'apiGroups' && value === '')) {
@@ -230,6 +232,8 @@ export default {
     },
     updateSelectValue(row, key, event) {
       const value = event.label ? event.value : event;
+
+      console.log(`row: ${ JSON.stringify(row) }\nkey: ${ key }\nevent: ${ event }`);
 
       this.$set(row, key, value);
     },
