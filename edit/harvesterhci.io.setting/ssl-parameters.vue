@@ -58,6 +58,9 @@ export default {
   computed: {
     protocolOptions() {
       return [{
+        label: 'TLSv1.3',
+        value: 'TLSv1.3',
+      }, {
         label: 'TLSv1.2',
         value: 'TLSv1.2',
       }, {
