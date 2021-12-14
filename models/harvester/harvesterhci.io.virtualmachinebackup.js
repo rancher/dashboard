@@ -102,4 +102,12 @@ export default class HciVmBackup extends SteveModel {
 
     return !!vmList.find( V => V.metadata.name === this.attachVM);
   }
+
+  remove() {
+    const opt = { ...arguments };
+
+    opt.params = { propagationPolicy: 'Foreground' };
+
+    return this._remove(opt);
+  }
 }

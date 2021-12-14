@@ -74,6 +74,7 @@ generic:
   completed: Completed
   enable: Enable
   disable: Disable
+  deprecated: Deprecated
 
 locale:
   en-us: English
@@ -3842,7 +3843,7 @@ setup:
     dockerSuffix: ""
     helmPrefix: 'For a Helm installation, run:'
     helmSuffix: ""
-  eula: I agree to the <a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">terms and conditions</a> for using Rancher.
+  eula: I agree to the <a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">terms and conditions</a> for using {name}.
   newPassword: New Password
   newUserSetPassword: The first order of business is to set a strong password. We suggest using this random one generated just for you, but enter your own if you like.
   serverUrl:
@@ -4442,6 +4443,7 @@ validation:
           recordName: 'Rule group {groupIndex} rule {ruleIndex} requires a Time Series Name.'
         singleEntry: 'At least one alert rule or one recording rule is required in rule group {index}.'
   required: '"{key}" is required'
+  invalid: '"{key}" is invalid'
   requiredOrOverride: '"{key}" is required or must allow override'
   roleTemplate:
     roleTemplateRules:
@@ -5566,6 +5568,13 @@ harvester:
       invalid: '"CIRD" is invalid.'
     add:
       label: Add IP Pools
+  
+  sslParameters:
+    protocols: 
+      label: Protocols
+    ciphers:
+      label: Ciphers
+    
 ##############################
 # Model Properties
 ##############################
@@ -6040,6 +6049,7 @@ advancedSettings:
     'harv-vip-pools': 'Config global or namespace IP address pools of the VIP by CIDR.'
     'harv-support-bundle-timeout': 'Support Bundle timeout config in minutes, use 0 to disable the timeout.'
     'harv-vm-force-deletion-policy': Config the force-delete action when a VM is stuck on a node that is down.
+    'harv-ssl-parameters': Custom SSL Parameters for TLS validation.
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:
