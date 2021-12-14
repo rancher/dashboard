@@ -4991,7 +4991,7 @@ advancedSettings:
     'harv-overcommit-config': '资源超额配置。'
     'harv-vip-pools': '按CIDR配置VIP全局和命名空间的IP地址池。'
     'harv-support-bundle-timeout': '支持包超时配置（分钟），使用0禁用超时。'
-    'harv-vm-force-deletion-policy': '配置当虚拟机卡在停机的节点上时的强制删除动作。'
+    'harv-vm-force-reset-policy': '配置当虚拟机卡在停机的节点上时的强制重启动作。'
   editHelp:
     'ui-banners': 这个设置需要一个JSON对象，包含3个根参数；<code>banner</code>, <code>showHeader</code>, <code>showFooter</code>。<code>banner</code>是一个包含；<code>textColor</code>, <code>background</code>, 和<code>text</code>的对象，其中<code>textColor</code>和<code>background</code>是任何有效的CSS颜色值。
   enum:

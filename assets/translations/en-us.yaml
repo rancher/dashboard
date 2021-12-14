@@ -6053,7 +6053,7 @@ advancedSettings:
     'harv-overcommit-config': 'Resource overcommit configuration.'
     'harv-vip-pools': 'Config global or namespace IP address pools of the VIP by CIDR.'
     'harv-support-bundle-timeout': 'Support Bundle timeout config in minutes, use 0 to disable the timeout.'
-    'harv-vm-force-deletion-policy': Config the force-delete action when a VM is stuck on a node that is down.
+    'harv-vm-force-reset-policy': Config the force-reset action when a VM is stuck on a node that is down.
     'harv-ssl-parameters': Custom SSL Parameters for TLS validation.
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
