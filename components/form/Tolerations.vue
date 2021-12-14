@@ -157,7 +157,7 @@ export default {
       </div>
       <template v-if="rule.operator==='Exists'">
         <div class="col">
-          n/a
+          <LabeledInput value="n/a" :mode="mode" disabled />
         </div>
       </template>
       <template v-else>

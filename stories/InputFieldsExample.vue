@@ -5,33 +5,54 @@ import LabeledSelect from '../components/form/LabeledSelect.vue';
 import InputWithSelect from '../components/form/InputWithSelect.vue';
 import Select from '../components/form/Select.vue';
 import KeyValue from '../components/form/KeyValue.vue';
+import Taints from '../components/form/Taints.vue';
+import Tolerations from '../components/form/Tolerations.vue';
 
 export default {
-  components: { KeyValue, LabeledInput, LabeledSelect, UnitInput, InputWithSelect, Select},
+  components: {
+    KeyValue,
+    LabeledInput,
+    LabeledSelect,
+    UnitInput,
+    InputWithSelect,
+    Select,
+    Taints,
+    Tolerations,
+  },
   data() {
     return {
-      value: '',
+      value:   '',
       options: [
         { id: '1', label: 'Option One' },
         { id: '2', label: 'Option Two' },
       ],
-      mode: 'EDIT', 
-      textValue: '100',
-      inputValue: 'Simple text',
+      mode:         'EDIT',
+      textValue:    '100',
+      inputValue:   'Simple text',
       selectOption: 'Option Two',
-      select: 'GB',
-      unitOptions: [
+      select:       'GB',
+      unitOptions:  [
         { id: '1', label: 'MB' },
         { id: '2', label: 'GB' },
       ],
       labels: {
-        'key1': 'value1',
-        'key2': 'value2\nmulti-line\ntext area',
+        key1: 'value1',
+        key2: 'value2\nmulti-line\ntext area',
       },
-      columns: [ 'extra' ],
-    }
+      columns: ['extra'],
+      taints:  [
+        {
+          key: 'Key'
+        }
+      ],
+      tolerations: [
+        {
+          key: 'Toleration 1',
+        }
+      ]
+    };
   }
-}
+};
 </script>
 
 <template>
@@ -39,17 +60,25 @@ export default {
     <h3>Standard HTML Input field</h3>
 
     <div class="row">
-      <div class="col span-6"><input v-model="inputValue" /></div>
-      <div class="col span-6"><input v-model="inputValue" disabled /></div>
+      <div class="col span-6">
+        <input v-model="inputValue" />
+      </div>
+      <div class="col span-6">
+        <input v-model="inputValue" disabled />
+      </div>
     </div>
 
     <h3>LabeledInput control</h3>
 
     <div class="row">
-      <div class="col span-6"><LabeledInput label="Label" type="text" value="123" /></div>
-      <div class="col span-6"><LabeledInput disabled label="Label" type="text" value="123" /></div>
+      <div class="col span-6">
+        <LabeledInput label="Label" type="text" value="123" />
+      </div>
+      <div class="col span-6">
+        <LabeledInput disabled label="Label" type="text" value="123" />
+      </div>
     </div>
-    
+
     <h3>UnitInput control (with suffix)</h3>
 
     <div class="row">
@@ -66,59 +95,103 @@ export default {
         <UnitInput disabled label="Label" type="text" value="123" suffix="Seconds" />
       </div>
       <div class="col span-6">
-        <UnitInput disabled label="Label" type="text" value="123" suffix="Seconds" tooltip="Tooltip for suffix" />
+        <UnitInput
+          disabled
+          label="Label"
+          type="text"
+          value="123"
+          suffix="Seconds"
+          tooltip="Tooltip for suffix"
+        />
       </div>
     </div>
 
     <h3>Select control</h3>
 
-    <Select v-model="selectOption" :options="options"/>
+    <Select v-model="selectOption" :options="options" />
 
     <p>When placed in a div with the "col" class:</p>
 
     <div class="row">
-      <div class="col span-6"><Select v-model="selectOption" :options="options"/></div>
-      <div class="col span-6"><Select disabled v-model="selectOption" :options="options"/></div>
+      <div class="col span-6">
+        <Select v-model="selectOption" :options="options" />
+      </div>
+      <div class="col span-6">
+        <Select v-model="selectOption" :options="options" disabled />
+      </div>
     </div>
 
     <h3>LabeledSelect control</h3>
-    
+
     <div class="row">
-      <div class="col span-6"><LabeledSelect v-model="selectOption" label="Select" :options="options"/></div>
-      <div class="col span-6"><LabeledSelect disabled v-model="selectOption" label="Select" :options="options"/></div>
+      <div class="col span-6">
+        <LabeledSelect v-model="selectOption" label="Select" :options="options" />
+      </div>
+      <div class="col span-6">
+        <LabeledSelect v-model="selectOption" label="Select" :options="options" disabled />
+      </div>
     </div>
 
     <h3>InputWithSelect control</h3>
 
     <div class="row">
-      <div class="col span-6"><InputWithSelect :text-value="textValue" :select-value="select" text-label="Label" select-label="Units" :options="unitOptions"/></div>
-      <div class="col span-6"><InputWithSelect disabled :text-value="textValue" :select-value="select" text-label="Label" select-label="Units" :options="unitOptions"/></div>
+      <div class="col span-6">
+        <InputWithSelect
+          :text-value="textValue"
+          :select-value="select"
+          text-label="Label"
+          select-label="Units"
+          :options="unitOptions"
+        />
+      </div>
+      <div class="col span-6">
+        <InputWithSelect
+          :text-value="textValue"
+          :select-value="select"
+          text-label="Label"
+          select-label="Units"
+          :options="unitOptions"
+          disabled
+        />
+      </div>
     </div>
 
     <h3>InputWithSelect control (Select after input)</h3>
 
     <div class="row">
-      <div class="col span-6"><InputWithSelect :select-before-text="false" :text-value="textValue" :select-value="select" text-label="Label" select-label="Units" :options="unitOptions"/></div>
-      <div class="col span-6"><InputWithSelect disabled :select-before-text="false" :text-value="textValue" :select-value="select" text-label="Label" select-label="Units" :options="unitOptions"/></div>
+      <div class="col span-6">
+        <InputWithSelect
+          :select-before-text="false"
+          :text-value="textValue"
+          :select-value="select"
+          text-label="Label"
+          select-label="Units"
+          :options="unitOptions"
+        />
+      </div>
+      <div class="col span-6">
+        <InputWithSelect
+          disabled
+          :select-before-text="false"
+          :text-value="textValue"
+          :select-value="select"
+          text-label="Label"
+          select-label="Units"
+          :options="unitOptions"
+        />
+      </div>
     </div>
 
-    <h3>KeyValue control</h3>
-    
-    <KeyValue v-model="labels" />
+    <h3>Fields in column layout)</h3>
 
-    <KeyValue v-model="labels" :extraColumns="['effect']">
-      <template #label:effect>
-        Units
-      </template>
-
-      <template #col:effect="{row}">
-        <Select
-          v-model="row.effect"
-          :options="options"
-          class="compact-select"
-        />
-      </template>
-    </KeyValue>
+    <div class="row">
+      <div class="col span-6">
+        <LabeledInput label="Label" type="text" value="123" />
+      </div>
+      <div class="col span-6">
+        <LabeledSelect v-model="selectOption" label="Select" :options="options" />
+      </div>
+    </div>
   </form>
 </template>
 

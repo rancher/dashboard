@@ -340,6 +340,12 @@ export default {
     }
   }
 
+  ::v-deep .v-select.vs--open {
+    .vs__dropdown-toggle {
+      color: var(--outline) !important;
+    }
+  }
+
   ::v-deep &.disabled {
     .labeled-container,
     .vs__dropdown-toggle,

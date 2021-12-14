@@ -198,6 +198,22 @@ export default {
         }
       }
 
+      &.focused:not(.vs__dropdown-up) {
+        border-bottom-right-radius: 0;
+      }
+
+      &.focused.vs__dropdown-up {
+        border-top-right-radius: 0;
+      }
+    }
+
+    .input-string {
+      &:hover:not(.focused):not(.disabled):not(:focus) {
+        padding-left: 10px !important;
+      }
+      &.focused, &:focus {
+        padding-left: 10px !important;
+      }      
     }
   }
 
@@ -227,7 +243,7 @@ export default {
 
   & .in-input {
     margin-right: 0;
-    border-radius: var(--border-radius) 0 0 var(--border-radius);
+    // border-radius: var(--border-radius) 0 0 var(--border-radius);
 
     &:hover:not(.focused):not(.disabled) {
       border: 1px solid var(--input-hover-border) !important;
@@ -267,8 +283,12 @@ export default {
 
       .v-select:not(.vs--disabled) {
         .vs__dropdown-toggle {
-          color: var(--primary) !important;
           border-radius: var(--border-radius) 0 0 var(--border-radius);
+        }
+        &.vs--open {
+          .vs__dropdown-toggle {
+            color: var(--outline) !important;
+          }
         }
       }
     }

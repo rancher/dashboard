@@ -32,27 +32,32 @@ export function calculatePosition(dropdownList, component, width, placement) {
   const r = $(component.$parent.$el)[0].getBoundingClientRect();
   const p = placement || 'bottom-start';
   let top;
-  const bottom = window.innerHeight - r.y - 2;
+  const docHeight = document.body.offsetHeight;
+  const bottom = docHeight - window.scrollY - r.y - 1;
 
   // If placement is not at the top, then position if underneath
   if (!p.includes('top')) {
     // Position is bottom
-    top = r.y + r.height - 2;
+    top = r.y + r.height - 1;
 
     // Check to see if the dropdown would fall off the screen, if so, try putting it above
     const end = top + dropdownList.offsetHeight;
 
     if (end > window.innerHeight) {
       top = undefined;
+    } else {
+      top += window.scrollY;
     }
   }
 
   if (!top) {
     dropdownList.style.bottom = `${ bottom }px`;
     dropdownList.classList.add('vs__dropdown-up');
+    selectEl.classList.add('vs__dropdown-up');
   } else {
     dropdownList.style.top = `${ top }px`;
     dropdownList.classList.remove('vs__dropdown-up');
+    selectEl.classList.remove('vs__dropdown-up');
   }
 
   dropdownList.style.left = `${ r.x }px`;
