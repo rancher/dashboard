@@ -116,18 +116,16 @@ This will create a new UI Package in the `pkg/testplugin` folder.
 Replace the contents of the file `pkg/testplugin/index.js` with:
 
 ```
-export const NAME = 'example';
+import { importTypes } from '@ranch/auto-import';
 
-export function init(store, $extension) {
-  const { product } = $extension.DSL(store, NAME);
+// Init the package
+export default function(router, store, $extension) {
+  // Auto-import model, detail, edit from the folders
+  importTypes($extension);
 
-  product({
-    icon:                  'gear',
-    inStore:               'management',
-    removable:             false,
-    showClusterSwitcher:   false,
-  });
+  $extension.addProducts([require('./product')]);
 }
+
 ```
 
 Next, create a new file `pkg/testplugin/product.js` with this content:
@@ -145,6 +143,7 @@ export function init(store, $extension) {
     showClusterSwitcher:   false,
   });
 }
+
 ```
 
 You should now be able to run the UI again wtih:
