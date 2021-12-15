@@ -213,7 +213,7 @@ export default {
       }
       &.focused, &:focus {
         padding-left: 10px !important;
-      }      
+      }
     }
   }
 

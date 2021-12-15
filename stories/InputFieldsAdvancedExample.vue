@@ -1,22 +1,14 @@
 <script>
-import LabeledInput from '../components/form/LabeledInput.vue';
-import UnitInput from '../components/form/UnitInput.vue';
-import LabeledSelect from '../components/form/LabeledSelect.vue';
-import InputWithSelect from '../components/form/InputWithSelect.vue';
 import Select from '../components/form/Select.vue';
 import KeyValue from '../components/form/KeyValue.vue';
 import Taints from '../components/form/Taints.vue';
 import Tolerations from '../components/form/Tolerations.vue';
-import Upgrading from '../edit/workload/Upgrading.vue'
-import Security from '../components/form/Security.vue'
+import Upgrading from '../edit/workload/Upgrading.vue';
+import Security from '../components/form/Security.vue';
 
 export default {
   components: {
     KeyValue,
-    LabeledInput,
-    LabeledSelect,
-    UnitInput,
-    InputWithSelect,
     Security,
     Select,
     Taints,
@@ -51,12 +43,8 @@ export default {
         { key: 'Toleration 1' }
       ],
       upgrading: {
-        type: 'RollingUpdate',
-        template: {
-          spec: {
-            terminationGracePeriodSeconds: 30
-          }
-        }
+        type:     'RollingUpdate',
+        template: { spec: { terminationGracePeriodSeconds: 30 } }
       },
       securityContext: {},
     };
@@ -95,7 +83,6 @@ export default {
 
     <h3>Security Context control</h3>
     <Security v-model="securityContext" mode="edit" />
-
   </form>
 </template>
 

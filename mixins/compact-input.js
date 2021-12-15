@@ -1,7 +1,7 @@
 export default {
   props: {
     compact: {
-      type: [Boolean],
+      type:    Boolean,
       default: null
     },
     label: {
