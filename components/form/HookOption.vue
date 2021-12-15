@@ -238,7 +238,7 @@ export default {
   }
 
   .labeled-select {
-    min-height: 61px;
+    min-height: $input-height;
   }
 }
 </style>

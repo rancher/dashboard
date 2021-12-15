@@ -243,7 +243,6 @@ export default {
 
   & .in-input {
     margin-right: 0;
-    // border-radius: var(--border-radius) 0 0 var(--border-radius);
 
     &:hover:not(.focused):not(.disabled) {
       border: 1px solid var(--input-hover-border) !important;

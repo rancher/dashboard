@@ -5,11 +5,11 @@
   min-height: $input-height;
 
   &.compact-input {
-    min-height: 40px;
+    min-height: $unlabeled-input-height;
     padding: 0 10px;
 
     INPUT.no-label {
-      line-height: 18px;
+      line-height: $input-line-height;
     }
   }
 
@@ -109,7 +109,6 @@
   }
 
   &.suffix.has-tooltip INPUT {
-    //padding-right: 32px;
     width: calc(100% - 30px);
   }
 

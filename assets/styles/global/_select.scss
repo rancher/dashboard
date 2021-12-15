@@ -8,29 +8,13 @@
   }
 }
 
-// TODO
-// .col {
-//   > .labeled-select:not(.taggable),
-//   > .unlabeled-select:not(.taggable) {
-//     min-height: $input-height;
-//     // padding-bottom: calc(#{$input-padding-sm}/2);
-//   }
-// }
-
-// .col {
-//   > .unlabeled-select:not(.taggable) {
-//     padding-top: 5px;
-//   }
-// }
-
 .unlabeled-select:not(.in-input) {
-  height: 40px;
+  height: $unlabeled-input-height;
 }
 
 .labeled-select,
 .unlabeled-select {
   min-width: 75px;
-  // line-height: $input-line-height;
 
   .required {
     color: var(--error);
