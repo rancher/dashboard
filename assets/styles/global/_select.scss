@@ -11,15 +11,13 @@
 .unlabeled-select:not(.in-input) {
   height: $unlabeled-input-height;
 }
-
 .col {
   > .unlabeled-select:not(.taggable) {
     padding-top: 5px;
   }
 }
-
 .unlabeled-select:not(.in-input) {
-  height: 40px;
+  height: $unlabeled-input-height;
 }
 
 .labeled-select,
