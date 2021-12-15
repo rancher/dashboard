@@ -37,8 +37,6 @@ export function componentForQuestion(q) {
 
   if ( knownTypes[type] ) {
     return type;
-  } else if (type === 'map') {
-    return MapType;
   } else if ( type.startsWith('array[') ) { // This only really works for array[string|multiline], but close enough for now.
     return ArrayType;
   } else if ( type.startsWith('map[') ) { // Same, only works with map[string|multiline]

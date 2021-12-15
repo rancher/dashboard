@@ -12,9 +12,7 @@ import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
 import { findBy, removeObject, clear } from '@/utils/array';
-import {
-  clone, diff, isEmpty, set, get
-} from '@/utils/object';
+import { clone, diff, set, get } from '@/utils/object';
 import { allHash } from '@/utils/promise';
 import { sortBy } from '@/utils/sort';
 import { camelToTitle, nlToBr } from '@/utils/string';
@@ -744,7 +742,7 @@ export default {
 
       if (diff) {
         // Allow time for addonNames to update... then fetch any missing addons
-        setTimeout(() => this.initAddons());
+        this.$nextTick(() => this.initAddons());
       }
     },
 
@@ -752,7 +750,7 @@ export default {
       this.versionInfo = {}; // Invalidate cache such that version info relevent to selected kube version is updated
 
       // Allow time for addonNames to update... then fetch any missing addons
-      setTimeout(() => this.initAddons());
+      this.$nextTick(() => this.initAddons());
     },
 
     showCni(neu) {
@@ -1100,11 +1098,9 @@ export default {
     showAddons() {
       this.addonsRev++;
       this.addonNames.forEach((name) => {
-        if (this.versionInfo[name]?.questions) {
-          this.userChartValuesTemp[name] = this.initYamlEditor(name);
-        } else {
-          this.userChartValuesTemp[name] = {};
-        }
+        const chartValues = this.versionInfo[name]?.questions ? this.initYamlEditor(name) : {};
+
+        set(this.userChartValuesTemp, name, chartValues);
       });
       this.refreshYamls();
     },
@@ -1132,11 +1128,7 @@ export default {
       const fromUser = this.userChartValuesTemp[name];
       const different = diff(fromChart, fromUser);
 
-      if ( isEmpty(different) ) {
-        this.userChartValues[this.chartVersionKey(name)] = {};
-      } else {
-        this.userChartValues[this.chartVersionKey(name)] = different;
-      }
+      this.userChartValues[this.chartVersionKey(name)] = different;
     }, 250, { leading: true }),
 
     updateQuestions(name) {
