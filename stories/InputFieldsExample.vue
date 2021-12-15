@@ -79,6 +79,10 @@ export default {
       </div>
     </div>
 
+    <LabeledInput type="text" value="No label" class="mt-10" />
+    <LabeledInput label="Label will not be shown" type="text" value="No label (compact)" compact class="mt-10" />
+    <LabeledInput type="text" value="No label (not compact)" :compact="false" class="mt-10" />
+
     <h3>UnitInput control (with suffix)</h3>
 
     <div class="row">
@@ -132,6 +136,36 @@ export default {
       </div>
     </div>
 
+    <div class="row mt-10">
+      <div class="col span-6">LabeledSelect (with label)</div>
+      <div class="col span-6">LabeledSelect (without label, not compact)</div>
+    </div>
+    <div class="row mt-5">
+      <div class="col span-6">
+        <LabeledSelect v-model="selectOption" label="Select" :options="options" />
+      </div>
+      <div class="col span-6">
+        <LabeledSelect v-model="selectOption" :compact="false" :options="options" />
+      </div>
+    </div>
+
+    <LabeledSelect v-model="selectOption" :options="options" class="mt-10"/>
+    <LabeledSelect v-model="selectOption" :options="options" compact class="mt-10"/>
+    <LabeledSelect v-model="selectOption" :options="options" :compact="false" class="mt-10"/>
+
+    <div class="row mt-10">
+      <div class="col span-6">Select</div>
+      <div class="col span-6">LabeledSelect (compact)</div>
+    </div>
+    <div class="row mt-5">
+      <div class="col span-6">
+        <Select v-model="selectOption" label="Select" :options="options" />
+      </div>
+      <div class="col span-6">
+        <LabeledSelect v-model="selectOption" :options="options" />
+      </div>
+    </div>
+
     <h3>InputWithSelect control</h3>
 
     <div class="row">
@@ -182,7 +216,7 @@ export default {
       </div>
     </div>
 
-    <h3>Fields in column layout)</h3>
+    <h3>Fields in column layout</h3>
 
     <div class="row">
       <div class="col span-6">
@@ -190,6 +224,34 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledSelect v-model="selectOption" label="Select" :options="options" />
+      </div>
+    </div>
+
+    <div class="row mt-10">
+      <div class="col span-6">
+        <LabeledInput label="Label" type="text" value="123" :compact="true" />
+      </div>
+      <div class="col span-6">
+        <LabeledSelect v-model="selectOption" label="Select" :options="options" :compact="true" />
+      </div>
+    </div>
+
+    <div class="row mt-10">
+      <div class="col span-4">
+        <LabeledInput label="Label" type="text" value="123" />
+      </div>
+      <div class="col span-4">
+        <LabeledSelect v-model="selectOption" label="Select" :options="options" />
+      </div>
+      <div class="col span-4">
+        <InputWithSelect
+          :select-before-text="false"
+          :text-value="textValue"
+          :select-value="select"
+          text-label="Label"
+          select-label="Units"
+          :options="unitOptions"
+        />
       </div>
     </div>
   </form>

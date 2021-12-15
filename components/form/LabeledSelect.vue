@@ -401,6 +401,10 @@ export default {
   ::v-deep .vs__selected-options {
     margin-top: -5px;
 
+    // Ensure whole select is clickable to close the select when open
+    .vs__selected {
+      width: 100%;
+    }
   }
 
   ::v-deep .v-select:not(.vs--single) {
