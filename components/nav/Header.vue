@@ -40,8 +40,8 @@ export default {
     const shellShortcut = '(Ctrl+`)';
 
     return {
-      show:        false,
-      showTooltip: false,
+      show:          false,
+      showTooltip:   false,
       searchShortcut,
       shellShortcut,
       VIRTUAL,
