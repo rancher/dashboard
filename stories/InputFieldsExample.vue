@@ -4,20 +4,14 @@ import UnitInput from '../components/form/UnitInput.vue';
 import LabeledSelect from '../components/form/LabeledSelect.vue';
 import InputWithSelect from '../components/form/InputWithSelect.vue';
 import Select from '../components/form/Select.vue';
-import KeyValue from '../components/form/KeyValue.vue';
-import Taints from '../components/form/Taints.vue';
-import Tolerations from '../components/form/Tolerations.vue';
 
 export default {
   components: {
-    KeyValue,
     LabeledInput,
     LabeledSelect,
     UnitInput,
     InputWithSelect,
     Select,
-    Taints,
-    Tolerations,
   },
   data() {
     return {
@@ -40,16 +34,6 @@ export default {
         key2: 'value2\nmulti-line\ntext area',
       },
       columns: ['extra'],
-      taints:  [
-        {
-          key: 'Key'
-        }
-      ],
-      tolerations: [
-        {
-          key: 'Toleration 1',
-        }
-      ]
     };
   }
 };
@@ -137,8 +121,12 @@ export default {
     </div>
 
     <div class="row mt-10">
-      <div class="col span-6">LabeledSelect (with label)</div>
-      <div class="col span-6">LabeledSelect (without label, not compact)</div>
+      <div class="col span-6">
+        LabeledSelect (with label)
+      </div>
+      <div class="col span-6">
+        LabeledSelect (without label, not compact)
+      </div>
     </div>
     <div class="row mt-5">
       <div class="col span-6">
@@ -149,13 +137,17 @@ export default {
       </div>
     </div>
 
-    <LabeledSelect v-model="selectOption" :options="options" class="mt-10"/>
-    <LabeledSelect v-model="selectOption" :options="options" compact class="mt-10"/>
-    <LabeledSelect v-model="selectOption" :options="options" :compact="false" class="mt-10"/>
+    <LabeledSelect v-model="selectOption" :options="options" class="mt-10" />
+    <LabeledSelect v-model="selectOption" :options="options" compact class="mt-10" />
+    <LabeledSelect v-model="selectOption" :options="options" :compact="false" class="mt-10" />
 
     <div class="row mt-10">
-      <div class="col span-6">Select</div>
-      <div class="col span-6">LabeledSelect (compact)</div>
+      <div class="col span-6">
+        Select
+      </div>
+      <div class="col span-6">
+        LabeledSelect (compact)
+      </div>
     </div>
     <div class="row mt-5">
       <div class="col span-6">
