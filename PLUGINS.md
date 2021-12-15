@@ -4,7 +4,7 @@ After checkout:
 
 - Run the script `./scripts/rejig` - this will move most of the code under the `shell` folder and update the appropriate import statements
 - Run `yarn install`
-- Run `export API=https:{RANCHER_BACKEND}` (where `{RANCHER_BACKEND}` is the address of a running Rancher backend)
+- Run `export API=https://{RANCHER_BACKEND}` (where `{RANCHER_BACKEND}` is the address of a running Rancher backend)
 
 The basis of this proof-of-concept is moving the majortiy of the code under the `shell` folder. Additionally, the top-level `nuxt.config.js` is updated
 to extend a base version now located within the `shell` folder. This includes updated nuxt and webpack configuration to get everything working with the
@@ -78,6 +78,7 @@ Now we can go ahead and create a new UI.
 
 ```
 yarn create @ranch/app my-app
+cd my-app
 ```
 
 This will create a new folder `my-app` and populate it with the miniumum files needed.
@@ -115,17 +116,17 @@ This will create a new UI Package in the `pkg/testplugin` folder.
 Replace the contents of the file `pkg/testplugin/index.js` with:
 
 ```
-import { importTypes } from '@ranch/auto-import';
+export const NAME = 'example';
 
-// Init the package
-export default function(router, store, $extension) {
-  // Auto-import model, detail, edit from the folders
-  importTypes($extension);
+export function init(store, $extension) {
+  const { product } = $extension.DSL(store, NAME);
 
-  // Register products
-  $extension.addProducts([
-    import('./product'),
-  ]);
+  product({
+    icon:                  'gear',
+    inStore:               'management',
+    removable:             false,
+    showClusterSwitcher:   false,
+  });
 }
 ```
 
@@ -154,7 +155,7 @@ yarn dev
 
 Open a web browser to https://127.0.0.1:8005 and you'll see a new 'Example' nav item in the top-level slide-in menu.
 
-The `testplugin` package created here doesn't do much other than add a new product to the UI, which results in the new navigation item,
+The `testplugin` package created here doesn't do much other than add a new product to the UI, which results in the new navigation item.
 
 The developer experience is still the same - you can edit the code in `pkg/testplugin` and the UI will hot-reload to reflect the updates you make.
 

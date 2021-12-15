@@ -29,7 +29,7 @@ Cypress.Commands.add('login', (username = Cypress.env('username'), password = Cy
   };
 
   if (cacheSession) {
-    cy.session([username, password], login);
+    (cy as any).session([username, password], login);
   } else {
     login();
   }
