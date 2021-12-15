@@ -201,7 +201,7 @@ export default {
 
 .rule, .toleration-headers{
   display: grid;
-  grid-template-columns: 20% 10% 20% 10% 20% 10%;
+  grid-template-columns: 20% 10% 20% 15% 20% 10%;
   grid-gap: $column-gutter;
   align-items: center;
 }

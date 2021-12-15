@@ -1,4 +1,5 @@
 <script>
+import CompactInput from '@/mixins/compact-input';
 import LabeledFormElement from '@/mixins/labeled-form-element';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 import LabeledTooltip from '@/components/form/LabeledTooltip';
@@ -8,7 +9,7 @@ import { isValidCron } from 'cron-validator';
 
 export default {
   components: { LabeledTooltip, TextAreaAutoGrow },
-  mixins:     [LabeledFormElement],
+  mixins:     [LabeledFormElement, CompactInput],
 
   props: {
     type: {
@@ -54,7 +55,7 @@ export default {
 
   computed: {
     hasLabel() {
-      return !!this.label || !!this.labelKey || !!this.$slots.label;
+      return this.isCompact ? false : !!this.label || !!this.labelKey || !!this.$slots.label;
     },
 
     hasTooltip() {
@@ -142,11 +143,12 @@ export default {
       [status]: status,
       suffix: hasSuffix,
       'has-tooltip': hasTooltip,
+      'compact-input': isCompact,
       hideArrows
     }"
   >
     <slot name="label">
-      <label>
+      <label v-if="hasLabel">
         <t v-if="labelKey" :k="labelKey" />
         <template v-else-if="label">{{ label }}</template>
 

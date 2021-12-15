@@ -29,11 +29,12 @@ export function onClickOption(option, e) {
 // We used to use popper for these, but it does not suppotr fractional pixel placements which
 // means the dropdown does not appear aligned to the control when placed in a column-based layout
 export function calculatePosition(dropdownList, component, width, placement) {
-  const r = $(component.$parent.$el)[0].getBoundingClientRect();
+  const selectEl = $(component.$parent.$el)[0];
+  const r = selectEl.getBoundingClientRect();
   const p = placement || 'bottom-start';
-  let top;
   const docHeight = document.body.offsetHeight;
   const bottom = docHeight - window.scrollY - r.y - 1;
+  let top;
 
   // If placement is not at the top, then position if underneath
   if (!p.includes('top')) {

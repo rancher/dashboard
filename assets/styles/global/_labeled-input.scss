@@ -4,6 +4,15 @@
   border-collapse: separate;
   min-height: $input-height;
 
+  &.compact-input {
+    min-height: 40px;
+    padding: 0 10px;
+
+    INPUT.no-label {
+      line-height: 18px;
+    }
+  }
+
   LABEL {
     position: absolute;
     transform: translate(0, -10px) scale(1);

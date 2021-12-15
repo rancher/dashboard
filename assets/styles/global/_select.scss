@@ -8,19 +8,20 @@
   }
 }
 
-.col {
-  > .labeled-select:not(.taggable),
-  > .unlabeled-select:not(.taggable) {
-    min-height: $input-height;
-    // padding-bottom: calc(#{$input-padding-sm}/2);
-  }
-}
+// TODO
+// .col {
+//   > .labeled-select:not(.taggable),
+//   > .unlabeled-select:not(.taggable) {
+//     min-height: $input-height;
+//     // padding-bottom: calc(#{$input-padding-sm}/2);
+//   }
+// }
 
-.col {
-  > .unlabeled-select:not(.taggable) {
-    padding-top: 5px;
-  }
-}
+// .col {
+//   > .unlabeled-select:not(.taggable) {
+//     padding-top: 5px;
+//   }
+// }
 
 .unlabeled-select:not(.in-input) {
   height: 40px;
