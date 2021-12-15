@@ -1016,8 +1016,6 @@ export default {
         }
       });
 
-      // TODO: RC existing vsphere config
-
       if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId && this.isCreate) {
         const namespace = this.machinePools?.[0]?.config?.vmNamespace;
 
@@ -1427,13 +1425,6 @@ export default {
               />
             </div>
           </div>
-          <!-- TODO: RC REMOVE -->
-          <!-- <br><br>
-          rkeConfig.chartValues: {{ value.spec.rkeConfig.chartValues }}
-          <br><br>
-          userChartValues: {{ userChartValues }}
-          <br><br>
-          addonNames: {{ addonNames }} -->
           <template v-if="showVsphereNote">
             <Banner color="warning" label-key="cluster.cloudProvider.rancher-vsphere.note" />
           </template>
