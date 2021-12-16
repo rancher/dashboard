@@ -336,7 +336,7 @@ export default {
             <div class="checkbox mt-40">
               <Checkbox v-model="telemetry" label-key="setup.telemetry" />
             </div>
-            <div class="checkbox pt-10 eula">
+            <div class="checkbox pt-10">
               <Checkbox v-model="eula">
                 <template #label>
                   <t k="setup.eula" :raw="true" :name="productName" />
@@ -417,14 +417,6 @@ export default {
       line-height: 20px;
     }
 
-    .eula {
-      align-items: center;
-      display: flex;
-
-      span {
-        margin-left: 5px;
-      }
-    }
   }
 
   .landscape {
