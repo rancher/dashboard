@@ -59,7 +59,7 @@ export default {
     },
 
     provisionPhase() {
-      return this.value?.blockDevice?.provisionPhase;
+      return this.value?.blockDevice?.provisionPhase || {};
     },
 
     mountedMessage() {
