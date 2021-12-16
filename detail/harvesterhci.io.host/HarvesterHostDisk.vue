@@ -58,6 +58,10 @@ export default {
       return this.value?.conditions?.Schedulable || {};
     },
 
+    provisionPhase() {
+      return this.value?.blockDevice?.provisionPhase;
+    },
+
     mountedMessage() {
       const state = this.value?.blockDevice?.metadata?.state || {};
 
@@ -113,6 +117,13 @@ export default {
               :color="schedulableCondiction.status === 'True' ? 'bg-success' : 'bg-error' "
               :icon="schedulableCondiction.status === 'True' ? 'icon-checkmark' : 'icon-warning' "
               label="Schedulable"
+              class="mr-10 state"
+            />
+            <BadgeState
+              v-if="provisionPhase.label"
+              :color="provisionPhase.color"
+              :icon="provisionPhase.icon"
+              :label="provisionPhase.label"
               class="mr-10 state"
             />
           </div>

@@ -16,4 +16,33 @@ export default class HciBlockDevice extends SteveModel {
 
     return parts.length > 0;
   }
+
+  get provisionPhase() {
+    const label = this.value?.blockDevice?.status?.provisionPhase;
+    let color = '';
+    let icon = '';
+
+    switch (label) {
+    case 'Provisioned':
+      color = 'bg-success';
+      icon = 'icon-checkmark';
+      break;
+    case 'Unprovisioning':
+      color = 'bg-warning';
+      icon = 'icon-warning';
+      break;
+    case 'NotProvisioned':
+      color = 'bg-error';
+      icon = 'icon-warning';
+      break;
+    default:
+      break;
+    }
+
+    return {
+      label,
+      color,
+      icon,
+    };
+  }
 }
