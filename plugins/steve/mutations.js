@@ -70,7 +70,9 @@ function load(state, { data, ctx, existing }) {
   if ( existing && !existing.id ) {
     // A specific proxy instance to used was passed in (for create -> save),
     // use it instead of making a new proxy
-    entry = replace(existing, data);
+    const _existing = cache.map.get(id) || existing;
+
+    entry = replace(_existing, data);
     addObject(cache.list, entry);
     cache.map.set(id, entry);
     // console.log('### Mutation added from existing proxy', type, id);
