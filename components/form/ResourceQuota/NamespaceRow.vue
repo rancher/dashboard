@@ -78,6 +78,7 @@ export default {
         maxExponent: this.typeOption.inputExponent,
         minExponent: this.typeOption.inputExponent,
         increment:   this.typeOption.increment,
+        suffix:      this.typeOption.increment === 1024 ? 'i' : ''
       };
     },
     namespaceLimits() {
