@@ -277,11 +277,15 @@ export default {
       min-height: 16px;
     }
 
-    .card-actions {
-      justify-content: end;
+    ::v-deep .card-container .card-actions {
+      display: block;
 
       button:not(:last-child) {
         margin-right: 10px;
+      }
+
+      .banner {
+        display: flex;
       }
     }
   }
