@@ -18,7 +18,7 @@ export default class HciBlockDevice extends SteveModel {
   }
 
   get provisionPhase() {
-    const label = this.value?.blockDevice?.status?.provisionPhase;
+    const label = this?.status?.provisionPhase;
     let color = '';
     let icon = '';
 
