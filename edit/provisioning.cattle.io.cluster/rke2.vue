@@ -7,11 +7,12 @@ import { mapGetters } from 'vuex';
 
 import CreateEditView from '@/mixins/create-edit-view';
 
-import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
+import { CAPI, MANAGEMENT, NORMAN, SCHEMA } from '@/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
 import { findBy, removeObject, clear } from '@/utils/array';
+import { createYaml } from '@/utils/create-yaml';
 import { clone, diff, set, get } from '@/utils/object';
 import { allHash } from '@/utils/promise';
 import { sortBy } from '@/utils/sort';
@@ -1006,15 +1007,7 @@ export default {
 
       const clusterId = get(this.credential, 'decodedData.clusterId') || '';
 
-      this.value.spec.rkeConfig.chartValues = {};
-      this.addonNames.forEach((name) => {
-        const key = this.chartVersionKey(name);
-        const userValues = this.userChartValues[key];
-
-        if (userValues) {
-          set(this.chartValues, name, userValues);
-        }
-      });
+      this.applyChartValues(this.value.spec.rkeConfig);
 
       if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId && this.isCreate) {
         const namespace = this.machinePools?.[0]?.config?.vmNamespace;
@@ -1299,6 +1292,31 @@ export default {
         return false;
       });
     },
+
+    generateYaml() {
+      const resource = this.value;
+      const inStore = this.$store.getters['currentStore'](resource);
+      const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
+      const clonedResource = clone(resource);
+
+      this.applyChartValues(clonedResource.spec.rkeConfig);
+
+      const out = createYaml(schemas, resource.type, clonedResource);
+
+      return out;
+    },
+
+    applyChartValues(rkeConfig) {
+      rkeConfig.chartValues = {};
+      this.addonNames.forEach((name) => {
+        const key = this.chartVersionKey(name);
+        const userValues = this.userChartValues[key];
+
+        if (userValues) {
+          set(rkeConfig.chartValues, name, userValues);
+        }
+      });
+    }
   },
 };
 </script>
@@ -1316,6 +1334,7 @@ export default {
     :cancel-event="true"
     :done-route="doneRoute"
     :apply-hooks="applyHooks"
+    :generate-yaml="generateYaml"
     @done="done"
     @finish="saveOverride"
     @cancel="cancel"
