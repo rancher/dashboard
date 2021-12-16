@@ -11,25 +11,29 @@ echo $DIR
 
 if [ "$1" == "-d" ]; then
   echo "Resetting"
-  cp ${DIR}/PLUGINS.md ${TMPDIR}
-  cp ${DIR}/scripts/rejig ${TMPDIR}
-  cp ${DIR}/nuxt.config.js ${TMPDIR}
-  cp ${DIR}/shell/nuxt.config.js ${TMPDIR}/nuxt.config.js.sh
+
+  TEMP_DIR=$(mktemp -d)
+  cp ${DIR}/PLUGINS.md ${TEMP_DIR}
+  cp ${DIR}/scripts/rejig ${TEMP_DIR}
+  cp ${DIR}/nuxt.config.js ${TEMP_DIR}
+  cp ${DIR}/shell/nuxt.config.js ${TEMP_DIR}/nuxt.config.js.sh
 
   git reset --hard
   git clean -fd
 
-  mv ${TMPDIR}/PLUGINS.md ${DIR}
-  mv ${TMPDIR}/rejig ${DIR}/scripts
-  mv ${TMPDIR}/nuxt.config.js ${DIR}
-  mv ${TMPDIR}/nuxt.config.js.sh ${DIR}/shell/nuxt.config.js
+  mv ${TEMP_DIR}/PLUGINS.md ${DIR}
+  mv ${TEMP_DIR}/rejig ${DIR}/scripts
+  mv ${TEMP_DIR}/nuxt.config.js ${DIR}
+  mv ${TEMP_DIR}/nuxt.config.js.sh ${DIR}/shell/nuxt.config.js
+
+  rm -rf ${TEMP_DIR}
   echo "Reset"
   exit 0
 fi
 
 function move() {
   if [ -d $1 ]; then
-    echo "Moving folder: $1"
+    echo "  > $1"
     #git mv $1/ ${SHELL}
     mv $1/ ${SHELL}
   fi
@@ -45,6 +49,8 @@ mkdir -p ${SHELL}
 
 # Remove the design-system pages - we're going to use Storybook
 rm -rf pages/design-system
+
+echo "Moving folders ..."
 
 move ./server
 move ./layouts
@@ -72,46 +78,19 @@ move ./content
 
 echo "Updating imports ..."
 
-declare -a contextFolders=("chart" "cloud-credential" "content" "detail" "edit" "list" "machine-config" "models" "promptRemove")
+declare -a contextFolders=(
+  "utils" "plugins" "config" "mixins" "store" "pages" "components" "assets" "chart"
+  "cloud-credential" "content" "detail" "edit" "list" "machine-config" "models" "promptRemove")
 
 for i in "${contextFolders[@]}"
   do
-    grep -rl ${GREP_EXCLUDES} . -e '@/'"$i"'' | xargs sed -i.bak -e "s/'@\/""$i""/'@shell\/""$i""/g"
-    grep -rl ${GREP_EXCLUDES} . -e '@/'"$i"'' | xargs sed -i.bak -e "s/\`@\/""$i""/\`@shell\/""$i""/g"
+    echo "  > $i"
+    grep -rl ${GREP_EXCLUDES} . -e '@/'"$i"'' | xargs -r sed -i.bak -e "s/'@\/""$i""/'@shell\/""$i""/g"
+    grep -rl ${GREP_EXCLUDES} . -e '`@/'"$i"'' | xargs -r sed -i.bak -e "s/\`@\/""$i""/\`@shell\/""$i""/g"
+    grep -rl ${GREP_EXCLUDES} . -e '~/'"$i"'' | xargs -r sed -i.bak -e "s/~\/""$i""/~shell\/""$i""/g"
+
+    grep -rl ${GREP_EXCLUDES} . -e '~'"$i"'' | xargs -r sed -i.bak -e "s/~""$i""/~shell\/""$i""/g"
   done
-
-# Update plugins references to use @~plugins
-grep -rl ${GREP_EXCLUDES} . -e '~/plugins' | xargs sed -i.bak -e "s/'~\/plugins/'~shell\/plugins/g"
-grep -rl ${GREP_EXCLUDES} . -e '@/plugins' | xargs sed -i.bak -e "s/'@\/plugins/'@shell\/plugins/g"
-
-# Utils
-grep -rl ${GREP_EXCLUDES} . -e '~/utils' | xargs sed -i.bak -e "s/\'~\/utils/\'~shell\/utils/g"
-grep -rl ${GREP_EXCLUDES} . -e '@/utils' | xargs sed -i.bak -e "s/\'@\/utils/\'@shell\/utils/g"
-
-# Config
-grep -rl ${GREP_EXCLUDES} . -e '@/config' | xargs sed -i.bak -e "s/\'@\/config/\'@shell\/config/g"
-grep -rl ${GREP_EXCLUDES} . -e '@/config' | xargs sed -i.bak -e "s/\`@\/config/\`@shell\/config/g"
-grep -rl ${GREP_EXCLUDES} . -e '~/config' | xargs sed -i.bak -e "s/\'~\/config/\'@shell\/config/g"
-
-# Mixins
-grep -rl ${GREP_EXCLUDES} . -e '~/mixins' | xargs sed -i.bak -e "s/'~\/mixins/'~shell\/mixins/g"
-grep -rl ${GREP_EXCLUDES} . -e '@/mixins' | xargs sed -i.bak -e "s/'@\/mixins/'@shell\/mixins/g"
-
-# Store
-grep -rl ${GREP_EXCLUDES} . -e '~/store' | xargs sed -i.bak -e "s/\'~\/store/\'~shell\/store/g"
-grep -rl ${GREP_EXCLUDES} . -e '@/store' | xargs sed -i.bak -e "s/\'@\/store/\'@shell\/store/g"
-
-# Pages
-grep -rl ${GREP_EXCLUDES} . -e '@/pages' | xargs sed -i.bak -e "s/\'@\/pages/\'@shell\/pages/g"
-
-# Components
-grep -rl ${GREP_EXCLUDES} . -e '@/components' | xargs sed -i.bak -e "s/'@\/components/'@shell\/components/g"
-grep -rl ${GREP_EXCLUDES} . -e '@/components' | xargs sed -i.bak -e "s/\`@\/components/\`@shell\/components/g"
-
-# Asssets
-grep -rl ${GREP_EXCLUDES} . -e '~assets' | xargs sed -i.bak -e "s/~assets/~shell\/assets/g"
-grep -rl ${GREP_EXCLUDES} . -e '~/assets' | xargs sed -i.bak -e "s/~\/assets/~shell\/assets/g"
-grep -rl ${GREP_EXCLUDES} . -e '@/assets' | xargs sed -i.bak -e "s/@\/assets/@shell\/assets/g"
 
 echo "Removing any .bak files ..."
 find . -type f -name "*.bak" -delete

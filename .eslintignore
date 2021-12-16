@@ -13,4 +13,5 @@ shell/utils/dynamic-importer.js
 ksconfig.json
 storybook-static/
 utils/dynamic-importer.js
+shell/assets/fonts
 assets/fonts
