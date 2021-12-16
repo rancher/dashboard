@@ -11,7 +11,7 @@ title: What's New in 2.6
 
 ### Experimental - Kubernetes 1.22 support
 
-- Support has been added across Rancher distributions and for imported clusters.
+- Kubernetes 1.22 has been introduced as an available Kubernetes option when provisioning clusters as well as upgrading imported RKE2/k3s clusters.
 
 ### Expanded support for Authorized Cluster Endpoint (ACE)
 
