@@ -443,6 +443,7 @@ export default {
             :mode="mode"
             :custom-volume-mode="customVolumeMode"
             :namespace="value.metadata.namespace"
+            :resource-type="value.type"
             :vm="value"
             :validate-required="true"
           />

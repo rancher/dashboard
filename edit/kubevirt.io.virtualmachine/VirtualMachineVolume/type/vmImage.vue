@@ -67,6 +67,11 @@ export default {
     validateRequired: {
       type:     Boolean,
       required: true
+    },
+
+    isVirtualType: {
+      type:    Boolean,
+      default: true
     }
   },
 
@@ -104,7 +109,7 @@ export default {
     },
 
     isDisabled() {
-      return !this.value.newCreateId && this.isEdit;
+      return !this.value.newCreateId && this.isEdit && this.isVirtualType;
     },
   },
 
@@ -187,7 +192,7 @@ export default {
         <InputOrDisplay :name="t('harvester.fields.image')" :value="imageName" :mode="mode">
           <LabeledSelect
             v-model="value.image"
-            :disabled="idx === 0 && !isCreate && !value.newCreateId"
+            :disabled="idx === 0 && !isCreate && !value.newCreateId && isVirtualType"
             :label="t('harvester.fields.image')"
             :options="imagesOption"
             :mode="mode"
