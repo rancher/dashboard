@@ -120,7 +120,7 @@ nav:
     accountAndKeys: 账号 & API密钥
     logOut: 登出
   failWhale: 
-    reload: 重新家长
+    reload: 重新加载
     separator: 或者
 
 product:
