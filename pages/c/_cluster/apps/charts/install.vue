@@ -104,8 +104,7 @@ export default {
       this.forceNamespace = null;
     }
 
-    this.legacyApp = this.existing ? await this.existing.deployedAsLegacy() : false;
-    this.mcapp = this.existing ? await this.existing.deployedAsMultiCluster() : false;
+    this.legacyApp = this.existing ? this.existing.deployedAsLegacy : false;
 
     this.value = await this.$store.dispatch('cluster/create', {
       type:     'chartInstallAction',
@@ -220,7 +219,6 @@ export default {
       loadedVersion:          null,
       loadedVersionValues:    null,
       legacyApp:              null,
-      mcapp:                  null,
       mode:                   null,
       value:                  null,
       valuesComponent:        null,
@@ -283,10 +281,7 @@ export default {
 
       isPlainLayout: isPlainLayout(this.$route.query),
 
-      legacyDefs: {
-        legacy: this.t('catalog.install.error.legacy.category.legacy'),
-        mcm:    this.t('catalog.install.error.legacy.category.mcm')
-      }
+      legacyDefs: { legacy: this.t('catalog.install.error.legacy.category.legacy') }
     };
   },
 
@@ -522,10 +517,6 @@ export default {
     legacyAppRoute() {
       return { name: 'c-cluster-legacy-project' };
     },
-
-    mcmRoute() {
-      return { name: 'c-cluster-mcapps' };
-    }
   },
 
   watch: {
@@ -1015,7 +1006,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else-if="!legacyApp && !mcapp" class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
+  <div v-else-if="!legacyApp" class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
     <Wizard
       v-if="value"
       :steps="steps"
@@ -1339,7 +1330,7 @@ export default {
 
       <Banner color="warning" class="description">
         <span>
-          {{ t('catalog.install.error.legacy.label', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true) }}
+          {{ t('catalog.install.error.legacy.label', { legacyType: legacyDefs.legacy }, true) }}
         </span>
         <template v-if="!legacyEnabled">
           <span v-html="t('catalog.install.error.legacy.enableLegacy.prompt', true)" />
@@ -1348,8 +1339,8 @@ export default {
           </nuxt-link>
         </template>
         <template v-else>
-          <nuxt-link :to="mcapp ? mcmRoute : legacyAppRoute">
-            <span v-html="t('catalog.install.error.legacy.navigate', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true)" />
+          <nuxt-link :to="legacyAppRoute">
+            <span v-html="t('catalog.install.error.legacy.navigate', { legacyType: legacyDefs.legacy }, true)" />
           </nuxt-link>
         </template>
       </Banner>

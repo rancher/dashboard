@@ -719,7 +719,6 @@ catalog:
         navigate: Navigate to {legacyType} Apps
         category:
           legacy: Legacy
-          mcm: Multi-cluster
     header:
       install: 'Install {name}'
       installGeneric: Install Chart
