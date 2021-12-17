@@ -58,20 +58,23 @@ export default {
   computed: {
     protocolOptions() {
       return [{
-        label: 'SSLv3',
-        value: 'SSLv3',
-      }, {
-        label: 'SSLv2',
-        value: 'SSLv2',
+        label: 'TLSv1.3',
+        value: 'TLSv1.3',
       }, {
         label: 'TLSv1.2',
         value: 'TLSv1.2',
       }, {
-        label: `TLSv1.1(${ this.t('generic.deprecated') })`,
+        label: `TLSv1.1 (${ this.t('generic.deprecated') })`,
         value: 'TLSv1.1',
       }, {
-        label: `TLSv1(${ this.t('generic.deprecated') })`,
+        label: `TLSv1 (${ this.t('generic.deprecated') })`,
         value: 'TLSv1',
+      }, {
+        label: `SSLv3 (${ this.t('generic.deprecated') })`,
+        value: 'SSLv3',
+      }, {
+        label: `SSLv2 (${ this.t('generic.deprecated') })`,
+        value: 'SSLv2',
       }];
     },
   },
@@ -91,10 +94,20 @@ export default {
     willSave() {
       const errors = [];
 
-      const regex = /^(:?[A-Z0-9]+(?:-[A-Z0-9]+)+)+$/gm;
       const ciphers = this.parsedDefaultValue.ciphers;
+      const protocols = this.parsedDefaultValue.protocols || [];
 
-      if (ciphers && !ciphers.match(regex)) {
+      if (ciphers && protocols.length === 0) {
+        errors.push(this.t('validation.required', { key: this.t('harvester.sslParameters.protocols.label') }, true));
+      }
+
+      if (!ciphers && protocols.length > 0) {
+        errors.push(this.t('validation.required', { key: this.t('harvester.sslParameters.ciphers.label') }, true));
+      }
+
+      const regex = /^(:?[A-Z0-9]+(?:-[A-Z0-9]+)+)+$/gm;
+
+      if (ciphers && (!ciphers.match(regex) || ciphers.startsWith(':'))) {
         errors.push(this.t('validation.invalid', { key: this.t('harvester.sslParameters.ciphers.label') }, true));
       }
 
