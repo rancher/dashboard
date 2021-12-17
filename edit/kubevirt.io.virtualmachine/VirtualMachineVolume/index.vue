@@ -63,6 +63,11 @@ export default {
       type:    String,
       default: 'ReadWriteMany'
     },
+
+    resourceType: {
+      type:    String,
+      default: ''
+    }
   },
 
   async fetch() {
@@ -79,6 +84,10 @@ export default {
   },
 
   computed: {
+    isVirtualType() {
+      return this.resourceType === HCI.VM;
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -180,7 +189,7 @@ export default {
 
     removeVolume(vol) {
       this.vol = vol;
-      if (!vol.newCreateId && this.isEdit) { // if volume has been created, There is a prompt when deleting
+      if (!vol.newCreateId && this.isEdit && this.isVirtualType) { // if volume has been created, There is a prompt when deleting
         this.$refs.deleteTip.open();
       } else {
         removeObject(this.rows, vol);
@@ -255,7 +264,7 @@ export default {
               {{ t('harvester.virtualMachine.unplug.detachVolume') }}
             </button>
             <h3>
-              <n-link v-if="volume.to && !isView" :to="volume.to">
+              <n-link v-if="volume.to && !isView && isVirtualType" :to="volume.to">
                 {{ t('harvester.virtualMachine.volume.edit') }} {{ headerFor(volume.source) }}
               </n-link>
 
@@ -274,6 +283,7 @@ export default {
                 :is-create="isCreate"
                 :is-edit="isEdit"
                 :is-view="isView"
+                :is-virtual-type="isVirtualType"
                 :mode="mode"
                 :idx="i"
                 :validate-required="validateRequired"
