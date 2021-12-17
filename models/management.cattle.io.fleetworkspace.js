@@ -56,7 +56,7 @@ export default class Workspace extends HybridModel {
   async save() {
     const norman = await this.norman;
 
-    return norman.save();
+    await norman.save();
   }
 
   async remove() {
