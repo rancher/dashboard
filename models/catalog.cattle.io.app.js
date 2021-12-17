@@ -101,10 +101,6 @@ export default class CatalogApp extends SteveModel {
       return null;
     }
 
-    if ( this.deployedAsLegacy || this.deployedAsMultiCluster ) {
-      return null;
-    }
-
     if ( compare(thisVersion, newestVersion) < 0 ) {
       return cleanupVersion(newestVersion);
     }
