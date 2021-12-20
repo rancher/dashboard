@@ -215,16 +215,14 @@ export default class VirtVm extends SteveModel {
     });
   }
 
-  unplugVolume() {
+  unplugVolume(diskName) {
     const resources = this;
 
-    return (diskName) => {
-      this.$dispatch('promptModal', {
-        resources,
-        diskName,
-        component: 'harvester/UnplugVolume'
-      });
-    };
+    this.$dispatch('promptModal', {
+      resources,
+      diskName,
+      component: 'harvester/UnplugVolume'
+    });
   }
 
   restoreVM(resources = this) {
