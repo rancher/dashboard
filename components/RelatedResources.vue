@@ -1,10 +1,10 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
+import { colorForState, stateDisplay } from '@/plugins/core-store/resource-class';
 import { NAME, NAMESPACE, STATE, TYPE } from '@/config/table-headers';
 import { sortableNumericSuffix } from '@/utils/sort';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import BadgeState from '@/components/BadgeState';
-import { colorForState, stateDisplay } from '@/plugins/core-store/resource-class';
 
 export default {
   components: { ResourceTable, BadgeState },

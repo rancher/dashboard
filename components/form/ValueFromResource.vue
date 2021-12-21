@@ -34,7 +34,7 @@ export default {
     namespaced: {
       type:    Boolean,
       default: true
-    },
+    }
   },
 
   data() {

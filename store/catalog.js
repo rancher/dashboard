@@ -5,12 +5,12 @@ import { allHash, allHashSettled } from '@/utils/promise';
 import { clone } from '@/utils/object';
 import { findBy, addObject, filterBy } from '@/utils/array';
 import { stringify } from '@/utils/error';
+import { classify } from '@/plugins/core-store/classify';
 import { sortBy } from '@/utils/sort';
 import { importChart } from '@/utils/dynamic-importer';
 import { ensureRegex } from '@/utils/string';
 import { isPrerelease } from '@/utils/version';
 import { lookup } from '@/plugins/core-store/model-loader';
-import { classify } from '@/plugins/core-store/classify';
 
 const ALLOWED_CATEGORIES = [
   'Storage',
