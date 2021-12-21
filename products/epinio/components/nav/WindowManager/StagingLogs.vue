@@ -1,5 +1,9 @@
 <script>
-/* eslint-disable no-unused-vars */ // TODO: RC
+// Streaming logs over socket isn't supported at the moment (requires auth changes to backend or un-CORS-ing)
+// https://github.com/epinio/ui/issues/3
+// ApplicationLogs & StagingLogs come from components/nav/WindowManager/ContainerLogs.vue
+// Both are WIP, specifically the amount of common code. This should be moved to a mixin.
+/* eslint-disable no-unused-vars */
 import AnsiUp from 'ansi_up';
 import { addParams } from '@/utils/url';
 import { base64Decode } from '@/utils/crypto';
@@ -150,7 +154,7 @@ export default {
       // /namespaces/:org/staging/:stage_id/logs
       // this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ this.namespace }/staging/${ stageId }/logs` }),
 
-      // const params = { follow: true }; // TODO: RC
+      // const params = { follow: true };
 
       // const wss = ''; // RODO: RC Fetch from cluster
       // const endpoint = this.application.linkFor('logs');
@@ -223,8 +227,8 @@ export default {
       this.lines = [];
     },
 
-    async download(btnCb) {
-      // TODO: RC
+    download(btnCb) {
+      throw new Error('Not Implemented');
     },
 
     follow() {

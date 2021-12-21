@@ -5942,7 +5942,7 @@ typeLabel:
       one { Cloud Config Template }
       other { Cloud Config Templates }
     }
-  # TODO: RC Epinio resources
+  # Epinio resources
   namespaces: |-
     {count, plural,
       one { Namespaces }
@@ -5958,6 +5958,7 @@ typeLabel:
       one { Services }
       other { Services }
     }
+  # End of Epinio resources
 
 action:
   clone: Clone
@@ -6290,7 +6291,6 @@ serverUpgrade:
 ##############################
 ### Products
 ##############################
-# TODO: RC DISCUSS Handle localisation in plugins
 epinio:
   tableHeaders:
     namespace: Namespace

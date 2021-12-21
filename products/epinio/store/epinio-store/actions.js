@@ -99,8 +99,6 @@ export default {
         // Go to the logout page for 401s, unless redirectUnauthorized specifically disables (for the login page)
         if ( opt.redirectUnauthorized !== false && process.client && res.status === 401 ) {
           return Promise.reject(err);
-        // TODO: RC DISCUSS Handle unauthed epinio calls
-        // dispatch('auth/logout', opt.logoutOnError, { root: true });
         }
 
         if ( typeof res.data !== 'undefined' ) {
