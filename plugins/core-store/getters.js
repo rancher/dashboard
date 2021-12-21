@@ -239,6 +239,11 @@ export default {
       }
 
       url = schema.links.collection;
+
+      if ( !url ) {
+        throw new Error(`You don't have permission to list this type: ${ type }`);
+      }
+
       if ( id ) {
         url += `/${ id }`;
       }
