@@ -88,10 +88,18 @@ export default {
       if (params.id && (params.id === this.toRemove[0]?.metadata?.name || params.id === this.toRemove[0].id)) {
         let { name = '' } = currentRoute;
 
-        name = name.slice(0, name.indexOf('-id'));
+        const idIndex = name.indexOf('-id');
+
+        if (idIndex !== -1) {
+          name = name.slice(0, idIndex);
+        }
 
         if (params.namespace) {
-          name = name.slice(0, name.indexOf('-namespace'));
+          const namespaceIndex = name.indexOf('-namespace');
+
+          if (namespaceIndex !== -1) {
+            name = name.slice(0, namespaceIndex);
+          }
           delete params.namespace;
         }
         delete params.id;

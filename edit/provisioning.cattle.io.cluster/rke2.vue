@@ -7,14 +7,13 @@ import { mapGetters } from 'vuex';
 
 import CreateEditView from '@/mixins/create-edit-view';
 
-import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
+import { CAPI, MANAGEMENT, NORMAN, SCHEMA } from '@/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
 import { findBy, removeObject, clear } from '@/utils/array';
-import {
-  clone, diff, isEmpty, set, get
-} from '@/utils/object';
+import { createYaml } from '@/utils/create-yaml';
+import { clone, diff, set, get } from '@/utils/object';
 import { allHash } from '@/utils/promise';
 import { sortBy } from '@/utils/sort';
 import { camelToTitle, nlToBr } from '@/utils/string';
@@ -119,6 +118,8 @@ export default {
       const hash = {
         rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
         k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
+        rke2Channels: this.$store.dispatch('management/request', { url: '/v1-rke2-release/channels' }),
+        k3sChannels:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/channels' }),
       };
 
       if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
@@ -130,6 +131,8 @@ export default {
       this.allPSPs = res.allPSPs || [];
       this.rke2Versions = res.rke2Versions.data || [];
       this.k3sVersions = res.k3sVersions.data || [];
+      this.rke2Channels = res.rke2Channels.data || [];
+      this.k3sChannels = res.k3sChannels.data || [];
 
       if ( !this.rke2Versions.length && !this.k3sVersions.length ) {
         throw new Error('No version info found in KDM');
@@ -154,15 +157,7 @@ export default {
     }
 
     if ( !this.value.spec.kubernetesVersion ) {
-      const option = this.versionOptions.find(x => !!x.value);
-      const rke2 = this.filterAndMap(this.rke2Versions, null);
-      const showRke2 = rke2.length;
-
-      if (this.isHarvesterDriver && showRke2) {
-        this.setHarvesterK8sDefaultVersion();
-      } else {
-        set(this.value.spec, 'kubernetesVersion', option.value);
-      }
+      set(this.value.spec, 'kubernetesVersion', this.defaultVersion);
     }
 
     for ( const k in this.serverArgs ) {
@@ -219,9 +214,12 @@ export default {
 
     await this.initAddons();
     await this.initRegistry();
-    // Ensures chartValues is up to date with addonNames (remove any config for addonNames that has been removed)
-    this.initChartValues();
-    this.loadedOnce = true;
+
+    Object.entries(this.chartValues).forEach(([name, value]) => {
+      const key = this.chartVersionKey(name);
+
+      this.userChartValues[key] = value;
+    });
   },
 
   data() {
@@ -251,23 +249,27 @@ export default {
     }
 
     return {
-      loadedOnce:       false,
-      lastIdx:          0,
-      allPSPs:          null,
-      nodeComponent:    null,
-      credentialId:     null,
-      credential:       null,
-      machinePools:     null,
-      rke2Versions:     null,
-      k3sVersions:      null,
-      s3Backup:         false,
-      chartVersionInfo: null,
-      versionInfo:      {},
-      membershipUpdate: {},
-      systemRegistry:   null,
-      registryHost:     null,
-      registryMode:     null,
-      registrySecret:   null,
+      loadedOnce:           false,
+      lastIdx:              0,
+      allPSPs:              null,
+      nodeComponent:        null,
+      credentialId:         null,
+      credential:           null,
+      machinePools:         null,
+      rke2Versions:         null,
+      k3sVersions:          null,
+      rke2Channels:         [],
+      k3sChannels:          [],
+      s3Backup:             false,
+      versionInfo:          {},
+      membershipUpdate:     {},
+      systemRegistry:       null,
+      registryHost:         null,
+      registryMode:         null,
+      registrySecret:       null,
+      userChartValues:      {},
+      userChartValuesTemp:  {},
+      addonsRev:            0,
     };
   },
 
@@ -338,52 +340,13 @@ export default {
     },
 
     versionOptions() {
-      function filterAndMap(versions, minVersion, currentVersion) {
-        const out = (versions || []).filter(obj => !!obj.serverArgs).map((obj) => {
-          let disabled = false;
-
-          if ( minVersion ) {
-            disabled = compare(obj.id, minVersion) < 0;
-          }
-
-          return {
-            label:      obj.id,
-            value:      obj.id,
-            sort:       sortable(obj.id),
-            serverArgs: obj.serverArgs,
-            agentArgs:  obj.agentArgs,
-            charts:     obj.charts,
-            disabled,
-          };
-        });
-
-        const sorted = sortBy(out, 'sort:desc');
-        const versionMap = {};
-
-        return sorted.filter((version) => {
-          // Always show pre-releases
-          if (semver.prerelease(version.value)) {
-            return true;
-          }
-
-          const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
-
-          // Always show current version, else show if we haven't shown anything for this major.minor version yet
-          if (version === currentVersion || !versionMap[majorMinor]) {
-            versionMap[majorMinor] = true;
-
-            return true;
-          }
-
-          return false;
-        });
-      }
-
       const cur = this.liveValue?.spec?.kubernetesVersion || '';
       const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
       const existingK3s = this.mode === _EDIT && cur.includes('k3s');
-      const rke2 = filterAndMap(this.rke2Versions, (existingRke2 ? cur : null), cur);
-      const k3s = filterAndMap(this.k3sVersions, (existingK3s ? cur : null), cur);
+      const defaultRke2 = this.rke2Channels.find(x => x.id === 'default')?.latest;
+      const defaultK3s = this.k3sChannels.find(x => x.id === 'default')?.latest;
+      const rke2 = this.filterAndMap(this.rke2Versions, (existingRke2 ? cur : null), cur, defaultRke2);
+      const k3s = this.filterAndMap(this.k3sVersions, (existingK3s ? cur : null), cur, defaultK3s);
       const showRke2 = rke2.length && !existingK3s;
       const showK3s = k3s.length && !existingRke2;
       const out = [];
@@ -726,6 +689,33 @@ export default {
     isHarvesterDriver() {
       return this.$route.query.type === HARVESTER;
     },
+
+    defaultVersion() {
+      const all = this.versionOptions.filter(x => !!x.value);
+      const first = all[0]?.value;
+      const preferredVersion = this.rke2Channels.find(x => x.id === 'default')?.latest;
+      const preferred = all.find(x => x.value === preferredVersion)?.value;
+
+      const rke2 = this.filterAndMap(this.rke2Versions, null);
+      const showRke2 = rke2.length;
+      let out;
+
+      if (this.isHarvesterDriver && showRke2) {
+        const satisfiesVersion = rke2.filter((v) => {
+          return isHarvesterSatisfiesVersion(v.value);
+        }) || [];
+
+        if (satisfiesVersion.length > 0) {
+          out = satisfiesVersion[0]?.value;
+        }
+      }
+
+      if ( !out ) {
+        out = preferred || first;
+      }
+
+      return out;
+    },
   },
 
   watch: {
@@ -751,9 +741,17 @@ export default {
       // To catch the 'some addons' --> 'no addons' case also check array length (`difference([], [1,2,3]) === []`)
       const diff = old.length !== neu.length || difference(neu, old).length ;
 
-      if (!this.$fetchState.pending && diff) {
-        this.$fetch();
+      if (diff) {
+        // Allow time for addonNames to update... then fetch any missing addons
+        this.$nextTick(() => this.initAddons());
       }
+    },
+
+    selectedVersion() {
+      this.versionInfo = {}; // Invalidate cache such that version info relevent to selected kube version is updated
+
+      // Allow time for addonNames to update... then fetch any missing addons
+      this.$nextTick(() => this.initAddons());
     },
 
     showCni(neu) {
@@ -1009,6 +1007,8 @@ export default {
 
       const clusterId = get(this.credential, 'decodedData.clusterId') || '';
 
+      this.applyChartValues(this.value.spec.rkeConfig);
+
       if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId && this.isCreate) {
         const namespace = this.machinePools?.[0]?.config?.vmNamespace;
 
@@ -1071,14 +1071,12 @@ export default {
           versionName: v.version
         });
 
-        this.versionInfo[v.name] = res;
+        set(this.versionInfo, v.name, res);
+        const key = this.chartVersionKey(v.name);
 
-        const fromChart = res.values || {};
-        const fromUser = this.chartValues[v.name] || this.value.spec.rkeConfig.chartValues[v.name] || {};
-
-        const merged = merge(merge({}, fromChart), fromUser);
-
-        set(this.chartValues, v.name, merged);
+        if (!this.userChartValues[key]) {
+          this.userChartValues[key] = {};
+        }
       }
     },
 
@@ -1086,6 +1084,16 @@ export default {
       const fallback = `${ camelToTitle(name.replace(/^(rke|rke2|rancher)-/, '')) } Configuration`;
 
       return this.$store.getters['i18n/withFallback'](`cluster.addonChart."${ name }"`, null, fallback);
+    },
+
+    showAddons() {
+      this.addonsRev++;
+      this.addonNames.forEach((name) => {
+        const chartValues = this.versionInfo[name]?.questions ? this.initYamlEditor(name) : {};
+
+        set(this.userChartValuesTemp, name, chartValues);
+      });
+      this.refreshYamls();
     },
 
     refreshYamls() {
@@ -1096,43 +1104,50 @@ export default {
         const list = isArray(entry) ? entry : [entry];
 
         for ( const component of list ) {
-          component.refresh();
+          component?.refresh(); // `yaml` ref can be undefined on switching from Basic to Addon tab (Azure --> Amazon --> addon)
         }
       }
     },
 
     updateValues(name, values) {
-      set(this.chartValues, name, values);
-      this.syncChartValues();
+      set(this.userChartValuesTemp, name, values);
+      this.syncChartValues(name);
     },
 
-    initChartValues() {
-      // This initialises and for existing chartValues clears out any properties that aren't listed in addonNames
-      const out = {};
+    syncChartValues: throttle(function(name) {
+      const fromChart = this.versionInfo[name]?.values;
+      const fromUser = this.userChartValuesTemp[name];
+      const different = diff(fromChart, fromUser);
 
-      for (const k of this.addonNames) {
-        out[k] = this.chartValues[k] || this.versionInfo[k]?.values;
-      }
-      set(this.value.spec.rkeConfig, 'chartValues', out);
-    },
-
-    syncChartValues: throttle(function() {
-      const out = {};
-
-      for ( const k of this.addonNames ) {
-        const fromChart = this.versionInfo[k]?.values;
-        const fromUser = this.chartValues[k];
-        const different = diff(fromChart, fromUser);
-
-        if ( isEmpty(different) ) {
-          out[k] = {};
-        } else {
-          out[k] = different;
-        }
-      }
-
-      set(this.value.spec.rkeConfig, 'chartValues', out);
+      this.userChartValues[this.chartVersionKey(name)] = different;
     }, 250, { leading: true }),
+
+    updateQuestions(name) {
+      this.syncChartValues(name);
+    },
+
+    initQuestions(name) {
+      const defaultChartValue = this.versionInfo[name];
+      const startingChartValue = this.initYamlEditor(name);
+
+      return {
+        ...defaultChartValue,
+        values: startingChartValue,
+      };
+    },
+
+    initYamlEditor(name) {
+      const defaultChartValue = this.versionInfo[name];
+      const key = this.chartVersionKey(name);
+
+      return merge({}, defaultChartValue?.values || {}, this.userChartValues[key] || {});
+    },
+
+    chartVersionKey(name) {
+      const addonVersion = this.addonVersions.find(av => av.name === name);
+
+      return addonVersion ? `${ name }-${ addonVersion.version }` : name;
+    },
 
     onMembershipUpdate(update) {
       this.$set(this, 'membershipUpdate', update);
@@ -1232,16 +1247,21 @@ export default {
       }
     },
 
-    filterAndMap(versions, minVersion) {
+    filterAndMap(versions, minVersion, currentVersion, defaultVersion) {
       const out = (versions || []).filter(obj => !!obj.serverArgs).map((obj) => {
         let disabled = false;
+        let experimental = false;
 
         if ( minVersion ) {
           disabled = compare(obj.id, minVersion) < 0;
         }
 
+        if ( defaultVersion ) {
+          experimental = compare(defaultVersion, obj.id) < 0;
+        }
+
         return {
-          label:      obj.id,
+          label:      obj.id + (experimental ? ` (${ this.t('cluster.kubernetesVersion.experimental') })` : ''),
           value:      obj.id,
           sort:       sortable(obj.id),
           serverArgs: obj.serverArgs,
@@ -1251,24 +1271,52 @@ export default {
         };
       });
 
-      return sortBy(out, 'sort:desc');
+      const sorted = sortBy(out, 'sort:desc');
+      const versionMap = {};
+
+      return sorted.filter((version) => {
+        // Always show pre-releases
+        if (semver.prerelease(version.value)) {
+          return true;
+        }
+
+        const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
+
+        // Always show current version, else show if we haven't shown anything for this major.minor version yet
+        if (version === currentVersion || !versionMap[majorMinor]) {
+          versionMap[majorMinor] = true;
+
+          return true;
+        }
+
+        return false;
+      });
     },
 
-    setHarvesterK8sDefaultVersion() {
-      const rke2 = this.filterAndMap(this.rke2Versions, null);
+    generateYaml() {
+      const resource = this.value;
+      const inStore = this.$store.getters['currentStore'](resource);
+      const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
+      const clonedResource = clone(resource);
 
-      const satisfiesVersion = rke2.filter((v) => {
-        return isHarvesterSatisfiesVersion(v.value);
-      }) || [];
+      this.applyChartValues(clonedResource.spec.rkeConfig);
 
-      if (satisfiesVersion.length > 0) {
-        set(this.value.spec, 'kubernetesVersion', satisfiesVersion[0]?.value);
-      } else {
-        const option = this.versionOptions.find(x => !!x.value);
+      const out = createYaml(schemas, resource.type, clonedResource);
 
-        set(this.value.spec, 'kubernetesVersion', option.value);
-      }
+      return out;
     },
+
+    applyChartValues(rkeConfig) {
+      rkeConfig.chartValues = {};
+      this.addonNames.forEach((name) => {
+        const key = this.chartVersionKey(name);
+        const userValues = this.userChartValues[key];
+
+        if (userValues) {
+          set(rkeConfig.chartValues, name, userValues);
+        }
+      });
+    }
   },
 };
 </script>
@@ -1286,6 +1334,7 @@ export default {
     :cancel-event="true"
     :done-route="doneRoute"
     :apply-hooks="applyHooks"
+    :generate-yaml="generateYaml"
     @done="done"
     @finish="saveOverride"
     @cancel="cancel"
@@ -1395,7 +1444,6 @@ export default {
               />
             </div>
           </div>
-
           <template v-if="showVsphereNote">
             <Banner color="warning" label-key="cluster.cloudProvider.rancher-vsphere.note" />
           </template>
@@ -1689,23 +1737,25 @@ export default {
           </template>
         </Tab>
 
-        <Tab name="addons" label-key="cluster.tabs.addons" @active="refreshYamls">
-          <div v-if="addonVersions.length">
+        <Tab name="addons" label-key="cluster.tabs.addons" @active="showAddons">
+          <div v-if="versionInfo && addonVersions.length" :key="addonsRev">
             <div v-for="v in addonVersions" :key="v._key">
               <h3>{{ labelForAddon(v.name) }}</h3>
               <Questions
-                v-if="versionInfo[v.name] && versionInfo[v.name].questions"
-                v-model="chartValues[v.name]"
+                v-if="versionInfo[v.name] && versionInfo[v.name].questions && v.name && userChartValuesTemp[v.name]"
+                v-model="userChartValuesTemp[v.name]"
+                :emit="true"
                 in-store="management"
                 :mode="mode"
                 :tabbed="false"
                 :source="versionInfo[v.name]"
                 :target-namespace="value.metadata.namespace"
+                @updated="updateQuestions(v.name)"
               />
               <YamlEditor
                 v-else
                 ref="yaml-values"
-                :value="value.spec.rkeConfig.chartValues[v.name] || versionInfo[v.name] ? versionInfo[v.name].values : ''"
+                :value="initYamlEditor(v.name)"
                 :scrolling="true"
                 :as-object="true"
                 :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"

@@ -224,10 +224,11 @@ export default {
 
         if ( this.remember ) {
           this.$cookies.set(USERNAME, this.username, {
-            encode: x => x,
-            maxAge: 86400 * 365,
-            secure: true,
-            path:   '/',
+            encode:   x => x,
+            maxAge:   86400 * 365,
+            path:     '/',
+            sameSite: true,
+            secure:   true,
           });
         } else {
           this.$cookies.remove(USERNAME);

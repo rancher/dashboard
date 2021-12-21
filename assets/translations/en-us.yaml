@@ -74,6 +74,8 @@ generic:
   completed: Completed
   enable: Enable
   disable: Disable
+  experimental: Experimental
+  deprecated: Deprecated
 
 locale:
   en-us: English
@@ -1069,7 +1071,7 @@ cluster:
           More info on roles can be found <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/iam-integration" target="_blank" rel="noopener noreferrer nofollow">here</a>.
     harvester:
       import: Imported Harvester
-      external: External Harvester
+      external: External Harvester (Experimental)
       namespace: Namespace
       cpu: CPUs
       memory: Memory
@@ -1130,6 +1132,7 @@ cluster:
   importAction: Import Existing
   kubernetesVersion:
     label: Kubernetes Version
+    experimental: experimental
   toolsTip: Use the new Cluster Tools to manage and install Monitoring, Logging and other tools
   legacyWarning: The legacy feature flag is enabled and not all legacy features are supported in Kubernetes 1.21+.
   log:
@@ -1480,6 +1483,9 @@ cluster:
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
+  providerTag:
+    rke2:
+      harvester: '{tag}'
   providerGroup:
     create-custom1: Use existing nodes and create a cluster using RKE
     create-custom2: Use existing nodes and create a cluster using RKE2/K3s
@@ -3846,7 +3852,7 @@ setup:
     dockerSuffix: ""
     helmPrefix: 'For a Helm installation, run:'
     helmSuffix: ""
-  eula: I agree to the <a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">terms and conditions</a> for using Rancher.
+  eula: I agree to the <a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">terms and conditions</a> for using {name}.
   newPassword: New Password
   newUserSetPassword: The first order of business is to set a strong password. We suggest using this random one generated just for you, but enter your own if you like.
   serverUrl:
@@ -4447,6 +4453,7 @@ validation:
           recordName: 'Rule group {groupIndex} rule {ruleIndex} requires a Time Series Name.'
         singleEntry: 'At least one alert rule or one recording rule is required in rule group {index}.'
   required: '"{key}" is required'
+  invalid: '"{key}" is invalid'
   requiredOrOverride: '"{key}" is required or must allow override'
   roleTemplate:
     roleTemplateRules:
@@ -4715,10 +4722,6 @@ workload:
     pods: Pods by State
     runs: Runs
   gaugeStates:
-    active: Active
-    transitioning: Transitioning
-    warning: Warning
-    error: Error
     succeeded: Successful
     running: Running
     failed: Failed
@@ -5555,7 +5558,7 @@ harvester:
       label: IPAM
     healthCheckPort:
       label: Health Check Port
-      description: The prober will access the address composed of the backend server IP and the port.
+      description: The prober will access the address composed of the backend server IP and the port. The port should be a node port.
     healthCheckSuccessThreshold:
       label: Health Check Success Threshold
       description: If the number of times the prober continuously detects an address successfully reaches the success threshold, then the backend server can start to forward traffic.
@@ -5566,6 +5569,8 @@ harvester:
       label: Health Check Period
     healthCheckTimeout:
       label: Health Check Timeout
+    healthCheckEnabled:
+      label: Health Check
   
   vip:
     namespace:
@@ -5575,6 +5580,13 @@ harvester:
       invalid: '"CIRD" is invalid.'
     add:
       label: Add IP Pools
+  
+  sslParameters:
+    protocols: 
+      label: Protocols
+    ciphers:
+      label: Ciphers
+    
 ##############################
 # Model Properties
 ##############################
@@ -6063,7 +6075,9 @@ advancedSettings:
     'harv-overcommit-config': 'Resource overcommit configuration.'
     'harv-vip-pools': 'Config global or namespace IP address pools of the VIP by CIDR.'
     'harv-support-bundle-timeout': 'Support Bundle timeout config in minutes, use 0 to disable the timeout.'
-    'harv-vm-force-deletion-policy': Config the force-delete action when a VM is stuck on a node that is down.
+    'harv-vm-force-reset-policy': Config the force-reset action when a VM is stuck on a node that is down.
+    'harv-ssl-parameters': Custom SSL Parameters for TLS validation.
+    'harv-support-bundle-namespaces': Specify resources in other namespaces to be collected by the support package.
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:

@@ -101,10 +101,6 @@ export default class CatalogApp extends SteveModel {
       return null;
     }
 
-    if ( this.deployedAsLegacy || this.deployedAsMultiCluster ) {
-      return null;
-    }
-
     if ( compare(thisVersion, newestVersion) < 0 ) {
       return cleanupVersion(newestVersion);
     }
@@ -216,13 +212,18 @@ export default class CatalogApp extends SteveModel {
 
   get deployedAsMultiCluster() {
     return async() => {
-      const mcapps = await this.$dispatch('management/findAll', { type: MANAGEMENT.MULTI_CLUSTER_APP }, { root: true });
+      try {
+        const mcapps = await this.$dispatch('management/findAll', { type: MANAGEMENT.MULTI_CLUSTER_APP }, { root: true })
+          .catch(() => {
+            throw new Error("You don't have permission to list multi-cluster apps");
+          });
 
-      if (mcapps) {
-        return mcapps.find(mcapp => mcapp.spec?.targets?.find(target => target.appName === this.metadata?.name));
-      }
+        if (mcapps) {
+          return mcapps.find(mcapp => mcapp.spec?.targets?.find(target => target.appName === this.metadata?.name));
+        }
+      } catch (e) {}
 
-      return null;
+      return false;
     };
   }
 

@@ -372,7 +372,7 @@ export default {
             <nuxt-link tag="li" :to="{name: 'prefs'}" class="user-menu-item">
               <a>{{ t('nav.userMenu.preferences') }} <i class="icon icon-fw icon-gear" /></a>
             </nuxt-link>
-            <nuxt-link v-if="isRancher" tag="li" :to="{name: 'account'}" class="user-menu-item">
+            <nuxt-link v-if="isRancher || isSingleVirtualCluster" tag="li" :to="{name: 'account'}" class="user-menu-item">
               <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }} <i class="icon icon-fw icon-user" /></a>
             </nuxt-link>
             <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout', query: { [LOGGED_OUT]: true }}" class="user-menu-item">

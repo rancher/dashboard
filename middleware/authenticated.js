@@ -89,7 +89,7 @@ export default async function({
   if ( !$cookies.get(REDIRECTED) ) {
     $cookies.set(REDIRECTED, 'true', {
       path:     '/',
-      sameSite: false,
+      sameSite: true,
       secure:   true,
     });
   }

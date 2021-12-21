@@ -1,10 +1,11 @@
 import { findBy, insertAt } from '@/utils/array';
 import { TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED } from '@/config/labels-annotations';
-import { POD, WORKLOAD_TYPES, SERVICE } from '@/config/types';
+import { WORKLOAD_TYPES, SERVICE, POD } from '@/config/types';
 import { clone, get, set } from '@/utils/object';
 import day from 'dayjs';
 import SteveModel from '@/plugins/steve/steve-class';
 import { shortenedImage } from '@/utils/string';
+import { convertSelectorObj, matching } from '~/utils/selector';
 
 export default class Workload extends SteveModel {
   // remove clone as yaml/edit as yaml until API supported
@@ -13,7 +14,7 @@ export default class Workload extends SteveModel {
     const type = this._type ? this._type : this.type;
 
     const editYaml = findBy(out, 'action', 'goToEditYaml');
-    const index = editYaml ? out.indexOf(editYaml) + 1 : 0;
+    const index = editYaml ? out.indexOf(editYaml) : 0;
 
     insertAt(out, index, {
       action:  'addSidecar',
@@ -52,6 +53,16 @@ export default class Workload extends SteveModel {
         enabled: !!this.links.update && this.spec?.paused === true
       });
     }
+
+    insertAt(out, 0, { divider: true }) ;
+
+    insertAt(out, 0, {
+      action:     'openShell',
+      enabled:    !!this.links.view,
+      icon:       'icon icon-fw icon-chevron-right',
+      label:      'Execute Shell',
+      total:      1,
+    });
 
     const toFilter = ['cloneYaml'];
 
@@ -147,6 +158,23 @@ export default class Workload extends SteveModel {
     }
 
     return super.state;
+  }
+
+  async openShell() {
+    const pods = await this.matchingPods();
+
+    for ( const pod of pods ) {
+      if ( pod.isRunning ) {
+        pod.openShell();
+
+        return;
+      }
+    }
+
+    this.$dispatch('growl/error', {
+      title:   'Unavailable',
+      message: 'There are no running pods to execute a shell in.'
+    }, { root: true });
   }
 
   addSidecar() {
@@ -639,33 +667,23 @@ export default class Workload extends SteveModel {
   }
 
   get podGauges() {
-    const out = {
-      active: { color: 'success' }, transitioning: { color: 'info' }, warning: { color: 'warning' }, error: { color: 'error' }
-    };
+    const out = { };
 
     if (!this.pods) {
       return out;
     }
 
     this.pods.map((pod) => {
-      const { status:{ phase } } = pod;
-      let group;
+      const { stateColor, stateDisplay } = pod;
 
-      switch (phase) {
-      case 'Running':
-        group = 'active';
-        break;
-      case 'Pending':
-        group = 'transitioning';
-        break;
-      case 'Failed':
-        group = 'error';
-        break;
-      default:
-        group = 'warning';
+      if (out[stateDisplay]) {
+        out[stateDisplay].count++;
+      } else {
+        out[stateDisplay] = {
+          color: stateColor.replace('text-', ''),
+          count: 1
+        };
       }
-
-      out[group].count ? out[group].count++ : out[group].count = 1;
     });
 
     return out;
@@ -714,5 +732,12 @@ export default class Workload extends SteveModel {
     }
 
     return out;
+  }
+
+  async matchingPods() {
+    const all = await this.$dispatch('findAll', { type: POD });
+    const selector = convertSelectorObj(this.spec.selector);
+
+    return matching(all, selector);
   }
 }
