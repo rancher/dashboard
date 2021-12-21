@@ -34,6 +34,21 @@ export default {
         key2: 'value2\nmulti-line\ntext area',
       },
       columns: ['extra'],
+      tags: [
+        'create', 'delete', 'watch',
+      ],
+      moreTags: [
+        'create', 'delete', 'watch', 'update', 'list', 'patch'
+      ],
+      verbs: [
+        'create',
+        'delete',
+        'get',
+        'list',
+        'patch',
+        'update',
+        'watch',
+      ]
     };
   }
 };
@@ -207,6 +222,69 @@ export default {
         />
       </div>
     </div>
+
+    <h3>LabeledSelect - Taggable</h3>
+
+    <div class="row">
+      <div class="col span-6">
+        <LabeledSelect
+          v-model="tags"
+          :taggable="true"
+          :options="verbs"
+          :searchable="true"
+          :push-tags="true"
+          :multiple="true"
+          :mode="edit"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledSelect v-model="selectOption" :options="options" />
+      </div>
+    </div>
+
+    <div class="row mt-10">
+      <div class="col span-6">
+        <LabeledSelect
+          label="With Label (Taggable Select)"
+          v-model="tags"
+          :taggable="true"
+          :options="verbs"
+          :searchable="true"
+          :push-tags="true"
+          :multiple="true"
+          :mode="edit"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledSelect label="With Label" v-model="selectOption" :options="options" />
+      </div>
+    </div>
+
+    <div class="row mt-10">
+      <div class="col span-6">
+        <LabeledSelect
+          v-model="moreTags"
+          :taggable="true"
+          :options="verbs"
+          :searchable="true"
+          :push-tags="true"
+          :multiple="true"
+          :mode="edit"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledSelect
+          label="Taggable Select"
+          v-model="moreTags"
+          :taggable="true"
+          :options="verbs"
+          :searchable="true"
+          :push-tags="true"
+          :multiple="true"
+          :mode="edit"
+        />
+      </div>
+    </div>    
 
     <h3>Fields in column layout</h3>
 

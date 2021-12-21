@@ -347,13 +347,60 @@ export default {
       }
     }
   }
+
+  &.taggable.compact-input {
+    min-height: 40px;
+    ::v-deep .vs__selected-options {
+      padding-top: 8px !important;
+    }
+  }
+
+  &.taggable:not(.compact-input) {
+    min-height: 61px;
+    ::v-deep .vs__selected-options {
+      // Need to adjust margin when there is a label in the control to add space between the label and the tags
+      margin-top: 0px;
+    }
+  }
+
+  &:not(.taggable) {
+    ::v-deep .vs__selected-options {
+      // Ensure whole select is clickable to close the select when open
+      .vs__selected {
+        width: 100%;
+      }
+    }
+  }
+
+  &.taggable {
+    ::v-deep .vs__selected-options {
+      padding: 3px 0;
+      .vs__selected {
+        border-color: var(--accent-btn);
+        height: 20px;
+        min-height: unset !important;
+        padding: 0 0 0 7px !important;
+
+        > button {
+          height: 20px;
+          line-height: 14px;
+        }
+
+        > button:hover {
+          background-color: var(--primary);
+          border-radius: 0;
+
+          &::after {
+            color: #fff;
+          }
+        }
+      }
+    }
+  }
+
   ::v-deep .vs__selected-options {
     margin-top: -5px;
 
-    // Ensure whole select is clickable to close the select when open
-    .vs__selected {
-      width: 100%;
-    }
   }
 
   ::v-deep .v-select:not(.vs--single) {
