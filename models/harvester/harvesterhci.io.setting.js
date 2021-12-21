@@ -1,5 +1,4 @@
 import { findBy } from '@/utils/array';
-// import { HCI } from '@/config/types';
 import SteveModel from '@/plugins/steve/steve-class';
 import { HCI_ALLOWED_SETTINGS } from '@/config/settings';
 
@@ -25,21 +24,6 @@ export default class HciSetting extends SteveModel {
     if (editAction) {
       editAction.label = this.t('advancedSettings.edit.label');
     }
-
-    // const schema = this.$getters['schemaFor'](HCI.UPGRADE);
-    // const hasUpgradeAccess = !!schema?.collectionMethods.find(x => ['post'].includes(x.toLowerCase()));
-
-    // if (this.id === 'server-version' && hasUpgradeAccess) {
-    //   const latestUpgrade = this.$getters['all'](HCI.UPGRADE).find(upgrade => upgrade.isLatestUpgrade);
-
-    //   out.unshift({
-    //     action:   'goToAirgapUpgrade',
-    //     enabled:  true,
-    //     icon:     'icon icon-refresh',
-    //     label:    'Upgrade',
-    //     disabled: !!latestUpgrade && !latestUpgrade?.isUpgradeSucceeded
-    //   });
-    // }
 
     return out;
   }

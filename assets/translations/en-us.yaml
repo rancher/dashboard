@@ -6135,6 +6135,7 @@ advancedSettings:
     'harv-vm-force-reset-policy': Config the force-reset action when a VM is stuck on a node that is down.
     'harv-ssl-parameters': Custom SSL Parameters for TLS validation.
     'harv-support-bundle-namespaces': Specify resources in other namespaces to be collected by the support package.
+    'harv-auto-disk-provision-paths': Specify the disks(using glob pattern) that Harvester will automatically add as VM storage.
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:
