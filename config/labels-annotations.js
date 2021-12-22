@@ -67,6 +67,8 @@ export const CATALOG = {
   DISPLAY_NAME:     'catalog.cattle.io/display-name',
 
   SUPPORTED_OS: 'catalog.cattle.io/os',
+
+  MIGRATED: 'apps.cattle.io/migrated',
 };
 
 export const FLEET = {
