@@ -147,7 +147,6 @@ export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
     options: ['auto', 'external', 'bundled']
   },
   [HCI_SETTING.UI_INDEX]:                 { kind: 'url' },
-  [SETTING.SERVER_URL]:                   { kind: 'url' },
   [HCI_SETTING.CLUSTER_REGISTRATION_URL]: { kind: 'url' },
 };
 
