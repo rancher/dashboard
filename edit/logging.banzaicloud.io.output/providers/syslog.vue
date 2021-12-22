@@ -105,6 +105,7 @@ export default {
       <div class="col span-6">
         <SecretSelector
           v-model="value.trusted_ca_path"
+          mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
