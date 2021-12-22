@@ -328,7 +328,7 @@ export default {
       forceNamespace:         null,
       loadedVersion:          null,
       loadedVersionValues:    null,
-      migratedApp: false,
+      migratedApp:            false,
       mode:                   null,
       value:                  null,
       valuesComponent:        null,
