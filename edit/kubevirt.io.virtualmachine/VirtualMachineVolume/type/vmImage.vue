@@ -122,7 +122,7 @@ export default {
     },
     pvcsResource: {
       handler(pvc) {
-        if (pvc?.spec?.resources?.requests?.storage) {
+        if (pvc?.spec?.resources?.requests?.storage && this.isVirtualType) {
           const parseValue = parseSi(pvc.spec.resources.requests.storage);
 
           const formatSize = formatSi(parseValue, {
