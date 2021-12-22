@@ -308,6 +308,9 @@ export default {
       this.loadedVersionValues = this.versionInfo?.values || {};
       this.loadedVersion = this.version?.key;
     }
+
+    // Look for annotation to say this app is a legacy migrated app (we look in either place for now)
+    this.migratedApp = (this.existing?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MIGRATED] === 'true');
   },
 
   data() {
@@ -325,6 +328,7 @@ export default {
       forceNamespace:         null,
       loadedVersion:          null,
       loadedVersionValues:    null,
+      migratedApp: false,
       mode:                   null,
       value:                  null,
       valuesComponent:        null,
@@ -831,12 +835,15 @@ export default {
 
       const form = JSON.parse(JSON.stringify(this.value));
 
+      const migratedAnnotations = this.migratedApp ? { [CATALOG_ANNOTATIONS.MIGRATED]: 'true' } : {};
+
       const chart = {
         chartName:   this.chart.chartName,
         version:     this.version.version,
         releaseName: form.metadata.name,
         description: form.metadata?.annotations?.[DESCRIPTION_ANNOTATION],
         annotations: {
+          ...migratedAnnotations,
           [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: this.chart.repoType,
           [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: this.chart.repoName
         },
@@ -909,6 +916,7 @@ export default {
           projectId:   this.project,
           values:      this.addGlobalValuesTo({}),
           annotations: {
+            ...migratedAnnotations,
             [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: dependency.repoType,
             [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: dependency.repoName
           },
