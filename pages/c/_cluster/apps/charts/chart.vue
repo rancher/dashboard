@@ -1,11 +1,11 @@
 <script>
+import isEqual from 'lodash/isEqual';
 import Loading from '@/components/Loading';
 import ChartMixin from '@/mixins/chart';
 import Banner from '@/components/Banner';
 import ChartReadme from '@/components/ChartReadme';
 import LazyImage from '@/components/LazyImage';
 import DateFormatter from '@/components/formatter/Date';
-import isEqual from 'lodash/isEqual';
 import { CHART, REPO, REPO_TYPE, VERSION } from '@/config/query-params';
 
 export default {

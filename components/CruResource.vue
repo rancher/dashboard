@@ -1,12 +1,12 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
+import { mapGetters } from 'vuex';
 import { createYaml } from '@/utils/create-yaml';
 import { clone } from '@/utils/object';
 import { SCHEMA } from '@/config/types';
 import ResourceYaml from '@/components/ResourceYaml';
 import Banner from '@/components/Banner';
 import AsyncButton from '@/components/AsyncButton';
-import { mapGetters } from 'vuex';
 import { stringify } from '@/utils/error';
 import CruResourceFooter from '@/components/CruResourceFooter';
 import {

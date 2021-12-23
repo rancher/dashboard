@@ -1,8 +1,8 @@
 <script>
+import { updatePort } from './utils';
 import Checkbox from '@/components/form/Checkbox';
 import LabeledInput from '@/components/form/LabeledInput';
 import SecretSelector from '@/components/form/SecretSelector';
-import { updatePort } from './utils';
 
 export default {
   components: {

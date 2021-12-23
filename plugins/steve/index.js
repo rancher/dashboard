@@ -1,6 +1,5 @@
 import Vue from 'vue';
 
-import { isArray } from '@/utils/array';
 import actions from './actions';
 import getters from './getters';
 import mutations from './mutations';
@@ -11,6 +10,7 @@ import {
 } from './subscribe';
 import { classify } from './classify';
 import { keyFieldFor } from './normalize';
+import { isArray } from '@/utils/array';
 
 function SteveFactory(namespace, baseUrl) {
   return {

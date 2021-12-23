@@ -1,7 +1,7 @@
 <script>
+import TLS from '../tls';
 import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
-import TLS from '../tls';
 
 export default {
   components: {

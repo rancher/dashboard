@@ -1,10 +1,5 @@
 <script>
 import { mapState } from 'vuex';
-import { dasherize, ucFirst } from '@/utils/string';
-import { get, clone } from '@/utils/object';
-import { removeObject, filterBy } from '@/utils/array';
-import Checkbox from '@/components/form/Checkbox';
-import ActionDropdown from '@/components/ActionDropdown';
 import $ from 'jquery';
 import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
@@ -14,6 +9,11 @@ import selection from './selection';
 import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
+import ActionDropdown from '@/components/ActionDropdown';
+import Checkbox from '@/components/form/Checkbox';
+import { removeObject, filterBy } from '@/utils/array';
+import { get, clone } from '@/utils/object';
+import { dasherize, ucFirst } from '@/utils/string';
 
 export const COLUMN_BREAKPOINTS = {
   /**

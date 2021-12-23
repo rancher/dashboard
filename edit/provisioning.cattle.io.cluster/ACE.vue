@@ -1,9 +1,9 @@
 <script>
+import isEmpty from 'lodash/isEmpty';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
 import FileSelector, { createOnSelected } from '@/components/form/FileSelector';
 import { set } from '@/utils/object';
-import isEmpty from 'lodash/isEmpty';
 
 export default {
   components: {

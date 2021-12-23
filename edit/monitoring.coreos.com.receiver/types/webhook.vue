@@ -1,11 +1,11 @@
 <script>
+import TLS from '../tls';
+import Auth from '../auth';
 import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
 import Banner from '@/components/Banner';
 import { _VIEW } from '@/config/query-params';
 import { ALIBABA_CLOUD_SMS_URL, MS_TEAMS_URL } from '@/edit/monitoring.coreos.com.receiver/types/webhook.add.vue';
-import TLS from '../tls';
-import Auth from '../auth';
 
 export default {
   components: {

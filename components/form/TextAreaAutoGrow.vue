@@ -1,7 +1,7 @@
 <script>
 import $ from 'jquery';
-import { _EDIT, _VIEW } from '@/config/query-params';
 import debounce from 'lodash/debounce';
+import { _EDIT, _VIEW } from '@/config/query-params';
 
 export default {
   inheritAttrs: false,

@@ -1,10 +1,10 @@
 <script>
-import { mapPref, DIFF } from '@/store/prefs';
-import { saferDump } from '@/utils/create-yaml';
 import jsyaml from 'js-yaml';
 import isEmpty from 'lodash/isEmpty';
 import CodeMirror from './CodeMirror';
 import FileDiff from './FileDiff';
+import { saferDump } from '@/utils/create-yaml';
+import { mapPref, DIFF } from '@/store/prefs';
 
 export const EDITOR_MODES = {
   EDIT_CODE: 'EDIT_CODE',

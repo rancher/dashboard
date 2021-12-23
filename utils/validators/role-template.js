@@ -1,5 +1,5 @@
-import { RBAC } from '@/config/types';
 import isEmpty from 'lodash/isEmpty';
+import { RBAC } from '@/config/types';
 
 export function roleTemplateRules(rules = [], getters, errors, validatorArgs = []) {
   if (rules.some(rule => isEmpty(rule.verbs))) {

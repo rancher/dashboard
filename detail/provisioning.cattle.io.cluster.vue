@@ -1,4 +1,6 @@
 <script>
+import AnsiUp from 'ansi_up';
+import day from 'dayjs';
 import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
 import ResourceTable from '@/components/ResourceTable';
@@ -13,8 +15,6 @@ import {
 } from '@/config/table-headers';
 import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@/components/AsyncButton.vue';
-import AnsiUp from 'ansi_up';
-import day from 'dayjs';
 import { addParams } from '@/utils/url';
 import { base64Decode } from '@/utils/crypto';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';

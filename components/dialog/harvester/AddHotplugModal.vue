@@ -1,7 +1,7 @@
 <script>
+import { mapGetters } from 'vuex';
 import { exceptionToErrorsArray } from '@/utils/error';
 import { sortBy } from '@/utils/sort';
-import { mapGetters } from 'vuex';
 import { PVC } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import Card from '@/components/Card';

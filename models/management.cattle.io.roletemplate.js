@@ -1,9 +1,9 @@
 import Vue from 'vue';
+import Role from './rbac.authorization.k8s.io.role';
 import { get } from '@/utils/object';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import { NORMAN } from '@/config/types';
 import HybridModel from '@/plugins/steve/hybrid-class';
-import Role from './rbac.authorization.k8s.io.role';
 
 export const CATTLE_API_GROUP = '.cattle.io';
 

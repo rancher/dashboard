@@ -1,7 +1,7 @@
 <script>
+import { updatePort } from './utils';
 import LabeledInput from '@/components/form/LabeledInput';
 import SecretSelector from '@/components/form/SecretSelector';
-import { updatePort } from './utils';
 
 export default {
   components: { LabeledInput, SecretSelector },

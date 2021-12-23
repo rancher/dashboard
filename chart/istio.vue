@@ -1,9 +1,9 @@
 <script>
 import debounce from 'lodash/debounce';
 import jsyaml from 'js-yaml';
+import { mapGetters } from 'vuex';
 import Checkbox from '@/components/form/Checkbox';
 import YamlEditor from '@/components/YamlEditor';
-import { mapGetters } from 'vuex';
 import FileSelector from '@/components/form/FileSelector';
 import Tab from '@/components/Tabbed/Tab';
 import Banner from '@/components/Banner';

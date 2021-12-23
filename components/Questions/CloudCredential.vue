@@ -1,7 +1,7 @@
 <script>
+import Question from './Question';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { NORMAN } from '@/config/types';
-import Question from './Question';
 
 export default {
   components: { LabeledSelect },

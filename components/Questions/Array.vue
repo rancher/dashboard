@@ -1,6 +1,6 @@
 <script>
-import ArrayList from '@/components/form/ArrayList';
 import Question from './Question';
+import ArrayList from '@/components/form/ArrayList';
 
 export default {
   components: { ArrayList },

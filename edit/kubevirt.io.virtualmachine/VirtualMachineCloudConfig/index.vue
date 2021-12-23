@@ -1,6 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 
+import DataTemplate from './DataTemplate';
 import LabeledInput from '@/components/form/LabeledInput';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import ModalWithCard from '@/components/ModalWithCard';
@@ -8,7 +9,6 @@ import ModalWithCard from '@/components/ModalWithCard';
 import { CONFIG_MAP } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { _VIEW } from '@/config/query-params';
-import DataTemplate from './DataTemplate';
 
 const _NEW = '_NEW';
 const _NONE = '_NONE';

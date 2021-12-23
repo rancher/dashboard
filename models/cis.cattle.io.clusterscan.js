@@ -1,10 +1,10 @@
+import day from 'dayjs';
 import { _CREATE, _EDIT } from '@/config/query-params';
 import { CIS } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { downloadFile, generateZip } from '@/utils/download';
 import { get, isEmpty, set } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
-import day from 'dayjs';
 import SteveModel from '@/plugins/steve/steve-class';
 
 export default class ClusterScan extends SteveModel {

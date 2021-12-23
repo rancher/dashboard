@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import { removeObject } from '@/utils/array';
 import { USERNAME } from '@/config/cookies';
 import LabeledInput from '@/components/form/LabeledInput';
@@ -12,7 +13,6 @@ import Checkbox from '@/components/form/Checkbox';
 import Password from '@/components/form/Password';
 import { sortBy } from '@/utils/sort';
 import { configType } from '@/models/management.cattle.io.authconfig';
-import { mapGetters } from 'vuex';
 import { importLogin } from '@/utils/dynamic-importer';
 import { _ALL_IF_AUTHED, _MULTI } from '@/plugins/steve/actions';
 import { MANAGEMENT, NORMAN } from '@/config/types';

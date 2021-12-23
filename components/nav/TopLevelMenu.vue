@@ -1,8 +1,8 @@
 <script>
-import BrandImage from '@/components/BrandImage';
-import RancherProviderIcon from '@/components/RancherProviderIcon';
 import { mapGetters } from 'vuex';
 import $ from 'jquery';
+import BrandImage from '@/components/BrandImage';
+import RancherProviderIcon from '@/components/RancherProviderIcon';
 import { MANAGEMENT } from '@/config/types';
 import { mapPref, DEV, MENU_MAX_CLUSTERS } from '@/store/prefs';
 import { sortBy } from '@/utils/sort';

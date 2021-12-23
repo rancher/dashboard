@@ -1,6 +1,6 @@
+import Role from './rbac.authorization.k8s.io.role';
 import { CATTLE_API_GROUP, SUBTYPE_MAPPING } from '@/models/management.cattle.io.roletemplate';
 import { uniq } from '@/utils/array';
-import Role from './rbac.authorization.k8s.io.role';
 
 export default class ClusterRole extends Role {
   get subtype() {

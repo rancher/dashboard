@@ -1,11 +1,11 @@
 <script>
+import { mapGetters } from 'vuex';
 import BackLink from '@/components/BackLink';
 import PromptChangePassword from '@/components/PromptChangePassword';
 import { NORMAN } from '@/config/types';
 import Loading from '@/components/Loading';
 import Principal from '@/components/auth/Principal';
 import BackRoute from '@/mixins/back-link';
-import { mapGetters } from 'vuex';
 
 import Banner from '@/components/Banner';
 import ResourceTable from '@/components/ResourceTable';

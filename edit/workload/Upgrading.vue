@@ -1,10 +1,10 @@
 <script>
+import { mapGetters } from 'vuex';
 import { get } from '@/utils/object';
 import RadioGroup from '@/components/form/RadioGroup';
 import UnitInput from '@/components/form/UnitInput';
 import { WORKLOAD_TYPES } from '@/config/types';
 import { _CREATE } from '@/config/query-params';
-import { mapGetters } from 'vuex';
 import InputWithSelect from '@/components/form/InputWithSelect';
 
 export default {

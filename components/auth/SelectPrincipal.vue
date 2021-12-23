@@ -1,9 +1,9 @@
 <script>
+import debounce from 'lodash/debounce';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Principal from '@/components/auth/Principal';
 import { _EDIT } from '@/config/query-params';
 import { NORMAN } from '@/config/types';
-import debounce from 'lodash/debounce';
 
 export default {
   components: {

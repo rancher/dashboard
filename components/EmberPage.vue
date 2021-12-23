@@ -1,6 +1,6 @@
 <script>
-import Loading from '@/components/Loading';
 import { mapGetters, mapState } from 'vuex';
+import Loading from '@/components/Loading';
 import { NAME as MANAGER } from '@/config/product/manager';
 import { CAPI, MANAGEMENT } from '@/config/types';
 import { SETTING } from '@/config/settings';

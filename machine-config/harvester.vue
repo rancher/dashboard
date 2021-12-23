@@ -1,5 +1,6 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
+import { mapGetters } from 'vuex';
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -9,7 +10,6 @@ import YamlEditor from '@/components/YamlEditor';
 import Banner from '@/components/Banner';
 
 import { get } from '@/utils/object';
-import { mapGetters } from 'vuex';
 import {
   HCI, NAMESPACE, MANAGEMENT, CONFIG_MAP, NORMAN
 } from '@/config/types';

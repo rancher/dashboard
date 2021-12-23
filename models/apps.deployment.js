@@ -1,5 +1,5 @@
-import { WORKLOAD_TYPES } from '@/config/types';
 import Workload from './workload';
+import { WORKLOAD_TYPES } from '@/config/types';
 
 export default class Deployment extends Workload {
   get replicaSetId() {

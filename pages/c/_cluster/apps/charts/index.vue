@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import AsyncButton from '@/components/AsyncButton';
 import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
@@ -8,7 +9,6 @@ import {
 } from '@/config/query-params';
 import { lcFirst } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
-import { mapGetters } from 'vuex';
 import Checkbox from '@/components/form/Checkbox';
 import Select from '@/components/form/Select';
 import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE } from '@/store/prefs';

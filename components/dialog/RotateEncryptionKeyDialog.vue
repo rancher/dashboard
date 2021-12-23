@@ -1,11 +1,11 @@
 <script>
+import day from 'dayjs';
 import AsyncButton from '@/components/AsyncButton';
 import Card from '@/components/Card';
 import Banner from '@/components/Banner';
 import { exceptionToErrorsArray } from '@/utils/error';
 import { NORMAN } from '@/config/types';
 import { sortBy } from '@/utils/sort';
-import day from 'dayjs';
 import { escapeHtml } from '@/utils/string';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 

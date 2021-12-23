@@ -1,6 +1,6 @@
+import jsyaml from 'js-yaml';
 import { indent as _indent } from '@/utils/string';
 import { addObject, findBy, removeObject, removeObjects } from '@/utils/array';
-import jsyaml from 'js-yaml';
 import { cleanUp } from '@/utils/object';
 
 export const SIMPLE_TYPES = [

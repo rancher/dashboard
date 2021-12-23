@@ -1,11 +1,11 @@
+import { normalizeType, KEY_FIELD_FOR } from './normalize';
+import urlOptions from './urloptions';
+import mutations from './mutations';
 import { SCHEMA } from '@/config/types';
 import { matches } from '@/utils/selector';
 import { typeMunge, typeRef, SIMPLE_TYPES } from '@/utils/create-yaml';
 import { splitObjectPath } from '@/utils/string';
 import { parseType } from '@/models/schema';
-import { normalizeType, KEY_FIELD_FOR } from './normalize';
-import urlOptions from './urloptions';
-import mutations from './mutations';
 
 export default {
   all: (state, getters) => (type) => {

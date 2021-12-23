@@ -1,5 +1,6 @@
 <script>
 import omitBy from 'lodash/omitBy';
+import { mapGetters } from 'vuex';
 import { cleanUp } from '@/utils/object';
 import {
   CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC, SERVICE_ACCOUNT
@@ -23,7 +24,6 @@ import WorkloadPorts from '@/components/form/WorkloadPorts';
 import ContainerResourceLimit from '@/components/ContainerResourceLimit';
 import KeyValue from '@/components/form/KeyValue';
 import Tabbed from '@/components/Tabbed';
-import { mapGetters } from 'vuex';
 import NodeScheduling from '@/components/form/NodeScheduling';
 import PodAffinity from '@/components/form/PodAffinity';
 import Tolerations from '@/components/form/Tolerations';

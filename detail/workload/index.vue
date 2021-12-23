@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import CreateEditView from '@/mixins/create-edit-view';
 import { STATE, NAME, NODE, POD_IMAGES } from '@/config/table-headers';
 import { POD, WORKLOAD_TYPES } from '@/config/types';
@@ -10,7 +11,6 @@ import CountGauge from '@/components/CountGauge';
 import { allHash } from '@/utils/promise';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import V1WorkloadMetrics from '@/mixins/v1-workload-metrics';
-import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@/utils/grafana';
 
 const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';

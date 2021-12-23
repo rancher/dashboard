@@ -1,4 +1,5 @@
 <script>
+import throttle from 'lodash/throttle';
 import Banner from '@/components/Banner';
 import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
@@ -10,7 +11,6 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import { set } from '@/utils/object';
 import { FLEET } from '@/config/types';
 import { convert, matching, simplify } from '@/utils/selector';
-import throttle from 'lodash/throttle';
 
 export default {
   name: 'CruClusterGroup',

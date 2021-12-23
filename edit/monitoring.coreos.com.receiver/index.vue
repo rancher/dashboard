@@ -1,4 +1,5 @@
 <script>
+import jsyaml from 'js-yaml';
 import { MONITORING } from '@/config/types';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import Loading from '@/components/Loading';
@@ -9,7 +10,6 @@ import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import CreateEditView from '@/mixins/create-edit-view';
-import jsyaml from 'js-yaml';
 import { RECEIVERS_TYPES } from '@/models/monitoring.coreos.com.receiver';
 import ButtonDropdown from '@/components/ButtonDropdown';
 

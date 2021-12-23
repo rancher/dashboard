@@ -1,6 +1,6 @@
 <script>
-import BrandImage from '@/components/BrandImage';
 import { mapState } from 'vuex';
+import BrandImage from '@/components/BrandImage';
 import { stringify } from '@/utils/error';
 import { getVendor } from '@/config/private-label';
 import { NAME as HARVESTER } from '@/config/product/harvester';

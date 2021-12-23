@@ -1,4 +1,5 @@
 <script>
+import { mapState } from 'vuex';
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
 import Masthead from '@/components/ResourceList/Masthead';
@@ -7,7 +8,6 @@ import AsyncButton from '@/components/AsyncButton';
 import { applyProducts } from '@/store/type-map';
 import { NAME } from '@/config/product/auth';
 import { MODE, _EDIT } from '@/config/query-params';
-import { mapState } from 'vuex';
 
 export default {
   components: {

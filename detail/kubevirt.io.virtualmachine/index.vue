@@ -1,5 +1,9 @@
 <script>
 import { mapGetters } from 'vuex';
+import Events from './VirtualMachineTabs/VirtualMachineEvents';
+import Migration from './VirtualMachineTabs/VirtualMachineMigration';
+import OverviewBasics from './VirtualMachineTabs/VirtualMachineBasics';
+import OverviewKeypairs from './VirtualMachineTabs/VirtualMachineKeypairs';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import { EVENT, HCI, SERVICE } from '@/config/types';
@@ -12,10 +16,6 @@ import { allDashboardsExist } from '@/utils/grafana';
 import CloudConfig from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
 import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
 import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
-import Events from './VirtualMachineTabs/VirtualMachineEvents';
-import Migration from './VirtualMachineTabs/VirtualMachineMigration';
-import OverviewBasics from './VirtualMachineTabs/VirtualMachineBasics';
-import OverviewKeypairs from './VirtualMachineTabs/VirtualMachineKeypairs';
 
 const VM_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/harvester-vm-detail-1/vm-info-detail?orgId=1';
 

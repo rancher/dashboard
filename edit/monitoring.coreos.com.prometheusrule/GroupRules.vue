@@ -1,12 +1,12 @@
 <script>
 import has from 'lodash/has';
 
+import AlertingRule from './AlertingRule';
+import RecordingRule from './RecordingRule';
 import Banner from '@/components/Banner';
 import { removeAt } from '@/utils/array';
 import { _VIEW } from '@/config/query-params';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
-import AlertingRule from './AlertingRule';
-import RecordingRule from './RecordingRule';
 
 export default {
   components: {

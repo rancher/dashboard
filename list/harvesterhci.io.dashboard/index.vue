@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import minMax from 'dayjs/plugin/minMax';
 import utc from 'dayjs/plugin/utc';
 import { mapGetters } from 'vuex';
+import HarvesterUpgrade from './HarvesterUpgrade';
 import Loading from '@/components/Loading';
 import SortableTable from '@/components/SortableTable';
 import { allHash } from '@/utils/promise';
@@ -18,7 +19,6 @@ import Tab from '@/components/Tabbed/Tab';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import metricPoller from '@/mixins/metric-poller';
 import { allDashboardsExist } from '@/utils/grafana';
-import HarvesterUpgrade from './HarvesterUpgrade';
 
 dayjs.extend(utc);
 dayjs.extend(minMax);

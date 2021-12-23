@@ -1,4 +1,7 @@
 <script>
+import isEqual from 'lodash/isEqual';
+import isEmpty from 'lodash/isEmpty';
+import jsyaml from 'js-yaml';
 import CreateEditView from '@/mixins/create-edit-view';
 import { SECRET, LOGGING, SCHEMA } from '@/config/types';
 import Tabbed from '@/components/Tabbed';
@@ -11,9 +14,6 @@ import Banner from '@/components/Banner';
 import { PROVIDERS } from '@/models/logging.banzaicloud.io.output';
 import { _VIEW } from '@/config/query-params';
 import { clone, set } from '@/utils/object';
-import isEqual from 'lodash/isEqual';
-import isEmpty from 'lodash/isEmpty';
-import jsyaml from 'js-yaml';
 import { createYaml } from '@/utils/create-yaml';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 

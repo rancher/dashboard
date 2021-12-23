@@ -1,10 +1,11 @@
 <script>
+import isEmpty from 'lodash/isEmpty';
+import Window from './Window';
 import { allHash } from '@/utils/promise';
 import { addParams } from '@/utils/url';
 import { base64Decode, base64Encode } from '@/utils/crypto';
 import Select from '@/components/form/Select';
 import { NODE } from '@/config/types';
-import isEmpty from 'lodash/isEmpty';
 
 import Socket, {
   EVENT_CONNECTED,
@@ -14,7 +15,6 @@ import Socket, {
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR,
 } from '@/utils/socket';
-import Window from './Window';
 
 const DEFAULT_COMMAND = [
   '/bin/sh',

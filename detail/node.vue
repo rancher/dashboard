@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import ConsumptionGauge from '@/components/ConsumptionGauge';
 import Alert from '@/components/Alert';
 import SortableTable from '@/components/SortableTable';
@@ -16,7 +17,6 @@ import { METRIC, POD } from '@/config/types';
 import createEditView from '@/mixins/create-edit-view';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
 import DashboardMetrics from '@/components/DashboardMetrics';
-import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@/utils/grafana';
 import Loading from '@/components/Loading';
 import metricPoller from '@/mixins/metric-poller';

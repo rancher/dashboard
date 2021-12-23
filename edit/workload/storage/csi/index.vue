@@ -1,6 +1,6 @@
 <script>
-import LabeledSelect from '@/components/form/LabeledSelect';
 import { mapGetters } from 'vuex';
+import LabeledSelect from '@/components/form/LabeledSelect';
 
 export default {
   components: { LabeledSelect },

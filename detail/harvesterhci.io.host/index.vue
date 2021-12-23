@@ -1,4 +1,8 @@
 <script>
+import Basic from './HarvesterHostBasic';
+import Instance from './VirtualMachineInstance';
+import Disk from './HarvesterHostDisk';
+import Network from './HarvesterHostNetwork';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import metricPoller from '@/mixins/metric-poller';
@@ -10,10 +14,6 @@ import { formatSi } from '@/utils/units';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import { findBy } from '@/utils/array';
 import { clone } from '@/utils/object';
-import Basic from './HarvesterHostBasic';
-import Instance from './VirtualMachineInstance';
-import Disk from './HarvesterHostDisk';
-import Network from './HarvesterHostNetwork';
 
 export default {
   name: 'DetailHost',

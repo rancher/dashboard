@@ -1,5 +1,5 @@
-import { _EDIT, _YAML } from '@/config/query-params';
 import impl from './impl';
+import { _EDIT, _YAML } from '@/config/query-params';
 
 export default {
   ...impl,

@@ -1,6 +1,6 @@
 <script>
-import { exceptionToErrorsArray } from '@/utils/error';
 import { mapGetters } from 'vuex';
+import { exceptionToErrorsArray } from '@/utils/error';
 import Card from '@/components/Card';
 import Banner from '@/components/Banner';
 import AsyncButton from '@/components/AsyncButton';

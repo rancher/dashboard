@@ -1,4 +1,6 @@
 <script>
+import { mapGetters } from 'vuex';
+import { isValidCron } from 'cron-validator';
 import CruResource from '@/components/CruResource';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
@@ -6,14 +8,12 @@ import UnitInput from '@/components/form/UnitInput';
 import Banner from '@/components/Banner';
 import Loading from '@/components/Loading';
 import { CIS, CONFIG_MAP } from '@/config/types';
-import { mapGetters } from 'vuex';
 import createEditView from '@/mixins/create-edit-view';
 import { allHash } from '@/utils/promise';
 import Checkbox from '@/components/form/Checkbox';
 import RadioGroup from '@/components/form/RadioGroup';
 import { get } from '@/utils/object';
 import { _VIEW, _CREATE } from '@/config/query-params';
-import { isValidCron } from 'cron-validator';
 
 const semver = require('semver');
 

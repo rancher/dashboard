@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import CreateEditView from '@/mixins/create-edit-view';
 import Tab from '@/components/Tabbed/Tab';
 import ResourceTabs from '@/components/form/ResourceTabs';
@@ -8,7 +9,6 @@ import { sortableNumericSuffix } from '@/utils/sort';
 import { findBy } from '@/utils/array';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import V1WorkloadMetrics from '@/mixins/v1-workload-metrics';
-import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@/utils/grafana';
 import Loading from '@/components/Loading';
 import LabeledSelect from '@/components/form/LabeledSelect';

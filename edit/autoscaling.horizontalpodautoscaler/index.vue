@@ -1,4 +1,7 @@
 <script>
+import isEmpty from 'lodash/isEmpty';
+import find from 'lodash/find';
+import endsWith from 'lodash/endsWith';
 import CreateEditView from '@/mixins/create-edit-view';
 
 import CruResource from '@/components/CruResource';
@@ -14,9 +17,6 @@ import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import { DEFAULT_RESOURCE_METRIC } from '@/edit/autoscaling.horizontalpodautoscaler/resource-metric';
 
 import { API_SERVICE, SCALABLE_WORKLOAD_TYPES } from '@/config/types';
-import isEmpty from 'lodash/isEmpty';
-import find from 'lodash/find';
-import endsWith from 'lodash/endsWith';
 import { findBy } from '@/utils/array';
 
 const RESOURCE_METRICS_API_GROUP = 'metrics.k8s.io';

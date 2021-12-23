@@ -1,4 +1,6 @@
 <script>
+import Labels from './Labels';
+import AgentEnv from './AgentEnv';
 import CreateEditView from '@/mixins/create-edit-view';
 
 import CruResource from '@/components/CruResource';
@@ -14,8 +16,6 @@ import { NAME as HARVESTER_MANAGER } from '@/config/product/harvester-manager';
 import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@/store/features';
 import { addObject } from '@/utils/array';
 import { HIDE_DESC, mapPref } from '@/store/prefs';
-import Labels from './Labels';
-import AgentEnv from './AgentEnv';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 

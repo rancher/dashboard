@@ -1,7 +1,7 @@
 <script>
+import Masthead from './Masthead';
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
-import Masthead from './Masthead';
 
 export default {
   components: {

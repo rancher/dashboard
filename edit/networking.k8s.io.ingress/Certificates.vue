@@ -1,9 +1,9 @@
 <script>
+import Certificate from './Certificate';
 import SortableTable from '@/components/SortableTable';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { SECRET } from '@/config/types';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
-import Certificate from './Certificate';
 
 export default {
   components: {

@@ -1,7 +1,7 @@
 <script>
-import ArrayList from '@/components/form/ArrayList';
 import Row from './ProjectRow';
 import { QUOTA_COMPUTED } from './shared';
+import ArrayList from '@/components/form/ArrayList';
 
 export default {
   components: { ArrayList, Row },

@@ -1,8 +1,8 @@
 <script>
+import { mapGetters } from 'vuex';
 import RadioGroup from '@/components/form/RadioGroup';
 import ArrayList from '@/components/form/ArrayList';
 import KeyValue from '@/components/form/KeyValue';
-import { mapGetters } from 'vuex';
 import LabeledInput from '@/components/form/LabeledInput';
 
 export default {

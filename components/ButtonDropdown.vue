@@ -1,9 +1,9 @@
 <script>
 import { createPopper } from '@popperjs/core';
-import { get } from '@/utils/object';
 import isString from 'lodash/isString';
-import VueSelectOverrides from '@/mixins/vue-select-overrides';
 import $ from 'jquery';
+import { get } from '@/utils/object';
+import VueSelectOverrides from '@/mixins/vue-select-overrides';
 
 export default {
   mixins: [VueSelectOverrides],

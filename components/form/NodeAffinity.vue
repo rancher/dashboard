@@ -1,6 +1,6 @@
 <script>
-import { _VIEW } from '@/config/query-params';
 import { mapGetters } from 'vuex';
+import { _VIEW } from '@/config/query-params';
 import { get, isEmpty, clone } from '@/utils/object';
 import { NODE } from '@/config/types';
 import MatchExpressions from '@/components/form/MatchExpressions';

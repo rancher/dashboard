@@ -1,4 +1,7 @@
 <script>
+import DefaultBackend from './DefaultBackend';
+import Certificates from './Certificates';
+import Rules from './Rules';
 import { allHash } from '@/utils/promise';
 import { SECRET, SERVICE } from '@/config/types';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -9,9 +12,6 @@ import Labels from '@/components/form/Labels';
 import Tabbed from '@/components/Tabbed';
 import { get, set } from '@/utils/object';
 import { TYPES } from '@/models/secret';
-import DefaultBackend from './DefaultBackend';
-import Certificates from './Certificates';
-import Rules from './Rules';
 
 export default {
   name:       'CRUIngress',

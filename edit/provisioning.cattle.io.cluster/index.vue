@@ -1,4 +1,7 @@
 <script>
+import { mapGetters } from 'vuex';
+import Rke2Config from './rke2';
+import Import from './import';
 import CreateEditView from '@/mixins/create-edit-view';
 import Loading from '@/components/Loading';
 import CruResource from '@/components/CruResource';
@@ -7,7 +10,6 @@ import EmberPage from '@/components/EmberPage';
 import ToggleSwitch from '@/components/form/ToggleSwitch';
 import { CHART, FROM_CLUSTER, SUB_TYPE, _IMPORT } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
-import { mapGetters } from 'vuex';
 import { sortBy } from '@/utils/sort';
 import { set } from '@/utils/object';
 import { mapPref, PROVISIONER, _RKE1, _RKE2 } from '@/store/prefs';
@@ -17,8 +19,6 @@ import { CAPI, MANAGEMENT } from '@/config/types';
 import { mapFeature, RKE2 as RKE2_FEATURE } from '@/store/features';
 import { allHash } from '@/utils/promise';
 import { BLANK_CLUSTER } from '@/store';
-import Rke2Config from './rke2';
-import Import from './import';
 
 const SORT_GROUPS = {
   template:  1,

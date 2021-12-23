@@ -1,8 +1,8 @@
-import { ANNOTATIONS_TO_IGNORE_REGEX, LABELS_TO_IGNORE_REGEX } from '@/config/labels-annotations';
 import pickBy from 'lodash/pickBy';
 import Vue from 'vue';
-import { matchesSomeRegex } from '@/utils/string';
 import Resource from './resource-class';
+import { matchesSomeRegex } from '@/utils/string';
+import { ANNOTATIONS_TO_IGNORE_REGEX, LABELS_TO_IGNORE_REGEX } from '@/config/labels-annotations';
 
 export default class NormanModel extends Resource {
   setLabels(val) {

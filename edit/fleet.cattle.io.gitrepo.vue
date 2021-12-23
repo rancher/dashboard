@@ -1,6 +1,7 @@
 <script>
-import { exceptionToErrorsArray } from '@/utils/error';
 import { mapGetters } from 'vuex';
+import jsyaml from 'js-yaml';
+import { exceptionToErrorsArray } from '@/utils/error';
 import { FLEET, VIRTUAL_HARVESTER_PROVIDER } from '@/config/types';
 import { set } from '@/utils/object';
 import ArrayList from '@/components/form/ArrayList';
@@ -8,7 +9,6 @@ import Banner from '@/components/Banner';
 import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
 import InputWithSelect from '@/components/form/InputWithSelect';
-import jsyaml from 'js-yaml';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import RadioGroup from '@/components/form/RadioGroup';

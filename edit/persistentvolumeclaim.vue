@@ -1,4 +1,5 @@
 <script>
+import uniq from 'lodash/uniq';
 import Checkbox from '@/components/form/Checkbox';
 import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
@@ -7,7 +8,6 @@ import Tab from '@/components/Tabbed/Tab';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import UnitInput from '@/components/form/UnitInput';
-import uniq from 'lodash/uniq';
 import { _CREATE } from '@/config/query-params';
 import { STORAGE_CLASS, PV } from '@/config/types';
 import StatusTable from '@/components/StatusTable';

@@ -1,7 +1,7 @@
+import Workload from './workload';
 import { insertAt } from '@/utils/array';
 import { clone } from '@/utils/object';
 import { WORKLOAD_TYPES } from '@/config/types';
-import Workload from './workload';
 
 export default class CronJob extends Workload {
   get state() {

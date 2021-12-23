@@ -1,4 +1,7 @@
 <script>
+import isString from 'lodash/isString';
+import isEmpty from 'lodash/isEmpty';
+import GroupRules from './GroupRules';
 import CreateEditView from '@/mixins/create-edit-view';
 
 import { removeAt } from '@/utils/array';
@@ -11,9 +14,6 @@ import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import UnitInput from '@/components/form/UnitInput';
 import { _CREATE } from '@/config/query-params';
-import isString from 'lodash/isString';
-import isEmpty from 'lodash/isEmpty';
-import GroupRules from './GroupRules';
 
 export default {
   components: {

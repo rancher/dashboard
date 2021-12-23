@@ -1,11 +1,10 @@
 <script>
+import Vue from 'vue';
 import LabeledInput from '@/components/form/LabeledInput';
 import ShellInput from '@/components/form/ShellInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Checkbox from '@/components/form/Checkbox';
 import EnvVars from '@/components/form/EnvVars';
-
-import Vue from 'vue';
 
 export default {
   components: {

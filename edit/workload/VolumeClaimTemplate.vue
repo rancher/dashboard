@@ -1,6 +1,6 @@
 <script>
-import Mount from '@/edit/workload/storage/Mount';
 import { mapGetters } from 'vuex';
+import Mount from '@/edit/workload/storage/Mount';
 import PersistentVolumeClaim from '@/edit/workload/storage/persistentVolumeClaim/persistentvolumeclaim.vue';
 import { PVC } from '@/config/types';
 import { _VIEW } from '@/config/query-params';

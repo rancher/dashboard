@@ -1,7 +1,7 @@
 <script>
+import { mapGetters } from 'vuex';
 import Loading from '@/components/Loading';
 import DashboardMetrics from '@/components/DashboardMetrics';
-import { mapGetters } from 'vuex';
 import SortableTable from '@/components/SortableTable';
 import { allHash } from '@/utils/promise';
 import AlertTable from '@/components/AlertTable';

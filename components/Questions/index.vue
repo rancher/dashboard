@@ -1,9 +1,6 @@
 <script>
 import Jexl from 'jexl';
-import Tab from '@/components/Tabbed/Tab';
-import { get, set } from '@/utils/object';
 import sortBy from 'lodash/sortBy';
-import { _EDIT } from '@/config/query-params';
 import StringType from './String';
 import BooleanType from './Boolean';
 import EnumType from './Enum';
@@ -13,6 +10,9 @@ import ArrayType from './Array';
 import MapType from './QuestionMap';
 import ReferenceType from './Reference';
 import CloudCredentialType from './CloudCredential';
+import { _EDIT } from '@/config/query-params';
+import { get, set } from '@/utils/object';
+import Tab from '@/components/Tabbed/Tab';
 
 export const knownTypes = {
   string:          StringType,

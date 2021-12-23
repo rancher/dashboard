@@ -1,6 +1,6 @@
 <script>
-import LabeledInput from '@/components/form/LabeledInput';
 import Question from './Question';
+import LabeledInput from '@/components/form/LabeledInput';
 
 //  @TODO valid_chars, invalid_chars
 

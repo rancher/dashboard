@@ -1,7 +1,7 @@
 <script>
-import CopyToClipboard from '@/components/CopyToClipboard';
 import { mapGetters } from 'vuex';
 import { isV4Format, isV6Format } from 'ip';
+import CopyToClipboard from '@/components/CopyToClipboard';
 
 export default {
   components: { CopyToClipboard },

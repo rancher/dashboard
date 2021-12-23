@@ -1,10 +1,10 @@
 import Vue from 'vue';
-import { addObject, addObjects, clear, removeObject } from '@/utils/array';
-import { SCHEMA } from '@/config/types';
-import HybridModel, { cleanHybridResources } from '@/plugins/steve/hybrid-class';
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import { classify } from './classify';
 import { keyForSubscribe } from './subscribe';
+import { addObject, addObjects, clear, removeObject } from '@/utils/array';
+import { SCHEMA } from '@/config/types';
+import HybridModel, { cleanHybridResources } from '@/plugins/steve/hybrid-class';
 
 function registerType(state, type) {
   let cache = state.types[type];

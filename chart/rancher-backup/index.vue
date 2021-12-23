@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import Tab from '@/components/Tabbed/Tab';
 import S3 from '@/chart/rancher-backup/S3';
 import RadioGroup from '@/components/form/RadioGroup';
@@ -8,7 +9,6 @@ import Banner from '@/components/Banner';
 import { get } from '@/utils/object';
 import { allHash } from '@/utils/promise';
 import { STORAGE_CLASS, SECRET, PV } from '@/config/types';
-import { mapGetters } from 'vuex';
 import { STORAGE } from '@/config/labels-annotations';
 
 export default {

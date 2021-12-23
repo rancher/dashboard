@@ -1,6 +1,6 @@
+import uniq from 'lodash/uniq';
 import { LOGGING } from '@/config/types';
 import { set } from '@/utils/object';
-import uniq from 'lodash/uniq';
 import SteveModel from '@/plugins/steve/steve-class';
 
 export function matchRuleIsPopulated(rule) {

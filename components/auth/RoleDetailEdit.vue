@@ -1,4 +1,5 @@
 <script>
+import capitalize from 'lodash/capitalize';
 import { MANAGEMENT } from '@/config/types';
 import CruResource from '@/components/CruResource';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -14,7 +15,6 @@ import SortableTable from '@/components/SortableTable';
 import { _DETAIL } from '@/config/query-params';
 import { SUBTYPE_MAPPING, VERBS } from '@/models/management.cattle.io.roletemplate';
 import Loading from '@/components/Loading';
-import capitalize from 'lodash/capitalize';
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 const CLUSTER = SUBTYPE_MAPPING.CLUSTER.key;

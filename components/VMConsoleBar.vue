@@ -1,6 +1,6 @@
 <script>
-import ButtonDropdown from '@/components/ButtonDropdown';
 import { mapGetters } from 'vuex';
+import ButtonDropdown from '@/components/ButtonDropdown';
 
 export default {
   name: 'VMConsoleBar',

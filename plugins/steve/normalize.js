@@ -1,5 +1,5 @@
-import { SCHEMA } from '@/config/types';
 import isObject from 'lodash/isObject';
+import { SCHEMA } from '@/config/types';
 
 export const KEY_FIELD_FOR = {
   [SCHEMA]:  '_id',

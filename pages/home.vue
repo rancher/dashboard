@@ -1,4 +1,5 @@
 <script>
+import { mapGetters, mapState } from 'vuex';
 import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from '@/store/prefs';
 import Banner from '@/components/Banner';
 import BannerGraphic from '@/components/BannerGraphic';
@@ -9,7 +10,6 @@ import CommunityLinks from '@/components/CommunityLinks';
 import SimpleBox from '@/components/SimpleBox';
 import LandingPagePreference from '@/components/LandingPagePreference';
 import SingleClusterInfo from '@/components/SingleClusterInfo';
-import { mapGetters, mapState } from 'vuex';
 import { MANAGEMENT, CAPI } from '@/config/types';
 import { NAME as MANAGER } from '@/config/product/manager';
 import { STATE } from '@/config/table-headers';

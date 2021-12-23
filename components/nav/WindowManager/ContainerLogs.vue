@@ -1,6 +1,8 @@
 <script>
 import { saveAs } from 'file-saver';
 import AnsiUp from 'ansi_up';
+import day from 'dayjs';
+import Window from './Window';
 import { addParams } from '@/utils/url';
 import { base64Decode } from '@/utils/crypto';
 import {
@@ -10,7 +12,6 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import Checkbox from '@/components/form/Checkbox';
 import AsyncButton from '@/components/AsyncButton';
 import Select from '@/components/form/Select';
-import day from 'dayjs';
 
 import { escapeHtml, escapeRegex } from '@/utils/string';
 
@@ -21,7 +22,6 @@ import Socket, {
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR
 } from '@/utils/socket';
-import Window from './Window';
 
 let lastId = 1;
 const ansiup = new AnsiUp();

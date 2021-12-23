@@ -1,10 +1,10 @@
+import findLast from 'lodash/findLast';
 import { formatPercent } from '@/utils/string';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, RKE } from '@/config/labels-annotations.js';
 import {
   CAPI, MANAGEMENT, METRIC, NORMAN, POD
 } from '@/config/types';
 import { parseSi } from '@/utils/units';
-import findLast from 'lodash/findLast';
 
 import SteveModel from '@/plugins/steve/steve-class';
 

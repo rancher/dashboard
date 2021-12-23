@@ -1,5 +1,9 @@
 <script>
 import { mapGetters } from 'vuex';
+import NamespaceFilter from './NamespaceFilter';
+import WorkspaceSwitcher from './WorkspaceSwitcher';
+import TopLevelMenu from './TopLevelMenu';
+import Jump from './Jump';
 import { NORMAN, HCI } from '@/config/types';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
 import { ucFirst } from '@/utils/string';
@@ -9,10 +13,6 @@ import BrandImage from '@/components/BrandImage';
 import { getProduct } from '@/config/private-label';
 import RancherProviderIcon from '@/components/RancherProviderIcon';
 import { LOGGED_OUT } from '@/config/query-params';
-import NamespaceFilter from './NamespaceFilter';
-import WorkspaceSwitcher from './WorkspaceSwitcher';
-import TopLevelMenu from './TopLevelMenu';
-import Jump from './Jump';
 
 const PAGE_HEADER_ACTION = 'page-action';
 

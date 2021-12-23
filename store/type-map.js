@@ -111,6 +111,7 @@
 //   mapWeight,
 //   continueOnMatch
 // )
+import isObject from 'lodash/isObject';
 import { AGE, NAME, NAMESPACE, STATE } from '@/config/table-headers';
 import { COUNT, SCHEMA, MANAGEMENT } from '@/config/types';
 import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
@@ -126,7 +127,6 @@ import {
 } from '@/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@/config/product/explorer';
-import isObject from 'lodash/isObject';
 import { normalizeType } from '@/plugins/steve/normalize';
 import { sortBy } from '@/utils/sort';
 import { haveV1Monitoring, haveV2Monitoring } from '@/utils/monitoring';

@@ -1,4 +1,5 @@
 <script>
+import LoadBalancer from './LoadBalancer';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
@@ -8,7 +9,6 @@ import Tabbed from '@/components/Tabbed';
 import KeyValue from '@/components/form/KeyValue';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import { get, set } from '@/utils/object';
-import LoadBalancer from './LoadBalancer';
 
 export default {
   components: {

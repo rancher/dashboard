@@ -1,4 +1,5 @@
 <script>
+import uniq from 'lodash/uniq';
 import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -10,7 +11,6 @@ import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import NodeAffinity from '@/components/form/NodeAffinity';
 import Checkbox from '@/components/form/Checkbox';
-import uniq from 'lodash/uniq';
 import UnitInput from '@/components/form/UnitInput';
 import { NODE, PVC, STORAGE_CLASS } from '@/config/types';
 import Loading from '@/components/Loading';

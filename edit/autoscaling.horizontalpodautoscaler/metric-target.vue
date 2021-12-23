@@ -1,8 +1,8 @@
 <script>
+import filter from 'lodash/filter';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
 import { findBy } from '@/utils/array';
-import filter from 'lodash/filter';
 import UnitInput from '@/components/form/UnitInput';
 import { parseSi } from '@/utils/units';
 

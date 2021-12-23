@@ -1,9 +1,9 @@
 <script>
+import Question from './Question';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { filterBy } from '@/utils/array';
 import { PVC, STORAGE_CLASS } from '@/config/types';
-import Question from './Question';
 
 // Older versions of rancher document these words as valid types
 const LEGACY_MAP = {

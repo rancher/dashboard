@@ -2,9 +2,10 @@
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
 import isEqual from 'lodash/isEqual';
+import { mapGetters } from 'vuex';
+import Vue from 'vue';
 import { mapPref, DIFF } from '@/store/prefs';
 import { mapFeature, MULTI_CLUSTER, LEGACY } from '@/store/features';
-import { mapGetters } from 'vuex';
 
 import Banner from '@/components/Banner';
 import ButtonGroup from '@/components/ButtonGroup';
@@ -32,7 +33,6 @@ import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@/config/labels-annotat
 import { exceptionToErrorsArray } from '@/utils/error';
 import { clone, diff, get, set } from '@/utils/object';
 import { findBy, insertAt } from '@/utils/array';
-import Vue from 'vue';
 import { saferDump } from '@/utils/create-yaml';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 

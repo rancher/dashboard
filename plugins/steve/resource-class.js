@@ -7,6 +7,7 @@ import forIn from 'lodash/forIn';
 import uniq from 'lodash/uniq';
 import Vue from 'vue';
 
+import { cleanForNew, normalizeType } from './normalize';
 import { addObject, addObjects, findBy, removeAt } from '@/utils/array';
 import CustomValidators from '@/utils/custom-validators';
 import { downloadFile, generateZip } from '@/utils/download';
@@ -31,8 +32,6 @@ import { NORMAN_NAME } from '@/config/labels-annotations';
 import {
   AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG, _CONFIG
 } from '@/config/query-params';
-
-import { cleanForNew, normalizeType } from './normalize';
 
 const STRING_LIKE_TYPES = [
   'string',

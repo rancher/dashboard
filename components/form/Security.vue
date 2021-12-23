@@ -1,8 +1,8 @@
 <script>
+import { mapGetters } from 'vuex';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
 import { _VIEW } from '@/config/query-params';
-import { mapGetters } from 'vuex';
 import LabeledSelect from '@/components/form/LabeledSelect';
 
 export default {

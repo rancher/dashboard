@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import CruResource from '@/components/CruResource';
 import createEditView from '@/mixins/create-edit-view';
 import LabeledInput from '@/components/form/LabeledInput';
@@ -8,7 +9,6 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import Loading from '@/components/Loading';
 import RadioGroup from '@/components/form/RadioGroup';
 import S3 from '@/chart/rancher-backup/S3';
-import { mapGetters } from 'vuex';
 import { SECRET, BACKUP_RESTORE, CATALOG } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { get } from '@/utils/object';

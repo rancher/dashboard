@@ -1,9 +1,9 @@
 <script>
+import sortBy from 'lodash/sortBy';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { SECRET } from '@/config/types';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { TYPES } from '@/models/secret';
-import sortBy from 'lodash/sortBy';
 
 const NONE = '__[[NONE]]__';
 

@@ -1,5 +1,5 @@
-import { get, set } from '@/utils/object';
 import $ from 'jquery';
+import { get, set } from '@/utils/object';
 
 const DEFAULT_NS = 'cluster';
 

@@ -1,4 +1,6 @@
 <script>
+import jsyaml from 'js-yaml';
+import merge from 'lodash/merge';
 import YamlEditor from '@/components/YamlEditor';
 import Loading from '@/components/Loading';
 import Markdown from '@/components/Markdown';
@@ -6,8 +8,6 @@ import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import Banner from '@/components/Banner';
 import RelatedResources from '@/components/RelatedResources';
-import jsyaml from 'js-yaml';
-import merge from 'lodash/merge';
 
 export default {
   name: 'DetailRelease',

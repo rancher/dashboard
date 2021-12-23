@@ -1,17 +1,17 @@
 import Vue from 'vue';
+import jsyaml from 'js-yaml';
+import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 import { CATALOG } from '@/config/labels-annotations';
 import { NODE, FLEET, MANAGEMENT } from '@/config/types';
 import { insertAt } from '@/utils/array';
 import { downloadFile } from '@/utils/download';
 import { parseSi } from '@/utils/units';
-import jsyaml from 'js-yaml';
 import { eachLimit } from '@/utils/promise';
 import { addParams } from '@/utils/url';
 import { isEmpty } from '@/utils/object';
 import { NAME as HARVESTER } from '@/config/product/harvester';
 import { isHarvesterCluster } from '@/utils/cluster';
 import HybridModel from '@/plugins/steve/hybrid-class';
-import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 
 // See translation file cluster.providers for list of providers
 // If the logo is not named with the provider name, add an override here

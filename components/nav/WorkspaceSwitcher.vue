@@ -1,6 +1,6 @@
 <script>
-import { WORKSPACE } from '@/store/prefs';
 import { mapState } from 'vuex';
+import { WORKSPACE } from '@/store/prefs';
 import Select from '@/components/form/Select';
 
 export default {

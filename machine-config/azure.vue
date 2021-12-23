@@ -1,10 +1,10 @@
 <script>
+import merge from 'lodash/merge';
+import isEmpty from 'lodash/isEmpty';
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import { stringify, exceptionToErrorsArray } from '@/utils/error';
 import Banner from '@/components/Banner';
-import merge from 'lodash/merge';
-import isEmpty from 'lodash/isEmpty';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';

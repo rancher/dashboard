@@ -1,6 +1,6 @@
 <script>
-import KeyValue from '@/components/form/KeyValue';
 import Question from './Question';
+import KeyValue from '@/components/form/KeyValue';
 
 export default {
   name:       'QuestionMap',

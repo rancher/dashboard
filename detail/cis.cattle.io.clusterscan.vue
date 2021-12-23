@@ -1,10 +1,10 @@
 <script>
+import day from 'dayjs';
 import Date from '@/components/formatter/Date';
 import SortableTable from '@/components/SortableTable';
 import Banner from '@/components/Banner';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Loading from '@/components/Loading';
-import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 import { escapeHtml, randomStr } from '@/utils/string';
 import { CIS } from '@/config/types';

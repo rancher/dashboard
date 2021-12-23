@@ -1,11 +1,11 @@
 <script>
+import Rule from './Rule';
 import { WORKLOAD_TYPES } from '@/config/types';
 import Loading from '@/components/Loading';
 import SortableTable from '@/components/SortableTable';
 import { _VIEW } from '@/config/query-params';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import { random32 } from '@/utils/string';
-import Rule from './Rule';
 
 export default {
   components: {

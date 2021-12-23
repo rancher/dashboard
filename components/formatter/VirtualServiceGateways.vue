@@ -1,7 +1,7 @@
 <script>
+import { mapGetters } from 'vuex';
 import { get } from '@/utils/object';
 import { ISTIO } from '@/config/types';
-import { mapGetters } from 'vuex';
 export default {
   props: {
     value: {

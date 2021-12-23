@@ -1,6 +1,6 @@
 
-import { _CLONE } from '@/config/query-params';
 import Vue from 'vue';
+import { _CLONE } from '@/config/query-params';
 import SteveModel from '@/plugins/steve/steve-class';
 
 export default class PVC extends SteveModel {

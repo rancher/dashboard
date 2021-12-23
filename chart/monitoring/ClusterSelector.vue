@@ -1,9 +1,9 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
-import LabeledSelect from '@/components/form/LabeledSelect';
 import { mapGetters } from 'vuex';
-import { findBy } from '@/utils/array';
 import sortBy from 'lodash/sortBy';
+import LabeledSelect from '@/components/form/LabeledSelect';
+import { findBy } from '@/utils/array';
 
 const MANAGED_CONFIG_KEYS = [
   'kubeControllerManager',

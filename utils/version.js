@@ -1,5 +1,5 @@
-import { sortableNumericSuffix } from '@/utils/sort';
 import semver from 'semver';
+import { sortableNumericSuffix } from '@/utils/sort';
 import { MANAGEMENT } from '@/config/types';
 import { READ_WHATS_NEW, SEEN_WHATS_NEW } from '@/store/prefs';
 

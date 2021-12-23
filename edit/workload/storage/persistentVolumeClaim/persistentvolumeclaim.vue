@@ -1,10 +1,10 @@
 <script>
+import { mapGetters } from 'vuex';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import UnitInput from '@/components/form/UnitInput';
 import RadioGroup from '@/components/form/RadioGroup';
 import Checkbox from '@/components/form/Checkbox';
 import LabeledInput from '@/components/form/LabeledInput';
-import { mapGetters } from 'vuex';
 import { removeObject, addObject } from '@/utils/array';
 import { STORAGE_CLASS, PV } from '@/config/types';
 import { allHash } from '@/utils/promise';

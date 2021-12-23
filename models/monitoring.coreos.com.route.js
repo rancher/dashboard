@@ -1,8 +1,8 @@
+import jsyaml from 'js-yaml';
 import { isEmpty, set } from '@/utils/object';
 import { areRoutesSupportedFormat, canCreate, createDefaultRouteName, updateConfig } from '@/utils/alertmanagerconfig';
 import { MONITORING } from '@/config/types';
 import { NAME as MONITORING_PRODUCT } from '@/config/product/monitoring';
-import jsyaml from 'js-yaml';
 import SteveModel from '@/plugins/steve/steve-class';
 
 export const ROOT_NAME = 'root';

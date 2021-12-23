@@ -1,9 +1,9 @@
 <script>
+import { ROW_COMPUTED } from './shared';
 import Select from '@/components/form/Select';
 import UnitInput from '@/components/form/UnitInput';
 import PercentageBar from '@/components/PercentageBar';
 import { formatSi, parseSi } from '@/utils/units';
-import { ROW_COMPUTED } from './shared';
 
 export default {
   components: {

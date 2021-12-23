@@ -1,7 +1,7 @@
 <script>
+import isEmpty from 'lodash/isEmpty';
 import { MANAGEMENT } from '@/config/types';
 import { SETTING } from '@/config/settings';
-import isEmpty from 'lodash/isEmpty';
 
 export default {
   props: {

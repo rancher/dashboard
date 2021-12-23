@@ -1,4 +1,7 @@
 <script>
+import jsyaml from 'js-yaml';
+import isEmpty from 'lodash/isEmpty';
+import Match from './Match';
 import Banner from '@/components/Banner';
 import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
@@ -7,7 +10,6 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import { LOGGING, NODE, POD, SCHEMA } from '@/config/types';
-import jsyaml from 'js-yaml';
 import { createYaml } from '@/utils/create-yaml';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import { allHash } from '@/utils/promise';
@@ -15,10 +17,8 @@ import { isArray, uniq } from '@/utils/array';
 import { matchRuleIsPopulated } from '@/models/logging.banzaicloud.io.flow';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { clone, set } from '@/utils/object';
-import isEmpty from 'lodash/isEmpty';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import { exceptionToErrorsArray } from '@/utils/error';
-import Match from './Match';
 
 function emptyMatch(include = true) {
   const rule = {

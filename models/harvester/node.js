@@ -1,8 +1,8 @@
 import pickBy from 'lodash/pickBy';
+import findLast from 'lodash/findLast';
 import { HCI, LONGHORN, POD } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { clone } from '@/utils/object';
-import findLast from 'lodash/findLast';
 import { colorForState, stateDisplay } from '@/plugins/steve/resource-class';
 import SteveModel from '@/plugins/steve/steve-class';
 import { parseSi } from '@/utils/units';

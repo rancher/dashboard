@@ -1,7 +1,7 @@
+import jsyaml from 'js-yaml';
 import { canCreate, updateConfig } from '@/utils/alertmanagerconfig';
 import { isEmpty } from '@/utils/object';
 import { MONITORING } from '@/config/types';
-import jsyaml from 'js-yaml';
 import SteveModel from '@/plugins/steve/steve-class';
 
 export const RECEIVERS_TYPES = [

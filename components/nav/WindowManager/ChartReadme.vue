@@ -1,6 +1,6 @@
 <script>
-import ChartReadme from '@/components/ChartReadme';
 import Window from './Window';
+import ChartReadme from '@/components/ChartReadme';
 
 export default {
   components: { Window, ChartReadme },

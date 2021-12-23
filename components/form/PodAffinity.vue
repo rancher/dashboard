@@ -1,4 +1,5 @@
 <script>
+import debounce from 'lodash/debounce';
 import { _VIEW } from '@/config/query-params';
 import { get, set, isEmpty, clone } from '@/utils/object';
 import { POD, NODE, NAMESPACE } from '@/config/types';
@@ -9,7 +10,6 @@ import LabeledInput from '@/components/form/LabeledInput';
 import { randomStr } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
-import debounce from 'lodash/debounce';
 
 export default {
   components: {

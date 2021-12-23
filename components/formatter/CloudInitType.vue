@@ -1,6 +1,6 @@
 <script>
-import { HCI } from '@/config/labels-annotations';
 import { mapGetters } from 'vuex';
+import { HCI } from '@/config/labels-annotations';
 
 export default {
   props: {

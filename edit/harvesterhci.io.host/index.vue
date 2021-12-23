@@ -1,6 +1,7 @@
 <script>
 import pickBy from 'lodash/pickBy';
 import { mapGetters } from 'vuex';
+import HarvesterDisk from './HarvesterDisk';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import Footer from '@/components/form/Footer';
@@ -22,7 +23,6 @@ import { exceptionToErrorsArray } from '@/utils/error';
 import KeyValue from '@/components/form/KeyValue';
 import { sortBy } from '@/utils/sort';
 import Banner from '@/components/Banner';
-import HarvesterDisk from './HarvesterDisk';
 
 const LONGHORN_SYSTEM = 'longhorn-system';
 

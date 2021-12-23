@@ -1,11 +1,11 @@
 <script>
+import jsyaml from 'js-yaml';
 import { PVC } from '@/config/types';
 import { removeObjects, addObjects } from '@/utils/array.js';
 import ButtonDropdown from '@/components/ButtonDropdown';
 import Mount from '@/edit/workload/storage/Mount';
 import { _VIEW } from '@/config/query-params';
 import CodeMirror from '@/components/CodeMirror';
-import jsyaml from 'js-yaml';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import { randomStr } from '@/utils/string';
 

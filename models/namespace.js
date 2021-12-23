@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import SYSTEM_NAMESPACES from '@/config/system-namespaces';
 import {
   PROJECT, SYSTEM_NAMESPACE, ISTIO as ISTIO_LABELS, FLEET, RESOURCE_QUOTA
@@ -8,7 +9,6 @@ import { get, set } from '@/utils/object';
 import { escapeHtml } from '@/utils/string';
 import { insertAt, isArray } from '@/utils/array';
 import SteveModel from '@/plugins/steve/steve-class';
-import Vue from 'vue';
 
 const OBSCURE_NAMESPACE_PREFIX = [
   'c-', // cluster namesapce

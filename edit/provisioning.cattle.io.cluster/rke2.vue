@@ -5,6 +5,16 @@ import isArray from 'lodash/isArray';
 import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
 
+import semver from 'semver';
+import ACE from './ACE';
+import AgentEnv from './AgentEnv';
+import DrainOptions from './DrainOptions';
+import Labels from './Labels';
+import MachinePool from './MachinePool';
+import RegistryConfigs from './RegistryConfigs';
+import RegistryMirrors from './RegistryMirrors';
+import S3Config from './S3Config';
+import SelectCredential from './SelectCredential';
 import CreateEditView from '@/mixins/create-edit-view';
 
 import { CAPI, MANAGEMENT, NORMAN, SCHEMA } from '@/config/types';
@@ -42,18 +52,8 @@ import { normalizeName } from '@/components/form/NameNsDescription.vue';
 import ClusterMembershipEditor from '@/components/form/Members/ClusterMembershipEditor';
 import SelectOrCreateAuthSecret from '@/components/form/SelectOrCreateAuthSecret';
 import { LEGACY } from '@/store/features';
-import semver from 'semver';
 import { canViewClusterMembershipEditor } from '@/components/form/Members/ClusterMembershipEditor.vue';
 import { SETTING } from '@/config/settings';
-import ACE from './ACE';
-import AgentEnv from './AgentEnv';
-import DrainOptions from './DrainOptions';
-import Labels from './Labels';
-import MachinePool from './MachinePool';
-import RegistryConfigs from './RegistryConfigs';
-import RegistryMirrors from './RegistryMirrors';
-import S3Config from './S3Config';
-import SelectCredential from './SelectCredential';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';

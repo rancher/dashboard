@@ -1,6 +1,7 @@
 <script>
 import debounce from 'lodash/debounce';
 import { mapState, mapGetters } from 'vuex';
+import isEqual from 'lodash/isEqual';
 import { mapPref, DEV, FAVORITE_TYPES, AFTER_LOGIN_ROUTE } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import GrowlManager from '@/components/GrowlManager';
@@ -21,7 +22,6 @@ import { addObjects, replaceWith, clear, addObject } from '@/utils/array';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { NAME as NAVLINKS } from '@/config/product/navlinks';
 import { NAME as HARVESTER } from '@/config/product/harvester';
-import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@/utils/string';
 import { getVersionInfo, markSeenReleaseNotes } from '@/utils/version';
 import { sortBy } from '@/utils/sort';

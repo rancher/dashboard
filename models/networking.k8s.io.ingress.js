@@ -1,7 +1,7 @@
-import { SECRET, SERVICE } from '@/config/types';
 import isUrl from 'is-url';
-import { get } from '@/utils/object';
 import isEmpty from 'lodash/isEmpty';
+import { SECRET, SERVICE } from '@/config/types';
+import { get } from '@/utils/object';
 import SteveModel from '@/plugins/steve/steve-class';
 
 export default class Ingress extends SteveModel {

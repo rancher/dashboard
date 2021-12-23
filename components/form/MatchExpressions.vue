@@ -1,7 +1,7 @@
 <script>
+import { mapGetters } from 'vuex';
 import { NODE, POD } from '@/config/types';
 import Select from '@/components/form/Select';
-import { mapGetters } from 'vuex';
 import { isArray, removeObject } from '@/utils/array';
 import { clone } from '@/utils/object';
 import { convert, simplify } from '@/utils/selector';

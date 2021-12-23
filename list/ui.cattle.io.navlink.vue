@@ -1,6 +1,6 @@
 <script>
-import ResourceTable from '@/components/ResourceTable';
 import { mapGetters } from 'vuex';
+import ResourceTable from '@/components/ResourceTable';
 
 export default {
   name:       'ListNavLink',

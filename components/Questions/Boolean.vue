@@ -1,6 +1,6 @@
 <script>
-import Checkbox from '@/components/form/Checkbox';
 import Question from './Question';
+import Checkbox from '@/components/form/Checkbox';
 
 export default {
   components: { Checkbox },

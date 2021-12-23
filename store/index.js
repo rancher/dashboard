@@ -1,3 +1,4 @@
+import semver from 'semver';
 import Steve from '@/plugins/steve';
 import {
   COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET, UI, VIRTUAL_HARVESTER_PROVIDER, HCI
@@ -14,7 +15,6 @@ import { setBrand, setVendor } from '@/config/private-label';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { addParam } from '@/utils/url';
 import { SETTING } from '@/config/settings';
-import semver from 'semver';
 import { BY_TYPE, NORMAN as NORMAN_CLASS } from '@/plugins/steve/classify';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
 import { BACK_TO } from '@/config/local-storage';

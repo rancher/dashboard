@@ -1,9 +1,9 @@
 <script>
+import { protocol, updatePort } from './utils';
 import SecretSelector from '@/components/form/SecretSelector';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Checkbox from '@/components/form/Checkbox';
-import { protocol, updatePort } from './utils';
 
 export default {
   components: {

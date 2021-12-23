@@ -1,11 +1,11 @@
+import Vue from 'vue';
+import Role from './rbac.authorization.k8s.io.role';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import { SCHEMA, NORMAN } from '@/config/types';
 import { CATTLE_API_GROUP, SUBTYPE_MAPPING } from '@/models/management.cattle.io.roletemplate';
 import { uniq } from '@/utils/array';
-import Vue from 'vue';
 import { get } from '@/utils/object';
 import HybridModel from '@/plugins/steve/hybrid-class';
-import Role from './rbac.authorization.k8s.io.role';
 
 const BASE = 'user-base';
 const USER = 'user';

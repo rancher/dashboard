@@ -1,9 +1,9 @@
 <script>
+import { mapGetters } from 'vuex';
 import ArrayList from '@/components/form/ArrayList';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import { mapGetters } from 'vuex';
 
 const CLUSTER_FIRST = 'ClusterFirst';
 const CLUSTER_FIRST_HOST = 'ClusterFirstWithHostNet';

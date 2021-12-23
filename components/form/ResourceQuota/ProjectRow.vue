@@ -1,7 +1,7 @@
 <script>
+import { ROW_COMPUTED } from './shared';
 import Select from '@/components/form/Select';
 import UnitInput from '@/components/form/UnitInput';
-import { ROW_COMPUTED } from './shared';
 
 export default {
   components: { Select, UnitInput },
