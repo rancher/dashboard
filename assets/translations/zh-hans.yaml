@@ -2544,7 +2544,7 @@ monitoring:
     placeholder: 选择集群类型
   createDefaultRoles:
     label: 创建默认 Monitoring 集群角色
-    tip: '创建分配给用户的<code>monitoring-admin</code>，<code>monitoring-edit</code>，和<code>monitoring-view</code> ClusterRoles，为其使用 Monitoring Chart 安装的CRD 提供权限。'
+    tip: '创建分配给用户的<code>monitoring-admin</code>，<code>monitoring-edit</code>，和<code>monitoring-view</code> ClusterRoles，为其使用 Monitoring Chart 安装的 CRD 提供权限。'
   etcdNodeDirectory:
     label: ETCD 节点证书目录
     tooltip: '如果集群的 ETCD 节点使用 RancherOS，请把这个选项设置为<pre class=''inline-block m-0''>/opt/rke/etc/kubernetes/ssl</pre>。不支持需要指定多个证书目录的混合环境（例如，由 RancherOS 和 Ubuntu 主机组成的 ETCD Plane）。'
@@ -2657,7 +2657,7 @@ monitoring:
       receiver: 接收者
       repeatInterval: 重复间隔
   routesAndReceivers: 路由和接收器
-  monitors: 监控器
+  monitors: 监控
   installSteps:
     uninstallV1:
       stepTitle: 卸载 V1
@@ -2707,7 +2707,7 @@ monitoringReceiver:
     add:
       generic: 通用
       msTeams: Microsoft Teams
-      alibabaCloudSms: 短信
+      alibabaCloudSms: 阿里巴巴短信
   auth:
     label: 认证
     authType: 认证类型
@@ -3412,7 +3412,7 @@ promptRotateEncryptionKey:
   error: 未找到备份
 
 rancherAlertingDrivers:
-  msTeams: 启用 Microsoft Teams
+  msTeams: 启用 Microsoft Teams 通知
   sms: 启用短信通知
   selectOne: 你需要从以下选项中选择至少一个。
 
@@ -3427,7 +3427,7 @@ rbac:
   displayRole:
     fleetworkspace-admin: 管理员
     fleetworkspace-member: 成员
-    fleetworkspace-readonly: 只读
+    fleetworkspace-readonly: 只读用户
   members:
     label: 成员
   roletemplate:
@@ -4042,7 +4042,7 @@ storageClass:
   rbd:
     title: Ceph RBD（不支持）
     monitors:
-      label: 监控器
+      label: 监控
       placeholder: 例如：10.16.153.105:6789
     adminId:
       label: Admin ID
@@ -4343,12 +4343,12 @@ user:
         permission: 权限
     clusterRoles:
       label: 集群角色
-      description: 授予一个用户在某些集群中的角色
+      description: 授予一个用户在各个集群中的角色
       tableHeaders:
         cluster: 集群
     projectRoles:
       label: 项目角色
-      description: 授予一个用户在某些项目中的角色
+      description: 授予一个用户在各个项目中的角色
       tableHeaders:
         project: 项目
     generic:
@@ -5651,7 +5651,7 @@ model:
     role:
       member: 成员
       owner: 所有者
-      readonly: 只读
+      readonly: 只读用户
       restricted: 受限
   service:
     displayKind:
@@ -6237,13 +6237,13 @@ embedding:
 v1ClusterTools:
   monitoring:
     label: 监控（旧版）
-    description: '旧版 V1 监控。自 Rancher 2.5.0 起，我们不再使用监控 V1。了解<a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/">迁移到监控 V2 的步骤</a>。'
+    description: '旧版 V1 监控。自 Rancher 2.5.0 起，我们已弃用监控 V1。了解<a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/">迁移到监控 V2 的步骤</a>。'
   logging:
     label: 日志管理（旧版）
-    description: '旧版日志管理 V1。自 Rancher 2.5.0 起，我们不再使用日志管理 V1。了解<a target="blank" href="{docsBase}/logging/migrating/">迁移到日志管理 V2 的步骤</a>。'
+    description: '旧版日志管理 V1。自 Rancher 2.5.0 起，我们已弃用日志管理 V1。了解<a target="blank" href="{docsBase}/logging/migrating/">迁移到日志管理 V2 的步骤</a>。'
   istio:
     label: Istio（旧版）
-    description: '旧版 Istio V1。自 Rancher 2.5.0 起，我们不再使用 Istio V1.5。了解<a target="blank" href="{docsBase}/istio/#migrate-from-previous-istio-version">迁移到最新版本</a> 的更多信息。'
+    description: '旧版 Istio V1。自 Rancher 2.5.0 起，我们已弃用 Istio V1.5。了解<a target="blank" href="{docsBase}/istio/#migrate-from-previous-istio-version">迁移到最新版本</a> 的更多信息。'
 
 legacy:
   alerts: 告警
