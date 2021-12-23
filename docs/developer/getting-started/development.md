@@ -439,11 +439,14 @@ The forms for creating and editing resources are in the `edit` directory. Common
 
 If a form element was repeated for every row in a table, it would make the UI slower. To increase performance, components such as `ActionMenu` and `PromptModal` are not repeated for every row in a table, and they don't directly interact with the data from a table row. Instead, they communicate with each row indirectly through the store. All the information about the actions that should be available for a certain resource is contained in a model, and the `ActionMenu` or `PromptModal` components take that information about the selected resource from the store. Modals and menus are opened by telling the store that they should be opened. For example, this call to the store  `this.$store.commit('action-menu/togglePromptModal');` is used to open the action menu. Then each component uses the `dispatch` method to get all the information it needs from the store.
 
-## Testing
-### E2E Tests
-This repo is configured for end-to-end testing with [Cypress](https://docs.cypress.io/api/table-of-contents). 
-#### Initial Setup
-For the cypress test runner to consume the UI, you must specify two environment variables, `TEST_USERNAME` and `TEST_PASSWORD`. By default the test runner will attempt to visit a locally running dashboard at `https://localhost:8005`. This may be overwritten with the `DEV_UI` environment variable. Run `yarn e2e:dev` to start the dashboard in SSR mode and open the cypress test runner. Run tests through the cypress GUI once the UI is built. Cypress tests will automatically re-run if they are altered (hot reloading). Alternatively the dashboard ui and cypress may be run separately with `yarn dev` and `yarn cypress open`. 
+### Customize Deletion Warnings
+To warn users about deleting a certain resource, you can customize the message that is shown to the user when they attempt to delete a resource.
+You can add the error message to the resource class model in this format:
+```
+get warnDeletionMessage() {
+  return this.t('path.to.delete.warning');
+}
+```
 
 ## Other UI Features
 ### Icons 
@@ -482,3 +485,18 @@ Shortcuts are implemented via [`vue-shortkey`](https://github.com/iFgR/vue-short
 ```
 
 Configuration for this is in `plugins/shortkey.js`. At the time of writing this contains options to disable keyboard shortcuts in `input`, `textarea` and `select` elements.
+
+## Package Management
+
+NPM Package dependencies can be found in the usual `./package.json` file. There is also `./yarn.lock` which fixes referenced dependency's versions.
+
+Changes to these files should be kept to a minimum to avoid regression for seldom used features (caused by newer dependencies changing and breaking them).
+
+Changes to `./yarn.lock` should be reviewed carefully, specifically to ensure no rogue dependency url is introduced.
+
+
+## Testing
+### E2E Tests
+This repo is configured for end-to-end testing with [Cypress](https://docs.cypress.io/api/table-of-contents). 
+#### Initial Setup
+For the cypress test runner to consume the UI, you must specify two environment variables, `TEST_USERNAME` and `TEST_PASSWORD`. By default the test runner will attempt to visit a locally running dashboard at `https://localhost:8005`. This may be overwritten with the `DEV_UI` environment variable. Run `yarn e2e:dev` to start the dashboard in SSR mode and open the cypress test runner. Run tests through the cypress GUI once the UI is built. Cypress tests will automatically re-run if they are altered (hot reloading). Alternatively the dashboard ui and cypress may be run separately with `yarn dev` and `yarn cypress open`. 
