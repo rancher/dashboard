@@ -667,7 +667,7 @@ catalog:
       resources:
         label: 资源
         busy: "{app} 完全安装后，相关资源会出现。"
-      values: YAML
+      values: Values YAML
   chart:
     header:
       charts: Chart
