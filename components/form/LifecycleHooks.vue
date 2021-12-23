@@ -1,9 +1,9 @@
 <script>
-import Vue from 'vue';
-
 import HookOption from '@/components/form/HookOption';
 import { _VIEW } from '@/config/query-params';
 import { isEmpty } from '@/utils/object';
+
+import Vue from 'vue';
 
 export default {
   components: { HookOption },

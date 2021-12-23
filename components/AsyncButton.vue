@@ -1,6 +1,6 @@
 <script lang="ts">
-import Vue from 'vue';
 import typeHelper from '@/utils/type-helpers';
+import Vue from 'vue';
 
 const ACTION = 'action';
 const WAITING = 'waiting';

@@ -1,9 +1,9 @@
 <script>
-import isEmpty from 'lodash/isEmpty';
 import { CATTLE_PUBLIC_ENDPOINTS } from '@/config/labels-annotations';
 import Endpoints from '@/components/formatter/Endpoints';
-import has from 'lodash/has';
 import { isMaybeSecure } from '@/utils/url';
+import isEmpty from 'lodash/isEmpty';
+import has from 'lodash/has';
 
 export default {
   components: { Endpoints },

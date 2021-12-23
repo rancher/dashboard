@@ -1,11 +1,9 @@
 <script>
-import jsyaml from 'js-yaml';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import FileSelector from '@/components/form/FileSelector';
 import Footer from '@/components/form/Footer';
 import { ANNOTATIONS_TO_FOLD } from '@/config/labels-annotations';
 import { ensureRegex } from '@/utils/string';
-
 import {
   _CREATE,
   _VIEW,
@@ -15,6 +13,7 @@ import {
   _EDIT,
 } from '@/config/query-params';
 import { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
+import jsyaml from 'js-yaml';
 import { exceptionToErrorsArray } from '../utils/error';
 
 export default {

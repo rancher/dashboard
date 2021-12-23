@@ -1,9 +1,9 @@
 <script>
-import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt } from '@/utils/array';
 import { clone } from '@/utils/object';
 import Select from '@/components/form/Select';
+import debounce from 'lodash/debounce';
 
 export default {
   components: { Select },

@@ -1,8 +1,8 @@
 <script>
-import jsyaml from 'js-yaml';
 import { mapPref, DIFF } from '@/store/prefs';
-import isEmpty from 'lodash/isEmpty';
 import { saferDump } from '@/utils/create-yaml';
+import jsyaml from 'js-yaml';
+import isEmpty from 'lodash/isEmpty';
 import CodeMirror from './CodeMirror';
 import FileDiff from './FileDiff';
 

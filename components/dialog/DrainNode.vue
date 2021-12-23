@@ -1,13 +1,13 @@
 <script>
-import Vue from 'vue';
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
 import Card from '@/components/Card';
 import RadioGroup from '@/components/form/RadioGroup';
 import UnitInput from '@/components/form/UnitInput';
 import { _EDIT, _VIEW } from '@/config/query-params';
-
 import { exceptionToErrorsArray } from '@/utils/error';
+
+import Vue from 'vue';
 
 export default {
   components: {

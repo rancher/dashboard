@@ -1,8 +1,8 @@
 <script>
-import debounce from 'lodash/debounce';
-import Group from '@/components/nav/Group';
 import { isMac } from '@/utils/platform';
 import { BOTH, ALL } from '@/store/type-map';
+import Group from '@/components/nav/Group';
+import debounce from 'lodash/debounce';
 
 export default {
   components: { Group },

@@ -1,7 +1,8 @@
 <script>
-import { isV4Format, isV6Format } from 'ip';
 import CopyToClipboard from '@/components/CopyToClipboard';
 import { mapGetters } from 'vuex';
+import { isV4Format, isV6Format } from 'ip';
+
 export default {
   components: { CopyToClipboard },
   props:      {

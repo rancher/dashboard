@@ -8,8 +8,8 @@ import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
 import { randomStr } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
-import debounce from 'lodash/debounce';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
+import debounce from 'lodash/debounce';
 
 export default {
   components: {
