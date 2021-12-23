@@ -116,7 +116,7 @@ export default class FleetCluster extends SteveModel {
   }
 
   get norman() {
-    const norman = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, this.mgmt.id);
+    const norman = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, this.metadata.labels?.[FLEET_LABELS.CLUSTER_NAME]);
 
     return norman;
   }
