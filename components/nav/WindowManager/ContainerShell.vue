@@ -313,6 +313,7 @@ export default {
 
     cleanup() {
       if (this.socket) {
+        this.socket.send(`0${ base64Encode('exit\r\n') }`);
         this.socket.disconnect();
         this.socket = null;
       }
