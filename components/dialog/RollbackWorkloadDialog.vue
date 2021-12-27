@@ -152,7 +152,8 @@ export default {
       return {
         label:    optionLabel,
         value:    revision,
-        disabled: isCurrentRevision
+        disabled: isCurrentRevision,
+        revisionNumber
       };
     },
     getOptionLabel(option) {
