@@ -240,11 +240,11 @@ accountAndKeys:
       noScope: 无范围
     info:
       accessKey: 访问密钥
-      secretKey: Secret 密钥
+      secretKey: 密文密钥
       bearerToken: 持有者 Token
       saveWarning: 请善保存以上的信息。这是你唯一查看该信息的机会。如果丢失这些信息，你需要创建一个新的 API 密钥。
       keyCreated: 已创建一个新的 API 密钥。
-      bearerTokenTip: "访问密钥 和 Secret 密钥 可以作为 HTTP Basic auth 的用户名和密码发送，以授权请求。你也可以将它们组合起来作为一个持有者 Token使用。"
+      bearerTokenTip: "访问密钥和密文密钥 可以作为 HTTP Basic auth 的用户名和密码发送，以授权请求。你也可以将它们组合起来作为一个持有者 Token使用。"
       ttlLimitedWarning: 系统配置导致该 API 密钥的到期时间缩短了。
 
 addClusterMemberDialog:
@@ -995,7 +995,7 @@ cluster:
         label: 默认地域
       secretKey:
         label: SecretKey
-        placeholder: 你的 AWS Secret 密钥
+        placeholder: 你的 AWS 密文密钥
     azure:
       clientId:
         label: 客户端 ID
@@ -1039,7 +1039,7 @@ cluster:
         label: 接受任何证书（不安全）
       secretKey:
         label: SecretKey
-        placeholder: 你的 API Secret 密钥
+        placeholder: 你的 API 密文密钥
     vmwarevsphere:
         server:
           label: vCenter 或 ESXi Server
@@ -1857,7 +1857,7 @@ glance:
   version: Kubernetes 版本
   monitoringDashboard: 监控仪表盘
   installMonitoring: 安装监控
-  v1MonitoringInstalled: 已安装监控 V1
+  v1MonitoringInstalled: 已安装 Monitoring V1
   clusterInfo: 集群信息
 
 grafanaDashboard:
@@ -1949,7 +1949,7 @@ ingress:
     addCertificate: 添加证书
     addHost: 添加主机
     certificate:
-      label: 证书 - Secret 名称
+      label: 证书 - 密文名称
       doesntExist: 所选证书不存在
     defaultCertLabel: 默认 Ingress Controller 证书
     headers:
@@ -2264,7 +2264,7 @@ logging:
     clientKey:
       label: 客户端密钥
       placeholder: 粘贴客户端密钥
-    clientKeyPass: 传自 Secret 的客户端密钥
+    clientKeyPass: 传自密文的客户端密钥
   gelf:
     host: 主机
     port: 端口
@@ -2307,7 +2307,7 @@ logging:
   awsElasticsearch:
     url: URL
     keyId: 密钥 ID
-    secretKey: Secret 密钥
+    secretKey: 密文密钥
   azurestorage:
     storageAccount: 账号
     accessKey:  访问密钥
@@ -2316,7 +2316,7 @@ logging:
     storeAs: 存储为
   cloudwatch:
     keyId: 密钥 ID
-    secretKey: Secret 密钥
+    secretKey: 密文密钥
     endpoint: 端点
     region: 地域
     logGroupName: 日志组名称
@@ -2337,7 +2337,7 @@ logging:
   kinesisStream:
     streamName: 流名称
     keyId: 密钥 ID
-    secretKey: Secret 密钥
+    secretKey: 密文密钥
   logdna:
     apiKey: API 密钥
     hostname: 主机名
@@ -2377,7 +2377,7 @@ logging:
       timekeyUseUTC: Timekey 使用 UTC
   s3:
     keyId: 密钥 ID
-    secretKey: Secret 密钥
+    secretKey: 密文密钥
     endpoint: 端点
     bucket: 存储桶
     path: 路径
@@ -2498,7 +2498,7 @@ members:
       description: 所有者对集群和集群内的所有资源拥有完全的控制权。
     member:
       label: 成员
-      description: 成员可以管理集群内的资源，但不能改变群集本身。
+      description: 成员可以管理集群内的资源，但不能改变集群本身。
     custom:
       label: 自定义
       description: 为该用户自定义角色。
@@ -2523,11 +2523,11 @@ monitoring:
       label: 部署 Alertmanager
     secrets:
       additional:
-        info: Secret 应挂载到容器路径 <pre class='inline-block m-0'>/etc/alertmanager/secrets/</pre>
+        info: 密文应挂载到容器路径 <pre class='inline-block m-0'>/etc/alertmanager/secrets/</pre>
         label: 补充 Secret
       existing: 选择现有的配置 Secret
       info: |
-        <span class="text-bold">创建默认配置</span>。在部署这个 Chart 时，将在<pre class='inline-block m-0'>cattle-monitoring-system</pre> 命名空间中创建一个包含 Alertmanager 配置的 Secret，名称为<pre class='inline-block m-0'>alertmanager-rancher-monitoring-alertmanager</pre>。默认情况下，在卸载或升级此 Chart 时，此 Secret 均不会被修改。<br />
+        <span class="text-bold">创建默认配置</span>。在部署这个 Chart 时，将在<pre class='inline-block m-0'>cattle-monitoring-system</pre> 命名空间中创建一个包含 Alertmanager 配置的 Secret，名称为<pre class='inline-block m-0'>alertmanager-rancher-monitoring-alertmanager</pre>。默认情况下，在卸载或升级此 Chart 时，此密文均不会被修改。<br />
         一旦你部署了这个 Chart，你需要通过 UI 编辑 Secret，以添加用于 Alertmanager 发送警报的自定义通知配置。<br /> <br />
         <span class="text-bold">选择一个现有的配置 Secret</span>：你必须指定一个存在于<pre class='inline-block m-0'>cattle-monitoring-system</pre>命名空间内的 Secret。如果命名空间不存在，你将无法选择现有的密钥。
       label: Alertmanager Secret
@@ -2662,10 +2662,10 @@ monitoring:
     uninstallV1:
       stepTitle: 卸载 V1
       stepSubtext: 卸载旧版监控
-      warning1: 已部署监控 V1。你需要先卸载监控 V1 才能安装监控 V2。
-      warning2: <a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/" target='_blank' rel='noopener nofollow'>了解迁移到监控 V2 的步骤</a>。
-      promptDescription: <div class="mt-20 mb-20">你正在尝试卸载监控 V1。请确保你已阅读迁移步骤。</div>
-      success1: 监控 V1 已成功卸载。
+      warning1: 已部署 Monitoring V1。你需要先卸载 Monitoring V1 才能安装 Monitoring V2。
+      warning2: <a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/" target='_blank' rel='noopener nofollow'>了解迁移到 Monitoring V2 的步骤</a>。
+      promptDescription: <div class="mt-20 mb-20">你正在尝试卸载 Monitoring V1。请确保你已阅读迁移步骤。</div>
+      success1:  Monitoring V1 已成功卸载。
       success2: 点击下一步继续
   tabs:
     alerting: 告警
@@ -2683,7 +2683,7 @@ monitoringReceiver:
   custom:
     label: 自定义
     title: 自定义配置
-    info: 此处提供的 YAML 将直接附加到 Alertmanager 配置 Secret 的接收器中。
+    info: 此处提供的 YAML 将直接附加到 Alertmanager 配置密文的接收器中。
   email:
     label: 电子邮箱
     title: 电子邮箱配置
@@ -2878,10 +2878,10 @@ persistentVolume:
       label: 文件系统类型
       placeholder: 例如：ext4
     secretName:
-      label: Secret 名称
+      label: 密文名称
       placeholder: 例如：secret
     secretNamespace:
-      label: Secret 所在的命名空间
+      label: 密文所在的命名空间
       placeholder: 例如：default
     monitors:
       add: 添加监控
@@ -2907,28 +2907,28 @@ persistentVolume:
     volumeAttributes:
       add: 添加卷属性
     nodePublishSecretName:
-      label: 节点发布 Secret 名称
+      label: 节点发布密文名称
       placeholder: 例如：secret
     nodePublishSecretNamespace:
-      label: 节点发布 Secret 命名空间
+      label: 节点发布密文命名空间
       placeholder: 例如：default
     nodeStageSecretName:
-      label: 节点暂存 Secret 名称
+      label: 节点暂存密文名称
       placeholder: 例如：secret
     nodeStageSecretNamespace:
-      label: 节点暂存 Secret 命名空间
+      label: 节点暂存密文命名空间
       placeholder: 例如：default
     controllerExpandSecretName:
-      label: Controller 展开 Secret 名称
+      label: Controller 展开密文名称
       placeholder: 例如：secret
     controllerExpandSecretNamespace:
-      label: Controller 展开 Secret 命名空间
+      label: Controller 展开密文命名空间
       placeholder: 例如：default
     controllerPublishSecretName:
-      label: Controller 发布 Secret 名称
+      label: Controller 发布密文名称
       placeholder: 例如：secret
     controllerPublishSecretNamespace:
-      label: Controller 发布 Secret 命名空间
+      label: Controller 发布密文命名空间
       placeholder: 例如：default
   cephfs:
     label: Ceph 文件系统（不支持）
@@ -2939,7 +2939,7 @@ persistentVolume:
       label: 用户名
       placeholder: 例如：root
     secretFile:
-      label: Secret 文件
+      label: 密文文件
       placeholder: 例如：secret
   rbd:
     label: Ceph RBD（不支持）
@@ -3706,7 +3706,7 @@ secret:
       description: '使用用户名和密码进行验证'
       docLink: https://kubernetes.io/docs/concepts/configuration/secret/#basic-authentication-secret
     'Opaque':
-      description: 使用键值对的默认 Secret 类型
+      description: 使用键值对的默认密文类型
       docLink: https://kubernetes.io/docs/concepts/configuration/secret/#opaque-secrets
     'kubernetes.io/dockerconfigjson':
       description: 用于拉取容器镜像的已验证仓库
@@ -3725,10 +3725,10 @@ selectOrCreateAuthSecret:
     basic: HTTP 基础认证
     ssh: SSH 密钥
     aws: AWS/S3
-    custom: Secret 名称
+    custom: 密文名称
   s3:
     accessKey: 访问密钥
-    secretKey: Secret 密钥
+    secretKey: 密文密钥
   ssh:
     publicKey: 公钥
     privateKey: 私钥
@@ -4011,10 +4011,10 @@ storageClass:
       label: REST 用户密钥
       placeholder: 例如：password
     secretNamespace:
-      label: Secret 所在的命名空间
+      label: 密文所在的命名空间
       placeholder: 例如：default
     secretName:
-      label: Secret 名称
+      label: 密文名称
       placeholder: 例如：heketi-secret
     clusterId:
       label: 集群 ID
@@ -4048,7 +4048,7 @@ storageClass:
       label: Admin ID
       placeholder: 例如：kube
     adminSecretNamespace:
-      label: Admin Secret 所在的命名空间
+      label: Admin 密文所在的命名空间
       placeholder: 例如：kube-system
     adminSecret:
       label: Admin Secret
@@ -4060,10 +4060,10 @@ storageClass:
       label: 用户 ID
       placeholder: 例如：kube
     userSecretNamespace:
-      label: 用户 Secret 所在的命名空间
+      label: 用户密文所在的命名空间
       placeholder: 例如：default
     userSecretName:
-      label: 用户 Secret 名称
+      label: 用户密文名称
       placeholder: 例如：ceph-secret-user
     filesystemType:
       label: 文件系统类型
@@ -4083,10 +4083,10 @@ storageClass:
       label: 镜像仓库
       placeholder: 例如：138.68.74.142:7861
     adminSecretNamespace:
-      label: Admin Secret 所在的命名空间
+      label: Admin 密文所在的命名空间
       placeholder: 例如：kube-system
     adminSecretName:
-      label: Admin Secret 名称
+      label: Admin 密文名称
       placeholder: 例如：quobyte-admin-secret
     user:
       label: 用户名
@@ -4142,7 +4142,7 @@ storageClass:
       thin: 精简预配
       thick: 厚预配
     secretRef:
-      label: Secret Ref
+      label: 密文 Ref
       placeholder: 例如：sio-secret
     readOnly:
       label: 只读
@@ -4161,10 +4161,10 @@ storageClass:
       label: 文件系统类型
       placeholder: 例如：ext4
     adminSecretNamespace:
-      label: Admin Secret 所在的命名空间
+      label: Admin 密文所在的命名空间
       placeholder: 例如：default
     adminSecretName:
-      label: Admin Secret 名称
+      label: Admin 密文名称
       placeholder: 例如：storageos-secret
   no-provisioner:
     title: 本地存储（不支持）
@@ -4910,7 +4910,7 @@ workload:
         driver.longhorn.io: Longhorn
       fsType: 文件系统类型
       shareName: 共享名称
-      secretName: Secret 名称
+      secretName: 密文名称
       volumeID: 卷 ID
       partition: 分区
       pdName: 持久磁盘名称
@@ -5507,7 +5507,7 @@ harvester:
       physicalNIC: 默认物理网卡
     placeholder:
       accessKeyId: 指定你的访问密钥 ID
-      secretAccessKey: 指定你的 Secret 访问密钥
+      secretAccessKey: 指定你的密文访问密钥
       cert: 上传自签名 SSL 证书
     vlanChangeTip: 新修改的默认网络接口仅在新增节点生效，不在现有节点生效。
     defaultPhysicalNIC: 默认网络接口
@@ -5679,7 +5679,7 @@ typeDescription:
   monitoring.coreos.com.podmonitor: PodMonitor 定义了 Prometheus 要抓取指标的 Pod 组。更为常用的是 ServiceMonitor。然而，PodMonitor 让你在 ServiceMonitor 不起作用时，处理任何其他情况。
   monitoring.coreos.com.prometheusrule: PrometheusRule 定义了记录和/或告警规则。记录规则可以预先计算值并保存结果。告警规则允许你定义向 AlertManager 发送通知的条件。
   monitoring.coreos.com.prometheus: Prometheus 服务器是一个 Prometheus deployment，其抓取的配置和规则由选定的 ServiceMonitor、PodMonitor 和 PrometheusRule 决定。它将其告警信息发送给所有选择的具有定制资源配置的 AlertManager。
-  monitoring.coreos.com.alertmanager: Alertmanager 是一个 deployment。其配置由同一命名空间中的 Secret 指定，该 Secret 决定了告警的接收者。
+  monitoring.coreos.com.alertmanager: Alertmanager 是一个 deployment。其配置由同一命名空间中的密文指定，该密文决定了告警的接收者。
   node: Kubernetes 节点资源展示了承载 Deployment 的虚拟机或物理机。请进入"管理集群"管理可用机器的生命周期。
   catalog.cattle.io.clusterrepo: 'Chart 仓库是一个 Helm 仓库或 {vendor} 基于 git 的应用商店。它提供了集群中可用的 Chart 列表。'
   catalog.cattle.io.clusterrepo.local: ' Chart 仓库是一个 Helm 仓库或 {vendor} 基于 git 的应用商店。它提供了集群中可用的 Chart 列表。集群模板是通过 Helm Chart 部署的。'
@@ -6237,7 +6237,7 @@ embedding:
 v1ClusterTools:
   monitoring:
     label: 监控（旧版）
-    description: '旧版 V1 监控。自 Rancher 2.5.0 起，我们已弃用监控 V1。了解<a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/">迁移到监控 V2 的步骤</a>。'
+    description: '旧版 V1 监控。自 Rancher 2.5.0 起，我们已弃用 Monitoring V1。了解<a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/">迁移到 Monitoring V2 的步骤</a>。'
   logging:
     label: 日志管理（旧版）
     description: '旧版日志管理 V1。自 Rancher 2.5.0 起，我们已弃用日志管理 V1。了解<a target="blank" href="{docsBase}/logging/migrating/">迁移到日志管理 V2 的步骤</a>。'
