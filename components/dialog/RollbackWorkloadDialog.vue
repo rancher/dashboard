@@ -9,6 +9,7 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import { WORKLOAD_TYPES } from '@/config/types';
 import { diffFrom } from '@/utils/time';
 import { mapGetters } from 'vuex';
+import pick from 'lodash/pick';
 
 export default {
   components: {
@@ -79,6 +80,9 @@ export default {
     },
     selectedRevisionId() {
       return this.selectedRevision.id;
+    },
+    sanitizedSelectedRevision() {
+      return this.sanitizeYaml(this.selectedRevision);
     }
   },
   fetch() {
@@ -165,6 +169,9 @@ export default {
       if (dialogs.length === 1) {
         dialogs[0].style.setProperty('--prompt-modal-width', width);
       }
+    },
+    sanitizeYaml(revision) {
+      return pick(revision, ['spec.template.spec']);
     }
   }
 };
@@ -194,8 +201,8 @@ export default {
       <YamlEditor
         v-if="selectedRevision && showDiff"
         :key="selectedRevisionId"
-        v-model="selectedRevision"
-        :initial-yaml-values="currentRevision"
+        v-model="sanitizedSelectedRevision"
+        :initial-yaml-values="sanitizeYaml(currentRevision)"
         class="mt-10 "
         :editor-mode="editorMode"
         :as-object="true"
