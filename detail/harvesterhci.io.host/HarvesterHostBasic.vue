@@ -1,5 +1,4 @@
 <script>
-import ConsumptionGauge from '@/components/ConsumptionGauge';
 import LabelValue from '@/components/LabelValue';
 import Banner from '@/components/Banner';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
@@ -7,6 +6,7 @@ import { HCI } from '@/config/labels-annotations';
 import { LONGHORN } from '@/config/types';
 import HarvesterCPUUsed from '@/components/formatter/HarvesterCPUUsed';
 import HarvesterMemoryUsed from '@/components/formatter/HarvesterMemoryUsed';
+import HarvesterStorageUsed from '@/components/formatter/HarvesterStorageUsed';
 
 const COMPLETE = 'complete';
 const NONE = 'none';
@@ -17,11 +17,11 @@ export default {
   name: 'BasicNode',
 
   components: {
-    ConsumptionGauge,
     LabelValue,
     Banner,
     HarvesterCPUUsed,
     HarvesterMemoryUsed,
+    HarvesterStorageUsed,
   },
 
   props: {
@@ -199,7 +199,9 @@ export default {
   },
 
   methods: {
-    memoryFormatter(value, exponent) {
+    memoryFormatter(value) {
+      const exponent = exponentNeeded(this.memoryTotal, 1024);
+
       const formatOptions = {
         addSuffix:   false,
         increment:   1024,
@@ -290,7 +292,10 @@ export default {
         />
       </div>
       <div class="col span-4">
-        <ConsumptionGauge :resource-name="t('harvester.host.detail.storage')" :capacity="storageTotal" :used="storageUsage" :units="storageUnits" :number-formatter="memoryFormatter" />
+        <HarvesterStorageUsed
+          :row="value"
+          :resource-name="t('harvester.host.detail.storage')"
+        />
       </div>
     </div>
 

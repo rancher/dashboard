@@ -362,12 +362,24 @@ export default {
       const parsedUseful = parseSi((useful || '0').toString());
       const format = this.createMemoryFormat(parsedTotal);
       const formattedTotal = formatSi(parsedTotal, format);
-      const formattedUseful = formatSi(parsedUseful, format);
+      let formattedUseful = formatSi(parsedUseful, {
+        ...format,
+        addSuffix: false,
+      });
+
+      if (!Number.parseFloat(formattedUseful) > 0) {
+        formattedUseful = formatSi(parsedUseful, {
+          ...format,
+          canRoundToZero: false,
+        });
+      }
 
       return {
-        total:  Number.parseFloat(formattedTotal),
-        useful: Number.parseFloat(formattedUseful),
-        units:  this.createMemoryUnits(parsedTotal)
+        total:           Number(parsedTotal),
+        useful:          Number(parsedUseful),
+        formattedTotal,
+        formattedUseful,
+        units:           this.createMemoryUnits(parsedTotal),
       };
     },
 
@@ -471,7 +483,6 @@ export default {
         <HardwareResourceGauge
           :name="t('harvester.dashboard.hardwareResourceGauge.storage')"
           :used="storageUsed"
-          :units="storageUsed.units"
         />
       </div>
     </template>

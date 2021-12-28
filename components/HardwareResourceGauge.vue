@@ -75,7 +75,22 @@ export default {
         >
           <template #title>
             <span>
-              {{ t('clusterIndexPage.hardwareResourceGauge.reserved') }} <span class="values text-muted">{{ maxDecimalPlaces(reserved.useful) }} / {{ maxDecimalPlaces(reserved.total) }} {{ reserved.units }}</span>
+              {{ t('clusterIndexPage.hardwareResourceGauge.reserved') }}
+              <span class="values text-muted">
+                <span v-if="reserved.formattedUseful">
+                  {{ reserved.formattedUseful }}
+                </span>
+                <span v-else>
+                  {{ maxDecimalPlaces(reserved.useful) }}
+                </span>
+                /
+                <span v-if="reserved.formattedTotal">
+                  {{ reserved.formattedTotal }}
+                </span>
+                <span v-else>
+                  {{ maxDecimalPlaces(reserved.total) }} {{ reserved.units }}
+                </span>
+              </span>
             </span>
             <span>
               {{ percentage(reserved) }}
@@ -91,7 +106,22 @@ export default {
         >
           <template #title>
             <span>
-              {{ t('clusterIndexPage.hardwareResourceGauge.used') }} <span class="values text-muted">{{ maxDecimalPlaces(used.useful) }} / {{ maxDecimalPlaces(used.total) }} {{ used.units }}</span>
+              {{ t('clusterIndexPage.hardwareResourceGauge.used') }}
+              <span class="values text-muted">
+                <span v-if="used.formattedUseful">
+                  {{ used.formattedUseful }}
+                </span>
+                <span v-else>
+                  {{ maxDecimalPlaces(used.useful) }}
+                </span>
+                /
+                <span v-if="used.formattedTotal">
+                  {{ used.formattedTotal }}
+                </span>
+                <span v-else>
+                  {{ maxDecimalPlaces(used.total) }} {{ used.units }}
+                </span>
+              </span>
             </span>
             <span>
               {{ percentage(used) }}
