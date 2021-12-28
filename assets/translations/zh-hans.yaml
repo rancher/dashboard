@@ -266,7 +266,7 @@ authConfig:
     clientId:
       label: 客户端 ID
     clientSecret:
-      label: 客户端 Secret
+      label: 客户端密文
     form:
       app:
         label: 应用名称
@@ -414,7 +414,7 @@ authConfig:
     keycloakoidc: 配置 Keycloak OIDC 账号
     rancherUrl: Rancher URL
     clientId: 客户端 ID
-    clientSecret: 客户端 Secret
+    clientSecret: 客户端密文
     customEndpoint:
       label: 端点
       custom: 指定
@@ -606,12 +606,12 @@ backupRestoreOperator:
       warning: '此 {type} 没有将其回收策略设置为 "保留"。如果卷被更改或未绑定，你的备份可能会丢失。'
   encryption: 加密
   encryptionConfigName:
-    backuptip: '<code>cattle-resource-system</code>命名空间中具有<code>encryption-provider-config.yaml</code>密钥的任何 Secret。<br/>此文件的内容是还原此备份所必需的，Rancher Backup 不会存储这些内容。'
-    label: 加密配置 Secret
+    backuptip: '<code>cattle-resource-system</code>命名空间中具有<code>encryption-provider-config.yaml</code>密钥的任何密文。<br/>此文件的内容是还原此备份所必需的，Rancher Backup 不会存储这些内容。'
+    label: 加密配置密文
     options:
       none: 存储未加密的备份内容。
-      secret: '使用<a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">加密配置 Secret</a>（推荐）对备份进行加密。'
-    restoretip: '如果备份是在启用加密的情况下进行的，则应在还原过程中使用包含相同 encryption-provider-config 的 Secret。'
+      secret: '使用<a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">加密配置密文</a>（推荐）对备份进行加密。'
+    restoretip: '如果备份是在启用加密的情况下进行的，则应在还原过程中使用包含相同 encryption-provider-config 的密文。'
     warning: '此文件的内容是还原此备份必需的，Rancher Backup 不会存储这些内容。'
   lastBackup: 上次备份
   nextBackup: 下次备份
@@ -633,7 +633,7 @@ backupRestoreOperator:
       }
   s3:
     bucketName: 存储桶名称
-    credentialSecretName: 凭证 Secret
+    credentialSecretName: 凭证密文
     endpoint: 端点
     endpointCA: 端点 CA
     folder: 文件夹
@@ -1000,7 +1000,7 @@ cluster:
       clientId:
         label: 客户端 ID
       clientSecret:
-        label: 客户端 Secret
+        label: 客户端密文
       environment:
         label: 环境
       subscriptionId:
@@ -2524,16 +2524,16 @@ monitoring:
     secrets:
       additional:
         info: 密文应挂载到容器路径 <pre class='inline-block m-0'>/etc/alertmanager/secrets/</pre>
-        label: 补充 Secret
-      existing: 选择现有的配置 Secret
+        label: 补充密文
+      existing: 选择现有的配置密文
       info: |
-        <span class="text-bold">创建默认配置</span>。在部署这个 Chart 时，将在<pre class='inline-block m-0'>cattle-monitoring-system</pre> 命名空间中创建一个包含 Alertmanager 配置的 Secret，名称为<pre class='inline-block m-0'>alertmanager-rancher-monitoring-alertmanager</pre>。默认情况下，在卸载或升级此 Chart 时，此密文均不会被修改。<br />
-        一旦你部署了这个 Chart，你需要通过 UI 编辑 Secret，以添加用于 Alertmanager 发送警报的自定义通知配置。<br /> <br />
-        <span class="text-bold">选择一个现有的配置 Secret</span>：你必须指定一个存在于<pre class='inline-block m-0'>cattle-monitoring-system</pre>命名空间内的 Secret。如果命名空间不存在，你将无法选择现有的密钥。
-      label: Alertmanager Secret
+        <span class="text-bold">创建默认配置</span>。在部署这个 Chart 时，将在<pre class='inline-block m-0'>cattle-monitoring-system</pre> 命名空间中创建一个包含 Alertmanager 配置的密文，名称为<pre class='inline-block m-0'>alertmanager-rancher-monitoring-alertmanager</pre>。默认情况下，在卸载或升级此 Chart 时，此密文均不会被修改。<br />
+        一旦你部署了这个 Chart，你需要通过 UI 编辑密文，以添加用于 Alertmanager 发送警报的自定义通知配置。<br /> <br />
+        <span class="text-bold">选择一个现有的配置密文</span>：你必须指定一个存在于<pre class='inline-block m-0'>cattle-monitoring-system</pre>命名空间内的密文。如果命名空间不存在，你将无法选择现有的密钥。
+      label: Alertmanager 密文
       new: 创建默认配置
       radio:
-        label: 配置 Secret
+        label: 配置密文
     templates:
       keyLabel: 文件名称
       label: 模板文件
@@ -3288,7 +3288,7 @@ projectMembers:
     ingressManage: 管理 Ingress
     projectcatalogsManage: 管理项目应用商店
     projectroletemplatebindingsManage: 管理项目成员
-    secretsManage: 管理 Secret
+    secretsManage: 管理密文
     serviceaccountsManage: 管理服务账号
     servicesManage: 管理服务
     persistentvolumeclaimsManage: 管理卷
@@ -3298,7 +3298,7 @@ projectMembers:
     monitoringUiView: 查看监控
     projectcatalogsView: 查看项目应用商店
     projectroletemplatebindingsView: 查看项目成员
-    secretsView: 查看 Secret
+    secretsView: 查看密文
     serviceaccountsView: 查看服务账号
     servicesView: 查看服务
     persistentvolumeclaimsView: 查看卷
@@ -3631,8 +3631,8 @@ resourceTabs:
     tab: 最近事件
   related:
     tab: 相关资源
-    from: Referred To By
-    to: Refers To
+    from: 被引用
+    to: 引用
 
 
 resourceYaml:
@@ -3736,10 +3736,10 @@ selectOrCreateAuthSecret:
     username: 用户名
     password: 密码
   namespaceGroup: "命名空间：{name}"
-  chooseExisting: "选择一个现有的 Secret："
-  createSsh: 创建 SSH 密钥 Secret
-  createBasic: 创建 HTTP 基本身份验证 Secret
-  createS3: 创建与 S3 兼容的身份验证 Secret
+  chooseExisting: "选择一个现有的密文："
+  createSsh: 创建 SSH 密钥密文
+  createBasic: 创建 HTTP 基本身份验证密文
+  createS3: 创建与 S3 兼容的身份验证密文
 
 servicePorts:
   header:
@@ -4051,7 +4051,7 @@ storageClass:
       label: Admin 密文所在的命名空间
       placeholder: 例如：kube-system
     adminSecret:
-      label: Admin Secret
+      label: Admin 密文
       placeholder: 例如：Secret
     pool:
       label: 池
@@ -4294,7 +4294,7 @@ tableHeaders:
   targetKind: 目标类型
   targetPort: 目标
   type: 类型
-  updated: 已更新
+  updated: 更新时间
   upgrade: 可升级
   url: URL
   userDisplayName: 显示名称
@@ -4552,7 +4552,7 @@ workload:
         source:
           label: 源
           placeholder: 例如：my-container
-        secret: Secret
+        secret: 密文
         configMap: ConfigMap
         containerName: 容器名称
         type: 类型
@@ -4590,7 +4590,7 @@ workload:
         exec:  容器内运行的命令以 0 状态退出
     image: 容器镜像
     imagePullPolicy: 镜像拉取策略
-    imagePullSecrets: 拉取 Secret
+    imagePullSecrets: 拉取密文
     init: 初始化容器
     lifecycleHook:
       postStart:
@@ -4874,7 +4874,7 @@ workload:
   serviceName: 服务名称
   storage:
     subtypes:
-      secret: Secret
+      secret: 密文
       configMap: ConfigMap
       hostPath: Bind-Mount
       persistentVolumeClaim: 持久卷声明
@@ -6169,7 +6169,7 @@ resourceQuota:
   requestsCpu: CPU 预留
   requestsMemory: 内存预留
   requestsStorage: 存储预留
-  secrets: Secret
+  secrets: 密文
   services: 服务
   servicesLoadBalancers: 服务负载均衡
   servicesNodePorts: 服务节点端口
@@ -6259,7 +6259,7 @@ legacy:
   monitoring: 监控
   pipelines: 流水线
   psps: Pod 安全策略
-  secrets: Secret
+  secrets: 密文
 
   project:
     label: 项目
