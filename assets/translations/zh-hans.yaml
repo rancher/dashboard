@@ -434,7 +434,7 @@ authConfig:
     disabled: '{provider} 已禁用。'
     enabled: '{provider} 已启用。'
   testAndEnable: 测试和启用验证
-  noneEnabled: 本地验证是长期开启的。你也可以额外选择以下的验证提供程序。
+  noneEnabled: 本地验证是长期开启的。你也可以选择以下的验证提供程序。
   localEnabled: '{vendor} 配置为允许访问本地数据库中的账号。'
   manageLocal: 管理账号
 
@@ -1804,6 +1804,7 @@ footer:
   slack: Slack 讨论群
   wechat:
     title: 微信
+    modalText: 扫码关注 Rancher 中国微信技术群
 
 gatekeeperConstraint:
   match:
@@ -2217,7 +2218,7 @@ landing:
     title: 商业支持
     body: 了解商业支持
   landingPrefs:
-    title: 选择登录后显示页面
+    title: 选择登录后显示的页面
     body: "登录后显示："
     options:
       homePage: 主页
@@ -2459,12 +2460,12 @@ login:
   loginAgain: 请重新登录。
   serverError:
     authFailedCreds: "登录失败。请检查凭证，或查看你是否有登录权限。"
-    authFailed: "登录失败。你可能没有登录权限。"
-    unknown: "登录时发生错误。请联系你的系统管理员。"
+    authFailed: "登录失败，你可能没有登录权限。"
+    unknown: "登录时发生错误，请联系你的系统管理员。"
     invalidSamlAttrs: "无效的 SAML 属性"
     noResponse: "没有收到响应。"
-  error: 登录时发生错误。请重试。
-  clientError: 无效的用户名或密码。请重试。
+  error: 登录时发生错误，请重试。
+  clientError: 无效的用户名或密码，请重试。
   useLocal: 使用本地账号登录
   loginWithProvider: 使用 {provider} 登录
   username: 用户名
@@ -3177,7 +3178,7 @@ prefs:
     light: 浅色
     auto: 自动
     dark: 深色
-    autoDetail: 自动模式使用系统设置，或在晚{pm}点到次日早{am}点间自动切换到深色模式。
+    autoDetail: 自动模式使用系统设置，或在{pm}点到次日{am}点间自动切换到深色模式。
   landing:
     label: 登录页面
     vue: 集群浏览器
@@ -3196,7 +3197,7 @@ prefs:
     value: |-
       {count, number}
   keymap:
-    label: YAML 编辑器键映射
+    label: YAML 编辑器
     sublime: '默认'
     emacs: 'Emacs'
     vim: 'Vim'
@@ -4651,13 +4652,13 @@ workload:
       listeningPort: 监听端口
     removeContainer: 移除容器
     security:
-      addCapabilities: 添加功能
+      addCapabilities: 添加 Capabilities
       addGroupIDs: 添加组 ID
       allowPrivilegeEscalation:
-        label: 允许权限提升
+        label: 允许权限提升Retain the volume for manual cleanup
         'false': 否
         'true': "是：容器可以获得比其父进程更多的权限。"
-      dropCapabilities: 弃用功能
+      dropCapabilities: 移除 Capabilities
       fsGroup: 文件系统组
       hostIPC: 使用主机 IPC 命名空间
       hostPID: 使用主机 PID 命名空间
@@ -4819,7 +4820,7 @@ workload:
         lessThan: <
         namespaces: 命名空间
         notIn: 不在列表中
-        operator: Operator
+        operator: 运算符
         value: 值
         weight: 权重
       noPodRules: 没有配置 Pod 调度策略
@@ -4862,7 +4863,7 @@ workload:
         noSchedule: "不调度"
         preferNoSchedule: 倾向于不调度
       labelKey: 标签键
-      operator: Operator
+      operator: 运算符
       operatorOptions:
         equal: =
         exists: 存在
@@ -5680,7 +5681,7 @@ typeDescription:
   monitoring.coreos.com.prometheusrule: PrometheusRule 定义了记录和/或告警规则。记录规则可以预先计算值并保存结果。告警规则允许你定义向 AlertManager 发送通知的条件。
   monitoring.coreos.com.prometheus: Prometheus 服务器是一个 Prometheus deployment，其抓取的配置和规则由选定的 ServiceMonitor、PodMonitor 和 PrometheusRule 决定。它将其告警信息发送给所有选择的具有定制资源配置的 AlertManager。
   monitoring.coreos.com.alertmanager: Alertmanager 是一个 deployment。其配置由同一命名空间中的密文指定，该密文决定了告警的接收者。
-  node: Kubernetes 节点资源展示了承载 Deployment 的虚拟机或物理机。请进入"管理集群"管理可用机器的生命周期。
+  node: Kubernetes 节点资源展示了承载 Deployment 的虚拟机或物理机。请进入"集群管理"管理可用机器的生命周期。
   catalog.cattle.io.clusterrepo: 'Chart 仓库是一个 Helm 仓库或 {vendor} 基于 git 的应用商店。它提供了集群中可用的 Chart 列表。'
   catalog.cattle.io.clusterrepo.local: ' Chart 仓库是一个 Helm 仓库或 {vendor} 基于 git 的应用商店。它提供了集群中可用的 Chart 列表。集群模板是通过 Helm Chart 部署的。'
   catalog.cattle.io.operation: 操作指最近应用于集群的 Helm 操作列表。
@@ -5755,12 +5756,12 @@ typeLabel:
   fleet.cattle.io.cluster: |-
     {count, plural,
       =1 { 集群 }
-      other {集群 }
+      other { 集群 }
     }
   fleet.cattle.io.clustergroup: |-
     {count, plural,
       one { 集群组 }
-      other {集群组 }
+      other { 集群组 }
     }
 
   fleet.cattle.io.gitrepo: |-
@@ -6014,7 +6015,7 @@ advancedSettings:
     falseOption: "False"
     value: 值
     useDefault: 使用默认值
-    invalidJSON: 无效的 JSON - 请先检查并修改你的输入，然后再保存。
+    invalidJSON: 无效的 JSON - 请先检查并修改你输入的值，然后再保存。
   descriptions:
     'cacerts': "验证服务器证书所需的 CA 证书。"
     'cluster-defaults': '创建新集群时覆盖 RKE 默认值。'
@@ -6111,7 +6112,7 @@ branding:
   options:
     default: 默认 Rancher 主题
     suse: SUSE 主题
-    custom: 定义自定义主题
+    custom: 自定义主题
   uiPL:
     label: 私有标签公司名称
   uiIssues:
@@ -6207,7 +6208,7 @@ support:
     removeSubscription: 移除订阅 ID
     addTitle: 添加 SUSE 订阅 ID
     addLabel: "请输入有效的订阅 ID："
-    removeTitle: 移除 ID？
+    removeTitle: 是否移除订阅 ID？
     removeBody: "注意：这不会影响你的订阅。"
   suse:
     title: "好消息--你已得到保障"
