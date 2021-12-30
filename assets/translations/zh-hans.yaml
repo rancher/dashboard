@@ -4655,7 +4655,7 @@ workload:
       addCapabilities: 添加 Capabilities
       addGroupIDs: 添加组 ID
       allowPrivilegeEscalation:
-        label: 允许权限提升Retain the volume for manual cleanup
+        label: 允许权限提升
         'false': 否
         'true': "是：容器可以获得比其父进程更多的权限。"
       dropCapabilities: 移除 Capabilities
