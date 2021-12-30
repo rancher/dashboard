@@ -6175,7 +6175,7 @@ resourceQuota:
   servicesLoadBalancers: 服务负载均衡
   servicesNodePorts: 服务节点端口
   namespaceLimit:
-    label: 限制
+    label: 命名空间限制
   projectLimit:
     label: 项目限制
     cpuPlaceholder: 例如：2000
