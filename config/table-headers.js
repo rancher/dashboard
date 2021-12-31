@@ -814,7 +814,7 @@ export const EXPIRES = {
 
 export const RESTART = {
   name:      'restart',
-  label:     'Restart Required',
+  labelKey:  'tableHeaders.restart',
   value:     'restartRequired',
   sort:      ['restartRequired', 'nameSort'],
   formatter: 'Checked',
@@ -829,12 +829,14 @@ export const ROLE = {
 };
 
 export const FEATURE_DESCRIPTION = {
-  name:     'description',
-  labelKey: 'tableHeaders.description',
-  value:    'status.description',
-  align:    'left',
-  sort:     ['status.description'],
-  width:    300,
+  name:          'description',
+  labelKey:      'tableHeaders.description',
+  value:         'status.description',
+  align:         'left',
+  sort:          ['status.description'],
+  width:         300,
+  formatter:     'Translate',
+  formatterOpts: { prefix: 'featureFlags.description' },
 };
 
 export const STATE_NORMAN = {

@@ -4383,6 +4383,7 @@ tableHeaders:
   groupName: 组名称
   groupRoleNames: 组角色名称 
   Secret-Name: 密文名称
+  restart: 要求重启
 
 target:
   router:
@@ -6178,6 +6179,16 @@ featureFlags:
   restart:
     title: 等待重启
     wait: 重启需要数分钟。
+  description:
+    harvester: 接入 Harvester，以导入和管理 Harvester 集群
+    unsupported-storage-drivers: 允许使用非默认启用的存储提供商和卷插件
+    legacy: 启用旧版功能
+    istio-virtual-service-ui: 暴露了一个用户界面，使用户能够创建、读取、更新和删除虚拟服务和目的地规则，这是Istio的流量管理功能。
+    token-hashing: 启用令牌的单程hash。一旦启用令牌hash就不能被禁用。
+    continuous-delivery: Fleet中的Gitops组件
+    fleet: 启动Rancher时安装Fleet
+    multi-cluster-management: Kubernetes集群的多集群配置和管理。
+    rke2: 启用RKE2
 
 branding:
   label: 公司品牌

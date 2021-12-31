@@ -4344,6 +4344,7 @@ tableHeaders:
   apikey: API Key
   groupName: Group Name
   groupRoleNames: Group Role Names
+  restart: Restart Required
 
 target:
   router:
