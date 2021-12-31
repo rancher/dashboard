@@ -729,7 +729,7 @@ export const CONFIGURED_RECEIVER = {
 
 export const GROUP_NAME = {
   name:      'group-name',
-  label:     'Group Name',
+  labelKey:  'tableHeaders.groupName',
   value:     'id',
   sort:      ['name'],
   search:    ['name'],
@@ -739,35 +739,35 @@ export const GROUP_NAME = {
 
 export const GROUP_ROLE_NAME = {
   name:      'group-role-names',
-  label:     'Group Role Names',
+  labelKey:  'tableHeaders.groupRoleNames',
   value:     'id',
   formatter: 'PrincipalGroupBindings',
 };
 
 export const HPA_REFERENCE = {
   name:      'reference',
-  label:     'Workload',
+  labelKey:  'tableHeaders.hpaReference',
   value:     'spec.scaleTargetRef.name',
   sort:      'spec.scaleTargetRef.name',
 };
 
 export const MIN_REPLICA = {
   name:      'minimum-replica',
-  label:     'Minimum Replicas',
+  labelKey:  'tableHeaders.minReplicas',
   value:     'spec.minReplicas',
   sort:      'spec.minReplicas',
 };
 
 export const MAX_REPLICA = {
   name:      'maximum-replica',
-  label:     'Maximum Replicas',
+  labelKey:  'tableHeaders.maxReplicas',
   value:     'spec.maxReplicas',
   sort:      'spec.maxReplicas',
 };
 
 export const CURRENT_REPLICA = {
   name:      'current-replica',
-  label:     'Current Replicas',
+  labelKey:  'tableHeaders.currentReplicas',
   value:     'status.currentReplicas',
   sort:      'status.currentReplicas',
 };

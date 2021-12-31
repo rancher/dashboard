@@ -137,6 +137,7 @@ export function init(store) {
   configureType(PVC, { isEditable: false });
   configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { isEditable: false });
   configureType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING, { isEditable: false });
+  configureType(MANAGEMENT.PROJECT, { displayName: store.getters['i18n/t']('namespace.project.label') });
 
   setGroupDefaultType('serviceDiscovery', SERVICE);
 
@@ -158,7 +159,7 @@ export function init(store) {
     SUB_TYPE,
     {
       name:      'data',
-      label:     'Data',
+      labelKey:  'tableHeaders.data',
       value:     'dataPreview',
       formatter: 'SecretData'
     },

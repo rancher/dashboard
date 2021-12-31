@@ -21,7 +21,7 @@ export default class CronJob extends Workload {
 
     insertAt(out, 0, {
       action:     'runNow',
-      label:      'Run Now',
+      label:      this.t('action.runNow'),
       icon:       'icon icon-spinner',
       enabled:    canRunNow,
       bulkable:   true,
@@ -29,7 +29,7 @@ export default class CronJob extends Workload {
 
     insertAt(out, 1, {
       action:     'suspend',
-      label:      'Suspend',
+      label:      this.t('action.suspend'),
       icon:       'icon icon-pause',
       enabled:    !suspended && this.canUpdate,
       bulkable:   true,
@@ -37,7 +37,7 @@ export default class CronJob extends Workload {
 
     insertAt(out, 2, {
       action:     'resume',
-      label:      'Resume',
+      label:      this.t('action.resume'),
       icon:       'icon icon-play',
       enabled:    suspended && this.canUpdate,
       bulkable:   true,

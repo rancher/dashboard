@@ -288,7 +288,7 @@ export default {
                       ></span>
                       <span v-else>{{ subtype.label }}</span>
                     </h5>
-                    <a v-if="subtype.docLink" :href="subtype.docLink" target="_blank" rel="noopener nofollow" class="flex-right">More Info <i class="icon icon-external-link" /></a>
+                    <a v-if="subtype.docLink" :href="subtype.docLink" target="_blank" rel="noopener nofollow" class="flex-right">{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
                   </div>
                   <hr v-if="subtype.description" />
                   <div v-if="subtype.description" class="description">

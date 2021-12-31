@@ -76,6 +76,8 @@ generic:
   disable: Disable
   experimental: Experimental
   deprecated: Deprecated
+  placeholder: "e.g. {text}"
+  moreInfo: More Info
 
 locale:
   en-us: English
@@ -107,6 +109,7 @@ nav:
     workload: Workload
     monitoring: Monitoring
     advanced: Advanced
+    RKE1Configuration: RKE1 Configuration
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources
@@ -2472,6 +2475,8 @@ login:
   loginWithLocal: Log in with Local User
   useProvider: Use a {provider} user
   useNonLocal: Use a non-local user
+  remember:
+    label: Remember Username
 
 members:
   clusterMembers: Cluster Members
@@ -2851,6 +2856,10 @@ node:
 persistentVolume:
   pluginConfiguration:
     label: Plugin configuration
+  plugin:
+    label: Volume Plugin
+  capacity:
+    label: Capacity
   customize:
     label: Customize
     affinity:
@@ -3145,6 +3154,10 @@ persistentVolume:
 persistentVolumeClaim:
   name: Persistent Volume Claim Name
   accessModes: Access Modes
+  accessModesOptions:
+    singleNodeRW: Single-Node Read/Write 
+    manyNodeR: Many-Node Read-Only
+    manyNodeRW: Many-Node Read/Write
   capacity: Capacity
   storageClass: Storage Class
   useDefault: Use the default class
@@ -3550,6 +3563,8 @@ rbac:
         description: Allows the user to view Metrics through the API.
       base:
         label: Login Access
+      clustertemplaterevisions-create:
+        label: Create RKE Template Revisions
 
 resourceDetail:
   detailTop:
@@ -3648,11 +3663,13 @@ secret:
   authentication: Authentication
   certificate:
     certificate: Certificate
+    certificatePlaceholder: "Paste in the CA certificate, starting with -----BEGIN CERTIFICATE----"
     cn: Domain Name
     expires: Expires
     issuer: Issuer
     plusMore: "+ {n} more"
     privateKey: Private Key
+    privateKeyPlaceholder: "Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----"
   data: Data
   registry:
     address: Registry
@@ -3665,7 +3682,9 @@ secret:
   ssh:
     keys: Keys
     public: Public Key
+    publicPlaceholder: "Paste in your public key"
     private: Private Key
+    privatePlaceholder: "Paste in your private key"
   serviceAcct:
     ca: CA Certificate
     token: Token
@@ -4317,6 +4336,14 @@ tableHeaders:
   ipAddress: IP Address
   diskState: Disk State
   routeConnectivity: Route Connectivity
+  hpaReference: Workload
+  minReplicas: Minimum Replicas
+  maxReplicas: Maximum Replicas
+  currentReplicas: Current Replicas
+  data: Data
+  apikey: API Key
+  groupName: Group Name
+  groupRoleNames: Group Role Names
 
 target:
   router:
@@ -5937,7 +5964,16 @@ typeLabel:
       one { Cloud Config Template }
       other { Cloud Config Templates }
     }
-  
+  fleet.cattle.io.bundle: |-
+    {count, plural,
+      one { Bundle }
+      other { Bundles }
+    } 
+  fleet.cattle.io.clusterregistrationtoken: |-
+    {count, plural,
+      one { Cluster Registration Token }
+      other { Cluster Registration Tokens }
+    } 
 
 action:
   clone: Clone
@@ -5959,6 +5995,13 @@ action:
   copy: Copy
   unassign: 'Unassign'
   uninstall: Uninstall
+  redeploy: Redeploy
+  addSidecar: Add Sidecar
+  rollback: Rollback
+  openShell: Execute Shell
+  runNow: Run Now
+  suspend: Suspend
+  resume: Resume
 
 unit:
   sec: secs
@@ -5984,6 +6027,7 @@ podAffinity:
 keyValue:
   keyPlaceholder: e.g. foo
   valuePlaceholder: e.g. bar
+  protip: 'Paste lines of <em>key=value</em> or <em>key: value</em> into any key field for easy bulk entry'
 
 registryMirror:
   header: Mirrors
@@ -6266,3 +6310,21 @@ legacy:
 serverUpgrade:
   title: "{vendor} Server Changed"
   message: "The page reloaded because the version of {vendor} running on your server changed."
+
+volumeClaimTemplate:
+  add:
+    label: Add Claim Template
+
+manager:
+  cloudCredentials:
+    label: Cloud Credentials
+  drivers:
+    label: Drivers
+  rkeTemplates:
+    label: RKE Templates
+  nodeTemplates:
+    label: Node Templates
+
+auth:
+  config:
+    label: Auth Providor

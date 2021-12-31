@@ -38,7 +38,7 @@ export default {
         NAME_UNLINKED,
         {
           name:        'apikey',
-          label:       'API Key',
+          labelKey:    'tableHeaders.apikey',
           value:       'publicData',
           sort:        'publicData',
           search:      'publicData',
@@ -73,7 +73,7 @@ export default {
       :schema="schema"
       :resource="resource"
       :create-location="createLocation"
-      type-display="Cloud Credentials"
+      :type-display="t('manager.cloudCredentials.label')"
     />
 
     <ResourceTable :schema="schema" :rows="rows" :headers="headers" :namespaced="false" group-by="providerDisplay">

@@ -76,6 +76,8 @@ generic:
   disable: 禁用
   experimental: 实验功能
   deprecated: 已弃用
+  placeholder: "例如: {text}"
+  moreInfo: 更多信息
 
 locale:
   en-us: English
@@ -107,6 +109,7 @@ nav:
     workload: 工作负载
     monitoring: 监控
     advanced: 高级选项
+    RKE1Configuration: RKE1 配置
   ns:
     all: 所有命名空间
     clusterLevel: 集群资源
@@ -184,6 +187,7 @@ suffix:
       =1 { 次 }
       other { 次 }
     }
+  ago: 前
 
 ##############################
 # Components & Pages
@@ -688,6 +692,13 @@ catalog:
     all: 全部
     categories:
       all: 所有类别
+      infrastructure: 基础设施
+      storage: 存储
+      monitoring: 监控
+      applications: 应用
+      security: 安全
+      networking: 网络
+      database: 数据库
     certified:
       other: 其他
       partner: Partner
@@ -2474,6 +2485,8 @@ login:
   loginWithLocal: 使用本地用户登录
   useProvider: 使用 {provider} 用户
   useNonLocal: 使用非本地用户
+  remember:
+    label: 记住用户名
 
 members:
   clusterMembers: 集群成员
@@ -2853,6 +2866,10 @@ node:
 persistentVolume:
   pluginConfiguration:
     label: 插件配置
+  plugin:
+      label: 卷插件
+  capacity:
+    label: 容量
   customize:
     label: 自定义
     affinity:
@@ -3147,6 +3164,10 @@ persistentVolume:
 persistentVolumeClaim:
   name: 持久卷声明名称
   accessModes: 访问模式
+  accessModesOptions:
+    singleNodeRW: 单节点 读/写
+    manyNodeR: 多节点 只读
+    manyNodeRW: 多节点 读/写
   capacity: 容量
   storageClass: 存储类
   useDefault: 使用默认类
@@ -3552,6 +3573,8 @@ rbac:
         description: 允许用户通过 API 查看指标。
       base:
         label: 登录访问
+      clustertemplaterevisions-create:
+        label: 创建 RKE 模板修订版
 
 resourceDetail:
   detailTop:
@@ -3650,11 +3673,13 @@ secret:
   authentication: 身份验证
   certificate:
     certificate: 证书
+    certificatePlaceholder: "粘贴证书，一般以----BEGIN CERTIFICATE----开头"
     cn: 域名
     expires: 过期时间
     issuer: 发行者
     plusMore: "+ {n} 更多"
     privateKey: 私钥
+    privateKeyPlaceholder: "粘贴私钥，一般以----BEGIN RSA PRIVATE KEY----开头"
   data: 数据
   registry:
     address: 镜像仓库
@@ -3667,7 +3692,9 @@ secret:
   ssh:
     keys: 密钥
     public: 公钥
+    publicPlaceholder: "粘贴你的公钥"
     private: 私钥
+    privatePlaceholder: "粘贴你的私钥"
   serviceAcct:
     ca: CA 证书
     token: Token
@@ -4319,6 +4346,43 @@ tableHeaders:
   ipAddress: IP 地址
   diskState: 磁盘状态
   routeConnectivity: 路由连接
+  Schedule: 调度
+  'Last Schedule': 上次调度
+  Ready: 就绪
+  Current: 当前
+  Desired: 期望
+  Up-to-date: 最新
+  Available: 可用
+  Completions: 完成
+  Duration: 时长
+  Restarts: 重启
+  hpaReference: 工作负载
+  minReplicas: 最小副本数
+  maxReplicas: 最大副本数
+  currentReplicas: 当前副本数
+  Pod-Selector: Pod 选择器
+  Status: 状态
+  Volume: 卷
+  Capacity: 容量
+  Access Modes: 访问模式
+  StorageClass: 存储类
+  VolumeMode: 卷类型
+  data: 数据
+  Service: 服务
+  Endpoints: 端点
+  AddressType: 地址类型
+  Ports: 端口
+  Role: 角色
+  Users: 用户
+  Groups: 组
+  ServiceAccounts: 服务账户
+  Value: 值
+  Global-Default: 全局默认
+  Drivers: 驱动数量
+  apikey: API 密钥
+  groupName: 组名称
+  groupRoleNames: 组角色名称 
+  Secret-Name: 密文名称
 
 target:
   router:
@@ -5770,8 +5834,8 @@ typeLabel:
     }
   management.cattle.io.authconfig: |-
     {count, plural,
-      one { 验证提供程序 }
-      other { 验证提供程序 }
+      one { 认证 }
+      other { 认证 }
     }
   management.cattle.io.clusterroletemplatebinding: |-
     {count, plural,
@@ -5939,6 +6003,16 @@ typeLabel:
       one { Cloud Config 模板 }
       other { Cloud Config 模板 }
     }
+  fleet.cattle.io.bundle: |-
+    {count, plural,
+      one { 包 }
+      other { 包 }
+    } 
+  fleet.cattle.io.clusterregistrationtoken: |-
+    {count, plural,
+      one { 集群注册 Token }
+      other { 集群注册 Token }
+    }
 
 
 action:
@@ -5961,6 +6035,13 @@ action:
   copy: 复制
   unassign: '取消分配'
   uninstall: 卸载
+  redeploy: 重新部署
+  addSidecar: 添加Sidecar
+  rollback: 回滚
+  openShell: 执行命令行
+  runNow: 立即运行
+  suspend: 暂停
+  resume: 重新开始
 
 unit:
   sec: 秒
@@ -5986,6 +6067,7 @@ podAffinity:
 keyValue:
   keyPlaceholder: 例如：foo
   valuePlaceholder: 例如：bar
+  protip: '把多行<em>键=值</em>或<em>键: 值</em>键值对复制到各字段中，以便批量输入'
 
 registryMirror:
   header: Mirror
@@ -6268,3 +6350,21 @@ legacy:
 serverUpgrade:
   title: "{vendor} Server 已更改"
   message: "由于你服务器上运行的 {vendor} 版本已变更，页面需要重新加载。"
+
+volumeClaimTemplate:
+  add:
+    label: 添加声明模板
+
+manager:
+  cloudCredentials:
+    label: 云凭证
+  drivers:
+    label: 驱动
+  rkeTemplates:
+    label: RKE 模板
+  nodeTemplates:
+    label: 节点模板
+
+auth:
+  config:
+    label: 认证
