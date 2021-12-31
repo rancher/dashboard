@@ -1533,7 +1533,7 @@ cluster:
       domain:
         label: 集群域名
       nodePortRange:
-        label: 节点端口服务端口范围
+        label: NodePort 服务端口范围
       tlsSan:
         label: TLS 可选名称
       fqdn:
