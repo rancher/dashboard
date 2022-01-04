@@ -15,7 +15,6 @@ import { _DETAIL } from '@/config/query-params';
 import { SUBTYPE_MAPPING, VERBS } from '@/models/management.cattle.io.roletemplate';
 import Loading from '@/components/Loading';
 import capitalize from 'lodash/capitalize';
-import { findBy } from '@/utils/array';
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 const CLUSTER = SUBTYPE_MAPPING.CLUSTER.key;
@@ -58,7 +57,6 @@ export default {
     if (this.value.subtype === CLUSTER || this.value.subtype === NAMESPACE) {
       this.templateOptions = (await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }))
         .map(option => ({
-          // better to have this as a computed prop for reactivity
           label: option.nameDisplay,
           value: option.id
         }));
@@ -218,8 +216,6 @@ export default {
 
   methods: {
     setRule(key, rule, event) {
-      console.log(`key: ${ key }\nrule: ${ JSON.stringify(rule) }\nevent: ${ event }`);
-
       const value = event.label ? event.label : event;
 
       if (value || (key === 'apiGroups' && value === '')) {
@@ -233,8 +229,6 @@ export default {
     },
     updateSelectValue(row, key, event) {
       const value = event.label ? event.value : event;
-
-      console.log(`row: ${ JSON.stringify(row) }\nkey: ${ key }\nevent: ${ event }`);
 
       this.$set(row, key, value);
     },
@@ -294,14 +288,7 @@ export default {
       return res;
     },
     getApiGroup(resource) {
-      // need function to take in chosen resource,
-      // use its name to find schema
-      // schema contains its apigroup
-      // attach value to resource options array
-
       const resourceSchema = this.allSchemas.filter(schema => schema?.attributes?.resource === resource.toLowerCase())[0];
-
-      console.log(resource, ': ', resourceSchema);
 
       return resourceSchema ? resourceSchema.attributes.group : '';
     },
@@ -311,10 +298,6 @@ export default {
 
       this.setRule('apiGroups', rule, value);
       this.setRule('resources', rule, value);
-
-      // rule: {
-      //   resources: [event.value]
-      // }
     }
 
   }
