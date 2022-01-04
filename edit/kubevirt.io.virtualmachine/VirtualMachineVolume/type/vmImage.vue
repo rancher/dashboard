@@ -78,15 +78,18 @@ export default {
   data() {
     return {
       loading: false,
-      errors:  []
+      errors:  [],
+      images:  [],
     };
+  },
+
+  fetch() {
+    this.images = this.$store.getters['harvester/all'](HCI.IMAGE);
   },
 
   computed: {
     imagesOption() {
-      const choise = this.$store.getters['harvester/all'](HCI.IMAGE);
-
-      return choise.map( (I) => {
+      return this.images.filter(c => c.isReady && c.isCompleted).map( (I) => {
         return {
           label: `${ I.metadata.namespace }/${ I.spec.displayName }`,
           value: I.id
@@ -160,6 +163,10 @@ export default {
       }
 
       this.update();
+    },
+
+    onOpen() {
+      this.images = this.$store.getters['harvester/all'](HCI.IMAGE);
     },
   }
 };

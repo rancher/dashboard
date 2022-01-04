@@ -9,6 +9,26 @@ import { ucFirst } from '@/utils/string';
 import { stateDisplay, colorForState } from '@/plugins/steve/resource-class';
 import SteveModel from '@/plugins/steve/steve-class';
 
+export function isCompleted() {
+  return this.status?.progress === 100;
+}
+
+export function isReady() {
+  function getStatusConditionOfType(type, defaultValue = []) {
+    const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
+
+    return conditions.find( cond => cond.type === type);
+  }
+
+  const initialized = getStatusConditionOfType.call(this, 'Initialized');
+  const imported = getStatusConditionOfType.call(this, 'Imported');
+
+  if ([initialized?.status, imported?.status].includes('False')) {
+    return false;
+  } else {
+    return true;
+  }
+}
 export default class HciVmImage extends SteveModel {
   get availableActions() {
     let out = super._availableActions;
@@ -29,6 +49,7 @@ export default class HciVmImage extends SteveModel {
         enabled:    canCreateVM && this.isReady,
         icon:       'icon icon-fw icon-spinner',
         label:      this.t('harvester.action.createVM'),
+        disabled:   !this.isCompleted,
       },
       ...out
     ];
@@ -49,14 +70,7 @@ export default class HciVmImage extends SteveModel {
   }
 
   get isReady() {
-    const initialized = this.getStatusConditionOfType('Initialized');
-    const imported = this.getStatusConditionOfType('Imported');
-
-    if ([initialized?.status, imported?.status].includes('False')) {
-      return false;
-    } else {
-      return true;
-    }
+    return isReady.call(this);
   }
 
   get stateDisplay() {
@@ -207,5 +221,9 @@ export default class HciVmImage extends SteveModel {
 
       this.$ctx.commit('harvester-common/uploadEnd', this.metadata.name, { root: true });
     };
+  }
+
+  get isCompleted() {
+    return isCompleted.call(this);
   }
 }

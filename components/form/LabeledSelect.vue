@@ -144,6 +144,11 @@ export default {
       this.onBlurLabeled();
     },
 
+    onOpen() {
+      this.$emit('on-open');
+      this.resizeHandler();
+    },
+
     getOptionLabel(option) {
       if (!option) {
         return;
@@ -303,7 +308,7 @@ export default {
       @search:blur="onBlur"
       @search:focus="onFocus"
       @search="onSearch"
-      @open="resizeHandler"
+      @open="onOpen"
     >
       <template #option="option">
         <template v-if="option.kind === 'group'">
