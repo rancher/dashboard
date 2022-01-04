@@ -281,14 +281,14 @@ export default {
                 </div>
                 <div class="subtype-body">
                   <div class="title" :class="{'with-description': !!subtype.description}">
-                    <h5>
+                    <h4>
                       <span
                         v-if="$store.getters['i18n/exists'](subtype.label)"
                         v-html="t(subtype.label)"
                       ></span>
                       <span v-else>{{ subtype.label }}</span>
-                    </h5>
-                    <a v-if="subtype.docLink" :href="subtype.docLink" target="_blank" rel="noopener nofollow" class="flex-right">{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
+                    </h4>
+                    <a v-if="subtype.docLink" :href="subtype.docLink" target="_blank" rel="noopener nofollow" class="flex-right">More Info <i class="icon icon-external-link" /></a>
                   </div>
                   <hr v-if="subtype.description" />
                   <div v-if="subtype.description" class="description">

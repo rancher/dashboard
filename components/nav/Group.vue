@@ -190,9 +190,9 @@ export default {
     <div v-if="showHeader" class="header" :class="{'active': isOverview, 'noHover': !canCollapse}" @click="groupSelected()">
       <slot name="header">
         <n-link v-if="hasOverview" :to="group.children[0].route" :exact="group.children[0].exact">
-          <h6 v-html="group.labelDisplay || group.label" />
+          <span v-html="group.labelDisplay || group.label" />
         </n-link>
-        <h6 v-else v-html="group.labelDisplay || group.label" />
+        <span v-else v-html="group.labelDisplay || group.label" />
       </slot>
       <i v-if="!onlyHasOverview && canCollapse" class="icon toggle" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" @click="peek($event, true)" />
     </div>
@@ -238,7 +238,7 @@ export default {
     cursor: pointer;
     color: var(--body-text);
 
-    > H6 {
+    > span {
       color: var(--body-text);
       user-select: none;
       text-transform: none;
@@ -254,7 +254,7 @@ export default {
       &:focus{
         outline:none;
       }
-      > H6 {
+      > span {
         font-size: 14px;
         text-transform: none;
       }
@@ -292,7 +292,7 @@ export default {
           cursor: default;
         }
 
-        > H6 {
+        > span {
           font-size: 14px;
           text-transform: none;
           padding-left: 10px;
@@ -314,7 +314,7 @@ export default {
 
     &.depth-1 {
       > .header {
-        > H6 {
+        > span {
           font-size: 13px;
           line-height: 16px;
           padding: 8px 0 7px 5px !important;
@@ -328,7 +328,7 @@ export default {
     &:not(.depth-0) {
       > .header {
         padding-left: 10px;
-        > H6 {
+        > span {
           // Child groups that aren't linked themselves
           display: inline-block;
           padding: 5px 0 5px 5px;

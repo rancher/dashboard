@@ -113,7 +113,7 @@ export default {
 <template>
   <div>
     <SimpleBox class="container" :class="{'has-link': !!location}" @click="goToResource">
-      <h1>{{ resourceCounts.useful }}</h1>
+      <h2>{{ resourceCounts.useful }}</h2>
       <h3>
         {{ name }}
       </h3>
@@ -142,7 +142,7 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    & H1, H3 {
+    & H2, H3 {
         margin: 0;
     }
 

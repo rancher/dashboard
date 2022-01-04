@@ -376,9 +376,9 @@ export default {
       <ResourceSummary v-if="canAccessDeployments" resource="apps.deployment" />
     </div>
 
-    <h3 v-if="!hasV1Monitoring && hasStats" class="mt-40">
+    <h2 v-if="!hasV1Monitoring && hasStats" class="mt-40">
       {{ t('clusterIndexPage.sections.capacity.label') }}
-    </h3>
+    </h2>
     <div v-if="!hasV1Monitoring && hasStats" class="hardware-resource-gauges">
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.pods')" :used="podsUsed" />
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.cores')" :reserved="cpuReserved" :used="cpuUsed" />
@@ -390,7 +390,7 @@ export default {
     </div>
 
     <div class="mb-40 mt-40">
-      <h3>{{ hasMonitoring ?t('clusterIndexPage.sections.alerts.label') :t('clusterIndexPage.sections.events.label') }}</h3>
+      <h2>{{ hasMonitoring ?t('clusterIndexPage.sections.alerts.label') :t('clusterIndexPage.sections.events.label') }}</h2>
       <AlertTable v-if="hasMonitoring" />
       <SortableTable
         v-else

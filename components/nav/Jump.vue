@@ -78,7 +78,7 @@ export default {
           @close="$emit('closeSearch')"
         >
           <template slot="accordion">
-            <h6>{{ g.label }}</h6>
+            <span>{{ g.label }}</span>
           </template>
         </Group>
       </div>

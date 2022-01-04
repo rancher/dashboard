@@ -30,9 +30,9 @@ export default {
 <template>
   <div v-if="shown" class="simple-box" v-on="$listeners">
     <div v-if="title || canClose" class="top">
-      <h2 v-if="title">
+      <h3 v-if="title">
         {{ title }}
-      </h2>
+      </h3>
       <div v-if="canClose || pref" class="close-button" @click="closeBox($event)">
         <i class="icon icon-close" />
       </div>
@@ -46,7 +46,7 @@ export default {
 .top {
   display: flex;
   position: relative;
-  > h2 {
+  > h3 {
     flex: 1;
   }
 }
@@ -90,7 +90,7 @@ export default {
       align-self: flex-start;
     }
 
-    & H2{
+    & H3{
       margin-bottom: 0;
     }
   }

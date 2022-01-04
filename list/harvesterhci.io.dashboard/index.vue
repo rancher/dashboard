@@ -503,9 +503,9 @@ export default {
     </div>
 
     <template v-if="nodes.length">
-      <h3 class="mt-40">
+      <h2 class="mt-40">
         {{ t('clusterIndexPage.sections.capacity.label') }}
-      </h3>
+      </h2>
       <div class="hardware-resource-gauges">
         <HardwareResourceGauge
           :name="t('harvester.dashboard.hardwareResourceGauge.cpu')"
@@ -559,9 +559,9 @@ export default {
     </Tabbed>
 
     <div class="mb-40 mt-40">
-      <h3>
+      <h2>
         {{ t('clusterIndexPage.sections.events.label') }}
-      </h3>
+      </h2>
       <Tabbed class="mt-20">
         <Tab
           name="host"
