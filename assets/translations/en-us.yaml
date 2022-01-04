@@ -95,6 +95,11 @@ nav:
       true {Support}
       other {Get Support}
     }
+  restoreSnapshot: Restore Snapshot
+  rotateCertificates: Rotate Certificates
+  rotateEncryptionKeys: Rotate Encryption Keys
+  saveAsRKETemplate: Save as RKE Template
+  takeSnapshot: Take Snapshot
   group:
     cluster: Cluster
     inUse: More Resources
