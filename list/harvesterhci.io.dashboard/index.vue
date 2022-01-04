@@ -9,9 +9,10 @@ import { allHash } from '@/utils/promise';
 import { parseSi, formatSi, exponentNeeded, UNITS } from '@/utils/units';
 import { REASON } from '@/config/table-headers';
 import {
-  EVENT, METRIC, NODE, HCI, SERVICE, PVC, LONGHORN, POD
+  EVENT, METRIC, NODE, HCI, SERVICE, PVC, LONGHORN, POD, COUNT
 } from '@/config/types';
-import ResourceSummary, { resourceCounts } from '@/components/ResourceSummary';
+import ResourceSummary, { resourceCounts, colorToCountName } from '@/components/ResourceSummary';
+import { colorForState } from '@/plugins/steve/resource-class';
 import HardwareResourceGauge from '@/components/HardwareResourceGauge';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
@@ -56,7 +57,8 @@ const RESOURCES = [{
       name:     'c-cluster-product-resource',
       params:   { resource: HCI.VOLUME }
     },
-    name: 'Volume'
+    name:            'Volume',
+    filterNamespace: ['cattle-monitoring-system']
   }
 }];
 
@@ -177,6 +179,27 @@ export default {
         });
 
         if (resource.spoofed) {
+          if (resource.spoofed?.filterNamespace && Array.isArray(resource.spoofed.filterNamespace)) {
+            const clusterCounts = this.$store.getters['harvester/all'](COUNT)[0].counts;
+            const statistics = clusterCounts[resource.type] || {};
+
+            for (let i = 0; i < resource.spoofed.filterNamespace.length; i++) {
+              const nsStatistics = statistics?.namespaces[resource.spoofed.filterNamespace[i]] || {};
+
+              if (nsStatistics.count) {
+                out[resource.type]['useful'] -= nsStatistics.count;
+              }
+              Object.entries(nsStatistics?.states || {}).forEach((entry) => {
+                const color = colorForState(entry[0]);
+                const count = entry[1];
+                const countName = colorToCountName(color);
+
+                out[resource.type]['useful'] -= count;
+                out[resource.type][countName] += count;
+              });
+            }
+          }
+
           out[resource.type] = {
             ...out[resource.type],
             ...resource.spoofed,
