@@ -97,6 +97,11 @@ nav:
       true {Support}
       other {Get Support}
     }
+  restoreSnapshot: Restore Snapshot
+  rotateCertificates: Rotate Certificates
+  rotateEncryptionKeys: Rotate Encryption Keys
+  saveAsRKETemplate: Save as RKE Template
+  takeSnapshot: Take Snapshot
   group:
     cluster: Cluster
     inUse: More Resources
@@ -3385,6 +3390,11 @@ promptRestore:
   name: Name
   date: Date
   fromS3: Restore from S3
+  label: Snapshot
+  placeholder: Select a snapshot to restore
+  notification:
+    title: Restore Snapshot
+    message: Restoring snapshot { selectedSnapshot } has started...
 
 promptRollback:
   modalTitle: Roll Back {workloadName}
