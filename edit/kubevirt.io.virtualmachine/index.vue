@@ -512,6 +512,7 @@ export default {
             v-model="installUSBTablet"
             class="check mt-20"
             type="checkbox"
+            tooltip-key="harvester.virtualMachine.usbTip"
             label-key="harvester.virtualMachine.enableUsb"
             :mode="mode"
           />

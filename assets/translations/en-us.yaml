@@ -5334,6 +5334,7 @@ harvester:
     createSSHKey: Create a New...
     installAgent: Install guest agent
     enableUsb: Enable USB Tablet
+    usbTip: Provides an absolute pointer device which often helps with getting a consistent mouse cursor position in VNC.
     sshTitle: Add Public SSH Key
     imageTip: An external URL to the .iso, .img, .qcow2 or .raw that the virtual machine should be created from.
     volume:
