@@ -101,6 +101,9 @@ export default {
           id:   `${ appNamespace }/${ appName }`,
         });
 
+        // Look for annotation to say this app is a legacy migrated app (we look in either place for now)
+        this.migratedApp = (this.existing?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MIGRATED] === 'true');
+
         this.mode = _EDIT;
       } catch (e) {
         this.mode = _CREATE;
@@ -309,9 +312,7 @@ export default {
       this.loadedVersion = this.version?.key;
     }
 
-    // Look for annotation to say this app is a legacy migrated app (we look in either place for now)
-    this.migratedApp = (this.existing?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MIGRATED] === 'true');
-  },
+   },
 
   data() {
     return {
@@ -909,6 +910,7 @@ export default {
       }
 
       for ( const dependency of more ) {
+        
         out.charts.unshift({
           chartName:   dependency.name,
           version:     dependency.version,
