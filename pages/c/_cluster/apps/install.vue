@@ -133,6 +133,9 @@ export default {
       }
     });
 
+    // Look for annotation to say this app is a legacy migrated app (we look in either place for now)
+    this.migratedApp = (this.existing?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MIGRATED] === 'true');
+
     if ( this.existing ) {
       this.forceNamespace = this.existing.metadata.namespace;
       this.nameDisabled = true;
@@ -308,9 +311,6 @@ export default {
       this.loadedVersionValues = this.versionInfo?.values || {};
       this.loadedVersion = this.version?.key;
     }
-
-    // Look for annotation to say this app is a legacy migrated app (we look in either place for now)
-    this.migratedApp = (this.existing?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MIGRATED] === 'true');
   },
 
   data() {
@@ -695,6 +695,7 @@ export default {
 
           return;
         }
+
         const res = await this.repo.doAction((isUpgrade ? 'upgrade' : 'install'), input);
 
         this.operation = await this.$store.dispatch('cluster/find', {
@@ -787,7 +788,7 @@ export default {
         }
       }
 
-      if ( values.global?.cattle.windows && !Object.keys(values.global.cattle.windows).length ) {
+      if ( values.global?.cattle?.windows && !Object.keys(values.global.cattle.windows).length ) {
         delete values.global.cattle.windows;
       }
 
