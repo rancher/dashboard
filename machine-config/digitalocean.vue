@@ -114,11 +114,7 @@ export default {
 
   computed: {
     isCreate() {
-      if (this.mode === _CREATE) {
-        return true;
-      }
-
-      return false;
+      return this.mode === _CREATE;
     }
   },
 
