@@ -7,23 +7,11 @@ export default function({
   $axios,
   redirect
 }, inject) {
-  const models = {};
   const dynamic = {};
 
   inject('extension', {
 
     DSL,
-
-    registerModel(name, model) {
-      console.log('registerModel'); // eslint-disable-line no-console
-      console.log(name); // eslint-disable-line no-console
-
-      models[name] = model;
-    },
-
-    getModel(name) {
-      return models[name];
-    },
 
     load(name, mainFile) {
       const router = app.router;
@@ -78,6 +66,11 @@ export default function({
 
     registerDynamics(obj) {
       merge(dynamic, obj);
+    },
+
+    // For debugging
+    getAll() {
+      return dynamic;
     },
 
     getDynamic(typeName, name) {

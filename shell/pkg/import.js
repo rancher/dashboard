@@ -5,5 +5,5 @@ _NAME.forEach((f) => {
   const ext = name.lastIndexOf('.');
 
   name = name.substr(0, ext);
-  $extension.registerDynamics({ NAME: { [name]: () => import(/* webpackChunkName: "NAME" */`BASE/NAME/${ name }`) } }); // eslint-disable-line no-undef
+  $extension.registerDynamics({ NAME: { [name]: () => REQUIRE(/* webpackChunkName: "NAME" */`BASE/NAME/${ name }`) } }); // eslint-disable-line no-undef
 });
