@@ -1224,6 +1224,9 @@ cluster:
           =1 {# vCPU}
           other {# vCPUs}
         }, {disk} GB Disk ({value})
+      tags:
+        label: Droplet Tags
+        placeholder: e.g. my_server
     vsphere:
       hostOptions:
         any: Any
