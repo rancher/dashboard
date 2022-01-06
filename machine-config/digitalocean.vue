@@ -6,6 +6,7 @@ import ArrayList from '@/components/form/ArrayList';
 import Checkbox from '@/components/form/Checkbox';
 import { NORMAN } from '@/config/types';
 import { stringify, exceptionToErrorsArray } from '@/utils/error';
+import { _CREATE } from '@/config/query-params';
 import Banner from '@/components/Banner';
 
 export default {
@@ -111,6 +112,16 @@ export default {
     'value.image': 'updateUsername',
   },
 
+  computed: {
+    isCreate() {
+      if (this.mode === _CREATE) {
+        return true;
+      }
+
+      return false;
+    }
+  },
+
   methods: {
     stringify,
 
@@ -210,6 +221,9 @@ export default {
           :protip="false"
           :title="t('cluster.machineConfig.digitalocean.tags.label')"
           :value-placeholder="t('cluster.machineConfig.digitalocean.tags.placeholder')"
+          :disabled="!isCreate"
+          :add-allowed="isCreate"
+          :remove-allowed="isCreate"
           @input="updateTags"
         />
       </div>
