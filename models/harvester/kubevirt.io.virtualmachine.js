@@ -81,7 +81,6 @@ export default class VirtVm extends SteveModel {
         icon:       'icon icon-close',
         label:      this.t('harvester.action.stop'),
         bulkable:   true,
-        external:   true,
       },
       {
         action:     'pauseVM',
@@ -101,7 +100,6 @@ export default class VirtVm extends SteveModel {
         icon:       'icon icon-refresh',
         label:      this.t('harvester.action.restart'),
         bulkable:   true,
-        external:   true,
       },
       {
         action:     'startVM',
@@ -109,7 +107,6 @@ export default class VirtVm extends SteveModel {
         icon:       'icon icon-play',
         label:      this.t('harvester.action.start'),
         bulkable:   true,
-        external:   true,
       },
       {
         action:     'backupVM',
