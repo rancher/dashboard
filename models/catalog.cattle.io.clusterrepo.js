@@ -72,11 +72,11 @@ export default class ClusterRepo extends SteveModel {
   }
 
   get isRancher() {
-    return this.isRancherSource && this.metadata.name === 'rancher-charts';
+    return this.metadata.name === 'rancher-charts';
   }
 
   get isPartner() {
-    return this.isRancherSource && this.metadata.name === 'rancher-partner-charts';
+    return this.metadata.name === 'rancher-partner-charts';
   }
 
   get color() {
