@@ -110,6 +110,10 @@ nav:
     monitoring: Monitoring
     advanced: Advanced
     RKE1Configuration: RKE1 Configuration
+    admission: Admission
+    apps: Apps
+    clusterProvisioning: Cluster Provisioning
+    core: Core
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources

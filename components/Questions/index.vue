@@ -2,7 +2,7 @@
 import Jexl from 'jexl';
 import Tab from '@/components/Tabbed/Tab';
 import { get, set } from '@/utils/object';
-import sortBy from 'lodash/sortBy';
+import { sortBy, camelCase } from 'lodash';
 import { _EDIT } from '@/config/query-params';
 import StringType from './String';
 import BooleanType from './Boolean';
@@ -274,10 +274,11 @@ export default {
         const group = q.group || defaultGroup;
 
         const normalized = group.trim().toLowerCase();
+        const name = this.$store.getters['i18n/withFallback'](`charts.${ this.source.chart.name }.group.${ camelCase(group) }`, null, group);
 
         if ( !map[normalized] ) {
           map[normalized] = {
-            name:      group,
+            name,
             questions: [],
             weight:    weight--,
           };
@@ -347,6 +348,7 @@ export default {
             :target-namespace="targetNamespace"
             :value="get(value, q.variable)"
             :disabled="disabled"
+            :chart-name="source.chart.name"
             @input="update(q.variable, $event)"
           />
         </div>
@@ -371,6 +373,7 @@ export default {
             :mode="mode"
             :value="get(value, q.variable)"
             :disabled="disabled"
+            :chart-name="source.chart.name"
             @input="update(q.variable, $event)"
           />
         </div>

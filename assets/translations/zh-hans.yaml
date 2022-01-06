@@ -110,6 +110,14 @@ nav:
     monitoring: 监控
     advanced: 高级选项
     RKE1Configuration: RKE1 配置
+    admission: 管理
+    apps: 应用
+    clusterProvisioning: 集群配置
+    core: 核心
+    Discovery: 发现
+    Policy: 策略
+    Scheduling: 调度
+    Storage: 存储
   ns:
     all: 所有命名空间
     clusterLevel: 集群资源
@@ -6014,6 +6022,86 @@ typeLabel:
       one { 集群注册 Token }
       other { 集群注册 Token }
     }
+  event: |-
+    {count, plural,
+      one { 事件 }
+      other { 事件 }
+    }
+  secret: |-
+    {count, plural,
+      one { 密文 }
+      other { 密文 }
+    }
+  serviceaccount: |-
+    {count, plural,
+      one { 服务账户 }
+      other { 服务账户 }
+    }
+  service: |-
+    {count, plural,
+      one { 服务 }
+      other { 服务 }
+    }
+  management.cattle.io.apiservice: |-
+    {count, plural,
+      one { API服务 }
+      other { API服务 }
+    }
+  management.cattle.io.catalog: |-
+    {count, plural,
+      one { 应用商店 }
+      other { 应用商店 }
+    }
+  management.cattle.io.nodedriver: |-
+    {count, plural,
+      one { 节点驱动 }
+      other { 节点驱动 }
+    }
+  management.cattle.io.node: |-
+    {count, plural,
+      one { 节点 }
+      other { 节点 }
+    }
+  rbac.authorization.k8s.io.clusterrole: |-
+    {count, plural,
+      one { 集群角色 }
+      other { 集群角色 }
+    }
+  rbac.authorization.k8s.io.role: |-
+    {count, plural,
+      one { 角色 }
+      other { 角色 }
+    }
+  storage.k8s.io.storageclass: |-
+    {count, plural,
+      one { 存储类 }
+      other { 存储类 }
+    }
+  persistentvolume: |-
+    {count, plural,
+      one { 持久卷 }
+      other { 持久卷 }
+    }
+  persistentvolumeclaim: |-
+    {count, plural,
+      one { 持久卷声明 }
+      other { 持久卷声明 }
+    }
+  configmap: |-
+    {count, plural,
+      one { 配置映射 }
+      other { 配置映射 }
+    }
+  policy.podsecuritypolicy: |-
+    {count, plural,
+      one { Pod安全策略 }
+      other { Pod安全策略 }
+    }
+  storage.k8s.io.csinode: |-
+    {count, plural,
+      one { CSI节点 }
+      other { CSI节点 }
+    }
 
 
 action:
@@ -6379,3 +6467,249 @@ manager:
 auth:
   config:
     label: 认证
+
+charts:
+  longhorn:
+    group:
+      longhornImages: Longhorn 镜像
+      privateRegistrySettings: 私有仓库设置
+      longhornDefaultSettings: Longhorn 默认设置
+      longhornStorageClassSettings: Longhorn 存储类设置
+      servicesAndLoadBalancing: 服务与负载均衡
+      otherSettings: 其他设置
+      longhornCsiDriverSettings: Longhorn CSI驱动设置
+    privateRegistry.registryUser: 
+      label: 用户
+      description: 用于验证私有仓库的用户
+    image.defaultImage: 
+      label: 使用默认镜像
+      description: 使用默认 Longhorn 镜像
+    privateRegistry.registryUrl: 
+      label: 地址
+      description: 私有仓库地址。留空则使用默认仓库。
+    privateRegistry.registryPasswd: 
+      label: 密码
+      description: 用于验证私有仓库的密码
+    privateRegistry.registrySecret: 
+      label: 密文名称
+      description: Longhorn 会使用这个名称自动生成一个 Kubernetes 密文，用于从你的仓库拉取镜像
+    longhorn.default_setting: 
+      label: Longhorn 默认设置
+      description: 首次安装 Longhorn 前自定义默认设置。只有集群未安装 Longhorn 时该设置才生效。
+    persistence.defaultClass:
+      label: 默认存储类
+      description: 为 Longhorn 设置默认存储类
+    persistence.reclaimPolicy:
+      label: 存储类保留策略
+      description: 定义回收策略（保留或删除）
+    persistence.defaultClassReplicaCount:
+      label: 默认存储类副本数
+      description: 为 Longhorn 存储类设置副本数
+    persistence.recurringJobSelector.enable:
+      label: 启用存储类定期 job 选择器
+      description: 为 Longhorn 存储类设置定期 job 选择器
+    persistence.backingImage.enable:
+      label: 默认存储类后备镜像
+      description: 为 Longhorn 存储类设置后备镜像
+    ingress.enabled:
+      label: 使用7层负载均衡暴露应用
+      description: 使用7层负载均衡暴露应用 - ingress
+    service.ui.type:
+      label: Longhorn UI 服务
+      description: 定义 Longhorn UI 服务类型
+    enablePSP:
+      label: Pod 安全策略
+      description: 为 Longhorn 工作负载设置 Pod 安全策略
+    csi.kubeletRootDir:
+      label: Kubelet 根目录
+      description: 指定 kubelet root-dir。如留空，则自动检测。
+    csi.attacherReplicaCount:
+      label: Longhorn CSI Attacher 副本数
+      description: 指定 CSI Attacher 的副本数。默认值是 3。
+    csi.provisionerReplicaCount:
+      label: Longhorn CSI Provisioner 副本数
+      description: 指定 CSI Provisioner 的副本数。默认值是 3。
+    csi.resizerReplicaCount:
+      label: Longhorn CSI Resizer 副本数
+      description: 指定 CSI Resizer 的副本数。默认值是 3
+    csi.snapshotterReplicaCount:
+      label: Longhorn CSI Snapshotter 副本数
+      description: 指定 CSI Snapshotter 的副本数。默认值是 3。
+    defaultSettings.backupTarget:
+      label: 备份目标
+      description: 用于访问备份存储的端点。支持 NFS 和 S3。
+    defaultSettings.backupTargetCredentialSecret:
+      label: 备份目标凭证密文
+      description: 与备份目标关联的 Kubernetes 密文
+    defaultSettings.allowRecurringJobWhileVolumeDetached:
+      label: 拔出卷时允许定时 Job
+      description: "如启用，Longhorn 会自动插入卷，并在定期快照/备份时间创建快照/备份。请知悉，在卷自动插入期间，卷并未为工作负载就绪。工作负载需要等待直至定期 Job 完成。"
+    defaultSettings.createDefaultDiskLabeledNodes:
+      label: 在标签节点上创建默认磁盘
+      description: 如果没有其他磁盘，则仅在标签为 "node.longhorn.io/create-default-disk=true" 的节点上自动创建默认磁盘。如禁用，会在最初添加节点时，在所有新节点上创建默认磁盘。
+    defaultSettings.defaultDataPath:
+      label: 默认数据路径
+      description: 在主机上用于存储数据的默认路径。默认路径是 "/var/lib/longhorn/"。
+    defaultSettings.defaultDataLocality:
+      label: 默认数据本地性
+      description: |
+        '如果一个 Longhorn 卷在使用该卷的 pod 的节点上有一个本地副本，我们就认为该卷具有数据本地性。
+        该设置指定了使用 Longhorn UI 创建卷时的默认数据本地性位置。如果是 Kubernetes 配置，请更新 StorageClass 中的 `dataLocality`。
+        可用的模式如下：
+        - **disabled**：默认选项。插入卷（工作负载）的节点可能有也可能没有副本。
+        - **best-effort**：该选项指示 Longhorn 尝试在插入卷（工作负载）的节点上保留一个副本。即使出现磁盘空间不充足、磁盘标签不兼容等环境限制，导致 Longhorn 无法把副本保存在插入卷（工作负载）中的情况，Longhorn 也不会停止该卷。'
+    defaultSettings.replicaSoftAntiAffinity:
+      label: 副本节点级的软亲和性
+      description: 允许使用同一个卷的已有健康副本进行节点调度。默认值是 false。
+    defaultSettings.replicaAutoBalance:
+      label: 副本自动均衡
+      description: |
+        '如启用，则在发现可用节点时，对副本进行自动均衡。
+        可用的全局设置如下：
+        - **disabled**：默认选项，即不进行副本自动均衡。
+        - **least-effort**：该选项指示 Longhorn 对副本进行均衡以获得最小冗余。
+        - **best-effort**：该选项指示 Longhorn 对副本进行均衡以获得平均冗余。
+        Longhorn 支持在 volume.spec.replicaAutoBalance 中进行单卷设置，该设置会覆盖全局设置。
+        可用的卷规格选项如下：
+        - **ignored**：默认选项。该选项指示 Longhorn 继承全局设置。
+        - **disabled**：该选项指示 Longhorn 不要进行副本自动均衡。
+        - **least-effort**：该选项指示 Longhorn 对副本进行均衡以获得最小冗余。
+        - **best-effort**：该选项指示 Longhorn 对副本进行均衡以获得平均冗余。'
+    defaultSettings.storageOverProvisioningPercentage:
+      label: 存储配置百分比
+      description: 存储配置百分比定义了相对于硬盘容量可分配的存储空间。默认值是 200。
+    defaultSettings.storageMinimalAvailablePercentage:
+      label: 最小可用存储百分比
+      description: 如果最小可用磁盘容量超出了实际的可用磁盘百分比，磁盘会变成不可调度，直至清理出空间。默认值是 25。
+    defaultSettings.upgradeChecker:
+      label: 启用升级检查
+      description: 如启用升级检查，会定期自动检查最新的 Longhorn 版本。如有可用的新版本，UI 中会出现提示。默认值为 true。
+    defaultSettings.defaultReplicaCount:
+      label: 默认副本数
+      description: 通过 Longhorn UI 创建卷时的默认副本数。如果是 Kubernetes 配置，请更新 StorageClass 中的 `numberOfReplicas`。默认值是 3。
+    defaultSettings.defaultLonghornStaticStorageClass:
+      label: 默认静态 StorageClass 名称
+      description: "'storageClassName' 会传到为已有 Longhorn 卷创建的 PVs 和 PVCs。 StorageClass 名称也可用作一个标签。因此，你可以使用 Longhorn StorageClass 把工作负载绑定到现有的 PV，而不需要创建 Kubernetes StorageClass 对象。默认值是 'longhorn-static'。"
+    defaultSettings.backupstorePollInterval:
+      label: 备份存储轮询间隔
+      description: "单位是秒。备份存储轮询间隔决定了 Longhorn 为新备份检查备份存储的频率。 如设为 0，则禁用轮询。默认值是 300。"
+    defaultSettings.autoSalvage:
+      label: 自动 Salvage
+      description: "如启用，当所有副本出现网络断开等问题时，会自动修复卷。Longhorn 会试图确定可用的副本，并把可用的副本用于卷。默认值是 true。"
+    defaultSettings.autoDeletePodWhenVolumeDetachedUnexpectedly:
+      label: 意外拔出卷时，自动删除工作负载 Pod
+      description: '如启用，在卷意外拔出时（例如 Kubernetes 升级，Docker 重启，或断开网络等）Longhorn 会自动删除由管理器 （例如 deployment, statefulset, daemonset）管理的工作负载 pod。 删除 pod 后，pod 的控制器会重启 pod， Kubernetes 会处理卷的重新插入和挂载。如禁用，Longhorn 不会删除由控制器管理的工作负载 pod。你需要手动重启 Pod 以重新插入和挂载卷。**注意**：此设置不适用于没有控制器的工作负载 Pod。Longhorn 不会删除这些 Pod。'
+    defaultSettings.disableSchedulingOnCordonedNode:
+      label: 关闭 Cordoned 节点上的调度
+      description: "关闭 Longhorn 管理器以在 Kubernetes cordoned 节点进行副本调度。默认值是 true。"
+    defaultSettings.replicaZoneSoftAntiAffinity:
+      label: 副本区域级别的软反亲和性
+      description: "允许把卷的新副本调度到同区域的节点，作为健康副本。不属于任何区域的节点会被认为存在于同一区域。请知悉，Longhorn 依赖 Kubernetes 节点对象中的 `topology.kubernetes.io/zone=<Zone name of the node>` 标签来发现区域。默认值是 true。"
+    defaultSettings.nodeDownPodDeletionPolicy:
+      label: 节点停机时的 Pod 删除策略
+      description: |
+        "当卷卡在停机节点上的 StatefulSet/Deployment Pod 时，定义 Longhorn 的操作。
+        - **do-nothing**：Kubernetes 的默认操作，即从不强制删除 StatefulSet/Deployment 终止 pod。由于停机节点上的 Pod 没有移除，Longhorn 卷会卡在停机的节点上。
+        - **delete-statefulset-pod**：Longhorn 会强制删除停机节点上的 StatefulSet 终止 pod，以发布 Longhorn 卷，使 Kubernetes 替换 Pod.
+        - **delete-deployment-pod**：Longhorn 会强制删除停机节点上的 Deployment 终止 Pod，以发布 Longhorn 卷，使 Kubernetes 替换 Pod。
+        - **delete-both-statefulset-and-deployment-pod**：Longhorn 会强制删除停机节点上的 StatefulSet/Deployment 终止 Pod，以发布 Longhorn 卷，使 Kubernetes 替换 Pod。"
+    defaultSettings.allowNodeDrainWithLastHealthyReplica:
+      label: 允许使用上一个健康副本进行节点清空
+      description: "默认情况下，如果节点包含某个卷的上一个健康副本，Longhorn 会禁用 `kubectl drain` 操作。如果启用此选项，即使节点包含卷的上一个健康副本，Longhorn 也**不会**在节点上禁用 `kubectl drain` 操作。"
+    defaultSettings.mkfsExt4Parameters:
+      label: 自定义 mkfs.ext4 参数
+      description: "允许为 ext4 设置额外的文件系统创建参数。如果是旧主机核心，则可能需要使用 `-O ^64bit,^metadata_csum` 禁用可选的 ext4 metadata_csum 参数。"
+    defaultSettings.disableReplicaRebuild:
+      label: 禁用副本重建
+      description: "此选项在整个集群中禁用副本重建。如果此选项设为 true，驱逐和数据本地性功能设置都不会生效。此选项不会对当前的副本重建和灾备卷还原有任何影响。"
+    defaultSettings.replicaReplenishmentWaitInterval:
+      label: 副本补充等待间隔
+      description: "单位是秒。此间隔决定了副本失败时，Longhorn 在副本上复用现有数据至少等待的时间，而不是直接为降级卷创建新副本。警告：此选项仅在卷中有失败卷时生效。此选项可能会短暂禁用重建。"
+    defaultSettings.concurrentReplicaRebuildPerNodeLimit:
+      label: 单节点的并发副本重建限制
+      description: | 
+        "此选项控制节点上可同时重建的副本数量。
+        一般情况下，只要节点上的当前重建数量超过限制，Longhorn 会禁止副本启动。如果值设为 0，则表示禁用副本重建。
+        警告：
+        - 此设置已替代 \"Disable Replica Rebuild\" 这个旧设置。
+        - 与依赖副本的启动延迟来限制并发重建不同，如果禁用了重建，会直接跳过副本对象补充。
+        - 如果值设为 0，驱逐和数据本地性功能不会生效。这不会影响当前的副本重建和备份还原。"
+    defaultSettings.disableRevisionCounter:
+      label: 禁用修改计数器
+      description: "此选项仅用于通过 UI 创建的卷。默认情况下，值是 false，即使用一个修改计数文件，来跟踪每次卷写入。 在 salvage 恢复中，Longhorn 会选择有最新修改计数的副本作为候选，以还原整个卷。如果修改计数器被禁用，Longhorn 不会跟踪每次卷写入。在 salvage 恢复中，Longhorn 会根据 'volume-head-xxx.img' 文件的上次修改时间和文件大小，来选择用于还原整个卷的副本。"
+    defaultSettings.systemManagedPodsImagePullPolicy:
+      label: 系统管理 Pod 的镜像拉取策略
+      description: "此设置定义了 Longhorn 系统管理 Pod（如 instance manager，engine image，CSI driver）的镜像拉取策略。新的镜像拉取策略仅在系统管理 Pod 重启后生效。"
+    defaultSettings.allowVolumeCreationWithDegradedAvailability:
+      label: 允许使用降级的可用性创建卷
+      description: "此选项允许用户创建并插入在创建时不具有所有调度副本的卷。"
+    defaultSettings.autoCleanupSystemGeneratedSnapshot:
+      label: 自动清理系统创建的快照
+      description: "此选项使 Longhorn 在副本重建完成后，自动清理系统生成的快照"
+    defaultSettings.concurrentAutomaticEngineUpgradePerNodeLimit:
+      label: 单节点的并发自动引擎升级限制
+      description: "此选项控制 Longhorn 管理器在升级后，Longhorn 如何自动把卷的引擎升级到新的默认引擎镜像。此选项的值指定了同一时间下，单个节点允许升级到默认引擎镜像的最大数量。如果值设为 0, Longhorn 不会自动把卷的引擎更新到默认版本。"
+    defaultSettings.backingImageCleanupWaitInterval:
+      label: 后备镜像清理等待间隔
+      description: "单位是分钟。此值定义了磁盘中没有副本使用后备镜像文件时，Longhorn 等待多久后会清理后备镜像文件。"
+    defaultSettings.backingImageRecoveryWaitInterval:
+      label: 后备镜像恢复等待间隔
+      description: "单位是秒。此值定义了此后备镜像的所有磁盘文件均失败或未知时，Longhorn 等待多久后会重新下载后备镜像文件。警告：- 此-还原仅用于创建类型是 \"download\" 的后备镜像。- 文件状态 \"unknown\" 表示 Pod 上相关的 manager pod 不是运行中，或节点本身已关闭/断开连接。"
+    defaultSettings.guaranteedEngineManagerCPU:
+      label: 保证的引擎管理器 CPU
+      description: | 
+        "此整数表示每个节点上百分之多少的可分配的 CPU 总资源会为各个引擎管理器 Pod 保留。例如，10 表示节点上10%的 CPU 总资源会分配给节点上的各个引擎管理器 Pod，以在节点高负荷工作时保持引擎的稳定性。
+        为防止卷引擎意外崩溃，以及保证相对可接受的 I/O 性能，你可以使用以下公式来计算这个设置的值：
+          保证的引擎管理器 CPU = 节点上估计的最大 Longhorn 引擎数 * 0.1 / 节点上总共可分配的 CPU 数量 * 100。
+          上述计算结果不代表 Longhorn 工作负载所需的最大 CPU 资源。为了充分发挥 Longhorn 卷的 I/O 性能，你可以通过这个设置分配/保证更多的 CPU 资源。
+          如果现在很难估计用量，你可以使用默认值12%。然后在没有使用 Longhorn 卷的工作负载时对其进行调整。
+          警告：
+            - 0 代表取消为每个引擎管理器 Pod 设置的 CPU 请求。
+            - 考虑到后续系统升级中可能出现的新实例管理器 pod，此整数值的范围是0-40。此外，设置了'保证的引擎管理器 CPU'的总和不应该大于40。
+            - 在 Longhorn 系统升级后，可能需要再部署一组实例管理器 pod。如果当前节点的可用 CPU 不足以满足新的实例管理器 pod 的需要，你需要拔出使用最老的实例管理器 pod 的卷，这样 Longhorn 就可以自动清理旧的 pod 以释放 CPU 资源，然后使用最新的实例管理器镜像的新 pod 将被启动。
+            - 如果某个节点设置了 \"EngineManagerCPURequest\" 字段，此全局设置将在节点上忽略。
+            - 如果此设置被改变，所有节点上使用此全局设置的所有引擎管理器 pod 都会自动重启。换言之，不要通过插入卷来修改此设置。"
+    defaultSettings.guaranteedReplicaManagerCPU:
+      label: 保证的副本管理器 CPU
+      description: |
+        "此整数表示每个节点上百分之多少的可分配的 CPU 总资源会为各个副本管理器 Pod 保留。例如，10 表示节点上10%的 CPU 总资源会分配给节点上的各个副本管理器 Pod，以在节点高负荷工作时保持副本的稳定性。
+        为防止卷副本意外崩溃，以及保证相对可接受的 I/O 性能，你可以使用以下公式来计算这个设置的值：
+        保证的副本管理器 CPU = 节点上估计的最大 Longhorn 卷副本数 * 0.1 / 节点上总共可分配的 CPU 数量 * 100。
+        上述计算结果不代表 Longhorn 工作负载所需的最大 CPU 资源。为了充分发挥 Longhorn 卷的 I/O 性能，你可以通过这个设置分配/保证更多的 CPU 资源。
+        如果现在很难估计用量，你可以使用默认值12%。然后在没有使用 Longhorn 卷的工作负载时对其进行调整。
+        警告：
+          - 0 代表取消为每个副本管理器 Pod 设置的 CPU 请求。
+          - 考虑到后续系统升级中可能出现的新实例管理器 pod，此整数值的范围是0-40。此外，设置了'保证的副本管理器 CPU'的总和不应该大于40。
+          - 在 Longhorn 系统升级后，可能需要再部署一组实例管理器 pod。如果当前节点的可用 CPU 不足以满足新的实例管理器 pod 的需要，你需要拔出使用最老的实例管理器 pod 的卷，这样 Longhorn 就可以自动清理旧的 pod 以释放 CPU 资源，然后使用最新的实例管理器镜像的新 pod 将被启动。
+          - 如果某个节点设置了 'ReplicaManagerCPURequest\" 字段，此全局设置将在节点上忽略。
+          - 如果此设置被改变，所有节点上使用此全局设置的所有副本管理器 pod 都会自动重启。换言之，不要通过插入卷来修改此设置。"
+    persistence.recurringJobSelector.jobList:
+      label: 存储类定期 Job 选择器列表
+      description: 'Longhorn StorageClass 的定期 Job 选择器列表。'
+    persistence.backingImage.name:
+      label: 存储类后备镜像名称
+      description: '指定在 Longhorn StorageClass 中 Longhorn 卷使用的后备镜像。如果不存在，你需要指定后备镜像数据源类型和后备镜像数据源参数，以让 Longhorn 在使用后备镜像前先创建它。'
+    persistence.backingImage.expectedChecksum:
+      label: 存储类后备镜像的期望 SHA512 校验和
+      description: '指定在 Longhorn StorageClass 中选定的后备镜像的期望 SHA512 校验和。
+        警告：
+          - 如果没有指定后备镜像名称，设置此字段是没有效的。
+          - 如果数据源类型是 \"export-from-volume\"，则不建议设置此字段。'
+    persistence.backingImage.dataSourceType:
+      label: 存储类后备镜像数据源类型
+      description: '为用于 Longhorn StorageClass 的后备镜像指定数据源类型。
+        如果后备镜像不存在，Longhorn 会使用此字段来创建后备惊喜。否则，Longhorn 会以此来验证所选的后备镜像。
+        警告：
+          - 如果不指定后备镜像名称，设置这个选项是没有效的。
+          - 如果后备镜像创建时的数据源类型是 \"upload\"，建议你使用 UI，而不是此处提及的 StorageClass。如果是上传，文件数据需要在对象创建后发送到 Longhorn 后端，手动进行此操作会非常复杂。'
+    persistence.backingImage.dataSourceParameters:
+      label: 存储类后备镜像数据源参数
+      description: "为用于 Longhorn StorageClass 的后备镜像指定数据源参数。
+        如果后备镜像不存在，Longhorn 会使用此字段来创建后备镜像。否则，Longhorn 会以此来验证所选的后备镜像。
+        该选项接受映射的 JSON 字符串，例如 '{\"url\":\"https://backing-image-example.s3-region.amazonaws.com/test-backing-image\"}'。
+        警告：
+          - 如果不指定后备镜像，设置这个选项是没有效的。
+          - 请注意引号的使用。"
+    ingress.host:
+      label: 7 层负载均衡主机名
+      description: "7 层负载均衡主机名"
