@@ -1,6 +1,6 @@
 import ComponentPo from '@/cypress/integration/po/components/component.po';
 
-export default class Page extends ComponentPo {
+export default class PagePo extends ComponentPo {
   constructor(private path: string, selector: string = '.dashboard-root') {
     super(selector);
   }
@@ -10,7 +10,7 @@ export default class Page extends ComponentPo {
   }
 
   goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return Page.goTo(this.path);
+    return PagePo.goTo(this.path);
   }
 
   isCurrentPage(): Cypress.Chainable<boolean> {

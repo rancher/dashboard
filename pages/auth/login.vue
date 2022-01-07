@@ -349,7 +349,7 @@ export default {
             </div>
           </form>
           <div v-if="hasLocal && !showLocal" class="mt-20 text-center">
-            <a role="button" @click="toggleLocal">
+            <a id="login-useLocal" role="button" @click="toggleLocal">
               {{ t('login.useLocal') }}
             </a>
           </div>

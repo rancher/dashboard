@@ -20,6 +20,18 @@ export default class BurgerMenuPo extends ComponentPo {
     });
   }
 
+  static checkOpen() {
+    this.sideMenuGlass().should('exist');
+  }
+
+  static checkClosed() {
+    this.sideMenuGlass().should('not.exist');
+  }
+
+  private static sideMenuGlass() {
+    return cy.get('body').get('.side-menu-glass');
+  }
+
   // Body
 
   categories() {

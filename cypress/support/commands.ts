@@ -9,8 +9,11 @@ Cypress.Commands.add('login', (username = Cypress.env('username'), password = Cy
 
     loginPage
       .checkIsCurrentPage();
+
+    loginPage.switchToLocal();
+
     loginPage.canSubmit()
-      .should('eq', true); // Not sure this should be the case....
+      .should('eq', true);
 
     loginPage.username()
       .set(username);

@@ -1,19 +1,18 @@
+import HomePagePo from '@/cypress/integration/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/integration/po/side-bars/burger-side-menu.po';
 
 Cypress.config();
 describe('Burger Side Menu', () => {
   beforeEach(() => {
     cy.login();
-    cy.visit('/home');
-
+    HomePagePo.goTo();
     BurgerMenuPo.openIfClosed();
-    new BurgerMenuPo();
   });
 
   it('Opens and closes on menu icon click', () => {
-    cy.get('.side-menu-glass').should('exist');
+    BurgerMenuPo.checkOpen();
     BurgerMenuPo.toggle();
-    cy.get('.side-menu-glass').should('not.exist');
+    BurgerMenuPo.checkClosed();
   });
 
   it('Has clusters', () => {
