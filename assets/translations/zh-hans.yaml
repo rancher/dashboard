@@ -158,7 +158,7 @@ product:
   cis: CIS Benchmark
   ecm: Cluster Manager
   explorer: 集群浏览器
-  fleet: Fleet
+  fleet: 持续交付
   longhorn: Longhorn
   manager: 集群管理
   gatekeeper: OPA Gatekeeper
