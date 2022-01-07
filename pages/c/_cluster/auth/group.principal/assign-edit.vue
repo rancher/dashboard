@@ -6,6 +6,7 @@ import { NORMAN } from '@/config/types';
 import { _VIEW, _EDIT } from '@/config/query-params';
 import { exceptionToErrorsArray } from '@/utils/error';
 import { NAME } from '@/config/product/auth';
+import { BLANK_CLUSTER } from '@/store';
 
 export default {
   components: {
@@ -45,7 +46,7 @@ export default {
       try {
         await this.$refs.grb.save();
 
-        await this.$store.dispatch('cluster/findAll', {
+        await this.$store.dispatch('management/findAll', {
           type: NORMAN.SPOOFED.GROUP_PRINCIPAL,
           opt:  { force: true }
         }, { root: true }); // See PromptRemove.vue
@@ -62,7 +63,7 @@ export default {
       this.$router.replace({
         name:   `c-cluster-product-resource`,
         params: {
-          cluster:  'local',
+          cluster:  BLANK_CLUSTER,
           product:  NAME,
           resource: NORMAN.SPOOFED.GROUP_PRINCIPAL,
         },
