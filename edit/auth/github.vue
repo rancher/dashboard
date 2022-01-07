@@ -31,17 +31,7 @@ export default {
   mixins: [CreateEditView, AuthConfig],
 
   async fetch() {
-    await this.reloadModel();
-
-    const serverUrl = await this.$store.dispatch('management/find', {
-      type: MANAGEMENT.SETTING,
-      id:   'server-url',
-      opt:  { url: `/v1/{ MANAGEMENT.SETTING }/server-url` }
-    });
-
-    if ( serverUrl ) {
-      this.serverSetting = serverUrl.value;
-    }
+    await this.mixinFetch();
 
     this.targetType = (!this.model.hostname || this.model.hostname === 'github.com' ? 'public' : 'private');
     this.targetUrl = (this.model.tls ? 'https://' : 'http://') + (this.model.hostname || 'github.com');
