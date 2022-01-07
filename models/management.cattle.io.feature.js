@@ -35,7 +35,7 @@ export default class Feature extends HybridModel {
     // Prepend action to enable or disable this feature flag
     const enableAction = {
       action:  'toggleFeatureFlag',
-      label:   state ? 'Deactivate' : 'Activate',
+      label:   state ? this.t('action.deactivate') : this.t('action.activate'),
       icon:    'icon icon-edit',
       enabled: state ? this.canDisable : this.canUpdate,
     };

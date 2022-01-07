@@ -215,7 +215,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           :value="plugin"
-          :label="'Volume Plugin'"
+          :label="t('persistentVolume.plugin.label')"
           :localized-label="true"
           option-label="labelKey"
           :options="plugins"
@@ -228,7 +228,7 @@ export default {
         <UnitInput
           v-model="value.spec.capacity.storage"
           :required="true"
-          :label="'Capacity'"
+          :label="t('persistentVolume.capacity.label')"
           :increment="1024"
           :input-exponent="3"
           :output-modifier="true"
@@ -237,12 +237,12 @@ export default {
       </div>
     </div>
     <Tabbed :side-tabs="true">
-      <Tab name="plugin-configuration" :label="'Plugin Configuration'" :weight="1">
+      <Tab name="plugin-configuration" :label="t('persistentVolume.pluginConfiguration.label')" :weight="1">
         <component :is="getComponent(plugin)" :key="plugin" :value="value" :mode="modeOverride" />
       </Tab>
       <Tab
         name="customize"
-        :label="'Customize'"
+        :label="t('persistentVolume.customize.label')"
         :weight="0"
       >
         <div class="row mb-20">

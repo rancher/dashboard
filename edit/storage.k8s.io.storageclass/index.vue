@@ -29,32 +29,32 @@ export default {
   data() {
     const reclaimPolicyOptions = [
       {
-        label: 'Delete volumes and underlying device when volume claim is deleted',
+        label: this.t('storageClass.customize.reclaimPolicy.delete'),
         value: 'Delete'
       },
       {
-        label: 'Retain the volume for manual cleanup',
+        label: this.t('storageClass.customize.reclaimPolicy.retain'),
         value: 'Retain'
       }];
 
     const allowVolumeExpansionOptions = [
       {
-        label: 'Enabled',
+        label: this.t('generic.enabled'),
         value: true
       },
       {
-        label: 'Disabled',
+        label: this.t('generic.disabled'),
         value: false
       }
     ];
 
     const volumeBindingModeOptions = [
       {
-        label: 'Bind and provision a persistent volume once the PersistentVolumeClaim is created',
+        label: this.t('storageClass.customize.volumeBindingMode.now'),
         value: 'Immediate'
       },
       {
-        label: 'Bind and provision a persistent volume once a Pod using the PersistentVolumeClaim is created',
+        label: this.t('storageClass.customize.volumeBindingMode.later'),
         value: 'WaitForFirstConsumer'
       }
     ];
@@ -186,12 +186,12 @@ export default {
             </div>
           </div>
           <div class="col span-6">
-            <h3>Mount Options</h3>
+            <h3>{{ t('storageClass.customize.mountOptions.label') }}</h3>
             <ArrayList
               v-model="value.mountOptions"
               :mode="mode"
               :label="t('storageClass.customize.mountOptions.label')"
-              add-label="Add Option"
+              :add-label="t('storageClass.customize.mountOptions.addLabel')"
             />
           </div>
         </div>

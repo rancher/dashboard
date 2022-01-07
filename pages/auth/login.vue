@@ -343,7 +343,7 @@ export default {
                   @click="loginLocal"
                 />
                 <div v-if="!firstLogin" class="mt-20">
-                  <Checkbox v-model="remember" label="Remember Username" type="checkbox" />
+                  <Checkbox v-model="remember" :label="t('login.remember.label')" type="checkbox" />
                 </div>
               </div>
             </div>
