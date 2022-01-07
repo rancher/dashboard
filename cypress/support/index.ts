@@ -8,9 +8,9 @@ declare global {
       login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
 
       byLabel(label: string,): Chainable<Element>;
-
     }
-}}
+  }
+}
 
 // TODO handle redirection errors better?
 // we see a lot of 'error nagivation cancelled' uncaught exceptions that don't actually break anything; ignore them here
