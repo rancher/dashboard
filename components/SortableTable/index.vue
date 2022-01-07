@@ -531,7 +531,7 @@ export default {
                 <i v-if="act.icon" :class="act.icon" />
                 <span v-html="act.label" />
               </button>
-              <ActionDropdown :id="bulkActionsDropdownId" class="external-actions" :disable-button="!actionAvailability" size="sm">
+              <ActionDropdown :id="bulkActionsDropdownId" class="bulk-actions-dropdown" :disable-button="!actionAvailability" size="sm">
                 <template #button-content>
                   <button class="btn bg-primary mr-0" :disabled="!actionAvailability">
                     <i class="icon icon-gear" />
@@ -1016,7 +1016,7 @@ $spacing: 10px;
     text-align: right;
   }
 
-  .external-actions {
+  .bulk-actions-dropdown {
     display: none; // handled dynamically
 
     .dropdown-button {

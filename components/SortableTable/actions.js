@@ -1,4 +1,3 @@
-import { filterBy } from '@/utils/array';
 import debounce from 'lodash/debounce';
 
 export default {
@@ -33,10 +32,6 @@ export default {
   computed: {
     availableActions() {
       return this.$store.getters[`${ this.storeName }/forTable`].filter(act => !act.external);
-    },
-
-    hasExternalActions() {
-      return filterBy(this.$store.getters[`${ this.storeName }/forTable`], 'external', true).length > 0;
     },
 
     actionAvailability() {
@@ -128,12 +123,13 @@ export default {
       this.hiddenActions = [];
 
       for (const ba of actions) {
-        const id = ba.attributes.getNamedItem('id').value;
-        const action = this.availableActions.find(aa => aa.action === id);
         const width = ba.offsetWidth + 10;
 
         cumulativeWidth += width + 10;
         if (cumulativeWidth >= totalAvailableWidth) {
+          const id = ba.attributes.getNamedItem('id').value;
+          const action = this.availableActions.find(aa => aa.action === id);
+
           this.hiddenActions.push(action);
           ba.style.display = 'none';
         } else {
