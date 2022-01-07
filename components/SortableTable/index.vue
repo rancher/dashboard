@@ -990,6 +990,7 @@ $spacing: 10px;
 
   .bulk {
     grid-area: bulk;
+    margin-top: 1px;
 
     $gap: 10px;
 
@@ -1002,7 +1003,10 @@ $spacing: 10px;
     }
 
     .action-availability {
+      display: none; // Handled dynamically
       margin-left: $gap;
+      vertical-align: middle;
+      margin-top: 2px;
     }
   }
 
@@ -1017,7 +1021,7 @@ $spacing: 10px;
   }
 
   .bulk-actions-dropdown {
-    display: none; // handled dynamically
+    display: none; // Handled dynamically
 
     .dropdown-button {
       background-color: var(--primary);

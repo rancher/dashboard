@@ -1,5 +1,8 @@
 import debounce from 'lodash/debounce';
 
+// Use a visible display type to reduce flickering
+const displayType = 'inline-block';
+
 export default {
 
   data() {
@@ -64,77 +67,66 @@ export default {
      */
     updateHiddenBulkActions: debounce(function() {
       const actionsContainer = document.getElementById(this.bulkActionsId);
+      const actionsDropdown = document.getElementById(this.bulkActionsDropdownId);
 
-      if (!actionsContainer) {
+      if (!actionsContainer || !actionsDropdown) {
         return;
       }
 
-      // First determine if any actions will be hidden and the actions drop down needs to be shown
-      // To do this temporarily display affected elements (buttons and if applicable '<x> selected' text) to
-      // determine their size then cumulate those up until the width of the row is hit
-
       const actionsContainerWidth = actionsContainer.offsetWidth;
-
       const actionsHTMLCollection = document.getElementsByClassName(this.bulkActionClass);
       const actions = Array.from(actionsHTMLCollection || []);
 
+      // Determine if the 'x selected' label should show and it's size
       const actionAvailability = document.getElementById(this.bulkActionAvailabilityId);
       let actionAvailabilityWidth = 0;
 
-      if (this.actionAvailability && actionAvailability) {
-        actionAvailability.style.display = 'inline-block';
-        actionAvailabilityWidth = actionAvailability.offsetWidth;
+      if (this.actionAvailability) {
+        if (actionAvailability) {
+          actionAvailability.style.display = displayType;
+          actionAvailabilityWidth = actionAvailability.offsetWidth;
+        } else {
+          actionAvailability.style.display = 'none;';
+        }
       }
+
+      this.hiddenActions = [];
 
       let cumulativeWidth = 0;
       let showActionsDropdown = false;
       let totalAvailableWidth = actionsContainerWidth - actionAvailabilityWidth;
 
-      for (const ba of actions) {
-        ba.style.display = 'inline-block';
-        const width = ba.offsetWidth + 10;
+      // Loop through all actions to determine if some exceed the available space in the row, if so hide them and instead show in a dropdown
+      for (let i = 0; i < actions.length; i++) {
+        const ba = actions[i];
 
-        cumulativeWidth += width + 10;
+        ba.style.display = displayType;
+        const actionWidth = ba.offsetWidth;
+
+        cumulativeWidth += actionWidth + 15;
         if (cumulativeWidth >= totalAvailableWidth) {
-          showActionsDropdown = true;
-          break;
+          // There are too many actions so the drop down will be visible.
+          if (!showActionsDropdown) {
+            // If we haven't previously enabled the drop down...
+            actionsDropdown.style.display = displayType;
+            // By showing the drop down some previously visible actions may now be hidden, so start the process again
+            // ... except taking into account the width of drop down width in the available space
+            i = -1;
+            cumulativeWidth = 0;
+            showActionsDropdown = true;
+            totalAvailableWidth = actionsContainerWidth - actionsDropdown.offsetWidth - actionAvailabilityWidth;
+          } else {
+            // Collate the actions in an array and hide in the normal row
+            const id = ba.attributes.getNamedItem('id').value;
+
+            this.hiddenActions.push(this.availableActions.find(aa => aa.action === id));
+            ba.style.display = 'none';
+          }
         }
       }
 
-      // Now that we know the actions drop down will be shown or not, do the same as above however taking into account the
-      // visibility of the drop down (which can consume space, thus pushing more actions into the drop down)
-      // Once done all buttons that don't fit in the row will not be visible and instead be listed in `hiddenActions`
-
-      const actionsDropdown = document.getElementById(this.bulkActionsDropdownId);
-      let actionsDropdownWidth = 0;
-
-      if (actionsDropdown) {
-        if (showActionsDropdown) {
-          actionsDropdown.style.display = 'inline-block';
-          actionsDropdownWidth = actionsDropdown.offsetWidth;
-        } else {
-          actionsDropdown.style.display = 'none';
-        }
-      }
-
-      cumulativeWidth = 0;
-      totalAvailableWidth = actionsContainerWidth - actionsDropdownWidth - actionAvailabilityWidth;
-
-      this.hiddenActions = [];
-
-      for (const ba of actions) {
-        const width = ba.offsetWidth + 10;
-
-        cumulativeWidth += width + 10;
-        if (cumulativeWidth >= totalAvailableWidth) {
-          const id = ba.attributes.getNamedItem('id').value;
-          const action = this.availableActions.find(aa => aa.action === id);
-
-          this.hiddenActions.push(action);
-          ba.style.display = 'none';
-        } else {
-          ba.style.display = 'inline-block';
-        }
+      if (!showActionsDropdown) {
+        actionsDropdown.style.display = 'none';
       }
     }, 10)
   }
