@@ -2271,6 +2271,8 @@ logging:
       label: Client Key from Secret
       placeholder: Paste in the client key
     clientKeyPass: Client Key Pass from Secret
+    verifySsl: Verify SSL
+    sslVersion: SSL Version
   gelf:
     host: Host
     port: Port
