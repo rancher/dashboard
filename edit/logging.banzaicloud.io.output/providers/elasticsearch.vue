@@ -177,7 +177,7 @@ export default {
           :label="t('logging.elasticsearch.sslVersion')"
         />
       </div>
-      <div class="col span-6">
+      <div class="col span-6 vertically-center">
         <Checkbox
           v-model="value.ssl_verify"
           :label="t('logging.elasticsearch.verifySsl')"
@@ -191,5 +191,8 @@ export default {
 <style>
 .row {
   margin-bottom: 5px;
+}
+.vertically-center {
+  padding: 20px 0;
 }
 </style>
