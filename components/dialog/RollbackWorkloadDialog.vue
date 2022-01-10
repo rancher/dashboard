@@ -107,15 +107,17 @@ export default {
           return hasRelationshipWithCurrentWorkload( replicaSet );
         });
 
-        const revisionOptions = workloadRevisions.map( (revision ) => {
-          const isCurrentRevision = this.getRevisionNumber(revision) === this.currentRevisionNumber;
+        const revisionOptions = workloadRevisions
+          .map( (revision ) => {
+            const isCurrentRevision = this.getRevisionNumber(revision) === this.currentRevisionNumber;
 
-          if (isCurrentRevision) {
-            this.currentRevision = revision;
-          }
+            if (isCurrentRevision) {
+              this.currentRevision = revision;
+            }
 
-          return this.buildRevisionOption( revision );
-        });
+            return this.buildRevisionOption( revision );
+          })
+          .sort((a, b) => b.revisionNumber - a.revisionNumber);
 
         this.revisions = revisionOptions;
       })
@@ -156,7 +158,8 @@ export default {
       return {
         label:    optionLabel,
         value:    revision,
-        disabled: isCurrentRevision
+        disabled: isCurrentRevision,
+        revisionNumber
       };
     },
     getOptionLabel(option) {
