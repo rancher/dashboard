@@ -9,11 +9,14 @@ import { mapGetters } from 'vuex';
 
 import Banner from '@/components/Banner';
 import ResourceTable from '@/components/ResourceTable';
+import CopyToClipboardText from '@/components/CopyToClipboardText';
+
+const API_ENDPOINT = '/v3';
 
 export default {
   layout:     'plain',
   components: {
-    BackLink, Banner, PromptChangePassword, Loading, ResourceTable, Principal
+    CopyToClipboardText, BackLink, Banner, PromptChangePassword, Loading, ResourceTable, Principal
   },
   mixins: [BackRoute],
   async fetch() {
@@ -34,6 +37,20 @@ export default {
 
     apiKeyheaders() {
       return this.apiKeySchema ? this.$store.getters['type-map/headersFor'](this.apiKeySchema) : [];
+    },
+
+    apiUrl() {
+      // Port of Ember code for API Url - see: https://github.com/rancher/ui/blob/8e07c492673171731f3b26af14c978bc103d1828/lib/shared/addon/endpoint/service.js#L58
+      // Note: Ember had two values - one that was displayed and one that was copied to the clipboard - we just use the later
+      // This means we ignore the API_HOST setting (not clear if this is still supported)
+      const path = API_ENDPOINT.replace(/^\/+/, '');
+      let authBase = '/';
+
+      if (process.client) {
+        authBase = `${ window.location.origin }/`;
+      }
+
+      return `${ authBase }${ path }`;
     },
 
     apiKeySchema() {
@@ -121,7 +138,13 @@ export default {
 
     <hr />
     <div class="keys-header">
-      <h4 v-t="'accountAndKeys.apiKeys.title'" />
+      <div>
+        <h4 v-t="'accountAndKeys.apiKeys.title'" />
+        <div class="api-url">
+          <span>{{ t("accountAndKeys.apiKeys.apiEndpoint") }}</span>
+          <CopyToClipboardText :text="apiUrl" />
+        </div>
+      </div>
       <button v-if="apiKeySchema" class="btn role-primary add mb-20" @click="addKey">
         {{ t('accountAndKeys.apiKeys.add.label') }}
       </button>
@@ -155,7 +178,7 @@ export default {
 
   .keys-header {
     display: flex;
-    h4 {
+    div {
       flex: 1;
     }
   }
@@ -165,6 +188,14 @@ export default {
     flex-direction: column;
     .add {
       align-self: flex-end;
+    }
+  }
+
+  .api-url {
+    display: flex;
+
+    > span {
+      margin-right: 6px;
     }
   }
 </style>
