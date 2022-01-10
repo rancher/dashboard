@@ -151,6 +151,7 @@ export default Vue.extend<Data, any, any, any>({
         :title="t('epinio.applications.create.envvar.title')"
         :key-label="t('epinio.applications.create.envvar.keyLabel')"
         :value-label="t('epinio.applications.create.envvar.valueLabel')"
+        :parse-lines-from-file="true"
       />
     </div>
   </div>
