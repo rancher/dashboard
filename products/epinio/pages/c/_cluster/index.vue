@@ -124,6 +124,7 @@ export default Vue.extend<Data, any, any, any>({
             mode="refresh"
             size="sm"
             :disabled="!canRediscover"
+            style="display:inline-block"
             @click="rediscover"
           />
         </template>
