@@ -281,7 +281,7 @@ export default {
           class="btn header-btn role-tertiary"
           @click="currentCluster.downloadKubeConfig()"
         >
-          <i class="icon icon-file" />
+          <i class="icon icon-file icon-lg" />
         </button>
 
         <button
@@ -292,7 +292,7 @@ export default {
           class="btn header-btn role-tertiary"
           @click="currentCluster.copyKubeConfig()"
         >
-          <i class="icon icon-copy" />
+          <i class="icon icon-copy icon-lg" />
         </button>
       </template>
 

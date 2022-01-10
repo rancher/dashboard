@@ -9,7 +9,8 @@ $btn-sm-height: 30px;
 .btn,
 button,
 [class^='btn-'] {
-  display: inline-block;
+  align-items: center;
+  display: inline-flex;
   text-align: center;
   white-space: nowrap;
   vertical-align: middle;
@@ -24,6 +25,10 @@ button,
   color: var(--lightest);
   line-height: $btn-height;
   min-height: $btn-height;
+
+  > .icon:not(:only-child) {
+    margin-right: 6px;
+  }
 
   &:hover {
     text-decoration: none;
@@ -128,7 +133,7 @@ fieldset[disabled] .btn {
 
   .btn {
     position: relative;
-    display: inline-block;
+    display: inline-flex;
     border-radius: 0;
     text-align: center;
 
