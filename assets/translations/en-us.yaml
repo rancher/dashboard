@@ -5124,6 +5124,7 @@ harvester:
     uncordon: Uncordon
     addHotplug: Add Volume
     exportImage: Export Image
+    viewlogs: View Logs
   tableHeaders:
     size: Size
     progress: Progress

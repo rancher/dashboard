@@ -150,6 +150,13 @@ export default class VirtVm extends SteveModel {
         icon:       'icon icon-copy',
         label:      this.t('harvester.action.createTemplate'),
       },
+      {
+        action:     'openLogs',
+        enabled:    !!this.links.view,
+        icon:       'icon icon-fw icon-chevron-right',
+        label:      this.t('harvester.action.viewlogs'),
+        total:      1,
+      },
       ...out
     ];
   }
@@ -206,6 +213,16 @@ export default class VirtVm extends SteveModel {
 
   restartVM() {
     this.doAction('restart', {});
+  }
+
+  openLogs() {
+    this.$dispatch('wm/open', {
+      id:        `${ this.id }-logs`,
+      label:     this.nameDisplay,
+      icon:      'file',
+      component: 'ContainerLogs',
+      attrs:     { pod: this.podResource }
+    }, { root: true });
   }
 
   backupVM(resources = this) {
