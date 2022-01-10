@@ -9,10 +9,6 @@ import { ucFirst } from '@/utils/string';
 import { stateDisplay, colorForState } from '@/plugins/steve/resource-class';
 import SteveModel from '@/plugins/steve/steve-class';
 
-export function isCompleted() {
-  return this.status?.progress === 100;
-}
-
 export function isReady() {
   function getStatusConditionOfType(type, defaultValue = []) {
     const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
@@ -22,11 +18,12 @@ export function isReady() {
 
   const initialized = getStatusConditionOfType.call(this, 'Initialized');
   const imported = getStatusConditionOfType.call(this, 'Imported');
+  const isCompleted = this.status?.progress === 100;
 
   if ([initialized?.status, imported?.status].includes('False')) {
     return false;
   } else {
-    return true;
+    return isCompleted && true;
   }
 }
 export default class HciVmImage extends SteveModel {
@@ -46,10 +43,10 @@ export default class HciVmImage extends SteveModel {
     return [
       {
         action:     'createFromImage',
-        enabled:    canCreateVM && this.isReady,
+        enabled:    canCreateVM,
         icon:       'icon icon-fw icon-spinner',
         label:      this.t('harvester.action.createVM'),
-        disabled:   !this.isCompleted,
+        disabled:   !this.isReady,
       },
       ...out
     ];
@@ -221,9 +218,5 @@ export default class HciVmImage extends SteveModel {
 
       this.$ctx.commit('harvester-common/uploadEnd', this.metadata.name, { root: true });
     };
-  }
-
-  get isCompleted() {
-    return isCompleted.call(this);
   }
 }

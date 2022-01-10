@@ -89,7 +89,7 @@ export default {
 
   computed: {
     imagesOption() {
-      return this.images.filter(c => c.isReady && c.isCompleted).map( (I) => {
+      return this.images.filter(c => c.isReady).map( (I) => {
         return {
           label: `${ I.metadata.namespace }/${ I.spec.displayName }`,
           value: I.id

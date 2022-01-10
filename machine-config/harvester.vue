@@ -17,7 +17,7 @@ import { base64Decode, base64Encode } from '@/utils/crypto';
 import { allHashSettled } from '@/utils/promise';
 import { stringify, exceptionToErrorsArray } from '@/utils/error';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
-import { isCompleted, isReady } from '@/models/harvester/harvesterhci.io.virtualmachineimage';
+import { isReady } from '@/models/harvester/harvesterhci.io.virtualmachineimage';
 
 export default {
   components: {
@@ -191,7 +191,7 @@ export default {
 
     imageOptions() {
       return (this.images || []).filter( (O) => {
-        return !O.spec.url.endsWith('.iso') && isCompleted.call(O) && isReady.call(O);
+        return !O.spec.url.endsWith('.iso') && isReady.call(O);
       }).map( (O) => {
         const value = O.id;
         const label = `${ O.spec.displayName } (${ value })`;
