@@ -101,15 +101,15 @@ export function init(store) {
   ignoreType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
   ignoreType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING);
 
-  mapGroup(/^(core)?$/, 'Core');
-  mapGroup('apps', 'Apps');
+  mapGroup(/^(core)?$/, 'core');
+  mapGroup('apps', 'apps');
   mapGroup('batch', 'Batch');
   mapGroup('autoscaling', 'Autoscaling');
   mapGroup('policy', 'Policy');
   mapGroup('networking.k8s.io', 'Networking');
   mapGroup(/^(.+\.)?api(server)?.*\.k8s\.io$/, 'API');
   mapGroup('rbac.authorization.k8s.io', 'RBAC');
-  mapGroup('admissionregistration.k8s.io', 'Admission');
+  mapGroup('admissionregistration.k8s.io', 'admission');
   mapGroup('crd.projectcalico.org', 'Calico');
   mapGroup(/^(.+\.)?cert-manager\.(k8s\.)?io$/, 'Cert Manager');
   mapGroup(/^(.+\.)?(gateway|gloo)\.solo\.io$/, 'Gloo');
@@ -129,14 +129,15 @@ export function init(store) {
   mapGroup('argoproj.io', 'Argo');
   mapGroup('logging.banzaicloud.io', 'Logging');
   mapGroup(/^(.*\.)?resources\.cattle\.io$/, 'Backup-Restore');
-  mapGroup(/^(.*\.)?cluster\.x-k8s\.io$/, 'Cluster Provisioning');
-  mapGroup(/^(aks|eks|gke|rke|rke-machine-config|provisioning)\.cattle\.io$/, 'Cluster Provisioning');
+  mapGroup(/^(.*\.)?cluster\.x-k8s\.io$/, 'clusterProvisioning');
+  mapGroup(/^(aks|eks|gke|rke|rke-machine-config|provisioning)\.cattle\.io$/, 'clusterProvisioning');
 
   configureType(NODE, { isCreatable: false, isEditable: true });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
   configureType(PVC, { isEditable: false });
   configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { isEditable: false });
   configureType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING, { isEditable: false });
+  configureType(MANAGEMENT.PROJECT, { displayName: store.getters['i18n/t']('namespace.project.label') });
 
   setGroupDefaultType('serviceDiscovery', SERVICE);
 
@@ -158,7 +159,7 @@ export function init(store) {
     SUB_TYPE,
     {
       name:      'data',
-      label:     'Data',
+      labelKey:  'tableHeaders.data',
       value:     'dataPreview',
       formatter: 'SecretData'
     },

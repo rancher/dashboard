@@ -343,13 +343,13 @@ export default {
                   @click="loginLocal"
                 />
                 <div v-if="!firstLogin" class="mt-20">
-                  <Checkbox v-model="remember" label="Remember Username" type="checkbox" />
+                  <Checkbox v-model="remember" :label="t('login.remember.label')" type="checkbox" />
                 </div>
               </div>
             </div>
           </form>
           <div v-if="hasLocal && !showLocal" class="mt-20 text-center">
-            <a role="button" @click="toggleLocal">
+            <a id="login-useLocal" role="button" @click="toggleLocal">
               {{ t('login.useLocal') }}
             </a>
           </div>

@@ -1,6 +1,8 @@
+import { LoginPagePo } from '@/cypress/integration/po/pages/login-page.po';
+
 describe('Local authentication', () => {
   it('Log in with valid creds', () => {
-    cy.visit('/auth/login');
+    LoginPagePo.goTo();
     cy.intercept('POST', '/v3-public/localProviders/local*').as('loginReq');
 
     cy.login(Cypress.env('username'), Cypress.env('password'), false);
@@ -12,7 +14,7 @@ describe('Local authentication', () => {
   });
 
   it('Cannot login with invalid creds', () => {
-    cy.visit('/auth/login');
+    LoginPagePo.goTo();
 
     cy.intercept('POST', '/v3-public/localProviders/local*').as('loginReq');
 

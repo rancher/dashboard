@@ -84,6 +84,9 @@ export default {
     ...mapGetters({ theme: 'prefs/theme' }),
     ...mapGetters(['clusterId', 'productId']),
     ...mapState('wm', ['open']),
+    locale() {
+      return this.$store.getters['i18n/current']();
+    }
   },
 
   watch: {
@@ -116,6 +119,9 @@ export default {
           }
         }
       }
+    },
+    locale() {
+      this.syncLocale();
     }
   },
 
@@ -405,6 +411,7 @@ export default {
         } else {
           doc.classList.remove('embedded-no-overflow');
         }
+        this.syncLocale();
       } else if (msg.action === 'need-to-load') {
         this.loadRequired = true;
       } else if (msg.action === 'did-transition') {
@@ -485,6 +492,12 @@ export default {
       }
 
       return false;
+    },
+
+    syncLocale() {
+      const iframeEl = findEmberPage();
+
+      iframeEl?.contentWindow?.ls('user-language')?.sideLoadLanguage(this.locale);
     }
   }
 };

@@ -58,7 +58,9 @@ export default {
   },
 
   methods: {
-    memoryFormatter(value, exponent) {
+    memoryFormatter(value) {
+      const exponent = exponentNeeded(this.memoryTotal, 1024);
+
       const formatOptions = {
         addSuffix:   false,
         increment:   1024,

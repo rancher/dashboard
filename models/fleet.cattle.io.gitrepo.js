@@ -241,20 +241,20 @@ export default class GitRepo extends SteveModel {
     } else if ( targets.length === 1) {
       const target = targets[0];
 
-      if ( target.clusterGroup ) {
+      if (Object.keys(target).length > 1) {
+        // There are multiple properties in a single target, so use the 'advanced' mode
+        // (otherwise any existing content is nuked for what we provide)
+        mode = 'advanced';
+      } else if ( target.clusterGroup ) {
         clusterGroup = target.clusterGroup;
 
         if ( !mode ) {
           mode = 'clusterGroup';
         }
-      }
-
-      if ( target.clusterName ) {
+      } else if ( target.clusterName ) {
         mode = 'cluster';
         cluster = target.clusterName;
-      }
-
-      if ( target.clusterSelector ) {
+      } else if ( target.clusterSelector ) {
         if ( Object.keys(target.clusterSelector).length === 0 ) {
           mode = 'all';
         } else {

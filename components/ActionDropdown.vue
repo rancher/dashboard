@@ -215,7 +215,7 @@ export default {
       text-align: left;
 
       LI {
-        padding: 10px 50px 10px 20px;
+        padding: 10px;
 
         &.divider {
           padding-top: 0px;

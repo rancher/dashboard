@@ -808,6 +808,7 @@ export default {
                 :mode="mode"
                 :label="t('workload.serviceName')"
                 :options="headlessServices"
+                required
               />
             </template>
           </NameNsDescription>
@@ -848,7 +849,7 @@ export default {
                   v-model.trim="container.image"
                   :mode="mode"
                   :label="t('workload.container.image')"
-                  placeholder="e.g. nginx:latest"
+                  :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
                   required
                 />
               </div>

@@ -79,7 +79,7 @@ export default class ProvCluster extends SteveModel {
 
     insertAt(out, idx++, {
       action:     'snapshotAction',
-      label:      'Take Snapshot',
+      label:      this.$rootGetters['i18n/t']('nav.takeSnapshot'),
       icon:       'icon icon-snapshot',
       bulkAction: 'snapshotBulk',
       bulkable:   true,
@@ -87,22 +87,29 @@ export default class ProvCluster extends SteveModel {
     });
 
     insertAt(out, idx++, {
+      action:  'restoreSnapshotAction',
+      label:      this.$rootGetters['i18n/t']('nav.restoreSnapshot'),
+      icon:    'icon icon-fw icon-backup-restore',
+      enabled: canSnapshot,
+    });
+
+    insertAt(out, idx++, {
       action:     'rotateCertificates',
-      label:      'Rotate Certificates',
+      label:      this.$rootGetters['i18n/t']('nav.rotateCertificates'),
       icon:       'icon icon-backup',
       enabled:    this.mgmt?.hasAction('rotateCertificates') && this.mgmt?.isReady,
     });
 
     insertAt(out, idx++, {
       action:     'rotateEncryptionKey',
-      label:      'Rotate Encryption Keys',
+      label:      this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
       icon:       'icon icon-refresh',
       enabled:     this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && this.mgmt?.isReady,
     });
 
     insertAt(out, idx++, {
       action:     'saveAsRKETemplate',
-      label:      'Save as RKE Template',
+      label:      this.$rootGetters['i18n/t']('nav.saveAsRKETemplate'),
       icon:       'icon icon-folder',
       enabled:    this.isRke1 && this.mgmt?.status?.driver === 'rancherKubernetesEngine' && !this.mgmt?.spec?.clusterTemplateName && this.hasLink('update'),
     });
@@ -477,6 +484,10 @@ export default class ProvCluster extends SteveModel {
 
       return classify(this.$ctx, x);
     });
+  }
+
+  restoreSnapshotAction(resource = this) {
+    this.$dispatch('promptRestore', [resource]);
   }
 
   saveAsRKETemplate(resources = this) {

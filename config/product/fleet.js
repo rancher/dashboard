@@ -57,7 +57,7 @@ export function init(store) {
     FLEET.WORKSPACE,
     FLEET.BUNDLE,
     FLEET.TOKEN,
-  ], 'Advanced');
+  ], 'advanced');
 
   headers(FLEET.WORKSPACE, [
     STATE,

@@ -48,8 +48,10 @@ export default {
       default: ''
     },
     protip: {
-      type:    [String, Boolean],
-      default: 'Paste lines of <em>key=value</em> or <em>key: value</em> into any key field for easy bulk entry',
+      type: [String, Boolean],
+      default() {
+        return this.$store.getters['i18n/t']('keyValue.protip', null, true);
+      },
     },
 
     // For asMap=false, the name of the field that goes into the row objects

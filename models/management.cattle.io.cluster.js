@@ -42,7 +42,7 @@ export default class MgmtCluster extends HybridModel {
 
     insertAt(out, 0, {
       action:     'openShell',
-      label:      'Kubectl Shell',
+      label:      this.t('nav.shell'),
       icon:       'icon icon-terminal',
       enabled:    !!this.links.shell,
     });
@@ -50,7 +50,7 @@ export default class MgmtCluster extends HybridModel {
     insertAt(out, 1, {
       action:     'downloadKubeConfig',
       bulkAction: 'downloadKubeConfigBulk',
-      label:      'Download KubeConfig',
+      label:      this.t('nav.kubeconfig.download'),
       icon:       'icon icon-download',
       bulkable:   true,
       enabled:    this.$rootGetters['isRancher'] && this.hasAction('generateKubeconfig'),
