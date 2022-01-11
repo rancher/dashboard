@@ -16,13 +16,12 @@ export default {
     };
   },
 
-  created() {
-    window.addEventListener('resize', this.updateHiddenBulkActions);
-  },
-  destroyed() {
+  beforeDestroyed() {
     window.removeEventListener('resize', this.updateHiddenBulkActions);
   },
+
   mounted() {
+    window.addEventListener('resize', this.updateHiddenBulkActions);
     this.updateHiddenBulkActions();
   },
 
