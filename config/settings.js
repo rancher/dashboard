@@ -16,7 +16,8 @@ export const SETTING = {
     LINUX:                          'cli-url-linux',
   },
 
-  CA_CERTS: 'cacerts',
+  API_HOST:                         'api-host',
+  CA_CERTS:                         'cacerts',
 
   AUTH_TOKEN_MAX_TTL_MINUTES:       'auth-token-max-ttl-minutes',
   KUBECONFIG_GENERATE_TOKEN:        'kubeconfig-generate-token',

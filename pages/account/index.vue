@@ -1,7 +1,8 @@
 <script>
 import BackLink from '@/components/BackLink';
 import PromptChangePassword from '@/components/PromptChangePassword';
-import { NORMAN } from '@/config/types';
+import { MANAGEMENT, NORMAN } from '@/config/types';
+import { SETTING } from '@/config/settings';
 import Loading from '@/components/Loading';
 import Principal from '@/components/auth/Principal';
 import BackRoute from '@/mixins/back-link';
@@ -25,9 +26,16 @@ export default {
     if (this.apiKeySchema) {
       this.rows = await this.$store.dispatch('rancher/findAll', { type: NORMAN.TOKEN });
     }
+
+    // Get all settings - the API host setting may not be set, so this avoids a 404 request if we look for the specific setting
+    const allSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
+    const apiHostSetting = allSettings.find(i => i.id === SETTING.API_HOST);
+
+    this.apiHostSetting = apiHostSetting?.value;
   },
   data() {
     return {
+      apiHostSetting:    null,
       rows:              null,
       canChangePassword: false
     };
@@ -39,18 +47,33 @@ export default {
       return this.apiKeySchema ? this.$store.getters['type-map/headersFor'](this.apiKeySchema) : [];
     },
 
-    apiUrl() {
-      // Port of Ember code for API Url - see: https://github.com/rancher/ui/blob/8e07c492673171731f3b26af14c978bc103d1828/lib/shared/addon/endpoint/service.js#L58
-      // Note: Ember had two values - one that was displayed and one that was copied to the clipboard - we just use the later
-      // This means we ignore the API_HOST setting (not clear if this is still supported)
-      const path = API_ENDPOINT.replace(/^\/+/, '');
-      let authBase = '/';
+    // Port of Ember code for API Url - see: https://github.com/rancher/ui/blob/8e07c492673171731f3b26af14c978bc103d1828/lib/shared/addon/endpoint/service.js#L58
+    apiUrlBase() {
+      let setting = this.apiHostSetting;
 
-      if (process.client) {
-        authBase = `${ window.location.origin }/`;
+      if (setting && setting.indexOf('http') !== 0) {
+        setting = `http://${ setting }`;
       }
 
-      return `${ authBase }${ path }`;
+      // Note in Ember it used app.apiServer which is only used for dev
+      let url = setting || '';
+
+      // If the URL is relative, add on the current base URL from the browser
+      if ( url.indexOf('http') !== 0 ) {
+        url = `${ window.location.origin }/${ url.replace(/^\/+/, '') }`;
+      }
+
+      // URL must end in a single slash
+      url = `${ url.replace(/\/+$/, '') }/`;
+
+      return url;
+    },
+
+    apiUrl() {
+      const base = this.apiUrlBase;
+      const path = API_ENDPOINT.replace(/^\/+/, '');
+
+      return `${ base }${ path }`;
     },
 
     apiKeySchema() {
