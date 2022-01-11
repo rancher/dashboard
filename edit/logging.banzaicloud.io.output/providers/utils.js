@@ -1,6 +1,7 @@
 export const protocol = ['http', 'https'];
 
-export const sslVersions = ['TLSv1_2', 'TLSv1_1', 'SSLv23', 'TLSv1'];
+// Order from newest to oldest
+export const sslVersions = ['TLSv1_2', 'TLSv1_1', 'TLSv1', 'SSLv23'];
 
 export function updatePort(setter, port) {
   // We set the value to 0 then the actual value because if we exceed the maximum of

@@ -32,11 +32,19 @@ export default {
   },
   data() {
     if (this.mode === _CREATE) {
+      // Set default values only if no values are already
+      // present. This allows changes to default values to persist
+      // after navigating to YAML and back.
+
       // Require SSL verification by default
-      this.$set(this.value, 'ssl_verify', true);
+      if (typeof this.value.ssl_verify === 'undefined') {
+        this.$set(this.value, 'ssl_verify', true);
+      }
 
       // Use the SSL version TLSv1_2 by default to match Ember
-      this.$set(this.value, 'ssl_version', sslVersions[0]);
+      if (typeof this.value.ssl_version === 'undefined') {
+        this.$set(this.value, 'ssl_version', sslVersions[0]);
+      }
     }
 
     return { protocolOptions: protocol, sslVersions };
