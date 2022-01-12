@@ -16,7 +16,7 @@ export default {
     };
   },
 
-  beforeDestroyed() {
+  beforeDestroy() {
     window.removeEventListener('resize', this.updateHiddenBulkActions);
   },
 
