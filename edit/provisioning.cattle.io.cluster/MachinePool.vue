@@ -105,7 +105,17 @@ export default {
           :required="true"
         />
       </div>
-      <div class="col span-6 pt-5">
+      <div class="col span-2 pt-5">
+        <h3>
+          {{ t('cluster.machinePool.drain.header') }}
+        </h3>
+        <Checkbox
+          v-model="value.pool.drainBeforeDelete"
+          :mode="mode"
+          :label="t('cluster.machinePool.drain.label')"
+        />
+      </div>
+      <div class="col span-4 pt-5">
         <h3>
           {{ t('cluster.machinePool.role.label') }}
         </h3>

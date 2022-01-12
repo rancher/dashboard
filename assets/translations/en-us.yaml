@@ -1419,6 +1419,9 @@ cluster:
           }
     quantity:
       label: Machine Count
+    drain:
+      header: Drain
+      label: Drain Before Delete
     role:
       label: Roles
     labels:
