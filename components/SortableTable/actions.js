@@ -28,16 +28,43 @@ export default {
   watch: {
     actionAvailability() {
       this.updateHiddenBulkActions();
+    },
+    keyedAvailableActions() {
+      this.updateHiddenBulkActions();
+    },
+    tableSelected(neu) {
+      if (!neu?.length) {
+        // Ensure the popover is closed when there are no enabled actions.
+        // Otherwise there's a bug ...
+        // 1. select a row
+        // 2. show popover by clicking on action drop down button,
+        // 3. deselect the row
+        // 4. select the row
+        // 5. click action drop down button and popover fails to show
+        this.$refs.actionDropDown?.click();
+      }
     }
   },
 
   computed: {
+    hasSelectionStore() {
+      // Computed properties that reference availableActions before the selection store is initialised will fail
+      // (the forTable is null). Making this conditional (`x || []`) makes the action array always `[]`
+      // So block until the store is ready
+      // Note - this.$store.hasModule(this.storeName) isn't reactive
+      return !!this.$store.state[this.storeName];
+    },
+
     availableActions() {
       return this.$store.getters[`${ this.storeName }/forTable`].filter(act => !act.external);
     },
 
+    keyedAvailableActions() {
+      return this.hasSelectionStore ? this.availableActions.map(aa => aa.action) : null;
+    },
+
     actionAvailability() {
-      if (!this.tableSelected || this.tableSelected.length === 0) {
+      if (!this.hasSelectionStore || !this.tableSelected || this.tableSelected.length === 0) {
         return null;
       }
 
