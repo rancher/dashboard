@@ -6370,3 +6370,6 @@ manager:
 auth:
   config:
     label: Auth Providor
+vncConsole:
+  error:
+    message: Web VNC console connection is disconnected
