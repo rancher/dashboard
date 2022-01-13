@@ -20,7 +20,7 @@ export default {
     this.canChangePassword = await this.calcCanChangePassword();
 
     if (this.apiKeySchema) {
-      this.rows = await this.$store.dispatch('rancher/findAll', { type: NORMAN.TOKEN });
+      this.rows = await this.$store.dispatch('rancher/findAll', { type: NORMAN.TOKEN, opt: { force: true } });
     }
   },
   data() {
