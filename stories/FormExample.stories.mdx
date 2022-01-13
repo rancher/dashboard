@@ -1,12 +1,24 @@
 import { Meta, Canvas, Story } from '@storybook/addon-docs';
-import Banner from '../components/Banner.vue';
+import FormExample from './FormExample.vue';
+<style>{`.labeled-select { font-size: unset' }`}</style>
 
-<style>{``}</style>
-
-<Meta title="Examples/Form" />
+<Meta
+  title="Examples/Input Controls"
+  parameters={{
+    viewMode: 'docs',
+    previewTabs: { 
+      canvas: { hidden: true } 
+    }
+  }}
+/>
 
 # Form Example
 
-TODO
-
-<input type="text" value="Standard HTML input"/>
+<Preview>
+  <Story name="Examples" inline>
+  {{
+    components: { FormExample },
+    template: `<FormExample />`,
+  }}
+  </Story>
+</Preview>
