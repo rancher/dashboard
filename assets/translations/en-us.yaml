@@ -1025,6 +1025,11 @@ cluster:
         label: Access Token
         placeholder: Your DigitalOcean API Access Token
     label: Cloud Credential
+    linode:
+      accessToken:
+        help: Paste in a Personal Access Token from the Linode <a href="https://cloud.linode.com/profile/tokens" target="_blank" rel="noopener noreferrer nofollow">API Tokens</a> screen.
+        label: Access Token
+        placeholder: Your Linode API Access Token
     name:
       label: Credential Name
       placeholder: Name for this credential (optional)
@@ -1234,6 +1239,12 @@ cluster:
       tags:
         label: Droplet Tags
         placeholder: e.g. my_server
+    linode:
+      typeLabel: |-
+        {label}, {vcpus, plural,
+          =1 {# vCPU}
+          other {# vCPUs}
+        }, {disk} GB Disk ({value})
     vsphere:
       hostOptions:
         any: Any
