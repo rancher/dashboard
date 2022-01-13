@@ -187,7 +187,6 @@ export default Vue.extend<Data, any, any, any>({
             :value-label="t('epinio.applications.create.envvar.valueLabel')"
             :parse-lines-from-file="true"
             :error-messages="dataErrorMessage"
-            :emit-errors="true"
             @updateErrors="updateDataErrors"
           />
         </div>
