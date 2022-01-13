@@ -51,7 +51,7 @@ export default {
         template: { spec: { terminationGracePeriodSeconds: 30 } }
       },
       securityContext: {},
-      x: 'Example',
+      x:               'Example',
     };
   }
 };
