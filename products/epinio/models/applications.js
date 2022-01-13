@@ -231,7 +231,7 @@ export default class EpinioApplication extends EpinioResource {
   // ------------------------------------------------------------------
 
   trace(text, ...args) {
-    console.log(`### Application: ${ text }`, `${ this.meta.namespace }/${ this.meta.name }`, args);// eslint-disable-line no-console
+    console.log(`### Application: ${ text }`, `${ this.meta.namespace }/${ this.meta.name }`, args.length ? args : '');// eslint-disable-line no-console
   }
 
   async create() {

@@ -18,15 +18,17 @@ export function init(store) {
 
   product({
     // ifHaveType:          CAPI.RANCHER_CLUSTER,
-    ifFeature:           MULTI_CLUSTER,
-    category:            EPINIO_PRODUCT_NAME,
-    isMultiClusterApp:   true,
-    inStore:             EPINIO_PRODUCT_NAME,
-    icon:                'epinio',
-    iconHeader:          require(`@/products/epinio/assets/logo-epinio.svg`),
-    removable:           false,
-    showClusterSwitcher: false,
-    to:                  rootEpinioRoute()
+    ifFeature:             MULTI_CLUSTER,
+    category:              EPINIO_PRODUCT_NAME,
+    isMultiClusterApp:     true,
+    inStore:               EPINIO_PRODUCT_NAME,
+    icon:                  'epinio',
+    iconHeader:            require(`@/products/epinio/assets/logo-epinio.svg`),
+    removable:             false,
+    showClusterSwitcher:   false,
+    to:                    rootEpinioRoute(),
+    showNamespaceFilter:   true,
+    customNamespaceFilter: true,
   });
 
   // Internal Types

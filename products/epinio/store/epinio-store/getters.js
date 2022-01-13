@@ -1,3 +1,8 @@
+import { EPINIO_TYPES } from '@/products/epinio/types';
+import {
+  NAMESPACE_FILTER_SPECIAL as SPECIAL,
+  NAMESPACE_FILTER_ALL as ALL
+} from '@/utils/namespace-filter';
 
 export default {
 
@@ -39,5 +44,21 @@ export default {
     // This is where Epinio API filter, limit, sort will be applied
     return url;
   },
+
+  namespaceFilterOptions: (state, getters, rootState, rootGetters) => ({
+    addNamespace,
+    divider
+  }) => {
+    const out = [{
+      id:    ALL,
+      kind:  SPECIAL,
+      label: rootGetters['i18n/t']('nav.ns.all'),
+    }];
+
+    divider(out);
+    addNamespace(out, getters.all(EPINIO_TYPES.NAMESPACE));
+
+    return out;
+  }
 
 };

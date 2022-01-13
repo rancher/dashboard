@@ -55,7 +55,7 @@ export default Vue.extend<Data, any, any, any>({
 
   async fetch() {
     this.namespaces = await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE });
-    this.value.data = { ...this.initialValue.configuration.details };
+    this.value.data = { ...this.initialValue.configuration?.details };
     this.validFields.name = this.isEdit;
   },
 

@@ -20,19 +20,21 @@ import { STEVE_MODEL_TYPES } from '@/plugins/steve/getters';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
 import extensions from '@/product-extension/extensions';
 import { BACK_TO } from '@/config/local-storage';
+import {
+  NAMESPACE_FILTER_ALL_USER as ALL_USER,
+  NAMESPACE_FILTER_ALL_SYSTEM as ALL_SYSTEM,
+  NAMESPACE_FILTER_ALL_ORPHANS as ALL_ORPHANS,
+  NAMESPACE_FILTER_NAMESPACED_YES as NAMESPACED_YES,
+  NAMESPACE_FILTER_NAMESPACED_NO as NAMESPACED_NO,
+  NAMESPACE_FILTER_NAMESPACED_PREFIX as NAMESPACED_PREFIX,
+  splitNamespaceFilterKey,
+} from '@/utils/namespace-filter';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
 export const strict = false;
 
 export const BLANK_CLUSTER = '_';
-export const ALL = 'all';
-export const ALL_SYSTEM = 'all://system';
-export const ALL_USER = 'all://user';
-export const ALL_ORPHANS = 'all://orphans';
-export const NAMESPACED_PREFIX = 'namespaced://';
-export const NAMESPACED_YES = 'namespaced://true';
-export const NAMESPACED_NO = 'namespaced://false';
 
 export const plugins = [
   Steve({
@@ -652,6 +654,7 @@ export const actions = {
     if (isExt && product) {
       commit('clusterChanged', true);
       dispatch(`${ product }/loadSchemas`, true);
+      await dispatch(`${ product }/loadCluster`, { id });
 
       return;
     }
@@ -726,18 +729,17 @@ export const actions = {
     console.log('Done loading cluster.'); // eslint-disable-line no-console
   },
 
-  switchNamespaces({ commit, dispatch, getters }, value) {
+  switchNamespaces({ commit, dispatch, getters }, { ids, key }) {
     const filters = getters['prefs/get'](NAMESPACE_FILTERS);
-    const clusterId = getters['clusterId'];
 
     dispatch('prefs/set', {
       key:   NAMESPACE_FILTERS,
       value: {
         ...filters,
-        [clusterId]: value
+        [key]: ids
       }
     });
-    commit('updateNamespaces', { filters: value });
+    commit('updateNamespaces', { filters: ids });
   },
 
   async loadVirtual({
@@ -851,7 +853,9 @@ export const actions = {
     const cleanFilters = {};
 
     for ( const id in filters ) {
-      if ( getters['management/byId'](MANAGEMENT.CLUSTER, id) ) {
+      const { clusterId } = splitNamespaceFilterKey(id);
+
+      if ( getters['management/byId'](MANAGEMENT.CLUSTER, clusterId) ) {
         cleanFilters[id] = filters[id];
       }
     }

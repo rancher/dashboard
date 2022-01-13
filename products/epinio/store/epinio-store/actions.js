@@ -3,6 +3,8 @@ import { EPINIO_MGMT_STORE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products
 import { normalizeType } from '@/plugins/core-store/normalize';
 import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 import { base64Encode } from '@/utils/crypto';
+import { NAMESPACE_FILTERS } from '@/store/prefs';
+import { NAMESPACE_FILTER_ALL as ALL, createNamespaceFilterKeyWithId } from '@/utils/namespace-filter';
 
 const createId = (schema, resource) => {
   const name = resource.meta?.name || resource.name;
@@ -185,6 +187,16 @@ export default {
       type: SCHEMA,
       data: res.data
     });
-  }
+  },
+
+  loadCluster: async( { dispatch, commit, rootGetters }, { id } ) => {
+    await dispatch(`findAll`, { type: EPINIO_TYPES.NAMESPACE });
+    await dispatch('cleanNamespaces', null, { root: true });
+
+    const key = createNamespaceFilterKeyWithId(id, EPINIO_PRODUCT_NAME);
+    const filters = rootGetters['prefs/get'](NAMESPACE_FILTERS)?.[key] || [ALL];
+
+    commit('updateNamespaces', { filters }, { root: true });
+  },
 
 };
