@@ -36,6 +36,7 @@ import RadioGroup from '@/components/form/RadioGroup';
 import { UI_MANAGED } from '@/config/labels-annotations';
 import { removeObject } from '@/utils/array';
 import { BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
+import { validateKubernetesName } from '@/utils/validators/kubernetes-name';
 
 const TAB_WEIGHT_MAP = {
   general:              99,
@@ -161,30 +162,39 @@ export default {
     this.selectContainer(container);
 
     return {
-      allConfigMaps:     [],
-      allNodes:          null,
-      allSecrets:        [],
-      allServices:       [],
-      name:              this.value?.metadata?.name || null,
-      pvcs:              [],
-      sas:               [],
-      showTabs:          false,
-      pullPolicyOptions: ['Always', 'IfNotPresent', 'Never'],
+      allConfigMaps:            [],
+      allNodes:                 null,
+      allSecrets:               [],
+      allServices:              [],
+      name:                     this.value?.metadata?.name || null,
+      nameErrorMessage:         '',
+      namespaceErrorMessage:    '',
+      newNamespace:             '',
+      pvcs:                     [],
+      sas:                      [],
+      showTabs:                 false,
+      pullPolicyOptions:        ['Always', 'IfNotPresent', 'Never'],
       spec,
       type,
-      servicesOwned:     [],
-      servicesToRemove:    [],
-      portsForServices:  [],
+      servicesOwned:            [],
+      servicesToRemove:         [],
+      portsForServices:         [],
       isInitContainer,
       container,
-      containerChange:   0,
-      podFsGroup:        podTemplateSpec.securityContext?.fsGroup,
-      savePvcHookName:   'savePvcHook',
-      tabWeightMap:      TAB_WEIGHT_MAP,
+      containerChange:          0,
+      podFsGroup:               podTemplateSpec.securityContext?.fsGroup,
+      savePvcHookName:          'savePvcHook',
+      tabWeightMap:             TAB_WEIGHT_MAP,
+      touchedNameCreationInput: false,
+      touchedWorkloadNameInput: false,
+
     };
   },
 
   computed: {
+    validationPassed() {
+      return !this.nameErrorMessage && !this.namespaceErrorMessage && this.touchedWorkloadNameInput && this.touchedNameCreationInput;
+    },
 
     isEdit() {
       return this.mode === _EDIT;
@@ -482,6 +492,41 @@ export default {
   },
 
   methods: {
+    updateWorkloadNameErrors() {
+      this.touchedName = true;
+      const nameErrors = this.getKubernetesNameErrors(this.name || '');
+      const nameErrorMessage = nameErrors.join(', ');
+      const removeTheWordNamespace = nameErrorMessage.split('"Namespace"').join('Name');
+
+      this.nameErrorMessage = removeTheWordNamespace;
+    },
+    updateNamespaceErrors() {
+      this.touchedNamespace = true;
+      const namespaceErrors = this.getKubernetesNameErrors(this.newNamespace || '');
+      const namespaceErrorMessage = namespaceErrors.join(', ');
+      const removeQuotationMarks = namespaceErrorMessage.split('"Namespace"').join('Namespace');
+
+      this.namespaceErrorMessage = removeQuotationMarks;
+    },
+    getKubernetesNameErrors(name) {
+      return validateKubernetesName(
+        name,
+        this.t('namespaceList.selectLabel'),
+        this.$store.getters,
+        undefined,
+        []
+      );
+    },
+    changeNameInput(e) {
+      this.name = e;
+      this.value.metadata.name = e;
+      this.updateWorkloadNameErrors();
+    },
+    changeNamespaceInput(e) {
+      this.newNamespace = e;
+      this.value.metadata.namespace = e;
+      this.updateNamespaceErrors();
+    },
     nameDisplayFor(type) {
       const schema = this.$store.getters['cluster/schemaFor'](type);
 
@@ -767,12 +812,15 @@ export default {
             :value="value"
             :mode="mode"
             :create-namespace-enabled="true"
-            @change="name=value.metadata.name"
+            :name-error-messages="nameErrorMessage"
+            :namespace-error-messages="namespaceErrorMessage"
+            @nameInputChange="changeNameInput($event)"
+            @namespaceInputChange="changeNamespaceInput($event)"
           />
         </div>
       </div>
       <div v-if="containerOptions.length > 1" class="container-row">
-        <div class="col span-4">
+        <div class="col span-3">
           <LabeledSelect :value="container" option-label="name" :label="t('workload.container.titles.container')" :options="containerOptions" @input="selectContainer" />
         </div>
         <div v-if="allContainers.length > 1 && !isView" class="col">
@@ -780,7 +828,7 @@ export default {
             {{ t('workload.container.removeContainer') }}
           </button>
         </div>
-        <div v-if="isCronJob" class="col span-4">
+        <div v-if="isCronJob" class="col span-2">
           <LabeledInput
             v-model="spec.schedule"
             type="cron"
@@ -790,7 +838,7 @@ export default {
             placeholder="0 * * * *"
           />
         </div>
-        <div v-if="isReplicable && !isCronJob" class="col span-4">
+        <div v-if="isReplicable && !isCronJob" class="col span-2">
           <LabeledInput
             v-model.number="spec.replicas"
             type="number"
@@ -800,7 +848,7 @@ export default {
             :label="t('workload.replicas')"
           />
         </div>
-        <div v-if="isReplicable && !isCronJob && isStatefulSet" class="col span-4">
+        <div v-if="isReplicable && !isCronJob && isStatefulSet" class="col span-3">
           <LabeledSelect
             v-model="spec.serviceName"
             option-label="metadata.name"

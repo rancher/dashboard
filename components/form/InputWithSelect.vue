@@ -16,6 +16,11 @@ export default {
       default: false,
     },
 
+    inputErrorMessages: {
+      type:    String,
+      default: ''
+    },
+
     searchable: {
       type:    Boolean,
       default: true,
@@ -70,6 +75,16 @@ export default {
       type:    String,
       default: '',
     },
+
+    namespaceErrorMessages: {
+      type:    String,
+      default: ''
+    },
+
+    nameErrorMessages: {
+      type:    String,
+      default: ''
+    }
   },
 
   data() {
@@ -123,6 +138,7 @@ export default {
       :option-label="optionLabel"
       :placement="$attrs.placement ? $attrs.placement : null"
       :v-bind="$attrs"
+      @changeSelected="$emit('changeSelected', $event)"
       @input="change"
     />
     <Select
@@ -152,7 +168,9 @@ export default {
       :disabled="disabled"
       :required="textRequired"
       :mode="mode"
+      :error-messages="inputErrorMessages"
       v-bind="$attrs"
+      @input="$emit('inputChange', string)"
     >
       <template #label>
         <slot name="label" />

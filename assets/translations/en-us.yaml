@@ -2784,7 +2784,7 @@ nameNsDescription:
     placeholder:
   description:
     label: Description
-    placeholder: Any text you want that better describes this resource
+    placeholder: Any text that better describes this resource
 
 namespace:
   containerResourceLimit: Container Resource Limit

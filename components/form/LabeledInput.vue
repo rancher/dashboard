@@ -11,6 +11,11 @@ export default {
   mixins:     [LabeledFormElement],
 
   props: {
+    errorMessages: {
+      type:    String,
+      default: ''
+    },
+
     type: {
       type:    String,
       default: 'text',
@@ -124,74 +129,88 @@ export default {
 </script>
 
 <template>
-  <div
-    :class="{
-      'labeled-input': true,
-      focused,
-      [mode]: true,
-      disabled: isDisabled,
-      [status]: status,
-      suffix: hasSuffix,
-    }"
-  >
-    <slot name="label">
-      <label>
-        <t v-if="labelKey" :k="labelKey" />
-        <template v-else-if="label">{{ label }}</template>
+  <div>
+    <div
+      :class="{
+        'labeled-input': true,
+        focused,
+        [mode]: true,
+        disabled: isDisabled,
+        [status]: status,
+        suffix: hasSuffix,
+      }"
+    >
+      <slot name="label">
+        <label>
+          <t v-if="labelKey" :k="labelKey" />
+          <template v-else-if="label">{{ label }}</template>
 
-        <span v-if="required" class="required">*</span>
-      </label>
-    </slot>
+          <span v-if="required" class="required">*</span>
+        </label>
+      </slot>
 
-    <slot name="prefix" />
+      <slot name="prefix" />
 
-    <slot name="field">
-      <TextAreaAutoGrow
-        v-if="type === 'multiline' || type === 'multiline-password'"
-        ref="value"
-        v-bind="$attrs"
-        :maxlength="_maxlength"
-        :disabled="isDisabled"
-        :value="value"
-        :placeholder="_placeholder"
-        autocapitalize="off"
-        :class="{ conceal: type === 'multiline-password' }"
-        @input="$emit('input', $event)"
-        @focus="onFocus"
-        @blur="onBlur"
+      <slot name="field">
+        <TextAreaAutoGrow
+          v-if="type === 'multiline' || type === 'multiline-password'"
+          ref="value"
+          v-bind="$attrs"
+          :maxlength="_maxlength"
+          :disabled="isDisabled"
+          :value="value"
+          :placeholder="_placeholder"
+          autocapitalize="off"
+          :class="{ conceal: type === 'multiline-password' }"
+          @input="$emit('input', $event)"
+          @focus="onFocus"
+          @blur="onBlur"
+        />
+        <input
+          v-else
+          ref="value"
+          :class="{ 'no-label': !hasLabel }"
+          v-bind="$attrs"
+          :maxlength="_maxlength"
+          :disabled="isDisabled"
+          :type="type === 'cron' ? 'text' : type"
+          :value="value"
+          :placeholder="_placeholder"
+          autocomplete="off"
+          autocapitalize="off"
+          :data-lpignore="ignorePasswordManagers"
+          @input="$emit('input', $event.target.value)"
+          @focus="onFocus"
+          @blur="onBlur"
+        />
+      </slot>
+      <slot name="suffix" />
+      <LabeledTooltip
+        v-if="tooltipKey && !focused"
+        :hover="hoverTooltip"
+        :value="t(tooltipKey)"
+        :status="status"
       />
-      <input
-        v-else
-        ref="value"
-        :class="{ 'no-label': !hasLabel }"
-        v-bind="$attrs"
-        :maxlength="_maxlength"
-        :disabled="isDisabled"
-        :type="type === 'cron' ? 'text' : type"
-        :value="value"
-        :placeholder="_placeholder"
-        autocomplete="off"
-        autocapitalize="off"
-        :data-lpignore="ignorePasswordManagers"
-        @input="$emit('input', $event.target.value)"
-        @focus="onFocus"
-        @blur="onBlur"
+      <LabeledTooltip
+        v-else-if="tooltip && !focused"
+        :hover="hoverTooltip"
+        :value="tooltip"
+        :status="status"
       />
-    </slot>
-    <slot name="suffix" />
-    <LabeledTooltip
-      v-if="tooltipKey && !focused"
-      :hover="hoverTooltip"
-      :value="t(tooltipKey)"
-      :status="status"
-    />
-    <LabeledTooltip
-      v-else-if="tooltip && !focused"
-      :hover="hoverTooltip"
-      :value="tooltip"
-      :status="status"
-    />
-    <label v-if="cronHint" class="cron-label">{{ cronHint }}</label>
-    <label v-if="subLabel" class="sub-label">{{ subLabel }}</label>
+      <label v-if="cronHint" class="cron-label">{{ cronHint }}</label>
+      <label v-if="subLabel" class="sub-label">{{ subLabel }}</label>
+    </div>
+    <div
+      v-if="errorMessages.length > 0"
+      class="validation-message"
+    >
+      {{ errorMessages }}
+    </div>
   </div>
 </template>
+<style>
+.validation-message {
+  padding-top: 3px;
+  padding-bottom: 7px;
+}
+</style>

@@ -130,6 +130,14 @@ export default {
       type:    Boolean,
       default: false,
     },
+    namespaceErrorMessages: {
+      type:    String,
+      default: ''
+    },
+    nameErrorMessages: {
+      type:    String,
+      default: ''
+    }
   },
 
   data() {
@@ -171,7 +179,8 @@ export default {
       namespace,
       name,
       description,
-      showNamespaceCreationInput: false,
+      showNamespaceCreationInput: this.selected === 'create',
+      newNamespaceName:           ''
     };
   },
 
@@ -236,15 +245,23 @@ export default {
         (this.descriptionHidden ? 0 : 1) +
         this.extraColumns.length;
 
-      if (this.createNamespaceEnabled) {
-        cols = cols + 1;
+      const getNumberOfEqualWidthColumns = () => {
+        cols = Math.max(2, cols); // If there's only one column, make it render half-width as if there were two
+
+        if (cols > 4) {
+          throw new Error('The layout only supports four columns or fewer.');
+        }
+
+        const span = 12 / cols; // If there's 5, 7, or more columns this will break; don't do that.
+
+        return `span-${ span }`;
+      };
+
+      if (!this.createNamespaceEnabled || !this.showNamespaceCreationInput) {
+        return getNumberOfEqualWidthColumns();
       }
 
-      cols = Math.max(2, cols); // If there's only one column, make it render half-width as if there were two
-
-      const span = 12 / cols; // If there's 5, 7, or more columns this will break; don't do that.
-
-      return `span-${ span }`;
+      return '';
     },
   },
 
@@ -304,17 +321,19 @@ export default {
         this.value.metadata.namespace = val;
       }
     },
-
-    changeNameAndNamespace(e) {
-      this.name = (e.text || '').toLowerCase();
-      this.namespace = e.selected;
-
-      if (e.selected === 'create') {
+    changeSelectedNamespace(selected) {
+      this.namespace = selected;
+      if (selected === 'create') {
         this.showNamespaceCreationInput = true;
       } else {
         this.showNamespaceCreationInput = false;
       }
     },
+
+    changeName(e) {
+      this.name = (e.text || '').toLowerCase();
+      this.$emit('nameInputChange', e);
+    }
   },
 };
 </script>
@@ -325,7 +344,7 @@ export default {
       class="name-ns-description"
       :class="{ 'flip-direction': !horizontal, row: true }"
     >
-      <div v-show="!nameNsHidden" :class="{ col: true, [colSpan]: true }">
+      <div v-show="!nameNsHidden" :class="{ col: true, [showNamespaceCreationInput? 'span-5' : colSpan]: true }">
         <slot :namespaces="namespaces" name="namespace">
           <InputWithSelect
             v-if="namespaced"
@@ -342,8 +361,9 @@ export default {
             :select-value="namespace"
             :options="namespaces"
             :searchable="true"
-            :taggable="namespaceNewAllowed"
-            @input="changeNameAndNamespace($event)"
+            :input-error-messages="nameErrorMessages"
+            @changeSelected="changeSelectedNamespace($event)"
+            @inputChange="changeName($event)"
           />
           <LabeledInput
             v-else
@@ -356,19 +376,23 @@ export default {
             :mode="mode"
             :min-height="30"
             :required="nameRequired"
+            :error-messages="nameErrorMessages"
+            @input="changeName($event)"
           />
         </slot>
       </div>
-      <div v-show="showNamespaceCreationInput" :class="{ col: true, [colSpan]: true }">
+      <div v-show="showNamespaceCreationInput" :class="{ col: true, 'span-4': true }">
         <LabeledInput
-          v-model="description"
+          v-model="newNamespaceName"
           :required="true"
           :mode="mode"
           :label="t('nav.ns.addNamespace')"
+          :error-messages="namespaceErrorMessages"
           :min-height="30"
+          @input="$emit('namespaceInputChange', $event)"
         />
       </div>
-      <div v-show="!descriptionHidden" :class="{ col: true, [colSpan]: true }">
+      <div v-show="!descriptionHidden" :class="{ col: true, [showNamespaceCreationInput ? 'span-3' : colSpan]: true }">
         <LabeledInput
           key="description"
           v-model="description"

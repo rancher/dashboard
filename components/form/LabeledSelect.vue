@@ -304,6 +304,7 @@ export default {
       @search:focus="onFocus"
       @search="onSearch"
       @open="resizeHandler"
+      @input="$emit('changeSelected', $event)"
     >
       <template #option="option">
         <template v-if="option.kind === 'group'">
@@ -334,6 +335,7 @@ export default {
 <style lang='scss' scoped>
 .labeled-select {
   position: relative;
+  max-height: 61px;
 
   .icon-spinner {
     position: absolute;
