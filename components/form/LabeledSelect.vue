@@ -404,7 +404,7 @@ export default {
   }
 
   &.taggable:not(.compact-input) {
-    min-height: 61px;
+    min-height: $input-height;
     ::v-deep .vs__selected-options {
       // Need to adjust margin when there is a label in the control to add space between the label and the tags
       margin-top: 0px;

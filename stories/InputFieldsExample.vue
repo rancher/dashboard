@@ -34,7 +34,7 @@ export default {
         key2: 'value2\nmulti-line\ntext area',
       },
       columns: ['extra'],
-      tags: [
+      tags:    [
         'create', 'delete', 'watch',
       ],
       moreTags: [
@@ -245,8 +245,8 @@ export default {
     <div class="row mt-10">
       <div class="col span-6">
         <LabeledSelect
-          label="With Label (Taggable Select)"
           v-model="tags"
+          label="With Label (Taggable Select)"
           :taggable="true"
           :options="verbs"
           :searchable="true"
@@ -256,7 +256,7 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <LabeledSelect label="With Label" v-model="selectOption" :options="options" />
+        <LabeledSelect v-model="selectOption" label="Select control alongside" :options="options" />
       </div>
     </div>
 
@@ -274,8 +274,8 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledSelect
-          label="Taggable Select"
           v-model="moreTags"
+          label="Taggable Select"
           :taggable="true"
           :options="verbs"
           :searchable="true"
@@ -284,7 +284,7 @@ export default {
           :mode="edit"
         />
       </div>
-    </div>    
+    </div>
 
     <h3>Fields in column layout</h3>
 
