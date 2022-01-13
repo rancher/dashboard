@@ -6315,6 +6315,7 @@ legacy:
   apps: Apps
   catalogs: Catalogs
   cis-scans: CIS Scans
+  configMaps: Config Maps
   configuration: Configuration
   globalDnsEntries: Global DNS Entries
   globalDnsProviders: Global DNS Providers
