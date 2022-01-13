@@ -128,6 +128,7 @@ nav:
     project: "Project: {name}"
     system: Only System Namespaces
     user: Only User Namespaces
+    addNamespace: Create Namespace
   apps: Apps
   categories:
     explore: Explore Cluster

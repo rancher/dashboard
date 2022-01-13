@@ -416,22 +416,6 @@ export default {
       return out;
     },
 
-    nameNsColumns() {
-      const out = [];
-
-      if (this.isCronJob) {
-        out.push('schedule');
-      } else if (this.isReplicable) {
-        out.push('replicas');
-
-        if (this.isStatefulSet) {
-          out.push('service');
-        }
-      }
-
-      return out;
-    },
-
     containerOptions() {
       const out = [...this.allContainers];
 
@@ -779,39 +763,12 @@ export default {
     >
       <div class="row">
         <div class="col span-12">
-          <NameNsDescription :value="value" :extra-columns="nameNsColumns" :mode="mode" @change="name=value.metadata.name">
-            <template #schedule>
-              <LabeledInput
-                v-model="spec.schedule"
-                type="cron"
-                required
-                :mode="mode"
-                :label="t('workload.cronSchedule')"
-                placeholder="0 * * * *"
-              />
-            </template>
-            <template #replicas>
-              <LabeledInput
-                v-model.number="spec.replicas"
-                type="number"
-                min="0"
-                required
-                :mode="mode"
-                :label="t('workload.replicas')"
-              />
-            </template>
-            <template #service>
-              <LabeledSelect
-                v-model="spec.serviceName"
-                option-label="metadata.name"
-                :reduce="service=>service.metadata.name"
-                :mode="mode"
-                :label="t('workload.serviceName')"
-                :options="headlessServices"
-                required
-              />
-            </template>
-          </NameNsDescription>
+          <NameNsDescription
+            :value="value"
+            :mode="mode"
+            :create-namespace-enabled="true"
+            @change="name=value.metadata.name"
+          />
         </div>
       </div>
       <div v-if="containerOptions.length > 1" class="container-row">
@@ -822,6 +779,37 @@ export default {
           <button type="button" class="btn-sm role-link" @click="removeContainer(container)">
             {{ t('workload.container.removeContainer') }}
           </button>
+        </div>
+        <div v-if="isCronJob" class="col span-4">
+          <LabeledInput
+            v-model="spec.schedule"
+            type="cron"
+            required
+            :mode="mode"
+            :label="t('workload.cronSchedule')"
+            placeholder="0 * * * *"
+          />
+        </div>
+        <div v-if="isReplicable && !isCronJob" class="col span-4">
+          <LabeledInput
+            v-model.number="spec.replicas"
+            type="number"
+            min="0"
+            required
+            :mode="mode"
+            :label="t('workload.replicas')"
+          />
+        </div>
+        <div v-if="isReplicable && !isCronJob && isStatefulSet" class="col span-4">
+          <LabeledSelect
+            v-model="spec.serviceName"
+            option-label="metadata.name"
+            :reduce="service=>service.metadata.name"
+            :mode="mode"
+            :label="t('workload.serviceName')"
+            :options="headlessServices"
+            required
+          />
         </div>
       </div>
       <Tabbed :key="containerChange" :side-tabs="true">

@@ -120,12 +120,16 @@ export default {
     },
     showSpacer: {
       type:    Boolean,
-      default: true
+      default: true,
     },
     horizontal: {
       type:    Boolean,
       default: true,
-    }
+    },
+    createNamespaceEnabled: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   data() {
@@ -167,6 +171,7 @@ export default {
       namespace,
       name,
       description,
+      showNamespaceCreationInput: false,
     };
   },
 
@@ -187,14 +192,16 @@ export default {
       const choices = this.$store.getters[`${ inStore }/all`](this.namespaceType);
 
       const out = sortBy(
-        choices.filter( (N) => {
-          return this.isVirtualCluster ? !N.isSystem && !N.isFleetManaged : true;
-        }).map((obj) => {
-          return {
-            label: obj.nameDisplay,
-            value: obj.id,
-          };
-        }),
+        choices
+          .filter((N) => {
+            return this.isVirtualCluster ? !N.isSystem && !N.isFleetManaged : true;
+          })
+          .map((obj) => {
+            return {
+              label: obj.nameDisplay,
+              value: obj.id,
+            };
+          }),
         'label'
       );
 
@@ -202,6 +209,13 @@ export default {
         out.unshift({
           label: this.forceNamespace,
           value: this.forceNamespace,
+        });
+      }
+
+      if (this.createNamespaceEnabled) {
+        out.unshift({
+          label: this.t('nav.ns.addNamespace'),
+          value: 'create',
         });
       }
 
@@ -217,7 +231,14 @@ export default {
         return `span-8`;
       }
 
-      let cols = (this.nameNsHidden ? 0 : 1) + (this.descriptionHidden ? 0 : 1) + this.extraColumns.length;
+      let cols =
+        (this.nameNsHidden ? 0 : 1) +
+        (this.descriptionHidden ? 0 : 1) +
+        this.extraColumns.length;
+
+      if (this.createNamespaceEnabled) {
+        cols = cols + 1;
+      }
 
       cols = Math.max(2, cols); // If there's only one column, make it render half-width as if there were two
 
@@ -229,7 +250,7 @@ export default {
 
   watch: {
     name(val) {
-      if ( this.normalizeName ) {
+      if (this.normalizeName) {
         val = normalizeName(val);
       }
 
@@ -271,7 +292,10 @@ export default {
       }
 
       if (this.namespaced) {
-        this.$emit('isNamespaceNew', this.namespaces && !this.namespaces.find(n => n.value === val));
+        this.$emit(
+          'isNamespaceNew',
+          this.namespaces && !this.namespaces.find(n => n.value === val)
+        );
       }
 
       if (this.namespaceKey) {
@@ -284,6 +308,12 @@ export default {
     changeNameAndNamespace(e) {
       this.name = (e.text || '').toLowerCase();
       this.namespace = e.selected;
+
+      if (e.selected === 'create') {
+        this.showNamespaceCreationInput = true;
+      } else {
+        this.showNamespaceCreationInput = false;
+      }
     },
   },
 };
@@ -291,7 +321,10 @@ export default {
 
 <template>
   <div>
-    <div class="name-ns-description" :class="{'flip-direction': !horizontal, row: true}">
+    <div
+      class="name-ns-description"
+      :class="{ 'flip-direction': !horizontal, row: true }"
+    >
       <div v-show="!nameNsHidden" :class="{ col: true, [colSpan]: true }">
         <slot :namespaces="namespaces" name="namespace">
           <InputWithSelect
@@ -325,6 +358,15 @@ export default {
             :required="nameRequired"
           />
         </slot>
+      </div>
+      <div v-show="showNamespaceCreationInput" :class="{ col: true, [colSpan]: true }">
+        <LabeledInput
+          v-model="description"
+          :required="true"
+          :mode="mode"
+          :label="t('nav.ns.addNamespace')"
+          :min-height="30"
+        />
       </div>
       <div v-show="!descriptionHidden" :class="{ col: true, [colSpan]: true }">
         <LabeledInput
