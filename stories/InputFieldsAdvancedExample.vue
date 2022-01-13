@@ -5,9 +5,13 @@ import Taints from '../components/form/Taints.vue';
 import Tolerations from '../components/form/Tolerations.vue';
 import Upgrading from '../edit/workload/Upgrading.vue';
 import Security from '../components/form/Security.vue';
+import LabeledInput from '../components/form/LabeledInput.vue';
+import LabeledSelect from '../components/form/LabeledSelect.vue';
 
 export default {
   components: {
+    LabeledInput,
+    LabeledSelect,
     KeyValue,
     Security,
     Select,
@@ -47,6 +51,7 @@ export default {
         template: { spec: { terminationGracePeriodSeconds: 30 } }
       },
       securityContext: {},
+      x: 'Example',
     };
   }
 };
@@ -54,6 +59,37 @@ export default {
 
 <template>
   <form>
+    <h3>Alignment</h3>
+
+    <div class="row" style="background: tomato;">
+      <div class="col span-4">
+        <LabeledInput
+          v-model="x"
+          label="Labeled Input"
+          :mode="mode"
+          :tooltip="tooltip"
+        />
+      </div>
+      <div class="col span-4">
+        <LabeledInput
+          v-model="x"
+          label="Multiline"
+          type="multiline"
+          :mode="mode"
+          :tooltip="tooltip"
+        />
+      </div>
+      <div class="col span-4">
+        <LabeledSelect
+          v-model="x"
+          label="Labeled Select"
+          :options="['foo','bar','baz']"
+          :mode="mode"
+          :tooltip="tooltip"
+        />
+      </div>
+    </div>
+
     <h3>KeyValue control</h3>
 
     <KeyValue v-model="labels" />

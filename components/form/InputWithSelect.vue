@@ -219,7 +219,6 @@ export default {
 
   & .input-string {
     padding-right: 0;
-    height: 100%;
     width: 60%;
     flex-grow: 1;
     border-radius: 0 var(--border-radius) var(--border-radius) 0;
