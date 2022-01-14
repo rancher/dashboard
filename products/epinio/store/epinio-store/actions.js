@@ -4,7 +4,7 @@ import { normalizeType } from '@/plugins/core-store/normalize';
 import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 import { base64Encode } from '@/utils/crypto';
 import { NAMESPACE_FILTERS } from '@/store/prefs';
-import { NAMESPACE_FILTER_ALL as ALL, createNamespaceFilterKeyWithId } from '@/utils/namespace-filter';
+import { createNamespaceFilterKeyWithId } from '@/utils/namespace-filter';
 
 const createId = (schema, resource) => {
   const name = resource.meta?.name || resource.name;
@@ -194,7 +194,7 @@ export default {
     await dispatch('cleanNamespaces', null, { root: true });
 
     const key = createNamespaceFilterKeyWithId(id, EPINIO_PRODUCT_NAME);
-    const filters = rootGetters['prefs/get'](NAMESPACE_FILTERS)?.[key] || [ALL];
+    const filters = rootGetters['prefs/get'](NAMESPACE_FILTERS)?.[key] || [];
 
     commit('updateNamespaces', { filters }, { root: true });
   },
