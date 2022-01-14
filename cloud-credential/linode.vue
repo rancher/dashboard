@@ -17,7 +17,7 @@ export default {
       try {
         await this.$store.dispatch('linode/request', {
           token:   this.value.decodedData.accessToken,
-          command: 'regions'
+          command: 'profile'
         });
 
         return true;
