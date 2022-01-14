@@ -114,7 +114,7 @@ export default {
 
 <template>
   <div v-if="showBanner">
-    <div v-if="!showAsDialog" class="banner" :style="bannerStyle">
+    <div v-if="!showAsDialog" class="banner" :style="bannerStyle" :class="{'banner-consent': showConsent}">
       {{ banner.text }}
     </div>
     <div v-else-if="showDialog">
@@ -140,6 +140,14 @@ export default {
     height: 2em;
     width: 100%;
     padding: 0 20px;
+
+    &.banner-consent {
+      position: absolute;
+      height: unset;
+      min-height: 2em;
+      max-height: 4em;
+      overflow: hidden;
+    }
   }
   .banner-dialog, .banner-dialog-glass {
     position: absolute;
@@ -178,6 +186,10 @@ export default {
 
       button {
         margin-top: 10px;
+        max-width: 50%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
         width: fit-content;
       }
     }

@@ -26,14 +26,17 @@ export default ({
   },
 
   data() {
-    const showAsDialog = !!this.value[this.bannerType].button || false;
-    const buttonText = this.value[this.bannerType].button || this.t('branding.uiBanner.showAsDialog.defaultButtonText');
+    const showAsDialog = !!this.value[this.bannerType]?.button || false;
+    const buttonText = this.value[this.bannerType]?.button || this.t('branding.uiBanner.showAsDialog.defaultButtonText');
 
     return {
       showAsDialog,
       buttonText,
       uiBannerFontSizeOptions: ['10px', '12px', '14px', '16px', '18px', '20px'],
-      themeVars:               { bannerTextColor: getComputedStyle(document.body).getPropertyValue('--banner-text-color') }
+      themeVars:               {
+        bannerBgColor:   getComputedStyle(document.body).getPropertyValue('--default'),
+        bannerTextColor: getComputedStyle(document.body).getPropertyValue('--banner-text-color')
+      }
     };
   },
 
@@ -142,7 +145,7 @@ export default ({
           <ColorInput v-model="value[bannerType].color" :default-value="themeVars.bannerTextColor" :label="t('branding.uiBanner.textColor')" />
         </div>
         <div class="col span-6">
-          <ColorInput v-model="value[bannerType].background" :label="t('branding.uiBanner.background')" />
+          <ColorInput v-model="value[bannerType].background" :default-value="themeVars.bannerBgColor" :label="t('branding.uiBanner.background')" />
         </div>
       </div>
     </div>

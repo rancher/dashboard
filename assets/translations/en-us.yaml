@@ -6195,7 +6195,7 @@ branding:
     showConsent: Show Consent Banner on Login Screen
     showAsDialog:
       defaultButtonText: Accept
-      label: Show Consent Banner on Login Screen
+      label: Show Login Consent as a modal dialog
       tooltip: Show a modal dialog on the login screen that must be accepted by a user before they can login
     bannerAlignment:
       label: Text Alignment
