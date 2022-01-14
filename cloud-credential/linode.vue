@@ -7,7 +7,7 @@ export default {
   mixins:     [CreateEditView],
 
   watch: {
-    'value.decodedData.accessToken'(neu) {
+    'value.decodedData.token'(neu) {
       this.$emit('validationChanged', !!neu);
     }
   },
@@ -16,7 +16,7 @@ export default {
     async test() {
       try {
         await this.$store.dispatch('linode/request', {
-          token:   this.value.decodedData.accessToken,
+          token:   this.value.decodedData.token,
           command: 'profile'
         });
 
@@ -32,12 +32,12 @@ export default {
 <template>
   <div>
     <LabeledInput
-      :value="value.decodedData.accessToken"
+      :value="value.decodedData.token"
       label-key="cluster.credential.linode.accessToken.label"
       placeholder-key="cluster.credential.linode.accessToken.placeholder"
       type="password"
       :mode="mode"
-      @input="value.setData('accessToken', $event);"
+      @input="value.setData('token', $event);"
     />
     <p class="text-muted mt-10" v-html="t('cluster.credential.linode.accessToken.help', {}, true)" />
   </div>

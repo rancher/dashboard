@@ -21,9 +21,9 @@ const credentialOptions = {
     keys:       ['subscriptionId', 'tenantId', 'clientId', 'clientSecret']
   },
   linode: {
-    publicKey:  'accessToken',
+    publicKey:  'token',
     publicMode: 'prefix',
-    keys:       'accessToken'
+    keys:       'token'
   }
 };
 
