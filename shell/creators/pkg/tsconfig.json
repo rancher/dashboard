@@ -1,6 +1,45 @@
 {
-  "extends": "../../node_modules/shell/pkg/tsconfig.json",
   "compilerOptions": {
-    "rootDir": "."
-  }
+    "target": "ES2018",
+    "module": "esnext",
+    "strict": true,
+    "jsx": "preserve",
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "rootDir": ".",
+    "preserveSymlinks": true,
+    "types": [
+      "@types/node",
+      "@nuxt/types",
+      "cypress"
+    ],
+    "paths": {
+      "@/*": [
+        "src/*"
+      ],
+      "@shell/*": [
+        ".shell/*"
+      ]
+    },
+    "lib": [
+      "ESNext",
+      "ESNext.AsyncIterable",
+      "DOM"
+    ],
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.vue",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

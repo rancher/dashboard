@@ -105,12 +105,20 @@ module.exports = function(dir) {
         'js-yaml': '__jsyaml'
       };
 
-      // config.plugins.forEach((plugin) => {
-      //   if (plugin.constructor.name === 'ForkTsCheckerWebpackPlugin') {
-      //     // Update location of the tsconfig file
-      //     plugin.tsconfig = tsConfigFile;
-      //   }
-      // });
+      // Prevent warning in log with the md files in the content folder
+      config.module.rules.push({
+        test:    /\.md$/,
+        use:  [
+          {
+            loader:  'url-loader',
+            options: {
+              name:     '[path][name].[ext]',
+              limit:    1,
+              esModule: false
+            },
+          }
+        ]
+      });
 
       // TODO: Check to see if we can do this with the css config
       config.module.rules.forEach((rule) => {
@@ -118,7 +126,7 @@ module.exports = function(dir) {
           rule.oneOf.forEach((r) => {
             r.use.forEach((loader) => {
               if (loader.loader.includes('sass-loader')) {
-                loader.options.additionalData = `@use 'sass:math'; @import '${ SHELL }/assets/styles/base/_variables.scss'; @import '${ SHELL }/assets/styles/base/_functions.scss'; @import '${ SHELL }/assets/styles/base/_mixins.scss'; `;
+                loader.options.prependData = `@use 'sass:math'; @import '${ SHELL }/assets/styles/base/_variables.scss'; @import '${ SHELL }/assets/styles/base/_functions.scss'; @import '${ SHELL }/assets/styles/base/_mixins.scss'; `;
               }
             });
           });
