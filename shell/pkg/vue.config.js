@@ -62,13 +62,19 @@ module.exports = function(dir) {
         }
       });
 
+      // Prevent the dynamic imoporter and the model-loader from importing anything dynamically - we don't want all of the
+      // models etc when we build as a library
       const dynamicImporterOveride = new webpack.NormalModuleReplacementPlugin(/dynamic-importer$/, (resource) => {
         resource.request = path.join(__dirname, 'dynamic-importer.lib.js');
       });
 
+      const modelLoaderImporterOveride = new webpack.NormalModuleReplacementPlugin(/model-loader$/, (resource) => {
+        resource.request = path.join(__dirname, 'model-loader.lib.js');
+      });
+
       // Auto-generate module to import the types (model, detail, edit etc)
       const autoImportPlugin = new VirtualModulesPlugin({ 'node_modules/@ranch/auto-import': generateTypeImport('@pkg', dir) });
-      // Ensure that the dyanmic-importer does not import anything when used in a library
+      // Ensure that the dynanmic-importer does not import anything when used in a library
       const ctxOverride = new webpack.ContextReplacementPlugin(/^@\//, (context) => {
         const folder = context.request.split('/')[1];
 
@@ -93,6 +99,7 @@ module.exports = function(dir) {
 
       config.plugins.unshift(nmrp);
       config.plugins.unshift(dynamicImporterOveride);
+      config.plugins.unshift(modelLoaderImporterOveride);
       config.plugins.unshift(ctxOverride);
       config.plugins.unshift(autoImportPlugin);
       // config.plugins.unshift(debug);
