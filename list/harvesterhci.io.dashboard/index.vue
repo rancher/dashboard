@@ -340,7 +340,11 @@ export default {
     },
 
     cpuReserved() {
-      const useful = this.pods.reduce((sum, pod) => {
+      const useful = this.pods.filter((pod) => {
+        const nodeName = pod?.spec?.nodeName;
+
+        return this.availableNodes.includes(nodeName);
+      }).reduce((sum, pod) => {
         const containers = pod?.spec?.containers || [];
 
         const containerCpuReserved = containers.reduce((sum, c) => {
@@ -361,7 +365,11 @@ export default {
     },
 
     ramReserved() {
-      const useful = this.pods.reduce((sum, pod) => {
+      const useful = this.pods.filter((pod) => {
+        const nodeName = pod?.spec?.nodeName;
+
+        return this.availableNodes.includes(nodeName);
+      }).reduce((sum, pod) => {
         const containers = pod?.spec?.containers || [];
 
         const containerMemoryReserved = containers.reduce((sum, c) => {
@@ -376,6 +384,10 @@ export default {
       }, 0);
 
       return this.createMemoryValues(this.memorysTotal, useful);
+    },
+
+    availableNodes() {
+      return (this.metricNodes || []).map(node => node.id);
     },
   },
 
