@@ -120,7 +120,10 @@ export default {
       const parsedNewValue = parseSi(newValue, this.siOptions) || 0;
       const min = Math.max(parsedNewValue, 0);
       const max = Math.min(min, this.max);
-      const value = formatSi(max, this.siOptions);
+      const value = formatSi(max, {
+        ...this.siOptions,
+        addSuffixSpace: false
+      });
 
       this.$emit('input', this.type, value);
     }
