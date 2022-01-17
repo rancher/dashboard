@@ -41,13 +41,13 @@ In a new console window, install and run [Verdaccio](https://verdaccio.org) (thi
 
 ```
 yarn global add verdaccio
-npm adduser --registry http://localhost:4873  (just add a user with username/password: admin/admin)
 verdaccio
 ```
 
 Now, back in the original console window, run:
 
 ```
+npm adduser --registry http://localhost:4873  (just add a user with username/password: admin/admin)
 yarn publish ./shell/creators/app --patch
 yarn publish ./shell/creators/pkg --patch
 ```
