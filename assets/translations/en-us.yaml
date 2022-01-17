@@ -4247,11 +4247,7 @@ tableHeaders:
   endpoints: Endpoints
   flow: Flow
   gitRepos: Git Repos
-  host: |-
-    {count, plural,
-      one { Host }
-      other { Hosts }
-    }
+  host: Host
   health: Health
   id: ID
   image: Image
