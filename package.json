@@ -137,7 +137,6 @@
     "eslint-plugin-vue": "7.14.0",
     "nodemon": "^2.0.2",
     "nyc": "^15.0.0",
-    "sass-loader": "^10.2.0",
     "serve-static": "^1.14.1",
     "start-server-and-test": "^1.13.1",
     "style-loader": "^1.1.2",
