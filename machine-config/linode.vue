@@ -29,7 +29,7 @@ export default {
     this.errors = [];
 
     try {
-      if (this.credentialId) {
+      if ( this.credentialId ) {
         this.credential = await this.$store.dispatch('rancher/find', {
           type: NORMAN.CLOUD_CREDENTIAL,
           id:   this.credentialId
@@ -44,13 +44,13 @@ export default {
 
       let defaultRegion = 'us-west';
 
-      if (!this.regionOptions.find(x => x.value === defaultRegion)) {
+      if ( !this.regionOptions.find(x => x.value === defaultRegion) ) {
         defaultRegion = this.regionOptions[0]?.value;
       }
 
       const region = this.value.region || this.credential?.defaultRegion || defaultRegion;
 
-      if (!this.value.region) {
+      if ( !this.value.region ) {
         this.value.region = region;
       }
 
@@ -58,15 +58,15 @@ export default {
 
       let defaultInstanceType = 'g6-standard-2';
 
-      if (!this.instanceOptions.find(x => x.value === defaultInstanceType)) {
+      if ( !this.instanceOptions.find(x => x.value === defaultInstanceType) ) {
         defaultInstanceType = this.instanceOptions.find(x => x.memoryGb >= 4)?.value;
 
-        if (!defaultInstanceType) {
+        if ( !defaultInstanceType ) {
           defaultInstanceType = this.instanceOptions[0].value;
         }
       }
 
-      if (!this.value.instanceType) {
+      if ( !this.value.instanceType ) {
         this.value.instanceType = defaultInstanceType;
       }
 
@@ -74,13 +74,15 @@ export default {
 
       let defaultImage = 'linode/ubuntu20.04';
 
-      if (!this.imageOptions.find(x => x.value === defaultImage)) {
+      if ( !this.imageOptions.find(x => x.value === defaultImage) ) {
         defaultImage = this.imageOptions[0].value;
       }
 
-      if (!this.value.image) {
+      if ( !this.value.image ) {
         this.value.image = defaultImage;
       }
+
+      this.updateInterfaces();
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
     }
@@ -107,7 +109,15 @@ export default {
     }
   },
 
-  methods: { stringify }
+  methods: {
+    stringify,
+
+    updateInterfaces() {
+      if ( !this.value.interfaces ) {
+        this.value.interfaces = [];
+      }
+    }
+  }
 };
 </script>
 

@@ -112,8 +112,6 @@ export const actions = {
 
     if ( credentialId ) {
       headers['X-API-CattleAuth-Header'] = `Bearer credID=${ credentialId } passwordField=token`;
-    } else if ( token ) {
-      headers['X-API-Auth-Header'] = `Bearer ${ token }`;
     }
 
     const res = await dispatch('management/request', {
