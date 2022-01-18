@@ -1,6 +1,6 @@
 <script>
 import BrandImage from '@/components/BrandImage';
-import RancherProviderIcon from '@/components/RancherProviderIcon';
+import ClusterProviderIcon from '@/components/ClusterProviderIcon';
 import { mapGetters } from 'vuex';
 import $ from 'jquery';
 import { MANAGEMENT } from '@/config/types';
@@ -19,7 +19,7 @@ const UI_COMMIT = process.env.COMMIT || UNKNOWN;
 
 export default {
 
-  components: { BrandImage, RancherProviderIcon },
+  components: { BrandImage, ClusterProviderIcon },
 
   data() {
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
@@ -61,12 +61,13 @@ export default {
 
       return kubeClusters.map((x) => {
         return {
-          id:      x.id,
-          label:   x.nameDisplay,
-          ready:   x.isReady,
-          osLogo:  x.providerOsLogo,
-          logo:    x.providerMenuLogo,
-          isLocal: x.isLocal
+          id:              x.id,
+          label:           x.nameDisplay,
+          ready:           x.isReady,
+          osLogo:          x.providerOsLogo,
+          providerNavLogo: x.providerMenuLogo,
+          badge:           x.badge,
+          isLocal:         x.isLocal
         };
       });
     },
@@ -245,8 +246,7 @@ export default {
                   class="cluster selector option"
                   :to="{ name: 'c-cluster', params: { cluster: c.id } }"
                 >
-                  <RancherProviderIcon v-if="c.isLocal" width="24" class="rancher-provider-icon" />
-                  <img v-else :src="c.logo" />
+                  <ClusterProviderIcon :small="true" :cluster="c" class="rancher-provider-icon mr-10" />
                   <div>{{ c.label }}</div>
                 </nuxt-link>
                 <span v-else class="option-disabled cluster selector disabled">
@@ -373,7 +373,6 @@ export default {
         fill: var(--link);
       }
     }
-
   }
 
   .localeSelector {
@@ -576,7 +575,7 @@ export default {
       }
 
       .clusters {
-        overflow-y: scroll;
+        overflow-y: auto;
         overflow-x: hidden;
       }
 
