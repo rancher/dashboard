@@ -69,7 +69,7 @@ export default class EpinioService extends EpinioResource {
         accept:         'application/json'
       },
       data: {
-        name:          this.meta.name,
+        name: this.meta.name,
         data: { ...this.data }
       }
     });
@@ -84,8 +84,8 @@ export default class EpinioService extends EpinioResource {
         accept:         'application/json'
       },
       data: {
-        name:          this.meta.name,
-        data: { ...this.keyValuePairs }
+        name: this.meta.name,
+        edit: { ...this.data }
       }
     });
   }

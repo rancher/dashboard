@@ -76,7 +76,7 @@ export function init(store) {
   componentForType(EPINIO_TYPES.SERVICE, undefined, EPINIO_PRODUCT_NAME);
   configureType(EPINIO_TYPES.SERVICE, {
     isCreatable: true,
-    isEditable:  false,
+    isEditable:  true,
     isRemovable: true,
     showState:   false,
     showAge:     false,
