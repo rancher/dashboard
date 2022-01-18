@@ -51,6 +51,7 @@ const DEFAULT_BANNER_SETTING = {
     fontSize:        '14px',
     textDecoration:  null,
     text:            null,
+    button:          null,
   },
   showHeader:   'false',
   showFooter:   'false',
