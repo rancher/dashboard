@@ -87,3 +87,15 @@ export function loadTranslation(name) {
 export function importCustomPromptRemove(name) {
   return () => import(/* webpackChunkName: "custom-prompt-remove" */ `@/promptRemove/${ name }`);
 }
+
+export function resolveList(key) {
+  return require.resolve(`@/list/${ key }`);
+}
+
+export function resolveEdit(key) {
+  return require.resolve(`@/edit/${ key }`);
+}
+
+export function resolveDetail(key) {
+  return require.resolve(`@/detail/${ key }`);
+}

@@ -26,13 +26,4 @@ export default function({
   // Global libraries - allows us to externalise these to reduce package bundle size
   window.__jszip = JSZip;
   window.__jsyaml = jsyaml;
-
-  // Add in the plugins nav
-  store.commit('nav/addNav', {
-    id:       'plugins',
-    label:    'Plugins',
-    icon:     'icon-gear',
-    category: 'configuration',
-    route:    { name: 'plugins' }
-  });
 }

@@ -44,3 +44,15 @@ export function loadTranslation(name) {
 export function importCustomPromptRemove(name) {
   return () => undefined;
 }
+
+export function resolveList(key) {
+  return undefined;
+}
+
+export function resolveEdit(key) {
+  return undefined;
+}
+
+export function resolveDetail(key) {
+  return undefined;
+}

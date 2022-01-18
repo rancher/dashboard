@@ -475,6 +475,7 @@ export default function(dir, _appConfig) {
       '~/plugins/replaceall',
       '~/plugins/back-button',
       { src: '~/plugins/extensions', ssr: false },
+      { src: '~/plugins/codemirror-loader', ssr: false },
     ],
 
     // Proxy: https://github.com/nuxt-community/proxy-module#options

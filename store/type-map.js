@@ -122,7 +122,8 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@/utils/string';
 import {
-  importList, importDetail, importEdit, loadProduct, importCustomPromptRemove
+  importList, importDetail, importEdit, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveDetail
+
 } from '@/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@/config/product/explorer';
@@ -967,7 +968,7 @@ export const getters = {
     return (rawType) => {
       const key = getters.componentFor(rawType);
 
-      return hasCustom(state, rootState, 'list', key, key => require.resolve(`@/list/${ key }`));
+      return hasCustom(state, rootState, 'list', key, key => resolveList(key));
     };
   },
 
@@ -975,7 +976,7 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'detail', key, key => require.resolve(`@/detail/${ key }`));
+      return hasCustom(state, rootState, 'detail', key, key => resolveDetail(key));
     };
   },
 
@@ -983,19 +984,13 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'edit', key, key => require.resolve(`@/edit/${ key }`));
+      return hasCustom(state, rootState, 'edit', key, key => resolveEdit(key));
     };
   },
 
-  hasComponent(state, getters) {
+  hasComponent(state, getters, rootState) {
     return (path) => {
-      try {
-        require.resolve(`@/edit/${ path }`);
-
-        return true;
-      } catch (e) {
-        return false;
-      }
+      return hasCustomEdit(state, rootState, 'edit', path => resolveEdit(path));
     };
   },
 
@@ -1679,7 +1674,7 @@ function hasCustom(state, rootState, kind, key, fallback) {
     return cache[key];
   }
 
-  // Check to see if the custom kidn is provided by an extension
+  // Check to see if the custom kind is provided by an extension
   if (!!rootState.$extension.getDynamic(kind, key)) {
     cache[key] = true;
 
