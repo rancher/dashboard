@@ -119,8 +119,9 @@ for i in "${contextFolders[@]}"
     grep -rl ${GREP_EXCLUDES} . -e '@/'"$i"'' | xargs -r sed -i.bak -e "s/'@\/""$i""/'@shell\/""$i""/g"
     grep -rl ${GREP_EXCLUDES} . -e '`@/'"$i"'' | xargs -r sed -i.bak -e "s/\`@\/""$i""/\`@shell\/""$i""/g"
     grep -rl ${GREP_EXCLUDES} . -e '~/'"$i"'' | xargs -r sed -i.bak -e "s/~\/""$i""/~shell\/""$i""/g"
-
     grep -rl ${GREP_EXCLUDES} . -e '~'"$i"'' | xargs -r sed -i.bak -e "s/~""$i""/~shell\/""$i""/g"
+
+    find . -type f -name "*.bak" -delete
   done
 
 echo "Moving folders ..."

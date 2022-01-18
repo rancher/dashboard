@@ -990,7 +990,7 @@ export const getters = {
 
   hasComponent(state, getters, rootState) {
     return (path) => {
-      return hasCustomEdit(state, rootState, 'edit', path => resolveEdit(path));
+      return hasCustom(state, rootState, 'edit', path, path => resolveEdit(path));
     };
   },
 

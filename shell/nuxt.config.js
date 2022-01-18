@@ -302,6 +302,18 @@ export default function(dir, _appConfig) {
           }
         }
 
+        // Any packages that have been excluded should be excluded from webpack watching, so you can edit those
+        // without the app updating - you can then build their packages and test them dynamically
+        if (excludes.length) {
+          const excludePaths = [];
+
+          excludes.forEach((e) => {
+            excludePaths.push(path.resolve(dir, `pkg/${ e }`));
+          });
+
+          config.plugins.unshift(new webpack.WatchIgnorePlugin(excludePaths));
+        }
+
         config.resolve.symlinks = false;
 
         // Ensure we process files in the @ranch/shell folder
