@@ -4241,11 +4241,7 @@ tableHeaders:
   endpoints: 端点
   flow: Flow
   gitRepos: Git 仓库
-  host: |-
-    {count, plural,
-      one { 主机 }
-      other { 主机 }
-    }
+  host: 主机
   health: 健康
   id: ID
   image: 镜像

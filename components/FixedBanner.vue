@@ -25,12 +25,19 @@ export default {
 
   data() {
     return {
+      showDialog:      true,
       showHeader:      false,
       showFooter:      false,
       showConsent:     false,
       banner:          {},
       bannerSetting:   null
     };
+  },
+
+  methods: {
+    hideDialog() {
+      this.showDialog = false;
+    }
   },
 
   computed: {
@@ -45,7 +52,12 @@ export default {
         'text-decoration':  this.banner.textDecoration ? 'underline' : ''
       };
     },
-
+    dialogStyle() {
+      return {
+        color:              this.banner.color,
+        'background-color': this.banner.background
+      };
+    },
     showBanner() {
       if (!this.banner.text && !this.banner.background) {
         return false;
@@ -60,6 +72,10 @@ export default {
       }
 
       return null;
+    },
+
+    showAsDialog() {
+      return !!this.banner.button;
     }
   },
 
@@ -97,17 +113,85 @@ export default {
 </script>
 
 <template>
-  <div v-if="showBanner" class="banner" :style="bannerStyle">
-    {{ banner.text }}
+  <div v-if="showBanner">
+    <div v-if="!showAsDialog" class="banner" :style="bannerStyle" :class="{'banner-consent': showConsent}">
+      {{ banner.text }}
+    </div>
+    <div v-else-if="showDialog">
+      <div class="banner-dialog-glass"></div>
+      <div class="banner-dialog">
+        <div class="banner-dialog-frame" :style="dialogStyle">
+          <div class="banner" :style="bannerStyle">
+            {{ banner.text }}
+          </div>
+          <button class="btn role-primary" @click="hideDialog()">
+            {{ banner.button }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
-<style scoped>
-    .banner {
-        text-align: center;
-        line-height: 2em;
-        height: 2em;
-        width: 100%;
-        padding: 0 20px;
+<style lang="scss" scoped>
+  .banner {
+    text-align: center;
+    line-height: 2em;
+    height: 2em;
+    width: 100%;
+    padding: 0 20px;
+
+    &.banner-consent {
+      position: absolute;
+      height: unset;
+      min-height: 2em;
+      max-height: 4em;
+      overflow: hidden;
     }
+  }
+  .banner-dialog, .banner-dialog-glass {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 100vh;
+  }
+  .banner-dialog-glass {
+    z-index: 5000;
+    background-color: var(--default);
+    opacity: 0.75;
+  }
+  .banner-dialog {
+    z-index: 5001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .banner-dialog-frame {
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      padding: 20px;
+      height: fit-content;
+      width: fit-content;
+      min-width: 50%;
+      max-width: 80%;
+      max-height: 90%;
+
+      .banner {
+        height: initial;
+        overflow-y: auto;
+      }
+
+      button {
+        margin-top: 10px;
+        max-width: 50%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: fit-content;
+      }
+    }
+  }
 </style>

@@ -1423,6 +1423,9 @@ cluster:
           }
     quantity:
       label: Machine Count
+    drain:
+      header: Drain
+      label: Drain Before Delete
     role:
       label: Roles
     labels:
@@ -2282,6 +2285,8 @@ logging:
       label: Client Key from Secret
       placeholder: Paste in the client key
     clientKeyPass: Client Key Pass from Secret
+    verifySsl: Verify SSL
+    sslVersion: SSL Version
   gelf:
     host: Host
     port: Port
@@ -4246,11 +4251,7 @@ tableHeaders:
   endpoints: Endpoints
   flow: Flow
   gitRepos: Git Repos
-  host: |-
-    {count, plural,
-      one { Host }
-      other { Hosts }
-    }
+  host: Host
   health: Health
   id: ID
   image: Image
@@ -6207,11 +6208,16 @@ branding:
   uiBanner:
     label: Fixed Banners
     text: Text
+    buttonText: Accept Button Text
     textColor: Text Color
     background: Background Color
     showHeader: Show Banner in Header
     showFooter: Show Banner in Footer
     showConsent: Show Consent Banner on Login Screen
+    showAsDialog:
+      defaultButtonText: Accept
+      label: Show Login Consent as a modal dialog
+      tooltip: Show a modal dialog on the login screen that must be accepted by a user before they can login
     bannerAlignment:
       label: Text Alignment
       leftOption: Left
@@ -6335,6 +6341,7 @@ legacy:
   apps: Apps
   catalogs: Catalogs
   cis-scans: CIS Scans
+  configMaps: Config Maps
   configuration: Configuration
   globalDnsEntries: Global DNS Entries
   globalDnsProviders: Global DNS Providers

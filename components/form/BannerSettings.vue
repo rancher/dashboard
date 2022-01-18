@@ -26,10 +26,34 @@ export default ({
   },
 
   data() {
+    const showAsDialog = !!this.value[this.bannerType]?.button || false;
+    const buttonText = this.value[this.bannerType]?.button || this.t('branding.uiBanner.showAsDialog.defaultButtonText');
+
     return {
+      showAsDialog,
+      buttonText,
       uiBannerFontSizeOptions: ['10px', '12px', '14px', '16px', '18px', '20px'],
-      themeVars:               { bannerTextColor: getComputedStyle(document.body).getPropertyValue('--banner-text-color') }
+      themeVars:               {
+        bannerBgColor:   getComputedStyle(document.body).getPropertyValue('--default'),
+        bannerTextColor: getComputedStyle(document.body).getPropertyValue('--banner-text-color')
+      }
     };
+  },
+
+  watch: {
+    showAsDialog(neu, old) {
+      if (neu !== old && !neu) {
+        this.value[this.bannerType].button = '';
+      } else {
+        this.value[this.bannerType].button = this.buttonText;
+      }
+    },
+
+    buttonText(neu, old) {
+      if (neu !== old) {
+        this.value[this.bannerType].button = neu;
+      }
+    }
   },
 
   computed: {
@@ -72,6 +96,17 @@ export default ({
       <div class="row">
         <div class="col span-6">
           <LabeledInput v-model="value[bannerType].text" :label="t('branding.uiBanner.text')" />
+          <div v-if="bannerType === 'bannerConsent'" class="mt-10">
+            <Checkbox
+              v-model="showAsDialog"
+              name="bannerDecoration"
+              class="banner-decoration-checkbox"
+              :mode="mode"
+              :label="t('branding.uiBanner.showAsDialog.label')"
+              :tooltip="t('branding.uiBanner.showAsDialog.tooltip')"
+            />
+            <LabeledInput v-model="buttonText" :disabled="!showAsDialog" :label="t('branding.uiBanner.buttonText')" />
+          </div>
         </div>
         <div class="col span-2">
           <RadioGroup
@@ -110,7 +145,7 @@ export default ({
           <ColorInput v-model="value[bannerType].color" :default-value="themeVars.bannerTextColor" :label="t('branding.uiBanner.textColor')" />
         </div>
         <div class="col span-6">
-          <ColorInput v-model="value[bannerType].background" :label="t('branding.uiBanner.background')" />
+          <ColorInput v-model="value[bannerType].background" :default-value="themeVars.bannerBgColor" :label="t('branding.uiBanner.background')" />
         </div>
       </div>
     </div>

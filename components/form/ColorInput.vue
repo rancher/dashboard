@@ -34,6 +34,11 @@ export default {
     inputValue() {
       return this.value ? this.value : this.defaultValue;
     }
+  },
+
+  mounted() {
+    // Ensures that if the default value is used, the model is updated with it
+    this.$emit('input', this.inputValue);
   }
 };
 </script>
@@ -45,7 +50,7 @@ export default {
       <span :style="{'background-color': inputValue}" class="color-display">
         <input ref="input" type="color" :value="inputValue" @input="$emit('input', $event.target.value)" />
       </span>
-      <span class="text-muted">{{ inputValue }}</span>
+      <span class="text-muted color-value">{{ inputValue }}</span>
     </div>
   </div>
 </template>
@@ -59,11 +64,15 @@ export default {
   LABEL{
     display: block;
   }
+
   .preview-container{
     &:hover {
       cursor: pointer;
     }
 
+    .color-value {
+      margin-left: 4px;
+    }
   }
 
   .color-display{

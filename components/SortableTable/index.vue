@@ -533,7 +533,7 @@ export default {
               </button>
               <ActionDropdown :id="bulkActionsDropdownId" class="bulk-actions-dropdown" :disable-button="!actionAvailability" size="sm">
                 <template #button-content>
-                  <button class="btn bg-primary mr-0" :disabled="!actionAvailability">
+                  <button ref="actionDropDown" class="btn bg-primary mr-0" :disabled="!tableSelected.length">
                     <i class="icon icon-gear" />
                     <span>{{ t('harvester.tableHeaders.actions') }}</span>
                     <i class="ml-10 icon icon-chevron-down" />
@@ -545,6 +545,7 @@ export default {
                       v-for="act in hiddenActions"
                       :key="act.action"
                       v-close-popover
+                      :class="{ disabled: !act.enabled }"
                       @click="applyTableAction(act, null, $event)"
                       @mouseover="setBulkActionOfInterest(act)"
                       @mouseleave="setBulkActionOfInterest(null)"
@@ -1007,6 +1008,21 @@ $spacing: 10px;
       margin-left: $gap;
       vertical-align: middle;
       margin-top: 2px;
+    }
+
+    .dropdown-button {
+      $disabled-color: var(--disabled-text);
+      $disabled-cursor: not-allowed;
+      li.disabled {
+        color: $disabled-color;
+        cursor: $disabled-cursor;
+
+        &:hover {
+          color: $disabled-color;
+          background-color: unset;
+          cursor: $disabled-cursor;
+        }
+      }
     }
   }
 

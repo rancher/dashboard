@@ -86,6 +86,12 @@ export default {
         value: 'pool',
       }];
     },
+
+    portOptions() {
+      const ports = this.value?.spec?.ports || [];
+
+      return ports.filter(p => p.port && p.protocol === 'TCP').map(p => p.port) || [];
+    },
   },
 
   methods: {
@@ -125,6 +131,7 @@ export default {
           :mode="mode"
           :options="ipamOptions"
           :label="t('harvester.service.ipam.label')"
+          :disabled="mode === 'edit'"
         />
       </div>
     </div>
@@ -144,11 +151,11 @@ export default {
     <div v-if="healthCheckEnabled">
       <div class="row mt-10">
         <div v-if="healthCheckEnabled" class="col span-6">
-          <LabeledInput
+          <LabeledSelect
             v-model="healthcheckPort"
             :mode="mode"
+            :options="portOptions"
             required
-            type="number"
             :label="t('harvester.service.healthCheckPort.label')"
             :tooltip="t('harvester.service.healthCheckPort.description')"
           />
