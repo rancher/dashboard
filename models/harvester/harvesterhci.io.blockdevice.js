@@ -6,7 +6,10 @@ export default class HciBlockDevice extends SteveModel {
     const inStore = this.$rootGetters['currentProduct'].inStore;
     const bds = this.$rootGetters[`${ inStore }/all`](HCI.BLOCK_DEVICE);
 
-    const parts = bds.filter(b => b.status?.deviceStatus?.parentDevice === this.spec?.devPath);
+    const parts = bds.filter((b) => {
+      return b.status?.deviceStatus?.parentDevice === this.spec?.devPath &&
+              b.spec.nodeName === this.spec.nodeName;
+    });
 
     return parts;
   }
