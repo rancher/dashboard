@@ -539,7 +539,7 @@ export default {
           <template #group-by="{group}">
             <div class="pool-row" :class="{'has-description':group.ref && group.ref.nodeTemplate}">
               <div v-trim-whitespace class="group-tab">
-                <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix, count: group.rows.length}, true)">
+                <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix, count: group.ref.scale}, true)">
                 </div>
                 <div v-else v-html="t('resourceTable.groupLabel.notInANodePool')">
                 </div>
