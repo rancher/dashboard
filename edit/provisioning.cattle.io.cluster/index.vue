@@ -248,18 +248,12 @@ export default {
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         const techPreview = getters['i18n/t']('generic.techPreview');
         const isTechPreview = group === 'rke2' || group === 'custom2';
-        let tag = isTechPreview ? techPreview : getters['i18n/withFallback'](`cluster.providerTag."${ id }"`, { techPreview }, '');
+        const tag = isTechPreview ? techPreview : getters['i18n/withFallback'](`cluster.providerTag."${ id }"`, { techPreview }, '');
         let icon = require('~/assets/images/generic-driver.svg');
 
         try {
           icon = require(`~/assets/images/providers/${ id }.svg`);
         } catch (e) {}
-
-        if (group === 'rke2' && id === 'harvester') {
-          const experimental = getters['i18n/t']('generic.experimental');
-
-          tag = getters['i18n/withFallback'](`cluster.providerTag.rke2."${ id }"`, { tag: experimental }, '');
-        }
 
         const subtype = {
           id,
