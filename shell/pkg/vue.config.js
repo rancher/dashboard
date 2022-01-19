@@ -127,6 +127,13 @@ module.exports = function(dir) {
         ]
       });
 
+      // Yaml files - used for i18n translations
+      config.module.rules.unshift({
+        test:    /\.ya?ml$/i,
+        loader:  'js-yaml-loader',
+        options: { name: '[path][name].[ext]' },
+      });
+
       // TODO: Check to see if we can do this with the css config
       config.module.rules.forEach((rule) => {
         if ('file.scss'.match(rule.test)) {

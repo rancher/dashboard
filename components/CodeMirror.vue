@@ -52,7 +52,7 @@ export default {
           this.loaded = true;
         });
       } else {
-        console.error('Code mirror loader not available');
+        console.error('Code mirror loader not available'); // eslint-disable-line no-console
       }
     }
   },

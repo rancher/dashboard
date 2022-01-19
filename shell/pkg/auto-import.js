@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const contextFolders = ['chart', 'cloud-credential', 'content', 'detail', 'edit', 'list', 'machine-config', 'models', 'promptRemove'];
+const contextFolders = ['chart', 'cloud-credential', 'content', 'detail', 'edit', 'list', 'machine-config', 'models', 'promptRemove', 'i18n'];
 const contextMap = contextFolders.reduce((map, obj) => {
   map[obj] = true;
 
@@ -24,8 +24,9 @@ function generateTypeImport(pkg, dir) {
       fs.readdirSync(path.join(dir, f)).forEach((file) => {
         const name = file.replace(/\.[^/.]+$/, '');
         const importType = (f === 'models') ? 'require' : 'import';
+        const chunkName = (f === 'i18n') ? '' : `/* webpackChunkName: "${ f }" */`;
 
-        content += `  $extension.registerDynamics({ '${ f }': { '${ name }': () => ${ importType }(/* webpackChunkName: "${ f }" */'${ pkg }/${ f }/${ file }') } });\n`;
+        content += `  $extension.register('${ f }', '${ name }', () => ${ importType }(${ chunkName }'${ pkg }/${ f }/${ file }'));\n`;
       });
     }
   });
@@ -49,8 +50,10 @@ function generateDynamicTypeImport(pkg, dir) {
     if (fs.existsSync(path.join(dir, f))) {
       let genImport = replaceAll(template, 'NAME', f);
       const importType = (f === 'models') ? 'require' : 'import';
+      const chunkName = (f === 'i18n') ? '' : `/* webpackChunkName: "${ f }" */`;
 
       genImport = replaceAll(genImport, 'BASE', pkg);
+      genImport = replaceAll(genImport, 'CHUNK', chunkName);
       content += replaceAll(genImport, 'REQUIRE', importType);
     }
   });

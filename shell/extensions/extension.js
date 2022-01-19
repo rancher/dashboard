@@ -1,4 +1,3 @@
-import merge from 'lodash/merge';
 import { DSL, productsLoaded } from '@shell/store/type-map';
 
 export default function({
@@ -8,6 +7,7 @@ export default function({
   redirect
 }, inject) {
   const dynamic = {};
+  let _lastLoaded = 0;
 
   inject('extension', {
 
@@ -51,6 +51,10 @@ export default function({
             return reject(new Error('Could not load plugin code'));
           }
 
+          // Update the timestamp that new plugins were loaded - may be needed
+          // to update caches when new plugins are loaded
+          _lastLoaded = new Date().getTime();
+
           window[name].default(router, store, this);
           resolve();
         };
@@ -64,17 +68,34 @@ export default function({
       });
     },
 
-    registerDynamics(obj) {
-      merge(dynamic, obj);
+    register(type, name, fn) {
+      if (!dynamic[type]) {
+        dynamic[type] = {};
+      }
+
+      // Accumulate i18n resources
+      if (type === 'i18n') {
+        if (!dynamic[type][name]) {
+          dynamic[type][name] = [];
+        }
+
+        dynamic[type][name].push(fn);
+      } else {
+        dynamic[type][name] = fn;
+      }
     },
 
-    // For debugging
+     // For debugging
     getAll() {
       return dynamic;
     },
 
     getDynamic(typeName, name) {
       return dynamic[typeName]?.[name];
+    },
+
+    get lastLoad() {
+      return _lastLoaded;
     },
 
     listDynamic(typeName) {
@@ -111,5 +132,9 @@ export default function({
         this.loadProducts(products);
       }
     },
+
+    addLocale(locale, label) {
+      store.dispatch('i18n/addLocale', { locale, label });
+    }
   });
 }
