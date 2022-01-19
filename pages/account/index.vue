@@ -30,12 +30,15 @@ export default {
     // Get all settings - the API host setting may not be set, so this avoids a 404 request if we look for the specific setting
     const allSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
     const apiHostSetting = allSettings.find(i => i.id === SETTING.API_HOST);
+    const serverUrlSetting = allSettings.find(i => i.id === SETTING.SERVER_URL);
 
     this.apiHostSetting = apiHostSetting?.value;
+    this.serverUrlSetting = serverUrlSetting?.value;
   },
   data() {
     return {
       apiHostSetting:    null,
+      serverUrlSetting:  null,
       rows:              null,
       canChangePassword: false
     };
@@ -55,8 +58,8 @@ export default {
         setting = `http://${ setting }`;
       }
 
-      // Note in Ember it used app.apiServer which is only used for dev
-      let url = setting || '';
+      // Use Server Setting URL if the api host setting is not set
+      let url = setting || this.serverUrlSetting;
 
       // If the URL is relative, add on the current base URL from the browser
       if ( url.indexOf('http') !== 0 ) {
