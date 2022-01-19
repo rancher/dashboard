@@ -1,0 +1,615 @@
+{
+  "type": "collection",
+  "links": {
+    "self": "…/v1/policies.kubewarden.io"
+  },
+  "createTypes": {
+    "policy.kubewarden.io.policy": "…/v1/policies.kubewarden.io.policy"
+  },
+  "actions": {},
+  "resourceType": "policy.kubewarden.io.policy",
+  "data": [
+    {
+      "id": "allow-privilege-escalation-psp",
+      "type": "policy.kubewarden.io.policy.allow-privilege-escalation-psp",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "AllowPrivilegeEscalationPsp",
+      "metadata": {
+        "name": "allow-privilege-escalation-psp"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/allow-privilege-escalation-psp:v0.1.10",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "allowed-fsgroups-psp",
+      "type": "policy.kubewarden.io.policy.allowed-fsgroups-psp",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "AllowedFsgroupsPsp",
+      "metadata": {
+        "name": "allowed-fsgroups-psp"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/allowed-fsgroups-psp:v0.1.1",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "allowed-proc-mount-types-psp",
+      "type": "policy.kubewarden.io.policy.allowed-proc-mount-types-psp",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "AllowedProcMountTypesPsp",
+      "metadata": {
+        "name": "allowed-proc-mount-types-psp"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/allowed-proc-mount-types-psp:v0.1.2",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "apparmor-psp",
+      "type": "policy.kubewarden.io.policy.apparmor-psp",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "ApparmorPsp",
+      "metadata": {
+        "name": "apparmor-psp"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/apparmor-psp:v0.1.8",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "capabilities-psp",
+      "type": "policy.kubewarden.io.policy.capabilities-psp",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "CapabilitiesPsp",
+      "metadata": {
+        "name": "capabilities-psp"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/capabilities-psp:v0.1.8",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "disallow-service-loadbalancer",
+      "type": "policy.kubewarden.io.policy.disallow-service-loadbalancer",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "DisallowServiceLoadbalancer",
+      "metadata": {
+        "name": "disallow-service-loadbalancer"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/disallow-service-loadbalancer:v0.1.2",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "service"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "disallow-service-nodeport",
+      "type": "policy.kubewarden.io.policy.disallow-service-nodeport",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "DisallowServiceNodeport",
+      "metadata": {
+        "name": "disallow-service-nodeport"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/disallow-service-nodeport:v0.1.1",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "service"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "flexvolume-drivers-psp",
+      "type": "policy.kubewarden.io.policy.flexvolume-drivers-psp",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "FlexvolumeDriversPsp",
+      "metadata": {
+        "name": "flexvolume-drivers-psp"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/flexvolume-drivers-psp:v0.1.1",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "host-namespaces-psp",
+      "type": "policy.kubewarden.io.policy.host-namespaces-psp",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "HostNamespacesPsp",
+      "metadata": {
+        "name": "host-namespaces-psp"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/host-namespaces-psp:v0.1.1",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "hostpaths-psp",
+      "type": "policy.kubewarden.io.policy.hostpaths-psp",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "HostpathsPsp",
+      "metadata": {
+        "name": "hostpaths-psp"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/hostpaths-psp:v0.1.4",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "ingress",
+      "type": "policy.kubewarden.io.policy.ingress",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "Ingress",
+      "metadata": {
+        "name": "ingress"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/ingress:v0.1.10",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            "networking.k8s.io"
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "ingress"
+          ]
+        },
+        "settings": {
+          "requireTLS": false,
+          "allowPorts": [
+            ""
+          ],
+          "denyPorts": [
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "id": "pod-privileged-policy",
+      "type": "policy.kubewarden.io.policy.pod-privileged-policy",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "PodPrivilegedPolicy",
+      "metadata": {
+        "name": "pod-privileged-policy"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/pod-privileged:v0.1.9",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "pod-runtime",
+      "type": "policy.kubewarden.io.policy.pod-runtime",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "PodRuntime",
+      "metadata": {
+        "name": "pod-runtime"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/pod-runtime:v0.1.3",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "readonly-root-filesystem-psp",
+      "type": "policy.kubewarden.io.policy.readonly-root-filesystem-psp",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "ReadonlyRootFilesystemPsp",
+      "metadata": {
+        "name": "readonly-root-filesystem-psp"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/readonly-root-filesystem-psp:v0.1.2",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "safe-annotations",
+      "type": "policy.kubewarden.io.policy.safe-annotations",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "SafeAnnotations",
+      "metadata": {
+        "name": "safe-annotations"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/safe-annotations:v0.1.0",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "*"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "safe-labels",
+      "type": "policy.kubewarden.io.policy.safe-labels",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "SafeLabels",
+      "metadata": {
+        "name": "safe-labels"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/safe-labels:v0.1.6",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "*"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "seccomp-psp",
+      "type": "policy.kubewarden.io.policy.seccomp-psp",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "SeccompPsp",
+      "metadata": {
+        "name": "seccomp-psp"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/seccomp-psp:v0.1.0",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "selinux-psp",
+      "type": "policy.kubewarden.io.policy.selinux-psp",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "SelinuxPsp",
+      "metadata": {
+        "name": "selinux-psp"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/selinux-psp:v0.1.4",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "sysctl-psp",
+      "type": "policy.kubewarden.io.policy.sysctl-psp",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "SysctlPsp",
+      "metadata": {
+        "name": "sysctl-psp"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/sysctl-psp:v0.1.6",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "trusted-repos",
+      "type": "policy.kubewarden.io.policy.trusted-repos",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "TrustedRepos",
+      "metadata": {
+        "name": "trusted-repos"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/trusted-repos:v0.1.6",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "user-group-psp",
+      "type": "policy.kubewarden.io.policy.user-group-psp",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "UserGroupPsp",
+      "metadata": {
+        "name": "user-group-psp"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/user-group-psp:v0.1.4",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    },
+    {
+      "id": "volumes-psp",
+      "type": "policy.kubewarden.io.policy.volumes-psp",
+      "apiVersion": "policies.kubewarden.io/v1alpha2",
+      "kind": "VolumesPsp",
+      "metadata": {
+        "name": "volumes-psp"
+      },
+      "spec": {
+        "module": "registry://ghcr.io/kubewarden/policies/volumes-psp:v0.1.4",
+        "mutating": false,
+        "policyServer": "",
+        "rules": {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": "",
+          "operations": [
+            ""
+          ],
+          "resources": [
+            "pod"
+          ]
+        },
+        "settings": {}
+      }
+    }
+  ]
+}

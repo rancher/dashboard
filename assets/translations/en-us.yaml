@@ -161,6 +161,7 @@ product:
   ecm: Cluster Manager
   explorer: Cluster Explorer
   fleet: Continuous Delivery
+  kubewarden: Kubewarden
   longhorn: Longhorn
   manager: Cluster Management
   gatekeeper: OPA Gatekeeper
@@ -2213,6 +2214,35 @@ istio:
   tracing: Enabled Jaeger Tracing (limited)
   v1Warning: Please uninstall the current Istio version in the <code>istio-system</code> namespace before attempting to install this version.
 
+kubewarden:
+  title: Kubewarden
+  policyServer:
+    title: Policy Servers
+  clusterAdmissionPolicy:
+    title: Cluster Admission Policies
+  policyCharts:
+    allow-privilege-escalation-psp: A Pod Security Policy that controls usage of `allowPrivilegeEscalation`
+    allowed-fsgroups-psp: Replacement for the Kubernetes Pod Security Policy that controls the usage of fsGroup in the pod security context
+    allowed-proc-mount-types-psp: Replacement for the Kubernetes Pod Security Policy that controls the usage of /proc mount types
+    apparmor-psp: A Pod Security Policy that controls usage of AppArmor profiles
+    capabilities-psp: A Pod Security Policy that controls Container Capabilities
+    disallow-service-loadbalancer: A policy that prevents the creation of Service resources of type `LoadBalancer`
+    disallow-service-nodeport: A policy that prevents the creation of Service resources of type `NodePort`
+    flexvolume-drivers-psp: Replacement for the Kubernetes Pod Security Policy that controls the allowed `flexVolume` drivers
+    host-namespaces-psp: A Pod Security Policy that controls the usage of host namespaces
+    hostpaths-psp: A Pod Security Policy that controls usage of hostPath volumes
+    ingress: Enforce requirements on Ingress resources
+    pod-privileged-policy: Limit the ability to create privileged containers
+    pod-runtime: Control Pod runtimeClass usage
+    readonly-root-filesystem-psp: A Kubewarden policy that enforces root filesystem to be readonly
+    safe-annotations: A policy that validates Kubernetes' resource annotations
+    safe-labels: A policy that validates Kubernetes' resource labels
+    selinux-psp: Replacement for the Kubernetes Pod Security Policy that controls the usage of SELinux
+    sysctl-psp: A Pod Security Policy that controls usage of sysctls in pods
+    trusted-repos: Restrict what registries, tags and images can be used
+    user-group-psp: A Pod Security Policy that controls the container user and groups
+    volumes-psp: Pod Security Policy that controls usage of volumes
+      
 labels:
   addLabel: Add Label
   addSetLabel: Add/Set Label
@@ -5638,24 +5668,6 @@ harvester:
       label: Health Check Period
     healthCheckTimeout:
       label: Health Check Timeout
-    healthCheckEnabled:
-      label: Health Check
-  
-  vip:
-    namespace:
-      label: Namespace
-    cidr:
-      label: CIDR
-      invalid: '"CIRD" is invalid.'
-    add:
-      label: Add IP Pools
-  
-  sslParameters:
-    protocols: 
-      label: Protocols
-    ciphers:
-      label: Ciphers
-    
 ##############################
 # Model Properties
 ##############################

@@ -44,7 +44,7 @@ export default {
       },
       {
         label: 'Ingress',
-        value: 'ingress'
+        value: 'ingresses'
       }
     ];
 
@@ -69,7 +69,7 @@ export default {
 
     return {
       rows:              null,
-      filteredRows:      [],
+      filteredRows:      null,
       filteredResource:  '',
       filteredAction:    '',
       policyResources,
@@ -82,6 +82,12 @@ export default {
       return this.$store.getters['type-map/headersFor'](this.schema);
     },
 
+    // This needs to be fixed... currently if a resource/action is selected that has only 1 row and
+    // then another resource/action is selected that *also* has 1 row: showRows and this.filteredRows
+    // update correctly, but ResourceTable will not update. It reuses whatever computed value is in the cache.
+    //
+    // e.g. select `Services` as a resource, then select `Ingress`.
+    //  - this.filteredRows is updated but ResourceTable's rows do not update.
     showRows() {
       if (this.filteredResource === '' && this.filteredAction === '') {
         return this.rows;
@@ -93,32 +99,40 @@ export default {
 
   methods: {
     filterSelection(neu) {
+      const out = [];
+
       this.rows.map((row) => {
         let { option, select } = neu;
+        const { filteredResource, filteredAction, filteredRows } = this;
 
         // when user selects `All` for operations, use this.filteredResource to match rows instead
         if (option === 'operations' && select === '') {
           option = 'resources';
-          select = this.filteredResource;
+          select = filteredResource;
         }
 
         const rules = row.spec.rules;
         const options = rules.find(rule => rule[option]);
 
-        // there are problems with using an empty string as the default resource or action, so 'All' will fix this
-        const resourceType = this.filteredResource ? options['resources'].find(opt => opt === this.filteredResource) : 'All';
-        const actionTypes = this.filteredAction ? options['operations'].find(opt => opt === this.filteredAction) : 'All';
+        const resourceType = filteredResource ? options['resources'].find(opt => opt === filteredResource) : 'All';
+        const actionTypes = filteredAction ? options['operations'].find(opt => opt === filteredAction) : 'All';
 
         const selectedOption = options[option].find(opt => opt === select);
-        const filteredOption = this.filteredRows.find(obj => obj === row); // used if row already exists in filteredRows
+        const filteredOption = filteredRows?.find(obj => obj === row);
 
-        if (resourceType && actionTypes && selectedOption) {
-          this.$set(this, 'filteredRows', [row]);
-        } else if (!selectedOption && filteredOption) {
-          this.filteredRows.pop(row);
+        if (resourceType && actionTypes && selectedOption && !filteredOption) {
+          out.push(row);
+        }
+
+        if (!selectedOption && filteredOption) {
+          const index = out.indexOf(row);
+
+          out.slice(index);
         }
       });
-    },
+
+      this.$set(this, 'filteredRows', out);
+    }
   }
 };
 </script>
@@ -138,7 +152,7 @@ export default {
           label="label"
           style="min-width: 200px;"
           :reduce="opt => opt.value"
-          @input="opt => filterSelection({ option: 'resources', select: opt })"
+          @option:selected="filterSelection({ option: 'resources', select: filteredResource })"
         >
           <template #option="opt">
             {{ opt.label }}
@@ -157,7 +171,7 @@ export default {
           label="label"
           style="min-width: 200px;"
           :reduce="opt => opt.value"
-          @input="opt => filterSelection({ option: 'operations', select: opt })"
+          @option:selected="filterSelection({ option: 'operations', select: filteredAction })"
         >
           <template #option="opt">
             {{ opt.label }}
