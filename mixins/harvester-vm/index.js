@@ -245,7 +245,7 @@ export default {
       const networkRows = this.getNetworkRows(vm) || [];
       const hasCreateVolumes = this.getHasCreatedVolumes(spec) || [];
 
-      let { userData = null, networkData = null } = this.getSecretCloudData(spec);
+      let { userData = undefined, networkData = undefined } = this.getSecretCloudData(spec);
 
       if (this.type === HCI.BACKUP) {
         const secretBackups = this.value.status.secretBackups;
