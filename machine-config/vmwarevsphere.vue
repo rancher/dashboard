@@ -158,19 +158,6 @@ export default {
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
     }
-
-    this.loadResourcePools();
-    this.loadDataStores();
-    this.loadFolders();
-    this.loadHosts();
-    this.loadTemplates();
-    this.loadTags();
-    this.loadCustomAttributes();
-    // This is currently broken in the backend. Once fixed we can add this back
-    // this.loadContentLibraries();
-    this.loadLibraryTemplates();
-    this.loadVirtualMachines();
-    this.loadNetworks();
   },
 
   data() {
@@ -329,7 +316,9 @@ export default {
         this.$fetch();
       }
     },
-
+    'value.datacenter'() {
+      this.loadAllDatacenterResources();
+    },
     'value.contentLibrary'() {
       this.loadLibraryTemplates();
     },
@@ -394,6 +383,8 @@ export default {
 
     async loadTags() {
       try {
+        set(this, 'tagsResults', null);
+
         const categoriesPromise = this.requestOptions('tag-categories');
         const optionsPromise = this.requestOptions('tags');
 
@@ -414,6 +405,8 @@ export default {
 
     async loadCustomAttributes() {
       try {
+        set(this, 'attributeKeysResults', null);
+
         const options = await this.requestOptions('custom-attributes');
 
         set(this, 'attributeKeysResults', this.mapCustomAttributesToContent(options));
@@ -424,6 +417,8 @@ export default {
     },
 
     async loadHosts() {
+      set(this, 'hostsResults', null);
+
       const options = await this.requestOptions('hosts', this.value.datacenter);
       const content = this.mapHostOptionsToContent(options);
 
@@ -433,6 +428,8 @@ export default {
     },
 
     async loadResourcePools() {
+      set(this, 'resourcePoolsResults', null);
+
       const options = await this.requestOptions('resource-pools', this.value.datacenter);
 
       const content = this.mapPoolOptionsToContent(options);
@@ -443,6 +440,8 @@ export default {
     },
 
     async loadDataStores() {
+      set(this, 'dataStoresResults', null);
+
       const options = await this.requestOptions('data-stores', this.value.datacenter);
       const content = this.mapPathOptionsToContent(options);
 
@@ -452,6 +451,8 @@ export default {
     },
 
     async loadDataStoreClusters() {
+      set(this, 'dataStoreResults', null);
+
       const options = await this.requestOptions('data-store-clusters', this.value.datacenter);
       const content = this.mapPathOptionsToContent(options);
 
@@ -461,6 +462,8 @@ export default {
     },
 
     async loadFolders() {
+      set(this, 'foldersResults', null);
+
       const options = await this.requestOptions('folders', this.value.datacenter);
       const content = this.mapFolderOptionsToContent(options);
 
@@ -470,6 +473,8 @@ export default {
     },
 
     async loadNetworks() {
+      set(this, 'networksResults', null);
+
       const options = await this.requestOptions('networks', this.value.datacenter);
       const content = this.mapPathOptionsToContent(options);
 
@@ -479,6 +484,8 @@ export default {
     },
 
     async loadContentLibraries() {
+      set(this, 'contentLibrariesResults', null);
+
       const options = await this.requestOptions('content-libraries', this.value.datacenter);
       const content = this.mapPathOptionsToContent(options);
 
@@ -488,6 +495,8 @@ export default {
     },
 
     async loadLibraryTemplates() {
+      set(this, 'libraryTemplatesResults', null);
+
       const contentLibrary = this.value.contentLibrary;
 
       if (!contentLibrary) {
@@ -506,6 +515,8 @@ export default {
     },
 
     async loadVirtualMachines() {
+      set(this, 'virtualMachinesResults', null);
+
       const options = await this.requestOptions('virtual-machines', this.value.datacenter);
 
       const content = this.mapPathOptionsToContent(options);
@@ -519,6 +530,8 @@ export default {
 
     async loadTemplates() {
       try {
+        set(this, 'templatesResults', null);
+
         const options = await this.requestOptions('templates', this.value.datacenter);
 
         const content = this.mapPathOptionsToContent(options);
@@ -532,6 +545,21 @@ export default {
       } catch (e) {
         this.haveTemplates = false;
       }
+    },
+
+    loadAllDatacenterResources() {
+      this.loadResourcePools();
+      this.loadDataStores();
+      this.loadFolders();
+      this.loadHosts();
+      this.loadTemplates();
+      this.loadTags();
+      this.loadCustomAttributes();
+      // This is currently broken in the backend. Once fixed we can add this back
+      // this.loadContentLibraries();
+      this.loadLibraryTemplates();
+      this.loadVirtualMachines();
+      this.loadNetworks();
     },
 
     resetValueIfNecessary(key, content, options, isArray = false) {
