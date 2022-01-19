@@ -6493,6 +6493,10 @@ epinio:
     actions:
       viewAppLogs:
         label: View Logs
+      restage:
+        label: Rebuild
+      restart:
+        label: Restart
   namespace:
     name: Name
     create: Create a Namespace

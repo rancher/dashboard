@@ -14,7 +14,7 @@ const STATES = {
 // These map to @/plugins/core-store/resource-class STATES
 const STATES_MAPPED = {
   [STATES.CREATING]: 'created',
-  [STATES.STAGING]:  'provisioning',
+  [STATES.STAGING]:  'building',
   [STATES.RUNNING]:  'running',
   [STATES.ERROR]:    'error',
   unknown:           'unknown',
@@ -102,6 +102,19 @@ export default class EpinioApplication extends EpinioResource {
       //   enabled:    this.active,
       // },
       // { divider: true },
+      {
+        action:     'restage',
+        label:      this.t('epinio.applications.actions.restage.label'),
+        icon:       'icon icon-fw icon-backup',
+        enabled:    !!this.deployment.stage_id
+      },
+      {
+        action:     'restart',
+        label:      this.t('epinio.applications.actions.restart.label'),
+        icon:       'icon icon-fw icon-refresh',
+        enabled:    [STATES.RUNNING].includes(this.status)
+      },
+      { divider: true },
       ...super._availableActions
     ];
   }
@@ -125,6 +138,7 @@ export default class EpinioApplication extends EpinioResource {
       deploy:    `${ this.getUrl() }/deploy`,
       logs:      `${ this.getUrl() }/logs`,
       importGit:   `${ this.getUrl() }/import-git`,
+      restart:    `${ this.getUrl() }/restart`,
     };
   }
 
@@ -330,12 +344,21 @@ export default class EpinioApplication extends EpinioResource {
       }
     });
 
+    this.buildCache = this.buildCache || {};
+
     this.buildCache.stage = {
       stage,
       image
     };
 
     return { image, stage };
+  }
+
+  async restage() {
+    const { stage } = await this.stage();
+
+    await this.forceFetch();
+    this.showStagingLog(stage.id);
   }
 
   showAppLog() {
@@ -403,5 +426,11 @@ export default class EpinioApplication extends EpinioResource {
     });
 
     this.route = res.route;
+  }
+
+  async restart() {
+    await this.followLink('restart', { method: 'post' });
+    await this.forceFetch();
+    this.showAppLog();
   }
 }
