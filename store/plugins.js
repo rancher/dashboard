@@ -20,6 +20,11 @@ const credentialOptions = {
     publicMode: 'full',
     keys:       ['subscriptionId', 'tenantId', 'clientId', 'clientSecret']
   },
+  linode: {
+    publicKey:  'token',
+    publicMode: 'prefix',
+    keys:       'token'
+  }
 };
 
 // Credential drivers that rke1 supports
