@@ -289,6 +289,7 @@ export default {
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         const tag = '';
 
+        // Always prefer the built-in icon if there is one
         let icon;
 
         try {
