@@ -143,6 +143,6 @@ export const HCI = {
   MIGRATION_STATE:              'harvesterhci.io/migrationState',
   VOLUME_CLAIM_TEMPLATE:        'harvesterhci.io/volumeClaimTemplates',
   IMAGE_NAME:                   'harvesterhci.io/image-name',
-  NODE_SCHEDULABLE:             'kubevirt.io/schedulabl',
+  NODE_SCHEDULABLE:             'kubevirt.io/schedulable',
   NETWORK_ROUTE:                'network.harvesterhci.io/route',
 };
