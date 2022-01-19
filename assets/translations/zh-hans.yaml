@@ -6290,7 +6290,7 @@ featureFlags:
     unsupported-storage-drivers: 允许使用非默认启用的存储提供商和卷插件
     legacy: 启用旧版功能
     istio-virtual-service-ui: 暴露了一个用户界面，使用户能够创建、读取、更新和删除虚拟服务和目标规则，这是 Istio 的流量管理功能。
-    token-hashing: 启用令牌的单程 hash。一旦启用令牌 hash 就不能被禁用。
+    token-hashing: 启用 Token 的单程 hash。一旦启用 Token hash 就不能被禁用。
     continuous-delivery: Fleet 中的 Gitops 组件
     fleet: 启动 Rancher 时安装 Fleet
     multi-cluster-management: Kubernetes 集群的多集群配置和管理。
