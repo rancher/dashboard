@@ -4,6 +4,7 @@ export const FRACTIONAL = ['', 'm', 'u', 'n', 'p', 'f', 'a', 'z', 'y']; // milli
 export function formatSi(inValue, {
   increment = 1000,
   addSuffix = true,
+  addSuffixSpace = true,
   suffix = '',
   firstSuffix = null,
   startingExponent = 0,
@@ -37,10 +38,14 @@ export function formatSi(inValue, {
   }
 
   if ( addSuffix ) {
+    if (addSuffixSpace) {
+      out += ` `;
+    }
+
     if ( exp === 0 && firstSuffix !== null) {
-      out += ` ${ firstSuffix }`;
+      out += `${ firstSuffix }`;
     } else {
-      out += ` ${ divide ? UNITS[exp] : FRACTIONAL[exp] }${ suffix }` || '';
+      out += `${ divide ? UNITS[exp] : FRACTIONAL[exp] }${ suffix }` || '';
     }
   }
 
