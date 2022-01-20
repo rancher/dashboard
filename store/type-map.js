@@ -122,7 +122,7 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@/utils/string';
 import {
-  importList, importDetail, importEdit, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveDetail
+  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveDetail
 
 } from '@/utils/dynamic-importer';
 
@@ -292,11 +292,7 @@ export async function applyProducts(store, $extension) {
   }
 
   called = true;
-  const ctx = require.context('@/config/product', true, /.*/);
-
-  const products = ctx.keys().filter(path => !path.endsWith('.js')).map(path => path.substr(2));
-
-  for ( const product of products ) {
+  for ( const product of listProducts() ) {
     const impl = await loadProduct(product);
 
     if ( impl?.init ) {

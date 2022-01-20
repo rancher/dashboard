@@ -7,16 +7,30 @@ import { directiveSsr as t } from './plugins/i18n';
 import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
 import { generateDynamicTypeImport } from './pkg/auto-import';
 
+// ===============================================================================================
+// Nuxt configuration
+// ===============================================================================================
+
+// Expose a function that can be used by an app to provide a nuxt configuration for building an application
+// This takes the directory of the application as tehfirst argument so that we can derive folder locations
+// from it, rather than from the location of this file
 export default function(dir, _appConfig) {
+  // Paths to the shell folder when it is included as a node dependency
   let SHELL = 'node_modules/@ranch/shell';
   let SHELL_ABS = path.join(dir, 'node_modules/@ranch/shell');
   let NUXT_SHELL = '~~node_modules/@ranch/shell';
 
+  // If we have a local folder named 'shell' then use that rather than the one in node_modules
+  // This will be the case in the main dashboard repository.
   if (fs.existsSync(path.join(dir, 'shell'))) {
     SHELL = './shell';
     SHELL_ABS = path.join(dir, 'shell');
     NUXT_SHELL = '~~/shell';
   }
+
+  // ===============================================================================================
+  // Functions for the UI Pluginas
+  // ===============================================================================================
 
   const appConfig = _appConfig || {};
   const excludes = appConfig.excludes || [];
@@ -50,6 +64,7 @@ export default function(dir, _appConfig) {
       if (f.rancher) {
         nmPackages[f.name] = f.main;
 
+        // Add server middleware to serve up the files for this UI package
         serverMiddleware.push({
           path:    `/pkg/${ f.name }`,
           handler: serveStatic(path.join(NM, pkg))
@@ -83,7 +98,7 @@ export default function(dir, _appConfig) {
         reqs += `require(\'~/pkg/${ name }\').default(app.router, store, $extension); `;
       }
 
-      // Serve the code for the embedded package in case its used for dynamic loading
+      // Serve the code for the UI package in case its used for dynamic loading (but not if the same pacakge was provided in node_modules)
       if (!nmPackages[name]) {
         serverMiddleware.push({ path: `/pkg/${ name }`, handler: serveStatic(`${ dir }/dist-pkg/${ name }`) });
       }
@@ -96,16 +111,22 @@ export default function(dir, _appConfig) {
     reqs += `$extension.loadAsync('${ m }', '/pkg/${ m }/${ nmPackages[m] }');`;
   });
 
+  // Generate a virtual module '@ranch/dyanmic.js` which imports all of the packages that should be built into the application
+  // This is imported in 'shell/extensions/extension-loader.js` which ensures the all code for plugins to be included is imported in the application
   const virtualModules = new VirtualModulesPlugin({ 'node_modules/@ranch/dynamic.js': `export default function (store, app, $extension) { ${ reqs } };` });
-
-  serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'server-middleware'));
-
   const autoImport = new webpack.NormalModuleReplacementPlugin(/^@ranch\/auto-import$/, (resource) => {
     const ctx = resource.context.split('/');
     const pkg = ctx[ctx.length - 1];
 
     resource.request = `@ranch/auto-import/${ pkg }`;
   });
+
+  // Add the standard dashboard server middleware after the middleware added to serve up UI packages
+  serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'server-middleware'));
+
+  // ===============================================================================================
+  // Dashboard nuxt configuration
+  // ===============================================================================================
 
   require('events').EventEmitter.defaultMaxListeners = 20;
   require('dotenv').config();
@@ -244,7 +265,7 @@ export default function(dir, _appConfig) {
       hardSource: true,
 
       // Uses the Webpack Build Analyzer to generate a report of the bundle contents
-      analyze: { analyzerMode: 'static' },
+      // analyze: { analyzerMode: 'static' },
 
       uglify: {
         uglifyOptions: { compress: !dev },
@@ -308,7 +329,10 @@ export default function(dir, _appConfig) {
           const excludePaths = [];
 
           excludes.forEach((e) => {
-            excludePaths.push(path.resolve(dir, `pkg/${ e }`));
+            excludePaths.push(path.resolve(dir, `pkg/${ e }/`));
+            excludePaths.push(path.resolve(dir, `dist-pkg/${ e }/`));
+            // excludePaths.push(new RegExp(`pkg/${ e }`));
+            // excludePaths.push(new RegExp(`dist-pkg/${ e }`));
           });
 
           config.plugins.unshift(new webpack.WatchIgnorePlugin(excludePaths));

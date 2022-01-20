@@ -75,6 +75,13 @@ export function loadProduct(name) {
   return import(/* webpackChunkName: "product" */ `@/config/product/${name}`);
 }
 
+export function listProducts() {
+  const ctx = require.context('@/config/product', true, /.*/);
+  const products = ctx.keys().filter(path => !path.endsWith('.js')).map(path => path.substr(2));
+
+  return products;
+}
+
 export function loadTranslation(name) {
   if ( !name ) {
     throw new Error('Name required');
