@@ -9,5 +9,5 @@
     "**/*"
   ],
   "main": "@@NAME.umd.min.js",
-  "ruif" : true
+  "rancher" : true
 }

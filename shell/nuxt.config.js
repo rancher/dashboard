@@ -7,8 +7,6 @@ import { directiveSsr as t } from './plugins/i18n';
 import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
 import { generateDynamicTypeImport } from './pkg/auto-import';
 
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-
 export default function(dir, _appConfig) {
   let SHELL = 'node_modules/@ranch/shell';
   let SHELL_ABS = path.join(dir, 'node_modules/@ranch/shell');
@@ -39,7 +37,7 @@ export default function(dir, _appConfig) {
     }
   });
 
-  // Find any packages in node_modules
+  // Find any UI packages in node_modules
   const NM = path.join(dir, 'node_modules');
   const pkg = require(path.join(dir, 'package.json'));
   const nmPackages = {};
@@ -48,7 +46,8 @@ export default function(dir, _appConfig) {
     Object.keys(pkg.dependencies).forEach((pkg) => {
       const f = require(path.join(NM, pkg, 'package.json'));
 
-      if (f.ruif) {
+      // The package.json must have the 'rancher' property to mark it as a UI package
+      if (f.rancher) {
         nmPackages[f.name] = f.main;
 
         serverMiddleware.push({
@@ -67,6 +66,10 @@ export default function(dir, _appConfig) {
     return !excludes || (excludes && !excludes.includes(name));
   }
 
+  // For each package in the pkg folder that is being compiled into the application,
+  // Add in the code to automatically import the types from that package
+  // This imports models, edit, detail, list etc
+  // When built as a UI package, shell/pkg/vue.config.js does the same thing
   const autoImportTypes = {};
   const VirtualModulesPlugin = require('webpack-virtual-modules');
   let reqs = '';
@@ -85,7 +88,6 @@ export default function(dir, _appConfig) {
         serverMiddleware.push({ path: `/pkg/${ name }`, handler: serveStatic(`${ dir }/dist-pkg/${ name }`) });
       }
 
-      // autoImportTypes[`@ranch/auto-import/${ name }`] = generateTypeImport(`@/pkg/${ name }`, path.join(dir, `pkg/${ name }`));
       autoImportTypes[`@ranch/auto-import/${ name }`] = generateDynamicTypeImport(`@/pkg/${ name }`, path.join(dir, `pkg/${ name }`));
     });
   }
@@ -102,7 +104,6 @@ export default function(dir, _appConfig) {
     const ctx = resource.context.split('/');
     const pkg = ctx[ctx.length - 1];
 
-    // console.log('>>>>> AUTO-IMPORT: ' + resource.request + ' ' + pkg);
     resource.request = `@ranch/auto-import/${ pkg }`;
   });
 
@@ -242,6 +243,9 @@ export default function(dir, _appConfig) {
       cache:      true,
       hardSource: true,
 
+      // Uses the Webpack Build Analyzer to generate a report of the bundle contents
+      analyze: { analyzerMode: 'static' },
+
       uglify: {
         uglifyOptions: { compress: !dev },
         cache:         './node_modules/.cache/uglify'
@@ -278,10 +282,6 @@ export default function(dir, _appConfig) {
         virtualModules,
         autoImport,
         new VirtualModulesPlugin(autoImportTypes),
-        new BundleAnalyzerPlugin({
-          analyzerMode: 'static',
-          openAnalyzer: false,
-        })
       ],
 
       extend(config, { isClient, isDev }) {
@@ -317,7 +317,6 @@ export default function(dir, _appConfig) {
         config.resolve.symlinks = false;
 
         // Ensure we process files in the @ranch/shell folder
-
         config.module.rules.forEach((r) => {
           if ('test.js'.match(r.test)) {
             if (r.exclude) {
@@ -334,9 +333,7 @@ export default function(dir, _appConfig) {
           }
         });
 
-        // console.log(config.module.rules);
-
-        // And substitue our own
+        // And substitue our own loader for images
         config.module.rules.unshift({
           test:    /\.(png|jpe?g|gif|svg|webp)$/,
           use:  [
@@ -351,12 +348,14 @@ export default function(dir, _appConfig) {
           ]
         });
 
+        // Handler for yaml files (used for i18n files, for example)
         config.module.rules.unshift({
           test:    /\.ya?ml$/i,
           loader:  'js-yaml-loader',
           options: { name: '[path][name].[ext]' },
         });
 
+        // Handler for csv files (e.g. ec2 instance data)
         config.module.rules.unshift({
           test:    /\.csv$/i,
           loader:  'csv-loader',
@@ -367,7 +366,7 @@ export default function(dir, _appConfig) {
           },
         });
 
-        // Prevent warning in log with the md files in the content folder
+        // Add a loader for markdown files (revents warning in log with the md files in the content folder)
         config.module.rules.push({
           test:    /\.md$/,
           use:  [
@@ -454,7 +453,7 @@ export default function(dir, _appConfig) {
       '@nuxtjs/webpack-profile',
       'cookie-universal-nuxt',
       'portal-vue/nuxt',
-      '~/plugins/steve/rehydrate-all',
+      path.join(NUXT_SHELL, 'plugins/steve/rehydrate-all'),
       '@nuxt/content',
     ],
 
@@ -465,29 +464,29 @@ export default function(dir, _appConfig) {
       path.relative(dir, path.join(SHELL, 'extensions/extension-loader.js')),
 
       // Third-party
-      '~/plugins/axios',
-      '~/plugins/tooltip',
-      '~/plugins/vue-clipboard2',
-      '~/plugins/v-select',
-      '~/plugins/directives',
-      '~/plugins/transitions',
-      { src: '~/plugins/vue-js-modal' },
-      { src: '~/plugins/js-yaml', ssr: false },
-      { src: '~/plugins/resize', ssr: false },
-      { src: '~/plugins/shortkey', ssr: false },
+      path.join(NUXT_SHELL, 'plugins/axios'),
+      path.join(NUXT_SHELL, 'plugins/tooltip'),
+      path.join(NUXT_SHELL, 'plugins/vue-clipboard2'),
+      path.join(NUXT_SHELL, 'plugins/v-select'),
+      path.join(NUXT_SHELL, 'plugins/directives'),
+      path.join(NUXT_SHELL, 'plugins/transitions'),
+      { src: path.join(NUXT_SHELL, 'plugins/vue-js-modal') },
+      { src: path.join(NUXT_SHELL, 'plugins/js-yaml'), ssr: false },
+      { src: path.join(NUXT_SHELL, 'plugins/resize'), ssr: false },
+      { src: path.join(NUXT_SHELL, 'plugins/shortkey'), ssr: false },
 
       // First-party
-      '~/plugins/i18n',
-      '~/plugins/global-formatters',
-      '~/plugins/trim-whitespace',
-      { src: '~/plugins/extend-router' },
-      { src: '~/plugins/lookup', ssr: false },
-      { src: '~/plugins/int-number', ssr: false },
-      { src: '~/plugins/nuxt-client-init', ssr: false },
-      '~/plugins/replaceall',
-      '~/plugins/back-button',
-      { src: '~/plugins/extensions', ssr: false },
-      { src: '~/plugins/codemirror-loader', ssr: false },
+      path.join(NUXT_SHELL, 'plugins/i18n'),
+      path.join(NUXT_SHELL, 'plugins/global-formatters'),
+      path.join(NUXT_SHELL, 'plugins/trim-whitespace'),
+      { src: path.join(NUXT_SHELL, 'plugins/extend-router') },
+      { src: path.join(NUXT_SHELL, 'plugins/lookup'), ssr: false },
+      { src: path.join(NUXT_SHELL, 'plugins/int-number'), ssr: false },
+      { src: path.join(NUXT_SHELL, 'plugins/nuxt-client-init'), ssr: false },
+      path.join(NUXT_SHELL, 'plugins/replaceall'),
+      path.join(NUXT_SHELL, 'plugins/back-button'),
+      { src: path.join(NUXT_SHELL, 'plugins/extensions'), ssr: false },
+      { src: path.join(NUXT_SHELL, 'plugins/codemirror-loader'), ssr: false },
     ],
 
     // Proxy: https://github.com/nuxt-community/proxy-module#options
@@ -536,29 +535,11 @@ export default function(dir, _appConfig) {
     typescript: { typeCheck: { eslint: { files: './**/*.{ts,js,vue}' } } }
   };
 
-  config.plugins = patch(config.plugins);
-  config.modules = patch(config.modules);
-
   return config;
 
-  function patch(config) {
-    const update = [];
-
-    config.forEach((c) => {
-      if (c.src) {
-        if (c.src.startsWith('~/plugins')) {
-          c.src = path.join(NUXT_SHELL, c.src.substr(2));
-        }
-        update.push(c);
-      } else if (c.startsWith('~/plugins')) {
-        update.push(path.join(NUXT_SHELL, c.substr(2)));
-      } else {
-        update.push(c);
-      }
-    });
-
-    return update;
-  }
+  // ===============================================================================================
+  // Functions for the request proxying used in dev
+  // ===============================================================================================
 
   function proxyOpts(target) {
     return {
