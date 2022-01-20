@@ -227,6 +227,7 @@ accountAndKeys:
   apiKeys:
     title: API Keys
     notAllowed: You do not have permission to manage API Keys
+    apiEndpoint: "API Endpoint:"
     add:
       description:
         label: Description
