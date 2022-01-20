@@ -60,6 +60,8 @@ export default {
 
 <style lang="scss">
   .badge-state {
+    align-items: center;
+    display: inline-flex;
     padding: 2px 10px;
     border: 1px solid transparent;
     border-radius: 20px;
