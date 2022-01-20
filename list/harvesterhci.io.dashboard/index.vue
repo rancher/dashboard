@@ -6,7 +6,9 @@ import { mapGetters } from 'vuex';
 import Loading from '@/components/Loading';
 import SortableTable from '@/components/SortableTable';
 import { allHash } from '@/utils/promise';
-import { parseSi, formatSi, exponentNeeded, UNITS } from '@/utils/units';
+import {
+  parseSi, formatSi, exponentNeeded, UNITS, createMemoryValues
+} from '@/utils/units';
 import { REASON } from '@/config/table-headers';
 import {
   EVENT, METRIC, NODE, HCI, SERVICE, PVC, LONGHORN, POD, COUNT
@@ -19,6 +21,7 @@ import Tab from '@/components/Tabbed/Tab';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import metricPoller from '@/mixins/metric-poller';
 import { allDashboardsExist } from '@/utils/grafana';
+import { isEmpty } from '@/utils/object';
 import HarvesterUpgrade from './HarvesterUpgrade';
 
 dayjs.extend(utc);
@@ -389,6 +392,42 @@ export default {
     availableNodes() {
       return (this.metricNodes || []).map(node => node.id);
     },
+
+    metricAggregations() {
+      const nodes = this.nodes;
+      const someNonWorkerRoles = this.nodes.some(node => node.hasARole && !node.isWorker);
+      const metrics = this.nodeMetrics.filter((nodeMetrics) => {
+        const node = nodes.find(nd => nd.id === nodeMetrics.id);
+
+        return node && (!someNonWorkerRoles || node.isWorker);
+      });
+      const initialAggregation = {
+        cpu:    0,
+        memory: 0
+      };
+
+      if (isEmpty(metrics)) {
+        return null;
+      }
+
+      return metrics.reduce((agg, metric) => {
+        agg.cpu += parseSi(metric.usage.cpu);
+        agg.memory += parseSi(metric.usage.memory);
+
+        return agg;
+      }, initialAggregation);
+    },
+
+    cpuUsed() {
+      return {
+        total:  this.cpusTotal,
+        useful: this.metricAggregations?.cpu,
+      };
+    },
+
+    ramUsed() {
+      return createMemoryValues(this.memorysTotal, this.metricAggregations?.memory);
+    },
   },
 
   methods: {
@@ -510,10 +549,12 @@ export default {
         <HardwareResourceGauge
           :name="t('harvester.dashboard.hardwareResourceGauge.cpu')"
           :reserved="cpuReserved"
+          :used="cpuUsed"
         />
         <HardwareResourceGauge
           :name="t('harvester.dashboard.hardwareResourceGauge.memory')"
           :reserved="ramReserved"
+          :used="ramUsed"
         />
         <HardwareResourceGauge
           :name="t('harvester.dashboard.hardwareResourceGauge.storage')"
