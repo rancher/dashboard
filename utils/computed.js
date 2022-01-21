@@ -28,7 +28,7 @@ export function keyValueStrings(path, delimeter = '=') {
     get() {
       const result = {};
 
-      get(this, path).forEach((entry) => {
+      get(this, path)?.forEach((entry) => {
         const [key, value] = entry.split(delimeter);
 
         result[key] = value;
