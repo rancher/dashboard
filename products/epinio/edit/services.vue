@@ -94,6 +94,9 @@ export default Vue.extend<Data, any, any, any>({
 
       return { isValid: true };
     },
+    setData(data: any[]) {
+      Vue.set(this.value, 'data', data);
+    }
   }
 });
 </script>
@@ -129,7 +132,7 @@ export default Vue.extend<Data, any, any, any>({
       <div class="row">
         <div class="col span-11">
           <KeyValue
-            v-model="value.data"
+            :value="value.data"
             :initial-empty-row="true"
             :mode="mode"
             :title="t('epinio.services.pairs.label')"
@@ -137,6 +140,7 @@ export default Vue.extend<Data, any, any, any>({
             :key-label="t('epinio.applications.create.envvar.keyLabel')"
             :value-label="t('epinio.applications.create.envvar.valueLabel')"
             :parse-lines-from-file="true"
+            @input="setData($event)"
           />
         </div>
       </div>

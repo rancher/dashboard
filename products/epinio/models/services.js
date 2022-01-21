@@ -66,7 +66,7 @@ export default class EpinioService extends EpinioResource {
   }
 
   async create() {
-    this.trace('Create the application resource');
+    this.trace('Create the service resource');
 
     await this.followLink('create', {
       method:  'post',
@@ -82,17 +82,14 @@ export default class EpinioService extends EpinioResource {
   }
 
   async update() {
-    this.trace('Update the application resource');
+    this.trace('Update the service resource');
     await this.followLink('update', {
-      method:  'patch',
+      method:  'put',
       headers: {
         'content-type': 'application/json',
         accept:         'application/json'
       },
-      data: {
-        name: this.meta.name,
-        edit: { ...this.data }
-      }
+      data: { ...this.data }
     });
   }
 
