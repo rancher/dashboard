@@ -47,6 +47,7 @@ export default {
         await this.applyAction(buttonDone);
         this.close();
       } catch (err) {
+        console.error(err); // eslint-disable-line
         this.errors = exceptionToErrorsArray(err);
         buttonDone(false);
       }

@@ -1,5 +1,6 @@
 <script>
 import { CAPI as CAPI_LABELS } from '@/config/labels-annotations';
+import { CAPI } from '@/config/types';
 import GenericPrompt from './GenericPrompt';
 
 export default {
@@ -12,8 +13,16 @@ export default {
     }
   },
 
+  async fetch() {
+    await Promise.all([
+      this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT }),
+      this.$store.dispatch('management/findAll', { type: CAPI.MACHINE })
+    ]);
+  },
+
   data() {
     const allToDelete = Array.isArray(this.resources) ? this.resources : [this.resources];
+    const cluster = allToDelete[0].cluster;
 
     // Not all machines can be deleted, there must always be at least one left with the role of control plane in the cluster
     const allToDeleteByType = allToDelete.reduce((res, m) => {
@@ -26,13 +35,14 @@ export default {
       return res;
     }, { controlPlane: [], others: [] });
 
-    const totalControlPlanes = allToDelete[0].cluster.machines.filter(m => m.isControlPlane).length;
+    const totalControlPlanes = cluster.machines.filter(m => m.isControlPlane).length;
     const controlPlanesToDelete = allToDeleteByType.controlPlane.length;
     // If we're attempting to remove all control plan machines.... ignore one
     const ignoredControlPlane = totalControlPlanes - controlPlanesToDelete === 0 ? allToDeleteByType.controlPlane.pop() : undefined;
     const safeMachinesToDelete = [...allToDeleteByType.controlPlane, ...allToDeleteByType.others];
 
     return {
+      cluster,
       allToDelete,
       safeMachinesToDelete,
       ignoredControlPlane,
@@ -48,13 +58,29 @@ export default {
   methods: {
 
     async remove() {
-      // Set the `delete-machine` annotation on each machine and then scale down the pool to the new size
-      await Promise.all(this.safeMachinesToDelete.map((machine) => {
-        machine.setAnnotation(CAPI_LABELS.DELETE_MACHINE, 'true');
+      // Group machines into pools
+      const poolInfo = this.safeMachinesToDelete.reduce((res, m) => {
+        res.set(m.pool, res.get(m.pool) || []);
+        res.get(m.pool).push(m);
 
-        return machine.save();
+        return res;
+      }, new Map());
+
+      // Mark all machines for deletion and then scale down their pool
+      const flatArray = Array.from(poolInfo.entries());
+
+      await Promise.all(flatArray.map(([pool, machines]) => {
+        return Promise
+          .all(machines.map((m) => {
+            m.setAnnotation(CAPI_LABELS.DELETE_MACHINE, 'true');
+
+            return m.save();
+          }))
+          .then(() => pool.scalePool(-machines.length, false));
       }));
-      await this.safeMachinesToDelete[0].pool.scalePool(-this.safeMachinesToDelete.length);
+
+      // Pool scale info is kept in the cluster itself
+      await this.cluster.save();
     }
   }
 };
