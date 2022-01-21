@@ -22,7 +22,7 @@ export default class EpinioService extends EpinioResource {
   get applications() {
     const all = this.$getters['all'](EPINIO_TYPES.APP);
 
-    return (this.boundapps || []).reduce((res, appName) => {
+    return (this.configuration.boundapps || []).reduce((res, appName) => {
       const a = all.find(allA => allA.meta.name === appName);
 
       if (a) {

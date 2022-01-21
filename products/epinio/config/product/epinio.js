@@ -170,7 +170,7 @@ export function init(store) {
     {
       name:      'boundApps',
       labelKey:  'epinio.services.tableHeaders.boundApps',
-      search:    ['boundapps'],
+      search:    ['configuration.boundapps'],
     },
   ]);
 }
