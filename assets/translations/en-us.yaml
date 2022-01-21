@@ -5743,7 +5743,7 @@ typeDescription:
   logging.banzaicloud.io.output: An output defines which logging providers that logs can be sent to. The output needs to be in the same namespace as the flow that is using it.
   group.principal: Assigning global roles to a group only works with external auth providers that support groups. Local authorization does not support groups.
   # Epinio resources
-  services: Services allow Applications access to a common set of secrets. Bind one or more to an application for it to see them.
+  services: Services allow Applications access to a common set of variables. Bind one or more to an application for it to see them.
   # End of Epinio resources
 
 typeLabel:
@@ -6510,6 +6510,8 @@ epinio:
       tooltip: Data made available to bound applications via the path <code>/services/&lt;service name&gt;/&lt;data name&gt;/</code>
     tableHeaders:
       boundApps: Bound Applications
+      variableCount: No. of variables
+      createBy: Created By
     promptRemove:
       unbind: Unbind from applications before deleting
     

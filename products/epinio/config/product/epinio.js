@@ -172,5 +172,17 @@ export function init(store) {
       labelKey:  'epinio.services.tableHeaders.boundApps',
       search:    ['configuration.boundapps'],
     },
+    {
+      name:      'count',
+      labelKey:  'epinio.services.tableHeaders.variableCount',
+      value:     'variableCount',
+      sort:      ['variableCount'],
+    },
+    {
+      name:      'createdBy',
+      labelKey:  'epinio.services.tableHeaders.createBy',
+      value:     'configuration.user',
+      sort:      ['configuration.user'],
+    },
   ]);
 }

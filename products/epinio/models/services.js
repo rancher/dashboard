@@ -33,6 +33,10 @@ export default class EpinioService extends EpinioResource {
     }, []);
   }
 
+  get variableCount() {
+    return Object.keys(this.configuration?.details || {}).length;
+  }
+
   // ------------------------------------------------------------------
   // Methods here are required for generic components to handle `namespaced` concept
 
@@ -54,6 +58,8 @@ export default class EpinioService extends EpinioResource {
       id:       this.meta.namespace,
     });
   }
+
+  // ------------------------------------------------------------------
 
   trace(text, ...args) {
     console.log(`### Service: ${ text }`, `${ this.meta.namespace }/${ this.meta.name }`, args);// eslint-disable-line no-console
