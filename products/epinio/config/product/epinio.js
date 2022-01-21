@@ -141,6 +141,18 @@ export function init(store) {
 
   headers(EPINIO_TYPES.NAMESPACE, [
     SIMPLE_NAME,
+    {
+      name:      'applications',
+      labelKey:  'epinio.namespace.tableHeaders.appCount',
+      value:     'appCount',
+      sort:      ['appCount'],
+    },
+    {
+      name:      'services',
+      labelKey:  'epinio.namespace.tableHeaders.serviceCount',
+      value:     'serviceCount',
+      sort:      ['serviceCount'],
+    },
   ]);
 
   headers(EPINIO_TYPES.INSTANCE, [

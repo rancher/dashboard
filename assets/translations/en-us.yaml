@@ -6501,6 +6501,9 @@ epinio:
       restart:
         label: Restart
   namespace:
+    tableHeaders:
+      appCount: Applications
+      serviceCount: Services
     name: Name
     create: Create a Namespace
     deleteWarning: All applications and services in a namespace will be deleted.

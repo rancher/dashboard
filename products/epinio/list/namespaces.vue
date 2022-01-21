@@ -12,7 +12,8 @@ import { EPINIO_TYPES } from '@/products/epinio/types';
 import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 
 export default {
-  name:       'EpinioNamespaceList',
+  name: 'EpinioNamespaceList',
+
   components: {
     Banner,
     ResourceTable,
@@ -21,6 +22,7 @@ export default {
     LabeledInput,
     AsyncButton
   },
+
   data() {
     return {
       showCreateModal: false,
@@ -31,6 +33,7 @@ export default {
       mode:            _CREATE
     };
   },
+
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     validationPassed() {
@@ -38,7 +41,8 @@ export default {
     },
     ...mapState('action-menu', ['showPromptRemove']),
   },
-  props:      {
+
+  props: {
     schema: {
       type:     Object,
       required: true,
@@ -48,6 +52,7 @@ export default {
       required: true,
     },
   },
+
   watch: {
     showPromptRemove(oldState, newState) {
       if (oldState === true && newState === false) {
@@ -56,6 +61,7 @@ export default {
       }
     }
   },
+
   methods: {
     async openCreateModal() {
       this.showCreateModal = true;
@@ -152,6 +158,7 @@ export default {
     </div>
   </div>
 </template>
+
 <style lang='scss' scoped>
 
 .modal {
