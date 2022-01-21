@@ -29,7 +29,7 @@ export default {
         name = n.split('.')[0];
       }
 
-      this.$extension.loadAsync(name, url).then(() => {
+      this.$plugin.loadAsync(name, url).then(() => {
         this.$store.dispatch('growl/success', {
           title:   `Loaded plugin ${ name }`,
           message: `Plugin was loaded successfully`,
