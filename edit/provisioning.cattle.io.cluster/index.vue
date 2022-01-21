@@ -247,7 +247,7 @@ export default {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         const techPreview = getters['i18n/t']('generic.techPreview');
-        const isTechPreview = ( group === 'rke2' || group === 'custom2' ) && id !== 'harvester';
+        const isTechPreview = group === 'rke2' || group === 'custom2';
         const tag = isTechPreview ? techPreview : getters['i18n/withFallback'](`cluster.providerTag."${ id }"`, { techPreview }, '');
         let icon = require('~/assets/images/generic-driver.svg');
 
