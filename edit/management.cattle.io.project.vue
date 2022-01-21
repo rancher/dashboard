@@ -200,6 +200,7 @@ export default {
         label-key="generic.labelsAndAnnotations"
         :weight="7"
       >
+        <h2>{{ t('generic.labelsAndAnnotations', {}, true) }}</h2>
         <Labels
           default-container-class="labels-and-annotations-container"
           :value="value"

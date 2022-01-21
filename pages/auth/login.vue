@@ -267,9 +267,9 @@ export default {
           <h4 v-else-if="loggedOut" class="text-success text-center">
             {{ t('login.loggedOut') }}
           </h4>
-          <h4 v-else-if="timedOut" class="text-error text-center">
+          <p v-else-if="timedOut" class="text-error text-center">
             {{ t('login.loginAgain') }}
-          </h4>
+          </p>
         </div>
         <div v-if="firstLogin" class="first-login-message">
           <InfoBox color="info">

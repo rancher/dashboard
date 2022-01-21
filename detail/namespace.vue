@@ -95,7 +95,7 @@ export default {
 <template>
   <div>
     <div class="mb-20">
-      <h3>{{ t('namespace.resources') }}</h3>
+      <h2>{{ t('namespace.resources') }}</h2>
       <FleetSummary state-key="namespace.resourceStates" :value="namespacedCounts" />
     </div>
     <ResourceTabs v-model="value" :mode="mode" />
