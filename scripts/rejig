@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Directories and folders not to replace in
-GREP_EXCLUDES="--exclude-dir=.git --exclude-dir=.nuxt --exclude-dir=node_modules --exclude=rejig --exclude=nuxt.config.js --exclude-dir=shell"
-GREP_REVERT_EXCLUDES="${GREP_EXCLUDES} --exclude=vue.config.js --exclude=tsconfig.json --exclude=extension.js --exclude=extensions.js --exclude=model-loader.js"
+GREP_EXCLUDES="--exclude-dir=.git --exclude-dir=.nuxt --exclude-dir=node_modules --exclude=rejig --exclude=nuxt.config.js --exclude-dir=shell --exclude-dir=pkg --exclude-dir=pkg-dist --exclude-dir=dist"
+GREP_REVERT_EXCLUDES="${GREP_EXCLUDES} --exclude=vue.config.js --exclude=tsconfig.json --exclude=tsconfig.pkg.json --exclude=extension.js --exclude=extensions.js --exclude=model-loader.js"
 
 echo "Re-jigging codebase"
 

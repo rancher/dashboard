@@ -37,7 +37,7 @@ export function listProducts() {
   return [];
 }
 
-export function loadProduct(name, $extension) {
+export function loadProduct(name, $plugin) {
   return () => undefined;
 }
 

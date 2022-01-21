@@ -32,7 +32,13 @@ if [ -d "${BASE_DIR}/pkg/${1}" ]; then
     ln -s ${SHELL_DIR} .shell
   fi
 
-  ${BASE_DIR}/node_modules/.bin/vue-cli-service build --name ${1} --target lib index.js --dest ${PKG_DIST} --formats umd-min
+  FILE=index.js
+
+  if [ -f ./index.ts ]; then
+    FILE=index.ts
+  fi
+
+  ${BASE_DIR}/node_modules/.bin/vue-cli-service build --name ${1} --target lib ${FILE} --dest ${PKG_DIST} --formats umd-min
   cp ${SCRIPT_DIR}/package.json ${PKG_DIST}/package.json
   sed -i.bak -e "s/@@NAME/${1}/g" ${PKG_DIST}/package.json
   rm -rf ${PKG_DIST}/*.bak

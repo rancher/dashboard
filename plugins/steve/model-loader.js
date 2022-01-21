@@ -12,7 +12,7 @@ function find(cache, type, ctx) {
   }
 
   try {
-    const pluginModel = ctx.rootState.$extension.getDynamic('models', type);
+    const pluginModel = ctx.rootState.$plugin.getDynamic('models', type);
     let base;
 
     if (!pluginModel) {

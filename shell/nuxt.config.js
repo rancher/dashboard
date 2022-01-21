@@ -95,7 +95,7 @@ export default function(dir, _appConfig) {
 
     items.forEach((name) => {
       if (includePkg(name)) {
-        reqs += `require(\'~/pkg/${ name }\').default(app.router, store, $extension); `;
+        reqs += `require(\'~/pkg/${ name }\').default($plugin); `;
       }
 
       // Serve the code for the UI package in case its used for dynamic loading (but not if the same pacakge was provided in node_modules)
@@ -108,12 +108,12 @@ export default function(dir, _appConfig) {
   }
 
   Object.keys(nmPackages).forEach((m) => {
-    reqs += `$extension.loadAsync('${ m }', '/pkg/${ m }/${ nmPackages[m] }');`;
+    reqs += `$plugin.loadAsync('${ m }', '/pkg/${ m }/${ nmPackages[m] }');`;
   });
 
   // Generate a virtual module '@ranch/dyanmic.js` which imports all of the packages that should be built into the application
   // This is imported in 'shell/extensions/extension-loader.js` which ensures the all code for plugins to be included is imported in the application
-  const virtualModules = new VirtualModulesPlugin({ 'node_modules/@ranch/dynamic.js': `export default function (store, app, $extension) { ${ reqs } };` });
+  const virtualModules = new VirtualModulesPlugin({ 'node_modules/@ranch/dynamic.js': `export default function ($plugin) { ${ reqs } };` });
   const autoImport = new webpack.NormalModuleReplacementPlugin(/^@ranch\/auto-import$/, (resource) => {
     const ctx = resource.context.split('/');
     const pkg = ctx[ctx.length - 1];
@@ -335,7 +335,7 @@ export default function(dir, _appConfig) {
             // excludePaths.push(new RegExp(`dist-pkg/${ e }`));
           });
 
-          config.plugins.unshift(new webpack.WatchIgnorePlugin(excludePaths));
+          config.plugins.push(new webpack.WatchIgnorePlugin(excludePaths));
         }
 
         config.resolve.symlinks = false;
@@ -484,8 +484,8 @@ export default function(dir, _appConfig) {
     // Vue plugins
     plugins: [
       // Extensions
-      path.relative(dir, path.join(SHELL, 'extensions/extension.js')),
-      path.relative(dir, path.join(SHELL, 'extensions/extension-loader.js')),
+      path.relative(dir, path.join(SHELL, 'core/plugins.js')),
+      path.relative(dir, path.join(SHELL, 'core/plugins-loader.js')),
 
       // Third-party
       path.join(NUXT_SHELL, 'plugins/axios'),
@@ -509,7 +509,7 @@ export default function(dir, _appConfig) {
       { src: path.join(NUXT_SHELL, 'plugins/nuxt-client-init'), ssr: false },
       path.join(NUXT_SHELL, 'plugins/replaceall'),
       path.join(NUXT_SHELL, 'plugins/back-button'),
-      { src: path.join(NUXT_SHELL, 'plugins/extensions'), ssr: false },
+      { src: path.join(NUXT_SHELL, 'plugins/plugin'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/codemirror-loader'), ssr: false },
     ],
 

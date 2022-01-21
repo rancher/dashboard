@@ -1,4 +1,4 @@
-import { DSL, productsLoaded } from '@shell/store/type-map';
+import { DSL as STORE_DSL, productsLoaded } from '@shell/store/type-map';
 
 export default function({
   app,
@@ -9,14 +9,23 @@ export default function({
   const dynamic = {};
   let _lastLoaded = 0;
 
-  inject('extension', {
+  inject('plugin', {
 
-    DSL,
+    DSL(productName) {
+      return STORE_DSL(this.store, productName);
+    },
+
+    get store() {
+      return store;
+    },
+
+    get router() {
+      return app.router;
+    },
 
     // Load a plugin from a UI package
     loadAsync(name, mainFile) {
       return new Promise((resolve, reject) => {
-        const router = app.router;
         const moduleUrl = mainFile;
         const element = document.createElement('script');
 
@@ -36,7 +45,7 @@ export default function({
           _lastLoaded = new Date().getTime();
 
           // Initialize the plugin
-          window[name].default(router, store, this);
+          window[name].default(this);
           resolve();
         };
 
@@ -106,21 +115,21 @@ export default function({
         const impl = await p;
 
         if (impl.init) {
-          impl.init(store, this);
+          impl.init(this);
         }
       });
     },
 
-    addProducts(products) {
+    addProduct(product) {
       if (!dynamic.products) {
         dynamic.products = [];
       }
 
-      dynamic.products = dynamic.products.concat(products);
+      dynamic.products.push(product);
 
       // Initialize the product if the store is ready
       if (productsLoaded()) {
-        this.loadProducts(products);
+        this.loadProducts([product]);
       }
     },
 

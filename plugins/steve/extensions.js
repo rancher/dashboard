@@ -1,4 +1,4 @@
-// This plugin loads any extensions at app load time
+// This plugin loads any plugins at app load time
 
 import { allHash } from '@shell/utils/promise';
 
@@ -14,7 +14,7 @@ export default async(context) => {
     if (metaName.indexOf(META_NAME_PREFIX) === 0) {
       const name = metaName.substr(META_NAME_PREFIX.length);
 
-      hash[name] = context.$extension.loadAsync(name, m.content);
+      hash[name] = context.$plugin.loadAsync(name, m.content);
     }
   });
 

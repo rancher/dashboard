@@ -891,8 +891,8 @@ export const actions = {
   nuxtClientInit({ dispatch, rootState }, nuxt) {
     Object.defineProperty(rootState, '$router', { value: nuxt.app.router });
     Object.defineProperty(rootState, '$route', { value: nuxt.route });
-    Object.defineProperty(rootState, '$extension', { value: nuxt.app.$extension });
-    Object.defineProperty(this, '$extension', { value: nuxt.app.$extension });
+    Object.defineProperty(rootState, '$plugin', { value: nuxt.app.$plugin });
+    Object.defineProperty(this, '$plugin', { value: nuxt.app.$plugin });
 
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');

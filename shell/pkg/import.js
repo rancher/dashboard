@@ -5,5 +5,5 @@ _NAME.forEach((f) => {
   const ext = name.lastIndexOf('.');
 
   name = name.substr(0, ext);
-  $extension.register('NAME', name, `() => REQUIRE(CHUNKBASE/NAME/${ name })`); // eslint-disable-line no-undef
+  $plugin.register('NAME', name, `() => REQUIRE(CHUNKBASE/NAME/${ name })`); // eslint-disable-line no-undef
 });

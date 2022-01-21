@@ -119,11 +119,11 @@ Replace the contents of the file `pkg/testplugin/index.js` with:
 import { importTypes } from '@ranch/auto-import';
 
 // Init the package
-export default function(router, store, $extension) {
+export default function($plugin) {
   // Auto-import model, detail, edit from the folders
-  importTypes($extension);
+  importTypes($plugin);
 
-  $extension.addProducts([require('./product')]);
+  $plugin.addProduct(require('./product'));
 }
 
 ```
@@ -131,10 +131,8 @@ export default function(router, store, $extension) {
 Next, create a new file `pkg/testplugin/product.js` with this content:
 
 ```
-export const NAME = 'example';
-
-export function init(store, $extension) {
-  const { product } = $extension.DSL(store, NAME);
+export function init($plugin, pluginName) {
+  const { product } = $plugin.DSL(pluginName);
 
   product({
     icon:                  'gear',
