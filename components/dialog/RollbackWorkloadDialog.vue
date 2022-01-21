@@ -9,7 +9,22 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import { WORKLOAD_TYPES } from '@/config/types';
 import { diffFrom } from '@/utils/time';
 import { mapGetters } from 'vuex';
-import pick from 'lodash/pick';
+import { ACTIVELY_REMOVE, NEVER_ADD } from '@/utils/create-yaml';
+
+const HIDE = [
+  'metadata.labels.pod-template-hash',
+  'spec.selector.matchLabels.pod-template-hash',
+  'spec.template.metadata.labels.pod-template-hash',
+  'metadata.fields'
+];
+
+const REMOVE = [...ACTIVELY_REMOVE, ...NEVER_ADD, ...HIDE];
+
+const REMOVE_KEYS = REMOVE.reduce((obj, item) => {
+  obj[item] = true;
+
+  return obj;
+}, {});
 
 export default {
   components: {
@@ -32,7 +47,7 @@ export default {
       currentRevision:    null,
       revisions:          [],
       editorMode:         EDITOR_MODES.DIFF_CODE,
-      showDiff:           false
+      showDiff:           false,
     };
   },
   computed: {
@@ -173,8 +188,26 @@ export default {
         dialogs[0].style.setProperty('--prompt-modal-width', width);
       }
     },
-    sanitizeYaml(revision) {
-      return pick(revision, ['spec.template.spec']);
+    sanitizeYaml(obj, path = '') {
+      const res = {};
+
+      if (!obj) {
+        return obj;
+      }
+
+      Object.keys(obj).forEach((key) => {
+        const keyPath = !path ? key : `${ path }.${ key }`;
+
+        if (!REMOVE_KEYS[keyPath]) {
+          res[key] = obj[key];
+
+          if (typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+            res[key] = this.sanitizeYaml(obj[key], keyPath);
+          }
+        }
+      });
+
+      return res;
     }
   }
 };

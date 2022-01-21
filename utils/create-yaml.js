@@ -31,7 +31,7 @@ const ALWAYS_ADD = [
   'spec.template.spec.containers.image',
 ];
 
-const NEVER_ADD = [
+export const NEVER_ADD = [
   'metadata.clusterName',
   'metadata.clusterName',
   'metadata.creationTimestamp',
@@ -53,7 +53,7 @@ const NEVER_ADD = [
   'stringData',
 ];
 
-const ACTIVELY_REMOVE = [
+export const ACTIVELY_REMOVE = [
   'metadata.managedFields',
   'metadata.relationships',
   'metadata.state',
