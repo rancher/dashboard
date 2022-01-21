@@ -3411,6 +3411,11 @@ promptForceRemove:
   forceDelete: Force Delete
   confirmName: "Enter in the pool name below to confirm:"
 
+promptScaleMachineDown:
+  attemptingToRemove: "You are attempting to delete {count} {type}"
+  retainedMachine1: At least one Machine with role Control Plane must exist,
+  retainedMachine2: <b>{ name }</b> will remain
+
 promptRemove:
   title: Are you sure?
   andOthers: |-

@@ -59,8 +59,12 @@ export default {
   <Card class="prompt-restore" :show-highlight-border="false">
     <h4 slot="title" class="text-default-text" v-html="title" />
 
-    <div slot="body" class="pl-10 pr-10" style="min-height: 50px; display: flex;" v-html="body">
-    </div>
+    <template slot="body">
+      <slot name="body">
+        <div class="pl-10 pr-10" style="min-height: 50px; display: flex;" v-html="body">
+        </div>
+      </slot>
+    </template>
 
     <div slot="actions" class="bottom">
       <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
