@@ -1,7 +1,7 @@
 {
   "name": "@ranch/create-pkg",
   "description": "UI Package generator",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "license": "Apache-2.0",
   "author": "Rancher Labs, Inc.",
   "private": false,
@@ -19,5 +19,6 @@
   },
   "dependencies": {
     "fs-extra": "^10.0.0"
-  }
+  },
+  "icon": "image:svg+data:hello"
 }
