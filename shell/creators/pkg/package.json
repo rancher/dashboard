@@ -1,7 +1,7 @@
 {
   "name": "@ranch/create-pkg",
   "description": "UI Package generator",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "license": "Apache-2.0",
   "author": "Rancher Labs, Inc.",
   "private": false,
@@ -11,7 +11,8 @@
     "init"
   ],
   "publishConfig": {
-    "registry": "http://localhost:4873"
+    "registry": "http://localhost:4873",
+    "icon": "image:svg+data:hello"
   },
   "engines": {
     "node": ">=12"
