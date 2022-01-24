@@ -9,6 +9,9 @@ import { findBy } from '@/utils/array';
 import { NAME as HARVESTER } from '@/config/product/harvester';
 
 export default {
+
+  name: 'ResourceTable',
+
   components: { ButtonGroup, SortableTable },
 
   props: {

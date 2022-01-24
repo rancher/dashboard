@@ -1781,6 +1781,7 @@ fleet:
     repo:
       label: Repository URL
       placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
+      addRepo: Add Repository
     ref:
       label: Watch
       branch: A Branch
