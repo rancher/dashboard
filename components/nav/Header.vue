@@ -37,7 +37,7 @@ export default {
 
   data() {
     const searchShortcut = isMac ? '(\u2318-K)' : '(Ctrl+K)';
-    const shellShortcut = isMac ? '(\u2318-\')' : '(Ctrl+\')';
+    const shellShortcut = '(Ctrl+`)';
 
     return {
       show:        false,
@@ -267,7 +267,7 @@ export default {
         <button
           v-if="showKubeShell"
           v-tooltip="t('nav.shell', {key: shellShortcut})"
-          v-shortkey="{windows: ['ctrl', '\''], mac: ['meta', '\'']}"
+          v-shortkey="{windows: ['ctrl', '`'], mac: ['meta', '`']}"
           :disabled="!shellEnabled"
           type="button"
           class="btn header-btn role-tertiary"
