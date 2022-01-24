@@ -511,7 +511,9 @@ export default class VirtVm extends SteveModel {
     if (!id) {
       id = `${ this.metadata.namespace }/${ get(vmResource, `metadata.annotations."${ HCI_ANNOTATIONS.RESTORE_NAME }"`) }`;
     }
-    const restoreResource = this.$rootGetters['harvester/byId'](HCI.RESTORE, id);
+    const allRestore = this.$rootGetters['harvester/all'](HCI.RESTORE);
+
+    const restoreResource = allRestore.find(O => O.id === id);
 
     if (!restoreResource) {
       return true;
