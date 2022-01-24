@@ -395,7 +395,7 @@ export default {
       </div>
 
       <h3 class="mb-5 pb-5 mt-40">
-        {{ t('branding.uiBanner.label') }}
+        {{ t('banner.label') }}
       </h3>
       <label class="text-label">
         {{ t(`advancedSettings.descriptions.${ 'ui-banners' }`, {}, true) }}
@@ -405,7 +405,7 @@ export default {
         <!-- Header Settings -->
         <div class="row mt-20 mb-20">
           <div class="col span-6">
-            <Checkbox :value="bannerVal.showHeader === 'true'" :label="t('branding.uiBanner.showHeader')" :mode="mode" @input="e=>$set(bannerVal, 'showHeader', e.toString())" />
+            <Checkbox :value="bannerVal.showHeader === 'true'" :label="t('banner.showHeader')" :mode="mode" @input="e=>$set(bannerVal, 'showHeader', e.toString())" />
           </div>
         </div>
         <BannerSettings v-if="bannerVal.showHeader === 'true'" v-model="bannerVal" banner-type="bannerHeader" :mode="mode" />
@@ -413,7 +413,7 @@ export default {
         <!-- Footer settings -->
         <div class="row mt-20 mb-20">
           <div class="col span-6">
-            <Checkbox :value="bannerVal.showFooter === 'true'" :label="t('branding.uiBanner.showFooter')" :mode="mode" @input="e=>$set(bannerVal, 'showFooter', e.toString())" />
+            <Checkbox :value="bannerVal.showFooter === 'true'" :label="t('banner.showFooter')" :mode="mode" @input="e=>$set(bannerVal, 'showFooter', e.toString())" />
           </div>
         </div>
         <BannerSettings v-if="bannerVal.showFooter === 'true'" v-model="bannerVal" banner-type="bannerFooter" :mode="mode" />
@@ -423,7 +423,7 @@ export default {
       <template>
         <div class="row mt-20 mb-20">
           <div class="col span-6">
-            <Checkbox :value="bannerVal.showConsent === 'true'" :label="t('branding.uiBanner.showConsent')" :mode="mode" @input="e => $set(bannerVal, 'showConsent', e.toString())" />
+            <Checkbox :value="bannerVal.showConsent === 'true'" :label="t('banner.showConsent')" :mode="mode" @input="e => $set(bannerVal, 'showConsent', e.toString())" />
           </div>
         </div>
         <BannerSettings v-if="bannerVal.showConsent === 'true'" v-model="bannerVal" banner-type="bannerConsent" :mode="mode" />
