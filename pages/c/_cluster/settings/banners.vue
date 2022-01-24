@@ -170,7 +170,11 @@ export default {
             <Checkbox :value="bannerVal.showHeader === 'true'" :label="t('banner.showHeader')" :mode="mode" @input="e=>$set(bannerVal, 'showHeader', e.toString())" />
           </div>
         </div>
-        <BannerSettings v-if="bannerVal.showHeader === 'true'" v-model="bannerVal" banner-type="bannerHeader" :mode="mode" />
+        <div style="position: relative">
+          <!-- <BannerSettings v-if="bannerVal.showHeader === 'true'" v-model="bannerVal" banner-type="bannerHeader" :mode="mode" /> -->
+          <div class="overlay" />
+          <BannerSettings v-model="bannerVal" banner-type="bannerHeader" :mode="mode" />
+        </div>
 
         <!-- Footer settings -->
         <div class="row mt-20 mb-20">
@@ -201,4 +205,13 @@ export default {
 </template>
 
 <style scoped lang='scss'>
+.overlay {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: var(--overlay-bg);
+  z-index: 1;
+}
 </style>
