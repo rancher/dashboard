@@ -299,7 +299,7 @@ export async function applyProducts(store, $plugin) {
       impl.init(store);
     }
   }
-  // Load the products from the extensions
+  // Load the products from all plugins
   $plugin.loadProducts($plugin.products);
 }
 

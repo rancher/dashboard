@@ -1,4 +1,5 @@
 import { DSL as STORE_DSL, productsLoaded } from '@shell/store/type-map';
+import { PluginMetadata } from './plugin';
 
 export default function({
   app,
@@ -9,18 +10,13 @@ export default function({
   const dynamic = {};
   let _lastLoaded = 0;
 
+  // Track which plugin loaded what, so we cab unload stuff
+  const plugins = {};
+
   inject('plugin', {
 
     DSL(productName) {
-      return STORE_DSL(this.store, productName);
-    },
-
-    get store() {
-      return store;
-    },
-
-    get router() {
-      return app.router;
+      return STORE_DSL(store, productName);
     },
 
     // Load a plugin from a UI package
@@ -44,8 +40,20 @@ export default function({
           // to update caches when new plugins are loaded
           _lastLoaded = new Date().getTime();
 
+          // TODO: Error if we are loading a plugin already loaded?
+          const plugin = new PluginMetadata(name);
+
+          plugins[name] = plugin;
+
           // Initialize the plugin
-          window[name].default(this);
+          window[name].default(plugin);
+
+          // Load all of the types etc from the plugin
+          this.applyPlugin(plugin);
+
+          // Add the plugin to the store
+          store.dispatch('uiplugins/addPlugin', plugin);
+
           resolve();
         };
 
@@ -55,6 +63,29 @@ export default function({
         };
 
         document.head.appendChild(element);
+      });
+    },
+
+    // Apply the plugin based on its metadata
+    applyPlugin(plugin) {
+      // Types
+      Object.keys(plugin.types).forEach((typ) => {
+        Object.keys(plugin.types[typ]).forEach((name) => {
+          this.register(typ, name, plugin.types[typ][name]);
+        });
+      });
+
+      // Products
+      this.products.push(...plugin.products);
+
+      // Initialize the product if the store is ready
+      if (productsLoaded()) {
+        this.loadProducts(plugin.products);
+      }
+
+      // Locales
+      plugin.locales.forEach((localeObj) => {
+        store.dispatch('i18n/addLocale', localeObj);
       });
     },
 
@@ -86,6 +117,10 @@ export default function({
       return dynamic;
     },
 
+    getPlugins() {
+      return plugins;
+    },
+
     getDynamic(typeName, name) {
       return dynamic[typeName]?.[name];
     },
@@ -115,27 +150,9 @@ export default function({
         const impl = await p;
 
         if (impl.init) {
-          impl.init(this);
+          impl.init(this, store);
         }
       });
     },
-
-    addProduct(product) {
-      if (!dynamic.products) {
-        dynamic.products = [];
-      }
-
-      dynamic.products.push(product);
-
-      // Initialize the product if the store is ready
-      if (productsLoaded()) {
-        this.loadProducts([product]);
-      }
-    },
-
-    // Add a locale to i18n
-    addLocale(locale, label) {
-      store.dispatch('i18n/addLocale', { locale, label });
-    }
   });
 }

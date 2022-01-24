@@ -39,8 +39,8 @@ if [ -d "${BASE_DIR}/pkg/${1}" ]; then
   fi
 
   ${BASE_DIR}/node_modules/.bin/vue-cli-service build --name ${1} --target lib ${FILE} --dest ${PKG_DIST} --formats umd-min
-  cp ${SCRIPT_DIR}/package.json ${PKG_DIST}/package.json
-  sed -i.bak -e "s/@@NAME/${1}/g" ${PKG_DIST}/package.json
+  cp -f ./package.json ${PKG_DIST}/package.json
+  node ${SCRIPT_DIR}/pkgfile.js ${PKG_DIST}/package.json
   rm -rf ${PKG_DIST}/*.bak
   rm .shell
 

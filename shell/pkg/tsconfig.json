@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "allowJs": true,
     "target": "esnext",
     "module": "esnext",
     "strict": true,
@@ -11,32 +12,33 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "baseUrl": ".",
-    "rootDir": ".",
     "preserveSymlinks": true,
     "types": [
+      "node",
       "webpack-env"
     ],
-    "paths": {
-      "@/*": [
-        "src/*"
-      ],
-      "@shell/*": [
-        ".shell/*"
-      ]
-    },
     "lib": [
       "esnext",
       "dom",
       "dom.iterable",
       "scripthost"
-    ]
+    ],
+    "paths": {
+      "@shell/core/*": [
+        "../../shell/core/*"
+      ],
+      "@shell/config/*": [
+        "../../shell/config/*"
+      ]
+    },
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     "**/*.vue",
-    "**/*.ts",
-    "**/*.tsx"
+    "../../shell/types/*.d.ts",
+    "../../shell/core/*.ts",
+    "../../shell/config/**/*.js",
   ],
   "exclude": [
     "node_modules"
