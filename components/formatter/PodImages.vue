@@ -25,6 +25,19 @@ export default {
       } else {
         return this.value;
       }
+    },
+    imageLabels() {
+      if (Array.isArray(this.images) && this.images.length > 1) {
+        let imagesNames = '<span style="text-decoration: underline">Images:</span><br/><br/>';
+
+        this.images.forEach((name, i) => {
+          imagesNames += `&#8226; ${ name }<br>`;
+        });
+
+        return imagesNames;
+      }
+
+      return null;
     }
   }
 
@@ -34,6 +47,10 @@ export default {
 <template>
   <span>
     <span>{{ images[0] }}</span><br>
-    <span v-if="images.length-1>0" class="plus-more">{{ t('generic.plusMore', {n:images.length-1}) }}</span>
+    <span
+      v-if="images.length-1>0"
+      v-tooltip.bottom="imageLabels"
+      class="plus-more"
+    >{{ t('generic.plusMore', {n:images.length-1}) }}</span>
   </span>
 </template>
