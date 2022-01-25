@@ -93,7 +93,7 @@ nav:
     options: KubeConfig 选项
   import: 导入 YAML
   home: 首页
-  shell: Kubectl Shell
+  shell: Kubectl Shell {key}
   support: |-
     {hasSupport, select,
       true {支持}
