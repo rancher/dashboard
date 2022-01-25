@@ -80,6 +80,15 @@ export default {
       const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
 
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
+    },
+    headerMode() {
+      return this.bannerVal?.showHeader === 'true' ? _EDIT : _VIEW;
+    },
+    footerMode() {
+      return this.bannerVal?.showFooter === 'true' ? _EDIT : _VIEW;
+    },
+    consentMode() {
+      return this.bannerVal?.showConsent === 'true' ? _EDIT : _VIEW;
     }
   },
 
@@ -167,32 +176,55 @@ export default {
         <!-- Header Settings -->
         <div class="row mt-20 mb-20">
           <div class="col span-6">
-            <Checkbox :value="bannerVal.showHeader === 'true'" :label="t('banner.showHeader')" :mode="mode" @input="e=>$set(bannerVal, 'showHeader', e.toString())" />
+            <Checkbox
+              :value="bannerVal.showHeader === 'true'"
+              :label="t('banner.showHeader')"
+              :mode="mode"
+              @input="e=>$set(bannerVal, 'showHeader', e.toString())"
+            />
           </div>
         </div>
-        <div style="position: relative">
-          <!-- <BannerSettings v-if="bannerVal.showHeader === 'true'" v-model="bannerVal" banner-type="bannerHeader" :mode="mode" /> -->
-          <div class="overlay" />
-          <BannerSettings v-model="bannerVal" banner-type="bannerHeader" :mode="mode" />
-        </div>
+        <BannerSettings
+          v-model="bannerVal"
+          banner-type="bannerHeader"
+          :mode="headerMode"
+        />
 
         <!-- Footer settings -->
-        <div class="row mt-20 mb-20">
+        <div class="row mt-40 mb-20">
           <div class="col span-6">
-            <Checkbox :value="bannerVal.showFooter === 'true'" :label="t('banner.showFooter')" :mode="mode" @input="e=>$set(bannerVal, 'showFooter', e.toString())" />
+            <Checkbox
+              :value="bannerVal.showFooter === 'true'"
+              :label="t('banner.showFooter')"
+              :mode="mode"
+              @input="e=>$set(bannerVal, 'showFooter', e.toString())"
+            />
           </div>
         </div>
-        <BannerSettings v-if="bannerVal.showFooter === 'true'" v-model="bannerVal" banner-type="bannerFooter" :mode="mode" />
+        <BannerSettings
+          v-model="bannerVal"
+          banner-type="bannerFooter"
+          :mode="footerMode"
+        />
       </template>
 
       <!-- Consent settings -->
       <template>
-        <div class="row mt-20 mb-20">
+        <div class="row mt-40 mb-20">
           <div class="col span-6">
-            <Checkbox :value="bannerVal.showConsent === 'true'" :label="t('banner.showConsent')" :mode="mode" @input="e => $set(bannerVal, 'showConsent', e.toString())" />
+            <Checkbox
+              :value="bannerVal.showConsent === 'true'"
+              :label="t('banner.showConsent')"
+              :mode="mode"
+              @input="e => $set(bannerVal, 'showConsent', e.toString())"
+            />
           </div>
         </div>
-        <BannerSettings v-if="bannerVal.showConsent === 'true'" v-model="bannerVal" banner-type="bannerConsent" :mode="mode" />
+        <BannerSettings
+          v-model="bannerVal"
+          banner-type="bannerConsent"
+          :mode="consentMode"
+        />
       </template>
     </div>
     <template v-for="err in errors">

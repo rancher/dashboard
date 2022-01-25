@@ -4,6 +4,7 @@ import ColorInput from '@/components/form/ColorInput';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import RadioGroup from '@/components/form/RadioGroup';
+import { _EDIT, _VIEW } from '@/config/query-params';
 
 export default ({
   props: {
@@ -12,8 +13,11 @@ export default ({
       default: () => {}
     },
     mode: {
-      type:    String,
-      default: 'edit',
+      type: String,
+      validator(value) {
+        return [_EDIT, _VIEW].includes(value);
+      },
+      default: _EDIT,
     },
     bannerType: {
       type:     String,
@@ -68,6 +72,10 @@ export default ({
       return { options, labels };
     },
 
+    isUiDisabled() {
+      return this.mode === _VIEW;
+    },
+
     textDecorationOptions() {
       const options = [
         {
@@ -95,7 +103,11 @@ export default ({
     <div class="col span-12">
       <div class="row">
         <div class="col span-6">
-          <LabeledInput v-model="value[bannerType].text" :label="t('banner.text')" />
+          <LabeledInput
+            v-model="value[bannerType].text"
+            :disabled="isUiDisabled"
+            :label="t('banner.text')"
+          />
           <div v-if="bannerType === 'bannerConsent'" class="mt-10">
             <Checkbox
               v-model="showAsDialog"
@@ -105,7 +117,11 @@ export default ({
               :label="t('banner.showAsDialog.label')"
               :tooltip="t('banner.showAsDialog.tooltip')"
             />
-            <LabeledInput v-model="buttonText" :disabled="!showAsDialog" :label="t('banner.buttonText')" />
+            <LabeledInput
+              v-model="buttonText"
+              :disabled="!showAsDialog || isUiDisabled"
+              :label="t('banner.buttonText')"
+            />
           </div>
         </div>
         <div class="col span-2">
@@ -135,6 +151,7 @@ export default ({
         <div class="col span-2">
           <LabeledSelect
             v-model="value[bannerType].fontSize"
+            :disabled="isUiDisabled"
             :label="t('banner.bannerFontSize.label')"
             :options="uiBannerFontSizeOptions"
           />
@@ -142,10 +159,20 @@ export default ({
       </div>
       <div class="row mt-10">
         <div class="col span-6">
-          <ColorInput v-model="value[bannerType].color" :default-value="themeVars.bannerTextColor" :label="t('banner.textColor')" />
+          <ColorInput
+            v-model="value[bannerType].color"
+            :default-value="themeVars.bannerTextColor"
+            :label="t('banner.textColor')"
+            :mode="mode"
+          />
         </div>
         <div class="col span-6">
-          <ColorInput v-model="value[bannerType].background" :default-value="themeVars.bannerBgColor" :label="t('banner.background')" />
+          <ColorInput
+            v-model="value[bannerType].background"
+            :default-value="themeVars.bannerBgColor"
+            :label="t('banner.background')"
+            :mode="mode"
+          />
         </div>
       </div>
     </div>
