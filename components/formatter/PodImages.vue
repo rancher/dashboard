@@ -28,7 +28,7 @@ export default {
     },
     imageLabels() {
       if (Array.isArray(this.images) && this.images.length > 1) {
-        let imagesNames = '<span style="text-decoration: underline">Images:</span><br/><br/>';
+        let imagesNames = '';
 
         this.images.forEach((name, i) => {
           imagesNames += `&#8226; ${ name }<br>`;
