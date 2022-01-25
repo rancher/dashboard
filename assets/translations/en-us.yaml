@@ -33,6 +33,7 @@ generic:
   overview: Overview
   plusMore: "+ {n} more"
   readFromFile: Read from File
+  readFromFolder: Read from Folder
   register: Register
   remove: Remove
   resource: |-
@@ -6433,6 +6434,12 @@ epinio:
       source:
         label: Source
         subtext: Provide the source
+        folder:
+          label: Folder
+          file:
+            label: Folder
+            inputLabel: Folder
+            tooltip: This should contain your application files
         archive:
           label: Archive
           file:

@@ -15,9 +15,9 @@ export default {
     throw new Error('Not Implemented');
   },
 
-  onLogout({ commit, dispatch }) {
+  onLogout({ commit }) {
     commit('managementChanged', { ready: false });
-    dispatch('reset');
+    commit('reset');
   },
 
   loadManagement(ctx) {

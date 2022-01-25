@@ -23,6 +23,7 @@ export const APPLICATION_MANIFEST_SOURCE_TYPE = {
 export const APPLICATION_SOURCE_TYPE = {
   CONTAINER_URL: 'container_url',
   ARCHIVE:       'archive',
+  FOLDER:        'folder',
   GIT_URL:       'git_url',
 };
 

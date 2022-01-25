@@ -353,10 +353,10 @@ export default {
           </template>
         </div>
         <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
-        <div class="text-warning mb-10">
+        <div class="text-warning mb-10 mt-5">
           {{ warning }}
         </div>
-        <div class="text-error mb-10">
+        <div class="text-error mb-10 mt-5">
           {{ error }}
         </div>
         <div v-if="!needsConfirm" class="text-info mt-20">

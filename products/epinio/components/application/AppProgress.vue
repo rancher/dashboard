@@ -55,7 +55,8 @@ export default Vue.extend<Data, any, any, any>({
       ...coreArgs,
     }));
 
-    if (this.source.type === APPLICATION_SOURCE_TYPE.ARCHIVE) {
+    if (this.source.type === APPLICATION_SOURCE_TYPE.ARCHIVE ||
+        this.source.type === APPLICATION_SOURCE_TYPE.FOLDER) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
         action:      APPLICATION_ACTION_TYPE.UPLOAD,
         index:       1,
@@ -71,7 +72,9 @@ export default Vue.extend<Data, any, any, any>({
       }));
     }
 
-    if (this.source.type === APPLICATION_SOURCE_TYPE.ARCHIVE || this.source.type === APPLICATION_SOURCE_TYPE.GIT_URL) {
+    if (this.source.type === APPLICATION_SOURCE_TYPE.ARCHIVE ||
+        this.source.type === APPLICATION_SOURCE_TYPE.FOLDER ||
+        this.source.type === APPLICATION_SOURCE_TYPE.GIT_URL) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
         action:      APPLICATION_ACTION_TYPE.BUILD,
         index:       2,

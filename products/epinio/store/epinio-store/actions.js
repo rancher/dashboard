@@ -139,8 +139,11 @@ export default {
     dispatch(`${ EPINIO_MGMT_STORE }/loadManagement`, null, { root: true });
   },
 
-  onLogout({ dispatch }) {
-    dispatch('reset');
+  onLogout({ dispatch, commit }) {
+    dispatch(`unsubscribe`);
+    commit('reset');
+
+    dispatch(`${ EPINIO_MGMT_STORE }/onLogout`, null, { root: true });
   },
 
   loadSchemas: ( ctx ) => {

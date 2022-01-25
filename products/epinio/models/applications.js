@@ -106,7 +106,7 @@ export default class EpinioApplication extends EpinioResource {
         action:     'restage',
         label:      this.t('epinio.applications.actions.restage.label'),
         icon:       'icon icon-fw icon-backup',
-        enabled:    !!this.deployment.stage_id
+        enabled:    !!this.deployment?.stage_id
       },
       {
         action:     'restart',

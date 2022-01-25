@@ -8,6 +8,7 @@ import FileSelector from '@/components/form/FileSelector.vue';
 import RadioGroup from '@/components/form/RadioGroup.vue';
 
 import { APPLICATION_SOURCE_TYPE } from '@/products/epinio/types';
+import { generateZip } from '@/utils/download';
 
 interface Archive{
   tarball: string,
@@ -34,7 +35,7 @@ interface Data {
   gitUrl: GitUrl,
   builderImage: BuilderImage,
   types: any[],
-  type: string // APPLICATION_SOURCE_TYPE,
+  type: string, // APPLICATION_SOURCE_TYPE,
   APPLICATION_SOURCE_TYPE: typeof APPLICATION_SOURCE_TYPE
 }
 
@@ -93,6 +94,9 @@ export default Vue.extend<Data, any, any, any>({
       },
 
       types:        [{
+      //   label: this.t('epinio.applications.steps.source.folder.label'), See epinio/ui #38
+      //   value: APPLICATION_SOURCE_TYPE.FOLDER
+      // }, {
         label: this.t('epinio.applications.steps.source.archive.label'),
         value: APPLICATION_SOURCE_TYPE.ARCHIVE
       }, {
@@ -102,7 +106,7 @@ export default Vue.extend<Data, any, any, any>({
         label: this.t('epinio.applications.steps.source.gitUrl.label'),
         value: APPLICATION_SOURCE_TYPE.GIT_URL
       }],
-      type: this.source?.type || APPLICATION_SOURCE_TYPE.ARCHIVE,
+      type: this.source?.type || APPLICATION_SOURCE_TYPE.FOLDER,
       APPLICATION_SOURCE_TYPE
     };
   },
@@ -117,6 +121,51 @@ export default Vue.extend<Data, any, any, any>({
       this.archive.fileName = file.name;
 
       this.update();
+    },
+
+    onFolderSelected(files: any[]) {
+      let folderName: string = '';
+
+      // Determine parent folder name
+      for (const f of files) {
+        const paths = f.webkitRelativePath.split('/');
+
+        if (paths.length > 1) {
+          if (!folderName) {
+            folderName = paths[0];
+            continue;
+          }
+          if (folderName !== paths[0]) {
+            folderName = '';
+            break;
+          }
+        }
+      }
+
+      const filesToZip = files.reduce((res, f) => {
+        let path = f.webkitRelativePath;
+
+        if (folderName) {
+          // Remove parent folder name
+          const parts = path.split('/');
+
+          parts.shift();
+          path = parts.join('/');
+        }
+
+        res[path] = f;
+
+        return res;
+      }, {} as { [key: string]: any});
+
+      generateZip(filesToZip, 'application/octet-stream').then((zip) => {
+        Vue.set(this.archive, 'tarball', zip);
+        Vue.set(this.archive, 'fileName', folderName || 'folder');
+
+        this.update();
+
+        // downloadFile('resources.zip', zip, 'application/zip');
+      });
     },
 
     update() {
@@ -154,6 +203,7 @@ export default Vue.extend<Data, any, any, any>({
     valid() {
       switch (this.type) {
       case APPLICATION_SOURCE_TYPE.ARCHIVE:
+      case APPLICATION_SOURCE_TYPE.FOLDER:
         return !!this.archive.tarball && !!this.builderImage.value;
       case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
         return !!this.container.url;
@@ -165,7 +215,11 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     showBuilderImage() {
-      return this.type === APPLICATION_SOURCE_TYPE.ARCHIVE || this.type === APPLICATION_SOURCE_TYPE.GIT_URL;
+      return [
+        APPLICATION_SOURCE_TYPE.ARCHIVE,
+        APPLICATION_SOURCE_TYPE.FOLDER,
+        APPLICATION_SOURCE_TYPE.GIT_URL,
+      ].includes(this.type);
     }
   }
 });
@@ -198,6 +252,27 @@ export default Vue.extend<Data, any, any, any>({
           :mode="mode"
           :raw-data="true"
           @selected="onFileSelected"
+        />
+      </div>
+    </template>
+    <template v-else-if="type === APPLICATION_SOURCE_TYPE.FOLDER">
+      <div class="spacer archive">
+        <h3>{{ t('epinio.applications.steps.source.folder.file.label') }}</h3>
+        <LabeledInput
+          v-model="archive.fileName"
+          :disabled="true"
+          :tooltip="t('epinio.applications.steps.source.folder.file.tooltip')"
+          :label="t('epinio.applications.steps.source.folder.file.inputLabel')"
+          :required="true"
+        />
+        <FileSelector
+          class="role-tertiary add mt-5"
+          :label="t('generic.readFromFolder')"
+          :mode="mode"
+          :raw-data="true"
+          :directory="true"
+          :multiple="true"
+          @selected="onFolderSelected"
         />
       </div>
     </template>

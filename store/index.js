@@ -884,7 +884,7 @@ export const actions = {
     commit('rancher/reset');
     commit('catalog/reset');
 
-    extensions.stores().forEach(store => commit(`${ store }/onLogout`));
+    await Promise.all(extensions.stores().map(store => dispatch(`${ store }/onLogout`)));
 
     const router = state.$router;
     const route = router.currentRoute;

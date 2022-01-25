@@ -8,7 +8,7 @@ export async function downloadFile(fileName, content, contentType = 'text/plain;
 }
 
 // {[fileName1]:data1, [fileName2]:data2}
-export function generateZip(files) {
+export function generateZip(files, mimeType) {
   // Moving this to a dynamic const JSZip = import('jszip') didn't work... figure out later
   const zip = new JSZip();
 
@@ -16,7 +16,7 @@ export function generateZip(files) {
     zip.file(fileName, files[fileName]);
   }
 
-  return zip.generateAsync({ type: 'blob' }).then((contents) => {
+  return zip.generateAsync({ type: 'blob', mimeType }).then((contents) => {
     return contents;
   });
 }
