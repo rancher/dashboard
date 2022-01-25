@@ -33,6 +33,16 @@ export const mutations = {
     state.plugins.push(plugin);
   },
 
+  removePlugin(state: UIPluginState, plugin: PluginMetadata) {
+    const index = state.plugins.findIndex(p => p.name === plugin.name);
+
+    // TODO: PluginMetadata is not the correct object type
+
+    if (index !== -1) {
+      state.plugins.splice(index, 1);
+    }
+  },
+
   setCatalog(state: UIPluginState, catalog: any) {
     state.catalog = catalog;
   }
@@ -52,5 +62,9 @@ export const actions = {
 
   addPlugin({ commit }: any, plugin: PluginMetadata) {
     commit('addPlugin', plugin);
+  },
+
+  removePlugin({ commit }: any, plugin: PluginMetadata) {
+    commit('removePlugin', plugin);
   }
 };

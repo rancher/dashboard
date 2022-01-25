@@ -1,3 +1,4 @@
+import { DSL as STORE_DSL } from '../store/type-map';
 import { Plugin } from './types';
 
 export class PluginMetadata implements Plugin {
@@ -6,12 +7,22 @@ export class PluginMetadata implements Plugin {
   public i18n: any = {};
   public locales: any = [];
   public products: any = [];
+  public productNames: string[] = [];
 
   // Plugin metadata (plugin package.json)
   public metadata: any = {};
 
   constructor(name: string) {
     this.name = name;
+  }
+
+  // Track which products the plugin creates
+  DSL(store: any, productName: string) {
+    const storeDSL = STORE_DSL(store, productName);
+
+    this.productNames.push(productName);
+
+    return storeDSL;
   }
 
   addProduct(product: Function): void {

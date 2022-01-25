@@ -182,6 +182,19 @@ export const mutations = {
         state.translations[state.default].locale[locale] = label;
       }
     }
+  },
+
+  // Remove locale
+  removeLocale(state, locale) {
+    const index = state.available.findIndex(l => l === locale);
+
+    if (index !== -1) {
+      state.available.splice(index, 1);
+
+      if (state.translations[locale]) {
+        delete state.translations[locale];
+      }
+    }
   }
 };
 
@@ -218,6 +231,18 @@ export const actions = {
   // Add a locale to the list of available locales
   addLocale({ commit }, { locale, label }) {
     commit('addLocale', { locale, label });
+  },
+
+  // Remove a locale from the list of available locales
+  removeLocale({ commit, getters, dispatch }, { locale }) {
+    const current = getters['current']();
+
+    // If we are removing the current locale, switch back to the default locale
+    if (current === locale) {
+      dispatch('switchTo', DEFAULT_LOCALE);
+    }
+
+    commit('removeLocale', locale );
   },
 
   async switchTo({

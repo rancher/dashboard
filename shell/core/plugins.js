@@ -1,4 +1,4 @@
-import { DSL as STORE_DSL, productsLoaded } from '@shell/store/type-map';
+import { productsLoaded } from '@shell/store/type-map';
 import { PluginMetadata } from './plugin';
 
 export default function({
@@ -8,17 +8,13 @@ export default function({
   redirect
 }, inject) {
   const dynamic = {};
+  // TODO: const i18n = {};
   let _lastLoaded = 0;
 
-  // Track which plugin loaded what, so we cab unload stuff
+  // Track which plugin loaded what, so we can unload stuff
   const plugins = {};
 
   inject('plugin', {
-
-    DSL(productName) {
-      return STORE_DSL(store, productName);
-    },
-
     // Load a plugin from a UI package
     loadAsync(name, mainFile) {
       return new Promise((resolve, reject) => {
@@ -48,11 +44,17 @@ export default function({
           // Initialize the plugin
           window[name].default(plugin);
 
+          // TODO: Remove this comment
+          // Plugin init should add plugin metadata so we can get the plugin name
+          // which may be different from the name used to load it
+          // Typiaclly the name used to load includes the version number where as the
+          // name from the metadata does not - this allows us to replace a plugin if a differnt version is already loaded
+
           // Load all of the types etc from the plugin
           this.applyPlugin(plugin);
 
           // Add the plugin to the store
-          store.dispatch('uiplugins/addPlugin', plugin);
+          store.dispatch('uiplugins/addPlugin', plugin.metadata);
 
           resolve();
         };
@@ -66,6 +68,37 @@ export default function({
       });
     },
 
+    // Remove the plugin
+    removePlugin(pluginMetadata) {
+      const plugin = plugins[pluginMetadata.name];
+
+      if (!plugin) {
+        return;
+      }
+
+      plugin.productNames.forEach((name) => {
+        store.dispatch('type-map/removeProduct', name);
+      });
+
+      // Remove all of the types
+      Object.keys(plugin.types).forEach((typ) => {
+        Object.keys(plugin.types[typ]).forEach((name) => {
+          this.unregister(typ, name);
+        });
+      });
+
+      // Remove locales
+      plugin.locales.forEach((localeObj) => {
+        store.dispatch('i18n/removeLocale', localeObj);
+      });
+
+      // Remove the plugin itself
+      store.dispatch('uiplugins/removePlugin', pluginMetadata);
+
+      // Update last load since we removed a plugin
+      _lastLoaded = new Date().getTime();
+    },
+
     // Apply the plugin based on its metadata
     applyPlugin(plugin) {
       // Types
@@ -75,12 +108,16 @@ export default function({
         });
       });
 
-      // Products
-      this.products.push(...plugin.products);
+      // i18n
+      Object.keys(plugin.i18n).forEach((name) => {
+        plugin.i18n[name].forEach((fn) => {
+          this.register('i18n', name, fn);
+        });
+      });
 
       // Initialize the product if the store is ready
       if (productsLoaded()) {
-        this.loadProducts(plugin.products);
+        this.loadProducts([plugin]);
       }
 
       // Locales
@@ -109,6 +146,20 @@ export default function({
         dynamic[type][name].push(fn);
       } else {
         dynamic[type][name] = fn;
+      }
+    },
+
+    unregister(type, name, fn) {
+      if (type === 'i18n') {
+        if (dynamic[type]?.[name]) {
+          const index = dynamic[type][name].find(func => func === fn);
+
+          if (index !== -1) {
+            dynamic[type][name].splice(index, 1);
+          }
+        }
+      } else if (dynamic[type]?.[name]) {
+        delete dynamic[type][name];
       }
     },
 
@@ -145,12 +196,20 @@ export default function({
     },
 
     // Load all of the products provided by plugins
-    loadProducts(products) {
-      products.forEach(async(p) => {
-        const impl = await p;
+    loadProducts(loadPlugins) {
+      if (!loadPlugins) {
+        loadPlugins = Object.values(plugins);
+      }
 
-        if (impl.init) {
-          impl.init(this, store);
+      loadPlugins.forEach((plugin) => {
+        if (plugin.products) {
+          plugin.products.forEach(async(p) => {
+            const impl = await p;
+
+            if (impl.init) {
+              impl.init(plugin, store);
+            }
+          });
         }
       });
     },

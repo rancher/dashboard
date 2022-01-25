@@ -300,7 +300,7 @@ export async function applyProducts(store, $plugin) {
     }
   }
   // Load the products from all plugins
-  $plugin.loadProducts($plugin.products);
+  $plugin.loadProducts();
 }
 
 export function productsLoaded() {
@@ -1195,6 +1195,24 @@ export const mutations = {
     state.schemaGeneration = state.schemaGeneration + 1;
   },
 
+  // Remove the specified product
+  remove(state, product) {
+    const existing = state.products.findIndex(p => p.name === product);
+
+    // Remove the product
+    if (existing !== -1) {
+      state.products.splice(existing, 1);
+    }
+
+    if (state.virtualTypes[product]) {
+      delete state.virtualTypes[product];
+    }
+
+    if (state.basicTypes[product]) {
+      delete state.basicTypes[product];
+    }
+  },
+
   product(state, obj) {
     const existing = findBy(state.products, 'name', obj.name);
 
@@ -1401,6 +1419,10 @@ export const mutations = {
 };
 
 export const actions = {
+  removeProduct({ commit }, product) {
+    commit('remove', product);
+  },
+
   addFavorite({ dispatch, rootGetters }, type) {
     const types = rootGetters['prefs/get'](FAVORITE_TYPES) || [];
 
