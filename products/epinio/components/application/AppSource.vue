@@ -106,7 +106,7 @@ export default Vue.extend<Data, any, any, any>({
         label: this.t('epinio.applications.steps.source.gitUrl.label'),
         value: APPLICATION_SOURCE_TYPE.GIT_URL
       }],
-      type: this.source?.type || APPLICATION_SOURCE_TYPE.FOLDER,
+      type: this.source?.type || APPLICATION_SOURCE_TYPE.ARCHIVE,
       APPLICATION_SOURCE_TYPE
     };
   },
