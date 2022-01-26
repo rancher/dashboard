@@ -55,19 +55,19 @@ export default {
     viewBox() {
       return `0 0 ${ this.viewportSize } ${ this.viewportSize }`;
     },
-    circumferance() {
+    circumference() {
       return 2 * Math.PI * this.radius;
     },
     transform() {
       return `rotate(${ this.rotate }, ${ this.center }, ${ this.center })`;
     },
     strokeDasharray() {
-      // This needs to be the circumerfance of the circle in order to allow the path to be filled
-      return this.circumferance;
+      // This needs to be the circumference of the circle in order to allow the path to be filled
+      return this.circumference;
     },
     strokeDashoffset() {
-      // This needs to be the percentage of the circumferance that we won't show as it will hide that portion of the path
-      return this.circumferance * (1 - this.percentage);
+      // This needs to be the percentage of the circumference that we won't show as it will hide that portion of the path
+      return this.circumference * (1 - this.percentage);
     },
     primaryStrokeColorId() {
       return `primary-${ id }`;
@@ -110,8 +110,8 @@ export default {
         :cx="center"
         :stroke-width="strokeWidth"
         :stroke="`url(#${primaryStrokeColorId})`"
-        :stroke-dasharray="circumferance"
-        :stroke-dashoffset="circumferance * (1 - percentage)"
+        :stroke-dasharray="circumference"
+        :stroke-dashoffset="circumference * (1 - percentage)"
         fill="none"
       />
     </g>
