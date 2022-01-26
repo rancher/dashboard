@@ -21,10 +21,10 @@ export function imageUrl(url, getters, errors, validatorArgs, type) {
   return errors;
 }
 
-export function fileRequired(annotaions = {}, getters, errors, validatorArgs, type) {
+export function fileRequired(annotations = {}, getters, errors, validatorArgs, type) {
   const t = getters['i18n/t'];
 
-  if (!annotaions[HCI.IMAGE_NAME]) {
+  if (!annotations[HCI.IMAGE_NAME]) {
     errors.push(t('validation.required', { key: t('harvester.image.fileName') }));
   }
 
