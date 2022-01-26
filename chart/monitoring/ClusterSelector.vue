@@ -112,7 +112,7 @@ export default {
   },
 
   watch: {
-    // This method is not that disimilar to persistentStorageType in Grafan config
+    // This method is not that dissimilar to persistentStorageType in Grafan config
     // The reason for the divergence is that Grafna has a subkey on the chart
     // where these keys are at the root of the chart. Vue complains about calling
     // this.$set(this, 'value', obj) as we need to do here to reset the values in bulk.
