@@ -104,7 +104,7 @@ export default {
       // If the drop down content appears outside of the window then move it to be above the trigger
       // Do this is three steps
       // expanded: false & expanded-checked = false - Content does not appear in DOM
-      // expanded: true & expanded-checked = false - Content appears in DOM (so it's location can be calcualated to be in or out of an area) but isn't visible (user doesn't see content blip from below to above trigger)
+      // expanded: true & expanded-checked = false - Content appears in DOM (so it's location can be calculated to be in or out of an area) but isn't visible (user doesn't see content blip from below to above trigger)
       // expanded: true & expanded-checked = true - Content appears in DOM and is visible (it's final location is known so user can see)
       setTimeout(() => { // There be beasts without this (classes don't get applied... so drop down never gets shown)
         const dropdown = document.getElementById(this.id);
