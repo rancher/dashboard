@@ -16,7 +16,7 @@ import ResourceTabs from '@/components/form/ResourceTabs';
 const DEFAULT_STORAGE = '10Gi';
 
 export default {
-  name: 'PersistentVolumClaim',
+  name: 'PersistentVolumeClaim',
 
   components: {
     Checkbox,
