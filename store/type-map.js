@@ -1690,7 +1690,7 @@ export function project(getters) {
     return project;
   }
 
-  // Convert the project namespaces into a map so we can check existtence easily
+  // Convert the project namespaces into a map so we can check existence easily
   const prjNamespaceMap = project.namespaces.reduce((m, ns) => {
     m[ns.metadata.name] = true;
 
