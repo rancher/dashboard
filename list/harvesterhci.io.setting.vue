@@ -15,7 +15,7 @@ export default {
     const isDev = this.$store.getters['prefs/get'](DEV);
     const isSingleVirtualCluster = this.$store.getters['isSingleVirtualCluster'];
 
-    const hash = { haversterSettings: this.$store.dispatch('harvester/findAll', { type: HCI.SETTING }) };
+    const hash = { harvesterSettings: this.$store.dispatch('harvester/findAll', { type: HCI.SETTING }) };
 
     if (isSingleVirtualCluster) {
       hash.settings = this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
@@ -30,9 +30,9 @@ export default {
     let allRows = [];
 
     if (rows.clusterNetwork) {
-      allRows = [...rows.clusterNetwork, ...rows.haversterSettings];
+      allRows = [...rows.clusterNetwork, ...rows.harvesterSettings];
     } else {
-      allRows = rows.haversterSettings;
+      allRows = rows.harvesterSettings;
     }
 
     if (isSingleVirtualCluster) {

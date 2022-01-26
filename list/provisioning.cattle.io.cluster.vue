@@ -66,7 +66,7 @@ export default {
       const product = this.$store.getters['currentProduct'];
       const isExplorer = product?.name === EXPLORER;
 
-      // Don't show Harveser banner message on the cluster management page or if Harvester if not enabled
+      // Don't show Harvester banner message on the cluster management page or if Harvester if not enabled
       if (!isExplorer || !this.harvesterEnabled) {
         return 0;
       }
