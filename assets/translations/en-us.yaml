@@ -5177,7 +5177,7 @@ harvester:
     PhysicalNic: Physical NIC
     cpu: Cpu
     memory: Memory
-    virtaulName: Virtual machine name
+    virtualName: Virtual machine name
     promiscuous: Promiscuous
     ipv4Address: IPv4 Address
   generic:

@@ -5198,7 +5198,7 @@ harvester:
     PhysicalNic: 物理网卡
     cpu: CPU
     memory: 内存
-    virtaulName: 虚拟机名称
+    virtualName: 虚拟机名称
     promiscuous: Promiscuous
     ipv4Address: IPv4 地址
   generic:

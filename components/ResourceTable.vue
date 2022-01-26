@@ -130,10 +130,10 @@ export default {
 
     filteredRows() {
       const isAll = this.$store.getters['isAllNamespaces'];
-      const isVirutalProduct = this.$store.getters['currentProduct'].name === HARVESTER;
+      const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
 
       // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
-      if ( (!this.isNamespaced || isAll) && !isVirutalProduct) {
+      if ( (!this.isNamespaced || isAll) && !isVirtualProduct) {
         return this.rows || [];
       }
 
