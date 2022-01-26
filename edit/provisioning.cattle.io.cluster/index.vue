@@ -76,8 +76,8 @@ export default {
       hash.nodeDrivers = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
     }
 
-    if (this.$store.getters[`management/canList`](MANAGEMENT.KONTANIER_DRIVER)) {
-      hash.kontainerDrivers = this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTANIER_DRIVER });
+    if (this.$store.getters[`management/canList`](MANAGEMENT.KONTAINER_DRIVER)) {
+      hash.kontainerDrivers = this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTAINER_DRIVER });
     }
 
     if ( this.value.id && !this.value.isRke2 ) {
