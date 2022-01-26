@@ -321,7 +321,7 @@ export default {
       }
     },
 
-    validataCount(count) {
+    validateCount(count) {
       if (count > 10) {
         this.$set(this, 'count', 10);
       }
@@ -385,7 +385,7 @@ export default {
             type="number"
             :label="t('harvester.virtualMachine.instance.multiple.count')"
             required
-            @input="validataCount"
+            @input="validateCount"
           />
         </template>
       </NameNsDescription>
