@@ -40,9 +40,13 @@ export default function(dir, _appConfig) {
   const autoLoadPackages = [];
 
   autoLoad.forEach((pkg) => {
+    // Need the version number of each file
+    const pkgPackageFile = require(path.join(dir, 'pkg', pkg, 'package.json'));
+    const pkgRef = `${ pkg }-${ pkgPackageFile.version }`;
+
     autoLoadPackages.push({
-      name:    `app-autoload-${ pkg }`,
-      content: `/pkg/${ pkg }/${ pkg }.umd.min.js`
+      name:    `app-autoload-${ pkgRef }`,
+      content: `/pkg/${ pkgRef }/${ pkgRef }.umd.min.js`
     });
 
     // Anything auto-loaded should also be excluded
@@ -93,14 +97,18 @@ export default function(dir, _appConfig) {
   if (fs.existsSync(pkgFolder)) {
     const items = fs.readdirSync(path.relative(dir, './pkg'));
 
-    items.forEach((name) => {
+    // Ignore hidden folders
+    items.filter(name => !name.startsWith('.')).forEach((name) => {
       if (includePkg(name)) {
         reqs += `require(\'~/pkg/${ name }\').default($plugin); `;
       }
 
       // Serve the code for the UI package in case its used for dynamic loading (but not if the same pacakge was provided in node_modules)
       if (!nmPackages[name]) {
-        serverMiddleware.push({ path: `/pkg/${ name }`, handler: serveStatic(`${ dir }/dist-pkg/${ name }`) });
+        const pkgPackageFile = require(path.join(dir, 'pkg', name, 'package.json'));
+        const pkgRef = `${ name }-${ pkgPackageFile.version }`;
+
+        serverMiddleware.push({ path: `/pkg/${ pkgRef }`, handler: serveStatic(`${ dir }/dist-pkg/${ pkgRef }`) });
       }
 
       autoImportTypes[`@ranch/auto-import/${ name }`] = generateDynamicTypeImport(`@/pkg/${ name }`, path.join(dir, `pkg/${ name }`));

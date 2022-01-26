@@ -84,6 +84,18 @@ module.exports = function(dir) {
         options: { name: '[path][name].[ext]' },
       });
 
+      // The shell code is in node_modules, so we need to make sure it will get transpiled
+      // Update the webpack config to transpile @ranch/shell
+      config.module.rules.forEach((p) => {
+        if (p.use) {
+          p.use.forEach((u) => {
+            if (u.loader.includes('babel-loader')) {
+              p.exclude = /node_modules\/(?!@ranch\/shell\/).*/;
+            }
+          });
+        }
+      });
+
       // Optimization - TODO
       // config.optimization.splitChunks = {
       //   chunks:             'async',

@@ -11,12 +11,16 @@ if [ ! -d ${SHELL_DIR} ]; then
   SHELL_DIR=$(cd -P ${SHELL_DIR} && pwd)
 fi
 
-PKG_DIST=${BASE_DIR}/dist-pkg/${1}
+VERSION=$(cd pkg/$1; node -p -e "require('./package.json').version")
+NAME=${1}-${VERSION}
+PKG_DIST=${BASE_DIR}/dist-pkg/${NAME}
 
 if [ -d "${BASE_DIR}/pkg/${1}" ]; then
   echo "Building UI Package $1"
-  rm -rf ${BASE_DIR}/dist-pkg/${1}
-  mkdir -p ${BASE_DIR}/dist-pkg/${1}
+  echo "  Package name:    ${NAME}"
+  echo "  Package version: ${VERSION}"
+  rm -rf ${PKG_DIST}
+  mkdir -p ${PKG_DIST}
 
   pushd pkg/${1}
 
@@ -33,12 +37,11 @@ if [ -d "${BASE_DIR}/pkg/${1}" ]; then
   fi
 
   FILE=index.js
-
   if [ -f ./index.ts ]; then
     FILE=index.ts
   fi
 
-  ${BASE_DIR}/node_modules/.bin/vue-cli-service build --name ${1} --target lib ${FILE} --dest ${PKG_DIST} --formats umd-min
+  ${BASE_DIR}/node_modules/.bin/vue-cli-service build --name ${NAME} --target lib ${FILE} --dest ${PKG_DIST} --formats umd-min --filename ${NAME}
   cp -f ./package.json ${PKG_DIST}/package.json
   node ${SCRIPT_DIR}/pkgfile.js ${PKG_DIST}/package.json
   rm -rf ${PKG_DIST}/*.bak

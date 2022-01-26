@@ -12,7 +12,7 @@ const files = [
   'tsconfig.json',
   'vue.config.js',
   'babel.config.js',
-  'index.js'
+  'index.ts'
 ];
 
 const topLevelScripts = {
@@ -73,6 +73,8 @@ files.forEach((file) => {
 //   cwd: process.cwd(),
 //   stdio: "inherit"
 // });
+
+// Update tsconfig
 
 const topLevelRawdata = fs.readFileSync(path.join(folder, 'package.json'));
 const topLevelPkg = JSON.parse(topLevelRawdata);

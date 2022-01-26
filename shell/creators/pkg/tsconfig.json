@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ES2018",
+    "allowJs": true,
+    "target": "esnext",
     "module": "esnext",
     "strict": true,
     "jsx": "preserve",
@@ -11,33 +12,36 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "baseUrl": ".",
-    "rootDir": ".",
     "preserveSymlinks": true,
     "types": [
-      "@types/node",
-      "@nuxt/types",
-      "cypress"
+      "node",
+      "webpack-env"
+    ],
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "scripthost"
     ],
     "paths": {
-      "@/*": [
-        "src/*"
+      "@shell/core/*": [
+        "../../node_modules/@ranch/shell/core/*"
       ],
-      "@shell/*": [
-        ".shell/*"
+      "@shell/config/*": [
+        "../../node_modules/@ranch/shell/config/*"
+      ],
+      "@shell/store/*": [
+        "../../node_modules/@ranch/shell/store/*"
       ]
     },
-    "lib": [
-      "ESNext",
-      "ESNext.AsyncIterable",
-      "DOM"
-    ],
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     "**/*.vue",
-    "**/*.ts",
-    "**/*.tsx"
+    "../../node_modules/@ranch/shell/types/*.d.ts",
+    "../../node_modules/@ranch/shell/core/*.ts",
+    "../../node_modules/@ranch/shell/config/**/*.js",
   ],
   "exclude": [
     "node_modules"

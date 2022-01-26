@@ -29,6 +29,9 @@
       ],
       "@shell/config/*": [
         "../../shell/config/*"
+      ],
+      "@shell/store/*": [
+        "../../shell/store/*"
       ]
     },
   },

@@ -1,7 +1,8 @@
-import { DSL as STORE_DSL } from '../store/type-map';
-import { Plugin } from './types';
+import { DSL as STORE_DSL } from '@shell/store/type-map';
+import { IPlugin } from './types';
 
-export class PluginMetadata implements Plugin {
+export class Plugin implements IPlugin {
+  public id: string;
   public name: string;
   public types: any = {};
   public i18n: any = {};
@@ -10,10 +11,20 @@ export class PluginMetadata implements Plugin {
   public productNames: string[] = [];
 
   // Plugin metadata (plugin package.json)
-  public metadata: any = {};
+  public _metadata: any = {};
 
-  constructor(name: string) {
-    this.name = name;
+  constructor(id: string) {
+    this.id = id;
+    this.name = id;
+  }
+
+  get metadata() {
+    return this._metadata;
+  }
+
+  set metadata(value) {
+    this._metadata = value;
+    this.name = this._metadata.name || this.id;
   }
 
   // Track which products the plugin creates

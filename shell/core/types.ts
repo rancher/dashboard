@@ -1,7 +1,15 @@
+// package.json metadata
+export interface PackageMetadata {
+  name: string;
+  version: string;
+  description: string;
+  icon: string;
+}
+
 /**
- * Interface a Dashboard plugin
+ * Interface for a Dashboard plugin
  */
-export interface Plugin {
+export interface IPlugin {
   /**
    * Add a product
    * @param importFn Function that will import the module containing a product definition
@@ -18,5 +26,5 @@ export interface Plugin {
   /**
    * Plugin metadata
    */
-   metadata: any;
+   metadata: PackageMetadata;
 }

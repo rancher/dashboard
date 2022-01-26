@@ -1,5 +1,5 @@
 import { productsLoaded } from '@shell/store/type-map';
-import { PluginMetadata } from './plugin';
+import { Plugin } from './plugin';
 
 export default function({
   app,
@@ -16,7 +16,7 @@ export default function({
 
   inject('plugin', {
     // Load a plugin from a UI package
-    loadAsync(name, mainFile) {
+    loadAsync(id, mainFile) {
       return new Promise((resolve, reject) => {
         const moduleUrl = mainFile;
         const element = document.createElement('script');
@@ -28,7 +28,7 @@ export default function({
         element.onload = () => {
           element.parentElement.removeChild(element);
 
-          if (!window[name]) {
+          if (!window[id]) {
             return reject(new Error('Could not load plugin code'));
           }
 
@@ -37,24 +37,22 @@ export default function({
           _lastLoaded = new Date().getTime();
 
           // TODO: Error if we are loading a plugin already loaded?
-          const plugin = new PluginMetadata(name);
+          // name is the name of the plugin, including the version number
+          const plugin = new Plugin(id);
 
-          plugins[name] = plugin;
+          plugins[id] = plugin;
 
           // Initialize the plugin
-          window[name].default(plugin);
+          window[id].default(plugin);
 
-          // TODO: Remove this comment
-          // Plugin init should add plugin metadata so we can get the plugin name
-          // which may be different from the name used to load it
-          // Typiaclly the name used to load includes the version number where as the
-          // name from the metadata does not - this allows us to replace a plugin if a differnt version is already loaded
+          // Uninstall existing product if there is one
+          this.removePlugin(plugin.name);
 
           // Load all of the types etc from the plugin
           this.applyPlugin(plugin);
 
           // Add the plugin to the store
-          store.dispatch('uiplugins/addPlugin', plugin.metadata);
+          store.dispatch('uiplugins/addPlugin', plugin);
 
           resolve();
         };
@@ -69,8 +67,8 @@ export default function({
     },
 
     // Remove the plugin
-    removePlugin(pluginMetadata) {
-      const plugin = plugins[pluginMetadata.name];
+    removePlugin(name) {
+      const plugin = Object.values(plugins).find(p => p.name === name);
 
       if (!plugin) {
         return;
@@ -93,7 +91,7 @@ export default function({
       });
 
       // Remove the plugin itself
-      store.dispatch('uiplugins/removePlugin', pluginMetadata);
+      store.dispatch('uiplugins/removePlugin', name);
 
       // Update last load since we removed a plugin
       _lastLoaded = new Date().getTime();
