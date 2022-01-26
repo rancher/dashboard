@@ -1373,7 +1373,7 @@ cluster:
   addOns: 
     additionalManifest:
       title: Additional Manifest
-      tooltip: 'Additional Kubernetes Manifet YAML to be applied to the cluster on startup.'
+      tooltip: 'Additional Kubernetes Manifest YAML to be applied to the cluster on startup.'
   advanced:
     argInfo:
       title: Additional Kubelet Args
