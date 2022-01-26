@@ -168,7 +168,7 @@ export default {
       const templateBindings = this.$store.getters['management/all'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
       const userTemplateBindings = templateBindings.filter(binding => binding.userName === userId);
 
-      // Upront load clusters
+      // Upfront load clusters
       userTemplateBindings.map(b => this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: b.clusterName }));
 
       return userTemplateBindings;
