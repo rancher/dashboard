@@ -115,7 +115,7 @@ export default {
           return;
         }
 
-        // Ensire drop down will be inside of the window, otherwise show above the trigger
+        // Ensure drop down will be inside of the window, otherwise show above the trigger
         const bounding = dropdown.getBoundingClientRect();
         const insideWindow = this.insideBounds(bounding, {
           top:    0,
