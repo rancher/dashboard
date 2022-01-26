@@ -2,7 +2,7 @@ import Vue from 'vue';
 import { get } from '@/utils/object';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import { NORMAN } from '@/config/types';
-import HybridModel from '@/plugins/steve/hybrid-class';
+import SteveModel from '@/plugins/steve/steve-class';
 import Role from './rbac.authorization.k8s.io.role';
 
 export const CATTLE_API_GROUP = '.cattle.io';
@@ -226,7 +226,7 @@ const RESOURCES = [
   'WorkloadEntries'
 ];
 
-export default class RoleTemplate extends HybridModel {
+export default class RoleTemplate extends SteveModel {
   get customValidationRules() {
     return Role.customValidationRules();
   }
