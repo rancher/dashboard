@@ -106,7 +106,7 @@ const driverToCloudProviderMap = {
   harvester:     'harvester',
 };
 
-// Dynamically loaded drivers can call this eventually to register thier options
+// Dynamically loaded drivers can call this eventually to register their options
 export function configureCredential(name, opt) {
   credentialOptions[name] = opt;
 }
