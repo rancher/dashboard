@@ -292,7 +292,7 @@ export default class Resource {
        * @param {requiredIf} Value required if value at path not empty
        * @param {translationKey} Human readable display key for param in path e.g. metadata.name === Name
        * @param {type} Type of field to validate
-       * @param {validators} array of strings where item is name of exported validator function in custom-validtors, args can be passed by prepending args separated by colon. e.g maxLength:63
+       * @param {validators} array of strings where item is name of exported validator function in custom-validators, args can be passed by prepending args separated by colon. e.g maxLength:63
        */
       /* {
         nullable:       false,
