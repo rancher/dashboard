@@ -52,7 +52,7 @@
 // spoofedType(obj)           Create a fake type that can be treated like a normal type
 //
 // basicType(                 Mark type(s) as always shown in the top of the nav
-//   type(s),                 -- Type name or arrry of type names
+//   type(s),                 -- Type name or array of type names
 //   group                    -- Group to show the type(s) under; false-y for top-level.
 // )
 // basicType(                 Mark all types in group as always shown in the top of the nav
