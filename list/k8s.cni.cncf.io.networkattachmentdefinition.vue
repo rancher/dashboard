@@ -112,7 +112,7 @@ export default {
           :to="to"
           prefix-label="harvester.network.message.premise.prefix"
           middle-label="harvester.network.message.premise.middle"
-          suffic-label="harvester.network.message.premise.suffic"
+          suffix-label="harvester.network.message.premise.suffix"
         />
       </Banner>
     </template>
@@ -123,7 +123,7 @@ export default {
           :to="to"
           prefix-label="harvester.network.message.viewSetting.prefix"
           middle-label="harvester.network.message.viewSetting.middle"
-          suffic-label="harvester.network.message.viewSetting.suffic"
+          suffix-label="harvester.network.message.viewSetting.suffix"
         />
       </Banner>
     </template>

@@ -10,9 +10,9 @@ export function imageUrl(url, getters, errors, validatorArgs, type) {
   }
 
   const suffixName = url.split('/').pop();
-  const fileSuffiic = suffixName.split('.').pop().toLowerCase();
+  const fileSuffix = suffixName.split('.').pop().toLowerCase();
 
-  if (!VM_IMAGE_FILE_FORMAT.includes(fileSuffiic)) {
+  if (!VM_IMAGE_FILE_FORMAT.includes(fileSuffix)) {
     const tipString = type === 'file' ? 'harvester.validation.image.ruleFileTip' : 'harvester.validation.image.ruleTip';
 
     errors.push(t(tipString));

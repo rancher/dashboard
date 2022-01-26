@@ -5518,15 +5518,15 @@ harvester:
       noSetting:
         prefix: You must configure the backup target in
         middle: 'setting'
-        suffic: before creating a new backup.
+        suffix: before creating a new backup.
       errorTip:
         prefix: Backup Target value in
         middle: Setting
-        suffic: "is invalid, error: "
+        suffix: "is invalid, error: "
       viewSetting:
         prefix: Click
         middle: here
-        suffic: to view the backup config.
+        suffix: to view the backup config.
     restore:
       backup: Backup
       deletePreviousVolumes: Delete Previous Volumes
@@ -5545,15 +5545,15 @@ harvester:
       premise: 
         prefix: 'You must configure a network in'
         middle: 'Settings'
-        suffic: 'before creating a new network.'
+        suffix: 'before creating a new network.'
       viewSetting:
         prefix: Click
         middle: here
-        suffic: to view default cluster network config.
+        suffix: to view default cluster network config.
       errorTip:
         prefix: Physical NIC value in
         middle: Setting
-        suffic: "is invalid, error: "
+        suffix: "is invalid, error: "
     layer3Network:
       mode:
         label: Mode
@@ -5588,7 +5588,7 @@ harvester:
       ca:
         prefix: 'Click'
         middle: 'here'
-        suffic: 'to add a custom certificate.'
+        suffix: 'to add a custom certificate.'
     sslCertificates:
       publicCertificate: Public Certificate
       privateKey: Private Key

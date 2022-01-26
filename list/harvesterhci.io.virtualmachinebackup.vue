@@ -114,7 +114,7 @@ export default {
         :to="to"
         prefix-label="harvester.backup.message.noSetting.prefix"
         middle-label="harvester.backup.message.noSetting.middle"
-        suffic-label="harvester.backup.message.noSetting.suffic"
+        suffix-label="harvester.backup.message.noSetting.suffix"
       />
 
       <MessageLink
@@ -123,8 +123,8 @@ export default {
         prefix-label="harvester.backup.message.errorTip.prefix"
         middle-label="harvester.backup.message.errorTip.middle"
       >
-        <template v-slot:suffic>
-          {{ t('harvester.backup.message.errorTip.suffic') }} {{ errorMessage }}
+        <template v-slot:suffix>
+          {{ t('harvester.backup.message.errorTip.suffix') }} {{ errorMessage }}
         </template>
       </MessageLink>
     </Banner>
@@ -137,7 +137,7 @@ export default {
         :to="to"
         prefix-label="harvester.backup.message.viewSetting.prefix"
         middle-label="harvester.backup.message.viewSetting.middle"
-        suffic-label="harvester.backup.message.viewSetting.suffic"
+        suffix-label="harvester.backup.message.viewSetting.suffix"
       />
     </Banner>
 
