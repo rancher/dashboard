@@ -989,7 +989,7 @@ cluster:
     registrationCommand:
       label: 注册命令
       linuxDetail: 在每台要注册的 Linux 机器上运行此命令。
-      windowsDetail: 在每台要注册的 Windows 机器中的 Powershell 上运行此命令。Windows 节点只能充当 worker。
+      windowsDetail: 在每台要注册的 Windows 机器中的 PowerShell 上运行此命令。Windows 节点只能充当 worker。
       windowsNotReady: 在用于添加 Windows worker 的注册命令显示之前，集群必须已启动并运行 Linux ETCD，Control Plane，以及 worker 节点。
       windowsWarning: 工作负载 Pod（包括由 Rancher Chart 部署的 Pod）将默认调度到 Linux 和 Windows 节点上。编辑 Chart 中的 NodeSelector 以将它们放置到兼容的节点上。
       insecure: "不安全：如果你的服务器具有自签名证书，选择此项以跳过 TLS 验证。"
