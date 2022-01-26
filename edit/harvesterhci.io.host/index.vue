@@ -420,7 +420,7 @@ export default {
       </Tab>
       <Tab name="network" :weight="90" :label="t('harvester.host.tabs.network')">
         <InfoBox class="wrapper">
-          <div class="row warpper">
+          <div class="row wrapper">
             <div class="col span-6">
               <LabeledInput
                 v-model="type"
