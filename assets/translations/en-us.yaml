@@ -285,7 +285,7 @@ authConfig:
       app:
         label: Application name
         value: 'Anything you like, e.g. My {vendor}'
-      calllback:
+      callback:
         label: Authorization callback URL
       description:
         label: Application description

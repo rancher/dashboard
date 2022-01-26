@@ -284,7 +284,7 @@ authConfig:
       app:
         label: 应用名称
         value: '输入一个应用名称，例如：我的 {vendor}'
-      calllback:
+      callback:
         label: 授权回调 URL
       description:
         label: 应用描述
