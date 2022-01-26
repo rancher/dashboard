@@ -179,7 +179,7 @@ export default {
     passwordsMatch() {
       const match = this.passwordNew === this.passwordConfirm;
 
-      this.errorMessages = this.passwordConfirmBlurred && !match ? [this.t('changePassword.errors.missmatchedPassword')] : [];
+      this.errorMessages = this.passwordConfirmBlurred && !match ? [this.t('changePassword.errors.mismatchedPassword')] : [];
 
       return match;
     },
@@ -194,7 +194,7 @@ export default {
       }
 
       if (this.isRandomGenerated) {
-        // If we're not changing current user... and password is randomly generated... there'll be no new/confirm missmatch
+        // If we're not changing current user... and password is randomly generated... there'll be no new/confirm mismatch
         return true;
       }
 

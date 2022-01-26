@@ -875,7 +875,7 @@ changePassword:
       label: 生成的密码
   newGeneratedPassword: 推荐密码
   errors:
-    missmatchedPassword: 前后两次输入的密码不匹配
+    mismatchedPassword: 前后两次输入的密码不匹配
     failedToChange: 无法修改密码
     failedDeleteKey: 无法删除单个 API 密钥
     failedDeleteKeys: 无法删除多个 API 密钥

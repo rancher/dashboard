@@ -869,7 +869,7 @@ changePassword:
       label: Generated Password
   newGeneratedPassword: Suggest a password
   errors:
-    missmatchedPassword: Passwords do not match
+    mismatchedPassword: Passwords do not match
     failedToChange: Failed to change password
     failedDeleteKey: Failed to delete key
     failedDeleteKeys: Failed to delete keys
