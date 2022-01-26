@@ -175,7 +175,7 @@ product:
 
 suffix:
   percent: "%"
-  milliCpus: mili CPUs
+  milliCpus: milli CPUs
   cores: Cores
   cpus: CPUs
   ib: iB
