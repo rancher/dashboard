@@ -211,7 +211,7 @@ const RESOURCES = [
   'Sidecars',
   'SourceCodeCredentials',
   'SourceCodeProviderConfigs',
-  'SourceCodeRepositorys',
+  'SourceCodeRepositories',
   'StatefulSets',
   'StorageClasses',
   'Templates',
