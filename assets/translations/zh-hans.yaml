@@ -1936,7 +1936,7 @@ hpa:
       targetName: 目标名称
       value: 值
     source: 源
-  objectReferance:
+  objectReference:
     api:
       label: 引用的 API 版本
       placeholder: 例如：apps/v1beta1

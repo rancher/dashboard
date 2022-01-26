@@ -1938,7 +1938,7 @@ hpa:
       targetName: Target Name
       value: Value
     source: Source
-  objectReferance:
+  objectReference:
     api:
       label: Referent API Version
       placeholder: e.g. apps/v1beta1
