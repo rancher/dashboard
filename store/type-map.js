@@ -544,7 +544,7 @@ export const getters = {
         const labelDisplay = highlightLabel(label, icon);
 
         if ( !labelDisplay ) {
-          // Search happens in highlight and retuns null if not found
+          // Search happens in highlight and returns null if not found
           continue;
         }
 
