@@ -94,6 +94,7 @@ nav:
   import: 导入 YAML
   home: 首页
   shell: Kubectl Shell
+  shellShortcut: Kubectl Shell {key}
   support: |-
     {hasSupport, select,
       true {支持}

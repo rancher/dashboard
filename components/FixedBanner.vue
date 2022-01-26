@@ -75,7 +75,7 @@ export default {
     },
 
     showAsDialog() {
-      return !!this.banner.button;
+      return this.consent && !!this.banner.button;
     }
   },
 
@@ -114,7 +114,7 @@ export default {
 
 <template>
   <div v-if="showBanner">
-    <div v-if="!showAsDialog" class="banner" :style="bannerStyle" :class="{'banner-consent': showConsent}">
+    <div v-if="!showAsDialog" class="banner banner-banner" :style="bannerStyle" :class="{'banner-consent': consent}">
       {{ banner.text }}
     </div>
     <div v-else-if="showDialog">
@@ -160,6 +160,11 @@ export default {
     z-index: 5000;
     background-color: var(--default);
     opacity: 0.75;
+  }
+  .banner-banner {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .banner-dialog {
     z-index: 5001;

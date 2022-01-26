@@ -168,7 +168,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isImportedRke2() {
-    return this.isImported && this.mgmt?.status?.provider.startsWith('rke2');
+    return this.isImported && this.mgmt?.status?.provider?.startsWith('rke2');
   }
 
   get isRke2() {

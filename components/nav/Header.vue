@@ -37,11 +37,13 @@ export default {
 
   data() {
     const searchShortcut = isMac ? '(\u2318-K)' : '(Ctrl+K)';
+    const shellShortcut = '(Ctrl+`)';
 
     return {
       show:        false,
       showTooltip: false,
       searchShortcut,
+      shellShortcut,
       VIRTUAL,
       LOGGED_OUT,
     };
@@ -265,10 +267,12 @@ export default {
 
         <button
           v-if="showKubeShell"
-          v-tooltip="t('nav.shell')"
+          v-tooltip="t('nav.shellShortcut', {key: shellShortcut})"
+          v-shortkey="{windows: ['ctrl', '`'], mac: ['meta', '`']}"
           :disabled="!shellEnabled"
           type="button"
           class="btn header-btn role-tertiary"
+          @shortkey="currentCluster.openShell()"
           @click="currentCluster.openShell()"
         >
           <i class="icon icon-terminal icon-lg" />
@@ -282,7 +286,7 @@ export default {
           class="btn header-btn role-tertiary"
           @click="currentCluster.downloadKubeConfig()"
         >
-          <i class="icon icon-file" />
+          <i class="icon icon-file icon-lg" />
         </button>
 
         <button
@@ -293,7 +297,7 @@ export default {
           class="btn header-btn role-tertiary"
           @click="currentCluster.copyKubeConfig()"
         >
-          <i class="icon icon-copy" />
+          <i class="icon icon-copy icon-lg" />
         </button>
       </template>
 

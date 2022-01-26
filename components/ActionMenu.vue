@@ -128,7 +128,9 @@ export default {
     box-shadow: 0 5px 20px var(--shadow);
 
     LI {
-      padding: 10px;
+      align-items: center;
+      display: flex;
+      padding: 8px 10px;
       margin: 0;
 
       &.divider {
@@ -144,6 +146,9 @@ export default {
 
       .icon {
         display: unset;
+        width: 14px;
+        text-align: center;
+        margin-right: 8px;
       }
 
       &.no-actions {
