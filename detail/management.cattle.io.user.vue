@@ -27,7 +27,7 @@ export default {
     this.canSeeRoleTemplates = !!this.$store.getters[`management/canList`](MANAGEMENT.ROLE_TEMPLATE);
 
     if (this.canSeeRoleTemplates) {
-      // Upfront fetch, avoid aysnc computes
+      // Upfront fetch, avoid async computes
       await Promise.all([
         await this.$store.dispatch('rancher/find', { type: NORMAN.USER, id: this.value.id }),
         await this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE }),
