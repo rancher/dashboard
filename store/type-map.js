@@ -1366,7 +1366,7 @@ export const mutations = {
 
   // setGroupDefaultType({group: 'core', defaultType: 'name'});
   // By default when a group is clicked, the first item is selected - this allows
-  // this behvaiour to be changed and a named child type can be chosen
+  // this behaviour to be changed and a named child type can be chosen
   // These operate on group names *after* mapping but *before* translation
   setGroupDefaultType(state, { group, groups, defaultType }) {
     if ( !groups ) {
