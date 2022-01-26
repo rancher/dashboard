@@ -1,6 +1,6 @@
 {
   "name": "@ranch/shell",
-  "version": "0.6.11",
+  "version": "0.6.12",
   "description": "Rancher Dashboard Shell",
   "repository": "https://github.com/rancherlabs/dashboard",
   "license": "Apache-2.0",
@@ -54,6 +54,8 @@
     "@nuxtjs/webpack-profile": "^0.1.0",
     "@popperjs/core": "^2.4.0",
     "@types/node": "^16.4.3",
+    "@vue/cli-plugin-babel": "^4.5.15",
+    "@vue/cli-plugin-typescript": "^4.5.15",
     "@vue/cli-service": "^4.5.13",
     "add": "^2.0.6",
     "ansi_up": "^5.0.0",
