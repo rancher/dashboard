@@ -286,7 +286,7 @@ export default class Resource {
       /**
        * Essentially a fake schema object with additional params to extend validation
        *
-       * @param {nullable} Value is nullabel
+       * @param {nullable} Value is nullable
        * @param {path} Path on the resource to the value to validate
        * @param {required} Value required
        * @param {requiredIf} Value required if value at path not empty
