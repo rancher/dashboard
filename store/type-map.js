@@ -955,7 +955,7 @@ export const getters = {
   // Note: you can't refactor these into one function that does `@/${kind}/${type}`,
   // because babel needs some hardcoded idea where to look for the dependency.
   //
-  // Note 2: Yes these are editing state in a gettter for caching... it's ok, probably.
+  // Note 2: Yes these are editing state in a getter for caching... it's ok, probably.
   // ------------------------------------
   hasCustomList(state, getters) {
     return (rawType) => {
