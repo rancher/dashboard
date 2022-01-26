@@ -64,7 +64,7 @@ export default class HciSetting extends SteveModel {
     return this.value || this.default;
   }
 
-  get upgradeableVersion() {
+  get upgradableVersion() {
     const value = this.value || '';
 
     if (!value) {

@@ -43,7 +43,7 @@ export default {
 
       const upgradeVersion = settings.find( S => S.id === 'upgradable-versions');
 
-      return upgradeVersion?.upgradeableVersion || [];
+      return upgradeVersion?.upgradableVersion || [];
     },
 
     currentVersion() {
