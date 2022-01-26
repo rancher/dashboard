@@ -184,7 +184,7 @@ export default {
       return userTemplateBindings;
     },
 
-    // Global Permisions Helpers (brought over from ember)
+    // Global Permissions Helpers (brought over from ember)
     hasPermission(globalRoleRules, permission) {
       return globalRoleRules.find((gRule) => {
         return ((gRule.apiGroups || []).includes('*') || (gRule.apiGroups || []).includes(permission.apiGroup)) &&
