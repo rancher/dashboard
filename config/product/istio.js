@@ -53,7 +53,7 @@ export function init(store) {
   ], 'RBAC');
 
   basicType([
-    'security.istio.io.authorizationpolicie',
+    'security.istio.io.authorizationpolicy',
     'security.istio.io.peerauthentication',
     'security.istio.io.requestauthentication',
   ], 'Security');
