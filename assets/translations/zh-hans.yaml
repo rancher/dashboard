@@ -4536,10 +4536,10 @@ validation:
       name:
         required: '端口规则 [{position}] - 端口名称是必填项。'
       nodePort:
-        requriedInt: '端口规则 [{position}] - 如果包含节点端口，节点端口必须是整数。'
+        requiredInt: '端口规则 [{position}] - 如果包含节点端口，节点端口必须是整数。'
       port:
         required: '端口规则 [{position}] - 端口是必填项，'
-        requriedInt: '端口规则 [{position}] - 如果包含端口，端口必须是整数。'
+        requiredInt: '端口规则 [{position}] - 如果包含端口，端口必须是整数。'
       targetPort:
         between: '端口规则 [{position}] - 目标端口的取值范围是：1-65535'
         iana: '端口规则 [{position}] - 目标端口必须是 IANA 服务名称或整数'
