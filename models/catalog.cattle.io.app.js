@@ -68,7 +68,7 @@ export default class CatalogApp extends SteveModel {
     // object = version available to upgrade to
 
     if ( this.spec?.chart?.metadata?.annotations?.[FLEET.BUNDLE_ID] ) {
-      // Things managed by fleet shouldn't show ugrade available even if there might be.
+      // Things managed by fleet shouldn't show upgrade available even if there might be.
       return false;
     }
 
