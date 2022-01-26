@@ -45,9 +45,9 @@ export default {
     },
     radius() {
       const outerRadius = this.viewportSize / 2;
-      const halfStorkeWidth = this.strokeWidth / 2;
+      const halfStrokeWidth = this.strokeWidth / 2;
 
-      return outerRadius - halfStorkeWidth;
+      return outerRadius - halfStrokeWidth;
     },
     center() {
       return this.viewportSize / 2;
