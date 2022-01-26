@@ -284,7 +284,7 @@ export default class Resource {
   get customValidationRules() {
     return [
       /**
-       * Essentially a fake schema object with additonal params to extend validation
+       * Essentially a fake schema object with additional params to extend validation
        *
        * @param {nullable} Value is nullabel
        * @param {path} Path on the resource to the value to validate
