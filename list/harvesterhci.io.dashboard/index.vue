@@ -104,8 +104,8 @@ export default {
       this[k] = res[k];
     }
 
-    this.showClusterMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL], 'harvester');
-    this.showVmMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [VM_DASHBOARD_METRICS_URL], 'harvester');
+    this.showClusterMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL], 'harvester');
+    this.showVmMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [VM_DASHBOARD_METRICS_URL], 'harvester');
   },
 
   data() {
