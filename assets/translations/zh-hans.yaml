@@ -3267,7 +3267,7 @@ probe:
     port:
       label: 检查端口
       placeholder: 例如：80
-      placeholderDuex: 例如：25
+      placeholderDeux: 例如：25
   initialDelay:
     label: 初始延迟
     placeholder: '默认值：0'

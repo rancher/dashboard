@@ -3277,7 +3277,7 @@ probe:
     port:
       label: Check Port
       placeholder: e.g. 80
-      placeholderDuex: e.g. 25
+      placeholderDeux: e.g. 25
   initialDelay:
     label: Initial Delay
     placeholder: 'Default: 0'
