@@ -82,7 +82,7 @@ export default {
     },
 
     isEmptyValue() {
-      return this.backupTargetResource.backupTagetetIsEmpty;
+      return this.backupTargetResource.backupTargetIsEmpty;
     },
 
     canUpdate() {

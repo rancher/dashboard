@@ -44,7 +44,7 @@ export default class HciSetting extends SteveModel {
     return out;
   }
 
-  get backupTagetetIsEmpty() {
+  get backupTargetIsEmpty() {
     return !this.value;
   }
 
