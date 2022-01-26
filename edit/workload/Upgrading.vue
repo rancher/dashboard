@@ -35,7 +35,7 @@ export default {
     let maxSurge = '25';
     let maxUnavailable = '25';
     let surgeUnits = '%';
-    let unavaiableUnits = '%';
+    let unavailableUnits = '%';
 
     if (strategyObj.rollingUpdate) {
       maxSurge = strategyObj.rollingUpdate.maxSurge;
@@ -48,10 +48,10 @@ export default {
       }
 
       if ( typeof maxUnavailable === 'string' && maxUnavailable.includes('%')) {
-        unavaiableUnits = '%';
+        unavailableUnits = '%';
         maxUnavailable = maxUnavailable.slice(0, maxUnavailable.indexOf('%'));
       } else {
-        unavaiableUnits = 'Pods';
+        unavailableUnits = 'Pods';
       }
     }
 
@@ -61,7 +61,7 @@ export default {
 
     return {
       surgeUnits,
-      unavaiableUnits,
+      unavailableUnits,
       strategy,
       minReadySeconds,
       progressDeadlineSeconds,
@@ -117,7 +117,7 @@ export default {
       if (this.surgeUnits === '%' && !maxSurge.includes('%')) {
         maxSurge = `${ maxSurge }%`;
       }
-      if (this.unavaiableUnits === '%' && !maxUnavailable.includes('%')) {
+      if (this.unavailableUnits === '%' && !maxUnavailable.includes('%')) {
         maxUnavailable = `${ maxUnavailable }%`;
       }
 
@@ -180,7 +180,7 @@ export default {
       if (target === 'maxSurge') {
         this.surgeUnits = units;
       } else {
-        this.unavaiableUnits = units;
+        this.unavailableUnits = units;
       }
 
       this.update();
@@ -234,7 +234,7 @@ export default {
           <InputWithSelect
             :text-value="maxUnavailable"
             :select-before-text="false"
-            :select-value="unavaiableUnits"
+            :select-value="unavailableUnits"
             :text-label="t('workload.upgrading.maxUnavailable.label')"
             :mode="mode"
             type="number"
