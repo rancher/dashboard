@@ -135,7 +135,7 @@ export default {
           <template #value>
             <div class="smart-row">
               <div class="console">
-                {{ value.nameDisplay }} <VMConsoleBar :resource="value" class="cosoleBut" />
+                {{ value.nameDisplay }} <VMConsoleBar :resource="value" class="consoleBut" />
               </div>
             </div>
           </template>
@@ -241,7 +241,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .cosoleBut {
+  .consoleBut {
     position: relative;
     top: -20px;
     left: 38px;
