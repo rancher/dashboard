@@ -138,7 +138,7 @@ export function init(store) {
     STATE,
     NAME_COL,
     {
-      name:     'kubernetesVesion',
+      name:     'kubernetesVersion',
       labelKey: 'tableHeaders.version',
       value:    'kubernetesVersion',
       sort:     'kubernetesVersion',
