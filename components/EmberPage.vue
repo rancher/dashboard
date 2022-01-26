@@ -220,7 +220,7 @@ export default {
           this.loaded = false;
           this.emberCheck = this.$axios.CancelToken.source();
 
-          // Make a head requst to a known asset of the Ember UI
+          // Make a head request to a known asset of the Ember UI
           const pageUrl = `${ window.location.origin }/assets/images/logos/rke.svg`;
           const response = await this.$axios.head(pageUrl, {
             timeout:     PAGE_CHECK_TIMEOUT,
