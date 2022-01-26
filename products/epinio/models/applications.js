@@ -101,6 +101,12 @@ export default class EpinioApplication extends EpinioResource {
       //   icon:       'icon icon-fw icon-chevron-right',
       //   enabled:    this.active,
       // },
+      // {
+      //   action:     'openSsh',
+      //   enabled:    this.active,
+      //   icon:       'icon icon-fw icon-chevron-right',
+      //   label:      'SSH Shell',
+      // },
       // { divider: true },
       {
         action:     'restage',

@@ -599,8 +599,8 @@ export const actions = {
   }) {
     const isMultiCluster = getters['isMultiCluster'];
 
-    if ( state.clusterId && state.clusterId === id) {
-      // Do nothing, we're already connected/connecting to this cluster
+    if ( state.clusterId && state.clusterId === id && oldProduct === product) {
+      // Do nothing, we're already connected/connecting to this cluster and we haven't switched products (some products will view the same cluster)
       return;
     }
 
@@ -627,7 +627,7 @@ export const actions = {
       commit('management/forgetType', MANAGEMENT.PROJECT);
       commit('catalog/reset');
 
-      if (isExt && product) {
+      if (isExt && product && oldProduct) {
         // If we've left a cluster of a product ensure we reset it
         await dispatch(`${ oldProduct }/unsubscribe`);
         await commit(`${ oldProduct }/reset`);
