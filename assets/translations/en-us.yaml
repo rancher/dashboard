@@ -1169,7 +1169,7 @@ cluster:
       availabilitySet:
         label: Availability Set (unmanaged)
       dns:
-        help: A unique DNS label for the public IP adddress.
+        help: A unique DNS label for the public IP address.
         label: DNS Label
       environment:
         label: Environment
