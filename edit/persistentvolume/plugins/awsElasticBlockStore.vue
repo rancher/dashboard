@@ -33,7 +33,7 @@ export default {
     return { readOnlyOptions };
   },
   computed: {
-    parition: {
+    partition: {
       get() {
         return this.value.spec.awsElasticBlockStore.partition;
       },
@@ -52,7 +52,7 @@ export default {
         <LabeledInput v-model="value.spec.awsElasticBlockStore.volumeID" :mode="mode" :label="t('persistentVolume.awsElasticBlockStore.volumeId.label')" :placeholder="t('persistentVolume.awsElasticBlockStore.volumeId.placeholder')" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="parition" :mode="mode" :label="t('persistentVolume.shared.partition.label')" :placeholder="t('persistentVolume.shared.partition.placeholder')" type="number" />
+        <LabeledInput v-model="partition" :mode="mode" :label="t('persistentVolume.shared.partition.label')" :placeholder="t('persistentVolume.shared.partition.placeholder')" type="number" />
       </div>
     </div>
     <div class="row mb-20">
