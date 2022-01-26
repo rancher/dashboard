@@ -9,7 +9,7 @@ import { MANAGEMENT } from '@/config/types';
 import { getVendor, setBrand } from '@/config/private-label';
 import { SETTING } from '@/config/settings';
 
-const KEY_REGX = /^[0-9a-fA-F]{16}$/;
+const KEY_REGEX = /^[0-9a-fA-F]{16}$/;
 
 export default {
   layout: 'home',
@@ -83,7 +83,7 @@ export default {
     },
 
     validSupportKey() {
-      return !!this.supportKey.match(KEY_REGX);
+      return !!this.supportKey.match(KEY_REGEX);
     },
   },
 
