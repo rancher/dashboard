@@ -2491,10 +2491,10 @@ login:
   serverError:  
     authFailedCreds: "Logging in failed: Check credentials, or your account may not be authorized to log in."
     authFailed: "Logging in failed: Your account may not be authorized to log in."
-    unknown: "An unknown error occured while attempting to login. Please contact your system administrator."
+    unknown: "An unknown error occurred while attempting to login. Please contact your system administrator."
     invalidSamlAttrs: "Invalid saml attributes"
     noResponse: "No response received"
-  error: An error occured logging in. Please try again.
+  error: An error occurred logging in. Please try again.
   clientError: Invalid username or password. Please try again.
   useLocal: Use a local user
   loginWithProvider: Log in with {provider}
