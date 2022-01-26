@@ -65,7 +65,7 @@ const DEFAULT_COLOR = 'warning';
 const DEFAULT_ICON = 'x';
 
 const DEFAULT_WAIT_INTERVAL = 1000;
-const DEFAULT_WAIT_TMIMEOUT = 30000;
+const DEFAULT_WAIT_TIMEOUT = 30000;
 
 export const STATES = {
   'in-use':           { color: 'success', icon: 'dot-open' },
@@ -467,7 +467,7 @@ export default class Resource {
     console.log('Starting wait for', msg); // eslint-disable-line no-console
 
     if ( !timeoutMs ) {
-      timeoutMs = DEFAULT_WAIT_TMIMEOUT;
+      timeoutMs = DEFAULT_WAIT_TIMEOUT;
     }
 
     if ( !intervalMs ) {
@@ -547,7 +547,7 @@ export default class Resource {
     return (entry.status || '').toLowerCase() === `${ withStatus }`.toLowerCase();
   }
 
-  waitForCondition(name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TMIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) {
+  waitForCondition(name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) {
     return this.waitForTestFn(() => {
       return this.isCondition(name, withStatus);
     }, `condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
