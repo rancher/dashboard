@@ -62,7 +62,7 @@ const RESOURCES = [
   'Apps',
   'AppRevisions',
   'AuthConfigs',
-  'AuthorizationPolicys',
+  'AuthorizationPolicies',
   'Bundles',
   'BundleDeployments',
   'BundleNamespaceMappings',
