@@ -66,7 +66,7 @@ export default {
         return res;
       }, new Map());
 
-      // Mark all machines for deletion and then scale down their pool
+      // Mark all machines for deletion and then scale down their pool to the new size
       const flatArray = Array.from(poolInfo.entries());
 
       await Promise.all(flatArray.map(([pool, machines]) => {
@@ -79,7 +79,7 @@ export default {
           .then(() => pool.scalePool(-machines.length, false));
       }));
 
-      // Pool scale info is kept in the cluster itself
+      // Pool scale info is kept in the cluster itself, so now we've made the changes we can save them
       await this.cluster.save();
     }
   }
