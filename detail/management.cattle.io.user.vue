@@ -160,7 +160,7 @@ export default {
         return out;
       } catch (e) {
         // Swallow the error. It's probably due to the user not having the correct permissions to read global roles
-        console.error('Failed to fetch gobal role bindings: ', e); // eslint-disable-line no-console
+        console.error('Failed to fetch global role bindings: ', e); // eslint-disable-line no-console
       }
     },
 
