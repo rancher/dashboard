@@ -214,7 +214,7 @@ export default {
       const isValid = this.isValid();
 
       if (isValid) {
-        // Covers the case where we don't re-evaludate the error messages (don't need to at the time)
+        // Covers the case where we don't re-evaluate the error messages (don't need to at the time)
         this.errorMessages = [];
       }
 
