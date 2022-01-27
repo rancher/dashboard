@@ -70,6 +70,15 @@ function extensionProduct(routeName) {
   return hyphen >= 1 ? newName.substring(0, hyphen) : newName;
 }
 
+function productFromRoute(route) {
+  // Some places hardcode the explorer product directly in the name and don't include the correct param
+  if (route?.name === `c-cluster-${ EXPLORER }`) {
+    return EXPLORER;
+  }
+
+  return route?.params?.product || EXPLORER; // Default to explorer, as is the norm
+}
+
 export default async function({
   route, app, store, redirect, $cookies, req, isDev, from
 }) {
@@ -273,10 +282,10 @@ export default async function({
     let clusterId = get(route, 'params.cluster');
 
     const isExt = route.name.startsWith(EXTENSION_PREFIX);
-    const product = isExt ? extensionProduct(route.name) : get(route, 'params.product');
+    const product = isExt ? extensionProduct(route.name) : productFromRoute(route);
 
     const oldIsExt = from.name.startsWith(EXTENSION_PREFIX);
-    const oldProduct = oldIsExt ? extensionProduct(from.name) : from?.params?.product;
+    const oldProduct = oldIsExt ? extensionProduct(from.name) : productFromRoute(from);
 
     if (oldIsExt && oldProduct && oldProduct !== product) {
       // If we've left a product ensure we reset it

@@ -595,12 +595,15 @@ export const actions = {
   async loadCluster({
     state, commit, dispatch, getters
   }, {
-    id, product, oldProduct, isExt
+    id, product, isExt, oldProduct, oldIsExt
   }) {
     const isMultiCluster = getters['isMultiCluster'];
 
-    if ( state.clusterId && state.clusterId === id && oldProduct === product) {
-      // Do nothing, we're already connected/connecting to this cluster and we haven't switched products (some products will view the same cluster)
+    const sameCluster = state.clusterId && state.clusterId === id;
+    const sameExt = isExt || oldIsExt ? oldProduct === product : true; // Covers case where we're going from extension cluster 'a' to explorer cluster 'a'
+
+    if ( sameCluster && sameExt) {
+      // Do nothing, we're already connected/connecting to this cluster
       return;
     }
 

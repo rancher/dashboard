@@ -240,7 +240,7 @@ export default class CatalogApp extends SteveModel {
 
   get deployedAsLegacy() {
     return async() => {
-      if (this.spec.values) {
+      if (this.spec?.values?.global) {
         const { clusterName, projectName } = this.spec?.values?.global;
 
         if (clusterName && projectName) {
