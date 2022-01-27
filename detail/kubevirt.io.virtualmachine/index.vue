@@ -63,7 +63,7 @@ export default {
 
     await allHash(hash);
 
-    this.showVmMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [VM_METRICS_DETAIL_URL], 'harvester');
+    this.showVmMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [VM_METRICS_DETAIL_URL], 'harvester');
   },
 
   computed: {
