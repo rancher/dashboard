@@ -395,11 +395,6 @@ export default {
   HEADER {
     display: grid;
 
-    .rd-header-right {
-      display: flex;
-      flex-direction: row;
-    }
-
     .title {
       border-left: 1px solid var(--header-border);
       padding-left: 10px;
@@ -431,21 +426,6 @@ export default {
       padding: 0 5px;
     }
 
-    .actions {
-      align-items: center;
-      cursor: pointer;
-      display: flex;
-      grid-area: header-actions;
-
-      > I {
-        font-size: 18px;
-        padding: 6px;
-        &:hover {
-          color: var(--link);
-        }
-      }
-    }
-
     .back {
       padding-top: 6px;
 
@@ -464,37 +444,7 @@ export default {
       }
     }
 
-    .user-menu {
-      padding-top: 9.5px;
-    }
-
-    ::v-deep > div > .btn.role-tertiary {
-      border: 1px solid var(--header-btn-bg);
-      border: none;
-      background: var(--header-btn-bg);
-      color: var(--header-btn-text);
-      padding: 0 10px;
-      line-height: 32px;
-      min-height: 32px;
-
-      i {
-        // Ideally same height as the parent button, but this means tooltip needs adjusting (which is it's own can of worms)
-        line-height: 20px;
-      }
-
-      &:hover {
-        background: var(--primary);
-        color: #fff;
-      }
-
-      &[disabled=disabled] {
-        background-color: rgba(0,0,0,0.25) !important;
-        color: var(--header-btn-text) !important;
-        opacity: 0.7;
-      }
-    }
-
-    grid-template-areas:  "menu product top a header-right";
+    grid-template-areas:  "menu product top a header-right"; // TODO what's a good name for a here
     grid-template-columns: var(--header-height) calc(var(--nav-width) - var(--header-height)) 1fr min-content min-content;
     grid-template-rows:    var(--header-height);
 
@@ -541,22 +491,6 @@ export default {
       }
     }
 
-    .header-buttons {
-      align-items: center;
-      display: flex;
-      grid-area: buttons;
-      margin-top: 1px;
-
-      // Spacing between header buttons
-      .btn:not(:last-of-type) {
-        margin-right: 10px;
-      }
-
-      .btn:focus {
-        box-shadow: none;
-      }
-    }
-
     .product-name {
       font-size: 16px;
     }
@@ -582,18 +516,8 @@ export default {
       border-bottom: var(--header-border-size) solid var(--header-border);
     }
 
-    .header-btn {
-      width: 40px;
-    }
-
     .menu-spacer {
       grid-area: menu;
-    }
-
-    > .header-spacer {
-      grid-area: cluster;
-      background-color: var(--header-bg);
-      position: relative;
     }
 
     > .top {
@@ -627,43 +551,121 @@ export default {
       }
     }
 
-    > .user {
-      outline: none;
+    .rd-header-right {
+      display: flex;
+      flex-direction: row;
+      padding: 0;
 
-      .v-popover {
-        display: flex;
-        ::v-deep .trigger{
-        .user-image {
-            display: flex;
-          }
-        }
+      > * {
+        padding: 0 5px;
       }
 
-      .user-image {
-        display: flex;
+      .header-buttons {
         align-items: center;
+        display: flex;
+        margin-top: 1px;
+
+        // Spacing between header buttons
+        .btn:not(:last-of-type) {
+          margin-right: 10px;
+        }
+
+        .btn:focus {
+          box-shadow: none;
+        }
       }
 
-      &:focus {
-        .v-popover {
-          ::v-deep .trigger {
-            line-height: 0;
-            .user-image {
-              max-height: 40px;
-            }
-            .user-image > * {
-              @include form-focus
-            }
+      .header-btn {
+        width: 40px;
+      }
+
+      ::v-deep > div > .btn.role-tertiary {
+        border: 1px solid var(--header-btn-bg);
+        border: none;
+        background: var(--header-btn-bg);
+        color: var(--header-btn-text);
+        padding: 0 10px;
+        line-height: 32px;
+        min-height: 32px;
+
+        i {
+          // Ideally same height as the parent button, but this means tooltip needs adjusting (which is it's own can of worms)
+          line-height: 20px;
+        }
+
+        &:hover {
+          background: var(--primary);
+          color: #fff;
+        }
+
+        &[disabled=disabled] {
+          background-color: rgba(0,0,0,0.25) !important;
+          color: var(--header-btn-text) !important;
+          opacity: 0.7;
+        }
+      }
+
+      .actions {
+        align-items: center;
+        cursor: pointer;
+        display: flex;
+
+        > I {
+          font-size: 18px;
+          padding: 6px;
+          &:hover {
+            color: var(--link);
           }
         }
       }
 
-      grid-area: user;
-      background-color: var(--header-bg);
+      .header-spacer {
+        background-color: var(--header-bg);
+        position: relative;
+      }
 
-      .avatar-round {
-        border: 0;
-        border-radius: 50%;
+      .user-menu {
+        padding-top: 9.5px;
+      }
+
+      > .user {
+        outline: none;
+        width: var(--header-height);
+
+        .v-popover {
+          display: flex;
+          ::v-deep .trigger{
+          .user-image {
+              display: flex;
+            }
+          }
+        }
+
+        .user-image {
+          display: flex;
+          align-items: center;
+        }
+
+        &:focus {
+          .v-popover {
+            ::v-deep .trigger {
+              line-height: 0;
+              .user-image {
+                max-height: 40px;
+              }
+              .user-image > * {
+                @include form-focus
+              }
+            }
+          }
+        }
+
+        background-color: var(--header-bg);
+
+        .avatar-round {
+          border: 0;
+          border-radius: 50%;
+        }
       }
     }
   }
