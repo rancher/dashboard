@@ -244,154 +244,161 @@ export default {
       <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
     </div>
 
-    <div v-if="currentCluster && !simple" class="header-buttons">
-      <template v-if="currentProduct && currentProduct.showClusterSwitcher">
+    <div class="rd-header-right">
+      <div v-if="currentCluster && !simple" class="header-buttons">
+        <template v-if="currentProduct && currentProduct.showClusterSwitcher">
+          <button
+            v-if="showImportYaml"
+            v-tooltip="t('nav.import')"
+            :disabled="!importEnabled"
+            type="button"
+            class="btn header-btn role-tertiary"
+            @click="openImport()"
+          >
+            <i class="icon icon-upload icon-lg" />
+          </button>
+          <modal
+            class="import-modal"
+            name="importModal"
+            width="75%"
+            height="auto"
+            styles="max-height: 90vh;"
+          >
+            <Import :cluster="currentCluster" @close="closeImport" />
+          </modal>
+
+          <button
+            v-if="showKubeShell"
+            v-tooltip="t('nav.shellShortcut', {key: shellShortcut})"
+            v-shortkey="{windows: ['ctrl', '`'], mac: ['meta', '`']}"
+            :disabled="!shellEnabled"
+            type="button"
+            class="btn header-btn role-tertiary"
+            @shortkey="currentCluster.openShell()"
+            @click="currentCluster.openShell()"
+          >
+            <i class="icon icon-terminal icon-lg" />
+          </button>
+
+          <button
+            v-if="showKubeConfig"
+            v-tooltip="t('nav.kubeconfig.download')"
+            :disabled="!kubeConfigEnabled"
+            type="button"
+            class="btn header-btn role-tertiary"
+            @click="currentCluster.downloadKubeConfig()"
+          >
+            <i class="icon icon-file icon-lg" />
+          </button>
+
+          <button
+            v-if="showCopyConfig"
+            v-tooltip="t('nav.kubeconfig.copy')"
+            :disabled="!kubeConfigEnabled"
+            type="button"
+            class="btn header-btn role-tertiary"
+            @click="currentCluster.copyKubeConfig()"
+          >
+            <i class="icon icon-copy icon-lg" />
+          </button>
+        </template>
+
         <button
-          v-if="showImportYaml"
-          v-tooltip="t('nav.import')"
-          :disabled="!importEnabled"
+          v-if="showSearch"
+          v-tooltip="t('nav.resourceSearch.toolTip', {key: searchShortcut})"
+          v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}"
           type="button"
           class="btn header-btn role-tertiary"
-          @click="openImport()"
+          @shortkey="openSearch()"
+          @click="openSearch()"
         >
-          <i class="icon icon-upload icon-lg" />
+          <i class="icon icon-search icon-lg" />
         </button>
         <modal
-          class="import-modal"
-          name="importModal"
-          width="75%"
+          v-if="showSearch"
+          class="search-modal"
+          name="searchModal"
+          width="50%"
           height="auto"
-          styles="max-height: 90vh;"
         >
-          <Import :cluster="currentCluster" @close="closeImport" />
+          <Jump @closeSearch="hideSearch()" />
         </modal>
+      </div>
 
-        <button
-          v-if="showKubeShell"
-          v-tooltip="t('nav.shellShortcut', {key: shellShortcut})"
-          v-shortkey="{windows: ['ctrl', '`'], mac: ['meta', '`']}"
-          :disabled="!shellEnabled"
-          type="button"
-          class="btn header-btn role-tertiary"
-          @shortkey="currentCluster.openShell()"
-          @click="currentCluster.openShell()"
+      <div v-if="pageActions && pageActions.length" class="actions">
+        <i class="icon icon-actions" @blur="showPageActionsMenu(false)" @click="showPageActionsMenu(true)" @focus.capture="showPageActionsMenu(true)" />
+        <v-popover
+          ref="pageActions"
+          placement="bottom-end"
+          offset="0"
+          trigger="manual"
+          :delay="{show: 0, hide: 0}"
+          :popper-options="{modifiers: { flip: { enabled: false } } }"
+          :container="false"
         >
-          <i class="icon icon-terminal icon-lg" />
-        </button>
+          <template slot="popover" class="user-menu">
+            <ul class="list-unstyled dropdown" @click.stop="showPageActionsMenu(false)">
+              <li v-for="a in pageActions" :key="a.label" class="user-menu-item">
+                <a v-if="!a.seperator" @click="pageAction(a)">{{ a.labelKey ? t(a.labelKey) : a.label }}</a>
+                <div v-else class="menu-seperator">
+                  <div class="menu-seperator-line" />
+                </div>
+              </li>
+            </ul>
+          </template>
+        </v-popover>
+      </div>
 
-        <button
-          v-if="showKubeConfig"
-          v-tooltip="t('nav.kubeconfig.download')"
-          :disabled="!kubeConfigEnabled"
-          type="button"
-          class="btn header-btn role-tertiary"
-          @click="currentCluster.downloadKubeConfig()"
+      <div class="header-spacer"></div>
+
+      <div class="user user-menu" tabindex="0" @blur="showMenu(false)" @click="showMenu(true)" @focus.capture="showMenu(true)">
+        <v-popover
+          ref="popover"
+          placement="bottom-end"
+          offset="-10"
+          trigger="manual"
+          :delay="{show: 0, hide: 0}"
+          :popper-options="{modifiers: { flip: { enabled: false } } }"
+          :container="false"
         >
-          <i class="icon icon-file icon-lg" />
-        </button>
-
-        <button
-          v-if="showCopyConfig"
-          v-tooltip="t('nav.kubeconfig.copy')"
-          :disabled="!kubeConfigEnabled"
-          type="button"
-          class="btn header-btn role-tertiary"
-          @click="currentCluster.copyKubeConfig()"
-        >
-          <i class="icon icon-copy icon-lg" />
-        </button>
-      </template>
-
-      <button
-        v-if="showSearch"
-        v-tooltip="t('nav.resourceSearch.toolTip', {key: searchShortcut})"
-        v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}"
-        type="button"
-        class="btn header-btn role-tertiary"
-        @shortkey="openSearch()"
-        @click="openSearch()"
-      >
-        <i class="icon icon-search icon-lg" />
-      </button>
-      <modal
-        v-if="showSearch"
-        class="search-modal"
-        name="searchModal"
-        width="50%"
-        height="auto"
-      >
-        <Jump @closeSearch="hideSearch()" />
-      </modal>
-    </div>
-
-    <div v-if="pageActions && pageActions.length" class="actions">
-      <i class="icon icon-actions" @blur="showPageActionsMenu(false)" @click="showPageActionsMenu(true)" @focus.capture="showPageActionsMenu(true)" />
-      <v-popover
-        ref="pageActions"
-        placement="bottom-end"
-        offset="0"
-        trigger="manual"
-        :delay="{show: 0, hide: 0}"
-        :popper-options="{modifiers: { flip: { enabled: false } } }"
-        :container="false"
-      >
-        <template slot="popover" class="user-menu">
-          <ul class="list-unstyled dropdown" @click.stop="showPageActionsMenu(false)">
-            <li v-for="a in pageActions" :key="a.label" class="user-menu-item">
-              <a v-if="!a.seperator" @click="pageAction(a)">{{ a.labelKey ? t(a.labelKey) : a.label }}</a>
-              <div v-else class="menu-seperator">
-                <div class="menu-seperator-line" />
-              </div>
-            </li>
-          </ul>
-        </template>
-      </v-popover>
-    </div>
-
-    <div class="header-spacer"></div>
-
-    <div class="user user-menu" tabindex="0" @blur="showMenu(false)" @click="showMenu(true)" @focus.capture="showMenu(true)">
-      <v-popover
-        ref="popover"
-        placement="bottom-end"
-        offset="-10"
-        trigger="manual"
-        :delay="{show: 0, hide: 0}"
-        :popper-options="{modifiers: { flip: { enabled: false } } }"
-        :container="false"
-      >
-        <div class="user-image text-right hand">
-          <img v-if="principal && principal.avatarSrc" :src="principal.avatarSrc" :class="{'avatar-round': principal.roundAvatar}" width="36" height="36" />
-          <i v-else class="icon icon-user icon-3x avatar" />
-        </div>
-        <template slot="popover" class="user-menu">
-          <ul class="list-unstyled dropdown" @click.stop="showMenu(false)">
-            <li v-if="authEnabled" class="user-info">
-              <div class="user-name">
-                <i class="icon icon-lg icon-user" /> {{ principal.loginName }}
-              </div>
-              <div class="text-small pt-5 pb-5">
-                {{ principal.name }}
-              </div>
-            </li>
-            <nuxt-link tag="li" :to="{name: 'prefs'}" class="user-menu-item">
-              <a>{{ t('nav.userMenu.preferences') }} <i class="icon icon-fw icon-gear" /></a>
-            </nuxt-link>
-            <nuxt-link v-if="isRancher || isSingleVirtualCluster" tag="li" :to="{name: 'account'}" class="user-menu-item">
-              <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }} <i class="icon icon-fw icon-user" /></a>
-            </nuxt-link>
-            <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout', query: { [LOGGED_OUT]: true }}" class="user-menu-item">
-              <a @blur="showMenu(false)">{{ t('nav.userMenu.logOut') }} <i class="icon icon-fw icon-close" /></a>
-            </nuxt-link>
-          </ul>
-        </template>
-      </v-popover>
+          <div class="user-image text-right hand">
+            <img v-if="principal && principal.avatarSrc" :src="principal.avatarSrc" :class="{'avatar-round': principal.roundAvatar}" width="36" height="36" />
+            <i v-else class="icon icon-user icon-3x avatar" />
+          </div>
+          <template slot="popover" class="user-menu">
+            <ul class="list-unstyled dropdown" @click.stop="showMenu(false)">
+              <li v-if="authEnabled" class="user-info">
+                <div class="user-name">
+                  <i class="icon icon-lg icon-user" /> {{ principal.loginName }}
+                </div>
+                <div class="text-small pt-5 pb-5">
+                  {{ principal.name }}
+                </div>
+              </li>
+              <nuxt-link tag="li" :to="{name: 'prefs'}" class="user-menu-item">
+                <a>{{ t('nav.userMenu.preferences') }} <i class="icon icon-fw icon-gear" /></a>
+              </nuxt-link>
+              <nuxt-link v-if="isRancher || isSingleVirtualCluster" tag="li" :to="{name: 'account'}" class="user-menu-item">
+                <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }} <i class="icon icon-fw icon-user" /></a>
+              </nuxt-link>
+              <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout', query: { [LOGGED_OUT]: true }}" class="user-menu-item">
+                <a @blur="showMenu(false)">{{ t('nav.userMenu.logOut') }} <i class="icon icon-fw icon-close" /></a>
+              </nuxt-link>
+            </ul>
+          </template>
+        </v-popover>
+      </div>
     </div>
   </header>
 </template>
 <style lang="scss" scoped>
   HEADER {
     display: grid;
+
+    .rd-header-right {
+      display: flex;
+      flex-direction: row;
+    }
 
     .title {
       border-left: 1px solid var(--header-border);
@@ -487,8 +494,8 @@ export default {
       }
     }
 
-    grid-template-areas:  "menu product top buttons header-actions cluster user";
-    grid-template-columns: var(--header-height) auto min-content min-content min-content min-content var(--header-height);
+    grid-template-areas:  "menu product top a header-right";
+    grid-template-columns: var(--header-height) calc(var(--nav-width) - var(--header-height)) 1fr min-content min-content;
     grid-template-rows:    var(--header-height);
 
     &.simple {
