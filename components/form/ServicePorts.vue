@@ -4,9 +4,10 @@ import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt } from '@/utils/array';
 import { clone } from '@/utils/object';
 import Select from '@/components/form/Select';
+import Error from '@/components/form/Error';
 
 export default {
-  components: { Select },
+  components: { Select, Error },
   props:      {
     value: {
       type:    Array,
@@ -27,6 +28,12 @@ export default {
     autoAddIfEmpty: {
       type:    Boolean,
       default: true,
+    },
+    rules: {
+      default:   () => [],
+      type:      Array,
+      // we only want functions in the rules array
+      validator: rules => rules.every(rule => ['function'].includes(typeof rule))
     }
   },
 
@@ -204,6 +211,7 @@ export default {
             <t k="generic.remove" />
           </button>
         </div>
+        <Error :value="{...row, idx}" :rules="rules" />
       </div>
     </div>
     <div v-if="showAdd" class="footer">

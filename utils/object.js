@@ -36,6 +36,25 @@ export function set(obj, path, value) {
   return obj;
 }
 
+export function getAllValues(obj, path) {
+  const keysInOrder = path.split('.');
+  let currentValue = [obj];
+
+  keysInOrder.forEach((currentKey) => {
+    currentValue = currentValue.map((indexValue) => {
+      if (Array.isArray(indexValue)) {
+        return indexValue.map(arr => arr[currentKey]).flat();
+      } else if (indexValue) {
+        return indexValue[currentKey];
+      } else {
+        return null;
+      }
+    }).flat();
+  });
+
+  return currentValue.filter(val => val !== null);
+}
+
 export function get(obj, path) {
   if ( path.startsWith('$') ) {
     try {

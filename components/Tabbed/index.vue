@@ -220,7 +220,7 @@ export default {
         v-for="tab in sortedTabs"
         :id="tab.name"
         :key="tab.name"
-        :class="{tab: true, active: tab.active, disabled: tab.disabled}"
+        :class="{tab: true, active: tab.active, disabled: tab.disabled, error: (tab.error)}"
         role="presentation"
       >
         <a
@@ -230,6 +230,7 @@ export default {
           @click.prevent="select(tab.name, $event)"
         >
           {{ tab.labelDisplay }}
+          <i v-if="tab.error && !tab.active" class="icon icon-warning icon-lg pull-right" />
         </a>
       </li>
       <li v-if="sideTabs && !sortedTabs.length" class="tab disabled">
@@ -340,6 +341,12 @@ export default {
 
           & A{
             color: var(--input-label);
+          }
+        }
+
+        &.error {
+          & A>i {
+            color: var(--error);
           }
         }
 

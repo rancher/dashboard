@@ -24,11 +24,14 @@ export default {
       required: false,
       type:     Number
     },
-
     showHeader: {
       type:    Boolean,
       default: null, // Default true for side-tabs, false for top.
-    }
+    },
+    error: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   data() {

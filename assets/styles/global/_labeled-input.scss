@@ -13,6 +13,7 @@
     transition-timing-function: ease-in-out;
     color: var(--input-label);
     pointer-events: none;
+    width: calc(100% - 20px);
     i {
       pointer-events: initial;
     }
@@ -31,6 +32,7 @@
   .required {
     color: var(--error);
   }
+
 
   INPUT, SELECT {
     position: relative;
@@ -105,6 +107,10 @@
     padding-top: 5px;
     left: 0;
     color: var(--input-label);
+  }
+
+  .validation-message, .sub-label.validation-message {
+    color: var(--error);
   }
 
 

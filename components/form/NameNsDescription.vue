@@ -42,7 +42,6 @@ export default {
       type:    Array,
       default: () => [],
     },
-
     nameLabel: {
       type:    String,
       default: 'nameNsDescription.name.label',
@@ -91,7 +90,6 @@ export default {
       type:    Boolean,
       default: false,
     },
-
     descriptionLabel: {
       type:    String,
       default: 'nameNsDescription.description.label',
@@ -100,7 +98,6 @@ export default {
       type:    String,
       default: 'nameNsDescription.description.placeholder',
     },
-
     // Use specific fields on the value instead of the normal metadata locations
     nameKey: {
       type:    String,
@@ -125,6 +122,14 @@ export default {
     horizontal: {
       type:    Boolean,
       default: true,
+    },
+    textRules: {
+      default: () => [],
+      type:    Array,
+    },
+    selectRules: {
+      default: () => [],
+      type:    Array,
     }
   },
 
@@ -306,9 +311,11 @@ export default {
             :text-placeholder="t(namePlaceholder)"
             :text-value="name"
             :text-required="nameRequired"
+            :text-rules="textRules"
             :select-label="t(namespaceLabel)"
             :select-placeholder="t(namespacePlaceholder)"
             :select-value="namespace"
+            :select-rules="selectRules"
             :options="namespaces"
             :searchable="true"
             :taggable="namespaceNewAllowed"
@@ -325,6 +332,7 @@ export default {
             :mode="mode"
             :min-height="30"
             :required="nameRequired"
+            :rules="textRules"
           />
         </slot>
       </div>

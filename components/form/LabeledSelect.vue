@@ -280,7 +280,7 @@ export default {
         <t v-if="labelKey" :k="labelKey" />
         <template v-else-if="label">{{ label }}</template>
 
-        <span v-if="required" class="required">*</span>
+        <span v-if="requiredField" class="required">*</span>
       </label>
     </div>
     <v-select
@@ -319,6 +319,7 @@ export default {
         </template>
         <div v-else @mousedown="(e) => onClickOption(option, e)">
           {{ getOptionLabel(option) }}
+          <i v-if="option.error" class="icon icon-warning pull-right" style="font-size: 20px;" />
         </div>
       </template>
       <!-- Pass down templates provided by the caller -->
@@ -333,6 +334,7 @@ export default {
       :value="tooltip"
       :status="status"
     />
+    <label v-if="validationMessage" class="validation-message sub-label"> {{ validationMessage }} </label>
   </div>
 </template>
 

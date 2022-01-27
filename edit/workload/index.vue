@@ -6,6 +6,7 @@ import {
 } from '@/config/types';
 import Tab from '@/components/Tabbed/Tab';
 import CreateEditView from '@/mixins/create-edit-view';
+import FormValidation from '@/mixins/form-validation';
 import { allHash } from '@/utils/promise';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -81,7 +82,7 @@ export default {
     RadioGroup,
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   props: {
     value: {
@@ -181,10 +182,18 @@ export default {
       podFsGroup:        podTemplateSpec.securityContext?.fsGroup,
       savePvcHookName:   'savePvcHook',
       tabWeightMap:      TAB_WEIGHT_MAP,
+      formRulesets:      [{
+        path: 'image', rootObject: this.container, rules: ['required'], translationKey: 'workload.container.image'
+      }],
+      reportedValidationPaths: ['spec']
     };
   },
 
   computed: {
+
+    tabErrors() {
+      return { general: this.getPathErrors(['image'])?.length > 0 };
+    },
 
     isEdit() {
       return this.mode === _EDIT;
@@ -283,7 +292,10 @@ export default {
         each._init = true;
 
         return each;
-      })];
+      })].map(container => ({
+        ...container,
+        error: this.formRules?.containerImage(container)
+      }));
     },
 
     flatResources: {
@@ -498,6 +510,9 @@ export default {
   },
 
   methods: {
+    containersHaveErrors() {
+      return this.getPathErrors(['spec']);
+    },
     nameDisplayFor(type) {
       const schema = this.$store.getters['cluster/schemaFor'](type);
 
@@ -765,11 +780,11 @@ export default {
 
   <form v-else>
     <CruResource
-      :validation-passed="true"
+      :validation-passed="formIsValid"
       :selected-subtype="type"
       :resource="value"
       :mode="mode"
-      :errors="errors"
+      :errors="unreportedValidationErrors"
       :done-route="doneRoute"
       :subtypes="workloadSubTypes"
       :apply-hooks="applyHooks"
@@ -779,14 +794,20 @@ export default {
     >
       <div class="row">
         <div class="col span-12">
-          <NameNsDescription :value="value" :extra-columns="nameNsColumns" :mode="mode" @change="name=value.metadata.name">
+          <NameNsDescription
+            :value="value"
+            :extra-columns="nameNsColumns"
+            :mode="mode"
+            :text-rules="getAndReportPathRules('metadata.name')"
+            @change="name=value.metadata.name"
+          >
             <template #schedule>
               <LabeledInput
                 v-model="spec.schedule"
                 type="cron"
-                required
                 :mode="mode"
                 :label="t('workload.cronSchedule')"
+                :rules="getAndReportPathRules('spec.schedule')"
                 placeholder="0 * * * *"
               />
             </template>
@@ -795,9 +816,9 @@ export default {
                 v-model.number="spec.replicas"
                 type="number"
                 min="0"
-                required
                 :mode="mode"
                 :label="t('workload.replicas')"
+                :rules="getAndReportPathRules('spec.replicas')"
               />
             </template>
             <template #service>
@@ -808,7 +829,7 @@ export default {
                 :mode="mode"
                 :label="t('workload.serviceName')"
                 :options="headlessServices"
-                required
+                :rules="getAndReportPathRules('spec.serviceName')"
               />
             </template>
           </NameNsDescription>
@@ -816,7 +837,14 @@ export default {
       </div>
       <div v-if="containerOptions.length > 1" class="container-row">
         <div class="col span-4">
-          <LabeledSelect :value="container" option-label="name" :label="t('workload.container.titles.container')" :options="containerOptions" @input="selectContainer" />
+          <LabeledSelect
+            :value="container"
+            option-label="name"
+            :label="t('workload.container.titles.container')"
+            :options="containerOptions"
+            :rules="[containersHaveErrors]"
+            @input="selectContainer"
+          />
         </div>
         <div v-if="allContainers.length > 1 && !isView" class="col">
           <button type="button" class="btn-sm role-link" @click="removeContainer(container)">
@@ -825,11 +853,15 @@ export default {
         </div>
       </div>
       <Tabbed :key="containerChange" :side-tabs="true">
-        <Tab :label="t('workload.container.titles.general')" name="general" :weight="tabWeightMap['general']">
+        <Tab :label="t('workload.container.titles.general')" name="general" :weight="tabWeightMap['general']" :error="tabErrors.general">
           <div>
             <div :style="{'align-items':'center'}" class="row mb-20">
               <div class="col span-6">
-                <LabeledInput v-model="container.name" :mode="mode" :label="t('workload.container.containerName')" />
+                <LabeledInput
+                  v-model="container.name"
+                  :mode="mode"
+                  :label="t('workload.container.containerName')"
+                />
               </div>
               <div class="col span-6">
                 <RadioGroup
@@ -850,7 +882,7 @@ export default {
                   :mode="mode"
                   :label="t('workload.container.image')"
                   :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
-                  required
+                  :rules="getAndReportPathRules('image')"
                 />
               </div>
               <div class="col span-6">

@@ -144,8 +144,7 @@ export default {
       <label>
         <t v-if="labelKey" :k="labelKey" />
         <template v-else-if="label">{{ label }}</template>
-
-        <span v-if="required" class="required">*</span>
+        <span v-if="requiredField" class="required">*</span>
       </label>
     </slot>
 
@@ -197,7 +196,8 @@ export default {
       :value="tooltip"
       :status="status"
     />
-    <label v-if="cronHint" class="cron-label">{{ cronHint }}</label>
+    <label v-if="validationMessage" class="validation-message sub-label"> {{ validationMessage }} </label>
+    <label v-if="cronHint && !validationMessage" class="cron-label">{{ cronHint }}</label>
     <label v-if="subLabel" class="sub-label">{{ subLabel }}</label>
   </div>
 </template>

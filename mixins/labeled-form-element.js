@@ -59,6 +59,13 @@ export default {
       type:    [String, Number, Object],
       default: ''
     },
+
+    rules: {
+      default:   () => [],
+      type:      Array,
+      // we only want functions in the rules array
+      validator: rules => rules.every(rule => ['function'].includes(typeof rule))
+    }
   },
 
   data() {
@@ -70,6 +77,10 @@ export default {
   },
 
   computed: {
+    requiredField() {
+      return (this.required || this.rules.some(rule => rule.name === 'required'));
+    },
+
     empty() {
       return !!`${ this.value }`;
     },
@@ -92,6 +103,31 @@ export default {
 
       return false;
     },
+
+    validationMessage() {
+      let ruleMessages = [];
+      const value = this.value;
+
+      for (const rule of this.rules) {
+        const required = rule.name === 'required' || this.requiredField;
+        // "Value" is the default value if the rule can't figure out the appropriate label on it's own. In the case of "required" we can cheat a little...
+        const message = rule(required ? value.replace('Value', this.label) : value);
+
+        if (!!message && this.blurred) {
+          if (required && !this.focused) {
+            ruleMessages = [message];
+            break;
+          } else if (ruleMessages.length === 0) {
+            ruleMessages.push(message);
+          }
+        }
+      }
+      if (ruleMessages.length > 0) {
+        return ruleMessages.join(', ');
+      } else {
+        return undefined;
+      }
+    }
   },
 
   methods: {

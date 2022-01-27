@@ -4,6 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import throttle from 'lodash/throttle';
 import ArrayList from '@/components/form/ArrayList';
 import CreateEditView from '@/mixins/create-edit-view';
+import FormValidation from '@/mixins/form-validation';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -57,7 +58,7 @@ export default {
     HarvesterServiceAddOnConfig,
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   fetch() {
     return this.loadPods();
@@ -92,11 +93,25 @@ export default {
       sessionAffinityActionOptions: Object.values(
         SESSION_AFFINITY_ACTION_VALUES
       ),
+      formRulesets:            [],
+      reportedValidationPaths: ['spec']
     };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
+
+    tabErrors() {
+      const tabErrors = {};
+
+      if (this.serviceType === 'ExternalName') {
+        tabErrors.externalName = this.getPathErrors(['spec.externalName'])?.length > 0;
+      } else {
+        tabErrors.servicePorts = this.getPathErrors(['spec.ports'])?.length > 0;
+      }
+
+      return tabErrors;
+    },
 
     showSelectorWarning() {
       const selector = this.value.spec?.selector;
@@ -199,6 +214,17 @@ export default {
         delete this.value.spec.sessionAffinityConfig.clientIP.timeoutSeconds;
       }
     },
+    'value.spec.type'(val) {
+      if (val === 'ExternalName') {
+        this.formRulesets = [{
+          path:           'spec.externalName',
+          rules:          ['required', 'externalName'],
+          translationKey: 'servicesPage.externalName.input.label'
+        }];
+      } else {
+        this.formRulesets = [{ path: 'spec.ports', rules: ['servicePort'] }];
+      }
+    }
   },
 
   created() {
@@ -295,15 +321,15 @@ export default {
     :resource="value"
     :selected-subtype="serviceType"
     :subtypes="defaultServiceTypes"
-    :validation-passed="true"
-    :errors="errors"
+    :validation-passed="formIsValid"
+    :errors="unreportedValidationErrors"
     :apply-hooks="applyHooks"
     @error="(e) => (errors = e)"
     @finish="save"
     @cancel="done"
     @select-type="(st) => (serviceType = st)"
   >
-    <NameNsDescription v-if="!isView" :value="value" :mode="mode" />
+    <NameNsDescription v-if="!isView" :value="value" :mode="mode" :text-rules="getAndReportPathRules('metadata.name')" />
 
     <Tabbed :side-tabs="true">
       <Tab
@@ -311,6 +337,7 @@ export default {
         name="define-external-name"
         :label="t('servicesPage.externalName.define')"
         :tooltip="t('servicesPage.externalName.helpText')"
+        :error="tabErrors.externalName"
       >
         <div class="row mt-10">
           <div class="col span-6">
@@ -322,8 +349,8 @@ export default {
               :mode="mode"
               :label="t('servicesPage.externalName.input.label')"
               :placeholder="t('servicesPage.externalName.placeholder')"
-              :required="true"
               type="text"
+              :rules="getAndReportPathRules('spec.externalName')"
             />
           </div>
         </div>
@@ -333,12 +360,14 @@ export default {
         name="define-service-ports"
         :label="t('servicesPage.ips.define')"
         :weight="10"
+        :error="tabErrors.servicePorts"
       >
         <ServicePorts
           v-model="value.spec.ports"
           class="col span-12"
           :mode="mode"
           :spec-type="serviceType"
+          :rules="getAndReportPathRules('spec.ports')"
           @input="updateServicePorts"
         />
       </Tab>

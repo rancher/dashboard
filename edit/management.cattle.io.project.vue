@@ -2,6 +2,7 @@
 import { mapGetters } from 'vuex';
 import ContainerResourceLimit from '@/components/ContainerResourceLimit';
 import CreateEditView from '@/mixins/create-edit-view';
+import FormValidation from '@/mixins/form-validation';
 import CruResource from '@/components/CruResource';
 import Labels from '@/components/form/Labels';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -22,7 +23,7 @@ export default {
     ContainerResourceLimit, CruResource, Labels, LabeledSelect, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
   async fetch() {
     if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
       this.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
@@ -48,7 +49,8 @@ export default {
       membershipHasOwner:         false,
       membershipUpdate:   {},
       HARVESTER_TYPES,
-      RANCHER_TYPES
+      RANCHER_TYPES,
+      formRulesets:       [{ path: 'spec.displayName', rules: ['required'] }],
     };
   },
   computed: {
@@ -161,6 +163,7 @@ export default {
     :resource="value"
     :subtypes="[]"
     :can-yaml="false"
+    :validation-passed="formIsValid"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"
@@ -172,6 +175,7 @@ export default {
       description-key="spec.description"
       name-key="spec.displayName"
       :normalize-name="false"
+      :text-rules="getAndReportPathRules('spec.displayName')"
     />
     <div class="row">
       <div class="col span-12">
