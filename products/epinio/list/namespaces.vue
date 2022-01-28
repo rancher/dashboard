@@ -100,10 +100,6 @@ export default {
         []
       );
     },
-
-    setValid(field, valid) {
-      this.validFields[field] = valid;
-    },
   }
 };
 </script>
