@@ -8,9 +8,6 @@ import ResourceTabs from '@/components/form/ResourceTabs';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 
-const CLUSTER_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-cluster-nodes-1/rancher-cluster-nodes?orgId=1';
-const CLUSTER_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-cluster-1/rancher-cluster?orgId=1';
-
 export default {
   components: {
     DashboardMetrics, ResourceTabs, Tabbed, Tab
@@ -30,11 +27,18 @@ export default {
   },
 
   async fetch() {
-    this.showPolicyMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]);
+    this.CLUSTER_METRICS_DETAIL_URL = `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/kubewarden`;
+    this.CLUSTER_METRICS_SUMMARY_URL = `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/kubewarden`;
+
+    this.showPolicyMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [this.CLUSTER_METRICS_DETAIL_URL, this.CLUSTER_METRICS_SUMMARY_URL]);
   },
 
   data() {
-    return { showPolicyMetrics: false };
+    return {
+      showPolicyMetrics:           true,
+      CLUSTER_METRICS_DETAIL_URL:  '',
+      CLUSTER_METRICS_SUMMARY_URL: ''
+    };
   },
 
   computed: {
@@ -55,7 +59,7 @@ export default {
     </div>
     <ResourceTabs v-model="value" :mode="mode">
       <Tabbed v-if="hasMetricsTabs" class="mt-30">
-        <Tab v-if="showPolicyMetrics" name="policy-metrics" :label="t('clusterIndexPage.sections.clusterMetrics.label')" :weight="2">
+        <Tab v-if="showPolicyMetrics" name="policy-metrics" :label="`${ value.id } Metrics`" :weight="2">
           <template #default="props">
             <DashboardMetrics
               v-if="props.active"

@@ -1,4 +1,5 @@
 <script>
+import jsyaml from 'js-yaml';
 import { mapGetters } from 'vuex';
 import ChartMixin from '@/mixins/chart';
 import {
@@ -6,17 +7,26 @@ import {
 } from '@/config/query-params';
 import { KUBEWARDEN } from '@/config/types';
 import isEqual from 'lodash/isEqual';
+import ButtonGroup from '@/components/ButtonGroup';
 import Wizard from '@/components/Wizard';
 import Tabbed from '@/components/Tabbed';
+import ResourceCancelModal from '@/components/ResourceCancelModal';
 import Questions from '@/components/Questions';
+import { saferDump } from '@/utils/create-yaml';
+import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 
 import questionJson from '@/.questions/questions.json';
+
+const VALUES_STATE = {
+  FORM: 'FORM',
+  YAML: 'YAML',
+};
 
 export default ({
   name: 'Create',
 
   components: {
-    Wizard, Tabbed, Questions
+    ButtonGroup, Wizard, Tabbed, ResourceCancelModal, Questions, YamlEditor
   },
 
   props: {
@@ -49,24 +59,27 @@ export default ({
       };
     }
 
-    this.errors = [];
-  },
+    this.valuesYaml = saferDump(this.subtypeSource);
+    this.preFormYamlOption = this.valuesComponent ? VALUES_STATE.FORM : VALUES_STATE.YAML;
 
-  watch: {
-    '$route.query'(neu, old) {
-      if ( !isEqual(neu, old) ) {
-        this.$fetch();
-      }
-    },
+    this.errors = [];
   },
 
   data() {
     return {
-      errors:        null,
-      showQuestions: true,
-      type:          null,
-      chartValues:   null,
-      subtypeSource: null,
+      errors:              null,
+      showQuestions:       true,
+      type:                null,
+      // chartValues:         null, // not necessary until we get charts...
+      subtypeSource:       null,
+      originalYamlValues:  null,
+      previousYamlValues:  null,
+      valuesComponent:     null,
+      valuesYaml:          '',
+
+      preFormYamlOption:   VALUES_STATE.YAML,
+      formYamlOption:      VALUES_STATE.YAML,
+      showValuesComponent: true,
 
       abbrSizes:     {
         3: '24px',
@@ -90,11 +103,82 @@ export default ({
     };
   },
 
+  watch: {
+    '$route.query'(neu, old) {
+      if ( !isEqual(neu, old) ) {
+        this.$fetch();
+      }
+    },
+
+    preFormYamlOption(neu, old) {
+      if ( neu === VALUES_STATE.FORM && this.valuesYaml !== this.previousYamlValues && !!this.$refs.cancelModal ) {
+        this.$refs.cancelModal.show();
+      } else {
+        this.formYamlOption = neu;
+      }
+    },
+
+    formYamlOption(neu, old) {
+      switch (neu) {
+      case VALUES_STATE.FORM:
+        // Return to form, reset everything back to starting point
+        this.valuesYaml = this.previousYamlValues;
+
+        this.showValuesComponent = true;
+        this.showQuestions = true;
+
+        break;
+      case VALUES_STATE.YAML:
+        // Show the YAML preview
+        if (old === VALUES_STATE.FORM) {
+          this.valuesYaml = jsyaml.dump(this.subtypeSource || {}); // this will need to dump `this.chartValues` once we get charts...
+          this.previousYamlValues = this.valuesYaml;
+        }
+
+        this.showValuesComponent = false;
+        this.showQuestions = false;
+
+        break;
+      }
+    },
+  },
+
+  mounted() {
+    this.loadValuesComponent();
+
+    this.preFormYamlOption = this.valuesComponent ? VALUES_STATE.FORM : VALUES_STATE.YAML;
+  },
+
   computed: {
     ...mapGetters(['currentCluster']),
 
     isView() {
       return this.mode === _VIEW;
+    },
+
+    editorMode() {
+      return EDITOR_MODES.EDIT_CODE;
+    },
+
+    formYamlOptions() {
+      const options = [];
+
+      if ( this.valuesComponent ) {
+        options.push({
+          labelKey: 'catalog.install.section.chartOptions',
+          value:    VALUES_STATE.FORM,
+        });
+      }
+      options.push({
+        labelKey: 'catalog.install.section.valuesYaml',
+        value:    VALUES_STATE.YAML,
+      });
+
+      return options;
+    },
+
+    showingYaml() {
+      return this.formYamlOption === VALUES_STATE.YAML || ( !this.valuesComponent );
     },
 
     steps() {
@@ -145,6 +229,13 @@ export default ({
   },
 
   methods: {
+    loadValuesComponent() {
+      const path = 'edit/policies.kubewarden.io.clusteradmissionpolicy/Create.vue';
+
+      this.valuesComponent = this.$store.getters['type-map/importComponent'](path);
+      this.showValuesComponent = true;
+    },
+
     selectType(type) {
       this.type = type;
 
@@ -164,7 +255,15 @@ export default ({
 
     tabChanged() {
       window.scrollTop = 0;
-    }
+    },
+
+    cancel() {
+      this.done();
+    },
+
+    done() {
+      this.$router.replace(this.appLocation());
+    },
   }
 
 });
@@ -243,25 +342,52 @@ export default ({
 
       <template #helmValues>
         <div class="step__values__controls">
-          Edit form/yaml button group goes here
+          <ButtonGroup
+            v-model="preFormYamlOption"
+            :options="formYamlOptions"
+            inactive-class="bg-disabled btn-sm"
+            active-class="bg-primary btn-sm"
+            :disabled="preFormYamlOption != formYamlOption"
+          ></ButtonGroup>
         </div>
         <div class="scroll__container">
           <div class="scroll__content">
-            <Tabbed
-              ref="tabs"
-              :side-tabs="true"
-              class="step__values__content"
-              @changed="tabChanged($event)"
-            >
-              <Questions
-                v-if="subtypeSource"
-                v-model="value"
-                :mode="mode"
-                :source="subtypeSource"
-                tabbed="multiple"
-                :target-namespace="targetNamespace"
+            <template v-if="showQuestions">
+              <Tabbed
+                ref="tabs"
+                :side-tabs="true"
+                class="step__values__content"
+                @changed="tabChanged($event)"
+              >
+                <Questions
+                  v-if="subtypeSource"
+                  v-model="value"
+                  :mode="mode"
+                  :source="subtypeSource"
+                  tabbed="multiple"
+                  :target-namespace="targetNamespace"
+                />
+              </Tabbed>
+            </template>
+            <template v-else>
+              <YamlEditor
+                ref="yaml"
+                v-model="valuesYaml"
+                class="step__values__content"
+                :scrolling="true"
+                :initial-yaml-values="originalYamlValues"
+                :editor-mode="editorMode"
+                :hide-preview-buttons="true"
               />
-            </Tabbed>
+            </template>
+
+            <ResourceCancelModal
+              ref="cancelModal"
+              :is-cancel-modal="false"
+              :is-form="true"
+              @cancel-cancel="preFormYamlOption = formYamlOption"
+              @confirm-cancel="formYamlOption = preFormYamlOption"
+            />
           </div>
         </div>
       </template>
