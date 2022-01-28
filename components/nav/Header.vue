@@ -460,7 +460,11 @@ export default {
     grid-template-rows:    var(--header-height);
 
     &.simple {
+<<<<<<< HEAD
       grid-template-columns: var(--header-height) auto min-content min-content min-content min-content var(--header-height);
+=======
+      grid-template-columns: var(--header-height) min-content 1fr min-content min-content;
+>>>>>>> b0dbf552 (Update simple headers)
     }
 
     > .menu-spacer {
