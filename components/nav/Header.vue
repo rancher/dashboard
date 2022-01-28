@@ -88,8 +88,16 @@ export default {
       return !this.currentProduct?.hideCopyConfig;
     },
 
+    showPageActions() {
+      return !this.featureRancherDesktop && this.pageActions?.length;
+    },
+
     showUserMenu() {
-      return this.$config.rancherEnv !== 'desktop';
+      return !this.featureRancherDesktop;
+    },
+
+    featureRancherDesktop() {
+      return this.$config.rancherEnv === 'desktop';
     },
 
     importEnabled() {
@@ -329,8 +337,16 @@ export default {
         </modal>
       </div>
 
-      <div v-if="pageActions && pageActions.length" class="actions">
-        <i class="icon icon-actions" @blur="showPageActionsMenu(false)" @click="showPageActionsMenu(true)" @focus.capture="showPageActionsMenu(true)" />
+      <div
+        v-if="showPageActions"
+        class="actions"
+      >
+        <i
+          class="icon icon-actions"
+          @blur="showPageActionsMenu(false)"
+          @click="showPageActionsMenu(true)"
+          @focus.capture="showPageActionsMenu(true)"
+        />
         <v-popover
           ref="pageActions"
           placement="bottom-end"
