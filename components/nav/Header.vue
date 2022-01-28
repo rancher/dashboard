@@ -88,6 +88,10 @@ export default {
       return !this.currentProduct?.hideCopyConfig;
     },
 
+    showUserMenu() {
+      return this.$config.rancherEnv !== 'desktop';
+    },
+
     importEnabled() {
       return !!this.currentCluster?.actions?.apply;
     },
@@ -351,7 +355,14 @@ export default {
 
       <div class="header-spacer"></div>
 
-      <div class="user user-menu" tabindex="0" @blur="showMenu(false)" @click="showMenu(true)" @focus.capture="showMenu(true)">
+      <div
+        v-if="showUserMenu"
+        class="user user-menu"
+        tabindex="0"
+        @blur="showMenu(false)"
+        @click="showMenu(true)"
+        @focus.capture="showMenu(true)"
+      >
         <v-popover
           ref="popover"
           placement="bottom-end"
