@@ -43,7 +43,6 @@ const OS = [{
   value: 'redhat'
 }, {
   label: 'openSUSE',
-  match: ['suse', 'opensuse'],
   value: 'openSUSE'
 }, {
   label: 'Turbolinux',

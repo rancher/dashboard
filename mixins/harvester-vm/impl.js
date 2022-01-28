@@ -17,10 +17,7 @@ export const QGA_JSON = {
   ]
 };
 
-export const QGA_MAP = {
-  default: 'qemu-guest-agent',
-  suse:    'qemu-ga.service'
-};
+export const QGA_MAP = { default: 'qemu-guest-agent' };
 
 export const USB_TABLET = [{
   bus:  'usb',
