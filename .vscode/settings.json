@@ -10,10 +10,11 @@
     ".gitignore": true,
     ".nuxt*": true,
     ".nyc_output": true,
-    "Dockerfile": true,
-    "LICENSE": true,
+    "**/node_modules": true,
     "babel.config.js": true,
+    "Dockerfile": true,
     "jsconfig.json": true,
+    "LICENSE": true,
     "yarn-error.log": true
   },
   "eslint.format.enable": true,

@@ -1,0 +1,11 @@
+{
+  "type": "collection",
+  "links": {
+    "self": "…/v1/policies.kubewarden.io.clusteradmissionpolicy"
+  },
+  "createTypes": {
+    "policies.kubewarden.io.clusteradmissionpolicy": "…/v1/policies.kubewarden.io.clusteradmissionpolicy"
+  },
+  "actions": {},
+  "resourceType": "policy.kubewarden.io.clusteradmissionpolicy"
+}

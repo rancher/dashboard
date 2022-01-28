@@ -32,7 +32,6 @@ export default {
   },
 
   // ************************************************************
-  // Need these
   //
   // /k8s/clusters/c-m-j4q2k9hm/v1/schemas/policies.kubewarden.io.clusteradmissionpolicy
   // /k8s/clusters/c-m-j4q2k9hm/v1/schemas/policies.kubewarden.io.v1alpha2.clusteradmissionpolicy.spec

@@ -1,0 +1,15 @@
+apiVersion: policies.kubewarden.io/v1alpha2
+kind: ClusterAdmissionPolicy
+metadata:
+  name: disallow-service-loadbalancer
+spec:
+  policyServer: default
+  module: registry://ghcr.io/kubewarden/policies/disallow-service-loadbalancer:v0.1.2
+  rules:
+  - apiGroups: [""]
+    apiVersions: ["v1"]
+    resources: ["services"]
+    operations:
+    - CREATE
+    - UPDATE
+  mutating: true

@@ -1,12 +1,11 @@
 <script>
-import { KUBEWARDEN, SCHEMA } from '@/config/types';
-import { _EDIT } from '@/config/query-params';
-import { clone } from '@/utils/object';
-import { createYaml } from '@/utils/create-yaml';
-import Loading from '@/components/Loading';
+import { KUBEWARDEN } from '@/config/types';
+import { _CREATE, _EDIT } from '@/config/query-params';
+import ChartMixin from '@/mixins/chart';
+import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
-import questions from '@/.questions/questions.json';
 import ClusterAdmissionPolicy from './ClusterAdmissionPolicy';
+import Create from './Create';
 
 export default {
   name: 'CruClusterAdmissionPolicy',
@@ -16,21 +15,30 @@ export default {
       type:     Object,
       required: true
     },
-
     mode: {
       type:    String,
-      default: 'create'
+      default: _EDIT
+    },
+    realMode: {
+      type:    String,
+      default: _EDIT
     }
   },
 
   components: {
-    Loading, CruResource, ClusterAdmissionPolicy
+    CruResource, ClusterAdmissionPolicy, Create
+  },
+
+  mixins: [ChartMixin, CreateEditView],
+
+  async fetch() {
+    await this.fetchChart();
   },
 
   data() {
     let type = this.$route.params.resource;
 
-    if (type === KUBEWARDEN.CLUSTER_ADMISSION_POLICY) {
+    if ( type === KUBEWARDEN.CLUSTER_ADMISSION_POLICY ) {
       type = null;
     }
 
@@ -38,78 +46,12 @@ export default {
   },
 
   computed: {
-
-    isEdit() {
-      return this.mode === _EDIT;
-    },
-
-    capSubtypes() {
-      const out = [];
-
-      for (const key in KUBEWARDEN.SPOOFED) {
-        const type = KUBEWARDEN.SPOOFED[key];
-
-        if (type !== KUBEWARDEN.SPOOFED.POLICY) {
-          const shortType = type.replace(`${ KUBEWARDEN.SPOOFED.POLICY }.`, '');
-
-          // console.log('subtype key: ', key, '|| shortType: ', shortType);
-
-          const subtype = {
-            key,
-            id:          type,
-            description: `kubewarden.policyCharts.${ shortType }`,
-            label:       shortType,
-            bannerAbbrv: shortType.charAt(0)
-          };
-
-          out.push(subtype);
-        }
-      }
-
-      return out;
-    },
-
-    // ************************************************************
-    //
-    // I need to get the subtypes to show up in the store... ie. /k8s/clusters/<cluster-id>/v1/<subtype>
-    // right now none of them exist, which is odd. I need to figure out how to create the types correctly it seems.
-    //
-    // ************************************************************
-
-    generateYaml() {
-      return () => {
-        // console.log('generateYaml this.value: ', JSON.parse(JSON.stringify(this.value)), this.type);
-        const resource = this.value;
-
-        const schemas = [questions];
-        const clonedResource = clone(resource);
-
-        delete clonedResource.isSpoofed;
-
-        if (this.type) {
-          const out = createYaml(schemas, this.type, clonedResource);
-
-          console.log('generateYaml out: ', out);
-
-          return out;
-        }
-      };
+    isCreate() {
+      return this.realMode === _CREATE;
     },
   },
 
   methods: {
-
-    // ************************************************************
-    //
-    // what I need to do here is to pass the subtype to the generateYaml() function.
-    //
-    // base cluster admission policy type:
-    // /k8s/clusters/<cluster-id>/v1/schemas/policies.kubewarden.io.clusteradmissionpolicy
-    // /k8s/clusters/<cluster-id>/v1/schemas/policies.kubewarden.io.v1alpha2.clusteradmissionpolicy.spec
-    // /k8s/clusters/<cluster-id>/v1/schemas/policies.kubewarden.io.v1alpha2.clusteradmissionpolicy.rules
-    //
-    // ************************************************************
-
     selectType(type) {
       if (!this.type && type) {
         this.$router.replace({ params: { resource: type } });
@@ -122,23 +64,11 @@ export default {
 </script>
 
 <template>
-  <!-- <Loading v-if="$fetchState.pending" /> -->
-
-  <form>
-    <!-- <CruResource
-      :mode="mode"
-      :selected-subtype="type"
-      :resource="value"
-      :subtypes="capSubtypes"
-      :generate-yaml="generateYaml"
-      @select-type="selectType"
-    > -->
+  <Create v-if="isCreate" :value="value" :mode="mode" :schema="schema" />
+  <form v-else>
     <CruResource
       :mode="mode"
-      :selected-subtype="type"
       :resource="value"
-      :subtypes="capSubtypes"
-      @select-type="selectType"
     >
       <ClusterAdmissionPolicy
         :value="value"

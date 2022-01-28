@@ -1,9 +1,20 @@
 <script>
+import { mapGetters } from 'vuex';
+import { monitoringStatus } from '@/utils/monitoring';
+import { allDashboardsExist } from '@/utils/grafana';
 import CreateEditView from '@/mixins/create-edit-view';
+import DashboardMetrics from '@/components/DashboardMetrics';
 import ResourceTabs from '@/components/form/ResourceTabs';
+import Tabbed from '@/components/Tabbed';
+import Tab from '@/components/Tabbed/Tab';
+
+const CLUSTER_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-cluster-nodes-1/rancher-cluster-nodes?orgId=1';
+const CLUSTER_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-cluster-1/rancher-cluster?orgId=1';
 
 export default {
-  components: { ResourceTabs },
+  components: {
+    DashboardMetrics, ResourceTabs, Tabbed, Tab
+  },
 
   mixins: [CreateEditView],
 
@@ -17,6 +28,23 @@ export default {
       type:     Object,
     },
   },
+
+  async fetch() {
+    this.showPolicyMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]);
+  },
+
+  data() {
+    return { showPolicyMetrics: false };
+  },
+
+  computed: {
+    ...mapGetters(['currentCluster']),
+    ...monitoringStatus(),
+
+    hasMetricsTabs() {
+      return this.showPolicyMetrics;
+    }
+  }
 };
 </script>
 
@@ -25,6 +53,19 @@ export default {
     <div class="mb-20">
       <h3>{{ t('namespace.resources') }}</h3>
     </div>
-    <ResourceTabs v-model="value" :mode="mode" />
+    <ResourceTabs v-model="value" :mode="mode">
+      <Tabbed v-if="hasMetricsTabs" class="mt-30">
+        <Tab v-if="showPolicyMetrics" name="policy-metrics" :label="t('clusterIndexPage.sections.clusterMetrics.label')" :weight="2">
+          <template #default="props">
+            <DashboardMetrics
+              v-if="props.active"
+              :detail-url="CLUSTER_METRICS_DETAIL_URL"
+              :summary-url="CLUSTER_METRICS_SUMMARY_URL"
+              graph-height="825px"
+            />
+          </template>
+        </Tab>
+      </Tabbed>
+    </ResourceTabs>
   </div>
 </template>
