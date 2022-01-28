@@ -22,7 +22,7 @@ export default class EpinioService extends EpinioResource {
   get applications() {
     const all = this.$getters['all'](EPINIO_TYPES.APP);
 
-    return (this.boundapps || []).reduce((res, appName) => {
+    return (this.configuration.boundapps || []).reduce((res, appName) => {
       const a = all.find(allA => allA.meta.name === appName);
 
       if (a) {
@@ -31,6 +31,10 @@ export default class EpinioService extends EpinioResource {
 
       return res;
     }, []);
+  }
+
+  get variableCount() {
+    return Object.keys(this.configuration?.details || {}).length;
   }
 
   // ------------------------------------------------------------------
@@ -55,12 +59,14 @@ export default class EpinioService extends EpinioResource {
     });
   }
 
+  // ------------------------------------------------------------------
+
   trace(text, ...args) {
     console.log(`### Service: ${ text }`, `${ this.meta.namespace }/${ this.meta.name }`, args);// eslint-disable-line no-console
   }
 
   async create() {
-    this.trace('Create the application resource');
+    this.trace('Create the service resource');
 
     await this.followLink('create', {
       method:  'post',
@@ -69,24 +75,21 @@ export default class EpinioService extends EpinioResource {
         accept:         'application/json'
       },
       data: {
-        name:          this.meta.name,
+        name: this.meta.name,
         data: { ...this.data }
       }
     });
   }
 
   async update() {
-    this.trace('Update the application resource');
+    this.trace('Update the service resource');
     await this.followLink('update', {
-      method:  'patch',
+      method:  'put',
       headers: {
         'content-type': 'application/json',
         accept:         'application/json'
       },
-      data: {
-        name:          this.meta.name,
-        data: { ...this.keyValuePairs }
-      }
+      data: { ...this.data }
     });
   }
 

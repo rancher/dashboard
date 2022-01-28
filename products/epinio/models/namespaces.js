@@ -29,6 +29,14 @@ export default class EpinioNamespaces extends EpinioResource {
     return false;
   }
 
+  get appCount() {
+    return this.apps?.length || 0;
+  }
+
+  get serviceCount() {
+    return this.services?.length || 0;
+  }
+
   // ------------------------------------------------------------------
 
   getUrl() {

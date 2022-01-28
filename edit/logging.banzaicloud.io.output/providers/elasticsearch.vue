@@ -2,11 +2,13 @@
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import SecretSelector from '@/components/form/SecretSelector';
-import { updatePort, protocol } from './utils';
+import Checkbox from '@/components/form/Checkbox';
+import { _CREATE } from '@/config/query-params';
+import { updatePort, protocol, sslVersions } from './utils';
 
 export default {
   components: {
-    LabeledInput, LabeledSelect, SecretSelector
+    LabeledInput, LabeledSelect, SecretSelector, Checkbox
   },
   props:      {
     value: {
@@ -29,7 +31,23 @@ export default {
     }
   },
   data() {
-    return { protocolOptions: protocol };
+    if (this.mode === _CREATE) {
+      // Set default values only if no values are already
+      // present. This allows changes to default values to persist
+      // after navigating to YAML and back.
+
+      // Require SSL verification by default
+      if (typeof this.value.ssl_verify === 'undefined') {
+        this.$set(this.value, 'ssl_verify', true);
+      }
+
+      // Use the SSL version TLSv1_2 by default to match Ember
+      if (typeof this.value.ssl_version === 'undefined') {
+        this.$set(this.value, 'ssl_version', sslVersions[0]);
+      }
+    }
+
+    return { protocolOptions: protocol, sslVersions };
   },
   computed: {
     port: {
@@ -157,5 +175,32 @@ export default {
         />
       </div>
     </div>
+    <div class="row mb-10">
+      <div class="col span-6">
+        <LabeledSelect
+          v-model="value.ssl_version"
+          :mode="mode"
+          :disabled="disabled"
+          :options="sslVersions"
+          :label="t('logging.elasticsearch.sslVersion')"
+        />
+      </div>
+      <div class="col span-6 vertically-center">
+        <Checkbox
+          v-model="value.ssl_verify"
+          :label="t('logging.elasticsearch.verifySsl')"
+          :disabled="disabled"
+          :mode="mode"
+        />
+      </div>
+    </div>
   </div>
 </template>
+<style>
+.row {
+  margin-bottom: 5px;
+}
+.vertically-center {
+  padding: 20px 0;
+}
+</style>

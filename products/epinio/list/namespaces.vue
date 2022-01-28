@@ -11,7 +11,8 @@ import { EPINIO_TYPES } from '@/products/epinio/types';
 import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 
 export default {
-  name:       'EpinioNamespaceList',
+  name: 'EpinioNamespaceList',
+
   components: {
     ResourceTable,
     Masthead,
@@ -19,6 +20,7 @@ export default {
     LabeledInput,
     AsyncButton
   },
+
   data() {
     return {
       showCreateModal:  false,
@@ -29,6 +31,7 @@ export default {
       mode:             _CREATE
     };
   },
+
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     validationPassed() {
@@ -36,7 +39,8 @@ export default {
     },
     ...mapState('action-menu', ['showPromptRemove']),
   },
-  props:      {
+
+  props: {
     schema: {
       type:     Object,
       required: true,
@@ -46,6 +50,7 @@ export default {
       required: true,
     },
   },
+
   watch: {
     showPromptRemove(oldState, newState) {
       if (oldState === true && newState === false) {
@@ -54,9 +59,12 @@ export default {
       }
     }
   },
+
   methods: {
     async openCreateModal() {
       this.showCreateModal = true;
+      // Focus on the name input field... after it's been displayed
+      this.$nextTick(() => this.$refs.namespaceName.focus());
       // Create a skeleton namespace
       this.value = await this.$store.dispatch(`epinio/create`, { type: EPINIO_TYPES.NAMESPACE });
     },
@@ -129,10 +137,10 @@ export default {
         :show-actions="true"
       >
         <h4 slot="title" v-html="t('epinio.namespace.create')" />
-        <div slot="body">
+        <div slot="body" class="model-body">
           <LabeledInput
+            ref="namespaceName"
             v-model="value.name"
-            :min-height="90"
             :label="t('epinio.namespace.name')"
             :mode="mode"
             :required="true"
@@ -155,6 +163,7 @@ export default {
     </div>
   </div>
 </template>
+
 <style lang='scss' scoped>
 
 .modal {
@@ -176,27 +185,11 @@ export default {
   padding: 20px;
   border: 1px solid #888;
   width: 60%;
+
+  .model-body {
+    min-height: 90px;
+  }
+
 }
 
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.right-align {
-    float: right;
-}
-
-.margin-left {
-    margin-left: 10px;
-}
 </style>

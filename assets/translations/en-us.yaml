@@ -33,6 +33,7 @@ generic:
   overview: Overview
   plusMore: "+ {n} more"
   readFromFile: Read from File
+  readFromFolder: Read from Folder
   register: Register
   remove: Remove
   resource: |-
@@ -1423,6 +1424,9 @@ cluster:
           }
     quantity:
       label: Machine Count
+    drain:
+      header: Drain
+      label: Drain Before Delete
     role:
       label: Roles
     labels:
@@ -2282,6 +2286,8 @@ logging:
       label: Client Key from Secret
       placeholder: Paste in the client key
     clientKeyPass: Client Key Pass from Secret
+    verifySsl: Verify SSL
+    sslVersion: SSL Version
   gelf:
     host: Host
     port: Port
@@ -4246,11 +4252,7 @@ tableHeaders:
   endpoints: Endpoints
   flow: Flow
   gitRepos: Git Repos
-  host: |-
-    {count, plural,
-      one { Host }
-      other { Hosts }
-    }
+  host: Host
   health: Health
   id: ID
   image: Image
@@ -5741,6 +5743,9 @@ typeDescription:
   logging.banzaicloud.io.flow: A flow defines which logs to collect and filter as well as which output to send the logs. The flow is a namespaced resource, which means logs will only be collected from the namepsace that the flow is deployed in.
   logging.banzaicloud.io.output: An output defines which logging providers that logs can be sent to. The output needs to be in the same namespace as the flow that is using it.
   group.principal: Assigning global roles to a group only works with external auth providers that support groups. Local authorization does not support groups.
+  # Epinio resources
+  services: Services allow Applications access to a common set of variables. Bind one or more to an application for it to see them.
+  # End of Epinio resources
 
 typeLabel:
   management.cattle.io.token: |-
@@ -6207,11 +6212,16 @@ branding:
   uiBanner:
     label: Fixed Banners
     text: Text
+    buttonText: Accept Button Text
     textColor: Text Color
     background: Background Color
     showHeader: Show Banner in Header
     showFooter: Show Banner in Footer
     showConsent: Show Consent Banner on Login Screen
+    showAsDialog:
+      defaultButtonText: Accept
+      label: Show Login Consent as a modal dialog
+      tooltip: Show a modal dialog on the login screen that must be accepted by a user before they can login
     bannerAlignment:
       label: Text Alignment
       leftOption: Left
@@ -6335,6 +6345,7 @@ legacy:
   apps: Apps
   catalogs: Catalogs
   cis-scans: CIS Scans
+  configMaps: Config Maps
   configuration: Configuration
   globalDnsEntries: Global DNS Entries
   globalDnsProviders: Global DNS Providers
@@ -6423,6 +6434,12 @@ epinio:
       source:
         label: Source
         subtext: Provide the source
+        folder:
+          label: Folder
+          file:
+            label: Folder
+            inputLabel: Folder
+            tooltip: This should contain your application files
         archive:
           label: Archive
           file:
@@ -6486,7 +6503,14 @@ epinio:
     actions:
       viewAppLogs:
         label: View Logs
+      restage:
+        label: Rebuild
+      restart:
+        label: Restart
   namespace:
+    tableHeaders:
+      appCount: Applications
+      serviceCount: Services
     name: Name
     create: Create a Namespace
     deleteWarning: All applications and services in a namespace will be deleted.
@@ -6499,6 +6523,8 @@ epinio:
       tooltip: Data made available to bound applications via the path <code>/services/&lt;service name&gt;/&lt;data name&gt;/</code>.
     tableHeaders:
       boundApps: Bound Applications
+      variableCount: No. of variables
+      createBy: Created By
     promptRemove:
       unbind: Unbind from applications before deleting
     

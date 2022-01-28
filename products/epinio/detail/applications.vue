@@ -100,7 +100,7 @@ export default Vue.extend<Data, any, any, any>({
           </h3>
         </div>
       </SimpleBox>
-      <SimpleBox v-if="value.sourceInfo" class="">
+      <SimpleBox v-if="value.sourceInfo">
         <div class="deployment__origin__row">
           <h4>Origin:</h4><h4>
             {{ value.sourceInfo.label }}
@@ -112,9 +112,17 @@ export default Vue.extend<Data, any, any, any>({
           </h4>
         </div>
       </SimpleBox>
+      <SimpleBox v-if="value.deployment.username">
+        <div class="deployment__origin__row">
+          <h4>{{ t('epinio.applications.tableHeaders.deployedBy') }}:</h4><h4>
+            {{ value.deployment.username }}
+          </h4>
+        </div>
+      </SimpleBox>
     </div>
   </div>
 </template>
+
 <style lang='scss' scoped>
 .simple-box-row {
   display: flex;

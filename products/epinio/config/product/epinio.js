@@ -18,15 +18,17 @@ export function init(store) {
 
   product({
     // ifHaveType:          CAPI.RANCHER_CLUSTER,
-    ifFeature:           MULTI_CLUSTER,
-    category:            EPINIO_PRODUCT_NAME,
-    isMultiClusterApp:   true,
-    inStore:             EPINIO_PRODUCT_NAME,
-    icon:                'epinio',
-    iconHeader:          require(`@/products/epinio/assets/logo-epinio.svg`),
-    removable:           false,
-    showClusterSwitcher: false,
-    to:                  rootEpinioRoute()
+    ifFeature:             MULTI_CLUSTER,
+    category:              EPINIO_PRODUCT_NAME,
+    isMultiClusterApp:     true,
+    inStore:               EPINIO_PRODUCT_NAME,
+    icon:                  'epinio',
+    iconHeader:            require(`@/products/epinio/assets/logo-epinio.svg`),
+    removable:             false,
+    showClusterSwitcher:   false,
+    to:                    rootEpinioRoute(),
+    showNamespaceFilter:   true,
+    customNamespaceFilter: true,
   });
 
   // Internal Types
@@ -74,7 +76,7 @@ export function init(store) {
   componentForType(EPINIO_TYPES.SERVICE, undefined, EPINIO_PRODUCT_NAME);
   configureType(EPINIO_TYPES.SERVICE, {
     isCreatable: true,
-    isEditable:  false,
+    isEditable:  true,
     isRemovable: true,
     showState:   false,
     showAge:     false,
@@ -139,6 +141,18 @@ export function init(store) {
 
   headers(EPINIO_TYPES.NAMESPACE, [
     SIMPLE_NAME,
+    {
+      name:      'applications',
+      labelKey:  'epinio.namespace.tableHeaders.appCount',
+      value:     'appCount',
+      sort:      ['appCount'],
+    },
+    {
+      name:      'services',
+      labelKey:  'epinio.namespace.tableHeaders.serviceCount',
+      value:     'serviceCount',
+      sort:      ['serviceCount'],
+    },
   ]);
 
   headers(EPINIO_TYPES.INSTANCE, [
@@ -168,7 +182,19 @@ export function init(store) {
     {
       name:      'boundApps',
       labelKey:  'epinio.services.tableHeaders.boundApps',
-      search:    ['boundapps'],
+      search:    ['configuration.boundapps'],
+    },
+    {
+      name:      'count',
+      labelKey:  'epinio.services.tableHeaders.variableCount',
+      value:     'variableCount',
+      sort:      ['variableCount'],
+    },
+    {
+      name:      'createdBy',
+      labelKey:  'epinio.services.tableHeaders.createBy',
+      value:     'configuration.user',
+      sort:      ['configuration.user'],
     },
   ]);
 }

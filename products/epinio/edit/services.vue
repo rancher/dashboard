@@ -58,7 +58,7 @@ export default Vue.extend<Data, any, any, any>({
 
   async fetch() {
     this.namespaces = await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE });
-    this.value.data = { ...this.initialValue.configuration.details };
+    this.value.data = { ...this.initialValue.configuration?.details };
     this.validFields.name = this.isEdit;
   },
 
@@ -123,6 +123,9 @@ export default Vue.extend<Data, any, any, any>({
       }
       this.dataErrorMessage = '';
     },
+    setData(data: any[]) {
+      Vue.set(this.value, 'data', data);
+    },
     getNameErrors(name: string): string[] {
       return validateKubernetesName(
         this.value.metadata.name,
@@ -142,7 +145,6 @@ export default Vue.extend<Data, any, any, any>({
         this.updateDataErrors();
       },
       deep: true
-    }
   }
 });
 </script>
@@ -178,7 +180,7 @@ export default Vue.extend<Data, any, any, any>({
       <div class="row">
         <div class="col span-11">
           <KeyValue
-            v-model="value.data"
+            :value="value.data"
             :initial-empty-row="true"
             :mode="mode"
             :title="t('epinio.services.pairs.label')"
@@ -188,6 +190,7 @@ export default Vue.extend<Data, any, any, any>({
             :parse-lines-from-file="true"
             :error-messages="dataErrorMessage"
             @updateErrors="updateDataErrors"
+            @input="setData($event)"
           />
         </div>
       </div>
