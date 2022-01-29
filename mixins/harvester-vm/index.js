@@ -759,8 +759,10 @@ export default {
       const _QGA_JSON = this.getMatchQGA(osType);
 
       userDataJson.package_update = true;
-      if (Array.isArray(userDataJson.packages) && !userDataJson.packages.includes('qemu-guest-agent')) {
-        userDataJson.packages.push('qemu-guest-agent');
+      if (Array.isArray(userDataJson.packages)) {
+        if (!userDataJson.packages.includes('qemu-guest-agent')) {
+          userDataJson.packages.push('qemu-guest-agent');
+        }
       } else {
         userDataJson.packages = QGA_JSON.packages;
       }
