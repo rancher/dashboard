@@ -295,6 +295,22 @@ export default {
       return out;
     },
 
+    storageReservedTotal() {
+      let out = 0;
+
+      (this.longhornNode || []).forEach((node) => {
+        const disks = node?.spec?.disks || {};
+
+        Object.values(disks).map((disk) => {
+          if (disk.allowScheduling) {
+            out += disk.storageReserved;
+          }
+        });
+      });
+
+      return out;
+    },
+
     storageTotal() {
       let out = 0;
 
@@ -313,6 +329,10 @@ export default {
 
     storageUsed() {
       return this.createMemoryValues(this.storageTotal, this.storageUsage);
+    },
+
+    storageReserved() {
+      return this.createMemoryValues(this.storageTotal, this.storageReservedTotal);
     },
 
     vmEvents() {
@@ -559,6 +579,7 @@ export default {
         <HardwareResourceGauge
           :name="t('harvester.dashboard.hardwareResourceGauge.storage')"
           :used="storageUsed"
+          :reserved="storageReserved"
         />
       </div>
     </template>

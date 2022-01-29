@@ -283,18 +283,21 @@ export default {
         <HarvesterCPUUsed
           :row="value"
           :resource-name="t('node.detail.glance.consumptionGauge.cpu')"
+          :show-used="true"
         />
       </div>
       <div class="col span-4">
         <HarvesterMemoryUsed
           :row="value"
           :resource-name="t('node.detail.glance.consumptionGauge.memory')"
+          :show-used="true"
         />
       </div>
       <div class="col span-4">
         <HarvesterStorageUsed
           :row="value"
           :resource-name="t('harvester.host.detail.storage')"
+          :show-reserved="true"
         />
       </div>
     </div>
