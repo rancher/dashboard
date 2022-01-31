@@ -101,7 +101,7 @@ export default {
     },
 
     resourceSubtypeString() {
-      return this.resourceSubtype && this.resourceSubtype.length ? `${ this.resourceSubtype } -` : this.resourceSubtype;
+      return this.resourceSubtype?.length ? `${ this.resourceSubtype } -` : this.resourceSubtype;
     },
 
     namespaceLocation() {
