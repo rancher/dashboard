@@ -890,6 +890,23 @@ export default {
       }
     },
 
+    async syncMachineConfigWithLatest(machinePool) {
+      if (machinePool?.config?.id) {
+        const latestConfig = await this.$store.dispatch('management/find', {
+          type: machinePool.config.type,
+          id:   machinePool.config.id,
+          opt:  { force: true },
+        });
+        const clonedCurrentConfig = await this.$store.dispatch('management/clone', { resource: machinePool.config });
+        const clonedLatestConfig = await this.$store.dispatch('management/clone', { resource: latestConfig });
+
+        // We don't allow the user to edit any of the fields in metadata from the UI so it's safe to override it with the
+        // metadata defined by the latest backend value. This is primarily used to ensure the resourceVersion is up to date.
+        delete clonedCurrentConfig.metadata;
+        machinePool.config = merge(machinePool.config, clonedLatestConfig);
+      }
+    },
+
     async saveMachinePools() {
       const finalPools = [];
 
@@ -897,6 +914,8 @@ export default {
         if ( entry.remove ) {
           continue;
         }
+
+        await this.syncMachineConfigWithLatest(entry);
 
         // Capitals and such aren't allowed;
         set(entry.pool, 'name', normalizeName(entry.pool.name) || 'pool');
