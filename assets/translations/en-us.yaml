@@ -3926,7 +3926,7 @@ setup:
 sortableTable:
   actionAvailability:
     selected: "{actionable} selected"
-    some: "Available for {actionable} of the {total} selected"
+    some: "Affects {actionable} of {total}"
   noData: There are no rows which match your search query.
   noRows: There are no rows to show.
   noActions: No actions available
