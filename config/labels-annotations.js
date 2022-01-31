@@ -146,4 +146,5 @@ export const HCI = {
   IMAGE_NAME:                   'harvesterhci.io/image-name',
   NODE_SCHEDULABLE:             'kubevirt.io/schedulabl',
   NETWORK_ROUTE:                'network.harvesterhci.io/route',
+  CLOUD_PROVIDER_IPAM:          'cloudprovider.harvesterhci.io/ipam',
 };
