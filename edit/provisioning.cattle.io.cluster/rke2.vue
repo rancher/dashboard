@@ -7,7 +7,13 @@ import { mapGetters } from 'vuex';
 
 import CreateEditView from '@/mixins/create-edit-view';
 
-import { CAPI, MANAGEMENT, NORMAN, SCHEMA, DEFAULT_WORKSPACE } from '@/config/types';
+import {
+  CAPI,
+  MANAGEMENT,
+  NORMAN,
+  SCHEMA,
+  DEFAULT_WORKSPACE
+} from '@/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 
 import { findBy, removeObject, clear } from '@/utils/array';
