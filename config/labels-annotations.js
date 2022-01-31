@@ -158,5 +158,7 @@ export const CLUSTER_BADGE = {
   // Badge color - as a hex color - e.g. #ff00ff
   COLOR:       'ui.rancher/badge-color',
   // Use as icon - if set to "true" the cluster icon will also reflect the badge
-  ICON_TEXT: 'ui.rancher/badge-use-as-icon',
+  USE_AS_ICON: 'ui.rancher/badge-use-as-icon',
+  // Custom icon text - max 2 characters
+  ICON_TEXT:   'ui.rancher/badge-icon-text',
 };
