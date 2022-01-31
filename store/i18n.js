@@ -26,7 +26,7 @@ export const state = function() {
     selected:     null,
     previous:     null,
     available,
-    translations: { DEFAULT_LOCALE: en },
+    translations: { [DEFAULT_LOCALE]: en },
   };
 
   return out;
@@ -221,8 +221,8 @@ export const actions = {
     return true;
   },
 
-  async mergeLoad({ commit }, { locale, fn }) {
-    const translationsModule = await fn();
+  async mergeLoad({ commit }, { locale, module }) {
+    const translationsModule = await module();
     const translations = translationsModule.default || translationsModule;
 
     return commit('mergeLoadTranslations', { locale, translations });
@@ -282,7 +282,7 @@ export const actions = {
         const p = [];
 
         i18nExt.forEach((fn) => {
-          p.push(dispatch('mergeLoad', { locale, fn }));
+          p.push(dispatch('mergeLoad', { locale, module: fn }));
         });
 
         try {

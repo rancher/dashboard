@@ -13,7 +13,7 @@ module.exports = function(dir) {
     css: {
       // Inclue the css with the javascript, rather than having separate CSS files
       extract:       false,
-      loaderOptions: { sass: { prependData: `@use 'sass:math'; @import '${ SHELL }/assets/styles/base/_variables.scss'; @import '${ SHELL }/assets/styles/base/_functions.scss'; @import '${ SHELL }/assets/styles/base/_mixins.scss'; ` } }
+      loaderOptions: { sass: { additionalData: `@use 'sass:math'; @import '${ SHELL }/assets/styles/base/_variables.scss'; @import '${ SHELL }/assets/styles/base/_functions.scss'; @import '${ SHELL }/assets/styles/base/_mixins.scss'; ` } }
     },
 
     chainWebpack: (context) => {

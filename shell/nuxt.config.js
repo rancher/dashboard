@@ -100,18 +100,17 @@ export default function(dir, _appConfig) {
     // Ignore hidden folders
     items.filter(name => !name.startsWith('.')).forEach((name) => {
       if (includePkg(name)) {
-        reqs += `require(\'~/pkg/${ name }\').default($plugin); `;
+        reqs += `$plugin.initPlugin('${ name }', require(\'~/pkg/${ name }\')); `;
       }
 
-      // Serve the code for the UI package in case its used for dynamic loading (but not if the same pacakge was provided in node_modules)
-      if (!nmPackages[name]) {
-        const pkgPackageFile = require(path.join(dir, 'pkg', name, 'package.json'));
-        const pkgRef = `${ name }-${ pkgPackageFile.version }`;
+      // // Serve the code for the UI package in case its used for dynamic loading (but not if the same pacakge was provided in node_modules)
+      // if (!nmPackages[name]) {
+      //   const pkgPackageFile = require(path.join(dir, 'pkg', name, 'package.json'));
+      //   const pkgRef = `${ name }-${ pkgPackageFile.version }`;
 
-        serverMiddleware.push({ path: `/pkg/${ pkgRef }`, handler: serveStatic(`${ dir }/dist-pkg/${ pkgRef }`) });
-      }
-
-      autoImportTypes[`@ranch/auto-import/${ name }`] = generateDynamicTypeImport(`@/pkg/${ name }`, path.join(dir, `pkg/${ name }`));
+      //   serverMiddleware.push({ path: `/pkg/${ pkgRef }`, handler: serveStatic(`${ dir }/dist-pkg/${ pkgRef }`) });
+      // }
+      autoImportTypes[`@ranch/auto-import/${ name }`] = generateDynamicTypeImport(`@pkg/${ name }`, path.join(dir, `pkg/${ name }`));
     });
   }
 
@@ -129,6 +128,10 @@ export default function(dir, _appConfig) {
     resource.request = `@ranch/auto-import/${ pkg }`;
   });
 
+  // Serve up the dist-pkg folder under /pkg
+  serverMiddleware.push({ path: `/pkg/`, handler: serveStatic(`${ dir }/dist-pkg/`) });
+  // Endpoint to download and unpack a tgz from the local verdaccio rgistry (dev)
+  serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'verdaccio-middleware'));
   // Add the standard dashboard server middleware after the middleware added to serve up UI packages
   serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'server-middleware'));
 
@@ -249,6 +252,7 @@ export default function(dir, _appConfig) {
     alias: {
       '~shell': SHELL_ABS,
       '@shell': SHELL_ABS,
+      '@pkg':   path.join(dir, 'pkg'),
     },
 
     modulesDir: [

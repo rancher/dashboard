@@ -24,6 +24,9 @@
       ],
       "@shell/*": [
         "./shell/*"
+      ],
+      "@pkg/*": [
+        "./shell/pkg/*"
       ]
     },
     "types": [

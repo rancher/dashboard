@@ -13,6 +13,9 @@ export class Plugin implements IPlugin {
   // Plugin metadata (plugin package.json)
   public _metadata: any = {};
 
+  // Is this a built-in plugin (bundled with the application)
+  public builtin = false;
+
   constructor(id: string) {
     this.id = id;
     this.name = id;

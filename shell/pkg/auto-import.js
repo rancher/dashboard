@@ -37,8 +37,8 @@ function generateTypeImport(pkg, dir) {
 }
 
 // This function is used to generate the code to register models, edit, detail, list etc for a type
-// This is used when building for dev when plugins are loaded into the app for development - it use require.context - which ensures
-// theat any changes made will be picked up by hot module replacement. It will not respect code splitting, but this is okay
+// This is used when building for dev when plugins are loaded into the app for development - it uses require.context - which ensures
+// that any changes made will be picked up by hot module replacement. It will not respect code splitting, but this is okay
 // for development. Also note the top-level folders are not watched, so if you don't have a 'list' folder (for example), you must create it
 // and then restart the dev server for it to be picked up.
 function generateDynamicTypeImport(pkg, dir) {
@@ -50,10 +50,20 @@ function generateDynamicTypeImport(pkg, dir) {
     if (fs.existsSync(path.join(dir, f))) {
       let genImport = replaceAll(template, 'NAME', f);
       const importType = (f === 'models') ? 'require' : 'import';
-      const chunkName = (f === 'i18n') ? '' : `/* webpackChunkName: "${ f }" */`;
+      // Ensure i18n chunks are named with the request name (which will be the locale)
+      const chunk = (f === 'i18n') ? '[request]' : f;
+      let chunkName = `/* webpackChunkName: "${ chunk }" */ `;
+
+      // Don't use chunk names with require
+      if (importType === 'require') {
+        chunkName = '';
+      }
+
+      const ext = (f === 'i18n') ? '.yaml' : '';
 
       genImport = replaceAll(genImport, 'BASE', pkg);
       genImport = replaceAll(genImport, 'CHUNK', chunkName);
+      genImport = replaceAll(genImport, 'EXT', ext);
       content += replaceAll(genImport, 'REQUIRE', importType);
     }
   });

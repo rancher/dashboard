@@ -10,7 +10,7 @@ if [ -d "${PKG_DIST}" ]; then
   echo "Publishing UI Package $1"
 
   pushd ${PKG_DIST}
-  yarn publish . --patch --no-git-tag-version
+  yarn publish . --no-git-tag-version
   popd
 fi
 

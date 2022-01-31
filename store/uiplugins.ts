@@ -3,10 +3,10 @@
 
 // import { addObject, removeObject } from '@/utils/array';
 
-import { PluginMetadata } from '~/shell/core/plugin';
+import { Plugin } from '~/shell/core/plugin';
 
 interface UIPluginState {
-  plugins: PluginMetadata[],
+  plugins: Plugin[],
   catalog: any[],
 }
 
@@ -28,15 +28,13 @@ export const getters = {
 };
 
 export const mutations = {
-  addPlugin(state: UIPluginState, plugin: PluginMetadata) {
+  addPlugin(state: UIPluginState, plugin: Plugin) {
     // TODO: Duplicates?
     state.plugins.push(plugin);
   },
 
-  removePlugin(state: UIPluginState, plugin: PluginMetadata) {
-    const index = state.plugins.findIndex(p => p.name === plugin.name);
-
-    // TODO: PluginMetadata is not the correct object type
+  removePlugin(state: UIPluginState, pluginName: string) {
+    const index = state.plugins.findIndex(p => p.name === pluginName);
 
     if (index !== -1) {
       state.plugins.splice(index, 1);
@@ -60,11 +58,11 @@ export const actions = {
     commit('setCatalog', uiPackages);
   },
 
-  addPlugin({ commit }: any, plugin: PluginMetadata) {
+  addPlugin({ commit }: any, plugin: Plugin) {
     commit('addPlugin', plugin);
   },
 
-  removePlugin({ commit }: any, plugin: PluginMetadata) {
-    commit('removePlugin', plugin);
+  removePlugin({ commit }: any, pluginName: string) {
+    commit('removePlugin', pluginName);
   }
 };

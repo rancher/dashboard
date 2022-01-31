@@ -17,8 +17,11 @@ function find(cache, type, ctx) {
 
     if (!pluginModel) {
       base = require(`@shell/models/${ type }`);
-    } else {
+    } else if (typeof pluginModel === 'function') {
+      // pluginModel could be an object in the case the plugin is built-in
       base = pluginModel();
+    } else {
+      base = pluginModel;
     }
 
     // New Class models
@@ -62,4 +65,9 @@ export function lookup(store, type, _name, ctx) {
   }
 
   return null;
+}
+
+// Delete a cached model
+export function clearModelCache(type) {
+  delete cache[type];
 }

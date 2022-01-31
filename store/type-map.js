@@ -1196,7 +1196,7 @@ export const mutations = {
   },
 
   // Remove the specified product
-  remove(state, product) {
+  remove(state, { product, plugin }) {
     const existing = state.products.findIndex(p => p.name === product);
 
     // Remove the product
@@ -1204,12 +1204,45 @@ export const mutations = {
       state.products.splice(existing, 1);
     }
 
+    // Go through the basic types and remove the headers
     if (state.virtualTypes[product]) {
       delete state.virtualTypes[product];
     }
 
     if (state.basicTypes[product]) {
+      // Remove table header configuration
+      Object.keys(state.basicTypes[product]).forEach((type) => {
+        delete state.headers[type];
+        delete state.basicTypeWeights[type];
+        delete state.cache.ignore[type];
+        // These track whether the type has a custom component
+        delete state.cache.detail[type];
+        delete state.cache.edit[type];
+        delete state.cache.list[type];
+
+        // Delete all of the entries from the componentFor cache where the valye is the type
+        // Can do this more efficiently
+        Object.keys(state.cache.componentFor).forEach((k) => {
+          const v = state.cache.componentFor[k];
+
+          if (v === type) {
+            delete state.cache.componentFor[k];
+          }
+        });
+      });
+
       delete state.basicTypes[product];
+    }
+
+    if (plugin) {
+      // kind is list, edit, detail etc
+      Object.keys(plugin.types).forEach((kind) => {
+        if (state.cache[kind]) {
+          Object.keys(plugin.types[kind]).forEach((type) => {
+            delete state.cache[kind][type];
+          });
+        }
+      });
     }
   },
 
@@ -1419,8 +1452,8 @@ export const mutations = {
 };
 
 export const actions = {
-  removeProduct({ commit }, product) {
-    commit('remove', product);
+  removeProduct({ commit }, metadata) {
+    commit('remove', metadata);
   },
 
   addFavorite({ dispatch, rootGetters }, type) {

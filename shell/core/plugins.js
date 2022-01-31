@@ -1,5 +1,8 @@
 import { productsLoaded } from '@shell/store/type-map';
+import { clearModelCache } from '@shell/plugins/steve/model-loader';
 import { Plugin } from './plugin';
+
+const MODEL_TYPE = 'models';
 
 export default function({
   app,
@@ -66,6 +69,30 @@ export default function({
       });
     },
 
+    // Used by the dynamic loader when a plugin is included in the build
+    initPlugin(id, module) {
+      const plugin = new Plugin(id);
+
+      // Mark the plugin as being built-in
+      plugin.builtin = true;
+
+      plugins[id] = plugin;
+
+      // Initialize the plugin
+      const p = module;
+
+      p.default(plugin);
+
+      // Uninstall existing product if there is one
+      this.removePlugin(plugin.name);
+
+      // Load all of the types etc from the plugin
+      this.applyPlugin(plugin);
+
+      // Add the plugin to the store
+      store.dispatch('uiplugins/addPlugin', plugin);
+    },
+
     // Remove the plugin
     removePlugin(name) {
       const plugin = Object.values(plugins).find(p => p.name === name);
@@ -74,14 +101,18 @@ export default function({
         return;
       }
 
-      plugin.productNames.forEach((name) => {
-        store.dispatch('type-map/removeProduct', name);
+      plugin.productNames.forEach((product) => {
+        store.dispatch('type-map/removeProduct', { product, plugin });
       });
 
       // Remove all of the types
       Object.keys(plugin.types).forEach((typ) => {
         Object.keys(plugin.types[typ]).forEach((name) => {
           this.unregister(typ, name);
+
+          if (typ === MODEL_TYPE) {
+            clearModelCache(name);
+          }
         });
       });
 
@@ -90,11 +121,21 @@ export default function({
         store.dispatch('i18n/removeLocale', localeObj);
       });
 
+      // Ask the Steve stores to forget any data it has for models that we are removing
+      this.removeTypeFromStore(store, 'rancher', Object.keys(plugin.types.models));
+      this.removeTypeFromStore(store, 'management', Object.keys(plugin.types.models));
+
       // Remove the plugin itself
       store.dispatch('uiplugins/removePlugin', name);
 
       // Update last load since we removed a plugin
       _lastLoaded = new Date().getTime();
+    },
+
+    removeTypeFromStore(store, storeName, types) {
+      (types || []).forEach((type) => {
+        store.commit(`${ storeName }/forgetType`, type);
+      });
     },
 
     // Apply the plugin based on its metadata
@@ -107,6 +148,7 @@ export default function({
       });
 
       // i18n
+      console.log(plugin.i18n);
       Object.keys(plugin.i18n).forEach((name) => {
         plugin.i18n[name].forEach((fn) => {
           this.register('i18n', name, fn);
