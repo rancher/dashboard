@@ -38,6 +38,10 @@ export default function(dir, _appConfig) {
 
   const serverMiddleware = [];
   const autoLoadPackages = [];
+  const watcherIgnores = [
+    /.shell/,
+    /dist-pkg/
+  ];
 
   autoLoad.forEach((pkg) => {
     // Need the version number of each file
@@ -84,6 +88,10 @@ export default function(dir, _appConfig) {
 
     return !excludes || (excludes && !excludes.includes(name));
   }
+
+  excludes.forEach((e) => {
+    watcherIgnores.push(new RegExp(`/pkg.${ e }`));
+  });
 
   // For each package in the pkg folder that is being compiled into the application,
   // Add in the code to automatically import the types from that package
@@ -270,6 +278,8 @@ export default function(dir, _appConfig) {
       store:      path.join(SHELL, 'store'),
     },
 
+    watchers: { webpack: { ignore: watcherIgnores } },
+
     build: {
       publicPath: resourceBase,
       parallel:   true,
@@ -333,21 +343,6 @@ export default function(dir, _appConfig) {
           if ( /svg/.test(config.module.rules[i].test) ) {
             config.module.rules.splice(i, 1);
           }
-        }
-
-        // Any packages that have been excluded should be excluded from webpack watching, so you can edit those
-        // without the app updating - you can then build their packages and test them dynamically
-        if (excludes.length) {
-          const excludePaths = [];
-
-          excludes.forEach((e) => {
-            excludePaths.push(path.resolve(dir, `pkg/${ e }/`));
-            excludePaths.push(path.resolve(dir, `dist-pkg/${ e }/`));
-            // excludePaths.push(new RegExp(`pkg/${ e }`));
-            // excludePaths.push(new RegExp(`dist-pkg/${ e }`));
-          });
-
-          config.plugins.push(new webpack.WatchIgnorePlugin(excludePaths));
         }
 
         config.resolve.symlinks = false;

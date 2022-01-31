@@ -138,12 +138,8 @@ export default {
 
     async install(plugin) {
       // Might need to download the package first
-
       if (plugin.download) {
-        console.log('Need to download ' + plugin.download);
-
-        const res = await this.$store.dispatch('rancher/request', { url: plugin.download}, { root: true });
-        console.log(res);
+        await this.$store.dispatch('rancher/request', { url: plugin.download }, { root: true });
       }
 
       const name = `${ plugin.name }-${ plugin.version }`;

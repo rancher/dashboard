@@ -148,7 +148,6 @@ export default function({
       });
 
       // i18n
-      console.log(plugin.i18n);
       Object.keys(plugin.i18n).forEach((name) => {
         plugin.i18n[name].forEach((fn) => {
           this.register('i18n', name, fn);
