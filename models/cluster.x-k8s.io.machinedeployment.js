@@ -80,12 +80,14 @@ export default class CapiMachineDeployment extends SteveModel {
     return this.status?.unavailableReplicas || 0;
   }
 
-  scalePool(delta) {
+  scalePool(delta, save = true) {
     const clustersMachinePool = this.cluster.spec.rkeConfig.machinePools.find(mp => `${ this.cluster.id }-${ mp.name }` === this.id);
 
     if (clustersMachinePool) {
       clustersMachinePool.quantity += delta;
-      this.cluster.save();
+      if (save) {
+        this.cluster.save();
+      }
     }
   }
 

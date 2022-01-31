@@ -49,6 +49,7 @@ export const CAPI = {
   CLUSTER_NAMESPACE:    'cluster.x-k8s.io/cluster-namespace',
   FORCE_MACHINE_REMOVE: 'provisioning.cattle.io/force-machine-remove',
   MACHINE_NAME:         'cluster.x-k8s.io/machine',
+  DELETE_MACHINE:       'cluster.x-k8s.io/delete-machine',
   PROVIDER:             'provider.cattle.io'
 };
 
