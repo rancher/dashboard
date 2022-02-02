@@ -121,9 +121,11 @@ export default function({
         store.dispatch('i18n/removeLocale', localeObj);
       });
 
-      // Ask the Steve stores to forget any data it has for models that we are removing
-      this.removeTypeFromStore(store, 'rancher', Object.keys(plugin.types.models));
-      this.removeTypeFromStore(store, 'management', Object.keys(plugin.types.models));
+      if (plugin.types.models) {
+        // Ask the Steve stores to forget any data it has for models that we are removing
+        this.removeTypeFromStore(store, 'rancher', Object.keys(plugin.types.models));
+        this.removeTypeFromStore(store, 'management', Object.keys(plugin.types.models));
+      }
 
       // Remove the plugin itself
       store.dispatch('uiplugins/removePlugin', name);

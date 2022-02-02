@@ -1,6 +1,6 @@
 {
   "name": "NAME",
-  "descriptiom": "NAME plugin",
+  "description": "NAME plugin",
   "version": "0.1.0",
   "private": false,
   "publishConfig": {

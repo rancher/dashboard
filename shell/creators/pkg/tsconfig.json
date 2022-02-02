@@ -33,7 +33,7 @@
       "@shell/store/*": [
         "../../node_modules/@ranch/shell/store/*"
       ]
-    },
+    }
   },
   "include": [
     "**/*.ts",
@@ -41,7 +41,7 @@
     "**/*.vue",
     "../../node_modules/@ranch/shell/types/*.d.ts",
     "../../node_modules/@ranch/shell/core/*.ts",
-    "../../node_modules/@ranch/shell/config/**/*.js",
+    "../../node_modules/@ranch/shell/config/**/*.js"
   ],
   "exclude": [
     "node_modules"

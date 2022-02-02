@@ -1,6 +1,6 @@
 {
   "name": "@ranch/shell",
-  "version": "0.6.15",
+  "version": "0.6.16",
   "description": "Rancher Dashboard Shell",
   "repository": "https://github.com/rancherlabs/dashboard",
   "license": "Apache-2.0",
@@ -68,7 +68,7 @@
     "browser-env": "^3.2.6",
     "cookie": "^0.4.0",
     "cookie-universal-nuxt": "^2.0.17",
-    "core-js": "^3.15.1",
+    "core-js": "^3.20.3",
     "cron-validator": "^1.2.0",
     "cronstrue": "^1.92.0",
     "cross-env": "^6.0.3",
