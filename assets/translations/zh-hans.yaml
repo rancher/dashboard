@@ -6276,6 +6276,33 @@ featureFlags:
     multi-cluster-management: Kubernetes集群的多集群配置和管理。
     rke2: 启用RKE2
 
+banner:
+  label: 固定横幅
+  settingName: 横幅
+  headerBanner: 标题横幅
+  footerBanner: 页脚横幅
+  loginScreenBanner: 登录屏幕横幅
+  text: 文本
+  textColor: 文本颜色
+  background: 背景颜色
+  showHeader: 在页眉中显示横幅
+  showFooter: 在页脚中显示横幅
+  showConsent: 在登录页面显示同意横幅
+  bannerAlignment:
+    label: 文字对齐
+    leftOption: 左对齐
+    centerOption: 居中
+    rightOption: 右对齐
+  bannerDecoration:
+    label: 文字装饰
+    bannerBold: 加粗
+    bannerItalic: 斜体
+    bannerUnderline: 下划线
+  bannerFontSize:
+    label: '字体大小'
+  consent: 同意横幅
+  
+
 branding:
   label: 公司品牌
   directoryName: 品牌资产目录名称
@@ -6298,27 +6325,6 @@ branding:
     issuesUrl: 问题报告 URL
     invalidUrl: 必须是包括协议头的完整 URL。
     communityLinks: 显示 Rancher 社区支持链接
-  uiBanner:
-    label: 固定横幅
-    text: 文本
-    textColor: 文本颜色
-    background: 背景颜色
-    showHeader: 在页眉中显示横幅
-    showFooter: 在页脚中显示横幅
-    showConsent: 在登录页面显示同意横幅
-    bannerAlignment:
-      label: 文字对齐
-      leftOption: 左对齐
-      centerOption: 居中
-      rightOption: 右对齐
-    bannerDecoration:
-      label: 文字装饰
-      bannerBold: 加粗
-      bannerItalic: 斜体
-      bannerUnderline: 下划线
-    bannerFontSize:
-      label: '字体大小'
-    consent: 同意横幅
   color:
     label: 主颜色
     tip: 使用自定义颜色替换整个 UI 中使用的主颜色。

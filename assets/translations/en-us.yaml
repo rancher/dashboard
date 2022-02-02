@@ -6179,6 +6179,37 @@ featureFlags:
     title: Waiting for Restart
     wait: This may take a few moments
 
+banner:
+  label: Fixed Banners
+  settingName: Banners
+  headerBanner: Header Banner
+  footerBanner: Footer Banner
+  loginScreenBanner: Login Screen Banner
+  text: Text
+  buttonText: Accept Button Text
+  textColor: Text Color
+  background: Background Color
+  showHeader: Show Banner in Header
+  showFooter: Show Banner in Footer
+  showConsent: Show Consent Banner on Login Screen
+  showAsDialog:
+    defaultButtonText: Accept
+    label: Show Login Consent as a modal dialog
+    tooltip: Show a modal dialog on the login screen that must be accepted by a user before they can login
+  bannerAlignment:
+    label: Text Alignment
+    leftOption: Left
+    centerOption: Center
+    rightOption: Right
+  bannerDecoration:
+    label: Text Decoration
+    bannerBold: Bold
+    bannerItalic: Italic
+    bannerUnderline: Underline
+  bannerFontSize:
+    label: 'Font Size'
+  consent: Consent Banner
+
 branding:
   label: Branding
   directoryName: Brand Asset Directory Name
@@ -6201,32 +6232,6 @@ branding:
     issuesUrl: Issue Reporting URL
     invalidUrl: The issue reporting value must be a complete URL, including protocol.
     communityLinks: Show Rancher community support links
-  uiBanner:
-    label: Fixed Banners
-    text: Text
-    buttonText: Accept Button Text
-    textColor: Text Color
-    background: Background Color
-    showHeader: Show Banner in Header
-    showFooter: Show Banner in Footer
-    showConsent: Show Consent Banner on Login Screen
-    showAsDialog:
-      defaultButtonText: Accept
-      label: Show Login Consent as a modal dialog
-      tooltip: Show a modal dialog on the login screen that must be accepted by a user before they can login
-    bannerAlignment:
-      label: Text Alignment
-      leftOption: Left
-      centerOption: Center
-      rightOption: Right
-    bannerDecoration:
-      label: Text Decoration
-      bannerBold: Bold
-      bannerItalic: Italic
-      bannerUnderline: Underline
-    bannerFontSize:
-      label: 'Font Size'
-    consent: Consent Banner
   color:
     label: Primary Color
     tip: You can override the primary color used throughout the UI with a custom color of your choice.
