@@ -6278,6 +6278,9 @@ featureFlags:
 banner:
   label: 固定横幅
   settingName: 横幅
+  headerBanner: 标题横幅
+  footerBanner: 页脚横幅
+  loginScreenBanner: 登录屏幕横幅
   text: 文本
   textColor: 文本颜色
   background: 背景颜色

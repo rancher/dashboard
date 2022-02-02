@@ -6176,6 +6176,9 @@ featureFlags:
 banner:
   label: Fixed Banners
   settingName: Banners
+  headerBanner: Header Banner
+  footerBanner: Footer Banner
+  loginScreenBanner: Login Screen Banner
   text: Text
   buttonText: Accept Button Text
   textColor: Text Color

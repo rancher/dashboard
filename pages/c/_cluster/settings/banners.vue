@@ -174,7 +174,10 @@ export default {
 
       <template>
         <!-- Header Settings -->
-        <div class="row mt-20 mb-20">
+        <h2 class="mt-40 mb-40">
+          {{ t('banner.headerBanner') }}
+        </h2>
+        <div class="row mb-20">
           <div class="col span-6">
             <Checkbox
               :value="bannerVal.showHeader === 'true'"
@@ -191,6 +194,9 @@ export default {
         />
 
         <!-- Footer settings -->
+        <h2 class="mt-40 mb-40">
+          {{ t('banner.footerBanner') }}
+        </h2>
         <div class="row mt-40 mb-20">
           <div class="col span-6">
             <Checkbox
@@ -209,6 +215,9 @@ export default {
       </template>
 
       <!-- Consent settings -->
+      <h2 class="mt-40 mb-40">
+        {{ t('banner.loginScreenBanner') }}
+      </h2>
       <template>
         <div class="row mt-40 mb-20">
           <div class="col span-6">
