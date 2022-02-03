@@ -35,7 +35,6 @@ export default {
     this.showDeprecated = query[DEPRECATED] === _FLAGGED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
     this.category = query[CATEGORY] || '';
-    this.operatingSystem = query[OPERATING_SYSTEM] || this.defaultOperatingSystem;
     this.allRepos = this.areAllEnabled();
   },
 
@@ -55,18 +54,6 @@ export default {
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
 
     hideRepos: mapPref(HIDE_REPOS),
-
-    showWindowsClusterNoAppsSplash() {
-      const isWindows = this.currentCluster.providerOs === 'windows';
-      const { filteredCharts } = this;
-      let showSplash = false;
-
-      if ( isWindows && filteredCharts.length === 0 ) {
-        showSplash = true;
-      }
-
-      return showSplash;
-    },
 
     repoOptions() {
       let nextColor = 0;
@@ -153,14 +140,16 @@ export default {
       const enabledCharts = (this.enabledCharts || []);
 
       return filterAndArrangeCharts(enabledCharts, {
-        os:             this.operatingSystem,
-        category:       this.category,
-        searchQuery:    this.searchQuery,
-        showDeprecated: this.showDeprecated,
-        showHidden:     this.showHidden,
-        hideRepos:      this.hideRepos,
-        hideTypes:      [CATALOG._CLUSTER_TPL],
-        showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
+        // TODO not this
+        // operatingSystems: this.currentCluster.workerOSs,
+        operatingSystems: ['windows', 'linux'],
+        category:         this.category,
+        searchQuery:      this.searchQuery,
+        showDeprecated:   this.showDeprecated,
+        showHidden:       this.showHidden,
+        hideRepos:        this.hideRepos,
+        hideTypes:        [CATALOG._CLUSTER_TPL],
+        showPrerelease:   this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
     },
 
@@ -194,67 +183,6 @@ export default {
       return out;
     },
 
-    operatingSystemChartCounts() {
-      const counts = { linux: 0, windows: 0 };
-      const showPrerelease = this.$store.getters['prefs/get'](SHOW_PRE_RELEASE);
-
-      this.enabledCharts.forEach((chart) => {
-        const windowsVersions = compatibleVersionsFor(chart.versions, 'windows', showPrerelease);
-        const linuxVersions = compatibleVersionsFor(chart.versions, 'linux', showPrerelease);
-
-        if (windowsVersions.length > 0) {
-          counts['windows'] += 1;
-        }
-
-        if (linuxVersions.length > 0) {
-          counts['linux'] += 1;
-        }
-      });
-
-      return counts;
-    },
-
-    operatingSystemOptions() {
-      return [
-        {
-          label: this.t('catalog.charts.operatingSystems.all'),
-          value: '',
-          count: this.enabledCharts.length
-        },
-        {
-          label: this.t('catalog.charts.operatingSystems.linux'),
-          value: 'linux',
-          count: this.operatingSystemChartCounts.linux
-        },
-        {
-          label: this.t('catalog.charts.operatingSystems.windows'),
-          value: 'windows',
-          count: this.operatingSystemChartCounts.windows
-        }
-      ];
-    },
-
-    defaultOperatingSystem() {
-      const linuxCount = this.currentCluster.status.linuxWorkerCount;
-      const windowsCount = this.currentCluster.status.windowsWorkerCount;
-
-      if (linuxCount > windowsCount) {
-        return 'linux';
-      }
-
-      if (windowsCount > linuxCount) {
-        return 'windows';
-      }
-
-      return '';
-    },
-
-    showOperatingSystemOptions() {
-      const linuxCount = this.currentCluster.status.linuxWorkerCount;
-      const windowsCount = this.currentCluster.status.windowsWorkerCount;
-
-      return linuxCount > 0 && windowsCount > 0;
-    }
   },
 
   watch: {
@@ -329,22 +257,15 @@ export default {
 
     selectChart(chart) {
       let version;
-      const isWindows = this.currentCluster.providerOs === 'windows';
+      const OSs = this.currentCluster.workerOSs;
+
       const showPrerelease = this.$store.getters['prefs/get'](SHOW_PRE_RELEASE);
-      const windowsVersions = compatibleVersionsFor(chart.versions, 'windows', showPrerelease);
-      const linuxVersions = compatibleVersionsFor(chart.versions, 'linux', showPrerelease);
-      const allVersions = compatibleVersionsFor(chart.versions, null, showPrerelease);
+      const compatibleVersions = compatibleVersionsFor(chart, OSs, showPrerelease);
 
-      if ( isWindows && windowsVersions.length ) {
-        version = windowsVersions[0].version;
-      } else if ( !isWindows && linuxVersions.length ) {
-        version = linuxVersions[0].version;
-      } else if ( allVersions.length ) {
-        version = allVersions[0].version;
-      }
-
-      if ( !version ) {
-        console.warn(`Cannot select chart '${ chart.chartName }' (no compatible version available for '${ this.currentCluster.providerOs }')`); // eslint-disable-line no-console
+      if (compatibleVersions.length > 0) {
+        version = compatibleVersions[0].version;
+      } else {
+        console.warn(`Cannot select chart '${ chart.chartName }' (no compatible version available for '${ OSs.length > 1 ? `${ OSs[0] } and ${ OSs[1] }` : OSs[0] }')`); // eslint-disable-line no-console
 
         return;
       }
@@ -395,7 +316,7 @@ export default {
       </div>
     </header>
 
-    <div class="left-right-split" :class="{'with-os-options': showOperatingSystemOptions}">
+    <div class="left-right-split">
       <Select
         :searchable="false"
         :options="repoOptionsForDropdown"
@@ -437,22 +358,6 @@ export default {
         </template>
       </Select>
 
-      <Select
-        v-if="showOperatingSystemOptions"
-        v-model="operatingSystem"
-        :clearable="false"
-        :searchable="false"
-        :options="operatingSystemOptions"
-        placement="bottom"
-        label="label"
-        style="min-width: 200px;"
-        :reduce="opt => opt.value"
-      >
-        <template #option="opt">
-          {{ opt.label }} ({{ opt.count }})
-        </template>
-      </Select>
-
       <div class="filter-block">
         <input
           ref="searchQuery"
@@ -470,9 +375,9 @@ export default {
     <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
 
     <div v-if="allCharts.length">
-      <div v-if="filteredCharts.length === 0 && showWindowsClusterNoAppsSplash" style="width: 100%;">
+      <div v-if="filteredCharts.length === 0" style="width: 100%;">
         <div class="m-50 text-center">
-          <h1>{{ t('catalog.charts.noWindows') }}</h1>
+          <h1>{{ t('catalog.charts.noCharts') }}</h1>
         </div>
       </div>
       <SelectIconGrid

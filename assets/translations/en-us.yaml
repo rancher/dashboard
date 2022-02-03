@@ -709,10 +709,10 @@ catalog:
       rancher: '{vendor}'
     deploysOn: Deploys on {os}
     header: Charts
-    noCharts: 'There are no charts available, have you added any repos?'
-    noWindows: Your catalogs do not contain any charts capable of being deployed on a Windows cluster.
+    noWindows: Your repos do not contain any charts capable of being deployed on a cluster with Windows nodes.
+    noWindowsAndLinux: Your repos do not contain any charts capable of being deployed on a cluster with both Windows and Linux worker nodes.
     operatingSystems:
-      all: All OSs
+      all: All Operating Systems
       linux: Linux
       windows: Windows
     search: Filter

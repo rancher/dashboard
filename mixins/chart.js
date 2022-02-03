@@ -12,6 +12,8 @@ import { NAME as MANAGER } from '@/config/product/manager';
 import { formatSi, parseSi } from '@/utils/units';
 import { CAPI, CATALOG } from '@/config/types';
 import { isPrerelease } from '@/utils/version';
+import difference from 'lodash/difference';
+import { LINUX } from '@/store/catalog';
 
 export default {
   data() {
@@ -22,7 +24,6 @@ export default {
 
       ignoreWarning: false,
 
-      catalogOSAnnotation: CATALOG_ANNOTATIONS.SUPPORTED_OS,
     };
   },
 
@@ -60,14 +61,11 @@ export default {
     },
 
     mappedVersions() {
-      const {
-        currentCluster,
-        catalogOSAnnotation,
-      } = this;
-
+      // TODO remove other
+      const isRancher = this.chart?.certified === 'rancher' || this.chart?.certified === 'other' ;
       const versions = this.chart?.versions || [];
       const selectedVersion = this.targetVersion;
-      const isWindows = currentCluster?.providerOs === 'windows';
+      const OSs = this.currentCluster?.workerOSs;
       const out = [];
 
       versions.forEach((version) => {
@@ -82,17 +80,21 @@ export default {
           keywords:        version.keywords
         };
 
-        if ( version?.annotations?.[catalogOSAnnotation] === 'windows' ) {
-          nue.label = this.t('catalog.install.versions.windows', { ver: version.version });
+        let permittedSystems;
 
-          if ( !isWindows ) {
+        if (version?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS]) {
+          permittedSystems = version?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS].split(',');
+        } else if (isRancher) {
+          permittedSystems = [LINUX];
+        }
+
+        if (permittedSystems) {
+          if (permittedSystems.length > 0 && difference(OSs, permittedSystems).length > 0) {
             nue.disabled = true;
           }
-        } else if ( version?.annotations?.[catalogOSAnnotation] === 'linux' ) {
-          nue.label = this.t('catalog.install.versions.linux', { ver: version.version });
-
-          if ( isWindows ) {
-            nue.disabled = true;
+          // if only one OS is allowed, show '<OS>-only' on hover
+          if (permittedSystems.length === 1) {
+            nue.label = this.t(`catalog.install.versions.${ permittedSystems[0] }`, { ver: version.version });
           }
         }
 

@@ -13,6 +13,7 @@ import { NAME as HARVESTER } from '@/config/product/harvester';
 import { isHarvesterCluster } from '@/utils/cluster';
 import HybridModel from '@/plugins/steve/hybrid-class';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
+import { LINUX, WINDOWS } from '~/store/catalog';
 
 // See translation file cluster.providers for list of providers
 // If the logo is not named with the provider name, add an override here
@@ -173,7 +174,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get providerOs() {
-    if ( this.status?.provider.endsWith('.windows') ) {
+    if ( this.status?.provider.endsWith('.windows')) {
       return 'windows';
     }
 
@@ -182,6 +183,30 @@ export default class MgmtCluster extends HybridModel {
 
   get providerOsLogo() {
     return require(`~/assets/images/vendor/${ this.providerOs }.svg`);
+  }
+
+  get workerOSs() {
+    // rke1 clusters always have at least one linux worker
+    // rke2 clusters report linux workers in mgmt cluster status
+    const rke2WindowsWorkers = this.status?.windowsWorkerCount;
+    const rke2LinuxWorkers = this.status?.linuxWorkerCount;
+
+    if (rke2WindowsWorkers || rke2LinuxWorkers ) {
+      const out = [];
+
+      if (rke2WindowsWorkers) {
+        out.push(WINDOWS);
+      }
+      if (rke2LinuxWorkers) {
+        out.push(LINUX);
+      }
+
+      return out;
+    } else if (this.providerOs === WINDOWS) {
+      return [LINUX, WINDOWS];
+    }
+
+    return [LINUX];
   }
 
   get isLocal() {

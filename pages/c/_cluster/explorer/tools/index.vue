@@ -67,7 +67,7 @@ export default {
       allInstalled:    null,
       v1SystemCatalog: null,
       systemProject:   null,
-      legacyEnabled
+      legacyEnabled,
     };
   },
 
@@ -113,12 +113,12 @@ export default {
       const enabledCharts = (this.allCharts || []);
 
       let charts = filterAndArrangeCharts(enabledCharts, {
-        isWindows:      this.currentCluster.providerOs === 'windows',
+        operatingSystems: this.currentCluster.workerOSs,
         clusterProvider,
-        showDeprecated: this.showDeprecated,
-        showHidden:     this.showHidden,
-        showRepos:      [this.rancherCatalog?._key],
-        showTypes:      [CATALOG_ANNOTATIONS._CLUSTER_TOOL],
+        showDeprecated:   this.showDeprecated,
+        showHidden:       this.showHidden,
+        showRepos:        [this.rancherCatalog?._key],
+        showTypes:        [CATALOG_ANNOTATIONS._CLUSTER_TOOL],
       });
 
       //  If legacy support is enabled, show V1 charts for some V1 Cluster tools

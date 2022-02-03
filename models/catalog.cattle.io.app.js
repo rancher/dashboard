@@ -9,6 +9,7 @@ import { SHOW_PRE_RELEASE } from '@/store/prefs';
 import { set } from '@/utils/object';
 
 import SteveModel from '@/plugins/steve/steve-class';
+import { compatibleVersionsFor } from '~/store/catalog';
 
 export default class CatalogApp extends SteveModel {
   showMasthead(mode) {
@@ -78,7 +79,8 @@ export default class CatalogApp extends SteveModel {
       return null;
     }
 
-    const isWindows = this.$rootGetters['currentCluster'].providerOs === 'windows';
+    const workerOSs = this.$rootGetters['currentCluster'].workerOSs;
+
     const showPreRelease = this.$rootGetters['prefs/get'](SHOW_PRE_RELEASE);
 
     const thisVersion = this.spec?.chart?.metadata?.version;
@@ -88,16 +90,12 @@ export default class CatalogApp extends SteveModel {
       versions = chart.versions.filter(v => !isPrerelease(v.version));
     }
 
+    versions = compatibleVersionsFor(chart, workerOSs, showPreRelease);
+
     const newestChart = versions?.[0];
     const newestVersion = newestChart?.version;
 
     if ( !thisVersion || !newestVersion ) {
-      return null;
-    }
-
-    if (isWindows && newestChart?.annotations?.['catalog.cattle.io/os'] === 'linux') {
-      return null;
-    } else if (!isWindows && newestChart?.annotations?.['catalog.cattle.io/os'] === 'windows') {
       return null;
     }
 
