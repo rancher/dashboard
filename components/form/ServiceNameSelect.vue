@@ -136,8 +136,13 @@ export default {
         :v-bind="$attrs"
         @input="changeSelected"
       />
-      <button :disabled="isView" type="button" class="btn role-secondary" @click="clearSearch($event);">
-        {{ t('generic.clear') }}
+      <button
+        v-if="!isView"
+        type="button"
+        class="btn role-secondary"
+        @click="clearSearch($event)"
+      >
+        {{ t("generic.clear") }}
       </button>
     </div>
     <template v-if="serviceNameNew">
