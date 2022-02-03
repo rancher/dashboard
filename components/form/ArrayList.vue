@@ -280,6 +280,7 @@ export default {
               type="button"
               :disabled="isView"
               class="btn role-link"
+              :data-testid="`remove-item-${idx}`"
               @click="remove(idx)"
             >
               {{ removeLabel }}
@@ -300,6 +301,7 @@ export default {
           type="button"
           class="btn role-tertiary add"
           :disabled="loading"
+          data-testid="add-item"
           @click="add()"
         >
           <i v-if="loading" class="mr-5 icon icon-spinner icon-spin icon-lg" />

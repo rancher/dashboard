@@ -597,6 +597,7 @@ export default {
           v-if="!isView"
           :key="i"
           class="kv-item remove"
+          :data-testid="`remove-column-${i}`"
         >
           <slot name="removeButton" :remove="remove" :row="row">
             <button type="button" :disabled="isView" class="btn role-link" @click="remove(i)">

@@ -140,6 +140,7 @@ export default {
         v-if="!isView"
         type="button"
         class="btn role-secondary"
+        data-testid="clear-search"
         @click="clearSearch($event)"
       >
         {{ t("generic.clear") }}

@@ -111,6 +111,7 @@ export default {
       v-t="'workload.container.command.addEnvVar'"
       type="button"
       class="btn role-tertiary add"
+      data-testid="add-env-var"
       @click="addFromReference"
     />
   </div>
