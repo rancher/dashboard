@@ -8,6 +8,9 @@ export default {
   components: { ValueFromResource },
 
   props: {
+    /**
+     * Form mode for the component
+     */
     mode: {
       type:     String,
       required: true,
@@ -20,7 +23,9 @@ export default {
       type:     Array,
       required: true
     },
-    // container spec
+    /**
+     * Container spec
+     */
     value: {
       type:    Object,
       default: () => {

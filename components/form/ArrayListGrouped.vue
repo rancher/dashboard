@@ -6,14 +6,25 @@ import { _EDIT, _VIEW } from '@/config/query-params';
 export default {
   components: { ArrayList, InfoBox },
   props:      {
+    /**
+     * Allow to remove items by value or computation
+     */
     canRemove: {
       type:    [Boolean, Function],
       default: true,
     },
+
+    /**
+     * Allow to extend list
+     */
     canAdd: {
       type:    Boolean,
       default: true,
     },
+
+    /**
+     * Form mode for the component
+     */
     mode: {
       type:    String,
       default: _EDIT,
@@ -30,6 +41,9 @@ export default {
   },
 
   methods: {
+    /**
+     * Verify if row can be removed by mode, function and declaration
+     */
     canRemoveRow(row, idx) {
       if ( this.isDisabled || this.isView ) {
         return false;
