@@ -1,7 +1,7 @@
 <script>
 import ArrayList from '@/components/form/ArrayList';
 import InfoBox from '@/components/InfoBox';
-import { _VIEW } from '@/config/query-params';
+import { _EDIT, _VIEW } from '@/config/query-params';
 
 export default {
   components: { ArrayList, InfoBox },
@@ -9,18 +9,29 @@ export default {
     canRemove: {
       type:    [Boolean, Function],
       default: true,
-    }
+    },
+    canAdd: {
+      type:    Boolean,
+      default: true,
+    },
+    mode: {
+      type:    String,
+      default: _EDIT,
+    },
   },
 
   computed:   {
     isDisabled() {
       return this.$attrs.mode === _VIEW;
+    },
+    isView() {
+      return this.mode === _VIEW;
     }
   },
 
   methods: {
     canRemoveRow(row, idx) {
-      if ( this.isDisabled ) {
+      if ( this.isDisabled || this.isView ) {
         return false;
       }
 
@@ -35,14 +46,26 @@ export default {
 </script>
 
 <template>
-  <ArrayList class="array-list-grouped" v-bind="$attrs" @input="$emit('input', $event)" @add="$emit('add')">
+  <ArrayList
+    class="array-list-grouped"
+    v-bind="$attrs"
+    :add-allowed="canAdd && !isView"
+    :mode="mode"
+    @input="$emit('input', $event)"
+    @add="$emit('add')"
+  >
     <template v-slot:columns="scope">
       <InfoBox>
         <slot v-bind="scope" />
       </InfoBox>
     </template>
     <template v-slot:remove-button="scope">
-      <button v-if="canRemoveRow(scope.row, scope.i)" type="button" class="btn role-link close btn-sm" @click="scope.remove">
+      <button
+        v-if="canRemoveRow(scope.row, scope.i)"
+        type="button"
+        class="btn role-link close btn-sm"
+        @click="scope.remove"
+      >
         <i class="icon icon-2x icon-x" />
       </button>
       <span v-else></span>
