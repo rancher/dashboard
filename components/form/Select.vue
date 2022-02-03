@@ -174,6 +174,7 @@ export default {
       ref="select-input"
       v-bind="$attrs"
       class="inline"
+      :class="{'select-input-view': mode === 'view'}"
       :autoscroll="true"
       :append-to-body="appendToBody"
       :calculate-position="positionDropdown"
@@ -218,6 +219,12 @@ export default {
 <style lang="scss" scoped>
   .unlabeled-select {
     position: relative;
+
+    ::v-deep .v-select.select-input-view {
+      .vs__actions {
+        visibility: hidden;
+      }
+    }
 
     ::v-deep .vs__selected-options {
       display: flex;

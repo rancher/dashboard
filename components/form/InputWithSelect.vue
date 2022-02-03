@@ -132,7 +132,7 @@ export default {
       :searchable="searchable"
       :disabled="disabled || isView"
       :clearable="false"
-      :class="{ 'in-input': !isView }"
+      class="in-input"
       :taggable="taggable"
       :create-option="(name) => ({ label: name, value: name })"
       :multiple="false"
@@ -228,7 +228,7 @@ export default {
     display: table;
     border-collapse: separate;
 
-    &:hover:not(.focused):not(.disabled):not(:focus) {
+    &:hover:not(.focused):not(.disabled):not(:focus):not(.view) {
       border-left: 1px solid var(--input-hover-border);
       border-right: 1px solid var(--input-hover-border);
       padding-left: 9px;
@@ -243,7 +243,7 @@ export default {
   & .in-input {
     margin-right: 0;
 
-    &:hover:not(.focused):not(.disabled) {
+    &:hover:not(.focused):not(.disabled):not(.view) {
       border: 1px solid var(--input-hover-border) !important;
     }
 
@@ -256,8 +256,8 @@ export default {
       outline: none;
     }
 
-    &.labeled-select:not(.disabled) ::v-deep,
-    &.unlabeled-select:not(.disabled) ::v-deep {
+    &.labeled-select:not(.disabled):not(.view) ::v-deep,
+    &.unlabeled-select:not(.disabled):not(.view) ::v-deep {
       border: solid 1px var(--input-border);
     }
 

@@ -208,13 +208,15 @@ export default {
     <label v-if="subLabel" class="sub-label">{{ subLabel }}</label>
   </div>
 </template>
-
-<style lang="scss" scoped>
+<style scoped lang="scss">
+  .labeled-input.view {
+    input {
+      text-overflow: ellipsis;
+    }
+  }
 
 .hideArrows {
-  /* Hide arrows on number input
-when it overlaps with the unit */
-
+  /* Hide arrows on number input when it overlaps with the unit */
   /* Chrome, Safari, Edge, Opera */
   input::-webkit-outer-spin-button,
   input::-webkit-inner-spin-button {

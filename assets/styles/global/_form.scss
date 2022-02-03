@@ -34,7 +34,7 @@ TEXTAREA,
   LABEL {
     color: var(--input-label);
   }
-  &:hover:not(.focused):not(:focus):not(.disabled):not(:disabled) {
+  &:hover:not(.focused):not(:focus):not(.disabled):not(:disabled):not(.view) {
     &, .vs__dropdown-menu {
       border-color: var(--input-hover-border);
     }
