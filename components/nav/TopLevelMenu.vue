@@ -250,7 +250,7 @@ export default {
                   <div>{{ c.label }}</div>
                 </nuxt-link>
                 <span v-else class="option-disabled cluster selector disabled">
-                  <img :src="c.logo" />
+                  <ClusterProviderIcon :small="true" :cluster="c" class="rancher-provider-icon mr-10" />
                   <div>{{ c.label }}</div>
                 </span>
               </div>

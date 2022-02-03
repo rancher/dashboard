@@ -236,15 +236,14 @@ export default class MgmtCluster extends HybridModel {
       return undefined;
     }
 
-    const color = this.metadata?.annotations[CLUSTER_BADGE.COLOR];
-    const useForIcon = this.metadata?.annotations[CLUSTER_BADGE.USE_AS_ICON] || '';
+    const color = this.metadata?.annotations[CLUSTER_BADGE.COLOR] || '#7f7f7f';
+    const iconText = this.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || '';
 
     return {
       text,
       color,
-      textColor:  textColor(parseColor(color)),
-      useForIcon: useForIcon.toLowerCase() === 'true',
-      letter:     text.substr(0, 1).toUpperCase()
+      textColor: textColor(parseColor(color)),
+      iconText:  iconText.substr(0, 2),
     };
   }
 
