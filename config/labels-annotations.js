@@ -159,4 +159,3 @@ export const CLUSTER_BADGE = {
   // Use as icon - if set to "true" the cluster icon will also reflect the badge
   ICON_TEXT: 'ui.rancher/badge-use-as-icon',
 };
-};
