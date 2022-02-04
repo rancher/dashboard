@@ -214,6 +214,10 @@ export default {
       type:    String,
       default: 'icon-minus',
     },
+    removeAllowed: {
+      type:    Boolean,
+      default: true,
+    },
     fileModifier: {
       type:    Function,
       default: (name, value) => ({ name, value })
@@ -295,7 +299,7 @@ export default {
     },
 
     containerStyle() {
-      const gap = !this.isView ? ' 50px' : '';
+      const gap = this.canRemove ? ' 50px' : '';
       const size = 2 + this.extraColumns.length;
 
       return `grid-template-columns: repeat(${ size }, 1fr)${ gap };`;
@@ -312,6 +316,13 @@ export default {
       }
 
       return this.keyOptions;
+    },
+
+    /**
+     * Prevent removal if expressly not allowed and not in view mode
+     */
+    canRemove() {
+      return !this.isView && this.removeAllowed;
     }
   },
 
@@ -506,7 +517,7 @@ export default {
         <label v-for="c in extraColumns" :key="c">
           <slot :name="'label:'+c">{{ c }}</slot>
         </label>
-        <slot v-if="!isView" name="remove">
+        <slot v-if="canRemove" name="remove">
           <span />
         </slot>
       </template>
@@ -594,7 +605,7 @@ export default {
         </div>
 
         <div
-          v-if="!isView"
+          v-if="canRemove"
           :key="i"
           class="kv-item remove"
           :data-testid="`remove-column-${i}`"
