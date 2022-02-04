@@ -245,7 +245,6 @@ export default class MgmtCluster extends HybridModel {
       textColor: textColor(parseColor(color)),
       iconText:  iconText.substr(0, 2),
     };
-    };
   }
 
   get scope() {
