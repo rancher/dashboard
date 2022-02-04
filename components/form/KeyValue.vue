@@ -295,7 +295,7 @@ export default {
     },
 
     containerStyle() {
-      const gap = !this.isView ? '" 50px"' : '""';
+      const gap = !this.isView ? ' 50px' : '';
       const size = 2 + this.extraColumns.length;
 
       return `grid-template-columns: repeat(${ size }, 1fr)${ gap };`;
