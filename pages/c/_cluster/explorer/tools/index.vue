@@ -18,7 +18,7 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('catalog/load');
+    await this.$store.dispatch('catalog/load', { force: true, reset: true });
 
     const query = this.$route.query;
     const projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
