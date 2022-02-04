@@ -32,9 +32,6 @@ export default {
   },
 
   computed:   {
-    isDisabled() {
-      return this.$attrs.mode === _VIEW;
-    },
     isView() {
       return this.mode === _VIEW;
     }
@@ -45,7 +42,7 @@ export default {
      * Verify if row can be removed by mode, function and declaration
      */
     canRemoveRow(row, idx) {
-      if ( this.isDisabled || this.isView ) {
+      if ( this.isView ) {
         return false;
       }
 
