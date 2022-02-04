@@ -188,6 +188,7 @@ export default {
     :tooltip-key="tooltipKey"
     :required="required"
     :placeholder="placeholder"
+    :hide-arrows="true"
     @input="update($event)"
   >
     <template #suffix>

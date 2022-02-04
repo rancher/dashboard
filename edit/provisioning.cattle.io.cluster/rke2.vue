@@ -854,13 +854,14 @@ export default {
         update: false,
         pool:    {
           name,
-          etcdRole:         numCurrentPools === 0,
-          controlPlaneRole: numCurrentPools === 0,
-          workerRole:       true,
-          hostnamePrefix:   '',
-          labels:           {},
-          quantity:         1,
-          machineConfigRef:    {
+          etcdRole:             numCurrentPools === 0,
+          controlPlaneRole:     numCurrentPools === 0,
+          workerRole:           true,
+          hostnamePrefix:       '',
+          labels:               {},
+          quantity:             1,
+          unhealthyNodeTimeout: '0m',
+          machineConfigRef:     {
             kind:       this.machineConfigSchema.attributes.kind,
             name:       null,
           },

@@ -8,6 +8,7 @@ import Taints from '@/components/form/Taints.vue';
 import KeyValue from '@/components/form/KeyValue.vue';
 import AdvancedSection from '@/components/AdvancedSection.vue';
 import Banner from '@/components/Banner';
+import UnitInput from '@/components/form/UnitInput.vue';
 import { randomStr } from '@/utils/string';
 
 export default {
@@ -19,6 +20,7 @@ export default {
     KeyValue,
     AdvancedSection,
     Banner,
+    UnitInput
   },
 
   props: {
@@ -44,7 +46,19 @@ export default {
   },
 
   data() {
-    return { uuid: randomStr() };
+    const parseDuration = (duration) => {
+      // The back end stores the timeout in Duration format, for example, "10m".
+      // Here we convert that string to an integer.
+      const numberString = duration.split('m')[0];
+
+      return parseInt(numberString);
+    };
+
+    return {
+      uuid: randomStr(),
+
+      unhealthyNodeTimeoutInteger: this.value.pool.unhealthyNodeTimeout ? parseDuration(this.value.pool.unhealthyNodeTimeout) : 0
+    };
   },
 
   computed: {
@@ -86,7 +100,7 @@ export default {
 <template>
   <div>
     <div class="row">
-      <div class="col span-4">
+      <div class="col span-2">
         <LabeledInput
           v-model="value.pool.name"
           :mode="mode"
@@ -105,6 +119,18 @@ export default {
           :required="true"
         />
       </div>
+      <div class="col span-3">
+        <UnitInput
+          v-model.number="unhealthyNodeTimeoutInteger"
+          :placeholder="t('containerResourceLimit.cpuPlaceholder')"
+          :label="t('cluster.machinePool.autoReplace.label')"
+          :mode="mode"
+          :output-modifier="true"
+          :base-unit="t('cluster.machinePool.autoReplace.unit')"
+          :tooltip="t('cluster.machinePool.autoReplace.toolTip')"
+          @input="value.pool.unhealthyNodeTimeout = `${unhealthyNodeTimeoutInteger}m`"
+        />
+      </div>
       <div class="col span-2 pt-5">
         <h3>
           {{ t('cluster.machinePool.drain.header') }}
@@ -115,7 +141,7 @@ export default {
           :label="t('cluster.machinePool.drain.label')"
         />
       </div>
-      <div class="col span-4 pt-5">
+      <div class="col span-3 pt-5">
         <h3>
           {{ t('cluster.machinePool.role.label') }}
         </h3>
