@@ -19,6 +19,8 @@ import {
   ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE
 } from '@/config/table-headers';
 
+import { NAME as EXPLORER } from '@/config/product/explorer';
+
 import { DSL } from '@/store/type-map';
 
 export const NAME = 'explorer';
@@ -217,6 +219,11 @@ export function init(store) {
     namespaced:  false,
     name:        'cluster-dashboard',
     weight:      100,
+    // TODO: RC Remove
+    // route:       {
+    //   name:    'c-cluster-explorer',
+    //   params:   { product: EXPLORER }
+    // },
     route:       { name: 'c-cluster-explorer' },
     exact:       true,
     overview:    true,

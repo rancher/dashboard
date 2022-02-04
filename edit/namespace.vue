@@ -61,12 +61,12 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isSingleVirtualCluster']),
+    ...mapGetters(['isSingleProduct']),
     isHarvester() {
       return this.$store.getters['currentProduct'].inStore === HARVESTER;
     },
     extraColumns() {
-      if ( this.$store.getters['isRancher'] && !this.isSingleVirtualCluster) {
+      if ( this.$store.getters['isRancher'] && !this.isSingleProduct) {
         return ['project-col'];
       }
 
@@ -168,13 +168,13 @@ export default {
       :mode="mode"
       :extra-columns="extraColumns"
     >
-      <template v-if="!isSingleVirtualCluster" #project-col>
+      <template v-if="!isSingleVirtualCluster2" #project-col>
         <LabeledSelect v-model="projectName" :label="t('namespace.project.label')" :options="projectOpts" />
       </template>
     </NameNsDescription>
 
     <Tabbed :side-tabs="true">
-      <Tab v-if="!isSingleVirtualCluster && showResourceQuota" :weight="1" name="container-resource-quotas" :label="t('namespace.resourceQuotas')">
+      <Tab v-if="!isSingleVirtualCluster2 && showResourceQuota" :weight="1" name="container-resource-quotas" :label="t('namespace.resourceQuotas')">
         <div class="row">
           <div class="col span-12">
             <p class="helper-text mb-10">
@@ -185,7 +185,7 @@ export default {
         </div>
         <ResourceQuota v-model="value" :mode="mode" :project="project" :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES" />
       </Tab>
-      <Tab v-if="!isSingleVirtualCluster" :weight="0" name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
+      <Tab v-if="!isSingleVirtualCluster2" :weight="0" name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
         <ContainerResourceLimit
           :key="JSON.stringify(containerResourceLimits)"
           :value="containerResourceLimits"

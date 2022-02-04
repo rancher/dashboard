@@ -145,7 +145,7 @@ parse.options = {
 };
 
 export function stringify(uri: ParsedUri): string {
-  let out = `${ uri.protocol }://`;
+  let out = uri.protocol ? `${ uri.protocol }://` : '';
 
   if ( uri.user && uri.password ) {
     out += `${ uri.user }:${ uri.password }@`;

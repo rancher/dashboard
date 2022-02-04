@@ -1,5 +1,5 @@
 import https from 'https';
-import { addParam } from '@/utils/url';
+import { addParam, parse as parseUrl, stringify as unParseUrl } from '@/utils/url';
 import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 import { set } from '@/utils/object';
 import { deferred } from '@/utils/promise';
@@ -23,6 +23,18 @@ export default {
 
     opt.depaginate = opt.depaginate !== false;
     opt.url = opt.url.replace(/\/*$/g, '');
+
+    const url = parseUrl(opt.url);
+
+    // TODO: RC tidy, conditional on isSingleProduct
+    const prependPath = `/pp/v1/epinio/rancher`;
+
+    if (!url.path.startsWith(prependPath)) {
+      url.path = prependPath + url.path;
+      console.warn(opt.url, ' vs ', url, unParseUrl(url));
+      opt.url = unParseUrl(url);
+    }
+
     opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
     const method = (opt.method || 'get').toLowerCase();

@@ -749,6 +749,7 @@ export const getters = {
 
   allTypes(state, getters, rootState, rootGetters) {
     return (product, mode = ALL) => {
+      console.error('type-map: allTypes');
       const module = findBy(state.products, 'name', product).inStore;
       const schemas = rootGetters[`${ module }/all`](SCHEMA);
       const counts = rootGetters[`${ module }/all`](COUNT)?.[0]?.counts || {};
@@ -1221,6 +1222,7 @@ export const getters = {
       }
 
       if ( !knownTypes[module] ) {
+        console.error('type-map: activeProducts');
         const schemas = rootGetters[`${ module }/all`](SCHEMA);
 
         knownTypes[module] = [];
@@ -1663,7 +1665,7 @@ function ifHave(getters, option) {
     return getters.isMultiCluster;
   }
   case IF_HAVE.HARVESTER_SINGLE_CLUSTER: {
-    return getters.isSingleVirtualCluster;
+    return getters.isSingleVirtualCluster2; // TODO: RC rename
   }
   default:
     return false;

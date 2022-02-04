@@ -28,7 +28,7 @@ export default {
     showPreRelease:  mapPref(SHOW_PRE_RELEASE),
     menuMaxClusters: mapPref(MENU_MAX_CLUSTERS),
 
-    ...mapGetters(['isSingleVirtualCluster']),
+    ...mapGetters(['isSingleVirtualCluster2']),
 
     theme: {
       get() {
@@ -153,7 +153,7 @@ export default {
     <div class="mt-10">
       <t k="prefs.theme.autoDetail" :pm="pm" :am="am" />
     </div>
-    <div v-if="!isSingleVirtualCluster">
+    <div v-if="!isSingleVirtualCluster2">
       <hr />
       <h4 v-t="'prefs.landing.label'" />
       <LandingPagePreference />
@@ -210,11 +210,11 @@ export default {
       <div class="col span-4">
         <h4 v-t="'prefs.advanced'" />
         <Checkbox v-model="dev" :label="t('prefs.dev.label', {}, true)" />
-        <Checkbox v-if="!isSingleVirtualCluster" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" />
+        <Checkbox v-if="!isSingleVirtualCluster2" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" />
       </div>
     </div>
 
-    <div v-if="!isSingleVirtualCluster">
+    <div v-if="!isSingleVirtualCluster2">
       <hr />
       <div class="row mb-20">
         <div class="col span-12">

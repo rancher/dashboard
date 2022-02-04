@@ -13,11 +13,11 @@ export default {
 
   async fetch() {
     const isDev = this.$store.getters['prefs/get'](DEV);
-    const isSingleVirtualCluster = this.$store.getters['isSingleVirtualCluster'];
+    const isSingleVirtualCluster2 = this.$store.getters['isSingleVirtualCluster2'];
 
     const hash = { haversterSettings: this.$store.dispatch('harvester/findAll', { type: HCI.SETTING }) };
 
-    if (isSingleVirtualCluster) {
+    if (isSingleVirtualCluster2) {
       hash.settings = this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
     }
 
@@ -35,7 +35,7 @@ export default {
       allRows = rows.haversterSettings;
     }
 
-    if (isSingleVirtualCluster) {
+    if (isSingleVirtualCluster2) {
       allRows = [...rows.settings, ...allRows];
     }
 
@@ -49,7 +49,7 @@ export default {
     const initSettings = [];
     let SETTINGS = HCI_ALLOWED_SETTINGS;
 
-    if (isSingleVirtualCluster) {
+    if (isSingleVirtualCluster2) {
       SETTINGS = {
         ...HCI_ALLOWED_SETTINGS,
         ...HCI_SINGLE_CLUSTER_ALLOWED_SETTING,

@@ -6400,6 +6400,7 @@ auth:
 ### Products
 ##############################
 epinio:
+  label: Epinio
   tableHeaders:
     namespace: Namespace
   instances:

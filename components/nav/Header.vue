@@ -51,7 +51,7 @@ export default {
 
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isMultiCluster', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleVirtualCluster']),
+      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct']),
     ...mapGetters('type-map', ['activeProducts']),
 
     appName() {
@@ -192,17 +192,17 @@ export default {
 <template>
   <header :class="{'simple': simple}">
     <div class="menu-spacer">
-      <n-link v-if="isSingleVirtualCluster" :to="harvesterDashboard">
+      <n-link v-if="isSingleProduct" :to="harvesterDashboard">
         <img
           class="side-menu-logo"
-          src="~/assets/images/providers/harvester.svg"
+          :src="isSingleProduct.logo"
         />
       </n-link>
     </div>
     <div v-if="!simple" class="product">
       <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster cluster-clipped">
-        <div v-if="isSingleVirtualCluster" class="product-name">
-          {{ t('product.harvester') }}
+        <div v-if="isSingleProduct" class="product-name">
+          {{ t(isSingleProduct.productNameKey) }}
         </div>
         <template v-else>
           <RancherProviderIcon v-if="currentCluster && currentCluster.isLocal" class="mr-10 cluster-local-logo" width="25" />
@@ -223,8 +223,8 @@ export default {
       </div>
     </div>
     <div v-else class="simple-title">
-      <div v-if="isSingleVirtualCluster" class="product-name">
-        {{ t('product.harvester') }}
+      <div v-if="isSingleProduct" class="product-name">
+        {{ t(isSingleProduct.productNameKey) }}
       </div>
 
       <div v-else class="side-menu-logo">
@@ -233,7 +233,7 @@ export default {
     </div>
 
     <div>
-      <TopLevelMenu v-if="isMultiCluster || !isSingleVirtualCluster"></TopLevelMenu>
+      <TopLevelMenu v-if="isMultiCluster || !isSingleProduct"></TopLevelMenu>
     </div>
     <div
       v-if="currentCluster && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
@@ -376,7 +376,7 @@ export default {
             <nuxt-link tag="li" :to="{name: 'prefs'}" class="user-menu-item">
               <a>{{ t('nav.userMenu.preferences') }} <i class="icon icon-fw icon-gear" /></a>
             </nuxt-link>
-            <nuxt-link v-if="isRancher || isSingleVirtualCluster" tag="li" :to="{name: 'account'}" class="user-menu-item">
+            <nuxt-link v-if="isRancher || isSingleProduct" tag="li" :to="{name: 'account'}" class="user-menu-item">
               <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }} <i class="icon icon-fw icon-user" /></a>
             </nuxt-link>
             <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout', query: { [LOGGED_OUT]: true }}" class="user-menu-item">

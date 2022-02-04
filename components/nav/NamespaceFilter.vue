@@ -33,7 +33,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster', 'isSingleVirtualCluster', 'isMultiVirtualCluster']),
+    ...mapGetters(['isVirtualCluster', 'isSingleVirtualCluster2', 'isMultiVirtualCluster']),
     filterIsHovered() {
       return this.isHovered;
     },

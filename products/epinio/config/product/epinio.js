@@ -16,6 +16,14 @@ export function init(store) {
     weightType
   } = DSL(store, EPINIO_PRODUCT_NAME);
 
+  // TODO: RC conditional on env
+  store.dispatch('setIsSingleProduct', {
+    logo:            '~/assets/images/providers/harvester.svg',
+    productNameKey:  'epinio.label',
+    version:         `1.2.3`, // TODO: RC TEST
+    afterLoginRoute: createEpinioRoute('c-cluster-applications', { })
+  });
+
   product({
     // ifHaveType:          CAPI.RANCHER_CLUSTER,
     ifFeature:             MULTI_CLUSTER,
