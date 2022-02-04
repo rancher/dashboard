@@ -1,0 +1,13 @@
+annotations:
+  meta.helm.sh/release-name: rancher-monitoring
+  meta.helm.sh/release-namespace: cattle-monitoring-system
+labels:
+  app: rancher-monitoring-grafana
+  app.kubernetes.io/instance: rancher-monitoring
+  app.kubernetes.io/managed-by: Helm
+  app.kubernetes.io/part-of: rancher-monitoring
+  app.kubernetes.io/version: 100.1.0_up19.0.3
+  chart: rancher-monitoring-100.1.0_up19.0.3
+  grafana_dashboard: "1"
+  heritage: Helm
+  release: rancher-monitoring
