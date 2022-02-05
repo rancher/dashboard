@@ -116,7 +116,7 @@ export default class Workload extends SteveModel {
     });
   }
 
-  async rollBackWorkload( workload, rollbackRequestData ) {
+  async rollBackWorkload( cluster, workload, rollbackRequestData ) {
     const rollbackRequestBody = JSON.stringify(rollbackRequestData);
 
     if ( Array.isArray( workload ) ) {
@@ -125,7 +125,7 @@ export default class Workload extends SteveModel {
     const namespace = workload.metadata.namespace;
     const workloadName = workload.metadata.name;
 
-    await this.patch(rollbackRequestBody, { url: `/apis/apps/v1/namespaces/${ namespace }/deployments/${ workloadName }` });
+    await this.patch(rollbackRequestBody, { url: `/k8s/clusters/${ cluster.id }/apis/apps/v1/namespaces/${ namespace }/deployments/${ workloadName }` });
   }
 
   pause() {
