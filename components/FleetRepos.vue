@@ -117,7 +117,7 @@ export default {
 
   i {
     margin-left: 5px;
-    font-size: 24px;
+    font-size: 22px;
     color: var(--warning);
   }
 }
