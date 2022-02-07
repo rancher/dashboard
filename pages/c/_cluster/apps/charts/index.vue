@@ -453,10 +453,18 @@ export default {
         </template>
       </Select>
 
-      <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" :placeholder="t('catalog.charts.search')">
+      <div class="filter-block">
+        <input
+          ref="searchQuery"
+          v-model="searchQuery"
+          type="search"
+          class="input-sm"
+          :placeholder="t('catalog.charts.search')"
+        >
 
-      <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
-      <AsyncButton mode="refresh" size="sm" @click="refresh" />
+        <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
+        <AsyncButton class="refresh-btn" mode="refresh" size="sm" @click="refresh" />
+      </div>
     </div>
 
     <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
@@ -489,12 +497,41 @@ export default {
     z-index: z-index('fixedTableHeader');
     background: transparent;
     display: grid;
-    grid-template-columns: 50% auto auto 40px;
+    grid-template-columns: 40% auto auto;
     align-content: center;
     grid-column-gap: 10px;
 
+    .filter-block {
+      display: flex;
+    }
+    .refresh-btn {
+      width: 40px;
+      margin-left: 10px;
+    }
+
     &.with-os-options {
-      grid-template-columns: 50% auto auto auto 40px;
+      grid-template-columns: 40% auto auto auto;
+    }
+
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-12')) {
+      &{
+        grid-template-columns: auto auto !important;
+        grid-template-rows: 40px 40px;
+        grid-row-gap: 20px;
+      }
+    }
+
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-7')) {
+      &{
+        &{
+          grid-template-columns: auto !important;
+          grid-template-rows: 40px 40px 40px !important;
+
+          &.with-os-options {
+            grid-template-rows: 40px 40px 40px 40px !important;
+          }
+        }
+      }
     }
   }
 
