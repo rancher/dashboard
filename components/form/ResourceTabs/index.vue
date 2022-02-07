@@ -41,6 +41,21 @@ export default {
       type:    String,
       default: null,
     },
+
+    needConditions: {
+      type:    Boolean,
+      default: true
+    },
+
+    needEvents: {
+      type:    Boolean,
+      default: true
+    },
+
+    needRelated: {
+      type:    Boolean,
+      default: true
+    }
   },
 
   async fetch() {
@@ -63,15 +78,15 @@ export default {
     showConditions() {
       const inStore = this.$store.getters['currentStore'](this.value.type);
 
-      return this.isView && this.value?.type && this.$store.getters[`${ inStore }/pathExistsInSchema`](this.value.type, 'status.conditions');
+      return this.isView && this.needConditions && this.value?.type && this.$store.getters[`${ inStore }/pathExistsInSchema`](this.value.type, 'status.conditions');
     },
 
     showEvents() {
-      return this.isView && !this.$fetchState.pending && this.hasEvents && this.events.length;
+      return this.isView && this.needEvents && !this.$fetchState.pending && this.hasEvents && this.events.length;
     },
 
     showRelated() {
-      return this.isView && !this.$fetchState.pending;
+      return this.isView && this.needRelated && !this.$fetchState.pending;
     },
 
     eventHeaders() {

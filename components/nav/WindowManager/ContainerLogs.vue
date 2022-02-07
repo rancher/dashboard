@@ -13,6 +13,7 @@ import Select from '@/components/form/Select';
 import day from 'dayjs';
 
 import { escapeHtml, escapeRegex } from '@/utils/string';
+import { NAME as VIRTUAL } from '@/config/product/harvester';
 
 import Socket, {
   EVENT_CONNECTED,
@@ -87,10 +88,12 @@ export default {
 
   computed: {
     containerChoices() {
+      const isHarvester = this.$store.getters['currentProduct'].inStore === VIRTUAL;
+
       const containers = (this.pod?.spec?.containers || []).map(x => x.name);
       const initContainers = (this.pod?.spec?.initContainers || []).map(x => x.name);
 
-      return [...containers, ...initContainers];
+      return isHarvester ? [] : [...containers, ...initContainers];
     },
 
     rangeOptions() {

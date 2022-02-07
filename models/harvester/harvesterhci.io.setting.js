@@ -1,6 +1,7 @@
 import { findBy } from '@/utils/array';
-import { HCI_ALLOWED_SETTINGS } from '@/config/settings';
+import { HCI } from '@/config/types';
 import SteveModel from '@/plugins/steve/steve-class';
+import { HCI_ALLOWED_SETTINGS, HCI_SETTING } from '@/config/settings';
 
 export default class HciSetting extends SteveModel {
   get _availableActions() {
@@ -23,6 +24,21 @@ export default class HciSetting extends SteveModel {
 
     if (editAction) {
       editAction.label = this.t('advancedSettings.edit.label');
+    }
+
+    const schema = this.$getters['schemaFor'](HCI.UPGRADE);
+    const hasUpgradeAccess = !!schema?.collectionMethods.find(x => ['post'].includes(x.toLowerCase()));
+
+    if (this.id === HCI_SETTING.SERVER_VERSION && hasUpgradeAccess) {
+      const latestUpgrade = this.$getters['all'](HCI.UPGRADE).find(upgrade => upgrade.isLatestUpgrade);
+
+      out.unshift({
+        action:   'goToAirgapUpgrade',
+        enabled:  true,
+        icon:     'icon icon-refresh',
+        label:    this.t('harvester.upgradePage.upgrade'),
+        disabled: !!latestUpgrade && !latestUpgrade?.isUpgradeSucceeded
+      });
     }
 
     return out;
@@ -104,13 +120,13 @@ export default class HciSetting extends SteveModel {
 
     switch (id) {
     case 'backup-target':
-      // out.push( {
-      //   nullable:       false,
-      //   path:           'value',
-      //   required:       true,
-      //   type:           'string',
-      //   validators:     ['backupTarget'],
-      // });
+      out.push( {
+        nullable:       false,
+        path:           'value',
+        required:       true,
+        type:           'string',
+        validators:     ['backupTarget'],
+      });
       break;
     }
 
