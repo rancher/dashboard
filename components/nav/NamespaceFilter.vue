@@ -83,7 +83,9 @@ export default {
         this.$store.getters[`${ inStore }/all`](NAMESPACE),
         ['nameDisplay']
       ).filter( (N) => {
-        const needFilter = !N.isSystem && !N.isFleetManaged;
+        const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(N.metadata.name);
+
+        const needFilter = !N.isSystem && !N.isFleetManaged && !isSettingSystemNamespace;
         const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
 
         return this.isVirtualCluster && isVirtualProduct ? needFilter : true;

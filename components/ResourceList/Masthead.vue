@@ -98,7 +98,7 @@ export default {
         return this.isYamlCreatable;
       }
 
-      return this.schema && this._isCreatable && this.$store.getters['type-map/optionsFor'](this.resource).canEditYaml;
+      return this.schema && this._isCreatable && this.$store.getters['type-map/optionsFor'](this.resource).canYaml;
     },
 
     _isCreatable() {

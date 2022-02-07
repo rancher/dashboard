@@ -55,6 +55,14 @@ export default {
 
       return node;
     },
+
+    used() {
+      if (this.metrics) {
+        return this.node.memoryReserved;
+      } else {
+        return 0;
+      }
+    },
   },
 
   methods: {
@@ -76,7 +84,7 @@ export default {
 <template>
   <ConsumptionGauge
     :capacity="memoryTotal"
-    :used="node.memoryReserved"
+    :used="used"
     :units="memoryUnits"
     :number-formatter="memoryFormatter"
     :resource-name="resourceName"

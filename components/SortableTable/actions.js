@@ -26,7 +26,7 @@ export default {
   },
 
   watch: {
-    actionAvailability() {
+    selectedRows() {
       this.updateHiddenBulkActions();
     },
     keyedAvailableActions() {
@@ -63,28 +63,38 @@ export default {
       return this.hasSelectionStore ? this.availableActions.map(aa => aa.action) : null;
     },
 
-    actionAvailability() {
+    selectedRows() {
       if (!this.hasSelectionStore || !this.tableSelected || this.tableSelected.length === 0) {
         return null;
       }
 
-      const runnableTotal = this.tableSelected.filter(this.canRunBulkActionOfInterest).length;
-      const selectionTotal = this.tableSelected.length;
-      const tableTotal = this.arrangedRows.length;
-      const allOfSelectionIsActionable = runnableTotal === selectionTotal;
-      const useTableTotal = !this.actionOfInterest || allOfSelectionIsActionable;
-
-      const input = {
-        actionable: this.actionOfInterest ? runnableTotal : selectionTotal,
-        total:      useTableTotal ? tableTotal : selectionTotal,
-      };
-
-      const someActionable = this.actionOfInterest && !allOfSelectionIsActionable;
-      const key = someActionable ? 'sortableTable.actionAvailability.some' : 'sortableTable.actionAvailability.selected';
-
-      return this.t(key, input);
+      return this.tableSelected.length;
     },
 
+    selectedRowsText() {
+      if (!this.selectedRows) {
+        return null;
+      }
+
+      return this.t('sortableTable.actionAvailability.selected', { actionable: this.selectedRows });
+    },
+
+    actionTooltip() {
+      if (!this.selectedRows || !this.actionOfInterest) {
+        return null;
+      }
+
+      const runnableTotal = this.tableSelected.filter(this.canRunBulkActionOfInterest).length;
+
+      if (runnableTotal === this.selectedRows) {
+        return null;
+      }
+
+      return this.t('sortableTable.actionAvailability.some', {
+        actionable: runnableTotal,
+        total:      this.selectedRows,
+      });
+    },
   },
 
   methods: {
@@ -104,15 +114,15 @@ export default {
       const actions = Array.from(actionsHTMLCollection || []);
 
       // Determine if the 'x selected' label should show and it's size
-      const actionAvailability = document.getElementById(this.bulkActionAvailabilityId);
-      let actionAvailabilityWidth = 0;
+      const selectedRowsText = document.getElementById(this.bulkActionAvailabilityId);
+      let selectedRowsTextWidth = 0;
 
-      if (this.actionAvailability) {
-        if (actionAvailability) {
-          actionAvailability.style.display = displayType;
-          actionAvailabilityWidth = actionAvailability.offsetWidth;
+      if (this.selectedRowsText) {
+        if (selectedRowsText) {
+          selectedRowsText.style.display = displayType;
+          selectedRowsTextWidth = selectedRowsText.offsetWidth;
         } else {
-          actionAvailability.style.display = 'none;';
+          selectedRowsText.style.display = 'none;';
         }
       }
 
@@ -120,7 +130,7 @@ export default {
 
       let cumulativeWidth = 0;
       let showActionsDropdown = false;
-      let totalAvailableWidth = actionsContainerWidth - actionAvailabilityWidth;
+      let totalAvailableWidth = actionsContainerWidth - selectedRowsTextWidth;
 
       // Loop through all actions to determine if some exceed the available space in the row, if so hide them and instead show in a dropdown
       for (let i = 0; i < actions.length; i++) {
@@ -140,7 +150,7 @@ export default {
             i = -1;
             cumulativeWidth = 0;
             showActionsDropdown = true;
-            totalAvailableWidth = actionsContainerWidth - actionsDropdown.offsetWidth - actionAvailabilityWidth;
+            totalAvailableWidth = actionsContainerWidth - actionsDropdown.offsetWidth - selectedRowsTextWidth;
           } else {
             // Collate the actions in an array and hide in the normal row
             const id = ba.attributes.getNamedItem('id').value;

@@ -68,6 +68,7 @@ const DEFAULT_WAIT_INTERVAL = 1000;
 const DEFAULT_WAIT_TMIMEOUT = 30000;
 
 export const STATES = {
+  'in-use':           { color: 'success', icon: 'dot-open' },
   'in-progress':      { color: 'info', icon: 'tag' },
   'pending-rollback': { color: 'info', icon: 'dot-half' },
   'pending-upgrade':  { color: 'info', icon: 'dot-half' },
@@ -131,6 +132,7 @@ export const STATES = {
   requested:          { color: 'info', icon: 'tag' },
   restarting:         { color: 'info', icon: 'adjust' },
   restoring:          { color: 'info', icon: 'medicalcross' },
+  resizing:           { color: 'warning', icon: 'dot' },
   running:            { color: 'success', icon: 'dot-open' },
   skip:               { color: 'info', icon: 'dot-open' },
   skipped:            { color: 'info', icon: 'dot-open' },

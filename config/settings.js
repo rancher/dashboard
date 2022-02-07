@@ -108,7 +108,8 @@ export const HCI_SETTING = {
   VM_FORCE_RESET_POLICY:            'vm-force-reset-policy',
   SSL_CERTIFICATES:                 'ssl-certificates',
   SSL_PARAMETERS:                   'ssl-parameters',
-  SUPPORT_BUNDLE_NAMESPACES:        'support-bundle-namespaces'
+  SUPPORT_BUNDLE_NAMESPACES:        'support-bundle-namespaces',
+  AUTO_DISK_PROVISION_PATHS:        'auto-disk-provision-paths'
 };
 
 export const HCI_ALLOWED_SETTINGS = {
@@ -137,7 +138,8 @@ export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.SSL_PARAMETERS]:                   {
     kind: 'json', from: 'import', canReset: true
   },
-  [HCI_SETTING.SUPPORT_BUNDLE_NAMESPACES]: { from: 'import', canReset: true }
+  [HCI_SETTING.SUPPORT_BUNDLE_NAMESPACES]: { from: 'import', canReset: true },
+  [HCI_SETTING.AUTO_DISK_PROVISION_PATHS]:         { canReset: true }
 };
 
 export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
@@ -146,7 +148,6 @@ export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
     options: ['auto', 'external', 'bundled']
   },
   [HCI_SETTING.UI_INDEX]:                 { kind: 'url' },
-  [SETTING.SERVER_URL]:                   { kind: 'url' },
   [HCI_SETTING.CLUSTER_REGISTRATION_URL]: { kind: 'url' },
 };
 

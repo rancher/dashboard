@@ -956,13 +956,15 @@ export default {
         }
       }
 
+      // 'more' contains the values for the CRD chart, which needs the same
+      // global and cattle values as the chart.
       for ( const dependency of more ) {
         out.charts.unshift({
           chartName:   dependency.name,
           version:     dependency.version,
           releaseName: dependency.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || dependency.name,
           projectId:   this.project,
-          values:      this.addGlobalValuesTo({}),
+          values:      this.addGlobalValuesTo({ global: values.global }),
           annotations: {
             ...migratedAnnotations,
             [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: dependency.repoType,
