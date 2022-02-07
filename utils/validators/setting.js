@@ -19,7 +19,7 @@ export function backupTarget(value, getters, errors, validatorArgs) {
   const type = parseValue.type;
 
   if (!type) {
-    return true;
+    return errors;
   }
 
   if (type === 's3') {

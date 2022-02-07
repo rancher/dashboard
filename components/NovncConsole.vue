@@ -5,7 +5,7 @@
         <div class="text-center">
           <BrandImage file-name="error-desert-landscape.svg" width="900" height="300" />
           <h1>
-            Warning
+            {{ t('harvester.notification.title.warning') }}
           </h1>
           <h2 class="text-secondary mt-20">
             {{ t('vncConsole.error.message') }}
