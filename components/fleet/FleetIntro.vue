@@ -1,12 +1,9 @@
 <script>
-import SimpleBox from '@/components/SimpleBox';
 import { AS, _YAML } from '@/config/query-params';
 
 export default {
 
   name: 'FleetIntro',
-
-  components: { SimpleBox },
 
   data() {
     const params = { ...this.$route.params };
