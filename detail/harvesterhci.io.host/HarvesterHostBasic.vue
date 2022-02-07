@@ -2,8 +2,8 @@
 import LabelValue from '@/components/LabelValue';
 import Banner from '@/components/Banner';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
-import { HCI } from '@/config/labels-annotations';
-import { LONGHORN } from '@/config/types';
+import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
+import { LONGHORN, METRIC, HCI } from '@/config/types';
 import HarvesterCPUUsed from '@/components/formatter/HarvesterCPUUsed';
 import HarvesterMemoryUsed from '@/components/formatter/HarvesterMemoryUsed';
 import HarvesterStorageUsed from '@/components/formatter/HarvesterStorageUsed';
@@ -55,11 +55,11 @@ export default {
 
   computed: {
     customName() {
-      return this.value.metadata?.annotations?.[HCI.HOST_CUSTOM_NAME];
+      return this.value.metadata?.annotations?.[HCI_ANNOTATIONS.HOST_CUSTOM_NAME];
     },
 
     consoleUrl() {
-      const consoleUrl = this.value.metadata?.annotations?.[HCI.HOST_CONSOLE_URL];
+      const consoleUrl = this.value.metadata?.annotations?.[HCI_ANNOTATIONS.HOST_CONSOLE_URL];
       let value = consoleUrl;
 
       if (!consoleUrl) {
@@ -173,8 +173,8 @@ export default {
     },
 
     nodeRoleState() {
-      const isExistRoleStatus = this.value.metadata?.labels?.[HCI.NODE_ROLE_MASTER] !== undefined || this.value.metadata?.labels?.[HCI.NODE_ROLE_CONTROL_PLANE] !== undefined;
-      const promoteStatus = this.value.metadata?.annotations?.[HCI.PROMOTE_STATUS] || NONE;
+      const isExistRoleStatus = this.value.metadata?.labels?.[HCI_ANNOTATIONS.NODE_ROLE_MASTER] !== undefined || this.value.metadata?.labels?.[HCI_ANNOTATIONS.NODE_ROLE_CONTROL_PLANE] !== undefined;
+      const promoteStatus = this.value.metadata?.annotations?.[HCI_ANNOTATIONS.PROMOTE_STATUS] || NONE;
 
       if (!isExistRoleStatus && promoteStatus === COMPLETE) {
         return PROMOTE_RESTART;
@@ -195,7 +195,19 @@ export default {
 
     networkMessage() {
       return this.hostNetworkResource?.message;
-    }
+    },
+
+    hasMetricNodeSchema() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return !!this.$store.getters[`${ inStore }/schemaFor`](METRIC.NODE);
+    },
+
+    hasHostNetworksSchema() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return !!this.$store.getters[`${ inStore }/schemaFor`](HCI.NODE_NETWORK);
+    },
   },
 
   methods: {
@@ -261,44 +273,48 @@ export default {
       </div>
     </div>
 
-    <hr class="divider" />
-    <h3>{{ t('harvester.host.detail.title.network') }}</h3>
-    <Banner v-if="networkMessage" color="error">
-      {{ networkMessage }}
-    </Banner>
-    <div class="row mb-20">
-      <div class="col span-6">
-        <LabelValue :name="t('harvester.host.detail.networkType')" :value="networkType" />
-      </div>
+    <div v-if="hasHostNetworksSchema">
+      <hr class="divider" />
+      <h3>{{ t('harvester.host.detail.title.network') }}</h3>
+      <Banner v-if="networkMessage" color="error">
+        {{ networkMessage }}
+      </Banner>
+      <div class="row mb-20">
+        <div class="col span-6">
+          <LabelValue :name="t('harvester.host.detail.networkType')" :value="networkType" />
+        </div>
 
-      <div class="col span-6">
-        <LabelValue :name="t('harvester.host.detail.nic')" :value="nic" />
+        <div class="col span-6">
+          <LabelValue :name="t('harvester.host.detail.nic')" :value="nic" />
+        </div>
       </div>
     </div>
 
-    <hr class="divider" />
-    <h3>{{ t('harvester.host.tabs.monitor') }}</h3>
-    <div class="row mb-20">
-      <div class="col span-4">
-        <HarvesterCPUUsed
-          :row="value"
-          :resource-name="t('node.detail.glance.consumptionGauge.cpu')"
-          :show-used="true"
-        />
-      </div>
-      <div class="col span-4">
-        <HarvesterMemoryUsed
-          :row="value"
-          :resource-name="t('node.detail.glance.consumptionGauge.memory')"
-          :show-used="true"
-        />
-      </div>
-      <div class="col span-4">
-        <HarvesterStorageUsed
-          :row="value"
-          :resource-name="t('harvester.host.detail.storage')"
-          :show-reserved="true"
-        />
+    <div v-if="hasMetricNodeSchema">
+      <hr class="divider" />
+      <h3>{{ t('harvester.host.tabs.monitor') }}</h3>
+      <div class="row mb-20">
+        <div class="col span-4">
+          <HarvesterCPUUsed
+            :row="value"
+            :resource-name="t('node.detail.glance.consumptionGauge.cpu')"
+            :show-used="true"
+          />
+        </div>
+        <div class="col span-4">
+          <HarvesterMemoryUsed
+            :row="value"
+            :resource-name="t('node.detail.glance.consumptionGauge.memory')"
+            :show-used="true"
+          />
+        </div>
+        <div class="col span-4">
+          <HarvesterStorageUsed
+            :row="value"
+            :resource-name="t('harvester.host.detail.storage')"
+            :show-reserved="true"
+          />
+        </div>
       </div>
     </div>
 

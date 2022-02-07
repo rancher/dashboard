@@ -187,7 +187,7 @@ export default {
             const statistics = clusterCounts[resource.type] || {};
 
             for (let i = 0; i < resource.spoofed.filterNamespace.length; i++) {
-              const nsStatistics = statistics?.namespaces[resource.spoofed.filterNamespace[i]] || {};
+              const nsStatistics = statistics?.namespaces?.[resource.spoofed.filterNamespace[i]] || {};
 
               if (nsStatistics.count) {
                 out[resource.type]['useful'] -= nsStatistics.count;
@@ -448,6 +448,12 @@ export default {
     ramUsed() {
       return createMemoryValues(this.memorysTotal, this.metricAggregations?.memory);
     },
+
+    hasMetricNodeSchema() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return !!this.$store.getters[`${ inStore }/schemaFor`](METRIC.NODE);
+    },
   },
 
   methods: {
@@ -561,7 +567,7 @@ export default {
       />
     </div>
 
-    <template v-if="nodes.length">
+    <template v-if="nodes.length && hasMetricNodeSchema">
       <h3 class="mt-40">
         {{ t('clusterIndexPage.sections.capacity.label') }}
       </h3>
