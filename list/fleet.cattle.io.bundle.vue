@@ -50,7 +50,7 @@ export default {
 
     bundles() {
       const harvester = this.harvesterClusters;
-
+    
       return this.allBundles.filter((bundle) => {
         const targets = bundle.spec?.targets || [];
 
