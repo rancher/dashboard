@@ -4,7 +4,7 @@ import has from 'lodash/has';
 import reduce from 'lodash/reduce';
 
 import CreateEditView from '@/mixins/create-edit-view';
-import FleetSummary from '@/components/FleetSummary';
+import FleetSummary from '@/components/fleet/FleetSummary';
 import ResourceTabs from '@/components/form/ResourceTabs';
 
 import { COUNT } from '@/config/types';
