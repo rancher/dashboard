@@ -56,4 +56,8 @@ export default {
   margin-bottom: 15px;
   font-size: $font-size-h2;
 }
+.icon-repository {
+  font-size: 96px;
+  margin-bottom: 32px;
+}
 </style>
