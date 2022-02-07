@@ -248,15 +248,15 @@ export default {
     <div>
       <TopLevelMenu v-if="isMultiCluster || !isSingleVirtualCluster"></TopLevelMenu>
     </div>
-    <div
-      v-if="currentCluster && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
-      class="top"
-    >
-      <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
-      <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
-    </div>
 
     <div class="rd-header-right">
+      <div
+        v-if="currentCluster && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
+        class="top"
+      >
+        <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
+        <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
+      </div>
       <div v-if="currentCluster && !simple" class="header-buttons">
         <template v-if="currentProduct && currentProduct.showClusterSwitcher">
           <button
@@ -476,11 +476,7 @@ export default {
     grid-template-rows:    var(--header-height);
 
     &.simple {
-<<<<<<< HEAD
-      grid-template-columns: var(--header-height) auto min-content min-content min-content min-content var(--header-height);
-=======
       grid-template-columns: var(--header-height) min-content 1fr min-content min-content;
->>>>>>> b0dbf552 (Update simple headers)
     }
 
     > .menu-spacer {
@@ -551,44 +547,44 @@ export default {
       grid-area: menu;
     }
 
-    > .top {
-      grid-area: top;
-      padding-top: 6px;
-
-      INPUT[type='search']::placeholder,
-      .vs__open-indicator,
-      .vs__selected {
-        color: var(--header-btn-bg) !important;
-        background: var(--header-btn-bg);
-        border-radius: var(--border-radius);
-        border: none;
-        margin: 0 35px 0 25px!important;
-      }
-
-      .vs__selected {
-        background: rgba(255, 255, 255, 0.15);
-        border-color: rgba(255, 255, 255, 0.25);
-      }
-
-      .vs__deselect {
-        fill: var(--header-btn-bg);
-      }
-
-      .filter .vs__dropdown-toggle {
-        background: var(--header-btn-bg);
-        border-radius: var(--border-radius);
-        border: none;
-        margin: 0 35px 0 25px!important;
-      }
-    }
-
     .rd-header-right {
       display: flex;
       flex-direction: row;
       padding: 0;
+      grid-area: header-right;
 
       > * {
         padding: 0 5px;
+      }
+
+      > .top {
+        padding-top: 6px;
+
+        INPUT[type='search']::placeholder,
+        .vs__open-indicator,
+        .vs__selected {
+          color: var(--header-btn-bg) !important;
+          background: var(--header-btn-bg);
+          border-radius: var(--border-radius);
+          border: none;
+          margin: 0 35px 0 25px!important;
+        }
+
+        .vs__selected {
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .vs__deselect {
+          fill: var(--header-btn-bg);
+        }
+
+        .filter .vs__dropdown-toggle {
+          background: var(--header-btn-bg);
+          border-radius: var(--border-radius);
+          border: none;
+          margin: 0 35px 0 25px!important;
+        }
       }
 
       .header-buttons {
