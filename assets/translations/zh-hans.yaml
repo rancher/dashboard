@@ -1815,6 +1815,9 @@ fleet:
       verify: 需要提供有效的证书
       specify: 指定接受的附加证书
       skip: 接受任何证书（不安全）
+    warningTooltip:
+      clusterGroup: 此集群组中没有集群
+      cluster: 没有可用的集群
     workspace:
       label: 工作空间
   clusterGroup:
