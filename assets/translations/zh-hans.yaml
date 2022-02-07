@@ -76,7 +76,7 @@ generic:
   disable: 禁用
   experimental: 实验功能
   deprecated: 已弃用
-  placeholder: "例如: {text}"
+  placeholder: "例如：{text}"
   moreInfo: 更多信息
 
 locale:
@@ -94,11 +94,17 @@ nav:
   import: 导入 YAML
   home: 首页
   shell: Kubectl Shell
+  shellShortcut: Kubectl Shell {key}
   support: |-
     {hasSupport, select,
       true {支持}
       other {获取支持}
     }
+  restoreSnapshot: 还原快照
+  rotateCertificates: 轮换证书
+  rotateEncryptionKeys: 轮换加密密钥
+  saveAsRKETemplate: 保存为 RKE 模板
+  takeSnapshot: 拍摄快照
   group:
     cluster: 集群
     inUse: 更多资源
@@ -1238,6 +1244,9 @@ cluster:
           =1 {# vCPU}
           other {# vCPU}
         }, {disk} GB 磁盘 ({value})
+      tags:
+        label: Droplet 标签
+        placeholder: 例如：my_server
     vsphere:
       hostOptions:
         any: 任意
@@ -1423,6 +1432,9 @@ cluster:
           }
     quantity:
       label: 机器数量
+    drain:
+      header: 清空
+      label: 删除前清空
     role:
       label: 角色
     labels:
@@ -2285,6 +2297,8 @@ logging:
       label: 客户端密钥
       placeholder: 粘贴客户端密钥
     clientKeyPass: 传自密文的客户端密钥
+    verifySsl: 验证 SSL
+    sslVersion: SSL 版本
   gelf:
     host: 主机
     port: 端口
@@ -2876,7 +2890,7 @@ persistentVolume:
   pluginConfiguration:
     label: 插件配置
   plugin:
-      label: 卷插件
+    label: 卷插件
   capacity:
     label: 容量
   customize:
@@ -3412,11 +3426,19 @@ promptRemove:
   protip: "提示：按住 {alternateLabel} 键的同时单击删除，以绕过此确认。"
   confirmName: "在下方输入 <b>{nameToMatch}</b> 以确认："
 
+promptRemoveApp:
+  removeCrd: "删除与此应用关联的 CRD"
+
 promptRestore:
   title: 还原快照
   name: 名称
   date: 日期
   fromS3: 从 S3 恢复
+  label: 快照
+  placeholder: 选择要恢复的快照
+  notification:
+    title: 还原快照
+    message: 快照 { selectedSnapshot } 恢复已开始...
 
 promptRollback:
   modalTitle: 回滚 {workloadName}
@@ -4386,7 +4408,7 @@ tableHeaders:
   Drivers: 驱动数量
   apikey: API 密钥
   groupName: 组名称
-  groupRoleNames: 组角色名称 
+  groupRoleNames: 组角色名称
   Secret-Name: 密文名称
   restart: 要求重启
 
@@ -6013,7 +6035,7 @@ typeLabel:
     {count, plural,
       one { 包 }
       other { 包 }
-    } 
+    }
   fleet.cattle.io.clusterregistrationtoken: |-
     {count, plural,
       one { 集群注册 Token }
@@ -6091,15 +6113,14 @@ typeLabel:
     }
   policy.podsecuritypolicy: |-
     {count, plural,
-      one { Pod安全策略 }
-      other { Pod安全策略 }
+      one { Pod 安全策略 }
+      other { Pod 安全策略 }
     }
   storage.k8s.io.csinode: |-
     {count, plural,
-      one { CSI节点 }
-      other { CSI节点 }
+      one { CSI 节点 }
+      other { CSI 节点 }
     }
-
 
 action:
   clone: 克隆
@@ -6122,7 +6143,7 @@ action:
   unassign: '取消分配'
   uninstall: 卸载
   redeploy: 重新部署
-  addSidecar: 添加Sidecar
+  addSidecar: 添加 Sidecar
   rollback: 回滚
   openShell: 执行命令行
   runNow: 立即运行
@@ -6153,7 +6174,7 @@ podAffinity:
 keyValue:
   keyPlaceholder: 例如：foo
   valuePlaceholder: 例如：bar
-  protip: '把多行<em>键=值</em>或<em>键: 值</em>键值对复制到各字段中，以便批量输入'
+  protip: '把多行 <em>key=value</em> 或 <em>key: value</em> 键值对复制到各字段中，以便批量输入'
 
 registryMirror:
   header: Mirror
@@ -6268,12 +6289,39 @@ featureFlags:
     harvester: 接入 Harvester，以导入和管理 Harvester 集群
     unsupported-storage-drivers: 允许使用非默认启用的存储提供商和卷插件
     legacy: 启用旧版功能
-    istio-virtual-service-ui: 暴露了一个用户界面，使用户能够创建、读取、更新和删除虚拟服务和目的地规则，这是Istio的流量管理功能。
-    token-hashing: 启用令牌的单程hash。一旦启用令牌hash就不能被禁用。
-    continuous-delivery: Fleet中的Gitops组件
-    fleet: 启动Rancher时安装Fleet
-    multi-cluster-management: Kubernetes集群的多集群配置和管理。
-    rke2: 启用RKE2
+    istio-virtual-service-ui: 暴露了一个用户界面，使用户能够创建、读取、更新和删除虚拟服务和目标规则，这是 Istio 的流量管理功能。
+    token-hashing: 启用 Token 的单程 hash。一旦启用 Token hash 就不能被禁用。
+    continuous-delivery: Fleet 中的 Gitops 组件
+    fleet: 启动 Rancher 时安装 Fleet
+    multi-cluster-management: Kubernetes 集群的多集群配置和管理。
+    rke2: 启用 RKE2
+
+banner:
+  label: 固定横幅
+  settingName: 横幅
+  headerBanner: 标题横幅
+  footerBanner: 页脚横幅
+  loginScreenBanner: 登录屏幕横幅
+  text: 文本
+  textColor: 文本颜色
+  background: 背景颜色
+  showHeader: 在页眉中显示横幅
+  showFooter: 在页脚中显示横幅
+  showConsent: 在登录页面显示同意横幅
+  bannerAlignment:
+    label: 文字对齐
+    leftOption: 左对齐
+    centerOption: 居中
+    rightOption: 右对齐
+  bannerDecoration:
+    label: 文字装饰
+    bannerBold: 加粗
+    bannerItalic: 斜体
+    bannerUnderline: 下划线
+  bannerFontSize:
+    label: '字体大小'
+  consent: 同意横幅
+  
 
 branding:
   label: 公司品牌
@@ -6297,27 +6345,6 @@ branding:
     issuesUrl: 问题报告 URL
     invalidUrl: 必须是包括协议头的完整 URL。
     communityLinks: 显示 Rancher 社区支持链接
-  uiBanner:
-    label: 固定横幅
-    text: 文本
-    textColor: 文本颜色
-    background: 背景颜色
-    showHeader: 在页眉中显示横幅
-    showFooter: 在页脚中显示横幅
-    showConsent: 在登录页面显示同意横幅
-    bannerAlignment:
-      label: 文字对齐
-      leftOption: 左对齐
-      centerOption: 居中
-      rightOption: 右对齐
-    bannerDecoration:
-      label: 文字装饰
-      bannerBold: 加粗
-      bannerItalic: 斜体
-      bannerUnderline: 下划线
-    bannerFontSize:
-      label: '字体大小'
-    consent: 同意横幅
   color:
     label: 主颜色
     tip: 使用自定义颜色替换整个 UI 中使用的主颜色。
@@ -6428,6 +6455,7 @@ legacy:
   apps: 应用
   catalogs: 应用商店
   cis-scans: CIS 扫描
+  configMaps: ConfigMaps
   configuration: 配置
   globalDnsEntries: 全局 DNS 条目
   globalDnsProviders: 全局 DNS 提供商
@@ -6464,7 +6492,6 @@ manager:
 auth:
   config:
     label: 认证
-
 charts:
   longhorn:
     group:
@@ -6475,22 +6502,22 @@ charts:
       servicesAndLoadBalancing: 服务与负载均衡
       otherSettings: 其他设置
       longhornCsiDriverSettings: Longhorn CSI驱动设置
-    privateRegistry.registryUser: 
+    privateRegistry.registryUser:
       label: 用户
       description: 用于验证私有仓库的用户
-    image.defaultImage: 
+    image.defaultImage:
       label: 使用默认镜像
       description: 使用默认 Longhorn 镜像
-    privateRegistry.registryUrl: 
+    privateRegistry.registryUrl:
       label: 地址
       description: 私有仓库地址。留空则使用默认仓库。
-    privateRegistry.registryPasswd: 
+    privateRegistry.registryPasswd:
       label: 密码
       description: 用于验证私有仓库的密码
-    privateRegistry.registrySecret: 
+    privateRegistry.registrySecret:
       label: 密文名称
       description: Longhorn 会使用这个名称自动生成一个 Kubernetes 密文，用于从你的仓库拉取镜像
-    longhorn.default_setting: 
+    longhorn.default_setting:
       label: Longhorn 默认设置
       description: 首次安装 Longhorn 前自定义默认设置。只有集群未安装 Longhorn 时该设置才生效。
     persistence.defaultClass:
@@ -6624,7 +6651,7 @@ charts:
       description: "单位是秒。此间隔决定了副本失败时，Longhorn 在副本上复用现有数据至少等待的时间，而不是直接为降级卷创建新副本。警告：此选项仅在卷中有失败卷时生效。此选项可能会短暂禁用重建。"
     defaultSettings.concurrentReplicaRebuildPerNodeLimit:
       label: 单节点的并发副本重建限制
-      description: | 
+      description: |
         "此选项控制节点上可同时重建的副本数量。
         一般情况下，只要节点上的当前重建数量超过限制，Longhorn 会禁止副本启动。如果值设为 0，则表示禁用副本重建。
         警告：
@@ -6654,7 +6681,7 @@ charts:
       description: "单位是秒。此值定义了此后备镜像的所有磁盘文件均失败或未知时，Longhorn 等待多久后会重新下载后备镜像文件。警告：- 此-还原仅用于创建类型是 \"download\" 的后备镜像。- 文件状态 \"unknown\" 表示 Pod 上相关的 manager pod 不是运行中，或节点本身已关闭/断开连接。"
     defaultSettings.guaranteedEngineManagerCPU:
       label: 保证的引擎管理器 CPU
-      description: | 
+      description: |
         "此整数表示每个节点上百分之多少的可分配的 CPU 总资源会为各个引擎管理器 Pod 保留。例如，10 表示节点上10%的 CPU 总资源会分配给节点上的各个引擎管理器 Pod，以在节点高负荷工作时保持引擎的稳定性。
         为防止卷引擎意外崩溃，以及保证相对可接受的 I/O 性能，你可以使用以下公式来计算这个设置的值：
           保证的引擎管理器 CPU = 节点上估计的最大 Longhorn 引擎数 * 0.1 / 节点上总共可分配的 CPU 数量 * 100。

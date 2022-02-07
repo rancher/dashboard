@@ -30,27 +30,34 @@ export default {
 };
 </script>
 <template>
-  <SimpleBox>
-    <div class="intro-box">
-      <div class="title">
-        You don't have repositories connected
-      </div>
-      <div class="actions">
-        <n-link :to="formRoute" class="btn role-secondary">
-          {{ t('fleet.gitRepo.repo.addRepo') }}
-        </n-link>
-      </div>
+  <div class="intro-box">
+    <i class="icon icon-repository"></i>
+    <div class="title">
+      {{ t('fleet.gitRepo.repo.noRepos') }}
     </div>
-  </SimpleBox>
+    <div class="actions">
+      <n-link :to="formRoute" class="btn role-secondary">
+        {{ t('fleet.gitRepo.repo.addRepo') }}
+      </n-link>
+    </div>
+  </div>
 </template>
 <style lang="scss" scoped>
 .intro-box {
+  flex: 0 0 100%;
+  height: 80vh;
   display: flex;
   align-items: center;
+  justify-content: center;
   flex-direction: column;
 }
 
 .title {
-  margin-bottom: 15px
+  margin-bottom: 15px;
+  font-size: $font-size-h2;
+}
+.icon-repository {
+  font-size: 96px;
+  margin-bottom: 32px;
 }
 </style>

@@ -60,7 +60,7 @@ export default {
 
     const isMetricsSupportedKind = METRICS_SUPPORTED_KINDS.includes(this.value.type);
 
-    this.showMetrics = isMetricsSupportedKind && await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [WORKLOAD_METRICS_DETAIL_URL, WORKLOAD_METRICS_SUMMARY_URL]);
+    this.showMetrics = isMetricsSupportedKind && await allDashboardsExist(this.$store, this.currentCluster.id, [WORKLOAD_METRICS_DETAIL_URL, WORKLOAD_METRICS_SUMMARY_URL]);
   },
 
   data() {

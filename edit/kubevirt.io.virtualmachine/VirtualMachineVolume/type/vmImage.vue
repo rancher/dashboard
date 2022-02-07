@@ -67,21 +67,29 @@ export default {
     validateRequired: {
       type:     Boolean,
       required: true
+    },
+
+    isVirtualType: {
+      type:    Boolean,
+      default: true
     }
   },
 
   data() {
     return {
       loading: false,
-      errors:  []
+      errors:  [],
+      images:  [],
     };
+  },
+
+  fetch() {
+    this.images = this.$store.getters['harvester/all'](HCI.IMAGE);
   },
 
   computed: {
     imagesOption() {
-      const choise = this.$store.getters['harvester/all'](HCI.IMAGE);
-
-      return choise.map( (I) => {
+      return this.images.filter(c => c.isReady).map( (I) => {
         return {
           label: `${ I.metadata.namespace }/${ I.spec.displayName }`,
           value: I.id
@@ -104,7 +112,7 @@ export default {
     },
 
     isDisabled() {
-      return !this.value.newCreateId && this.isEdit;
+      return !this.value.newCreateId && this.isEdit && this.isVirtualType;
     },
   },
 
@@ -117,7 +125,7 @@ export default {
     },
     pvcsResource: {
       handler(pvc) {
-        if (pvc?.spec?.resources?.requests?.storage) {
+        if (pvc?.spec?.resources?.requests?.storage && this.isVirtualType) {
           const parseValue = parseSi(pvc.spec.resources.requests.storage);
 
           const formatSize = formatSi(parseValue, {
@@ -156,6 +164,10 @@ export default {
 
       this.update();
     },
+
+    onOpen() {
+      this.images = this.$store.getters['harvester/all'](HCI.IMAGE);
+    },
   }
 };
 </script>
@@ -187,7 +199,7 @@ export default {
         <InputOrDisplay :name="t('harvester.fields.image')" :value="imageName" :mode="mode">
           <LabeledSelect
             v-model="value.image"
-            :disabled="idx === 0 && !isCreate && !value.newCreateId"
+            :disabled="idx === 0 && !isCreate && !value.newCreateId && isVirtualType"
             :label="t('harvester.fields.image')"
             :options="imagesOption"
             :mode="mode"

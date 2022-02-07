@@ -4,7 +4,7 @@ import { CATTLE_API_GROUP, SUBTYPE_MAPPING } from '@/models/management.cattle.io
 import { uniq } from '@/utils/array';
 import Vue from 'vue';
 import { get } from '@/utils/object';
-import HybridModel from '@/plugins/steve/hybrid-class';
+import SteveModel from '@/plugins/steve/steve-class';
 import Role from './rbac.authorization.k8s.io.role';
 
 const BASE = 'user-base';
@@ -14,7 +14,7 @@ const SPECIAL = [BASE, ADMIN, USER];
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 
-export default class GlobalRole extends HybridModel {
+export default class GlobalRole extends SteveModel {
   get customValidationRules() {
     return Role.customValidationRules();
   }

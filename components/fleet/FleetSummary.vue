@@ -1,26 +1,15 @@
 <script>
 import capitalize from 'lodash/capitalize';
 import CountBox from '@/components/CountBox';
-import { STATES, stateSort } from '@/plugins/steve/resource-class';
-import FleetSummaryGraph from '@/components/formatter/FleetSummaryGraph.vue';
-import { sortBy } from '@/utils/sort';
-import FleetStatus from '~/components/fleet/FleetStatus.vue';
-import SimpleBox from '~/components/SimpleBox.vue';
+import { STATES } from '@/plugins/steve/resource-class';
 
 export default {
-  name: 'FleetSummary',
-
-  components: { CountBox, FleetSummaryGraph, FleetStatus, SimpleBox },
+  components: { CountBox },
 
   props: {
     value: {
       type:     Object,
       required: true,
-    },
-
-    bundles: {
-      type:     Array,
-      default: () => ([]),
     },
 
     stateKey: {
@@ -30,47 +19,35 @@ export default {
   },
 
   computed: {
-
-    totalResources() {
-      return Object.values(this.counts).reduce((total, curr) => total + curr.value, 0)
-    },
-    values() {
-      return sortBy(Object.values(this.counts), 'sort:desc');
-    },
-
     counts() {
       const out = {
         ready: {
-          value: 0,
-          color: '--sizzle-success',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.success`, null, 'Success'),
-          sort: stateSort('success'), 
+          count: 0,
+          color: 'success',
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.success`, null, 'Success')
         },
         info:    {
-          value: 0,
-          color: '--sizzle-info',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.info`, null, 'Info'),
-          sort: stateSort('info'), 
+          count: 0,
+          color: 'info',
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.info`, null, 'Info')
 
         },
         warning: {
-          value: 0,
-          color: '--sizzle-warning',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.warning`, null, 'Warning'),
-          sort: stateSort('warning'), 
+          count: 0,
+          color: 'warning',
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.warning`, null, 'Warning')
+
         },
         error:   {
-          value: 0,
-          color: '--sizzle-error',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.error`, null, 'Error'),
-          sort: stateSort('error'), 
+          count: 0,
+          color: 'error',
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.error`, null, 'Error')
 
         },
         unknown: {
-          value: 0,
-          color: '--sizzle-warning',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.unknown`, null, 'Unknown'),
-          sort: stateSort('warning'), 
+          count: 0,
+          color: 'warning',
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.unknown`, null, 'Unknown')
 
         },
       };
@@ -83,17 +60,17 @@ export default {
         const mapped = STATES[k] || STATES['other'];
 
         if (out[k]) {
-          out[k].value += this.value[k] || 0;
-          out[k].color = '--sizzle-' + mapped.color;
+          out[k].count += this.value[k] || 0;
+          out[k].color = mapped.color;
         } else {
           out[k] = {
-            value: this.value[k] || 0,
-            color: '--sizzle-' + mapped.color,
-            label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ k }`, null, capitalize(k)),
-            sort: stateSort(mapped.color), 
+            count: this.value[k] || 0,
+            color: mapped.color,
+            label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ k }`, null, capitalize(k))
           };
         }
       }
+
       return out;
     },
   },
@@ -103,43 +80,24 @@ export default {
 </script>
 
 <template>
-  <div class="fleet-dashboard">
-    <SimpleBox>
-        <div class="summary-info">
-          <div class="title">
-            Bundles
-          </div>
-          <div class="resources-count">
-             {{counts.ready.value}} / {{totalResources}} Bundles ready
-          </div>
-        </div>
-        <FleetStatus :values="values" />
-    </SimpleBox>
-     <SimpleBox>
-        <div class="summary-info">
-          <div class="title">
-            Resources
-          </div>
-          <div class="resources-count">
-             {{counts.ready.value}} / {{totalResources}} Resources ready
-          </div>
-        </div>
-        <FleetStatus :values="values" />
-    </SimpleBox>
+  <div class="row flexwrap">
+    <div v-for="(v, k) in counts" :key="k" class="col countbox">
+      <CountBox
+        :compact="true"
+        :count="v['count']"
+        :name="v.label"
+        :primary-color-var="'--sizzle-' + v.color"
+      />
+    </div>
   </div>
 </template>
 <style lang="scss" scoped>
-  .summary-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
+  .flexwrap {
+    flex-wrap: wrap;
   }
-  .fleet-dashboard {
-    display: flex;
-
-    .simple-box {
-      width: 100%;
-      
-    }
+  .countbox {
+    min-width: 150px;
+    width: 12.5%;
+    margin-bottom: 10px;
   }
 </style>
