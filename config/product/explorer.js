@@ -136,6 +136,19 @@ export function init(store) {
   configureType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING, { isEditable: false });
   configureType(MANAGEMENT.PROJECT, { displayName: store.getters['i18n/t']('namespace.project.label') });
 
+  // Allow Pods to be grouped by node
+  configureType(POD, {
+    listGroups: [
+      {
+        icon:       'icon-cluster',
+        value:      'node',
+        field:      'groupByNode',
+        hideColumn: NODE_COL.name,
+        tooltipKey: 'resourceTable.groupBy.node'
+      }
+    ]
+  });
+
   setGroupDefaultType('serviceDiscovery', SERVICE);
 
   configureType('workload', {

@@ -423,6 +423,7 @@ export const getters = {
       showAge:     true,
       canYaml:     true,
       namespaced:  null,
+      listGroups:  [],
     };
 
     return (schemaOrType) => {
