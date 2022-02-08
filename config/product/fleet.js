@@ -27,17 +27,15 @@ export function init(store) {
     showWorkspaceSwitcher: true,
   });
 
-  /*
-  virtualType({
-    label:       'Overview',
-    group:      'Root',
-    namespaced:  false,
-    name:        'istio-overview',
-    weight:      100,
-    route:       { name: 'c-cluster-istio' },
-    exact:       true,
-  });
-*/
+  // virtualType({
+  //   label:       'Overview',
+  //   group:      'Root',
+  //   namespaced:  false,
+  //   name:        'istio-overview',
+  //   weight:      100,
+  //   route:       { name: 'c-cluster-istio' },
+  //   exact:       true,
+  // });
 
   // basicType('istio-overview');
 

@@ -9,7 +9,7 @@ export default {
       params: {
         ...route.params,
         product:  NAME,
-        resource: FLEET.GIT_REPO,
+        resource: FLEET.DASHBOARD,
       }
     });
   }
