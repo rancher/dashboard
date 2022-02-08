@@ -42,6 +42,7 @@ export function init(store) {
   // basicType('istio-overview');
 
   basicType([
+    FLEET.DASHBOARD,
     FLEET.CLUSTER,
     FLEET.CLUSTER_GROUP,
     FLEET.GIT_REPO,
@@ -49,6 +50,7 @@ export function init(store) {
 
   configureType(FLEET.CLUSTER, { isCreatable: false });
 
+  weightType(FLEET.DASHBOARD, 110, true);
   weightType(FLEET.GIT_REPO, 109, true);
   weightType(FLEET.CLUSTER, 108, true);
   weightType(FLEET.CLUSTER_GROUP, 107, true);
