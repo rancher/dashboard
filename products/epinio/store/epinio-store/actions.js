@@ -5,6 +5,7 @@ import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 import { base64Encode } from '@/utils/crypto';
 import { NAMESPACE_FILTERS } from '@/store/prefs';
 import { createNamespaceFilterKeyWithId } from '@/utils/namespace-filter';
+import { parse as parseUrl, stringify as unParseUrl } from '@/utils/url';
 
 const createId = (schema, resource) => {
   const name = resource.meta?.name || resource.name;
@@ -23,6 +24,8 @@ const epiniofy = (obj, schema, type) => ({
   id: createId(schema, obj),
   type,
 });
+
+const standalone = true; // TODO: RC conditional on isSingleProduct
 
 export default {
 
@@ -43,17 +46,36 @@ export default {
     opt.depaginate = opt.depaginate !== false;
     opt.url = opt.url.replace(/\/*$/g, '');
 
+    // TODO: RC tidy, conditional on isSingleProduct
+    if (standalone) {
+      const prependPath = `/pp/v1/proxy/JzMZs-yIsJAlVvwrPKJ4BQkF9B0`;
+      const url = parseUrl(opt.url);
+
+      if (!url.path.startsWith(prependPath)) {
+        url.path = prependPath + url.path;
+        // console.warn(opt.url, ' vs ', url, unParseUrl(url));
+        opt.url = unParseUrl(url);
+      }
+    }
+
     return await dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE }, { root: true })
       .then(() => {
-        const currentClusterId = clusterId || rootGetters['clusterId'];
-        const currentCluster = rootGetters[`${ EPINIO_MGMT_STORE }/byId`](EPINIO_TYPES.INSTANCE, currentClusterId);
+        if (standalone) {
+          opt.headers = {
+            ...opt.headers,
+            user_id: `1234`
+          };
+        } else {
+          const currentClusterId = clusterId || rootGetters['clusterId'];
+          const currentCluster = rootGetters[`${ EPINIO_MGMT_STORE }/byId`](EPINIO_TYPES.INSTANCE, currentClusterId);
 
-        opt.headers = {
-          ...opt.headers,
-          Authorization: `Basic ${ base64Encode(`${ currentCluster.username }:${ currentCluster.password }`) }`
-        };
+          opt.headers = {
+            ...opt.headers,
+            Authorization: `Basic ${ base64Encode(`${ currentCluster.username }:${ currentCluster.password }`) }`
+          };
 
-        opt.url = `${ currentCluster.api }${ opt.url }`;
+          opt.url = `${ currentCluster.api }${ opt.url }`;
+        }
 
         return this.$axios(opt);
       })
@@ -140,6 +162,7 @@ export default {
   },
 
   onLogout({ dispatch, commit }) {
+    console.warn('2!!!!!');
     dispatch(`unsubscribe`);
     commit('reset');
 

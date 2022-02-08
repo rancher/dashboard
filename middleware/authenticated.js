@@ -324,7 +324,8 @@ export default async function({
           key: AFTER_LOGIN_ROUTE,
           value,
         });
-      } else if (clusterId) {
+      }
+      if (clusterId) {
         await store.dispatch('loadCluster', {
           id: clusterId,
           product,

@@ -414,6 +414,13 @@ export const getters = {
         afterLoginRoute: {
           name:   'c-cluster-product',
           params: { product: VIRTUAL },
+        },
+        logoRoute: {
+          name:   'c-cluster-product-resource',
+          params: {
+            product:  VIRTUAL,
+            resource: HCI.DASHBOARD,
+          }
         }
       };
     }
@@ -623,6 +630,7 @@ export const actions = {
   }, {
     id, product, isExt, oldProduct, oldIsExt
   }) {
+    debugger;
     const isMultiCluster = getters['isMultiCluster'];
 
     const sameCluster = state.clusterId && state.clusterId === id;

@@ -111,15 +111,14 @@ export default {
       };
     },
 
-    harvesterDashboard() {
+    singleProductLogoRoute() {
       const cluster = this.$store.getters.defaultClusterId;
 
       return {
-        name:   'c-cluster-product-resource',
+        ...this.isSingleProduct.logoRoute,
         params: {
+          ...this.isSingleProduct.logoRoute.params,
           cluster,
-          product:  VIRTUAL,
-          resource: HCI.DASHBOARD,
         }
       };
     },
@@ -192,7 +191,7 @@ export default {
 <template>
   <header :class="{'simple': simple}">
     <div class="menu-spacer">
-      <n-link v-if="isSingleProduct" :to="harvesterDashboard">
+      <n-link v-if="isSingleProduct" :to="singleProductLogoRoute">
         <img
           class="side-menu-logo"
           :src="isSingleProduct.logo"

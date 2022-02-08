@@ -18,10 +18,11 @@ export function init(store) {
 
   // TODO: RC conditional on env
   store.dispatch('setIsSingleProduct', {
-    logo:            '~/assets/images/providers/harvester.svg',
+    logo:            require(`@/products/epinio/assets/logo-epinio.svg`),
     productNameKey:  'epinio.label',
     version:         `1.2.3`, // TODO: RC TEST
-    afterLoginRoute: createEpinioRoute('c-cluster-applications', { })
+    afterLoginRoute: createEpinioRoute('c-cluster-applications', {}),
+    logoRoute:       createEpinioRoute('c-cluster-applications', {}),
   });
 
   product({
@@ -31,7 +32,7 @@ export function init(store) {
     isMultiClusterApp:     true,
     inStore:               EPINIO_PRODUCT_NAME,
     icon:                  'epinio',
-    iconHeader:            require(`@/products/epinio/assets/logo-epinio.svg`),
+    // iconHeader:            require(`@/products/epinio/assets/logo-epinio.svg`), // TODO: RC conditional on env
     removable:             false,
     showClusterSwitcher:   false,
     to:                    rootEpinioRoute(),
