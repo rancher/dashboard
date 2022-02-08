@@ -5401,7 +5401,7 @@ harvester:
     input:
       name: Name
       memory: Memory
-      image: Imagek
+      image: Image
       sshKey: SSHKey
       sshKeyValue: SSH-Key
       MachineType: Machine Type
