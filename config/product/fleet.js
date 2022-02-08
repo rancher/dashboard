@@ -14,7 +14,7 @@ export function init(store) {
     configureType,
     headers,
     // mapType,
-    // virtualType,
+    virtualType,
   } = DSL(store, NAME);
 
   product({
@@ -27,17 +27,33 @@ export function init(store) {
     showWorkspaceSwitcher: true,
   });
 
-  // virtualType({
-  //   label:       'Overview',
-  //   group:      'Root',
-  //   namespaced:  false,
-  //   name:        'istio-overview',
-  //   weight:      100,
-  //   route:       { name: 'c-cluster-istio' },
-  //   exact:       true,
-  // });
+  /*
+  virtualType({
+    label:       'Overview',
+    group:      'Root',
+    namespaced:  false,
+    name:        'istio-overview',
+    weight:      100,
+    route:       { name: 'c-cluster-istio' },
+    exact:       true,
+  });
+*/
 
   // basicType('istio-overview');
+
+  virtualType({
+    label:       store.getters['i18n/t']('clusterIndexPage.header'),
+    icon:       'folder',
+    group:      'Root',
+    namespaced:  false,
+    name:        FLEET.DASHBOARD,
+    weight:      110,
+    route:       {
+      // name:   'c-cluster-fleet',
+      params: { resource: FLEET.DASHBOARD }
+    },
+    exact: true,
+  });
 
   basicType([
     FLEET.DASHBOARD,
@@ -47,8 +63,6 @@ export function init(store) {
   ]);
 
   configureType(FLEET.CLUSTER, { isCreatable: false });
-
-  weightType(FLEET.DASHBOARD, 110, true);
   weightType(FLEET.GIT_REPO, 109, true);
   weightType(FLEET.CLUSTER, 108, true);
   weightType(FLEET.CLUSTER_GROUP, 107, true);

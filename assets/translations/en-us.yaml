@@ -5834,7 +5834,6 @@ typeLabel:
       one { Dashboard }
       other { Dashboard }
     }
-
   fleet.cattle.io.gitrepo: |-
     {count, plural,
       one { Git Repo }
