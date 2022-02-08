@@ -222,7 +222,6 @@ export default {
       type:    Boolean,
       default: true,
     },
-
     fileModifier: {
       type:    Function,
       default: (name, value) => ({ name, value })
@@ -304,7 +303,10 @@ export default {
     },
 
     containerStyle() {
-      return `grid-template-columns: repeat(${ 2 + this.extraColumns.length }, 1fr)${ this.removeAllowed ? ' 50px' : '' };`;
+      const gap = this.canRemove ? ' 50px' : '';
+      const size = 2 + this.extraColumns.length;
+
+      return `grid-template-columns: repeat(${ size }, 1fr)${ gap };`;
     },
 
     usedKeyOptions() {
@@ -318,6 +320,13 @@ export default {
       }
 
       return this.keyOptions;
+    },
+
+    /**
+     * Prevent removal if expressly not allowed and not in view mode
+     */
+    canRemove() {
+      return !this.isView && this.removeAllowed;
     }
   },
 
@@ -512,7 +521,7 @@ export default {
         <label v-for="c in extraColumns" :key="c">
           <slot :name="'label:'+c">{{ c }}</slot>
         </label>
-        <slot v-if="removeAllowed" name="remove">
+        <slot v-if="canRemove" name="remove">
           <span />
         </slot>
       </template>
@@ -599,7 +608,12 @@ export default {
           <slot :name="'col:' + c" :row="row" :queue-update="queueUpdate" />
         </div>
 
-        <div v-if="removeAllowed" :key="i" class="kv-item remove">
+        <div
+          v-if="canRemove"
+          :key="i"
+          class="kv-item remove"
+          :data-testid="`remove-column-${i}`"
+        >
           <slot name="removeButton" :remove="remove" :row="row">
             <button type="button" :disabled="isView" class="btn role-link" @click="remove(i)">
               {{ removeLabel || t('generic.remove') }}

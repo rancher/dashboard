@@ -129,7 +129,7 @@ export default {
               isBeingUsed = true;
             }
 
-            return isAvailable && !isBeingUsed;
+            return isAvailable && !isBeingUsed && pvc.isAvaliable;
           })
           .map((pvc) => {
             return {

@@ -152,8 +152,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-   .sortable > SPAN {
-    display: inline-block;
+  .sortable > SPAN {
     white-space: nowrap;
     &:hover,
     &:active {
@@ -176,6 +175,11 @@ export default {
     font-weight: normal;
     border: 0;
     color: var(--body-text);
+
+    &:not(.sortable) > SPAN {
+      display: block;
+      margin-bottom: 2px;
+    }
 
     & A {
       color: var(--body-text);

@@ -1,6 +1,7 @@
 <script>
 import compact from 'lodash/compact';
 import { get } from '@/utils/object';
+import { isIpv4 } from '@/utils/string';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { HCI } from '@/config/types';
 import CopyToClipboard from '@/components/CopyToClipboard';
@@ -46,9 +47,10 @@ export default {
     vmiIp() {
       const vmiResources = this.$store.getters['harvester/all'](HCI.VMI);
       const resource = vmiResources.find(VMI => VMI.id === this.value) || null;
-      const out = resource?.status?.interfaces?.[0]?.ipAddress || '';
 
-      return [out];
+      return (resource?.status?.interfaces || []).filter((O) => {
+        return isIpv4(O.ipAddress);
+      }).map(O => O.ipAddress);
     }
   },
 };

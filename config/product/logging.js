@@ -17,9 +17,10 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    ifHaveGroup: /^(.*\.)?logging\.banzaicloud\.io$/,
-    icon:        'logging',
-    weight:      89,
+    ifHaveGroup:         /^(.*\.)?logging\.banzaicloud\.io$/,
+    icon:                'logging',
+    showNamespaceFilter: true,
+    weight:              89,
   });
 
   basicType([

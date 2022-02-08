@@ -150,6 +150,13 @@ export default class VirtVm extends SteveModel {
         icon:       'icon icon-copy',
         label:      this.t('harvester.action.createTemplate'),
       },
+      {
+        action:     'openLogs',
+        enabled:    !!this.links.view,
+        icon:       'icon icon-fw icon-chevron-right',
+        label:      this.t('harvester.action.viewlogs'),
+        total:      1,
+      },
       ...out
     ];
   }
@@ -208,6 +215,16 @@ export default class VirtVm extends SteveModel {
     this.doAction('restart', {});
   }
 
+  openLogs() {
+    this.$dispatch('wm/open', {
+      id:        `${ this.id }-logs`,
+      label:     this.nameDisplay,
+      icon:      'file',
+      component: 'ContainerLogs',
+      attrs:     { pod: this.podResource }
+    }, { root: true });
+  }
+
   backupVM(resources = this) {
     this.$dispatch('promptModal', {
       resources,
@@ -215,16 +232,14 @@ export default class VirtVm extends SteveModel {
     });
   }
 
-  unplugVolume() {
+  unplugVolume(diskName) {
     const resources = this;
 
-    return (diskName) => {
-      this.$dispatch('promptModal', {
-        resources,
-        diskName,
-        component: 'harvester/UnplugVolume'
-      });
-    };
+    this.$dispatch('promptModal', {
+      resources,
+      diskName,
+      component: 'harvester/UnplugVolume'
+    });
   }
 
   restoreVM(resources = this) {

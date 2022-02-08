@@ -154,7 +154,13 @@ export default {
     this.errors = [];
 
     try {
+      const datacenterAlreadySet = !!this.value.datacenter;
+
       await this.loadDataCenters();
+
+      if (datacenterAlreadySet) {
+        this.loadAllDatacenterResources();
+      }
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
     }

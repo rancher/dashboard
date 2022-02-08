@@ -64,15 +64,17 @@ export default {
 
   data() {
     const isManagementNetwork = this.value.isPod;
+    let isMasquerade = false;
 
     if (isManagementNetwork) {
       this.value.networkName = MANAGEMENT_NETWORK;
+      isMasquerade = true;
     }
 
     return {
       errors:               [],
       isManagementNetwork,
-      isMasquerade:         false,
+      isMasquerade,
       hasManagementNetwork: false
     };
   },
@@ -148,8 +150,7 @@ export default {
         }
 
         this.update();
-      },
-      immediate: true
+      }
     },
 
     rows: {
