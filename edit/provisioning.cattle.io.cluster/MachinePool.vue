@@ -51,7 +51,7 @@ export default {
       // Here we convert that string to an integer.
       const numberString = duration.split('m')[0];
 
-      return parseInt(numberString);
+      return parseInt(numberString, 10);
     };
 
     return {
@@ -100,7 +100,7 @@ export default {
 <template>
   <div>
     <div class="row">
-      <div class="col span-2">
+      <div class="col span-4">
         <LabeledInput
           v-model="value.pool.name"
           :mode="mode"
@@ -109,7 +109,7 @@ export default {
           :disabled="!value.config || !!value.config.id"
         />
       </div>
-      <div class="col span-2">
+      <div class="col span-4">
         <LabeledInput
           v-model.number="value.pool.quantity"
           :mode="mode"
@@ -119,29 +119,7 @@ export default {
           :required="true"
         />
       </div>
-      <div class="col span-3">
-        <UnitInput
-          v-model.number="unhealthyNodeTimeoutInteger"
-          :placeholder="t('containerResourceLimit.cpuPlaceholder')"
-          :label="t('cluster.machinePool.autoReplace.label')"
-          :mode="mode"
-          :output-modifier="true"
-          :base-unit="t('cluster.machinePool.autoReplace.unit')"
-          :tooltip="t('cluster.machinePool.autoReplace.toolTip')"
-          @input="value.pool.unhealthyNodeTimeout = `${unhealthyNodeTimeoutInteger}m`"
-        />
-      </div>
-      <div class="col span-2 pt-5">
-        <h3>
-          {{ t('cluster.machinePool.drain.header') }}
-        </h3>
-        <Checkbox
-          v-model="value.pool.drainBeforeDelete"
-          :mode="mode"
-          :label="t('cluster.machinePool.drain.label')"
-        />
-      </div>
-      <div class="col span-3 pt-5">
+      <div class="col span-4 pt-5">
         <h3>
           {{ t('cluster.machinePool.role.label') }}
         </h3>
@@ -162,7 +140,6 @@ export default {
         />
       </div>
     </div>
-
     <hr class="mt-10" />
 
     <component
@@ -182,7 +159,34 @@ export default {
       <portal-target :name="'advanced-' + uuid" multiple />
 
       <div class="spacer" />
-
+      <div class="row">
+        <div class="col span-4">
+          <h3>
+            {{ t('cluster.machinePool.autoReplace.label') }}
+            <i v-tooltip="t('cluster.machinePool.autoReplace.toolTip')" class="icon icon-info icon-lg" />
+          </h3>
+          <UnitInput
+            v-model.number="unhealthyNodeTimeoutInteger"
+            :hide-arrows="true"
+            :placeholder="t('containerResourceLimit.cpuPlaceholder')"
+            :mode="mode"
+            :output-modifier="true"
+            :base-unit="t('cluster.machinePool.autoReplace.unit')"
+            @input="value.pool.unhealthyNodeTimeout = `${unhealthyNodeTimeoutInteger}m`"
+          />
+        </div>
+        <div class="col span-4">
+          <h3>
+            {{ t('cluster.machinePool.drain.header') }}
+          </h3>
+          <Checkbox
+            v-model="value.pool.drainBeforeDelete"
+            :mode="mode"
+            :label="t('cluster.machinePool.drain.label')"
+          />
+        </div>
+      </div>
+      <div class="spacer" />
       <KeyValue
         v-model="value.pool.labels"
         :add-label="t('labels.addLabel')"

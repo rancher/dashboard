@@ -202,7 +202,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 
 .hideArrows {
   /* Hide arrows on number input
