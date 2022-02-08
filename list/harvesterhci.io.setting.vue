@@ -6,7 +6,7 @@ import Loading from '@/components/Loading';
 import { DEV } from '@/store/prefs';
 import { HCI, MANAGEMENT } from '@/config/types';
 import { allHash } from '@/utils/promise';
-import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING, ALLOWED_SETTINGS, SETTING } from '@/config/settings';
+import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING } from '@/config/settings';
 
 export default {
   components: { Banner, Loading },
@@ -53,7 +53,6 @@ export default {
       SETTINGS = {
         ...HCI_ALLOWED_SETTINGS,
         ...HCI_SINGLE_CLUSTER_ALLOWED_SETTING,
-        [SETTING.SERVER_URL]: ALLOWED_SETTINGS.SERVER_URL,
       };
     }
 

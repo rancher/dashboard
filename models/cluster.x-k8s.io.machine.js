@@ -31,10 +31,19 @@ export default class CapiMachine extends SteveModel {
       label:      this.t('node.actions.forceDelete'),
       icon:       'icon icon-trash',
     };
+    const scaleDown = {
+      action:     'toggleScaleDownModal',
+      bulkAction: 'toggleScaleDownModal',
+      enabled:    !!this.canScaleDown,
+      icon:       'icon icon-minus icon-fw',
+      label:      this.t('node.actions.scaleDown'),
+      bulkable:   true
+    };
 
     insertAt(out, 0, { divider: true });
     insertAt(out, 0, downloadKeys);
     insertAt(out, 0, openSsh);
+    insertAt(out, 0, scaleDown);
     insertAt(out, 0, forceRemove);
 
     return out;
@@ -70,6 +79,14 @@ export default class CapiMachine extends SteveModel {
 
     machine.setAnnotation(CAPI_LABELS.FORCE_MACHINE_REMOVE, 'true');
     await machine.save();
+  }
+
+  toggleScaleDownModal(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component:  'ScaleMachineDownDialog',
+      modalWidth: '450px'
+    });
   }
 
   async machineRef() {
@@ -160,6 +177,29 @@ export default class CapiMachine extends SteveModel {
     }
 
     return null;
+  }
+
+  get canScaleDown() {
+    if (!this.canUpdate || !this.pool?.canUpdate) {
+      return false;
+    }
+
+    if (!this.isControlPlane) {
+      return true;
+    }
+
+    let foundControlPlane;
+
+    for (const m of this.cluster.machines) {
+      if (m.isControlPlane) {
+        if (foundControlPlane) {
+          return true;
+        }
+        foundControlPlane = true;
+      }
+    }
+
+    return false;
   }
 
   get roles() {

@@ -80,9 +80,9 @@ export default {
       hash.rke1NodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
     }
 
-    this.showClusterMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]);
-    this.showK8sMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]);
-    this.showEtcdMetrics = this.isRKE && await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]);
+    this.showClusterMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]);
+    this.showK8sMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]);
+    this.showEtcdMetrics = this.isRKE && await allDashboardsExist(this.$store, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]);
 
     const res = await allHash(hash);
 

@@ -122,8 +122,8 @@ export default class ApplicationActionResource extends Resource {
       return {
         kind: APPLICATION_MANIFEST_SOURCE_TYPE.GIT,
         git:       {
-          revision: source.gitUrl.branch,
-          url:      source.gitUrl.url
+          revision:   source.gitUrl.branch,
+          repository:      source.gitUrl.url
         },
       };
     }

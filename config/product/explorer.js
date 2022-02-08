@@ -58,6 +58,7 @@ export function init(store) {
     'projects-namespaces',
     'namespaces',
     NODE,
+    VIRTUAL_TYPES.CLUSTER_MEMBERS,
   ], 'cluster');
   basicType([
     SERVICE,
@@ -81,15 +82,11 @@ export function init(store) {
     WORKLOAD_TYPES.CRON_JOB,
     POD,
   ], 'workload');
-  basicType([
-    'cluster-members',
-  ], 'rbac');
 
   weightGroup('cluster', 99, true);
   weightGroup('workload', 98, true);
   weightGroup('serviceDiscovery', 96, true);
   weightGroup('storage', 95, true);
-  weightGroup('rbac', 94, true);
   weightType(POD, -1, true);
 
   for (const key in WORKLOAD_TYPES) {
@@ -231,11 +228,11 @@ export function init(store) {
 
   virtualType({
     label:       store.getters['i18n/t']('members.clusterMembers'),
-    group:      'rbac',
+    group:      'cluster',
     namespaced:  false,
     name:        VIRTUAL_TYPES.CLUSTER_MEMBERS,
     icon:       'globe',
-    weight:      100,
+    weight:      -1,
     route:       { name: 'c-cluster-product-members' },
     exact:       true,
     ifHaveType:  {

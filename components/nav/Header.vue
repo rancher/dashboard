@@ -7,7 +7,8 @@ import { isMac } from '@/utils/platform';
 import Import from '@/components/Import';
 import BrandImage from '@/components/BrandImage';
 import { getProduct } from '@/config/private-label';
-import RancherProviderIcon from '@/components/RancherProviderIcon';
+import ClusterProviderIcon from '@/components/ClusterProviderIcon';
+import ClusterBadge from '@/components/ClusterBadge';
 import { LOGGED_OUT } from '@/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
@@ -25,7 +26,8 @@ export default {
     TopLevelMenu,
     Jump,
     BrandImage,
-    RancherProviderIcon
+    ClusterBadge,
+    ClusterProviderIcon
   },
 
   props: {
@@ -204,18 +206,18 @@ export default {
           {{ t(isSingleProduct.productNameKey) }}
         </div>
         <template v-else>
-          <RancherProviderIcon v-if="currentCluster && currentCluster.isLocal" class="mr-10 cluster-local-logo" width="25" />
-          <img v-else-if="currentCluster && currentCluster.providerNavLogo" class="cluster-os-logo" :src="currentCluster.providerNavLogo" />
+          <ClusterProviderIcon v-if="currentCluster" :cluster="currentCluster" class="mr-10" />
           <div v-if="currentCluster" ref="clusterName" class="cluster-name">
             {{ currentCluster.spec.displayName }}
           </div>
-          <div v-else class="simple-title">
+          <ClusterBadge v-if="currentCluster" :cluster="currentCluster" class="ml-10" />
+          <div v-if="!currentCluster" class="simple-title">
             <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
           </div>
         </template>
       </div>
       <div v-if="currentProduct && !currentProduct.showClusterSwitcher" class="cluster">
-        <img v-if="currentProduct.iconHeader" v-bind="$attrs" :src="currentProduct.iconHeader" class="cluster-os-logo" style="width: 44px; height: 36px;" />
+        <img v-if="currentProduct.iconHeader" v-bind="$attrs" :src="currentProduct.iconHeader" class="cluster-os-logo mr-5" style="width: 44px; height: 36px;" />
         <div class="product-name">
           {{ prod }}
         </div>
@@ -487,11 +489,11 @@ export default {
     }
 
     grid-template-areas:  "menu product top buttons header-actions cluster user";
-    grid-template-columns: var(--header-height) calc(var(--nav-width) - var(--header-height)) auto min-content min-content min-content var(--header-height);
+    grid-template-columns: var(--header-height) auto min-content min-content min-content min-content var(--header-height);
     grid-template-rows:    var(--header-height);
 
     &.simple {
-      grid-template-columns: var(--header-height) min-content auto min-content min-content min-content var(--header-height);
+      grid-template-columns: var(--header-height) auto min-content min-content min-content min-content var(--header-height);
     }
 
     > .menu-spacer {
@@ -504,14 +506,6 @@ export default {
       display: flex;
       height: 32px;
       white-space: nowrap;
-      .cluster-os-logo {
-        width: 32px;
-        height: 32px;
-        margin-right: 10px;
-      }
-      .cluster-local-logo {
-        flex: 0 0 25px;
-      }
       .cluster-name {
         font-size: 16px;
         text-overflow: ellipsis;

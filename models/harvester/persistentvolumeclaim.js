@@ -5,6 +5,7 @@ import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { findBy } from '@/utils/array';
 import { get, clone } from '@/utils/object';
 import SteveModel from '@/plugins/steve/steve-class';
+import { colorForState } from '@/plugins/core-store/resource-class';
 
 export default class HciPv extends SteveModel {
   applyDefaults(_, realMode) {
@@ -59,6 +60,12 @@ export default class HciPv extends SteveModel {
     }
   }
 
+  get stateColor() {
+    const state = this.stateDisplay;
+
+    return colorForState(state);
+  }
+
   get detailLocation() {
     const detailLocation = clone(this._detailLocation);
 
@@ -101,6 +108,10 @@ export default class HciPv extends SteveModel {
     const ownedId = JSON.parse(ownedBy)[0]?.refs?.[0];
 
     return allVMs.find( D => D.id === ownedId);
+  }
+
+  get isAvaliable() {
+    return this.stateDisplay !== 'Resizing';
   }
 
   get volumeSort() {

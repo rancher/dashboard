@@ -442,6 +442,7 @@ export default {
             :mode="mode"
             :custom-volume-mode="customVolumeMode"
             :namespace="value.metadata.namespace"
+            :resource-type="value.type"
             :vm="value"
             :validate-required="true"
           />
@@ -510,6 +511,7 @@ export default {
             v-model="installUSBTablet"
             class="check mt-20"
             type="checkbox"
+            tooltip-key="harvester.virtualMachine.usbTip"
             label-key="harvester.virtualMachine.enableUsb"
             :mode="mode"
           />

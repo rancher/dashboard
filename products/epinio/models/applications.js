@@ -229,10 +229,10 @@ export default class EpinioApplication extends EpinioResource {
         label:   'Git',
         details: [{
           label: 'Url',
-          value: this.origin.Git.url
+          value: this.origin.git.repository
         }, {
           label: 'Revision',
-          value: this.origin.Git.revision
+          value: this.origin.git.revision
         }]
       };
     case APPLICATION_MANIFEST_SOURCE_TYPE.CONTAINER:

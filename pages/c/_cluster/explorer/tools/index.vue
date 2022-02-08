@@ -385,6 +385,10 @@ export default {
       .action {
         grid-area: action;
         white-space: nowrap;
+
+        button {
+          height: 30px;
+        }
       }
     }
   }

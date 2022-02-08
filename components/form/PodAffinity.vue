@@ -174,7 +174,13 @@ export default {
 <template>
   <div :style="{'width':'100%'}" class="row" @input="queueUpdate">
     <div class="col span-12">
-      <ArrayListGrouped v-model="allSelectorTerms" class="mt-20" :default-add-value="{matchExpressions:[]}" :add-label="t('workload.scheduling.affinity.addNodeSelector')">
+      <ArrayListGrouped
+        v-model="allSelectorTerms"
+        class="mt-20"
+        :default-add-value="{ matchExpressions: [] }"
+        :mode="mode"
+        :add-label="t('workload.scheduling.affinity.addNodeSelector')"
+      >
         <template #default="props">
           <div class="row mt-20 mb-20">
             <div class="col span-6">

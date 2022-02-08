@@ -189,15 +189,7 @@ export default {
     },
 
     machines() {
-      const machines = this.allMachines.filter((x) => {
-        if ( x.metadata?.namespace !== this.value.metadata.namespace ) {
-          return false;
-        }
-
-        return x.spec?.clusterName === this.value.metadata.name;
-      });
-
-      return [...machines, ...this.fakeMachines];
+      return [...this.value.machines, ...this.fakeMachines];
     },
 
     nodes() {

@@ -84,7 +84,11 @@ export default Vue.extend<Data, any, any, any>({
         >
         </ConsumptionGauge>
       </SimpleBox>
-      <SimpleBox>
+      <!--
+          This information will be moved following https://github.com/epinio/ui/issues/62
+          Like Stratos we could show a summary of low/high/average
+      -->
+      <!-- <SimpleBox>
         <div class="box">
           <h1>{{ value.memory }}</h1>
           <h3>
@@ -99,22 +103,20 @@ export default Vue.extend<Data, any, any, any>({
             {{ t('epinio.applications.detail.deployment.cpu') }}
           </h3>
         </div>
-      </SimpleBox>
+      </SimpleBox> -->
       <SimpleBox v-if="value.sourceInfo">
         <div class="deployment__origin__row">
-          <h4>Origin:</h4><h4>
+          <h4>Origin</h4><h4>
             {{ value.sourceInfo.label }}
           </h4>
         </div>
         <div v-for="d of value.sourceInfo.details" :key="d.label" class="deployment__origin__row">
-          <h4>{{ d.label }}:</h4><h4>
-            {{ d.value }}
-          </h4>
+          <h4>{{ d.label }}</h4><h4>{{ d.value }}</h4>
         </div>
       </SimpleBox>
       <SimpleBox v-if="value.deployment.username">
         <div class="deployment__origin__row">
-          <h4>{{ t('epinio.applications.tableHeaders.deployedBy') }}:</h4><h4>
+          <h4>{{ t('epinio.applications.tableHeaders.deployedBy') }}</h4><h4>
             {{ value.deployment.username }}
           </h4>
         </div>
@@ -138,10 +140,19 @@ export default Vue.extend<Data, any, any, any>({
 
     .deployment__origin__row {
       display: flex;
-      justify-content: space-between;
-      h4:nth-of-type(2) {
-        text-align: right;
+      flex-direction: column;
+      h4:first-of-type {
+        font-weight: bold;
+        margin-bottom: 0;
+      }
+      h4:last-of-type {
         word-break: break-all;
+      }
+
+      &:last-of-type {
+        h4:last-of-type {
+          margin-bottom: 0;
+        }
       }
     }
   }

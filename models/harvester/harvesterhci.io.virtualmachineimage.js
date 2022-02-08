@@ -9,6 +9,23 @@ import { ucFirst } from '@/utils/string';
 import { stateDisplay, colorForState } from '@/plugins/core-store/resource-class';
 import SteveModel from '@/plugins/steve/steve-class';
 
+export function isReady() {
+  function getStatusConditionOfType(type, defaultValue = []) {
+    const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
+
+    return conditions.find( cond => cond.type === type);
+  }
+
+  const initialized = getStatusConditionOfType.call(this, 'Initialized');
+  const imported = getStatusConditionOfType.call(this, 'Imported');
+  const isCompleted = this.status?.progress === 100;
+
+  if ([initialized?.status, imported?.status].includes('False')) {
+    return false;
+  } else {
+    return isCompleted && true;
+  }
+}
 export default class HciVmImage extends SteveModel {
   get availableActions() {
     let out = super._availableActions;
@@ -26,9 +43,10 @@ export default class HciVmImage extends SteveModel {
     return [
       {
         action:     'createFromImage',
-        enabled:    canCreateVM && this.isReady,
+        enabled:    canCreateVM,
         icon:       'icon icon-fw icon-spinner',
         label:      this.t('harvester.action.createVM'),
+        disabled:   !this.isReady,
       },
       ...out
     ];
@@ -49,14 +67,7 @@ export default class HciVmImage extends SteveModel {
   }
 
   get isReady() {
-    const initialized = this.getStatusConditionOfType('Initialized');
-    const imported = this.getStatusConditionOfType('Imported');
-
-    if ([initialized?.status, imported?.status].includes('False')) {
-      return false;
-    } else {
-      return true;
-    }
+    return isReady.call(this);
   }
 
   get stateDisplay() {
@@ -78,6 +89,15 @@ export default class HciVmImage extends SteveModel {
     }
 
     return stateDisplay(this.metadata.state.name);
+  }
+
+  get imageMessage() {
+    const conditions = this?.status?.conditions || [];
+    const initialized = conditions.find( cond => cond.type === 'Initialized');
+    const imported = conditions.find( cond => cond.type === 'Imported');
+    const message = initialized?.message || imported?.message;
+
+    return ucFirst(message);
   }
 
   get stateBackground() {
@@ -175,12 +195,7 @@ export default class HciVmImage extends SteveModel {
   }
 
   get stateDescription() {
-    const imported = this.getStatusConditionOfType('Imported');
-
-    const status = imported?.status;
-    const message = imported?.message;
-
-    return status === 'False' ? ucFirst(message) : '';
+    return this.imageMessage;
   }
 
   get uploadImage() {
