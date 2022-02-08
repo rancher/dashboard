@@ -60,6 +60,18 @@ export default class HciPv extends SteveModel {
     }
   }
 
+  get state() {
+    let status = this?.status?.phase === 'Bound' ? 'Ready' : 'NotReady';
+
+    const conditions = this?.status?.conditions || [];
+
+    if (findBy(conditions, 'type', 'Resizing')?.status === 'True') {
+      status = 'Resizing';
+    }
+
+    return status;
+  }
+
   get stateColor() {
     const state = this.stateDisplay;
 

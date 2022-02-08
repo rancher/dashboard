@@ -2,6 +2,7 @@
 import draggable from 'vuedraggable';
 import InfoBox from '@/components/InfoBox';
 import Banner from '@/components/Banner';
+import BadgeStateFormatter from '@/components/formatter/BadgeStateFormatter';
 import UnitInput from '@/components/form/UnitInput';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -16,7 +17,7 @@ import { _VIEW, _EDIT, _CREATE } from '@/config/query-params';
 
 export default {
   components: {
-    Banner, draggable, InfoBox, LabeledInput, UnitInput, LabeledSelect, ModalWithCard
+    Banner, BadgeStateFormatter, draggable, InfoBox, LabeledInput, UnitInput, LabeledSelect, ModalWithCard
   },
 
   props: {
@@ -122,6 +123,10 @@ export default {
       return false;
     },
 
+    pvcs() {
+      return this.$store.getters['harvester/all'](PVC) || [];
+    },
+
     needRootDisk() {
       return this.rows?.[0]?.source !== SOURCE_TYPE.IMAGE && this.rows?.[0]?.source !== SOURCE_TYPE.ATTACH_VOLUME;
     },
@@ -142,12 +147,14 @@ export default {
               },
               query: { mode: _EDIT }
             };
+
+            V.pvc = this.pvcs.find(pvc => pvc.metadata.name === V.realName);
           }
 
           return V;
         });
 
-        this.rows = rows;
+        this.$set(this, 'rows', rows);
       },
       deep:      true,
       immediate: true,
@@ -245,7 +252,7 @@ export default {
 
     unplugAble(volume) {
       return volume.hotpluggable && this.isView;
-    }
+    },
   },
 };
 </script>
@@ -264,9 +271,13 @@ export default {
               {{ t('harvester.virtualMachine.unplug.detachVolume') }}
             </button>
             <h3>
-              <n-link v-if="volume.to && !isView && isVirtualType" :to="volume.to">
-                {{ t('harvester.virtualMachine.volume.edit') }} {{ headerFor(volume.source) }}
-              </n-link>
+              <span v-if="volume.to && isVirtualType" class="title">
+                <n-link :to="volume.to">
+                  {{ t('harvester.virtualMachine.volume.edit') }} {{ headerFor(volume.source) }}
+                </n-link>
+
+                <BadgeStateFormatter v-if="volume.pvc" class="ml-10" :arbitrary="true" :row="volume.pvc" :value="volume.pvc.state" />
+              </span>
 
               <span v-else>
                 {{ headerFor(volume.source) }}
@@ -367,6 +378,10 @@ export default {
 <style lang='scss' scoped>
   .volume-source {
     position: relative;
+  }
+
+  .title {
+    display: flex;
   }
 
   .remove-vol {

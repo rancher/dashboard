@@ -681,6 +681,14 @@ export default class VirtVm extends SteveModel {
     return out;
   }
 
+  get persistentVolumeClaimName() {
+    const volumes = this.spec.template.spec.volumes || [];
+
+    return volumes.map((O) => {
+      return O?.persistentVolumeClaim?.claimName;
+    }).filter( name => !!name);
+  }
+
   get rootImageId() {
     let imageId = '';
     const pvcs = this.$rootGetters[`harvester/all`](PVC) || [];
