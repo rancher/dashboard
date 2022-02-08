@@ -22,7 +22,7 @@ export function init(store) {
     category:              EPINIO_PRODUCT_NAME,
     isMultiClusterApp:     true,
     inStore:               EPINIO_PRODUCT_NAME,
-    icon:                  'epinio',
+    icon:                  'application',
     iconHeader:            require(`@/products/epinio/assets/logo-epinio.svg`),
     removable:             false,
     showClusterSwitcher:   false,

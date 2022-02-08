@@ -12,7 +12,7 @@ import {
   EVENT, METRIC, NODE, HCI, SERVICE, PVC, LONGHORN, POD, COUNT
 } from '@/config/types';
 import ResourceSummary, { resourceCounts, colorToCountName } from '@/components/ResourceSummary';
-import { colorForState } from '@/plugins/steve/resource-class';
+import { colorForState } from '@/plugins/core-store/resource-class';
 import HardwareResourceGauge from '@/components/HardwareResourceGauge';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
