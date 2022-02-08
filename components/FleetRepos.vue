@@ -59,6 +59,11 @@ export default {
       return out;
     },
   },
+  methods: {
+    parseTargetMode(row) {
+      return row.targetInfo?.mode === 'clusterGroup' ? this.t('fleet.gitRepo.warningTooltip.clusterGroup') : this.t('fleet.gitRepo.warningTooltip.cluster');
+    }
+  },
 };
 </script>
 
@@ -89,7 +94,14 @@ export default {
     <template #cell:clustersReady="{row}">
       <span v-if="!row.clusterInfo" class="text-muted">&mdash;</span>
       <span v-else-if="row.clusterInfo.unready" class="text-warning">{{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}</span>
-      <span v-else>{{ row.clusterInfo.total }}</span>
+      <span v-else class="cluster-count-info">
+        {{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}
+        <i
+          v-if="!row.clusterInfo.total"
+          v-tooltip.bottom="parseTargetMode(row)"
+          class="icon icon-warning"
+        />
+      </span>
     </template>
 
     <template #cell:target="{row}">
@@ -97,3 +109,16 @@ export default {
     </template>
   </ResourceTable>
 </template>
+
+<style lang="scss">
+.cluster-count-info {
+  display: flex;
+  align-items: center;
+
+  i {
+    margin-left: 5px;
+    font-size: 22px;
+    color: var(--warning);
+  }
+}
+</style>
