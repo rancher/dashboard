@@ -630,7 +630,6 @@ export const actions = {
   }, {
     id, product, isExt, oldProduct, oldIsExt
   }) {
-    debugger;
     const isMultiCluster = getters['isMultiCluster'];
 
     const sameCluster = state.clusterId && state.clusterId === id;

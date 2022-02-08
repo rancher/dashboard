@@ -48,7 +48,7 @@ export default {
 
     // TODO: RC tidy, conditional on isSingleProduct
     if (standalone) {
-      const prependPath = `/pp/v1/proxy/JzMZs-yIsJAlVvwrPKJ4BQkF9B0`;
+      const prependPath = `/pp/v1/proxy`;
       const url = parseUrl(opt.url);
 
       if (!url.path.startsWith(prependPath)) {
@@ -56,11 +56,17 @@ export default {
         // console.warn(opt.url, ' vs ', url, unParseUrl(url));
         opt.url = unParseUrl(url);
       }
+      opt.headers = {
+        ...opt.headers,
+        'x-cap-cnsi-list':   'rAgj2mNgfUEHq6N90b86azw8gbs', // hash of url!!
+        'x-cap-passthrough': true,
+      };
     }
 
     return await dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE }, { root: true })
       .then(() => {
         if (standalone) {
+          // TODO: RC remove?
           opt.headers = {
             ...opt.headers,
             user_id: `1234`
