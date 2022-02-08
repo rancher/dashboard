@@ -27,6 +27,6 @@ jobs:
     - name: Upload Build
       uses: actions/upload-artifact@v2
       with:
-        path: embed-rancher-desktop
+        path: embed-rancher-desktop.tar.gz
         name: embed-rancher-desktop
         if-no-files-found: error
