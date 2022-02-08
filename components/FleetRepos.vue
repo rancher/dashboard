@@ -95,7 +95,7 @@ export default {
       <span v-if="!row.clusterInfo" class="text-muted">&mdash;</span>
       <span v-else-if="row.clusterInfo.unready" class="text-warning">{{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}</span>
       <span v-else class="cluster-count-info">
-        {{ row.clusterInfo.total }}/{{ row.clusterInfo.total }}
+        {{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}
         <i
           v-if="!row.clusterInfo.total"
           v-tooltip.bottom="parseTargetMode(row)"
