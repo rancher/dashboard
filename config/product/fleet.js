@@ -27,29 +27,15 @@ export function init(store) {
     showWorkspaceSwitcher: true,
   });
 
-  /*
   virtualType({
-    label:       'Overview',
-    group:      'Root',
-    namespaced:  false,
-    name:        'istio-overview',
-    weight:      100,
-    route:       { name: 'c-cluster-istio' },
-    exact:       true,
-  });
-*/
-
-  // basicType('istio-overview');
-
-  virtualType({
-    label:       store.getters['i18n/t']('clusterIndexPage.header'),
-    icon:       'folder',
-    group:      'Root',
-    namespaced:  false,
-    name:        FLEET.DASHBOARD,
-    weight:      110,
-    route:       {
-      // name:   'c-cluster-fleet',
+    label:        store.getters['i18n/t']('fleet.dashboard.menuLabel'),
+    icon:         'folder',
+    group:        'Root',
+    namespaced:   false,
+    name:         FLEET.DASHBOARD,
+    weight:       110,
+    route:        {
+      name:   'c-cluster-fleet',
       params: { resource: FLEET.DASHBOARD }
     },
     exact: true,

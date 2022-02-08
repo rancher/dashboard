@@ -1733,6 +1733,9 @@ etcdInfoBanner:
   failedProposals: "Number of failed proposals:"
 
 fleet:
+  dashboard:
+    pageTitle: Continuous Delivery Dashboard
+    menuLabel: Dashboard
   cluster:
     summary: Resource Summary
     nonReady: Non-Ready Bundles
@@ -5828,11 +5831,6 @@ typeLabel:
     {count, plural,
       one { Cluster Group }
       other {Cluster Groups }
-    }
-  fleet.cattle.io.dashboard: |-
-    {count, plural,
-      one { Dashboard }
-      other { Dashboard }
     }
   fleet.cattle.io.gitrepo: |-
     {count, plural,
