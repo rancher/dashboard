@@ -27,7 +27,7 @@ jobs:
       run: |
         mkdir ${{ env.RELEASE_DIR }}
         yarn install --frozen-lockfile
-        NUXT_ENV_commit=${{ GITHUB_SHA} } NUXT_ENV_version=${{ GITHUB_REF_NAME }} OUTPUT_DIR=${{ env.OUTPUT_DIR }}/${{ env.ARTIFACT_NAME }} ROUTER_BASE='/dashboard' RANCHER_ENV=desktop yarn run build --spa
+        NUXT_ENV_commit=${GITHUB_SHA} NUXT_ENV_version=${GITHUB_REF_NAME} OUTPUT_DIR=${{ env.OUTPUT_DIR }}/${{ env.ARTIFACT_NAME }} ROUTER_BASE='/dashboard' RANCHER_ENV=desktop yarn run build --spa
         tar -czf ${{ env.RELEASE_DIR }}/${{ env.ARTIFACT_NAME }}.tar.gz ${{ env.OUTPUT_DIR }}/${{ env.ARTIFACT_NAME }}
         sha512sum ${{ env.RELEASE_DIR }}/${{ env.ARTIFACT_NAME }}.tar.gz > ${{ env.RELEASE_DIR }}/${{ env.ARTIFACT_NAME }}.tar.gz.sha512sum
 
