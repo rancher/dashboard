@@ -1664,6 +1664,10 @@ clusterIndexPage:
     nodes:
       label: Unhealthy Nodes
       noRows: There are no unhealthy nodes to show.
+    componentStatus:
+      etcd: Etcd
+      scheduler: Scheduler
+      controller-manager: Controller Manager
 
 configmap:
   tabs:
