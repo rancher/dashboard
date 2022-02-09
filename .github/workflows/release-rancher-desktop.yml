@@ -2,12 +2,13 @@ name: Build and Release Rancher Dashboard - Rancher Desktop Embed
 
 on:
   push:
-    branch:
-      - 'feature/rancher-desktop-builds'
+    tags:
+      - '*'
   
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/feature/rancher-desktop-builds'
     steps:
     - uses: actions/checkout@v2
       with:
@@ -30,3 +31,10 @@ jobs:
         path: dist/embed-rancher-desktop
         name: embed-rancher-desktop
         if-no-files-found: error
+
+    - name: Upload Assets
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: embed-rancher-desktop.tar.gz
+        tag: ${{ github.ref }}
