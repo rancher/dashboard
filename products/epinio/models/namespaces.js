@@ -1,6 +1,6 @@
 import EpinioResource from './epinio-resource';
 
-export default class EpinioNamespaces extends EpinioResource {
+export default class EpinioNamespace extends EpinioResource {
   get links() {
     return {
       self:   this.getUrl(),
@@ -52,5 +52,9 @@ export default class EpinioNamespaces extends EpinioResource {
 
   get warnDeletionMessage() {
     return this.t('epinio.namespace.deleteWarning');
+  }
+
+  get metadata() {
+    return { name: this.name };
   }
 }

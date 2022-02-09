@@ -195,28 +195,6 @@ export default class EpinioApplication extends EpinioResource {
     return this.deployment?.millicpus;
   }
 
-  // ------------------------------------------------------------------
-  // Methods here are required for generic components to handle `namespaced` concept
-
-  set metadata(metadata) {
-    this.meta = {
-      namespace: metadata.namespace,
-      name:      metadata.name,
-    };
-  }
-
-  get metadata() {
-    return this.meta || {};
-  }
-
-  get namespaceLocation() {
-    return createEpinioRoute(`c-cluster-resource-id`, {
-      cluster:   this.$rootGetters['clusterId'],
-      resource:  EPINIO_TYPES.NAMESPACE,
-      id:       this.meta.namespace,
-    });
-  }
-
   get sourceInfo() {
     if (!this.origin) {
       return undefined;
@@ -246,6 +224,28 @@ export default class EpinioApplication extends EpinioResource {
     default:
       return undefined;
     }
+  }
+
+  // ------------------------------------------------------------------
+  // Methods here are required for generic components to handle `namespaced` concept
+
+  set metadata(metadata) {
+    this.meta = {
+      namespace: metadata.namespace,
+      name:      metadata.name,
+    };
+  }
+
+  get metadata() {
+    return this.meta || {};
+  }
+
+  get namespaceLocation() {
+    return createEpinioRoute(`c-cluster-resource-id`, {
+      cluster:   this.$rootGetters['clusterId'],
+      resource:  EPINIO_TYPES.NAMESPACE,
+      id:       this.meta.namespace,
+    });
   }
 
   // ------------------------------------------------------------------
