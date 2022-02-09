@@ -75,6 +75,8 @@ module.exports = {
     pl,
   },
 
+  publicRuntimeConfig: { rancherEnv: process.env.RANCHER_ENV || 'web' },
+
   buildDir: dev ? '.nuxt' : '.nuxt-prod',
 
   buildModules: [

@@ -49,6 +49,8 @@ export function init(store) {
   ]);
 
   configureType(FLEET.CLUSTER, { isCreatable: false });
+  configureType(FLEET.GIT_REPO, { showListMasthead: false });
+
   weightType(FLEET.GIT_REPO, 109, true);
   weightType(FLEET.CLUSTER, 108, true);
   weightType(FLEET.CLUSTER_GROUP, 107, true);
