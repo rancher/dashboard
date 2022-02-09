@@ -393,9 +393,5 @@ export default {
     background-color: transparent;
     padding: 8px;
   }
-
-  h2 {
-    font-size: 16px;
-  }
 }
 </style>

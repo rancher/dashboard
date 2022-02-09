@@ -141,10 +141,10 @@ export default {
 
 <template>
   <div :class="{'force-wrap': true, 'with-copy':copy}">
-    <h5 v-if="labelKey" v-t="labelKey" />
-    <h5 v-else-if="label">
+    <h4 v-if="labelKey" v-t="labelKey" class="label mb-5" />
+    <h4 v-else-if="label" class="label mb-5">
       {{ label }}
-    </h5>
+    </h4>
 
     <span v-if="isEmpty" v-t="'detailText.empty'" class="text-italic" />
     <span v-else-if="isBinary" class="text-italic">{{ t('detailText.binary', {n: size}) }}</span>

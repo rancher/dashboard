@@ -229,7 +229,7 @@ export default {
     <Card class="m-0" :show-highlight-border="false" :show-actions="false">
       <template v-slot:title>
         <div class="type-title">
-          <h3>{{ t('members.clusterPermissions.label') }}</h3>
+          <h2>{{ t('members.clusterPermissions.label') }}</h2>
           <div class="type-description">
             {{ t('members.clusterPermissions.description') }}
           </div>
