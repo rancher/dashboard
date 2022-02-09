@@ -68,7 +68,7 @@ export function init(store) {
         }
       },
       {
-        id:             SPOOFED.HOSTPATHS_PSP,
+        id:             SPOOFED.HOSTPATHS_PSP, // This is just recreating what I need to get from helm for policy charts
         type:           'schema',
         group:          'kubewarden',
         resourceFields: { questions: { allowedHostPaths: { type: 'array[string]' } } }
