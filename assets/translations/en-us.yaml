@@ -6386,7 +6386,7 @@ manager:
 
 auth:
   config:
-    label: Auth Providor
+    label: Auth Provider
 vncConsole:
   error:
     message: Web VNC console connection is disconnected
