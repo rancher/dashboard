@@ -3,7 +3,7 @@ name: Build and Release Rancher Dashboard - Rancher Desktop Embed
 on:
   push:
     tags:
-      - '*'
+        - 'v**-desktop*'
   
 jobs:
   build:
@@ -17,15 +17,6 @@ jobs:
     - uses: actions/setup-node@v2
       with:
         node-version: '12.x'
-    
-    - name: Get Branch Name
-      run: |
-        echo "NOT FAIL"
-        echo "${GITHUB_REF#refs/heads/}"
-        echo "${GITHUB_REF_NAME}"
-        echo "NOT FAIL"
-        echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-      id: get_branch
     
     - name: Install & Build
       run: |
