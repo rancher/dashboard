@@ -119,8 +119,8 @@ export default {
       return {
         ...this.isSingleProduct.logoRoute,
         params: {
-          ...this.isSingleProduct.logoRoute.params,
           cluster,
+          ...this.isSingleProduct.logoRoute.params,
         }
       };
     },

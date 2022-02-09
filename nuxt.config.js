@@ -322,7 +322,7 @@ module.exports = {
   // Proxy: https://github.com/nuxt-community/proxy-module#options
   proxy: {
     '/k8s':          proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
-    '/pp':           proxyWsOpts(api), // TODO: RC
+    '/pp':           proxyWsOpts(api), // For (epinio) standalone API
     '/api':          proxyWsOpts(api), // Management k8s API
     '/apis':         proxyWsOpts(api), // Management k8s API
     '/v1':           proxyWsOpts(api), // Management Steve API

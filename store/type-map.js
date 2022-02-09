@@ -1665,7 +1665,7 @@ function ifHave(getters, option) {
     return getters.isMultiCluster;
   }
   case IF_HAVE.HARVESTER_SINGLE_CLUSTER: {
-    return getters.isSingleVirtualCluster2; // TODO: RC rename
+    return getters.isSingleVirtualCluster2;
   }
   default:
     return false;

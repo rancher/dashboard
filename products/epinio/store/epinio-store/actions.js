@@ -25,8 +25,6 @@ const epiniofy = (obj, schema, type) => ({
   type,
 });
 
-const standalone = true; // TODO: RC conditional on isSingleProduct
-
 export default {
 
   remove({ commit }, obj ) {
@@ -46,31 +44,16 @@ export default {
     opt.depaginate = opt.depaginate !== false;
     opt.url = opt.url.replace(/\/*$/g, '');
 
-    // TODO: RC tidy, conditional on isSingleProduct
-    if (standalone) {
-      const prependPath = `/pp/v1/proxy`;
-      const url = parseUrl(opt.url);
-
-      if (!url.path.startsWith(prependPath)) {
-        url.path = prependPath + url.path;
-        // console.warn(opt.url, ' vs ', url, unParseUrl(url));
-        opt.url = unParseUrl(url);
-      }
-      opt.headers = {
-        ...opt.headers,
-        'x-cap-cnsi-list':   'rAgj2mNgfUEHq6N90b86azw8gbs', // hash of url!!
-        'x-cap-passthrough': true,
-      };
-    }
-
     return await dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE }, { root: true })
       .then(() => {
-        if (standalone) {
-          // TODO: RC remove?
-          opt.headers = {
-            ...opt.headers,
-            user_id: `1234`
-          };
+        if (rootGetters['isSingleProduct']) {
+          const prependPath = `/pp/v1/proxy`;
+          const url = parseUrl(opt.url);
+
+          if (!url.path.startsWith(prependPath)) {
+            url.path = prependPath + url.path;
+            opt.url = unParseUrl(url);
+          }
         } else {
           const currentClusterId = clusterId || rootGetters['clusterId'];
           const currentCluster = rootGetters[`${ EPINIO_MGMT_STORE }/byId`](EPINIO_TYPES.INSTANCE, currentClusterId);

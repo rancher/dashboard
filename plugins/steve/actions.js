@@ -24,15 +24,16 @@ export default {
     opt.depaginate = opt.depaginate !== false;
     opt.url = opt.url.replace(/\/*$/g, '');
 
-    const url = parseUrl(opt.url);
-
-    // TODO: RC tidy, conditional on isSingleProduct
+    // TODO: RC this is used by log in... way before epinio product is initialised
     const prependPath = `/pp/v1/epinio/rancher`;
 
-    if (!url.path.startsWith(prependPath)) {
-      url.path = prependPath + url.path;
-      console.warn(opt.url, ' vs ', url, unParseUrl(url));
-      opt.url = unParseUrl(url);
+    if (prependPath) {
+      const url = parseUrl(opt.url);
+
+      if (!url.path.startsWith(prependPath)) {
+        url.path = prependPath + url.path;
+        opt.url = unParseUrl(url);
+      }
     }
 
     opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });

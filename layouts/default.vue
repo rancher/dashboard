@@ -140,7 +140,7 @@ export default {
     displayVersion() {
       let { displayVersion } = getVersionInfo(this.$store);
 
-      if (this.isVirtualProduct && this.isSingleProduct) {
+      if (this.isSingleProduct) {
         displayVersion = this.isSingleProduct.version || 'unknown';
       }
 
