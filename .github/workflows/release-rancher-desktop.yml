@@ -4,6 +4,11 @@ on:
   push:
     tags:
         - 'v**-desktop*'
+
+env:
+  OUTPUT_DIR: dist
+  RELEASE_DIR: release
+  ARTIFACT_NAME: embed-rancher-desktop  
   
 jobs:
   build:
@@ -20,23 +25,23 @@ jobs:
     
     - name: Install & Build
       run: |
-        mkdir release
+        mkdir ${RELEASE_DIR}
         yarn install --frozen-lockfile
-        NUXT_ENV_commit=${GITHUB_SHA} NUXT_ENV_version=${GITHUB_REF_NAME} OUTPUT_DIR=dist/embed-rancher-desktop ROUTER_BASE='/dashboard' RANCHER_ENV=desktop yarn run build --spa
-        tar -czf release/embed-rancher-desktop.tar.gz dist/embed-rancher-desktop
-        sha512sum release/embed-rancher-desktop.tar.gz > release/embed-rancher-desktop.tar.gz.sha512sum
+        NUXT_ENV_commit=${GITHUB_SHA} NUXT_ENV_version=${GITHUB_REF_NAME} OUTPUT_DIR=${OUTPUT_DIR}/${ARTIFACT_NAME} ROUTER_BASE='/dashboard' RANCHER_ENV=desktop yarn run build --spa
+        tar -czf ${RELEASE_DIR}/${ARTIFACT_NAME}.tar.gz ${OUTPUT_DIR}/${ARTIFACT_NAME}
+        sha512sum ${RELEASE_DIR}/${ARTIFACT_NAME}.tar.gz > ${RELEASE_DIR}/${ARTIFACT_NAME}.tar.gz.sha512sum
 
     - name: Upload Build
       uses: actions/upload-artifact@v2
       with:
-        path: dist/embed-rancher-desktop
-        name: embed-rancher-desktop
+        path: ${OUTPUT_DIR}/${ARTIFACT_NAME}
+        name: ${ARTIFACT_NAME}
         if-no-files-found: error
 
     - name: Upload Assets
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: release/*
+        file: ${RELEASE_DIR}/*
         tag: ${{ github.ref }}
         file_glob: true
