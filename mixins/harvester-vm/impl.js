@@ -3,6 +3,7 @@ import isEqual from 'lodash/isEqual';
 import { clone } from '@/utils/object';
 import { HCI, SECRET } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
+import { OS } from './index';
 
 export const QGA_JSON = {
   package_update: true,
@@ -12,12 +13,12 @@ export const QGA_JSON = {
       'systemctl',
       'enable',
       '--now',
-      'qemu-guest-agent'
+      'qemu-guest-agent.service'
     ]
   ]
 };
 
-export const QGA_MAP = { default: 'qemu-guest-agent' };
+export const QGA_MAP = { default: 'qemu-guest-agent.service' };
 
 export const USB_TABLET = [{
   bus:  'usb',
@@ -45,9 +46,16 @@ export default {
 
     getMatchQGA(osType) {
       const _QGA_JSON = clone(QGA_JSON);
+      let hasCustomQGA = false;
 
-      if (osType === 'openSUSE') {
-        _QGA_JSON.runcmd[0][3] = QGA_MAP['suse'];
+      OS.forEach((O) => {
+        if (O.match) {
+          hasCustomQGA = O.match.find(type => type === osType);
+        }
+      });
+
+      if (hasCustomQGA) {
+        _QGA_JSON.runcmd[0][3] = QGA_MAP[osType];
       } else {
         _QGA_JSON.runcmd[0][3] = QGA_MAP['default'];
       }

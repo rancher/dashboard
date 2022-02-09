@@ -17,7 +17,7 @@ import {
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import impl, { QGA_JSON, USB_TABLET } from '@/mixins/harvester-vm/impl';
 
-const OS = [{
+export const OS = [{
   label: 'Windows',
   value: 'windows'
 }, {
@@ -43,7 +43,7 @@ const OS = [{
   value: 'redhat'
 }, {
   label: 'openSUSE',
-  value: 'openSUSE'
+  value: 'openSUSE',
 }, {
   label: 'Turbolinux',
   value: 'turbolinux'
@@ -134,7 +134,8 @@ export default {
       publicKey:          '',
       secretName:         '',
       secretRef:          null,
-      showAdvanced:       false
+      showAdvanced:       false,
+      deleteAgent:        true
     };
   },
 
@@ -1045,10 +1046,13 @@ export default {
 
     installAgent: {
       handler(neu) {
-        const out = this.getUserData({ installAgent: neu, osType: this.osType });
+        if (this.deleteAgent) {
+          const out = this.getUserData({ installAgent: neu, osType: this.osType });
 
-        this.$set(this, 'userScript', out);
-        this.refreshYamlEditor();
+          this.$set(this, 'userScript', out);
+          this.refreshYamlEditor();
+        }
+        this.deleteAgent = true;
       },
       immediate: true
     },
@@ -1062,6 +1066,10 @@ export default {
 
     userScript(neu) {
       const hasInstallAgent = this.hasInstallAgent(neu, this.osType, this.installAgent);
+
+      if (hasInstallAgent !== this.installAgent) {
+        this.deleteAgent = false;
+      }
 
       this.installAgent = hasInstallAgent;
     },
