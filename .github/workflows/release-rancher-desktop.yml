@@ -25,23 +25,23 @@ jobs:
     
     - name: Install & Build
       run: |
-        mkdir ${{ RELEASE_DIR }}
+        mkdir ${{ env.RELEASE_DIR }}
         yarn install --frozen-lockfile
-        NUXT_ENV_commit=${{ GITHUB_SHA} } NUXT_ENV_version=${{ GITHUB_REF_NAME }} OUTPUT_DIR=${{ OUTPUT_DIR }}/${{ ARTIFACT_NAME }} ROUTER_BASE='/dashboard' RANCHER_ENV=desktop yarn run build --spa
-        tar -czf ${{ RELEASE_DIR }}/${{ ARTIFACT_NAME }}.tar.gz ${{ OUTPUT_DIR }}/${{ ARTIFACT_NAME }}
-        sha512sum ${{ RELEASE_DIR }}/${{ ARTIFACT_NAME }}.tar.gz > ${{ RELEASE_DIR }}/${{ ARTIFACT_NAME }}.tar.gz.sha512sum
+        NUXT_ENV_commit=${{ GITHUB_SHA} } NUXT_ENV_version=${{ GITHUB_REF_NAME }} OUTPUT_DIR=${{ env.OUTPUT_DIR }}/${{ env.ARTIFACT_NAME }} ROUTER_BASE='/dashboard' RANCHER_ENV=desktop yarn run build --spa
+        tar -czf ${{ env.RELEASE_DIR }}/${{ env.ARTIFACT_NAME }}.tar.gz ${{ env.OUTPUT_DIR }}/${{ env.ARTIFACT_NAME }}
+        sha512sum ${{ env.RELEASE_DIR }}/${{ env.ARTIFACT_NAME }}.tar.gz > ${{ env.RELEASE_DIR }}/${{ env.ARTIFACT_NAME }}.tar.gz.sha512sum
 
     - name: Upload Build
       uses: actions/upload-artifact@v2
       with:
-        path: ${{ OUTPUT_DIR }}/${{ ARTIFACT_NAME }}
-        name: ${{ ARTIFACT_NAME }}
+        path: ${{ env.OUTPUT_DIR }}/${{ env.ARTIFACT_NAME }}
+        name: ${{ env.ARTIFACT_NAME }}
         if-no-files-found: error
 
     - name: Upload Assets
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ${{ RELEASE_DIR }}/*
+        file: ${{ env.RELEASE_DIR }}/*
         tag: ${{ github.ref }}
         file_glob: true
