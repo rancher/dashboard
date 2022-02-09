@@ -8,7 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/feature/rancher-desktop-builds'
     steps:
     - uses: actions/checkout@v2
       with:
@@ -18,6 +17,10 @@ jobs:
     - uses: actions/setup-node@v2
       with:
         node-version: '12.x'
+    
+    - name: Get Branch Name
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      id: get_branch
     
     - name: Install & Build
       run: |
