@@ -20,9 +20,11 @@ jobs:
     
     - name: Install & Build
       run: |
+        mkdir release
         yarn install --frozen-lockfile
         NUXT_ENV_commit=${GITHUB_SHA} NUXT_ENV_version=${GITHUB_REF_NAME} OUTPUT_DIR=dist/embed-rancher-desktop ROUTER_BASE='/dashboard' RANCHER_ENV=desktop yarn run build --spa
-        tar -czf embed-rancher-desktop.tar.gz dist/embed-rancher-desktop
+        tar -czf release/embed-rancher-desktop.tar.gz dist/embed-rancher-desktop
+        sha512sum release/embed-rancher-desktop.tar.gz > release/embed-rancher-desktop.tar.gz.sha512sum"
 
     - name: Upload Build
       uses: actions/upload-artifact@v2
@@ -35,5 +37,6 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: embed-rancher-desktop.tar.gz
+        file: release/*
         tag: ${{ github.ref }}
+        file_glob: true
