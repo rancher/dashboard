@@ -4246,7 +4246,7 @@ tableHeaders:
     projectDefault: Project Creator Default
   branch: Branch
   builtIn: Built In
-  bundlesReady: Bundles
+  bundlesReady: Bundles Ready
   bundleDeploymentsReady: Deployments
   builtin: Built-In
   chart: Chart
@@ -4328,11 +4328,14 @@ tableHeaders:
   reason: Reason
   reclaimPolicy: Reclaim Policy
   repo: Repo
+  repositories: Repositories
+  repoName: Repository Name
   reposReady: Repos Ready
   replicas: Replicas
   reqRate: Req Rate
   resource: Resource
   resources: Resources
+  resourcesReady: Resources Ready
   restarts: Restarts
   role: Role
   roles: Roles

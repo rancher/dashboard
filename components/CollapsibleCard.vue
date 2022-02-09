@@ -1,0 +1,105 @@
+<script>
+export default {
+  name:  'CollapsibleCard',
+  props: {
+    isCollapsed: {
+      type:    Boolean,
+      default: false
+    },
+    isStarred: {
+      type:    Boolean,
+      default: false
+    },
+    title: {
+      type:    String,
+      default: ''
+    }
+  },
+  data() {
+    return { isCardCollapsed: this.isCollapsed };
+  },
+  methods: {
+    toggleCollapse() {
+      this.isCardCollapsed = !this.isCardCollapsed;
+    }
+  },
+};
+</script>
+
+<template>
+  <div class="collapsible-card" :class="{isCardCollapsed: isCardCollapsed}">
+    <div class="collapsible-card-header" @click="toggleCollapse">
+      <h2 class="mb-0">
+        <span>{{ title }}</span>
+        <i v-if="isStarred" class="icon-star-open" />
+      </h2>
+      <div>
+        <slot name="header-right"></slot>
+        <i
+          class="collapsible-card-collapse-icon"
+          :class="{
+            'icon-chevron-up': !isCardCollapsed,
+            'icon-chevron-down': isCardCollapsed
+          }"
+        />
+      </div>
+    </div>
+    <div class="collapsible-card-body">
+      <slot name="content"></slot>
+    </div>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.collapsible-card {
+  border-radius: 5px;
+  border: 1px solid var(--sortable-table-top-divider);
+
+  &.isCardCollapsed {
+    .collapsible-card-header {
+      border-bottom: none;
+    }
+    .collapsible-card-body {
+      visibility: hidden;
+      display: none;
+    }
+  }
+
+  &-header {
+    background-color: var(--sortable-table-header-bg);
+    border-bottom: 1px solid var(--sortable-table-top-divider);
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+
+    h2 {
+      display: flex;
+      align-items: center;
+
+      i {
+        margin-left: 10px;
+      }
+    }
+
+    > div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+
+  &-collapse-icon {
+    font-size: 24px;
+    color: #B7B8BB;
+  }
+
+  &-body {
+    padding: 20px;
+    transition: all 250ms ease-in-out;
+    visibility: visible;
+    display: block;
+  }
+}
+</style>

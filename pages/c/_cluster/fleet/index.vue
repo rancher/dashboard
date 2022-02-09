@@ -1,25 +1,21 @@
 <script>
 import Loading from '@/components/Loading';
 import { FLEET } from '@/config/types';
+import CollapsibleCard from '@/components/CollapsibleCard.vue';
 import ResourceTable from '@/components/ResourceTable';
-import Link from '@/components/formatter/Link';
-import Shortened from '@/components/formatter/Shortened';
-import {
-  AGE,
-  STATE,
-  NAME,
-  FLEET_SUMMARY
-} from '@/config/table-headers';
 
 export default {
   name:       'ListGitRepo',
   components: {
-    Loading, ResourceTable, Link, Shortened
+    Loading,
+    ResourceTable,
+    CollapsibleCard,
   },
 
   async fetch() {
     const store = this.$store;
 
+    this.allBundles = await this.$store.dispatch('management/findAll', { type: FLEET.BUNDLE });
     this.gitRepos = await store.dispatch(`management/findAll`, { type: FLEET.GIT_REPO });
     this.fleetWorkspaces = await store.dispatch(`management/findAll`, { type: FLEET.WORKSPACE });
   },
@@ -27,44 +23,48 @@ export default {
   data() {
     return {
       schema:          {},
+      allBundles:      null,
       gitRepos:        null,
-      fleetWorkspaces: null
+      fleetWorkspaces: null,
     };
   },
   computed: {
-    dashboardData() {
+    workspacesData() {
       const finalData = {};
 
       this.fleetWorkspaces.forEach((ws) => {
+        finalData[ws.id] = {
+          workspace: ws,
+          repos:     []
+        };
+
         const repos = this.gitRepos.filter(rep => rep.namespace === ws.id);
 
         if (repos.length) {
-          if (!finalData[ws.id]) {
-            finalData[ws.id] = [];
-          }
+          repos.forEach((repo, i) => {
+            const bundles = this.allBundles.filter(bundle => bundle.nameDisplay.includes(repo.nameDisplay));
 
-          finalData[ws.id] = repos;
+            repos[i].bundles = bundles;
+            repos[i].bundlesReady = bundles.filter(bundle => bundle.state === 'active');
+          });
+
+          finalData[ws.id].repos = repos;
         }
       });
+
+      console.log('FINALDATA', finalData);
 
       return finalData;
     },
     headers() {
       const out = [
-        STATE,
-        NAME,
         {
-          name:     'repo',
-          labelKey: 'tableHeaders.repo',
-          value:    'repoDisplay',
-          sort:     'repoDisplay',
-          search:   ['spec.repo', 'status.commit'],
-        },
-        {
-          name:     'target',
-          labelKey: 'tableHeaders.target',
-          value:    'targetInfo.modeDisplay',
-          sort:     ['targetInfo.modeDisplay', 'targetInfo.cluster', 'targetInfo.clusterGroup'],
+          name:          'name',
+          labelKey:      'tableHeaders.repoName',
+          value:         'nameDisplay',
+          sort:          ['nameSort'],
+          formatter:     'LinkDetail',
+          canBeVariable: true,
         },
         {
           name:      'clustersReady',
@@ -73,8 +73,19 @@ export default {
           sort:      'status.readyClusters',
           search:    false,
         },
-        FLEET_SUMMARY,
-        AGE
+        {
+          name:      'bundlesReady',
+          labelKey:  'tableHeaders.bundlesReady',
+          value:     'status.readyClusters',
+          sort:      'status.readyClusters',
+          search:    false,
+        },
+        {
+          name:     'resourcesReady',
+          labelKey: 'tableHeaders.resourcesReady',
+          value:    'status.resourceCounts.ready',
+          sort:     'status.resourceCounts.ready',
+        }
       ];
 
       return out;
@@ -83,6 +94,30 @@ export default {
   methods: {
     parseTargetMode(row) {
       return row.targetInfo?.mode === 'clusterGroup' ? this.t('fleet.gitRepo.warningTooltip.clusterGroup') : this.t('fleet.gitRepo.warningTooltip.cluster');
+    },
+    badgeClass(area, row) {
+      switch (area) {
+      case 'clusters':
+        if (row.clusterInfo?.ready === row.clusterInfo?.total && row.clusterInfo?.ready) {
+          return 'green-badge';
+        }
+
+        return 'red-badge';
+      case 'bundles':
+        if (row.bundlesReady?.length === row.bundles.length && row.bundlesReady?.length) {
+          return 'green-badge';
+        }
+
+        return 'red-badge';
+      case 'resources':
+        if (row.status?.resourceCounts?.desiredReady === row.status?.resourceCounts?.ready && row.status?.resourceCounts?.desiredReady) {
+          return 'green-badge';
+        }
+
+        return 'red-badge';
+      default:
+        return {};
+      }
     }
   },
 };
@@ -99,69 +134,111 @@ export default {
           </h1>
         </div>
       </header>
-      <ul>
-        <li v-for="(ws, wsKey) in dashboardData" :key="wsKey">
-          {{ wsKey }}
-          <ul>
-            <li v-for="(repo, ri) in ws" :key="ri">
-              {{ repo.nameDisplay }}
-            </li>
-            <ResourceTable
-              v-bind="$attrs"
-              :schema="schema"
-              :headers="headers"
-              :rows="ws"
-              key-field="_key"
-              v-on="$listeners"
-            >
-              <template #cell:repo="{row}">
-                <Link
-                  :row="row"
-                  :value="row.spec.repo"
-                  label-key="repoDisplay"
-                  before-icon-key="repoIcon"
-                  url-key="spec.repo"
-                />
-                <template v-if="row.commitDisplay">
-                  <div class="text-muted">
-                    <Shortened long-value-key="status.commit" :row="row" :value="row.commitDisplay" />
-                  </div>
-                </template>
-              </template>
+      <CollapsibleCard
+        v-for="(ws, wsKey) in workspacesData"
+        :key="wsKey"
+        class="mb-40"
+        :title="`${t('resourceDetail.masthead.workspace')}: ${wsKey}`"
+      >
+        <template v-slot:header-right>
+          <div class="header-icons">
+            <p>
+              <i class="icon-repository" />
+              <span>{{ t('tableHeaders.repositories') }}: <span>{{ ws.workspace.counts.gitRepos }}</span></span>
+            </p>
+            <p>
+              <i class="icon-storage" />
+              <span>{{ t('tableHeaders.clusters') }}: <span>{{ ws.workspace.counts.clusters }}</span></span>
+            </p>
+            <p>
+              <i class="icon-folder" />
+              <span>{{ t('tableHeaders.clusterGroups') }}: <span>{{ ws.workspace.counts.clusterGroups }}</span></span>
+            </p>
+          </div>
+        </template>
+        <template v-slot:content>
+          <ResourceTable
+            v-bind="$attrs"
+            :schema="schema"
+            :headers="headers"
+            :rows="ws.repos"
+            key-field="_key"
+            :search="false"
+            :table-actions="false"
+            v-on="$listeners"
+          >
+            <template #cell:clustersReady="{row}">
+              <span
+                class="cluster-count-info"
+                :class="badgeClass('clusters', row)"
+              >
+                {{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}
+              </span>
+            </template>
+            <template #cell:bundlesReady="{row}">
+              <span
+                class="cluster-count-info"
+                :class="badgeClass('bundles', row)"
+              >
+                {{ row.bundlesReady.length }}/{{ row.bundles.length }}
+              </span>
+            </template>
+            <template #cell:resourcesReady="{row}">
+              <span
+                class="cluster-count-info"
+                :class="badgeClass('resources', row)"
+              >
+                {{ row.status.resourceCounts.ready }}/{{ row.status.resourceCounts.desiredReady }}
+              </span>
+            </template>
 
-              <template #cell:clustersReady="{row}">
-                <span v-if="!row.clusterInfo" class="text-muted">&mdash;</span>
-                <span v-else-if="row.clusterInfo.unready" class="text-warning">{{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}</span>
-                <span v-else class="cluster-count-info">
-                  {{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}
-                  <i
-                    v-if="!row.clusterInfo.total"
-                    v-tooltip.bottom="parseTargetMode(row)"
-                    class="icon icon-warning"
-                  />
-                </span>
-              </template>
-
-              <template #cell:target="{row}">
-                {{ row.targetInfo.modeDisplay }}
-              </template>
-            </ResourceTable>
-          </ul>
-        </li>
-      </ul>
+            <template #cell:target="{row}">
+              {{ row.targetInfo.modeDisplay }}
+            </template>
+          </ResourceTable>
+        </template>
+      </CollapsibleCard>
     </section>
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .cluster-count-info {
+  padding: 5px 20px;
+  border-radius: 20px;
+  display: inline-block;
+  color: var(--primary-text);
+
+  &.red-badge {
+    background-color: var(--error);
+  }
+  &.green-badge {
+    background-color: var(--success);
+  }
+}
+
+.header-icons {
   display: flex;
   align-items: center;
 
-  i {
-    margin-left: 5px;
-    font-size: 22px;
-    color: var(--warning);
+  p {
+    margin-right: 30px;
+    display: flex;
+    align-items: center;
+
+    > span {
+      color: var(--disabled-text);
+
+      > span {
+        color: var(--body-text);
+      }
+    }
+
+    i {
+      color: var(--disabled-text);
+      font-size: 20px;
+      margin-right: 10px;
+    }
   }
 }
 </style>
