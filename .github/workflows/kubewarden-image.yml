@@ -26,4 +26,3 @@ jobs:
           token: ${{ secrets.DISPATCH_HOOK_TOKEN }}
           repository: jordojordo/UI
           event-type: dispatch-ui
-          client-payload: '{"ref": "${{ github.ref }}"}'
