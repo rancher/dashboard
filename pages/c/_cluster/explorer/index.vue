@@ -233,10 +233,27 @@ export default {
     },
 
     metricAggregations() {
-      const nodes = this.nodes;
-      const someNonWorkerRoles = this.nodes.some(node => node.hasARole && !node.isWorker);
+      let checkNodes = this.nodes;
+
+      // Special case local cluster
+      if (this.currentCluster.isLocal) {
+        const nodeNames = this.nodes.reduce((acc, n) => {
+          acc[n.id] = n;
+
+          return acc;
+        }, {});
+        const managementNodes = this.$store.getters['management/all'](MANAGEMENT.NODE);
+
+        checkNodes = managementNodes.filter((n) => {
+          const nodeName = n.metadata?.labels?.['management.cattle.io/nodename'] || n.id;
+
+          return !!nodeNames[nodeName];
+        });
+      }
+
+      const someNonWorkerRoles = checkNodes.some(node => node.hasARole && !node.isWorker);
       const metrics = this.nodeMetrics.filter((nodeMetrics) => {
-        const node = nodes.find(nd => nd.id === nodeMetrics.id);
+        const node = this.nodes.find(nd => nd.id === nodeMetrics.id);
 
         return node && (!someNonWorkerRoles || node.isWorker);
       });
