@@ -308,6 +308,6 @@ export default class GitRepo extends SteveModel {
       return this.bundles.filter(bundle => bundle.state === 'active');
     }
 
-    return null;
+    return 0;
   }
 }
