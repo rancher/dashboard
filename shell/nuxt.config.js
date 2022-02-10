@@ -70,11 +70,12 @@ export default function(dir, _appConfig) {
 
       // The package.json must have the 'rancher' property to mark it as a UI package
       if (f.rancher) {
-        nmPackages[f.name] = f.main;
+        const id = `${ f.name }-${ f.version }`;
+        nmPackages[id] = f.main;
 
         // Add server middleware to serve up the files for this UI package
         serverMiddleware.push({
-          path:    `/pkg/${ f.name }`,
+          path:    `/pkg/${ id }`,
           handler: serveStatic(path.join(NM, pkg))
         });
       }
