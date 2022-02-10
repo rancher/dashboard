@@ -12,10 +12,10 @@ jobs:
   build:
     name: Dispatch ui image
     runs-on: ubuntu-latest
-    outputs:
-      repository: ghcr.io/kubewarden/UI
-      tag: ${{ env.TAG_NAME }}
-      artifact: kubewarden-ui-image-${{ env.TAG_NAME }}
+    # outputs:
+    #   repository: ghcr.io/kubewarden/UI
+    #   tag: ${{ env.TAG_NAME }}
+    #   artifact: kubewarden-ui-image-${{ env.TAG_NAME }}
     steps:
       - uses: actions/checkout@v2
 
