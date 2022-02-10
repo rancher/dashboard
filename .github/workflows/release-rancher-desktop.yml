@@ -8,7 +8,7 @@ on:
 env:
   OUTPUT_DIR: dist
   RELEASE_DIR: release
-  ARTIFACT_NAME: embed-rancher-desktop  
+  ARTIFACT_NAME: rancher-dashboard-desktop-embed
   
 jobs:
   build:
