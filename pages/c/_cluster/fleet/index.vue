@@ -1,6 +1,7 @@
 <script>
 import Loading from '@/components/Loading';
 import { FLEET } from '@/config/types';
+import { allHash } from '@/utils/promise';
 import CollapsibleCard from '@/components/CollapsibleCard.vue';
 import ResourceTable from '@/components/ResourceTable';
 
@@ -13,51 +14,28 @@ export default {
   },
 
   async fetch() {
-    const store = this.$store;
+    const hash = await allHash({
+      allBundles:      this.$store.dispatch('management/findAll', { type: FLEET.BUNDLE }),
+      gitRepos:        this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO }),
+      fleetWorkspaces: this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE }),
+    });
 
-    this.allBundles = await this.$store.dispatch('management/findAll', { type: FLEET.BUNDLE });
-    this.gitRepos = await store.dispatch(`management/findAll`, { type: FLEET.GIT_REPO });
-    this.fleetWorkspaces = await store.dispatch(`management/findAll`, { type: FLEET.WORKSPACE });
+    this.allBundles = hash.allBundles;
+    this.gitRepos = hash.gitRepos;
+    this.fleetWorkspaces = hash.fleetWorkspaces;
+
+    const workspaces = this.fleetWorkspaces.filter(ws => ws.repos.length);
+
+    if (workspaces.length) {
+      workspaces.forEach((ws) => {
+        this.isCollapsed[ws.id] = false;
+      });
+    }
   },
 
   data() {
     return {
-      schema:          {},
-      allBundles:      null,
-      gitRepos:        null,
-      fleetWorkspaces: null,
-    };
-  },
-  computed: {
-    workspacesData() {
-      const finalData = {};
-
-      this.fleetWorkspaces.forEach((ws) => {
-        finalData[ws.id] = {
-          workspace: ws,
-          repos:     []
-        };
-
-        const repos = this.gitRepos.filter(rep => rep.namespace === ws.id);
-
-        if (repos.length) {
-          repos.forEach((repo, i) => {
-            const bundles = this.allBundles.filter(bundle => bundle.nameDisplay.includes(repo.nameDisplay));
-
-            repos[i].bundles = bundles;
-            repos[i].bundlesReady = bundles.filter(bundle => bundle.state === 'active');
-          });
-
-          finalData[ws.id].repos = repos;
-        }
-      });
-
-      console.log('FINALDATA', finalData);
-
-      return finalData;
-    },
-    headers() {
-      const out = [
+      headers: [
         {
           name:          'name',
           labelKey:      'tableHeaders.repoName',
@@ -86,10 +64,21 @@ export default {
           value:    'status.resourceCounts.ready',
           sort:     'status.resourceCounts.ready',
         }
-      ];
-
-      return out;
+      ],
+      schema:          {},
+      allBundles:      null,
+      gitRepos:        null,
+      fleetWorkspaces: null,
+      isCollapsed:     {}
+    };
+  },
+  computed: {
+    workspacesData() {
+      return this.fleetWorkspaces.filter(ws => ws.repos.length);
     },
+    emptyWorkspaces() {
+      return this.fleetWorkspaces.filter(ws => !ws.repos || !ws.repos.length);
+    }
   },
   methods: {
     parseTargetMode(row) {
@@ -118,41 +107,96 @@ export default {
       default:
         return {};
       }
+    },
+    toggleCollapse(val, key) {
+      this.isCollapsed[key] = val;
+    },
+    toggleAll(action) {
+      const val = action !== 'expand';
+
+      Object.keys(this.isCollapsed).forEach((key) => {
+        this.isCollapsed[key] = val;
+      });
     }
   },
 };
 </script>
 
 <template>
-  <div>
+  <div class="fleet-dashboard">
     <Loading v-if="$fetchState.pending" />
-    <section v-else class="fleet-dashboard">
-      <header>
-        <div class="title">
-          <h1>
-            <t k="fleet.dashboard.pageTitle" />
-          </h1>
+    <div
+      v-else-if="!gitRepos.length"
+      class="fleet-empty-dashboard"
+    >
+      <i class="icon-fleet mb-30" />
+      <h1>{{ t('fleet.dashboard.welcome') }}</h1>
+      <p class="mb-30">
+        <span>{{ t('fleet.dashboard.gitOpsScale') }}</span>
+        <a href="https://rancher.com/support-maintenance-terms" target="_blank" rel="noopener noreferrer nofollow">
+          {{ t('fleet.dashboard.learnMore') }} <i class="icon icon-external-link" />
+        </a>
+      </p>
+      <h3 class="mb-30">
+        {{ t('fleet.dashboard.noRepo') }}
+      </h3>
+      <button
+        type="button"
+        class="btn role-secondary"
+      >
+        {{ t('fleet.dashboard.getStarted') }}
+      </button>
+    </div>
+    <div
+      v-else
+      class="fleet-dashboard-data"
+    >
+      <div class="title mb-20">
+        <h1>
+          <t k="fleet.dashboard.pageTitle" />
+        </h1>
+        <div>
+          <button
+            v-tooltip.bottom="'expand all cards'"
+            type="button"
+            class="btn role-primary"
+            @click="toggleAll('expand')"
+          >
+            <i class="icon-chevron-down" />
+            <i class="icon-chevron-down" />
+          </button>
+          <button
+            v-tooltip.bottom="'collapse all cards'"
+            type="button"
+            class="btn role-primary"
+            @click="toggleAll('collapse')"
+          >
+            <i class="icon-chevron-up" />
+            <i class="icon-chevron-up" />
+          </button>
         </div>
-      </header>
+      </div>
       <CollapsibleCard
-        v-for="(ws, wsKey) in workspacesData"
-        :key="wsKey"
+        v-for="(ws, index) in workspacesData"
+        :key="index"
         class="mb-40"
-        :title="`${t('resourceDetail.masthead.workspace')}: ${wsKey}`"
+        :title="`${t('resourceDetail.masthead.workspace')}: ${ws.nameDisplay}`"
+        :is-collapsed="isCollapsed[ws.id]"
+        @toggleCollapse="toggleCollapse($event, ws.id)"
       >
         <template v-slot:header-right>
           <div class="header-icons">
             <p>
               <i class="icon-repository" />
-              <span>{{ t('tableHeaders.repositories') }}: <span>{{ ws.workspace.counts.gitRepos }}</span></span>
+              <span>{{ t('tableHeaders.repositories') }}: <span>{{ ws.counts.gitRepos }}</span></span>
             </p>
             <p>
               <i class="icon-storage" />
-              <span>{{ t('tableHeaders.clusters') }}: <span>{{ ws.workspace.counts.clusters }}</span></span>
+              <span>{{ t('tableHeaders.clusters') }}: <span>{{ ws.counts.clusters }}</span></span>
             </p>
             <p>
               <i class="icon-folder" />
-              <span>{{ t('tableHeaders.clusterGroups') }}: <span>{{ ws.workspace.counts.clusterGroups }}</span></span>
+              <span>{{ t('tableHeaders.clusterGroups') }}: <span>{{ ws.counts.clusterGroups }}</span></span>
             </p>
           </div>
         </template>
@@ -196,49 +240,134 @@ export default {
               {{ row.targetInfo.modeDisplay }}
             </template>
           </ResourceTable>
+          <div
+            v-if="(index === (workspacesData.length - 1) && emptyWorkspaces.length)"
+            class="mt-20"
+          >
+            <div class="show-more-workspaces mb-20">
+              <span>{{ t('fleet.dashboard.showMore', { count: emptyWorkspaces.length }) }}</span>
+              <i class="icon-chevron-down" />
+            </div>
+            <div class="empty-workspaces-list">
+              <p>{{ t('fleet.dashboard.thereIsMore', { count: emptyWorkspaces.length }) }}:&nbsp;</p>
+              <p v-for="(ews, i) in emptyWorkspaces" :key="i">
+                {{ ews.nameDisplay }}<span v-if="i != (emptyWorkspaces.length - 1)">,&nbsp;</span>
+              </p>
+            </div>
+          </div>
         </template>
       </CollapsibleCard>
-    </section>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.cluster-count-info {
-  padding: 5px 20px;
-  border-radius: 20px;
-  display: inline-block;
-  color: var(--primary-text);
+.fleet-empty-dashboard {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  min-height: 100%;
 
-  &.red-badge {
-    background-color: var(--error);
+  .icon-fleet {
+    font-size: 100px;
+    color: var(--disabled-text);
   }
-  &.green-badge {
-    background-color: var(--success);
+
+  > p > span {
+    color: var(--disabled-text);
   }
 }
 
-.header-icons {
-  display: flex;
-  align-items: center;
+.fleet-dashboard-data {
+  .title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
 
-  p {
-    margin-right: 30px;
+    > div {
+      display: flex;
+      align-items: center;
+    }
+
+    button {
+      position: relative;
+
+      &:last-child {
+        margin-left: 10px;
+      }
+
+      i {
+        position: absolute;
+        left: 0;
+        right: 0;
+
+        &:first-child {
+          top: 30%;
+        }
+
+        &:last-child {
+          top: 40%;
+        }
+      }
+    }
+  }
+
+  .cluster-count-info {
+    padding: 4px 16px;
+    border-radius: 16px;
+    display: inline-block;
+    color: var(--primary-text);
+
+    &.red-badge {
+      background-color: var(--error);
+    }
+    &.green-badge {
+      background-color: var(--success);
+    }
+  }
+
+  .header-icons {
     display: flex;
     align-items: center;
 
-    > span {
-      color: var(--disabled-text);
+    p {
+      margin-right: 30px;
+      display: flex;
+      align-items: center;
 
       > span {
-        color: var(--body-text);
+        color: var(--disabled-text);
+
+        > span {
+          color: var(--body-text);
+        }
+      }
+
+      i {
+        color: var(--disabled-text);
+        font-size: 20px;
+        margin-right: 10px;
       }
     }
+  }
+
+  .show-more-workspaces {
+    display: flex;
+    align-items: center;
+    color: var(--primary);
 
     i {
-      color: var(--disabled-text);
-      font-size: 20px;
-      margin-right: 10px;
+      margin-left: 8px;
     }
+  }
+
+  .empty-workspaces-list {
+    display: flex;
+    align-items: center;
+    color: var(--darker);
   }
 }
 </style>

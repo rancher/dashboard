@@ -15,19 +15,16 @@ export default {
       default: ''
     }
   },
-  data() {
-    return { isCardCollapsed: this.isCollapsed };
-  },
   methods: {
     toggleCollapse() {
-      this.isCardCollapsed = !this.isCardCollapsed;
+      this.$emit('toggleCollapse', !this.isCollapsed);
     }
   },
 };
 </script>
 
 <template>
-  <div class="collapsible-card" :class="{isCardCollapsed: isCardCollapsed}">
+  <div class="collapsible-card" :class="{isCollapsed: isCollapsed}">
     <div class="collapsible-card-header" @click="toggleCollapse">
       <h2 class="mb-0">
         <span>{{ title }}</span>
@@ -38,8 +35,8 @@ export default {
         <i
           class="collapsible-card-collapse-icon"
           :class="{
-            'icon-chevron-up': !isCardCollapsed,
-            'icon-chevron-down': isCardCollapsed
+            'icon-chevron-up': !isCollapsed,
+            'icon-chevron-down': isCollapsed
           }"
         />
       </div>
@@ -55,7 +52,7 @@ export default {
   border-radius: 5px;
   border: 1px solid var(--sortable-table-top-divider);
 
-  &.isCardCollapsed {
+  &.isCollapsed {
     .collapsible-card-header {
       border-bottom: none;
     }
