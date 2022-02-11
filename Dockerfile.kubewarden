@@ -2,8 +2,15 @@ FROM node:lts AS builder
 
 RUN mkdir /src
 WORKDIR /src
-COPY . .
+
+RUN apk update && apk upgrade
+
+COPY package.json /src/
+COPY yarn.lock /src/
+
 RUN yarn --pure-lockfile install
+
+COPY . /src
 ENV ROUTER_BASE="/dashboard"
 RUN yarn run build --spa
 
