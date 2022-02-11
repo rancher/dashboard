@@ -28,7 +28,7 @@ export default {
 
     if (workspaces.length) {
       workspaces.forEach((ws) => {
-        this.isCollapsed[ws.id] = false;
+        this.$set(this.isCollapsed, ws.id, false);
       });
     }
   },
@@ -69,7 +69,14 @@ export default {
       allBundles:      null,
       gitRepos:        null,
       fleetWorkspaces: null,
-      isCollapsed:     {}
+      isCollapsed:     {},
+      getStartedLink:  {
+        name:   'c-cluster-product-resource-create',
+        params: {
+          product:  'fleet',
+          resource: FLEET.GIT_REPO
+        },
+      }
     };
   },
   computed: {
@@ -109,13 +116,13 @@ export default {
       }
     },
     toggleCollapse(val, key) {
-      this.isCollapsed[key] = val;
+      this.$set(this.isCollapsed, key, val);
     },
     toggleAll(action) {
       const val = action !== 'expand';
 
       Object.keys(this.isCollapsed).forEach((key) => {
-        this.isCollapsed[key] = val;
+        this.$set(this.isCollapsed, key, val);
       });
     }
   },
@@ -138,14 +145,14 @@ export default {
         </a>
       </p>
       <h3 class="mb-30">
-        {{ t('fleet.dashboard.noRepo') }}
+        {{ t('fleet.dashboard.noRepo', null, true) }}
       </h3>
-      <button
-        type="button"
+      <n-link
+        :to="getStartedLink"
         class="btn role-secondary"
       >
         {{ t('fleet.dashboard.getStarted') }}
-      </button>
+      </n-link>
     </div>
     <div
       v-else
@@ -178,7 +185,7 @@ export default {
       </div>
       <CollapsibleCard
         v-for="(ws, index) in workspacesData"
-        :key="index"
+        :key="ws.id"
         class="mb-40"
         :title="`${t('resourceDetail.masthead.workspace')}: ${ws.nameDisplay}`"
         :is-collapsed="isCollapsed[ws.id]"
@@ -187,15 +194,15 @@ export default {
         <template v-slot:header-right>
           <div class="header-icons">
             <p>
-              <i class="icon-repository" />
+              <i class="icon icon-repository" />
               <span>{{ t('tableHeaders.repositories') }}: <span>{{ ws.counts.gitRepos }}</span></span>
             </p>
             <p>
-              <i class="icon-storage" />
+              <i class="icon icon-storage" />
               <span>{{ t('tableHeaders.clusters') }}: <span>{{ ws.counts.clusters }}</span></span>
             </p>
             <p>
-              <i class="icon-folder" />
+              <i class="icon icon-folder" />
               <span>{{ t('tableHeaders.clusterGroups') }}: <span>{{ ws.counts.clusterGroups }}</span></span>
             </p>
           </div>
