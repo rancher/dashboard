@@ -52,7 +52,7 @@
 // spoofedType(obj)           Create a fake type that can be treated like a normal type
 //
 // basicType(                 Mark type(s) as always shown in the top of the nav
-//   type(s),                 -- Type name or arrry of type names
+//   type(s),                 -- Type name or array of type names
 //   group                    -- Group to show the type(s) under; false-y for top-level.
 // )
 // basicType(                 Mark all types in group as always shown in the top of the nav
@@ -544,7 +544,7 @@ export const getters = {
         const labelDisplay = highlightLabel(label, icon);
 
         if ( !labelDisplay ) {
-          // Search happens in highlight and retuns null if not found
+          // Search happens in highlight and returns null if not found
           continue;
         }
 
@@ -955,7 +955,7 @@ export const getters = {
   // Note: you can't refactor these into one function that does `@/${kind}/${type}`,
   // because babel needs some hardcoded idea where to look for the dependency.
   //
-  // Note 2: Yes these are editing state in a gettter for caching... it's ok, probably.
+  // Note 2: Yes these are editing state in a getter for caching... it's ok, probably.
   // ------------------------------------
   hasCustomList(state, getters) {
     return (rawType) => {
@@ -1366,7 +1366,7 @@ export const mutations = {
 
   // setGroupDefaultType({group: 'core', defaultType: 'name'});
   // By default when a group is clicked, the first item is selected - this allows
-  // this behvaiour to be changed and a named child type can be chosen
+  // this behaviour to be changed and a named child type can be chosen
   // These operate on group names *after* mapping but *before* translation
   setGroupDefaultType(state, { group, groups, defaultType }) {
     if ( !groups ) {
@@ -1690,7 +1690,7 @@ export function project(getters) {
     return project;
   }
 
-  // Convert the project namespaces into a map so we can check existtence easily
+  // Convert the project namespaces into a map so we can check existence easily
   const prjNamespaceMap = project.namespaces.reduce((m, ns) => {
     m[ns.metadata.name] = true;
 

@@ -153,7 +153,7 @@ export default {
     },
 
     // For asMap=false, preserve (copy) these keys from the original value into the emitted value.
-    // Also usefule for valueFrom as above.
+    // Also useful for valueFrom as above.
     preserveKeys: {
       type:    Array,
       default: null,

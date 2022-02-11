@@ -35,7 +35,7 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.to" :mode="mode" label="Default Recepient Address" placeholder="e.g. admin@example.com" />
+        <LabeledInput v-model="value.to" :mode="mode" label="Default Recipient Address" placeholder="e.g. admin@example.com" />
       </div>
       <div class="col span-6">
         <Checkbox v-model="value.send_resolved" :mode="mode" class="mt-20" label="Enable send resolved alerts" />

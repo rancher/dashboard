@@ -362,10 +362,10 @@ export default {
 
   // opt:
   //  filter: Filter by fields, e.g. {field: value, anotherField: anotherValue} (default: none)
-  //  limit: Number of reqords to return per page (default: 1000)
+  //  limit: Number of records to return per page (default: 1000)
   //  sortBy: Sort by field
   //  sortOrder: asc or desc
-  //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstraping schemas on startup.
+  //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstrapping schemas on startup.
   //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
   async find(ctx, { type, id, opt }) {
     const { getters, dispatch } = ctx;
