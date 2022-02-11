@@ -505,7 +505,6 @@ export default {
       display: flex;
     }
     .refresh-btn {
-      width: 40px;
       margin-left: 10px;
     }
 
