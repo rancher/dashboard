@@ -1,6 +1,6 @@
 # Concepts
 
-This section is intended to provide an outline of background concepts behind Rancher, Kubernetes and containers. It is intended to be used as a starting by new hires who may not come from a DevOps background and may not have experience with Kubernetes or containerization.
+This section is intended to provide an outline of background concepts behind Rancher, Kubernetes and containers. It is intended to be used as a starting point by new hires who may not come from a DevOps background and may not have experience with Kubernetes or containerization.
 
 It can be hard to explain Rancher in layman's terms because it's hard to understand a technology if you don't understand the problem it is intended to solve. Rancher was originally designed to help enterprises solve problems that come with running many containers in production at scale, so if you haven't used containers in production, it can help to learn about containers and Kubernetes before learning about Rancher itself.
 
