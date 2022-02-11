@@ -48,7 +48,7 @@ export default {
 
       return nodes.filter((n) => {
         // do not allow to migrate to self node
-        return n.id !== this.vmi?.status?.nodeName && n.isMigrateable;
+        return n.id !== this.vmi?.status?.nodeName && n.isMigratable;
       }).map((n) => {
         let label = n?.metadata?.name;
         const value = n?.metadata?.name;
