@@ -80,16 +80,11 @@ export default class CapiMachineDeployment extends SteveModel {
     return this.status?.unavailableReplicas || 0;
   }
 
-  async scalePool(delta, save = true) {
-    const infrastructureRef = this.spec.template.spec.infrastructureRef;
-
-    const { name, namespace, kind } = infrastructureRef;
-
-    const machineTemplate = await this.$dispatch('find', { type: `rke-machine.cattle.io.${ kind }`, id: `${ namespace }/${ name }` });
-    const machineConfigName = machineTemplate.metadata.annotations['rke.cattle.io/cloned-from-name'];
+  scalePool(delta, save = true) {
+    const machineConfigName = this.template.metadata.annotations['rke.cattle.io/cloned-from-name'];
     const machinePools = this.cluster.spec.rkeConfig.machinePools;
 
-    const clustersMachinePool = (machinePools.filter(pool => pool.machineConfigRef.name === machineConfigName) || [])[0];
+    const clustersMachinePool = machinePools.find(pool => pool.machineConfigRef.name === machineConfigName);
 
     if (clustersMachinePool) {
       clustersMachinePool.quantity += delta;
