@@ -75,6 +75,8 @@ module.exports = {
     pl,
   },
 
+  publicRuntimeConfig: { rancherEnv: process.env.RANCHER_ENV || 'web' },
+
   buildDir: dev ? '.nuxt' : '.nuxt-prod',
 
   buildModules: [
@@ -168,7 +170,7 @@ module.exports = {
         }
       }
 
-      // And substitue our own
+      // And substitute our own
       config.module.rules.unshift({
         test:    /\.(png|jpe?g|gif|svg|webp)$/,
         use:  [

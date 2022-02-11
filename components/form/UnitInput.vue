@@ -8,7 +8,7 @@ export default {
 
   props: {
     // Convert output to string
-    // Output will also be a string regardless of this prop if outputModifer = true
+    // Output will also be a string regardless of this prop if outputModifier = true
     outputAs: {
       type:    String,
       default: 'number',
