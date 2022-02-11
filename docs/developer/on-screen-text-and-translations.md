@@ -3,7 +3,20 @@
 
 This page covers Internationalisation (i18n) and localisation (i10n).
 
-## i18n
+
+## Internationalization (i18n)
+
+Any code producing messages, labels, numbers, dates, times, and the like should use the `i18n` store and translation strings to generate and format them instead of hardcoding English or American-isms anywhere.   Messages and number formatting uses [ICU templating](https://formatjs.io/docs/intl-messageformat) for very powerful pluralization and customizing.
+
+The `assets/translations` dir stores a YAML file with translations for each supported language.
+  - English is automatically used as the "fallback" if a particular key is missing from a non-English language.
+  - If you don't have a native translation for a particular key, just leave that key out of the language
+  - Do not duplicate the English string into other languages.
+
+Translations should be the largest phrase that makes sense as a single key, rather than several separate things rendered in a fixed order.
+  - For example "about 2 minutes remaining" should be a single translation: `About {n, number} {n, plural, one { minute }, other { minutes }} remaining`.
+  - Not one for `About`, one for `minute`, one for `minutes`, one for `remaining`, and some code picking and choosing which to concatenate.
+
 All on screen text should be localised and implemented in the default `en-US` locale. There are different ways to access localised text
 
 > `t` can be exposed via adding the i18n getter as a computed property with `...mapGetters({ t: 'i18n/t' })`
