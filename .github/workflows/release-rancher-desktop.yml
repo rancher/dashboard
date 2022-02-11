@@ -3,7 +3,7 @@ name: Build and Release Rancher Dashboard - Rancher Desktop Embed
 on:
   push:
     tags:
-        - 'v**-desktop*'
+        - 'desktop-v*'
 
 env:
   OUTPUT_DIR: dist
