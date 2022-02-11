@@ -3,8 +3,8 @@ name: Dispatch kubewarden image
 on:
   push:
     branches: [kubewarden]
-    paths-ignore:
-      - ".github/workflows/**"
+#     paths-ignore:
+#       - ".github/workflows/**"
   pull_request:
     branches: [kubewarden]
 
