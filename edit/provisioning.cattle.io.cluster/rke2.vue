@@ -716,6 +716,25 @@ export default {
 
       return out;
     },
+
+    ciliumIpv6: {
+      get() {
+        // eslint-disable-next-line no-unused-vars
+        const cni = this.serverConfig.cni; // force this property to recalculate if cni was changed away from cilium and chartValues['rke-cilium'] deleted
+
+        return this.rkeConfig?.chartValues?.['rke2-cilium']?.ipv6?.enabled || false;
+      },
+      set(val) {
+        set(this.rkeConfig, "chartValues.'rke2-cilium'.ipv6.enabled", val);
+      }
+    },
+
+    showIpv6Warning() {
+      const clusterCIDR = this.serverConfig['cluster-cidr'] || '';
+      const serviceCIDR = this.serverConfig['service-cidr'] || '';
+
+      return clusterCIDR.includes(':') || serviceCIDR.includes(':');
+    }
   },
 
   watch: {
@@ -775,6 +794,12 @@ export default {
         // No cloud provider available? Then clear cloud provider setting. This will recalculate addonNames...
         // ... which will eventually update `value.spec.rkeConfig.chartValues`
         set(this.agentConfig, 'cloud-provider-name', undefined);
+      }
+    },
+
+    'serverConfig.cni'(neu) {
+      if (neu !== 'cilium') {
+        delete this.rkeConfig.chartValues['rke2-cilium'];
       }
     }
   },
@@ -1437,8 +1462,8 @@ export default {
         <Tab name="basic" label-key="cluster.tabs.basic" :weight="11" @active="refreshYamls">
           <Banner v-if="!haveArgInfo" color="warning" label="Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor." />
           <Banner v-if="showk8s21LegacyWarning" color="warning" :label="t('cluster.legacyWarning')" />
-          <div class="row">
-            <div class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
+          <div class="row mb-10">
+            <div class="col span-6">
               <LabeledSelect
                 v-model="value.spec.kubernetesVersion"
                 :mode="mode"
@@ -1446,7 +1471,17 @@ export default {
                 label-key="cluster.kubernetesVersion.label"
               />
             </div>
-            <div v-if="showCni" class="col span-4">
+            <div v-if="showCloudProvider" class="col span-6">
+              <LabeledSelect
+                v-model="agentConfig['cloud-provider-name']"
+                :mode="mode"
+                :options="cloudProviderOptions"
+                :label="t('cluster.rke2.cloudProvider.label')"
+              />
+            </div>
+          </div>
+          <div v-if="showCni" :style="{'align-items':'center'}" class="row">
+            <div class="col span-6">
               <LabeledSelect
                 v-model="serverConfig.cni"
                 :mode="mode"
@@ -1454,13 +1489,8 @@ export default {
                 :label="t('cluster.rke2.cni.label')"
               />
             </div>
-            <div v-if="showCloudProvider" class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
-              <LabeledSelect
-                v-model="agentConfig['cloud-provider-name']"
-                :mode="mode"
-                :options="cloudProviderOptions"
-                :label="t('cluster.rke2.cloudProvider.label')"
-              />
+            <div v-if="serverConfig.cni === 'cilium'" class="col">
+              <Checkbox v-model="ciliumIpv6" :mode="mode" :label="t('cluster.rke2.address.ipv6.enable')" />
             </div>
           </div>
           <template v-if="showVsphereNote">
@@ -1624,6 +1654,9 @@ export default {
           <h3>
             {{ t('cluster.rke2.address.header') }}
           </h3>
+          <Banner v-if="showIpv6Warning" color="warning">
+            {{ t('cluster.rke2.address.ipv6.warning') }}
+          </Banner>
           <div class="row mb-20">
             <div v-if="serverArgs['cluster-cidr']" class="col span-6">
               <LabeledInput

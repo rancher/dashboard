@@ -1572,6 +1572,9 @@ cluster:
       caCerts:
         label: CA Certificates
         toolTip: Certificates required for the client to successfully verify the validity of the certificate returned by the endpoint.
+      ipv6:
+        warning: It looks like you are using an IPv6 CIDR. Your node driver may require additional configuration to support this.
+        enable: Enable IPv6 support
     etcd:
       disableSnapshots:
         label: Automatic Snapshots
