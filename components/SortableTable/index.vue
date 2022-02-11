@@ -513,7 +513,7 @@ export default {
     <div :class="{'titled': $slots.title && $slots.title.length}" class="sortable-table-header">
       <slot name="title" />
       <div v-if="showHeaderRow" class="fixed-header-actions">
-        <div :class="bulkActionsClass">
+        <div :class="bulkActionsClass" class="bulk">
           <slot name="header-left">
             <template v-if="tableActions">
               <button
@@ -532,7 +532,7 @@ export default {
                 <i v-if="act.icon" :class="act.icon" />
                 <span v-html="act.label" />
               </button>
-              <ActionDropdown :class="bulkActionsDropdownClass" :disable-button="!tableSelected.length" size="sm">
+              <ActionDropdown :class="bulkActionsDropdownClass" class="bulk-actions-dropdown" :disable-button="!tableSelected.length" size="sm">
                 <template #button-content>
                   <button ref="actionDropDown" class="btn bg-primary mr-0" :disabled="!tableSelected.length">
                     <i class="icon icon-gear" />
@@ -561,7 +561,7 @@ export default {
                   </ul>
                 </template>
               </ActionDropdown>
-              <label v-if="selectedRowsText" :class="bulkActionAvailabilityClass">
+              <label v-if="selectedRowsText" :class="bulkActionAvailabilityClass" class="action-availability">
                 {{ selectedRowsText }}
               </label>
             </template>
