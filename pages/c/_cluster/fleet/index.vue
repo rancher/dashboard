@@ -28,9 +28,12 @@ export default {
 
     if (workspaces.length) {
       workspaces.forEach((ws) => {
+        console.log('TYPE', ws.type);
         this.$set(this.isCollapsed, ws.id, false);
       });
     }
+
+    console.log('WORKSPACES', workspaces);
   },
 
   data() {
@@ -189,6 +192,7 @@ export default {
         class="mb-40"
         :title="`${t('resourceDetail.masthead.workspace')}: ${ws.nameDisplay}`"
         :is-collapsed="isCollapsed[ws.id]"
+        :fav-resource="ws.type"
         @toggleCollapse="toggleCollapse($event, ws.id)"
       >
         <template v-slot:header-right>

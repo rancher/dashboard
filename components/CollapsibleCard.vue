@@ -1,14 +1,17 @@
 <script>
+import Favorite from '@/components/nav/Favorite';
+
 export default {
-  name:  'CollapsibleCard',
-  props: {
+  name:       'CollapsibleCard',
+  components: { Favorite },
+  props:      {
     isCollapsed: {
       type:    Boolean,
       default: false
     },
-    isStarred: {
-      type:    Boolean,
-      default: false
+    favResource: {
+      type:    String,
+      default: ''
     },
     title: {
       type:    String,
@@ -28,7 +31,8 @@ export default {
     <div class="collapsible-card-header" @click="toggleCollapse">
       <h2 class="mb-0">
         <span>{{ title }}</span>
-        <i v-if="isStarred" class="icon-star-open" />
+        <Favorite :resource="favResource"></Favorite>
+        <!-- <i v-if="isStarred" class="icon-star-open" /> -->
       </h2>
       <div>
         <slot name="header-right"></slot>
