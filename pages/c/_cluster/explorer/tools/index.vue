@@ -211,7 +211,7 @@ export default {
         name:   'c-cluster-explorer-tools-pages-page',
         params: {
           cluster: cluster.id,
-          prodct:  'explorer',
+          product: 'explorer',
           page:    id,
         }
       };
