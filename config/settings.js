@@ -102,7 +102,7 @@ export const HCI_SETTING = {
   ADDITIONAL_CA:                    'additional-ca',
   OVERCOMMIT_CONFIG:                'overcommit-config',
   CLUSTER_REGISTRATION_URL:         'cluster-registration-url',
-  // DEFAULT_STORAGE_CLASS:            'default-storage-class'
+  DEFAULT_STORAGE_CLASS:            'default-storage-class',
   VIP:                              'vip-pools',
   SUPPORT_BUNDLE_TIMEOUT:           'support-bundle-timeout',
   SUPPORT_BUNDLE_IMAGE:             'support-bundle-image',

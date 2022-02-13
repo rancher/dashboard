@@ -4,6 +4,7 @@ import { colorForState } from '@/plugins/steve/resource-class';
 import { POD, NODE, HCI, PVC } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
+import { cleanForNew } from '@/plugins/steve/normalize';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { _CLONE } from '@/config/query-params';
 import SteveModel from '@/plugins/steve/steve-class';
@@ -208,6 +209,19 @@ export default class VirtVm extends SteveModel {
     if (realMode !== _CLONE) {
       Vue.set(this.metadata, 'annotations', { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: '[]' });
       Vue.set(this, 'spec', spec);
+    }
+  }
+
+  cleanForNew() {
+    cleanForNew(this);
+
+    this.spec.template.spec.hostname = '';
+    const interfaces = this.spec.template.spec.domain.devices?.interfaces || [];
+
+    for (let i = 0; i < interfaces.length; i++) {
+      if (interfaces[i].macAddress) {
+        interfaces[i].macAddress = '';
+      }
     }
   }
 
@@ -675,7 +689,7 @@ export default class VirtVm extends SteveModel {
     try {
       out = JSON.parse(this.metadata?.annotations?.[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]);
     } catch (e) {
-      console.error(`modal: getVolumeClaimTemplates, ${ e }`); // eslint-disable-line no-console
+      console.error(`modal: getVolumeClaimTemplates, ${ e }, May not have been created through the harvester ui`); // eslint-disable-line no-console
     }
 
     return out;

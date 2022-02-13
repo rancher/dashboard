@@ -198,6 +198,10 @@ export default class HciVmImage extends SteveModel {
     return this.imageMessage;
   }
 
+  get displayName() {
+    return this.spec?.displayName;
+  }
+
   get uploadImage() {
     return async(file) => {
       const formData = new FormData();

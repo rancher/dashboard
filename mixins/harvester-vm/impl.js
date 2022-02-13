@@ -41,7 +41,7 @@ export default {
     },
 
     getOsType(vm) {
-      return vm?.metadata?.labels?.[HCI_ANNOTATIONS.OS] || 'linux';
+      return vm.metadata?.labels?.[HCI_ANNOTATIONS.OS];
     },
 
     getMatchQGA(osType) {
@@ -130,7 +130,7 @@ export default {
       try {
         out = JSON.parse(vm.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]);
       } catch (e) {
-        console.error(`Function: getVolumeClaimTemplates, ${ e }`); // eslint-disable-line no-console
+        new Error(`Function: getVolumeClaimTemplates, ${ e }`);
       }
 
       return out;

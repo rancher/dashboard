@@ -5440,7 +5440,7 @@ harvester:
     volume:
       dragTip: Drag and drop volumes, or use the volume's arrows, to change the boot order.
       volumeTip: The VM only contains a cd-rom volume. You may want to add additional disk volumes.
-      macTip: "Protip: MAC address as seen inside the guest system."
+      macTip: "MAC address as seen inside the guest system."
       volumeUpdate: 'Set volume { name } successfully'
       type: Type
       size: Size
