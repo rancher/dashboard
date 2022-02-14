@@ -8,7 +8,7 @@ import GraphCircle from '@/components/graph/Circle';
 import Banner from '@/components/Banner';
 
 export default {
-  name: 'SuppportBundle',
+  name: 'SupportBundle',
 
   components: {
     LabeledInput,

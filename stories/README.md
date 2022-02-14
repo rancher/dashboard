@@ -7,7 +7,7 @@ If you run any of the targets:
 - yarn storybook
 - yarn build-storybook
 
-the dependencies will be added to the `package.json` file and updated automactically.
+the dependencies will be added to the `package.json` file and updated automatically.
 
 You can manually install them with the target:
 

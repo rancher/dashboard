@@ -286,15 +286,15 @@ export default class Resource {
   get customValidationRules() {
     return [
       /**
-       * Essentially a fake schema object with additonal params to extend validation
+       * Essentially a fake schema object with additional params to extend validation
        *
-       * @param {nullable} Value is nullabel
+       * @param {nullable} Value is nullable
        * @param {path} Path on the resource to the value to validate
        * @param {required} Value required
        * @param {requiredIf} Value required if value at path not empty
        * @param {translationKey} Human readable display key for param in path e.g. metadata.name === Name
        * @param {type} Type of field to validate
-       * @param {validators} array of strings where item is name of exported validator function in custom-validtors, args can be passed by prepending args seperated by colon. e.g maxLength:63
+       * @param {validators} array of strings where item is name of exported validator function in custom-validators, args can be passed by prepending args separated by colon. e.g maxLength:63
        */
       /* {
         nullable:       false,
@@ -1339,7 +1339,7 @@ export default class Resource {
         const allOfResourceType = this.$rootGetters['cluster/all']( type );
 
         this.ownersByType[kind].forEach((resource, idx) => {
-          const resourceInstance = allOfResourceType.find(resource => resource?.metdata?.uid === resource.uid);
+          const resourceInstance = allOfResourceType.find(resourceByType => resourceByType?.metadata?.uid === resource.uid);
 
           if (resourceInstance) {
             owners.push(resourceInstance);

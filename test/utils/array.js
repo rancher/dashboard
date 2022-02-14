@@ -145,7 +145,7 @@ test('filterBy', (t) => {
   t.deepEqual(out, [obj3], 'Finds items with string truthiness');
 
   out = filterBy(ary, 'bar', false);
-  t.deepEqual(out, [obj2], 'Finds items with falsey values');
+  t.deepEqual(out, [obj2], 'Finds items with falsy values');
 
   out = filterBy(ary, 'foo', 'bar');
   t.deepEqual(out, [obj1], 'Finds items with string values');
@@ -175,7 +175,7 @@ test('findBy', (t) => {
   t.is(out, obj3, 'Finds items with string truthiness');
 
   out = findBy(ary, 'bar', false);
-  t.is(out, obj2, 'Finds items with falsey values');
+  t.is(out, obj2, 'Finds items with falsy values');
 
   out = findBy(ary, 'foo', 'bar');
   t.is(out, obj1, 'Finds items with string values');

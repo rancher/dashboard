@@ -66,7 +66,7 @@ export default {
       const expectedCurrentDefault = neu ? DEFAULT_NON_TLS_PORT : DEFAULT_TLS_PORT;
       const newDefault = neu ? DEFAULT_TLS_PORT : DEFAULT_NON_TLS_PORT;
 
-      // Note: The defualt port value is a number
+      // Note: The default port value is a number
       // If the user edits this value, the type will be a string
       // Thus, we will only change the value when the user toggles the TLS flag if they have
       // NOT edited the port value in any way

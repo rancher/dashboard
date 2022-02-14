@@ -393,7 +393,7 @@ export default {
           privateField = 'password';
           break;
         default:
-          throw new Error('Uknown type');
+          throw new Error('Unknown type');
         }
 
         secret._type = type;
