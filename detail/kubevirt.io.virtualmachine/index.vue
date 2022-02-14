@@ -12,6 +12,7 @@ import { allDashboardsExist } from '@/utils/grafana';
 import CloudConfig from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
 import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
 import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
+import AccessCredentials from '@/edit/kubevirt.io.virtualmachine/VirtualMachineAccessCredentials';
 import Events from './VirtualMachineTabs/VirtualMachineEvents';
 import Migration from './VirtualMachineTabs/VirtualMachineMigration';
 import OverviewBasics from './VirtualMachineTabs/VirtualMachineBasics';
@@ -33,6 +34,7 @@ export default {
     CloudConfig,
     Migration,
     DashboardMetrics,
+    AccessCredentials,
   },
 
   mixins: [CreateEditView, VM_MIXIN],
@@ -184,6 +186,10 @@ export default {
             :vars="graphVars"
           />
         </template>
+      </Tab>
+
+      <Tab :label="t('harvester.tab.accessCredentials')" class="bordered-table" name="accessCredentials" :weight="2.2">
+        <AccessCredentials mode="view" :value="accessCredentials" :resource="value" />
       </Tab>
 
       <Tab name="cloudConfig" :label="t('harvester.virtualMachine.detail.tabs.cloudConfig')" class="bordered-table" :weight="2">

@@ -5357,6 +5357,7 @@ harvester:
     volume: Volumes
     network: Networks
     advanced: Advanced Options
+    accessCredentials: Access Credentials
   fields:
     version: Version
     name: Name
@@ -5591,6 +5592,16 @@ harvester:
         anyNode: 'Run VM on any available node'
         schedulingRules: 'Run VM on node(s) matching scheduling rules'
         specificNode: Run VM on specific node(s) - (Live migration is not supported)
+    accessCredentials:
+      resetPwd:
+        label: Add Basic Auth
+      injectSSH:
+        label: Add SSHKey
+        users: Select Users
+        addUser: Add User
+      tips: qemu-guest-agent must be installed to enable Access Credentials, the VM should be restarted after credentials added. Need to enter the VM to edit password or remove SSH-Key after deleting the credentials.
+      userTips: The user to be added must already exist; otherwise, the credentials will not take effect.
+      duplicatedUser: User already exist.
     input:
       name: Name
       memory: Memory
@@ -5598,6 +5609,8 @@ harvester:
       sshKey: SSHKey
       sshKeyValue: SSH-Key
       MachineType: Machine Type
+      username: Username
+      password: Password
     machineTypeTip: 'Specify a processor architecture to emulate. To see a list of supported architectures, run: qemu-system-x86_64 -cpu ?'
     detail:
       tabs:

@@ -15,6 +15,7 @@ const STOPPING = 'Stopping';
 const OFF = 'Off';
 const WAITING = 'Waiting';
 const NOT_READY = 'Not Ready';
+const AGENT_CONNECTED = 'AgentConnected';
 
 const PAUSED = 'Paused';
 const PAUSED_VM_MODAL_MESSAGE = 'This VM has been paused. If you wish to unpause it, please click the Unpause button below. For further details, please check with your system administrator.';
@@ -803,5 +804,12 @@ export default class VirtVm extends SteveModel {
 
   get displayMemory() {
     return this.spec.template.spec.domain.resources?.limits?.memory || this.spec.template.spec.domain.resources?.requests?.memory;
+  }
+
+  get isQemuInstalled() {
+    const conditions = this.vmi?.status?.conditions || [];
+    const qemu = conditions.find(cond => cond.type === AGENT_CONNECTED);
+
+    return qemu?.status === 'True';
   }
 }

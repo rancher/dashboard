@@ -124,6 +124,39 @@ export default {
       return secret;
     },
 
+    getAccessCredentials(spec) {
+      const secrets = this.$store.getters['harvester/all'](SECRET) || [];
+      const credentials = spec?.template?.spec?.accessCredentials || [];
+      const annotations = JSON.parse(spec.template.metadata?.annotations?.[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_NAMES] || '[]');
+
+      return credentials.map((c) => {
+        const source = !!c.userPassword ? 'userPassword' : 'sshPublicKey';
+        const secretName = c[source]?.source?.secret?.secretName;
+        const secretRef = secrets.find(s => s.metadata.name === secretName);
+        const out = {
+          source, username: '', newPassword: '', users: [], sshkeys: [], secretName, secretRef
+        };
+
+        if (!secretRef) {
+          out.secretRef = undefined;
+        } else if (source === 'userPassword') {
+          const username = Object.keys(secretRef?.data)[0];
+          const newPassword = secretRef.decodedData[username];
+
+          out.username = username;
+          out.newPassword = newPassword;
+        } else {
+          const users = c[source].propagationMethod.qemuGuestAgent.users;
+          const sshkeys = annotations?.[secretName];
+
+          out.users = users;
+          out.sshkeys = sshkeys;
+        }
+
+        return out;
+      });
+    },
+
     getVolumeClaimTemplates(vm) {
       let out = [];
 
