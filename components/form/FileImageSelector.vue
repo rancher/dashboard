@@ -10,14 +10,27 @@ export default {
       type:    String,
       default: null,
     },
+    /**
+     * Edit mode for viewing restrictions
+     */
     mode: {
       type:    String,
       default: null,
     },
+    /**
+     * Displayed label for the upload button
+     */
     label: {
       type:    String,
       default: null,
-    }
+    },
+    /**
+     * Default already adopted value for size limitation on images in bytes
+     */
+    byteLimit: {
+      type:    Number,
+      default: 200000
+    },
   },
   computed: {
     isView() {
@@ -43,6 +56,7 @@ export default {
     class="btn role-primary"
     :mode="mode"
     :read-as-data-url="true"
+    :byte-limit="byteLimit"
     :label="label"
     @selected="setIcon"
   />
