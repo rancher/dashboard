@@ -56,10 +56,13 @@ export default {
     },
 
     selectType() {
-      const typePath = this.$router.resolve(this.type.route)?.route?.fullPath;
+      // Prevent issues if custom NavLink is used #5047
+      if (this.type?.route) {
+        const typePath = this.$router.resolve(this.type.route)?.route?.fullPath;
 
-      if (typePath !== this.$route.fullPath) {
-        this.$emit('selected');
+        if (typePath !== this.$route.fullPath) {
+          this.$emit('selected');
+        }
       }
     }
   }
