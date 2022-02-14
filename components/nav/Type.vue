@@ -120,7 +120,7 @@ export default {
       overflow: hidden;
       text-overflow: ellipsis;
 
-      &.no-icon {
+      &:not(.nav-type) &.no-icon {
         padding-left: 3px;
       }
 
