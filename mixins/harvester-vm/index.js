@@ -385,6 +385,9 @@ export default {
             minExponent: 3,
           });
 
+          const allVolumeStatus = JSON.parse(vm.metadata?.annotations?.[HCI_ANNOTATIONS.VM_VOLUME_STATUS] || '[]');
+          const volumeStatus = allVolumeStatus.find(volume => realName === volume.name);
+
           return {
             id:           randomStr(5),
             bootOrder,
@@ -401,6 +404,7 @@ export default {
             type,
             storageClassName,
             hotpluggable,
+            volumeStatus,
           };
         });
       }

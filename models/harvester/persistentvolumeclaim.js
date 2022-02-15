@@ -97,6 +97,10 @@ export default class HciPv extends SteveModel {
     return colorForState(state);
   }
 
+  get stateDescription() {
+    return this.metadata?.annotations?.[HCI_ANNOTATIONS.VM_VOLUME_STATUS] || super.stateDescription;
+  }
+
   get detailLocation() {
     const detailLocation = clone(this._detailLocation);
 
