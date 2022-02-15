@@ -4,14 +4,17 @@ import isEqual from 'lodash/isEqual';
 import { mapGetters } from 'vuex';
 import ChartMixin from '@/mixins/chart';
 import {
-  _CREATE, _VIEW, CHART, REPO, REPO_TYPE, VERSION
+  CATEGORY, _CREATE, _VIEW, CHART, REPO, REPO_TYPE, SEARCH_QUERY, VERSION
 } from '@/config/query-params';
 import { KUBEWARDEN } from '@/config/types';
 import { saferDump } from '@/utils/create-yaml';
+import { ensureRegex } from '@/utils/string';
+import { sortBy } from '@/utils/sort';
 import ButtonGroup from '@/components/ButtonGroup';
 import Wizard from '@/components/Wizard';
 import Tabbed from '@/components/Tabbed';
 import ResourceCancelModal from '@/components/ResourceCancelModal';
+import Select from '@/components/form/Select';
 import Questions from '@/components/Questions';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 
@@ -26,7 +29,7 @@ export default ({
   name: 'Create',
 
   components: {
-    ButtonGroup, Wizard, Tabbed, ResourceCancelModal, Questions, YamlEditor
+    ButtonGroup, Wizard, Tabbed, ResourceCancelModal, Select, Questions, YamlEditor
   },
 
   props: {
@@ -49,6 +52,8 @@ export default ({
   fetch() {
     // await this.fetchChart(); // Use this when we get the helm-charts for policies
 
+    const query = this.$route.query;
+
     if ( this.type ) {
       this.subtypeSource = {
         readme:      '# kubewarden readme example',
@@ -62,11 +67,16 @@ export default ({
     this.valuesYaml = saferDump(this.subtypeSource);
     this.preFormYamlOption = this.valuesComponent ? VALUES_STATE.FORM : VALUES_STATE.YAML;
 
+    this.searchQuery = query[SEARCH_QUERY] || '';
+    this.category = query[CATEGORY] || '';
+
     this.errors = [];
   },
 
   data() {
     return {
+      category:            null,
+      searchQuery:         null,
       errors:              null,
       showQuestions:       true,
       type:                null,
@@ -99,7 +109,14 @@ export default ({
         label:  'Values',
         ready:  true,
         weight: 20
-      }
+      },
+
+      categories: [
+        '*',
+        'Ingress',
+        'Pod',
+        'Service'
+      ]
     };
   },
 
@@ -108,6 +125,14 @@ export default ({
       if ( !isEqual(neu, old) ) {
         this.$fetch();
       }
+    },
+
+    category(option) {
+      this.$router.applyQuery({ [CATEGORY]: option || undefined });
+    },
+
+    searchQuery(query) {
+      this.$router.applyQuery({ [SEARCH_QUERY]: query || undefined });
     },
 
     preFormYamlOption(neu, old) {
@@ -130,7 +155,7 @@ export default ({
         break;
       case VALUES_STATE.YAML:
         // Show the YAML preview
-        if (old === VALUES_STATE.FORM) {
+        if ( old === VALUES_STATE.FORM ) {
           this.valuesYaml = jsyaml.dump(this.subtypeSource || {}); // this will need to dump `this.chartValues` once we get charts...
           this.previousYamlValues = this.valuesYaml;
         }
@@ -151,6 +176,7 @@ export default ({
 
   computed: {
     ...mapGetters(['currentCluster']),
+    ...mapGetters({ t: 'i18n/t' }),
 
     isView() {
       return this.mode === _VIEW;
@@ -158,6 +184,30 @@ export default ({
 
     editorMode() {
       return EDITOR_MODES.EDIT_CODE;
+    },
+
+    filteredSubtypes() {
+      const subtypes = (this.subtypes || []);
+
+      const out = subtypes.filter((subtype) => {
+        if ( this.category && !subtype.resourceType.includes(this.category) ) {
+          return false;
+        }
+
+        if ( this.searchQuery ) {
+          const searchTokens = this.searchQuery.split(/\s*[, ]\s*/).map(x => ensureRegex(x, false));
+
+          for ( const token of searchTokens ) {
+            if ( !subtype.label.match(token) && (subtype.description && !subtype.description.match(token)) ) {
+              return false;
+            }
+          }
+        }
+
+        return true;
+      });
+
+      return sortBy(out, ['category', 'label', 'description']);
     },
 
     formYamlOptions() {
@@ -201,13 +251,15 @@ export default ({
 
         if ( type !== SPOOFED.POLICIES && type !== SPOOFED.POLICY ) {
           const shortType = type.replace(`${ SPOOFED.POLICIES }.`, '');
+          const keywords = this.t(`kubewarden.policyCharts.${ shortType }.keywords`).split('\n').slice(0, -1);
 
           const subtype = {
             key,
             id:           type,
             label:        this.t(`kubewarden.policyCharts.${ shortType }.name`),
             description:  this.t(`kubewarden.policyCharts.${ shortType }.description`),
-            resourceType: this.t(`kubewarden.policyCharts.${ shortType }.resourceType`)
+            resourceType: this.t(`kubewarden.policyCharts.${ shortType }.resourceType`),
+            keywords
           };
 
           out.push(subtype);
@@ -281,9 +333,28 @@ export default ({
     >
       <template #basics>
         <form :is="(isView? 'div' : 'form')" class="create-resource-container step__basic">
+          <div>
+            <Select
+              v-model="category"
+              :clearable="true"
+              :searchable="false"
+              :options="categories"
+              placement="bottom"
+              label="label"
+              style="min-width: 200px;"
+              :reduce="opt => opt"
+            >
+              <template #option="opt">
+                {{ opt.label }}
+              </template>
+            </Select>
+
+            <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" :placeholder="t('catalog.charts.search')">
+          </div>
+
           <div class="grid">
             <div
-              v-for="subtype in subtypes"
+              v-for="subtype in filteredSubtypes"
               :key="subtype.id"
               class="subtype"
               @click="selectType(subtype.id, $event)"
