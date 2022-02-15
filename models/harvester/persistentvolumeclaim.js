@@ -45,15 +45,13 @@ export default class HciPv extends SteveModel {
 
   get stateDisplay() {
     const ownedBy = this?.metadata?.annotations?.[HCI_ANNOTATIONS.OWNED_BY];
-    let status = this?.status?.phase === 'Bound' ? 'Ready' : 'NotReady';
+    const status = this?.status?.phase === 'Bound' ? 'Ready' : 'NotReady';
 
     const conditions = this?.status?.conditions || [];
 
     if (findBy(conditions, 'type', 'Resizing')?.status === 'True') {
-      status = 'Resizing';
-    }
-
-    if (ownedBy) {
+      return 'Resizing';
+    } else if (ownedBy) {
       return 'In-use';
     } else {
       return status;
