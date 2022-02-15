@@ -6,7 +6,7 @@ import Banner from '@/components/Banner';
 import RadioGroup from '@/components/form/RadioGroup';
 import Select from '@/components/form/Select';
 
-import { get } from '@/utils/object';
+import { get, set } from '@/utils/object';
 import { exceptionToErrorsArray } from '@/utils/error';
 
 export default {
@@ -67,11 +67,27 @@ export default {
     },
 
     async rotate(buttonDone) {
-      const cluster = this.cluster.mgmt;
       const params = this.actionParams;
 
       try {
-        await cluster.doAction('rotateCertificates', params);
+        const isRke2Cluster = !!this.cluster.spec?.rkeConfig;
+
+        if (isRke2Cluster) {
+          // The Steve API doesn't support actions, so for RKE2 cluster cert rotation, we patch the cluster.
+          const currentGeneration = this.cluster.spec?.rkeConfig?.rotateCertificates?.generation || 0;
+
+          set(this.cluster, 'spec.rkeConfig.rotateCertificates', {
+            generation:     currentGeneration + 1,
+            caCertificates: true,
+            services:       this.selectedService ? [this.selectedService] : null
+          });
+
+          await this.cluster.save();
+        } else {
+          const cluster = this.cluster.mgmt;
+
+          await cluster.doAction('rotateCertificates', params);
+        }
         buttonDone(true);
         this.close();
       } catch (err) {
