@@ -230,7 +230,7 @@ export default class MgmtCluster extends HybridModel {
 
   // Custom badge to show for the Cluster (if the appropriate annotations are set)
   get badge() {
-    const text = this.metadata?.annotations[CLUSTER_BADGE.TEXT];
+    const text = this.metadata?.annotations?.[CLUSTER_BADGE.TEXT];
 
     if (!text) {
       return undefined;
