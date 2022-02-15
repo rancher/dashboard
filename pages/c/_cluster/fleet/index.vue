@@ -26,6 +26,7 @@ export default {
     this.gitRepos = hash.gitRepos;
     this.fleetWorkspaces = hash.fleetWorkspaces;
 
+    // init cards collapse flags
     const workspaces = this.fleetWorkspaces.filter(ws => ws.repos.length);
 
     if (workspaces.length) {
@@ -104,9 +105,6 @@ export default {
     }
   },
   methods: {
-    parseTargetMode(row) {
-      return row.targetInfo?.mode === 'clusterGroup' ? this.t('fleet.gitRepo.warningTooltip.clusterGroup') : this.t('fleet.gitRepo.warningTooltip.cluster');
-    },
     setWorkspaceFilterAndLinkToGitRepo(value) {
       this.$store.commit('updateWorkspace', { value });
       this.$store.dispatch('prefs/set', { key: WORKSPACE, value });
