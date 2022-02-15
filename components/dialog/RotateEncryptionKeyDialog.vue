@@ -8,6 +8,7 @@ import { sortBy } from '@/utils/sort';
 import day from 'dayjs';
 import { escapeHtml } from '@/utils/string';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
+import { set } from '@/utils/object';
 
 export default {
   components: {
@@ -26,25 +27,31 @@ export default {
   async fetch() {
     const c = this.cluster;
 
+    let etcdBackups = [];
+
     if ( c.isRke1 && this.$store.getters['isRancher'] ) {
-      let etcdBackups = await this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
-
+      etcdBackups = await this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
       etcdBackups = etcdBackups.filter(backup => backup.clusterId === c.metadata.name);
+    }
 
-      const backups = sortBy(etcdBackups, ['created']).reverse();
-      const dateFormat = escapeHtml(this.$store.getters['prefs/get'](DATE_FORMAT));
-      const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
+    if (c.isRke2 && this.$store.getters['isRancher']) {
+      etcdBackups = c.etcdSnapshots;
+      etcdBackups = etcdBackups.filter(backup => backup.clusterId === c.id);
+    }
 
-      if (backups.length > 0) {
-        const name = backups[0].id.split(':');
-        const d = day(backups[0].created).format(dateFormat);
-        const t = day(backups[0].created).format(timeFormat);
+    const backups = sortBy(etcdBackups, ['created']).reverse();
+    const dateFormat = escapeHtml(this.$store.getters['prefs/get'](DATE_FORMAT));
+    const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
 
-        this.latestBackup = {
-          name: name[0],
-          date: `${ d } ${ t }`,
-        };
-      }
+    if (backups.length > 0) {
+      const name = backups[0].id.split(':');
+      const d = day(backups[0].created).format(dateFormat);
+      const t = day(backups[0].created).format(timeFormat);
+
+      this.latestBackup = {
+        name: name[0],
+        date: `${ d } ${ t }`,
+      };
     }
   },
 
@@ -64,8 +71,19 @@ export default {
     },
 
     async apply(buttonDone) {
+      const isRke2 = this.cluster.isRke2;
+
       try {
-        await this.cluster.mgmt.doAction('rotateEncryptionKey');
+        if (isRke2) {
+          const currentGeneration = this.cluster.spec?.rkeConfig?.rotateCertificates?.generation || 0;
+
+          // To rotate the encryption keys, increment
+          // rkeConfig.rotateEncyrptionKeys.generation in the YAML.
+          set(this.cluster, 'spec.rkeConfig', { rotateEncryptionKeys: { generation: currentGeneration + 1 } });
+          await this.cluster.save();
+        } else {
+          await this.cluster.mgmt.doAction('rotateEncryptionKey');
+        }
         buttonDone(true);
         this.close();
       } catch (err) {

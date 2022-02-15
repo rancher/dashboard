@@ -103,7 +103,7 @@ export default class ProvCluster extends SteveModel {
       action:     'rotateEncryptionKey',
       label:      this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
       icon:       'icon icon-refresh',
-      enabled:     this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && this.mgmt?.isReady,
+      enabled:     (this.isRke2 && this.mgmt?.isReady && this.canUpdate) || (this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && this.mgmt?.isReady),
     });
 
     insertAt(out, idx++, {
