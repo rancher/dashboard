@@ -4713,6 +4713,7 @@ workload:
     name: Container Name
     noResourceLimits: There are no resource requirements configured.
     noPorts: There are no ports configured.
+    noServiceAccess: You do not have permission to create or manage services
     ports:
       createService: Service Type
       noCreateService: Do not create a service

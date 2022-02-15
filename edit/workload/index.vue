@@ -96,28 +96,35 @@ export default {
   },
 
   async fetch() {
-    const requests = {
-      configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
-      nodes:      this.$store.dispatch('cluster/findAll', { type: NODE }),
-      services:   this.$store.dispatch('cluster/findAll', { type: SERVICE }),
-      pvcs:       this.$store.dispatch('cluster/findAll', { type: PVC }),
-      sas:        this.$store.dispatch('cluster/findAll', { type: SERVICE_ACCOUNT })
+    const requests = {};
+    const needed = {
+      configMaps: CONFIG_MAP,
+      nodes:      NODE,
+      services:   SERVICE,
+      pvcs:       PVC,
+      sas:        SERVICE_ACCOUNT,
+      secrets:    SECRET,
     };
 
-    if ( this.$store.getters['cluster/schemaFor'](SECRET) ) {
-      requests.secrets = this.$store.dispatch('cluster/findAll', { type: SECRET });
-    }
+    // Only fetch types if the user can see them
+    Object.keys(needed).forEach((key) => {
+      const type = needed[key];
+
+      if (this.$store.getters['cluster/schemaFor'](type)) {
+        requests[key] = this.$store.dispatch('cluster/findAll', { type });
+      }
+    });
 
     const hash = await allHash(requests);
 
-    this.servicesOwned = await this.value.getServicesOwned();
+    this.servicesOwned = hash.services ? await this.value.getServicesOwned() : [];
 
     this.allSecrets = hash.secrets || [];
-    this.allConfigMaps = hash.configMaps;
-    this.allNodes = hash.nodes.map(node => node.id);
-    this.allServices = hash.services;
-    this.pvcs = hash.pvcs;
-    this.sas = hash.sas;
+    this.allConfigMaps = hash.configMaps || [];
+    this.allNodes = (hash.nodes || []).map(node => node.id);
+    this.allServices = hash.services || [];
+    this.pvcs = hash.pvcs || [];
+    this.sas = hash.sas || [];
   },
 
   data() {
@@ -523,6 +530,11 @@ export default {
     },
 
     async saveService() {
+      // If we can't access services then just return - the UI should only allow ports without service creation
+      if (!this.$store.getters['cluster/schemaFor'](SERVICE)) {
+        return;
+      }
+
       const { toSave = [], toRemove = [] } = await this.value.servicesFromContainerPorts(this.mode, this.portsForServices) || {};
 
       this.servicesOwned = toSave;

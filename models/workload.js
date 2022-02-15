@@ -410,7 +410,9 @@ export default class Workload extends SteveModel {
     this.containers.forEach(container => ports.push(...(container.ports || [])));
     (this.initContainers || []).forEach(container => ports.push(...(container.ports || [])));
 
-    const services = await this.getServicesOwned();
+    // Only get services owned if we can access the service resource
+    const canAccessServices = this.$getters['schemaFor'](SERVICE);
+    const services = canAccessServices ? await this.getServicesOwned() : [];
     const clusterIPServicePorts = [];
     const loadBalancerServicePorts = [];
     const nodePortServicePorts = [];
