@@ -83,8 +83,13 @@ function queueChange({ getters, state }, { data, revision }, load, label) {
 export const actions = {
   subscribe(ctx, opt) {
     const {
-      state, commit, dispatch, getters
+      state, commit, dispatch, getters, rootGetters
     } = ctx;
+
+    if (rootGetters['isSingleProduct']?.disableSteveSockets) {
+      return;
+    }
+
     let socket = state.socket;
 
     commit('setWantSocket', true);

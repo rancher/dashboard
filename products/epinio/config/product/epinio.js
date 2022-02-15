@@ -19,15 +19,16 @@ export function init(store) {
   // TODO: RC this needs to be conditional on an env (tie in to Phil's new env?)
   const isSingleProduct = true;
   // TODO: RC this needs to come from an env (tie in to Phil's new env?)
-  const version = `0.3.6`;
+  const version = `0.3.6`; // TODO: RC like rootGetters['harvester/byId'](HCI.SETTING, 'server-version')?.value
 
   if (isSingleProduct) {
     store.dispatch('setIsSingleProduct', {
-      logo:            require(`@/products/epinio/assets/logo-epinio.svg`),
-      productNameKey:  'epinio.label',
+      logo:                require(`@/products/epinio/assets/logo-epinio.svg`),
+      productNameKey:      'epinio.label',
       version,
-      afterLoginRoute: createEpinioRoute('c-cluster-applications', { cluster: 'default' }),
-      logoRoute:       createEpinioRoute('c-cluster-applications', { cluster: 'default' }),
+      afterLoginRoute:     createEpinioRoute('c-cluster-applications', { cluster: 'default' }),
+      logoRoute:           createEpinioRoute('c-cluster-applications', { cluster: 'default' }),
+      disableSteveSockets: true,
     });
   }
 

@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { NORMAN, HCI } from '@/config/types';
+import { NORMAN, HCI, STEVE } from '@/config/types';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
 import { ucFirst } from '@/utils/string';
 import { isMac } from '@/utils/platform';
@@ -86,6 +86,19 @@ export default {
 
     showCopyConfig() {
       return !this.currentProduct?.hideCopyConfig;
+    },
+
+    showPreferencesLink() {
+      // TODO: RC Test in dashboard
+      return (this.$store.getters['management/schemaFor'](STEVE.PREFERENCE)?.resourceMethods || []).includes('PUT');
+    },
+
+    showAccountAndApiKeyLink() {
+      // TODO: RC Test in dashboard
+      // Keep this simple for the moment and only check if the user can see tokens... plus the usual isRancher/isSingleProduct
+      const canSeeTokens = this.$store.getters['rancher/schemaFor'](NORMAN.TOKEN);
+
+      return canSeeTokens && (this.isRancher || this.isSingleProduct);
     },
 
     importEnabled() {
@@ -371,13 +384,15 @@ export default {
                 <i class="icon icon-lg icon-user" /> {{ principal.loginName }}
               </div>
               <div class="text-small pt-5 pb-5">
-                {{ principal.name }}
+                <template v-if="principal.loginName !== principal.name">
+                  {{ principal.name }}
+                </template>
               </div>
             </li>
-            <nuxt-link tag="li" :to="{name: 'prefs'}" class="user-menu-item">
+            <nuxt-link v-if="showPreferencesLink" tag="li" :to="{name: 'prefs'}" class="user-menu-item">
               <a>{{ t('nav.userMenu.preferences') }} <i class="icon icon-fw icon-gear" /></a>
             </nuxt-link>
-            <nuxt-link v-if="isRancher || isSingleProduct" tag="li" :to="{name: 'account'}" class="user-menu-item">
+            <nuxt-link v-if="showAccountAndApiKeyLink" tag="li" :to="{name: 'account'}" class="user-menu-item">
               <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }} <i class="icon icon-fw icon-user" /></a>
             </nuxt-link>
             <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout', query: { [LOGGED_OUT]: true }}" class="user-menu-item">
@@ -460,6 +475,10 @@ export default {
 
     .user-menu {
       padding-top: 9.5px;
+      .user-name {
+        display: flex;
+        align-items: center;
+      }
     }
 
     ::v-deep > div > .btn.role-tertiary {

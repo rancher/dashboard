@@ -407,6 +407,7 @@ export const getters = {
     }
 
     if (state.isSingleVirtualCluster2) {
+      // TODO: RC move out like epinio
       return {
         logo:            '~/assets/images/providers/harvester.svg',
         productNameKey:  'product.harvester',
@@ -421,7 +422,8 @@ export const getters = {
             product:  VIRTUAL,
             resource: HCI.DASHBOARD,
           }
-        }
+        },
+        // user: {} // TODO: RC remove
       };
     }
 
