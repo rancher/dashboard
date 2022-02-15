@@ -841,6 +841,7 @@ catalog:
       placeholder: 'e.g. https://charts.rancher.io'
   tools:
     header: Cluster Tools
+    noTools: "No Cluster Tools found"
     action:
       install: Install
       upgrade: Upgrade/Edit
