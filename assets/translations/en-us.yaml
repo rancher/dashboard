@@ -1744,16 +1744,13 @@ fleet:
     learnMore: Learn More.
     noRepo: "You don't have any Git Repositories in your workspaces"
     getStarted: Get started
-    showMore: |-
-      {count, plural,
-      =1 { Show 1 more workspace}
-      other { Show { count } more workspaces}
-      }
     thereIsMore: |-
       {count, plural,
       =1 { There is one other workspace with no repositories}
       other { There are { count } other workspaces with no repositories}
       }
+    expandAll: Expand All
+    collapseAll: Collapse All
   cluster:
     summary: Resource Summary
     nonReady: Non-Ready Bundles

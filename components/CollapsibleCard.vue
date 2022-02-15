@@ -1,26 +1,29 @@
 <script>
-import Favorite from '@/components/nav/Favorite';
-
 export default {
   name:       'CollapsibleCard',
-  components: { Favorite },
   props:      {
     isCollapsed: {
       type:    Boolean,
       default: false
     },
-    favResource: {
-      type:    String,
-      default: ''
-    },
     title: {
       type:    String,
       default: ''
+    },
+    isTitleClickable: {
+      type:    Boolean,
+      default: false
     }
   },
   methods: {
     toggleCollapse() {
       this.$emit('toggleCollapse', !this.isCollapsed);
+    },
+    titleClick(ev) {
+      if (this.isTitleClickable) {
+        ev.stopPropagation();
+        this.$emit('titleClick');
+      }
     }
   },
 };
@@ -30,9 +33,10 @@ export default {
   <div class="collapsible-card" :class="{isCollapsed: isCollapsed}">
     <div class="collapsible-card-header" @click="toggleCollapse">
       <h2 class="mb-0">
-        <span>{{ title }}</span>
-        <Favorite :resource="favResource"></Favorite>
-        <!-- <i v-if="isStarred" class="icon-star-open" /> -->
+        <span
+          :class="{isTitleClickable: isTitleClickable}"
+          @click="titleClick"
+        >{{ title }}</span>
       </h2>
       <div>
         <slot name="header-right"></slot>
@@ -79,8 +83,8 @@ export default {
       display: flex;
       align-items: center;
 
-      i {
-        margin-left: 10px;
+      span.isTitleClickable:hover {
+        text-decoration: underline;
       }
     }
 

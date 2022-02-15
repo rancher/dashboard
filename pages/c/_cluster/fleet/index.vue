@@ -1,7 +1,9 @@
 <script>
-import Loading from '@/components/Loading';
+import { mapState } from 'vuex';
 import { FLEET } from '@/config/types';
+import { WORKSPACE } from '@/store/prefs';
 import { allHash } from '@/utils/promise';
+import Loading from '@/components/Loading';
 import CollapsibleCard from '@/components/CollapsibleCard.vue';
 import ResourceTable from '@/components/ResourceTable';
 
@@ -28,12 +30,9 @@ export default {
 
     if (workspaces.length) {
       workspaces.forEach((ws) => {
-        console.log('TYPE', ws.type);
         this.$set(this.isCollapsed, ws.id, false);
       });
     }
-
-    console.log('WORKSPACES', workspaces);
   },
 
   data() {
@@ -83,16 +82,42 @@ export default {
     };
   },
   computed: {
+    ...mapState(['workspace']),
     workspacesData() {
-      return this.fleetWorkspaces.filter(ws => ws.repos.length);
+      const workspaces = this.fleetWorkspaces.filter(ws => ws.repos.length);
+      const filterItem = workspaces.find(ws => ws.id === this.workspace);
+
+      if (filterItem) {
+        const filterIndex = workspaces.findIndex(ws => ws.id === this.workspace);
+
+        workspaces.splice(filterIndex, 1);
+        workspaces.unshift(filterItem);
+      }
+
+      return workspaces;
     },
     emptyWorkspaces() {
       return this.fleetWorkspaces.filter(ws => !ws.repos || !ws.repos.length);
+    },
+    areAllCardsExpanded() {
+      return Object.keys(this.isCollapsed).every(key => !this.isCollapsed[key]);
     }
   },
   methods: {
     parseTargetMode(row) {
       return row.targetInfo?.mode === 'clusterGroup' ? this.t('fleet.gitRepo.warningTooltip.clusterGroup') : this.t('fleet.gitRepo.warningTooltip.cluster');
+    },
+    setWorkspaceFilterAndLinkToGitRepo(value) {
+      this.$store.commit('updateWorkspace', { value });
+      this.$store.dispatch('prefs/set', { key: WORKSPACE, value });
+
+      this.$router.push({
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  'fleet',
+          resource: FLEET.GIT_REPO
+        },
+      });
     },
     badgeClass(area, row) {
       switch (area) {
@@ -135,6 +160,7 @@ export default {
 <template>
   <div class="fleet-dashboard">
     <Loading v-if="$fetchState.pending" />
+    <!-- no git repos -->
     <div
       v-else-if="!gitRepos.length"
       class="fleet-empty-dashboard"
@@ -143,7 +169,7 @@ export default {
       <h1>{{ t('fleet.dashboard.welcome') }}</h1>
       <p class="mb-30">
         <span>{{ t('fleet.dashboard.gitOpsScale') }}</span>
-        <a href="https://rancher.com/support-maintenance-terms" target="_blank" rel="noopener noreferrer nofollow">
+        <a href="https://fleet.rancher.io/" target="_blank" rel="noopener noreferrer nofollow">
           {{ t('fleet.dashboard.learnMore') }} <i class="icon icon-external-link" />
         </a>
       </p>
@@ -157,43 +183,48 @@ export default {
         {{ t('fleet.dashboard.getStarted') }}
       </n-link>
     </div>
+    <!-- fleet dashboard with repos -->
     <div
       v-else
       class="fleet-dashboard-data"
     >
-      <div class="title mb-20">
+      <div class="title">
         <h1>
           <t k="fleet.dashboard.pageTitle" />
         </h1>
         <div>
-          <button
-            v-tooltip.bottom="'expand all cards'"
-            type="button"
-            class="btn role-primary"
-            @click="toggleAll('expand')"
-          >
-            <i class="icon-chevron-down" />
-            <i class="icon-chevron-down" />
-          </button>
-          <button
-            v-tooltip.bottom="'collapse all cards'"
-            type="button"
-            class="btn role-primary"
+          <p
+            v-if="areAllCardsExpanded"
             @click="toggleAll('collapse')"
           >
-            <i class="icon-chevron-up" />
-            <i class="icon-chevron-up" />
-          </button>
+            {{ t('fleet.dashboard.collapseAll') }}
+          </p>
+          <p
+            v-else
+            @click="toggleAll('expand')"
+          >
+            {{ t('fleet.dashboard.expandAll') }}
+          </p>
         </div>
       </div>
+      <div
+        v-if="emptyWorkspaces.length"
+        class="title-footnote"
+      >
+        <p>{{ t('fleet.dashboard.thereIsMore', { count: emptyWorkspaces.length }) }}:&nbsp;</p>
+        <p v-for="(ews, i) in emptyWorkspaces" :key="i">
+          {{ ews.nameDisplay }}<span v-if="i != (emptyWorkspaces.length - 1)">,&nbsp;</span>
+        </p>
+      </div>
       <CollapsibleCard
-        v-for="(ws, index) in workspacesData"
+        v-for="ws in workspacesData"
         :key="ws.id"
-        class="mb-40"
+        class="mt-20 mb-40"
         :title="`${t('resourceDetail.masthead.workspace')}: ${ws.nameDisplay}`"
         :is-collapsed="isCollapsed[ws.id]"
-        :fav-resource="ws.type"
+        :is-title-clickable="true"
         @toggleCollapse="toggleCollapse($event, ws.id)"
+        @titleClick="setWorkspaceFilterAndLinkToGitRepo(ws.id)"
       >
         <template v-slot:header-right>
           <div class="header-icons">
@@ -251,21 +282,6 @@ export default {
               {{ row.targetInfo.modeDisplay }}
             </template>
           </ResourceTable>
-          <div
-            v-if="(index === (workspacesData.length - 1) && emptyWorkspaces.length)"
-            class="mt-20"
-          >
-            <div class="show-more-workspaces mb-20">
-              <span>{{ t('fleet.dashboard.showMore', { count: emptyWorkspaces.length }) }}</span>
-              <i class="icon-chevron-down" />
-            </div>
-            <div class="empty-workspaces-list">
-              <p>{{ t('fleet.dashboard.thereIsMore', { count: emptyWorkspaces.length }) }}:&nbsp;</p>
-              <p v-for="(ews, i) in emptyWorkspaces" :key="i">
-                {{ ews.nameDisplay }}<span v-if="i != (emptyWorkspaces.length - 1)">,&nbsp;</span>
-              </p>
-            </div>
-          </div>
         </template>
       </CollapsibleCard>
     </div>
@@ -301,29 +317,22 @@ export default {
     > div {
       display: flex;
       align-items: center;
-    }
 
-    button {
-      position: relative;
+      p{
+        color: var(--primary);
 
-      &:last-child {
-        margin-left: 10px;
-      }
-
-      i {
-        position: absolute;
-        left: 0;
-        right: 0;
-
-        &:first-child {
-          top: 30%;
-        }
-
-        &:last-child {
-          top: 40%;
+        &:hover {
+          text-decoration: underline;
+          cursor: pointer;
         }
       }
     }
+  }
+
+  .title-footnote {
+    display: flex;
+    align-items: center;
+    color: var(--darker);
   }
 
   .cluster-count-info {
@@ -363,22 +372,6 @@ export default {
         margin-right: 10px;
       }
     }
-  }
-
-  .show-more-workspaces {
-    display: flex;
-    align-items: center;
-    color: var(--primary);
-
-    i {
-      margin-left: 8px;
-    }
-  }
-
-  .empty-workspaces-list {
-    display: flex;
-    align-items: center;
-    color: var(--darker);
   }
 }
 </style>
