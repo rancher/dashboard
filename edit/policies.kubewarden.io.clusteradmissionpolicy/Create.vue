@@ -1,18 +1,18 @@
 <script>
 import jsyaml from 'js-yaml';
+import isEqual from 'lodash/isEqual';
 import { mapGetters } from 'vuex';
 import ChartMixin from '@/mixins/chart';
 import {
   _CREATE, _VIEW, CHART, REPO, REPO_TYPE, VERSION
 } from '@/config/query-params';
 import { KUBEWARDEN } from '@/config/types';
-import isEqual from 'lodash/isEqual';
+import { saferDump } from '@/utils/create-yaml';
 import ButtonGroup from '@/components/ButtonGroup';
 import Wizard from '@/components/Wizard';
 import Tabbed from '@/components/Tabbed';
 import ResourceCancelModal from '@/components/ResourceCancelModal';
 import Questions from '@/components/Questions';
-import { saferDump } from '@/utils/create-yaml';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 
 import questionJson from '@/.questions/questions.json';
@@ -204,10 +204,10 @@ export default ({
 
           const subtype = {
             key,
-            id:          type,
-            description: `kubewarden.policyCharts.${ shortType }`,
-            label:       shortType,
-            bannerAbbrv: shortType.charAt(0)
+            id:           type,
+            label:        this.t(`kubewarden.policyCharts.${ shortType }.name`),
+            description:  this.t(`kubewarden.policyCharts.${ shortType }.description`),
+            resourceType: this.t(`kubewarden.policyCharts.${ shortType }.resourceType`)
           };
 
           out.push(subtype);
@@ -281,61 +281,32 @@ export default ({
     >
       <template #basics>
         <form :is="(isView? 'div' : 'form')" class="create-resource-container step__basic">
-          <div
-            class="subtypes-container"
-          >
-            <slot name="subtypes" :subtypes="subtypes">
-              <div
-                v-for="subtype in subtypes"
-                :key="subtype.id"
-                class="subtype-banner"
-                :class="{ selected: subtype.id }"
-                @click="selectType(subtype.id, $event)"
-              >
-                <slot name="subtype-content">
-                  <div class="subtype-container">
-                    <div class="subtype-logo">
-                      <img
-                        v-if="subtype.bannerImage"
-                        :src="subtype.bannerImage"
-                        :alt="(resource.type ? resource.type + ': ' : '') + (subtype.label || '')"
-                      />
-                      <div v-else class="round-image">
-                        <div
-                          v-if="subtype.bannerAbbrv"
-                          class="banner-abbrv"
-                        >
-                          <span v-if="$store.getters['i18n/exists'](subtype.bannerAbbrv)">{{ t(subtype.bannerAbbrv) }}</span>
-                          <span v-else :style="{fontSize: abbrSizes[subtype.bannerAbbrv.length]}">{{ subtype.bannerAbbrv }}</span>
-                        </div>
-                        <div v-else>
-                          {{ subtype.id.slice(0, 1).toUpperCase() }}
-                        </div>
-                      </div>
-                    </div>
-                    <div class="subtype-body">
-                      <div class="title" :class="{'with-description': !!subtype.description}">
-                        <h5>
-                          <span
-                            v-if="$store.getters['i18n/exists'](subtype.label)"
-                            v-html="t(subtype.label)"
-                          ></span>
-                          <span v-else>{{ subtype.label }}</span>
-                        </h5>
-                      </div>
-                      <hr v-if="subtype.description" />
-                      <div v-if="subtype.description" class="description">
-                        <span
-                          v-if="$store.getters['i18n/exists'](subtype.description)"
-                          v-html="t(subtype.description, {}, true)"
-                        ></span>
-                        <span v-else>{{ subtype.description }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </slot>
+          <div class="grid">
+            <div
+              v-for="subtype in subtypes"
+              :key="subtype.id"
+              class="subtype"
+              @click="selectType(subtype.id, $event)"
+            >
+              <div class="subtype__icon">
+                <img v-if="subtype.icon" :src="subtype.icon" class="icon" />
+                <i v-else class="icon icon-apps"></i>
               </div>
-            </slot>
+
+              <div class="subtype__metadata">
+                <div class="subtype__badge">
+                  <label>{{ subtype.resourceType }}</label>
+                </div>
+
+                <h4 class="subtype__label">
+                  {{ subtype.label }}
+                </h4>
+
+                <div v-if="subtype.description" class="subtype__description">
+                  {{ subtype.description }}
+                </div>
+              </div>
+            </div>
           </div>
         </form>
       </template>
@@ -396,35 +367,11 @@ export default ({
 </template>
 
 <style lang="scss" scoped>
-  $title-height: 50px;
   $padding: 5px;
-  $slideout-width: 35%;
+  $height: 110px;
+  $side: 15px;
+  $margin: 10px;
   $logo: 60px;
-
-  .wizard {
-    .logo-bg {
-      height: $title-height;
-      width: $title-height;
-      background-color: white;
-      border: $padding solid white;
-      border-radius: calc( 3 * var(--border-radius));
-      position: relative;
-    }
-
-    .logo {
-      max-height: $title-height - 2 * $padding;
-      max-width: $title-height - 2 * $padding;
-      position: absolute;
-      width: auto;
-      height: auto;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      margin: auto;
-    }
-
-  }
 
   ::v-deep .step-container {
       height: auto;
@@ -435,11 +382,13 @@ export default ({
       display: flex;
       flex-direction: column;
       flex: 1;
+      overflow-x: hidden;
 
       .spacer {
         line-height: 2;
       }
     }
+
     &__values {
       &__controls {
         display: flex;
@@ -462,54 +411,124 @@ export default ({
           overflow: auto;
         }
       }
-
     }
   }
 
-  .subtype-banner {
-    .round-image {
-      background-color: var(--primary);
-    }
-  }
-
-  .title {
-    margin-top: 20px;
-
-    &.with-description {
-      margin-top: 0;
-    }
-  }
-
-  .subtype-container {
-    position: relative;
-  };
-
-  .subtype-body {
-    margin-left: $logo + 10px;
-  }
-
-  .subtype-logo {
-    align-items: center;
+  .grid {
     display: flex;
-    justify-content: center;
-    position: absolute;
-    left: 0;
-    width: $logo;
-    height: $logo;
-    border-radius: calc(2 * var(--border-radius));
-    overflow: hidden;
-    background-color: white;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin: 0 -1*$margin;
 
-    > .round-image {
-      margin-right: 0;
-    };
+    @media only screen and (min-width: map-get($breakpoints, '--viewport-4')) {
+      .subtype {
+        width: 100%;
+      }
+    }
+    @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {
+      .subtype {
+        width: calc(50% - 2 * #{$margin});
+      }
+    }
+    @media only screen and (min-width: map-get($breakpoints, '--viewport-9')) {
+      .subtype {
+        width: calc(33.33333% - 2 * #{$margin});
+      }
+    }
+    @media only screen and (min-width: map-get($breakpoints, '--viewport-12')) {
+      .subtype {
+        width: calc(25% - 2 * #{$margin});
+      }
+    }
 
-    img {
-      width: $logo - 4px;
-      height: $logo - 4px;
-      object-fit: contain;
+    $color: var(--body-text) !important;
+
+    .subtype {
+      height: $height;
+      margin: $margin;
       position: relative;
-      top: 2px;
+      border-radius: calc( 1.5 * var(--border-radius));
+      border: 1px solid var(--border);
+      text-decoration: none !important;
+      color: $color;
+
+      &:hover:not(.disabled) {
+        box-shadow: 0 0 30px var(--shadow);
+        transition: box-shadow 0.1s ease-in-out;
+        cursor: pointer;
+        text-decoration: none !important;
+      }
+
+      &__metadata {
+        margin-left: $side+$logo+$margin;
+        padding: $margin;
+      }
+
+      &__badge {
+        position: absolute;
+        padding: 2px 5px;
+        background-color: var(--app-rancher-accent);
+        border-radius: calc( 1.5 * var(--border-radius));
+
+        label {
+          font-size: 12px;
+          line-height: 12px;
+          text-align: center;
+          display: block;
+          white-space: no-wrap;
+          text-overflow: ellipsis;
+          color: var(--app-rancher-accent-text);
+          margin: 0;
+        }
+      }
+
+      &__icon {
+        text-align: center;
+        position: absolute;
+        width: 85px;
+        height: 100%;
+        overflow: hidden;
+        background-color: var(--simple-box-border);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        img, i {
+          width: $logo;
+          height: $logo;
+          background: #fff;
+          border-radius: 50%;
+          object-fit: contain;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+      }
+
+      &__label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 20px;
+        margin-bottom: 0;
+        line-height: initial;
+      }
+
+      &__description {
+        margin-right: $margin;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--input-label);
+      }
+    }
+
+    .disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
 </style>
