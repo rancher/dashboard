@@ -438,8 +438,15 @@ export default {
 }
 .create-resource-container {
   .subtype-banner {
-    .round-image {
+    .banner-abbrv {
+      align-items: center;
       background-color: var(--primary);
+      color: var(--body-bg);
+      display: flex;
+      font-size: 2.5em;
+      height: 100%;
+      justify-content: center;
+      width: 100%;
     }
   }
 }
@@ -447,8 +454,6 @@ export default {
 $logo: 60px;
 
 .title {
-  margin-top: 20px;
-
   &.with-description {
     margin-top: 0;
   }
@@ -459,23 +464,25 @@ $logo: 60px;
 };
 
 .subtype-body {
-  margin-left: $logo + 10px;
+  background-color: var(--body-bg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .subtype-logo {
-  align-items: center;
+  background-color: var(--box-bg);
+  border-radius: var(--border-radius) 0 0 var(--border-radius);
   display: flex;
   justify-content: center;
-  position: absolute;
-  left: 0;
-  width: $logo;
-  height: $logo;
-  border-radius: calc(2 * var(--border-radius));
-  overflow: hidden;
-  background-color: white;
+  align-content: center;
+  align-items: center;
+  padding: 0 30px;
 
   > .round-image {
-    margin-right: 0;
+    width: $logo;
+    height: $logo;
   };
 
   img {

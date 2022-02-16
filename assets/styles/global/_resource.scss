@@ -12,10 +12,17 @@
     border: 1px solid var(--border);
     border-radius: 0;
     display: flex;
-    flex-basis: 40%;
+    flex-basis: 48%;
     margin: 10px;
     min-height: 80px;
-    padding: 10px;
+    background-color: var(--body-bg);
+    align-content: flex-start;
+    border-radius: var(--border-radius);
+
+    .subtype-container {
+      display: flex;
+      align-items: stretch;
+    }
 
     &.disabled {
       cursor: not-allowed !important;
@@ -60,9 +67,6 @@
     }
 
     &:not(.top) {
-      align-items: top;
-      flex-direction: column;
-      justify-content: start;
       &:hover {
         cursor: pointer;
         box-shadow: 0px 0px 1px var(--outline-width) var(--outline);
@@ -72,20 +76,8 @@
     .round-image {
       border-radius: 50%;
       height: 50px;
-      margin-right: 10px;
       width: 50px;
       overflow: hidden;
-    }
-
-    .banner-abbrv {
-      align-items: center;
-      background-color: var(--primary);
-      color: white;
-      display: flex;
-      font-size: 2.5em;
-      height: 100%;
-      justify-content: center;
-      width: 100%;
     }
   }
 }
