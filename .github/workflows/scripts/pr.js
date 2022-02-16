@@ -33,9 +33,16 @@ function removeZubeLabels(labels) {
 }
 
 async function resetZubeLabels(issue, label) {
-    // Remove all zube labels
-    const cleanLabels = removeZubeLabels(issue.labels);
+    // Remove all Zube labels
+    let cleanLabels = removeZubeLabels(issue.labels);
+
+    cleanLabels = cleanLabels.map((v) => {
+        return v.name;
+    });
+
+    // Turn the array of labels into just their names
     console.log(`    Current Labels: ${cleanLabels}`);
+
     // Add the 'to test' label
     cleanLabels.push(label);
     console.log(`    New Labels    : ${cleanLabels}`);
@@ -128,7 +135,13 @@ async function processClosedAction() {
 
         await waitForLabel(iss, DONE_LABEL);
 
+        // Wait
+        await new Promise(r => setTimeout(r, 5000));
+
         await resetZubeLabels(iss, IN_TEST_LABEL);
+
+        // Wait
+        await new Promise(r => setTimeout(r, 5000));
 
         // Re-open the issue if it is closed
         if (iss.state === 'closed') {
