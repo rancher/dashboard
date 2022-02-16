@@ -1,11 +1,9 @@
 import { mount } from '@vue/test-utils';
-// @ts-ignore
 import UnitInput from '@/components/form/UnitInput.vue';
-// @ts-ignore
 import LabeledInput from '@/components/form/LabeledInput.vue';
 import { UNITS } from '../../utils/units';
 
-describe('unitinput', () => {
+describe('UnitInput', () => {
   test('renders', () => {
     const wrapper = mount(UnitInput, { propsData: { value: 1 } });
 
