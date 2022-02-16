@@ -26,7 +26,7 @@ export default {
 </script>
 
 <template>
-  <div class="icon-message" :class="{'vertical': vertical}">
+  <div class="message-icon" :class="{'vertical': vertical}">
     <i class="icon" :class="{ [icon]: true, [iconState]: !!iconState}" />
     <div class="message">
       <slot name="message">
@@ -47,7 +47,7 @@ export default {
     width: 100%;
   }
 
-  .icon-message {
+  .message-icon {
     display: flex;
     align-items: center;
     justify-content: center;

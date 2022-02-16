@@ -27,20 +27,6 @@ export function init(store) {
     showWorkspaceSwitcher: true,
   });
 
-  /*
-  virtualType({
-    label:       'Overview',
-    group:      'Root',
-    namespaced:  false,
-    name:        'istio-overview',
-    weight:      100,
-    route:       { name: 'c-cluster-istio' },
-    exact:       true,
-  });
-*/
-
-  // basicType('istio-overview');
-
   basicType([
     FLEET.CLUSTER,
     FLEET.CLUSTER_GROUP,
@@ -48,6 +34,7 @@ export function init(store) {
   ]);
 
   configureType(FLEET.CLUSTER, { isCreatable: false });
+  configureType(FLEET.GIT_REPO, { showListMasthead: false });
 
   weightType(FLEET.GIT_REPO, 109, true);
   weightType(FLEET.CLUSTER, 108, true);

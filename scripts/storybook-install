@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// This script will add or remove the extra dependencies require for Storybook to the pacjage.json file
+// This script will add or remove the extra dependencies require for Storybook to the package.json file
 // It will perform a `yarn install` if the package.json file was updated
 
 // Storybook adds a bit of weight to the yarn install process, so we only do it if we are using Storybook

@@ -1,7 +1,7 @@
 <script>
 import Loading from '@/components/Loading';
-import FleetSummary from '@/components/FleetSummary';
-import FleetRepos from '@/components/FleetRepos';
+import FleetSummary from '@/components/fleet/FleetSummary';
+import FleetRepos from '@/components/fleet/FleetRepos';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import Tab from '@/components/Tabbed/Tab';
 import { MANAGEMENT, FLEET } from '@/config/types';
