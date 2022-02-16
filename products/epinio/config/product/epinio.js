@@ -5,6 +5,9 @@ import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import EpinioDiscovery from '@/products/epinio/utils/epinio-discovery';
 import { MULTI_CLUSTER } from '@/store/features';
 
+// TODO: RC rename `/pp/v1` --> `/
+// TODO: RC check steve/action request how add prefix?
+
 export function init(store) {
   const {
     product,
@@ -19,7 +22,7 @@ export function init(store) {
   // TODO: RC this needs to be conditional on an env (tie in to Phil's new env?)
   const isSingleProduct = true;
   // TODO: RC this needs to come from an env (tie in to Phil's new env?)
-  const version = `0.3.6`; // TODO: RC like rootGetters['harvester/byId'](HCI.SETTING, 'server-version')?.value
+  const version = `0.3.6`;
 
   if (isSingleProduct) {
     store.dispatch('setIsSingleProduct', {

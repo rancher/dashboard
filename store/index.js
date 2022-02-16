@@ -406,6 +406,8 @@ export const getters = {
       return state.isSingleProduct;
     }
 
+    // TODO: RC on removal of cnsi tokens refresh.... get 400 error page
+
     if (state.isSingleVirtualCluster2) {
       // TODO: RC move out like epinio
       return {
