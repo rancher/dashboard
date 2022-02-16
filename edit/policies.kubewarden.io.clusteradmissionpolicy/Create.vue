@@ -7,15 +7,18 @@ import {
   CATEGORY, _CREATE, _VIEW, CHART, REPO, REPO_TYPE, SEARCH_QUERY, VERSION
 } from '@/config/query-params';
 import { KUBEWARDEN } from '@/config/types';
+import { removeObject, addObject } from '@/utils/array';
 import { saferDump } from '@/utils/create-yaml';
 import { ensureRegex } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
+
 import ButtonGroup from '@/components/ButtonGroup';
-import Wizard from '@/components/Wizard';
-import Tabbed from '@/components/Tabbed';
+import Checkbox from '@/components/form/Checkbox';
+import Questions from '@/components/Questions';
 import ResourceCancelModal from '@/components/ResourceCancelModal';
 import Select from '@/components/form/Select';
-import Questions from '@/components/Questions';
+import Tabbed from '@/components/Tabbed';
+import Wizard from '@/components/Wizard';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 
 import questionJson from '@/.questions/questions.json';
@@ -29,7 +32,7 @@ export default ({
   name: 'Create',
 
   components: {
-    ButtonGroup, Wizard, Tabbed, ResourceCancelModal, Select, Questions, YamlEditor
+    ButtonGroup, Checkbox, Questions, ResourceCancelModal, Select, Tabbed, Wizard, YamlEditor
   },
 
   props: {
@@ -76,6 +79,7 @@ export default ({
   data() {
     return {
       category:            null,
+      hideKeywords:            [],
       searchQuery:         null,
       errors:              null,
       showQuestions:       true,
@@ -112,10 +116,26 @@ export default ({
       },
 
       categories: [
-        '*',
-        'Ingress',
-        'Pod',
-        'Service'
+        {
+          label: 'All',
+          value: ''
+        },
+        {
+          label: '*',
+          value: 'Global'
+        },
+        {
+          label: 'Ingress',
+          value: 'Ingress'
+        },
+        {
+          label: 'Pod',
+          value: 'Pod'
+        },
+        {
+          label: 'Service',
+          value: 'Service'
+        }
       ]
     };
   },
@@ -204,6 +224,14 @@ export default ({
           }
         }
 
+        if ( this.hideKeywords ) {
+          for ( const hidden of this.hideKeywords ) {
+            if ( subtype.keywords.includes(hidden) ) {
+              return false;
+            }
+          }
+        }
+
         return true;
       });
 
@@ -227,6 +255,24 @@ export default ({
       return options;
     },
 
+    // Right now the keywords that are enabled false are being removed from the options
+    keywordOptions() {
+      let out = [];
+
+      const flattened = this.filteredSubtypes.flatMap((subtype) => {
+        return subtype.keywords;
+      });
+      const keywords = [...new Set(flattened)];
+
+      for ( const k of keywords ) {
+        out = [...out, { label: k, enabled: true }];
+      }
+
+      return [{
+        label: 'All', all: true, enabled: true
+      }, ...out];
+    },
+
     showingYaml() {
       return this.formYamlOption === VALUES_STATE.YAML || ( !this.valuesComponent );
     },
@@ -239,19 +285,18 @@ export default ({
         this.stepValues
       );
 
-      return steps.sort((a, b) => (b.weight || 0) - (a.weight || 0));
+      return steps.sort((a, b) => ( b.weight || 0 ) - ( a.weight || 0 ));
     },
 
     subtypes() {
       const out = [];
       const { SPOOFED } = KUBEWARDEN;
 
-      for (const key in SPOOFED) {
+      for ( const key in SPOOFED ) {
         const type = SPOOFED[key];
 
         if ( type !== SPOOFED.POLICIES && type !== SPOOFED.POLICY ) {
           const shortType = type.replace(`${ SPOOFED.POLICIES }.`, '');
-          const keywords = this.t(`kubewarden.policyCharts.${ shortType }.keywords`).split('\n').slice(0, -1);
 
           const subtype = {
             key,
@@ -259,7 +304,7 @@ export default ({
             label:        this.t(`kubewarden.policyCharts.${ shortType }.name`),
             description:  this.t(`kubewarden.policyCharts.${ shortType }.description`),
             resourceType: this.t(`kubewarden.policyCharts.${ shortType }.resourceType`),
-            keywords
+            keywords:     this.t(`kubewarden.policyCharts.${ shortType }.keywords`).split('\n').slice(0, -1)
           };
 
           out.push(subtype);
@@ -309,6 +354,24 @@ export default ({
       window.scrollTop = 0;
     },
 
+    toggleAll(on) {
+      for ( const subtype of this.filteredSubtypes ) {
+        this.toggleKeyword(subtype, on);
+      }
+    },
+
+    toggleKeyword(keyword, on) {
+      const hidden = this.hideKeywords;
+
+      if ( on ) {
+        removeObject(hidden, keyword.label);
+      } else {
+        addObject(hidden, keyword.label);
+      }
+
+      this.hideKeywords = hidden;
+    },
+
     cancel() {
       this.done();
     },
@@ -335,6 +398,30 @@ export default ({
         <form :is="(isView? 'div' : 'form')" class="create-resource-container step__basic">
           <div>
             <Select
+              v-model="keywords"
+              :searchable="false"
+              :options="keywordOptions"
+              class="checkbox-select"
+              :close-on-select="false"
+              @option:selecting="$event.all ? toggleAll(!$event.enabled) : toggleKeyword($event, !$event.enabled)"
+            >
+              <template #selected-option="selected">
+                {{ selected.label }}
+              </template>
+              <template #option="keyword">
+                <Checkbox
+                  :value="keyword.enabled"
+                  :label="keyword.label"
+                  class="pull-left repo in-select"
+                >
+                  <template #label>
+                    <span>{{ keyword.label }}</span>
+                  </template>
+                </Checkbox>
+              </template>
+            </Select>
+
+            <Select
               v-model="category"
               :clearable="true"
               :searchable="false"
@@ -342,7 +429,7 @@ export default ({
               placement="bottom"
               label="label"
               style="min-width: 200px;"
-              :reduce="opt => opt"
+              :reduce="opt => opt.value"
             >
               <template #option="opt">
                 {{ opt.label }}
