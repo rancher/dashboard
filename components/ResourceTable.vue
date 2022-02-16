@@ -8,6 +8,9 @@ import { NAMESPACE } from '@/config/table-headers';
 import { findBy } from '@/utils/array';
 import { NAME as HARVESTER } from '@/config/product/harvester';
 
+// Default group-by in the case the group stored in the preference does not apply
+const DEFAULT_GROUP = 'namespace';
+
 export default {
   components: { ButtonGroup, SortableTable },
 
@@ -175,7 +178,27 @@ export default {
       });
     },
 
-    group: mapPref(GROUP_RESOURCES),
+    _group: mapPref(GROUP_RESOURCES),
+
+    // The group stored in the preference (above) might not be valid for this resource table - so ensure we
+    // choose a group that is applicable (the default)
+    // This saves us from having to store a group preference per resource type - given that custom groupings aer not used much
+    // and it feels like a good UX to be able to keep the namespace/flat grouping across tables
+    group: {
+      get() {
+        // Check group is valid
+        const exists = this.groupOptions.find(g => g.value === this._group);
+
+        if (!exists) {
+          return DEFAULT_GROUP;
+        }
+
+        return this._group;
+      },
+      set(value) {
+        this._group = value;
+      }
+    },
 
     showGrouping() {
       if ( this.groupable === null ) {
