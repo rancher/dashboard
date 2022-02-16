@@ -1759,7 +1759,7 @@ fleet:
       }  
   fleetSummary:
     state:
-      success: 'Ready'
+      ready: 'Ready'
       info: 'Transitioning'
       warning: 'Warning'
       error: 'Error'
@@ -2818,6 +2818,7 @@ namespace:
   enableAutoInjection: Enable Istio Auto Injection
   disableAutoInjection: Disable Istio Auto Injection
   move: Move
+  total: Total
   resourceStates:
       success: 'Active'
       info: 'Transitioning'
@@ -2828,7 +2829,6 @@ namespace:
         stateName: 'Inactive'
         shortDescription: Deployment is paused
         longDescription: Deployment is paused. Pausing stops the controller from deploying revisions.
-
 
 namespaceFilter:
   selected:
