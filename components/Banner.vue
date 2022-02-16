@@ -29,7 +29,6 @@ export default {
   <div class="banner" :class="{[color]: true, closable}">
     <slot>
       <t v-if="labelKey" :k="labelKey" :raw="true" />
-
       <span v-else-if="label.message" v-html="JSON.stringify(label.message)" />
       <span v-else v-html="nlToBr(label)" />
     </slot>
