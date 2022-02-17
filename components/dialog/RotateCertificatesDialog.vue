@@ -78,14 +78,11 @@ export default {
 
           set(this.cluster, 'spec.rkeConfig.rotateCertificates', {
             generation:     currentGeneration + 1,
-            caCertificates: true,
             services:       this.selectedService ? [this.selectedService] : null
           });
 
           await this.cluster.save();
         } else {
-          const cluster = this.cluster.mgmt;
-
           await this.cluster.mgmt.cluster.doAction('rotateCertificates', params);
         }
         buttonDone(true);
