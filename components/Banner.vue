@@ -21,7 +21,14 @@ export default {
       default: false,
     }
   },
-
+  computed: {
+    /**
+     * Return message text as label
+     */
+    messageLabel(): string {
+      return this.label?.message;
+    }
+  },
   methods: { nlToBr },
 };
 </script>
@@ -29,7 +36,7 @@ export default {
   <div class="banner" :class="{[color]: true, closable}">
     <slot>
       <t v-if="labelKey" :k="labelKey" :raw="true" />
-      <span v-else-if="label.message" v-html="JSON.stringify(label.message)" />
+      <span v-else-if="messageLabel">{{ messageLabel }}</span>
       <span v-else v-html="nlToBr(label)" />
     </slot>
     <div v-if="closable" class="closer" @click="$emit('close')">
