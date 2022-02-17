@@ -512,7 +512,6 @@ export default ({
     &__basic {
       display: flex;
       flex-direction: column;
-      align-items: flex-end;
       flex: 1;
       overflow-x: hidden;
 
@@ -550,6 +549,7 @@ export default ({
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
+    align-self: flex-end;
 
     & > * {
       margin: $margin;
