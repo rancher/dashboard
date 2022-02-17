@@ -1,8 +1,9 @@
 <script lang="ts">
-
+import Vue from 'vue';
 import { nlToBr } from '@/utils/string';
+import { stringify } from '@/utils/error';
 
-export default {
+export default Vue.extend({
   props: {
     color: {
       type:    String,
@@ -25,12 +26,12 @@ export default {
     /**
      * Return message text as label
      */
-    messageLabel(): string {
-      return this.label?.message;
+    messageLabel(): string | void {
+      return !(typeof this.label === 'string') ? stringify(this.label) : undefined;
     }
   },
   methods: { nlToBr },
-};
+});
 </script>
 <template>
   <div class="banner" :class="{[color]: true, closable}">
