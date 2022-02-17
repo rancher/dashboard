@@ -97,7 +97,7 @@ export default {
       :class="{'has-description': !!get(r, descriptionField), 'has-side-label': !!get(r, sideLabelField), [colorFor(r, idx)]: true, disabled: get(r, disabledField) === true}"
       @click="select(r, idx)"
     >
-      <div class="side-label" :class="{'indicator': true }" />
+      <div class="side-label badge-state" :class="{'indicator': true }">
       <div v-if="r.deploysOnWindows">
         <label class="deploys-os-label">
           {{ t('catalog.charts.deploysOnWindows') }}
@@ -126,6 +126,7 @@ export default {
   </div>
   <div v-else class="m-50 text-center">
     <h1 v-t="noDataKey" />
+  </div>
   </div>
 </template>
 
@@ -183,15 +184,15 @@ export default {
       }
 
       .side-label {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        padding: 2px 5px;
+        // position: absolute;
+        // top: 10px;
+        // right: 10px;
+        // padding: 2px 5px;
 
         &.indicator {
-          top: 0;
-          right: 0;
-          left: 0;
+          // top: 0;
+          // right: 0;
+          // left: 0;
         }
 
       }
