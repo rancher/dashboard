@@ -86,7 +86,7 @@ export default {
         } else {
           const cluster = this.cluster.mgmt;
 
-          await cluster.doAction('rotateCertificates', params);
+          await this.cluster.mgmt.cluster.doAction('rotateCertificates', params);
         }
         buttonDone(true);
         this.close();
