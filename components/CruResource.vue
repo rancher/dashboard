@@ -464,11 +464,11 @@ $logo: 60px;
 };
 
 .subtype-body {
-  background-color: var(--body-bg);
   padding: 20px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: left;
+  flex: 1;
 }
 
 .subtype-logo {

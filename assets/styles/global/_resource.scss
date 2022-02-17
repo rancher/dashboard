@@ -22,6 +22,7 @@
     .subtype-container {
       display: flex;
       align-items: stretch;
+      flex: 1;
     }
 
     &.disabled {
