@@ -32,7 +32,28 @@ import {
   AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG, _CONFIG
 } from '@/config/query-params';
 
+// eslint-disable-next-line
 import { cleanForNew, normalizeType } from './normalize';
+
+// eslint-disable-next-line
+import {
+  CloneObject,
+  Context,
+  CustomValidationRule,
+  DetailLocation,
+  HttpRequest,
+  MapOfNumbers,
+  MapOfStrings,
+  Metadata,
+  OwnerReferenceContent,
+  RehydrateObject,
+  ResourceDetails,
+  ResourceProperties,
+  State,
+  StateColor,
+  StateInfoForTypes,
+  StateList
+} from './steveModelTypes';
 
 const STRING_LIKE_TYPES = [
   'string',
@@ -60,7 +81,7 @@ const REMAP_STATE = {
   off:                      'Disabled',
   waitingforinfrastructure: 'Waiting for Infra',
   waitingfornoderef:        'Waiting for Node Ref'
-};
+} as MapOfStrings;
 
 const DEFAULT_COLOR = 'warning';
 const DEFAULT_ICON = 'x';
@@ -426,22 +447,22 @@ export const STATES = {
   },
 };
 
-export function getStatesByType(type = 'info') {
+export function getStatesByType() {
   const out = {
     info:    [],
     error:   [],
     success: [],
     warning: [],
-    unknown: [],
-  };
+    unknown: []
+  } as StateInfoForTypes;
 
-  forIn(STATES, (state, stateKey) => {
-    if (state.color) {
-      if (out[state.color]) {
-        out[state.color].push(stateKey);
-      } else {
-        out.unknown.push(stateKey);
-      }
+  forIn(STATES, (state: State, stateKey: string) => {
+    const color = state.color as StateColor;
+
+    if (out[color]) {
+      out[color].push(stateKey);
+    } else {
+      out.unknown.push(stateKey);
     }
   });
 
@@ -487,7 +508,7 @@ export function colorForState(state, isError, isTransitioning) {
   return `text-${ color }`;
 }
 
-export function stateDisplay(state) {
+export function stateDisplay(state: string) {
   // @TODO use translations
   const key = (state || 'active').toLowerCase();
 
@@ -498,13 +519,13 @@ export function stateDisplay(state) {
   return key.split(/-/).map(ucFirst).join('-');
 }
 
-export function stateSort(color, display) {
+export function stateSort(color: string, display: string) {
   color = color.replace(/^(text|bg)-/, '');
 
   return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ display }`;
 }
 
-function maybeFn(val) {
+function maybeFn(val: any) {
   if ( isFunction(val) ) {
     return val(this);
   }
@@ -512,8 +533,30 @@ function maybeFn(val) {
   return val;
 }
 
-export default class Resource {
-  constructor(data, ctx, rehydrateNamespace = null, setClone = false) {
+export default class Resource implements ResourceProperties {
+  // Intialize typed properties
+  $ctx = {} as Context;
+  metadata = {} as Metadata;
+  type = '';
+  kind = '';
+  id = '';
+  uid = '';
+  spec = {} as any;
+  transitioning = false;
+  // Links can include anything, such as self, update, shell,
+  // sshKeys, update, nodeConfig
+  links = {} as MapOfStrings;
+  status = { conditions: [] as string[] };
+  isSpoofed = false;
+  _type = '';
+
+  actions = {} as MapOfStrings;
+  actionLinks = {} as MapOfStrings;
+  __rehydrate? = {} as RehydrateObject;
+  __clone? = {} as CloneObject;
+
+  constructor(data: any, ctx: Context, rehydrateNamespace = null, setClone = false) {
+    // make more specific
     for ( const k in data ) {
       this[k] = data[k];
     }
@@ -666,11 +709,11 @@ export default class Resource {
     throw new Error('Implement setLabel in subclass');
   }
 
-  setAnnotations(val) {
+  setAnnotations() {
     throw new Error('Implement setAnnotations in subclass');
   }
 
-  setAnnotation(key, val) {
+  setAnnotation() {
     throw new Error('Implement setAnnotation in subclass');
   }
 
@@ -683,8 +726,8 @@ export default class Resource {
     return colorForState.call(
       this,
       this.state,
-      this.stateObj?.error,
-      this.stateObj?.transitioning
+      this.stateObj?.error || false,
+      this.stateObj?.transitioning || false
     );
   }
 
@@ -697,8 +740,8 @@ export default class Resource {
     let error = false;
 
     if ( this.metadata && this.metadata.state ) {
-      trans = this.metadata.state.transitioning;
-      error = this.metadata.state.error;
+      trans = this.metadata.state.transitioning || false;
+      error = this.metadata.state.error || false;
     }
 
     if ( trans ) {
@@ -741,7 +784,7 @@ export default class Resource {
 
   // ------------------------------------------------------------------
 
-  waitForTestFn(fn, msg, timeoutMs, intervalMs) {
+  waitForTestFn(fn: () => any, msg: string, timeoutMs?: number, intervalMs?: number) {
     console.log('Starting wait for', msg); // eslint-disable-line no-console
 
     if ( !timeoutMs ) {
@@ -779,7 +822,7 @@ export default class Resource {
     });
   }
 
-  waitForState(state, timeout, interval) {
+  waitForState(state: string, timeout: number, interval: number) {
     return this.waitForTestFn(() => {
       return (this.state || '').toLowerCase() === state.toLowerCase();
     }, `state=${ state }`, timeout, interval);
@@ -791,23 +834,23 @@ export default class Resource {
     }, 'transition completion');
   }
 
-  waitForAction(name) {
+  waitForAction(name: string) {
     return this.waitForTestFn(() => {
       return this.hasAction(name);
     }, `action=${ name }`);
   }
 
-  waitForLink(name) {
+  waitForLink(name: string) {
     return this.waitForTestFn(() => {
       return this.hasLink(name);
     }, `link=${ name }`);
   }
 
-  hasCondition(condition) {
-    return this.isCondition(condition, null);
+  hasCondition(condition: string) {
+    return this.isCondition(condition, '');
   }
 
-  isCondition(condition, withStatus = 'True') {
+  isCondition(condition: string, withStatus = 'True') {
     if ( !this.status || !this.status.conditions ) {
       return false;
     }
@@ -837,7 +880,7 @@ export default class Resource {
     const all = this._availableActions;
 
     // Remove disabled items and consecutive dividers
-    let last = null;
+    let last = false as boolean | undefined;
     const out = all.filter((item) => {
       if ( item.enabled === false ) {
         return false;
@@ -948,7 +991,7 @@ export default class Resource {
   }
 
   get canCreate() {
-    if ( this.schema && !this.schema?.collectionMethods.find(x => x.toLowerCase() === 'post') ) {
+    if ( this.schema && !this.schema?.collectionMethods.find((x: string) => x.toLowerCase() === 'post') ) {
       return false;
     }
 
@@ -964,20 +1007,20 @@ export default class Resource {
   }
 
   get canEditYaml() {
-    return this.schema?.resourceMethods?.find(x => x === 'blocked-PUT') ? false : this.canUpdate;
+    return this.schema?.resourceMethods?.find((x: string) => x === 'blocked-PUT') ? false : this.canUpdate;
   }
 
   // ------------------------------------------------------------------
 
-  hasLink(linkName) {
+  hasLink(linkName: string) {
     return !!this.linkFor(linkName);
   }
 
-  linkFor(linkName) {
+  linkFor(linkName: string) {
     return (this.links || {})[linkName];
   }
 
-  followLink(linkName, opt = {}) {
+  followLink(linkName: string, opt = {} as HttpRequest) {
     if ( !opt.url ) {
       opt.url = (this.links || {})[linkName];
     }
@@ -995,15 +1038,15 @@ export default class Resource {
 
   // ------------------------------------------------------------------
 
-  hasAction(actionName) {
+  hasAction(actionName: string) {
     return !!this.actionLinkFor(actionName);
   }
 
-  actionLinkFor(actionName) {
+  actionLinkFor(actionName: string) {
     return (this.actions || this.actionLinks || {})[actionName];
   }
 
-  doAction(actionName, body, opt = {}) {
+  doAction(actionName: string, body: any, opt = {} as any) {
     return this.$dispatch('resourceAction', {
       resource: this,
       actionName,
@@ -1030,7 +1073,7 @@ export default class Resource {
 
   // ------------------------------------------------------------------
 
-  patch(data, opt = {}) {
+  patch(data: any, opt = {} as HttpRequest) {
     if ( !opt.url ) {
       opt.url = this.linkFor('self');
     }
@@ -1047,12 +1090,12 @@ export default class Resource {
     return this._save(...arguments);
   }
 
-  async _save(opt = {}) {
+  async _save(opt = {} as HttpRequest) {
     delete this.__rehydrate;
     delete this.__clone;
     const forNew = !this.id;
 
-    const errors = await this.validationErrors(this, opt.ignoreFields);
+    const errors = await this.validationErrors(this, opt.ignoreFields || []);
 
     if (!isEmpty(errors)) {
       return Promise.reject(errors);
@@ -1121,7 +1164,7 @@ export default class Resource {
       if ( res && res.kind !== 'Table') {
         await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined ) });
       }
-    } catch (e) {
+    } catch (e: any) {
       if ( this.type && this.id && e?._status === 409) {
         // If there's a conflict, try to load the new version
         await this.$dispatch('find', {
@@ -1141,7 +1184,7 @@ export default class Resource {
     return this._remove(...arguments);
   }
 
-  async _remove(opt = {}) {
+  async _remove(opt = {} as HttpRequest) {
     if ( !opt.url ) {
       opt.url = this.linkFor('self');
     }
@@ -1186,7 +1229,7 @@ export default class Resource {
     };
   }
 
-  get _detailLocation() {
+  get _detailLocation(): DetailLocation {
     const schema = this.$getters['schemaFor'](this.type);
 
     const id = this.id?.replace(/.*\//, '');
@@ -1293,9 +1336,9 @@ export default class Resource {
     downloadFile(`${ this.nameDisplay }.yaml`, value.data, 'application/yaml');
   }
 
-  async downloadBulk(items) {
-    const files = {};
-    const names = [];
+  async downloadBulk(items: any[]) {
+    const files = {} as any;
+    const names = [] as string[];
 
     for ( const item of items ) {
       let name = `${ item.nameDisplay }.yaml`;
@@ -1308,8 +1351,8 @@ export default class Resource {
       names.push(name);
     }
 
-    await eachLimit(items, 10, (item, idx) => {
-      return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then((data) => {
+    await eachLimit(items, 10, (item: any, idx: number) => {
+      return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then((data: any) => {
         files[`resources/${ names[idx] }`] = data.data || data;
       });
     });
@@ -1323,7 +1366,7 @@ export default class Resource {
     window.open(this.links.self, '_blank');
   }
 
-  promptRemove(resources) {
+  promptRemove(resources: Resource[] | Resource) {
     if ( !resources ) {
       resources = this;
     }
@@ -1357,9 +1400,11 @@ export default class Resource {
 
   // convert yaml to object, clean for new if creating/cloning
   // map _type to type
-  cleanYaml(yaml, mode = 'edit') {
+  cleanYaml(yaml: string, mode = 'edit') {
     try {
-      const obj = jsyaml.load(yaml);
+      // Returns either a plain object, a string, a number, null or undefined
+      // according to https://github.com/nodeca/js-yaml
+      const obj = jsyaml.load(yaml) as any;
 
       if (mode !== 'edit') {
         cleanForNew(obj);
@@ -1381,9 +1426,11 @@ export default class Resource {
     cleanForNew(this);
   }
 
-  yamlForSave(yaml) {
+  yamlForSave(yaml: string) {
     try {
-      const obj = jsyaml.load(yaml);
+      // Returns either a plain object, a string, a number, null or undefined
+      // according to https://github.com/nodeca/js-yaml
+      const obj = jsyaml.load(yaml) as any;
 
       if (obj) {
         if (this._type) {
@@ -1397,7 +1444,7 @@ export default class Resource {
     }
   }
 
-  async saveYaml(yaml) {
+  async saveYaml(yaml: string) {
     /* Multipart support, but need to know the right cluster and work for management store
       and "apply" seems to only work for create, not update.
 
@@ -1413,7 +1460,7 @@ export default class Resource {
     const parsed = ary[0];
     */
 
-    const parsed = jsyaml.load(yaml); // will throw on invalid yaml, and return one or more documents (usually one)
+    const parsed = jsyaml.load(yaml) as any; // will throw on invalid yaml, and return one or more documents (usually one)
 
     if ( this.schema?.attributes?.namespaced && !parsed.metadata.namespace ) {
       const err = this.$rootGetters['i18n/t']('resourceYaml.errors.namespaceRequired');
@@ -1452,8 +1499,8 @@ export default class Resource {
     }
   }
 
-  validationErrors(data, ignoreFields) {
-    const errors = [];
+  validationErrors(data: any, ignoreFields: string[]) {
+    const errors = [] as string[];
     const {
       type: originalType,
       schema
@@ -1479,7 +1526,7 @@ export default class Resource {
     let field, key, val, displayKey;
 
     for ( let i = 0 ; i < keys.length ; i++ ) {
-      const fieldErrors = [];
+      const fieldErrors = [] as string[];
 
       key = keys[i];
       field = fields[key];
@@ -1538,14 +1585,14 @@ export default class Resource {
       errors.push(...fieldErrors);
     }
 
-    let { customValidationRules } = this;
+    let customValidationRules = this.customValidationRules as CustomValidationRule[];
 
     if (!isEmpty(customValidationRules)) {
       if (isFunction(customValidationRules)) {
         customValidationRules = customValidationRules();
       }
 
-      customValidationRules.forEach((rule) => {
+      customValidationRules.forEach((rule: CustomValidationRule) => {
         const {
           path,
           requiredIf: requiredIfPath,
@@ -1590,7 +1637,7 @@ export default class Resource {
 
         parsedRules.forEach((validator) => {
           const validatorAndArgs = validator.split(':');
-          const validatorName = validatorAndArgs.slice(0, 1);
+          const validatorName = validatorAndArgs.slice(0, 1)[0];
           const validatorArgs = validatorAndArgs.slice(1) || null;
           const validatorExists = Object.prototype.hasOwnProperty.call(CustomValidators, validatorName);
 
@@ -1609,9 +1656,9 @@ export default class Resource {
 
   get ownersByType() {
     const { metadata:{ ownerReferences = [] } } = this;
-    const ownersByType = {};
+    const ownersByType = {} as any;
 
-    ownerReferences.forEach((owner) => {
+    ownerReferences.forEach((owner: Resource) => {
       if (!ownersByType[owner.kind]) {
         ownersByType[owner.kind] = [owner];
       } else {
@@ -1623,16 +1670,16 @@ export default class Resource {
   }
 
   get owners() {
-    const owners = [];
+    const owners = [] as Resource[];
 
     for ( const kind in this.ownersByType) {
       const schema = this.$rootGetters['cluster/schema'](kind);
 
       if (schema) {
         const type = schema.id;
-        const allOfResourceType = this.$rootGetters['cluster/all']( type );
+        const allOfResourceType = this.$rootGetters['cluster/all']( type ) as Resource[];
 
-        this.ownersByType[kind].forEach((resource, idx) => {
+        this.ownersByType[kind].forEach((resource: Resource) => {
           const resourceInstance = allOfResourceType.find(resourceByType => resourceByType?.metadata?.uid === resource.uid);
 
           if (resourceInstance) {
@@ -1650,7 +1697,7 @@ export default class Resource {
   }
 
   get _details() {
-    const details = [];
+    const details = [] as ResourceDetails[];
 
     if (this.owners?.length > 0) {
       details.push({
@@ -1661,7 +1708,7 @@ export default class Resource {
           row:   owner,
           col:   {},
           value: owner.metadata.name
-        }))
+        } as OwnerReferenceContent))
       });
     }
 
@@ -1671,7 +1718,7 @@ export default class Resource {
         formatter:     'LiveDate',
         formatterOpts: { addSuffix: true },
         content:       get(this, 'metadata.deletionTimestamp')
-      });
+      } as ResourceDetails);
     }
 
     return details;
@@ -1695,7 +1742,7 @@ export default class Resource {
     return this._findRelationship('owner', 'to');
   }
 
-  _relationshipsFor(rel, direction) {
+  _relationshipsFor(rel: string, direction: string) {
     const out = { selectors: [], ids: [] };
 
     if ( !this.metadata?.relationships?.length ) {
@@ -1743,7 +1790,7 @@ export default class Resource {
     return out;
   }
 
-  _getRelationship(rel, direction) {
+  _getRelationship(rel: string, direction: string) {
     const res = this._relationshipsFor(rel, direction);
 
     if ( res.selectors?.length ) {
@@ -1754,9 +1801,9 @@ export default class Resource {
     return res.ids || [];
   }
 
-  async _findRelationship(rel, direction) {
+  async _findRelationship(rel: string, direction: string) {
     const { selectors, ids } = this._relationshipsFor(rel, direction);
-    const out = [];
+    const out = [] as Resource[];
 
     for ( const sel of selectors ) {
       const matching = await this.$dispatch('findMatching', sel);
@@ -1789,7 +1836,7 @@ export default class Resource {
   }
 
   toJSON() {
-    const out = {};
+    const out = {} as any;
     const keys = Object.keys(this);
 
     for ( const k of keys ) {
