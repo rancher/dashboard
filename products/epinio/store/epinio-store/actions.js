@@ -5,6 +5,7 @@ import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 import { base64Encode } from '@/utils/crypto';
 import { NAMESPACE_FILTERS } from '@/store/prefs';
 import { createNamespaceFilterKeyWithId } from '@/utils/namespace-filter';
+import { parse as parseUrl, stringify as unParseUrl } from '@/utils/url';
 
 const createId = (schema, resource) => {
   const name = resource.meta?.name || resource.name;
@@ -45,15 +46,25 @@ export default {
 
     return await dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE }, { root: true })
       .then(() => {
-        const currentClusterId = clusterId || rootGetters['clusterId'];
-        const currentCluster = rootGetters[`${ EPINIO_MGMT_STORE }/byId`](EPINIO_TYPES.INSTANCE, currentClusterId);
+        if (rootGetters['isSingleProduct']) {
+          const prependPath = `/pp/v1/proxy`;
+          const url = parseUrl(opt.url);
 
-        opt.headers = {
-          ...opt.headers,
-          Authorization: `Basic ${ base64Encode(`${ currentCluster.username }:${ currentCluster.password }`) }`
-        };
+          if (!url.path.startsWith(prependPath)) {
+            url.path = prependPath + url.path;
+            opt.url = unParseUrl(url);
+          }
+        } else {
+          const currentClusterId = clusterId || rootGetters['clusterId'];
+          const currentCluster = rootGetters[`${ EPINIO_MGMT_STORE }/byId`](EPINIO_TYPES.INSTANCE, currentClusterId);
 
-        opt.url = `${ currentCluster.api }${ opt.url }`;
+          opt.headers = {
+            ...opt.headers,
+            Authorization: `Basic ${ base64Encode(`${ currentCluster.username }:${ currentCluster.password }`) }`
+          };
+
+          opt.url = `${ currentCluster.api }${ opt.url }`;
+        }
 
         return this.$axios(opt);
       })

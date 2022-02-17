@@ -61,12 +61,12 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isSingleVirtualCluster']),
+    ...mapGetters(['isSingleProduct']),
     isHarvester() {
       return this.$store.getters['currentProduct'].inStore === HARVESTER;
     },
     extraColumns() {
-      if ( this.$store.getters['isRancher'] && !this.isSingleVirtualCluster) {
+      if ( this.$store.getters['isRancher'] && !this.isSingleProduct) {
         return ['project-col'];
       }
 

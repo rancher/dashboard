@@ -18,6 +18,7 @@ const dev = (process.env.NODE_ENV !== 'production');
 const devPorts = dev || process.env.DEV_PORTS === 'true';
 const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
+const rancherEnv = process.env.RANCHER_ENV || 'web';
 
 let api = process.env.API || 'http://localhost:8989';
 
@@ -63,6 +64,10 @@ if ( pl !== STANDARD ) {
   console.log(`PL: ${ pl }`); // eslint-disable-line no-console
 }
 
+if ( rancherEnv ) {
+  console.log(`Rancher Env: ${ rancherEnv }`); // eslint-disable-line no-console
+}
+
 console.log(`API: ${ api }`); // eslint-disable-line no-console
 
 module.exports = {
@@ -74,9 +79,10 @@ module.exports = {
     version,
     dev,
     pl,
+    rancherEnv // Ensure this is available where `$config` is not available
   },
 
-  publicRuntimeConfig: { rancherEnv: process.env.RANCHER_ENV || 'web' },
+  publicRuntimeConfig: { rancherEnv },
 
   buildDir: dev ? '.nuxt' : '.nuxt-prod',
 
@@ -324,6 +330,7 @@ module.exports = {
   // Proxy: https://github.com/nuxt-community/proxy-module#options
   proxy: {
     '/k8s':          proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
+    '/pp':           proxyWsOpts(api), // For (epinio) standalone API
     '/api':          proxyWsOpts(api), // Management k8s API
     '/apis':         proxyWsOpts(api), // Management k8s API
     '/v1':           proxyWsOpts(api), // Management Steve API
