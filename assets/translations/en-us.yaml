@@ -840,6 +840,7 @@ catalog:
       placeholder: "e.g. https://charts.rancher.io"
   tools:
     header: Cluster Tools
+    noTools: "No Cluster Tools found"
     action:
       install: Install
       upgrade: Upgrade/Edit
@@ -1438,6 +1439,10 @@ cluster:
       label: Roles
     labels:
       label: Kubernetes Node Labels
+    autoReplace:
+      label: Auto Replace
+      toolTip: If greater than 0, nodes that are unreachable for this duration will be automatically deleted and replaced.
+      unit: "Minutes"
   memberRoles:
     removeMessage: "Note: Removing a user will not remove their project permissions"
     addClusterMember:
@@ -1571,6 +1576,9 @@ cluster:
       caCerts:
         label: CA Certificates
         toolTip: Certificates required for the client to successfully verify the validity of the certificate returned by the endpoint.
+      ipv6:
+        warning: It looks like you are using an IPv6 CIDR. Your node driver may require additional configuration to support this.
+        enable: Enable IPv6 support
     etcd:
       disableSnapshots:
         label: Automatic Snapshots

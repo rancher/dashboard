@@ -81,7 +81,10 @@ export default class CapiMachineDeployment extends SteveModel {
   }
 
   scalePool(delta, save = true) {
-    const clustersMachinePool = this.cluster.spec.rkeConfig.machinePools.find(mp => `${ this.cluster.id }-${ mp.name }` === this.id);
+    const machineConfigName = this.template.metadata.annotations['rke.cattle.io/cloned-from-name'];
+    const machinePools = this.cluster.spec.rkeConfig.machinePools;
+
+    const clustersMachinePool = machinePools.find(pool => pool.machineConfigRef.name === machineConfigName);
 
     if (clustersMachinePool) {
       clustersMachinePool.quantity += delta;
