@@ -7,13 +7,12 @@ import {
   CATEGORY, _CREATE, _VIEW, CHART, REPO, REPO_TYPE, SEARCH_QUERY, VERSION
 } from '@/config/query-params';
 import { KUBEWARDEN } from '@/config/types';
-import { removeObject, addObject } from '@/utils/array';
 import { saferDump } from '@/utils/create-yaml';
 import { ensureRegex } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 
 import ButtonGroup from '@/components/ButtonGroup';
-import Checkbox from '@/components/form/Checkbox';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import Questions from '@/components/Questions';
 import ResourceCancelModal from '@/components/ResourceCancelModal';
 import Select from '@/components/form/Select';
@@ -32,7 +31,7 @@ export default ({
   name: 'Create',
 
   components: {
-    ButtonGroup, Checkbox, Questions, ResourceCancelModal, Select, Tabbed, Wizard, YamlEditor
+    ButtonGroup, LabeledSelect, Questions, ResourceCancelModal, Select, Tabbed, Wizard, YamlEditor
   },
 
   props: {
@@ -79,7 +78,7 @@ export default ({
   data() {
     return {
       category:            null,
-      hideKeywords:            [],
+      keywords:            [],
       searchQuery:         null,
       errors:              null,
       showQuestions:       true,
@@ -94,13 +93,6 @@ export default ({
       preFormYamlOption:   VALUES_STATE.YAML,
       formYamlOption:      VALUES_STATE.YAML,
       showValuesComponent: true,
-
-      abbrSizes:     {
-        3: '24px',
-        4: '18px',
-        5: '16px',
-        6: '14px'
-      },
 
       stepBasic:     {
         name:   'basics',
@@ -224,9 +216,9 @@ export default ({
           }
         }
 
-        if ( this.hideKeywords ) {
-          for ( const hidden of this.hideKeywords ) {
-            if ( subtype.keywords.includes(hidden) ) {
+        if ( this.keywords ) {
+          for ( const selected of this.keywords ) {
+            if ( !subtype.keywords.includes(selected) ) {
               return false;
             }
           }
@@ -255,22 +247,12 @@ export default ({
       return options;
     },
 
-    // Right now the keywords that are enabled false are being removed from the options
     keywordOptions() {
-      let out = [];
-
-      const flattened = this.filteredSubtypes.flatMap((subtype) => {
+      const flattened = this.subtypes.flatMap((subtype) => {
         return subtype.keywords;
       });
-      const keywords = [...new Set(flattened)];
 
-      for ( const k of keywords ) {
-        out = [...out, { label: k, enabled: true }];
-      }
-
-      return [{
-        label: 'All', all: true, enabled: true
-      }, ...out];
+      return [...new Set(flattened)];
     },
 
     showingYaml() {
@@ -354,30 +336,17 @@ export default ({
       window.scrollTop = 0;
     },
 
-    toggleAll(on) {
-      for ( const subtype of this.filteredSubtypes ) {
-        this.toggleKeyword(subtype, on);
-      }
-    },
-
-    toggleKeyword(keyword, on) {
-      const hidden = this.hideKeywords;
-
-      if ( on ) {
-        removeObject(hidden, keyword.label);
-      } else {
-        addObject(hidden, keyword.label);
-      }
-
-      this.hideKeywords = hidden;
-    },
-
     cancel() {
       this.done();
     },
 
     done() {
       this.$router.replace(this.appLocation());
+    },
+
+    refresh() {
+      this.category = null;
+      this.keywords = [];
     },
   }
 
@@ -396,30 +365,18 @@ export default ({
     >
       <template #basics>
         <form :is="(isView? 'div' : 'form')" class="create-resource-container step__basic">
-          <div>
-            <Select
+          <div class="filter">
+            <LabeledSelect
               v-model="keywords"
-              :searchable="false"
+              :clearable="true"
+              :taggable="true"
+              :mode="mode"
+              :multiple="true"
+              class="filter__keywords"
+              label="Filter by Keyword"
               :options="keywordOptions"
-              class="checkbox-select"
-              :close-on-select="false"
-              @option:selecting="$event.all ? toggleAll(!$event.enabled) : toggleKeyword($event, !$event.enabled)"
-            >
-              <template #selected-option="selected">
-                {{ selected.label }}
-              </template>
-              <template #option="keyword">
-                <Checkbox
-                  :value="keyword.enabled"
-                  :label="keyword.label"
-                  class="pull-left repo in-select"
-                >
-                  <template #label>
-                    <span>{{ keyword.label }}</span>
-                  </template>
-                </Checkbox>
-              </template>
-            </Select>
+              :disabled="isView"
+            />
 
             <Select
               v-model="category"
@@ -427,6 +384,7 @@ export default ({
               :searchable="false"
               :options="categories"
               placement="bottom"
+              class="filter__category"
               label="label"
               style="min-width: 200px;"
               :reduce="opt => opt.value"
@@ -436,7 +394,22 @@ export default ({
               </template>
             </Select>
 
-            <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" :placeholder="t('catalog.charts.search')">
+            <input
+              ref="searchQuery"
+              v-model="searchQuery"
+              type="search"
+              class="input-sm filter__search"
+              :placeholder="t('catalog.charts.search')"
+            >
+
+            <button
+              ref="btn"
+              class="btn, btn-sm, role-primary"
+              type="button"
+              @click="refresh"
+            >
+              <i class="icon, icon-lg, icon-refresh" />
+            </button>
           </div>
 
           <div class="grid">
@@ -539,6 +512,7 @@ export default ({
     &__basic {
       display: flex;
       flex-direction: column;
+      align-items: flex-end;
       flex: 1;
       overflow-x: hidden;
 
@@ -569,6 +543,33 @@ export default ({
           overflow: auto;
         }
       }
+    }
+  }
+
+  .filter {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+
+    & > * {
+      margin: $margin;
+    }
+    & > *:first-child {
+      margin-left: 0;
+    }
+    & > *:last-child {
+      margin-right: 0;
+    }
+  }
+
+   @media only screen and (min-width: map-get($breakpoints, '--viewport-4')) {
+    .filter {
+      width: 100%;
+    }
+  }
+  @media only screen and (min-width: map-get($breakpoints, '--viewport-12')) {
+    .filter {
+      width: 75%;
     }
   }
 
