@@ -141,7 +141,7 @@ export default {
       let { displayVersion } = getVersionInfo(this.$store);
 
       if (this.isSingleProduct) {
-        displayVersion = this.isSingleProduct.version || 'unknown';
+        displayVersion = this.isSingleProduct.version || displayVersion || 'unknown';
       }
 
       return displayVersion;

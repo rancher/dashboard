@@ -5,9 +5,6 @@ import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import EpinioDiscovery from '@/products/epinio/utils/epinio-discovery';
 import { MULTI_CLUSTER } from '@/store/features';
 
-// TODO: RC rename `/pp/v1` --> `/
-// TODO: RC check steve/action request how add prefix?
-
 export function init(store) {
   const {
     product,
@@ -19,16 +16,12 @@ export function init(store) {
     weightType
   } = DSL(store, EPINIO_PRODUCT_NAME);
 
-  // TODO: RC this needs to be conditional on an env (tie in to Phil's new env?)
-  const isSingleProduct = true;
-  // TODO: RC this needs to come from an env (tie in to Phil's new env?)
-  const version = `0.3.6`;
+  const isEpinioSingleProduct = process.env.rancherEnv === 'epinio';
 
-  if (isSingleProduct) {
+  if (isEpinioSingleProduct) {
     store.dispatch('setIsSingleProduct', {
       logo:                require(`@/products/epinio/assets/logo-epinio.svg`),
       productNameKey:      'epinio.label',
-      version,
       afterLoginRoute:     createEpinioRoute('c-cluster-applications', { cluster: 'default' }),
       logoRoute:           createEpinioRoute('c-cluster-applications', { cluster: 'default' }),
       disableSteveSockets: true,
@@ -42,7 +35,7 @@ export function init(store) {
     isMultiClusterApp:     true,
     inStore:               EPINIO_PRODUCT_NAME,
     icon:                  'epinio',
-    iconHeader:            isSingleProduct ? undefined : require(`@/products/epinio/assets/logo-epinio.svg`),
+    iconHeader:            isEpinioSingleProduct ? undefined : require(`@/products/epinio/assets/logo-epinio.svg`),
     removable:             false,
     showClusterSwitcher:   false,
     to:                    rootEpinioRoute(),

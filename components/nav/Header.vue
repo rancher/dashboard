@@ -89,12 +89,10 @@ export default {
     },
 
     showPreferencesLink() {
-      // TODO: RC Test in dashboard
       return (this.$store.getters['management/schemaFor'](STEVE.PREFERENCE)?.resourceMethods || []).includes('PUT');
     },
 
     showAccountAndApiKeyLink() {
-      // TODO: RC Test in dashboard
       // Keep this simple for the moment and only check if the user can see tokens... plus the usual isRancher/isSingleProduct
       const canSeeTokens = this.$store.getters['rancher/schemaFor'](NORMAN.TOKEN);
 

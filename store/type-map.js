@@ -1663,7 +1663,7 @@ function ifHave(getters, option) {
     return getters.isMultiCluster;
   }
   case IF_HAVE.HARVESTER_SINGLE_CLUSTER: {
-    return getters.isSingleVirtualCluster2;
+    return getters.isSingleVirtualCluster;
   }
   default:
     return false;

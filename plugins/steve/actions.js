@@ -24,8 +24,8 @@ export default {
     opt.depaginate = opt.depaginate !== false;
     opt.url = opt.url.replace(/\/*$/g, '');
 
-    // TODO: RC this is used by log in... way before epinio product is initialised
-    const prependPath = `/pp/v1/epinio/rancher`;
+    // TODO: RC Tech Debt (this is used by log in... way before epinio product is initialised)
+    const prependPath = process.env.rancherEnv === 'epinio' ? `/pp/v1/epinio/rancher` : '';
 
     if (prependPath) {
       const url = parseUrl(opt.url);

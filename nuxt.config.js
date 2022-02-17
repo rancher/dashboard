@@ -18,6 +18,7 @@ const dev = (process.env.NODE_ENV !== 'production');
 const devPorts = dev || process.env.DEV_PORTS === 'true';
 const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
+const rancherEnv = process.env.RANCHER_ENV || 'web';
 
 let api = process.env.API || 'http://localhost:8989';
 
@@ -74,9 +75,10 @@ module.exports = {
     version,
     dev,
     pl,
+    rancherEnv
   },
 
-  publicRuntimeConfig: { rancherEnv: process.env.RANCHER_ENV || 'web' },
+  publicRuntimeConfig: { rancherEnv },
 
   buildDir: dev ? '.nuxt' : '.nuxt-prod',
 

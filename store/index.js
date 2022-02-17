@@ -406,10 +406,10 @@ export const getters = {
       return state.isSingleProduct;
     }
 
-    // TODO: RC on removal of cnsi tokens refresh.... get 400 error page
+    // TODO: RC on removal of cnsi tokens refresh.... get 400 error page instead of redirect
 
-    if (state.isSingleVirtualCluster2) {
-      // TODO: RC move out like epinio
+    if (state.isSingleVirtualCluster) {
+      // TODO: RC move out like epinio & test
       return {
         logo:            '~/assets/images/providers/harvester.svg',
         productNameKey:  'product.harvester',
@@ -425,15 +425,13 @@ export const getters = {
             resource: HCI.DASHBOARD,
           }
         },
-        // user: {} // TODO: RC remove
       };
     }
 
     return false;
   },
 
-  // TODO: RC rename isSingleVirtualCluster2 everywhere
-  isSingleVirtualCluster2(state, getters, rootState, rootGetters) {
+  isSingleVirtualCluster(state, getters, rootState, rootGetters) {
     const clusterId = getters.defaultClusterId;
     const cluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, clusterId);
 
