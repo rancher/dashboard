@@ -219,6 +219,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model="namespace"
+          :disabled="!restoreNewVm"
           :label="t('nameNsDescription.namespace.label')"
           :options="namespaces"
         />
