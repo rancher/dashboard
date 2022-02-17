@@ -1,161 +1,151 @@
 import { mount } from '@vue/test-utils';
+import { UNITS } from '@/utils/units';
 import UnitInput from '@/components/form/UnitInput.vue';
 import LabeledInput from '@/components/form/LabeledInput.vue';
-import { UNITS } from '../../utils/units';
 
-describe('UnitInput', () => {
-  test('renders', () => {
+describe('unitInput', () => {
+  it('should renders', () => {
     const wrapper = mount(UnitInput, { propsData: { value: 1 } });
 
-    expect(wrapper.isVueInstance).toBeTruthy();
+    expect(wrapper.isVisible()).toBe(true);
   });
 
-  test('emits input event when input value changes', () => {
+  it('should emit input event on value change', () => {
     const wrapper = mount(UnitInput, { propsData: { value: 1 } });
-    const inputWrapper = wrapper.find('input');
+    const input = wrapper.find('input');
 
-    inputWrapper.setValue(2);
-    inputWrapper.setValue(4);
+    input.setValue(2);
+    input.setValue(4);
 
-    expect((wrapper.emitted('input') || []).length).toBe(2);
+    expect(wrapper.emitted('input')).toHaveLength(2);
   });
 
-  test("input is disabled when mode='view'", () => {
-    const wrapper = mount(UnitInput, { propsData: { value: 1, mode: 'view' } });
+  it.each([
+    ['view', true],
+    ['edit', false],
+  ])('should contain input disabled status %p when in %p mode', (mode, status) => {
+    const wrapper = mount(UnitInput, {
+      propsData: {
+        value: 1,
+        mode
+      }
+    });
     const inputElement = wrapper.find('input').element as HTMLInputElement;
 
-    expect(inputElement.disabled).toBeTruthy();
+    expect(inputElement.disabled).toStrictEqual(status);
   });
 
-  test('Input strings with any si modifier are parsed', async() => {
-    const wrapper = mount(UnitInput, { propsData: { value: '1000m' } });
-    const labeledInputWrapper = wrapper.findComponent(LabeledInput);
+  it.each([
+    ['1000m', '1'],
+    ['2G', '2000000000'],
+    ['3', '3'],
+  ])('should parse values with SI modifier %p and return %p', (value, expected) => {
+    const wrapper = mount(UnitInput, { propsData: { value } });
+    const label = wrapper.findComponent(LabeledInput);
 
-    expect(labeledInputWrapper.props('value')).toBe('1');
-
-    wrapper.setProps({ value: '2G' });
-    await wrapper.vm.$nextTick();
-
-    expect(labeledInputWrapper.props('value')).toBe('2000000000');
-
-    wrapper.setProps({ value: '3' });
-    await wrapper.vm.$nextTick();
-
-    expect(labeledInputWrapper.props('value')).toBe('3');
+    expect(label.props('value')).toBe(expected);
   });
 
-  test('Prop inputExponent determines unit prefix', () => {
-    const wrapper = mount(UnitInput, { propsData: { value: 1, inputExponent: 2 } });
-    const expectedUnits = `${ UNITS[2] }B`;
+  it('should display prefix before unit', () => {
+    const inputExponent = 2;
+    const baseUnit = 'B';
+    const wrapper = mount(UnitInput, {
+      propsData: {
+        value: 1,
+        inputExponent,
+        baseUnit
+      }
+    });
+    const expectedUnits = `${ UNITS[inputExponent] }${ baseUnit }`;
 
     const suffixDiv = wrapper.find('.addon');
 
-    expect((suffixDiv.element.textContent || '').trim() === expectedUnits).toBeTruthy();
+    expect(suffixDiv.element.textContent).toContain(expectedUnits);
   });
 
-  test('Prop outputModifier toggles inclusion of si modifier in output', async() => {
+  it.each([
+    [true, '3G'],
+    [false, 3000000000],
+  ])('should (%p) force use of SI modifier and return %p', async(outputModifier, expected) => {
     const wrapper = mount(UnitInput, {
       propsData: {
-        value: 1, inputExponent: 3, outputModifier: true
+        value: 1, inputExponent: 3, outputModifier: !outputModifier
       }
     });
     const inputWrapper = wrapper.find('input');
 
-    inputWrapper.setValue(2);
-    let inputEventValue = wrapper.emitted('input')[0][0];
-
-    expect(inputEventValue).toBe('2G');
-
-    wrapper.setProps({ outputModifier: false });
+    wrapper.setProps({ outputModifier });
     await wrapper.vm.$nextTick();
     inputWrapper.setValue(3);
-    inputEventValue = wrapper.emitted('input')[1][0];
 
-    expect(inputEventValue).toBe(3000000000);
+    expect(wrapper.emitted('input')![0][0]).toBe(expected);
   });
 
-  test('Output si modifier matches displayed units', () => {
+  it('should display defined SI unit', () => {
+    const inputExponent = 3;
     const wrapper = mount(UnitInput, {
       propsData: {
-        value: 1, inputExponent: 3, outputModifier: true
+        value:          1,
+        inputExponent,
+        outputModifier: true
       }
     });
-    const inputWrapper = wrapper.find('input');
 
-    inputWrapper.setValue(2);
-    const inputEventValue = wrapper.emitted('input')[0][0];
-    const inputEventUnitModifier = inputEventValue.split(/[0-9]/)[1];
+    wrapper.find('input').setValue(2);
 
-    const addonText = wrapper.find('.addon').text();
-    const addonUnitModifier = addonText.slice(0, -1);
-
-    expect(inputEventUnitModifier).toEqual(addonUnitModifier);
+    expect(wrapper.emitted('input')![0][0]).toContain(UNITS[inputExponent]);
   });
 
-  test('Prop increment=1024 changes si base unit (MB to MiB)', async() => {
+  it.each([
+    [1024, 'MiB'],
+    [1000, 'MB'],
+  ])('based on increment %p and exponent M, it should use binary modifier and return unit %p', (increment, expected) => {
     const wrapper = mount(UnitInput, {
       propsData: {
-        value: 1, inputExponent: 2, increment: 1024
+        value: 1, inputExponent: 2, increment
       }
     });
-    let addonText = wrapper.find('.addon').text();
-    let addonUnitModifier = addonText.slice(0, -1);
 
-    expect(addonUnitModifier).toBe('Mi');
-
-    wrapper.setProps({ increment: 1000 });
-    await wrapper.vm.$nextTick();
-
-    addonText = wrapper.find('.addon').text();
-    addonUnitModifier = addonText.slice(0, -1);
-    expect(addonUnitModifier).toBe('M');
+    expect(wrapper.find('.addon').text()).toBe(expected);
   });
 
-  test('Prop outputAs toggles string/number output', async() => {
+  it.each([
+    ['string'],
+    ['number'],
+  ])('should force emission of value type as %p', (outputAs) => {
     const wrapper = mount(UnitInput, {
       propsData: {
-        value: 1, inputExponent: 3, outputAs: 'string'
+        value: 1, inputExponent: 3, outputAs
       }
     });
-    const inputWrapper = wrapper.find('input');
 
-    inputWrapper.setValue(2);
-    let inputEventValue = wrapper.emitted('input')[0][0];
+    wrapper.find('input').setValue(2);
 
-    expect(typeof inputEventValue).toBe('string');
-
-    wrapper.setProps({ outputAs: 'number' });
-    await wrapper.vm.$nextTick();
-    inputWrapper.setValue(1);
-    inputEventValue = wrapper.emitted('input')[1][0];
-
-    expect(typeof inputEventValue).toBe('number');
+    expect(typeof wrapper.emitted('input')![0][0]).toBe(outputAs);
   });
 
-  test('Prop baseUnit controls text appended to si modifier', async() => {
-    const wrapper = mount(UnitInput, { propsData: { value: 1, inputExponent: 2 } });
-    let addonText = wrapper.find('.addon').text();
-
-    expect(addonText).toBe('MB');
-
-    wrapper.setProps({ baseUnit: 'Coolio' });
-    await wrapper.vm.$nextTick();
-    addonText = wrapper.find('.addon').text();
-
-    expect(addonText).toBe('MCoolio');
-  });
-
-  test('Prop suffix sets a display-only suffix', () => {
-    const wrapper = mount(UnitInput, { propsData: { value: 1, suffix: 'seconds' } });
+  it.each([
+    [undefined, 'MB'],
+    ['Coolio', 'MCoolio'],
+  ])('should appended base unit %p value to SI modifier and return %p', (baseUnit, expected) => {
+    const wrapper = mount(UnitInput, {
+      propsData: {
+        value: 1, baseUnit, inputExponent: 2
+      }
+    });
     const addonText = wrapper.find('.addon').text();
 
-    expect(addonText).toBe('seconds');
+    expect(addonText).toBe(expected);
+  });
 
-    const inputWrapper = wrapper.find('input');
+  it('should display suffix outside of the value', () => {
+    const suffix = 'seconds';
+    const wrapper = mount(UnitInput, { propsData: { value: 1, suffix } });
+    const addonText = wrapper.find('.addon').text();
 
-    inputWrapper.setValue(1);
-    const inputEventValue = wrapper.emitted('input')[0][0];
+    wrapper.find('input').setValue(1);
 
-    expect(inputEventValue).toBe(1);
+    expect(addonText).toBe(suffix);
+    expect(wrapper.emitted('input')![0][0]).not.toContain(suffix);
   });
 });
