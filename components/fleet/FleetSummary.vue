@@ -19,7 +19,7 @@ export default {
 
     requiredStates: {
       type:    Array,
-      default: () => ['ready', 'info', 'warning', 'error', 'unknown']
+      default: () => []
     }
   },
 
