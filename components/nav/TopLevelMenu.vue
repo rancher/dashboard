@@ -166,7 +166,7 @@ export default {
   },
 
   methods: {
-    // Cluster list number of items shown is configurbale via user preference
+    // Cluster list number of items shown is configurable via user preference
     setClusterListHeight(maxToShow) {
       const el = this.$refs.clusterList;
       const max = Math.min(maxToShow, this.clusters.length);

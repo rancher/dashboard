@@ -176,7 +176,7 @@ product:
 
 suffix:
   percent: "%"
-  milliCpus: mili CPUs
+  milliCpus: milli CPUs
   cores: Cores
   cpus: CPUs
   ib: iB
@@ -286,7 +286,7 @@ authConfig:
       app:
         label: Application name
         value: 'Anything you like, e.g. My {vendor}'
-      calllback:
+      callback:
         label: Authorization callback URL
       description:
         label: Application description
@@ -846,6 +846,7 @@ catalog:
       placeholder: 'e.g. https://charts.rancher.io'
   tools:
     header: Cluster Tools
+    noTools: "No Cluster Tools found"
     action:
       install: Install
       upgrade: Upgrade/Edit
@@ -874,7 +875,7 @@ changePassword:
       label: Generated Password
   newGeneratedPassword: Suggest a password
   errors:
-    missmatchedPassword: Passwords do not match
+    mismatchedPassword: Passwords do not match
     failedToChange: Failed to change password
     failedDeleteKey: Failed to delete key
     failedDeleteKeys: Failed to delete keys
@@ -988,7 +989,7 @@ cluster:
     registrationCommand:
       label: Registration Command
       linuxDetail: Run this command on each of the existing Linux machines you want to register.
-      windowsDetail: Run this command in Powershell on each of the existing Windows machines you want to register. Windows nodes can only be workers.
+      windowsDetail: Run this command in PowerShell on each of the existing Windows machines you want to register. Windows nodes can only be workers.
       windowsNotReady: The cluster must be up and running with Linux etcd, control plane, and worker nodes before the registration command for adding Windows workers will display.
       windowsWarning: Workload pods, including some deployed by Rancher charts, will be scheduled on both Linux and Windows nodes by default. Edit NodeSelector in the chart to direct them to be placed onto a compatible node.
       insecure: "Insecure: Select this to skip TLS verification if your server has a self-signed certificate."
@@ -1174,7 +1175,7 @@ cluster:
       availabilitySet:
         label: Availability Set (unmanaged)
       dns:
-        help: A unique DNS label for the public IP adddress.
+        help: A unique DNS label for the public IP address.
         label: DNS Label
       environment:
         label: Environment
@@ -1378,7 +1379,7 @@ cluster:
   addOns: 
     additionalManifest:
       title: Additional Manifest
-      tooltip: 'Additional Kubernetes Manifet YAML to be applied to the cluster on startup.'
+      tooltip: 'Additional Kubernetes Manifest YAML to be applied to the cluster on startup.'
   advanced:
     argInfo:
       title: Additional Kubelet Args
@@ -1444,6 +1445,10 @@ cluster:
       label: Roles
     labels:
       label: Kubernetes Node Labels
+    autoReplace:
+      label: Auto Replace
+      toolTip: If greater than 0, nodes that are unreachable for this duration will be automatically deleted and replaced.
+      unit: "Minutes"
   memberRoles:
     removeMessage: 'Note: Removing a user will not remove their project permissions'
     addClusterMember:
@@ -1577,6 +1582,9 @@ cluster:
       caCerts:
         label: CA Certificates
         toolTip: Certificates required for the client to successfully verify the validity of the certificate returned by the endpoint.
+      ipv6:
+        warning: It looks like you are using an IPv6 CIDR. Your node driver may require additional configuration to support this.
+        enable: Enable IPv6 support
     etcd:
       disableSnapshots:
         label: Automatic Snapshots
@@ -1665,7 +1673,7 @@ clusterIndexPage:
       buttonText: Configure Gatekeeper
       disabled: OPA Gatekeeper is not configured.
       label: OPA Gatekeeper Constraint Violations
-      noRows: There are no contraints with violations to show.
+      noRows: There are no constraints with violations to show.
     nodes:
       label: Unhealthy Nodes
       noRows: There are no unhealthy nodes to show.
@@ -1787,6 +1795,8 @@ fleet:
     repo:
       label: Repository URL
       placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
+      addRepo: Add Repository
+      noRepos: No repositories have been added
     ref:
       label: Watch
       branch: A Branch
@@ -1820,6 +1830,9 @@ fleet:
       verify: Require a valid certificate
       specify: Specify additional certificates to be accepted
       skip: Accept any certificate (insecure)
+    warningTooltip:
+      clusterGroup: There are no clusters in this Cluster Group
+      cluster: There are no clusters available
     workspace:
       label: Workspace
   clusterGroup:
@@ -2496,10 +2509,10 @@ login:
   serverError:  
     authFailedCreds: "Logging in failed: Check credentials, or your account may not be authorized to log in."
     authFailed: "Logging in failed: Your account may not be authorized to log in."
-    unknown: "An unknown error occured while attempting to login. Please contact your system administrator."
+    unknown: "An unknown error occurred while attempting to login. Please contact your system administrator."
     invalidSamlAttrs: "Invalid saml attributes"
     noResponse: "No response received"
-  error: An error occured logging in. Please try again.
+  error: An error occurred logging in. Please try again.
   clientError: Invalid username or password. Please try again.
   useLocal: Use a local user
   loginWithProvider: Log in with {provider}
@@ -2556,7 +2569,7 @@ monitoring:
     tip: 'Adds labels to the ClusterRoles deployed by the Monitoring chart to <a target="_blank" rel="noopener nofollow noreferrer" href="https://kubernetes.io/docs/reference/access-authn-authz/rbac/#aggregated-clusterroles"> aggregate to the corresponding default k8s admin, edit, and view ClusterRoles.</a>'
   alerting:
     config:
-      label: Alert Manager Cofig
+      label: Alert Manager Config
     enable:
       label: Deploy Alertmanager
     secrets:
@@ -3282,7 +3295,7 @@ probe:
     port:
       label: Check Port
       placeholder: e.g. 80
-      placeholderDuex: e.g. 25
+      placeholderDeux: e.g. 25
   initialDelay:
     label: Initial Delay
     placeholder: 'Default: 0'
@@ -4455,7 +4468,7 @@ validation:
     This screen has been updated to reflect the current values on the cluster. Review and reapply the changes you wanted to make, then Save again.
     Conflicting {fieldCount, plural, =1 {field} other {fields}}: {fields}
   custom:
-    missing: 'No validtor exists for { validatorName }! Does the validtor exist in custom-validtors? Is the name spelled correctly?'
+    missing: 'No validator exists for { validatorName }! Does the validator exist in custom-validators? Is the name spelled correctly?'
   dns:
     doubleHyphen: '"{key}" Cannot contain two or more consecutive hyphens'
     hostname:
@@ -4536,10 +4549,10 @@ validation:
       name:
         required: 'Port Rule [{position}] - Name is required.'
       nodePort:
-        requriedInt: 'Port Rule [{position}] - Node Port must be interger values if included.'
+        requiredInt: 'Port Rule [{position}] - Node Port must be integer values if included.'
       port:
         required: 'Port Rule [{position}] - Port is required.'
-        requriedInt: 'Port Rule [{position}] - Port must be interger values if included.'
+        requiredInt: 'Port Rule [{position}] - Port must be integer values if included.'
       targetPort:
         between: 'Port Rule [{position}] - Target Port must be between 1 and 65535'
         iana: 'Port Rule [{position}] - Target Port must be an IANA Service Name or Integer'
@@ -5741,7 +5754,7 @@ typeDescription:
   cis.cattle.io.clusterscanprofile: A profile is the configuration for the CIS scan, which is the benchmark versions to use and any specific tests to skip in that benchmark.
   cis.cattle.io.clusterscan: A scan is created to trigger a CIS scan on the cluster based on the defined profile. A report is created after the scan is completed.
   cis.cattle.io.clusterscanreport: A report is the result of a CIS scan of the cluster.
-  management.cattle.io.feature: Feature Flags allow certain {vendor} features to be toggled on and off.  Features that are off by default shoud be considered experimental functionality.
+  management.cattle.io.feature: Feature Flags allow certain {vendor} features to be toggled on and off.  Features that are off by default should be considered experimental functionality.
   cluster.x-k8s.io.machine: A Machine encapsulates the configuration of a Kubernetes Node. Use this view to see what happens after updating a cluster.
   cluster.x-k8s.io.machinedeployment: A Machine Deployment orchestrates deployments via templates over a collection of Machine Sets (similar to a Deployment). Use this view to see what happens after updating a cluster.
   cluster.x-k8s.io.machineset: A Machine Set ensures the desired number of Machine resources are up and running at all times (similar to a ReplicaSet). Use this view to see what happens after updating a cluster.
@@ -5760,7 +5773,7 @@ typeDescription:
   catalog.cattle.io.app: An installed application is a Helm 3 chart that was installed either via our charts or through the Helm CLI.
   logging.banzaicloud.io.clusterflow: Logs from the cluster will be collected and logged to the selected Cluster Output.
   logging.banzaicloud.io.clusteroutput: A cluster output defines which logging providers that logs can be sent to and is only effective when deployed in the namespace that the logging operator is in.
-  logging.banzaicloud.io.flow: A flow defines which logs to collect and filter as well as which output to send the logs. The flow is a namespaced resource, which means logs will only be collected from the namepsace that the flow is deployed in.
+  logging.banzaicloud.io.flow: A flow defines which logs to collect and filter as well as which output to send the logs. The flow is a namespaced resource, which means logs will only be collected from the namespace that the flow is deployed in.
   logging.banzaicloud.io.output: An output defines which logging providers that logs can be sent to. The output needs to be in the same namespace as the flow that is using it.
   group.principal: Assigning global roles to a group only works with external auth providers that support groups. Local authorization does not support groups.
   # Epinio resources
@@ -6198,7 +6211,7 @@ featureFlags:
   label: Feature Flags
   warning: |-
     Feature flags allow {vendor} to gate certain features behind flags.
-    Features that are off by defult shoud be considered experimental functionality.
+    Features that are off by default should be considered experimental functionality.
     Some features require a restart of the {vendor} server to change.
     This will result in a short outage of the API and UI, but not affect running clusters or workloads.
   promptActivate: Please confirm that you want to activate the feature flag "{flag}"
@@ -6279,7 +6292,7 @@ resourceQuota:
     projectLimit: Project Limit
     projectResourceAvailability: Project Resource Availability
     resourceType: Resource Type
-  helpText: Configure how much of the resources the namesapce as a whole can consume.
+  helpText: Configure how much of the resources the namespace as a whole can consume.
   helpTextDetail: The amount of resources the namespace as a whole can consume.
   configMaps: Config Maps
   limitsCpu: CPU Limit
@@ -6407,8 +6420,7 @@ manager:
 
 auth:
   config:
-    label: Auth Providor
-
+    label: Auth Provider
 vncConsole:
   error:
     message: Web VNC console connection is disconnected

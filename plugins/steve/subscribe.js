@@ -164,7 +164,7 @@ export const actions = {
         // Group loads into one loadMulti when possible
         toLoad.push(body);
       } else {
-        // When we hit a differet kind of event, process all the previous loads, then the other event.
+        // When we hit a different kind of event, process all the previous loads, then the other event.
         if ( toLoad.length ) {
           await dispatch('loadMulti', toLoad);
           toLoad = [];

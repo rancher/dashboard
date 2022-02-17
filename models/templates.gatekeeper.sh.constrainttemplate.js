@@ -15,7 +15,7 @@ export default class extends SteveModel {
     const constraints = this.constraints;
 
     if ( constraints.length > 0 ) {
-      return `There are still constaints using this template. You cannot delete this template while it's in use.`;
+      return `There are still constraints using this template. You cannot delete this template while it's in use.`;
     }
 
     return null;

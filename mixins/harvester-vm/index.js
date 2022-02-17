@@ -608,7 +608,7 @@ export default {
         userDataJson.ssh_authorized_keys = this.getSSHListValue(this.sshKey);
       }
 
-      if (userDataJson.ssh_authorized_keys && userDataJson.ssh_authorized_keys.lenght === 0) {
+      if (userDataJson.ssh_authorized_keys && userDataJson.ssh_authorized_keys.length === 0) {
         delete userDataJson.ssh_authorized_keys;
       }
 
