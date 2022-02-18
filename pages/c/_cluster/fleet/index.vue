@@ -160,7 +160,7 @@ export default {
     <Loading v-if="$fetchState.pending" />
     <!-- no git repos -->
     <div
-      v-else-if="gitRepos.length"
+      v-else-if="!gitRepos.length"
       class="fleet-empty-dashboard"
     >
       <i class="icon-fleet mb-30" />
