@@ -167,7 +167,7 @@ export default {
       <h1>{{ t('fleet.dashboard.welcome') }}</h1>
       <p class="mb-30">
         <span>{{ t('fleet.dashboard.gitOpsScale') }}</span>
-        <a :href="t('fleet.dashboard.learnMoreLink.en-us')" target="_blank" rel="noopener noreferrer nofollow">
+        <a :href="t('fleet.dashboard.learnMoreLink')" target="_blank" rel="noopener noreferrer nofollow">
           {{ t('fleet.dashboard.learnMore') }} <i class="icon icon-external-link" />
         </a>
       </p>

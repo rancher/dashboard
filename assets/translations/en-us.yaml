@@ -1747,8 +1747,7 @@ fleet:
     welcome: Welcome to Fleet Continuous Delivery
     gitOpsScale: GitOps at scale.
     learnMore: Learn More.
-    learnMoreLink:
-      en-us: https://fleet.rancher.io
+    learnMoreLink: https://fleet.rancher.io
     noRepo: "You don't have any Git Repositories in your Workspaces"
     getStarted: Get started
     thereIsMore: |-
