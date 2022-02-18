@@ -530,18 +530,7 @@ export const getters = {
         }
 
         const label = typeObj.labelKey ? rootGetters['i18n/t'](typeObj.labelKey) || typeObj.label : typeObj.label;
-        const virtual = !!typeObj.virtual;
-        let icon = typeObj.icon;
-
-        if ( (!virtual || typeObj.isSpoofed ) && !icon ) {
-          if ( namespaced ) {
-            icon = 'folder';
-          } else {
-            icon = 'globe';
-          }
-        }
-
-        const labelDisplay = highlightLabel(label, icon);
+        const labelDisplay = highlightLabel(label);
 
         if ( !labelDisplay ) {
           // Search happens in highlight and returns null if not found
