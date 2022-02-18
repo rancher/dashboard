@@ -285,7 +285,6 @@ export default {
 
   .accordion {
     &.depth-0 {
-      // background: aliceblue;
 
       > .header {
         padding: 8px 0;
