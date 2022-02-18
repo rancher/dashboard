@@ -57,6 +57,7 @@ export default {
 
 <style lang="scss" scoped>
 .collapsible-card {
+  min-width: 570px;
   border-radius: 5px;
   border: 1px solid var(--sortable-table-top-divider);
 
@@ -73,6 +74,8 @@ export default {
   &-header {
     background-color: var(--sortable-table-header-bg);
     border-bottom: 1px solid var(--sortable-table-top-divider);
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
     padding: 20px;
     display: flex;
     justify-content: space-between;

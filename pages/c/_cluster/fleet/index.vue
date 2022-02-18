@@ -264,7 +264,7 @@ export default {
                 class="cluster-count-info"
                 :class="badgeClass('bundles', row)"
               >
-                {{ row.bundlesReady.length }}/{{ row.bundles.length }}
+                {{ row.bundlesReady.length || 0 }}/{{ row.bundles.length }}
               </span>
             </template>
             <template #cell:resourcesReady="{row}">

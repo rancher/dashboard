@@ -1747,7 +1747,7 @@ fleet:
     welcome: Welcome to Fleet Continuous Delivery
     gitOpsScale: GitOps at scale.
     learnMore: Learn More.
-    noRepo: "You don't have any Git Repositories in your workspaces"
+    noRepo: "You don't have any Git Repositories in your Workspaces"
     getStarted: Get started
     thereIsMore: |-
       {count, plural,

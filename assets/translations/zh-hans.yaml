@@ -5855,11 +5855,6 @@ typeLabel:
       one { 集群组 }
       other { 集群组 }
     }
-  fleet.cattle.io.dashboard: |-
-    {count, plural,
-      one { 仪表板 }
-      other { 仪表板 }
-    }
   fleet.cattle.io.gitrepo: |-
     {count, plural,
       one { Git 仓库 }
