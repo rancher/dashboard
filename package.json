@@ -11,7 +11,8 @@
   "scripts": {
     "clean": "./scripts/clean",
     "lint": "./node_modules/.bin/eslint --max-warnings 0 --ext .js,.ts,.vue .",
-    "test": "jest",
+    "test": "jest --watch",
+    "test:ci": "jest --collectCoverage",
     "nuxt": "./node_modules/.bin/nuxt",
     "dev": "./node_modules/.bin/nuxt dev",
     "mem-dev": "node --max-old-space-size=8192 ./node_modules/.bin/nuxt dev",
