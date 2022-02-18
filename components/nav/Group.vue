@@ -285,6 +285,8 @@ export default {
 
   .accordion {
     &.depth-0 {
+      // background: aliceblue;
+
       > .header {
         padding: 8px 0;
 
@@ -296,6 +298,15 @@ export default {
           font-size: 14px;
           text-transform: none;
           padding-left: 10px;
+          display: flex;
+          align-items: center;
+
+          ::v-deep .icon {
+            font-size: 20px;
+            padding-right: 5px;
+            position: relative;
+            color: var(--muted);
+          }
         }
 
         > I {

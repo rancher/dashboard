@@ -270,6 +270,16 @@ export default {
   },
 
   methods: {
+    iconClass(icon) {
+      if (!icon) {
+        return;
+      }
+      if (icon.startsWith('icon-')) {
+        return icon;
+      }
+
+      return `icon-${ icon }`;
+    },
     async setClusterAsLastRoute() {
       const route = {
         name:   this.$route.name,
@@ -362,15 +372,18 @@ export default {
 
           if ( productId === EXPLORER || !this.isExplorer ) {
             addObjects(out, more);
+            out.forEach((g) => { g.iconClass = this.iconClass(g.icon); });
           } else {
             const root = more.find(x => x.name === 'root');
             const other = more.filter(x => x.name !== 'root');
 
             const group = {
-              name:     productId,
-              label:    this.$store.getters['i18n/withFallback'](`product.${ productId }`, null, ucFirst(productId)),
-              children: [...(root?.children || []), ...other],
-              weight:   productMap[productId]?.weight || 0,
+              name:      productId,
+              label:     this.$store.getters['i18n/withFallback'](`product.${ productId }`, null, ucFirst(productId)),
+              children:  [...(root?.children || []), ...other],
+              weight:    productMap[productId]?.weight || 0,
+              icon:      productMap[productId]?.icon,
+              iconClass: this.iconClass(productMap[productId]?.icon),
             };
 
             addObject(out, group);
@@ -546,7 +559,14 @@ export default {
               :show-header="!g.isRoot"
               @selected="groupSelected($event)"
               @expand="groupSelected($event)"
-            />
+            >
+              <template #header>
+                <h6 class="root-group">
+                  <i v-if="g.icon" class="icon" :class="g.iconClass" />
+                  <div>{{ g.label }}</div>
+                </h6>
+              </template>
+            </Group>
           </template>
         </div>
         <n-link v-if="showClusterTools" tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools', params: {cluster: clusterId}}">
@@ -628,9 +648,13 @@ export default {
       overflow-y: auto;
     }
   }
-
 </style>
 <style lang="scss">
+  .side-nav .nav .accordion > .header > .root-group {
+    .icon {
+      font-size: 18px;
+    }
+  }
   .dashboard-root{
     display: flex;
     flex-direction: column;

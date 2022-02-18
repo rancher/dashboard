@@ -138,14 +138,21 @@ export function init(store) {
 
   setGroupDefaultType('serviceDiscovery', SERVICE);
 
+  configureType('cluster', { icon: 'cluster' });
+
   configureType('workload', {
     displayName: 'Workload',
     location:    {
       name:    'c-cluster-product-resource',
       params:  { resource: 'workload' },
     },
-    resource: WORKLOAD_TYPES.DEPLOYMENT
+    resource: WORKLOAD_TYPES.DEPLOYMENT,
+    icon:     'globe'
   });
+
+  configureType('rbac', { icon: 'user' });
+  configureType('serviceDiscovery', { icon: 'compass' });
+  configureType('storage', { icon: 'storage' });
 
   headers(PV, [STATE, NAME_COL, RECLAIM_POLICY, PERSISTENT_VOLUME_CLAIM, PERSISTENT_VOLUME_SOURCE, PV_REASON, AGE]);
   headers(CONFIG_MAP, [NAME_COL, NAMESPACE_COL, KEYS, AGE]);
@@ -212,7 +219,8 @@ export function init(store) {
     label:       store.getters['i18n/t']('clusterIndexPage.header'),
     group:      'Root',
     namespaced:  false,
-    name:        'cluster-dashboard',
+    name:       'cluster-dashboard',
+    icon:       'cluster',
     weight:      100,
     route:       { name: 'c-cluster-explorer' },
     exact:       true,
