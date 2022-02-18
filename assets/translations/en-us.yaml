@@ -1319,6 +1319,7 @@ cluster:
           placeholder: e.g. http://my_host/cloud-config.yml
           note: Cloud-init file or url to set in the guestinfo
         cloudConfigYaml: Cloud Config YAML
+        os: Operating System
       tags:
         label: Tags
         description: Tags allow you to attach metadata to objects in the vSphere inventory to make it easier to sort and search for these objects.
