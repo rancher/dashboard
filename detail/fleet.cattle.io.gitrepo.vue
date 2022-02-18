@@ -2,6 +2,7 @@
 import ResourceTabs from '@/components/form/ResourceTabs';
 import ResourcesSummary from '@/components/fleet/ResourcesSummary';
 import FleetResources from '@/components/fleet/FleetResources';
+import TreeChart from '@/components/fleet/TreeChart';
 import Tab from '@/components/Tabbed/Tab';
 import { FLEET } from '@/config/types';
 
@@ -12,6 +13,7 @@ export default {
     FleetResources,
     ResourcesSummary,
     ResourceTabs,
+    TreeChart,
     Tab,
   },
 
@@ -32,6 +34,7 @@ export default {
 <template>
   <div class="mt-20">
     <ResourcesSummary :value="value.status.resourceCounts" />
+    <TreeChart />
 
     <ResourceTabs v-model="value" mode="view" class="mt-20">
       <Tab label="Resources" name="resources" :weight="20">
