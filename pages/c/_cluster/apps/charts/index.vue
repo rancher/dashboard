@@ -140,9 +140,7 @@ export default {
       const enabledCharts = (this.enabledCharts || []);
 
       return filterAndArrangeCharts(enabledCharts, {
-        // TODO not this
-        // operatingSystems: this.currentCluster.workerOSs,
-        operatingSystems: ['windows', 'linux'],
+        operatingSystems: this.currentCluster.workerOSs,
         category:         this.category,
         searchQuery:      this.searchQuery,
         showDeprecated:   this.showDeprecated,

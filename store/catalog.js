@@ -467,17 +467,6 @@ function addChart(ctx, map, chart, repo) {
 
   const certifiedAnnotation = chart.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED];
 
-  // TODO delete this if block
-  // if (certifiedAnnotation === CATALOG_ANNOTATIONS._RANCHER) {
-  //   const pretendBoth = chart.name.includes('monitoring') || chart.name.includes('istio') || chart.name.includes('logging');
-  //   const pretendWindows = chart.name.includes('longhorn');
-
-  //   if (pretendWindows) {
-  //     chart.annotations[CATALOG_ANNOTATIONS.PERMITTED_OS] = WINDOWS;
-  //   } else if (pretendBoth) {
-  //     chart.annotations[CATALOG_ANNOTATIONS.PERMITTED_OS] = `${ WINDOWS },${ LINUX }`;
-  //   }
-  // }
   let certified = null;
   let sideLabel = null;
 
