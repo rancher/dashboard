@@ -195,10 +195,12 @@ export default {
     },
 
     next() {
+      this.$emit('next');
       this.goToStep(this.activeStepIndex + 2);
     },
 
     back() {
+      this.$emit('back');
       this.goToStep(this.activeStepIndex);
     },
 

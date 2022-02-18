@@ -1,0 +1,29 @@
+{
+  "apiVersion": "policies.kubewarden.io/v1alpha2",
+  "kind": "ClusterAdmissionPolicy",
+  "metadata": {
+    "name": ""
+  },
+  "spec": {
+    "policyServer": "default",
+    "module": "",
+    "rules": [
+      {
+        "apiGroups": [
+          ""
+        ],
+        "apiVersions": [
+          "v1"
+        ],
+        "resources": [
+          ""
+        ],
+        "operations": [
+          "CREATE",
+          "UPDATE"
+        ]
+      }
+    ],
+    "mutating": false
+  }
+}

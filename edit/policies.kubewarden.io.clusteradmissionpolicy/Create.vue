@@ -3,6 +3,7 @@ import jsyaml from 'js-yaml';
 import isEqual from 'lodash/isEqual';
 import { mapGetters } from 'vuex';
 import ChartMixin from '@/mixins/chart';
+import CreateEditView from '@/mixins/create-edit-view';
 import {
   CATEGORY, _CREATE, _VIEW, CHART, REPO, REPO_TYPE, SEARCH_QUERY, VERSION
 } from '@/config/query-params';
@@ -20,11 +21,22 @@ import Tabbed from '@/components/Tabbed';
 import Wizard from '@/components/Wizard';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 
+import defaultPolicy from '@/.questions/defaultPolicy.json';
 import questionJson from '@/.questions/questions.json';
 
 const VALUES_STATE = {
   FORM: 'FORM',
   YAML: 'YAML',
+};
+
+const DEFAULT_STATE = {
+  subtypeSource:       null,
+  type:                null,
+  originalYamlValues:  null,
+  previousYamlValues:  null,
+  valuesYaml:          null,
+  preFormYamlOption:   VALUES_STATE.YAML,
+  formYamlOption:      VALUES_STATE.YAML,
 };
 
 export default ({
@@ -49,12 +61,25 @@ export default ({
     }
   },
 
-  mixins: [ChartMixin],
+  mixins: [ChartMixin, CreateEditView],
 
   fetch() {
     // await this.fetchChart(); // Use this when we get the helm-charts for policies
 
     const query = this.$route.query;
+
+    this.errors = [];
+
+    try {
+      this.version = this.$store.getters['catalog/version']({
+        repoType:      'cluster',
+        repoName:      'kubewarden',
+        chartName:     'kubewarden-controller',
+      });
+    } catch (e) {
+      console.error('Unable to fetch Version: ', e); // eslint-disable-line no-console
+      this.errors.push(e);
+    }
 
     if ( this.type ) {
       this.subtypeSource = {
@@ -64,6 +89,8 @@ export default ({
         questions:   questionJson,
         values:      {}
       };
+    } else {
+      this.subtypeSource = defaultPolicy;
     }
 
     this.valuesYaml = saferDump(this.subtypeSource);
@@ -72,27 +99,29 @@ export default ({
     this.searchQuery = query[SEARCH_QUERY] || '';
     this.category = query[CATEGORY] || '';
 
-    this.errors = [];
+    this.value.metadata.name = 'cluster-admission-policy';
   },
 
   data() {
     return {
+      errors:              null,
       category:            null,
       keywords:            [],
+      returned:            false,
       searchQuery:         null,
-      errors:              null,
-      showQuestions:       true,
-      type:                null,
       // chartValues:         null, // not necessary until we get charts...
       subtypeSource:       null,
+      type:                null,
       originalYamlValues:  null,
       previousYamlValues:  null,
       valuesComponent:     null,
-      valuesYaml:          '',
+      valuesYaml:          null,
+      version:             null,
 
       preFormYamlOption:   VALUES_STATE.YAML,
       formYamlOption:      VALUES_STATE.YAML,
-      showValuesComponent: true,
+      showQuestions:       this.isReady,
+      showValuesComponent: this.isReady,
 
       stepBasic:     {
         name:   'basics',
@@ -148,7 +177,7 @@ export default ({
     },
 
     preFormYamlOption(neu, old) {
-      if ( neu === VALUES_STATE.FORM && this.valuesYaml !== this.previousYamlValues && !!this.$refs.cancelModal ) {
+      if ( neu === VALUES_STATE.FORM && !this.returned && this.valuesYaml !== this.previousYamlValues && !!this.$refs.cancelModal ) {
         this.$refs.cancelModal.show();
       } else {
         this.formYamlOption = neu;
@@ -192,6 +221,10 @@ export default ({
 
     isView() {
       return this.mode === _VIEW;
+    },
+
+    isReady() {
+      return !!this.type && !!this.subtypeSource;
     },
 
     editorMode() {
@@ -336,12 +369,38 @@ export default ({
       window.scrollTop = 0;
     },
 
+    back() {
+      this.returned = true;
+
+      // Reset the values of the state
+      for ( const [key, value] of Object.entries(DEFAULT_STATE) ) {
+        this[key] = value;
+      }
+    },
+
     cancel() {
       this.done();
     },
 
     done() {
-      this.$router.replace(this.appLocation());
+      this.$router.replace({
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster:  this.$route.params.cluster,
+          product:  'kubewarden',
+          resource: KUBEWARDEN.CLUSTER_ADMISSION_POLICY
+        }
+      });
+    },
+
+    finish() {
+      this.save();
+    },
+
+    next() {
+      if ( !this.type ) {
+        this.formYamlOption = VALUES_STATE.YAML;
+      }
     },
 
     refresh() {
@@ -358,13 +417,22 @@ export default ({
     <Wizard
       v-if="value"
       ref="wizard"
+      v-model="value"
       :errors="errors"
       :steps="steps"
       :edit-first-step="true"
       class="wizard"
+      @next="next"
+      @back="back"
+      @cancel="cancel"
+      @finish="finish"
     >
       <template #basics>
-        <form :is="(isView? 'div' : 'form')" class="create-resource-container step__basic">
+        <form
+          :is="(isView? 'div' : 'form')"
+          class="create-resource-container step__basic"
+          @next="next"
+        >
           <div class="filter">
             <LabeledSelect
               v-model="keywords"
@@ -562,7 +630,7 @@ export default ({
     }
   }
 
-   @media only screen and (min-width: map-get($breakpoints, '--viewport-4')) {
+  @media only screen and (min-width: map-get($breakpoints, '--viewport-4')) {
     .filter {
       width: 100%;
     }

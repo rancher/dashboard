@@ -58,7 +58,8 @@ export default {
   },
 
   computed: {
-    ...mapGetters({ currentCluster: 'currentCluster', t: 'i18n/t' }),
+    ...mapGetters(['currentCluster']),
+    ...mapGetters({ t: 'i18n/t' }),
 
     provider() {
       return this.currentCluster.status.provider;
