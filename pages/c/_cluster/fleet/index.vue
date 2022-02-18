@@ -160,14 +160,14 @@ export default {
     <Loading v-if="$fetchState.pending" />
     <!-- no git repos -->
     <div
-      v-else-if="!gitRepos.length"
+      v-else-if="gitRepos.length"
       class="fleet-empty-dashboard"
     >
       <i class="icon-fleet mb-30" />
       <h1>{{ t('fleet.dashboard.welcome') }}</h1>
       <p class="mb-30">
         <span>{{ t('fleet.dashboard.gitOpsScale') }}</span>
-        <a href="https://fleet.rancher.io/" target="_blank" rel="noopener noreferrer nofollow">
+        <a :href="t('fleet.dashboard.learnMoreLink.en-us')" target="_blank" rel="noopener noreferrer nofollow">
           {{ t('fleet.dashboard.learnMore') }} <i class="icon icon-external-link" />
         </a>
       </p>
