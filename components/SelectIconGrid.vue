@@ -125,7 +125,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  $height: 130px;
+  $height: 135px;
   $side: 15px;
   $margin: 10px;
   $logo: 60px;
@@ -245,7 +245,7 @@ export default {
       }
 
       &.rancher {
-        .side-label {
+        .side-label, .os-label {
           background-color: var(--app-rancher-accent);
           label {
             color: var(--app-rancher-accent-text);
@@ -257,7 +257,7 @@ export default {
       }
 
       &.partner {
-        .side-label {
+        .side-label, .os-label {
           background-color: var(--app-partner-accent);
           label {
             color: var(--app-partner-accent-text);
