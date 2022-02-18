@@ -1790,6 +1790,7 @@ fleet:
       other {# bundles are hidden as they belong to Harvester clusters that can not be used with Continuous Delivery}
       }  
   fleetSummary:
+    noClustersGitRepo: This git repo is not targeting any clusters
     state:
       ready: 'Ready'
       info: 'Transitioning'
