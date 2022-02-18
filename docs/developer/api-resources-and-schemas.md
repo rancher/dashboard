@@ -187,7 +187,7 @@ Most of the options to create and fetch resources can be achieved via dispatchin
 | `find`    | Fetch a resource by ID and watch for changes to that individual resource. | `$store.dispatch('<store type>/find', { type: <resource type>, id: <resource id> })` | Finds the resource matching the ID. If the type has already been fetched return the local cached instance. |
 | `findMatching` | Fetch resources by label and watch for changes to the returned resources, a live array that updates as it changes. | `$store.dispatch('<store type>/findMatching', { type: <resource type>, selector: <label name:value map> })` | Fetches resources that have `metadata.labels` matching that of the name-value properties in the selector. Does not support match expressions. |
 
-Once objects of most types are fetched they will be automatically updated. See [README#synching-state](../../../README.md#synching-state) for more info. For some types this does not happen. For those cases, or when an immediate update is required, adding `force: true` to the `find` style actions will result in a fresh http request.
+Once objects of most types are fetched they will be automatically updated. See [Watching Resources](#watching-resources) for more info. For some types this does not happen. For those cases, or when an immediate update is required, adding `force: true` to the `find` style actions will result in a fresh http request.
 
 ## Synchronous Fetching
 
@@ -281,7 +281,7 @@ The Create/Edit Yaml experience is controlled by `/components/ResourceYaml.vue`.
 
 Special attention should be made of the `mode` and `as` params that's available via the `CreateEditView` mixin (as well as other helpful functionality). Changing these should change the behaviour of the resource details page (depending on the availability of resource type custom components).
 
-For more information about CreateEditView and how to add new create/edit forms, see [Create/Edit Forms.](../create-edit-forms)
+For more information about CreateEditView and how to add new create/edit forms, see [Create/Edit Forms.](./forms-and-validation.md)
 
 | `mode` | `as` | Content |
 |------------|----------|-------|

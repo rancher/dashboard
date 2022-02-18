@@ -1,10 +1,8 @@
 # Development Environment
 
-This is part of the developer [getting started guide](./README.md).
+This is part of the developer [getting started guide](../../../README.md).
 
 # Stack
-
-See [README#what-is-it](../../../README.md#what-is-it).
 
 A good base knowledge of Vue, Vuex and Nuxt should be reached before going through the code. Looking through `nuxt.config.js` is a good way to understand how the Dashboard is glued together, importantly how plugins are brought in and how the frontend proxies requests to Rancher's APIs.
 
@@ -43,8 +41,7 @@ Note that for Rancher to provision and manage downstream clusters, the Rancher s
 - Change the Rancher server URL using `<dashboard url>c/local/settings/management.cattle.io.setting`
 
 Also for consideration:
-- [RKE2 in a binary (rancherd)](https://rancher.com/docs/rancher/v2.5/en/installation/install-rancher-on-linux/) Note: RancherD is being rewritten as of Rancher v2.6.
-- [K3s](https://k3d.io/v4.4.8/#installation) lets you immediately install a Kubernetes cluster in a Docker container and interact with it with kubectl for development and testing purposes.
+- [K3d](https://k3d.io/v4.4.8/#installation) lets you immediately install a Kubernetes cluster in a Docker container and interact with it with kubectl for development and testing purposes.
 
 You should be able to reach the older Ember UI by navigating to the Rancher API url. This same API Url will be used later when starting up the Dashboard.
 

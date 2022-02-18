@@ -4,7 +4,7 @@
 Rancher Dashboard UI, a.k.a Cluster Explorer.
 For the other Rancher UI (Cluster Manager) see [rancher/ui](https://github.com/rancher/ui).
 
-## Running for development
+## Running for Development
 This is what you probably want to get started.
 ```bash
 # Install dependencies
@@ -16,8 +16,9 @@ API=https://your-rancher yarn dev
 # or put the variable into a .env file
 # Goto https://localhost:8005
 ```
+For single page app mode, run `API=https://your-rancher yarn dev --spa`.
 
-## Other building modes
+## Other Building <odes
 ```bash
 # Build for standalone use within Rancher
 # (These are done on commit/tag via Drone)
@@ -70,7 +71,7 @@ For information on APIs, the layout of the codebase, Vuex stores, localization a
 
 ## Contributing
 
-For developers, after reading through the introduction on this page, head over to our [Getting Started](./docs/developer/getting-started/README.md) guide to learn more.
+For developers, after reading through the introduction on this page, head over to our [Getting Started](./docs/developer/getting-started) guide to learn more.
 
 License
 =======
