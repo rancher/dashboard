@@ -852,6 +852,7 @@ catalog:
       placeholder: '例如：https://charts.rancher.io'
   tools:
     header: 集群工具
+    noTools: "未找到集群工具"
     action:
       install: 安装
       upgrade: 升级/编辑

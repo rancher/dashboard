@@ -879,13 +879,14 @@ export default {
         update: false,
         pool:    {
           name,
-          etcdRole:         numCurrentPools === 0,
-          controlPlaneRole: numCurrentPools === 0,
-          workerRole:       true,
-          hostnamePrefix:   '',
-          labels:           {},
-          quantity:         1,
-          machineConfigRef:    {
+          etcdRole:             numCurrentPools === 0,
+          controlPlaneRole:     numCurrentPools === 0,
+          workerRole:           true,
+          hostnamePrefix:       '',
+          labels:               {},
+          quantity:             1,
+          unhealthyNodeTimeout: '0m',
+          machineConfigRef:     {
             kind:       this.machineConfigSchema.attributes.kind,
             name:       null,
           },
@@ -1549,7 +1550,7 @@ export default {
             <div class="col span-12 mt-20">
               <Checkbox v-if="serverArgs['secrets-encryption']" v-model="serverConfig['secrets-encryption']" :mode="mode" label="Encrypt Secrets" />
               <Checkbox v-model="value.spec.enableNetworkPolicy" :mode="mode" :label="t('cluster.rke2.enableNetworkPolicy.label')" />
-              <Checkbox v-if="agentArgs.selinux" v-model="agentConfig.selinux" :mode="mode" label="SELinux" />
+              <!-- <Checkbox v-if="agentArgs.selinux" v-model="agentConfig.selinux" :mode="mode" label="SELinux" /> -->
             </div>
           </div>
 

@@ -59,6 +59,7 @@ const REMAP_STATE = {
   waitcheckin:              'Wait Check-In',
   off:                      'Disabled',
   waitingforinfrastructure: 'Waiting for Infra',
+  waitingfornoderef:        'Waiting for Node Ref'
 };
 
 const DEFAULT_COLOR = 'warning';

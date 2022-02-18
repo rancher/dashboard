@@ -841,6 +841,7 @@ catalog:
       placeholder: 'e.g. https://charts.rancher.io'
   tools:
     header: Cluster Tools
+    noTools: "No Cluster Tools found"
     action:
       install: Install
       upgrade: Upgrade/Edit
@@ -1439,6 +1440,10 @@ cluster:
       label: Roles
     labels:
       label: Kubernetes Node Labels
+    autoReplace:
+      label: Auto Replace
+      toolTip: If greater than 0, nodes that are unreachable for this duration will be automatically deleted and replaced.
+      unit: "Minutes"
   memberRoles:
     removeMessage: 'Note: Removing a user will not remove their project permissions'
     addClusterMember:
