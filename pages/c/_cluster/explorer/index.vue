@@ -49,6 +49,12 @@ const K8S_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/ser
 const ETCD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-etcd-nodes-1/rancher-etcd-nodes?orgId=1';
 const ETCD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-etcd-1/rancher-etcd?orgId=1';
 
+const COMPONENT_STATUS = [
+  'etcd',
+  'scheduler',
+  'controller-manager',
+];
+
 export default {
   components: {
     EtcdInfoBanner,
@@ -188,6 +194,20 @@ export default {
       return RESOURCES.filter(resource => this.$store.getters['cluster/schemaFor'](resource));
     },
 
+    componentServices() {
+      const status = [];
+
+      COMPONENT_STATUS.forEach((cs) => {
+        status.push({
+          name:      cs,
+          healthy:   this.isComponentStatusHealthy(cs),
+          labelKey: `clusterIndexPage.sections.componentStatus.${ cs }`,
+        });
+      });
+
+      return status;
+    },
+
     totalCountGaugeInput() {
       const totalInput = {
         name:            this.t('clusterIndexPage.resourceGauge.totalResources'),
@@ -286,6 +306,24 @@ export default {
   },
 
   methods: {
+    // Ported from Ember
+    isComponentStatusHealthy(field) {
+      const matching = (this.currentCluster?.status?.componentStatuses || []).filter(s => s.name.startsWith(field));
+
+      // If there's no matching component status, it's "healthy"
+      if ( !matching.length ) {
+        return true;
+      }
+
+      const count = matching.reduce((acc, status) => {
+        const conditions = status.conditions.find(c => c.status !== 'True');
+
+        return !conditions ? acc : acc + 1;
+      }, 0);
+
+      return count === 0;
+    },
+
     showActions() {
       this.$store.commit('action-menu/show', {
         resources: this.currentCluster,
@@ -383,6 +421,14 @@ export default {
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.pods')" :used="podsUsed" />
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.cores')" :reserved="cpuReserved" :used="cpuUsed" />
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.ram')" :reserved="ramReserved" :used="ramUsed" :units="ramReserved.units" />
+    </div>
+
+    <div v-if="!hasV1Monitoring && componentServices">
+      <div v-for="status in componentServices" :key="status.name" class="k8s-component-status" :class="{'k8s-component-status-healthy': status.healthy, 'k8s-component-status-unhealthy': !status.healthy}">
+        <i v-if="status.healthy" class="icon icon-checkmark" />
+        <i v-else class="icon icon-warning" />
+        <div>{{ t(status.labelKey) }}</div>
+      </div>
     </div>
 
     <div v-if="hasV1Monitoring" id="ember-anchor" class="mt-20">
@@ -509,6 +555,44 @@ export default {
 
   &:focus {
     outline: 0;
+  }
+}
+
+.k8s-component-status {
+  align-items: center;
+  display: inline-flex;
+  border: 1px solid;
+  margin-top: 20px;
+
+  &:not(:last-child) {
+    margin-right: 20px;
+  }
+
+  > div {
+    padding: 5px 20px;
+  }
+
+  > I {
+    text-align: center;
+    font-size: 20px;
+    padding: 5px 10px;
+    border-right: 1px solid var(--border);
+  }
+
+  &.k8s-component-status-unhealthy {
+    border-color: var(--error-border);
+
+    > I {
+      color: var(--error)
+    }
+  }
+
+  &.k8s-component-status-healthy {
+    border-color: var(--border);
+
+    > I {
+      color: var(--success)
+    }
   }
 }
 </style>
