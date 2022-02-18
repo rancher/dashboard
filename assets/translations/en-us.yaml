@@ -5869,7 +5869,7 @@ typeLabel:
     }
   management.cattle.io.setting: |-
     {count, plural,
-      one { Setting }
+      one { Advanced Setting }
       other { Settings }
     }
   management.cattle.io.fleetworkspace: |-
@@ -6246,7 +6246,7 @@ branding:
     suse: SUSE Theme
     custom: Define a Custom Theme
   uiPL:
-    label: Private Label
+    label: Private Label Company Name
   uiIssues:
     label: Support Links
     issuesUrl: Issue Reporting URL
