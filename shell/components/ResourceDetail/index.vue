@@ -4,14 +4,15 @@ import Loading from '@shell/components/Loading';
 import ResourceYaml from '@shell/components/ResourceYaml';
 import {
   _VIEW, _EDIT, _CLONE, _IMPORT, _STAGE, _CREATE,
-  AS, _YAML, _DETAIL, _CONFIG, PREVIEW, MODE,
+  AS, _YAML, _DETAIL, _CONFIG, _GRAPH, PREVIEW, MODE,
 } from '@shell/config/query-params';
-import { SCHEMA } from '@shell/config/types';
+import { FLEET, SCHEMA } from '@shell/config/types';
 import { createYaml } from '@shell/utils/create-yaml';
 import Masthead from '@shell/components/ResourceDetail/Masthead';
 import DetailTop from '@shell/components/DetailTop';
-import { clone, diff } from '@shell/utils/object';
+import { clone, set, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
+import ForceDirectedTreeChart from '@shell/components/fleet/ForceDirectedTreeChart';
 
 function modeFor(route) {
   if ( route.query?.mode === _IMPORT ) {
@@ -40,6 +41,7 @@ export default {
   components: {
     Loading,
     DetailTop,
+    ForceDirectedTreeChart,
     ResourceYaml,
     Masthead,
     IconMessage,
@@ -84,8 +86,11 @@ export default {
     // know about:  view, edit, create (stage, import and clone become "create")
     const mode = ([_CLONE, _IMPORT, _STAGE].includes(realMode) ? _CREATE : realMode);
 
+    const getGraphConfig = store.getters['type-map/hasGraph'](resource);
+    const hasGraph = !!getGraphConfig;
     const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource, id);
     const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource, id);
+
     const schemas = store.getters[`${ inStore }/all`](SCHEMA);
 
     // As determines what component will be rendered
@@ -95,6 +100,8 @@ export default {
 
     if ( mode === _VIEW && hasCustomDetail && (!requested || requested === _DETAIL) ) {
       as = _DETAIL;
+    } else if ( mode === _VIEW && hasGraph && requested === _GRAPH) {
+      as = _GRAPH;
     } else if ( hasCustomEdit && (!requested || requested === _CONFIG) ) {
       as = _CONFIG;
     } else {
@@ -134,6 +141,12 @@ export default {
         yaml = createYaml(schemas, resource, data);
       }
     } else {
+      if ( as === _GRAPH ) {
+        await store.dispatch('management/findAll', { type: FLEET.CLUSTER });
+        await store.dispatch('management/findAll', { type: FLEET.BUNDLE });
+        await store.dispatch('management/findAll', { type: FLEET.BUNDLE_DEPLOYMENT });
+      }
+
       let fqid = id;
 
       if ( schema.attributes?.namespaced && namespace ) {
@@ -163,6 +176,10 @@ export default {
         yaml = await getYaml(liveModel);
       }
 
+      if ( as === _GRAPH ) {
+        this.chartData = liveModel;
+      }
+
       if ( [_CLONE, _IMPORT, _STAGE].includes(realMode) ) {
         model.cleanForNew();
         yaml = model.cleanYaml(yaml, realMode);
@@ -173,6 +190,8 @@ export default {
     model = await store.dispatch(`${ inStore }/cleanForDetail`, model);
 
     const out = {
+      hasGraph,
+      getGraphConfig,
       hasCustomDetail,
       hasCustomEdit,
       canViewYaml,
@@ -197,9 +216,11 @@ export default {
 
   data() {
     return {
+      chartData:       null,
       resourceSubtype: null,
 
       // Set by fetch
+      hasGraph:        null,
       hasCustomDetail: null,
       hasCustomEdit:   null,
       resource:        null,
@@ -233,6 +254,10 @@ export default {
 
     isDetail() {
       return this.as === _DETAIL;
+    },
+
+    isGraph() {
+      return this.as === _GRAPH;
     },
 
     offerPreview() {
@@ -329,6 +354,7 @@ export default {
       :mode="mode"
       :real-mode="realMode"
       :as="as"
+      :has-graph="hasGraph"
       :has-detail="hasCustomDetail"
       :has-edit="hasCustomEdit"
       :can-view-yaml="canViewYaml"
@@ -342,8 +368,14 @@ export default {
       />
     </Masthead>
 
+    <ForceDirectedTreeChart
+      v-if="isGraph"
+      :data="chartData"
+      :fdc-config="getGraphConfig"
+    />
+
     <ResourceYaml
-      v-if="isYaml"
+      v-else-if="isYaml"
       ref="resourceyaml"
       v-model="value"
       :mode="mode"
