@@ -146,6 +146,9 @@
 
     &.error {
       border: solid 1px var(--error);
+      > label {
+        color: var(--error);
+      }
       input, .selected {
         color: var(--error);
       }
@@ -161,5 +164,5 @@
   // Focus for form like elements (not to be confused with basic :focus style)
   outline: none;
   box-shadow: 0 0 0 var(--outline-width) var(--outline);
-  background: var(--input-focus-bg)
+  background: var(--input-focus-bg);
 }
