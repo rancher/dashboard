@@ -102,7 +102,8 @@ export default {
       </div>
 
       <div class="logo">
-        <LazyImage :src="get(r, iconField)" />
+        <i v-if="r.iconClass" :class="r.iconClass" />
+        <LazyImage v-else :src="get(r, iconField)" />
       </div>
       <h4 class="name">
         {{ get(r, nameField) }}
@@ -213,6 +214,15 @@ export default {
           object-fit: contain;
           position: relative;
           top: 2px;
+        }
+
+        i {
+          background-position: center;
+          background-repeat: no-repeat;
+          display: flex;
+          height: $logo - 4px;
+          margin: 2px;
+          width: $logo - 4px;
         }
       }
 
