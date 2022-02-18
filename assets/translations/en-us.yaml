@@ -75,6 +75,7 @@ generic:
   enable: Enable
   disable: Disable
   experimental: Experimental
+  
   deprecated: Deprecated
   placeholder: "e.g. {text}"
   moreInfo: More Info
@@ -706,6 +707,7 @@ catalog:
       other: Other
       partner: Partner
       rancher: '{vendor}'
+    deploysOn: Deploys on {os}
     header: Charts
     noCharts: 'There are no charts available, have you added any repos?'
     noWindows: Your catalogs do not contain any charts capable of being deployed on a Windows cluster.
