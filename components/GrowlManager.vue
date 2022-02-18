@@ -83,8 +83,15 @@ export default {
     <div class="growl-list">
       <div v-for="growl in stack" :key="growl.id" :class="{'growl': true, ['bg-'+growl.color]: true}">
         <i class="close hand icon icon-close" @click="close(growl)" />
-        <h3>{{ growl.title }}</h3>
-        <p>{{ growl.message }}</p>
+        <div class="growl-message">
+          <div class="icon-container">
+            <i :class="{icon: true, ['icon-'+growl.icon]: true}" />
+          </div>
+          <div class="growl-text">
+            <h3>{{ growl.title }}</h3>
+            <p>{{ growl.message }}</p>
+          </div>
+        </div>
       </div>
     </div>
     <div v-if="stack.length > 1" class="text-right mr-10 mt-10">
