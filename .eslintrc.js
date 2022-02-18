@@ -157,6 +157,8 @@ module.exports = {
     'vue/no-mutating-props':                'off',
     '@typescript-eslint/no-unused-vars':    'off',
     'array-callback-return':                'off',
+    'import/order':                         'off',
+    'import/no-named-as-default':           'off',
   },
   overrides: [
     {
