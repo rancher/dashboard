@@ -25,7 +25,7 @@ jobs:
 
     - name: Install & Build
       run:
-        ./.github/workflows/scripts/build-dashboard.sh
+        RANCHER_ENV=epinio ./.github/workflows/scripts/build-dashboard.sh
 
     - name: Upload Build
       uses: actions/upload-artifact@v2
