@@ -16,8 +16,6 @@ echo "ARTIFACT_LOCATION: $ARTIFACT_LOCATION"
 echo
 echo "OUTPUT_DIR: $OUTPUT_DIR"
 
-# /dashboard
-
 echo Creating release directory
 mkdir $RELEASE_DIR
 echo Installing dependencies
