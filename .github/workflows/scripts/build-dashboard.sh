@@ -1,18 +1,24 @@
 #!/bin/bash
 set -e
 
-echo "Building"
-echo "yRELEASE_DIR: $RELEASE_DIR"
 echo "GITHUB_SHA: $GITHUB_SHA"
 echo "GITHUB_REF_NAME: $GITHUB_REF_NAME"
-echo "yOUTPUT_DIR: $OUTPUT_DIR"
-echo "yARTIFACT_NAME: $ARTIFACT_NAME"
-echo "yROUTER:BASE: $ARTIFACT_NAME"
+echo "ROUTER_BASE: $ARTIFACT_NAME"
+
 echo "RELEASE_DIR: $RELEASE_DIR"
+RELEASE_LOCATION=${{ RELEASE_DIR }}/${{ ARTIFACT_NAME }}
+echo "RELEASE_LOCATION: $RELEASE_LOCATION"
 
+echo "ARTIFACT_NAME: $ARTIFACT_NAME"
+ARTIFACT_LOCATION=${{ OUTPUT_DIR }}/${{ ARTIFACT_NAME }}
+echo "ARTIFACT_LOCATION: $ARTIFACT_LOCATION"
 
-# mkdir ${{ RELEASE_DIR }}
-# yarn install --frozen-lockfile
-# NUXT_ENV_commit=${GITHUB_SHA} NUXT_ENV_version=${GITHUB_REF_NAME} OUTPUT_DIR=${{ OUTPUT_DIR }}/${{ ARTIFACT_NAME }} ROUTER_BASE='/dashboard' RANCHER_ENV=desktop yarn run build --spa
-# tar -czf ${{ RELEASE_DIR }}/${{ ARTIFACT_NAME }}.tar.gz -C ${{ OUTPUT_DIR }}/${{ ARTIFACT_NAME }} .
-# sha512sum ${{ RELEASE_DIR }}/${{ ARTIFACT_NAME }}.tar.gz > ${{ RELEASE_DIR }}/${{ ARTIFACT_NAME }}.tar.gz.sha512sum
+echo "OUTPUT_DIR: $OUTPUT_DIR"
+
+# /dashboard
+
+mkdir ${{ RELEASE_DIR }}
+yarn install --frozen-lockfile
+NUXT_ENV_commit=${GITHUB_SHA} NUXT_ENV_version=${GITHUB_REF_NAME} OUTPUT_DIR=ARTIFACT_LOCATION ROUTER_BASE="$ROUTER_BASE" RANCHER_ENV=desktop yarn run build --spa
+tar -czf RELEASE_LOCATION.tar.gz -C ARTIFACT_LOCATION .
+sha512sum RELEASE_LOCATION.tar.gz > RELEASE_LOCATION.tar.gz.sha512sum
