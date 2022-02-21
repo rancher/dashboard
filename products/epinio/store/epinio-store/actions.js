@@ -151,6 +151,7 @@ export default {
   },
 
   onLogout({ dispatch, commit }) {
+    console.warn('2!!!!!');
     dispatch(`unsubscribe`);
     commit('reset');
 

@@ -35,6 +35,10 @@ const INITIAL_VAPP_OPTIONS = {
   vappTransport:          '',
   vappProperty:           []
 };
+const OS_OPTIONS = [
+  'linux',
+  'windows'
+];
 const DEFAULT_CFGPARAM = ['disk.enableUUID=TRUE'];
 
 const getDefaultVappOptions = (networks) => {
@@ -213,6 +217,7 @@ export default {
       set(this.value, 'cloudConfig', '#cloud-config\n\n');
       set(this.value, 'cfgparam', DEFAULT_CFGPARAM);
       set(this.value, 'vappProperty', this.value.vappProperty);
+      set(this.value, 'os', OS_OPTIONS[0]);
       Object.entries(INITIAL_VAPP_OPTIONS).forEach(([key, value]) => {
         set(this.value, key, value);
       });
@@ -240,7 +245,8 @@ export default {
       haveAttributes:           null,
       haveTemplates:            null,
       vAppOptions,
-      vappMode:                 getInitialVappMode(this.value)
+      vappMode:                 getInitialVappMode(this.value),
+      osOptions:                OS_OPTIONS,
     };
   },
 
@@ -772,6 +778,15 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.disk')"
               :suffix="t('suffix.mib')"
+              :disabled="disabled"
+            />
+          </div>
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="value.os"
+              :mode="mode"
+              :options="osOptions"
+              :label="t('cluster.machineConfig.vsphere.instanceOptions.os')"
               :disabled="disabled"
             />
           </div>
