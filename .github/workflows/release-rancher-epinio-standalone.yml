@@ -3,7 +3,7 @@ name: Build and Release Rancher Dashboard - Rancher Epinio Standalone
 on:
   push:
     tags:
-        - 'epinio-v*'
+        - 'epinio-standalone-v*'
 
 env:
   OUTPUT_DIR: dist
