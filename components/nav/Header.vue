@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { NORMAN, HCI } from '@/config/types';
+import { NORMAN, STEVE } from '@/config/types';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
 import { ucFirst } from '@/utils/string';
 import { isMac } from '@/utils/platform';
@@ -53,7 +53,7 @@ export default {
 
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isMultiCluster', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleVirtualCluster']),
+      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct']),
     ...mapGetters('type-map', ['activeProducts']),
 
     appName() {
@@ -86,6 +86,17 @@ export default {
 
     showCopyConfig() {
       return !this.currentProduct?.hideCopyConfig;
+    },
+
+    showPreferencesLink() {
+      return (this.$store.getters['management/schemaFor'](STEVE.PREFERENCE)?.resourceMethods || []).includes('PUT');
+    },
+
+    showAccountAndApiKeyLink() {
+      // Keep this simple for the moment and only check if the user can see tokens... plus the usual isRancher/isSingleProduct
+      const canSeeTokens = this.$store.getters['rancher/schemaFor'](NORMAN.TOKEN);
+
+      return canSeeTokens && (this.isRancher || this.isSingleProduct);
     },
 
     showPageActions() {
@@ -125,15 +136,14 @@ export default {
       };
     },
 
-    harvesterDashboard() {
+    singleProductLogoRoute() {
       const cluster = this.$store.getters.defaultClusterId;
 
       return {
-        name:   'c-cluster-product-resource',
+        ...this.isSingleProduct.logoRoute,
         params: {
           cluster,
-          product:  VIRTUAL,
-          resource: HCI.DASHBOARD,
+          ...this.isSingleProduct.logoRoute.params,
         }
       };
     },
@@ -206,17 +216,17 @@ export default {
 <template>
   <header :class="{'simple': simple}">
     <div class="menu-spacer">
-      <n-link v-if="isSingleVirtualCluster" :to="harvesterDashboard">
+      <n-link v-if="isSingleProduct" :to="singleProductLogoRoute">
         <img
           class="side-menu-logo"
-          src="~/assets/images/providers/harvester.svg"
+          :src="isSingleProduct.logo"
         />
       </n-link>
     </div>
     <div v-if="!simple" class="product">
       <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster cluster-clipped">
-        <div v-if="isSingleVirtualCluster" class="product-name">
-          {{ t('product.harvester') }}
+        <div v-if="isSingleProduct" class="product-name">
+          {{ t(isSingleProduct.productNameKey) }}
         </div>
         <template v-else>
           <ClusterProviderIcon v-if="currentCluster" :cluster="currentCluster" class="mr-10" />
@@ -237,8 +247,8 @@ export default {
       </div>
     </div>
     <div v-else class="simple-title">
-      <div v-if="isSingleVirtualCluster" class="product-name">
-        {{ t('product.harvester') }}
+      <div v-if="isSingleProduct" class="product-name">
+        {{ t(isSingleProduct.productNameKey) }}
       </div>
 
       <div v-else class="side-menu-logo">
@@ -247,7 +257,7 @@ export default {
     </div>
 
     <div>
-      <TopLevelMenu v-if="isMultiCluster || !isSingleVirtualCluster"></TopLevelMenu>
+      <TopLevelMenu v-if="isMultiCluster || !isSingleProduct"></TopLevelMenu>
     </div>
 
     <div class="rd-header-right">
@@ -400,13 +410,15 @@ export default {
                   <i class="icon icon-lg icon-user" /> {{ principal.loginName }}
                 </div>
                 <div class="text-small pt-5 pb-5">
-                  {{ principal.name }}
+                  <template v-if="principal.loginName !== principal.name">
+                    {{ principal.name }}
+                  </template>
                 </div>
               </li>
-              <nuxt-link tag="li" :to="{name: 'prefs'}" class="user-menu-item">
+              <nuxt-link v-if="showPreferencesLink" tag="li" :to="{name: 'prefs'}" class="user-menu-item">
                 <a>{{ t('nav.userMenu.preferences') }} <i class="icon icon-fw icon-gear" /></a>
               </nuxt-link>
-              <nuxt-link v-if="isRancher || isSingleVirtualCluster" tag="li" :to="{name: 'account'}" class="user-menu-item">
+              <nuxt-link v-if="showAccountAndApiKeyLink" tag="li" :to="{name: 'account'}" class="user-menu-item">
                 <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }} <i class="icon icon-fw icon-user" /></a>
               </nuxt-link>
               <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout', query: { [LOGGED_OUT]: true }}" class="user-menu-item">
@@ -470,6 +482,14 @@ export default {
       .title {
         height: 24px;
         line-height: 24px;
+      }
+    }
+
+    .user-menu {
+      padding-top: 9.5px;
+      .user-name {
+        display: flex;
+        align-items: center;
       }
     }
 

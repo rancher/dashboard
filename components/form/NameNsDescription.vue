@@ -203,7 +203,7 @@ export default {
 
       const out = sortBy(
         choices.filter( (N) => {
-          const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(N.metadata.name);
+          const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(N?.metadata?.name);
 
           return this.isVirtualCluster ? !N.isSystem && !N.isFleetManaged && !isSettingSystemNamespace : true;
         }).map((obj) => {

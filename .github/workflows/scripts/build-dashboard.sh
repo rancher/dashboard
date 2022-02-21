@@ -1,0 +1,32 @@
+#!/bin/bash
+set -e
+
+echo "GITHUB_SHA: $GITHUB_SHA"
+echo "GITHUB_REF_NAME: $GITHUB_REF_NAME"
+echo "ROUTER_BASE: $ROUTER_BASE"
+echo "RANCHER_ENV: $RANCHER_ENV"
+echo
+echo "RELEASE_DIR: $RELEASE_DIR"
+RELEASE_LOCATION="$RELEASE_DIR/$ARTIFACT_NAME"
+echo "RELEASE_LOCATION: $RELEASE_LOCATION"
+echo
+echo "ARTIFACT_NAME: $ARTIFACT_NAME"
+ARTIFACT_LOCATION="$OUTPUT_DIR/$ARTIFACT_NAME"
+echo "ARTIFACT_LOCATION: $ARTIFACT_LOCATION"
+echo
+echo "OUTPUT_DIR: $OUTPUT_DIR"
+
+echo Creating release directory
+mkdir $RELEASE_DIR
+
+echo Installing dependencies
+yarn install --frozen-lockfile
+
+echo Building
+NUXT_ENV_commit=$GITHUB_SHA NUXT_ENV_version=$GITHUB_REF_NAME OUTPUT_DIR="$ARTIFACT_LOCATION" ROUTER_BASE="$ROUTER_BASE" RANCHER_ENV=$RANCHER_ENV yarn run build --spa
+
+echo Creating tar
+tar -czf $RELEASE_LOCATION.tar.gz -C $ARTIFACT_LOCATION .
+
+echo Creating sha
+sha512sum $RELEASE_LOCATION.tar.gz > $RELEASE_LOCATION.tar.gz.sha512sum

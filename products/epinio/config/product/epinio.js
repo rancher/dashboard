@@ -16,6 +16,18 @@ export function init(store) {
     weightType
   } = DSL(store, EPINIO_PRODUCT_NAME);
 
+  const isEpinioSingleProduct = process.env.rancherEnv === 'epinio';
+
+  if (isEpinioSingleProduct) {
+    store.dispatch('setIsSingleProduct', {
+      logo:                require(`@/products/epinio/assets/logo-epinio.svg`),
+      productNameKey:      'epinio.label',
+      afterLoginRoute:     createEpinioRoute('c-cluster-applications', { cluster: 'default' }),
+      logoRoute:           createEpinioRoute('c-cluster-applications', { cluster: 'default' }),
+      disableSteveSockets: true,
+    });
+  }
+
   product({
     // ifHaveType:          CAPI.RANCHER_CLUSTER,
     ifFeature:             MULTI_CLUSTER,
@@ -23,7 +35,7 @@ export function init(store) {
     isMultiClusterApp:     true,
     inStore:               EPINIO_PRODUCT_NAME,
     icon:                  'epinio',
-    iconHeader:            require(`@/products/epinio/assets/logo-epinio.svg`),
+    iconHeader:            isEpinioSingleProduct ? undefined : require(`@/products/epinio/assets/logo-epinio.svg`),
     removable:             false,
     showClusterSwitcher:   false,
     to:                    rootEpinioRoute(),

@@ -223,7 +223,6 @@ export default {
           :rows="value.pods"
           :headers="podHeaders"
           key-field="id"
-          :table-actions="false"
           :schema="podSchema"
           :groupable="false"
           :search="false"

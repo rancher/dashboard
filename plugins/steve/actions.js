@@ -1,5 +1,5 @@
 import https from 'https';
-import { addParam } from '@/utils/url';
+import { addParam, parse as parseUrl, stringify as unParseUrl } from '@/utils/url';
 import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 import { set } from '@/utils/object';
 import { deferred } from '@/utils/promise';
@@ -23,6 +23,19 @@ export default {
 
     opt.depaginate = opt.depaginate !== false;
     opt.url = opt.url.replace(/\/*$/g, '');
+
+    // TODO: RC Tech Debt move this to steve store as prependPath getter
+    const prependPath = process.env.rancherEnv === 'epinio' ? `/pp/v1/epinio/rancher` : '';
+
+    if (prependPath) {
+      const url = parseUrl(opt.url);
+
+      if (!url.path.startsWith(prependPath)) {
+        url.path = prependPath + url.path;
+        opt.url = unParseUrl(url);
+      }
+    }
+
     opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
     const method = (opt.method || 'get').toLowerCase();

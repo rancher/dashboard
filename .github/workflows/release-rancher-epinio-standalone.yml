@@ -1,15 +1,15 @@
-name: Build and Release Rancher Dashboard - Rancher Desktop Embed
+name: Build and Release Rancher Dashboard - Rancher Epinio Standalone
 
 on:
   push:
     tags:
-        - 'desktop-v*'
+        - 'epinio-standalone-v*'
 
 env:
   OUTPUT_DIR: dist
   RELEASE_DIR: release
-  ARTIFACT_NAME: rancher-dashboard-desktop-embed
-  
+  ARTIFACT_NAME: rancher-dashboard-epinio-standalone-embed
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,14 +18,14 @@ jobs:
       with:
         fetch-depth: 0
         persist-credentials: false
-    
+
     - uses: actions/setup-node@v2
       with:
         node-version: '12.x'
-    
+
     - name: Install & Build
       run:
-        ROUTER_BASE="/dashboard" RANCHER_ENV=desktop ./.github/workflows/scripts/build-dashboard.sh
+        RANCHER_ENV=epinio ./.github/workflows/scripts/build-dashboard.sh
 
     - name: Upload Build
       uses: actions/upload-artifact@v2
@@ -33,7 +33,7 @@ jobs:
         path: ${{ env.RELEASE_DIR}}/${{ env.ARTIFACT_NAME }}*
         name: ${{ env.ARTIFACT_NAME }}
         if-no-files-found: error
-  
+
   release:
     runs-on: ubuntu-latest
     needs: build
@@ -49,6 +49,11 @@ jobs:
         path: build
     - name: Set env
       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+    - name: Create Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create ${{ env.RELEASE_VERSION }} --prerelease
     - name: Upload Release Assets
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

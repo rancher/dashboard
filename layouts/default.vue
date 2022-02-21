@@ -14,7 +14,7 @@ import Header from '@/components/nav/Header';
 import Brand from '@/mixins/brand';
 import FixedBanner from '@/components/FixedBanner';
 import {
-  COUNT, SCHEMA, MANAGEMENT, UI, CATALOG, HCI
+  COUNT, SCHEMA, MANAGEMENT, UI, CATALOG
 } from '@/config/types';
 import { BASIC, FAVORITE, USED } from '@/store/type-map';
 import { addObjects, replaceWith, clear, addObject } from '@/utils/array';
@@ -58,7 +58,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleVirtualCluster']),
+    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleProduct']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -140,10 +140,8 @@ export default {
     displayVersion() {
       let { displayVersion } = getVersionInfo(this.$store);
 
-      if (this.isVirtualProduct && this.isSingleVirtualCluster) {
-        const setting = this.$store.getters['harvester/byId'](HCI.SETTING, 'server-version');
-
-        displayVersion = setting?.value || 'unknown';
+      if (this.isSingleProduct) {
+        displayVersion = this.isSingleProduct.version || displayVersion || 'unknown';
       }
 
       return displayVersion;
@@ -570,7 +568,7 @@ export default {
             {{ displayVersion }}
           </span>
 
-          <span v-if="isSingleVirtualCluster">
+          <span v-if="isSingleProduct">
             <v-popover
               popover-class="localeSelector"
               placement="top"

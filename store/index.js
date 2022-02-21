@@ -78,7 +78,8 @@ export const state = () => {
     cameFromError:       false,
     pageActions:         [],
     serverVersion:       null,
-    systemNamespaces:    []
+    systemNamespaces:    [],
+    isSingleProduct:     undefined,
   };
 };
 
@@ -400,6 +401,34 @@ export const getters = {
     return '/';
   },
 
+  isSingleProduct(state, rootGetters) {
+    if (state.isSingleProduct !== undefined) {
+      return state.isSingleProduct;
+    }
+
+    if (state.isSingleVirtualCluster) {
+      // TODO: RC move out like epinio & test
+      return {
+        logo:            '~/assets/images/providers/harvester.svg',
+        productNameKey:  'product.harvester',
+        version:         rootGetters['harvester/byId'](HCI.SETTING, 'server-version')?.value, // TODO: RC TEST
+        afterLoginRoute: {
+          name:   'c-cluster-product',
+          params: { product: VIRTUAL },
+        },
+        logoRoute: {
+          name:   'c-cluster-product-resource',
+          params: {
+            product:  VIRTUAL,
+            resource: HCI.DASHBOARD,
+          }
+        },
+      };
+    }
+
+    return false;
+  },
+
   isSingleVirtualCluster(state, getters, rootState, rootGetters) {
     const clusterId = getters.defaultClusterId;
     const cluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, clusterId);
@@ -488,6 +517,10 @@ export const mutations = {
 
   setSystemNamespaces(state, namespaces) {
     state.systemNamespaces = namespaces;
+  },
+
+  setIsSingleProduct(state, isSingleProduct) {
+    state.isSingleProduct = isSingleProduct;
   }
 };
 
@@ -976,5 +1009,9 @@ export const actions = {
 
       window.location.replace(url);
     }
+  },
+
+  setIsSingleProduct({ commit }, isSingleProduct) {
+    commit(`setIsSingleProduct`, isSingleProduct);
   }
 };
