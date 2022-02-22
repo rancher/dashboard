@@ -57,6 +57,7 @@ Developers are free to use the IDE and modern browser of their choosing. Here's 
 ## VS Code
 - Install the `vetur` extension. This contains syntax highlighting, IntelliSense, snippets, formatting, etc)
 - Install the `ESLint` extension to underline linting issues. It can also be used to auto-fix errors on save by using **Command + Shift + P > ESLint: Fix all auto-fixable Problems.**
+- Install a spell checker, such as `Code Spell Checker`, to catch common spelling mistakes and typos
 
 ## Chrome
 - Install the Chrome `vue-devtools` extension to view the Vuex store.
