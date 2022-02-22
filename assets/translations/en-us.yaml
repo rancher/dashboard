@@ -2866,6 +2866,55 @@ namespaceList:
   selectLabel: Namespace
   addLabel: Add Namespace
 
+navLink:
+  name:
+    label: Name
+    placeholder: 'e.g. foo-bar'
+  label:
+    label: Display name
+    placeholder: 'Text displayed for the link'
+  tabs: 
+    link:
+      label: Link type
+      type:
+        label: Link type
+        service: Link to service
+        url: Link to URL
+      toURL:
+        label: Destination URL
+        placeholder: 'e.g. https://rancher.com'
+      toService:
+        service:
+          label: Service (namespace/name)
+          placeholder: 'e.g. cattle-system/rancher-webhook'
+        path:
+          label: Path
+          placeholder: 'e.g. proxy/?orgId=1'
+        port:
+          label: Port
+          placeholder: 'e.g. 80'
+        scheme:
+          label: Scheme
+          placeholder: 'e.g. http'
+    target:
+      label: Window target
+      option:
+        blank: New window
+        self: Replace window
+        named: Custom named window
+      namedValue: 
+        label: Window name
+    group:
+      label: Group
+      group:
+        label: Group name
+        tooltip: Assign link to a group
+      sideLabel:
+        label: Link Label
+      description:
+        label: Link description
+      iconSrc:
+        label: Add image
 node:
   list:
     pool: Pool
