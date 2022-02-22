@@ -62,6 +62,8 @@ Example tests can be found in `/components/__tests__`. For more information abou
 
 ### VSCode debugging tools
 
+It is possible to use debugging tools within Jest via VSCode. To do so, open the debugger panel (Ctrl/Cmd+Shift+D) and select the `Debug Jest Tests` option from the dropdown. This will start a debug session with the Jest tests, allowing you to set breakpoint, inspect code and visualize variables on the panel itself. As usual it's possible to execute the tests by `F5` after selecting the right option.
+
 ### Style guide
 
 On top of the recommendation provided by the [Vue documentation](https://vuejs.org/guide/scaling-up/testing.html), it is also encouraged to follow these patterns to create readable and aimed tests.
