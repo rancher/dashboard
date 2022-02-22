@@ -3,13 +3,19 @@ import Vue, { PropType } from 'vue';
 import Application from '@/products/epinio/models/applications';
 import SimpleBox from '@/components/SimpleBox.vue';
 import ConsumptionGauge from '@/components/ConsumptionGauge.vue';
+import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
+import ResourceTable from '@/components/ResourceTable.vue';
+import Tabbed from '@/components/Tabbed/index.vue';
+import Tab from '@/components/Tabbed/Tab.vue';
 
 interface Data {
 }
 
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
-  components: { SimpleBox, ConsumptionGauge },
+  components: {
+    SimpleBox, ConsumptionGauge, ResourceTable, Tabbed, Tab
+  },
 
   props: {
     value: {
@@ -25,15 +31,17 @@ export default Vue.extend<Data, any, any, any>({
       required: true
     },
   },
+
+  data() {
+    return { appInstanceSchema: this.$store.getters[`${ EPINIO_PRODUCT_NAME }/schemaFor`](EPINIO_TYPES.APP_INSTANCE) };
+  }
+
 });
 </script>
 
 <template>
   <div>
-    <h3 class="mt-20">
-      {{ t('epinio.applications.detail.counts.label') }}
-    </h3>
-    <div class="simple-box-row">
+    <div class="simple-box-row mt-40">
       <SimpleBox>
         <div class="box">
           <h1>{{ value.serviceCount }}</h1>
@@ -49,6 +57,12 @@ export default Vue.extend<Data, any, any, any>({
             {{ t('epinio.applications.detail.counts.routes') }}
           </h3>
         </div>
+        <ul>
+          <li v-for="(route) in value.configuration.routes" :key="route.id">
+            <a v-if="value.state === 'running'" :key="route.id + 'a'" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
+            <span v-else :key="route.id + 'a'">{{ `https://${route}` }}</span>
+          </li>
+        </ul>
       </SimpleBox>
       <SimpleBox>
         <div class="box">
@@ -59,36 +73,29 @@ export default Vue.extend<Data, any, any, any>({
         </div>
       </SimpleBox>
     </div>
-    <h3 v-if="value.configuration.routes.length" class="mt-40">
-      {{ t('epinio.applications.detail.routes.label') }}
-    </h3>
-    <div>
-      <ul>
-        <li v-for="(route) in value.configuration.routes" :key="route.id">
-          <a v-if="value.state === 'running'" :key="route.id + 'a'" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
-          <span v-else :key="route.id + 'a'">{{ `https://${route}` }}</span>
-        </li>
-      </ul>
-    </div>
     <h3 v-if="value.deployment" class="mt-40">
       {{ t('epinio.applications.detail.deployment.label') }}
     </h3>
-    <div v-if="value.deployment" class="simple-box-row">
-      <SimpleBox>
-        <ConsumptionGauge
-          :resource-name="t('epinio.applications.detail.deployment.instances')"
-          :capacity="value.desiredInstances"
-          :used="value.readyInstances"
-          :used-as-resource-name="true"
-          :color-stops="{ 70: '--success', 30: '--warning', 0: '--error' }"
-        >
-        </ConsumptionGauge>
-      </SimpleBox>
-      <!--
+
+    <Tabbed v-if="value.deployment" class="deployment" default-tab="summary">
+      <Tab label-key="epinio.applications.detail.deployment.summary" name="summary" :weight="1">
+        <div class="simple-box-row ">
+          <SimpleBox>
+            <ConsumptionGauge
+              :resource-name="t('epinio.applications.detail.deployment.instances')"
+              :capacity="value.desiredInstances"
+              :used="value.readyInstances"
+              :used-as-resource-name="true"
+              :color-stops="{ 70: '--success', 30: '--warning', 0: '--error' }"
+            >
+            </ConsumptionGauge>
+          </SimpleBox>
+
+          <!--
           This information will be moved following https://github.com/epinio/ui/issues/62
           Like Stratos we could show a summary of low/high/average
       -->
-      <!-- <SimpleBox>
+          <!-- <SimpleBox>
         <div class="box">
           <h1>{{ value.memory }}</h1>
           <h3>
@@ -104,24 +111,29 @@ export default Vue.extend<Data, any, any, any>({
           </h3>
         </div>
       </SimpleBox> -->
-      <SimpleBox v-if="value.sourceInfo">
-        <div class="deployment__origin__row">
-          <h4>Origin</h4><h4>
-            {{ value.sourceInfo.label }}
-          </h4>
+          <SimpleBox v-if="value.sourceInfo">
+            <div class="deployment__origin__row">
+              <h4>Origin</h4><h4>
+                {{ value.sourceInfo.label }}
+              </h4>
+            </div>
+            <div v-for="d of value.sourceInfo.details" :key="d.label" class="deployment__origin__row">
+              <h4>{{ d.label }}</h4><h4>{{ d.value }}</h4>
+            </div>
+          </SimpleBox>
+          <SimpleBox v-if="value.deployment.username">
+            <div class="deployment__origin__row">
+              <h4>{{ t('epinio.applications.tableHeaders.deployedBy') }}</h4><h4>
+                {{ value.deployment.username }}
+              </h4>
+            </div>
+          </SimpleBox>
         </div>
-        <div v-for="d of value.sourceInfo.details" :key="d.label" class="deployment__origin__row">
-          <h4>{{ d.label }}</h4><h4>{{ d.value }}</h4>
-        </div>
-      </SimpleBox>
-      <SimpleBox v-if="value.deployment.username">
-        <div class="deployment__origin__row">
-          <h4>{{ t('epinio.applications.tableHeaders.deployedBy') }}</h4><h4>
-            {{ value.deployment.username }}
-          </h4>
-        </div>
-      </SimpleBox>
-    </div>
+      </Tab>
+      <Tab label-key="epinio.applications.detail.deployment.instances" name="instances">
+        <ResourceTable :schema="appInstanceSchema" :rows="value.instances" :table-actions="false" :row-actions="false" />
+      </Tab>
+    </Tabbed>
   </div>
 </template>
 
@@ -134,6 +146,12 @@ export default Vue.extend<Data, any, any, any>({
     width: 300px;
     max-width: 350px;
     margin-bottom: 20px;
+
+    ul {
+      word-break: break-all;
+      padding-left: 20px;
+    }
+
     &:not(:last-of-type) {
       margin-right: 20px;
     }
@@ -169,6 +187,13 @@ export default Vue.extend<Data, any, any, any>({
       display: flex;
       justify-content: center;
     }
+  }
+}
+
+.deployment {
+  max-width: 990px;
+  .simple-box {
+    margin-bottom: 0;
   }
 }
 

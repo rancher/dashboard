@@ -1,6 +1,7 @@
-import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_TYPES } from '@/products/epinio/types';
+import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import { formatSi } from '@/utils/units';
+import { classify } from '@/plugins/core-store/classify';
 import EpinioResource from './epinio-resource';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
@@ -93,19 +94,17 @@ export default class EpinioApplication extends EpinioResource {
 
   get _availableActions() {
     return [
-      // Streaming logs over socket isn't supported at the moment (requires auth changes to backend or un-CORS-ing)
-      // https://github.com/epinio/ui/issues/3
       // {
-      //   action:     'showAppLog',
+      //   action:     'showStagingLog',
       //   label:      this.t('epinio.applications.actions.viewAppLogs.label'),
       //   icon:       'icon icon-fw icon-chevron-right',
       //   enabled:    this.active,
       // },
       // {
-      //   action:     'openSsh',
-      //   enabled:    this.active,
+      //   action:     'showAppLog',
+      //   label:      this.t('epinio.applications.actions.viewAppLogs.label'),
       //   icon:       'icon icon-fw icon-chevron-right',
-      //   label:      'SSH Shell',
+      //   enabled:    this.active,
       // },
       // { divider: true },
       {
@@ -135,16 +134,17 @@ export default class EpinioApplication extends EpinioResource {
 
   get links() {
     return {
-      update:    this.getUrl(),
-      self:      this.getUrl(),
-      remove:    this.getUrl(),
-      create:    this.getUrl(this.meta?.namespace, null), // ensure name is null
-      store:     `${ this.getUrl() }/store`,
-      stage:     `${ this.getUrl() }/stage`,
-      deploy:    `${ this.getUrl() }/deploy`,
-      logs:      `${ this.getUrl() }/logs`,
+      update:      this.getUrl(),
+      self:        this.getUrl(),
+      remove:      this.getUrl(),
+      create:      this.getUrl(this.meta?.namespace, null), // ensure name is null
+      store:       `${ this.getUrl() }/store`,
+      stage:       `${ this.getUrl() }/stage`,
+      deploy:      `${ this.getUrl() }/deploy`,
+      logs:        `${ this.getUrl() }/logs`.replace('/api/v1', '/wapi/v1'), // /namespaces/:namespace/applications/:app/logs
+      stagingLogs: ``, // /namespaces/:namespace/staging/:stage_id/logs
       importGit:   `${ this.getUrl() }/import-git`,
-      restart:    `${ this.getUrl() }/restart`,
+      restart:     `${ this.getUrl() }/restart`,
     };
   }
 
@@ -224,6 +224,20 @@ export default class EpinioApplication extends EpinioResource {
     default:
       return undefined;
     }
+  }
+
+  get instances() {
+    const instances = this.deployment?.replicas;
+
+    if (!instances) {
+      return [];
+    }
+
+    return Object.values(instances).map(i => classify(this.$ctx, {
+      ...i,
+      id:   i.name,
+      type: EPINIO_TYPES.APP_INSTANCE
+    }));
   }
 
   // ------------------------------------------------------------------
@@ -371,7 +385,7 @@ export default class EpinioApplication extends EpinioResource {
     // Streaming logs over socket isn't supported at the moment (requires auth changes to backend or un-CORS-ing)
     // https://github.com/epinio/ui/issues/3
     // this.$dispatch('wm/open', {
-    //   id:        `epinio-${ this.id }-logs`,
+    //   id:        `epinio-${ this.id }-app-logs`,
     //   label:     `${ this.meta.name }`,
     //   product:   EPINIO_PRODUCT_NAME,
     //   icon:      'file',

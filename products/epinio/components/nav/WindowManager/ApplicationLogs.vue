@@ -22,9 +22,9 @@ import Socket, {
   EVENT_CONNECT_ERROR
 } from '@/utils/socket';
 import Window from '@/components/nav/WindowManager/Window';
-import { EPINIO_MGMT_STORE, EPINIO_TYPES } from '@/products/epinio/types';
+import { EPINIO_MGMT_STORE, EPINIO_PRODUCT_NAME, EPINIO_STANDALONE_CLUSTER_ID, EPINIO_TYPES } from '@/products/epinio/types';
 
-const lastId = 1;
+let lastId = 1;
 const ansiup = new AnsiUp();
 
 export default {
@@ -137,15 +137,26 @@ export default {
   },
 
   methods: {
-    getSocketUrl() {
-      const currentClusterId = this.$store.getters['clusterId'];
-      const currentCluster = this.$store.getters[`${ EPINIO_MGMT_STORE }/byId`](EPINIO_TYPES.INSTANCE, currentClusterId);
-      const api = currentCluster.api;
+    getSocketUrl(token) {
+      const isSingleProduct = !!this.$store.getters['isSingleProduct'];
+      let api = '';
+      let prependPath = '';
+
+      if (isSingleProduct) {
+        const cnsi = this.$store.getters[`${ EPINIO_PRODUCT_NAME }/singleProductCNSI`]();
+
+        prependPath = `/pp/v1/wsproxy/${ cnsi?.guid }`;
+      } else {
+        const currentClusterId = this.$store.getters['clusterId'];
+        const currentCluster = this.$store.getters[`${ EPINIO_MGMT_STORE }/byId`](EPINIO_TYPES.INSTANCE, currentClusterId);
+
+        api = currentCluster.api;
+      }
+
       const endpoint = this.application.linkFor('logs');
-      const url = addParams(`${ api }${ endpoint }`, { follow: true });
+      const url = addParams(`${ api }${ prependPath }${ endpoint }`, { follow: false, authtoken: token }); // TODO: RC follow
 
       return url.replace(/^http/, 'ws');
-      // return url;
     },
 
     async connect() {
@@ -155,6 +166,7 @@ export default {
         this.lines = [];
       }
 
+      // TODO: RC TIDY
       this.lines = [{
         id:     '1',
         time:   '',
@@ -164,51 +176,54 @@ export default {
 
       // https://github.com/epinio/epinio/blob/6ef5cc0044f71c01cf90ed83bcdda18251c594a7/internal/cli/usercmd/client.go
 
-      // const url = this.getSocketUrl();
+      const { token } = await this.$store.dispatch(`epinio/request`, { opt: { url: '/api/v1/authtoken' } });
+
+      const url = this.getSocketUrl(token);
 
       // console.warn('!!!!!!!!!!!: ', url);
 
       // this.socket = new Socket(url, false, 0, 'base64.binary.k8s.io');
-      // this.socket.addEventListener(EVENT_CONNECTED, (e) => {
-      //   this.isOpen = true;
-      // });
+      this.socket = new Socket(url, false, 0);
+      this.socket.addEventListener(EVENT_CONNECTED, (e) => {
+        this.isOpen = true;
+      });
 
-      // this.socket.addEventListener(EVENT_DISCONNECTED, (e) => {
-      //   this.isOpen = false;
-      // });
+      this.socket.addEventListener(EVENT_DISCONNECTED, (e) => {
+        this.isOpen = false;
+      });
 
-      // this.socket.addEventListener(EVENT_CONNECT_ERROR, (e) => {
-      //   this.isOpen = false;
-      //   console.error('Connect Error', e); // eslint-disable-line no-console
-      // });
+      this.socket.addEventListener(EVENT_CONNECT_ERROR, (e) => {
+        this.isOpen = false;
+        console.error('Connect Error', e); // eslint-disable-line no-console
+      });
 
-      // this.socket.addEventListener(EVENT_MESSAGE, (e) => {
-      //   const line = base64Decode(e.detail.data);
+      this.socket.addEventListener(EVENT_MESSAGE, (e) => {
+        const line = base64Decode(e.detail.data);
 
-      //   let msg = line;
-      //   let time = null;
+        let msg = line;
+        let time = null;
 
-      //   const idx = line.indexOf(' ');
+        const idx = line.indexOf(' ');
 
-      //   if ( idx > 0 ) {
-      //     const timeStr = line.substr(0, idx);
-      //     const date = new Date(timeStr);
+        if ( idx > 0 ) {
+          const timeStr = line.substr(0, idx);
+          const date = new Date(timeStr);
 
-      //     if ( !isNaN(date.getSeconds()) ) {
-      //       time = date.toISOString();
-      //       msg = line.substr(idx + 1);
-      //     }
-      //   }
+          if ( !isNaN(date.getSeconds()) ) {
+            time = date.toISOString();
+            msg = line.substr(idx + 1);
+          }
+        }
 
-      //   this.backlog.push({
-      //     id:     lastId++,
-      //     msg:    ansiup.ansi_to_html(msg),
-      //     rawMsg: msg,
-      //     time,
-      //   });
-      // });
+        this.backlog.push({
+          id:     lastId++,
+          msg:    ansiup.ansi_to_html(msg),
+          rawMsg: msg,
+          time,
+        });
+      });
 
-      // this.socket.connect();
+      this.socket.connect();
     },
 
     flush() {

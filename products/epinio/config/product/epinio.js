@@ -1,7 +1,9 @@
-import { NAME, SIMPLE_NAME, STATE } from '@/config/table-headers';
+import {
+  AGE, NAME, RAM, SIMPLE_NAME, STATE
+} from '@/config/table-headers';
 import { DSL } from '@/store/type-map';
 import { createEpinioRoute, rootEpinioRoute } from '@/products/epinio/utils/custom-routing';
-import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
+import { EPINIO_PRODUCT_NAME, EPINIO_STANDALONE_CLUSTER_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import EpinioDiscovery from '@/products/epinio/utils/epinio-discovery';
 import { MULTI_CLUSTER } from '@/store/features';
 
@@ -22,8 +24,8 @@ export function init(store) {
     store.dispatch('setIsSingleProduct', {
       logo:                require(`@/products/epinio/assets/logo-epinio.svg`),
       productNameKey:      'epinio.label',
-      afterLoginRoute:     createEpinioRoute('c-cluster-applications', { cluster: 'default' }),
-      logoRoute:           createEpinioRoute('c-cluster-applications', { cluster: 'default' }),
+      afterLoginRoute:     createEpinioRoute('c-cluster-applications', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
+      logoRoute:           createEpinioRoute('c-cluster-applications', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
       disableSteveSockets: true,
     });
   }
@@ -148,6 +150,37 @@ export function init(store) {
       labelKey: 'epinio.applications.tableHeaders.deployedBy',
       value:    'deployment.username',
       sort:     ['deployment.username'],
+    }
+  ]);
+
+  const { width, canBeVariable, ...instanceName } = SIMPLE_NAME;
+
+  headers(EPINIO_TYPES.APP_INSTANCE, [
+    instanceName,
+    {
+      name:          'millicpus',
+      label:         'Milli CPUs',
+      value:         'millicpus',
+      sort:          ['millicpus'],
+      search:        false,
+    },
+    {
+      ...RAM,
+      sort:          ['memoryBytes'],
+      search:        false,
+      value:         'memoryBytes',
+      formatter:     'Si',
+    },
+    {
+      name:      'restarts',
+      label:     'Restarts',
+      value:     'restarts',
+      sort:      ['restarts'],
+    },
+    {
+      ...AGE,
+      value:     'createdAt',
+      sort:      'createdAt:desc',
     }
   ]);
 

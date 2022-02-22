@@ -6480,6 +6480,7 @@ epinio:
         label: Routes
       deployment:
         label: Deployment
+        summary: Summary
         instances: Instances
         memory: Memory
         cpu: CPU
