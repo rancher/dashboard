@@ -58,6 +58,9 @@ module.exports = {
     'no-trailing-spaces':                'warn',
     'no-undef':                          'warn',
     'no-unused-vars':                    'warn',
+    // Allow overload type definitions
+    'no-redeclare':                      'off',
+    '@typescript-eslint/no-redeclare':   ['error'],
     'no-whitespace-before-property':     'warn',
     'object-curly-spacing':              ['warn', 'always'],
     'object-property-newline':           'warn',
