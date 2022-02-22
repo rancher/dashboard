@@ -13,7 +13,7 @@ export default {
 
   computed: {
     useForIcon() {
-      return this.cluster?.badge?.useForIcon === 'true';
+      return !!this.cluster?.badge?.iconText;
     }
   }
 };
@@ -22,7 +22,7 @@ export default {
 <template>
   <div v-if="cluster" class="cluster-icon" :class="{'cluster-icon-small': small}">
     <div v-if="useForIcon" class="cluster-badge-logo" :style="{ backgroundColor: cluster.badge.color, color: cluster.badge.textColor }">
-      {{ cluster.badge.letter }}
+      {{ cluster.badge.iconText }}
     </div>
     <!-- eslint-disable -->
     <svg v-else-if="cluster.isLocal" class="cluster-local-logo" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 100 100" style="enable-background:new 0 0 100 100;" xml:space="preserve">

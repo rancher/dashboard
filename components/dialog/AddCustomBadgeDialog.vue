@@ -44,11 +44,9 @@ export default {
       this.badgeDescription = this.badgeDescription || 'Example Text';
       this.badgeBgColor = this.currentCluster.metadata?.annotations[CLUSTER_BADGE.COLOR] || '#ff0000';
 
-      const iconValue = this.currentCluster.metadata?.annotations[CLUSTER_BADGE.USE_AS_ICON] || '';
+      this.badgeAsIcon = !!this.currentCluster.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || false;
 
-      this.badgeAsIcon = iconValue.toLowerCase() === 'true';
-
-      this.letter = this.currentCluster.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || this.badgeDescription.substring(0, 1);
+      this.letter = this.currentCluster.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || this.badgeDescription.substring(0, 2);
     }
   },
 
@@ -56,7 +54,7 @@ export default {
     ...mapGetters(['currentCluster']),
 
     previewColor() {
-      return textColor(parseColor(this.badgeBgColor)) || 'white';
+      return textColor(parseColor(this.badgeBgColor)) || '#ffffff';
     },
     canSubmit() {
       return this.badgeDescription.length >= 1;
@@ -71,8 +69,7 @@ export default {
           text:        this.badgeDescription,
           color:       this.badgeBgColor,
           textColor:   textColor(parseColor(this.badgeBgColor)),
-          useForIcon:  this.badgeAsIcon ? 'true' : 'false',
-          letter:      this.letter.toUpperCase()
+          iconText:    this.badgeAsIcon ? this.letter.toUpperCase() : '',
         }
       };
     },
@@ -82,7 +79,7 @@ export default {
     },
   },
 
-  methods:  {
+  methods: {
     close() {
       this.$emit('close');
     },
@@ -94,14 +91,14 @@ export default {
 
         delete norman.annotations[CLUSTER_BADGE.TEXT];
         delete norman.annotations[CLUSTER_BADGE.COLOR];
-        delete norman.annotations[CLUSTER_BADGE.USE_AS_ICON];
         delete norman.annotations[CLUSTER_BADGE.ICON_TEXT];
 
         if (this.useCustomBadge) {
           this.$set(norman.annotations, CLUSTER_BADGE.TEXT, this.badgeDescription);
           this.$set(norman.annotations, CLUSTER_BADGE.COLOR, this.badgeBgColor);
-          this.$set(norman.annotations, CLUSTER_BADGE.USE_AS_ICON, this.badgeAsIcon ? 'true' : 'false');
-          this.$set(norman.annotations, CLUSTER_BADGE.ICON_TEXT, this.letter.toUpperCase());
+          if (this.badgeAsIcon) {
+            this.$set(norman.annotations, CLUSTER_BADGE.ICON_TEXT, this.letter.toUpperCase());
+          }
         }
 
         await norman.save();
