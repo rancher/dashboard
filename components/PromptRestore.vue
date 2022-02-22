@@ -7,10 +7,10 @@ import Date from '@/components/formatter/Date.vue';
 import RadioGroup from '@/components/form/RadioGroup.vue';
 import LabeledSelect from '@/components/form/LabeledSelect.vue';
 import { exceptionToErrorsArray } from '@/utils/error';
-import { CAPI, NORMAN } from '@/config/types';
+import { CAPI, NORMAN, SNAPSHOT } from '@/config/types';
 import { set } from '@/utils/object';
-import SelectOrCreateAuthSecret from '@/components/form/SelectOrCreateAuthSecret';
 import ChildHook, { BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
+import { sortBy } from '~/utils/sort';
 
 export default {
   components: {
@@ -20,7 +20,6 @@ export default {
     Date,
     LabeledSelect,
     RadioGroup,
-    SelectOrCreateAuthSecret,
   },
 
   name: 'PromptRestore',
@@ -37,19 +36,13 @@ export default {
       moveTo:              this.workspace,
       loaded:              false,
       allWorkspaces:       [],
-      cloudCredentialName: null,
       allSnapshots:        [],
       selectedSnapshot:    null,
     };
   },
 
-  mounted() {
-    const cluster = this.$store.getters['management/byId'](CAPI.RANCHER_CLUSTER, this.snapshot?.clusterId);
-
-    this.cloudCredentialName = cluster?.spec?.rkeConfig?.etcd?.s3?.cloudCredentialName;
-  },
-
   computed:   {
+    // toRestore can be a provisioning.cattle.io.cluster or a rke.cattle.io.etcdsnapshot resource
     ...mapState('action-menu', ['showPromptRestore', 'toRestore']),
     ...mapGetters({ t: 'i18n/t' }),
     ...mapGetters(['currentCluster']),
@@ -76,8 +69,13 @@ export default {
       // because the name matches the clusterId field on the
       // snapshot, but the cluster ID doesn't.
       if (this.allSnapshots) {
-        const list = Object.values(this.allSnapshots)
-          .filter(snapshot => snapshot.clusterId === this.toRestore[0]?.metadata?.name)
+        const sortedSnapshots = sortBy(Object.values(this.allSnapshots), ['createdAt', 'created', 'metadata.creationTimestamp'], true);
+        const list = sortedSnapshots
+          .filter((snapshot) => {
+            const toRestoreClusterName = this.toRestore[0].clusterName || this.toRestore[0]?.metadata?.name;
+
+            return snapshot.clusterName === toRestoreClusterName;
+          })
           .map(snapshot => ({ label: snapshot.name, value: snapshot.name }));
 
         return list;
@@ -85,14 +83,20 @@ export default {
         return [];
       }
     },
+    restoreModeOptions() {
+      const etcdOption = this.isRke2 ? 'none' : 'etcd';
+
+      return [etcdOption, 'kubernetesVersion', 'all'];
+    }
   },
 
   watch: {
-    showPromptRestore(show) {
+    async showPromptRestore(show) {
       if (show) {
         this.loaded = true;
         this.$modal.show('promptRestore');
-        this.fetchSnapshots();
+        await this.fetchSnapshots();
+        this.selectDefaultSnapshot();
       } else {
         this.loaded = false;
         this.$modal.hide('promptRestore');
@@ -112,7 +116,7 @@ export default {
       // Get all snapshots because this
       // component is loaded before the user
       // has selected a cluster to restore
-      await this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP })
+      await this.$store.dispatch('management/findAll', { type: SNAPSHOT })
         .then((allSnapshots) => {
           this.allSnapshots = allSnapshots.reduce((v, s) => {
             v[s.name] = s;
@@ -127,6 +131,16 @@ export default {
         });
     },
 
+    selectDefaultSnapshot() {
+      if (this.selectedSnapshot) {
+        return;
+      }
+
+      const defaultSnapshot = this.toRestore[0]?.type === SNAPSHOT ? this.toRestore[0].name : this.clusterSnapshots[0]?.value;
+
+      this.$set(this, 'selectedSnapshot', defaultSnapshot);
+    },
+
     async apply(buttonDone) {
       try {
         if ( this.isRke2 ) {
@@ -136,22 +150,10 @@ export default {
 
           const now = cluster.spec?.rkeConfig?.etcdSnapshotRestore?.generation || 0;
 
-          let s3; //  = undefined;
-
-          if ( this.snapshot.s3 ) {
-            s3 = {
-              ...this.snapshot.s3,
-              cloudCredentialName: this.cloudCredentialName
-            };
-          }
-
           set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', {
-            generation: now + 1,
-            createdAt:  this.snapshot.createdAt,
-            name:       this.snapshot.name,
-            size:       this.snapshot.size,
-            nodeName:   this.snapshot.nodeName,
-            s3,
+            generation:         now + 1,
+            name:               this.snapshot.name,
+            restoreRKEConfig:   this.snapshot.restoreRKEConfig,
           });
 
           await cluster.save();
@@ -213,37 +215,17 @@ export default {
           <h3 v-t="'promptRestore.date'"></h3>
           <div>
             <p>
-              <Date v-if="snapshot" :value="snapshot.createdAt || snapshot.created" />
+              <Date v-if="snapshot" :value="snapshot.createdAt || snapshot.created || snapshot.metadata.creationTimestamp" />
             </p>
           </div>
           <div class="spacer" />
-
-          <template v-if="isRke2">
-            <template v-if="snapshot.s3">
-              <h3 v-t="'promptRestore.fromS3'"></h3>
-              <SelectOrCreateAuthSecret
-                ref="selectOrCreate"
-                v-model="cloudCredentialName"
-                in-store="management"
-                generate-name="etcd-restore-s3-"
-                :allow-ssh="false"
-                :allow-basic="false"
-                :allow-s3="true"
-                :namespace="false"
-                :vertical="true"
-                :register-before-hook="registerBeforeHook"
-              />
-            </template>
-          </template>
-          <template v-else>
-            <RadioGroup
-              v-model="restoreMode"
-              name="restoreMode"
-              label="Restore Type"
-              :labels="['Only etcd', 'Kubernetes version and etcd', 'Cluster config, Kubernetes version and etcd']"
-              :options="['etcd', 'kubernetesVersion', 'all']"
-            />
-          </template>
+          <RadioGroup
+            v-model="restoreMode"
+            name="restoreMode"
+            label="Restore Type"
+            :labels="['Only etcd', 'Kubernetes version and etcd', 'Cluster config, Kubernetes version and etcd']"
+            :options="restoreModeOptions"
+          />
         </form>
       </div>
 

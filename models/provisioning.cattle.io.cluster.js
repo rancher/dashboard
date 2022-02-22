@@ -1,5 +1,4 @@
-import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
-import { classify } from '@/plugins/steve/classify';
+import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@/config/types';
 import SteveModel from '@/plugins/steve/steve-class';
 import { findBy, insertAt } from '@/utils/array';
 import { get, set } from '@/utils/object';
@@ -485,15 +484,10 @@ export default class ProvCluster extends SteveModel {
   }
 
   get etcdSnapshots() {
-    return (this.status?.etcdSnapshots || []).map((x) => {
-      x.id = x.name || x._name;
-      x.type = 'etcdBackup';
-      x.state = 'active';
-      x.clusterId = this.id;
-      x.rke2 = true;
+    const allSnapshots = this.$rootGetters['management/all']({ type: SNAPSHOT });
 
-      return classify(this.$ctx, x);
-    });
+    return allSnapshots
+      .filter(s => s.metadata.namespace === this.namespace && s.clusterName === this.name );
   }
 
   restoreSnapshotAction(resource = this) {
