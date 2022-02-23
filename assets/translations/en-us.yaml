@@ -1402,6 +1402,7 @@ cluster:
       label: Raise error if kernel parameters are different than the expected kubelet defaults
   banner:
     warning: 'This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration.'
+    os: 'You are attemping to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
 
   machinePool:
     name:
