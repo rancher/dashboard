@@ -114,6 +114,18 @@ export default {
 
       return [...out].filter(obj => obj.percent);
     },
+  },
+
+  methods: {
+    showMenu(show) {
+      if (this.$refs.popover) {
+        if (show) {
+          this.$refs.popover.show();
+        } else {
+          this.$refs.popover.hide();
+        }
+      }
+    },
   }
 };
 
@@ -137,10 +149,34 @@ function toPercent(value, min, max) {
         <div class="title">
           {{ title }}
         </div>
-        <div class="meta">
-          {{ meta.readyCount }} / {{ meta.total }} {{ title }} ready
+        <div
+          class="dropdwon resources-dropdown"
+          tabindex="0"
+          @blur="showMenu(false)"
+          @click="showMenu(true)"
+          @focus.capture="showMenu(true)"
+        >
+          <v-popover
+            ref="popover"
+            placement="bottom-end"
+            offset="-10"
+            trigger="manual"
+            :delay="{show: 0, hide: 0}"
+            :popper-options="{modifiers: { flip: { enabled: false } } }"
+            :container="false"
+          >
+            <div class="meta-title">
+              {{ meta.readyCount }} / {{ meta.total }} {{ title }} ready <i class="icon toggle icon-chevron-down" />
+            </div>
+            <template slot="popover" class="resources-status-list">
+              <ul class="list-unstyled dropdown" @click.stop="showMenu(false)">
+                <li v-for="(val, idx) in values" :key="idx">
+                  <span>{{ val.label }}</span><span class="list-count">{{ val.count }}</span>
+                </li>
+              </ul>
+            </template>
+          </v-popover>
         </div>
-        {{ JSON.stringify(pieces) }}
       </div>
       <div v-trim-whitespace :class="{progress: true, multi: pieces.length > 1}">
         <div
@@ -223,4 +259,26 @@ function toPercent(value, min, max) {
   .piece.bg-success:only-child {
     opacity: 0.5;
   }
+
+  .meta-title {
+    display: flex;
+    align-items: center;
+
+    .icon {
+      margin: 4px 0 0 5px;
+      opacity: 0.3;
+    }
+  }
+
+  .resources-dropdown {
+    li {
+        display: flex;
+        justify-content: space-between;
+        margin: 10px 5px;
+    }
+
+    .list-count {
+        margin-left: 30px;
+    }
+ }
 </style>
