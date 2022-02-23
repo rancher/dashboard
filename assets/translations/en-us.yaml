@@ -75,6 +75,7 @@ generic:
   enable: Enable
   disable: Disable
   experimental: Experimental
+  
   deprecated: Deprecated
   placeholder: "e.g. {text}"
   moreInfo: More Info
@@ -706,6 +707,7 @@ catalog:
       other: Other
       partner: Partner
       rancher: '{vendor}'
+    deploysOn: Deploys on {os}
     header: Charts
     noCharts: 'There are no charts available, have you added any repos?'
     noWindows: Your catalogs do not contain any charts capable of being deployed on a Windows cluster.
@@ -1319,6 +1321,7 @@ cluster:
           placeholder: e.g. http://my_host/cloud-config.yml
           note: Cloud-init file or url to set in the guestinfo
         cloudConfigYaml: Cloud Config YAML
+        os: Operating System
       tags:
         label: Tags
         description: Tags allow you to attach metadata to objects in the vSphere inventory to make it easier to sort and search for these objects.
@@ -1745,6 +1748,22 @@ etcdInfoBanner:
   failedProposals: "Number of failed proposals:"
 
 fleet:
+  dashboard:
+    pageTitle: Continuous Delivery Dashboard
+    menuLabel: Dashboard
+    welcome: Welcome to Fleet Continuous Delivery
+    gitOpsScale: GitOps at scale.
+    learnMore: Learn More.
+    learnMoreLink: https://fleet.rancher.io
+    noRepo: "You don't have any Git Repositories in your Workspaces"
+    getStarted: Get started
+    thereIsMore: |-
+      {count, plural,
+      =1 { There is one other workspace with no repositories}
+      other { There are { count } other workspaces with no repositories}
+      }
+    expandAll: Expand All
+    collapseAll: Collapse All
   cluster:
     summary: Resource Summary
     nonReady: Non-Ready Bundles
@@ -1768,7 +1787,7 @@ fleet:
       }  
   fleetSummary:
     state:
-      success: 'Ready'
+      ready: 'Ready'
       info: 'Transitioning'
       warning: 'Warning'
       error: 'Error'
@@ -2827,6 +2846,7 @@ namespace:
   enableAutoInjection: Enable Istio Auto Injection
   disableAutoInjection: Disable Istio Auto Injection
   move: Move
+  total: Total
   resourceStates:
       success: 'Active'
       info: 'Transitioning'
@@ -2838,7 +2858,6 @@ namespace:
         shortDescription: Deployment is paused
         longDescription: Deployment is paused. Pausing stops the controller from deploying revisions.
 
-
 namespaceFilter:
   selected:
     label: "{total} items selected"
@@ -2847,6 +2866,55 @@ namespaceList:
   selectLabel: Namespace
   addLabel: Add Namespace
 
+navLink:
+  name:
+    label: Name
+    placeholder: 'e.g. foo-bar'
+  label:
+    label: Display name
+    placeholder: 'Text displayed for the link'
+  tabs: 
+    link:
+      label: Link type
+      type:
+        label: Link type
+        service: Link to service
+        url: Link to URL
+      toURL:
+        label: Destination URL
+        placeholder: 'e.g. https://rancher.com'
+      toService:
+        service:
+          label: Service (namespace/name)
+          placeholder: 'e.g. cattle-system/rancher-webhook'
+        path:
+          label: Path
+          placeholder: 'e.g. proxy/?orgId=1'
+        port:
+          label: Port
+          placeholder: 'e.g. 80'
+        scheme:
+          label: Scheme
+          placeholder: 'e.g. http'
+    target:
+      label: Window target
+      option:
+        blank: New window
+        self: Replace window
+        named: Custom named window
+      namedValue: 
+        label: Window name
+    group:
+      label: Group
+      group:
+        label: Group name
+        tooltip: Assign link to a group
+      sideLabel:
+        label: Link Label
+      description:
+        label: Link description
+      iconSrc:
+        label: Add image
 node:
   list:
     pool: Pool
@@ -3684,6 +3752,7 @@ resourceTable:
     none: Flat List
     namespace: Group by Namespace
     project: Group by Project
+    node: Group by Node
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
     namespace: "<span>Namespace:</span> {name}"
@@ -3696,6 +3765,7 @@ resourceTable:
     workspace: "<span>Workspace:</span> {name}"
     notInANodePool: "Not in a Pool"
     nodePool: "<span>Pool:</span> {name} ({count})"
+    node: "<span>Node:</span> {name}"
 
 resourceTabs:
   conditions:
@@ -4257,7 +4327,7 @@ tableHeaders:
     projectDefault: Project Creator Default
   branch: Branch
   builtIn: Built In
-  bundlesReady: Bundles
+  bundlesReady: Bundles Ready
   bundleDeploymentsReady: Deployments
   builtin: Built-In
   chart: Chart
@@ -4339,11 +4409,14 @@ tableHeaders:
   reason: Reason
   reclaimPolicy: Reclaim Policy
   repo: Repo
+  repositories: Repositories
+  repoName: Repository Name
   reposReady: Repos Ready
   replicas: Replicas
   reqRate: Req Rate
   resource: Resource
   resources: Resources
+  resourcesReady: Resources Ready
   restarts: Restarts
   role: Role
   roles: Roles
@@ -5846,7 +5919,6 @@ typeLabel:
       one { Cluster Group }
       other {Cluster Groups }
     }
-
   fleet.cattle.io.gitrepo: |-
     {count, plural,
       one { Git Repo }

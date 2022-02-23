@@ -8,6 +8,9 @@ import { NAMESPACE } from '@/config/table-headers';
 import { findBy } from '@/utils/array';
 import { NAME as HARVESTER } from '@/config/product/harvester';
 
+// Default group-by in the case the group stored in the preference does not apply
+const DEFAULT_GROUP = 'namespace';
+
 export default {
 
   name: 'ResourceTable',
@@ -59,7 +62,7 @@ export default {
 
     groupable: {
       type:    Boolean,
-      default: null, // Null: auto based on namespaced
+      default: null, // Null: auto based on namespaced and type custom groupings
     },
 
     groupTooltip: {
@@ -75,6 +78,18 @@ export default {
       type:    Boolean,
       default: false
     },
+  },
+
+  data() {
+    const options = this.$store.getters[`type-map/optionsFor`](this.schema);
+    const listGroups = options?.listGroups || [];
+    const listGroupMapped = listGroups.reduce((acc, grp) => {
+      acc[grp.value] = grp;
+
+      return acc;
+    }, {});
+
+    return { listGroups, listGroupMapped };
   },
 
   computed: {
@@ -125,6 +140,17 @@ export default {
         }
       }
 
+      // If we are grouping by a custom group, it may specify that we hide a specific column
+      const custom = this.listGroupMapped[this.group];
+
+      if (custom?.hideColumn) {
+        const idx = headers.findIndex(header => header.name === custom.hideColumn);
+
+        if ( idx >= 0 ) {
+          headers.splice(idx, 1);
+        }
+      }
+
       return headers;
     },
 
@@ -155,11 +181,34 @@ export default {
       });
     },
 
-    group: mapPref(GROUP_RESOURCES),
+    _group: mapPref(GROUP_RESOURCES),
+
+    // The group stored in the preference (above) might not be valid for this resource table - so ensure we
+    // choose a group that is applicable (the default)
+    // This saves us from having to store a group preference per resource type - given that custom groupings aer not used much
+    // and it feels like a good UX to be able to keep the namespace/flat grouping across tables
+    group: {
+      get() {
+        // Check group is valid
+        const exists = this.groupOptions.find(g => g.value === this._group);
+
+        if (!exists) {
+          return DEFAULT_GROUP;
+        }
+
+        return this._group;
+      },
+      set(value) {
+        this._group = value;
+      }
+    },
 
     showGrouping() {
       if ( this.groupable === null ) {
-        return this.$store.getters['isMultipleNamespaces'] && this.isNamespaced;
+        const namespaceGroupable = this.$store.getters['isMultipleNamespaces'] && this.isNamespaced;
+        const customGroupable = this.listGroups.length > 0;
+
+        return namespaceGroupable || customGroupable;
       }
 
       return this.groupable || false;
@@ -174,11 +223,17 @@ export default {
         return 'groupByLabel';
       }
 
+      const custom = this.listGroupMapped[this.group];
+
+      if (custom && custom.field) {
+        return custom.field;
+      }
+
       return null;
     },
 
     groupOptions() {
-      return [
+      const standard = [
         {
           tooltipKey: 'resourceTable.groupBy.none',
           icon:       'icon-list-flat',
@@ -188,8 +243,10 @@ export default {
           tooltipKey: this.groupTooltip,
           icon:       'icon-folder',
           value:      'namespace',
-        }
+        },
       ];
+
+      return standard.concat(this.listGroups);
     },
 
     pagingParams() {

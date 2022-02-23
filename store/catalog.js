@@ -512,6 +512,7 @@ function addChart(ctx, map, chart, repo) {
       targetName:       chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
       scope:            chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
       provides:         [],
+      permittedOSs:      certifiedAnnotation === 'rancher' ? (chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || 'linux').split(',') : null
     });
 
     map[key] = obj;
