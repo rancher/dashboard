@@ -42,7 +42,7 @@ export default {
     <h2 class="mt-20">
       Resource Summary
     </h2>
-    <FleetSummary :value="value.status.resourceCounts" />
+    <FleetSummary :value="value" />
 
     <ResourceTabs v-model="value" mode="view" class="mt-20">
       <Tab label="Clusters" name="clusters">

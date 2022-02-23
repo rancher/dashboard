@@ -5,7 +5,8 @@ import FleetResources from '@/components/fleet/FleetResources';
 import Tab from '@/components/Tabbed/Tab';
 import { FLEET } from '@/config/types';
 import { isHarvesterCluster } from '@/utils/cluster';
-import { resourceCounts } from '~/components/ResourceSummary.vue';
+import FleetBundles from '@/components/fleet/FleetBundles.vue';
+import { resourceCounts } from '@/components/ResourceSummary.vue';
 
 export default {
   name: 'DetailGitRepo',
@@ -15,6 +16,7 @@ export default {
     FleetSummary,
     ResourceTabs,
     Tab,
+    FleetBundles,
   },
 
   props: {
@@ -32,7 +34,7 @@ export default {
   },
 
   computed: {
-      harvesterClusters() {
+    harvesterClusters() {
       const harvester = {};
 
       this.allFleet.forEach((c) => {
@@ -45,7 +47,7 @@ export default {
     },
 
     bundleCounts() {
-       return resourceCounts(this.$store, FLEET.BUNDLE);
+      return resourceCounts(this.$store, FLEET.BUNDLE);
     },
     bundles() {
       const harvester = this.harvesterClusters;
@@ -61,7 +63,7 @@ export default {
         return true;
       });
 
-      return bundles
+      return bundles;
     },
   },
   async fetch() {
@@ -75,10 +77,12 @@ export default {
 
 <template>
   <div class="mt-20">
-    {{bundleCounts}}
-    <FleetSummary :value="value.status.resourceCounts" :bundle="bundles" />
+    <FleetSummary :value="value" :bundles="bundles" />
 
     <ResourceTabs v-model="value" mode="view" class="mt-20">
+      <Tab label="Bundles" name="bundles" :weight="30">
+        <FleetBundles :value="value" />
+      </Tab>
       <Tab label="Resources" name="resources" :weight="20">
         <FleetResources :value="value" />
       </Tab>

@@ -12,7 +12,6 @@ export default {
       type:     Array,
       required: true,
     },
-
     colorKey: {
       type:    String,
       default: 'color',
@@ -25,7 +24,6 @@ export default {
       type:    String,
       default: 'value',
     },
-
     min: {
       type:    Number,
       default: 0
@@ -41,12 +39,24 @@ export default {
     showZeros: {
       type:    Boolean,
       default: false,
+    },
+
+    title: {
+      type:    String,
+      default: 'Resources'
     }
   },
 
   computed: {
+    meta() {
+      return {
+        total:      this.values.map(x => x.value).reduce((a, b) => a + b),
+        readyCount: this.values.filter(x => x.label === 'Success' || x.label === 'Ready').map(x => x.value).reduce((a, b) => a + b)
+      };
+    },
+
     pieces() {
-      let out = this.values.reduce((prev, obj) => {
+      let out = [...this.values].reduce((prev, obj) => {
         const color = get(obj, this.colorKey);
         const label = get(obj, this.labelKey);
         const value = get(obj, this.valueKey);
@@ -55,15 +65,15 @@ export default {
           return prev;
         }
 
-       prev.push({
+        prev.push({
           color,
           label,
           value,
           sort: stateSort(color),
-        })
+        });
 
-        return prev
-      }, [])
+        return prev;
+      }, []);
 
       const minPercent = this.minPercent || 0;
       const min = this.min || 0;
@@ -78,10 +88,10 @@ export default {
       }
 
       out = this.values.map((obj) => {
+        if (obj.value === 0 ) {
+          obj.percent = 0;
 
-        if(obj.value === 0 ) {
-          obj.percent = 0
-          return obj
+          return obj;
         }
         const percent = Math.max(minPercent, toPercent(obj.value, min, max));
 
@@ -89,7 +99,7 @@ export default {
         sum += percent;
 
         return obj;
-      })
+      });
 
       // If the sum is bigger than 100%, take it out of the biggest piece
       if ( sum > 100 ) {
@@ -97,10 +107,12 @@ export default {
       }
 
       out = this.values.map((obj) => {
-        obj.style = `width: ${ obj.percent }%; background: rgba(var(${ obj.color })`;
+        obj.style = `width: ${ obj.percent }%; background: var(--${ obj.color })`;
+
         return obj;
-      })
-      return out.filter(obj => obj.percent);
+      });
+
+      return [...out].filter(obj => obj.percent);
     },
   }
 };
@@ -115,17 +127,31 @@ function toPercent(value, min, max) {
 }
 
 </script>
-
 <template>
-  <div v-trim-whitespace :class="{progress: true, multi: pieces.length > 1}">
-    <div
-      :primary-color-var="piece.color"
-      v-for="(piece, idx) of pieces"
-      :key="idx"
-      v-trim-whitespace
-      :class="{'piece': true, [piece.color]: true}"
-      :style="piece.style"
-    />
+  <div class="fleet-status">
+    <div class="count">
+      {{ meta.total }}
+    </div>
+    <div class="progress-container">
+      <div class="header">
+        <div class="title">
+          {{ title }}
+        </div>
+        <div class="meta">
+          {{ meta.readyCount }} / {{ meta.total }} {{ title }} ready
+        </div>
+      </div>
+      <div v-trim-whitespace :class="{progress: true, multi: pieces.length > 1}">
+        <div
+          v-for="(piece, idx) of pieces"
+          :key="idx"
+          v-trim-whitespace
+          :primary-color-var="piece.color"
+          :class="{'piece': true, [piece.color]: true}"
+          :style="piece.style"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -134,6 +160,36 @@ function toPercent(value, min, max) {
   $progress-border-radius: 90px;
   $progress-height:        10px;
   $progress-width:         100%;
+
+  .fleet-status {
+    display: flex;
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px
+  }
+
+  .header {
+    display: flex;
+    margin-bottom: 15px;
+    justify-content: space-between;
+  }
+
+  .progress-container {
+    width: 100%;
+    padding: 15px;
+
+  }
+
+  .count {
+    padding: 15px;
+    background-color: var(--tabbed-container-bg);
+    border-radius: 10px 0 0 10px;
+    display: flex;
+    align-items: center;
+    min-width: 60px;
+    justify-content: center;
+    font-size: $font-size-h2
+  }
 
   .progress {
     display: block;

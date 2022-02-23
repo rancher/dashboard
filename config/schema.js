@@ -16,3 +16,5 @@ export const PRIMITIVE_TYPES = {
   json:      'json',
   version:   'version',
 };
+
+export const PROTOCOLS = ['http', 'https'];

@@ -23,8 +23,7 @@ import { SETTING } from '@/config/settings';
 import { BLANK_CLUSTER } from '@/store';
 import { filterOnlyKubernetesClusters } from '@/utils/cluster';
 
-const SET_LOGIN_ACTION = 'set-as-login';
-const RESET_CARDS_ACTION = 'reset-homepage-cards';
+import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@/config/page-actions';
 
 export default {
   name:       'Home',
@@ -189,11 +188,21 @@ export default {
   },
 
   methods: {
+    /**
+     * Define actions for each navigation link
+     * @param {*} action
+     */
     handlePageAction(action) {
-      if (action.action === RESET_CARDS_ACTION) {
+      switch (action.action) {
+      case RESET_CARDS_ACTION:
         this.resetCards();
-      } else if (action.action === SET_LOGIN_ACTION) {
+        break;
+
+      case SET_LOGIN_ACTION:
         this.afterLoginRoute = 'home';
+        break;
+
+      // no default
       }
     },
 

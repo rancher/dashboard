@@ -74,7 +74,7 @@
     "nuxt": "2.14.6",
     "papaparse": "^5.3.0",
     "portal-vue": "^2.1.5",
-    "rancher-icons": "rancher/icons#v2.0.2",
+    "rancher-icons": "rancher/icons#v2.0.3",
     "require-extension-hooks": "^0.3.3",
     "require-extension-hooks-babel": "^1.0.0-beta.1",
     "require-extension-hooks-vue": "^3.0.0",

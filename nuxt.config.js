@@ -75,6 +75,8 @@ module.exports = {
     pl,
   },
 
+  publicRuntimeConfig: { rancherEnv: process.env.RANCHER_ENV || 'web' },
+
   buildDir: dev ? '.nuxt' : '.nuxt-prod',
 
   buildModules: [
@@ -168,7 +170,7 @@ module.exports = {
         }
       }
 
-      // And substitue our own
+      // And substitute our own
       config.module.rules.unshift({
         test:    /\.(png|jpe?g|gif|svg|webp)$/,
         use:  [
@@ -324,7 +326,7 @@ module.exports = {
     '/v3':           proxyWsOpts(api), // Rancher API
     '/v3-public':    proxyOpts(api), // Rancher Unauthed API
     '/api-ui':       proxyOpts(api), // Browser API UI
-    '/meta':         proxyOpts(api), // Browser API UI
+    '/meta':         proxyMetaOpts(api), // Browser API UI
     '/v1-*':         proxyOpts(api), // SAML, KDM, etc
     // These are for Ember embedding
     '/c/*/edit':     proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
@@ -358,6 +360,18 @@ module.exports = {
   typescript: { typeCheck: { eslint: { files: './**/*.{ts,js,vue}' } } }
 };
 
+function proxyMetaOpts(target) {
+  return {
+    target,
+    followRedirects: true,
+    secure:          !dev,
+    onProxyReq,
+    onProxyReqWs,
+    onError,
+    onProxyRes,
+  };
+}
+
 function proxyOpts(target) {
   return {
     target,
@@ -384,9 +398,11 @@ function proxyWsOpts(target) {
 }
 
 function onProxyReq(proxyReq, req) {
-  proxyReq.setHeader('x-api-host', req.headers['host']);
-  proxyReq.setHeader('x-forwarded-proto', 'https');
-  // console.log(proxyReq.getHeaders());
+  if (!(proxyReq._currentRequest && proxyReq._currentRequest._headerSent)) {
+    proxyReq.setHeader('x-api-host', req.headers['host']);
+    proxyReq.setHeader('x-forwarded-proto', 'https');
+    // console.log(proxyReq.getHeaders());
+  }
 }
 
 function onProxyReqWs(proxyReq, req, socket, options, head) {

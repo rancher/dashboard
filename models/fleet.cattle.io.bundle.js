@@ -1,5 +1,6 @@
 import { escapeHtml } from '@/utils/string';
 import SteveModel from '@/plugins/steve/steve-class';
+import typeHelper from '@/utils/type-helpers';
 
 export default class FleetBundle extends SteveModel {
   get deploymentInfo() {
@@ -11,6 +12,22 @@ export default class FleetBundle extends SteveModel {
       unready: total - ready,
       total,
     };
+  }
+
+  get lastUpdateTime() {
+    return this.status.conditions[0].lastUpdateTime;
+  }
+
+  get bundleType() {
+    if (typeHelper.memberOfObject(this.spec, 'helm')) {
+      return 'helm';
+    }
+
+    return '';
+  }
+
+  get repoName() {
+    return this.metadata.labels['fleet.cattle.io/repo-name'];
   }
 
   get groupByLabel() {

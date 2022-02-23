@@ -8,6 +8,9 @@ export default {
   components: { ValueFromResource },
 
   props: {
+    /**
+     * Form mode for the component
+     */
     mode: {
       type:     String,
       required: true,
@@ -20,7 +23,9 @@ export default {
       type:     Array,
       required: true
     },
-    // container spec
+    /**
+     * Container spec
+     */
     value: {
       type:    Object,
       default: () => {
@@ -107,10 +112,11 @@ export default {
       />
     </div>
     <button
+      v-if="!isView"
       v-t="'workload.container.command.addEnvVar'"
-      :disabled="isView"
       type="button"
       class="btn role-tertiary add"
+      data-testid="add-env-var"
       @click="addFromReference"
     />
   </div>

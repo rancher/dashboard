@@ -91,7 +91,7 @@ export function init(store) {
     },
     {
       name:     'releaseNamespace',
-      label:    'Tgt Namepsace',
+      label:    'Tgt Namespace',
       sort:     'status.namespace',
       value:    'status.namespace',
       labelKey: 'catalog.operation.tableHeaders.releaseNamespace',

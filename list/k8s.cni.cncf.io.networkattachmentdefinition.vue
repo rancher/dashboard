@@ -24,14 +24,17 @@ export default {
   },
 
   async fetch() {
-    const _hash = { rows: this.$store.dispatch('harvester/findAll', { type: HCI.NETWORK_ATTACHMENT }) };
+    const currentCluster = this.$store.getters['currentCluster'];
+    const storeName = currentCluster.isHarvester ? 'harvester' : 'cluster';
 
-    if (this.$store.getters['harvester/schemaFor'](HCI.NODE_NETWORK)) {
-      _hash.hostNetworks = this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK });
+    const _hash = { rows: this.$store.dispatch(`${ storeName }/findAll`, { type: HCI.NETWORK_ATTACHMENT }) };
+
+    if (this.$store.getters[`${ storeName }/schemaFor`](HCI.NODE_NETWORK)) {
+      _hash.hostNetworks = this.$store.dispatch(`${ storeName }/findAll`, { type: HCI.NODE_NETWORK });
     }
 
-    if (this.$store.getters['harvester/schemaFor'](HCI.CLUSTER_NETWORK)) {
-      _hash.clusterNetworkSetting = this.$store.dispatch('harvester/findAll', { type: HCI.CLUSTER_NETWORK });
+    if (this.$store.getters[`${ storeName }/schemaFor`](HCI.CLUSTER_NETWORK)) {
+      _hash.clusterNetworkSetting = this.$store.dispatch(`${ storeName }/findAll`, { type: HCI.CLUSTER_NETWORK });
     }
 
     const hash = await allHash(_hash);

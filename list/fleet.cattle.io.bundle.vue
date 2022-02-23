@@ -50,7 +50,7 @@ export default {
 
     bundles() {
       const harvester = this.harvesterClusters;
-    
+
       return this.allBundles.filter((bundle) => {
         const targets = bundle.spec?.targets || [];
 
@@ -100,7 +100,7 @@ export default {
         <template #cell:deploymentsReady="{row}">
           <span v-if="row.status.summary.desiredReady != row.status.summary.ready" class="text-warning">
             {{ row.status.summary.ready }}/{{ row.status.summary.desiredReady }}</span>
-          <span v-else>{{ row.status.summary.desiredReady }}</span>
+          <span v-else>{{ row.status.summary.desiredReady }} READY</span>
         </template>
       </ResourceTable>
     </div>
