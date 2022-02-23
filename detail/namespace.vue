@@ -1,7 +1,7 @@
 <script>
 import findKey from 'lodash/findKey';
 import CreateEditView from '@/mixins/create-edit-view';
-import FleetSummary from '@/components/fleet/FleetSummary';
+import ResourcesSummary from '@/components/fleet/ResourcesSummary';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import { COUNT } from '@/config/types';
 import { getStatesByType } from '@/plugins/steve/resource-class';
@@ -11,7 +11,7 @@ import SortableTable from '@/components/SortableTable';
 
 export default {
   components: {
-    FleetSummary,
+    ResourcesSummary,
     ResourceTabs,
     MoveModal,
     Tab,
@@ -181,7 +181,7 @@ export default {
   <div>
     <div class="mb-20">
       <h3>{{ t('namespace.resources') }}</h3>
-      <FleetSummary state-key="namespace.resourceStates" :value="accumulatedStateCounts" :required-states="['success', 'info', 'warning', 'error', 'unknown']" />
+      <ResourcesSummary state-key="namespace.resourceStates" :value="accumulatedStateCounts" :required-states="['success', 'info', 'warning', 'error', 'unknown']" />
     </div>
     <ResourceTabs v-model="value" :mode="mode">
       <Tab :name="t('namespace.resources')">
