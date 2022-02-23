@@ -734,6 +734,29 @@ export default {
       const serviceCIDR = this.serverConfig['service-cidr'] || '';
 
       return clusterCIDR.includes(':') || serviceCIDR.includes(':');
+    },
+
+    appsOSWarning() {
+      if (this.mode !== _EDIT ) {
+        return null;
+      }
+      const { linuxWorkerCount, windowsWorkerCount } = this.value?.mgmt?.status || {};
+
+      if (!windowsWorkerCount) {
+        if (!!this.machinePools.find((pool) => {
+          return pool?.config?.os === 'windows';
+        })) {
+          return this.t('cluster.banner.os', { newOS: 'Windows', existingOS: 'Linux' });
+        }
+      } else if (!linuxWorkerCount) {
+        if (this.machinePools.find((pool) => {
+          return pool?.config?.os === 'linux';
+        })) {
+          return this.t('cluster.banner.os', { newOS: 'Linux', existingOS: 'Windows' });
+        }
+      }
+
+      return null;
     }
   },
 
@@ -1404,6 +1427,10 @@ export default {
         description-label="cluster.description.label"
         description-placeholder="cluster.description.placeholder"
       />
+
+      <Banner v-if="appsOSWarning" color="error">
+        {{ appsOSWarning }}
+      </Banner>
 
       <template v-if="hasMachinePools">
         <div class="clearfix">
