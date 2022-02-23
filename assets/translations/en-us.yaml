@@ -3752,6 +3752,7 @@ resourceTable:
     none: Flat List
     namespace: Group by Namespace
     project: Group by Project
+    node: Group by Node
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
     namespace: "<span>Namespace:</span> {name}"
@@ -3764,6 +3765,7 @@ resourceTable:
     workspace: "<span>Workspace:</span> {name}"
     notInANodePool: "Not in a Pool"
     nodePool: "<span>Pool:</span> {name} ({count})"
+    node: "<span>Node:</span> {name}"
 
 resourceTabs:
   conditions:
