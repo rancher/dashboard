@@ -140,6 +140,7 @@ function toPercent(value, min, max) {
         <div class="meta">
           {{ meta.readyCount }} / {{ meta.total }} {{ title }} ready
         </div>
+        {{ JSON.stringify(pieces) }}
       </div>
       <div v-trim-whitespace :class="{progress: true, multi: pieces.length > 1}">
         <div

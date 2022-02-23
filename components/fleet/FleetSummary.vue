@@ -22,7 +22,7 @@ export default {
     stateKey: {
       type:    String,
       default: 'fleet.fleetSummary.state'
-    }
+    },
   },
 
   computed: {
@@ -59,10 +59,9 @@ export default {
         },
         unknown: {
           count: 0,
-          color: 'warning',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.unknown`, null, 'Unknown')
-
-        },
+          color: 'unknown',
+          label:  this.$store.getters['i18n/withFallback'](`${ this.stateKey }.unknown`, null, 'Unknown')
+        }
       };
 
       resources.forEach((element) => {
