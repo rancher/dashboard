@@ -73,7 +73,11 @@ export default {
 
   methods: {
     migrationStateChanged(neu) {
-      this.isMigrating = !!neu;
+      if (neu === 'Failed') {
+        this.isMigrating = false;
+      } else {
+        this.isMigrating = !!neu;
+      }
     }
   },
 };

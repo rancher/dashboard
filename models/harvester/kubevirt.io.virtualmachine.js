@@ -387,7 +387,7 @@ export default class VirtVm extends SteveModel {
     const podList = this.$rootGetters['harvester/all'](POD);
 
     return podList.find( (P) => {
-      return vmiResource?.metadata?.name === P.metadata?.ownerReferences?.[0].name;
+      return vmiResource?.metadata?.name && vmiResource?.metadata?.name === P.metadata?.ownerReferences?.[0].name;
     });
   }
 
@@ -416,7 +416,9 @@ export default class VirtVm extends SteveModel {
   }
 
   get vmi() {
-    return this.$rootGetters['harvester/byId'](HCI.VMI, this.id);
+    const vmis = this.$rootGetters['harvester/all'](HCI.VMI);
+
+    return vmis.find(VMI => VMI.id === this.id);
   }
 
   get isError() {
