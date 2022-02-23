@@ -225,8 +225,19 @@ export default {
     },
   },
 
+  created() {
+    this.registerBeforeHook(this.cleanTLS, 'cleanTLS');
+  },
+
   methods: {
     set,
+
+    cleanTLS() {
+      if (!this.isTls) {
+        delete this.value.spec.insecureSkipTLSVerify;
+        delete this.value.spec.caBundle;
+      }
+    },
 
     updateAuth(val, key) {
       const spec = this.value.spec;
