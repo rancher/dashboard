@@ -1,6 +1,6 @@
 <script>
 import jsyaml from 'js-yaml';
-import isEqual from 'lodash/isEqual';
+import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
 import ChartMixin from '@/mixins/chart';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -30,13 +30,13 @@ const VALUES_STATE = {
 };
 
 const DEFAULT_STATE = {
-  subtypeSource:       null,
+  chartValues:         null,
   type:                null,
   originalYamlValues:  null,
   previousYamlValues:  null,
   valuesYaml:          null,
-  preFormYamlOption:   VALUES_STATE.YAML,
-  formYamlOption:      VALUES_STATE.YAML,
+  preYamlOption:      VALUES_STATE.YAML,
+  yamlOption:         VALUES_STATE.YAML,
 };
 
 export default ({
@@ -54,17 +54,13 @@ export default ({
     mode: {
       type:    String,
       default: _CREATE
-    },
-    schema: {
-      type:     Object,
-      required: true
     }
   },
 
   mixins: [ChartMixin, CreateEditView],
 
   fetch() {
-    // await this.fetchChart(); // Use this when we get the helm-charts for policies
+    // await this.fetchChart(); // Use this when we get helm-charts for policies
 
     const query = this.$route.query;
 
@@ -77,29 +73,25 @@ export default ({
         chartName:     'kubewarden-controller',
       });
     } catch (e) {
-      console.error('Unable to fetch Version: ', e); // eslint-disable-line no-console
+      console.error(`Unable to fetch Version: ${ e }`); // eslint-disable-line no-console
       this.errors.push(e);
     }
 
     if ( this.type ) {
-      this.subtypeSource = {
+      this.chartValues = {
         readme:      '# kubewarden readme example',
         appReadme:   '# kubewarden appReadme example',
         chart:       {},
         questions:   questionJson,
         values:      {}
       };
-    } else {
-      this.subtypeSource = defaultPolicy;
     }
 
-    this.valuesYaml = saferDump(this.subtypeSource);
-    this.preFormYamlOption = this.valuesComponent ? VALUES_STATE.FORM : VALUES_STATE.YAML;
+    this.chartValues = merge(merge({}, this.versionInfo?.values || {}), defaultPolicy);
+    this.valuesYaml = saferDump(this.chartValues);
 
     this.searchQuery = query[SEARCH_QUERY] || '';
     this.category = query[CATEGORY] || '';
-
-    this.value.metadata.name = 'cluster-admission-policy';
   },
 
   data() {
@@ -109,19 +101,16 @@ export default ({
       keywords:            [],
       returned:            false,
       searchQuery:         null,
-      // chartValues:         null, // not necessary until we get charts...
-      subtypeSource:       null,
       type:                null,
-      originalYamlValues:  null,
-      previousYamlValues:  null,
-      valuesComponent:     null,
-      valuesYaml:          null,
       version:             null,
 
-      preFormYamlOption:   VALUES_STATE.YAML,
-      formYamlOption:      VALUES_STATE.YAML,
-      showQuestions:       this.isReady,
-      showValuesComponent: this.isReady,
+      chartValues:         null,
+      valuesYaml:          null,
+      originalYamlValues:  null,
+      previousYamlValues:  null,
+      preYamlOption:       VALUES_STATE.YAML,
+      yamlOption:          VALUES_STATE.YAML,
+      showQuestions:       this.isSelected,
 
       stepBasic:     {
         name:   'basics',
@@ -157,17 +146,22 @@ export default ({
           label: 'Service',
           value: 'Service'
         }
+      ],
+
+      yamlOptions: [
+        {
+          labelKey: 'catalog.install.section.chartOptions',
+          value:    VALUES_STATE.FORM,
+        },
+        {
+          labelKey: 'catalog.install.section.valuesYaml',
+          value:    VALUES_STATE.YAML,
+        }
       ]
     };
   },
 
   watch: {
-    '$route.query'(neu, old) {
-      if ( !isEqual(neu, old) ) {
-        this.$fetch();
-      }
-    },
-
     category(option) {
       this.$router.applyQuery({ [CATEGORY]: option || undefined });
     },
@@ -176,43 +170,24 @@ export default ({
       this.$router.applyQuery({ [SEARCH_QUERY]: query || undefined });
     },
 
-    preFormYamlOption(neu, old) {
-      if ( neu === VALUES_STATE.FORM && !this.returned && this.valuesYaml !== this.previousYamlValues && !!this.$refs.cancelModal ) {
-        this.$refs.cancelModal.show();
-      } else {
-        this.formYamlOption = neu;
-      }
-    },
-
-    formYamlOption(neu, old) {
+    yamlOption(neu, old) {
       switch (neu) {
       case VALUES_STATE.FORM:
         // Return to form, reset everything back to starting point
-        this.valuesYaml = this.previousYamlValues;
-
-        this.showValuesComponent = true;
         this.showQuestions = true;
 
         break;
       case VALUES_STATE.YAML:
         // Show the YAML preview
         if ( old === VALUES_STATE.FORM ) {
-          this.valuesYaml = jsyaml.dump(this.subtypeSource || {}); // this will need to dump `this.chartValues` once we get charts...
-          this.previousYamlValues = this.valuesYaml;
+          this.valuesYaml = saferDump(this.chartValues || {});
         }
 
-        this.showValuesComponent = false;
         this.showQuestions = false;
 
         break;
       }
     },
-  },
-
-  mounted() {
-    this.loadValuesComponent();
-
-    this.preFormYamlOption = this.valuesComponent ? VALUES_STATE.FORM : VALUES_STATE.YAML;
   },
 
   computed: {
@@ -223,8 +198,8 @@ export default ({
       return this.mode === _VIEW;
     },
 
-    isReady() {
-      return !!this.type && !!this.subtypeSource;
+    isSelected() {
+      return !!this.type;
     },
 
     editorMode() {
@@ -263,23 +238,6 @@ export default ({
       return sortBy(out, ['category', 'label', 'description']);
     },
 
-    formYamlOptions() {
-      const options = [];
-
-      if ( this.valuesComponent ) {
-        options.push({
-          labelKey: 'catalog.install.section.chartOptions',
-          value:    VALUES_STATE.FORM,
-        });
-      }
-      options.push({
-        labelKey: 'catalog.install.section.valuesYaml',
-        value:    VALUES_STATE.YAML,
-      });
-
-      return options;
-    },
-
     keywordOptions() {
       const flattened = this.subtypes.flatMap((subtype) => {
         return subtype.keywords;
@@ -289,7 +247,7 @@ export default ({
     },
 
     showingYaml() {
-      return this.formYamlOption === VALUES_STATE.YAML || ( !this.valuesComponent );
+      return this.yamlOption === VALUES_STATE.YAML;
     },
 
     steps() {
@@ -341,13 +299,6 @@ export default ({
   },
 
   methods: {
-    loadValuesComponent() {
-      const path = 'edit/policies.kubewarden.io.clusteradmissionpolicy/Create.vue';
-
-      this.valuesComponent = this.$store.getters['type-map/importComponent'](path);
-      this.showValuesComponent = true;
-    },
-
     selectType(type) {
       this.type = type;
 
@@ -393,13 +344,22 @@ export default ({
       });
     },
 
-    finish() {
-      this.save();
+    async finish() {
+      try {
+        const out = jsyaml.load(this.valuesYaml);
+
+        merge(this.value, out);
+
+        await this.save();
+      } catch (e) {
+        console.error(`Error when saving: ${ e }`); // eslint-disable-line no-console
+        this.errors.push(e);
+      }
     },
 
     next() {
-      if ( !this.type ) {
-        this.formYamlOption = VALUES_STATE.YAML;
+      if ( !!this.type && !this.returned ) {
+        this.yamlOption = VALUES_STATE.YAML;
       }
     },
 
@@ -513,11 +473,11 @@ export default ({
       <template #helmValues>
         <div class="step__values__controls">
           <ButtonGroup
-            v-model="preFormYamlOption"
-            :options="formYamlOptions"
+            v-model="preYamlOption"
+            :options="yamlOptions"
             inactive-class="bg-disabled btn-sm"
             active-class="bg-primary btn-sm"
-            :disabled="preFormYamlOption != formYamlOption"
+            :disabled="preYamlOption != yamlOption"
           ></ButtonGroup>
         </div>
         <div class="scroll__container">
@@ -530,10 +490,10 @@ export default ({
                 @changed="tabChanged($event)"
               >
                 <Questions
-                  v-if="subtypeSource"
-                  v-model="value"
+                  v-if="chartValues"
+                  v-model="chartValues"
                   :mode="mode"
-                  :source="subtypeSource"
+                  :source="chartValues"
                   tabbed="multiple"
                   :target-namespace="targetNamespace"
                 />
@@ -555,8 +515,8 @@ export default ({
               ref="cancelModal"
               :is-cancel-modal="false"
               :is-form="true"
-              @cancel-cancel="preFormYamlOption = formYamlOption"
-              @confirm-cancel="formYamlOption = preFormYamlOption"
+              @cancel-cancel="preYamlOption = yamlOption"
+              @confirm-cancel="yamlOption = preYamlOption"
             />
           </div>
         </div>

@@ -1,0 +1,29 @@
+{
+  "apiVersion": "policies.kubewarden.io/v1alpha2",
+  "kind": "ClusterAdmissionPolicy",
+  "metadata": {
+    "name": "disallow-lb"
+  },
+  "spec": {
+    "policyServer": "default",
+    "module": "ghcr.io/kubewarden/policies/disallow-service-loadbalancer:v0.1.3",
+    "rules": [
+      {
+        "apiGroups": [
+          ""
+        ],
+        "apiVersions": [
+          "v1"
+        ],
+        "resources": [
+          "service"
+        ],
+        "operations": [
+          "CREATE",
+          "UPDATE"
+        ]
+      }
+    ],
+    "mutating": false
+  }
+}

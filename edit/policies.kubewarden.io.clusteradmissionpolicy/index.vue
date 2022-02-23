@@ -64,7 +64,7 @@ export default {
 </script>
 
 <template>
-  <Create v-if="isCreate" :value="value" :mode="mode" :schema="schema" />
+  <Create v-if="isCreate" :value="value" :mode="mode" />
   <form v-else>
     <CruResource
       :mode="mode"
