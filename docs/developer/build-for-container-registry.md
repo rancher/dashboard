@@ -129,6 +129,23 @@ The final two steps are where the magic happens. First logging into the Github C
 
 ---
 
+## Running the custom build
+
+When running your newly built image Rancher will need to know to serve the "locally" installed dashboard. You can do this by setting the `CATTLE_UI_DASHBOARD_INDEX` environment variable in your `docker run` command.
+
+For instance:
+
+```sh
+docker run -d --name dashboard \
+  --restart=unless-stopped \
+  --privileged \
+  -p 80:80 -p 443:443 \
+  -e CATTLE_UI_DASHBOARD_INDEX=https://localhost/dashboard/index.html \
+  ghcr.io/<example-repo>:latest
+```
+
+---
+
 ## Troubleshooting
 
 At the time of writing (February '22), the build time for the Dashboard frontend and Rancher image takes about 8 minutes, so some debugging in place will greatly diminish any frustration while building an action.
@@ -167,19 +184,6 @@ For instance:
 
 Some actions have unique debugging features that you can utilize container logs to see what is happening behind the scenes. In our `build-image.yml` example we are using `docker/setup-buildx-action` which has [logs you can access](https://github.com/docker/setup-buildx-action#buildkit-container-logs). 
 
-#### Caveats
-
-When running your newly built image Rancher will need to know to serve the "locally" installed dashboard. You can do this by setting the `CATTLE_UI_DASHBOARD_INDEX` environment variable in your `docker run` command.
-
-For instance:
-
-```sh
-docker run -d --name dashboard \
-  --restart=unless-stopped \
-  --privileged \
-  -p 80:80 -p 443:443 \
-  -e CATTLE_UI_DASHBOARD_INDEX=https://localhost/dashboard/index.html \
-  ghcr.io/<example-repo>:latest
-```
+### Caveats
 
 With `docker/build-push-action` there are [a few caveats](https://github.com/docker/build-push-action/blob/master/TROUBLESHOOTING.md) that could cause confusion. Be sure that your repository name is lowercase!
