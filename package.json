@@ -60,6 +60,7 @@
     "file-saver": "^2.0.2",
     "identicon.js": "^2.3.3",
     "intl-messageformat": "^7.7.2",
+    "is-url": "^1.2.4",
     "jexl": "^2.2.2",
     "jquery": "^3.5.0",
     "js-cookie": "^2.2.0",
@@ -119,7 +120,6 @@
     "@types/node": "^16.4.3",
     "@vue/test-utils": "1.2.1",
     "add": "^2.0.6",
-    "ava": "^2.2.0",
     "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "^10.0.1",
     "babel-jest": "^27.5.1",
@@ -131,7 +131,6 @@
     "cypress": "8.4.1",
     "eslint": "^7.32.0",
     "eslint-config-standard": ">=12.0.0",
-    "eslint-plugin-ava": "^9.0.0",
     "eslint-plugin-cypress": "^2.11.3",
     "eslint-plugin-jest": "^23.6.0",
     "eslint-plugin-node": "^11.1.0",
@@ -144,16 +143,6 @@
     "ts-jest": "^27.1.3",
     "vue-jest": "^3.0.7",
     "yarn": "^1.22.4"
-  },
-  "ava": {
-    "files": [
-      "test/**/*"
-    ],
-    "require": [
-      "./test/_setup.js"
-    ],
-    "tap": true,
-    "verbose": true
   },
   "nyc": {
     "extension": [
