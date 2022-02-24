@@ -184,17 +184,36 @@ export default {
     <div class="row mb-40">
       <div class="col span-12">
         <Tabbed :side-tabs="true">
-          <Tab
-            name="selectors"
-            :label="t('networkpolicy.config.label')"
-          >
-            <div class="row mb-10">
-              <Checkbox v-model="hasIngressPolicies" :mode="mode" :label="t('networkpolicy.ingress.enable')" />
-            </div>
-            <div class="row mb-20">
-              <Checkbox v-model="hasEgressPolicies" :mode="mode" :label="t('networkpolicy.egress.enable')" />
-            </div>
-            <h2 class="mb-0">
+          <Tab name="ingress" label-key="networkpolicy.ingress.label" :show-header="false" :weight="3">
+            <h2 class="">
+              {{ t('networkpolicy.ingress.label') }}
+            </h2>
+            <Checkbox v-model="hasIngressPolicies" class="mt-20 mb-10" :mode="mode" :label="t('networkpolicy.ingress.enable')" />
+            <PolicyRules
+              v-if="hasIngressPolicies"
+              v-model="value"
+              type="ingress"
+              :mode="mode"
+              :all-namespaces="allNamespaces"
+              :all-pods="allPods"
+            ></PolicyRules>
+          </Tab>
+          <Tab name="egress" label-key="networkpolicy.egress.label" :show-header="false" :weight="2">
+            <h2>
+              {{ t('networkpolicy.egress.label') }}
+            </h2>
+            <Checkbox v-model="hasEgressPolicies" class="mt-20 mb-10" :mode="mode" :label="t('networkpolicy.egress.enable')" />
+            <PolicyRules
+              v-if="hasEgressPolicies"
+              v-model="value"
+              type="egress"
+              :mode="mode"
+              :all-namespaces="allNamespaces"
+              :all-pods="allPods"
+            ></PolicyRules>
+          </Tab>
+          <Tab name="selectors" label-key="networkpolicy.selectors.label" :show-header="false" :weight="1">
+            <h2>
               {{ t('networkpolicy.selectors.label') }}
               <i v-tooltip="t('networkpolicy.selectors.hint')" class="icon icon-info" />
             </h2>
@@ -244,21 +263,5 @@ export default {
         </Tabbed>
       </div>
     </div>
-    <PolicyRules
-      v-if="hasIngressPolicies"
-      v-model="value"
-      type="ingress"
-      :mode="mode"
-      :all-namespaces="allNamespaces"
-      :all-pods="allPods"
-    ></PolicyRules>
-    <PolicyRules
-      v-if="hasEgressPolicies"
-      v-model="value"
-      type="egress"
-      :mode="mode"
-      :all-namespaces="allNamespaces"
-      :all-pods="allPods"
-    ></PolicyRules>
   </CruResource>
 </template>

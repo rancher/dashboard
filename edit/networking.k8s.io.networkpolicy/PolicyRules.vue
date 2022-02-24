@@ -60,9 +60,6 @@ export default {
 
 <template>
   <div>
-    <div class="row">
-      <h2 v-html="t(`networkpolicy.${ type }.label`)" />
-    </div>
     <div class="row mb-40">
       <div class="col span-12">
         <Tabbed
