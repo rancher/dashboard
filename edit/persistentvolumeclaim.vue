@@ -8,10 +8,11 @@ import RadioGroup from '@/components/form/RadioGroup';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import UnitInput from '@/components/form/UnitInput';
 import uniq from 'lodash/uniq';
-import { _CREATE } from '@/config/query-params';
+import { _CREATE, _VIEW } from '@/config/query-params';
 import { STORAGE_CLASS, PV } from '@/config/types';
 import StatusTable from '@/components/StatusTable';
 import ResourceTabs from '@/components/form/ResourceTabs';
+import Labels from '@/components/form/Labels';
 
 const DEFAULT_STORAGE = '10Gi';
 
@@ -22,6 +23,7 @@ export default {
     Checkbox,
     CruResource,
     LabeledSelect,
+    Labels,
     NameNsDescription,
     RadioGroup,
     ResourceTabs,
@@ -74,6 +76,7 @@ export default {
     return {
       sourceOptions,
       source:                  this.value.spec.volumeName ? sourceOptions[1].value : sourceOptions[0].value,
+      immutableMode:           this.realMode === _CREATE ? _CREATE : _VIEW,
       persistentVolumeOptions: [],
       persistentVolumes:       [],
       storageClassOptions:     [],
@@ -183,16 +186,25 @@ export default {
             <RadioGroup
               v-model="source"
               name="source"
-              :mode="mode"
+              :mode="immutableMode"
               :label="t('persistentVolumeClaim.source.label')"
               :options="sourceOptions"
               @input="updateDefaults"
             />
           </div>
-          <div v-if="source === 'new'" class="col span-6">
+          <div class="col span-6">
             <div class="row">
-              <div class="col span-12">
-                <LabeledSelect v-model="value.spec.storageClassName" :options="storageClassOptions" :label="t('persistentVolumeClaim.volumeClaim.storageClass')" :mode="mode" />
+              <div v-if="source === 'new'" class="col span-12">
+                <LabeledSelect v-model="value.spec.storageClassName" :options="storageClassOptions" :label="t('persistentVolumeClaim.volumeClaim.storageClass')" :mode="immutableMode" />
+              </div>
+              <div v-else class="col span-12">
+                <LabeledSelect
+                  v-model="persistentVolume"
+                  :options="persistentVolumeOptions"
+                  :label="t('persistentVolumeClaim.volumeClaim.persistentVolume')"
+                  :selectable="isPersistentVolumeSelectable"
+                  :mode="immutableMode"
+                />
               </div>
             </div>
             <div class="row">
@@ -209,19 +221,6 @@ export default {
               </div>
             </div>
           </div>
-          <div v-else class="col span-6">
-            <div class="row">
-              <div class="col span-12">
-                <LabeledSelect
-                  v-model="persistentVolume"
-                  :options="persistentVolumeOptions"
-                  :label="t('persistentVolumeClaim.volumeClaim.persistentVolume')"
-                  :selectable="isPersistentVolumeSelectable"
-                  :mode="mode"
-                />
-              </div>
-            </div>
-          </div>
         </div>
       </Tab>
       <Tab name="customize" :label="t('persistentVolumeClaim.customize.label')" :weight="3">
@@ -229,9 +228,22 @@ export default {
           <h3>{{ t('persistentVolumeClaim.accessModes') }}</h3>
           <span class="text-error">*</span>
         </div>
-        <div><Checkbox v-model="readWriteOnce" :label="t('persistentVolumeClaim.customize.accessModes.readWriteOnce')" :mode="mode" /></div>
-        <div><Checkbox v-model="readOnlyMany" :label="t('persistentVolumeClaim.customize.accessModes.readOnlyMany')" :mode="mode" /></div>
-        <div><Checkbox v-model="readWriteMany" :label="t('persistentVolumeClaim.customize.accessModes.readWriteMany')" :mode="mode" /></div>
+        <div><Checkbox v-model="readWriteOnce" :label="t('persistentVolumeClaim.customize.accessModes.readWriteOnce')" :mode="immutableMode" /></div>
+        <div><Checkbox v-model="readOnlyMany" :label="t('persistentVolumeClaim.customize.accessModes.readOnlyMany')" :mode="immutableMode" /></div>
+        <div><Checkbox v-model="readWriteMany" :label="t('persistentVolumeClaim.customize.accessModes.readWriteMany')" :mode="immutableMode" /></div>
+      </Tab>
+      <Tab
+        v-if="!isView"
+        name="labels-and-annotations"
+        label-key="generic.labelsAndAnnotations"
+        :weight="-1"
+      >
+        <Labels
+          default-container-class="labels-and-annotations-container"
+          :value="value"
+          :mode="mode"
+          :display-side-by-side="false"
+        />
       </Tab>
       <Tab v-if="isView" name="status" :label="t('persistentVolumeClaim.status.label')" :weight="2">
         <StatusTable :resource="value" />
