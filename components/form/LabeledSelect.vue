@@ -9,6 +9,8 @@ import $ from 'jquery';
 import { onClickOption } from '@/utils/select';
 
 export default {
+  name: 'LabeledSelect',
+
   components: { LabeledTooltip },
   mixins:     [LabeledFormElement, VueSelectOverrides],
 
