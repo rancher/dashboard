@@ -3502,7 +3502,7 @@ promptForceRemove:
 
 promptScaleMachineDown:
   attemptingToRemove: "You are attempting to delete {count} {type}"
-  retainedMachine1: At least one Machine with role Control Plane must exist,
+  retainedMachine1: At least one Machine must exist for roles Control Plane and Etcd.
   retainedMachine2: <b>{ name }</b> will remain
 
 promptRemove:
