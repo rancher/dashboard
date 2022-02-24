@@ -180,12 +180,13 @@ export function getStatesByType(type = 'info') {
 }
 
 const SORT_ORDER = {
-  error:   1,
-  warning: 2,
-  info:    3,
-  success: 4,
-  ready:   4,
-  other:   5,
+  error:    1,
+  warning:  2,
+  info:     3,
+  success:  4,
+  ready:    5,
+  notready:   6,
+  other:    7,
 };
 
 export function colorForState(state, isError, isTransitioning) {

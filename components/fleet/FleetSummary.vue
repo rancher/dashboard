@@ -49,7 +49,11 @@ export default {
           count: 0,
           color: 'warning',
           label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.warning`, null, 'Warning')
-
+        },
+        notready: {
+          count: 0,
+          color: 'warning',
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.warning`, null, 'Warning')
         },
         error:   {
           count: 0,
@@ -74,10 +78,10 @@ export default {
         }
 
         // check conditions
-        const isError = element.status.conditions.find(condition => !!condition.error);
+        const state = element.status.conditions.find(condition => !!condition.error) ? 'error' : element.metadata.state;
 
-        if (isError) {
-          out.error.count += 1;
+        if (out[state]) {
+          out[state].count += 1;
 
           return;
         }
