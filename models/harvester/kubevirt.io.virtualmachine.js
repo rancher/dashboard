@@ -690,9 +690,7 @@ export default class VirtVm extends SteveModel {
 
     try {
       out = JSON.parse(this.metadata?.annotations?.[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]);
-    } catch (e) {
-      console.error(`modal: getVolumeClaimTemplates, ${ e }, May not have been created through the harvester ui`); // eslint-disable-line no-console
-    }
+    } catch (e) {}
 
     return out;
   }
