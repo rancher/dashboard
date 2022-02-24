@@ -123,6 +123,7 @@ export default {
               :allow-rke="true"
               :vertical="true"
               :namespace="value.metadata.namespace"
+              :mode="mode"
               generate-name="registryconfig-auth-"
             />
           </div>
