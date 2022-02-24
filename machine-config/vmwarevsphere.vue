@@ -14,7 +14,7 @@ import ArrayListSelect from '@/components/form/ArrayListSelect';
 import YamlEditor from '@/components/YamlEditor';
 import { get, set } from '@/utils/object';
 import { integerString, keyValueStrings } from '@/utils/computed';
-import { _CREATE, _EDIT } from '@/config/query-params';
+import { _CREATE } from '@/config/query-params';
 
 const SENTINEL = '__SENTINEL__';
 const VAPP_MODE = {
@@ -167,10 +167,6 @@ export default {
       }
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
-    }
-
-    if (this.mode === _EDIT ) {
-    // TODO get installed apps
     }
   },
 

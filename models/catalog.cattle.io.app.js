@@ -9,7 +9,7 @@ import { SHOW_PRE_RELEASE } from '@/store/prefs';
 import { set } from '@/utils/object';
 
 import SteveModel from '@/plugins/steve/steve-class';
-import { compatibleVersionsFor } from '~/store/catalog';
+import { compatibleVersionsFor } from '@/store/catalog';
 
 export default class CatalogApp extends SteveModel {
   showMasthead(mode) {
@@ -72,7 +72,6 @@ export default class CatalogApp extends SteveModel {
       // Things managed by fleet shouldn't show upgrade available even if there might be.
       return false;
     }
-
     const chart = this.matchingChart(false);
 
     if ( !chart ) {
@@ -114,6 +113,39 @@ export default class CatalogApp extends SteveModel {
     }
 
     return sortable(version);
+  }
+
+  get currentVersionCompatible() {
+    const workerOSs = this.$rootGetters['currentCluster'].workerOSs;
+
+    const chart = this.matchingChart(false);
+    const thisVersion = this.spec?.chart?.metadata?.version;
+
+    if (!chart) {
+      return true;
+    }
+
+    const versionInChart = chart.versions.find(version => version.version === thisVersion);
+
+    if (!versionInChart) {
+      return true;
+    }
+    const compatibleVersions = compatibleVersionsFor(chart, workerOSs, true) || [];
+
+    const thisVersionCompatible = !!compatibleVersions.find(version => version.version === thisVersion);
+
+    return thisVersionCompatible;
+  }
+
+  get stateDescription() {
+    if (this.currentVersionCompatible) {
+      return null;
+    }
+    if (this.upgradeAvailable) {
+      return this.t('catalog.os.versionIncompatible');
+    }
+
+    return this.t('catalog.os.chartIncompatible');
   }
 
   goToUpgrade(forceVersion, fromTools) {

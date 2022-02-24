@@ -68,13 +68,12 @@ export default {
           return version.version === this.targetVersion;
         });
 
-        // TODO translations
         if (currentlyCompatible) {
           return false;
         } else if (compatible.length > 0) {
-          return "This chart is not compatible with your worker nodes' operating systems";
+          return this.t('catalog.os.versionIncompatible');
         } else {
-          return "This chart is not compatible with your worker nodes' operating systems";
+          return this.t('catalog.os.chartIncompatible');
         }
       }
 

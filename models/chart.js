@@ -6,22 +6,17 @@ import { BLANK_CLUSTER } from '@/store';
 import SteveModel from '@/plugins/steve/steve-class';
 
 export default class Chart extends SteveModel {
-  // TODO redo to accomodate rke2 and permits-os annotation
   queryParams(from, hideSideNav) {
     let version;
     const chartVersions = this.versions;
     const currentCluster = this.$rootGetters['currentCluster'];
+    const workerOSs = currentCluster.workerOSs;
+    const compatibleVersions = compatibleVersionsFor(this, workerOSs);
 
-    const clusterProvider = currentCluster?.status.provider || 'other';
-    const windowsVersions = (this, 'windows');
-    const linuxVersions = compatibleVersionsFor(this, 'linux');
-
-    if (clusterProvider === 'rke.windows' && windowsVersions.length > 0) {
-      version = windowsVersions[0].version;
-    } else if (clusterProvider !== 'rke.windows' && linuxVersions.length > 0) {
-      version = linuxVersions[0].version;
+    if (compatibleVersions.length) {
+      version = compatibleVersions[0];
     } else {
-      version = chartVersions[0].version;
+      version = chartVersions[0];
     }
 
     const out = {

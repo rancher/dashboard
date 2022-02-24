@@ -61,8 +61,7 @@ export default {
     },
 
     mappedVersions() {
-      // TODO remove other
-      const isRancher = this.chart?.certified === 'rancher' || this.chart?.certified === 'other' ;
+      const isRancher = this.chart?.certified === 'rancher';
       const versions = this.chart?.versions || [];
       const selectedVersion = this.targetVersion;
       const OSs = this.currentCluster?.workerOSs;

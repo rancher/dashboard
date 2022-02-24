@@ -850,6 +850,9 @@ catalog:
       edit: Edit
       remove: Remove
       manage: Manage
+  os:
+    versionIncompatible: "This version is not compatible with all worker nodes' operating systems"
+    chartIncompatible: "This chart is not compatible with all worker nodes' operating systems"
 
 changePassword:
   title: Change Password

@@ -186,7 +186,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get workerOSs() {
-    // rke1 clusters always have at least one linux worker
+    // rke1 clusters have windows support defined on create
     // rke2 clusters report linux workers in mgmt cluster status
     const rke2WindowsWorkers = this.status?.windowsWorkerCount;
     const rke2LinuxWorkers = this.status?.linuxWorkerCount;
@@ -203,7 +203,7 @@ export default class MgmtCluster extends HybridModel {
 
       return out;
     } else if (this.providerOs === WINDOWS) {
-      return [LINUX, WINDOWS];
+      return [WINDOWS];
     }
 
     return [LINUX];

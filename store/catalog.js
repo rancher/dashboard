@@ -581,8 +581,7 @@ catalog.cattle.io/permits-os: OS -> will break on clusters containing nodes that
 */
 export function compatibleVersionsFor(chart, os, includePrerelease = true) {
   const versions = chart.versions;
-  // TODO remove other
-  const isRancher = chart.certified === 'rancher' || chart.certified === 'other';
+  const isRancher = chart.certified === 'rancher';
 
   if (os && !isArray(os)) {
     os = [os];
