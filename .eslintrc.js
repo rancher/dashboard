@@ -5,6 +5,7 @@ module.exports = {
     node:    true
   },
   globals: { NodeJS: true, Timer: true },
+  plugins: ['jest'],
   extends: [
     'standard',
     'eslint:recommended',
@@ -173,6 +174,12 @@ module.exports = {
         'no-unreachable-loop':                  'off',
         'computed-property-spacing':            'off',
       }
-    }
+    },
+    {
+      files:   ['**/__tests__/*.{js,ts}'],
+      // Unnecessary Jest lint rules from full recommendation
+      rules:   { 'jest/prefer-expect-assertions': 'off' },
+      extends: ['plugin:jest/all']
+    },
   ]
 };
