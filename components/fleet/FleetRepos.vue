@@ -12,6 +12,8 @@ import {
 
 export default {
 
+  name: 'FleetRepos',
+
   components: {
     ResourceTable, Link, Shortened
   },

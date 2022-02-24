@@ -84,6 +84,7 @@ export default {
         <FleetBundles :value="value" />
       </Tab>
       <Tab label="Resources" name="resources" :weight="20">
+        {{ JSON.stringify(value) }}
         <FleetResources :value="value" />
       </Tab>
     </ResourceTabs>

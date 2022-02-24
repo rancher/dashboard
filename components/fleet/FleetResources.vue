@@ -5,6 +5,8 @@ import { NAME as EXPLORER } from '@/config/product/explorer';
 import { FLEET as FLEET_ANNOTATIONS } from '@/config/labels-annotations';
 
 export default {
+  name: 'FleetResources',
+
   components: { SortableTable },
 
   props: {
