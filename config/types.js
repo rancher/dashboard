@@ -129,6 +129,8 @@ export const LONGHORN = {
   VOLUMES:       'longhorn.io.volume',
 };
 
+export const SNAPSHOT = 'rke.cattle.io.etcdsnapshot';
+
 // --------------------------------------
 // 2. Only if Rancher is installed
 // --------------------------------------

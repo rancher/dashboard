@@ -11,7 +11,7 @@ export function keyFieldFor(type) {
 }
 
 export function normalizeType(type) {
-  type = (type || '').toLowerCase();
+  type = (type?.type || type || '').toLowerCase();
 
   return type;
 }
