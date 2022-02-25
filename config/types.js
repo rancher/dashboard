@@ -129,6 +129,8 @@ export const LONGHORN = {
   VOLUMES:       'longhorn.io.volume',
 };
 
+export const SNAPSHOT = 'rke.cattle.io.etcdsnapshot';
+
 // --------------------------------------
 // 2. Only if Rancher is installed
 // --------------------------------------
@@ -178,6 +180,7 @@ export const FLEET = {
   BUNDLE:        'fleet.cattle.io.bundle',
   CLUSTER:       'fleet.cattle.io.cluster',
   CLUSTER_GROUP: 'fleet.cattle.io.clustergroup',
+  DASHBOARD:     'fleet.cattle.io.dashboard',
   GIT_REPO:      'fleet.cattle.io.gitrepo',
   WORKSPACE:     'management.cattle.io.fleetworkspace',
   TOKEN:         'fleet.cattle.io.clusterregistrationtoken',
@@ -273,6 +276,7 @@ export const HCI = {
   BLOCK_DEVICE:       'harvesterhci.io.blockdevice',
   CLOUD_TEMPLATE:     'harvesterhci.io.cloudtemplate',
   HOST:               'harvesterhci.io.host',
+  VERSION:            'harvesterhci.io.version'
 };
 
 export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';

@@ -1,17 +1,17 @@
 <script>
-import Banner from '@/components/Banner';
 import UnitInput from '@/components/form/UnitInput';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import InputOrDisplay from '@/components/InputOrDisplay';
 import { HCI, PVC } from '@/config/types';
 import { formatSi, parseSi } from '@/utils/units';
+import { VOLUME_TYPE, InterfaceOption } from '@/config/harvester-map';
 
 export default {
   name: 'HarvesterEditVMImage',
 
   components: {
-    Banner, UnitInput, LabeledInput, LabeledSelect, InputOrDisplay
+    UnitInput, LabeledInput, LabeledSelect, InputOrDisplay
   },
 
   props:  {
@@ -27,20 +27,6 @@ export default {
       default:  null
     },
 
-    typeOption: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
-    },
-
-    interfaceOption: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
-    },
-
     mode: {
       type:    String,
       default: 'create'
@@ -51,10 +37,6 @@ export default {
       required: true
     },
 
-    needRootDisk: {
-      type:    Boolean,
-      default: false
-    },
     isCreate: {
       type:    Boolean,
       default: true
@@ -77,8 +59,9 @@ export default {
 
   data() {
     return {
+      VOLUME_TYPE,
+      InterfaceOption,
       loading: false,
-      errors:  [],
       images:  [],
     };
   },
@@ -186,7 +169,7 @@ export default {
           <LabeledSelect
             v-model="value.type"
             :label="t('harvester.fields.type')"
-            :options="typeOption"
+            :options="VOLUME_TYPE"
             :mode="mode"
             @input="update"
           />
@@ -233,22 +216,11 @@ export default {
             v-model="value.bus"
             :label="t('harvester.virtualMachine.volume.bus')"
             :mode="mode"
-            :options="interfaceOption"
+            :options="InterfaceOption"
             @input="update"
           />
         </InputOrDisplay>
       </div>
     </div>
-
-    <div v-for="(err,index) in errors" :key="index">
-      <Banner color="error" :label="err" />
-    </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.action {
-  display: flex;
-  flex-direction: row-reverse;
-}
-</style>

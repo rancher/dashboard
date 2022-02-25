@@ -423,6 +423,7 @@ export const getters = {
       showAge:     true,
       canYaml:     true,
       namespaced:  null,
+      listGroups:  [],
     };
 
     return (schemaOrType) => {
@@ -483,7 +484,13 @@ export const getters = {
 
   getTree(state, getters, rootState, rootGetters) {
     return (productId, mode, allTypes, clusterId, namespaceMode, namespaces, currentType, search) => {
-      // modes: basic, used, all, favorite
+      // getTree has four modes:
+      // - `basic` matches data types that should always be shown even if there
+      //    are 0 of them.
+      // - `used` matches the data types where there are more than 0 of them
+      //    in the current set of namespaces.
+      // - `all` matches all types.
+      // - `favorite` matches starred types.
       // namespaceMode: 'namespaced', 'cluster', or 'both'
       // namespaces: null means all, otherwise it will be an array of specific namespaces to include
       const isBasic = mode === BASIC;

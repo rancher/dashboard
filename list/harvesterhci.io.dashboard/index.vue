@@ -6,7 +6,9 @@ import { mapGetters } from 'vuex';
 import Loading from '@/components/Loading';
 import SortableTable from '@/components/SortableTable';
 import { allHash } from '@/utils/promise';
-import { parseSi, formatSi, exponentNeeded, UNITS } from '@/utils/units';
+import {
+  parseSi, formatSi, exponentNeeded, UNITS, createMemoryValues
+} from '@/utils/units';
 import { REASON } from '@/config/table-headers';
 import {
   EVENT, METRIC, NODE, HCI, SERVICE, PVC, LONGHORN, POD, COUNT
@@ -19,6 +21,7 @@ import Tab from '@/components/Tabbed/Tab';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import metricPoller from '@/mixins/metric-poller';
 import { allDashboardsExist } from '@/utils/grafana';
+import { isEmpty } from '@/utils/object';
 import HarvesterUpgrade from './HarvesterUpgrade';
 
 dayjs.extend(utc);
@@ -184,7 +187,7 @@ export default {
             const statistics = clusterCounts[resource.type] || {};
 
             for (let i = 0; i < resource.spoofed.filterNamespace.length; i++) {
-              const nsStatistics = statistics?.namespaces[resource.spoofed.filterNamespace[i]] || {};
+              const nsStatistics = statistics?.namespaces?.[resource.spoofed.filterNamespace[i]] || {};
 
               if (nsStatistics.count) {
                 out[resource.type]['useful'] -= nsStatistics.count;
@@ -292,6 +295,22 @@ export default {
       return out;
     },
 
+    storageReservedTotal() {
+      let out = 0;
+
+      (this.longhornNode || []).forEach((node) => {
+        const disks = node?.spec?.disks || {};
+
+        Object.values(disks).map((disk) => {
+          if (disk.allowScheduling) {
+            out += disk.storageReserved;
+          }
+        });
+      });
+
+      return out;
+    },
+
     storageTotal() {
       let out = 0;
 
@@ -310,6 +329,10 @@ export default {
 
     storageUsed() {
       return this.createMemoryValues(this.storageTotal, this.storageUsage);
+    },
+
+    storageReserved() {
+      return this.createMemoryValues(this.storageTotal, this.storageReservedTotal);
     },
 
     vmEvents() {
@@ -388,6 +411,48 @@ export default {
 
     availableNodes() {
       return (this.metricNodes || []).map(node => node.id);
+    },
+
+    metricAggregations() {
+      const nodes = this.nodes;
+      const someNonWorkerRoles = this.nodes.some(node => node.hasARole && !node.isWorker);
+      const metrics = this.nodeMetrics.filter((nodeMetrics) => {
+        const node = nodes.find(nd => nd.id === nodeMetrics.id);
+
+        return node && (!someNonWorkerRoles || node.isWorker);
+      });
+      const initialAggregation = {
+        cpu:    0,
+        memory: 0
+      };
+
+      if (isEmpty(metrics)) {
+        return null;
+      }
+
+      return metrics.reduce((agg, metric) => {
+        agg.cpu += parseSi(metric.usage.cpu);
+        agg.memory += parseSi(metric.usage.memory);
+
+        return agg;
+      }, initialAggregation);
+    },
+
+    cpuUsed() {
+      return {
+        total:  this.cpusTotal,
+        useful: this.metricAggregations?.cpu,
+      };
+    },
+
+    ramUsed() {
+      return createMemoryValues(this.memorysTotal, this.metricAggregations?.memory);
+    },
+
+    hasMetricNodeSchema() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return !!this.$store.getters[`${ inStore }/schemaFor`](METRIC.NODE);
     },
   },
 
@@ -502,7 +567,7 @@ export default {
       />
     </div>
 
-    <template v-if="nodes.length">
+    <template v-if="nodes.length && hasMetricNodeSchema">
       <h3 class="mt-40">
         {{ t('clusterIndexPage.sections.capacity.label') }}
       </h3>
@@ -510,14 +575,17 @@ export default {
         <HardwareResourceGauge
           :name="t('harvester.dashboard.hardwareResourceGauge.cpu')"
           :reserved="cpuReserved"
+          :used="cpuUsed"
         />
         <HardwareResourceGauge
           :name="t('harvester.dashboard.hardwareResourceGauge.memory')"
           :reserved="ramReserved"
+          :used="ramUsed"
         />
         <HardwareResourceGauge
           :name="t('harvester.dashboard.hardwareResourceGauge.storage')"
           :used="storageUsed"
+          :reserved="storageReserved"
         />
       </div>
     </template>

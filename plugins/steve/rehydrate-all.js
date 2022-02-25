@@ -1,6 +1,8 @@
 const MAX_DEPTH = 20;
 
 export default function() {
+  // In the rehydration process, a block of JSON from the server
+  // is converted into classes.
   this.nuxt.hook('vue-renderer:ssr:context', (context) => {
     if ( context.nuxt.data ) {
       recurse(context.nuxt.data);

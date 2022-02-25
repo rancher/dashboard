@@ -12,6 +12,7 @@ import ClusterBadge from '@/components/ClusterBadge';
 import { LOGGED_OUT } from '@/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
+import HarvesterUpgrade from './HarvesterUpgrade.vue';
 import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 
@@ -27,7 +28,8 @@ export default {
     Jump,
     BrandImage,
     ClusterBadge,
-    ClusterProviderIcon
+    ClusterProviderIcon,
+    HarvesterUpgrade
   },
 
   props: {
@@ -53,7 +55,7 @@ export default {
 
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isMultiCluster', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleVirtualCluster']),
+      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleVirtualCluster', 'isVirtualCluster']),
     ...mapGetters('type-map', ['activeProducts']),
 
     appName() {
@@ -214,7 +216,7 @@ export default {
       </n-link>
     </div>
     <div v-if="!simple" class="product">
-      <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster cluster-clipped">
+      <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster">
         <div v-if="isSingleVirtualCluster" class="product-name">
           {{ t('product.harvester') }}
         </div>
@@ -250,6 +252,7 @@ export default {
     </div>
 
     <div class="rd-header-right">
+      <HarvesterUpgrade v-if="isVirtualCluster" />
       <div
         v-if="currentCluster && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
         class="top"
@@ -491,11 +494,6 @@ export default {
       white-space: nowrap;
       .cluster-name {
         font-size: 16px;
-        text-overflow: ellipsis;
-        overflow: hidden;
-      }
-      &.cluster-clipped {
-        overflow: hidden;
       }
     }
 

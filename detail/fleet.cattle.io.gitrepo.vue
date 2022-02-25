@@ -1,6 +1,6 @@
 <script>
 import ResourceTabs from '@/components/form/ResourceTabs';
-import FleetSummary from '@/components/fleet/FleetSummary';
+import ResourcesSummary from '@/components/fleet/ResourcesSummary';
 import FleetResources from '@/components/fleet/FleetResources';
 import Tab from '@/components/Tabbed/Tab';
 import { FLEET } from '@/config/types';
@@ -10,7 +10,7 @@ export default {
 
   components: {
     FleetResources,
-    FleetSummary,
+    ResourcesSummary,
     ResourceTabs,
     Tab,
   },
@@ -31,7 +31,7 @@ export default {
 
 <template>
   <div class="mt-20">
-    <FleetSummary :value="value.status.resourceCounts" />
+    <ResourcesSummary :value="value.status.resourceCounts" />
 
     <ResourceTabs v-model="value" mode="view" class="mt-20">
       <Tab label="Resources" name="resources" :weight="20">
