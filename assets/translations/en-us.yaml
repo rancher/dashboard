@@ -1804,6 +1804,7 @@ fleet:
       notReady: Not Ready
       waitApplied: Wait Applied
   gitRepo:
+    createLocalBanner: When deploying a Git Repo to the Local workspace you are unable to target any specific Cluster or Cluster Groups
     tabs:
       resources: Resources
       unready: Non-Ready
