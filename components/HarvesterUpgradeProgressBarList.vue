@@ -39,7 +39,7 @@ export default {
 
 <template>
   <div class="bar-list">
-    <h4>{{ title }} <span class="fload-r text-info">{{ precent }}%</span></h4>
+    <h4>{{ title }} <span class="float-r text-info">{{ precent }}%</span></h4>
     <div>
       <div>
         <Collapse :open.sync="open">
@@ -69,7 +69,7 @@ export default {
 
 <style lang="scss" scoped>
 .bar-list {
-  .fload-r {
+  .float-r {
     float: right;
   }
 

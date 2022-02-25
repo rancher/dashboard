@@ -216,7 +216,7 @@ export default {
       </n-link>
     </div>
     <div v-if="!simple" class="product">
-      <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster cluster-clipped">
+      <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster">
         <div v-if="isSingleVirtualCluster" class="product-name">
           {{ t('product.harvester') }}
         </div>
@@ -251,16 +251,8 @@ export default {
       <TopLevelMenu v-if="isMultiCluster || !isSingleVirtualCluster"></TopLevelMenu>
     </div>
 
-    <div
-      v-if="currentCluster && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
-      class="top"
-    >
-      <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
-      <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
-      <HarvesterUpgrade v-if="isVirtualCluster" />
-    </div>
-
     <div class="rd-header-right">
+      <HarvesterUpgrade v-if="isVirtualCluster" />
       <div
         v-if="currentCluster && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
         class="top"
@@ -502,11 +494,6 @@ export default {
       white-space: nowrap;
       .cluster-name {
         font-size: 16px;
-        text-overflow: ellipsis;
-        overflow: hidden;
-      }
-      &.cluster-clipped {
-        overflow: hidden;
       }
     }
 
