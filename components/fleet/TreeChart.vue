@@ -13,33 +13,43 @@ export default {
   data() {
     return {
       parsedData: null,
-      root:       null,
-      node:       null,
-      link:       null,
-      svg:        null,
-      simulation:       null,
-      index:      0
+      root:       undefined,
+      node:       undefined,
+      link:       undefined,
+      svg:        undefined,
+      simulation:       undefined,
+      isRendered: false
     };
   },
-  computed: {
-    someData() {
-      console.log('computed changed!', this.data);
-      this.parseData();
-      this.updateChart();
-
-      return this.data;
-    }
-  },
-  // watch: {
-  //   data(newValue) {
-  //     if (newValue.id) {
-  //       // eslint-disable-next-line no-console
-  //       console.log('WATCHER TRIGGERED!', newValue);
-  //       this.parseData();
-  //       this.renderChart();
+  // computed: {
+  //   someData() {
+  //     console.log('computed changed!', this.data);
+  //     this.parseData();
+  //     if (!this.isRendered) {
+  //       this.renderChartRevised();
+  //       this.isRendered = true;
   //     }
+
+  //     this.updateChart();
+
+  //     return this.data;
   //   }
   // },
+  watch: {
+    data(newValue) {
+      if (newValue.id) {
+        // eslint-disable-next-line no-console
+        console.log('WATCHER TRIGGERED!', newValue);
+        this.parseData();
+        if (!this.isRendered) {
+          this.renderChartRevised();
+          this.isRendered = true;
+        }
+
+        this.updateChart();
+      }
+    }
+  },
   methods: {
     parseData() {
       const repoChildren = this.data.bundles.map((bundle, i) => {
@@ -164,8 +174,8 @@ export default {
           });
 
         node = nodeEnter.merge(node);
-        simulation.nodes(nodes);
-        simulation.force('link').links(links);
+        this.simulation.nodes(nodes);
+        this.simulation.force('link').links(links);
       }
 
       // function sizeContain(num) {
@@ -295,31 +305,40 @@ export default {
         .on('tick', ticked);
 
       function ticked() {
-        this.link
-          .attr('x1', (d) => {
-            return d.source.x;
-          })
-          .attr('y1', (d) => {
-            return d.source.y;
-          })
-          .attr('x2', (d) => {
-            return d.target.x;
-          })
-          .attr('y2', (d) => {
-            return d.target.y;
-          });
+        if (this.link) {
+          this.link
+            .attr('x1', (d) => {
+              return d.source.x;
+            })
+            .attr('y1', (d) => {
+              return d.source.y;
+            })
+            .attr('x2', (d) => {
+              return d.target.x;
+            })
+            .attr('y2', (d) => {
+              return d.target.y;
+            });
+        }
 
-        this.node
-          .attr('transform', (d) => {
-            return `translate(${ d.x }, ${ d.y })`;
-          });
+        if (this.node) {
+          this.node
+            .attr('transform', (d) => {
+              return `translate(${ d.x }, ${ d.y })`;
+            });
+        }
       }
 
       function zoomed(ev) {
-        this.svg.attr('transform', ev.transform);
+        if (this.svg) {
+          this.svg.attr('transform', ev.transform);
+        }
       }
+
+      // console.log('END!');
     },
     updateChart() {
+      let i = 0;
       const nodes = flatten(this.root);
       const links = this.root.links();
 
@@ -429,9 +448,9 @@ export default {
             node.children.forEach(recurse);
           }
           if (!node.id) {
-            node.id = ++this.index;
+            node.id = ++i;
           } else {
-            ++this.index;
+            ++i;
           }
           nodes.push(node);
         }
@@ -441,11 +460,14 @@ export default {
       }
     }
   },
-  mounted() {
-    console.log('MOUNTED START!');
-    this.renderChartRevised();
-    console.log('MOUNTED END!');
-  },
+  // mounted() {
+  //   console.log('MOUNTED START!');
+  //   if (this.parsedData !== null) {
+  //     this.renderChartRevised();
+  //     this.isRendered = true;
+  //   }
+  //   console.log('MOUNTED END!');
+  // },
 };
 </script>
 
