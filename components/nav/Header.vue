@@ -516,7 +516,7 @@ export default {
       }
     }
 
-     .cluster {
+    .cluster {
       align-items: center;
       display: flex;
       height: 32px;
