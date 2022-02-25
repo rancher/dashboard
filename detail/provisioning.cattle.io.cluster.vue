@@ -89,7 +89,11 @@ export default {
 
     const fetchTwo = {};
 
-    const machineDeploymentTemplateType = fetchOneRes.machineDeployments?.[0]?.templateType;
+    const thisClusterMachines = this.allMachineDeployments.filter((deployment) => {
+      return deployment?.spec?.clusterName === this.value.metadata.name;
+    });
+
+    const machineDeploymentTemplateType = thisClusterMachines?.[0]?.templateType;
 
     if (machineDeploymentTemplateType && this.$store.getters['management/schemaFor'](machineDeploymentTemplateType) ) {
       fetchTwo.mdtt = this.$store.dispatch('management/findAll', { type: machineDeploymentTemplateType });
