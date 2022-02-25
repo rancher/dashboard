@@ -8,7 +8,7 @@ import RadioGroup from '@/components/form/RadioGroup';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import UnitInput from '@/components/form/UnitInput';
 import uniq from 'lodash/uniq';
-import { _CREATE, _VIEW } from '@/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { STORAGE_CLASS, PV } from '@/config/types';
 import StatusTable from '@/components/StatusTable';
 import ResourceTabs from '@/components/form/ResourceTabs';
@@ -121,6 +121,18 @@ export default {
         this.$set(this.value.spec, 'volumeName', value);
         this.$set(this.value.spec, 'storageClassName', '');
       }
+    },
+    allowVolumeExpansion() {
+      return this.$store.getters[`cluster/byId`](STORAGE_CLASS, this.value?.spec?.storageClassName)?.allowVolumeExpansion;
+    },
+    storageAmountMode() {
+      if (this.isCreate) {
+        return _CREATE;
+      } else if (this.isEdit && this.allowVolumeExpansion) {
+        return _EDIT;
+      }
+
+      return _VIEW;
     }
   },
   created() {
@@ -212,7 +224,7 @@ export default {
                 <UnitInput
                   v-model="value.spec.resources.requests.storage"
                   :label="t('persistentVolumeClaim.volumeClaim.requestStorage')"
-                  :mode="mode"
+                  :mode="storageAmountMode"
                   :input-exponent="3"
                   :output-modifier="true"
                   :increment="1024"
@@ -232,8 +244,10 @@ export default {
         <div><Checkbox v-model="readOnlyMany" :label="t('persistentVolumeClaim.customize.accessModes.readOnlyMany')" :mode="immutableMode" /></div>
         <div><Checkbox v-model="readWriteMany" :label="t('persistentVolumeClaim.customize.accessModes.readWriteMany')" :mode="immutableMode" /></div>
       </Tab>
+      <Tab v-if="isView" name="status" :label="t('persistentVolumeClaim.status.label')" :weight="2">
+        <StatusTable :resource="value" />
+      </Tab>
       <Tab
-        v-if="!isView"
         name="labels-and-annotations"
         label-key="generic.labelsAndAnnotations"
         :weight="-1"
@@ -244,9 +258,6 @@ export default {
           :mode="mode"
           :display-side-by-side="false"
         />
-      </Tab>
-      <Tab v-if="isView" name="status" :label="t('persistentVolumeClaim.status.label')" :weight="2">
-        <StatusTable :resource="value" />
       </Tab>
     </ResourceTabs>
   </CruResource>

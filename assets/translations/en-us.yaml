@@ -4116,7 +4116,7 @@ storageClass:
       later: Bind and provision a persistent volume once a Pod using the PersistentVolumeClaim is created
     mountOptions:
       label: Mount Options
-      addlabel: Add Option
+      addLabel: Add Option
   aws-ebs:
     title: Amazon EBS Disk
     volumeType:
