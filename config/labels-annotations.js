@@ -88,6 +88,7 @@ export const CATALOG = {
 
   SUPPORTED_OS: 'catalog.cattle.io/os',
   PERMITTED_OS: 'catalog.cattle.io/permits-os',
+  DEPLOYED_OS:   'catalog.cattle.io/deploys-on-os',
 
   MIGRATED: 'apps.cattle.io/migrated',
 };
