@@ -14,10 +14,13 @@ import { _CLONE } from '@/config/query-params';
 import {
   PVC, HCI, STORAGE_CLASS, NODE, SECRET
 } from '@/config/types';
-import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
+import { HCI_SETTING } from '@/config/settings';
+import { HCI as HCI_ANNOTATIONS, HOSTNAME } from '@/config/labels-annotations';
 import impl, { QGA_JSON, USB_TABLET } from '@/mixins/harvester-vm/impl';
 
-const OS = [{
+export const MANAGEMENT_NETWORK = 'management Network';
+
+export const OS = [{
   label: 'Windows',
   value: 'windows'
 }, {
@@ -43,8 +46,7 @@ const OS = [{
   value: 'redhat'
 }, {
   label: 'openSUSE',
-  match: ['suse', 'opensuse'],
-  value: 'openSUSE'
+  value: 'openSUSE',
 }, {
   label: 'Turbolinux',
   value: 'turbolinux'
@@ -59,8 +61,8 @@ const OS = [{
   value: 'otherLinux'
 }];
 
-const CD_ROM = 'cd-rom';
-const HARD_DISK = 'disk';
+export const CD_ROM = 'cd-rom';
+export const HARD_DISK = 'disk';
 
 export default {
   mixins: [impl],
@@ -70,22 +72,27 @@ export default {
       type:     Object,
       required: true,
     },
+
+    resource: {
+      type:    String,
+      default: ''
+    }
   },
 
   async fetch() {
     const hash = {
       pvcs:               this.$store.dispatch('harvester/findAll', { type: PVC }),
-      storageClass:       this.$store.dispatch('harvester/findAll', { type: STORAGE_CLASS }),
-      ssh:                this.$store.dispatch('harvester/findAll', { type: HCI.SSH }),
+      storageClasses:     this.$store.dispatch('harvester/findAll', { type: STORAGE_CLASS }),
+      sshs:               this.$store.dispatch('harvester/findAll', { type: HCI.SSH }),
       settings:           this.$store.dispatch('harvester/findAll', { type: HCI.SETTING }),
       images:             this.$store.dispatch('harvester/findAll', { type: HCI.IMAGE }),
       versions:           this.$store.dispatch('harvester/findAll', { type: HCI.VM_VERSION }),
       templates:          this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE }),
       networkAttachment:  this.$store.dispatch('harvester/findAll', { type: HCI.NETWORK_ATTACHMENT }),
-      vmi:                this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
-      vmim:               this.$store.dispatch('harvester/findAll', { type: HCI.VMIM }),
-      vm:                 this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
-      secret:             this.$store.dispatch('harvester/findAll', { type: SECRET }),
+      vmis:               this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
+      vmims:              this.$store.dispatch('harvester/findAll', { type: HCI.VMIM }),
+      vms:                this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
+      secrets:            this.$store.dispatch('harvester/findAll', { type: SECRET }),
     };
 
     if (this.$store.getters['harvester/schemaFor'](NODE)) {
@@ -96,29 +103,9 @@ export default {
 
   data() {
     const isClone = this.realMode === _CLONE;
-    const type = this.$route.params.resource;
-
-    if (isClone) {
-      this.deleteCloneValue();
-    }
-
-    if (type === HCI.VM) {
-      const resources = this.value.spec.template.spec.domain.resources;
-
-      if (!resources?.limits || (resources?.limits && !resources?.limits?.memory && resources?.limits?.memory !== null)) {
-        this.value.spec.template.spec.domain.resources = {
-          ...this.value.spec.template.spec.domain.resources,
-          limits: {
-            ...this.value.spec.template.spec.domain.resources.limits,
-            memory: this.value.spec.template.spec.domain.resources.requests.memory
-          }
-        };
-      }
-    }
 
     return {
       OS,
-      type,
       isClone,
       spec:               null,
       osType:             'linux',
@@ -132,36 +119,34 @@ export default {
       diskRows:           [],
       networkRows:        [],
       machineType:        '',
-      publicKey:          '',
       secretName:         '',
       secretRef:          null,
-      showAdvanced:       false
+      showAdvanced:       false,
+      deleteAgent:        true,
+      memory:             null,
+      cpu:                ''
     };
   },
 
   computed: {
-    ssh() {
-      return this.$store.getters['harvester/all'](HCI.SSH) || [];
-    },
-
     images() {
-      return this.$store.getters['harvester/all'](HCI.IMAGE) || [];
+      return this.$store.getters['harvester/all'](HCI.IMAGE);
     },
 
     versions() {
-      return this.$store.getters['harvester/all'](HCI.VM_VERSION) || [];
+      return this.$store.getters['harvester/all'](HCI.VM_VERSION);
     },
 
     templates() {
-      return this.$store.getters['harvester/all'](HCI.VM_TEMPLATE) || [];
+      return this.$store.getters['harvester/all'](HCI.VM_TEMPLATE);
     },
 
     pvcs() {
-      return this.$store.getters['harvester/all'](PVC) || [];
+      return this.$store.getters['harvester/all'](PVC);
     },
 
     nodesIdOptions() {
-      const nodes = this.$store.getters['harvester/all'](NODE) || [];
+      const nodes = this.$store.getters['harvester/all'](NODE);
 
       return nodes.filter(N => !N.isUnSchedulable).map((node) => {
         return {
@@ -171,42 +156,32 @@ export default {
       });
     },
 
-    memory: {
-      get() {
-        return this.spec.template.spec.domain.resources.limits.memory;
-      },
-      set(neu) {
-        this.$set(this.spec.template.spec.domain.resources.limits, 'memory', neu);
-      }
-    },
-
     defaultStorageClass() {
       const defaultStorage = this.$store.getters['harvester/all'](STORAGE_CLASS).find( O => O.isDefault);
 
       return defaultStorage?.metadata?.name || 'longhorn';
     },
 
-    customStorageClassConfig() {
-      const storageClassValue = this.$store.getters['harvester/all'](HCI.SETTING).find( O => O.id === 'default-storage-class')?.value || '{}';
-      let parse = {};
-
+    storageClassSetting() {
       try {
-        parse = JSON.parse(storageClassValue);
-      } catch (e) {}
+        const storageClassValue = this.$store.getters['harvester/all'](HCI.SETTING).find( O => O.id === HCI_SETTING.DEFAULT_STORAGE_CLASS)?.value;
 
-      return parse;
+        return JSON.parse(storageClassValue);
+      } catch (e) {
+        return {};
+      }
     },
 
     customDefaultStorageClass() {
-      return this.customStorageClassConfig.storageClass;
+      return this.storageClassSetting.storageClass;
     },
 
     customVolumeMode() {
-      return this.customStorageClassConfig.volumeMode || 'Block';
+      return this.storageClassSetting.volumeMode || 'Block';
     },
 
     customAccessMode() {
-      return this.customStorageClassConfig.accessModes || 'ReadWriteMany';
+      return this.storageClassSetting.accessModes || 'ReadWriteMany';
     },
 
     isWindows() {
@@ -214,9 +189,8 @@ export default {
     },
 
     needNewSecret() {
-      if (this.type === HCI.VM_VERSION || this.isCreate) {
-        return true;
-      }
+      // When creating a template it is always necessary to create a new secret.
+      return this.resource === HCI.VM_VERSION || this.isCreate;
     }
   },
 
@@ -230,25 +204,42 @@ export default {
     getInitConfig(config) {
       const { value } = config;
 
-      const vm = this.type === HCI.VM ? value : this.type === HCI.BACKUP ? this.value.status?.source : value.spec.vm;
+      const vm = this.resource === HCI.VM ? value : this.resource === HCI.BACKUP ? this.value.status?.source : value.spec.vm;
 
-      if (!(vm && vm.spec)) {
+      const spec = vm?.spec;
+
+      if (!spec) {
         return;
       }
-      const spec = vm.spec;
+
+      const resources = spec.template.spec.domain.resources;
+
+      // If the user is created via yaml, there may be no "resources.limits": kubectl apply -f https://kubevirt.io/labs/manifests/vm.yaml
+      if (!resources?.limits || (resources?.limits && !resources?.limits?.memory && resources?.limits?.memory !== null)) {
+        spec.template.spec.domain.resources = {
+          ...spec.template.spec.domain.resources,
+          limits: {
+            ...spec.template.spec.domain.resources.limits,
+            memory: spec.template.spec.domain.resources.requests.memory
+          }
+        };
+      }
 
       const machineType = value.machineType;
+      const cpu = spec.template.spec.domain?.cpu?.cores;
+      const memory = spec.template.spec.domain.resources.limits.memory;
+
       const sshKey = this.getSSHFromAnnotation(spec) || [];
 
       const imageId = this.getRootImageId(vm) || '';
-      const diskRows = this.getDiskRows(vm) || [];
-      const networkRows = this.getNetworkRows(vm) || [];
+      const diskRows = this.getDiskRows(vm);
+      const networkRows = this.getNetworkRows(vm);
       const hasCreateVolumes = this.getHasCreatedVolumes(spec) || [];
 
       let { userData = undefined, networkData = undefined } = this.getSecretCloudData(spec);
 
-      if (this.type === HCI.BACKUP) {
-        const secretBackups = this.value.status.secretBackups;
+      if (this.resource === HCI.BACKUP) {
+        const secretBackups = this.value.status?.secretBackups;
 
         if (secretBackups) {
           const secretNetworkData = secretBackups[0]?.data?.networkdata || '';
@@ -258,7 +249,7 @@ export default {
           networkData = base64Decode(secretNetworkData);
         }
       }
-      const osType = this.getOsType(vm);
+      const osType = this.getOsType(vm) || 'linux';
 
       userData = this.isCreate ? this.getInitUserData({ osType }) : userData;
       const installUSBTablet = this.isInstallUSBTablet(spec);
@@ -275,6 +266,8 @@ export default {
       this.$set(this, 'osType', osType);
       this.$set(this, 'installAgent', installAgent);
 
+      this.$set(this, 'cpu', cpu);
+      this.$set(this, 'memory', memory);
       this.$set(this, 'machineType', machineType);
 
       this.$set(this, 'installUSBTablet', installUSBTablet);
@@ -284,11 +277,10 @@ export default {
       this.$set(this, 'imageId', imageId);
 
       this.$set(this, 'diskRows', diskRows);
-      this.$set(this, 'networkRows', networkRows);
     },
 
     getDiskRows(vm) {
-      const namespace = vm.metadata.namespace || this.value.metadata.namespace;
+      const namespace = vm.metadata.namespace;
       const _volumes = vm.spec.template.spec.volumes || [];
       const _disks = vm.spec.template.spec.domain.devices.disks || [];
       const _volumeClaimTemplates = this.getVolumeClaimTemplates(vm);
@@ -402,9 +394,7 @@ export default {
 
       out = sortBy(out, 'bootOrder');
 
-      return out.filter( (O) => {
-        return O.name !== 'cloudinitdisk';
-      });
+      return out.filter( O => O.name !== 'cloudinitdisk');
     },
 
     getNetworkRows(vm) {
@@ -423,8 +413,8 @@ export default {
           index,
           type,
           isPod,
-          model:        I.model || 'virtio',
-          networkName:  isPod ? 'management Network' : network?.multus?.networkName,
+          model:        I.model,
+          networkName:  isPod ? MANAGEMENT_NETWORK : network?.multus?.networkName,
         };
       });
 
@@ -444,7 +434,9 @@ export default {
         this.$set(this.spec.template.spec.domain.machine, 'type', this.machineType);
       }
 
-      this.spec.template.spec.domain.resources.limits.cpu = this.spec.template.spec.domain.cpu.cores;
+      this.spec.template.spec.domain.cpu.cores = this.cpu;
+      this.spec.template.spec.domain.resources.limits.cpu = this.cpu;
+      this.spec.template.spec.domain.resources.limits.memory = this.memory;
     },
 
     parseDiskRows(disk) {
@@ -458,10 +450,10 @@ export default {
 
         let dataVolumeName = '';
 
-        if (this.isClone || !this.hasCreateVolumes.includes(R.realName)) {
-          dataVolumeName = `${ prefixName }-${ R.name }-${ randomStr(5).toLowerCase() }`;
-        } else if (R.source === SOURCE_TYPE.ATTACH_VOLUME) {
+        if (R.source === SOURCE_TYPE.ATTACH_VOLUME) {
           dataVolumeName = R.volumeName;
+        } else if (this.isClone || !this.hasCreateVolumes.includes(R.realName)) {
+          dataVolumeName = `${ prefixName }-${ R.name }-${ randomStr(5).toLowerCase() }`;
         } else {
           dataVolumeName = R.realName;
         }
@@ -502,7 +494,7 @@ export default {
 
       const isRunVM = this.isCreate ? this.isRunning : this.isRestartImmediately ? true : this.value.spec.running;
 
-      const spec = {
+      let spec = {
         ...this.spec,
         running:  isRunVM,
         template: {
@@ -536,7 +528,11 @@ export default {
         delete spec.template.spec.volumes;
       }
 
-      if (this.type === HCI.VM) {
+      if (this.resource === HCI.VM) {
+        if (!this.isSingle) {
+          spec = this.multiVMScheduler(spec);
+        }
+
         this.$set(this.value.metadata, 'annotations', {
           ...this.value.metadata.annotations,
           [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: JSON.stringify(volumeClaimTemplates),
@@ -551,12 +547,44 @@ export default {
 
         this.$set(this.value, 'spec', spec);
         this.$set(this, 'spec', spec);
-      } else if (this.type === HCI.VM_VERSION) {
+      } else if (this.resource === HCI.VM_VERSION) {
         this.$set(this.value.spec.vm, 'spec', spec);
         this.$set(this.value.spec.vm.metadata, 'annotations', { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: JSON.stringify(volumeClaimTemplates) });
         this.$set(this.value.spec.vm.metadata, 'labels', { [HCI_ANNOTATIONS.OS]: this.osType });
         this.$set(this, 'spec', spec);
       }
+    },
+
+    multiVMScheduler(spec) {
+      spec.template.metadata.labels[HCI_ANNOTATIONS.VM_NAME_PREFIX] = this.namePrefix;
+
+      const rule = {
+        weight:          1,
+        podAffinityTerm: {
+          topologyKey:   HOSTNAME,
+          labelSelector: { matchLabels: { [HCI_ANNOTATIONS.VM_NAME_PREFIX]: this.namePrefix } }
+        }
+      };
+
+      return {
+        ...spec,
+        template: {
+          ...spec.template,
+          spec: {
+            ...spec.template.spec,
+            affinity: {
+              ...spec.template.spec.affinity,
+              podAntiAffinity: {
+                ...spec.template.spec?.affinity?.podAntiAffinity,
+                preferredDuringSchedulingIgnoredDuringExecution: [
+                  ...(spec.template.spec?.affinity?.podAntiAffinity?.preferredDuringSchedulingIgnoredDuringExecution || []),
+                  rule
+                ]
+              }
+            }
+          }
+        }
+      };
     },
 
     parseNetworkRows(networkRow) {
@@ -617,7 +645,13 @@ export default {
       if (returnType === 'string') {
         const out = jsyaml.dump(userDataJson);
 
-        return out.startsWith('#cloud-config') ? out : `#cloud-config\n${ out }`;
+        const outValue = out.replace(/[\r\n]/g, '').replace(/\ +/g, '');
+
+        if (outValue === "''") {
+          return undefined;
+        }
+
+        return `#cloud-config\n${ out }`;
       } else {
         return userDataJson;
       }
@@ -628,7 +662,7 @@ export default {
     },
 
     updateCpuMemory(cpu, memory) {
-      this.$set(this.spec.template.spec.domain.cpu, 'cores', cpu);
+      this.$set(this, 'cpu', cpu);
       this.$set(this, 'memory', memory);
     },
 
@@ -646,12 +680,8 @@ export default {
       return out;
     },
 
-    parseVolume(R, dataVolumeName, isCloudInitDisk = false) {
+    parseVolume(R, dataVolumeName) {
       const out = { name: R.name };
-
-      if (R.source === SOURCE_TYPE.ATTACH_VOLUME) {
-        dataVolumeName = R.volumeName || R.name;
-      }
 
       if (R.source === SOURCE_TYPE.CONTAINER) {
         out.containerDisk = { image: R.container };
@@ -660,8 +690,6 @@ export default {
         if (R.hotpluggable) {
           out.persistentVolumeClaim.hotpluggable = true;
         }
-      } else if (isCloudInitDisk) {
-        // cloudInitNoCloud
       }
 
       return out;
@@ -683,7 +711,7 @@ export default {
 
       switch (R.source) {
       case SOURCE_TYPE.NEW:
-        out.spec.storageClassName = this.customDefaultStorageClass || R.storageClassName || this.defaultStorageClass;
+        out.spec.storageClassName = R.storageClassName || this.customDefaultStorageClass || this.defaultStorageClass;
         break;
       case SOURCE_TYPE.IMAGE: {
         const image = this.images.find( I => R.image === I.id);
@@ -714,6 +742,7 @@ export default {
         _interface.macAddress = R.macAddress;
       }
 
+      // TODO: delete
       if (R.ports && R.type === 'masquerade') {
         const ports = [];
 
@@ -734,15 +763,13 @@ export default {
     },
 
     parseNetwork(R) {
-      const out = {};
+      const out = { name: R.name };
 
       if (R.isPod) {
         out.pod = {};
       } else {
         out.multus = { networkName: R.networkName };
       }
-
-      out.name = R.name;
 
       return out;
     },
@@ -832,12 +859,6 @@ export default {
       return userDataJson;
     },
 
-    getVolumeNames(vm) {
-      return vm.spec.template.spec.volumes?.map( (V) => {
-        return V.persistentVolumeClaim.claimName;
-      }) || [];
-    },
-
     generateSecretName(name) {
       return name ? `${ name }-${ randomStr(5).toLowerCase() }` : undefined;
     },
@@ -845,7 +866,7 @@ export default {
     getOwnerReferencesFromVM(resource) {
       const name = resource.metadata.name;
       const kind = resource.kind;
-      const apiVersion = this.type === HCI.VM ? 'kubevirt.io/v1' : 'harvesterhci.io/v1beta1';
+      const apiVersion = this.resource === HCI.VM ? 'kubevirt.io/v1' : 'harvesterhci.io/v1beta1';
       const uid = resource?.metadata?.uid;
 
       return [{
@@ -879,26 +900,20 @@ export default {
 
       try {
         if (secret) {
-          secret.setData('userdata', userData);
-          secret.setData('networkdata', this.networkScript);
+          if (userData) {
+            secret.setData('userdata', userData);
+          }
+
+          if (this.networkScript) {
+            secret.setData('networkdata', this.networkScript);
+          }
+
           await secret.save();
         }
       } catch (e) {
         new Error(`Function(saveSecret) error ${ e }`);
 
         return Promise.reject(e);
-      }
-    },
-
-    deleteCloneValue() {
-      this.value.spec.template.spec.hostname = '';
-
-      const interfaces = this.value.spec.template.spec.domain.devices?.interfaces || [];
-
-      for (let i = 0; i < interfaces.length; i++) {
-        if (interfaces[i].macAddress) {
-          interfaces[i].macAddress = '';
-        }
       }
     },
 
@@ -918,19 +933,22 @@ export default {
 
     handlerUSBTablet(val) {
       const hasExist = this.isInstallUSBTablet(this.spec);
+      const inputs = this.spec.template.spec.domain.devices?.inputs || [];
 
       if (val && !hasExist) {
-        Object.assign(this.spec.template.spec.domain.devices, {
-          inputs: [
-            ...this.spec.template.spec.domain.devices.inputs,
-            USB_TABLET[0]
-          ]
-        });
-      } else {
-        const inputs = this.spec.template.spec.domain.devices.inputs || [];
+        if (inputs.length > 0) {
+          inputs.push(USB_TABLET[0]);
+        } else {
+          Object.assign(this.spec.template.spec.domain.devices, {
+            inputs: [
+              USB_TABLET[0]
+            ]
+          });
+        }
+      } else if (!val) {
         const index = inputs.findIndex(O => isEqual(O, USB_TABLET[0]));
 
-        if (hasExist && index.length === 1) {
+        if (hasExist && inputs.length === 1) {
           this.$delete(this.spec.template.spec.domain.devices, 'inputs');
         } else if (hasExist) {
           inputs.splice(index, 1);
@@ -939,32 +957,31 @@ export default {
       }
     },
 
-    deleteSSHFromUserData(deleteSSH = []) {
-      const userDataSSHKey = this.getSSHFromUserData(this.userScript);
+    deleteSSHFromUserData(ssh = []) {
+      const sshAuthorizedKeys = this.getSSHFromUserData(this.userScript);
 
-      deleteSSH.map((id) => {
-        const index = userDataSSHKey.findIndex(value => value === this.getSSHValue(id));
+      ssh.map((id) => {
+        const index = sshAuthorizedKeys.findIndex(value => value === this.getSSHValue(id));
 
         if (index >= 0) {
-          userDataSSHKey.splice(index, 1);
+          sshAuthorizedKeys.splice(index, 1);
         }
       });
 
-      let userDataJson = this.convertToJson(this.userScript);
+      const userDataJson = this.convertToJson(this.userScript);
 
-      userDataJson.ssh_authorized_keys = userDataSSHKey;
+      userDataJson.ssh_authorized_keys = sshAuthorizedKeys;
 
-      if (userDataSSHKey.length === 0) {
+      if (sshAuthorizedKeys.length === 0) {
         delete userDataJson.ssh_authorized_keys;
       }
 
       if (isEmpty(userDataJson)) {
-        userDataJson = undefined;
+        this.$set(this, 'userScript', undefined);
       } else {
-        userDataJson = jsyaml.dump(userDataJson);
+        this.$set(this, 'userScript', jsyaml.dump(userDataJson));
       }
 
-      this.$set(this, 'userScript', userDataJson);
       this.refreshYamlEditor();
     },
 
@@ -985,7 +1002,7 @@ export default {
         if (Array.isArray(neu)) {
           const imageId = neu[0]?.image;
           const image = this.images.find( I => imageId === I.id);
-          const imageName = image?.spec?.displayName;
+          const imageName = image?.displayName;
 
           const oldImageId = old[0]?.image;
 
@@ -1016,7 +1033,7 @@ export default {
 
     secretRef: {
       handler(secret) {
-        if (secret && this.type !== HCI.BACKUP) {
+        if (secret && this.resource !== HCI.BACKUP) {
           this.userScript = secret?.decodedData?.userdata;
           this.networkScript = secret?.decodedData?.networkdata;
           this.secretName = secret?.metadata.name;
@@ -1030,10 +1047,7 @@ export default {
     isWindows(val) {
       if (val) {
         this.$set(this, 'sshKey', []);
-        const userDataJson = this.convertToJson(this.userScript);
-
-        delete userDataJson?.ssh_authorized_keys;
-        this.$set(this, 'userScript', '');
+        this.$set(this, 'userScript', undefined);
         this.$set(this, 'installAgent', false);
       }
     },
@@ -1044,10 +1058,13 @@ export default {
 
     installAgent: {
       handler(neu) {
-        const out = this.getUserData({ installAgent: neu, osType: this.osType });
+        if (this.deleteAgent) {
+          const out = this.getUserData({ installAgent: neu, osType: this.osType });
 
-        this.$set(this, 'userScript', out);
-        this.refreshYamlEditor();
+          this.$set(this, 'userScript', out);
+          this.refreshYamlEditor();
+        }
+        this.deleteAgent = true;
       },
       immediate: true
     },
@@ -1062,7 +1079,10 @@ export default {
     userScript(neu) {
       const hasInstallAgent = this.hasInstallAgent(neu, this.osType, this.installAgent);
 
-      this.installAgent = hasInstallAgent;
+      if (hasInstallAgent !== this.installAgent) {
+        this.deleteAgent = false;
+        this.installAgent = hasInstallAgent;
+      }
     },
 
     sshKey(neu, old) {

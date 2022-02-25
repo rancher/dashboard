@@ -90,9 +90,13 @@ export default {
       return this.allEvents.filter((e) => {
         const { name, creationTimestamp } = this.value?.metadata || {};
         const podName = this.value.podResource?.metadata?.name;
+        const pvcName = this.value.persistentVolumeClaimName || [];
+
         const involvedName = e?.involvedObject?.name;
 
-        return (involvedName === name || involvedName === podName) && e.firstTimestamp >= creationTimestamp;
+        const matchPVC = pvcName.find(name => name === involvedName);
+
+        return (involvedName === name || involvedName === podName || matchPVC) && e.firstTimestamp >= creationTimestamp;
       }).sort((a, b) => {
         if (a.lastTimestamp > b.lastTimestamp) {
           return -1;
@@ -150,6 +154,7 @@ export default {
           mode="view"
           :namespace="value.metadata.namespace"
           :vm="value"
+          :resource-type="value.type"
         />
       </Tab>
 

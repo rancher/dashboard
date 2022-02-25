@@ -35,6 +35,10 @@ export default {
     configId: {
       type:    String,
       default: ''
+    },
+    viewCode: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -49,7 +53,7 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
 
     editorMode() {
-      return this.isView ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE;
+      return this.isView || this.viewCode ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE;
     },
 
     isView() {

@@ -276,6 +276,7 @@ export const HCI = {
   BLOCK_DEVICE:       'harvesterhci.io.blockdevice',
   CLOUD_TEMPLATE:     'harvesterhci.io.cloudtemplate',
   HOST:               'harvesterhci.io.host',
+  VERSION:            'harvesterhci.io.version'
 };
 
 export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';

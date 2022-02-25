@@ -27,7 +27,7 @@ export default {
     ip() {
       const s = new Set([...this.vmiIp, ...this.networkAnnotationIP]);
 
-      return compact([...s]);
+      return compact([...s]).sort();
     },
 
     networkAnnotationIP() {
@@ -58,7 +58,7 @@ export default {
 
 <template>
   <div>
-    <span v-for="(ipValue, index) in ip" :key="index">
+    <span v-for="(ipValue) in ip" :key="ipValue">
       {{ ipValue }}<CopyToClipboard :text="ipValue" label-as="tooltip" class="icon-btn" action-color="bg-transparent" />
     </span>
   </div>
