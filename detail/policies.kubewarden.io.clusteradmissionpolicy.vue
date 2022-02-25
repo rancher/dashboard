@@ -42,7 +42,7 @@ export default {
   async fetch() {
     const inStore = this.$store.getters['currentStore'](this.resource);
 
-    const JAEGER_PROXY = `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/jaeger/services/http:all-in-one-query:16686/proxy/api/traces?operation=/api/traces&service=jaeger-query`;
+    const JAEGER_PROXY = `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/jaeger/services/http:all-in-one-query:16686/proxy/api/traces?service=kubewarden-policy-server&operation=validation&tags={"allowed"%3A"false"}`;
 
     try {
       this.metricsService = this.monitoringStatus.installed && await dashboardExists(this.$store, this.currentCluster.id, POLICY_METRICS_DETAIL_URL);
