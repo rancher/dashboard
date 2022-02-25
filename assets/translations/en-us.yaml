@@ -5804,6 +5804,24 @@ harvester:
       label: Health Check Period
     healthCheckTimeout:
       label: Health Check Timeout
+    healthCheckEnabled:
+      label: Health Check
+
+  vip:
+    namespace:
+      label: Namespace
+    cidr:
+      label: CIDR
+      invalid: '"CIRD" is invalid.'
+    add:
+      label: Add IP Pools
+
+  sslParameters:
+    protocols:
+      label: Protocols
+    ciphers:
+      label: Ciphers
+
 ##############################
 # Model Properties
 ##############################
