@@ -438,7 +438,6 @@ export default {
 
       <div class="spacer" />
 
-      <span>{{ mode }}</span>
       <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
 
       <template v-if="!isLocal">
