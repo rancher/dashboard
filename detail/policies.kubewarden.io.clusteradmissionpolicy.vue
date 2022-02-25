@@ -1,9 +1,11 @@
 <script>
 import { mapGetters } from 'vuex';
 import { _CREATE } from '@/config/query-params';
+import { SERVICE } from '@/config/types';
 import { monitoringStatus } from '@/utils/monitoring';
 import { dashboardExists } from '@/utils/grafana';
 import CreateEditView from '@/mixins/create-edit-view';
+
 import DashboardMetrics from '@/components/DashboardMetrics';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import ResourceTable from '@/components/ResourceTable';
@@ -12,7 +14,6 @@ import Tab from '@/components/Tabbed/Tab';
 // The uid in the proxy `r3Pw-107z` is setup in the configmap for the kubewarden dashboard
 // It's the generic uid from the json here: https://grafana.com/grafana/dashboards/15314
 const POLICY_METRICS_DETAIL_URL = `/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/r3Pw-1O7z/kubewarden?orgId=1&refresh=30s`;
-const JAEGER_PROXY = `/api/v1/namespaces/jaeger/services/http:all-in-one-query:16686/proxy/api/traces?operation=/api/traces&service=jaeger-query`;
 
 export default {
   name: 'ClusterAdmissionPolicy',
@@ -41,18 +42,44 @@ export default {
   async fetch() {
     const inStore = this.$store.getters['currentStore'](this.resource);
 
-    this.showPolicyMetrics = this.monitoringStatus.installed && await dashboardExists(this.$store, this.currentCluster.id, POLICY_METRICS_DETAIL_URL);
+    const JAEGER_PROXY = `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/jaeger/services/http:all-in-one-query:16686/proxy/api/traces?operation=/api/traces&service=jaeger-query`;
 
-    this.traces = await this.$store.dispatch(`${ inStore }/request`, { url: JAEGER_PROXY });
+    try {
+      this.metricsService = this.monitoringStatus.installed && await dashboardExists(this.$store, this.currentCluster.id, POLICY_METRICS_DETAIL_URL);
+    } catch (e) {
+      console.error(`Error fetching metrics status: ${ e }`); // eslint-disable-line no-console
+    }
+
+    try {
+      this.jaegerService = await this.$store.dispatch('cluster/find', { type: SERVICE, id: 'jaeger/jaeger-operator-metrics' });
+      this.traces = await this.$store.dispatch(`${ inStore }/request`, { url: JAEGER_PROXY });
+    } catch (e) {
+      console.error(`Error fetching Jaeger service: ${ e }`); // eslint-disable-line no-console
+    }
   },
 
   data() {
+    const tracesHeaders = [
+      {
+        name:   'processes',
+        value:  'processes.p1.serviceName',
+        label:  'Processes',
+        sort:   'processes'
+      },
+      {
+        name:  'traceID',
+        value: 'traceID',
+        label: 'Trace ID',
+        sort:  'traceID'
+      }
+    ];
+
     return {
-      showPolicyMetrics:          false,
-      showPolicyTracing:          false,
-      traces:                     null,
-      POLICY_METRICS_DETAIL_URL,
-      JAEGER_PROXY
+      POLICY_METRICS_DETAIL_URL: null,
+      metricsService:            null,
+      jaegerService:             null,
+      traces:                    null,
+      tracesHeaders
     };
   },
 
@@ -61,18 +88,7 @@ export default {
     ...monitoringStatus(),
 
     hasMetricsTabs() {
-      return this.showPolicyMetrics;
-    },
-
-    tracesHeaders() {
-      return [
-        {
-          name:   'processes',
-          value:  'processes.p1.serviceName',
-          label:  'Processes',
-          sort:   'processes'
-        },
-      ];
+      return this.metricsService;
     },
 
     tracesRows() {
@@ -88,7 +104,7 @@ export default {
       <h3>{{ t('namespace.resources') }}</h3>
     </div>
     <ResourceTabs v-model="value" :mode="mode">
-      <Tab v-if="showPolicyMetrics" name="policy-metrics" label="Metrics" :weight="2">
+      <Tab v-if="metricsService" name="policy-metrics" label="Metrics" :weight="2">
         <template #default="props">
           <DashboardMetrics
             v-if="props.active"
@@ -98,7 +114,7 @@ export default {
           />
         </template>
       </Tab>
-      <Tab v-if="showPolicyTracing" name="policy-tracing" label="Tracing" :weight="1">
+      <Tab v-if="jaegerService" name="policy-tracing" label="Tracing">
         <template #default>
           <ResourceTable
             v-if="traces"
