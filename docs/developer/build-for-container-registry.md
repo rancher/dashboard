@@ -1,6 +1,6 @@
 # Building an Image for Container Registries
 
-Sometimes you may need to have a custom version of the dashboard that is packaged alongside of Rancher to be hosted within Github's [container registry](https://docs.github.com/en/packages). There are a few use cases for this, for instance when developing a package/product for Rancher that doesn't need to be standalone and also when it isn't necessary for the package to exist in the Dashboard by default.
+Sometimes you may need to have a custom version of the dashboard that is packaged alongside Rancher to be hosted within Github's [container registry](https://docs.github.com/en/packages). There are a few use cases for this, for instance when developing a package/product for Rancher that doesn't need to be standalone or when it isn't necessary for the package to exist in the Dashboard by default.
 
 ---
 
@@ -22,7 +22,7 @@ Run the following to [add a submodule](https://git-scm.com/book/en/v2/Git-Tools-
 git submodule add <branch-repo-path>
 ```
 
-This will generate a config file `.gitmodules` in the root directory, it will contain the path of the submodule and the url of the repo. In order to target a specific branch of you will need to add a `branch` property to this file. For instance:
+This will generate a config file `.gitmodules` in the root directory, it will contain the path of the submodule and the url of the repo. In order to target a specific branch you will need to add a `branch` property to this file. For instance:
 
 ```
 [submodule "dashboard"]
@@ -150,7 +150,7 @@ docker run -d --name dashboard \
 
 At the time of writing (February '22), the build time for the Dashboard frontend and Rancher image takes about 8 minutes, so some debugging in place will greatly diminish any frustration while building an action.
 
-The simpilist way of adding debugging to your action is by [enabling runner diagnostic logging](https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging#enabling-runner-diagnostic-logging). You can do this by adding an environment variable to the beginning of your workflow action `ACTIONS_RUNNER_DEBUG: true`
+The simplest way of adding debugging to your action is by [enabling runner diagnostic logging](https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging#enabling-runner-diagnostic-logging). You can do this by adding an environment variable to the beginning of your workflow action `ACTIONS_RUNNER_DEBUG: true`
 
 For instance:
 
