@@ -7,6 +7,8 @@ import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import ResourceTable from '@/components/ResourceTable.vue';
 import Tabbed from '@/components/Tabbed/index.vue';
 import Tab from '@/components/Tabbed/Tab.vue';
+import PlusMinus from '@/components/form/PlusMinus.vue';
+import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 
 interface Data {
 }
@@ -14,7 +16,7 @@ interface Data {
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
   components: {
-    SimpleBox, ConsumptionGauge, ResourceTable, Tabbed, Tab
+    SimpleBox, ConsumptionGauge, ResourceTable, Tabbed, Tab, PlusMinus
   },
 
   props: {
@@ -33,8 +35,28 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   data() {
-    return { appInstanceSchema: this.$store.getters[`${ EPINIO_PRODUCT_NAME }/schemaFor`](EPINIO_TYPES.APP_INSTANCE) };
-  }
+    return {
+      appInstanceSchema: this.$store.getters[`${ EPINIO_PRODUCT_NAME }/schemaFor`](EPINIO_TYPES.APP_INSTANCE),
+      saving:            false,
+    };
+  },
+
+  methods: {
+    async updateInstances(newInstances: number) {
+      this.$set(this, 'saving', true);
+      try {
+        this.value.configuration.instances = newInstances;
+        await this.value.update();
+        await this.value.forceFetch();
+      } catch (err) {
+        console.error(`Failed to scale Application: `, epinioExceptionToErrorsArray(err)); // eslint-disable-line no-console
+      }
+
+      this.$set(this, 'saving', false);
+    }
+  },
+
+  computed: {}
 
 });
 </script>
@@ -42,15 +64,7 @@ export default Vue.extend<Data, any, any, any>({
 <template>
   <div>
     <div class="simple-box-row mt-40">
-      <SimpleBox>
-        <div class="box">
-          <h1>{{ value.serviceCount }}</h1>
-          <h3>
-            {{ t('epinio.applications.detail.counts.service') }}
-          </h3>
-        </div>
-      </SimpleBox>
-      <SimpleBox>
+      <SimpleBox class="routes">
         <div class="box">
           <h1>{{ value.routeCount }}</h1>
           <h3>
@@ -64,7 +78,15 @@ export default Vue.extend<Data, any, any, any>({
           </li>
         </ul>
       </SimpleBox>
-      <SimpleBox>
+      <SimpleBox class="services">
+        <div class="box">
+          <h1>{{ value.serviceCount }}</h1>
+          <h3>
+            {{ t('epinio.applications.detail.counts.service') }}
+          </h3>
+        </div>
+      </SimpleBox>
+      <SimpleBox class="envs">
         <div class="box">
           <h1>{{ value.envCount }}</h1>
           <h3>
@@ -73,13 +95,13 @@ export default Vue.extend<Data, any, any, any>({
         </div>
       </SimpleBox>
     </div>
-    <h3 v-if="value.deployment" class="mt-40">
+    <h3 v-if="value.deployment" class="mt-20">
       {{ t('epinio.applications.detail.deployment.label') }}
     </h3>
 
     <Tabbed v-if="value.deployment" class="deployment" default-tab="summary">
       <Tab label-key="epinio.applications.detail.deployment.summary" name="summary" :weight="1">
-        <div class="simple-box-row ">
+        <div class="simple-box-row app-instances">
           <SimpleBox>
             <ConsumptionGauge
               :resource-name="t('epinio.applications.detail.deployment.instances')"
@@ -89,28 +111,38 @@ export default Vue.extend<Data, any, any, any>({
               :color-stops="{ 70: '--success', 30: '--warning', 0: '--error' }"
             >
             </ConsumptionGauge>
+            <div class="scale-instances">
+              <PlusMinus class="mt-15 mb-10" :value="value.desiredInstances" :disabled="saving" @minus="updateInstances(value.desiredInstances-1)" @plus="updateInstances(value.desiredInstances+1)" />
+            </div>
+            <table class="stats">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Min</th>
+                  <th>Max</th>
+                  <th>Avg</th>
+                </tr>
+              </thead>
+              <tr>
+                <td>{{ t('tableHeaders.memory') }}</td>
+                <td>{{ value.instanceMemory.min }}</td>
+                <td>{{ value.instanceMemory.max }}</td>
+                <td>{{ value.instanceMemory.avg }}</td>
+              </tr>
+              <tr>
+                <td>{{ t('tableHeaders.cpu') }}</td>
+                <td>{{ value.instanceCpu.min }}</td>
+                <td>{{ value.instanceCpu.max }}</td>
+                <td>{{ value.instanceCpu.avg }}</td>
+              </tr>
+              <tr>
+                <td>{{ t('tableHeaders.restarts') }}</td>
+                <td>{{ value.instanceRestarts.min }}</td>
+                <td>{{ value.instanceRestarts.max }}</td>
+                <td>{{ value.instanceRestarts.avg }}</td>
+              </tr>
+            </table>
           </SimpleBox>
-
-          <!--
-          This information will be moved following https://github.com/epinio/ui/issues/62
-          Like Stratos we could show a summary of low/high/average
-      -->
-          <!-- <SimpleBox>
-        <div class="box">
-          <h1>{{ value.memory }}</h1>
-          <h3>
-            {{ t('epinio.applications.detail.deployment.memory') }}
-          </h3>
-        </div>
-      </SimpleBox>
-      <SimpleBox>
-        <div class="box">
-          <h1>{{ value.cpu }}</h1>
-          <h3>
-            {{ t('epinio.applications.detail.deployment.cpu') }}
-          </h3>
-        </div>
-      </SimpleBox> -->
           <SimpleBox v-if="value.sourceInfo">
             <div class="deployment__origin__row">
               <h4>Origin</h4><h4>
@@ -146,6 +178,16 @@ export default Vue.extend<Data, any, any, any>({
     width: 300px;
     max-width: 350px;
     margin-bottom: 20px;
+
+    &.routes {
+      width: 310px;
+      max-width: 360px;
+    }
+
+    &.services,&.envs {
+      width: 290px;
+      max-width: 340px;
+    }
 
     ul {
       word-break: break-all;
@@ -191,10 +233,24 @@ export default Vue.extend<Data, any, any, any>({
 }
 
 .deployment {
-  max-width: 990px;
+  max-width: 955px;
   .simple-box {
     margin-bottom: 0;
+    width: 290px;
+    max-width: 340px;
   }
+
+  .app-instances {
+    tr td {
+      min-width:58px;
+    }
+
+    .scale-instances {
+      display: flex;
+      justify-content: center;
+    }
+  }
+
 }
 
 </style>

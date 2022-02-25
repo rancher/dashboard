@@ -145,7 +145,7 @@ export default {
       if (isSingleProduct) {
         const cnsi = this.$store.getters[`${ EPINIO_PRODUCT_NAME }/singleProductCNSI`]();
 
-        prependPath = `/pp/v1/wsproxy/${ cnsi?.guid }`;
+        prependPath = `/pp/v1/direct/ws/${ cnsi?.guid }`;
       } else {
         const currentClusterId = this.$store.getters['clusterId'];
         const currentCluster = this.$store.getters[`${ EPINIO_MGMT_STORE }/byId`](EPINIO_TYPES.INSTANCE, currentClusterId);
@@ -154,7 +154,7 @@ export default {
       }
 
       const endpoint = this.application.linkFor('logs');
-      const url = addParams(`${ api }${ prependPath }${ endpoint }`, { follow: false, authtoken: token }); // TODO: RC follow
+      const url = addParams(`${ api }${ prependPath }${ endpoint }`, { follow: true, authtoken: token });
 
       return url.replace(/^http/, 'ws');
     },
@@ -179,8 +179,6 @@ export default {
       const { token } = await this.$store.dispatch(`epinio/request`, { opt: { url: '/api/v1/authtoken' } });
 
       const url = this.getSocketUrl(token);
-
-      // console.warn('!!!!!!!!!!!: ', url);
 
       // this.socket = new Socket(url, false, 0, 'base64.binary.k8s.io');
       this.socket = new Socket(url, false, 0);

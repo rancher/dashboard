@@ -1,4 +1,4 @@
-import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
+import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_TYPES } from '@/products/epinio/types';
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import { formatSi } from '@/utils/units';
 import { classify } from '@/plugins/core-store/classify';
@@ -187,6 +187,10 @@ export default class EpinioApplication extends EpinioResource {
     return this.deployment?.desiredreplicas;
   }
 
+  set desiredInstances(neu) {
+    this.deployment.desiredreplicas = neu;
+  }
+
   get readyInstances() {
     return this.deployment?.readyreplicas;
   }
@@ -238,6 +242,50 @@ export default class EpinioApplication extends EpinioResource {
       id:   i.name,
       type: EPINIO_TYPES.APP_INSTANCE
     }));
+  }
+
+  get instanceMemory() {
+    const stats = this._instanceStats('memoryBytes');
+    const opts = {
+      suffix:      'iB',
+      firstSuffix: 'B',
+      increment:   1024,
+    };
+
+    stats.min = formatSi(stats.min, opts);
+    stats.max = formatSi(stats.max, opts);
+    stats.avg = formatSi(stats.avg, opts);
+
+    return stats;
+  }
+
+  get instanceCpu() {
+    return this._instanceStats('millicpus');
+  }
+
+  get instanceRestarts() {
+    return this._instanceStats('restarts');
+  }
+
+  _instanceStats(prop) {
+    const stats = this.instances.reduce((res, r) => {
+      if (r[prop] >= res.max) {
+        res.max = r[prop];
+      }
+      if (r[prop] <= res.min) {
+        res.min = r[prop];
+      }
+      res.total += r[prop];
+
+      return res;
+    }, {
+      min: 0, max: 0, total: 0
+    });
+
+    return {
+      ...stats,
+      avg: this.instances.length ? stats.total / this.instances.length : 0,
+    };
   }
 
   // ------------------------------------------------------------------

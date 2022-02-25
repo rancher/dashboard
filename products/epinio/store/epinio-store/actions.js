@@ -50,7 +50,7 @@ export default {
 
     if (isSingleProduct) {
       if (opt?.prependPath === undefined) {
-        ps = dispatch('findSingleProductCNSI').then(cnsi => `/pp/v1/proxy/${ cnsi?.guid }`);
+        ps = dispatch('findSingleProductCNSI').then(cnsi => `/pp/v1/direct/r/${ cnsi?.guid }`);
       }
     } else {
       ps = dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE }, { root: true }).then(() => '');
@@ -110,10 +110,6 @@ export default {
           return responseObject(res);
         }
       }).catch((err) => {
-        if (growlOnError) {
-          dispatch('growl/fromError', { title: `Epinio Request to ${ opt.url }`, err }, { root: true });
-        }
-
         if ( !err || !err.response ) {
           return Promise.reject(err);
         }
@@ -124,6 +120,8 @@ export default {
         if ( opt.redirectUnauthorized !== false && process.client && res.status === 401 ) {
           // return Promise.reject(err);
           dispatch('auth/logout', opt.logoutOnError, { root: true });
+        } else if (growlOnError) {
+          dispatch('growl/fromError', { title: `Epinio Request to ${ opt.url }`, err }, { root: true });
         }
 
         if ( typeof res.data !== 'undefined' ) {
@@ -247,7 +245,7 @@ export default {
     const cnsi = endpoints?.find(e => e.name === EPINIO_STANDALONE_CLUSTER_NAME);
 
     if (!cnsi) {
-      console.warn('Unable to find the CNSI guid of the Epinio Endpoint');
+      console.warn('Unable to find the CNSI guid of the Epinio Endpoint');// eslint-disable-line no-console
     }
 
     commit('singleProductCNSI', cnsi);

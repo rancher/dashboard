@@ -107,12 +107,5 @@ export default Vue.extend<Data, any, any, any>({
         ></AppService>
       </Tab>
     </ResourceTabs>
-    <!-- <div>
-      EDIT
-      Debug<br>
-      Mode: {{ mode }}<br><br>
-      Value: {{ JSON.stringify(value) }}<br><br>
-      initialValue: {{ JSON.stringify(initialValue) }}<br>
-    </div> -->
   </CruResource>
 </template>
