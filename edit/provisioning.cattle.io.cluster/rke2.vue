@@ -647,7 +647,7 @@ export default {
       const cni = this.serverConfig.cni;
 
       if ( cni ) {
-        const parts = cni.split('+').map(x => `rke2-${ x }`);
+        const parts = cni.split(',').map(x => `rke2-${ x }`);
 
         names.push(...parts);
       }
@@ -722,10 +722,11 @@ export default {
         // eslint-disable-next-line no-unused-vars
         const cni = this.serverConfig.cni; // force this property to recalculate if cni was changed away from cilium and chartValues['rke-cilium'] deleted
 
-        return this.rkeConfig?.chartValues?.['rke2-cilium']?.ipv6?.enabled || false;
+        return this.userChartValuesTemp?.['rke2-cilium']?.cilium.ipv6?.enabled || false;
       },
       set(val) {
-        set(this.rkeConfig, "chartValues.'rke2-cilium'.ipv6.enabled", val);
+        set(this.userChartValuesTemp, "'rke2-cilium'.cilium.ipv6.enabled", val);
+        this.syncChartValues('rke2-cilium');
       }
     },
 
@@ -820,11 +821,6 @@ export default {
       }
     },
 
-    'serverConfig.cni'(neu) {
-      if (neu !== 'cilium' && neu !== 'multus,cilium') {
-        delete this.rkeConfig.chartValues['rke2-cilium'];
-      }
-    }
   },
 
   mounted() {
