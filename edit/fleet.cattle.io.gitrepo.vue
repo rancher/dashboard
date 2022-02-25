@@ -344,6 +344,13 @@ export default {
     @finish="save"
     @cancel="done"
   >
+    <Banner
+      v-if="isLocal && mode === 'create'"
+      color="info"
+      class="mb-40"
+    >
+      {{ t('fleet.gitRepo.createLocalBanner') }}
+    </Banner>
     <NameNsDescription v-if="!isView" v-model="value" :namespaced="false" :mode="mode" />
 
     <div class="row" :class="{'mt-20': isView}">
@@ -431,6 +438,7 @@ export default {
 
       <div class="spacer" />
 
+      <span>{{ mode }}</span>
       <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
 
       <template v-if="!isLocal">
