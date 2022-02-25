@@ -3,7 +3,7 @@ import ResourceTabs from '@/components/form/ResourceTabs';
 import FleetSummary from '@/components/fleet/FleetSummary';
 import Banner from '@/components/Banner';
 import FleetResources from '@/components/fleet/FleetResources';
-import TreeChart from '@/components/fleet/TreeChart';
+import ForceDirectedTreeChart from '@/components/fleet/ForceDirectedTreeChart';
 import Tab from '@/components/Tabbed/Tab';
 import { FLEET } from '@/config/types';
 import { isHarvesterCluster } from '@/utils/cluster';
@@ -19,7 +19,7 @@ export default {
     FleetSummary,
     Banner,
     ResourceTabs,
-    TreeChart,
+    ForceDirectedTreeChart,
     Tab,
     FleetBundles,
   },
