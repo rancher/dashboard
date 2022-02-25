@@ -821,7 +821,7 @@ export default {
     },
 
     'serverConfig.cni'(neu) {
-      if (neu !== 'cilium') {
+      if (neu !== 'cilium' && neu !== 'multus,cilium') {
         delete this.rkeConfig.chartValues['rke2-cilium'];
       }
     }
@@ -1517,7 +1517,7 @@ export default {
                 :label="t('cluster.rke2.cni.label')"
               />
             </div>
-            <div v-if="serverConfig.cni === 'cilium'" class="col">
+            <div v-if="serverConfig.cni === 'cilium' || serverConfig.cni === 'multus,cilium'" class="col">
               <Checkbox v-model="ciliumIpv6" :mode="mode" :label="t('cluster.rke2.address.ipv6.enable')" />
             </div>
           </div>
