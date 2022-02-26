@@ -15,13 +15,11 @@ const SPECIAL = 'special';
 export default {
   data() {
     return {
-      isHovered:      false,
-      hoveredTimeout: null,
-      maskedWidth:    null,
-      isOpen:         false,
-      filter:         '',
-      hidden:         0,
-      total:          0,
+      isOpen:        false,
+      filter:        '',
+      hidden:        0,
+      total:         0,
+      activeElement: null,
     };
   },
 
@@ -51,6 +49,7 @@ export default {
       // Mark all of the selected options
       out.forEach((i) => {
         i.selected = !!mapped[i.id] || (i.id === ALL && this.value && this.value.length === 0);
+        i.elementId = (i.id || '').replace('://', '_');
       });
 
       return out;
@@ -341,6 +340,7 @@ export default {
         this.close();
       }
     },
+    // Keyboard support
     itemKeyHandler(e, opt) {
       if (e.keyCode === KEY.DOWN ) {
         e.preventDefault();
@@ -357,20 +357,40 @@ export default {
         e.target.focus();
       }
     },
-    down() {
-      const active = document.activeElement;
+    inputKeyHandler(e) {
+      if (e.keyCode === KEY.DOWN ) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.down(true);
+      }
+    },
+    mouseOver(event) {
+      const el = event.path.find(e => e.classList.contains('ns-option'));
 
-      if (active.tagName.toLowerCase() === 'input' || active.tagName.toLowerCase() === 'body') {
-        // Focus first element
+      this.activeElement = el;
+    },
+    setActiveElement(el) {
+      if (!el?.focus) {
+        return;
+      }
+
+      el.focus();
+      this.activeElement = null;
+    },
+    down(input) {
+      const exising = this.activeElement || document.activeElement;
+
+      // Focus the first element in the list
+      if (input || !exising) {
         if (this.$refs.options) {
           const c = this.$refs.options.children;
 
           if (c && c.length > 0) {
-            c[0].focus();
+            this.setActiveElement(c[0]);
           }
         }
       } else {
-        let next = active.nextSibling;
+        let next = exising.nextSibling;
 
         if (next?.children?.length) {
           const item = next.children[0];
@@ -382,15 +402,13 @@ export default {
         }
 
         if (next?.focus) {
-          next.focus();
+          this.setActiveElement(next);
         }
       }
     },
     up() {
-      const active = document.activeElement;
-
-      if (active.tagName.toLowerCase() === 'div') {
-        let prev = active.previousSibling;
+      if (document.activeElement) {
+        let prev = document.activeElement.previousSibling;
 
         if (prev?.children?.length) {
           const item = prev.children[0];
@@ -401,7 +419,7 @@ export default {
         }
 
         if (prev?.focus) {
-          prev.focus();
+          this.setActiveElement(prev);
         }
       }
     },
@@ -422,10 +440,16 @@ export default {
     },
     close() {
       this.isOpen = false;
+      this.activeElement = null;
       this.removeCloseKeyHandler();
       this.layout();
     },
     selectOption(option) {
+      // Ignore click for a divider
+      if (option.kind === 'divider') {
+        return;
+      }
+
       const current = this.value;
       const exists = current.findIndex(v => v.id === option.id);
 
@@ -480,14 +504,24 @@ export default {
     <button v-shortkey.once="['n']" class="hide" @shortkey="open()" />
     <div v-if="isOpen" class="ns-dropdown-menu">
       <div class="ns-input">
-        <input ref="filter" v-model="filter" tabindex="0" class="ns-filter-input" @keydown="itemKeyHandler($event)" />
+        <input ref="filter" v-model="filter" tabindex="0" class="ns-filter-input" @keydown="inputKeyHandler($event)" />
         <i v-if="hasFilter" class="ns-filter-clear icon icon-close" @click="filter = ''" />
       </div>
       <div class="ns-divider mt-0"></div>
       <div ref="options" class="ns-options" role="list">
-        <div v-for="opt in filtered" :key="opt.id" tabindex="0" class="ns-option" @keydown="itemKeyHandler($event, opt)">
+        <div
+          v-for="opt in filtered"
+          :id="opt.elementId"
+          :key="opt.id"
+          tabindex="0"
+          class="ns-option"
+          :class="{'ns-selected': opt.selected}"
+          @click="selectOption(opt)"
+          @mouseover="mouseOver($event)"
+          @keydown="itemKeyHandler($event, opt)"
+        >
           <div v-if="opt.kind === 'divider'" class="ns-divider"></div>
-          <div v-else class="ns-item" :class="{'ns-selected': opt.selected}" @click="selectOption(opt)">
+          <div v-else class="ns-item">
             <i v-if="opt.kind === 'namespace'" class="icon icon-folder" />
             <div>{{ opt.label }}</div>
             <i v-if="opt.selected" class="icon icon-checkmark" />
@@ -513,7 +547,6 @@ export default {
     display: inline-block;
 
     .ns-glass {
-      background-color: red;
       height: 100vh;
       left: 0;
       opacity: 0;
@@ -544,7 +577,7 @@ export default {
     }
 
     .ns-dropdown-menu {
-      background-color: #fff;
+      background-color: var(--header-bg);
       border: 1px solid var(--link-border);
       border-bottom-left-radius: var(--border-radius);
       border-bottom-right-radius: var(--border-radius);
@@ -576,43 +609,54 @@ export default {
         color: var(--dropdown-hover-text);
       }
 
-      .ns-item {
-        align-items: center;
-        display: flex;
-        height: 24px;
-        line-height: 24px;
-        padding: 0 10px;
-
-        > i {
-          color: var(--muted);
-          margin: 0 5px;
-        }
-
-        > div {
-          flex: 1;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        &:hover, &:focus {
-          background-color: var(--dropdown-hover-bg);
-          color: var(--dropdown-hover-text);
-          cursor: pointer;
+      .ns-option {
+        .ns-item {
+          align-items: center;
+          display: flex;
+          height: 24px;
+          line-height: 24px;
+          padding: 0 10px;
 
           > i {
+            color: var(--muted);
+            margin: 0 5px;
+          }
+
+          > div {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          &:hover, &:focus {
+            background-color: var(--dropdown-hover-bg);
             color: var(--dropdown-hover-text);
+            cursor: pointer;
+
+            > i {
+              color: var(--dropdown-hover-text);
+            }
           }
         }
-
-        &.ns-selected:not(:hover):not(:focus) {
-          background-color: var(--dropdown-active-bg);
-          color: var(--dropdown-active-text);
-
-          > i {
-            color: var(--dropdown-active-text);
+      &.ns-selected:not(:hover) {
+        .ns-item {
+          > * {
+            color: var(--dropdown-hover-bg);
           }
         }
+      }
+      &.ns-selected {
+        &:hover,&:focus {
+          .ns-item {
+            > * {
+              background-color: var(--dropdown-hover-bg);
+              color: var(--dropdown-hover-text);
+            }
+          }
+        }
+      }
+
       }
     }
 
