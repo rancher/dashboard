@@ -334,10 +334,10 @@ export default {
             </template>
 
             <div class="checkbox mt-40">
-              <Checkbox v-model="telemetry" label-key="setup.telemetry" />
+              <Checkbox id="checkbox-telemetry" v-model="telemetry" label-key="setup.telemetry" />
             </div>
-            <div class="checkbox pt-10">
-              <Checkbox v-model="eula">
+            <div class="checkbox pt-10 eula">
+              <Checkbox id="checkbox-eula" v-model="eula">
                 <template #label>
                   <t k="setup.eula" :raw="true" :name="productName" />
                 </template>
@@ -345,7 +345,7 @@ export default {
             </div>
           </template>
 
-          <div class="text-center mt-20">
+          <div id="submit" class="text-center mt-20">
             <AsyncButton key="passwordSubmit" type="submit" mode="continue" :disabled="!saveEnabled" @click="save" />
           </div>
 

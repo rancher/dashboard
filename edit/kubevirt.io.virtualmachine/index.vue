@@ -71,6 +71,7 @@ export default {
       count:                 2,
       templateId:            '',
       templateVersionId:     '',
+      namePrefix:            '',
       isSingle:              true,
       isRunning:             true,
       useTemplate:           false,
@@ -135,6 +136,10 @@ export default {
 
     secretNamePrefix() {
       return this.value?.metadata?.name;
+    },
+
+    showRunning() {
+      return !(this.isEdit || this.isView);
     }
   },
 
@@ -221,9 +226,7 @@ export default {
 
   methods: {
     saveVM(buttonCb) {
-      if ( this.errors ) {
-        clear(this.errors);
-      }
+      clear(this.errors);
 
       if (this.isSingle) {
         this.saveSingle(buttonCb);
@@ -244,10 +247,9 @@ export default {
     },
 
     async saveMultiple(buttonCb) {
-      const originName = this.value?.metadata?.name;
-      const namePrefix = this.value.metadata.name || '';
-      const baseHostname = this.hostname ? this.hostname : this.value.metadata.name;
-      const join = namePrefix.endsWith('-') ? '' : '-';
+      this.namePrefix = this.value.metadata.name || '';
+      const join = this.namePrefix.endsWith('-') ? '' : '-';
+      const baseHostname = this.hostname ? this.hostname : this.namePrefix;
 
       if (this.count < 1) {
         this.errors = [this.t('harvester.virtualMachine.instance.multiple.countTip')];
@@ -256,16 +258,16 @@ export default {
         return;
       }
 
-      for (let i = 1; i <= this.count; i++) {
-        this.$set(this.value, 'type', HCI.VM);
+      const cloneValue = clone(this.value);
 
+      for (let i = 1; i <= this.count; i++) {
+        this.$set(this.value, 'spec', cloneValue.spec);
+        this.$set(this, 'spec', cloneValue.spec);
         const suffix = i < 10 ? `0${ i }` : i;
 
         this.value.cleanForNew();
-        this.value.metadata.name = `${ namePrefix }${ join }${ suffix }`;
-        const hostname = `${ baseHostname }${ join }${ suffix }`;
-
-        this.$set(this.value.spec.template.spec, 'hostname', hostname);
+        this.value.metadata.name = `${ this.namePrefix }${ join }${ suffix }`;
+        this.$set(this.value.spec.template.spec, 'hostname', `${ baseHostname }${ join }${ suffix }`);
         this.secretName = '';
         await this.parseVM();
         const basicValue = await this.$store.dispatch('harvester/clone', { resource: this.value });
@@ -276,7 +278,7 @@ export default {
           buttonCb(true);
           this.done();
         } else if (i === this.count) {
-          this.value.metadata.name = originName;
+          this.value.metadata.name = this.namePrefix;
           buttonCb(false);
         }
       }
@@ -298,9 +300,7 @@ export default {
       if ( this.mode === 'edit' && this.value.hasAction('restart')) {
         const cloneDeepNewVM = clone(this.value);
 
-        delete cloneDeepNewVM.type;
         delete cloneDeepNewVM?.metadata;
-        delete this.cloneVM.type;
         delete this.cloneVM?.metadata;
 
         const oldVM = JSON.parse(JSON.stringify(this.cloneVM));
@@ -419,7 +419,7 @@ export default {
       <Tabbed :side-tabs="true" @changed="onTabChanged">
         <Tab name="basics" :label="t('harvester.virtualMachine.detail.tabs.basics')">
           <CpuMemory
-            :cpu="spec.template.spec.domain.cpu.cores"
+            :cpu="cpu"
             :memory="memory"
             :mode="mode"
             @updateCpuMemory="updateCpuMemory"
@@ -501,6 +501,7 @@ export default {
             ref="yamlEditor"
             :user-script="userScript"
             :mode="mode"
+            :view-code="isWindows"
             :namespace="value.metadata.namespace"
             :network-script="networkScript"
             @updateUserData="updateUserData"
@@ -529,7 +530,7 @@ export default {
 
       <div class="mt-20">
         <Checkbox
-          v-if="!isEdit"
+          v-if="showRunning"
           v-model="isRunning"
           class="check mb-20"
           type="checkbox"

@@ -102,9 +102,10 @@ export const HCI_SETTING = {
   ADDITIONAL_CA:                    'additional-ca',
   OVERCOMMIT_CONFIG:                'overcommit-config',
   CLUSTER_REGISTRATION_URL:         'cluster-registration-url',
-  // DEFAULT_STORAGE_CLASS:            'default-storage-class'
+  DEFAULT_STORAGE_CLASS:            'default-storage-class',
   VIP:                              'vip-pools',
   SUPPORT_BUNDLE_TIMEOUT:           'support-bundle-timeout',
+  SUPPORT_BUNDLE_IMAGE:             'support-bundle-image',
   VM_FORCE_RESET_POLICY:            'vm-force-reset-policy',
   SSL_CERTIFICATES:                 'ssl-certificates',
   SSL_PARAMETERS:                   'ssl-parameters',
@@ -130,6 +131,7 @@ export const HCI_ALLOWED_SETTINGS = {
   },
   [HCI_SETTING.OVERCOMMIT_CONFIG]:                { kind: 'json', from: 'import' },
   [HCI_SETTING.SUPPORT_BUNDLE_TIMEOUT]:           {},
+  [HCI_SETTING.SUPPORT_BUNDLE_IMAGE]:             { kind: 'json', from: 'import' },
   [HCI_SETTING.VM_FORCE_RESET_POLICY]:            { kind: 'json', from: 'import' },
   [HCI_SETTING.SSL_CERTIFICATES]:                 { kind: 'json', from: 'import' },
   [HCI_SETTING.VIP]:                      {

@@ -1,14 +1,41 @@
+import jsyaml from 'js-yaml';
 import { NODE } from '@/config/types';
 import SteveModel from '@/plugins/steve/steve-class';
-const LATEST_UPGRADE_RESOURCE = 'harvesterhci.io/latestUpgrade';
+import { HCI } from '@/config/labels-annotations';
 
 export default class HciUpgrade extends SteveModel {
-  get isCurrentUpgrade() {
-    return this?.metadata?.labels?.[LATEST_UPGRADE_RESOURCE] === 'true';
+  get isLatestUpgrade() {
+    return this?.metadata?.labels?.[HCI.LATEST_UPGRADE] === 'true';
+  }
+
+  get isUpgradeSucceeded() {
+    return this?.metadata?.labels?.[HCI.UPGRADE_STATE] === 'Succeeded';
+  }
+
+  get hasReadMessage() {
+    return this?.metadata?.labels?.[HCI.REAY_MESSAGE] === 'true';
+  }
+
+  get repoInfo() {
+    const repoInfo = this?.status?.repoInfo;
+
+    if (repoInfo) {
+      try {
+        return jsyaml.load(repoInfo);
+      } catch (e) {
+        return false;
+      }
+    }
+
+    return false;
   }
 
   get nodes() {
     return this.$rootGetters['harvester/all'](NODE);
+  }
+
+  get upgradeImage() {
+    return this?.status?.imageID;
   }
 
   get upgradeMessage() {
@@ -46,6 +73,35 @@ export default class HciUpgrade extends SteveModel {
     }
 
     return upgradeMessage;
+  }
+
+  get createRepo() {
+    const conditions = this?.status?.conditions || [];
+    const repoCondition = conditions.find( cond => cond.type === 'RepoReady');
+    const isReady = repoCondition?.status === 'True';
+
+    return {
+      isReady,
+      message: repoCondition?.message || repoCondition?.reason
+    };
+  }
+
+  get overallMessage() {
+    const conditions = this?.status?.conditions || [];
+    const completedCondition = conditions.find( cond => cond.type === 'Completed');
+    const hasError = completedCondition?.status === 'False';
+    const message = completedCondition?.message || completedCondition?.reason;
+
+    return hasError ? message : '';
+  }
+
+  get upgradeImageMessage() {
+    const conditions = this?.status?.conditions || [];
+    const imageReady = conditions.find( cond => cond.type === 'ImageReady');
+    const hasError = imageReady?.status === 'False';
+    const message = imageReady?.message || imageReady?.reason;
+
+    return hasError ? message : '';
   }
 
   get nodeUpgradeMessage() {
@@ -95,8 +151,8 @@ export default class HciUpgrade extends SteveModel {
     }
 
     out = Math.floor(out / this.nodeUpgradeMessage.length);
-
-    const nodeUpgradedCondition = this.getConditionStatus('nodesUpgraded');
+    const conditions = this?.status?.conditions || [];
+    const nodeUpgradedCondition = conditions.find( cond => cond.type === 'nodesUpgraded');
 
     if (out === 100 && !nodeUpgradedCondition) {
       out = 99;
@@ -114,7 +170,7 @@ export default class HciUpgrade extends SteveModel {
     for (let i = 0; i < conditions.length; i++) {
       const type = conditions[i].type;
 
-      if (type === 'systemServicesUpgraded') {
+      if (type === 'SystemServicesUpgraded') {
         if (conditions[i].status === 'True') {
           percent = 100;
           state = 'Succeeded';

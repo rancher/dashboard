@@ -864,6 +864,7 @@ export const actions = {
       virtualCount:      dispatch('harvester/findAll', { type: COUNT }),
       virtualNamespaces: dispatch('harvester/findAll', { type: NAMESPACE }),
       settings:          dispatch('harvester/findAll', { type: HCI.SETTING }),
+      upgrades:          dispatch('harvester/findAll', { type: HCI.UPGRADE }),
     });
 
     commit('clusterChanged', true);

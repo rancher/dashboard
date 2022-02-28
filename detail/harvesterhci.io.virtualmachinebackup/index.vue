@@ -146,7 +146,7 @@ export default {
           </div>
         </div>
 
-        <CpuMemory :cpu="spec.template.spec.domain.cpu.cores" :mode="mode" :memory="memory" />
+        <CpuMemory :cpu="cpu" :mode="mode" :memory="memory" />
 
         <div class="row">
           <div class="col span-6">

@@ -86,12 +86,30 @@ export default class CapiMachineDeployment extends SteveModel {
 
     const clustersMachinePool = machinePools.find(pool => pool.machineConfigRef.name === machineConfigName);
 
-    if (clustersMachinePool) {
-      clustersMachinePool.quantity += delta;
-      if (save) {
-        this.cluster.save();
-      }
+    if (!clustersMachinePool) {
+      return;
     }
+
+    clustersMachinePool.quantity += delta;
+
+    if ( !save ) {
+      return;
+    }
+
+    if ( this.scaleTimer ) {
+      clearTimeout(this.scaleTimer);
+    }
+
+    this.scaleTimer = setTimeout(() => {
+      try {
+        this.cluster.save();
+      } catch (error) {
+        this.$dispatch('growl/fromError', {
+          title: 'Error scaling pool',
+          error
+        }, { root: true });
+      }
+    }, 1000);
   }
 
   get stateParts() {
