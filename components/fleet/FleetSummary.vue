@@ -52,7 +52,7 @@ export default {
         },
         notready: {
           count: 0,
-          color: 'warning',
+          color: 'notready',
           label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.warning`, null, 'Warning')
         },
         error:   {
