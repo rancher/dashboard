@@ -4,7 +4,6 @@ import { colorForState } from '@/plugins/core-store/resource-class';
 import { POD, NODE, HCI, PVC } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
-import { cleanForNew } from '@/plugins/steve/normalize';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { _CLONE } from '@/config/query-params';
 import SteveModel from '@/plugins/steve/steve-class';
@@ -213,7 +212,7 @@ export default class VirtVm extends SteveModel {
   }
 
   cleanForNew() {
-    cleanForNew(this);
+    super.cleanForNew();
 
     this.spec.template.spec.hostname = '';
     const interfaces = this.spec.template.spec.domain.devices?.interfaces || [];

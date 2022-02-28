@@ -226,7 +226,7 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <div class="col span-6">
+  <div class="appSource">
     <LabeledSelect
       v-model="type"
       label="Source Type"
@@ -338,6 +338,9 @@ export default Vue.extend<Data, any, any, any>({
 </template>
 
 <style lang="scss" scoped>
+.appSource {
+  max-width: 500px;
+}
 .archive {
   display: flex;
   flex-direction: column;
