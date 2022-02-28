@@ -156,6 +156,7 @@ export function init(store) {
   const { width, canBeVariable, ...instanceName } = SIMPLE_NAME;
 
   headers(EPINIO_TYPES.APP_INSTANCE, [
+    STATE,
     instanceName,
     {
       name:          'millicpus',

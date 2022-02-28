@@ -10,26 +10,14 @@ export default class ApplicationInstanceResource extends Resource {
   //   }];
   // }
 
-  get stateObj() {
-    switch (this.read) {
+  get state() {
+    switch (this.ready) {
     case true:
-      return {
-        name:          'ready',
-        error:         false,
-        transitioning: false,
-      };
+      return 'ready';
     case false:
-      return {
-        name:          'notready',
-        error:         true,
-        transitioning: false,
-      };
+      return 'notready';
     default:
-      return {
-        name:          'pending',
-        error:         false,
-        transitioning: false,
-      };
+      return 'pending';
     }
   }
 }
