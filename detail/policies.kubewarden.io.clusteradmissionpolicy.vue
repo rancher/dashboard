@@ -13,7 +13,7 @@ import Tab from '@/components/Tabbed/Tab';
 
 // The uid in the proxy `r3Pw-107z` is setup in the configmap for the kubewarden dashboard
 // It's the generic uid from the json here: https://grafana.com/grafana/dashboards/15314
-const POLICY_METRICS_DETAIL_URL = `/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/r3Pw-1O7z/kubewarden?orgId=1&refresh=30s`;
+const POLICY_METRICS_URL = `/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/r3Pw-1O7z/kubewarden?orgId=1`;
 
 export default {
   name: 'ClusterAdmissionPolicy',
@@ -41,11 +41,12 @@ export default {
 
   async fetch() {
     const inStore = this.$store.getters['currentStore'](this.resource);
+    const CLUSTER_PATH = `/k8s/clusters/${ this.currentCluster?.id }/api/v1/namespaces`;
 
-    const JAEGER_PROXY = `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/jaeger/services/http:all-in-one-query:16686/proxy/api/traces?operation=/api/traces&service=jaeger-query`;
+    const JAEGER_PROXY = `${ CLUSTER_PATH }/jaeger/services/http:all-in-one-query:16686/proxy/api/traces?service=kubewarden-policy-server&operation=validation&tags={"allowed"%3A"false"}`;
 
     try {
-      this.metricsService = this.monitoringStatus.installed && await dashboardExists(this.$store, this.currentCluster.id, POLICY_METRICS_DETAIL_URL);
+      this.metricsService = this.monitoringStatus.installed && await dashboardExists(this.$store, this.currentCluster?.id, POLICY_METRICS_URL);
     } catch (e) {
       console.error(`Error fetching metrics status: ${ e }`); // eslint-disable-line no-console
     }
@@ -75,17 +76,21 @@ export default {
     ];
 
     return {
-      POLICY_METRICS_DETAIL_URL: null,
-      metricsService:            null,
-      jaegerService:             null,
-      traces:                    null,
-      tracesHeaders
+      metricsService:     null,
+      jaegerService:      null,
+      traces:             null,
+      tracesHeaders,
+      POLICY_METRICS_URL
     };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
     ...monitoringStatus(),
+
+    dashboardVars() {
+      return { policy_name: this.value?.id };
+    },
 
     hasMetricsTabs() {
       return this.metricsService;
@@ -108,8 +113,9 @@ export default {
         <template #default="props">
           <DashboardMetrics
             v-if="props.active"
-            :detail-url="POLICY_METRICS_DETAIL_URL"
-            :summary-url="POLICY_METRICS_DETAIL_URL"
+            :detail-url="POLICY_METRICS_URL"
+            :summary-url="POLICY_METRICS_URL"
+            :vars="dashboardVars"
             graph-height="825px"
           />
         </template>
