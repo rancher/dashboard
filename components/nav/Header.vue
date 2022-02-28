@@ -477,11 +477,11 @@ export default {
     }
 
     grid-template-areas:  "header-left top a header-right"; // TODO what's a good name for a here
-    grid-template-columns: var(--header-height) calc(var(--nav-width) - var(--header-height)) 1fr min-content min-content;
+    grid-template-columns: min-content 1fr min-content min-content;
     grid-template-rows:    var(--header-height);
 
     &.simple {
-      grid-template-columns: var(--header-height) min-content 1fr min-content min-content;
+      grid-template-columns: min-content 1fr min-content min-content;
     }
 
     .cluster {
