@@ -528,8 +528,8 @@ export default {
       grid-area: header-left;
 
       > .menu-spacer {
-        width: 65px;
-        min-width: 65px;
+        width: 55px;
+        min-width: 55px;
       }
 
       > .product {
