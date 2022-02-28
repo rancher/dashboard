@@ -207,43 +207,45 @@ export default {
 
 <template>
   <header :class="{'simple': simple}">
-    <div class="menu-spacer">
-      <n-link v-if="isSingleVirtualCluster" :to="harvesterDashboard">
-        <img
-          class="side-menu-logo"
-          src="~/assets/images/providers/harvester.svg"
-        />
-      </n-link>
-    </div>
-    <div v-if="!simple" class="product">
-      <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster">
+    <div class="rd-header-left">
+      <div class="menu-spacer">
+        <n-link v-if="isSingleVirtualCluster" :to="harvesterDashboard">
+          <img
+            class="side-menu-logo"
+            src="~/assets/images/providers/harvester.svg"
+          />
+        </n-link>
+      </div>
+      <div v-if="!simple" class="product">
+        <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster">
+          <div v-if="isSingleVirtualCluster" class="product-name">
+            {{ t('product.harvester') }}
+          </div>
+          <template v-else>
+            <ClusterProviderIcon v-if="currentCluster" :cluster="currentCluster" class="mr-10" />
+            <div v-if="currentCluster" ref="clusterName" class="cluster-name">
+              {{ currentCluster.spec.displayName }}
+            </div>
+            <ClusterBadge v-if="currentCluster" :cluster="currentCluster" class="ml-10" />
+            <div v-if="!currentCluster" class="simple-title">
+              <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
+            </div>
+          </template>
+        </div>
+        <div v-if="currentProduct && !currentProduct.showClusterSwitcher" class="cluster">
+          <div class="product-name">
+            {{ prod }}
+          </div>
+        </div>
+      </div>
+      <div v-else class="simple-title">
         <div v-if="isSingleVirtualCluster" class="product-name">
           {{ t('product.harvester') }}
         </div>
-        <template v-else>
-          <ClusterProviderIcon v-if="currentCluster" :cluster="currentCluster" class="mr-10" />
-          <div v-if="currentCluster" ref="clusterName" class="cluster-name">
-            {{ currentCluster.spec.displayName }}
-          </div>
-          <ClusterBadge v-if="currentCluster" :cluster="currentCluster" class="ml-10" />
-          <div v-if="!currentCluster" class="simple-title">
-            <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
-          </div>
-        </template>
-      </div>
-      <div v-if="currentProduct && !currentProduct.showClusterSwitcher" class="cluster">
-        <div class="product-name">
-          {{ prod }}
-        </div>
-      </div>
-    </div>
-    <div v-else class="simple-title">
-      <div v-if="isSingleVirtualCluster" class="product-name">
-        {{ t('product.harvester') }}
-      </div>
 
-      <div v-else class="side-menu-logo">
-        <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
+        <div v-else class="side-menu-logo">
+          <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
+        </div>
       </div>
     </div>
 
@@ -474,17 +476,12 @@ export default {
       }
     }
 
-    grid-template-areas:  "menu product top a header-right"; // TODO what's a good name for a here
+    grid-template-areas:  "header-left top a header-right"; // TODO what's a good name for a here
     grid-template-columns: var(--header-height) calc(var(--nav-width) - var(--header-height)) 1fr min-content min-content;
     grid-template-rows:    var(--header-height);
 
     &.simple {
       grid-template-columns: var(--header-height) min-content 1fr min-content min-content;
-    }
-
-    > .menu-spacer {
-      width: 65px;
-      grid-area: menu;
     }
 
     .cluster {
@@ -495,29 +492,6 @@ export default {
       .cluster-name {
         font-size: 16px;
       }
-    }
-
-    > .product {
-      grid-area: product;
-      align-items: center;
-      position: relative;
-      display: flex;
-
-      .logo {
-        height: 30px;
-        position: absolute;
-        top: 9px;
-        left: 0;
-        z-index: 2;
-
-        img {
-          height: 30px;
-        }
-      }
-    }
-
-    .product-name {
-      font-size: 16px;
     }
 
     .side-menu-logo {
@@ -541,8 +515,38 @@ export default {
       border-bottom: var(--header-border-size) solid var(--header-border);
     }
 
-    .menu-spacer {
-      grid-area: menu;
+    .rd-header-left {
+      display: flex;
+      flex-direction: row;
+      grid-area: header-left;
+
+      > .menu-spacer {
+        width: 65px;
+        min-width: 65px;
+      }
+
+      > .product {
+        grid-area: product;
+        align-items: center;
+        position: relative;
+        display: flex;
+
+        .logo {
+          height: 30px;
+          position: absolute;
+          top: 9px;
+          left: 0;
+          z-index: 2;
+
+          img {
+            height: 30px;
+          }
+        }
+      }
+
+      .product-name {
+        font-size: 16px;
+      }
     }
 
     .rd-header-right {
