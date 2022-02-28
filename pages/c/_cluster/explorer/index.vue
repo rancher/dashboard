@@ -304,8 +304,12 @@ export default {
       return this.showClusterMetrics || this.showK8sMetrics || this.showEtcdMetrics;
     },
 
+    featureRancherDesktop() {
+      return this.$config.rancherEnv === 'desktop';
+    },
+
     showMonitoringInstall() {
-      return this.$config.rancherEnv !== 'desktop' && !monitoringStatus.v2 && !monitoringStatus.v1;
+      return !this.featureRancherDesktop && !monitoringStatus.v2 && !monitoringStatus.v1;
     }
   },
 

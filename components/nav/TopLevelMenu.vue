@@ -150,8 +150,8 @@ export default {
       return this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value === 'true';
     },
 
-    showMenu() {
-      return this.$config.rancherEnv !== 'desktop';
+    hideMenu() {
+      return this.$config.rancherEnv === 'desktop';
     },
   },
 
@@ -206,7 +206,7 @@ export default {
 };
 </script>
 <template>
-  <div v-if="showMenu">
+  <div v-if="!hideMenu">
     <div
       class="menu"
       :class="{'raised': shown, 'unraised':!shown}"
