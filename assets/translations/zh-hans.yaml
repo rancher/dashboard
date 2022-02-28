@@ -5631,6 +5631,13 @@ harvester:
       period: 周期
     supportBundleImage:
       imagePullPolicy: 镜像拉取策略
+    harvesterMonitoring:
+      label: Harvester Monitoring
+      tips:
+        scrape: 每次采集数据的间隔时间
+        evaluation: 每次评估规则的间隔时间
+        retention: 监控数据保留时间
+        retentionSize: 监控数据最大占用存储
 
   cloudTemplate:
     label: Cloud Config 模板

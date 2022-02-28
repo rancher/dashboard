@@ -5831,6 +5831,13 @@ harvester:
       imageUrl: Please input a valid image url.
       chooseFile: Please select to upload an image.
       checksum: Checksum
+    harvesterMonitoring:
+      label: Harvester Monitoring
+      tips:
+        scrape: Interval between consecutive scrapes
+        evaluation: Interval between consecutive evaluations
+        retention: How long to retain metrics
+        retentionSize: Maximum size of metrics
   cloudTemplate:
     label: Cloud Config Templates
     templateType: Template Type
