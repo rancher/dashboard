@@ -149,6 +149,10 @@ export default {
     hasSupport() {
       return this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value === 'true';
     },
+
+    showMenu() {
+      return this.$config.rancherEnv !== 'desktop';
+    },
   },
 
   watch: {
@@ -202,8 +206,12 @@ export default {
 };
 </script>
 <template>
-  <div>
-    <div class="menu" :class="{'raised': shown, 'unraised':!shown}" @click="toggle()">
+  <div v-if="showMenu">
+    <div
+      class="menu"
+      :class="{'raised': shown, 'unraised':!shown}"
+      @click="toggle()"
+    >
       <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none" /><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" /></svg>
     </div>
     <div v-if="shown" class="side-menu-glass" @click="hide()"></div>

@@ -98,6 +98,10 @@ export default {
       return !this.featureRancherDesktop;
     },
 
+    showNavigation() {
+      return !this.featureRancherDesktop;
+    },
+
     featureRancherDesktop() {
       return this.$config.rancherEnv === 'desktop';
     },
@@ -208,7 +212,10 @@ export default {
 <template>
   <header :class="{'simple': simple}">
     <div class="rd-header-left">
-      <div class="menu-spacer">
+      <div
+        v-if="showNavigation"
+        class="menu-spacer"
+      >
         <n-link v-if="isSingleVirtualCluster" :to="harvesterDashboard">
           <img
             class="side-menu-logo"
