@@ -110,6 +110,7 @@ export default {
       spec:               null,
       osType:             'linux',
       sshKey:             [],
+      runStrategy:        'RerunOnFailure',
       installAgent:       true,
       hasCreateVolumes:   [],
       installUSBTablet:   true,
@@ -198,6 +199,10 @@ export default {
     needNewSecret() {
       // When creating a template it is always necessary to create a new secret.
       return this.resource === HCI.VM_VERSION || this.isCreate;
+    },
+
+    isManual() {
+      return this.runStrategy === 'Manual';
     }
   },
 
@@ -218,7 +223,6 @@ export default {
       if (!spec) {
         return;
       }
-
       const resources = spec.template.spec.domain.resources;
 
       // If the user is created via yaml, there may be no "resources.limits": kubectl apply -f https://kubevirt.io/labs/manifests/vm.yaml
@@ -232,6 +236,7 @@ export default {
         };
       }
 
+      const runStrategy = spec.runStrategy;
       const machineType = value.machineType;
       const cpu = spec.template.spec.domain?.cpu?.cores;
       const memory = spec.template.spec.domain.resources.limits.memory;
@@ -267,7 +272,13 @@ export default {
       const secretRef = this.getSecret(spec);
       const accessCredentials = this.getAccessCredentials(spec);
 
+      if (Object.prototype.hasOwnProperty.call(spec, 'running')) {
+        delete spec.running;
+        spec.runStrategy = 'RerunOnFailure';
+      }
+
       this.$set(this, 'spec', spec);
+      this.$set(this, 'runStrategy', runStrategy);
       this.$set(this, 'secretRef', secretRef);
       this.$set(this, 'accessCredentials', accessCredentials);
       this.$set(this, 'userScript', userData);
@@ -519,12 +530,10 @@ export default {
         }
       }
 
-      const isRunVM = this.isCreate ? this.isRunning : this.isRestartImmediately ? true : this.value.spec.running;
-
       let spec = {
         ...this.spec,
-        running:  isRunVM,
-        template: {
+        runStrategy: this.runStrategy,
+        template:    {
           ...this.spec.template,
           metadata: {
             ...this.spec?.template?.metadata,

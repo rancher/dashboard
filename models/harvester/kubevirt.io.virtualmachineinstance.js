@@ -27,7 +27,6 @@ export default class VirtVmInstance extends SteveModel {
   }
 
   get stateDisplay() {
-    // const phase = this?.status?.phase;
     if (this?.metadata?.deletionTimestamp) {
       return 'Terminating';
     }
@@ -102,6 +101,12 @@ export default class VirtVmInstance extends SteveModel {
     }
 
     return null;
+  }
+
+  get isTerminated() {
+    const conditions = this?.status?.conditions || [];
+
+    return conditions.filter(cond => cond.type === 'Ready')?.status === 'False';
   }
 
   get getVMIApiPath() {

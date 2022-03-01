@@ -40,3 +40,5 @@ export const ACCESS_CREDENTIALS = {
   RESET_PWD:  'userPassword',
   INJECT_SSH: 'sshPublicKey'
 };
+
+export const RunStrategys = ['Always', 'RerunOnFailure', 'Manual', 'Halted'];

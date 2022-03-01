@@ -56,9 +56,9 @@ export default class HciVmTemplateVersion extends SteveModel {
   applyDefaults() {
     const spec = {
       vm: {
-        metadata: { annotations: { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: '[]' } },
-        spec:     {
-          running:              true,
+        metadata:    { annotations: { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: '[]' } },
+        spec:        {
+          runStrategy: 'Manual',
           template:             {
             metadata: { annotations: {} },
             spec:     {
@@ -88,7 +88,10 @@ export default class HciVmTemplateVersion extends SteveModel {
                     cpu:    ''
                   }
                 },
-                features: { smm: { enabled: false } },
+                features: {
+                  smm:  { enabled: false },
+                  acpi: { enabled: true }
+                },
                 firmware: { bootloader: { efi: { secureBoot: false } } },
               },
               hostname: '',

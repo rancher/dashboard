@@ -5565,6 +5565,7 @@ harvester:
         Detach Volume
     restartTip: Restart the virtual machine now to take effect of the configuration changes.
     createRunning: Start virtual machine on creation
+    runStrategy: Run Strategy
     restartNow: Restart Now
     createSSHKey: Create a New...
     installAgent: Install guest agent

@@ -5610,6 +5610,7 @@ harvester:
         拔出卷
     restartTip: 重启虚拟机以使配置更改生效。
     createRunning: 创建后启动虚拟机
+    runStrategy: 虚拟机运行策略
     restartNow: 现在重启
     createSSHKey: 创建 SSH 密钥
     installAgent: 安装访客代理

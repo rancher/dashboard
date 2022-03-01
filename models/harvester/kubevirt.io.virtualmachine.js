@@ -173,7 +173,7 @@ export default class VirtVm extends SteveModel {
 
   applyDefaults(resources = this, realMode) {
     const spec = {
-      running:              true,
+      runStrategy: 'Manual',
       template:             {
         metadata: { annotations: {} },
         spec:     {
@@ -203,7 +203,10 @@ export default class VirtVm extends SteveModel {
                 cpu:    ''
               }
             },
-            features: { smm: { enabled: false } },
+            features: {
+              smm:  { enabled: false },
+              acpi: { enabled: true }
+            },
             firmware: { bootloader: { efi: { secureBoot: false } } },
           },
           evictionStrategy: 'LiveMigrate',
@@ -364,8 +367,8 @@ export default class VirtVm extends SteveModel {
     }
     const { running = null, runStrategy = null } = this.spec;
 
-    if (running !== null) {
-      return running;
+    if (running) {
+      return true;
     }
 
     if (runStrategy !== null) {
@@ -375,8 +378,9 @@ export default class VirtVm extends SteveModel {
       case RunStrategy.Halted:
         return false;
       case RunStrategy.Always:
-      case RunStrategy.RerunOnFailure:
         return true;
+      case RunStrategy.RerunOnFailure:
+        return ['Starting', 'Running'].includes(this.status?.printableStatus);
       case RunStrategy.Manual:
       default:
         changeRequests = new Set(
@@ -388,6 +392,10 @@ export default class VirtVm extends SteveModel {
         }
         if (changeRequests.has(StateChangeRequest.Start)) {
           return true;
+        }
+
+        if (changeRequests.size === 0 ) {
+          return ['Starting', 'Running'].includes(this.status?.printableStatus);
         }
 
         return this.isVMCreated; // if there is no change request we can assume created is representing running (current and expected)
@@ -482,7 +490,7 @@ export default class VirtVm extends SteveModel {
   }
 
   get isBeingStopped() {
-    if (this && !this.isVMExpectedRunning && this.isVMCreated) {
+    if (this && !this.isVMExpectedRunning && this.isVMCreated && this.vmi?.isTerminated) {
       return { status: STOPPING };
     }
 
