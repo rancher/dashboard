@@ -6271,6 +6271,7 @@ advancedSettings:
     'harv-vm-force-reset-policy': 配置当虚拟机卡在停机的节点上时的强制重置动作。
     'harv-ssl-parameters': 用于 TLS 验证的自定义 SSL 参数。
     'harv-support-bundle-namespaces': 指定支持包要收集的其他命名空间中的资源。
+    'harvester-monitoring': 指定 Harvester 内置的Prometheus 将使用的监控配置。
   editHelp:
     'ui-banners': 此设置使用包含 3 个根参数的 JSON 对象，分别是<code>banner</code>、<code>showHeader</code>和<code>showFooter</code>。<code>banner</code> 是包含 <code>textColor</code>，<code>background</code>和<code>text</code>的对象，其中<code>textColor</code> 和 <code>background</code>的值可以是任何有效的 CSS 颜色值。
   enum:

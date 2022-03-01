@@ -27,7 +27,12 @@ export default class HciManagedChart extends SteveModel {
   }
 
   get hasCustomized() {
-    return true;
+    const clonedValue = clone(this.spec.values.prometheus.prometheusSpec);
+
+    delete clonedValue.storageSpec;
+    const sort = Object.keys(clonedValue).sort();
+
+    return JSON.stringify(clonedValue, sort) !== JSON.stringify(this.defaultValue, sort);
   }
 
   get displayName() {
