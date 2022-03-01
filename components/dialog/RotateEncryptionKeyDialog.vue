@@ -1,9 +1,10 @@
 <script>
+import { SNAPSHOT, NORMAN } from '@/config/types';
 import AsyncButton from '@/components/AsyncButton';
 import Card from '@/components/Card';
 import Banner from '@/components/Banner';
 import { exceptionToErrorsArray } from '@/utils/error';
-import { NORMAN } from '@/config/types';
+
 import { sortBy } from '@/utils/sort';
 import day from 'dayjs';
 import { escapeHtml } from '@/utils/string';
@@ -35,7 +36,7 @@ export default {
     }
 
     if (c.isRke2 && this.$store.getters['isRancher']) {
-      etcdBackups = c.etcdSnapshots;
+      etcdBackups = await this.$store.dispatch('management/findAll', { type: SNAPSHOT });
       etcdBackups = etcdBackups.filter(backup => backup.clusterId === c.id);
     }
 
