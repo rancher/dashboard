@@ -24,28 +24,18 @@ export default {
     const allToDelete = Array.isArray(this.resources) ? this.resources : [this.resources];
     const cluster = allToDelete[0].cluster;
 
-    // Not all machines can be deleted, there must always be at least one left with the role of control plane in the cluster
-    const allToDeleteByType = allToDelete.reduce((res, m) => {
-      if (m.isControlPlane) {
-        res.controlPlane.push(m);
-      } else {
-        res.others.push(m);
-      }
-
-      return res;
-    }, { controlPlane: [], others: [] });
-
-    const totalControlPlanes = cluster.machines.filter(m => m.isControlPlane).length;
-    const controlPlanesToDelete = allToDeleteByType.controlPlane.length;
-    // If we're attempting to remove all control plan machines.... ignore one
-    const ignoredControlPlane = totalControlPlanes - controlPlanesToDelete === 0 ? allToDeleteByType.controlPlane.pop() : undefined;
-    const safeMachinesToDelete = [...allToDeleteByType.controlPlane, ...allToDeleteByType.others];
+    // Not all machines can be deleted, there must always be at least one left for roles control plane and etcd
+    // First ensure that at least one control plane exists... and then check from the remaining machines that at least one etcd exists
+    // This isn't optimisied, there may be cases that retaining a single machine with both roles would be better than retaining two with single roles
+    const [ignoredControlPlane, safeControlePlaneMachinesToDelete] = this.deleteType('isControlPlane', allToDelete, cluster);
+    const [ignoredEtcd, safeMachinesToDelete] = this.deleteType('isEtcd', safeControlePlaneMachinesToDelete, cluster);
+    const ignored = [ignoredControlPlane, ignoredEtcd].filter(i => !!i);
 
     return {
       cluster,
       allToDelete,
       safeMachinesToDelete,
-      ignoredControlPlane,
+      ignored,
       type:   this.$store.getters['type-map/labelFor'](allToDelete[0].schema, allToDelete.length),
       config: {
         title:       this.t('promptRemove.title'),
@@ -56,6 +46,25 @@ export default {
   },
 
   methods: {
+    deleteType(type, allToDelete, cluster) {
+      const allToDeleteByType = allToDelete.reduce((res, m) => {
+        if (m[type]) {
+          res.typed.push(m);
+        } else {
+          res.others.push(m);
+        }
+
+        return res;
+      }, { typed: [], others: [] });
+
+      const totalTypes = cluster.machines.filter(m => m[type]).length;
+      const typesToDelete = allToDeleteByType.typed.length;
+      // If we're attempting to remove all control plan machines.... ignore one
+      const ignoredType = totalTypes - typesToDelete === 0 ? allToDeleteByType.typed.pop() : undefined;
+      const safeMachinesToDelete = [...allToDeleteByType.typed, ...allToDeleteByType.others];
+
+      return [ignoredType, safeMachinesToDelete];
+    },
 
     async remove() {
       // Group machines into pools
@@ -96,9 +105,9 @@ export default {
         <div v-else>
           {{ t('promptScaleMachineDown.attemptingToRemove', { type, count: allToDelete.length }, true) }}
         </div>
-        <div v-if="ignoredControlPlane" class="retained-machine">
-          <span>{{ t('promptScaleMachineDown.retainedMachine1') }}</span>
-          <span v-html="t('promptScaleMachineDown.retainedMachine2', { name: ignoredControlPlane.name }, true)"></span>
+        <div v-if="ignored.length" class="retained-machine">
+          <span class="mb-20">{{ t('promptScaleMachineDown.retainedMachine1') }}</span>
+          <span v-for="i in ignored" :key="i.name" v-html="t('promptScaleMachineDown.retainedMachine2', { name: i.name }, true)"></span>
         </div>
       </div>
     </template>

@@ -184,18 +184,39 @@ export default class CapiMachine extends SteveModel {
       return false;
     }
 
-    if (!this.isControlPlane) {
-      return true;
+    // Prevent scaling down control plane or etcd nodes to zero
+    // This is a little overly optimised but avoids iterating over the whole machine set every time
+    const foundType = { };
+
+    if (this.isControlPlane) {
+      foundType.isControlPlane = false;
+    }
+    if (this.isEtcd) {
+      foundType.isEtcd = false;
     }
 
-    let foundControlPlane;
+    if (Object.keys(foundType).length === 0) {
+      return true; // It's neither type, so can always scale down
+    }
 
+    // If we have more than one of the required types then it's not the last of that type and can be scaled down
     for (const m of this.cluster.machines) {
-      if (m.isControlPlane) {
-        if (foundControlPlane) {
-          return true;
+      Object.keys(foundType).forEach((type) => {
+        // Have we found this type?
+        if (m[type]) {
+          if (foundType[type]) {
+            // Another of this type exists, we don't need to check for it further
+            delete foundType[type];
+          } else {
+            // Record that we've found type
+            foundType[type] = true;
+          }
         }
-        foundControlPlane = true;
+      });
+
+      // Are there no types left to look for?
+      if (Object.keys(foundType).length === 0) {
+        return true;
       }
     }
 
