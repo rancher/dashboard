@@ -51,6 +51,8 @@ const TAB_WEIGHT_MAP = {
   volumeClaimTemplates: 89,
 };
 
+const GPU_KEY = 'nvidia.com/gpu';
+
 export default {
   name:       'CruWorkload',
   components: {
@@ -296,16 +298,16 @@ export default {
     flatResources: {
       get() {
         const { limits = {}, requests = {} } = this.container.resources || {};
-        const { cpu:limitsCpu, memory:limitsMemory } = limits;
-        const { cpu:requestsCpu, memory:requestsMemory } = requests;
+        const { cpu: limitsCpu, memory: limitsMemory, [GPU_KEY]: limitsGpu } = limits;
+        const { cpu: requestsCpu, memory: requestsMemory } = requests;
 
         return {
-          limitsCpu, limitsMemory, requestsCpu, requestsMemory
+          limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu
         };
       },
       set(neu) {
         const {
-          limitsCpu, limitsMemory, requestsCpu, requestsMemory
+          limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu
         } = neu;
 
         const out = {
@@ -314,8 +316,9 @@ export default {
             memory: requestsMemory
           },
           limits: {
-            cpu:    limitsCpu,
-            memory: limitsMemory
+            cpu:       limitsCpu,
+            memory:    limitsMemory,
+            [GPU_KEY]: limitsGpu
           }
         };
 

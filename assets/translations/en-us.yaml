@@ -184,6 +184,7 @@ suffix:
   milliCpus: milli CPUs
   cores: Cores
   cpus: CPUs
+  gpus: GPUs
   ib: iB
   mib: MiB
   gb: GB
@@ -1702,10 +1703,12 @@ configmap:
 
 containerResourceLimit:
   cpuPlaceholder: e.g. 1000
+  gpuPlaceholder: e.g. 1
   helpText: Configure how much of the resources the container can consume by default.
   helpTextDetail: The amount of resources the container can consume by default.
   label: Container Default Resource Limit
   limitsCpu: CPU Limit
+  limitsGpu: NVIDIA GPU Limit/Reservation
   limitsMemory: Memory Limit
   memPlaceholder: e.g. 128
   requestsCpu: CPU Reservation
