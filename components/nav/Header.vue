@@ -256,7 +256,7 @@ export default {
       </n-link>
     </div>
     <div v-if="!simple" ref="product" class="product">
-      <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster">
+      <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster cluster-clipped">
         <div v-if="isSingleVirtualCluster" class="product-name">
           {{ t('product.harvester') }}
         </div>
@@ -523,6 +523,11 @@ export default {
       white-space: nowrap;
       .cluster-name {
         font-size: 16px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+      &.cluster-clipped {
+        overflow: hidden;
       }
     }
 
