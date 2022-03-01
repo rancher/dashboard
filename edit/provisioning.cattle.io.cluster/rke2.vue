@@ -647,7 +647,7 @@ export default {
       const cni = this.serverConfig.cni;
 
       if ( cni ) {
-        const parts = cni.split('+').map(x => `rke2-${ x }`);
+        const parts = cni.split(',').map(x => `rke2-${ x }`);
 
         names.push(...parts);
       }
@@ -722,10 +722,25 @@ export default {
         // eslint-disable-next-line no-unused-vars
         const cni = this.serverConfig.cni; // force this property to recalculate if cni was changed away from cilium and chartValues['rke-cilium'] deleted
 
-        return this.rkeConfig?.chartValues?.['rke2-cilium']?.ipv6?.enabled || false;
+        return this.userChartValues[this.chartVersionKey('rke2-cilium')]?.cilium?.ipv6?.enabled || false;
       },
       set(val) {
-        set(this.rkeConfig, "chartValues.'rke2-cilium'.ipv6.enabled", val);
+        const name = this.chartVersionKey('rke2-cilium');
+        const values = this.userChartValues[name];
+
+        set(this, 'userChartValues', {
+          ...this.userChartValues,
+          [name]: {
+            ...values,
+            cilium: {
+              ...values?.cilium,
+              ipv6: {
+                ...values?.cilium?.ipv6,
+                enabled: val
+              }
+            }
+          }
+        });
       }
     },
 
@@ -820,11 +835,6 @@ export default {
       }
     },
 
-    'serverConfig.cni'(neu) {
-      if (neu !== 'cilium') {
-        delete this.rkeConfig.chartValues['rke2-cilium'];
-      }
-    }
   },
 
   mounted() {
@@ -1517,7 +1527,7 @@ export default {
                 :label="t('cluster.rke2.cni.label')"
               />
             </div>
-            <div v-if="serverConfig.cni === 'cilium'" class="col">
+            <div v-if="serverConfig.cni === 'cilium' || serverConfig.cni === 'multus,cilium'" class="col">
               <Checkbox v-model="ciliumIpv6" :mode="mode" :label="t('cluster.rke2.address.ipv6.enable')" />
             </div>
           </div>
