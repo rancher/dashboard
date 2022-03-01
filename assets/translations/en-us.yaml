@@ -5487,10 +5487,12 @@ harvester:
       description:
         label: Description
       lastFormattedAt:
-        info: The disk has already been force-formatted
+        info: The disk has already been force-formatted.
       notification:
         success: 'Update host "{name}" configurations successfully.'
       error: Host has unready or unschedulable disks.
+      fileSystem:
+        info: Current file system is {system}, You can format it manually.
 
   virtualizationManagement:
     manage: Manage
