@@ -163,7 +163,7 @@ export default {
   },
 
   methods: {
-    // Sizes the product area of the header such that it shrinks to ensure the whole header abr can be shown
+    // Sizes the product area of the header such that it shrinks to ensure the whole header bar can be shown
     // where possible - we use a miniumum width of 32px which is enough to just show the product icon
     layoutHeader() {
       const header = this.$refs.header;
