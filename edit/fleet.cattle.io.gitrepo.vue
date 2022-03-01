@@ -225,8 +225,19 @@ export default {
     },
   },
 
+  created() {
+    this.registerBeforeHook(this.cleanTLS, 'cleanTLS');
+  },
+
   methods: {
     set,
+
+    cleanTLS() {
+      if (!this.isTls) {
+        delete this.value.spec.insecureSkipTLSVerify;
+        delete this.value.spec.caBundle;
+      }
+    },
 
     updateAuth(val, key) {
       const spec = this.value.spec;
@@ -400,7 +411,6 @@ export default {
 
     <template v-if="isTls">
       <div class="spacer" />
-
       <h3 v-t="'fleet.gitRepo.tls.label'" />
       <div class="row">
         <div class="col span-6">
@@ -420,85 +430,84 @@ export default {
           />
         </div>
       </div>
+    </template>
+    <div class="spacer" />
 
-      <div class="spacer" />
-
-      <h2 v-t="'fleet.gitRepo.paths.label'" />
-      <ArrayList
-        v-model="value.spec.paths"
-        :mode="mode"
-        :initial-empty-row="false"
-        :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
-        :add-label="t('fleet.gitRepo.paths.addLabel')"
-      >
-        <template #empty>
-          <Banner label-key="fleet.gitRepo.paths.empty" />
-        </template>
-      </ArrayList>
-
-      <div class="spacer" />
-
-      <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
-
-      <template v-if="!isLocal">
-        <div class="row">
-          <div class="col span-6">
-            <LabeledSelect
-              v-model="targetMode"
-              :options="targetOptions"
-              option-key="value"
-              :mode="mode"
-              :selectable="option => !option.disabled"
-              :label="t('fleet.gitRepo.target.selectLabel')"
-            >
-              <template v-slot:option="opt">
-                <hr v-if="opt.kind === 'divider'">
-                <div v-else-if="opt.kind === 'title'">
-                  {{ opt.label }}
-                </div>
-                <div v-else>
-                  {{ opt.label }}
-                </div>
-              </template>
-            </LabeledSelect>
-          </div>
-        </div>
-
-        <div v-if="targetMode === 'advanced'" class="row mt-10">
-          <div class="col span-12">
-            <YamlEditor v-model="targetAdvanced" />
-          </div>
-        </div>
-
-        <Banner v-for="(err, i) in targetAdvancedErrors" :key="i" color="error" :label="err" />
+    <h2 v-t="'fleet.gitRepo.paths.label'" />
+    <ArrayList
+      v-model="value.spec.paths"
+      :mode="mode"
+      :initial-empty-row="false"
+      :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
+      :add-label="t('fleet.gitRepo.paths.addLabel')"
+    >
+      <template #empty>
+        <Banner label-key="fleet.gitRepo.paths.empty" />
       </template>
+    </ArrayList>
 
-      <div class="row mt-20">
+    <div class="spacer" />
+
+    <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
+
+    <template v-if="!isLocal">
+      <div class="row">
         <div class="col span-6">
-          <LabeledInput
-            v-model="value.spec.serviceAccount"
-            label-key="fleet.gitRepo.serviceAccount.label"
-            placeholder-key="fleet.gitRepo.serviceAccount.placeholder"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model="value.spec.targetNamespace"
-            label-key="fleet.gitRepo.targetNamespace.label"
-            placeholder-key="fleet.gitRepo.targetNamespace.placeholder"
-            label="Target Namespace"
-            placeholder="Optional: Require all resources to be in this namespace"
-          />
+          <LabeledSelect
+            v-model="targetMode"
+            :options="targetOptions"
+            option-key="value"
+            :mode="mode"
+            :selectable="option => !option.disabled"
+            :label="t('fleet.gitRepo.target.selectLabel')"
+          >
+            <template v-slot:option="opt">
+              <hr v-if="opt.kind === 'divider'">
+              <div v-else-if="opt.kind === 'title'">
+                {{ opt.label }}
+              </div>
+              <div v-else>
+                {{ opt.label }}
+              </div>
+            </template>
+          </LabeledSelect>
         </div>
       </div>
 
-      <div class="spacer" />
+      <div v-if="targetMode === 'advanced'" class="row mt-10">
+        <div class="col span-12">
+          <YamlEditor v-model="targetAdvanced" />
+        </div>
+      </div>
 
-      <Labels
-        :value="value"
-        :mode="mode"
-        :display-side-by-side="false"
-      />
+      <Banner v-for="(err, i) in targetAdvancedErrors" :key="i" color="error" :label="err" />
     </template>
+
+    <div class="row mt-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.spec.serviceAccount"
+          label-key="fleet.gitRepo.serviceAccount.label"
+          placeholder-key="fleet.gitRepo.serviceAccount.placeholder"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.spec.targetNamespace"
+          label-key="fleet.gitRepo.targetNamespace.label"
+          placeholder-key="fleet.gitRepo.targetNamespace.placeholder"
+          label="Target Namespace"
+          placeholder="Optional: Require all resources to be in this namespace"
+        />
+      </div>
+    </div>
+
+    <div class="spacer" />
+
+    <Labels
+      :value="value"
+      :mode="mode"
+      :display-side-by-side="false"
+    />
   </CruResource>
 </template>
