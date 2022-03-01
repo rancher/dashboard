@@ -722,11 +722,25 @@ export default {
         // eslint-disable-next-line no-unused-vars
         const cni = this.serverConfig.cni; // force this property to recalculate if cni was changed away from cilium and chartValues['rke-cilium'] deleted
 
-        return this.userChartValuesTemp?.['rke2-cilium']?.cilium.ipv6?.enabled || false;
+        return this.userChartValues[this.chartVersionKey('rke2-cilium')]?.cilium?.ipv6?.enabled || false;
       },
       set(val) {
-        set(this.userChartValuesTemp, "'rke2-cilium'.cilium.ipv6.enabled", val);
-        this.syncChartValues('rke2-cilium');
+        const name = this.chartVersionKey('rke2-cilium');
+        const values = this.userChartValues[name];
+
+        set(this, 'userChartValues', {
+          ...this.userChartValues,
+          [name]: {
+            ...values,
+            cilium: {
+              ...values?.cilium,
+              ipv6: {
+                ...values?.cilium?.ipv6,
+                enabled: val
+              }
+            }
+          }
+        });
       }
     },
 
