@@ -201,9 +201,9 @@ export default {
 
           const provider = this.provider(gvr);
 
-          const url = this.$router.resolve(this.chartLocation(true, gvr)).href;
-
           if ( provider ) {
+            const url = this.$router.resolve(this.chartLocation(true, provider)).href;
+
             requires.push(this.t('catalog.install.error.requiresFound', {
               url,
               name: provider.name
@@ -333,8 +333,8 @@ export default {
     /**
      * Location of chart install or details page for either the current chart or from gvr
      */
-    chartLocation(install = false, gvr) {
-      const provider = gvr ? this.provider(gvr) : {
+    chartLocation(install = false, prov) {
+      const provider = prov || {
         repoType: this.chart.repoType,
         repoName: this.chart.repoName,
         name:     this.chart.chartName,
