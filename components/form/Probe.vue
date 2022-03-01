@@ -302,12 +302,13 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.title {
+  margin-bottom: 10px;
+}
 
-  .title {
-    margin-bottom: 10px;
+::v-deep .labeled-select {
+  &:not(taggable) {
+    height: auto !important;
   }
-  ::v-deep .labeled-select {
-    height: auto;
-  }
-
+}
 </style>
