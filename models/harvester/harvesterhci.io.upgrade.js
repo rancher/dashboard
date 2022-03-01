@@ -152,7 +152,7 @@ export default class HciUpgrade extends SteveModel {
 
     out = Math.floor(out / this.nodeUpgradeMessage.length);
     const conditions = this?.status?.conditions || [];
-    const nodeUpgradedCondition = conditions.find( cond => cond.type === 'nodesUpgraded');
+    const nodeUpgradedCondition = conditions.find( cond => cond.type === 'NodesUpgraded');
 
     if (out === 100 && !nodeUpgradedCondition) {
       out = 99;
