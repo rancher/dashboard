@@ -32,7 +32,7 @@ export default {
 <template>
   <div class="mt-20">
     <ResourcesSummary :value="value.status.resourceCounts" />
-    <!-- add comment -->
+
     <ResourceTabs v-model="value" mode="view" class="mt-20">
       <Tab label="Resources" name="resources" :weight="20">
         <FleetResources :value="value" />
