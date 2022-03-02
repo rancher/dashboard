@@ -28,6 +28,12 @@ export default class HciPv extends SteveModel {
         icon:       'icon icon-copy',
         label:      this.t('harvester.action.exportImage'),
       },
+      {
+        action:     'cancelExpand',
+        enabled:    this.hasAction('cancelExpand'),
+        icon:       'icon icon-backup',
+        label:      this.t('harvester.action.cancelExpand'),
+      },
       ...super._availableActions
     ];
   }
@@ -37,6 +43,17 @@ export default class HciPv extends SteveModel {
       resources,
       component: 'harvester/ExportImageDialog'
     });
+  }
+
+  async cancelExpand(resources = this) {
+    try {
+      await this.doAction('cancelExpand', {});
+    } catch (err) {
+      this.$dispatch('growl/fromError', {
+        title: this.$rootGetters['i18n/t']('harvester.notification.title.error'),
+        err,
+      }, { root: true });
+    }
   }
 
   get canUpdate() {
