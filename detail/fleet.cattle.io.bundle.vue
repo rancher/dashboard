@@ -1,11 +1,19 @@
 <script>
 import { FLEET } from '@/config/types';
-import FleetBundleResources from '~/components/fleet/FleetBundleResources.vue';
+import FleetBundleResources from '@/components/fleet/FleetBundleResources.vue';
+import Tabbed from '@/components/Tabbed';
+import Tab from '@/components/Tabbed/Tab';
+import FleetResources from '~/components/fleet/FleetResources.vue';
 
 export default {
   name: 'FleetBundleDetail',
 
-  components: { FleetBundleResources },
+  components: {
+    Tabbed,
+    Tab,
+    FleetBundleResources,
+    FleetResources
+  },
   props:      {
     value: {
       type:     Object,
@@ -48,6 +56,10 @@ export default {
 
 <template>
   <div>
-    <FleetBundleResources :value="bundleResources" />
+    <Tabbed>
+      <Tab label="Resources" name="resources" :weight="30">
+        <FleetResources :value="repo" />
+      </Tab>
+    </Tabbed>
   </div>
 </template>

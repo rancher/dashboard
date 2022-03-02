@@ -41,12 +41,6 @@ export default {
           width:         100,
         },
         {
-          name:  'cluster',
-          value: 'clusterName',
-          sort:  ['clusterName', 'stateSort'],
-          label: 'Cluster',
-        },
-        {
           name:  'apiVersion',
           value: 'apiVersion',
           sort:  'apiVersion',

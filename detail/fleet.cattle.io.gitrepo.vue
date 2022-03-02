@@ -78,7 +78,6 @@ export default {
 <template>
   <div class="mt-20">
     <FleetSummary :value="value" :bundles="bundles" />
-
     <ResourceTabs v-model="value" mode="view" class="mt-20">
       <Tab label="Bundles" name="bundles" :weight="30">
         <FleetBundles :value="value" />

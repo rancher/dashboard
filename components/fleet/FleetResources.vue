@@ -125,13 +125,16 @@ export default {
 </script>
 
 <template>
-  <SortableTable
-    :rows="computedResources"
-    :headers="resourceHeaders"
-    :table-actions="false"
-    :row-actions="false"
-    key-field="key"
-    default-sort-by="state"
-    :paged="true"
-  />
+  <div>
+    {{ JSON.stringify(value) }}
+    <SortableTable
+      :rows="computedResources"
+      :headers="resourceHeaders"
+      :table-actions="false"
+      :row-actions="false"
+      key-field="key"
+      default-sort-by="state"
+      :paged="true"
+    />
+  </div>
 </template>
