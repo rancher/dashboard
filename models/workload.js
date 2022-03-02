@@ -125,6 +125,7 @@ export default class Workload extends SteveModel {
     const namespace = workload.metadata.namespace;
     const workloadName = workload.metadata.name;
 
+    // Ensure we go out to the correct cluster 
     await this.patch(rollbackRequestBody, { url: `/k8s/clusters/${ cluster.id }/apis/apps/v1/namespaces/${ namespace }/deployments/${ workloadName }` });
   }
 
