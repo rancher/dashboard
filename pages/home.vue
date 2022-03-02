@@ -40,6 +40,15 @@ export default {
     SingleClusterInfo
   },
 
+  middleware({ redirect, store } ) {
+    const isSingleProduct = store.getters['isSingleProduct'];
+
+    if (isSingleProduct?.afterLoginRoute) {
+      // Catch cases where the dashboard redirects to home
+      return redirect(isSingleProduct.afterLoginRoute);
+    }
+  },
+
   mixins: [PageHeaderActions],
 
   async fetch() {

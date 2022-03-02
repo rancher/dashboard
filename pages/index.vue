@@ -14,7 +14,7 @@ export default {
     }
 
     // Take the user to the configured login route
-    const afterLoginRouteObject = store.getters['prefs/afterLoginRoute'];
+    const afterLoginRouteObject = isSingleProduct?.afterLoginRoute || store.getters['prefs/afterLoginRoute'];
 
     return redirect(afterLoginRouteObject);
   }
