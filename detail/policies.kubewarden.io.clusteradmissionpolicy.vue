@@ -60,27 +60,51 @@ export default {
   },
 
   data() {
-    const tracesHeaders = [
-      {
-        name:   'processes',
-        value:  'processes.p1.serviceName',
-        label:  'Processes',
-        sort:   'processes'
-      },
-      {
-        name:  'traceID',
-        value: 'traceID',
-        label: 'Trace ID',
-        sort:  'traceID'
-      }
-    ];
-
     return {
+      POLICY_METRICS_URL,
+
       metricsService:     null,
       jaegerService:      null,
       traces:             null,
-      tracesHeaders,
-      POLICY_METRICS_URL
+
+      tracesHeaders: [
+        {
+          name:   'kind',
+          value:  'kind',
+          label:  'Kind',
+          sort:   'kind'
+        },
+        {
+          name:   'startTime',
+          value:  'startTime',
+          label:  'Start Time',
+          sort:   'startTime'
+        },
+        {
+          name:   'duration',
+          value:  'duration',
+          label:  'Duration (ms)',
+          sort:   'duration'
+        },
+        {
+          name:  'name',
+          value: 'name',
+          label: 'Name',
+          sort:  'name'
+        },
+        {
+          name:  'namespace',
+          value: 'namespace',
+          label: 'Namespace',
+          sort:  'namespace'
+        },
+        {
+          name:  'operation',
+          value: 'operation',
+          label: 'Operation',
+          sort:  'operation'
+        },
+      ]
     };
   },
 
@@ -97,7 +121,22 @@ export default {
     },
 
     tracesRows() {
-      return this.traces?.data;
+      const out = this.traces?.data?.map((trace) => {
+        const span = trace.spans.find(s => s.operationName === 'validation');
+        const date = new Date(span.startTime).toUTCString();
+
+        span.startTime = date;
+
+        const tags = span.tags.filter(t => (
+          t.key === 'kind' || t.key === 'name' || t.key === 'namespace' || t.key === 'operation'
+        ));
+
+        return tags.reduce((tag, item) => ({
+          ...span, ...tag, [item.key]: item.value
+        }), {});
+      });
+
+      return out;
     }
   }
 };
