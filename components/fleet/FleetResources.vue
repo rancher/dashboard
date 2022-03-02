@@ -126,7 +126,6 @@ export default {
 
 <template>
   <div>
-    {{ JSON.stringify(value) }}
     <SortableTable
       :rows="computedResources"
       :headers="resourceHeaders"

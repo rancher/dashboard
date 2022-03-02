@@ -53,7 +53,7 @@ export default {
         notready: {
           count: 0,
           color: 'notready',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.warning`, null, 'Warning')
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.notready`, null, 'Not Ready')
         },
         error:   {
           count: 0,
@@ -68,6 +68,8 @@ export default {
         }
       };
 
+      console.log('OUT', out);
+
       resources.forEach((element) => {
         const k = element.status?.summary.ready > 0 && element.status?.summary.desiredReady === element.status.summary.ready;
 
@@ -77,6 +79,13 @@ export default {
           return;
         }
 
+        const notReady = element.status.conditions.find(condition => condition.tranistioning);
+
+        if (!!notReady) {
+          out.notready.count += 1;
+
+          return;
+        }
         // check conditions
         const state = element.status.conditions.find(condition => !!condition.error) ? 'error' : element.metadata.state;
 

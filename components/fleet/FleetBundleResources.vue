@@ -1,6 +1,7 @@
 <script>
 import { colorForState, stateDisplay, stateSort } from '@/plugins/steve/resource-class';
 import SortableTable from '@/components/SortableTable';
+import { ucFirst } from '~/utils/string';
 
 export default {
   name: 'FleetBundleResources',
@@ -21,8 +22,17 @@ export default {
         const color = colorForState(state).replace('text-', 'bg-');
         const display = stateDisplay(state);
 
+        const stateObj = state;
+        const trans = stateObj?.transitioning || false;
+        const error = stateObj?.error || false;
+        const message = stateObj?.message;
+
+        const stateDescription = trans || error ? ucFirst(message) : '';
+
         return {
           ...item,
+          stateObj,
+          stateDescription,
           stateBackground: color,
           stateDisplay:    display,
           stateSort:       stateSort(color, display),
@@ -72,13 +82,16 @@ export default {
 </script>
 
 <template>
-  <SortableTable
-    :rows="computedResources"
-    :headers="resourceHeaders"
-    :table-actions="false"
-    :row-actions="false"
-    key-field="key"
-    default-sort-by="state"
-    :paged="true"
-  />
+  <div>
+    {{ computedResources }}
+    <SortableTable
+      :rows="computedResources"
+      :headers="resourceHeaders"
+      :table-actions="false"
+      :row-actions="false"
+      key-field="key"
+      default-sort-by="state"
+      :paged="true"
+    />
+  </div>
 </template>

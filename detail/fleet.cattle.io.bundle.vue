@@ -58,7 +58,7 @@ export default {
   <div>
     <Tabbed>
       <Tab label="Resources" name="resources" :weight="30">
-        <FleetResources :value="repo" />
+        <FleetBundleResources :value="bundleResources" />
       </Tab>
     </Tabbed>
   </div>
