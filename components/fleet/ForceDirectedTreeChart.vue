@@ -13,6 +13,7 @@ export default {
     return {
       parsedData: {
         id:       'item1',
+        isRepo:   true,
         children: [
           {
             id:       'item2',
@@ -41,20 +42,28 @@ export default {
                 id:       'item9',
                 children: []
               },
-            ]
+            ],
+            isBundle: true
           },
           {
             id:       'item3',
-            children: []
+            children: [],
+            isBundle: true
+          },
+          {
+            id:       'item110',
+            children: [],
+            isBundle: true
           }
         ]
       },
-      root:       undefined,
-      node:       undefined,
-      link:       undefined,
-      svg:        undefined,
-      simulation:       undefined,
-      isRendered: false
+      root:         undefined,
+      node:         undefined,
+      link:         undefined,
+      svg:          undefined,
+      simulation:   undefined,
+      circleRadius: 15,
+      isRendered:   false
     };
   },
   methods: {
@@ -63,9 +72,9 @@ export default {
       const height = 400;
 
       // clear any previous renders, if they exist...
-      // if (d3.select('#tree > svg')) {
-      //   d3.select('#tree > svg').remove();
-      // }
+      if (d3.select('#tree > svg')) {
+        d3.select('#tree > svg').remove();
+      }
 
       this.svg = d3.select('#tree').append('svg')
         .attr('viewBox', `0 0 ${ width } ${ height }`)
@@ -74,15 +83,17 @@ export default {
         .attr('transform', 'translate(40,0)');
 
       this.simulation = d3.forceSimulation()
-        .force('link', d3.forceLink().id((d) => {
-          return d.id;
-        }))
-        .force('charge', d3.forceManyBody().strength(-15).distanceMax(300))
-        .force('center', d3.forceCenter( width / 2, height / 4 ))
+        .force('charge', d3.forceManyBody().strength(-300).distanceMax(300))
+        .force('collision', d3.forceCollide(this.circleRadius * 1.5))
+        // .force('center', d3.forceCenter( width / 2, height / 4 ))
+        .force('center', d3.forceCenter( width / 2, height / 2 ))
         .on('tick', this.ticked);
     },
-    updateChart() {
-      this.root = d3.hierarchy(this.parsedData);
+    updateChart(isStart) {
+      if (isStart) {
+        this.root = d3.hierarchy(this.parsedData);
+      }
+
       const nodes = this.flatten(this.root);
       const links = this.root.links();
 
@@ -117,7 +128,7 @@ export default {
         .append('g')
         .attr('class', 'node')
         .attr('stroke', this.hasChildrenColor)
-        .attr('stroke-width', 2)
+        .attr('stroke-width', 4)
         .style('fill', this.color)
         .style('opacity', 1)
         .on('click', this.clicked)
@@ -129,7 +140,7 @@ export default {
       nodeEnter.append('circle')
         .attr('r', (d) => {
           // return Math.sqrt(d.data.size) / 10 || 4.5;
-          return 10;
+          return this.circleRadius;
         })
         .style('text-anchor', (d) => {
           return d.children ? 'end' : 'start';
@@ -139,14 +150,18 @@ export default {
       // });
 
       this.node = nodeEnter.merge(this.node);
+
       this.simulation.nodes(nodes);
-      this.simulation.force('link').links(links);
+      this.simulation.force('link', d3.forceLink().id((d) => {
+        return d.id;
+      }).distance(100).links(links));
     },
     color(d) {
-      return '#ccc';
+      return d.data.isRepo ? 'red' : d.data.isBundle ? 'black' : '#CCCCCC';
     },
     hasChildrenColor(d) {
-      return d.data.id === 'item1' ? 'red' : d._children ? '#000' : d.children ? '#000' : 'none'; // leaf node
+      return d.data.isRepo ? 'red' : d.data.isBundle && (!d._children && !d.children) ? 'black' : d.data.isBundle && (d._children || d.children) ? 'green' : '#CCCCCC';
+      // return d.data.id === 'item1' ? 'red' : d._children ? 'black' : d.children ? 'black' : 'green';
     },
     ticked() {
       this.link
@@ -199,6 +214,7 @@ export default {
       d.fy = null;
     },
     flatten(root) {
+      console.log('root', root);
       const nodes = [];
       let i = 0;
 
@@ -215,6 +231,8 @@ export default {
       }
       recurse(root);
 
+      console.log('nodes', nodes);
+
       return nodes;
     },
     zoomed(ev) {
@@ -229,12 +247,13 @@ export default {
       // eslint-disable-next-line no-console
       console.log('CLICKED', this.parsedData.children[1].children);
 
-      this.updateChart();
+      this.renderChart();
+      this.updateChart(true);
     }
   },
   mounted() {
     this.renderChart();
-    this.updateChart();
+    this.updateChart(true);
   },
 };
 </script>
