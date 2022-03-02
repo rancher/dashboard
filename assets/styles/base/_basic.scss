@@ -71,8 +71,7 @@ TEXTAREA,
 .checkbox-custom,
 .radio-custom {
   &:focus, &.focused {
-    @include form-focus;
-  }
+    @include form-focus }
 }
 
 BUTTON,
