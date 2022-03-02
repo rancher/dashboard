@@ -282,7 +282,7 @@ export default {
 
       .icon-warning {
         text-decoration: none !important;
-        color: var(--error);
+        color: var(--warning);
         padding-right: 15px;
       }
 
