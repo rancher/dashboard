@@ -60,21 +60,21 @@ export default {
 
     filteredOperations() {
       return this.allOperations.filter((operation) => {
-        if (operation.status.releaseName === this.value.metadata.name &&
-            operation.status.namespace === this.value.metadata.namespace) {
+        if (operation.status?.releaseName === this.value.metadata.name &&
+            operation.status?.namespace === this.value.metadata.namespace) {
           return true;
         }
       });
     },
 
     latestOperation() {
-      if (this.allOperations) {
+      if (this.filteredOperations.length > 0) {
         const sortedOperations = sortBy(Object.values(this.filteredOperations), ['createdAt', 'created', 'metadata.creationTimestamp'], true);
 
-        return sortedOperations[0].status.action;
+        return sortedOperations[0];
       }
 
-      return {};
+      return false;
     },
 
   },
@@ -102,8 +102,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <span v-if="latestOperation" class="latest-operation">
-      <!-- <a @click latestOperation.openLogs> -->
-      {{ t('catalog.app.section.lastOperation') }}: ( {{ latestOperation }} ) - <a>{{ t('catalog.app.section.openLogs') }} {{ latestOperation.id }}</a>
+      {{ t('catalog.app.section.lastOperation') }}: ( {{ latestOperation.status.action }} ) - <a @click="latestOperation.openLogs()">  {{ t('catalog.app.section.openLogs') }}</a>
     </span>
 
     <Tabbed class="mt-20" default-tab="resources" @changed="tabChanged($event)">
