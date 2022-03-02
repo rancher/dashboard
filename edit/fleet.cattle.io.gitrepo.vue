@@ -11,7 +11,6 @@ import InputWithSelect from '@/components/form/InputWithSelect';
 import jsyaml from 'js-yaml';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import RadioGroup from '@/components/form/RadioGroup';
 import Labels from '@/components/form/Labels';
 import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -40,8 +39,7 @@ export default {
     Loading,
     NameNsDescription,
     YamlEditor,
-    RadioGroup,
-    SelectOrCreateAuthSecret,
+    SelectOrCreateAuthSecret
   },
 
   mixins: [CreateEditView],
@@ -311,6 +309,10 @@ export default {
       }
     },
 
+    updateTlsMode(event) {
+      this.tlsMode = event;
+    },
+
     updateTls() {
       const spec = this.value.spec;
 
@@ -411,14 +413,14 @@ export default {
 
     <template v-if="isTls">
       <div class="spacer" />
-      <h3 v-t="'fleet.gitRepo.tls.label'" />
       <div class="row">
         <div class="col span-6">
-          <RadioGroup
-            v-model="tlsMode"
-            name="tlsMode"
+          <LabeledSelect
+            :label="t('fleet.gitRepo.tls.label')"
             :mode="mode"
+            :value="tlsMode"
             :options="tlsOptions"
+            @input="updateTlsMode($event)"
           />
         </div>
         <div v-if="tlsMode === _SPECIFY" class="col span-6">
