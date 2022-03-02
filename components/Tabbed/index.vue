@@ -231,7 +231,7 @@ export default {
         >
           {{ tab.labelDisplay }}
         </a>
-        <i v-if="tab.displayAlertIcon" class="icon icon-warning icon-lg" />
+        <i v-if="tab.displayAlertIcon" class="conditions-alert-icon icon-error icon-lg" />
       </li>
       <li v-if="sideTabs && !sortedTabs.length" class="tab disabled">
         <a href="#" @click.prevent>(None)</a>
@@ -280,9 +280,9 @@ export default {
         padding: 10px 15px;
       }
 
-      .icon-warning {
+      .conditions-alert-icon {
         text-decoration: none !important;
-        color: var(--warning);
+        color: var(--error);
         padding-right: 15px;
       }
 
