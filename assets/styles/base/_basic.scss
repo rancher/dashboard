@@ -72,9 +72,6 @@ TEXTAREA,
 .radio-custom {
   &:focus, &.focused {
     @include form-focus;
-    > label {
-      color: var(--primary);
-    }
   }
 }
 

@@ -88,7 +88,7 @@ export default {
             <i :class="{icon: true, ['icon-'+growl.icon]: true}" />
           </div>
           <div class="growl-text">
-            <h3>{{ growl.title }}</h3>
+            <div>{{ growl.title }}</div>
             <p>{{ growl.message }}</p>
           </div>
         </div>
@@ -121,9 +121,7 @@ export default {
   }
 
   .growl {
-    // border: 1px solid var(--border);
     border-radius: var(--border-radius);
-    // padding: 10px;
     margin: 10px;
     position: relative;
 
@@ -142,7 +140,12 @@ export default {
 
     .growl-text {
       flex-basis: 90%;
-      padding: 10px;
+      padding: 10px 10px 10px 0;
+
+      > div {
+        font-size: 16px;
+        margin-bottom: 5px;
+      }
     }
 
     .icon-container {
