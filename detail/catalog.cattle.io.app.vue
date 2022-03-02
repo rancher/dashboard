@@ -8,6 +8,8 @@ import Banner from '@/components/Banner';
 import RelatedResources from '@/components/RelatedResources';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
+import { CATALOG } from '@/config/types';
+import { sortBy } from '~/utils/sort';
 
 export default {
   name: 'DetailRelease',
@@ -23,8 +25,14 @@ export default {
     },
   },
 
+  data() {
+    return { allOperations: [] };
+  },
+
   async fetch() {
     await this.$store.dispatch('catalog/load');
+
+    this.allOperations = await this.$store.dispatch('cluster/findAll', { type: CATALOG.OPERATION });
   },
 
   computed: {
@@ -48,7 +56,27 @@ export default {
       }
 
       return false;
-    }
+    },
+
+    filteredOperations() {
+      return this.allOperations.filter((operation) => {
+        if (operation.status.releaseName === this.value.metadata.name &&
+            operation.status.namespace === this.value.metadata.namespace) {
+          return true;
+        }
+      });
+    },
+
+    latestOperation() {
+      if (this.allOperations) {
+        const sortedOperations = sortBy(Object.values(this.filteredOperations), ['createdAt', 'created', 'metadata.creationTimestamp'], true);
+
+        return sortedOperations[0].status.action;
+      }
+
+      return {};
+    },
+
   },
 
   methods: {
@@ -72,24 +100,37 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <Tabbed v-else class="mt-20" default-tab="resources" @changed="tabChanged($event)">
-    <Tab name="resources" :label="t('catalog.app.section.resources.label')" :weight="4">
-      <Banner v-if="isBusy" color="info" :label="t('catalog.app.section.resources.busy', { app: value.metadata.name })" />
-      <RelatedResources v-else :value="value" rel="helmresource" />
-    </Tab>
-    <Tab name="values-yaml" :label="t('catalog.app.section.values')" :weight="3">
-      <YamlEditor
-        ref="yaml"
-        :scrolling="false"
-        :value="valuesYaml"
-        editor-mode="VIEW_CODE"
-      />
-    </Tab>
-    <Tab v-if="hasReadme" name="readme" :label="t('catalog.app.section.readme')" :weight="2">
-      <Markdown v-model="value.spec.info.readme" />
-    </Tab>
-    <Tab v-if="hasNotes" name="notes" :label="t('catalog.app.section.notes')" :weight="1">
-      <Markdown v-model="value.spec.info.notes" />
-    </Tab>
-  </Tabbed>
+  <div v-else>
+    <span v-if="latestOperation" class="latest-operation">
+      <!-- <a @click latestOperation.openLogs> -->
+      {{ t('catalog.app.section.lastOperation') }}: ( {{ latestOperation }} ) - <a>{{ t('catalog.app.section.openLogs') }} {{ latestOperation.id }}</a>
+    </span>
+
+    <Tabbed class="mt-20" default-tab="resources" @changed="tabChanged($event)">
+      <Tab name="resources" :label="t('catalog.app.section.resources.label')" :weight="4">
+        <Banner v-if="isBusy" color="info" :label="t('catalog.app.section.resources.busy', { app: value.metadata.name })" />
+        <RelatedResources v-else :value="value" rel="helmresource" />
+      </Tab>
+      <Tab name="values-yaml" :label="t('catalog.app.section.values')" :weight="3">
+        <YamlEditor
+          ref="yaml"
+          :scrolling="false"
+          :value="valuesYaml"
+          editor-mode="VIEW_CODE"
+        />
+      </Tab>
+      <Tab v-if="hasReadme" name="readme" :label="t('catalog.app.section.readme')" :weight="2">
+        <Markdown v-model="value.spec.info.readme" />
+      </Tab>
+      <Tab v-if="hasNotes" name="notes" :label="t('catalog.app.section.notes')" :weight="1">
+        <Markdown v-model="value.spec.info.notes" />
+      </Tab>
+    </Tabbed>
+  </div>
 </template>
+
+<style lang="scss" scoped>
+.latest-operation a {
+  cursor: pointer;
+}
+</style>

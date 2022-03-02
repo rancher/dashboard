@@ -683,7 +683,9 @@ catalog:
   app:
     managed: Managed
     section:
+      lastOperation: Last Operation
       notes: Release Notes
+      openLogs: View Logs
       readme: Chart README
       resources:
         label: Resources
