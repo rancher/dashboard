@@ -46,23 +46,23 @@ export default {
         },
         warning: {
           count: 0,
-          color: STATES[STATES_ENUM.INFO].warning,
+          color: STATES[STATES_ENUM.WARNING].color,
           label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.WARNING }`, null, STATES[STATES_ENUM.WARNING].label )
         },
         notready: {
           count: 0,
-          color: STATES[STATES_ENUM.INFO].notready,
+          color: STATES[STATES_ENUM.NOT_READY].color,
           label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.NOT_READY }`, null, STATES[STATES_ENUM.NOT_READY].label )
         },
         error:   {
           count: 0,
-          color: STATES[STATES_ENUM.INFO].error,
+          color: STATES[STATES_ENUM.ERROR].color,
           label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.ERROR }`, null, STATES[STATES_ENUM.ERROR].label )
 
         },
         unknown: {
           count: 0,
-          color: STATES[STATES_ENUM.INFO].unknown,
+          color: STATES[STATES_ENUM.UNKNOWN].color,
           label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.UNKNOWN }`, null, STATES[STATES_ENUM.UNKNOWN].label )
         }
       };
@@ -117,23 +117,23 @@ export default {
         },
         warning: {
           count: 0,
-          color: STATES[STATES_ENUM.INFO].warning,
+          color: STATES[STATES_ENUM.WARNING].color,
           label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.WARNING }`, null, STATES[STATES_ENUM.WARNING].label )
         },
         notready: {
           count: 0,
-          color: STATES[STATES_ENUM.INFO].notready,
+          color: STATES[STATES_ENUM.NOT_READY].color,
           label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.NOT_READY }`, null, STATES[STATES_ENUM.NOT_READY].label )
         },
         error:   {
           count: 0,
-          color: STATES[STATES_ENUM.INFO].error,
+          color: STATES[STATES_ENUM.ERROR].color,
           label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.ERROR }`, null, STATES[STATES_ENUM.ERROR].label )
 
         },
         unknown: {
           count: 0,
-          color: STATES[STATES_ENUM.INFO].unknown,
+          color: STATES[STATES_ENUM.UNKNOWN].color,
           label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.UNKNOWN }`, null, STATES[STATES_ENUM.UNKNOWN].label )
         }
       };
