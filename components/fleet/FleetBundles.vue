@@ -8,7 +8,6 @@ import {
   STATE,
   NAME,
   FLEET_BUNDLE_LAST_UPDATED,
-  // FLEET_BUNDLE_TYPE
 } from '@/config/table-headers';
 import { isHarvesterCluster } from '@/utils/cluster';
 
@@ -97,7 +96,6 @@ export default {
           sort:     'status.display.readyClusters',
           search:   ['status.summary.ready', 'status.summary.desiredReady'],
         },
-        // FLEET_BUNDLE_TYPE,
         FLEET_BUNDLE_LAST_UPDATED,
         CREATION_DATE,
       ];
