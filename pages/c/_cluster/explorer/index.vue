@@ -2,7 +2,6 @@
 import Loading from '@/components/Loading';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
-import SortableTable from '@/components/SortableTable';
 import { allHash } from '@/utils/promise';
 import AlertTable from '@/components/AlertTable';
 import Banner from '@/components/Banner';
@@ -16,7 +15,6 @@ import {
 import {
   NAMESPACE,
   INGRESS,
-  EVENT,
   MANAGEMENT,
   METRIC,
   NODE,
@@ -40,6 +38,8 @@ import ResourceSummary, { resourceCounts } from '@/components/ResourceSummary';
 import HardwareResourceGauge from '@/components/HardwareResourceGauge';
 import { isEmpty } from '@/utils/object';
 import ConfigBadge from './ConfigBadge';
+import EventsTable from './EventsTable';
+import { fetchClusterResources } from './explorer-utils';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -63,22 +63,19 @@ export default {
     HardwareResourceGauge,
     Loading,
     ResourceSummary,
-    SortableTable,
     Tab,
     Tabbed,
     AlertTable,
     Banner,
     EmberPage,
-    ConfigBadge
+    ConfigBadge,
+    EventsTable,
   },
 
   mixins: [metricPoller],
 
   async fetch() {
-    const hash = {
-      nodes:       this.fetchClusterResources(NODE),
-      events:      this.fetchClusterResources(EVENT),
-    };
+    const hash = { nodes: fetchClusterResources(this.$store, NODE) };
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
       hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
@@ -336,30 +333,11 @@ export default {
       });
     },
 
-    async fetchClusterResources(type, opt = {}) {
-      const schema = this.$store.getters['cluster/schemaFor'](type);
-
-      if (schema) {
-        try {
-          const resources = await this.$store.dispatch('cluster/findAll', { type, opt });
-
-          return resources;
-        } catch (err) {
-          console.error(`Failed fetching cluster resource ${ type } with error:`, err); // eslint-disable-line no-console
-
-          return [];
-        }
-      }
-
-      return [];
-    },
-
     async loadMetrics() {
-      this.nodeMetrics = await this.fetchClusterResources(METRIC.NODE, { force: true } );
+      this.nodeMetrics = await fetchClusterResources(this.$store, METRIC.NODE, { force: true } );
     },
     findBy,
   },
-
 };
 </script>
 
@@ -444,26 +422,7 @@ export default {
     <div class="mt-30">
       <Tabbed>
         <Tab name="cluster-events" :label="t('clusterIndexPage.sections.events.label')" :weight="2">
-          <SortableTable
-            :rows="events"
-            :headers="eventHeaders"
-            key-field="id"
-            :search="false"
-            :table-actions="false"
-            :row-actions="false"
-            :paging="true"
-            :rows-per-page="10"
-            default-sort-by="date"
-          >
-            <template #cell:resource="{row, value}">
-              <n-link :to="row.detailLocation">
-                {{ value }}
-              </n-link>
-              <div v-if="row.message">
-                {{ row.displayMessage }}
-              </div>
-            </template>
-          </SortableTable>
+          <EventsTable />
         </Tab>
         <Tab v-if="hasMonitoring" name="cluster-alerts" :label="t('clusterIndexPage.sections.alerts.label')" :weight="1">
           <AlertTable />
