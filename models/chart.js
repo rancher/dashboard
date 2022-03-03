@@ -14,9 +14,9 @@ export default class Chart extends SteveModel {
     const compatibleVersions = compatibleVersionsFor(this, workerOSs);
 
     if (compatibleVersions.length) {
-      version = compatibleVersions[0];
+      version = compatibleVersions[0].version;
     } else {
-      version = chartVersions[0];
+      version = chartVersions[0].version;
     }
 
     const out = {
