@@ -27,18 +27,19 @@ export default {
   },
 
   async fetch() {
-    this.allBundles = await this.$store.dispatch('management/findAll', { type: FLEET.BUNDLE });
     this.allFleet = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
   },
 
   data() {
-    return {
-      allFleet:   [],
-      allBundles: [],
-    };
+    return { allFleet: [] };
   },
 
   computed: {
+
+    allBundles() {
+      // gitrepo model has getter for bundles.
+      return this.value.bundles || [];
+    },
 
     schema() {
       return this.$store.getters['management/schemaFor']( FLEET.BUNDLE );

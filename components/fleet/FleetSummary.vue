@@ -1,6 +1,6 @@
 <script>
 import capitalize from 'lodash/capitalize';
-import { STATES } from '@/plugins/steve/resource-class';
+import { STATES, STATES_ENUM } from '@/plugins/steve/resource-class';
 import FleetStatus from '@/components/fleet/FleetStatus';
 
 export default {
@@ -36,35 +36,34 @@ export default {
       const out = {
         ready: {
           count: 0,
-          color: 'success',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.success`, null, 'Success')
+          color: STATES[STATES_ENUM.SUCCESS].color,
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.SUCCESS }`, null, STATES[STATES_ENUM.SUCCESS].label )
         },
         info:    {
           count: 0,
-          color: 'info',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.info`, null, 'Info')
-
+          color: STATES[STATES_ENUM.INFO].color,
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.INFO }`, null, STATES[STATES_ENUM.INFO].label )
         },
         warning: {
           count: 0,
-          color: 'warning',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.warning`, null, 'Warning')
+          color: STATES[STATES_ENUM.INFO].warning,
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.WARNING }`, null, STATES[STATES_ENUM.WARNING].label )
         },
         notready: {
           count: 0,
-          color: 'notready',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.notready`, null, 'Not Ready')
+          color: STATES[STATES_ENUM.INFO].notready,
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.NOT_READY }`, null, STATES[STATES_ENUM.NOT_READY].label )
         },
         error:   {
           count: 0,
-          color: 'error',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.error`, null, 'Error')
+          color: STATES[STATES_ENUM.INFO].error,
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.ERROR }`, null, STATES[STATES_ENUM.ERROR].label )
 
         },
         unknown: {
           count: 0,
-          color: 'unknown',
-          label:  this.$store.getters['i18n/withFallback'](`${ this.stateKey }.unknown`, null, 'Unknown')
+          color: STATES[STATES_ENUM.INFO].unknown,
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.UNKNOWN }`, null, STATES[STATES_ENUM.UNKNOWN].label )
         }
       };
 
@@ -77,7 +76,7 @@ export default {
           return;
         }
 
-        const notReady = element.status.conditions.find(condition => condition.tranistioning);
+        const notReady = element.status.conditions.find(condition => condition.transitioning);
 
         if (!!notReady) {
           out.notready.count += 1;
@@ -108,33 +107,35 @@ export default {
       const out = {
         ready: {
           count: 0,
-          color: 'success',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.success`, null, 'Success')
+          color: STATES[STATES_ENUM.SUCCESS].color,
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.SUCCESS }`, null, STATES[STATES_ENUM.SUCCESS].label )
         },
         info:    {
           count: 0,
-          color: 'info',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.info`, null, 'Info')
-
+          color: STATES[STATES_ENUM.INFO].color,
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.INFO }`, null, STATES[STATES_ENUM.INFO].label )
         },
         warning: {
           count: 0,
-          color: 'warning',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.warning`, null, 'Warning')
-
+          color: STATES[STATES_ENUM.INFO].warning,
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.WARNING }`, null, STATES[STATES_ENUM.WARNING].label )
+        },
+        notready: {
+          count: 0,
+          color: STATES[STATES_ENUM.INFO].notready,
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.NOT_READY }`, null, STATES[STATES_ENUM.NOT_READY].label )
         },
         error:   {
           count: 0,
-          color: 'error',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.error`, null, 'Error')
+          color: STATES[STATES_ENUM.INFO].error,
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.ERROR }`, null, STATES[STATES_ENUM.ERROR].label )
 
         },
         unknown: {
           count: 0,
-          color: 'warning',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.unknown`, null, 'Unknown')
-
-        },
+          color: STATES[STATES_ENUM.INFO].unknown,
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.UNKNOWN }`, null, STATES[STATES_ENUM.UNKNOWN].label )
+        }
       };
 
       resources.forEach((element) => {

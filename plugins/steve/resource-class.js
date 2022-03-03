@@ -102,6 +102,7 @@ export const STATES_ENUM = {
   FAILED:           'failed',
   HEALTHY:          'healthy',
   INACTIVE:         'inactive',
+  INFO:             'info',
   INITIALIZING:     'initializing',
   INPROGRESS:       'inprogress',
   LOCKED:           'locked',
@@ -262,6 +263,9 @@ export const STATES = {
   },
   [STATES_ENUM.INPROGRESS]:         {
     color: 'info', icon: 'spinner', label: 'In Progress'
+  },
+  [STATES_ENUM.INFO]:         {
+    color: 'info', icon: 'info', label: 'Info'
   },
   [STATES_ENUM.LOCKED]:             {
     color: 'warning', icon: 'adjust', label: 'Locked'
