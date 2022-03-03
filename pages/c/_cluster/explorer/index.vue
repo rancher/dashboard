@@ -39,6 +39,7 @@ import EmberPage from '@/components/EmberPage';
 import ResourceSummary, { resourceCounts } from '@/components/ResourceSummary';
 import HardwareResourceGauge from '@/components/HardwareResourceGauge';
 import { isEmpty } from '@/utils/object';
+import ConfigBadge from './ConfigBadge';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -68,6 +69,7 @@ export default {
     AlertTable,
     Banner,
     EmberPage,
+    ConfigBadge
   },
 
   mixins: [metricPoller],
@@ -302,6 +304,9 @@ export default {
 
     hasMetricsTabs() {
       return this.showClusterMetrics || this.showK8sMetrics || this.showEtcdMetrics;
+    },
+    hasBadge() {
+      return !!this.currentCluster?.badge;
     }
   },
 
@@ -406,6 +411,7 @@ export default {
       <div v-if="monitoringStatus.v1">
         <span>{{ t('glance.v1MonitoringInstalled') }}</span>
       </div>
+      <ConfigBadge v-if="currentCluster.canUpdate" :cluster="currentCluster" />
     </div>
 
     <div class="resource-gauges">
@@ -509,7 +515,7 @@ export default {
   padding: 20px 0px;
   display: flex;
 
-  &>*:not(:last-child) {
+  &>*:not(:nth-last-child(-n+2)) {
     margin-right: 40px;
 
     & SPAN {
@@ -547,6 +553,7 @@ export default {
 
 .monitoring-install {
   display: flex;
+  margin-left: 10px;
 
   > I {
     line-height: inherit;

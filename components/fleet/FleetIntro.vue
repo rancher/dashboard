@@ -42,7 +42,7 @@ export default {
 <style lang="scss" scoped>
 .intro-box {
   flex: 0 0 100%;
-  height: 80vh;
+  height: calc(100vh - 246px); // 2(48 content header + 20 padding + 55 pageheader)
   display: flex;
   align-items: center;
   justify-content: center;

@@ -683,7 +683,9 @@ catalog:
   app:
     managed: Managed
     section:
+      lastOperation: Last Operation
       notes: Release Notes
+      openLogs: View Logs
       readme: Chart README
       resources:
         label: Resources
@@ -1801,6 +1803,7 @@ fleet:
       other {# bundles are hidden as they belong to Harvester clusters that can not be used with Continuous Delivery}
       }
   fleetSummary:
+    noClustersGitRepo: This git repo is not targeting any clusters
     state:
       ready: 'Ready'
       info: 'Transitioning'
@@ -1940,6 +1943,20 @@ glance:
   installMonitoring: Install Monitoring
   v1MonitoringInstalled: V1 Monitoring Installed
   clusterInfo: Cluster Information
+
+clusterBadge:
+  addLabel: Add Cluster Badge
+  editLabel: Edit Cluster Badge
+  modal:
+    title: Custom Cluster Badge
+    checkbox: Show badge for this cluster
+    description: Custom description
+    iconText: Icon Text
+    buttonAction: Apply
+    badgeBgColor: Badge background color
+    badgeTextColor: Badge text color
+    badgeAsIcon: Customize cluster icon
+    maxCharsTooltip: Maximum two characters
 
 grafanaDashboard:
   failedToLoad: Failed to load graph
@@ -2863,6 +2880,7 @@ namespace:
   disableAutoInjection: Disable Istio Auto Injection
   move: Move
   total: Total
+  workloads: Workloads
   resourceStates:
       success: 'Active'
       info: 'Transitioning'

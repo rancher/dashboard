@@ -2,6 +2,7 @@
 import { mapState } from 'vuex';
 import { FLEET } from '@/config/types';
 import { WORKSPACE } from '@/store/prefs';
+import { STATES_ENUM, STATES, getStateLabel } from '@/plugins/steve/resource-class';
 import { allHash } from '@/utils/promise';
 import Loading from '@/components/Loading';
 import CollapsibleCard from '@/components/CollapsibleCard.vue';
@@ -118,28 +119,91 @@ export default {
       });
     },
     badgeClass(area, row) {
+      // classes are defined in the themes SASS files...
       switch (area) {
       case 'clusters':
         if (row.clusterInfo?.ready === row.clusterInfo?.total && row.clusterInfo?.ready) {
-          return 'green-badge';
+          return `bg-${ STATES[STATES_ENUM.ACTIVE].color }`;
         }
 
-        return 'red-badge';
+        return `bg-${ STATES[STATES_ENUM.NOT_READY].color } badge-class-default`;
       case 'bundles':
-        if (row.bundlesReady?.length === row.bundles.length && row.bundlesReady?.length) {
-          return 'green-badge';
+        if (row.bundles?.length && row.bundles?.every(bundle => bundle.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
+          return STATES[STATES_ENUM.ACTIVE].color ? `bg-${ STATES[STATES_ENUM.ACTIVE].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`;
+        }
+        if (row.bundles?.length && row.bundles?.some(bundle => bundle.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
+          return STATES[STATES_ENUM.ERR_APPLIED].color ? `bg-${ STATES[STATES_ENUM.ERR_APPLIED].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`;
+        }
+        if (row.bundles?.length && row.bundles?.some(bundle => bundle.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
+          return STATES[STATES_ENUM.NOT_READY].color ? `bg-${ STATES[STATES_ENUM.NOT_READY].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`;
         }
 
-        return 'red-badge';
+        if (row.bundlesReady?.length === row.bundles?.length && row.bundlesReady && row.bundles?.length) {
+          return `bg-${ STATES[STATES_ENUM.ACTIVE].color }`;
+        }
+
+        return `bg-${ STATES[STATES_ENUM.NOT_READY].color } badge-class-default`;
       case 'resources':
-        if (row.status?.resourceCounts?.desiredReady === row.status?.resourceCounts?.ready && row.status?.resourceCounts?.desiredReady) {
-          return 'green-badge';
+        if (row.status?.resources?.length && row.status?.resources?.every(resource => resource.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
+          return STATES[STATES_ENUM.ACTIVE].color ? `bg-${ STATES[STATES_ENUM.ACTIVE].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`;
+        }
+        if (row.status?.resources?.length && row.status?.resources?.some(resource => resource.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
+          return STATES[STATES_ENUM.ERR_APPLIED].color ? `bg-${ STATES[STATES_ENUM.ERR_APPLIED].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`;
+        }
+        if (row.status?.resources?.length && row.status?.resources?.some(resource => resource.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
+          return STATES[STATES_ENUM.NOT_READY].color ? `bg-${ STATES[STATES_ENUM.NOT_READY].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`;
         }
 
-        return 'red-badge';
+        if (row.status?.resourceCounts?.desiredReady === row.status?.resourceCounts?.ready && row.status?.resourceCounts?.desiredReady) {
+          return `bg-${ STATES[STATES_ENUM.ACTIVE].color }`;
+        }
+
+        return `bg-${ STATES[STATES_ENUM.NOT_READY].color } badge-class-default`;
       default:
         return {};
       }
+    },
+    getTooltipInfo(area, row) {
+      switch (area) {
+      case 'clusters':
+        if (row.clusterInfo?.total) {
+          return `Ready: ${ row.clusterInfo?.ready }<br>Total: ${ row.clusterInfo?.total }`;
+        }
+
+        return '';
+      case 'bundles':
+        if (row.bundles?.length) {
+          return this.generateTooltipData(row.bundles);
+        }
+
+        return '';
+      case 'resources':
+        if (row.status?.resources?.length) {
+          return this.generateTooltipData(row.status?.resources);
+        }
+
+        return '';
+      default:
+        return {};
+      }
+    },
+    generateTooltipData(data) {
+      const infoObj = {};
+      let tooltipData = '';
+
+      data.forEach((item) => {
+        if (!infoObj[item.state]) {
+          infoObj[item.state] = 0;
+        }
+
+        infoObj[item.state]++;
+      });
+
+      Object.keys(infoObj).forEach((key) => {
+        tooltipData += `${ getStateLabel(key) }: ${ infoObj[key] }<br>`;
+      });
+
+      return tooltipData;
     },
     toggleCollapse(val, key) {
       this.$set(this.isCollapsed, key, val);
@@ -253,6 +317,7 @@ export default {
           >
             <template #cell:clustersReady="{row}">
               <span
+                v-tooltip.bottom="getTooltipInfo('clusters', row)"
                 class="cluster-count-info"
                 :class="badgeClass('clusters', row)"
               >
@@ -261,6 +326,7 @@ export default {
             </template>
             <template #cell:bundlesReady="{row}">
               <span
+                v-tooltip.bottom="getTooltipInfo('bundles', row)"
                 class="cluster-count-info"
                 :class="badgeClass('bundles', row)"
               >
@@ -269,6 +335,7 @@ export default {
             </template>
             <template #cell:resourcesReady="{row}">
               <span
+                v-tooltip.bottom="getTooltipInfo('resources', row)"
                 class="cluster-count-info"
                 :class="badgeClass('resources', row)"
               >
@@ -337,14 +404,7 @@ export default {
     padding: 4px 16px;
     border-radius: 16px;
     display: inline-block;
-    color: var(--primary-text);
-
-    &.red-badge {
-      background-color: var(--error);
-    }
-    &.green-badge {
-      background-color: var(--success);
-    }
+    cursor: default;
   }
 
   .header-icons {

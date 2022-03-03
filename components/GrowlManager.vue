@@ -83,9 +83,15 @@ export default {
     <div class="growl-list">
       <div v-for="growl in stack" :key="growl.id" :class="{'growl': true, ['bg-'+growl.color]: true}">
         <i class="close hand icon icon-close" @click="close(growl)" />
-        <span class="sr-only">close</span>
-        <h3>{{ growl.title }}</h3>
-        <p>{{ growl.message }}</p>
+        <div class="growl-message">
+          <div class="icon-container">
+            <i :class="{icon: true, ['icon-'+growl.icon]: true}" />
+          </div>
+          <div class="growl-text">
+            <div>{{ growl.title }}</div>
+            <p>{{ growl.message }}</p>
+          </div>
+        </div>
       </div>
     </div>
     <div v-if="stack.length > 1" class="text-right mr-10 mt-10">
@@ -115,9 +121,7 @@ export default {
   }
 
   .growl {
-    border: 1px solid var(--border);
     border-radius: var(--border-radius);
-    padding: 10px;
     margin: 10px;
     position: relative;
 
@@ -126,6 +130,30 @@ export default {
       top: 0;
       right: 0;
       padding: 5px;
+      font-size: 24px;
+    }
+
+    .growl-message {
+      display: flex;
+      align-items: center;
+    }
+
+    .growl-text {
+      flex-basis: 90%;
+      padding: 10px 10px 10px 0;
+
+      > div {
+        font-size: 16px;
+        margin-bottom: 5px;
+      }
+    }
+
+    .icon-container {
+      flex-basis: 10%;
+      padding: 10px;
+      i {
+        font-size: 24px;
+      }
     }
   }
 </style>
