@@ -111,9 +111,10 @@ export default {
     namespaces() {
       const inStore = this.$store.getters['currentStore'](NAMESPACE);
       const choices = this.$store.getters[`${ inStore }/all`](NAMESPACE);
+      const systemNamespaces = this.$store.getters['systemNamespaces'];
 
       const out = sortBy(
-        choices.map((obj) => {
+        choices.filter(N => !systemNamespaces.includes(N.metadata.name)).map((obj) => {
           return {
             label: obj.nameDisplay,
             value: obj.id,
@@ -218,7 +219,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model="namespace"
-          :disabled="true"
+          :disabled="!restoreNewVm"
           :label="t('nameNsDescription.namespace.label')"
           :options="namespaces"
         />

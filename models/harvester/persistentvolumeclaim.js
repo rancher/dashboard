@@ -45,6 +45,20 @@ export default class HciPv extends SteveModel {
 
   get stateDisplay() {
     const ownedBy = this?.metadata?.annotations?.[HCI_ANNOTATIONS.OWNED_BY];
+    const status = this?.status?.phase === 'Bound' ? 'Ready' : 'NotReady';
+
+    const conditions = this?.status?.conditions || [];
+
+    if (findBy(conditions, 'type', 'Resizing')?.status === 'True') {
+      return 'Resizing';
+    } else if (ownedBy) {
+      return 'In-use';
+    } else {
+      return status;
+    }
+  }
+
+  get state() {
     let status = this?.status?.phase === 'Bound' ? 'Ready' : 'NotReady';
 
     const conditions = this?.status?.conditions || [];
@@ -53,11 +67,7 @@ export default class HciPv extends SteveModel {
       status = 'Resizing';
     }
 
-    if (ownedBy) {
-      return 'In-use';
-    } else {
-      return status;
-    }
+    return status;
   }
 
   get stateColor() {

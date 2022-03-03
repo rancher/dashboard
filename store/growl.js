@@ -44,6 +44,7 @@ export const actions = {
   success({ commit }, data) {
     commit('add', {
       color:   'success',
+      icon:    'checkmark',
       timeout: DEFAULT_TIMEOUT,
       ...data
     });
@@ -52,6 +53,7 @@ export const actions = {
   info({ commit }, data) {
     commit('add', {
       color:   'info',
+      icon:    'info',
       timeout: DEFAULT_TIMEOUT,
       ...data
     });
@@ -60,6 +62,7 @@ export const actions = {
   warning({ commit }, data) {
     commit('add', {
       color:   'warning',
+      icon:    'warning',
       timeout: DEFAULT_TIMEOUT,
       ...data
     });
@@ -68,6 +71,7 @@ export const actions = {
   error({ commit }, data) {
     commit('add', {
       color:   'error',
+      icon:    'error',
       timeout: 0, // Errors don't timeout
       ...data
     });
@@ -76,6 +80,7 @@ export const actions = {
   fromError({ commit }, { title, err }) {
     commit('add', {
       color:   'error',
+      icon:    'error',
       timeout: 0, // Errors don't timeout
       title,
       message: stringify(err),

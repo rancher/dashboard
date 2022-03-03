@@ -231,6 +231,7 @@ export default {
         >
           {{ tab.labelDisplay }}
         </a>
+        <i v-if="tab.displayAlertIcon" class="conditions-alert-icon icon-error icon-lg" />
       </li>
       <li v-if="sideTabs && !sortedTabs.length" class="tab disabled">
         <a href="#" @click.prevent>(None)</a>
@@ -257,6 +258,8 @@ export default {
     list-style-type: none;
     margin: 0;
     padding: 0;
+    display: flex;
+    align-items: center;
 
     &:focus {
      outline:none;
@@ -267,15 +270,20 @@ export default {
     }
 
     .tab {
-      position: relative;
-      top: 1px;
-      float: left;
+      display: flex;
+      align-items: center;
       margin: 0 8px 0 0;
       cursor: pointer;
 
       A {
         display: block;
         padding: 10px 15px;
+      }
+
+      .conditions-alert-icon {
+        text-decoration: none !important;
+        color: var(--error);
+        padding-right: 15px;
       }
 
       &:last-child {

@@ -44,6 +44,15 @@ export default class HciSetting extends SteveModel {
     return out;
   }
 
+  goToAirgapUpgrade() {
+    const router = this.currentRouter();
+
+    router.push({
+      name:   'c-cluster-harvester-airgapupgrade',
+      params: { cluster: this.$rootGetters['currentCluster'].id, product: 'harvester' },
+    });
+  }
+
   get backupTagetetIsEmpty() {
     return !this.value;
   }
@@ -62,23 +71,6 @@ export default class HciSetting extends SteveModel {
 
   get valueOrDefaultValue() {
     return this.value || this.default;
-  }
-
-  get upgradeableVersion() {
-    const value = this.value || '';
-
-    if (!value) {
-      return [];
-    }
-
-    return value.split(',').sort((a, b) => {
-      return a > b ? -1 : 1;
-    }).map( (V) => {
-      return {
-        label: V,
-        value: V
-      };
-    });
   }
 
   get currentVersion() {

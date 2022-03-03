@@ -179,6 +179,19 @@ export default {
 
       return out.length > 0;
     },
+
+    hasHostNetworksSchema() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return !!this.$store.getters[`${ inStore }/schemaFor`](HCI.NODE_NETWORK);
+    },
+
+    hasBlockDevicesSchema() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return !!this.$store.getters[`${ inStore }/schemaFor`](HCI.BLOCK_DEVICE);
+    },
+
   },
   watch: {
     customName(neu) {
@@ -418,7 +431,7 @@ export default {
           :mode="mode"
         />
       </Tab>
-      <Tab name="network" :weight="90" :label="t('harvester.host.tabs.network')">
+      <Tab v-if="hasHostNetworksSchema" name="network" :weight="90" :label="t('harvester.host.tabs.network')">
         <InfoBox class="wrapper">
           <div class="row warpper">
             <div class="col span-6">
@@ -453,6 +466,7 @@ export default {
         </InfoBox>
       </Tab>
       <Tab
+        v-if="hasBlockDevicesSchema"
         name="disk"
         :weight="80"
         :label="t('harvester.host.tabs.disk')"

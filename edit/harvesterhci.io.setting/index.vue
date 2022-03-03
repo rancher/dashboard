@@ -121,7 +121,7 @@ export default {
     @finish="saveSettings"
     @cancel="done"
   >
-    <h4>{{ description }}</h4>
+    <h4 v-html="description"></h4>
 
     <h5 v-if="editHelp" class="edit-help" v-html="editHelp" />
 

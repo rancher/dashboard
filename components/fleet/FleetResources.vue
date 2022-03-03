@@ -56,6 +56,7 @@ export default {
 
           out.push({
             key:             `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }`,
+            tableKey:        `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }-${ Math.floor(Math.random() * 100000) + 1 }`,
             kind:            r.kind,
             apiVersion:      r.apiVersion,
             type:            r.type,
@@ -125,15 +126,13 @@ export default {
 </script>
 
 <template>
-  <div>
-    <SortableTable
-      :rows="computedResources"
-      :headers="resourceHeaders"
-      :table-actions="false"
-      :row-actions="false"
-      key-field="key"
-      default-sort-by="state"
-      :paged="true"
-    />
-  </div>
+  <SortableTable
+    :rows="computedResources"
+    :headers="resourceHeaders"
+    :table-actions="false"
+    :row-actions="false"
+    key-field="tableKey"
+    default-sort-by="state"
+    :paged="true"
+  />
 </template>

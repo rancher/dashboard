@@ -35,6 +35,10 @@ export default {
       type:    String,
       default: ''
     },
+    viewCode: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   data() {
@@ -186,6 +190,7 @@ export default {
         ref="userTemplate"
         v-model="userScript"
         type="user"
+        :view-code="viewCode"
         :mode="mode"
         :config-id="configUserId"
         :options="optionUser"

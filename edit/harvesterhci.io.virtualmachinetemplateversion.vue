@@ -216,7 +216,7 @@ export default {
 
     <Tabbed :side-tabs="true" @changed="onTabChanged">
       <Tab name="Basics" :label="t('harvester.vmTemplate.tabs.basics')">
-        <CpuMemory :cpu="spec.template.spec.domain.cpu.cores" :memory="memory" :disabled="isConfig" @updateCpuMemory="updateCpuMemory" />
+        <CpuMemory :cpu="cpu" :memory="memory" :disabled="isConfig" @updateCpuMemory="updateCpuMemory" />
 
         <div class="mb-20">
           <SSHKey v-model="sshKey" :namespace="templateValue.metadata.namespace" :disable-create="isView" :mode="mode" @update:sshKey="updateSSHKey" />

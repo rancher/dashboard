@@ -12,6 +12,7 @@ import { isEmpty } from '@/utils/object';
 import { NAME as HARVESTER } from '@/config/product/harvester';
 import { isHarvesterCluster } from '@/utils/cluster';
 import HybridModel from '@/plugins/steve/hybrid-class';
+import { LINUX, WINDOWS } from '@/store/catalog';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 
 // See translation file cluster.providers for list of providers
@@ -173,7 +174,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get providerOs() {
-    if ( this.status?.provider.endsWith('.windows') ) {
+    if ( this.status?.provider.endsWith('.windows')) {
       return 'windows';
     }
 
@@ -182,6 +183,30 @@ export default class MgmtCluster extends HybridModel {
 
   get providerOsLogo() {
     return require(`~/assets/images/vendor/${ this.providerOs }.svg`);
+  }
+
+  get workerOSs() {
+    // rke1 clusters have windows support defined on create
+    // rke2 clusters report linux workers in mgmt cluster status
+    const rke2WindowsWorkers = this.status?.windowsWorkerCount;
+    const rke2LinuxWorkers = this.status?.linuxWorkerCount;
+
+    if (rke2WindowsWorkers || rke2LinuxWorkers ) {
+      const out = [];
+
+      if (rke2WindowsWorkers) {
+        out.push(WINDOWS);
+      }
+      if (rke2LinuxWorkers) {
+        out.push(LINUX);
+      }
+
+      return out;
+    } else if (this.providerOs === WINDOWS) {
+      return [WINDOWS];
+    }
+
+    return [LINUX];
   }
 
   get isLocal() {
@@ -243,7 +268,7 @@ export default class MgmtCluster extends HybridModel {
       text,
       color,
       textColor: textColor(parseColor(color)),
-      iconText:  iconText.substr(0, 2),
+      iconText:  iconText.substr(0, 2)
     };
   }
 

@@ -138,7 +138,14 @@ export default {
     >
       <NameNsDescription :value="value" :namespaced="true" :mode="mode" />
 
-      <ResourceTabs v-model="value" class="mt-15" :need-conditions="false" :need-related="false" :side-tabs="true">
+      <ResourceTabs
+        v-model="value"
+        class="mt-15"
+        :need-conditions="false"
+        :need-related="false"
+        :side-tabs="true"
+        :mode="mode"
+      >
         <Tab name="basic" :label="t('harvester.volume.tabs.basics')" :weight="3" class="bordered-table">
           <LabeledSelect
             v-model="source"

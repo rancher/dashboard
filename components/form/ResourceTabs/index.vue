@@ -80,15 +80,12 @@ export default {
 
       return this.isView && this.needConditions && this.value?.type && this.$store.getters[`${ inStore }/pathExistsInSchema`](this.value.type, 'status.conditions');
     },
-
     showEvents() {
       return this.isView && this.needEvents && !this.$fetchState.pending && this.hasEvents && this.events.length;
     },
-
     showRelated() {
       return this.isView && this.needRelated && !this.$fetchState.pending;
     },
-
     eventHeaders() {
       return [
         {
@@ -114,7 +111,6 @@ export default {
         },
       ];
     },
-
     events() {
       return this.allEvents.filter((event) => {
         return event.involvedObject?.uid === this.value?.metadata?.uid;
@@ -125,6 +121,13 @@ export default {
           date:    event.lastTimestamp || event.firstTimestamp || event.metadata.creationTimestamp,
         };
       });
+    },
+    conditionsHaveIssues() {
+      if (this.showConditions) {
+        return this.value.status?.conditions.some(cond => cond.error);
+      }
+
+      return false;
     }
   },
 
@@ -141,7 +144,7 @@ export default {
   <Tabbed v-bind="$attrs" :default-tab="defaultTab">
     <slot />
 
-    <Tab v-if="showConditions" label-key="resourceTabs.conditions.tab" name="conditions" :weight="-1">
+    <Tab v-if="showConditions" label-key="resourceTabs.conditions.tab" name="conditions" :weight="-1" :display-alert-icon="conditionsHaveIssues">
       <Conditions :value="value" />
     </Tab>
 
