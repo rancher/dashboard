@@ -8,7 +8,6 @@ import Banner from '@/components/Banner';
 import { parseSi, createMemoryValues } from '@/utils/units';
 import {
   NAME,
-  REASON,
   ROLES,
   STATE,
 } from '@/config/table-headers';
