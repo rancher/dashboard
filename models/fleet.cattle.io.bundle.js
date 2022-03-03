@@ -1,4 +1,4 @@
-import { escapeHtml } from '@/utils/string';
+import { escapeHtml, ucFirst } from '@/utils/string';
 import SteveModel from '@/plugins/steve/steve-class';
 import typeHelper from '@/utils/type-helpers';
 import { addObject, addObjects, findBy } from '~/utils/array';
@@ -81,6 +81,38 @@ export default class FleetBundle extends SteveModel {
     }
 
     return out;
+  }
+
+  get stateDescription() {
+    const trans = this.stateObj?.transitioning || false;
+    const error = this.stateObj?.error || false;
+    const message = this.stateObj?.message;
+
+    return trans || error ? ucFirst(message) : '';
+  }
+
+  get stateObj() {
+    const errorState = this.status.conditions.find((item) => {
+      const { error, message } = item;
+      const errState = !!error;
+
+      /**
+       * error.trainsitioning = true when error applied. So checking non existance of tranistioning is not enough.
+       * {
+       *  "error": true,
+       *    "lastUpdateTime": "2022-03-03T08:28:15Z",
+       *    "message": "ErrApplied(1) [Cluster test-do/c-b5rsv: rendered manifests contain a resource that already exists. Unable to continue with install: Service \"frontend\" in namespace \"fleet-mc-helm-kustomize-example\" exists and cannot be imported into the current release: invalid ownership metadata; annotation validation error: key \"meta.helm.sh/release-name\" must equal \"sf-mchk-multi-cluster-helm-kustomize\": current value is \"test-bug-multi-cluster-helm-kustomize\"]; NotReady(1) [Cluster test-do/c-5fhtx]; deployment.apps fleet-mc-helm-kustomize-example/redis-master [progressing] Deployment does not have minimum availability., Available: 0/1; deployment.apps shavin/frontend extra; deployment.apps shavin/redis-master extra; deployment.apps shavin/redis-slave extra; service.v1 shavin/frontend extra",
+       *    "status": "False",
+       *    "transitioning": true,
+       *    "type": "Ready"
+       *    },
+       */
+      const hasErrorMessage = message?.toLowerCase().includes('errapplied') || message?.toLowerCase().includes('error');
+
+      return errState && hasErrorMessage;
+    });
+
+    return errorState;
   }
 
   get groupByLabel() {
