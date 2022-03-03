@@ -35,6 +35,7 @@ export default {
     <h1 v-else-if="title" class="title" v-html="title"></h1>
     <div v-if="pref" class="close-button" @click="hide()">
       <i class="icon icon-close" />
+      <span class="sr-only">close</span>
     </div>
   </div>
 </template>

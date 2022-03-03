@@ -33,6 +33,7 @@ export default {
     </slot>
     <div v-if="closable" class="closer" @click="$emit('close')">
       <i class="icon icon-2x icon-close closer-icon" />
+      <span class="sr-only">close</span>
     </div>
   </div>
 </template>

@@ -479,6 +479,7 @@ export default {
           <button class="btn bg-primary wm-btn" @click="clear">
             <t class="wm-btn-large" k="wm.containerLogs.clear" />
             <i class="wm-btn-small icon icon-close" />
+            <span class="sr-only">close</span>
           </button>
           <AsyncButton mode="download" @click="download" />
         </div>

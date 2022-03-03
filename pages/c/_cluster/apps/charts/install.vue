@@ -1307,6 +1307,7 @@ export default {
           </div>
           <div class="slideIn__header__button" @click="showSlideIn = false">
             <i class="icon icon-close" />
+            <span class="sr-only">close</span>
           </div>
         </div>
       </h2>

@@ -35,6 +35,7 @@ export default {
       </h2>
       <div v-if="canClose || pref" class="close-button" @click="closeBox($event)">
         <i class="icon icon-close" />
+        <span class="sr-only">close</span>
       </div>
     </div>
     <div class="content">

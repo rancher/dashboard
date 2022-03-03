@@ -238,6 +238,7 @@ export default {
                 :placeholder="t('nav.search.placeholder')"
               />
               <i v-if="clusterFilter" class="icon icon-close" @click="clusterFilter=''" />
+              <span class="sr-only">close</span>
             </div>
             <div ref="clusterList" class="clusters">
               <div v-for="c in clustersFiltered" :key="c.id" @click="hide()">
