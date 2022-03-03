@@ -13,7 +13,7 @@ import {
 import { isHarvesterCluster } from '@/utils/cluster';
 
 export default {
-  name: 'GitRepoBundles',
+  name: 'FleetBundles',
 
   components: {
     Banner, Loading, ResourceTable

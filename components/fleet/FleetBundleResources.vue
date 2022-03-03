@@ -22,17 +22,8 @@ export default {
         const color = colorForState(state).replace('text-', 'bg-');
         const display = stateDisplay(state);
 
-        const stateObj = state;
-        const trans = stateObj?.transitioning || false;
-        const error = stateObj?.error || false;
-        const message = stateObj?.message;
-
-        const stateDescription = trans || error ? ucFirst(message) : '';
-
         return {
           ...item,
-          stateObj,
-          stateDescription,
           stateBackground: color,
           stateDisplay:    display,
           stateSort:       stateSort(color, display),

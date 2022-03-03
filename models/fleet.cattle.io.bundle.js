@@ -4,6 +4,7 @@ import typeHelper from '@/utils/type-helpers';
 import { addObject, addObjects, findBy } from '~/utils/array';
 import { FLEET } from '~/config/types';
 import { convertSelectorObj, matching } from '~/utils/selector';
+import { colorForState, stateDisplay, stateSort } from '~/plugins/steve/resource-class';
 
 export default class FleetBundle extends SteveModel {
   get deploymentInfo() {
@@ -84,11 +85,10 @@ export default class FleetBundle extends SteveModel {
   }
 
   get stateDescription() {
-    const trans = this.stateObj?.transitioning || false;
     const error = this.stateObj?.error || false;
     const message = this.stateObj?.message;
 
-    return trans || error ? ucFirst(message) : '';
+    return error ? ucFirst(message) : '';
   }
 
   get stateObj() {
@@ -112,7 +112,13 @@ export default class FleetBundle extends SteveModel {
       return errState && hasErrorMessage;
     });
 
-    return errorState;
+    if (errorState) {
+      errorState.name = errorState.message?.toLowerCase().includes('errapplied') ? 'errapplied' : 'error';
+
+      return errorState;
+    }
+
+    return { ...this.metadata.state };
   }
 
   get groupByLabel() {
