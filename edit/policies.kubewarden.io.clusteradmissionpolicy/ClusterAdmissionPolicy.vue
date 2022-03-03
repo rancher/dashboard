@@ -1,83 +1,52 @@
 <script>
-import NameNsDescription from '@/components/form/NameNsDescription';
-import LabeledInput from '@/components/form/LabeledInput';
-import createEditView from '@/mixins/create-edit-view';
 import { mapGetters } from 'vuex';
-import { KUBEWARDEN } from '@/config/types';
-import { random32 } from '@/utils/string';
+import { _VIEW } from '@/config/query-params';
+import createEditView from '@/mixins/create-edit-view';
+
+import LabeledInput from '@/components/form/LabeledInput';
+import NameNsDescription from '@/components/form/NameNsDescription';
 
 export default {
   components: {
-    NameNsDescription,
     LabeledInput,
+    NameNsDescription,
   },
 
   mixins: [createEditView],
 
   props: {
     value: {
-      type:    Object,
-      default: () => {
-        return {};
-      }
+      type:     Object,
+      required: true
     },
     mode: {
       type:    String,
-      default: 'create'
+      default: _VIEW
     },
-    resource: {
-      type:    String,
-      default: null
-    }
-  },
-
-  // ************************************************************
-  //
-  // /k8s/clusters/c-m-j4q2k9hm/v1/schemas/policies.kubewarden.io.clusteradmissionpolicy
-  // /k8s/clusters/c-m-j4q2k9hm/v1/schemas/policies.kubewarden.io.v1alpha2.clusteradmissionpolicy.spec
-  // /k8s/clusters/c-m-j4q2k9hm/v1/schemas/policies.kubewarden.io.v1alpha2.clusteradmissionpolicy.rules
-  //
-  // ************************************************************
-
-  async fetch() {
-    this.allPolicies = await this.$store.dispatch('cluster/findAll', { type: KUBEWARDEN.CLUSTER_ADMISSION_POLICY });
   },
 
   data() {
-    if (!this.value.spec) {
+    if ( !this.value.spec ) {
       this.$set(this.value, 'spec', {});
     }
 
-    if (!this.value.spec.rules) {
+    if ( !this.value.spec.rules ) {
       this.$set(this.value.spec, 'rules', []);
     }
 
-    return {
-      allPolicies: [], name: this.value.metadata.name, rules: [...this.value.spec.rules]
-    };
+    return { rules: [...this.value.spec.rules] };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
     ...mapGetters({ t: 'i18n/t' }),
 
-    provider() {
-      return this.currentCluster.status.provider;
-    },
+    isView() {
+      return this.mode === _VIEW;
+    }
   },
 
   methods: {
-    remove(row) {
-      const idx = this.rules.indexOf(row);
-
-      this.rules.splice(idx, 1);
-      this.update();
-    },
-
-    addRule() {
-      this.rules.push({ vKey: random32() });
-    },
-
     update() {
       this.$emit('input', this.value);
     },
@@ -87,12 +56,11 @@ export default {
 
 <template>
   <div>
-    <h3>{{ resource }}</h3>
     <template>
       <div class="spacer"></div>
       <div class="row">
         <div class="col span-12">
-          <NameNsDescription :mode="mode" :value="value" :namespaced="false" @change="name=value.metadata.name" />
+          <NameNsDescription :mode="mode" :value="value" :namespaced="false" />
         </div>
       </div>
       <div class="row">
@@ -118,21 +86,7 @@ export default {
         <div class="col">
           <LabeledInput v-model="rule.resources" :mode="mode" label="Resources" />
         </div>
-        <div class="col">
-          <button
-            v-if="!isView"
-            type="button"
-            class="btn role-link"
-            :disabled="mode==='view'"
-            @click="remove(rule)"
-          >
-            <t k="generic.remove" />
-          </button>
-        </div>
       </div>
-      <button v-if="!isView" type="button" class="btn role-tertiary" @click="addRule">
-        Add Rule
-      </button>
     </template>
   </div>
 </template>
