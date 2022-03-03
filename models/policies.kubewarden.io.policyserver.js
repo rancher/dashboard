@@ -1,5 +1,5 @@
 import SteveModel from '@/plugins/steve/steve-class';
-import { POD } from '@/config/types';
+import { KUBEWARDEN, POD } from '@/config/types';
 
 export default class PolicyServer extends SteveModel {
   get _availableActions() {
@@ -15,6 +15,16 @@ export default class PolicyServer extends SteveModel {
     out.unshift(logs);
 
     return out;
+  }
+
+  get allPolicies() {
+    return async() => {
+      try {
+        return await this.$store.dispatch('cluster/findAll', { type: KUBEWARDEN.POLICY_SERVER }, { root: true });
+      } catch (e) {
+        console.error(`Error fetching policies: ${ e }`); // eslint-disable-line no-console
+      }
+    };
   }
 
   async openLogs() {

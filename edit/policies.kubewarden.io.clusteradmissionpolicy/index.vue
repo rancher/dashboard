@@ -65,16 +65,15 @@ export default {
 
 <template>
   <Create v-if="isCreate" :value="value" :mode="mode" />
-  <form v-else>
-    <CruResource
-      :mode="mode"
-      :resource="value"
-    >
-      <ClusterAdmissionPolicy
-        :value="value"
-        :mode="mode"
-        :resource="type"
-      />
-    </CruResource>
-  </form>
+  <CruResource
+    v-else
+    :mode="realMode"
+    :resource="value"
+  >
+    <ClusterAdmissionPolicy
+      :value="value"
+      :mode="realMode"
+      :resource="type"
+    />
+  </CruResource>
 </template>

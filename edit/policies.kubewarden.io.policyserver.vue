@@ -1,11 +1,12 @@
 <script>
+import { mapGetters } from 'vuex';
+import { random32 } from '@/utils/string';
+import { _CREATE, _VIEW } from '@/config/query-params';
+import createEditView from '@/mixins/create-edit-view';
+
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledInput from '@/components/form/LabeledInput';
-import createEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
-import { mapGetters } from 'vuex';
-import { KUBEWARDEN } from '@/config/types';
-import { random32 } from '@/utils/string';
 
 export default {
   components: {
@@ -18,42 +19,39 @@ export default {
 
   props: {
     value: {
-      type:    Object,
-      default: () => {
-        return {};
-      }
+      type:     Object,
+      required: true
     },
 
     mode: {
       type:    String,
-      default: 'create'
+      default: _CREATE
     }
-  },
-
-  async fetch() {
-    this.allPolicies = await this.$store.dispatch('cluster/findAll', { type: KUBEWARDEN.POLICY_SERVER });
   },
 
   data() {
-    if (!this.value.spec) {
+    if ( !this.value.spec ) {
       this.$set(this.value, 'spec', {});
     }
 
-    if (!this.value.status) {
+    if ( !this.value.status ) {
       this.$set(this.value, 'status', {});
       this.$set(this.value.status, 'conditions', []);
     }
 
-    return {
-      allPolicies: [], name: this.value.metadata.name, conditions: [...this.value.status.conditions]
-    };
+    return { conditions: [...this.value.status.conditions] };
   },
 
   computed: {
-    ...mapGetters({ currentCluster: 'currentCluster', t: 'i18n/t' }),
+    ...mapGetters(['currentCluster']),
+    ...mapGetters({ t: 'i18n/t' }),
+
+    isView() {
+      return this.mode === _VIEW;
+    },
 
     provider() {
-      return this.currentCluster.status.provider;
+      return this.currentCluster?.status?.provider;
     },
   },
 
@@ -83,8 +81,7 @@ export default {
       :resource="value"
       :mode="mode"
       :errors="errors"
-      @finish="save"
-      @error="e=>errors = e"
+      @error="e => errors = e"
     >
       <template>
         <div class="spacer"></div>
@@ -98,28 +95,6 @@ export default {
             <LabeledInput v-model="value.spec.image" :mode="mode" label="Image" />
           </div>
         </div>
-        <div class="spacer" />
-
-        <div v-for="condition in conditions" :key="condition.vKey" class="condition">
-          <div class="col">
-            <LabeledInput v-model="condition.type" :mode="mode" label="Type" />
-          </div>
-
-          <div class="col">
-            <button
-              v-if="!isView"
-              type="button"
-              class="btn role-link"
-              :disabled="mode==='view'"
-              @click="remove(condition)"
-            >
-              <t k="generic.remove" />
-            </button>
-          </div>
-        </div>
-        <button v-if="!isView" type="button" class="btn role-tertiary" @click="addCondition">
-          Add Condition
-        </button>
       </template>
     </CruResource>
   </div>
