@@ -48,7 +48,7 @@ export default {
 
   computed: {
     isNamespaceCreatable() {
-      return (this.schema?.resourceMethods || []).includes('PUT');
+      return (this.schema?.collectionMethods || []).includes('POST');
     },
     headers() {
       const project = {
