@@ -123,42 +123,42 @@ export default {
       switch (area) {
       case 'clusters':
         if (row.clusterInfo?.ready === row.clusterInfo?.total && row.clusterInfo?.ready) {
-          return 'bg-success';
+          return `bg-${ STATES[STATES_ENUM.ACTIVE].color }`;
         }
 
-        return 'bg-warning badge-class-default';
+        return `bg-${ STATES[STATES_ENUM.NOT_READY].color } badge-class-default`;
       case 'bundles':
         if (row.bundles?.length && row.bundles?.every(bundle => bundle.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
-          return `bg-${ STATES[STATES_ENUM.ACTIVE].color || 'unknown' }`;
+          return STATES[STATES_ENUM.ACTIVE].color ? `bg-${ STATES[STATES_ENUM.ACTIVE].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`;
         }
         if (row.bundles?.length && row.bundles?.some(bundle => bundle.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
-          return `bg-${ STATES[STATES_ENUM.ERR_APPLIED].color || 'unknown' }`;
+          return STATES[STATES_ENUM.ERR_APPLIED].color ? `bg-${ STATES[STATES_ENUM.ERR_APPLIED].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`;
         }
         if (row.bundles?.length && row.bundles?.some(bundle => bundle.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
-          return `bg-${ STATES[STATES_ENUM.NOT_READY].color || 'unknown' }`;
+          return STATES[STATES_ENUM.NOT_READY].color ? `bg-${ STATES[STATES_ENUM.NOT_READY].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`;
         }
 
         if (row.bundlesReady?.length === row.bundles?.length && row.bundlesReady && row.bundles?.length) {
-          return 'bg-success';
+          return `bg-${ STATES[STATES_ENUM.ACTIVE].color }`;
         }
 
-        return 'bg-warning badge-class-default';
+        return `bg-${ STATES[STATES_ENUM.NOT_READY].color } badge-class-default`;
       case 'resources':
         if (row.status?.resources?.length && row.status?.resources?.every(resource => resource.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
-          return `bg-${ STATES[STATES_ENUM.ACTIVE].color || 'unknown' }`;
+          return STATES[STATES_ENUM.ACTIVE].color ? `bg-${ STATES[STATES_ENUM.ACTIVE].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`;
         }
         if (row.status?.resources?.length && row.status?.resources?.some(resource => resource.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
-          return `bg-${ STATES[STATES_ENUM.ERR_APPLIED].color || 'unknown' }`;
+          return STATES[STATES_ENUM.ERR_APPLIED].color ? `bg-${ STATES[STATES_ENUM.ERR_APPLIED].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`;
         }
         if (row.status?.resources?.length && row.status?.resources?.some(resource => resource.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
-          return `bg-${ STATES[STATES_ENUM.NOT_READY].color || 'unknown' }`;
+          return STATES[STATES_ENUM.NOT_READY].color ? `bg-${ STATES[STATES_ENUM.NOT_READY].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`;
         }
 
         if (row.status?.resourceCounts?.desiredReady === row.status?.resourceCounts?.ready && row.status?.resourceCounts?.desiredReady) {
-          return 'bg-success';
+          return `bg-${ STATES[STATES_ENUM.ACTIVE].color }`;
         }
 
-        return 'bg-warning badge-class-default';
+        return `bg-${ STATES[STATES_ENUM.NOT_READY].color } badge-class-default`;
       default:
         return {};
       }

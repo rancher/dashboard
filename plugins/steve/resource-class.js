@@ -451,7 +451,7 @@ const SORT_ORDER = {
 export function getStateLabel(state) {
   const lowercaseState = state.toLowerCase();
 
-  return STATES[lowercaseState] ? STATES[lowercaseState].label : 'Unmapped State Label';
+  return STATES[lowercaseState] ? STATES[lowercaseState].label : STATES[STATES_ENUM.UNKNOWN].label;
 }
 
 export function colorForState(state, isError, isTransitioning) {
