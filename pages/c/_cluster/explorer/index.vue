@@ -98,36 +98,6 @@ export default {
 
   data() {
     const clusterCounts = this.$store.getters[`cluster/all`](COUNT);
-    const reason = {
-      ...REASON,
-      ...{ canBeVariable: true },
-      width: 120
-    };
-
-    const eventHeaders = [
-      reason,
-      {
-        name:          'resource',
-        label:         'Resource',
-        labelKey:      'clusterIndexPage.sections.events.resource.label',
-        value:         'displayInvolvedObject',
-        sort:          ['involvedObject.kind', 'involvedObject.name'],
-        canBeVariable: true,
-      },
-      {
-        align:         'right',
-        name:          'date',
-        label:         'Date',
-        labelKey:      'clusterIndexPage.sections.events.date.label',
-        value:         'lastTimestamp',
-        sort:          'lastTimestamp:desc',
-        formatter:     'LiveDate',
-        formatterOpts: { addSuffix: true },
-        width:         125,
-        defaultSort:   true,
-      },
-    ];
-
     const nodeHeaders = [
       STATE,
       NAME,
@@ -135,7 +105,6 @@ export default {
     ];
 
     return {
-      eventHeaders,
       nodeHeaders,
       constraints:         [],
       events:              [],
