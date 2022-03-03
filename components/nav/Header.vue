@@ -309,6 +309,7 @@ export default {
             @click="openImport()"
           >
             <i class="icon icon-upload icon-lg" />
+            <span class="sr-only">import yaml</span>
           </button>
           <modal
             class="import-modal"
@@ -331,6 +332,7 @@ export default {
             @click="currentCluster.openShell()"
           >
             <i class="icon icon-terminal icon-lg" />
+            <span class="sr-only">kubectl shell</span>
           </button>
 
           <button
@@ -342,6 +344,7 @@ export default {
             @click="currentCluster.downloadKubeConfig()"
           >
             <i class="icon icon-download icon-lg" />
+            <span class="sr-only">download kubeconfig</span>
           </button>
 
           <button
@@ -353,6 +356,7 @@ export default {
             @click="currentCluster.copyKubeConfig()"
           >
             <i class="icon icon-copy icon-lg" />
+            <span class="sr-only">copy kubeconfig</span>
           </button>
         </template>
 
@@ -366,6 +370,7 @@ export default {
           @click="openSearch()"
         >
           <i class="icon icon-search icon-lg" />
+          <span class="sr-only">search</span>
         </button>
         <modal
           v-if="showSearch"
