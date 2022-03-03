@@ -34,6 +34,12 @@ generic:
   none: None
   notFound: Not Found
   number: '{prefix}{value, number}{suffix}'
+  notification:
+    title:
+      succeed: Succeed
+      info: Info
+      warning: Warning
+      error: Error
   overview: Overview
   plusMore: "+ {n} more"
   readFromFile: Read from File

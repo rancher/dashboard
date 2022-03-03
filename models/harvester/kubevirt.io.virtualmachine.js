@@ -292,7 +292,7 @@ export default class VirtVm extends SteveModel {
   }
 
   stopVM() {
-    this.doAction('stop', {});
+    this.doActionGrowl('stop', {});
   }
 
   startVM() {
