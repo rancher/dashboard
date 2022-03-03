@@ -4,7 +4,6 @@ import typeHelper from '@/utils/type-helpers';
 import { addObject, addObjects, findBy } from '~/utils/array';
 import { FLEET } from '~/config/types';
 import { convertSelectorObj, matching } from '~/utils/selector';
-import { colorForState, stateDisplay, stateSort } from '~/plugins/steve/resource-class';
 
 export default class FleetBundle extends SteveModel {
   get deploymentInfo() {

@@ -68,8 +68,6 @@ export default {
         }
       };
 
-      console.log('OUT', out);
-
       resources.forEach((element) => {
         const k = element.status?.summary.ready > 0 && element.status?.summary.desiredReady === element.status.summary.ready;
 

@@ -1,6 +1,7 @@
 <script>
 import ResourceTabs from '@/components/form/ResourceTabs';
 import FleetSummary from '@/components/fleet/FleetSummary';
+import Banner from '@/components/Banner';
 import FleetResources from '@/components/fleet/FleetResources';
 import Tab from '@/components/Tabbed/Tab';
 import { FLEET } from '@/config/types';
@@ -14,6 +15,7 @@ export default {
   components: {
     FleetResources,
     FleetSummary,
+    Banner,
     ResourceTabs,
     Tab,
     FleetBundles,
@@ -34,6 +36,10 @@ export default {
   },
 
   computed: {
+
+    gitRepoHasClusters() {
+      return this.value.status.desiredReadyClusters;
+    },
     harvesterClusters() {
       const harvester = {};
 
@@ -72,12 +78,24 @@ export default {
     await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
     await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP });
   },
+
 };
 </script>
 
 <template>
   <div class="mt-20">
-    <FleetSummary :value="value" :bundles="bundles" />
+    <FleetSummary
+      v-if="gitRepoHasClusters"
+      :value="value"
+      :bundles="bundles"
+    />
+    <Banner
+      v-else
+      color="info"
+      class="mb-40"
+    >
+      {{ t('fleet.fleetSummary.noClustersGitRepo') }}
+    </Banner>
     <ResourceTabs v-model="value" mode="view" class="mt-20">
       <Tab label="Bundles" name="bundles" :weight="30">
         <FleetBundles :value="value" />

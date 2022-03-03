@@ -3,7 +3,6 @@ import { FLEET } from '@/config/types';
 import FleetBundleResources from '@/components/fleet/FleetBundleResources.vue';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import FleetResources from '~/components/fleet/FleetResources.vue';
 
 export default {
   name: 'FleetBundleDetail',
@@ -12,7 +11,6 @@ export default {
     Tabbed,
     Tab,
     FleetBundleResources,
-    FleetResources
   },
   props:      {
     value: {

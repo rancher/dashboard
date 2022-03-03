@@ -191,11 +191,10 @@ export default {
         label: this.t('cluster.machineConfig.vsphere.creationMethods.template'),
         value: CREATION_METHOD.TEMPLATE
       },
-      // This is currently broken in the backend. Once fixed we can add this back
-      // {
-      //   label: this.t('cluster.machineConfig.vsphere.creationMethods.library'),
-      //   value: CREATION_METHOD.LIBRARY
-      // },
+      {
+        label: this.t('cluster.machineConfig.vsphere.creationMethods.library'),
+        value: CREATION_METHOD.LIBRARY
+      },
       {
         label: this.t('cluster.machineConfig.vsphere.creationMethods.vm'),
         value: CREATION_METHOD.VM
@@ -499,7 +498,8 @@ export default {
       set(this, 'contentLibrariesResults', null);
 
       const options = await this.requestOptions('content-libraries', this.value.datacenter);
-      const content = this.mapPathOptionsToContent(options);
+      const content = this.mapPathOptionsToContent(options)
+        .filter(item => item.value !== '');
 
       this.resetValueIfNecessary('contentLibrary', content, options);
 
@@ -515,8 +515,7 @@ export default {
         return [];
       }
 
-      const options = await this.requestOptions('library-templates', undefined, contentLibrary);
-
+      const options = await this.requestOptions('library-templates', this.value.datacenter, contentLibrary);
       const content = this.mapPathOptionsToContent(options);
 
       if (this.showContentLibrary) {
@@ -567,8 +566,7 @@ export default {
       this.loadTemplates();
       this.loadTags();
       this.loadCustomAttributes();
-      // This is currently broken in the backend. Once fixed we can add this back
-      // this.loadContentLibraries();
+      this.loadContentLibraries();
       this.loadLibraryTemplates();
       this.loadVirtualMachines();
       this.loadNetworks();
