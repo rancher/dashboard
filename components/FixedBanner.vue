@@ -121,7 +121,7 @@ export default {
       <div class="banner-dialog-glass"></div>
       <div class="banner-dialog">
         <div class="banner-dialog-frame" :style="dialogStyle">
-          <div class="banner" :style="bannerStyle">
+          <div class="banner" :style="bannerStyle" role="alert">
             {{ banner.text }}
           </div>
           <button class="btn role-primary" @click="hideDialog()">

@@ -341,7 +341,7 @@ export default {
             class="btn header-btn role-tertiary"
             @click="currentCluster.downloadKubeConfig()"
           >
-            <i class="icon icon-file icon-lg" />
+            <i class="icon icon-download icon-lg" />
           </button>
 
           <button

@@ -26,7 +26,7 @@ export default {
 };
 </script>
 <template>
-  <div class="banner" :class="{[color]: true, closable}">
+  <div class="banner" :class="{[color]: true, closable}" role="alert">
     <slot>
       <t v-if="labelKey" :k="labelKey" :raw="true" />
       <span v-else v-html="nlToBr(label)" />

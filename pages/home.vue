@@ -284,7 +284,7 @@ export default {
                     <h2 class="mb-0">
                       {{ t('landing.clusters.title') }}
                     </h2>
-                    <BadgeState :label="clusters.length.toString()" color="role-tertiary ml-20 mr-20" />
+                    <BadgeState :label="clusters.length.toString()" color="bg-info ml-20 mr-20" />
                   </div>
                 </template>
                 <template #header-middle>

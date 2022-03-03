@@ -37,7 +37,7 @@ export default {
 
 <template>
   <div>
-    <Banner color="success clearfix" class="banner">
+    <Banner color="success clearfix" class="banner" role="alert">
       <div class="text">
         {{ t('authConfig.stateBanner.enabled', tArgs) }}
       </div>
