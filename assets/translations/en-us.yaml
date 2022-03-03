@@ -1941,6 +1941,20 @@ glance:
   v1MonitoringInstalled: V1 Monitoring Installed
   clusterInfo: Cluster Information
 
+clusterBadge:
+  addLabel: Add Cluster Badge
+  editLabel: Edit Cluster Badge
+  modal:
+    title: Custom Cluster Badge
+    checkbox: Show badge for this cluster
+    description: Custom description
+    iconText: Icon Text
+    buttonAction: Apply
+    badgeBgColor: Badge background color
+    badgeTextColor: Badge text color
+    badgeAsIcon: Customize cluster icon
+    maxCharsTooltip: Maximum two characters
+
 grafanaDashboard:
   failedToLoad: Failed to load graph
   reload: Reload
