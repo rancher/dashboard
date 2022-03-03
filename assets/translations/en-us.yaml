@@ -2552,6 +2552,16 @@ longhorn:
         description: 'Manage storage system via UI'
         na: Resource Unavailable
 
+neuvector:
+  overview:
+    title: Overview
+    subtitle: "Powered by: <a href='https://github.com/neuvector' target='_blank' rel='noopener nofollow noreferrer'>NeuVector</a>"
+    linkedList:
+      neuvector:
+        label: 'NeuVector'
+        description: 'Full Lifecycle Container Security'
+        na: Resource Unavailable
+
 login:
   howdy: Howdy!
   welcome: Welcome to {vendor}
