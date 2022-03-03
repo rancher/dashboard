@@ -14,50 +14,94 @@ export default {
       parsedData: {
         id:       'item1',
         isRepo:   true,
+        status:   'active',
         children: [
           {
             id:       'item2',
             children: [
               {
                 id:       'item4',
-                children: []
+                children: [],
+                status:   'warning',
               },
               {
                 id:       'item5',
-                children: []
+                children: [],
+                status:   'active',
               },
               {
                 id:       'item6',
-                children: []
+                children: [],
+                status:   'active',
               },
               {
                 id:       'item7',
-                children: []
+                children: [],
+                status:   'active',
               },
               {
                 id:       'item8',
-                children: []
+                children: [],
+                status:   'error',
               },
               {
                 id:       'item9',
-                children: []
+                children: [],
+                status:   'active',
               },
             ],
-            isBundle: true
+            isBundle: true,
+            status:   'error',
           },
           {
             id:       'item3',
-            children: [],
-            isBundle: true
+            children: [
+              {
+                id:       'item301',
+                status:   'active',
+                children: []
+              },
+              {
+                id:       'item302',
+                status:   'active',
+                children: []
+              },
+              {
+                id:       'item303',
+                status:   'active',
+                children: []
+              },
+              {
+                id:       'item304',
+                status:   'active',
+                children: []
+              },
+            ],
+            isBundle: true,
+            status:   'active',
           },
           {
             id:       'item110',
-            children: [],
-            isBundle: true
+            children: [
+              {
+                id:       'item111',
+                status:   'active',
+                children: []
+              },
+              {
+                id:       'item112',
+                status:   'warning',
+                children: []
+              }
+            ],
+            isBundle: true,
+            status:   'active',
           }
         ]
       },
       root:         undefined,
+      nodesData:         undefined,
+      allLinks:         undefined,
       node:         undefined,
       link:         undefined,
       svg:          undefined,
@@ -69,7 +113,7 @@ export default {
   methods: {
     renderChart() {
       const width = 800;
-      const height = 400;
+      const height = 600;
 
       // clear any previous renders, if they exist...
       if (d3.select('#tree > svg')) {
@@ -85,21 +129,22 @@ export default {
       this.simulation = d3.forceSimulation()
         .force('charge', d3.forceManyBody().strength(-300).distanceMax(300))
         .force('collision', d3.forceCollide(this.circleRadius * 1.5))
-        // .force('center', d3.forceCenter( width / 2, height / 4 ))
         .force('center', d3.forceCenter( width / 2, height / 2 ))
         .on('tick', this.ticked);
     },
-    updateChart(isStart) {
-      if (isStart) {
+    updateChart(isStartingData, isSettingNodesAndLinks) {
+      if (isStartingData) {
         this.root = d3.hierarchy(this.parsedData);
       }
 
-      const nodes = this.flatten(this.root);
-      const links = this.root.links();
-
+      if (isSettingNodesAndLinks) {
+        this.nodesData = this.flatten(this.root);
+        this.allLinks = this.root.links();
+      }
+      
       this.link = this.svg
         .selectAll('.link')
-        .data(links, (d) => {
+        .data(this.allLinks, (d) => {
           return d.target.id;
         });
 
@@ -117,7 +162,7 @@ export default {
 
       this.node = this.svg
         .selectAll('.node')
-        .data(nodes, (d) => {
+        .data(this.nodesData, (d) => {
           return d.id;
         });
 
@@ -127,9 +172,7 @@ export default {
         .enter()
         .append('g')
         .attr('class', 'node')
-        .attr('stroke', this.hasChildrenColor)
-        .attr('stroke-width', 4)
-        .style('fill', this.color)
+        .style('fill', this.statusColor)
         .style('opacity', 1)
         .on('click', this.clicked)
         .call(d3.drag()
@@ -138,30 +181,48 @@ export default {
           .on('end', this.dragended));
 
       nodeEnter.append('circle')
+        .attr('stroke', this.hasChildrenStrokeColor)
+        .attr('stroke-width', 3)
         .attr('r', (d) => {
-          // return Math.sqrt(d.data.size) / 10 || 4.5;
-          return this.circleRadius;
-        })
-        .style('text-anchor', (d) => {
-          return d.children ? 'end' : 'start';
+          return d.data?.isRepo ? this.circleRadius * 2 : this.circleRadius;
         });
-      // .text((d) => {
-      //   return d.label;
-      // });
+
+      nodeEnter.append('text')
+        .attr('x', 0)
+        .attr('y', 0 + 8)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '24px')
+        .attr('font-weight', 'lighter')
+        .attr('fill', 'black')
+        .attr('id', (d, i) => {
+          return `text${ i }`;
+        })
+        .text(this.generateLabel);
 
       this.node = nodeEnter.merge(this.node);
 
-      this.simulation.nodes(nodes);
+      this.simulation.nodes(this.nodesData);
       this.simulation.force('link', d3.forceLink().id((d) => {
         return d.id;
-      }).distance(100).links(links));
+      }).distance(100).links(this.allLinks));
     },
-    color(d) {
-      return d.data.isRepo ? 'red' : d.data.isBundle ? 'black' : '#CCCCCC';
+    statusColor(d) {
+      switch (d.data.status) {
+      case 'active':
+        return 'green';
+      case 'warning':
+        return 'yellow';
+      case 'error':
+        return 'red';
+      default:
+        return '#CCC';
+      }
     },
-    hasChildrenColor(d) {
-      return d.data.isRepo ? 'red' : d.data.isBundle && (!d._children && !d.children) ? 'black' : d.data.isBundle && (d._children || d.children) ? 'green' : '#CCCCCC';
-      // return d.data.id === 'item1' ? 'red' : d._children ? 'black' : d.children ? 'black' : 'green';
+    hasChildrenStrokeColor(d) {
+      return d.children ? 'black' : d._children ? 'black' : '';
+    },
+    generateLabel(d) {
+      return d.data.isRepo ? 'GIT' : d.data.isBundle ? 'B' : 'r';
     },
     ticked() {
       this.link
@@ -214,9 +275,10 @@ export default {
       d.fy = null;
     },
     flatten(root) {
-      console.log('root', root);
       const nodes = [];
       let i = 0;
+
+      console.log('FLATTEN BEFORE', root);
 
       function recurse(node) {
         if (node.children) {
@@ -231,12 +293,19 @@ export default {
       }
       recurse(root);
 
-      console.log('nodes', nodes);
+      console.log('FLATTEN AFTER', nodes);
 
       return nodes;
     },
     zoomed(ev) {
       this.svg.attr('transform', ev.transform);
+    },
+    changeNodeStatus() {
+      console.log('CHANGE NODE STATUS CLICKED!', this.nodesData)
+      const index = this.nodesData.findIndex(item => item.data.id === 'item3');
+      this.nodesData[index].data.status = 'warning';
+
+      this.updateChart();
     },
     addNode() {
       this.parsedData.children[1].children.push({
@@ -248,12 +317,12 @@ export default {
       console.log('CLICKED', this.parsedData.children[1].children);
 
       this.renderChart();
-      this.updateChart(true);
+      this.updateChart(true, true);
     }
   },
   mounted() {
     this.renderChart();
-    this.updateChart(true);
+    this.updateChart(true, true);
   },
 };
 </script>
@@ -262,7 +331,10 @@ export default {
   <div>
     <div id="tree">
     </div>
-    <button @click="addNode">
+    <button class="mt-20" @click="changeNodeStatus">
+      CHANGE BUNDLE NODE FROM ACTIVE TO WARNING
+    </button>
+    <button class="mt-20" @click="addNode">
       ADD A NEW NODE TO THE CHART
     </button>
   </div>
@@ -276,13 +348,5 @@ export default {
 
 .node {
   cursor: pointer;
-}
-
-// .node text { font: 14px sans-serif; }
-
-.link {
-  fill: none;
-  stroke: #ccc;
-  stroke-width: 2px;
 }
 </style>
