@@ -20,10 +20,6 @@ generic:
   id: ID
   ignored: Ignored
   invalidCron: Invalid cron schedule
-  imagePullPolicy:
-    always: Always
-    ifNotPresent: IfNotPresent
-    never: Never
   labelsAndAnnotations: Labels & Annotations
   links: Links
   loading: Loading&hellip;
@@ -79,7 +75,6 @@ generic:
   enable: Enable
   disable: Disable
   experimental: Experimental
-
   deprecated: Deprecated
   placeholder: "e.g. {text}"
   moreInfo: More Info
@@ -178,7 +173,6 @@ product:
   mcapps: Multi-cluster Apps
   harvesterManager: Virtualization Management
   harvester: Harvester
-  rancher: Rancher
 
 suffix:
   percent: "%"
@@ -710,8 +704,7 @@ catalog:
     certified:
       other: Other
       partner: Partner
-      rancher: '{vendor}'
-    deploysOn: Deploys on {os}
+      rancher: "{vendor}"
     header: Charts
     noCharts: "There are no charts available, have you added any repos?"
     noWindows: Your catalogs do not contain any charts capable of being deployed on a Windows cluster.
@@ -1167,12 +1160,9 @@ cluster:
       updateInfo: Create a new pool to update machine configs
     aws:
       sizeLabel: |-
-        {apiName}: {cpu, plural,
-        =1 {1 vCPU}
-          other {# vCPUs}
-        } / {memory, number} GiB Memory / {storageSize, plural,
+        {apiName}: {cpu}, {memory, number} GiB Memory, {storageSize, plural,
           =0 {EBS-Only}
-          other {{storageSize, number} {storageUnit} {storageType}}
+          other {{storageSize, number} GiB {storageType}}
         }
     azure:
       availabilitySet:
@@ -1327,7 +1317,6 @@ cluster:
           placeholder: e.g. http://my_host/cloud-config.yml
           note: Cloud-init file or url to set in the guestinfo
         cloudConfigYaml: Cloud Config YAML
-        os: Operating System
       tags:
         label: Tags
         description: Tags allow you to attach metadata to objects in the vSphere inventory to make it easier to sort and search for these objects.
@@ -1675,10 +1664,6 @@ clusterIndexPage:
     nodes:
       label: Unhealthy Nodes
       noRows: There are no unhealthy nodes to show.
-    componentStatus:
-      etcd: Etcd
-      scheduler: Scheduler
-      controller-manager: Controller Manager
 
 configmap:
   tabs:
@@ -1747,22 +1732,6 @@ etcdInfoBanner:
   failedProposals: "Number of failed proposals:"
 
 fleet:
-  dashboard:
-    pageTitle: Continuous Delivery Dashboard
-    menuLabel: Dashboard
-    welcome: Welcome to Fleet Continuous Delivery
-    gitOpsScale: GitOps at scale.
-    learnMore: Learn More.
-    learnMoreLink: https://fleet.rancher.io
-    noRepo: "You don't have any Git Repositories in your Workspaces"
-    getStarted: Get started
-    thereIsMore: |-
-      {count, plural,
-      =1 { There is one other workspace with no repositories}
-      other { There are { count } other workspaces with no repositories}
-      }
-    expandAll: Expand All
-    collapseAll: Collapse All
   cluster:
     summary: Resource Summary
     nonReady: Non-Ready Bundles
@@ -3017,7 +2986,6 @@ namespace:
   enableAutoInjection: Enable Istio Auto Injection
   disableAutoInjection: Disable Istio Auto Injection
   move: Move
-  total: Total
   resourceStates:
       success: 'Active'
       info: 'Transitioning'
@@ -3037,115 +3005,6 @@ namespaceList:
   selectLabel: Namespace
   addLabel: Add Namespace
 
-navLink:
-  name:
-    label: Name
-    placeholder: 'e.g. foo-bar'
-  label:
-    label: Display name
-    placeholder: 'Text displayed for the link'
-  tabs:
-    link:
-      label: Link type
-      type:
-        label: Link type
-        service: Link to service
-        url: Link to URL
-      toURL:
-        label: Destination URL
-        placeholder: 'e.g. https://rancher.com'
-      toService:
-        service:
-          label: Service (namespace/name)
-          placeholder: 'e.g. cattle-system/rancher-webhook'
-        path:
-          label: Path
-          placeholder: 'e.g. proxy/?orgId=1'
-        port:
-          label: Port
-          placeholder: 'e.g. 80'
-        scheme:
-          label: Scheme
-          placeholder: 'e.g. http'
-    target:
-      label: Window target
-      option:
-        blank: New window
-        self: Replace window
-        named: Custom named window
-      namedValue:
-        label: Window name
-    group:
-      label: Group
-      group:
-        label: Group name
-        tooltip: Assign link to a group
-      sideLabel:
-        label: Link Label
-      description:
-        label: Link description
-      iconSrc:
-        label: Add image
-networkpolicy:
-  egress:
-    label: Egress Rules
-    enable: Configure egress rules to restrict outgoing traffic
-    ruleLabel: Targets
-    ruleHint: Outgoing traffic is only allowed to the configured targets
-    portHint: Outgoing traffic is only allowed to connect to the configured ports
-  ingress:
-    label: Ingress Rules
-    enable: Configure ingress rules to restrict incoming traffic
-    ruleLabel: Sources
-    ruleHint: Incoming traffic is only allowed from the configured sources
-    portHint: Incoming traffic is only allowed to connect to the configured ports
-  labelsAnnotations:
-    label: Labels & Annotations
-  rules:
-    ruleLabel: Rule {index}
-    addPort: Add allowed port
-    type: Rule type
-    ingress:
-      add: Add allowed traffic source
-    egress:
-      add: Add allowed traffic target
-    ports:
-      label: Allowed ports
-      port:
-        label: Port
-        placeholder: e.g. 8080
-      protocol: Protocol
-    ipBlock:
-      label: IP block
-      exceptions: Exceptions
-      cidr:
-        label: CIDR
-        placeholder: e.g. 1.1.1.0/24
-      addExcept: Add exception
-      invalidCidrs: "Invalid CIDRs: {invalidCidrs}"
-    podSelector:
-      label: Pod Selector
-    namespaceSelector:
-      label: Namespace Selector
-  config:
-    label: Configuration
-  selectors:
-    label: Selectors
-    hint: The NetworkPolicy is applied to the selected Pods
-    matchingPods:
-      matchesSome: |-
-        {matched, plural,
-          =0 {Matches 0 of {total, number} pods}
-          =1 {Matches 1 of {total, number} pods: "{sample}"}
-          other {Matches {matched, number} of {total, number} existing pods, including "{sample}"}
-        }
-    matchingNamespaces:
-      matchesSome: |-
-        {matched, plural,
-          =0 {Matches 0 of {total, number} namespaces}
-          =1 {Matches 1 of {total, number} namespaces: "{sample}"}
-          other {Matches {matched, number} of {total, number} existing namespaces, including "{sample}"}
-        }
 node:
   list:
     pool: Pool
@@ -3982,7 +3841,6 @@ resourceTable:
     none: Flat List
     namespace: Group by Namespace
     project: Group by Project
-    node: Group by Node
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
     namespace: "<span>Namespace:</span> {name}"
@@ -3995,7 +3853,6 @@ resourceTable:
     workspace: "<span>Workspace:</span> {name}"
     notInANodePool: "Not in a Pool"
     nodePool: "<span>Pool:</span> {name} ({count})"
-    node: "<span>Node:</span> {name}"
 
 resourceTabs:
   conditions:
@@ -4281,7 +4138,7 @@ storageClass:
       later: Bind and provision a persistent volume once a Pod using the PersistentVolumeClaim is created
     mountOptions:
       label: Mount Options
-      addLabel: Add Option
+      addlabel: Add Option
   aws-ebs:
     title: Amazon EBS Disk
     volumeType:
@@ -4556,7 +4413,7 @@ tableHeaders:
     projectDefault: Project Creator Default
   branch: Branch
   builtIn: Built In
-  bundlesReady: Bundles Ready
+  bundlesReady: Bundles
   bundleDeploymentsReady: Deployments
   builtin: Built-In
   chart: Chart
@@ -4638,14 +4495,11 @@ tableHeaders:
   reason: Reason
   reclaimPolicy: Reclaim Policy
   repo: Repo
-  repositories: Repositories
-  repoName: Repository Name
   reposReady: Repos Ready
   replicas: Replicas
   reqRate: Req Rate
   resource: Resource
   resources: Resources
-  resourcesReady: Resources Ready
   restarts: Restarts
   role: Role
   roles: Roles
@@ -5495,8 +5349,6 @@ harvester:
     promiscuous: Promiscuous
     ipv4Address: IPv4 Address
   generic:
-    close: Close
-    open: Open
     showMore: Show More
     hideMore: Hide More
     memory: Memory
@@ -5542,7 +5394,14 @@ harvester:
         label: Events
       vmMetrics:
         label: VM Metrics
-
+    upgrade:
+      upgradeApp: Upgrade Software
+      upgrade: Upgrade
+      upgradeTip: Please select the version you want to upgrade to
+      currentVersion: CURRENT VERSION
+      versionLabel: AVAILABLE COMPATIBLE VERSIONS
+      upgradeNode: Upgrading Nodes
+      upgradeSysService: Upgrading System Services
     version: Version
   host:
     label: Hosts
@@ -5817,28 +5676,6 @@ harvester:
     nameNsDescription:
       name: Template Name
 
-  upgradePage:
-    upgradeApp: Upgrade Software
-    upgrade: Upgrade
-    upgradeTip: Please select the version you want to upgrade to
-    currentVersion: CURRENT VERSION
-    versionLabel: AVAILABLE COMPATIBLE VERSIONS
-    upgradeNode: Upgrading Node
-    upgradeSysService: Upgrading System Service
-    upgradeImage: Download Upgrade Image
-    osUpgrade: OS Upgrade
-    uploadNew: Upload New Image
-    selectExisting: Select Existing Image
-    createRepository: Creating Upgrade Repository
-    succeeded: Succeeded
-    pending: Pending
-    repoInfo:
-      os: OS
-      kubernetes: Kubernetes
-      monitoringChart: Monitoring Chart
-      harvesterChart: Harvester Chart
-    dismissMessage: Dismiss it
-
   backup:
     label: Backups
     createText: Restore Backup
@@ -5925,16 +5762,7 @@ harvester:
       ca: CA
     vmForceDeletionPolicy:
       period: Period
-    supportBundleImage:
-      imagePullPolicy: Pull Policy
-      repo: Repository
-      tag: Tag
 
-    upgrade:
-      selectExitImage: Please select the OS image to upgrade.
-      imageUrl: Please input a valid image url.
-      chooseFile: Please select to upload an image.
-      checksum: Checksum
   cloudTemplate:
     label: Cloud Config Templates
     templateType: Template Type
@@ -5977,24 +5805,6 @@ harvester:
       label: Health Check Period
     healthCheckTimeout:
       label: Health Check Timeout
-    healthCheckEnabled:
-      label: Health Check
-
-  vip:
-    namespace:
-      label: Namespace
-    cidr:
-      label: CIDR
-      invalid: '"CIRD" is invalid.'
-    add:
-      label: Add IP Pools
-
-  sslParameters:
-    protocols:
-      label: Protocols
-    ciphers:
-      label: Ciphers
-
 ##############################
 # Model Properties
 ##############################
@@ -6173,6 +5983,7 @@ typeLabel:
       one { Cluster Group }
       other {Cluster Groups }
     }
+
   fleet.cattle.io.gitrepo: |-
     {count, plural,
       one { Git Repo }
