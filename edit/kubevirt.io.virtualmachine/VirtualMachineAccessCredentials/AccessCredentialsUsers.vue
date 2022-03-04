@@ -145,7 +145,7 @@ export default {
       :taggable="multiple"
       :mode="mode"
       :multiple="multiple"
-      :searchable="true"
+      :searchable="false"
       :tooltip="t('harvester.virtualMachine.accessCredentials.userTips')"
       :class="{'hasUsers': selectedUser.length > 0}"
       @input="update"

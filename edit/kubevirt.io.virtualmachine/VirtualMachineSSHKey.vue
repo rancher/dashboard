@@ -42,6 +42,11 @@ export default {
       default: ''
     },
 
+    searchable: {
+      type:    Boolean,
+      default: true,
+    },
+
     disabled: {
       type:    Boolean,
       default: false
@@ -210,7 +215,7 @@ export default {
       :taggable="true"
       :mode="mode"
       :multiple="true"
-      :searchable="true"
+      :searchable="searchable"
       :disabled="disabled"
       :options="sshOption"
       @input="update"

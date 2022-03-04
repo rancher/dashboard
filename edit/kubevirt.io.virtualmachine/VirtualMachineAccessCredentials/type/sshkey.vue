@@ -76,6 +76,7 @@ export default {
           class="mb-20"
           :namespace="resource.metadata.namespace"
           :mode="mode"
+          :searchable="false"
           @update:sshKey="updateSSH"
         />
       </div>
