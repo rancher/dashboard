@@ -138,9 +138,9 @@ export default {
         <span v-if="col.sort" v-tooltip="col.tooltip" @click="$router.applyQuery(queryFor(col))">
           <span v-html="labelFor(col)" />
           <span class="icon-stack">
-            <i class="icon icon-sort icon-stack-1x faded" />
-            <i v-if="isCurrent(col) && !descending" class="icon icon-sort-down icon-stack-1x" />
-            <i v-if="isCurrent(col) && descending" class="icon icon-sort-up icon-stack-1x" />
+            <i class="icon icon-sort icon-stack-1x faded" aria-hidden="true" />
+            <i v-if="isCurrent(col) && !descending" aria-hidden="true" class="icon icon-sort-down icon-stack-1x" />
+            <i v-if="isCurrent(col) && descending" aria-hidden="true" class="icon icon-sort-up icon-stack-1x" />
           </span>
         </span>
         <span v-else v-tooltip="col.tooltip">{{ labelFor(col) }}</span>

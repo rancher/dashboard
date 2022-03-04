@@ -181,7 +181,7 @@ BODY, .theme-light {
   --success-active-text        : #{contrast-color(darken($success, 25%))};
   --success-border             : #{$success};
   --success-banner-bg          : #{rgba($success, 0.15)};
-  --success-light-bg           : #{rgba($success, 0.05)};
+  --success-light-bg           : #{rgba($success, 0.08)};
 
   .text-success {
     color: var(--success) !important;

@@ -88,12 +88,22 @@ button,
   &.btn-sm {
     line-height: $btn-sm-height;
   }
+  
+  &:focus, &.focused {
+    background-color: var(--primary-hover-bg);
+    color: var(--primary-text);
+  }
 }
 
 .role-tertiary {
   background: var(--accent-btn);
   border: solid 1px var(--primary);
   color: var(--primary);
+
+  &:focus, &.focused {
+    background-color: var(--primary-hover-bg);
+    color: var(--primary-text);
+  }
 }
 
 .role-link {

@@ -66,23 +66,10 @@ export default {
     border: 1px solid transparent;
     border-radius: 20px;
 
-    &.bg-info {
-      border-color: var(--primary);
-    }
-
-    &.bg-error {
-      border-color: var(--error);
-    }
-
-    &.bg-warning {
-      border-color: var(--warning);
-    }
-
     // Successful states are de-emphasized by using [text-]color instead of background-color
     &.bg-success {
       color: var(--success);
-      background: transparent;
-      border-color: var(--success);
+      background: var(--success-light-bg);
     }
   }
 
