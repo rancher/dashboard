@@ -827,6 +827,14 @@ $spacing: 10px;
     padding: 8px 5px;
     border: 0;
 
+    &:first-child {
+      padding-left: 10px;
+    }
+
+    &:last-child {
+      padding-right: 10px;
+    }
+
     &.row-check {
       padding-top: 12px;
     }
