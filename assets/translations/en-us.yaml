@@ -5830,7 +5830,6 @@ harvester:
       label: IPAM
     healthCheckPort:
       label: Health Check Port
-      description: The prober will access the address composed of the backend server IP and the port. The port should be a node port.
     healthCheckSuccessThreshold:
       label: Health Check Success Threshold
       description: If the number of times the prober continuously detects an address successfully reaches the success threshold, then the backend server can start to forward traffic.
