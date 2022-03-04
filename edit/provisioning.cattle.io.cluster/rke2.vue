@@ -434,7 +434,7 @@ export default {
       const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
 
       for ( const opt of this.agentArgs['cloud-provider-name'].options ) {
-        if ( (!preferred && opt !== HARVESTER) || opt === preferred || opt === 'external' || preferred === HARVESTER) {
+        if ( (!!preferred && opt !== HARVESTER) || opt === preferred || opt === 'external' || preferred === HARVESTER) {
           out.push({
             label: this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ opt }".label`, null, opt),
             value: opt,
