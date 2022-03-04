@@ -52,6 +52,15 @@ export default {
   },
 
   methods: {
+    async finish() {
+      try {
+        await this.save();
+      } catch (e) {
+        console.error(`Error when saving: ${ e }`); // eslint-disable-line no-console
+        this.errors.push(e);
+      }
+    },
+
     selectType(type) {
       if (!this.type && type) {
         this.$router.replace({ params: { resource: type } });
@@ -69,6 +78,7 @@ export default {
     v-else
     :mode="realMode"
     :resource="value"
+    @finish="finish"
   >
     <ClusterAdmissionPolicy
       :value="value"
