@@ -1002,6 +1002,22 @@ export default class Resource {
     });
   }
 
+  async doActionGrowl(actionName, body, opt = {}) {
+    try {
+      await this.$dispatch('resourceAction', {
+        resource: this,
+        actionName,
+        body,
+        opt,
+      });
+    } catch (err) {
+      this.$dispatch('growl/fromError', {
+        title: this.$rootGetters['i18n/t']('generic.notification.title.error'),
+        err:   err.data || err,
+      }, { root: true });
+    }
+  }
+
   // ------------------------------------------------------------------
 
   patch(data, opt = {}) {
