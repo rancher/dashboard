@@ -98,7 +98,7 @@ export default {
   },
 
   async fetch() {
-    const requests = {};
+    const requests = { rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }) };
     const needed = {
       configMaps: CONFIG_MAP,
       nodes:      NODE,
@@ -117,10 +117,7 @@ export default {
       }
     });
 
-    const hash = await allHash({
-      ...requests,
-      rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-    });
+    const hash = await allHash(requests);
 
     this.servicesOwned = hash.services ? await this.value.getServicesOwned() : [];
 
