@@ -5311,6 +5311,7 @@ harvester:
     createVM: Create a Virtual Machine
     start: Start
     restart: Restart
+    softreboot: Soft Reboot
     stop: Stop
     pause: Pause
     unpause: Unpause

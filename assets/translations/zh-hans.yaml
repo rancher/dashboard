@@ -5138,6 +5138,7 @@ harvester:
     createVM: 创建虚拟机
     start: 启动
     restart: 重启
+    softreboot: 安全重启
     stop: 停止
     pause: 暂停
     unpause: 取消暂停

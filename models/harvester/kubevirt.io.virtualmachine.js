@@ -104,6 +104,12 @@ export default class VirtVm extends SteveModel {
         bulkable:   true,
       },
       {
+        action:     'softrebootVM',
+        enabled:    !!this.actions?.softreboot,
+        icon:       'icon icon-refresh',
+        label:      this.t('harvester.action.softreboot'),
+      },
+      {
         action:     'startVM',
         enabled:    !!this.actions?.start,
         icon:       'icon icon-play',
@@ -229,6 +235,17 @@ export default class VirtVm extends SteveModel {
   async restartVM() {
     try {
       await this.doAction('restart', {});
+    } catch (err) {
+      this.$dispatch('growl/fromError', {
+        title: this.$rootGetters['i18n/t']('harvester.notification.title.error'),
+        err,
+      }, { root: true });
+    }
+  }
+
+  async softrebootVM() {
+    try {
+      await this.doAction('softreboot', {});
     } catch (err) {
       this.$dispatch('growl/fromError', {
         title: this.$rootGetters['i18n/t']('harvester.notification.title.error'),
