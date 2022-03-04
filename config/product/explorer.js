@@ -1,5 +1,6 @@
 import {
   CONFIG_MAP,
+  EVENT,
   NODE, SECRET, INGRESS,
   WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD,
   RBAC,
@@ -134,6 +135,8 @@ export function init(store) {
   configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { isEditable: false });
   configureType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING, { isEditable: false });
   configureType(MANAGEMENT.PROJECT, { displayName: store.getters['i18n/t']('namespace.project.label') });
+
+  configureType(EVENT, { limit: 500 });
 
   // Allow Pods to be grouped by node
   configureType(POD, {
