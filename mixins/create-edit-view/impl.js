@@ -164,7 +164,7 @@ export default {
       } catch (err) {
         // Conflict, the resource being edited has changed since starting editing
         if ( err.status === 409 && depth === 0 ) {
-          const errors = await this.conflict(err);
+          const errors = this.conflict();
 
           if ( errors === false ) {
             // It was automatically figured out, save again
