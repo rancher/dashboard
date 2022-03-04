@@ -1,6 +1,5 @@
 <script>
 import * as d3 from 'd3';
-import { STATES } from '@/plugins/steve/resource-class';
 
 export default {
   name:  'ForceDirectedTreeChart',
@@ -12,7 +11,94 @@ export default {
   },
   data() {
     return {
-      parsedData:   null,
+      parsedData: {
+        id:       'item1',
+        isRepo:   true,
+        status:   'active',
+        children: [
+          {
+            id:       'item2',
+            children: [
+              {
+                id:       'item4',
+                children: [],
+                status:   'warning',
+              },
+              {
+                id:       'item5',
+                children: [],
+                status:   'active',
+              },
+              {
+                id:       'item6',
+                children: [],
+                status:   'active',
+              },
+              {
+                id:       'item7',
+                children: [],
+                status:   'active',
+              },
+              {
+                id:       'item8',
+                children: [],
+                status:   'error',
+              },
+              {
+                id:       'item9',
+                children: [],
+                status:   'active',
+              },
+            ],
+            isBundle: true,
+            status:   'error',
+          },
+          {
+            id:       'item3',
+            children: [
+              {
+                id:       'item301',
+                status:   'active',
+                children: []
+              },
+              {
+                id:       'item302',
+                status:   'active',
+                children: []
+              },
+              {
+                id:       'item303',
+                status:   'active',
+                children: []
+              },
+              {
+                id:       'item304',
+                status:   'active',
+                children: []
+              },
+            ],
+            isBundle: true,
+            status:   'active',
+          },
+          {
+            id:       'item110',
+            children: [
+              {
+                id:       'item111',
+                status:   'active',
+                children: []
+              },
+              {
+                id:       'item112',
+                status:   'warning',
+                children: []
+              }
+            ],
+            isBundle: true,
+            status:   'active',
+          }
+        ]
+      },
       root:         null,
       allNodesData: null,
       allLinks:     null,
@@ -25,118 +111,19 @@ export default {
       moreInfo:     null
     };
   },
-  watch: {
-    data: {
-      handler(newValue) {
-        if (newValue.bundles?.length) {
-          // eslint-disable-next-line no-console
-          console.log('WATCHER TRIGGERED!', JSON.stringify(newValue.bundles.length, null, 2));
-
-          if (!this.isRendered) {
-            this.parsedData = this.parse(newValue);
-            console.log('ORIGINAL DATA flattened', this.flatten(this.parsedData));
-            this.renderChart();
-            this.updateChart(true, true);
-            this.isRendered = true;
-          } else {
-            const parsedData = this.parse(newValue);
-            const flattenedData = this.flatten(parsedData);
-            let hasStatusChange = false;
-
-            flattenedData.forEach((item) => {
-              const index = this.allNodesData.findIndex(nodeData => item.id === nodeData.data.id);
-
-              if (index > -1 && this.allNodesData[index].data.status !== item.status) {
-                this.allNodesData[index].data.status = item.status;
-                hasStatusChange = true;
-              }
-            });
-
-            if (hasStatusChange) {
-              this.updateChart(false, false);
-            }
-          }
-        }
-      }
-    }
-  },
   methods: {
-    changeNodeStatus() {
-      console.log('NODE STATUS TOGGLED between active and warning!');
-      const index = this.allNodesData.findIndex(item => item.data.id === 'item3');
-
-      this.allNodesData[index].data.status = this.allNodesData[index].data.status === 'warning' ? 'active' : 'warning';
-      this.updateChart(false, false);
-    },
-    parse(data) {
-      const repoChildren = data.bundles.map((bundle, i) => {
-        const repoChild = {
-          id:       bundle.id,
-          label:    bundle.nameDisplay,
-          rawData:    bundle,
-          type:     'bundle',
-          isBundle: true,
-          status:   bundle.state,
-          // status:   'active',
-          hasError: data?.stateObj?.error,
-          children: []
-        };
-
-        if (bundle.status?.resourceKey?.length) {
-          bundle.status.resourceKey.forEach((res, index) => {
-            const id = `${ res.kind }-${ res.namespace }/${ res.name }`;
-            let status;
-
-            if (data.status?.resources?.length) {
-              const item = data.status?.resources?.find(resource => `${ resource.kind }-${ resource.id }` === id);
-
-              if (item) {
-                status = item.state;
-              }
-            }
-
-            repoChild.children.push({
-              id,
-              label:      res.name,
-              rawData:    res,
-              type:       'resource',
-              isResource: true,
-              status,
-              // status:     'active',
-              hasError:   data?.stateObj?.error,
-            });
-          });
-        }
-
-        return repoChild;
-      });
-
-      const finalData = {
-        id:       data?.id,
-        label:    data?.nameDisplay,
-        rawData:  data,
-        type:     'repo',
-        isRepo:   true,
-        status:   data?.state,
-        // status:   'active',
-        hasError: data?.stateObj?.error,
-        children: repoChildren
-      };
-
-      return finalData;
-    },
     renderChart() {
       const width = 800;
-      const height = 300;
+      const height = 600;
 
       // clear any previous renders, if they exist...
-      // if (d3.select('#tree > svg')) {
-      //   d3.select('#tree > svg').remove();
-      // }
+      if (d3.select('#tree > svg')) {
+        d3.select('#tree > svg').remove();
+      }
 
       this.svg = d3.select('#tree').append('svg')
         .attr('viewBox', `0 0 ${ width } ${ height }`)
-        .call(d3.zoom().scaleExtent([1 / 8, 16]).on('zoom', this.zoomed))
+        .call(d3.zoom().scaleExtent([1 / 2, 8]).on('zoom', this.zoomed))
         .append('g')
         .attr('transform', 'translate(40,0)');
 
@@ -245,18 +232,13 @@ export default {
         .links(this.allLinks));
     },
     statusColor(d) {
-      const lowerCaseStatus = d.data?.status ? d.data.status.toLowerCase() : 'unkown_status';
-      const stateColorDefinition = STATES[lowerCaseStatus] ? STATES[lowerCaseStatus].color : 'unknown_color';
-
-      switch (stateColorDefinition) {
-      case 'success':
-        return '#5D995D';
+      switch (d.data.status) {
+      case 'active':
+        return 'green';
       case 'warning':
-        return '#DAC342';
+        return 'yellow';
       case 'error':
-        return '#F64747';
-      case 'info':
-        return '#3D98D3';
+        return 'red';
       default:
         return '#CCC';
       }
@@ -289,7 +271,7 @@ export default {
     },
     mainNodeClick(ev, d) {
       if (!ev.defaultPrevented) {
-        console.log('SIMPLE NODE CLICK should toggle children!', d.data);
+        console.log('SIMPLE NODE CLICK should toggle children!', d.data.id);
         // this is the same as directly tapping into this.root and changing properties...
         if (d.children) {
           d._children = d.children;
@@ -304,7 +286,7 @@ export default {
     moreInfoClick(ev, d) {
       if (!ev.defaultPrevented) {
         console.log('MORE INFO CLICK!', d.data.id);
-        this.moreInfo = d.data?.rawData ? d.data?.rawData : d.data;
+        this.moreInfo = d.data;
       }
     },
     closeMoreInfo() {
@@ -349,8 +331,39 @@ export default {
     },
     zoomed(ev) {
       this.svg.attr('transform', ev.transform);
+    },
+    changeNodeStatus() {
+      console.log('NODE STATUS TOGGLED between active and warning!');
+      const index = this.allNodesData.findIndex(item => item.data.id === 'item3');
+
+      this.allNodesData[index].data.status = this.allNodesData[index].data.status === 'warning' ? 'active' : 'warning';
+      this.updateChart(false, false);
+    },
+    addNode() {
+      this.parsedData.children.push({
+        id:       'newID',
+        isBundle: true,
+        status:   'active',
+        children: [
+          {
+            id:       'newID1',
+            status:   'error',
+            children: []
+          }
+        ]
+      });
+
+      // eslint-disable-next-line no-console
+      console.log('NODE ADDED! - bundle status active + resource status error');
+
+      this.renderChart();
+      this.updateChart(true, true);
     }
-  }
+  },
+  mounted() {
+    this.renderChart();
+    this.updateChart(true, true);
+  },
 };
 </script>
 
@@ -364,6 +377,12 @@ export default {
         <span @click="closeMoreInfo">X</span>
       </div>
     </div>
+    <button class="mt-20" @click="changeNodeStatus">
+      TOGGLE BUNDLE NODE STATUS BETWEEN ACTIVE AND WARNING
+    </button>
+    <button class="mt-20" @click="addNode">
+      ADD A NEW NODE TO THE CHART
+    </button>
   </div>
 </template>
 
