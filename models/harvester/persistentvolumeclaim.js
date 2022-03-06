@@ -45,15 +45,8 @@ export default class HciPv extends SteveModel {
     });
   }
 
-  async cancelExpand(resources = this) {
-    try {
-      await this.doAction('cancelExpand', {});
-    } catch (err) {
-      this.$dispatch('growl/fromError', {
-        title: this.$rootGetters['i18n/t']('harvester.notification.title.error'),
-        err,
-      }, { root: true });
-    }
+  cancelExpand(resources = this) {
+    this.doActionGrowl('cancelExpand', {});
   }
 
   get canUpdate() {

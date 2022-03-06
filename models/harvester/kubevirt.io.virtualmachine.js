@@ -232,26 +232,12 @@ export default class VirtVm extends SteveModel {
     }
   }
 
-  async restartVM() {
-    try {
-      await this.doAction('restart', {});
-    } catch (err) {
-      this.$dispatch('growl/fromError', {
-        title: this.$rootGetters['i18n/t']('harvester.notification.title.error'),
-        err,
-      }, { root: true });
-    }
+  restartVM() {
+    this.doActionGrowl('restart', {});
   }
 
-  async softrebootVM() {
-    try {
-      await this.doAction('softreboot', {});
-    } catch (err) {
-      this.$dispatch('growl/fromError', {
-        title: this.$rootGetters['i18n/t']('harvester.notification.title.error'),
-        err,
-      }, { root: true });
-    }
+  softrebootVM() {
+    this.doActionGrowl('softreboot', {});
   }
 
   openLogs() {
@@ -309,11 +295,11 @@ export default class VirtVm extends SteveModel {
   }
 
   pauseVM() {
-    this.doAction('pause', {});
+    this.doActionGrowl('pause', {});
   }
 
   unpauseVM() {
-    this.doAction('unpause', {});
+    this.doActionGrowl('unpause', {});
   }
 
   stopVM() {
@@ -321,7 +307,7 @@ export default class VirtVm extends SteveModel {
   }
 
   startVM() {
-    this.doAction('start', {});
+    this.doActionGrowl('start', {});
   }
 
   migrateVM(resources = this) {
@@ -339,7 +325,7 @@ export default class VirtVm extends SteveModel {
   }
 
   abortMigrationVM() {
-    this.doAction('abortMigration', {});
+    this.doActionGrowl('abortMigration', {});
   }
 
   createTemplate(resources = this) {

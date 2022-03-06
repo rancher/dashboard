@@ -314,7 +314,7 @@ export default {
         const newVM = JSON.parse(JSON.stringify(cloneDeepNewVM));
 
         if (!isEqual(oldVM, newVM) && this.isRestartImmediately) {
-          this.value.doAction('restart', {});
+          this.value.doActionGrowl('restart', {});
         }
       }
     },
