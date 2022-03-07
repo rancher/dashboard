@@ -965,8 +965,6 @@ export default {
           await secret.save();
         }
       } catch (e) {
-        new Error(`Function(saveSecret) error ${ e }`);
-
         return Promise.reject(e);
       }
     },
@@ -1014,8 +1012,6 @@ export default {
           await resource.save();
         }
       } catch (e) {
-        new Error(`Function(saveAccessCredentials:save) error ${ e }`);
-
         return Promise.reject(e);
       }
     },
