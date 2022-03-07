@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import { EVENT, HCI, SERVICE } from '@/config/types';
+import { EVENT, HCI, SERVICE, POD } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import VM_MIXIN from '@/mixins/harvester-vm';
 import DashboardMetrics from '@/components/DashboardMetrics';
@@ -12,6 +12,7 @@ import { allDashboardsExist } from '@/utils/grafana';
 import CloudConfig from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
 import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
 import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
+import AccessCredentials from '@/edit/kubevirt.io.virtualmachine/VirtualMachineAccessCredentials';
 import Events from './VirtualMachineTabs/VirtualMachineEvents';
 import Migration from './VirtualMachineTabs/VirtualMachineMigration';
 import OverviewBasics from './VirtualMachineTabs/VirtualMachineBasics';
@@ -33,6 +34,7 @@ export default {
     CloudConfig,
     Migration,
     DashboardMetrics,
+    AccessCredentials,
   },
 
   mixins: [CreateEditView, VM_MIXIN],
@@ -56,9 +58,12 @@ export default {
     const inStore = this.$store.getters['currentProduct'].inStore;
 
     const hash = {
+      pods:     this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
       services: this.$store.dispatch(`${ inStore }/findAll`, { type: SERVICE }),
       events:   this.$store.dispatch(`${ inStore }/findAll`, { type: EVENT }),
       allSSHs:  this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.SSH }),
+      vmis:     this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.VMI }),
+      restore:  this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.RESTORE }),
     };
 
     await allHash(hash);
@@ -181,6 +186,10 @@ export default {
             :vars="graphVars"
           />
         </template>
+      </Tab>
+
+      <Tab :label="t('harvester.tab.accessCredentials')" class="bordered-table" name="accessCredentials" :weight="2.2">
+        <AccessCredentials mode="view" :value="accessCredentials" :resource="value" />
       </Tab>
 
       <Tab name="cloudConfig" :label="t('harvester.virtualMachine.detail.tabs.cloudConfig')" class="bordered-table" :weight="2">

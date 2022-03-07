@@ -9,7 +9,7 @@ import { allHash } from '@/utils/promise';
 import { randomStr } from '@/utils/string';
 import { base64Decode } from '@/utils/crypto';
 import { formatSi, parseSi } from '@/utils/units';
-import { SOURCE_TYPE } from '@/config/harvester-map';
+import { SOURCE_TYPE, ACCESS_CREDENTIALS } from '@/config/harvester-map';
 import { _CLONE } from '@/config/query-params';
 import {
   PVC, HCI, STORAGE_CLASS, NODE, SECRET
@@ -124,7 +124,8 @@ export default {
       showAdvanced:       false,
       deleteAgent:        true,
       memory:             null,
-      cpu:                ''
+      cpu:                '',
+      accessCredentials:  [],
     };
   },
 
@@ -143,6 +144,10 @@ export default {
 
     pvcs() {
       return this.$store.getters['harvester/all'](PVC);
+    },
+
+    secrets() {
+      return this.$store.getters['harvester/all'](SECRET);
     },
 
     nodesIdOptions() {
@@ -256,9 +261,11 @@ export default {
       const installAgent = this.isCreate ? true : this.hasInstallAgent(userData, osType, true);
 
       const secretRef = this.getSecret(spec);
+      const accessCredentials = this.getAccessCredentials(spec);
 
       this.$set(this, 'spec', spec);
       this.$set(this, 'secretRef', secretRef);
+      this.$set(this, 'accessCredentials', accessCredentials);
       this.$set(this, 'userScript', userData);
       this.$set(this, 'networkScript', networkData);
 
@@ -423,6 +430,7 @@ export default {
 
     parseVM() {
       this.parseOther();
+      this.parseAccessCredentials();
       this.parseNetworkRows(this.networkRows);
       this.parseDiskRows(this.diskRows);
     },
@@ -612,6 +620,52 @@ export default {
       };
 
       this.$set(this.spec.template, 'spec', spec);
+    },
+
+    parseAccessCredentials() {
+      if (this.resource !== HCI.VM || this.isCreate) {
+        return;
+      }
+
+      const out = [];
+      const annotations = {};
+      const users = JSON.parse(this.spec.template.metadata.annotations[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_USERS] || '[]');
+
+      for (const row of this.accessCredentials) {
+        if (!row.secretName) {
+          continue;
+        }
+
+        if (row.source === ACCESS_CREDENTIALS.RESET_PWD) {
+          users.push(row.username);
+          out.push({
+            userPassword: {
+              source:            { secret: { secretName: row.secretName } },
+              propagationMethod: { qemuGuestAgent: { } }
+            }
+          });
+        }
+
+        if (row.source === ACCESS_CREDENTIALS.INJECT_SSH) {
+          users.push(...row.users);
+          annotations[row.secretName] = row.sshkeys;
+          out.push({
+            sshPublicKey: {
+              source:            { secret: { secretName: row.secretName } },
+              propagationMethod: { qemuGuestAgent: { users: row.users } }
+            }
+          });
+        }
+      }
+
+      if (out.length === 0 && !!this.spec.template.spec.accessCredentials) {
+        delete this.spec.template.spec.accessCredentials;
+      } else {
+        this.spec.template.spec.accessCredentials = out;
+      }
+
+      this.spec.template.metadata.annotations[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_USERS] = JSON.stringify(Array.from(new Set(users)));
+      this.spec.template.metadata.annotations[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_NAMES] = JSON.stringify(annotations);
     },
 
     getInitUserData(config) {
@@ -911,10 +965,107 @@ export default {
           await secret.save();
         }
       } catch (e) {
-        new Error(`Function(saveSecret) error ${ e }`);
-
         return Promise.reject(e);
       }
+    },
+
+    async saveAccessCredentials(vm) {
+      if (!vm?.spec || this.isCreate || this.resource !== HCI.VM) {
+        return true;
+      }
+
+      // save
+      const toSave = [];
+
+      for (const row of this.accessCredentials) {
+        let secretRef = row.secretRef;
+
+        if (!secretRef) {
+          secretRef = await this.$store.dispatch('harvester/create', {
+            metadata: {
+              name:            row.secretName,
+              namespace:       vm.metadata.namespace,
+              labels:          { [HCI_ANNOTATIONS.CLOUD_INIT]: 'harvester' },
+              ownerReferences: this.getOwnerReferencesFromVM(vm)
+            },
+            type: SECRET
+          });
+        }
+
+        if (row.source === ACCESS_CREDENTIALS.RESET_PWD) {
+          secretRef.setData(row.username, row.newPassword);
+        }
+
+        if (row.source === ACCESS_CREDENTIALS.INJECT_SSH) {
+          for (const secretId of row.sshkeys) {
+            const keypair = (this.$store.getters['harvester/all'](HCI.SSH) || []).find(s => s.id === secretId);
+
+            secretRef.setData(`${ keypair.metadata.namespace }-${ keypair.metadata.name }`, keypair.spec.publicKey);
+          }
+        }
+
+        toSave.push(secretRef);
+      }
+
+      try {
+        for (const resource of toSave) {
+          await resource.save();
+        }
+      } catch (e) {
+        return Promise.reject(e);
+      }
+    },
+
+    getAccessCredentialsValidation() {
+      const errors = [];
+
+      for (let i = 0; i < this.accessCredentials.length; i++) {
+        const row = this.accessCredentials[i];
+        const source = row.source;
+
+        if (source === ACCESS_CREDENTIALS.RESET_PWD) {
+          if (!row.username) {
+            const fieldName = this.t('harvester.virtualMachine.input.username');
+            const message = this.t('validation.required', { key: fieldName });
+
+            errors.push(message);
+          }
+
+          if (!row.newPassword) {
+            const fieldName = this.t('harvester.virtualMachine.input.password');
+            const message = this.t('validation.required', { key: fieldName });
+
+            errors.push(message);
+          }
+
+          if (row.newPassword && row.newPassword.length < 6) {
+            const fieldName = this.t('harvester.virtualMachine.input.password');
+            const message = this.t('validation.number.min', { key: fieldName, val: '6' });
+
+            errors.push(message);
+          }
+        } else {
+          if (!row.users || row.users.length === 0) {
+            const fieldName = this.t('harvester.virtualMachine.input.username');
+            const message = this.t('validation.required', { key: fieldName });
+
+            errors.push(message);
+          }
+
+          if (!row.sshkeys || row.sshkeys.length === 0) {
+            const fieldName = this.t('harvester.virtualMachine.input.sshKeyValue');
+            const message = this.t('validation.required', { key: fieldName });
+
+            errors.push(message);
+          }
+        }
+
+        if (errors.length > 0) {
+          break;
+        }
+      }
+
+      return errors;
     },
 
     getHasCreatedVolumes(spec) {

@@ -24,15 +24,25 @@ export default {
       hash.clusterNetwork = this.$store.dispatch('harvester/findAll', { type: HCI.CLUSTER_NETWORK });
     }
 
+    if (this.$store.getters['harvester/schemaFor'](MANAGEMENT.MANAGED_CHART)) {
+      hash.managedcharts = this.$store.dispatch('harvester/findAll', { type: MANAGEMENT.MANAGED_CHART });
+    }
+
     const rows = await allHash(hash);
 
     let allRows = [];
 
     if (rows.clusterNetwork) {
-      allRows = [...rows.clusterNetwork, ...rows.haversterSettings];
-    } else {
-      allRows = rows.haversterSettings;
+      allRows.push(...rows.clusterNetwork);
     }
+
+    const monitoring = (rows.managedcharts || []).find(c => c.id === 'fleet-local/rancher-monitoring');
+
+    if (monitoring) {
+      allRows.push(...rows.managedcharts);
+    }
+
+    allRows.push(...rows.haversterSettings);
 
     if (isSingleVirtualCluster) {
       allRows = [...rows.settings, ...allRows];
@@ -66,7 +76,7 @@ export default {
         data:        settingsMap[setting],
       };
 
-      s.hide = s.canHide = (s.kind === 'json' || s.kind === 'multiline');
+      s.hide = s.canHide = (s.kind === 'json' || s.kind === 'multiline' || s.customFormatter === 'json');
       s.hasActions = !s.readOnly || isDev;
       initSettings.push(s);
     });

@@ -18,6 +18,7 @@ import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
 import CpuMemory from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCpuMemory';
 import CloudConfig from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
 import NodeScheduling from '@/components/form/NodeScheduling';
+import AccessCredentials from '@/edit/kubevirt.io.virtualmachine/VirtualMachineAccessCredentials';
 
 import { clear } from '@/utils/array';
 import { clone } from '@/utils/object';
@@ -50,6 +51,7 @@ export default {
     CpuMemory,
     CloudConfig,
     NodeScheduling,
+    AccessCredentials,
   },
 
   mixins: [CreateEditView, VM_MIXIN],
@@ -141,6 +143,10 @@ export default {
 
     showRunning() {
       return !(this.isEdit || this.isView);
+    },
+
+    isQemuInstalled() {
+      return this.value.isQemuInstalled;
     }
   },
 
@@ -195,6 +201,7 @@ export default {
 
       try {
         await this.saveSecret(res);
+        await this.saveAccessCredentials(res);
       } catch (e) {
         this.errors.push(...exceptionToErrorsArray(e));
       }
@@ -286,15 +293,14 @@ export default {
     },
 
     async _save(value, buttonCb) {
-      await this.applyHooks(BEFORE_SAVE_HOOKS);
       try {
+        await this.applyHooks(BEFORE_SAVE_HOOKS);
         await value.save();
+        await this.applyHooks(AFTER_SAVE_HOOKS);
       } catch (e) {
         this.errors.push(...exceptionToErrorsArray(e));
         buttonCb(false);
       }
-
-      await this.applyHooks(AFTER_SAVE_HOOKS);
     },
 
     restartVM() {
@@ -308,7 +314,7 @@ export default {
         const newVM = JSON.parse(JSON.stringify(cloneDeepNewVM));
 
         if (!isEqual(oldVM, newVM) && this.isRestartImmediately) {
-          this.value.doAction('restart', {});
+          this.value.doActionGrowl('restart', {});
         }
       }
     },
@@ -318,6 +324,14 @@ export default {
         if (!this.value.spec.template.spec.hostname) {
           this.$set(this.value.spec.template.spec, 'hostname', this.value.metadata.name);
         }
+      }
+
+      const errors = this.getAccessCredentialsValidation();
+
+      if (errors.length > 0) {
+        return Promise.reject(errors);
+      } else {
+        return Promise.resolve();
       }
     },
 
@@ -457,10 +471,14 @@ export default {
           <NodeScheduling :mode="mode" :value="spec.template.spec" :nodes="nodesIdOptions" />
         </Tab>
 
+        <Tab v-if="isEdit" :label="t('harvester.tab.accessCredentials')" name="accessCredentials" :weight="-4">
+          <AccessCredentials v-model="accessCredentials" :mode="mode" :resource="value" :is-qemu-installed="isQemuInstalled" />
+        </Tab>
+
         <Tab
           name="advanced"
           :label="t('harvester.tab.advanced')"
-          :weight="-4"
+          :weight="-5"
         >
           <div class="row mb-20">
             <div class="col span-6">

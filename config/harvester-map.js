@@ -35,3 +35,8 @@ export const VOLUME_TYPE = [{
   label: 'cd-rom',
   value: 'cd-rom'
 }];
+
+export const ACCESS_CREDENTIALS = {
+  RESET_PWD:  'userPassword',
+  INJECT_SSH: 'sshPublicKey'
+};
