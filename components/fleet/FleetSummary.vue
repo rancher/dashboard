@@ -7,8 +7,8 @@ const getResourceDefaultState = (labelGetter, stateKey) => {
   return {
     ready: {
       count: 0,
-      color: STATES[STATES_ENUM.SUCCESS].color,
-      label: labelGetter(`${ stateKey }.${ STATES_ENUM.SUCCESS }`, null, STATES[STATES_ENUM.SUCCESS].label )
+      color: STATES[STATES_ENUM.READY].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.READY }`, null, STATES[STATES_ENUM.READY].label )
     },
     info:    {
       count: 0,
@@ -29,6 +29,12 @@ const getResourceDefaultState = (labelGetter, stateKey) => {
       count: 0,
       color: STATES[STATES_ENUM.ERROR].color,
       label: labelGetter(`${ stateKey }.${ STATES_ENUM.ERROR }`, null, STATES[STATES_ENUM.ERROR].label )
+
+    },
+    errapplied:   {
+      count: 0,
+      color: STATES[STATES_ENUM.ERR_APPLIED].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.ERR_APPLIED }`, null, STATES[STATES_ENUM.ERR_APPLIED].label )
 
     },
     waitapplied:   {
@@ -77,27 +83,49 @@ export default {
       const resources = this.bundles.filter(item => item.metadata.name.startsWith(`${ this.repoName }-`)) || [];
       const out = { ...getResourceDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
 
-      resources.forEach((element) => {
-        const k = element.status?.summary.ready > 0 && element.status?.summary.desiredReady === element.status.summary.ready;
+      resources.forEach(({ status, metadata }) => {
+        const k = status?.summary.ready > 0 && status?.summary.desiredReady === status.summary.ready;
 
         if (k) {
           out.ready.count += 1;
 
           return;
         }
+        console.log(metadata.state, status);
 
-        const notReady = element.status.conditions.find(condition => condition.transitioning);
+        const state = metadata.state?.name?.toLowerCase();
+
+        if (state && out[state]) {
+          out[state].count += 1;
+
+          return;
+        }
+
+        const { conditions } = status;
+
+        const notReady = conditions.find(({ transitioning, message }) => {
+          return transitioning && !message.includes(STATES_ENUM.ERROR) && !message.toLowerCase().includes(STATES_ENUM.ERR_APPLIED);
+        });
 
         if (!!notReady) {
           out.notready.count += 1;
 
           return;
         }
-        // check conditions
-        const state = element.status.conditions.find(condition => !!condition.error) ? 'error' : element.metadata.state;
 
-        if (out[state]) {
-          out[state].count += 1;
+        // check conditions
+        const errApplied = conditions.find(({ error, message }) => !!error && message.toLowerCase().includes(STATES_ENUM.ERR_APPLIED));
+
+        if (errApplied) {
+          out[STATES_ENUM.ERR_APPLIED].count += 1;
+
+          return;
+        }
+
+        const errorState = conditions.find(({ error, message }) => !!error && message.toLowerCase().includes(STATES_ENUM.ERROR));
+
+        if (out[errorState]) {
+          out[errorState].count += 1;
 
           return;
         }
@@ -116,21 +144,15 @@ export default {
       const resources = this.value.status.resources || [];
       const out = { ...getResourceDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
 
-      resources.forEach((element) => {
-        const k = element.state?.toLowerCase();
-
-        const mapped = STATES[k] || STATES['other'];
+      resources.forEach(({ state }) => {
+        const k = state?.toLowerCase();
 
         if (out[k]) {
           out[k].count += 1;
-          out[k].color = mapped.color;
-        } else {
-          out[k] = {
-            count: 1,
-            color: mapped.color,
-            label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ k }`, null, capitalize(k))
-          };
+
+          return;
         }
+        out.unknown.count += 1;
       });
 
       return Object.values(out).map((item) => {

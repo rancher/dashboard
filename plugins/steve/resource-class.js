@@ -232,7 +232,7 @@ export const STATES = {
     color: 'warning', icon: 'tag', label: 'Draining'
   },
   [STATES_ENUM.ERR_APPLIED]:         {
-    color: 'error', icon: 'error', label: 'Err Applied'
+    color: 'error', icon: 'error', label: 'Error Applied'
   },
   [STATES_ENUM.ERROR]:              {
     color: 'error', icon: 'error', label: 'Error'

@@ -84,8 +84,6 @@ export default {
 
     this.allBundles = allDispatches.allBundles;
     this.allFleet = allDispatches.allFleet;
-
-    console.log('ALL FLEET', this.allFleet);
   },
 
 };
