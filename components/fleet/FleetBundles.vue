@@ -26,7 +26,7 @@ export default {
   },
 
   async fetch() {
-    this.allFleet = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
+    this.allFleet = await this.$store.getters['management/all'](FLEET.CLUSTER);
   },
 
   data() {

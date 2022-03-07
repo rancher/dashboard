@@ -3,6 +3,48 @@ import capitalize from 'lodash/capitalize';
 import { STATES, STATES_ENUM } from '@/plugins/steve/resource-class';
 import FleetStatus from '@/components/fleet/FleetStatus';
 
+const getResourceDefaultState = (labelGetter, stateKey) => {
+  return {
+    ready: {
+      count: 0,
+      color: STATES[STATES_ENUM.SUCCESS].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.SUCCESS }`, null, STATES[STATES_ENUM.SUCCESS].label )
+    },
+    info:    {
+      count: 0,
+      color: STATES[STATES_ENUM.INFO].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.INFO }`, null, STATES[STATES_ENUM.INFO].label )
+    },
+    warning: {
+      count: 0,
+      color: STATES[STATES_ENUM.WARNING].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.WARNING }`, null, STATES[STATES_ENUM.WARNING].label )
+    },
+    notready: {
+      count: 0,
+      color: STATES[STATES_ENUM.NOT_READY].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.NOT_READY }`, null, STATES[STATES_ENUM.NOT_READY].label )
+    },
+    error:   {
+      count: 0,
+      color: STATES[STATES_ENUM.ERROR].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.ERROR }`, null, STATES[STATES_ENUM.ERROR].label )
+
+    },
+    waitapplied:   {
+      count: 0,
+      color: STATES[STATES_ENUM.WAIT_APPLIED].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.WAIT_APPLIED }`, null, STATES[STATES_ENUM.WAIT_APPLIED].label )
+
+    },
+    unknown: {
+      count: 0,
+      color: STATES[STATES_ENUM.UNKNOWN].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.UNKNOWN }`, null, STATES[STATES_ENUM.UNKNOWN].label )
+    }
+  };
+};
+
 export default {
 
   name: 'FleetSummary',
@@ -33,39 +75,7 @@ export default {
 
     bundleCounts() {
       const resources = this.bundles.filter(item => item.metadata.name.startsWith(`${ this.repoName }-`)) || [];
-      const out = {
-        ready: {
-          count: 0,
-          color: STATES[STATES_ENUM.SUCCESS].color,
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.SUCCESS }`, null, STATES[STATES_ENUM.SUCCESS].label )
-        },
-        info:    {
-          count: 0,
-          color: STATES[STATES_ENUM.INFO].color,
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.INFO }`, null, STATES[STATES_ENUM.INFO].label )
-        },
-        warning: {
-          count: 0,
-          color: STATES[STATES_ENUM.WARNING].color,
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.WARNING }`, null, STATES[STATES_ENUM.WARNING].label )
-        },
-        notready: {
-          count: 0,
-          color: STATES[STATES_ENUM.NOT_READY].color,
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.NOT_READY }`, null, STATES[STATES_ENUM.NOT_READY].label )
-        },
-        error:   {
-          count: 0,
-          color: STATES[STATES_ENUM.ERROR].color,
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.ERROR }`, null, STATES[STATES_ENUM.ERROR].label )
-
-        },
-        unknown: {
-          count: 0,
-          color: STATES[STATES_ENUM.UNKNOWN].color,
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.UNKNOWN }`, null, STATES[STATES_ENUM.UNKNOWN].label )
-        }
-      };
+      const out = { ...getResourceDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
 
       resources.forEach((element) => {
         const k = element.status?.summary.ready > 0 && element.status?.summary.desiredReady === element.status.summary.ready;
@@ -104,39 +114,7 @@ export default {
 
     resourceCounts() {
       const resources = this.value.status.resources || [];
-      const out = {
-        ready: {
-          count: 0,
-          color: STATES[STATES_ENUM.SUCCESS].color,
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.SUCCESS }`, null, STATES[STATES_ENUM.SUCCESS].label )
-        },
-        info:    {
-          count: 0,
-          color: STATES[STATES_ENUM.INFO].color,
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.INFO }`, null, STATES[STATES_ENUM.INFO].label )
-        },
-        warning: {
-          count: 0,
-          color: STATES[STATES_ENUM.WARNING].color,
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.WARNING }`, null, STATES[STATES_ENUM.WARNING].label )
-        },
-        notready: {
-          count: 0,
-          color: STATES[STATES_ENUM.NOT_READY].color,
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.NOT_READY }`, null, STATES[STATES_ENUM.NOT_READY].label )
-        },
-        error:   {
-          count: 0,
-          color: STATES[STATES_ENUM.ERROR].color,
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.ERROR }`, null, STATES[STATES_ENUM.ERROR].label )
-
-        },
-        unknown: {
-          count: 0,
-          color: STATES[STATES_ENUM.UNKNOWN].color,
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ STATES_ENUM.UNKNOWN }`, null, STATES[STATES_ENUM.UNKNOWN].label )
-        }
-      };
+      const out = { ...getResourceDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
 
       resources.forEach((element) => {
         const k = element.state?.toLowerCase();

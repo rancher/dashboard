@@ -1,6 +1,7 @@
 <script>
 import { colorForState, stateDisplay, stateSort } from '@/plugins/steve/resource-class';
 import SortableTable from '@/components/SortableTable';
+import { randomStr } from '~/utils/string';
 
 export default {
   name: 'FleetBundleResources',
@@ -23,6 +24,7 @@ export default {
 
         return {
           ...item,
+          tableKey:        randomStr(),
           stateBackground: color,
           stateDisplay:    display,
           stateSort:       stateSort(color, display),
@@ -77,7 +79,7 @@ export default {
     :headers="resourceHeaders"
     :table-actions="false"
     :row-actions="false"
-    key-field="key"
+    key-field="tableKey"
     default-sort-by="state"
     :paged="true"
   />

@@ -41,7 +41,11 @@ export default {
     },
 
     bundleResourceIds() {
-      return this.value.status.resourceKey.map(item => item.name);
+      if (this.value.status?.resourceKey) {
+        return this.value?.status?.resourceKey.map(item => item.name);
+      }
+
+      return [];
     },
 
     repoSchema() {
