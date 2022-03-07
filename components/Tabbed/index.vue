@@ -370,6 +370,8 @@ export default {
 
           .btn {
             flex: 1 1;
+            display: flex;
+            justify-content: center;
           }
 
           button:first-of-type {
