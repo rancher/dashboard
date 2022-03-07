@@ -2,7 +2,7 @@
 import omitBy from 'lodash/omitBy';
 import { cleanUp } from '@/utils/object';
 import {
-  CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC, SERVICE_ACCOUNT
+  CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC, SERVICE_ACCOUNT, CAPI
 } from '@/config/types';
 import Tab from '@/components/Tabbed/Tab';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -98,7 +98,7 @@ export default {
   },
 
   async fetch() {
-    const requests = {};
+    const requests = { rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }) };
     const needed = {
       configMaps: CONFIG_MAP,
       nodes:      NODE,
