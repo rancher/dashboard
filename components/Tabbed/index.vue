@@ -229,9 +229,9 @@ export default {
           role="tab"
           @click.prevent="select(tab.name, $event)"
         >
-          {{ tab.labelDisplay }}
+          <span>{{ tab.labelDisplay }}</span>
+          <i v-if="tab.displayAlertIcon" class="conditions-alert-icon icon-error icon-lg" />
         </a>
-        <i v-if="tab.displayAlertIcon" class="conditions-alert-icon icon-error icon-lg" />
       </li>
       <li v-if="sideTabs && !sortedTabs.length" class="tab disabled">
         <a href="#" @click.prevent>(None)</a>
@@ -258,36 +258,35 @@ export default {
     list-style-type: none;
     margin: 0;
     padding: 0;
-    display: flex;
-    align-items: center;
 
     &:focus {
      outline:none;
 
-      & .tab.active {
+      & .tab.active a span {
         text-decoration: underline;
       }
     }
 
     .tab {
-      display: flex;
-      align-items: center;
-      margin: 0 8px 0 0;
+      position: relative;
+      float: left;
+      padding: 0 8px 0 0;
       cursor: pointer;
 
       A {
-        display: block;
+        display: flex;
+        align-items: center;
         padding: 10px 15px;
       }
 
       .conditions-alert-icon {
         text-decoration: none !important;
         color: var(--error);
-        padding-right: 15px;
+        padding-left: 10px;
       }
 
       &:last-child {
-        margin-right: 0;
+        padding-right: 0;
       }
 
       &.active {
@@ -371,6 +370,8 @@ export default {
 
           .btn {
             flex: 1 1;
+            display: flex;
+            justify-content: center;
           }
 
           button:first-of-type {
