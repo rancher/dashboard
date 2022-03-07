@@ -10,6 +10,9 @@ import { exceptionToErrorsArray } from '@/utils/error';
 import { CAPI, NORMAN, SNAPSHOT } from '@/config/types';
 import { set } from '@/utils/object';
 import ChildHook, { BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
+import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
+import { escapeHtml } from '@/utils/string';
+import day from 'dayjs';
 import { sortBy } from '~/utils/sort';
 
 export default {
@@ -76,7 +79,7 @@ export default {
 
             return snapshot.clusterName === toRestoreClusterName;
           })
-          .map(snapshot => ({ label: snapshot.name, value: snapshot.name }));
+          .map(snapshot => ({ label: this.snapshotLabel(snapshot), value: snapshot.name }));
 
         return list;
       } else {
@@ -179,6 +182,16 @@ export default {
         this.errors = exceptionToErrorsArray(err);
         buttonDone(false);
       }
+    },
+    snapshotLabel(snapshot) {
+      const dateFormat = escapeHtml(this.$store.getters['prefs/get'](DATE_FORMAT));
+      const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
+
+      const name = snapshot.id.split(':');
+      const d = day(snapshot.created).format(dateFormat);
+      const t = day(snapshot.created).format(timeFormat);
+
+      return `${ d } ${ t } : ${ name[1] }`;
     }
   }
 };
