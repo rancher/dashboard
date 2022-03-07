@@ -314,7 +314,7 @@ export default {
         {
           name:          'name',
           labelKey:      'tableHeaders.name',
-          value:         'nameDisplay',
+          value:         'snapshotFile.name',
           sort:          ['nameSort'],
           canBeVariable: true,
         },
