@@ -19,6 +19,7 @@ export default {
       node:         null,
       link:         null,
       svg:          null,
+      zoom:         null,
       simulation:   null,
       circleRadius: 15,
       isRendered:   false,
@@ -77,7 +78,6 @@ export default {
           type:     'bundle',
           isBundle: true,
           status:   bundle.state,
-          // status:   'active',
           hasError: data?.stateObj?.error,
           children: []
         };
@@ -102,7 +102,6 @@ export default {
               type:       'resource',
               isResource: true,
               status,
-              // status:     'active',
               hasError:   data?.stateObj?.error,
             });
           });
@@ -118,7 +117,6 @@ export default {
         type:     'repo',
         isRepo:   true,
         status:   data?.state,
-        // status:   'active',
         hasError: data?.stateObj?.error,
         children: repoChildren
       };
@@ -133,10 +131,11 @@ export default {
       // if (d3.select('#tree > svg')) {
       //   d3.select('#tree > svg').remove();
       // }
+      this.zoom = d3.zoom().scaleExtent([1 / 8, 16]).on('zoom', this.zoomed);
 
       this.svg = d3.select('#tree').append('svg')
         .attr('viewBox', `0 0 ${ width } ${ height }`)
-        .call(d3.zoom().scaleExtent([1 / 8, 16]).on('zoom', this.zoomed))
+        .call(this.zoom)
         .append('g')
         .attr('transform', 'translate(40,0)');
 
@@ -243,6 +242,10 @@ export default {
         })
         .distance(100)
         .links(this.allLinks));
+
+      // if (isStartingData) {
+      //   this.zoomFit(0.95, 500);
+      // }
     },
     statusColor(d) {
       const lowerCaseStatus = d.data?.status ? d.data.status.toLowerCase() : 'unkown_status';
@@ -347,6 +350,32 @@ export default {
 
       return nodes;
     },
+    zoomFit(paddingPercent, transitionDuration) {
+      const bounds = this.root.node().getBBox();
+      const parent = this.root.node().parentElement;
+      const fullWidth = parent.clientWidth;
+      const fullHeight = parent.clientHeight;
+      const width = bounds.width;
+      const height = bounds.height;
+      const midX = bounds.x + width / 2;
+      const midY = bounds.y + height / 2;
+
+      if (width === 0 || height === 0) {
+        return;
+      } // nothing to fit
+      const scale = (paddingPercent || 0.75) / Math.max(width / fullWidth, height / fullHeight);
+      const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
+
+      console.trace('zoomFit', translate, scale);
+      const transform = d3.zoomIdentity
+        .translate(translate[0], translate[1])
+        .scale(scale);
+
+      this.root
+        .transition()
+        .duration(transitionDuration || 0) // milliseconds
+        .call(this.zoom.transform, transform);
+    },
     zoomed(ev) {
       this.svg.attr('transform', ev.transform);
     }
@@ -368,26 +397,32 @@ export default {
 </template>
 
 <style lang="scss">
-#tree {
-  width: 100%;
-  border: 2px solid red;
-}
+.chartContainer {
+  display: flex;
 
-.more-info {
-  border: 2px solid blue;
-  padding: 10px 40px 10px 10px;
-  position: relative;
+  #tree {
+    width: 80%;
+    border: 2px solid red;
 
-  span {
-    position: absolute;
-    top: 0;
-    right: 0;
-    padding: 10px;
-    cursor: pointer;
+    .node {
+      cursor: pointer;
+    }
+  }
+
+  .more-info {
+    width: 20%;
+    border: 2px solid blue;
+    padding: 10px 40px 10px 10px;
+    position: relative;
+
+    span {
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 10px;
+      cursor: pointer;
+    }
   }
 }
 
-.node {
-  cursor: pointer;
-}
 </style>
