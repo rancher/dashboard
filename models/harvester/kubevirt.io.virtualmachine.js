@@ -798,7 +798,7 @@ export default class VirtVm extends SteveModel {
   }
 
   get stateDescription() {
-    if (this.isOff) {
+    if (this.isOff || /pod has unbound immediate PersistentVolumeClaims/.test(super.stateDescription)) {
       return '';
     }
 
