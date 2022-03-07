@@ -63,10 +63,6 @@ export default class HciVmTemplate extends SteveModel {
     });
   }
 
-  get defaultVersionId() {
-    return this.spec?.defaultVersionId;
-  }
-
   get defaultVersion() {
     return this.status?.defaultVersion;
   }

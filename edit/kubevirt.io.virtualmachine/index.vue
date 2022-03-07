@@ -159,7 +159,7 @@ export default {
         if (id !== old && !this.templateVersionId) {
           const templates = await this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE });
 
-          this.templateVersionId = templates.find( O => O.id === id)?.defaultVersionId;
+          this.templateVersionId = templates.find( O => O.id === id)?.spec?.defaultVersionId;
         }
       },
       immediate: false

@@ -21,6 +21,7 @@ import { cleanForNew } from '@/plugins/steve/normalize';
 
 import VM_MIXIN from '@/mixins/harvester-vm';
 import CreateEditView from '@/mixins/create-edit-view';
+import { AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 
 export default {
   name: 'HarvesterEditVMTemplate',
@@ -178,6 +179,7 @@ export default {
         const res = await this.value.save();
 
         await this.saveSecret(res);
+        await this.applyHooks(AFTER_SAVE_HOOKS);
         this.done();
       } catch (e) {
         this.errors = [e];
