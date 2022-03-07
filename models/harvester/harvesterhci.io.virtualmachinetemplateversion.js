@@ -87,7 +87,9 @@ export default class HciVmTemplateVersion extends SteveModel {
                     memory: null,
                     cpu:    ''
                   }
-                }
+                },
+                features: { smm: { enabled: false } },
+                firmware: { bootloader: { efi: { secureBoot: false } } },
               },
               hostname: '',
               networks: [{

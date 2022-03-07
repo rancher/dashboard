@@ -4,7 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import difference from 'lodash/difference';
 
 import { sortBy } from '@/utils/sort';
-import { clone } from '@/utils/object';
+import { clone, set } from '@/utils/object';
 import { allHash } from '@/utils/promise';
 import { randomStr } from '@/utils/string';
 import { base64Decode } from '@/utils/crypto';
@@ -126,6 +126,7 @@ export default {
       memory:             null,
       cpu:                '',
       accessCredentials:  [],
+      efiEnabled:          false,
     };
   },
 
@@ -259,6 +260,7 @@ export default {
       userData = this.isCreate ? this.getInitUserData({ osType }) : userData;
       const installUSBTablet = this.isInstallUSBTablet(spec);
       const installAgent = this.isCreate ? true : this.hasInstallAgent(userData, osType, true);
+      const efiEnabled = this.isEfiEnabled(spec);
 
       const secretRef = this.getSecret(spec);
       const accessCredentials = this.getAccessCredentials(spec);
@@ -278,6 +280,7 @@ export default {
       this.$set(this, 'machineType', machineType);
 
       this.$set(this, 'installUSBTablet', installUSBTablet);
+      this.$set(this, 'efiEnabled', efiEnabled);
 
       this.$set(this, 'hasCreateVolumes', hasCreateVolumes);
       this.$set(this, 'networkRows', networkRows);
@@ -1108,6 +1111,24 @@ export default {
       }
     },
 
+    setEfiEnabled(value) {
+      const smmEnabled = this.spec?.template?.spec?.domain?.features?.smm?.enabled;
+      const efiEnabled = this.spec?.template?.spec?.domain?.firmware?.bootloader?.efi?.secureBoot;
+
+      if (value) {
+        if (!smmEnabled) {
+          set(this.spec.template.spec.domain, 'features.smm.enabled', true);
+        }
+
+        if (!efiEnabled) {
+          set(this.spec.template.spec.domain, 'firmware.bootloader.efi.secureBoot', true);
+        }
+      } else {
+        set(this.spec.template.spec.domain, 'features.smm.enabled', false);
+        set(this.spec.template.spec.domain, 'firmware.bootloader.efi.secureBoot', false);
+      }
+    },
+
     deleteSSHFromUserData(ssh = []) {
       const sshAuthorizedKeys = this.getSSHFromUserData(this.userScript);
 
@@ -1205,6 +1226,10 @@ export default {
 
     installUSBTablet(val) {
       this.handlerUSBTablet(val);
+    },
+
+    efiEnabled(val) {
+      this.setEfiEnabled(val);
     },
 
     installAgent: {

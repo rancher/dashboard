@@ -102,6 +102,17 @@ export default {
       }
     },
 
+    isEfiEnabled(spec) {
+      const smmEnabled = spec?.template?.spec?.domain?.features?.smm?.enabled;
+      const efiEnabled = spec?.template?.spec?.domain?.firmware?.bootloader?.efi?.secureBoot;
+
+      if (smmEnabled && efiEnabled) {
+        return true;
+      } else {
+        return false;
+      }
+    },
+
     getSecretCloudData(spec, type) {
       const secret = this.getSecret(spec);
 

@@ -214,7 +214,14 @@ export default {
       :namespaced="true"
     />
 
-    <Checkbox v-if="templateId" v-model="isDefaultVersion" class="mb-20" :label="t('tableHeaders.defaultVersion')" type="checkbox" />
+    <Checkbox
+      v-if="templateId"
+      v-model="isDefaultVersion"
+      class="mb-20"
+      :label="t('tableHeaders.defaultVersion')"
+      type="checkbox"
+      :mode="mode"
+    />
 
     <Tabbed :side-tabs="true" @changed="onTabChanged">
       <Tab name="Basics" :label="t('harvester.vmTemplate.tabs.basics')">
@@ -253,13 +260,27 @@ export default {
         />
 
         <div class="spacer"></div>
-        <Checkbox v-model="installUSBTablet" class="check" type="checkbox" :label="t('harvester.virtualMachine.enableUsb')" />
+        <Checkbox
+          v-model="installUSBTablet"
+          class="check"
+          type="checkbox"
+          :label="t('harvester.virtualMachine.enableUsb')"
+          :mode="mode"
+        />
 
         <Checkbox
           v-model="installAgent"
           class="check"
           type="checkbox"
           label-key="harvester.virtualMachine.installAgent"
+          :mode="mode"
+        />
+
+        <Checkbox
+          v-model="efiEnabled"
+          class="check"
+          type="checkbox"
+          :label="t('harvester.virtualMachine.efiEnabled')"
           :mode="mode"
         />
       </Tab>

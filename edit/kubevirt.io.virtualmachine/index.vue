@@ -544,6 +544,14 @@ export default {
             label-key="harvester.virtualMachine.installAgent"
             :mode="mode"
           />
+
+          <Checkbox
+            v-model="efiEnabled"
+            class="check"
+            type="checkbox"
+            :label="t('harvester.virtualMachine.efiEnabled')"
+            :mode="mode"
+          />
         </Tab>
       </Tabbed>
 

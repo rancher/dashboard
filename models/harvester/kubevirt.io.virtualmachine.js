@@ -200,7 +200,9 @@ export default class VirtVm extends SteveModel {
                 memory: null,
                 cpu:    ''
               }
-            }
+            },
+            features: { smm: { enabled: false } },
+            firmware: { bootloader: { efi: { secureBoot: false } } },
           },
           evictionStrategy: 'LiveMigrate',
           hostname:         '',

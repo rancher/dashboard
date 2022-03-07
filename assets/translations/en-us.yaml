@@ -5550,6 +5550,7 @@ harvester:
     usbTip: Provides an absolute pointer device which often helps with getting a consistent mouse cursor position in VNC.
     sshTitle: Add Public SSH Key
     imageTip: An external URL to the .iso, .img, .qcow2 or .raw that the virtual machine should be created from.
+    efiEnabled: Booting in EFI mode
     volume:
       dragTip: Drag and drop volumes, or use the volume's arrows, to change the boot order.
       volumeTip: The VM only contains a cd-rom volume. You may want to add additional disk volumes.
