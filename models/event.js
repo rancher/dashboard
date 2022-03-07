@@ -16,4 +16,8 @@ export default class K8sEvent extends SteveModel {
   get displayMessage() {
     return ucFirst(this.message);
   }
+
+  get timestamp() {
+    return this.lastTimestamp || this.metadata?.creationTimestamp;
+  }
 }

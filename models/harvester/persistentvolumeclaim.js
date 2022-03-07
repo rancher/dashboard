@@ -28,6 +28,12 @@ export default class HciPv extends SteveModel {
         icon:       'icon icon-copy',
         label:      this.t('harvester.action.exportImage'),
       },
+      {
+        action:     'cancelExpand',
+        enabled:    this.hasAction('cancelExpand'),
+        icon:       'icon icon-backup',
+        label:      this.t('harvester.action.cancelExpand'),
+      },
       ...super._availableActions
     ];
   }
@@ -37,6 +43,10 @@ export default class HciPv extends SteveModel {
       resources,
       component: 'harvester/ExportImageDialog'
     });
+  }
+
+  cancelExpand(resources = this) {
+    this.doActionGrowl('cancelExpand', {});
   }
 
   get canUpdate() {

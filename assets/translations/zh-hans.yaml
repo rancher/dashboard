@@ -5138,6 +5138,7 @@ harvester:
     createVM: 创建虚拟机
     start: 启动
     restart: 重启
+    softreboot: 安全重启
     stop: 停止
     pause: 暂停
     unpause: 取消暂停
@@ -5183,6 +5184,7 @@ harvester:
     volume: 卷
     network: 网络
     advanced: 高级选项
+    accessCredentials: 凭证管理
   fields:
     version: 版本
     name: 名称
@@ -5421,6 +5423,16 @@ harvester:
         anyNode: '在任何可用节点上运行虚拟机'
         schedulingRules: '在匹配调度规则的节点上运行虚拟机'
         specificNode: 在指定节点上运行虚拟机 -（不支持热迁移）
+    accessCredentials:
+      resetPwd:
+        label: 添加密码凭证
+      injectSSH:
+        label: 添加SSH秘钥凭证
+        users: 选择用户
+        addUser: 添加用户
+      tips: 凭证生效需要安装qemu-guest-agent，更新凭证内容后无需重启，添加凭证后需要重启生效，删除凭证后，需要进入虚拟机手动修改密码/删除ssh key
+      userTips: 添加的用户需要是已经存在的，否则凭证不会生效
+      duplicatedUser: 用户已添加
     input:
       name: 名称
       memory: 内存
@@ -5428,6 +5440,8 @@ harvester:
       sshKey: SSH 密钥
       sshKeyValue: SSH 密钥
       MachineType: 机器类型
+      username: 用户名
+      password: 密码
     machineTypeTip: '指定要模拟的处理器架构。要查看支持的体系结构列表，请运行：qemu-system-x86_64 -cpu ?'
     detail:
       tabs:
@@ -5618,6 +5632,13 @@ harvester:
       period: 周期
     supportBundleImage:
       imagePullPolicy: 镜像拉取策略
+    harvesterMonitoring:
+      label: Harvester Monitoring
+      tips:
+        scrape: 每次采集数据的间隔时间
+        evaluation: 每次评估规则的间隔时间
+        retention: 监控数据保留时间
+        retentionSize: 监控数据最大占用存储
 
   cloudTemplate:
     label: Cloud Config 模板
@@ -5650,7 +5671,6 @@ harvester:
       label: IPAM
     healthCheckPort:
       label: 健康检查端口
-      description: 探针将访问由后端服务器 IP 和端口组成的地址。端口需要是节点端口。
     healthCheckSuccessThreshold:
       label: 健康检查成功阙值
       description: 如果探针连续检测到某个地址的成功次数达到成功阈值，后端服务器就可以开始转发流量。
@@ -6251,6 +6271,7 @@ advancedSettings:
     'harv-vm-force-reset-policy': 配置当虚拟机卡在停机的节点上时的强制重置动作。
     'harv-ssl-parameters': 用于 TLS 验证的自定义 SSL 参数。
     'harv-support-bundle-namespaces': 指定支持包要收集的其他命名空间中的资源。
+    'harvester-monitoring': 指定 Harvester 内置的Prometheus 将使用的监控配置。
   editHelp:
     'ui-banners': 此设置使用包含 3 个根参数的 JSON 对象，分别是<code>banner</code>、<code>showHeader</code>和<code>showFooter</code>。<code>banner</code> 是包含 <code>textColor</code>，<code>background</code>和<code>text</code>的对象，其中<code>textColor</code> 和 <code>background</code>的值可以是任何有效的 CSS 颜色值。
   enum:

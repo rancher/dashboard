@@ -2,21 +2,18 @@
 import Loading from '@/components/Loading';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
-import SortableTable from '@/components/SortableTable';
 import { allHash } from '@/utils/promise';
 import AlertTable from '@/components/AlertTable';
 import Banner from '@/components/Banner';
 import { parseSi, createMemoryValues } from '@/utils/units';
 import {
   NAME,
-  REASON,
   ROLES,
   STATE,
 } from '@/config/table-headers';
 import {
   NAMESPACE,
   INGRESS,
-  EVENT,
   MANAGEMENT,
   METRIC,
   NODE,
@@ -40,6 +37,8 @@ import ResourceSummary, { resourceCounts } from '@/components/ResourceSummary';
 import HardwareResourceGauge from '@/components/HardwareResourceGauge';
 import { isEmpty } from '@/utils/object';
 import ConfigBadge from './ConfigBadge';
+import EventsTable from './EventsTable';
+import { fetchClusterResources } from './explorer-utils';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -63,22 +62,19 @@ export default {
     HardwareResourceGauge,
     Loading,
     ResourceSummary,
-    SortableTable,
     Tab,
     Tabbed,
     AlertTable,
     Banner,
     EmberPage,
-    ConfigBadge
+    ConfigBadge,
+    EventsTable,
   },
 
   mixins: [metricPoller],
 
   async fetch() {
-    const hash = {
-      nodes:       this.fetchClusterResources(NODE),
-      events:      this.fetchClusterResources(EVENT),
-    };
+    const hash = { nodes: fetchClusterResources(this.$store, NODE) };
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
       hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
@@ -101,36 +97,6 @@ export default {
 
   data() {
     const clusterCounts = this.$store.getters[`cluster/all`](COUNT);
-    const reason = {
-      ...REASON,
-      ...{ canBeVariable: true },
-      width: 120
-    };
-
-    const eventHeaders = [
-      reason,
-      {
-        name:          'resource',
-        label:         'Resource',
-        labelKey:      'clusterIndexPage.sections.events.resource.label',
-        value:         'displayInvolvedObject',
-        sort:          ['involvedObject.kind', 'involvedObject.name'],
-        canBeVariable: true,
-      },
-      {
-        align:         'right',
-        name:          'date',
-        label:         'Date',
-        labelKey:      'clusterIndexPage.sections.events.date.label',
-        value:         'lastTimestamp',
-        sort:          'lastTimestamp:desc',
-        formatter:     'LiveDate',
-        formatterOpts: { addSuffix: true },
-        width:         125,
-        defaultSort:   true,
-      },
-    ];
-
     const nodeHeaders = [
       STATE,
       NAME,
@@ -138,7 +104,6 @@ export default {
     ];
 
     return {
-      eventHeaders,
       nodeHeaders,
       constraints:         [],
       events:              [],
@@ -255,10 +220,27 @@ export default {
     },
 
     metricAggregations() {
-      const nodes = this.nodes;
-      const someNonWorkerRoles = this.nodes.some(node => node.hasARole && !node.isWorker);
+      let checkNodes = this.nodes;
+
+      // Special case local cluster
+      if (this.currentCluster.isLocal) {
+        const nodeNames = this.nodes.reduce((acc, n) => {
+          acc[n.id] = n;
+
+          return acc;
+        }, {});
+        const managementNodes = this.$store.getters['management/all'](MANAGEMENT.NODE);
+
+        checkNodes = managementNodes.filter((n) => {
+          const nodeName = n.metadata?.labels?.['management.cattle.io/nodename'] || n.id;
+
+          return !!nodeNames[nodeName];
+        });
+      }
+
+      const someNonWorkerRoles = checkNodes.some(node => node.hasARole && !node.isWorker);
       const metrics = this.nodeMetrics.filter((nodeMetrics) => {
-        const node = nodes.find(nd => nd.id === nodeMetrics.id);
+        const node = this.nodes.find(nd => nd.id === nodeMetrics.id);
 
         return node && (!someNonWorkerRoles || node.isWorker);
       });
@@ -336,30 +318,11 @@ export default {
       });
     },
 
-    async fetchClusterResources(type, opt = {}) {
-      const schema = this.$store.getters['cluster/schemaFor'](type);
-
-      if (schema) {
-        try {
-          const resources = await this.$store.dispatch('cluster/findAll', { type, opt });
-
-          return resources;
-        } catch (err) {
-          console.error(`Failed fetching cluster resource ${ type } with error:`, err); // eslint-disable-line no-console
-
-          return [];
-        }
-      }
-
-      return [];
-    },
-
     async loadMetrics() {
-      this.nodeMetrics = await this.fetchClusterResources(METRIC.NODE, { force: true } );
+      this.nodeMetrics = await fetchClusterResources(this.$store, METRIC.NODE, { force: true } );
     },
     findBy,
   },
-
 };
 </script>
 
@@ -444,26 +407,7 @@ export default {
     <div class="mt-30">
       <Tabbed>
         <Tab name="cluster-events" :label="t('clusterIndexPage.sections.events.label')" :weight="2">
-          <SortableTable
-            :rows="events"
-            :headers="eventHeaders"
-            key-field="id"
-            :search="false"
-            :table-actions="false"
-            :row-actions="false"
-            :paging="true"
-            :rows-per-page="10"
-            default-sort-by="date"
-          >
-            <template #cell:resource="{row, value}">
-              <n-link :to="row.detailLocation">
-                {{ value }}
-              </n-link>
-              <div v-if="row.message">
-                {{ row.displayMessage }}
-              </div>
-            </template>
-          </SortableTable>
+          <EventsTable />
         </Tab>
         <Tab v-if="hasMonitoring" name="cluster-alerts" :label="t('clusterIndexPage.sections.alerts.label')" :weight="1">
           <AlertTable />

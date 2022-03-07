@@ -800,13 +800,18 @@ export const actions = {
       isRancher = true;
     }
 
-    await allHash({
+    const hash = {
       projects:          isRancher && dispatch('management/findAll', projectArgs),
       virtualCount:      dispatch('harvester/findAll', { type: COUNT }),
       virtualNamespaces: dispatch('harvester/findAll', { type: NAMESPACE }),
       settings:          dispatch('harvester/findAll', { type: HCI.SETTING }),
-      upgrades:          dispatch('harvester/findAll', { type: HCI.UPGRADE }),
-    });
+    };
+
+    if (getters['harvester/schemaFor'](HCI.UPGRADE)) {
+      hash.upgrades = dispatch('harvester/findAll', { type: HCI.UPGRADE });
+    }
+
+    await allHash(hash);
 
     commit('clusterChanged', true);
 

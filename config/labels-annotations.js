@@ -156,7 +156,9 @@ export const HCI = {
   UPGRADE_IMAGE:                'harvesterhci.io/upgradeImage',
   LATEST_UPGRADE:               'harvesterhci.io/latestUpgrade',
   UPGRADE_STATE:                'harvesterhci.io/upgradeState',
-  REAY_MESSAGE:                 'harvesterhci.io/read-message'
+  REAY_MESSAGE:                 'harvesterhci.io/read-message',
+  DYNAMIC_SSHKEYS_NAMES:        'harvesterhci.io/dynamic-ssh-key-names',
+  DYNAMIC_SSHKEYS_USERS:        'harvesterhci.io/dynamic-ssh-key-users',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge

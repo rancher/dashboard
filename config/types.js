@@ -160,6 +160,7 @@ export const MANAGEMENT = {
   GLOBAL_ROLE:                   'management.cattle.io.globalrole',
   GLOBAL_ROLE_BINDING:           'management.cattle.io.globalrolebinding',
   POD_SECURITY_POLICY_TEMPLATE:  'management.cattle.io.podsecuritypolicytemplate',
+  MANAGED_CHART:                 'management.cattle.io.managedchart'
 };
 
 export const CAPI = {
@@ -276,7 +277,8 @@ export const HCI = {
   BLOCK_DEVICE:       'harvesterhci.io.blockdevice',
   CLOUD_TEMPLATE:     'harvesterhci.io.cloudtemplate',
   HOST:               'harvesterhci.io.host',
-  VERSION:            'harvesterhci.io.version'
+  VERSION:            'harvesterhci.io.version',
+  MANAGED_CHART:      'harvesterhci.io.managedchart',
 };
 
 export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';

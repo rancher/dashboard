@@ -9,6 +9,8 @@ import CreateEditView from '@/mixins/create-edit-view';
 
 import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING } from '@/config/settings';
 
+const RANCHER_MONITORING = 'fleet-local/rancher-monitoring';
+
 export default {
   components: {
     CruResource,
@@ -102,7 +104,11 @@ export default {
         ev.srcElement.blur();
       }
 
-      this.value.value = this.value.default || '';
+      if (this.value.id === RANCHER_MONITORING) {
+        this.$set(this.value.spec.values.prometheus, 'prometheusSpec', Object.assign(this.value.spec.values.prometheus.prometheusSpec, this.value.defaultValue, {}));
+      } else {
+        this.value.value = this.value.default || '';
+      }
     },
   }
 };
