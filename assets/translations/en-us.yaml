@@ -5611,6 +5611,7 @@ harvester:
       tips: qemu-guest-agent must be installed to enable Access Credentials, the VM should be restarted after credentials added. Need to enter the VM to edit password or remove SSH-Key after deleting the credentials.
       userTips: The user to be added must already exist; otherwise, the credentials will not take effect.
       duplicatedUser: User already exist.
+      invalidUser: Invalid Username.
     input:
       name: Name
       memory: Memory
