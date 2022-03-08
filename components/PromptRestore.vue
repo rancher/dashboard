@@ -69,7 +69,7 @@ export default {
       // because the name matches the clusterId field on the
       // snapshot, but the cluster ID doesn't.
       if (this.allSnapshots) {
-        const sortedSnapshots = sortBy(Object.values(this.allSnapshots), ['createdAt', 'created', 'metadata.creationTimestamp'], true);
+        const sortedSnapshots = sortBy(Object.values(this.allSnapshots), ['snapshotFile.createdAt', 'created', 'metadata.creationTimestamp'], true);
         const list = sortedSnapshots
           .filter((snapshot) => {
             const toRestoreClusterName = this.toRestore[0].clusterName || this.toRestore[0]?.metadata?.name;

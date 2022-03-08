@@ -328,7 +328,7 @@ export default {
         },
         {
           ...AGE,
-          sort:          'createdAt:desc',
+          sort:          'snapshotFile.createdAt:desc',
           canBeVariable: true
         },
       ];
