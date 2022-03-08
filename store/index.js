@@ -32,6 +32,37 @@ export const NAMESPACED_PREFIX = 'namespaced://';
 export const NAMESPACED_YES = 'namespaced://true';
 export const NAMESPACED_NO = 'namespaced://false';
 
+const SCHEMA_CHECK_RETRIES = 15;
+const SCHEMA_CHECK_RETRY_LOG = 10;
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Helper to wait for mgmt cluster schema
+async function waitForMgmtClusterSchemaAvailable({ getters, dispatch }) {
+  let tries = SCHEMA_CHECK_RETRIES;
+  let schema = null;
+
+  while (!schema && tries > 0) {
+    schema = getters['management/schemaFor'](MANAGEMENT.CLUSTER);
+
+    if (!schema) {
+      if (tries === SCHEMA_CHECK_RETRY_LOG) {
+        console.warn(`Schema for ${ MANAGEMENT.CLUSTER } not available... retrying...`); // eslint-disable-line no-console
+      }
+      await sleep(1000);
+      tries--;
+    }
+  }
+
+  if (tries === 0) {
+    // Ran out of tries - fetch the schemas again
+    console.warn(`Schema for ${ MANAGEMENT.CLUSTER } still unavailable... loading schemas again...`); // eslint-disable-line no-console
+    await dispatch('management/loadSchemas', true);
+  }
+}
+
 export const plugins = [
   Steve({
     namespace:      'management',
@@ -636,6 +667,10 @@ export const actions = {
 
       return;
     }
+
+    // This is a workaround for a timing issue where the mgmt cluster schema may not be available
+    // Try and wait until the schema exists before proceeding
+    await waitForMgmtClusterSchemaAvailable({ getters, dispatch });
 
     // See if it really exists
     try {
