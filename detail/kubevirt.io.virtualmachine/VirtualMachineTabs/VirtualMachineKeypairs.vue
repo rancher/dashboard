@@ -78,7 +78,7 @@ export default {
           </button>
         </div>
         <button v-else class="btn btn-sm role-link" @click="toggleShow(index)">
-          *******<i class="icons icon-h-eye"></i>
+          *******<i class="icons icon-show"></i>
         </button>
       </div>
     </div>

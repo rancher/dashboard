@@ -120,7 +120,7 @@ export default {
       </template>
     </LabeledSelect>
 
-    <Tip v-if="value.enable" icon="icons icon-h-question" :text="t('harvester.setting.vlanChangeTip')" />
+    <Tip v-if="value.enable" icon="icons icon-info" :text="t('harvester.setting.vlanChangeTip')" />
   </div>
 </template>
 
