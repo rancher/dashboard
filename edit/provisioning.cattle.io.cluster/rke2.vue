@@ -305,6 +305,12 @@ export default {
       return this.value.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
     },
 
+    showK3sTechPreviewWarning() {
+      const selectedVersion = this.value?.spec?.kubernetesVersion || 'none';
+
+      return !!this.k3sVersions.find(v => v.version === selectedVersion);
+    },
+
     // kubeletConfigs() {
     //   return this.value.spec.rkeConfig.machineSelectorConfig.filter(x => !!x.machineLabelSelector);
     // },
@@ -361,7 +367,11 @@ export default {
 
       if ( showK3s ) {
         if ( showRke2 ) {
-          out.push({ kind: 'group', label: this.t('cluster.provider.k3s') });
+          out.push({
+            kind:  'group',
+            label: this.t('cluster.provider.k3s'),
+            badge: this.t('generic.techPreview')
+          });
         }
 
         out.push(...k3s);
@@ -1508,6 +1518,9 @@ export default {
                 :options="versionOptions"
                 label-key="cluster.kubernetesVersion.label"
               />
+              <div v-if="showK3sTechPreviewWarning" class="k3s-tech-preview-info">
+                {{ t('cluster.k3s.techPreview') }}
+              </div>
             </div>
             <div v-if="showCloudProvider" class="col span-6">
               <LabeledSelect
@@ -1972,3 +1985,9 @@ export default {
     </template>
   </CruResource>
 </template>
+<style lang="scss" scoped>
+  .k3s-tech-preview-info {
+    color: var(--error);
+    padding-top: 10px;
+  }
+</style>

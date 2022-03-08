@@ -1616,6 +1616,7 @@ cluster:
         false: Only available inside the cluster
         true: Exposed to the public interface
   k3s:
+    techPreview: K3s provisioning is in Tech Preview
     systemService:
       coredns: 'CoreDNS'
       local-storage: 'Local Storage'
