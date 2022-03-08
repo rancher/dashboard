@@ -5,18 +5,18 @@ import { findBy } from '@/utils/array';
 
 export default class EtcdBackup extends NormanModel {
   get _availableActions() {
-    const out = super._availableActions;
-
     const restore = {
       action:     'promptRestore',
       enabled:    true,
       icon:       'icon icon-fw icon-backup-restore',
       label:      'Restore'
     };
+    const actions = super._availableActions.filter(({ altAction }) => altAction !== 'remove');
 
-    out.unshift(restore);
-
-    return out;
+    return [
+      restore,
+      ...actions,
+    ];
   }
 
   promptRestore() {
