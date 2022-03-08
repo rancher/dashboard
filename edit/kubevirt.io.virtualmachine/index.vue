@@ -10,6 +10,7 @@ import CruResource from '@/components/CruResource';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import UnitInput from '@/components/form/UnitInput';
 import NameNsDescription from '@/components/form/NameNsDescription';
 
 import SSHKey from '@/edit/kubevirt.io.virtualmachine/VirtualMachineSSHKey';
@@ -44,6 +45,7 @@ export default {
     CruResource,
     LabeledInput,
     LabeledSelect,
+    UnitInput,
     NameNsDescription,
     Volume,
     SSHKey,
@@ -505,13 +507,25 @@ export default {
             <a v-else v-t="'harvester.generic.showMore'" role="button" @click="toggleAdvanced" />
           </div>
 
-          <div v-if="showAdvanced" class="mb-20">
+          <div v-if="showAdvanced" class="row mb-20">
             <div class="col span-6">
               <LabeledInput
                 v-model="hostname"
                 :label-key="hostnameLabel"
                 :placeholder="hostPlaceholder"
                 :mode="mode"
+              />
+            </div>
+
+            <div class="col span-6">
+              <UnitInput
+                v-model="reservedMemory"
+                v-int-number
+                :label="t('harvester.virtualMachine.input.reservedMemory')"
+                :mode="mode"
+                :input-exponent="2"
+                :increment="1024"
+                :output-modifier="true"
               />
             </div>
           </div>

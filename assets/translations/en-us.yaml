@@ -5621,6 +5621,7 @@ harvester:
       MachineType: Machine Type
       username: Username
       password: Password
+      reservedMemory: Reserved Memory
     machineTypeTip: 'Specify a processor architecture to emulate. To see a list of supported architectures, run: qemu-system-x86_64 -cpu ?'
     detail:
       tabs:

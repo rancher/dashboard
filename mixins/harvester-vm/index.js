@@ -125,6 +125,7 @@ export default {
       deleteAgent:        true,
       memory:             null,
       cpu:                '',
+      reservedMemory:     null,
       accessCredentials:  [],
       efiEnabled:          false,
     };
@@ -234,6 +235,7 @@ export default {
       const machineType = value.machineType;
       const cpu = spec.template.spec.domain?.cpu?.cores;
       const memory = spec.template.spec.domain.resources.limits.memory;
+      const reservedMemory = vm.metadata?.annotations?.[HCI_ANNOTATIONS.VM_RESERVED_MEMORY];
 
       const sshKey = this.getSSHFromAnnotation(spec) || [];
 
@@ -277,6 +279,7 @@ export default {
 
       this.$set(this, 'cpu', cpu);
       this.$set(this, 'memory', memory);
+      this.$set(this, 'reservedMemory', reservedMemory);
       this.$set(this, 'machineType', machineType);
 
       this.$set(this, 'installUSBTablet', installUSBTablet);
@@ -448,6 +451,15 @@ export default {
       this.spec.template.spec.domain.cpu.cores = this.cpu;
       this.spec.template.spec.domain.resources.limits.cpu = this.cpu;
       this.spec.template.spec.domain.resources.limits.memory = this.memory;
+
+      // parse reserved memory
+      const vm = this.resource === HCI.VM ? this.value : this.value.spec.vm;
+
+      if (!this.reservedMemory) {
+        delete vm.metadata.annotations[HCI_ANNOTATIONS.VM_RESERVED_MEMORY];
+      } else {
+        vm.metadata.annotations[HCI_ANNOTATIONS.VM_RESERVED_MEMORY] = this.reservedMemory;
+      }
     },
 
     parseDiskRows(disk) {
@@ -560,7 +572,7 @@ export default {
         this.$set(this, 'spec', spec);
       } else if (this.resource === HCI.VM_VERSION) {
         this.$set(this.value.spec.vm, 'spec', spec);
-        this.$set(this.value.spec.vm.metadata, 'annotations', { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: JSON.stringify(volumeClaimTemplates) });
+        this.$set(this.value.spec.vm.metadata, 'annotations', { ...this.value.spec.vm.metadata.annotations, [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: JSON.stringify(volumeClaimTemplates) });
         this.$set(this.value.spec.vm.metadata, 'labels', { [HCI_ANNOTATIONS.OS]: this.osType });
         this.$set(this, 'spec', spec);
       }

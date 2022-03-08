@@ -6,6 +6,7 @@ import Checkbox from '@/components/form/Checkbox';
 import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import UnitInput from '@/components/form/UnitInput';
 
 import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
 import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
@@ -37,6 +38,7 @@ export default {
     CruResource,
     CloudConfig,
     LabeledSelect,
+    UnitInput,
     NameNsDescription
   },
 
@@ -248,6 +250,25 @@ export default {
           :options="OS"
           class="mb-20"
         />
+
+        <div class="row mb-20">
+          <a v-if="showAdvanced" v-t="'harvester.generic.showMore'" role="button" @click="toggleAdvanced" />
+          <a v-else v-t="'harvester.generic.showMore'" role="button" @click="toggleAdvanced" />
+        </div>
+
+        <div v-if="showAdvanced" class="row mb-20">
+          <div class="col span-6">
+            <UnitInput
+              v-model="reservedMemory"
+              v-int-number
+              :label="t('harvester.virtualMachine.input.reservedMemory')"
+              :mode="mode"
+              :input-exponent="2"
+              :increment="1024"
+              :output-modifier="true"
+            />
+          </div>
+        </div>
 
         <CloudConfig
           ref="yamlEditor"
