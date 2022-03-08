@@ -48,6 +48,7 @@ export default {
           v-model="value.spec.values.prometheus.prometheusSpec.scrapeInterval"
           :label="t('monitoring.prometheus.config.scrape')"
           :tooltip="t('harvester.setting.harvesterMonitoring.tips.scrape')"
+          :required="true"
           :mode="mode"
         />
       </div>
@@ -56,6 +57,7 @@ export default {
           v-model="value.spec.values.prometheus.prometheusSpec.evaluationInterval"
           :label="t('monitoring.prometheus.config.evaluation')"
           :tooltip="t('harvester.setting.harvesterMonitoring.tips.evaluation')"
+          :required="true"
           :mode="mode"
         />
       </div>
@@ -66,6 +68,7 @@ export default {
           v-model="value.spec.values.prometheus.prometheusSpec.retention"
           :label="t('monitoring.prometheus.config.retention')"
           :tooltip="t('harvester.setting.harvesterMonitoring.tips.retention')"
+          :required="true"
           :mode="mode"
         />
       </div>
@@ -74,6 +77,7 @@ export default {
           v-model="value.spec.values.prometheus.prometheusSpec.retentionSize"
           :label="t('monitoring.prometheus.config.retentionSize')"
           :tooltip="t('harvester.setting.harvesterMonitoring.tips.retentionSize')"
+          :required="true"
           :mode="mode"
         />
       </div>
@@ -90,6 +94,7 @@ export default {
         <LabeledInput
           v-model="value.spec.values.prometheus.prometheusSpec.resources.requests.cpu"
           :label="t('monitoring.prometheus.config.requests.cpu')"
+          :required="true"
           :mode="mode"
         />
       </div>
@@ -97,6 +102,7 @@ export default {
         <LabeledInput
           v-model="value.spec.values.prometheus.prometheusSpec.resources.requests.memory"
           :label="t('monitoring.prometheus.config.requests.memory')"
+          :required="true"
           :mode="mode"
         />
       </div>
@@ -106,6 +112,7 @@ export default {
         <LabeledInput
           v-model="value.spec.values.prometheus.prometheusSpec.resources.limits.cpu"
           :label="t('monitoring.prometheus.config.limits.cpu')"
+          :required="true"
           :mode="mode"
         />
       </div>
@@ -113,6 +120,7 @@ export default {
         <LabeledInput
           v-model="value.spec.values.prometheus.prometheusSpec.resources.limits.memory"
           :label="t('monitoring.prometheus.config.limits.memory')"
+          :required="true"
           :mode="mode"
         />
       </div>
