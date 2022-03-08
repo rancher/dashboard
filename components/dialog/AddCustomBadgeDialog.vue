@@ -121,23 +121,26 @@ export default {
     </h4>
 
     <div slot="body" class="pl-10 pr-10 cluster-badge-body">
-      <div class="row mt-10 preview-row">
+      <div>{{ t('clusterBadge.modal.previewTitle') }}</div>
+
+      <div class="mt-10 pl-20 row preview-row">
+        <div class="badge-preview col span-12">
+          <ClusterProviderIcon v-if="useCustomBadge" :cluster="previewCluster" />
+          <ClusterProviderIcon v-else :cluster="currentCluster" />
+          <div class="cluster-name">
+            {{ currentCluster.nameDisplay }}
+          </div>
+          <ClusterBadge v-if="useCustomBadge" :cluster="previewCluster" />
+        </div>
+      </div>
+
+      <div class="row mt-10">
         <div class="col">
           <Checkbox
             v-model="useCustomBadge"
             :label="t('clusterBadge.modal.checkbox')"
             class="mt-10"
           />
-        </div>
-
-        <div v-if="useCustomBadge" class="col">
-          <div class="badge-preview">
-            <ClusterProviderIcon :cluster="previewCluster" />
-            <div class="cluster-name">
-              {{ currentCluster.nameDisplay }}
-            </div>
-            <ClusterBadge :cluster="previewCluster" />
-          </div>
         </div>
       </div>
 

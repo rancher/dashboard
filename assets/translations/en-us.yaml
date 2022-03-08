@@ -1963,6 +1963,7 @@ clusterBadge:
     badgeTextColor: Badge text color
     badgeAsIcon: Customize cluster icon
     maxCharsTooltip: Maximum two characters
+    previewTitle: "Cluster icon and name presentation:"
 
 grafanaDashboard:
   failedToLoad: Failed to load graph
