@@ -9,7 +9,7 @@ import { sortBy } from '@/utils/sort';
 import day from 'dayjs';
 import { escapeHtml } from '@/utils/string';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
-import { set } from '@/utils/object';
+import { set } from 'lodash';
 
 export default {
   components: {
@@ -26,32 +26,23 @@ export default {
   },
 
   async fetch() {
-    const c = this.cluster;
-
-    let etcdBackups = [];
-
-    if ( c.isRke1 && this.$store.getters['isRancher'] ) {
-      etcdBackups = await this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
-      etcdBackups = etcdBackups.filter(backup => backup.clusterId === c.metadata.name);
+    if (!this.$store.getters['isRancher']) {
+      // This fetch function is getting snapshots, which are associated
+      // with cluster manager. Rancher Desktop doesn't come with cluster
+      // manager, so for Rancher Desktop we return nothing.
+      return [];
     }
 
-    if (c.isRke2 && this.$store.getters['isRancher']) {
-      etcdBackups = await this.$store.dispatch('management/findAll', { type: SNAPSHOT });
-      etcdBackups = etcdBackups.filter(backup => backup.clusterId === c.id);
-    }
+    const etcdBackups = await this.getEtcdBackups();
 
-    const backups = sortBy(etcdBackups, ['created']).reverse();
-    const dateFormat = escapeHtml(this.$store.getters['prefs/get'](DATE_FORMAT));
-    const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
-
-    if (backups.length > 0) {
+    if (etcdBackups.length > 0) {
+      const backups = sortBy(etcdBackups, ['created']).reverse();
       const name = backups[0].id.split(':');
-      const d = day(backups[0].created).format(dateFormat);
-      const t = day(backups[0].created).format(timeFormat);
+      const createdDate = backups[0].created;
 
       this.latestBackup = {
         name: name[0],
-        date: `${ d } ${ t }`,
+        date: this.getFormattedCreatedDate(createdDate)
       };
     }
   },
@@ -71,16 +62,45 @@ export default {
       this.$emit('close');
     },
 
+    async getEtcdBackups() {
+      if ( this.cluster.isRke1) {
+        let etcdBackups = await this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
+
+        etcdBackups = etcdBackups.filter(backup => backup.clusterId === this.cluster.metadata.name);
+
+        return etcdBackups;
+      }
+
+      if (this.cluster.isRke2) {
+        let etcdBackups = await this.$store.dispatch('management/findAll', { type: SNAPSHOT });
+
+        etcdBackups = etcdBackups.filter(backup => backup.clusterId === this.cluster.id);
+
+        return etcdBackups;
+      }
+
+      return [];
+    },
+
+    getFormattedCreatedDate(createdDate) {
+      const dateFormat = escapeHtml(this.$store.getters['prefs/get'](DATE_FORMAT));
+      const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
+      const d = day(createdDate).format(dateFormat);
+      const t = day(createdDate).format(timeFormat);
+
+      return `${ d } ${ t }`;
+    },
+
     async apply(buttonDone) {
       const isRke2 = this.cluster.isRke2;
 
       try {
         if (isRke2) {
-          const currentGeneration = this.cluster.spec?.rkeConfig?.rotateCertificates?.generation || 0;
+          const currentGeneration = this.cluster.spec?.rkeConfig?.rotateEncryptionKeys?.generation || 0;
 
           // To rotate the encryption keys, increment
           // rkeConfig.rotateEncyrptionKeys.generation in the YAML.
-          set(this.cluster, 'spec.rkeConfig', { rotateEncryptionKeys: { generation: currentGeneration + 1 } });
+          set(this.cluster, 'spec.rkeConfig.rotateEncryptionKeys.generation', currentGeneration + 1);
           await this.cluster.save();
         } else {
           await this.cluster.mgmt.doAction('rotateEncryptionKey');
