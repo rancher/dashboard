@@ -91,7 +91,6 @@ export default {
 
           return;
         }
-        console.log(metadata.state, status);
 
         const state = metadata.state?.name?.toLowerCase();
 
