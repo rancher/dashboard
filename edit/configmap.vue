@@ -26,12 +26,20 @@ export default {
     const { binaryData = {}, data = {} } = this.value;
 
     const decodedBinaryData = {};
+    const binaryValueKeys = [];
 
     Object.keys(binaryData).forEach((key) => {
       decodedBinaryData[key] = base64Decode(binaryData[key]);
+      binaryValueKeys.push(key);
     });
 
-    return { allData: { ...decodedBinaryData, ...data } };
+    return {
+      allData: {
+        ...decodedBinaryData,
+        ...data
+      },
+      binaryValueKeys
+    };
   },
 
   watch: {
@@ -82,6 +90,7 @@ export default {
         <KeyValue
           key="data"
           v-model="allData"
+          :binary-value-keys="binaryValueKeys"
           :mode="mode"
           :protip="t('configmap.tabs.data.protip')"
           :initial-empty-row="true"
