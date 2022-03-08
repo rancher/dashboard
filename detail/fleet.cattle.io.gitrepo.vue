@@ -4,7 +4,6 @@ import FleetSummary from '@/components/fleet/FleetSummary';
 import Banner from '@/components/Banner';
 import FleetResources from '@/components/fleet/FleetResources';
 import ForceDirectedTreeChart from '@/components/fleet/ForceDirectedTreeChart';
-import ForceDirectedTreeChartDummyData from '@/components/fleet/ForceDirectedTreeChartDummyData';
 import Tab from '@/components/Tabbed/Tab';
 import { FLEET } from '@/config/types';
 import { isHarvesterCluster } from '@/utils/cluster';
@@ -21,7 +20,6 @@ export default {
     Banner,
     ResourceTabs,
     ForceDirectedTreeChart,
-    ForceDirectedTreeChartDummyData,
     Tab,
     FleetBundles,
   },
