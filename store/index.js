@@ -637,6 +637,10 @@ export const actions = {
       return;
     }
 
+    // This is a workaround for a timing issue where the mgmt cluster schema may not be available
+    // Try and wait until the schema exists before proceeding
+    await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
+
     // See if it really exists
     try {
       await dispatch('management/find', {
