@@ -28,7 +28,7 @@ export default class HciVmTemplateVersion extends SteveModel {
     return [
       {
         action:     'launchFromTemplate',
-        icon:       'icon plus',
+        icon:       'icon icon-spinner',
         enabled:    canCreateVM,
         label:      this.t('harvester.action.launchFormTemplate'),
       },
