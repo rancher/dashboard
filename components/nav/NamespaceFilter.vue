@@ -288,24 +288,28 @@ export default {
         // One we have re-rendered, see what we can fit in the control to show the selected namespaces
         if (this.$refs.values) {
           const container = this.$refs.values;
-          let maxWidth = container.offsetWidth;
-          const overflow = container.scrollWidth > maxWidth;
+          const overflow = container.scrollWidth > container.offsetWidth;
           let hidden = 0;
 
-          if (this.$refs.more) {
-            maxWidth += this.$refs.more.offsetWidth;
-          }
+          const dropdown = this.$refs.dropdown;
+          // Remove padding and dropdown arrow size
+          const maxWidth = dropdown.offsetWidth - 20 - 24;
 
           // If we are overflowing, then allow some space for the +N indicator
           const itemCount = this.$refs.value ? this.$refs.value.length : 0;
-          let currentWidth = overflow ? 40 : 0;
+          let currentWidth = 0;
           let show = true;
 
           this.total = 0;
 
           for (let i = 0; i < itemCount; i++) {
             const item = this.$refs.value[i];
-            const itemWidth = item.offsetWidth + 10;
+            let itemWidth = item.offsetWidth + 10;
+
+            // If this is the first item and we have overflow then add on some space for the +N
+            if (i === 0 && overflow) {
+              itemWidth += 40;
+            }
 
             currentWidth += itemWidth;
 
@@ -362,6 +366,10 @@ export default {
         e.preventDefault();
         e.stopPropagation();
         this.down(true);
+      } else if (e.keyCode === KEY.TAB) {
+        // Tab out of the input box
+        this.close();
+        e.target.blur();
       }
     },
     mouseOver(event) {
@@ -444,6 +452,9 @@ export default {
       this.removeCloseKeyHandler();
       this.layout();
     },
+    clear() {
+      this.value = [];
+    },
     selectOption(option) {
       // Ignore click for a divider
       if (option.kind === 'divider') {
@@ -476,10 +487,10 @@ export default {
 </script>
 
 <template>
-  <div class="ns-filter">
+  <div class="ns-filter" tabindex="0" @focus="open()">
     <div v-if="isOpen" class="ns-glass" @click="close()"></div>
     <!-- Dropdown control -->
-    <div class="ns-dropdown" :class="{ 'ns-open': isOpen }" @click="toggle()">
+    <div ref="dropdown" class="ns-dropdown" :class="{ 'ns-open': isOpen }" @click="toggle()">
       <div v-if="value.length === 0" ref="values" class="ns-values">
         {{ t('nav.ns.all') }}
       </div>
@@ -503,9 +514,14 @@ export default {
     </div>
     <button v-shortkey.once="['n']" class="hide" @shortkey="open()" />
     <div v-if="isOpen" class="ns-dropdown-menu">
-      <div class="ns-input">
-        <input ref="filter" v-model="filter" tabindex="0" class="ns-filter-input" @keydown="inputKeyHandler($event)" />
-        <i v-if="hasFilter" class="ns-filter-clear icon icon-close" @click="filter = ''" />
+      <div class="ns-controls">
+        <div class="ns-input">
+          <input ref="filter" v-model="filter" tabindex="0" class="ns-filter-input" @keydown="inputKeyHandler($event)" />
+          <i v-if="hasFilter" class="ns-filter-clear icon icon-close" @click="filter = ''" />
+        </div>
+        <div class="ns-clear">
+          <i class="icon icon-close" @click="clear()" />
+        </div>
       </div>
       <div class="ns-divider mt-0"></div>
       <div ref="options" class="ns-options" role="list">
@@ -556,7 +572,27 @@ export default {
       z-index: 2;
     }
 
+    .ns-controls {
+      align-items: center;
+      display: flex;
+    }
+
+    .ns-clear {
+      align-items: center;
+      display: flex;
+      > i {
+        font-size: 24px;
+        padding: 0 5px;
+      }
+
+      &:hover {
+        color: var(--link);
+        cursor: pointer;
+      }
+    }
+
     .ns-input {
+      flex: 1;
       padding: 5px;
       position: relative;
     }
