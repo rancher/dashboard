@@ -15,6 +15,9 @@ export const _MULTI = 'multi';
 export const _ALL_IF_AUTHED = 'allIfAuthed';
 export const _NONE = 'none';
 
+const SCHEMA_CHECK_RETRIES = 15;
+const SCHEMA_CHECK_RETRY_LOG = 10;
+
 export default {
   async request({ state, dispatch, rootGetters }, opt) {
     // Handle spoofed types instead of making an actual request
@@ -565,4 +568,28 @@ export default {
       return res;
     }
   },
+
+  // Wait for a schema that is expected to exist that may not have been loaded yet (for instance when loadCluster is still running).
+  async waitForSchema({ getters, dispatch }, { type }) {
+    let tries = SCHEMA_CHECK_RETRIES;
+    let schema = null;
+
+    while (!schema && tries > 0) {
+      schema = getters['schemaFor'](type);
+
+      if (!schema) {
+        if (tries === SCHEMA_CHECK_RETRY_LOG) {
+          console.warn(`Schema for ${ type } not available... retrying...`); // eslint-disable-line no-console
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        tries--;
+      }
+    }
+
+    if (tries === 0) {
+      // Ran out of tries - fetch the schemas again
+      console.warn(`Schema for ${ type } still unavailable... loading schemas again...`); // eslint-disable-line no-console
+      await dispatch('loadSchemas', true);
+    }
+  }
 };
