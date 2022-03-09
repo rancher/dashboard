@@ -102,6 +102,7 @@ export const STATES_ENUM = {
   FAILED:           'failed',
   HEALTHY:          'healthy',
   INACTIVE:         'inactive',
+  INFO:             'info',
   INITIALIZING:     'initializing',
   INPROGRESS:       'inprogress',
   LOCKED:           'locked',
@@ -231,7 +232,7 @@ export const STATES = {
     color: 'warning', icon: 'tag', label: 'Draining'
   },
   [STATES_ENUM.ERR_APPLIED]:         {
-    color: 'error', icon: 'error', label: 'Err Applied'
+    color: 'error', icon: 'error', label: 'Error Applied'
   },
   [STATES_ENUM.ERROR]:              {
     color: 'error', icon: 'error', label: 'Error'
@@ -262,6 +263,9 @@ export const STATES = {
   },
   [STATES_ENUM.INPROGRESS]:         {
     color: 'info', icon: 'spinner', label: 'In Progress'
+  },
+  [STATES_ENUM.INFO]:         {
+    color: 'info', icon: 'info', label: 'Info'
   },
   [STATES_ENUM.LOCKED]:             {
     color: 'warning', icon: 'adjust', label: 'Locked'
@@ -441,11 +445,13 @@ export function getStatesByType(type = 'info') {
 }
 
 const SORT_ORDER = {
-  error:   1,
-  warning: 2,
-  info:    3,
-  success: 4,
-  other:   5,
+  error:    1,
+  warning:  2,
+  info:     3,
+  success:  4,
+  ready:    5,
+  notready:   6,
+  other:    7,
 };
 
 export function getStateLabel(state) {

@@ -4,6 +4,9 @@ import CountBox from '@/components/CountBox';
 import { STATES } from '@/plugins/steve/resource-class';
 
 export default {
+
+  name: 'ResourcesSummary',
+
   components: { CountBox },
 
   props: {

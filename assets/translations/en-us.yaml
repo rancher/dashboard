@@ -4462,6 +4462,7 @@ tableHeaders:
   download: Download
   effect: Effect
   endpoints: Endpoints
+  fleetBundleType: Type
   flow: Flow
   gitRepos: Git Repos
   host: Host

@@ -13,6 +13,9 @@ import { _VIEW } from '@/config/query-params';
 import RelatedResources from '@/components/RelatedResources';
 
 export default {
+
+  name: 'ResourceTabs',
+
   components: {
     Tabbed,
     Tab,
