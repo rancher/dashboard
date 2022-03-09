@@ -1428,6 +1428,12 @@ export default {
     @cancel="cancel"
     @error="e=>errors = e"
   >
+    <Banner
+      v-if="isEdit"
+      color="warning"
+    >
+      <span v-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
+    </Banner>
     <SelectCredential
       v-if="needCredential"
       v-model="credentialId"
