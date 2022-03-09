@@ -88,7 +88,7 @@ export default {
         return true;
       } else if (systems.includes(fileSystem)) {
         return false;
-      } if (!fileSystem) {
+      } else if (!fileSystem) {
         return true;
       } else {
         return !this.canEditPath;
@@ -196,19 +196,11 @@ export default {
       <hr class="mt-10" />
     </div>
     <div class="row mt-10">
-      <div class="col span-6">
+      <div class="col span-12">
         <LabeledInput
           v-model="value.displayName"
           :label="t('generic.name')"
           :disabled="true"
-        />
-      </div>
-      <div class="col span-6">
-        <LabeledInput
-          v-model="value.path"
-          :label="t('harvester.host.disk.path.label')"
-          :disabled="!canEditPath"
-          required
         />
       </div>
     </div>
