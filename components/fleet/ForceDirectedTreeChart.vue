@@ -2,15 +2,20 @@
 import * as d3 from 'd3';
 import { STATES } from '@/plugins/steve/resource-class';
 import BadgeState from '@/components/BadgeState';
+import Loading from '@/components/Loading';
 
 export default {
   name:       'ForceDirectedTreeChart',
-  components: { BadgeState },
+  components: { BadgeState, Loading },
   props:      {
     data: {
       type:     [Array, Object],
       required: true
     },
+    withContentLoader: {
+      type:    Boolean,
+      default: true
+    }
   },
   data() {
     return {
@@ -23,7 +28,7 @@ export default {
       svg:          null,
       zoom:         null,
       simulation:   null,
-      circleRadius: 15,
+      circleRadius: 20,
       isRendered:   false,
       moreInfo:     undefined
     };
@@ -31,47 +36,47 @@ export default {
   watch: {
     data: {
       handler(newValue) {
-        // if (newValue.bundles?.length) {
+        if (newValue.bundles?.length) {
+          // eslint-disable-next-line no-console
+          console.log('WATCHER TRIGGERED!', JSON.stringify(newValue.bundles.length, null, 2), newValue);
 
-        // eslint-disable-next-line no-console
-        console.log('WATCHER TRIGGERED!', JSON.stringify(newValue.bundles.length, null, 2), newValue);
+          if (!this.isRendered) {
+            window.d3 = d3;
+            this.parsedInfo = this.parseData(newValue);
+            // eslint-disable-next-line no-console
+            console.log('ORIGINAL DATA flattened', this.flatten(this.parsedInfo));
+            this.renderChart();
+            this.updateChart(true, true);
+            this.isRendered = true;
+          } else {
+            const parsedInfo = this.parseData(newValue);
+            const flattenedData = this.flatten(parsedInfo);
+            let hasStatusChange = false;
 
-        if (!this.isRendered) {
-          this.parsedInfo = this.parseData(newValue);
-          // console.log('ORIGINAL DATA flattened', this.flatten(this.parsedInfo));
-          this.renderChart();
-          this.updateChart(true, true);
-          this.isRendered = true;
-        } else {
-          const parsedInfo = this.parseData(newValue);
-          const flattenedData = this.flatten(parsedInfo);
-          let hasStatusChange = false;
+            flattenedData.forEach((item) => {
+              const index = this.allNodesData.findIndex(nodeData => item.matchingId === nodeData.data.matchingId);
 
-          flattenedData.forEach((item) => {
-            const index = this.allNodesData.findIndex(nodeData => item.matchingId === nodeData.data.matchingId);
+              if (index > -1 && this.allNodesData[index].data.state !== item.state) {
+                this.allNodesData[index].data.state = item.state;
+                hasStatusChange = true;
+              }
+            });
 
-            if (index > -1 && this.allNodesData[index].data.state !== item.state) {
-              this.allNodesData[index].data.state = item.state;
-              hasStatusChange = true;
+            if (hasStatusChange) {
+              this.updateChart(false, false);
             }
-          });
-
-          if (hasStatusChange) {
-            this.updateChart(false, false);
           }
+
+          // DATA FORCES REFRESH EVERY TIME TEST...
+          // this.parsedInfo = this.parseData(newValue);
+          // console.log('ORIGINAL DATA flattened', this.flatten(this.parsedInfo));
+
+          // if (!this.isRendered) {
+          //   this.renderChart();
+          //   this.isRendered = true;
+          // }
+          // this.updateChart(true, true);
         }
-
-        // DATA FORCES REFRESH EVERY TIME TEST...
-        // this.parsedInfo = this.parseData(newValue);
-        // console.log('ORIGINAL DATA flattened', this.flatten(this.parsedInfo));
-
-        // if (!this.isRendered) {
-        //   this.renderChart();
-        //   this.isRendered = true;
-        // }
-        // this.updateChart(true, true);
-
-        // }
       }
     }
   },
@@ -82,15 +87,16 @@ export default {
         const bundleStateColor = STATES[bundleLowercaseState].color;
 
         const repoChild = {
-          id:         bundle.id,
-          matchingId: bundle.id,
-          type:       bundle.type,
-          state:      bundle.state,
-          stateLabel: bundle.stateDisplay,
-          stateColor: bundleStateColor,
-          isBundle:   true,
-          hasError:   data?.stateObj?.error,
-          children:   []
+          id:             bundle.id,
+          matchingId:     bundle.id,
+          type:           bundle.type,
+          state:          bundle.state,
+          stateLabel:     bundle.stateDisplay,
+          stateColor:     bundleStateColor,
+          isBundle:       true,
+          errorMsg:       bundle.metadata?.state?.error ? bundle.metadata?.state?.message : '',
+          detailLocation: bundle.detailLocation,
+          children:       []
         };
 
         if (bundle.status?.resourceKey?.length) {
@@ -101,6 +107,8 @@ export default {
             let state;
             let stateLabel;
             let stateColor;
+            let errorMsg;
+            let detailLocation;
 
             if (data.status?.resources?.length) {
               const item = data.status?.resources?.find(resource => `${ resource.kind }-${ resource.id }` === matchingId);
@@ -108,6 +116,8 @@ export default {
               if (item) {
                 type = item.type;
                 state = item.state;
+                errorMsg = item.metadata?.state?.error ? item.metadata?.state?.message : '';
+                detailLocation = item.detailLocation;
                 const resourceLowerCaseState = item.state ? item.state.toLowerCase() : 'unknown';
 
                 stateLabel = STATES[resourceLowerCaseState].label;
@@ -123,7 +133,8 @@ export default {
               stateLabel,
               stateColor,
               isResource: true,
-              hasError:   data?.stateObj?.error,
+              errorMsg,
+              detailLocation,
             });
           });
         }
@@ -135,15 +146,16 @@ export default {
       const repoStateColor = STATES[repoLowercaseState].color;
 
       const finalData = {
-        id:         data.id,
-        matchingId: data.id,
-        type:       data.type,
-        state:      data.state,
-        stateLabel: data.stateDisplay,
-        stateColor: repoStateColor,
-        isRepo:     true,
-        hasError:   data.stateObj?.error,
-        children:   repoChildren
+        id:             data.id,
+        matchingId:     data.id,
+        type:           data.type,
+        state:          data.state,
+        stateLabel:     data.stateDisplay,
+        stateColor:     repoStateColor,
+        isRepo:         true,
+        errorMsg:       data.metadata?.state?.error ? data.metadata?.state?.message : '',
+        detailLocation: data.detailLocation,
+        children:       repoChildren
       };
 
       return finalData;
@@ -156,13 +168,18 @@ export default {
       // if (d3.select('#tree > svg')) {
       //   d3.select('#tree > svg').remove();
       // }
+
+      const transform = d3.zoomIdentity.translate(0, 0);
+
       this.zoom = d3.zoom().scaleExtent([1 / 8, 16]).on('zoom', this.zoomed);
 
       this.svg = d3.select('#tree').append('svg')
         .attr('viewBox', `0 0 ${ width } ${ height }`)
+        .attr('preserveAspectRatio', 'none')
         .call(this.zoom)
         .append('g')
-        .attr('transform', 'translate(40,0)');
+        .attr('class', 'root-node')
+        .attr('transform', transform);
 
       this.simulation = d3.forceSimulation()
         .force('charge', d3.forceManyBody().strength(-300).distanceMax(300))
@@ -225,6 +242,12 @@ export default {
       nodeEnter.append('circle')
         .attr('r', this.setNodeRadius);
 
+      nodeEnter.append('circle')
+        .attr('r', (d) => {
+          return this.setNodeRadius(d) - 5;
+        })
+        .attr('class', 'node-hover-layer');
+
       // node image
       nodeEnter.append('foreignObject')
         .attr('class', this.nodeImageClass)
@@ -244,7 +267,7 @@ export default {
         .links(this.allLinks));
 
       // if (isStartingData) {
-      //   this.zoomFit(0.95, 500);
+      //   d3.select('.root-node').transition().on('end', this.zoomFit);
       // }
     },
     statusClassColor(d) {
@@ -273,12 +296,12 @@ export default {
     nodeImageSize(d) {
       const size = this.setNodeRadius(d);
 
-      return (size * 2) - 10;
+      return (size * 2) - 15;
     },
     nodeImagePosition(d) {
       const size = this.setNodeRadius(d);
 
-      return -(((size * 2) - 10) / 2);
+      return -(((size * 2) - 15) / 2);
     },
     generateLabel(d) {
       return d.data.isRepo ? 'GIT' : d.data.isBundle ? 'B' : 'r';
@@ -325,7 +348,7 @@ export default {
 
       if (ev.type === 'mouseover') {
         Object.keys(data).forEach((key) => {
-          if (['id', 'type', 'state', 'stateLabel', 'stateColor', 'error'].includes(key)) {
+          if (['id', 'detailLocation', 'type', 'state', 'stateLabel', 'stateColor', 'errorMsg'].includes(key)) {
             if (!this.moreInfo) {
               this.moreInfo = {};
             }
@@ -374,30 +397,45 @@ export default {
       return nodes;
     },
     zoomFit(paddingPercent, transitionDuration) {
-      const bounds = this.root.node().getBBox();
-      const parent = this.root.node().parentElement;
+      const rootNode = d3.select('.root-node');
+
+      const chartDimentions = rootNode.node().getBoundingClientRect();
+      const chartCoordinates = rootNode.node().getBBox();
+      const parent = rootNode.node().parentElement;
       const fullWidth = parent.clientWidth;
       const fullHeight = parent.clientHeight;
-      const width = bounds.width;
-      const height = bounds.height;
-      const midX = bounds.x + width / 2;
-      const midY = bounds.y + height / 2;
+      const width = chartDimentions.width;
+      const height = chartDimentions.height;
+      const midX = chartCoordinates.x + width / 2;
+      const midY = chartCoordinates.y + height / 2;
+
+      console.log('fullWidth', fullWidth);
+      console.log('fullHeight', fullHeight);
+      console.log('width', width);
+      console.log('height', height);
+      console.log('midX', midX);
+      console.log('midY', midY);
 
       if (width === 0 || height === 0) {
         return;
       } // nothing to fit
-      const scale = (paddingPercent || 0.75) / Math.max(width / fullWidth, height / fullHeight);
+      // const scale = (paddingPercent || 0.75) / Math.max(width / fullWidth, height / fullHeight);
+      const scale = 1 / Math.max(width / fullWidth, height / fullHeight);
       const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
 
-      console.trace('zoomFit', translate, scale);
+      console.log('scale', scale);
+      console.log('translate', translate);
+
       const transform = d3.zoomIdentity
         .translate(translate[0], translate[1])
         .scale(scale);
 
-      this.root
-        .transition()
-        .duration(transitionDuration || 0) // milliseconds
-        .call(this.zoom.transform, transform);
+      this.svg.attr('transform', transform);
+
+      // rootNode
+      //   .transition()
+      //   .duration(transitionDuration || 0) // milliseconds
+      //   .call(this.zoom.transform, transform);
     },
     zoomed(ev) {
       this.svg.attr('transform', ev.transform);
@@ -409,12 +447,15 @@ export default {
 <template>
   <div>
     <div class="chart-container">
+      <Loading
+        v-if="withContentLoader && !isRendered"
+        :loading="true"
+        mode="free"
+        :no-delay="true"
+      />
       <div id="tree">
       </div>
       <div class="more-info">
-        <!-- <p class="more-info-header">
-          Node Details
-        </p> -->
         <span
           v-show="!moreInfo"
           class="more-info-no-info"
@@ -425,7 +466,20 @@ export default {
           <li>
             <p>
               <span class="more-info-item-label">Name:</span>
-              <span class="more-info-item-value">{{ moreInfo.id }}</span>
+              <span
+                v-if="moreInfo.detailLocation"
+                class="more-info-item-value"
+              >
+                <n-link
+                  :to="moreInfo.detailLocation"
+                >
+                  {{ moreInfo.id }}
+                </n-link>
+              </span>
+              <span
+                v-else
+                class="more-info-item-value"
+              >{{ moreInfo.id }}</span>
             </p>
           </li>
           <li>
@@ -446,9 +500,18 @@ export default {
               </span>
             </p>
           </li>
+          <li v-show="moreInfo.errorMsg">
+            <p>
+              <span class="more-info-item-label">Error:</span>
+              <span class="more-info-item-value error">{{ moreInfo.errorMsg }}</span>
+            </p>
+          </li>
         </ul>
       </div>
     </div>
+    <button type="button" @click="zoomFit">
+      ZOOM TO FIT CONTENT
+    </button>
   </div>
 </template>
 
@@ -456,11 +519,14 @@ export default {
 .chart-container {
   display: flex;
   background-color: var(--body-bg);
-  box-shadow: 0 0 20px var(--shadow);
-  border-radius: calc(var(--border-radius) * 2);
+  position: relative;
 
   #tree {
     width: 70%;
+
+    svg {
+      margin-top: 3px;
+    }
 
     .link {
       stroke: var(--darker);
@@ -468,6 +534,10 @@ export default {
 
     .node {
       cursor: pointer;
+
+      &:hover .node-hover-layer {
+        display: block;
+      }
 
       &.node-default-fill {
         fill: #CCC;
@@ -500,20 +570,21 @@ export default {
           background-image: url('~assets/images/fleetForceDirectedChart/folder.svg');
         }
       }
+
+      .node-hover-layer {
+        stroke: var(--body-bg);
+        stroke-width: 2;
+        display: none;
+      }
     }
   }
 
   .more-info {
     width: 30%;
-    margin: 20px 20px 0 20px;
     padding: 20px;
-    background-color: var(--box-bg);
+    border-left: 1px solid var(--border);
+    background-color: var(--body-bg);
     position: relative;
-
-    &-header {
-      text-decoration: underline;
-      margin-bottom: 20px;
-    }
 
     &-no-info {
       font-style: italic;
@@ -533,6 +604,9 @@ export default {
         .more-info-item-label {
           color: var(--darker);
           margin-right: 3px;
+        }
+        .more-info-item-value.error {
+          color: var(--error);
         }
       }
     }
