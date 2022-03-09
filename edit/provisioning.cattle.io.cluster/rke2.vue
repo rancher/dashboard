@@ -439,12 +439,18 @@ export default {
     },
 
     cloudProviderOptions() {
-      const out = [{ label: '(None)', value: '' }];
+      const out = [{ label: '(Default)', value: '' }];
 
       const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
 
       for ( const opt of this.agentArgs['cloud-provider-name'].options ) {
-        if ( (!preferred && opt !== HARVESTER) || opt === preferred || opt === 'external' || preferred === HARVESTER) {
+        // If we don't have a preferred provider... show all options
+        const showAllOptions = preferred === undefined;
+        // If we have a preferred provider... only show default, preferred and external
+        const isPreferred = opt === preferred;
+        const isExternal = opt === 'external';
+
+        if (showAllOptions || isPreferred || isExternal) {
           out.push({
             label: this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ opt }".label`, null, opt),
             value: opt,
