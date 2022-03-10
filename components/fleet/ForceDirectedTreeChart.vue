@@ -3,7 +3,6 @@ import * as d3 from 'd3';
 import { STATES } from '@/plugins/steve/resource-class';
 import BadgeState from '@/components/BadgeState';
 import Loading from '@/components/Loading';
-import { left } from '@popperjs/core';
 
 export default {
   name:       'ForceDirectedTreeChart',
@@ -64,9 +63,17 @@ export default {
             flattenedData.forEach((item) => {
               const index = this.allNodesData.findIndex(nodeData => item.matchingId === nodeData.data.matchingId);
 
+              // apply status change to each node
               if (index > -1 && this.allNodesData[index].data.state !== item.state) {
                 this.allNodesData[index].data.state = item.state;
+                this.allNodesData[index].data.stateLabel = item.stateLabel;
+                this.allNodesData[index].data.stateColor = item.stateColor;
                 hasStatusChange = true;
+
+                // if node is selected (active), update details info
+                if (this.allNodesData[index].data.active) {
+                  this.setDetailsInfo(this.allNodesData[index].data, false)
+                }
               }
             });
 
@@ -102,7 +109,7 @@ export default {
           stateLabel:     bundle.stateDisplay,
           stateColor:     bundleStateColor,
           isBundle:       true,
-          errorMsg:       bundle.metadata?.state?.error ? bundle.metadata?.state?.message : '',
+          errorMsg:       bundle.stateDescription,
           detailLocation: bundle.detailLocation,
           children:       []
         };
@@ -124,7 +131,7 @@ export default {
               if (item) {
                 type = item.type;
                 state = item.state;
-                errorMsg = item.metadata?.state?.error ? item.metadata?.state?.message : '';
+                errorMsg = item.stateDescription;
                 detailLocation = item.detailLocation;
                 const resourceLowerCaseState = item.state ? item.state.toLowerCase() : 'unknown';
 
@@ -161,7 +168,7 @@ export default {
         stateLabel:     data.stateDisplay,
         stateColor:     repoStateColor,
         isRepo:         true,
-        errorMsg:       data.metadata?.state?.error ? data.metadata?.state?.message : '',
+        errorMsg:       data.stateDescription,
         detailLocation: data.detailLocation,
         children:       repoChildren
       };
@@ -306,6 +313,10 @@ export default {
       }
 
       const resourceTypeClass = d.data?.isRepo ? ' repo' : d.data?.isBundle ? ' bundle' : ' resource';
+
+      if (d.data?.isBundle && d.data?.id.indexOf('helm') != -1) {
+        classList += ' helm';
+      }
 
       classList += resourceTypeClass;
 
@@ -475,6 +486,7 @@ export default {
     <div class="chart-container">
       <Loading
         v-if="withContentLoader && !isRendered"
+        class="chart-loader"
         :loading="true"
         mode="free"
         :no-delay="true"
@@ -545,6 +557,10 @@ export default {
   border: 1px solid var(--border);
   border-radius: var(--border-radius);
 
+  .chart-loader {
+    min-height: 200px;
+  }
+
   #tree {
     width: 70%;
 
@@ -604,6 +620,9 @@ export default {
       }
       &.bundle .svg-img {
         background-image: url('~assets/images/fleetForceDirectedChart/compass.svg');
+      }
+      &.helm.bundle .svg-img {
+        background-image: url('~assets/images/fleetForceDirectedChart/helm.svg');
       }
       &.resource .svg-img {
         background-image: url('~assets/images/fleetForceDirectedChart/folder.svg');
