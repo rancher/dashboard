@@ -3,6 +3,7 @@ import * as d3 from 'd3';
 import { STATES } from '@/plugins/steve/resource-class';
 import BadgeState from '@/components/BadgeState';
 import Loading from '@/components/Loading';
+import { left } from '@popperjs/core';
 
 export default {
   name:       'ForceDirectedTreeChart',
@@ -19,18 +20,19 @@ export default {
   },
   data() {
     return {
-      parsedInfo:   null,
-      root:         null,
-      allNodesData: null,
-      allLinks:     null,
-      node:         null,
-      link:         null,
-      svg:          null,
-      zoom:         null,
-      simulation:   null,
-      circleRadius: 20,
-      isRendered:   false,
-      moreInfo:     undefined
+      parsedInfo:       null,
+      root:             null,
+      allNodesData:     null,
+      allLinks:         null,
+      node:             null,
+      link:             null,
+      svg:              null,
+      zoom:             null,
+      simulation:       null,
+      circleRadius:     20,
+      nodeImagePadding: 15,
+      isRendered:       false,
+      moreInfo:         {}
     };
   },
   watch: {
@@ -43,11 +45,17 @@ export default {
           if (!this.isRendered) {
             window.d3 = d3;
             this.parsedInfo = this.parseData(newValue);
-            // eslint-disable-next-line no-console
-            console.log('ORIGINAL DATA flattened', this.flatten(this.parsedInfo));
+
+            // set details info to git repo and set active state
+            this.setDetailsInfo(this.parsedInfo, false);
+            this.parsedInfo.active = true;
+
+            // render and update chart
             this.renderChart();
             this.updateChart(true, true);
             this.isRendered = true;
+
+          // here we just look for changes in the status of the nodes and update them accordingly
           } else {
             const parsedInfo = this.parseData(newValue);
             const flattenedData = this.flatten(parsedInfo);
@@ -162,7 +170,7 @@ export default {
     },
     renderChart() {
       const width = 800;
-      const height = 400;
+      const height = 800;
 
       // clear any previous renders, if they exist...
       // if (d3.select('#tree > svg')) {
@@ -220,7 +228,7 @@ export default {
           return d.id;
         })
         // this is where we define which prop changes with any data update (status color)
-        .attr('class', this.statusClassColor);
+        .attr('class', this.mainNodeClass);
 
       this.node.exit().remove();
 
@@ -228,11 +236,11 @@ export default {
       const nodeEnter = this.node
         .enter()
         .append('g')
-        .attr('class', this.statusClassColor)
+        .attr('class', this.mainNodeClass)
         .style('opacity', 1)
-        .on('click', this.mainNodeClick)
-        .on('mouseover', this.handleDetailsInfo)
-        .on('mouseout', this.handleDetailsInfo)
+        .on('click', (ev, d) => {
+          this.setDetailsInfo(d.data, true);
+        })
         .call(d3.drag()
           .on('start', this.dragstarted)
           .on('drag', this.dragged)
@@ -250,7 +258,7 @@ export default {
 
       // node image
       nodeEnter.append('foreignObject')
-        .attr('class', this.nodeImageClass)
+        .attr('class', 'svg-img')
         .attr('x', this.nodeImagePosition)
         .attr('y', this.nodeImagePosition)
         .attr('height', this.nodeImageSize)
@@ -270,41 +278,51 @@ export default {
       //   d3.select('.root-node').transition().on('end', this.zoomFit);
       // }
     },
-    statusClassColor(d) {
+    mainNodeClass(d) {
       const lowerCaseStatus = d.data?.state ? d.data.state.toLowerCase() : 'unkown_status';
       const stateColorDefinition = STATES[lowerCaseStatus] ? STATES[lowerCaseStatus].color : 'unknown_color';
+      let classList;
 
       switch (stateColorDefinition) {
       case 'success':
-        return 'node node-success';
+        classList = 'node node-success';
+        break;
       case 'warning':
-        return 'node node-warning';
+        classList = 'node node-warning';
+        break;
       case 'error':
-        return 'node node-error';
+        classList = 'node node-error';
+        break;
       case 'info':
-        return 'node node-info';
+        classList = 'node node-info';
+        break;
       default:
-        return 'node node-default-fill';
+        classList = 'node node-default-fill';
+        break;
       }
+
+      if (d.data?.active) {
+        classList += ' active';
+      }
+
+      const resourceTypeClass = d.data?.isRepo ? ' repo' : d.data?.isBundle ? ' bundle' : ' resource';
+
+      classList += resourceTypeClass;
+
+      return classList;
     },
     setNodeRadius(d) {
       return d.data?.isRepo ? this.circleRadius * 3 : d.data?.isBundle ? this.circleRadius * 2 : this.circleRadius;
     },
-    nodeImageClass(d) {
-      return d.data?.isRepo ? 'svg-img repo' : d.data?.isBundle ? 'svg-img bundle' : 'svg-img resource';
-    },
     nodeImageSize(d) {
       const size = this.setNodeRadius(d);
 
-      return (size * 2) - 15;
+      return (size * 2) - this.nodeImagePadding;
     },
     nodeImagePosition(d) {
       const size = this.setNodeRadius(d);
 
-      return -(((size * 2) - 15) / 2);
-    },
-    generateLabel(d) {
-      return d.data.isRepo ? 'GIT' : d.data.isBundle ? 'B' : 'r';
+      return -(((size * 2) - this.nodeImagePadding) / 2);
     },
     ticked() {
       this.link
@@ -326,9 +344,8 @@ export default {
           return `translate(${ d.x }, ${ d.y })`;
         });
     },
-    mainNodeClick(ev, d) {
+    mainNodeChidlrenToggle(ev, d) {
       if (!ev.defaultPrevented) {
-        console.log('SIMPLE NODE CLICK should toggle children!', d.data);
         // this is the same as directly tapping into this.root and changing properties...
         if (d.children) {
           d._children = d.children;
@@ -343,20 +360,29 @@ export default {
         this.link.lower();
       }
     },
-    handleDetailsInfo(ev, d) {
-      const data = d.data?.rawData ? d.data?.rawData : d.data;
+    setDetailsInfo(data, toUpdate) {
+      const moreInfo = {};
 
-      if (ev.type === 'mouseover') {
-        Object.keys(data).forEach((key) => {
-          if (['id', 'detailLocation', 'type', 'state', 'stateLabel', 'stateColor', 'errorMsg'].includes(key)) {
-            if (!this.moreInfo) {
-              this.moreInfo = {};
-            }
-            this.moreInfo[key] = data[key];
+      Object.keys(data).forEach((key) => {
+        if (['id', 'detailLocation', 'type', 'state', 'stateLabel', 'stateColor', 'errorMsg'].includes(key)) {
+          moreInfo[key] = data[key];
+        }
+      });
+
+      // needed to make ui reactive
+      this.moreInfo = Object.assign({}, moreInfo);
+
+      // update to the chart is needed when active state changes
+      if (toUpdate) {
+        this.allNodesData.forEach((item, i) => {
+          if (item.data.matchingId === data.matchingId) {
+            this.allNodesData[i].data.active = true;
+          } else {
+            this.allNodesData[i].data.active = false;
           }
         });
-      } else if (ev.type === 'mouseout') {
-        this.moreInfo = undefined;
+
+        this.updateChart(false, false);
       }
     },
     dragstarted(ev, d) {
@@ -456,12 +482,8 @@ export default {
       <div id="tree">
       </div>
       <div class="more-info">
-        <span
-          v-show="!moreInfo"
-          class="more-info-no-info"
-        >Hover a chart node for more information...</span>
         <ul
-          v-if="moreInfo"
+          v-if="Object.keys(moreInfo).length"
         >
           <li>
             <p>
@@ -509,9 +531,9 @@ export default {
         </ul>
       </div>
     </div>
-    <button type="button" @click="zoomFit">
+    <!-- <button type="button" @click="zoomFit">
       ZOOM TO FIT CONTENT
-    </button>
+    </button> -->
   </div>
 </template>
 
@@ -520,6 +542,8 @@ export default {
   display: flex;
   background-color: var(--body-bg);
   position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
 
   #tree {
     width: 70%;
@@ -535,8 +559,22 @@ export default {
     .node {
       cursor: pointer;
 
-      &:hover .node-hover-layer {
-        display: block;
+      &.active {
+        .node-hover-layer {
+          display: block;
+        }
+      }
+
+      &.repo.active circle {
+        transform: scale(1.1);
+      }
+
+      &.bundle.active circle {
+        transform: scale(1.25);
+      }
+
+      &.resource.active circle {
+        transform: scale(1.5);
       }
 
       &.node-default-fill {
@@ -559,16 +597,16 @@ export default {
         background-repeat: no-repeat;
         background-size: cover;
         background-position: center center;
+      }
 
-        &.repo {
-          background-image: url('~assets/images/fleetForceDirectedChart/globe.svg');
-        }
-        &.bundle {
-          background-image: url('~assets/images/fleetForceDirectedChart/compass.svg');
-        }
-        &.resource {
-          background-image: url('~assets/images/fleetForceDirectedChart/folder.svg');
-        }
+      &.repo .svg-img {
+        background-image: url('~assets/images/fleetForceDirectedChart/git.svg');
+      }
+      &.bundle .svg-img {
+        background-image: url('~assets/images/fleetForceDirectedChart/compass.svg');
+      }
+      &.resource .svg-img {
+        background-image: url('~assets/images/fleetForceDirectedChart/folder.svg');
       }
 
       .node-hover-layer {
@@ -585,10 +623,8 @@ export default {
     border-left: 1px solid var(--border);
     background-color: var(--body-bg);
     position: relative;
-
-    &-no-info {
-      font-style: italic;
-    }
+    border-top-right-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
 
     ul {
       list-style: none;
