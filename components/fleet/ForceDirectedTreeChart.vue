@@ -72,7 +72,7 @@ export default {
 
                 // if node is selected (active), update details info
                 if (this.allNodesData[index].data.active) {
-                  this.setDetailsInfo(this.allNodesData[index].data, false)
+                  this.setDetailsInfo(this.allNodesData[index].data, false);
                 }
               }
             });
@@ -314,7 +314,7 @@ export default {
 
       const resourceTypeClass = d.data?.isRepo ? ' repo' : d.data?.isBundle ? ' bundle' : ' resource';
 
-      if (d.data?.isBundle && d.data?.id.indexOf('helm') != -1) {
+      if (d.data?.isBundle && d.data?.id.indexOf('helm') !== -1) {
         classList += ' helm';
       }
 
@@ -433,7 +433,7 @@ export default {
 
       return nodes;
     },
-    zoomFit(paddingPercent, transitionDuration) {
+    zoomFit() {
       const rootNode = d3.select('.root-node');
 
       const chartDimentions = rootNode.node().getBoundingClientRect();
@@ -446,33 +446,28 @@ export default {
       const midX = chartCoordinates.x + width / 2;
       const midY = chartCoordinates.y + height / 2;
 
-      console.log('fullWidth', fullWidth);
-      console.log('fullHeight', fullHeight);
-      console.log('width', width);
-      console.log('height', height);
-      console.log('midX', midX);
-      console.log('midY', midY);
+      // console.log('fullWidth', fullWidth);
+      // console.log('fullHeight', fullHeight);
+      // console.log('width', width);
+      // console.log('height', height);
+      // console.log('midX', midX);
+      // console.log('midY', midY);
 
       if (width === 0 || height === 0) {
         return;
       } // nothing to fit
-      // const scale = (paddingPercent || 0.75) / Math.max(width / fullWidth, height / fullHeight);
+
       const scale = 1 / Math.max(width / fullWidth, height / fullHeight);
       const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
 
-      console.log('scale', scale);
-      console.log('translate', translate);
+      // console.log('scale', scale);
+      // console.log('translate', translate);
 
       const transform = d3.zoomIdentity
         .translate(translate[0], translate[1])
         .scale(scale);
 
       this.svg.attr('transform', transform);
-
-      // rootNode
-      //   .transition()
-      //   .duration(transitionDuration || 0) // milliseconds
-      //   .call(this.zoom.transform, transform);
     },
     zoomed(ev) {
       this.svg.attr('transform', ev.transform);
@@ -543,9 +538,9 @@ export default {
         </ul>
       </div>
     </div>
-    <!-- <button type="button" @click="zoomFit">
+    <button type="button" @click="zoomFit">
       ZOOM TO FIT CONTENT
-    </button> -->
+    </button>
   </div>
 </template>
 
