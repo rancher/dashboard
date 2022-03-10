@@ -245,7 +245,7 @@ export default {
 </script>
 
 <template>
-  <form>
+  <form class="filled-height">
     <Loading v-if="$fetchState.pending" />
     <CruResource
       v-else

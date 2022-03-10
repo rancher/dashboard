@@ -245,7 +245,10 @@ export default {
 
 <template>
   <section class="cru">
-    <form :is="(isView? 'div' : 'form')" class="create-resource-container">
+    <form
+      :is="(isView? 'div' : 'form')"
+      class="create-resource-container cru__form"
+    >
       <div
         v-if="showSubtypeSelection"
         class="subtypes-container"
@@ -308,7 +311,7 @@ export default {
       <template v-if="showAsForm">
         <div
           v-if="_selectedSubtype || !subtypes.length"
-          class="resource-container"
+          class="resource-container cru__content"
         >
           <slot />
         </div>
@@ -350,7 +353,7 @@ export default {
 
       <section
         v-else
-        class="cru-resource-yaml-container"
+        class="cru-resource-yaml-container cru__content"
       >
         <ResourceYaml
           ref="resourceyaml"
@@ -485,6 +488,20 @@ $logo: 60px;
 }
 
 .cru {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  &__content {
+    flex-grow: 1;
+  }
+
   &__footer {
     right: 0;
     position: sticky;
@@ -495,6 +512,7 @@ $logo: 60px;
     // Overrides outlet padding
     margin-left: -$space-m;
     margin-right: -$space-m;
+    margin-bottom: -$space-m;
     padding: $space-s $space-m;
   }
 }

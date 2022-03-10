@@ -778,7 +778,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
 
-  <form v-else>
+  <form v-else class="filled-height">
     <CruResource
       :validation-passed="true"
       :selected-subtype="type"
