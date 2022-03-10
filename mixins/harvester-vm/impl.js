@@ -87,7 +87,7 @@ export default {
         return oldValue;
       }
 
-      return dataFormat?.packages?.includes('qemu-guest-agent') && !!dataFormat?.runcmd?.find( S => S.join('-') === _QGA_JSON.runcmd[0].join('-'));
+      return dataFormat?.packages?.includes('qemu-guest-agent') && !!dataFormat?.runcmd?.find( S => Array.isArray(S) && S.join('-') === _QGA_JSON.runcmd[0].join('-'));
     },
 
     isInstallUSBTablet(spec) {

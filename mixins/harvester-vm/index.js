@@ -866,10 +866,10 @@ export default {
 
       if (Array.isArray(userDataJson.runcmd)) {
         let findIndex = -1;
-        const hasSameRuncmd = userDataJson.runcmd.find( S => S.join('-') === _QGA_JSON.runcmd[0].join('-'));
+        const hasSameRuncmd = userDataJson.runcmd.find( S => Array.isArray(S) && S.join('-') === _QGA_JSON.runcmd[0].join('-'));
 
         const hasSimilarRuncmd = userDataJson.runcmd.find( (S, index) => {
-          if (S.join('-') === this.getSimilarRuncmd(osType).join('-')) {
+          if (Array.isArray(S) && S.join('-') === this.getSimilarRuncmd(osType).join('-')) {
             findIndex = index;
 
             return true;
@@ -909,7 +909,7 @@ export default {
         const _QGA_JSON = this.getMatchQGA(osType);
 
         for (let i = 0; i < userDataJson.runcmd.length; i++) {
-          if (userDataJson.runcmd[i].join('-') === _QGA_JSON.runcmd[0].join('-')) {
+          if (Array.isArray(userDataJson.runcmd[i]) && userDataJson.runcmd[i].join('-') === _QGA_JSON.runcmd[0].join('-')) {
             userDataJson.runcmd.splice(i, 1);
           }
         }
