@@ -7,7 +7,7 @@ import ResourceTabs from '@/components/form/ResourceTabs/index.vue';
 import Tab from '@/components/Tabbed/Tab.vue';
 import Loading from '@/components/Loading.vue';
 import AppInfo from '@/products/epinio/components/application/AppInfo.vue';
-import AppService from '@/products/epinio/components/application/AppService.vue';
+import AppConfiguration from '@/products/epinio/components/application/AppConfiguration.vue';
 import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 
 interface Data {
@@ -25,7 +25,7 @@ export default Vue.extend<Data, any, any, any>({
     ResourceTabs,
     Tab,
     AppInfo,
-    AppService
+    AppConfiguration
   },
 
   mixins: [CreateEditView],
@@ -72,8 +72,8 @@ export default Vue.extend<Data, any, any, any>({
       this.set(this.value.configuration, changes.configuration);
     },
 
-    updateServices(changes: string[]) {
-      this.set(this.value.configuration, { services: changes });
+    updateConfigurations(changes: string[]) {
+      this.set(this.value.configuration, { configurations: changes });
     },
   }
 
@@ -99,12 +99,12 @@ export default Vue.extend<Data, any, any, any>({
           @change="updateInfo"
         ></AppInfo>
       </Tab>
-      <Tab label="Services" name="services" :weight="10">
-        <AppService
+      <Tab label="Configurations" name="configurations" :weight="10">
+        <AppConfiguration
           :application="value"
           :mode="mode"
-          @change="updateServices"
-        ></AppService>
+          @change="updateConfigurations"
+        ></AppConfiguration>
       </Tab>
     </ResourceTabs>
   </CruResource>

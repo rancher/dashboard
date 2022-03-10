@@ -80,9 +80,9 @@ export default Vue.extend<Data, any, any, any>({
       </SimpleBox>
       <SimpleBox class="services">
         <div class="box">
-          <h1>{{ value.serviceCount }}</h1>
+          <h1>{{ value.configCount }}</h1>
           <h3>
-            {{ t('epinio.applications.detail.counts.service') }}
+            {{ t('epinio.applications.detail.counts.config') }}
           </h3>
         </div>
       </SimpleBox>

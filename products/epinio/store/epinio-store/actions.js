@@ -193,9 +193,9 @@ export default {
         collectionMethods: ['get'],
       }, {
         product:           EPINIO_PRODUCT_NAME,
-        id:                EPINIO_TYPES.SERVICE,
+        id:                EPINIO_TYPES.CONFIGURATION,
         type:              'schema',
-        links:             { collection: '/api/v1/services' },
+        links:             { collection: '/api/v1/configurations' },
         collectionMethods: ['get', 'post'],
         resourceFields:    { },
         attributes:        { namespaced: true }

@@ -1,4 +1,4 @@
-import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_TYPES } from '@/products/epinio/types';
+import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import { formatSi } from '@/utils/units';
 import { classify } from '@/plugins/core-store/classify';
@@ -145,6 +145,7 @@ export default class EpinioApplication extends EpinioResource {
       stagingLogs: ``, // /namespaces/:namespace/staging/:stage_id/logs
       importGit:   `${ this.getUrl() }/import-git`,
       restart:     `${ this.getUrl() }/restart`,
+      shell:       `${ this.getUrl() }/exec`.replace('/api/v1', '/wapi/v1'), // /namespaces/:namespace/applications/:app/exec
     };
   }
 
@@ -153,11 +154,11 @@ export default class EpinioApplication extends EpinioResource {
     return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ namespace }/applications/${ name || '' }` });
   }
 
-  get services() {
-    const all = this.$getters['all'](EPINIO_TYPES.SERVICE);
+  get configurations() {
+    const all = this.$getters['all'](EPINIO_TYPES.CONFIGURATION);
 
-    return (this.configuration.services || []).reduce((res, serviceName) => {
-      const s = all.find(allS => allS.meta.name === serviceName);
+    return (this.configuration.configurations || []).reduce((res, configName) => {
+      const s = all.find(allS => allS.meta.name === configName);
 
       if (s) {
         res.push(s);
@@ -171,8 +172,8 @@ export default class EpinioApplication extends EpinioResource {
     return Object.keys(this.configuration?.environment || []).length;
   }
 
-  get serviceCount() {
-    return this.configuration?.services.length;
+  get configCount() {
+    return this.configuration?.configurations.length;
   }
 
   get routeCount() {
@@ -328,10 +329,10 @@ export default class EpinioApplication extends EpinioResource {
       data: {
         name:          this.meta.name,
         configuration: {
-          instances:   this.configuration.instances,
-          services:    this.configuration.services,
-          environment: this.configuration.environment,
-          routes:      this.configuration.routes,
+          instances:      this.configuration.instances,
+          configurations: this.configuration.configurations,
+          environment:    this.configuration.environment,
+          routes:         this.configuration.routes,
         }
       }
     });
@@ -367,10 +368,10 @@ export default class EpinioApplication extends EpinioResource {
         accept:         'application/json'
       },
       data: {
-        instances:   this.configuration.instances,
-        services:    this.configuration.services,
-        environment: this.configuration.environment,
-        routes:      this.configuration.routes,
+        instances:      this.configuration.instances,
+        configurations:    this.configuration.configuration,
+        environment:    this.configuration.environment,
+        routes:         this.configuration.routes,
       }
     });
   }
@@ -437,7 +438,7 @@ export default class EpinioApplication extends EpinioResource {
     //   label:     `${ this.meta.name }`,
     //   product:   EPINIO_PRODUCT_NAME,
     //   icon:      'file',
-    //   component: 'ApplicationLogs',
+    //   component: 'ContainerShell',
     //   attrs:     { application: this }
     // }, { root: true });
   }

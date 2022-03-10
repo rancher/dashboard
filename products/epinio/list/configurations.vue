@@ -4,14 +4,14 @@ import { EPINIO_TYPES } from '@/products/epinio/types';
 import Loading from '@/components/Loading';
 
 export default {
-  name:       'EpinioServicesList',
+  name:       'EpinioConfigurationsList',
   components: {
     Loading,
     ResourceTable,
   },
   async fetch() {
     this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP });
-    await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE });
+    await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CONFIGURATION });
   },
   props:      {
     schema: {
@@ -22,7 +22,7 @@ export default {
 
   computed: {
     rows() {
-      return this.$store.getters['epinio/all'](EPINIO_TYPES.SERVICE);
+      return this.$store.getters['epinio/all'](EPINIO_TYPES.CONFIGURATION);
     },
   }
 };

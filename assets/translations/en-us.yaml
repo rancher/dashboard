@@ -5953,7 +5953,7 @@ typeDescription:
   logging.banzaicloud.io.output: An output defines which logging providers that logs can be sent to. The output needs to be in the same namespace as the flow that is using it.
   group.principal: Assigning global roles to a group only works with external auth providers that support groups. Local authorization does not support groups.
   # Epinio resources
-  services: Services allow Applications access to a common set of variables. Bind one or more to an application for it to see them.
+  configurations: Configurations allow Applications access to a common set of variables. Bind one or more to an application for it to see them.
   # End of Epinio resources
 
 typeLabel:
@@ -6224,10 +6224,10 @@ typeLabel:
       one { Applications }
       other { Applications }
     }
-  services: |-
+  configurations: |-
     {count, plural,
-      one { Services }
-      other { Services }
+      one { Configurations }
+      other { Configurations }
     }
   # End of Epinio resources
 
@@ -6619,12 +6619,12 @@ epinio:
   applications:
     tableHeaders:
       route: Routes
-      boundServices: Bound Services
+      boundConfigs: Bound Configs
       deployedBy: Last Deployed By
     detail:
       counts:
         label: Counts
-        service: Services
+        config: Configs
         routes: Routes
         envVars: Environment Vars
       routes:
@@ -6687,12 +6687,12 @@ epinio:
             label: Branch
             inputLabel: Branch
             tooltip: Branch to deploy
-      services:
-        label: Service
-        subtext: Bind a service
+      configurations:
+        label: Configurations
+        subtext: Bind a config
         select:
-          placeholderWithOptions: Select services to bind app to
-          placeholderNoOptions: There are no services in this namespace
+          placeholderWithOptions: Select configs to bind app to
+          placeholderNoOptions: There are no configs in this namespace
         next: Create
       progress:
         label: Progress
@@ -6730,13 +6730,13 @@ epinio:
   namespace:
     tableHeaders:
       appCount: Applications
-      serviceCount: Services
+      configCount: Configs
     name: Name
     create: Create a Namespace
-    deleteWarning: All applications and services in a namespace will be deleted.
-  services:
+    deleteWarning: All applications and configs in a namespace will be deleted.
+  configurations:
     pairs:
-      label: Service Data
+      label: Config Data
       tooltip: Data made available to bound applications via the path <code>/services/&lt;service name&gt;/&lt;data name&gt;/</code>
     tableHeaders:
       boundApps: Bound Applications
