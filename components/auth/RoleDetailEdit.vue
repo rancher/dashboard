@@ -276,9 +276,7 @@ export default {
               'APIGroups',
               'Node',
               'PersistentVolumes',
-              'ConfigMaps',
               'ResourceQuotas',
-              'Secrets',
             ],
             deprecatedResources: [
               'ComponentStatuses', // A deprecated API that provided status of etcd, kube-scheduler, and kube-controller-manager components
@@ -340,12 +338,14 @@ export default {
             resources: [
               // Core K8s API - Namespaced resources
               // that are not in an API group.
+              'ConfigMaps',
               'LimitRanges', // enumerates compute resource constraints in a project at the pod, container, image, image stream, and persistent volume claim level
               'Namespaces',
               'PersistentVolumeClaims',
               'Pods',
               'PodTemplates',
               'ReplicationControllers',
+              'Secrets',
               'Services',
               'ServiceAccounts',
             ],
