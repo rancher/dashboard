@@ -277,10 +277,16 @@ export default {
         display: flex;
         align-items: center;
         padding: 10px 15px;
+
+        &:hover {
+          text-decoration: none;
+          span {
+            text-decoration: underline;
+          }
+        }
       }
 
       .conditions-alert-icon {
-        text-decoration: none !important;
         color: var(--error);
         padding-left: 10px;
       }
