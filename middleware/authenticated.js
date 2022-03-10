@@ -251,7 +251,7 @@ export default async function({
     const product = get(route, 'params.product');
     const oldProduct = from?.params?.product;
 
-    if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name.startsWith(`c-cluster-${ VIRTUAL }-`)) {
+    if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name?.startsWith(`c-cluster-${ VIRTUAL }-`)) {
       const res = [
         store.dispatch('loadManagement'),
         store.dispatch('loadVirtual', {
