@@ -136,7 +136,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .cluster-count-info {
   display: flex;
   align-items: center;
