@@ -642,17 +642,13 @@ export default {
     },
 
     parseAccessCredentials() {
-      if (this.resource !== HCI.VM || this.isCreate) {
-        return;
-      }
-
       const out = [];
       const annotations = {};
-      const users = JSON.parse(this.spec.template.metadata.annotations[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_USERS] || '[]');
+      const users = JSON.parse(this.spec?.template?.metadata?.annotations?.[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_USERS] || '[]');
 
       for (const row of this.accessCredentials) {
-        if (!row.secretName) {
-          continue;
+        if (this.needNewSecret) {
+          row.secretName = this.generateSecretName(this.secretNamePrefix);
         }
 
         if (row.source === ACCESS_CREDENTIALS.RESET_PWD) {
@@ -683,8 +679,10 @@ export default {
         this.spec.template.spec.accessCredentials = out;
       }
 
-      this.spec.template.metadata.annotations[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_USERS] = JSON.stringify(Array.from(new Set(users)));
-      this.spec.template.metadata.annotations[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_NAMES] = JSON.stringify(annotations);
+      if (users.length !== 0) {
+        this.spec.template.metadata.annotations[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_USERS] = JSON.stringify(Array.from(new Set(users)));
+        this.spec.template.metadata.annotations[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_NAMES] = JSON.stringify(annotations);
+      }
     },
 
     getInitUserData(config) {
@@ -989,7 +987,7 @@ export default {
     },
 
     async saveAccessCredentials(vm) {
-      if (!vm?.spec || this.isCreate || this.resource !== HCI.VM) {
+      if (!vm?.spec) {
         return true;
       }
 
@@ -999,7 +997,7 @@ export default {
       for (const row of this.accessCredentials) {
         let secretRef = row.secretRef;
 
-        if (!secretRef) {
+        if (!secretRef || this.needNewSecret) {
           secretRef = await this.$store.dispatch('harvester/create', {
             metadata: {
               name:            row.secretName,

@@ -174,11 +174,16 @@ export default {
         }
         const versions = await this.$store.dispatch('harvester/findAll', { type: HCI.VM_VERSION });
         const curVersion = versions.find( V => V.id === id);
+        const cloneVersionVM = clone(curVersion.spec.vm);
 
-        this.getInitConfig({ value: curVersion.spec.vm });
+        delete cloneVersionVM.spec?.template?.spec?.accessCredentials;
+        delete cloneVersionVM.spec?.template?.metadata?.annotations?.[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_NAMES];
+        delete cloneVersionVM.spec?.template?.metadata?.annotations?.[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_USERS];
+
+        this.getInitConfig({ value: cloneVersionVM });
         this.$set(this, 'hasCreateVolumes', []); // When using the template, all volume names need to be newly created
 
-        const claimTemplate = this.getVolumeClaimTemplates(curVersion.spec.vm);
+        const claimTemplate = this.getVolumeClaimTemplates(cloneVersionVM);
 
         this.value.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(claimTemplate);
       }
