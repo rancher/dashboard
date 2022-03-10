@@ -726,8 +726,6 @@ export default {
       // - verbs
       const value = event.label ? event.label : event;
 
-      debugger;
-
       switch (key) {
       case 'apiGroups':
 

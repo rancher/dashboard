@@ -20,13 +20,17 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('cluster/findAll', { type: LOGGING.OUTPUT });
-    await this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_OUTPUT });
-    this.rows = await this.$store.dispatch('cluster/findAll', { type: this.resource });
+    try {
+      await this.$store.dispatch('cluster/findAll', { type: LOGGING.OUTPUT });
+      await this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_OUTPUT });
+    } catch (e) {}
+    const rows = await this.$store.dispatch('cluster/findAll', { type: LOGGING.FLOW });
+
+    this.rows = rows;
   },
 
   data() {
-    return { rows: null };
+    return { rows: [] };
   },
 };
 </script>
