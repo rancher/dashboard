@@ -244,7 +244,7 @@ export default {
 </script>
 
 <template>
-  <section>
+  <section class="cru">
     <form :is="(isView? 'div' : 'form')" class="create-resource-container">
       <div
         v-if="showSubtypeSelection"
@@ -312,41 +312,40 @@ export default {
         >
           <slot />
         </div>
-        <div class="controls-row">
-          <slot name="form-footer">
-            <CruResourceFooter
-              :mode="mode"
-              :is-form="showAsForm"
-              :show-cancel="showCancel"
-              @cancel-confirmed="confirmCancel"
-            >
-              <!-- Pass down templates provided by the caller -->
-              <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
-                <slot :name="slot" v-bind="scope" />
-              </template>
+        <slot name="form-footer">
+          <CruResourceFooter
+            class="cru__footer"
+            :mode="mode"
+            :is-form="showAsForm"
+            :show-cancel="showCancel"
+            @cancel-confirmed="confirmCancel"
+          >
+            <!-- Pass down templates provided by the caller -->
+            <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
+              <slot :name="slot" v-bind="scope" />
+            </template>
 
-              <template #default>
-                <div v-if="!isView">
-                  <button
-                    v-if="canYaml && (_selectedSubtype || !subtypes.length) && canEditYaml"
-                    type="button"
-                    class="btn role-secondary"
-                    @click="showPreviewYaml"
-                  >
-                    <t k="cruResource.previewYaml" />
-                  </button>
-                  <AsyncButton
-                    v-if="!showSubtypeSelection"
-                    ref="save"
-                    :disabled="!canSave"
-                    :mode="finishButtonMode || mode"
-                    @click="$emit('finish', $event)"
-                  />
-                </div>
-              </template>
-            </CruResourceFooter>
-          </slot>
-        </div>
+            <template #default>
+              <div v-if="!isView">
+                <button
+                  v-if="canYaml && (_selectedSubtype || !subtypes.length) && canEditYaml"
+                  type="button"
+                  class="btn role-secondary"
+                  @click="showPreviewYaml"
+                >
+                  <t k="cruResource.previewYaml" />
+                </button>
+                <AsyncButton
+                  v-if="!showSubtypeSelection"
+                  ref="save"
+                  :disabled="!canSave"
+                  :mode="finishButtonMode || mode"
+                  @click="$emit('finish', $event)"
+                />
+              </div>
+            </template>
+          </CruResourceFooter>
+        </slot>
       </template>
 
       <section
@@ -367,49 +366,48 @@ export default {
           @error="e=>$emit('error', e)"
         >
           <template #yamlFooter="{yamlSave, showPreview, yamlPreview, yamlUnpreview}">
-            <div class="controls-row">
-              <slot name="cru-yaml-footer">
-                <CruResourceFooter
-                  :done-route="doneRoute"
-                  :mode="mode"
-                  :is-form="showAsForm"
-                  @cancel-confirmed="confirmCancel"
-                >
-                  <template #default="{checkCancel}">
-                    <div class="controls-middle">
-                      <button
-                        v-if="showPreview"
-                        type="button"
-                        class="btn role-secondary"
-                        @click="yamlUnpreview"
-                      >
-                        <t k="resourceYaml.buttons.continue" />
-                      </button>
-                      <button
-                        v-if="!showPreview && isEdit"
-                        :disabled="!canDiff"
-                        type="button"
-                        class="btn role-secondary"
-                        @click="yamlPreview"
-                      >
-                        <t k="resourceYaml.buttons.diff" />
-                      </button>
-                    </div>
-                    <div v-if="_selectedSubtype || !subtypes.length" class="controls-right">
-                      <button type="button" class="btn role-secondary" @click="checkCancel(false)">
-                        <t k="cruResource.backToForm" />
-                      </button>
-                      <AsyncButton
-                        v-if="!showSubtypeSelection"
-                        :disabled="!canSave"
-                        :action-label="isEdit ? t('generic.save') : t('generic.create')"
-                        @click="cb=>yamlSave(cb)"
-                      />
-                    </div>
-                  </template>
-                </CruResourceFooter>
-              </slot>
-            </div>
+            <slot name="cru-yaml-footer">
+              <CruResourceFooter
+                class="cru__footer"
+                :done-route="doneRoute"
+                :mode="mode"
+                :is-form="showAsForm"
+                @cancel-confirmed="confirmCancel"
+              >
+                <template #default="{checkCancel}">
+                  <div class="controls-middle">
+                    <button
+                      v-if="showPreview"
+                      type="button"
+                      class="btn role-secondary"
+                      @click="yamlUnpreview"
+                    >
+                      <t k="resourceYaml.buttons.continue" />
+                    </button>
+                    <button
+                      v-if="!showPreview && isEdit"
+                      :disabled="!canDiff"
+                      type="button"
+                      class="btn role-secondary"
+                      @click="yamlPreview"
+                    >
+                      <t k="resourceYaml.buttons.diff" />
+                    </button>
+                  </div>
+                  <div v-if="_selectedSubtype || !subtypes.length" class="controls-right">
+                    <button type="button" class="btn role-secondary" @click="checkCancel(false)">
+                      <t k="cruResource.backToForm" />
+                    </button>
+                    <AsyncButton
+                      v-if="!showSubtypeSelection"
+                      :disabled="!canSave"
+                      :action-label="isEdit ? t('generic.save') : t('generic.create')"
+                      @click="cb=>yamlSave(cb)"
+                    />
+                  </div>
+                </template>
+              </CruResourceFooter>
+            </slot>
           </template>
         </ResourceYaml>
       </section>
@@ -483,6 +481,21 @@ $logo: 60px;
     object-fit: contain;
     position: relative;
     top: 2px;
+  }
+}
+
+.cru {
+  &__footer {
+    right: 0;
+    position: sticky;
+    bottom: 0;
+    background-color: var(--header-bg);
+    border-top: var(--header-border-size) solid var(--header-border);
+
+    // Overrides outlet padding
+    margin-left: -$space-m;
+    margin-right: -$space-m;
+    padding: $space-s $space-m;
   }
 }
 
