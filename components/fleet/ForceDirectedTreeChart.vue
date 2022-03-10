@@ -435,6 +435,7 @@ export default {
     },
     zoomFit() {
       const rootNode = d3.select('.root-node');
+      const paddingBuffer = 10;
 
       const chartDimentions = rootNode.node().getBoundingClientRect();
       const chartCoordinates = rootNode.node().getBBox();
@@ -457,7 +458,7 @@ export default {
         return;
       } // nothing to fit
 
-      const scale = 1 / Math.max(width / fullWidth, height / fullHeight);
+      const scale = 1 / Math.max((width + paddingBuffer) / fullWidth, (width + height) / fullHeight);
       const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
 
       // console.log('scale', scale);
