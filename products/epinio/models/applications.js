@@ -1,4 +1,4 @@
-import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
+import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_TYPES } from '@/products/epinio/types';
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import { formatSi } from '@/utils/units';
 import { classify } from '@/plugins/core-store/classify';
@@ -369,7 +369,7 @@ export default class EpinioApplication extends EpinioResource {
       },
       data: {
         instances:      this.configuration.instances,
-        configurations:    this.configuration.configuration,
+        configurations: this.configuration.configurations,
         environment:    this.configuration.environment,
         routes:         this.configuration.routes,
       }
