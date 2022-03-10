@@ -153,7 +153,7 @@ export default {
           set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', {
             generation:         now + 1,
             name:               this.snapshot.name,
-            restoreRKEConfig:   this.snapshot.restoreRKEConfig,
+            restoreRKEConfig:   this.restoreMode,
           });
 
           await cluster.save();
