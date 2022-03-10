@@ -58,25 +58,26 @@ export default {
       const statuses = this.allStatuses;
 
       return (containers || []).map((container) => {
-        container.status = findBy(statuses, 'name', container.name) || {};
-        container.stateDisplay = this.value.containerStateDisplay(container);
-        container.stateBackground = this.value.containerStateColor(container).replace('text', 'bg');
-        container.nameSort = sortableNumericSuffix(container.name).toLowerCase();
-        container.readyIcon = container?.status?.ready ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-x icon-2x text-error ml-5';
-        container.availableActions = this.value.containerActions;
+        const status = findBy(statuses, 'name', container.name);
 
-        container.openShell = () => {
+        return {
+          ...container,
+          status:           status || {},
+          stateDisplay:     this.value.containerStateDisplay(container),
+          stateBackground:  this.value.containerStateColor(container).replace('text', 'bg'),
+          nameSort:         sortableNumericSuffix(container.name).toLowerCase(),
+          readyIcon:        container?.status?.ready ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-x icon-2x text-error ml-5',
+          availableActions: this.value.containerActions,
+          stateObj:         status, // Required if there's a description
+          stateDescription: status, // Required to display the description
+
           // Call openShell here so that opening the shell
           // at the container level still has 'this' in scope.
-          this.value.openShell(container.name);
-        };
-        container.openLogs = () => {
+          openShell: () => this.value.openShell(container.name),
           // Call openLogs here so that opening the logs
           // at the container level still has 'this' in scope.
-          this.value.openLogs(container.name);
+          openLogs:  () => this.value.openLogs(container.name)
         };
-
-        return container;
       });
     },
 
@@ -163,7 +164,19 @@ export default {
 
       this.metricsID = id;
       this.selection = c;
-    }
+    },
+
+    // getStateDescription(status) {
+    //   console.log(status);
+    //   // const states = status
+    //   //   .map(({ state }) => state)
+    //   //   .map(({ error, message }) => [error, message]);
+    //   // const description = flatten(compact(states))
+    //   //   .map(({ reason, message }) => `${ reason }:${ message }`);
+
+    //   return 'this is a description';
+    //   // return description;
+    // }
   }
 };
 </script>
