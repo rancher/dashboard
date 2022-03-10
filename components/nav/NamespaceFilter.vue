@@ -55,6 +55,26 @@ export default {
       return out;
     },
 
+    tooltip() {
+      if (this.isOpen || (this.total + this.hidden) === 0) {
+        return null;
+      }
+
+      let tooltip = '<div class="ns-filter-tooltip">';
+
+      (this.value || []).forEach((v) => {
+        tooltip += `<div class="ns-filter-tooltip-item"><div>${ v.label }</div></div>`;
+      });
+
+      tooltip += '</div>';
+
+      return {
+        content:   tooltip,
+        placement: 'bottom',
+        delay:     { show: 500 }
+      };
+    },
+
     options() {
       const t = this.$store.getters['i18n/t'];
       let out = [];
@@ -497,7 +517,7 @@ export default {
       <div v-else-if="isSingleSpecial" ref="values" class="ns-values">
         {{ value[0].label }}
       </div>
-      <div v-else ref="values" class="ns-values">
+      <div v-else ref="values" v-tooltip="tooltip" class="ns-values">
         <div v-if="total" ref="total" class="ns-value ns-abs">
           {{ t('namespaceFilter.selected.label', { total }) }}
         </div>
@@ -506,7 +526,7 @@ export default {
           <i class="icon icon-close" @click="removeOption(ns, $event)" />
         </div>
       </div>
-      <div v-if="hidden > 0" ref="more" class="ns-more">
+      <div v-if="hidden > 0" ref="more" v-tooltip="tooltip" class="ns-more">
         {{ t('namespaceFilter.more', { more: hidden }) }}
       </div>
       <i v-if="!isOpen" class="icon icon-chevron-down" />
@@ -767,6 +787,29 @@ export default {
           &:not(:last-child) {
             margin-right: 5px;
           }
+        }
+      }
+    }
+  }
+</style>
+<style lang="scss">
+  .tooltip {
+    .ns-filter-tooltip {
+      background-color: var(--body-bg);
+      margin: -6px;
+      padding: 6px;
+
+      .ns-filter-tooltip-item {
+        > div {
+          background-color: rgba(0,0,0,.05);
+          border: 1px solid var(--header-border);
+          border-radius: 5px;
+          color: var(--tag-text);
+          display: inline-block;
+          line-height: 20px;
+          padding: 2px 5px;
+          white-space: nowrap;
+          margin: 4px 0;
         }
       }
     }
