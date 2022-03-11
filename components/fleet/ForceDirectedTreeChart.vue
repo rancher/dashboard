@@ -185,21 +185,6 @@ export default {
       //   d3.select('#tree > svg').remove();
       // }
 
-      /* ************* WORKING CODE ************* */
-      // const transform = d3.zoomIdentity.scale(1).translate(0, 0);
-
-      // this.zoom = d3.zoom().scaleExtent([1 / 8, 16]).on('zoom', this.zoomed);
-
-      // this.svg = d3.select('#tree').append('svg')
-      //   .attr('viewBox', `0 0 ${ width } ${ height }`)
-      //   .attr('preserveAspectRatio', 'none')
-      //   .call(this.zoom)
-      //   .append('g')
-      //   .attr('class', 'root-node')
-      //   .attr('transform', transform);
-      /* ************* EO WORKING CODE ************* */
-
-      /* ************* TESTING ZOOM FEATURE ************* */
       this.zoom = d3.zoom().scaleExtent([1 / 8, 16]).on('zoom', this.zoomed);
       const transform = d3.zoomIdentity.scale(1).translate(0, 0);
 
@@ -209,11 +194,10 @@ export default {
 
       this.rootNode = this.svg.append('g')
         .attr('class', 'root-node');
-      // .attr('transform', transform);
 
       this.svg.call(this.zoom);
-      this.rootNode.call(this.zoom.transform, transform);
-      /* ************* EO TESTING ************* */
+      this.svg.call(this.zoom.transform, transform);
+      console.log('BASE TRANSFORM', transform);
 
       this.simulation = d3.forceSimulation()
         .force('charge', d3.forceManyBody().strength(-300).distanceMax(500))
@@ -482,18 +466,19 @@ export default {
       const scale = 1 / Math.max(width / (fullWidth - paddingBuffer), height / (fullHeight - paddingBuffer));
       const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
 
-      // console.log('scale', scale);
-      // console.log('translate', translate);
+      console.log('ZOOM FIT scale', scale);
 
-      const transform = d3.zoomIdentity
-        .translate(translate[0], translate[1])
-        .scale(scale);
+      if (scale < 0.9) {
+        const transform = d3.zoomIdentity
+          .translate(translate[0], translate[1])
+          .scale(scale);
 
-      // this.svg.attr('transform', transform);
-      this.rootNode.attr('transform', transform);
+        // this update the cached zoom state!!!!! very important so that any transforms from user interaction keep this base!
+        this.svg.call(this.zoom.transform, transform);
+      }
     },
     zoomed(ev) {
-      // this.svg.attr('transform', ev.transform);
+      console.log('ZOOM CB', ev.transform);
       this.rootNode.attr('transform', ev.transform);
     }
   }
