@@ -31,11 +31,16 @@ export default class GlobalRole extends SteveModel {
   }
 
   get nameDisplay() {
-    return this.$rootGetters['i18n/withFallback'](`rbac.globalRoles.role.${ this.id }.label`, this.displayName || this.metadata?.name || this.id);
+    const path = `rbac.globalRoles.role.${ this.id }.label`;
+    const label = this.displayName || this.metadata?.name || this.id;
+
+    return this.$rootGetters['i18n/withFallback'](path, label);
   }
 
   get descriptionDisplay() {
-    return this.description || this.metadata?.annotations?.[DESCRIPTION] || this.$rootGetters['i18n/withFallback'](`rbac.globalRoles.role.${ this.id }.description`, this.t(`rbac.globalRoles.unknownRole.description`));
+    return this.description ||
+    this.metadata?.annotations?.[DESCRIPTION] ||
+    this.$rootGetters['i18n/withFallback'](`rbac.globalRoles.role.${ this.id }.description`, this.t(`rbac.globalRoles.unknownRole.description`));
   }
 
   get isSpecial() {
@@ -96,6 +101,9 @@ export default class GlobalRole extends SteveModel {
     return this.$dispatch(`rancher/create`, { type: NORMAN.GLOBAL_ROLE, name: this.displayName }, { root: true });
   }
 
+  /**
+   * Due to issues in the Steve API, we need to switch to Norman API for handle and save this model
+   */
   get norman() {
     return (async() => {
       const norman = await this.basicNorman;

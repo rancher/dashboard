@@ -13,4 +13,19 @@ export default class SteveModel extends HybridModel {
   get description() {
     return this.metadata?.annotations?.[DESCRIPTION] || this.spec?.description || this._description;
   }
+
+  /**
+   * Set description based on the type of model available with private fallback
+   */
+  set description(value) {
+    if (this.metadata?.annotations) {
+      this.metadata.annotations[DESCRIPTION] = value;
+    }
+
+    if (this.spec) {
+      this.spec.description = value;
+    }
+
+    this._description = value;
+  }
 }
