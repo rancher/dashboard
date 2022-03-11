@@ -762,7 +762,7 @@ export default {
 
       .ns-values {
         display: flex;
-        overflow-x: hidden;
+        overflow: hidden;
 
         .ns-value {
           align-items: center;
