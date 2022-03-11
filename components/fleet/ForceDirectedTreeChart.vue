@@ -23,6 +23,7 @@ export default {
       root:             null,
       allNodesData:     null,
       allLinks:         null,
+      rootNode:         null,
       node:             null,
       link:             null,
       svg:              null,
@@ -177,27 +178,45 @@ export default {
     },
     renderChart() {
       const width = 800;
-      const height = 800;
+      const height = 600;
 
       // clear any previous renders, if they exist...
       // if (d3.select('#tree > svg')) {
       //   d3.select('#tree > svg').remove();
       // }
 
-      const transform = d3.zoomIdentity.translate(0, 0);
+      /* ************* WORKING CODE ************* */
+      // const transform = d3.zoomIdentity.scale(1).translate(0, 0);
 
+      // this.zoom = d3.zoom().scaleExtent([1 / 8, 16]).on('zoom', this.zoomed);
+
+      // this.svg = d3.select('#tree').append('svg')
+      //   .attr('viewBox', `0 0 ${ width } ${ height }`)
+      //   .attr('preserveAspectRatio', 'none')
+      //   .call(this.zoom)
+      //   .append('g')
+      //   .attr('class', 'root-node')
+      //   .attr('transform', transform);
+      /* ************* EO WORKING CODE ************* */
+
+      /* ************* TESTING ZOOM FEATURE ************* */
       this.zoom = d3.zoom().scaleExtent([1 / 8, 16]).on('zoom', this.zoomed);
+      const transform = d3.zoomIdentity.scale(1).translate(0, 0);
 
       this.svg = d3.select('#tree').append('svg')
         .attr('viewBox', `0 0 ${ width } ${ height }`)
-        .attr('preserveAspectRatio', 'none')
-        .call(this.zoom)
-        .append('g')
-        .attr('class', 'root-node')
-        .attr('transform', transform);
+        .attr('preserveAspectRatio', 'none');
+
+      this.rootNode = this.svg.append('g')
+        .attr('class', 'root-node');
+      // .attr('transform', transform);
+
+      this.svg.call(this.zoom);
+      this.rootNode.call(this.zoom.transform, transform);
+      /* ************* EO TESTING ************* */
 
       this.simulation = d3.forceSimulation()
-        .force('charge', d3.forceManyBody().strength(-300).distanceMax(300))
+        .force('charge', d3.forceManyBody().strength(-300).distanceMax(500))
         .force('collision', d3.forceCollide(this.circleRadius * 3.5))
         .force('center', d3.forceCenter( width / 2, height / 2 ))
         .on('tick', this.ticked);
@@ -212,7 +231,8 @@ export default {
         this.allLinks = this.root.links();
       }
 
-      this.link = this.svg
+      // this.link = this.svg
+      this.link = this.rootNode
         .selectAll('.link')
         .data(this.allLinks, (d) => {
           return d.target.id;
@@ -229,7 +249,8 @@ export default {
 
       this.link = linkEnter.merge(this.link);
 
-      this.node = this.svg
+      // this.node = this.svg
+      this.node = this.rootNode
         .selectAll('.node')
         .data(this.allNodesData, (d) => {
           return d.id;
@@ -435,7 +456,7 @@ export default {
     },
     zoomFit() {
       const rootNode = d3.select('.root-node');
-      const paddingBuffer = 10;
+      const paddingBuffer = 30;
 
       const chartDimentions = rootNode.node().getBoundingClientRect();
       const chartCoordinates = rootNode.node().getBBox();
@@ -458,7 +479,7 @@ export default {
         return;
       } // nothing to fit
 
-      const scale = 1 / Math.max((width + paddingBuffer) / fullWidth, (width + height) / fullHeight);
+      const scale = 1 / Math.max(width / (fullWidth - paddingBuffer), height / (fullHeight - paddingBuffer));
       const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
 
       // console.log('scale', scale);
@@ -468,10 +489,12 @@ export default {
         .translate(translate[0], translate[1])
         .scale(scale);
 
-      this.svg.attr('transform', transform);
+      // this.svg.attr('transform', transform);
+      this.rootNode.attr('transform', transform);
     },
     zoomed(ev) {
-      this.svg.attr('transform', ev.transform);
+      // this.svg.attr('transform', ev.transform);
+      this.rootNode.attr('transform', ev.transform);
     }
   }
 };
@@ -578,15 +601,15 @@ export default {
       }
 
       &.repo.active circle {
-        transform: scale(1.1);
+        transform: scale(1.2);
       }
 
       &.bundle.active circle {
-        transform: scale(1.25);
+        transform: scale(1.35);
       }
 
       &.resource.active circle {
-        transform: scale(1.5);
+        transform: scale(1.6);
       }
 
       &.node-default-fill {
