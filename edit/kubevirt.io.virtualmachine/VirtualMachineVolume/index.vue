@@ -299,6 +299,8 @@ export default {
                 bootOrder: {{ i + 1 }}
               </div>
             </div>
+
+            <Banner v-if="volume.volumeStatus" class="mt-15" color="warning" :label="volume.volumeStatus.status" />
           </InfoBox>
         </div>
       </transition-group>

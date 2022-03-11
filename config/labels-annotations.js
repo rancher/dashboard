@@ -138,6 +138,7 @@ export const HCI = {
   NETWORK_TYPE:                 'network.harvesterhci.io/type',
   VM_NAME:                      'harvesterhci.io/vmName',
   VM_NAME_PREFIX:               'harvesterhci.io/vmNamePrefix',
+  VM_RESERVED_MEMORY:           'harvesterhci.io/reservedMemory',
   MAINTENANCE_STATUS:           'harvesterhci.io/maintain-status',
   HOST_CUSTOM_NAME:             'harvesterhci.io/host-custom-name',
   HOST_CONSOLE_URL:             'harvesterhci.io/host-console-url',
@@ -159,6 +160,7 @@ export const HCI = {
   REAY_MESSAGE:                 'harvesterhci.io/read-message',
   DYNAMIC_SSHKEYS_NAMES:        'harvesterhci.io/dynamic-ssh-key-names',
   DYNAMIC_SSHKEYS_USERS:        'harvesterhci.io/dynamic-ssh-key-users',
+  VM_VOLUME_STATUS:             'harvesterhci.io/volume-status',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge

@@ -5561,6 +5561,7 @@ harvester:
     usbTip: Provides an absolute pointer device which often helps with getting a consistent mouse cursor position in VNC.
     sshTitle: Add Public SSH Key
     imageTip: An external URL to the .iso, .img, .qcow2 or .raw that the virtual machine should be created from.
+    efiEnabled: Booting in EFI mode
     volume:
       dragTip: Drag and drop volumes, or use the volume's arrows, to change the boot order.
       volumeTip: The VM only contains a cd-rom volume. You may want to add additional disk volumes.
@@ -5621,6 +5622,7 @@ harvester:
       tips: qemu-guest-agent must be installed to enable Access Credentials, the VM should be restarted after credentials added. Need to enter the VM to edit password or remove SSH-Key after deleting the credentials.
       userTips: The user to be added must already exist; otherwise, the credentials will not take effect.
       duplicatedUser: User already exist.
+      invalidUser: Invalid Username.
     input:
       name: Name
       memory: Memory
@@ -5630,6 +5632,7 @@ harvester:
       MachineType: Machine Type
       username: Username
       password: Password
+      reservedMemory: Reserved Memory
     machineTypeTip: 'Specify a processor architecture to emulate. To see a list of supported architectures, run: qemu-system-x86_64 -cpu ?'
     detail:
       tabs:

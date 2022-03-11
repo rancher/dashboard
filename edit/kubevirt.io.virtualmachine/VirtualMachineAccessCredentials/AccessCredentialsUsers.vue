@@ -85,11 +85,12 @@ export default {
     },
 
     addUser(buttonCb) {
+      const reg = /^[-._0-9a-zA-Z]+$/;
+
       this.errors = [];
 
-      if (!this.newUsername) {
-        const fieldName = this.t('harvester.virtualMachine.input.username');
-        const message = this.t('validation.required', { key: fieldName });
+      if (!reg.test(this.newUsername)) {
+        const message = this.t('harvester.virtualMachine.accessCredentials.invalidUser');
 
         this.errors.push(message);
         buttonCb(false);

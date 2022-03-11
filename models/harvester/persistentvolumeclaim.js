@@ -1,9 +1,11 @@
 import Vue from 'vue';
 import { _CLONE } from '@/config/query-params';
+import pick from 'lodash/pick';
 import { HCI } from '@/config/types';
-import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS, DESCRIPTION } from '@/config/labels-annotations';
 import { findBy } from '@/utils/array';
 import { get, clone } from '@/utils/object';
+import { cleanForNew } from '@/plugins/steve/normalize';
 import SteveModel from '@/plugins/steve/steve-class';
 import { colorForState } from '@/plugins/steve/resource-class';
 
@@ -49,6 +51,15 @@ export default class HciPv extends SteveModel {
     this.doActionGrowl('cancelExpand', {});
   }
 
+  cleanForNew() {
+    cleanForNew(this);
+
+    delete this.metadata.finalizers;
+    const keys = [HCI_ANNOTATIONS.IMAGE_ID, DESCRIPTION];
+
+    this.metadata.annotations = pick(this.metadata.annotations, keys);
+  }
+
   get canUpdate() {
     return this.hasLink('update');
   }
@@ -84,6 +95,10 @@ export default class HciPv extends SteveModel {
     const state = this.stateDisplay;
 
     return colorForState(state);
+  }
+
+  get stateDescription() {
+    return this.metadata?.annotations?.[HCI_ANNOTATIONS.VM_VOLUME_STATUS] || super.stateDescription;
   }
 
   get detailLocation() {

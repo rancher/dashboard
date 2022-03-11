@@ -10,6 +10,7 @@ import CruResource from '@/components/CruResource';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import UnitInput from '@/components/form/UnitInput';
 import NameNsDescription from '@/components/form/NameNsDescription';
 
 import SSHKey from '@/edit/kubevirt.io.virtualmachine/VirtualMachineSSHKey';
@@ -44,6 +45,7 @@ export default {
     CruResource,
     LabeledInput,
     LabeledSelect,
+    UnitInput,
     NameNsDescription,
     Volume,
     SSHKey,
@@ -159,7 +161,7 @@ export default {
         if (id !== old && !this.templateVersionId) {
           const templates = await this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE });
 
-          this.templateVersionId = templates.find( O => O.id === id)?.defaultVersionId;
+          this.templateVersionId = templates.find( O => O.id === id)?.spec?.defaultVersionId;
         }
       },
       immediate: false
@@ -172,11 +174,16 @@ export default {
         }
         const versions = await this.$store.dispatch('harvester/findAll', { type: HCI.VM_VERSION });
         const curVersion = versions.find( V => V.id === id);
+        const cloneVersionVM = clone(curVersion.spec.vm);
 
-        this.getInitConfig({ value: curVersion.spec.vm });
+        delete cloneVersionVM.spec?.template?.spec?.accessCredentials;
+        delete cloneVersionVM.spec?.template?.metadata?.annotations?.[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_NAMES];
+        delete cloneVersionVM.spec?.template?.metadata?.annotations?.[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_USERS];
+
+        this.getInitConfig({ value: cloneVersionVM });
         this.$set(this, 'hasCreateVolumes', []); // When using the template, all volume names need to be newly created
 
-        const claimTemplate = this.getVolumeClaimTemplates(curVersion.spec.vm);
+        const claimTemplate = this.getVolumeClaimTemplates(cloneVersionVM);
 
         this.value.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(claimTemplate);
       }
@@ -505,13 +512,25 @@ export default {
             <a v-else v-t="'harvester.generic.showMore'" role="button" @click="toggleAdvanced" />
           </div>
 
-          <div v-if="showAdvanced" class="mb-20">
+          <div v-if="showAdvanced" class="row mb-20">
             <div class="col span-6">
               <LabeledInput
                 v-model="hostname"
                 :label-key="hostnameLabel"
                 :placeholder="hostPlaceholder"
                 :mode="mode"
+              />
+            </div>
+
+            <div class="col span-6">
+              <UnitInput
+                v-model="reservedMemory"
+                v-int-number
+                :label="t('harvester.virtualMachine.input.reservedMemory')"
+                :mode="mode"
+                :input-exponent="2"
+                :increment="1024"
+                :output-modifier="true"
               />
             </div>
           </div>
@@ -542,6 +561,14 @@ export default {
             type="checkbox"
             :disabled="isWindows"
             label-key="harvester.virtualMachine.installAgent"
+            :mode="mode"
+          />
+
+          <Checkbox
+            v-model="efiEnabled"
+            class="check"
+            type="checkbox"
+            :label="t('harvester.virtualMachine.efiEnabled')"
             :mode="mode"
           />
         </Tab>

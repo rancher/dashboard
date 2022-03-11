@@ -89,4 +89,59 @@ export default class HciManagedChart extends SteveModel {
       }
     };
   }
+
+  get customValidationRules() {
+    const rules = [
+      {
+        nullable:       false,
+        path:           'spec.values.prometheus.prometheusSpec.scrapeInterval',
+        required:       true,
+        translationKey: 'monitoring.prometheus.config.scrape'
+      },
+      {
+        nullable:       false,
+        path:           'spec.values.prometheus.prometheusSpec.evaluationInterval',
+        required:       true,
+        translationKey: 'monitoring.prometheus.config.evaluation'
+      },
+      {
+        nullable:       false,
+        path:           'spec.values.prometheus.prometheusSpec.retention',
+        required:       true,
+        translationKey: 'monitoring.prometheus.config.retention'
+      },
+      {
+        nullable:       false,
+        path:           'spec.values.prometheus.prometheusSpec.retentionSize',
+        required:       true,
+        translationKey: 'monitoring.prometheus.config.retentionSize'
+      },
+      {
+        nullable:       false,
+        path:           'spec.values.prometheus.prometheusSpec.resources.requests.cpu',
+        required:       true,
+        translationKey: 'monitoring.prometheus.config.requests.cpu'
+      },
+      {
+        nullable:       false,
+        path:           'spec.values.prometheus.prometheusSpec.resources.requests.memory',
+        required:       true,
+        translationKey: 'monitoring.prometheus.config.requests.memory'
+      },
+      {
+        nullable:       false,
+        path:           'spec.values.prometheus.prometheusSpec.resources.limits.cpu',
+        required:       true,
+        translationKey: 'monitoring.prometheus.config.limits.cpu'
+      },
+      {
+        nullable:       false,
+        path:           'spec.values.prometheus.prometheusSpec.resources.limits.memory',
+        required:       true,
+        translationKey: 'monitoring.prometheus.config.limits.memory'
+      },
+    ];
+
+    return rules;
+  }
 }
