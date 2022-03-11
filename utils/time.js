@@ -4,7 +4,7 @@ const FACTORS = [60, 60, 24];
 const LABELS = ['sec', 'min', 'hour', 'day'];
 
 // Diff two dates and return an object with values for presentation
-// If 't' is also passed, 'string' property is set on the return object with the diff formated as a string
+// If 't' is also passed, 'string' property is set on the return object with the diff formatted as a string
 // e.g. formats a date difference to return '1 day', '20 hours' etc
 export function diffFrom(value, from, t) {
   const now = day();

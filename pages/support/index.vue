@@ -93,7 +93,6 @@ export default {
         this.supportSetting.value = 'true';
         this.brandSetting.value = 'suse';
         await Promise.all([this.supportSetting.save(), this.brandSetting.save()]);
-        this.$cookies.set('brand', 'suse');
         setBrand('suse');
         done(true);
         this.$modal.hide('toggle-support');
@@ -107,9 +106,6 @@ export default {
         this.supportSetting.value = 'false';
         this.brandSetting.value = '';
         await Promise.all([this.supportSetting.save(), this.brandSetting.save()]);
-        if (this.$cookies.get('brand')) {
-          this.$cookies.remove('brand');
-        }
         setBrand('');
         done(true);
         this.$modal.hide('toggle-support');

@@ -1,16 +1,17 @@
 <script>
-import Banner from '@/components/Banner';
 import UnitInput from '@/components/form/UnitInput';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import InputOrDisplay from '@/components/InputOrDisplay';
 import { HCI, PVC } from '@/config/types';
+import { formatSi, parseSi } from '@/utils/units';
+import { VOLUME_TYPE, InterfaceOption } from '@/config/harvester-map';
 
 export default {
   name: 'HarvesterEditVMImage',
 
   components: {
-    Banner, UnitInput, LabeledInput, LabeledSelect, InputOrDisplay
+    UnitInput, LabeledInput, LabeledSelect, InputOrDisplay
   },
 
   props:  {
@@ -26,20 +27,6 @@ export default {
       default:  null
     },
 
-    typeOption: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
-    },
-
-    interfaceOption: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
-    },
-
     mode: {
       type:    String,
       default: 'create'
@@ -50,10 +37,6 @@ export default {
       required: true
     },
 
-    needRootDisk: {
-      type:    Boolean,
-      default: false
-    },
     isCreate: {
       type:    Boolean,
       default: true
@@ -61,26 +44,46 @@ export default {
     isEdit: {
       type:    Boolean,
       default: false
+    },
+
+    validateRequired: {
+      type:     Boolean,
+      required: true
+    },
+
+    isVirtualType: {
+      type:    Boolean,
+      default: true
     }
   },
 
   data() {
     return {
+      VOLUME_TYPE,
+      InterfaceOption,
       loading: false,
-      errors:  []
+      images:  [],
     };
+  },
+
+  fetch() {
+    this.images = this.$store.getters['harvester/all'](HCI.IMAGE);
   },
 
   computed: {
     imagesOption() {
-      const choise = this.$store.getters['harvester/all'](HCI.IMAGE);
-
-      return choise.map( (I) => {
+      return this.images.filter(c => c.isReady).map( (I) => {
         return {
           label: `${ I.metadata.namespace }/${ I.spec.displayName }`,
           value: I.id
         };
       });
+    },
+
+    imageName() {
+      const image = this.imagesOption.find(I => I.value === this.value.image);
+
+      return image ? image.label : '-';
     },
 
     pvcsResource() {
@@ -91,12 +94,8 @@ export default {
       });
     },
 
-    needSetPVC() {
-      return !!this.errors.length || (!this.value.newCreateId && this.isEdit && this.value.size !== this.pvcsResource?.spec?.resources?.requests?.storage);
-    },
-
     isDisabled() {
-      return !this.value.newCreateId && this.isEdit;
+      return !this.value.newCreateId && this.isEdit && this.isVirtualType;
     },
   },
 
@@ -109,8 +108,17 @@ export default {
     },
     pvcsResource: {
       handler(pvc) {
-        if (pvc?.spec?.resources?.requests?.storage) {
-          this.value.size = pvc.spec.resources.requests.storage;
+        if (pvc?.spec?.resources?.requests?.storage && this.isVirtualType) {
+          const parseValue = parseSi(pvc.spec.resources.requests.storage);
+
+          const formatSize = formatSi(parseValue, {
+            increment:   1024,
+            addSuffix:   false,
+            maxExponent: 3,
+            minExponent: 3,
+          });
+
+          this.value.size = `${ formatSize }Gi`;
         }
       },
       deep:      true,
@@ -139,6 +147,10 @@ export default {
 
       this.update();
     },
+
+    onOpen() {
+      this.images = this.$store.getters['harvester/all'](HCI.IMAGE);
+    },
   }
 };
 </script>
@@ -157,7 +169,7 @@ export default {
           <LabeledSelect
             v-model="value.type"
             :label="t('harvester.fields.type')"
-            :options="typeOption"
+            :options="VOLUME_TYPE"
             :mode="mode"
             @input="update"
           />
@@ -167,13 +179,14 @@ export default {
 
     <div class="row mb-20">
       <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.image')" :value="value.image" :mode="mode">
+        <InputOrDisplay :name="t('harvester.fields.image')" :value="imageName" :mode="mode">
           <LabeledSelect
             v-model="value.image"
-            :disabled="idx === 0 && !isCreate && !value.newCreateId"
+            :disabled="idx === 0 && !isCreate && !value.newCreateId && isVirtualType"
             :label="t('harvester.fields.image')"
             :options="imagesOption"
             :mode="mode"
+            :required="validateRequired"
             @input="onImageChange"
           />
         </InputOrDisplay>
@@ -183,10 +196,12 @@ export default {
         <InputOrDisplay :name="t('harvester.fields.size')" :value="value.size" :mode="mode">
           <UnitInput
             v-model="value.size"
-            output-suffic-text="Gi"
-            output-as="string"
+            :output-modifier="true"
+            :increment="1024"
+            :input-exponent="3"
             :label="t('harvester.fields.size')"
             :mode="mode"
+            :required="validateRequired"
             suffix="GiB"
             :disabled="isDisabled"
           />
@@ -201,22 +216,11 @@ export default {
             v-model="value.bus"
             :label="t('harvester.virtualMachine.volume.bus')"
             :mode="mode"
-            :options="interfaceOption"
+            :options="InterfaceOption"
             @input="update"
           />
         </InputOrDisplay>
       </div>
     </div>
-
-    <div v-for="(err,index) in errors" :key="index">
-      <Banner color="error" :label="err" />
-    </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.action {
-  display: flex;
-  flex-direction: row-reverse;
-}
-</style>

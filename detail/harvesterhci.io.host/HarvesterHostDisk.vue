@@ -1,14 +1,10 @@
 <script>
-import LabeledInput from '@/components/form/LabeledInput';
-import UnitInput from '@/components/form/UnitInput';
 import LabelValue from '@/components/LabelValue';
 import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
 
 export default {
   components: {
-    LabeledInput,
-    UnitInput,
     LabelValue,
     BadgeState,
     Banner,
@@ -60,6 +56,10 @@ export default {
 
     schedulableCondiction() {
       return this.value?.conditions?.Schedulable || {};
+    },
+
+    provisionPhase() {
+      return this.value?.blockDevice?.provisionPhase || {};
     },
 
     mountedMessage() {
@@ -119,19 +119,30 @@ export default {
               label="Schedulable"
               class="mr-10 state"
             />
+            <BadgeState
+              v-if="provisionPhase.label"
+              :color="provisionPhase.color"
+              :icon="provisionPhase.icon"
+              :label="provisionPhase.label"
+              class="mr-10 state"
+            />
           </div>
         </div>
       </div>
       <div v-if="!value.isNew" class="row mt-30">
-        <div class="col flex span-12">
+        <div class="col span-4">
           <LabelValue
             name="Storage Available"
             :value="value.storageAvailable"
           />
+        </div>
+        <div class="col span-4">
           <LabelValue
             name="Storage Scheduled"
             :value="value.storageScheduled"
           />
+        </div>
+        <div class="col span-4">
           <LabelValue
             name="Storage Max"
             :value="value.storageMaximum"
@@ -141,31 +152,16 @@ export default {
       <hr class="mt-10" />
     </div>
     <div class="row mt-10">
-      <div class="col span-6">
-        <LabeledInput
-          v-model="value.displayName"
-          :label="t('generic.name')"
-          :disabled="true"
+      <div class="col span-4">
+        <LabelValue
+          :name="t('generic.name')"
+          :value="value.displayName"
         />
       </div>
-      <div class="col span-6">
-        <LabeledInput
-          v-model="value.path"
-          :label="t('harvester.host.disk.path.label')"
-          :disabled="true"
-          required
-        />
-      </div>
-    </div>
-    <div v-if="false" class="row mt-10">
-      <div class="col span-6">
-        <UnitInput
-          v-model="value.storageReserved"
-          v-int-number
-          suffix="GiB"
-          label-key="harvester.host.disk.storageReserved.label"
-          :mode="mode"
-          :disabled="true"
+      <div class="col span-4">
+        <LabelValue
+          :name="t('harvester.host.disk.path.label')"
+          :value="value.path"
         />
       </div>
     </div>

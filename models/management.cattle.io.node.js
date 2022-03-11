@@ -4,10 +4,11 @@ import { NAME as EXPLORER } from '@/config/product/explorer';
 import { listNodeRoles } from '@/models/cluster/node';
 import { insertAt } from '@/utils/array';
 import { downloadUrl } from '@/utils/download';
+import HybridModel from '@/plugins/steve/hybrid-class';
 
-export default {
-  _availableActions() {
-    const out = this._standardActions;
+export default class MgmtNode extends HybridModel {
+  get _availableActions() {
+    const out = super._availableActions;
 
     const downloadKeys = {
       action:     'downloadKeys',
@@ -19,7 +20,7 @@ export default {
     const scaleDown = {
       action:     'scaleDown',
       enabled:    !!this.canScaleDown,
-      icon:       'icon icon-chevron-down icon-fw',
+      icon:       'icon icon-minus icon-fw',
       label:      this.t('node.actions.scaleDown'),
       bulkable:   true,
     };
@@ -29,17 +30,17 @@ export default {
     insertAt(out, 0, scaleDown);
 
     return out;
-  },
+  }
 
-  kubeNodeName() {
+  get kubeNodeName() {
     return this.metadata.labels[MANAGEMENT_NODE.NODE_NAME];
-  },
+  }
 
-  mgmtClusterId() {
+  get mgmtClusterId() {
     return this.id.substring(0, this.id.indexOf('/'));
-  },
+  }
 
-  kubeNodeDetailLocation() {
+  get kubeNodeDetailLocation() {
     return this.kubeNodeName ? {
       name:   'c-cluster-product-resource-id',
       params: {
@@ -49,77 +50,71 @@ export default {
         id:       this.kubeNodeName
       }
     } : null;
-  },
+  }
 
-  isWorker() {
+  get isWorker() {
     return this.spec.worker;
-  },
+  }
 
-  isControlPlane() {
+  get isControlPlane() {
     return this.spec.controlPlane;
-  },
+  }
 
-  isEtcd() {
+  get isEtcd() {
     return this.spec.etcd;
-  },
+  }
 
-  roles() {
+  get roles() {
     const { isControlPlane, isWorker, isEtcd } = this;
 
     return listNodeRoles(isControlPlane, isWorker, isEtcd, this.t('generic.all'));
-  },
+  }
 
-  pool() {
+  get pool() {
     const nodePoolID = this.spec.nodePoolName.replace(':', '/');
 
     return this.$rootGetters['management/byId'](MANAGEMENT.NODE_POOL, nodePoolID);
-  },
+  }
 
-  norman() {
+  get norman() {
     const id = this.id.replace('/', ':');
 
     return this.$rootGetters['rancher/byId'](NORMAN.NODE, id);
-  },
+  }
 
-  canDelete() {
+  get canDelete() {
     return this.norman?.hasLink('remove');
-  },
+  }
 
-  canUpdate() {
+  get canUpdate() {
     return this.norman?.hasLink('update');
-  },
+  }
 
   remove() {
-    return () => {
-      return this.norman?.remove();
-    };
-  },
+    return this.norman?.remove();
+  }
 
   downloadKeys() {
-    return () => {
-      const url = this.norman?.links?.nodeConfig;
+    const url = this.norman?.links?.nodeConfig;
 
-      if ( url ) {
-        downloadUrl(url);
-      }
-    };
-  },
+    if ( url ) {
+      downloadUrl(url);
+    }
+  }
 
-  scaleDown() {
-    return async(resources) => {
-      const safeResources = Array.isArray(resources) ? resources : [this];
+  async scaleDown(resources) {
+    const safeResources = Array.isArray(resources) ? resources : [this];
 
-      await Promise.all(safeResources.map((node) => {
-        return node.norman?.doAction('scaledown');
-      }));
-    };
-  },
+    await Promise.all(safeResources.map((node) => {
+      return node.norman?.doAction('scaledown');
+    }));
+  }
 
-  provisioningCluster() {
+  get provisioningCluster() {
     return this.$getters['all'](CAPI.RANCHER_CLUSTER).find(c => c.name === this.namespace);
-  },
+  }
 
-  doneOverride() {
+  get doneOverride() {
     return {
       name:   'c-cluster-product-resource-namespace-id',
       params: {
@@ -128,17 +123,17 @@ export default {
         id:        this.namespace
       }
     };
-  },
+  }
 
-  canClone() {
+  get canClone() {
     return false;
-  },
+  }
 
-  canScaleDown() {
+  get canScaleDown() {
     const isInOnlyPool = this.pool?.provisioningCluster?.pools?.length === 1;
     const isOnlyNode = this.pool?.nodes?.length === 1;
     const hasAction = this.norman?.actions?.scaledown;
 
     return hasAction && (!isInOnlyPool || !isOnlyNode);
-  },
-};
+  }
+}

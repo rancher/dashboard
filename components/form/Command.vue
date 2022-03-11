@@ -128,7 +128,7 @@ export default {
             v-model="command"
             :mode="mode"
             :label="t('workload.container.command.command')"
-            placeholder="e.g. /bin/sh"
+            :placeholder="t('generic.placeholder', {text: '/bin/sh'}, true)"
           />
         </slot>
       </div>
@@ -138,7 +138,7 @@ export default {
             v-model="args"
             :mode="mode"
             :label="t('workload.container.command.args')"
-            placeholder="e.g. /usr/sbin/httpd -f httpd.conf"
+            :placeholder="t('generic.placeholder', {text: '/usr/sbin/httpd -f httpd.conf'}, true)"
           />
         </slot>
       </div>
@@ -150,7 +150,7 @@ export default {
           v-model="workingDir"
           :mode="mode"
           :label="t('workload.container.command.workingDir')"
-          placeholder="e.g. /myapp"
+          :placeholder="t('generic.placeholder', {text: '/myapp'}, true)"
         />
       </div>
       <div class="col span-6">

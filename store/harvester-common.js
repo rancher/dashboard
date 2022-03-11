@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import Parse from 'url-parse';
 import { HCI } from '@/config/types';
 
@@ -6,7 +7,8 @@ export const state = function() {
     latestBundleId:   '',
     bundlePending:    false,
     showBundleModal:  false,
-    bundlePercentage: 0
+    bundlePercentage: 0,
+    uploadingImages:  [],
   };
 };
 
@@ -25,7 +27,17 @@ export const mutations = {
 
   setBundlePercentage(state, value) {
     state.bundlePercentage = value;
-  }
+  },
+
+  uploadStart(state, value) {
+    state.uploadingImages.push(value);
+  },
+
+  uploadEnd(state, value) {
+    const filtered = state.uploadingImages.filter(l => l !== value);
+
+    Vue.set(state, 'uploadingImages', filtered);
+  },
 };
 
 export const getters = {
@@ -43,7 +55,11 @@ export const getters = {
 
   getBundlePercentage(state) {
     return state.bundlePercentage;
-  }
+  },
+
+  uploadingImages(state) {
+    return state.uploadingImages;
+  },
 };
 
 export const actions = {
@@ -76,11 +92,12 @@ export const actions = {
         commit('setBundlePercentage', percentage);
 
         if (bundleCrd?.bundleMessage) {
-          const error = bundleCrd?.bundleMessage;
+          const err = bundleCrd?.bundleMessage;
 
-          this.$store.dispatch('growl/fromError', { title: t('harvester.notification.title.error'), error }, { root: true });
+          dispatch('growl/fromError', { title: t('harvester.notification.title.error'), err }, { root: true });
           clearInterval(timer);
           commit('setBundlePending', false);
+          commit('toggleBundleModal', false);
         }
       } else {
         const name = id.split('/')[1];

@@ -1,12 +1,13 @@
 <script>
 import compact from 'lodash/compact';
 import { get } from '@/utils/object';
+import { isIpv4 } from '@/utils/string';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { HCI } from '@/config/types';
-import CopyToClipboardText from '@/components/CopyToClipboardText';
+import CopyToClipboard from '@/components/CopyToClipboard';
 
 export default {
-  components: { CopyToClipboardText },
+  components: { CopyToClipboard },
   props:      {
     value: {
       type:     String,
@@ -26,7 +27,7 @@ export default {
     ip() {
       const s = new Set([...this.vmiIp, ...this.networkAnnotationIP]);
 
-      return compact([...s]);
+      return compact([...s]).sort();
     },
 
     networkAnnotationIP() {
@@ -46,9 +47,10 @@ export default {
     vmiIp() {
       const vmiResources = this.$store.getters['harvester/all'](HCI.VMI);
       const resource = vmiResources.find(VMI => VMI.id === this.value) || null;
-      const out = resource?.status?.interfaces?.[0]?.ipAddress || '';
 
-      return [out];
+      return (resource?.status?.interfaces || []).filter((O) => {
+        return isIpv4(O.ipAddress);
+      }).map(O => O.ipAddress);
     }
   },
 };
@@ -56,8 +58,8 @@ export default {
 
 <template>
   <div>
-    <span v-for="(ipValue, index) in ip" :key="index">
-      <CopyToClipboardText :text="ipValue" /> <span v-if="index !== ip.length-1">, </span>
+    <span v-for="(ipValue) in ip" :key="ipValue">
+      {{ ipValue }}<CopyToClipboard :text="ipValue" label-as="tooltip" class="icon-btn" action-color="bg-transparent" />
     </span>
   </div>
 </template>

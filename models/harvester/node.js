@@ -1,15 +1,17 @@
 import pickBy from 'lodash/pickBy';
-import { HCI } from '@/config/types';
+import { HCI, LONGHORN, POD } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { clone } from '@/utils/object';
 import findLast from 'lodash/findLast';
-import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
+import { colorForState, stateDisplay } from '@/plugins/steve/resource-class';
+import SteveModel from '@/plugins/steve/steve-class';
+import { parseSi } from '@/utils/units';
 
-export default {
-  _availableActions() {
+export default class HciNode extends SteveModel {
+  get _availableActions() {
     const cordon = {
       action:     'cordon',
-      enabled:    this.hasAction('cordon'),
+      enabled:    this.hasAction('cordon') && !this.isCordoned,
       icon:       'icon icon-fw icon-pause',
       label:      this.t('harvester.action.cordon'),
       total:      1,
@@ -44,27 +46,27 @@ export default {
       uncordon,
       enableMaintenance,
       disableMaintenance,
-      ...this._standardActions
+      ...super._availableActions
     ];
-  },
+  }
 
-  confirmRemove() {
+  get confirmRemove() {
     return true;
-  },
+  }
 
-  filteredSystemLabels() {
+  get filteredSystemLabels() {
     const reg = /(k3s|kubernetes|kubevirt|harvesterhci|k3os)+\.io/;
 
     return pickBy(this.labels, (value, key) => {
       return !reg.test(key);
     });
-  },
+  }
 
-  nameDisplay() {
+  get nameDisplay() {
     return this.metadata?.annotations?.[HCI_ANNOTATIONS.HOST_CUSTOM_NAME] || this.name;
-  },
+  }
 
-  stateDisplay() {
+  get stateDisplay() {
     if (this.isEnteringMaintenance) {
       return 'Entering maintenance mode';
     }
@@ -78,21 +80,21 @@ export default {
     }
 
     return stateDisplay(this.state);
-  },
+  }
 
-  stateBackground() {
-    return colorForState(this.stateDisplay).replace('text-', 'bg-');
-  },
+  get stateBackground() {
+    return colorForState(this.stateDisplay, this.stateObj?.error, this.stateObj?.transitioning).replace('text-', 'bg-');
+  }
 
-  detailLocation() {
+  get detailLocation() {
     const detailLocation = clone(this._detailLocation);
 
     detailLocation.params.resource = HCI.HOST;
 
     return detailLocation;
-  },
+  }
 
-  doneOverride() {
+  get doneOverride() {
     const detailLocation = clone(this._detailLocation);
 
     delete detailLocation.params.namespace;
@@ -101,59 +103,130 @@ export default {
     detailLocation.name = 'c-cluster-product-resource';
 
     return detailLocation;
-  },
+  }
 
-  parentNameOverride() {
+  get parentNameOverride() {
     return this.$rootGetters['i18n/t'](`typeLabel."${ HCI.HOST }"`, { count: 1 })?.trim();
-  },
+  }
 
-  parentLocationOverride() {
+  get parentLocationOverride() {
     return this.doneOverride;
-  },
+  }
 
-  internalIp() {
+  get internalIp() {
     const addresses = this.status?.addresses || [];
 
     return findLast(addresses, address => address.type === 'InternalIP')?.address;
-  },
+  }
 
-  isMaster() {
+  get isMaster() {
     return this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_ROLE_MASTER] !== undefined || this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_ROLE_CONTROL_PLANE] !== undefined;
-  },
+  }
 
   cordon() {
-    return (resources = this) => {
-      this.doAction('cordon', {});
-    };
-  },
+    this.doAction('cordon', {});
+  }
 
   uncordon() {
     this.doAction('uncordon', {});
-  },
+  }
 
-  enableMaintenanceMode() {
-    return (resources = this) => {
-      this.$dispatch('promptModal', {
-        resources,
-        component: 'harvester/MaintenanceDialog'
-      });
-    };
-  },
+  enableMaintenanceMode(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'harvester/MaintenanceDialog'
+    });
+  }
 
   disableMaintenanceMode() {
     this.doAction('disableMaintenanceMode', {});
-  },
+  }
 
-  isCordoned() {
-    return !!this.spec.unschedulable;
-  },
+  get isUnSchedulable() {
+    return this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_SCHEDULABLE] === 'false' || this.spec.unschedulable;
+  }
 
-  isEnteringMaintenance() {
+  get isMigrateable() {
+    const states = ['in-progress', 'unavailable'];
+
+    return !this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] && !this.isUnSchedulable && !states.includes(this.state);
+  }
+
+  get isCordoned() {
+    return this.isUnSchedulable;
+  }
+
+  get isEnteringMaintenance() {
     return this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] === 'running';
-  },
+  }
 
-  isMaintenance() {
+  get isMaintenance() {
     return this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] === 'completed';
-  },
+  }
 
-};
+  get longhornDisks() {
+    const inStore = this.$rootGetters['currentProduct'].inStore;
+    const longhornNode = this.$rootGetters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.id }`);
+    const diskStatus = longhornNode?.status?.diskStatus || {};
+    const diskSpec = longhornNode?.spec?.disks || {};
+
+    const longhornDisks = Object.keys(diskStatus).map((key) => {
+      return {
+        ...diskSpec[key],
+        ...diskStatus[key],
+        name:                  key,
+        storageReserved:       diskSpec[key]?.storageReserved,
+        storageAvailable:      diskStatus[key]?.storageAvailable,
+        storageMaximum:        diskStatus[key]?.storageMaximum,
+        storageScheduled:      diskStatus[key]?.storageScheduled,
+        readyCondiction:       diskStatus[key]?.conditions?.Ready || {},
+        schedulableCondiction: diskStatus[key]?.conditions?.Schedulable || {},
+      };
+    });
+
+    return longhornDisks;
+  }
+
+  get pods() {
+    const inStore = this.$rootGetters['currentProduct'].inStore;
+    const pods = this.$rootGetters[`${ inStore }/all`](POD) || [];
+
+    return pods.filter(p => p?.spec?.nodeName === this.id && p?.metadata?.name !== 'removing');
+  }
+
+  get cpuReserved() {
+    const out = this.pods.reduce((sum, pod) => {
+      const containers = pod?.spec?.containers || [];
+
+      const containerCpuReserved = containers.reduce((sum, c) => {
+        sum += parseSi(c?.resources?.requests?.cpu || '0m');
+
+        return sum;
+      }, 0);
+
+      sum += containerCpuReserved;
+
+      return sum;
+    }, 0);
+
+    return out;
+  }
+
+  get memoryReserved() {
+    const out = this.pods.reduce((sum, pod) => {
+      const containers = pod?.spec?.containers || [];
+
+      const containerMemoryReserved = containers.reduce((sum, c) => {
+        sum += parseSi(c?.resources?.requests?.memory || '0m', { increment: 1024 });
+
+        return sum;
+      }, 0);
+
+      sum += containerMemoryReserved;
+
+      return sum;
+    }, 0);
+
+    return out;
+  }
+}

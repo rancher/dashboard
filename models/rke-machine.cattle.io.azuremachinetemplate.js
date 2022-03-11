@@ -1,18 +1,15 @@
-export default {
+import MachineTemplate from './rke-machine.cattle.io.machinetemplate';
 
-  nameDisplay() {
-    return this.name.replace(`${ this.metadata.annotations['objectset.rio.cattle.io/owner-name'] }-`, '');
-  },
-
-  provider() {
+export default class AzureMachineTemplate extends MachineTemplate {
+  get provider() {
     return 'azure';
-  },
+  }
 
-  providerLocation() {
-    return this.spec.template.spec.location ;
-  },
+  get providerLocation() {
+    return this.spec.template.spec.location;
+  }
 
-  providerSize() {
+  get providerSize() {
     return this.spec.template.spec.size;
   }
-};
+}

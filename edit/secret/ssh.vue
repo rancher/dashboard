@@ -54,7 +54,7 @@ export default {
           :label="t('secret.ssh.public')"
           :mode="mode"
           required
-          placeholder="Paste in your public key"
+          :placeholder="t('secret.ssh.publicPlaceholder')"
         />
         <FileSelector class="btn bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onUsernameSelected" />
       </div>
@@ -65,7 +65,7 @@ export default {
           :label="t('secret.ssh.private')"
           :mode="mode"
           required
-          placeholder="Paste in your private key"
+          :placeholder="t('secret.ssh.privatePlaceholder')"
         />
         <FileSelector class="btn bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onPasswordSelected" />
       </div>

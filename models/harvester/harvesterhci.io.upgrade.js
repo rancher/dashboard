@@ -1,16 +1,44 @@
+import jsyaml from 'js-yaml';
 import { NODE } from '@/config/types';
-const LATEST_UPGRADE_RESOURCE = 'harvesterhci.io/latestUpgrade';
+import SteveModel from '@/plugins/steve/steve-class';
+import { HCI } from '@/config/labels-annotations';
 
-export default {
-  isCurrentUpgrade() {
-    return this?.metadata?.labels?.[LATEST_UPGRADE_RESOURCE] === 'true';
-  },
+export default class HciUpgrade extends SteveModel {
+  get isLatestUpgrade() {
+    return this?.metadata?.labels?.[HCI.LATEST_UPGRADE] === 'true';
+  }
 
-  nodes() {
+  get isUpgradeSucceeded() {
+    return this?.metadata?.labels?.[HCI.UPGRADE_STATE] === 'Succeeded';
+  }
+
+  get hasReadMessage() {
+    return this?.metadata?.labels?.[HCI.REAY_MESSAGE] === 'true';
+  }
+
+  get repoInfo() {
+    const repoInfo = this?.status?.repoInfo;
+
+    if (repoInfo) {
+      try {
+        return jsyaml.load(repoInfo);
+      } catch (e) {
+        return false;
+      }
+    }
+
+    return false;
+  }
+
+  get nodes() {
     return this.$rootGetters['harvester/all'](NODE);
-  },
+  }
 
-  upgradeMessage() {
+  get upgradeImage() {
+    return this?.status?.imageID;
+  }
+
+  get upgradeMessage() {
     const upgradeMessage = [];
     const nodeStatuses = this?.status?.nodeStatuses || {};
     const conditions = this?.status?.conditions || [];
@@ -45,9 +73,38 @@ export default {
     }
 
     return upgradeMessage;
-  },
+  }
 
-  nodeUpgradeMessage() {
+  get createRepo() {
+    const conditions = this?.status?.conditions || [];
+    const repoCondition = conditions.find( cond => cond.type === 'RepoReady');
+    const isReady = repoCondition?.status === 'True';
+
+    return {
+      isReady,
+      message: repoCondition?.message || repoCondition?.reason
+    };
+  }
+
+  get overallMessage() {
+    const conditions = this?.status?.conditions || [];
+    const completedCondition = conditions.find( cond => cond.type === 'Completed');
+    const hasError = completedCondition?.status === 'False';
+    const message = completedCondition?.message || completedCondition?.reason;
+
+    return hasError ? message : '';
+  }
+
+  get upgradeImageMessage() {
+    const conditions = this?.status?.conditions || [];
+    const imageReady = conditions.find( cond => cond.type === 'ImageReady');
+    const hasError = imageReady?.status === 'False';
+    const message = imageReady?.message || imageReady?.reason;
+
+    return hasError ? message : '';
+  }
+
+  get nodeUpgradeMessage() {
     const message = [];
     const nodeStatuses = this?.status?.nodeStatuses || {};
 
@@ -84,9 +141,9 @@ export default {
     }
 
     return message;
-  },
+  }
 
-  nodeTotalPercent() {
+  get nodeTotalPercent() {
     let out = 0;
 
     for (let i = 0; i < this.nodeUpgradeMessage.length; i++) {
@@ -94,17 +151,17 @@ export default {
     }
 
     out = Math.floor(out / this.nodeUpgradeMessage.length);
-
-    const nodeUpgradedCondition = this.getConditionStatus('nodesUpgraded');
+    const conditions = this?.status?.conditions || [];
+    const nodeUpgradedCondition = conditions.find( cond => cond.type === 'NodesUpgraded');
 
     if (out === 100 && !nodeUpgradedCondition) {
       out = 99;
     }
 
     return out;
-  },
+  }
 
-  sysServiceUpgradeMessage() {
+  get sysServiceUpgradeMessage() {
     let percent = 0;
     let state = 'Pending';
     const message = [];
@@ -113,7 +170,7 @@ export default {
     for (let i = 0; i < conditions.length; i++) {
       const type = conditions[i].type;
 
-      if (type === 'systemServicesUpgraded') {
+      if (type === 'SystemServicesUpgraded') {
         if (conditions[i].status === 'True') {
           percent = 100;
           state = 'Succeeded';
@@ -139,12 +196,12 @@ export default {
     }
 
     return message;
-  },
+  }
 
-  totalPercent() {
+  get totalPercent() {
     const nodePercent = this.nodeTotalPercent * this.nodeUpgradeMessage.length;
     const servicePercent = this.sysServiceUpgradeMessage?.[0].percent;
 
     return Math.floor((nodePercent + servicePercent) / (this.nodeUpgradeMessage.length + 1));
   }
-};
+}

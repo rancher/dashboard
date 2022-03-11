@@ -1,11 +1,11 @@
 <script>
-import HarvesterVmState from '@/components/formatter/HarvesterVmState';
 import ConsoleBar from '@/components/VMConsoleBar';
 import ResourceTable from '@/components/ResourceTable';
 import LinkDetail from '@/components/formatter/LinkDetail';
+import HarvesterVmState from '@/components/formatter/HarvesterVmState';
 
 import { STATE, AGE, NAME, NAMESPACE } from '@/config/table-headers';
-import { HCI, NODE } from '@/config/types';
+import { HCI, NODE, POD } from '@/config/types';
 
 import { allHash } from '@/utils/promise';
 import Loading from '@/components/Loading';
@@ -30,7 +30,7 @@ export default {
   async fetch() {
     const _hash = {
       vms:               this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
-      vmis:              this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
+      pod:               this.$store.dispatch('harvester/findAll', { type: POD }),
       restore:           this.$store.dispatch('harvester/findAll', { type: HCI.RESTORE }),
     };
 
@@ -49,7 +49,6 @@ export default {
     const hash = await allHash(_hash);
 
     this.allVMs = hash.vms;
-    this.allVMIs = hash.vmis;
     this.allNodeNetworks = hash.nodeNetworks || [];
     this.allClusterNetworks = hash.clusterNetworks || [];
   },
@@ -74,18 +73,26 @@ export default {
         },
         NAMESPACE,
         {
-          name:      'CPU',
-          label:     'CPU',
-          sort:      ['spec.template.spec.domain.cpu.cores'],
-          value:     'spec.template.spec.domain.cpu.cores',
-          align:     'center'
+          name:        'CPU',
+          label:       'CPU',
+          sort:        ['spec.template.spec.domain.cpu.cores'],
+          value:       'spec.template.spec.domain.cpu.cores',
+          align:       'center',
+          dashIfEmpty: true,
         },
         {
-          name:      'Memory',
-          value:     'spec.template.spec.domain.resources.requests.memory',
-          sort:      ['memorySort'],
-          align:     'center',
-          labelKey:  'tableHeaders.memory'
+          name:          'Memory',
+          value:         'displayMemory',
+          sort:          ['memorySort'],
+          align:         'center',
+          labelKey:      'tableHeaders.memory',
+          formatter:     'Si',
+          formatterOpts: {
+            opts: {
+              increment: 1024, addSuffix: true, maxExponent: 3, minExponent: 3, suffix: 'i',
+            },
+            needParseSi: true
+          },
         },
         {
           name:      'ip',
@@ -115,6 +122,14 @@ export default {
       return [...this.allVMs, ...matchVMIs];
     }
   },
+
+  async created() {
+    const vmis = await this.$store.dispatch('harvester/findAll', { type: HCI.VMI });
+
+    await this.$store.dispatch('harvester/findAll', { type: HCI.VMIM });
+
+    this.$set(this, 'allVMIs', vmis);
+  }
 };
 </script>
 

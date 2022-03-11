@@ -1,9 +1,12 @@
 import { CAPI } from '@/config/types';
 import { escapeHtml } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
+import SteveModel from '@/plugins/steve/steve-class';
+import { exceptionToErrorsArray } from '~/utils/error';
+import { handleConflict } from '~/plugins/steve/normalize';
 
-export default {
-  cluster() {
+export default class CapiMachineDeployment extends SteveModel {
+  get cluster() {
     if ( !this.spec.clusterName ) {
       return null;
     }
@@ -13,84 +16,122 @@ export default {
     const cluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, clusterId);
 
     return cluster;
-  },
+  }
 
-  groupByLabel() {
+  get groupByLabel() {
     const name = this.cluster?.nameDisplay || this.spec.clusterName;
 
     return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: escapeHtml(name) });
-  },
+  }
 
-  groupByPoolLabel() {
+  get groupByPoolLabel() {
     return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.machinePool', { name: escapeHtml(this.nameDisplay) }) }`;
-  },
+  }
 
-  groupByPoolShortLabel() {
+  get groupByPoolShortLabel() {
     return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.machinePool', { name: escapeHtml(this.nameDisplay) }) }`;
-  },
+  }
 
-  templateType() {
+  get templateType() {
     return this.spec.template.spec.infrastructureRef.kind ? `rke-machine.cattle.io.${ this.spec.template.spec.infrastructureRef.kind.toLowerCase() }` : null;
-  },
+  }
 
-  template() {
+  get template() {
     const ref = this.spec.template.spec.infrastructureRef;
     const id = `${ ref.namespace }/${ ref.name }`;
     const template = this.$rootGetters['management/byId'](this.templateType, id);
 
     return template;
-  },
+  }
 
-  providerName() {
+  get providerName() {
     return this.template?.nameDisplay;
-  },
+  }
 
-  providerDisplay() {
+  get providerDisplay() {
     const provider = (this.template?.provider || '').toLowerCase();
 
     return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, 'generic.unknown', true);
-  },
+  }
 
-  providerLocation() {
+  get providerLocation() {
     return this.template?.providerLocation || this.t('node.list.poolDescription.noLocation');
-  },
+  }
 
-  providerSize() {
+  get providerSize() {
     return this.template?.providerSize || this.t('node.list.poolDescription.noSize');
-  },
+  }
 
-  desired() {
+  get desired() {
     return this.spec?.replicas || 0;
-  },
+  }
 
-  pending() {
+  get pending() {
     return Math.max(0, this.desired - (this.status?.replicas || 0));
-  },
+  }
 
-  outdated() {
+  get outdated() {
     return Math.max(0, (this.status?.replicas || 0) - (this.status?.updatedReplicas || 0));
-  },
+  }
 
-  ready() {
+  get ready() {
     return Math.max(0, (this.status?.replicas || 0) - (this.status?.unavailableReplicas || 0));
-  },
+  }
 
-  unavailable() {
+  get unavailable() {
     return this.status?.unavailableReplicas || 0;
-  },
+  }
 
-  scalePool() {
-    return (delta) => {
-      const clustersMachinePool = this.cluster.spec.rkeConfig.machinePools.find(mp => `${ this.cluster.id }-${ mp.name }` === this.id);
+  scalePool(delta, save = true, depth = 0) {
+    const machineConfigName = this.template.metadata.annotations['rke.cattle.io/cloned-from-name'];
+    const machinePools = this.cluster.spec.rkeConfig.machinePools;
 
-      if (clustersMachinePool) {
-        clustersMachinePool.quantity += delta;
-        this.cluster.save();
-      }
-    };
-  },
+    const clustersMachinePool = machinePools.find(pool => pool.machineConfigRef.name === machineConfigName);
 
-  stateParts() {
+    if (!clustersMachinePool) {
+      return;
+    }
+
+    const initialValue = this.cluster.toJSON();
+
+    clustersMachinePool.quantity += delta;
+
+    if ( !save ) {
+      return;
+    }
+
+    const value = this.cluster;
+    const liveModel = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, this.cluster.id);
+
+    if ( this.scaleTimer ) {
+      clearTimeout(this.scaleTimer);
+    }
+
+    this.scaleTimer = setTimeout(() => {
+      this.cluster.save().catch((err) => {
+        let errors = exceptionToErrorsArray(err);
+
+        if ( err.status === 409 && depth < 2 ) {
+          const conflicts = handleConflict(initialValue, value, liveModel, this.$rootGetters);
+
+          if ( conflicts === false ) {
+            // It was automatically figured out, save again
+            // (pass in the delta again as `clustersMachinePool.quantity` would have reset from the re-fetch done in `save`)
+            return this.scalePool(delta, true, depth + 1);
+          } else {
+            errors = conflicts;
+          }
+        }
+
+        this.$dispatch('growl/fromError', {
+          title: 'Error scaling pool',
+          err:   errors
+        }, { root: true });
+      });
+    }, 1000);
+  }
+
+  get stateParts() {
     const out = [
       {
         label:     'Pending',
@@ -123,5 +164,5 @@ export default {
     ].filter(x => x.value > 0);
 
     return sortBy(out, 'sort:desc');
-  },
-};
+  }
+}

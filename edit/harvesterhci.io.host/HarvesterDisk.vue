@@ -1,17 +1,19 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
-import UnitInput from '@/components/form/UnitInput';
 import LabelValue from '@/components/LabelValue';
 import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
+import RadioGroup from '@/components/form/RadioGroup';
+import RadioButton from '@/components/form/RadioButton';
 
 export default {
   components: {
     LabeledInput,
-    UnitInput,
     LabelValue,
     BadgeState,
     Banner,
+    RadioGroup,
+    RadioButton,
   },
 
   props:      {
@@ -75,22 +77,59 @@ export default {
     isProvisioned() {
       return this.value?.blockDevice?.spec.fileSystem.provisioned;
     },
-  },
-  methods: {
-    update() {
-      this.$emit('input', this.value);
+
+    forceFormattedDisabled() {
+      const lastFormattedAt = this.value?.blockDevice?.status?.deviceStatus?.fileSystem?.LastFormattedAt;
+      const fileSystem = this.value?.blockDevice?.status?.deviceStatus?.fileSystem.type;
+
+      const systems = ['ext4', 'XFS'];
+
+      if (lastFormattedAt) {
+        return true;
+      } else if (systems.includes(fileSystem)) {
+        return false;
+      } if (!fileSystem) {
+        return true;
+      } else {
+        return !this.canEditPath;
+      }
     },
 
-    canEditPath(value) {
+    canEditPath() {
       if (this.mountedMessage) {
         return true;
       }
 
-      if (value.isNew && !value.originPath) {
+      if (this.value.isNew && !this.value.originPath) {
         return true;
       }
 
       return false;
+    },
+
+    isFormatted() {
+      return !!this.value?.blockDevice?.status?.deviceStatus?.fileSystem?.LastFormattedAt;
+    },
+
+    formattedBannerLabel() {
+      const system = this.value?.blockDevice?.status?.deviceStatus?.fileSystem?.type;
+
+      const label = this.t('harvester.host.disk.lastFormattedAt.info');
+
+      if (system) {
+        return `${ label } ${ this.t('harvester.host.disk.fileSystem.info', { system }) }`;
+      } else {
+        return label;
+      }
+    },
+
+    provisionPhase() {
+      return this.value?.blockDevice?.provisionPhase || {};
+    },
+  },
+  methods: {
+    update() {
+      this.$emit('input', this.value);
     },
   },
 };
@@ -103,6 +142,11 @@ export default {
       v-if="mountedMessage && isProvisioned"
       color="error"
       :label="mountedMessage"
+    />
+    <Banner
+      v-if="isFormatted"
+      color="info"
+      :label="formattedBannerLabel"
     />
     <div v-if="!value.isNew">
       <div class="row">
@@ -121,6 +165,13 @@ export default {
               :color="schedulableCondiction.status === 'True' ? 'bg-success' : 'bg-error' "
               :icon="schedulableCondiction.status === 'True' ? 'icon-checkmark' : 'icon-warning' "
               label="Schedulable"
+              class="mr-10 state"
+            />
+            <BadgeState
+              v-if="provisionPhase.label"
+              :color="provisionPhase.color"
+              :icon="provisionPhase.icon"
+              :label="provisionPhase.label"
               class="mr-10 state"
             />
           </div>
@@ -156,21 +207,33 @@ export default {
         <LabeledInput
           v-model="value.path"
           :label="t('harvester.host.disk.path.label')"
-          :disabled="!canEditPath(value)"
+          :disabled="!canEditPath"
           required
         />
       </div>
     </div>
-    <div v-if="false" class="row mt-10">
+    <div v-if="value.isNew && !isFormatted" class="row mt-10">
       <div class="col span-6">
-        <UnitInput
-          v-model="value.storageReserved"
-          v-int-number
-          suffix="GiB"
-          label-key="harvester.host.disk.storageReserved.label"
+        <RadioGroup
+          v-model="value.forceFormatted"
           :mode="mode"
-          :disabled="true"
-        />
+          name="forceFormatted"
+          label-key="harvester.host.disk.forceFormatted.label"
+          :labels="[t('generic.no'),t('harvester.host.disk.forceFormatted.yes')]"
+          :options="[false, true]"
+          :disabled="forceFormattedDisabled"
+          tooltip-key="harvester.host.disk.forceFormatted.toolTip"
+        >
+          <template #1="{option, listeners}">
+            <RadioButton
+              :label="option.label"
+              :val="option.value"
+              :value="value.forceFormatted"
+              :disabled="forceFormattedDisabled && !value.forceFormatted"
+              v-on="listeners"
+            />
+          </template>
+        </RadioGroup>
       </div>
     </div>
   </div>

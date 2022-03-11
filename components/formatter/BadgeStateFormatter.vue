@@ -1,6 +1,6 @@
 <script>
 import BadgeState from '@/components/BadgeState';
-import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
+import { colorForState, stateDisplay } from '@/plugins/steve/resource-class';
 export default {
   components: { BadgeState },
   props:      {
@@ -48,7 +48,13 @@ export default {
 
 <template>
   <div>
-    <BadgeState v-if="arbitrary" :color="stateBackground" :label="stateDisplay" />
+    <div v-if="arbitrary">
+      <BadgeState
+        v-if="value"
+        :color="stateBackground"
+        :label="stateDisplay"
+      />
+    </div>
     <BadgeState v-else :value="row" />
   </div>
 </template>

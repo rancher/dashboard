@@ -1,12 +1,14 @@
-export default {
-  bundleState() {
+import SteveModel from '@/plugins/steve/steve-class';
+
+export default class HciSupportBundle extends SteveModel {
+  get bundleState() {
     const state = this?.status?.state;
 
     // ready、generating
     return state;
-  },
+  }
 
-  bundleMessage() {
+  get bundleMessage() {
     const state = this?.metadata?.state;
 
     if (state.error) {
@@ -14,13 +16,13 @@ export default {
     }
 
     return false;
-  },
+  }
 
-  precent() {
+  get precent() {
     return this?.status?.progress / 100 || 0;
-  },
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     return [
       {
         nullable:       false,
@@ -29,5 +31,5 @@ export default {
         translationKey: 'harvester.modal.bundle.description',
       },
     ];
-  },
-};
+  }
+}

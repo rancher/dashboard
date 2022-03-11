@@ -1,18 +1,15 @@
-export default {
+import MachineTemplate from './rke-machine.cattle.io.machinetemplate';
 
-  nameDisplay() {
-    return this.name.replace(`${ this.metadata.annotations['objectset.rio.cattle.io/owner-name'] }-`, '');
-  },
-
-  provider() {
+export default class LinodeMachineTemplate extends MachineTemplate {
+  get provider() {
     return 'linode';
-  },
+  }
 
-  providerLocation() {
-    return this.spec.template.spec.region ;
-  },
+  get providerLocation() {
+    return this.spec.template.spec.region;
+  }
 
-  providerSize() {
+  get providerSize() {
     return this.spec.template.spec.instanceType;
   }
-};
+}

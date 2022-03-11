@@ -45,7 +45,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
   .badge-state {
     padding: 5px 10px;
     border: 1px solid transparent;

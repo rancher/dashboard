@@ -1,8 +1,10 @@
 <script>
+import { mapGetters } from 'vuex';
 import BannerGraphic from '@/components/BannerGraphic';
 import IndentedPanel from '@/components/IndentedPanel';
-import SupportBundle from '@/components/dialog/SupportBundle';
+import SupportBundle from '@/components/dialog/harvester/SupportBundle';
 import CommunityLinks from '@/components/CommunityLinks';
+import { SCHEMA, HCI } from '@/config/types';
 
 export default {
   layout: 'home',
@@ -17,8 +19,8 @@ export default {
   data() {
     return {
       options: {
-        'footer.docs':   'https://docs.harvesterhci.io/',
-        'footer.forums': 'https://forums.rancher.com/',
+        'footer.docs':   'https://docs.harvesterhci.io/latest/',
+        'footer.forums': 'https://forums.rancher.com/c/harvester/',
         'footer.slack':  'https://slack.rancher.io',
         'footer.issue':  'https://github.com/harvester/harvester/issues/new/choose',
       },
@@ -26,8 +28,16 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
+
     title() {
       return 'harvester.support.title';
+    },
+
+    showSupportBundle() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return !!this.$store.getters[`${ inStore }/byId`](SCHEMA, HCI.SUPPORT_BUNDLE);
     },
   },
 
@@ -46,7 +56,7 @@ export default {
     <IndentedPanel>
       <div class="content mt-20">
         <div class="promo">
-          <div class="box mb-20 box-primary">
+          <div v-if="showSupportBundle" class="box mb-20 box-primary">
             <h2>
               {{ t('harvester.modal.bundle.title') }}
             </h2>
@@ -59,6 +69,23 @@ export default {
               </button>
             </div>
           </div>
+          <div class="box mb-20 box-primary">
+            <h2>
+              {{ t('harvester.support.kubeconfig.title') }}
+            </h2>
+            <div>
+              <p class="pb-10">
+                {{ t('harvester.support.kubeconfig.titleDescription') }}
+              </p>
+              <button
+                class="btn role-secondary btn-sm"
+                type="button"
+                @click="currentCluster.downloadKubeConfig()"
+              >
+                {{ t('harvester.support.kubeconfig.title') }}
+              </button>
+            </div>
+          </div>
         </div>
         <div class="community">
           <CommunityLinks
@@ -67,7 +94,9 @@ export default {
         </div>
       </div>
     </IndentedPanel>
-    <SupportBundle />
+    <SupportBundle
+      v-if="showSupportBundle"
+    />
   </div>
 </template>
 
@@ -77,6 +106,11 @@ export default {
   grid-column-gap: 20px;
   grid-row-gap: 20px;
   grid-template-columns: 70% 30%;
+}
+
+.only-community {
+  display: grid;
+  grid-template-columns: 100%;
 }
 
 .community {
@@ -109,6 +143,12 @@ export default {
     font-weight: 300;
     line-height: 18px;
     opacity: 0.8;
+  }
+}
+
+.role-secondary {
+  &:focus {
+    background-color: transparent;
   }
 }
 </style>

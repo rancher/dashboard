@@ -2,9 +2,8 @@
 import isEmpty from 'lodash/isEmpty';
 import UnitInput from '@/components/form/UnitInput';
 import { CONTAINER_DEFAULT_RESOURCE_LIMIT } from '@/config/labels-annotations';
-import { _VIEW } from '@/config/query-params';
-import { parseSi, formatSi } from '@/utils/units';
 import { cleanUp } from '@/utils/object';
+import { _VIEW } from '@/config/query-params';
 
 export default {
   components: { UnitInput },
@@ -40,33 +39,12 @@ export default {
 
   data() {
     const {
-      limitsCpu, limitsMemory, requestsCpu, requestsMemory
+      limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu
     } = this.value;
 
-    const parsed = {
-      limitsCpu:      limitsCpu ? parseSi(limitsCpu) : null,
-      limitsMemory:   limitsMemory ? parseSi(limitsMemory) : null,
-      requestsCpu:    requestsCpu ? parseSi(requestsCpu) : null,
-      requestsMemory: requestsMemory ? parseSi(requestsMemory) : null,
+    return {
+      limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu, viewMode: _VIEW
     };
-
-    const formatted = {
-      limitsCpu:  parsed.limitsCpu ? formatSi(parsed.limitsCpu, {
-        minExponent: 1, maxExponent: 1, addSuffix: false, increment: 1 / 1000
-      }) : null,
-      limitsMemory: parsed.limitsMemory ? formatSi(parsed.limitsMemory, {
-        minExponent: 2, maxExponent: 2, addSuffix: false, increment: 1024,
-      }) : null,
-      requestsCpu:  parsed.requestsCpu ? formatSi(parsed.requestsCpu, {
-        minExponent: 1, maxExponent: 1, addSuffix: false, increment: 1 / 1000,
-      }) : null,
-      requestsMemory: parsed.requestsMemory ? formatSi(parsed.requestsMemory, {
-        minExponent: 2, maxExponent: 2, addSuffix: false, increment: 1024,
-      }) : null,
-      viewMode: _VIEW,
-    };
-
-    return { ...formatted };
   },
 
   computed: {
@@ -97,21 +75,16 @@ export default {
         limitsMemory,
         requestsCpu,
         requestsMemory,
+        limitsGpu
       } = this;
-      const out = {
-        limitsCpu:      limitsCpu ? `${ limitsCpu }m` : null,
-        limitsMemory:   limitsMemory ? `${ limitsMemory }Mi` : null,
-        requestsCpu:    requestsCpu ? `${ requestsCpu }m` : null,
-        requestsMemory: requestsMemory ? `${ requestsMemory }Mi` : null,
-      };
 
-      this.$emit('input', cleanUp(out));
-    },
-
-    applyUnits(out, key, value, unit) {
-      if (value) {
-        out[key] = typeof value === 'string' && value.includes(unit) ? value : `${ value }${ unit }`;
-      }
+      this.$emit('input', cleanUp({
+        limitsCpu,
+        limitsMemory,
+        requestsCpu,
+        limitsGpu,
+        requestsMemory
+      }));
     },
 
     updateBeforeSave(value) {
@@ -120,15 +93,17 @@ export default {
         limitsMemory,
         requestsCpu,
         requestsMemory,
+        limitsGpu
       } = this;
       const namespace = this.namespace; // no deep copy in destructure proxy yet
 
-      const out = {};
-
-      this.applyUnits(out, 'limitsCpu', limitsCpu, 'm');
-      this.applyUnits(out, 'limitsMemory', limitsMemory, 'Mi');
-      this.applyUnits(out, 'requestsCpu', requestsCpu, 'm');
-      this.applyUnits(out, 'requestsMemory', requestsMemory, 'Mi');
+      const out = cleanUp({
+        limitsCpu,
+        limitsMemory,
+        requestsCpu,
+        limitsGpu,
+        requestsMemory
+      });
 
       if (namespace) {
         namespace.setAnnotation(CONTAINER_DEFAULT_RESOURCE_LIMIT, JSON.stringify(out));
@@ -139,18 +114,21 @@ export default {
       const namespace = this.namespace;
       const defaults = namespace?.metadata?.annotations[CONTAINER_DEFAULT_RESOURCE_LIMIT];
 
-      if (!isEmpty(defaults)) {
+      // Ember UI can set the defaults to the string literal 'null'
+      if (!isEmpty(defaults) && defaults !== 'null') {
         const {
           limitsCpu,
           limitsMemory,
           requestsCpu,
           requestsMemory,
+          limitsGpu
         } = JSON.parse(defaults);
 
         this.limitsCpu = limitsCpu;
         this.limitsMemory = limitsMemory;
         this.requestsCpu = requestsCpu;
         this.requestsMemory = requestsMemory;
+        this.limitsGpu = limitsGpu;
       }
     },
   }
@@ -173,47 +151,63 @@ export default {
       <span class="col span-6">
         <UnitInput
           v-model="requestsCpu"
-          :suffix="t('suffix.cpus')"
           :placeholder="t('containerResourceLimit.cpuPlaceholder')"
           :label="t('containerResourceLimit.requestsCpu')"
-          :input-exponent="-1"
           :mode="mode"
+          :input-exponent="-1"
+          :output-modifier="true"
+          :base-unit="t('suffix.cpus')"
           @input="updateLimits"
         />
       </span>
       <span class="col span-6">
         <UnitInput
           v-model="requestsMemory"
-          :suffix="t('suffix.ib')"
           :placeholder="t('containerResourceLimit.memPlaceholder')"
           :label="t('containerResourceLimit.requestsMemory')"
-          :input-exponent="2"
           :mode="mode"
+          :input-exponent="2"
+          :increment="1024"
+          :output-modifier="true"
           @input="updateLimits"
         />
       </span>
     </div>
 
-    <div class="row">
+    <div class="row mb-20">
       <span class="col span-6">
         <UnitInput
           v-model="limitsCpu"
-          :suffix="t('suffix.cpus')"
           :placeholder="t('containerResourceLimit.cpuPlaceholder')"
           :label="t('containerResourceLimit.limitsCpu')"
-          :input-exponent="-1"
           :mode="mode"
+          :input-exponent="-1"
+          :output-modifier="true"
+          :base-unit="t('suffix.cpus')"
           @input="updateLimits"
         />
       </span>
       <span class="col span-6">
         <UnitInput
           v-model="limitsMemory"
-          :suffix="t('suffix.ib')"
           :placeholder="t('containerResourceLimit.memPlaceholder')"
           :label="t('containerResourceLimit.limitsMemory')"
-          :input-exponent="2"
           :mode="mode"
+          :input-exponent="2"
+          :increment="1024"
+          :output-modifier="true"
+          @input="updateLimits"
+        />
+      </span>
+    </div>
+    <div class="row">
+      <span class="col span-6">
+        <UnitInput
+          v-model="limitsGpu"
+          :placeholder="t('containerResourceLimit.gpuPlaceholder')"
+          :label="t('containerResourceLimit.limitsGpu')"
+          :mode="mode"
+          :base-unit="t('suffix.gpus')"
           @input="updateLimits"
         />
       </span>

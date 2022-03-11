@@ -1,5 +1,7 @@
-export default {
-  _detailLocation() {
+import SteveModel from '@/plugins/steve/steve-class';
+
+export default class PodMonitor extends SteveModel {
+  get _detailLocation() {
     const id = this.id?.replace(/.*\//, '');
 
     return {
@@ -9,13 +11,13 @@ export default {
       },
       query: { resource: this.type }
     };
-  },
+  }
 
-  doneOverride() {
+  get doneOverride() {
     return {
       name:   'c-cluster-monitoring-monitor',
       params: { cluster: this.$rootGetters['clusterId'] },
       query:  { resource: this.type }
     };
-  },
-};
+  }
+}

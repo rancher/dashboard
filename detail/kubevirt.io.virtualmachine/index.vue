@@ -1,18 +1,22 @@
 <script>
+import { mapGetters } from 'vuex';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import { EVENT, HCI, SERVICE, NODE } from '@/config/types';
+import { EVENT, HCI, SERVICE, POD } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
+import VM_MIXIN from '@/mixins/harvester-vm';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import { allHash } from '@/utils/promise';
-import NodeScheduling from '@/components/form/NodeScheduling';
-import OverviewBasics from './VirtualMachineTabs/VirtualMachineBasics';
-import OverviewDisks from './VirtualMachineTabs/VirtualMachineDisks';
-import OverviewNetworks from './VirtualMachineTabs/VirtualMachineNetworks';
-import OverviewKeypairs from './VirtualMachineTabs/VirtualMachineKeypairs';
-import OverviewCloudConfigs from './VirtualMachineTabs/VirtualMachineCloudConfigs';
-import Migration from './VirtualMachineTabs/VirtualMachineMigration';
+import { allDashboardsExist } from '@/utils/grafana';
+
+import CloudConfig from '@/edit/kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
+import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
+import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
+import AccessCredentials from '@/edit/kubevirt.io.virtualmachine/VirtualMachineAccessCredentials';
 import Events from './VirtualMachineTabs/VirtualMachineEvents';
+import Migration from './VirtualMachineTabs/VirtualMachineMigration';
+import OverviewBasics from './VirtualMachineTabs/VirtualMachineBasics';
+import OverviewKeypairs from './VirtualMachineTabs/VirtualMachineKeypairs';
 
 const VM_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/harvester-vm-detail-1/vm-info-detail?orgId=1';
 
@@ -24,16 +28,16 @@ export default {
     Tabbed,
     Events,
     OverviewBasics,
-    OverviewDisks,
-    OverviewNetworks,
+    Volume,
+    Network,
     OverviewKeypairs,
-    OverviewCloudConfigs,
-    NodeScheduling,
+    CloudConfig,
     Migration,
     DashboardMetrics,
+    AccessCredentials,
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, VM_MIXIN],
 
   props: {
     value: {
@@ -42,26 +46,34 @@ export default {
     },
   },
 
-  async fetch() {
-    const inStore = this.$store.getters['currentProduct'].inStore;
-
-    const hash = {
-      services: this.$store.dispatch(`${ inStore }/findAll`, { type: SERVICE }),
-      events:   this.$store.dispatch(`${ inStore }/findAll`, { type: EVENT }),
-      allSSHs:  this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.SSH }),
-    };
-
-    await allHash(hash);
-  },
-
   data() {
     return {
       switchToCloud: false,
       VM_METRICS_DETAIL_URL,
+      showVmMetrics: false,
     };
   },
 
+  async created() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+
+    const hash = {
+      pods:     this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
+      services: this.$store.dispatch(`${ inStore }/findAll`, { type: SERVICE }),
+      events:   this.$store.dispatch(`${ inStore }/findAll`, { type: EVENT }),
+      allSSHs:  this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.SSH }),
+      vmis:     this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.VMI }),
+      restore:  this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.RESTORE }),
+    };
+
+    await allHash(hash);
+
+    this.showVmMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [VM_METRICS_DETAIL_URL], 'harvester');
+  },
+
   computed: {
+    ...mapGetters(['currentCluster']),
+
     vmi() {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
@@ -71,12 +83,6 @@ export default {
       });
 
       return vmi;
-    },
-
-    nodesIdOptions() {
-      const nodes = this.$store.getters['harvester/all'](NODE) || [];
-
-      return nodes.map(node => node.id);
     },
 
     allEvents() {
@@ -89,9 +95,13 @@ export default {
       return this.allEvents.filter((e) => {
         const { name, creationTimestamp } = this.value?.metadata || {};
         const podName = this.value.podResource?.metadata?.name;
+        const pvcName = this.value.persistentVolumeClaimName || [];
+
         const involvedName = e?.involvedObject?.name;
 
-        return (involvedName === name || involvedName === podName) && e.firstTimestamp >= creationTimestamp;
+        const matchPVC = pvcName.find(name => name === involvedName);
+
+        return (involvedName === name || involvedName === podName || matchPVC) && e.firstTimestamp >= creationTimestamp;
       }).sort((a, b) => {
         if (a.lastTimestamp > b.lastTimestamp) {
           return -1;
@@ -116,49 +126,57 @@ export default {
   },
 
   methods: {
-    tabChanged({ tab = {} }) {
-      this.switchToCloud = tab.name === 'cloudConfig';
+    onTabChanged({ tab }) {
+      if (tab.name === 'cloudConfig') {
+        this.$refs.yamlEditor?.refresh();
+      }
     },
+  },
+
+  watch: {
+    value: {
+      handler(neu) {
+        const diskRows = this.getDiskRows(neu);
+
+        this.$set(this, 'diskRows', diskRows);
+      },
+      deep: true
+    }
   }
 };
 </script>
 
 <template>
   <div>
-    <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true" @changed="tabChanged">
+    <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true" @changed="onTabChanged">
       <Tab name="basics" :label="t('harvester.virtualMachine.detail.tabs.basics')" class="bordered-table" :weight="7">
         <OverviewBasics v-model="value" :resource="vmi" mode="view" />
       </Tab>
 
       <Tab name="disks" :label="t('harvester.tab.volume')" class="bordered-table" :weight="6">
-        <OverviewDisks v-model="value" />
+        <Volume
+          v-model="diskRows"
+          mode="view"
+          :namespace="value.metadata.namespace"
+          :vm="value"
+          :resource-type="value.type"
+        />
       </Tab>
 
       <Tab name="networks" :label="t('harvester.virtualMachine.detail.tabs.networks')" class="bordered-table" :weight="5">
-        <OverviewNetworks v-model="value" />
-      </Tab>
-
-      <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="4">
-        <NodeScheduling :mode="mode" :value="value.spec.template.spec" :nodes="nodesIdOptions" />
+        <Network v-model="networkRows" mode="view" />
       </Tab>
 
       <Tab name="keypairs" :label="t('harvester.virtualMachine.detail.tabs.keypairs')" class="bordered-table" :weight="3">
         <OverviewKeypairs v-model="value" />
       </Tab>
 
-      <Tab name="cloudConfig" :label="t('harvester.virtualMachine.detail.tabs.cloudConfig')" class="bordered-table" :weight="2">
-        <OverviewCloudConfigs v-model="value" :active="switchToCloud" />
-      </Tab>
-
-      <Tab name="event" :label="t('harvester.virtualMachine.detail.tabs.events')" :weight="1">
-        <Events :resource="vmi" :events="events" />
-      </Tab>
-
-      <Tab name="migration" :label="t('harvester.virtualMachine.detail.tabs.migration')">
-        <Migration v-model="value" :vmi-resource="vmi" />
-      </Tab>
-
-      <Tab name="vm-metrics" :label="t('harvester.virtualMachine.detail.tabs.metrics')" :weight="2.5">
+      <Tab
+        v-if="showVmMetrics"
+        name="vm-metrics"
+        :label="t('harvester.virtualMachine.detail.tabs.metrics')"
+        :weight="2.5"
+      >
         <template #default="props">
           <DashboardMetrics
             v-if="props.active"
@@ -168,6 +186,27 @@ export default {
             :vars="graphVars"
           />
         </template>
+      </Tab>
+
+      <Tab :label="t('harvester.tab.accessCredentials')" class="bordered-table" name="accessCredentials" :weight="2.2">
+        <AccessCredentials mode="view" :value="accessCredentials" :resource="value" />
+      </Tab>
+
+      <Tab name="cloudConfig" :label="t('harvester.virtualMachine.detail.tabs.cloudConfig')" class="bordered-table" :weight="2">
+        <CloudConfig
+          ref="yamlEditor"
+          mode="view"
+          :user-script="userScript"
+          :network-script="networkScript"
+        />
+      </Tab>
+
+      <Tab name="event" :label="t('harvester.virtualMachine.detail.tabs.events')" :weight="1">
+        <Events :resource="vmi" :events="events" />
+      </Tab>
+
+      <Tab name="migration" :label="t('harvester.virtualMachine.detail.tabs.migration')">
+        <Migration v-model="value" :vmi-resource="vmi" />
       </Tab>
     </Tabbed>
   </div>

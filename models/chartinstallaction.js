@@ -1,20 +1,17 @@
 import { _VIEW } from '@/config/query-params';
 import { set } from '@/utils/object';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  showMasthead() {
-    return (mode) => {
-      return mode === _VIEW;
-    };
-  },
+export default class ChartInstallAction extends SteveModel {
+  showMasthead(mode) {
+    return mode === _VIEW;
+  }
 
   applyDefaults() {
-    return () => {
-      if ( !this.charts ) {
-        set(this, 'charts', [
-          {}
-        ]);
-      }
-    };
-  },
-};
+    if ( !this.charts ) {
+      set(this, 'charts', [
+        {}
+      ]);
+    }
+  }
+}

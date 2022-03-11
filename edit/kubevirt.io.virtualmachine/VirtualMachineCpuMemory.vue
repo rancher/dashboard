@@ -1,5 +1,4 @@
 <script>
-import { formatSi, parseSi } from '@/utils/units';
 import UnitInput from '@/components/form/UnitInput';
 import InputOrDisplay from '@/components/InputOrDisplay';
 
@@ -29,8 +28,18 @@ export default {
   data() {
     return {
       localCpu:    this.cpu,
-      localMemory: this.getSize(this.memory)
+      localMemory: this.memory
     };
+  },
+
+  computed: {
+    cupDisplay() {
+      return `${ this.localCpu } C`;
+    },
+
+    memoryDisplay() {
+      return `${ this.localMemory } GiB`;
+    }
   },
 
   watch: {
@@ -39,7 +48,7 @@ export default {
     },
     memory(neu) {
       if (neu && !neu.includes('null')) {
-        this.localMemory = this.getSize(neu);
+        this.localMemory = neu;
       }
     }
   },
@@ -53,23 +62,12 @@ export default {
       } else {
         memory = `${ this.localMemory }Gi`;
       }
+      if (memory.includes('null')) {
+        memory = null;
+      }
       this.$emit('updateCpuMemory', this.localCpu, memory);
     },
 
-    getSize(storage) {
-      if (!storage) {
-        return null;
-      }
-
-      const kibUnitSize = parseSi(storage);
-
-      return formatSi(kibUnitSize, {
-        addSuffix:   false,
-        increment:   1024,
-        minExponent: 3,
-        maxExponent: 3
-      });
-    },
   }
 };
 </script>
@@ -77,14 +75,12 @@ export default {
 <template>
   <div class="row" @input="change">
     <div class="col span-6">
-      <InputOrDisplay name="CPU" :value="localCpu" :mode="mode" class="mb-20">
+      <InputOrDisplay name="CPU" :value="cupDisplay" :mode="mode" class="mb-20">
         <UnitInput
           v-model="localCpu"
           v-int-number
           label="CPU"
           suffix="C"
-          :increment="1"
-          :input-exponent="0"
           required
           :disabled="disabled"
           :mode="mode"
@@ -94,15 +90,15 @@ export default {
     </div>
 
     <div class="col span-6">
-      <InputOrDisplay name="CPU" :value="localCpu" :mode="mode" class="mb-20">
+      <InputOrDisplay :name="t('harvester.virtualMachine.input.memory')" :value="memoryDisplay" :mode="mode" class="mb-20">
         <UnitInput
           v-model="localMemory"
           v-int-number
           :label="t('harvester.virtualMachine.input.memory')"
-          suffix="iB"
           :mode="mode"
           :input-exponent="3"
-          :output-exponent="3"
+          :increment="1024"
+          :output-modifier="true"
           :disabled="disabled"
           required
           class="mb-20"

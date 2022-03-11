@@ -1,7 +1,8 @@
 import { escapeHtml } from '@/utils/string';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  groupByLabel() {
+export default class FleetToken extends SteveModel {
+  get groupByLabel() {
     const name = this.metadata.namespace;
 
     if ( name ) {
@@ -9,5 +10,5 @@ export default {
     } else {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
     }
-  },
-};
+  }
+}

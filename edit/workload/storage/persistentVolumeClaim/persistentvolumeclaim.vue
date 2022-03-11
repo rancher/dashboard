@@ -9,6 +9,7 @@ import { removeObject, addObject } from '@/utils/array';
 import { STORAGE_CLASS, PV } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { get } from '@/utils/object';
+
 export default {
 
   components: {
@@ -32,6 +33,12 @@ export default {
       type:    Function,
       default: null,
     },
+
+    savePvcHookName: {
+      type:     String,
+      default:  '',
+      required: true
+    },
   },
   async fetch() {
     const hash = await allHash({
@@ -53,7 +60,11 @@ export default {
     this.$set(this.value.spec, 'accessModes', this.value.spec.accessModes || []);
 
     return {
-      storageClasses: [], persistentVolumes: [], createPV: true, spec
+      storageClasses:    [],
+      persistentVolumes: [],
+      createPV:          true,
+      spec,
+      uniqueId:          new Date().getTime() // Allows form state to be individually deleted
     };
   },
 
@@ -88,13 +99,20 @@ export default {
         this.spec.storageClassName = '';
         this.spec.resources.requests.storage = null;
       }
-    }
+    },
   },
 
   created() {
+    this.value.uniqueId = this.uniqueId;
+    this.$emit('createUniqueId');
     if (this.registerBeforeHook) {
-      this.registerBeforeHook(this.value.save);
+      // Append the uniqueID to the PVC hook name so that form state for each can be deleted individually
+      this.registerBeforeHook(this.value.save, this.savePvcHookName + this.uniqueId, undefined, this.value);
     }
+  },
+
+  beforeDestroy() {
+    this.$emit('removePvcForm', this.savePvcHookName + this.uniqueId);
   },
 
   methods: {
@@ -123,9 +141,7 @@ export default {
     volumeName(vol) {
       return get(vol, 'metadata.name') || vol;
     }
-
   }
-
 };
 </script>
 
@@ -133,7 +149,7 @@ export default {
   <div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.metadata.name" :mode="mode" :required="true" :label="t('persistentVolumeClaim.volumeName')" @input="$emit('input', value)" />
+        <LabeledInput v-model="value.metadata.name" :mode="mode" :label="t('persistentVolumeClaim.name')" @input="$emit('input', value)" />
       </div>
     </div>
     <div class="row mb-10">
@@ -162,23 +178,33 @@ export default {
 
     <div class="row mb-10">
       <div class="col span-6">
-        <t class="text-label" k="persistentVolumeClaim.accessModes" />
         <div class="access-modes">
-          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteOnce')" label="Single-Node Read/Write" @input="e=>updateMode('ReadWriteOnce', e)" />
-          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadOnlyMany')" label="Many-Node Read-Only" @input="e=>updateMode('ReadOnlyMany', e)" />
-          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteMany')" label="Many-Node Read/Write" @input="e=>updateMode('ReadWriteMany', e)" />
+          <t class="text-label" k="persistentVolumeClaim.accessModes" />
+          <span class="text-error">*</span>
+        </div>
+        <div class="access-modes">
+          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteOnce')" :label="t('persistentVolumeClaim.accessModesOptions.singleNodeRW')" @input="e=>updateMode('ReadWriteOnce', e)" />
+          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadOnlyMany')" :label="t('persistentVolumeClaim.accessModesOptions.manyNodeR')" @input="e=>updateMode('ReadOnlyMany', e)" />
+          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteMany')" :label="t('persistentVolumeClaim.accessModesOptions.manyNodeRW')" @input="e=>updateMode('ReadWriteMany', e)" />
         </div>
       </div>
       <div v-if="createPV" class="col span-6">
-        <UnitInput :value="spec.resources.requests.storage" :mode="mode" :label="t('persistentVolumeClaim.capacity')" suffix="GiB" @input="updateStorage" />
+        <UnitInput
+          v-model="spec.resources.requests.storage"
+          :mode="mode"
+          :label="t('persistentVolumeClaim.capacity')"
+          :increment="1024"
+          :input-exponent="3"
+          :output-modifier="true"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <style lang='scss'>
-    .access-modes {
-        display: flex;
-        flex-direction: row;
-    }
+.access-modes {
+  display: flex;
+  flex-direction: row;
+}
 </style>

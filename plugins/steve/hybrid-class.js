@@ -3,9 +3,24 @@ import omitBy from 'lodash/omitBy';
 import pickBy from 'lodash/pickBy';
 import Vue from 'vue';
 import { matchesSomeRegex } from '@/utils/string';
-import { Resource } from './resource-class';
+import Resource from './resource-class';
+
+// these are defined elsewhere in Steve models and will cause the error  "Cannot set property <whatever> of [object Object] which has only a getter" if defined at top-level
+export function cleanHybridResources(data) {
+  const potentialNormanHoldovers = ['state', 'name', 'description', 'labels', 'annotations'];
+
+  potentialNormanHoldovers.forEach(key => delete data[key]);
+
+  return data;
+}
 
 export default class HybridModel extends Resource {
+  constructor(data, ctx, rehydrateNamespace = null, setClone = false) {
+    const cleanedData = cleanHybridResources(data);
+
+    super(cleanedData, ctx, rehydrateNamespace, setClone);
+  }
+
   get labels() {
     const all = this.metadata?.labels || {};
 

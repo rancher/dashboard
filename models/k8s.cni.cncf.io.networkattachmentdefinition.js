@@ -1,8 +1,10 @@
 import Vue from 'vue';
+import SteveModel from '@/plugins/steve/steve-class';
+import { HCI } from '@/config/labels-annotations';
 
-export default {
-  _availableActions() {
-    let out = this._standardActions;
+export default class NetworkAttachmentDef extends SteveModel {
+  get _availableActions() {
+    let out = super._availableActions;
     const toFilter = ['goToClone', 'cloneYaml', 'goToViewConfig', 'goToEditYaml', 'goToEdit'];
 
     out = out.filter((action) => {
@@ -12,49 +14,47 @@ export default {
     });
 
     return out;
-  },
+  }
 
   applyDefaults() {
-    return () => {
-      const spec = this.spec || {
-        config: JSON.stringify({
-          cniVersion:  '0.3.1',
-          name:        '',
-          type:        'bridge',
-          bridge:      'harvester-br0',
-          promiscMode: true,
-          vlan:        '',
-          ipam:        {}
-        })
-      };
-
-      Vue.set(this, 'spec', spec);
+    const spec = this.spec || {
+      config: JSON.stringify({
+        cniVersion:  '0.3.1',
+        name:        '',
+        type:        'bridge',
+        bridge:      'harvester-br0',
+        promiscMode: true,
+        vlan:        '',
+        ipam:        {}
+      })
     };
-  },
 
-  parseConfig() {
+    Vue.set(this, 'spec', spec);
+  }
+
+  get parseConfig() {
     try {
       return JSON.parse(this.spec.config) || {};
     } catch (err) {
       return {};
     }
-  },
+  }
 
-  isIpamStatic() {
+  get isIpamStatic() {
     return this.parseConfig.ipam?.type === 'static';
-  },
+  }
 
-  vlanType() {
+  get vlanType() {
     const type = this.parseConfig.type;
 
     return type === 'bridge' ? 'L2VlanNetwork' : type;
-  },
+  }
 
-  vlanId() {
+  get vlanId() {
     return this.parseConfig.vlan;
-  },
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     const rules = [
       {
         nullable:       false,
@@ -67,5 +67,27 @@ export default {
     ];
 
     return rules;
-  },
-};
+  }
+
+  get connectivity() {
+    const annotations = this.metadata?.annotations || {};
+    const route = annotations[HCI.NETWORK_ROUTE];
+    let config = {};
+
+    try {
+      config = JSON.parse(route || '{}');
+    } catch {
+      return 'invalid';
+    }
+
+    const connectivity = config.connectivity;
+
+    if (connectivity === 'false') {
+      return 'inactive';
+    } else if (connectivity === 'true') {
+      return 'active';
+    } else {
+      return connectivity;
+    }
+  }
+}

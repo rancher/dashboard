@@ -43,8 +43,6 @@ const asCookie = true; // Store as a cookie so that it's available before auth +
 // Keys must be lowercase and valid dns label (a-z 0-9 -)
 export const CLUSTER = create('cluster', '');
 export const LAST_NAMESPACE = create('last-namespace', '');
-// Pre-2.6.1 value which may exist when switching between version
-// export const NAMESPACE_FILTERS_LEGACY = create('ns', ['all://user'], { parseJSON });
 export const NAMESPACE_FILTERS = create('ns-by-cluster', {}, { parseJSON });
 export const WORKSPACE = create('workspace', '');
 export const EXPANDED_GROUPS = create('open-groups', ['cluster', 'rbac', 'serviceDiscovery', 'storage', 'workload'], { parseJSON });
@@ -258,6 +256,7 @@ export const actions = {
 
       this.$cookies.set(`${ cookiePrefix }${ key }`.toUpperCase(), value, opt);
     }
+
     if ( definition.asUserPreference ) {
       try {
         server = await dispatch('loadServer', key); // There's no watch on prefs, so get before set...
@@ -376,12 +375,15 @@ export const actions = {
           force:                true,
           watch:                false,
           redirectUnauthorized: false,
+          stream:               false,
         }
       }, { root: true });
 
       server = all?.[0];
     } catch (e) {
       console.error('Error loading preferences', e); // eslint-disable-line no-console
+
+      return;
     }
 
     if ( !server?.data ) {

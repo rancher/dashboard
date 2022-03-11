@@ -33,7 +33,7 @@ export function init(store) {
 
   virtualType({
     name:        'cloud-credentials',
-    label:       'Cloud Credentials',
+    labelKey:    'manager.cloudCredentials.label',
     group:      'Root',
     namespaced:  false,
     icon:       'globe',
@@ -73,7 +73,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:      'Drivers',
+    labelKey:   'manager.drivers.label',
     name:       'drivers',
     group:      'Root',
     namespaced: false,
@@ -83,7 +83,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:      'RKE Templates',
+    labelKey:   'manager.rkeTemplates.label',
     name:       'rke-templates',
     group:      'Root',
     namespaced: false,
@@ -93,7 +93,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:      'Node Templates',
+    labelKey:   'manager.nodeTemplates.label',
     name:       'rke-node-templates',
     group:      'Root',
     namespaced: false,
@@ -105,7 +105,7 @@ export function init(store) {
   basicType([
     'rke-templates',
     'rke-node-templates'
-  ], 'RKE1 Configuration');
+  ], 'RKE1Configuration');
 
   weightType(CAPI.MACHINE_DEPLOYMENT, 3, true);
   weightType(CAPI.MACHINE_SET, 2, true);
@@ -120,9 +120,9 @@ export function init(store) {
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
     CATALOG.CLUSTER_REPO,
-  ], 'Advanced');
+  ], 'advanced');
 
-  weightGroup('Advanced', -1, true);
+  weightGroup('advanced', -1, true);
 
   const MACHINE_SUMMARY = {
     name:      'summary',
@@ -138,17 +138,17 @@ export function init(store) {
     STATE,
     NAME_COL,
     {
-      name:   'kubernetesVesion',
-      label:  'Version',
-      value:  'kubernetesVersion',
-      sort:   'kubernetesVersion',
-      search: 'kubernetesVersion',
+      name:     'kubernetesVesion',
+      labelKey: 'tableHeaders.version',
+      value:    'kubernetesVersion',
+      sort:     'kubernetesVersion',
+      search:   'kubernetesVersion',
     },
     {
-      name:   'provider',
-      label:  'Provider',
-      value:  'machineProvider',
-      sort:   ['machineProvider', 'provisioner'],
+      name:     'provider',
+      labelKey: 'tableHeaders.provider',
+      value:    'machineProvider',
+      sort:     ['machineProvider', 'provisioner'],
     },
     MACHINE_SUMMARY,
     AGE,

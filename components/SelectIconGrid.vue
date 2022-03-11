@@ -1,6 +1,7 @@
 <script>
 import LazyImage from '@/components/LazyImage';
 import { get } from '@/utils/object';
+import capitalize from 'lodash/capitalize';
 
 export default {
   components: { LazyImage },
@@ -77,7 +78,8 @@ export default {
       }
 
       this.$emit('clicked', row, idx);
-    }
+    },
+    capitalize
   },
 };
 </script>
@@ -92,17 +94,22 @@ export default {
       :target="get(r, targetField)"
       :rel="rel"
       class="item"
-      :class="{'has-description': !!get(r, descriptionField), [colorFor(r, idx)]: true, disabled: get(r, disabledField) === true}"
+      :class="{'has-description': !!get(r, descriptionField), 'has-side-label': !!get(r, sideLabelField), [colorFor(r, idx)]: true, disabled: get(r, disabledField) === true}"
       @click="select(r, idx)"
     >
       <div class="side-label" :class="{'indicator': true }" />
-
+      <div v-if="r.permittedOSs">
+        <label v-for="os in r.permittedOSs" :key="os" class="os-label" :class="{[os]:true}">
+          {{ t('catalog.charts.deploysOn', {os:capitalize(os)}) }}
+        </label>
+      </div>
       <div v-if="get(r, sideLabelField)" class="side-label" :class="{'indicator': false }">
         <label>{{ get(r, sideLabelField) }}</label>
       </div>
 
       <div class="logo">
-        <LazyImage :src="get(r, iconField)" />
+        <i v-if="r.iconClass" :class="r.iconClass" />
+        <LazyImage v-else :src="get(r, iconField)" />
       </div>
       <h4 class="name">
         {{ get(r, nameField) }}
@@ -118,7 +125,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  $height: 110px;
+  $height: 135px;
   $side: 15px;
   $margin: 10px;
   $logo: 60px;
@@ -151,6 +158,8 @@ export default {
       }
     }
 
+    $color: var(--body-text) !important;
+
     .item {
       height: $height;
       margin: $margin;
@@ -159,7 +168,7 @@ export default {
       //border-radius: calc( 1.5 * var(--border-radius));
       border: 1px solid var(--border);
       text-decoration: none !important;
-      color: var(--body-text) !important;
+      color: $color;
 
       &:hover:not(.disabled) {
         box-shadow: 0 0 30px var(--shadow);
@@ -172,7 +181,7 @@ export default {
         position: absolute;
         top: 10px;
         right: 10px;
-        padding: 2px 10px;
+        padding: 2px 5px;
 
         &.indicator {
           top: 0;
@@ -180,22 +189,37 @@ export default {
           left: 0;
         }
 
-        label {
+      }
+
+      .side-label label, label.os-label{
           font-size: 12px;
           line-height: 12px;
           text-align: center;
           display: block;
           white-space: no-wrap;
           text-overflow: ellipsis;
-        }
+          // Override default form label properties
+          color: var(--card-badge-text);
+          margin: 0;
+      }
 
+      .os-label {
+        position: absolute;
+        bottom: 10px;
+        padding: 2px 5px;
+        &.linux{
+          left: 10px;
+        }
+        &.windows{
+          right: 10px;
+        }
       }
 
       .logo {
         text-align: center;
         position: absolute;
         left: $side+$margin;
-        top: ($height - $logo)/2;
+        top: math.div(($height - $logo), 2);
         width: $logo;
         height: $logo;
         border-radius: calc(2 * var(--border-radius));
@@ -209,12 +233,23 @@ export default {
           position: relative;
           top: 2px;
         }
+
+        i {
+          background-position: center;
+          background-repeat: no-repeat;
+          display: flex;
+          height: $logo - 4px;
+          margin: 2px;
+          width: $logo - 4px;
+        }
       }
 
       &.rancher {
-        .side-label {
+        .side-label, .os-label {
           background-color: var(--app-rancher-accent);
-          color: var(--app-rancher-accent-text);
+          label {
+            color: var(--app-rancher-accent-text);
+          }
         }
         &:hover:not(.disabled) {
           border-color: var(--app-rancher-accent);
@@ -222,9 +257,11 @@ export default {
       }
 
       &.partner {
-        .side-label {
+        .side-label, .os-label {
           background-color: var(--app-partner-accent);
-          color: var(--app-partner-accent-text);
+          label {
+            color: var(--app-partner-accent-text);
+          }
         }
         &:hover:not(.disabled) {
           border-color: var(--app-partner-accent);
@@ -233,35 +270,35 @@ export default {
 
       // @TODO figure out how to templatize these
       &.color1 {
-        .side-label { background-color: var(--app-color1-accent); color: var(--app-color1-accent-text); }
+        .side-label, .os-label { background-color: var(--app-color1-accent); label { color: var(--app-color1-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color1-accent); }
       }
       &.color2 {
-        .side-label { background-color: var(--app-color2-accent); color: var(--app-color2-accent-text); }
+        .side-label, .os-label { background-color: var(--app-color2-accent); label { color: var(--app-color2-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color2-accent); }
       }
       &.color3 {
-        .side-label { background-color: var(--app-color3-accent); color: var(--app-color3-accent-text); }
+        .side-label, .os-label { background-color: var(--app-color3-accent); label { color: var(--app-color3-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color3-accent); }
       }
       &.color4 {
-        .side-label { background-color: var(--app-color4-accent); color: var(--app-color4-accent-text); }
+        .side-label, .os-label { background-color: var(--app-color4-accent); label { color: var(--app-color4-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color4-accent); }
       }
       &.color5 {
-        .side-label { background-color: var(--app-color5-accent); color: var(--app-color5-accent-text); }
+        .side-label, .os-label { background-color: var(--app-color5-accent); label { color: var(--app-color5-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color5-accent); }
       }
       &.color6 {
-        .side-label { background-color: var(--app-color6-accent); color: var(--app-color6-accent-text); }
+        .side-label, .os-label { background-color: var(--app-color6-accent); label { color: var(--app-color6-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color6-accent); }
       }
       &.color7 {
-        .side-label { background-color: var(--app-color7-accent); color: var(--app-color7-accent-text); }
+        .side-label, .os-label { background-color: var(--app-color7-accent); label { color: var(--app-color7-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color7-accent); }
       }
       &.color8 {
-        .side-label { background-color: var(--app-color8-accent); color: var(--app-color8-accent-text); }
+        .side-label, .os-label { background-color: var(--app-color8-accent); label { color: var(--app-color8-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color8-accent); }
       }
 
@@ -287,9 +324,17 @@ export default {
         margin-left: $side+$logo+$margin;
       }
 
-      &.has-description .name {
-        margin-top: $margin;
-        line-height: initial;
+      &.has-description {
+        .name {
+          margin-top: $margin;
+          line-height: initial;
+        }
+
+        &.has-side-label {
+          .name {
+            margin-top: $margin + 5px;
+          }
+        }
       }
 
       .description {

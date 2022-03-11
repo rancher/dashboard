@@ -8,6 +8,7 @@ import { PROJECT_ID } from '@/config/query-params';
 import Masthead from '@/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, DEV } from '@/store/prefs';
 import MoveModal from '@/components/MoveModal';
+import { NAME as HARVESTER } from '@/config/product/harvester';
 
 export default {
   name:       'ListNamespace',
@@ -46,6 +47,9 @@ export default {
   },
 
   computed: {
+    isNamespaceCreatable() {
+      return (this.schema?.collectionMethods || []).includes('POST');
+    },
     headers() {
       const project = {
         name:          'project',
@@ -74,8 +78,9 @@ export default {
       return this.projects.filter(project => project.spec.clusterName === clusterId);
     },
     projectsWithoutNamespaces() {
-      return this.clusterProjects
-        .filter(project => !this.projectIdsWithNamespaces.includes(project.name));
+      return this.clusterProjects.filter((project) => {
+        return !this.projectIdsWithNamespaces.find(item => project?.id?.endsWith(`/${ item }`));
+      });
     },
     // We're using this because we need to show projects as groups even if the project doesn't have any namespaces.
     rowsWithFakeNamespaces() {
@@ -110,9 +115,10 @@ export default {
       }
 
       const isVirtualCluster = this.$store.getters['isVirtualCluster'];
+      const isVirutalProduct = this.$store.getters['currentProduct'].name === HARVESTER;
 
       return this.namespaces.filter((namespace) => {
-        return isVirtualCluster ? (!namespace.isSystem && !namespace.isObscure) : !namespace.isObscure;
+        return isVirtualCluster && isVirutalProduct ? (!namespace.isSystem && !namespace.isObscure) : !namespace.isObscure;
       });
     }
   },
@@ -200,7 +206,8 @@ export default {
           </div>
           <div class="right">
             <n-link
-              class="create-namespace btn role-secondary"
+              v-if="isNamespaceCreatable"
+              class="create-namespace btn btn-sm role-secondary"
               :to="createNamespaceLocation(group.group)"
             >
               {{ t('projectNamespaces.createNamespace') }}

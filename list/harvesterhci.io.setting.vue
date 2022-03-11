@@ -2,11 +2,10 @@
 import { mapGetters } from 'vuex';
 import Banner from '@/components/Banner';
 import Loading from '@/components/Loading';
-
 import { DEV } from '@/store/prefs';
 import { HCI, MANAGEMENT } from '@/config/types';
 import { allHash } from '@/utils/promise';
-import { HCI_ALLOWED_SETTINGS, ALLOWED_SETTINGS, SETTING } from '@/config/settings';
+import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING } from '@/config/settings';
 
 export default {
   components: { Banner, Loading },
@@ -25,15 +24,25 @@ export default {
       hash.clusterNetwork = this.$store.dispatch('harvester/findAll', { type: HCI.CLUSTER_NETWORK });
     }
 
+    if (this.$store.getters['harvester/schemaFor'](MANAGEMENT.MANAGED_CHART)) {
+      hash.managedcharts = this.$store.dispatch('harvester/findAll', { type: MANAGEMENT.MANAGED_CHART });
+    }
+
     const rows = await allHash(hash);
 
     let allRows = [];
 
     if (rows.clusterNetwork) {
-      allRows = [...rows.clusterNetwork, ...rows.haversterSettings];
-    } else {
-      allRows = rows.haversterSettings;
+      allRows.push(...rows.clusterNetwork);
     }
+
+    const monitoring = (rows.managedcharts || []).find(c => c.id === 'fleet-local/rancher-monitoring');
+
+    if (monitoring) {
+      allRows.push(...rows.managedcharts);
+    }
+
+    allRows.push(...rows.haversterSettings);
 
     if (isSingleVirtualCluster) {
       allRows = [...rows.settings, ...allRows];
@@ -52,8 +61,7 @@ export default {
     if (isSingleVirtualCluster) {
       SETTINGS = {
         ...HCI_ALLOWED_SETTINGS,
-        [SETTING.SERVER_URL]:                     ALLOWED_SETTINGS.SERVER_URL,
-        [SETTING.UI_DASHBOARD_INDEX]:             ALLOWED_SETTINGS.UI_DASHBOARD_INDEX,
+        ...HCI_SINGLE_CLUSTER_ALLOWED_SETTING,
       };
     }
 
@@ -68,8 +76,7 @@ export default {
         data:        settingsMap[setting],
       };
 
-      s.hide = s.canHide = (s.kind === 'json' || s.kind === 'multiline');
-
+      s.hide = s.canHide = (s.kind === 'json' || s.kind === 'multiline' || s.customFormatter === 'json');
       s.hasActions = !s.readOnly || isDev;
       initSettings.push(s);
     });
@@ -88,17 +95,22 @@ export default {
       return this.initSettings.map((setting) => {
         const s = setting;
 
+        const isHarvester = s.data?.type?.includes('harvesterhci');
+
         if (s.kind === 'json') {
-          s.json = JSON.stringify(JSON.parse(s.data.value || s.data.default), null, 2);
+          try {
+            s.json = JSON.stringify(JSON.parse(s.data.value || s.data.default || '{}'), null, 2);
+          } catch (e) {
+            console.error(`${ s.data.id }: wrong format`); // eslint-disable-line no-console
+            s.json = {};
+          }
         } else if (s.kind === 'enum') {
           const v = s.data.value || s.data.default;
 
-          s.enum = `advancedSettings.enum.${ s.id }.${ v }`;
+          s.enum = isHarvester ? `advancedSettings.enum.harv-${ s.id }.${ v }` : `advancedSettings.enum.${ s.id }.${ v }`;
         } else if (s.kind === 'custom') {
           s.custom = s.data.customValue;
         }
-
-        const isHarvester = s.data?.type?.includes('harvesterhci');
 
         return {
           ...s,
@@ -154,7 +166,7 @@ export default {
           <h2 v-html="t(setting.description, {}, true)">
           </h2>
         </div>
-        <div v-if="setting.hasActions" class="action">
+        <div v-if="setting.hasActions" :id="setting.id" class="action">
           <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-sm role-multi-action actions" @click="showActionMenu($event, setting)">
             <i class="icon icon-actions" />
           </button>

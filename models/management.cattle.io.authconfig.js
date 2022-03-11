@@ -1,4 +1,5 @@
 import { insertAt } from '@/utils/array';
+import SteveModel from '@/plugins/steve/steve-class';
 
 export const configType = {
   activedirectory: 'ldap',
@@ -18,9 +19,9 @@ export const configType = {
 
 const imageOverrides = { keycloakoidc: 'keycloak' };
 
-export default {
-  _availableActions() {
-    const out = this._standardActions;
+export default class AuthConfig extends SteveModel {
+  get _availableActions() {
+    const out = super._availableActions;
 
     insertAt(out, 0, {
       action:     'disable',
@@ -32,34 +33,37 @@ export default {
     insertAt(out, 1, { divider: true });
 
     return out;
-  },
+  }
 
-  nameDisplay() {
+  get nameDisplay() {
     return this.$rootGetters['i18n/withFallback'](`model.authConfig.name."${ this.id }"`, null, this.provider);
-  },
+  }
 
-  provider() {
+  get provider() {
     return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.id }"`, null, this.id);
-  },
+  }
 
-  configType() {
+  get configType() {
     return configType[this.id];
-  },
+  }
 
-  sideLabel() {
+  get sideLabel() {
     return this.$rootGetters['i18n/withFallback'](`model.authConfig.description."${ this.configType }"`, null, this.configType);
-  },
+  }
 
-  icon() {
-    return require(`~/assets/images/vendor/${ imageOverrides[this.id] || this.id }.svg`);
-  },
+  get icon() {
+    try {
+      return require(`~/assets/images/vendor/${ imageOverrides[this.id] || this.id }.svg`);
+    } catch (e) {
+      return '';
+    }
+  }
 
-  state() {
+  get state() {
     if ( this.enabled ) {
       return 'active';
     }
 
     return 'inactive';
-  },
-
-};
+  }
+}

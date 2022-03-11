@@ -50,10 +50,17 @@ export default {
         NAME,
         NAMESPACE,
         {
-          name:      'size',
-          labelKey:  'tableHeaders.size',
-          value:     'spec.resources.requests.storage',
-          sort:      'volumeSort',
+          name:          'size',
+          labelKey:      'tableHeaders.size',
+          value:         'spec.resources.requests.storage',
+          sort:          'volumeSort',
+          formatter:     'Si',
+          formatterOpts: {
+            opts: {
+              increment: 1024, addSuffix: true, maxExponent: 3, minExponent: 3, suffix: 'i',
+            },
+            needParseSi: true
+          },
         },
         {
           name:      'AttachedVM',
@@ -98,6 +105,7 @@ export default {
     :headers="headers"
     :groupable="true"
     default-sort-by="age"
+    :namespaced="true"
     :rows="rows"
     :schema="schema"
     key-field="_key"

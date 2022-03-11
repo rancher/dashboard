@@ -2,7 +2,9 @@
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import metricPoller from '@/mixins/metric-poller';
-import { METRIC, NODE, HCI, LONGHORN } from '@/config/types';
+import {
+  METRIC, NODE, HCI, LONGHORN, POD
+} from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { formatSi } from '@/utils/units';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
@@ -11,6 +13,7 @@ import { clone } from '@/utils/object';
 import Basic from './HarvesterHostBasic';
 import Instance from './VirtualMachineInstance';
 import Disk from './HarvesterHostDisk';
+import Network from './HarvesterHostNetwork';
 
 export default {
   name: 'DetailHost',
@@ -22,6 +25,7 @@ export default {
     Instance,
     ArrayListGrouped,
     Disk,
+    Network,
   },
   mixins: [metricPoller],
 
@@ -37,13 +41,23 @@ export default {
 
     const hash = {
       nodes:         this.$store.dispatch('harvester/findAll', { type: NODE }),
-      hostNetworks:  this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK }),
-      longhornNodes: this.$store.dispatch(`${ inStore }/findAll`, { type: LONGHORN.NODES }),
-      blockDevices:   this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.BLOCK_DEVICE }),
+      pods:          this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
     };
 
+    if (this.$store.getters['harvester/schemaFor'](HCI.NODE_NETWORK)) {
+      hash.hostNetworks = this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK });
+    }
+
+    if (this.$store.getters['harvester/schemaFor'](HCI.BLOCK_DEVICE)) {
+      hash.blockDevices = this.$store.dispatch('harvester/findAll', { type: HCI.BLOCK_DEVICE });
+    }
+
+    if (this.$store.getters['harvester/schemaFor'](LONGHORN.NODES)) {
+      hash.longhornNodes = this.$store.dispatch('harvester/findAll', { type: LONGHORN.NODES });
+    }
+
     const res = await allHash(hash);
-    const hostNetworkResource = res.hostNetworks.find( O => this.value.id === O.attachNodeName);
+    const hostNetworkResource = (res.hostNetworks || []).find( O => this.value.id === O.attachNodeName);
 
     this.loadMetrics();
 
@@ -61,12 +75,13 @@ export default {
     })
       .map((d) => {
         return {
-          isNew:       true,
-          name:        d?.metadata?.name,
-          originPath:  d?.spec?.fileSystem?.mountPoint,
-          path:        d?.spec?.fileSystem?.mountPoint,
-          blockDevice: d,
-          displayName: d?.spec?.devPath,
+          isNew:          true,
+          name:           d?.metadata?.name,
+          originPath:     d?.spec?.fileSystem?.mountPoint,
+          path:           d?.spec?.fileSystem?.mountPoint,
+          blockDevice:    d,
+          displayName:    d?.spec?.devPath,
+          forceFormatted: d?.spec?.fileSystem?.forceFormatted || false,
         };
       });
 
@@ -78,11 +93,11 @@ export default {
 
   data() {
     return {
-      metrics:             null,
-      mode:                'view',
-      hostNetworkResource: null,
-      newDisks:            [],
-      disks:               [],
+      metrics:               null,
+      mode:                  'view',
+      hostNetworkResource:   null,
+      newDisks:              [],
+      disks:                 [],
     };
   },
 
@@ -91,7 +106,7 @@ export default {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.value.id }`);
       const diskStatus = longhornNode?.status?.diskStatus || {};
-      const diskSpec = longhornNode.spec?.disks || {};
+      const diskSpec = longhornNode?.spec?.disks || {};
 
       const formatOptions = {
         increment:    1024,
@@ -115,11 +130,43 @@ export default {
           storageScheduled: formatSi(diskStatus[key]?.storageScheduled, formatOptions),
           blockDevice,
           displayName:      blockDevice?.spec?.devPath || key,
+          forceFormatted:   blockDevice?.spec?.fileSystem?.forceFormatted || false,
         };
       });
 
       return longhornDisks;
     },
+
+    network() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const networks = this.$store.getters[`${ inStore }/all`](HCI.NODE_NETWORK);
+
+      return findBy(networks, 'spec.nodeName', this.value.id) || {};
+    },
+
+    networkLinks() {
+      const networkLinkStatus = this.network?.status?.networkLinkStatus || {};
+
+      const out = Object.keys(networkLinkStatus).map((key) => {
+        const obj = networkLinkStatus[key] || {};
+
+        return {
+          ...obj,
+          name:        key,
+          promiscuous: obj.promiscuous ? 'true' : 'false',
+        };
+      });
+
+      return out;
+    },
+
+    hasBlockDevicesSchema() {
+      return !!this.$store.getters['harvester/schemaFor'](HCI.BLOCK_DEVICE);
+    },
+
+    hasHostNetworksSchema() {
+      return !!this.$store.getters['harvester/schemaFor'](HCI.NODE_NETWORK);
+    }
   },
 
   methods: {
@@ -144,13 +191,34 @@ export default {
 <template>
   <div>
     <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
-      <Tab name="basics" :label="t('harvester.host.tabs.basics')" :weight="3" class="bordered-table">
-        <Basic v-model="value" :metrics="metrics" :mode="mode" :host-netowrk-resource="hostNetworkResource" />
+      <Tab name="basics" :label="t('harvester.host.tabs.basics')" :weight="4" class="bordered-table">
+        <Basic v-model="value" :metrics="metrics" :mode="mode" :host-network-resource="hostNetworkResource" />
       </Tab>
-      <Tab name="instance" :label="t('harvester.host.tabs.instance')" :weight="2" class="bordered-table">
+      <Tab name="instance" :label="t('harvester.host.tabs.instance')" :weight="3" class="bordered-table">
         <Instance :node="value" />
       </Tab>
       <Tab
+        v-if="hasHostNetworksSchema"
+        name="network"
+        :label="t('harvester.host.tabs.network')"
+        :weight="2"
+        class="bordered-table"
+      >
+        <ArrayListGrouped
+          v-model="networkLinks"
+          :mode="mode"
+          :can-remove="false"
+        >
+          <template #default="props">
+            <Network
+              :value="props.row.value"
+              :mode="mode"
+            />
+          </template>
+        </ArrayListGrouped>
+      </Tab>
+      <Tab
+        v-if="hasBlockDevicesSchema"
         name="disk"
         :weight="1"
         :label="t('harvester.host.tabs.disk')"

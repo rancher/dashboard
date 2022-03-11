@@ -1,12 +1,14 @@
 import { findBy } from '@/utils/array';
-import { HCI_ALLOWED_SETTINGS } from '@/config/settings';
+import { HCI } from '@/config/types';
+import SteveModel from '@/plugins/steve/steve-class';
+import { HCI_ALLOWED_SETTINGS, HCI_SETTING } from '@/config/settings';
 
-export default {
-  _availableActions() {
+export default class HciSetting extends SteveModel {
+  get _availableActions() {
     const toFilter = ['cloneYaml', 'download', 'goToEditYaml', 'goToViewYaml', 'goToViewConfig', 'promptRemove'];
     const settingMetadata = HCI_ALLOWED_SETTINGS[this.id];
 
-    let out = this._standardActions;
+    let out = super._availableActions;
 
     // Some settings are not editable
     if ( settingMetadata?.readOnly || this.fromEnv ) {
@@ -24,59 +26,66 @@ export default {
       editAction.label = this.t('advancedSettings.edit.label');
     }
 
+    const schema = this.$getters['schemaFor'](HCI.UPGRADE);
+    const hasUpgradeAccess = !!schema?.collectionMethods.find(x => ['post'].includes(x.toLowerCase()));
+
+    if (this.id === HCI_SETTING.SERVER_VERSION && hasUpgradeAccess) {
+      const latestUpgrade = this.$getters['all'](HCI.UPGRADE).find(upgrade => upgrade.isLatestUpgrade);
+
+      out.unshift({
+        action:   'goToAirgapUpgrade',
+        enabled:  true,
+        icon:     'icon icon-refresh',
+        label:    this.t('harvester.upgradePage.upgrade'),
+        disabled: !!latestUpgrade && !latestUpgrade?.isUpgradeSucceeded
+      });
+    }
+
     return out;
-  },
+  }
 
-  backupTagetetIsEmpty() {
+  goToAirgapUpgrade() {
+    const router = this.currentRouter();
+
+    router.push({
+      name:   'c-cluster-harvester-airgapupgrade',
+      params: { cluster: this.$rootGetters['currentCluster'].id, product: 'harvester' },
+    });
+  }
+
+  get backupTagetetIsEmpty() {
     return !this.value;
-  },
+  }
 
-  errMessage() {
+  get errMessage() {
     if (this.metadata?.state?.error === true) {
       return this.metadata.state.message;
     } else {
       return false;
     }
-  },
+  }
 
-  configuredCondition() {
+  get configuredCondition() {
     return findBy((this?.status?.conditions || []), 'type', 'configured') || {};
-  },
+  }
 
-  valueOrDefaultValue() {
+  get valueOrDefaultValue() {
     return this.value || this.default;
-  },
+  }
 
-  upgradeableVersion() {
-    const value = this.value || '';
-
-    if (!value) {
-      return [];
-    }
-
-    return value.split(',').sort((a, b) => {
-      return a > b ? -1 : 1;
-    }).map( (V) => {
-      return {
-        label: V,
-        value: V
-      };
-    });
-  },
-
-  currentVersion() {
+  get currentVersion() {
     return this.value || '';
-  },
+  }
 
-  displayValue() { // Select the field you want to display
+  get displayValue() { // Select the field you want to display
     if (this.id === 'backup-target') {
       return this.parseValue?.endpoint || ' ';
     }
 
     return null;
-  },
+  }
 
-  parseValue() {
+  get parseValue() {
     let parseDefaultValue = {};
 
     try {
@@ -86,17 +95,17 @@ export default {
     }
 
     return parseDefaultValue;
-  },
+  }
 
-  isS3() {
+  get isS3() {
     return this.parseValue.type === 's3';
-  },
+  }
 
-  isNFS() {
+  get isNFS() {
     return this.parseValue.type === 'nfs';
-  },
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     const id = this.id;
 
     const out = [];
@@ -114,5 +123,5 @@ export default {
     }
 
     return out;
-  },
-};
+  }
+}

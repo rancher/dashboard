@@ -1,5 +1,4 @@
 <script>
-import Banner from '@/components/Banner';
 import Loading from '@/components/Loading';
 import UnitInput from '@/components/form/UnitInput';
 import InputOrDisplay from '@/components/InputOrDisplay';
@@ -7,11 +6,13 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 
 import { PVC } from '@/config/types';
+import { formatSi, parseSi } from '@/utils/units';
+import { VOLUME_TYPE, InterfaceOption } from '@/config/harvester-map';
 
 export default {
   name:       'HarvesterEditVolume',
   components: {
-    Banner, InputOrDisplay, Loading, LabeledInput, LabeledSelect, UnitInput,
+    InputOrDisplay, Loading, LabeledInput, LabeledSelect, UnitInput,
   },
 
   props: {
@@ -32,25 +33,22 @@ export default {
       }
     },
 
-    typeOption: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
+    validateRequired: {
+      type:     Boolean,
+      required: true
     },
 
-    interfaceOption: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
-    },
+    isVirtualType: {
+      type:    Boolean,
+      default: true
+    }
   },
 
   data() {
     return {
+      VOLUME_TYPE,
+      InterfaceOption,
       loading: false,
-      errors:  []
     };
   },
 
@@ -61,12 +59,8 @@ export default {
       return allPVCs.find(P => P.metadata.name === this.value.volumeName);
     },
 
-    needSetPVC() {
-      return !!this.errors.length || (!this.value.newCreateId && this.isEdit && this.value.size !== this.pvcsResource?.spec?.resources?.requests?.storage);
-    },
-
     isDisabled() {
-      return !this.value.newCreateId && this.isEdit;
+      return !this.value.newCreateId && this.isEdit && this.isVirtualType;
     },
   },
 
@@ -81,7 +75,16 @@ export default {
     pvcsResource: {
       handler(pvc) {
         if (pvc?.spec?.resources?.requests?.storage) {
-          this.value.size = pvc.spec.resources.requests.storage;
+          const parseValue = parseSi(pvc.spec.resources.requests.storage);
+
+          const formatSize = formatSi(parseValue, {
+            increment:   1024,
+            addSuffix:   false,
+            maxExponent: 3,
+            minExponent: 3,
+          });
+
+          this.value.size = `${ formatSize }Gi`;
         }
       },
       deep:      true,
@@ -117,7 +120,7 @@ export default {
           <LabeledSelect
             v-model="value.type"
             :label="t('harvester.fields.type')"
-            :options="typeOption"
+            :options="VOLUME_TYPE"
             required
             :mode="mode"
             @input="update"
@@ -126,16 +129,17 @@ export default {
       </div>
     </div>
 
-    <div class="row">
+    <div class="row mb-20">
       <div class="col span-6">
         <InputOrDisplay :name="t('harvester.fields.size')" :value="value.size" :mode="mode">
           <UnitInput
             v-model="value.size"
-            output-suffic-text="Gi"
-            output-as="string"
+            :output-modifier="true"
+            :increment="1024"
+            :input-exponent="3"
             :mode="mode"
+            :required="validateRequired"
             :label="t('harvester.fields.size')"
-            suffix="GiB"
             :disabled="isDisabled"
           />
         </InputOrDisplay>
@@ -146,25 +150,13 @@ export default {
           <LabeledSelect
             v-model="value.bus"
             :label="t('harvester.virtualMachine.volume.bus')"
-            class="mb-20"
             :mode="mode"
-            :options="interfaceOption"
+            :options="InterfaceOption"
             required
             @input="update"
           />
         </InputOrDisplay>
       </div>
     </div>
-
-    <div v-for="(err,idx) in errors" :key="idx">
-      <Banner color="error" :label="err" />
-    </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.action {
-  display: flex;
-  flex-direction: row-reverse;
-}
-</style>

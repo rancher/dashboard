@@ -5,6 +5,7 @@ import { FLEET } from '@/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@/config/labels-annotations';
 import { addObject, addObjects, findBy, insertAt } from '@/utils/array';
 import { set } from '@/utils/object';
+import SteveModel from '@/plugins/steve/steve-class';
 
 function quacksLikeAHash(str) {
   if ( str.match(/^[a-f0-9]{40,}$/i) ) {
@@ -14,30 +15,28 @@ function quacksLikeAHash(str) {
   return false;
 }
 
-export default {
+export default class GitRepo extends SteveModel {
   applyDefaults() {
-    return () => {
-      const spec = this.spec || {};
-      const meta = this.metadata || {};
+    const spec = this.spec || {};
+    const meta = this.metadata || {};
 
-      meta.namespace = this.$rootGetters['workspace'];
+    meta.namespace = this.$rootGetters['workspace'];
 
-      spec.repo = spec.repo || '';
+    spec.repo = spec.repo || '';
 
-      if ( !spec.branch && !spec.revision ) {
-        spec.branch = 'master';
-      }
+    if ( !spec.branch && !spec.revision ) {
+      spec.branch = 'master';
+    }
 
-      spec.paths = spec.paths || [];
-      spec.clientSecretName = spec.clientSecretName || null;
+    spec.paths = spec.paths || [];
+    spec.clientSecretName = spec.clientSecretName || null;
 
-      set(this, 'spec', spec);
-      set(this, 'metadata', meta);
-    };
-  },
+    set(this, 'spec', spec);
+    set(this, 'metadata', meta);
+  }
 
-  _availableActions() {
-    const out = this._standardActions;
+  get _availableActions() {
+    const out = super._availableActions;
 
     insertAt(out, 0, {
       action:     'pause',
@@ -66,34 +65,34 @@ export default {
     insertAt(out, 3, { divider: true });
 
     return out;
-  },
+  }
 
   pause() {
     this.spec.paused = true;
     this.save();
-  },
+  }
 
   unpause() {
     this.spec.paused = false;
     this.save();
-  },
-
-  state() {
-    if ( this.spec?.paused === true ) {
-      return 'paused';
-    }
-
-    return this.metadata?.state?.name || 'unknown';
-  },
+  }
 
   forceUpdate() {
     const now = this.spec.forceSyncGeneration || 1;
 
     this.spec.forceSyncGeneration = now + 1;
     this.save();
-  },
+  }
 
-  targetClusters() {
+  get state() {
+    if ( this.spec?.paused === true ) {
+      return 'paused';
+    }
+
+    return this.metadata?.state?.name || 'unknown';
+  }
+
+  get targetClusters() {
     const workspace = this.$getters['byId'](FLEET.WORKSPACE, this.metadata.namespace);
     const clusters = workspace?.clusters || [];
     const groups = workspace?.clusterGroups || [];
@@ -141,9 +140,9 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  github() {
+  get github() {
     const match = this.spec.repo.match(/^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/);
 
     if ( match ) {
@@ -151,15 +150,17 @@ export default {
     }
 
     return false;
-  },
+  }
 
-  repoIcon() {
+  get repoIcon() {
     if ( this.github ) {
       return 'icon icon-github';
     }
-  },
 
-  repoDisplay() {
+    return '';
+  }
+
+  get repoDisplay() {
     let repo = this.spec.repo;
 
     repo = repo.replace(/.git$/, '');
@@ -171,14 +172,14 @@ export default {
     }
 
     return repo;
-  },
+  }
 
-  commitDisplay() {
+  get commitDisplay() {
     const spec = this.spec;
     const hash = this.status?.commit?.substr(0, 7);
 
     if ( !spec || !spec.repo ) {
-      return;
+      return null;
     }
 
     if ( spec.revision && quacksLikeAHash(spec.revision) ) {
@@ -190,9 +191,9 @@ export default {
     }
 
     return hash;
-  },
+  }
 
-  clusterInfo() {
+  get clusterInfo() {
     const ready = this.status?.readyClusters || 0;
     const total = this.status?.desiredReadyClusters || 0;
 
@@ -201,9 +202,9 @@ export default {
       unready: total - ready,
       total,
     };
-  },
+  }
 
-  targetInfo() {
+  get targetInfo() {
     let mode = null;
     let cluster = null;
     let clusterGroup = null;
@@ -240,20 +241,20 @@ export default {
     } else if ( targets.length === 1) {
       const target = targets[0];
 
-      if ( target.clusterGroup ) {
+      if (Object.keys(target).length > 1) {
+        // There are multiple properties in a single target, so use the 'advanced' mode
+        // (otherwise any existing content is nuked for what we provide)
+        mode = 'advanced';
+      } else if ( target.clusterGroup ) {
         clusterGroup = target.clusterGroup;
 
         if ( !mode ) {
           mode = 'clusterGroup';
         }
-      }
-
-      if ( target.clusterName ) {
+      } else if ( target.clusterName ) {
         mode = 'cluster';
         cluster = target.clusterName;
-      }
-
-      if ( target.clusterSelector ) {
+      } else if ( target.clusterSelector ) {
         if ( Object.keys(target.clusterSelector).length === 0 ) {
           mode = 'all';
         } else {
@@ -284,9 +285,9 @@ export default {
       clusterGroup,
       advanced
     };
-  },
+  }
 
-  groupByLabel() {
+  get groupByLabel() {
     const name = this.metadata.namespace;
 
     if ( name ) {
@@ -294,5 +295,21 @@ export default {
     } else {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
     }
-  },
-};
+  }
+
+  get bundles() {
+    const all = this.$getters['all'](FLEET.BUNDLE);
+
+    return all.filter(bundle => bundle.name.startsWith(`${ this.name }-`) &&
+      bundle.namespace === this.namespace &&
+      bundle.namespacedName.startsWith(`${ this.namespace }:${ this.name }`));
+  }
+
+  get bundlesReady() {
+    if (this.bundles && this.bundles.length) {
+      return this.bundles.filter(bundle => bundle.state === 'active');
+    }
+
+    return 0;
+  }
+}

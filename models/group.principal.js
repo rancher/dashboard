@@ -1,39 +1,36 @@
 import { MANAGEMENT, NORMAN } from '@/config/types';
 import { clone } from '@/utils/object';
-import principal from './principal';
+import Principal from './principal';
 
-export default {
-
-  ...principal,
-
-  canViewInApi() {
+export default class Group extends Principal {
+  get canViewInApi() {
     return false;
-  },
+  }
 
-  nameDisplay() {
+  get nameDisplay() {
     return this.principalNameDisplay;
-  },
+  }
 
-  principalNameDisplay() {
+  get principalNameDisplay() {
     const principal = this.$rootGetters['rancher/byId'](NORMAN.PRINCIPAL, this.id);
 
     return `${ principal.name } (${ principal.displayType })`;
-  },
+  }
 
-  detailLocation() {
+  get detailLocation() {
     const detailLocation = clone(this._detailLocation);
 
     detailLocation.params.id = this.id; // Base fn removes part of the id (`github_team://3375666` --> `3375666`)
 
     return detailLocation;
-  },
+  }
 
-  globalRoleBindings() {
+  get globalRoleBindings() {
     return this.$rootGetters['management/all'](MANAGEMENT.GLOBAL_ROLE_BINDING)
       .filter(globalRoleBinding => this.id === globalRoleBinding.groupPrincipalName);
-  },
+  }
 
-  _availableActions() {
+  get _availableActions() {
     return [
       {
         action:  'goToEdit',
@@ -51,28 +48,24 @@ export default {
         bulkAction: 'unassignGroupRoles',
       },
     ];
-  },
-
-  promptUnassignGroupRoles() {
-    return (resources = this) => {
-      const principals = Array.isArray(resources) ? resources : [resources];
-      const globalRoleBindings = this.$rootGetters['management/all'](MANAGEMENT.GLOBAL_ROLE_BINDING)
-        .filter(globalRoleBinding => principals.find(principal => principal.id === globalRoleBinding.groupPrincipalName));
-
-      this.$dispatch('promptRemove', globalRoleBindings);
-    };
-  },
-
-  unassignGroupRoles() {
-    return async(resources = this) => {
-      const principals = Array.isArray(resources) ? resources : [resources];
-      const globalRoleBindings = this.$rootGetters['management/all'](MANAGEMENT.GLOBAL_ROLE_BINDING)
-        .filter(globalRoleBinding => principals.find(principal => principal.id === globalRoleBinding.groupPrincipalName));
-
-      await Promise.all(globalRoleBindings.map(resource => resource.remove()));
-
-      // There is no dialog to close, but this can be watched and used to refresh the group principles
-      this.$dispatch('promptRemove', null);
-    };
   }
-};
+
+  promptUnassignGroupRoles(resources = this) {
+    const principals = Array.isArray(resources) ? resources : [resources];
+    const globalRoleBindings = this.$rootGetters['management/all'](MANAGEMENT.GLOBAL_ROLE_BINDING)
+      .filter(globalRoleBinding => principals.find(principal => principal.id === globalRoleBinding.groupPrincipalName));
+
+    this.$dispatch('promptRemove', globalRoleBindings);
+  }
+
+  async unassignGroupRoles(resources = this) {
+    const principals = Array.isArray(resources) ? resources : [resources];
+    const globalRoleBindings = this.$rootGetters['management/all'](MANAGEMENT.GLOBAL_ROLE_BINDING)
+      .filter(globalRoleBinding => principals.find(principal => principal.id === globalRoleBinding.groupPrincipalName));
+
+    await Promise.all(globalRoleBindings.map(resource => resource.remove()));
+
+    // There is no dialog to close, but this can be watched and used to refresh the group principles
+    this.$dispatch('promptRemove', null);
+  }
+}

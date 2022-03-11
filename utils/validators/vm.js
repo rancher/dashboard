@@ -125,7 +125,7 @@ export function vmDisks(spec, getters, errors, validatorArgs, displayKey, value)
     const { type, typeValue } = getVolumeType(V, _volumeClaimTemplates);
     const prefix = V.name || idx + 1;
 
-    if (type === SOURCE_TYPE.IMAGE || type === SOURCE_TYPE.ATTACH_VOLUME) { // root iamge
+    if (type === SOURCE_TYPE.IMAGE || type === SOURCE_TYPE.ATTACH_VOLUME) { // root image
       // const message = getters['i18n/t']('harvester.validation.vm.volume.needImageOrExisting');
       hasImageVolumeOrExistingVolume = true;
       // errors.push(message);

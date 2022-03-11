@@ -176,10 +176,22 @@ export function init(store) {
     overview:   false,
   });
 
+  virtualType({
+    ifHave:     IF_HAVE.PROJECT,
+    labelKey:   'legacy.configMaps',
+    namespaced: true,
+    name:       'project-config-maps',
+    weight:     104,
+    route:      { name: 'c-cluster-legacy-project-page', params: { page: 'config-maps' } },
+    exact:      true,
+    overview:   false,
+  });
+
   basicType([
     'project-apps',
     'project-alerts',
     'project-catalogs',
+    'project-config-maps',
     'project-logging',
     'project-istio',
     'project-monitoring',

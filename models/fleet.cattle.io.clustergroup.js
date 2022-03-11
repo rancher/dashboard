@@ -2,20 +2,19 @@ import { escapeHtml } from '@/utils/string';
 import { matching, convert } from '@/utils/selector';
 import { FLEET } from '@/config/types';
 import { set } from '@/utils/object';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
+export default class FleetClusterGroup extends SteveModel {
   applyDefaults() {
-    return () => {
-      const spec = this.spec || {};
+    const spec = this.spec || {};
 
-      spec.selector = spec.selector || {};
-      spec.selector.matchExpressions = spec.selector.matchExpressions || [];
+    spec.selector = spec.selector || {};
+    spec.selector.matchExpressions = spec.selector.matchExpressions || [];
 
-      set(this, 'spec', spec);
-    };
-  },
+    set(this, 'spec', spec);
+  }
 
-  targetClusters() {
+  get targetClusters() {
     const workspace = this.$getters['byId'](FLEET.WORKSPACE, this.metadata.namespace);
     const expressions = convert(this.spec?.selector?.matchLabels || {}, this.spec?.selector?.matchExpressions || []);
 
@@ -26,9 +25,9 @@ export default {
     const match = matching(workspace.clusters, expressions);
 
     return match;
-  },
+  }
 
-  groupByLabel() {
+  get groupByLabel() {
     const name = this.metadata.namespace;
 
     if ( name ) {
@@ -36,9 +35,9 @@ export default {
     } else {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
     }
-  },
+  }
 
-  clusterInfo() {
+  get clusterInfo() {
     const total = this.status?.clusterCount || 0;
     const unready = this.status?.nonReadyClusterCount || 0;
     const ready = total - unready;
@@ -48,9 +47,9 @@ export default {
       unready,
       total,
     };
-  },
+  }
 
-  details() {
+  get details() {
     const out = [
       {
         label:   'Clusters Ready',
@@ -59,5 +58,5 @@ export default {
     ];
 
     return out;
-  },
-};
+  }
+}

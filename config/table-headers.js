@@ -1,5 +1,6 @@
 import { CATTLE_PUBLIC_ENDPOINTS } from '@/config/labels-annotations';
 import { NODE as NODE_TYPE } from '@/config/types';
+import { COLUMN_BREAKPOINTS } from '@/components/SortableTable/index.vue';
 
 // Note: 'id' is always the last sort, so you don't have to specify it here.
 
@@ -602,7 +603,11 @@ export const WORKSPACE = {
   sort:  ['metadata.namespace', 'nameSort'],
 };
 
-export const WORKLOAD_IMAGES = { ...POD_IMAGES, value: '' };
+export const WORKLOAD_IMAGES = {
+  ...POD_IMAGES,
+  value:      '',
+  breakpoint: COLUMN_BREAKPOINTS.LAPTOP
+};
 
 export const WORKLOAD_ENDPOINTS = {
   name:        'workloadEndpoints',
@@ -610,6 +615,15 @@ export const WORKLOAD_ENDPOINTS = {
   value:       `$['metadata']['annotations']['${ CATTLE_PUBLIC_ENDPOINTS }']`,
   formatter:   'Endpoints',
   dashIfEmpty: true,
+  breakpoint:  COLUMN_BREAKPOINTS.DESKTOP
+};
+
+export const WORKLOAD_HEALTH_SCALE = {
+  name:        'workloadHealthScale',
+  labelKey:    'tableHeaders.health',
+  formatter:   'WorkloadHealthScale',
+  width:       150,
+  skipSelect:  true
 };
 
 export const FLEET_SUMMARY = {
@@ -715,7 +729,7 @@ export const CONFIGURED_RECEIVER = {
 
 export const GROUP_NAME = {
   name:      'group-name',
-  label:     'Group Name',
+  labelKey:  'tableHeaders.groupName',
   value:     'id',
   sort:      ['name'],
   search:    ['name'],
@@ -725,35 +739,35 @@ export const GROUP_NAME = {
 
 export const GROUP_ROLE_NAME = {
   name:      'group-role-names',
-  label:     'Group Role Names',
+  labelKey:  'tableHeaders.groupRoleNames',
   value:     'id',
   formatter: 'PrincipalGroupBindings',
 };
 
 export const HPA_REFERENCE = {
   name:      'reference',
-  label:     'Workload',
+  labelKey:  'tableHeaders.hpaReference',
   value:     'spec.scaleTargetRef.name',
   sort:      'spec.scaleTargetRef.name',
 };
 
 export const MIN_REPLICA = {
   name:      'minimum-replica',
-  label:     'Minimum Replicas',
+  labelKey:  'tableHeaders.minReplicas',
   value:     'spec.minReplicas',
   sort:      'spec.minReplicas',
 };
 
 export const MAX_REPLICA = {
   name:      'maximum-replica',
-  label:     'Maximum Replicas',
+  labelKey:  'tableHeaders.maxReplicas',
   value:     'spec.maxReplicas',
   sort:      'spec.maxReplicas',
 };
 
 export const CURRENT_REPLICA = {
   name:      'current-replica',
-  label:     'Current Replicas',
+  labelKey:  'tableHeaders.currentReplicas',
   value:     'status.currentReplicas',
   sort:      'status.currentReplicas',
 };
@@ -800,11 +814,12 @@ export const EXPIRES = {
 
 export const RESTART = {
   name:      'restart',
-  label:     'Restart',
+  labelKey:  'tableHeaders.restart',
   value:     'restartRequired',
   sort:      ['restartRequired', 'nameSort'],
   formatter: 'Checked',
   width:     75,
+  align:     'center'
 };
 
 export const ROLE = {
@@ -814,12 +829,14 @@ export const ROLE = {
 };
 
 export const FEATURE_DESCRIPTION = {
-  name:     'description',
-  labelKey: 'tableHeaders.description',
-  value:    'status.description',
-  align:    'left',
-  sort:     ['status.description'],
-  width:    300,
+  name:          'description',
+  labelKey:      'tableHeaders.description',
+  value:         'status.description',
+  align:         'left',
+  sort:          ['status.description'],
+  width:         300,
+  formatter:     'Translate',
+  formatterOpts: { prefix: 'featureFlags.description' },
 };
 
 export const STATE_NORMAN = {
@@ -830,4 +847,47 @@ export const STATE_NORMAN = {
   width:     100,
   default:   'unknown',
   formatter: 'BadgeStateFormatter',
+};
+
+export const KUBE_NODE_OS = {
+  name:      'operating-system',
+  labelKey:  'tableHeaders.operatingSystem',
+  value:     'status.nodeInfo.operatingSystem',
+  sort:      ['status.nodeInfo.operatingSystem'],
+  formatter: 'Capitalize'
+};
+
+export const MACHINE_NODE_OS = {
+  name:      'operating-system',
+  labelKey:  'tableHeaders.operatingSystem',
+  value:     'operatingSystem',
+  sort:      ['operatingSystem'],
+  formatter: 'Capitalize'
+};
+
+export const MANAGEMENT_NODE_OS = {
+  name:      'operating-system',
+  labelKey:  'tableHeaders.operatingSystem',
+  value:     'status.internalNodeStatus.nodeInfo.operatingSystem',
+  sort:      ['status.internalNodeStatus.nodeInfo.operatingSystem'],
+  formatter: 'Capitalize'
+};
+
+// FLEET
+
+export const FLEET_BUNDLE_LAST_UPDATED = {
+  name:          'lastUpdated',
+  labelKey:      'tableHeaders.lastUpdated',
+  value:         'lastUpdateTime',
+  formatter:     'LiveDate',
+  formatterOpts: { addSuffix: true },
+  sort:          ['lastUpdateTime']
+};
+
+export const FLEET_BUNDLE_TYPE = {
+  name:     'bundleType',
+  labelKey: 'tableHeaders.fleetBundleType',
+  value:    'bundleType',
+  sort:     ['bundleType'],
+  width:    100,
 };

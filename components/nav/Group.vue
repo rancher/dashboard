@@ -53,8 +53,12 @@ export default {
       return this.group.children?.length > 0;
     },
 
+    hasOverview() {
+      return this.group.children?.[0]?.overview;
+    },
+
     onlyHasOverview() {
-      return this.group.children && this.group.children.length === 1 && this.group.children[0].overview;
+      return this.group.children && this.group.children.length === 1 && this.hasOverview;
     },
 
     isOverview() {
@@ -65,7 +69,7 @@ export default {
         if (overviewRoute && grp.overview) {
           const route = this.$router.resolve(overviewRoute || {});
 
-          return this.$route.fullPath === route.href;
+          return this.$route.fullPath === route?.route?.fullPath;
         }
       }
 
@@ -89,8 +93,8 @@ export default {
     },
 
     groupSelected() {
-      // Don't auto-select first group entry if we're already expanded
-      if (this.isExpanded) {
+      // Don't auto-select first group entry if we're already expanded and contain the currently-selected nav item
+      if (this.hasActiveRoute() && this.isExpanded) {
         return;
       }
 
@@ -141,9 +145,12 @@ export default {
         if (item.children && this.hasActiveRoute(item)) {
           return true;
         } else if (item.route) {
-          const route = this.$router.resolve(item.route);
+          const navLevels = ['cluster', 'product', 'resource'];
+          const matchesNavLevel = navLevels.filter(param => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
+          const withoutHash = this.$route.hash ? this.$route.fullPath.slice(0, this.$route.fullPath.indexOf(this.$route.hash)) : this.$route.fullPath;
+          const withoutQuery = withoutHash.split('?')[0];
 
-          if (this.$route.fullPath === route.route.fullPath) {
+          if (matchesNavLevel || this.$router.resolve(item.route).route.fullPath === withoutQuery) {
             return true;
           }
         }
@@ -180,9 +187,12 @@ export default {
 
 <template>
   <div class="accordion" :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren}">
-    <div v-if="showHeader" class="header" :class="{'active': isOverview, 'noHover': !canCollapse}" @click="groupSelected($event)">
+    <div v-if="showHeader" class="header" :class="{'active': isOverview, 'noHover': !canCollapse}" @click="groupSelected()">
       <slot name="header">
-        <span v-html="group.labelDisplay || group.label" />
+        <n-link v-if="hasOverview" :to="group.children[0].route" :exact="group.children[0].exact">
+          <h6 v-html="group.labelDisplay || group.label" />
+        </n-link>
+        <h6 v-else v-html="group.labelDisplay || group.label" />
       </slot>
       <i v-if="!onlyHasOverview && canCollapse" class="icon toggle" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" @click="peek($event, true)" />
     </div>
@@ -224,7 +234,6 @@ export default {
 
 <style lang="scss" scoped>
   .header {
-    font-size: 14px;
     position: relative;
     cursor: pointer;
     color: var(--body-text);
@@ -232,10 +241,23 @@ export default {
     > H6 {
       color: var(--body-text);
       user-select: none;
+      text-transform: none;
+      font-size: 14px;
     }
 
     > A {
       display: block;
+      padding-left: 10px;
+      &:hover{
+          text-decoration: none;
+        }
+      &:focus{
+        outline:none;
+      }
+      > H6 {
+        font-size: 14px;
+        text-transform: none;
+      }
     }
 
     &.active {
@@ -292,7 +314,7 @@ export default {
 
     &.depth-1 {
       > .header {
-        > SPAN {
+        > H6 {
           font-size: 13px;
           line-height: 16px;
           padding: 8px 0 7px 5px !important;
@@ -306,7 +328,7 @@ export default {
     &:not(.depth-0) {
       > .header {
         padding-left: 10px;
-        > SPAN {
+        > H6 {
           // Child groups that aren't linked themselves
           display: inline-block;
           padding: 5px 0 5px 5px;

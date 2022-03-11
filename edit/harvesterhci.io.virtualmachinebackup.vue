@@ -8,6 +8,7 @@ import { allHash } from '@/utils/promise';
 import { exceptionToErrorsArray } from '@/utils/error';
 import { HCI, NAMESPACE } from '@/config/types';
 import { sortBy } from '@/utils/sort';
+import { clone } from '@/utils/object';
 
 const createObject = {
   apiVersion: 'harvesterhci.io/v1beta1',
@@ -48,7 +49,7 @@ export default {
     const restoreMode = this.$route.query?.restoreMode;
     const backupName = this.$route.query?.backupName;
 
-    const restoreResource = createObject;
+    const restoreResource = clone(createObject);
 
     const restoreNewVm = restoreMode === 'new' || restoreMode === undefined;
 
@@ -110,9 +111,10 @@ export default {
     namespaces() {
       const inStore = this.$store.getters['currentStore'](NAMESPACE);
       const choices = this.$store.getters[`${ inStore }/all`](NAMESPACE);
+      const systemNamespaces = this.$store.getters['systemNamespaces'];
 
       const out = sortBy(
-        choices.map((obj) => {
+        choices.filter(N => !systemNamespaces.includes(N.metadata.name)).map((obj) => {
           return {
             label: obj.nameDisplay,
             value: obj.id,
@@ -217,7 +219,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model="namespace"
-          :disabled="true"
+          :disabled="!restoreNewVm"
           :label="t('nameNsDescription.namespace.label')"
           :options="namespaces"
         />

@@ -2,20 +2,26 @@
 import dayjs from 'dayjs';
 import minMax from 'dayjs/plugin/minMax';
 import utc from 'dayjs/plugin/utc';
+import { mapGetters } from 'vuex';
 import Loading from '@/components/Loading';
 import SortableTable from '@/components/SortableTable';
 import { allHash } from '@/utils/promise';
-import { parseSi, formatSi, exponentNeeded, UNITS } from '@/utils/units';
+import {
+  parseSi, formatSi, exponentNeeded, UNITS, createMemoryValues
+} from '@/utils/units';
 import { REASON } from '@/config/table-headers';
 import {
-  EVENT, METRIC, NODE, HCI, SERVICE, PVC, LONGHORN
+  EVENT, METRIC, NODE, HCI, SERVICE, PVC, LONGHORN, POD, COUNT
 } from '@/config/types';
-import ResourceSummary, { resourceCounts } from '@/components/ResourceSummary';
+import ResourceSummary, { resourceCounts, colorToCountName } from '@/components/ResourceSummary';
+import { colorForState } from '@/plugins/steve/resource-class';
 import HardwareResourceGauge from '@/components/HardwareResourceGauge';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import metricPoller from '@/mixins/metric-poller';
+import { allDashboardsExist } from '@/utils/grafana';
+import { isEmpty } from '@/utils/object';
 import HarvesterUpgrade from './HarvesterUpgrade';
 
 dayjs.extend(utc);
@@ -54,10 +60,13 @@ const RESOURCES = [{
       name:     'c-cluster-product-resource',
       params:   { resource: HCI.VOLUME }
     },
-    name: 'Volume'
+    name:            'Volume',
+    filterNamespace: ['cattle-monitoring-system']
   }
 }];
 
+const CLUSTER_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-cluster-nodes-1/rancher-cluster-nodes?orgId=1';
+const CLUSTER_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-cluster-1/rancher-cluster?orgId=1';
 const VM_DASHBOARD_METRICS_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/harvester-vm-dashboard-1/vm-dashboard?orgId=1';
 
 export default {
@@ -84,7 +93,8 @@ export default {
       settings:     this.fetchClusterResources(HCI.SETTING),
       services:     this.fetchClusterResources(SERVICE),
       metric:       this.fetchClusterResources(METRIC.NODE),
-      longhornNode: this.fetchClusterResources(LONGHORN.NODES)
+      longhornNode: this.fetchClusterResources(LONGHORN.NODES) || [],
+      _pods:        this.$store.dispatch('harvester/findAll', { type: POD }),
     };
 
     (this.accessibleResources || []).map((a) => {
@@ -98,6 +108,9 @@ export default {
     for ( const k in res ) {
       this[k] = res[k];
     }
+
+    this.showClusterMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL], 'harvester');
+    this.showVmMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [VM_DASHBOARD_METRICS_URL], 'harvester');
   },
 
   data() {
@@ -133,18 +146,23 @@ export default {
 
     return {
       eventHeaders,
-      constraints:       [],
-      events:            [],
-      nodeMetrics:       [],
-      nodes:             [],
-      metricNodes:       [],
-      vms:               [],
-      currentCluster:    'local',
+      constraints:        [],
+      events:             [],
+      nodeMetrics:        [],
+      nodes:              [],
+      metricNodes:        [],
+      vms:                [],
       VM_DASHBOARD_METRICS_URL,
+      CLUSTER_METRICS_SUMMARY_URL,
+      CLUSTER_METRICS_DETAIL_URL,
+      showClusterMetrics: false,
+      showVmMetrics:      false,
     };
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
+
     accessibleResources() {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
@@ -164,6 +182,27 @@ export default {
         });
 
         if (resource.spoofed) {
+          if (resource.spoofed?.filterNamespace && Array.isArray(resource.spoofed.filterNamespace)) {
+            const clusterCounts = this.$store.getters['harvester/all'](COUNT)[0].counts;
+            const statistics = clusterCounts[resource.type] || {};
+
+            for (let i = 0; i < resource.spoofed.filterNamespace.length; i++) {
+              const nsStatistics = statistics?.namespaces?.[resource.spoofed.filterNamespace[i]] || {};
+
+              if (nsStatistics.count) {
+                out[resource.type]['useful'] -= nsStatistics.count;
+              }
+              Object.entries(nsStatistics?.states || {}).forEach((entry) => {
+                const color = colorForState(entry[0]);
+                const count = entry[1];
+                const countName = colorToCountName(color);
+
+                out[resource.type]['useful'] -= count;
+                out[resource.type][countName] += count;
+              });
+            }
+          }
+
           out[resource.type] = {
             ...out[resource.type],
             ...resource.spoofed,
@@ -243,12 +282,28 @@ export default {
     storageUsage() {
       let out = 0;
 
-      this.longhornNode.filter(n => n.spec.allowScheduling).forEach((node) => {
+      (this.longhornNode || []).forEach((node) => {
         const diskStatus = node?.status?.diskStatus || {};
 
         Object.values(diskStatus).map((disk) => {
-          if (disk?.storageAvailable && disk?.storageMaximum) {
-            out += disk.storageMaximum - disk.storageAvailable;
+          if (disk?.conditions?.Schedulable?.status === 'True' && disk?.storageAvailable && disk?.storageMaximum) {
+            out += (disk.storageMaximum - disk.storageAvailable);
+          }
+        });
+      });
+
+      return out;
+    },
+
+    storageReservedTotal() {
+      let out = 0;
+
+      (this.longhornNode || []).forEach((node) => {
+        const disks = node?.spec?.disks || {};
+
+        Object.values(disks).map((disk) => {
+          if (disk.allowScheduling) {
+            out += disk.storageReserved;
           }
         });
       });
@@ -259,26 +314,25 @@ export default {
     storageTotal() {
       let out = 0;
 
-      this.metricNodes.forEach((node) => {
-        out += node.storageTotal;
+      (this.longhornNode || []).forEach((node) => {
+        const diskStatus = node?.status?.diskStatus || {};
+
+        Object.values(diskStatus).map((disk) => {
+          if (disk?.storageMaximum) {
+            out += disk.storageMaximum;
+          }
+        });
       });
 
       return out;
     },
 
-    cpuUsed() {
-      return {
-        total:  this.cpusTotal,
-        useful: Number(formatSi(this.cpusUsageTotal)),
-      };
-    },
-
-    memoryUsed() {
-      return this.createMemoryValues(this.memorysTotal, this.memorysUsageTotal);
-    },
-
     storageUsed() {
       return this.createMemoryValues(this.storageTotal, this.storageUsage);
+    },
+
+    storageReserved() {
+      return this.createMemoryValues(this.storageTotal, this.storageReservedTotal);
     },
 
     vmEvents() {
@@ -297,10 +351,108 @@ export default {
       return this.events.filter( E => ['VirtualMachineImage'].includes(E.involvedObject.kind));
     },
 
-    hasMetrics() {
+    hasMetricsTabs() {
+      return this.showClusterMetrics || this.showVmMetrics;
+    },
+
+    pods() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const pods = this.$store.getters[`${ inStore }/all`](POD) || [];
+
+      return pods.filter(p => p?.metadata?.name !== 'removing');
+    },
+
+    cpuReserved() {
+      const useful = this.pods.filter((pod) => {
+        const nodeName = pod?.spec?.nodeName;
+
+        return this.availableNodes.includes(nodeName);
+      }).reduce((sum, pod) => {
+        const containers = pod?.spec?.containers || [];
+
+        const containerCpuReserved = containers.reduce((sum, c) => {
+          sum += parseSi(c?.resources?.requests?.cpu || '0m');
+
+          return sum;
+        }, 0);
+
+        sum += containerCpuReserved;
+
+        return sum;
+      }, 0);
+
+      return {
+        total:  this.cpusTotal,
+        useful: Number(formatSi(useful)),
+      };
+    },
+
+    ramReserved() {
+      const useful = this.pods.filter((pod) => {
+        const nodeName = pod?.spec?.nodeName;
+
+        return this.availableNodes.includes(nodeName);
+      }).reduce((sum, pod) => {
+        const containers = pod?.spec?.containers || [];
+
+        const containerMemoryReserved = containers.reduce((sum, c) => {
+          sum += parseSi(c?.resources?.requests?.memory || '0m', { increment: 1024 });
+
+          return sum;
+        }, 0);
+
+        sum += containerMemoryReserved;
+
+        return sum;
+      }, 0);
+
+      return this.createMemoryValues(this.memorysTotal, useful);
+    },
+
+    availableNodes() {
+      return (this.metricNodes || []).map(node => node.id);
+    },
+
+    metricAggregations() {
+      const nodes = this.nodes;
+      const someNonWorkerRoles = this.nodes.some(node => node.hasARole && !node.isWorker);
+      const metrics = this.nodeMetrics.filter((nodeMetrics) => {
+        const node = nodes.find(nd => nd.id === nodeMetrics.id);
+
+        return node && (!someNonWorkerRoles || node.isWorker);
+      });
+      const initialAggregation = {
+        cpu:    0,
+        memory: 0
+      };
+
+      if (isEmpty(metrics)) {
+        return null;
+      }
+
+      return metrics.reduce((agg, metric) => {
+        agg.cpu += parseSi(metric.usage.cpu);
+        agg.memory += parseSi(metric.usage.memory);
+
+        return agg;
+      }, initialAggregation);
+    },
+
+    cpuUsed() {
+      return {
+        total:  this.cpusTotal,
+        useful: this.metricAggregations?.cpu,
+      };
+    },
+
+    ramUsed() {
+      return createMemoryValues(this.memorysTotal, this.metricAggregations?.memory);
+    },
+
+    hasMetricNodeSchema() {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
-      return !!this.$store.getters[`${ inStore }/byId`]('service', 'cattle-monitoring-system/rancher-monitoring-grafana');
+      return !!this.$store.getters[`${ inStore }/schemaFor`](METRIC.NODE);
     },
   },
 
@@ -310,12 +462,24 @@ export default {
       const parsedUseful = parseSi((useful || '0').toString());
       const format = this.createMemoryFormat(parsedTotal);
       const formattedTotal = formatSi(parsedTotal, format);
-      const formattedUseful = formatSi(parsedUseful, format);
+      let formattedUseful = formatSi(parsedUseful, {
+        ...format,
+        addSuffix: false,
+      });
+
+      if (!Number.parseFloat(formattedUseful) > 0) {
+        formattedUseful = formatSi(parsedUseful, {
+          ...format,
+          canRoundToZero: false,
+        });
+      }
 
       return {
-        total:  Number.parseFloat(formattedTotal),
-        useful: Number.parseFloat(formattedUseful),
-        units:  this.createMemoryUnits(parsedTotal)
+        total:           Number(parsedTotal),
+        useful:          Number(parsedUseful),
+        formattedTotal,
+        formattedUseful,
+        units:           this.createMemoryUnits(parsedTotal),
       };
     },
 
@@ -403,40 +567,62 @@ export default {
       />
     </div>
 
-    <template v-if="nodes.length">
+    <template v-if="nodes.length && hasMetricNodeSchema">
       <h3 class="mt-40">
         {{ t('clusterIndexPage.sections.capacity.label') }}
       </h3>
       <div class="hardware-resource-gauges">
         <HardwareResourceGauge
           :name="t('harvester.dashboard.hardwareResourceGauge.cpu')"
+          :reserved="cpuReserved"
           :used="cpuUsed"
         />
         <HardwareResourceGauge
           :name="t('harvester.dashboard.hardwareResourceGauge.memory')"
-          :used="memoryUsed"
+          :reserved="ramReserved"
+          :used="ramUsed"
         />
         <HardwareResourceGauge
           :name="t('harvester.dashboard.hardwareResourceGauge.storage')"
           :used="storageUsed"
-          :units="storageUsed.units"
+          :reserved="storageReserved"
         />
       </div>
     </template>
 
     <Tabbed
-      v-if="hasMetrics"
-      class="mt-20"
+      v-if="hasMetricsTabs"
+      class="mt-30"
     >
       <Tab
-        name="metric"
-        label="Metric"
+        v-if="showClusterMetrics"
+        name="cluster-metrics"
+        :label="t('clusterIndexPage.sections.clusterMetrics.label')"
+        :weight="99"
       >
-        <DashboardMetrics
-          :detail-url="VM_DASHBOARD_METRICS_URL"
-          graph-height="825px"
-          :has-summary-and-detail="false"
-        />
+        <template #default="props">
+          <DashboardMetrics
+            v-if="props.active"
+            :detail-url="CLUSTER_METRICS_DETAIL_URL"
+            :summary-url="CLUSTER_METRICS_SUMMARY_URL"
+            graph-height="825px"
+          />
+        </template>
+      </Tab>
+      <Tab
+        v-if="showVmMetrics"
+        name="vm-metric"
+        :label="t('harvester.dashboard.sections.vmMetrics.label')"
+        :weight="98"
+      >
+        <template #default="props">
+          <DashboardMetrics
+            v-if="props.active"
+            :detail-url="VM_DASHBOARD_METRICS_URL"
+            graph-height="825px"
+            :has-summary-and-detail="false"
+          />
+        </template>
       </Tab>
     </Tabbed>
 

@@ -2,6 +2,7 @@ import { canCreate, updateConfig } from '@/utils/alertmanagerconfig';
 import { isEmpty } from '@/utils/object';
 import { MONITORING } from '@/config/types';
 import jsyaml from 'js-yaml';
+import SteveModel from '@/plugins/steve/steve-class';
 
 export const RECEIVERS_TYPES = [
   {
@@ -53,84 +54,80 @@ export const RECEIVERS_TYPES = [
   },
 ];
 
-export default {
-  removeSerially() {
+export default class Receiver extends SteveModel {
+  get removeSerially() {
     return true;
-  },
+  }
 
   remove() {
-    return () => {
-      return this.updateReceivers((currentReceivers) => {
-        return currentReceivers.filter(r => r.name !== this.spec?.name);
-      });
-    };
-  },
+    return this.updateReceivers((currentReceivers) => {
+      return currentReceivers.filter(r => r.name !== this.spec?.name);
+    });
+  }
 
-  save() {
-    return async() => {
-      const errors = await this.validationErrors(this);
+  async save() {
+    const errors = await this.validationErrors(this);
 
-      if (!isEmpty(errors)) {
-        return Promise.reject(errors);
+    if (!isEmpty(errors)) {
+      return Promise.reject(errors);
+    }
+
+    await this.updateReceivers((currentReceivers) => {
+      const existingReceiver = currentReceivers.find(r => r.name === this.spec?.name);
+
+      if (existingReceiver) {
+        Object.assign(existingReceiver, this.spec);
+      } else {
+        currentReceivers.push(this.spec);
       }
 
-      await this.updateReceivers((currentReceivers) => {
-        const existingReceiver = currentReceivers.find(r => r.name === this.spec?.name);
+      return currentReceivers;
+    });
 
-        if (existingReceiver) {
-          Object.assign(existingReceiver, this.spec);
-        } else {
-          currentReceivers.push(this.spec);
-        }
+    return {};
+  }
 
-        return currentReceivers;
-      });
-
-      return {};
-    };
-  },
-
-  canUpdate() {
+  get canUpdate() {
     return this.secret.canUpdate;
-  },
+  }
 
-  canCustomEdit() {
+  get canCustomEdit() {
     return true;
-  },
+  }
 
-  canCreate() {
+  get canCreate() {
     return canCreate(this.$rootGetters);
-  },
+  }
 
-  canDelete() {
+  get canDelete() {
     return this.id !== 'null' && !this.spec.name !== 'null' && this.secret.canDelete;
-  },
+  }
 
-  canViewInApi() {
+  get canViewInApi() {
     return false;
-  },
+  }
 
-  canYaml() {
+  get canYaml() {
     return true;
-  },
+  }
 
-  _detailLocation() {
+  get _detailLocation() {
     return {
       name:   'c-cluster-monitoring-route-receiver-id',
       params: { cluster: this.$rootGetters['clusterId'], id: this.id },
       query:  { resource: this.type }
     };
-  },
+  }
 
-  doneOverride() {
+  get doneOverride() {
     return {
       name:   'c-cluster-monitoring-route-receiver',
       params: { cluster: this.$rootGetters['clusterId'] },
       query:  { resource: this.type }
     };
-  },
+  }
 
-  receiverTypes() {
+  get receiverTypes() {
     const types = RECEIVERS_TYPES
       .filter(type => type.name !== 'custom' && this.spec[type.key]?.length > 0)
       .map(type => this.t(type.label));
@@ -149,23 +146,21 @@ export default {
     }
 
     return types;
-  },
+  }
 
-  updateReceivers() {
+  get updateReceivers() {
     return fn => updateConfig(this.$dispatch, 'receivers', this.type, fn);
-  },
+  }
 
-  saveYaml() {
-    return (yaml) => {
-      const parsed = jsyaml.load(yaml);
+  saveYaml(yaml) {
+    const parsed = jsyaml.load(yaml);
 
-      Object.assign(this, parsed);
+    Object.assign(this, parsed);
 
-      return this.save();
-    };
-  },
+    return this.save();
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     const rules = [
       {
         nullable:       false,
@@ -176,24 +171,25 @@ export default {
     ];
 
     return rules;
-  },
+  }
 
-  routes() {
+  get routes() {
     if (!this.$rootGetters['cluster/haveAll'](MONITORING.SPOOFED.ROUTE)) {
       throw new Error('The routes have not been loaded');
     }
 
     return this.$rootGetters['cluster/all'](MONITORING.SPOOFED.ROUTE);
-  },
+  }
 
-  hasDependentRoutes() {
+  get hasDependentRoutes() {
     return !!this.routes.find(route => route.spec.receiver === this.id);
-  },
+  }
 
-  preventDeletionMessage() {
+  get preventDeletionMessage() {
     if (this.hasDependentRoutes) {
       return `There are still routes using this receiver. You cannot delete this receiver while it's in use.`;
     }
-  },
 
-};
+    return null;
+  }
+}

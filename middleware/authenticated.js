@@ -12,6 +12,7 @@ import { ClusterNotFoundError } from '@/utils/error';
 import { get } from '@/utils/object';
 import { AFTER_LOGIN_ROUTE } from '@/store/prefs';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
+import { BACK_TO } from '@/config/local-storage';
 
 let beforeEachSetup = false;
 
@@ -65,7 +66,7 @@ export default async function({
   if ( !$cookies.get(REDIRECTED) ) {
     $cookies.set(REDIRECTED, 'true', {
       path:     '/',
-      sameSite: false,
+      sameSite: true,
       secure:   true,
     });
   }
@@ -198,12 +199,25 @@ export default async function({
           if ( status === 401 ) {
             notLoggedIn();
           } else {
-            store.commit('setError', e);
+            store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
+            if ( process.server ) {
+              redirect(302, '/fail-whale');
+            }
           }
 
           return;
         }
       }
+    }
+  }
+
+  if (!process.server) {
+    const backTo = window.localStorage.getItem(BACK_TO);
+
+    if (backTo) {
+      window.localStorage.removeItem(BACK_TO);
+
+      window.location.href = backTo;
     }
   }
 
@@ -237,12 +251,7 @@ export default async function({
     const product = get(route, 'params.product');
     const oldProduct = from?.params?.product;
 
-    if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name.startsWith(`c-cluster-${ VIRTUAL }-`)) {
-      await store.dispatch('resetStore', {
-        id:    clusterId,
-        store: 'cluster',
-      });
-
+    if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name?.startsWith(`c-cluster-${ VIRTUAL }-`)) {
       const res = [
         store.dispatch('loadManagement'),
         store.dispatch('loadVirtual', {
@@ -253,11 +262,6 @@ export default async function({
 
       await Promise.all(res);
     } else if ( clusterId ) {
-      await store.dispatch('resetStore', {
-        id:    clusterId,
-        store: VIRTUAL,
-      });
-
       // Run them in parallel
       const res = [
         store.dispatch('loadManagement'),
@@ -300,7 +304,7 @@ export default async function({
     if ( e instanceof ClusterNotFoundError ) {
       return redirect(302, '/home');
     } else {
-      store.commit('setError', e);
+      store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
 
       return redirect(302, '/fail-whale');
     }

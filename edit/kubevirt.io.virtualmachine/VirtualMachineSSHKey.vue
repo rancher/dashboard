@@ -1,5 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
+import { randomStr } from '@/utils/string';
 
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -7,7 +8,9 @@ import ModalWithCard from '@/components/ModalWithCard';
 
 import { HCI } from '@/config/types';
 import { clone } from '@/utils/object';
-import { _VIEW, _CONFIG } from '@/config/query-params';
+import { _VIEW } from '@/config/query-params';
+
+const _NEW = '_NEW';
 
 export default {
   components: {
@@ -37,6 +40,16 @@ export default {
     namespace: {
       type:    String,
       default: ''
+    },
+
+    searchable: {
+      type:    Boolean,
+      default: true,
+    },
+
+    disabled: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -45,6 +58,7 @@ export default {
       checkedSsh:       this.value,
       publicKey:        '',
       sshName:          '',
+      randomStr:        randomStr(5).toLowerCase(),
       errors:           [],
       isAll:            false,
       checkAll:         false
@@ -54,28 +68,35 @@ export default {
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
-    isConfig() {
-      return this.$route.query?.as === _CONFIG;
+    schema() {
+      return this.$store.getters['harvester/schemaFor']( HCI.SSH );
     },
 
-    ssh() {
-      return this.$store.getters['harvester/all'](HCI.SSH);
+    isCreatable() {
+      if ( this.schema && !this.schema?.collectionMethods.find(x => ['blocked-post', 'post'].includes(x.toLowerCase())) ) {
+        return false;
+      }
+
+      return true ;
     },
 
     sshOption() {
-      const choise = this.$store.getters['harvester/all'](HCI.SSH);
-
-      return choise.map( (O) => {
+      const out = this.$store.getters['harvester/all'](HCI.SSH).map( (O) => {
         return {
           label: O.id,
           value: O.id
         };
       });
-    },
 
-    isView() {
-      return this.mode === _VIEW || this.disableCreate;
-    }
+      if (!(this.disableCreate || this.mode === _VIEW) && this.isCreatable) {
+        out.unshift({
+          label: this.t('harvester.virtualMachine.createSSHKey'),
+          value: _NEW,
+        });
+      }
+
+      return out;
+    },
   },
 
   watch: {
@@ -95,16 +116,24 @@ export default {
 
     value(neu) {
       this.checkedSsh = neu;
+    },
+
+    checkedSsh(val, old) {
+      if ( val.includes(_NEW)) {
+        this.$set(this, 'checkedSsh', old);
+        this.update();
+        this.show();
+      }
     }
   },
 
   methods: {
     show() {
-      this.$modal.show('newSSH');
+      this.$modal.show(this.randomStr);
     },
 
     hide() {
-      this.$modal.hide('newSSH');
+      this.$modal.hide(this.randomStr);
     },
 
     async save(buttonCb) {
@@ -146,9 +175,9 @@ export default {
           type:       HCI.SSH
         });
 
-        const res = await sshValue.save({ extend: { isRes: true } });
+        const res = await sshValue.save();
 
-        if (res._status === 200 || res._status === 201 || res._status === 204) {
+        if (res.id) {
           this.checkedSsh.push(`${ this.namespace }/${ this.sshName }`);
         }
 
@@ -173,34 +202,28 @@ export default {
 
     update() {
       this.$emit('update:sshKey', clone(this.checkedSsh));
-    }
+    },
   }
 };
 </script>
 
 <template>
   <div>
-    <div>
-      <LabeledSelect
-        v-model="checkedSsh"
-        :label="t('harvester.virtualMachine.input.sshKey')"
-        :taggable="true"
-        :mode="mode"
-        :multiple="true"
-        :searchable="true"
-        :disabled="isConfig"
-        :options="sshOption"
-        @input="update"
-      />
-
-      <span v-if="!isView" class="btn btn-sm bg-primary mt-20" @click="show">
-        {{ t('harvester.virtualMachine.createSSHKey') }}
-      </span>
-    </div>
+    <LabeledSelect
+      v-model="checkedSsh"
+      :label="t('harvester.virtualMachine.input.sshKey')"
+      :taggable="true"
+      :mode="mode"
+      :multiple="true"
+      :searchable="searchable"
+      :disabled="disabled"
+      :options="sshOption"
+      @input="update"
+    />
 
     <ModalWithCard
-      ref="newSSH"
-      name="newSSH"
+      :ref="randomStr"
+      :name="randomStr"
       width="40%"
       :errors="errors"
       @finish="save"

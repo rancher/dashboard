@@ -15,24 +15,46 @@ import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { addParam } from '@/utils/url';
 import { SETTING } from '@/config/settings';
 import semver from 'semver';
-import { BY_TYPE, NORMAN as NORMAN_CLASS } from '@/plugins/steve/resource-proxy';
+import { BY_TYPE, NORMAN as NORMAN_CLASS } from '@/plugins/steve/classify';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
+import { BACK_TO } from '@/config/local-storage';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
-// becaues it's more efficient to do that sometimes.
+// because it's more efficient to do that sometimes.
 export const strict = false;
 
 export const BLANK_CLUSTER = '_';
+export const ALL = 'all';
+export const ALL_SYSTEM = 'all://system';
+export const ALL_USER = 'all://user';
+export const ALL_ORPHANS = 'all://orphans';
+export const NAMESPACED_PREFIX = 'namespaced://';
+export const NAMESPACED_YES = 'namespaced://true';
+export const NAMESPACED_NO = 'namespaced://false';
 
 export const plugins = [
   Steve({
-    namespace: 'management', baseUrl: '/v1', modelBaseClass: BY_TYPE
+    namespace:      'management',
+    baseUrl:        '/v1',
+    modelBaseClass: BY_TYPE,
+    supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
   }),
-  Steve({ namespace: 'cluster', baseUrl: '' }), // URL dynamically set for the selected cluster
   Steve({
-    namespace: 'rancher', baseUrl: '/v3', modelBaseClass: NORMAN_CLASS
+    namespace:      'cluster',
+    baseUrl:        '', // URL is dynamically set for the selected cluster
+    supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
   }),
-  Steve({ namespace: 'harvester', baseUrl: '' }),
+  Steve({
+    namespace:      'rancher',
+    baseUrl:        '/v3',
+    supportsStream: false, // The norman API doesn't support streaming
+    modelBaseClass: NORMAN_CLASS,
+  }),
+  Steve({
+    namespace:      'harvester',
+    baseUrl:        '', // URL is dynamically set for the selected cluster
+    supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
+  }),
 ];
 
 export const state = () => {
@@ -51,6 +73,7 @@ export const state = () => {
     cameFromError:       false,
     pageActions:         [],
     serverVersion:       null,
+    systemNamespaces:    []
   };
 };
 
@@ -81,6 +104,10 @@ export const getters = {
 
   pageActions(state) {
     return state.pageActions;
+  },
+
+  systemNamespaces(state) {
+    return state.systemNamespaces;
   },
 
   currentCluster(state, getters) {
@@ -159,7 +186,7 @@ export const getters = {
       return true;
     }
 
-    return state.namespaceFilters.filter(x => !`${ x }`.startsWith('namespaced://')).length === 0;
+    return state.namespaceFilters.filter(x => !`${ x }`.startsWith(NAMESPACED_PREFIX)).length === 0;
   },
 
   isMultipleNamespaces(state, getters) {
@@ -187,7 +214,7 @@ export const getters = {
   },
 
   namespaceFilters(state) {
-    const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith('namespaced://'));
+    const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
 
     return filters;
   },
@@ -201,9 +228,9 @@ export const getters = {
     }
 
     // Explicitly asking
-    if ( filters.includes('namespaced://true') ) {
+    if ( filters.includes(NAMESPACED_YES) ) {
       return NAMESPACED;
-    } else if ( filters.includes('namespaced://false') ) {
+    } else if ( filters.includes(NAMESPACED_NO) ) {
       return CLUSTER_LEVEL;
     }
 
@@ -244,11 +271,11 @@ export const getters = {
       }
 
       const namespaces = getters[`${ inStore }/all`](NAMESPACE);
-      const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith('namespaced://'));
+      const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
       const includeAll = getters.isAllNamespaces;
-      const includeSystem = filters.includes('all://system');
-      const includeUser = filters.includes('all://user');
-      const includeOrphans = filters.includes('all://orphans');
+      const includeSystem = filters.includes(ALL_SYSTEM);
+      const includeUser = filters.includes(ALL_USER);
+      const includeOrphans = filters.includes(ALL_ORPHANS);
 
       // Special cases to pull in all the user, system, or orphaned namespaces
       if ( includeAll || includeOrphans || includeSystem || includeUser ) {
@@ -436,10 +463,13 @@ export const mutations = {
     state.productId = neu;
   },
 
-  setError(state, obj) {
+  setError(state, { error: obj, locationError }) {
     const err = new ApiError(obj);
 
     console.log('Loading error', err); // eslint-disable-line no-console
+    // Location of error, with description and stack trace
+    console.log('Loading error location', locationError); // eslint-disable-line no-console
+    console.log('Loading original error', obj); // eslint-disable-line no-console
 
     state.error = err;
     state.cameFromError = true;
@@ -451,6 +481,10 @@ export const mutations = {
 
   setServerVersion(state, version) {
     state.serverVersion = version;
+  },
+
+  setSystemNamespaces(state, namespaces) {
+    state.systemNamespaces = namespaces;
   }
 };
 
@@ -521,8 +555,9 @@ export const actions = {
       isMultiCluster = false;
     }
 
-    const pl = res.settings?.find(x => x.name === 'ui-pl')?.value;
-    const brand = res.settings?.find(x => x.name === SETTING.BRAND)?.value;
+    const pl = res.settings?.find(x => x.id === 'ui-pl')?.value;
+    const brand = res.settings?.find(x => x.id === SETTING.BRAND)?.value;
+    const systemNamespaces = res.settings?.find(x => x.id === SETTING.SYSTEM_NAMESPACES);
 
     if ( pl ) {
       setVendor(pl);
@@ -530,6 +565,12 @@ export const actions = {
 
     if (brand) {
       setBrand(brand);
+    }
+
+    if (systemNamespaces) {
+      const namespace = (systemNamespaces.value || systemNamespaces.default)?.split(',');
+
+      commit('setSystemNamespaces', namespace);
     }
 
     commit('managementChanged', {
@@ -552,11 +593,15 @@ export const actions = {
     state, commit, dispatch, getters
   }, { id, oldProduct }) {
     const isMultiCluster = getters['isMultiCluster'];
-    const isRancher = getters['isRancher'];
 
-    if ( state.clusterId && state.clusterId === id && oldProduct !== VIRTUAL) {
+    if ( state.clusterId && state.clusterId === id) {
       // Do nothing, we're already connected/connecting to this cluster
       return;
+    }
+
+    if (oldProduct === VIRTUAL) {
+      await dispatch('harvester/unsubscribe');
+      commit('harvester/reset');
     }
 
     if ( state.clusterId && id ) {
@@ -595,13 +640,24 @@ export const actions = {
       return;
     }
 
+    // This is a workaround for a timing issue where the mgmt cluster schema may not be available
+    // Try and wait until the schema exists before proceeding
+    await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
+
     // See if it really exists
     try {
-      await dispatch('management/find', {
+      const cluster = await dispatch('management/find', {
         type: MANAGEMENT.CLUSTER,
         id,
         opt:  { url: `${ MANAGEMENT.CLUSTER }s/${ escape(id) }` }
       });
+
+      if (!cluster.isReady) {
+        // Treat an unready cluster the same as a missing one. This ensures that we safely take user to the home page instead of showing
+        // an error page (useful if they've set the cluster as their home page and don't want to change their landing location)
+        console.warn('Cluster is not ready, cannot load it:', cluster.nameDisplay); // eslint-disable-line no-console
+        throw new Error('Unready cluster');
+      }
     } catch {
       commit('setCluster', null);
       commit('cluster/applyConfig', { baseUrl: null });
@@ -628,8 +684,22 @@ export const actions = {
       }
     };
 
+    const fetchProjects = async() => {
+      let limit = 30000;
+      const sleep = 100;
+
+      while ( limit > 0 && !state.managementReady ) {
+        await setTimeout(() => {}, sleep);
+        limit -= sleep;
+      }
+
+      if ( getters['management/schemaFor'](MANAGEMENT.PROJECT) ) {
+        return dispatch('management/findAll', projectArgs);
+      }
+    };
+
     const res = await allHash({
-      projects:          isRancher && dispatch('management/findAll', projectArgs),
+      projects:          fetchProjects(),
       counts:            dispatch('cluster/findAll', { type: COUNT }),
       namespaces:        dispatch('cluster/findAll', { type: NAMESPACE }),
       navLinks:          !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
@@ -637,8 +707,10 @@ export const actions = {
 
     await dispatch('cleanNamespaces');
 
+    const filters = getters['prefs/get'](NAMESPACE_FILTERS)?.[id];
+
     commit('updateNamespaces', {
-      filters: getters['prefs/get'](NAMESPACE_FILTERS)?.[id] || [],
+      filters: filters || [ALL_USER],
       all:     res.namespaces
     });
 
@@ -675,11 +747,24 @@ export const actions = {
       return;
     }
 
+    if (oldProduct !== VIRTUAL) {
+      await dispatch('cluster/unsubscribe');
+      commit('cluster/reset');
+    }
+
     if ( state.clusterId && id ) {
       commit('clusterChanged', false);
 
       await dispatch('harvester/unsubscribe');
       commit('harvester/reset');
+
+      await dispatch('management/watch', {
+        type:      MANAGEMENT.PROJECT,
+        namespace: state.clusterId,
+        stop:      true
+      });
+
+      commit('management/forgetType', MANAGEMENT.PROJECT);
     }
 
     if (id) {
@@ -716,32 +801,44 @@ export const actions = {
 
     dispatch('harvester/subscribe');
 
-    await allHash({
+    let isRancher = false;
+    const projectArgs = {
+      type: MANAGEMENT.PROJECT,
+      opt:  {
+        url:            `${ MANAGEMENT.PROJECT }/${ escape(id) }`,
+        watchNamespace: id
+      }
+    };
+
+    if (getters['management/schemaFor'](MANAGEMENT.PROJECT)) {
+      isRancher = true;
+    }
+
+    const hash = {
+      projects:          isRancher && dispatch('management/findAll', projectArgs),
       virtualCount:      dispatch('harvester/findAll', { type: COUNT }),
       virtualNamespaces: dispatch('harvester/findAll', { type: NAMESPACE }),
       settings:          dispatch('harvester/findAll', { type: HCI.SETTING }),
-    });
+    };
+
+    if (getters['harvester/schemaFor'](HCI.UPGRADE)) {
+      hash.upgrades = dispatch('harvester/findAll', { type: HCI.UPGRADE });
+    }
+
+    await allHash(hash);
 
     commit('clusterChanged', true);
 
     console.log('Done loading virtual cluster.'); // eslint-disable-line no-console
   },
 
-  async resetStore({
-    state, commit, dispatch, getters
-  }, { id, store }) {
-    if ( state.clusterId && id && store) {
-      await dispatch(`${ store }/unsubscribe`);
-      commit(`${ store }/reset`);
-    }
-  },
-
   async cleanNamespaces({ getters, dispatch }) {
     // Initialise / Remove any filters that the user no-longer has access to
-    const clusters = await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+    await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }); // So they can be got byId below
+
     const filters = getters['prefs/get'](NAMESPACE_FILTERS);
 
-    if (!filters || !filters.length) {
+    if ( !filters ) {
       dispatch('prefs/set', {
         key:   NAMESPACE_FILTERS,
         value: { }
@@ -752,11 +849,11 @@ export const actions = {
 
     const cleanFilters = {};
 
-    Object.entries(filters).forEach(([clusterId, pref]) => {
-      if (clusters.find(c => c.id === clusterId)) {
-        cleanFilters[clusterId] = pref;
+    for ( const id in filters ) {
+      if ( getters['management/byId'](MANAGEMENT.CLUSTER, id) ) {
+        cleanFilters[id] = filters[id];
       }
-    });
+    }
 
     if (Object.keys(filters).length !== Object.keys(cleanFilters).length) {
       console.debug('Unknown clusters have been removed from namespace filters list (before/after)', filters, cleanFilters); // eslint-disable-line no-console
@@ -788,6 +885,17 @@ export const actions = {
     if ( route.name === 'index' ) {
       router.replace('/auth/login');
     } else {
+      if (!process.server) {
+        const backTo = window.localStorage.getItem(BACK_TO);
+
+        const isLogin = route.name === 'auth-login' || route.path === '/login'; // Cover dashboard and case of log out from ember;
+        const isLogout = route.name === 'auth-logout';
+
+        if (!backTo && !isLogin && !isLogout) {
+          window.localStorage.setItem(BACK_TO, window.location.href);
+        }
+      }
+
       const QUERY = (LOGGED_OUT in route.query) ? LOGGED_OUT : TIMED_OUT;
 
       router.replace(`/auth/login?${ QUERY }`);
@@ -819,7 +927,8 @@ export const actions = {
   },
 
   loadingError({ commit, state }, err) {
-    commit('setError', err);
+    commit('setError', { error: err, locationError: new Error('loadingError') });
+
     const router = state.$router;
 
     router.replace('/fail-whale');

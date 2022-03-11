@@ -10,6 +10,7 @@ import ButtonGroup from '@/components/ButtonGroup';
 import { mapPref, THEME } from '@/store/prefs';
 import { ucFirst } from '@/utils/string';
 import ToggleSwitch from '@/components/form/ToggleSwitch';
+import GrowlManager from '@/components/GrowlManager';
 
 export default {
   layout:     'unauthenticated',
@@ -23,6 +24,7 @@ export default {
     SecretSelector,
     InputWithSelect,
     ToggleSwitch,
+    GrowlManager,
   },
 
   data() {
@@ -57,11 +59,37 @@ export default {
         };
       });
     },
+  },
+
+  methods: {
+    growl(type) {
+      this.$store.dispatch(`growl/${ type }`, {
+        title:   'Test',
+        message: 'Test Message'
+      }, { root: true });
+    }
   }
 };
 </script>
 <template>
   <div>
+    <h2 class="m-20">
+      Growl Tests
+    </h2>
+    <div class="m-20">
+      <Button class="btn role-primary" @click="growl('info')">
+        Info
+      </Button>
+      <Button class="btn role-primary" @click="growl('success')">
+        Success
+      </Button>
+      <Button class="btn role-primary" @click="growl('error')">
+        Error
+      </Button>
+      <Button class="btn role-primary" @click="growl('warning')">
+        Warning
+      </Button>
+    </div>
     <div class="m-20">
       <ButtonGroup v-model="mode" :options="[{label: 'Edit', value: 'edit'},{label: 'View', value: 'view'}]" class="mr-20" />
       <ButtonGroup v-model="tooltip" :options="[{label: 'No Tooltip', value: ''},{label: 'Yes Tooltip', value: 'hello world'}]" class="mr-20" />
@@ -254,8 +282,6 @@ export default {
     <div class="m-20">
       <ToggleSwitch :value="ts" :labels="['RKE', 'RKE2']" />
     </div>
+    <GrowlManager />
   </div>
 </template>
-
-<style lang='scss' scoped>
-</style>

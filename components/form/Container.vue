@@ -88,7 +88,7 @@ export default {
           <LabeledInput
             v-model="value.image"
             :label="t('workload.container.image')"
-            placeholder="e.g. nginx:latest"
+            :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
             required
             :mode="mode"
           />

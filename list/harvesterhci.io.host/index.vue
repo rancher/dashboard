@@ -2,7 +2,9 @@
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
 import { STATE, NAME, AGE } from '@/config/table-headers';
-import { METRIC, NODE, SCHEMA, HCI } from '@/config/types';
+import {
+  METRIC, NODE, SCHEMA, HCI, LONGHORN, POD
+} from '@/config/types';
 import { allHash } from '@/utils/promise';
 import metricPoller from '@/mixins/metric-poller';
 import CopyToClipboard from '@/components/CopyToClipboard';
@@ -18,33 +20,55 @@ const schema = {
 };
 
 export default {
-  name:       'HarvesterListHost',
+  name: 'HarvesterListHost',
+
   components: {
-    CopyToClipboard, ResourceTable, Loading
+    CopyToClipboard,
+    ResourceTable,
+    Loading,
   },
+
   mixins: [metricPoller],
 
   async fetch() {
-    const hash = await allHash({
-      nodes:      this.$store.dispatch('harvester/findAll', { type: NODE }),
-      metric:   this.$store.dispatch('harvester/findAll', { type: METRIC.NODE }),
-    });
+    const _hash = {
+      nodes:         this.$store.dispatch('harvester/findAll', { type: NODE }),
+      pods:          this.$store.dispatch('harvester/findAll', { type: POD }),
+    };
+
+    if (this.$store.getters['harvester/schemaFor'](METRIC.NODE)) {
+      _hash.metric = this.$store.dispatch('harvester/findAll', { type: METRIC.NODE });
+    } else {
+      this.hasMetricSchema = false;
+    }
+
+    if (this.$store.getters['harvester/schemaFor'](LONGHORN.NODES)) {
+      _hash.longhornNodes = this.$store.dispatch('harvester/findAll', { type: LONGHORN.NODES });
+    }
+
+    if (this.$store.getters['harvester/schemaFor'](HCI.BLOCK_DEVICE)) {
+      _hash.blockDevices = this.$store.dispatch('harvester/findAll', { type: HCI.BLOCK_DEVICE });
+    }
+
+    const hash = await allHash(_hash);
 
     this.rows = hash.nodes;
   },
 
   data() {
-    return { rows: [] };
+    return {
+      rows:            [],
+      hasMetricSchema: true
+    };
   },
 
   computed: {
     headers() {
-      return [
+      const out = [
         STATE,
         {
           ...NAME,
-          width:         300,
-          formatter:     'HarvesterHostName',
+          formatter: 'HarvesterHostName',
         },
         {
           name:      'host-ip',
@@ -53,28 +77,45 @@ export default {
           value:     'internalIp',
         },
         {
-          name:          'cpu',
-          labelKey:      'node.detail.glance.consumptionGauge.cpu',
-          value:         'id',
-          width:         230,
-          formatter:     'HarvesterCPUUsed',
+          name:          'diskState',
+          labelKey:      'tableHeaders.diskState',
+          value:         'diskState',
+          formatter:     'HarvesterDiskState',
+          width:         130,
         },
-        {
-          name:          'memory',
-          labelKey:      'node.detail.glance.consumptionGauge.memory',
-          value:         'id',
-          width:         230,
-          formatter:     'HarvesterMemoryUsed',
-        },
-        {
-          name:          'storage',
-          labelKey:      'tableHeaders.storage',
-          value:         'id',
-          width:         230,
-          formatter:     'HarvesterStorageUsed',
-        },
-        AGE,
       ];
+
+      if (this.hasMetricSchema) {
+        const metricCol = [
+          {
+            name:          'cpu',
+            labelKey:      'node.detail.glance.consumptionGauge.cpu',
+            value:         'id',
+            width:         '230',
+            formatter:     'HarvesterCPUUsed',
+          },
+          {
+            name:          'memory',
+            labelKey:      'node.detail.glance.consumptionGauge.memory',
+            value:         'id',
+            width:         '230',
+            formatter:     'HarvesterMemoryUsed'
+          },
+          {
+            name:          'storage',
+            labelKey:      'tableHeaders.storage',
+            value:         'id',
+            width:         '230',
+            formatter:     'HarvesterStorageUsed',
+          }
+        ];
+
+        out.splice(-1, 0, ...metricCol);
+      }
+
+      out.push(AGE);
+
+      return out;
     },
 
     schema() {

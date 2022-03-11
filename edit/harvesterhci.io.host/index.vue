@@ -20,7 +20,11 @@ import { matchesSomeRegex } from '@/utils/string';
 import { clone } from '@/utils/object';
 import { exceptionToErrorsArray } from '@/utils/error';
 import KeyValue from '@/components/form/KeyValue';
+import { sortBy } from '@/utils/sort';
+import Banner from '@/components/Banner';
 import HarvesterDisk from './HarvesterDisk';
+
+const LONGHORN_SYSTEM = 'longhorn-system';
 
 export default {
   name:       'HarvesterEditNode',
@@ -36,6 +40,7 @@ export default {
     HarvesterDisk,
     ButtonDropdown,
     KeyValue,
+    Banner,
   },
   mixins: [CreateEditView],
   props:  {
@@ -73,12 +78,13 @@ export default {
     })
       .map((d) => {
         return {
-          isNew:       true,
-          name:        d?.metadata?.name,
-          originPath:  d?.spec?.fileSystem?.mountPoint,
-          path:        d?.spec?.fileSystem?.mountPoint,
-          blockDevice: d,
-          displayName: d?.spec?.devPath,
+          isNew:          true,
+          name:           d?.metadata?.name,
+          originPath:     d?.spec?.fileSystem?.mountPoint,
+          path:           d?.spec?.fileSystem?.mountPoint,
+          blockDevice:    d,
+          displayName:    d?.spec?.devPath,
+          forceFormatted: d?.spec?.fileSystem?.forceFormatted || false,
         };
       });
 
@@ -86,6 +92,7 @@ export default {
 
     this.disks = disks;
     this.newDisks = clone(disks);
+    this.blockDeviceOpts = this.getBlockDeviceOpts();
   },
   data() {
     const customName = this.value.metadata?.annotations?.[HCI_LABELS_ANNOTATIONS.HOST_CUSTOM_NAME] || '';
@@ -102,51 +109,26 @@ export default {
       newDisks:             [],
       blockDevice:          [],
       dismountBlockDevices: {},
+      blockDeviceOpts:      [],
     };
   },
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     nicsOptions() {
-      return this.nics.map( (N) => {
-        const isRecommended = N.usedByManagementNetwork ? `(${ this.$store.getters['i18n/t']('harvester.host.detail.notRecommended') })` : '';
+      return this.nics.filter((N) => {
+        return !(N.masterIndex !== undefined && N.usedByVlanNetwork === undefined);
+      })
+        .map( (N) => {
+          const isRecommended = N.usedByManagementNetwork ? `(${ this.$store.getters['i18n/t']('harvester.host.detail.notRecommended') })` : '';
 
-        const label = `${ N.name }(${ N.state })   ${ isRecommended }`;
+          const label = `${ N.name }(${ N.type }, ${ N.state })   ${ isRecommended }`;
 
-        return {
-          value:                   N.name,
-          label,
-          state:                   N.state,
-          usedByManagementNetwork: N.usedByManagementNetwork,
-        };
-      });
-    },
-    blockDeviceOpts() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
-      const blockDevices = this.$store.getters[`${ inStore }/all`](HCI.BLOCK_DEVICE);
-
-      return blockDevices
-        .filter((d) => {
-          const addedToNodeCondition = findBy(d?.status?.conditions || [], 'type', 'AddedToNode');
-          const isAdded = findBy(this.newDisks, 'name', d.metadata.name);
-          const isRemoved = findBy(this.removedDisks, 'name', d.metadata.name);
-
-          if ((!findBy(this.disks || [], 'name', d.metadata.name) &&
-                d?.spec?.nodeName === this.value.id &&
-                (!addedToNodeCondition || addedToNodeCondition?.status === 'False') &&
-                !d.spec?.fileSystem?.provisioned &&
-                !isAdded) ||
-                isRemoved
-          ) {
-            return true;
-          } else {
-            return false;
-          }
-        })
-        .map((d) => {
           return {
-            label:  d.spec?.devPath,
-            value:  d.id,
-            action: this.addDisk,
+            value:                   N.name,
+            label,
+            state:                   N.state,
+            type:                    N.type,
+            usedByManagementNetwork: N.usedByManagementNetwork,
           };
         });
     },
@@ -159,9 +141,9 @@ export default {
     },
     longhornDisks() {
       const inStore = this.$store.getters['currentProduct'].inStore;
-      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.value.id }`);
+      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `${ LONGHORN_SYSTEM }/${ this.value.id }`);
       const diskStatus = longhornNode?.status?.diskStatus || {};
-      const diskSpec = longhornNode.spec?.disks || {};
+      const diskSpec = longhornNode?.spec?.disks || {};
 
       const formatOptions = {
         increment:    1024,
@@ -172,7 +154,7 @@ export default {
       };
 
       const longhornDisks = Object.keys(diskStatus).map((key) => {
-        const blockDevice = this.$store.getters[`${ inStore }/byId`](HCI.BLOCK_DEVICE, `longhorn-system/${ key }`);
+        const blockDevice = this.$store.getters[`${ inStore }/byId`](HCI.BLOCK_DEVICE, `${ LONGHORN_SYSTEM }/${ key }`);
 
         return {
           ...diskStatus[key],
@@ -185,11 +167,31 @@ export default {
           storageScheduled: formatSi(diskStatus[key]?.storageScheduled, formatOptions),
           blockDevice,
           displayName:      blockDevice?.spec?.devPath || key,
+          forceFormatted:   blockDevice?.spec?.fileSystem?.forceFormatted || false,
         };
       });
 
       return longhornDisks;
     },
+
+    showFormattedWarning() {
+      const out = this.newDisks.filter(d => d.forceFormatted && d.isNew) || [];
+
+      return out.length > 0;
+    },
+
+    hasHostNetworksSchema() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return !!this.$store.getters[`${ inStore }/schemaFor`](HCI.NODE_NETWORK);
+    },
+
+    hasBlockDevicesSchema() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return !!this.$store.getters[`${ inStore }/schemaFor`](HCI.BLOCK_DEVICE);
+    },
+
   },
   watch: {
     customName(neu) {
@@ -198,6 +200,10 @@ export default {
 
     consoleUrl(neu) {
       this.value.setAnnotation(HCI_LABELS_ANNOTATIONS.HOST_CONSOLE_URL, neu);
+    },
+
+    newDisks() {
+      this.blockDeviceOpts = this.getBlockDeviceOpts();
     },
   },
 
@@ -226,10 +232,23 @@ export default {
 
       const inStore = this.$store.getters['currentProduct'].inStore;
       const disk = this.$store.getters[`${ inStore }/byId`](HCI.BLOCK_DEVICE, id);
+      const mountPoint = disk?.spec?.fileSystem?.mountPoint;
+      const lastFormattedAt = disk?.status?.deviceStatus?.fileSystem?.LastFormattedAt;
+
+      let forceFormatted = true;
+      const systems = ['ext4', 'XFS'];
+
+      if (lastFormattedAt) {
+        forceFormatted = false;
+      } else if (systems.includes(disk?.status?.deviceStatus?.fileSystem?.type)) {
+        forceFormatted = false;
+      }
+
+      const name = disk?.metadata?.name;
 
       this.newDisks.push({
-        name:              disk?.metadata?.name,
-        path:              disk?.spec?.fileSystem?.mountPoint,
+        name,
+        path:              mountPoint || `/var/lib/harvester/extra-disks/${ name }`,
         allowScheduling:   false,
         evictionRequested: false,
         storageReserved:   0,
@@ -237,6 +256,7 @@ export default {
         originPath:        disk?.spec?.fileSystem?.mountPoint,
         blockDevice:       disk,
         displayName:       disk?.spec?.devPath,
+        forceFormatted,
       });
     },
     async saveDisk() {
@@ -264,22 +284,28 @@ export default {
 
       try {
         await Promise.all(addDisks.map((d) => {
-          const blockDevice = this.$store.getters[`${ inStore }/byId`](HCI.BLOCK_DEVICE, `longhorn-system/${ d.name }`);
+          const blockDevice = this.$store.getters[`${ inStore }/byId`](HCI.BLOCK_DEVICE, `${ LONGHORN_SYSTEM }/${ d.name }`);
 
           blockDevice.spec.fileSystem.provisioned = true;
           blockDevice.spec.fileSystem.mountPoint = d.path;
+          blockDevice.spec.fileSystem.forceFormatted = d.forceFormatted;
 
           return blockDevice.save();
         }));
 
         await Promise.all(removeDisks.map((d) => {
-          const blockDevice = this.$store.getters[`${ inStore }/byId`](HCI.BLOCK_DEVICE, `longhorn-system/${ d.name }`);
+          const blockDevice = this.$store.getters[`${ inStore }/byId`](HCI.BLOCK_DEVICE, `${ LONGHORN_SYSTEM }/${ d.name }`);
 
           blockDevice.spec.fileSystem.provisioned = false;
           blockDevice.spec.fileSystem.mountPoint = this.dismountBlockDevices[blockDevice.id];
 
           return blockDevice.save();
         }));
+
+        this.$store.dispatch('growl/success', {
+          title:   this.t('harvester.notification.title.succeed'),
+          message: this.t('harvester.host.disk.notification.success', { name: this.value.metadata?.name || '' }),
+        }, { root: true });
       } catch (err) {
         return Promise.reject(exceptionToErrorsArray(err));
       }
@@ -313,6 +339,72 @@ export default {
         ...wasIgnored, ...wasFiltered, ...val
       });
     },
+    selectable(opt) {
+      if ( opt.disabled) {
+        return false;
+      }
+
+      return true;
+    },
+    getBlockDeviceOpts() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const blockDevices = this.$store.getters[`${ inStore }/all`](HCI.BLOCK_DEVICE);
+
+      const out = blockDevices
+        .filter((d) => {
+          const addedToNodeCondition = findBy(d?.status?.conditions || [], 'type', 'AddedToNode');
+          const isAdded = findBy(this.newDisks, 'name', d.metadata.name);
+          const isRemoved = findBy(this.removedDisks, 'name', d.metadata.name);
+
+          const deviceType = d.status?.deviceStatus?.details?.deviceType;
+
+          if (deviceType !== 'disk') {
+            return false;
+          }
+
+          if ((!findBy(this.disks || [], 'name', d.metadata.name) &&
+                d?.spec?.nodeName === this.value.id &&
+                (!addedToNodeCondition || addedToNodeCondition?.status === 'False') &&
+                !d.spec?.fileSystem?.provisioned &&
+                !isAdded) ||
+                isRemoved
+          ) {
+            return true;
+          } else {
+            return false;
+          }
+        })
+        .map((d) => {
+          const devPath = d.spec?.devPath;
+          const deviceType = d.status?.deviceStatus?.details?.deviceType;
+          const sizeBytes = d.status?.deviceStatus?.capacity?.sizeBytes;
+          const size = formatSi(sizeBytes, { increment: 1024 });
+          const parentDevice = d.status?.deviceStatus?.parentDevice;
+          const isChildAdded = this.newDisks.find(newDisk => newDisk.blockDevice?.status?.deviceStatus?.parentDevice === devPath);
+
+          let label = `${ devPath } (Type: ${ deviceType }, Size: ${ size })`;
+
+          if (parentDevice) {
+            label = `- ${ label }`;
+          }
+
+          return {
+            label,
+            value:    d.id,
+            action:   this.addDisk,
+            kind:     !parentDevice ? 'group' : '',
+            disabled: !!((d.childParts.length > 0 && d.isChildPartProvisioned) || isChildAdded),
+            group:    parentDevice || devPath,
+            isParent: !!parentDevice,
+          };
+        });
+
+      return sortBy(out, ['group', 'isParent', 'label']);
+    },
+
+    ddButtonAction() {
+      this.blockDeviceOpts = this.getBlockDeviceOpts();
+    },
   },
 };
 </script>
@@ -339,7 +431,7 @@ export default {
           :mode="mode"
         />
       </Tab>
-      <Tab name="network" :weight="90" :label="t('harvester.host.tabs.network')">
+      <Tab v-if="hasHostNetworksSchema" name="network" :weight="90" :label="t('harvester.host.tabs.network')">
         <InfoBox class="wrapper">
           <div class="row warpper">
             <div class="col span-6">
@@ -364,7 +456,7 @@ export default {
                 <template v-slot:option="option">
                   <template>
                     <div class="nicOption">
-                      <span>{{ option.value }}({{ option.state }}) </span> <span class="pull-right">{{ option.usedByManagementNetwork ? t('harvester.host.detail.notRecommended') : '' }}</span>
+                      <span>{{ option.value }}({{ option.type }}, {{ option.state }}) </span> <span class="pull-right">{{ option.usedByManagementNetwork ? t('harvester.host.detail.notRecommended') : '' }}</span>
                     </div>
                   </template>
                 </template>
@@ -374,6 +466,7 @@ export default {
         </InfoBox>
       </Tab>
       <Tab
+        v-if="hasBlockDevicesSchema"
         name="disk"
         :weight="80"
         :label="t('harvester.host.tabs.disk')"
@@ -396,8 +489,21 @@ export default {
               :button-label="t('harvester.host.disk.add')"
               :dropdown-options="blockDeviceOpts"
               size="sm"
+              :selectable="selectable"
               @click-action="e=>addDisk(e.value)"
-            />
+              @dd-button-action="ddButtonAction"
+            >
+              <template #option="option">
+                <template v-if="option.kind === 'group'">
+                  <b>
+                    {{ option.label }}
+                  </b>
+                </template>
+                <div v-else>
+                  {{ option.label }}
+                </div>
+              </template>
+            </ButtonDropdown>
           </template>
           <template #remove-button="scope">
             <button
@@ -425,6 +531,11 @@ export default {
         />
       </Tab>
     </Tabbed>
+    <Banner
+      v-if="showFormattedWarning"
+      color="warning"
+      :label="t('harvester.host.disk.forceFormatted.toolTip')"
+    />
     <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
   </div>
 </template>

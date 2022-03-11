@@ -5,10 +5,11 @@ import {
   AS, MODE, _VIEW, _CONFIG, _UNFLAG, _EDIT
 } from '@/config/query-params';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  availableActions() {
-    let out = this._standardActions;
+export default class HciVmTemplateVersion extends SteveModel {
+  get availableActions() {
+    let out = super._availableActions;
     const toFilter = ['goToClone', 'cloneYaml', 'goToViewConfig', 'goToEditYaml', 'goToViewYaml'];
 
     out = out.filter((action) => {
@@ -17,19 +18,29 @@ export default {
       }
     });
 
+    const schema = this.$getters['schemaFor'](HCI.VM);
+    let canCreateVM = true;
+
+    if ( schema && !schema?.collectionMethods.find(x => ['post'].includes(x.toLowerCase())) ) {
+      canCreateVM = false;
+    }
+
     return [
       {
         action:     'launchFromTemplate',
-        icon:       'icon plus',
+        icon:       'icon icon-spinner',
+        enabled:    canCreateVM,
         label:      this.t('harvester.action.launchFormTemplate'),
       },
       {
         action:     'cloneTemplate',
+        enabled:    this.currentTemplate?.canCreate,
         icon:       'icon icon-fw icon-edit',
         label:      this.t('harvester.action.modifyTemplate'),
       },
       {
         action:     'setDefaultVersion',
+        enabled:    this.currentTemplate?.canCreate,
         icon:       'icon icon-fw icon-checkmark',
         label:      this.t('harvester.action.setDefaultVersion'),
       },
@@ -40,154 +51,142 @@ export default {
       },
       ...out
     ];
-  },
+  }
 
   applyDefaults() {
-    return () => {
-      const spec = {
-        vm: {
-          metadata: { annotations: { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: '[]' } },
-          spec:     {
-            running:              true,
-            template:             {
-              metadata: { annotations: {} },
-              spec:     {
-                domain: {
-                  machine: { type: '' },
-                  cpu:     {
-                    cores:   null,
-                    sockets: 1,
-                    threads: 1
-                  },
-                  devices: {
-                    inputs: [{
-                      bus:  'usb',
-                      name: 'tablet',
-                      type: 'tablet'
-                    }],
-                    interfaces: [{
-                      masquerade: {},
-                      model:      'virtio',
-                      name:       'default'
-                    }],
-                    disks: [],
-                  },
-                  resources: {
-                    requests: {
-                      memory: null,
-                      cpu:    ''
-                    },
-                    limits: {
-                      memory: null,
-                      cpu:    ''
-                    }
+    const spec = {
+      vm: {
+        metadata: { annotations: { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: '[]' } },
+        spec:     {
+          running:              true,
+          template:             {
+            metadata: { annotations: {} },
+            spec:     {
+              domain: {
+                machine: { type: '' },
+                cpu:     {
+                  cores:   null,
+                  sockets: 1,
+                  threads: 1
+                },
+                devices: {
+                  inputs: [{
+                    bus:  'usb',
+                    name: 'tablet',
+                    type: 'tablet'
+                  }],
+                  interfaces: [{
+                    masquerade: {},
+                    model:      'virtio',
+                    name:       'default'
+                  }],
+                  disks: [],
+                },
+                resources: {
+                  limits: {
+                    memory: null,
+                    cpu:    ''
                   }
                 },
-                hostname: '',
-                networks: [{
-                  name: 'default',
-                  pod:  {}
-                }],
-                volumes: []
-              }
+                features: { smm: { enabled: false } },
+                firmware: { bootloader: { efi: { secureBoot: false } } },
+              },
+              hostname: '',
+              networks: [{
+                name: 'default',
+                pod:  {}
+              }],
+              volumes: []
             }
           }
         }
-      };
-
-      Vue.set(this, 'spec', spec);
+      }
     };
-  },
 
-  template() {
+    Vue.set(this, 'spec', spec);
+  }
+
+  get template() {
     return this.$rootGetters['harvester/all'](HCI.VM_TEMPLATE).find((T) => {
       return T.id === this.spec.templateId;
     });
-  },
+  }
 
-  version() {
+  get version() {
     return this?.status?.version;
-  },
+  }
 
-  templates() {
+  get templates() {
     return this.$rootGetters['harvester/all'](HCI.VM_TEMPLATE);
-  },
+  }
 
-  machineType() {
+  get machineType() {
     return this.vm?.spec?.template?.spec?.domain?.machine?.type || '';
-  },
+  }
 
-  templateId() {
+  get templateId() {
     return this.spec.templateId;
-  },
+  }
 
   launchFromTemplate() {
-    return () => {
-      const templateResource = this.currentTemplate;
-      const templateId = templateResource.id;
-      const launchVersion = this.id;
-      const router = this.currentRouter();
+    const templateResource = this.currentTemplate;
+    const templateId = templateResource.id;
+    const launchVersion = this.id;
+    const router = this.currentRouter();
 
-      router.push({
-        name:   `c-cluster-product-resource-create`,
-        params: { resource: HCI.VM },
-        query:  { templateId, versionId: launchVersion }
-      });
+    router.push({
+      name:   `c-cluster-product-resource-create`,
+      params: { resource: HCI.VM },
+      query:  { templateId, versionId: launchVersion }
+    });
+  }
+
+  cloneTemplate(moreQuery = {}) {
+    const location = this.detailLocation;
+
+    location.query = {
+      ...location.query,
+      [MODE]: _EDIT,
+      [AS]:   _UNFLAG,
+      ...moreQuery
     };
-  },
 
-  cloneTemplate() {
-    return (moreQuery = {}) => {
-      const location = this.detailLocation;
+    this.currentRouter().push(location);
+  }
 
-      location.query = {
-        ...location.query,
-        [MODE]: _EDIT,
-        [AS]:   _UNFLAG,
-        ...moreQuery
-      };
+  goToViewConfig(moreQuery = {}) {
+    const location = this.detailLocation;
 
-      this.currentRouter().push(location);
+    location.query = {
+      ...location.query,
+      [MODE]:     _VIEW,
+      [AS]:       _CONFIG,
+      templateId: this.templateId,
+      ...moreQuery
     };
-  },
 
-  goToViewConfig() {
-    return (moreQuery = {}) => {
-      const location = this.detailLocation;
+    this.currentRouter().push(location);
+  }
 
-      location.query = {
-        ...location.query,
-        [MODE]:     _VIEW,
-        [AS]:       _CONFIG,
-        templateId: this.templateId,
-        ...moreQuery
-      };
-
-      this.currentRouter().push(location);
-    };
-  },
-
-  currentTemplate() {
+  get currentTemplate() {
     return find(this.templates, T => T.id === this.templateId);
-  },
+  }
 
-  setDefaultVersion() {
-    return async(moreQuery = {}) => {
-      const templateResource = this.currentTemplate;
+  async setDefaultVersion(moreQuery = {}) {
+    const templateResource = this.currentTemplate;
 
-      templateResource.spec.defaultVersionId = this.id;
-      await templateResource.save();
-    };
-  },
+    templateResource.spec.defaultVersionId = this.id;
+    await templateResource.save();
+  }
 
-  defaultVersion() {
+  get defaultVersion() {
     const templates = this.$rootGetters['harvester/all'](HCI.VM_TEMPLATE);
     const template = templates.find(T => this.templateId === T.id);
 
     return template?.status?.defaultVersion;
-  },
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     const rules = [
       // {
       //   nullable:       false,
@@ -216,5 +215,5 @@ export default {
     ];
 
     return rules;
-  },
-};
+  }
+}

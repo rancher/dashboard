@@ -66,7 +66,7 @@ export default {
           type="multiline"
           :label="t('secret.certificate.privateKey')"
           :mode="mode"
-          placeholder="Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----"
+          :placeholder="t('secret.certificate.privateKeyPlaceholder')"
         />
         <FileSelector class="btn bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onKeySelected" />
       </div>
@@ -77,7 +77,7 @@ export default {
           type="multiline"
           :label="t('secret.certificate.certificate')"
           :mode="mode"
-          placeholder="Paste in the CA certificate, starting with -----BEGIN CERTIFICATE----"
+          :placeholder="t('secret.certificate.certificatePlaceholder')"
         />
         <FileSelector class="btn bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onCrtSelected" />
       </div>

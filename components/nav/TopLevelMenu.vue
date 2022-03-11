@@ -1,6 +1,6 @@
 <script>
 import BrandImage from '@/components/BrandImage';
-import RancherProviderIcon from '@/components/RancherProviderIcon';
+import ClusterProviderIcon from '@/components/ClusterProviderIcon';
 import { mapGetters } from 'vuex';
 import $ from 'jquery';
 import { MANAGEMENT } from '@/config/types';
@@ -19,7 +19,7 @@ const UI_COMMIT = process.env.COMMIT || UNKNOWN;
 
 export default {
 
-  components: { BrandImage, RancherProviderIcon },
+  components: { BrandImage, ClusterProviderIcon },
 
   data() {
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
@@ -61,12 +61,13 @@ export default {
 
       return kubeClusters.map((x) => {
         return {
-          id:      x.id,
-          label:   x.nameDisplay,
-          ready:   x.isReady,
-          osLogo:  x.providerOsLogo,
-          logo:    x.providerMenuLogo,
-          isLocal: x.isLocal
+          id:              x.id,
+          label:           x.nameDisplay,
+          ready:           x.isReady,
+          osLogo:          x.providerOsLogo,
+          providerNavLogo: x.providerMenuLogo,
+          badge:           x.badge,
+          isLocal:         x.isLocal
         };
       });
     },
@@ -165,7 +166,7 @@ export default {
   },
 
   methods: {
-    // Cluster list number of items shown is configurbale via user preference
+    // Cluster list number of items shown is configurable via user preference
     setClusterListHeight(maxToShow) {
       const el = this.$refs.clusterList;
       const max = Math.min(maxToShow, this.clusters.length);
@@ -202,7 +203,7 @@ export default {
 </script>
 <template>
   <div>
-    <div class="menu" :class="{'raised': shown}" @click="toggle()">
+    <div class="menu" :class="{'raised': shown, 'unraised':!shown}" @click="toggle()">
       <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none" /><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" /></svg>
     </div>
     <div v-if="shown" class="side-menu-glass" @click="hide()"></div>
@@ -245,13 +246,14 @@ export default {
                   class="cluster selector option"
                   :to="{ name: 'c-cluster', params: { cluster: c.id } }"
                 >
-                  <RancherProviderIcon v-if="c.isLocal" width="24" class="rancher-provider-icon" />
-                  <img v-else :src="c.logo" />
-                  <div>{{ c.label }}</div>
+                  <ClusterProviderIcon :small="true" :cluster="c" class="rancher-provider-icon mr-10" />
+                  <div class="cluster-name">
+                    {{ c.label }}
+                  </div>
                 </nuxt-link>
                 <span v-else class="option-disabled cluster selector disabled">
-                  <img :src="c.logo" />
-                  <div>{{ c.label }}</div>
+                  <ClusterProviderIcon :small="true" :cluster="c" class="rancher-provider-icon mr-10" />
+                  <div class="cluster-name">{{ c.label }}</div>
                 </span>
               </div>
               <div v-if="clustersFiltered.length === 0" class="none-matching">
@@ -373,7 +375,6 @@ export default {
         fill: var(--link);
       }
     }
-
   }
 
   .localeSelector {
@@ -538,11 +539,14 @@ export default {
         align-items: center;
         display: flex;
         height: $option-height;
+
+        white-space: nowrap;
         &:focus {
           outline: 0;
         }
         .cluster-name {
-          font-size: 16px;
+          text-overflow: ellipsis;
+          overflow: hidden;
         }
         > img {
           max-height: $icon-size;
@@ -576,7 +580,7 @@ export default {
       }
 
       .clusters {
-        overflow-y: scroll;
+        overflow-y: auto;
         overflow-x: hidden;
       }
 

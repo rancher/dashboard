@@ -2,21 +2,22 @@
 import draggable from 'vuedraggable';
 import InfoBox from '@/components/InfoBox';
 import Banner from '@/components/Banner';
+import BadgeStateFormatter from '@/components/formatter/BadgeStateFormatter';
 import UnitInput from '@/components/form/UnitInput';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import ModalWithCard from '@/components/ModalWithCard';
 
-import { PVC } from '@/config/types';
+import { PVC, HCI } from '@/config/types';
 import { clone } from '@/utils/object';
 import { removeObject } from '@/utils/array';
 import { randomStr } from '@/utils/string';
-import { SOURCE_TYPE, InterfaceOption } from '@/config/harvester-map';
+import { SOURCE_TYPE } from '@/config/harvester-map';
 import { _VIEW, _EDIT, _CREATE } from '@/config/query-params';
 
 export default {
   components: {
-    Banner, draggable, InfoBox, LabeledInput, UnitInput, LabeledSelect, ModalWithCard
+    Banner, BadgeStateFormatter, draggable, InfoBox, LabeledInput, UnitInput, LabeledSelect, ModalWithCard
   },
 
   props: {
@@ -29,7 +30,7 @@ export default {
 
     mode: {
       type:    String,
-      default: 'create'
+      default: _CREATE
     },
 
     value: {
@@ -49,6 +50,11 @@ export default {
       default: false
     },
 
+    validateRequired: {
+      type:    Boolean,
+      default: false
+    },
+
     customVolumeMode: {
       type:    String,
       default: 'Block'
@@ -58,6 +64,11 @@ export default {
       type:    String,
       default: 'ReadWriteMany'
     },
+
+    resourceType: {
+      type:    String,
+      default: ''
+    }
   },
 
   async fetch() {
@@ -74,6 +85,10 @@ export default {
   },
 
   computed: {
+    isVirtualType() {
+      return this.resourceType === HCI.VM;
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -86,30 +101,18 @@ export default {
       return this.mode === _CREATE;
     },
 
-    typeOption() {
-      return [{
-        label: 'disk',
-        value: 'disk'
-      }, {
-        label: 'cd-rom',
-        value: 'cd-rom'
-      }];
-    },
-
-    InterfaceOption() {
-      return InterfaceOption;
-    },
-
     showVolumeTip() {
-      if (this.rows.length === 1 && this.rows[0].type === 'cd-rom' && /.iso$/.test(this.rows[0].image)) {
+      const imageName = this.getImageDisplayName(this.rows[0]?.image);
+
+      if (this.rows.length === 1 && this.rows[0].type === 'cd-rom' && /.iso$/i.test(imageName)) {
         return true;
       }
 
       return false;
     },
 
-    needRootDisk() {
-      return this.rows?.[0]?.source !== SOURCE_TYPE.IMAGE && this.rows?.[0]?.source !== SOURCE_TYPE.ATTACH_VOLUME;
+    pvcs() {
+      return this.$store.getters['harvester/all'](PVC) || [];
     },
   },
 
@@ -122,18 +125,20 @@ export default {
               name:   'c-cluster-product-resource-namespace-id',
               params: {
                 product:   'harvester',
-                resource:  'volume',
+                resource:  HCI.VOLUME,
                 namespace: this.namespace,
                 id:        V.realName
               },
               query: { mode: _EDIT }
             };
+
+            V.pvc = this.pvcs.find(pvc => pvc.metadata.name === V.realName);
           }
 
           return V;
         });
 
-        this.rows = rows;
+        this.$set(this, 'rows', rows);
       },
       deep:      true,
       immediate: true,
@@ -142,7 +147,7 @@ export default {
 
   methods: {
     addVolume(type) {
-      const name = this.getName();
+      const name = this.generateName();
       const neu = {
         id:          randomStr(5),
         name,
@@ -160,7 +165,7 @@ export default {
       this.update();
     },
 
-    getName() {
+    generateName() {
       let name = '';
       let hasName = true;
 
@@ -175,12 +180,16 @@ export default {
 
     removeVolume(vol) {
       this.vol = vol;
-      if (!vol.newCreateId && this.isEdit) { // if volume has been created, There is a prompt when deleting
+      if (!vol.newCreateId && this.isEdit && this.isVirtualType) {
         this.$refs.deleteTip.open();
       } else {
         removeObject(this.rows, vol);
         this.update();
       }
+    },
+
+    unplugVolume(volume) {
+      this.vm.unplugVolume(volume.name);
     },
 
     componentFor(type) {
@@ -198,10 +207,10 @@ export default {
 
     headerFor(type) {
       return {
-        'New': this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.volume'), // eslint-disable-line
-        'VM Image':        this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.vmImage'),
-        'Existing Volume': this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.existingVolume'),
-        'Container': this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.container'), // eslint-disable-line
+        [SOURCE_TYPE.NEW]:           this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.volume'),
+        [SOURCE_TYPE.IMAGE]:         this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.vmImage'),
+        [SOURCE_TYPE.ATTACH_VOLUME]: this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.existingVolume'),
+        [SOURCE_TYPE.CONTAINER]:     this.$store.getters['i18n/t']('harvester.virtualMachine.volume.title.container'),
       }[type];
     },
 
@@ -223,6 +232,10 @@ export default {
       // true: down, false: up
       this.rows.splice(type ? idx : idx - 1, 1, ...this.rows.splice(type ? idx + 1 : idx, 1, this.rows[type ? idx : idx - 1]));
       this.update();
+    },
+
+    getImageDisplayName(id) {
+      return this.$store.getters['harvester/all'](HCI.IMAGE).find(image => image.id === id)?.spec?.displayName;
     }
   },
 };
@@ -231,17 +244,24 @@ export default {
 <template>
   <div>
     <Banner v-if="!isView" color="info" label-key="harvester.virtualMachine.volume.dragTip" />
-    <draggable v-model="rows" @end="update">
+    <draggable v-model="rows" :disabled="isView" @end="update">
       <transition-group>
         <div v-for="(volume, i) in rows" :key="volume.id">
-          <InfoBox class="volume-source">
-            <button v-if="!isView" type="button" class="role-link btn btn-sm remove-vol" @click="removeVolume(volume)">
+          <InfoBox class="box">
+            <button v-if="!isView" type="button" class="role-link btn btn-sm remove" @click="removeVolume(volume)">
               <i class="icon icon-2x icon-x" />
             </button>
+            <button v-if="volume.hotpluggable && isView" type="button" class="role-link btn remove" @click="unplugVolume(volume)">
+              {{ t('harvester.virtualMachine.unplug.detachVolume') }}
+            </button>
             <h3>
-              <n-link v-if="volume.to" :to="volume.to">
-                {{ t('harvester.virtualMachine.volume.edit') }} {{ headerFor(volume.source) }}
-              </n-link>
+              <span v-if="volume.to && isVirtualType" class="title">
+                <n-link :to="volume.to">
+                  {{ t('harvester.virtualMachine.volume.edit') }} {{ headerFor(volume.source) }}
+                </n-link>
+
+                <BadgeStateFormatter v-if="volume.pvc" class="ml-10 state" :arbitrary="true" :row="volume.pvc" :value="volume.pvc.state" />
+              </span>
 
               <span v-else>
                 {{ headerFor(volume.source) }}
@@ -252,16 +272,14 @@ export default {
                 :is="componentFor(volume.source)"
                 v-model="rows[i]"
                 :rows="rows"
-                :type-option="typeOption"
-                :interface-option="InterfaceOption"
                 :namespace="namespace"
                 :is-create="isCreate"
                 :is-edit="isEdit"
                 :is-view="isView"
-                :vm="vm"
+                :is-virtual-type="isVirtualType"
                 :mode="mode"
                 :idx="i"
-                :need-root-disk="needRootDisk"
+                :validate-required="validateRequired"
                 @update="update"
               />
             </div>
@@ -281,11 +299,13 @@ export default {
                 bootOrder: {{ i + 1 }}
               </div>
             </div>
+
+            <Banner v-if="volume.volumeStatus" class="mt-15" color="warning" :label="volume.volumeStatus.status" />
           </InfoBox>
-          <Banner v-if="showVolumeTip" color="warning" :label="t('harvester.virtualMachine.volume.volumeTip')" />
         </div>
       </transition-group>
     </draggable>
+    <Banner v-if="showVolumeTip" color="warning" :label="t('harvester.virtualMachine.volume.volumeTip')" />
 
     <div v-if="!isView">
       <button
@@ -321,29 +341,38 @@ export default {
       </template>
 
       <template #content>
-        <div>
-          <span>{{ t('harvester.virtualMachine.volume.unmount.message') }}</span>
-        </div>
+        <span>{{ t('harvester.virtualMachine.volume.unmount.message') }}</span>
       </template>
 
       <template #footer>
-        <button class="btn role-secondary btn-sm mr-20" @click.prevent="cancel">
-          {{ t('generic.no') }}
-        </button>
-        <button class="btn role-tertiary bg-primary btn-sm mr-20" @click.prevent="deleteVolume">
-          {{ t('generic.yes') }}
-        </button>
+        <div class="buttons">
+          <button class="btn role-secondary mr-20" @click.prevent="cancel">
+            {{ t('generic.no') }}
+          </button>
+
+          <button class="btn bg-primary mr-20" @click.prevent="deleteVolume">
+            {{ t('generic.yes') }}
+          </button>
+        </div>
       </template>
     </ModalWithCard>
   </div>
 </template>
 
 <style lang='scss' scoped>
-  .volume-source {
+  .box {
     position: relative;
   }
 
-  .remove-vol {
+  .title {
+    display: flex;
+
+    .state {
+      font-size: 16px;
+    }
+  }
+
+  .remove {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -353,5 +382,11 @@ export default {
   .bootOrder {
     display: flex;
     align-items: center;
+  }
+
+  .buttons {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
   }
 </style>

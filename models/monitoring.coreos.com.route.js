@@ -3,106 +3,101 @@ import { areRoutesSupportedFormat, canCreate, createDefaultRouteName, updateConf
 import { MONITORING } from '@/config/types';
 import { NAME as MONITORING_PRODUCT } from '@/config/product/monitoring';
 import jsyaml from 'js-yaml';
+import SteveModel from '@/plugins/steve/steve-class';
 
 export const ROOT_NAME = 'root';
 
-export default {
+export default class Route extends SteveModel {
   applyDefaults() {
-    return () => {
-      const spec = this.spec || {};
+    const spec = this.spec || {};
 
-      spec.group_by = spec.group_by || [];
-      spec.group_wait = spec.group_wait || '30s';
-      spec.group_interval = spec.group_interval || '5m';
-      spec.repeat_interval = spec.repeat_interval || '4h';
-      spec.match = spec.match || {};
-      spec.match_re = spec.match || {};
+    spec.group_by = spec.group_by || [];
+    spec.group_wait = spec.group_wait || '30s';
+    spec.group_interval = spec.group_interval || '5m';
+    spec.repeat_interval = spec.repeat_interval || '4h';
+    spec.match = spec.match || {};
+    spec.match_re = spec.match || {};
 
-      set(this, 'spec', spec);
-    };
-  },
+    set(this, 'spec', spec);
+  }
 
-  removeSerially() {
+  get removeSerially() {
     return true;
-  },
+  }
 
   remove() {
-    return () => {
-      return this.updateRoutes((currentRoutes) => {
-        return currentRoutes.filter((route, i) => {
-          return createDefaultRouteName(i) !== this.id;
-        });
+    return this.updateRoutes((currentRoutes) => {
+      return currentRoutes.filter((route, i) => {
+        return createDefaultRouteName(i) !== this.id;
       });
-    };
-  },
+    });
+  }
 
-  save() {
-    return async() => {
-      const errors = await this.validationErrors(this);
+  async save() {
+    const errors = await this.validationErrors(this);
 
-      if (!isEmpty(errors)) {
-        return Promise.reject(errors);
+    if (!isEmpty(errors)) {
+      return Promise.reject(errors);
+    }
+
+    await this.updateRoutes((currentRoutes) => {
+      const existingRoute = currentRoutes.find((route, i) => {
+        return createDefaultRouteName(i) === this.id;
+      });
+
+      if (existingRoute) {
+        Object.assign(existingRoute, this.spec);
+      } else {
+        currentRoutes.push(this.spec);
       }
 
-      await this.updateRoutes((currentRoutes) => {
-        const existingRoute = currentRoutes.find((route, i) => {
-          return createDefaultRouteName(i) === this.id;
-        });
+      return currentRoutes;
+    });
 
-        if (existingRoute) {
-          Object.assign(existingRoute, this.spec);
-        } else {
-          currentRoutes.push(this.spec);
-        }
+    return {};
+  }
 
-        return currentRoutes;
-      });
-
-      return {};
-    };
-  },
-
-  canUpdate() {
+  get canUpdate() {
     return this.secret.canUpdate;
-  },
+  }
 
-  canCustomEdit() {
+  get canCustomEdit() {
     return true;
-  },
+  }
 
-  canCreate() {
+  get canCreate() {
     return canCreate(this.$rootGetters) && areRoutesSupportedFormat(this.secret);
-  },
+  }
 
-  canDelete() {
+  get canDelete() {
     return !this.isRoot && this.secret.canDelete;
-  },
+  }
 
-  canViewInApi() {
+  get canViewInApi() {
     return false;
-  },
+  }
 
-  canYaml() {
+  get canYaml() {
     return areRoutesSupportedFormat(this.secret);
-  },
+  }
 
-  _detailLocation() {
+  get _detailLocation() {
     return {
       name:   'c-cluster-monitoring-route-receiver-id',
       params: { cluster: this.$rootGetters['clusterId'], id: this.id },
       query:  { resource: this.type }
     };
-  },
+  }
 
-  doneOverride() {
+  get doneOverride() {
     return {
       name:   'c-cluster-monitoring-route-receiver',
       params: { cluster: this.$rootGetters['clusterId'] },
       query:  { resource: this.type }
     };
-  },
+  }
 
-  customValidationRules() {
+  get customValidationRules() {
     const rules = [
       {
         nullable:       false,
@@ -135,27 +130,25 @@ export default {
     }
 
     return rules;
-  },
+  }
 
-  updateRoutes() {
-    return fn => updateConfig(this.$dispatch, 'route.routes', this.type, fn);
-  },
+  updateRoutes(fn) {
+    return updateConfig(this.$dispatch, 'route.routes', this.type, fn);
+  }
 
-  isRoot() {
+  get isRoot() {
     return this.id === ROOT_NAME;
-  },
+  }
 
-  saveYaml() {
-    return (yaml) => {
-      const parsed = jsyaml.load(yaml);
+  saveYaml(yaml) {
+    const parsed = jsyaml.load(yaml);
 
-      Object.assign(this, parsed);
+    Object.assign(this, parsed);
 
-      return this.save();
-    };
-  },
+    return this.save();
+  }
 
-  receiverLink() {
+  get receiverLink() {
     return {
       text:    this.spec.receiver,
       to:      {
@@ -166,4 +159,4 @@ export default {
       }
     };
   }
-};
+}

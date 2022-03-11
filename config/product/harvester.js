@@ -2,7 +2,7 @@ import {
   HCI, NODE, CONFIG_MAP, NAMESPACE, VIRTUAL_TYPES, MANAGEMENT, PVC
 } from '@/config/types';
 import {
-  STATE, NAME_UNLINKED, NAME as NAME_COL, AGE, NAMESPACE_COL,
+  STATE, NAME_UNLINKED, NAME as NAME_COL, AGE, NAMESPACE as NAMESPACE_COL,
 } from '@/config/table-headers';
 
 import { IMAGE_DOWNLOAD_SIZE, FINGERPRINT, IMAGE_PROGRESS } from '@/config/harvester-table-headers';
@@ -26,7 +26,10 @@ export function init(store) {
     inStore:             'harvester',
     removable:           false,
     showNamespaceFilter: true,
+    hideKubeShell:       true,
+    hideKubeConfig:      true,
     showClusterSwitcher: true,
+    hideCopyConfig:      true,
     typeStoreMap:        {
       [MANAGEMENT.PROJECT]:                       'management',
       [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',
@@ -36,7 +39,7 @@ export function init(store) {
 
   basicType([HCI.DASHBOARD]);
   virtualType({
-    label:         store.getters['i18n/t']('harvester.dashboard.label'),
+    labelKey:     'harvester.dashboard.label',
     group:        'Root',
     name:         HCI.DASHBOARD,
     weight:       500,
@@ -65,7 +68,7 @@ export function init(store) {
 
   virtualType({
     ifHaveType:    NODE,
-    label:         store.getters['i18n/t']('harvester.host.label'),
+    labelKey:     'harvester.host.label',
     group:        'Root',
     name:         HCI.HOST,
     namespaced:   true,
@@ -83,7 +86,7 @@ export function init(store) {
   ], 'rbac');
   virtualType({
     ifHave:     IF_HAVE.MULTI_CLUSTER,
-    label:       store.getters['i18n/t']('members.clusterMembers'),
+    labelKey:   'members.clusterMembers',
     group:      'root',
     namespaced:  false,
     name:        VIRTUAL_TYPES.CLUSTER_MEMBERS,
@@ -98,7 +101,7 @@ export function init(store) {
 
   basicType([HCI.VM]);
   virtualType({
-    label:      store.getters['i18n/t']('harvester.virtualMachine.label'),
+    labelKey:   'harvester.virtualMachine.label',
     group:      'root',
     name:       HCI.VM,
     namespaced:  true,
@@ -121,7 +124,7 @@ export function init(store) {
     resourceEdit:   HCI.VOLUME,
   });
   virtualType({
-    label:      store.getters['i18n/t']('harvester.volume.label'),
+    labelKey:   'harvester.volume.label',
     group:      'root',
     ifHaveType: PVC,
     name:       HCI.VOLUME,
@@ -137,7 +140,7 @@ export function init(store) {
   basicType([HCI.IMAGE]);
   headers(HCI.IMAGE, [STATE, NAME_COL, NAMESPACE_COL, IMAGE_PROGRESS, IMAGE_DOWNLOAD_SIZE, AGE]);
   virtualType({
-    label:      store.getters['i18n/t']('harvester.image.label'),
+    labelKey:   'harvester.image.label',
     group:      'root',
     name:       HCI.IMAGE,
     namespaced:  true,
@@ -151,8 +154,8 @@ export function init(store) {
 
   basicType(['projects-namespaces']);
   virtualType({
-    ifHave:     IF_HAVE.MULTI_CLUSTER,
-    label:            'Projects/Namespaces',
+    ifHave:           IF_HAVE.MULTI_CLUSTER,
+    labelKey:         'harvester.projectNamespace.label',
     group:            'root',
     namespaced:       true,
     name:             'projects-namespaces',
@@ -165,8 +168,8 @@ export function init(store) {
   headers(NAMESPACE, [STATE, NAME_UNLINKED, AGE]);
   basicType([NAMESPACE]);
   virtualType({
-    ifHave:     IF_HAVE.HARVESTER_SINGLE_CLUSTER,
-    label:                  store.getters['i18n/t'](`typeLabel.${ NAMESPACE }`, { count: 2 }),
+    ifHave:                 IF_HAVE.HARVESTER_SINGLE_CLUSTER,
+    labelKey:               'harvester.namespace.label',
     name:                   NAMESPACE,
     namespaced:             true,
     weight:                 89,
@@ -184,11 +187,23 @@ export function init(store) {
     HCI.SSH,
     HCI.CLOUD_TEMPLATE,
     HCI.SETTING
-  ], 'Advanced');
+  ], 'advanced');
 
   configureType(HCI.CLUSTER_NETWORK, { realResource: HCI.SETTING, showState: false });
+
+  configureType(HCI.MANAGED_CHART, {
+    location:    {
+      name:    'c-cluster-product-resource',
+      params:  { resource: HCI.MANAGED_CHART },
+    },
+    resource:       MANAGEMENT.MANAGED_CHART,
+    resourceDetail: HCI.MANAGED_CHART,
+    resourceEdit:   HCI.MANAGED_CHART,
+    showState:      false
+  });
+
   virtualType({
-    label:      store.getters['i18n/t']('harvester.vmTemplate.label'),
+    labelKey:   'harvester.vmTemplate.label',
     group:      'root',
     name:       TEMPLATE,
     namespaced:  true,
@@ -202,7 +217,7 @@ export function init(store) {
 
   configureType(HCI.BACKUP, { showListMasthead: false });
   virtualType({
-    label:      store.getters['i18n/t']('harvester.backup.label'),
+    labelKey:   'harvester.backup.label',
     name:       HCI.BACKUP,
     namespaced:  true,
     weight:     200,
@@ -215,7 +230,7 @@ export function init(store) {
 
   configureType(HCI.NETWORK_ATTACHMENT, { isEditable: false, showState: false });
   virtualType({
-    label:      store.getters['i18n/t']('harvester.network.label'),
+    labelKey:   'harvester.network.label',
     name:       HCI.NETWORK_ATTACHMENT,
     namespaced:  true,
     weight:     189,
@@ -228,7 +243,7 @@ export function init(store) {
 
   headers(HCI.SSH, [STATE, NAME_COL, NAMESPACE_COL, FINGERPRINT, AGE]);
   virtualType({
-    label:      store.getters['i18n/t']('harvester.sshKey.label'),
+    labelKey:   'harvester.sshKey.label',
     name:       HCI.SSH,
     namespaced:  true,
     weight:     170,
@@ -248,8 +263,9 @@ export function init(store) {
     resourceDetail: HCI.CLOUD_TEMPLATE,
     resourceEdit:   HCI.CLOUD_TEMPLATE,
   });
+
   virtualType({
-    label:        store.getters['i18n/t']('harvester.cloudTemplate.label'),
+    labelKey:     'harvester.cloudTemplate.label',
     name:         HCI.CLOUD_TEMPLATE,
     namespaced:   true,
     weight:       87,
@@ -265,7 +281,7 @@ export function init(store) {
   virtualType({
     ifHaveType:          HCI.SETTING,
     ifHaveVerb:          'POST',
-    label:      store.getters['i18n/t']('harvester.setting.label'),
+    labelKey:   'harvester.setting.label',
     name:       HCI.SETTING,
     namespaced: true,
     weight:     -1,
