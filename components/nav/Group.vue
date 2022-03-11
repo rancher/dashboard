@@ -93,8 +93,8 @@ export default {
     },
 
     groupSelected() {
-      // Don't auto-select first group entry if we're already expanded
-      if (this.isExpanded) {
+      // Don't auto-select first group entry if we're already expanded and contain the currently-selected nav item
+      if (this.hasActiveRoute() && this.isExpanded) {
         return;
       }
 

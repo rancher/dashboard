@@ -35,6 +35,10 @@ const INITIAL_VAPP_OPTIONS = {
   vappTransport:          '',
   vappProperty:           []
 };
+const OS_OPTIONS = [
+  'linux',
+  'windows'
+];
 const DEFAULT_CFGPARAM = ['disk.enableUUID=TRUE'];
 
 const getDefaultVappOptions = (networks) => {
@@ -187,11 +191,10 @@ export default {
         label: this.t('cluster.machineConfig.vsphere.creationMethods.template'),
         value: CREATION_METHOD.TEMPLATE
       },
-      // This is currently broken in the backend. Once fixed we can add this back
-      // {
-      //   label: this.t('cluster.machineConfig.vsphere.creationMethods.library'),
-      //   value: CREATION_METHOD.LIBRARY
-      // },
+      {
+        label: this.t('cluster.machineConfig.vsphere.creationMethods.library'),
+        value: CREATION_METHOD.LIBRARY
+      },
       {
         label: this.t('cluster.machineConfig.vsphere.creationMethods.vm'),
         value: CREATION_METHOD.VM
@@ -213,6 +216,7 @@ export default {
       set(this.value, 'cloudConfig', '#cloud-config\n\n');
       set(this.value, 'cfgparam', DEFAULT_CFGPARAM);
       set(this.value, 'vappProperty', this.value.vappProperty);
+      set(this.value, 'os', OS_OPTIONS[0]);
       Object.entries(INITIAL_VAPP_OPTIONS).forEach(([key, value]) => {
         set(this.value, key, value);
       });
@@ -240,7 +244,8 @@ export default {
       haveAttributes:           null,
       haveTemplates:            null,
       vAppOptions,
-      vappMode:                 getInitialVappMode(this.value)
+      vappMode:                 getInitialVappMode(this.value),
+      osOptions:                OS_OPTIONS,
     };
   },
 
@@ -493,7 +498,8 @@ export default {
       set(this, 'contentLibrariesResults', null);
 
       const options = await this.requestOptions('content-libraries', this.value.datacenter);
-      const content = this.mapPathOptionsToContent(options);
+      const content = this.mapPathOptionsToContent(options)
+        .filter(item => item.value !== '');
 
       this.resetValueIfNecessary('contentLibrary', content, options);
 
@@ -509,8 +515,7 @@ export default {
         return [];
       }
 
-      const options = await this.requestOptions('library-templates', undefined, contentLibrary);
-
+      const options = await this.requestOptions('library-templates', this.value.datacenter, contentLibrary);
       const content = this.mapPathOptionsToContent(options);
 
       if (this.showContentLibrary) {
@@ -561,8 +566,7 @@ export default {
       this.loadTemplates();
       this.loadTags();
       this.loadCustomAttributes();
-      // This is currently broken in the backend. Once fixed we can add this back
-      // this.loadContentLibraries();
+      this.loadContentLibraries();
       this.loadLibraryTemplates();
       this.loadVirtualMachines();
       this.loadNetworks();
@@ -772,6 +776,15 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.disk')"
               :suffix="t('suffix.mib')"
+              :disabled="disabled"
+            />
+          </div>
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="value.os"
+              :mode="mode"
+              :options="osOptions"
+              :label="t('cluster.machineConfig.vsphere.instanceOptions.os')"
               :disabled="disabled"
             />
           </div>

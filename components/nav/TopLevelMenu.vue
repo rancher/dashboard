@@ -166,7 +166,7 @@ export default {
   },
 
   methods: {
-    // Cluster list number of items shown is configurbale via user preference
+    // Cluster list number of items shown is configurable via user preference
     setClusterListHeight(maxToShow) {
       const el = this.$refs.clusterList;
       const max = Math.min(maxToShow, this.clusters.length);
@@ -247,11 +247,13 @@ export default {
                   :to="{ name: 'c-cluster', params: { cluster: c.id } }"
                 >
                   <ClusterProviderIcon :small="true" :cluster="c" class="rancher-provider-icon mr-10" />
-                  <div>{{ c.label }}</div>
+                  <div class="cluster-name">
+                    {{ c.label }}
+                  </div>
                 </nuxt-link>
                 <span v-else class="option-disabled cluster selector disabled">
                   <ClusterProviderIcon :small="true" :cluster="c" class="rancher-provider-icon mr-10" />
-                  <div>{{ c.label }}</div>
+                  <div class="cluster-name">{{ c.label }}</div>
                 </span>
               </div>
               <div v-if="clustersFiltered.length === 0" class="none-matching">
@@ -537,11 +539,14 @@ export default {
         align-items: center;
         display: flex;
         height: $option-height;
+
+        white-space: nowrap;
         &:focus {
           outline: 0;
         }
         .cluster-name {
-          font-size: 16px;
+          text-overflow: ellipsis;
+          overflow: hidden;
         }
         > img {
           max-height: $icon-size;

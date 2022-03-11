@@ -12,7 +12,7 @@ export default {
 
   async fetch() {
     if ( this.$store.getters['management/schemaFor'](SECRET) ) {
-      // Having secrets allows showing the public poirtion of more types but not all users can see them.
+      // Having secrets allows showing the public portion of more types but not all users can see them.
       await this.$store.dispatch('management/findAll', { type: SECRET });
     }
 

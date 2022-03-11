@@ -8,6 +8,7 @@ import Taints from '@/components/form/Taints.vue';
 import KeyValue from '@/components/form/KeyValue.vue';
 import AdvancedSection from '@/components/AdvancedSection.vue';
 import Banner from '@/components/Banner';
+import UnitInput from '@/components/form/UnitInput.vue';
 import { randomStr } from '@/utils/string';
 
 export default {
@@ -19,6 +20,7 @@ export default {
     KeyValue,
     AdvancedSection,
     Banner,
+    UnitInput
   },
 
   props: {
@@ -44,7 +46,19 @@ export default {
   },
 
   data() {
-    return { uuid: randomStr() };
+    const parseDuration = (duration) => {
+      // The back end stores the timeout in Duration format, for example, "10m".
+      // Here we convert that string to an integer.
+      const numberString = duration.split('m')[0];
+
+      return parseInt(numberString, 10);
+    };
+
+    return {
+      uuid: randomStr(),
+
+      unhealthyNodeTimeoutInteger: this.value.pool.unhealthyNodeTimeout ? parseDuration(this.value.pool.unhealthyNodeTimeout) : 0
+    };
   },
 
   computed: {
@@ -56,6 +70,20 @@ export default {
       }
 
       return importMachineConfig('generic');
+    },
+
+    isWindows() {
+      return this.value?.config?.os === 'windows';
+    }
+
+  },
+
+  watch: {
+    isWindows(neu) {
+      if (neu) {
+        this.value.pool.etcdRole = false;
+        this.value.pool.controlPlaneRole = false;
+      }
     }
   },
 
@@ -95,7 +123,7 @@ export default {
           :disabled="!value.config || !!value.config.id"
         />
       </div>
-      <div class="col span-2">
+      <div class="col span-4">
         <LabeledInput
           v-model.number="value.pool.quantity"
           :mode="mode"
@@ -103,16 +131,6 @@ export default {
           type="number"
           min="0"
           :required="true"
-        />
-      </div>
-      <div class="col span-2 pt-5">
-        <h3>
-          {{ t('cluster.machinePool.drain.header') }}
-        </h3>
-        <Checkbox
-          v-model="value.pool.drainBeforeDelete"
-          :mode="mode"
-          :label="t('cluster.machinePool.drain.label')"
         />
       </div>
       <div class="col span-4 pt-5">
@@ -123,11 +141,13 @@ export default {
           v-model="value.pool.etcdRole"
           :mode="mode"
           label="etcd"
+          :disabled="isWindows"
         />
         <Checkbox
           v-model="value.pool.controlPlaneRole"
           :mode="mode"
           label="Control Plane"
+          :disabled="isWindows"
         />
         <Checkbox
           v-model="value.pool.workerRole"
@@ -136,7 +156,6 @@ export default {
         />
       </div>
     </div>
-
     <hr class="mt-10" />
 
     <component
@@ -156,7 +175,34 @@ export default {
       <portal-target :name="'advanced-' + uuid" multiple />
 
       <div class="spacer" />
-
+      <div class="row">
+        <div class="col span-4">
+          <h3>
+            {{ t('cluster.machinePool.autoReplace.label') }}
+            <i v-tooltip="t('cluster.machinePool.autoReplace.toolTip')" class="icon icon-info icon-lg" />
+          </h3>
+          <UnitInput
+            v-model.number="unhealthyNodeTimeoutInteger"
+            :hide-arrows="true"
+            :placeholder="t('containerResourceLimit.cpuPlaceholder')"
+            :mode="mode"
+            :output-modifier="true"
+            :base-unit="t('cluster.machinePool.autoReplace.unit')"
+            @input="value.pool.unhealthyNodeTimeout = `${unhealthyNodeTimeoutInteger}m`"
+          />
+        </div>
+        <div class="col span-4">
+          <h3>
+            {{ t('cluster.machinePool.drain.header') }}
+          </h3>
+          <Checkbox
+            v-model="value.pool.drainBeforeDelete"
+            :mode="mode"
+            :label="t('cluster.machinePool.drain.label')"
+          />
+        </div>
+      </div>
+      <div class="spacer" />
       <KeyValue
         v-model="value.pool.labels"
         :add-label="t('labels.addLabel')"

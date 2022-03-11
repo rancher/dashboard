@@ -27,7 +27,7 @@ export default {
     this.canSeeRoleTemplates = !!this.$store.getters[`management/canList`](MANAGEMENT.ROLE_TEMPLATE);
 
     if (this.canSeeRoleTemplates) {
-      // Upfront fetch, avoid aysnc computes
+      // Upfront fetch, avoid async computes
       await Promise.all([
         await this.$store.dispatch('rancher/find', { type: NORMAN.USER, id: this.value.id }),
         await this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE }),
@@ -160,7 +160,7 @@ export default {
         return out;
       } catch (e) {
         // Swallow the error. It's probably due to the user not having the correct permissions to read global roles
-        console.error('Failed to fetch gobal role bindings: ', e); // eslint-disable-line no-console
+        console.error('Failed to fetch global role bindings: ', e); // eslint-disable-line no-console
       }
     },
 
@@ -168,7 +168,7 @@ export default {
       const templateBindings = this.$store.getters['management/all'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
       const userTemplateBindings = templateBindings.filter(binding => binding.userName === userId);
 
-      // Upront load clusters
+      // Upfront load clusters
       userTemplateBindings.map(b => this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: b.clusterName }));
 
       return userTemplateBindings;
@@ -184,7 +184,7 @@ export default {
       return userTemplateBindings;
     },
 
-    // Global Permisions Helpers (brought over from ember)
+    // Global Permissions Helpers (brought over from ember)
     hasPermission(globalRoleRules, permission) {
       return globalRoleRules.find((gRule) => {
         return ((gRule.apiGroups || []).includes('*') || (gRule.apiGroups || []).includes(permission.apiGroup)) &&

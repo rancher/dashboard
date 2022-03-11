@@ -296,4 +296,20 @@ export default class GitRepo extends SteveModel {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
     }
   }
+
+  get bundles() {
+    const all = this.$getters['all'](FLEET.BUNDLE);
+
+    return all.filter(bundle => bundle.name.startsWith(`${ this.name }-`) &&
+      bundle.namespace === this.namespace &&
+      bundle.namespacedName.startsWith(`${ this.namespace }:${ this.name }`));
+  }
+
+  get bundlesReady() {
+    if (this.bundles && this.bundles.length) {
+      return this.bundles.filter(bundle => bundle.state === 'active');
+    }
+
+    return 0;
+  }
 }

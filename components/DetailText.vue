@@ -79,7 +79,18 @@ export default {
 
     body() {
       if (this.isBinary) {
-        return this.t('detailText.binary', { n: this.size });
+        // It is base64 encoded, so adjust size
+        let realSize = (3 * this.size / 4) ;
+
+        // Might be one or two padding characters
+        if (this.value.length > 0 && this.value[this.value.length - 1] === '=') {
+          realSize--;
+          if (this.value.length > 1 && this.value[this.value.length - 2] === '=') {
+            realSize--;
+          }
+        }
+
+        return this.t('detailText.binary', { n: realSize });
       }
 
       if (this.expanded) {
@@ -147,7 +158,7 @@ export default {
     </h4>
 
     <span v-if="isEmpty" v-t="'detailText.empty'" class="text-italic" />
-    <span v-else-if="isBinary" class="text-italic">{{ t('detailText.binary', {n: size}) }}</span>
+    <span v-else-if="isBinary" class="text-italic">{{ body }}</span>
 
     <CodeMirror
       v-else-if="jsonStr"

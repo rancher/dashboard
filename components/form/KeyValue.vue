@@ -24,6 +24,12 @@ export default {
       default: null,
     },
 
+    // If the user supplies this array, then it indicates which keys should be shown as binary
+    binaryValueKeys: {
+      type:    [Array, Object],
+      default: null
+    },
+
     mode: {
       type:    String,
       default: _EDIT,
@@ -153,7 +159,7 @@ export default {
     },
 
     // For asMap=false, preserve (copy) these keys from the original value into the emitted value.
-    // Also usefule for valueFrom as above.
+    // Also useful for valueFrom as above.
     preserveKeys: {
       type:    Array,
       default: null,
@@ -244,6 +250,12 @@ export default {
 
       Object.keys(input).forEach((key) => {
         let value = input[key];
+        let binary = !asciiLike(value);
+
+        // If we think it is binary, just check if we were given the list of binary keys that we should not be treating it as ascii
+        if (this.binaryValueKeys) {
+          binary = this.binaryValueKeys.findIndex(k => k === key) !== -1;
+        }
 
         if ( this.valueBase64 ) {
           value = base64Decode(value);
@@ -251,7 +263,7 @@ export default {
         rows.push({
           key,
           value,
-          binary:    !asciiLike(value),
+          binary,
           supported: true,
         });
       });

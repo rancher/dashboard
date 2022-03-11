@@ -1,5 +1,6 @@
 import {
   CONFIG_MAP,
+  EVENT,
   NODE, SECRET, INGRESS,
   WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD,
   RBAC,
@@ -131,10 +132,24 @@ export function init(store) {
 
   configureType(NODE, { isCreatable: false, isEditable: true });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
-  configureType(PVC, { isEditable: false });
   configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { isEditable: false });
   configureType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING, { isEditable: false });
   configureType(MANAGEMENT.PROJECT, { displayName: store.getters['i18n/t']('namespace.project.label') });
+
+  configureType(EVENT, { limit: 500 });
+
+  // Allow Pods to be grouped by node
+  configureType(POD, {
+    listGroups: [
+      {
+        icon:       'icon-cluster',
+        value:      'node',
+        field:      'groupByNode',
+        hideColumn: NODE_COL.name,
+        tooltipKey: 'resourceTable.groupBy.node'
+      }
+    ]
+  });
 
   setGroupDefaultType('serviceDiscovery', SERVICE);
 

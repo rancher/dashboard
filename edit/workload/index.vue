@@ -2,7 +2,7 @@
 import omitBy from 'lodash/omitBy';
 import { cleanUp } from '@/utils/object';
 import {
-  CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC, SERVICE_ACCOUNT
+  CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC, SERVICE_ACCOUNT, CAPI
 } from '@/config/types';
 import Tab from '@/components/Tabbed/Tab';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -51,6 +51,8 @@ const TAB_WEIGHT_MAP = {
   volumeClaimTemplates: 89,
 };
 
+const GPU_KEY = 'nvidia.com/gpu';
+
 export default {
   name:       'CruWorkload',
   components: {
@@ -96,28 +98,35 @@ export default {
   },
 
   async fetch() {
-    const requests = {
-      configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
-      nodes:      this.$store.dispatch('cluster/findAll', { type: NODE }),
-      services:   this.$store.dispatch('cluster/findAll', { type: SERVICE }),
-      pvcs:       this.$store.dispatch('cluster/findAll', { type: PVC }),
-      sas:        this.$store.dispatch('cluster/findAll', { type: SERVICE_ACCOUNT })
+    const requests = { rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }) };
+    const needed = {
+      configMaps: CONFIG_MAP,
+      nodes:      NODE,
+      services:   SERVICE,
+      pvcs:       PVC,
+      sas:        SERVICE_ACCOUNT,
+      secrets:    SECRET,
     };
 
-    if ( this.$store.getters['cluster/schemaFor'](SECRET) ) {
-      requests.secrets = this.$store.dispatch('cluster/findAll', { type: SECRET });
-    }
+    // Only fetch types if the user can see them
+    Object.keys(needed).forEach((key) => {
+      const type = needed[key];
+
+      if (this.$store.getters['cluster/schemaFor'](type)) {
+        requests[key] = this.$store.dispatch('cluster/findAll', { type });
+      }
+    });
 
     const hash = await allHash(requests);
 
-    this.servicesOwned = await this.value.getServicesOwned();
+    this.servicesOwned = hash.services ? await this.value.getServicesOwned() : [];
 
     this.allSecrets = hash.secrets || [];
-    this.allConfigMaps = hash.configMaps;
-    this.allNodes = hash.nodes.map(node => node.id);
-    this.allServices = hash.services;
-    this.pvcs = hash.pvcs;
-    this.sas = hash.sas;
+    this.allConfigMaps = hash.configMaps || [];
+    this.allNodes = (hash.nodes || []).map(node => node.id);
+    this.allServices = hash.services || [];
+    this.pvcs = hash.pvcs || [];
+    this.sas = hash.sas || [];
   },
 
   data() {
@@ -289,16 +298,16 @@ export default {
     flatResources: {
       get() {
         const { limits = {}, requests = {} } = this.container.resources || {};
-        const { cpu:limitsCpu, memory:limitsMemory } = limits;
-        const { cpu:requestsCpu, memory:requestsMemory } = requests;
+        const { cpu: limitsCpu, memory: limitsMemory, [GPU_KEY]: limitsGpu } = limits;
+        const { cpu: requestsCpu, memory: requestsMemory } = requests;
 
         return {
-          limitsCpu, limitsMemory, requestsCpu, requestsMemory
+          limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu
         };
       },
       set(neu) {
         const {
-          limitsCpu, limitsMemory, requestsCpu, requestsMemory
+          limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu
         } = neu;
 
         const out = {
@@ -307,8 +316,9 @@ export default {
             memory: requestsMemory
           },
           limits: {
-            cpu:    limitsCpu,
-            memory: limitsMemory
+            cpu:       limitsCpu,
+            memory:    limitsMemory,
+            [GPU_KEY]: limitsGpu
           }
         };
 
@@ -523,6 +533,11 @@ export default {
     },
 
     async saveService() {
+      // If we can't access services then just return - the UI should only allow ports without service creation
+      if (!this.$store.getters['cluster/schemaFor'](SERVICE)) {
+        return;
+      }
+
       const { toSave = [], toRemove = [] } = await this.value.servicesFromContainerPorts(this.mode, this.portsForServices) || {};
 
       this.servicesOwned = toSave;

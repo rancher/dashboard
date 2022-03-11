@@ -179,7 +179,7 @@ product:
 
 suffix:
   percent: "%"
-  milliCpus: mili CPU
+  milliCpus: milli CPU
   cores: 核心
   cpus: CPU
   ib: iB
@@ -289,7 +289,7 @@ authConfig:
       app:
         label: 应用名称
         value: '输入一个应用名称，例如：我的 {vendor}'
-      calllback:
+      callback:
         label: 授权回调 URL
       description:
         label: 应用描述
@@ -852,6 +852,7 @@ catalog:
       placeholder: '例如：https://charts.rancher.io'
   tools:
     header: 集群工具
+    noTools: "未找到集群工具"
     action:
       install: 安装
       upgrade: 升级/编辑
@@ -880,7 +881,7 @@ changePassword:
       label: 生成的密码
   newGeneratedPassword: 推荐密码
   errors:
-    missmatchedPassword: 前后两次输入的密码不匹配
+    mismatchedPassword: 前后两次输入的密码不匹配
     failedToChange: 无法修改密码
     failedDeleteKey: 无法删除单个 API 密钥
     failedDeleteKeys: 无法删除多个 API 密钥
@@ -994,7 +995,7 @@ cluster:
     registrationCommand:
       label: 注册命令
       linuxDetail: 在每台要注册的 Linux 机器上运行此命令。
-      windowsDetail: 在每台要注册的 Windows 机器中的 Powershell 上运行此命令。Windows 节点只能充当 worker。
+      windowsDetail: 在每台要注册的 Windows 机器中的 PowerShell 上运行此命令。Windows 节点只能充当 worker。
       windowsNotReady: 在用于添加 Windows worker 的注册命令显示之前，集群必须已启动并运行 Linux ETCD，Control Plane，以及 worker 节点。
       windowsWarning: 工作负载 Pod（包括由 Rancher Chart 部署的 Pod）将默认调度到 Linux 和 Windows 节点上。编辑 Chart 中的 NodeSelector 以将它们放置到兼容的节点上。
       insecure: "不安全：如果你的服务器具有自签名证书，选择此项以跳过 TLS 验证。"
@@ -3280,7 +3281,7 @@ probe:
     port:
       label: 检查端口
       placeholder: 例如：80
-      placeholderDuex: 例如：25
+      placeholderDeux: 例如：25
   initialDelay:
     label: 初始延迟
     placeholder: '默认值：0'
@@ -4557,10 +4558,10 @@ validation:
       name:
         required: '端口规则 [{position}] - 端口名称是必填项。'
       nodePort:
-        requriedInt: '端口规则 [{position}] - 如果包含节点端口，节点端口必须是整数。'
+        requiredInt: '端口规则 [{position}] - 如果包含节点端口，节点端口必须是整数。'
       port:
         required: '端口规则 [{position}] - 端口是必填项，'
-        requriedInt: '端口规则 [{position}] - 如果包含端口，端口必须是整数。'
+        requiredInt: '端口规则 [{position}] - 如果包含端口，端口必须是整数。'
       targetPort:
         between: '端口规则 [{position}] - 目标端口的取值范围是：1-65535'
         iana: '端口规则 [{position}] - 目标端口必须是 IANA 服务名称或整数'
@@ -5137,6 +5138,7 @@ harvester:
     createVM: 创建虚拟机
     start: 启动
     restart: 重启
+    softreboot: 安全重启
     stop: 停止
     pause: 暂停
     unpause: 取消暂停
@@ -5182,6 +5184,7 @@ harvester:
     volume: 卷
     network: 网络
     advanced: 高级选项
+    accessCredentials: 凭证管理
   fields:
     version: 版本
     name: 名称
@@ -5370,6 +5373,7 @@ harvester:
     enableUsb: 启用 USB Tablet
     sshTitle: 添加 SSH 公钥
     imageTip: 创建虚拟机所需的.iso，.img，.qcow2或.raw外部镜像地址
+    efiEnabled: EFI 模式下启动
     volume:
       dragTip: 拖放卷或使用卷的箭头来更改引导顺序。
       volumeTip: 虚拟机仅包含一个 cd-rom 卷。你可能想要添加额外的磁盘卷。
@@ -5402,7 +5406,7 @@ harvester:
       addPort:  添加端口
     cloudConfig:
       title: Cloud Config
-      createTemplateTitle: '创建 {名称}。'
+      createTemplateTitle: '创建 { name }。'
       createNew: 创建...
       cloudInit:
         label: Cloud Init
@@ -5420,6 +5424,17 @@ harvester:
         anyNode: '在任何可用节点上运行虚拟机'
         schedulingRules: '在匹配调度规则的节点上运行虚拟机'
         specificNode: 在指定节点上运行虚拟机 -（不支持热迁移）
+    accessCredentials:
+      resetPwd:
+        label: 添加密码凭证
+      injectSSH:
+        label: 添加SSH秘钥凭证
+        users: 选择用户
+        addUser: 添加用户
+      tips: 凭证生效需要安装qemu-guest-agent，更新凭证内容后无需重启，添加凭证后需要重启生效，删除凭证后，需要进入虚拟机手动修改密码/删除ssh key
+      userTips: 添加的用户需要是已经存在的，否则凭证不会生效
+      duplicatedUser: 用户已添加
+      invalidUser: 无效的用户名
     input:
       name: 名称
       memory: 内存
@@ -5427,6 +5442,9 @@ harvester:
       sshKey: SSH 密钥
       sshKeyValue: SSH 密钥
       MachineType: 机器类型
+      username: 用户名
+      password: 密码
+      reservedMemory: 预留内存
     machineTypeTip: '指定要模拟的处理器架构。要查看支持的体系结构列表，请运行：qemu-system-x86_64 -cpu ?'
     detail:
       tabs:
@@ -5615,6 +5633,15 @@ harvester:
       ca: CA
     vmForceDeletionPolicy:
       period: 周期
+    supportBundleImage:
+      imagePullPolicy: 镜像拉取策略
+    harvesterMonitoring:
+      label: Harvester Monitoring
+      tips:
+        scrape: 每次采集数据的间隔时间
+        evaluation: 每次评估规则的间隔时间
+        retention: 监控数据保留时间
+        retentionSize: 监控数据最大占用存储
 
   cloudTemplate:
     label: Cloud Config 模板
@@ -5647,7 +5674,6 @@ harvester:
       label: IPAM
     healthCheckPort:
       label: 健康检查端口
-      description: 探针将访问由后端服务器 IP 和端口组成的地址。端口需要是节点端口。
     healthCheckSuccessThreshold:
       label: 健康检查成功阙值
       description: 如果探针连续检测到某个地址的成功次数达到成功阈值，后端服务器就可以开始转发流量。
@@ -5854,7 +5880,6 @@ typeLabel:
       one { 集群组 }
       other { 集群组 }
     }
-
   fleet.cattle.io.gitrepo: |-
     {count, plural,
       one { Git 仓库 }
@@ -6249,6 +6274,7 @@ advancedSettings:
     'harv-vm-force-reset-policy': 配置当虚拟机卡在停机的节点上时的强制重置动作。
     'harv-ssl-parameters': 用于 TLS 验证的自定义 SSL 参数。
     'harv-support-bundle-namespaces': 指定支持包要收集的其他命名空间中的资源。
+    'harvester-monitoring': 指定 Harvester 内置的Prometheus 将使用的监控配置。
   editHelp:
     'ui-banners': 此设置使用包含 3 个根参数的 JSON 对象，分别是<code>banner</code>、<code>showHeader</code>和<code>showFooter</code>。<code>banner</code> 是包含 <code>textColor</code>，<code>background</code>和<code>text</code>的对象，其中<code>textColor</code> 和 <code>background</code>的值可以是任何有效的 CSS 颜色值。
   enum:

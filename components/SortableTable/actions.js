@@ -7,10 +7,10 @@ export default {
 
   data() {
     return {
-      bulkActionsId:            'bulk',
-      bulkActionClass:          'bulk-action',
-      bulkActionsDropdownId:    'bulk-actions-dropdown',
-      bulkActionAvailabilityId: 'bulk-action-availability',
+      bulkActionsClass:            'bulk',
+      bulkActionClass:             'bulk-action',
+      bulkActionsDropdownClass:    'bulk-actions-dropdown',
+      bulkActionAvailabilityClass: 'action-availability',
 
       hiddenActions: [],
     };
@@ -102,19 +102,23 @@ export default {
      * Determine if any actions wrap over to a new line, if so group them into a dropdown instead
      */
     updateHiddenBulkActions: debounce(function() {
-      const actionsContainer = document.getElementById(this.bulkActionsId);
-      const actionsDropdown = document.getElementById(this.bulkActionsDropdownId);
+      if (!this.$refs.container) {
+        return;
+      }
+
+      const actionsContainer = this.$refs.container.querySelector(`.${ this.bulkActionsClass }`);
+      const actionsDropdown = this.$refs.container.querySelector(`.${ this.bulkActionsDropdownClass }`);
 
       if (!actionsContainer || !actionsDropdown) {
         return;
       }
 
       const actionsContainerWidth = actionsContainer.offsetWidth;
-      const actionsHTMLCollection = document.getElementsByClassName(this.bulkActionClass);
+      const actionsHTMLCollection = this.$refs.container.querySelectorAll(`.${ this.bulkActionClass }`);
       const actions = Array.from(actionsHTMLCollection || []);
 
       // Determine if the 'x selected' label should show and it's size
-      const selectedRowsText = document.getElementById(this.bulkActionAvailabilityId);
+      const selectedRowsText = this.$refs.container.querySelector(`.${ this.bulkActionAvailabilityClass }`);
       let selectedRowsTextWidth = 0;
 
       if (this.selectedRowsText) {

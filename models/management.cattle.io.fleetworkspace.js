@@ -34,6 +34,13 @@ export default class Workspace extends HybridModel {
     return forWorkspace;
   }
 
+  get repos() {
+    const all = this.$getters['all'](FLEET.GIT_REPO);
+    const forWorkspace = filterBy(all, 'namespace', this.id);
+
+    return forWorkspace;
+  }
+
   get basicNorman() {
     if (this.id) {
       return this.$dispatch(`rancher/find`, { id: this.id, type: NORMAN.FLEET_WORKSPACES }, { root: true });

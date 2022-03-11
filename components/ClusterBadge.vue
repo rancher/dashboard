@@ -27,7 +27,7 @@ export default {
     border-radius: 10px;
     font-size: 12px;
     padding: 2px 10px;
-    max-width: 200px;
+    max-width: 250px;
     text-overflow: ellipsis;
     overflow: hidden;
   }

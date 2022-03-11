@@ -7,6 +7,8 @@ import LazyImage from '@/components/LazyImage';
 import DateFormatter from '@/components/formatter/Date';
 import isEqual from 'lodash/isEqual';
 import { CHART, REPO, REPO_TYPE, VERSION } from '@/config/query-params';
+import { mapGetters } from 'vuex';
+import { compatibleVersionsFor } from '@/store/catalog';
 
 export default {
   components: {
@@ -33,6 +35,8 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
+
     versions() {
       return this.showMoreVersions ? this.mappedVersions : this.mappedVersions.slice(0, this.showLastVersions);
     },
@@ -55,6 +59,26 @@ export default {
         };
       });
     },
+
+    osWarning() {
+      if (this.chart) {
+        const compatible = compatibleVersionsFor(this.chart, this.currentCluster.workerOSs, this.showPreRelease );
+
+        const currentlyCompatible = !!compatible.find((version) => {
+          return version.version === this.targetVersion;
+        });
+
+        if (currentlyCompatible) {
+          return false;
+        } else if (compatible.length > 0) {
+          return this.t('catalog.os.versionIncompatible');
+        } else {
+          return this.t('catalog.os.chartIncompatible');
+        }
+      }
+
+      return false;
+    }
 
   },
 
@@ -107,7 +131,10 @@ export default {
           {{ t(`asyncButton.${action}.action` ) }}
         </button>
       </div>
-      <div v-if="requires.length || warnings.length || targetedAppWarning" class="mt-20">
+      <div v-if="requires.length || warnings.length || targetedAppWarning || osWarning" class="mt-20">
+        <Banner v-if="osWarning" color="error">
+          <span v-html="osWarning" />
+        </Banner>
         <Banner v-for="msg in requires" :key="msg" color="error">
           <span v-html="msg" />
         </Banner>

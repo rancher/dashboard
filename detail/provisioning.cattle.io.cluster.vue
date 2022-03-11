@@ -7,7 +7,7 @@ import SortableTable from '@/components/SortableTable';
 import CopyCode from '@/components/CopyCode';
 import Tab from '@/components/Tabbed/Tab';
 import { allHash } from '@/utils/promise';
-import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
+import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@/config/types';
 import {
   STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS
 } from '@/config/table-headers';
@@ -65,6 +65,10 @@ export default {
       fetchOne.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
     }
 
+    if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
+      fetchOne.machines = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
+    }
+
     if (this.value.isImported || this.value.isCustom) {
       fetchOne.clusterToken = this.value.getOrCreateToken();
     }
@@ -85,7 +89,11 @@ export default {
 
     const fetchTwo = {};
 
-    const machineDeploymentTemplateType = fetchOneRes.machineDeployments?.[0]?.templateType;
+    const thisClusterMachines = this.allMachineDeployments.filter((deployment) => {
+      return deployment?.spec?.clusterName === this.value.metadata.name;
+    });
+
+    const machineDeploymentTemplateType = thisClusterMachines?.[0]?.templateType;
 
     if (machineDeploymentTemplateType && this.$store.getters['management/schemaFor'](machineDeploymentTemplateType) ) {
       fetchTwo.mdtt = this.$store.dispatch('management/findAll', { type: machineDeploymentTemplateType });
@@ -306,22 +314,21 @@ export default {
         {
           name:          'name',
           labelKey:      'tableHeaders.name',
-          value:         'nameDisplay',
+          value:         'snapshotFile.name',
           sort:          ['nameSort'],
           canBeVariable: true,
         },
         {
           name:      'size',
           labelKey:  'tableHeaders.size',
-          value:     'size',
-          sort:      'size',
+          value:     'snapshotFile.size',
+          sort:      'snapshotFile.size',
           formatter: 'Si',
           width:     150,
         },
         {
           ...AGE,
-          value:         'createdAt',
-          sort:          'createdAt:desc',
+          sort:          'snapshotFile.createdAt:desc',
           canBeVariable: true
         },
       ];
@@ -539,7 +546,7 @@ export default {
           <template #group-by="{group}">
             <div class="pool-row" :class="{'has-description':group.ref && group.ref.nodeTemplate}">
               <div v-trim-whitespace class="group-tab">
-                <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix, count: group.rows.length}, true)">
+                <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix, count: group.ref.scale}, true)">
                 </div>
                 <div v-else v-html="t('resourceTable.groupLabel.notInANodePool')">
                 </div>

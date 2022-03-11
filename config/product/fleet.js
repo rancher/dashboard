@@ -14,7 +14,7 @@ export function init(store) {
     configureType,
     headers,
     // mapType,
-    // virtualType,
+    virtualType,
   } = DSL(store, NAME);
 
   product({
@@ -27,7 +27,22 @@ export function init(store) {
     showWorkspaceSwitcher: true,
   });
 
+  virtualType({
+    label:        store.getters['i18n/t']('fleet.dashboard.menuLabel'),
+    icon:         'folder',
+    group:        'Root',
+    namespaced:   false,
+    name:         FLEET.DASHBOARD,
+    weight:       110,
+    route:        {
+      name:   'c-cluster-fleet',
+      params: { resource: FLEET.DASHBOARD }
+    },
+    exact: true,
+  });
+
   basicType([
+    FLEET.DASHBOARD,
     FLEET.CLUSTER,
     FLEET.CLUSTER_GROUP,
     FLEET.GIT_REPO,

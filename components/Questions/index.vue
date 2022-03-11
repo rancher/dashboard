@@ -214,6 +214,10 @@ export default {
       }
     },
 
+    chartName() {
+      return this.source.chart?.name;
+    },
+
     groups() {
       const map = {};
       const defaultGroup = 'Questions';
@@ -223,7 +227,7 @@ export default {
         const group = q.group || defaultGroup;
 
         const normalized = group.trim().toLowerCase();
-        const name = this.$store.getters['i18n/withFallback'](`charts.${ this.source.chart.name }.group.${ camelCase(group) }`, null, group);
+        const name = this.$store.getters['i18n/withFallback'](`charts.${ this.chartName }.group.${ camelCase(group) }`, null, group);
 
         if ( !map[normalized] ) {
           map[normalized] = {
@@ -440,7 +444,7 @@ export default {
             :target-namespace="targetNamespace"
             :value="get(value, q.variable)"
             :disabled="disabled"
-            :chart-name="source.chart.name"
+            :chart-name="chartName"
             @input="update(q.variable, $event)"
           />
         </div>
@@ -465,7 +469,7 @@ export default {
             :mode="mode"
             :value="get(value, q.variable)"
             :disabled="disabled"
-            :chart-name="source.chart.name"
+            :chart-name="chartName"
             @input="update(q.variable, $event)"
           />
         </div>
