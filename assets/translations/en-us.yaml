@@ -2912,8 +2912,14 @@ namespace:
         longDescription: Deployment is paused. Pausing stops the controller from deploying revisions.
 
 namespaceFilter:
+  noMatchingOptions: No matching options
+  more: "+{more}"
   selected:
-    label: "{total} items selected"
+    label: |-
+      {total, plural,
+      one {1 item selected}
+      other {{total} items selected}
+      }
 
 namespaceList:
   selectLabel: Namespace
