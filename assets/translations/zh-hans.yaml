@@ -5373,6 +5373,7 @@ harvester:
     enableUsb: 启用 USB Tablet
     sshTitle: 添加 SSH 公钥
     imageTip: 创建虚拟机所需的.iso，.img，.qcow2或.raw外部镜像地址
+    efiEnabled: EFI 模式下启动
     volume:
       dragTip: 拖放卷或使用卷的箭头来更改引导顺序。
       volumeTip: 虚拟机仅包含一个 cd-rom 卷。你可能想要添加额外的磁盘卷。
@@ -5443,6 +5444,7 @@ harvester:
       MachineType: 机器类型
       username: 用户名
       password: 密码
+      reservedMemory: 预留内存
     machineTypeTip: '指定要模拟的处理器架构。要查看支持的体系结构列表，请运行：qemu-system-x86_64 -cpu ?'
     detail:
       tabs:

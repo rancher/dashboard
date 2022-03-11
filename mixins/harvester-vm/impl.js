@@ -106,11 +106,7 @@ export default {
       const smmEnabled = spec?.template?.spec?.domain?.features?.smm?.enabled;
       const efiEnabled = spec?.template?.spec?.domain?.firmware?.bootloader?.efi?.secureBoot;
 
-      if (smmEnabled && efiEnabled) {
-        return true;
-      } else {
-        return false;
-      }
+      return !!(smmEnabled && efiEnabled);
     },
 
     getSecretCloudData(spec, type) {
