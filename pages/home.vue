@@ -74,6 +74,12 @@ export default {
     ...mapGetters(['currentCluster']),
     mcm: mapFeature(MULTI_CLUSTER),
 
+    canCreateCluster() {
+      const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+
+      return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+    },
+
     createLocation() {
       return {
         name:   'c-cluster-product-resource-create',
@@ -287,7 +293,7 @@ export default {
                     <BadgeState :label="clusters.length.toString()" color="role-tertiary ml-20 mr-20" />
                   </div>
                 </template>
-                <template #header-middle>
+                <template v-if="canCreateCluster" #header-middle>
                   <n-link
                     :to="importLocation"
                     class="btn btn-sm role-primary"
