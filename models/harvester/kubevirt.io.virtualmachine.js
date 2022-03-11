@@ -72,6 +72,8 @@ const VMIPhase = {
   Unknown:    'Unknown',
 };
 
+const IgnoreMessages = ['pod has unbound immediate PersistentVolumeClaims'];
+
 export default class VirtVm extends SteveModel {
   get availableActions() {
     const out = super._availableActions;
@@ -799,12 +801,22 @@ export default class VirtVm extends SteveModel {
     return parseInt(memory);
   }
 
-  get stateDescription() {
-    if (this.isOff || /pod has unbound immediate PersistentVolumeClaims/.test(super.stateDescription)) {
-      return '';
-    }
+  get ingoreVMMessage() {
+    const ignoreConditions = [{
+      name:    'unavailable',
+      error:   false,
+      vmState: this.actualState === PAUSED
+    }];
 
-    return super.stateDescription;
+    const state = this.metadata?.state;
+
+    return ignoreConditions.find(condition => condition.name === state?.name && condition.error === state?.error && condition.vmState) ||
+    IgnoreMessages.find(M => super.stateDescription?.includes(M)) ||
+    this.isOff;
+  }
+
+  get stateDescription() {
+    return this.ingoreVMMessage ? '' : super.stateDescription;
   }
 
   get displayMemory() {
