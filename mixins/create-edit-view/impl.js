@@ -7,6 +7,9 @@ import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { handleConflict } from '@/plugins/steve/normalize';
 
 export default {
+
+  name: 'CreateEditView',
+
   mixins: [ChildHook],
 
   mounted() {
@@ -163,7 +166,7 @@ export default {
         this.done();
       } catch (err) {
         // Conflict, the resource being edited has changed since starting editing
-        if ( err.status === 409 && depth === 0 ) {
+        if ( err.status === 409 && depth === 0 && this.isEdit) {
           const errors = this.conflict();
 
           if ( errors === false ) {
