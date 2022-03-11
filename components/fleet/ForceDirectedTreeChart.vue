@@ -203,7 +203,10 @@ export default {
         .force('charge', d3.forceManyBody().strength(-300).distanceMax(500))
         .force('collision', d3.forceCollide(this.circleRadius * 3.5))
         .force('center', d3.forceCenter( width / 2, height / 2 ))
-        .on('tick', this.ticked);
+        .on('tick', this.ticked)
+        .on('end', () => {
+          console.log('ANIMATION ENDED!');
+        });
     },
     updateChart(isStartingData, isSettingNodesAndLinks) {
       if (isStartingData) {
@@ -254,9 +257,9 @@ export default {
           this.setDetailsInfo(d.data, true);
         })
         .call(d3.drag()
-          .on('start', this.dragstarted)
-          .on('drag', this.dragged)
-          .on('end', this.dragended));
+          .on('start', this.dragStarted)
+          .on('drag', this.dragging)
+          .on('end', this.dragEnded));
 
       // draw status circle (inherits color from main node)
       nodeEnter.append('circle')
@@ -284,11 +287,14 @@ export default {
           return d.id;
         })
         .distance(100)
-        .links(this.allLinks));
+        .links(this.allLinks)
+      );
 
-      // if (isStartingData) {
-      //   d3.select('.root-node').transition().on('end', this.zoomFit);
-      // }
+      if (isStartingData) {
+        setTimeout(() => {
+          this.zoomFit();
+        }, 800);
+      }
     },
     mainNodeClass(d) {
       const lowerCaseStatus = d.data?.state ? d.data.state.toLowerCase() : 'unkown_status';
@@ -401,18 +407,18 @@ export default {
         this.updateChart(false, false);
       }
     },
-    dragstarted(ev, d) {
+    dragStarted(ev, d) {
       if (!ev.active) {
         this.simulation.alphaTarget(0.3).restart();
       }
       d.fx = d.x;
       d.fy = d.y;
     },
-    dragged(ev, d) {
+    dragging(ev, d) {
       d.fx = ev.x;
       d.fy = ev.y;
     },
-    dragended(ev, d) {
+    dragEnded(ev, d) {
       if (!ev.active) {
         this.simulation.alphaTarget(0);
       }
