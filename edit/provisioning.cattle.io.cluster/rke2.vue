@@ -306,9 +306,11 @@ export default {
     },
 
     showK3sTechPreviewWarning() {
-      const selectedVersion = this.value?.spec?.kubernetesVersion || 'none';
+      // NOTE: Put this back in when RKE2 is out of tech preview, but K3s is not
+      // const selectedVersion = this.value?.spec?.kubernetesVersion || 'none';
 
-      return !!this.k3sVersions.find(v => v.version === selectedVersion);
+      // return !!this.k3sVersions.find(v => v.version === selectedVersion);
+      return false;
     },
 
     // kubeletConfigs() {
@@ -370,7 +372,8 @@ export default {
           out.push({
             kind:  'group',
             label: this.t('cluster.provider.k3s'),
-            badge: this.t('generic.techPreview')
+            // NOTE: Put this back in when RKE2 is out of tech preview, but K3s is not
+            // badge: this.t('generic.techPreview')
           });
         }
 
