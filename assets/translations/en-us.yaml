@@ -6737,7 +6737,7 @@ epinio:
   configurations:
     pairs:
       label: Config Data
-      tooltip: Data made available to bound applications via the path <code>/services/&lt;service name&gt;/&lt;data name&gt;/</code>
+      tooltip: Data made available to bound applications via the path <code>/configurations/&lt;configuration name&gt;/&lt;data name&gt;/</code>
     tableHeaders:
       boundApps: Bound Applications
       variableCount: No. of variables
