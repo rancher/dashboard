@@ -494,30 +494,31 @@ function addChart(ctx, map, chart, repo) {
     if ( ctx ) { }
     obj = classify(ctx, {
       key,
-      type:             'chart',
-      id:               key,
+      type:                 'chart',
+      id:                   key,
       certified,
       sideLabel,
       repoType,
       repoName,
-      repoNameDisplay:  ctx.rootGetters['i18n/withFallback'](`catalog.repo.name."${ repoName }"`, null, repoName),
-      certifiedSort:    CERTIFIED_SORTS[certified] || 99,
-      icon:             chart.icon,
-      color:            repo.color,
-      chartType:        chart.annotations?.[CATALOG_ANNOTATIONS.TYPE] || CATALOG_ANNOTATIONS._APP,
-      chartName:        chart.name,
-      chartNameDisplay: chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
-      chartDescription: chart.description,
-      repoKey:          repo._key,
-      versions:         [],
-      categories:       filterCategories(chart.keywords),
-      deprecated:       !!chart.deprecated,
-      hidden:           !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
-      targetNamespace:  chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
-      targetName:       chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
-      scope:            chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
-      provides:         [],
-      permittedOSs:      certifiedAnnotation === 'rancher' ? (chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || 'linux').split(',') : null
+      repoNameDisplay:      ctx.rootGetters['i18n/withFallback'](`catalog.repo.name."${ repoName }"`, null, repoName),
+      certifiedSort:        CERTIFIED_SORTS[certified] || 99,
+      icon:                 chart.icon,
+      color:                repo.color,
+      chartType:            chart.annotations?.[CATALOG_ANNOTATIONS.TYPE] || CATALOG_ANNOTATIONS._APP,
+      chartName:            chart.name,
+      chartNameDisplay:     chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
+      chartDescription:     chart.description,
+      repoKey:              repo._key,
+      versions:             [],
+      categories:           filterCategories(chart.keywords),
+      deprecated:           !!chart.deprecated,
+      hidden:               !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
+      targetNamespace:      chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
+      targetName:           chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
+      scope:                chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
+      provides:             [],
+      windowsIncompatible:  !(chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || '').includes('windows'),
+      deploysOnWindows:     (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows')
     });
 
     map[key] = obj;
@@ -581,7 +582,6 @@ catalog.cattle.io/permits-os: OS -> will break on clusters containing nodes that
 */
 export function compatibleVersionsFor(chart, os, includePrerelease = true) {
   const versions = chart.versions;
-  const isRancher = chart.certified === 'rancher';
 
   if (os && !isArray(os)) {
     os = [os];
@@ -594,7 +594,7 @@ export function compatibleVersionsFor(chart, os, includePrerelease = true) {
       return false;
     }
 
-    if ( !os || difference(os, osPermitted).length === 0 || !isRancher) {
+    if ( !os || difference(os, osPermitted).length === 0) {
       return true;
     }
 

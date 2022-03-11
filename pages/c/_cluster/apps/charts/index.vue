@@ -3,6 +3,7 @@ import AsyncButton from '@/components/AsyncButton';
 import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
 import SelectIconGrid from '@/components/SelectIconGrid';
+import TypeDescription from '@/components/TypeDescription';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, OPERATING_SYSTEM
 } from '@/config/query-params';
@@ -24,6 +25,7 @@ export default {
     Checkbox,
     Select,
     SelectIconGrid,
+    TypeDescription
   },
 
   async fetch() {
@@ -140,7 +142,6 @@ export default {
       const enabledCharts = (this.enabledCharts || []);
 
       return filterAndArrangeCharts(enabledCharts, {
-        operatingSystems: this.currentCluster.workerOSs,
         category:         this.category,
         searchQuery:      this.searchQuery,
         showDeprecated:   this.showDeprecated,
@@ -256,16 +257,14 @@ export default {
     selectChart(chart) {
       let version;
       const OSs = this.currentCluster.workerOSs;
-
       const showPrerelease = this.$store.getters['prefs/get'](SHOW_PRE_RELEASE);
       const compatibleVersions = compatibleVersionsFor(chart, OSs, showPrerelease);
+      const versions = chart.versions;
 
       if (compatibleVersions.length > 0) {
         version = compatibleVersions[0].version;
       } else {
-        console.warn(`Cannot select chart '${ chart.chartName }' (no compatible version available for '${ OSs.length > 1 ? `${ OSs[0] } and ${ OSs[1] }` : OSs[0] }')`); // eslint-disable-line no-console
-
-        return;
+        version = versions[0].version;
       }
 
       this.$router.push({
@@ -313,7 +312,7 @@ export default {
         </h1>
       </div>
     </header>
-
+    <TypeDescription resource="chart" />
     <div class="left-right-split">
       <Select
         :searchable="false"

@@ -9,7 +9,7 @@ import isEqual from 'lodash/isEqual';
 import { CHART, REPO, REPO_TYPE, VERSION } from '@/config/query-params';
 import { mapGetters } from 'vuex';
 import { compatibleVersionsFor } from '@/store/catalog';
-
+import TypeDescription from '@/components/TypeDescription';
 export default {
   components: {
     Banner,
@@ -17,6 +17,7 @@ export default {
     DateFormatter,
     LazyImage,
     Loading,
+    TypeDescription
   },
 
   mixins: [
@@ -114,6 +115,8 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
+    <TypeDescription resource="chart" />
+
     <div v-if="chart" class="chart-header">
       <div class="name-logo-install">
         <div class="name-logo">
@@ -130,6 +133,9 @@ export default {
         <button v-if="!requires.length" type="button" class="btn role-primary" @click.prevent="install">
           {{ t(`asyncButton.${action}.action` ) }}
         </button>
+      </div>
+      <div v-if="chart.windowsIncompatible" class="mt-5">
+        <label class="os-label">{{ t('catalog.charts.windowsIncompatible') }}</label>
       </div>
       <div v-if="requires.length || warnings.length || targetedAppWarning || osWarning" class="mt-20">
         <Banner v-if="osWarning" color="error">
@@ -252,6 +258,11 @@ export default {
       h1 {
         margin: 0 20px;
       }
+    }
+
+    .os-label{
+      background-color: var(--warning-banner-bg);
+      color: var(--warning);
     }
 
     .btn {
