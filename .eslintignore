@@ -12,3 +12,4 @@ dist
 .DS_Store
 utils/dynamic-importer.js
 ksconfig.json
+storybook-static/

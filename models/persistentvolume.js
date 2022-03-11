@@ -1,4 +1,5 @@
 import { PVC } from '@/config/types';
+import SteveModel from '@/plugins/steve/steve-class';
 
 export const VOLUME_PLUGINS = [
   {
@@ -110,18 +111,18 @@ export const LONGHORN_DRIVER = 'driver.longhorn.io';
 
 export const LONGHORN_PLUGIN = VOLUME_PLUGINS.find(plugin => plugin.value === 'longhorn');
 
-export default {
-  source() {
+export default class PV extends SteveModel {
+  get source() {
     const plugin = this.isLonghorn ? LONGHORN_PLUGIN : VOLUME_PLUGINS.find(plugin => this.spec[plugin.value]);
 
     return this.t(plugin.labelKey);
-  },
+  }
 
-  isLonghorn() {
+  get isLonghorn() {
     return this.spec.csi && this.spec.csi.driver === LONGHORN_DRIVER;
-  },
+  }
 
-  claim() {
+  get claim() {
     if (!this.name) {
       return null;
     }
@@ -129,13 +130,13 @@ export default {
     const allClaims = this.$rootGetters['cluster/all'](PVC);
 
     return allClaims.find(claim => claim.spec.volumeName === this.name);
-  },
+  }
 
-  claimName() {
+  get claimName() {
     return this.claim?.nameDisplay || this.t('generic.na');
-  },
+  }
 
-  canDelete() {
+  get canDelete() {
     return this.state !== 'bound';
-  },
-};
+  }
+}

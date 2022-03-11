@@ -19,7 +19,7 @@ export default {
     col: {
       type:     Object,
       default: () => {}
-    },
+    }
   },
   computed: {
     percentage() {

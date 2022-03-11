@@ -8,8 +8,16 @@ export const AFTER_SAVE_HOOKS = '_afterSaveHooks';
 
 export default {
   methods: {
-    registerBeforeHook(boundFn, name, priority) {
-      this._registerHook(BEFORE_SAVE_HOOKS, boundFn, name, priority);
+    registerBeforeHook(boundFn, name, priority = 99, boundFnContext) {
+      this._registerHook(BEFORE_SAVE_HOOKS, boundFn, name, priority, boundFnContext);
+    },
+
+    unregisterBeforeSaveHook(name) {
+      this[BEFORE_SAVE_HOOKS] = this[BEFORE_SAVE_HOOKS].filter((hook) => {
+        // BEFORE_SAVE_HOOKS is an array of objects with keys
+        // fn, name and priority.
+        return hook.name !== name;
+      });
     },
 
     registerAfterHook(boundFn, name, priority) {
@@ -26,13 +34,13 @@ export default {
 
       for ( const x of hooks ) {
         console.debug('Applying hook', x.name); // eslint-disable-line no-console
-        out[x.name] = await x.fn.apply(this, args);
+        out[x.name] = await x.fn.apply(x.fnContext || this, args);
       }
 
       return out;
     },
 
-    _registerHook(key, fn, name, priority) {
+    _registerHook(key, fn, name, priority, fnContext) {
       if ( !key ) {
         throw new Error('Must specify key');
       }
@@ -58,11 +66,13 @@ export default {
       if ( entry ) {
         entry.priority = priority;
         entry.fn = fn;
+        entry.fnContext = fnContext;
       } else {
         entry = {
           name,
           priority,
-          fn
+          fn,
+          fnContext
         };
 
         hooks.push(entry);

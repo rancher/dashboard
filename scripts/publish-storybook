@@ -1,0 +1,33 @@
+#!/bin/bash
+
+DIR=$(cd $(dirname $0)/..; pwd)
+DIST=publish-storybook
+
+pushd $DIR > /dev/null
+
+rm -rf ${DIST}
+
+yarn install
+yarn install-storybook
+
+yarn build-storybook
+
+# Clone the storybook repo into the dist folder
+git clone git@github.com:rancher/storybook.git ${DIST}
+
+pushd ${DIST}/docs
+rm *.js
+rm *.txt
+rm *.map
+popd
+
+cp -R ${DIR}/storybook-static/* ${DIST}/docs
+
+MSG=$(git log -1  --pretty='%s')
+echo $MSG
+
+cd ${DIST}
+git add -A
+git commit -m "Storybook Update: ${MSG}"
+
+popd > /dev/null

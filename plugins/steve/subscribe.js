@@ -1,4 +1,3 @@
-import { remapSpecialKeys } from '@/plugins/steve/resource-proxy';
 import { addObject, removeObject } from '@/utils/array';
 import { get } from '@/utils/object';
 import Socket, {
@@ -8,14 +7,14 @@ import Socket, {
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR
 } from '@/utils/socket';
-import { normalizeType } from '~/plugins/steve/normalize';
+import { normalizeType } from '@/plugins/steve/normalize';
 
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
 
 export function keyForSubscribe({
-  resourceType, type, namespace, id, selector, reason
-}) {
+  resourceType, type, namespace, id, selector
+} = {}) {
   return `${ resourceType || type || '' }/${ namespace || '' }/${ id || '' }/${ selector || '' }`;
 }
 
@@ -41,8 +40,6 @@ export function equivalentWatch(a, b) {
 
 function queueChange({ getters, state }, { data, revision }, load, label) {
   const type = getters.normalizeType(data.type);
-
-  remapSpecialKeys(data);
 
   const entry = getters.typeEntry(type);
 
@@ -100,6 +97,7 @@ export const actions = {
     const url = `${ state.config.baseUrl }/subscribe`;
 
     if ( socket ) {
+      socket.setAutoReconnect(true);
       socket.setUrl(url);
     } else {
       socket = new Socket(`${ state.config.baseUrl }/subscribe`);
@@ -154,16 +152,18 @@ export const actions = {
       return;
     }
 
+    const started = new Date().getTime();
+
     state.queue = [];
 
-    state.debugSocket && console.debug(`Subscribe Flush [${ getters.storeName }]`, queue.length); // eslint-disable-line no-console
+    state.debugSocket && console.debug(`Subscribe Flush [${ getters.storeName }]`, queue.length, 'items'); // eslint-disable-line no-console
 
     for ( const { action, event, body } of queue ) {
       if ( action === 'dispatch' && event === 'load' ) {
         // Group loads into one loadMulti when possible
         toLoad.push(body);
       } else {
-        // When we hit a differet kind of event, process all the previous loads, then the other event.
+        // When we hit a different kind of event, process all the previous loads, then the other event.
         if ( toLoad.length ) {
           await dispatch('loadMulti', toLoad);
           toLoad = [];
@@ -183,6 +183,8 @@ export const actions = {
     if ( toLoad.length ) {
       await dispatch('loadMulti', toLoad);
     }
+
+    state.debugSocket && console.debug(`Subscribe Flush [${ getters.storeName }] finished`, (new Date().getTime()) - started, 'ms'); // eslint-disable-line no-console
   },
 
   rehydrateSubscribe({ state, dispatch }) {
@@ -353,8 +355,8 @@ export const actions = {
 
     // Try resending any frames that were attempted to be sent while the socket was down, once.
     if ( !process.server ) {
-      for ( const obj of state.pendingSends.slice() ) {
-        commit('dequeuePending', obj);
+      for ( const obj of state.pendingFrames.slice() ) {
+        commit('dequeuePendingFrame', obj);
         dispatch('sendImmediate', obj);
       }
     }
@@ -381,7 +383,7 @@ export const actions = {
       }
     }
 
-    commit('enqueuePending', obj);
+    commit('enqueuePendingFrame', obj);
   },
 
   sendImmediate({ state }, obj) {
@@ -453,10 +455,47 @@ export const actions = {
 
   'ws.resource.change'(ctx, msg) {
     queueChange(ctx, msg, true, 'Change');
+
+    const data = msg.data;
+    const type = data.type;
+    const typeOption = ctx.rootGetters['type-map/optionsFor'](type);
+
+    if (typeOption?.alias?.length > 0) {
+      const alias = typeOption?.alias || [];
+
+      alias.map((type) => {
+        ctx.state.queue.push({
+          action: 'dispatch',
+          event:  'load',
+          body:   {
+            ...data,
+            type,
+          },
+        });
+      });
+    }
   },
 
   'ws.resource.remove'(ctx, msg) {
     queueChange(ctx, msg, false, 'Remove');
+
+    const data = msg.data;
+    const type = data.type;
+    const typeOption = ctx.rootGetters['type-map/optionsFor'](type);
+
+    if (typeOption?.alias?.length > 0) {
+      const alias = typeOption?.alias || [];
+
+      alias.map((type) => {
+        const obj = ctx.getters.byId(type, data.id);
+
+        ctx.state.queue.push({
+          action: 'commit',
+          event:  'remove',
+          body:   obj,
+        });
+      });
+    }
   },
 };
 
@@ -469,12 +508,12 @@ export const mutations = {
     state.wantSocket = want;
   },
 
-  enqueuePending(state, obj) {
-    state.pendingSends.push(obj);
+  enqueuePendingFrame(state, obj) {
+    state.pendingFrames.push(obj);
   },
 
-  dequeuePending(state, obj) {
-    removeObject(state.pendingSends, obj);
+  dequeuePendingFrame(state, obj) {
+    removeObject(state.pendingFrames, obj);
   },
 
   setWatchStarted(state, obj) {
@@ -558,4 +597,15 @@ export const getters = {
     return null;
   },
 
+  currentGeneration: state => (type) => {
+    type = normalizeType(type);
+
+    const cache = state.types[type];
+
+    if ( !cache ) {
+      return null;
+    }
+
+    return cache.generation;
+  },
 };

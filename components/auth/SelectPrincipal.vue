@@ -20,7 +20,7 @@ export default {
     showMyGroupTypes: {
       type: Array,
       default() {
-        return ['group'];
+        return ['group', 'user'];
       },
     },
 
@@ -35,7 +35,12 @@ export default {
     retainSelection: {
       type:    Boolean,
       default: false
-    }
+    },
+
+    project: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   async fetch() {
@@ -68,10 +73,20 @@ export default {
         }
 
         return true;
-      }).map(x => x.id);
+      })
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(x => x.id);
 
       return out;
     },
+
+    label() {
+      return this.retainSelection ? this.t('cluster.memberRoles.addClusterMember.labelSelect') : this.t('cluster.memberRoles.addClusterMember.labelAdd');
+    },
+
+    placeholder() {
+      return this.project ? this.t('projectMembers.projectPermissions.searchForMember') : this.t('cluster.memberRoles.addClusterMember.placeholder');
+    }
   },
 
   created() {
@@ -134,10 +149,11 @@ export default {
 
 <template>
   <LabeledSelect
+    ref="labeled-select"
     v-model="newValue"
     :mode="mode"
-    :label="retainSelection ? `Select Member` : `Add Member`"
-    placeholder="Start typing to search for principals"
+    :label="label"
+    :placeholder="placeholder"
     :options="options"
     :searchable="true"
     :filterable="false"
@@ -146,10 +162,17 @@ export default {
     @input="add"
     @search="onSearch"
   >
-    <template v-if="!searchStr && options.length" #list-header>
-      <li class="pl-10 text-muted">
-        Your Groups:
-      </li>
+    <template v-slot:no-options="{ searching }">
+      <template v-if="searching">
+        <span class="search-slot">
+          {{ t('cluster.memberRoles.addClusterMember.noResults') }}
+        </span>
+      </template>
+      <div v-else>
+        <em class="search-slot">
+          {{ t('cluster.memberRoles.addClusterMember.searchPlaceholder') }}
+        </em>
+      </div>
     </template>
 
     <template #option="option">
@@ -163,9 +186,13 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .search-slot{
+    color: var(--body-text);
+  }
+
   .select-principal {
     &.retain-selection {
-      min-height: 86px;
+      min-height: 91px;
       &.focused {
         .principal {
           display: none;

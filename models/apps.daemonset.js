@@ -1,3 +1,4 @@
 import Workload from './workload';
 
-export default Workload;
+export default class DaemonSet extends Workload {
+}

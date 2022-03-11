@@ -4,7 +4,7 @@ import { _EDIT } from '@/config/query-params';
 import { NAMESPACE } from '@/config/types';
 import LabeledSelect from '@/components/form/LabeledSelect';
 
-export const NAMESPACE_FILTERS = {
+export const NAMESPACE_FILTERS_HELPER = {
   nonSystem(namespace) {
     return !namespace.isSystem;
   }

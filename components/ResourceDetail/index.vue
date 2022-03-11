@@ -105,7 +105,7 @@ export default {
     }
 
     const schema = store.getters[`${ inStore }/schemaFor`](resource);
-    let originalModel, model, yaml;
+    let model, initialModel, liveModel, yaml;
 
     if ( realMode === _CREATE || realMode === _IMPORT ) {
       if ( !namespace ) {
@@ -118,9 +118,9 @@ export default {
         data.metadata = { namespace };
       }
 
-      originalModel = await store.dispatch(`${ inStore }/create`, data);
-      // Dissassociate the original model & model. This fixes `Create` after refreshing page with SSR on
-      model = await store.dispatch(`${ inStore }/clone`, { resource: originalModel });
+      liveModel = await store.dispatch(`${ inStore }/create`, data);
+      initialModel = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
+      model = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
 
       if ( as === _YAML ) {
         yaml = createYaml(schemas, resource, data);
@@ -133,24 +133,26 @@ export default {
       }
 
       try {
-        originalModel = await store.dispatch(`${ inStore }/find`, {
+        liveModel = await store.dispatch(`${ inStore }/find`, {
           type: resource,
           id:   fqid,
           opt:  { watch: true }
         });
       } catch (e) {
-        originalModel = {};
+        liveModel = {};
         notFound = fqid;
       }
 
       if (realMode === _VIEW) {
-        model = originalModel;
+        model = liveModel;
       } else {
-        model = await store.dispatch(`${ inStore }/clone`, { resource: originalModel });
+        model = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
       }
 
+      initialModel = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
+
       if ( as === _YAML ) {
-        yaml = await getYaml(originalModel);
+        yaml = await getYaml(liveModel);
       }
 
       if ( [_CLONE, _IMPORT, _STAGE].includes(realMode) ) {
@@ -178,7 +180,8 @@ export default {
       resource,
       as,
       yaml,
-      originalModel,
+      initialModel,
+      liveModel,
       mode,
       value: model,
       notFound,
@@ -203,7 +206,8 @@ export default {
       resource:        null,
       asYaml:          null,
       yaml:            null,
-      originalModel:   null,
+      liveModel:       null,
+      initialModel:    null,
       mode:            null,
       as:              null,
       value:           null,
@@ -269,7 +273,7 @@ export default {
     // Auto refresh YAML when the model changes
     async 'value.metadata.resourceVersion'(a, b) {
       if ( this.mode === _VIEW && this.as === _YAML && a && b && a !== b) {
-        this.yaml = await getYaml(this.originalModel);
+        this.yaml = await getYaml(this.liveModel);
       }
     }
   },
@@ -277,15 +281,14 @@ export default {
   created() {
     // eslint-disable-next-line prefer-const
     const id = this.$route.params.id;
-    let resource = this.resourceOverride || this.$route.params.resource;
+    const resource = this.resourceOverride || this.$route.params.resource;
     const options = this.$store.getters[`type-map/optionsFor`](resource);
 
-    if ( options.resource ) {
-      resource = options.resource;
-    }
+    const detailResource = options.resourceDetail || options.resource || resource;
+    const editResource = options.resourceEdit || options.resource || resource;
 
-    this.detailComponent = this.$store.getters['type-map/importDetail'](resource, id);
-    this.editComponent = this.$store.getters['type-map/importEdit'](resource, id);
+    this.detailComponent = this.$store.getters['type-map/importDetail'](detailResource, id);
+    this.editComponent = this.$store.getters['type-map/importEdit'](editResource, id);
   },
 
   methods: {
@@ -294,7 +297,7 @@ export default {
     },
 
     keyAction(act) {
-      const m = this.originalModel;
+      const m = this.liveModel;
 
       if ( m?.[act] ) {
         m[act]();
@@ -320,7 +323,7 @@ export default {
   <div v-else>
     <Masthead
       :resource="resource"
-      :value="originalModel"
+      :value="liveModel"
       :mode="mode"
       :real-mode="realMode"
       :as="as"
@@ -332,7 +335,7 @@ export default {
     >
       <DetailTop
         v-if="isView && isDetail"
-        :value="originalModel"
+        :value="liveModel"
       />
     </Masthead>
 
@@ -356,7 +359,8 @@ export default {
       :done-params="doneParams"
       :done-route="doneRoute"
       :mode="mode"
-      :original-value="originalModel"
+      :initial-value="initialModel"
+      :live-value="liveModel"
       :real-mode="realMode"
       @set-subtype="setSubtype"
     />

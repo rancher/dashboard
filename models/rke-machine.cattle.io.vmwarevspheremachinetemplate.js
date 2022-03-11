@@ -1,18 +1,14 @@
 import { formatSi } from '@/utils/units';
+import MachineTemplate from './rke-machine.cattle.io.machinetemplate';
 
-export default {
-
-  nameDisplay() {
-    return this.name.replace(`${ this.metadata.annotations['objectset.rio.cattle.io/owner-name'] }-`, '');
-  },
-
-  provider() {
+export default class VmwarevsphereMachineTemplate extends MachineTemplate {
+  get provider() {
     return 'vmwarevsphere';
-  },
+  }
 
-  providerSize() {
+  get providerSize() {
     const size = formatSi(this.spec.template.spec.memorySize * 1048576, 1024, 'iB');
 
     return `${ size }, ${ this.spec.template.spec.cpuCount } Core`;
   }
-};
+}

@@ -17,7 +17,6 @@ import Loading from '@/components/Loading';
 import { LONGHORN_PLUGIN, VOLUME_PLUGINS } from '@/models/persistentvolume';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import { clone } from '@/utils/object';
-import { parseSi } from '@/utils/units';
 import InfoBox from '@/components/InfoBox';
 import { mapFeature, UNSUPPORTED_STORAGE_DRIVERS } from '@/store/features';
 
@@ -108,16 +107,6 @@ export default {
     },
     modeOverride() {
       return this.isCreate ? _CREATE : _VIEW;
-    },
-    capacity: {
-      get() {
-        const bytes = parseSi(this.value.spec.capacity.storage);
-
-        return bytes / (1024 ** 3);
-      },
-      set(value) {
-        this.$set(this.value.spec.capacity, 'storage', `${ value }Gi`);
-      }
     },
     nodeSelectorTerms: {
       get() {
@@ -226,7 +215,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           :value="plugin"
-          :label="'Volume Plugin'"
+          :label="t('persistentVolume.plugin.label')"
           :localized-label="true"
           option-label="labelKey"
           :options="plugins"
@@ -237,21 +226,23 @@ export default {
       </div>
       <div class="col span-6">
         <UnitInput
-          v-model="capacity"
+          v-model="value.spec.capacity.storage"
           :required="true"
-          :label="'Capacity'"
-          :suffix="'GiB'"
+          :label="t('persistentVolume.capacity.label')"
+          :increment="1024"
+          :input-exponent="3"
+          :output-modifier="true"
           :mode="mode"
         />
       </div>
     </div>
     <Tabbed :side-tabs="true">
-      <Tab name="plugin-configuration" :label="'Plugin Configuration'" :weight="1">
+      <Tab name="plugin-configuration" :label="t('persistentVolume.pluginConfiguration.label')" :weight="1">
         <component :is="getComponent(plugin)" :key="plugin" :value="value" :mode="modeOverride" />
       </Tab>
       <Tab
         name="customize"
-        :label="'Customize'"
+        :label="t('persistentVolume.customize.label')"
         :weight="0"
       >
         <div class="row mb-20">

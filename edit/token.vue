@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import day from 'dayjs';
 import sortBy from 'lodash/sortBy';
-import { MANAGEMENT } from '@/config/types';
+import { MANAGEMENT, NORMAN } from '@/config/types';
 import Banner from '@/components/Banner';
 import DetailText from '@/components/DetailText';
 import Footer from '@/components/form/Footer';
@@ -12,6 +12,7 @@ import RadioGroup from '@/components/form/RadioGroup';
 import Select from '@/components/form/Select';
 import CreateEditView from '@/mixins/create-edit-view';
 import { diffFrom } from '@/utils/time';
+import { filterOnlyKubernetesClusters } from '@/utils/cluster';
 
 export default {
   components: {
@@ -56,7 +57,8 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
     scopes() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      let out = all.map(opt => ({ value: opt.id, label: opt.nameDisplay }));
+      const kubeClusters = filterOnlyKubernetesClusters(all);
+      let out = kubeClusters.map(opt => ({ value: opt.id, label: opt.nameDisplay }));
 
       out = sortBy(out, ['label']);
       out.unshift( { value: '', label: this.t('accountAndKeys.apiKeys.add.noScope') } );
@@ -127,6 +129,13 @@ export default {
         this.accessKey = token[0];
         this.secretKey = (token.length > 1) ? token[1] : '';
         this.token = this.created.token;
+
+        // Force a refresh of the token so we get the expiry date correctly
+        await this.$store.dispatch('rancher/find', {
+          type: NORMAN.TOKEN,
+          id:   res.id,
+          opt:  { force: true }
+        }, { root: true });
       } else {
         // Note: update of existing key not supported currently
         await this.value.save();

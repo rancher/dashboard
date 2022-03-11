@@ -142,7 +142,7 @@ export default {
       if (neu) {
         this.$refs.yamluploader.click();
       }
-    }
+    },
   },
 
   methods: {

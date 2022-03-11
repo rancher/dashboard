@@ -31,7 +31,7 @@ const ALWAYS_ADD = [
   'spec.template.spec.containers.image',
 ];
 
-const NEVER_ADD = [
+export const NEVER_ADD = [
   'metadata.clusterName',
   'metadata.clusterName',
   'metadata.creationTimestamp',
@@ -53,7 +53,7 @@ const NEVER_ADD = [
   'stringData',
 ];
 
-const ACTIVELY_REMOVE = [
+export const ACTIVELY_REMOVE = [
   'metadata.managedFields',
   'metadata.relationships',
   'metadata.state',
@@ -81,7 +81,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
   if ( depth === 0 ) {
     const attr = schema.attributes || {};
 
-    // Default to data.apiVersion/kind to accomadate spoofed types that aggregate multiple types
+    // Default to data.apiVersion/kind to accommodate spoofed types that aggregate multiple types
     data.apiVersion = (attr.group ? `${ attr.group }/${ attr.version }` : attr.version) || data.apiVersion;
     data.kind = attr.kind || data.kind;
   }
@@ -118,7 +118,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
   const commentFields = Object.keys(schema.resourceFields || {});
 
   commentFields.forEach((key) => {
-    if ( typeof data[key] !== 'undefined' || key === '_type' ) {
+    if ( typeof data[key] !== 'undefined' || (depth === 0 && key === '_type') ) {
       addObject(regularFields, key);
     }
   });

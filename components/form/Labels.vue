@@ -53,7 +53,7 @@ export default {
         :title="t('labels.labels.title')"
         :read-allowed="false"
         :value-can-be-empty="true"
-        @input="value.setLabels"
+        @input="value.setLabels($event)"
       />
     </div>
     <div class="spacer"></div>
@@ -66,7 +66,7 @@ export default {
         :title="t('labels.annotations.title')"
         :read-allowed="false"
         :value-can-be-empty="true"
-        @input="value.setAnnotations"
+        @input="value.setAnnotations($event)"
       />
     </div>
   </div>

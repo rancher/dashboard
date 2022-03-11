@@ -1,13 +1,12 @@
 import { CATALOG } from '@/config/types';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  warnDeletionMessage() {
-    return (toRemove = []) => {
-      return this.$rootGetters['i18n/t']('cis.deleteBenchmarkWarning', { count: toRemove.length });
-    };
-  },
+export default class ClusterScanBenchmark extends SteveModel {
+  warnDeletionMessage(toRemove = []) {
+    return this.$rootGetters['i18n/t']('cis.deleteBenchmarkWarning', { count: toRemove.length });
+  }
 
-  isDefault() {
+  get isDefault() {
     const { relationships = [] } = this.metadata;
 
     if (!relationships) {
@@ -16,4 +15,4 @@ export default {
 
     return relationships.filter(rel => rel.fromType === CATALOG.APP ).length > 0;
   }
-};
+}

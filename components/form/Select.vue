@@ -19,6 +19,10 @@ export default {
       default: false,
       type:    Boolean,
     },
+    getKeyForOption: {
+      default: null,
+      type:    Function
+    },
     mode: {
       default: 'edit',
       type:    String,
@@ -167,6 +171,27 @@ export default {
 
     onClickOption(option, event) {
       onClickOption.call(this, option, event);
+    },
+    selectable(opt) {
+      // Lets you disable options that are used
+      // for headings on groups of options.
+      if ( opt ) {
+        if ( opt.disabled || opt.kind === 'group' || opt.kind === 'divider' || opt.loading ) {
+          return false;
+        }
+      }
+
+      return true;
+    },
+    getOptionKey(opt) {
+      if (opt.optionKey) {
+        return get(opt, opt.optionKey);
+      }
+
+      return this.getOptionLabel(opt);
+    },
+    report(e) {
+      alert(e);
     }
   }
 };
@@ -194,7 +219,7 @@ export default {
       :append-to-body="appendToBody"
       :calculate-position="placement ? withPopper : undefined"
       :disabled="isView || disabled"
-      :get-option-key="(opt) => (optionKey ? get(opt, optionKey) : getOptionLabel(opt))"
+      :get-option-key="(opt) => getOptionKey(opt)"
       :get-option-label="(opt) => getOptionLabel(opt)"
       :label="optionLabel"
       :options="options"
@@ -203,12 +228,14 @@ export default {
       :placeholder="placeholder"
       :reduce="(x) => reduce(x)"
       :searchable="isSearchable"
+      :selectable="selectable"
       :value="value != null ? value : ''"
       v-on="$listeners"
       @input="(e) => $emit('input', e)"
       @search:blur="onBlur"
       @search:focus="onFocus"
       @open="resizeHandler"
+      @option:created="(e) => $emit('createdListItem', e)"
     >
       <template #option="option">
         <div @mousedown="(e) => onClickOption(option, e)">

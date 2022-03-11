@@ -2,7 +2,7 @@
 import Jexl from 'jexl';
 import Tab from '@/components/Tabbed/Tab';
 import { get, set } from '@/utils/object';
-import sortBy from 'lodash/sortBy';
+import { sortBy, camelCase } from 'lodash';
 import { _EDIT } from '@/config/query-params';
 import StringType from './String';
 import BooleanType from './Boolean';
@@ -10,7 +10,7 @@ import EnumType from './Enum';
 import IntType from './Int';
 import FloatType from './Float';
 import ArrayType from './Array';
-import MapType from './Map';
+import MapType from './QuestionMap';
 import ReferenceType from './Reference';
 import CloudCredentialType from './CloudCredential';
 
@@ -23,17 +23,13 @@ export const knownTypes = {
   enum:            EnumType,
   int:             IntType,
   float:           FloatType,
-  map:             MapType,
+  questionMap:     MapType,
   reference:       ReferenceType,
   configmap:       ReferenceType,
   secret:          ReferenceType,
   storageclass:    ReferenceType,
   pvc:             ReferenceType,
   cloudcredential: CloudCredentialType,
-
-  // storageclass
-  // pvc
-  // secret
 };
 
 export function componentForQuestion(q) {
@@ -65,58 +61,6 @@ export function schemaToQuestions(fields) {
   }
 
   return out;
-}
-
-function evalExpr(expr, values) {
-  try {
-    const out = Jexl.evalSync(expr, values);
-
-    // console.log('Eval', expr, '=> ', out);
-
-    return out;
-  } catch (err) {
-    console.error('Error evaluating expression:', expr, values); // eslint-disable-line no-console
-
-    return true;
-  }
-}
-
-function shouldShow(q, values) {
-  let expr = q.if;
-
-  if ( expr === undefined && q.show_if !== undefined ) {
-    expr = migrate(q.show_if);
-  }
-
-  if ( expr ) {
-    const shown = !!evalExpr(expr, values);
-
-    return shown;
-  }
-
-  return true;
-}
-
-function shouldShowSub(q, values) {
-  // Sigh, both singular and plural are used in the wild...
-  let expr = ( q.subquestions_if === undefined ? q.subquestion_if : q.subquestions_if);
-  const old = ( q.show_subquestions_if === undefined ? q.show_subquestion_if : q.show_subquestions_if);
-
-  if ( !expr && old !== undefined ) {
-    if ( old === false || old === 'false' ) {
-      expr = `!${ q.variable }`;
-    } else if ( old === true || old === 'true' ) {
-      expr = `!!${ q.variable }`;
-    } else {
-      expr = `${ q.variable } == "${ old }"`;
-    }
-  }
-
-  if ( expr ) {
-    return evalExpr(expr, values);
-  }
-
-  return true;
 }
 
 function migrate(expr) {
@@ -201,6 +145,16 @@ export default {
     disabled: {
       type:    Boolean,
       default: false,
+    },
+
+    inStore: {
+      type:    String,
+      default: 'cluster'
+    },
+
+    emit: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -223,6 +177,7 @@ export default {
 
     shownQuestions() {
       const values = this.value;
+      const vm = this;
 
       if ( this.valueGeneration < 0 ) {
         // Pointless condition to get this to depend on generation and recompute
@@ -242,7 +197,7 @@ export default {
       return out;
 
       function addQuestion(q, depth = 1, parentGroup) {
-        if ( !shouldShow(q, values) ) {
+        if ( !vm.shouldShow(q, values) ) {
           return;
         }
 
@@ -251,12 +206,16 @@ export default {
 
         out.push(q);
 
-        if ( q.subquestions?.length && shouldShowSub(q, values) ) {
+        if ( q.subquestions?.length && vm.shouldShowSub(q, values) ) {
           for ( const sub of q.subquestions ) {
             addQuestion(sub, depth + 1, q.group);
           }
         }
       }
+    },
+
+    chartName() {
+      return this.source.chart?.name;
     },
 
     groups() {
@@ -268,10 +227,11 @@ export default {
         const group = q.group || defaultGroup;
 
         const normalized = group.trim().toLowerCase();
+        const name = this.$store.getters['i18n/withFallback'](`charts.${ this.chartName }.group.${ camelCase(group) }`, null, group);
 
         if ( !map[normalized] ) {
           map[normalized] = {
-            name:      group,
+            name,
             questions: [],
             weight:    weight--,
           };
@@ -312,6 +272,156 @@ export default {
     get,
     set,
     componentForQuestion,
+
+    update(variable, $event) {
+      set(this.value, variable, $event);
+      if (this.emit) {
+        this.$emit('updated');
+      }
+    },
+    evalExpr(expr, values, question, allQuestions) {
+      try {
+        const out = Jexl.evalSync(expr, values);
+
+        // console.log('Eval', expr, '=> ', out);
+
+        // If the variable contains a hyphen, check if it evaluates to true
+        // according to the evaluation logic used in the old UI.
+        // This helps users avoid manual work to migrate from legacy apps.
+        if (!out && expr.includes('-')) {
+          const res = this.evaluate(question, allQuestions);
+
+          return res;
+        }
+
+        return out;
+      } catch (err) {
+        console.error('Error evaluating expression:', expr, values); // eslint-disable-line no-console
+
+        return true;
+      }
+    },
+    evaluate(question, allQuestions) {
+      if ( !question.show_if ) {
+        return true;
+      }
+      const and = question.show_if.split('&&');
+      const or = question.show_if.split('||');
+
+      let result;
+
+      if ( get(or, 'length') > 1 ) {
+        result = or.some(showIf => this.calExpression(showIf, allQuestions));
+      } else {
+        result = and.every(showIf => this.calExpression(showIf, allQuestions));
+      }
+
+      return result;
+    },
+    calExpression(showIf, allQuestions) {
+      if ( showIf.includes('!=')) {
+        return this.isNotEqual(showIf, allQuestions);
+      } else {
+        return this.isEqual(showIf, allQuestions);
+      }
+    },
+    isEqual(showIf, allQuestions) {
+      showIf = showIf.trim();
+      const variables = this.getVariables(showIf, '=');
+
+      if ( variables ) {
+        const left = this.stringifyAnswer(this.getAnswer(variables.left, allQuestions));
+        const right = this.stringifyAnswer(variables.right);
+
+        return left === right;
+      }
+
+      return false;
+    },
+    isNotEqual(showIf, allQuestions) {
+      showIf = showIf.trim();
+      const variables = this.getVariables(showIf, '!=');
+
+      if ( variables ) {
+        const left = this.stringifyAnswer(this.getAnswer(variables.left, allQuestions));
+        const right = this.stringifyAnswer(variables.right);
+
+        return left !== right;
+      }
+
+      return false;
+    },
+    getVariables(showIf, operator) {
+      if ( showIf.includes(operator)) {
+        const array = showIf.split(operator);
+
+        if ( array.length === 2 ) {
+          return {
+            left:  array[0],
+            right: array[1]
+          };
+        } else {
+          return null;
+        }
+      }
+
+      return null;
+    },
+    getAnswer(variable, questions) {
+      const found = questions.find(q => q.variable === variable);
+
+      if ( found ) {
+        // Equivalent to finding question.answer in Ember
+        return get(this.value, found.variable);
+      } else {
+        return variable;
+      }
+    },
+    stringifyAnswer(answer) {
+      if ( answer === undefined || answer === null ) {
+        return '';
+      } else if ( typeof answer === 'string' ) {
+        return answer;
+      } else {
+        return `${ answer }`;
+      }
+    },
+    shouldShow(q, values) {
+      let expr = q.if;
+
+      if ( expr === undefined && q.show_if !== undefined ) {
+        expr = migrate(q.show_if);
+      }
+
+      if ( expr ) {
+        const shown = !!this.evalExpr(expr, values, q, this.allQuestions);
+
+        return shown;
+      }
+
+      return true;
+    },
+    shouldShowSub(q, values) {
+      // Sigh, both singular and plural are used in the wild...
+      let expr = ( q.subquestions_if === undefined ? q.subquestion_if : q.subquestions_if);
+      const old = ( q.show_subquestions_if === undefined ? q.show_subquestion_if : q.show_subquestions_if);
+
+      if ( !expr && old !== undefined ) {
+        if ( old === false || old === 'false' ) {
+          expr = `!${ q.variable }`;
+        } else if ( old === true || old === 'true' ) {
+          expr = `!!${ q.variable }`;
+        } else {
+          expr = `${ q.variable } == "${ old }"`;
+        }
+      }
+
+      if ( expr ) {
+        return this.evalExpr(expr, values, q, this.allQuestions);
+      }
+
+      return true;
+    }
   },
 };
 </script>
@@ -329,11 +439,13 @@ export default {
         <div class="col span-12">
           <component
             :is="componentForQuestion(q)"
+            :in-store="inStore"
             :question="q"
             :target-namespace="targetNamespace"
             :value="get(value, q.variable)"
             :disabled="disabled"
-            @input="set(value, q.variable, $event)"
+            :chart-name="chartName"
+            @input="update(q.variable, $event)"
           />
         </div>
       </div>
@@ -351,12 +463,14 @@ export default {
         <div class="col span-12">
           <component
             :is="componentForQuestion(q)"
+            :in-store="inStore"
             :question="q"
             :target-namespace="targetNamespace"
             :mode="mode"
             :value="get(value, q.variable)"
             :disabled="disabled"
-            @input="set(value, q.variable, $event)"
+            :chart-name="chartName"
+            @input="update(q.variable, $event)"
           />
         </div>
       </div>

@@ -1,0 +1,22 @@
+{
+  "name": "dashboard-storybook",
+  "description": "Rancher Dashboard Storybook",
+  "repository": "https://github.com/rancherlabs/dashboard",
+  "license": "Apache-2.0",
+  "author": "Rancher Labs, Inc.",
+  "private": true,
+  "engines": {
+    "node": ">=12"
+  },
+  "scripts": {
+  },
+  "devDependencies": {
+    "@storybook/addon-actions": "^6.3.8",
+    "@storybook/addon-essentials": "^6.3.8",
+    "@storybook/addon-links": "^6.3.8",
+    "@storybook/addon-a11y": "^6.3.8",
+    "@storybook/vue": "^6.3.8",
+    "storybook-dark-mode": "^1.0.8",
+    "storybook-auto-events": "^0.1.1"
+  }
+}

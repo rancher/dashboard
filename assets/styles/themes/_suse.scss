@@ -4,7 +4,7 @@
   $selected: rgba($primary, .5);
 
   --primary                    : #{$primary};
-  --primary-text               : #{contrast-color($primary)};
+  --primary-text               : #fff;
   --primary-hover-bg           : #{darken($primary, 10%)};
   --primary-hover-text         : #{saturate($lightest, 20%)};
   --primary-active-bg          : #{darken($primary, 25%)};

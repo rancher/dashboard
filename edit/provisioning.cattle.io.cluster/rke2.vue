@@ -7,16 +7,18 @@ import { mapGetters } from 'vuex';
 
 import CreateEditView from '@/mixins/create-edit-view';
 
-import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
+import { CAPI, MANAGEMENT, NORMAN, SCHEMA } from '@/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
 import { findBy, removeObject, clear } from '@/utils/array';
-import { clone, diff, isEmpty, set } from '@/utils/object';
+import { createYaml } from '@/utils/create-yaml';
+import { clone, diff, set, get } from '@/utils/object';
 import { allHash } from '@/utils/promise';
 import { sortBy } from '@/utils/sort';
 import { camelToTitle, nlToBr } from '@/utils/string';
 import { compare, sortable } from '@/utils/version';
+import { isHarvesterSatisfiesVersion } from '@/utils/cluster';
 
 import ArrayList from '@/components/form/ArrayList';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
@@ -42,6 +44,7 @@ import SelectOrCreateAuthSecret from '@/components/form/SelectOrCreateAuthSecret
 import { LEGACY } from '@/store/features';
 import semver from 'semver';
 import { canViewClusterMembershipEditor } from '@/components/form/Members/ClusterMembershipEditor.vue';
+import { SETTING } from '@/config/settings';
 import ACE from './ACE';
 import AgentEnv from './AgentEnv';
 import DrainOptions from './DrainOptions';
@@ -51,11 +54,13 @@ import RegistryConfigs from './RegistryConfigs';
 import RegistryMirrors from './RegistryMirrors';
 import S3Config from './S3Config';
 import SelectCredential from './SelectCredential';
-import { SETTING } from '~/config/settings';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';
 const ADVANCED = 'advanced';
+
+const HARVESTER = 'harvester';
+const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 
 export default {
   components: {
@@ -113,6 +118,8 @@ export default {
       const hash = {
         rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
         k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
+        rke2Channels: this.$store.dispatch('management/request', { url: '/v1-rke2-release/channels' }),
+        k3sChannels:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/channels' }),
       };
 
       if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
@@ -124,6 +131,8 @@ export default {
       this.allPSPs = res.allPSPs || [];
       this.rke2Versions = res.rke2Versions.data || [];
       this.k3sVersions = res.k3sVersions.data || [];
+      this.rke2Channels = res.rke2Channels.data || [];
+      this.k3sChannels = res.k3sChannels.data || [];
 
       if ( !this.rke2Versions.length && !this.k3sVersions.length ) {
         throw new Error('No version info found in KDM');
@@ -143,13 +152,12 @@ export default {
     }
 
     if ( this.value.spec.cloudCredentialSecretName ) {
+      await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
       this.credentialId = `${ this.value.spec.cloudCredentialSecretName }`;
     }
 
     if ( !this.value.spec.kubernetesVersion ) {
-      const option = this.versionOptions.find(x => !!x.value);
-
-      set(this.value.spec, 'kubernetesVersion', option.value);
+      set(this.value.spec, 'kubernetesVersion', this.defaultVersion);
     }
 
     for ( const k in this.serverArgs ) {
@@ -200,10 +208,18 @@ export default {
       set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
     }
 
+    if (this.isHarvesterDriver && this.mode === _CREATE && this.agentConfig['cloud-provider-name'] === undefined) {
+      this.agentConfig['cloud-provider-name'] = HARVESTER;
+    }
+
     await this.initAddons();
     await this.initRegistry();
 
-    this.loadedOnce = true;
+    Object.entries(this.chartValues).forEach(([name, value]) => {
+      const key = this.chartVersionKey(name);
+
+      this.userChartValues[key] = value;
+    });
   },
 
   data() {
@@ -233,23 +249,27 @@ export default {
     }
 
     return {
-      loadedOnce:       false,
-      lastIdx:          0,
-      allPSPs:          null,
-      nodeComponent:    null,
-      credentialId:     null,
-      credential:       null,
-      machinePools:     null,
-      rke2Versions:     null,
-      k3sVersions:      null,
-      s3Backup:         false,
-      chartVersionInfo: null,
-      versionInfo:      {},
-      membershipUpdate: {},
-      systemRegistry:   null,
-      registryHost:     null,
-      registryMode:     null,
-      registrySecret:   null,
+      loadedOnce:           false,
+      lastIdx:              0,
+      allPSPs:              null,
+      nodeComponent:        null,
+      credentialId:         null,
+      credential:           null,
+      machinePools:         null,
+      rke2Versions:         null,
+      k3sVersions:          null,
+      rke2Channels:         [],
+      k3sChannels:          [],
+      s3Backup:             false,
+      versionInfo:          {},
+      membershipUpdate:     {},
+      systemRegistry:       null,
+      registryHost:         null,
+      registryMode:         null,
+      registrySecret:       null,
+      userChartValues:      {},
+      userChartValuesTemp:  {},
+      addonsRev:            0,
     };
   },
 
@@ -265,6 +285,12 @@ export default {
       return this.value.spec.rkeConfig;
     },
 
+    advancedTitleAlt() {
+      const machineSelectorLength = this.rkeConfig.machineSelectorConfig.length;
+
+      return this.t('cluster.advanced.argInfo.machineSelector.titleAlt', { count: machineSelectorLength });
+    },
+
     chartValues() {
       return this.value.spec.rkeConfig.chartValues;
     },
@@ -277,6 +303,14 @@ export default {
       // The one we want is the first one with no selector.
       // If there are multiple with no selector, that will fall under the unsupported message below.
       return this.value.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
+    },
+
+    showK3sTechPreviewWarning() {
+      // NOTE: Put this back in when RKE2 is out of tech preview, but K3s is not
+      // const selectedVersion = this.value?.spec?.kubernetesVersion || 'none';
+
+      // return !!this.k3sVersions.find(v => v.version === selectedVersion);
+      return false;
     },
 
     // kubeletConfigs() {
@@ -314,33 +348,13 @@ export default {
     },
 
     versionOptions() {
-      function filterAndMap(versions, minVersion) {
-        const out = (versions || []).filter(obj => !!obj.serverArgs).map((obj) => {
-          let disabled = false;
-
-          if ( minVersion ) {
-            disabled = compare(obj.id, minVersion) < 0;
-          }
-
-          return {
-            label:      obj.id,
-            value:      obj.id,
-            sort:       sortable(obj.id),
-            serverArgs: obj.serverArgs,
-            agentArgs:  obj.agentArgs,
-            charts:     obj.charts,
-            disabled,
-          };
-        });
-
-        return sortBy(out, 'sort:desc');
-      }
-
-      const cur = this.originalValue?.spec?.kubernetesVersion || '';
+      const cur = this.liveValue?.spec?.kubernetesVersion || '';
       const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
       const existingK3s = this.mode === _EDIT && cur.includes('k3s');
-      const rke2 = filterAndMap(this.rke2Versions, (existingRke2 ? cur : null));
-      const k3s = filterAndMap(this.k3sVersions, (existingK3s ? cur : null));
+      const defaultRke2 = this.rke2Channels.find(x => x.id === 'default')?.latest;
+      const defaultK3s = this.k3sChannels.find(x => x.id === 'default')?.latest;
+      const rke2 = this.filterAndMap(this.rke2Versions, (existingRke2 ? cur : null), cur, defaultRke2);
+      const k3s = this.filterAndMap(this.k3sVersions, (existingK3s ? cur : null), cur, defaultK3s);
       const showRke2 = rke2.length && !existingK3s;
       const showK3s = k3s.length && !existingRke2;
       const out = [];
@@ -355,7 +369,12 @@ export default {
 
       if ( showK3s ) {
         if ( showRke2 ) {
-          out.push({ kind: 'group', label: this.t('cluster.provider.k3s') });
+          out.push({
+            kind:  'group',
+            label: this.t('cluster.provider.k3s'),
+            // NOTE: Put this back in when RKE2 is out of tech preview, but K3s is not
+            // badge: this.t('generic.techPreview')
+          });
         }
 
         out.push(...k3s);
@@ -428,7 +447,13 @@ export default {
       const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
 
       for ( const opt of this.agentArgs['cloud-provider-name'].options ) {
-        if ( !preferred || opt === preferred || opt === 'external' ) {
+        // If we don't have a preferred provider... show all options
+        const showAllOptions = preferred === undefined;
+        // If we have a preferred provider... only show default, preferred and external
+        const isPreferred = opt === preferred;
+        const isExternal = opt === 'external';
+
+        if (showAllOptions || isPreferred || isExternal) {
           out.push({
             label: this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ opt }".label`, null, opt),
             value: opt,
@@ -613,6 +638,7 @@ export default {
       case 'none': return false;
       case 'aws': return false;
       case 'rancher-vsphere': return false;
+      case HARVESTER: return false;
       default: return true;
       }
     },
@@ -631,18 +657,28 @@ export default {
       return !!this.serverArgs.cni;
     },
 
+    showCloudProvider() {
+      return this.agentArgs['cloud-provider-name'];
+    },
+
     addonNames() {
       const names = [];
       const cni = this.serverConfig.cni;
 
       if ( cni ) {
-        const parts = cni.split('+').map(x => `rke2-${ x }`);
+        const parts = cni.split(',').map(x => `rke2-${ x }`);
 
         names.push(...parts);
       }
 
-      if ( this.agentConfig['cloud-provider-name'] === 'rancher-vsphere' ) {
-        names.push('rancher-vsphere-cpi', 'rancher-vsphere-csi');
+      if (this.showCloudProvider) { // Shouldn't be removed such that changes to it will re-trigger this watch
+        if ( this.agentConfig['cloud-provider-name'] === 'rancher-vsphere' ) {
+          names.push('rancher-vsphere-cpi', 'rancher-vsphere-csi');
+        }
+
+        if ( this.agentConfig['cloud-provider-name'] === HARVESTER ) {
+          names.push(HARVESTER_CLOUD_PROVIDER);
+        }
       }
 
       return names;
@@ -667,6 +703,94 @@ export default {
 
     canManageMembers() {
       return canViewClusterMembershipEditor(this.$store);
+    },
+
+    isHarvesterDriver() {
+      return this.$route.query.type === HARVESTER;
+    },
+
+    defaultVersion() {
+      const all = this.versionOptions.filter(x => !!x.value);
+      const first = all[0]?.value;
+      const preferredVersion = this.rke2Channels.find(x => x.id === 'default')?.latest;
+      const preferred = all.find(x => x.value === preferredVersion)?.value;
+
+      const rke2 = this.filterAndMap(this.rke2Versions, null);
+      const showRke2 = rke2.length;
+      let out;
+
+      if (this.isHarvesterDriver && showRke2) {
+        const satisfiesVersion = rke2.filter((v) => {
+          return isHarvesterSatisfiesVersion(v.value);
+        }) || [];
+
+        if (satisfiesVersion.length > 0) {
+          out = satisfiesVersion[0]?.value;
+        }
+      }
+
+      if ( !out ) {
+        out = preferred || first;
+      }
+
+      return out;
+    },
+
+    ciliumIpv6: {
+      get() {
+        // eslint-disable-next-line no-unused-vars
+        const cni = this.serverConfig.cni; // force this property to recalculate if cni was changed away from cilium and chartValues['rke-cilium'] deleted
+
+        return this.userChartValues[this.chartVersionKey('rke2-cilium')]?.cilium?.ipv6?.enabled || false;
+      },
+      set(val) {
+        const name = this.chartVersionKey('rke2-cilium');
+        const values = this.userChartValues[name];
+
+        set(this, 'userChartValues', {
+          ...this.userChartValues,
+          [name]: {
+            ...values,
+            cilium: {
+              ...values?.cilium,
+              ipv6: {
+                ...values?.cilium?.ipv6,
+                enabled: val
+              }
+            }
+          }
+        });
+      }
+    },
+
+    showIpv6Warning() {
+      const clusterCIDR = this.serverConfig['cluster-cidr'] || '';
+      const serviceCIDR = this.serverConfig['service-cidr'] || '';
+
+      return clusterCIDR.includes(':') || serviceCIDR.includes(':');
+    },
+
+    appsOSWarning() {
+      if (this.mode !== _EDIT ) {
+        return null;
+      }
+      const { linuxWorkerCount, windowsWorkerCount } = this.value?.mgmt?.status || {};
+
+      if (!windowsWorkerCount) {
+        if (!!this.machinePools.find((pool) => {
+          return pool?.config?.os === 'windows';
+        })) {
+          return this.t('cluster.banner.os', { newOS: 'Windows', existingOS: 'Linux' });
+        }
+      } else if (!linuxWorkerCount) {
+        if (this.machinePools.find((pool) => {
+          return pool?.config?.os === 'linux';
+        })) {
+          return this.t('cluster.banner.os', { newOS: 'Linux', existingOS: 'Windows' });
+        }
+      }
+
+      return null;
     }
   },
 
@@ -690,12 +814,46 @@ export default {
     },
 
     addonNames(neu, old) {
-      const diff = difference(neu, old);
+      // To catch the 'some addons' --> 'no addons' case also check array length (`difference([], [1,2,3]) === []`)
+      const diff = old.length !== neu.length || difference(neu, old).length ;
 
-      if (!this.$fetchState.pending && diff.length ) {
-        this.$fetch();
+      if (diff) {
+        // Allow time for addonNames to update... then fetch any missing addons
+        this.$nextTick(() => this.initAddons());
       }
     },
+
+    selectedVersion() {
+      this.versionInfo = {}; // Invalidate cache such that version info relevent to selected kube version is updated
+
+      // Allow time for addonNames to update... then fetch any missing addons
+      this.$nextTick(() => this.initAddons());
+    },
+
+    showCni(neu) {
+      // Update `serverConfig.cni to recalculate addonNames...
+      // ... which will eventually update `value.spec.rkeConfig.chartValues`
+      if (neu) {
+        // Type supports CNI, assign default if we can
+        if (!this.serverConfig.cni) {
+          const def = this.serverArgs.cni.default;
+
+          set(this.serverConfig, 'cni', def);
+        }
+      } else {
+        // Type doesn't support cni, clear `cni`
+        set(this.serverConfig, 'cni', undefined);
+      }
+    },
+
+    showCloudProvider(neu) {
+      if (!neu) {
+        // No cloud provider available? Then clear cloud provider setting. This will recalculate addonNames...
+        // ... which will eventually update `value.spec.rkeConfig.chartValues`
+        set(this.agentConfig, 'cloud-provider-name', undefined);
+      }
+    },
+
   },
 
   mounted() {
@@ -773,13 +931,14 @@ export default {
         update: false,
         pool:    {
           name,
-          etcdRole:         numCurrentPools === 0,
-          controlPlaneRole: numCurrentPools === 0,
-          workerRole:       true,
-          hostnamePrefix:   '',
-          labels:           {},
-          quantity:         1,
-          machineConfigRef:    {
+          etcdRole:             numCurrentPools === 0,
+          controlPlaneRole:     numCurrentPools === 0,
+          workerRole:           true,
+          hostnamePrefix:       '',
+          labels:               {},
+          quantity:             1,
+          unhealthyNodeTimeout: '0m',
+          machineConfigRef:     {
             kind:       this.machineConfigSchema.attributes.kind,
             name:       null,
           },
@@ -809,6 +968,23 @@ export default {
       }
     },
 
+    async syncMachineConfigWithLatest(machinePool) {
+      if (machinePool?.config?.id) {
+        const latestConfig = await this.$store.dispatch('management/find', {
+          type: machinePool.config.type,
+          id:   machinePool.config.id,
+          opt:  { force: true },
+        });
+        const clonedCurrentConfig = await this.$store.dispatch('management/clone', { resource: machinePool.config });
+        const clonedLatestConfig = await this.$store.dispatch('management/clone', { resource: latestConfig });
+
+        // We don't allow the user to edit any of the fields in metadata from the UI so it's safe to override it with the
+        // metadata defined by the latest backend value. This is primarily used to ensure the resourceVersion is up to date.
+        delete clonedCurrentConfig.metadata;
+        machinePool.config = merge(machinePool.config, clonedLatestConfig);
+      }
+    },
+
     async saveMachinePools() {
       const finalPools = [];
 
@@ -816,6 +992,8 @@ export default {
         if ( entry.remove ) {
           continue;
         }
+
+        await this.syncMachineConfigWithLatest(entry);
 
         // Capitals and such aren't allowed;
         set(entry.pool, 'name', normalizeName(entry.pool.name) || 'pool');
@@ -914,10 +1092,36 @@ export default {
         }
       }
 
+      if (!this.value.metadata.name && this.agentConfig['cloud-provider-name'] === HARVESTER) {
+        this.errors.push(this.t('validation.required', { key: this.t('cluster.name.label') }, true));
+      }
+
       if (this.errors.length) {
         btnCb(false);
 
         return;
+      }
+
+      const clusterId = get(this.credential, 'decodedData.clusterId') || '';
+
+      this.applyChartValues(this.value.spec.rkeConfig);
+
+      if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId && this.isCreate) {
+        const namespace = this.machinePools?.[0]?.config?.vmNamespace;
+
+        const res = await this.$store.dispatch('management/request', {
+          url:                  `/k8s/clusters/${ clusterId }/v1/harvester/kubeconfig`,
+          method:               'POST',
+          data:                 {
+            clusterRoleName:    'harvesterhci.io:cloudprovider',
+            namespace,
+            serviceAccountName: this.value.metadata.name,
+          },
+        });
+
+        set(this.agentConfig, 'cloud-provider-config', res.data);
+        set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.clusterName`, this.value.metadata.name);
+        set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`, '/var/lib/rancher/rke2/etc/config-files/cloud-provider-config');
       }
 
       await this.save(btnCb);
@@ -964,14 +1168,12 @@ export default {
           versionName: v.version
         });
 
-        this.versionInfo[v.name] = res;
+        set(this.versionInfo, v.name, res);
+        const key = this.chartVersionKey(v.name);
 
-        const fromChart = res.values || {};
-        const fromUser = this.chartValues[v.name] || this.value.spec.rkeConfig.chartValues[v.name] || {};
-
-        const merged = merge(merge({}, fromChart), fromUser);
-
-        set(this.chartValues, v.name, merged);
+        if (!this.userChartValues[key]) {
+          this.userChartValues[key] = {};
+        }
       }
     },
 
@@ -979,6 +1181,16 @@ export default {
       const fallback = `${ camelToTitle(name.replace(/^(rke|rke2|rancher)-/, '')) } Configuration`;
 
       return this.$store.getters['i18n/withFallback'](`cluster.addonChart."${ name }"`, null, fallback);
+    },
+
+    showAddons() {
+      this.addonsRev++;
+      this.addonNames.forEach((name) => {
+        const chartValues = this.versionInfo[name]?.questions ? this.initYamlEditor(name) : {};
+
+        set(this.userChartValuesTemp, name, chartValues);
+      });
+      this.refreshYamls();
     },
 
     refreshYamls() {
@@ -989,33 +1201,50 @@ export default {
         const list = isArray(entry) ? entry : [entry];
 
         for ( const component of list ) {
-          component.refresh();
+          component?.refresh(); // `yaml` ref can be undefined on switching from Basic to Addon tab (Azure --> Amazon --> addon)
         }
       }
     },
 
     updateValues(name, values) {
-      set(this.chartValues, name, values);
-      this.syncChartValues();
+      set(this.userChartValuesTemp, name, values);
+      this.syncChartValues(name);
     },
 
-    syncChartValues: throttle(function() {
-      const out = {};
+    syncChartValues: throttle(function(name) {
+      const fromChart = this.versionInfo[name]?.values;
+      const fromUser = this.userChartValuesTemp[name];
+      const different = diff(fromChart, fromUser);
 
-      for ( const k of this.addonNames ) {
-        const fromChart = this.versionInfo[k].values;
-        const fromUser = this.chartValues[k];
-        const different = diff(fromChart, fromUser);
-
-        if ( isEmpty(different) ) {
-          out[k] = {};
-        } else {
-          out[k] = different;
-        }
-      }
-
-      set(this.value.spec.rkeConfig, 'chartValues', out);
+      this.userChartValues[this.chartVersionKey(name)] = different;
     }, 250, { leading: true }),
+
+    updateQuestions(name) {
+      this.syncChartValues(name);
+    },
+
+    initQuestions(name) {
+      const defaultChartValue = this.versionInfo[name];
+      const startingChartValue = this.initYamlEditor(name);
+
+      return {
+        ...defaultChartValue,
+        values: startingChartValue,
+      };
+    },
+
+    initYamlEditor(name) {
+      const defaultChartValue = this.versionInfo[name];
+      const key = this.chartVersionKey(name);
+
+      return merge({}, defaultChartValue?.values || {}, this.userChartValues[key] || {});
+    },
+
+    chartVersionKey(name) {
+      const addonVersion = this.addonVersions.find(av => av.name === name);
+
+      return addonVersion ? `${ name }-${ addonVersion.version }` : name;
+    },
 
     onMembershipUpdate(update) {
       this.$set(this, 'membershipUpdate', update);
@@ -1114,6 +1343,77 @@ export default {
         set(this.rkeConfig.registries, 'mirrors', {});
       }
     },
+
+    filterAndMap(versions, minVersion, currentVersion, defaultVersion) {
+      const out = (versions || []).filter(obj => !!obj.serverArgs).map((obj) => {
+        let disabled = false;
+        let experimental = false;
+
+        if ( minVersion ) {
+          disabled = compare(obj.id, minVersion) < 0;
+        }
+
+        if ( defaultVersion ) {
+          experimental = compare(defaultVersion, obj.id) < 0;
+        }
+
+        return {
+          label:      obj.id + (experimental ? ` (${ this.t('cluster.kubernetesVersion.experimental') })` : ''),
+          value:      obj.id,
+          sort:       sortable(obj.id),
+          serverArgs: obj.serverArgs,
+          agentArgs:  obj.agentArgs,
+          charts:     obj.charts,
+          disabled,
+        };
+      });
+
+      const sorted = sortBy(out, 'sort:desc');
+      const versionMap = {};
+
+      return sorted.filter((version) => {
+        // Always show pre-releases
+        if (semver.prerelease(version.value)) {
+          return true;
+        }
+
+        const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
+
+        // Always show current version, else show if we haven't shown anything for this major.minor version yet
+        if (version === currentVersion || !versionMap[majorMinor]) {
+          versionMap[majorMinor] = true;
+
+          return true;
+        }
+
+        return false;
+      });
+    },
+
+    generateYaml() {
+      const resource = this.value;
+      const inStore = this.$store.getters['currentStore'](resource);
+      const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
+      const clonedResource = clone(resource);
+
+      this.applyChartValues(clonedResource.spec.rkeConfig);
+
+      const out = createYaml(schemas, resource.type, clonedResource);
+
+      return out;
+    },
+
+    applyChartValues(rkeConfig) {
+      rkeConfig.chartValues = {};
+      this.addonNames.forEach((name) => {
+        const key = this.chartVersionKey(name);
+        const userValues = this.userChartValues[key];
+
+        if (userValues) {
+          set(rkeConfig.chartValues, name, userValues);
+        }
+      });
+    }
   },
 };
 </script>
@@ -1131,11 +1431,18 @@ export default {
     :cancel-event="true"
     :done-route="doneRoute"
     :apply-hooks="applyHooks"
+    :generate-yaml="generateYaml"
     @done="done"
     @finish="saveOverride"
     @cancel="cancel"
     @error="e=>errors = e"
   >
+    <Banner
+      v-if="isEdit"
+      color="warning"
+    >
+      <span v-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
+    </Banner>
     <SelectCredential
       v-if="needCredential"
       v-model="credentialId"
@@ -1155,6 +1462,10 @@ export default {
         description-label="cluster.description.label"
         description-placeholder="cluster.description.placeholder"
       />
+
+      <Banner v-if="appsOSWarning" color="error">
+        {{ appsOSWarning }}
+      </Banner>
 
       <template v-if="hasMachinePools">
         <div class="clearfix">
@@ -1214,33 +1525,40 @@ export default {
         <Tab name="basic" label-key="cluster.tabs.basic" :weight="11" @active="refreshYamls">
           <Banner v-if="!haveArgInfo" color="warning" label="Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor." />
           <Banner v-if="showk8s21LegacyWarning" color="warning" :label="t('cluster.legacyWarning')" />
-          <div class="row">
-            <div class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
+          <div class="row mb-10">
+            <div class="col span-6">
               <LabeledSelect
                 v-model="value.spec.kubernetesVersion"
                 :mode="mode"
                 :options="versionOptions"
                 label-key="cluster.kubernetesVersion.label"
               />
+              <div v-if="showK3sTechPreviewWarning" class="k3s-tech-preview-info">
+                {{ t('cluster.k3s.techPreview') }}
+              </div>
             </div>
-            <div v-if="showCni" class="col span-4">
-              <LabeledSelect
-                v-model="serverConfig.cni"
-                :mode="mode"
-                :options="serverArgs.cni.options"
-                label="Container Network Provider"
-              />
-            </div>
-            <div v-if="agentArgs['cloud-provider-name']" class="col" :class="{'span-4': showCni, 'span-6': !showCni}">
+            <div v-if="showCloudProvider" class="col span-6">
               <LabeledSelect
                 v-model="agentConfig['cloud-provider-name']"
                 :mode="mode"
                 :options="cloudProviderOptions"
-                label="Cloud Provider"
+                :label="t('cluster.rke2.cloudProvider.label')"
               />
             </div>
           </div>
-
+          <div v-if="showCni" :style="{'align-items':'center'}" class="row">
+            <div class="col span-6">
+              <LabeledSelect
+                v-model="serverConfig.cni"
+                :mode="mode"
+                :options="serverArgs.cni.options"
+                :label="t('cluster.rke2.cni.label')"
+              />
+            </div>
+            <div v-if="serverConfig.cni === 'cilium' || serverConfig.cni === 'multus,cilium'" class="col">
+              <Checkbox v-model="ciliumIpv6" :mode="mode" :label="t('cluster.rke2.address.ipv6.enable')" />
+            </div>
+          </div>
           <template v-if="showVsphereNote">
             <Banner color="warning" label-key="cluster.cloudProvider.rancher-vsphere.note" />
           </template>
@@ -1248,7 +1566,9 @@ export default {
             <div class="spacer" />
 
             <div class="col span-12">
-              <h3>Cloud Provider Config</h3>
+              <h3>
+                {{ t('cluster.rke2.cloudProvider.header') }}
+              </h3>
               <YamlEditor
                 ref="yaml"
                 v-model="agentConfig['cloud-provider-config']"
@@ -1261,7 +1581,9 @@ export default {
 
           <div class="spacer" />
 
-          <h3>Security</h3>
+          <h3>
+            {{ t('cluster.rke2.security.header') }}
+          </h3>
           <div class="row">
             <div class="col span-6">
               <LabeledSelect
@@ -1269,7 +1591,7 @@ export default {
                 v-model="value.spec.defaultPodSecurityPolicyTemplateName"
                 :mode="mode"
                 :options="pspOptions"
-                label="Default Pod Security Policy"
+                :label="t('cluster.rke2.defaultPodSecurityPolicyTemplateName.label')"
               />
             </div>
             <div v-if="showCisProfile" class="col span-6">
@@ -1292,8 +1614,8 @@ export default {
           <div class="row">
             <div class="col span-12 mt-20">
               <Checkbox v-if="serverArgs['secrets-encryption']" v-model="serverConfig['secrets-encryption']" :mode="mode" label="Encrypt Secrets" />
-              <Checkbox v-model="value.spec.enableNetworkPolicy" :mode="mode" label="Project Network Isolation" />
-              <Checkbox v-if="agentArgs.selinux" v-model="agentConfig.selinux" :mode="mode" label="SELinux" />
+              <Checkbox v-model="value.spec.enableNetworkPolicy" :mode="mode" :label="t('cluster.rke2.enableNetworkPolicy.label')" />
+              <!-- <Checkbox v-if="agentArgs.selinux" v-model="agentConfig.selinux" :mode="mode" label="SELinux" /> -->
             </div>
           </div>
 
@@ -1301,7 +1623,11 @@ export default {
 
           <div v-if="serverArgs.disable" class="row">
             <div class="col span-12">
-              <div><h3>System Services</h3></div>
+              <div>
+                <h3>
+                  {{ t('cluster.rke2.systemService.header') }}
+                </h3>
+              </div>
               <Checkbox
                 v-for="opt in disableOptions"
                 :key="opt.value"
@@ -1328,27 +1654,31 @@ export default {
                 v-model="rkeConfig.etcd.disableSnapshots"
                 name="etcd-disable-snapshots"
                 :options="[true, false]"
-                label="Automatic Snapshots"
-                :labels="['Disable','Enable']"
+                :label="t('cluster.rke2.etcd.disableSnapshots.label')"
+                :labels="[t('generic.disable'), t('generic.enable')]"
                 :mode="mode"
               />
             </div>
           </div>
           <div v-if="rkeConfig.etcd.disableSnapshots !== true" class="row">
             <div class="col span-6">
-              <LabeledInput v-model="rkeConfig.etcd.snapshotScheduleCron" :mode="mode" label="Cron Schedule" />
+              <LabeledInput
+                v-model="rkeConfig.etcd.snapshotScheduleCron"
+                :mode="mode"
+                :label="t('cluster.rke2.etcd.snapshotScheduleCron.label')"
+              />
             </div>
             <div class="col span-6">
               <UnitInput
                 v-model="rkeConfig.etcd.snapshotRetention"
                 :mode="mode"
-                label="Keep the last"
-                suffix="Snapshots"
+                :label="t('cluster.rke2.etcd.snapshotRetention.label')"
+                :suffix="t('cluster.rke2.snapshots.suffix')"
               />
             </div>
           </div>
 
-          <template v-if="false && rkeConfig.etcd.disableSnapshots !== true">
+          <template v-if="rkeConfig.etcd.disableSnapshots !== true">
             <div class="spacer" />
 
             <RadioGroup
@@ -1378,8 +1708,8 @@ export default {
                 v-model="serverConfig['etcd-expose-metrics']"
                 name="etcd-expose-metrics"
                 :options="[false, true]"
-                label="Metrics"
-                :labels="['Only available inside the cluster','Exposed to the public interface']"
+                :label="t('cluster.rke2.etcd.exportMetric.label')"
+                :labels="[t('cluster.rke2.etcd.exportMetric.false'), t('cluster.rke2.etcd.exportMetric.true')]"
                 :mode="mode"
               />
             </div>
@@ -1387,34 +1717,64 @@ export default {
         </Tab>
 
         <Tab v-if="haveArgInfo" name="networking" label-key="cluster.tabs.networking">
-          <h3>Addressing</h3>
+          <h3>
+            {{ t('cluster.rke2.address.header') }}
+          </h3>
+          <Banner v-if="showIpv6Warning" color="warning">
+            {{ t('cluster.rke2.address.ipv6.warning') }}
+          </Banner>
           <div class="row mb-20">
             <div v-if="serverArgs['cluster-cidr']" class="col span-6">
-              <LabeledInput v-model="serverConfig['cluster-cidr']" :mode="mode" label="Cluster CIDR" />
+              <LabeledInput
+                v-model="serverConfig['cluster-cidr']"
+                :mode="mode"
+                :label="t('cluster.rke2.address.clusterCidr.label')"
+              />
             </div>
             <div v-if="serverArgs['service-cidr']" class="col span-6">
-              <LabeledInput v-model="serverConfig['service-cidr']" :mode="mode" label="Service CIDR" />
+              <LabeledInput
+                v-model="serverConfig['service-cidr']"
+                :mode="mode"
+                :label="t('cluster.rke2.address.serviceCidr.label')"
+              />
             </div>
           </div>
 
           <div class="row mb-20">
             <div v-if="serverArgs['cluster-dns']" class="col span-6">
-              <LabeledInput v-model="serverConfig['cluster-dns']" :mode="mode" label="Cluster DNS" />
+              <LabeledInput
+                v-model="serverConfig['cluster-dns']"
+                :mode="mode"
+                :label="t('cluster.rke2.address.dns.label')"
+              />
             </div>
             <div v-if="serverArgs['cluster-domain']" class="col span-6">
-              <LabeledInput v-model="serverConfig['cluster-domain']" :mode="mode" label="Cluster Domain" />
+              <LabeledInput
+                v-model="serverConfig['cluster-domain']"
+                :mode="mode"
+                :label="t('cluster.rke2.address.domain.label')"
+              />
             </div>
           </div>
 
           <div v-if="serverArgs['service-node-port-range']" class="row mb-20">
             <div class="col span-6">
-              <LabeledInput v-model="serverConfig['service-node-port-range']" :mode="mode" label="NodePort Service Port Range" />
+              <LabeledInput
+                v-model="serverConfig['service-node-port-range']"
+                :mode="mode"
+                :label="t('cluster.rke2.address.nodePortRange.label')"
+              />
             </div>
           </div>
 
           <div v-if="serverArgs['tls-san']" class="row mb-20">
             <div class="col span-6">
-              <ArrayList v-model="serverConfig['tls-san']" :protip="false" :mode="mode" title="TLS Alternate Names" />
+              <ArrayList
+                v-model="serverConfig['tls-san']"
+                :protip="false"
+                :mode="mode"
+                :title="t('cluster.rke2.address.tlsSan.label')"
+              />
             </div>
           </div>
 
@@ -1425,13 +1785,25 @@ export default {
           <div class="row">
             <div class="col span-6">
               <h3>Control Plane</h3>
-              <LabeledInput v-model="rkeConfig.upgradeStrategy.controlPlaneConcurrency" :mode="mode" label="Control Plane Concurrency" tooltip="This can be either a fixed number of nodes (e.g. 1) at a time of a percentage (e.g. 10%)" />
+              <LabeledInput
+                v-model="rkeConfig.upgradeStrategy.controlPlaneConcurrency"
+                :mode="mode"
+                :label="t('cluster.rke2.controlPlaneConcurrency.label')"
+                :tooltip="t('cluster.rke2.controlPlaneConcurrency.toolTip')"
+              />
               <div class="spacer" />
               <DrainOptions v-model="rkeConfig.upgradeStrategy.controlPlaneDrainOptions" :mode="mode" />
             </div>
             <div class="col span-6">
-              <h3>Worker Nodes</h3>
-              <LabeledInput v-model="rkeConfig.upgradeStrategy.workerConcurrency" :mode="mode" label="Worker Concurrency" tooltip="This can be either a fixed number of nodes (e.g. 1) at a time of a percentage (e.g. 10%)" />
+              <h3>
+                {{ t('cluster.rke2.workNode.label') }}
+              </h3>
+              <LabeledInput
+                v-model="rkeConfig.upgradeStrategy.workerConcurrency"
+                :mode="mode"
+                :label="t('cluster.rke2.workerConcurrency.label')"
+                :tooltip="t('cluster.rke2.workerConcurrency.toolTip')"
+              />
               <div class="spacer" />
               <DrainOptions v-model="rkeConfig.upgradeStrategy.workerDrainOptions" :mode="mode" />
             </div>
@@ -1478,29 +1850,31 @@ export default {
               v-model="value"
               class="mt-20"
               :mode="mode"
-              :register-before-hook="registerBeforeHook"
+              :cluster-register-before-hook="registerBeforeHook"
             />
           </template>
         </Tab>
 
-        <Tab name="addons" label-key="cluster.tabs.addons" @active="refreshYamls">
-          <div v-if="addonVersions.length">
+        <Tab name="addons" label-key="cluster.tabs.addons" @active="showAddons">
+          <div v-if="versionInfo && addonVersions.length" :key="addonsRev">
             <div v-for="v in addonVersions" :key="v._key">
               <h3>{{ labelForAddon(v.name) }}</h3>
               <Questions
-                v-if="versionInfo[v.name] && versionInfo[v.name].questions"
-                v-model="chartValues[v.name]"
+                v-if="versionInfo[v.name] && versionInfo[v.name].questions && v.name && userChartValuesTemp[v.name]"
+                v-model="userChartValuesTemp[v.name]"
+                :emit="true"
+                in-store="management"
                 :mode="mode"
                 :tabbed="false"
                 :source="versionInfo[v.name]"
                 :target-namespace="value.metadata.namespace"
+                @updated="updateQuestions(v.name)"
               />
               <YamlEditor
                 v-else
                 ref="yaml-values"
-                :value="chartValues[v.name]"
+                :value="initYamlEditor(v.name)"
                 :scrolling="true"
-                :initial-yaml-values="versionInfo[v.name] ? versionInfo[v.name].values : ''"
                 :as-object="true"
                 :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
                 :hide-preview-buttons="true"
@@ -1512,8 +1886,11 @@ export default {
 
           <div>
             <h3>
-              Additional Manifest
-              <i v-tooltip="'Additional Kubernetes Manifet YAML to be applied to the cluster on startup.'" class="icon icon-info" />
+              {{ t('cluster.addOns.additionalManifest.title') }}
+              <i
+                v-tooltip="t('cluster.addOns.additionalManifest.tooltip')"
+                class="icon icon-info"
+              />
             </h3>
             <YamlEditor
               ref="yaml-additional"
@@ -1525,20 +1902,25 @@ export default {
           </div>
         </Tab>
 
-        <Tab name="advanced" label-key="cluster.tabs.advanced" :weight="-1" @active="refreshYamls">
+        <Tab
+          name="advanced"
+          label-key="cluster.tabs.advanced"
+          :weight="-1"
+          @active="refreshYamls"
+        >
           <template v-if="haveArgInfo">
-            <h3>Additional Kubelet Args</h3>
+            <h3>{{ t('cluster.advanced.argInfo.title') }}</h3>
             <ArrayListGrouped
               v-if="agentArgs['kubelet-arg']"
               v-model="rkeConfig.machineSelectorConfig"
               class="mb-20"
-              add-label="Add Machine Selector"
+              :add-label="t('cluster.advanced.argInfo.machineSelector.label')"
               :can-remove="canRemoveKubeletRow"
               :default-add-value="{machineLabelSelector: { matchExpressions: [], matchLabels: {} }, config: {'kubelet-arg': []}}"
             >
               <template #default="{row}">
                 <template v-if="row.value.machineLabelSelector">
-                  <h3>For machines with labels matching:</h3>
+                  <h3>{{ t('cluster.advanced.argInfo.machineSelector.title') }}</h3>
                   <MatchExpressions
                     v-model="row.value.machineLabelSelector"
                     class="mb-20"
@@ -1546,32 +1928,57 @@ export default {
                     :show-remove="false"
                     :initial-empty-row="true"
                   />
-                  <h3>Use the Kubelet args:</h3>
+                  <h3>{{ t('cluster.advanced.argInfo.machineSelector.subTitle') }}</h3>
                 </template>
                 <h3 v-else>
-                  For <span v-if="rkeConfig.machineSelectorConfig.length > 1">any</span><span v-else>all</span> machines, use the Kubelet args:
+                  {{ advancedTitleAlt }}
                 </h3>
 
                 <ArrayList
                   v-model="row.value.config['kubelet-arg']"
                   :mode="mode"
-                  add-label="Add Argument"
+                  :add-label="t('cluster.advanced.argInfo.machineSelector.listLabel')"
                   :initial-empty-row="!!row.value.machineLabelSelector"
                 />
               </template>
             </ArrayListGrouped>
-            <Banner v-if="rkeConfig.machineSelectorConfig.length > 1" color="info" label="Note: The last selector that matches wins and only args from it will be used.  Args from other matches above will not combined together or merged." />
+            <Banner
+              v-if="rkeConfig.machineSelectorConfig.length > 1"
+              color="info"
+              :label="t('cluster.advanced.argInfo.machineSelector.bannerLabel')"
+            />
 
-            <ArrayList v-if="serverArgs['kube-controller-manager-arg']" v-model="serverConfig['kube-controller-manager-arg']" :mode="mode" title="Additional Controller Manager Args" class="mb-20" />
-            <ArrayList v-if="serverArgs['kube-apiserver-arg']" v-model="serverConfig['kube-apiserver-arg']" :mode="mode" title="Additional API Server Args" class="mb-20" />
-            <ArrayList v-if="serverArgs['kube-scheduler-arg']" v-model="serverConfig['kube-scheduler-arg']" :mode="mode" title="Additional Scheduler Args" />
+            <ArrayList
+              v-if="serverArgs['kube-controller-manager-arg']"
+              v-model="serverConfig['kube-controller-manager-arg']"
+              :mode="mode"
+              :title="t('cluster.advanced.argInfo.machineSelector.kubeControllerManagerTitle')"
+              class="mb-20"
+            />
+            <ArrayList
+              v-if="serverArgs['kube-apiserver-arg']"
+              v-model="serverConfig['kube-apiserver-arg']"
+              :mode="mode"
+              :title="t('cluster.advanced.argInfo.machineSelector.kubeApiServerTitle')"
+              class="mb-20"
+            />
+            <ArrayList
+              v-if="serverArgs['kube-scheduler-arg']"
+              v-model="serverConfig['kube-scheduler-arg']"
+              :mode="mode"
+              :title="t('cluster.advanced.argInfo.machineSelector.kubeSchedulerTitle')"
+            />
           </template>
           <template v-if="agentArgs['protect-kernel-defaults']">
             <div class="spacer" />
 
             <div class="row">
               <div class="col span-12">
-                <Checkbox v-model="agentConfig['protect-kernel-defaults']" :mode="mode" label="Raise error if kernel parameters are different than the expected kubelet defaults" />
+                <Checkbox
+                  v-model="agentConfig['protect-kernel-defaults']"
+                  :mode="mode"
+                  :label="t('cluster.advanced.agentArgs.label')"
+                />
               </div>
             </div>
           </template>
@@ -1582,10 +1989,20 @@ export default {
       </Tabbed>
     </div>
 
-    <Banner v-if="unsupportedSelectorConfig" color="warning" label="This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration." />
+    <Banner
+      v-if="unsupportedSelectorConfig"
+      color="warning"
+      :label="t('cluster.banner.warning')"
+    />
 
     <template v-if="needCredential && !credentialId" #form-footer>
       <div><!-- Hide the outer footer --></div>
     </template>
   </CruResource>
 </template>
+<style lang="scss" scoped>
+  .k3s-tech-preview-info {
+    color: var(--error);
+    padding-top: 10px;
+  }
+</style>

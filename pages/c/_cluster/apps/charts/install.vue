@@ -3,6 +3,8 @@ import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
 import isEqual from 'lodash/isEqual';
 import { mapPref, DIFF } from '@/store/prefs';
+import { mapFeature, MULTI_CLUSTER, LEGACY } from '@/store/features';
+import { mapGetters } from 'vuex';
 
 import Banner from '@/components/Banner';
 import ButtonGroup from '@/components/ButtonGroup';
@@ -102,6 +104,9 @@ export default {
       this.forceNamespace = null;
     }
 
+    this.legacyApp = this.existing ? await this.existing.deployedAsLegacy() : false;
+    this.mcapp = this.existing ? await this.existing.deployedAsMultiCluster() : false;
+
     this.value = await this.$store.dispatch('cluster/create', {
       type:     'chartInstallAction',
       metadata: {
@@ -185,6 +190,9 @@ export default {
     this.updateStepOneReady();
 
     this.preFormYamlOption = this.valuesComponent || this.hasQuestions ? VALUES_STATE.FORM : VALUES_STATE.YAML;
+
+    // Look for annotation to say this app is a legacy migrated app (we look in either place for now)
+    this.migratedApp = (this.existing?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MIGRATED] === 'true');
   },
 
   data() {
@@ -211,11 +219,14 @@ export default {
       forceNamespace:         null,
       loadedVersion:          null,
       loadedVersionValues:    null,
+      legacyApp:              null,
+      mcapp:                  null,
       mode:                   null,
       value:                  null,
       valuesComponent:        null,
       valuesYaml:             '',
       project:                null,
+      migratedApp:            false,
 
       defaultCmdOpts,
       customCmdOpts: { ...defaultCmdOpts },
@@ -270,11 +281,19 @@ export default {
 
       ],
 
-      isPlainLayout: isPlainLayout(this.$route.query)
+      isPlainLayout: isPlainLayout(this.$route.query),
+
+      legacyDefs: {
+        legacy: this.t('catalog.install.error.legacy.category.legacy'),
+        mcm:    this.t('catalog.install.error.legacy.category.mcm')
+      }
     };
   },
 
   computed: {
+    ...mapGetters({ inStore: 'catalog/inStore', features: 'features/get' }),
+    mcm: mapFeature(MULTI_CLUSTER),
+
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
       const want = this.value?.metadata?.namespace;
@@ -304,7 +323,7 @@ export default {
 
       out.unshift({
         id:    'none',
-        label: '(None)',
+        label: `(${ this.t('generic.none') })`,
         value: '',
       });
 
@@ -487,6 +506,25 @@ export default {
 
     namespaceNewAllowed() {
       return !this.existing && !this.forceNamespace;
+    },
+
+    legacyEnabled() {
+      return this.features(LEGACY);
+    },
+
+    legacyFeatureRoute() {
+      return {
+        name:   'c-cluster-product-resource',
+        params: { product: 'settings', resource: 'management.cattle.io.feature' }
+      };
+    },
+
+    legacyAppRoute() {
+      return { name: 'c-cluster-legacy-project' };
+    },
+
+    mcmRoute() {
+      return { name: 'c-cluster-mcapps' };
     }
   },
 
@@ -702,10 +740,9 @@ export default {
 
         // Non-admins without a cluster won't be able to fetch operations immediately
         await this.repo.waitForOperation(operationId);
-        // Dynamically use store decided when loading catalog (covers standard user case when there's not cluster)
-        const inStore = this.$store.getters['catalog/inStore'];
 
-        this.operation = await this.$store.dispatch(`${ inStore }/find`, {
+        // Dynamically use store decided when loading catalog (covers standard user case when there's not cluster)
+        this.operation = await this.$store.dispatch(`${ this.inStore }/find`, {
           type: CATALOG.OPERATION,
           id:   operationId
         });
@@ -848,13 +885,14 @@ export default {
       this.addGlobalValuesTo(values);
 
       const form = JSON.parse(JSON.stringify(this.value));
-
+      const migratedAnnotations = this.migratedApp ? { [CATALOG_ANNOTATIONS.MIGRATED]: 'true' } : {};
       const chart = {
         chartName:   this.chart.chartName,
         version:     this.version?.version || this.query.versionName,
         releaseName: form.metadata.name,
         description: this.customCmdOpts.description,
         annotations: {
+          ...migratedAnnotations,
           [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: this.chart.repoType,
           [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: this.chart.repoName
         },
@@ -885,7 +923,7 @@ export default {
 
       const more = [];
 
-      let auto = (this.version.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
+      let auto = (this.version?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
 
       for ( const constraint of auto ) {
         const provider = this.$store.getters['catalog/versionSatisfying']({
@@ -902,7 +940,7 @@ export default {
         }
       }
 
-      auto = (this.version.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL_GVK] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
+      auto = (this.version?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL_GVK] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
 
       for ( const gvr of auto ) {
         const provider = this.$store.getters['catalog/versionProviding']({
@@ -918,14 +956,17 @@ export default {
         }
       }
 
+      // 'more' contains the values for the CRD chart, which needs the same
+      // global and cattle values as the chart.
       for ( const dependency of more ) {
         out.charts.unshift({
           chartName:   dependency.name,
           version:     dependency.version,
           releaseName: dependency.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || dependency.name,
           projectId:   this.project,
-          values:      this.addGlobalValuesTo({}),
+          values:      this.addGlobalValuesTo({ global: values.global }),
           annotations: {
+            ...migratedAnnotations,
             [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: dependency.repoType,
             [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: dependency.repoName
           },
@@ -976,7 +1017,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
+  <div v-else-if="!legacyApp && !mcapp" class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
     <Wizard
       v-if="value"
       :steps="steps"
@@ -1196,6 +1237,7 @@ export default {
             >
               <Questions
                 v-model="chartValues"
+                :in-store="inStore"
                 :mode="mode"
                 :source="versionInfo"
                 tabbed="multiple"
@@ -1269,6 +1311,50 @@ export default {
         </div>
       </h2>
       <ChartReadme v-if="hasReadme" :version-info="versionInfo" class="chart-content__tabs" />
+    </div>
+  </div>
+
+  <!-- App is deployed as a Legacy or MultiCluster app, don't let user update from here -->
+  <div v-else class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
+    <div class="outer-container">
+      <div class="header mb-20">
+        <div class="title">
+          <div class="top choice-banner">
+            <div class="title">
+              <!-- Logo -->
+              <slot name="bannerTitleImage">
+                <div class="round-image">
+                  <LazyImage :src="chart ? chart.icon : ''" class="logo" />
+                </div>
+              </slot>
+              <!-- Title with subtext -->
+              <div class="subtitle">
+                <h2 v-if="stepperName">
+                  {{ stepperName }}
+                </h2>
+                <span v-if="stepperSubtext" class="subtext">{{ stepperSubtext }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Banner color="warning" class="description">
+        <span>
+          {{ t('catalog.install.error.legacy.label', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true) }}
+        </span>
+        <template v-if="!legacyEnabled">
+          <span v-html="t('catalog.install.error.legacy.enableLegacy.prompt', true)" />
+          <nuxt-link :to="legacyFeatureRoute">
+            {{ t('catalog.install.error.legacy.enableLegacy.goto') }}
+          </nuxt-link>
+        </template>
+        <template v-else>
+          <nuxt-link :to="mcapp ? mcmRoute : legacyAppRoute">
+            <span v-html="t('catalog.install.error.legacy.navigate', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true)" />
+          </nuxt-link>
+        </template>
+      </Banner>
     </div>
   </div>
 </template>
@@ -1436,5 +1522,81 @@ export default {
   ::v-deep .yaml-editor {
     flex: 1
   }
+
+.outer-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 0;
+}
+
+.header {
+  display: flex;
+  align-content: space-between;
+  align-items: center;
+
+  border-bottom: var(--header-border-size) solid var(--header-border);
+
+  & > .title {
+    flex: 1;
+    min-height: 75px;
+  }
+
+  .choice-banner {
+
+    flex-basis: 40%;
+    display: flex;
+    align-items: center;
+
+    &.top {
+
+      H2 {
+        margin: 0px;
+      }
+
+      .title{
+        display: flex;
+        align-items: center;
+        justify-content: space-evenly;
+
+        & > .subtitle {
+          margin: 0 20px;
+        }
+      }
+
+      .subtitle{
+        display: flex;
+        flex-direction: column;
+        & .subtext {
+          color: var(--input-label);
+        }
+      }
+
+    }
+
+    &:not(.top){
+      box-shadow: 0px 0px 12px 3px var(--box-bg);
+      flex-direction: row;
+      align-items: center;
+      justify-content: start;
+      &:hover{
+        outline: var(--outline-width) solid var(--outline);
+        cursor: pointer;
+      }
+    }
+
+    & .round-image {
+      min-width: 50px;
+      height: 50px;
+      margin: 10px 10px 10px 0;
+      border-radius: 50%;
+      overflow: hidden;
+      .logo {
+        min-width: 50px;
+        height: 50px;
+      }
+    }
+  }
+}
 
 </style>

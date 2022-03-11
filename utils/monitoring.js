@@ -66,7 +66,7 @@ export async function haveV1MonitoringWorkloads(store) {
 
 // Other ways we check for monitoring:
 
-// (1) Using counts (requires RBAC permissinons)
+// (1) Using counts (requires RBAC permissions)
 // return !!this.clusterCounts?.[0]?.counts?.[CATALOG.APP]?.namespaces?.['cattle-monitoring-system'];
 
 // (2) Retrieving all workloads and looking for containers with a given image

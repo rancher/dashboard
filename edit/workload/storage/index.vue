@@ -7,6 +7,7 @@ import { _VIEW } from '@/config/query-params';
 import CodeMirror from '@/components/CodeMirror';
 import jsyaml from 'js-yaml';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
+import { randomStr } from '@/utils/string';
 
 export default {
   components: {
@@ -39,6 +40,11 @@ export default {
       },
     },
 
+    savePvcHookName: {
+      type:     String,
+      required: true,
+    },
+
     // namespaced configmaps and secrets
     configMaps: {
       type:    Array,
@@ -57,7 +63,11 @@ export default {
   },
 
   async fetch() {
-    this.pvcs = await this.$store.dispatch('cluster/findAll', { type: PVC });
+    if ( this.$store.getters['cluster/schemaFor'](PVC) ) {
+      this.pvcs = await this.$store.dispatch('cluster/findAll', { type: PVC });
+    } else {
+      this.pvcs = [];
+    }
   },
 
   data() {
@@ -78,10 +88,14 @@ export default {
       return names.includes(volume.name);
     });
 
-    return { pvcs: [], containerVolumes };
+    return {
+      pvcs: [],
+      containerVolumes,
+    };
   },
 
   computed: {
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -139,7 +153,7 @@ export default {
 
   methods: {
     addVolume(type) {
-      const name = `vol${ this.value.volumes.length }`;
+      const name = `vol-${ randomStr(5).toLowerCase() }`;
 
       if (type === 'createPVC') {
         this.containerVolumes.push({
@@ -227,13 +241,21 @@ export default {
         this.$refs.cm.forEach(component => component.refresh());
       }
     },
+
+    removePvcForm(hookName) {
+      this.$emit('removePvcForm', hookName);
+    }
   },
 };
 </script>
 
 <template>
   <div>
-    <ArrayListGrouped v-model="containerVolumes">
+    <ArrayListGrouped
+      :key="containerVolumes.length"
+      v-model="containerVolumes"
+      :mode="mode"
+    >
       <template #default="props">
         <h3>{{ headerFor(volumeType(props.row.value)) }}</h3>
         <div class="bordered-section">
@@ -248,6 +270,8 @@ export default {
             :config-maps="configMaps"
             :pvcs="pvcNames"
             :register-before-hook="registerBeforeHook"
+            :save-pvc-hook-name="savePvcHookName"
+            @removePvcForm="removePvcForm"
           />
           <div v-else-if="isView">
             <CodeMirror

@@ -9,6 +9,8 @@ import $ from 'jquery';
 import { onClickOption } from '@/utils/select';
 
 export default {
+  name: 'LabeledSelect',
+
   components: { LabeledTooltip },
   mixins:     [LabeledFormElement, VueSelectOverrides],
 
@@ -16,6 +18,10 @@ export default {
     appendToBody: {
       default: true,
       type:    Boolean,
+    },
+    clearable: {
+      default: false,
+      type:    Boolean
     },
     disabled: {
       default: false,
@@ -94,7 +100,10 @@ export default {
   },
 
   data() {
-    return { selectedVisibility: 'visible' };
+    return {
+      selectedVisibility: 'visible',
+      shouldOpen:         true
+    };
   },
 
   computed: {
@@ -126,6 +135,7 @@ export default {
         }
       });
     },
+
     onFocus() {
       this.selectedVisibility = 'hidden';
       this.onFocusLabeled();
@@ -134,6 +144,11 @@ export default {
     onBlur() {
       this.selectedVisibility = 'visible';
       this.onBlurLabeled();
+    },
+
+    onOpen() {
+      this.$emit('on-open');
+      this.resizeHandler();
     },
 
     getOptionLabel(option) {
@@ -208,10 +223,37 @@ export default {
        */
       return () => popper.destroy();
     },
+
     get,
+
     onClickOption(option, event) {
       onClickOption.call(this, option, event);
-    }
+    },
+
+    dropdownShouldOpen(instance, forceOpen = false) {
+      const { noDrop, mutableLoading } = instance;
+      const { open } = instance;
+      const shouldOpen = this.shouldOpen;
+
+      if (forceOpen) {
+        instance.open = true;
+
+        return true;
+      }
+
+      if (shouldOpen === false) {
+        this.shouldOpen = true;
+        instance.closeSearchOptions();
+      }
+
+      return noDrop ? false : open && shouldOpen && !mutableLoading;
+    },
+
+    onSearch(newSearchString) {
+      if (newSearchString) {
+        this.dropdownShouldOpen(this.$refs['select-input'], true);
+      }
+    },
   },
 };
 </script>
@@ -263,14 +305,21 @@ export default {
       :searchable="isSearchable"
       :selectable="selectable"
       :value="value != null && !loading ? value : ''"
+      :dropdown-should-open="dropdownShouldOpen"
       v-on="$listeners"
       @search:blur="onBlur"
       @search:focus="onFocus"
-      @open="resizeHandler"
+      @search="onSearch"
+      @open="onOpen"
     >
       <template #option="option">
         <template v-if="option.kind === 'group'">
-          <b>{{ getOptionLabel(option) }}</b>
+          <div class="vs__option-kind-group">
+            <b>{{ getOptionLabel(option) }}</b>
+            <div v-if="option.badge">
+              {{ option.badge }}
+            </div>
+          </div>
         </template>
         <template v-else-if="option.kind === 'divider'">
           <hr />
@@ -367,6 +416,24 @@ export default {
     .vs__selected-options {
       padding: 8px 0 7px 0;
     }
+  }
+}
+
+// Styling for option group badge
+.vs__dropdown-menu .vs__dropdown-option .vs__option-kind-group {
+  display: flex;
+  > b {
+    flex: 1;
+  }
+  > div {
+    background-color: var(--primary);
+    border-radius: 4px;
+    color: var(--primary-text);
+    font-size: 12px;
+    height: 18px;
+    line-height: 18px;
+    margin-top: 1px;
+    padding: 0 10px;
   }
 }
 </style>

@@ -1,5 +1,11 @@
 import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
-import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
+import {
+  CAPI,
+  CATALOG,
+  MANAGEMENT,
+  NORMAN,
+  HCI
+} from '@/config/types';
 import { MULTI_CLUSTER } from '@/store/features';
 import { DSL } from '@/store/type-map';
 
@@ -27,7 +33,7 @@ export function init(store) {
 
   virtualType({
     name:        'cloud-credentials',
-    label:       'Cloud Credentials',
+    labelKey:    'manager.cloudCredentials.label',
     group:      'Root',
     namespaced:  false,
     icon:       'globe',
@@ -50,18 +56,24 @@ export function init(store) {
     CAPI.RANCHER_CLUSTER,
     'cloud-credentials',
     'drivers',
-    'pod-security-policies'
+    'pod-security-policies',
   ]);
 
-  configureType(CAPI.RANCHER_CLUSTER, { showListMasthead: false, namespaced: false });
+  configureType(CAPI.RANCHER_CLUSTER, {
+    showListMasthead: false, namespaced: false, alias: [HCI.CLUSTER]
+  });
   // configureType(NORMAN.CLOUD_CREDENTIAL, { showListMasthead: false, namespaced: false });
   weightType(CAPI.RANCHER_CLUSTER, 100, true);
+  weightType('cloud-credentials', 99, true);
+  weightType('drivers', 98, true);
+  weightType(CATALOG.CLUSTER_REPO, 97, true);
+
   configureType(NORMAN.CLOUD_CREDENTIAL, {
     showState: false, showAge: false, canYaml: false
   });
 
   virtualType({
-    label:      'Drivers',
+    labelKey:   'manager.drivers.label',
     name:       'drivers',
     group:      'Root',
     namespaced: false,
@@ -71,7 +83,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:      'RKE Templates',
+    labelKey:   'manager.rkeTemplates.label',
     name:       'rke-templates',
     group:      'Root',
     namespaced: false,
@@ -81,7 +93,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:      'Node Templates',
+    labelKey:   'manager.nodeTemplates.label',
     name:       'rke-node-templates',
     group:      'Root',
     namespaced: false,
@@ -93,20 +105,24 @@ export function init(store) {
   basicType([
     'rke-templates',
     'rke-node-templates'
-  ], 'RKE1 Configuration');
+  ], 'RKE1Configuration');
 
   weightType(CAPI.MACHINE_DEPLOYMENT, 3, true);
   weightType(CAPI.MACHINE_SET, 2, true);
   weightType(CAPI.MACHINE, 1, true);
+  weightType(CATALOG.CLUSTER_REPO, 0, true);
+
+  configureType(CATALOG.CLUSTER_REPO, { showListMasthead: false });
 
   basicType([
     MANAGEMENT.CLUSTER,
     CAPI.MACHINE_DEPLOYMENT,
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
-  ], 'Advanced');
+    CATALOG.CLUSTER_REPO,
+  ], 'advanced');
 
-  weightGroup('Advanced', -1, true);
+  weightGroup('advanced', -1, true);
 
   const MACHINE_SUMMARY = {
     name:      'summary',
@@ -122,17 +138,17 @@ export function init(store) {
     STATE,
     NAME_COL,
     {
-      name:   'kubernetesVesion',
-      label:  'Version',
-      value:  'kubernetesVersion',
-      sort:   'kubernetesVersion',
-      search: 'kubernetesVersion',
+      name:     'kubernetesVesion',
+      labelKey: 'tableHeaders.version',
+      value:    'kubernetesVersion',
+      sort:     'kubernetesVersion',
+      search:   'kubernetesVersion',
     },
     {
-      name:   'provider',
-      label:  'Provider',
-      value:  'machineProvider',
-      sort:   ['machineProvider', 'provisioner'],
+      name:     'provider',
+      labelKey: 'tableHeaders.provider',
+      value:    'machineProvider',
+      sort:     ['machineProvider', 'provisioner'],
     },
     MACHINE_SUMMARY,
     AGE,

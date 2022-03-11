@@ -49,7 +49,7 @@ export default {
   },
 
   async fetch() {
-    this.showMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [NODE_METRICS_DETAIL_URL, NODE_METRICS_SUMMARY_URL]);
+    this.showMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [NODE_METRICS_DETAIL_URL, NODE_METRICS_SUMMARY_URL]);
 
     if (haveV1Monitoring(this.$store.getters)) {
       const v3Nodes = await this.$store.dispatch('rancher/request', {

@@ -173,6 +173,10 @@ export default class Socket extends EventTarget {
     }
   }
 
+  setAutoReconnect(autoReconnect) {
+    this.autoReconnect = autoReconnect;
+  }
+
   // "Private"
   _close() {
     const socket = this.socket;

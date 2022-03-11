@@ -5,6 +5,7 @@ import { removeObjects } from '@/utils/array';
 import { SERVICE_ACCOUNT } from '@/config/types';
 import { set } from '@/utils/object';
 import { NAME as MANAGER } from '@/config/product/manager';
+import SteveModel from '@/plugins/steve/steve-class';
 
 export const TYPES = {
   OPAQUE:           'Opaque',
@@ -22,26 +23,24 @@ export const TYPES = {
   RKE_AUTH_CONFIG:  'rke.cattle.io/auth-config'
 };
 
-export default {
-  hasSensitiveData: () => true,
+export default class Secret extends SteveModel {
+  get hasSensitiveData() {
+    return true;
+  }
 
-  isCertificate() {
+  get isCertificate() {
     return this._type === TYPES.TLS;
-  },
+  }
 
-  isRegistry() {
+  get isRegistry() {
     return this._type === TYPES.DOCKER_JSON;
-  },
+  }
 
-  isCloudCredential() {
+  get isCloudCredential() {
     return this._type === TYPES.CLOUD_CREDENTIAL || (this.metadata.namespace === 'cattle-global-data' && this.metadata.generateName === 'cc-');
-  },
+  }
 
-  dockerJSON() {
-    return TYPES.DOCKER_JSON;
-  },
-
-  issuer() {
+  get issuer() {
     const { metadata:{ annotations = {} } } = this;
 
     if (annotations[CERTMANAGER.ISSUER]) {
@@ -51,35 +50,35 @@ export default {
     } else {
       return null;
     }
-  },
+  }
 
-  notAfter() {
+  get notAfter() {
     if (this.isCertificate) {
       return this.certInfo?.notAfter;
     } else {
       return null;
     }
-  },
+  }
 
-  cn() {
+  get cn() {
     if (this.isCertificate) {
       return this.certInfo?.cn;
     }
 
     return null;
-  },
+  }
 
   // show plus n more for cert names
-  plusMoreNames() {
+  get plusMoreNames() {
     if (this.isCertificate) {
       return this.unrepeatedSans.length;
     }
 
     return null;
-  },
+  }
 
   // use text-warning' or 'text-error' if cert is expiring within 8 days or is expired
-  dateClass() {
+  get dateClass() {
     if (this.isCertificate) {
       const eightDays = 691200000;
 
@@ -93,9 +92,9 @@ export default {
     }
 
     return null;
-  },
+  }
 
-  details() {
+  get details() {
     const out = [
       {
         label:   this.t('secret.type'),
@@ -144,9 +143,9 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  canUpdate() {
+  get canUpdate() {
     if ( !this.hasLink('update') ) {
       return false;
     }
@@ -156,9 +155,9 @@ export default {
     }
 
     return this.$rootGetters['type-map/optionsFor'](this.type).isEditable;
-  },
+  }
 
-  keysDisplay() {
+  get keysDisplay() {
     const keys = [
       ...Object.keys(this.data || []),
       ...Object.keys(this.binaryData || [])
@@ -173,10 +172,10 @@ export default {
     // }
 
     return keys.join(', ');
-  },
+  }
 
   // decode some secret data to show in list view
-  dataPreview() {
+  get dataPreview() {
     if (this._type === TYPES.DOCKER_JSON) {
       const encodedJSON = this.data['.dockerconfigjson'];
 
@@ -204,20 +203,20 @@ export default {
       return this.sshUser;
     } else if ( this._type === TYPES.SERVICE_ACCT ) {
       return this.metadata?.annotations?.['kubernetes.io/service-account.name'];
-    } else {
-      return this.keysDisplay;
     }
-  },
 
-  sshUser() {
+    return this.keysDisplay;
+  }
+
+  get sshUser() {
     if ( this._type !== TYPES.SSH ) {
-      return;
+      return null;
     }
 
     const pub = base64Decode(this.data['ssh-publickey']);
 
     if ( !pub ) {
-      return;
+      return null;
     }
 
     if ( pub.startsWith('----') ) {
@@ -235,17 +234,19 @@ export default {
         return parts[2];
       }
     }
-  },
 
-  subTypeDisplay() {
+    return null;
+  }
+
+  get subTypeDisplay() {
     const type = this._type || '';
     const fallback = type.replace(/^kubernetes.io\//, '');
 
     return this.$rootGetters['i18n/withFallback'](`secret.types."${ type }"`, null, fallback);
-  },
+  }
 
   // parse TLS certs and return issuer, notAfter, cn, sans
-  certInfo() {
+  get certInfo() {
     const pem = base64Decode(this.data['tls.crt']);
     let issuer, notAfter, cn, sans, x;
 
@@ -276,10 +277,12 @@ export default {
         issuer, notAfter, cn, sans
       };
     }
-  },
+
+    return null;
+  }
 
   // use for + n more name display
-  unrepeatedSans() {
+  get unrepeatedSans() {
     if (this._type === TYPES.TLS ) {
       if (this.certInfo?.sans?.filter) {
         const commonBases = this.certInfo?.sans.filter(name => name.indexOf('*.') === 0 || name.indexOf('www.') === 0).map(name => name.substr(name.indexOf('.')));
@@ -290,9 +293,11 @@ export default {
 
       return this.certInfo?.sans || [];
     }
-  },
 
-  timeTilExpiration() {
+    return null;
+  }
+
+  get timeTilExpiration() {
     if (this._type === TYPES.TLS) {
       const expiration = this.certInfo.notAfter;
       const timeThen = expiration.valueOf();
@@ -300,9 +305,11 @@ export default {
 
       return timeThen - timeNow;
     }
-  },
 
-  decodedData() {
+    return null;
+  }
+
+  get decodedData() {
     const out = {};
 
     for ( const k in this.data || {} ) {
@@ -310,9 +317,9 @@ export default {
     }
 
     return out;
-  },
+  }
 
-  setData() {
+  get setData() {
     return (key, value) => { // or (mapOfNewData)
       const isMap = key && typeof key === 'object';
 
@@ -333,71 +340,13 @@ export default {
         set(this.data, `"${ k }"`, base64Encode(neu[k]));
       }
     };
-  },
+  }
 
-  /*
-  cloudCredentialProvider() {
-    return this.metadata?.annotations?.[CAPI.CREDENTIAL_DRIVER];
-  },
-
-  cloudCredentialProviderDisplay() {
-    const provider = (this.cloudCredentialProvider || '').toLowerCase();
-
-    return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, provider);
-  },
-
-  cloudCredentialPublicData() {
-    let { publicKey, publicMode } = this.$rootGetters['plugins/credentialOptions'](this.cloudCredentialProvider);
-
-    const options = {
-      full:   fullFields,
-      prefix: prefixFields,
-      suffix: suffixFields,
-    };
-
-    if ( !publicKey ) {
-      for ( const k in this.decodedData || {} ) {
-        if ( publicKey ) {
-          break;
-        }
-
-        if ( isEmpty(this.decodedData[k]) ) {
-          continue;
-        }
-
-        for ( const mode in options ) {
-          if ( options[mode].includes( simplify(k) ) ) {
-            publicKey = k;
-            publicMode = mode;
-            break;
-          }
-        }
-      }
-    }
-
-    if ( !publicKey ) {
-      return;
-    }
-
-    const val = this.decodedData[publicKey];
-
-    const maxLength = Math.min(8, Math.floor(val.length / 2));
-
-    if ( publicMode === 'prefix' ) {
-      return `${ escapeHtml(val.substr(0, maxLength)) }&hellip;`;
-    } else if ( publicMode === 'suffix' ) {
-      return `&hellip;${ escapeHtml(val.substr(-1 * maxLength)) }`;
-    } else {
-      return escapeHtml(val);
-    }
-  },
-*/
-
-  doneRoute() {
+  get doneRoute() {
     if ( this.$rootGetters['currentProduct'].name === MANAGER ) {
       return 'c-cluster-manager-secret';
     } else {
       return 'c-cluster-product-resource';
     }
-  },
-};
+  }
+}

@@ -13,6 +13,7 @@ import Select from '@/components/form/Select';
 import day from 'dayjs';
 
 import { escapeHtml, escapeRegex } from '@/utils/string';
+import { NAME as VIRTUAL } from '@/config/product/harvester';
 
 import Socket, {
   EVENT_CONNECTED,
@@ -87,7 +88,12 @@ export default {
 
   computed: {
     containerChoices() {
-      return this.pod?.spec?.containers?.map(x => x.name) || [];
+      const isHarvester = this.$store.getters['currentProduct'].inStore === VIRTUAL;
+
+      const containers = (this.pod?.spec?.containers || []).map(x => x.name);
+      const initContainers = (this.pod?.spec?.initContainers || []).map(x => x.name);
+
+      return isHarvester ? [] : [...containers, ...initContainers];
     },
 
     rangeOptions() {
@@ -451,61 +457,73 @@ export default {
 <template>
   <Window :active="active" :before-close="cleanup">
     <template #title>
-      <Select
-        v-if="containerChoices.length > 0"
-        v-model="container"
-        :disabled="containerChoices.length === 1"
-        class="containerPicker pull-left"
-        :options="containerChoices"
-        :clearable="false"
-        placement="top"
-      >
-        <template #selected-option="option">
-          <t v-if="option" k="wm.containerLogs.containerName" :label="option.label" />
-        </template>
-      </Select>
-      <div class="log-action pull-left ml-5">
-        <button class="btn bg-primary" :disabled="isFollowing" @click="follow">
-          <t k="wm.containerLogs.follow" />
-        </button>
-        <button class="btn bg-primary" @click="clear">
-          <t k="wm.containerLogs.clear" />
-        </button>
-        <AsyncButton mode="download" @click="download" />
-      </div>
-
-      <div class="status log-action pull-right text-center p-10" style="min-width: 80px;">
-        <t :class="{'text-success': isOpen, 'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
-      </div>
-      <div class="log-action pull-right ml-5">
-        <input v-model="search" class="input-sm" type="search" :placeholder="t('wm.containerLogs.search')" />
-      </div>
-      <div class="log-action pull-right ml-5">
-        <v-popover
-          trigger="click"
+      <div class="wm-button-bar">
+        <Select
+          v-if="containerChoices.length > 0"
+          v-model="container"
+          :disabled="containerChoices.length === 1"
+          class="containerPicker"
+          :options="containerChoices"
+          :clearable="false"
           placement="top"
         >
-          <button class="btn bg-primary">
-            <i class="icon icon-gear" />
-          </button>
-
-          <template slot="popover">
-            <div class="filter-popup">
-              <LabeledSelect
-                v-model="range"
-                class="range"
-                :label="t('wm.containerLogs.range.label')"
-                :options="rangeOptions"
-                :clearable="false"
-                placement="top"
-                @input="toggleRange($event)"
-              />
-              <div><Checkbox :label="t('wm.containerLogs.previous')" :value="previous" @input="togglePrevious" /></div>
-              <div><Checkbox :label="t('wm.containerLogs.wrap')" :value="wrap" @input="toggleWrap " /></div>
-              <div><Checkbox :label="t('wm.containerLogs.timestamps')" :value="timestamps" @input="toggleTimestamps" /></div>
-            </div>
+          <template #selected-option="option">
+            <t v-if="option" k="wm.containerLogs.containerName" :label="option.label" />
           </template>
-        </v-popover>
+        </Select>
+        <div class="log-action ml-5">
+          <button class="btn bg-primary wm-btn" :disabled="isFollowing" @click="follow">
+            <t class="wm-btn-large" k="wm.containerLogs.follow" />
+            <i class="wm-btn-small icon icon-chevron-end" />
+          </button>
+          <button class="btn bg-primary wm-btn" @click="clear">
+            <t class="wm-btn-large" k="wm.containerLogs.clear" />
+            <i class="wm-btn-small icon icon-close" />
+          </button>
+          <AsyncButton mode="download" @click="download" />
+        </div>
+
+        <div class="wm-seperator"></div>
+
+        <div class="log-action log-previous ml-5">
+          <div><Checkbox :label="t('wm.containerLogs.previous')" :value="previous" @input="togglePrevious" /></div>
+        </div>
+
+        <div class="log-action ml-5">
+          <v-popover
+            trigger="click"
+            placement="top"
+          >
+            <button class="btn bg-primary btn-cog">
+              <i class="icon icon-gear" />
+              <i class="icon icon-chevron-up" />
+            </button>
+
+            <template slot="popover">
+              <div class="filter-popup">
+                <LabeledSelect
+                  v-model="range"
+                  class="range"
+                  :label="t('wm.containerLogs.range.label')"
+                  :options="rangeOptions"
+                  :clearable="false"
+                  placement="top"
+                  @input="toggleRange($event)"
+                />
+                <div><Checkbox :label="t('wm.containerLogs.wrap')" :value="wrap" @input="toggleWrap " /></div>
+                <div><Checkbox :label="t('wm.containerLogs.timestamps')" :value="timestamps" @input="toggleTimestamps" /></div>
+              </div>
+            </template>
+          </v-popover>
+        </div>
+
+        <div class="log-action ml-5">
+          <input v-model="search" class="input-sm" type="search" :placeholder="t('wm.containerLogs.search')" />
+        </div>
+
+        <div class="status log-action p-10">
+          <t :class="{'text-success': isOpen, 'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
+        </div>
       </div>
     </template>
     <template #body>
@@ -533,6 +551,19 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .wm-button-bar {
+    display: flex;
+
+    .wm-seperator {
+      flex: 1;
+    }
+
+    .wm-btn-small {
+      display: none;
+      margin: 0;
+    }
+  }
+
   .logs-container {
     height: 100%;
     overflow: auto;
@@ -591,18 +622,49 @@ export default {
     > input {
       height: 30px;
     }
+
+    .btn-cog {
+      padding: 0 5px;
+      > i {
+        margin: 0;
+      }
+    }
+  }
+
+  .log-previous {
+    align-items: center;
+    display: flex;
+    height: 30px;
   }
 
   .status {
     align-items: center;
     display: flex;
-    min-width: 80px;
+    justify-content: flex-end;
+    min-width: 105px;
     height: 30px;
   }
 
   .filter-popup {
     > * {
       margin-bottom: 10px;
+    }
+  }
+
+  @media only screen and (max-width: 1060px) {
+    .wm-button-bar {
+      .wm-btn {
+        padding: 0 10px;
+
+        .wm-btn-large {
+          display: none;
+        }
+
+        .wm-btn-small {
+          display: inline;
+          margin: 0;
+        }
+      }
     }
   }
 </style>

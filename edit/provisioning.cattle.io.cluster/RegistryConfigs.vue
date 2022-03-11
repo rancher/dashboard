@@ -29,6 +29,14 @@ export default {
       type:     Object,
       required: true,
     },
+
+    clusterRegisterBeforeHook: {
+      // We use this hook instead of the create hook from the CreateEditView
+      // mixin because this is a form within a form, therefore we
+      // need the hook from the parent component.
+      type:     Function,
+      required: true
+    }
   },
 
   data() {
@@ -91,12 +99,12 @@ export default {
 <template>
   <div>
     <h3>
-      Registry Authentication
-      <i v-tooltip="'When an image needs to be pulled from the given registry hostname, this information will be used to verify the identity of the registry and authenticate to it.'" class="icon icon-info" />
+      {{ t('registryConfig.header') }}
+      <i v-tooltip="t('registryConfig.toolTip')" class="icon icon-info" />
     </h3>
     <ArrayListGrouped
       v-model="entries"
-      add-label="Add Registry"
+      :add-label="t('registryConfig.addLabel')"
       :default-add-value="defaultAddValue"
       :mode="mode"
       @input="update()"
@@ -108,12 +116,14 @@ export default {
 
             <SelectOrCreateAuthSecret
               v-model="row.value.authConfigSecretName"
-              :register-before-hook="registerBeforeHook"
+              :register-before-hook="clusterRegisterBeforeHook"
+              :append-unique-id-to-hook="true"
               in-store="management"
               :allow-ssh="false"
               :allow-rke="true"
               :vertical="true"
               :namespace="value.metadata.namespace"
+              :mode="mode"
               generate-name="registryconfig-auth-"
             />
           </div>

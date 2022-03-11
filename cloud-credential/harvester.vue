@@ -4,9 +4,10 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import RadioGroup from '@/components/form/RadioGroup';
 
-import { get } from '@/utils/object';
-import { MANAGEMENT } from '@/config/types';
-import { HCI } from '@/config/labels-annotations';
+import { get, set } from '@/utils/object';
+import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@/config/types';
+
+const IMPORTED = 'imported';
 
 export default {
   components: {
@@ -22,20 +23,21 @@ export default {
     this.$emit('validationChanged', true);
 
     if (!this.value.decodedData.clusterType) {
-      this.value.setData('clusterType', 'import');
+      this.value.setData('clusterType', IMPORTED);
     }
 
-    const cluster = get(this.value, `metadata.annotations."${ HCI.CLUSTER_ID }"`) || '';
+    const cluster = get(this.value, 'harvestercredentialConfig.clusterId') || '';
 
     return {
       clusters: [],
       cluster,
+      IMPORTED,
     };
   },
 
   computed: {
-    clusterOptions() { // TODO: Filter out all harvester clusters
-      return this.clusters.map( (cluster) => {
+    clusterOptions() {
+      return this.clusters.filter(c => c.status?.provider === VIRTUAL_HARVESTER_PROVIDER).map( (cluster) => {
         return {
           value: cluster.id,
           label: cluster.nameDisplay
@@ -44,7 +46,7 @@ export default {
     },
 
     isImportCluster() {
-      return this.value.decodedData.clusterType === 'import';
+      return this.value.decodedData.clusterType === IMPORTED;
     }
   },
 
@@ -64,7 +66,7 @@ export default {
       }
 
       if (this.isCreate) {
-        this.value.setAnnotation(HCI.CLUSTER_ID, neu);
+        set(this.value, 'harvestercredentialConfig.clusterId', neu);
       }
 
       const currentCluster = this.$store.getters['management/all'](MANAGEMENT.CLUSTER).find(x => x.id === neu);
@@ -113,7 +115,7 @@ export default {
         :disabled="isEdit"
         name="clusterType"
         :labels="[t('cluster.credential.harvester.import'),t('cluster.credential.harvester.external')]"
-        :options="['import', 'external']"
+        :options="[IMPORTED, 'external']"
         @input="value.setData('clusterType', $event);"
       />
     </div>
@@ -126,7 +128,7 @@ export default {
           :disabled="isEdit"
           :options="clusterOptions"
           :required="true"
-          label="Cluster"
+          :label="t('cluster.credential.harvester.cluster')"
         />
       </div>
 

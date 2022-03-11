@@ -12,7 +12,7 @@ const WINDOW_MANAGER = 'windowmanager';
 
 // Pages that we should intercept when loaded in the IFRAME and instead
 // navigate to a page in Cluster Dashboard
-// exmample if the Ember clusters page that is navigated to when the user presses cancel on some pages
+// example if the Ember clusters page that is navigated to when the user presses cancel on some pages
 // we intercept this and go the the vue Clusters page instead
 const INTERCEPTS = {
   'global-admin.clusters.index': {
@@ -84,6 +84,9 @@ export default {
     ...mapGetters({ theme: 'prefs/theme' }),
     ...mapGetters(['clusterId', 'productId']),
     ...mapState('wm', ['open']),
+    locale() {
+      return this.$store.getters['i18n/current']();
+    }
   },
 
   watch: {
@@ -116,6 +119,9 @@ export default {
           }
         }
       }
+    },
+    locale() {
+      this.syncLocale();
     }
   },
 
@@ -195,8 +201,8 @@ export default {
       // If the iframe already exists, check if it is ready for us to reuse
       // by navigating within the app that is already loaded
       if (iframeEl !== null) {
-        const ready = iframeEl.getAttribute('data-ready') !== 'false';
-        const lastDidLoad = iframeEl.getAttribute('data-loaded') !== 'false';
+        const ready = iframeEl.getAttribute('data-ready') === 'true';
+        const lastDidLoad = iframeEl.getAttribute('data-loaded') === 'true';
         const doNotReuse = !!this.inline && !this.forceReuse;
         // Was not inline but now is - can't reuse
         const inlineChanged = !!this.inline && (iframeEl.parentElement === document.body);
@@ -214,7 +220,7 @@ export default {
           this.loaded = false;
           this.emberCheck = this.$axios.CancelToken.source();
 
-          // Make a head requst to a known asset of the Ember UI
+          // Make a head request to a known asset of the Ember UI
           const pageUrl = `${ window.location.origin }/assets/images/logos/rke.svg`;
           const response = await this.$axios.head(pageUrl, {
             timeout:     PAGE_CHECK_TIMEOUT,
@@ -405,6 +411,7 @@ export default {
         } else {
           doc.classList.remove('embedded-no-overflow');
         }
+        this.syncLocale();
       } else if (msg.action === 'need-to-load') {
         this.loadRequired = true;
       } else if (msg.action === 'did-transition') {
@@ -485,6 +492,12 @@ export default {
       }
 
       return false;
+    },
+
+    syncLocale() {
+      const iframeEl = findEmberPage();
+
+      iframeEl?.contentWindow?.ls('user-language')?.sideLoadLanguage(this.locale);
     }
   }
 };

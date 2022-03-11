@@ -11,6 +11,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import UnitInput from '@/components/form/UnitInput';
 import { _VIEW } from '@/config/query-params';
+import { toMilliseconds } from './duration.js';
 
 const INGORED_ANNOTATIONS = [
   'summary',
@@ -193,6 +194,19 @@ export default {
 
       return false;
     },
+
+    waitToFireFor: {
+      get() {
+        if (![null, undefined].includes(this.value.for)) {
+          return Math.floor(toMilliseconds(this.value.for) / 1000);
+        }
+
+        return undefined;
+      },
+      set(v) {
+        this.$set(this.value, 'for', [null, undefined].includes(v) ? undefined : `${ v }s`);
+      }
+    }
   },
 
   watch: {
@@ -266,12 +280,11 @@ export default {
       </div>
       <div class="col span-6">
         <UnitInput
-          v-model="value.for"
+          v-model="waitToFireFor"
           :suffix="t('suffix.seconds', {count: value.for})"
           :placeholder="t('prometheusRule.alertingRules.for.placeholder')"
           :label="t('prometheusRule.alertingRules.for.label')"
           :mode="mode"
-          @input="(e) => $set(value, 'for', `${e}s`)"
         />
       </div>
     </div>

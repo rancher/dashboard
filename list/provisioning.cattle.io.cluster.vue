@@ -1,12 +1,18 @@
 <script>
+import Banner from '@/components/Banner';
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { allHash } from '@/utils/promise';
 import { CAPI, MANAGEMENT } from '@/config/types';
 import { MODE, _IMPORT } from '@/config/query-params';
+import { filterOnlyKubernetesClusters } from '@/utils/cluster';
+import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@/store/features';
+import { NAME as EXPLORER } from '@/config/product/explorer';
 
 export default {
-  components: { ResourceTable, Masthead },
+  components: {
+    Banner, ResourceTable, Masthead
+  },
 
   async fetch() {
     const hash = {
@@ -47,7 +53,25 @@ export default {
 
   computed: {
     rows() {
+      // If Harvester feature is enabled, hide Harvester Clusters
+      if (this.harvesterEnabled) {
+        return filterOnlyKubernetesClusters(this.rancherClusters);
+      }
+
+      // Otherwise, show Harvester clusters - these will be shown with a warning
       return this.rancherClusters;
+    },
+
+    hiddenHarvesterCount() {
+      const product = this.$store.getters['currentProduct'];
+      const isExplorer = product?.name === EXPLORER;
+
+      // Don't show Harveser banner message on the cluster management page or if Harvester if not enabled
+      if (!isExplorer || !this.harvesterEnabled) {
+        return 0;
+      }
+
+      return this.rancherClusters.length - filterOnlyKubernetesClusters(this.rancherClusters).length;
     },
 
     createLocation() {
@@ -76,6 +100,8 @@ export default {
 
       return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
     },
+
+    harvesterEnabled: mapFeature(HARVESTER_FEATURE),
   },
 
   mounted() {
@@ -86,6 +112,8 @@ export default {
 
 <template>
   <div>
+    <Banner v-if="hiddenHarvesterCount" color="info" :label="t('cluster.harvester.clusterWarning', {count: hiddenHarvesterCount} )" />
+
     <Masthead
       :schema="schema"
       :resource="resource"
@@ -117,7 +145,8 @@ export default {
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>
       <template #cell:explorer="{row}">
-        <n-link v-if="row.mgmt && row.mgmt.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}">
+        <span v-if="row.mgmt && row.mgmt.isHarvester"></span>
+        <n-link v-else-if="row.mgmt && row.mgmt.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}">
           Explore
         </n-link>
         <button v-else :disabled="true" class="btn btn-sm role-primary">

@@ -11,7 +11,7 @@ export default {
     }
   },
   /*
-      userValue is a string respresentation of args array, with spaces between each array item and single quotes around any items with whitespace
+      userValue is a string representation of args array, with spaces between each array item and single quotes around any items with whitespace
       value input of ["-c", "sleep 600"]
       is displayed as: "-c 'sleep 600'"
 

@@ -56,7 +56,7 @@ export const getters = {
     }
 
     // Go through all the selected items and add the actions (which were already identified above)
-    // as availalable for some (or all) of the selected nodes
+    // as available for some (or all) of the selected nodes
     for ( const node of selected ) {
       if (node.availableActions) {
         for ( const act of node.availableActions ) {

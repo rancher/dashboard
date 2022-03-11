@@ -1,18 +1,18 @@
+
 import { _CLONE } from '@/config/query-params';
 import Vue from 'vue';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  applyDefaults() {
-    return (_, realMode) => {
-      const accessModes = realMode === _CLONE ? this.spec.accessModes : [];
-      const storage = realMode === _CLONE ? this.spec.resources.requests.storage : null;
+export default class PVC extends SteveModel {
+  applyDefaults(_, realMode) {
+    const accessModes = realMode === _CLONE ? this.spec.accessModes : [];
+    const storage = realMode === _CLONE ? this.spec.resources.requests.storage : null;
 
-      Vue.set(this, 'spec', {
-        accessModes,
-        storageClassName: '',
-        volumeName:       '',
-        resources:        { requests: { storage } }
-      });
-    };
-  },
-};
+    Vue.set(this, 'spec', {
+      accessModes,
+      storageClassName: '',
+      volumeName:       '',
+      resources:        { requests: { storage } }
+    });
+  }
+}

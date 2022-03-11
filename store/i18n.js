@@ -204,10 +204,11 @@ export const actions = {
 
     commit('setSelected', locale);
     this.$cookies.set(LOCALE, locale, {
-      encode: x => x,
-      maxAge: 86400 * 365,
-      secure: true,
-      path:   '/',
+      encode:   x => x,
+      maxAge:   86400 * 365,
+      path:     '/',
+      sameSite: true,
+      secure:   true,
     });
   },
 

@@ -1,21 +1,32 @@
 <script>
-import { formatSi } from '@/utils/units';
+import { formatSi, parseSi } from '@/utils/units';
 
 export default {
   props: {
     value: {
-      type:    Number,
+      type:    [Number, String],
       default: () => 0,
     },
 
     opts: {
       type:    Object,
       default: () => {},
+    },
+
+    needParseSi: {
+      type:    Boolean,
+      default: false
     }
   },
   computed: {
     formattedValue() {
-      return formatSi(this.value, {
+      let parseValue = this.value;
+
+      if (this.needParseSi) {
+        parseValue = parseSi(this.value);
+      }
+
+      return formatSi(parseValue, {
         suffix:      'iB',
         firstSuffix: 'B',
         increment:   1024,

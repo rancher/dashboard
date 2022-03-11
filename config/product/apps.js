@@ -24,10 +24,11 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    removable:   false,
-    weight:      97,
-    ifHaveGroup: 'catalog.cattle.io',
-    icon:        'marketplace',
+    removable:           false,
+    weight:              97,
+    ifHaveGroup:         'catalog.cattle.io',
+    icon:                'marketplace',
+    showNamespaceFilter: true
   });
 
   virtualType({
@@ -90,7 +91,7 @@ export function init(store) {
     },
     {
       name:     'releaseNamespace',
-      label:    'Tgt Namepsace',
+      label:    'Tgt Namespace',
       sort:     'status.namespace',
       value:    'status.namespace',
       labelKey: 'catalog.operation.tableHeaders.releaseNamespace',

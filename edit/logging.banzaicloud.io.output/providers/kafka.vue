@@ -98,6 +98,7 @@ export default {
       <div class="col span-6">
         <SecretSelector
           v-model="value.ssl_ca_cert"
+          mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -108,6 +109,7 @@ export default {
       <div class="col span-6">
         <SecretSelector
           v-model="value.ssl_client_cert"
+          mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -120,6 +122,7 @@ export default {
       <div class="col span-6">
         <SecretSelector
           v-model="value.ssl_client_cert_chain"
+          mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -130,6 +133,7 @@ export default {
       <div class="col span-6">
         <SecretSelector
           v-model="value.ssl_client_cert_key"
+          mount-key="mountFrom"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"

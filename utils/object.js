@@ -1,31 +1,24 @@
 import cloneDeep from 'lodash/cloneDeep';
 import flattenDeep from 'lodash/flattenDeep';
 import compact from 'lodash/compact';
-import jsonpath from 'jsonpath';
+import { JSONPath } from 'jsonpath-plus';
 import Vue from 'vue';
 import transform from 'lodash/transform';
 import isObject from 'lodash/isObject';
+import isArray from 'lodash/isArray';
 import isEqual from 'lodash/isEqual';
 import difference from 'lodash/difference';
-
-const quotedKey = /['"]/;
-const quotedMatch = /[^."']+|"([^"]*)"|'([^']*)'/g;
+import { splitObjectPath, joinObjectPath } from '@/utils/string';
+import { addObject } from '@/utils/array';
 
 export function set(obj, path, value) {
   let ptr = obj;
-  let parts;
 
   if (!ptr) {
     return;
   }
 
-  if ( path.match(quotedKey) ) {
-    // Path with quoted section
-    parts = path.match(quotedMatch).map(x => x.replace(/['"]/g, ''));
-  } else {
-    // Regular path
-    parts = path.split('.');
-  }
+  const parts = splitObjectPath(path);
 
   for (let i = 0; i < parts.length; i++) {
     const key = parts[i];
@@ -46,23 +39,23 @@ export function set(obj, path, value) {
 export function get(obj, path) {
   if ( path.startsWith('$') ) {
     try {
-      return jsonpath.query(obj, path)[0];
+      return JSONPath({
+        path,
+        json:        obj,
+        wrap:        false,
+      });
     } catch (e) {
-      console.log('JSON Path error', e); // eslint-disable-line no-console
+      console.log('JSON Path error', e, path, obj); // eslint-disable-line no-console
 
       return '(JSON Path err)';
     }
   }
 
-  let parts;
-
-  if ( path.match(quotedKey) ) {
-    // Path with quoted section
-    parts = path.match(/[^."']+|"([^"]*)"|'([^']*)'/g).map(x => x.replace(/['"]/g, ''));
-  } else {
-    // Regular path
-    parts = path.split('.');
+  if ( !path.includes('.') ) {
+    return obj?.[path];
   }
+
+  const parts = splitObjectPath(path);
 
   for (let i = 0; i < parts.length; i++) {
     if (!obj) {
@@ -70,6 +63,20 @@ export function get(obj, path) {
     }
 
     obj = obj[parts[i]];
+  }
+
+  return obj;
+}
+
+export function remove(obj, path) {
+  const parentAry = splitObjectPath(path);
+  const leafKey = parentAry.pop();
+
+  const parent = get(obj, joinObjectPath(parentAry));
+
+  if ( parent ) {
+    Vue.set(parent, leafKey, undefined);
+    delete parent[leafKey];
   }
 
   return obj;
@@ -191,26 +198,138 @@ export function diff(from, to) {
   return out;
 }
 
-export function nonEmptyValueKeys(obj) {
-  const validKeys = Object.keys(obj).map((key) => {
-    const val = obj[key];
+export function changeset(from, to, parentPath = []) {
+  let out = {};
 
-    if ( isObject(val) ) {
-      const recursed = nonEmptyValueKeys(val);
+  if ( isEqual(from, to) ) {
+    return out;
+  }
 
-      if (recursed) {
-        return recursed.map((subkey) => {
-          return `"${ key }"."${ subkey }"`;
-        });
-      }
-    } else if ( Array.isArray(val) ) {
-      if (compact(val).length) {
-        return key;
-      }
-    } else if (!!val || val === false || val === 0) {
-      return key;
+  for ( const k in from ) {
+    const path = joinObjectPath([...parentPath, k]);
+
+    if ( !(k in to) ) {
+      out[path] = { op: 'remove', path };
+    } else if ( (isObject(from[k]) && isObject(to[k])) || (isArray(from[k]) && isArray(to[k])) ) {
+      out = { ...out, ...changeset(from[k], to[k], [...parentPath, k]) };
+    } else if ( !isEqual(from[k], to[k]) ) {
+      out[path] = {
+        op: 'change', from: from[k], value: to[k]
+      };
     }
-  });
+  }
 
-  return compact(flattenDeep(validKeys));
+  for ( const k in to ) {
+    if ( !(k in from) ) {
+      const path = joinObjectPath([...parentPath, k]);
+
+      out[path] = { op: 'add', value: to[k] };
+    }
+  }
+
+  return out;
+}
+
+export function changesetConflicts(a, b) {
+  let keys = Object.keys(a).sort();
+  const out = [];
+  const seen = {};
+
+  for ( const k of keys ) {
+    let ok = true;
+    const aa = a[k];
+    const bb = b[k];
+
+    // If we've seen a change for a parent of this key before (e.g. looking at `spec.replicas` and there's already been a change to `spec`), assume they conflict
+    for ( const parentKey of parentKeys(k) ) {
+      if ( seen[parentKey] ) {
+        ok = false;
+        break;
+      }
+    }
+
+    seen[k] = true;
+
+    if ( ok && bb ) {
+      switch ( `${ aa.op }-${ bb.op }` ) {
+      case 'add-add':
+      case 'add-change':
+      case 'change-add':
+      case 'change-change':
+        ok = isEqual(aa.value, bb.value);
+        break;
+
+      case 'add-remove':
+      case 'change-remove':
+      case 'remove-add':
+      case 'remove-change':
+        ok = false;
+        break;
+
+      case 'remove-remove':
+      default:
+        ok = true;
+        break;
+      }
+    }
+
+    if ( !ok ) {
+      addObject(out, k);
+    }
+  }
+
+  // Check parent keys going the other way
+  keys = Object.keys(b).sort();
+  for ( const k of keys ) {
+    let ok = true;
+
+    for ( const parentKey of parentKeys(k) ) {
+      if ( seen[parentKey] ) {
+        ok = false;
+        break;
+      }
+    }
+
+    seen[k] = true;
+
+    if ( !ok ) {
+      addObject(out, k);
+    }
+  }
+
+  return out.sort();
+
+  function parentKeys(k) {
+    const out = [];
+    const parts = splitObjectPath(k);
+
+    parts.pop();
+
+    while ( parts.length ) {
+      const path = joinObjectPath(parts);
+
+      out.push(path);
+      parts.pop();
+    }
+
+    return out;
+  }
+}
+
+export function applyChangeset(obj, changeset) {
+  let entry;
+
+  for ( const path in changeset ) {
+    entry = changeset[path];
+
+    if ( entry.op === 'add' || entry.op === 'change' ) {
+      set(obj, path, entry.value);
+    } else if ( entry.op === 'remove' ) {
+      remove(obj, path);
+    } else {
+      throw new Error(`Unknown operation:${ entry.op }`);
+    }
+  }
+
+  return obj;
 }

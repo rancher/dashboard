@@ -1,4 +1,5 @@
 <script>
+import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { filterBy } from '@/utils/array';
 import { PVC, STORAGE_CLASS } from '@/config/types';
@@ -11,10 +12,15 @@ const LEGACY_MAP = {
 };
 
 export default {
-  components: { LabeledSelect },
+  components: { LabeledInput, LabeledSelect },
   mixins:     [Question],
 
   props: {
+    inStore: {
+      type:    String,
+      default: 'cluster',
+    },
+
     targetNamespace: {
       type:    String,
       default: null,
@@ -23,7 +29,7 @@ export default {
 
   async fetch() {
     if ( this.typeSchema ) {
-      this.all = await this.$store.dispatch('cluster/findAll', { type: this.typeName });
+      this.all = await this.$store.dispatch(`${ this.inStore }/findAll`, { type: this.typeName });
     }
   },
 
@@ -43,7 +49,7 @@ export default {
     let typeSchema;
 
     if ( typeName ) {
-      typeSchema = this.$store.getters['cluster/schemaFor'](typeName);
+      typeSchema = this.$store.getters[`${ this.inStore }/schemaFor`](typeName);
     }
 
     return {
@@ -97,7 +103,26 @@ export default {
       </div>
     </div>
   </div>
-  <div v-else class="text-error">
-    Unknown type {{ question.type }}
+  <div v-else class="row">
+    <div class="col span-6">
+      <LabeledInput
+        :mode="mode"
+        :disabled="$fetchState.pending || disabled"
+        :label="displayLabel"
+        :placeholder="question.description"
+        :required="question.required"
+        :value="value"
+        @input="!$fetchState.pending && $emit('input', $event)"
+      />
+    </div>
+    <div class="col span-6 mt-10">
+      {{ question.type }}<span v-if="isNamespaced"> in namespace {{ targetNamespace }}</span>
+      <div v-if="showDescription">
+        {{ question.description }}
+      </div>
+      <div class="text-error">
+        (You do not have access to list this type)
+      </div>
+    </div>
   </div>
 </template>

@@ -1,5 +1,6 @@
 <script>
 import { _VIEW } from '@/config/query-params';
+import { mapGetters } from 'vuex';
 import { get, isEmpty, clone } from '@/utils/object';
 import { NODE } from '@/config/types';
 import MatchExpressions from '@/components/form/MatchExpressions';
@@ -55,6 +56,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
     isView() {
       return this.mode === _VIEW;
     },
@@ -64,6 +66,15 @@ export default {
     node() {
       return NODE;
     },
+    affinityOptions() {
+      const out = [this.t('workload.scheduling.affinity.preferred'), this.t('workload.scheduling.affinity.required')];
+
+      return out;
+    }
+  },
+
+  mounted() {
+    this.update();
   },
 
   methods: {
@@ -99,6 +110,7 @@ export default {
       } else {
         this.$set(term, 'weight', 1);
       }
+      this.update();
     },
 
     priorityDisplay(term) {
@@ -116,12 +128,12 @@ export default {
 <template>
   <div class="row" @input="update">
     <div class="col span-12">
-      <ArrayListGrouped v-model="allSelectorTerms" class="mt-20" :default-add-value="{matchExpressions:[]}" :add-label="t('workload.scheduling.affinity.addNodeSelector')">
+      <ArrayListGrouped v-model="allSelectorTerms" class="mt-20" :mode="mode" :default-add-value="{matchExpressions:[]}" :add-label="t('workload.scheduling.affinity.addNodeSelector')">
         <template #default="props">
           <div class="row">
             <div class="col span-6">
               <LabeledSelect
-                :options="[t('workload.scheduling.affinity.preferred'),t('workload.scheduling.affinity.required')]"
+                :options="affinityOptions"
                 :value="priorityDisplay(props.row.value)"
                 :label="t('workload.scheduling.affinity.priority')"
                 :mode="mode"

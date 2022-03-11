@@ -1,1 +1,1 @@
-{}
+{"experimentalSessionSupport": true, "testFiles":"**/*.spec.ts"}

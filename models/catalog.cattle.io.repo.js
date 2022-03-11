@@ -1,3 +1,4 @@
 import ClusterRepo from './catalog.cattle.io.clusterrepo';
 
-export default ClusterRepo;
+export default class CatalogRepo extends ClusterRepo {
+}
