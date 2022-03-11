@@ -20,7 +20,7 @@ export default {
     showMyGroupTypes: {
       type: Array,
       default() {
-        return ['group'];
+        return ['group', 'user'];
       },
     },
 
@@ -35,7 +35,12 @@ export default {
     retainSelection: {
       type:    Boolean,
       default: false
-    }
+    },
+
+    project: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   async fetch() {
@@ -68,13 +73,19 @@ export default {
         }
 
         return true;
-      }).map(x => x.id);
+      })
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(x => x.id);
 
       return out;
     },
 
     label() {
       return this.retainSelection ? this.t('cluster.memberRoles.addClusterMember.labelSelect') : this.t('cluster.memberRoles.addClusterMember.labelAdd');
+    },
+
+    placeholder() {
+      return this.project ? this.t('projectMembers.projectPermissions.searchForMember') : this.t('cluster.memberRoles.addClusterMember.placeholder');
     }
   },
 
@@ -142,7 +153,7 @@ export default {
     v-model="newValue"
     :mode="mode"
     :label="label"
-    :placeholder="t('cluster.memberRoles.addClusterMember.placeholder')"
+    :placeholder="placeholder"
     :options="options"
     :searchable="true"
     :filterable="false"
@@ -162,12 +173,6 @@ export default {
           {{ t('cluster.memberRoles.addClusterMember.searchPlaceholder') }}
         </em>
       </div>
-    </template>
-
-    <template v-if="!searchStr && options.length" #list-header>
-      <li class="pl-10 text-muted">
-        Your Groups:
-      </li>
     </template>
 
     <template #option="option">

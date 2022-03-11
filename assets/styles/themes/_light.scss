@@ -48,7 +48,7 @@ BODY, .theme-light {
   --primary-hover-text         : #{saturate($lightest, 20%)};
   --primary-active-bg          : #{darken($primary, 25%)};
   --primary-active-text        : #{contrast-color(darken($primary, 25%))};
-  --primary-border             : #($primary);
+  --primary-border             : #{$primary};
   --primary-banner-bg          : #{rgba($primary, 0.15)};
   --primary-light-bg           : #{rgba($primary, 0.05)};
 
@@ -79,7 +79,7 @@ BODY, .theme-light {
   --link-hover-text         : #{saturate($lightest, 20%)};
   --link-active-bg          : #{darken($link, 25%)};
   --link-active-text        : #{contrast-color(darken($link, 25%))};
-  --link-border             : #($link);
+  --link-border             : #{$link};
   --link-banner-bg          : #{rgba($link, 0.15)};
   --link-light-bg           : #{rgba($link, 0.05)};
 
@@ -110,7 +110,7 @@ BODY, .theme-light {
   --default-hover-text         : #{saturate($lightest, 20%)};
   --default-active-bg          : #{darken($light, 25%)};
   --default-active-text        : #{contrast-color(darken($light, 25%))};
-  --default-border             : #($light);
+  --default-border             : #{$light};
   --default-banner-bg          : #{rgba($light, 0.15)};
   --default-light-bg           : #{rgba($light, 0.05)};
 
@@ -147,7 +147,7 @@ BODY, .theme-light {
   --darker-hover-text         : #{saturate($lightest, 20%)};
   --darker-active-bg          : #{darken($darker, 25%)};
   --darker-active-text        : #{contrast-color(darken($darker, 25%))};
-  --darker-border             : #($darker);
+  --darker-border             : #{$darker};
   --darker-banner-bg          : #{rgba($darker, 0.15)};
   --darker-light-bg           : #{rgba($darker, 0.05)};
 
@@ -179,7 +179,7 @@ BODY, .theme-light {
   --success-hover-text         : #{saturate($lightest, 20%)};
   --success-active-bg          : #{darken($success, 25%)};
   --success-active-text        : #{contrast-color(darken($success, 25%))};
-  --success-border             : #($success);
+  --success-border             : #{$success};
   --success-banner-bg          : #{rgba($success, 0.15)};
   --success-light-bg           : #{rgba($success, 0.05)};
 
@@ -210,7 +210,7 @@ BODY, .theme-light {
   --info-hover-text         : #{saturate($lightest, 20%)};
   --info-active-bg          : #{darken($info, 25%)};
   --info-active-text        : #{contrast-color(darken($info, 25%))};
-  --info-border             : #($info);
+  --info-border             : #{$info};
   --info-banner-bg          : #{rgba($info, 0.15)};
   --info-light-bg           : #{rgba($info, 0.05)};
 
@@ -241,7 +241,7 @@ BODY, .theme-light {
   --warning-hover-text         : #{saturate($lightest, 20%)};
   --warning-active-bg          : #{darken($warning, 25%)};
   --warning-active-text        : #{contrast-color(darken($warning, 25%))};
-  --warning-border             : #($warning);
+  --warning-border             : #{$warning};
   --warning-banner-bg          : #{rgba($warning, 0.15)};
   --warning-light-bg           : #{rgba($warning, 0.05)};
 
@@ -272,7 +272,7 @@ BODY, .theme-light {
   --error-hover-text         : #{saturate($lightest, 20%)};
   --error-active-bg          : #{darken($error, 25%)};
   --error-active-text        : #{contrast-color(darken($error, 25%))};
-  --error-border             : #($error);
+  --error-border             : #{$error};
   --error-banner-bg          : #{rgba($error, 0.15)};
   --error-light-bg           : #{rgba($error, 0.05)};
 
@@ -304,6 +304,9 @@ BODY, .theme-light {
   --scrollbar-thumb-dropdown   : #{$lighter};
   --scrollbar-track            : transparent;
 
+  // Header, Footer and Consent banner defaults
+  --banner-text-color          : #{$darkest};
+
   --header-bg                  : #{$lightest};
   --header-btn-bg              : transparent;
   --header-btn-text            : #{$darkest};
@@ -318,6 +321,7 @@ BODY, .theme-light {
   --nav-expander-hover         : #{darken($medium, 10%)};
   --nav-border                 : #{$medium};
   --nav-border-size            : 1px;
+
   --footer-bg                  : transparent;
   --footer-height              : 0px;
 
@@ -362,6 +366,8 @@ BODY, .theme-light {
   --dropdown-hover-bg          : var(--primary);
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
+
+  --card-badge-text            : #ffffff;
 
   // UNUSED?
   --card-header                : var(--primary-banner-bg);
@@ -492,7 +498,7 @@ BODY, .theme-light {
   $other                       : #614EA2;
 
   --app-rancher-accent         : #{$rancher};
-  --app-rancher-accent-text    : #{$darkest};
+  --app-rancher-accent-text    : #ffffff;
 
   --app-partner-accent         : #{$partner};
   --app-partner-accent-text    : black;

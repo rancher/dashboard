@@ -2,15 +2,30 @@
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@/utils/object';
 import Card from '@/components/Card';
+import Checkbox from '@/components/form/Checkbox';
 import { alternateLabel } from '@/utils/platform';
 import { uniq } from '@/utils/array';
 import AsyncButton from '@/components/AsyncButton';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
+import { CATALOG } from '@/config/types';
 
 export default {
-  components: { Card, AsyncButton },
+  components: {
+    Card, Checkbox, AsyncButton
+  },
   data() {
+    const { resource } = this.$route.params;
+
     return {
-      randomPosition: Math.random(), confirmName: '', error: '', warning: '', preventDelete: false
+      hasCustomRemove:     false,
+      randomPosition:      Math.random(),
+      confirmName:         '',
+      error:               '',
+      warning:             '',
+      preventDelete:       false,
+      removeComponent:     this.$store.getters['type-map/importCustomPromptRemove'](resource),
+      chartsToRemoveIsApp: false,
+      chartsDeleteCrd:     false
     };
   },
   computed:   {
@@ -80,10 +95,18 @@ export default {
       if (params.id && (params.id === this.toRemove[0]?.metadata?.name || params.id === this.toRemove[0].id)) {
         let { name = '' } = currentRoute;
 
-        name = name.slice(0, name.indexOf('-id'));
+        const idIndex = name.indexOf('-id');
+
+        if (idIndex !== -1) {
+          name = name.slice(0, idIndex);
+        }
 
         if (params.namespace) {
-          name = name.slice(0, name.indexOf('-namespace'));
+          const namespaceIndex = name.indexOf('-namespace');
+
+          if (namespaceIndex !== -1) {
+            name = name.slice(0, namespaceIndex);
+          }
           delete params.namespace;
         }
         delete params.id;
@@ -137,7 +160,25 @@ export default {
   watch:    {
     showPromptRemove(show) {
       if (show) {
+        const selected = this.toRemove[0];
+
+        if (this.currentRouter?.currentRoute?.name === 'c-cluster-explorer-tools' &&
+            selected.type === CATALOG.APP &&
+            selected.spec?.chart?.metadata?.annotations[CATALOG_ANNOTATIONS.AUTO_INSTALL]) {
+          this.chartsToRemoveIsApp = true;
+        }
+
         this.$modal.show('promptRemove');
+
+        let { resource } = this.$route.params;
+
+        if (this.toRemove.length > 0) {
+          resource = selected.type;
+        }
+
+        this.hasCustomRemove = this.$store.getters['type-map/hasCustomPromptRemove'](resource);
+
+        this.removeComponent = this.$store.getters['type-map/importCustomPromptRemove'](resource);
       } else {
         this.$modal.hide('promptRemove');
       }
@@ -175,10 +216,18 @@ export default {
     close() {
       this.confirmName = '';
       this.error = '';
+      this.chartsDeleteCrd = false;
+      this.chartsToRemoveIsApp = false;
       this.$store.commit('action-menu/togglePromptRemove');
     },
 
     remove(btnCB) {
+      if (this.hasCustomRemove && this.$refs?.customPrompt?.remove) {
+        this.$refs.customPrompt.remove();
+
+        return;
+      }
+
       let goTo;
 
       if (this.doneLocation) {
@@ -242,9 +291,25 @@ export default {
 
     // If spoofed we need to reload the values as the server can't have watchers for them.
     refreshSpoofedTypes(types) {
-      const promises = types.map(type => this.$store.dispatch('cluster/findAll', { type, opt: { force: true } }, { root: true }));
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const promises = types.map(type => this.$store.dispatch(`${ inStore }/findAll`, { type, opt: { force: true } }, { root: true }));
 
       return Promise.all(promises);
+    },
+
+    async chartAddCrdToRemove() {
+      try {
+        const res = await this.toRemove[0].relatedResourcesToRemove();
+
+        if (!this.toRemove.includes(res)) {
+          this.toRemove.push(res);
+        } else if (!this.chartsDeleteCrd) {
+          this.toRemove.pop(res);
+        }
+      } catch (err) {
+        this.error = err;
+        this.chartsDeleteCrd = false;
+      }
     }
   }
 };
@@ -265,15 +330,31 @@ export default {
       </h4>
       <div slot="body">
         <div class="mb-10">
-          {{ t('promptRemove.attemptingToRemove', { type }) }} <span v-html="resourceNames"></span>
-          <div v-if="needsConfirm" class="mt-10">
-            <span
-              v-html="t('promptRemove.confirmName', { nameToMatch }, true)"
-            ></span>
-          </div>
+          <template v-if="!hasCustomRemove">
+            {{ t('promptRemove.attemptingToRemove', { type }) }} <span v-html="resourceNames"></span>
+          </template>
+
+          <template>
+            <component
+              :is="removeComponent"
+              v-if="hasCustomRemove"
+              ref="customPrompt"
+              v-model="toRemove"
+              v-bind="_data"
+              :needs-confirm="needsConfirm"
+              :value="toRemove"
+              :names="names"
+              :type="type"
+            />
+            <div v-if="needsConfirm" class="mt-10">
+              <span
+                v-html="t('promptRemove.confirmName', { nameToMatch }, true)"
+              ></span>
+            </div>
+          </template>
         </div>
         <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
-        <div class="mb-10">
+        <div class="text-warning mb-10">
           {{ warning }}
         </div>
         <div class="text-error mb-10">
@@ -282,6 +363,7 @@ export default {
         <div v-if="!needsConfirm" class="text-info mt-20">
           {{ protip }}
         </div>
+        <Checkbox v-if="chartsToRemoveIsApp" v-model="chartsDeleteCrd" label-key="promptRemoveApp.removeCrd" class="mt-10 type" @input="chartAddCrdToRemove" />
       </div>
       <template #actions>
         <button class="btn role-secondary" @click="close">

@@ -2,9 +2,9 @@ import { DSL } from '@/store/type-map';
 import { MANAGEMENT } from '@/config/types';
 import {
   STATE,
-  SIMPLE_NAME,
   FEATURE_DESCRIPTION,
   RESTART,
+  NAME_UNLINKED,
 } from '@/config/table-headers';
 
 export const NAME = 'settings';
@@ -71,10 +71,21 @@ export function init(store) {
     route:          { name: 'c-cluster-settings-brand' }
   });
 
+  virtualType({
+    ifHaveType:     MANAGEMENT.SETTING,
+    labelKey:       'banner.settingName',
+    name:           'banners',
+    namespaced:     false,
+    weight:         98,
+    icon:           'folder',
+    route:          { name: 'c-cluster-settings-banners' }
+  });
+
   basicType([
     'settings',
     'features',
-    'brand'
+    'brand',
+    'banners'
   ]);
 
   configureType(MANAGEMENT.SETTING, {
@@ -95,9 +106,9 @@ export function init(store) {
 
   headers(MANAGEMENT.FEATURE, [
     STATE,
-    RESTART,
-    SIMPLE_NAME,
+    NAME_UNLINKED,
     FEATURE_DESCRIPTION,
+    RESTART,
   ]);
 
   hideBulkActions(MANAGEMENT.FEATURE, true);

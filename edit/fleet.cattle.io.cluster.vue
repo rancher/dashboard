@@ -6,6 +6,7 @@ import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import { _VIEW } from '@/config/query-params';
 import { NORMAN } from '@/config/types';
+import { FLEET } from '@/config/labels-annotations';
 
 export default {
   name: 'CruFleetCluster',
@@ -27,15 +28,12 @@ export default {
   },
 
   async fetch() {
-    const norman = await this.$store.dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.value.metadata.name });
+    const norman = await this.$store.dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.value.metadata.labels[FLEET.CLUSTER_NAME] });
     const nc = await this.$store.dispatch(`rancher/clone`, { resource: norman });
 
     if ( !nc.metadata ) {
       nc.metadata = {};
     }
-
-    nc.metadata.labels = nc._labels || {};
-    nc.metadata.annotations = nc._annotations || {};
 
     this.normanCluster = nc;
   },
@@ -55,11 +53,7 @@ export default {
       try {
         await this.value.save();
 
-        const nc = this.normanCluster;
-
-        nc._labels = nc.metadata.labels;
-        nc._annotations = nc.metadata.annotations;
-        await nc.save();
+        await this.normanCluster.save();
 
         this.done();
         buttonDone(true);

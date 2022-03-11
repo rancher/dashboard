@@ -1,4 +1,7 @@
 <script lang="ts">
+
+import { nlToBr } from '@/utils/string';
+
 export default {
   props: {
     color: {
@@ -17,16 +20,16 @@ export default {
       type:    Boolean,
       default: false,
     }
-  }
+  },
+
+  methods: { nlToBr },
 };
 </script>
 <template>
   <div class="banner" :class="{[color]: true, closable}">
     <slot>
       <t v-if="labelKey" :k="labelKey" :raw="true" />
-      <template v-else>
-        {{ label }}
-      </template>
+      <span v-else v-html="nlToBr(label)" />
     </slot>
     <div v-if="closable" class="closer" @click="$emit('close')">
       <i class="icon icon-2x icon-close closer-icon" />

@@ -53,6 +53,9 @@
   --header-btn-text            : #{$lightest};
   --header-input-text          : #{$lightest};
 
+  // Header, Footer and Consent banner defaults
+  --banner-text-color          : #{$lightest};
+
   --nav-bg                     : #{$darkest};
   --nav-active                 : var(--primary-active-bg);
   --nav-border                 : #{$medium};

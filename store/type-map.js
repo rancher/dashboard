@@ -52,7 +52,7 @@
 // spoofedType(obj)           Create a fake type that can be treated like a normal type
 //
 // basicType(                 Mark type(s) as always shown in the top of the nav
-//   type(s),                 -- Type name or arrry of type names
+//   type(s),                 -- Type name or array of type names
 //   group                    -- Group to show the type(s) under; false-y for top-level.
 // )
 // basicType(                 Mark all types in group as always shown in the top of the nav
@@ -91,6 +91,9 @@
 //                               showState: true,  -- If false, hide state in columns and masthead
 //                               showAge: true,    -- If false, hide age in columns and masthead
 //                               canYaml: true,
+//                               resource: undefined       -- Use this resource in ResourceDetails instead
+//                               resourceDetail: undefined -- Use this resource specifically for ResourceDetail's detail component
+//                               resourceEdit: undefined   -- Use this resource specifically for ResourceDetail's edit component
 //                           }
 // )
 // ignoreGroup(group):        Never show group or any types in it
@@ -112,13 +115,15 @@ import { AGE, NAME, NAMESPACE, STATE } from '@/config/table-headers';
 import { COUNT, SCHEMA, MANAGEMENT } from '@/config/types';
 import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import {
-  addObject, findBy, insertAt, isArray, removeObject
+  addObject, findBy, insertAt, isArray, removeObject, filterBy
 } from '@/utils/array';
 import { clone, get } from '@/utils/object';
 import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@/utils/string';
-import { importList, importDetail, importEdit, loadProduct } from '@/utils/dynamic-importer';
+import {
+  importList, importDetail, importEdit, loadProduct, importCustomPromptRemove
+} from '@/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import isObject from 'lodash/isObject';
@@ -143,10 +148,13 @@ export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 const instanceMethods = {};
 
 export const IF_HAVE = {
-  V1_MONITORING: 'v1-monitoring',
-  V2_MONITORING: 'v2-monitoring',
-  PROJECT:       'project',
-  NO_PROJECT:    'no-project',
+  V1_MONITORING:            'v1-monitoring',
+  V2_MONITORING:            'v2-monitoring',
+  PROJECT:                  'project',
+  NO_PROJECT:               'no-project',
+  NOT_V1_ISTIO:             'not-v1-istio',
+  MULTI_CLUSTER:            'multi-cluster',
+  HARVESTER_SINGLE_CLUSTER: 'harv-multi-cluster',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -326,6 +334,7 @@ export const state = function() {
       detail:       {},
       edit:         {},
       componentFor: {},
+      promptRemove: {},
     },
   };
 };
@@ -414,6 +423,7 @@ export const getters = {
       showAge:     true,
       canYaml:     true,
       namespaced:  null,
+      listGroups:  [],
     };
 
     return (schemaOrType) => {
@@ -474,7 +484,13 @@ export const getters = {
 
   getTree(state, getters, rootState, rootGetters) {
     return (productId, mode, allTypes, clusterId, namespaceMode, namespaces, currentType, search) => {
-      // modes: basic, used, all, favorite
+      // getTree has four modes:
+      // - `basic` matches data types that should always be shown even if there
+      //    are 0 of them.
+      // - `used` matches the data types where there are more than 0 of them
+      //    in the current set of namespaces.
+      // - `all` matches all types.
+      // - `favorite` matches starred types.
       // namespaceMode: 'namespaced', 'cluster', or 'both'
       // namespaces: null means all, otherwise it will be an array of specific namespaces to include
       const isBasic = mode === BASIC;
@@ -535,7 +551,7 @@ export const getters = {
         const labelDisplay = highlightLabel(label, icon);
 
         if ( !labelDisplay ) {
-          // Search happens in highlight and retuns null if not found
+          // Search happens in highlight and returns null if not found
           continue;
         }
 
@@ -773,6 +789,12 @@ export const getters = {
           const id = item.name;
           const weight = type.weight || getters.typeWeightFor(item.label, isBasic);
 
+          // Is there a virtual/spoofed type override for schema type?
+          // Currently used by harvester, this should be investigated and removed if possible
+          if (out[id]) {
+            delete out[id];
+          }
+
           if ( item['public'] === false && !isDev ) {
             continue;
           }
@@ -785,7 +807,13 @@ export const getters = {
             const targetedSchemas = typeof item.ifHaveType === 'string' ? schemas : rootGetters[`${ item.ifHaveType.store }/all`](SCHEMA);
             const type = typeof item.ifHaveType === 'string' ? item.ifHaveType : item.ifHaveType?.type;
 
-            if (!findBy(targetedSchemas, 'id', normalizeType(type))) {
+            const haveIds = filterBy(targetedSchemas, 'id', normalizeType(type)).map(s => s.id);
+
+            if (!haveIds.length) {
+              continue;
+            }
+
+            if (item.ifHaveVerb && !ifHaveVerb(rootGetters, module, item.ifHaveVerb, haveIds)) {
               continue;
             }
           }
@@ -911,15 +939,18 @@ export const getters = {
         const exists = rootGetters['i18n/exists'];
         const t = rootGetters['i18n/t'];
         const labelKey = `tableHeaders.${ col.name }`;
+        const description = col.description || '';
+        const tooltip = description && description[description.length - 1] === '.' ? description.slice(0, -1) : description;
 
         return {
-          name:  col.name.toLowerCase(),
-          label: exists(labelKey) ? t(labelKey) : col.name,
-          value: col.field.startsWith('.') ? `$${ col.field }` : col.field,
-          sort:  [col.field],
+          name:    col.name.toLowerCase(),
+          label:   exists(labelKey) ? t(labelKey) : col.name,
+          value:   col.field.startsWith('.') ? `$${ col.field }` : col.field,
+          sort:    [col.field],
           formatter,
           formatterOpts,
           width,
+          tooltip
         };
       }
     };
@@ -931,7 +962,7 @@ export const getters = {
   // Note: you can't refactor these into one function that does `@/${kind}/${type}`,
   // because babel needs some hardcoded idea where to look for the dependency.
   //
-  // Note 2: Yes these are editing state in a gettter for caching... it's ok, probably.
+  // Note 2: Yes these are editing state in a getter for caching... it's ok, probably.
   // ------------------------------------
   hasCustomList(state, getters) {
     return (rawType) => {
@@ -994,6 +1025,45 @@ export const getters = {
     };
   },
 
+  hasComponent(state, getters) {
+    return (path) => {
+      try {
+        require.resolve(`@/edit/${ path }`);
+
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
+  },
+
+  hasCustomPromptRemove(state, getters) {
+    return (rawType) => {
+      const type = getters.componentFor(rawType);
+
+      const cache = state.cache.promptRemove;
+
+      if ( cache[type] !== undefined ) {
+        return cache[type];
+      }
+
+      try {
+        require.resolve(`@/promptRemove/${ type }`);
+        cache[type] = true;
+      } catch (e) {
+        cache[type] = false;
+      }
+
+      return cache[type];
+    };
+  },
+
+  importComponent(state, getters) {
+    return (path) => {
+      return importEdit(path);
+    };
+  },
+
   importList(state, getters) {
     return (rawType) => {
       const type = getters.componentFor(rawType);
@@ -1015,6 +1085,14 @@ export const getters = {
       const key = getters.componentFor(rawType, subType);
 
       return importEdit(key);
+    };
+  },
+
+  importCustomPromptRemove(state, getters) {
+    return (rawType) => {
+      const type = getters.componentFor(rawType);
+
+      return importCustomPromptRemove(type);
     };
   },
 
@@ -1120,8 +1198,14 @@ export const getters = {
         }
       }
 
-      if ( p.ifFeature && !rootGetters['features/get'](p.ifFeature) ) {
-        return false;
+      if ( p.ifFeature) {
+        const features = Array.isArray(p.ifFeature) ? p.ifFeature : [p.ifFeature];
+
+        for (const f of features) {
+          if (!rootGetters['features/get'](f)) {
+            return false;
+          }
+        }
       }
 
       if ( p.ifHave && !ifHave(rootGetters, p.ifHave)) {
@@ -1135,22 +1219,8 @@ export const getters = {
           return false;
         }
 
-        if ( p.ifHaveVerb ) {
-          let found = false;
-
-          for ( const haveId of haveIds ) {
-            const schema = rootGetters[`${ module }/schemaFor`](haveId);
-            const want = p.ifHaveVerb.toLowerCase();
-            const have = [...schema.collectionMethods, ...schema.resourceMethods].map(x => x.toLowerCase());
-
-            if ( have.includes(want) || have.includes(`blocked-${ want }`) ) {
-              found = true;
-            }
-          }
-
-          if ( !found ) {
-            return false;
-          }
+        if ( p.ifHaveVerb && !ifHaveVerb(rootGetters, module, p.ifHaveVerb, haveIds)) {
+          return false;
         }
       }
 
@@ -1303,7 +1373,7 @@ export const mutations = {
 
   // setGroupDefaultType({group: 'core', defaultType: 'name'});
   // By default when a group is clicked, the first item is selected - this allows
-  // this behvaiour to be changed and a named child type can be chosen
+  // this behaviour to be changed and a named child type can be chosen
   // These operate on group names *after* mapping but *before* translation
   setGroupDefaultType(state, { group, groups, defaultType }) {
     if ( !groups ) {
@@ -1547,9 +1617,41 @@ function ifHave(getters, option) {
   case IF_HAVE.NO_PROJECT: {
     return !project(getters);
   }
+  case IF_HAVE.NOT_V1_ISTIO: {
+    return !isV1Istio(getters);
+  }
+  case IF_HAVE.MULTI_CLUSTER: {
+    return getters.isMultiCluster;
+  }
+  case IF_HAVE.HARVESTER_SINGLE_CLUSTER: {
+    return getters.isSingleVirtualCluster;
+  }
   default:
     return false;
   }
+}
+
+// Is V1 Istio installed?
+function isV1Istio(getters) {
+  const cluster = getters['currentCluster'];
+
+  return !!cluster?.status?.istioEnabled;
+}
+
+function ifHaveVerb(rootGetters, module, verb, haveIds) {
+  for ( const haveId of haveIds ) {
+    const schema = rootGetters[`${ module }/schemaFor`](haveId);
+    const want = verb.toLowerCase();
+    const collectionMethods = schema.collectionMethods || [];
+    const resourceMethods = schema.resourceMethods || [];
+    const have = [...collectionMethods, ...resourceMethods].map(x => x.toLowerCase());
+
+    if ( !have.includes(want) && !have.includes(`blocked-${ want }`) ) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 // Look at the namespace filters to determine if a project is selected
@@ -1595,7 +1697,7 @@ export function project(getters) {
     return project;
   }
 
-  // Convert the project namespaces into a map so we can check existtence easily
+  // Convert the project namespaces into a map so we can check existence easily
   const prjNamespaceMap = project.namespaces.reduce((m, ns) => {
     m[ns.metadata.name] = true;
 

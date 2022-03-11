@@ -112,8 +112,8 @@ export default {
   },
 
   watch: {
-    // This method is not that disimilar to persistentStorageType in Grafan config
-    // The reason for the divergence is that Grafna has a subkey on the chart
+    // This method is not that dissimilar to persistentStorageType in Grafana config
+    // The reason for the divergence is that Grafana has a subkey on the chart
     // where these keys are at the root of the chart. Vue complains about calling
     // this.$set(this, 'value', obj) as we need to do here to reset the values in bulk.
     // So rather than call each set on each line individually I give you this.
@@ -159,7 +159,7 @@ export default {
       }
 
       if (clusterType.group === 'k3s') {
-        this.$set(this.value.prometheus.prometheusSpec.resources.limits, 'memory', '2500Mi');
+        this.$set(this.value.prometheus.prometheusSpec.resources.limits, 'memory', '3000Mi');
         this.$set(this.value.prometheus.prometheusSpec.resources.requests, 'memory', '1750Mi');
       }
 

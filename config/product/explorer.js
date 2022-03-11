@@ -1,5 +1,6 @@
 import {
   CONFIG_MAP,
+  EVENT,
   NODE, SECRET, INGRESS,
   WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD,
   RBAC,
@@ -16,7 +17,7 @@ import {
   USER_ID, USERNAME, USER_DISPLAY_NAME, USER_PROVIDER, WORKLOAD_ENDPOINTS, STORAGE_CLASS_DEFAULT,
   STORAGE_CLASS_PROVISIONER, PERSISTENT_VOLUME_SOURCE,
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
-  ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON
+  ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE
 } from '@/config/table-headers';
 
 import { DSL } from '@/store/type-map';
@@ -56,6 +57,7 @@ export function init(store) {
     'projects-namespaces',
     'namespaces',
     NODE,
+    VIRTUAL_TYPES.CLUSTER_MEMBERS,
   ], 'cluster');
   basicType([
     SERVICE,
@@ -79,15 +81,11 @@ export function init(store) {
     WORKLOAD_TYPES.CRON_JOB,
     POD,
   ], 'workload');
-  basicType([
-    'cluster-members',
-  ], 'rbac');
 
   weightGroup('cluster', 99, true);
   weightGroup('workload', 98, true);
   weightGroup('serviceDiscovery', 96, true);
   weightGroup('storage', 95, true);
-  weightGroup('rbac', 94, true);
   weightType(POD, -1, true);
 
   for (const key in WORKLOAD_TYPES) {
@@ -101,20 +99,21 @@ export function init(store) {
   ignoreType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
   ignoreType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING);
 
-  mapGroup(/^(core)?$/, 'Core');
-  mapGroup('apps', 'Apps');
+  mapGroup(/^(core)?$/, 'core');
+  mapGroup('apps', 'apps');
   mapGroup('batch', 'Batch');
   mapGroup('autoscaling', 'Autoscaling');
   mapGroup('policy', 'Policy');
   mapGroup('networking.k8s.io', 'Networking');
   mapGroup(/^(.+\.)?api(server)?.*\.k8s\.io$/, 'API');
   mapGroup('rbac.authorization.k8s.io', 'RBAC');
-  mapGroup('admissionregistration.k8s.io', 'Admission');
+  mapGroup('admissionregistration.k8s.io', 'admission');
   mapGroup('crd.projectcalico.org', 'Calico');
   mapGroup(/^(.+\.)?cert-manager\.(k8s\.)?io$/, 'Cert Manager');
   mapGroup(/^(.+\.)?(gateway|gloo)\.solo\.io$/, 'Gloo');
   mapGroup(/^(.*\.)?monitoring\.coreos\.com$/, 'Monitoring');
   mapGroup(/^(.*\.)?tekton\.dev$/, 'Tekton');
+  mapGroup(/^(.*\.)?tigera\.io$/, 'Tigera');
   mapGroup(/^(.*\.)?longhorn(\.rancher)?\.io$/, 'Longhorn');
   mapGroup(/^(.*\.)?(fleet|gitjob)\.cattle\.io$/, 'Fleet');
   mapGroup(/^(.*\.)?(helm|k3s)\.cattle\.io$/, 'K3s');
@@ -128,14 +127,29 @@ export function init(store) {
   mapGroup('argoproj.io', 'Argo');
   mapGroup('logging.banzaicloud.io', 'Logging');
   mapGroup(/^(.*\.)?resources\.cattle\.io$/, 'Backup-Restore');
-  mapGroup(/^(.*\.)?cluster\.x-k8s\.io$/, 'Cluster Provisioning');
-  mapGroup(/^(aks|eks|gke|rke|rke-machine-config|provisioning)\.cattle\.io$/, 'Cluster Provisioning');
+  mapGroup(/^(.*\.)?cluster\.x-k8s\.io$/, 'clusterProvisioning');
+  mapGroup(/^(aks|eks|gke|rke|rke-machine-config|provisioning)\.cattle\.io$/, 'clusterProvisioning');
 
   configureType(NODE, { isCreatable: false, isEditable: true });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
-  configureType(PVC, { isEditable: false });
   configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { isEditable: false });
   configureType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING, { isEditable: false });
+  configureType(MANAGEMENT.PROJECT, { displayName: store.getters['i18n/t']('namespace.project.label') });
+
+  configureType(EVENT, { limit: 500 });
+
+  // Allow Pods to be grouped by node
+  configureType(POD, {
+    listGroups: [
+      {
+        icon:       'icon-cluster',
+        value:      'node',
+        field:      'groupByNode',
+        hideColumn: NODE_COL.name,
+        tooltipKey: 'resourceTable.groupBy.node'
+      }
+    ]
+  });
 
   setGroupDefaultType('serviceDiscovery', SERVICE);
 
@@ -157,7 +171,7 @@ export function init(store) {
     SUB_TYPE,
     {
       name:      'data',
-      label:     'Data',
+      labelKey:  'tableHeaders.data',
       value:     'dataPreview',
       formatter: 'SecretData'
     },
@@ -167,14 +181,14 @@ export function init(store) {
   headers(SERVICE, [STATE, NAME_COL, NAMESPACE_COL, TARGET_PORT, SELECTOR, SPEC_TYPE, AGE]);
   headers(HPA, [STATE, NAME_COL, HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA, AGE]);
 
-  headers(WORKLOAD, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, TYPE, 'Ready', AGE]);
-  headers(WORKLOAD_TYPES.DEPLOYMENT, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', AGE]);
-  headers(WORKLOAD_TYPES.DAEMON_SET, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', AGE]);
-  headers(WORKLOAD_TYPES.REPLICA_SET, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', AGE]);
-  headers(WORKLOAD_TYPES.STATEFUL_SET, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', AGE]);
-  headers(WORKLOAD_TYPES.JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Completions', 'Duration', AGE]);
-  headers(WORKLOAD_TYPES.CRON_JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Schedule', 'Last Schedule', AGE]);
-  headers(WORKLOAD_TYPES.REPLICATION_CONTROLLER, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', AGE]);
+  headers(WORKLOAD, [STATE, NAME_COL, NAMESPACE_COL, TYPE, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, AGE, WORKLOAD_HEALTH_SCALE]);
+  headers(WORKLOAD_TYPES.DEPLOYMENT, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', AGE, WORKLOAD_HEALTH_SCALE]);
+  headers(WORKLOAD_TYPES.DAEMON_SET, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', AGE, WORKLOAD_HEALTH_SCALE]);
+  headers(WORKLOAD_TYPES.REPLICA_SET, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', AGE, WORKLOAD_HEALTH_SCALE]);
+  headers(WORKLOAD_TYPES.STATEFUL_SET, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', AGE, WORKLOAD_HEALTH_SCALE]);
+  headers(WORKLOAD_TYPES.JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Completions', 'Duration', AGE, WORKLOAD_HEALTH_SCALE]);
+  headers(WORKLOAD_TYPES.CRON_JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Schedule', 'Last Schedule', AGE, WORKLOAD_HEALTH_SCALE]);
+  headers(WORKLOAD_TYPES.REPLICATION_CONTROLLER, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', AGE, WORKLOAD_HEALTH_SCALE]);
   headers(POD, [STATE, NAME_COL, NAMESPACE_COL, POD_IMAGES, 'Ready', 'Restarts', 'IP', NODE_COL, AGE]);
   headers(STORAGE_CLASS, [STATE, NAME_COL, STORAGE_CLASS_PROVISIONER, STORAGE_CLASS_DEFAULT, AGE]);
 
@@ -222,12 +236,12 @@ export function init(store) {
 
   virtualType({
     label:       store.getters['i18n/t']('members.clusterMembers'),
-    group:      'rbac',
+    group:      'cluster',
     namespaced:  false,
     name:        VIRTUAL_TYPES.CLUSTER_MEMBERS,
     icon:       'globe',
-    weight:      100,
-    route:       { name: 'c-cluster-explorer-members' },
+    weight:      -1,
+    route:       { name: 'c-cluster-product-members' },
     exact:       true,
     ifHaveType:  {
       type:   MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,

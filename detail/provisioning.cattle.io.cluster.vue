@@ -7,12 +7,29 @@ import SortableTable from '@/components/SortableTable';
 import CopyCode from '@/components/CopyCode';
 import Tab from '@/components/Tabbed/Tab';
 import { allHash } from '@/utils/promise';
-import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
+import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@/config/types';
 import {
-  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES,
+  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS
 } from '@/config/table-headers';
 import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@/components/AsyncButton.vue';
+import AnsiUp from 'ansi_up';
+import day from 'dayjs';
+import { addParams } from '@/utils/url';
+import { base64Decode } from '@/utils/crypto';
+import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
+import { escapeHtml } from '@/utils/string';
+
+import Socket, {
+  EVENT_CONNECTED,
+  EVENT_DISCONNECTED,
+  EVENT_MESSAGE,
+  //  EVENT_FRAME_TIMEOUT,
+  EVENT_CONNECT_ERROR
+} from '@/utils/socket';
+
+let lastId = 1;
+const ansiup = new AnsiUp();
 
 export default {
   components: {
@@ -38,59 +55,82 @@ export default {
 
   async fetch() {
     await this.value.waitForProvisioner();
-    const hash = {};
+    const fetchOne = {};
 
-    if (this.value.isImported || this.value.isRke1) {
-      // Cluster isn't compatible with machines/machineDeployments, show nodes/node pools instead
+    if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
+      fetchOne.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
+    }
 
-      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
-        hash.allNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
-      }
+    if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
+      fetchOne.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+    }
 
-      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
-        hash.allNodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-      }
-
-      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
-        hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
-      }
-    } else {
-      if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
-        hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
-      }
-
-      if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
-        hash.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
-      }
+    if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
+      fetchOne.machines = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
     }
 
     if (this.value.isImported || this.value.isCustom) {
-      hash.clusterToken = this.value.getOrCreateToken();
+      fetchOne.clusterToken = this.value.getOrCreateToken();
     }
     if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
-      hash.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
+      fetchOne.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
 
-      hash.normanNodePools = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
+      fetchOne.normanNodePools = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
     }
 
-    const res = await allHash(hash);
+    const fetchOneRes = await allHash(fetchOne);
 
-    this.allMachines = res.machines || [];
-    this.allMachineDeployments = res.machineDeployments || [];
-    this.allNodes = res.allNodes || [];
-    this.allNodePools = res.allNodePools || [];
-    this.haveMachines = !!res.machines;
-    this.haveDeployments = !!res.machineDeployments;
-    this.haveNodePools = !!res.allNodePools;
-    this.haveNodes = !!res.allNodes;
+    this.allMachines = fetchOneRes.machines || [];
+    this.allMachineDeployments = fetchOneRes.machineDeployments || [];
+    this.haveMachines = !!fetchOneRes.machines;
+    this.haveDeployments = !!fetchOneRes.machineDeployments;
+    this.clusterToken = fetchOneRes.clusterToken;
+    this.etcdBackups = fetchOneRes.etcdBackups;
 
-    this.clusterToken = res.clusterToken;
-    this.etcdBackups = res.etcdBackups;
+    const fetchTwo = {};
 
-    const machineDeloymentTemplateType = res.machineDeployments?.[0]?.templateType;
+    const thisClusterMachines = this.allMachineDeployments.filter((deployment) => {
+      return deployment?.spec?.clusterName === this.value.metadata.name;
+    });
 
-    if (machineDeloymentTemplateType && this.$store.getters['management/schemaFor'](machineDeloymentTemplateType) ) {
-      await this.$store.dispatch('management/findAll', { type: machineDeloymentTemplateType });
+    const machineDeploymentTemplateType = thisClusterMachines?.[0]?.templateType;
+
+    if (machineDeploymentTemplateType && this.$store.getters['management/schemaFor'](machineDeploymentTemplateType) ) {
+      fetchTwo.mdtt = this.$store.dispatch('management/findAll', { type: machineDeploymentTemplateType });
+    }
+
+    if (!this.showMachines) {
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
+        fetchTwo.allNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      }
+
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
+        fetchTwo.allNodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      }
+
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
+        fetchTwo.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+      }
+    }
+
+    const fetchTwoRes = await allHash(fetchTwo);
+
+    this.allNodes = fetchTwoRes.allNodes || [];
+    this.haveNodes = !!fetchTwoRes.allNodes;
+    this.allNodePools = fetchTwoRes.allNodePools || [];
+    this.haveNodePools = !!fetchTwoRes.allNodePools;
+  },
+
+  created() {
+    if ( this.showLog ) {
+      this.connectLog();
+    }
+  },
+
+  beforeDestroy() {
+    if ( this.logSocket ) {
+      this.logSocket.disconnect();
+      this.logSocket = null;
     }
   },
 
@@ -113,8 +153,12 @@ export default {
       clusterToken: null,
       etcdBackups:  null,
 
+      logOpen:   false,
+      logSocket: null,
+      logs:      [],
     };
   },
+
   watch: {
     showNodes(neu) {
       if (neu) {
@@ -122,6 +166,7 @@ export default {
       }
     }
   },
+
   computed: {
     defaultTab() {
       if (this.showRegistration && !this.machines?.length) {
@@ -152,15 +197,7 @@ export default {
     },
 
     machines() {
-      const machines = this.allMachines.filter((x) => {
-        if ( x.metadata?.namespace !== this.value.metadata.namespace ) {
-          return false;
-        }
-
-        return x.spec?.clusterName === this.value.metadata.name;
-      });
-
-      return [...machines, ...this.fakeMachines];
+      return [...this.value.machines, ...this.fakeMachines];
     },
 
     nodes() {
@@ -204,6 +241,7 @@ export default {
           formatter:     'LinkDetail',
           formatterOpts: { reference: 'kubeNodeDetailLocation' }
         },
+        MACHINE_NODE_OS,
         ROLES,
         AGE,
       ];
@@ -220,6 +258,7 @@ export default {
           formatter:     'LinkDetail',
           formatterOpts: { reference: 'kubeNodeDetailLocation' }
         },
+        MANAGEMENT_NODE_OS,
         ROLES,
         AGE
       ];
@@ -275,22 +314,21 @@ export default {
         {
           name:          'name',
           labelKey:      'tableHeaders.name',
-          value:         'nameDisplay',
+          value:         'snapshotFile.name',
           sort:          ['nameSort'],
           canBeVariable: true,
         },
         {
           name:      'size',
           labelKey:  'tableHeaders.size',
-          value:     'size',
-          sort:      'size',
+          value:     'snapshotFile.size',
+          sort:      'snapshotFile.size',
           formatter: 'Si',
           width:     150,
         },
         {
           ...AGE,
-          value:         'createdAt',
-          sort:          'createdAt:desc',
+          sort:          'snapshotFile.createdAt:desc',
           canBeVariable: true
         },
       ];
@@ -314,6 +352,20 @@ export default {
 
     isClusterReady() {
       return this.value.mgmt?.isReady;
+    },
+
+    showLog() {
+      return this.value.mgmt?.hasLink('log');
+    },
+
+    dateTimeFormatStr() {
+      const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));
+
+      return `${ dateFormat } ${ this.timeFormatStr }`;
+    },
+
+    timeFormatStr() {
+      return escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
     }
   },
 
@@ -342,10 +394,85 @@ export default {
         elem:      event.target
       });
     },
+
     showPoolActionButton(pool) {
       return !!pool.availableActions?.length;
     },
 
+    async connectLog() {
+      if ( this.logSocket ) {
+        await this.logSocket.disconnect();
+        this.logSocket = null;
+      }
+
+      const params = {
+        follow:     true,
+        timestamps: true,
+        pretty:     true,
+      };
+
+      let url = this.value.mgmt?.linkFor('log');
+
+      url = addParams(url.replace(/^http/, 'ws'), params);
+
+      this.logSocket = new Socket(url, true, 0);
+      this.logSocket.addEventListener(EVENT_CONNECTED, (e) => {
+        this.logs = [];
+        this.logOpen = true;
+      });
+
+      this.logSocket.addEventListener(EVENT_DISCONNECTED, (e) => {
+        this.logOpen = false;
+      });
+
+      this.logSocket.addEventListener(EVENT_CONNECT_ERROR, (e) => {
+        this.logOpen = false;
+        console.error('Connect Error', e); // eslint-disable-line no-console
+      });
+
+      this.logSocket.addEventListener(EVENT_MESSAGE, (e) => {
+        const line = base64Decode(e.detail.data);
+
+        let msg = line;
+        let time = null;
+
+        const idx = line.indexOf(' ');
+
+        if ( idx > 0 ) {
+          const timeStr = line.substr(0, idx);
+          const date = new Date(timeStr);
+
+          if ( !isNaN(date.getSeconds()) ) {
+            time = date.toISOString();
+            msg = line.substr(idx + 1);
+          }
+        }
+
+        this.logs.push({
+          id:     lastId++,
+          msg:    ansiup.ansi_to_html(msg),
+          rawMsg: msg,
+          time,
+        });
+      });
+
+      this.logSocket.connect();
+    },
+
+    format(time) {
+      if ( !time ) {
+        return '';
+      }
+
+      const val = day(time);
+      const today = day().format('YYYY-MM-DD');
+
+      if ( val.format('YYYY-MM-DD') === today ) {
+        return day(time).format(this.timeFormatStr);
+      } else {
+        return day(time).format(this.dateTimeFormatStr);
+      }
+    },
   }
 };
 </script>
@@ -355,7 +482,7 @@ export default {
   <div v-else>
     <Banner v-if="$fetchState.error" color="error" :label="$fetchState.error" />
     <ResourceTabs v-model="value" :default-tab="defaultTab">
-      <Tab v-if="showMachines" name="machine-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="3">
+      <Tab v-if="showMachines" name="machine-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="4">
         <ResourceTable
           :rows="machines"
           :schema="machineSchema"
@@ -398,7 +525,7 @@ export default {
           </template>
         </ResourceTable>
       </Tab>
-      <Tab v-else-if="showNodes" name="node-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="3">
+      <Tab v-else-if="showNodes" name="node-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="4">
         <ResourceTable
           :schema="mgmtNodeSchema"
           :headers="mgmtNodeSchemaHeaders"
@@ -419,7 +546,7 @@ export default {
           <template #group-by="{group}">
             <div class="pool-row" :class="{'has-description':group.ref && group.ref.nodeTemplate}">
               <div v-trim-whitespace class="group-tab">
-                <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix, count: group.rows.length}, true)">
+                <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix, count: group.ref.scale}, true)">
                 </div>
                 <div v-else v-html="t('resourceTable.groupLabel.notInANodePool')">
                 </div>
@@ -446,7 +573,22 @@ export default {
         </ResourceTable>
       </Tab>
 
-      <Tab v-if="showRegistration" name="registration" label="Registration" :weight="2">
+      <Tab v-if="showLog" name="log" :label="t('cluster.tabs.log')" :weight="3" class="logs-container">
+        <table class="fixed" cellpadding="0" cellspacing="0">
+          <tbody class="logs-body">
+            <template v-if="logs.length">
+              <tr v-for="line in logs" :key="line.id">
+                <td :key="line.id + '-time'" class="time" v-html="format(line.time)" />
+                <td :key="line.id + '-msg'" class="msg" v-html="line.msg" />
+              </tr>
+            </template>
+            <tr v-else-if="!logOpen" v-t="'cluster.log.connecting'" colspan="2" class="msg text-muted" />
+            <tr v-else v-t="'cluster.log.noData'" colspan="2" class="msg text-muted" />
+          </tbody>
+        </table>
+      </Tab>
+
+      <Tab v-if="showRegistration" name="registration" :label="t('cluster.tabs.registration')" :weight="2">
         <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" :cluster="value" />
         <template v-else>
           <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
@@ -492,6 +634,7 @@ export default {
 .main-row .no-entries {
   text-align: center;
 }
+
 .pool-row {
   display: flex;
   align-items: center;
@@ -514,4 +657,32 @@ export default {
   }
 }
 
+.logs-container {
+  height: 100%;
+  overflow: auto;
+  padding: 5px;
+  background-color: var(--logs-bg);
+  font-family: Menlo,Consolas,monospace;
+  color: var(--logs-text);
+
+  .closed {
+    opacity: 0.25;
+  }
+
+  .time {
+    white-space: nowrap;
+    width: auto;
+    padding-right: 15px;
+    user-select: none;
+  }
+
+  .msg {
+    white-space: normal;
+
+    .highlight {
+      color: var(--logs-highlight);
+      background-color: var(--logs-highlight-bg);
+    }
+  }
+}
 </style>

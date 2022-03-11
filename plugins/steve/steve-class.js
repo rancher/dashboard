@@ -3,7 +3,7 @@ import HybridModel from './hybrid-class';
 
 export default class SteveModel extends HybridModel {
   get name() {
-    return this.metadata?.name;
+    return this.metadata?.name || this._name;
   }
 
   get namespace() {
@@ -11,6 +11,6 @@ export default class SteveModel extends HybridModel {
   }
 
   get description() {
-    return this.metadata?.annotations?.[DESCRIPTION] || this.spec?.description;
+    return this.metadata?.annotations?.[DESCRIPTION] || this.spec?.description || this._description;
   }
 }

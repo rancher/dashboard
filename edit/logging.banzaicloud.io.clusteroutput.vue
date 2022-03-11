@@ -1,5 +1,5 @@
 <script>
-import CreateEditView from '@/edit/logging.banzaicloud.io.output/';
+import CreateEditView from '@/edit/logging.banzaicloud.io.output';
 
 export default {
   extends: CreateEditView,

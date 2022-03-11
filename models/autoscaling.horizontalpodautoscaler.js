@@ -1,6 +1,7 @@
-export default {
-  // if not a function it does exist, why?
-  customValidationRules() {
+import SteveModel from '@/plugins/steve/steve-class';
+
+export default class HPA extends SteveModel {
+  get customValidationRules() {
     return [
       {
         nullable:       false,
@@ -10,9 +11,9 @@ export default {
         type:           'dnsLabel',
       },
     ];
-  },
+  }
 
-  details() {
+  get details() {
     const { spec = {}, status } = this;
     const out = [
       {
@@ -39,5 +40,5 @@ export default {
     ];
 
     return out;
-  },
-};
+  }
+}

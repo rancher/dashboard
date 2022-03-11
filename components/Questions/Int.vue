@@ -25,7 +25,7 @@ export default {
       />
     </div>
     <div v-if="showDescription" class="col span-6 mt-10">
-      {{ question.description }}
+      {{ displayDescription }}
     </div>
   </div>
 </template>

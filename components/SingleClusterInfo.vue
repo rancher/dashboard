@@ -1,6 +1,6 @@
 <script>
-import RancherProviderIcon from '@/components/RancherProviderIcon';
-import ResourceSummary, { resourceCounts } from '@/pages/c/_cluster/explorer/ResourceSummary';
+import ClusterProviderIcon from '@/components/ClusterProviderIcon';
+import ResourceSummary, { resourceCounts } from '@/components/ResourceSummary';
 import {
   NAMESPACE, MANAGEMENT, NODE, COUNT, CATALOG
 } from '@/config/types';
@@ -8,7 +8,7 @@ import { RESOURCES } from '@/pages/c/_cluster/explorer/index';
 
 export default {
   components: {
-    RancherProviderIcon,
+    ClusterProviderIcon,
     ResourceSummary
   },
 
@@ -87,7 +87,7 @@ export default {
 <template>
   <div v-if="clusterDetail">
     <div class="single-cluster-header">
-      <RancherProviderIcon class="rancher-icon" width="32" />
+      <ClusterProviderIcon class="rancher-icon" width="32" />
       <h1>{{ t('glance.clusterInfo') }}</h1>
     </div>
 

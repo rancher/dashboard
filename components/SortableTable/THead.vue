@@ -135,7 +135,7 @@ export default {
         :class="{ sortable: col.sort, [col.breakpoint]: !!col.breakpoint}"
         @click.prevent="changeSort($event, col)"
       >
-        <span v-if="col.sort" @click="$router.applyQuery(queryFor(col))">
+        <span v-if="col.sort" v-tooltip="col.tooltip" @click="$router.applyQuery(queryFor(col))">
           <span v-html="labelFor(col)" />
           <span class="icon-stack">
             <i class="icon icon-sort icon-stack-1x faded" />
@@ -143,7 +143,7 @@ export default {
             <i v-if="isCurrent(col) && descending" class="icon icon-sort-up icon-stack-1x" />
           </span>
         </span>
-        <span v-else>{{ labelFor(col) }}</span>
+        <span v-else v-tooltip="col.tooltip">{{ labelFor(col) }}</span>
       </th>
       <th v-if="rowActions" :width="rowActionsWidth">
       </th>
@@ -152,8 +152,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-   .sortable > SPAN {
-    display: inline-block;
+  .sortable > SPAN {
+    cursor: pointer;
+    user-select: none;
     white-space: nowrap;
     &:hover,
     &:active {
@@ -176,6 +177,19 @@ export default {
     font-weight: normal;
     border: 0;
     color: var(--body-text);
+
+    &:first-child {
+      padding-left: 10px;
+    }
+
+    &:last-child {
+      padding-right: 10px;
+    }
+
+    &:not(.sortable) > SPAN {
+      display: block;
+      margin-bottom: 2px;
+    }
 
     & A {
       color: var(--body-text);

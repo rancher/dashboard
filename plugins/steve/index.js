@@ -9,7 +9,7 @@ import {
   actions as subscribeActions,
   getters as subscribeGetters
 } from './subscribe';
-import { proxyFor } from './resource-proxy';
+import { classify } from './classify';
 import { keyFieldFor } from './normalize';
 
 function SteveFactory(namespace, baseUrl) {
@@ -23,14 +23,16 @@ function SteveFactory(namespace, baseUrl) {
           baseUrl,
           namespace,
         },
-        types:        {},
-        socket:       null,
-        queue:        [],
-        wantSocket:   false,
-        debugSocket:  false,
-        pendingSends: [],
-        started:      [],
-        inError:      {},
+        types:            {},
+        socket:           null,
+        queue:            [], // For change event coalescing
+        wantSocket:       false,
+        debugSocket:      false,
+        allowStreaming:   true,
+        pendingFrames:    [],
+        deferredRequests: {},
+        started:          [],
+        inError:          {},
       };
     },
 
@@ -94,7 +96,7 @@ export default (config = {}) => {
         const map = new Map();
 
         for ( let i = 0 ; i < cache.list.length ; i++ ) {
-          const proxy = proxyFor(ctx, cache.list[i]);
+          const proxy = classify(ctx, cache.list[i]);
 
           cache.list[i] = proxy;
           map.set(proxy[keyField], proxy);
@@ -161,7 +163,7 @@ export default (config = {}) => {
           // Or just return a proxied object
           delete obj.__rehydrate;
 
-          return proxyFor(ctx, obj);
+          return classify(ctx, obj);
         } else {
           for ( const k of Object.keys(obj) ) {
             if ( k.startsWith('__rehydrateAll__') ) {

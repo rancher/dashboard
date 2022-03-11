@@ -31,7 +31,7 @@ export default {
   mixins: [CreateEditView, V1WorkloadMetrics],
 
   async fetch() {
-    this.showMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [POD_METRICS_DETAIL_URL, POD_METRICS_SUMMARY_URL]);
+    this.showMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [POD_METRICS_DETAIL_URL, POD_METRICS_SUMMARY_URL]);
   },
 
   data() {
@@ -63,6 +63,18 @@ export default {
         container.stateBackground = this.value.containerStateColor(container).replace('text', 'bg');
         container.nameSort = sortableNumericSuffix(container.name).toLowerCase();
         container.readyIcon = container?.status?.ready ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-x icon-2x text-error ml-5';
+        container.availableActions = this.value.containerActions;
+
+        container.openShell = () => {
+          // Call openShell here so that opening the shell
+          // at the container level still has 'this' in scope.
+          this.value.openShell(container.name);
+        };
+        container.openLogs = () => {
+          // Call openLogs here so that opening the logs
+          // at the container level still has 'this' in scope.
+          this.value.openLogs(container.name);
+        };
 
         return container;
       });
@@ -166,7 +178,7 @@ export default {
         :mode="mode"
         key-field="name"
         :search="false"
-        :row-actions="false"
+        :row-actions="true"
         :table-actions="false"
       />
     </Tab>

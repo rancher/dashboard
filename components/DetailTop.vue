@@ -24,7 +24,11 @@ export default {
   },
 
   data() {
-    return { annotationsVisible: false, view: _VIEW };
+    return {
+      annotationsVisible: false,
+      showAllLabels:      false,
+      view:               _VIEW
+    };
   },
 
   computed: {
@@ -32,11 +36,15 @@ export default {
       return [
         ...(this.moreDetails || []),
         ...(this.value?.details || []),
-      ].filter(x => !!`${ x.content }`);
+      ].filter(x => !!`${ x.content }` && x.content !== undefined && x.content !== null);
     },
 
     labels() {
-      return this.value?.labels || {};
+      if (this.showAllLabels || !this.showFilteredSystemLabels) {
+        return this.value?.labels || {};
+      }
+
+      return this.value?.filteredSystemLabels;
     },
 
     annotations() {
@@ -72,8 +80,16 @@ export default {
 
       return !hasAnything;
     },
+
+    showFilteredSystemLabels() {
+      return !!this.value.filteredSystemLabels;
+    },
   },
   methods: {
+    toggleLabels() {
+      this.showAllLabels = !this.showAllLabels;
+    },
+
     toggleAnnotations(ev) {
       this.annotationsVisible = !this.annotationsVisible;
     }
@@ -90,7 +106,7 @@ export default {
       <span class="content">{{ description }}</span>
     </div>
 
-    <div class="details">
+    <div v-if="hasDetails" class="details">
       <div v-for="detail in details" :key="detail.label || detail.slotName" class="detail">
         <span class="label">
           {{ detail.label }}:
@@ -113,6 +129,9 @@ export default {
         <Tag v-for="(prop, key) in labels" :key="key + prop">
           {{ key }}<span v-if="prop">: </span>{{ prop }}
         </Tag>
+        <a v-if="showFilteredSystemLabels" href="#" class="detail-top__label-button" @click.prevent="toggleLabels">
+          {{ t(`resourceDetail.detailTop.${showAllLabels? 'hideLabels' : 'showLabels'}`) }}
+        </a>
       </div>
     </div>
 
@@ -132,10 +151,11 @@ export default {
 
 <style lang="scss">
   .detail-top {
-    $spacing: 5px;
+    $spacing: 4px;
 
     &:not(.empty) {
-      padding-top: 5px;
+      // Flip of .masthead padding/margin
+      padding-top: 10px;
       border-top: 1px solid var(--border);
       margin-top: 10px;
     }
@@ -145,7 +165,7 @@ export default {
       flex-direction: row;
       flex-wrap: wrap;
       position: relative;
-      top: $spacing * -1/2;
+      top: $spacing * math.div(-1, 2);
 
       .label {
         position: relative;
@@ -153,7 +173,7 @@ export default {
       }
 
       .tag {
-        margin: $spacing/2 $spacing $spacing $spacing/2;
+        margin: math.div($spacing, 2) $spacing 0 math.div($spacing, 2);
         font-size: 12px;
       }
     }
@@ -167,14 +187,23 @@ export default {
       margin: 0 4px 0 0;
     }
 
+    &__label-button {
+      padding: 4px;
+    }
+
     .details {
       display: flex;
       flex-direction: row;
       flex-wrap: wrap;
-      margin-bottom: 5px;
 
       .detail {
         margin-right: 20px;
+      }
+    }
+
+    & > div {
+      &:not(:last-of-type) {
+        margin-bottom: $spacing;
       }
     }
   }

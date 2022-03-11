@@ -31,6 +31,9 @@ const SORT_GROUPS = {
   custom2:   5,
 };
 
+// uSed to proxy stylesheets for custom drviers that provide custom UI (RKE1)
+const PROXY_ENDPOINT = '/meta/proxy';
+
 export default {
   name: 'CruCluster',
 
@@ -132,6 +135,22 @@ export default {
 
       set(this.value.metadata, 'namespace', DEFAULT_WORKSPACE);
     }
+
+    // For the node drivers, look for custom UI that we can use to show an icon (if not built-in)
+    this.nodeDrivers.forEach((driver) => {
+      if (!driver.spec?.builtin && driver.spec?.uiUrl && driver.spec?.active) {
+        const name = driver.spec?.displayName || driver.id;
+        let cssUrl = driver.spec.uiUrl.replace(/\.js$/, '.css');
+
+        if (cssUrl.startsWith('http://') || cssUrl.startsWith('https://')) {
+          cssUrl = `${ PROXY_ENDPOINT }/${ cssUrl }`;
+        }
+
+        this.loadStylesheet(cssUrl, `driver-ui-css-${ driver.id }`);
+
+        this.iconClasses[name] = `machine-driver ${ name }`;
+      }
+    });
   },
 
   data() {
@@ -147,6 +166,7 @@ export default {
       isImport,
       providerCluster:  null,
       emberLink:        null,
+      iconClasses:      {},
     };
   },
 
@@ -222,12 +242,13 @@ export default {
             description: chart.chartDescription,
             icon:        chart.icon || require('~/assets/images/generic-catalog.svg'),
             group:       'template',
+            tag:         getters['i18n/t']('generic.techPreview')
           });
         });
 
         if (this.isRke1 ) {
           machineTypes.forEach((id) => {
-            addType(id, 'rke1', false, `/g/clusters/add/launch/${ id }`);
+            addType(id, 'rke1', false, `/g/clusters/add/launch/${ id }`, this.iconClasses[id]);
           });
 
           addType('custom', 'custom1', false, '/g/clusters/add/launch/custom');
@@ -242,23 +263,42 @@ export default {
 
       return out;
 
-      function addType(id, group, disabled = false, link = null) {
+      function addType(id, group, disabled = false, link = null, iconClass = undefined) {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
-        let icon = require('~/assets/images/generic-driver.svg');
+        const techPreview = getters['i18n/t']('generic.techPreview');
+        const isTechPreview = group === 'rke2' || group === 'custom2';
+        let tag = isTechPreview ? techPreview : getters['i18n/withFallback'](`cluster.providerTag."${ id }"`, { techPreview }, '');
+
+        // Always prefer the built-in icon if there is one
+        let icon;
 
         try {
           icon = require(`~/assets/images/providers/${ id }.svg`);
         } catch (e) {}
+
+        if (icon) {
+          iconClass = undefined;
+        } else if (!iconClass) {
+          icon = require('~/assets/images/generic-driver.svg');
+        }
+
+        if (group === 'rke2' && id === 'harvester') {
+          const experimental = getters['i18n/t']('generic.experimental');
+
+          tag = getters['i18n/withFallback'](`cluster.providerTag.rke2."${ id }"`, { tag: experimental }, '');
+        }
 
         const subtype = {
           id,
           label,
           description,
           icon,
+          iconClass,
           group,
           disabled,
-          link
+          link,
+          tag
         };
 
         out.push(subtype);
@@ -295,6 +335,30 @@ export default {
   },
 
   methods: {
+    loadStylesheet(url, id) {
+      if ( !id ) {
+        console.error('loadStylesheet called without an id'); // eslint-disable-line no-console
+
+        return;
+      }
+
+      // Check if the stylesheet has already been loaded
+      if ( $(`#${id}`).length > 0 ) { // eslint-disable-line
+        return;
+      }
+
+      const link = document.createElement('link');
+
+      link.onerror = () => {
+        link.remove();
+      };
+      link.rel = 'stylesheet';
+      link.src = url;
+      link.href = url;
+      link.id = id;
+      document.getElementsByTagName('HEAD')[0].appendChild(link);
+    },
+
     cancel() {
       this.$router.push({
         name:   'c-cluster-product-resource',
@@ -389,6 +453,7 @@ export default {
           :rows="obj.types"
           key-field="id"
           name-field="label"
+          side-label-field="tag"
           :color-for="colorFor"
           @clicked="clickedType"
         />
@@ -404,7 +469,8 @@ export default {
     <Rke2Config
       v-else-if="subType"
       v-model="value"
-      :original-value="originalValue"
+      :initial-value="initialValue"
+      :live-value="liveValue"
       :mode="mode"
       :provider="subType"
     />
@@ -414,6 +480,7 @@ export default {
     </template>
   </CruResource>
 </template>
+
 <style lang='scss'>
   .grouped-type {
     position: relative;

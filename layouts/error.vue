@@ -28,7 +28,7 @@ export default {
     // If the page isn't a sub-path of the base url, redirect to it instead of saying not found.
     // For clicking from manager -> explorer -> back, nuxt tries to load /g/clusters and doesn't
     // have a route for that.
-    if (this.statusCode === 404 && !this.$route.path.startsWith(this.$router.options.base) && window._popStateDetected) {
+    if (this.statusCode === 404 && !this.$route.path?.startsWith(this.$router.options.base) && window._popStateDetected) {
       window.location.href = this.$route.fullPath;
 
       return;

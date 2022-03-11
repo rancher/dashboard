@@ -4,8 +4,12 @@ import { exceptionToErrorsArray } from '@/utils/error';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import { clear } from '@/utils/array';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
+import { handleConflict } from '@/plugins/steve/normalize';
 
 export default {
+
+  name: 'CreateEditView',
+
   mixins: [ChildHook],
 
   mounted() {
@@ -79,6 +83,10 @@ export default {
     },
 
     doneParams() {
+      if ( this.value?.doneParams ) {
+        return this.value.doneParams;
+      }
+
       const out = { ...this.$route.params };
 
       delete out.namespace;
@@ -111,7 +119,14 @@ export default {
       });
     },
 
-    async save(buttonDone, url) {
+    // Detect and resolve conflicts from a 409 response.
+    // If they are resolved, return a false-y value
+    // Else they can't be resolved, return an array of errors to show to the user.
+    conflict() {
+      return handleConflict(this.initialValue.toJSON(), this.value, this.liveValue, this.$store.getters);
+    },
+
+    async save(buttonDone, url, depth = 0) {
       if ( this.errors ) {
         clear(this.errors);
       }
@@ -150,7 +165,21 @@ export default {
 
         this.done();
       } catch (err) {
-        this.errors = exceptionToErrorsArray(err);
+        // Conflict, the resource being edited has changed since starting editing
+        if ( err.status === 409 && depth === 0 && this.isEdit) {
+          const errors = this.conflict();
+
+          if ( errors === false ) {
+            // It was automatically figured out, save again
+            return this.save(buttonDone, url, depth + 1);
+          } else {
+            this.errors = errors;
+          }
+        } else {
+          this.errors = exceptionToErrorsArray(err);
+        }
+        // Provide a stack trace for easier debugging of save errors
+        console.error('CreateEditView mixin failed to save: ', err); // eslint-disable-line no-console
         buttonDone && buttonDone(false);
       }
     },

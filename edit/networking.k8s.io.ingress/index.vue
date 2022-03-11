@@ -8,7 +8,7 @@ import CruResource from '@/components/CruResource';
 import Labels from '@/components/form/Labels';
 import Tabbed from '@/components/Tabbed';
 import { get, set } from '@/utils/object';
-import { TYPES } from '@/models/secret.class';
+import { TYPES } from '@/models/secret';
 import DefaultBackend from './DefaultBackend';
 import Certificates from './Certificates';
 import Rules from './Rules';
@@ -63,7 +63,7 @@ export default {
       return this.isView ? this.t('ingress.rulesAndCertificates.title') : this.t('ingress.rules.title');
     },
     certificates() {
-      return this.filterByNamespace(this.allSecrets.filter(secret => secret._type === TYPES.TLS)).map((secret) => {
+      return this.filterByCurrentResourceNamespace(this.allSecrets.filter(secret => secret._type === TYPES.TLS)).map((secret) => {
         const { id } = secret;
 
         return id.slice(id.indexOf('/') + 1);
@@ -83,6 +83,8 @@ export default {
   },
   methods: {
     filterByCurrentResourceNamespace(resources) {
+      // When configuring an Ingress, the options for Secrets and
+      // default backend Services are limited to the namespace of the Ingress.
       return resources.filter((resource) => {
         return resource.metadata.namespace === this.value.metadata.namespace;
       });
@@ -97,13 +99,6 @@ export default {
 
         set(this.value.spec, path, null);
       }
-    },
-    filterByNamespace(list) {
-      const namespaces = this.$store.getters['namespaces']();
-
-      return list.filter((resource) => {
-        return !!namespaces[resource.metadata.namespace];
-      });
     },
   }
 };

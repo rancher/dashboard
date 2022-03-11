@@ -80,12 +80,15 @@ export default {
     },
 
     toSave() {
-      this.$set(this.model, 'applicationSecret', this.model.applicationSecret || this.applicationSecret);
+      const applicationSecret = this.getNewApplicationSecret();
+
+      if (applicationSecret) {
+        this.$set(this.model, 'applicationSecret', applicationSecret);
+      }
 
       return {
         config: {
           ...this.model,
-          applicationSecret: this.model.applicationSecret || this.applicationSecret,
           enabled:           true,
           description:       'Enable AzureAD'
         }
@@ -126,6 +129,18 @@ export default {
         this.$set(this.model, key, ENDPOINT_MAPPING[endpoint][key].replace(TENANT_ID_TOKEN, this.model.tenantId));
       });
     },
+
+    getNewApplicationSecret() {
+      const applicationSecretOrId = this.model.applicationSecret || this.applicationSecret;
+
+      // The application secret comes back as an ID from steve API and this indicates
+      // that the current application secret isn't new
+      if (applicationSecretOrId.includes('cattle-global-data')) {
+        return null;
+      }
+
+      return applicationSecretOrId;
+    }
   },
 };
 </script>

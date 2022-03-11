@@ -1,9 +1,12 @@
 <script>
+import { mapGetters } from 'vuex';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import NodeAffinity from '@/components/form/NodeAffinity';
+import { NAME as VIRTUAL } from '@/config/product/harvester';
 import { _VIEW } from '@/config/query-params';
 import { isEmpty } from '@/utils/object';
+import { HOSTNAME } from '@/config/labels-annotations';
 
 export default {
   components: {
@@ -32,13 +35,20 @@ export default {
   },
 
   data() {
-    const { affinity = {}, nodeName = '', nodeSelector = {} } = this.value;
+    const isHarvester = this.$store.getters['currentProduct'].inStore === VIRTUAL;
+
+    let { nodeName = '' } = this.value;
+    const { affinity = {}, nodeSelector = {} } = this.value;
+
     const { nodeAffinity = {} } = affinity;
 
     let selectNode = null;
 
     if (this.value.nodeName) {
       selectNode = 'nodeSelector';
+    } else if (isHarvester && this.value.nodeSelector) {
+      selectNode = 'nodeSelector';
+      nodeName = nodeSelector[HOSTNAME];
     } else if (!isEmpty(nodeAffinity)) {
       selectNode = 'affinity';
     }
@@ -56,8 +66,31 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
     isView() {
       return this.mode === _VIEW;
+    },
+
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === VIRTUAL;
+    },
+
+    selectNodeOptions() {
+      const prefix = this.isHarvester ? 'harvester.virtualMachine' : 'workload';
+      const out = [{
+        label: this.t(`${ prefix }.scheduling.affinity.anyNode`),
+        value: null
+      },
+      {
+        label: this.t(`${ prefix }.scheduling.affinity.specificNode`),
+        value: 'nodeSelector'
+      },
+      {
+        label: this.t(`${ prefix }.scheduling.affinity.schedulingRules`),
+        value: 'affinity'
+      }];
+
+      return out;
     },
 
   },
@@ -67,7 +100,11 @@ export default {
 
       switch (this.selectNode) {
       case 'nodeSelector':
-        Object.assign(this.value, { nodeSelector, nodeName });
+        if (this.isHarvester) {
+          Object.assign(this.value, { nodeSelector: { [HOSTNAME]: nodeName } });
+        } else {
+          Object.assign(this.value, { nodeSelector, nodeName });
+        }
         if (this.value?.affinity?.nodeAffinity) {
           delete this.value.affinity.nodeAffinity;
         }
@@ -100,8 +137,7 @@ export default {
       <RadioGroup
         v-model="selectNode"
         name="selectNode"
-        :options="[null, 'nodeSelector', 'affinity']"
-        :labels="[ t('workload.scheduling.affinity.anyNode'), t('workload.scheduling.affinity.specificNode'), t('workload.scheduling.affinity.schedulingRules') ]"
+        :options="selectNodeOptions"
         :mode="mode"
         @input="update"
       />

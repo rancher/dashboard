@@ -1,6 +1,6 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
-import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
+import { colorForState, stateDisplay } from '@/plugins/steve/resource-class';
 import { NAME, NAMESPACE, STATE, TYPE } from '@/config/table-headers';
 import { sortableNumericSuffix } from '@/utils/sort';
 import { NAME as EXPLORER } from '@/config/product/explorer';
@@ -77,7 +77,7 @@ export default {
 
         let name = r[`${ this.direction }Id`];
 
-        // Skip things like toType/toNamspace+selector for now
+        // Skip things like toType/toNamespace+selector for now
         if ( !name ) {
           continue;
         }

@@ -17,6 +17,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import { clone, set } from '@/utils/object';
 import isEmpty from 'lodash/isEmpty';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
+import { exceptionToErrorsArray } from '@/utils/error';
 import Match from './Match';
 
 function emptyMatch(include = true) {
@@ -49,6 +50,7 @@ export default {
 
   async fetch() {
     const hasAccessToClusterOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.CLUSTER_OUTPUT);
+    const hasAccessToOutputs = this.$store.getters[`cluster/schemaFor`][LOGGING.OUTPUT];
     const hasAccessToNodes = this.$store.getters[`cluster/schemaFor`](NODE);
     const hasAccessToPods = this.$store.getters[`cluster/schemaFor`](POD);
     const isFlow = this.value.type === LOGGING.FLOW;
@@ -58,7 +60,7 @@ export default {
     };
 
     const hash = await allHash({
-      allOutputs:        getAllOrDefault(LOGGING.OUTPUT, isFlow),
+      allOutputs:        getAllOrDefault(LOGGING.OUTPUT, isFlow && hasAccessToOutputs),
       allClusterOutputs: getAllOrDefault(LOGGING.CLUSTER_OUTPUT, hasAccessToClusterOutputs),
       allNodes:          getAllOrDefault(NODE, hasAccessToNodes),
       allPods:           getAllOrDefault(POD, hasAccessToPods),
@@ -130,6 +132,12 @@ export default {
     },
 
     outputChoices() {
+      if (!this.allOutputs) {
+        // Handle the case where the user doesn't have permission
+        // to see Outputs
+        return [];
+      }
+
       // Yes cluster outputs are still namespaced because reasons...
       return this.allOutputs.filter((output) => {
         if ( !output.namespace) {
@@ -143,9 +151,15 @@ export default {
     },
 
     clusterOutputChoices() {
+      if (!this.allClusterOutputs) {
+        // Handle the case where the user doesn't have permission
+        // to see ClusterOutputs
+        return [];
+      }
+
       return this.allClusterOutputs
         .filter((clusterOutput) => {
-          return clusterOutput.namespace === this.value.namespace;
+          return clusterOutput.namespace === 'cattle-logging-system';
         })
         .map((clusterOutput) => {
           return { label: clusterOutput.metadata.name, value: clusterOutput.metadata.name };
@@ -153,6 +167,11 @@ export default {
     },
 
     nodeChoices() {
+      if (!this.allNodes) {
+        // Handle the case where the user doesn't have permission
+        // to see nodes
+        return [];
+      }
       const out = this.allNodes.map((node) => {
         return {
           label: node.nameDisplay,
@@ -199,12 +218,16 @@ export default {
     filtersYaml: {
       deep: true,
       handler() {
-        const filterJson = jsyaml.load(this.filtersYaml);
+        try {
+          const filterJson = jsyaml.load(this.filtersYaml);
 
-        if ( isArray(filterJson) ) {
-          set(this.value.spec, 'filters', filterJson);
-        } else {
-          set(this.value.spec, 'filters', undefined);
+          if ( isArray(filterJson) ) {
+            set(this.value.spec, 'filters', filterJson);
+          } else {
+            set(this.value.spec, 'filters', undefined);
+          }
+        } catch (e) {
+          this.errors = exceptionToErrorsArray(e);
         }
       }
     },
@@ -223,6 +246,10 @@ export default {
   },
 
   created() {
+    if (this.isCreate && this.value.type === LOGGING.CLUSTER_FLOW) {
+      this.value.metadata.namespace = 'cattle-logging-system';
+    }
+
     this.registerBeforeHook(this.willSave, 'willSave');
   },
 
@@ -332,7 +359,7 @@ export default {
       </Tab>
 
       <Tab name="outputs" :label="t('logging.flow.outputs.label')" :weight="2">
-        <Banner label="Output must reside in same namespace as the flow." color="info" />
+        <Banner v-if="value.type !== LOGGING.CLUSTER_FLOW" label="Output must reside in same namespace as the flow." color="info" />
         <LabeledSelect
           v-model="globalOutputRefs"
           :label="t('logging.flow.clusterOutputs.label')"

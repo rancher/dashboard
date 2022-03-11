@@ -191,7 +191,7 @@ export default {
             max="65535"
             :mode="mode"
             :label="t('probe.httpGet.port.label')"
-            :placeholder="t('probe.httpGet.port.placeholderDuex')"
+            :placeholder="t('probe.httpGet.port.placeholderDeux')"
           />
           <div class="spacer-small" />
         </div>
@@ -200,8 +200,8 @@ export default {
           <div class="col span-12">
             <ShellInput
               v-model="exec.command"
-              :label="t('probe.httpGet.port.command.label')"
-              :placeholder="t('probe.httpGet.port.command.placeholder')"
+              :label="t('probe.command.label')"
+              :placeholder="t('probe.command.placeholder')"
             />
           </div>
           <div class="spacer-small" />

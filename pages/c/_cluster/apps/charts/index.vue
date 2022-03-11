@@ -4,7 +4,7 @@ import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
 import SelectIconGrid from '@/components/SelectIconGrid';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN
+  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, OPERATING_SYSTEM
 } from '@/config/query-params';
 import { lcFirst } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
@@ -42,6 +42,7 @@ export default {
     return {
       allRepos:            null,
       category:            null,
+      operatingSystem:     null,
       searchQuery:         null,
       showDeprecated:      null,
       showHidden:          null,
@@ -53,18 +54,6 @@ export default {
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
 
     hideRepos: mapPref(HIDE_REPOS),
-
-    showWindowsClusterNoAppsSplash() {
-      const isWindows = this.currentCluster.providerOs === 'windows';
-      const { filteredCharts } = this;
-      let showSplash = false;
-
-      if ( isWindows && filteredCharts.length === 0 ) {
-        showSplash = true;
-      }
-
-      return showSplash;
-    },
 
     repoOptions() {
       let nextColor = 0;
@@ -151,14 +140,14 @@ export default {
       const enabledCharts = (this.enabledCharts || []);
 
       return filterAndArrangeCharts(enabledCharts, {
-        isWindows:      this.currentCluster.providerOs === 'windows',
-        category:       this.category,
-        searchQuery:    this.searchQuery,
-        showDeprecated: this.showDeprecated,
-        showHidden:     this.showHidden,
-        hideRepos:      this.hideRepos,
-        hideTypes:      [CATALOG._CLUSTER_TPL],
-        showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
+        operatingSystems: this.currentCluster.workerOSs,
+        category:         this.category,
+        searchQuery:      this.searchQuery,
+        showDeprecated:   this.showDeprecated,
+        showHidden:       this.showHidden,
+        hideRepos:        this.hideRepos,
+        hideTypes:        [CATALOG._CLUSTER_TPL],
+        showPrerelease:   this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
     },
 
@@ -201,6 +190,10 @@ export default {
 
     category(cat) {
       this.$router.applyQuery({ [CATEGORY]: cat || undefined });
+    },
+
+    operatingSystem(os) {
+      this.$router.applyQuery({ [OPERATING_SYSTEM]: os || undefined });
     },
   },
 
@@ -262,22 +255,15 @@ export default {
 
     selectChart(chart) {
       let version;
-      const isWindows = this.currentCluster.providerOs === 'windows';
+      const OSs = this.currentCluster.workerOSs;
+
       const showPrerelease = this.$store.getters['prefs/get'](SHOW_PRE_RELEASE);
-      const windowsVersions = compatibleVersionsFor(chart.versions, 'windows', showPrerelease);
-      const linuxVersions = compatibleVersionsFor(chart.versions, 'linux', showPrerelease);
-      const allVersions = compatibleVersionsFor(chart.versions, null, showPrerelease);
+      const compatibleVersions = compatibleVersionsFor(chart, OSs, showPrerelease);
 
-      if ( isWindows && windowsVersions.length ) {
-        version = windowsVersions[0].version;
-      } else if ( !isWindows && linuxVersions.length ) {
-        version = linuxVersions[0].version;
-      } else if ( allVersions.length ) {
-        version = allVersions[0].version;
-      }
-
-      if ( !version ) {
-        console.warn(`Cannot select chart '${ chart.chartName }' (no compatible version available for '${ this.currentCluster.providerOs }')`); // eslint-disable-line no-console
+      if (compatibleVersions.length > 0) {
+        version = compatibleVersions[0].version;
+      } else {
+        console.warn(`Cannot select chart '${ chart.chartName }' (no compatible version available for '${ OSs.length > 1 ? `${ OSs[0] } and ${ OSs[1] }` : OSs[0] }')`); // eslint-disable-line no-console
 
         return;
       }
@@ -370,18 +356,26 @@ export default {
         </template>
       </Select>
 
-      <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" :placeholder="t('catalog.charts.search')">
+      <div class="filter-block">
+        <input
+          ref="searchQuery"
+          v-model="searchQuery"
+          type="search"
+          class="input-sm"
+          :placeholder="t('catalog.charts.search')"
+        >
 
-      <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
-      <AsyncButton mode="refresh" size="sm" @click="refresh" />
+        <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
+        <AsyncButton class="refresh-btn" mode="refresh" size="sm" @click="refresh" />
+      </div>
     </div>
 
     <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
 
     <div v-if="allCharts.length">
-      <div v-if="filteredCharts.length === 0 && showWindowsClusterNoAppsSplash" style="width: 100%;">
+      <div v-if="filteredCharts.length === 0" style="width: 100%;">
         <div class="m-50 text-center">
-          <h1>{{ t('catalog.charts.noWindows') }}</h1>
+          <h1>{{ t('catalog.charts.noCharts') }}</h1>
         </div>
       </div>
       <SelectIconGrid
@@ -406,9 +400,41 @@ export default {
     z-index: z-index('fixedTableHeader');
     background: transparent;
     display: grid;
-    grid-template-columns: 50% auto auto 40px;
+    grid-template-columns: 40% auto auto;
     align-content: center;
     grid-column-gap: 10px;
+
+    .filter-block {
+      display: flex;
+    }
+    .refresh-btn {
+      margin-left: 10px;
+    }
+
+    &.with-os-options {
+      grid-template-columns: 40% auto auto auto;
+    }
+
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-12')) {
+      &{
+        grid-template-columns: auto auto !important;
+        grid-template-rows: 40px 40px;
+        grid-row-gap: 20px;
+      }
+    }
+
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-7')) {
+      &{
+        &{
+          grid-template-columns: auto !important;
+          grid-template-rows: 40px 40px 40px !important;
+
+          &.with-os-options {
+            grid-template-rows: 40px 40px 40px 40px !important;
+          }
+        }
+      }
+    }
   }
 
 .checkbox-select {

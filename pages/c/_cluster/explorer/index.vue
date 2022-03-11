@@ -2,21 +2,18 @@
 import Loading from '@/components/Loading';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
-import SortableTable from '@/components/SortableTable';
 import { allHash } from '@/utils/promise';
 import AlertTable from '@/components/AlertTable';
 import Banner from '@/components/Banner';
 import { parseSi, createMemoryValues } from '@/utils/units';
 import {
   NAME,
-  REASON,
   ROLES,
   STATE,
 } from '@/config/table-headers';
 import {
   NAMESPACE,
   INGRESS,
-  EVENT,
   MANAGEMENT,
   METRIC,
   NODE,
@@ -25,6 +22,7 @@ import {
   WORKLOAD_TYPES,
   COUNT,
   CATALOG,
+  POD,
 } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { mapPref, CLUSTER_TOOLS_TIP } from '@/store/prefs';
@@ -35,8 +33,12 @@ import { allDashboardsExist } from '@/utils/grafana';
 import EtcdInfoBanner from '@/components/EtcdInfoBanner';
 import metricPoller from '@/mixins/metric-poller';
 import EmberPage from '@/components/EmberPage';
-import ResourceSummary, { resourceCounts } from './ResourceSummary';
-import HardwareResourceGauge from './HardwareResourceGauge';
+import ResourceSummary, { resourceCounts } from '@/components/ResourceSummary';
+import HardwareResourceGauge from '@/components/HardwareResourceGauge';
+import { isEmpty } from '@/utils/object';
+import ConfigBadge from './ConfigBadge';
+import EventsTable from './EventsTable';
+import { fetchClusterResources } from './explorer-utils';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -47,6 +49,12 @@ const K8S_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/ser
 const ETCD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-etcd-nodes-1/rancher-etcd-nodes?orgId=1';
 const ETCD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-etcd-1/rancher-etcd?orgId=1';
 
+const COMPONENT_STATUS = [
+  'etcd',
+  'scheduler',
+  'controller-manager',
+];
+
 export default {
   components: {
     EtcdInfoBanner,
@@ -54,21 +62,19 @@ export default {
     HardwareResourceGauge,
     Loading,
     ResourceSummary,
-    SortableTable,
     Tab,
     Tabbed,
     AlertTable,
     Banner,
     EmberPage,
+    ConfigBadge,
+    EventsTable,
   },
 
   mixins: [metricPoller],
 
   async fetch() {
-    const hash = {
-      nodes:       this.fetchClusterResources(NODE),
-      events:      this.fetchClusterResources(EVENT),
-    };
+    const hash = { nodes: fetchClusterResources(this.$store, NODE) };
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
       hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
@@ -78,50 +84,19 @@ export default {
       hash.rke1NodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
     }
 
-    this.showClusterMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]);
-    this.showK8sMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]);
-    this.showEtcdMetrics = this.isRKE && await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]);
+    this.showClusterMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]);
+    this.showK8sMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]);
+    this.showEtcdMetrics = this.isRKE && await allDashboardsExist(this.$store, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]);
 
     const res = await allHash(hash);
 
     for ( const k in res ) {
       this[k] = res[k];
     }
-    this.metricAggregations = await this.currentCluster.fetchNodeMetrics();
   },
 
   data() {
     const clusterCounts = this.$store.getters[`cluster/all`](COUNT);
-    const reason = {
-      ...REASON,
-      ...{ canBeVariable: true },
-      width: 120
-    };
-
-    const eventHeaders = [
-      reason,
-      {
-        name:          'resource',
-        label:         'Resource',
-        labelKey:      'clusterIndexPage.sections.events.resource.label',
-        value:         'displayInvolvedObject',
-        sort:          ['involvedObject.kind', 'involvedObject.name'],
-        canBeVariable: true,
-      },
-      {
-        align:         'right',
-        name:          'date',
-        label:         'Date',
-        labelKey:      'clusterIndexPage.sections.events.date.label',
-        value:         'lastTimestamp',
-        sort:          'lastTimestamp:desc',
-        formatter:     'LiveDate',
-        formatterOpts: { addSuffix: true },
-        width:         125,
-        defaultSort:   true,
-      },
-    ];
-
     const nodeHeaders = [
       STATE,
       NAME,
@@ -129,14 +104,12 @@ export default {
     ];
 
     return {
-      eventHeaders,
       nodeHeaders,
       constraints:         [],
       events:              [],
       nodeMetrics:         [],
       nodeTemplates:       [],
       nodes:               [],
-      metricAggregations: {},
       showClusterMetrics: false,
       showK8sMetrics:     false,
       showEtcdMetrics:    false,
@@ -188,6 +161,20 @@ export default {
       return RESOURCES.filter(resource => this.$store.getters['cluster/schemaFor'](resource));
     },
 
+    componentServices() {
+      const status = [];
+
+      COMPONENT_STATUS.forEach((cs) => {
+        status.push({
+          name:      cs,
+          healthy:   this.isComponentStatusHealthy(cs),
+          labelKey: `clusterIndexPage.sections.componentStatus.${ cs }`,
+        });
+      });
+
+      return status;
+    },
+
     totalCountGaugeInput() {
       const totalInput = {
         name:            this.t('clusterIndexPage.resourceGauge.totalResources'),
@@ -220,14 +207,58 @@ export default {
     },
 
     podsUsed() {
+      const pods = resourceCounts(this.$store, POD);
+
       return {
         total:  parseSi(this.currentCluster?.status?.allocatable?.pods || '0'),
-        useful: parseSi(this.currentCluster?.status?.requested?.pods || '0')
+        useful: pods.total
       };
     },
 
     ramReserved() {
       return createMemoryValues(this.currentCluster?.status?.allocatable?.memory, this.currentCluster?.status?.requested?.memory);
+    },
+
+    metricAggregations() {
+      let checkNodes = this.nodes;
+
+      // Special case local cluster
+      if (this.currentCluster.isLocal) {
+        const nodeNames = this.nodes.reduce((acc, n) => {
+          acc[n.id] = n;
+
+          return acc;
+        }, {});
+        const managementNodes = this.$store.getters['management/all'](MANAGEMENT.NODE);
+
+        checkNodes = managementNodes.filter((n) => {
+          const nodeName = n.metadata?.labels?.['management.cattle.io/nodename'] || n.id;
+
+          return !!nodeNames[nodeName];
+        });
+      }
+
+      const someNonWorkerRoles = checkNodes.some(node => node.hasARole && !node.isWorker);
+      const metrics = this.nodeMetrics.filter((nodeMetrics) => {
+        const node = this.nodes.find(nd => nd.id === nodeMetrics.id);
+
+        return node && (!someNonWorkerRoles || node.isWorker);
+      });
+      const initialAggregation = {
+        cpu:    0,
+        memory: 0
+      };
+
+      if (isEmpty(metrics)) {
+        return null;
+      }
+
+      return metrics.reduce((agg, metric) => {
+        agg.cpu += parseSi(metric.usage.cpu);
+        agg.memory += parseSi(metric.usage.memory);
+
+        return agg;
+      }, initialAggregation);
     },
 
     cpuUsed() {
@@ -255,10 +286,31 @@ export default {
 
     hasMetricsTabs() {
       return this.showClusterMetrics || this.showK8sMetrics || this.showEtcdMetrics;
+    },
+    hasBadge() {
+      return !!this.currentCluster?.badge;
     }
   },
 
   methods: {
+    // Ported from Ember
+    isComponentStatusHealthy(field) {
+      const matching = (this.currentCluster?.status?.componentStatuses || []).filter(s => s.name.startsWith(field));
+
+      // If there's no matching component status, it's "healthy"
+      if ( !matching.length ) {
+        return true;
+      }
+
+      const count = matching.reduce((acc, status) => {
+        const conditions = status.conditions.find(c => c.status !== 'True');
+
+        return !conditions ? acc : acc + 1;
+      }, 0);
+
+      return count === 0;
+    },
+
     showActions() {
       this.$store.commit('action-menu/show', {
         resources: this.currentCluster,
@@ -266,30 +318,11 @@ export default {
       });
     },
 
-    async fetchClusterResources(type, opt = {}) {
-      const schema = this.$store.getters['cluster/schemaFor'](type);
-
-      if (schema) {
-        try {
-          const resources = await this.$store.dispatch('cluster/findAll', { type, opt });
-
-          return resources;
-        } catch (err) {
-          console.error(`Failed fetching cluster resource ${ type } with error:`, err); // eslint-disable-line no-console
-
-          return [];
-        }
-      }
-
-      return [];
-    },
-
     async loadMetrics() {
-      this.nodeMetrics = await this.fetchClusterResources(METRIC.NODE, { force: true } );
+      this.nodeMetrics = await fetchClusterResources(this.$store, METRIC.NODE, { force: true } );
     },
     findBy,
   },
-
 };
 </script>
 
@@ -341,6 +374,7 @@ export default {
       <div v-if="monitoringStatus.v1">
         <span>{{ t('glance.v1MonitoringInstalled') }}</span>
       </div>
+      <ConfigBadge v-if="currentCluster.canUpdate" :cluster="currentCluster" />
     </div>
 
     <div class="resource-gauges">
@@ -358,34 +392,27 @@ export default {
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.ram')" :reserved="ramReserved" :used="ramUsed" :units="ramReserved.units" />
     </div>
 
+    <div v-if="!hasV1Monitoring && componentServices">
+      <div v-for="status in componentServices" :key="status.name" class="k8s-component-status" :class="{'k8s-component-status-healthy': status.healthy, 'k8s-component-status-unhealthy': !status.healthy}">
+        <i v-if="status.healthy" class="icon icon-checkmark" />
+        <i v-else class="icon icon-warning" />
+        <div>{{ t(status.labelKey) }}</div>
+      </div>
+    </div>
+
     <div v-if="hasV1Monitoring" id="ember-anchor" class="mt-20">
       <EmberPage inline="ember-anchor" :src="v1MonitoringURL" />
     </div>
 
-    <div class="mb-40 mt-40">
-      <h3>{{ hasMonitoring ?t('clusterIndexPage.sections.alerts.label') :t('clusterIndexPage.sections.events.label') }}</h3>
-      <AlertTable v-if="hasMonitoring" />
-      <SortableTable
-        v-else
-        :rows="events"
-        :headers="eventHeaders"
-        key-field="id"
-        :search="false"
-        :table-actions="false"
-        :row-actions="false"
-        :paging="true"
-        :rows-per-page="10"
-        default-sort-by="date"
-      >
-        <template #cell:resource="{row, value}">
-          <n-link :to="row.detailLocation">
-            {{ value }}
-          </n-link>
-          <div v-if="row.message">
-            {{ row.displayMessage }}
-          </div>
-        </template>
-      </SortableTable>
+    <div class="mt-30">
+      <Tabbed>
+        <Tab name="cluster-events" :label="t('clusterIndexPage.sections.events.label')" :weight="2">
+          <EventsTable />
+        </Tab>
+        <Tab v-if="hasMonitoring" name="cluster-alerts" :label="t('clusterIndexPage.sections.alerts.label')" :weight="1">
+          <AlertTable />
+        </Tab>
+      </Tabbed>
     </div>
     <Tabbed v-if="hasMetricsTabs" class="mt-30">
       <Tab v-if="showClusterMetrics" name="cluster-metrics" :label="t('clusterIndexPage.sections.clusterMetrics.label')" :weight="2">
@@ -432,7 +459,7 @@ export default {
   padding: 20px 0px;
   display: flex;
 
-  &>*:not(:last-child) {
+  &>*:not(:nth-last-child(-n+2)) {
     margin-right: 40px;
 
     & SPAN {
@@ -470,6 +497,7 @@ export default {
 
 .monitoring-install {
   display: flex;
+  margin-left: 10px;
 
   > I {
     line-height: inherit;
@@ -478,6 +506,44 @@ export default {
 
   &:focus {
     outline: 0;
+  }
+}
+
+.k8s-component-status {
+  align-items: center;
+  display: inline-flex;
+  border: 1px solid;
+  margin-top: 20px;
+
+  &:not(:last-child) {
+    margin-right: 20px;
+  }
+
+  > div {
+    padding: 5px 20px;
+  }
+
+  > I {
+    text-align: center;
+    font-size: 20px;
+    padding: 5px 10px;
+    border-right: 1px solid var(--border);
+  }
+
+  &.k8s-component-status-unhealthy {
+    border-color: var(--error-border);
+
+    > I {
+      color: var(--error)
+    }
+  }
+
+  &.k8s-component-status-healthy {
+    border-color: var(--border);
+
+    > I {
+      color: var(--success)
+    }
   }
 }
 </style>

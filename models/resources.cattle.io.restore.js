@@ -1,30 +1,33 @@
-import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
+import { colorForState, stateDisplay } from '@/plugins/steve/resource-class';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
-export default {
-  canUpdate() {
+import SteveModel from '@/plugins/steve/steve-class';
+
+export default class Restore extends SteveModel {
+  get canUpdate() {
     return this?.metadata?.state?.error;
-  },
-  readyMessage() {
+  }
+
+  get readyMessage() {
     const conditions = get(this, 'status.conditions');
     const readyMessage = (findBy(conditions, 'type', 'Ready') || {}).message ;
 
     return readyMessage;
-  },
-  colorForState() {
+  }
+
+  get colorForState() {
     if (this.readyMessage) {
       return colorForState(this.readyMessage);
     }
 
     return colorForState();
-  },
+  }
 
-  stateDisplay() {
+  get stateDisplay() {
     if (this.readyMessage) {
       return stateDisplay(this.readyMessage);
     }
 
     return stateDisplay();
   }
-
-};
+}

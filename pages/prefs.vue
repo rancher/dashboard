@@ -1,5 +1,6 @@
 <script>
 import day from 'dayjs';
+import { mapGetters } from 'vuex';
 import BackLink from '@/components/BackLink';
 import BackRoute from '@/mixins/back-link';
 import ButtonGroup from '@/components/ButtonGroup';
@@ -26,6 +27,8 @@ export default {
     hideDesc:        mapPref(HIDE_DESC),
     showPreRelease:  mapPref(SHOW_PRE_RELEASE),
     menuMaxClusters: mapPref(MENU_MAX_CLUSTERS),
+
+    ...mapGetters(['isSingleVirtualCluster']),
 
     theme: {
       get() {
@@ -150,9 +153,11 @@ export default {
     <div class="mt-10">
       <t k="prefs.theme.autoDetail" :pm="pm" :am="am" />
     </div>
-    <hr />
-    <h4 v-t="'prefs.landing.label'" />
-    <LandingPagePreference />
+    <div v-if="!isSingleVirtualCluster">
+      <hr />
+      <h4 v-t="'prefs.landing.label'" />
+      <LandingPagePreference />
+    </div>
     <hr />
     <h4 v-t="'prefs.formatting'" />
     <div class="row">
@@ -205,14 +210,17 @@ export default {
       <div class="col span-4">
         <h4 v-t="'prefs.advanced'" />
         <Checkbox v-model="dev" :label="t('prefs.dev.label', {}, true)" />
-        <Checkbox v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" />
+        <Checkbox v-if="!isSingleVirtualCluster" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" />
       </div>
     </div>
-    <hr />
-    <div class="row mb-20">
-      <div class="col span-12">
-        <h4 v-t="'prefs.helm.label'" />
-        <ButtonGroup v-model="showPreRelease" :options="helmOptions" />
+
+    <div v-if="!isSingleVirtualCluster">
+      <hr />
+      <div class="row mb-20">
+        <div class="col span-12">
+          <h4 v-t="'prefs.helm.label'" />
+          <ButtonGroup v-model="showPreRelease" :options="helmOptions" />
+        </div>
       </div>
     </div>
   </div>

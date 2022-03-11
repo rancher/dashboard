@@ -1,17 +1,38 @@
-Cypress.Commands.add('login', (username = Cypress.env('username'), password = Cypress.env('password')) => {
-  cy.intercept('POST', '/v3-public/localProviders/local*').as('loginReq');
-  cy.visit('/auth/login');
+import { LoginPagePo } from '@/cypress/integration/po/pages/login-page.po';
 
-  cy.byLabel('Username')
-    .focus()
-    .type(username);
+Cypress.Commands.add('login', (username = Cypress.env('username'), password = Cypress.env('password'), cacheSession = true) => {
+  const login = () => {
+    cy.intercept('POST', '/v3-public/localProviders/local*').as('loginReq');
 
-  cy.byLabel('Password')
-    .focus()
-    .type(password);
+    LoginPagePo.goTo(); // Needs to happen before the page element is created/located
+    const loginPage = new LoginPagePo();
 
-  cy.get('button').click();
-  cy.wait('@loginReq');
+    loginPage
+      .checkIsCurrentPage();
+
+    loginPage.switchToLocal();
+
+    loginPage.canSubmit()
+      .should('eq', true);
+
+    loginPage.username()
+      .set(username);
+
+    loginPage.password()
+      .set(password);
+
+    loginPage.canSubmit()
+      .should('eq', true);
+    loginPage.submit();
+
+    cy.wait('@loginReq');
+  };
+
+  if (cacheSession) {
+    cy.session([username, password], login);
+  } else {
+    login();
+  }
 });
 
 Cypress.Commands.add('byLabel', (label) => {

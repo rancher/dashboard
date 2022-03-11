@@ -12,7 +12,7 @@ export default {
     },
     summaryUrl: {
       type:     String,
-      required: true,
+      default:  '',
     },
     vars: {
       type:    Object,
@@ -21,7 +21,11 @@ export default {
     graphHeight: {
       type:     String,
       required: true
-    }
+    },
+    hasSummaryAndDetail: {
+      type:    Boolean,
+      default: true,
+    },
   },
   data() {
     return {
@@ -43,9 +47,9 @@ export default {
 </script>
 
 <template>
-  <div class="dashboard-metrics">
+  <div class="dashboard-metrics" :class="!hasSummaryAndDetail && 'external-link-pull-left'">
     <div class="graph-options mb-10">
-      <DashboardOptions v-model="graphOptions" />
+      <DashboardOptions v-model="graphOptions" :has-summary-and-detail="hasSummaryAndDetail" />
     </div>
     <div class="info">
       <slot />
@@ -86,6 +90,16 @@ export default {
 
     .frame {
       top: 0;
+    }
+  }
+}
+
+.dashboard-metrics.external-link-pull-left {
+  & ::v-deep {
+    .external-link {
+      position: absolute;
+      left: 10px;
+      top: -45px;
     }
   }
 }

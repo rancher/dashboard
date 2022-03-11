@@ -1,0 +1,78 @@
+#!/usr/bin/env node
+
+// This script will add or remove the extra dependencies require for Storybook to the package.json file
+// It will perform a `yarn install` if the package.json file was updated
+
+// Storybook adds a bit of weight to the yarn install process, so we only do it if we are using Storybook
+
+// Remember not to commit the package.json file with the Storybook dependencies in it
+
+const fs = require('fs');
+const path = require('path');
+const { spawn } = require("child_process");
+
+async function main() {
+  let remove = false;
+  let doYarnInstall = true;
+  
+  if (process.argv.length > 2) {
+    const removeAndUpdate = process.argv[2] === '-d';
+    const removeOnly = process.argv[2] === '-r';
+
+    if (removeAndUpdate || removeOnly) {
+      remove = true;
+      doYarnInstall = !removeOnly;
+      console.log('Removing storybook from package.json');
+    }
+  }
+
+  const rootFolder = path.resolve(__dirname, '..');
+  const storybookFolder = path.resolve(rootFolder, '.storybook');
+  const mainPkgFile = path.join(rootFolder, 'package.json')
+  const mainPkg = require(mainPkgFile);
+  const storybookPkg = require(path.join(storybookFolder, 'package.json'));
+  
+  let didChange = false;
+
+  if (!remove) {
+    // Merge the dev dependencies
+    Object.keys(storybookPkg.devDependencies).forEach(name => {
+      const version = storybookPkg.devDependencies[name];
+      if (!mainPkg.devDependencies[name]) {
+        didChange = true;
+        mainPkg.devDependencies[name] = version;
+      }
+    });
+  } else {
+    Object.keys(storybookPkg.devDependencies).forEach(name => {
+      if (mainPkg.devDependencies[name]) {
+        didChange = true;
+        delete mainPkg.devDependencies[name];
+      }
+    });
+  }
+
+  fs.writeFileSync(mainPkgFile, JSON.stringify(mainPkg, null, 2) + '\n');
+
+  function yarnInstall() {
+    return new Promise((resolve, reject) => {
+      const options = {
+        cwd: rootFolder
+      };
+      
+      const proc = spawn("yarn", ["install", "--no-lockfile"], options);
+      
+      proc.stdout.on('data', data => process.stdout.write(data));
+      proc.stderr.on('data', data => process.stderr.write(data));
+      proc.on('error', (error) => reject(error));
+      proc.on('close', (code) => resolve(code));
+    });
+  }
+
+  if (didChange && doYarnInstall) {
+    console.log('Updating dependencies...');
+    await yarnInstall();
+  }
+}
+
+main();

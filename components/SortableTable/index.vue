@@ -4,14 +4,17 @@ import { dasherize, ucFirst } from '@/utils/string';
 import { get, clone } from '@/utils/object';
 import { removeObject } from '@/utils/array';
 import Checkbox from '@/components/form/Checkbox';
+import ActionDropdown from '@/components/ActionDropdown';
 import $ from 'jquery';
 import throttle from 'lodash/throttle';
+import debounce from 'lodash/debounce';
 import THead from './THead';
 import filtering from './filtering';
 import selection from './selection';
 import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
+import actions from './actions';
 
 export const COLUMN_BREAKPOINTS = {
   /**
@@ -33,15 +36,17 @@ export const COLUMN_BREAKPOINTS = {
 
 // Data Flow:
 // rows prop
-// -> filteredRows (filtering.js)
 // -> arrangedRows (sorting.js)
+// -> filteredRows (filtering.js)
 // -> pagedRows    (paging.js)
 // -> groupedRows  (grouping.js)
 
 export default {
   name:       'SortableTable',
-  components: { THead, Checkbox },
-  mixins:     [filtering, sorting, paging, grouping, selection],
+  components: {
+    THead, Checkbox, ActionDropdown
+  },
+  mixins: [filtering, sorting, paging, grouping, selection, actions],
 
   props: {
     headers: {
@@ -169,6 +174,15 @@ export default {
       default: false
     },
 
+    overflowX: {
+      type:    Boolean,
+      default: false
+    },
+    overflowY: {
+      type:    Boolean,
+      default: false
+    },
+
     /**
      * If pagination of the data is enabled or not
      */
@@ -242,7 +256,17 @@ export default {
   },
 
   data() {
-    return { expanded: {} };
+    return {
+      expanded:            {},
+      searchQuery:         '',
+      eventualSearchQuery: '',
+    };
+  },
+
+  watch: {
+    eventualSearchQuery: debounce(function(q) {
+      this.searchQuery = q;
+    }, 100),
   },
 
   computed: {
@@ -329,50 +353,27 @@ export default {
       return out;
     },
 
-    availableActions() {
-      return this.$store.getters[`${ this.storeName }/forTable`];
-    },
-
-    actionAvailability() {
-      if (this.tableSelected.length === 0) {
-        return null;
-      }
-
-      const runnableTotal = this.tableSelected.filter(this.canRunBulkActionOfInterest).length;
-      const selectionTotal = this.tableSelected.length;
-      const tableTotal = this.arrangedRows.length;
-      const allOfSelectionIsActionable = runnableTotal === selectionTotal;
-      const useTableTotal = !this.actionOfInterest || allOfSelectionIsActionable;
-
-      const input = {
-        actionable: this.actionOfInterest ? runnableTotal : selectionTotal,
-        total:      useTableTotal ? tableTotal : selectionTotal,
-      };
-
-      const someActionable = this.actionOfInterest && !allOfSelectionIsActionable;
-      const key = someActionable ? 'sortableTable.actionAvailability.some' : 'sortableTable.actionAvailability.selected';
-
-      return this.t(key, input);
-    },
-
     ...mapState({
       tableSelected(state) {
-        return state[this.storeName].tableSelected;
+        return state[this.storeName]?.tableSelected;
       },
       actionOfInterest(state) {
-        return state[this.storeName].actionOfInterest;
+        return state[this.storeName]?.actionOfInterest;
       }
     }),
 
     classObject() {
       return {
         'top-divider':     this.topDivider,
-        'body-dividers':   this.bodyDividers
+        'body-dividers':   this.bodyDividers,
+        'overflow-y':      this.overflowY,
+        'overflow-x':      this.overflowX,
       };
     }
   },
 
   methods: {
+
     get,
     dasherize,
 
@@ -395,6 +396,25 @@ export default {
       }
 
       return out;
+    },
+
+    /**
+     * Format values to render in the sorted table
+     * In the absence of predefined formatter table would use this
+     *
+     * @param {Object} row
+     * @param {Object} col
+     *
+     * @return {String}
+     */
+    formatValue(row, col) {
+      const valFor = this.valueFor(row, col);
+
+      if ( Array.isArray(valFor) ) {
+        return valFor.join(', ');
+      }
+
+      return valFor;
     },
 
     isExpanded(row) {
@@ -489,18 +509,21 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div ref="container">
     <div :class="{'titled': $slots.title && $slots.title.length}" class="sortable-table-header">
       <slot name="title" />
       <div v-if="showHeaderRow" class="fixed-header-actions">
-        <div class="bulk">
+        <div :class="bulkActionsClass" class="bulk">
           <slot name="header-left">
             <template v-if="tableActions">
               <button
                 v-for="act in availableActions"
+                :id="act.action"
                 :key="act.action"
+                v-tooltip="actionTooltip"
                 type="button"
                 class="btn role-primary"
+                :class="{[bulkActionClass]:true}"
                 :disabled="!act.enabled"
                 @click="applyTableAction(act, null, $event)"
                 @mouseover="setBulkActionOfInterest(act)"
@@ -509,9 +532,37 @@ export default {
                 <i v-if="act.icon" :class="act.icon" />
                 <span v-html="act.label" />
               </button>
-              <span />
-              <label v-if="actionAvailability" class="action-availability">
-                {{ actionAvailability }}
+              <ActionDropdown :class="bulkActionsDropdownClass" class="bulk-actions-dropdown" :disable-button="!tableSelected.length" size="sm">
+                <template #button-content>
+                  <button ref="actionDropDown" class="btn bg-primary mr-0" :disabled="!tableSelected.length">
+                    <i class="icon icon-gear" />
+                    <span>{{ t('harvester.tableHeaders.actions') }}</span>
+                    <i class="ml-10 icon icon-chevron-down" />
+                  </button>
+                </template>
+                <template #popover-content>
+                  <ul class="list-unstyled menu">
+                    <li
+                      v-for="act in hiddenActions"
+                      :key="act.action"
+                      v-close-popover
+                      v-tooltip="{
+                        content: actionTooltip,
+                        placement: 'right'
+                      }"
+                      :class="{ disabled: !act.enabled }"
+                      @click="applyTableAction(act, null, $event)"
+                      @mouseover="setBulkActionOfInterest(act)"
+                      @mouseleave="setBulkActionOfInterest(null)"
+                    >
+                      <i v-if="act.icon" :class="act.icon" />
+                      <span v-html="act.label" />
+                    </li>
+                  </ul>
+                </template>
+              </ActionDropdown>
+              <label v-if="selectedRowsText" :class="bulkActionAvailabilityClass" class="action-availability">
+                {{ selectedRowsText }}
               </label>
             </template>
           </slot>
@@ -525,7 +576,7 @@ export default {
           <input
             v-if="search"
             ref="searchQuery"
-            v-model="searchQuery"
+            v-model="eventualSearchQuery"
             type="search"
             class="input-sm"
             :placeholder="t('sortableTable.search')"
@@ -608,7 +659,7 @@ export default {
                       :key="col.name"
                       :data-title="labelFor(col)"
                       :align="col.align || 'left'"
-                      :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter, [col.breakpoint]: !!col.breakpoint}"
+                      :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter, [col.breakpoint]: !!col.breakpoint, ['skip-select']: col.skipSelect}"
                       :width="col.width"
                     >
                       <slot :name="'cell:' + col.name" :row="row" :col="col" :value="valueFor(row,col)">
@@ -619,9 +670,10 @@ export default {
                           :row="row"
                           :col="col"
                           v-bind="col.formatterOpts"
+                          :row-key="get(row,keyField)"
                         />
                         <template v-else-if="valueFor(row,col) !== ''">
-                          {{ valueFor(row,col) }}
+                          {{ formatValue(row,col) }}
                         </template>
                         <template v-else-if="col.dashIfEmpty">
                           <span class="text-muted">&mdash;</span>
@@ -764,9 +816,24 @@ $spacing: 10px;
   background: var(--sortable-table-bg);
   border-radius: 4px;
 
+  &.overflow-x {
+    overflow-x: visible;
+  }
+  &.overflow-y {
+    overflow-y: visible;
+  }
+
   td {
     padding: 8px 5px;
     border: 0;
+
+    &:first-child {
+      padding-left: 10px;
+    }
+
+    &:last-child {
+      padding-right: 10px;
+    }
 
     &.row-check {
       padding-top: 12px;
@@ -798,6 +865,7 @@ $spacing: 10px;
       &.state-description > td {
         font-size: 13px;
         padding-top: 0;
+        overflow-wrap: anywhere;
       }
     }
 
@@ -936,22 +1004,82 @@ $spacing: 10px;
 
   .bulk {
     grid-area: bulk;
-    align-self: center;
+    margin-top: 1px;
 
-    BUTTON:not(:last-child) {
-      margin-right: 10px;
+    $gap: 10px;
+
+    & > BUTTON {
+      display: none; // Handled dynamically
+    }
+
+    & > BUTTON:not(:last-of-type) {
+      margin-right: $gap;
+    }
+
+    .action-availability {
+      display: none; // Handled dynamically
+      margin-left: $gap;
+      vertical-align: middle;
+      margin-top: 2px;
+    }
+
+    .dropdown-button {
+      $disabled-color: var(--disabled-text);
+      $disabled-cursor: not-allowed;
+      li.disabled {
+        color: $disabled-color;
+        cursor: $disabled-cursor;
+
+        &:hover {
+          color: $disabled-color;
+          background-color: unset;
+          cursor: $disabled-cursor;
+        }
+      }
     }
   }
 
   .middle {
     grid-area: middle;
     white-space: nowrap;
-    align-self: center;
   }
 
   .search {
     grid-area: search;
     text-align: right;
+  }
+
+  .bulk-actions-dropdown {
+    display: none; // Handled dynamically
+
+    .dropdown-button {
+      background-color: var(--primary);
+
+      &:hover {
+        background-color: var(--primary-hover-bg);
+        color: var(--primary-hover-text);
+      }
+
+      > *, .icon-chevron-down {
+        color: var(--primary-text);
+      }
+
+      .button-divider {
+        border-color: var(--primary-text);
+      }
+
+      &.disabled {
+        border-color: var(--disabled-bg);
+
+        .icon-chevron-down {
+          color: var(--disabled-text) !important;
+        }
+
+        .button-divider {
+          border-color: var(--disabled-text);
+        }
+      }
+    }
   }
 }
 

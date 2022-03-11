@@ -1,28 +1,29 @@
-import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
+import { colorForState, stateDisplay } from '@/plugins/steve/resource-class';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
-  readyMessage() {
+export default class Backup extends SteveModel {
+  get readyMessage() {
     const conditions = get(this, 'status.conditions');
     const readyMessage = (findBy(conditions, 'type', 'Ready') || {}).message ;
 
     return readyMessage;
-  },
-  colorForState() {
+  }
+
+  get colorForState() {
     if (this.readyMessage) {
       return colorForState(this.readyMessage);
     }
 
     return colorForState();
-  },
+  }
 
-  stateDisplay() {
+  get stateDisplay() {
     if (this.readyMessage) {
       return stateDisplay(this.readyMessage);
     }
 
     return stateDisplay();
   }
-
-};
+}

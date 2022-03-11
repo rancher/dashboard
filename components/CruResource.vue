@@ -128,6 +128,13 @@ export default {
       return this.initialYaml !== this.resourceYaml;
     },
 
+    canEditYaml() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+      const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource.type);
+
+      return !(schema?.resourceMethods?.includes('blocked-PUT'));
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -281,7 +288,7 @@ export default {
                       ></span>
                       <span v-else>{{ subtype.label }}</span>
                     </h5>
-                    <a v-if="subtype.docLink" :href="subtype.docLink" target="_blank" rel="noopener nofollow" class="flex-right">More Info <i class="icon icon-external-link" /></a>
+                    <a v-if="subtype.docLink" :href="subtype.docLink" target="_blank" rel="noopener nofollow" class="flex-right">{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
                   </div>
                   <hr v-if="subtype.description" />
                   <div v-if="subtype.description" class="description">
@@ -321,7 +328,7 @@ export default {
               <template #default>
                 <div v-if="!isView">
                   <button
-                    v-if="canYaml && (_selectedSubtype || !subtypes.length)"
+                    v-if="canYaml && (_selectedSubtype || !subtypes.length) && canEditYaml"
                     type="button"
                     class="btn role-secondary"
                     @click="showPreviewYaml"

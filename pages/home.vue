@@ -21,9 +21,9 @@ import { getVendor } from '@/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@/store/features';
 import { SETTING } from '@/config/settings';
 import { BLANK_CLUSTER } from '@/store';
+import { filterOnlyKubernetesClusters } from '@/utils/cluster';
 
-const SET_LOGIN_ACTION = 'set-as-login';
-const RESET_CARDS_ACTION = 'reset-homepage-cards';
+import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@/config/page-actions';
 
 export default {
   name:       'Home',
@@ -73,6 +73,12 @@ export default {
     ...mapState(['managementReady']),
     ...mapGetters(['currentCluster']),
     mcm: mapFeature(MULTI_CLUSTER),
+
+    canCreateCluster() {
+      const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+
+      return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+    },
 
     createLocation() {
       return {
@@ -174,7 +180,11 @@ export default {
       return hasSomethingToShow && !hiddenByPreference;
     },
 
-    ...mapGetters(['currentCluster', 'defaultClusterId'])
+    ...mapGetters(['currentCluster', 'defaultClusterId']),
+
+    kubeClusters() {
+      return filterOnlyKubernetesClusters(this.clusters);
+    }
   },
 
   async created() {
@@ -184,11 +194,21 @@ export default {
   },
 
   methods: {
+    /**
+     * Define actions for each navigation link
+     * @param {*} action
+     */
     handlePageAction(action) {
-      if (action.action === RESET_CARDS_ACTION) {
+      switch (action.action) {
+      case RESET_CARDS_ACTION:
         this.resetCards();
-      } else if (action.action === SET_LOGIN_ACTION) {
+        break;
+
+      case SET_LOGIN_ACTION:
         this.afterLoginRoute = 'home';
+        break;
+
+      // no default
       }
     },
 
@@ -264,7 +284,7 @@ export default {
           </SimpleBox>
           <div class="row panel">
             <div v-if="mcm" class="col span-12">
-              <SortableTable :table-actions="false" :row-actions="false" key-field="id" :rows="clusters" :headers="clusterHeaders">
+              <SortableTable :table-actions="false" :row-actions="false" key-field="id" :rows="kubeClusters" :headers="clusterHeaders">
                 <template #header-left>
                   <div class="row table-heading">
                     <h2 class="mb-0">
@@ -273,7 +293,7 @@ export default {
                     <BadgeState :label="clusters.length.toString()" color="role-tertiary ml-20 mr-20" />
                   </div>
                 </template>
-                <template #header-middle>
+                <template v-if="canCreateCluster" #header-middle>
                   <n-link
                     :to="importLocation"
                     class="btn btn-sm role-primary"

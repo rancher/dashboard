@@ -36,6 +36,10 @@ export default {
     plain: {
       type:    Boolean,
       default: false
+    },
+    graphical: {
+      type:    Boolean,
+      default: true
     }
   },
 
@@ -70,7 +74,7 @@ export default {
 
 <template>
   <GradientBox class="count-gauge" :class="{clickable}" :primary-color-var="primaryColorVar" :plain="plain" @click.native="visitLocation()">
-    <div class="graphical">
+    <div v-if="graphical" class="graphical">
       <GraphCircle v-if="percentage > 0" :primary-stroke-color="`rgba(var(${primaryColorVar}))`" secondary-stroke-color="rgb(var(--resource-gauge-back-circle))" :percentage="percentage" />
       <GraphCircle v-if="percentage === 0" :primary-stroke-color="`rgba(var(${primaryColorVar}))`" secondary-stroke-color="rgb(var(--resource-gauge-back-circle))" class="zero" :percentage="100" />
     </div>
@@ -128,7 +132,7 @@ export default {
         h1 {
           font-size: 40px;
           line-height: 36px;
-          padding-bottom: $padding / 2;
+          padding-bottom: math.div($padding, 2);
           margin-bottom: 0;
         }
 
@@ -142,7 +146,7 @@ export default {
         .alerts {
             position: absolute;
             right: $padding;
-            top: $padding / 2;
+            top: math.div($padding, 2);
             font-size: 15px;
 
             .text-error {

@@ -1,13 +1,12 @@
 import { set } from '@/utils/object';
+import SteveModel from '@/plugins/steve/steve-class';
 
-export default {
+export default class ChartUpgradeAction extends SteveModel {
   applyDefaults() {
-    return () => {
-      if ( !this.charts ) {
-        set(this, 'charts', [
-          {}
-        ]);
-      }
-    };
-  },
-};
+    if ( !this.charts ) {
+      set(this, 'charts', [
+        {}
+      ]);
+    }
+  }
+}

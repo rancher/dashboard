@@ -31,17 +31,7 @@ export default {
   mixins: [CreateEditView, AuthConfig],
 
   async fetch() {
-    await this.reloadModel();
-
-    const serverUrl = await this.$store.dispatch('management/find', {
-      type: MANAGEMENT.SETTING,
-      id:   'server-url',
-      opt:  { url: `/v1/{ MANAGEMENT.SETTING }/server-url` }
-    });
-
-    if ( serverUrl ) {
-      this.serverSetting = serverUrl.value;
-    }
+    await this.mixinFetch();
 
     this.targetType = (!this.model.hostname || this.model.hostname === 'github.com' ? 'public' : 'private');
     this.targetUrl = (this.model.tls ? 'https://' : 'http://') + (this.model.hostname || 'github.com');
@@ -195,7 +185,7 @@ export default {
                 <li><b>{{ t(`authConfig.${NAME}.form.app.label`) }}</b>: <span v-html="t(`authConfig.${NAME}.form.app.value`, tArgs, true)" /></li>
                 <li><b>{{ t(`authConfig.${NAME}.form.homepage.label`) }}</b>: {{ serverUrl }} <CopyToClipboard label-as="tooltip" :text="serverUrl" class="icon-btn" action-color="bg-transparent" /></li>
                 <li><b>{{ t(`authConfig.${NAME}.form.description.label`) }}</b>: <span v-html="t(`authConfig.${NAME}.form.description.value`, tArgs, true)" /></li>
-                <li><b>{{ t(`authConfig.${NAME}.form.calllback.label`) }}</b>: {{ serverUrl }} <CopyToClipboard :text="serverUrl" label-as="tooltip" class="icon-btn" action-color="bg-transparent" /></li>
+                <li><b>{{ t(`authConfig.${NAME}.form.callback.label`) }}</b>: {{ serverUrl }} <CopyToClipboard :text="serverUrl" label-as="tooltip" class="icon-btn" action-color="bg-transparent" /></li>
               </ul>
             </li>
           </ul>

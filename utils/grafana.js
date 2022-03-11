@@ -1,14 +1,11 @@
 import { parse as parseUrl, addParam } from '@/utils/url';
-import { COUNT } from '@/config/types';
+import { MONITORING } from '@/config/types';
 
 export function computeDashboardUrl(embedUrl, clusterId, params) {
   const url = parseUrl(embedUrl);
   const clusterPrefix = clusterId === 'local' ? '' : `/k8s/clusters/${ clusterId }`;
-  const prefix = `${ clusterPrefix }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/`;
-  const delimiter = 'http:rancher-monitoring-grafana:80/proxy/';
-  const path = url.path.split(delimiter)[1];
 
-  let newUrl = prefix + path;
+  let newUrl = `${ clusterPrefix }${ url.path }`;
 
   if (url.query.viewPanel) {
     newUrl = addParam(newUrl, 'viewPanel', url.query.viewPanel);
@@ -23,8 +20,8 @@ export function computeDashboardUrl(embedUrl, clusterId, params) {
   return newUrl;
 }
 
-export async function dashboardExists(dispatch, clusterId, embedUrl) {
-  if (!await isMonitoringInstalled(dispatch)) {
+export async function dashboardExists(store, clusterId, embedUrl, storeName = 'cluster') {
+  if (!isMonitoringInstalled(store.getters, storeName)) {
     return false;
   }
 
@@ -37,7 +34,7 @@ export async function dashboardExists(dispatch, clusterId, embedUrl) {
   const newUrl = `${ prefix }api/dashboards/uid/${ uid }`;
 
   try {
-    await dispatch('cluster/request', { url: newUrl, redirectUnauthorized: false });
+    await store.dispatch(`${ storeName }/request`, { url: newUrl, redirectUnauthorized: false });
 
     return true;
   } catch (ex) {
@@ -45,8 +42,8 @@ export async function dashboardExists(dispatch, clusterId, embedUrl) {
   }
 }
 
-export async function allDashboardsExist(dispatch, clusterId, embededUrls) {
-  const existPromises = embededUrls.map(url => dashboardExists(dispatch, clusterId, url));
+export async function allDashboardsExist(store, clusterId, embededUrls, storeName = 'cluster') {
+  const existPromises = embededUrls.map(url => dashboardExists(store, clusterId, url, storeName));
 
   return (await Promise.all(existPromises)).every(exists => exists);
 }
@@ -85,8 +82,6 @@ export async function failedProposals(dispatch, clusterId) {
   return response.data.result[0]?.values?.[0]?.[1] || 0;
 }
 
-async function isMonitoringInstalled(dispatch) {
-  const counts = await dispatch('cluster/findAll', { type: COUNT });
-
-  return !!counts?.[0]?.counts?.['catalog.cattle.io.app']?.namespaces?.['cattle-monitoring-system'];
+function isMonitoringInstalled(getters, storeName = 'cluster') {
+  return !!getters[`${ storeName }/schemaFor`](MONITORING.SERVICEMONITOR);
 }

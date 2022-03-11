@@ -80,16 +80,31 @@ export default {
   },
   head() {
     let cssClass = `overflow-hidden dashboard-body`;
+    const out = {
+      bodyAttrs: { class: `theme-${ this.theme } ${ cssClass }` },
+      title:     getVendor(),
+    };
+
+    if (getVendor() === 'Harvester') {
+      const ico = require(`~/assets/images/pl/harvester.png`);
+
+      out.title = 'Harvester';
+      out.link = [{
+        hid:  'icon',
+        rel:  'icon',
+        type: 'image/x-icon',
+        href: ico
+      }];
+    }
 
     let brandMeta;
 
-    try {
-      brandMeta = require(`~/assets/brand/${ this.brand }/metadata.json`);
-    } catch {
-      return {
-        bodyAttrs: { class: `theme-${ this.theme } ${ cssClass }` },
-        title:     getVendor(),
-      };
+    if ( this.brand ) {
+      try {
+        brandMeta = require(`~/assets/brand/${ this.brand }/metadata.json`);
+      } catch {
+        return out;
+      }
     }
 
     if (brandMeta?.hasStylesheet === 'true') {
@@ -99,10 +114,9 @@ export default {
       this.$store.dispatch('prefs/setBrandStyle', this.theme === 'dark');
     }
 
-    return {
-      bodyAttrs: { class: cssClass },
-      title:     getVendor(),
-    };
+    out.bodyAttrs.class = cssClass;
+
+    return out;
   },
 
 };

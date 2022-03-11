@@ -4,6 +4,7 @@ import Loading from '@/components/Loading';
 import SortableTable from '@/components/SortableTable';
 import { _VIEW } from '@/config/query-params';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
+import { random32 } from '@/utils/string';
 import Rule from './Rule';
 
 export default {
@@ -35,6 +36,14 @@ export default {
 
   async fetch() {
     await Promise.all(Object.values(WORKLOAD_TYPES).map(type => this.$store.dispatch('cluster/findAll', { type })));
+  },
+
+  beforeUpdate() {
+    for (const rule of this.value.spec.rules) {
+      if (!rule.vKey) {
+        this.$set(rule, 'vKey', random32(1));
+      }
+    }
   },
 
   computed: {
@@ -113,6 +122,7 @@ export default {
       <template #default="props">
         <Rule
           ref="lastRule"
+          :key="props.row.value.vKey"
           v-model="props.row.value"
           :service-targets="serviceTargets"
           :ingress="value"
