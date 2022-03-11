@@ -2,7 +2,6 @@ import { HCI } from '@/config/types';
 import { get } from '@/utils/object';
 import { findBy } from '@/utils/array';
 import { colorForState } from '@/plugins/steve/resource-class';
-import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import SteveModel from '@/plugins/steve/steve-class';
 
 export default class HciVmBackup extends SteveModel {
@@ -30,13 +29,13 @@ export default class HciVmBackup extends SteveModel {
       {
         action:     'restoreExistingVM',
         enabled:    canCreateVM && this.attachVmExisting && this?.status?.readyToUse,
-        icon:       'icons icon-h-restore-existing',
+        icon:       'icons icon-refresh',
         label:      this.t('harvester.action.restoreExistingVM'),
       },
       {
         action:     'restoreNewVM',
         enabled:    canCreateVM && this?.status?.readyToUse,
-        icon:       'icons icon-h-restore-new',
+        icon:       'icons icon-backup',
         label:      this.t('harvester.action.restoreNewVM'),
       },
       ...out
@@ -95,12 +94,20 @@ export default class HciVmBackup extends SteveModel {
   }
 
   get backupTarget() {
-    return get(this, `metadata.annotations."${ HCI_ANNOTATIONS.BACKUP_TARGET }"`) || '';
+    return this?.status?.backupTarget?.endpoint || '';
   }
 
   get attachVmExisting() {
     const vmList = this.$rootGetters['harvester/all'](HCI.VM);
 
     return !!vmList.find( V => V.metadata.name === this.attachVM);
+  }
+
+  remove() {
+    const opt = { ...arguments };
+
+    opt.params = { propagationPolicy: 'Foreground' };
+
+    return this._remove(opt);
   }
 }

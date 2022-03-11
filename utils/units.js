@@ -4,12 +4,14 @@ export const FRACTIONAL = ['', 'm', 'u', 'n', 'p', 'f', 'a', 'z', 'y']; // milli
 export function formatSi(inValue, {
   increment = 1000,
   addSuffix = true,
+  addSuffixSpace = true,
   suffix = '',
   firstSuffix = null,
   startingExponent = 0,
   minExponent = 0,
   maxExponent = 99,
-  maxPrecision = 2
+  maxPrecision = 2,
+  canRoundToZero = true,
 } = {}) {
   let val = inValue;
   let exp = startingExponent;
@@ -36,11 +38,31 @@ export function formatSi(inValue, {
     out = `${ Math.round(val) }`;
   }
 
+  if (out === '0' && !canRoundToZero && inValue !== 0) {
+    const exponent = exponentNeeded(inValue, increment);
+
+    return formatSi(inValue, {
+      increment,
+      addSuffix,
+      suffix,
+      firstSuffix,
+      startingExponent,
+      minExponent:    exponent,
+      maxExponent:    exponent,
+      maxPrecision,
+      canRoundToZero: true,
+    });
+  }
+
   if ( addSuffix ) {
+    if (addSuffixSpace) {
+      out += ` `;
+    }
+
     if ( exp === 0 && firstSuffix !== null) {
-      out += ` ${ firstSuffix }`;
+      out += `${ firstSuffix }`;
     } else {
-      out += ` ${ divide ? UNITS[exp] : FRACTIONAL[exp] }${ suffix }` || '';
+      out += `${ divide ? UNITS[exp] : FRACTIONAL[exp] }${ suffix }` || '';
     }
   }
 

@@ -80,9 +80,11 @@ export default {
       });
 
       return out.map((option) => {
+        const percent = ((option.num / this.nodeNetworks.length) * 100).toFixed(2);
+
         return {
           ...option,
-          percent: `${ (option.num / this.nodeNetworks.length) * 100 } %`
+          percent: `${ percent } %`
         };
       });
     }
@@ -118,7 +120,7 @@ export default {
       </template>
     </LabeledSelect>
 
-    <Tip v-if="value.enable" icon="icons icon-h-question" :text="t('harvester.setting.vlanChangeTip')" />
+    <Tip v-if="value.enable" icon="icons icon-info" :text="t('harvester.setting.vlanChangeTip')" />
   </div>
 </template>
 

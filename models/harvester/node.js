@@ -11,7 +11,7 @@ export default class HciNode extends SteveModel {
   get _availableActions() {
     const cordon = {
       action:     'cordon',
-      enabled:    this.hasAction('cordon'),
+      enabled:    this.hasAction('cordon') && !this.isCordoned,
       icon:       'icon icon-fw icon-pause',
       label:      this.t('harvester.action.cordon'),
       total:      1,
@@ -83,7 +83,7 @@ export default class HciNode extends SteveModel {
   }
 
   get stateBackground() {
-    return colorForState(this.stateDisplay).replace('text-', 'bg-');
+    return colorForState(this.stateDisplay, this.stateObj?.error, this.stateObj?.transitioning).replace('text-', 'bg-');
   }
 
   get detailLocation() {
@@ -146,6 +146,12 @@ export default class HciNode extends SteveModel {
     return this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_SCHEDULABLE] === 'false' || this.spec.unschedulable;
   }
 
+  get isMigrateable() {
+    const states = ['in-progress', 'unavailable'];
+
+    return !this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] && !this.isUnSchedulable && !states.includes(this.state);
+  }
+
   get isCordoned() {
     return this.isUnSchedulable;
   }
@@ -162,7 +168,7 @@ export default class HciNode extends SteveModel {
     const inStore = this.$rootGetters['currentProduct'].inStore;
     const longhornNode = this.$rootGetters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.id }`);
     const diskStatus = longhornNode?.status?.diskStatus || {};
-    const diskSpec = longhornNode.spec?.disks || {};
+    const diskSpec = longhornNode?.spec?.disks || {};
 
     const longhornDisks = Object.keys(diskStatus).map((key) => {
       return {

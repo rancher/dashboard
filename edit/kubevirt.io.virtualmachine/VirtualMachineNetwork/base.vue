@@ -5,10 +5,9 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 
 import { clone } from '@/utils/object';
 import { _CREATE, _VIEW } from '@/config/query-params';
+import { MANAGEMENT_NETWORK } from '@/mixins/harvester-vm';
 
-const MANAGEMENT_NETWORK = 'management Network';
-
-export const MODEL = [{
+const MODEL = [{
   label: 'virtio',
   value: 'virtio'
 }, {
@@ -63,16 +62,14 @@ export default {
   },
 
   data() {
-    const isManagementNetwork = this.value.isPod;
+    const isMasquerade = this.value.isPod;
 
-    if (isManagementNetwork) {
+    if (isMasquerade) {
       this.value.networkName = MANAGEMENT_NETWORK;
     }
 
     return {
-      errors:               [],
-      isManagementNetwork,
-      isMasquerade:         false,
+      isMasquerade,
       hasManagementNetwork: false
     };
   },
@@ -119,8 +116,7 @@ export default {
       const other = [{
         label: 'bridge',
         value: 'bridge'
-      },
-      {
+      }, {
         label: 'sriov',
         value: 'sriov'
       }];
@@ -148,8 +144,7 @@ export default {
         }
 
         this.update();
-      },
-      immediate: true
+      }
     },
 
     rows: {
@@ -195,7 +190,7 @@ export default {
       </div>
     </div>
 
-    <div class="row mb-20">
+    <div class="row" :class="{'mb-20': !isMasquerade}">
       <div class="col span-6">
         <InputOrDisplay :name="t('harvester.fields.network')" :value="value.networkName" :mode="mode">
           <LabeledSelect
@@ -224,17 +219,15 @@ export default {
       </div>
     </div>
 
-    <div v-if="!isMasquerade" class="row mb-20">
+    <div v-if="!isMasquerade" class="row">
       <div class="col span-6">
         <InputOrDisplay :name="t('harvester.fields.macAddress')" :value="value.macAddress" :mode="mode">
-          <LabeledInput v-model="value.macAddress" :mode="mode">
-            <template #label>
-              <label class="has-tooltip">
-                {{ t('harvester.fields.macAddress') }}
-                <i v-tooltip="t('harvester.virtualMachine.volume.macTip')" class="icon icon-info" style="font-size: 14px" />
-              </label>
-            </template>
-          </LabeledInput>
+          <LabeledInput
+            v-model="value.macAddress"
+            label-key="harvester.fields.macAddress"
+            :mode="mode"
+            :tooltip="t('harvester.virtualMachine.volume.macTip')"
+          />
         </inputordisplay>
       </div>
     </div>

@@ -729,7 +729,7 @@ export const CONFIGURED_RECEIVER = {
 
 export const GROUP_NAME = {
   name:      'group-name',
-  label:     'Group Name',
+  labelKey:  'tableHeaders.groupName',
   value:     'id',
   sort:      ['name'],
   search:    ['name'],
@@ -739,35 +739,35 @@ export const GROUP_NAME = {
 
 export const GROUP_ROLE_NAME = {
   name:      'group-role-names',
-  label:     'Group Role Names',
+  labelKey:  'tableHeaders.groupRoleNames',
   value:     'id',
   formatter: 'PrincipalGroupBindings',
 };
 
 export const HPA_REFERENCE = {
   name:      'reference',
-  label:     'Workload',
+  labelKey:  'tableHeaders.hpaReference',
   value:     'spec.scaleTargetRef.name',
   sort:      'spec.scaleTargetRef.name',
 };
 
 export const MIN_REPLICA = {
   name:      'minimum-replica',
-  label:     'Minimum Replicas',
+  labelKey:  'tableHeaders.minReplicas',
   value:     'spec.minReplicas',
   sort:      'spec.minReplicas',
 };
 
 export const MAX_REPLICA = {
   name:      'maximum-replica',
-  label:     'Maximum Replicas',
+  labelKey:  'tableHeaders.maxReplicas',
   value:     'spec.maxReplicas',
   sort:      'spec.maxReplicas',
 };
 
 export const CURRENT_REPLICA = {
   name:      'current-replica',
-  label:     'Current Replicas',
+  labelKey:  'tableHeaders.currentReplicas',
   value:     'status.currentReplicas',
   sort:      'status.currentReplicas',
 };
@@ -814,7 +814,7 @@ export const EXPIRES = {
 
 export const RESTART = {
   name:      'restart',
-  label:     'Restart Required',
+  labelKey:  'tableHeaders.restart',
   value:     'restartRequired',
   sort:      ['restartRequired', 'nameSort'],
   formatter: 'Checked',
@@ -829,12 +829,14 @@ export const ROLE = {
 };
 
 export const FEATURE_DESCRIPTION = {
-  name:     'description',
-  labelKey: 'tableHeaders.description',
-  value:    'status.description',
-  align:    'left',
-  sort:     ['status.description'],
-  width:    300,
+  name:          'description',
+  labelKey:      'tableHeaders.description',
+  value:         'status.description',
+  align:         'left',
+  sort:          ['status.description'],
+  width:         300,
+  formatter:     'Translate',
+  formatterOpts: { prefix: 'featureFlags.description' },
 };
 
 export const STATE_NORMAN = {
@@ -869,4 +871,23 @@ export const MANAGEMENT_NODE_OS = {
   value:     'status.internalNodeStatus.nodeInfo.operatingSystem',
   sort:      ['status.internalNodeStatus.nodeInfo.operatingSystem'],
   formatter: 'Capitalize'
+};
+
+// FLEET
+
+export const FLEET_BUNDLE_LAST_UPDATED = {
+  name:          'lastUpdated',
+  labelKey:      'tableHeaders.lastUpdated',
+  value:         'lastUpdateTime',
+  formatter:     'LiveDate',
+  formatterOpts: { addSuffix: true },
+  sort:          ['lastUpdateTime']
+};
+
+export const FLEET_BUNDLE_TYPE = {
+  name:     'bundleType',
+  labelKey: 'tableHeaders.fleetBundleType',
+  value:    'bundleType',
+  sort:     ['bundleType'],
+  width:    100,
 };

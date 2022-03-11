@@ -11,7 +11,7 @@ import SteveModel from '@/plugins/steve/steve-class';
 import Vue from 'vue';
 
 const OBSCURE_NAMESPACE_PREFIX = [
-  'c-', // cluster namesapce
+  'c-', // cluster namespace
   'p-', // project namespace
   'user-', // user namespace
   'local', // local namespace

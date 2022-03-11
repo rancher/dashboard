@@ -20,7 +20,7 @@ export default class MgmtNode extends HybridModel {
     const scaleDown = {
       action:     'scaleDown',
       enabled:    !!this.canScaleDown,
-      icon:       'icon icon-chevron-down icon-fw',
+      icon:       'icon icon-minus icon-fw',
       label:      this.t('node.actions.scaleDown'),
       bulkable:   true,
     };

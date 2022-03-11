@@ -61,7 +61,6 @@ export default {
       :class="{'one-action':!dualAction, [buttonSize]:true, 'disabled': disableButton}"
     >
       <v-popover
-        v-if="hasSlot('popover-content')"
         placement="bottom"
         :container="false"
         :disabled="disableButton"
@@ -78,8 +77,7 @@ export default {
             Button <i class="icon icon-chevron-down" />
           </button>
         </slot>
-
-        <template v-if="!disableButton" slot="popover">
+        <template #popover>
           <slot name="popover-content" />
         </template>
       </v-popover>
@@ -215,7 +213,7 @@ export default {
       text-align: left;
 
       LI {
-        padding: 10px 50px 10px 20px;
+        padding: 10px;
 
         &.divider {
           padding-top: 0px;

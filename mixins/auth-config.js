@@ -17,41 +17,7 @@ export default {
   },
 
   async fetch() {
-    this.authConfigName = this.$route.params.id;
-
-    this.originalModel = await this.$store.dispatch('rancher/find', {
-      type: NORMAN.AUTH_CONFIG,
-      id:   this.authConfigName,
-      opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ this.authConfigName }`, force: true }
-    });
-
-    const serverUrl = await this.$store.dispatch('management/find', {
-      type: MANAGEMENT.SETTING,
-      id:   'server-url',
-      opt:  { url: `/v1/${ MANAGEMENT.SETTING }/server-url` }
-    });
-
-    this.principals = await this.$store.dispatch('rancher/findAll', {
-      type: NORMAN.PRINCIPAL,
-      opt:  { url: '/v3/principals', force: true }
-    });
-
-    if ( serverUrl ) {
-      this.serverSetting = serverUrl.value;
-    }
-    this.model = await this.$store.dispatch(`rancher/clone`, { resource: this.originalModel });
-    if (this.model.openLdapConfig) {
-      this.showLdap = true;
-    }
-    if (this.value.configType === 'saml') {
-      if (!this.model.rancherApiHost || !this.model.rancherApiHost.length) {
-        this.$set(this.model, 'rancherApiHost', this.serverUrl);
-      }
-    }
-
-    if (!this.model.enabled) {
-      this.applyDefaults();
-    }
+    await this.mixinFetch();
   },
 
   data() {
@@ -111,6 +77,43 @@ export default {
   },
 
   methods: {
+    async mixinFetch() {
+      this.authConfigName = this.$route.params.id;
+
+      this.originalModel = await this.$store.dispatch('rancher/find', {
+        type: NORMAN.AUTH_CONFIG,
+        id:   this.authConfigName,
+        opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ this.authConfigName }`, force: true }
+      });
+
+      const serverUrl = await this.$store.dispatch('management/find', {
+        type: MANAGEMENT.SETTING,
+        id:   'server-url',
+        opt:  { url: `/v1/${ MANAGEMENT.SETTING }/server-url` }
+      });
+
+      this.principals = await this.$store.dispatch('rancher/findAll', {
+        type: NORMAN.PRINCIPAL,
+        opt:  { url: '/v3/principals', force: true }
+      });
+
+      if ( serverUrl ) {
+        this.serverSetting = serverUrl.value;
+      }
+      this.model = await this.$store.dispatch(`rancher/clone`, { resource: this.originalModel });
+      if (this.model.openLdapConfig) {
+        this.showLdap = true;
+      }
+      if (this.value.configType === 'saml') {
+        if (!this.model.rancherApiHost || !this.model.rancherApiHost.length) {
+          this.$set(this.model, 'rancherApiHost', this.serverUrl);
+        }
+      }
+
+      if (!this.model.enabled) {
+        this.applyDefaults();
+      }
+    },
 
     async save(btnCb) {
       await this.applyHooks(BEFORE_SAVE_HOOKS);

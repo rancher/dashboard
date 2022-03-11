@@ -58,11 +58,8 @@ export default {
   computed: {
     headers() {
       return [
-        {
-          ...STATE,
-          width: 250
-        },
-        { ...NAME, width: 120 },
+        STATE,
+        NAME,
         {
           name:      'vmCPU',
           labelKey:  'tableHeaders.cpu',
@@ -76,7 +73,7 @@ export default {
           labelKey:  'glance.memory',
           sort:      'vmRAM',
           search:    false,
-          value:     'spec.template.spec.domain.resources.requests.memory',
+          value:     'spec.template.spec.domain.resources.limits.memory',
           width:     120
         },
         {

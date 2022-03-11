@@ -4,42 +4,75 @@ import { NAMESPACE_FILTERS } from '@/store/prefs';
 import { NAMESPACE, MANAGEMENT } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 import { isArray, addObjects, findBy, filterBy } from '@/utils/array';
-import Select from '@/components/form/Select';
 import { NAME as HARVESTER } from '@/config/product/harvester';
 import {
   ALL_USER, ALL, ALL_SYSTEM, ALL_ORPHANS, NAMESPACED_YES, NAMESPACED_NO
 } from '@/store';
+import { KEY } from '@/utils/platform';
 
 const SPECIAL = 'special';
 
 export default {
-  components: { Select },
-
   data() {
     return {
-      isHovered:      false,
-      hoveredTimeout: null,
-      maskedWidth:    null,
+      isOpen:        false,
+      filter:        '',
+      hidden:        0,
+      total:         0,
+      activeElement: null,
     };
   },
 
   computed: {
     ...mapGetters(['isVirtualCluster', 'isSingleVirtualCluster', 'isMultiVirtualCluster']),
-    filterIsHovered() {
-      return this.isHovered;
+
+    hasFilter() {
+      return this.filter.length > 0;
     },
 
-    maskedDropdownWidth() {
-      const refs = this.$refs;
-      const select = refs.select;
+    filtered() {
+      let out = this.options;
 
-      if (select) {
-        const selectWidth = select.$el.offsetWidth;
-
-        return selectWidth;
+      // Filter by the current filter
+      if (this.hasFilter) {
+        out = out.filter((item) => {
+          return item.kind !== SPECIAL && item.label.toLowerCase().includes(this.filter.toLowerCase());
+        });
       }
 
-      return null;
+      const mapped = this.value.reduce((m, v) => {
+        m[v.id] = v;
+
+        return m;
+      }, {});
+
+      // Mark all of the selected options
+      out.forEach((i) => {
+        i.selected = !!mapped[i.id] || (i.id === ALL && this.value && this.value.length === 0);
+        i.elementId = (i.id || '').replace('://', '_');
+      });
+
+      return out;
+    },
+
+    tooltip() {
+      if (this.isOpen || (this.total + this.hidden) === 0) {
+        return null;
+      }
+
+      let tooltip = '<div class="ns-filter-tooltip">';
+
+      (this.value || []).forEach((v) => {
+        tooltip += `<div class="ns-filter-tooltip-item"><div>${ v.label }</div></div>`;
+      });
+
+      tooltip += '</div>';
+
+      return {
+        content:   tooltip,
+        placement: 'bottom',
+        delay:     { show: 500 }
+      };
     },
 
     options() {
@@ -83,7 +116,9 @@ export default {
         this.$store.getters[`${ inStore }/all`](NAMESPACE),
         ['nameDisplay']
       ).filter( (N) => {
-        const needFilter = !N.isSystem && !N.isFleetManaged;
+        const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(N.metadata.name);
+
+        const needFilter = !N.isSystem && !N.isFleetManaged && !isSettingSystemNamespace;
         const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
 
         return this.isVirtualCluster && isVirtualProduct ? needFilter : true;
@@ -192,6 +227,10 @@ export default {
       }
     },
 
+    isSingleSpecial() {
+      return this.value && this.value.length === 1 && this.value[0].kind === 'special';
+    },
+
     value: {
       get() {
         const prefs = this.$store.getters['prefs/get'](NAMESPACE_FILTERS);
@@ -233,7 +272,7 @@ export default {
 
         let ids;
 
-        // If there as something selected and you remove it, go back to user by default
+        // If there was something selected and you remove it, go back to user by default
         // Unless it was user or all
         if (neu.length === 0 && !hadUser && !hadAll) {
           ids = [ALL_USER];
@@ -245,215 +284,534 @@ export default {
           this.$store.dispatch('switchNamespaces', ids);
         });
       },
-    },
+    }
+  },
 
-    showGroupedOptions() {
-      if (this.value && this.value.length >= 2) {
-        return true;
-      }
-
-      return false;
-    },
+  beforeDestroy() {
+    this.removeCloseKeyHandler();
   },
 
   mounted() {
-    this.$nextTick(() => {
-      this.maskedWidth = this.maskedDropdownWidth;
-    });
+    this.layout();
+  },
+
+  watch: {
+    value(neu) {
+      this.layout();
+    }
   },
 
   methods: {
-    focus() {
-      const el = this.$refs.select.$refs['select-input'].searchEl;
+    // Layout the content in the dropdown box to best use the space to show the selection
+    layout() {
+      this.$nextTick(() => {
+        // One we have re-rendered, see what we can fit in the control to show the selected namespaces
+        if (this.$refs.values) {
+          const container = this.$refs.values;
+          const overflow = container.scrollWidth > container.offsetWidth;
+          let hidden = 0;
 
-      if ( el ) {
-        el.focus();
+          const dropdown = this.$refs.dropdown;
+          // Remove padding and dropdown arrow size
+          const maxWidth = dropdown.offsetWidth - 20 - 24;
+
+          // If we are overflowing, then allow some space for the +N indicator
+          const itemCount = this.$refs.value ? this.$refs.value.length : 0;
+          let currentWidth = 0;
+          let show = true;
+
+          this.total = 0;
+
+          for (let i = 0; i < itemCount; i++) {
+            const item = this.$refs.value[i];
+            let itemWidth = item.offsetWidth + 10;
+
+            // If this is the first item and we have overflow then add on some space for the +N
+            if (i === 0 && overflow) {
+              itemWidth += 40;
+            }
+
+            currentWidth += itemWidth;
+
+            if (show) {
+              if (i === 0) {
+                // Can't even fit the first item in
+                if (itemWidth > maxWidth) {
+                  show = false;
+                  this.total = this.value.length;
+                }
+              } else {
+                show = currentWidth < maxWidth;
+              }
+            }
+
+            hidden += show ? 0 : 1;
+            item.style.visibility = show ? 'visible' : 'hidden';
+          }
+
+          this.hidden = this.total > 0 ? 0 : hidden;
+        }
+      });
+    },
+    addCloseKeyHandler() {
+      document.addEventListener('keyup', this.closeKeyHandler);
+    },
+    removeCloseKeyHandler() {
+      document.removeEventListener('keyup', this.closeKeyHandler);
+    },
+    closeKeyHandler(e) {
+      if (e.keyCode === KEY.ESCAPE ) {
+        this.close();
       }
     },
-    focusHandler(event) {
-      if (event === 'selectBlurred') {
-        this.maskedWidth = this.maskedDropdownWidth;
-        this.isHovered = false;
+    // Keyboard support
+    itemKeyHandler(e, opt) {
+      if (e.keyCode === KEY.DOWN ) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.down();
+      } else if (e.keyCode === KEY.UP ) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.up();
+      } else if (e.keyCode === KEY.SPACE) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.selectOption(opt);
+        e.target.focus();
+      }
+    },
+    inputKeyHandler(e) {
+      if (e.keyCode === KEY.DOWN ) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.down(true);
+      } else if (e.keyCode === KEY.TAB) {
+        // Tab out of the input box
+        this.close();
+        e.target.blur();
+      }
+    },
+    mouseOver(event) {
+      const el = event.path.find(e => e.classList.contains('ns-option'));
 
+      this.activeElement = el;
+    },
+    setActiveElement(el) {
+      if (!el?.focus) {
         return;
       }
 
-      // we dont handle blur here because the select specifically handles its blur events and emits when it does.
-      // we should listen to this blur event because the swapping of the masked select with real select.
-      if (event.type === 'focus') {
-        this.isHovered = true;
-        this.$nextTick(() => {
-          this.focus();
-        });
+      el.focus();
+      this.activeElement = null;
+    },
+    down(input) {
+      const exising = this.activeElement || document.activeElement;
+
+      // Focus the first element in the list
+      if (input || !exising) {
+        if (this.$refs.options) {
+          const c = this.$refs.options.children;
+
+          if (c && c.length > 0) {
+            this.setActiveElement(c[0]);
+          }
+        }
+      } else {
+        let next = exising.nextSibling;
+
+        if (next?.children?.length) {
+          const item = next.children[0];
+
+          // Skip over dividers (assumes we don't have two dividers next to each other)
+          if (item.classList.contains('ns-divider')) {
+            next = next.nextSibling;
+          }
+        }
+
+        if (next?.focus) {
+          this.setActiveElement(next);
+        }
       }
     },
+    up() {
+      if (document.activeElement) {
+        let prev = document.activeElement.previousSibling;
 
-    isHoveredHandler(event) {
-      clearTimeout(this.hoveredTimeout);
+        if (prev?.children?.length) {
+          const item = prev.children[0];
 
-      if (event.type === 'mouseenter') {
-        this.isHovered = true;
-      } else if (event.type === 'mouseleave') {
-        this.hoveredTimeout = setTimeout(() => {
-          this.maskedWidth = this.maskedDropdownWidth;
-          this.isHovered = false;
-        }, 200);
+          if (item.classList.contains('ns-divider')) {
+            prev = prev.previousSibling;
+          }
+        }
+
+        if (prev?.focus) {
+          this.setActiveElement(prev);
+        }
       }
     },
-  },
+    toggle() {
+      if (this.isOpen) {
+        this.close();
+      } else {
+        this.open();
+      }
+    },
+    open() {
+      this.isOpen = true;
+      this.$nextTick(() => {
+        this.$refs.filter.focus();
+      });
+      this.addCloseKeyHandler();
+      this.layout();
+    },
+    close() {
+      this.isOpen = false;
+      this.activeElement = null;
+      this.removeCloseKeyHandler();
+      this.layout();
+    },
+    clear() {
+      this.value = [];
+    },
+    selectOption(option) {
+      // Ignore click for a divider
+      if (option.kind === 'divider') {
+        return;
+      }
+
+      const current = this.value;
+      const exists = current.findIndex(v => v.id === option.id);
+
+      // Remove if it exists, add if it does not
+      if (exists !== -1) {
+        current.splice(exists, 1);
+      } else {
+        current.push(option);
+      }
+
+      this.value = current;
+
+      if (document.activeElement) {
+        document.activeElement.blur();
+      }
+    },
+    removeOption(ns, event) {
+      this.selectOption(ns);
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
 };
 </script>
 
 <template>
-  <div
-    class="filter"
-    :class="{'show-masked': showGroupedOptions && !filterIsHovered}"
-    @mouseenter="isHoveredHandler"
-    @mouseleave="isHoveredHandler"
-  >
-    <div tabindex="0" class="unlabeled-select masked-dropdown" @focus="focusHandler">
-      <div class="v-select inline vs--searchable">
-        <div class="vs__dropdown-toggle">
-          <div class="vs__selected-options">
-            <div class="vs__selected">
-              {{ t('namespaceFilter.selected.label', { total: value.length }) }}
-            </div>
+  <div class="ns-filter" tabindex="0" @focus="open()">
+    <div v-if="isOpen" class="ns-glass" @click="close()"></div>
+    <!-- Dropdown control -->
+    <div ref="dropdown" class="ns-dropdown" :class="{ 'ns-open': isOpen }" @click="toggle()">
+      <div v-if="value.length === 0" ref="values" class="ns-values">
+        {{ t('nav.ns.all') }}
+      </div>
+      <div v-else-if="isSingleSpecial" ref="values" class="ns-values">
+        {{ value[0].label }}
+      </div>
+      <div v-else ref="values" v-tooltip="tooltip" class="ns-values">
+        <div v-if="total" ref="total" class="ns-value ns-abs">
+          {{ t('namespaceFilter.selected.label', { total }) }}
+        </div>
+        <div v-for="ns in value" ref="value" :key="ns.id" class="ns-value">
+          <div>{{ ns.label }}</div>
+          <i class="icon icon-close" @click="removeOption(ns, $event)" />
+        </div>
+      </div>
+      <div v-if="hidden > 0" ref="more" v-tooltip="tooltip" class="ns-more">
+        {{ t('namespaceFilter.more', { more: hidden }) }}
+      </div>
+      <i v-if="!isOpen" class="icon icon-chevron-down" />
+      <i v-else class="icon icon-chevron-up" />
+    </div>
+    <button v-shortkey.once="['n']" class="hide" @shortkey="open()" />
+    <div v-if="isOpen" class="ns-dropdown-menu">
+      <div class="ns-controls">
+        <div class="ns-input">
+          <input ref="filter" v-model="filter" tabindex="0" class="ns-filter-input" @keydown="inputKeyHandler($event)" />
+          <i v-if="hasFilter" class="ns-filter-clear icon icon-close" @click="filter = ''" />
+        </div>
+        <div class="ns-clear">
+          <i class="icon icon-close" @click="clear()" />
+        </div>
+      </div>
+      <div class="ns-divider mt-0"></div>
+      <div ref="options" class="ns-options" role="list">
+        <div
+          v-for="opt in filtered"
+          :id="opt.elementId"
+          :key="opt.id"
+          tabindex="0"
+          class="ns-option"
+          :class="{'ns-selected': opt.selected}"
+          @click="selectOption(opt)"
+          @mouseover="mouseOver($event)"
+          @keydown="itemKeyHandler($event, opt)"
+        >
+          <div v-if="opt.kind === 'divider'" class="ns-divider"></div>
+          <div v-else class="ns-item">
+            <i v-if="opt.kind === 'namespace'" class="icon icon-folder" />
+            <div>{{ opt.label }}</div>
+            <i v-if="opt.selected" class="icon icon-checkmark" />
           </div>
-          <div class="vs__actions"></div>
+        </div>
+        <div v-if="filtered.length === 0" class="ns-none">
+          {{ t('namespaceFilter.noMatchingOptions') }}
         </div>
       </div>
     </div>
-    <Select
-      ref="select"
-      v-model="value"
-      :append-to-body="false"
-      :class="{
-        'has-more': showGroupedOptions,
-      }"
-      multiple
-      :placeholder="t('nav.ns.all')"
-      :selectable="(option) => !option.disabled && option.id"
-      :options="options"
-      :close-on-select="false"
-      @on-blur="focusHandler('selectBlurred')"
-    >
-      <template v-slot:option="opt">
-        <template v-if="opt.kind === 'namespace'">
-          <i class="mr-5 icon icon-fw icon-folder" /> {{ opt.label }}
-        </template>
-        <template v-else-if="opt.kind === 'project'">
-          <b>{{ opt.label }}</b>
-        </template>
-        <template v-else-if="opt.kind === 'divider'">
-          <hr />
-        </template>
-        <template v-else>
-          {{ opt.label }}
-        </template>
-      </template>
-    </Select>
-    <button v-shortkey.once="['n']" class="hide" @shortkey="focus()" />
   </div>
 </template>
 
 <style lang="scss" scoped>
-.filter {
-  min-width: 220px;
-  max-width: 100%;
-  display: inline-block;
-}
+  $ns_dropdown_size: 24px;
 
-.filter {
-  ::v-deep .vs__dropdown-menu {
-    li.vs__dropdown-option {
-      padding: 4px 5px;
+  .ns-abs {
+    position: absolute;
+  }
+
+  .ns-filter {
+    width: 280px;
+    display: inline-block;
+
+    .ns-glass {
+      height: 100vh;
+      left: 0;
+      opacity: 0;
+      position: absolute;
+      top: 0;
+      width: 100vw;
+      z-index: 2;
+    }
+
+    .ns-controls {
+      align-items: center;
+      display: flex;
+    }
+
+    .ns-clear {
+      align-items: center;
+      display: flex;
+      > i {
+        font-size: 24px;
+        padding: 0 5px;
+      }
+
+      &:hover {
+        color: var(--link);
+        cursor: pointer;
+      }
+    }
+
+    .ns-input {
+      flex: 1;
+      padding: 5px;
+      position: relative;
+    }
+
+    .ns-filter-input {
+      height: 24px;
+    }
+
+    .ns-filter-clear {
+      cursor: pointer;
+      position: absolute;
+      right: 10px;
+      top: 5px;
+      font-size: 16px;
+      line-height: 24px;
+      text-align: center;
+      width: 24px;
+    }
+
+    .ns-dropdown-menu {
+      background-color: var(--header-bg);
+      border: 1px solid var(--link-border);
+      border-bottom-left-radius: var(--border-radius);
+      border-bottom-right-radius: var(--border-radius);
+      color: var(--header-btn-text);
+      margin-top: -1px;
+      padding-bottom: 10px;
+      position: relative;
+      z-index: 1000;
+
+      .ns-options {
+        max-height: 50vh;
+        overflow-y: auto;
+
+        .ns-none {
+          color: var(--muted);
+          padding: 0 10px;
+        }
+      }
+
+      .ns-divider {
+        border-top: 1px solid var(--border);
+        cursor: default;
+        margin-top: 10px;
+        padding-bottom: 10px;
+      }
+
+      .ns-option:focus {
+        background-color: var(--dropdown-hover-bg);
+        color: var(--dropdown-hover-text);
+      }
+
+      .ns-option {
+        .ns-item {
+          align-items: center;
+          display: flex;
+          height: 24px;
+          line-height: 24px;
+          padding: 0 10px;
+
+          > i {
+            color: var(--muted);
+            margin: 0 5px;
+          }
+
+          > div {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          &:hover, &:focus {
+            background-color: var(--dropdown-hover-bg);
+            color: var(--dropdown-hover-text);
+            cursor: pointer;
+
+            > i {
+              color: var(--dropdown-hover-text);
+            }
+          }
+        }
+      &.ns-selected:not(:hover) {
+        .ns-item {
+          > * {
+            color: var(--dropdown-hover-bg);
+          }
+        }
+      }
+      &.ns-selected {
+        &:hover,&:focus {
+          .ns-item {
+            > * {
+              background-color: var(--dropdown-hover-bg);
+              color: var(--dropdown-hover-text);
+            }
+          }
+        }
+      }
+
+      }
+    }
+
+    .ns-dropdown {
+      align-items: center;
+      display: flex;
+      border: 1px solid var(--header-border);
+      border-radius: var(--border-radius);
+      color: var(--header-btn-text);
+      cursor: pointer;
+      height: 40px;
+      padding: 0 10px;
+      position: relative;
+      z-index: 1000;
+
+      &.ns-open {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-color: var(--link-border);
+      }
+
+      > .ns-values {
+        flex: 1;
+      }
+
+      &:hover {
+        > i {
+          color: var(--link);
+        }
+      }
+
+      > i {
+        height: $ns_dropdown_size;
+        width: $ns_dropdown_size;
+        font-size: 20px;
+        cursor: pointer;
+        text-align: center;
+        line-height: $ns_dropdown_size;
+      }
+
+      .ns-more {
+        border: 1px solid var(--header-border);
+        border-radius: 5px;
+        padding: 2px 8px;
+        margin-left: 4px;
+      }
+
+      .ns-values {
+        display: flex;
+        overflow: hidden;
+
+        .ns-value {
+          align-items: center;
+          background-color: rgba(0,0,0,.05);
+          border: 1px solid var(--header-border);
+          border-radius: 5px;
+          color: var(--tag-text);
+          display: flex;
+          line-height: 20px;
+          padding: 2px 5px;
+          white-space: nowrap;
+
+          > i {
+            margin-left: 5px;
+
+            &:hover {
+              color: var(--link);
+            };
+          }
+
+          // Spacing between tags
+          &:not(:last-child) {
+            margin-right: 5px;
+          }
+        }
+      }
     }
   }
-}
+</style>
+<style lang="scss">
+  .tooltip {
+    .ns-filter-tooltip {
+      background-color: var(--body-bg);
+      margin: -6px;
+      padding: 6px;
 
-.filter.show-masked ::v-deep .unlabeled-select:not(.masked-dropdown) {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 0;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.filter:not(.show-masked) ::v-deep .unlabeled-select.masked-dropdown {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 0;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.filter ::v-deep .unlabeled-select.has-more .v-select:not(.vs--open) .vs__dropdown-toggle {
-  overflow: hidden;
-}
-
-.filter ::v-deep .unlabeled-select.has-more .v-select.vs--open .vs__dropdown-toggle {
-  height: max-content;
-  background-color: var(--header-bg);
-}
-
-.filter ::v-deep .unlabeled-select {
-  background-color: transparent;
-  border: 0;
-}
-
-.filter ::v-deep .unlabeled-select:not(.focused) {
-  min-height: 0;
-}
-
-.filter ::v-deep .unlabeled-select:not(.view):hover .vs__dropdown-menu {
-  background: var(--dropdown-bg);
-}
-
-.filter ::v-deep .unlabeled-select .v-select.inline {
-  margin: 0;
-}
-
-.filter ::v-deep .unlabeled-select .v-select .vs__selected {
-  margin: 4px;
-  user-select: none;
-  cursor: default;
-  background: rgba(0, 0, 0, 0.05);
-  border: 1px solid var(--header-border);
-  color: var(--header-btn-text);
-  height: calc(var(--header-height) - 26px);
-  width: initial;
-}
-
-.filter ::v-deep .unlabeled-select .vs__search::placeholder {
-  color: var(--header-btn-text);
-}
-
-.filter ::v-deep .unlabeled-select INPUT:hover {
-  background-color: transparent;
-}
-
-.filter ::v-deep .unlabeled-select .vs__dropdown-toggle {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: var(--border-radius);
-  border: 1px solid var(--header-btn-bg);
-  color: var(--header-btn-text);
-  height: 40px;
-  max-width: 100%;
-  padding-top: 0;
-}
-
-.filter ::v-deep .unlabeled-select .vs__deselect:after {
-  color: var(--header-btn-text);
-}
-
-.filter ::v-deep .unlabeled-select .v-select .vs__actions:after {
-  fill: var(--header-btn-text) !important;
-  color: var(--header-btn-text) !important;
-}
-
-.filter ::v-deep .unlabeled-select INPUT[type='search'] {
-  padding: 7px;
-}
+      .ns-filter-tooltip-item {
+        > div {
+          background-color: rgba(0,0,0,.05);
+          border: 1px solid var(--header-border);
+          border-radius: 5px;
+          color: var(--tag-text);
+          display: inline-block;
+          line-height: 20px;
+          padding: 2px 5px;
+          white-space: nowrap;
+          margin: 4px 0;
+        }
+      }
+    }
+  }
 </style>

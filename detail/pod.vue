@@ -31,7 +31,7 @@ export default {
   mixins: [CreateEditView, V1WorkloadMetrics],
 
   async fetch() {
-    this.showMetrics = await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [POD_METRICS_DETAIL_URL, POD_METRICS_SUMMARY_URL]);
+    this.showMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [POD_METRICS_DETAIL_URL, POD_METRICS_SUMMARY_URL]);
   },
 
   data() {

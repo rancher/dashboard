@@ -16,7 +16,8 @@ export const SETTING = {
     LINUX:                          'cli-url-linux',
   },
 
-  CA_CERTS: 'cacerts',
+  API_HOST:                         'api-host',
+  CA_CERTS:                         'cacerts',
 
   AUTH_TOKEN_MAX_TTL_MINUTES:       'auth-token-max-ttl-minutes',
   KUBECONFIG_GENERATE_TOKEN:        'kubeconfig-generate-token',
@@ -68,7 +69,7 @@ export const ALLOWED_SETTINGS = {
   [SETTING.KUBECONFIG_GENERATE_TOKEN]:      { kind: 'boolean' },
   [SETTING.KUBECONFIG_TOKEN_TTL_MINUTES]:   {},
   [SETTING.AUTH_USER_INFO_RESYNC_CRON]:     {},
-  [SETTING.SERVER_URL]:                     { kind: 'url' },
+  [SETTING.SERVER_URL]:                     { kind: 'url', canReset: true },
   [SETTING.RKE_METADATA_CONFIG]:            { kind: 'json' },
   // [SETTING.BANNERS]:                        { kind: 'json' },
   [SETTING.SYSTEM_DEFAULT_REGISTRY]:        {},
@@ -88,7 +89,7 @@ export const ALLOWED_SETTINGS = {
 };
 
 // harvester Settings ID
-const HCI_SETTING = {
+export const HCI_SETTING = {
   BACKUP_TARGET:                    'backup-target',
   LOG_LEVEL:                        'log-level',
   SERVER_VERSION:                   'server-version',
@@ -101,14 +102,21 @@ const HCI_SETTING = {
   ADDITIONAL_CA:                    'additional-ca',
   OVERCOMMIT_CONFIG:                'overcommit-config',
   CLUSTER_REGISTRATION_URL:         'cluster-registration-url',
-  // DEFAULT_STORAGE_CLASS:            'default-storage-class'
+  DEFAULT_STORAGE_CLASS:            'default-storage-class',
+  VIP:                              'vip-pools',
+  SUPPORT_BUNDLE_TIMEOUT:           'support-bundle-timeout',
+  SUPPORT_BUNDLE_IMAGE:             'support-bundle-image',
+  VM_FORCE_RESET_POLICY:            'vm-force-reset-policy',
+  SSL_CERTIFICATES:                 'ssl-certificates',
+  SSL_PARAMETERS:                   'ssl-parameters',
+  SUPPORT_BUNDLE_NAMESPACES:        'support-bundle-namespaces',
+  AUTO_DISK_PROVISION_PATHS:        'auto-disk-provision-paths',
+  RANCHER_MONITORING:               'fleet-local/rancher-monitoring',
 };
 
 export const HCI_ALLOWED_SETTINGS = {
-  [HCI_SETTING.BACKUP_TARGET]: {
-    kind: 'json', from: 'import', disableReset: true
-  },
-  [HCI_SETTING.LOG_LEVEL]: {
+  [HCI_SETTING.BACKUP_TARGET]: { kind: 'json', from: 'import' },
+  [HCI_SETTING.LOG_LEVEL]:     {
     kind:    'enum',
     options: ['info', 'debug', 'trace']
   },
@@ -119,8 +127,25 @@ export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.UPGRADE_CHECKER_ENABLED]:          { kind: 'boolean' },
   [HCI_SETTING.UPGRADE_CHECKER_URL]:              { kind: 'url' },
   [HCI_SETTING.HTTP_PROXY]:                       { kind: 'json', from: 'import' },
-  [HCI_SETTING.ADDITIONAL_CA]:                    { kind: 'multiline' },
+  [HCI_SETTING.ADDITIONAL_CA]:                    {
+    kind: 'multiline', canReset: true, from: 'import'
+  },
   [HCI_SETTING.OVERCOMMIT_CONFIG]:                { kind: 'json', from: 'import' },
+  [HCI_SETTING.SUPPORT_BUNDLE_TIMEOUT]:           {},
+  [HCI_SETTING.SUPPORT_BUNDLE_IMAGE]:             { kind: 'json', from: 'import' },
+  [HCI_SETTING.VM_FORCE_RESET_POLICY]:            { kind: 'json', from: 'import' },
+  [HCI_SETTING.SSL_CERTIFICATES]:                 { kind: 'json', from: 'import' },
+  [HCI_SETTING.VIP]:                      {
+    kind: 'json', from: 'import', canReset: true
+  },
+  [HCI_SETTING.SSL_PARAMETERS]:                   {
+    kind: 'json', from: 'import', canReset: true
+  },
+  [HCI_SETTING.SUPPORT_BUNDLE_NAMESPACES]: { from: 'import', canReset: true },
+  [HCI_SETTING.AUTO_DISK_PROVISION_PATHS]: { canReset: true },
+  [HCI_SETTING.RANCHER_MONITORING]:                {
+    kind: 'custom', from: 'import', canReset: true, customFormatter: 'json', alias: 'harvester-monitoring'
+  },
 };
 
 export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
@@ -129,7 +154,6 @@ export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
     options: ['auto', 'external', 'bundled']
   },
   [HCI_SETTING.UI_INDEX]:                 { kind: 'url' },
-  [SETTING.SERVER_URL]:                   { kind: 'url' },
   [HCI_SETTING.CLUSTER_REGISTRATION_URL]: { kind: 'url' },
 };
 

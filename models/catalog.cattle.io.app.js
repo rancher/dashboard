@@ -9,6 +9,7 @@ import { SHOW_PRE_RELEASE } from '@/store/prefs';
 import { set } from '@/utils/object';
 
 import SteveModel from '@/plugins/steve/steve-class';
+import { compatibleVersionsFor } from '@/store/catalog';
 
 export default class CatalogApp extends SteveModel {
   showMasthead(mode) {
@@ -68,17 +69,17 @@ export default class CatalogApp extends SteveModel {
     // object = version available to upgrade to
 
     if ( this.spec?.chart?.metadata?.annotations?.[FLEET.BUNDLE_ID] ) {
-      // Things managed by fleet shouldn't show ugrade available even if there might be.
+      // Things managed by fleet shouldn't show upgrade available even if there might be.
       return false;
     }
-
     const chart = this.matchingChart(false);
 
     if ( !chart ) {
       return null;
     }
 
-    const isWindows = this.$rootGetters['currentCluster'].providerOs === 'windows';
+    const workerOSs = this.$rootGetters['currentCluster'].workerOSs;
+
     const showPreRelease = this.$rootGetters['prefs/get'](SHOW_PRE_RELEASE);
 
     const thisVersion = this.spec?.chart?.metadata?.version;
@@ -88,16 +89,12 @@ export default class CatalogApp extends SteveModel {
       versions = chart.versions.filter(v => !isPrerelease(v.version));
     }
 
+    versions = compatibleVersionsFor(chart, workerOSs, showPreRelease);
+
     const newestChart = versions?.[0];
     const newestVersion = newestChart?.version;
 
     if ( !thisVersion || !newestVersion ) {
-      return null;
-    }
-
-    if (isWindows && newestChart?.annotations?.['catalog.cattle.io/os'] === 'linux') {
-      return null;
-    } else if (!isWindows && newestChart?.annotations?.['catalog.cattle.io/os'] === 'windows') {
       return null;
     }
 
@@ -116,6 +113,39 @@ export default class CatalogApp extends SteveModel {
     }
 
     return sortable(version);
+  }
+
+  get currentVersionCompatible() {
+    const workerOSs = this.$rootGetters['currentCluster'].workerOSs;
+
+    const chart = this.matchingChart(false);
+    const thisVersion = this.spec?.chart?.metadata?.version;
+
+    if (!chart) {
+      return true;
+    }
+
+    const versionInChart = chart.versions.find(version => version.version === thisVersion);
+
+    if (!versionInChart) {
+      return true;
+    }
+    const compatibleVersions = compatibleVersionsFor(chart, workerOSs, true) || [];
+
+    const thisVersionCompatible = !!compatibleVersions.find(version => version.version === thisVersion);
+
+    return thisVersionCompatible;
+  }
+
+  get stateDescription() {
+    if (this.currentVersionCompatible) {
+      return null;
+    }
+    if (this.upgradeAvailable) {
+      return this.t('catalog.os.versionIncompatible');
+    }
+
+    return this.t('catalog.os.chartIncompatible');
   }
 
   goToUpgrade(forceVersion, fromTools) {
@@ -202,6 +232,17 @@ export default class CatalogApp extends SteveModel {
     }
   }
 
+  get relatedResourcesToRemove() {
+    return async() => {
+      const crd = this.spec.chart.metadata.annotations[CATALOG_ANNOTATIONS.AUTO_INSTALL].replace('=match', '');
+
+      return await this.$dispatch('find', {
+        type: CATALOG.APP,
+        id:   `${ this.metadata.namespace }/${ crd }`
+      });
+    };
+  }
+
   get canDelete() {
     return this.hasAction('uninstall');
   }
@@ -212,33 +253,42 @@ export default class CatalogApp extends SteveModel {
 
   get deployedAsMultiCluster() {
     return async() => {
-      const mcapps = await this.$dispatch('management/findAll', { type: MANAGEMENT.MULTI_CLUSTER_APP }, { root: true });
+      try {
+        const mcapps = await this.$dispatch('management/findAll', { type: MANAGEMENT.MULTI_CLUSTER_APP }, { root: true })
+          .catch(() => {
+            throw new Error("You don't have permission to list multi-cluster apps");
+          });
 
-      if (mcapps) {
-        return mcapps.find(mcapp => mcapp.spec?.targets?.find(target => target.appName === this.metadata?.name));
-      }
+        if (mcapps) {
+          return mcapps.find(mcapp => mcapp.spec?.targets?.find(target => target.appName === this.metadata?.name));
+        }
+      } catch (e) {}
 
-      return null;
+      return false;
     };
   }
 
   get deployedAsLegacy() {
     return async() => {
-      if (this.spec.values) {
-        const { clusterName, projectName } = this.spec?.values?.global;
+      if (this.spec?.values?.global) {
+        const { clusterName, projectName } = this.spec.values.global;
 
         if (clusterName && projectName) {
-          const legacyApp = await this.$dispatch('rancher/find', {
-            type: NORMAN.APP,
-            id:   `${ projectName }:${ this.metadata?.name }`,
-            opt:  { url: `/v3/project/${ clusterName }:${ projectName }/apps/${ projectName }:${ this.metadata?.name }` }
-          }, { root: true });
+          try {
+            const legacyApp = await this.$dispatch('rancher/find', {
+              type: NORMAN.APP,
+              id:   `${ projectName }:${ this.metadata?.name }`,
+              opt:  { url: `/v3/project/${ clusterName }:${ projectName }/apps/${ projectName }:${ this.metadata?.name }` }
+            }, { root: true });
 
-          if (legacyApp) {
-            return legacyApp;
-          }
+            if (legacyApp) {
+              return legacyApp;
+            }
+          } catch (e) {}
         }
       }
+
+      return false;
     };
   }
 }

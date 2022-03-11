@@ -1,6 +1,4 @@
 <script>
-import isEmpty from 'lodash/isEmpty';
-
 import LabeledInput from '@/components/form/LabeledInput';
 import ColorInput from '@/components/form/ColorInput';
 
@@ -10,65 +8,26 @@ import SimpleBox from '@/components/SimpleBox';
 import Loading from '@/components/Loading';
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
-import BannerSettings from '@/components/form/BannerSettings';
 import { allHash } from '@/utils/promise';
 import { MANAGEMENT } from '@/config/types';
 import { getVendor, setVendor } from '@/config/private-label';
 import { SETTING, fetchOrCreateSetting } from '@/config/settings';
-import { clone } from '@/utils/object';
 import { _EDIT, _VIEW } from '@/config/query-params';
 
 const Color = require('color');
 const parse = require('url-parse');
 
-const DEFAULT_BANNER_SETTING = {
-  bannerHeader: {
-    background:      null,
-    color:           null,
-    textAlignment:   'center',
-    fontWeight:      null,
-    fontStyle:       null,
-    fontSize:        '14px',
-    textDecoration:  null,
-    text:            null,
-  },
-  bannerFooter: {
-    background:      null,
-    color:           null,
-    textAlignment:   'center',
-    fontWeight:      null,
-    fontStyle:       null,
-    fontSize:        '14px',
-    textDecoration:  null,
-    text:            null
-  },
-  bannerConsent:  {
-    background:      null,
-    color:           null,
-    textAlignment:   'center',
-    fontWeight:      null,
-    fontStyle:       null,
-    fontSize:        '14px',
-    textDecoration:  null,
-    text:            null,
-  },
-  showHeader:   'false',
-  showFooter:   'false',
-  showConsent:  'false'
-};
-
 export default {
   layout: 'authenticated',
 
   components: {
-    LabeledInput, Checkbox, FileSelector, Loading, SimpleBox, AsyncButton, Banner, BannerSettings, ColorInput
+    LabeledInput, Checkbox, FileSelector, Loading, SimpleBox, AsyncButton, Banner, ColorInput
   },
 
   async fetch() {
     const hash = await allHash({
       uiPLSetting:            this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.PL }),
       uiIssuesSetting:        this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES }),
-      uiBannerSetting:        this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS }),
       uiLogoDarkSetting:      fetchOrCreateSetting(this.$store, SETTING.LOGO_DARK, ''),
       uiLogoLightSetting:     fetchOrCreateSetting(this.$store, SETTING.LOGO_LIGHT, ''),
       uiColorSetting:         fetchOrCreateSetting(this.$store, SETTING.PRIMARY_COLOR, ''),
@@ -108,9 +67,6 @@ export default {
 
       uiIssuesSetting: {},
 
-      uiBannerSetting: null,
-      bannerVal:       {},
-
       uiLogoDarkSetting:  {},
       uiLogoDark:         '',
       uiLogoLightSetting: {},
@@ -139,18 +95,6 @@ export default {
     }
   },
 
-  watch: {
-    uiBannerSetting(neu) {
-      if (neu?.value && neu.value !== '') {
-        try {
-          const parsedBanner = JSON.parse(neu.value);
-
-          this.bannerVal = this.checkOrUpdateLegacyUIBannerSetting(parsedBanner);
-        } catch {}
-      }
-    }
-  },
-
   mounted() {
     let uiColor = getComputedStyle(document.body).getPropertyValue('--primary');
     let uiLinkColor = getComputedStyle(document.body).getPropertyValue('--link');
@@ -167,43 +111,6 @@ export default {
   },
 
   methods: {
-    checkOrUpdateLegacyUIBannerSetting(parsedBanner) {
-      const {
-        bannerHeader, bannerFooter, bannerConsent, banner
-      } = parsedBanner;
-
-      if (isEmpty(bannerHeader) && isEmpty(bannerFooter) && isEmpty(bannerConsent)) {
-        let neu = DEFAULT_BANNER_SETTING;
-
-        if (!isEmpty(banner)) {
-          const cloned = clone(( banner ?? {} ));
-
-          if (cloned?.textColor) {
-            cloned['color'] = cloned.textColor;
-            delete cloned.textColor;
-          }
-
-          neu = {
-            bannerHeader:  { ...cloned },
-            bannerFooter:  { ...cloned },
-            bannerConsent: { ...DEFAULT_BANNER_SETTING.bannerConsent },
-            showHeader:    parsedBanner?.showHeader === 'true' ? 'true' : 'false',
-            showFooter:    parsedBanner?.showFooter === 'true' ? 'true' : 'false',
-            showConsent:   parsedBanner?.showConsent === 'true' ? 'true' : 'false'
-          };
-        }
-
-        return neu;
-      }
-
-      // If user has existing banners, they may not have consent banner - use default value
-      if (isEmpty(bannerConsent)) {
-        parsedBanner.bannerConsent = { ...DEFAULT_BANNER_SETTING.bannerConsent };
-      }
-
-      return parsedBanner;
-    },
-
     updateLogo(img, key) {
       this[key] = img;
     },
@@ -231,8 +138,6 @@ export default {
       }
       this.uiPLSetting.value = this.uiPLSetting.value.replaceAll(/[\<>&=#()"]/gm, '');
 
-      this.uiBannerSetting.value = JSON.stringify(this.bannerVal);
-
       if (this.customizeLogo) {
         this.uiLogoLightSetting.value = this.uiLogoLight;
         this.uiLogoDarkSetting.value = this.uiLogoDark;
@@ -259,7 +164,6 @@ export default {
         await Promise.all([
           this.uiPLSetting.save(),
           this.uiIssuesSetting.save(),
-          this.uiBannerSetting.save(),
           this.uiLogoDarkSetting.save(),
           this.uiLogoLightSetting.save(),
           this.uiColorSetting.save(),
@@ -392,41 +296,6 @@ export default {
           </a>
         </span>
       </div>
-
-      <h3 class="mb-5 pb-5 mt-40">
-        {{ t('branding.uiBanner.label') }}
-      </h3>
-      <label class="text-label">
-        {{ t(`advancedSettings.descriptions.${ 'ui-banners' }`, {}, true) }}
-      </label>
-
-      <template>
-        <!-- Header Settings -->
-        <div class="row mt-20 mb-20">
-          <div class="col span-6">
-            <Checkbox :value="bannerVal.showHeader === 'true'" :label="t('branding.uiBanner.showHeader')" :mode="mode" @input="e=>$set(bannerVal, 'showHeader', e.toString())" />
-          </div>
-        </div>
-        <BannerSettings v-if="bannerVal.showHeader === 'true'" v-model="bannerVal" banner-type="bannerHeader" :mode="mode" />
-
-        <!-- Footer settings -->
-        <div class="row mt-20 mb-20">
-          <div class="col span-6">
-            <Checkbox :value="bannerVal.showFooter === 'true'" :label="t('branding.uiBanner.showFooter')" :mode="mode" @input="e=>$set(bannerVal, 'showFooter', e.toString())" />
-          </div>
-        </div>
-        <BannerSettings v-if="bannerVal.showFooter === 'true'" v-model="bannerVal" banner-type="bannerFooter" :mode="mode" />
-      </template>
-
-      <!-- Consent settings -->
-      <template>
-        <div class="row mt-20 mb-20">
-          <div class="col span-6">
-            <Checkbox :value="bannerVal.showConsent === 'true'" :label="t('branding.uiBanner.showConsent')" :mode="mode" @input="e => $set(bannerVal, 'showConsent', e.toString())" />
-          </div>
-        </div>
-        <BannerSettings v-if="bannerVal.showConsent === 'true'" v-model="bannerVal" banner-type="bannerConsent" :mode="mode" />
-      </template>
     </div>
     <template v-for="err in errors">
       <Banner :key="err" color="error" :label="err" />

@@ -1,6 +1,6 @@
 # Concepts
 
-This section is intended to provide an outline of background concepts behind Rancher, Kubernetes and containers. It is intended to be used as a starting by new hires who may not come from a DevOps background and may not have experience with Kubernetes or containerization.
+This section is intended to provide an outline of background concepts behind Rancher, Kubernetes and containers. It is intended to be used as a starting point by new hires who may not come from a DevOps background and may not have experience with Kubernetes or containerization.
 
 It can be hard to explain Rancher in layman's terms because it's hard to understand a technology if you don't understand the problem it is intended to solve. Rancher was originally designed to help enterprises solve problems that come with running many containers in production at scale, so if you haven't used containers in production, it can help to learn about containers and Kubernetes before learning about Rancher itself.
 
@@ -40,7 +40,7 @@ To gain familiarity with building and running container images, it may help to g
 
 Kubernetes is an open-source system for automating deployment, scaling, and management of containerized applications.
 
-While it is possible to build a Kubernetes cluster on a single node managing a simple software application, that is not really what Kubernetes is intended for. Kubernetes is a complex solution intended to solve complex problems, and it is recommended for users who are running sofware applications that consist of at least twelve to fourteen microservices. When we say microservcices, we mean that the software is so complex that it needed to be divided into multiple independent parts that run in separate containers. If your software application can run in a single container, you probably don't need Kubernetes because it would be easier to manage it manually than to introduce the full complexity of Kubernetes to manage that container.
+While it is possible to build a Kubernetes cluster on a single node managing a simple software application, that is not really what Kubernetes is intended for. Kubernetes is a complex solution intended to solve complex problems, and it is recommended for users who are running software applications that consist of at least twelve to fourteen microservices. When we say microservices, we mean that the software is so complex that it needed to be divided into multiple independent parts that run in separate containers. If your software application can run in a single container, you probably don't need Kubernetes because it would be easier to manage it manually than to introduce the full complexity of Kubernetes to manage that container.
 
 Kubernetes is too complex to document it all here, but a good starting point would be to go through the tutorials in the official [Kubernetes documentation.](https://kubernetes.io/docs/tutorials/) Minikube and K3d are examples of tools that let you play with Kubernetes in a sandbox environment for development and testing purposes.
 

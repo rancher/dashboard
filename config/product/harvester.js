@@ -2,7 +2,7 @@ import {
   HCI, NODE, CONFIG_MAP, NAMESPACE, VIRTUAL_TYPES, MANAGEMENT, PVC
 } from '@/config/types';
 import {
-  STATE, NAME_UNLINKED, NAME as NAME_COL, AGE, NAMESPACE_COL,
+  STATE, NAME_UNLINKED, NAME as NAME_COL, AGE, NAMESPACE as NAMESPACE_COL,
 } from '@/config/table-headers';
 
 import { IMAGE_DOWNLOAD_SIZE, FINGERPRINT, IMAGE_PROGRESS } from '@/config/harvester-table-headers';
@@ -29,6 +29,7 @@ export function init(store) {
     hideKubeShell:       true,
     hideKubeConfig:      true,
     showClusterSwitcher: true,
+    hideCopyConfig:      true,
     typeStoreMap:        {
       [MANAGEMENT.PROJECT]:                       'management',
       [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',
@@ -189,6 +190,18 @@ export function init(store) {
   ], 'advanced');
 
   configureType(HCI.CLUSTER_NETWORK, { realResource: HCI.SETTING, showState: false });
+
+  configureType(HCI.MANAGED_CHART, {
+    location:    {
+      name:    'c-cluster-product-resource',
+      params:  { resource: HCI.MANAGED_CHART },
+    },
+    resource:       MANAGEMENT.MANAGED_CHART,
+    resourceDetail: HCI.MANAGED_CHART,
+    resourceEdit:   HCI.MANAGED_CHART,
+    showState:      false
+  });
+
   virtualType({
     labelKey:   'harvester.vmTemplate.label',
     group:      'root',
@@ -250,6 +263,7 @@ export function init(store) {
     resourceDetail: HCI.CLOUD_TEMPLATE,
     resourceEdit:   HCI.CLOUD_TEMPLATE,
   });
+
   virtualType({
     labelKey:     'harvester.cloudTemplate.label',
     name:         HCI.CLOUD_TEMPLATE,

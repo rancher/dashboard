@@ -52,6 +52,7 @@ export default {
       class="mr-10"
       :mode="mode"
       :placeholder="typeOption.placeholder"
+      :increment="typeOption.increment"
       :input-exponent="typeOption.inputExponent"
       :base-unit="typeOption.baseUnit"
       :output-modifier="true"

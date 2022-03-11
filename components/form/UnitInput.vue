@@ -8,7 +8,7 @@ export default {
 
   props: {
     // Convert output to string
-    // Output will also be a string regardless of this prop if outputModifer = true
+    // Output will also be a string regardless of this prop if outputModifier = true
     outputAs: {
       type:    String,
       default: 'number',
@@ -40,6 +40,12 @@ export default {
     baseUnit: {
       type:    String,
       default: 'B',
+    },
+
+    /* Hide arrows on number input when it overlaps with the unit */
+    hideArrows: {
+      type:    Boolean,
+      default: false
     },
 
     // If set to 1024, binary modifier will be used eg MiB instead of MB
@@ -188,6 +194,7 @@ export default {
     :tooltip-key="tooltipKey"
     :required="required"
     :placeholder="placeholder"
+    :hide-arrows="hideArrows"
     @input="update($event)"
   >
     <template #suffix>

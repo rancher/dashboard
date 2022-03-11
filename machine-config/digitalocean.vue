@@ -2,14 +2,16 @@
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import ArrayList from '@/components/form/ArrayList';
 import Checkbox from '@/components/form/Checkbox';
 import { NORMAN } from '@/config/types';
 import { stringify, exceptionToErrorsArray } from '@/utils/error';
+import { _CREATE } from '@/config/query-params';
 import Banner from '@/components/Banner';
 
 export default {
   components: {
-    Loading, LabeledSelect, Checkbox, Banner
+    Loading, LabeledSelect, ArrayList, Checkbox, Banner
   },
 
   mixins: [CreateEditView],
@@ -87,11 +89,18 @@ export default {
   },
 
   data() {
+    let tags = null;
+
+    if (this.value.tags) {
+      tags = this.value.tags.split(',');
+    }
+
     return {
       credential:      null,
       regionOptions:   null,
       imageOptions:    null,
       instanceOptions: null,
+      tags
     };
   },
 
@@ -101,6 +110,12 @@ export default {
     },
 
     'value.image': 'updateUsername',
+  },
+
+  computed: {
+    isCreate() {
+      return this.mode === _CREATE;
+    }
   },
 
   methods: {
@@ -113,6 +128,10 @@ export default {
         this.value.sshUser = undefined;
       }
     },
+
+    updateTags() {
+      this.$set(this.value, 'tags', this.tags.join());
+    }
   },
 };
 </script>
@@ -187,6 +206,21 @@ export default {
           :mode="mode"
           :disabled="disabled"
           label="Private Networking"
+        />
+      </div>
+    </div>
+    <div class="row mt-20">
+      <div class="col span-6">
+        <ArrayList
+          v-model="tags"
+          :mode="mode"
+          :protip="false"
+          :title="t('cluster.machineConfig.digitalocean.tags.label')"
+          :value-placeholder="t('cluster.machineConfig.digitalocean.tags.placeholder')"
+          :disabled="!isCreate"
+          :add-allowed="isCreate"
+          :remove-allowed="isCreate"
+          @input="updateTags"
         />
       </div>
     </div>

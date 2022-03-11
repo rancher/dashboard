@@ -35,6 +35,10 @@ const INITIAL_VAPP_OPTIONS = {
   vappTransport:          '',
   vappProperty:           []
 };
+const OS_OPTIONS = [
+  'linux',
+  'windows'
+];
 const DEFAULT_CFGPARAM = ['disk.enableUUID=TRUE'];
 
 const getDefaultVappOptions = (networks) => {
@@ -154,23 +158,16 @@ export default {
     this.errors = [];
 
     try {
+      const datacenterAlreadySet = !!this.value.datacenter;
+
       await this.loadDataCenters();
+
+      if (datacenterAlreadySet) {
+        this.loadAllDatacenterResources();
+      }
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
     }
-
-    this.loadResourcePools();
-    this.loadDataStores();
-    this.loadFolders();
-    this.loadHosts();
-    this.loadTemplates();
-    this.loadTags();
-    this.loadCustomAttributes();
-    // This is currently broken in the backend. Once fixed we can add this back
-    // this.loadContentLibraries();
-    this.loadLibraryTemplates();
-    this.loadVirtualMachines();
-    this.loadNetworks();
   },
 
   data() {
@@ -194,11 +191,10 @@ export default {
         label: this.t('cluster.machineConfig.vsphere.creationMethods.template'),
         value: CREATION_METHOD.TEMPLATE
       },
-      // This is currently broken in the backend. Once fixed we can add this back
-      // {
-      //   label: this.t('cluster.machineConfig.vsphere.creationMethods.library'),
-      //   value: CREATION_METHOD.LIBRARY
-      // },
+      {
+        label: this.t('cluster.machineConfig.vsphere.creationMethods.library'),
+        value: CREATION_METHOD.LIBRARY
+      },
       {
         label: this.t('cluster.machineConfig.vsphere.creationMethods.vm'),
         value: CREATION_METHOD.VM
@@ -220,6 +216,7 @@ export default {
       set(this.value, 'cloudConfig', '#cloud-config\n\n');
       set(this.value, 'cfgparam', DEFAULT_CFGPARAM);
       set(this.value, 'vappProperty', this.value.vappProperty);
+      set(this.value, 'os', OS_OPTIONS[0]);
       Object.entries(INITIAL_VAPP_OPTIONS).forEach(([key, value]) => {
         set(this.value, key, value);
       });
@@ -247,7 +244,8 @@ export default {
       haveAttributes:           null,
       haveTemplates:            null,
       vAppOptions,
-      vappMode:                 getInitialVappMode(this.value)
+      vappMode:                 getInitialVappMode(this.value),
+      osOptions:                OS_OPTIONS,
     };
   },
 
@@ -329,7 +327,9 @@ export default {
         this.$fetch();
       }
     },
-
+    'value.datacenter'() {
+      this.loadAllDatacenterResources();
+    },
     'value.contentLibrary'() {
       this.loadLibraryTemplates();
     },
@@ -394,6 +394,8 @@ export default {
 
     async loadTags() {
       try {
+        set(this, 'tagsResults', null);
+
         const categoriesPromise = this.requestOptions('tag-categories');
         const optionsPromise = this.requestOptions('tags');
 
@@ -414,6 +416,8 @@ export default {
 
     async loadCustomAttributes() {
       try {
+        set(this, 'attributeKeysResults', null);
+
         const options = await this.requestOptions('custom-attributes');
 
         set(this, 'attributeKeysResults', this.mapCustomAttributesToContent(options));
@@ -424,6 +428,8 @@ export default {
     },
 
     async loadHosts() {
+      set(this, 'hostsResults', null);
+
       const options = await this.requestOptions('hosts', this.value.datacenter);
       const content = this.mapHostOptionsToContent(options);
 
@@ -433,6 +439,8 @@ export default {
     },
 
     async loadResourcePools() {
+      set(this, 'resourcePoolsResults', null);
+
       const options = await this.requestOptions('resource-pools', this.value.datacenter);
 
       const content = this.mapPoolOptionsToContent(options);
@@ -443,6 +451,8 @@ export default {
     },
 
     async loadDataStores() {
+      set(this, 'dataStoresResults', null);
+
       const options = await this.requestOptions('data-stores', this.value.datacenter);
       const content = this.mapPathOptionsToContent(options);
 
@@ -452,6 +462,8 @@ export default {
     },
 
     async loadDataStoreClusters() {
+      set(this, 'dataStoreResults', null);
+
       const options = await this.requestOptions('data-store-clusters', this.value.datacenter);
       const content = this.mapPathOptionsToContent(options);
 
@@ -461,6 +473,8 @@ export default {
     },
 
     async loadFolders() {
+      set(this, 'foldersResults', null);
+
       const options = await this.requestOptions('folders', this.value.datacenter);
       const content = this.mapFolderOptionsToContent(options);
 
@@ -470,6 +484,8 @@ export default {
     },
 
     async loadNetworks() {
+      set(this, 'networksResults', null);
+
       const options = await this.requestOptions('networks', this.value.datacenter);
       const content = this.mapPathOptionsToContent(options);
 
@@ -479,8 +495,11 @@ export default {
     },
 
     async loadContentLibraries() {
+      set(this, 'contentLibrariesResults', null);
+
       const options = await this.requestOptions('content-libraries', this.value.datacenter);
-      const content = this.mapPathOptionsToContent(options);
+      const content = this.mapPathOptionsToContent(options)
+        .filter(item => item.value !== '');
 
       this.resetValueIfNecessary('contentLibrary', content, options);
 
@@ -488,14 +507,15 @@ export default {
     },
 
     async loadLibraryTemplates() {
+      set(this, 'libraryTemplatesResults', null);
+
       const contentLibrary = this.value.contentLibrary;
 
       if (!contentLibrary) {
         return [];
       }
 
-      const options = await this.requestOptions('library-templates', undefined, contentLibrary);
-
+      const options = await this.requestOptions('library-templates', this.value.datacenter, contentLibrary);
       const content = this.mapPathOptionsToContent(options);
 
       if (this.showContentLibrary) {
@@ -506,6 +526,8 @@ export default {
     },
 
     async loadVirtualMachines() {
+      set(this, 'virtualMachinesResults', null);
+
       const options = await this.requestOptions('virtual-machines', this.value.datacenter);
 
       const content = this.mapPathOptionsToContent(options);
@@ -519,6 +541,8 @@ export default {
 
     async loadTemplates() {
       try {
+        set(this, 'templatesResults', null);
+
         const options = await this.requestOptions('templates', this.value.datacenter);
 
         const content = this.mapPathOptionsToContent(options);
@@ -532,6 +556,20 @@ export default {
       } catch (e) {
         this.haveTemplates = false;
       }
+    },
+
+    loadAllDatacenterResources() {
+      this.loadResourcePools();
+      this.loadDataStores();
+      this.loadFolders();
+      this.loadHosts();
+      this.loadTemplates();
+      this.loadTags();
+      this.loadCustomAttributes();
+      this.loadContentLibraries();
+      this.loadLibraryTemplates();
+      this.loadVirtualMachines();
+      this.loadNetworks();
     },
 
     resetValueIfNecessary(key, content, options, isArray = false) {
@@ -738,6 +776,15 @@ export default {
               :mode="mode"
               :label="t('cluster.machineConfig.vsphere.instanceOptions.disk')"
               :suffix="t('suffix.mib')"
+              :disabled="disabled"
+            />
+          </div>
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="value.os"
+              :mode="mode"
+              :options="osOptions"
+              :label="t('cluster.machineConfig.vsphere.instanceOptions.os')"
               :disabled="disabled"
             />
           </div>

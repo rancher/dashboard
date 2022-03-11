@@ -3,13 +3,14 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
 import { addParams } from '@/utils/url';
 import { allHash, allHashSettled } from '@/utils/promise';
 import { clone } from '@/utils/object';
-import { findBy, addObject, filterBy } from '@/utils/array';
+import { findBy, addObject, filterBy, isArray } from '@/utils/array';
 import { stringify } from '@/utils/error';
 import { classify } from '@/plugins/steve/classify';
 import { sortBy } from '@/utils/sort';
 import { importChart } from '@/utils/dynamic-importer';
 import { ensureRegex } from '@/utils/string';
 import { isPrerelease } from '@/utils/version';
+import difference from 'lodash/difference';
 
 const ALLOWED_CATEGORIES = [
   'Storage',
@@ -29,6 +30,9 @@ const CERTIFIED_SORTS = {
   [CATALOG_ANNOTATIONS._PARTNER]:      2,
   other:                               3,
 };
+
+export const WINDOWS = 'windows';
+export const LINUX = 'linux';
 
 export const state = function() {
   return {
@@ -462,6 +466,7 @@ function addChart(ctx, map, chart, repo) {
   let obj = map[key];
 
   const certifiedAnnotation = chart.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED];
+
   let certified = null;
   let sideLabel = null;
 
@@ -512,6 +517,7 @@ function addChart(ctx, map, chart, repo) {
       targetName:       chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
       scope:            chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
       provides:         [],
+      permittedOSs:      certifiedAnnotation === 'rancher' ? (chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || 'linux').split(',') : null
     });
 
     map[key] = obj;
@@ -567,15 +573,28 @@ function normalizeCategory(c) {
   return c.replace(/\s+/g, '').toLowerCase();
 }
 
-export function compatibleVersionsFor(versions, os, includePrerelease = true) {
+/*
+catalog.cattle.io/deplys-on-os: OS -> requires global.cattle.OS.enabled: true
+  default: nothing
+catalog.cattle.io/permits-os: OS -> will break on clusters containing nodes that are not OS
+  default if not found: catalog.cattle.io/permits-os: linux
+*/
+export function compatibleVersionsFor(chart, os, includePrerelease = true) {
+  const versions = chart.versions;
+  const isRancher = chart.certified === 'rancher';
+
+  if (os && !isArray(os)) {
+    os = [os];
+  }
+
   return versions.filter((ver) => {
-    const osAnnotation = ver?.annotations?.[CATALOG_ANNOTATIONS.SUPPORTED_OS];
+    const osPermitted = (ver?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).split(',');
 
     if ( !includePrerelease && isPrerelease(ver.version) ) {
       return false;
     }
 
-    if (!osAnnotation || !os || osAnnotation === os) {
+    if ( !os || difference(os, osPermitted).length === 0 || !isRancher) {
       return true;
     }
 
@@ -584,7 +603,7 @@ export function compatibleVersionsFor(versions, os, includePrerelease = true) {
 }
 
 export function filterAndArrangeCharts(charts, {
-  os,
+  operatingSystems,
   category,
   searchQuery,
   showDeprecated = false,
@@ -596,8 +615,6 @@ export function filterAndArrangeCharts(charts, {
   hideTypes = [],
 } = {}) {
   const out = charts.filter((c) => {
-    const { versions: chartVersions = [] } = c;
-
     if (
       ( c.deprecated && !showDeprecated ) ||
       ( c.hidden && !showHidden ) ||
@@ -608,7 +625,7 @@ export function filterAndArrangeCharts(charts, {
       return false;
     }
 
-    if (compatibleVersionsFor(chartVersions, os, showPrerelease).length <= 0) {
+    if (compatibleVersionsFor(c, operatingSystems, showPrerelease).length <= 0) {
       // There's no versions compatible with the specified os
       return false;
     }

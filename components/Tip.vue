@@ -16,7 +16,9 @@ export default {
 <template>
   <div class="tip">
     <span class="my-icon" :class="icon"></span>
-    <span class="text">{{ text }}</span>
+    <slot>
+      <span class="text">{{ text }}</span>
+    </slot>
   </div>
 </template>
 

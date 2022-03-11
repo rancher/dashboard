@@ -1,6 +1,7 @@
 import { findBy } from '@/utils/array';
-import { HCI_ALLOWED_SETTINGS } from '@/config/settings';
+import { HCI } from '@/config/types';
 import SteveModel from '@/plugins/steve/steve-class';
+import { HCI_ALLOWED_SETTINGS, HCI_SETTING } from '@/config/settings';
 
 export default class HciSetting extends SteveModel {
   get _availableActions() {
@@ -25,7 +26,31 @@ export default class HciSetting extends SteveModel {
       editAction.label = this.t('advancedSettings.edit.label');
     }
 
+    const schema = this.$getters['schemaFor'](HCI.UPGRADE);
+    const hasUpgradeAccess = !!schema?.collectionMethods.find(x => ['post'].includes(x.toLowerCase()));
+
+    if (this.id === HCI_SETTING.SERVER_VERSION && hasUpgradeAccess) {
+      const latestUpgrade = this.$getters['all'](HCI.UPGRADE).find(upgrade => upgrade.isLatestUpgrade);
+
+      out.unshift({
+        action:   'goToAirgapUpgrade',
+        enabled:  true,
+        icon:     'icon icon-refresh',
+        label:    this.t('harvester.upgradePage.upgrade'),
+        disabled: !!latestUpgrade && !latestUpgrade?.isUpgradeSucceeded
+      });
+    }
+
     return out;
+  }
+
+  goToAirgapUpgrade() {
+    const router = this.currentRouter();
+
+    router.push({
+      name:   'c-cluster-harvester-airgapupgrade',
+      params: { cluster: this.$rootGetters['currentCluster'].id, product: 'harvester' },
+    });
   }
 
   get backupTagetetIsEmpty() {
@@ -46,23 +71,6 @@ export default class HciSetting extends SteveModel {
 
   get valueOrDefaultValue() {
     return this.value || this.default;
-  }
-
-  get upgradeableVersion() {
-    const value = this.value || '';
-
-    if (!value) {
-      return [];
-    }
-
-    return value.split(',').sort((a, b) => {
-      return a > b ? -1 : 1;
-    }).map( (V) => {
-      return {
-        label: V,
-        value: V
-      };
-    });
   }
 
   get currentVersion() {

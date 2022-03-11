@@ -73,18 +73,26 @@ export default {
         },
         NAMESPACE,
         {
-          name:      'CPU',
-          label:     'CPU',
-          sort:      ['spec.template.spec.domain.cpu.cores'],
-          value:     'spec.template.spec.domain.cpu.cores',
-          align:     'center'
+          name:        'CPU',
+          label:       'CPU',
+          sort:        ['spec.template.spec.domain.cpu.cores'],
+          value:       'spec.template.spec.domain.cpu.cores',
+          align:       'center',
+          dashIfEmpty: true,
         },
         {
-          name:      'Memory',
-          value:     'spec.template.spec.domain.resources.requests.memory',
-          sort:      ['memorySort'],
-          align:     'center',
-          labelKey:  'tableHeaders.memory'
+          name:          'Memory',
+          value:         'displayMemory',
+          sort:          ['memorySort'],
+          align:         'center',
+          labelKey:      'tableHeaders.memory',
+          formatter:     'Si',
+          formatterOpts: {
+            opts: {
+              increment: 1024, addSuffix: true, maxExponent: 3, minExponent: 3, suffix: 'i',
+            },
+            needParseSi: true
+          },
         },
         {
           name:      'ip',
