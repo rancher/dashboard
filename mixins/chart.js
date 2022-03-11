@@ -61,7 +61,6 @@ export default {
     },
 
     mappedVersions() {
-      const isRancher = this.chart?.certified === 'rancher';
       const versions = this.chart?.versions || [];
       const selectedVersion = this.targetVersion;
       const OSs = this.currentCluster?.workerOSs;
@@ -79,22 +78,14 @@ export default {
           keywords:        version.keywords
         };
 
-        let permittedSystems;
+        const permittedSystems = (version?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).split(',');
 
-        if (version?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS]) {
-          permittedSystems = version?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS].split(',');
-        } else if (isRancher) {
-          permittedSystems = [LINUX];
+        if (permittedSystems.length > 0 && difference(OSs, permittedSystems).length > 0) {
+          nue.disabled = true;
         }
-
-        if (permittedSystems) {
-          if (permittedSystems.length > 0 && difference(OSs, permittedSystems).length > 0) {
-            nue.disabled = true;
-          }
-          // if only one OS is allowed, show '<OS>-only' on hover
-          if (permittedSystems.length === 1) {
-            nue.label = this.t(`catalog.install.versions.${ permittedSystems[0] }`, { ver: version.version });
-          }
+        // if only one OS is allowed, show '<OS>-only' on hover
+        if (permittedSystems.length === 1) {
+          nue.label = this.t(`catalog.install.versions.${ permittedSystems[0] }`, { ver: version.version });
         }
 
         if (!this.showPreRelease && isPrerelease(version.version)) {

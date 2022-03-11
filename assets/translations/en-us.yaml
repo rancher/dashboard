@@ -721,7 +721,9 @@ catalog:
       other: Other
       partner: Partner
       rancher: '{vendor}'
-    deploysOn: Deploys on {os}
+    deploysOnWindows: Deploys on Windows
+    windowsIncompatible: Linux only
+    versionWindowsIncompatible: Linux only version
     header: Charts
     noCharts: 'There are no charts available, have you added any repos?'
     noWindows: Your repos do not contain any charts capable of being deployed on a cluster with Windows nodes.
@@ -866,8 +868,8 @@ catalog:
       remove: Remove
       manage: Manage
   os:
-    versionIncompatible: "This version is not compatible with all worker nodes' operating systems"
-    chartIncompatible: "This chart is not compatible with all worker nodes' operating systems"
+    versionIncompatible: "This version is not compatible with Windows nodes."
+    chartIncompatible: "This chart is not compatible with Windows nodes."
 
 changePassword:
   title: Change Password
@@ -5999,6 +6001,7 @@ typeDescription:
   #       Should fit on one line.
   #       If you link to anything external, it MUST have
   #       target="_blank" rel="noopener noreferrer nofollow"
+  chart: "All charts have at least one version that is installable on clusters with Linux and Windows nodes unless otherwise indicated."
   cis.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
   cis.cattle.io.clusterscanprofile: A profile is the configuration for the CIS scan, which is the benchmark versions to use and any specific tests to skip in that benchmark.
   cis.cattle.io.clusterscan: A scan is created to trigger a CIS scan on the cluster based on the defined profile. A report is created after the scan is completed.
