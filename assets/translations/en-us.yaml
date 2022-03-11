@@ -722,8 +722,8 @@ catalog:
       partner: Partner
       rancher: '{vendor}'
     deploysOnWindows: Deploys on Windows
-    windowsIncompatible: Incompatible with Windows
-    versionWindowsIncompatible: Version Incompatible with Windows
+    windowsIncompatible: Linux only
+    versionWindowsIncompatible: Linux only version
     header: Charts
     noCharts: 'There are no charts available, have you added any repos?'
     noWindows: Your repos do not contain any charts capable of being deployed on a cluster with Windows nodes.
