@@ -899,13 +899,12 @@ export default {
       <div v-if="isRancherType" class="row">
         <div class="col span-6">
           <RadioGroup
-            :value="value.default"
+            v-model="value.newUserDefault"
             name="storageSource"
             :label="defaultLabel"
             class="mb-10"
             :options="newUserDefaultOptions"
             :mode="mode"
-            @input="value.updateDefault"
           />
         </div>
         <div v-if="isRancherRoleTemplate" class="col span-6">

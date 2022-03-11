@@ -2,7 +2,6 @@ import { DESCRIPTION } from '@/config/labels-annotations';
 import { SCHEMA, NORMAN } from '@/config/types';
 import { CATTLE_API_GROUP, SUBTYPE_MAPPING } from '@/models/management.cattle.io.roletemplate';
 import { uniq } from '@/utils/array';
-import Vue from 'vue';
 import { get } from '@/utils/object';
 import SteveModel from '@/plugins/steve/steve-class';
 import Role from './rbac.authorization.k8s.io.role';
@@ -53,10 +52,6 @@ export default class GlobalRole extends SteveModel {
 
   get default() {
     return !!this.newUserDefault;
-  }
-
-  updateDefault(value) {
-    Vue.set(this, 'newUserDefault', value);
   }
 
   get allResources() {
