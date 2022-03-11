@@ -183,9 +183,9 @@ export default {
           <span class="text-error">*</span>
         </div>
         <div class="access-modes">
-          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteOnce')" label="Single-Node Read/Write" @input="e=>updateMode('ReadWriteOnce', e)" />
-          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadOnlyMany')" label="Many-Node Read-Only" @input="e=>updateMode('ReadOnlyMany', e)" />
-          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteMany')" label="Many-Node Read/Write" @input="e=>updateMode('ReadWriteMany', e)" />
+          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteOnce')" :label="t('persistentVolumeClaim.accessModesOptions.singleNodeRW')" @input="e=>updateMode('ReadWriteOnce', e)" />
+          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadOnlyMany')" :label="t('persistentVolumeClaim.accessModesOptions.manyNodeR')" @input="e=>updateMode('ReadOnlyMany', e)" />
+          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteMany')" :label="t('persistentVolumeClaim.accessModesOptions.manyNodeRW')" @input="e=>updateMode('ReadWriteMany', e)" />
         </div>
       </div>
       <div v-if="createPV" class="col span-6">

@@ -106,6 +106,8 @@ export default {
       setVendor(plSetting.value);
     }
 
+    const productName = plSetting.default === 'Harvester' ? 'Harvester' : 'Rancher';
+
     const principals = await store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
     const me = findBy(principals, 'me', true);
 
@@ -132,6 +134,7 @@ export default {
     const mustChangePassword = await calcMustChangePassword(store);
 
     return {
+      productName,
       vendor:            getVendor(),
       product:           getProduct(),
       step:              parseInt(route.query.step, 10) || 1,
@@ -184,7 +187,7 @@ export default {
       const out = findBy(this.principals, 'me', true);
 
       return out;
-    },
+    }
   },
 
   watch: {
@@ -331,14 +334,18 @@ export default {
             </template>
 
             <div class="checkbox mt-40">
-              <Checkbox v-model="telemetry" label-key="setup.telemetry" />
+              <Checkbox id="checkbox-telemetry" v-model="telemetry" label-key="setup.telemetry" />
             </div>
             <div class="checkbox pt-10 eula">
-              <Checkbox v-model="eula" label-key="setup.eula" />
+              <Checkbox id="checkbox-eula" v-model="eula">
+                <template #label>
+                  <t k="setup.eula" :raw="true" :name="productName" />
+                </template>
+              </Checkbox>
             </div>
           </template>
 
-          <div class="text-center mt-20">
+          <div id="submit" class="text-center mt-20">
             <AsyncButton key="passwordSubmit" type="submit" mode="continue" :disabled="!saveEnabled" @click="save" />
           </div>
 
@@ -410,14 +417,6 @@ export default {
       line-height: 20px;
     }
 
-    .eula {
-      align-items: center;
-      display: flex;
-
-      span {
-        margin-left: 5px;
-      }
-    }
   }
 
   .landscape {

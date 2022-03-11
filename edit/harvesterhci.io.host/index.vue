@@ -143,7 +143,7 @@ export default {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `${ LONGHORN_SYSTEM }/${ this.value.id }`);
       const diskStatus = longhornNode?.status?.diskStatus || {};
-      const diskSpec = longhornNode.spec?.disks || {};
+      const diskSpec = longhornNode?.spec?.disks || {};
 
       const formatOptions = {
         increment:    1024,
@@ -179,6 +179,19 @@ export default {
 
       return out.length > 0;
     },
+
+    hasHostNetworksSchema() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return !!this.$store.getters[`${ inStore }/schemaFor`](HCI.NODE_NETWORK);
+    },
+
+    hasBlockDevicesSchema() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return !!this.$store.getters[`${ inStore }/schemaFor`](HCI.BLOCK_DEVICE);
+    },
+
   },
   watch: {
     customName(neu) {
@@ -187,6 +200,10 @@ export default {
 
     consoleUrl(neu) {
       this.value.setAnnotation(HCI_LABELS_ANNOTATIONS.HOST_CONSOLE_URL, neu);
+    },
+
+    newDisks() {
+      this.blockDeviceOpts = this.getBlockDeviceOpts();
     },
   },
 
@@ -216,14 +233,15 @@ export default {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const disk = this.$store.getters[`${ inStore }/byId`](HCI.BLOCK_DEVICE, id);
       const mountPoint = disk?.spec?.fileSystem?.mountPoint;
+      const lastFormattedAt = disk?.status?.deviceStatus?.fileSystem?.LastFormattedAt;
 
-      let forceFormatted;
+      let forceFormatted = true;
       const systems = ['ext4', 'XFS'];
 
-      if (systems.includes(disk?.status?.deviceStatus?.fileSystem?.type)) {
+      if (lastFormattedAt) {
         forceFormatted = false;
-      } else {
-        forceFormatted = !disk?.status?.deviceStatus?.partitioned;
+      } else if (systems.includes(disk?.status?.deviceStatus?.fileSystem?.type)) {
+        forceFormatted = false;
       }
 
       const name = disk?.metadata?.name;
@@ -338,6 +356,12 @@ export default {
           const isAdded = findBy(this.newDisks, 'name', d.metadata.name);
           const isRemoved = findBy(this.removedDisks, 'name', d.metadata.name);
 
+          const deviceType = d.status?.deviceStatus?.details?.deviceType;
+
+          if (deviceType !== 'disk') {
+            return false;
+          }
+
           if ((!findBy(this.disks || [], 'name', d.metadata.name) &&
                 d?.spec?.nodeName === this.value.id &&
                 (!addedToNodeCondition || addedToNodeCondition?.status === 'False') &&
@@ -356,6 +380,7 @@ export default {
           const sizeBytes = d.status?.deviceStatus?.capacity?.sizeBytes;
           const size = formatSi(sizeBytes, { increment: 1024 });
           const parentDevice = d.status?.deviceStatus?.parentDevice;
+          const isChildAdded = this.newDisks.find(newDisk => newDisk.blockDevice?.status?.deviceStatus?.parentDevice === devPath);
 
           let label = `${ devPath } (Type: ${ deviceType }, Size: ${ size })`;
 
@@ -368,13 +393,17 @@ export default {
             value:    d.id,
             action:   this.addDisk,
             kind:     !parentDevice ? 'group' : '',
-            disabled: !!(d.childParts.length > 0 && d.isChildPartProvisioned),
+            disabled: !!((d.childParts.length > 0 && d.isChildPartProvisioned) || isChildAdded),
             group:    parentDevice || devPath,
             isParent: !!parentDevice,
           };
         });
 
       return sortBy(out, ['group', 'isParent', 'label']);
+    },
+
+    ddButtonAction() {
+      this.blockDeviceOpts = this.getBlockDeviceOpts();
     },
   },
 };
@@ -402,7 +431,7 @@ export default {
           :mode="mode"
         />
       </Tab>
-      <Tab name="network" :weight="90" :label="t('harvester.host.tabs.network')">
+      <Tab v-if="hasHostNetworksSchema" name="network" :weight="90" :label="t('harvester.host.tabs.network')">
         <InfoBox class="wrapper">
           <div class="row warpper">
             <div class="col span-6">
@@ -437,6 +466,7 @@ export default {
         </InfoBox>
       </Tab>
       <Tab
+        v-if="hasBlockDevicesSchema"
         name="disk"
         :weight="80"
         :label="t('harvester.host.tabs.disk')"
@@ -461,6 +491,7 @@ export default {
               size="sm"
               :selectable="selectable"
               @click-action="e=>addDisk(e.value)"
+              @dd-button-action="ddButtonAction"
             >
               <template #option="option">
                 <template v-if="option.kind === 'group'">

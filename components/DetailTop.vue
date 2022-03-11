@@ -36,7 +36,7 @@ export default {
       return [
         ...(this.moreDetails || []),
         ...(this.value?.details || []),
-      ].filter(x => !!`${ x.content }`);
+      ].filter(x => !!`${ x.content }` && x.content !== undefined && x.content !== null);
     },
 
     labels() {

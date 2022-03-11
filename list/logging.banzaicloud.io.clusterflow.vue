@@ -32,5 +32,5 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <ResourceTable v-else :schema="schema" :rows="rows" />
+  <ResourceTable v-else-if="rows" :schema="schema" :rows="rows" />
 </template>

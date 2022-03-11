@@ -42,6 +42,7 @@ export default {
     if ( !this.value.spec ) {
       this.$set(this.value, 'spec', { sourceType: DOWNLOAD });
     }
+    this.value.metadata.generateName = 'image-';
 
     return {
       url:         this.value.spec.url,
@@ -65,6 +66,10 @@ export default {
     isCreateEdit() {
       return this.isCreate || this.isEdit;
     },
+
+    showEditAsYaml() {
+      return this.value.spec.sourceType === DOWNLOAD;
+    }
   },
 
   watch: {
@@ -96,17 +101,11 @@ export default {
 
   methods: {
     async saveImage(buttonCb) {
-      this.value.metadata.generateName = 'image-';
-
       this.value.spec.displayName = (this.value.spec.displayName || '').trim();
 
       if (this.value.spec.sourceType === UPLOAD && this.isCreate) {
         try {
           this.value.spec.url = '';
-
-          if (!this.value.metadata.annotations) {
-            this.value.metadata.annotations = {};
-          }
 
           const file = this.file;
 
@@ -156,6 +155,7 @@ export default {
     :resource="value"
     :mode="mode"
     :errors="errors"
+    :can-yaml="showEditAsYaml ? true : false"
     :apply-hooks="applyHooks"
     @finish="saveImage"
   >
@@ -254,7 +254,7 @@ export default {
           :mode="mode"
           :pad-left="false"
           :read-allowed="false"
-          @input="value.setLabels"
+          @input="value.setLabels($event)"
         />
       </Tab>
     </Tabbed>

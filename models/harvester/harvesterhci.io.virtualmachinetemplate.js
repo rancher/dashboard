@@ -27,7 +27,7 @@ export default class HciVmTemplate extends SteveModel {
       {
         action:     'createFromTemplate',
         enabled:    canCreateVM,
-        icon:       'icon plus',
+        icon:       'icon icon-spinner',
         label:      this.t('harvester.action.createVM'),
       },
       {
@@ -61,10 +61,6 @@ export default class HciVmTemplate extends SteveModel {
         templateId: this.id
       }
     });
-  }
-
-  get defaultVersionId() {
-    return this.spec?.defaultVersionId;
   }
 
   get defaultVersion() {

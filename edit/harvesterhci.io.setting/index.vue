@@ -7,7 +7,9 @@ import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 
 import CreateEditView from '@/mixins/create-edit-view';
 
-import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING } from '@/config/settings';
+import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING, HCI_SETTING } from '@/config/settings';
+
+const RANCHER_MONITORING = 'fleet-local/rancher-monitoring';
 
 export default {
   components: {
@@ -33,13 +35,13 @@ export default {
       }));
     }
 
-    const canReset = !setting.disableReset && (!!this.value.default || this.value.canReset);
+    const canReset = setting.canReset || (!!this.value.default || this.value.canReset);
 
     if (this.value.value === undefined) {
       this.$set(this.value, 'value', null);
     }
 
-    this.value.value = this.value.value || this.value.default;
+    this.value.value = this.value.value || this.value.default || '';
 
     const isHarvester = this.value?.type?.includes('harvesterhci');
 
@@ -102,10 +104,15 @@ export default {
         ev.srcElement.blur();
       }
 
-      if (this.value.default) {
-        this.value.value = this.value.default;
+      if (this.value.id === RANCHER_MONITORING) {
+        this.$set(this.value.spec.values.prometheus, 'prometheusSpec', Object.assign(this.value.spec.values.prometheus.prometheusSpec, this.value.defaultValue, {}));
+      } else if (this.value.id === HCI_SETTING.VLAN) {
+        this.value.enable = false;
+        if (this.value.config) {
+          this.value.config.defaultPhysicalNIC = '';
+        }
       } else {
-        this.value = this.value.defaultValue;
+        this.value.value = this.value.default || '';
       }
     },
   }
@@ -125,7 +132,7 @@ export default {
     @finish="saveSettings"
     @cancel="done"
   >
-    <h4>{{ description }}</h4>
+    <h4 v-html="description"></h4>
 
     <h5 v-if="editHelp" class="edit-help" v-html="editHelp" />
 
@@ -142,6 +149,8 @@ export default {
           :is="customComponent"
           v-if="hasCustomComponent"
           v-model="value"
+          :register-before-hook="registerBeforeHook"
+          :mode="mode"
         />
       </div>
       <div v-else-if="setting.kind === 'enum'">

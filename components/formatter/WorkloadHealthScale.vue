@@ -104,7 +104,7 @@ export default {
       // If the drop down content appears outside of the window then move it to be above the trigger
       // Do this is three steps
       // expanded: false & expanded-checked = false - Content does not appear in DOM
-      // expanded: true & expanded-checked = false - Content appears in DOM (so it's location can be calcualated to be in or out of an area) but isn't visible (user doesn't see content blip from below to above trigger)
+      // expanded: true & expanded-checked = false - Content appears in DOM (so it's location can be calculated to be in or out of an area) but isn't visible (user doesn't see content blip from below to above trigger)
       // expanded: true & expanded-checked = true - Content appears in DOM and is visible (it's final location is known so user can see)
       setTimeout(() => { // There be beasts without this (classes don't get applied... so drop down never gets shown)
         const dropdown = document.getElementById(this.id);
@@ -115,7 +115,7 @@ export default {
           return;
         }
 
-        // Ensire drop down will be inside of the window, otherwise show above the trigger
+        // Ensure drop down will be inside of the window, otherwise show above the trigger
         const bounding = dropdown.getBoundingClientRect();
         const insideWindow = this.insideBounds(bounding, {
           top:    0,
@@ -147,7 +147,7 @@ export default {
     <div :id="id" class="hs-popover__content" :class="{expanded, [id]:true}">
       <div>
         <div v-for="obj in parts" :key="obj.label" class="counts">
-          <span>{{ obj.label }}</span>
+          <span class="counts-label">{{ obj.label }}</span>
           <span>{{ obj.value }}</span>
         </div>
         <div v-if="canScale" class="text-center scale">
@@ -230,6 +230,12 @@ $width: 150px;
     .counts {
       display: flex;
       justify-content: space-between;
+
+      &-label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
     .scale {
       margin-top: 10px;

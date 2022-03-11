@@ -2,6 +2,7 @@
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import InputOrDisplay from '@/components/InputOrDisplay';
+import { VOLUME_TYPE, InterfaceOption } from '@/config/harvester-map';
 
 export default {
   name:       'HarvesterEditContainer',
@@ -14,30 +15,18 @@ export default {
       type:    String,
       default: 'create'
     },
+
     value: {
-      type:    Object,
-      default: () => {
-        return {};
-      }
+      type:     Object,
+      required: true
     },
-
-    typeOption: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
-    },
-
-    interfaceOption: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
-    }
   },
 
   data() {
-    return {};
+    return {
+      VOLUME_TYPE,
+      InterfaceOption
+    };
   },
 
   watch: {
@@ -71,7 +60,7 @@ export default {
           <LabeledSelect
             v-model="value.type"
             :label="t('harvester.fields.type')"
-            :options="typeOption"
+            :options="VOLUME_TYPE"
             :mode="mode"
             required
             @input="update"
@@ -89,7 +78,7 @@ export default {
 
       <div class="col span-3">
         <InputOrDisplay :name="t('harvester.virtualMachine.volume.bus')" :value="value.bus" :mode="mode">
-          <LabeledSelect v-model="value.bus" :label="t('harvester.virtualMachine.volume.bus')" :options="interfaceOption" :mode="mode" @input="update" />
+          <LabeledSelect v-model="value.bus" :label="t('harvester.virtualMachine.volume.bus')" :options="InterfaceOption" :mode="mode" @input="update" />
         </InputOrDisplay>
       </div>
     </div>

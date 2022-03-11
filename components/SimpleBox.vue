@@ -2,6 +2,8 @@
 import Closeable from '@/mixins/closeable';
 
 export default {
+  name: 'SimpleBox',
+
   mixins: [Closeable],
 
   props: {

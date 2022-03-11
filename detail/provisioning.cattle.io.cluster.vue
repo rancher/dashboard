@@ -7,7 +7,7 @@ import SortableTable from '@/components/SortableTable';
 import CopyCode from '@/components/CopyCode';
 import Tab from '@/components/Tabbed/Tab';
 import { allHash } from '@/utils/promise';
-import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
+import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@/config/types';
 import {
   STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS
 } from '@/config/table-headers';
@@ -55,60 +55,70 @@ export default {
 
   async fetch() {
     await this.value.waitForProvisioner();
-    const hash = {};
+    const fetchOne = {};
 
-    if (this.value.isImported || this.value.isRke1) {
-      // Cluster isn't compatible with machines/machineDeployments, show nodes/node pools instead
+    if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
+      fetchOne.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
+    }
 
-      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
-        hash.allNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
-      }
+    if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
+      fetchOne.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+    }
 
-      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
-        hash.allNodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-      }
-
-      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
-        hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
-      }
-    } else {
-      if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
-        hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
-      }
-
-      if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
-        hash.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
-      }
+    if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
+      fetchOne.machines = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
     }
 
     if (this.value.isImported || this.value.isCustom) {
-      hash.clusterToken = this.value.getOrCreateToken();
+      fetchOne.clusterToken = this.value.getOrCreateToken();
     }
     if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
-      hash.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
+      fetchOne.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
 
-      hash.normanNodePools = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
+      fetchOne.normanNodePools = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
     }
 
-    const res = await allHash(hash);
+    const fetchOneRes = await allHash(fetchOne);
 
-    this.allMachines = res.machines || [];
-    this.allMachineDeployments = res.machineDeployments || [];
-    this.allNodes = res.allNodes || [];
-    this.allNodePools = res.allNodePools || [];
-    this.haveMachines = !!res.machines;
-    this.haveDeployments = !!res.machineDeployments;
-    this.haveNodePools = !!res.allNodePools;
-    this.haveNodes = !!res.allNodes;
+    this.allMachines = fetchOneRes.machines || [];
+    this.allMachineDeployments = fetchOneRes.machineDeployments || [];
+    this.haveMachines = !!fetchOneRes.machines;
+    this.haveDeployments = !!fetchOneRes.machineDeployments;
+    this.clusterToken = fetchOneRes.clusterToken;
+    this.etcdBackups = fetchOneRes.etcdBackups;
 
-    this.clusterToken = res.clusterToken;
-    this.etcdBackups = res.etcdBackups;
+    const fetchTwo = {};
 
-    const machineDeloymentTemplateType = res.machineDeployments?.[0]?.templateType;
+    const thisClusterMachines = this.allMachineDeployments.filter((deployment) => {
+      return deployment?.spec?.clusterName === this.value.metadata.name;
+    });
 
-    if (machineDeloymentTemplateType && this.$store.getters['management/schemaFor'](machineDeloymentTemplateType) ) {
-      await this.$store.dispatch('management/findAll', { type: machineDeloymentTemplateType });
+    const machineDeploymentTemplateType = thisClusterMachines?.[0]?.templateType;
+
+    if (machineDeploymentTemplateType && this.$store.getters['management/schemaFor'](machineDeploymentTemplateType) ) {
+      fetchTwo.mdtt = this.$store.dispatch('management/findAll', { type: machineDeploymentTemplateType });
     }
+
+    if (!this.showMachines) {
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
+        fetchTwo.allNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      }
+
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
+        fetchTwo.allNodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      }
+
+      if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
+        fetchTwo.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+      }
+    }
+
+    const fetchTwoRes = await allHash(fetchTwo);
+
+    this.allNodes = fetchTwoRes.allNodes || [];
+    this.haveNodes = !!fetchTwoRes.allNodes;
+    this.allNodePools = fetchTwoRes.allNodePools || [];
+    this.haveNodePools = !!fetchTwoRes.allNodePools;
   },
 
   created() {
@@ -187,15 +197,7 @@ export default {
     },
 
     machines() {
-      const machines = this.allMachines.filter((x) => {
-        if ( x.metadata?.namespace !== this.value.metadata.namespace ) {
-          return false;
-        }
-
-        return x.spec?.clusterName === this.value.metadata.name;
-      });
-
-      return [...machines, ...this.fakeMachines];
+      return [...this.value.machines, ...this.fakeMachines];
     },
 
     nodes() {
@@ -312,22 +314,21 @@ export default {
         {
           name:          'name',
           labelKey:      'tableHeaders.name',
-          value:         'nameDisplay',
+          value:         'snapshotFile.name',
           sort:          ['nameSort'],
           canBeVariable: true,
         },
         {
           name:      'size',
           labelKey:  'tableHeaders.size',
-          value:     'size',
-          sort:      'size',
+          value:     'snapshotFile.size',
+          sort:      'snapshotFile.size',
           formatter: 'Si',
           width:     150,
         },
         {
           ...AGE,
-          value:         'createdAt',
-          sort:          'createdAt:desc',
+          sort:          'snapshotFile.createdAt:desc',
           canBeVariable: true
         },
       ];
@@ -545,7 +546,7 @@ export default {
           <template #group-by="{group}">
             <div class="pool-row" :class="{'has-description':group.ref && group.ref.nodeTemplate}">
               <div v-trim-whitespace class="group-tab">
-                <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix, count: group.rows.length}, true)">
+                <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix, count: group.ref.scale}, true)">
                 </div>
                 <div v-else v-html="t('resourceTable.groupLabel.notInANodePool')">
                 </div>

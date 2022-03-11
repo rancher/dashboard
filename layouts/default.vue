@@ -325,7 +325,8 @@ export default {
         namespaces = Object.keys(this.namespaces);
       }
 
-      const namespaceMode = this.$store.getters['namespaceMode'];
+      // Always show cluster-level types, regardless of the namespace filter
+      const namespaceMode = 'both';
       const out = [];
       const loadProducts = this.isExplorer ? [EXPLORER] : [];
       const productMap = this.activeProducts.reduce((acc, p) => {
@@ -496,7 +497,13 @@ export default {
         // Only expand one group - so after the first has been expanded, no more will
         // This prevents the 'More Resources' group being expanded in addition to the normal group
         let canExpand = true;
+        const expanded = refs.filter(grp => grp.isExpanded)[0];
 
+        if (expanded && expanded.hasActiveRoute()) {
+          this.$nextTick(() => expanded.syncNav());
+
+          return;
+        }
         refs.forEach((grp) => {
           if (!grp.group.isRoot) {
             grp.isExpanded = false;

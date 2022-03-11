@@ -1,9 +1,10 @@
 import Vue from 'vue';
-import { CATALOG } from '@/config/labels-annotations';
+import { CATALOG, CLUSTER_BADGE } from '@/config/labels-annotations';
 import { NODE, FLEET, MANAGEMENT } from '@/config/types';
 import { insertAt } from '@/utils/array';
 import { downloadFile } from '@/utils/download';
 import { parseSi } from '@/utils/units';
+import { parseColor, textColor } from '@/utils/color';
 import jsyaml from 'js-yaml';
 import { eachLimit } from '@/utils/promise';
 import { addParams } from '@/utils/url';
@@ -11,6 +12,7 @@ import { isEmpty } from '@/utils/object';
 import { NAME as HARVESTER } from '@/config/product/harvester';
 import { isHarvesterCluster } from '@/utils/cluster';
 import HybridModel from '@/plugins/steve/hybrid-class';
+import { LINUX, WINDOWS } from '@/store/catalog';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 
 // See translation file cluster.providers for list of providers
@@ -42,7 +44,7 @@ export default class MgmtCluster extends HybridModel {
 
     insertAt(out, 0, {
       action:     'openShell',
-      label:      'Kubectl Shell',
+      label:      this.t('nav.shell'),
       icon:       'icon icon-terminal',
       enabled:    !!this.links.shell,
     });
@@ -50,7 +52,7 @@ export default class MgmtCluster extends HybridModel {
     insertAt(out, 1, {
       action:     'downloadKubeConfig',
       bulkAction: 'downloadKubeConfigBulk',
-      label:      'Download KubeConfig',
+      label:      this.t('nav.kubeconfig.download'),
       icon:       'icon icon-download',
       bulkable:   true,
       enabled:    this.$rootGetters['isRancher'] && this.hasAction('generateKubeconfig'),
@@ -172,7 +174,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get providerOs() {
-    if ( this.status?.provider.endsWith('.windows') ) {
+    if ( this.status?.provider.endsWith('.windows')) {
       return 'windows';
     }
 
@@ -181,6 +183,30 @@ export default class MgmtCluster extends HybridModel {
 
   get providerOsLogo() {
     return require(`~/assets/images/vendor/${ this.providerOs }.svg`);
+  }
+
+  get workerOSs() {
+    // rke1 clusters have windows support defined on create
+    // rke2 clusters report linux workers in mgmt cluster status
+    const rke2WindowsWorkers = this.status?.windowsWorkerCount;
+    const rke2LinuxWorkers = this.status?.linuxWorkerCount;
+
+    if (rke2WindowsWorkers || rke2LinuxWorkers ) {
+      const out = [];
+
+      if (rke2WindowsWorkers) {
+        out.push(WINDOWS);
+      }
+      if (rke2LinuxWorkers) {
+        out.push(LINUX);
+      }
+
+      return out;
+    } else if (this.providerOs === WINDOWS) {
+      return [WINDOWS];
+    }
+
+    return [LINUX];
   }
 
   get isLocal() {
@@ -225,6 +251,25 @@ export default class MgmtCluster extends HybridModel {
     }
 
     return this.providerLogo;
+  }
+
+  // Custom badge to show for the Cluster (if the appropriate annotations are set)
+  get badge() {
+    const text = this.metadata?.annotations?.[CLUSTER_BADGE.TEXT];
+
+    if (!text) {
+      return undefined;
+    }
+
+    const color = this.metadata?.annotations[CLUSTER_BADGE.COLOR] || '#7f7f7f';
+    const iconText = this.metadata?.annotations[CLUSTER_BADGE.ICON_TEXT] || '';
+
+    return {
+      text,
+      color,
+      textColor: textColor(parseColor(color)),
+      iconText:  iconText.substr(0, 2)
+    };
   }
 
   get scope() {

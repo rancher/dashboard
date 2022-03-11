@@ -34,10 +34,9 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    const projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
-    const projectName = this.value?.metadata?.labels?.[PROJECT] || this.$route.query[PROJECT_ID];
+    this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
 
-    this.project = projects.find(p => p.id.includes(projectName));
+    this.project = this.projects.find(p => p.id.includes(this.projectName));
   },
 
   data() {
@@ -52,6 +51,7 @@ export default {
     return {
       originalQuotaId,
       project:                 null,
+      projects:                null,
       viewMode:                _VIEW,
       containerResourceLimits: this.value.annotations[CONTAINER_DEFAULT_RESOURCE_LIMIT] || this.getDefaultContainerResourceLimits(projectName),
       projectName,
@@ -97,6 +97,10 @@ export default {
 
     doneLocationOverride() {
       return this.value.listLocation;
+    },
+
+    showResourceQuota() {
+      return Object.keys(this.project?.spec?.resourceQuota?.limit || {}).length > 0;
     }
   },
 
@@ -105,6 +109,10 @@ export default {
       const limits = this.getDefaultContainerResourceLimits(newProject);
 
       this.$set(this, 'containerResourceLimits', limits);
+    },
+
+    projectName(newProjectName) {
+      this.$set(this, 'project', this.projects.find(p => p.id.includes(newProjectName)));
     }
   },
 
@@ -166,7 +174,7 @@ export default {
     </NameNsDescription>
 
     <Tabbed :side-tabs="true">
-      <Tab v-if="!isSingleVirtualCluster" :weight="1" name="container-resource-quotas" :label="t('namespace.resourceQuotas')">
+      <Tab v-if="!isSingleVirtualCluster && showResourceQuota" :weight="1" name="container-resource-quotas" :label="t('namespace.resourceQuotas')">
         <div class="row">
           <div class="col span-12">
             <p class="helper-text mb-10">

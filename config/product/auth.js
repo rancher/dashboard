@@ -37,7 +37,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:       'Auth Provider',
+    labelKey:    'auth.config.label',
     icon:        'lock',
     namespaced:  false,
     name:        'config',

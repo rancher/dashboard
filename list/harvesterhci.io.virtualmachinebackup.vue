@@ -64,7 +64,7 @@ export default {
           labelKey:  'tableHeaders.backupTarget',
           value:     'backupTarget',
           align:     'left',
-          formatter: 'BackupTargetValidation'
+          formatter: 'HarvesterBackupTargetValidation'
         },
         {
           name:      'readyToUse',

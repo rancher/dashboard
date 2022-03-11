@@ -9,6 +9,7 @@ import CopyCode from '@/components/CopyCode';
 import Banner from '@/components/Banner';
 import { LOCAL, LOGGED_OUT, TIMED_OUT, _FLAGGED } from '@/config/query-params';
 import Checkbox from '@/components/form/Checkbox';
+import Password from '@/components/form/Password';
 import { sortBy } from '@/utils/sort';
 import { configType } from '@/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
@@ -29,7 +30,7 @@ export default {
   name:       'Login',
   layout:     'unauthenticated',
   components: {
-    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode
+    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password
   },
 
   async asyncData({ route, redirect, store }) {
@@ -204,9 +205,6 @@ export default {
 
     async loginLocal(buttonCb) {
       try {
-        this.err = null;
-        this.timedOut = null;
-        this.loggedOut = null;
         await this.$store.dispatch('auth/login', {
           provider: 'local',
           body:     {
@@ -226,10 +224,11 @@ export default {
 
         if ( this.remember ) {
           this.$cookies.set(USERNAME, this.username, {
-            encode: x => x,
-            maxAge: 86400 * 365,
-            secure: true,
-            path:   '/',
+            encode:   x => x,
+            maxAge:   86400 * 365,
+            path:     '/',
+            sameSite: true,
+            secure:   true,
           });
         } else {
           this.$cookies.remove(USERNAME);
@@ -243,6 +242,9 @@ export default {
         }
       } catch (err) {
         this.err = err;
+        this.timedOut = null;
+        this.loggedOut = null;
+
         buttonCb(false);
       }
     },
@@ -315,6 +317,7 @@ export default {
               <div class="mb-20">
                 <LabeledInput
                   v-if="!firstLogin"
+                  id="username"
                   ref="username"
                   v-model.trim="username"
                   :label="t('login.username')"
@@ -322,10 +325,10 @@ export default {
                 />
               </div>
               <div class="">
-                <LabeledInput
+                <Password
+                  id="password"
                   ref="password"
                   v-model="password"
-                  type="password"
                   :label="t('login.password')"
                   autocomplete="password"
                 />
@@ -334,6 +337,7 @@ export default {
             <div class="mt-20">
               <div class="col span-12 text-center">
                 <AsyncButton
+                  id="submit"
                   type="submit"
                   :action-label="t('login.loginWithLocal')"
                   :waiting-label="t('login.loggingIn')"
@@ -342,13 +346,13 @@ export default {
                   @click="loginLocal"
                 />
                 <div v-if="!firstLogin" class="mt-20">
-                  <Checkbox v-model="remember" label="Remember Username" type="checkbox" />
+                  <Checkbox v-model="remember" :label="t('login.remember.label')" type="checkbox" />
                 </div>
               </div>
             </div>
           </form>
           <div v-if="hasLocal && !showLocal" class="mt-20 text-center">
-            <a role="button" @click="toggleLocal">
+            <a id="login-useLocal" role="button" @click="toggleLocal">
               {{ t('login.useLocal') }}
             </a>
           </div>

@@ -8,7 +8,7 @@ import GraphCircle from '@/components/graph/Circle';
 import Banner from '@/components/Banner';
 
 export default {
-  name: 'SuppportBundle',
+  name: 'SupportBundle',
 
   components: {
     LabeledInput,
@@ -169,7 +169,7 @@ export default {
 
           <AsyncButton
             type="submit"
-            mode="create"
+            mode="generate"
             class="btn btn-sm bg-primary"
             :disabled="bundlePending"
             @click="save"

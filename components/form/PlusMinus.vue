@@ -62,7 +62,8 @@ export default {
     background-color: var(--accent-btn);
   }
   .value {
-    width: 25px;
+    min-width: 25px;
+    max-width: 30px;
     display: flex;
     align-items: center;
     justify-content: center;

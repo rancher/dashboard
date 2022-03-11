@@ -1,17 +1,30 @@
+import { LoginPagePo } from '@/cypress/integration/po/pages/login-page.po';
+
 Cypress.Commands.add('login', (username = Cypress.env('username'), password = Cypress.env('password'), cacheSession = true) => {
   const login = () => {
     cy.intercept('POST', '/v3-public/localProviders/local*').as('loginReq');
-    cy.visit('/auth/login');
 
-    cy.byLabel('Username')
-      .focus()
-      .type(username);
+    LoginPagePo.goTo(); // Needs to happen before the page element is created/located
+    const loginPage = new LoginPagePo();
 
-    cy.byLabel('Password')
-      .focus()
-      .type(password);
+    loginPage
+      .checkIsCurrentPage();
 
-    cy.get('button').click();
+    loginPage.switchToLocal();
+
+    loginPage.canSubmit()
+      .should('eq', true);
+
+    loginPage.username()
+      .set(username);
+
+    loginPage.password()
+      .set(password);
+
+    loginPage.canSubmit()
+      .should('eq', true);
+    loginPage.submit();
+
     cy.wait('@loginReq');
   };
 

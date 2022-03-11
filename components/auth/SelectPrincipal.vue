@@ -73,7 +73,9 @@ export default {
         }
 
         return true;
-      }).map(x => x.id);
+      })
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(x => x.id);
 
       return out;
     },

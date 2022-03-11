@@ -99,28 +99,28 @@ export const RANCHER_TYPES = [
 
 export const HARVESTER_TYPES = [
   {
-    key:            'limitsCpu',
+    value:          'limitsCpu',
     inputExponent:  -1,
     baseUnitKey:    'suffix.cpus',
     labelKey:       'resourceQuota.limitsCpu',
     placeholderKey: 'resourceQuota.projectLimit.cpuPlaceholder'
   },
   {
-    key:            'limitsMemory',
+    value:          'limitsMemory',
     inputExponent:  2,
     increment:      1024,
     labelKey:       'resourceQuota.limitsMemory',
     placeholderKey: 'resourceQuota.projectLimit.memoryPlaceholder'
   },
   {
-    key:            'requestsCpu',
+    value:          'requestsCpu',
     inputExponent:  -1,
     baseUnitKey:    'suffix.cpus',
     labelKey:       'resourceQuota.requestsCpu',
     placeholderKey: 'resourceQuota.projectLimit.cpuPlaceholder'
   },
   {
-    key:            'requestsMemory',
+    value:          'requestsMemory',
     inputExponent:  2,
     increment:      1024,
     labelKey:       'resourceQuota.requestsMemory',

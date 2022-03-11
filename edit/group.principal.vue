@@ -24,7 +24,7 @@ export default {
       try {
         await this.$refs.grb.save();
 
-        await this.$store.dispatch('cluster/findAll', {
+        await this.$store.dispatch('management/findAll', {
           type: NORMAN.SPOOFED.GROUP_PRINCIPAL,
           opt:  { force: true }
         }, { root: true }); // See PromptRemove.vue

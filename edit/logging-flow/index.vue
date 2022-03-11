@@ -50,6 +50,7 @@ export default {
 
   async fetch() {
     const hasAccessToClusterOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.CLUSTER_OUTPUT);
+    const hasAccessToOutputs = this.$store.getters[`cluster/schemaFor`][LOGGING.OUTPUT];
     const hasAccessToNodes = this.$store.getters[`cluster/schemaFor`](NODE);
     const hasAccessToPods = this.$store.getters[`cluster/schemaFor`](POD);
     const isFlow = this.value.type === LOGGING.FLOW;
@@ -59,7 +60,7 @@ export default {
     };
 
     const hash = await allHash({
-      allOutputs:        getAllOrDefault(LOGGING.OUTPUT, isFlow),
+      allOutputs:        getAllOrDefault(LOGGING.OUTPUT, isFlow && hasAccessToOutputs),
       allClusterOutputs: getAllOrDefault(LOGGING.CLUSTER_OUTPUT, hasAccessToClusterOutputs),
       allNodes:          getAllOrDefault(NODE, hasAccessToNodes),
       allPods:           getAllOrDefault(POD, hasAccessToPods),
@@ -131,6 +132,12 @@ export default {
     },
 
     outputChoices() {
+      if (!this.allOutputs) {
+        // Handle the case where the user doesn't have permission
+        // to see Outputs
+        return [];
+      }
+
       // Yes cluster outputs are still namespaced because reasons...
       return this.allOutputs.filter((output) => {
         if ( !output.namespace) {
@@ -144,6 +151,12 @@ export default {
     },
 
     clusterOutputChoices() {
+      if (!this.allClusterOutputs) {
+        // Handle the case where the user doesn't have permission
+        // to see ClusterOutputs
+        return [];
+      }
+
       return this.allClusterOutputs
         .filter((clusterOutput) => {
           return clusterOutput.namespace === 'cattle-logging-system';
@@ -154,6 +167,11 @@ export default {
     },
 
     nodeChoices() {
+      if (!this.allNodes) {
+        // Handle the case where the user doesn't have permission
+        // to see nodes
+        return [];
+      }
       const out = this.allNodes.map((node) => {
         return {
           label: node.nameDisplay,

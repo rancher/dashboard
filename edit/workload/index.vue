@@ -2,7 +2,7 @@
 import omitBy from 'lodash/omitBy';
 import { cleanUp } from '@/utils/object';
 import {
-  CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC
+  CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC, SERVICE_ACCOUNT, CAPI
 } from '@/config/types';
 import Tab from '@/components/Tabbed/Tab';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -10,6 +10,7 @@ import { allHash } from '@/utils/promise';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
+import ServiceNameSelect from '@/components/form/ServiceNameSelect';
 import HealthCheck from '@/components/form/HealthCheck';
 import Security from '@/components/form/Security';
 import Upgrading from '@/edit/workload/Upgrading';
@@ -50,6 +51,8 @@ const TAB_WEIGHT_MAP = {
   volumeClaimTemplates: 89,
 };
 
+const GPU_KEY = 'nvidia.com/gpu';
+
 export default {
   name:       'CruWorkload',
   components: {
@@ -57,6 +60,7 @@ export default {
     NameNsDescription,
     LabeledSelect,
     LabeledInput,
+    ServiceNameSelect,
     KeyValue,
     Tabbed,
     Tab,
@@ -94,26 +98,35 @@ export default {
   },
 
   async fetch() {
-    const requests = {
-      configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
-      nodes:      this.$store.dispatch('cluster/findAll', { type: NODE }),
-      services:   this.$store.dispatch('cluster/findAll', { type: SERVICE }),
-      pvcs:       this.$store.dispatch('cluster/findAll', { type: PVC })
+    const requests = { rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }) };
+    const needed = {
+      configMaps: CONFIG_MAP,
+      nodes:      NODE,
+      services:   SERVICE,
+      pvcs:       PVC,
+      sas:        SERVICE_ACCOUNT,
+      secrets:    SECRET,
     };
 
-    if ( this.$store.getters['cluster/schemaFor'](SECRET) ) {
-      requests.secrets = this.$store.dispatch('cluster/findAll', { type: SECRET });
-    }
+    // Only fetch types if the user can see them
+    Object.keys(needed).forEach((key) => {
+      const type = needed[key];
+
+      if (this.$store.getters['cluster/schemaFor'](type)) {
+        requests[key] = this.$store.dispatch('cluster/findAll', { type });
+      }
+    });
 
     const hash = await allHash(requests);
 
-    this.servicesOwned = await this.value.getServicesOwned();
+    this.servicesOwned = hash.services ? await this.value.getServicesOwned() : [];
 
     this.allSecrets = hash.secrets || [];
-    this.allConfigMaps = hash.configMaps;
-    this.allNodes = hash.nodes.map(node => node.id);
-    this.allServices = hash.services;
-    this.pvcs = hash.pvcs;
+    this.allConfigMaps = hash.configMaps || [];
+    this.allNodes = (hash.nodes || []).map(node => node.id);
+    this.allServices = hash.services || [];
+    this.pvcs = hash.pvcs || [];
+    this.sas = hash.sas || [];
   },
 
   data() {
@@ -163,6 +176,7 @@ export default {
       allServices:       [],
       name:              this.value?.metadata?.name || null,
       pvcs:              [],
+      sas:               [],
       showTabs:          false,
       pullPolicyOptions: ['Always', 'IfNotPresent', 'Never'],
       spec,
@@ -284,16 +298,16 @@ export default {
     flatResources: {
       get() {
         const { limits = {}, requests = {} } = this.container.resources || {};
-        const { cpu:limitsCpu, memory:limitsMemory } = limits;
-        const { cpu:requestsCpu, memory:requestsMemory } = requests;
+        const { cpu: limitsCpu, memory: limitsMemory, [GPU_KEY]: limitsGpu } = limits;
+        const { cpu: requestsCpu, memory: requestsMemory } = requests;
 
         return {
-          limitsCpu, limitsMemory, requestsCpu, requestsMemory
+          limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu
         };
       },
       set(neu) {
         const {
-          limitsCpu, limitsMemory, requestsCpu, requestsMemory
+          limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu
         } = neu;
 
         const out = {
@@ -302,8 +316,9 @@ export default {
             memory: requestsMemory
           },
           limits: {
-            cpu:    limitsCpu,
-            memory: limitsMemory
+            cpu:       limitsCpu,
+            memory:    limitsMemory,
+            [GPU_KEY]: limitsGpu
           }
         };
 
@@ -367,6 +382,18 @@ export default {
         );
       } else {
         return this.allConfigMaps;
+      }
+    },
+
+    namespacedServiceNames() {
+      const { namespace } = this.value?.metadata;
+
+      if (namespace) {
+        return this.sas.filter(
+          serviceName => serviceName.metadata.namespace === namespace
+        );
+      } else {
+        return this.sas;
       }
     },
 
@@ -506,6 +533,11 @@ export default {
     },
 
     async saveService() {
+      // If we can't access services then just return - the UI should only allow ports without service creation
+      if (!this.$store.getters['cluster/schemaFor'](SERVICE)) {
+        return;
+      }
+
       const { toSave = [], toRemove = [] } = await this.value.servicesFromContainerPorts(this.mode, this.portsForServices) || {};
 
       this.servicesOwned = toSave;
@@ -527,6 +559,7 @@ export default {
     saveWorkload() {
       if (this.type !== WORKLOAD_TYPES.JOB && this.type !== WORKLOAD_TYPES.CRON_JOB && this.mode === _CREATE) {
         this.spec.selector = { matchLabels: this.value.workloadSelector };
+        Object.assign(this.value.metadata.labels, this.value.workloadSelector);
       }
 
       let template;
@@ -726,6 +759,17 @@ export default {
       if (this[BEFORE_SAVE_HOOKS]) {
         this.unregisterBeforeSaveHook(hookName);
       }
+    },
+
+    updateServiceAccount(neu) {
+      if (neu) {
+        this.podTemplateSpec.serviceAccount = neu;
+        this.podTemplateSpec.serviceAccountName = neu;
+      } else {
+        // Note - both have to be removed in order for removal to work
+        delete this.podTemplateSpec.serviceAccount;
+        delete this.podTemplateSpec.serviceAccountName;
+      }
     }
   }
 };
@@ -779,6 +823,7 @@ export default {
                 :mode="mode"
                 :label="t('workload.serviceName')"
                 :options="headlessServices"
+                required
               />
             </template>
           </NameNsDescription>
@@ -819,7 +864,7 @@ export default {
                   v-model.trim="container.image"
                   :mode="mode"
                   :label="t('workload.container.image')"
-                  placeholder="e.g. nginx:latest"
+                  :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
                   required
                 />
               </div>
@@ -861,6 +906,15 @@ export default {
             <h3>{{ t('workload.container.titles.command') }}</h3>
             <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
           </div>
+          <ServiceNameSelect
+            :value="podTemplateSpec.serviceAccountName"
+            :mode="mode"
+            :select-label="t('workload.serviceAccountName.label')"
+            :select-placeholder="t('workload.serviceAccountName.label')"
+            :options="namespacedServiceNames"
+            option-label="metadata.name"
+            @input="updateServiceAccount"
+          />
 
           <div class="spacer"></div>
           <div>

@@ -9,12 +9,15 @@ export default {
   components: { Loading, ResourceTable },
 
   async fetch() {
-    await this.$store.dispatch(`management/findAll`, { type: this.$attrs.resource });
+    await this.$store.dispatch(`${ this.inStore }/findAll`, { type: this.$attrs.resource });
   },
 
   computed: {
+    inStore() {
+      return this.$store.getters['currentProduct'].inStore;
+    },
     rows() {
-      const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
+      const all = this.$store.getters[`${ this.inStore }/all`](MANAGEMENT.CLUSTER);
 
       return filterOnlyKubernetesClusters(all);
     }

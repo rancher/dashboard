@@ -92,6 +92,11 @@ export default {
       default: 'registerAuthSecret'
     },
 
+    appendUniqueIdToHook: {
+      type:    Boolean,
+      default: false
+    },
+
     hookPriority: {
       type:    Number,
       default: 99,
@@ -153,6 +158,7 @@ export default {
 
       publicKey:  '',
       privateKey: '',
+      uniqueId:   new Date().getTime() // Allows form state to be individually tracked if the form is in a list
     };
   },
 
@@ -318,7 +324,9 @@ export default {
 
   created() {
     if (this.registerBeforeHook) {
-      this.registerBeforeHook(this.doCreate, this.hookName, this.hookPriority);
+      const hookName = this.appendUniqueIdToHook ? this.hookName + this.uniqueId : this.hookName;
+
+      this.registerBeforeHook(this.doCreate, hookName, this.hookPriority);
     } else {
       throw new Error('Before Hook is missing');
     }
@@ -385,7 +393,7 @@ export default {
           privateField = 'password';
           break;
         default:
-          throw new Error('Uknown type');
+          throw new Error('Unknown type');
         }
 
         secret._type = type;

@@ -44,6 +44,12 @@ export default {
       };
     },
 
+    canCreateCluster() {
+      const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+
+      return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+    },
+
     rows() {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const clusters = this.$store.getters[`${ inStore }/all`](HCI.CLUSTER);
@@ -79,7 +85,7 @@ export default {
         <TypeDescription :resource="hResource" />
       </template>
 
-      <template slot="extraActions">
+      <template v-if="canCreateCluster" slot="extraActions">
         <n-link
           :to="importLocation"
           class="btn role-primary"

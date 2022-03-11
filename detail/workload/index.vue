@@ -60,7 +60,7 @@ export default {
 
     const isMetricsSupportedKind = METRICS_SUPPORTED_KINDS.includes(this.value.type);
 
-    this.showMetrics = isMetricsSupportedKind && await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [WORKLOAD_METRICS_DETAIL_URL, WORKLOAD_METRICS_SUMMARY_URL]);
+    this.showMetrics = isMetricsSupportedKind && await allDashboardsExist(this.$store, this.currentCluster.id, [WORKLOAD_METRICS_DETAIL_URL, WORKLOAD_METRICS_SUMMARY_URL]);
   },
 
   data() {
@@ -157,6 +157,20 @@ export default {
         kind:      WORKLOAD_TYPE_TO_KIND_MAPPING[this.value.type],
         workload:  this.graphVarsWorkload
       };
+    },
+
+    showPodGaugeCircles() {
+      const podGauges = Object.values(this.value.podGauges);
+      const total = this.value.pods.length;
+
+      return !podGauges.find(pg => pg.count === total);
+    },
+
+    showJobGaugeCircles() {
+      const jobGauges = Object.values(this.value.jobGauges);
+      const total = this.isCronJob ? this.totalRuns : this.value.pods.length;
+
+      return !jobGauges.find(jg => jg.count === total);
     }
   },
 };
@@ -168,13 +182,14 @@ export default {
     <h3>
       {{ isJob || isCronJob ? t('workload.detailTop.runs') :t('workload.detailTop.pods') }}
     </h3>
-    <div v-if="value.pods || value.jobGauges" class="gauges mb-20">
+    <div v-if="value.pods || value.jobGauges" class="gauges mb-20" :class="{'gauges__pods': !!value.pods}">
       <template v-if="value.jobGauges">
         <CountGauge
           v-for="(group, key) in value.jobGauges"
           :key="key"
           :total="isCronJob? totalRuns : value.pods.length"
           :useful="group.count || 0"
+          :graphical="showJobGaugeCircles"
           :primary-color-var="`--sizzle-${group.color}`"
           :name="t(`workload.gaugeStates.${key}`)"
         />
@@ -185,8 +200,9 @@ export default {
           :key="key"
           :total="value.pods.length"
           :useful="group.count || 0"
+          :graphical="showPodGaugeCircles"
           :primary-color-var="`--sizzle-${group.color}`"
-          :name="t(`workload.gaugeStates.${key}`)"
+          :name="key"
         />
       </template>
     </div>
@@ -207,7 +223,6 @@ export default {
           :rows="value.pods"
           :headers="podHeaders"
           key-field="id"
-          :table-actions="false"
           :schema="podSchema"
           :groupable="false"
           :search="false"
@@ -233,13 +248,22 @@ export default {
   </div>
 </template>
 
-  <style lang='scss' scoped>
-  .gauges {
-    display: flex;
-    justify-content: space-around;
-    &>*{
+<style lang='scss' scoped>
+.gauges {
+  display: flex;
+  justify-content: space-around;
+  &>*{
     flex: 1;
     margin-right: $column-gutter;
+  }
+  &__pods {
+    flex-wrap: wrap;
+    justify-content: left;
+    .count-gauge {
+      width: 23%;
+      margin-bottom: 10px;
+      flex: initial;
+    }
   }
 }
 </style>
