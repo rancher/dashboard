@@ -1,6 +1,5 @@
 <script>
 import day from 'dayjs';
-import { mapState } from 'vuex';
 import { dasherize, ucFirst } from '@/utils/string';
 import { get, clone } from '@/utils/object';
 import { removeObject } from '@/utils/array';
@@ -71,6 +70,11 @@ export default {
       // Field that is unique for each row.
       type:     String,
       default: '_key',
+    },
+
+    loading: {
+      type:     Boolean,
+      required: false
     },
 
     groupBy: {
@@ -261,6 +265,8 @@ export default {
       expanded:            {},
       searchQuery:         '',
       eventualSearchQuery: '',
+      actionOfInterest:    null,
+      loadingDelay:        false,
     };
   },
 
@@ -377,15 +383,6 @@ export default {
 
       return out;
     },
-
-    ...mapState({
-      tableSelected(state) {
-        return state[this.storeName]?.tableSelected;
-      },
-      actionOfInterest(state) {
-        return state[this.storeName]?.actionOfInterest;
-      }
-    }),
 
     classObject() {
       return {
@@ -510,13 +507,18 @@ export default {
     },
 
     setBulkActionOfInterest(action) {
-      this.$store.commit(`${ this.storeName }/setBulkActionOfInterest`, action);
+      this.actionOfInterest = action;
     },
 
+    // Can the action of interest be applied to the specified resource?
     canRunBulkActionOfInterest(resource) {
-      const result = this.$store.getters[`${ this.storeName }/canRunBulkActionOfInterest`](resource);
+      if (!this.actionOfInterest) {
+        return false;
+      }
 
-      return result;
+      const matchingResourceAction = resource.availableActions.find(a => a.action === this.actionOfInterest.action);
+
+      return matchingResourceAction?.enabled;
     },
 
     focusSearch() {
@@ -608,9 +610,9 @@ export default {
                 <i v-if="act.icon" :class="act.icon" />
                 <span v-html="act.label" />
               </button>
-              <ActionDropdown :class="bulkActionsDropdownClass" class="bulk-actions-dropdown" :disable-button="!tableSelected.length" size="sm">
+              <ActionDropdown :class="bulkActionsDropdownClass" class="bulk-actions-dropdown" :disable-button="!selectedRows.length" size="sm">
                 <template #button-content>
-                  <button ref="actionDropDown" class="btn bg-primary mr-0" :disabled="!tableSelected.length">
+                  <button ref="actionDropDown" class="btn bg-primary mr-0" :disabled="!selectedRows.length">
                     <i class="icon icon-gear" />
                     <span>{{ t('harvester.tableHeaders.actions') }}</span>
                     <i class="ml-10 icon icon-chevron-down" />
@@ -674,12 +676,28 @@ export default {
         :default-sort-by="_defaultSortBy"
         :descending="descending"
         :no-rows="noRows"
+        :loading="loading && !loadingDelay"
         :no-results="noResults"
         @on-toggle-all="onToggleAll"
         @on-sort-change="changeSort"
       />
 
-      <tbody v-if="noRows">
+      <!-- Don't display anything if we're loading and the delay has yet to pass -->
+      <div v-if="loading && !loadingDelay"></div>
+
+      <tbody v-else-if="loading">
+        <slot name="loading">
+          <tr>
+            <td :colspan="fullColspan">
+              <div class="data-loading">
+                <i class="icon-spin icon icon-spinner" />
+                <t k="generic.loading" :raw="true" />
+              </div>
+            </td>
+          </tr>
+        </slot>
+      </tbody>
+      <tbody v-else-if="noRows">
         <slot name="no-rows">
           <tr class="no-rows">
             <td :colspan="fullColspan">
@@ -717,7 +735,7 @@ export default {
               the value of :class changes. -->
               <tr :key="get(row,keyField)" class="main-row" :class="{ 'has-sub-row': showSubRow(row, keyField)}" :data-node-id="get(row,keyField)" :data-cant-run-bulk-action-of-interest="actionOfInterest && !canRunBulkActionOfInterest(row)">
                 <td v-if="tableActions" class="row-check" align="middle">
-                  {{ row.mainRowKey }}<Checkbox class="selection-checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
+                  {{ row.mainRowKey }}<Checkbox class="selection-checkbox" :data-node-id="get(row,keyField)" :value="selectedRows.includes(row)" />
                 </td>
                 <td v-if="subExpandColumn" class="row-expand" align="middle">
                   <i data-title="Toggle Expand" :class="{icon: true, 'icon-chevron-right': true, 'icon-chevron-down': !!expanded[get(row, keyField)]}" @click.stop="toggleExpand(row)" />
@@ -875,6 +893,20 @@ export default {
       &.desktop {
         display: none;
       }
+    }
+  }
+
+  // Loading indicatorr ow
+  tr td div.data-loading {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+    > i {
+      font-size: 20px;
+      height: 20px;
+      margin-right: 5px;
+      width: 20px;
     }
   }
 </style>
