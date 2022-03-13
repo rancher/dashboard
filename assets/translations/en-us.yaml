@@ -1587,6 +1587,7 @@ cluster:
       label: Drain Nodes
       toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed.
     address:
+      tooltip: Cluster networking values cannot be changed after the cluster is created.
       header: Addressing
       clusterCidr:
         label: Cluster CIDR
