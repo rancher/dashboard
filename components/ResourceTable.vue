@@ -28,6 +28,11 @@ export default {
       required: true
     },
 
+    loading: {
+      type:     Boolean,
+      required: false
+    },
+
     headers: {
       type:    Array,
       default: null,
@@ -269,7 +274,7 @@ export default {
         return;
       }
 
-      const selection = table.selectedNodes;
+      const selection = table.selectedRows;
 
       if ( action === 'remove' ) {
         const act = findBy(table.availableActions, 'action', 'promptRemove');
@@ -326,6 +331,7 @@ export default {
     v-bind="$attrs"
     :headers="_headers"
     :rows="filteredRows"
+    :loading="loading"
     :group-by="computedGroupBy"
     :search="search"
     :paging="true"

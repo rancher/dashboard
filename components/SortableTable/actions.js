@@ -47,52 +47,37 @@ export default {
   },
 
   computed: {
-    hasSelectionStore() {
-      // Computed properties that reference availableActions before the selection store is initialised will fail
-      // (the forTable is null). Making this conditional (`x || []`) makes the action array always `[]`
-      // So block until the store is ready
-      // Note - this.$store.hasModule(this.storeName) isn't reactive
-      return !!this.$store.state[this.storeName];
-    },
-
     availableActions() {
-      return this.$store.getters[`${ this.storeName }/forTable`].filter(act => !act.external);
+      return this.bulkActionsForSelection.filter(act => !act.external);
     },
 
     keyedAvailableActions() {
-      return this.hasSelectionStore ? this.availableActions.map(aa => aa.action) : null;
-    },
-
-    selectedRows() {
-      if (!this.hasSelectionStore || !this.tableSelected || this.tableSelected.length === 0) {
-        return null;
-      }
-
-      return this.tableSelected.length;
+      return this.availableActions.map(aa => aa.action);
     },
 
     selectedRowsText() {
-      if (!this.selectedRows) {
+      if (!this.selectedRows.length) {
         return null;
       }
 
-      return this.t('sortableTable.actionAvailability.selected', { actionable: this.selectedRows });
+      return this.t('sortableTable.actionAvailability.selected', { actionable: this.selectedRows.length });
     },
 
+    // Shows a tooltip if the bulk action that the user is hovering over can not be applied to all selected rows
     actionTooltip() {
-      if (!this.selectedRows || !this.actionOfInterest) {
+      if (!this.selectedRows.length || !this.actionOfInterest) {
         return null;
       }
 
-      const runnableTotal = this.tableSelected.filter(this.canRunBulkActionOfInterest).length;
+      const runnableTotal = this.selectedRows.filter(this.canRunBulkActionOfInterest).length;
 
-      if (runnableTotal === this.selectedRows) {
+      if (runnableTotal === this.selectedRows.length) {
         return null;
       }
 
       return this.t('sortableTable.actionAvailability.some', {
         actionable: runnableTotal,
-        total:      this.selectedRows,
+        total:      this.selectedRows.length,
       });
     },
   },

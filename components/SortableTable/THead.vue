@@ -62,7 +62,11 @@ export default {
     noResults: {
       type:    Boolean,
       default: true,
-    }
+    },
+    loading: {
+      type:     Boolean,
+      required: false,
+    },
   },
 
   computed: {
@@ -117,7 +121,7 @@ export default {
 
 <template>
   <thead>
-    <tr>
+    <tr :class="{'loading': loading}">
       <th v-if="tableActions" :width="checkWidth" align="middle">
         <Checkbox
           v-model="isAll"
@@ -166,9 +170,12 @@ export default {
   thead {
     tr {
       background-color: var(--sortable-table-header-bg);
-      border-bottom: 1px solid var(--sortable-table-top-divider);
       color: var(--body-text);
       text-align: left;
+
+      &:not(.loading) {
+        border-bottom: 1px solid var(--sortable-table-top-divider);
+      }
     }
   }
 

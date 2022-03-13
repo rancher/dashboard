@@ -58,14 +58,17 @@ export default {
 
     const showMasthead = getters[`type-map/optionsFor`](resource).showListMasthead;
 
+    const existingData = getters[`${ inStore }/all`](resource) || [];
+
     return {
       schema,
       hasListComponent,
+      hasData:      existingData.length > 0,
       showMasthead: showMasthead === undefined ? true : showMasthead,
       resource,
 
       // Provided by fetch later
-      rows:              null,
+      rows:              [],
       customTypeDisplay: null,
     };
   },
@@ -84,6 +87,9 @@ export default {
       return this.$store.getters['type-map/groupByFor'](this.schema);
     },
 
+    loading() {
+      return this.hasData ? false : this.$fetchState.pending;
+    }
   },
 
   created() {
@@ -102,8 +108,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div>
     <Masthead
       v-if="showMasthead"
       :type-display="customTypeDisplay"
@@ -121,6 +126,7 @@ export default {
       v-else
       :schema="schema"
       :rows="rows"
+      :loading="loading"
       :headers="headers"
       :group-by="groupBy"
     />
