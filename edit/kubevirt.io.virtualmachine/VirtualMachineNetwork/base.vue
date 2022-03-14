@@ -116,10 +116,13 @@ export default {
       const other = [{
         label: 'bridge',
         value: 'bridge'
-      }, {
-        label: 'sriov',
-        value: 'sriov'
-      }];
+      }
+      // Temporarily Remove
+      // , {
+      //   label: 'sriov',
+      //   value: 'sriov'
+      // }
+      ];
 
       return this.isMasquerade ? masquerade : other;
     }
