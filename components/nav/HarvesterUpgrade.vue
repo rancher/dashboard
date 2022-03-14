@@ -4,10 +4,13 @@ import { allHash } from '@/utils/promise';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import PercentageBar from '@/components/PercentageBar';
 import ProgressBarList from '@/components/HarvesterUpgradeProgressBarList';
+import BadgeStateFormatter from '@/components/formatter/BadgeStateFormatter';
 
 export default {
   name:       'HarvesterUpgrade',
-  components: { PercentageBar, ProgressBarList },
+  components: {
+    PercentageBar, ProgressBarList, BadgeStateFormatter
+  },
 
   async fetch() {
     await allHash({
@@ -66,7 +69,7 @@ export default {
 
     repoInfo() {
       return this.latestResource.repoInfo;
-    }
+    },
   },
 
   methods: {
@@ -92,6 +95,16 @@ export default {
       <template slot="popover">
         <div class="upgrade-info mb-10">
           <div v-if="repoInfo" class="repoInfo">
+            <div v-if="latestResource" class="row mb-5">
+              <div class="col span-12">
+                <p class="state">
+                  {{ t('harvester.upgradePage.repoInfo.upgradeStatus') }}: <BadgeStateFormatter class="ml-5" :row="latestResource" />
+                </p>
+              </div>
+            </div>
+
+            <p class="bordered-section"></p>
+
             <div class="row mb-5">
               <div class="col span-6">
                 {{ t('harvester.upgradePage.repoInfo.os') }}: <span class="text-muted">{{ repoInfo.release.os }}</span>
@@ -173,8 +186,18 @@ export default {
 }
 
 .upgrade-info {
-  min-width: 450px;
-  max-width: 550px;
+  min-width: 550px;
+
+  .repoInfo {
+    .col span {
+      word-break: break-all
+    }
+
+    p.state {
+      display: flex;
+      align-items: center;
+    }
+  }
 
   .float-r {
     float: right;

@@ -1,6 +1,7 @@
 import jsyaml from 'js-yaml';
 import { NODE } from '@/config/types';
 import SteveModel from '@/plugins/steve/steve-class';
+import { colorForState } from '@/plugins/steve/resource-class';
 import { HCI } from '@/config/labels-annotations';
 
 export default class HciUpgrade extends SteveModel {
@@ -28,6 +29,24 @@ export default class HciUpgrade extends SteveModel {
     }
 
     return false;
+  }
+
+  get stateDisplay() {
+    const conditions = this?.status?.conditions || [];
+    const completedCondition = conditions.find( cond => cond.type === 'Completed');
+    const status = completedCondition?.status;
+
+    if (status === 'True') {
+      return 'Success';
+    } else if (status === 'False') {
+      return 'Fail';
+    } else {
+      return 'on-going';
+    }
+  }
+
+  get stateColor() {
+    return colorForState(this.stateDisplay);
   }
 
   get nodes() {

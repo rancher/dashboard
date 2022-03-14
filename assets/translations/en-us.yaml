@@ -5753,10 +5753,14 @@ harvester:
     succeeded: Succeeded
     pending: Pending
     repoInfo:
+      upgradeStatus: Upgrade Status
       os: OS
       kubernetes: Kubernetes
       monitoringChart: Monitoring Chart
       harvesterChart: Harvester Chart
+      success: Success
+      fail:  Fail
+      ongoing: on-going
     dismissMessage: Dismiss it
 
   backup:
