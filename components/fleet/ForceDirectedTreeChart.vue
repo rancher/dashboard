@@ -19,20 +19,21 @@ export default {
   },
   data() {
     return {
-      parsedInfo:       null,
-      root:             null,
-      allNodesData:     null,
-      allLinks:         null,
-      rootNode:         null,
-      node:             null,
-      link:             null,
-      svg:              null,
-      zoom:             null,
-      simulation:       null,
-      circleRadius:     20,
-      nodeImagePadding: 15,
-      isRendered:       false,
-      moreInfo:         {}
+      parsedInfo:                      null,
+      root:                            null,
+      allNodesData:                    null,
+      allLinks:                        null,
+      rootNode:                        null,
+      node:                            null,
+      link:                            null,
+      svg:                             null,
+      zoom:                            null,
+      simulation:                      null,
+      circleRadius:                    20,
+      nodeImagePadding:                15,
+      isChartFirstRendered:            false,
+      isChartFirstRenderDelayFinished: false,
+      moreInfo:                        {}
     };
   },
   watch: {
@@ -42,8 +43,7 @@ export default {
           // eslint-disable-next-line no-console
           console.log('WATCHER TRIGGERED!', JSON.stringify(newValue.bundles.length, null, 2), newValue);
 
-          if (!this.isRendered) {
-            window.d3 = d3;
+          if (!this.isChartFirstRendered) {
             this.parsedInfo = this.parseData(newValue);
 
             // set details info to git repo and set active state
@@ -53,7 +53,7 @@ export default {
             // render and update chart
             this.renderChart();
             this.updateChart(true, true);
-            this.isRendered = true;
+            this.isChartFirstRendered = true;
 
           // here we just look for changes in the status of the nodes and update them accordingly
           } else {
@@ -87,9 +87,9 @@ export default {
           // this.parsedInfo = this.parseData(newValue);
           // console.log('ORIGINAL DATA flattened', this.flatten(this.parsedInfo));
 
-          // if (!this.isRendered) {
+          // if (!this.isChartFirstRendered) {
           //   this.renderChart();
-          //   this.isRendered = true;
+          //   this.isChartFirstRendered = true;
           // }
           // this.updateChart(true, true);
         }
@@ -178,7 +178,7 @@ export default {
     },
     renderChart() {
       const width = 800;
-      const height = 600;
+      const height = 500;
 
       // clear any previous renders, if they exist...
       // if (d3.select('#tree > svg')) {
@@ -197,7 +197,6 @@ export default {
 
       this.svg.call(this.zoom);
       this.svg.call(this.zoom.transform, transform);
-      console.log('BASE TRANSFORM', transform);
 
       this.simulation = d3.forceSimulation()
         .force('charge', d3.forceManyBody().strength(-300).distanceMax(500))
@@ -206,6 +205,8 @@ export default {
         .on('tick', this.ticked)
         .on('end', () => {
           console.log('ANIMATION ENDED!');
+          this.zoomFit();
+          this.isChartFirstRenderDelayFinished = true;
         });
     },
     updateChart(isStartingData, isSettingNodesAndLinks) {
@@ -291,9 +292,10 @@ export default {
       );
 
       if (isStartingData) {
-        setTimeout(() => {
-          this.zoomFit();
-        }, 800);
+        // setTimeout(() => {
+        //   this.zoomFit();
+        //   this.isChartFirstRenderDelayFinished = true;
+        // }, 800);
       }
     },
     mainNodeClass(d) {
@@ -458,33 +460,62 @@ export default {
       const midX = chartCoordinates.x + width / 2;
       const midY = chartCoordinates.y + height / 2;
 
-      // console.log('fullWidth', fullWidth);
-      // console.log('fullHeight', fullHeight);
-      // console.log('width', width);
-      // console.log('height', height);
-      // console.log('midX', midX);
-      // console.log('midY', midY);
+      // console.log('chartDimentions', JSON.stringify(chartDimentions, null, 2));
+      // console.log('chartDimentions', chartDimentions);
+      // console.log('chartCoordinates', JSON.stringify(chartCoordinates, null, 2));
+      // console.log('chartCoordinates', chartCoordinates);
+      // console.log('fullWidth (chart window)', JSON.stringify(fullWidth, null, 2));
+      // console.log('fullWidth (chart window)', fullWidth);
+      // console.log('fullHeigh (chart window)t', JSON.stringify(fullHeight, null, 2));
+      // console.log('fullHeight (chart window)', fullHeight);
+      // console.log('width (chart itself)', JSON.stringify(width, null, 2));
+      // console.log('width (chart itself)', width);
+      // console.log('height (chart itself)', JSON.stringify(height, null, 2));
+      // console.log('heigh (chart itself)t', height);
 
       if (width === 0 || height === 0) {
         return;
       } // nothing to fit
 
-      const scale = 1 / Math.max(width / (fullWidth - paddingBuffer), height / (fullHeight - paddingBuffer));
-      const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
+      // const scale = 1 / Math.max(width / (fullWidth - paddingBuffer), height / (fullHeight - paddingBuffer));
+      // const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
 
-      console.log('ZOOM FIT scale', scale);
+      // if (scale < 0.9) {
+      //   const transform = d3.zoomIdentity
+      //     .translate(translate[0], translate[1])
+      //     .scale(scale);
 
-      if (scale < 0.9) {
-        const transform = d3.zoomIdentity
-          .translate(translate[0], translate[1])
-          .scale(scale);
+      //   // this update the cached zoom state!!!!! very important so that any transforms from user interaction keep this base!
+      //   this.svg.call(this.zoom.transform, transform);
+      // } else {
+      //   const transform = d3.zoomIdentity
+      //     .translate(0, 0);
 
-        // this update the cached zoom state!!!!! very important so that any transforms from user interaction keep this base!
-        this.svg.call(this.zoom.transform, transform);
+      //   this.svg.call(this.zoom.transform, transform);
+      // }
+
+      /* ------------------- CORRECT ZOOM FIT CODE  ------------------- */
+
+      const scaleCheck = 1 / Math.max(width / (fullWidth - paddingBuffer), height / (fullHeight - paddingBuffer));
+      let translateX = -chartCoordinates.x * scaleCheck;
+      let translateY = -chartCoordinates.y * scaleCheck;
+
+      if (scaleCheck < 0.95) {
+        translateX > 0 ? translateX += paddingBuffer : translateX -= paddingBuffer;
+        translateY > 0 ? translateY += paddingBuffer : translateY -= paddingBuffer;
+      } else {
+        translateX > 0 ? translateX -= paddingBuffer : translateX += paddingBuffer;
+        translateY > 0 ? translateY -= paddingBuffer : translateY += paddingBuffer;
       }
+
+      const zoomTransform = d3.zoomIdentity.translate(translateX, translateY).scale(scaleCheck);
+
+      this.svg.call(this.zoom.transform, zoomTransform);
+
+      /* ------------------- ---------------------  ------------------- */
     },
     zoomed(ev) {
-      console.log('ZOOM CB', ev.transform);
+      // console.log('ZOOM CB', ev.transform);
       this.rootNode.attr('transform', ev.transform);
     }
   }
@@ -495,12 +526,18 @@ export default {
   <div>
     <div class="chart-container">
       <Loading
-        v-if="withContentLoader && !isRendered"
+        v-if="withContentLoader && !isChartFirstRendered"
         class="chart-loader"
         :loading="true"
         mode="free"
         :no-delay="true"
       />
+      <div
+        v-if="isChartFirstRendered && !isChartFirstRenderDelayFinished"
+        class="chart-first-render-delay-layer"
+      >
+        <span>Rendering git repo network...</span>
+      </div>
       <div id="tree">
       </div>
       <div class="more-info">
@@ -553,9 +590,9 @@ export default {
         </ul>
       </div>
     </div>
-    <button type="button" @click="zoomFit">
+    <!-- <button type="button" @click="zoomFit">
       ZOOM TO FIT CONTENT
-    </button>
+    </button> -->
   </div>
 </template>
 
@@ -566,6 +603,21 @@ export default {
   position: relative;
   border: 1px solid var(--border);
   border-radius: var(--border-radius);
+
+  .chart-first-render-delay-layer {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--border-radius);
+    background-color: var(--body-bg);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
   .chart-loader {
     min-height: 200px;
