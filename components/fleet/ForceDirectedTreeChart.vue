@@ -19,32 +19,31 @@ export default {
   },
   data() {
     return {
-      parsedInfo:                      null,
-      root:                            null,
-      allNodesData:                    null,
-      allLinks:                        null,
-      rootNode:                        null,
-      node:                            null,
-      link:                            null,
-      svg:                             null,
-      zoom:                            null,
-      simulation:                      null,
-      circleRadius:                    20,
-      nodeImagePadding:                15,
-      isChartFirstRendered:            false,
-      isChartFirstRenderDelayFinished: false,
-      moreInfo:                        {}
+      parsedInfo:                          null,
+      root:                                null,
+      allNodesData:                        null,
+      allLinks:                            null,
+      rootNode:                            null,
+      node:                                null,
+      link:                                null,
+      svg:                                 null,
+      zoom:                                null,
+      simulation:                          null,
+      circleRadius:                        20,
+      nodeImagePadding:                    15,
+      isChartFirstRendered:                false,
+      isChartFirstRenderAnimationFinished: false,
+      moreInfo:                            {}
     };
   },
   watch: {
-    data: {
+    'data.bundles': {
       handler(newValue) {
-        if (newValue.bundles?.length) {
-          // eslint-disable-next-line no-console
-          console.log('WATCHER TRIGGERED!', JSON.stringify(newValue.bundles.length, null, 2), newValue);
-
+        // eslint-disable-next-line no-console
+        console.log('WATCHER TRIGGERED!', JSON.stringify(newValue.length, null, 2));
+        if (newValue.length) {
           if (!this.isChartFirstRendered) {
-            this.parsedInfo = this.parseData(newValue);
+            this.parsedInfo = this.parseData(this.data);
 
             // set details info to git repo and set active state
             this.setDetailsInfo(this.parsedInfo, false);
@@ -57,7 +56,7 @@ export default {
 
           // here we just look for changes in the status of the nodes and update them accordingly
           } else {
-            const parsedInfo = this.parseData(newValue);
+            const parsedInfo = this.parseData(this.data);
             const flattenedData = this.flatten(parsedInfo);
             let hasStatusChange = false;
 
@@ -82,16 +81,6 @@ export default {
               this.updateChart(false, false);
             }
           }
-
-          // DATA FORCES REFRESH EVERY TIME TEST...
-          // this.parsedInfo = this.parseData(newValue);
-          // console.log('ORIGINAL DATA flattened', this.flatten(this.parsedInfo));
-
-          // if (!this.isChartFirstRendered) {
-          //   this.renderChart();
-          //   this.isChartFirstRendered = true;
-          // }
-          // this.updateChart(true, true);
         }
       }
     }
@@ -180,11 +169,6 @@ export default {
       const width = 800;
       const height = 500;
 
-      // clear any previous renders, if they exist...
-      // if (d3.select('#tree > svg')) {
-      //   d3.select('#tree > svg').remove();
-      // }
-
       this.zoom = d3.zoom().scaleExtent([1 / 8, 16]).on('zoom', this.zoomed);
       const transform = d3.zoomIdentity.scale(1).translate(0, 0);
 
@@ -204,9 +188,12 @@ export default {
         .force('center', d3.forceCenter( width / 2, height / 2 ))
         .on('tick', this.ticked)
         .on('end', () => {
+          // eslint-disable-next-line no-console
           console.log('ANIMATION ENDED!');
-          this.zoomFit();
-          this.isChartFirstRenderDelayFinished = true;
+          if (!this.isChartFirstRenderAnimationFinished) {
+            this.zoomFit();
+            this.isChartFirstRenderAnimationFinished = true;
+          }
         });
     },
     updateChart(isStartingData, isSettingNodesAndLinks) {
@@ -290,13 +277,6 @@ export default {
         .distance(100)
         .links(this.allLinks)
       );
-
-      if (isStartingData) {
-        // setTimeout(() => {
-        //   this.zoomFit();
-        //   this.isChartFirstRenderDelayFinished = true;
-        // }, 800);
-      }
     },
     mainNodeClass(d) {
       const lowerCaseStatus = d.data?.state ? d.data.state.toLowerCase() : 'unkown_status';
@@ -460,62 +440,41 @@ export default {
       const midX = chartCoordinates.x + width / 2;
       const midY = chartCoordinates.y + height / 2;
 
-      // console.log('chartDimentions', JSON.stringify(chartDimentions, null, 2));
-      // console.log('chartDimentions', chartDimentions);
-      // console.log('chartCoordinates', JSON.stringify(chartCoordinates, null, 2));
-      // console.log('chartCoordinates', chartCoordinates);
-      // console.log('fullWidth (chart window)', JSON.stringify(fullWidth, null, 2));
-      // console.log('fullWidth (chart window)', fullWidth);
-      // console.log('fullHeigh (chart window)t', JSON.stringify(fullHeight, null, 2));
-      // console.log('fullHeight (chart window)', fullHeight);
-      // console.log('width (chart itself)', JSON.stringify(width, null, 2));
-      // console.log('width (chart itself)', width);
-      // console.log('height (chart itself)', JSON.stringify(height, null, 2));
-      // console.log('heigh (chart itself)t', height);
-
       if (width === 0 || height === 0) {
         return;
       } // nothing to fit
 
-      // const scale = 1 / Math.max(width / (fullWidth - paddingBuffer), height / (fullHeight - paddingBuffer));
-      // const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
+      const scale = 1 / Math.max(width / (fullWidth - paddingBuffer), height / (fullHeight - paddingBuffer));
+      const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
 
-      // if (scale < 0.9) {
-      //   const transform = d3.zoomIdentity
-      //     .translate(translate[0], translate[1])
-      //     .scale(scale);
+      const transform = d3.zoomIdentity
+        .translate(translate[0], translate[1])
+        .scale(scale);
 
-      //   // this update the cached zoom state!!!!! very important so that any transforms from user interaction keep this base!
-      //   this.svg.call(this.zoom.transform, transform);
-      // } else {
-      //   const transform = d3.zoomIdentity
-      //     .translate(0, 0);
-
-      //   this.svg.call(this.zoom.transform, transform);
-      // }
+      // this update the cached zoom state!!!!! very important so that any transforms from user interaction keep this base!
+      this.svg.call(this.zoom.transform, transform);
 
       /* ------------------- CORRECT ZOOM FIT CODE  ------------------- */
 
-      const scaleCheck = 1 / Math.max(width / (fullWidth - paddingBuffer), height / (fullHeight - paddingBuffer));
-      let translateX = -chartCoordinates.x * scaleCheck;
-      let translateY = -chartCoordinates.y * scaleCheck;
+      // const scaleCheck = 1 / Math.max(width / (fullWidth - paddingBuffer), height / (fullHeight - paddingBuffer));
+      // let translateX = -chartCoordinates.x * scaleCheck;
+      // let translateY = -chartCoordinates.y * scaleCheck;
 
-      if (scaleCheck < 0.95) {
-        translateX > 0 ? translateX += paddingBuffer : translateX -= paddingBuffer;
-        translateY > 0 ? translateY += paddingBuffer : translateY -= paddingBuffer;
-      } else {
-        translateX > 0 ? translateX -= paddingBuffer : translateX += paddingBuffer;
-        translateY > 0 ? translateY -= paddingBuffer : translateY += paddingBuffer;
-      }
+      // if (scaleCheck < 0.95) {
+      //   translateX > 0 ? translateX += paddingBuffer : translateX -= paddingBuffer;
+      //   translateY > 0 ? translateY += paddingBuffer : translateY -= paddingBuffer;
+      // } else {
+      //   translateX > 0 ? translateX -= paddingBuffer : translateX += paddingBuffer;
+      //   translateY > 0 ? translateY -= paddingBuffer : translateY += paddingBuffer;
+      // }
 
-      const zoomTransform = d3.zoomIdentity.translate(translateX, translateY).scale(scaleCheck);
+      // const zoomTransform = d3.zoomIdentity.translate(translateX, translateY).scale(scaleCheck);
 
-      this.svg.call(this.zoom.transform, zoomTransform);
+      // this.svg.call(this.zoom.transform, zoomTransform);
 
       /* ------------------- ---------------------  ------------------- */
     },
     zoomed(ev) {
-      // console.log('ZOOM CB', ev.transform);
       this.rootNode.attr('transform', ev.transform);
     }
   }
@@ -533,7 +492,7 @@ export default {
         :no-delay="true"
       />
       <div
-        v-if="isChartFirstRendered && !isChartFirstRenderDelayFinished"
+        v-if="isChartFirstRendered && !isChartFirstRenderAnimationFinished"
         class="chart-first-render-delay-layer"
       >
         <span>Rendering git repo network...</span>
@@ -590,9 +549,6 @@ export default {
         </ul>
       </div>
     </div>
-    <!-- <button type="button" @click="zoomFit">
-      ZOOM TO FIT CONTENT
-    </button> -->
   </div>
 </template>
 
