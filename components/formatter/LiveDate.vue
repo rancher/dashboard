@@ -37,8 +37,13 @@ export default {
     }
   },
 
+  mounted() {
+    // Set initial value;
+    this.liveUpdate(day());
+  },
+
   data() {
-    return { label: this.update() };
+    return { label: '-' };
   },
 
   computed: {
@@ -67,40 +72,30 @@ export default {
       }
 
       return out;
+    },
+
+    dayValue() {
+      return day(this.value);
     }
   },
 
   watch: {
     value() {
-      this.update();
+      this.liveUpdate(day());
     }
   },
 
-  beforeDestroy() {
-    clearTimeout(this.timer);
-  },
-
   methods: {
-    update() {
-      if ( !this.value || this.value === 'null' ) {
-        this.label = null;
-
-        return this.label;
-      }
-
-      clearTimeout(this.timer);
-
-      const value = day(this.value);
-      const now = day();
-      const diff = diffFrom(value, now);
+    liveUpdate(now) {
+      const diff = diffFrom(this.dayValue, now);
       const prefix = (diff.diff < 0 || !this.addPrefix ? '' : '-');
-      const suffix = '';
+
       let label = diff.label;
 
       if ( diff === 0 ) {
         label = 'Just now';
       } else {
-        label += ` ${ prefix } ${ this.t(diff.unitsKey, { count: diff.label }) } ${ suffix }`;
+        label += ` ${ prefix } ${ this.t(diff.unitsKey, { count: diff.label }) }`;
         label = label.trim();
       }
 
@@ -108,12 +103,8 @@ export default {
         this.label = label;
       }
 
-      this.timer = setTimeout(() => {
-        this.update();
-      }, 1000 * diff.next);
-
-      return this.label;
-    }
+      return diff.next || 1;
+    },
   }
 };
 </script>

@@ -72,7 +72,7 @@ export default {
 
   computed: {
     hasWindowsNodes() {
-      return this.kubeNodes.some(node => node.status.nodeInfo.operatingSystem === 'windows');
+      return (this.kubeNodes || []).some(node => node.status.nodeInfo.operatingSystem === 'windows');
     },
     tableGroup: mapPref(GROUP_RESOURCES),
 

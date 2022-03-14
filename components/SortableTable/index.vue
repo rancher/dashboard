@@ -1,4 +1,5 @@
 <script>
+import day from 'dayjs';
 import { mapState } from 'vuex';
 import { dasherize, ucFirst } from '@/utils/string';
 import { get, clone } from '@/utils/object';
@@ -263,10 +264,34 @@ export default {
     };
   },
 
+  mounted() {
+    // Add scroll listener to the main element
+    const $main = $('main');
+
+    this._onScroll = this.onScroll.bind(this);
+    $main.on('scroll', this._onScroll);
+
+    this.updateLiveColumns();
+  },
+
+  beforeDestroy() {
+    clearTimeout(this._liveColumnsTimer);
+
+    const $main = $('main');
+
+    $main.off('scroll', this._onScroll);
+  },
+
   watch: {
     eventualSearchQuery: debounce(function(q) {
       this.searchQuery = q;
     }, 100),
+
+    // If pagedRows changes then there may be rows that we need to live update
+    pagedRows() {
+      clearTimeout(this._liveColumnsTimer);
+      this.updateLiveColumns();
+    }
   },
 
   computed: {
@@ -369,6 +394,13 @@ export default {
         'overflow-y':      this.overflowY,
         'overflow-x':      this.overflowX,
       };
+    },
+
+    // Do we have any live columns?
+    hasLiveColumns() {
+      const liveColumns = this.columns.find(c => c.formatter?.startsWith('Live'));
+
+      return !!liveColumns;
     }
   },
 
@@ -376,6 +408,50 @@ export default {
 
     get,
     dasherize,
+
+    onScroll() {
+      if (this.hasLiveColumns) {
+        clearTimeout(this._liveColumnsTimer);
+        this._liveColumnsTimer = setTimeout(() => {
+          this.updateLiveColumns();
+        }, 1000);
+      }
+    },
+
+    updateLiveColumns() {
+      if (!this.hasLiveColumns || this.pagedRows.length === 0) {
+        return;
+      }
+
+      const live = this.$refs.liveColumn;
+
+      // No rush to update the live columns - we may get called before the refs are available, so just try again until they are
+      if (!live) {
+        this._liveColumnsTimer = setTimeout(() => this.updateLiveColumns(), 500);
+
+        return;
+      }
+
+      const now = day();
+      let next = Number.MAX_SAFE_INTEGER;
+
+      live.forEach((c) => {
+        if (c.liveUpdate) {
+          const diff = c.liveUpdate(now);
+
+          if (diff < next) {
+            next = diff;
+          }
+        }
+      });
+
+      if (next < 1 ) {
+        next = 1;
+      }
+
+      // Schedule again
+      this._liveColumnsTimer = setTimeout(() => this.updateLiveColumns(), next * 1000);
+    },
 
     labelFor(col) {
       if ( col.labelKey ) {
@@ -665,7 +741,17 @@ export default {
                       <slot :name="'cell:' + col.name" :row="row" :col="col" :value="valueFor(row,col)">
                         <component
                           :is="col.formatter"
-                          v-if="col.formatter"
+                          v-if="col.formatter && col.formatter.startsWith('Live')"
+                          ref="liveColumn"
+                          :value="valueFor(row,col)"
+                          :row="row"
+                          :col="col"
+                          v-bind="col.formatterOpts"
+                          :row-key="get(row,keyField)"
+                        />
+                        <component
+                          :is="col.formatter"
+                          v-else-if="col.formatter"
                           :value="valueFor(row,col)"
                           :row="row"
                           :col="col"
