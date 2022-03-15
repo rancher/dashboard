@@ -63,10 +63,14 @@ function replicate(data, config) {
   if (data.length === 0) {
     return data;
   }
-
+  
   // Pretend there are none of the resource type
   if (config.count === 0) {
     return [];
+  }
+
+  if (config.count <= data.length) {
+    return data.slice(0, config.count);
   }
 
   const templates = [];
@@ -74,16 +78,19 @@ function replicate(data, config) {
 
   data.forEach(d => templates.push(JSON.stringify(d)));
 
-  data = [];
+  const newData = [ ...data ];
 
-  for (let i = 0; i < config.count; i++) {
+  // We already have the elemnts in data... just need to pad out
+  const remaining = config.count - data.length;
+
+  for (let i = 0; i < remaining; i++) {
     const newNode = JSON.parse(templates[j]);
 
     newNode.id = `${ newNode.id }_${ i }`;
     newNode.metadata.uid = `uid_${ i }_${ Math.random() * 1000 }`;
     newNode.metadata.name = `${ newNode.metadata?.name }_${ i }`;
     newNode.metadata.creationTimestamp = day().format();
-    data.push(newNode);
+    newData.push(newNode);
 
     if (config.statusRow > 0) {
       // Fake a status row one in N times, where N is the statusRow setting
@@ -112,5 +119,5 @@ function replicate(data, config) {
     }
   }
 
-  return data;
+  return newData;
 }
