@@ -6809,8 +6809,12 @@ epinio:
         label: Deploy
         description: Deploy and start the Application
     actions:
+      shell:
+        label: App Shell
       viewAppLogs:
-        label: View Logs
+        label: App Logs
+      viewStagingLogs:
+        label: Staging Logs
       restage:
         label: Rebuild
       restart:

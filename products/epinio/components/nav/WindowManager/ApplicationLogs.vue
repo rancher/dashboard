@@ -1,12 +1,6 @@
 <script>
-// Streaming logs over socket isn't supported at the moment (requires auth changes to backend or un-CORS-ing)
-// https://github.com/epinio/ui/issues/3
-// ApplicationLogs & StagingLogs come from components/nav/WindowManager/ContainerLogs.vue
-// Both are WIP, specifically the amount of common code. This should be moved to a mixin.
-/* eslint-disable no-unused-vars */
 import AnsiUp from 'ansi_up';
 import { addParams } from '@/utils/url';
-import { base64Decode } from '@/utils/crypto';
 import { LOGS_TIME, LOGS_WRAP, DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 import Checkbox from '@/components/form/Checkbox';
 import AsyncButton from '@/components/AsyncButton';
@@ -18,11 +12,11 @@ import Socket, {
   EVENT_CONNECTED,
   EVENT_DISCONNECTED,
   EVENT_MESSAGE,
-  //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR
 } from '@/utils/socket';
 import Window from '@/components/nav/WindowManager/Window';
-import { EPINIO_MGMT_STORE, EPINIO_PRODUCT_NAME, EPINIO_STANDALONE_CLUSTER_ID, EPINIO_TYPES } from '@/products/epinio/types';
+import { downloadFile } from '@/utils/download';
+import ApplicationSocketMixin from './ApplicationSocketMixin';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -34,42 +28,21 @@ export default {
     AsyncButton
   },
 
+  mixins: [ApplicationSocketMixin],
+
   props:      {
-    // The definition of the tab itself
-    tab: {
-      type:     Object,
-      required: true,
-    },
-
-    // Is this tab currently displayed
-    active: {
+    ansiToHtml: {
       type:     Boolean,
-      required: true,
+      default: false,
     },
-
-    // The height of the window
-    height: {
-      type:     Number,
-      required: true,
-    },
-
-    // The application to connect to
-    application: {
-      type:     Object,
-      required: true,
-    },
-
   },
 
   data() {
     return {
-      socket:      null,
-      isOpen:      false,
       isFollowing: true,
       timestamps:  this.$store.getters['prefs/get'](LOGS_TIME),
       wrap:        this.$store.getters['prefs/get'](LOGS_WRAP),
       search:      '',
-      backlog:     [],
       lines:       [],
     };
   },
@@ -137,26 +110,10 @@ export default {
   },
 
   methods: {
-    getSocketUrl(token) {
-      const isSingleProduct = !!this.$store.getters['isSingleProduct'];
-      let api = '';
-      let prependPath = '';
+    async getSocketUrl() {
+      const { url, token } = await this.getRootSocketUrl();
 
-      if (isSingleProduct) {
-        const cnsi = this.$store.getters[`${ EPINIO_PRODUCT_NAME }/singleProductCNSI`]();
-
-        prependPath = `/pp/v1/direct/ws/${ cnsi?.guid }`;
-      } else {
-        const currentClusterId = this.$store.getters['clusterId'];
-        const currentCluster = this.$store.getters[`${ EPINIO_MGMT_STORE }/byId`](EPINIO_TYPES.INSTANCE, currentClusterId);
-
-        api = currentCluster.api;
-      }
-
-      const endpoint = this.application.linkFor('logs');
-      const url = addParams(`${ api }${ prependPath }${ endpoint }`, { follow: true, authtoken: token });
-
-      return url.replace(/^http/, 'ws');
+      return addParams(url, { follow: true, authtoken: token });
     },
 
     async connect() {
@@ -166,22 +123,11 @@ export default {
         this.lines = [];
       }
 
-      // TODO: RC TIDY
-      this.lines = [{
-        id:     '1',
-        time:   '',
-        rawMsg: 'HELLOW WORLD',
-        msg:    'Application Logs ...'
-      }];
+      this.lines = [];
 
-      // https://github.com/epinio/epinio/blob/6ef5cc0044f71c01cf90ed83bcdda18251c594a7/internal/cli/usercmd/client.go
+      const url = await this.getSocketUrl();
 
-      const { token } = await this.$store.dispatch(`epinio/request`, { opt: { url: '/api/v1/authtoken' } });
-
-      const url = this.getSocketUrl(token);
-
-      // this.socket = new Socket(url, false, 0, 'base64.binary.k8s.io');
-      this.socket = new Socket(url, false, 0);
+      this.socket = new Socket(url, true, 0);
       this.socket.addEventListener(EVENT_CONNECTED, (e) => {
         this.isOpen = true;
       });
@@ -196,28 +142,25 @@ export default {
       });
 
       this.socket.addEventListener(EVENT_MESSAGE, (e) => {
-        const line = base64Decode(e.detail.data);
+        let parsedData;
 
-        let msg = line;
-        let time = null;
+        try {
+          parsedData = JSON.parse(e.detail.data);
+        } catch (e) {
+          console.warn('Unable to parse websocket data: ', e.detail.data); // eslint-disable-line no-console
 
-        const idx = line.indexOf(' ');
-
-        if ( idx > 0 ) {
-          const timeStr = line.substr(0, idx);
-          const date = new Date(timeStr);
-
-          if ( !isNaN(date.getSeconds()) ) {
-            time = date.toISOString();
-            msg = line.substr(idx + 1);
-          }
+          return;
         }
+
+        const { PodName, ContainerName, Message } = parsedData;
+
+        const line = `[${ PodName }] ${ ContainerName }: ${ Message }`;
 
         this.backlog.push({
           id:     lastId++,
-          msg:    ansiup.ansi_to_html(msg),
-          rawMsg: msg,
-          time,
+          msg:    this.ansiToHtml ? ansiup.ansi_to_html(line) : line,
+          rawMsg: line,
+          // time,
         });
       });
 
@@ -248,7 +191,12 @@ export default {
     },
 
     download(btnCb) {
-      throw new Error('Not Implemented');
+      const date = new Date().toISOString().split('.')[0];
+      const fileName = `${ this.application.nameDisplay }-${ date }`;
+
+      downloadFile(fileName, this.lines.map(l => `${ l.rawMsg }`).join('\n'))
+        .then(() => btnCb(true))
+        .catch(() => btnCb(false));
     },
 
     follow() {

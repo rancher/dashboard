@@ -1,4 +1,4 @@
-import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_TYPES } from '@/products/epinio/types';
+import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import { formatSi } from '@/utils/units';
 import { classify } from '@/plugins/core-store/classify';
@@ -93,35 +93,58 @@ export default class EpinioApplication extends EpinioResource {
   }
 
   get _availableActions() {
-    return [
-      // {
-      //   action:     'showStagingLog',
-      //   label:      this.t('epinio.applications.actions.viewAppLogs.label'),
-      //   icon:       'icon icon-fw icon-chevron-right',
-      //   enabled:    this.active,
-      // },
-      // {
-      //   action:     'showAppLog',
-      //   label:      this.t('epinio.applications.actions.viewAppLogs.label'),
-      //   icon:       'icon icon-fw icon-chevron-right',
-      //   enabled:    this.active,
-      // },
-      // { divider: true },
-      {
-        action:     'restage',
-        label:      this.t('epinio.applications.actions.restage.label'),
-        icon:       'icon icon-fw icon-backup',
-        enabled:    !!this.deployment?.stage_id
-      },
-      {
-        action:     'restart',
-        label:      this.t('epinio.applications.actions.restart.label'),
-        icon:       'icon icon-fw icon-refresh',
-        enabled:    [STATES.RUNNING].includes(this.status)
-      },
-      { divider: true },
-      ...super._availableActions
-    ];
+    const isSingleProduct = !!this.$rootGetters['isSingleProduct'];
+
+    const res = [];
+
+    if (!isSingleProduct) {
+      const showAppLog = this.active;
+      const showStagingLog = !!this.stage_id;
+      const showAppShell = this.active;
+
+      res.push(
+        {
+          action:     'showAppShell',
+          label:      this.t('epinio.applications.actions.shell.label'),
+          icon:       'icon icon-fw icon-chevron-right',
+          enabled:    showAppShell,
+        },
+        {
+          action:     'showAppLog',
+          label:      this.t('epinio.applications.actions.viewAppLogs.label'),
+          icon:       'icon icon-fw icon-file',
+          enabled:    showAppLog,
+        },
+        {
+          action:     'showStagingLog',
+          label:      this.t('epinio.applications.actions.viewStagingLogs.label'),
+          icon:       'icon icon-fw icon-file',
+          enabled:    showStagingLog,
+        },
+
+      );
+
+      if (showAppShell || showAppLog || showStagingLog) {
+        res.push({ divider: true });
+      }
+    }
+
+    res.push( {
+      action:     'restage',
+      label:      this.t('epinio.applications.actions.restage.label'),
+      icon:       'icon icon-fw icon-backup',
+      enabled:    !!this.deployment?.stage_id
+    },
+    {
+      action:     'restart',
+      label:      this.t('epinio.applications.actions.restart.label'),
+      icon:       'icon icon-fw icon-refresh',
+      enabled:    [STATES.RUNNING].includes(this.status)
+    },
+    { divider: true },
+    ...super._availableActions);
+
+    return res;
   }
 
   get nsLocation() {
@@ -142,7 +165,6 @@ export default class EpinioApplication extends EpinioResource {
       stage:       `${ this.getUrl() }/stage`,
       deploy:      `${ this.getUrl() }/deploy`,
       logs:        `${ this.getUrl() }/logs`.replace('/api/v1', '/wapi/v1'), // /namespaces/:namespace/applications/:app/logs
-      stagingLogs: ``, // /namespaces/:namespace/staging/:stage_id/logs
       importGit:   `${ this.getUrl() }/import-git`,
       restart:     `${ this.getUrl() }/restart`,
       shell:       `${ this.getUrl() }/exec`.replace('/api/v1', '/wapi/v1'), // /namespaces/:namespace/applications/:app/exec
@@ -430,30 +452,74 @@ export default class EpinioApplication extends EpinioResource {
     this.showStagingLog(stage.id);
   }
 
-  showAppLog() {
-    // Streaming logs over socket isn't supported at the moment (requires auth changes to backend or un-CORS-ing)
-    // https://github.com/epinio/ui/issues/3
-    // this.$dispatch('wm/open', {
-    //   id:        `epinio-${ this.id }-app-logs`,
-    //   label:     `${ this.meta.name }`,
-    //   product:   EPINIO_PRODUCT_NAME,
-    //   icon:      'file',
-    //   component: 'ContainerShell',
-    //   attrs:     { application: this }
-    // }, { root: true });
+  showAppShell() {
+    const isSingleProduct = !!this.$rootGetters['isSingleProduct'];
+
+    if (isSingleProduct) {
+      return;
+    }
+    this.$dispatch('wm/open', {
+      id:        `epinio-${ this.id }-app-shell`,
+      label:     `${ this.meta.name } - App Shell`,
+      product:   EPINIO_PRODUCT_NAME,
+      icon:      'chevron-right',
+      component: 'ApplicationShell',
+      attrs:     {
+        application:     this,
+        endpoint:        this.linkFor('shell'),
+        initialInstance: this.instances[0].id
+      }
+    }, { root: true });
   }
 
-  showStagingLog(stageId) {
-    // Streaming logs over socket isn't supported at the moment (requires auth changes to backend or un-CORS-ing)
-    // https://github.com/epinio/ui/issues/3
-    // this.$dispatch('wm/open', {
-    //   id:        `epinio-${ this.id }-logs-${ stageId }`,
-    //   label:     `${ this.meta.name } - Staging - ${ stageId }`,
-    //   product:   EPINIO_PRODUCT_NAME,
-    //   icon:      'file',
-    //   component: 'StagingLogs',
-    //   attrs:     { application: this }
-    // }, { root: true });
+  showAppLog() {
+    const isSingleProduct = !!this.$rootGetters['isSingleProduct'];
+
+    if (isSingleProduct) {
+      return;
+    }
+    this.$dispatch('wm/open', {
+      id:        `epinio-${ this.id }-app-logs`,
+      label:     `${ this.meta.name } - App Logs`,
+      product:   EPINIO_PRODUCT_NAME,
+      icon:      'file',
+      component: 'ApplicationLogs',
+      attrs:     {
+        application: this,
+        endpoint:    this.linkFor('logs')
+      }
+    }, { root: true });
+  }
+
+  showStagingLog(stageId = this.stage_id) {
+    const isSingleProduct = !!this.$rootGetters['isSingleProduct'];
+
+    if (isSingleProduct) {
+      return;
+    }
+
+    if (!stageId) {
+      console.warn('Unable to show staging logs, no stage id');// eslint-disable-line no-console
+    }
+
+    // /namespaces/:namespace/staging/:stage_id/logs
+    let endpoint = `${ this.getUrl(this.meta?.namespace, stageId) }/logs`;
+
+    endpoint = endpoint.replace('/api/v1', '/wapi/v1');
+    endpoint = endpoint.replace('/applications', '/staging');
+
+    this.$dispatch('wm/open', {
+      id:        `epinio-${ this.id }-logs-${ stageId }`,
+      label:     `${ this.meta.name } - Staging - ${ stageId }`,
+      product:   EPINIO_PRODUCT_NAME,
+      icon:      'file',
+      component: 'ApplicationLogs',
+      attrs:     {
+        application: this,
+        endpoint,
+        ansiToHtml:  true
+      }
+    }, { root: true });
   }
 
   async waitForStaging(stageId) {
