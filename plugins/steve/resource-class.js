@@ -116,6 +116,7 @@ export const STATES_ENUM = {
   ORPHANED:         'orphaned',
   OTHER:            'other',
   OUT_OF_SYNC:      'outofsync',
+  ON_GOING:         'on-going',
   PASS:             'pass',
   PASSED:           'passed',
   PAUSED:           'paused',
@@ -290,6 +291,9 @@ export const STATES = {
   },
   [STATES_ENUM.OFF]:                {
     color: 'darker', icon: 'error', label: 'Off'
+  },
+  [STATES_ENUM.ON_GOING]:           {
+    color: 'info', icon: 'info', label: 'Info'
   },
   [STATES_ENUM.ORPHANED]:           {
     color: 'warning', icon: 'tag', label: 'Orphaned'
