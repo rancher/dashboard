@@ -42,4 +42,8 @@ export default class EtcdBackup extends NormanModel {
   get rke2() {
     return this.cluster?.isRke2;
   }
+
+  get nameDisplay() {
+    return this.snapshotFile?.name || this.name;
+  }
 }

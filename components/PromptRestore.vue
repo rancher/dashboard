@@ -197,7 +197,7 @@ export default {
       const d = day(created).format(dateFormat);
       const t = day(created).format(timeFormat);
 
-      return `${ d } ${ t } : ${ snapshot.name }`;
+      return `${ d } ${ t } : ${ snapshot.nameDisplay }`;
     }
   }
 };
@@ -218,7 +218,7 @@ export default {
         <form>
           <h3 v-t="'promptRestore.name'"></h3>
           <div v-if="!isCluster">
-            {{ snapshot.name }}
+            {{ snapshot.nameDisplay }}
           </div>
 
           <LabeledSelect

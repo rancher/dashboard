@@ -33,4 +33,8 @@ export default class Rke1EtcdBackup extends NormanModel {
   get rke2() {
     return false;
   }
+
+  get nameDisplay() {
+    return this.name;
+  }
 }
