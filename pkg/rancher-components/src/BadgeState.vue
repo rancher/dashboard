@@ -58,6 +58,7 @@ export default {
   </span>
 </template>
 
+<!-- TODO: Investigate why these styles aren't scoped.. -->
 <style lang="scss">
   .badge-state {
     align-items: center;
@@ -86,6 +87,7 @@ export default {
     }
   }
 
+  // TODO: Investigate why this is here.. I don't think that styles for sortable table should belong here
   .sortable-table TD .badge-state {
     @include clip;
     display: inline-block;
