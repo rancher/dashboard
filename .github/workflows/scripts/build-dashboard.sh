@@ -15,6 +15,9 @@ ARTIFACT_LOCATION="$OUTPUT_DIR/$ARTIFACT_NAME"
 echo "ARTIFACT_LOCATION: $ARTIFACT_LOCATION"
 echo
 echo "OUTPUT_DIR: $OUTPUT_DIR"
+echo
+echo "RESOURCE_BASE: $RESOURCE_BASE"
+echo "API: $API"
 
 echo Creating release directory
 mkdir $RELEASE_DIR
@@ -23,7 +26,7 @@ echo Installing dependencies
 yarn install --frozen-lockfile
 
 echo Building
-NUXT_ENV_commit=$GITHUB_SHA NUXT_ENV_version=$GITHUB_REF_NAME OUTPUT_DIR="$ARTIFACT_LOCATION" ROUTER_BASE="$ROUTER_BASE" RANCHER_ENV=$RANCHER_ENV yarn run build --spa
+NUXT_ENV_commit=$GITHUB_SHA NUXT_ENV_version=$GITHUB_REF_NAME OUTPUT_DIR="$ARTIFACT_LOCATION" ROUTER_BASE="$ROUTER_BASE" RANCHER_ENV=$RANCHER_ENV API=$API RESOURCE_BASE=$RESOURCE_BASE yarn run build --spa
 
 echo Creating tar
 tar -czf $RELEASE_LOCATION.tar.gz -C $ARTIFACT_LOCATION .

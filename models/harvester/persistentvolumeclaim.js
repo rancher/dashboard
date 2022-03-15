@@ -5,7 +5,7 @@ import { HCI } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS, DESCRIPTION } from '@/config/labels-annotations';
 import { findBy } from '@/utils/array';
 import { get, clone } from '@/utils/object';
-import { cleanForNew } from '@/plugins/steve/normalize';
+import { cleanForNew } from '@/plugins/core-store/normalize';
 import SteveModel from '@/plugins/steve/steve-class';
 import { colorForState } from '@/plugins/core-store/resource-class';
 

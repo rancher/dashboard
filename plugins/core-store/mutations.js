@@ -33,6 +33,8 @@ function load(state, { data, ctx, existing }) {
   const { getters } = ctx;
   let type = normalizeType(data.type);
   const keyField = getters.keyFieldForType(type);
+  const opts = ctx.rootGetters[`type-map/optionsFor`](type);
+  const limit = opts?.limit;
 
   // Inject special fields for indexing schemas
   if ( type === SCHEMA ) {
@@ -82,6 +84,14 @@ function load(state, { data, ctx, existing }) {
       addObject(cache.list, entry);
       cache.map.set(id, entry);
       // console.log('### Mutation', type, id);
+
+      // If there is a limit to the number of resources we can store for this type then
+      // remove the first one to keep the list size to that limit
+      if (limit && cache.list.length > limit) {
+        const rm = cache.list.shift();
+
+        cache.map.delete(rm.id);
+      }
     }
   }
 
@@ -133,7 +143,7 @@ export default {
   },
 
   loadMulti(state, { data, ctx }) {
-    // console.log('### Mutation loadMulti', data.length);
+    // console.log('### Mutation loadMulti', data?.length);
     for ( const entry of data ) {
       load(state, { data: entry, ctx });
     }
@@ -156,6 +166,14 @@ export default {
 
     if (!data) {
       return;
+    }
+
+    const opts = ctx.rootGetters[`type-map/optionsFor`](type);
+    const limit = opts?.limit;
+
+    // If there is a limit, only store the last elements from the list to keep to that limit
+    if (limit) {
+      data = data.slice(-limit);
     }
 
     const keyField = getters.keyFieldForType(type);

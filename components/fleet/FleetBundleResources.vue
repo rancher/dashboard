@@ -1,7 +1,7 @@
 <script>
-import { colorForState, stateDisplay, stateSort } from '@/plugins/steve/resource-class';
+import { colorForState, stateDisplay, stateSort } from '@/plugins/core-store/resource-class';
 import SortableTable from '@/components/SortableTable';
-import { randomStr } from '~/utils/string';
+import { randomStr } from '@/utils/string';
 
 export default {
   name: 'FleetBundleResources',

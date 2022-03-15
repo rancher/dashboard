@@ -665,7 +665,7 @@ export const actions = {
       commit('management/forgetType', MANAGEMENT.PROJECT);
       commit('catalog/reset');
 
-      if (isExt && product && oldProduct) {
+      if (isExt && product && oldIsExt && oldProduct) {
         // If we've left a cluster of a product ensure we reset it
         await dispatch(`${ oldProduct }/unsubscribe`);
         await commit(`${ oldProduct }/reset`);
@@ -689,6 +689,10 @@ export const actions = {
       return;
     }
 
+    // This is a workaround for a timing issue where the mgmt cluster schema may not be available
+    // Try and wait until the schema exists before proceeding
+    await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
+
     if (isExt && product) {
       commit('clusterChanged', true);
       dispatch(`${ product }/loadSchemas`, true);
@@ -698,10 +702,6 @@ export const actions = {
     }
 
     // Rancher `cluster` store specific, only applies to kube clusters
-
-    // This is a workaround for a timing issue where the mgmt cluster schema may not be available
-    // Try and wait until the schema exists before proceeding
-    await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
 
     // See if it really exists
     try {

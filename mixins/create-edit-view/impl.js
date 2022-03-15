@@ -4,7 +4,7 @@ import { exceptionToErrorsArray } from '@/utils/error';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import { clear } from '@/utils/array';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
-import { handleConflict } from '@/plugins/steve/normalize';
+import { handleConflict } from '@/plugins/core-store/normalize';
 
 export default {
 

@@ -2,8 +2,8 @@ import { CAPI } from '@/config/types';
 import { escapeHtml } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import SteveModel from '@/plugins/steve/steve-class';
-import { exceptionToErrorsArray } from '~/utils/error';
-import { handleConflict } from '~/plugins/steve/normalize';
+import { exceptionToErrorsArray } from '@/utils/error';
+import { handleConflict } from '@/plugins/core-store/normalize';
 
 export default class CapiMachineDeployment extends SteveModel {
   get cluster() {

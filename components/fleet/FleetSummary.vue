@@ -1,6 +1,6 @@
 <script>
 import capitalize from 'lodash/capitalize';
-import { STATES, STATES_ENUM } from '@/plugins/steve/resource-class';
+import { STATES, STATES_ENUM } from '@/plugins/core-store/resource-class';
 import FleetStatus from '@/components/fleet/FleetStatus';
 
 const getResourceDefaultState = (labelGetter, stateKey) => {
