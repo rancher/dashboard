@@ -1,12 +1,21 @@
 <script>
 import * as d3 from 'd3';
-import { STATES } from '@/plugins/steve/resource-class';
+import { STATES, STATES_ENUM } from '@/plugins/steve/resource-class';
 import BadgeState from '@/components/BadgeState';
-import Loading from '@/components/Loading';
+import {
+  CONFIG_MAP,
+  SECRET,
+  WORKLOAD_TYPES,
+  STORAGE_CLASS,
+  SERVICE,
+  PV,
+  PVC,
+  POD
+} from '@/config/types';
 
 export default {
   name:       'ForceDirectedTreeChart',
-  components: { BadgeState, Loading },
+  components: { BadgeState },
   props:      {
     data: {
       type:     [Array, Object],
@@ -283,17 +292,18 @@ export default {
       const stateColorDefinition = STATES[lowerCaseStatus] ? STATES[lowerCaseStatus].color : 'unknown_color';
       let classList;
 
+      // node color/status
       switch (stateColorDefinition) {
-      case 'success':
+      case STATES_ENUM.SUCCESS:
         classList = 'node node-success';
         break;
-      case 'warning':
+      case STATES_ENUM.WARNING:
         classList = 'node node-warning';
         break;
-      case 'error':
+      case STATES_ENUM.ERROR:
         classList = 'node node-error';
         break;
-      case 'info':
+      case STATES_ENUM.INFO:
         classList = 'node node-info';
         break;
       default:
@@ -301,14 +311,66 @@ export default {
         break;
       }
 
+      // node active (clicked)
       if (d.data?.active) {
         classList += ' active';
       }
 
+      // node type
       const resourceTypeClass = d.data?.isRepo ? ' repo' : d.data?.isBundle ? ' bundle' : ' resource';
 
+      // special bundle type
       if (d.data?.isBundle && d.data?.id.indexOf('helm') !== -1) {
         classList += ' helm';
+      }
+
+      // special resource type
+      if (d.data?.isResource && d.data?.type) {
+        switch (d.data.type) {
+        case WORKLOAD_TYPES.DEPLOYMENT:
+          classList += ' deployment';
+          break;
+        case SERVICE:
+          classList += ' service';
+          break;
+        // TO CHECK...
+        case CONFIG_MAP:
+          classList += ' configmap';
+          break;
+        case WORKLOAD_TYPES.CRON_JOB:
+          classList += ' cronjob';
+          break;
+        case WORKLOAD_TYPES.DAEMON_SET:
+          classList += ' daemonset';
+          break;
+        case WORKLOAD_TYPES.JOB:
+          classList += ' job';
+          break;
+        case PV:
+          classList += ' persistentvolume';
+          break;
+        case PVC:
+          classList += ' persistentvolumeclaim';
+          break;
+        case POD:
+          classList += ' pod';
+          break;
+        case WORKLOAD_TYPES.REPLICA_SET:
+          classList += ' replicaset';
+          break;
+        case SECRET:
+          classList += ' secret';
+          break;
+        case WORKLOAD_TYPES.STATEFUL_SET:
+          classList += ' statefulset';
+          break;
+        case STORAGE_CLASS:
+          classList += ' storageclass';
+          break;
+        default:
+          classList += ' other';
+          break;
+        }
       }
 
       classList += resourceTypeClass;
@@ -454,7 +516,7 @@ export default {
       // this update the cached zoom state!!!!! very important so that any transforms from user interaction keep this base!
       this.svg.call(this.zoom.transform, transform);
 
-      /* ------------------- CORRECT ZOOM FIT CODE  ------------------- */
+      /* ------------------- OTHER ZOOM FIT CODE  ------------------- */
 
       // const scaleCheck = 1 / Math.max(width / (fullWidth - paddingBuffer), height / (fullHeight - paddingBuffer));
       // let translateX = -chartCoordinates.x * scaleCheck;
@@ -484,69 +546,67 @@ export default {
 <template>
   <div>
     <div class="chart-container">
-      <Loading
-        v-if="withContentLoader && !isChartFirstRendered"
-        class="chart-loader"
-        :loading="true"
-        mode="free"
-        :no-delay="true"
-      />
       <div
-        v-if="isChartFirstRendered && !isChartFirstRenderAnimationFinished"
-        class="chart-first-render-delay-layer"
+        v-if="!isChartFirstRenderAnimationFinished"
+        class="loading-container"
       >
-        <span>Rendering git repo network...</span>
+        <span v-show="withContentLoader && !isChartFirstRendered">Loading chart data...</span>
+        <span v-show="isChartFirstRendered && !isChartFirstRenderAnimationFinished">Rendering chart...</span>
       </div>
+      <!-- main div for svg container -->
       <div id="tree">
       </div>
-      <div class="more-info">
-        <ul
-          v-if="Object.keys(moreInfo).length"
-        >
-          <li>
-            <p>
-              <span class="more-info-item-label">Name:</span>
-              <span
-                v-if="moreInfo.detailLocation"
-                class="more-info-item-value"
-              >
-                <n-link
-                  :to="moreInfo.detailLocation"
+      <!-- info box -->
+      <div class="more-info-container">
+        <div class="more-info">
+          <ul
+            v-if="Object.keys(moreInfo).length"
+          >
+            <li>
+              <p>
+                <span class="more-info-item-label">Name:</span>
+                <span
+                  v-if="moreInfo.detailLocation"
+                  class="more-info-item-value"
                 >
-                  {{ moreInfo.id }}
-                </n-link>
-              </span>
-              <span
-                v-else
-                class="more-info-item-value"
-              >{{ moreInfo.id }}</span>
-            </p>
-          </li>
-          <li>
-            <p>
-              <span class="more-info-item-label">Type:</span>
-              <span class="more-info-item-value">{{ moreInfo.type }}</span>
-            </p>
-          </li>
-          <li>
-            <p>
-              <span class="more-info-item-label">State:</span>
-              <span class="more-info-item-value">
-                <BadgeState
-                  :color="`bg-${moreInfo.stateColor}`"
-                  :label="moreInfo.stateLabel"
-                  class="state-bagde"
-                />
-              </span>
-            </p>
-          </li>
-          <li v-show="moreInfo.errorMsg">
-            <p>
-              <span class="more-info-item-label">Error:</span>
-              <span class="more-info-item-value error">{{ moreInfo.errorMsg }}</span>
-            </p>
-          </li>
-        </ul>
+                  <n-link
+                    :to="moreInfo.detailLocation"
+                  >
+                    {{ moreInfo.id }}
+                  </n-link>
+                </span>
+                <span
+                  v-else
+                  class="more-info-item-value"
+                >{{ moreInfo.id }}</span>
+              </p>
+            </li>
+            <li>
+              <p>
+                <span class="more-info-item-label">Type:</span>
+                <span class="more-info-item-value">{{ moreInfo.type }}</span>
+              </p>
+            </li>
+            <li>
+              <p>
+                <span class="more-info-item-label">State:</span>
+                <span class="more-info-item-value">
+                  <BadgeState
+                    :color="`bg-${moreInfo.stateColor}`"
+                    :label="moreInfo.stateLabel"
+                    class="state-bagde"
+                  />
+                </span>
+              </p>
+            </li>
+            <li v-show="moreInfo.errorMsg">
+              <p>
+                <span class="more-info-item-label">Error:</span>
+                <span class="more-info-item-value error">{{ moreInfo.errorMsg }}</span>
+              </p>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -559,8 +619,9 @@ export default {
   position: relative;
   border: 1px solid var(--border);
   border-radius: var(--border-radius);
+  min-height: 100px;
 
-  .chart-first-render-delay-layer {
+  .loading-container {
     content: '';
     position: absolute;
     top: 0;
@@ -575,12 +636,9 @@ export default {
     justify-content: center;
   }
 
-  .chart-loader {
-    min-height: 200px;
-  }
-
   #tree {
     width: 70%;
+    height: fit-content;
 
     svg {
       margin-top: 3px;
@@ -634,16 +692,53 @@ export default {
       }
 
       &.repo .svg-img {
-        background-image: url('~assets/images/fleetForceDirectedChart/git.svg');
+        background-image: url('~assets/images/forceDirectedChart/git.svg');
       }
       &.bundle .svg-img {
-        background-image: url('~assets/images/fleetForceDirectedChart/compass.svg');
+        background-image: url('~assets/images/forceDirectedChart/compass.svg');
       }
       &.helm.bundle .svg-img {
-        background-image: url('~assets/images/fleetForceDirectedChart/helm.svg');
+        background-image: url('~assets/images/forceDirectedChart/helm.svg');
       }
-      &.resource .svg-img {
-        background-image: url('~assets/images/fleetForceDirectedChart/folder.svg');
+      &.configmap.resource .svg-img {
+        background-image: url('~assets/images/forceDirectedChart/config_map.svg');
+      }
+      &.cronjob.resource .svg-img {
+        background-image: url('~assets/images/forceDirectedChart/cronjob.svg');
+      }
+      &.daemonset.resource .svg-img {
+        background-image: url('~assets/images/forceDirectedChart/daemon_set.svg');
+      }
+      &.deployment.resource .svg-img {
+        background-image: url('~assets/images/forceDirectedChart/deploy.svg');
+      }
+      &.job.resource .svg-img {
+        background-image: url('~assets/images/forceDirectedChart/job.svg');
+      }
+      &.service.resource .svg-img {
+        background-image: url('~assets/images/forceDirectedChart/miscellaneous_services.svg');
+      }
+      &.persistentvolume.resource .svg-img,
+      &.persistentvolumeclaim.resource .svg-img {
+        background-image: url('~assets/images/forceDirectedChart/persistent_volume.svg');
+      }
+      &.pod.resource .svg-img {
+        background-image: url('~assets/images/forceDirectedChart/pod.svg');
+      }
+      &.replicaset.resource .svg-img {
+        background-image: url('~assets/images/forceDirectedChart/replica_set.svg');
+      }
+      &.secret.resource .svg-img {
+        background-image: url('~assets/images/forceDirectedChart/secret.svg');
+      }
+      &.statefulset.resource .svg-img {
+        background-image: url('~assets/images/forceDirectedChart/stateful_set.svg');
+      }
+      &.storageclass.resource .svg-img {
+        background-image: url('~assets/images/forceDirectedChart/storage_class.svg');
+      }
+      &.other.resource .svg-img {
+        background-image: url('~assets/images/forceDirectedChart/folder.svg');
       }
 
       .node-hover-layer {
@@ -654,32 +749,45 @@ export default {
     }
   }
 
-  .more-info {
+  .more-info-container {
     width: 30%;
-    padding: 20px;
+    position: relative;
     border-left: 1px solid var(--border);
     background-color: var(--body-bg);
-    position: relative;
     border-top-right-radius: var(--border-radius);
     border-bottom-right-radius: var(--border-radius);
+    overflow: hidden;
 
-    ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
+    .more-info {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right:0;
+      bottom:0;
+      width: 100%;
+      padding: 20px;
+      border-top-right-radius: var(--border-radius);
+      border-bottom-right-radius: var(--border-radius);
+      overflow-y: auto;
 
-      li {
-        margin: 0 0 8px 0;
+      ul {
+        list-style: none;
+        margin: 0;
         padding: 0;
-        display: flex;
-        align-items: center;
 
-        .more-info-item-label {
-          color: var(--darker);
-          margin-right: 3px;
-        }
-        .more-info-item-value.error {
-          color: var(--error);
+        li {
+          margin: 0 0 8px 0;
+          padding: 0;
+          display: flex;
+          align-items: center;
+
+          .more-info-item-label {
+            color: var(--darker);
+            margin-right: 3px;
+          }
+          .more-info-item-value.error {
+            color: var(--error);
+          }
         }
       }
     }
