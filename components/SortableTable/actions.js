@@ -102,6 +102,10 @@ export default {
      * Determine if any actions wrap over to a new line, if so group them into a dropdown instead
      */
     updateHiddenBulkActions: debounce(function() {
+      if (!this.$refs.container) {
+        return;
+      }
+
       const actionsContainer = this.$refs.container.querySelector(`.${ this.bulkActionsClass }`);
       const actionsDropdown = this.$refs.container.querySelector(`.${ this.bulkActionsDropdownClass }`);
 

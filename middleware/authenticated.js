@@ -231,7 +231,7 @@ export default async function({
           if ( status === 401 ) {
             notLoggedIn();
           } else {
-            store.commit('setError', e);
+            store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
             if ( process.server ) {
               redirect(302, '/fail-whale');
             }
@@ -242,6 +242,7 @@ export default async function({
       }
     }
   }
+
   if (!process.server) {
     const backTo = window.localStorage.getItem(BACK_TO);
 
@@ -293,7 +294,7 @@ export default async function({
       await store.commit(`${ oldProduct }/reset`);
     }
 
-    if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name.startsWith(`c-cluster-${ VIRTUAL }-`)) {
+    if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name?.startsWith(`c-cluster-${ VIRTUAL }-`)) {
       const res = [
         store.dispatch('loadManagement'),
         store.dispatch('loadVirtual', {
@@ -381,7 +382,7 @@ export default async function({
     if ( e instanceof ClusterNotFoundError ) {
       return redirect(302, '/home');
     } else {
-      store.commit('setError', e);
+      store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
 
       return redirect(302, '/fail-whale');
     }

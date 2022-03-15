@@ -10,6 +10,9 @@ import { exceptionToErrorsArray } from '@/utils/error';
 import { CAPI, NORMAN, SNAPSHOT } from '@/config/types';
 import { set } from '@/utils/object';
 import ChildHook, { BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
+import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
+import { escapeHtml } from '@/utils/string';
+import day from 'dayjs';
 import { sortBy } from '~/utils/sort';
 
 export default {
@@ -33,22 +36,24 @@ export default {
       errors:              [],
       labels:              {},
       restoreMode:         'all',
-      moveTo:              this.workspace,
       loaded:              false,
-      allWorkspaces:       [],
-      allSnapshots:        [],
+      allSnapshots:        {},
+      sortedSnapshots:     [],
       selectedSnapshot:    null,
     };
   },
 
   computed:   {
-    // toRestore can be a provisioning.cattle.io.cluster or a rke.cattle.io.etcdsnapshot resource
+    // toRestore can be a provisioning.cattle.io.cluster or a rke.cattle.io.etcdsnapshot or an etcdBackup resource
     ...mapState('action-menu', ['showPromptRestore', 'toRestore']),
     ...mapGetters({ t: 'i18n/t' }),
-    ...mapGetters(['currentCluster']),
 
+    // Was the dialog opened to restore a specific snapshot, or opened on a cluster to choose
     isCluster() {
-      return this.toRestore[0]?.type.toLowerCase() !== NORMAN.ETCD_BACKUP;
+      const isSnapshot = this.toRestore[0]?.type.toLowerCase() === NORMAN.ETCD_BACKUP ||
+        this.toRestore[0]?.type.toLowerCase() === SNAPSHOT;
+
+      return !isSnapshot;
     },
 
     snapshot() {
@@ -64,21 +69,8 @@ export default {
     },
 
     clusterSnapshots() {
-      // We use the cluster name
-      // to filter out irrelevant snapshots
-      // because the name matches the clusterId field on the
-      // snapshot, but the cluster ID doesn't.
-      if (this.allSnapshots) {
-        const sortedSnapshots = sortBy(Object.values(this.allSnapshots), ['createdAt', 'created', 'metadata.creationTimestamp'], true);
-        const list = sortedSnapshots
-          .filter((snapshot) => {
-            const toRestoreClusterName = this.toRestore[0].clusterName || this.toRestore[0]?.metadata?.name;
-
-            return snapshot.clusterName === toRestoreClusterName;
-          })
-          .map(snapshot => ({ label: snapshot.name, value: snapshot.name }));
-
-        return list;
+      if (this.sortedSnapshots) {
+        return this.sortedSnapshots.map(snapshot => ({ label: this.snapshotLabel(snapshot), value: snapshot.name }));
       } else {
         return [];
       }
@@ -112,23 +104,40 @@ export default {
       this.selectedSnapshot = null;
     },
 
+    // If the user needs to choose a snapshot, fetch all snapshots for the cluster
     async fetchSnapshots() {
-      // Get all snapshots because this
-      // component is loaded before the user
-      // has selected a cluster to restore
-      await this.$store.dispatch('management/findAll', { type: SNAPSHOT })
-        .then((allSnapshots) => {
-          this.allSnapshots = allSnapshots.reduce((v, s) => {
-            v[s.name] = s;
+      if (!this.isCluster) {
+        return;
+      }
 
-            return v;
-          }, {});
+      const cluster = this.toRestore?.[0];
+      let promise;
 
-          return allSnapshots;
-        })
-        .catch((err) => {
-          this.errors = exceptionToErrorsArray(err);
+      if (!cluster.isRke2) {
+        promise = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP }).then((snapshots) => {
+          return snapshots.filter(s => s.clusterId === cluster.metadata.name);
         });
+      } else {
+        promise = this.$store.dispatch('management/findAll', { type: SNAPSHOT }).then((snapshots) => {
+          const toRestoreClusterName = cluster?.clusterName || cluster?.metadata?.name;
+
+          return snapshots.filter(s => s.clusterName === toRestoreClusterName);
+        });
+      }
+
+      // Map of snapshots by name
+      const allSnapshosts = await promise.then((snapshots) => {
+        return snapshots.reduce((v, s) => {
+          v[s.name] = s;
+
+          return v;
+        }, {});
+      }).catch((err) => {
+        this.errors = exceptionToErrorsArray(err);
+      });
+
+      this.allSnapshots = allSnapshosts;
+      this.sortedSnapshots = sortBy(Object.values(this.allSnapshots), ['snapshotFile.createdAt', 'created', 'metadata.creationTimestamp'], true);
     },
 
     selectDefaultSnapshot() {
@@ -153,7 +162,7 @@ export default {
           set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', {
             generation:         now + 1,
             name:               this.snapshot.name,
-            restoreRKEConfig:   this.snapshot.restoreRKEConfig,
+            restoreRKEConfig:   this.restoreMode,
           });
 
           await cluster.save();
@@ -179,6 +188,16 @@ export default {
         this.errors = exceptionToErrorsArray(err);
         buttonDone(false);
       }
+    },
+    snapshotLabel(snapshot) {
+      const dateFormat = escapeHtml(this.$store.getters['prefs/get'](DATE_FORMAT));
+      const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
+
+      const created = snapshot.createdAt || snapshot.created || snapshot.metadata.creationTimestamp;
+      const d = day(created).format(dateFormat);
+      const t = day(created).format(timeFormat);
+
+      return `${ d } ${ t } : ${ snapshot.nameDisplay }`;
     }
   }
 };
@@ -199,7 +218,7 @@ export default {
         <form>
           <h3 v-t="'promptRestore.name'"></h3>
           <div v-if="!isCluster">
-            {{ snapshot.name }}
+            {{ snapshot.nameDisplay }}
           </div>
 
           <LabeledSelect
@@ -229,7 +248,7 @@ export default {
         </form>
       </div>
 
-      <div slot="actions">
+      <div slot="actions" class="dialog-actions">
         <button class="btn role-secondary" @click="close">
           {{ t('generic.cancel') }}
         </button>
@@ -269,6 +288,12 @@ export default {
       .banner {
         display: flex;
       }
+    }
+
+    // Position dialog buttons on the right-hand side of the dialog
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
     }
   }
 </style>

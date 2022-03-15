@@ -2,6 +2,7 @@
 import { mapState } from 'vuex';
 import { FLEET } from '@/config/types';
 import { WORKSPACE } from '@/store/prefs';
+import { STATES_ENUM, STATES, getStateLabel } from '@/plugins/steve/resource-class';
 import { allHash } from '@/utils/promise';
 import Loading from '@/components/Loading';
 import CollapsibleCard from '@/components/CollapsibleCard.vue';
@@ -117,29 +118,131 @@ export default {
         },
       });
     },
-    badgeClass(area, row) {
+    getStatusInfo(area, row) {
+      // classes are defined in the themes SASS files...
       switch (area) {
       case 'clusters':
         if (row.clusterInfo?.ready === row.clusterInfo?.total && row.clusterInfo?.ready) {
-          return 'green-badge';
+          return {
+            badgeClass: `bg-${ STATES[STATES_ENUM.ACTIVE].color }`,
+            icon:       'checkmark'
+          };
         }
 
-        return 'red-badge';
+        return {
+          badgeClass: `bg-${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-clusters`,
+          icon:       'warning'
+        };
       case 'bundles':
-        if (row.bundlesReady?.length === row.bundles.length && row.bundlesReady?.length) {
-          return 'green-badge';
+        if (row.bundles?.length && row.bundles?.every(bundle => bundle.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
+          return {
+            badgeClass: STATES[STATES_ENUM.ACTIVE].color ? `bg-${ STATES[STATES_ENUM.ACTIVE].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+            icon:       'checkmark'
+          };
+        }
+        if (row.bundles?.length && row.bundles?.some(bundle => bundle.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
+          return {
+            badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? `bg-${ STATES[STATES_ENUM.ERR_APPLIED].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+            icon:       'error'
+          };
+        }
+        if (row.bundles?.length && row.bundles?.some(bundle => bundle.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
+          return {
+            badgeClass: STATES[STATES_ENUM.NOT_READY].color ? `bg-${ STATES[STATES_ENUM.NOT_READY].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+            icon:       'warning'
+          };
         }
 
-        return 'red-badge';
+        if (row.bundlesReady?.length === row.bundles?.length && row.bundlesReady && row.bundles?.length) {
+          return {
+            badgeClass: `bg-${ STATES[STATES_ENUM.ACTIVE].color }`,
+            icon:       'checkmark'
+          };
+        }
+
+        return {
+          badgeClass: `bg-${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-bundles`,
+          icon:       'warning'
+        };
       case 'resources':
-        if (row.status?.resourceCounts?.desiredReady === row.status?.resourceCounts?.ready && row.status?.resourceCounts?.desiredReady) {
-          return 'green-badge';
+        if (row.status?.resources?.length && row.status?.resources?.every(resource => resource.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
+          return {
+            badgeClass: STATES[STATES_ENUM.ACTIVE].color ? `bg-${ STATES[STATES_ENUM.ACTIVE].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+            icon:       'checkmark'
+          };
+        }
+        if (row.status?.resources?.length && row.status?.resources?.some(resource => resource.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
+          return {
+            badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? `bg-${ STATES[STATES_ENUM.ERR_APPLIED].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+            icon:       'error'
+          };
+        }
+        if (row.status?.resources?.length && row.status?.resources?.some(resource => resource.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
+          return {
+            badgeClass: STATES[STATES_ENUM.NOT_READY].color ? `bg-${ STATES[STATES_ENUM.NOT_READY].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+            icon:       'warning'
+          };
         }
 
-        return 'red-badge';
+        if (row.status?.resourceCounts?.desiredReady === row.status?.resourceCounts?.ready && row.status?.resourceCounts?.desiredReady) {
+          return {
+            badgeClass: `bg-${ STATES[STATES_ENUM.ACTIVE].color }`,
+            icon:       'checkmark'
+          };
+        }
+
+        return {
+          badgeClass: `bg-${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-resources`,
+          icon:       'warning'
+        };
+      default:
+        return {
+          badgeClass: `bg-${ STATES[STATES_ENUM.NOT_READY].color } badge-class-default`,
+          icon:       'warning'
+        };
+      }
+    },
+    getTooltipInfo(area, row) {
+      switch (area) {
+      case 'clusters':
+        if (row.clusterInfo?.total) {
+          return `Ready: ${ row.clusterInfo?.ready }<br>Total: ${ row.clusterInfo?.total }`;
+        }
+
+        return '';
+      case 'bundles':
+        if (row.bundles?.length) {
+          return this.generateTooltipData(row.bundles);
+        }
+
+        return '';
+      case 'resources':
+        if (row.status?.resources?.length) {
+          return this.generateTooltipData(row.status?.resources);
+        }
+
+        return '';
       default:
         return {};
       }
+    },
+    generateTooltipData(data) {
+      const infoObj = {};
+      let tooltipData = '';
+
+      data.forEach((item) => {
+        if (!infoObj[item.state]) {
+          infoObj[item.state] = 0;
+        }
+
+        infoObj[item.state]++;
+      });
+
+      Object.keys(infoObj).forEach((key) => {
+        tooltipData += `${ getStateLabel(key) }: ${ infoObj[key] }<br>`;
+      });
+
+      return tooltipData;
     },
     toggleCollapse(val, key) {
       this.$set(this.isCollapsed, key, val);
@@ -252,28 +355,34 @@ export default {
             v-on="$listeners"
           >
             <template #cell:clustersReady="{row}">
-              <span
+              <div
+                v-tooltip.bottom="getTooltipInfo('clusters', row)"
                 class="cluster-count-info"
-                :class="badgeClass('clusters', row)"
+                :class="getStatusInfo('clusters', row).badgeClass"
               >
-                {{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}
-              </span>
+                <i :class="`icon-${getStatusInfo('clusters', row).icon}`" />
+                <span>{{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}</span>
+              </div>
             </template>
             <template #cell:bundlesReady="{row}">
-              <span
+              <div
+                v-tooltip.bottom="getTooltipInfo('bundles', row)"
                 class="cluster-count-info"
-                :class="badgeClass('bundles', row)"
+                :class="getStatusInfo('bundles', row).badgeClass"
               >
-                {{ row.bundlesReady.length || 0 }}/{{ row.bundles.length }}
-              </span>
+                <i :class="`icon-${getStatusInfo('bundles', row).icon}`" />
+                <span>{{ row.bundlesReady.length || 0 }}/{{ row.bundles.length }}</span>
+              </div>
             </template>
             <template #cell:resourcesReady="{row}">
-              <span
+              <div
+                v-tooltip.bottom="getTooltipInfo('resources', row)"
                 class="cluster-count-info"
-                :class="badgeClass('resources', row)"
+                :class="getStatusInfo('resources', row).badgeClass"
               >
-                {{ row.status.resourceCounts.ready }}/{{ row.status.resourceCounts.desiredReady }}
-              </span>
+                <i :class="`icon-${getStatusInfo('resources', row).icon}`" />
+                <span>{{ row.status.resourceCounts.ready }}/{{ row.status.resourceCounts.desiredReady }}</span>
+              </div>
             </template>
 
             <template #cell:target="{row}">
@@ -334,16 +443,16 @@ export default {
   }
 
   .cluster-count-info {
-    padding: 4px 16px;
+    padding: 4px 12px;
     border-radius: 16px;
-    display: inline-block;
-    color: var(--primary-text);
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    cursor: default;
 
-    &.red-badge {
-      background-color: var(--error);
-    }
-    &.green-badge {
-      background-color: var(--success);
+    i {
+      font-size: 16px;
+      margin-right: 6px;
     }
   }
 

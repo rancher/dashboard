@@ -7,7 +7,9 @@ import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 
 import CreateEditView from '@/mixins/create-edit-view';
 
-import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING } from '@/config/settings';
+import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING, HCI_SETTING } from '@/config/settings';
+
+const RANCHER_MONITORING = 'fleet-local/rancher-monitoring';
 
 export default {
   components: {
@@ -102,7 +104,16 @@ export default {
         ev.srcElement.blur();
       }
 
-      this.value.value = this.value.default || '';
+      if (this.value.id === RANCHER_MONITORING) {
+        this.$set(this.value.spec.values.prometheus, 'prometheusSpec', Object.assign(this.value.spec.values.prometheus.prometheusSpec, this.value.defaultValue, {}));
+      } else if (this.value.id === HCI_SETTING.VLAN) {
+        this.value.enable = false;
+        if (this.value.config) {
+          this.value.config.defaultPhysicalNIC = '';
+        }
+      } else {
+        this.value.value = this.value.default || '';
+      }
     },
   }
 };

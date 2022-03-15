@@ -50,6 +50,10 @@ export default {
     };
   },
 
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
+  },
+
   computed: {
     isBlank() {
       return this.source === 'blank';
@@ -91,6 +95,9 @@ export default {
   },
 
   methods: {
+    willSave() {
+      this.update();
+    },
     update() {
       let imageAnnotations = '';
       let storageClassName = 'longhorn';

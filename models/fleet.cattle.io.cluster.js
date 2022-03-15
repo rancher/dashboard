@@ -34,7 +34,7 @@ export default class FleetCluster extends SteveModel {
 
     insertAt(out, 3, {
       action:     'assignTo',
-      label:      'Assign to&hellip;',
+      label:      'Change workspace&hellip;',
       icon:       'icon icon-copy',
       bulkable:   true,
       bulkAction: 'assignToBulk',

@@ -14,6 +14,7 @@ const STOPPING = 'Stopping';
 const OFF = 'Off';
 const WAITING = 'Waiting';
 const NOT_READY = 'Not Ready';
+const AGENT_CONNECTED = 'AgentConnected';
 
 const PAUSED = 'Paused';
 const PAUSED_VM_MODAL_MESSAGE = 'This VM has been paused. If you wish to unpause it, please click the Unpause button below. For further details, please check with your system administrator.';
@@ -70,6 +71,8 @@ const VMIPhase = {
   Unknown:    'Unknown',
 };
 
+const IgnoreMessages = ['pod has unbound immediate PersistentVolumeClaims'];
+
 export default class VirtVm extends SteveModel {
   get availableActions() {
     const out = super._availableActions;
@@ -100,6 +103,12 @@ export default class VirtVm extends SteveModel {
         icon:       'icon icon-refresh',
         label:      this.t('harvester.action.restart'),
         bulkable:   true,
+      },
+      {
+        action:     'softrebootVM',
+        enabled:    !!this.actions?.softreboot,
+        icon:       'icon icon-refresh',
+        label:      this.t('harvester.action.softreboot'),
       },
       {
         action:     'startVM',
@@ -192,7 +201,9 @@ export default class VirtVm extends SteveModel {
                 memory: null,
                 cpu:    ''
               }
-            }
+            },
+            features: { smm: { enabled: false } },
+            firmware: { bootloader: { efi: { secureBoot: false } } },
           },
           evictionStrategy: 'LiveMigrate',
           hostname:         '',
@@ -225,7 +236,11 @@ export default class VirtVm extends SteveModel {
   }
 
   restartVM() {
-    this.doAction('restart', {});
+    this.doActionGrowl('restart', {});
+  }
+
+  softrebootVM() {
+    this.doActionGrowl('softreboot', {});
   }
 
   openLogs() {
@@ -283,19 +298,19 @@ export default class VirtVm extends SteveModel {
   }
 
   pauseVM() {
-    this.doAction('pause', {});
+    this.doActionGrowl('pause', {});
   }
 
   unpauseVM() {
-    this.doAction('unpause', {});
+    this.doActionGrowl('unpause', {});
   }
 
   stopVM() {
-    this.doAction('stop', {});
+    this.doActionGrowl('stop', {});
   }
 
   startVM() {
-    this.doAction('start', {});
+    this.doActionGrowl('start', {});
   }
 
   migrateVM(resources = this) {
@@ -313,7 +328,7 @@ export default class VirtVm extends SteveModel {
   }
 
   abortMigrationVM() {
-    this.doAction('abortMigration', {});
+    this.doActionGrowl('abortMigration', {});
   }
 
   createTemplate(resources = this) {
@@ -386,7 +401,7 @@ export default class VirtVm extends SteveModel {
     const podList = this.$rootGetters['harvester/all'](POD);
 
     return podList.find( (P) => {
-      return vmiResource?.metadata?.name === P.metadata?.ownerReferences?.[0].name;
+      return vmiResource?.metadata?.name && vmiResource?.metadata?.name === P.metadata?.ownerReferences?.[0].name;
     });
   }
 
@@ -415,7 +430,9 @@ export default class VirtVm extends SteveModel {
   }
 
   get vmi() {
-    return this.$rootGetters['harvester/byId'](HCI.VMI, this.id);
+    const vmis = this.$rootGetters['harvester/all'](HCI.VMI);
+
+    return vmis.find(VMI => VMI.id === this.id);
   }
 
   get isError() {
@@ -687,9 +704,7 @@ export default class VirtVm extends SteveModel {
 
     try {
       out = JSON.parse(this.metadata?.annotations?.[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]);
-    } catch (e) {
-      console.error(`modal: getVolumeClaimTemplates, ${ e }, May not have been created through the harvester ui`); // eslint-disable-line no-console
-    }
+    } catch (e) {}
 
     return out;
   }
@@ -785,15 +800,32 @@ export default class VirtVm extends SteveModel {
     return parseInt(memory);
   }
 
-  get stateDescription() {
-    if (this.isOff) {
-      return '';
-    }
+  get ingoreVMMessage() {
+    const ignoreConditions = [{
+      name:    'unavailable',
+      error:   false,
+      vmState: this.actualState === PAUSED
+    }];
 
-    return super.stateDescription;
+    const state = this.metadata?.state;
+
+    return ignoreConditions.find(condition => condition.name === state?.name && condition.error === state?.error && condition.vmState) ||
+    IgnoreMessages.find(M => super.stateDescription?.includes(M)) ||
+    this.isOff;
+  }
+
+  get stateDescription() {
+    return this.ingoreVMMessage ? '' : super.stateDescription;
   }
 
   get displayMemory() {
     return this.spec.template.spec.domain.resources?.limits?.memory || this.spec.template.spec.domain.resources?.requests?.memory;
+  }
+
+  get isQemuInstalled() {
+    const conditions = this.vmi?.status?.conditions || [];
+    const qemu = conditions.find(cond => cond.type === AGENT_CONNECTED);
+
+    return qemu?.status === 'True';
   }
 }

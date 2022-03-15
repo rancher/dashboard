@@ -87,7 +87,7 @@ export default {
         return oldValue;
       }
 
-      return dataFormat?.packages?.includes('qemu-guest-agent') && !!dataFormat?.runcmd?.find( S => S.join('-') === _QGA_JSON.runcmd[0].join('-'));
+      return dataFormat?.packages?.includes('qemu-guest-agent') && !!dataFormat?.runcmd?.find( S => Array.isArray(S) && S.join('-') === _QGA_JSON.runcmd[0].join('-'));
     },
 
     isInstallUSBTablet(spec) {
@@ -100,6 +100,13 @@ export default {
       } else {
         return false;
       }
+    },
+
+    isEfiEnabled(spec) {
+      const smmEnabled = spec?.template?.spec?.domain?.features?.smm?.enabled;
+      const efiEnabled = spec?.template?.spec?.domain?.firmware?.bootloader?.efi?.secureBoot;
+
+      return !!(smmEnabled && efiEnabled);
     },
 
     getSecretCloudData(spec, type) {
@@ -122,6 +129,39 @@ export default {
       const secret = secrets.find(s => s.metadata.name === secretName);
 
       return secret;
+    },
+
+    getAccessCredentials(spec) {
+      const secrets = this.$store.getters['harvester/all'](SECRET) || [];
+      const credentials = spec?.template?.spec?.accessCredentials || [];
+      const annotations = JSON.parse(spec.template.metadata?.annotations?.[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_NAMES] || '[]');
+
+      return credentials.map((c) => {
+        const source = !!c.userPassword ? 'userPassword' : 'sshPublicKey';
+        const secretName = c[source]?.source?.secret?.secretName;
+        const secretRef = secrets.find(s => s.metadata.name === secretName);
+        const out = {
+          source, username: '', newPassword: '', users: [], sshkeys: [], secretName, secretRef
+        };
+
+        if (!secretRef) {
+          out.secretRef = undefined;
+        } else if (source === 'userPassword') {
+          const username = Object.keys(secretRef?.data)[0];
+          const newPassword = secretRef.decodedData[username];
+
+          out.username = username;
+          out.newPassword = newPassword;
+        } else {
+          const users = c[source].propagationMethod.qemuGuestAgent.users;
+          const sshkeys = annotations?.[secretName];
+
+          out.users = users;
+          out.sshkeys = sshkeys;
+        }
+
+        return out;
+      });
     },
 
     getVolumeClaimTemplates(vm) {

@@ -27,7 +27,9 @@ export default {
 
   data() {
     return {
-      selectedService: '', allServices: true, errors: []
+      selectedService:   '',
+      rotateAllServices:     true,
+      errors:            []
     };
   },
 
@@ -37,15 +39,37 @@ export default {
     },
 
     serviceOptions() {
+      if (this.cluster.isRke2) {
+        return [
+          'admin',
+          'api-server',
+          'controller-manager',
+          'scheduler',
+          'rke2-controller',
+          'rke2-server',
+          'cloud-controller',
+          'etcd',
+          'auth-proxy',
+          'kubelet',
+          'kube-proxy'
+        ];
+      }
+      // For RKE1 clusters, Norman provides the list of service options:
+      // type RotateCertificateInput struct {
+      //   CACertificates bool     `json:"caCertificates,omitempty"`
+      //   Services       []string `json:"services,omitempty" norman:"type=enum,options=etcd|kubelet|kube-apiserver|kube-proxy|kube-scheduler|kube-controller-manager"`
+      // }
       const schema = this.$store.getters['rancher/schemaFor']('rotatecertificateinput');
 
       return get(schema, 'resourceFields.services.options') || [];
     },
 
     actionParams() {
-      if (this.allServices) {
+      if (this.rotateAllServices) {
         return {
-          services:       null,
+          // To rotate all services, RKE1 clusters need services
+          // to be null, while RKE2 requires an empty array.
+          services:       this.cluster.isRke2 ? [] : null,
           caCertificates: false,
         };
       } else {
@@ -70,20 +94,18 @@ export default {
       const params = this.actionParams;
 
       try {
-        const isRke2Cluster = !!this.cluster.spec?.rkeConfig;
-
-        if (isRke2Cluster) {
-          // The Steve API doesn't support actions, so for RKE2 cluster cert rotation, we patch the cluster.
+        if (this.cluster.isRke2) {
+        // The Steve API doesn't support actions, so for RKE2 cluster cert rotation, we patch the cluster.
           const currentGeneration = this.cluster.spec?.rkeConfig?.rotateCertificates?.generation || 0;
 
           set(this.cluster, 'spec.rkeConfig.rotateCertificates', {
             generation:     currentGeneration + 1,
-            services:       this.selectedService ? [this.selectedService] : null
+            services:       (this.selectedService && !this.rotateAllServices) ? [this.selectedService] : []
           });
 
           await this.cluster.save();
         } else {
-          await this.cluster.mgmt.cluster.doAction('rotateCertificates', params);
+          await this.cluster.mgmt.doAction('rotateCertificates', params);
         }
         buttonDone(true);
         this.close();
@@ -104,15 +126,28 @@ export default {
     <template #body>
       <Banner v-for="(error, i) in errors" :key="i" class="" color="error" :label="error" />
       <div class="options">
-        <RadioGroup v-model="allServices" name="service-mode" :options="[{value: true,label:t('cluster.rotateCertificates.allServices')}, {value: false, label:t('cluster.rotateCertificates.selectService')}]" />
-        <Select v-model="selectedService" :options="serviceOptions" class="service-select" :class="{'invisible': allServices}" />
+        <RadioGroup
+          v-model="rotateAllServices"
+          name="service-mode"
+          :options="[
+            {
+              value: true,
+              label:t('cluster.rotateCertificates.allServices')
+            },
+            {
+              value: false,
+              label:t('cluster.rotateCertificates.selectService')
+            }
+          ]"
+        />
+        <Select v-model="selectedService" :options="serviceOptions" class="service-select" :class="{'invisible': rotateAllServices}" />
       </div>
     </template>
     <div slot="actions" class="buttons">
       <button class="btn role-secondary mr-20" @click="close">
         {{ t('generic.cancel') }}
       </button>
-      <AsyncButton mode="rotate" :disabled="!allServices && !selectedService" @click="rotate" />
+      <AsyncButton mode="rotate" :disabled="!rotateAllServices && !selectedService" @click="rotate" />
     </div>
   </Card>
 </template>

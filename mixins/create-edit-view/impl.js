@@ -4,9 +4,12 @@ import { exceptionToErrorsArray } from '@/utils/error';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import { clear } from '@/utils/array';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
-import { applyChangeset, changeset, changesetConflicts } from '@/utils/object';
+import { handleConflict } from '@/plugins/steve/normalize';
 
 export default {
+
+  name: 'CreateEditView',
+
   mixins: [ChildHook],
 
   mounted() {
@@ -120,30 +123,7 @@ export default {
     // If they are resolved, return a false-y value
     // Else they can't be resolved, return an array of errors to show to the user.
     conflict() {
-      const orig = this.initialValue.cleanForDiff();
-      const user = this.value.cleanForDiff();
-      const cur = this.liveValue.cleanForDiff();
-
-      const bgChange = changeset(orig, cur);
-      const userChange = changeset(orig, user);
-      const actualConflicts = changesetConflicts(bgChange, userChange);
-
-      console.log('Background Change', bgChange); // eslint-disable-line no-console
-      console.log('User Change', userChange); // eslint-disable-line no-console
-      console.log('Conflicts', actualConflicts); // eslint-disable-line no-console
-
-      this.value.metadata.resourceVersion = this.liveValue.metadata.resourceVersion;
-      applyChangeset(this.value, bgChange);
-
-      if ( actualConflicts.length ) {
-        // Stop the save and let the user inspect and continue editing
-        const out = [this.$store.getters['i18n/t']('validation.conflict', { fields: actualConflicts.join(', '), fieldCount: actualConflicts.length })];
-
-        return out;
-      } else {
-        // The save can continue
-        return false;
-      }
+      return handleConflict(this.initialValue.toJSON(), this.value, this.liveValue, this.$store.getters);
     },
 
     async save(buttonDone, url, depth = 0) {
@@ -186,8 +166,8 @@ export default {
         this.done();
       } catch (err) {
         // Conflict, the resource being edited has changed since starting editing
-        if ( err.status === 409 && depth === 0 ) {
-          const errors = await this.conflict(err);
+        if ( err.status === 409 && depth === 0 && this.isEdit) {
+          const errors = this.conflict();
 
           if ( errors === false ) {
             // It was automatically figured out, save again

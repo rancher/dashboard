@@ -11,6 +11,9 @@ export const _MULTI = 'multi';
 export const _ALL_IF_AUTHED = 'allIfAuthed';
 export const _NONE = 'none';
 
+const SCHEMA_CHECK_RETRIES = 15;
+const SCHEMA_CHECK_RETRY_LOG = 10;
+
 export default {
   async request({ state, dispatch, rootGetters }, pOpt ) {
     const opt = pOpt.opt || pOpt;

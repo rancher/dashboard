@@ -9,6 +9,8 @@ env:
   OUTPUT_DIR: dist
   RELEASE_DIR: release
   ARTIFACT_NAME: rancher-dashboard-desktop-embed
+  API: "https://127.0.0.1:9443"
+  RESOURCE_BASE: "https://127.0.0.1:9443"
   
 jobs:
   build:

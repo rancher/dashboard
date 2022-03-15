@@ -268,7 +268,7 @@ export default class MgmtCluster extends HybridModel {
       text,
       color,
       textColor: textColor(parseColor(color)),
-      iconText:  iconText.substr(0, 2),
+      iconText:  iconText.substr(0, 2)
     };
   }
 

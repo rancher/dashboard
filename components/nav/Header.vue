@@ -1,5 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
+import debounce from 'lodash/debounce';
 import { NORMAN, STEVE } from '@/config/types';
 import { NAME as VIRTUAL } from '@/config/product/harvester';
 import { ucFirst } from '@/utils/string';
@@ -161,9 +162,45 @@ export default {
 
   mounted() {
     this.checkClusterName();
+    this.debouncedLayoutHeader = debounce(this.layoutHeader, 400);
+    window.addEventListener('resize', this.debouncedLayoutHeader);
+
+    this.$nextTick(() => this.layoutHeader(null, true));
+  },
+
+  beforeDestroy() {
+    window.removeEventListener('resize', this.debouncedLayoutHeader);
   },
 
   methods: {
+    // Sizes the product area of the header such that it shrinks to ensure the whole header bar can be shown
+    // where possible - we use a minimum width of 32px which is enough to just show the product icon
+    layoutHeader() {
+      const header = this.$refs.header;
+      const product = this.$refs.product;
+
+      if (!header || !product) {
+        return;
+      }
+
+      // If the product element has an exact size, remove it and then recalculate
+      if (product.style.width) {
+        product.style.width = '';
+
+        this.$nextTick(() => this.layoutHeader());
+
+        return;
+      }
+
+      const overflow = header.scrollWidth - window.innerWidth;
+
+      if (overflow > 0) {
+        const w = Math.max(32, product.offsetWidth - overflow);
+
+        // Set exact width on the product div so that the content in it fits that available space
+        product.style.width = `${ w }px`;
+      }
+    },
     showMenu(show) {
       if (this.$refs.popover) {
         if (show) {
@@ -216,7 +253,10 @@ export default {
 </script>
 
 <template>
-  <header :class="{'simple': simple}">
+  <header ref="header">
+    <div>
+      <TopLevelMenu v-if="isMultiCluster || !isSingleProduct"></TopLevelMenu>
+    </div>
     <div class="menu-spacer">
       <n-link v-if="isSingleProduct" :to="singleProductLogoRoute">
         <img
@@ -226,7 +266,7 @@ export default {
       </n-link>
     </div>
     <div v-if="!simple" class="product">
-      <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster">
+      <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster cluster-clipped">
         <div v-if="isSingleProduct" class="product-name">
           {{ t(isSingleProduct.productNameKey) }}
         </div>
@@ -258,9 +298,7 @@ export default {
       </div>
     </div>
 
-    <div>
-      <TopLevelMenu v-if="isMultiCluster || !isSingleProduct"></TopLevelMenu>
-    </div>
+    <div class="spacer"></div>
 
     <div class="rd-header-right">
       <HarvesterUpgrade v-if="isVirtualCluster" />
@@ -437,7 +475,15 @@ export default {
 
 <style lang="scss" scoped>
   HEADER {
-    display: grid;
+    display: flex;
+
+    > .spacer {
+      flex: 1;
+    }
+
+    > .menu-spacer {
+      flex: 0 0 calc(var(--header-height) + 10px);
+    }
 
     .title {
       border-left: 1px solid var(--header-border);
@@ -466,10 +512,6 @@ export default {
       }
     }
 
-    > * {
-      padding: 0 5px;
-    }
-
     .back {
       padding-top: 6px;
 
@@ -488,27 +530,6 @@ export default {
       }
     }
 
-    .user-menu {
-      padding-top: 9.5px;
-      .user-name {
-        display: flex;
-        align-items: center;
-      }
-    }
-
-    grid-template-areas:  "menu product top a header-right"; // TODO what's a good name for a here
-    grid-template-columns: var(--header-height) calc(var(--nav-width) - var(--header-height)) 1fr min-content min-content;
-    grid-template-rows:    var(--header-height);
-
-    &.simple {
-      grid-template-columns: var(--header-height) min-content 1fr min-content min-content;
-    }
-
-    > .menu-spacer {
-      width: 65px;
-      grid-area: menu;
-    }
-
     .cluster {
       align-items: center;
       display: flex;
@@ -516,11 +537,15 @@ export default {
       white-space: nowrap;
       .cluster-name {
         font-size: 16px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+      &.cluster-clipped {
+        overflow: hidden;
       }
     }
 
     > .product {
-      grid-area: product;
       align-items: center;
       position: relative;
       display: flex;
@@ -563,15 +588,10 @@ export default {
       border-bottom: var(--header-border-size) solid var(--header-border);
     }
 
-    .menu-spacer {
-      grid-area: menu;
-    }
-
     .rd-header-right {
       display: flex;
       flex-direction: row;
       padding: 0;
-      grid-area: header-right;
 
       > * {
         padding: 0 5px;

@@ -2,6 +2,8 @@ import { CAPI } from '@/config/types';
 import { escapeHtml } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import SteveModel from '@/plugins/steve/steve-class';
+import { exceptionToErrorsArray } from '~/utils/error';
+import { handleConflict } from '~/plugins/steve/normalize';
 
 export default class CapiMachineDeployment extends SteveModel {
   get cluster() {
@@ -80,7 +82,7 @@ export default class CapiMachineDeployment extends SteveModel {
     return this.status?.unavailableReplicas || 0;
   }
 
-  scalePool(delta, save = true) {
+  scalePool(delta, save = true, depth = 0) {
     const machineConfigName = this.template.metadata.annotations['rke.cattle.io/cloned-from-name'];
     const machinePools = this.cluster.spec.rkeConfig.machinePools;
 
@@ -90,25 +92,42 @@ export default class CapiMachineDeployment extends SteveModel {
       return;
     }
 
+    const initialValue = this.cluster.toJSON();
+
     clustersMachinePool.quantity += delta;
 
     if ( !save ) {
       return;
     }
 
+    const value = this.cluster;
+    const liveModel = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, this.cluster.id);
+
     if ( this.scaleTimer ) {
       clearTimeout(this.scaleTimer);
     }
 
     this.scaleTimer = setTimeout(() => {
-      try {
-        this.cluster.save();
-      } catch (error) {
+      this.cluster.save().catch((err) => {
+        let errors = exceptionToErrorsArray(err);
+
+        if ( err.status === 409 && depth < 2 ) {
+          const conflicts = handleConflict(initialValue, value, liveModel, this.$rootGetters);
+
+          if ( conflicts === false ) {
+            // It was automatically figured out, save again
+            // (pass in the delta again as `clustersMachinePool.quantity` would have reset from the re-fetch done in `save`)
+            return this.scalePool(delta, true, depth + 1);
+          } else {
+            errors = conflicts;
+          }
+        }
+
         this.$dispatch('growl/fromError', {
           title: 'Error scaling pool',
-          error
+          err:   errors
         }, { root: true });
-      }
+      });
     }, 1000);
   }
 

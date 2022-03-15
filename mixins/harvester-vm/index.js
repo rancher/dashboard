@@ -4,12 +4,12 @@ import isEmpty from 'lodash/isEmpty';
 import difference from 'lodash/difference';
 
 import { sortBy } from '@/utils/sort';
-import { clone } from '@/utils/object';
+import { clone, set } from '@/utils/object';
 import { allHash } from '@/utils/promise';
 import { randomStr } from '@/utils/string';
 import { base64Decode } from '@/utils/crypto';
 import { formatSi, parseSi } from '@/utils/units';
-import { SOURCE_TYPE } from '@/config/harvester-map';
+import { SOURCE_TYPE, ACCESS_CREDENTIALS } from '@/config/harvester-map';
 import { _CLONE } from '@/config/query-params';
 import {
   PVC, HCI, STORAGE_CLASS, NODE, SECRET
@@ -124,7 +124,10 @@ export default {
       showAdvanced:       false,
       deleteAgent:        true,
       memory:             null,
-      cpu:                ''
+      cpu:                '',
+      reservedMemory:     null,
+      accessCredentials:  [],
+      efiEnabled:          false,
     };
   },
 
@@ -143,6 +146,10 @@ export default {
 
     pvcs() {
       return this.$store.getters['harvester/all'](PVC);
+    },
+
+    secrets() {
+      return this.$store.getters['harvester/all'](SECRET);
     },
 
     nodesIdOptions() {
@@ -228,6 +235,7 @@ export default {
       const machineType = value.machineType;
       const cpu = spec.template.spec.domain?.cpu?.cores;
       const memory = spec.template.spec.domain.resources.limits.memory;
+      const reservedMemory = vm.metadata?.annotations?.[HCI_ANNOTATIONS.VM_RESERVED_MEMORY];
 
       const sshKey = this.getSSHFromAnnotation(spec) || [];
 
@@ -254,11 +262,14 @@ export default {
       userData = this.isCreate ? this.getInitUserData({ osType }) : userData;
       const installUSBTablet = this.isInstallUSBTablet(spec);
       const installAgent = this.isCreate ? true : this.hasInstallAgent(userData, osType, true);
+      const efiEnabled = this.isEfiEnabled(spec);
 
       const secretRef = this.getSecret(spec);
+      const accessCredentials = this.getAccessCredentials(spec);
 
       this.$set(this, 'spec', spec);
       this.$set(this, 'secretRef', secretRef);
+      this.$set(this, 'accessCredentials', accessCredentials);
       this.$set(this, 'userScript', userData);
       this.$set(this, 'networkScript', networkData);
 
@@ -268,9 +279,11 @@ export default {
 
       this.$set(this, 'cpu', cpu);
       this.$set(this, 'memory', memory);
+      this.$set(this, 'reservedMemory', reservedMemory);
       this.$set(this, 'machineType', machineType);
 
       this.$set(this, 'installUSBTablet', installUSBTablet);
+      this.$set(this, 'efiEnabled', efiEnabled);
 
       this.$set(this, 'hasCreateVolumes', hasCreateVolumes);
       this.$set(this, 'networkRows', networkRows);
@@ -372,6 +385,9 @@ export default {
             minExponent: 3,
           });
 
+          const allVolumeStatus = JSON.parse(vm.metadata?.annotations?.[HCI_ANNOTATIONS.VM_VOLUME_STATUS] || '[]');
+          const volumeStatus = allVolumeStatus.find(volume => realName === volume.name);
+
           return {
             id:           randomStr(5),
             bootOrder,
@@ -388,6 +404,7 @@ export default {
             type,
             storageClassName,
             hotpluggable,
+            volumeStatus,
           };
         });
       }
@@ -423,6 +440,7 @@ export default {
 
     parseVM() {
       this.parseOther();
+      this.parseAccessCredentials();
       this.parseNetworkRows(this.networkRows);
       this.parseDiskRows(this.diskRows);
     },
@@ -437,6 +455,15 @@ export default {
       this.spec.template.spec.domain.cpu.cores = this.cpu;
       this.spec.template.spec.domain.resources.limits.cpu = this.cpu;
       this.spec.template.spec.domain.resources.limits.memory = this.memory;
+
+      // parse reserved memory
+      const vm = this.resource === HCI.VM ? this.value : this.value.spec.vm;
+
+      if (!this.reservedMemory) {
+        delete vm.metadata.annotations[HCI_ANNOTATIONS.VM_RESERVED_MEMORY];
+      } else {
+        vm.metadata.annotations[HCI_ANNOTATIONS.VM_RESERVED_MEMORY] = this.reservedMemory;
+      }
     },
 
     parseDiskRows(disk) {
@@ -549,7 +576,7 @@ export default {
         this.$set(this, 'spec', spec);
       } else if (this.resource === HCI.VM_VERSION) {
         this.$set(this.value.spec.vm, 'spec', spec);
-        this.$set(this.value.spec.vm.metadata, 'annotations', { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: JSON.stringify(volumeClaimTemplates) });
+        this.$set(this.value.spec.vm.metadata, 'annotations', { ...this.value.spec.vm.metadata.annotations, [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: JSON.stringify(volumeClaimTemplates) });
         this.$set(this.value.spec.vm.metadata, 'labels', { [HCI_ANNOTATIONS.OS]: this.osType });
         this.$set(this, 'spec', spec);
       }
@@ -612,6 +639,50 @@ export default {
       };
 
       this.$set(this.spec.template, 'spec', spec);
+    },
+
+    parseAccessCredentials() {
+      const out = [];
+      const annotations = {};
+      const users = JSON.parse(this.spec?.template?.metadata?.annotations?.[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_USERS] || '[]');
+
+      for (const row of this.accessCredentials) {
+        if (this.needNewSecret) {
+          row.secretName = this.generateSecretName(this.secretNamePrefix);
+        }
+
+        if (row.source === ACCESS_CREDENTIALS.RESET_PWD) {
+          users.push(row.username);
+          out.push({
+            userPassword: {
+              source:            { secret: { secretName: row.secretName } },
+              propagationMethod: { qemuGuestAgent: { } }
+            }
+          });
+        }
+
+        if (row.source === ACCESS_CREDENTIALS.INJECT_SSH) {
+          users.push(...row.users);
+          annotations[row.secretName] = row.sshkeys;
+          out.push({
+            sshPublicKey: {
+              source:            { secret: { secretName: row.secretName } },
+              propagationMethod: { qemuGuestAgent: { users: row.users } }
+            }
+          });
+        }
+      }
+
+      if (out.length === 0 && !!this.spec.template.spec.accessCredentials) {
+        delete this.spec.template.spec.accessCredentials;
+      } else {
+        this.spec.template.spec.accessCredentials = out;
+      }
+
+      if (users.length !== 0) {
+        this.spec.template.metadata.annotations[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_USERS] = JSON.stringify(Array.from(new Set(users)));
+        this.spec.template.metadata.annotations[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_NAMES] = JSON.stringify(annotations);
+      }
     },
 
     getInitUserData(config) {
@@ -787,18 +858,20 @@ export default {
       const _QGA_JSON = this.getMatchQGA(osType);
 
       userDataJson.package_update = true;
-      if (Array.isArray(userDataJson.packages) && !userDataJson.packages.includes('qemu-guest-agent')) {
-        userDataJson.packages.push('qemu-guest-agent');
+      if (Array.isArray(userDataJson.packages)) {
+        if (!userDataJson.packages.includes('qemu-guest-agent')) {
+          userDataJson.packages.push('qemu-guest-agent');
+        }
       } else {
         userDataJson.packages = QGA_JSON.packages;
       }
 
       if (Array.isArray(userDataJson.runcmd)) {
         let findIndex = -1;
-        const hasSameRuncmd = userDataJson.runcmd.find( S => S.join('-') === _QGA_JSON.runcmd[0].join('-'));
+        const hasSameRuncmd = userDataJson.runcmd.find( S => Array.isArray(S) && S.join('-') === _QGA_JSON.runcmd[0].join('-'));
 
         const hasSimilarRuncmd = userDataJson.runcmd.find( (S, index) => {
-          if (S.join('-') === this.getSimilarRuncmd(osType).join('-')) {
+          if (Array.isArray(S) && S.join('-') === this.getSimilarRuncmd(osType).join('-')) {
             findIndex = index;
 
             return true;
@@ -838,7 +911,7 @@ export default {
         const _QGA_JSON = this.getMatchQGA(osType);
 
         for (let i = 0; i < userDataJson.runcmd.length; i++) {
-          if (userDataJson.runcmd[i].join('-') === _QGA_JSON.runcmd[0].join('-')) {
+          if (Array.isArray(userDataJson.runcmd[i]) && userDataJson.runcmd[i].join('-') === _QGA_JSON.runcmd[0].join('-')) {
             userDataJson.runcmd.splice(i, 1);
           }
         }
@@ -911,10 +984,107 @@ export default {
           await secret.save();
         }
       } catch (e) {
-        new Error(`Function(saveSecret) error ${ e }`);
-
         return Promise.reject(e);
       }
+    },
+
+    async saveAccessCredentials(vm) {
+      if (!vm?.spec) {
+        return true;
+      }
+
+      // save
+      const toSave = [];
+
+      for (const row of this.accessCredentials) {
+        let secretRef = row.secretRef;
+
+        if (!secretRef || this.needNewSecret) {
+          secretRef = await this.$store.dispatch('harvester/create', {
+            metadata: {
+              name:            row.secretName,
+              namespace:       vm.metadata.namespace,
+              labels:          { [HCI_ANNOTATIONS.CLOUD_INIT]: 'harvester' },
+              ownerReferences: this.getOwnerReferencesFromVM(vm)
+            },
+            type: SECRET
+          });
+        }
+
+        if (row.source === ACCESS_CREDENTIALS.RESET_PWD) {
+          secretRef.setData(row.username, row.newPassword);
+        }
+
+        if (row.source === ACCESS_CREDENTIALS.INJECT_SSH) {
+          for (const secretId of row.sshkeys) {
+            const keypair = (this.$store.getters['harvester/all'](HCI.SSH) || []).find(s => s.id === secretId);
+
+            secretRef.setData(`${ keypair.metadata.namespace }-${ keypair.metadata.name }`, keypair.spec.publicKey);
+          }
+        }
+
+        toSave.push(secretRef);
+      }
+
+      try {
+        for (const resource of toSave) {
+          await resource.save();
+        }
+      } catch (e) {
+        return Promise.reject(e);
+      }
+    },
+
+    getAccessCredentialsValidation() {
+      const errors = [];
+
+      for (let i = 0; i < this.accessCredentials.length; i++) {
+        const row = this.accessCredentials[i];
+        const source = row.source;
+
+        if (source === ACCESS_CREDENTIALS.RESET_PWD) {
+          if (!row.username) {
+            const fieldName = this.t('harvester.virtualMachine.input.username');
+            const message = this.t('validation.required', { key: fieldName });
+
+            errors.push(message);
+          }
+
+          if (!row.newPassword) {
+            const fieldName = this.t('harvester.virtualMachine.input.password');
+            const message = this.t('validation.required', { key: fieldName });
+
+            errors.push(message);
+          }
+
+          if (row.newPassword && row.newPassword.length < 6) {
+            const fieldName = this.t('harvester.virtualMachine.input.password');
+            const message = this.t('validation.number.min', { key: fieldName, val: '6' });
+
+            errors.push(message);
+          }
+        } else {
+          if (!row.users || row.users.length === 0) {
+            const fieldName = this.t('harvester.virtualMachine.input.username');
+            const message = this.t('validation.required', { key: fieldName });
+
+            errors.push(message);
+          }
+
+          if (!row.sshkeys || row.sshkeys.length === 0) {
+            const fieldName = this.t('harvester.virtualMachine.input.sshKeyValue');
+            const message = this.t('validation.required', { key: fieldName });
+
+            errors.push(message);
+          }
+        }
+
+        if (errors.length > 0) {
+          break;
+        }
+      }
+
+      return errors;
     },
 
     getHasCreatedVolumes(spec) {
@@ -954,6 +1124,24 @@ export default {
           inputs.splice(index, 1);
           this.$set(this.spec.template.spec.domain.devices, 'inputs', inputs);
         }
+      }
+    },
+
+    setEfiEnabled(value) {
+      const smmEnabled = this.spec?.template?.spec?.domain?.features?.smm?.enabled;
+      const efiEnabled = this.spec?.template?.spec?.domain?.firmware?.bootloader?.efi?.secureBoot;
+
+      if (value) {
+        if (!smmEnabled) {
+          set(this.spec.template.spec.domain, 'features.smm.enabled', true);
+        }
+
+        if (!efiEnabled) {
+          set(this.spec.template.spec.domain, 'firmware.bootloader.efi.secureBoot', true);
+        }
+      } else {
+        set(this.spec.template.spec.domain, 'features.smm.enabled', false);
+        set(this.spec.template.spec.domain, 'firmware.bootloader.efi.secureBoot', false);
       }
     },
 
@@ -1054,6 +1242,10 @@ export default {
 
     installUSBTablet(val) {
       this.handlerUSBTablet(val);
+    },
+
+    efiEnabled(val) {
+      this.setEfiEnabled(val);
     },
 
     installAgent: {

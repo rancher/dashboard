@@ -138,6 +138,7 @@ export const HCI = {
   NETWORK_TYPE:                 'network.harvesterhci.io/type',
   VM_NAME:                      'harvesterhci.io/vmName',
   VM_NAME_PREFIX:               'harvesterhci.io/vmNamePrefix',
+  VM_RESERVED_MEMORY:           'harvesterhci.io/reservedMemory',
   MAINTENANCE_STATUS:           'harvesterhci.io/maintain-status',
   HOST_CUSTOM_NAME:             'harvesterhci.io/host-custom-name',
   HOST_CONSOLE_URL:             'harvesterhci.io/host-console-url',
@@ -156,7 +157,10 @@ export const HCI = {
   UPGRADE_IMAGE:                'harvesterhci.io/upgradeImage',
   LATEST_UPGRADE:               'harvesterhci.io/latestUpgrade',
   UPGRADE_STATE:                'harvesterhci.io/upgradeState',
-  REAY_MESSAGE:                 'harvesterhci.io/read-message'
+  REAY_MESSAGE:                 'harvesterhci.io/read-message',
+  DYNAMIC_SSHKEYS_NAMES:        'harvesterhci.io/dynamic-ssh-key-names',
+  DYNAMIC_SSHKEYS_USERS:        'harvesterhci.io/dynamic-ssh-key-users',
+  VM_VOLUME_STATUS:             'harvesterhci.io/volume-status',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge
@@ -166,6 +170,6 @@ export const CLUSTER_BADGE = {
   TEXT:        'ui.rancher/badge-text',
   // Badge color - as a hex color - e.g. #ff00ff
   COLOR:       'ui.rancher/badge-color',
-  // Use as icon - if set to "true" the cluster icon will also reflect the badge
-  ICON_TEXT: 'ui.rancher/badge-use-as-icon',
+  // Custom icon text - max 2 characters
+  ICON_TEXT:   'ui.rancher/badge-icon-text',
 };

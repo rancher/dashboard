@@ -1,18 +1,25 @@
 <script>
-import findKey from 'lodash/findKey';
 import CreateEditView from '@/mixins/create-edit-view';
 import ResourcesSummary from '@/components/fleet/ResourcesSummary';
 import ResourceTabs from '@/components/form/ResourceTabs';
-import { COUNT } from '@/config/types';
+import { COUNT, WORKLOAD_TYPES } from '@/config/types';
+import { WORKLOAD_SCHEMA } from '@/config/schema';
 import { getStatesByType } from '@/plugins/core-store/resource-class';
 import MoveModal from '@/components/MoveModal';
 import Tab from '@/components/Tabbed/Tab';
+import ResourceTable from '@/components/ResourceTable';
 import SortableTable from '@/components/SortableTable';
+import Loading from '@/components/Loading';
+import {
+  flatten, compact, filter, findKey, values
+} from 'lodash';
 
 export default {
   components: {
     ResourcesSummary,
+    ResourceTable,
     ResourceTabs,
+    Loading,
     MoveModal,
     Tab,
     SortableTable
@@ -80,7 +87,20 @@ export default {
       },
     ];
 
-    return { resourceTypes: [], headers };
+    return {
+      allWorkloads: {
+        default: () => ([]),
+        type:     Array,
+      },
+      resourceTypes:    [],
+      summaryStates:    ['success', 'info', 'warning', 'error', 'unknown'],
+      headers,
+      workloadSchema:        WORKLOAD_SCHEMA
+    };
+  },
+
+  async fetch() {
+    this.allWorkloads = await this.getAllWorkloads();
   },
 
   computed: {
@@ -129,6 +149,18 @@ export default {
     statesByType() {
       return getStatesByType();
     },
+
+    /**
+     * Workload table data for current namespace
+     */
+    workloadRows() {
+      const params = this.$route.params;
+      const { id } = params;
+      const rows = flatten(compact(this.allWorkloads)).filter(row => row.showAsWorkload);
+      const namespacedRows = filter(rows, ({ metadata: { namespace } }) => namespace === id);
+
+      return namespacedRows;
+    }
   },
 
   methods: {
@@ -157,6 +189,17 @@ export default {
       return out;
     },
 
+    /**
+     * Retrieve workloads for this namespace and each type
+     */
+    getAllWorkloads() {
+      return Promise.all(values(WORKLOAD_TYPES)
+        // You may not have RBAC to see some of the types
+        .filter(type => Boolean(this.schemaFor(type)))
+        .map(type => this.$store.dispatch('cluster/findAll', { type }))
+      );
+    },
+
     schemaFor(type) {
       return this.$store.getters[`${ this.inStore }/schemaFor`](type);
     },
@@ -172,29 +215,54 @@ export default {
       }
 
       return null;
-    }
+    },
   }
 };
 </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
     <div class="mb-20">
       <h3>{{ t('namespace.resources') }}</h3>
-      <ResourcesSummary state-key="namespace.resourceStates" :value="accumulatedStateCounts" :required-states="['success', 'info', 'warning', 'error', 'unknown']" />
+      <ResourcesSummary
+        state-key="namespace.resourceStates"
+        :value="accumulatedStateCounts"
+        :required-states="summaryStates"
+      />
     </div>
     <ResourceTabs v-model="value" :mode="mode">
       <Tab :name="t('namespace.resources')">
-        <SortableTable default-sort-by="error" :table-actions="false" :row-actions="false" :rows="namespacedResourceCounts" :headers="headers">
+        <SortableTable
+          default-sort-by="error"
+          :table-actions="false"
+          :row-actions="false"
+          :rows="namespacedResourceCounts"
+          :headers="headers"
+        >
           <template #col:type="{row}">
             <td>
-              <n-link v-if="typeListLocation(row.schema)" :to="typeListLocation(row.schema)">
+              <n-link
+                v-if="typeListLocation(row.schema)"
+                :to="typeListLocation(row.schema)"
+              >
                 {{ row.schema.pluralName }}
               </n-link>
               <span v-else>{{ row.schema.pluralName }}</span>
             </td>
           </template>
         </SortableTable>
+      </Tab>
+
+      <Tab :name="t('namespace.workloads')">
+        <ResourceTable
+          name="workloads"
+          :groupable="false"
+          v-bind="$attrs"
+          :schema="workloadSchema"
+          :rows="workloadRows"
+        >
+        </ResourceTable>
       </Tab>
     </ResourceTabs>
     <MoveModal />

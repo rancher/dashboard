@@ -4,19 +4,16 @@ import { CAPI } from '@/config/types';
 import { findBy } from '@/utils/array';
 
 export default class EtcdBackup extends NormanModel {
+  /**
+   * Restrict actions for snapshots to restore only
+   */
   get _availableActions() {
-    const out = super._availableActions;
-
-    const restore = {
+    return [{
       action:     'promptRestore',
       enabled:    true,
       icon:       'icon icon-fw icon-backup-restore',
       label:      'Restore'
-    };
-
-    out.unshift(restore);
-
-    return out;
+    }];
   }
 
   promptRestore() {
@@ -41,5 +38,9 @@ export default class EtcdBackup extends NormanModel {
 
   get rke2() {
     return this.cluster?.isRke2;
+  }
+
+  get nameDisplay() {
+    return this.snapshotFile?.name || this.name;
   }
 }

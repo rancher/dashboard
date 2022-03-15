@@ -3,8 +3,11 @@ import { colorForState, stateDisplay, stateSort } from '@/plugins/core-store/res
 import SortableTable from '@/components/SortableTable';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { FLEET as FLEET_ANNOTATIONS } from '@/config/labels-annotations';
+import { randomStr } from '~/utils/string';
 
 export default {
+  name: 'FleetResources',
+
   components: { SortableTable },
 
   props: {
@@ -54,6 +57,7 @@ export default {
 
           out.push({
             key:             `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }`,
+            tableKey:        `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }-${ randomStr(8) }`,
             kind:            r.kind,
             apiVersion:      r.apiVersion,
             type:            r.type,
@@ -128,7 +132,7 @@ export default {
     :headers="resourceHeaders"
     :table-actions="false"
     :row-actions="false"
-    key-field="key"
+    key-field="tableKey"
     default-sort-by="state"
     :paged="true"
   />

@@ -81,15 +81,14 @@ export default {
     forceFormattedDisabled() {
       const lastFormattedAt = this.value?.blockDevice?.status?.deviceStatus?.fileSystem?.LastFormattedAt;
       const fileSystem = this.value?.blockDevice?.status?.deviceStatus?.fileSystem.type;
-      const partitioned = this.value?.blockDevice?.status?.deviceStatus?.partitioned;
 
       const systems = ['ext4', 'XFS'];
 
-      if (systems.includes(fileSystem)) {
-        return false;
-      } else if (lastFormattedAt) {
+      if (lastFormattedAt) {
         return true;
-      } else if (!fileSystem && !partitioned) {
+      } else if (systems.includes(fileSystem)) {
+        return false;
+      } if (!fileSystem) {
         return true;
       } else {
         return !this.canEditPath;
@@ -110,6 +109,18 @@ export default {
 
     isFormatted() {
       return !!this.value?.blockDevice?.status?.deviceStatus?.fileSystem?.LastFormattedAt;
+    },
+
+    formattedBannerLabel() {
+      const system = this.value?.blockDevice?.status?.deviceStatus?.fileSystem?.type;
+
+      const label = this.t('harvester.host.disk.lastFormattedAt.info');
+
+      if (system) {
+        return `${ label } ${ this.t('harvester.host.disk.fileSystem.info', { system }) }`;
+      } else {
+        return label;
+      }
     },
 
     provisionPhase() {
@@ -135,7 +146,7 @@ export default {
     <Banner
       v-if="isFormatted"
       color="info"
-      :label="t('harvester.host.disk.lastFormattedAt.info')"
+      :label="formattedBannerLabel"
     />
     <div v-if="!value.isNew">
       <div class="row">
