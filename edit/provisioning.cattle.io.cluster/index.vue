@@ -284,9 +284,7 @@ export default {
         }
 
         if (group === 'rke2' && id === 'harvester') {
-          const experimental = getters['i18n/t']('generic.experimental');
-
-          tag = getters['i18n/withFallback'](`cluster.providerTag.rke2."${ id }"`, { tag: experimental }, '');
+          tag = getters['i18n/withFallback'](`cluster.providerTag.rke2."${ id }"`, { tag: techPreview }, '');
         }
 
         const subtype = {
