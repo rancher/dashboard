@@ -78,7 +78,7 @@ function replicate(data, config) {
 
   data.forEach(d => templates.push(JSON.stringify(d)));
 
-  const newData = [ ...data ];
+  const newData = [...data];
 
   // We already have the elemnts in data... just need to pad out
   const remaining = config.count - data.length;
