@@ -20,10 +20,10 @@ export function normalizeType(type) {
 // Detect and resolve conflicts from a 409 response.
 // If they are resolved, return a false-y value
 // Else they can't be resolved, return an array of errors to show to the user.
-export function handleConflict(initialValueJSON, value, liveValue, rootGetters) {
-  const orig = cleanForDiff(initialValueJSON);
-  const user = cleanForDiff(value.toJSON());
-  const cur = cleanForDiff(liveValue.toJSON());
+export function handleConflict(initialValueJSON, value, liveValue, rootGetters, store) {
+  const orig = store.dispatch(`cleanForDiff`, initialValueJSON);
+  const user = store.dispatch(`cleanForDiff`, value.toJSON());
+  const cur = store.dispatch(`cleanForDiff`, liveValue.toJSON());
 
   const bgChange = changeset(orig, cur);
   const userChange = changeset(orig, user);

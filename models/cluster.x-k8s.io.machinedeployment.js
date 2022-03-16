@@ -112,7 +112,7 @@ export default class CapiMachineDeployment extends SteveModel {
         let errors = exceptionToErrorsArray(err);
 
         if ( err.status === 409 && depth < 2 ) {
-          const conflicts = handleConflict(initialValue, value, liveModel, this.$rootGetters);
+          const conflicts = handleConflict(initialValue, value, liveModel, this.$rootGetters, this.$store); // TODO: RC test
 
           if ( conflicts === false ) {
             // It was automatically figured out, save again
