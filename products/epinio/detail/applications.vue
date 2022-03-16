@@ -135,12 +135,6 @@ export default Vue.extend<Data, any, any, any>({
                 <td>{{ value.instanceCpu.max }}</td>
                 <td>{{ value.instanceCpu.avg }}</td>
               </tr>
-              <tr>
-                <td>{{ t('tableHeaders.restarts') }}</td>
-                <td>{{ value.instanceRestarts.min }}</td>
-                <td>{{ value.instanceRestarts.max }}</td>
-                <td>{{ value.instanceRestarts.avg }}</td>
-              </tr>
             </table>
           </SimpleBox>
           <SimpleBox v-if="value.sourceInfo">

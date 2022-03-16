@@ -285,10 +285,6 @@ export default class EpinioApplication extends EpinioResource {
     return this._instanceStats('millicpus');
   }
 
-  get instanceRestarts() {
-    return this._instanceStats('restarts');
-  }
-
   _instanceStats(prop) {
     const stats = this.instances.reduce((res, r) => {
       if (r[prop] >= res.max) {
@@ -304,9 +300,11 @@ export default class EpinioApplication extends EpinioResource {
       min: 0, max: 0, total: 0
     });
 
+    const avg = this.instances.length ? (stats.total / this.instances.length).toFixed(2) : 0;
+
     return {
       ...stats,
-      avg: this.instances.length ? stats.total / this.instances.length : 0,
+      avg: avg === '0.00' ? 0 : avg,
     };
   }
 
