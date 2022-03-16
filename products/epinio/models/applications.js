@@ -96,9 +96,10 @@ export default class EpinioApplication extends EpinioResource {
     const res = [];
 
     const isSingleProduct = !!this.$rootGetters['isSingleProduct'];
-    const showAppLog = this.active;
+    const isRunning = [STATES.RUNNING].includes(this.status);
+    const showAppLog = isRunning;
     const showStagingLog = !!this.stage_id;
-    const showAppShell = this.active && !isSingleProduct;
+    const showAppShell = isRunning && !isSingleProduct;
 
     if (showAppShell) {
       res.push({
@@ -137,7 +138,7 @@ export default class EpinioApplication extends EpinioResource {
       action:     'restart',
       label:      this.t('epinio.applications.actions.restart.label'),
       icon:       'icon icon-fw icon-refresh',
-      enabled:    [STATES.RUNNING].includes(this.status)
+      enabled:    isRunning
     },
     { divider: true },
     ...super._availableActions);
