@@ -16,6 +16,9 @@
   "javascript.preferences.importModuleSpecifier": "non-relative",
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "cSpell.words": [
-    "epinio"
+    "epinio",
+    "chainable",
+    "nuxt",
+    "prepending"
   ],
 }

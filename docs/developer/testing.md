@@ -6,7 +6,32 @@ This repo is configured for end-to-end testing with [Cypress](https://docs.cypre
 
 ### Initial Setup
 
-For the cypress test runner to consume the UI, you must specify two environment variables, `TEST_USERNAME` and `TEST_PASSWORD`. By default the test runner will attempt to visit a locally running dashboard at `https://localhost:8005`. This may be overwritten with the `DEV_UI` environment variable. Run `yarn e2e:dev` to start the dashboard in SSR mode and open the cypress test runner. Run tests through the cypress GUI once the UI is built. Cypress tests will automatically re-run if they are altered (hot reloading). Alternatively the dashboard ui and cypress may be run separately with `yarn dev` and `yarn cypress open`.
+For the cypress test runner to consume the UI, you should specify the environment variables:
+
+- Local authentication credentials
+  - `TEST_USERNAME` // default `admin`
+  - `TEST_PASSWORD` // user password or custom during first Rancher run
+- `TEST_BASE_URL` // URL used by Cypress to run the tests, default `https://localhost:8005`
+
+### Development with watch/dev
+
+While writing the tests, you can simply run the project and then open the Cypress dashboard with the commands
+
+- `yarn dev` or `yarn watch`
+- `yarn cy:open`
+
+The dashboard will contain the options and the list of test suites. These will automatically re-run if they are altered (hot reloading).
+
+For further information, consult [official documentation](https://docs.cypress.io/guides/guides/command-line#cypress-open).
+
+### Local and CI/prod run
+
+It is possible to start the project and run all the tests at once with a single command. There's however a difference between `dev` and `production` run. The first will not require an official certificate and will build the project in `.nuxt`, while the production will enable all the SSL configurations to run encrypted.
+
+- `yarn e2e:pre-dev`, to optionally initialize Docker and build the project, if not already done, required for GitHub Action
+- `yarn e2e:dev`, single run local development and CI
+- `yarn e2e:pre-prod`, to optionally initialize Docker and build the project
+- `yarn e2e:dev`, for production use case, which will also restart Docker and build the project
 
 ### Writing tests
 
