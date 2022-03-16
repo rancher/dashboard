@@ -93,40 +93,38 @@ export default class EpinioApplication extends EpinioResource {
   }
 
   get _availableActions() {
-    const isSingleProduct = !!this.$rootGetters['isSingleProduct'];
-
     const res = [];
 
-    if (!isSingleProduct) {
-      const showAppLog = this.active;
-      const showStagingLog = !!this.stage_id;
-      const showAppShell = this.active;
+    const isSingleProduct = !!this.$rootGetters['isSingleProduct'];
+    const showAppLog = this.active;
+    const showStagingLog = !!this.stage_id;
+    const showAppShell = this.active && !isSingleProduct;
 
-      res.push(
-        {
-          action:     'showAppShell',
-          label:      this.t('epinio.applications.actions.shell.label'),
-          icon:       'icon icon-fw icon-chevron-right',
-          enabled:    showAppShell,
-        },
-        {
-          action:     'showAppLog',
-          label:      this.t('epinio.applications.actions.viewAppLogs.label'),
-          icon:       'icon icon-fw icon-file',
-          enabled:    showAppLog,
-        },
-        {
-          action:     'showStagingLog',
-          label:      this.t('epinio.applications.actions.viewStagingLogs.label'),
-          icon:       'icon icon-fw icon-file',
-          enabled:    showStagingLog,
-        },
+    if (showAppShell) {
+      res.push({
+        action:     'showAppShell',
+        label:      this.t('epinio.applications.actions.shell.label'),
+        icon:       'icon icon-fw icon-chevron-right',
+        enabled:    showAppShell,
+      });
+    }
+    res.push(
+      {
+        action:     'showAppLog',
+        label:      this.t('epinio.applications.actions.viewAppLogs.label'),
+        icon:       'icon icon-fw icon-file',
+        enabled:    showAppLog,
+      },
+      {
+        action:     'showStagingLog',
+        label:      this.t('epinio.applications.actions.viewStagingLogs.label'),
+        icon:       'icon icon-fw icon-file',
+        enabled:    showStagingLog,
+      },
+    );
 
-      );
-
-      if (showAppShell || showAppLog || showStagingLog) {
-        res.push({ divider: true });
-      }
+    if (showAppShell || showAppLog || showStagingLog) {
+      res.push({ divider: true });
     }
 
     res.push( {
@@ -473,11 +471,6 @@ export default class EpinioApplication extends EpinioResource {
   }
 
   showAppLog() {
-    const isSingleProduct = !!this.$rootGetters['isSingleProduct'];
-
-    if (isSingleProduct) {
-      return;
-    }
     this.$dispatch('wm/open', {
       id:        `epinio-${ this.id }-app-logs`,
       label:     `${ this.meta.name } - App Logs`,
@@ -492,12 +485,6 @@ export default class EpinioApplication extends EpinioResource {
   }
 
   showStagingLog(stageId = this.stage_id) {
-    const isSingleProduct = !!this.$rootGetters['isSingleProduct'];
-
-    if (isSingleProduct) {
-      return;
-    }
-
     if (!stageId) {
       console.warn('Unable to show staging logs, no stage id');// eslint-disable-line no-console
     }
