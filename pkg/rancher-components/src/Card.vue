@@ -12,6 +12,7 @@ export default {
     },
     buttonAction: {
       type: Function,
+      // TODO: is this the correct default? Originally () => { }
       default: () => true
     },
     buttonText: {
