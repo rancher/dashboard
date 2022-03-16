@@ -9,6 +9,7 @@ import { FLEET } from '@/config/types';
 import { isHarvesterCluster } from '@/utils/cluster';
 import FleetBundles from '@/components/fleet/FleetBundles.vue';
 import { resourceCounts } from '@/components/ResourceSummary.vue';
+import { FDC_ENUM } from '@/components/fleet/ForceDirectedTreeChart/fdcConfig.js';
 import { allHash } from '~/utils/promise';
 
 export default {
@@ -33,8 +34,9 @@ export default {
 
   data() {
     return {
-      allFleet:   [],
-      allBundles: [],
+      allFleet:      [],
+      allBundles:    [],
+      fdcConfigType: FDC_ENUM.FLEET_GIT_REPO
     };
   },
 
@@ -106,7 +108,7 @@ export default {
     >
       {{ t('fleet.fleetSummary.noClustersGitRepo') }}
     </Banner>
-    <ForceDirectedTreeChart :data="value" class="mb-20" />
+    <ForceDirectedTreeChart :data="value" :fdc-config="fdcConfigType" class="mb-20" />
     <ResourceTabs v-model="value" mode="view" class="mt-20" :need-related="false">
       <Tab label="Bundles" name="bundles" :weight="30">
         <FleetBundles :value="value" />
