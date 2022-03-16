@@ -63,7 +63,7 @@ function replicate(data, config) {
   if (data.length === 0) {
     return data;
   }
-  
+
   // Pretend there are none of the resource type
   if (config.count === 0) {
     return [];
