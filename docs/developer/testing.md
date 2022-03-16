@@ -2,7 +2,7 @@
 
 ## E2E Tests
 
-This repo is configured for end-to-end testing with [Cypress](https://docs.cypress.io/api/table-of-contents).
+This repo is configured for end-to-end testing with [Cypress](https://docs.cypress.io/api/table-of-contents) and require a blank state of Rancher.
 
 ### Initial Setup
 
