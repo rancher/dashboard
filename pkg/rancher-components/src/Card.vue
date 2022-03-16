@@ -12,7 +12,7 @@ export default {
     },
     buttonAction: {
       type: Function,
-      default: () => {}
+      default: () => true
     },
     buttonText: {
       type: String,
