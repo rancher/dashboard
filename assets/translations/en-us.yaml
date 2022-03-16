@@ -6703,7 +6703,9 @@ epinio:
       description: To view an Epinio cluster be sure to import a Cluster where one is installed
     tableHeaders:
       api: URL
+      version: Version
       explore: Explore
+      cluster: Rancher Cluster
   applications:
     tableHeaders:
       route: Routes

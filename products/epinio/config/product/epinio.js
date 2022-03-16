@@ -209,9 +209,21 @@ export function init(store) {
       sort:     ['name'],
     },
     {
+      name:      'version',
+      labelKey:  'epinio.instances.tableHeaders.version',
+      sort:      ['version'],
+      value:    'version'
+    },
+    {
       name:      'api',
       labelKey:  'epinio.instances.tableHeaders.api',
       sort:      ['api'],
+    },
+    {
+      name:      'rancherCluster',
+      labelKey:  'epinio.instances.tableHeaders.cluster',
+      sort:      ['mgmtCluster.nameDisplay'],
+      value:    'mgmtCluster.nameDisplay'
     },
   ]);
 

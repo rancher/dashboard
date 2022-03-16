@@ -130,18 +130,22 @@ export default Vue.extend<Data, any, any, any>({
         </template>
 
         <template #cell:name="{row}">
-          <n-link v-if="row.state === 'available'" :to="{name: 'ext-epinio-c-cluster-applications', params: {cluster: row.id}}">
-            {{ row.name }}
-          </n-link>
-          <template v-else>
-            {{ row.name }}
-          </template>
+          <div class="epinio-row">
+            <n-link v-if="row.state === 'available'" :to="{name: 'ext-epinio-c-cluster-applications', params: {cluster: row.id}}">
+              {{ row.name }}
+            </n-link>
+            <template v-else>
+              {{ row.name }}
+            </template>
+          </div>
         </template>
         <template #cell:api="{row}">
-          <Link v-if="row.state !== 'available'" :row="row" :value="{ text: row.api, url: row.readyApi }" />
-          <template v-else>
-            {{ row.api }}
-          </template>
+          <div class="epinio-row">
+            <Link v-if="row.state !== 'available'" :row="row" :value="{ text: row.api, url: row.readyApi }" />
+            <template v-else>
+              {{ row.api }}
+            </template>
+          </div>
         </template>
       </ResourceTable>
     </div>
@@ -161,6 +165,12 @@ div.root {
       padding-bottom : 20px;
     }
     min-width: 60%;
+
+    .epinio-row {
+      height: 40px;
+      display: flex;
+      align-items: center;
+    }
   }
 }
 
