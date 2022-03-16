@@ -2,16 +2,7 @@
 import * as d3 from 'd3';
 import { STATES, STATES_ENUM } from '@/plugins/steve/resource-class';
 import BadgeState from '@/components/BadgeState';
-import {
-  CONFIG_MAP,
-  SECRET,
-  WORKLOAD_TYPES,
-  STORAGE_CLASS,
-  SERVICE,
-  PV,
-  PVC,
-  POD
-} from '@/config/types';
+import { FDC_ALLOWED_CONFIGS, FDC_CONFIG } from './fdcConfig.js';
 
 export default {
   name:       'ForceDirectedTreeChart',
@@ -21,25 +12,29 @@ export default {
       type:     [Array, Object],
       required: true
     },
-    withContentLoader: {
-      type:    Boolean,
-      default: true
+    fdcConfig: {
+      type: String,
+      validator(value) {
+        return FDC_ALLOWED_CONFIGS.includes(value);
+      },
+      required: true
     }
   },
   data() {
     return {
-      parsedInfo:                          null,
-      root:                                null,
-      allNodesData:                        null,
-      allLinks:                            null,
-      rootNode:                            null,
-      node:                                null,
-      link:                                null,
-      svg:                                 null,
-      zoom:                                null,
-      simulation:                          null,
-      circleRadius:                        20,
-      nodeImagePadding:                    15,
+      chartConfig:                         undefined,
+      parsedInfo:                          undefined,
+      root:                                undefined,
+      allNodesData:                        undefined,
+      allLinks:                            undefined,
+      rootNode:                            undefined,
+      node:                                undefined,
+      link:                                undefined,
+      svg:                                 undefined,
+      zoom:                                undefined,
+      simulation:                          undefined,
+      globalNodeRadiusUnit:                20,
+      defaultNodeImagePadding:             15,
       isChartFirstRendered:                false,
       isChartFirstRenderAnimationFinished: false,
       moreInfo:                            {}
@@ -49,12 +44,12 @@ export default {
     'data.bundles': {
       handler(newValue) {
         // eslint-disable-next-line no-console
-        console.log('WATCHER TRIGGERED!', JSON.stringify(newValue.length, null, 2));
+        console.log('WATCHER TRIGGERED!', JSON.stringify(newValue.length, null, 2), this.data);
         if (newValue.length) {
           if (!this.isChartFirstRendered) {
-            this.parsedInfo = this.parseData(this.data);
+            this.parsedInfo = this.chartConfig.parseData(this.data);
 
-            // set details info to git repo and set active state
+            // set details info and set active state for node
             this.setDetailsInfo(this.parsedInfo, false);
             this.parsedInfo.active = true;
 
@@ -65,7 +60,7 @@ export default {
 
           // here we just look for changes in the status of the nodes and update them accordingly
           } else {
-            const parsedInfo = this.parseData(this.data);
+            const parsedInfo = this.chartConfig.parseData(this.data);
             const flattenedData = this.flatten(parsedInfo);
             let hasStatusChange = false;
 
@@ -95,85 +90,6 @@ export default {
     }
   },
   methods: {
-    parseData(data) {
-      const repoChildren = data.bundles.map((bundle, i) => {
-        const bundleLowercaseState = bundle.state ? bundle.state.toLowerCase() : 'unknown';
-        const bundleStateColor = STATES[bundleLowercaseState].color;
-
-        const repoChild = {
-          id:             bundle.id,
-          matchingId:     bundle.id,
-          type:           bundle.type,
-          state:          bundle.state,
-          stateLabel:     bundle.stateDisplay,
-          stateColor:     bundleStateColor,
-          isBundle:       true,
-          errorMsg:       bundle.stateDescription,
-          detailLocation: bundle.detailLocation,
-          children:       []
-        };
-
-        if (bundle.status?.resourceKey?.length) {
-          bundle.status.resourceKey.forEach((res, index) => {
-            const id = `${ res.namespace }/${ res.name }`;
-            const matchingId = `${ res.kind }-${ res.namespace }/${ res.name }`;
-            let type;
-            let state;
-            let stateLabel;
-            let stateColor;
-            let errorMsg;
-            let detailLocation;
-
-            if (data.status?.resources?.length) {
-              const item = data.status?.resources?.find(resource => `${ resource.kind }-${ resource.id }` === matchingId);
-
-              if (item) {
-                type = item.type;
-                state = item.state;
-                errorMsg = item.stateDescription;
-                detailLocation = item.detailLocation;
-                const resourceLowerCaseState = item.state ? item.state.toLowerCase() : 'unknown';
-
-                stateLabel = STATES[resourceLowerCaseState].label;
-                stateColor = STATES[resourceLowerCaseState].color;
-              }
-            }
-
-            repoChild.children.push({
-              id,
-              matchingId,
-              type,
-              state,
-              stateLabel,
-              stateColor,
-              isResource: true,
-              errorMsg,
-              detailLocation,
-            });
-          });
-        }
-
-        return repoChild;
-      });
-
-      const repoLowercaseState = data.state ? data.state.toLowerCase() : 'unknown';
-      const repoStateColor = STATES[repoLowercaseState].color;
-
-      const finalData = {
-        id:             data.id,
-        matchingId:     data.id,
-        type:           data.type,
-        state:          data.state,
-        stateLabel:     data.stateDisplay,
-        stateColor:     repoStateColor,
-        isRepo:         true,
-        errorMsg:       data.stateDescription,
-        detailLocation: data.detailLocation,
-        children:       repoChildren
-      };
-
-      return finalData;
-    },
     renderChart() {
       const width = 800;
       const height = 500;
@@ -193,12 +109,10 @@ export default {
 
       this.simulation = d3.forceSimulation()
         .force('charge', d3.forceManyBody().strength(-300).distanceMax(500))
-        .force('collision', d3.forceCollide(this.circleRadius * 3.5))
+        .force('collision', d3.forceCollide(this.globalNodeRadiusUnit * 3.5))
         .force('center', d3.forceCenter( width / 2, height / 2 ))
         .on('tick', this.ticked)
         .on('end', () => {
-          // eslint-disable-next-line no-console
-          console.log('ANIMATION ENDED!');
           if (!this.isChartFirstRenderAnimationFinished) {
             this.zoomFit();
             this.isChartFirstRenderAnimationFinished = true;
@@ -215,7 +129,6 @@ export default {
         this.allLinks = this.root.links();
       }
 
-      // this.link = this.svg
       this.link = this.rootNode
         .selectAll('.link')
         .data(this.allLinks, (d) => {
@@ -233,7 +146,6 @@ export default {
 
       this.link = linkEnter.merge(this.link);
 
-      // this.node = this.svg
       this.node = this.rootNode
         .selectAll('.node')
         .data(this.allNodesData, (d) => {
@@ -290,105 +202,49 @@ export default {
     mainNodeClass(d) {
       const lowerCaseStatus = d.data?.state ? d.data.state.toLowerCase() : 'unkown_status';
       const stateColorDefinition = STATES[lowerCaseStatus] ? STATES[lowerCaseStatus].color : 'unknown_color';
-      let classList;
+      const defaultClassArray = ['node'];
 
       // node color/status
       switch (stateColorDefinition) {
       case STATES_ENUM.SUCCESS:
-        classList = 'node node-success';
+        defaultClassArray.push('node-success');
         break;
       case STATES_ENUM.WARNING:
-        classList = 'node node-warning';
+        defaultClassArray.push('node-warning');
         break;
       case STATES_ENUM.ERROR:
-        classList = 'node node-error';
+        defaultClassArray.push('node-error');
         break;
       case STATES_ENUM.INFO:
-        classList = 'node node-info';
+        defaultClassArray.push('node-info');
         break;
       default:
-        classList = 'node node-default-fill';
+        defaultClassArray.push('node-default-fill');
         break;
       }
 
       // node active (clicked)
       if (d.data?.active) {
-        classList += ' active';
+        defaultClassArray.push('active');
       }
 
-      // node type
-      const resourceTypeClass = d.data?.isRepo ? ' repo' : d.data?.isBundle ? ' bundle' : ' resource';
+      // here we extend the node classes (different chart types)
+      const extendedClassArray = this.chartConfig.extendNodeClass(d).concat(defaultClassArray);
 
-      // special bundle type
-      if (d.data?.isBundle && d.data?.id.indexOf('helm') !== -1) {
-        classList += ' helm';
-      }
-
-      // special resource type
-      if (d.data?.isResource && d.data?.type) {
-        switch (d.data.type) {
-        case WORKLOAD_TYPES.DEPLOYMENT:
-          classList += ' deployment';
-          break;
-        case SERVICE:
-          classList += ' service';
-          break;
-        // TO CHECK...
-        case CONFIG_MAP:
-          classList += ' configmap';
-          break;
-        case WORKLOAD_TYPES.CRON_JOB:
-          classList += ' cronjob';
-          break;
-        case WORKLOAD_TYPES.DAEMON_SET:
-          classList += ' daemonset';
-          break;
-        case WORKLOAD_TYPES.JOB:
-          classList += ' job';
-          break;
-        case PV:
-          classList += ' persistentvolume';
-          break;
-        case PVC:
-          classList += ' persistentvolumeclaim';
-          break;
-        case POD:
-          classList += ' pod';
-          break;
-        case WORKLOAD_TYPES.REPLICA_SET:
-          classList += ' replicaset';
-          break;
-        case SECRET:
-          classList += ' secret';
-          break;
-        case WORKLOAD_TYPES.STATEFUL_SET:
-          classList += ' statefulset';
-          break;
-        case STORAGE_CLASS:
-          classList += ' storageclass';
-          break;
-        default:
-          classList += ' other';
-          break;
-        }
-      }
-
-      classList += resourceTypeClass;
-
-      return classList;
+      return extendedClassArray.join(' ');
     },
     setNodeRadius(d) {
-      return d.data?.isRepo ? this.circleRadius * 3 : d.data?.isBundle ? this.circleRadius * 2 : this.circleRadius;
+      return this.chartConfig.nodeRadius(d, this.globalNodeRadiusUnit);
     },
     nodeImageSize(d) {
       const size = this.setNodeRadius(d);
 
-      return (size * 2) - this.nodeImagePadding;
+      return (size * 2) - this.defaultNodeImagePadding;
     },
     nodeImagePosition(d) {
       const size = this.setNodeRadius(d);
 
-      return -(((size * 2) - this.nodeImagePadding) / 2);
+      return -(((size * 2) - this.defaultNodeImagePadding) / 2);
     },
     ticked() {
       this.link
@@ -410,15 +266,16 @@ export default {
           return `translate(${ d.x }, ${ d.y })`;
         });
     },
+    // not used at the moment, but if node interaction changes from click to hover, we can always bring this back...
     mainNodeChidlrenToggle(ev, d) {
       if (!ev.defaultPrevented) {
         // this is the same as directly tapping into this.root and changing properties...
         if (d.children) {
           d._children = d.children;
-          d.children = null;
+          d.children = undefined;
         } else {
           d.children = d._children;
-          d._children = null;
+          d._children = undefined;
         }
         this.updateChart(false, true);
 
@@ -430,7 +287,7 @@ export default {
       const moreInfo = {};
 
       Object.keys(data).forEach((key) => {
-        if (['id', 'detailLocation', 'type', 'state', 'stateLabel', 'stateColor', 'errorMsg'].includes(key)) {
+        if (['id', 'detailLocation', 'type', 'state', 'isResource', 'stateLabel', 'stateColor', 'errorMsg', 'perClusterState', 'totalClusterCount'].includes(key)) {
           moreInfo[key] = data[key];
         }
       });
@@ -466,8 +323,8 @@ export default {
       if (!ev.active) {
         this.simulation.alphaTarget(0);
       }
-      d.fx = null;
-      d.fy = null;
+      d.fx = undefined;
+      d.fy = undefined;
     },
     flatten(root) {
       const nodes = [];
@@ -539,7 +396,10 @@ export default {
     zoomed(ev) {
       this.rootNode.attr('transform', ev.transform);
     }
-  }
+  },
+  mounted() {
+    this.chartConfig = FDC_CONFIG[this.fdcConfig];
+  },
 };
 </script>
 
@@ -550,7 +410,7 @@ export default {
         v-if="!isChartFirstRenderAnimationFinished"
         class="loading-container"
       >
-        <span v-show="withContentLoader && !isChartFirstRendered">Loading chart data...</span>
+        <span v-show="!isChartFirstRendered">Loading chart data...</span>
         <span v-show="isChartFirstRendered && !isChartFirstRenderAnimationFinished">Rendering chart...</span>
       </div>
       <!-- main div for svg container -->
@@ -559,9 +419,7 @@ export default {
       <!-- info box -->
       <div class="more-info-container">
         <div class="more-info">
-          <ul
-            v-if="Object.keys(moreInfo).length"
-          >
+          <ul v-if="Object.keys(moreInfo).length">
             <li>
               <p>
                 <span class="more-info-item-label">Name:</span>
@@ -599,7 +457,21 @@ export default {
                 </span>
               </p>
             </li>
-            <li v-show="moreInfo.errorMsg">
+            <li v-if="moreInfo.isResource">
+              <span class="more-info-item-label">Per Cluster state:</span>
+              <span class="more-info-item-value">{{ moreInfo.totalClusterCount - moreInfo.perClusterState.length }}/{{ moreInfo.totalClusterCount }}</span>
+            </li>
+            <li v-if="moreInfo.perClusterState && moreInfo.perClusterState.length">
+              <span class="more-info-item-label">Error:</span>
+              <p
+                v-for="(err, i) in moreInfo.perClusterState"
+                :key="i"
+                class="more-info-item-value error"
+              >
+                {{ err }}
+              </p>
+            </li>
+            <li v-else v-show="moreInfo.errorMsg">
               <p>
                 <span class="more-info-item-label">Error:</span>
                 <span class="more-info-item-value error">{{ moreInfo.errorMsg }}</span>
