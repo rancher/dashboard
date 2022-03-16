@@ -15,7 +15,6 @@
     "checkJs": false,
     "types": [
       "webpack-env",
-      "types/rancher-components"
     ],
     "paths": {
       "@/*": [
