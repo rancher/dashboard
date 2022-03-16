@@ -6813,6 +6813,8 @@ epinio:
     actions:
       shell:
         label: App Shell
+      onlyShell:
+        label: Shell
       viewAppLogs:
         label: App Logs
       viewStagingLogs:

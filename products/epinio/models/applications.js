@@ -261,8 +261,9 @@ export default class EpinioApplication extends EpinioResource {
 
     return Object.values(instances).map(i => classify(this.$ctx, {
       ...i,
-      id:   i.name,
-      type: EPINIO_TYPES.APP_INSTANCE
+      id:          i.name,
+      type:        EPINIO_TYPES.APP_INSTANCE,
+      application: this
     }));
   }
 

@@ -157,7 +157,7 @@ export default Vue.extend<Data, any, any, any>({
         </div>
       </Tab>
       <Tab label-key="epinio.applications.detail.deployment.instances" name="instances">
-        <ResourceTable :schema="appInstanceSchema" :rows="value.instances" :table-actions="false" :row-actions="false" />
+        <ResourceTable :schema="appInstanceSchema" :rows="value.instances" :table-actions="false" />
       </Tab>
     </Tabbed>
   </div>

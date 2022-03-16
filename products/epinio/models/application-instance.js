@@ -1,14 +1,21 @@
 import Resource from '@/plugins/core-store/resource-class';
+import { EPINIO_PRODUCT_NAME } from '@/products/epinio/types';
 
 export default class ApplicationInstanceResource extends Resource {
-  // get _availableActions() {
-  //   return [{
-  //     action:     'openShell',
-  //     enabled:    this.ready, // TODO: Always the case?
-  //     icon:       'icon icon-fw icon-chevron-right',
-  //     label:      this.t('action.openShell'),
-  //   }];
-  // }
+  get _availableActions() {
+    const isSingleProduct = !!this.$rootGetters['isSingleProduct'];
+
+    if (isSingleProduct) {
+      return [];
+    }
+
+    return [{
+      action:     'showAppShell',
+      label:      this.t('epinio.applications.actions.onlyShell.label'),
+      icon:       'icon icon-fw icon-chevron-right',
+      enabled:    this.ready,
+    }];
+  }
 
   get state() {
     switch (this.ready) {
@@ -19,5 +26,26 @@ export default class ApplicationInstanceResource extends Resource {
     default:
       return 'pending';
     }
+  }
+
+  showAppShell() {
+    const isSingleProduct = !!this.$rootGetters['isSingleProduct'];
+
+    if (isSingleProduct) {
+      return;
+    }
+
+    this.$dispatch('wm/open', {
+      id:        `epinio-${ this.application.id }-app-shell`,
+      label:     `${ this.application.meta.name } - App Shell`,
+      product:   EPINIO_PRODUCT_NAME,
+      icon:      'chevron-right',
+      component: 'ApplicationShell',
+      attrs:     {
+        application:     this.application,
+        endpoint:        this.application.linkFor('shell'),
+        initialInstance: this.name,
+      }
+    }, { root: true });
   }
 }
