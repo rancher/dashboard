@@ -12,7 +12,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "build:lib": "vue-cli-service build --target lib --name rancher-components main.js",
+    "build:lib": "vue-cli-service build --target lib --name rancher-components main.ts",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint"
   },
