@@ -497,7 +497,7 @@ export default class EpinioApplication extends EpinioResource {
 
     this.$dispatch('wm/open', {
       id:        `epinio-${ this.id }-logs-${ stageId }`,
-      label:     `${ this.meta.name } - Staging - ${ stageId }`,
+      label:     `${ this.meta.name } - Build - ${ stageId }`,
       product:   EPINIO_PRODUCT_NAME,
       icon:      'file',
       component: 'ApplicationLogs',

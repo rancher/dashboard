@@ -6818,7 +6818,7 @@ epinio:
       viewAppLogs:
         label: App Logs
       viewStagingLogs:
-        label: Staging Logs
+        label: Last Build Logs
       restage:
         label: Rebuild
       restart:
