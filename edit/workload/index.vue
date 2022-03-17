@@ -578,6 +578,20 @@ export default {
         }
       }
 
+      const containerResources = template.spec.containers[0].resources;
+      const nvidiaGpuLimit = containerResources?.limits[GPU_KEY];
+
+      // Though not required, requests are also set to mirror the ember ui
+      if (nvidiaGpuLimit > 0) {
+        containerResources.requests[GPU_KEY] = nvidiaGpuLimit;
+      }
+      if (nvidiaGpuLimit === undefined || nvidiaGpuLimit === 0 ) {
+        try {
+          delete containerResources.limits[GPU_KEY];
+          delete containerResources.requests[GPU_KEY];
+        } catch {}
+      }
+
       const nodeAffinity = template?.spec?.affinity?.nodeAffinity || {};
       const podAffinity = template?.spec?.affinity?.podAffinity || {};
       const podAntiAffinity = template?.spec?.affinity?.podAntiAffinity || {};
