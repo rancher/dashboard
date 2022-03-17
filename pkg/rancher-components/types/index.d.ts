@@ -5,3 +5,5 @@ export const Banner: VueConstructor
 export const Card: VueConstructor
 export const Checkbox: VueConstructor
 export const LabeledTooltip: VueConstructor
+export const RadioButton: VueConstructor
+export const RadioGroup: VueConstructor
