@@ -266,7 +266,9 @@ export default {
       function addType(id, group, disabled = false, link = null, iconClass = undefined) {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
-        const tag = '';
+        const techPreview = getters['i18n/t']('generic.techPreview');
+        const isTechPreview = group === 'rke2' || group === 'custom2';
+        let tag = isTechPreview ? techPreview : getters['i18n/withFallback'](`cluster.providerTag."${ id }"`, { techPreview }, '');
 
         // Always prefer the built-in icon if there is one
         let icon;
@@ -279,6 +281,10 @@ export default {
           iconClass = undefined;
         } else if (!iconClass) {
           icon = require('~/assets/images/generic-driver.svg');
+        }
+
+        if (group === 'rke2' && id === 'harvester') {
+          tag = getters['i18n/withFallback'](`cluster.providerTag.rke2."${ id }"`, { tag: techPreview }, '');
         }
 
         const subtype = {

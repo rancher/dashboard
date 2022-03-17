@@ -98,9 +98,14 @@ export default {
       @click="select(r, idx)"
     >
       <div class="side-label" :class="{'indicator': true }" />
-      <div v-if="r.permittedOSs">
-        <label v-for="os in r.permittedOSs" :key="os" class="os-label" :class="{[os]:true}">
-          {{ t('catalog.charts.deploysOn', {os:capitalize(os)}) }}
+      <div v-if="r.deploysOnWindows">
+        <label class="deploys-os-label">
+          {{ t('catalog.charts.deploysOnWindows') }}
+        </label>
+      </div>
+      <div v-if="r.windowsIncompatible">
+        <label class="os-incompatible-label">
+          {{ t('catalog.charts.windowsIncompatible') }}
         </label>
       </div>
       <div v-if="get(r, sideLabelField)" class="side-label" :class="{'indicator': false }">
@@ -191,7 +196,7 @@ export default {
 
       }
 
-      .side-label label, label.os-label{
+      .side-label label, label.deploys-os-label, label.os-incompatible-label{
           font-size: 12px;
           line-height: 12px;
           text-align: center;
@@ -203,16 +208,16 @@ export default {
           margin: 0;
       }
 
-      .os-label {
+      .deploys-os-label, .os-incompatible-label {
         position: absolute;
         bottom: 10px;
         padding: 2px 5px;
-        &.linux{
-          left: 10px;
-        }
-        &.windows{
-          right: 10px;
-        }
+        right: 10px;
+      }
+
+      label.os-incompatible-label {
+        color: var(--warning);
+        background-color: var(--warning-banner-bg)
       }
 
       .logo {
@@ -245,7 +250,7 @@ export default {
       }
 
       &.rancher {
-        .side-label, .os-label {
+        .side-label, .deploys-os-label {
           background-color: var(--app-rancher-accent);
           label {
             color: var(--app-rancher-accent-text);
@@ -257,7 +262,7 @@ export default {
       }
 
       &.partner {
-        .side-label, .os-label {
+        .side-label, .deploys-os-label {
           background-color: var(--app-partner-accent);
           label {
             color: var(--app-partner-accent-text);
@@ -270,35 +275,35 @@ export default {
 
       // @TODO figure out how to templatize these
       &.color1 {
-        .side-label, .os-label { background-color: var(--app-color1-accent); label { color: var(--app-color1-accent-text); } }
+        .side-label, .deploys-os-label { background-color: var(--app-color1-accent); label { color: var(--app-color1-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color1-accent); }
       }
       &.color2 {
-        .side-label, .os-label { background-color: var(--app-color2-accent); label { color: var(--app-color2-accent-text); } }
+        .side-label, .deploys-os-label { background-color: var(--app-color2-accent); label { color: var(--app-color2-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color2-accent); }
       }
       &.color3 {
-        .side-label, .os-label { background-color: var(--app-color3-accent); label { color: var(--app-color3-accent-text); } }
+        .side-label, .deploys-os-label { background-color: var(--app-color3-accent); label { color: var(--app-color3-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color3-accent); }
       }
       &.color4 {
-        .side-label, .os-label { background-color: var(--app-color4-accent); label { color: var(--app-color4-accent-text); } }
+        .side-label, .deploys-os-label { background-color: var(--app-color4-accent); label { color: var(--app-color4-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color4-accent); }
       }
       &.color5 {
-        .side-label, .os-label { background-color: var(--app-color5-accent); label { color: var(--app-color5-accent-text); } }
+        .side-label, .deploys-os-label { background-color: var(--app-color5-accent); label { color: var(--app-color5-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color5-accent); }
       }
       &.color6 {
-        .side-label, .os-label { background-color: var(--app-color6-accent); label { color: var(--app-color6-accent-text); } }
+        .side-label, .deploys-os-label { background-color: var(--app-color6-accent); label { color: var(--app-color6-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color6-accent); }
       }
       &.color7 {
-        .side-label, .os-label { background-color: var(--app-color7-accent); label { color: var(--app-color7-accent-text); } }
+        .side-label, .deploys-os-label { background-color: var(--app-color7-accent); label { color: var(--app-color7-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color7-accent); }
       }
       &.color8 {
-        .side-label, .os-label { background-color: var(--app-color8-accent); label { color: var(--app-color8-accent-text); } }
+        .side-label, .deploys-os-label { background-color: var(--app-color8-accent); label { color: var(--app-color8-accent-text); } }
         &:hover:not(.disabled) { border-color: var(--app-color8-accent); }
       }
 

@@ -1,8 +1,9 @@
 <script lang="ts">
-
+import Vue from 'vue';
 import { nlToBr } from '@/utils/string';
+import { stringify } from '@/utils/error';
 
-export default {
+export default Vue.extend({
   props: {
     color: {
       type:    String,
@@ -21,14 +22,22 @@ export default {
       default: false,
     }
   },
-
+  computed: {
+    /**
+     * Return message text as label
+     */
+    messageLabel(): string | void {
+      return !(typeof this.label === 'string') ? stringify(this.label) : undefined;
+    }
+  },
   methods: { nlToBr },
-};
+});
 </script>
 <template>
   <div class="banner" :class="{[color]: true, closable}">
     <slot>
       <t v-if="labelKey" :k="labelKey" :raw="true" />
+      <span v-else-if="messageLabel">{{ messageLabel }}</span>
       <span v-else v-html="nlToBr(label)" />
     </slot>
     <div v-if="closable" class="closer" @click="$emit('close')">

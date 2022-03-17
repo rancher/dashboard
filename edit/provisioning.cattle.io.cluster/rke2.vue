@@ -249,27 +249,28 @@ export default {
     }
 
     return {
-      loadedOnce:           false,
-      lastIdx:              0,
-      allPSPs:              null,
-      nodeComponent:        null,
-      credentialId:         null,
-      credential:           null,
-      machinePools:         null,
-      rke2Versions:         null,
-      k3sVersions:          null,
-      rke2Channels:         [],
-      k3sChannels:          [],
-      s3Backup:             false,
-      versionInfo:          {},
-      membershipUpdate:     {},
-      systemRegistry:       null,
-      registryHost:         null,
-      registryMode:         null,
-      registrySecret:       null,
-      userChartValues:      {},
-      userChartValuesTemp:  {},
-      addonsRev:            0,
+      loadedOnce:              false,
+      lastIdx:                 0,
+      allPSPs:                 null,
+      nodeComponent:           null,
+      credentialId:            null,
+      credential:              null,
+      machinePools:            null,
+      rke2Versions:            null,
+      k3sVersions:             null,
+      rke2Channels:            [],
+      k3sChannels:             [],
+      s3Backup:                false,
+      versionInfo:             {},
+      membershipUpdate:        {},
+      systemRegistry:          null,
+      registryHost:            null,
+      registryMode:            null,
+      registrySecret:          null,
+      userChartValues:         {},
+      userChartValuesTemp:     {},
+      addonsRev:               0,
+      clusterIsAlreadyCreated: !!this.value.id
     };
   },
 
@@ -306,9 +307,11 @@ export default {
     },
 
     showK3sTechPreviewWarning() {
-      const selectedVersion = this.value?.spec?.kubernetesVersion || 'none';
+      // NOTE: Put this back in when RKE2 is out of tech preview, but K3s is not
+      // const selectedVersion = this.value?.spec?.kubernetesVersion || 'none';
 
-      return !!this.k3sVersions.find(v => v.version === selectedVersion);
+      // return !!this.k3sVersions.find(v => v.version === selectedVersion);
+      return false;
     },
 
     // kubeletConfigs() {
@@ -370,7 +373,8 @@ export default {
           out.push({
             kind:  'group',
             label: this.t('cluster.provider.k3s'),
-            badge: this.t('generic.techPreview')
+            // NOTE: Put this back in when RKE2 is out of tech preview, but K3s is not
+            // badge: this.t('generic.techPreview')
           });
         }
 
@@ -1538,6 +1542,7 @@ export default {
               <LabeledSelect
                 v-model="agentConfig['cloud-provider-name']"
                 :mode="mode"
+                :disabled="clusterIsAlreadyCreated"
                 :options="cloudProviderOptions"
                 :label="t('cluster.rke2.cloudProvider.label')"
               />
@@ -1548,6 +1553,7 @@ export default {
               <LabeledSelect
                 v-model="serverConfig.cni"
                 :mode="mode"
+                :disabled="clusterIsAlreadyCreated"
                 :options="serverArgs.cni.options"
                 :label="t('cluster.rke2.cni.label')"
               />
@@ -1716,6 +1722,7 @@ export default {
         <Tab v-if="haveArgInfo" name="networking" label-key="cluster.tabs.networking">
           <h3>
             {{ t('cluster.rke2.address.header') }}
+            <i v-tooltip="t('cluster.rke2.address.tooltip')" class="icon icon-info" />
           </h3>
           <Banner v-if="showIpv6Warning" color="warning">
             {{ t('cluster.rke2.address.ipv6.warning') }}
@@ -1725,6 +1732,7 @@ export default {
               <LabeledInput
                 v-model="serverConfig['cluster-cidr']"
                 :mode="mode"
+                :disabled="clusterIsAlreadyCreated"
                 :label="t('cluster.rke2.address.clusterCidr.label')"
               />
             </div>
@@ -1732,6 +1740,7 @@ export default {
               <LabeledInput
                 v-model="serverConfig['service-cidr']"
                 :mode="mode"
+                :disabled="clusterIsAlreadyCreated"
                 :label="t('cluster.rke2.address.serviceCidr.label')"
               />
             </div>
@@ -1742,6 +1751,7 @@ export default {
               <LabeledInput
                 v-model="serverConfig['cluster-dns']"
                 :mode="mode"
+                :disabled="clusterIsAlreadyCreated"
                 :label="t('cluster.rke2.address.dns.label')"
               />
             </div>
@@ -1749,6 +1759,7 @@ export default {
               <LabeledInput
                 v-model="serverConfig['cluster-domain']"
                 :mode="mode"
+                :disabled="clusterIsAlreadyCreated"
                 :label="t('cluster.rke2.address.domain.label')"
               />
             </div>

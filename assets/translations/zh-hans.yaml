@@ -5373,6 +5373,7 @@ harvester:
     enableUsb: 启用 USB Tablet
     sshTitle: 添加 SSH 公钥
     imageTip: 创建虚拟机所需的.iso，.img，.qcow2或.raw外部镜像地址
+    efiEnabled: EFI 模式下启动
     volume:
       dragTip: 拖放卷或使用卷的箭头来更改引导顺序。
       volumeTip: 虚拟机仅包含一个 cd-rom 卷。你可能想要添加额外的磁盘卷。
@@ -5405,7 +5406,7 @@ harvester:
       addPort:  添加端口
     cloudConfig:
       title: Cloud Config
-      createTemplateTitle: '创建 {名称}。'
+      createTemplateTitle: '创建 { name }。'
       createNew: 创建...
       cloudInit:
         label: Cloud Init
@@ -5433,6 +5434,7 @@ harvester:
       tips: 凭证生效需要安装qemu-guest-agent，更新凭证内容后无需重启，添加凭证后需要重启生效，删除凭证后，需要进入虚拟机手动修改密码/删除ssh key
       userTips: 添加的用户需要是已经存在的，否则凭证不会生效
       duplicatedUser: 用户已添加
+      invalidUser: 无效的用户名
     input:
       name: 名称
       memory: 内存
@@ -5442,6 +5444,7 @@ harvester:
       MachineType: 机器类型
       username: 用户名
       password: 密码
+      reservedMemory: 预留内存
     machineTypeTip: '指定要模拟的处理器架构。要查看支持的体系结构列表，请运行：qemu-system-x86_64 -cpu ?'
     detail:
       tabs:

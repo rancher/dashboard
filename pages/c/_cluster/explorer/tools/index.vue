@@ -11,10 +11,11 @@ import { sortBy } from '@/utils/sort';
 import { LEGACY } from '@/store/features';
 import { isAlternate } from '@/utils/platform';
 import IconMessage from '@/components/IconMessage';
+import TypeDescription from '@/components/TypeDescription';
 
 export default {
   components: {
-    AppSummaryGraph, LazyImage, Loading, IconMessage
+    AppSummaryGraph, LazyImage, Loading, IconMessage, TypeDescription
   },
 
   async fetch() {
@@ -113,7 +114,6 @@ export default {
       const enabledCharts = (this.allCharts || []);
 
       let charts = filterAndArrangeCharts(enabledCharts, {
-        operatingSystems: this.currentCluster.workerOSs,
         clusterProvider,
         showDeprecated:   this.showDeprecated,
         showHidden:       this.showHidden,
@@ -356,6 +356,17 @@ export default {
         margin: 0;
       }
 
+      .os-label {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 3px;
+        font-size: 12px;
+        line-height: 12px;
+        background-color: var(--primary);
+        color: var(--primary-text);
+      }
+
       .version {
         color: var(--muted);
         white-space: nowrap;
@@ -399,6 +410,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else-if="options.length">
     <h1 v-html="t('catalog.tools.header')" />
+    <TypeDescription v-if="!legacyEnabled" resource="chart" />
 
     <div class="grid">
       <div
@@ -411,9 +423,12 @@ export default {
           <LazyImage v-else :src="opt.chart.icon" />
         </div>
         <div class="name-version">
-          <h3 class="name">
-            {{ opt.chart.chartNameDisplay }}
-          </h3>
+          <div>
+            <h3 class="name">
+              {{ opt.chart.chartNameDisplay }}
+            </h3>
+            <label v-if="opt.chart.deploysOnWindows" class="os-label">{{ t('catalog.charts.deploysOnWindows') }}</label>
+          </div>
           <div class="version">
             <template v-if="opt.app && opt.app.upgradeAvailable">
               v{{ opt.app.currentVersion }} <b><i class="icon icon-chevron-right" /> v{{ opt.app.upgradeAvailable }}</b>

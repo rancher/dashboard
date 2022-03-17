@@ -721,8 +721,11 @@ catalog:
       other: Other
       partner: Partner
       rancher: '{vendor}'
-    deploysOn: Deploys on {os}
+    deploysOnWindows: Deploys on Windows
+    windowsIncompatible: Linux only
+    versionWindowsIncompatible: Linux only version
     header: Charts
+    noCharts: 'There are no charts available, have you added any repos?'
     noWindows: Your repos do not contain any charts capable of being deployed on a cluster with Windows nodes.
     noWindowsAndLinux: Your repos do not contain any charts capable of being deployed on a cluster with both Windows and Linux worker nodes.
     operatingSystems:
@@ -865,8 +868,8 @@ catalog:
       remove: Remove
       manage: Manage
   os:
-    versionIncompatible: "This version is not compatible with all worker nodes' operating systems"
-    chartIncompatible: "This chart is not compatible with all worker nodes' operating systems"
+    versionIncompatible: "This version is not compatible with Windows nodes."
+    chartIncompatible: "This chart is not compatible with Windows nodes."
 
 changePassword:
   title: Change Password
@@ -1584,6 +1587,7 @@ cluster:
       label: Drain Nodes
       toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed.
     address:
+      tooltip: Cluster networking values cannot be changed after the cluster is created.
       header: Addressing
       clusterCidr:
         label: Cluster CIDR
@@ -2912,8 +2916,14 @@ namespace:
         longDescription: Deployment is paused. Pausing stops the controller from deploying revisions.
 
 namespaceFilter:
+  noMatchingOptions: No matching options
+  more: "+{more}"
   selected:
-    label: "{total} items selected"
+    label: |-
+      {total, plural,
+      one {1 item selected}
+      other {{total} items selected}
+      }
 
 namespaceList:
   selectLabel: Namespace
@@ -5554,6 +5564,7 @@ harvester:
     usbTip: Provides an absolute pointer device which often helps with getting a consistent mouse cursor position in VNC.
     sshTitle: Add Public SSH Key
     imageTip: An external URL to the .iso, .img, .qcow2 or .raw that the virtual machine should be created from.
+    efiEnabled: Booting in EFI mode
     volume:
       dragTip: Drag and drop volumes, or use the volume's arrows, to change the boot order.
       volumeTip: The VM only contains a cd-rom volume. You may want to add additional disk volumes.
@@ -5614,6 +5625,7 @@ harvester:
       tips: qemu-guest-agent must be installed to enable Access Credentials, the VM should be restarted after credentials added. Need to enter the VM to edit password or remove SSH-Key after deleting the credentials.
       userTips: The user to be added must already exist; otherwise, the credentials will not take effect.
       duplicatedUser: User already exist.
+      invalidUser: Invalid Username.
     input:
       name: Name
       memory: Memory
@@ -5623,6 +5635,7 @@ harvester:
       MachineType: Machine Type
       username: Username
       password: Password
+      reservedMemory: Reserved Memory
     machineTypeTip: 'Specify a processor architecture to emulate. To see a list of supported architectures, run: qemu-system-x86_64 -cpu ?'
     detail:
       tabs:
@@ -5741,10 +5754,14 @@ harvester:
     succeeded: Succeeded
     pending: Pending
     repoInfo:
+      upgradeStatus: Upgrade Status
       os: OS
       kubernetes: Kubernetes
       monitoringChart: Monitoring Chart
       harvesterChart: Harvester Chart
+      success: Success
+      fail:  Fail
+      ongoing: on-going
     dismissMessage: Dismiss it
 
   backup:
@@ -5989,6 +6006,7 @@ typeDescription:
   #       Should fit on one line.
   #       If you link to anything external, it MUST have
   #       target="_blank" rel="noopener noreferrer nofollow"
+  chart: "All charts have at least one version that is installable on clusters with Linux and Windows nodes unless otherwise indicated."
   cis.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
   cis.cattle.io.clusterscanprofile: A profile is the configuration for the CIS scan, which is the benchmark versions to use and any specific tests to skip in that benchmark.
   cis.cattle.io.clusterscan: A scan is created to trigger a CIS scan on the cluster based on the defined profile. A report is created after the scan is completed.
