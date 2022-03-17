@@ -3014,7 +3014,8 @@ networkpolicy:
         label: CIDR
         placeholder: e.g. 1.1.1.0/24
       addExcept: Add exception
-      invalidCidrs: "Invalid CIDRs: {invalidCidrs}"
+      invalidCidr: "Invalid CIDR"
+      invalidExceptionCidrs: "Invalid Exceptions: "
     podSelector:
       label: Pod Selector
     namespaceSelector:
