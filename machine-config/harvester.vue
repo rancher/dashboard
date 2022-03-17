@@ -506,7 +506,7 @@ export default {
       >
         <Banner
           color="error"
-          :label="stringify(err.Message)"
+          :label="stringify(err.Message || err)"
         />
       </div>
     </div>
