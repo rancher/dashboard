@@ -2,11 +2,12 @@
 import * as d3 from 'd3';
 import { STATES, STATES_ENUM } from '@/plugins/steve/resource-class';
 import BadgeState from '@/components/BadgeState';
+import InfoBox from '@/components/fleet/ForceDirectedTreeChart/InfoBox';
 import { FDC_ALLOWED_CONFIGS, FDC_CONFIG } from './fdcConfig.js';
 
 export default {
   name:       'ForceDirectedTreeChart',
-  components: { BadgeState },
+  components: { BadgeState, InfoBox },
   props:      {
     data: {
       type:     [Array, Object],
@@ -419,7 +420,8 @@ export default {
       <!-- info box -->
       <div class="more-info-container">
         <div class="more-info">
-          <ul v-if="Object.keys(moreInfo).length">
+          <InfoBox :data="moreInfo" />
+          <!-- <ul v-if="Object.keys(moreInfo).length">
             <li>
               <p>
                 <span class="more-info-item-label">Name:</span>
@@ -477,7 +479,7 @@ export default {
                 <span class="more-info-item-value error">{{ moreInfo.errorMsg }}</span>
               </p>
             </li>
-          </ul>
+          </ul> -->
         </div>
       </div>
     </div>
