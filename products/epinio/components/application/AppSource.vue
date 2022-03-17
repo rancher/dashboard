@@ -94,19 +94,19 @@ export default Vue.extend<Data, any, any, any>({
       },
 
       types:        [{
-      //   label: this.t('epinio.applications.steps.source.folder.label'), See epinio/ui #38
-      //   value: APPLICATION_SOURCE_TYPE.FOLDER
-      // }, {
-        label: this.t('epinio.applications.steps.source.archive.label'),
-        value: APPLICATION_SOURCE_TYPE.ARCHIVE
+        label: this.t('epinio.applications.steps.source.folder.label'),
+        value: APPLICATION_SOURCE_TYPE.FOLDER
       }, {
+      //   label: this.t('epinio.applications.steps.source.archive.label'),
+      //   value: APPLICATION_SOURCE_TYPE.ARCHIVE
+      // }, {
         label: this.t('epinio.applications.steps.source.containerUrl.label'),
         value: APPLICATION_SOURCE_TYPE.CONTAINER_URL
       }, {
         label: this.t('epinio.applications.steps.source.gitUrl.label'),
         value: APPLICATION_SOURCE_TYPE.GIT_URL
       }],
-      type: this.source?.type || APPLICATION_SOURCE_TYPE.ARCHIVE,
+      type: this.source?.type || APPLICATION_SOURCE_TYPE.FOLDER,
       APPLICATION_SOURCE_TYPE
     };
   },
