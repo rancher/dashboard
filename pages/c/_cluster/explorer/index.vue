@@ -56,6 +56,8 @@ const COMPONENT_STATUS = [
 ];
 
 export default {
+  name: 'ClusterExplorerIndexPage',
+
   components: {
     EtcdInfoBanner,
     DashboardMetrics,
@@ -158,7 +160,15 @@ export default {
     },
 
     accessibleResources() {
-      return RESOURCES.filter(resource => this.$store.getters['cluster/schemaFor'](resource));
+      // This is a list of IDs for allowed resources counts.
+      const defaultAllowedResources = Object.keys(this.clusterCounts?.[0].counts).filter((typeId) => {
+        return this.$store.getters['type-map/isIgnored']({ id: typeId });
+      });
+
+      // Merge with RESOURCES list
+      const allowedResources = [...new Set([...defaultAllowedResources, ...RESOURCES])];
+
+      return allowedResources.filter(resource => this.$store.getters['cluster/schemaFor'](resource));
     },
 
     componentServices() {

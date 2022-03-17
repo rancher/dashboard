@@ -113,7 +113,7 @@ export default {
 <template>
   <div>
     <SimpleBox class="container" :class="{'has-link': !!location}" @click="goToResource">
-      <h1>{{ resourceCounts.useful }}</h1>
+      <h1>{{ resourceCounts.total }}</h1>
       <h3>
         {{ name }}
       </h3>
