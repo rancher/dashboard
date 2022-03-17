@@ -20,6 +20,8 @@ import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { isReady } from '@/models/harvester/harvesterhci.io.virtualmachineimage';
 
 export default {
+  name: 'ConfigComponentHarvester',
+
   components: {
     Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor
   },
@@ -311,201 +313,203 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" :delayed="true" />
-  <div v-else-if="errors.length">
-    <div
-      v-for="(err, idx) in errors"
-      :key="idx"
-    >
-      <Banner
-        color="error"
-        :label="stringify(err)"
-      />
+  <div>
+    <Loading v-if="$fetchState.pending" :delayed="true" />
+    <div v-else>
+      <div class="row mt-20">
+        <div class="col span-6">
+          <UnitInput
+            v-model="value.cpuCount"
+            v-int-number
+            label-key="cluster.credential.harvester.cpu"
+            suffix="C"
+            output-as="string"
+            required
+            :mode="mode"
+            :disabled="disabled"
+            :placeholder="t('cluster.harvester.machinePool.cpu.placeholder')"
+          />
+        </div>
+
+        <div class="col span-6">
+          <UnitInput
+            v-model="value.memorySize"
+            v-int-number
+            label-key="cluster.credential.harvester.memory"
+            output-as="string"
+            suffix="GiB"
+            :mode="mode"
+            :disabled="disabled"
+            required
+            :placeholder="t('cluster.harvester.machinePool.memory.placeholder')"
+          />
+        </div>
+      </div>
+
+      <div class="row mt-20">
+        <div class="col span-6">
+          <UnitInput
+            v-model="value.diskSize"
+            v-int-number
+            label-key="cluster.credential.harvester.disk"
+            output-as="string"
+            suffix="GiB"
+            :mode="mode"
+            :disabled="disabled"
+            required
+            :placeholder="t('cluster.harvester.machinePool.disk.placeholder')"
+          />
+        </div>
+
+        <div class="col span-6">
+          <LabeledSelect
+            v-if="isImportCluster"
+            v-model="value.vmNamespace"
+            :mode="mode"
+            :options="namespaceOptions"
+            :searchable="true"
+            :required="true"
+            :disabled="disabledEdit"
+            label-key="cluster.credential.harvester.namespace"
+            :placeholder="t('cluster.harvester.machinePool.namespace.placeholder')"
+          />
+
+          <LabeledInput
+            v-else
+            v-model="value.vmNamespace"
+            label-key="cluster.credential.harvester.namespace"
+            :required="true"
+            :mode="mode"
+            :disabled="disabledEdit"
+            :placeholder="t('cluster.harvester.machinePool.namespace.placeholder')"
+          />
+        </div>
+      </div>
+
+      <div v-if="isImportCluster" class="row mt-20">
+        <div class="col span-6">
+          <LabeledSelect
+            v-model="value.imageName"
+            :mode="mode"
+            :options="imageOptions"
+            :required="true"
+            :disabled="disabledEdit"
+            label-key="cluster.credential.harvester.image"
+            :placeholder="t('cluster.harvester.machinePool.image.placeholder')"
+            @on-open="onOpen"
+          />
+        </div>
+
+        <div class="col span-6">
+          <LabeledSelect
+            v-model="value.networkName"
+            :mode="mode"
+            :options="networkOptions"
+            :required="true"
+            :disabled="disabledEdit"
+            label-key="cluster.credential.harvester.network"
+            :placeholder="t('cluster.harvester.machinePool.network.placeholder')"
+          />
+        </div>
+      </div>
+
+      <div v-else class="row mt-20">
+        <div class="col span-6">
+          <LabeledInput
+            v-model="value.imageName"
+            :mode="mode"
+            :required="true"
+            :placeholder="t('cluster.credential.harvester.placeholder')"
+            :disabled="disabledEdit"
+            label-key="cluster.credential.harvester.image"
+          />
+        </div>
+
+        <div class="col span-6">
+          <LabeledInput
+            v-model="value.networkName"
+            :mode="mode"
+            :required="true"
+            :placeholder="t('cluster.credential.harvester.placeholder')"
+            :disabled="disabledEdit"
+            label-key="cluster.credential.harvester.network"
+          />
+        </div>
+      </div>
+
+      <div class="row mt-20">
+        <div class="col span-6">
+          <LabeledInput
+            v-model="value.sshUser"
+            label-key="cluster.credential.harvester.sshUser"
+            :required="true"
+            :mode="mode"
+            :disabled="disabled"
+            :placeholder="t('cluster.harvester.machinePool.sshUser.placeholder')"
+            tooltip-key="cluster.harvester.machinePool.sshUser.toolTip"
+          />
+        </div>
+      </div>
+
+      <portal :to="'advanced-'+uuid">
+        <h3>{{ t("cluster.credential.harvester.userData.title") }}</h3>
+        <div>
+          <LabeledSelect
+            v-if="isImportCluster && isCreate"
+            v-model="userData"
+            class="mb-10"
+            :options="userDataOptions"
+            label-key="cluster.credential.harvester.userData.label"
+            :mode="mode"
+            :disabled="disabled"
+          />
+
+          <YamlEditor
+            ref="userDataYamlEditor"
+            :key="userData"
+            class="yaml-editor mb-20"
+            :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
+            :value="userData"
+            :disabled="disabled"
+            @onInput="valuesChanged($event, 'userData')"
+          />
+        </div>
+
+        <h3>{{ t("cluster.credential.harvester.networkData.title") }}</h3>
+        <div>
+          <LabeledSelect
+            v-if="isImportCluster && isCreate"
+            v-model="networkData"
+            class="mb-10"
+            :options="networkDataOptions"
+            label-key="cluster.credential.harvester.networkData.label"
+            :mode="mode"
+            :disabled="disabled"
+          />
+
+          <YamlEditor
+            ref="networkYamlEditor"
+            :key="networkData"
+            class="yaml-editor mb-10"
+            :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
+            :value="networkData"
+            :disabled="disabled"
+            @onInput="valuesChanged($event, 'networkData')"
+          />
+        </div>
+      </portal>
     </div>
-  </div>
-  <div v-else>
-    <div class="row mt-20">
-      <div class="col span-6">
-        <UnitInput
-          v-model="value.cpuCount"
-          v-int-number
-          label-key="cluster.credential.harvester.cpu"
-          suffix="C"
-          output-as="string"
-          required
-          :mode="mode"
-          :disabled="disabled"
-          :placeholder="t('cluster.harvester.machinePool.cpu.placeholder')"
-        />
-      </div>
-
-      <div class="col span-6">
-        <UnitInput
-          v-model="value.memorySize"
-          v-int-number
-          label-key="cluster.credential.harvester.memory"
-          output-as="string"
-          suffix="GiB"
-          :mode="mode"
-          :disabled="disabled"
-          required
-          :placeholder="t('cluster.harvester.machinePool.memory.placeholder')"
+    <div v-if="errors.length">
+      <div
+        v-for="(err, idx) in errors"
+        :key="idx"
+      >
+        <Banner
+          color="error"
+          :label="stringify(err.Message || err)"
         />
       </div>
     </div>
-
-    <div class="row mt-20">
-      <div class="col span-6">
-        <UnitInput
-          v-model="value.diskSize"
-          v-int-number
-          label-key="cluster.credential.harvester.disk"
-          output-as="string"
-          suffix="GiB"
-          :mode="mode"
-          :disabled="disabled"
-          required
-          :placeholder="t('cluster.harvester.machinePool.disk.placeholder')"
-        />
-      </div>
-
-      <div class="col span-6">
-        <LabeledSelect
-          v-if="isImportCluster"
-          v-model="value.vmNamespace"
-          :mode="mode"
-          :options="namespaceOptions"
-          :searchable="true"
-          :required="true"
-          :disabled="disabledEdit"
-          label-key="cluster.credential.harvester.namespace"
-          :placeholder="t('cluster.harvester.machinePool.namespace.placeholder')"
-        />
-
-        <LabeledInput
-          v-else
-          v-model="value.vmNamespace"
-          label-key="cluster.credential.harvester.namespace"
-          :required="true"
-          :mode="mode"
-          :disabled="disabledEdit"
-          :placeholder="t('cluster.harvester.machinePool.namespace.placeholder')"
-        />
-      </div>
-    </div>
-
-    <div v-if="isImportCluster" class="row mt-20">
-      <div class="col span-6">
-        <LabeledSelect
-          v-model="value.imageName"
-          :mode="mode"
-          :options="imageOptions"
-          :required="true"
-          :disabled="disabledEdit"
-          label-key="cluster.credential.harvester.image"
-          :placeholder="t('cluster.harvester.machinePool.image.placeholder')"
-          @on-open="onOpen"
-        />
-      </div>
-
-      <div class="col span-6">
-        <LabeledSelect
-          v-model="value.networkName"
-          :mode="mode"
-          :options="networkOptions"
-          :required="true"
-          :disabled="disabledEdit"
-          label-key="cluster.credential.harvester.network"
-          :placeholder="t('cluster.harvester.machinePool.network.placeholder')"
-        />
-      </div>
-    </div>
-
-    <div v-else class="row mt-20">
-      <div class="col span-6">
-        <LabeledInput
-          v-model="value.imageName"
-          :mode="mode"
-          :required="true"
-          :placeholder="t('cluster.credential.harvester.placeholder')"
-          :disabled="disabledEdit"
-          label-key="cluster.credential.harvester.image"
-        />
-      </div>
-
-      <div class="col span-6">
-        <LabeledInput
-          v-model="value.networkName"
-          :mode="mode"
-          :required="true"
-          :placeholder="t('cluster.credential.harvester.placeholder')"
-          :disabled="disabledEdit"
-          label-key="cluster.credential.harvester.network"
-        />
-      </div>
-    </div>
-
-    <div class="row mt-20">
-      <div class="col span-6">
-        <LabeledInput
-          v-model="value.sshUser"
-          label-key="cluster.credential.harvester.sshUser"
-          :required="true"
-          :mode="mode"
-          :disabled="disabled"
-          :placeholder="t('cluster.harvester.machinePool.sshUser.placeholder')"
-          tooltip-key="cluster.harvester.machinePool.sshUser.toolTip"
-        />
-      </div>
-    </div>
-
-    <portal :to="'advanced-'+uuid">
-      <h3>{{ t("cluster.credential.harvester.userData.title") }}</h3>
-      <div>
-        <LabeledSelect
-          v-if="isImportCluster && isCreate"
-          v-model="userData"
-          class="mb-10"
-          :options="userDataOptions"
-          label-key="cluster.credential.harvester.userData.label"
-          :mode="mode"
-          :disabled="disabled"
-        />
-
-        <YamlEditor
-          ref="userDataYamlEditor"
-          :key="userData"
-          class="yaml-editor mb-20"
-          :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-          :value="userData"
-          :disabled="disabled"
-          @onInput="valuesChanged($event, 'userData')"
-        />
-      </div>
-
-      <h3>{{ t("cluster.credential.harvester.networkData.title") }}</h3>
-      <div>
-        <LabeledSelect
-          v-if="isImportCluster && isCreate"
-          v-model="networkData"
-          class="mb-10"
-          :options="networkDataOptions"
-          label-key="cluster.credential.harvester.networkData.label"
-          :mode="mode"
-          :disabled="disabled"
-        />
-
-        <YamlEditor
-          ref="networkYamlEditor"
-          :key="networkData"
-          class="yaml-editor mb-10"
-          :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-          :value="networkData"
-          :disabled="disabled"
-          @onInput="valuesChanged($event, 'networkData')"
-        />
-      </div>
-    </portal>
   </div>
 </template>
 

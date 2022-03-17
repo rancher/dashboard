@@ -13,6 +13,8 @@ import { randomStr } from '@/utils/string';
 
 export default {
 
+  name: 'MachinePool',
+
   components: {
     LabeledInput,
     Checkbox,
