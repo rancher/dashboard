@@ -17,11 +17,11 @@ export default {
   },
 
   beforeDestroy() {
-    window.removeEventListener('resize', this.updateHiddenBulkActions);
+    window.removeEventListener('resize', this.onWindowResize);
   },
 
   mounted() {
-    window.addEventListener('resize', this.updateHiddenBulkActions);
+    window.addEventListener('resize', this.onWindowResize);
     this.updateHiddenBulkActions();
   },
 
@@ -83,6 +83,11 @@ export default {
   },
 
   methods: {
+    onWindowResize() {
+      this.updateHiddenBulkActions();
+      this.onScroll();
+    },
+
     /**
      * Determine if any actions wrap over to a new line, if so group them into a dropdown instead
      */

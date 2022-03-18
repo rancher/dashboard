@@ -3,25 +3,6 @@ import { PAGE } from '@/config/query-params';
 
 export default {
   computed: {
-    perPage() {
-      let out = this.rowsPerPage || 0;
-
-      if ( out <= 0 ) {
-        out = parseInt(this.$route.query.limit, 10) || 0;
-      }
-
-      if ( out <= 0 ) {
-        out = parseInt(this.$store.getters['prefs/get'](ROWS_PER_PAGE), 10) || 0;
-      }
-
-      // This should ideally never happen, but the preference value could be invalid, so return something...
-      if ( out <= 0 ) {
-        out = 10;
-      }
-
-      return out;
-    },
-
     indexFrom() {
       return Math.max(0, 1 + this.perPage * (this.page - 1));
     },
@@ -61,10 +42,34 @@ export default {
   },
 
   data() {
-    return { page: this.$route.query[PAGE] || 1 };
+    const perPage = this.getPerPage();
+
+    return { page: this.$route.query[PAGE] || 1, perPage };
   },
 
   watch: {
+    '$route.query.page': {
+      handler(p) {
+        let page;
+
+        if (p) {
+          page = parseInt(p, 10);
+
+          if (isNaN(page)) {
+            page = 1;
+          }
+        } else {
+          page = 1;
+        }
+
+        if (this.page !== page) {
+          this.page = page;
+        }
+      },
+      deep:      true,
+      immediate: true
+    },
+
     pagedRows() {
       // Go to the last page if we end up "past" the last page because the table changed
 
@@ -84,16 +89,36 @@ export default {
 
       // Go back to the first page when sort changes
       this.setPage(1);
-    }
+    },
   },
 
   methods: {
+    getPerPage() {
+      // perPage can not change while the list is displayed
+      let perPage = this.rowsPerPage || 0;
+
+      if ( perPage <= 0 ) {
+        perPage = parseInt(this.$route.query.limit, 10) || 0;
+      }
+
+      if ( perPage <= 0 ) {
+        perPage = parseInt(this.$store.getters['prefs/get'](ROWS_PER_PAGE), 10) || 0;
+      }
+
+      // This should ideally never happen, but the preference value could be invalid, so return something...
+      if ( perPage <= 0 ) {
+        perPage = 10;
+      }
+
+      return perPage;
+    },
+
     setPage(num) {
       if (this.page === num) {
         return;
       }
-      this.page = num;
-
+      // Page will change in response to the query string changing
+      // This avoids pagedRows being computed twiece
       if ( num === 1 ) {
         this.$router.applyQuery({ [PAGE]: undefined });
       } else {

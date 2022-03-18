@@ -85,20 +85,24 @@ export default {
         INTERNAL_EXTERNAL_IP,
         {
           ...KUBE_NODE_OS,
-          breakpoint: COLUMN_BREAKPOINTS.LAPTOP
+          breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+          value:      row => row.status?.nodeInfo?.operatingSystem
         },
         {
           ...CPU,
-          breakpoint: COLUMN_BREAKPOINTS.LAPTOP
+          breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+          value:      row => row.cpuUsagePercentage
         }, {
           ...RAM,
-          breakpoint: COLUMN_BREAKPOINTS.LAPTOP
+          breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+          value:      row => row.ramUsagePercentage
         }];
 
       if (this.canViewPods) {
         headers.push({
           ...PODS,
-          breakpoint: COLUMN_BREAKPOINTS.DESKTOP
+          breakpoint: COLUMN_BREAKPOINTS.DESKTOP,
+          value:      row => row.podConsumedUsage
         });
       }
       headers.push(AGE);

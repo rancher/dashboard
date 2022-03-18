@@ -10,13 +10,13 @@ const PERF_DATA = {
     statusRow: 2,
   },
   'apps.deployment': {
-    count:     4000,
+    count:     300,
     statusRow: 5
   },
   pod: {
     count:     4000,
     statusRow: 10
-  }
+  },
 };
 
 const DEFAULTS = {
