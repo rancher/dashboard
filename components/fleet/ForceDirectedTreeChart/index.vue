@@ -2,12 +2,12 @@
 import * as d3 from 'd3';
 import { STATES, STATES_ENUM } from '@/plugins/steve/resource-class';
 import BadgeState from '@/components/BadgeState';
-import InfoBox from '@/components/fleet/ForceDirectedTreeChart/InfoBox';
+import InfoBoxItem from '@/components/fleet/ForceDirectedTreeChart/InfoBoxItem';
 import { FDC_ALLOWED_CONFIGS, FDC_CONFIG } from './fdcConfig.js';
 
 export default {
   name:       'ForceDirectedTreeChart',
-  components: { BadgeState, InfoBox },
+  components: { BadgeState, InfoBoxItem },
   props:      {
     data: {
       type:     [Array, Object],
@@ -34,8 +34,6 @@ export default {
       svg:                                 undefined,
       zoom:                                undefined,
       simulation:                          undefined,
-      globalNodeRadiusUnit:                20,
-      defaultNodeImagePadding:             15,
       isChartFirstRendered:                false,
       isChartFirstRenderAnimationFinished: false,
       moreInfo:                            {}
@@ -110,7 +108,7 @@ export default {
 
       this.simulation = d3.forceSimulation()
         .force('charge', d3.forceManyBody().strength(-300).distanceMax(500))
-        .force('collision', d3.forceCollide(this.globalNodeRadiusUnit * 3.5))
+        .force('collision', d3.forceCollide(75))
         .force('center', d3.forceCenter( width / 2, height / 2 ))
         .on('tick', this.ticked)
         .on('end', () => {
@@ -128,7 +126,62 @@ export default {
       if (isSettingNodesAndLinks) {
         this.allNodesData = this.flatten(this.root);
         this.allLinks = this.root.links();
+
+        console.log('ALL LINKS', this.allLinks);
       }
+
+      // this.link = this.rootNode
+      //   .selectAll('.link')
+      //   .data(this.allLinks, (d) => {
+      //     return d.target.id;
+      //   }).join(
+      //     enter => enter.append('line')
+      //       .attr('class', 'link')
+      //       .style('opacity', '0.2')
+      //       .style('stroke-width', 4),
+      //     exit => exit.remove()
+      //   );
+
+      // this.node = this.rootNode
+      //   .selectAll('.node')
+      //   .data(this.allNodesData, (d) => {
+      //     return d.id;
+      //   }).join(
+      //     (enter) => {
+      //       console.log('this', this);
+      //       const nodeEnter = enter.append('g')
+      //         .attr('class', this.mainNodeClass)
+      //         .style('opacity', 1)
+      //         .on('click', (ev, d) => {
+      //           this.setDetailsInfo(d.data, true);
+      //         })
+      //         .call(d3.drag()
+      //           .on('start', this.dragStarted)
+      //           .on('drag', this.dragging)
+      //           .on('end', this.dragEnded));
+
+      //       nodeEnter.append('circle')
+      //         .attr('r', this.setNodeRadius);
+
+      //       nodeEnter.append('circle')
+      //         .attr('r', (d) => {
+      //           return this.setNodeRadius(d) - 5;
+      //         })
+      //         .attr('class', 'node-hover-layer');
+
+      //       // node image
+      //       nodeEnter.append('foreignObject')
+      //         .attr('class', 'svg-img')
+      //         .attr('x', this.nodeImagePosition)
+      //         .attr('y', this.nodeImagePosition)
+      //         .attr('height', this.nodeImageSize)
+      //         .attr('width', this.nodeImageSize);
+
+      //       return nodeEnter;
+      //     },
+      //     update => update.attr('class', this.mainNodeClass),
+      //     exit => exit.remove(),
+      //   );
 
       this.link = this.rootNode
         .selectAll('.link')
@@ -143,7 +196,7 @@ export default {
         .append('line')
         .attr('class', 'link')
         .style('opacity', '0.2')
-        .style('stroke-width', 2);
+        .style('stroke-width', 4);
 
       this.link = linkEnter.merge(this.link);
 
@@ -235,19 +288,22 @@ export default {
       return extendedClassArray.join(' ');
     },
     setNodeRadius(d) {
-      return this.chartConfig.nodeRadius(d, this.globalNodeRadiusUnit);
+      const { radius } = this.chartConfig.nodeDimensions(d);
+
+      return radius;
     },
     nodeImageSize(d) {
-      const size = this.setNodeRadius(d);
+      const { radius, padding } = this.chartConfig.nodeDimensions(d);
 
-      return (size * 2) - this.defaultNodeImagePadding;
+      return (radius * 2) - padding;
     },
     nodeImagePosition(d) {
-      const size = this.setNodeRadius(d);
+      const { radius, padding } = this.chartConfig.nodeDimensions(d);
 
-      return -(((size * 2) - this.defaultNodeImagePadding) / 2);
+      return -(((radius * 2) - padding) / 2);
     },
     ticked() {
+      console.log('TICKED!');
       this.link
         .attr('x1', (d) => {
           return d.source.x;
@@ -285,16 +341,8 @@ export default {
       }
     },
     setDetailsInfo(data, toUpdate) {
-      const moreInfo = {};
-
-      Object.keys(data).forEach((key) => {
-        if (['id', 'detailLocation', 'type', 'state', 'isResource', 'stateLabel', 'stateColor', 'errorMsg', 'perClusterState', 'totalClusterCount'].includes(key)) {
-          moreInfo[key] = data[key];
-        }
-      });
-
-      // needed to make ui reactive
-      this.moreInfo = Object.assign({}, moreInfo);
+      // get the data to be displayed on info box, per each different chart
+      this.moreInfo = Object.assign([], this.chartConfig.infoDetails(data));
 
       // update to the chart is needed when active state changes
       if (toUpdate) {
@@ -420,45 +468,41 @@ export default {
       <!-- info box -->
       <div class="more-info-container">
         <div class="more-info">
-          <InfoBox :data="moreInfo" />
-          <!-- <ul v-if="Object.keys(moreInfo).length">
-            <li>
-              <p>
-                <span class="more-info-item-label">Name:</span>
-                <span
-                  v-if="moreInfo.detailLocation"
-                  class="more-info-item-value"
-                >
-                  <n-link
-                    :to="moreInfo.detailLocation"
-                  >
-                    {{ moreInfo.id }}
-                  </n-link>
-                </span>
-                <span
+          <ul>
+            <InfoBoxItem v-for="(item, i) in moreInfo" :key="i" :label="item.label">
+              <template v-slot:value>
+                <!-- title-link template -->
+                <div v-if="item.type === 'title-link'">
+                  <span v-if="item.valueObj.detailLocation">
+                    <n-link
+                      :to="item.valueObj.detailLocation"
+                    >
+                      {{ item.valueObj.id }}
+                    </n-link>
+                  </span>
+                  <span v-else>{{ item.valueObj.id }}</span>
+                </div>
+                <!-- state-badge template -->
+                <div v-else-if="item.type === 'state-badge'">
+                  <span>
+                    <BadgeState
+                      :color="`bg-${item.valueObj.stateColor}`"
+                      :label="item.valueObj.stateLabel"
+                      class="state-bagde"
+                    />
+                  </span>
+                </div>
+                <!-- default template -->
+                <div
                   v-else
-                  class="more-info-item-value"
-                >{{ moreInfo.id }}</span>
-              </p>
-            </li>
-            <li>
-              <p>
-                <span class="more-info-item-label">Type:</span>
-                <span class="more-info-item-value">{{ moreInfo.type }}</span>
-              </p>
-            </li>
-            <li>
-              <p>
-                <span class="more-info-item-label">State:</span>
-                <span class="more-info-item-value">
-                  <BadgeState
-                    :color="`bg-${moreInfo.stateColor}`"
-                    :label="moreInfo.stateLabel"
-                    class="state-bagde"
-                  />
-                </span>
-              </p>
-            </li>
+                  :class="{error: item.type === 'single-error'}"
+                >
+                  {{ item.value }}
+                </div>
+              </template>
+            </InfoBoxItem>
+          </ul>
+          <!--
             <li v-if="moreInfo.isResource">
               <span class="more-info-item-label">Per Cluster state:</span>
               <span class="more-info-item-value">{{ moreInfo.totalClusterCount - moreInfo.perClusterState.length }}/{{ moreInfo.totalClusterCount }}</span>
@@ -473,13 +517,7 @@ export default {
                 {{ err }}
               </p>
             </li>
-            <li v-else v-show="moreInfo.errorMsg">
-              <p>
-                <span class="more-info-item-label">Error:</span>
-                <span class="more-info-item-value error">{{ moreInfo.errorMsg }}</span>
-              </p>
-            </li>
-          </ul> -->
+          -->
         </div>
       </div>
     </div>
@@ -649,23 +687,11 @@ export default {
         margin: 0;
         padding: 0;
 
-        li {
-          margin: 0 0 8px 0;
-          padding: 0;
-          display: flex;
-          align-items: center;
-
-          .more-info-item-label {
-            color: var(--darker);
-            margin-right: 3px;
-          }
-          .more-info-item-value.error {
-            color: var(--error);
-          }
+        .error {
+          color: var(--error);
         }
       }
     }
   }
 }
-
 </style>
