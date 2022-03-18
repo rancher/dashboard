@@ -65,6 +65,7 @@ export default {
       portOptions:   ['TCP', 'UDP'],
       matchingPods,
       matchingNamespaces,
+      invalidCidr:    null,
       invalidCidrs:    [],
       TARGET_OPTION_IP_BLOCK,
       TARGET_OPTION_NAMESPACE_SELECTOR,
@@ -145,10 +146,14 @@ export default {
     validateCIDR() {
       const exceptCidrs = this.value[TARGET_OPTION_IP_BLOCK].except || [];
 
-      this.invalidCidrs = exceptCidrs.filter(cidr => !isValidCIDR(cidr));
+      this.invalidCidrs = exceptCidrs
+        .filter(cidr => !isValidCIDR(cidr))
+        .map(invalidCidr => invalidCidr || '<blank>');
 
       if (this.value[TARGET_OPTION_IP_BLOCK].cidr && !isValidCIDR(this.value[TARGET_OPTION_IP_BLOCK].cidr)) {
-        this.invalidCidrs.push(this.value[TARGET_OPTION_IP_BLOCK].cidr);
+        this.invalidCidr = this.value[TARGET_OPTION_IP_BLOCK].cidr;
+      } else {
+        this.invalidCidr = null;
       }
     },
     updateMatches: throttle(function() {
@@ -201,10 +206,12 @@ export default {
       </div>
     </div>
     <div v-if="targetType === TARGET_OPTION_IP_BLOCK">
-      <div v-if="invalidCidrs.length > 0" class="row mb-10">
+      <div v-if="invalidCidr || invalidCidrs.length" class="row mb-10">
         <div class="col span-12">
           <Banner color="error">
-            <span v-html="t('networkpolicy.rules.ipBlock.invalidCidrs', { invalidCidrs })" />
+            <t v-if="invalidCidr" k="networkpolicy.rules.ipBlock.invalidCidr" />
+            <br v-if="invalidCidr && invalidCidrs.length">
+            <t v-if="invalidCidrs.length" k="networkpolicy.rules.ipBlock.invalidExceptionCidrs" />{{ invalidCidrs.join(', ') }}
           </Banner>
         </div>
       </div>
