@@ -104,30 +104,6 @@ export default {
       set(this.value, 'spec', {});
     }
 
-    // Explicitly asked from query string?
-    if ( this.subType ) {
-      // For RKE1 Cluster, set the ember link so that we load the page rather than using RKE2 create
-      if (this.isRke1) {
-        const selected = this.subTypes.find(s => s.id === this.subType);
-
-        this.emberLink = selected?.link;
-      }
-      await this.selectType(this.subType, false);
-    // } else if ( this.value.isImported ) {
-    //   // Edit exiting import
-    //   this.isImport = true;
-    //   this.selectType('import', false);
-    } else if ( this.value.isRke2 && this.value.isCustom ) {
-      // Edit exiting custom
-      this.selectType('custom', false);
-    } else if ( this.value.isRke2 && this.value.machineProvider ) {
-      // Edit exiting RKE2
-      this.selectType(this.value.machineProvider, false);
-    } else if ( this.value.mgmt?.emberEditPath ) {
-      // Iframe an old page
-      this.emberLink = this.value.mgmt.emberEditPath;
-    }
-
     if ( !this.value.id ) {
       if ( !this.value.metadata ) {
         set(this.value, 'metadata', {});
@@ -165,7 +141,6 @@ export default {
       chart,
       isImport,
       providerCluster:  null,
-      emberLink:        null,
       iconClasses:      {},
     };
   },
@@ -175,6 +150,40 @@ export default {
     preferredProvisioner: mapPref(PROVISIONER),
     _RKE1:                () => _RKE1,
     _RKE2:                () => _RKE2,
+
+    emberLink() {
+      // Explicitly asked from query string?
+      if ( this.subType ) {
+        // For RKE1 Cluster, set the ember link so that we load the page rather than using RKE2 create
+        if (this.isRke1) {
+          const selected = this.subTypes.find(s => s.id === this.subType);
+
+          return selected?.link;
+        }
+        this.selectType(this.subType, false);
+
+        // } else if ( this.value.isImported ) {
+        //   // Edit exiting import
+        //   this.isImport = true;
+        //   this.selectType('import', false);
+        return '';
+      } else if ( this.value.isRke2 && this.value.isCustom ) {
+        // Edit exiting custom
+        this.selectType('custom', false);
+
+        return '';
+      } else if ( this.value.isRke2 && this.value.machineProvider ) {
+        // Edit exiting RKE2
+        this.selectType(this.value.machineProvider, false);
+
+        return '';
+      } else if ( this.value.mgmt?.emberEditPath ) {
+        // Iframe an old page
+        return this.value.mgmt.emberEditPath;
+      }
+
+      return '';
+    },
 
     rke2Enabled: mapFeature(RKE2_FEATURE),
 
