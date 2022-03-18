@@ -5,7 +5,7 @@ import HybridModel, { cleanHybridResources } from '@/plugins/steve/hybrid-class'
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import { classify } from './classify';
 import { keyForSubscribe } from './subscribe';
-import { perfLoadAll } from './performanceTesting';
+// import { perfLoadAll } from './performanceTesting';
 
 function registerType(state, type) {
   let cache = state.types[type];
