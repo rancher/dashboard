@@ -13,6 +13,8 @@ import {
 export const FDC_ENUM = { FLEET_GIT_REPO: 'fleet-git-repo' };
 
 const fdcAllowedConfigs = [];
+const defaultNodeRadius = 20;
+const defaultNodePadding = 15;
 
 Object.keys(FDC_ENUM).forEach((key) => {
   fdcAllowedConfigs.push(FDC_ENUM[key]);
@@ -34,6 +36,7 @@ export const FDC_CONFIG = {
      * @param {String} state
      * @param {String} stateDisplay
      * @param {String} stateColor
+     * @param {String} matchingId
      */
     parseData: (data) => {
       const totalClusterCount = data.status?.desiredReadyClusters;
@@ -177,8 +180,58 @@ export const FDC_CONFIG = {
 
       return classArray;
     },
-    nodeRadius: (d, globalNodeRadiusUnit) => {
-      return d.data?.isRepo ? globalNodeRadiusUnit * 3 : d.data?.isBundle ? globalNodeRadiusUnit * 2 : globalNodeRadiusUnit;
+    nodeDimensions: (d) => {
+      if (d.data?.isRepo) {
+        return {
+          radius:  defaultNodeRadius * 3,
+          padding: defaultNodePadding * 2.5
+        };
+      }
+      if (d.data?.isBundle) {
+        return {
+          radius:  defaultNodeRadius * 2,
+          padding: defaultNodePadding
+        };
+      }
+
+      return {
+        radius:  defaultNodeRadius,
+        padding: defaultNodePadding
+      };
+    },
+    infoDetails: (data) => {
+      const moreInfo = [
+        {
+          type:     'title-link',
+          label:    'Name',
+          valueObj: {
+            id:             data.id,
+            detailLocation: data.detailLocation
+          }
+        },
+        {
+          label: 'Type',
+          value: data.type
+        },
+        {
+          type:     'state-badge',
+          label:    'State',
+          valueObj: {
+            stateColor: data.stateColor,
+            stateLabel: data.stateLabel
+          }
+        }
+      ];
+
+      if (data.errorMsg) {
+        moreInfo.push({
+          type:  'single-error',
+          label: 'Error',
+          value: data.errorMsg
+        });
+      }
+
+      return moreInfo;
     }
   }
 };
