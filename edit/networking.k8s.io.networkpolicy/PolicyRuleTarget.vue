@@ -206,16 +206,7 @@ export default {
       </div>
     </div>
     <div v-if="targetType === TARGET_OPTION_IP_BLOCK">
-      <div v-if="invalidCidr || invalidCidrs.length" class="row mb-10">
-        <div class="col span-12">
-          <Banner color="error">
-            <t v-if="invalidCidr" k="networkpolicy.rules.ipBlock.invalidCidr" />
-            <br v-if="invalidCidr && invalidCidrs.length">
-            <t v-if="invalidCidrs.length" k="networkpolicy.rules.ipBlock.invalidExceptionCidrs" />{{ invalidCidrs.join(', ') }}
-          </Banner>
-        </div>
-      </div>
-      <div class="row mb-20">
+      <div class="row">
         <div class="col span-6">
           <LabeledInput
             v-model="value[TARGET_OPTION_IP_BLOCK].cidr"
@@ -225,7 +216,14 @@ export default {
           />
         </div>
       </div>
-      <div class="row mb-0">
+      <div v-if="invalidCidr" class="row">
+        <div class="col span-12">
+          <Banner color="error">
+            <t v-if="invalidCidr" k="networkpolicy.rules.ipBlock.invalidCidr" />
+          </Banner>
+        </div>
+      </div>
+      <div class="row mt-20">
         <div class="col span-12">
           <ArrayList
             v-model="value[TARGET_OPTION_IP_BLOCK].except"
@@ -235,6 +233,13 @@ export default {
             :value-label="t('networkpolicy.rules.ipBlock.exceptions')"
             :value-placeholder="t('networkpolicy.rules.ipBlock.cidr.placeholder')"
           />
+        </div>
+      </div>
+      <div v-if="invalidCidrs.length" class="row mb-10">
+        <div class="col span-12">
+          <Banner color="error">
+            <t v-if="invalidCidrs.length" k="networkpolicy.rules.ipBlock.invalidExceptionCidrs" />{{ invalidCidrs.join(', ') }}
+          </Banner>
         </div>
       </div>
     </div>
