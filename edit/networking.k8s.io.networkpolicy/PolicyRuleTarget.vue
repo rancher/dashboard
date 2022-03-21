@@ -144,13 +144,13 @@ export default {
   },
   methods: {
     validateCIDR() {
-      const exceptCidrs = this.value[TARGET_OPTION_IP_BLOCK].except || [];
+      const exceptCidrs = this.value[TARGET_OPTION_IP_BLOCK]?.except || [];
 
       this.invalidCidrs = exceptCidrs
         .filter(cidr => !isValidCIDR(cidr))
         .map(invalidCidr => invalidCidr || '<blank>');
 
-      if (this.value[TARGET_OPTION_IP_BLOCK].cidr && !isValidCIDR(this.value[TARGET_OPTION_IP_BLOCK].cidr)) {
+      if (this.value[TARGET_OPTION_IP_BLOCK]?.cidr && !isValidCIDR(this.value[TARGET_OPTION_IP_BLOCK].cidr)) {
         this.invalidCidr = this.value[TARGET_OPTION_IP_BLOCK].cidr;
       } else {
         this.invalidCidr = null;
