@@ -3915,6 +3915,7 @@ resourceDetail:
     project: Project
     detail: Detail
     config: Config
+    graph: Graph
     yaml: YAML
     managedWarning: |-
       This {type} is managed by {hasName, select,
