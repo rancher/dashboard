@@ -38,6 +38,7 @@ export const AS = 'as';
 export const _DETAIL = 'detail';
 export const _CONFIG = 'config';
 export const _YAML = 'yaml';
+export const _GRAPH = 'graph';
 
 export const PREVIEW = 'preview';
 

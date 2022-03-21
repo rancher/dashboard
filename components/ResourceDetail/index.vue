@@ -4,14 +4,17 @@ import Loading from '@/components/Loading';
 import ResourceYaml from '@/components/ResourceYaml';
 import {
   _VIEW, _EDIT, _CLONE, _IMPORT, _STAGE, _CREATE,
-  AS, _YAML, _DETAIL, _CONFIG, PREVIEW, MODE,
+  AS, _YAML, _DETAIL, _CONFIG, _GRAPH, PREVIEW, MODE,
 } from '@/config/query-params';
-import { SCHEMA } from '@/config/types';
+import { FLEET, SCHEMA } from '@/config/types';
+
 import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
 import DetailTop from '@/components/DetailTop';
 import { clone, set, diff } from '@/utils/object';
 import IconMessage from '@/components/IconMessage';
+import ForceDirectedTreeChart from '@/components/fleet/ForceDirectedTreeChart';
+import { FDC_ENUM } from '@/components/fleet/ForceDirectedTreeChart/fdcConfig.js';
 
 function modeFor(route) {
   if ( route.query?.mode === _IMPORT ) {
@@ -40,6 +43,7 @@ export default {
   components: {
     Loading,
     DetailTop,
+    ForceDirectedTreeChart,
     ResourceYaml,
     Masthead,
     IconMessage,
@@ -86,6 +90,8 @@ export default {
 
     const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource, id);
     const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource, id);
+    let hasGraph = false;
+
     const schemas = store.getters[`${ inStore }/all`](SCHEMA);
 
     // As determines what component will be rendered
@@ -95,6 +101,9 @@ export default {
 
     if ( mode === _VIEW && hasCustomDetail && (!requested || requested === _DETAIL) ) {
       as = _DETAIL;
+    } else if ( mode === _VIEW && requested === _GRAPH && resource === FLEET.GIT_REPO) {
+      as = _GRAPH;
+      hasGraph = true;
     } else if ( hasCustomEdit && (!requested || requested === _CONFIG) ) {
       as = _CONFIG;
     } else {
@@ -131,6 +140,10 @@ export default {
         yaml = createYaml(schemas, resource, data);
       }
     } else {
+      if ( as === _GRAPH ) {
+        await store.dispatch('management/findAll', { type: FLEET.BUNDLE });
+      }
+
       let fqid = id;
 
       if ( schema.attributes?.namespaced && namespace ) {
@@ -160,6 +173,10 @@ export default {
         yaml = await getYaml(liveModel);
       }
 
+      if ( as === _GRAPH ) {
+        this.chartData = liveModel;
+      }
+
       if ( [_CLONE, _IMPORT, _STAGE].includes(realMode) ) {
         model.cleanForNew();
         yaml = model.cleanYaml(yaml, realMode);
@@ -180,6 +197,7 @@ export default {
     }
 
     const out = {
+      hasGraph,
       hasCustomDetail,
       hasCustomEdit,
       resource,
@@ -203,6 +221,8 @@ export default {
 
   data() {
     return {
+      fdcConfigType:   FDC_ENUM.FLEET_GIT_REPO,
+      chartData:       null,
       resourceSubtype: null,
 
       // Set by fetch
@@ -239,6 +259,10 @@ export default {
 
     isDetail() {
       return this.as === _DETAIL;
+    },
+
+    isGraph() {
+      return this.as === _GRAPH;
     },
 
     offerPreview() {
@@ -332,6 +356,7 @@ export default {
       :mode="mode"
       :real-mode="realMode"
       :as="as"
+      :has-graph="hasGraph"
       :has-detail="hasCustomDetail"
       :has-edit="hasCustomEdit"
       :resource-subtype="resourceSubtype"
@@ -344,8 +369,14 @@ export default {
       />
     </Masthead>
 
+    <ForceDirectedTreeChart
+      v-if="isGraph"
+      :data="chartData"
+      :fdc-config="fdcConfigType"
+    />
+
     <ResourceYaml
-      v-if="isYaml"
+      v-else-if="isYaml"
       ref="resourceyaml"
       v-model="value"
       :mode="mode"

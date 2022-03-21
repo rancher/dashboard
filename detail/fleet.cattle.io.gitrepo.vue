@@ -3,13 +3,11 @@ import ResourceTabs from '@/components/form/ResourceTabs';
 import FleetSummary from '@/components/fleet/FleetSummary';
 import Banner from '@/components/Banner';
 import FleetResources from '@/components/fleet/FleetResources';
-import ForceDirectedTreeChart from '@/components/fleet/ForceDirectedTreeChart';
 import Tab from '@/components/Tabbed/Tab';
 import { FLEET } from '@/config/types';
 import { isHarvesterCluster } from '@/utils/cluster';
 import FleetBundles from '@/components/fleet/FleetBundles.vue';
 import { resourceCounts } from '@/components/ResourceSummary.vue';
-import { FDC_ENUM } from '@/components/fleet/ForceDirectedTreeChart/fdcConfig.js';
 import { allHash } from '~/utils/promise';
 
 export default {
@@ -20,7 +18,6 @@ export default {
     FleetSummary,
     Banner,
     ResourceTabs,
-    ForceDirectedTreeChart,
     Tab,
     FleetBundles,
   },
@@ -35,8 +32,7 @@ export default {
   data() {
     return {
       allFleet:      [],
-      allBundles:    [],
-      fdcConfigType: FDC_ENUM.FLEET_GIT_REPO
+      allBundles:    []
     };
   },
 
@@ -108,7 +104,6 @@ export default {
     >
       {{ t('fleet.fleetSummary.noClustersGitRepo') }}
     </Banner>
-    <ForceDirectedTreeChart :data="value" :fdc-config="fdcConfigType" class="mb-20" />
     <ResourceTabs v-model="value" mode="view" class="mt-20" :need-related="false">
       <Tab label="Bundles" name="bundles" :weight="30">
         <FleetBundles :value="value" />
