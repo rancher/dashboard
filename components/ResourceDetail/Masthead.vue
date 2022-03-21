@@ -8,7 +8,7 @@ import { get } from '@/utils/object';
 import { NAME as FLEET_NAME } from '@/config/product/fleet';
 import { HIDE_SENSITIVE } from '@/store/prefs';
 import {
-  AS, _DETAIL, _CONFIG, _YAML, MODE, _CREATE, _EDIT, _VIEW, _UNFLAG
+  AS, _DETAIL, _CONFIG, _YAML, MODE, _CREATE, _EDIT, _VIEW, _UNFLAG, _GRAPH
 } from '@/config/query-params';
 
 export default {
@@ -36,6 +36,11 @@ export default {
     as: {
       type:    String,
       default: _YAML,
+    },
+
+    hasGraph: {
+      type:    Boolean,
+      default: false
     },
 
     hasDetail: {
@@ -235,14 +240,21 @@ export default {
       if ( this.hasDetail ) {
         out.push({
           labelKey: 'resourceDetail.masthead.detail',
-          value:    'detail',
+          value:    _DETAIL,
         });
       }
 
       if ( this.hasEdit && this.parent?.showConfigView !== false) {
         out.push({
           labelKey: 'resourceDetail.masthead.config',
-          value:    'config',
+          value:    _CONFIG,
+        });
+      }
+
+      if ( this.hasGraph ) {
+        out.push({
+          labelKey: 'resourceDetail.masthead.graph',
+          value:    _GRAPH,
         });
       }
 
@@ -253,7 +265,7 @@ export default {
 
       out.push({
         labelKey: 'resourceDetail.masthead.yaml',
-        value:    'yaml',
+        value:    _YAML,
       });
 
       return out;
@@ -278,7 +290,13 @@ export default {
             [AS]:   _CONFIG,
           });
           break;
-        case 'yaml':
+        case _GRAPH:
+          this.$router.applyQuery({
+            [MODE]: _UNFLAG,
+            [AS]:   _GRAPH,
+          });
+          break;
+        case _YAML:
           this.$router.applyQuery({
             [MODE]: _UNFLAG,
             [AS]:   _YAML,

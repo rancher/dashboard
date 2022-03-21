@@ -88,9 +88,9 @@ export default {
     // know about:  view, edit, create (stage, import and clone become "create")
     const mode = ([_CLONE, _IMPORT, _STAGE].includes(realMode) ? _CREATE : realMode);
 
+    const hasGraph = mode === _VIEW && resource === FLEET.GIT_REPO;
     const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource, id);
     const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource, id);
-    let hasGraph = false;
 
     const schemas = store.getters[`${ inStore }/all`](SCHEMA);
 
@@ -101,9 +101,8 @@ export default {
 
     if ( mode === _VIEW && hasCustomDetail && (!requested || requested === _DETAIL) ) {
       as = _DETAIL;
-    } else if ( mode === _VIEW && requested === _GRAPH && resource === FLEET.GIT_REPO) {
+    } else if ( mode === _VIEW && resource === FLEET.GIT_REPO && requested === _GRAPH) {
       as = _GRAPH;
-      hasGraph = true;
     } else if ( hasCustomEdit && (!requested || requested === _CONFIG) ) {
       as = _CONFIG;
     } else {
@@ -226,6 +225,7 @@ export default {
       resourceSubtype: null,
 
       // Set by fetch
+      hasGraph:        null,
       hasCustomDetail: null,
       hasCustomEdit:   null,
       resource:        null,
