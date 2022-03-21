@@ -14,6 +14,7 @@ module.exports = (on: Cypress.PluginEvents, config: Cypress.PluginConfigOptions)
 
   config.env.username = process.env.TEST_USERNAME;
   config.env.password = process.env.TEST_PASSWORD;
+  config.env.bootstrapPassword = process.env.CATTLE_BOOTSTRAP_PASSWORD;
 
   return config;
 };

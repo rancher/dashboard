@@ -6,7 +6,6 @@ declare global {
   namespace Cypress {
     interface Chainable {
       login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
-
       byLabel(label: string,): Chainable<Element>;
     }
   }
