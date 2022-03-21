@@ -24,6 +24,7 @@ export default {
   data() {
     return {
       chartConfig:                         undefined,
+      dataWatcher:                         undefined,
       parsedInfo:                          undefined,
       root:                                undefined,
       allNodesData:                        undefined,
@@ -39,65 +40,58 @@ export default {
       moreInfo:                            {}
     };
   },
-  watch: {
-    'data.bundles': {
-      handler(newValue) {
-        // eslint-disable-next-line no-console
-        console.log('WATCHER TRIGGERED!', JSON.stringify(newValue.length, null, 2), this.data);
-        if (newValue.length) {
-          if (!this.isChartFirstRendered) {
-            this.parsedInfo = this.chartConfig.parseData(this.data);
+  methods: {
+    watcherFunction(newValue) {
+      // eslint-disable-next-line no-console
+      console.log('WATCHER TRIGGERED!', JSON.stringify(newValue.length, null, 2), this.data);
+      if (newValue.length) {
+        if (!this.isChartFirstRendered) {
+          this.parsedInfo = this.chartConfig.parseData(this.data);
 
-            // set details info and set active state for node
-            this.setDetailsInfo(this.parsedInfo, false);
-            this.parsedInfo.active = true;
+          // set details info and set active state for node
+          this.setDetailsInfo(this.parsedInfo, false);
+          this.parsedInfo.active = true;
 
-            // render and update chart
-            this.renderChart();
-            this.updateChart(true, true);
-            this.isChartFirstRendered = true;
+          // render and update chart
+          this.renderChart();
+          this.updateChart(true, true);
+          this.isChartFirstRendered = true;
 
           // here we just look for changes in the status of the nodes and update them accordingly
-          } else {
-            const parsedInfo = this.chartConfig.parseData(this.data);
-            const flattenedData = this.flatten(parsedInfo);
-            let hasStatusChange = false;
+        } else {
+          const parsedInfo = this.chartConfig.parseData(this.data);
+          const flattenedData = this.flatten(parsedInfo);
+          let hasStatusChange = false;
 
-            flattenedData.forEach((item) => {
-              const index = this.allNodesData.findIndex(nodeData => item.matchingId === nodeData.data.matchingId);
+          flattenedData.forEach((item) => {
+            const index = this.allNodesData.findIndex(nodeData => item.matchingId === nodeData.data.matchingId);
 
-              // apply status change to each node
-              if (index > -1 && this.allNodesData[index].data.state !== item.state) {
-                this.allNodesData[index].data.state = item.state;
-                this.allNodesData[index].data.stateLabel = item.stateLabel;
-                this.allNodesData[index].data.stateColor = item.stateColor;
-                hasStatusChange = true;
+            // apply status change to each node
+            if (index > -1 && this.allNodesData[index].data.state !== item.state) {
+              this.allNodesData[index].data.state = item.state;
+              this.allNodesData[index].data.stateLabel = item.stateLabel;
+              this.allNodesData[index].data.stateColor = item.stateColor;
+              hasStatusChange = true;
 
-                // if node is selected (active), update details info
-                if (this.allNodesData[index].data.active) {
-                  this.setDetailsInfo(this.allNodesData[index].data, false);
-                }
+              // if node is selected (active), update details info
+              if (this.allNodesData[index].data.active) {
+                this.setDetailsInfo(this.allNodesData[index].data, false);
               }
-            });
-
-            if (hasStatusChange) {
-              this.updateChart(false, false);
             }
+          });
+
+          if (hasStatusChange) {
+            this.updateChart(false, false);
           }
         }
       }
-    }
-  },
-  methods: {
+    },
     renderChart() {
-      const width = 800;
-      const height = 500;
-
       this.zoom = d3.zoom().scaleExtent([1 / 8, 16]).on('zoom', this.zoomed);
       const transform = d3.zoomIdentity.scale(1).translate(0, 0);
 
       this.svg = d3.select('#tree').append('svg')
-        .attr('viewBox', `0 0 ${ width } ${ height }`)
+        .attr('viewBox', `0 0 ${ this.chartConfig.chartWidth } ${ this.chartConfig.chartHeight }`)
         .attr('preserveAspectRatio', 'none');
 
       this.rootNode = this.svg.append('g')
@@ -107,9 +101,9 @@ export default {
       this.svg.call(this.zoom.transform, transform);
 
       this.simulation = d3.forceSimulation()
-        .force('charge', d3.forceManyBody().strength(-300).distanceMax(500))
-        .force('collision', d3.forceCollide(75))
-        .force('center', d3.forceCenter( width / 2, height / 2 ))
+        .force('charge', d3.forceManyBody().strength(this.chartConfig.simulationParams.fdcStrength).distanceMax(this.chartConfig.simulationParams.fdcDistanceMax))
+        .force('collision', d3.forceCollide(this.chartConfig.simulationParams.fdcForceCollide))
+        .force('center', d3.forceCenter( this.chartConfig.chartWidth / 2, this.chartConfig.chartHeight / 2 ))
         .on('tick', this.ticked)
         .on('end', () => {
           if (!this.isChartFirstRenderAnimationFinished) {
@@ -126,62 +120,7 @@ export default {
       if (isSettingNodesAndLinks) {
         this.allNodesData = this.flatten(this.root);
         this.allLinks = this.root.links();
-
-        console.log('ALL LINKS', this.allLinks);
       }
-
-      // this.link = this.rootNode
-      //   .selectAll('.link')
-      //   .data(this.allLinks, (d) => {
-      //     return d.target.id;
-      //   }).join(
-      //     enter => enter.append('line')
-      //       .attr('class', 'link')
-      //       .style('opacity', '0.2')
-      //       .style('stroke-width', 4),
-      //     exit => exit.remove()
-      //   );
-
-      // this.node = this.rootNode
-      //   .selectAll('.node')
-      //   .data(this.allNodesData, (d) => {
-      //     return d.id;
-      //   }).join(
-      //     (enter) => {
-      //       console.log('this', this);
-      //       const nodeEnter = enter.append('g')
-      //         .attr('class', this.mainNodeClass)
-      //         .style('opacity', 1)
-      //         .on('click', (ev, d) => {
-      //           this.setDetailsInfo(d.data, true);
-      //         })
-      //         .call(d3.drag()
-      //           .on('start', this.dragStarted)
-      //           .on('drag', this.dragging)
-      //           .on('end', this.dragEnded));
-
-      //       nodeEnter.append('circle')
-      //         .attr('r', this.setNodeRadius);
-
-      //       nodeEnter.append('circle')
-      //         .attr('r', (d) => {
-      //           return this.setNodeRadius(d) - 5;
-      //         })
-      //         .attr('class', 'node-hover-layer');
-
-      //       // node image
-      //       nodeEnter.append('foreignObject')
-      //         .attr('class', 'svg-img')
-      //         .attr('x', this.nodeImagePosition)
-      //         .attr('y', this.nodeImagePosition)
-      //         .attr('height', this.nodeImageSize)
-      //         .attr('width', this.nodeImageSize);
-
-      //       return nodeEnter;
-      //     },
-      //     update => update.attr('class', this.mainNodeClass),
-      //     exit => exit.remove(),
-      //   );
 
       this.link = this.rootNode
         .selectAll('.link')
@@ -302,44 +241,6 @@ export default {
 
       return -(((radius * 2) - padding) / 2);
     },
-    ticked() {
-      console.log('TICKED!');
-      this.link
-        .attr('x1', (d) => {
-          return d.source.x;
-        })
-        .attr('y1', (d) => {
-          return d.source.y;
-        })
-        .attr('x2', (d) => {
-          return d.target.x;
-        })
-        .attr('y2', (d) => {
-          return d.target.y;
-        });
-
-      this.node
-        .attr('transform', (d) => {
-          return `translate(${ d.x }, ${ d.y })`;
-        });
-    },
-    // not used at the moment, but if node interaction changes from click to hover, we can always bring this back...
-    mainNodeChidlrenToggle(ev, d) {
-      if (!ev.defaultPrevented) {
-        // this is the same as directly tapping into this.root and changing properties...
-        if (d.children) {
-          d._children = d.children;
-          d.children = undefined;
-        } else {
-          d.children = d._children;
-          d._children = undefined;
-        }
-        this.updateChart(false, true);
-
-        // this sets the link line to a "lower" level, much like z-index (otherwise it would appear above other "layers")
-        this.link.lower();
-      }
-    },
     setDetailsInfo(data, toUpdate) {
       // get the data to be displayed on info box, per each different chart
       this.moreInfo = Object.assign([], this.chartConfig.infoDetails(data));
@@ -356,43 +257,6 @@ export default {
 
         this.updateChart(false, false);
       }
-    },
-    dragStarted(ev, d) {
-      if (!ev.active) {
-        this.simulation.alphaTarget(0.3).restart();
-      }
-      d.fx = d.x;
-      d.fy = d.y;
-    },
-    dragging(ev, d) {
-      d.fx = ev.x;
-      d.fy = ev.y;
-    },
-    dragEnded(ev, d) {
-      if (!ev.active) {
-        this.simulation.alphaTarget(0);
-      }
-      d.fx = undefined;
-      d.fy = undefined;
-    },
-    flatten(root) {
-      const nodes = [];
-      let i = 0;
-
-      function recurse(node) {
-        if (node.children) {
-          node.children.forEach(recurse);
-        }
-        if (!node.id) {
-          node.id = ++i;
-        } else {
-          ++i;
-        }
-        nodes.push(node);
-      }
-      recurse(root);
-
-      return nodes;
     },
     zoomFit() {
       const rootNode = d3.select('.root-node');
@@ -421,33 +285,77 @@ export default {
 
       // this update the cached zoom state!!!!! very important so that any transforms from user interaction keep this base!
       this.svg.call(this.zoom.transform, transform);
+    },
+    ticked() {
+      this.link
+        .attr('x1', (d) => {
+          return d.source.x;
+        })
+        .attr('y1', (d) => {
+          return d.source.y;
+        })
+        .attr('x2', (d) => {
+          return d.target.x;
+        })
+        .attr('y2', (d) => {
+          return d.target.y;
+        });
 
-      /* ------------------- OTHER ZOOM FIT CODE  ------------------- */
-
-      // const scaleCheck = 1 / Math.max(width / (fullWidth - paddingBuffer), height / (fullHeight - paddingBuffer));
-      // let translateX = -chartCoordinates.x * scaleCheck;
-      // let translateY = -chartCoordinates.y * scaleCheck;
-
-      // if (scaleCheck < 0.95) {
-      //   translateX > 0 ? translateX += paddingBuffer : translateX -= paddingBuffer;
-      //   translateY > 0 ? translateY += paddingBuffer : translateY -= paddingBuffer;
-      // } else {
-      //   translateX > 0 ? translateX -= paddingBuffer : translateX += paddingBuffer;
-      //   translateY > 0 ? translateY -= paddingBuffer : translateY += paddingBuffer;
-      // }
-
-      // const zoomTransform = d3.zoomIdentity.translate(translateX, translateY).scale(scaleCheck);
-
-      // this.svg.call(this.zoom.transform, zoomTransform);
-
-      /* ------------------- ---------------------  ------------------- */
+      this.node
+        .attr('transform', (d) => {
+          return `translate(${ d.x }, ${ d.y })`;
+        });
+    },
+    dragStarted(ev, d) {
+      if (!ev.active) {
+        this.simulation.alphaTarget(0.3).restart();
+      }
+      d.fx = d.x;
+      d.fy = d.y;
+    },
+    dragging(ev, d) {
+      d.fx = ev.x;
+      d.fy = ev.y;
+    },
+    dragEnded(ev, d) {
+      if (!ev.active) {
+        this.simulation.alphaTarget(0);
+      }
+      d.fx = undefined;
+      d.fy = undefined;
     },
     zoomed(ev) {
       this.rootNode.attr('transform', ev.transform);
+    },
+    flatten(root) {
+      const nodes = [];
+      let i = 0;
+
+      function recurse(node) {
+        if (node.children) {
+          node.children.forEach(recurse);
+        }
+        if (!node.id) {
+          node.id = ++i;
+        } else {
+          ++i;
+        }
+        nodes.push(node);
+      }
+      recurse(root);
+
+      return nodes;
     }
   },
   mounted() {
     this.chartConfig = FDC_CONFIG[this.fdcConfig];
+
+    this.dataWatcher = this.$watch(this.chartConfig.watcherProp, function(newValue) {
+      this.watcherFunction(newValue);
+    });
+  },
+  unmounted() {
+    this.dataWatcher();
   },
 };
 </script>
@@ -502,22 +410,6 @@ export default {
               </template>
             </InfoBoxItem>
           </ul>
-          <!--
-            <li v-if="moreInfo.isResource">
-              <span class="more-info-item-label">Per Cluster state:</span>
-              <span class="more-info-item-value">{{ moreInfo.totalClusterCount - moreInfo.perClusterState.length }}/{{ moreInfo.totalClusterCount }}</span>
-            </li>
-            <li v-if="moreInfo.perClusterState && moreInfo.perClusterState.length">
-              <span class="more-info-item-label">Error:</span>
-              <p
-                v-for="(err, i) in moreInfo.perClusterState"
-                :key="i"
-                class="more-info-item-value error"
-              >
-                {{ err }}
-              </p>
-            </li>
-          -->
         </div>
       </div>
     </div>
