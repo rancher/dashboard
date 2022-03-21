@@ -798,20 +798,13 @@ export default {
       }
     },
     nvidiaIsValid(nvidiaGpuLimit) {
-      console.log(`nvidiaIsValid running.. nvidiaGpuLimit: ${ nvidiaGpuLimit }`);
       if (!Number.isInteger(nvidiaGpuLimit)) {
-        console.log(`!Number.isInteger(nvidiaGpuLimit)?:`, !Number.isInteger(nvidiaGpuLimit));
-
         return false;
       }
       if (nvidiaGpuLimit === undefined) {
-        console.log(`nvidiaGpuLimit === undefined?:`, nvidiaGpuLimit === undefined);
-
         return false;
       }
       if (nvidiaGpuLimit < 1) {
-        console.log(`nvidiaGpuLimit < 1:`, nvidiaGpuLimit < 1);
-
         return false;
       } else {
         return true;
