@@ -579,16 +579,28 @@ export default {
       }
 
       const containerResources = template.spec.containers[0].resources;
-      const nvidiaGpuLimit = containerResources?.limits[GPU_KEY];
+      const nvidiaGpuLimit = template.spec.containers[0].resources?.limits[GPU_KEY];
 
       // Though not required, requests are also set to mirror the ember ui
       if (nvidiaGpuLimit > 0) {
+        containerResources.requests = containerResources.requests || {};
         containerResources.requests[GPU_KEY] = nvidiaGpuLimit;
       }
-      if (nvidiaGpuLimit === undefined || nvidiaGpuLimit === 0 ) {
+
+      if (!this.nvidiaIsValid(nvidiaGpuLimit) ) {
         try {
-          delete containerResources.limits[GPU_KEY];
           delete containerResources.requests[GPU_KEY];
+          delete containerResources.limits[GPU_KEY];
+
+          if (Object.keys(containerResources.limits).length === 0) {
+            delete containerResources.limits;
+          }
+          if (Object.keys(containerResources.requests).length === 0) {
+            delete containerResources.requests;
+          }
+          if (Object.keys(containerResources).length === 0) {
+            delete template.spec.containers[0].resources;
+          }
         } catch {}
       }
 
@@ -784,6 +796,28 @@ export default {
         delete this.podTemplateSpec.serviceAccount;
         delete this.podTemplateSpec.serviceAccountName;
       }
+    },
+    nvidiaIsValid(nvidiaGpuLimit) {
+      console.log(`nvidiaIsValid running.. nvidiaGpuLimit: ${ nvidiaGpuLimit }`);
+      if (!Number.isInteger(nvidiaGpuLimit)) {
+        console.log(`!Number.isInteger(nvidiaGpuLimit)?:`, !Number.isInteger(nvidiaGpuLimit));
+
+        return false;
+      }
+      if (nvidiaGpuLimit === undefined) {
+        console.log(`nvidiaGpuLimit === undefined?:`, nvidiaGpuLimit === undefined);
+
+        return false;
+      }
+      if (nvidiaGpuLimit < 1) {
+        console.log(`nvidiaGpuLimit < 1:`, nvidiaGpuLimit < 1);
+
+        return false;
+      } else {
+        return true;
+      }
+
+      //
     }
   }
 };
