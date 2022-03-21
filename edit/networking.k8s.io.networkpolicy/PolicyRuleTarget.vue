@@ -219,7 +219,7 @@ export default {
       <div v-if="invalidCidr" class="row">
         <div class="col span-12">
           <Banner color="error">
-            <t v-if="invalidCidr" k="networkpolicy.rules.ipBlock.invalidCidr" />
+            <t k="networkpolicy.rules.ipBlock.invalidCidr" />
           </Banner>
         </div>
       </div>
@@ -238,7 +238,7 @@ export default {
       <div v-if="invalidCidrs.length" class="row mb-10">
         <div class="col span-12">
           <Banner color="error">
-            <t v-if="invalidCidrs.length" k="networkpolicy.rules.ipBlock.invalidExceptionCidrs" />{{ invalidCidrs.join(', ') }}
+            <t k="networkpolicy.rules.ipBlock.invalidExceptionCidrs" />{{ invalidCidrs.join(', ') }}
           </Banner>
         </div>
       </div>
