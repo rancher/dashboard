@@ -13,14 +13,28 @@ import {
 export const FDC_ENUM = { FLEET_GIT_REPO: 'fleet-git-repo' };
 
 const fdcAllowedConfigs = [];
-const defaultNodeRadius = 20;
-const defaultNodePadding = 15;
 
 Object.keys(FDC_ENUM).forEach((key) => {
   fdcAllowedConfigs.push(FDC_ENUM[key]);
 });
 
 export const FDC_ALLOWED_CONFIGS = fdcAllowedConfigs;
+
+// some default values
+const defaultNodeRadius = 20;
+const defaultNodePadding = 15;
+const chartWidth = 800;
+const chartHeight = 500;
+const fdcStrength = -300;
+const fdcDistanceMax = 500;
+const fdcForceCollide = 75;
+
+// setting up default sim params
+const simulationParams = {
+  fdcStrength,
+  fdcDistanceMax,
+  fdcForceCollide,
+};
 
 /**
  * Represents a config object for FDC type
@@ -31,6 +45,13 @@ export const FDC_ALLOWED_CONFIGS = fdcAllowedConfigs;
  */
 export const FDC_CONFIG = {
   [FDC_ENUM.FLEET_GIT_REPO]: {
+    chartWidth,
+    chartHeight,
+    simulationParams,
+    /**
+     * data prop that is used to trigger the watcher in the component. Should follow format "data.xxxxxx"
+     */
+    watcherProp: 'data.bundles',
     /**
      * Mandatory params for a child object in parseData (for statuses to work)
      * @param {String} state
@@ -38,7 +59,7 @@ export const FDC_CONFIG = {
      * @param {String} stateColor
      * @param {String} matchingId
      */
-    parseData: (data) => {
+    parseData:   (data) => {
       const totalClusterCount = data.status?.desiredReadyClusters;
       const repoChildren = data.bundles.map((bundle, i) => {
         const bundleLowercaseState = bundle.state ? bundle.state.toLowerCase() : 'unknown';
@@ -119,6 +140,9 @@ export const FDC_CONFIG = {
 
       return finalData;
     },
+    /**
+     * Used to add relevant classes to each main node instance
+     */
     extendNodeClass: (d) => {
       const classArray = [];
 
@@ -180,6 +204,9 @@ export const FDC_CONFIG = {
 
       return classArray;
     },
+    /**
+     * Used to set node dimensions
+     */
     nodeDimensions: (d) => {
       if (d.data?.isRepo) {
         return {
@@ -199,6 +226,9 @@ export const FDC_CONFIG = {
         padding: defaultNodePadding
       };
     },
+    /**
+     * Use @param {Obj} valueObj for compound values (usually associated with a template of some sort) or @param value for a simple straightforward value
+     */
     infoDetails: (data) => {
       const moreInfo = [
         {
