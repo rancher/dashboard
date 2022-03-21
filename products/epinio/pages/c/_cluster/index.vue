@@ -78,7 +78,11 @@ export default Vue.extend<Data, any, any, any>({
       this.$store.dispatch('epinio/request', {
         opt: { url: `/ready` }, clusterId: c.id, growlOnError: false
       })
-        .then(() => {
+        .then(() => this.$store.dispatch(`epinio/request`, {
+          opt: { url: `/api/v1/info` }, clusterId: c.id, growlOnError: false
+        }))
+        .then((res: any) => {
+          Vue.set(c, 'version', res?.version);
           this.setClusterState(c, 'available', { state: { transitioning: false } });
         })
         .catch((e: Error) => {

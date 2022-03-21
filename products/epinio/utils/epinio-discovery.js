@@ -16,10 +16,7 @@ export default {
         const epinioIngress = await store.dispatch(`cluster/request`, { url: `/k8s/clusters/${ c.id }/v1/networking.k8s.io.ingresses/epinio/epinio` }, { root: true });
         const url = ingressFullPath(epinioIngress, epinioIngress.spec.rules?.[0]);
 
-        const epinio = await allHash({
-          authData:   store.dispatch(`cluster/request`, { url: `/k8s/clusters/${ c.id }/v1/secrets/epinio/default-epinio-user` }, { root: true }),
-          info:       store.dispatch(`cluster/request`, { url: `${ url }/api/v1/info` }, { root: true }),
-        });
+        const epinio = await allHash({ authData: store.dispatch(`cluster/request`, { url: `/k8s/clusters/${ c.id }/v1/secrets/epinio/default-epinio-user` }, { root: true }) });
 
         const username = epinio.authData.data.username;
         const password = epinio.authData.data.password;
@@ -28,7 +25,6 @@ export default {
           id:          c.id,
           name:        c.spec.displayName,
           api:         url,
-          version:     epinio.info.version,
           readyApi:    `${ url }/ready`,
           username:    base64Decode(username),
           password:    base64Decode(password),
