@@ -193,6 +193,8 @@ export default {
 
     provisioner: {
       get() {
+        // This can incorrectly return rke1 instead
+        // of rke2 for cluster owners.
         if ( !this.rke2Enabled ) {
           return _RKE1;
         }
@@ -210,7 +212,7 @@ export default {
     },
 
     isRke2() {
-      return this.provisioner === _RKE2;
+      return this.value.isRke2;
     },
 
     templateOptions() {
