@@ -1,4 +1,8 @@
 {
   "experimentalSessionSupport": true,
-  "testFiles":"**/*.spec.ts"
+  "testFiles": [
+    "tests/setup/**/*.spec.ts",
+    "tests/pages/**/*.spec.ts",
+    "tests/navigation/**/*.spec.ts"
+  ]
 }
