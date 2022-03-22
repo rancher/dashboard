@@ -1,7 +1,7 @@
 <script>
-import LabeledFormElement from '@/mixins/labeled-form-element'
-import TextAreaAutoGrow from '@/TextAreaAutoGrow'
-import LabeledTooltip from '@/LabeledTooltip'
+import LabeledFormElement from '~/mixins/labeled-form-element'
+import TextAreaAutoGrow from '~/TextAreaAutoGrow'
+import LabeledTooltip from '~/LabeledTooltip'
 import { escapeHtml } from '@/utils/string'
 import cronstrue from 'cronstrue'
 import { isValidCron } from 'cron-validator'

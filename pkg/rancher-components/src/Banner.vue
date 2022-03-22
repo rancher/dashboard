@@ -1,8 +1,7 @@
 <script lang="ts">
 import Vue from 'vue'
-// TOOD: Properly port utils
-import { nlToBr } from '@/utils/string'
 import { stringify } from '@/utils/error'
+import { nlToBr } from '@/utils/string'
 
 export default Vue.extend({
   props: {
