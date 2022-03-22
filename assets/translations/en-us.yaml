@@ -1895,6 +1895,16 @@ fleet:
           =1 {Matches 1 of {total, number} existing clusters: "{sample}"}
           other {Matches {matched, number} of {total, number} existing clusters, including "{sample}"}
         }
+  fdc:
+    loadingChart: Loading chart data...
+    renderingChart: Rendering chart...
+    name: Name
+    type: Type
+    state: State
+    error: Error
+    status: Status
+    errors: Errors
+
 footer:
   docs: Docs
   download: Download CLI

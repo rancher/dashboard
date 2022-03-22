@@ -7,6 +7,7 @@ import { allHash } from '@/utils/promise';
 import Loading from '@/components/Loading';
 import CollapsibleCard from '@/components/CollapsibleCard.vue';
 import ResourceTable from '@/components/ResourceTable';
+import CompoundStatusBadge from '@/components/Fleet/CompoundStatusBadge';
 
 export default {
   name:       'ListGitRepo',
@@ -14,6 +15,7 @@ export default {
     Loading,
     ResourceTable,
     CollapsibleCard,
+    CompoundStatusBadge
   },
 
   async fetch() {
@@ -114,81 +116,81 @@ export default {
       case 'clusters':
         if (row.clusterInfo?.ready === row.clusterInfo?.total && row.clusterInfo?.ready) {
           return {
-            badgeClass: `bg-${ STATES[STATES_ENUM.ACTIVE].color }`,
-            icon:       'checkmark'
+            badgeClass: STATES[STATES_ENUM.ACTIVE].color,
+            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon
           };
         }
 
         return {
-          badgeClass: `bg-${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-clusters`,
-          icon:       'warning'
+          badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-clusters`,
+          icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
         };
       case 'bundles':
         if (row.bundles?.length && row.bundles?.every(bundle => bundle.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
           return {
-            badgeClass: STATES[STATES_ENUM.ACTIVE].color ? `bg-${ STATES[STATES_ENUM.ACTIVE].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       'checkmark'
+            badgeClass: STATES[STATES_ENUM.ACTIVE].color ? STATES[STATES_ENUM.ACTIVE].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon ? STATES[STATES_ENUM.ACTIVE].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
           };
         }
         if (row.bundles?.length && row.bundles?.some(bundle => bundle.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
           return {
-            badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? `bg-${ STATES[STATES_ENUM.ERR_APPLIED].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       'error'
+            badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? STATES[STATES_ENUM.ERR_APPLIED].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+            icon:       STATES[STATES_ENUM.ERR_APPLIED].compoundIcon ? STATES[STATES_ENUM.ERR_APPLIED].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
           };
         }
         if (row.bundles?.length && row.bundles?.some(bundle => bundle.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
           return {
-            badgeClass: STATES[STATES_ENUM.NOT_READY].color ? `bg-${ STATES[STATES_ENUM.NOT_READY].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       'warning'
+            badgeClass: STATES[STATES_ENUM.NOT_READY].color ? STATES[STATES_ENUM.NOT_READY].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+            icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon ? STATES[STATES_ENUM.NOT_READY].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
           };
         }
 
         if (row.bundlesReady?.length === row.bundles?.length && row.bundlesReady && row.bundles?.length) {
           return {
-            badgeClass: `bg-${ STATES[STATES_ENUM.ACTIVE].color }`,
-            icon:       'checkmark'
+            badgeClass: STATES[STATES_ENUM.ACTIVE].color,
+            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon
           };
         }
 
         return {
-          badgeClass: `bg-${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-bundles`,
-          icon:       'warning'
+          badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-bundles`,
+          icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
         };
       case 'resources':
         if (row.status?.resources?.length && row.status?.resources?.every(resource => resource.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
           return {
-            badgeClass: STATES[STATES_ENUM.ACTIVE].color ? `bg-${ STATES[STATES_ENUM.ACTIVE].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       'checkmark'
+            badgeClass: STATES[STATES_ENUM.ACTIVE].color ? STATES[STATES_ENUM.ACTIVE].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon ? STATES[STATES_ENUM.ACTIVE].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
           };
         }
         if (row.status?.resources?.length && row.status?.resources?.some(resource => resource.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
           return {
-            badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? `bg-${ STATES[STATES_ENUM.ERR_APPLIED].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       'error'
+            badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? STATES[STATES_ENUM.ERR_APPLIED].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+            icon:       STATES[STATES_ENUM.ERR_APPLIED].compoundIcon ? STATES[STATES_ENUM.ERR_APPLIED].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
           };
         }
         if (row.status?.resources?.length && row.status?.resources?.some(resource => resource.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
           return {
-            badgeClass: STATES[STATES_ENUM.NOT_READY].color ? `bg-${ STATES[STATES_ENUM.NOT_READY].color }` : `bg-${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-            icon:       'warning'
+            badgeClass: STATES[STATES_ENUM.NOT_READY].color ? STATES[STATES_ENUM.NOT_READY].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+            icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon ? STATES[STATES_ENUM.NOT_READY].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
           };
         }
 
         if (row.status?.resourceCounts?.desiredReady === row.status?.resourceCounts?.ready && row.status?.resourceCounts?.desiredReady) {
           return {
-            badgeClass: `bg-${ STATES[STATES_ENUM.ACTIVE].color }`,
-            icon:       'checkmark'
+            badgeClass: STATES[STATES_ENUM.ACTIVE].color,
+            icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon
           };
         }
 
         return {
-          badgeClass: `bg-${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-resources`,
-          icon:       'warning'
+          badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-area-resources`,
+          icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
         };
       default:
         return {
-          badgeClass: `bg-${ STATES[STATES_ENUM.NOT_READY].color } badge-class-default`,
-          icon:       'warning'
+          badgeClass: `${ STATES[STATES_ENUM.NOT_READY].color } badge-class-default`,
+          icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
         };
       }
     },
@@ -345,34 +347,28 @@ export default {
             v-on="$listeners"
           >
             <template #cell:clustersReady="{row}">
-              <div
-                v-tooltip.bottom="getTooltipInfo('clusters', row)"
-                class="cluster-count-info"
-                :class="getStatusInfo('clusters', row).badgeClass"
-              >
-                <i :class="`icon-${getStatusInfo('clusters', row).icon}`" />
-                <span>{{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}</span>
-              </div>
+              <CompoundStatusBadge
+                :tooltip-text="getTooltipInfo('clusters', row)"
+                :badge-class="getStatusInfo('clusters', row).badgeClass"
+                :icon="getStatusInfo('clusters', row).icon"
+                :value="`${ row.clusterInfo.ready }/${ row.clusterInfo.total }`"
+              />
             </template>
             <template #cell:bundlesReady="{row}">
-              <div
-                v-tooltip.bottom="getTooltipInfo('bundles', row)"
-                class="cluster-count-info"
-                :class="getStatusInfo('bundles', row).badgeClass"
-              >
-                <i :class="`icon-${getStatusInfo('bundles', row).icon}`" />
-                <span>{{ row.bundlesReady.length || 0 }}/{{ row.bundles.length }}</span>
-              </div>
+              <CompoundStatusBadge
+                :tooltip-text="getTooltipInfo('bundles', row)"
+                :badge-class="getStatusInfo('bundles', row).badgeClass"
+                :icon="getStatusInfo('bundles', row).icon"
+                :value="`${ row.bundlesReady.length || 0 }/${ row.bundles.length }`"
+              />
             </template>
             <template #cell:resourcesReady="{row}">
-              <div
-                v-tooltip.bottom="getTooltipInfo('resources', row)"
-                class="cluster-count-info"
-                :class="getStatusInfo('resources', row).badgeClass"
-              >
-                <i :class="`icon-${getStatusInfo('resources', row).icon}`" />
-                <span>{{ row.status.resourceCounts.ready }}/{{ row.status.resourceCounts.desiredReady }}</span>
-              </div>
+              <CompoundStatusBadge
+                :tooltip-text="getTooltipInfo('resources', row)"
+                :badge-class="getStatusInfo('resources', row).badgeClass"
+                :icon="getStatusInfo('resources', row).icon"
+                :value="`${ row.status.resourceCounts.ready }/${ row.status.resourceCounts.desiredReady }`"
+              />
             </template>
 
             <template #cell:target="{row}">
@@ -430,20 +426,6 @@ export default {
     display: flex;
     align-items: center;
     color: var(--darker);
-  }
-
-  .cluster-count-info {
-    padding: 4px 12px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    width: fit-content;
-    cursor: default;
-
-    i {
-      font-size: 16px;
-      margin-right: 6px;
-    }
   }
 
   .header-icons {

@@ -161,268 +161,268 @@ export const STATES_ENUM = {
 
 export const STATES = {
   [STATES_ENUM.IN_USE]:           {
-    color: 'success', icon: 'dot-open', label: 'In Use'
+    color: 'success', icon: 'dot-open', label: 'In Use', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.IN_PROGRESS]:      {
-    color: 'info', icon: 'tag', label: 'In Progress'
+    color: 'info', icon: 'tag', label: 'In Progress', compoundIcon: 'info'
   },
   [STATES_ENUM.PENDING_ROLLBACK]: {
-    color: 'info', icon: 'dot-half', label: 'Pending Rollback'
+    color: 'info', icon: 'dot-half', label: 'Pending Rollback', compoundIcon: 'info'
   },
   [STATES_ENUM.PENDING_UPGRADE]:  {
-    color: 'info', icon: 'dot-half', label: 'Pending Update'
+    color: 'info', icon: 'dot-half', label: 'Pending Update', compoundIcon: 'info'
   },
   [STATES_ENUM.ABORTED]:            {
-    color: 'warning', icon: 'error', label: 'Aborted'
+    color: 'warning', icon: 'error', label: 'Aborted', compoundIcon: 'warning'
   },
   [STATES_ENUM.ACTIVATING]:         {
-    color: 'info', icon: 'tag', label: 'Activating'
+    color: 'info', icon: 'tag', label: 'Activating', compoundIcon: 'info'
   },
   [STATES_ENUM.ACTIVE]:             {
-    color: 'success', icon: 'dot-open', label: 'Active'
+    color: 'success', icon: 'dot-open', label: 'Active', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.AVAILABLE]:          {
-    color: 'success', icon: 'dot-open', label: 'Available'
+    color: 'success', icon: 'dot-open', label: 'Available', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.BACKED_UP]:           {
-    color: 'success', icon: 'backup', label: 'Backed Up'
+    color: 'success', icon: 'backup', label: 'Backed Up', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.BOUND]:              {
-    color: 'success', icon: 'dot', label: 'Bound'
+    color: 'success', icon: 'dot', label: 'Bound', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.BUILDING]:           {
-    color: 'success', icon: 'dot-open', label: 'Building'
+    color: 'success', icon: 'dot-open', label: 'Building', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.COMPLETED]:          {
-    color: 'success', icon: 'dot', label: 'Completed'
+    color: 'success', icon: 'dot', label: 'Completed', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.CORDONED]:           {
-    color: 'info', icon: 'tag', label: 'Cordoned'
+    color: 'info', icon: 'tag', label: 'Cordoned', compoundIcon: 'info'
   },
   [STATES_ENUM.COUNT]:              {
-    color: 'success', icon: 'dot-open', label: 'Count'
+    color: 'success', icon: 'dot-open', label: 'Count', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.CREATED]:            {
-    color: 'info', icon: 'tag', label: 'Created'
+    color: 'info', icon: 'tag', label: 'Created', compoundIcon: 'info'
   },
   [STATES_ENUM.CREATING]:           {
-    color: 'info', icon: 'tag', label: 'Creating'
+    color: 'info', icon: 'tag', label: 'Creating', compoundIcon: 'info'
   },
   [STATES_ENUM.DEACTIVATING]:       {
-    color: 'info', icon: 'adjust', label: 'Deactivating'
+    color: 'info', icon: 'adjust', label: 'Deactivating', compoundIcon: 'info'
   },
   [STATES_ENUM.DEGRADED]:           {
-    color: 'warning', icon: 'error', label: 'Degraded'
+    color: 'warning', icon: 'error', label: 'Degraded', compoundIcon: 'warning'
   },
   [STATES_ENUM.DENIED]:             {
-    color: 'error', icon: 'adjust', label: 'Denied'
+    color: 'error', icon: 'adjust', label: 'Denied', compoundIcon: 'error'
   },
   [STATES_ENUM.DEPLOYED]:           {
-    color: 'success', icon: 'dot-open', label: 'Deployed'
+    color: 'success', icon: 'dot-open', label: 'Deployed', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.DISABLED]:           {
-    color: 'warning', icon: 'error', label: 'Disabled'
+    color: 'warning', icon: 'error', label: 'Disabled', compoundIcon: 'warning'
   },
   [STATES_ENUM.DISCONNECTED]:       {
-    color: 'warning', icon: 'error', label: 'Disconnected'
+    color: 'warning', icon: 'error', label: 'Disconnected', compoundIcon: 'warning'
   },
   [STATES_ENUM.DRAINED]:            {
-    color: 'info', icon: 'tag', label: 'Drained'
+    color: 'info', icon: 'tag', label: 'Drained', compoundIcon: 'info'
   },
   [STATES_ENUM.DRAINING]:           {
-    color: 'warning', icon: 'tag', label: 'Draining'
+    color: 'warning', icon: 'tag', label: 'Draining', compoundIcon: 'warning'
   },
   [STATES_ENUM.ERR_APPLIED]:         {
-    color: 'error', icon: 'error', label: 'Error Applied'
+    color: 'error', icon: 'error', label: 'Error Applied', compoundIcon: 'error'
   },
   [STATES_ENUM.ERROR]:              {
-    color: 'error', icon: 'error', label: 'Error'
+    color: 'error', icon: 'error', label: 'Error', compoundIcon: 'error'
   },
   [STATES_ENUM.ERRORING]:           {
-    color: 'error', icon: 'error', label: 'Erroring'
+    color: 'error', icon: 'error', label: 'Erroring', compoundIcon: 'error'
   },
   [STATES_ENUM.ERRORS]:             {
-    color: 'error', icon: 'error', label: 'Errors'
+    color: 'error', icon: 'error', label: 'Errors', compoundIcon: 'error'
   },
   [STATES_ENUM.EXPIRED]:            {
-    color: 'warning', icon: 'error', label: 'Expired'
+    color: 'warning', icon: 'error', label: 'Expired', compoundIcon: 'warning'
   },
   [STATES_ENUM.FAIL]:               {
-    color: 'error', icon: 'error', label: 'Fail'
+    color: 'error', icon: 'error', label: 'Fail', compoundIcon: 'error'
   },
   [STATES_ENUM.FAILED]:             {
-    color: 'error', icon: 'error', label: 'Failed'
+    color: 'error', icon: 'error', label: 'Failed', compoundIcon: 'error'
   },
   [STATES_ENUM.HEALTHY]:            {
-    color: 'success', icon: 'dot-open', label: 'Healthy'
+    color: 'success', icon: 'dot-open', label: 'Healthy', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.INACTIVE]:           {
-    color: 'error', icon: 'dot', label: 'Inactive'
+    color: 'error', icon: 'dot', label: 'Inactive', compoundIcon: 'error'
   },
   [STATES_ENUM.INITIALIZING]:       {
-    color: 'warning', icon: 'error', label: 'Initializing'
+    color: 'warning', icon: 'error', label: 'Initializing', compoundIcon: 'warning'
   },
   [STATES_ENUM.INPROGRESS]:         {
-    color: 'info', icon: 'spinner', label: 'In Progress'
+    color: 'info', icon: 'spinner', label: 'In Progress', compoundIcon: 'info'
   },
   [STATES_ENUM.INFO]:         {
-    color: 'info', icon: 'info', label: 'Info'
+    color: 'info', icon: 'info', label: 'Info', compoundIcon: 'info'
   },
   [STATES_ENUM.LOCKED]:             {
-    color: 'warning', icon: 'adjust', label: 'Locked'
+    color: 'warning', icon: 'adjust', label: 'Locked', compoundIcon: 'warning'
   },
   [STATES_ENUM.MIGRATING]:          {
-    color: 'info', icon: 'info', label: 'Migrated'
+    color: 'info', icon: 'info', label: 'Migrated', compoundIcon: 'info'
   },
   [STATES_ENUM.MISSING]:            {
-    color: 'warning', icon: 'adjust', label: 'Missing'
+    color: 'warning', icon: 'adjust', label: 'Missing', compoundIcon: 'warning'
   },
   [STATES_ENUM.MODIFIED]:           {
-    color: 'warning', icon: 'edit', label: 'Modified'
+    color: 'warning', icon: 'edit', label: 'Modified', compoundIcon: 'warning'
   },
   [STATES_ENUM.NOT_APPLICABLE]:      {
-    color: 'warning', icon: 'tag', label: 'Not Applicable'
+    color: 'warning', icon: 'tag', label: 'Not Applicable', compoundIcon: 'warning'
   },
   [STATES_ENUM.NOT_APLLIED]:         {
-    color: 'warning', icon: 'tag', label: 'Not Applied'
+    color: 'warning', icon: 'tag', label: 'Not Applied', compoundIcon: 'warning'
   },
   [STATES_ENUM.NOT_READY]:           {
-    color: 'warning', icon: 'tag', label: 'Not Ready'
+    color: 'warning', icon: 'tag', label: 'Not Ready', compoundIcon: 'warning'
   },
   [STATES_ENUM.OFF]:                {
     color: 'darker', icon: 'error', label: 'Off'
   },
   [STATES_ENUM.ON_GOING]:           {
-    color: 'info', icon: 'info', label: 'Info'
+    color: 'info', icon: 'info', label: 'Info', compoundIcon: 'info'
   },
   [STATES_ENUM.ORPHANED]:           {
-    color: 'warning', icon: 'tag', label: 'Orphaned'
+    color: 'warning', icon: 'tag', label: 'Orphaned', compoundIcon: 'warning'
   },
   [STATES_ENUM.OTHER]:              {
-    color: 'info', icon: 'info', label: 'Other'
+    color: 'info', icon: 'info', label: 'Other', compoundIcon: 'info'
   },
   [STATES_ENUM.OUT_OF_SYNC]:          {
-    color: 'warning', icon: 'tag', label: 'Out Of Sync'
+    color: 'warning', icon: 'tag', label: 'Out Of Sync', compoundIcon: 'warning'
   },
   [STATES_ENUM.PASS]:               {
-    color: 'success', icon: 'dot-dotfill', label: 'Pass'
+    color: 'success', icon: 'dot-dotfill', label: 'Pass', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.PASSED]:             {
-    color: 'success', icon: 'dot-dotfill', label: 'Passed'
+    color: 'success', icon: 'dot-dotfill', label: 'Passed', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.PAUSED]:             {
-    color: 'info', icon: 'info', label: 'Paused'
+    color: 'info', icon: 'info', label: 'Paused', compoundIcon: 'info'
   },
   [STATES_ENUM.PENDING]:            {
-    color: 'info', icon: 'tag', label: 'Pending'
+    color: 'info', icon: 'tag', label: 'Pending', compoundIcon: 'info'
   },
   [STATES_ENUM.PROVISIONING]:       {
-    color: 'info', icon: 'dot', label: 'Provisioning'
+    color: 'info', icon: 'dot', label: 'Provisioning', compoundIcon: 'info'
   },
   [STATES_ENUM.PROVISIONED]:        {
-    color: 'success', icon: 'dot', label: 'Provisioned'
+    color: 'success', icon: 'dot', label: 'Provisioned', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.PURGED]:             {
-    color: 'error', icon: 'purged', label: 'Purged'
+    color: 'error', icon: 'purged', label: 'Purged', compoundIcon: 'error'
   },
   [STATES_ENUM.PURGING]:            {
-    color: 'info', icon: 'purged', label: 'Purging'
+    color: 'info', icon: 'purged', label: 'Purging', compoundIcon: 'info'
   },
   [STATES_ENUM.READY]:              {
-    color: 'success', icon: 'dot-open', label: 'Ready'
+    color: 'success', icon: 'dot-open', label: 'Ready', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.RECONNECTING]:       {
-    color: 'error', icon: 'error', label: 'Reconnecting'
+    color: 'error', icon: 'error', label: 'Reconnecting', compoundIcon: 'error'
   },
   [STATES_ENUM.REGISTERING]:        {
-    color: 'info', icon: 'tag', label: 'Registering'
+    color: 'info', icon: 'tag', label: 'Registering', compoundIcon: 'info'
   },
   [STATES_ENUM.REINITIALIZING]:     {
-    color: 'warning', icon: 'error', label: 'Reinitializing'
+    color: 'warning', icon: 'error', label: 'Reinitializing', compoundIcon: 'warning'
   },
   [STATES_ENUM.RELEASED]:           {
-    color: 'warning', icon: 'error', label: 'Released'
+    color: 'warning', icon: 'error', label: 'Released', compoundIcon: 'warning'
   },
   [STATES_ENUM.REMOVED]:            {
-    color: 'error', icon: 'trash', label: 'Removed'
+    color: 'error', icon: 'trash', label: 'Removed', compoundIcon: 'error'
   },
   [STATES_ENUM.REMOVING]:           {
-    color: 'info', icon: 'trash', label: 'Removing'
+    color: 'info', icon: 'trash', label: 'Removing', compoundIcon: 'info'
   },
   [STATES_ENUM.REQUESTED]:          {
-    color: 'info', icon: 'tag', label: 'Requested'
+    color: 'info', icon: 'tag', label: 'Requested', compoundIcon: 'info'
   },
   [STATES_ENUM.RESTARTING]:         {
-    color: 'info', icon: 'adjust', label: 'Restarting'
+    color: 'info', icon: 'adjust', label: 'Restarting', compoundIcon: 'info'
   },
   [STATES_ENUM.RESTORING]:          {
-    color: 'info', icon: 'medicalcross', label: 'Restoring'
+    color: 'info', icon: 'medicalcross', label: 'Restoring', compoundIcon: 'info'
   },
   [STATES_ENUM.RESIZING]:           {
-    color: 'warning', icon: 'dot', label: 'Resizing'
+    color: 'warning', icon: 'dot', label: 'Resizing', compoundIcon: 'warning'
   },
   [STATES_ENUM.RUNNING]:            {
-    color: 'success', icon: 'dot-open', label: 'Running'
+    color: 'success', icon: 'dot-open', label: 'Running', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.SKIP]:               {
-    color: 'info', icon: 'dot-open', label: 'Skip'
+    color: 'info', icon: 'dot-open', label: 'Skip', compoundIcon: 'info'
   },
   [STATES_ENUM.SKIPPED]:            {
-    color: 'info', icon: 'dot-open', label: 'Skipped'
+    color: 'info', icon: 'dot-open', label: 'Skipped', compoundIcon: 'info'
   },
   [STATES_ENUM.STARTING]:           {
-    color: 'info', icon: 'adjust', label: 'Starting'
+    color: 'info', icon: 'adjust', label: 'Starting', compoundIcon: 'info'
   },
   [STATES_ENUM.STOPPED]:            {
-    color: 'error', icon: 'dot', label: 'Stopped'
+    color: 'error', icon: 'dot', label: 'Stopped', compoundIcon: 'error'
   },
   [STATES_ENUM.STOPPING]:           {
-    color: 'info', icon: 'adjust', label: 'Stopping'
+    color: 'info', icon: 'adjust', label: 'Stopping', compoundIcon: 'info'
   },
   [STATES_ENUM.SUCCEEDED]:          {
-    color: 'success', icon: 'dot-dotfill', label: 'Succeeded'
+    color: 'success', icon: 'dot-dotfill', label: 'Succeeded', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.SUCCESS]:            {
-    color: 'success', icon: 'dot-open', label: 'Success'
+    color: 'success', icon: 'dot-open', label: 'Success', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.SUPERSEDED]:         {
-    color: 'info', icon: 'dot-open', label: 'Superseded'
+    color: 'info', icon: 'dot-open', label: 'Superseded', compoundIcon: 'info'
   },
   [STATES_ENUM.SUSPENDED]:          {
-    color: 'info', icon: 'pause', label: 'Suspended'
+    color: 'info', icon: 'pause', label: 'Suspended', compoundIcon: 'info'
   },
   [STATES_ENUM.UNAVAILABLE]:        {
-    color: 'error', icon: 'error', label: 'Unavailable'
+    color: 'error', icon: 'error', label: 'Unavailable', compoundIcon: 'error'
   },
   [STATES_ENUM.UNHEALTHY]:          {
-    color: 'error', icon: 'error', label: 'Unhealthy'
+    color: 'error', icon: 'error', label: 'Unhealthy', compoundIcon: 'error'
   },
   [STATES_ENUM.UNINSTALLED]:        {
-    color: 'info', icon: 'trash', label: 'Uninstalled'
+    color: 'info', icon: 'trash', label: 'Uninstalled', compoundIcon: 'info'
   },
   [STATES_ENUM.UNINSTALLING]:       {
-    color: 'info', icon: 'trash', label: 'Uninstalling'
+    color: 'info', icon: 'trash', label: 'Uninstalling', compoundIcon: 'info'
   },
   [STATES_ENUM.UNKNOWN]:            {
-    color: 'warning', icon: 'x', label: 'Unknown'
+    color: 'warning', icon: 'x', label: 'Unknown', compoundIcon: 'warning'
   },
   [STATES_ENUM.UNTRIGGERED]:        {
-    color: 'success', icon: 'tag', label: 'Untriggered'
+    color: 'success', icon: 'tag', label: 'Untriggered', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.UPDATING]:           {
-    color: 'warning', icon: 'tag', label: 'Updating'
+    color: 'warning', icon: 'tag', label: 'Updating', compoundIcon: 'warning'
   },
   [STATES_ENUM.WAIT_APPLIED]:        {
-    color: 'info', icon: 'tag', label: 'Wait Applied'
+    color: 'info', icon: 'tag', label: 'Wait Applied', compoundIcon: 'info'
   },
   [STATES_ENUM.WAIT_CHECKIN]:        {
-    color: 'warning', icon: 'tag', label: 'Wait Checkin'
+    color: 'warning', icon: 'tag', label: 'Wait Checkin', compoundIcon: 'warning'
   },
   [STATES_ENUM.WAITING]:            {
-    color: 'info', icon: 'tag', label: 'Waiting'
+    color: 'info', icon: 'tag', label: 'Waiting', compoundIcon: 'info'
   },
   [STATES_ENUM.WARNING]:            {
-    color: 'warning', icon: 'error', label: 'Warning'
+    color: 'warning', icon: 'error', label: 'Warning', compoundIcon: 'warning'
   },
 };
 
