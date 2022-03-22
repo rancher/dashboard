@@ -3,14 +3,11 @@ import * as d3 from 'd3';
 import { STATES, STATES_ENUM } from '@/plugins/steve/resource-class';
 import BadgeState from '@/components/BadgeState';
 import CompoundStatusBadge from '@/components/Fleet/CompoundStatusBadge';
-import InfoBoxItem from '@/components/fleet/ForceDirectedTreeChart/InfoBoxItem';
 import { FDC_ALLOWED_CONFIGS, FDC_CONFIG } from './fdcConfig.js';
 
 export default {
   name:       'ForceDirectedTreeChart',
-  components: {
-    BadgeState, CompoundStatusBadge, InfoBoxItem
-  },
+  components: { BadgeState, CompoundStatusBadge },
   props:      {
     data: {
       type:     [Array, Object],
@@ -379,52 +376,52 @@ export default {
       <!-- info box -->
       <div class="more-info-container">
         <div class="more-info">
-          <ul>
-            <InfoBoxItem v-for="(item, i) in moreInfo" :key="i" :label="t(item.labelKey)">
-              <template v-slot:value>
-                <!-- title-link template -->
-                <div v-if="item.type === 'title-link'">
-                  <span v-if="item.valueObj.detailLocation">
-                    <n-link
-                      :to="item.valueObj.detailLocation"
-                    >
-                      {{ item.valueObj.id }}
-                    </n-link>
-                  </span>
-                  <span v-else>{{ item.valueObj.id }}</span>
-                </div>
-                <!-- state-badge template -->
-                <div v-else-if="item.type === 'state-badge'">
-                  <span>
-                    <BadgeState
-                      :color="`bg-${item.valueObj.stateColor}`"
-                      :label="item.valueObj.stateLabel"
-                      class="state-bagde"
-                    />
-                  </span>
-                </div>
-                <!-- compound-status template -->
-                <div v-else-if="item.type === 'compound-status'">
-                  <CompoundStatusBadge
-                    :badge-class="item.valueObj.badgeClass"
-                    :icon="item.valueObj.icon"
-                    :value="item.valueObj.value"
+          <table>
+            <tr v-for="(item, i) in moreInfo" :key="i">
+              <td :class="{'align-middle': item.type === 'state-badge' || item.type === 'compound-status'}">
+                <span class="more-info-item-label">{{ t(item.labelKey) }}:</span>
+              </td>
+              <td v-if="item.type === 'title-link'">
+                <span v-if="item.valueObj.detailLocation">
+                  <n-link
+                    :to="item.valueObj.detailLocation"
+                  >
+                    {{ item.valueObj.id }}
+                  </n-link>
+                </span>
+                <span v-else>{{ item.valueObj.id }}</span>
+              </td>
+              <!-- state-badge template -->
+              <td v-else-if="item.type === 'state-badge'" class="align-middle">
+                <span>
+                  <BadgeState
+                    :color="`bg-${item.valueObj.stateColor}`"
+                    :label="item.valueObj.stateLabel"
+                    class="state-bagde"
                   />
-                </div>
-                <!-- multiple-error template -->
-                <div v-else-if="item.type === 'multiple-error'">
-                  <div v-for="(val, index) in item.value" :key="index" class="mb-10" v-html="val"></div>
-                </div>
-                <!-- default template -->
-                <div
-                  v-else
-                  :class="{error: item.type === 'single-error'}"
-                >
-                  {{ item.value }}
-                </div>
-              </template>
-            </InfoBoxItem>
-          </ul>
+                </span>
+              </td>
+              <!-- compound-status template -->
+              <td v-else-if="item.type === 'compound-status'" class="align-middle">
+                <CompoundStatusBadge
+                  :badge-class="item.valueObj.badgeClass"
+                  :icon="item.valueObj.icon"
+                  :value="item.valueObj.value"
+                />
+              </td>
+              <!-- multiple-error template -->
+              <td v-else-if="item.type === 'multiple-error'">
+                <div v-for="(val, index) in item.value" :key="index" class="mb-10" v-html="val"></div>
+              </td>
+              <!-- default template -->
+              <td
+                v-else
+                :class="{error: item.type === 'single-error'}"
+              >
+                {{ item.value }}
+              </td>
+            </tr>
+          </table>
         </div>
       </div>
     </div>
@@ -589,10 +586,20 @@ export default {
       border-bottom-right-radius: var(--border-radius);
       overflow-y: auto;
 
-      ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
+      table {
+        td {
+          vertical-align: top;
+          padding-bottom: 5px;
+
+          &.align-middle {
+            vertical-align: middle;
+          }
+        }
+
+        .more-info-item-label {
+          color: var(--darker);
+          margin-right: 8px;
+        }
 
         .error {
           color: var(--error);
