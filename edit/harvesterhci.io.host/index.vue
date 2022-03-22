@@ -433,7 +433,7 @@ export default {
       </Tab>
       <Tab v-if="hasHostNetworksSchema" name="network" :weight="90" :label="t('harvester.host.tabs.network')">
         <InfoBox class="wrapper">
-          <div class="row wrapper">
+          <div class="row">
             <div class="col span-6">
               <LabeledInput
                 v-model="type"
