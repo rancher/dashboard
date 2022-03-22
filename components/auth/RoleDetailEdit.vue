@@ -1,5 +1,5 @@
 <script>
-import { MANAGEMENT } from '@/config/types';
+import { MANAGEMENT, RBAC } from '@/config/types';
 import CruResource from '@/components/CruResource';
 import CreateEditView from '@/mixins/create-edit-view';
 import RadioGroup from '@/components/form/RadioGroup';
@@ -12,9 +12,9 @@ import Tabbed from '@/components/Tabbed';
 import { ucFirst } from '@/utils/string';
 import SortableTable from '@/components/SortableTable';
 import { _DETAIL } from '@/config/query-params';
+
 import { SUBTYPE_MAPPING, VERBS } from '@/models/management.cattle.io.roletemplate';
 import Loading from '@/components/Loading';
-import capitalize from 'lodash/capitalize';
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 const CLUSTER = SUBTYPE_MAPPING.CLUSTER.key;
@@ -34,6 +34,18 @@ const RBAC_ROLE = SUBTYPE_MAPPING.RBAC_ROLE.key;
  *
  * The above means there are 4 types ==> 5 subtypes handled by this component
  *
+ * This component is used in these five forms:
+ *
+ * 1. Cluster Explorer > More Resources > RBAC > ClusterRoles
+ *   - Should show list of cluster scoped resources and namespaced resources
+ * 2. Cluster Explorer > More Resources > RBAC > Roles
+ *   - Should show list of namespaced resources
+ * 3. Users & Authentication > Roles > Global
+ *   - Should show global, cluster and namespace scoped resources
+ * 4. Users & Authentication > Roles > Cluster
+ *   - Should show cluster and namespace scoped resources
+ * 5. Users & Authentication > Roles > Projects & Namespaces
+ *   - Should show only namespace scoped resources
  */
 export default {
   components: {
@@ -52,6 +64,20 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
+    // We don't want to get all schemas from the cluster because there are
+    // two problems with that:
+    // - In the local cluster, that yields over 500-1,000 schemas, most of which aren't meant to
+    //   be edited by humans.
+    // - Populating the list directly from the schemas wouldn't include resources that may
+    //   be in downstream clusters but not the local cluster. For example, if the logging
+    //   application isn't installed in the local cluster, you wouldn't see logging resources
+    //   such as Flows in the resource list, which you might want in order to
+    //   create a role that is intended to be used by someone with access to a cluster where
+    //   logging is installed.
+    // Therefore we use a hardcoded list that is essentially intended
+    // to be in-app documentation for convenience only, while allowing
+    // users to freely type in resources that are not shown in the list.
+
     if (this.value.subtype === CLUSTER || this.value.subtype === NAMESPACE) {
       this.templateOptions = (await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }))
         .map(option => ({
@@ -100,12 +126,379 @@ export default {
         resources:       [],
         verbs:           []
       },
-      verbOptions:     VERBS,
-      templateOptions: []
+      verbOptions:                    VERBS,
+      templateOptions:                [],
+      resources:                      this.value.resources,
+      scopedResources:                {
+        // With this hardcoded list, it will be easier to curate a more useful
+        // and human-understandable list of resources to choose from
+        // when creating a role. The list is not meant to be a
+        // comprehensive list, but a helpful guide.
+
+        // Cluster scoped roles and project scoped roles
+        // are intended to restrict users, so the resource list
+        // in the global role creation form includes the largest resource
+        // list.
+
+        // The cluster role creation form includes a subset of
+        // the global scoped list, and the project role creation form includes a
+        // subset of the cluster scoped list.
+
+        globalScopedApiGroups: {
+          // Global scoped resources are resources for
+          // Rancher's global apps, mainly Cluster
+          // Management and Continuous Delivery.
+          // A global role can include everything at the global
+          // scope, plus everything in the cluster and project scope.
+          'catalog.cattle.io': {
+            resources: [
+              'Apps',
+              'ClusterRepos',
+              'Operations',
+            ]
+          },
+          'cluster.x-k8s.io': {
+            resources: [
+              'Clusters'
+            ]
+          },
+          'fleet.cattle.io': {
+            resources: [
+              'Bundles',
+              'BundleDeployments',
+              'BundleNamespaceMappings',
+              'Clusters',
+              'ClusterGroups',
+              'ClusterRegistrations',
+              'ClusterRegistrationTokens',
+              'Contents',
+              'GitRepos',
+              'GitRepoRestrictions',
+            ],
+          },
+          'gitjob.cattle.io': {
+            resources: [
+              'GitJobs',
+            ]
+          },
+          'harvesterhci.io.management': {
+            resources: [
+              'Clusters'
+            ]
+          },
+          'management.cattle.io': {
+            // Resources provided by the Norman API.
+            resources: [
+              'APIServices',
+              'AuthConfigs',
+              'Catalogs',
+              'CatalogTemplates',
+              'CatalogTemplateVersions',
+              'CisBenchmarkVersions',
+              'CisConfigs',
+              'ClusterCatalogs',
+              'ClusterRegistrationTokens',
+              'ClusterRoleTemplateBindings',
+              'Clusters',
+              'ClusterScans',
+              'ClusterTemplates',
+              'ClusterTemplateRevisions',
+              'ComposeConfigs',
+              'DynamicSchemas',
+              'EtcdBackups',
+              'Features',
+              'FleetWorkspaces',
+              'GlobalRoles',
+              'GlobalRoleBindings',
+              'Groups',
+              'GroupMembers',
+              'KontainerDrivers',
+              'RkeK8sSystemImages',
+              'MonitorMetrics',
+              'Nodes',
+              'NodeDrivers',
+              'NodePools',
+              'NodeTemplates',
+              'PodSecurityPolicyTemplates',
+              'PodSecurityPolicyTemplateProjectBindings',
+              'Preferences',
+              'Projects',
+              'ProjectCatalogs',
+              'ProjectLoggings',
+              'ProjectMonitorGraphs',
+              'ProjectNetworkPolicies',
+              'ProjectRoleTemplateBindings',
+              'RkeAddons',
+              'RkeK8sServiceOptions',
+              'RoleTemplates',
+              'RoleTemplateBindings',
+              'SamlTokens',
+              'Settings',
+              'Templates',
+              'TemplateContents',
+              'TemplateVersions',
+              'Tokens',
+              'Users',
+              'UserAttributes',
+            ],
+            deprecatedResources: [
+              'ClusterAlerts', // Replaced by monitoring V2
+              'ClusterAlertGroups', // Replaced by monitoring V2
+              'ClusterAlertRules', // Replaced by monitoring V2
+              'ClusterLoggings', // Replaced by logging V2
+              'ClusterMonitorGraphs', // Replaced by monitoring V2
+              'GlobalDnses', // Deprecated along with legacy catalogs
+              'GlobalDnsProviders', // Deprecated along with legacy catalogs
+              'MultiClusterApps', // Replaced by Fleet
+              'MultiClusterAppRevisions', // Replaced by Fleet
+              'Notifiers', // Replaced by monitoring V2
+              'ProjectAlerts', // Replaced by monitoring V2
+              'ProjectAlertGroups', // Replaced by monitoring V2
+              'ProjectAlertRules', // Replaced by monitoring V2
+            ]
+          },
+          'provisioning.cattle.io': {
+            resources: [
+              'Clusters'
+            ]
+          }
+        },
+        clusterScopedApiGroups: {
+          // Cluster scoped resources are for non-namespaced
+          // resources at the cluster level, for example,
+          // storage resources.
+          // A cluster role can include everything at the cluster
+          // scope, plus everything in the project scope.
+          coreKubernetesApi: {
+            resources: [
+              // Core K8s API - Non-namespaced resources.
+              // These resources do not have an API group.
+              'APIGroups',
+              'Node',
+              'PersistentVolumes',
+              'ResourceQuotas',
+            ],
+            deprecatedResources: [
+              'ComponentStatuses', // A deprecated API that provided status of etcd, kube-scheduler, and kube-controller-manager components
+            ]
+          },
+          'admissionregistration.k8s.io': {
+            resources: [
+              'MutatingWebhookConfigurations',
+              'ValidatingWebhookConfigurations',
+            ],
+          },
+          'apiextensions.k8s.io': {
+            resources: [
+              'CustomResourceDefinitions',
+            ]
+          },
+          'apiregistration.k8s.io': {
+            resources: [
+              'APIServices'
+            ]
+          },
+          'certificates.k8s.io': {
+            resources: [
+              'CertificateSigningRequests'
+            ]
+          },
+          'rbac.authorization.k8s.io': {
+            resources: [
+              'ClusterRoles',
+              'ClusterRoleBindings',
+              'Roles',
+              'RoleBindings',
+            ]
+          },
+          'config.gatekeeper.sh': {
+            resources: [
+              'Configs'
+            ]
+          },
+          'scheduling.k8s.io': {
+            resources: [
+              'PriorityClasses',
+            ],
+          },
+          'storage.k8s.io': {
+            resources: [
+              'CSIDrivers',
+              'CSINodes',
+              'CSIStorageCapacitys',
+              'StorageClasses',
+              'VolumeAttachments',
+            ]
+          }
+        },
+        projectScopedApiGroups: {
+          // Project scoped resources include all other namespaced
+          // resources.
+          coreKubernetesApi: {
+            resources: [
+              // Core K8s API - Namespaced resources
+              // that are not in an API group.
+              'ConfigMaps',
+              'LimitRanges', // enumerates compute resource constraints in a project at the pod, container, image, image stream, and persistent volume claim level
+              'Namespaces',
+              'PersistentVolumeClaims',
+              'Pods',
+              'PodTemplates',
+              'ReplicationControllers',
+              'Secrets',
+              'Services',
+              'ServiceAccounts',
+            ],
+          },
+          apps: {
+            resources: [
+              'ControllerRevisions',
+              'DaemonSets',
+              'Deployments',
+              'ReplicaSets',
+              'StatefulSets',
+            ]
+          },
+          autoscaling: {
+            resources: [
+              'HorizontalPodAutoscalers',
+            ]
+          },
+          batch: {
+            resources: [
+              'CronJobs',
+              'Jobs',
+            ]
+          },
+          'cis.cattle.io': {
+            resources: [
+              'ClusterScans'
+            ]
+          },
+          'constraints.gatekeeper.sh': {
+            resources: [
+              'K8sAllowedRepos',
+              'K8sRequiredLabels',
+              'Constraints',
+            ]
+          },
+          'templates.gatekeeper.sh': {
+            resources: [
+              'ConstraintTemplates'
+            ]
+          },
+          'coordination.k8s.io': {
+            resources: [
+              'Leases',
+            ]
+          },
+          'events.k8s.io': {
+            resources: [
+              'Events',
+            ]
+          },
+          'monitoring.coreos.com': {
+            resources: [
+              'Alertmanagers',
+              'AlertmanagerConfigs',
+              'PodMonitors',
+              'Probes',
+              'Prometheuses',
+              'PrometheusRules',
+              'Routes',
+              'Receivers',
+              'ServiceMonitors',
+              'ThanosRulers'
+            ]
+          },
+          'networking.k8s.io': {
+            resources: [
+              'Ingresses',
+              'IngressClasses',
+              'NetworkPolicies',
+            ]
+          },
+          'io.k8s.api.discovery': {
+            resources: [
+              'Endpoints'
+            ]
+          },
+          'discovery.k8s.io': {
+            resources: [
+              'EndpointSlices',
+            ]
+          },
+          'node.k8s.io': {
+            resources: [
+              'RuntimeClasses',
+            ]
+          },
+          policy: {
+            resources: [
+              'PodDisruptionBudgets',
+              'PodSecurityPolicies',
+            ]
+          },
+          'project.cattle.io': {
+            resources: [
+              'Apps',
+              'AppRevisions'
+            ],
+            deprecatedResources: [
+              'Pipelines', // Replaced by Fleet
+              'PipelineExecutions', // Replaced by Fleet
+              'PipelineSettings', // Replaced by Fleet
+              'SourceCodeCredentials', // Replaced by Fleet
+              'SourceCodeProviderConfigs', // Replaced by Fleet
+              'SourceCodeRepositorys', // Replaced by Fleet
+            ]
+          },
+          'logging.banzaicloud.io': {
+            resources: [
+              'ClusterFlows',
+              'ClusterOutputs',
+              'Flows',
+              'Loggings',
+              'Outputs',
+            ]
+          },
+          'install.istio.io': {
+            resources: [
+              'IstioOperators',
+            ]
+          },
+          'security.istio.io': {
+            resources: [
+              'AuthorizationPolicys',
+              'RequestAuthentications',
+              'PeerAuthentications',
+            ]
+          },
+          'status.gatekeeper.sh': {
+            resources: [
+              'ConstraintPodStatuses',
+              'ConstraintTemplatePodStatuses',
+            ]
+          },
+          'networking.istio.io': {
+            resources: [
+              'DestinationRules',
+              'EnvoyFilters',
+              'Gateways',
+              'ServiceEntries',
+              'Sidecars',
+              'VirtualServices',
+              'WorkloadEntries',
+              'WorkloadGroups'
+            ]
+          }
+        }
+      }
     };
   },
 
   computed: {
+
     label() {
       return this.t(`rbac.roletemplate.subtypes.${ this.value.subtype }.label`);
     },
@@ -125,11 +518,116 @@ export default {
       ];
     },
     resourceOptions() {
-      return this.value.resources.map(resource => ({
-        value: resource.toLowerCase(),
-        label: capitalize(resource)
-      }));
+      const options = [];
+
+      const scopes = Object.keys(this.scopedResources);
+
+      scopes.forEach((scope) => {
+        if (scope === 'globalScopedApiGroups' && this.value.type !== MANAGEMENT.GLOBAL_ROLE) {
+          // If we are not in the global role creation form,
+          // skip adding the global-scoped resources.
+          return;
+        }
+        if (scope === 'clusterScopedApiGroups' && (this.value.type === RBAC.ROLE || this.value.subtype === NAMESPACE)) {
+          // If we are in a project/namespace role creation form,
+          // additionally skip adding the cluster-scoped resources.
+          return;
+        }
+        const apiGroupsInScope = this.scopedResources[scope];
+
+        const apiGroupNames = Object.keys(apiGroupsInScope);
+
+        // Put each API group as a header and put its resources under it.
+        apiGroupNames.forEach((apiGroup) => {
+          // Add API group as the header for a group of related resources.
+          let apiGroupLabel = apiGroup;
+          let apiGroupValue = apiGroup;
+
+          if (apiGroup === 'coreKubernetesApi') {
+            // If a resource belongs to the core Kubernetes API,
+            // the API group is technically an empty string but
+            // we will label it "Core K8s API, Cluster Scoped."
+
+            // Some core Kubernetes resources are namespaced,
+            // in which case they go under a different heading
+            // "Core K8s API, Namespaced." This lets us
+            // separate them by scope.
+            const labelForNoApiGroup = this.t('rbac.roletemplate.tabs.grantResources.noApiGroupClusterScope');
+            const labelForNamespacedResourcesWithNoApiGroup = this.t('rbac.roletemplate.tabs.grantResources.noApiGroupNamespaceScope');
+
+            apiGroupLabel = scope.includes('cluster') ? labelForNoApiGroup : labelForNamespacedResourcesWithNoApiGroup;
+            apiGroupValue = '';
+          }
+          options.push({
+            kind:      'group',
+            optionKey: apiGroupLabel,
+            label:     apiGroupLabel,
+            value:     apiGroupValue,
+            disabled:  true,
+          });
+
+          const resourcesInApiGroup = this.scopedResources[scope][apiGroup].resources;
+
+          // Add non-deprecated resources to the resource options list
+          resourcesInApiGroup.forEach((resourceName) => {
+            options.push({
+              label:     resourceName,
+              // Use unique key for resource list in the Select dropdown
+              optionKey: apiGroupValue.concat(resourceName),
+              value:     {
+                resourceName,
+                apiGroupValue
+              }
+            });
+          });
+
+          // If the API group has any deprecated options,
+          // list them as "Resource Name (deprecated)"
+          if (this.scopedResources[scope][apiGroup].deprecatedResources) {
+            const deprecatedResourcesInApiGroup = this.scopedResources[scope][apiGroup].deprecatedResources;
+            const deprecatedLabel = this.t('rbac.roletemplate.tabs.grantResources.deprecatedLabel');
+
+            deprecatedResourcesInApiGroup.forEach((resourceName) => {
+              options.push({
+                label:     `${ resourceName } ${ deprecatedLabel }`,
+                optionKey: apiGroupValue.concat(resourceName),
+                value:     {
+                  resourceName,
+                  apiGroupValue
+                }
+              });
+            });
+          }
+        });
+      });
+
+      options.push({
+        // This hidden option is to work around a bug in the Select
+        // component where an option marked as disabled
+        // is still selected by default if is value is an empty string.
+
+        // In the Role or Project Role form, an API group will be the
+        // default choice for the namespace value because there's only
+        // one option with the value as an empty string and that's the default
+        // value for the namespace. It's not good to have an API
+        // group as the default value for a resource.
+        // Adding this option means there are least two values with an
+        // empty string in the options, preventing the Select from
+        // selecting a disabled header group as the resource by default.
+
+        // This bug is such an edge case that I can't imagine anyone
+        // else hitting it, so I figured the workaround is better
+        // than fixing the select.
+        kind:      'group',
+        optionKey: 'hiddenOption',
+        label:     '_',
+        value:     '',
+        disabled:  true,
+      });
+
+      return options;
     },
+
     newUserDefaultOptions() {
       return [
         {
@@ -209,13 +707,76 @@ export default {
   },
 
   methods: {
+
     setRule(key, rule, event) {
+      // The key is the aspect of a permissions rule
+      // that is being set, for example, "verbs," "resources",
+      // "apiGroups" or "nonResourceUrls."
+
+      // The event/value contains name of a resource,
+      // for example, "Apps."
+
+      // The 'rule' contains the the contents of each row of the
+      // role creation form under Grant Resources. Each
+      // rule contains these fields:
+      // - apiGroups
+      // - nonResourceURLs
+      // - resourceNames
+      // - resources
+      // - verbs
       const value = event.label ? event.label : event;
 
-      if (value || (key === 'apiGroups' && value === '')) {
-        this.$set(rule, key, [value]);
-      } else {
-        this.$set(rule, key, []);
+      switch (key) {
+      case 'apiGroups':
+
+        if (value || (value === '')) {
+          this.$set(rule, 'apiGroups', [value]);
+        }
+
+        break;
+
+      case 'verbs':
+
+        if (value) {
+          this.$set(rule, 'verbs', [value]);
+        } else {
+          this.$set(rule, 'verbs', []);
+        }
+        break;
+
+      case 'resources':
+        if (event.resourceName) {
+          // If we are updating the resources defined in a rule,
+          // the event will be an object with the
+          // properties apiGroupValue and resourceName.
+          this.$set(rule, 'resources', [event.resourceName]);
+          // Automatically fill in the API group of the
+          // selected resource.
+          this.$set(rule, 'apiGroups', [event.apiGroupValue]);
+        } else if (event.label) {
+          // When the user creates a new resource name in the resource
+          // field instead of selecting an existing one,
+          // we have to treat that differently because the incoming event
+          // is shaped like {"label":"something"} instead of
+          // the same format as the other options:
+          // { resourceName: "something", apiGroupValue: "" }
+          this.$set(rule, 'resources', [event.label]);
+        } else {
+          this.$set(rule, 'resources', []);
+          this.$set(rule, 'apiGroups', []);
+        }
+        break;
+
+      case 'nonResourceURLs':
+        if (value) {
+          this.$set(rule, 'nonResourceURLs', [value]);
+        } else {
+          this.$set(rule, 'nonResourceURLs', []);
+        }
+        break;
+
+      default:
+        break;
       }
     },
     getRule(key, rule) {
@@ -338,13 +899,12 @@ export default {
       <div v-if="isRancherType" class="row">
         <div class="col span-6">
           <RadioGroup
-            :value="value.default"
+            v-model="value.newUserDefault"
             name="storageSource"
             :label="defaultLabel"
             class="mb-10"
             :options="newUserDefaultOptions"
             :mode="mode"
-            @input="value.updateDefault"
           />
         </div>
         <div v-if="isRancherRoleTemplate" class="col span-6">
@@ -382,17 +942,19 @@ export default {
                   </label>
                 </div>
                 <div :class="ruleClass">
-                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}
+                  <label class="text-label">
+                    {{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}
+                    <i v-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')" class="icon icon-info" />
                     <span v-if="isNamespaced" class="required">*</span>
                   </label>
-                </div>
-                <div v-if="!isNamespaced" :class="ruleClass">
-                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.nonResourceUrls') }}</label>
                 </div>
                 <div :class="ruleClass">
                   <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}
                     <span v-if="isNamespaced" class="required">*</span>
                   </label>
+                </div>
+                <div v-if="!isNamespaced" :class="ruleClass">
+                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.nonResourceUrls') }}</label>
                 </div>
               </div>
             </template>
@@ -418,13 +980,7 @@ export default {
                     :taggable="true"
                     :mode="mode"
                     @input="setRule('resources', props.row.value, $event)"
-                  />
-                </div>
-                <div v-if="!isNamespaced" :class="ruleClass">
-                  <LabeledInput
-                    :value="getRule('nonResourceURLs', props.row.value)"
-                    :mode="mode"
-                    @input="setRule('nonResourceURLs', props.row.value, $event)"
+                    @createdListItem="setRule('resources', props.row.value, $event)"
                   />
                 </div>
                 <div :class="ruleClass">
@@ -432,6 +988,13 @@ export default {
                     :value="getRule('apiGroups', props.row.value)"
                     :mode="mode"
                     @input="setRule('apiGroups', props.row.value, $event)"
+                  />
+                </div>
+                <div v-if="!isNamespaced" :class="ruleClass">
+                  <LabeledInput
+                    :value="getRule('nonResourceURLs', props.row.value)"
+                    :mode="mode"
+                    @input="setRule('nonResourceURLs', props.row.value, $event)"
                   />
                 </div>
               </div>

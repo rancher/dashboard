@@ -2,7 +2,7 @@ import { insertAt } from '@/utils/array';
 import { colorForState, stateDisplay } from '@/plugins/steve/resource-class';
 import { NODE, WORKLOAD_TYPES } from '@/config/types';
 import SteveModel from '@/plugins/steve/steve-class';
-import { shortenedImage } from '@/utils/string';
+import { escapeHtml, shortenedImage } from '@/utils/string';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -158,5 +158,12 @@ export default class Pod extends SteveModel {
 
   get isRunning() {
     return this.status.phase === 'Running';
+  }
+
+  // Use by pod list to group the pods by node
+  get groupByNode() {
+    const name = this.spec?.nodeName || this.$rootGetters['i18n/t']('generic.none');
+
+    return this.$rootGetters['i18n/t']('resourceTable.groupLabel.node', { name: escapeHtml(name) });
   }
 }

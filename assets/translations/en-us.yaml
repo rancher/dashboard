@@ -20,6 +20,10 @@ generic:
   id: ID
   ignored: Ignored
   invalidCron: Invalid cron schedule
+  imagePullPolicy:
+    always: Always
+    ifNotPresent: IfNotPresent
+    never: Never
   labelsAndAnnotations: Labels & Annotations
   links: Links
   loading: Loading&hellip;
@@ -30,6 +34,12 @@ generic:
   none: None
   notFound: Not Found
   number: '{prefix}{value, number}{suffix}'
+  notification:
+    title:
+      succeed: Succeed
+      info: Info
+      warning: Warning
+      error: Error
   overview: Overview
   plusMore: "+ {n} more"
   readFromFile: Read from File
@@ -75,6 +85,7 @@ generic:
   enable: Enable
   disable: Disable
   experimental: Experimental
+
   deprecated: Deprecated
   placeholder: "e.g. {text}"
   moreInfo: More Info
@@ -149,7 +160,7 @@ nav:
     preferences: Preferences
     accountAndKeys: Account & API Keys
     logOut: Log Out
-  failWhale: 
+  failWhale:
     reload: Reload
     separator: or
 
@@ -172,12 +183,14 @@ product:
   mcapps: Multi-cluster Apps
   harvesterManager: Virtualization Management
   harvester: Harvester
+  rancher: Rancher
 
 suffix:
   percent: "%"
-  milliCpus: mili CPUs
+  milliCpus: milli CPUs
   cores: Cores
   cpus: CPUs
+  gpus: GPUs
   ib: iB
   mib: MiB
   gb: GB
@@ -285,7 +298,7 @@ authConfig:
       app:
         label: Application name
         value: 'Anything you like, e.g. My {vendor}'
-      calllback:
+      callback:
         label: Authorization callback URL
       description:
         label: Application description
@@ -676,9 +689,11 @@ catalog:
   app:
     managed: Managed
     section:
+      lastOperation: Last Operation
       notes: Release Notes
+      openLogs: View Logs
       readme: Chart README
-      resources: 
+      resources:
         label: Resources
         busy: The related resources will appear when {app} is fully installed.
       values: Values YAML
@@ -706,11 +721,15 @@ catalog:
       other: Other
       partner: Partner
       rancher: '{vendor}'
+    deploysOnWindows: Deploys on Windows
+    windowsIncompatible: Linux only
+    versionWindowsIncompatible: Linux only version
     header: Charts
     noCharts: 'There are no charts available, have you added any repos?'
-    noWindows: Your catalogs do not contain any charts capable of being deployed on a Windows cluster.
+    noWindows: Your repos do not contain any charts capable of being deployed on a cluster with Windows nodes.
+    noWindowsAndLinux: Your repos do not contain any charts capable of being deployed on a cluster with both Windows and Linux worker nodes.
     operatingSystems:
-      all: All OSs
+      all: All Operating Systems
       linux: Linux
       windows: Windows
     search: Filter
@@ -841,12 +860,16 @@ catalog:
       placeholder: 'e.g. https://charts.rancher.io'
   tools:
     header: Cluster Tools
+    noTools: "No Cluster Tools found"
     action:
       install: Install
       upgrade: Upgrade/Edit
       edit: Edit
       remove: Remove
       manage: Manage
+  os:
+    versionIncompatible: "This version is not compatible with Windows nodes."
+    chartIncompatible: "This chart is not compatible with Windows nodes."
 
 changePassword:
   title: Change Password
@@ -869,7 +892,7 @@ changePassword:
       label: Generated Password
   newGeneratedPassword: Suggest a password
   errors:
-    missmatchedPassword: Passwords do not match
+    mismatchedPassword: Passwords do not match
     failedToChange: Failed to change password
     failedDeleteKey: Failed to delete key
     failedDeleteKeys: Failed to delete keys
@@ -983,7 +1006,7 @@ cluster:
     registrationCommand:
       label: Registration Command
       linuxDetail: Run this command on each of the existing Linux machines you want to register.
-      windowsDetail: Run this command in Powershell on each of the existing Windows machines you want to register. Windows nodes can only be workers.
+      windowsDetail: Run this command in PowerShell on each of the existing Windows machines you want to register. Windows nodes can only be workers.
       windowsNotReady: The cluster must be up and running with Linux etcd, control plane, and worker nodes before the registration command for adding Windows workers will display.
       windowsWarning: Workload pods, including some deployed by Rancher charts, will be scheduled on both Linux and Windows nodes by default. Edit NodeSelector in the chart to direct them to be placed onto a compatible node.
       insecure: "Insecure: Select this to skip TLS verification if your server has a self-signed certificate."
@@ -1094,7 +1117,7 @@ cluster:
       image: Image
       network: Network Name
       sshUser: SSH User
-      userData: 
+      userData:
         label: User Data Template
         title: "User Data:"
       networkData:
@@ -1108,7 +1131,7 @@ cluster:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
   harvester:
-    importNotice: Import Harvester Clusters via 
+    importNotice: Import Harvester Clusters via
     warning:
       label: This is a Harvester Cluster - enable the Harvester feature flag to manage it
       state: Warning
@@ -1116,14 +1139,14 @@ cluster:
       There {count, plural,
       =1 {is 1 Harvester cluster that is not shown}
       other {are # Harvester clusters that are not shown}
-      }  
+      }
     registration:
       step1: "1. Go to the <code>Advanced / Settings</code> page of the target Harvester's UI."
       step2: '2. Find the <code>cluster-registration-url</code> setting and click the <code><i class="icon icon-actions" ></i></code> -> <code>Edit Setting</code> button.'
       step3: "3. Input the following registration URL and click the <code>Save</code> button."
       step4: "Registration URL"
     machinePool:
-      cpu: 
+      cpu:
         placeholder: e.g. 2
       memory:
         placeholder: e.g. 4
@@ -1161,15 +1184,18 @@ cluster:
       updateInfo: Create a new pool to update machine configs
     aws:
       sizeLabel: |-
-        {apiName}: {cpu}, {memory, number} GiB Memory, {storageSize, plural,
+        {apiName}: {cpu, plural,
+        =1 {1 vCPU}
+          other {# vCPUs}
+        } / {memory, number} GiB Memory / {storageSize, plural,
           =0 {EBS-Only}
-          other {{storageSize, number} GiB {storageType}}
+          other {{storageSize, number} {storageUnit} {storageType}}
         }
     azure:
       availabilitySet:
         label: Availability Set (unmanaged)
       dns:
-        help: A unique DNS label for the public IP adddress.
+        help: A unique DNS label for the public IP address.
         label: DNS Label
       environment:
         label: Environment
@@ -1257,7 +1283,7 @@ cluster:
         auto: Use vApp to configure networks with network protocol profiles
         manual: Provide a custom vApp config
         restoreType: Restore Type
-        transport: 
+        transport:
           label: OVF environment transport
           tooltip: com.vmware.guestInfo or iso
           placeholder: e.g. com.vmware.guestInfo
@@ -1294,7 +1320,7 @@ cluster:
         resourcePool: Resource Pool
         dataStore: Data Store
         folder: Folder
-        host: 
+        host:
           label: Host
           note: Specific host to create VM on (leave blank for standalone ESXi or for cluster with DRS)
       instanceOptions:
@@ -1304,13 +1330,13 @@ cluster:
         memory: Memory
         disk: Disk
         creationMethod: Creation method
-        template: 
+        template:
           label: Template
           none: No Templates Found
         contentLibrary: Content library
         libraryTemplate: Library template
         virtualMachine: Virtual machine
-        osIsoUrl: 
+        osIsoUrl:
           label: OS ISO URL
           placeholder: 'Default: Latest rancheros-vmware image'
         cloudInit:
@@ -1318,6 +1344,7 @@ cluster:
           placeholder: e.g. http://my_host/cloud-config.yml
           note: Cloud-init file or url to set in the guestinfo
         cloudConfigYaml: Cloud Config YAML
+        os: Operating System
       tags:
         label: Tags
         description: Tags allow you to attach metadata to objects in the vSphere inventory to make it easier to sort and search for these objects.
@@ -1326,7 +1353,7 @@ cluster:
         label: Custom attributes (legacy)
         description: Custom attributes allow you to attach metadata to objects in the vSphere inventory to make it easier to sort and search for these objects.
         add: Add custom attribute
-    amazonEc2: 
+    amazonEc2:
       region: Region
       zone: Zone
       instanceType: Instance Type
@@ -1343,21 +1370,21 @@ cluster:
       ami:
         label: AMI ID
         placeholder: 'Default: A recent Ubuntu LTS'
-      sshUser: 
+      sshUser:
         label: SSH Username for AMI
         placeholder: 'Default: ubuntu'
         tooltip: 'The username that exists in the selected AMI; Provisioning will SSH to the node with this.'
       securityGroup:
         title: Security Group
         vpcId: '(select a VPC/Subnet first)'
-        mode: 
+        mode:
           default: 'Standard: Automatically create and use a "{defaultGroup}"; security group'
           custom: 'Choose one or more existing security groups:'
       volumeType:
         label: EBS Root Volume Type
         placeholder: 'Default: gp2'
       encryptEbsVolume: Encrypt EBS Volume
-      kmsKey: 
+      kmsKey:
         label: KMS Key ARN
         text: 'You do not have permission to list KMS keys, but may still be able to enter a Key ARN if you know one.'
       requestSpotInstance: Request Spot Instance
@@ -1370,10 +1397,10 @@ cluster:
       httpEndpoint: Allow access to EC2 metadata
       httpTokens: Use tokens for metadata
       tagTitle: EC2 Tags
-  addOns: 
+  addOns:
     additionalManifest:
       title: Additional Manifest
-      tooltip: 'Additional Kubernetes Manifet YAML to be applied to the cluster on startup.'
+      tooltip: 'Additional Kubernetes Manifest YAML to be applied to the cluster on startup.'
   advanced:
     argInfo:
       title: Additional Kubelet Args
@@ -1395,6 +1422,8 @@ cluster:
       label: Raise error if kernel parameters are different than the expected kubelet defaults
   banner:
     warning: 'This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration.'
+    os: 'You are attemping to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
+    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
 
   machinePool:
     name:
@@ -1439,6 +1468,10 @@ cluster:
       label: Roles
     labels:
       label: Kubernetes Node Labels
+    autoReplace:
+      label: Auto Replace
+      toolTip: If greater than 0, nodes that are unreachable for this duration will be automatically deleted and replaced.
+      unit: "Minutes"
   memberRoles:
     removeMessage: 'Note: Removing a user will not remove their project permissions'
     addClusterMember:
@@ -1532,7 +1565,7 @@ cluster:
       rke2-metrics-server: 'Metrics Server'
       header: System Services
     cni:
-      label: Container Network 
+      label: Container Network
     cloudProvider:
       label: Cloud Provider
       header: Cloud Provider Config
@@ -1554,6 +1587,7 @@ cluster:
       label: Drain Nodes
       toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed.
     address:
+      tooltip: Cluster networking values cannot be changed after the cluster is created.
       header: Addressing
       clusterCidr:
         label: Cluster CIDR
@@ -1572,6 +1606,9 @@ cluster:
       caCerts:
         label: CA Certificates
         toolTip: Certificates required for the client to successfully verify the validity of the certificate returned by the endpoint.
+      ipv6:
+        warning: It looks like you are using an IPv6 CIDR. Your node driver may require additional configuration to support this.
+        enable: Enable IPv6 support
     etcd:
       disableSnapshots:
         label: Automatic Snapshots
@@ -1584,6 +1621,7 @@ cluster:
         false: Only available inside the cluster
         true: Exposed to the public interface
   k3s:
+    techPreview: K3s provisioning is in Tech Preview
     systemService:
       coredns: 'CoreDNS'
       local-storage: 'Local Storage'
@@ -1660,10 +1698,14 @@ clusterIndexPage:
       buttonText: Configure Gatekeeper
       disabled: OPA Gatekeeper is not configured.
       label: OPA Gatekeeper Constraint Violations
-      noRows: There are no contraints with violations to show.
+      noRows: There are no constraints with violations to show.
     nodes:
       label: Unhealthy Nodes
       noRows: There are no unhealthy nodes to show.
+    componentStatus:
+      etcd: Etcd
+      scheduler: Scheduler
+      controller-manager: Controller Manager
 
 configmap:
   tabs:
@@ -1675,10 +1717,12 @@ configmap:
 
 containerResourceLimit:
   cpuPlaceholder: e.g. 1000
+  gpuPlaceholder: e.g. 1
   helpText: Configure how much of the resources the container can consume by default.
   helpTextDetail: The amount of resources the container can consume by default.
   label: Container Default Resource Limit
   limitsCpu: CPU Limit
+  limitsGpu: NVIDIA GPU Limit/Reservation
   limitsMemory: Memory Limit
   memPlaceholder: e.g. 128
   requestsCpu: CPU Reservation
@@ -1733,6 +1777,22 @@ etcdInfoBanner:
   failedProposals: "Number of failed proposals:"
 
 fleet:
+  dashboard:
+    pageTitle: Continuous Delivery Dashboard
+    menuLabel: Dashboard
+    welcome: Welcome to Fleet Continuous Delivery
+    gitOpsScale: GitOps at scale.
+    learnMore: Learn More.
+    learnMoreLink: https://fleet.rancher.io
+    noRepo: "You don't have any Git Repositories in your Workspaces"
+    getStarted: Get started
+    thereIsMore: |-
+      {count, plural,
+      =1 { There is one other workspace with no repositories}
+      other { There are { count } other workspaces with no repositories}
+      }
+    expandAll: Expand All
+    collapseAll: Collapse All
   cluster:
     summary: Resource Summary
     nonReady: Non-Ready Bundles
@@ -1741,22 +1801,23 @@ fleet:
       There {count, plural,
       =1 {is 1 Harvester cluster that is hidden as this can not be used with Continuous Delivery}
       other {are # Harvester clusters that are hidden as they can not be used with Continuous Delivery}
-      }  
+      }
   tokens:
     harvester: |-
       {count, plural,
       =1 {1 token is hidden as it belongs to a Harvester cluster that can not be used with Continuous Delivery}
       other {# tokens are hidden as they belong to Harvester clusters that can not be used with Continuous Delivery}
-      }  
+      }
   bundles:
     harvester: |-
       {count, plural,
       =1 {1 bundle is hidden as it belongs to a Harvester cluster that can not be used with Continuous Delivery}
       other {# bundles are hidden as they belong to Harvester clusters that can not be used with Continuous Delivery}
-      }  
+      }
   fleetSummary:
+    noClustersGitRepo: This git repo is not targeting any clusters
     state:
-      success: 'Ready'
+      ready: 'Ready'
       info: 'Transitioning'
       warning: 'Warning'
       error: 'Error'
@@ -1764,6 +1825,7 @@ fleet:
       notReady: Not Ready
       waitApplied: Wait Applied
   gitRepo:
+    createLocalBanner: When deploying a Git Repo to the Local workspace you are unable to target any specific Cluster or Cluster Groups
     tabs:
       resources: Resources
       unready: Non-Ready
@@ -1782,6 +1844,8 @@ fleet:
     repo:
       label: Repository URL
       placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
+      addRepo: Add Repository
+      noRepos: No repositories have been added
     ref:
       label: Watch
       branch: A Branch
@@ -1815,6 +1879,9 @@ fleet:
       verify: Require a valid certificate
       specify: Specify additional certificates to be accepted
       skip: Accept any certificate (insecure)
+    warningTooltip:
+      clusterGroup: There are no clusters in this Cluster Group
+      cluster: There are no clusters available
     workspace:
       label: Workspace
   clusterGroup:
@@ -1888,6 +1955,21 @@ glance:
   installMonitoring: Install Monitoring
   v1MonitoringInstalled: V1 Monitoring Installed
   clusterInfo: Cluster Information
+
+clusterBadge:
+  addLabel: Add Cluster Badge
+  editLabel: Edit Cluster Badge
+  modal:
+    title: Custom Cluster Badge
+    checkbox: Show badge for this cluster
+    description: Custom description
+    iconText: Icon Text
+    buttonAction: Apply
+    badgeBgColor: Badge background color
+    badgeTextColor: Badge text color
+    badgeAsIcon: Customize cluster icon
+    maxCharsTooltip: Maximum two characters
+    previewTitle: "Cluster icon and name presentation:"
 
 grafanaDashboard:
   failedToLoad: Failed to load graph
@@ -2483,18 +2565,28 @@ longhorn:
         description: 'Manage storage system via UI'
         na: Resource Unavailable
 
+neuvector:
+  overview:
+    title: Overview
+    subtitle: "Powered by: <a href='https://github.com/neuvector' target='_blank' rel='noopener nofollow noreferrer'>NeuVector</a>"
+    linkedList:
+      neuvector:
+        label: 'NeuVector'
+        description: 'Full Lifecycle Container Security'
+        na: Resource Unavailable
+
 login:
   howdy: Howdy!
   welcome: Welcome to {vendor}
   loggedOut: You have been logged out.
   loginAgain: Log in again to continue.
-  serverError:  
+  serverError:
     authFailedCreds: "Logging in failed: Check credentials, or your account may not be authorized to log in."
     authFailed: "Logging in failed: Your account may not be authorized to log in."
-    unknown: "An unknown error occured while attempting to login. Please contact your system administrator."
+    unknown: "An unknown error occurred while attempting to login. Please contact your system administrator."
     invalidSamlAttrs: "Invalid saml attributes"
     noResponse: "No response received"
-  error: An error occured logging in. Please try again.
+  error: An error occurred logging in. Please try again.
   clientError: Invalid username or password. Please try again.
   useLocal: Use a local user
   loginWithProvider: Log in with {provider}
@@ -2551,7 +2643,7 @@ monitoring:
     tip: 'Adds labels to the ClusterRoles deployed by the Monitoring chart to <a target="_blank" rel="noopener nofollow noreferrer" href="https://kubernetes.io/docs/reference/access-authn-authz/rbac/#aggregated-clusterroles"> aggregate to the corresponding default k8s admin, edit, and view ClusterRoles.</a>'
   alerting:
     config:
-      label: Alert Manager Cofig
+      label: Alert Manager Config
     enable:
       label: Deploy Alertmanager
     secrets:
@@ -2810,6 +2902,8 @@ namespace:
   enableAutoInjection: Enable Istio Auto Injection
   disableAutoInjection: Disable Istio Auto Injection
   move: Move
+  total: Total
+  workloads: Workloads
   resourceStates:
       success: 'Active'
       info: 'Transitioning'
@@ -2821,15 +2915,130 @@ namespace:
         shortDescription: Deployment is paused
         longDescription: Deployment is paused. Pausing stops the controller from deploying revisions.
 
-
 namespaceFilter:
+  noMatchingOptions: No matching options
+  more: "+{more}"
   selected:
-    label: "{total} items selected"
+    label: |-
+      {total, plural,
+      one {1 item selected}
+      other {{total} items selected}
+      }
 
 namespaceList:
   selectLabel: Namespace
   addLabel: Add Namespace
 
+navLink:
+  name:
+    label: Name
+    placeholder: 'e.g. foo-bar'
+  label:
+    label: Display name
+    placeholder: 'Text displayed for the link'
+  tabs:
+    link:
+      label: Link type
+      type:
+        label: Link type
+        service: Link to service
+        url: Link to URL
+      toURL:
+        label: Destination URL
+        placeholder: 'e.g. https://rancher.com'
+      toService:
+        service:
+          label: Service (namespace/name)
+          placeholder: 'e.g. cattle-system/rancher-webhook'
+        path:
+          label: Path
+          placeholder: 'e.g. proxy/?orgId=1'
+        port:
+          label: Port
+          placeholder: 'e.g. 80'
+        scheme:
+          label: Scheme
+          placeholder: 'e.g. http'
+    target:
+      label: Window target
+      option:
+        blank: New window
+        self: Replace window
+        named: Custom named window
+      namedValue:
+        label: Window name
+    group:
+      label: Group
+      group:
+        label: Group name
+        tooltip: Assign link to a group
+      sideLabel:
+        label: Link Label
+      description:
+        label: Link description
+      iconSrc:
+        label: Add image
+networkpolicy:
+  egress:
+    label: Egress Rules
+    enable: Configure egress rules to restrict outgoing traffic
+    ruleLabel: Targets
+    ruleHint: Outgoing traffic is only allowed to the configured targets
+    portHint: Outgoing traffic is only allowed to connect to the configured ports
+  ingress:
+    label: Ingress Rules
+    enable: Configure ingress rules to restrict incoming traffic
+    ruleLabel: Sources
+    ruleHint: Incoming traffic is only allowed from the configured sources
+    portHint: Incoming traffic is only allowed to connect to the configured ports
+  labelsAnnotations:
+    label: Labels & Annotations
+  rules:
+    ruleLabel: Rule {index}
+    addPort: Add allowed port
+    type: Rule type
+    ingress:
+      add: Add allowed traffic source
+    egress:
+      add: Add allowed traffic target
+    ports:
+      label: Allowed ports
+      port:
+        label: Port
+        placeholder: e.g. 8080
+      protocol: Protocol
+    ipBlock:
+      label: IP block
+      exceptions: Exceptions
+      cidr:
+        label: CIDR
+        placeholder: e.g. 1.1.1.0/24
+      addExcept: Add exception
+      invalidCidr: "Invalid CIDR"
+      invalidExceptionCidrs: "Invalid Exceptions: "
+    podSelector:
+      label: Pod Selector
+    namespaceSelector:
+      label: Namespace Selector
+  config:
+    label: Configuration
+  selectors:
+    label: Selectors
+    hint: The NetworkPolicy is applied to the selected Pods
+    matchingPods:
+      matchesSome: |-
+        {matched, plural,
+          =0 {Matches 0 of {total, number} pods}
+          =1 {Matches 1 of {total, number} pods: "{sample}"}
+          other {Matches {matched, number} of {total, number} existing pods, including "{sample}"}
+        }
+    matchingNamespaces:
+      matchesSome: |-
+        {matched, plural,
+          =0 {Matches 0 of {total, number} namespaces}
+          =1 {Matches 1 of {total, number} namespaces: "{sample}"}
+          other {Matches {matched, number} of {total, number} existing namespaces, including "{sample}"}
+        }
 node:
   list:
     pool: Pool
@@ -3185,7 +3394,7 @@ persistentVolumeClaim:
   name: Persistent Volume Claim Name
   accessModes: Access Modes
   accessModesOptions:
-    singleNodeRW: Single-Node Read/Write 
+    singleNodeRW: Single-Node Read/Write
     manyNodeR: Many-Node Read-Only
     manyNodeRW: Many-Node Read/Write
   capacity: Capacity
@@ -3277,7 +3486,7 @@ probe:
     port:
       label: Check Port
       placeholder: e.g. 80
-      placeholderDuex: e.g. 25
+      placeholderDeux: e.g. 25
   initialDelay:
     label: Initial Delay
     placeholder: 'Default: 0'
@@ -3411,6 +3620,11 @@ promptForceRemove:
   forceDelete: Force Delete
   confirmName: "Enter in the pool name below to confirm:"
 
+promptScaleMachineDown:
+  attemptingToRemove: "You are attempting to delete {count} {type}"
+  retainedMachine1: At least one Machine must exist for roles Control Plane and Etcd.
+  retainedMachine2: <b>{ name }</b> will remain
+
 promptRemove:
   title: Are you sure?
   andOthers: |-
@@ -3491,6 +3705,10 @@ rbac:
     tabs:
       grantResources:
         label: Grant Resources
+        noApiGroupClusterScope: Core K8s API, Cluster Scoped
+        noApiGroupNamespaceScope: Core K8s API, Namespaced
+        deprecatedLabel: (deprecated)
+        resourceOptionInfo: The resource options are not a complete list of every resource available in every Rancher-managed Kubernetes cluster. Resources and API groups may need to be manually entered in advanced use cases.
         tableHeaders:
           verbs: Verbs
           resources: Resource
@@ -3662,6 +3880,7 @@ resourceTable:
     none: Flat List
     namespace: Group by Namespace
     project: Group by Project
+    node: Group by Node
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
     namespace: "<span>Namespace:</span> {name}"
@@ -3674,6 +3893,7 @@ resourceTable:
     workspace: "<span>Workspace:</span> {name}"
     notInANodePool: "Not in a Pool"
     nodePool: "<span>Pool:</span> {name} ({count})"
+    node: "<span>Node:</span> {name}"
 
 resourceTabs:
   conditions:
@@ -3760,7 +3980,7 @@ secret:
     'kubernetes.io/basic-auth':
       description: 'Authentication with a username and password'
       docLink: https://kubernetes.io/docs/concepts/configuration/secret/#basic-authentication-secret
-    'Opaque': 
+    'Opaque':
       description: Default type of Secret using key-value pairs
       docLink: https://kubernetes.io/docs/concepts/configuration/secret/#opaque-secrets
     'kubernetes.io/dockerconfigjson':
@@ -3921,7 +4141,7 @@ setup:
 sortableTable:
   actionAvailability:
     selected: "{actionable} selected"
-    some: "Available for {actionable} of the {total} selected"
+    some: "Affects {actionable} of {total}"
   noData: There are no rows which match your search query.
   noRows: There are no rows to show.
   noActions: No actions available
@@ -3960,7 +4180,7 @@ storageClass:
       later: Bind and provision a persistent volume once a Pod using the PersistentVolumeClaim is created
     mountOptions:
       label: Mount Options
-      addlabel: Add Option
+      addLabel: Add Option
   aws-ebs:
     title: Amazon EBS Disk
     volumeType:
@@ -4235,7 +4455,7 @@ tableHeaders:
     projectDefault: Project Creator Default
   branch: Branch
   builtIn: Built In
-  bundlesReady: Bundles
+  bundlesReady: Bundles Ready
   bundleDeploymentsReady: Deployments
   builtin: Built-In
   chart: Chart
@@ -4258,6 +4478,7 @@ tableHeaders:
   download: Download
   effect: Effect
   endpoints: Endpoints
+  fleetBundleType: Type
   flow: Flow
   gitRepos: Git Repos
   host: Host
@@ -4317,11 +4538,14 @@ tableHeaders:
   reason: Reason
   reclaimPolicy: Reclaim Policy
   repo: Repo
+  repositories: Repositories
+  repoName: Repository Name
   reposReady: Repos Ready
   replicas: Replicas
   reqRate: Req Rate
   resource: Resource
   resources: Resources
+  resourcesReady: Resources Ready
   restarts: Restarts
   role: Role
   roles: Roles
@@ -4445,7 +4669,7 @@ validation:
     This screen has been updated to reflect the current values on the cluster. Review and reapply the changes you wanted to make, then Save again.
     Conflicting {fieldCount, plural, =1 {field} other {fields}}: {fields}
   custom:
-    missing: 'No validtor exists for { validatorName }! Does the validtor exist in custom-validtors? Is the name spelled correctly?'
+    missing: 'No validator exists for { validatorName }! Does the validator exist in custom-validators? Is the name spelled correctly?'
   dns:
     doubleHyphen: '"{key}" Cannot contain two or more consecutive hyphens'
     hostname:
@@ -4525,17 +4749,17 @@ validation:
       name:
         required: 'Port Rule [{position}] - Name is required.'
       nodePort:
-        requriedInt: 'Port Rule [{position}] - Node Port must be interger values if included.'
+        requiredInt: 'Port Rule [{position}] - Node Port must be integer values if included.'
       port:
         required: 'Port Rule [{position}] - Port is required.'
-        requriedInt: 'Port Rule [{position}] - Port must be interger values if included.'
+        requiredInt: 'Port Rule [{position}] - Port must be integer values if included.'
       targetPort:
         between: 'Port Rule [{position}] - Target Port must be between 1 and 65535'
         iana: 'Port Rule [{position}] - Target Port must be an IANA Service Name or Integer'
         ianaAt: 'Port Rule [{position}] - Target Port '
         required: 'Port Rule [{position}] - Target Port is required'
   setting:
-    serverUrl: 
+    serverUrl:
       https: server-url must be https.
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
@@ -4653,10 +4877,10 @@ workload:
     imagePullSecrets: Pull Secrets
     init: Init Container
     lifecycleHook:
-      postStart: 
+      postStart:
         label: PostStart
         add: Add PostStart Hook
-      preStop: 
+      preStop:
         label: PreStop
         add: Add PreStop Hook
       exec:
@@ -4700,6 +4924,7 @@ workload:
     name: Container Name
     noResourceLimits: There are no resource requirements configured.
     noPorts: There are no ports configured.
+    noServiceAccess: You do not have permission to create or manage services
     ports:
       createService: Service Type
       noCreateService: Do not create a service
@@ -5062,7 +5287,7 @@ harvester:
       title: 'Generate Template'
       name: 'Name'
       description: 'Description'
-      message: 
+      message:
         tip: Please enter a template name!
         success: 'Template { templateName } created successfully.'
         failed: 'Failed generated template!'
@@ -5076,7 +5301,7 @@ harvester:
       failedMessage: Latest migration failed!
       title: Migration
       fields:
-        nodeName: 
+        nodeName:
           label: Target Node
           placeholder: Choose Target Node
     ejectCDROM:
@@ -5105,6 +5330,7 @@ harvester:
     createVM: Create a Virtual Machine
     start: Start
     restart: Restart
+    softreboot: Soft Reboot
     stop: Stop
     pause: Pause
     unpause: Unpause
@@ -5126,6 +5352,8 @@ harvester:
     uncordon: Uncordon
     addHotplug: Add Volume
     exportImage: Export Image
+    viewlogs: View Logs
+    cancelExpand: Cancel Expand
   tableHeaders:
     size: Size
     progress: Progress
@@ -5150,6 +5378,7 @@ harvester:
     volume: Volumes
     network: Networks
     advanced: Advanced Options
+    accessCredentials: Access Credentials
   fields:
     version: Version
     name: Name
@@ -5170,13 +5399,15 @@ harvester:
     promiscuous: Promiscuous
     ipv4Address: IPv4 Address
   generic:
+    close: Close
+    open: Open
     showMore: Show More
     hideMore: Hide More
     memory: Memory
     cpu: CPU
     storage: Storage
     noFileChosen: No file chosen
-  
+
   validation:
     custom:
       tooLongName: '"Name" cannot be more than {max} characters.'
@@ -5202,7 +5433,7 @@ harvester:
     image:
       ruleTip: 'The URL you have entered ends in an extension that we do not support. We only accept image files that end in .img, .iso, .qcow, .qcow2, .raw.'
       ruleFileTip: 'The file you have chosen ends in an extension that we do not support. We only accept image files that end in .img, .iso, .qcow, .qcow2, .raw.'
-  
+
   dashboard:
     label: Dashboard
     header: "Harvester Cluster: {cluster}"
@@ -5215,14 +5446,7 @@ harvester:
         label: Events
       vmMetrics:
         label: VM Metrics
-    upgrade:
-      upgradeApp: Upgrade Software
-      upgrade: Upgrade
-      upgradeTip: Please select the version you want to upgrade to
-      currentVersion: CURRENT VERSION
-      versionLabel: AVAILABLE COMPATIBLE VERSIONS
-      upgradeNode: Upgrading Nodes
-      upgradeSysService: Upgrading System Services
+
     version: Version
   host:
     label: Hosts
@@ -5284,10 +5508,12 @@ harvester:
       description:
         label: Description
       lastFormattedAt:
-        info: The disk has already been force-formatted
+        info: The disk has already been force-formatted.
       notification:
         success: 'Update host "{name}" configurations successfully.'
       error: Host has unready or unschedulable disks.
+      fileSystem:
+        info: Current file system is {system}, You can format it manually.
 
   virtualizationManagement:
     manage: Manage
@@ -5296,12 +5522,12 @@ harvester:
     label: Virtual Machines
     osType: OS Type
     instance:
-      singleInstance: 
-      multipleInstance: 
+      singleInstance:
+      multipleInstance:
       single:
         label: Single Instance
         nameLabel: Name
-        host: 
+        host:
           label: Hostname
           placeholder: default to the virtual machine name.
       multiple:
@@ -5310,7 +5536,7 @@ harvester:
         count: Count
         countTip: Count should be between 1 and 10
         nameLabel: Name Prefix
-        host: 
+        host:
           label: Host Prefix Name
           placeholder: default to the virtual machine name.
     useTemplate:
@@ -5336,12 +5562,14 @@ harvester:
     createSSHKey: Create a New...
     installAgent: Install guest agent
     enableUsb: Enable USB Tablet
+    usbTip: Provides an absolute pointer device which often helps with getting a consistent mouse cursor position in VNC.
     sshTitle: Add Public SSH Key
     imageTip: An external URL to the .iso, .img, .qcow2 or .raw that the virtual machine should be created from.
+    efiEnabled: Booting in EFI mode
     volume:
       dragTip: Drag and drop volumes, or use the volume's arrows, to change the boot order.
       volumeTip: The VM only contains a cd-rom volume. You may want to add additional disk volumes.
-      macTip: "Protip: MAC address as seen inside the guest system."
+      macTip: "MAC address as seen inside the guest system."
       volumeUpdate: 'Set volume { name } successfully'
       type: Type
       size: Size
@@ -5388,6 +5616,17 @@ harvester:
         anyNode: 'Run VM on any available node'
         schedulingRules: 'Run VM on node(s) matching scheduling rules'
         specificNode: Run VM on specific node(s) - (Live migration is not supported)
+    accessCredentials:
+      resetPwd:
+        label: Add Basic Auth
+      injectSSH:
+        label: Add SSHKey
+        users: Select Users
+        addUser: Add User
+      tips: qemu-guest-agent must be installed to enable Access Credentials, the VM should be restarted after credentials added. Need to enter the VM to edit password or remove SSH-Key after deleting the credentials.
+      userTips: The user to be added must already exist; otherwise, the credentials will not take effect.
+      duplicatedUser: User already exist.
+      invalidUser: Invalid Username.
     input:
       name: Name
       memory: Memory
@@ -5395,6 +5634,9 @@ harvester:
       sshKey: SSHKey
       sshKeyValue: SSH-Key
       MachineType: Machine Type
+      username: Username
+      password: Password
+      reservedMemory: Reserved Memory
     machineTypeTip: 'Specify a processor architecture to emulate. To see a list of supported architectures, run: qemu-system-x86_64 -cpu ?'
     detail:
       tabs:
@@ -5458,8 +5700,8 @@ harvester:
         down: No events in the past hour
       console:
         down: This Virtual Machine is down. Please start it to access its console.
-     
-  volume: 
+
+  volume:
     label: Volumes
     tabs:
       basics: Basics
@@ -5497,6 +5739,32 @@ harvester:
     nameNsDescription:
       name: Template Name
 
+  upgradePage:
+    upgradeApp: Upgrade Software
+    upgrade: Upgrade
+    upgradeTip: Please select the version you want to upgrade to
+    currentVersion: CURRENT VERSION
+    versionLabel: AVAILABLE COMPATIBLE VERSIONS
+    upgradeNode: Upgrading Node
+    upgradeSysService: Upgrading System Service
+    upgradeImage: Download Upgrade Image
+    osUpgrade: OS Upgrade
+    uploadNew: Upload New Image
+    selectExisting: Select Existing Image
+    createRepository: Creating Upgrade Repository
+    succeeded: Succeeded
+    pending: Pending
+    repoInfo:
+      upgradeStatus: Upgrade Status
+      os: OS
+      kubernetes: Kubernetes
+      monitoringChart: Monitoring Chart
+      harvesterChart: Harvester Chart
+      success: Success
+      fail:  Fail
+      ongoing: on-going
+    dismissMessage: Dismiss it
+
   backup:
     label: Backups
     createText: Restore Backup
@@ -5530,7 +5798,7 @@ harvester:
       layer3Network: Route
     message:
       vlanInactive: 'VLAN network is inactive at {name} host'
-      premise: 
+      premise:
         prefix: 'You must configure a network in'
         middle: 'Settings'
         suffic: 'before creating a new network.'
@@ -5583,7 +5851,23 @@ harvester:
       ca: CA
     vmForceDeletionPolicy:
       period: Period
+    supportBundleImage:
+      imagePullPolicy: Pull Policy
+      repo: Repository
+      tag: Tag
 
+    upgrade:
+      selectExitImage: Please select the OS image to upgrade.
+      imageUrl: Please input a valid image url.
+      chooseFile: Please select to upload an image.
+      checksum: Checksum
+    harvesterMonitoring:
+      label: Harvester Monitoring
+      tips:
+        scrape: Interval between consecutive scrapes
+        evaluation: Interval between consecutive evaluations
+        retention: How long to retain metrics
+        retentionSize: Maximum size of metrics
   cloudTemplate:
     label: Cloud Config Templates
     templateType: Template Type
@@ -5601,21 +5885,20 @@ harvester:
     title: Harvester Support
     kubeconfig:
       title: Download KubeConfig
-      titleDescription: Download kubeconfig for debugging. 
-  
+      titleDescription: Download kubeconfig for debugging.
+
   namespace:
     label: Namespaces
 
   projectNamespace:
     label: Projects/Namespaces
-  
+
   service:
     title: Add-on Config
     ipam:
       label: IPAM
     healthCheckPort:
       label: Health Check Port
-      description: The prober will access the address composed of the backend server IP and the port. The port should be a node port.
     healthCheckSuccessThreshold:
       label: Health Check Success Threshold
       description: If the number of times the prober continuously detects an address successfully reaches the success threshold, then the backend server can start to forward traffic.
@@ -5628,7 +5911,7 @@ harvester:
       label: Health Check Timeout
     healthCheckEnabled:
       label: Health Check
-  
+
   vip:
     namespace:
       label: Namespace
@@ -5637,13 +5920,13 @@ harvester:
       invalid: '"CIRD" is invalid.'
     add:
       label: Add IP Pools
-  
+
   sslParameters:
-    protocols: 
+    protocols:
       label: Protocols
     ciphers:
       label: Ciphers
-    
+
 ##############################
 # Model Properties
 ##############################
@@ -5724,11 +6007,12 @@ typeDescription:
   #       Should fit on one line.
   #       If you link to anything external, it MUST have
   #       target="_blank" rel="noopener noreferrer nofollow"
+  chart: "All charts have at least one version that is installable on clusters with Linux and Windows nodes unless otherwise indicated."
   cis.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
   cis.cattle.io.clusterscanprofile: A profile is the configuration for the CIS scan, which is the benchmark versions to use and any specific tests to skip in that benchmark.
   cis.cattle.io.clusterscan: A scan is created to trigger a CIS scan on the cluster based on the defined profile. A report is created after the scan is completed.
   cis.cattle.io.clusterscanreport: A report is the result of a CIS scan of the cluster.
-  management.cattle.io.feature: Feature Flags allow certain {vendor} features to be toggled on and off.  Features that are off by default shoud be considered experimental functionality.
+  management.cattle.io.feature: Feature Flags allow certain {vendor} features to be toggled on and off.  Features that are off by default should be considered experimental functionality.
   cluster.x-k8s.io.machine: A Machine encapsulates the configuration of a Kubernetes Node. Use this view to see what happens after updating a cluster.
   cluster.x-k8s.io.machinedeployment: A Machine Deployment orchestrates deployments via templates over a collection of Machine Sets (similar to a Deployment). Use this view to see what happens after updating a cluster.
   cluster.x-k8s.io.machineset: A Machine Set ensures the desired number of Machine resources are up and running at all times (similar to a ReplicaSet). Use this view to see what happens after updating a cluster.
@@ -5740,14 +6024,14 @@ typeDescription:
   monitoring.coreos.com.prometheusrule: A Prometheus Rule resource defines both recording and/or alert rules. A recording rule can pre-compute values and save the results. Alerting rules allow you to define conditions on when to send notifications to AlertManager.
   monitoring.coreos.com.prometheus: A Prometheus server is a Prometheus deployment whose scrape configuration and rules are determined by selected ServiceMonitors, PodMonitors, and PrometheusRules and whose alerts will be sent to all selected Alertmanagers with the custom resource's configuration.
   monitoring.coreos.com.alertmanager: An alert manager is deployment whose configuration will be specified by a secret in the same namespace, which determines which alerts should go to which receiver.
-  node: The base Kubernetes Node resource represents a virtual or physical machine which hosts deployments. To manage the machine lifecyle, if available, go to Cluster Management.   
+  node: The base Kubernetes Node resource represents a virtual or physical machine which hosts deployments. To manage the machine lifecyle, if available, go to Cluster Management.
   catalog.cattle.io.clusterrepo: 'A chart repository is a Helm repository or {vendor} git based application catalog. It provides the list of available charts in the cluster.'
   catalog.cattle.io.clusterrepo.local: ' A chart repository is a Helm repository or {vendor} git based application catalog. It provides the list of available charts in the cluster. Cluster Templates are deployed via Helm charts.'
   catalog.cattle.io.operation: An operation is the list of recent Helm operations that have been applied to the cluster.
   catalog.cattle.io.app: An installed application is a Helm 3 chart that was installed either via our charts or through the Helm CLI.
   logging.banzaicloud.io.clusterflow: Logs from the cluster will be collected and logged to the selected Cluster Output.
   logging.banzaicloud.io.clusteroutput: A cluster output defines which logging providers that logs can be sent to and is only effective when deployed in the namespace that the logging operator is in.
-  logging.banzaicloud.io.flow: A flow defines which logs to collect and filter as well as which output to send the logs. The flow is a namespaced resource, which means logs will only be collected from the namepsace that the flow is deployed in.
+  logging.banzaicloud.io.flow: A flow defines which logs to collect and filter as well as which output to send the logs. The flow is a namespaced resource, which means logs will only be collected from the namespace that the flow is deployed in.
   logging.banzaicloud.io.output: An output defines which logging providers that logs can be sent to. The output needs to be in the same namespace as the flow that is using it.
   group.principal: Assigning global roles to a group only works with external auth providers that support groups. Local authorization does not support groups.
 
@@ -5822,7 +6106,6 @@ typeLabel:
       one { Cluster Group }
       other {Cluster Groups }
     }
-
   fleet.cattle.io.gitrepo: |-
     {count, plural,
       one { Git Repo }
@@ -6003,7 +6286,7 @@ typeLabel:
     {count, plural,
       one { Bundle }
       other { Bundles }
-    } 
+    }
   fleet.cattle.io.clusterregistrationtoken: |-
     {count, plural,
       one { Cluster Registration Token }
@@ -6070,7 +6353,7 @@ registryMirror:
   addLabel: Add Mirror
 
 registryConfig:
-  header: Registry Authentication 
+  header: Registry Authentication
   toolTip: 'When an image needs to be pulled from the given registry hostname, this information will be used to verify the identity of the registry and authenticate to it.'
   addLabel: Add Registry
 
@@ -6137,6 +6420,9 @@ advancedSettings:
     'harv-vm-force-reset-policy': Config the force-reset action when a VM is stuck on a node that is down.
     'harv-ssl-parameters': Custom SSL Parameters for TLS validation.
     'harv-support-bundle-namespaces': Specify resources in other namespaces to be collected by the support package.
+    'harv-auto-disk-provision-paths': Specify the disks(using glob pattern) that Harvester will automatically add as VM storage.
+    'harv-support-bundle-image': Support bundle image configuration. Find different versions in <a href="https://hub.docker.com/r/rancher/support-bundle-kit/tags" target="_blank">rancher/support-bundle-kit</a>.
+    'harvester-monitoring': Specifies the monitoring configuration that the Harvester's built-in Prometheus will use.
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:
@@ -6164,15 +6450,46 @@ featureFlags:
   label: Feature Flags
   warning: |-
     Feature flags allow {vendor} to gate certain features behind flags.
-    Features that are off by defult shoud be considered experimental functionality.
+    Features that are off by default should be considered experimental functionality.
     Some features require a restart of the {vendor} server to change.
     This will result in a short outage of the API and UI, but not affect running clusters or workloads.
   promptActivate: Please confirm that you want to activate the feature flag "{flag}"
-  promptDeactivate: Please confirm that you want to deactivate the feature flag "{flag}"    
+  promptDeactivate: Please confirm that you want to deactivate the feature flag "{flag}"
   restartRequired: "Note: Updating this feature flag requires a restart"
   restart:
     title: Waiting for Restart
     wait: This may take a few moments
+
+banner:
+  label: Fixed Banners
+  settingName: Banners
+  headerBanner: Header Banner
+  footerBanner: Footer Banner
+  loginScreenBanner: Login Screen Banner
+  text: Text
+  buttonText: Accept Button Text
+  textColor: Text Color
+  background: Background Color
+  showHeader: Show Banner in Header
+  showFooter: Show Banner in Footer
+  showConsent: Show Consent Banner on Login Screen
+  showAsDialog:
+    defaultButtonText: Accept
+    label: Show Login Consent as a modal dialog
+    tooltip: Show a modal dialog on the login screen that must be accepted by a user before they can login
+  bannerAlignment:
+    label: Text Alignment
+    leftOption: Left
+    centerOption: Center
+    rightOption: Right
+  bannerDecoration:
+    label: Text Decoration
+    bannerBold: Bold
+    bannerItalic: Italic
+    bannerUnderline: Underline
+  bannerFontSize:
+    label: 'Font Size'
+  consent: Consent Banner
 
 branding:
   label: Branding
@@ -6196,32 +6513,6 @@ branding:
     issuesUrl: Issue Reporting URL
     invalidUrl: The issue reporting value must be a complete URL, including protocol.
     communityLinks: Show Rancher community support links
-  uiBanner:
-    label: Fixed Banners
-    text: Text
-    buttonText: Accept Button Text
-    textColor: Text Color
-    background: Background Color
-    showHeader: Show Banner in Header
-    showFooter: Show Banner in Footer
-    showConsent: Show Consent Banner on Login Screen
-    showAsDialog:
-      defaultButtonText: Accept
-      label: Show Login Consent as a modal dialog
-      tooltip: Show a modal dialog on the login screen that must be accepted by a user before they can login
-    bannerAlignment:
-      label: Text Alignment
-      leftOption: Left
-      centerOption: Center
-      rightOption: Right
-    bannerDecoration:
-      label: Text Decoration
-      bannerBold: Bold
-      bannerItalic: Italic
-      bannerUnderline: Underline
-    bannerFontSize:
-      label: 'Font Size'
-    consent: Consent Banner
   color:
     label: Primary Color
     tip: You can override the primary color used throughout the UI with a custom color of your choice.
@@ -6240,7 +6531,7 @@ resourceQuota:
     projectLimit: Project Limit
     projectResourceAvailability: Project Resource Availability
     resourceType: Resource Type
-  helpText: Configure how much of the resources the namesapce as a whole can consume.
+  helpText: Configure how much of the resources the namespace as a whole can consume.
   helpTextDetail: The amount of resources the namespace as a whole can consume.
   configMaps: Config Maps
   limitsCpu: CPU Limit
@@ -6255,7 +6546,7 @@ resourceQuota:
   services: Services
   servicesLoadBalancers: Services Load Balancers
   servicesNodePorts: Service Node Ports
-  namespaceLimit: 
+  namespaceLimit:
     label: Limit
   projectLimit:
     label: Project Limit
@@ -6368,4 +6659,7 @@ manager:
 
 auth:
   config:
-    label: Auth Providor
+    label: Auth Provider
+vncConsole:
+  error:
+    message: Web VNC console connection is disconnected

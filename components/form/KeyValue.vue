@@ -24,6 +24,12 @@ export default {
       default: null,
     },
 
+    // If the user supplies this array, then it indicates which keys should be shown as binary
+    binaryValueKeys: {
+      type:    [Array, Object],
+      default: null
+    },
+
     mode: {
       type:    String,
       default: _EDIT,
@@ -153,7 +159,7 @@ export default {
     },
 
     // For asMap=false, preserve (copy) these keys from the original value into the emitted value.
-    // Also usefule for valueFrom as above.
+    // Also useful for valueFrom as above.
     preserveKeys: {
       type:    Array,
       default: null,
@@ -218,7 +224,6 @@ export default {
       type:    Boolean,
       default: true,
     },
-
     fileModifier: {
       type:    Function,
       default: (name, value) => ({ name, value })
@@ -245,6 +250,12 @@ export default {
 
       Object.keys(input).forEach((key) => {
         let value = input[key];
+        let binary = !asciiLike(value);
+
+        // If we think it is binary, just check if we were given the list of binary keys that we should not be treating it as ascii
+        if (this.binaryValueKeys) {
+          binary = this.binaryValueKeys.findIndex(k => k === key) !== -1;
+        }
 
         if ( this.valueBase64 ) {
           value = base64Decode(value);
@@ -252,7 +263,7 @@ export default {
         rows.push({
           key,
           value,
-          binary:    !asciiLike(value),
+          binary,
           supported: true,
         });
       });
@@ -300,7 +311,10 @@ export default {
     },
 
     containerStyle() {
-      return `grid-template-columns: repeat(${ 2 + this.extraColumns.length }, 1fr)${ this.removeAllowed ? ' 50px' : '' };`;
+      const gap = this.canRemove ? ' 50px' : '';
+      const size = 2 + this.extraColumns.length;
+
+      return `grid-template-columns: repeat(${ size }, 1fr)${ gap };`;
     },
 
     usedKeyOptions() {
@@ -314,6 +328,13 @@ export default {
       }
 
       return this.keyOptions;
+    },
+
+    /**
+     * Prevent removal if expressly not allowed and not in view mode
+     */
+    canRemove() {
+      return !this.isView && this.removeAllowed;
     }
   },
 
@@ -508,7 +529,7 @@ export default {
         <label v-for="c in extraColumns" :key="c">
           <slot :name="'label:'+c">{{ c }}</slot>
         </label>
-        <slot v-if="removeAllowed" name="remove">
+        <slot v-if="canRemove" name="remove">
           <span />
         </slot>
       </template>
@@ -595,7 +616,12 @@ export default {
           <slot :name="'col:' + c" :row="row" :queue-update="queueUpdate" />
         </div>
 
-        <div v-if="removeAllowed" :key="i" class="kv-item remove">
+        <div
+          v-if="canRemove"
+          :key="i"
+          class="kv-item remove"
+          :data-testid="`remove-column-${i}`"
+        >
           <slot name="removeButton" :remove="remove" :row="row">
             <button type="button" :disabled="isView" class="btn role-link" @click="remove(i)">
               {{ removeLabel || t('generic.remove') }}

@@ -5,7 +5,7 @@ import { mapGetters } from 'vuex';
 export default {
   components: { LabeledInput },
   props:      {
-    // volumeAttribtutes object
+    // volumeAttributes object
     value: {
       type:    Object,
       default: () => {

@@ -4,6 +4,9 @@ import CountBox from '@/components/CountBox';
 import { STATES } from '@/plugins/steve/resource-class';
 
 export default {
+
+  name: 'ResourcesSummary',
+
   components: { CountBox },
 
   props: {
@@ -15,42 +18,25 @@ export default {
     stateKey: {
       type:    String,
       default: 'fleet.fleetSummary.state'
+    },
+
+    requiredStates: {
+      type:    Array,
+      default: () => []
     }
   },
 
   computed: {
     counts() {
-      const out = {
-        ready: {
+      const out = this.requiredStates.reduce((obj, state) => {
+        obj[state] = {
           count: 0,
-          color: 'success',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.success`, null, 'Success')
-        },
-        info:    {
-          count: 0,
-          color: 'info',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.info`, null, 'Info')
+          color: state,
+          label:  this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ state }`, null, state)
+        };
 
-        },
-        warning: {
-          count: 0,
-          color: 'warning',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.warning`, null, 'Warning')
-
-        },
-        error:   {
-          count: 0,
-          color: 'error',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.error`, null, 'Error')
-
-        },
-        unknown: {
-          count: 0,
-          color: 'warning',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.unknown`, null, 'Unknown')
-
-        },
-      };
+        return obj;
+      }, {});
 
       for (const k in this.value) {
         if (k.startsWith('desired')) {

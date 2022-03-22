@@ -185,7 +185,7 @@ export default {
                 <li><b>{{ t(`authConfig.${NAME}.form.app.label`) }}</b>: <span v-html="t(`authConfig.${NAME}.form.app.value`, tArgs, true)" /></li>
                 <li><b>{{ t(`authConfig.${NAME}.form.homepage.label`) }}</b>: {{ serverUrl }} <CopyToClipboard label-as="tooltip" :text="serverUrl" class="icon-btn" action-color="bg-transparent" /></li>
                 <li><b>{{ t(`authConfig.${NAME}.form.description.label`) }}</b>: <span v-html="t(`authConfig.${NAME}.form.description.value`, tArgs, true)" /></li>
-                <li><b>{{ t(`authConfig.${NAME}.form.calllback.label`) }}</b>: {{ serverUrl }} <CopyToClipboard :text="serverUrl" label-as="tooltip" class="icon-btn" action-color="bg-transparent" /></li>
+                <li><b>{{ t(`authConfig.${NAME}.form.callback.label`) }}</b>: {{ serverUrl }} <CopyToClipboard :text="serverUrl" label-as="tooltip" class="icon-btn" action-color="bg-transparent" /></li>
               </ul>
             </li>
           </ul>

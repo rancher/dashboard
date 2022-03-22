@@ -64,7 +64,7 @@ const DARK_CONTRAST_COLORS = {
 };
 
 // contrastColor(color, {light, dark}) returns which of 2 options is higher contrast with color
-function contrastColor(color, contrastOptions = LIGHT_CONTRAST_COLORS) {
+export function contrastColor(color, contrastOptions = LIGHT_CONTRAST_COLORS) {
   let out = contrastOptions.light;
   const contrastDark = Color(color).contrast(Color(contrastOptions.dark));
   const contrastLight = Color(color).contrast(Color(contrastOptions.light));
@@ -74,4 +74,19 @@ function contrastColor(color, contrastOptions = LIGHT_CONTRAST_COLORS) {
   }
 
   return out;
+}
+
+export function parseColor(str) {
+  return Color(str);
+}
+
+export function textColor(color) {
+  const rgb = color.rgb().array();
+
+  // http://www.w3.org/TR/AERT#color-contrast
+  const brightness = Math.round(((parseInt(rgb[0]) * 299) +
+                      (parseInt(rgb[1]) * 587) +
+                      (parseInt(rgb[2]) * 114)) / 1000);
+
+  return (brightness > 125) ? 'black' : 'white';
 }

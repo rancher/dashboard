@@ -38,6 +38,7 @@ export default class GRB extends HybridModel {
 
       norman.globalRoleId = this.globalRoleName;
       norman.userId = this.userName;
+      norman.newUserDefault = this.newUserDefault;
       norman.groupPrincipalId = this.groupPrincipalName;
 
       return norman;

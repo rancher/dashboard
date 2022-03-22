@@ -1,6 +1,6 @@
 # Terminology
 
-This is part of the developer [getting started guide](./README.md).
+This is part of the developer [getting started guide](../../README.md).
 
 The official Kubernetes [glossary](https://kubernetes.io/docs/reference/glossary/?fundamental=true) also explains Kubernetes-specific terminology.
 

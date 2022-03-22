@@ -41,4 +41,12 @@ export default class Role extends SteveModel {
   get resources() {
     return uniq(this.clusterResources.map(r => r.attributes?.kind)).sort();
   }
+
+  set displayName(v) {
+    this.metadata.name = v;
+  }
+
+  get displayName() {
+    return this.metadata?.name;
+  }
 }

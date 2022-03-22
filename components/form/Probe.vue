@@ -191,7 +191,7 @@ export default {
             max="65535"
             :mode="mode"
             :label="t('probe.httpGet.port.label')"
-            :placeholder="t('probe.httpGet.port.placeholderDuex')"
+            :placeholder="t('probe.httpGet.port.placeholderDeux')"
           />
           <div class="spacer-small" />
         </div>

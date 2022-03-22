@@ -102,11 +102,15 @@ export const suffixFields = [
 const driverToCloudProviderMap = {
   amazonec2:     'aws',
   azure:         'azure',
-  vmwarevsphere: 'rancher-vsphere',
+  digitalocean:  '', // Show restricted options
   harvester:     'harvester',
+  linode:        '', // Show restricted options
+  vmwarevsphere: 'rancher-vsphere',
+
+  custom: undefined // Show all options
 };
 
-// Dynamically loaded drivers can call this eventually to register thier options
+// Dynamically loaded drivers can call this eventually to register their options
 export function configureCredential(name, opt) {
   credentialOptions[name] = opt;
 }

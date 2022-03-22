@@ -17,9 +17,10 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    ifHaveGroup: /^(.*\.)?logging\.banzaicloud\.io$/,
-    icon:        'logging',
-    weight:      89,
+    ifHaveGroup:         /^(.*\.)?logging\.banzaicloud\.io$/,
+    icon:                'logging',
+    showNamespaceFilter: true,
+    weight:              89,
   });
 
   basicType([
@@ -314,7 +315,7 @@ export function init(store) {
           delimiter:                 { type: 'string' },
           delimiter_pattern:         { type: 'string' },
           label_delimiter:           { type: 'string' },
-          multiline:                 { type: 'arrray[string]' },
+          multiline:                 { type: 'array[string]' },
           patterns:                  { type: `array[${ LOGGING.SPOOFED.SINGLEPARSESECTION }]` },
           tracing_annotation_prefix: { type: 'string' },
           source_host_key_name:      { type: 'string' },

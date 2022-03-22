@@ -1,6 +1,7 @@
 <script>
 import ConsumptionGauge from '@/components/ConsumptionGauge';
 import { METRIC, NODE } from '@/config/types';
+import { parseSi } from '@/utils/units';
 
 export default {
   name:       'HarvesterCpuUsed',
@@ -20,6 +21,11 @@ export default {
     resourceName: {
       type:     String,
       default: ''
+    },
+
+    showUsed: {
+      type:    Boolean,
+      default: false,
     },
   },
 
@@ -52,26 +58,65 @@ export default {
 
       return node;
     },
+
+    reserved() {
+      if (this.metrics) {
+        return this.node.cpuReserved;
+      } else {
+        return 0;
+      }
+    },
+
+    used() {
+      if (this.metrics) {
+        return parseSi(this.metrics?.usage?.cpu || '0m');
+      } else {
+        return 0;
+      }
+    },
   }
 };
 </script>
 
 <template>
-  <ConsumptionGauge
-    :capacity="cpuTotal"
-    :used="node.cpuReserved"
-    :units="cpuUnits"
-    :resource-name="resourceName"
-  >
-    <template #title="{amountTemplateValues, formattedPercentage}">
-      <span>
-        {{ t('clusterIndexPage.hardwareResourceGauge.reserved') }}
-      </span>
-      <span>
-        {{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }}
-        <span class="ml-10 percentage">/&nbsp;{{ formattedPercentage }}
+  <div>
+    <ConsumptionGauge
+      :capacity="cpuTotal"
+      :used="reserved"
+      :units="cpuUnits"
+      :resource-name="resourceName"
+    >
+      <template #title="{amountTemplateValues, formattedPercentage}">
+        <span>
+          {{ t('clusterIndexPage.hardwareResourceGauge.reserved') }}
         </span>
-      </span>
-    </template>
-  </ConsumptionGauge>
+        <span>
+          {{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }}
+          <span class="ml-10 percentage">/&nbsp;{{ formattedPercentage }}
+          </span>
+        </span>
+      </template>
+    </ConsumptionGauge>
+    <div
+      v-if="showUsed"
+      class="mt-10"
+    >
+      <ConsumptionGauge
+        :capacity="cpuTotal"
+        :used="used"
+        :units="cpuUnits"
+      >
+        <template #title="{amountTemplateValues, formattedPercentage}">
+          <span>
+            {{ t('clusterIndexPage.hardwareResourceGauge.used') }}
+          </span>
+          <span>
+            {{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }}
+            <span class="ml-10 percentage">/&nbsp;{{ formattedPercentage }}
+            </span>
+          </span>
+        </template>
+      </ConsumptionGauge>
+    </div>
+  </div>
 </template>

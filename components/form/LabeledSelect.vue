@@ -9,6 +9,8 @@ import $ from 'jquery';
 import { onClickOption } from '@/utils/select';
 
 export default {
+  name: 'LabeledSelect',
+
   components: { LabeledTooltip },
   mixins:     [LabeledFormElement, VueSelectOverrides],
 
@@ -142,6 +144,11 @@ export default {
     onBlur() {
       this.selectedVisibility = 'visible';
       this.onBlurLabeled();
+    },
+
+    onOpen() {
+      this.$emit('on-open');
+      this.resizeHandler();
     },
 
     getOptionLabel(option) {
@@ -303,11 +310,16 @@ export default {
       @search:blur="onBlur"
       @search:focus="onFocus"
       @search="onSearch"
-      @open="resizeHandler"
+      @open="onOpen"
     >
       <template #option="option">
         <template v-if="option.kind === 'group'">
-          <b>{{ getOptionLabel(option) }}</b>
+          <div class="vs__option-kind-group">
+            <b>{{ getOptionLabel(option) }}</b>
+            <div v-if="option.badge">
+              {{ option.badge }}
+            </div>
+          </div>
         </template>
         <template v-else-if="option.kind === 'divider'">
           <hr />
@@ -404,6 +416,24 @@ export default {
     .vs__selected-options {
       padding: 8px 0 7px 0;
     }
+  }
+}
+
+// Styling for option group badge
+.vs__dropdown-menu .vs__dropdown-option .vs__option-kind-group {
+  display: flex;
+  > b {
+    flex: 1;
+  }
+  > div {
+    background-color: var(--primary);
+    border-radius: 4px;
+    color: var(--primary-text);
+    font-size: 12px;
+    height: 18px;
+    line-height: 18px;
+    margin-top: 1px;
+    padding: 0 10px;
   }
 }
 </style>

@@ -1,7 +1,7 @@
 <script>
 import Loading from '@/components/Loading';
-import FleetSummary from '@/components/FleetSummary';
-import FleetRepos from '@/components/FleetRepos';
+import ResourcesSummary from '@/components/fleet/ResourcesSummary';
+import FleetRepos from '@/components/fleet/FleetRepos';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import Tab from '@/components/Tabbed/Tab';
 import { MANAGEMENT, FLEET } from '@/config/types';
@@ -12,7 +12,7 @@ export default {
 
   components: {
     Loading,
-    FleetSummary,
+    ResourcesSummary,
     FleetRepos,
     ResourceTabs,
     Tab,
@@ -60,7 +60,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <h2 v-t="'fleet.cluster.summary'" class="mt-20" />
-    <FleetSummary :value="value.status.resourceCounts" />
+    <ResourcesSummary :value="value.status.resourceCounts" />
 
     <ResourceTabs v-model="value" mode="view" class="mt-20">
       <Tab label="Git Repos" name="repos" :weight="19">

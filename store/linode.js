@@ -1,3 +1,4 @@
+import { sortBy } from '@/utils/sort';
 import { addParam, addParams } from '@/utils/url';
 
 const ENDPOINT = 'api.linode.com/v4';
@@ -26,6 +27,72 @@ export const getters = {
 };
 
 export const actions = {
+  async regionOptions({ state, commit, dispatch }, { credentialId }) {
+    const regions = await dispatch('cachedCommand', { credentialId, command: 'regions' });
+
+    const out = regions.data.filter((region) => {
+      return region.status === 'ok';
+    }).map((region) => {
+      return {
+        label: region.id,
+        value: region.id,
+      };
+    });
+
+    return sortBy(out, 'label');
+  },
+
+  async instanceOptions({ dispatch, rootGetters }, { credentialId }) {
+    const types = await dispatch('cachedCommand', { credentialId, command: 'linode/types' });
+
+    const available = types.data.map((type) => {
+      const out = {
+        class:    type.class,
+        label:    type.label,
+        memoryGb: type.memory,
+        disk:     type.disk / 1024,
+        vcpus:    type.vcpus,
+        value:    type.id
+      };
+
+      out.label = rootGetters['i18n/t']('cluster.machineConfig.linode.typeLabel', out);
+
+      return out;
+    });
+
+    return sortBy(available, ['class', 'memoryGb', 'vcpus', 'disk']);
+  },
+
+  async imageOptions({ dispatch }, { credentialId }) {
+    const images = await dispatch('cachedCommand', { credentialId, command: 'images' });
+
+    const out = images.data.filter((image) => {
+      return image.status === 'available';
+    }).map((image) => {
+      return {
+        label: image.label,
+        value: image.id
+      };
+    });
+
+    return sortBy(out, 'label');
+  },
+
+  async cachedCommand({
+    state, getters, commit, dispatch
+  }, { credentialId, command }) {
+    let out = getters['fromCache']({ credentialId, key: command });
+
+    if ( !out ) {
+      out = await dispatch('request', { credentialId, command });
+      commit('setCache', {
+        credentialId, key: command, value: out
+      });
+    }
+
+    return out;
+  },
+
   async request({ dispatch }, {
     token, credentialId, command, opt, out
   }) {

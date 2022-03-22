@@ -1,5 +1,6 @@
 import {
   CONFIG_MAP,
+  EVENT,
   NODE, SECRET, INGRESS,
   WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD,
   RBAC,
@@ -56,6 +57,7 @@ export function init(store) {
     'projects-namespaces',
     'namespaces',
     NODE,
+    VIRTUAL_TYPES.CLUSTER_MEMBERS,
   ], 'cluster');
   basicType([
     SERVICE,
@@ -79,15 +81,11 @@ export function init(store) {
     WORKLOAD_TYPES.CRON_JOB,
     POD,
   ], 'workload');
-  basicType([
-    'cluster-members',
-  ], 'rbac');
 
   weightGroup('cluster', 99, true);
   weightGroup('workload', 98, true);
   weightGroup('serviceDiscovery', 96, true);
   weightGroup('storage', 95, true);
-  weightGroup('rbac', 94, true);
   weightType(POD, -1, true);
 
   for (const key in WORKLOAD_TYPES) {
@@ -134,10 +132,24 @@ export function init(store) {
 
   configureType(NODE, { isCreatable: false, isEditable: true });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
-  configureType(PVC, { isEditable: false });
   configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, { isEditable: false });
   configureType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING, { isEditable: false });
   configureType(MANAGEMENT.PROJECT, { displayName: store.getters['i18n/t']('namespace.project.label') });
+
+  configureType(EVENT, { limit: 500 });
+
+  // Allow Pods to be grouped by node
+  configureType(POD, {
+    listGroups: [
+      {
+        icon:       'icon-cluster',
+        value:      'node',
+        field:      'groupByNode',
+        hideColumn: NODE_COL.name,
+        tooltipKey: 'resourceTable.groupBy.node'
+      }
+    ]
+  });
 
   setGroupDefaultType('serviceDiscovery', SERVICE);
 
@@ -224,11 +236,11 @@ export function init(store) {
 
   virtualType({
     label:       store.getters['i18n/t']('members.clusterMembers'),
-    group:      'rbac',
+    group:      'cluster',
     namespaced:  false,
     name:        VIRTUAL_TYPES.CLUSTER_MEMBERS,
     icon:       'globe',
-    weight:      100,
+    weight:      -1,
     route:       { name: 'c-cluster-product-members' },
     exact:       true,
     ifHaveType:  {
