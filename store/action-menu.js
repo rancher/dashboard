@@ -3,8 +3,6 @@ import { filterBy, isArray } from '@/utils/array';
 export const state = function() {
   return {
     show:              false,
-    tableSelected:     [],
-    tableAll:          [],
     resources:         [],
     elem:              null,
     event:             null,
@@ -27,7 +25,6 @@ export const getters = {
   showing:       state => state.show,
   elem:          state => state.elem,
   event:         state => state.event,
-  tableSelected: state => state.tableSelected || [],
 
   options(state) {
     let selected = state.resources;
@@ -55,9 +52,6 @@ export const getters = {
     return { ...out };
   },
 
-  isSelected: state => (resource) => {
-    return state.tableSelected.includes(resource);
-  }
 };
 
 export const mutations = {
@@ -152,10 +146,6 @@ export const mutations = {
 };
 
 export const actions = {
-  executeTable({ state }, { action, args }) {
-    return _execute(state.tableSelected, action, args);
-  },
-
   execute({ state }, { action, args, opts }) {
     return _execute(state.resources, action, args, opts);
   },
