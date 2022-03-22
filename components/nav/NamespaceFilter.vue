@@ -393,7 +393,7 @@ export default {
       }
     },
     mouseOver(event) {
-      const el = event.path.find(e => e.classList.contains('ns-option'));
+      const el = event?.path?.find(e => e.classList.contains('ns-option'));
 
       this.activeElement = el;
     },
