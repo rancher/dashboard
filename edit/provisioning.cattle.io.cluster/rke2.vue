@@ -1681,7 +1681,7 @@ export default {
             </div>
           </div>
 
-          <template v-if="rkeConfig.etcd.disableSnapshots !== true">
+          <template v-if="false && rkeConfig.etcd.disableSnapshots !== true">
             <div class="spacer" />
 
             <RadioGroup
