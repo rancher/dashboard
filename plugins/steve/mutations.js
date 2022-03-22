@@ -5,7 +5,7 @@ import HybridModel, { cleanHybridResources } from '@/plugins/steve/hybrid-class'
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import { classify } from './classify';
 import { keyForSubscribe } from './subscribe';
-// import { perfLoadAll } from './performanceTesting';
+import { perfLoadAll } from './performanceTesting';
 
 function registerType(state, type) {
   let cache = state.types[type];
@@ -170,10 +170,10 @@ export default {
       data = data.slice(-limit);
     }
 
-    // Uncomment for performance testing (uncomment import as well)
-    // if (process.env.dev) {
-    //   data = perfLoadAll(type, data);
-    // }
+    // Performance testing in dev and when env var is set
+    if (process.env.dev && process.env.perfTest) {
+      data = perfLoadAll(type, data);
+    }
 
     const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
     const proxies = data.map(x => classify(ctx, x));

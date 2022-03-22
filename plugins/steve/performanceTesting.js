@@ -6,12 +6,12 @@ import day from 'dayjs';
 // Fake extra resources to simulate scale
 const PERF_DATA = {
   node: {
-    count:     600,
-    statusRow: 0,
+    count:     800,
+    statusRow: 2,
   },
   'apps.deployment': {
     count:     4000,
-    statusRow: 2
+    statusRow: 5
   },
   pod: {
     count:     4000,
@@ -63,7 +63,7 @@ function replicate(data, config) {
   if (data.length === 0) {
     return data;
   }
-  
+
   // Pretend there are none of the resource type
   if (config.count === 0) {
     return [];
