@@ -1,4 +1,4 @@
-import { STATES } from '@/plugins/steve/resource-class';
+import { STATES, STATES_ENUM } from '@/plugins/steve/resource-class';
 import {
   CONFIG_MAP,
   SECRET,
@@ -10,6 +10,7 @@ import {
   POD
 } from '@/config/types';
 
+// Validator for the fdcConfig prop in ForceDirectedTreeChart component
 export const FDC_ENUM = { FLEET_GIT_REPO: 'fleet-git-repo' };
 
 const fdcAllowedConfigs = [];
@@ -41,7 +42,8 @@ const simulationParams = {
  * @param {Function} parseData - Parses the specific data for each chart. Format must be compliant with d3 data format
  * @example data format => { parent: {..., children: [ {..., children: []} ] } }
  * @param {Function} extendNodeClass - Extends the classes for each node so that the styling is correctly applied
- * @param {Function} nodeRadius - Sets the radius of the nodes according each data type
+ * @param {Function} nodeDimensions - Sets the radius of the nodes according each data type
+ * @param {Function} infoDetails - Prepares the data to be displayed in the info box on the right-side of the ForceDirectedTreeChart component
  */
 export const FDC_CONFIG = {
   [FDC_ENUM.FLEET_GIT_REPO]: {
@@ -233,32 +235,63 @@ export const FDC_CONFIG = {
       const moreInfo = [
         {
           type:     'title-link',
-          label:    'Name',
+          labelKey: 'fleet.fdc.name',
           valueObj: {
             id:             data.id,
             detailLocation: data.detailLocation
           }
         },
         {
-          label: 'Type',
-          value: data.type
-        },
-        {
+          labelKey:  'fleet.fdc.type',
+          value:    data.type
+        }
+      ];
+
+      if (!data.isResource) {
+        moreInfo.push({
           type:     'state-badge',
-          label:    'State',
+          labelKey: 'fleet.fdc.state',
           valueObj: {
             stateColor: data.stateColor,
             stateLabel: data.stateLabel
           }
-        }
-      ];
-
-      if (data.errorMsg) {
-        moreInfo.push({
-          type:  'single-error',
-          label: 'Error',
-          value: data.errorMsg
         });
+      }
+
+      if (data.errorMsg && !data.isResource) {
+        moreInfo.push({
+          type:     'single-error',
+          labelKey: 'fleet.fdc.error',
+          value:    data.errorMsg
+        });
+      }
+
+      if (data.isResource) {
+        const state = data.state?.toLowerCase();
+
+        moreInfo.push({
+          type:     'compound-status',
+          labelKey: 'fleet.fdc.status',
+          valueObj: {
+            badgeClass: STATES[state] ? STATES[state].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
+            icon:       STATES[state] ? STATES[state].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } bg-unmapped-state`,
+            value:      `${ data.totalClusterCount - data.perClusterState.length } / ${ data.totalClusterCount }`
+          }
+        });
+
+        if (data.perClusterState.find(item => item.error)) {
+          const err = [];
+
+          data.perClusterState.forEach((item) => {
+            err.push(`<p>${ item.clusterId }</p><p class="error">${ item.message }</p>`);
+          });
+
+          moreInfo.push({
+            type:     'multiple-error',
+            labelKey: 'fleet.fdc.errors',
+            value:    err
+          });
+        }
       }
 
       return moreInfo;
