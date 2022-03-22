@@ -116,6 +116,7 @@ export default {
       <label
         v-if="label"
         :class="[ muteLabel ? 'text-muted' : '', 'radio-label', 'm-0']"
+        :for="name"
         v-html="label"
       >
         <slot name="label">{{ label }}</slot>
@@ -137,7 +138,7 @@ $fontColor: var(--input-label);
   display: flex;
   flex-direction: column;
   LABEL {
-    color: var(--input-label)
+    color: var(--input-label);
   }
 }
 
@@ -153,12 +154,19 @@ $fontColor: var(--input-label);
   display: inline-flex;
   align-items: flex-start;
   margin: 0;
-  cursor: pointer;
   user-select: none;
   border-radius: var(--border-radius);
   padding-bottom: 5px;
 
-  &.disabled {
+  &,
+  .radio-label,
+  .radio-button-outer-container-description {
+    cursor: pointer;
+  }
+
+  &.disabled,
+  &.disabled .radio-label,
+  &.disabled .radio-button-outer-container-description {
     cursor: not-allowed
   }
 

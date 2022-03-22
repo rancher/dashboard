@@ -74,7 +74,13 @@ export default class LogFlow extends SteveModel {
   get clusterOutputs() {
     const globalOutputRefs = this.spec?.globalOutputRefs || [];
 
-    return this.allClusterOutputs.filter(output => globalOutputRefs.includes(output.name));
+    if (this.allClusterOutputs) {
+      return this.allClusterOutputs.filter(output => globalOutputRefs.includes(output.name));
+    } else {
+      // Handle the case where the user doesn't have permission
+      // to see ClusterOutputs
+      return [];
+    }
   }
 
   get clusterOutputsSortable() {

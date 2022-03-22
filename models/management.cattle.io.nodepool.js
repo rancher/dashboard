@@ -45,9 +45,27 @@ export default class MgmtNodePool extends HybridModel {
     };
   }
 
+  get scale() {
+    return this.norman.quantity;
+  }
+
   scalePool(delta) {
     this.norman.quantity += delta;
-    this.norman.save();
+
+    if ( this.scaleTimer ) {
+      clearTimeout(this.scaleTimer);
+    }
+
+    this.scaleTimer = setTimeout(() => {
+      try {
+        this.norman.save();
+      } catch (error) {
+        this.$dispatch('growl/fromError', {
+          title: 'Error scaling pool',
+          error
+        }, { root: true });
+      }
+    }, 1000);
   }
 
   get nodes() {

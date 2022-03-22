@@ -31,7 +31,7 @@ Cloud Credentials store the username & password, or other similar information, n
 
 The cloud credential component lives in the top-level `cloud-credential` directory in the repo.  The file should be named the same as the driver, in all lowercase (e.g. `cloud-credential/digitalocean.vue`).
 
-If there is a reason to rename it or map multiple drivers to the same credential, configure that in the [plugins store](`../store/plugins.js`).  There is also other info in there about how guesses are taken on what each field is for and how it should be displayed.  These can be customized for your driver by importing and calling `configureCredential()` and `mapDriver()`.
+If there is a reason to rename it or map multiple drivers to the same credential, configure that in the [plugins store](`../../../../store/plugins.js`).  There is also other info in there about how guesses are taken on what each field is for and how it should be displayed.  These can be customized for your driver by importing and calling `configureCredential()` and `mapDriver()`.
 
 Create a component which displays each field that is relevant to authentication and lets the user configure them.  Only the actual auth fields themselves, the rest of configuring the name, description, save buttons, etc is handled outside of the credential component.
 

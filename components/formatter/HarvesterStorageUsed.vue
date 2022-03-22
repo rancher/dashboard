@@ -22,6 +22,11 @@ export default {
       type:     String,
       default: ''
     },
+
+    showReserved: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   data() {
@@ -42,7 +47,23 @@ export default {
         }
       });
 
-      return out;
+      return Number(out);
+    },
+
+    reserved() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.row.id }`);
+      let reserved = 0;
+
+      const disks = longhornNode?.spec?.disks || {};
+
+      Object.values(disks).map((disk) => {
+        if (disk.allowScheduling) {
+          reserved += disk.storageReserved;
+        }
+      });
+
+      return reserved;
     },
 
     total() {
@@ -77,9 +98,27 @@ export default {
       return out;
     },
 
-    amountTemplateValues() {
+    formatReserved() {
+      let out = this.formatter(this.reserved || 0);
+
+      if (!Number.parseFloat(out) > 0) {
+        out = this.formatter(this.reserved || 0, { canRoundToZero: false });
+      }
+
+      return out;
+    },
+
+    usedAmountTemplateValues() {
       return {
         used:  this.used,
+        total: this.formatter(this.total || 0),
+        unit:  this.units,
+      };
+    },
+
+    reservedAmountTemplateValues() {
+      return {
+        used:  this.formatReserved,
         total: this.formatter(this.total || 0),
         unit:  this.units,
       };
@@ -96,7 +135,7 @@ export default {
       };
 
       return formatSi(value, {
-        formatOptions,
+        ...formatOptions,
         ...format,
       });
     },
@@ -105,23 +144,51 @@ export default {
 </script>
 
 <template>
-  <ConsumptionGauge
-    :capacity="total"
-    :used="usage"
-    :units="units"
-    :number-formatter="formatter"
-    :resource-name="resourceName"
-  >
-    <template #title="{formattedPercentage}">
-      <span>
-        {{ t('node.detail.glance.consumptionGauge.used') }}
-      </span>
-      <span>
-        {{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }}
-        <span class="ml-10 percentage">
-          /&nbsp;{{ formattedPercentage }}
+  <div>
+    <div
+      v-if="showReserved"
+    >
+      <ConsumptionGauge
+        :capacity="total"
+        :used="reserved"
+        :units="units"
+        :number-formatter="formatter"
+        :resource-name="resourceName"
+      >
+        <template #title="{formattedPercentage}">
+          <span>
+            {{ t('clusterIndexPage.hardwareResourceGauge.reserved') }}
+          </span>
+          <span>
+            {{ t('node.detail.glance.consumptionGauge.amount', reservedAmountTemplateValues) }}
+            <span class="ml-10 percentage">
+              /&nbsp;{{ formattedPercentage }}
+            </span>
+          </span>
+        </template>
+      </ConsumptionGauge>
+    </div>
+    <ConsumptionGauge
+      :capacity="total"
+      :used="usage"
+      :units="units"
+      :number-formatter="formatter"
+      :resource-name="showReserved ? '' : resourceName"
+      :class="{
+        'mt-10': showReserved,
+      }"
+    >
+      <template #title="{formattedPercentage}">
+        <span>
+          {{ t('node.detail.glance.consumptionGauge.used') }}
         </span>
-      </span>
-    </template>
-  </ConsumptionGauge>
+        <span>
+          {{ t('node.detail.glance.consumptionGauge.amount', usedAmountTemplateValues) }}
+          <span class="ml-10 percentage">
+            /&nbsp;{{ formattedPercentage }}
+          </span>
+        </span>
+      </template>
+    </ConsumptionGauge>
+  </div>
 </template>

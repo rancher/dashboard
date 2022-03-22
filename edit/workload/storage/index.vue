@@ -63,7 +63,11 @@ export default {
   },
 
   async fetch() {
-    this.pvcs = await this.$store.dispatch('cluster/findAll', { type: PVC });
+    if ( this.$store.getters['cluster/schemaFor'](PVC) ) {
+      this.pvcs = await this.$store.dispatch('cluster/findAll', { type: PVC });
+    } else {
+      this.pvcs = [];
+    }
   },
 
   data() {

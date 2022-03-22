@@ -2,6 +2,12 @@
 title: What's New in 2.6
 ---
 
+## New in 2.6.4
+
+### Kubernetes 1.22 and 1.23 support
+
+- Kubernetes 1.22 and 1.23 are available as Kubernetes version options when provisioning clusters as well as upgrading imported RKE2/k3s clusters.
+
 ## New in 2.6.3
 
 ### Harvester Integration

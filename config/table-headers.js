@@ -872,3 +872,22 @@ export const MANAGEMENT_NODE_OS = {
   sort:      ['status.internalNodeStatus.nodeInfo.operatingSystem'],
   formatter: 'Capitalize'
 };
+
+// FLEET
+
+export const FLEET_BUNDLE_LAST_UPDATED = {
+  name:          'lastUpdated',
+  labelKey:      'tableHeaders.lastUpdated',
+  value:         'lastUpdateTime',
+  formatter:     'LiveDate',
+  formatterOpts: { addSuffix: true },
+  sort:          ['lastUpdateTime']
+};
+
+export const FLEET_BUNDLE_TYPE = {
+  name:     'bundleType',
+  labelKey: 'tableHeaders.fleetBundleType',
+  value:    'bundleType',
+  sort:     ['bundleType'],
+  width:    100,
+};

@@ -31,6 +31,9 @@ const SORT_GROUPS = {
   custom2:   5,
 };
 
+// uSed to proxy stylesheets for custom drviers that provide custom UI (RKE1)
+const PROXY_ENDPOINT = '/meta/proxy';
+
 export default {
   name: 'CruCluster',
 
@@ -101,30 +104,6 @@ export default {
       set(this.value, 'spec', {});
     }
 
-    // Explicitly asked from query string?
-    if ( this.subType ) {
-      // For RKE1 Cluster, set the ember link so that we load the page rather than using RKE2 create
-      if (this.isRke1) {
-        const selected = this.subTypes.find(s => s.id === this.subType);
-
-        this.emberLink = selected?.link;
-      }
-      await this.selectType(this.subType, false);
-    // } else if ( this.value.isImported ) {
-    //   // Edit exiting import
-    //   this.isImport = true;
-    //   this.selectType('import', false);
-    } else if ( this.value.isRke2 && this.value.isCustom ) {
-      // Edit exiting custom
-      this.selectType('custom', false);
-    } else if ( this.value.isRke2 && this.value.machineProvider ) {
-      // Edit exiting RKE2
-      this.selectType(this.value.machineProvider, false);
-    } else if ( this.value.mgmt?.emberEditPath ) {
-      // Iframe an old page
-      this.emberLink = this.value.mgmt.emberEditPath;
-    }
-
     if ( !this.value.id ) {
       if ( !this.value.metadata ) {
         set(this.value, 'metadata', {});
@@ -132,6 +111,22 @@ export default {
 
       set(this.value.metadata, 'namespace', DEFAULT_WORKSPACE);
     }
+
+    // For the node drivers, look for custom UI that we can use to show an icon (if not built-in)
+    this.nodeDrivers.forEach((driver) => {
+      if (!driver.spec?.builtin && driver.spec?.uiUrl && driver.spec?.active) {
+        const name = driver.spec?.displayName || driver.id;
+        let cssUrl = driver.spec.uiUrl.replace(/\.js$/, '.css');
+
+        if (cssUrl.startsWith('http://') || cssUrl.startsWith('https://')) {
+          cssUrl = `${ PROXY_ENDPOINT }/${ cssUrl }`;
+        }
+
+        this.loadStylesheet(cssUrl, `driver-ui-css-${ driver.id }`);
+
+        this.iconClasses[name] = `machine-driver ${ name }`;
+      }
+    });
   },
 
   data() {
@@ -146,7 +141,7 @@ export default {
       chart,
       isImport,
       providerCluster:  null,
-      emberLink:        null,
+      iconClasses:      {},
     };
   },
 
@@ -156,6 +151,40 @@ export default {
     _RKE1:                () => _RKE1,
     _RKE2:                () => _RKE2,
 
+    emberLink() {
+      // Explicitly asked from query string?
+      if ( this.subType ) {
+        // For RKE1 Cluster, set the ember link so that we load the page rather than using RKE2 create
+        if (this.isRke1) {
+          const selected = this.subTypes.find(s => s.id === this.subType);
+
+          return selected?.link;
+        }
+        this.selectType(this.subType, false);
+
+        // } else if ( this.value.isImported ) {
+        //   // Edit exiting import
+        //   this.isImport = true;
+        //   this.selectType('import', false);
+        return '';
+      } else if ( this.value.isRke2 && this.value.isCustom ) {
+        // Edit exiting custom
+        this.selectType('custom', false);
+
+        return '';
+      } else if ( this.value.isRke2 && this.value.machineProvider ) {
+        // Edit exiting RKE2
+        this.selectType(this.value.machineProvider, false);
+
+        return '';
+      } else if ( this.value.mgmt?.emberEditPath ) {
+        // Iframe an old page
+        return this.value.mgmt.emberEditPath;
+      }
+
+      return '';
+    },
+
     rke2Enabled: mapFeature(RKE2_FEATURE),
 
     showRkeToggle() {
@@ -164,6 +193,8 @@ export default {
 
     provisioner: {
       get() {
+        // This can incorrectly return rke1 instead
+        // of rke2 for cluster owners.
         if ( !this.rke2Enabled ) {
           return _RKE1;
         }
@@ -181,7 +212,7 @@ export default {
     },
 
     isRke2() {
-      return this.provisioner === _RKE2;
+      return this.value.isRke2;
     },
 
     templateOptions() {
@@ -228,7 +259,7 @@ export default {
 
         if (this.isRke1 ) {
           machineTypes.forEach((id) => {
-            addType(id, 'rke1', false, `/g/clusters/add/launch/${ id }`);
+            addType(id, 'rke1', false, `/g/clusters/add/launch/${ id }`, this.iconClasses[id]);
           });
 
           addType('custom', 'custom1', false, '/g/clusters/add/launch/custom');
@@ -243,22 +274,28 @@ export default {
 
       return out;
 
-      function addType(id, group, disabled = false, link = null) {
+      function addType(id, group, disabled = false, link = null, iconClass = undefined) {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         const techPreview = getters['i18n/t']('generic.techPreview');
         const isTechPreview = group === 'rke2' || group === 'custom2';
         let tag = isTechPreview ? techPreview : getters['i18n/withFallback'](`cluster.providerTag."${ id }"`, { techPreview }, '');
-        let icon = require('~/assets/images/generic-driver.svg');
+
+        // Always prefer the built-in icon if there is one
+        let icon;
 
         try {
           icon = require(`~/assets/images/providers/${ id }.svg`);
         } catch (e) {}
 
-        if (group === 'rke2' && id === 'harvester') {
-          const experimental = getters['i18n/t']('generic.experimental');
+        if (icon) {
+          iconClass = undefined;
+        } else if (!iconClass) {
+          icon = require('~/assets/images/generic-driver.svg');
+        }
 
-          tag = getters['i18n/withFallback'](`cluster.providerTag.rke2."${ id }"`, { tag: experimental }, '');
+        if (group === 'rke2' && id === 'harvester') {
+          tag = getters['i18n/withFallback'](`cluster.providerTag.rke2."${ id }"`, { tag: techPreview }, '');
         }
 
         const subtype = {
@@ -266,6 +303,7 @@ export default {
           label,
           description,
           icon,
+          iconClass,
           group,
           disabled,
           link,
@@ -306,6 +344,30 @@ export default {
   },
 
   methods: {
+    loadStylesheet(url, id) {
+      if ( !id ) {
+        console.error('loadStylesheet called without an id'); // eslint-disable-line no-console
+
+        return;
+      }
+
+      // Check if the stylesheet has already been loaded
+      if ( $(`#${id}`).length > 0 ) { // eslint-disable-line
+        return;
+      }
+
+      const link = document.createElement('link');
+
+      link.onerror = () => {
+        link.remove();
+      };
+      link.rel = 'stylesheet';
+      link.src = url;
+      link.href = url;
+      link.id = id;
+      document.getElementsByTagName('HEAD')[0].appendChild(link);
+    },
+
     cancel() {
       this.$router.push({
         name:   'c-cluster-product-resource',

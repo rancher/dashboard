@@ -12,6 +12,8 @@ import { NAME as MANAGER } from '@/config/product/manager';
 import { formatSi, parseSi } from '@/utils/units';
 import { CAPI, CATALOG } from '@/config/types';
 import { isPrerelease } from '@/utils/version';
+import difference from 'lodash/difference';
+import { LINUX } from '@/store/catalog';
 
 export default {
   data() {
@@ -22,7 +24,6 @@ export default {
 
       ignoreWarning: false,
 
-      catalogOSAnnotation: CATALOG_ANNOTATIONS.SUPPORTED_OS,
     };
   },
 
@@ -60,14 +61,9 @@ export default {
     },
 
     mappedVersions() {
-      const {
-        currentCluster,
-        catalogOSAnnotation,
-      } = this;
-
       const versions = this.chart?.versions || [];
       const selectedVersion = this.targetVersion;
-      const isWindows = currentCluster?.providerOs === 'windows';
+      const OSs = this.currentCluster?.workerOSs;
       const out = [];
 
       versions.forEach((version) => {
@@ -82,18 +78,14 @@ export default {
           keywords:        version.keywords
         };
 
-        if ( version?.annotations?.[catalogOSAnnotation] === 'windows' ) {
-          nue.label = this.t('catalog.install.versions.windows', { ver: version.version });
+        const permittedSystems = (version?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).split(',');
 
-          if ( !isWindows ) {
-            nue.disabled = true;
-          }
-        } else if ( version?.annotations?.[catalogOSAnnotation] === 'linux' ) {
-          nue.label = this.t('catalog.install.versions.linux', { ver: version.version });
-
-          if ( isWindows ) {
-            nue.disabled = true;
-          }
+        if (permittedSystems.length > 0 && difference(OSs, permittedSystems).length > 0) {
+          nue.disabled = true;
+        }
+        // if only one OS is allowed, show '<OS>-only' on hover
+        if (permittedSystems.length === 1) {
+          nue.label = this.t(`catalog.install.versions.${ permittedSystems[0] }`, { ver: version.version });
         }
 
         if (!this.showPreRelease && isPrerelease(version.version)) {
@@ -200,9 +192,9 @@ export default {
 
           const provider = this.provider(gvr);
 
-          const url = this.$router.resolve(this.chartLocation(true, gvr)).href;
-
           if ( provider ) {
+            const url = this.$router.resolve(this.chartLocation(true, provider)).href;
+
             requires.push(this.t('catalog.install.error.requiresFound', {
               url,
               name: provider.name
@@ -332,8 +324,8 @@ export default {
     /**
      * Location of chart install or details page for either the current chart or from gvr
      */
-    chartLocation(install = false, gvr) {
-      const provider = gvr ? this.provider(gvr) : {
+    chartLocation(install = false, prov) {
+      const provider = prov || {
         repoType: this.chart.repoType,
         repoName: this.chart.repoName,
         name:     this.chart.chartName,

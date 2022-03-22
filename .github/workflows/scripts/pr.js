@@ -2,6 +2,7 @@
 
 const request = require('./request');
 
+const TRIAGE_LABEL = '[zube]: To Triage';
 const IN_REVIEW_LABEL = '[zube]: Review';
 const IN_TEST_LABEL = '[zube]: To Test';
 const DONE_LABEL = '[zube]: Done';
@@ -33,9 +34,16 @@ function removeZubeLabels(labels) {
 }
 
 async function resetZubeLabels(issue, label) {
-    // Remove all zube labels
-    const cleanLabels = removeZubeLabels(issue.labels);
+    // Remove all Zube labels
+    let cleanLabels = removeZubeLabels(issue.labels);
+
+    cleanLabels = cleanLabels.map((v) => {
+        return v.name;
+    });
+
+    // Turn the array of labels into just their names
     console.log(`    Current Labels: ${cleanLabels}`);
+
     // Add the 'to test' label
     cleanLabels.push(label);
     console.log(`    New Labels    : ${cleanLabels}`);
@@ -125,11 +133,14 @@ async function processClosedAction() {
         // The Zube Integration will label the issue with the Done label
         // Since it runs via a webhook, it should have done that well before our GitHub action
         // is scheduled and has run, but we will check it has the label and wait if not
-
         await waitForLabel(iss, DONE_LABEL);
 
-        await resetZubeLabels(iss, IN_TEST_LABEL);
+        // Wait
+        await new Promise(r => setTimeout(r, 5000));
 
+
+        // Wait
+        await new Promise(r => setTimeout(r, 5000));
         // Re-open the issue if it is closed
         if (iss.state === 'closed') {
             console.log('  Re-opening issue');
@@ -137,6 +148,12 @@ async function processClosedAction() {
         } else {
             console.log('  Expecting issue to be closed, but it is not');
         }
+
+        // The Zube Integration will label the issue as To Triage now that is has been re-opened
+        // Wait for that and then we can move it to test
+        await waitForLabel(iss, TRIAGE_LABEL);
+        await resetZubeLabels(iss, IN_TEST_LABEL);
+
         console.log('');
     });
 }

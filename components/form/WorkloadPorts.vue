@@ -9,7 +9,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import { HCI as HCI_LABELS_ANNOTATIONS } from '@/config/labels-annotations';
 import { isHarvesterSatisfiesVersion } from '@/utils/cluster';
 import { NAME as HARVESTER } from '@/config/product/harvester';
-import { CAPI } from '@/config/types';
+import { CAPI, SERVICE } from '@/config/types';
 
 export default {
   components: {
@@ -65,6 +65,14 @@ export default {
 
   computed: {
     ...mapGetters(['currentCluster']),
+
+    canNotAccessService() {
+      return !this.$store.getters['cluster/schemaFor'](SERVICE);
+    },
+
+    serviceTypeTooltip() {
+      return this.canNotAccessService ? this.t('workload.container.noServiceAccess') : undefined;
+    },
 
     isView() {
       return this.mode === _VIEW;
@@ -268,6 +276,8 @@ export default {
           :mode="mode"
           :label="t('workload.container.ports.createService')"
           :options="serviceTypes"
+          :disabled="canNotAccessService"
+          :tooltip="serviceTypeTooltip"
           @input="queueUpdate"
         />
       </div>
@@ -358,6 +368,7 @@ export default {
             :options="ipamOptions"
             :label="t('harvester.service.ipam.label')"
             :disabled="mode === 'edit'"
+            @input="queueUpdate"
           />
         </div>
         <div v-else>
@@ -367,6 +378,7 @@ export default {
             :options="ipamOptions"
             :label="t('harvester.service.ipam.label')"
             :disabled="true"
+            @input="queueUpdate"
           />
         </div>
       </div>

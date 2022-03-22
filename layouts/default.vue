@@ -325,7 +325,8 @@ export default {
         namespaces = Object.keys(this.namespaces);
       }
 
-      const namespaceMode = this.$store.getters['namespaceMode'];
+      // Always show cluster-level types, regardless of the namespace filter
+      const namespaceMode = 'both';
       const out = [];
       const loadProducts = this.isExplorer ? [EXPLORER] : [];
       const productMap = this.activeProducts.reduce((acc, p) => {
