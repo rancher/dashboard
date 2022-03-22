@@ -152,35 +152,43 @@ export default {
     _RKE2:                () => _RKE2,
 
     emberLink() {
-      // Explicitly asked from query string?
-      if ( this.subType ) {
-        // For RKE1 and hosted Kubernetes Clusters, set the ember link so that we load the page rather than using RKE2 create
-        const selected = this.subTypes.find(s => s.id === this.subType);
+      if (this.value) {
+        // For custom RKE2 clusters, don't load an Ember page.
+        // It should be the dashboard.
+        if ( this.value.isRke2 && (this.value.isCustom || this.subType === 'Custom')) {
+          // For admins, this.value.isCustom is used to check if it is a custom cluster.
+          // For cluster owners, this.subtype is used.
+          this.selectType('custom', false);
 
-        if (selected?.link) {
-          return selected.link;
+          return '';
+        }
+        if ( this.subType ) {
+          // For RKE2/K3s clusters provisioned in Rancher with node pools,
+          // do not use an iFramed Ember page.
+          if ( this.value.isRke2 && this.value.machineProvider ) {
+          // Edit existing RKE2
+            this.selectType(this.value.machineProvider, false);
+
+            return '';
+          }
+
+          // For RKE1 and hosted Kubernetes Clusters, set the ember link
+          // so that we load the page rather than using RKE2 create
+          const selected = this.subTypes.find(s => s.id === this.subType);
+
+          if (selected?.link) {
+            return selected.link;
+          }
+
+          this.selectType(this.subType, false);
+
+          return '';
         }
 
-        this.selectType(this.subType, false);
-
-        // } else if ( this.value.isImported ) {
-        //   // Edit exiting import
-        //   this.isImport = true;
-        //   this.selectType('import', false);
-        return '';
-      } else if ( this.value.isRke2 && this.value.isCustom ) {
-        // Edit exiting custom
-        this.selectType('custom', false);
-
-        return '';
-      } else if ( this.value.isRke2 && this.value.machineProvider ) {
-        // Edit exiting RKE2
-        this.selectType(this.value.machineProvider, false);
-
-        return '';
-      } else if ( this.value.mgmt?.emberEditPath ) {
+        if ( this.value.mgmt?.emberEditPath ) {
         // Iframe an old page
-        return this.value.mgmt.emberEditPath;
+          return this.value.mgmt.emberEditPath;
+        }
       }
 
       return '';
