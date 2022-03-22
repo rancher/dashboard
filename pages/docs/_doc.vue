@@ -39,7 +39,7 @@ export default {
 
     if (locale) {
       doc = require(`@/content/docs/${ locale }/${ docName }.md`);
-      sideToc = doc?.sideToc || false;
+      sideToc = doc?.attributes?.sideToc || false;
       doc.body = doc.body || '';
 
       if (sideToc) {
