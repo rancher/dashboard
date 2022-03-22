@@ -49,32 +49,6 @@ export default {
       return NONE;
     },
 
-    // TODO: Not currently used
-    // The bulk actions for the table only change when the rows change
-    bulkActionsForTable() {
-      const all = this.pagedRows;
-
-      if (!all) {
-        return {};
-      }
-
-      const map = {};
-
-      // Find all the bulk actions for all the nodes
-      for (const node of all) {
-        if (node.availableActions) {
-          for (const act of node.availableActions) {
-            if (act.bulkable && act.action && !map[act.action]) {
-              // Map of action id to copy of the action
-              map[act.action] = Object.assign({}, act);
-            }
-          }
-        }
-      }
-
-      return map;
-    },
-
     bulkActionsForSelection() {
       let disableAll = false;
       // pagedRows is all rows in the current page

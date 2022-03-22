@@ -32,18 +32,6 @@ export default {
     keyedAvailableActions() {
       this.updateHiddenBulkActions();
     },
-    tableSelected(neu) {
-      if (!neu?.length) {
-        // Ensure the popover is closed when there are no enabled actions.
-        // Otherwise there's a bug ...
-        // 1. select a row
-        // 2. show popover by clicking on action drop down button,
-        // 3. deselect the row
-        // 4. select the row
-        // 5. click action drop down button and popover fails to show
-        this.$refs.actionDropDown?.click();
-      }
-    }
   },
 
   computed: {
