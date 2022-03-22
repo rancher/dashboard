@@ -5,6 +5,7 @@ During the transition to the new folder structured in 2.6.5 required by the plug
   Use this to convert older PRs to the new format
 - Run the script `./scripts/rejig -d` to move folders to their old location and update imports again
   Use this to convert newer branches to the old format (possibly useful for branches) 
+  > IMPORTANT - This script contains a `git reset --hard`
 
 ## Step 1
 The basis of this step 1 is to move the majority of the code under the `shell` folder. Additionally, the top-level `nuxt.config.js` is updated
