@@ -381,7 +381,7 @@ function proxyOpts(target) {
 }
 
 function onProxyRes(proxyRes, req, res) {
-  if (devPorts) {
+  if (dev || devPorts) {
     proxyRes.headers['X-Frame-Options'] = 'ALLOWALL';
   }
 }

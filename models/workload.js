@@ -667,7 +667,7 @@ export default class Workload extends SteveModel {
   }
 
   get pods() {
-    const relationships = get(this, 'metadata.relationships') || [];
+    const relationships = this.metadata?.relationships || [];
     const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
 
     if (podRelationship) {

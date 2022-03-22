@@ -147,6 +147,8 @@ export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 
 const instanceMethods = {};
 
+const FIELD_REGEX = /^\$\.metadata\.fields\[([0-9]*)\]/
+
 export const IF_HAVE = {
   V1_MONITORING:            'v1-monitoring',
   V2_MONITORING:            'v2-monitoring',
@@ -919,6 +921,10 @@ export const getters = {
 
       return out;
 
+      function rowValueGetter(index) {
+        return (row) => row.metadata?.fields?.[index];
+      }
+
       function fromSchema(col, rootGetters) {
         let formatter, width, formatterOpts;
 
@@ -942,10 +948,25 @@ export const getters = {
         const description = col.description || '';
         const tooltip = description && description[description.length - 1] === '.' ? description.slice(0, -1) : description;
 
+        // 'field' comes from the schema - typically it is of the form $.metadata.field[N]
+        // We will use JsonPath to look up this value, which is costly - so if we can detect this format
+        // Use a more efficient function to get the value
+        const field = col.field.startsWith('.') ? `$${ col.field }` : col.field;
+        const found = field.match(FIELD_REGEX);
+        let value;
+
+        if (found && found.length === 2) {
+          const fieldIndex = parseInt(found[1], 10);
+
+          value = rowValueGetter(fieldIndex);
+        } else {
+          value = field;
+        }
+
         return {
           name:    col.name.toLowerCase(),
           label:   exists(labelKey) ? t(labelKey) : col.name,
-          value:   col.field.startsWith('.') ? `$${ col.field }` : col.field,
+          value,
           sort:    [col.field],
           formatter,
           formatterOpts,

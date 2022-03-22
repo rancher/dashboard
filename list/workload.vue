@@ -1,7 +1,6 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import { WORKLOAD_TYPES, SCHEMA, NODE, POD } from '@/config/types';
-import Loading from '@/components/Loading';
 
 const schema = {
   id:         'workload',
@@ -15,7 +14,7 @@ const schema = {
 
 export default {
   name:       'ListWorkload',
-  components: { Loading, ResourceTable },
+  components: { ResourceTable },
 
   async fetch() {
     try {
@@ -127,6 +126,5 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <ResourceTable v-else :schema="schema" :rows="rows" :overflow-y="true" />
+  <ResourceTable :loading="$fetchState.pending" :schema="schema" :rows="rows" :overflow-y="true" />
 </template>

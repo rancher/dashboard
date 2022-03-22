@@ -75,6 +75,7 @@ export default {
       return map;
     },
 
+    // NOTE: The logic here could be simplified and made more performant
     bulkActionsForSelection() {
       let disableAll = false;
       // pagedRows is all rows in the current page

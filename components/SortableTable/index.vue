@@ -587,6 +587,8 @@ export default {
         return col.value(row);
       }
 
+      // console.warn(`Performance: Table valueFor: ${ col.name } ${ col.value }`); // Use to debug table columns using expensive value getters
+
       const expr = col.value || col.name;
       const out = get(row, expr);
 
