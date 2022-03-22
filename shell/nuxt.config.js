@@ -71,6 +71,7 @@ export default function(dir, _appConfig) {
       // The package.json must have the 'rancher' property to mark it as a UI package
       if (f.rancher) {
         const id = `${ f.name }-${ f.version }`;
+
         nmPackages[id] = f.main;
 
         // Add server middleware to serve up the files for this UI package
@@ -216,6 +217,8 @@ export default function(dir, _appConfig) {
       dev,
       pl,
     },
+
+    publicRuntimeConfig: { rancherEnv: process.env.RANCHER_ENV || 'web' },
 
     buildDir: dev ? '.nuxt' : '.nuxt-prod',
 
@@ -530,7 +533,7 @@ export default function(dir, _appConfig) {
       '/v3':           proxyWsOpts(api), // Rancher API
       '/v3-public':    proxyOpts(api), // Rancher Unauthed API
       '/api-ui':       proxyOpts(api), // Browser API UI
-      '/meta':         proxyOpts(api), // Browser API UI
+      '/meta':         proxyMetaOpts(api), // Browser API UI
       '/v1-*':         proxyOpts(api), // SAML, KDM, etc
       // These are for Ember embedding
       '/c/*/edit':     proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
@@ -575,6 +578,18 @@ export default function(dir, _appConfig) {
   // Functions for the request proxying used in dev
   // ===============================================================================================
 
+  function proxyMetaOpts(target) {
+    return {
+      target,
+      followRedirects: true,
+      secure:          !dev,
+      onProxyReq,
+      onProxyReqWs,
+      onError,
+      onProxyRes,
+    };
+  }
+
   function proxyOpts(target) {
     return {
       target,
@@ -601,9 +616,11 @@ export default function(dir, _appConfig) {
   }
 
   function onProxyReq(proxyReq, req) {
-    proxyReq.setHeader('x-api-host', req.headers['host']);
-    proxyReq.setHeader('x-forwarded-proto', 'https');
+    if (!(proxyReq._currentRequest && proxyReq._currentRequest._headerSent)) {
+      proxyReq.setHeader('x-api-host', req.headers['host']);
+      proxyReq.setHeader('x-forwarded-proto', 'https');
     // console.log(proxyReq.getHeaders());
+    }
   }
 
   function onProxyReqWs(proxyReq, req, socket, options, head) {
