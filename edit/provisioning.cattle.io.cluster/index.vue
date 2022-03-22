@@ -154,12 +154,13 @@ export default {
     emberLink() {
       // Explicitly asked from query string?
       if ( this.subType ) {
-        // For RKE1 Cluster, set the ember link so that we load the page rather than using RKE2 create
-        if (this.isRke1) {
-          const selected = this.subTypes.find(s => s.id === this.subType);
+        // For RKE1 and hosted Kubernetes Clusters, set the ember link so that we load the page rather than using RKE2 create
+        const selected = this.subTypes.find(s => s.id === this.subType);
 
-          return selected?.link;
+        if (selected?.link) {
+          return selected.link;
         }
+
         this.selectType(this.subType, false);
 
         // } else if ( this.value.isImported ) {
@@ -400,7 +401,6 @@ export default {
         return;
       }
 
-      this.emberLink = obj.link;
       this.$router.applyQuery({ [SUB_TYPE]: id });
       this.selectType(id);
     },
