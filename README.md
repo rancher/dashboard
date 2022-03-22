@@ -4,6 +4,15 @@
 Rancher Dashboard UI, a.k.a Cluster Explorer.
 For the other Rancher UI (Cluster Manager) see [rancher/ui](https://github.com/rancher/ui).
 
+## Plugins
+During the transition to the new folder structured in 2.6.5 required by the plugin work ...
+- Run the script `./scripts/rejig` to move folders to their new location in the `shell` folder and update the appropriate import statements
+  Use this to convert older PRs to the new format
+- Run the script `./scripts/rejig -d` to move folders to their old location and update imports again
+  Use this to convert newer branches to the old format (possibly useful for branches) 
+
+For more information on plugins see [Plugins](./docs/developer/PLUGINS).
+
 ## Running for Development
 This is what you probably want to get started.
 ```bash

@@ -1,12 +1,13 @@
-# Plugins Proof-of-Concept
+# Plugins
 
-After checkout:
+During the transition to the new folder structured in 2.6.5 required by the plugin work ...
+- Run the script `./scripts/rejig` to move folders to their new location in the `shell` folder and update the appropriate import statements
+  Use this to convert older PRs to the new format
+- Run the script `./scripts/rejig -d` to move folders to their old location and update imports again
+  Use this to convert newer branches to the old format (possibly useful for branches) 
 
-- Run the script `./scripts/rejig` - this will move most of the code under the `shell` folder and update the appropriate import statements
-- Run `yarn install`
-- Run `export API=https://{RANCHER_BACKEND}` (where `{RANCHER_BACKEND}` is the address of a running Rancher backend)
-
-The basis of this proof-of-concept is moving the majortiy of the code under the `shell` folder. Additionally, the top-level `nuxt.config.js` is updated
+## Step 1
+The basis of this step 1 is to move the majority of the code under the `shell` folder. Additionally, the top-level `nuxt.config.js` is updated
 to extend a base version now located within the `shell` folder. This includes updated nuxt and webpack configuration to get everything working with the
 moved folders.
 
@@ -29,7 +30,7 @@ The development workflow for Rancher Dashboard would remain unchanged.
 
 ## Use Case: Develop a new UI
 
-This use case covers our need to build separate UIs for Harvester, Epino etc - but wanting to leverage the core of the Rancher Dashboard UI.
+This use case covers our need to build separate UIs for Harvester, Epinio etc - but wanting to leverage the core of the Rancher Dashboard UI.
 
 For this, we would publish the `shell` as an NPM package and leverage this in a new UI project.
 
