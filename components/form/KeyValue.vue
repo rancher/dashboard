@@ -612,7 +612,7 @@ export default {
           </slot>
         </div>
 
-        <div v-for="c in extraColumns" :key="i + c">
+        <div v-for="c in extraColumns" :key="i + c" class="kv-item extra">
           <slot :name="'col:' + c" :row="row" :queue-update="queueUpdate" />
         </div>
 
@@ -670,7 +670,7 @@ export default {
     & .kv-item {
       width: 100%;
       margin: 10px 0px 10px 0px;
-      &.key {
+      &.key, &.extra {
         align-self: flex-start;
       }
 
