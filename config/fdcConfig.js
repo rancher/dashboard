@@ -1,5 +1,6 @@
 import { STATES, STATES_ENUM } from '@/plugins/steve/resource-class';
 import {
+  FLEET,
   CONFIG_MAP,
   SECRET,
   WORKLOAD_TYPES,
@@ -9,17 +10,6 @@ import {
   PVC,
   POD
 } from '@/config/types';
-
-// Validator for the fdcConfig prop in ForceDirectedTreeChart component
-export const FDC_ENUM = { FLEET_GIT_REPO: 'fleet-git-repo' };
-
-const fdcAllowedConfigs = [];
-
-Object.keys(FDC_ENUM).forEach((key) => {
-  fdcAllowedConfigs.push(FDC_ENUM[key]);
-});
-
-export const FDC_ALLOWED_CONFIGS = fdcAllowedConfigs;
 
 // some default values
 const defaultNodeRadius = 20;
@@ -46,7 +36,7 @@ const simulationParams = {
  * @param {Function} infoDetails - Prepares the data to be displayed in the info box on the right-side of the ForceDirectedTreeChart component
  */
 export const FDC_CONFIG = {
-  [FDC_ENUM.FLEET_GIT_REPO]: {
+  [FLEET.GIT_REPO]: {
     chartWidth,
     chartHeight,
     simulationParams,

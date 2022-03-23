@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { STATES, STATES_ENUM } from '@/plugins/steve/resource-class';
 import BadgeState from '@/components/BadgeState';
 import CompoundStatusBadge from '@/components/Fleet/CompoundStatusBadge';
-import { FDC_ALLOWED_CONFIGS, FDC_CONFIG } from './fdcConfig.js';
+import { FDC_CONFIG } from '@/config/fdcConfig.js';
 
 export default {
   name:       'ForceDirectedTreeChart',
@@ -14,10 +14,7 @@ export default {
       required: true
     },
     fdcConfig: {
-      type: String,
-      validator(value) {
-        return FDC_ALLOWED_CONFIGS.includes(value);
-      },
+      type:     String,
       required: true
     }
   },
