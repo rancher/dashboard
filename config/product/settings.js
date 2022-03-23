@@ -34,7 +34,7 @@ export function init(store) {
     labelKey:       'advancedSettings.label',
     name:           'settings',
     namespaced:     false,
-    weight:         99,
+    weight:         100,
     icon:           'folder',
     route:          {
       name:   'c-cluster-product-resource',
