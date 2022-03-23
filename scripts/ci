@@ -16,7 +16,7 @@ echo "Linting..."
 yarn run lint
 
 echo "Testing..."
-yarn run test
+yarn run test:ci
 
 echo "Building..."
 yarn run build

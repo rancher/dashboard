@@ -70,7 +70,7 @@ Schemas are provided in bulk via the APIs and cached locally in the relevant sto
 
 A schema can be fetched synchronously via store getter
 
-```
+```ts
 import { POD } from '@/config/types';
 
 this.$store.getters['cluster/schemaFor'](POD)`
@@ -141,7 +141,7 @@ The schema can be checked in the Rancher API at:
 https://<rancher url/v1/schema/provisioning.cattle.io.clusters
 ```
 To check if a user has access to a resource, you can see if they can see the corresponding schema:
-```
+```ts
 const hasAccess = this.$store.getters[`cluster/schemaFor`](type);
 
 return hasAccess ? this.$store.dispatch('cluster/findAll', { type }) : Promise.resolve([]);
@@ -193,7 +193,7 @@ Once objects of most types are fetched they will be automatically updated. See [
 
 It's possible to retrieve values from the store synchronously via `getters`. For resources this is not normally advised (they may not yet have been fetched), however for items such as schemas, it is valid. Some of the core getters are defined in `/plugins/steve/getters.js`:
 
-```
+```ts
 $store.getters['<store type>/byId'](<resource type>, <id>])
 
 $store.getters['<store type>/schemaFor'](<resource type>)`
