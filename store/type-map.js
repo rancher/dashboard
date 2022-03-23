@@ -1040,6 +1040,14 @@ export const getters = {
     };
   },
 
+  hasGraph(state, getters) {
+    return (resource) => {
+      const typeOptions = getters['optionsFor'](resource);
+
+      return typeOptions && typeOptions.hasGraph;
+    };
+  },
+
   hasCustomEdit(state, getters) {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);

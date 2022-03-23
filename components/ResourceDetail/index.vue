@@ -14,7 +14,6 @@ import DetailTop from '@/components/DetailTop';
 import { clone, set, diff } from '@/utils/object';
 import IconMessage from '@/components/IconMessage';
 import ForceDirectedTreeChart from '@/components/fleet/ForceDirectedTreeChart';
-import { FDC_ENUM } from '@/components/fleet/ForceDirectedTreeChart/fdcConfig.js';
 
 function modeFor(route) {
   if ( route.query?.mode === _IMPORT ) {
@@ -88,7 +87,7 @@ export default {
     // know about:  view, edit, create (stage, import and clone become "create")
     const mode = ([_CLONE, _IMPORT, _STAGE].includes(realMode) ? _CREATE : realMode);
 
-    const hasGraph = mode === _VIEW && resource === FLEET.GIT_REPO;
+    const hasGraph = store.getters['type-map/hasGraph'](resource);
     const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource, id);
     const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource, id);
 
@@ -101,7 +100,7 @@ export default {
 
     if ( mode === _VIEW && hasCustomDetail && (!requested || requested === _DETAIL) ) {
       as = _DETAIL;
-    } else if ( mode === _VIEW && resource === FLEET.GIT_REPO && requested === _GRAPH) {
+    } else if ( mode === _VIEW && hasGraph && requested === _GRAPH) {
       as = _GRAPH;
     } else if ( hasCustomEdit && (!requested || requested === _CONFIG) ) {
       as = _CONFIG;
@@ -220,7 +219,6 @@ export default {
 
   data() {
     return {
-      fdcConfigType:   FDC_ENUM.FLEET_GIT_REPO,
       chartData:       null,
       resourceSubtype: null,
 
@@ -372,7 +370,7 @@ export default {
     <ForceDirectedTreeChart
       v-if="isGraph"
       :data="chartData"
-      :fdc-config="fdcConfigType"
+      :fdc-config="resource"
     />
 
     <ResourceYaml
