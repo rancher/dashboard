@@ -578,30 +578,32 @@ export default {
         }
       }
 
-      const containerResources = template.spec.containers[0].resources;
-      const nvidiaGpuLimit = template.spec.containers[0].resources?.limits[GPU_KEY];
+      if (template.spec.containers && template.spec.containers[0]) {
+        const containerResources = template.spec.containers[0].resources;
+        const nvidiaGpuLimit = template.spec.containers[0].resources?.limits[GPU_KEY];
 
-      // Though not required, requests are also set to mirror the ember ui
-      if (nvidiaGpuLimit > 0) {
-        containerResources.requests = containerResources.requests || {};
-        containerResources.requests[GPU_KEY] = nvidiaGpuLimit;
-      }
+        // Though not required, requests are also set to mirror the ember ui
+        if (nvidiaGpuLimit > 0) {
+          containerResources.requests = containerResources.requests || {};
+          containerResources.requests[GPU_KEY] = nvidiaGpuLimit;
+        }
 
-      if (!this.nvidiaIsValid(nvidiaGpuLimit) ) {
-        try {
-          delete containerResources.requests[GPU_KEY];
-          delete containerResources.limits[GPU_KEY];
+        if (!this.nvidiaIsValid(nvidiaGpuLimit) ) {
+          try {
+            delete containerResources.requests[GPU_KEY];
+            delete containerResources.limits[GPU_KEY];
 
-          if (Object.keys(containerResources.limits).length === 0) {
-            delete containerResources.limits;
-          }
-          if (Object.keys(containerResources.requests).length === 0) {
-            delete containerResources.requests;
-          }
-          if (Object.keys(containerResources).length === 0) {
-            delete template.spec.containers[0].resources;
-          }
-        } catch {}
+            if (Object.keys(containerResources.limits).length === 0) {
+              delete containerResources.limits;
+            }
+            if (Object.keys(containerResources.requests).length === 0) {
+              delete containerResources.requests;
+            }
+            if (Object.keys(containerResources).length === 0) {
+              delete template.spec.containers[0].resources;
+            }
+          } catch {}
+        }
       }
 
       const nodeAffinity = template?.spec?.affinity?.nodeAffinity || {};
