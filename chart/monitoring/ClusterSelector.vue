@@ -178,12 +178,12 @@ export default {
 
   created() {
     const { provider, clusterTypes } = this;
-    const matchedProvder = findBy(clusterTypes, 'id', provider);
+    const matchedProvider = findBy(clusterTypes, 'id', provider);
 
-    if (isEmpty(matchedProvder)) {
+    if (isEmpty(matchedProvider)) {
       this.clusterType = findBy(this.clusterTypes, 'id', 'other');
     } else {
-      this.clusterType = matchedProvder;
+      this.clusterType = matchedProvider;
     }
   },
 

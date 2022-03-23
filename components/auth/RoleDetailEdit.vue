@@ -450,7 +450,7 @@ export default {
               'PipelineSettings', // Replaced by Fleet
               'SourceCodeCredentials', // Replaced by Fleet
               'SourceCodeProviderConfigs', // Replaced by Fleet
-              'SourceCodeRepositorys', // Replaced by Fleet
+              'SourceCodeRepositories', // Replaced by Fleet
             ]
           },
           'logging.banzaicloud.io': {
@@ -469,7 +469,7 @@ export default {
           },
           'security.istio.io': {
             resources: [
-              'AuthorizationPolicys',
+              'AuthorizationPolicies',
               'RequestAuthentications',
               'PeerAuthentications',
             ]

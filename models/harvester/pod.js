@@ -18,7 +18,7 @@ const POD_STATUS_SUCCEEDED = 'POD_STATUS_SUCCEEDED';
 const POD_STATUS_RUNNING = 'POD_STATUS_RUNNING';
 
 const failedWaitingContainerReasons = ['ImagePullBackOff', 'ErrImagePull', 'CrashLoopBackOff'];
-const failedTerminationContaineReasons = ['Error'];
+const failedTerminationContainerReasons = ['Error'];
 
 const errorStatusMapper = {
   Failed:           POD_STATUS_FAILED,
@@ -105,7 +105,7 @@ export default class HciPod extends Resource {
     return (get(this, 'status.containerStatuses'), []).find((container) => {
       return !container.ready &&
       (includes(failedWaitingContainerReasons, get(container, 'state.waiting.reason')) ||
-      includes(failedTerminationContaineReasons, get(container, 'state.terminated.reason')));
+      includes(failedTerminationContainerReasons, get(container, 'state.terminated.reason')));
     });
   }
 

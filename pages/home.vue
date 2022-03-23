@@ -57,7 +57,7 @@ export default {
         labelKey: 'nav.header.setLoginPage',
         action:   SET_LOGIN_ACTION
       },
-      { seperator: true },
+      { separator: true },
       {
         labelKey: 'nav.header.restoreCards',
         action:   RESET_CARDS_ACTION

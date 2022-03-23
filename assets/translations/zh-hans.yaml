@@ -2030,7 +2030,7 @@ hpa:
       targetName: 目标名称
       value: 值
     source: 源
-  objectReferance:
+  objectReference:
     api:
       label: 引用的 API 版本
       placeholder: 例如：apps/v1beta1
@@ -5439,7 +5439,7 @@ harvester:
     PhysicalNic: 物理网卡
     cpu: CPU
     memory: 内存
-    virtaulName: 虚拟机名称
+    virtualName: 虚拟机名称
     promiscuous: Promiscuous
     ipv4Address: IPv4 地址
   generic:
@@ -5826,15 +5826,15 @@ harvester:
       noSetting:
         prefix: 在创建新备份之前, 必须在
         middle: '设置'
-        suffic: 中配置备份目标。
+        suffix: 中配置备份目标。
       errorTip:
         prefix: 非法的备份目标
         middle: 设置
-        suffic: "。错误信息： "
+        suffix: "。错误信息： "
       viewSetting:
         prefix: 点击
         middle: 此处
-        suffic: 查看备份配置。
+        suffix: 查看备份配置。
     restore:
       backup: 备份
       deletePreviousVolumes: 删除先前的卷
@@ -5853,15 +5853,15 @@ harvester:
       premise:
         prefix: '你需要先进行网络'
         middle: '设置'
-        suffic: '然后才能创建新网络。'
+        suffix: '然后才能创建新网络。'
       viewSetting:
         prefix: 点击
         middle: 此处
-        suffic: 查看默认集群网络配置。
+        suffix: 查看默认集群网络配置。
       errorTip:
         prefix: 非法的物理网卡
         middle: 设置
-        suffic: "。错误信息： "
+        suffix: "。错误信息： "
     layer3Network:
       mode:
         label: 模式
@@ -5896,7 +5896,7 @@ harvester:
       ca:
         prefix: '点击'
         middle: '此处'
-        suffic: '添加自定义证书。'
+        suffix: '添加自定义证书。'
     sslCertificates:
       publicCertificate: 公共证书
       privateKey: 私钥

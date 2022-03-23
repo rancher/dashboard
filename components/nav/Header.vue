@@ -400,9 +400,9 @@ export default {
           <template slot="popover" class="user-menu">
             <ul class="list-unstyled dropdown" @click.stop="showPageActionsMenu(false)">
               <li v-for="a in pageActions" :key="a.label" class="user-menu-item">
-                <a v-if="!a.seperator" @click="pageAction(a)">{{ a.labelKey ? t(a.labelKey) : a.label }}</a>
-                <div v-else class="menu-seperator">
-                  <div class="menu-seperator-line" />
+                <a v-if="!a.separator" @click="pageAction(a)">{{ a.labelKey ? t(a.labelKey) : a.label }}</a>
+                <div v-else class="menu-separator">
+                  <div class="menu-separator-line" />
                 </div>
               </li>
             </ul>
@@ -807,11 +807,11 @@ export default {
       }
     }
 
-    div.menu-seperator {
+    div.menu-separator {
       cursor: default;
       padding: 4px 0;
 
-      .menu-seperator-line {
+      .menu-separator-line {
         background-color: var(--border);
         height: 1px;
       }

@@ -22,12 +22,12 @@ export default {
 </script>
 
 <template>
-  <a class="copy-to-cliboard-text" :class="{'plain': plain}" href="#" @click="clicked">
+  <a class="copy-to-clipboard-text" :class="{'plain': plain}" href="#" @click="clicked">
     {{ text }} <i class="icon icon-copy" />
   </a>
 </template>
 <style lang="scss" scoped>
-  .copy-to-cliboard-text {
+  .copy-to-clipboard-text {
     &.plain {
       color: var(--body-text);
 

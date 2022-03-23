@@ -48,7 +48,7 @@ export default {
     },
   },
   data() {
-    const persistantStorageTypes = ['disabled', 'existing', 'pvc', 'statefulset'];
+    const persistentStorageTypes = ['disabled', 'existing', 'pvc', 'statefulset'];
     const persistentStorageTypeLabels = [
       this.t('generic.disabled'),
       this.t('monitoring.grafana.storage.types.existing'),
@@ -57,7 +57,7 @@ export default {
     ];
 
     if (this.pvcs.length < 1) {
-      persistantStorageTypes.splice(1, 1);
+      persistentStorageTypes.splice(1, 1);
       persistentStorageTypeLabels.splice(1, 1);
     }
 
@@ -76,7 +76,7 @@ export default {
     }
 
     return {
-      persistantStorageTypes,
+      persistentStorageTypes,
       persistentStorageTypeLabels,
       persistentStorageType,
     };
@@ -180,7 +180,7 @@ export default {
             :label="t('monitoring.grafana.storage.label')"
             :labels="persistentStorageTypeLabels"
             :mode="mode"
-            :options="persistantStorageTypes"
+            :options="persistentStorageTypes"
           />
         </div>
       </div>

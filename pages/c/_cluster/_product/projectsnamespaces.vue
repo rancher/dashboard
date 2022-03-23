@@ -115,10 +115,10 @@ export default {
       }
 
       const isVirtualCluster = this.$store.getters['isVirtualCluster'];
-      const isVirutalProduct = this.$store.getters['currentProduct'].name === HARVESTER;
+      const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
 
       return this.namespaces.filter((namespace) => {
-        return isVirtualCluster && isVirutalProduct ? (!namespace.isSystem && !namespace.isObscure) : !namespace.isObscure;
+        return isVirtualCluster && isVirtualProduct ? (!namespace.isSystem && !namespace.isObscure) : !namespace.isObscure;
       });
     }
   },

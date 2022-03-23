@@ -13,7 +13,7 @@ import UnitInput from '@/components/form/UnitInput';
 import { _VIEW } from '@/config/query-params';
 import { toMilliseconds } from './duration.js';
 
-const INGORED_ANNOTATIONS = [
+const IGNORED_ANNOTATIONS = [
   'summary',
   'message',
   'description',
@@ -45,7 +45,7 @@ export default {
   data() {
     return {
       selectedSeverityLabel: null,
-      ignoredAnnotations:    INGORED_ANNOTATIONS,
+      ignoredAnnotations:    IGNORED_ANNOTATIONS,
       severityOptions:       [
         this.t('prometheusRule.alertingRules.labels.severity.choices.critical'),
         this.t('prometheusRule.alertingRules.labels.severity.choices.warning'),
