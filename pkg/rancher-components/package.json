@@ -19,8 +19,7 @@
     "lodash.debounce": "^4.0.8"
   },
   "devDependencies": {
-    "vue": "^2.6.11",
-    "core-js": "^3.6.5",
+    "@types/jest": "^27.4.1",
     "@typescript-eslint/eslint-plugin": "^4.18.0",
     "@typescript-eslint/parser": "^4.18.0",
     "@vue/cli-plugin-babel": "~4.5.0",
@@ -32,6 +31,7 @@
     "@vue/eslint-config-typescript": "^7.0.0",
     "@vue/test-utils": "^1.0.3",
     "babel-eslint": "^10.1.0",
+    "core-js": "^3.6.5",
     "eslint": "^6.7.2",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-node": "^11.1.0",
@@ -41,10 +41,11 @@
     "sass": "^1.26.5",
     "sass-loader": "^8.0.2",
     "typescript": "~4.1.5",
+    "vue": "^2.6.11",
     "vue-template-compiler": "^2.6.11"
   },
   "peerDependencies": {
-    "vue": "^2.6.11",
-    "core-js": "^3.6.5"
+    "core-js": "^3.6.5",
+    "vue": "^2.6.11"
   }
 }

@@ -15,6 +15,7 @@
     "checkJs": false,
     "types": [
       "webpack-env",
+      "jest"
     ],
     "paths": {
       "@/*": [
