@@ -1,9 +1,9 @@
 {
-  "name": "rancher-components",
+  "name": "@rancher/components",
   "version": "0.1.0",
   "private": true,
   "module": "./main.js",
-  "main": "./dist/rancher-components.umd.min.js",
+  "main": "./dist/@rancher/components.umd.min.js",
   "files": [
     "dist/*",
     "types/*"
@@ -11,7 +11,7 @@
   "types": "./types/index.d.ts",
   "scripts": {
     "build": "vue-cli-service build",
-    "build:lib": "vue-cli-service build --target lib --name rancher-components src/main.ts",
+    "build:lib": "vue-cli-service build --target lib --name @rancher/components src/main.ts",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint"
   },
