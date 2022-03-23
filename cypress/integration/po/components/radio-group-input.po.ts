@@ -11,12 +11,12 @@ export default class RadioGroupInputPo extends ComponentPo {
   }
 
   /**
-   * Return the nth radio input from a given group
+   * Return the nth radio label from a given group, as input is hidden and label bound
    * @param value position of the radio from the group
    * @returns
    */
   private input(value: number): Cypress.Chainable {
     return this.self()
-      .find('input[type=radio]').eq(value);
+      .find('.radio-label').eq(value);
   }
 }

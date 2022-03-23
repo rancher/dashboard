@@ -24,7 +24,7 @@
     "dev": "./node_modules/.bin/nuxt dev",
     "mem-dev": "node --max-old-space-size=8192 ./node_modules/.bin/nuxt dev",
     "docker-dev": "docker run --rm --name dashboard-dev -p 8005:8005 -e API=$API -v $(pwd):/src -v dashboard_node:/src/node_modules rancher/dashboard:dev",
-    "docker:local": "docker run -d --restart=unless-stopped -p 80:80 -p 443:443 -e CATTLE_BOOTSTRAP_PASSWORD=admin --privileged rancher/rancher:v2.6-head",
+    "docker:local": "docker run -d --restart=unless-stopped -p 80:80 -p 443:443 -e CATTLE_BOOTSTRAP_PASSWORD=password -e CATTLE_PASSWORD_MIN_LENGTH=3 --privileged rancher/rancher:v2.6-head",
     "docker:init": "node ./scripts/setup",
     "docker:stop": "docker kill $(docker ps -q) || true",
     "build": "./node_modules/.bin/nuxt build --devtools",

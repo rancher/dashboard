@@ -10,11 +10,11 @@ export default class RadioInputPo extends ComponentPo {
   }
 
   /**
-   * Return the radio input button from a given container
+   * Return the radio label from a given container, as input is hidden and label bound
    * @returns
    */
   private input(): Cypress.Chainable {
     return this.self()
-      .find('input[type=radio]');
+      .find('.radio-label');
   }
 }

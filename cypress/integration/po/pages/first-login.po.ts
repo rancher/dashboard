@@ -20,7 +20,7 @@ export class FirstLoginPagePo extends PagePo {
   }
 
   choosePassword(): RadioGroupInputPo {
-    return new RadioGroupInputPo(this.form.radioGroups().eq(1));
+    return new RadioGroupInputPo(this.form.radioGroups().eq(0));
   }
 
   password(): LabeledInputPo {

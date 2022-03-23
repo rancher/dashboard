@@ -2,8 +2,8 @@ name: E2E test
 on: [push]
 env:
   TEST_USERNAME: admin
-  TEST_PASSWORD: admin
-  CATTLE_BOOTSTRAP_PASSWORD: admin
+  TEST_PASSWORD: password
+  CATTLE_BOOTSTRAP_PASSWORD: password
   TEST_BASE_URL: https://127.0.0.1:8005
   API: https://127.0.0.1
 jobs:

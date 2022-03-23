@@ -17,6 +17,10 @@ export class WelcomePagePo extends PagePo {
     this.form = new FormPo('form', this.self());
   }
 
+  hasInfoMessage() {
+    this.self().get('.first-login-message').should('be.visible');
+  }
+
   password(): LabeledInputPo {
     return new LabeledInputPo(this.form.labels().first());
   }
