@@ -1,5 +1,5 @@
 <script>
-import RadioButton from '~/components/RadioButton'
+import { RadioButton } from '~/components/Form'
 
 const _VIEW = 'view'
 
