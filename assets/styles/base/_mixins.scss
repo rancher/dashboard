@@ -146,7 +146,8 @@
 
     &.error {
       border: solid 1px var(--error);
-      input, .selected {
+
+      > label {
         color: var(--error);
       }
 
