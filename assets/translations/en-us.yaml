@@ -6823,6 +6823,8 @@ epinio:
         label: Rebuild
       restart:
         label: Restart
+    wm:
+      containerName: 'Instance: {label}'
   namespace:
     tableHeaders:
       appCount: Applications

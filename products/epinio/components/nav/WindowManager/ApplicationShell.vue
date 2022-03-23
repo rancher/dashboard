@@ -49,7 +49,7 @@ export default {
     },
 
     instanceChoices() {
-      return this.application.instances.map(i => i.id);
+      return this.application.instances.map(i => this.t('epinio.applications.wm.containerName', { label: i.id }));
     },
   },
 
@@ -268,7 +268,7 @@ export default {
         <template #selected-option="option">
           <t
             v-if="option"
-            k="wm.containerShell.containerName"
+            k="epinio.applications.wm.containerName"
             :label="option.label"
           />
         </template>
