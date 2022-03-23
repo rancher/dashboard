@@ -48,9 +48,6 @@ export default {
       };
     },
 
-    instanceChoices() {
-      return this.application.instances.map(i => this.t('epinio.applications.wm.containerName', { label: i.id }));
-    },
   },
 
   watch: {
@@ -254,7 +251,7 @@ export default {
 </script>
 
 <template>
-  <Window :active="active" :before-close="cleanup">
+  <Window :active="active" :before-close="cleanup" class="epinio-app-shell">
     <template #title>
       <Select
         v-if="instanceChoices.length > 0"
@@ -297,6 +294,14 @@ export default {
     </template>
   </Window>
 </template>
+
+<style lang="scss">
+.epinio-app-shell {
+  .v-select.inline.vs--single.vs--open .vs__selected {
+    position: inherit;
+  }
+}
+</style>
 
 <style lang="scss" scoped>
 .text-warning {

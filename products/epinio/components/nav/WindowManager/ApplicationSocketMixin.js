@@ -41,6 +41,12 @@ export default {
     };
   },
 
+  computed: {
+    instanceChoices() {
+      return this.application.instances.map(i => i.id);
+    },
+  },
+
   methods: {
     async getRootSocketUrl() {
       const { token } = await this.$store.dispatch(`epinio/request`, { opt: { url: '/api/v1/authtoken' } });

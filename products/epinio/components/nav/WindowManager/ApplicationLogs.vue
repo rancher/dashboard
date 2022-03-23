@@ -5,6 +5,7 @@ import { LOGS_TIME, LOGS_WRAP, DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 import Checkbox from '@/components/form/Checkbox';
 import AsyncButton from '@/components/AsyncButton';
 import day from 'dayjs';
+import Select from '@/components/form/Select';
 
 import { escapeHtml, escapeRegex } from '@/utils/string';
 
@@ -25,7 +26,8 @@ export default {
   components: {
     Window,
     Checkbox,
-    AsyncButton
+    AsyncButton,
+    Select
   },
 
   mixins: [ApplicationSocketMixin],
@@ -44,13 +46,24 @@ export default {
       wrap:        this.$store.getters['prefs/get'](LOGS_WRAP),
       search:      '',
       lines:       [],
+      instance:    ''
     };
   },
 
   computed: {
 
+    instanceChoicesWithNone() {
+      return [
+        ...this.instanceChoices,
+        {
+          label: 'No Instance Filter',
+          value: null
+        }
+      ];
+    },
+
     filtered() {
-      if ( !this.search ) {
+      if ( !this.search && !this.instance) {
         return this.lines;
       }
 
@@ -59,6 +72,15 @@ export default {
 
       for ( const line of this.lines ) {
         let msg = line.rawMsg;
+
+        if ( this.instance) {
+          const pod = msg.substring(1, msg.length);
+
+          if (!pod.startsWith(this.instance)) {
+            continue;
+          }
+        }
+
         const matches = msg.match(re);
 
         if ( !matches ) {
@@ -231,39 +253,62 @@ export default {
 </script>
 
 <template>
-  <Window :active="active" :before-close="cleanup">
+  <Window :active="active" :before-close="cleanup" class="epinio-app-log">
     <template #title>
-      <div class="log-action pull-left ml-5">
-        <button class="btn bg-primary" :disabled="isFollowing" @click="follow">
-          <t k="wm.containerLogs.follow" />
-        </button>
-        <button class="btn bg-primary" @click="clear">
-          <t k="wm.containerLogs.clear" />
-        </button>
-        <AsyncButton mode="download" @click="download" />
-      </div>
+      <div class="title-inner log-action ">
+        <div class="title-inner-left">
+          <Select
+            v-if="instanceChoices.length > 0"
+            v-model="instance"
+            :disabled="instanceChoices.length === 1"
+            class="containerPicker auto-width"
+            :options="instanceChoicesWithNone"
+            :clearable="true"
+            placement="top"
+            placeholder="Filter by Instance"
+          >
+            <template #selected-option="option">
+              <t
+                v-if="option"
+                k="epinio.applications.wm.containerName"
+                :label="option.label"
+              />
+            </template>
+          </Select>
 
-      <div class="status log-action pull-right text-center p-10" style="min-width: 80px;">
-        <t :class="{'text-success': isOpen, 'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
-      </div>
-      <div class="log-action pull-right ml-5">
-        <input v-model="search" class="input-sm" type="search" :placeholder="t('wm.containerLogs.search')" />
-      </div>
-      <div class="log-action pull-right ml-5">
-        <v-popover
-          trigger="click"
-          placement="top"
-        >
-          <button class="btn bg-primary">
-            <i class="icon icon-gear" />
+          <button class="btn bg-primary ml-5" :disabled="isFollowing" @click="follow">
+            <t k="wm.containerLogs.follow" />
           </button>
+          <button class=" btn bg-primary ml-5" @click="clear">
+            <t k="wm.containerLogs.clear" />
+          </button>
+          <AsyncButton class="ml-5" mode="download" @click="download" />
+        </div>
+        <div style="flex: 1;"></div>
+        <div class="title-inner-right">
+          <div class="status log-action text-center p-10" style="min-width: 80px;">
+            <t :class="{'text-success': isOpen, 'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
+          </div>
+          <div class="log-action  ml-5">
+            <input v-model="search" class="input-sm" type="search" :placeholder="t('wm.containerLogs.search')" />
+          </div>
+          <div class="log-action ml-5">
+            <v-popover
+              trigger="click"
+              placement="top"
+            >
+              <button class="btn bg-primary">
+                <i class="icon icon-gear" />
+              </button>
 
-          <template slot="popover">
-            <div class="filter-popup">
-              <div><Checkbox :label="t('wm.containerLogs.wrap')" :value="wrap" @input="toggleWrap " /></div>
-            </div>
-          </template>
-        </v-popover>
+              <template slot="popover">
+                <div class="filter-popup">
+                  <div><Checkbox :label="t('wm.containerLogs.wrap')" :value="wrap" @input="toggleWrap " /></div>
+                </div>
+              </template>
+            </v-popover>
+          </div>
+        </div>
       </div>
     </template>
     <template #body>
@@ -290,7 +335,31 @@ export default {
   </Window>
 </template>
 
+<style lang="scss">
+.epinio-app-log {
+  .v-select.inline.vs--single.vs--open .vs__selected {
+    position: inherit;
+  }
+}
+</style>
+
 <style lang="scss" scoped>
+  .title-inner {
+    display: flex;
+    flex-direction: row;
+  }
+  .title-inner {
+    display: flex;
+    flex-direction: row;
+    &-left, &-right {
+      display: flex;
+      flex-direction: row;
+    }
+  }
+  // .title-left {
+
+  // }
+
   .logs-container {
     height: 100%;
     overflow: auto;
@@ -362,5 +431,9 @@ export default {
     > * {
       margin-bottom: 10px;
     }
+  }
+
+  .title-left {
+    display: flex;
   }
 </style>
