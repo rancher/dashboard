@@ -3,6 +3,7 @@
   display: table;
   border-collapse: separate;
   min-height: $input-height;
+  z-index: 0; // Prevent label from cover other elements outside of the input
 
   LABEL {
     position: absolute;
