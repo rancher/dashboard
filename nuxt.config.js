@@ -17,6 +17,7 @@ const dev = (process.env.NODE_ENV !== 'production');
 const devPorts = dev || process.env.DEV_PORTS === 'true';
 const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
+const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
 
 let api = process.env.API || 'http://localhost:8989';
 
@@ -73,6 +74,7 @@ module.exports = {
     version,
     dev,
     pl,
+    perfTest,
   },
 
   publicRuntimeConfig: { rancherEnv: process.env.RANCHER_ENV || 'web' },
@@ -375,7 +377,7 @@ function proxyMetaOpts(target) {
 function proxyOpts(target) {
   return {
     target,
-    secure: !dev,
+    secure: !devPorts,
     onProxyReq,
     onProxyReqWs,
     onError,
@@ -384,7 +386,7 @@ function proxyOpts(target) {
 }
 
 function onProxyRes(proxyRes, req, res) {
-  if (dev) {
+  if (devPorts) {
     proxyRes.headers['X-Frame-Options'] = 'ALLOWALL';
   }
 }
