@@ -2328,8 +2328,9 @@ landing:
     title: Commercial Support
     body: Learn about commercial support
   landingPrefs:
-    title: What do you want to see when you log in?
-    body: "You can change where you land when you login:"
+    title: You can change what you see when you login via preferences
+    userPrefs: Preferences
+    body: "You can change where you land when you login"
     options:
       homePage: Take me to the home page
       lastVisited: Take me to the area I last visited
