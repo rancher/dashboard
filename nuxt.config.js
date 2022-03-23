@@ -208,12 +208,8 @@ module.exports = {
         test:    /\.md$/,
         use:  [
           {
-            loader:  'url-loader',
-            options: {
-              name:     '[path][name].[ext]',
-              limit:    1,
-              esModule: false
-            },
+            loader:  'frontmatter-markdown-loader',
+            options: { mode: ['body'] }
           }
         ]
       });
@@ -290,7 +286,6 @@ module.exports = {
     'cookie-universal-nuxt',
     'portal-vue/nuxt',
     '~/plugins/steve/rehydrate-all',
-    '@nuxt/content',
   ],
 
   // Vue plugins
