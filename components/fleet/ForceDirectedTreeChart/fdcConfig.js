@@ -283,7 +283,7 @@ export const FDC_CONFIG = {
           const err = [];
 
           data.perClusterState.forEach((item) => {
-            err.push(`<p class="error">${ item.message } ===> CLUSTER: ${ item.clusterId }</p>`);
+            err.push(`<p class="error">${ item.message } :::::: Cluster ID: ${ item.clusterId }</p>`);
           });
 
           moreInfo.push({
