@@ -1,5 +1,6 @@
 {
   "name": "@rancher/components",
+  "repository": "git://github.com:rancher/dashboard.git",
   "version": "0.1.0",
   "private": true,
   "module": "./main.js",
