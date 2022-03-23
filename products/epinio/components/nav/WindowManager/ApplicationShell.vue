@@ -254,7 +254,7 @@ export default {
   <Window :active="active" :before-close="cleanup" class="epinio-app-shell">
     <template #title>
       <Select
-        v-if="instanceChoices.length > 0"
+        v-if="instanceChoices.length > 1"
         v-model="instance"
         :disabled="instanceChoices.length === 1"
         class="containerPicker auto-width pull-left"

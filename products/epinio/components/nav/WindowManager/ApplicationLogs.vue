@@ -258,7 +258,7 @@ export default {
       <div class="title-inner log-action ">
         <div class="title-inner-left">
           <Select
-            v-if="instanceChoices.length > 0"
+            v-if="instanceChoices.length > 1"
             v-model="instance"
             :disabled="instanceChoices.length === 1"
             class="containerPicker auto-width"
