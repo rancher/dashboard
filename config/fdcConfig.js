@@ -72,8 +72,9 @@ export const FDC_CONFIG = {
 
         if (bundle.status?.resourceKey?.length) {
           bundle.status.resourceKey.forEach((res, index) => {
-            const id = `${ res.namespace }/${ res.name }`;
-            const matchingId = `${ res.kind }-${ res.namespace }/${ res.name }`;
+            const id = res.namespace ? `${ res.namespace }/${ res.name }` : res.name;
+            const matchingId = `${ res.kind }-${ id }`;
+
             let type;
             let state;
             let stateLabel;
@@ -261,7 +262,7 @@ export const FDC_CONFIG = {
 
         moreInfo.push({
           type:     'compound-status',
-          labelKey: 'fleet.fdc.status',
+          labelKey: 'fleet.fdc.ready',
           valueObj: {
             badgeClass: STATES[state] ? STATES[state].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
             icon:       STATES[state] ? STATES[state].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } bg-unmapped-state`,

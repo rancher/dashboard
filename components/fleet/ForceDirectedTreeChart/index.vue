@@ -87,10 +87,6 @@ export default {
       this.zoom = d3.zoom().scaleExtent([1 / 8, 16]).on('zoom', this.zoomed);
       const transform = d3.zoomIdentity.scale(1).translate(0, 0);
 
-      this.svg = d3.select('#tree').append('svg')
-        .attr('viewBox', `0 0 ${ this.chartConfig.chartWidth } ${ this.chartConfig.chartHeight }`)
-        .attr('preserveAspectRatio', 'none');
-
       this.rootNode = this.svg.append('g')
         .attr('class', 'root-node');
 
@@ -191,26 +187,12 @@ export default {
     },
     mainNodeClass(d) {
       const lowerCaseStatus = d.data?.state ? d.data.state.toLowerCase() : 'unkown_status';
-      const stateColorDefinition = STATES[lowerCaseStatus] ? STATES[lowerCaseStatus].color : 'unknown_color';
       const defaultClassArray = ['node'];
 
-      // node color/status
-      switch (stateColorDefinition) {
-      case STATES_ENUM.SUCCESS:
-        defaultClassArray.push('node-success');
-        break;
-      case STATES_ENUM.WARNING:
-        defaultClassArray.push('node-warning');
-        break;
-      case STATES_ENUM.ERROR:
-        defaultClassArray.push('node-error');
-        break;
-      case STATES_ENUM.INFO:
-        defaultClassArray.push('node-info');
-        break;
-      default:
-        defaultClassArray.push('node-default-fill');
-        break;
+      if (STATES[lowerCaseStatus] && STATES[lowerCaseStatus].color) {
+        defaultClassArray.push(`node-${ STATES[lowerCaseStatus].color }`);
+      } else {
+        defaultClassArray.push(`node-default-fill`);
       }
 
       // node active (clicked)
@@ -239,6 +221,7 @@ export default {
       return -(((radius * 2) - padding) / 2);
     },
     setDetailsInfo(data, toUpdate) {
+      console.log('NODE CLICKED', data);
       // get the data to be displayed on info box, per each different chart
       this.moreInfo = Object.assign([], this.chartConfig.infoDetails(data));
 
@@ -345,8 +328,15 @@ export default {
     }
   },
   mounted() {
+    // grab chart config based on the resource type (fdcConfig param)
     this.chartConfig = FDC_CONFIG[this.fdcConfig];
 
+    // start by appending SVG to define height of chart area
+    this.svg = d3.select('#tree').append('svg')
+      .attr('viewBox', `0 0 ${ this.chartConfig.chartWidth } ${ this.chartConfig.chartHeight }`)
+      .attr('preserveAspectRatio', 'none');
+
+    // set watcher for the chart data
     this.dataWatcher = this.$watch(this.chartConfig.watcherProp, function(newValue) {
       this.watcherFunction(newValue);
     });
@@ -364,8 +354,13 @@ export default {
         v-if="!isChartFirstRenderAnimationFinished"
         class="loading-container"
       >
-        <span v-show="!isChartFirstRendered">{{ t('fleet.fdc.loadingChart') }}</span>
-        <span v-show="isChartFirstRendered && !isChartFirstRenderAnimationFinished">{{ t('fleet.fdc.renderingChart') }}</span>
+        <p v-show="!isChartFirstRendered">
+          {{ t('fleet.fdc.loadingChart') }}
+        </p>
+        <p v-show="isChartFirstRendered && !isChartFirstRenderAnimationFinished">
+          {{ t('fleet.fdc.renderingChart') }}
+        </p>
+        <i class="mt-10 icon-spinner icon-spin" />
       </div>
       <!-- main div for svg container -->
       <div id="tree">
@@ -375,7 +370,10 @@ export default {
         <div class="more-info">
           <table>
             <tr v-for="(item, i) in moreInfo" :key="i">
-              <td :class="{'align-middle': item.type === 'state-badge' || item.type === 'compound-status'}">
+              <td
+                v-if="item.type !== 'multiple-error'"
+                :class="{'align-middle': item.type === 'state-badge' || item.type === 'compound-status'}"
+              >
                 <span class="more-info-item-label">{{ t(item.labelKey) }}:</span>
               </td>
               <td v-if="item.type === 'title-link'">
@@ -407,7 +405,10 @@ export default {
                 />
               </td>
               <!-- multiple-error template -->
-              <td v-else-if="item.type === 'multiple-error'">
+              <td
+                v-else-if="item.type === 'multiple-error'"
+                colspan="2"
+              >
                 <div v-for="(val, index) in item.value" :key="index" class="mb-10" v-html="val"></div>
               </td>
               <!-- default template -->
@@ -447,6 +448,11 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
+
+    i {
+      font-size: 24px;
+    }
   }
 
   #tree {
