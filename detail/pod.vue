@@ -59,17 +59,25 @@ export default {
 
       return (containers || []).map((container) => {
         const status = findBy(statuses, 'name', container.name);
+        const state = status.state || {};
+
+        // There can be only one member of a `ContainerState`
+        const s = Object.values(state)[0];
+        const reason = s.reason || '';
+        const message = s.message || '';
+        const showBracket = s.reason && s.message;
 
         return {
           ...container,
           status:           status || {},
-          stateDisplay:     this.value.containerStateDisplay(container),
-          stateBackground:  this.value.containerStateColor(container).replace('text', 'bg'),
+          stateDisplay:     this.value.containerStateDisplay(status),
+          stateBackground:  this.value.containerStateColor(status).replace('text', 'bg'),
           nameSort:         sortableNumericSuffix(container.name).toLowerCase(),
-          readyIcon:        container?.status?.ready ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-x icon-2x text-error ml-5',
+          readyIcon:        status?.ready ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-x icon-2x text-error ml-5',
           availableActions: this.value.containerActions,
           stateObj:         status, // Required if there's a description
-          stateDescription: status, // Required to display the description
+          stateDescription: `${ reason }${ showBracket ? ' (' : '' }${ message }${ showBracket ? ')' : '' }`, // Required to display the description
+          initIcon:         this.value.containerIsInit(container) ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-minus icon-2x text-muted ml-5',
 
           // Call openShell here so that opening the shell
           // at the container level still has 'this' in scope.
@@ -102,13 +110,23 @@ export default {
           formatter:     'IconText',
           formatterOpts: { iconKey: 'readyIcon' },
           align:         'left',
-          width:         75
+          width:         75,
+          sort:          'readyIcon'
         },
         {
           ...SIMPLE_NAME,
           value: 'name'
         },
         IMAGE,
+        {
+          name:          'isInit',
+          labelKey:      'workload.container.init',
+          formatter:     'IconText',
+          formatterOpts: { iconKey: 'initIcon' },
+          align:         'left',
+          width:         75,
+          sort:          'initIcon'
+        },
         {
           name:     'restarts',
           labelKey: 'tableHeaders.restarts',
@@ -165,18 +183,6 @@ export default {
       this.metricsID = id;
       this.selection = c;
     },
-
-    // getStateDescription(status) {
-    //   console.log(status);
-    //   // const states = status
-    //   //   .map(({ state }) => state)
-    //   //   .map(({ error, message }) => [error, message]);
-    //   // const description = flatten(compact(states))
-    //   //   .map(({ reason, message }) => `${ reason }:${ message }`);
-
-    //   return 'this is a description';
-    //   // return description;
-    // }
   }
 };
 </script>
