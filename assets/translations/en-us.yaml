@@ -1902,7 +1902,7 @@ fleet:
     type: Type
     state: State
     error: Error
-    status: Status
+    ready: Ready
     errors: Errors
 
 footer:
