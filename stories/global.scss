@@ -14,15 +14,24 @@ pre.sbdocs {
 BODY, .sbdocs-wrapper {
   background: var(--body-bg) !important;
   color: var(--body-text);
+  font-family: $body-font!important;
 }
 
 H1, H2, H3, H4, H5, H6, P {
   color: var(--body-text) !important;
+  font-family: $header-font !important;
+  font-weight: 400!important;
 }
 
+
 CODE:not(.language-jsx) {
-  background-color: var(--box-bg) !important;;
-  border: 1px solid var(--border) !important;;
+  background-color: var(--box-bg) !important;
+  border: 1px solid var(--border) !important;
   border-radius: var(--border-radius) !important;;
   color: var(--body-text) !important;
+  background-color: red;
+}
+
+.sbdocs-table tr td {
+  padding: 18px 31px!important;
 }

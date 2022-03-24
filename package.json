@@ -133,7 +133,14 @@
     "nyc": "^15.0.0",
     "start-server-and-test": "^1.13.1",
     "style-loader": "^1.1.2",
-    "yarn": "^1.22.4"
+    "yarn": "^1.22.4",
+    "@storybook/addon-actions": "^6.3.8",
+    "@storybook/addon-essentials": "^6.3.8",
+    "@storybook/addon-links": "^6.3.8",
+    "@storybook/addon-a11y": "^6.3.8",
+    "@storybook/vue": "^6.3.8",
+    "storybook-dark-mode": "^1.0.8",
+    "storybook-auto-events": "^0.1.1"
   },
   "ava": {
     "files": [

@@ -1,4 +1,5 @@
 import Banner from '../components/Banner.vue';
+import BannerDocumentation from './BannerDocumentation.mdx';
 
 export default {
   component: Banner,
@@ -11,7 +12,13 @@ export default {
       }
     },
     icon: { description: 'Optional icon to show before the label' }
-  }
+  },
+  parameters: {
+    docs:              { page: BannerDocumentation },
+    component:         Banner,
+    componentSubtitle:
+    'They appear as a fixed, full-width strip, on top of the screen throughout the application.',
+  },
 };
 
 const Template = (args, { argTypes, events }) => ({
@@ -27,6 +34,7 @@ Primary.args = {
   closable: false,
   color:    'primary',
 };
+Primary.parameters = { docs: { description: { story: `This is a Primary story.` } } };
 
 export const Info = Template.bind({});
 Info.args = {
@@ -34,6 +42,7 @@ Info.args = {
   closable: false,
   color:    'info',
 };
+Info.parameters = { docs: { description: { story: `This is a Info story` } } };
 
 export const Warning = Template.bind({});
 Warning.args = {
