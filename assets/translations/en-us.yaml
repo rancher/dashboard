@@ -165,7 +165,7 @@ nav:
     separator: or
 
 product:
-  apps: Apps & Marketplace
+  apps: Apps
   auth: Users & Authentication
   backup: Rancher Backups
   cis: CIS Benchmark
@@ -6363,7 +6363,7 @@ registryConfig:
 ##############################
 
 advancedSettings:
-  label: Advanced Settings
+  label: Settings
   subtext: Typical users will not need to change these. Proceed with caution, incorrect values can break your {appName} installation. Settings which have been customized from default settings are tagged 'Modified'.
   show: Show
   hide: Hide
