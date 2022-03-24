@@ -3,7 +3,6 @@ import * as d3 from 'd3';
 import { STATES } from '@/plugins/steve/resource-class';
 import BadgeState from '@/components/BadgeState';
 import CompoundStatusBadge from '@/components/Fleet/CompoundStatusBadge';
-import { FDC_CONFIG } from '~/config/chartConfig.js';
 
 export default {
   name:       'ForceDirectedTreeChart',
@@ -14,13 +13,12 @@ export default {
       required: true
     },
     fdcConfig: {
-      type:     String,
+      type:     Object,
       required: true
     }
   },
   data() {
     return {
-      chartConfig:                         undefined,
       dataWatcher:                         undefined,
       parsedInfo:                          undefined,
       root:                                undefined,
@@ -43,7 +41,7 @@ export default {
       console.log('WATCHER TRIGGERED!', JSON.stringify(newValue.length, null, 2), this.data);
       if (newValue.length) {
         if (!this.isChartFirstRendered) {
-          this.parsedInfo = this.chartConfig.parseData(this.data);
+          this.parsedInfo = this.fdcConfig.parseData(this.data);
 
           // set details info and set active state for node
           this.setDetailsInfo(this.parsedInfo, false);
@@ -56,7 +54,7 @@ export default {
 
           // here we just look for changes in the status of the nodes and update them accordingly
         } else {
-          const parsedInfo = this.chartConfig.parseData(this.data);
+          const parsedInfo = this.fdcConfig.parseData(this.data);
           const flattenedData = this.flatten(parsedInfo);
           let hasStatusChange = false;
 
@@ -94,9 +92,9 @@ export default {
       this.svg.call(this.zoom.transform, transform);
 
       this.simulation = d3.forceSimulation()
-        .force('charge', d3.forceManyBody().strength(this.chartConfig.simulationParams.fdcStrength).distanceMax(this.chartConfig.simulationParams.fdcDistanceMax))
-        .force('collision', d3.forceCollide(this.chartConfig.simulationParams.fdcForceCollide))
-        .force('center', d3.forceCenter( this.chartConfig.chartWidth / 2, this.chartConfig.chartHeight / 2 ))
+        .force('charge', d3.forceManyBody().strength(this.fdcConfig.simulationParams.fdcStrength).distanceMax(this.fdcConfig.simulationParams.fdcDistanceMax))
+        .force('collision', d3.forceCollide(this.fdcConfig.simulationParams.fdcForceCollide))
+        .force('center', d3.forceCenter( this.fdcConfig.chartWidth / 2, this.fdcConfig.chartHeight / 2 ))
         .alphaDecay(0.1)
         .on('tick', this.ticked)
         .on('end', () => {
@@ -168,12 +166,16 @@ export default {
         .attr('class', 'node-hover-layer');
 
       // node image
-      nodeEnter.append('foreignObject')
+      const fo = nodeEnter.append('foreignObject')
         .attr('class', 'svg-img')
         .attr('x', this.nodeImagePosition)
         .attr('y', this.nodeImagePosition)
         .attr('height', this.nodeImageSize)
         .attr('width', this.nodeImageSize);
+
+      // fo.append('i')
+      //   .attr('xmlns', 'http://www.w3.org/1999/xhtml')
+      //   .attr('class', 'icon icon-spinner icon-spin');
 
       this.node = nodeEnter.merge(this.node);
 
@@ -202,29 +204,29 @@ export default {
       }
 
       // here we extend the node classes (different chart types)
-      const extendedClassArray = this.chartConfig.extendNodeClass(d).concat(defaultClassArray);
+      const extendedClassArray = this.fdcConfig.extendNodeClass(d).concat(defaultClassArray);
 
       return extendedClassArray.join(' ');
     },
     setNodeRadius(d) {
-      const { radius } = this.chartConfig.nodeDimensions(d);
+      const { radius } = this.fdcConfig.nodeDimensions(d);
 
       return radius;
     },
     nodeImageSize(d) {
-      const { radius, padding } = this.chartConfig.nodeDimensions(d);
+      const { radius, padding } = this.fdcConfig.nodeDimensions(d);
 
       return (radius * 2) - padding;
     },
     nodeImagePosition(d) {
-      const { radius, padding } = this.chartConfig.nodeDimensions(d);
+      const { radius, padding } = this.fdcConfig.nodeDimensions(d);
 
       return -(((radius * 2) - padding) / 2);
     },
     setDetailsInfo(data, toUpdate) {
       console.log('NODE CLICKED', data);
       // get the data to be displayed on info box, per each different chart
-      this.moreInfo = Object.assign([], this.chartConfig.infoDetails(data));
+      this.moreInfo = Object.assign([], this.fdcConfig.infoDetails(data));
 
       // update to the chart is needed when active state changes
       if (toUpdate) {
@@ -329,16 +331,13 @@ export default {
     }
   },
   mounted() {
-    // grab chart config based on the resource type (fdcConfig param)
-    this.chartConfig = FDC_CONFIG[this.fdcConfig];
-
     // start by appending SVG to define height of chart area
     this.svg = d3.select('#tree').append('svg')
-      .attr('viewBox', `0 0 ${ this.chartConfig.chartWidth } ${ this.chartConfig.chartHeight }`)
+      .attr('viewBox', `0 0 ${ this.fdcConfig.chartWidth } ${ this.fdcConfig.chartHeight }`)
       .attr('preserveAspectRatio', 'none');
 
     // set watcher for the chart data
-    this.dataWatcher = this.$watch(this.chartConfig.watcherProp, function(newValue) {
+    this.dataWatcher = this.$watch(this.fdcConfig.watcherProp, function(newValue) {
       this.watcherFunction(newValue);
     });
   },
