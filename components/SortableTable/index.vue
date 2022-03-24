@@ -820,7 +820,7 @@ export default {
     }
   }
 
-  // Loading indicatorr ow
+  // Loading indicator row
   tr td div.data-loading {
     align-items: center;
     display: flex;

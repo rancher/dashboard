@@ -130,22 +130,18 @@ export default {
     // On page change
     pagedRows() {
       // When the table contents changes:
-      // - Remove orphaned items that are in the selection but no longer in the table.
-      // - Add items that are selected but weren't shown before
+      // - Remove items that are in the selection but no longer in the table.
 
       const content = this.pagedRows;
-      const toAdd = [];
       const toRemove = [];
 
-      for ( const node of this.selectedRows ) {
-        if ( content.includes(node) ) {
-          toAdd.push(node);
-        } else {
+      for (const node of this.selectedRows) {
+        if (!content.includes(node) ) {
           toRemove.push(node);
         }
       }
 
-      this.update(toAdd, toRemove);
+      this.update([], toRemove);
     }
   },
 
