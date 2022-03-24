@@ -445,6 +445,7 @@ export default {
 }
 
 $logo: 60px;
+$logo-space: 100px;
 
 .title {
   margin-top: 20px;
@@ -456,27 +457,26 @@ $logo: 60px;
 
 .subtype-container {
   position: relative;
+  display: flex;
 };
 
 .subtype-body {
-  margin-left: $logo + 10px;
+  flex: 1;
+  padding: 10px;
 }
 
 .subtype-logo {
   align-items: center;
   display: flex;
   justify-content: center;
-  position: absolute;
-  left: 0;
-  width: $logo;
-  height: $logo;
-  border-radius: calc(2 * var(--border-radius));
+  min-width: $logo-space;
+  min-height: $logo-space;
   overflow: hidden;
-  background-color: white;
+  background-color: var(--box-bg);
 
-  > .round-image {
-    margin-right: 0;
-  };
+  // > .round-image {
+  //   margin-right: 0;
+  // };
 
   img {
     width: $logo - 4px;
