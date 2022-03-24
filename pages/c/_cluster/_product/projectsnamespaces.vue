@@ -9,7 +9,7 @@ import Masthead from '@/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, DEV } from '@/store/prefs';
 import MoveModal from '@/components/MoveModal';
 import { NAME as HARVESTER } from '@/config/product/harvester';
-import { defaultTableSortGenerationFn } from '~/components/ResourceTable.vue';
+import { defaultTableSortGenerationFn } from '@/components/ResourceTable.vue';
 
 export default {
   name:       'ListNamespace',
