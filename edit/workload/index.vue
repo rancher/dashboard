@@ -580,7 +580,7 @@ export default {
 
       if (template.spec.containers && template.spec.containers[0]) {
         const containerResources = template.spec.containers[0].resources;
-        const nvidiaGpuLimit = template.spec.containers[0].resources?.limits[GPU_KEY];
+        const nvidiaGpuLimit = template.spec.containers[0].resources?.limits?.[GPU_KEY];
 
         // Though not required, requests are also set to mirror the ember ui
         if (nvidiaGpuLimit > 0) {
