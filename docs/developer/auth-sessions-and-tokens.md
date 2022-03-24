@@ -1,6 +1,15 @@
 # Auth Sessions and Tokens
 
-# Cookies
+## First login
+
+After instantiating Rancher for the first time, it will be required to pick a bootstrap password, which will be the `admin` password. Is it possible to include as environment variable `CATTLE_BOOTSTRAP_PASSWORD`.
+The value of the password must be valid, e.g. not match the username value and be at least 12 characters. This last restriction can bd changed with `CATTLE_PASSWORD_MIN_LENGTH`.
+
+Bear mind that the whole first access process will require both the steps to be completed.
+
+This process cannot be reversed, still admin password can be changed in the profile page.
+
+## Cookies
 
 Rancher uses the following cookies:
 
@@ -8,10 +17,9 @@ Rancher uses the following cookies:
 |======|=============|
 | `R_SESS` | The logged in user's session token |
 | `R_PCS`  | The user's preferred color scheme, used for server side rendering. If it's auto, it's the user's system preference. |
-| `CSRF`   | Cross site request. The server sets this cookie. For any request other than a GET request, we have to use Javascript to read this value and use it as a header in the request. That proves we are using our code on Rancher's domain and our header matches that cookie. |
-| `R_REDIRECTED` | This cookie is used to redireect users from Ember to Vue when they upgrade from v2.5.x to v2.6.x. |
+| `CSRF`   | Cross site request. The server sets this cookie as defined in the header of the request. For any request other than a GET request, we have to use Javascript to read this value and use it as a header in the request. That proves we are using our code on Rancher's domain and our header matches that cookie. |
+| `R_REDIRECTED` | This cookie is used to redirect users from Ember to Vue when they upgrade from v2.5.x to v2.6.x. |
 | `R_LOCALE` | Tracks the user's preferred language. |
-
 
 When users log in to Rancher, the UI sends the username and password to the back end, then Rancher sends the logged-in user's session cookie in the response back to us. Rancher uses cookies to track the session for the following reasons:
 
@@ -20,8 +28,7 @@ When users log in to Rancher, the UI sends the username and password to the back
 
 In general, we use the browser's local storage for client-side-only settings including window height and language.
 
-
-# Third-party Integration with Rancher Auth
+## Third-party Integration with Rancher Auth
 
 Sometimes a third-party application needs to integrate with Rancher such that after you install it as a Helm chart in Rancher, you can also access the application from a link in the Rancher UI.
 

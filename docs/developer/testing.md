@@ -9,15 +9,16 @@ This repo is configured for end-to-end testing with [Cypress](https://docs.cypre
 For the cypress test runner to consume the UI, you should specify the environment variables:
 
 - Local authentication credentials
-  - `TEST_USERNAME` // default `admin`
-  - `TEST_PASSWORD` // user password or custom during first Rancher run
+  - `TEST_USERNAME`, default `admin`
+  - `TEST_PASSWORD`, user password or custom during first Rancher run
+  - `CATTLE_BOOTSTRAP_PASSWORD`, initialization password which will also be used as `admin` password (do not pick `admin`)
 - `TEST_BASE_URL` // URL used by Cypress to run the tests, default `https://localhost:8005`
 
 ### Development with watch/dev
 
 While writing the tests, you can simply run the project and then open the Cypress dashboard with the commands
 
-- `yarn dev` or `yarn watch`
+- `yarn dev`
 - `yarn cy:open`
 
 The dashboard will contain the options and the list of test suites. These will automatically re-run if they are altered (hot reloading).

@@ -2,7 +2,7 @@
 const https = require('https');
 const axios = require('axios');
 
-const DEFAULT_PASSWORD = 'admin';
+const DEFAULT_PASSWORD = 'password';
 const DEFAULT_BASE_URL = 'https://localhost';
 
 const options = { httpsAgent: new https.Agent({ rejectUnauthorized: false }) };

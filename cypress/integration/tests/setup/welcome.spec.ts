@@ -31,10 +31,7 @@ describe('Welcome', () => {
     const firstLogin = new FirstLoginPagePo();
 
     firstLogin.canSubmit()
-      .should('eq', true);
-    firstLogin.choosePassword().set(1);
-    firstLogin.password().set(Cypress.env('password'));
-    firstLogin.confirmPassword().set(Cypress.env('password'));
+      .should('eq', false);
     firstLogin.termsAgreement().set();
     firstLogin.canSubmit()
       .should('eq', true);
