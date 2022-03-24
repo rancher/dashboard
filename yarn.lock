@@ -12300,7 +12300,7 @@ sort-keys@^2.0.0:
 
 sortablejs@1.10.2:
   version "1.10.2"
-  resolved "https://registry.nlark.com/sortablejs/download/sortablejs-1.10.2.tgz#6e40364d913f98b85a14f6678f92b5c1221f5290"
+  resolved "https://registry.yarnpkg.com/sortablejs/-/sortablejs-1.10.2.tgz#6e40364d913f98b85a14f6678f92b5c1221f5290"
 
 source-list-map@^2.0.0:
   version "2.0.1"
@@ -13515,7 +13515,7 @@ vue@^2.6.12:
 
 vuedraggable@^2.24.3:
   version "2.24.3"
-  resolved "https://registry.nlark.com/vuedraggable/download/vuedraggable-2.24.3.tgz#43c93849b746a24ce503e123d5b259c701ba0d19"
+  resolved "https://registry.yarnpkg.com/vuedraggable/-/vuedraggable-2.24.3.tgz#43c93849b746a24ce503e123d5b259c701ba0d19"
   dependencies:
     sortablejs "1.10.2"
 
