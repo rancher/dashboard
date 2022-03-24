@@ -298,7 +298,7 @@ export default {
       }
 
       &.active {
-        border-bottom: solid thin var(--primary);
+        border-bottom: solid 2px var(--primary);
 
         > A {
           color: var(--primary);
@@ -311,8 +311,6 @@ export default {
   .tab-container {
     padding: 20px;
     border: solid thin var(--border);
-    // background-color: var(--tabbed-container-bg);
-    // box-shadow: 0 0 20px var(--shadow);
 
     &.no-content {
       padding: 0 0 3px 0;
