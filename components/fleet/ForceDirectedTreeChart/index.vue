@@ -1,9 +1,9 @@
 <script>
 import * as d3 from 'd3';
-import { STATES, STATES_ENUM } from '@/plugins/steve/resource-class';
+import { STATES } from '@/plugins/steve/resource-class';
 import BadgeState from '@/components/BadgeState';
 import CompoundStatusBadge from '@/components/Fleet/CompoundStatusBadge';
-import { FDC_CONFIG } from '@/config/fdcConfig.js';
+import { FDC_CONFIG } from '~/config/chartConfig.js';
 
 export default {
   name:       'ForceDirectedTreeChart',
@@ -97,6 +97,7 @@ export default {
         .force('charge', d3.forceManyBody().strength(this.chartConfig.simulationParams.fdcStrength).distanceMax(this.chartConfig.simulationParams.fdcDistanceMax))
         .force('collision', d3.forceCollide(this.chartConfig.simulationParams.fdcForceCollide))
         .force('center', d3.forceCenter( this.chartConfig.chartWidth / 2, this.chartConfig.chartHeight / 2 ))
+        .alphaDecay(0.1)
         .on('tick', this.ticked)
         .on('end', () => {
           if (!this.isChartFirstRenderAnimationFinished) {
@@ -350,6 +351,7 @@ export default {
 <template>
   <div>
     <div class="chart-container">
+      <!-- loading status container -->
       <div
         v-if="!isChartFirstRenderAnimationFinished"
         class="loading-container"
@@ -488,25 +490,25 @@ export default {
         transform: scale(1.6);
       }
 
-      &.node-default-fill {
+      &.node-default-fill circle {
         fill: #CCC;
       }
-      &.node-success {
+      &.node-success circle {
         fill: var(--success);
       }
-      &.node-info {
+      &.node-info circle {
         fill: var(--info);
       }
-      &.node-warning {
+      &.node-warning circle {
         fill: var(--warning);
       }
-      &.node-error {
+      &.node-error circle {
         fill: var(--error);
       }
 
       .svg-img {
         background-repeat: no-repeat;
-        background-size: cover;
+        background-size: 100% 100%;
         background-position: center center;
       }
 
