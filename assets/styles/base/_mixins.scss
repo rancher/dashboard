@@ -121,7 +121,7 @@
 }
 
 @mixin input-status-color {
-  &:not(.focused) {
+  &, &.focused {
     &.success {
       border: solid 1px var(--success);
       input, .selected {
@@ -146,7 +146,8 @@
 
     &.error {
       border: solid 1px var(--error);
-      input, .selected {
+
+      > label {
         color: var(--error);
       }
 
