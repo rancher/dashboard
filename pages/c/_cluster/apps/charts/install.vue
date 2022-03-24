@@ -36,7 +36,7 @@ import { findBy, insertAt } from '@/utils/array';
 import Vue from 'vue';
 import { saferDump } from '@/utils/create-yaml';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
-import { LINUX } from '@/store/catalog';
+import { LINUX, WINDOWS } from '@/store/catalog';
 
 const VALUES_STATE = {
   FORM: 'FORM',
@@ -800,7 +800,7 @@ export default {
       const cluster = this.currentCluster;
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
       const serverUrl = this.serverUrlSetting?.value || '';
-      const isWindows = cluster?.providerOs === 'windows';
+      const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
       const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
       const windowsPathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.winPrefixPath || '';
 
@@ -833,7 +833,7 @@ export default {
       const cluster = this.$store.getters['currentCluster'];
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
       const serverUrl = this.serverUrlSetting?.value || '';
-      const isWindows = cluster?.providerOs === 'windows';
+      const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
       const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
       const windowsPathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.winPrefixPath || '';
 
