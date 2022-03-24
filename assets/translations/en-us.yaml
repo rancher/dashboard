@@ -3560,6 +3560,7 @@ projectNamespaces:
   createProject: Create Project
   label: Projects/Namespaces
   noNamespaces: There are no namespaces defined.
+  noProjectNoNamespaces: All namespaces are in a project
 
 prometheusRule:
   alertingRules:
