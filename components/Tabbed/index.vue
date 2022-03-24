@@ -258,6 +258,8 @@ export default {
     list-style-type: none;
     margin: 0;
     padding: 0;
+    border: solid thin var(--border);
+    border-bottom: 0;
 
     &:focus {
      outline:none;
@@ -296,12 +298,10 @@ export default {
       }
 
       &.active {
-        background-color: var(--tabbed-container-bg);
-        // box-shadow: 0 0 20px var(--shadow);
-        // clip-path: polygon(-100% -100%, 100% -100%, 200% 100%, -100% 100%);
+        border-bottom: solid 2px var(--primary);
 
-        A {
-          color: var(--body-text);
+        > A {
+          color: var(--primary);
           text-decoration: none;
         }
       }
@@ -310,8 +310,7 @@ export default {
 
   .tab-container {
     padding: 20px;
-    background-color: var(--tabbed-container-bg);
-    // box-shadow: 0 0 20px var(--shadow);
+    border: solid thin var(--border);
 
     &.no-content {
       padding: 0 0 3px 0;
