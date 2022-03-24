@@ -2,6 +2,7 @@ import { DSL } from '@/store/type-map';
 import { FLEET } from '@/config/types';
 import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
 import { FLEET as FLEET_FEATURE } from '@/store/features';
+import { gitRepoGraphConfig } from '@/pages/c/_cluster/fleet/GitRepoGraphConfig';
 
 export const NAME = 'fleet';
 export const CHART_NAME = 'fleet';
@@ -49,7 +50,9 @@ export function init(store) {
   ]);
 
   configureType(FLEET.CLUSTER, { isCreatable: false });
-  configureType(FLEET.GIT_REPO, { showListMasthead: false, hasGraph: true });
+  configureType(FLEET.GIT_REPO, {
+    showListMasthead: false, hasGraph: true, graphConfig: gitRepoGraphConfig
+  });
 
   weightType(FLEET.GIT_REPO, 109, true);
   weightType(FLEET.CLUSTER, 108, true);

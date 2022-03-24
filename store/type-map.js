@@ -94,6 +94,7 @@
 //                               resource: undefined       -- Use this resource in ResourceDetails instead
 //                               resourceDetail: undefined -- Use this resource specifically for ResourceDetail's detail component
 //                               resourceEdit: undefined   -- Use this resource specifically for ResourceDetail's edit component
+//                               graphConfig: undefined   -- Use this to pass along the graph configuration
 //                           }
 // )
 // ignoreGroup(group):        Never show group or any types in it
@@ -147,6 +148,7 @@ export const SPOOFED_PREFIX = '__[[spoofed]]__';
 export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 
 const instanceMethods = {};
+const graphConfigMap = {};
 
 const FIELD_REGEX = /^\$\.metadata\.fields\[([0-9]*)\]/;
 
@@ -221,6 +223,10 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     configureType(match, options) {
+      if (options.graphConfig) {
+        graphConfigMap[match] = options.graphConfig;
+        delete options.graphConfig;
+      }
       store.commit(`${ module }/configureType`, { ...options, match });
     },
 
@@ -1040,7 +1046,11 @@ export const getters = {
     return (resource) => {
       const typeOptions = getters['optionsFor'](resource);
 
-      return typeOptions && typeOptions.hasGraph;
+      if (typeOptions && typeOptions.hasGraph) {
+        return graphConfigMap[resource];
+      }
+
+      return null;
     };
   },
 

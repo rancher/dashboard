@@ -87,7 +87,8 @@ export default {
     // know about:  view, edit, create (stage, import and clone become "create")
     const mode = ([_CLONE, _IMPORT, _STAGE].includes(realMode) ? _CREATE : realMode);
 
-    const hasGraph = store.getters['type-map/hasGraph'](resource);
+    const getGraphConfig = store.getters['type-map/hasGraph'](resource);
+    const hasGraph = !!getGraphConfig;
     const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource, id);
     const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource, id);
 
@@ -196,6 +197,7 @@ export default {
 
     const out = {
       hasGraph,
+      getGraphConfig,
       hasCustomDetail,
       hasCustomEdit,
       resource,
@@ -370,7 +372,7 @@ export default {
     <ForceDirectedTreeChart
       v-if="isGraph"
       :data="chartData"
-      :fdc-config="resource"
+      :fdc-config="getGraphConfig"
     />
 
     <ResourceYaml
