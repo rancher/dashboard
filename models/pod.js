@@ -92,16 +92,22 @@ export default class Pod extends SteveModel {
     }, { root: true });
   }
 
-  containerStateDisplay(container) {
-    const state = Object.keys(container.state || {})[0];
+  containerStateDisplay(status) {
+    const state = Object.keys(status.state || {})[0];
 
     return stateDisplay(state);
   }
 
-  containerStateColor(container) {
-    const state = Object.keys(container.state || {})[0];
+  containerStateColor(status) {
+    const state = Object.keys(status.state || {})[0];
 
     return colorForState(state);
+  }
+
+  containerIsInit(container) {
+    const { initContainers = [] } = this.spec;
+
+    return initContainers.includes(container);
   }
 
   get imageNames() {
