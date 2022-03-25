@@ -85,6 +85,15 @@ button,
   border: solid 1px var(--primary);
   line-height: $btn-height - 2px;
 
+  &:hover, &._hover {
+    color: var(--lightest) !important;
+  }  
+
+  &:focus, &.focused {
+    background-color: var(--primary-hover-bg);
+    color: var(--primary-text) !important;
+  }
+
   &.btn-sm {
     line-height: $btn-sm-height;
   }
@@ -94,6 +103,12 @@ button,
   background: var(--accent-btn);
   border: solid 1px var(--primary);
   color: var(--primary);
+  line-height: $btn-height - 2px;
+
+  &:focus, &.focused {
+    background-color: var(--primary-hover-bg);
+    color: var(--primary-text);
+  }  
 }
 
 .role-link {
