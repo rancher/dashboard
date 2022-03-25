@@ -20,10 +20,8 @@ export default {
 
 <style lang="scss" scoped>
   .info-box {
-    background-color: var(--tabbed-container-bg);
-    border: .5px solid var(--tabbed-border);
-    box-shadow: 0 0 10px var(--shadow);
-    padding: 20px;
+    border: 2px solid var(--tabbed-border);
+    padding: 10px;
     margin-bottom: 20px;
     border-radius: var(--border-radius);
     flex-grow: 1;
@@ -40,7 +38,11 @@ export default {
       color: var(--input-text);
       display: inline-block;
       padding: 5px 10px;
-  }
+    }
+
+    .step-list {
+      margin: 0;
+    }
 
     .info-column:not(:last-child) {
       border-right: 1px solid var(--tabbed-border);
