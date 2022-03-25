@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { STATES } from '@/plugins/steve/resource-class';
 import BadgeState from '@/components/BadgeState';
 import CompoundStatusBadge from '@/components/fleet/CompoundStatusBadge';
-import { SVGTEST } from './iconsConst.js';
+import { getChartIcon } from './chartIcons.js';
 
 export default {
   name:       'ForceDirectedTreeChart',
@@ -169,7 +169,7 @@ export default {
       nodeEnter.append('svg').html((d) => {
         const icon = this.fdcConfig.fetchNodeIcon(d);
 
-        return SVGTEST(icon);
+        return getChartIcon(icon);
       })
         .attr('x', this.nodeImagePosition)
         .attr('y', this.nodeImagePosition)
@@ -223,6 +223,7 @@ export default {
       return -(((radius * 2) - padding) / 2);
     },
     setDetailsInfo(data, toUpdate) {
+      // eslint-disable-next-line no-console
       console.log('NODE CLICKED', data);
       // get the data to be displayed on info box, per each different chart
       this.moreInfo = Object.assign([], this.fdcConfig.infoDetails(data));
