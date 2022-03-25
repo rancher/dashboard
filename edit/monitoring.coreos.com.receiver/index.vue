@@ -234,6 +234,7 @@ export default {
       .subtype-banner{
         justify-content: space-between;
         align-items: center;
+        flex-direction: row;
       }
     }
 
