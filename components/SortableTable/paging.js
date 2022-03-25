@@ -3,25 +3,6 @@ import { PAGE } from '@/config/query-params';
 
 export default {
   computed: {
-    // perPage() {
-    //   let out = this.rowsPerPage || 0;
-
-    //   if ( out <= 0 ) {
-    //     out = parseInt(this.$route.query.limit, 10) || 0;
-    //   }
-
-    //   if ( out <= 0 ) {
-    //     out = parseInt(this.$store.getters['prefs/get'](ROWS_PER_PAGE), 10) || 0;
-    //   }
-
-    //   // This should ideally never happen, but the preference value could be invalid, so return something...
-    //   if ( out <= 0 ) {
-    //     out = 10;
-    //   }
-
-    //   return out;
-    // },
-
     indexFrom() {
       return Math.max(0, 1 + this.perPage * (this.page - 1));
     },
@@ -71,8 +52,6 @@ export default {
       handler(p) {
         let page;
 
-        console.log(p);
-
         if (p) {
           page = parseInt(p, 10);
 
@@ -82,8 +61,6 @@ export default {
         } else {
           page = 1;
         }
-
-        console.log(page);
 
         if (this.page !== page) {
           this.page = page;

@@ -147,7 +147,7 @@ export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 
 const instanceMethods = {};
 
-const FIELD_REGEX = /^\$\.metadata\.fields\[([0-9]*)\]/
+const FIELD_REGEX = /^\$\.metadata\.fields\[([0-9]*)\]/;
 
 export const IF_HAVE = {
   V1_MONITORING:            'v1-monitoring',
@@ -922,7 +922,7 @@ export const getters = {
       return out;
 
       function rowValueGetter(index) {
-        return (row) => row.metadata?.fields?.[index];
+        return row => row.metadata?.fields?.[index];
       }
 
       function fromSchema(col, rootGetters) {
