@@ -29,10 +29,10 @@ For further information, consult [official documentation](https://docs.cypress.i
 
 It is possible to start the project and run all the tests at once with a single command. There's however a difference between `dev` and `production` run. The first will not require an official certificate and will build the project in `.nuxt`, while the production will enable all the SSL configurations to run encrypted.
 
-- `yarn e2e:pre-dev`, to optionally initialize Docker and build the project, if not already done, required for GitHub Action
-- `yarn e2e:dev`, single run local development and CI
-- `yarn e2e:pre-prod`, to optionally initialize Docker and build the project
-- `yarn e2e:dev`, for production use case, which will also restart Docker and build the project
+- `yarn e2e:pre-dev`, to optionally initialize Docker and build the project, if not already done
+- `yarn e2e:dev`, single run local development
+- `yarn e2e:pre-prod`, to optionally initialize Docker and build the project, required for GitHub Actions
+- `yarn e2e:dev`, for production use case and CI, which will also restart Docker and build the project
 
 ### Writing tests
 

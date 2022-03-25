@@ -29,11 +29,11 @@ jobs:
       
       - name: Prepare build
         if: "!contains(github.event.pull_request.title, '[skip-e2e]')"
-        run: yarn e2e:pre-dev
+        run: yarn e2e:pre-prod
       
       - name: Run tests
         if: "!contains(github.event.pull_request.title, '[skip-e2e]')"
-        run: yarn e2e:dev
+        run: yarn e2e:prod
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
