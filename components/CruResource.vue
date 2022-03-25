@@ -458,6 +458,7 @@ $logo-space: 100px;
 .subtype-container {
   position: relative;
   display: flex;
+  height: 100%;
 };
 
 .subtype-body {
@@ -473,10 +474,6 @@ $logo-space: 100px;
   min-height: $logo-space;
   overflow: hidden;
   background-color: var(--box-bg);
-
-  // > .round-image {
-  //   margin-right: 0;
-  // };
 
   img {
     width: $logo - 4px;
