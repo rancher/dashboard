@@ -176,14 +176,6 @@ export default {
         .attr('height', this.nodeImageSize)
         .attr('width', this.nodeImageSize);
 
-      // node image
-      // nodeEnter.append('foreignObject')
-      //   .attr('class', 'svg-img')
-      //   .attr('x', this.nodeImagePosition)
-      //   .attr('y', this.nodeImagePosition)
-      //   .attr('height', this.nodeImageSize)
-      //   .attr('width', this.nodeImageSize);
-
       this.node = nodeEnter.merge(this.node);
 
       this.simulation.nodes(this.allNodesData);
@@ -510,62 +502,6 @@ export default {
       }
       &.node-error circle {
         fill: var(--error);
-      }
-
-      .svg-img {
-        background-repeat: no-repeat;
-        background-size: 100% 100%;
-        background-position: center center;
-      }
-
-      &.repo .svg-img {
-        background-image: url('~assets/images/forceDirectedChart/git.svg');
-      }
-      &.bundle .svg-img {
-        background-image: url('~assets/images/forceDirectedChart/compass.svg');
-      }
-      &.helm.bundle .svg-img {
-        background-image: url('~assets/images/forceDirectedChart/helm.svg');
-      }
-      &.configmap.resource .svg-img {
-        background-image: url('~assets/images/forceDirectedChart/config_map.svg');
-      }
-      &.cronjob.resource .svg-img {
-        background-image: url('~assets/images/forceDirectedChart/cronjob.svg');
-      }
-      &.daemonset.resource .svg-img {
-        background-image: url('~assets/images/forceDirectedChart/daemon_set.svg');
-      }
-      &.deployment.resource .svg-img {
-        background-image: url('~assets/images/forceDirectedChart/deploy.svg');
-      }
-      &.job.resource .svg-img {
-        background-image: url('~assets/images/forceDirectedChart/job.svg');
-      }
-      &.service.resource .svg-img {
-        background-image: url('~assets/images/forceDirectedChart/miscellaneous_services.svg');
-      }
-      &.persistentvolume.resource .svg-img,
-      &.persistentvolumeclaim.resource .svg-img {
-        background-image: url('~assets/images/forceDirectedChart/persistent_volume.svg');
-      }
-      &.pod.resource .svg-img {
-        background-image: url('~assets/images/forceDirectedChart/pod.svg');
-      }
-      &.replicaset.resource .svg-img {
-        background-image: url('~assets/images/forceDirectedChart/replica_set.svg');
-      }
-      &.secret.resource .svg-img {
-        background-image: url('~assets/images/forceDirectedChart/secret.svg');
-      }
-      &.statefulset.resource .svg-img {
-        background-image: url('~assets/images/forceDirectedChart/stateful_set.svg');
-      }
-      &.storageclass.resource .svg-img {
-        background-image: url('~assets/images/forceDirectedChart/storage_class.svg');
-      }
-      &.other.resource .svg-img {
-        background-image: url('~assets/images/forceDirectedChart/folder.svg');
       }
 
       .node-hover-layer {
