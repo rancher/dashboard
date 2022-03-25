@@ -196,6 +196,56 @@ export const gitRepoGraphConfig = {
     return classArray;
   },
   /**
+     * Used to add relevant classes to each main node instance
+     */
+  fetchNodeIcon: (d) => {
+    if (d.data?.isRepo) {
+      return 'git';
+    }
+
+    if ( d.data?.isBundle) {
+      if (d.data?.id.indexOf('helm') !== -1) {
+        return 'helm';
+      }
+
+      return 'bundle';
+    }
+
+    // special resource type
+    if (d.data?.isResource && d.data?.type) {
+      switch (d.data.type) {
+      case WORKLOAD_TYPES.DEPLOYMENT:
+        return 'deployment';
+      case SERVICE:
+        return 'service';
+      case CONFIG_MAP:
+        return 'configmap';
+      case WORKLOAD_TYPES.CRON_JOB:
+        return 'cronjob';
+      case WORKLOAD_TYPES.DAEMON_SET:
+        return 'daemonset';
+      case WORKLOAD_TYPES.JOB:
+        return 'job';
+      case PV:
+        return 'persistentvolume';
+      case PVC:
+        return 'persistentvolumeclaim';
+      case POD:
+        return 'pod';
+      case WORKLOAD_TYPES.REPLICA_SET:
+        return 'replicaset';
+      case SECRET:
+        return 'secret';
+      case WORKLOAD_TYPES.STATEFUL_SET:
+        return 'statefulset';
+      case STORAGE_CLASS:
+        return 'storageclass';
+      default:
+        return 'other';
+      }
+    }
+  },
+  /**
      * Used to set node dimensions
      */
   nodeDimensions: (d) => {

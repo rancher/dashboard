@@ -2,7 +2,8 @@
 import * as d3 from 'd3';
 import { STATES } from '@/plugins/steve/resource-class';
 import BadgeState from '@/components/BadgeState';
-import CompoundStatusBadge from '@/components/Fleet/CompoundStatusBadge';
+import CompoundStatusBadge from '@/components/fleet/CompoundStatusBadge';
+import { SVGTEST } from './iconsConst.js';
 
 export default {
   name:       'ForceDirectedTreeChart',
@@ -165,17 +166,23 @@ export default {
         })
         .attr('class', 'node-hover-layer');
 
-      // node image
-      const fo = nodeEnter.append('foreignObject')
-        .attr('class', 'svg-img')
+      nodeEnter.append('svg').html((d) => {
+        const icon = this.fdcConfig.fetchNodeIcon(d);
+
+        return SVGTEST(icon);
+      })
         .attr('x', this.nodeImagePosition)
         .attr('y', this.nodeImagePosition)
         .attr('height', this.nodeImageSize)
         .attr('width', this.nodeImageSize);
 
-      // fo.append('i')
-      //   .attr('xmlns', 'http://www.w3.org/1999/xhtml')
-      //   .attr('class', 'icon icon-spinner icon-spin');
+      // node image
+      // nodeEnter.append('foreignObject')
+      //   .attr('class', 'svg-img')
+      //   .attr('x', this.nodeImagePosition)
+      //   .attr('y', this.nodeImagePosition)
+      //   .attr('height', this.nodeImageSize)
+      //   .attr('width', this.nodeImageSize);
 
       this.node = nodeEnter.merge(this.node);
 

@@ -7,7 +7,7 @@ import { allHash } from '@/utils/promise';
 import Loading from '@/components/Loading';
 import CollapsibleCard from '@/components/CollapsibleCard.vue';
 import ResourceTable from '@/components/ResourceTable';
-import CompoundStatusBadge from '@/components/Fleet/CompoundStatusBadge';
+import CompoundStatusBadge from '@/components/fleet/CompoundStatusBadge';
 
 export default {
   name:       'ListGitRepo',
