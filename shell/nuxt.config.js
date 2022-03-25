@@ -488,7 +488,6 @@ export default function(dir, _appConfig) {
       'cookie-universal-nuxt',
       'portal-vue/nuxt',
       path.join(NUXT_SHELL, 'plugins/steve/rehydrate-all'),
-      '@nuxt/content',
     ],
 
     // Vue plugins

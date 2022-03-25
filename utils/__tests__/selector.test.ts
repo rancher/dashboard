@@ -1,4 +1,4 @@
-import { convert, matching, parse, simplify } from '~/utils/selector';
+import { convert, matching, parse, simplify } from '@/utils/selector';
 
 describe('fx: parse', () => {
   describe('using operator In', () => {

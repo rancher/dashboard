@@ -5,7 +5,9 @@ import CruResource from '@/components/CruResource';
 import SelectIconGrid from '@/components/SelectIconGrid';
 import EmberPage from '@/components/EmberPage';
 import ToggleSwitch from '@/components/form/ToggleSwitch';
-import { CHART, FROM_CLUSTER, SUB_TYPE, _EDIT, _IMPORT } from '@/config/query-params';
+import {
+  CHART, FROM_CLUSTER, SUB_TYPE, _EDIT, _IMPORT
+} from '@/config/query-params';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@/utils/sort';
 import { set } from '@/utils/object';

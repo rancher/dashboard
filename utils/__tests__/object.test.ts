@@ -1,4 +1,4 @@
-import { clone, get, getter, isEmpty } from '~/utils/object';
+import { clone, get, getter, isEmpty } from '@/utils/object';
 
 describe('fx: get', () => {
   describe('should return value of an object', () => {

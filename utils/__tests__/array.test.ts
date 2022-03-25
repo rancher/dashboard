@@ -1,6 +1,6 @@
 import {
   addObject, addObjects, clear, filterBy, findBy, getUniqueLabelKeys, insertAt, isArray, removeAt, removeObject, removeObjects, replaceWith, sameContents, uniq
-} from '~/utils/array';
+} from '@/utils/array';
 
 interface Obj {
   key?: string;
