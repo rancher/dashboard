@@ -215,6 +215,12 @@ $spacing-property-map: (
   height: 100%;
 }
 
+.filled-height {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
 .full-width {
   width: 100%;
 }

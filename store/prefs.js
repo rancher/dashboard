@@ -276,6 +276,9 @@ export const actions = {
         }
       } catch (e) {
         // Well it failed, but not much to do about it...
+
+        // Return the error
+        return { type: e.type, status: e.status };
       }
     }
   },

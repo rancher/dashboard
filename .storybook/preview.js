@@ -11,6 +11,9 @@ const i18nStrings = require('../assets/translations/en-us.yaml');
 // Register custom i18n plugin
 require('../plugins/i18n');
 
+require('../plugins/v-select');
+require('../plugins/tooltip');
+
 //const store = require('./store');
 
 Vue.use(Vuex);

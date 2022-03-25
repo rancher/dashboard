@@ -33,7 +33,7 @@ export default {
 
   async fetch() {
     this.nodeDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
-    this.kontainerDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTANIER_DRIVER });
+    this.kontainerDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTAINER_DRIVER });
 
     // Force reload the cloud cred schema and any missing subtypes because there aren't change events sent when drivers come/go
     try {
@@ -244,7 +244,7 @@ export default {
 </script>
 
 <template>
-  <form>
+  <form class="filled-height">
     <Loading v-if="$fetchState.pending" />
     <CruResource
       v-else

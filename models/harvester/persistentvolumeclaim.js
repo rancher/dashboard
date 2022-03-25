@@ -145,7 +145,7 @@ export default class HciPv extends SteveModel {
     return allVMs.find( D => D.id === ownedId);
   }
 
-  get isAvaliable() {
+  get isAvailable() {
     return this.stateDisplay !== 'Resizing';
   }
 

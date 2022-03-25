@@ -30,7 +30,7 @@ The Dashboard uses the [dayjs](https://day.js.org/) library to handle dates, tim
 
 When a component uses `async fetch` it's best practise to gate the component template on fetch's `$fetchState.pending`. When the component is page based this should be applied to the `/components/Loading` component
 
-```
+```html
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>

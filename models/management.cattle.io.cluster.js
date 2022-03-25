@@ -129,7 +129,16 @@ export default class MgmtCluster extends HybridModel {
       provider = 'import';
     }
 
-    const qp = { provider, clusterTemplateRevision };
+    // Avoid passing falsy values as query parameters
+    const qp = { };
+
+    if (provider) {
+      qp['provider'] = provider;
+    }
+
+    if (clusterTemplateRevision) {
+      qp['clusterTemplateRevision'] = clusterTemplateRevision;
+    }
 
     // Copied out of https://github.com/rancher/ui/blob/20f56dc54c4fc09b5f911e533cb751c13609adaf/app/models/cluster.js#L844
     if ( provider === 'import' && isEmpty(this.eksConfig) && isEmpty(this.gkeConfig) ) {

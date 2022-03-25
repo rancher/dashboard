@@ -1,5 +1,7 @@
 <script>
 import IndentedPanel from '@/components/IndentedPanel';
+import Markdown from '@/components/Markdown';
+import { generateToc } from './toc';
 
 // List and map of the available documents in the content/docs folder
 const docs = require.context('@/content/docs', true).keys();
@@ -13,9 +15,9 @@ const SHOW_REFRESH = false;
 export default {
   layout: 'home',
 
-  components: { IndentedPanel },
+  components: { IndentedPanel, Markdown },
 
-  async asyncData({ store, $content, params }) {
+  asyncData({ store, params }) {
     const showRefresh = SHOW_REFRESH;
     const docName = params.doc;
     const defaultLocale = store.getters['i18n/default']();
@@ -36,8 +38,13 @@ export default {
     let doc = null;
 
     if (locale) {
-      doc = await $content('docs', locale, docName).fetch();
-      sideToc = doc?.sideToc || false;
+      doc = require(`@/content/docs/${ locale }/${ docName }.md`);
+      sideToc = doc?.attributes?.sideToc || false;
+      doc.body = doc.body || '';
+
+      if (sideToc) {
+        doc.toc = generateToc(doc.body);
+      }
     }
 
     return {
@@ -74,7 +81,10 @@ export default {
 
       this.selected = id;
       this.initialHighlight();
-      elm.scrollIntoView();
+
+      if (elm) {
+        elm.scrollIntoView();
+      }
     },
 
     async refresh() {
@@ -158,11 +168,12 @@ export default {
       <nuxt-link :to="{name: 'home'}">
         {{ t('nav.home') }}
       </nuxt-link>
-      <span v-if="doc">> {{ doc.title }}</span>
+      <span v-if="doc">> {{ doc.attributes.title }}</span>
       <i v-if="showRefresh" class="icon icon-refresh doc-refresh" @click="refresh"></i>
     </h1>
     <div v-if="doc" id="doc-content" class="doc-content" :class="{'nuxt-content-side-toc': sideToc}">
-      <nuxt-content ref="scrollPanel" :document="doc" class="doc-content-document" :class="{'nuxt-content-side-toc': sideToc}" />
+      <Markdown ref="scrollPanel" v-model="doc.body" class="doc-content-document" :class="{'nuxt-content-side-toc': sideToc}" />
+
       <div v-if="sideToc" class="toc">
         <a
           v-for="bookmark in doc.toc"
@@ -224,6 +235,7 @@ export default {
 <style lang="scss">
   .doc-content {
     P {
+      font-size: 14px;
       margin-bottom: 10px;
       line-height: 16px;
     }

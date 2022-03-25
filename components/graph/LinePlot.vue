@@ -33,7 +33,7 @@ export default {
     return { initial: 0 };
   },
   computed: {
-    ellapsedTime() {
+    elapsedTime() {
       return (Date.now() - this.initial) / 1000;
     },
     // get size of largest data set to scale x-axis

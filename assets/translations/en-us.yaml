@@ -165,7 +165,7 @@ nav:
     separator: or
 
 product:
-  apps: Apps & Marketplace
+  apps: Apps
   auth: Users & Authentication
   backup: Rancher Backups
   cis: CIS Benchmark
@@ -2015,7 +2015,7 @@ hpa:
       targetName: Target Name
       value: Value
     source: Source
-  objectReferance:
+  objectReference:
     api:
       label: Referent API Version
       placeholder: e.g. apps/v1beta1
@@ -2328,8 +2328,9 @@ landing:
     title: Commercial Support
     body: Learn about commercial support
   landingPrefs:
-    title: What do you want to see when you log in?
-    body: "You can change where you land when you login:"
+    title: You can change what you see when you login via preferences
+    userPrefs: Preferences
+    body: "You can change where you land when you login"
     options:
       homePage: Take me to the home page
       lastVisited: Take me to the area I last visited
@@ -3559,6 +3560,7 @@ projectNamespaces:
   createProject: Create Project
   label: Projects/Namespaces
   noNamespaces: There are no namespaces defined.
+  noProjectNoNamespaces: All namespaces are in a project
 
 prometheusRule:
   alertingRules:
@@ -4968,7 +4970,7 @@ workload:
       supplementalGroups: Additional Group IDs
       sysctls: Sysctls
       sysctlsKey: Name
-    standard: Standard Containter
+    standard: Standard Container
     titles:
       container: Container
       command: Command
@@ -5395,7 +5397,7 @@ harvester:
     PhysicalNic: Physical NIC
     cpu: Cpu
     memory: Memory
-    virtaulName: Virtual machine name
+    virtualName: Virtual machine name
     promiscuous: Promiscuous
     ipv4Address: IPv4 Address
   generic:
@@ -5774,15 +5776,15 @@ harvester:
       noSetting:
         prefix: You must configure the backup target in
         middle: 'setting'
-        suffic: before creating a new backup.
+        suffix: before creating a new backup.
       errorTip:
         prefix: Backup Target value in
         middle: Setting
-        suffic: "is invalid, error: "
+        suffix: "is invalid, error: "
       viewSetting:
         prefix: Click
         middle: here
-        suffic: to view the backup config.
+        suffix: to view the backup config.
     restore:
       backup: Backup
       deletePreviousVolumes: Delete Previous Volumes
@@ -5801,15 +5803,15 @@ harvester:
       premise:
         prefix: 'You must configure a network in'
         middle: 'Settings'
-        suffic: 'before creating a new network.'
+        suffix: 'before creating a new network.'
       viewSetting:
         prefix: Click
         middle: here
-        suffic: to view default cluster network config.
+        suffix: to view default cluster network config.
       errorTip:
         prefix: Physical NIC value in
         middle: Setting
-        suffic: "is invalid, error: "
+        suffix: "is invalid, error: "
     layer3Network:
       mode:
         label: Mode
@@ -5844,7 +5846,7 @@ harvester:
       ca:
         prefix: 'Click'
         middle: 'here'
-        suffic: 'to add a custom certificate.'
+        suffix: 'to add a custom certificate.'
     sslCertificates:
       publicCertificate: Public Certificate
       privateKey: Private Key
@@ -6024,7 +6026,7 @@ typeDescription:
   monitoring.coreos.com.prometheusrule: A Prometheus Rule resource defines both recording and/or alert rules. A recording rule can pre-compute values and save the results. Alerting rules allow you to define conditions on when to send notifications to AlertManager.
   monitoring.coreos.com.prometheus: A Prometheus server is a Prometheus deployment whose scrape configuration and rules are determined by selected ServiceMonitors, PodMonitors, and PrometheusRules and whose alerts will be sent to all selected Alertmanagers with the custom resource's configuration.
   monitoring.coreos.com.alertmanager: An alert manager is deployment whose configuration will be specified by a secret in the same namespace, which determines which alerts should go to which receiver.
-  node: The base Kubernetes Node resource represents a virtual or physical machine which hosts deployments. To manage the machine lifecyle, if available, go to Cluster Management.
+  node: The base Kubernetes Node resource represents a virtual or physical machine which hosts deployments. To manage the machine lifecycle, if available, go to Cluster Management.
   catalog.cattle.io.clusterrepo: 'A chart repository is a Helm repository or {vendor} git based application catalog. It provides the list of available charts in the cluster.'
   catalog.cattle.io.clusterrepo.local: ' A chart repository is a Helm repository or {vendor} git based application catalog. It provides the list of available charts in the cluster. Cluster Templates are deployed via Helm charts.'
   catalog.cattle.io.operation: An operation is the list of recent Helm operations that have been applied to the cluster.
@@ -6128,8 +6130,8 @@ typeLabel:
     }
   management.cattle.io.setting: |-
     {count, plural,
-      one { Advanced Setting }
-      other { Advanced Settings }
+      one { Setting }
+      other { Settings }
     }
   management.cattle.io.fleetworkspace: |-
     {count, plural,
@@ -6362,7 +6364,7 @@ registryConfig:
 ##############################
 
 advancedSettings:
-  label: Advanced Settings
+  label: Settings
   subtext: Typical users will not need to change these. Proceed with caution, incorrect values can break your {appName} installation. Settings which have been customized from default settings are tagged 'Modified'.
   show: Show
   hide: Hide
@@ -6507,7 +6509,7 @@ branding:
     suse: SUSE Theme
     custom: Define a Custom Theme
   uiPL:
-    label: Private Label Company Name
+    label: Private Label
   uiIssues:
     label: Support Links
     issuesUrl: Issue Reporting URL

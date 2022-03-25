@@ -27,9 +27,9 @@ export default {
         <LabeledInput
           v-model="value.apiVersion"
           :mode="mode"
-          :label="t('hpa.objectReferance.api.label')"
+          :label="t('hpa.objectReference.api.label')"
           :required="true"
-          :placeholder="t('hpa.objectReferance.api.placeholder')"
+          :placeholder="t('hpa.objectReference.api.placeholder')"
           type="text"
         />
       </div>
@@ -37,9 +37,9 @@ export default {
         <LabeledInput
           v-model="value.kind"
           :mode="mode"
-          :label="t('hpa.objectReferance.kind.label')"
+          :label="t('hpa.objectReference.kind.label')"
           :required="true"
-          :placeholder="t('hpa.objectReferance.kind.placeholder')"
+          :placeholder="t('hpa.objectReference.kind.placeholder')"
           type="text"
         />
       </div>
@@ -49,9 +49,9 @@ export default {
         <LabeledInput
           v-model="value.name"
           :mode="mode"
-          :label="t('hpa.objectReferance.name.label')"
+          :label="t('hpa.objectReference.name.label')"
           :required="true"
-          :placeholder="t('hpa.objectReferance.name.placeholder')"
+          :placeholder="t('hpa.objectReference.name.placeholder')"
           type="text"
         />
       </div>

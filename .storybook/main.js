@@ -46,7 +46,7 @@ module.exports = {
     }
 
     // Replace js-modal and xterm imports with absolute paths
-    const nmrp = new webpack.NormalModuleReplacementPlugin(/js-modal|xterm/, function(resource) {
+    const nmrp = new webpack.NormalModuleReplacementPlugin(/js-modal|xterm|diff2html/, function(resource) {
       const split = resource.request.split('!');
       const p = split.pop();
       const match = p.match(NM_REGEX);

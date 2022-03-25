@@ -85,6 +85,9 @@ export default {
       if (neu) {
         this.value.pool.etcdRole = false;
         this.value.pool.controlPlaneRole = false;
+        this.value.pool.machineOS = 'windows';
+      } else {
+        this.value.pool.machineOS = 'linux';
       }
     }
   },

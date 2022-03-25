@@ -56,12 +56,6 @@ BODY {
   box-sizing: inherit;
 }
 
-:focus, .focused {
-  outline-color: var(--outline);
-  outline-style: solid;
-  outline-width: var(--outline-width);
-}
-
 INPUT,
 SELECT,
 TEXTAREA,
@@ -71,7 +65,8 @@ TEXTAREA,
 .checkbox-custom,
 .radio-custom {
   &:focus, &.focused {
-    @include form-focus }
+    @include form-focus
+  }
 }
 
 BUTTON,

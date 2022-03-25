@@ -750,7 +750,7 @@ export default {
     .outlet {
       display: flex;
       flex-direction: column;
-      padding: 20px;
+      padding: $space-m;
       min-height: 100%;
     }
 

@@ -157,7 +157,7 @@ export default {
       </div>
       <template v-if="rule.operator==='Exists'">
         <div class="col">
-          n/a
+          <LabeledInput value="n/a" :mode="mode" disabled />
         </div>
       </template>
       <template v-else>
@@ -201,7 +201,7 @@ export default {
 
 .rule, .toleration-headers{
   display: grid;
-  grid-template-columns: 20% 10% 20% 10% 20% 10%;
+  grid-template-columns: 20% 10% 20% 15% 20% 10%;
   grid-gap: $column-gutter;
   align-items: center;
 }

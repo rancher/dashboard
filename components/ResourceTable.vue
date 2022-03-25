@@ -11,6 +11,20 @@ import { NAME as HARVESTER } from '@/config/product/harvester';
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
 
+export const defaultTableSortGenerationFn = (schema, $store) => {
+  if ( !schema ) {
+    return null;
+  }
+
+  const resource = schema.id;
+  const inStore = $store.getters['currentStore'](resource);
+  const generation = $store.getters[`${ inStore }/currentGeneration`](resource);
+
+  if ( generation ) {
+    return `${ resource }/${ generation }`;
+  }
+};
+
 export default {
 
   name: 'ResourceTable',
@@ -77,6 +91,10 @@ export default {
     overflowY: {
       type:    Boolean,
       default: false
+    },
+    sortGenerationFn: {
+      type:    Function,
+      default: null,
     },
   },
 
@@ -156,10 +174,10 @@ export default {
 
     filteredRows() {
       const isAll = this.$store.getters['isAllNamespaces'];
-      const isVirutalProduct = this.$store.getters['currentProduct'].name === HARVESTER;
+      const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
 
       // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
-      if ( (!this.isNamespaced || isAll) && !isVirutalProduct) {
+      if ( (!this.isNamespaced || isAll) && !isVirtualProduct) {
         return this.rows || [];
       }
 
@@ -303,18 +321,12 @@ export default {
       this.$refs.table.clearSelection();
     },
 
-    sortGenerationFn() {
-      if ( !this.schema ) {
-        return null;
+    safeSortGenerationFn() {
+      if (this.sortGenerationFn) {
+        return this.sortGenerationFn(this.schema, this.$store);
       }
 
-      const resource = this.schema.id;
-      const inStore = this.$store.getters['currentStore'](resource);
-      const generation = this.$store.getters[`${ inStore }/currentGeneration`](resource);
-
-      if ( generation ) {
-        return `${ resource }/${ generation }`;
-      }
+      return defaultTableSortGenerationFn(this.schema, this.$store);
     },
   }
 };
@@ -335,7 +347,7 @@ export default {
     :overflow-x="overflowX"
     :overflow-y="overflowY"
     key-field="_key"
-    :sort-generation-fn="sortGenerationFn"
+    :sort-generation-fn="safeSortGenerationFn"
     v-on="$listeners"
   >
     <template v-if="showGrouping" #header-middle>

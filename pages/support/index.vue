@@ -9,7 +9,7 @@ import { MANAGEMENT } from '@/config/types';
 import { getVendor, setBrand } from '@/config/private-label';
 import { SETTING } from '@/config/settings';
 
-const KEY_REGX = /^[0-9a-fA-F]{16}$/;
+const KEY_REGEX = /^[0-9a-fA-F]{16}$/;
 
 export default {
   layout: 'home',
@@ -83,7 +83,7 @@ export default {
     },
 
     validSupportKey() {
-      return !!this.supportKey.match(KEY_REGX);
+      return !!this.supportKey.match(KEY_REGEX);
     },
   },
 
@@ -182,7 +182,7 @@ export default {
       :width="340"
       @opened="dialogOpened"
     >
-      <Card :show-highlight-border="false" class="toogle-support">
+      <Card :show-highlight-border="false" class="toggle-support">
         <template #title>
           {{ isRemoveDialog? t('support.subscription.removeTitle') : t('support.subscription.addTitle') }}
         </template>
@@ -216,7 +216,7 @@ export default {
   grid-template-columns: 70% 30%;
 }
 
-.toogle-support {
+.toggle-support {
     height: 100%;
 
     &.card-container {

@@ -123,7 +123,8 @@ export default {
 
     this.allSecrets = hash.secrets || [];
     this.allConfigMaps = hash.configMaps || [];
-    this.allNodes = (hash.nodes || []).map(node => node.id);
+    this.allNodeObjects = hash.nodes || [];
+    this.allNodes = this.allNodeObjects.map(node => node.id);
     this.allServices = hash.services || [];
     this.pvcs = hash.pvcs || [];
     this.sas = hash.sas || [];
@@ -172,6 +173,7 @@ export default {
     return {
       allConfigMaps:     [],
       allNodes:          null,
+      allNodeObjects:    [],
       allSecrets:        [],
       allServices:       [],
       name:              this.value?.metadata?.name || null,
@@ -578,30 +580,32 @@ export default {
         }
       }
 
-      const containerResources = template.spec.containers[0].resources;
-      const nvidiaGpuLimit = template.spec.containers[0].resources?.limits[GPU_KEY];
+      if (template.spec.containers && template.spec.containers[0]) {
+        const containerResources = template.spec.containers[0].resources;
+        const nvidiaGpuLimit = template.spec.containers[0].resources?.limits?.[GPU_KEY];
 
-      // Though not required, requests are also set to mirror the ember ui
-      if (nvidiaGpuLimit > 0) {
-        containerResources.requests = containerResources.requests || {};
-        containerResources.requests[GPU_KEY] = nvidiaGpuLimit;
-      }
+        // Though not required, requests are also set to mirror the ember ui
+        if (nvidiaGpuLimit > 0) {
+          containerResources.requests = containerResources.requests || {};
+          containerResources.requests[GPU_KEY] = nvidiaGpuLimit;
+        }
 
-      if (!this.nvidiaIsValid(nvidiaGpuLimit) ) {
-        try {
-          delete containerResources.requests[GPU_KEY];
-          delete containerResources.limits[GPU_KEY];
+        if (!this.nvidiaIsValid(nvidiaGpuLimit) ) {
+          try {
+            delete containerResources.requests[GPU_KEY];
+            delete containerResources.limits[GPU_KEY];
 
-          if (Object.keys(containerResources.limits).length === 0) {
-            delete containerResources.limits;
-          }
-          if (Object.keys(containerResources.requests).length === 0) {
-            delete containerResources.requests;
-          }
-          if (Object.keys(containerResources).length === 0) {
-            delete template.spec.containers[0].resources;
-          }
-        } catch {}
+            if (Object.keys(containerResources.limits).length === 0) {
+              delete containerResources.limits;
+            }
+            if (Object.keys(containerResources.requests).length === 0) {
+              delete containerResources.requests;
+            }
+            if (Object.keys(containerResources).length === 0) {
+              delete template.spec.containers[0].resources;
+            }
+          } catch {}
+        }
       }
 
       const nodeAffinity = template?.spec?.affinity?.nodeAffinity || {};
@@ -819,7 +823,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
 
-  <form v-else>
+  <form v-else class="filled-height">
     <CruResource
       :validation-passed="true"
       :selected-subtype="type"
@@ -1009,7 +1013,7 @@ export default {
           </template>
         </Tab>
         <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling" :weight="tabWeightMap['podScheduling']">
-          <PodAffinity :mode="mode" :value="podTemplateSpec" />
+          <PodAffinity :mode="mode" :value="podTemplateSpec" :nodes="allNodeObjects" />
         </Tab>
         <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="tabWeightMap['nodeScheduling']">
           <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" />

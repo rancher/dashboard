@@ -40,7 +40,7 @@ More complicated customisation can be done via overriding the ResourceList compo
 
 Table column definitions can be found in `/config/table-headers.js`. Common columns should be added here, list override specific types can be defined in the component.
 
-```
+```ts
 export const SIMPLE_NAME = {
   name:     'name',
   labelKey: 'tableHeaders.simpleName',
@@ -52,7 +52,7 @@ export const SIMPLE_NAME = {
 
 Column definitions will determine what is shown in it's section of the row. This will either be a property from the row (`value`), a component (`formatter`, which links to a component in `/components/formatter`) or an inline formatter (defined in the `ResourceTables` contents, see example below, requires custom list component). 
 
-``` 
+``` html
 <ResourceTable ...>
   <template #cell:workspace="{row}">
     <span v-if="row.type !== MANAGEMENT_CLUSTER && row.metadata.namespace">{{ row.metadata.namespace }}</span>
@@ -63,19 +63,19 @@ Column definitions will determine what is shown in it's section of the row. This
 
 Column definitions are grouped together and applied per resource type via `/store/type-map.js headers`. 
 
-```
+```ts
 headers(CONFIG_MAP, [NAME_COL, NAMESPACE_COL, KEYS, AGE]);
 ```
 
 When providing a custom list these default headers can be accessed via 
 
-```
+```ts
 $store.getters['type-map/headersFor'](<schema>)
 ```
 
 The actions menu for a table row is constructed from the actions returned via the resource type. Therefore the base list comes from the common `resource-instance` which can be supplemented/overridden by the resource type's `model`. Individual actions can be marked as `bulkable`, which means they are shown as buttons above the list and applied to all selected rows.
 
-```
+```ts
 {
   action:     'promptRemove',
   altAction:  'remove',

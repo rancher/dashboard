@@ -30,7 +30,7 @@ See https://rancher.com/docs/rancher/v2.6/en/installation/. This covers two meth
 
 To use the most recent version of Rancher that is actively in development, use the version tag `v2.6-head` when installing Rancher. For example, the Docker installation command would look like this:
 
-```
+```bash
 sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged -e CATTLE_BOOTSTRAP_PASSWORD=OPTIONAL_PASSWORD_HERE rancher/rancher:v2.6-head
 ```
 

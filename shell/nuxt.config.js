@@ -158,8 +158,10 @@ export default function(dir, _appConfig) {
     require('./package.json').version;
 
   const dev = (process.env.NODE_ENV !== 'production');
+  const devPorts = dev || process.env.DEV_PORTS === 'true';
   const pl = process.env.PL || STANDARD;
   const commit = process.env.COMMIT || 'head';
+  const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
 
   let api = process.env.API || 'http://localhost:8989';
 
@@ -216,6 +218,7 @@ export default function(dir, _appConfig) {
       version,
       dev,
       pl,
+      perfTest,
     },
 
     publicRuntimeConfig: { rancherEnv: process.env.RANCHER_ENV || 'web' },
@@ -368,7 +371,7 @@ export default function(dir, _appConfig) {
           }
         });
 
-        // And substitue our own loader for images
+        // And substitute our own loader for images
         config.module.rules.unshift({
           test:    /\.(png|jpe?g|gif|svg|webp)$/,
           use:  [
@@ -401,17 +404,13 @@ export default function(dir, _appConfig) {
           },
         });
 
-        // Add a loader for markdown files (revents warning in log with the md files in the content folder)
+        // Prevent warning in log with the md files in the content folder
         config.module.rules.push({
           test:    /\.md$/,
           use:  [
             {
-              loader:  'url-loader',
-              options: {
-                name:     '[path][name].[ext]',
-                limit:    1,
-                esModule: false
-              },
+              loader:  'frontmatter-markdown-loader',
+              options: { mode: ['body'] }
             }
           ]
         });
@@ -550,11 +549,11 @@ export default function(dir, _appConfig) {
 
     // Nuxt server
     server: {
-      https: (dev ? {
+      https: (devPorts ? {
         key:  fs.readFileSync(path.resolve(dir, SHELL, 'server/server.key')),
         cert: fs.readFileSync(path.resolve(dir, SHELL, 'server/server.crt'))
       } : null),
-      port:      (dev ? 8005 : 80),
+      port:      (devPorts ? 8005 : 80),
       host:      '0.0.0.0',
     },
 
@@ -593,7 +592,7 @@ export default function(dir, _appConfig) {
   function proxyOpts(target) {
     return {
       target,
-      secure: !dev,
+      secure: !devPorts,
       onProxyReq,
       onProxyReqWs,
       onError,
@@ -602,7 +601,7 @@ export default function(dir, _appConfig) {
   }
 
   function onProxyRes(proxyRes, req, res) {
-    if (dev) {
+    if (devPorts) {
       proxyRes.headers['X-Frame-Options'] = 'ALLOWALL';
     }
   }
@@ -619,7 +618,7 @@ export default function(dir, _appConfig) {
     if (!(proxyReq._currentRequest && proxyReq._currentRequest._headerSent)) {
       proxyReq.setHeader('x-api-host', req.headers['host']);
       proxyReq.setHeader('x-forwarded-proto', 'https');
-    // console.log(proxyReq.getHeaders());
+      // console.log(proxyReq.getHeaders());
     }
   }
 

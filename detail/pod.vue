@@ -58,25 +58,34 @@ export default {
       const statuses = this.allStatuses;
 
       return (containers || []).map((container) => {
-        container.status = findBy(statuses, 'name', container.name) || {};
-        container.stateDisplay = this.value.containerStateDisplay(container);
-        container.stateBackground = this.value.containerStateColor(container).replace('text', 'bg');
-        container.nameSort = sortableNumericSuffix(container.name).toLowerCase();
-        container.readyIcon = container?.status?.ready ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-x icon-2x text-error ml-5';
-        container.availableActions = this.value.containerActions;
+        const status = findBy(statuses, 'name', container.name);
+        const state = status.state || {};
 
-        container.openShell = () => {
+        // There can be only one member of a `ContainerState`
+        const s = Object.values(state)[0];
+        const reason = s.reason || '';
+        const message = s.message || '';
+        const showBracket = s.reason && s.message;
+
+        return {
+          ...container,
+          status:           status || {},
+          stateDisplay:     this.value.containerStateDisplay(status),
+          stateBackground:  this.value.containerStateColor(status).replace('text', 'bg'),
+          nameSort:         sortableNumericSuffix(container.name).toLowerCase(),
+          readyIcon:        status?.ready ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-x icon-2x text-error ml-5',
+          availableActions: this.value.containerActions,
+          stateObj:         status, // Required if there's a description
+          stateDescription: `${ reason }${ showBracket ? ' (' : '' }${ message }${ showBracket ? ')' : '' }`, // Required to display the description
+          initIcon:         this.value.containerIsInit(container) ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-minus icon-2x text-muted ml-5',
+
           // Call openShell here so that opening the shell
           // at the container level still has 'this' in scope.
-          this.value.openShell(container.name);
-        };
-        container.openLogs = () => {
+          openShell: () => this.value.openShell(container.name),
           // Call openLogs here so that opening the logs
           // at the container level still has 'this' in scope.
-          this.value.openLogs(container.name);
+          openLogs:  () => this.value.openLogs(container.name)
         };
-
-        return container;
       });
     },
 
@@ -101,13 +110,23 @@ export default {
           formatter:     'IconText',
           formatterOpts: { iconKey: 'readyIcon' },
           align:         'left',
-          width:         75
+          width:         75,
+          sort:          'readyIcon'
         },
         {
           ...SIMPLE_NAME,
           value: 'name'
         },
         IMAGE,
+        {
+          name:          'isInit',
+          labelKey:      'workload.container.init',
+          formatter:     'IconText',
+          formatterOpts: { iconKey: 'initIcon' },
+          align:         'left',
+          width:         75,
+          sort:          'initIcon'
+        },
         {
           name:     'restarts',
           labelKey: 'tableHeaders.restarts',
@@ -163,7 +182,7 @@ export default {
 
       this.metricsID = id;
       this.selection = c;
-    }
+    },
   }
 };
 </script>

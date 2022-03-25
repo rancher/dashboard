@@ -17,7 +17,7 @@ import Labels from '@/components/form/Labels';
 const DEFAULT_STORAGE = '10Gi';
 
 export default {
-  name: 'PersistentVolumClaim',
+  name: 'PersistentVolumeClaim',
 
   components: {
     Checkbox,
