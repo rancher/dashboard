@@ -140,63 +140,11 @@ export const gitRepoGraphConfig = {
     // node type
     d.data?.isRepo ? classArray.push('repo') : d.data?.isBundle ? classArray.push('bundle') : classArray.push('resource');
 
-    // special bundle type
-    if (d.data?.isBundle && d.data?.id.indexOf('helm') !== -1) {
-      classArray.push('helm');
-    }
-
-    // special resource type
-    if (d.data?.isResource && d.data?.type) {
-      switch (d.data.type) {
-      case WORKLOAD_TYPES.DEPLOYMENT:
-        classArray.push('deployment');
-        break;
-      case SERVICE:
-        classArray.push('service');
-        break;
-      case CONFIG_MAP:
-        classArray.push('configmap');
-        break;
-      case WORKLOAD_TYPES.CRON_JOB:
-        classArray.push('cronjob');
-        break;
-      case WORKLOAD_TYPES.DAEMON_SET:
-        classArray.push('daemonset');
-        break;
-      case WORKLOAD_TYPES.JOB:
-        classArray.push('job');
-        break;
-      case PV:
-        classArray.push('persistentvolume');
-        break;
-      case PVC:
-        classArray.push('persistentvolumeclaim');
-        break;
-      case POD:
-        classArray.push('pod');
-        break;
-      case WORKLOAD_TYPES.REPLICA_SET:
-        classArray.push('replicaset');
-        break;
-      case SECRET:
-        classArray.push('secret');
-        break;
-      case WORKLOAD_TYPES.STATEFUL_SET:
-        classArray.push('statefulset');
-        break;
-      case STORAGE_CLASS:
-        classArray.push('storageclass');
-        break;
-      default:
-        classArray.push('other');
-        break;
-      }
-    }
-
     return classArray;
   },
   /**
-     * Used to add relevant classes to each main node instance
+     * Used to add the correct icon to each node (ties up with iconsConst)
+     * Will need to work on a proper long-term solution following up the release of the chart
      */
   fetchNodeIcon: (d) => {
     if (d.data?.isRepo) {
