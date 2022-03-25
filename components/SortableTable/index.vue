@@ -298,6 +298,7 @@ export default {
   },
 
   beforeDestroy() {
+    clearTimeout(this.loadingDelayTimer);
     clearTimeout(this._scrollTimer);
     clearTimeout(this._loadingDelayTimer);
     clearTimeout(this._liveColumnsTimer);
@@ -1020,7 +1021,7 @@ export default {
     }
   }
 
-  // Loading indicatorr ow
+  // Loading indicator row
   tr td div.data-loading {
     align-items: center;
     display: flex;
