@@ -92,7 +92,7 @@ export default {
 
     hide() {
       if ( this.tabs.length ) {
-        document.documentElement.style.setProperty('--wm-height', `calc(var(--wm-tab-height) + 2px)`);
+        document.documentElement.style.setProperty('--wm-height', `31px`);
       } else {
         document.documentElement.style.setProperty('--wm-height', '0');
       }
