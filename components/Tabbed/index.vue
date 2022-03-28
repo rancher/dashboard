@@ -263,6 +263,10 @@ export default {
       border: solid thin var(--border);
       border-bottom: 0;
 
+      + .tab-container {
+        border: solid thin var(--border);
+      }
+
       .tab.active {
         border-bottom: solid 2px var(--primary);
       }
@@ -315,7 +319,6 @@ export default {
 
   .tab-container {
     padding: 20px;
-    border: solid thin var(--border);
 
     &.no-content {
       padding: 0 0 3px 0;
@@ -339,11 +342,11 @@ export default {
       flex: 1 0;
       flex-direction: column;
 
-      &.vertical {
-        .tab.active {
-          background-color: var(--tabbed-container-bg);
-        }
-      }
+      // &.vertical {
+      //   .tab.active {
+      //     background-color: var(--tabbed-container-bg);
+      //   }
+      // }
 
       & .tab {
         width: 100%;
