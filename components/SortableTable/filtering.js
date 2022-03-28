@@ -164,19 +164,23 @@ function matches(fields, token, item) {
     }
 
     let modifier;
-    const idx = field.indexOf(':');
-
-    if ( idx > 0 ) {
-      modifier = field.substr(idx + 1);
-      field = field.substr(0, idx);
-    }
-
     let val;
 
-    if ( field.includes('.') ) {
-      val = get(item, field);
+    if (typeof field === 'function') {
+      val = field(item);
     } else {
-      val = item[field];
+      const idx = field.indexOf(':');
+
+      if ( idx > 0 ) {
+        modifier = field.substr(idx + 1);
+        field = field.substr(0, idx);
+      }
+
+      if ( field.includes('.') ) {
+        val = get(item, field);
+      } else {
+        val = item[field];
+      }
     }
 
     if ( val === undefined ) {

@@ -118,7 +118,7 @@ export default {
         return;
       }
       // Page will change in response to the query string changing
-      // This avoids pagedRows being computed twiece
+      // This avoids pagedRows being computed twice
       if ( num === 1 ) {
         this.$router.applyQuery({ [PAGE]: undefined });
       } else {

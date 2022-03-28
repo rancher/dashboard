@@ -433,9 +433,10 @@ export default {
 
       this.groupedRows.forEach((grp) => {
         const group = {
+          grp,
           key:  grp.key,
           ref:  grp.ref,
-          rows: []
+          rows: [],
         };
 
         rows.push(group);
@@ -518,7 +519,9 @@ export default {
       }
 
       const delayedColumns = this.$refs.column.filter(c => c.startDelayedLoading && !c.__delayedLoading);
-      const clientHeight = window.innerHeight || document.documentElement.clientHeight;
+      // We add 100 pixels here - so we will render the delayed columns for a few extra rows below what is visible
+      // This way if you scroll slowly, you won't see the columns being loaded
+      const clientHeight = (window.innerHeight || document.documentElement.clientHeight) + 100;
 
       let scheduled = 0;
 
@@ -766,7 +769,7 @@ export default {
             ref="searchQuery"
             v-model="eventualSearchQuery"
             type="search"
-            class="input-sm"
+            class="input-sm search-box"
             :placeholder="t('sortableTable.search')"
           >
         </div>
@@ -829,7 +832,7 @@ export default {
         <slot v-if="groupBy" name="group-row" :group="group" :fullColspan="fullColspan">
           <tr class="group-row">
             <td :colspan="fullColspan">
-              <slot name="group-by" :group="group">
+              <slot name="group-by" :group="group.grp">
                 <div v-trim-whitespace class="group-tab">
                   {{ group.ref }}
                 </div>
@@ -867,15 +870,9 @@ export default {
                       :width="col.col.width"
                     >
                       <slot :name="'cell:' + col.name" :row="row" :col="col" :value="col.value">
-                        <span v-if="col.formatter && col.formatter === 'LinkDetail'">
-                          <n-link v-if="row.url" :to="row.url">
-                            {{ col.col.value }}
-                          </n-link>
-                          <span v-else>{{ col.col.value }}</span>
-                        </span>
                         <component
                           :is="col.component"
-                          v-else-if="col.component && col.needRef"
+                          v-if="col.component && col.needRef"
                           ref="column"
                           :value="col.value"
                           :row="row.row"
@@ -1033,6 +1030,10 @@ export default {
       margin-right: 5px;
       width: 20px;
     }
+  }
+
+  .search-box {
+    height: 40px;
   }
 </style>
 
