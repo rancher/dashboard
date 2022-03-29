@@ -509,17 +509,18 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div ref="container">
     <div :class="{'titled': $slots.title && $slots.title.length}" class="sortable-table-header">
       <slot name="title" />
       <div v-if="showHeaderRow" class="fixed-header-actions">
-        <div :id="bulkActionsId" class="bulk">
+        <div :class="bulkActionsClass" class="bulk">
           <slot name="header-left">
             <template v-if="tableActions">
               <button
                 v-for="act in availableActions"
                 :id="act.action"
                 :key="act.action"
+                v-tooltip="actionTooltip"
                 type="button"
                 class="btn role-primary"
                 :class="{[bulkActionClass]:true}"
@@ -531,7 +532,7 @@ export default {
                 <i v-if="act.icon" :class="act.icon" />
                 <span v-html="act.label" />
               </button>
-              <ActionDropdown :id="bulkActionsDropdownId" class="bulk-actions-dropdown" :disable-button="!actionAvailability" size="sm">
+              <ActionDropdown :class="bulkActionsDropdownClass" class="bulk-actions-dropdown" :disable-button="!tableSelected.length" size="sm">
                 <template #button-content>
                   <button ref="actionDropDown" class="btn bg-primary mr-0" :disabled="!tableSelected.length">
                     <i class="icon icon-gear" />
@@ -545,6 +546,10 @@ export default {
                       v-for="act in hiddenActions"
                       :key="act.action"
                       v-close-popover
+                      v-tooltip="{
+                        content: actionTooltip,
+                        placement: 'right'
+                      }"
                       :class="{ disabled: !act.enabled }"
                       @click="applyTableAction(act, null, $event)"
                       @mouseover="setBulkActionOfInterest(act)"
@@ -556,8 +561,8 @@ export default {
                   </ul>
                 </template>
               </ActionDropdown>
-              <label v-if="actionAvailability" :id="bulkActionAvailabilityId" class="action-availability">
-                {{ actionAvailability }}
+              <label v-if="selectedRowsText" :class="bulkActionAvailabilityClass" class="action-availability">
+                {{ selectedRowsText }}
               </label>
             </template>
           </slot>
@@ -821,6 +826,14 @@ $spacing: 10px;
   td {
     padding: 8px 5px;
     border: 0;
+
+    &:first-child {
+      padding-left: 10px;
+    }
+
+    &:last-child {
+      padding-right: 10px;
+    }
 
     &.row-check {
       padding-top: 12px;

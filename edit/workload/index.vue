@@ -2,7 +2,7 @@
 import omitBy from 'lodash/omitBy';
 import { cleanUp } from '@/utils/object';
 import {
-  CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC, SERVICE_ACCOUNT
+  CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC, SERVICE_ACCOUNT, CAPI
 } from '@/config/types';
 import Tab from '@/components/Tabbed/Tab';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -51,6 +51,8 @@ const TAB_WEIGHT_MAP = {
   volumeClaimTemplates: 89,
 };
 
+const GPU_KEY = 'nvidia.com/gpu';
+
 export default {
   name:       'CruWorkload',
   components: {
@@ -96,28 +98,36 @@ export default {
   },
 
   async fetch() {
-    const requests = {
-      configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
-      nodes:      this.$store.dispatch('cluster/findAll', { type: NODE }),
-      services:   this.$store.dispatch('cluster/findAll', { type: SERVICE }),
-      pvcs:       this.$store.dispatch('cluster/findAll', { type: PVC }),
-      sas:        this.$store.dispatch('cluster/findAll', { type: SERVICE_ACCOUNT })
+    const requests = { rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }) };
+    const needed = {
+      configMaps: CONFIG_MAP,
+      nodes:      NODE,
+      services:   SERVICE,
+      pvcs:       PVC,
+      sas:        SERVICE_ACCOUNT,
+      secrets:    SECRET,
     };
 
-    if ( this.$store.getters['cluster/schemaFor'](SECRET) ) {
-      requests.secrets = this.$store.dispatch('cluster/findAll', { type: SECRET });
-    }
+    // Only fetch types if the user can see them
+    Object.keys(needed).forEach((key) => {
+      const type = needed[key];
+
+      if (this.$store.getters['cluster/schemaFor'](type)) {
+        requests[key] = this.$store.dispatch('cluster/findAll', { type });
+      }
+    });
 
     const hash = await allHash(requests);
 
-    this.servicesOwned = await this.value.getServicesOwned();
+    this.servicesOwned = hash.services ? await this.value.getServicesOwned() : [];
 
     this.allSecrets = hash.secrets || [];
-    this.allConfigMaps = hash.configMaps;
-    this.allNodes = hash.nodes.map(node => node.id);
-    this.allServices = hash.services;
-    this.pvcs = hash.pvcs;
-    this.sas = hash.sas;
+    this.allConfigMaps = hash.configMaps || [];
+    this.allNodeObjects = hash.nodes || [];
+    this.allNodes = this.allNodeObjects.map(node => node.id);
+    this.allServices = hash.services || [];
+    this.pvcs = hash.pvcs || [];
+    this.sas = hash.sas || [];
   },
 
   data() {
@@ -163,6 +173,7 @@ export default {
     return {
       allConfigMaps:     [],
       allNodes:          null,
+      allNodeObjects:    [],
       allSecrets:        [],
       allServices:       [],
       name:              this.value?.metadata?.name || null,
@@ -289,16 +300,16 @@ export default {
     flatResources: {
       get() {
         const { limits = {}, requests = {} } = this.container.resources || {};
-        const { cpu:limitsCpu, memory:limitsMemory } = limits;
-        const { cpu:requestsCpu, memory:requestsMemory } = requests;
+        const { cpu: limitsCpu, memory: limitsMemory, [GPU_KEY]: limitsGpu } = limits;
+        const { cpu: requestsCpu, memory: requestsMemory } = requests;
 
         return {
-          limitsCpu, limitsMemory, requestsCpu, requestsMemory
+          limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu
         };
       },
       set(neu) {
         const {
-          limitsCpu, limitsMemory, requestsCpu, requestsMemory
+          limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu
         } = neu;
 
         const out = {
@@ -307,8 +318,9 @@ export default {
             memory: requestsMemory
           },
           limits: {
-            cpu:    limitsCpu,
-            memory: limitsMemory
+            cpu:       limitsCpu,
+            memory:    limitsMemory,
+            [GPU_KEY]: limitsGpu
           }
         };
 
@@ -523,6 +535,11 @@ export default {
     },
 
     async saveService() {
+      // If we can't access services then just return - the UI should only allow ports without service creation
+      if (!this.$store.getters['cluster/schemaFor'](SERVICE)) {
+        return;
+      }
+
       const { toSave = [], toRemove = [] } = await this.value.servicesFromContainerPorts(this.mode, this.portsForServices) || {};
 
       this.servicesOwned = toSave;
@@ -560,6 +577,34 @@ export default {
           template.metadata = { labels: this.value.workloadSelector };
         } else {
           Object.assign(template.metadata.labels, this.value.workloadSelector);
+        }
+      }
+
+      if (template.spec.containers && template.spec.containers[0]) {
+        const containerResources = template.spec.containers[0].resources;
+        const nvidiaGpuLimit = template.spec.containers[0].resources?.limits?.[GPU_KEY];
+
+        // Though not required, requests are also set to mirror the ember ui
+        if (nvidiaGpuLimit > 0) {
+          containerResources.requests = containerResources.requests || {};
+          containerResources.requests[GPU_KEY] = nvidiaGpuLimit;
+        }
+
+        if (!this.nvidiaIsValid(nvidiaGpuLimit) ) {
+          try {
+            delete containerResources.requests[GPU_KEY];
+            delete containerResources.limits[GPU_KEY];
+
+            if (Object.keys(containerResources.limits).length === 0) {
+              delete containerResources.limits;
+            }
+            if (Object.keys(containerResources.requests).length === 0) {
+              delete containerResources.requests;
+            }
+            if (Object.keys(containerResources).length === 0) {
+              delete template.spec.containers[0].resources;
+            }
+          } catch {}
         }
       }
 
@@ -755,6 +800,21 @@ export default {
         delete this.podTemplateSpec.serviceAccount;
         delete this.podTemplateSpec.serviceAccountName;
       }
+    },
+    nvidiaIsValid(nvidiaGpuLimit) {
+      if (!Number.isInteger(nvidiaGpuLimit)) {
+        return false;
+      }
+      if (nvidiaGpuLimit === undefined) {
+        return false;
+      }
+      if (nvidiaGpuLimit < 1) {
+        return false;
+      } else {
+        return true;
+      }
+
+      //
     }
   }
 };
@@ -763,7 +823,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
 
-  <form v-else>
+  <form v-else class="filled-height">
     <CruResource
       :validation-passed="true"
       :selected-subtype="type"
@@ -953,7 +1013,7 @@ export default {
           </template>
         </Tab>
         <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling" :weight="tabWeightMap['podScheduling']">
-          <PodAffinity :mode="mode" :value="podTemplateSpec" />
+          <PodAffinity :mode="mode" :value="podTemplateSpec" :nodes="allNodeObjects" />
         </Tab>
         <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="tabWeightMap['nodeScheduling']">
           <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" />

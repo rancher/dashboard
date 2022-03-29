@@ -143,7 +143,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <form v-else>
+  <form v-else class="filled-height">
     <CruResource
       :done-route="doneRoute"
       :mode="mode"

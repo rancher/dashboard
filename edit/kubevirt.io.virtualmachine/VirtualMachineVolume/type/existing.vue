@@ -1,5 +1,4 @@
 <script>
-import Banner from '@/components/Banner';
 import UnitInput from '@/components/form/UnitInput';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -7,23 +6,20 @@ import InputOrDisplay from '@/components/InputOrDisplay';
 
 import { sortBy } from '@/utils/sort';
 import { HCI, PVC } from '@/config/types';
+import { _CREATE } from '@/config/query-params';
+import { VOLUME_TYPE, InterfaceOption } from '@/config/harvester-map';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 export default {
   name:       'HarvesterEditExisting',
   components: {
-    Banner, UnitInput, LabeledInput, LabeledSelect, InputOrDisplay
+    UnitInput, LabeledInput, LabeledSelect, InputOrDisplay
   },
 
   props: {
     mode: {
       type:    String,
-      default: 'create'
-    },
-
-    isEdit: {
-      type:    Boolean,
-      default: false
+      default: _CREATE
     },
 
     value: {
@@ -31,23 +27,14 @@ export default {
       required: true
     },
 
+    isEdit: {
+      type:    Boolean,
+      default: false
+    },
+
     namespace: {
       type:     String,
       default:  null
-    },
-
-    typeOption: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
-    },
-
-    interfaceOption: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
     },
 
     idx: {
@@ -56,15 +43,8 @@ export default {
     },
 
     rows: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
-    },
-
-    needRootDisk: {
-      type:    Boolean,
-      default: false
+      type:     Array,
+      required: true
     },
   },
 
@@ -74,8 +54,9 @@ export default {
     }
 
     return {
+      VOLUME_TYPE,
+      InterfaceOption,
       loading: false,
-      errors:  []
     };
   },
 
@@ -103,7 +84,7 @@ export default {
     },
 
     pvcResource() {
-      return this.allPVCs.find( P => P.metadata.name === this.value.realName );
+      return this.allPVCs.find( P => P.metadata.name === this.value.volumeName );
     },
 
     volumeOption() {
@@ -129,7 +110,7 @@ export default {
               isBeingUsed = true;
             }
 
-            return isAvailable && !isBeingUsed;
+            return isAvailable && !isBeingUsed && pvc.isAvailable;
           })
           .map((pvc) => {
             return {
@@ -203,7 +184,7 @@ export default {
             v-model="value.type"
             :label="t('harvester.fields.type')"
             :mode="mode"
-            :options="typeOption"
+            :options="VOLUME_TYPE"
             required
             @input="update"
           />
@@ -254,7 +235,7 @@ export default {
             v-model="value.bus"
             :label="t('harvester.virtualMachine.volume.bus')"
             :mode="mode"
-            :options="interfaceOption"
+            :options="InterfaceOption"
             :disabled="true"
             required
             @input="update"
@@ -262,16 +243,5 @@ export default {
         </InputOrDisplay>
       </div>
     </div>
-
-    <div v-for="(err,index) in errors" :key="index">
-      <Banner color="error" :label="err" />
-    </div>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.action {
-  display: flex;
-  flex-direction: row-reverse;
-}
-</style>

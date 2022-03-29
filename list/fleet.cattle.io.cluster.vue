@@ -1,5 +1,5 @@
 <script>
-import FleetClusters from '@/components/FleetClusters';
+import FleetClusters from '@/components/fleet/FleetClusters';
 import { FLEET, MANAGEMENT } from '@/config/types';
 import Loading from '@/components/Loading';
 import { isHarvesterCluster } from '@/utils/cluster';

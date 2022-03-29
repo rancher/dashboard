@@ -5,6 +5,7 @@ import HybridModel, { cleanHybridResources } from '@/plugins/steve/hybrid-class'
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import { classify } from './classify';
 import { keyForSubscribe } from './subscribe';
+import { perfLoadAll } from './performanceTesting';
 
 function registerType(state, type) {
   let cache = state.types[type];
@@ -34,6 +35,8 @@ function registerType(state, type) {
 function load(state, { data, ctx, existing }) {
   let type = normalizeType(data.type);
   const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
+  const opts = ctx.rootGetters[`type-map/optionsFor`](type);
+  const limit = opts?.limit;
 
   // Inject special fields for indexing schemas
   if ( type === SCHEMA ) {
@@ -87,6 +90,14 @@ function load(state, { data, ctx, existing }) {
       addObject(cache.list, entry);
       cache.map.set(id, entry);
       // console.log('### Mutation', type, id);
+
+      // If there is a limit to the number of resources we can store for this type then
+      // remove the first one to keep the list size to that limit
+      if (limit && cache.list.length > limit) {
+        const rm = cache.list.shift();
+
+        cache.map.delete(rm.id);
+      }
     }
   }
 
@@ -149,6 +160,19 @@ export default {
   loadAll(state, { type, data, ctx }) {
     if (!data) {
       return;
+    }
+
+    const opts = ctx.rootGetters[`type-map/optionsFor`](type);
+    const limit = opts?.limit;
+
+    // If there is a limit, only store the last elements from the list to keep to that limit
+    if (limit) {
+      data = data.slice(-limit);
+    }
+
+    // Performance testing in dev and when env var is set
+    if (process.env.dev && process.env.perfTest) {
+      data = perfLoadAll(type, data);
     }
 
     const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];

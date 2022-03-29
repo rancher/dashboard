@@ -45,7 +45,7 @@ export function base64DecodeToBuffer(string) {
 }
 
 export function base64Decode(string) {
-  return base64DecodeToBuffer(string.replace(/[-_]/g, char => char === '-' ? '+' : '/')).toString();
+  return !string ? string : base64DecodeToBuffer(string.replace(/[-_]/g, char => char === '-' ? '+' : '/')).toString();
 }
 
 export function md5(data, digest, callback) {

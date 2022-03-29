@@ -8,6 +8,11 @@ export default class LogClusterFlow extends Flow {
   }
 
   get outputs() {
+    if (!this.allOutputs) {
+      // Handle the case where the user doesn't have permission
+      // to see Outputs
+      return [];
+    }
     const outputRefs = this?.spec?.globalOutputRefs || this?.spec?.outputRefs || [];
 
     return this.allOutputs.filter(output => outputRefs.includes(output.name));

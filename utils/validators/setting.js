@@ -19,7 +19,7 @@ export function backupTarget(value, getters, errors, validatorArgs) {
   const type = parseValue.type;
 
   if (!type) {
-    errors.push(t('validation.required', { key: 'Type' }));
+    return errors;
   }
 
   if (type === 's3') {
@@ -38,6 +38,10 @@ export function backupTarget(value, getters, errors, validatorArgs) {
     if (!parseValue.bucketName) {
       errors.push(t('validation.required', { key: 'bucketName' }));
     }
+  }
+
+  if (!parseValue.endpoint) {
+    errors.push(t('validation.required', { key: 'endpoint' }));
   }
 
   return errors;

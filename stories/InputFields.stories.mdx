@@ -1,0 +1,24 @@
+import { Meta, Canvas, Story } from '@storybook/addon-docs';
+import InputFieldsExample from './InputFieldsExample.vue';
+<style>{`.labeled-select { font-size: unset' }`}</style>
+
+<Meta
+  title="Examples/Input Fields"
+  parameters={{
+    viewMode: 'docs',
+    previewTabs: { 
+      canvas: { hidden: true } 
+    }
+  }}
+/>
+
+# Input Fields
+
+<Preview>
+  <Story name="Examples" inline>
+  {{
+    components: { InputFieldsExample },
+    template: `<InputFieldsExample />`,
+  }}
+  </Story>
+</Preview>

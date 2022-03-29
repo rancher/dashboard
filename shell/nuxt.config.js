@@ -71,6 +71,7 @@ export default function(dir, _appConfig) {
       // The package.json must have the 'rancher' property to mark it as a UI package
       if (f.rancher) {
         const id = `${ f.name }-${ f.version }`;
+
         nmPackages[id] = f.main;
 
         // Add server middleware to serve up the files for this UI package
@@ -157,8 +158,10 @@ export default function(dir, _appConfig) {
     require('./package.json').version;
 
   const dev = (process.env.NODE_ENV !== 'production');
+  const devPorts = dev || process.env.DEV_PORTS === 'true';
   const pl = process.env.PL || STANDARD;
   const commit = process.env.COMMIT || 'head';
+  const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
 
   let api = process.env.API || 'http://localhost:8989';
 
@@ -215,7 +218,10 @@ export default function(dir, _appConfig) {
       version,
       dev,
       pl,
+      perfTest,
     },
+
+    publicRuntimeConfig: { rancherEnv: process.env.RANCHER_ENV || 'web' },
 
     buildDir: dev ? '.nuxt' : '.nuxt-prod',
 
@@ -365,7 +371,7 @@ export default function(dir, _appConfig) {
           }
         });
 
-        // And substitue our own loader for images
+        // And substitute our own loader for images
         config.module.rules.unshift({
           test:    /\.(png|jpe?g|gif|svg|webp)$/,
           use:  [
@@ -398,17 +404,13 @@ export default function(dir, _appConfig) {
           },
         });
 
-        // Add a loader for markdown files (revents warning in log with the md files in the content folder)
+        // Prevent warning in log with the md files in the content folder
         config.module.rules.push({
           test:    /\.md$/,
           use:  [
             {
-              loader:  'url-loader',
-              options: {
-                name:     '[path][name].[ext]',
-                limit:    1,
-                esModule: false
-              },
+              loader:  'frontmatter-markdown-loader',
+              options: { mode: ['body'] }
             }
           ]
         });
@@ -486,7 +488,6 @@ export default function(dir, _appConfig) {
       'cookie-universal-nuxt',
       'portal-vue/nuxt',
       path.join(NUXT_SHELL, 'plugins/steve/rehydrate-all'),
-      '@nuxt/content',
     ],
 
     // Vue plugins
@@ -530,7 +531,7 @@ export default function(dir, _appConfig) {
       '/v3':           proxyWsOpts(api), // Rancher API
       '/v3-public':    proxyOpts(api), // Rancher Unauthed API
       '/api-ui':       proxyOpts(api), // Browser API UI
-      '/meta':         proxyOpts(api), // Browser API UI
+      '/meta':         proxyMetaOpts(api), // Browser API UI
       '/v1-*':         proxyOpts(api), // SAML, KDM, etc
       // These are for Ember embedding
       '/c/*/edit':     proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
@@ -547,11 +548,11 @@ export default function(dir, _appConfig) {
 
     // Nuxt server
     server: {
-      https: (dev ? {
+      https: (devPorts ? {
         key:  fs.readFileSync(path.resolve(dir, SHELL, 'server/server.key')),
         cert: fs.readFileSync(path.resolve(dir, SHELL, 'server/server.crt'))
       } : null),
-      port:      (dev ? 8005 : 80),
+      port:      (devPorts ? 8005 : 80),
       host:      '0.0.0.0',
     },
 
@@ -575,10 +576,22 @@ export default function(dir, _appConfig) {
   // Functions for the request proxying used in dev
   // ===============================================================================================
 
+  function proxyMetaOpts(target) {
+    return {
+      target,
+      followRedirects: true,
+      secure:          !dev,
+      onProxyReq,
+      onProxyReqWs,
+      onError,
+      onProxyRes,
+    };
+  }
+
   function proxyOpts(target) {
     return {
       target,
-      secure: !dev,
+      secure: !devPorts,
       onProxyReq,
       onProxyReqWs,
       onError,
@@ -587,7 +600,7 @@ export default function(dir, _appConfig) {
   }
 
   function onProxyRes(proxyRes, req, res) {
-    if (dev) {
+    if (devPorts) {
       proxyRes.headers['X-Frame-Options'] = 'ALLOWALL';
     }
   }
@@ -601,9 +614,11 @@ export default function(dir, _appConfig) {
   }
 
   function onProxyReq(proxyReq, req) {
-    proxyReq.setHeader('x-api-host', req.headers['host']);
-    proxyReq.setHeader('x-forwarded-proto', 'https');
-    // console.log(proxyReq.getHeaders());
+    if (!(proxyReq._currentRequest && proxyReq._currentRequest._headerSent)) {
+      proxyReq.setHeader('x-api-host', req.headers['host']);
+      proxyReq.setHeader('x-forwarded-proto', 'https');
+      // console.log(proxyReq.getHeaders());
+    }
   }
 
   function onProxyReqWs(proxyReq, req, socket, options, head) {

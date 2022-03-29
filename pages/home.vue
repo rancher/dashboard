@@ -7,7 +7,6 @@ import SortableTable from '@/components/SortableTable';
 import BadgeState from '@/components/BadgeState';
 import CommunityLinks from '@/components/CommunityLinks';
 import SimpleBox from '@/components/SimpleBox';
-import LandingPagePreference from '@/components/LandingPagePreference';
 import SingleClusterInfo from '@/components/SingleClusterInfo';
 import { mapGetters, mapState } from 'vuex';
 import { MANAGEMENT, CAPI } from '@/config/types';
@@ -23,8 +22,7 @@ import { SETTING } from '@/config/settings';
 import { BLANK_CLUSTER } from '@/store';
 import { filterOnlyKubernetesClusters } from '@/utils/cluster';
 
-const SET_LOGIN_ACTION = 'set-as-login';
-const RESET_CARDS_ACTION = 'reset-homepage-cards';
+import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@/config/page-actions';
 
 export default {
   name:       'Home',
@@ -37,7 +35,6 @@ export default {
     BadgeState,
     CommunityLinks,
     SimpleBox,
-    LandingPagePreference,
     SingleClusterInfo
   },
 
@@ -58,7 +55,7 @@ export default {
         labelKey: 'nav.header.setLoginPage',
         action:   SET_LOGIN_ACTION
       },
-      { seperator: true },
+      { separator: true },
       {
         labelKey: 'nav.header.restoreCards',
         action:   RESET_CARDS_ACTION
@@ -74,6 +71,12 @@ export default {
     ...mapState(['managementReady']),
     ...mapGetters(['currentCluster']),
     mcm: mapFeature(MULTI_CLUSTER),
+
+    canCreateCluster() {
+      const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+
+      return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+    },
 
     createLocation() {
       return {
@@ -103,6 +106,10 @@ export default {
 
     readWhatsNewAlready() {
       return readReleaseNotes(this.$store);
+    },
+
+    showSetLoginBanner() {
+      return this.homePageCards?.setLoginPage;
     },
 
     showSidePanel() {
@@ -189,11 +196,21 @@ export default {
   },
 
   methods: {
+    /**
+     * Define actions for each navigation link
+     * @param {*} action
+     */
     handlePageAction(action) {
-      if (action.action === RESET_CARDS_ACTION) {
+      switch (action.action) {
+      case RESET_CARDS_ACTION:
         this.resetCards();
-      } else if (action.action === SET_LOGIN_ACTION) {
+        break;
+
+      case SET_LOGIN_ACTION:
         this.afterLoginRoute = 'home';
+        break;
+
+      // no default
       }
     },
 
@@ -225,9 +242,28 @@ export default {
       this.$router.push({ name: 'docs-doc', params: { doc: 'whats-new' } });
     },
 
+    showUserPrefs() {
+      this.$router.push({ name: 'prefs' });
+    },
+
     async resetCards() {
       await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value: {} });
       await this.$store.dispatch('prefs/set', { key: READ_WHATS_NEW, value: '' });
+    },
+
+    async closeSetLoginBanner(retry = 0) {
+      let value = this.$store.getters['prefs/get'](HIDE_HOME_PAGE_CARDS);
+
+      if (value === true || value === false || value.length > 0) {
+        value = {};
+      }
+      value.setLoginPage = true;
+
+      const res = await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value });
+
+      if (retry === 0 && res?.type === 'error' && res?.status === 500) {
+        await this.closeSetLoginBanner(retry + 1);
+      }
     }
   }
 };
@@ -264,9 +300,16 @@ export default {
               </nuxt-link>
             </div>
           </SimpleBox>
-          <SimpleBox :title="t('landing.landingPrefs.title')" :pref="HIDE_HOME_PAGE_CARDS" pref-key="setLoginPage" class="panel">
-            <LandingPagePreference />
-          </SimpleBox>
+
+          <div v-if="!showSetLoginBanner" class="mt-5 mb-10 row">
+            <div class="col span-12">
+              <Banner color="set-login-page" :closable="true" @close="closeSetLoginBanner()">
+                <div>{{ t('landing.landingPrefs.title') }}</div>
+                <a class="hand mr-20" @click.prevent.stop="showUserPrefs"><span v-html="t('landing.landingPrefs.userPrefs')" /></a>
+              </Banner>
+            </div>
+          </div>
+
           <div class="row panel">
             <div v-if="mcm" class="col span-12">
               <SortableTable :table-actions="false" :row-actions="false" key-field="id" :rows="kubeClusters" :headers="clusterHeaders">
@@ -278,7 +321,7 @@ export default {
                     <BadgeState :label="clusters.length.toString()" color="role-tertiary ml-20 mr-20" />
                   </div>
                 </template>
-                <template #header-middle>
+                <template v-if="canCreateCluster" #header-middle>
                   <n-link
                     :to="importLocation"
                     class="btn btn-sm role-primary"
@@ -354,7 +397,7 @@ export default {
   </div>
 </template>
 <style lang='scss' scoped>
-  .banner.info.whats-new {
+  .banner.info.whats-new, .banner.set-login-page {
     border: 0;
     margin-top: 10px;
     display: flex;
@@ -366,6 +409,9 @@ export default {
     > a {
       align-self: flex-end;
     }
+  }
+  .banner.set-login-page {
+    border: 1px solid var(--border);
   }
   .table-heading {
     align-items: center;

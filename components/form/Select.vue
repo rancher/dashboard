@@ -1,11 +1,9 @@
 <script>
-import { createPopper } from '@popperjs/core';
 import { get } from '@/utils/object';
 import LabeledFormElement from '@/mixins/labeled-form-element';
 import VueSelectOverrides from '@/mixins/vue-select-overrides';
 import LabeledTooltip from '@/components/form/LabeledTooltip';
-import $ from 'jquery';
-import { onClickOption } from '@/utils/select';
+import { onClickOption, calculatePosition } from '@/utils/select';
 
 export default {
   components: { LabeledTooltip },
@@ -18,6 +16,10 @@ export default {
     disabled: {
       default: false,
       type:    Boolean,
+    },
+    getKeyForOption: {
+      default: null,
+      type:    Function
     },
     mode: {
       default: 'edit',
@@ -101,52 +103,13 @@ export default {
         return option;
       }
     },
-    withPopper(dropdownList, component, { width }) {
+
+    positionDropdown(dropdownList, component, { width }) {
       if (this.popperOverride) {
         return this.popperOverride(dropdownList, component, { width });
       }
-      /**
-       * We need to explicitly define the dropdown width since
-       * it is usually inherited from the parent with CSS.
-       */
-      const componentWidth = $(component.$parent.$el).width();
 
-      dropdownList.style['min-width'] = `${ componentWidth }px`;
-      dropdownList.style.width = 'min-content';
-
-      /**
-       * Here we position the dropdownList relative to the $refs.toggle Element.
-       *
-       * The 'offset' modifier aligns the dropdown so that the $refs.toggle and
-       * the dropdownList overlap by 1 pixel.
-       *
-       * The 'toggleClass' modifier adds a 'drop-up' class to the Vue Select
-       * wrapper so that we can set some styles for when the dropdown is placed
-       * above.
-       */
-      const popper = createPopper(component.$refs.toggle, dropdownList, {
-        placement: this.placement || 'bottom-start',
-        modifiers: [
-          {
-            name:    'offset',
-            options: { offset: [0, 2] },
-          },
-          {
-            name:    'toggleClass',
-            enabled: true,
-            phase:   'write',
-            fn({ state }) {
-              component.$el.setAttribute('x-placement', state.placement);
-            },
-          }
-        ],
-      });
-
-      /**
-       * To prevent memory leaks Popper needs to be destroyed.
-       * If you return function, it will be called just before dropdown is removed from DOM.
-       */
-      return () => popper.destroy();
+      calculatePosition(dropdownList, component, width, this.placement);
     },
 
     focus() {
@@ -167,6 +130,27 @@ export default {
 
     onClickOption(option, event) {
       onClickOption.call(this, option, event);
+    },
+    selectable(opt) {
+      // Lets you disable options that are used
+      // for headings on groups of options.
+      if ( opt ) {
+        if ( opt.disabled || opt.kind === 'group' || opt.kind === 'divider' || opt.loading ) {
+          return false;
+        }
+      }
+
+      return true;
+    },
+    getOptionKey(opt) {
+      if (opt.optionKey) {
+        return get(opt, opt.optionKey);
+      }
+
+      return this.getOptionLabel(opt);
+    },
+    report(e) {
+      alert(e);
     }
   }
 };
@@ -190,11 +174,12 @@ export default {
       ref="select-input"
       v-bind="$attrs"
       class="inline"
+      :class="{'select-input-view': mode === 'view'}"
       :autoscroll="true"
       :append-to-body="appendToBody"
-      :calculate-position="placement ? withPopper : undefined"
+      :calculate-position="positionDropdown"
       :disabled="isView || disabled"
-      :get-option-key="(opt) => (optionKey ? get(opt, optionKey) : getOptionLabel(opt))"
+      :get-option-key="(opt) => getOptionKey(opt)"
       :get-option-label="(opt) => getOptionLabel(opt)"
       :label="optionLabel"
       :options="options"
@@ -203,12 +188,14 @@ export default {
       :placeholder="placeholder"
       :reduce="(x) => reduce(x)"
       :searchable="isSearchable"
+      :selectable="selectable"
       :value="value != null ? value : ''"
       v-on="$listeners"
       @input="(e) => $emit('input', e)"
       @search:blur="onBlur"
       @search:focus="onFocus"
       @open="resizeHandler"
+      @option:created="(e) => $emit('createdListItem', e)"
     >
       <template #option="option">
         <div @mousedown="(e) => onClickOption(option, e)">
@@ -233,11 +220,29 @@ export default {
   .unlabeled-select {
     position: relative;
 
+    ::v-deep .v-select.select-input-view {
+      .vs__actions {
+        visibility: hidden;
+      }
+    }
+
     ::v-deep .vs__selected-options {
       display: flex;
 
       .vs__selected {
           width: 100%;
+      }
+    }
+
+    ::v-deep .v-select.vs--open {
+      .vs__dropdown-toggle {
+        color: var(--outline) !important;
+      }
+    }
+
+    ::v-deep .v-select.vs--open {
+      .vs__dropdown-toggle {
+        color: var(--outline) !important;
       }
     }
 

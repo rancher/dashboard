@@ -8,21 +8,33 @@
   }
 }
 
+.unlabeled-select:not(.in-input) {
+  height: $unlabeled-input-height;
+}
 .col {
-  > .labeled-select:not(.taggable),
   > .unlabeled-select:not(.taggable) {
-    min-height: $input-height;
-    padding-bottom: calc(#{$input-padding-sm}/2);
+    padding-top: 5px;
   }
+}
+.unlabeled-select:not(.in-input) {
+  height: $unlabeled-input-height;
 }
 
 .labeled-select,
 .unlabeled-select {
   min-width: 75px;
-  // line-height: $input-line-height;
 
   .required {
     color: var(--error);
+  }
+
+  &.focused {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+
+    &.vs__dropdown-up {
+      border-radius: 0 0 var(--border-radius) var(--border-radius);
+    }
   }
 
   .v-select {
@@ -81,9 +93,13 @@
     }
   }
 
+  &.in-input {
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+  }
+
   &.focused {
     outline: none;
-    box-shadow: 0 0 0 var(--outline-width) var(--outline);
     .v-select {
       // Can toggle this to get full width dd - maybe make an option?
       .vs__dropdown-menu {
@@ -140,16 +156,24 @@
     }
   }
 
-  &:not(.view) {
+  &:not(.view):not(.disabled) {
     background-color: var(--input-bg);
     border: solid var(--border-width) var(--input-border);
 
-    &:hover {
+    &:hover:not(.focused):not(.disabled) {
       &,
       .vs__dropdown-menu {
-        background: var(--input-hover-bg);
+        border: solid var(--border-width) var(--input-hover-border) !important;
       }
     }
+
+    &.focused {
+      &,
+      .vs__dropdown-menu {
+        border: solid var(--border-width) var(--outline) !important;
+      }
+    }
+
   }
 
   .labeled-tooltip .status-icon {

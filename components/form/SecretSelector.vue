@@ -170,14 +170,16 @@ export default {
       }
 
       &:first-child {
-          border-radius: var(--border-radius) 0 0 var(--border-radius);
-          margin-right: 0;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        margin-right: 0;
       }
 
       &:last-child {
-          border-radius: 0 var(--border-radius) var(--border-radius) 0;
-          border-left: none;
-          float: right;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        border-left: none;
+        float: right;
       }
     }
   }

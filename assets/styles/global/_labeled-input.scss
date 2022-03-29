@@ -3,6 +3,16 @@
   display: table;
   border-collapse: separate;
   min-height: $input-height;
+  z-index: 0; // Prevent label from cover other elements outside of the input
+
+  &.compact-input {
+    min-height: $unlabeled-input-height;
+    padding: 0 10px;
+
+    INPUT.no-label {
+      line-height: $input-line-height;
+    }
+  }
 
   LABEL {
     position: absolute;
@@ -97,6 +107,14 @@
 
   &.suffix INPUT {
     padding-right: 8px;
+  }
+
+  &.suffix.has-tooltip INPUT {
+    width: calc(100% - 30px);
+  }
+
+  &.suffix.has-tooltip INPUT {
+    width: calc(100% - 30px);
   }
 
   .cron-label, .sub-label {

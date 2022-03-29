@@ -5,7 +5,7 @@ import { mapGetters } from 'vuex';
 export default {
   components: { LabeledInput },
   props:      {
-    // volumeAttribtutes object
+    // volumeAttributes object
     value: {
       type:    Object,
       default: () => {
@@ -29,7 +29,7 @@ export default {
         <LabeledInput v-model="value.awsElasticBlockStore.volumeID" :mode="mode" :label="t('workload.storage.csi.volumeID')" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model.number="value.awsElasticBlockStore.parition" :mode="mode" :label="t('workload.storage.csi.partition')" />
+        <LabeledInput v-model.number="value.awsElasticBlockStore.partition" :mode="mode" :label="t('workload.storage.csi.partition')" />
       </div>
     </div>
     <div class="row">

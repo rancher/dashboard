@@ -41,7 +41,7 @@ export default {
   <LabeledSelect
     :label="t('gatekeeperConstraint.tab.namespaces.sub.scope.title')"
     :hover-tooltip="true"
-    tooltip="Determines if cluster-scoped and/or namesapced-scoped resources are selected."
+    tooltip="Determines if cluster-scoped and/or namespaced-scoped resources are selected."
     :value="value"
     :mode="mode"
     :options="SCOPE_OPTIONS"

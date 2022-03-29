@@ -98,13 +98,13 @@ export default {
 
   methods: {
     remove() {
-      const parentCompnent = this.$parent.$parent.$parent;
+      const parentComponent = this.$parent.$parent.$parent;
 
       let goTo;
 
-      if (parentCompnent.doneLocation) {
+      if (parentComponent.doneLocation) {
         // doneLocation will recompute to undefined when delete request completes
-        goTo = { ...parentCompnent.doneLocation };
+        goTo = { ...parentComponent.doneLocation };
       }
 
       Promise.all(this.value.map((resource) => {
@@ -134,11 +134,11 @@ export default {
         resource.remove({ url: `${ parsed.pathname }?${ removedDisks }propagationPolicy=Foreground` });
       })).then((results) => {
         if ( goTo && !isEmpty(goTo) ) {
-          parentCompnent.currentRouter.push(goTo);
+          parentComponent.currentRouter.push(goTo);
         }
-        parentCompnent.close();
+        parentComponent.close();
       }).catch((err) => {
-        parentCompnent.error = err;
+        parentComponent.error = err;
       });
     }
   }

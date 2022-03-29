@@ -1,4 +1,3 @@
-
 // Global stylesheet for Storybook
 
 // Ensure buttons have spacing between them
@@ -14,6 +13,7 @@ pre.sbdocs {
 BODY, .sbdocs-wrapper {
   background: var(--body-bg) !important;
   color: var(--body-text);
+  font-size: 14px;
 }
 
 H1, H2, H3, H4, H5, H6, P {
@@ -25,4 +25,13 @@ CODE:not(.language-jsx) {
   border: 1px solid var(--border) !important;;
   border-radius: var(--border-radius) !important;;
   color: var(--body-text) !important;
+}
+
+div#root, button, input, optgroup, select, textarea {
+  font-size: 14px;
+  font-family: "Lato", arial, helvetica, sans-serif;
+}
+
+.labeled-tooltip .status-icon {
+  font-size: 20px;
 }

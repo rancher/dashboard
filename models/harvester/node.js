@@ -11,7 +11,7 @@ export default class HciNode extends SteveModel {
   get _availableActions() {
     const cordon = {
       action:     'cordon',
-      enabled:    this.hasAction('cordon'),
+      enabled:    this.hasAction('cordon') && !this.isCordoned,
       icon:       'icon icon-fw icon-pause',
       label:      this.t('harvester.action.cordon'),
       total:      1,
@@ -144,6 +144,12 @@ export default class HciNode extends SteveModel {
 
   get isUnSchedulable() {
     return this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_SCHEDULABLE] === 'false' || this.spec.unschedulable;
+  }
+
+  get isMigratable() {
+    const states = ['in-progress', 'unavailable'];
+
+    return !this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] && !this.isUnSchedulable && !states.includes(this.state);
   }
 
   get isCordoned() {

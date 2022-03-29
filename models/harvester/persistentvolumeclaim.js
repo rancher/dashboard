@@ -1,10 +1,13 @@
 import Vue from 'vue';
 import { _CLONE } from '@/config/query-params';
+import pick from 'lodash/pick';
 import { HCI } from '@/config/types';
-import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS, DESCRIPTION } from '@/config/labels-annotations';
 import { findBy } from '@/utils/array';
 import { get, clone } from '@/utils/object';
+import { cleanForNew } from '@/plugins/steve/normalize';
 import SteveModel from '@/plugins/steve/steve-class';
+import { colorForState } from '@/plugins/steve/resource-class';
 
 export default class HciPv extends SteveModel {
   applyDefaults(_, realMode) {
@@ -27,6 +30,12 @@ export default class HciPv extends SteveModel {
         icon:       'icon icon-copy',
         label:      this.t('harvester.action.exportImage'),
       },
+      {
+        action:     'cancelExpand',
+        enabled:    this.hasAction('cancelExpand'),
+        icon:       'icon icon-backup',
+        label:      this.t('harvester.action.cancelExpand'),
+      },
       ...super._availableActions
     ];
   }
@@ -38,12 +47,39 @@ export default class HciPv extends SteveModel {
     });
   }
 
+  cancelExpand(resources = this) {
+    this.doActionGrowl('cancelExpand', {});
+  }
+
+  cleanForNew() {
+    cleanForNew(this);
+
+    delete this.metadata.finalizers;
+    const keys = [HCI_ANNOTATIONS.IMAGE_ID, DESCRIPTION];
+
+    this.metadata.annotations = pick(this.metadata.annotations, keys);
+  }
+
   get canUpdate() {
     return this.hasLink('update');
   }
 
   get stateDisplay() {
     const ownedBy = this?.metadata?.annotations?.[HCI_ANNOTATIONS.OWNED_BY];
+    const status = this?.status?.phase === 'Bound' ? 'Ready' : 'NotReady';
+
+    const conditions = this?.status?.conditions || [];
+
+    if (findBy(conditions, 'type', 'Resizing')?.status === 'True') {
+      return 'Resizing';
+    } else if (ownedBy) {
+      return 'In-use';
+    } else {
+      return status;
+    }
+  }
+
+  get state() {
     let status = this?.status?.phase === 'Bound' ? 'Ready' : 'NotReady';
 
     const conditions = this?.status?.conditions || [];
@@ -52,11 +88,17 @@ export default class HciPv extends SteveModel {
       status = 'Resizing';
     }
 
-    if (ownedBy) {
-      return 'In-use';
-    } else {
-      return status;
-    }
+    return status;
+  }
+
+  get stateColor() {
+    const state = this.stateDisplay;
+
+    return colorForState(state);
+  }
+
+  get stateDescription() {
+    return this.metadata?.annotations?.[HCI_ANNOTATIONS.VM_VOLUME_STATUS] || super.stateDescription;
   }
 
   get detailLocation() {
@@ -101,6 +143,10 @@ export default class HciPv extends SteveModel {
     const ownedId = JSON.parse(ownedBy)[0]?.refs?.[0];
 
     return allVMs.find( D => D.id === ownedId);
+  }
+
+  get isAvailable() {
+    return this.stateDisplay !== 'Resizing';
   }
 
   get volumeSort() {

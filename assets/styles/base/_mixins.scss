@@ -121,7 +121,7 @@
 }
 
 @mixin input-status-color {
-  &:not(.focused) {
+  &, &.focused {
     &.success {
       border: solid 1px var(--success);
       input, .selected {
@@ -146,7 +146,8 @@
 
     &.error {
       border: solid 1px var(--error);
-      input, .selected {
+
+      > label {
         color: var(--error);
       }
 
@@ -160,6 +161,5 @@
 @mixin form-focus {
   // Focus for form like elements (not to be confused with basic :focus style)
   outline: none;
-  box-shadow: 0 0 0 var(--outline-width) var(--outline);
-  background: var(--input-focus-bg)
+  border-color: var(--outline);
 }

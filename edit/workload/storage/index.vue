@@ -1,6 +1,6 @@
 <script>
 import { PVC } from '@/config/types';
-import { removeObjects, addObjects } from '@/utils/array.js';
+import { removeObjects, addObjects } from '@/utils/array';
 import ButtonDropdown from '@/components/ButtonDropdown';
 import Mount from '@/edit/workload/storage/Mount';
 import { _VIEW } from '@/config/query-params';
@@ -63,7 +63,11 @@ export default {
   },
 
   async fetch() {
-    this.pvcs = await this.$store.dispatch('cluster/findAll', { type: PVC });
+    if ( this.$store.getters['cluster/schemaFor'](PVC) ) {
+      this.pvcs = await this.$store.dispatch('cluster/findAll', { type: PVC });
+    } else {
+      this.pvcs = [];
+    }
   },
 
   data() {

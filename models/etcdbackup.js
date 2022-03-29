@@ -1,9 +1,7 @@
 import NormanModel from '@/plugins/steve/norman-class';
 
-export default class EtcdBackup extends NormanModel {
+export default class Rke1EtcdBackup extends NormanModel {
   get _availableActions() {
-    const out = super._availableActions;
-
     const restore = {
       action:     'promptRestore',
       enabled:    true,
@@ -11,12 +9,32 @@ export default class EtcdBackup extends NormanModel {
       label:      'Restore'
     };
 
-    out.unshift(restore);
+    const baseActions = super._availableActions;
+    const actions = [
+      restore
+    ];
 
-    return out;
+    if (baseActions.length) {
+      actions.push({ divider: true });
+      actions.push(...baseActions);
+    }
+
+    return actions;
   }
 
   promptRestore() {
     this.$dispatch('promptRestore', [this]);
+  }
+
+  get createdAt() {
+    return this.created;
+  }
+
+  get rke2() {
+    return false;
+  }
+
+  get nameDisplay() {
+    return this.name;
   }
 }

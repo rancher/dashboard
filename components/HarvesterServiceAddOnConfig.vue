@@ -4,10 +4,11 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import RadioGroup from '@/components/form/RadioGroup';
 import { _CREATE } from '@/config/query-params';
 import { get } from '@/utils/object';
+import { HCI as HCI_LABELS_ANNOTATIONS } from '@/config/labels-annotations';
 
 const HARVESTER_ADD_ON_CONFIG = [{
   variableName: 'ipam',
-  key:          'cloudprovider.harvesterhci.io/ipam',
+  key:          HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_IPAM,
   default:      'dhcp'
 }, {
   variableName: 'healthcheckPort',
@@ -157,7 +158,6 @@ export default {
             :options="portOptions"
             required
             :label="t('harvester.service.healthCheckPort.label')"
-            :tooltip="t('harvester.service.healthCheckPort.description')"
           />
         </div>
         <div class="col span-6">

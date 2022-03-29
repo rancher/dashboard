@@ -39,11 +39,11 @@ export default {
 
   data() {
     const {
-      limitsCpu, limitsMemory, requestsCpu, requestsMemory
+      limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu
     } = this.value;
 
     return {
-      limitsCpu, limitsMemory, requestsCpu, requestsMemory, viewMode: _VIEW
+      limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu, viewMode: _VIEW
     };
   },
 
@@ -75,12 +75,14 @@ export default {
         limitsMemory,
         requestsCpu,
         requestsMemory,
+        limitsGpu
       } = this;
 
       this.$emit('input', cleanUp({
         limitsCpu,
         limitsMemory,
         requestsCpu,
+        limitsGpu,
         requestsMemory
       }));
     },
@@ -91,6 +93,7 @@ export default {
         limitsMemory,
         requestsCpu,
         requestsMemory,
+        limitsGpu
       } = this;
       const namespace = this.namespace; // no deep copy in destructure proxy yet
 
@@ -98,6 +101,7 @@ export default {
         limitsCpu,
         limitsMemory,
         requestsCpu,
+        limitsGpu,
         requestsMemory
       });
 
@@ -117,12 +121,14 @@ export default {
           limitsMemory,
           requestsCpu,
           requestsMemory,
+          limitsGpu
         } = JSON.parse(defaults);
 
         this.limitsCpu = limitsCpu;
         this.limitsMemory = limitsMemory;
         this.requestsCpu = requestsCpu;
         this.requestsMemory = requestsMemory;
+        this.limitsGpu = limitsGpu;
       }
     },
   }
@@ -168,7 +174,7 @@ export default {
       </span>
     </div>
 
-    <div class="row">
+    <div class="row mb-20">
       <span class="col span-6">
         <UnitInput
           v-model="limitsCpu"
@@ -190,6 +196,18 @@ export default {
           :input-exponent="2"
           :increment="1024"
           :output-modifier="true"
+          @input="updateLimits"
+        />
+      </span>
+    </div>
+    <div class="row">
+      <span class="col span-6">
+        <UnitInput
+          v-model="limitsGpu"
+          :placeholder="t('containerResourceLimit.gpuPlaceholder')"
+          :label="t('containerResourceLimit.limitsGpu')"
+          :mode="mode"
+          :base-unit="t('suffix.gpus')"
           @input="updateLimits"
         />
       </span>

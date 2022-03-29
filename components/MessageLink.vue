@@ -11,7 +11,7 @@ export default {
       default: ''
     },
 
-    suffic: {
+    suffix: {
       type:    String,
       default: ''
     },
@@ -26,7 +26,7 @@ export default {
       default: ''
     },
 
-    sufficLabel: {
+    suffixLabel: {
       type:    String,
       default: ''
     },
@@ -56,9 +56,9 @@ export default {
         {{ middle }}
       </slot>
     </nuxt-link>
-    <slot name="suffic">
-      <t v-if="sufficLabel" :k="sufficLabel" :raw="true" />
-      {{ suffic }}
+    <slot name="suffix">
+      <t v-if="suffixLabel" :k="suffixLabel" :raw="true" />
+      {{ suffix }}
     </slot>
   </div>
 </template>

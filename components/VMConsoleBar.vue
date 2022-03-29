@@ -17,10 +17,6 @@ export default {
     },
   },
 
-  data() {
-    return { };
-  },
-
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 

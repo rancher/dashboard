@@ -92,7 +92,7 @@ export default {
     flavor() {
       const domain = this.value?.spec?.template?.spec?.domain;
 
-      return `${ domain.cpu.cores } vCPU , ${ domain.resources?.limits?.memory } ${ this.t('harvester.virtualMachine.input.memory') }`;
+      return `${ domain.cpu?.cores } vCPU , ${ domain.resources?.limits?.memory } ${ this.t('harvester.virtualMachine.input.memory') }`;
     },
 
     kernelRelease() {
@@ -135,7 +135,7 @@ export default {
           <template #value>
             <div class="smart-row">
               <div class="console">
-                {{ value.nameDisplay }} <VMConsoleBar :resource="value" class="cosoleBut" />
+                {{ value.nameDisplay }} <VMConsoleBar :resource="value" class="consoleBut" />
               </div>
             </div>
           </template>
@@ -241,7 +241,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .cosoleBut {
+  .consoleBut {
     position: relative;
     top: -20px;
     left: 38px;
