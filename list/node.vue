@@ -61,7 +61,6 @@ export default {
     const res = await allHash(hash);
 
     this.kubeNodes = res.kubeNodes;
-    console.log('KUBE NODES', this.kubeNodes);
   },
 
   data() {

@@ -226,7 +226,6 @@ export default {
       return parseSi(cluster.status.allocatable?.cpu);
     },
     memoryAllocatable(cluster) {
-      console.log(cluster.status);
       const parsedAllocatable = (parseSi(cluster.status.allocatable?.memory) || 0).toString();
       const format = createMemoryFormat(parsedAllocatable);
 
@@ -350,7 +349,7 @@ export default {
                 </template>
                 <template #col:cpu="{row}">
                   <td v-if="cpuAllocatable(row)">
-                    {{ `${cpuUsed(row)}/${cpuAllocatable(row)} ${t('landing.clusters.cores', {count:cpuAllocatable(row) })}` }}
+                    {{ `${cpuAllocatable(row)} ${t('landing.clusters.cores', {count:cpuAllocatable(row) })}` }}
                   </td>
                   <td v-else>
                     &mdash;
@@ -358,7 +357,7 @@ export default {
                 </template>
                 <template #col:memory="{row}">
                   <td v-if="memoryAllocatable(row) && !memoryAllocatable(row).match(/^0 [a-zA-z]/)">
-                    {{ memoryReserved(row) }}
+                    {{ memoryAllocatable(row) }}
                   </td>
                   <td v-else>
                     &mdash;
