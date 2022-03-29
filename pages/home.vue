@@ -157,9 +157,7 @@ export default {
           label: this.t('tableHeaders.pods'),
           name:  'pods',
           value: '',
-          sort:  ['status.allocatable.pods', 'status.available.pods'],
-          // delayLoading: true,
-          // formatter: 'NAME-OF-COMPONENT'
+          sort:  ['status.allocatable.pods', 'status.available.pods']
         },
         // {
         //   name:  'explorer',
