@@ -1,9 +1,9 @@
 name: Spell checking
 on:
-  pull_request_target:
-  push:
-  issue_comment:
-    types: [created]
+  pull_request:
+    branches:
+      - master
+      - release-*
 
 jobs:
   spelling:
