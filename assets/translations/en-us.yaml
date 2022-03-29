@@ -2320,6 +2320,7 @@ landing:
   gettingStarted:
     title: Getting Started
     body: Take a look at the the quick getting started guide. For Cluster Manager users, learn more about where you can find your favorite features in the Dashboard UI.
+  support: Support
   community:
     title: Community Support
     docs: Docs
