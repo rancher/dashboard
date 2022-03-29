@@ -22,7 +22,7 @@
         "./*"
       ],
       "@shell/*": [
-        "./node_modules/@ranch/shell/*"
+        "./node_modules/@rancher/shell/*"
       ]
     },
     "types": [

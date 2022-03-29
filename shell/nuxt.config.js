@@ -16,9 +16,9 @@ import { generateDynamicTypeImport } from './pkg/auto-import';
 // from it, rather than from the location of this file
 export default function(dir, _appConfig) {
   // Paths to the shell folder when it is included as a node dependency
-  let SHELL = 'node_modules/@ranch/shell';
-  let SHELL_ABS = path.join(dir, 'node_modules/@ranch/shell');
-  let NUXT_SHELL = '~~node_modules/@ranch/shell';
+  let SHELL = 'node_modules/@rancher/shell';
+  let SHELL_ABS = path.join(dir, 'node_modules/@rancher/shell');
+  let NUXT_SHELL = '~~node_modules/@rancher/shell';
 
   // If we have a local folder named 'shell' then use that rather than the one in node_modules
   // This will be the case in the main dashboard repository.
@@ -119,7 +119,7 @@ export default function(dir, _appConfig) {
 
       //   serverMiddleware.push({ path: `/pkg/${ pkgRef }`, handler: serveStatic(`${ dir }/dist-pkg/${ pkgRef }`) });
       // }
-      autoImportTypes[`@ranch/auto-import/${ name }`] = generateDynamicTypeImport(`@pkg/${ name }`, path.join(dir, `pkg/${ name }`));
+      autoImportTypes[`@rancher/auto-import/${ name }`] = generateDynamicTypeImport(`@pkg/${ name }`, path.join(dir, `pkg/${ name }`));
     });
   }
 
@@ -127,14 +127,14 @@ export default function(dir, _appConfig) {
     reqs += `$plugin.loadAsync('${ m }', '/pkg/${ m }/${ nmPackages[m] }');`;
   });
 
-  // Generate a virtual module '@ranch/dyanmic.js` which imports all of the packages that should be built into the application
+  // Generate a virtual module '@rancher/dyanmic.js` which imports all of the packages that should be built into the application
   // This is imported in 'shell/extensions/extension-loader.js` which ensures the all code for plugins to be included is imported in the application
-  const virtualModules = new VirtualModulesPlugin({ 'node_modules/@ranch/dynamic.js': `export default function ($plugin) { ${ reqs } };` });
-  const autoImport = new webpack.NormalModuleReplacementPlugin(/^@ranch\/auto-import$/, (resource) => {
+  const virtualModules = new VirtualModulesPlugin({ 'node_modules/@rancher/dynamic.js': `export default function ($plugin) { ${ reqs } };` });
+  const autoImport = new webpack.NormalModuleReplacementPlugin(/^@rancher\/auto-import$/, (resource) => {
     const ctx = resource.context.split('/');
     const pkg = ctx[ctx.length - 1];
 
-    resource.request = `@ranch/auto-import/${ pkg }`;
+    resource.request = `@rancher/auto-import/${ pkg }`;
   });
 
   // Serve up the dist-pkg folder under /pkg
@@ -348,7 +348,7 @@ export default function(dir, _appConfig) {
 
         config.resolve.symlinks = false;
 
-        // Ensure we process files in the @ranch/shell folder
+        // Ensure we process files in the @rancher/shell folder
         config.module.rules.forEach((r) => {
           if ('test.js'.match(r.test)) {
             if (r.exclude) {

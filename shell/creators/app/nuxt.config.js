@@ -1,4 +1,4 @@
-import config from '@ranch/shell/nuxt.config';
+import config from '@rancher/shell/nuxt.config';
 
 export default config(__dirname, {
   excludes:   [],

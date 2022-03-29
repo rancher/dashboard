@@ -9,6 +9,7 @@ export class Plugin implements IPlugin {
   public locales: any = [];
   public products: any = [];
   public productNames: string[] = [];
+  public routes: any = [];
 
   // Plugin metadata (plugin package.json)
   public _metadata: any = {};
@@ -45,6 +46,10 @@ export class Plugin implements IPlugin {
 
   addLocale(locale: string, label: string): void {
     this.locales.push({ locale, label });
+  }
+
+  addRoute(parentOrRoute: any, route?: any): void {
+    this.routes.push({ parentOrRoute, route });
   }
 
   register(type: string, name: string, fn: Function) {

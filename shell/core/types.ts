@@ -1,3 +1,5 @@
+import { RouteConfig } from 'vue-router';
+
 // package.json metadata
 export interface PackageMetadata {
   name: string;
@@ -5,6 +7,13 @@ export interface PackageMetadata {
   description: string;
   icon: string;
 }
+
+// export interface Route {
+//   name: string;
+//   path: string;
+//   component: Object | Function,
+//   children: Route[];
+// }
 
 /**
  * Interface for a Dashboard plugin
@@ -27,4 +36,11 @@ export interface IPlugin {
    * Plugin metadata
    */
    metadata: PackageMetadata;
+
+   /**
+    * Add a route to the Vue Router
+    */
+   addRoute(route: RouteConfig): void;
+   addRoute(parent: string, route: RouteConfig): void;
+
 }

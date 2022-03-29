@@ -1,21 +1,23 @@
 import { productsLoaded } from '@shell/store/type-map';
 import { clearModelCache } from '@shell/plugins/steve/model-loader';
 import { Plugin } from './plugin';
+import { PluginRoutes } from './plugin-routes';
 
 const MODEL_TYPE = 'models';
 
 export default function({
   app,
   store,
+  $router,
   $axios,
   redirect
 }, inject) {
   const dynamic = {};
-  // TODO: const i18n = {};
   let _lastLoaded = 0;
 
   // Track which plugin loaded what, so we can unload stuff
   const plugins = {};
+  const pluginRoutes = new PluginRoutes(app.router);
 
   inject('plugin', {
     // Load a plugin from a UI package
@@ -48,7 +50,7 @@ export default function({
           // Initialize the plugin
           window[id].default(plugin);
 
-          // Uninstall existing product if there is one
+          // Uninstall existing plugin if there is one
           this.removePlugin(plugin.name);
 
           // Load all of the types etc from the plugin
@@ -165,6 +167,14 @@ export default function({
       plugin.locales.forEach((localeObj) => {
         store.dispatch('i18n/addLocale', localeObj);
       });
+
+      // Routes
+      this.addRoutes(pluginRoutes);
+    },
+
+    addRoutes(plugin) {
+      // pluginRoutes.logRoutes(app.router.getRoutes());
+      pluginRoutes.addRoutes(plugin, plugin.routes);
     },
 
     /**

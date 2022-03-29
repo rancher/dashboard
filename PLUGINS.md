@@ -62,9 +62,9 @@ yarn publish ./shell --patch
 
 At this point, we've published 3 NPM packages:
 
-- `@ranch/shell` - the core shell UI that can be incorporated into a new UI to give core funtionality
-- `@ranch/create-app` - a simple package that can be used with the `yarn create` command to create a new UI
-- `@ranch/create-pkg` - a simple package that can be used with the `yarn create` command to create a new UI Package
+- `@rancher/shell` - the core shell UI that can be incorporated into a new UI to give core funtionality
+- `@rancher/create-app` - a simple package that can be used with the `yarn create` command to create a new UI
+- `@rancher/create-pkg` - a simple package that can be used with the `yarn create` command to create a new UI Package
 
 Now we can create a new UI. First we need to set the environment variable so that yarn will look for packages in our local registry:
 
@@ -77,7 +77,7 @@ Now we can go ahead and create a new UI.
 `cd` to a folder not within the checkout and run:
 
 ```
-yarn create @ranch/app my-app
+yarn create @rancher/app my-app
 cd my-app
 ```
 
@@ -108,7 +108,7 @@ We have a simple `yarn create` helper to do this.
 Run:
 
 ```
-yarn create @ranch/pkg testplugin
+yarn create @rancher/pkg testplugin
 ```
 
 This will create a new UI Package in the `pkg/testplugin` folder.
@@ -116,7 +116,7 @@ This will create a new UI Package in the `pkg/testplugin` folder.
 Replace the contents of the file `pkg/testplugin/index.js` with:
 
 ```
-import { importTypes } from '@ranch/auto-import';
+import { importTypes } from '@rancher/auto-import';
 
 // Init the package
 export default function($plugin) {
@@ -173,7 +173,7 @@ The `testplugin` plugin will be built and the output placed in `dist-pkg\testplu
 Next, edit the `nuxt.config.js` file in the root folder and replace it with this:
 
 ```
-import config from '@ranch/shell/nuxt.config';
+import config from '@rancher/shell/nuxt.config';
 
 export default config(__dirname, {
   excludes:   ['testplugin'],
@@ -231,7 +231,7 @@ Open a web browser and view the Verdaccio UI at http://127.0.0.1:4873 - you'll s
 In a new folder, run:
 
 ```
-yarn create @ranch/app test2
+yarn create @rancher/app test2
 cd test2
 yarn install
 ```
@@ -264,7 +264,7 @@ yarn link
 Then, in our other app's folder, we can:
 
 ```
-yarn link @ranch/shell
+yarn link @rancher/shell
 ```
 
 This link the package used by the app to the dashboard source code. We can make changes to the shell code in the Rancher Dashboard repository and the separate app will hot-reload.

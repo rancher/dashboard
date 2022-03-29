@@ -1,4 +1,4 @@
-import { importTypes } from '@ranch/auto-import';
+import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 
 // Init the package

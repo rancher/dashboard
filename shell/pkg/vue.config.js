@@ -47,7 +47,7 @@ module.exports = function(dir) {
       });
 
       // Auto-generate module to import the types (model, detail, edit etc)
-      const autoImportPlugin = new VirtualModulesPlugin({ 'node_modules/@ranch/auto-import': generateTypeImport('@pkg', dir) });
+      const autoImportPlugin = new VirtualModulesPlugin({ 'node_modules/@rancher/auto-import': generateTypeImport('@pkg', dir) });
 
       config.plugins.unshift(dynamicImporterOveride);
       config.plugins.unshift(modelLoaderImporterOveride);
@@ -85,12 +85,12 @@ module.exports = function(dir) {
       });
 
       // The shell code is in node_modules, so we need to make sure it will get transpiled
-      // Update the webpack config to transpile @ranch/shell
+      // Update the webpack config to transpile @rancher/shell
       config.module.rules.forEach((p) => {
         if (p.use) {
           p.use.forEach((u) => {
             if (u.loader.includes('babel-loader')) {
-              p.exclude = /node_modules\/(?!@ranch\/shell\/).*/;
+              p.exclude = /node_modules\/(?!@rancher\/shell\/).*/;
             }
           });
         }

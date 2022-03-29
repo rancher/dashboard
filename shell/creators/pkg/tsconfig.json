@@ -25,13 +25,13 @@
     ],
     "paths": {
       "@shell/core/*": [
-        "../../node_modules/@ranch/shell/core/*"
+        "../../node_modules/@rancher/shell/core/*"
       ],
       "@shell/config/*": [
-        "../../node_modules/@ranch/shell/config/*"
+        "../../node_modules/@rancher/shell/config/*"
       ],
       "@shell/store/*": [
-        "../../node_modules/@ranch/shell/store/*"
+        "../../node_modules/@rancher/shell/store/*"
       ]
     }
   },
@@ -39,9 +39,9 @@
     "**/*.ts",
     "**/*.tsx",
     "**/*.vue",
-    "../../node_modules/@ranch/shell/types/*.d.ts",
-    "../../node_modules/@ranch/shell/core/*.ts",
-    "../../node_modules/@ranch/shell/config/**/*.js"
+    "../../node_modules/@rancher/shell/types/*.d.ts",
+    "../../node_modules/@rancher/shell/core/*.ts",
+    "../../node_modules/@rancher/shell/config/**/*.js"
   ],
   "exclude": [
     "node_modules"

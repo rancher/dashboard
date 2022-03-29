@@ -16,8 +16,8 @@ const files = [
 ];
 
 const topLevelScripts = {
-  'build-pkg': './node_modules/@ranch/shell/scripts/build-pkg.sh',
-  'serve-pkgs': './node_modules/@ranch/shell/scripts/serve-pkgs',
+  'build-pkg': './node_modules/@rancher/shell/scripts/build-pkg.sh',
+  'serve-pkgs': './node_modules/@rancher/shell/scripts/serve-pkgs',
 };
 
 const typeFolders = [
@@ -51,7 +51,7 @@ const isNodeModulesShell = !fs.existsSync(path.join(folder, 'shell'));
 
 if (!isNodeModulesShell) {
   Object.keys(topLevelScripts).forEach((script) => {
-    topLevelScripts[script] = topLevelScripts[script].replace('./node_modules/@ranch/shell', './shell');
+    topLevelScripts[script] = topLevelScripts[script].replace('./node_modules/@rancher/shell', './shell');
   });
 }
 
@@ -76,7 +76,7 @@ Object.keys(targets).forEach((target) => {
 });
 
 // Add dependencies
-// pkg.dependencies['@ranch/shell'] = '^0.6.2';
+// pkg.dependencies['@rancher/shell'] = '^0.6.2';
 // pkg.dependencies['core-js'] = '3.18.3';
 
 fs.writeFileSync(path.join(pkgFolder, 'package.json'), JSON.stringify(pkg, null, 2));
@@ -147,7 +147,7 @@ function updateArray(data) {
   const updated = [];
 
   data.forEach((inc) => {
-    updated.push(inc.replace('../../node_modules/@ranch/shell', '../../shell'));
+    updated.push(inc.replace('../../node_modules/@rancher/shell', '../../shell'));
   });
 
   return updated;

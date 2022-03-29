@@ -4,10 +4,10 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 BASE_DIR="$( cd $SCRIPT_DIR && cd ../.. & pwd)"
 SHELL_DIR=$BASE_DIR/shell/
 
-# Use shell folder in node modules when we have @ranch/shell installed as a node module
+# Use shell folder in node modules when we have @rancher/shell installed as a node module
 # rather than the use-case of the mono-repo with the shell folder at the top-level
 if [ ! -d ${SHELL_DIR} ]; then
-  SHELL_DIR=$BASE_DIR/node_modules/@ranch/shell/
+  SHELL_DIR=$BASE_DIR/node_modules/@rancher/shell/
   SHELL_DIR=$(cd -P ${SHELL_DIR} && pwd)
 fi
 
