@@ -1,58 +1,35 @@
+import jsyaml from 'js-yaml';
 import compact from 'lodash/compact';
+import forIn from 'lodash/forIn';
 import isEmpty from 'lodash/isEmpty';
 import isFunction from 'lodash/isFunction';
 import isString from 'lodash/isString';
-import jsyaml from 'js-yaml';
-import forIn from 'lodash/forIn';
 import uniq from 'lodash/uniq';
 import Vue from 'vue';
 
+import { NORMAN_NAME } from '@/config/labels-annotations';
+import {
+  _CLONE, _CONFIG, _EDIT, _UNFLAG, _VIEW, _YAML, AS, MODE
+} from '@/config/query-params';
+import { DEV } from '@/store/prefs';
 import { addObject, addObjects, findBy, removeAt } from '@/utils/array';
 import CustomValidators from '@/utils/custom-validators';
 import { downloadFile, generateZip } from '@/utils/download';
-import { eachLimit } from '@/utils/promise';
 import { clone, get } from '@/utils/object';
-import { DEV } from '@/store/prefs';
+import { eachLimit } from '@/utils/promise';
 import { sortableNumericSuffix } from '@/utils/sort';
+import { coerceStringTypeToScalarType, escapeHtml, ucFirst } from '@/utils/string';
 import {
-  coerceStringTypeToScalarType,
-  escapeHtml,
-  ucFirst
-} from '@/utils/string';
-import {
-  displayKeyFor,
-  validateChars,
-  validateDnsLikeTypes,
-  validateLength,
-  validateBoolean
+  displayKeyFor, validateBoolean, validateChars, validateDnsLikeTypes, validateLength
 } from '@/utils/validators';
-
-import { NORMAN_NAME } from '@/config/labels-annotations';
-import {
-  AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG, _CONFIG
-} from '@/config/query-params';
 
 // eslint-disable-next-line
 import { cleanForNew, normalizeType } from './normalize';
-
 // eslint-disable-next-line
 import {
-  CloneObject,
-  Context,
-  CustomValidationRule,
-  DetailLocation,
-  HttpRequest,
-  MapOfNumbers,
-  MapOfStrings,
-  Metadata,
-  OwnerReferenceContent,
-  RehydrateObject,
-  ResourceDetails,
-  ResourceProperties,
-  State,
-  StateColor,
-  StateInfoForTypes,
-  StateList
+  CloneObject, Context, CustomValidationRule, DetailLocation, HttpRequest, MapOfNumbers,
+  MapOfStrings, Metadata, OwnerReferenceContent, RehydrateObject, ResourceDetails,
+  ResourceProperties, State, StateColor, StateInfoForTypes, StateList
 } from './steveModelTypes';
 
 const STRING_LIKE_TYPES = [
