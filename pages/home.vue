@@ -4,7 +4,6 @@ import Banner from '@/components/Banner';
 import BannerGraphic from '@/components/BannerGraphic';
 import IndentedPanel from '@/components/IndentedPanel';
 import SortableTable from '@/components/SortableTable';
-import PodsUsage from '@/components/formatter/PodsUsage';
 import BadgeState from '@/components/BadgeState';
 import CommunityLinks from '@/components/CommunityLinks';
 import SimpleBox from '@/components/SimpleBox';
@@ -37,7 +36,6 @@ export default {
     CommunityLinks,
     SimpleBox,
     SingleClusterInfo,
-    PodsUsage
   },
 
   mixins: [PageHeaderActions],
@@ -154,10 +152,11 @@ export default {
 
         },
         {
-          label: this.t('tableHeaders.pods'),
-          name:  'pods',
-          value: '',
-          sort:  ['status.allocatable.pods', 'status.available.pods']
+          label:     this.t('tableHeaders.pods'),
+          name:      'pods',
+          value:     '',
+          sort:      ['status.allocatable.pods', 'status.available.pods'],
+          formatter: 'PodsUsage'
         },
         // {
         //   name:  'explorer',
@@ -356,14 +355,6 @@ export default {
                 <template #col:memory="{row}">
                   <td v-if="memoryAllocatable(row) && !memoryAllocatable(row).match(/^0 [a-zA-z]/)">
                     {{ memoryAllocatable(row) }}
-                  </td>
-                  <td v-else>
-                    &mdash;
-                  </td>
-                </template>
-                <template #col:pods="{row}">
-                  <td v-if="row.status.allocatable && row.status.allocatable.pods!== '0'">
-                    <PodsUsage :cluster-id="row.id" :total-pods="`${row.status.allocatable.pods}`" />
                   </td>
                   <td v-else>
                     &mdash;

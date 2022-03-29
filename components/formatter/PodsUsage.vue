@@ -3,14 +3,8 @@ import { POD } from '@/config/types';
 export default {
   name:  'PodsUsage',
   props: {
-    clusterId: {
-      type:     String,
-      default:  '',
-      required: true
-    },
-    totalPods: {
-      type:     String,
-      default:  '',
+    row: {
+      type:     Object,
       required: true
     },
   },
@@ -18,11 +12,14 @@ export default {
     return { podsUsage: null };
   },
   async fetch() {
-    const req = await this.$store.dispatch('management/request', { url: `/k8s/clusters/${ this.clusterId }/v1/counts` });
-    const usedPods = req.data?.[0]?.counts[POD]?.summary?.count;
+    const req = await this.$store.dispatch('management/request', { url: `/k8s/clusters/${ this.row?.id }/v1/counts` });
+    const usedPods = req.data?.[0]?.counts[POD]?.summary?.count || 0;
+    const totalPods = this.row?.status?.allocatable?.pods;
 
-    if (usedPods) {
-      this.podsUsage = `${ usedPods }/${ this.totalPods }`;
+    if (totalPods) {
+      this.podsUsage = `${ usedPods }/${ totalPods }`;
+    } else {
+      this.podsUsage = '——';
     }
   }
 };
