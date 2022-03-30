@@ -25,11 +25,10 @@ import {
 
 // eslint-disable-next-line
 import { cleanForNew, normalizeType } from './normalize';
-// eslint-disable-next-line
 import {
-  CloneObject, Context, CustomValidationRule, DetailLocation, HttpRequest, MapOfNumbers,
-  MapOfStrings, Metadata, OwnerReferenceContent, RehydrateObject, ResourceDetails,
-  ResourceProperties, State, StateColor, StateInfoForTypes, StateList
+  Action, CloneObject, Conditions, Context, CustomValidationRule, DetailLocation, HttpRequest,
+  MapOfStrings, Metadata, RehydrateObject, ResourceDetails, ResourceProperties, ResponseObject,
+  STATE_COLOR, StateDetails, StateInfoForTypes, StateList, STATES_ENUM, STATE_TYPE
 } from './steveModelTypes';
 
 const STRING_LIKE_TYPES = [
@@ -45,7 +44,7 @@ const STRING_LIKE_TYPES = [
 ];
 const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
-const REMAP_STATE = {
+const REMAP_STATE: MapOfStrings = {
   disabled:                 'inactive',
   notapplied:               'Not Applied',
   notready:                 'Not Ready',
@@ -58,7 +57,7 @@ const REMAP_STATE = {
   off:                      'Disabled',
   waitingforinfrastructure: 'Waiting for Infra',
   waitingfornoderef:        'Waiting for Node Ref'
-} as MapOfStrings;
+};
 
 const DEFAULT_COLOR = 'warning';
 const DEFAULT_ICON = 'x';
@@ -66,98 +65,7 @@ const DEFAULT_ICON = 'x';
 const DEFAULT_WAIT_INTERVAL = 1000;
 const DEFAULT_WAIT_TIMEOUT = 30000;
 
-export const STATES_ENUM = {
-  IN_USE:           'in-use',
-  IN_PROGRESS:      'in-progress',
-  PENDING_ROLLBACK: 'pending-rollback',
-  PENDING_UPGRADE:  'pending-upgrade',
-  ABORTED:          'aborted',
-  ACTIVATING:       'activating',
-  ACTIVE:           'active',
-  AVAILABLE:        'available',
-  BACKED_UP:        'backedup',
-  BOUND:            'bound',
-  BUILDING:         'building',
-  COMPLETED:        'completed',
-  CORDONED:         'cordoned',
-  COUNT:            'count',
-  CREATED:          'created',
-  CREATING:         'creating',
-  DEACTIVATING:     'deactivating',
-  DEGRADED:         'degraded',
-  DENIED:           'denied',
-  DEPLOYED:         'deployed',
-  DISABLED:         'disabled',
-  DISCONNECTED:     'disconnected',
-  DRAINED:          'drained',
-  DRAINING:         'draining',
-  ERR_APPLIED:      'errapplied',
-  ERROR:            'error',
-  ERRORING:         'erroring',
-  ERRORS:           'errors',
-  EXPIRED:          'expired',
-  FAIL:             'fail',
-  FAILED:           'failed',
-  HEALTHY:          'healthy',
-  INACTIVE:         'inactive',
-  INFO:             'info',
-  INITIALIZING:     'initializing',
-  INPROGRESS:       'inprogress',
-  LOCKED:           'locked',
-  MIGRATING:        'migrating',
-  MISSING:          'missing',
-  MODIFIED:         'modified',
-  NOT_APPLICABLE:   'notApplicable',
-  NOT_APLLIED:      'notapplied',
-  NOT_READY:        'notready',
-  OFF:              'off',
-  ORPHANED:         'orphaned',
-  OTHER:            'other',
-  OUT_OF_SYNC:      'outofsync',
-  ON_GOING:         'on-going',
-  PASS:             'pass',
-  PASSED:           'passed',
-  PAUSED:           'paused',
-  PENDING:          'pending',
-  PROVISIONING:     'provisioning',
-  PROVISIONED:      'provisioned',
-  PURGED:           'purged',
-  PURGING:          'purging',
-  READY:            'ready',
-  RECONNECTING:     'reconnecting',
-  REGISTERING:      'registering',
-  REINITIALIZING:   'reinitializing',
-  RELEASED:         'released',
-  REMOVED:          'removed',
-  REMOVING:         'removing',
-  REQUESTED:        'requested',
-  RESTARTING:       'restarting',
-  RESTORING:        'restoring',
-  RESIZING:         'resizing',
-  RUNNING:          'running',
-  SKIP:             'skip',
-  SKIPPED:          'skipped',
-  STARTING:         'starting',
-  STOPPED:          'stopped',
-  STOPPING:         'stopping',
-  SUCCEEDED:        'succeeded',
-  SUCCESS:          'success',
-  SUPERSEDED:       'superseded',
-  SUSPENDED:        'suspended',
-  UNAVAILABLE:      'unavailable',
-  UNHEALTHY:        'unhealthy',
-  UNINSTALLED:      'uninstalled',
-  UNINSTALLING:     'uninstalling',
-  UNKNOWN:          'unknown',
-  UNTRIGGERED:      'untriggered',
-  UPDATING:         'updating',
-  WAIT_APPLIED:     'waitapplied',
-  WAIT_CHECKIN:     'waitcheckin',
-  WAITING:          'waiting',
-  WARNING:          'warning',
-};
-
-export const STATES = {
+export const STATES: StateList = {
   [STATES_ENUM.IN_USE]:           {
     color: 'success', icon: 'dot-open', label: 'In Use'
   },
@@ -424,21 +332,21 @@ export const STATES = {
   },
 };
 
-export function getStatesByType() {
+export function getStatesByType(): StateInfoForTypes {
   const out = {
     info:    [],
     error:   [],
     success: [],
     warning: [],
     unknown: []
-  } as StateInfoForTypes;
+  };
 
-  forIn(STATES, (state: State, stateKey: string) => {
-    const color = state.color as StateColor;
+  forIn(STATES, (state: StateDetails, stateKey: STATE_TYPE) => {
+    try {
+      const color: STATE_COLOR = state.color;
 
-    if (out[color]) {
       out[color].push(stateKey);
-    } else {
+    } catch (err) {
       out.unknown.push(stateKey);
     }
   });
@@ -456,13 +364,13 @@ const SORT_ORDER = {
   other:    7,
 };
 
-export function getStateLabel(state) {
+export function getStateLabel(state: STATE_TYPE): string {
   const lowercaseState = state.toLowerCase();
 
   return STATES[lowercaseState] ? STATES[lowercaseState].label : STATES[STATES_ENUM.UNKNOWN].label;
 }
 
-export function colorForState(state, isError, isTransitioning) {
+export function colorForState(state: STATE_TYPE | string, isError: boolean, isTransitioning: boolean): string {
   if ( isError ) {
     return 'text-error';
   }
@@ -485,7 +393,7 @@ export function colorForState(state, isError, isTransitioning) {
   return `text-${ color }`;
 }
 
-export function stateDisplay(state: string) {
+export function stateDisplay(state: STATE_TYPE): string {
   // @TODO use translations
   const key = (state || 'active').toLowerCase();
 
@@ -496,13 +404,17 @@ export function stateDisplay(state: string) {
   return key.split(/-/).map(ucFirst).join('-');
 }
 
-export function stateSort(color: string, display: string) {
+export function stateSort(color: string, display: string): string {
   color = color.replace(/^(text|bg)-/, '');
 
   return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ display }`;
 }
 
-function maybeFn(val: any) {
+function maybeFn(val: any): unknown {
+  // This either calls the function and returns
+  // the result, or returns the function itself. Why?
+  // This function and its caller should be refactored
+  // to clarify the intent.
   if ( isFunction(val) ) {
     return val(this);
   }
@@ -512,29 +424,35 @@ function maybeFn(val: any) {
 
 export default class Resource implements ResourceProperties {
   // Intialize typed properties
-  $ctx = {} as Context;
-  metadata = {} as Metadata;
+  $ctx: Context = {};
+  metadata: Metadata = {};
   type = '';
   kind = '';
   id = '';
   uid = '';
-  spec = {} as any;
+  spec: any = {};
+  displayName?: string | undefined;
+  name?: string | undefined;
   transitioning = false;
+  // Use a default state because it must be an enumerated type
+  state: STATE_TYPE = 'UNKNOWN';
   // Links can include anything, such as self, update, shell,
   // sshKeys, update, nodeConfig
-  links = {} as MapOfStrings;
-  status = { conditions: [] as string[] };
+  links: MapOfStrings = {};
+  status: Conditions = { conditions: [] };
   isSpoofed = false;
   _type = '';
 
-  actions = {} as MapOfStrings;
-  actionLinks = {} as MapOfStrings;
-  __rehydrate? = {} as RehydrateObject;
-  __clone? = {} as CloneObject;
+  actions: MapOfStrings = {};
+  actionLinks: MapOfStrings = {};
+  __rehydrate?: RehydrateObject = {};
+  __clone?: CloneObject = {};
 
   constructor(data: any, ctx: Context, rehydrateNamespace = null, setClone = false) {
     // make more specific
+
     for ( const k in data ) {
+      // eslint-disable-next-line
       this[k] = data[k];
     }
 
@@ -561,27 +479,27 @@ export default class Resource implements ResourceProperties {
     }
   }
 
-  get '$getters'() {
+  get '$getters'(): any {
     return this.$ctx.getters;
   }
 
-  get '$rootGetters'() {
+  get '$rootGetters'(): any {
     return this.$ctx.rootGetters;
   }
 
-  get '$dispatch'() {
+  get '$dispatch'(): any {
     return this.$ctx.dispatch;
   }
 
-  get '$state'() {
+  get '$state'(): any {
     return this.$ctx.state;
   }
 
-  get '$rootState'() {
+  get '$rootState'(): any {
     return this.$ctx.rootState;
   }
 
-  get customValidationRules() {
+  get customValidationRules(): CustomValidationRule[] {
     return [
       /**
        * Essentially a fake schema object with additional params to extend validation
@@ -604,7 +522,7 @@ export default class Resource implements ResourceProperties {
     ];
   }
 
-  get _key() {
+  get _key(): string {
     const m = this.metadata;
 
     if ( m ) {
@@ -624,15 +542,15 @@ export default class Resource implements ResourceProperties {
     return `${ this.type }/${ Math.random() }`;
   }
 
-  get schema() {
+  get schema(): any {
     return this.$getters['schemaFor'](this.type);
   }
 
-  toString() {
+  toString(): string {
     return `[${ this.type }: ${ this.id }]`;
   }
 
-  get typeDisplay() {
+  get typeDisplay(): string {
     const schema = this.schema;
 
     if ( schema ) {
@@ -642,15 +560,15 @@ export default class Resource implements ResourceProperties {
     return '?';
   }
 
-  get nameDisplay() {
+  get nameDisplay(): string {
     return this.displayName || this.spec?.displayName || this.metadata?.annotations?.[NORMAN_NAME] || this.name || this.metadata?.name || this.id;
   }
 
-  get nameSort() {
+  get nameSort(): string {
     return sortableNumericSuffix(this.nameDisplay).toLowerCase();
   }
 
-  get namespacedName() {
+  get namespacedName(): string {
     const namespace = this.metadata?.namespace;
     const name = this.nameDisplay;
 
@@ -661,11 +579,11 @@ export default class Resource implements ResourceProperties {
     return name;
   }
 
-  get namespacedNameSort() {
+  get namespacedNameSort(): string {
     return sortableNumericSuffix(this.namespacedName).toLowerCase();
   }
 
-  get groupByLabel() {
+  get groupByLabel(): string | undefined {
     const name = this.metadata?.namespace;
     let out;
 
@@ -678,28 +596,28 @@ export default class Resource implements ResourceProperties {
     return out;
   }
 
-  setLabels(/* val */) {
+  setLabels(/* val */): void {
     throw new Error('Implement setLabels in subclass');
   }
 
-  setLabel(/* key, val */) {
+  setLabel(/* key, val */): void {
     throw new Error('Implement setLabel in subclass');
   }
 
-  setAnnotations() {
+  setAnnotations(): void {
     throw new Error('Implement setAnnotations in subclass');
   }
 
-  setAnnotation() {
+  setAnnotation(): void {
     throw new Error('Implement setAnnotation in subclass');
   }
 
   // You can override the displayed by providing your own stateDisplay (and possibly using the function exported above)
-  get stateDisplay() {
+  get stateDisplay(): string {
     return stateDisplay(this.state);
   }
 
-  get stateColor() {
+  get stateColor(): string {
     return colorForState.call(
       this,
       this.state,
@@ -708,11 +626,11 @@ export default class Resource implements ResourceProperties {
     );
   }
 
-  get stateBackground() {
+  get stateBackground(): string {
     return this.stateColor.replace('text-', 'bg-');
   }
 
-  get stateIcon() {
+  get stateIcon(): string {
     let trans = false;
     let error = false;
 
@@ -743,11 +661,11 @@ export default class Resource implements ResourceProperties {
     return `icon icon-${ icon }`;
   }
 
-  get stateSort() {
+  get stateSort(): string {
     return stateSort(this.stateColor, this.stateDisplay);
   }
 
-  get stateDescription() {
+  get stateDescription(): string {
     const trans = this.stateObj?.transitioning || false;
     const error = this.stateObj?.error || false;
     const message = this.stateObj?.message;
@@ -755,13 +673,13 @@ export default class Resource implements ResourceProperties {
     return trans || error ? ucFirst(message) : '';
   }
 
-  get stateObj() {
+  get stateObj(): StateDetails | undefined {
     return this.metadata?.state;
   }
 
   // ------------------------------------------------------------------
 
-  waitForTestFn(fn: () => any, msg: string, timeoutMs?: number, intervalMs?: number) {
+  waitForTestFn(fn: () => any, msg: string, timeoutMs?: number, intervalMs?: number): Promise<Resource> {
     console.log('Starting wait for', msg); // eslint-disable-line no-console
 
     if ( !timeoutMs ) {
@@ -799,35 +717,35 @@ export default class Resource implements ResourceProperties {
     });
   }
 
-  waitForState(state: string, timeout: number, interval: number) {
-    return this.waitForTestFn(() => {
+  waitForState(state: string, timeout: number, interval: number): Promise<Resource> {
+    return this.waitForTestFn((): boolean => {
       return (this.state || '').toLowerCase() === state.toLowerCase();
     }, `state=${ state }`, timeout, interval);
   }
 
-  waitForTransition() {
+  waitForTransition(): Promise<Resource> {
     return this.waitForTestFn(() => {
       return !this.transitioning;
     }, 'transition completion');
   }
 
-  waitForAction(name: string) {
+  waitForAction(name: string): Promise<Resource> {
     return this.waitForTestFn(() => {
       return this.hasAction(name);
     }, `action=${ name }`);
   }
 
-  waitForLink(name: string) {
+  waitForLink(name: string): Promise<Resource> {
     return this.waitForTestFn(() => {
       return this.hasLink(name);
     }, `link=${ name }`);
   }
 
-  hasCondition(condition: string) {
+  hasCondition(condition: string): boolean {
     return this.isCondition(condition, '');
   }
 
-  isCondition(condition: string, withStatus = 'True') {
+  isCondition(condition: string, withStatus = 'True'): boolean {
     if ( !this.status || !this.status.conditions ) {
       return false;
     }
@@ -842,10 +760,10 @@ export default class Resource implements ResourceProperties {
       return true;
     }
 
-    return (entry.status || '').toLowerCase() === `${ withStatus }`.toLowerCase();
+    return (entry || '').toLowerCase() === `${ withStatus }`.toLowerCase();
   }
 
-  waitForCondition(name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) {
+  waitForCondition(name: string, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL): Promise<Resource> {
     return this.waitForTestFn(() => {
       return this.isCondition(name, withStatus);
     }, `condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
@@ -853,11 +771,11 @@ export default class Resource implements ResourceProperties {
 
   // ------------------------------------------------------------------
 
-  get availableActions() {
+  get availableActions(): Action[] {
     const all = this._availableActions;
 
     // Remove disabled items and consecutive dividers
-    let last = false as boolean | undefined;
+    let last: boolean | undefined = false;
     const out = all.filter((item) => {
       if ( item.enabled === false ) {
         return false;
@@ -893,7 +811,7 @@ export default class Resource implements ResourceProperties {
   }
 
   // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
-  get _availableActions() {
+  get _availableActions(): Action[] {
     const all = [
       { divider: true },
       {
@@ -947,27 +865,27 @@ export default class Resource implements ResourceProperties {
 
   // ------------------------------------------------------------------
 
-  get canDelete() {
+  get canDelete(): boolean {
     return this._canDelete;
   }
 
-  get _canDelete() {
+  get _canDelete(): boolean {
     return this.hasLink('remove') && this.$rootGetters['type-map/optionsFor'](this.type).isRemovable;
   }
 
-  get canClone() {
+  get canClone(): boolean {
     return true;
   }
 
-  get canUpdate() {
+  get canUpdate(): boolean {
     return this.hasLink('update') && this.$rootGetters['type-map/optionsFor'](this.type).isEditable;
   }
 
-  get canCustomEdit() {
+  get canCustomEdit(): boolean {
     return this.$rootGetters['type-map/hasCustomEdit'](this.type, this.id);
   }
 
-  get canCreate() {
+  get canCreate(): boolean {
     if ( this.schema && !this.schema?.collectionMethods.find((x: string) => x.toLowerCase() === 'post') ) {
       return false;
     }
@@ -975,29 +893,29 @@ export default class Resource implements ResourceProperties {
     return this.$rootGetters['type-map/optionsFor'](this.type).isCreatable;
   }
 
-  get canViewInApi() {
+  get canViewInApi(): boolean {
     return this.hasLink('self') && this.$rootGetters['prefs/get'](DEV);
   }
 
-  get canYaml() {
+  get canYaml(): boolean {
     return this.hasLink('view');
   }
 
-  get canEditYaml() {
+  get canEditYaml(): boolean {
     return this.schema?.resourceMethods?.find((x: string) => x === 'blocked-PUT') ? false : this.canUpdate;
   }
 
   // ------------------------------------------------------------------
 
-  hasLink(linkName: string) {
+  hasLink(linkName: string): boolean {
     return !!this.linkFor(linkName);
   }
 
-  linkFor(linkName: string) {
+  linkFor(linkName: string): string {
     return (this.links || {})[linkName];
   }
 
-  followLink(linkName: string, opt = {} as HttpRequest) {
+  followLink(linkName: string, opt: HttpRequest = {}): ResponseObject | Promise<ResponseObject> {
     if ( !opt.url ) {
       opt.url = (this.links || {})[linkName];
     }
@@ -1015,15 +933,15 @@ export default class Resource implements ResourceProperties {
 
   // ------------------------------------------------------------------
 
-  hasAction(actionName: string) {
+  hasAction(actionName: string): boolean {
     return !!this.actionLinkFor(actionName);
   }
 
-  actionLinkFor(actionName: string) {
+  actionLinkFor(actionName: string): string {
     return (this.actions || this.actionLinks || {})[actionName];
   }
 
-  doAction(actionName: string, body: any, opt = {} as any) {
+  doAction(actionName: string, body: any, opt: any = {}): void {
     return this.$dispatch('resourceAction', {
       resource: this,
       actionName,
@@ -1032,7 +950,7 @@ export default class Resource implements ResourceProperties {
     });
   }
 
-  async doActionGrowl(actionName, body, opt = {}) {
+  async doActionGrowl(actionName: string, body: any, opt: any = {}): Promise<any> {
     try {
       await this.$dispatch('resourceAction', {
         resource: this,
@@ -1040,7 +958,7 @@ export default class Resource implements ResourceProperties {
         body,
         opt,
       });
-    } catch (err) {
+    } catch (err: any) {
       this.$dispatch('growl/fromError', {
         title: this.$rootGetters['i18n/t']('generic.notification.title.error'),
         err:   err.data || err,
@@ -1050,7 +968,7 @@ export default class Resource implements ResourceProperties {
 
   // ------------------------------------------------------------------
 
-  patch(data: any, opt = {} as HttpRequest) {
+  patch(data: any, opt: HttpRequest = {}): ResponseObject | Promise<ResponseObject> {
     if ( !opt.url ) {
       opt.url = this.linkFor('self');
     }
@@ -1063,11 +981,11 @@ export default class Resource implements ResourceProperties {
     return this.$dispatch('request', opt);
   }
 
-  save() {
+  save(): Promise<Resource> {
     return this._save(...arguments);
   }
 
-  async _save(opt = {} as HttpRequest) {
+  async _save(opt: HttpRequest = {}): Promise<Resource> {
     delete this.__rehydrate;
     delete this.__clone;
     const forNew = !this.id;
@@ -1157,11 +1075,11 @@ export default class Resource implements ResourceProperties {
     return this;
   }
 
-  remove() {
+  remove(): Promise<void> {
     return this._remove(...arguments);
   }
 
-  async _remove(opt = {} as HttpRequest) {
+  async _remove(opt: HttpRequest = {}): Promise<void> {
     if ( !opt.url ) {
       opt.url = this.linkFor('self');
     }
@@ -1179,7 +1097,7 @@ export default class Resource implements ResourceProperties {
 
   // ------------------------------------------------------------------
 
-  currentRoute() {
+  currentRoute(): typeof window.$nuxt.$route {
     if ( process.server ) {
       return this.$rootState.$route;
     } else {
@@ -1187,7 +1105,7 @@ export default class Resource implements ResourceProperties {
     }
   }
 
-  currentRouter() {
+  currentRouter(): typeof window.$nuxt.$router {
     if ( process.server ) {
       return this.$rootState.$router;
     } else {
@@ -1195,7 +1113,7 @@ export default class Resource implements ResourceProperties {
     }
   }
 
-  get listLocation() {
+  get listLocation(): DetailLocation {
     return {
       name:   `c-cluster-product-resource`,
       params: {
@@ -1223,15 +1141,15 @@ export default class Resource implements ResourceProperties {
     };
   }
 
-  get detailLocation() {
+  get detailLocation(): DetailLocation {
     return this._detailLocation;
   }
 
-  goToDetail() {
+  goToDetail(): void {
     this.currentRouter().push(this.detailLocation);
   }
 
-  goToClone(moreQuery = {}) {
+  goToClone(moreQuery = {}): void {
     const location = this.detailLocation;
 
     location.query = {
@@ -1244,7 +1162,7 @@ export default class Resource implements ResourceProperties {
     this.currentRouter().push(location);
   }
 
-  goToEdit(moreQuery = {}) {
+  goToEdit(moreQuery = {}): void {
     const location = this.detailLocation;
 
     location.query = {
@@ -1257,7 +1175,7 @@ export default class Resource implements ResourceProperties {
     this.currentRouter().push(location);
   }
 
-  goToViewConfig(moreQuery = {}) {
+  goToViewConfig(moreQuery = {}): void {
     const location = this.detailLocation;
 
     location.query = {
@@ -1270,7 +1188,7 @@ export default class Resource implements ResourceProperties {
     this.currentRouter().push(location);
   }
 
-  goToEditYaml() {
+  goToEditYaml(): void {
     const location = this.detailLocation;
 
     location.query = {
@@ -1282,7 +1200,7 @@ export default class Resource implements ResourceProperties {
     this.currentRouter().push(location);
   }
 
-  goToViewYaml() {
+  goToViewYaml(): void {
     const location = this.detailLocation;
 
     location.query = {
@@ -1294,7 +1212,7 @@ export default class Resource implements ResourceProperties {
     this.currentRouter().push(location);
   }
 
-  cloneYaml(moreQuery = {}) {
+  cloneYaml(moreQuery = {}): void {
     const location = this.detailLocation;
 
     location.query = {
@@ -1307,15 +1225,15 @@ export default class Resource implements ResourceProperties {
     this.currentRouter().push(location);
   }
 
-  async download() {
+  async download(): Promise<void> {
     const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
 
     downloadFile(`${ this.nameDisplay }.yaml`, value.data, 'application/yaml');
   }
 
-  async downloadBulk(items: any[]) {
-    const files = {} as any;
-    const names = [] as string[];
+  async downloadBulk(items: any[]): Promise<void> {
+    const files: any = {};
+    const names: string[] = [];
 
     for ( const item of items ) {
       let name = `${ item.nameDisplay }.yaml`;
@@ -1339,11 +1257,11 @@ export default class Resource implements ResourceProperties {
     downloadFile('resources.zip', zip, 'application/zip');
   }
 
-  viewInApi() {
+  viewInApi(): void {
     window.open(this.links.self, '_blank');
   }
 
-  promptRemove(resources: Resource[] | Resource) {
+  promptRemove(resources: Resource[] | Resource): void {
     if ( !resources ) {
       resources = this;
     }
@@ -1351,14 +1269,14 @@ export default class Resource implements ResourceProperties {
     this.$dispatch('promptRemove', resources);
   }
 
-  get confirmRemove() {
+  get confirmRemove(): boolean {
     return false;
   }
 
-  applyDefaults() {
+  applyDefaults(): void {
   }
 
-  get urlFromAttrs() {
+  get urlFromAttrs(): string {
     const schema = this.$getters['schemaFor'](this.type);
     const { metadata:{ namespace = 'default' } } = this;
     let url = schema.links.collection;
@@ -1377,11 +1295,11 @@ export default class Resource implements ResourceProperties {
 
   // convert yaml to object, clean for new if creating/cloning
   // map _type to type
-  cleanYaml(yaml: string, mode = 'edit') {
+  cleanYaml(yaml: string, mode = 'edit'): any {
     try {
       // Returns either a plain object, a string, a number, null or undefined
       // according to https://github.com/nodeca/js-yaml
-      const obj = jsyaml.load(yaml) as any;
+      const obj: any = jsyaml.load(yaml);
 
       if (mode !== 'edit') {
         cleanForNew(obj);
@@ -1399,15 +1317,15 @@ export default class Resource implements ResourceProperties {
     }
   }
 
-  cleanForNew() {
+  cleanForNew(): any {
     cleanForNew(this);
   }
 
-  yamlForSave(yaml: string) {
+  yamlForSave(yaml: string): any {
     try {
       // Returns either a plain object, a string, a number, null or undefined
       // according to https://github.com/nodeca/js-yaml
-      const obj = jsyaml.load(yaml) as any;
+      const obj: any = jsyaml.load(yaml);
 
       if (obj) {
         if (this._type) {
@@ -1421,7 +1339,7 @@ export default class Resource implements ResourceProperties {
     }
   }
 
-  async saveYaml(yaml: string) {
+  async saveYaml(yaml: string): Promise<void> {
     /* Multipart support, but need to know the right cluster and work for management store
       and "apply" seems to only work for create, not update.
 
@@ -1437,7 +1355,7 @@ export default class Resource implements ResourceProperties {
     const parsed = ary[0];
     */
 
-    const parsed = jsyaml.load(yaml) as any; // will throw on invalid yaml, and return one or more documents (usually one)
+    const parsed: any = jsyaml.load(yaml); // will throw on invalid yaml, and return one or more documents (usually one)
 
     if ( this.schema?.attributes?.namespaced && !parsed.metadata.namespace ) {
       const err = this.$rootGetters['i18n/t']('resourceYaml.errors.namespaceRequired');
@@ -1476,8 +1394,8 @@ export default class Resource implements ResourceProperties {
     }
   }
 
-  validationErrors(data: any, ignoreFields: string[]) {
-    const errors = [] as string[];
+  validationErrors(data: any, ignoreFields: string[]): string[] {
+    const errors: string[] = [];
     const {
       type: originalType,
       schema
@@ -1503,7 +1421,7 @@ export default class Resource implements ResourceProperties {
     let field, key, val, displayKey;
 
     for ( let i = 0 ; i < keys.length ; i++ ) {
-      const fieldErrors = [] as string[];
+      const fieldErrors: string[] = [];
 
       key = keys[i];
       field = fields[key];
@@ -1562,13 +1480,17 @@ export default class Resource implements ResourceProperties {
       errors.push(...fieldErrors);
     }
 
-    let customValidationRules = this.customValidationRules as CustomValidationRule[];
+    let customValidationRules: CustomValidationRule[] | Function = this.customValidationRules;
 
     if (!isEmpty(customValidationRules)) {
       if (isFunction(customValidationRules)) {
+        // Whether customValdationRules is a function or an array to begin with,
+        // we assume it's an array after this line.
+        // eslint-disable-next-line
         customValidationRules = customValidationRules();
       }
 
+      // eslint-disable-next-line
       customValidationRules.forEach((rule: CustomValidationRule) => {
         const {
           path,
@@ -1612,13 +1534,14 @@ export default class Resource implements ResourceProperties {
           errors.push(...validateDnsLikeTypes(pathValue, fieldType, displayKey, this.$rootGetters, errors));
         }
 
-        parsedRules.forEach((validator) => {
+        parsedRules.forEach((validator: string) => {
           const validatorAndArgs = validator.split(':');
           const validatorName = validatorAndArgs.slice(0, 1)[0];
           const validatorArgs = validatorAndArgs.slice(1) || null;
           const validatorExists = Object.prototype.hasOwnProperty.call(CustomValidators, validatorName);
 
           if (!isEmpty(validatorName) && validatorExists) {
+            // eslint-disable-next-line
             CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
           } else if (!isEmpty(validatorName) && !validatorExists) {
             // eslint-disable-next-line
@@ -1631,9 +1554,9 @@ export default class Resource implements ResourceProperties {
     return uniq(errors);
   }
 
-  get ownersByType() {
+  get ownersByType(): any[] {
     const { metadata:{ ownerReferences = [] } } = this;
-    const ownersByType = {} as any;
+    const ownersByType: any = {};
 
     ownerReferences.forEach((owner: Resource) => {
       if (!ownersByType[owner.kind]) {
@@ -1646,15 +1569,15 @@ export default class Resource implements ResourceProperties {
     return ownersByType;
   }
 
-  get owners() {
-    const owners = [] as Resource[];
+  get owners(): Resource[] {
+    const owners: Resource[] = [];
 
     for ( const kind in this.ownersByType) {
       const schema = this.$rootGetters['cluster/schema'](kind);
 
       if (schema) {
         const type = schema.id;
-        const allOfResourceType = this.$rootGetters['cluster/all']( type ) as Resource[];
+        const allOfResourceType: Resource[] = this.$rootGetters['cluster/all']( type );
 
         this.ownersByType[kind].forEach((resource: Resource) => {
           const resourceInstance = allOfResourceType.find(resourceByType => resourceByType?.metadata?.uid === resource.uid);
@@ -1669,15 +1592,15 @@ export default class Resource implements ResourceProperties {
     return owners;
   }
 
-  get details() {
+  get details(): ResourceDetails[] {
     return this._details;
   }
 
-  get _details() {
-    const details = [] as ResourceDetails[];
+  get _details(): ResourceDetails[] {
+    const details: ResourceDetails[] = [];
 
     if (this.owners?.length > 0) {
-      details.push({
+      const ownerDetails: ResourceDetails = {
         label:     this.t('resourceDetail.detailTop.ownerReferences', { count: this.owners.length }),
         formatter: 'ListLinkDetail',
         content:   this.owners.map(owner => ({
@@ -1685,40 +1608,47 @@ export default class Resource implements ResourceProperties {
           row:   owner,
           col:   {},
           value: owner.metadata.name
-        } as OwnerReferenceContent))
-      });
+        }))
+      };
+
+      details.push(ownerDetails);
     }
 
     if (get(this, 'metadata.deletionTimestamp')) {
-      details.push({
+      const ownerDetails: ResourceDetails = {
         label:         this.t('resourceDetail.detailTop.deleted'),
         formatter:     'LiveDate',
         formatterOpts: { addSuffix: true },
         content:       get(this, 'metadata.deletionTimestamp')
-      } as ResourceDetails);
+      };
+
+      details.push(ownerDetails);
     }
 
     return details;
   }
 
-  get t() {
+  get t(): Function {
     return this.$rootGetters['i18n/t'];
   }
 
   // Returns array of MODELS that own this resource (async, network call)
-  findOwners() {
+  findOwners(): Resource[] {
     return this._getRelationship('owner', 'from');
   }
 
   // Returns array of {type, namespace, id} objects that own this resource (sync)
-  getOwners() {
+  getOwners(): Resource[] {
     return this._getRelationship('owner', 'from');
   }
 
-  findOwned() {
+  findOwned(): Promise<Resource[]> {
     return this._findRelationship('owner', 'to');
   }
 
+  // Didn't create types for relationships
+  // because their keys are dynamically
+  // generated.
   _relationshipsFor(rel: string, direction: string) {
     const out = { selectors: [], ids: [] };
 
@@ -1767,6 +1697,9 @@ export default class Resource implements ResourceProperties {
     return out;
   }
 
+  // Didn't create types for relationships
+  // because their keys are dynamically
+  // generated.
   _getRelationship(rel: string, direction: string) {
     const res = this._relationshipsFor(rel, direction);
 
@@ -1778,9 +1711,12 @@ export default class Resource implements ResourceProperties {
     return res.ids || [];
   }
 
+  // Didn't create types for relationships
+  // because their keys are dynamically
+  // generated.
   async _findRelationship(rel: string, direction: string) {
     const { selectors, ids } = this._relationshipsFor(rel, direction);
-    const out = [] as Resource[];
+    const out: Resource[] = [];
 
     for ( const sel of selectors ) {
       const matching = await this.$dispatch('findMatching', sel);
@@ -1806,14 +1742,14 @@ export default class Resource implements ResourceProperties {
     return out;
   }
 
-  get shortId() {
+  get shortId(): string {
     const splitId = this.id.split('/');
 
     return splitId.length > 1 ? splitId[1] : splitId[0];
   }
 
-  toJSON() {
-    const out = {} as any;
+  toJSON(): any {
+    const out: any = {};
     const keys = Object.keys(this);
 
     for ( const k of keys ) {

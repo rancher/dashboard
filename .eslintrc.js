@@ -58,7 +58,8 @@ module.exports = {
     'no-eval':                           'warn',
     'no-trailing-spaces':                'warn',
     'no-undef':                          'warn',
-    'no-unused-vars':                    'warn',
+    // Use the TypeScript rule instead
+    'no-unused-vars':                    'off',
     // Allow overload type definitions
     'no-redeclare':                      'off',
     '@typescript-eslint/no-redeclare':   ['error'],
