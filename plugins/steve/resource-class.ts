@@ -6,6 +6,15 @@ import isFunction from 'lodash/isFunction';
 import isString from 'lodash/isString';
 import uniq from 'lodash/uniq';
 import Vue from 'vue';
+import { HttpRequest, ResponseObject } from '~/plugins/steve/types/axiosTypes';
+import { Metadata } from '~/plugins/steve/types/kubeApiTypes';
+import { DetailLocation } from '~/plugins/steve/types/nuxtTypes';
+import {
+  Action, CloneObject, Conditions, CustomValidationRule, MapOfStrings, MODES, RehydrateObject,
+  ResourceDetails, ResourceProperties, STATE_COLOR, STATE_TYPE, StateDetails, StateInfoForTypes,
+  StateList, STATES_ENUM
+} from '~/plugins/steve/types/rancherApiTypes';
+import { Context } from '~/plugins/steve/types/vuexTypes';
 
 import { NORMAN_NAME } from '@/config/labels-annotations';
 import {
@@ -25,11 +34,6 @@ import {
 
 // eslint-disable-next-line
 import { cleanForNew, normalizeType } from './normalize';
-import {
-  Action, CloneObject, Conditions, Context, CustomValidationRule, DetailLocation, HttpRequest,
-  MapOfStrings, Metadata, RehydrateObject, ResourceDetails, ResourceProperties, ResponseObject,
-  STATE_COLOR, StateDetails, StateInfoForTypes, StateList, STATES_ENUM, STATE_TYPE
-} from './steveModelTypes';
 
 const STRING_LIKE_TYPES = [
   'string',
@@ -425,6 +429,11 @@ function maybeFn(val: any): unknown {
 export default class Resource implements ResourceProperties {
   // Intialize typed properties
   $ctx: Context = {};
+  $getters: any;
+  $rootGetters: any;
+  $state: any;
+  $rootState: any;
+  $dispatch: any;
   metadata: Metadata = {};
   type = '';
   kind = '';
@@ -452,6 +461,25 @@ export default class Resource implements ResourceProperties {
     // make more specific
 
     for ( const k in data ) {
+      // The following properties are set here, among others:
+      // - metadata
+      // - type
+      // - kind
+      // - id
+      // - uid
+      // - spec
+      // - displayname
+      // - name
+      // - transitioning
+      // - state
+      // - links
+      // - status
+      // - isSpoofed
+      // - actions
+      // - actionLinks
+      // __rehydrate
+      // __clone
+
       // eslint-disable-next-line
       this[k] = data[k];
     }
@@ -477,26 +505,19 @@ export default class Resource implements ResourceProperties {
         writable:     true
       });
     }
-  }
 
-  get '$getters'(): any {
-    return this.$ctx.getters;
-  }
+    // Since Context is a required property, it is defined in the
+    // constructor. Since the five below properties are also in
+    // the Context object, we initialize them in the constructor as well.
+    Object.defineProperty(this, '$getters', { value: this.$ctx.getters });
 
-  get '$rootGetters'(): any {
-    return this.$ctx.rootGetters;
-  }
+    Object.defineProperty(this, '$rootGetters', { value: this.$ctx.rootGetters });
 
-  get '$dispatch'(): any {
-    return this.$ctx.dispatch;
-  }
+    Object.defineProperty(this, '$dispatch', { value: this.$ctx.dispatch });
 
-  get '$state'(): any {
-    return this.$ctx.state;
-  }
+    Object.defineProperty(this, '$state', { value: this.$ctx.state });
 
-  get '$rootState'(): any {
-    return this.$ctx.rootState;
+    Object.defineProperty(this, '$rootState', { value: this.$ctx.rootState });
   }
 
   get customValidationRules(): CustomValidationRule[] {
@@ -941,7 +962,7 @@ export default class Resource implements ResourceProperties {
     return (this.actions || this.actionLinks || {})[actionName];
   }
 
-  doAction(actionName: string, body: any, opt: any = {}): void {
+  doAction(actionName: string, body: any, opt: any = {}): any {
     return this.$dispatch('resourceAction', {
       resource: this,
       actionName,
@@ -1295,13 +1316,13 @@ export default class Resource implements ResourceProperties {
 
   // convert yaml to object, clean for new if creating/cloning
   // map _type to type
-  cleanYaml(yaml: string, mode = 'edit'): any {
+  cleanYaml(yaml: string, mode = MODES._CREATE): any {
     try {
       // Returns either a plain object, a string, a number, null or undefined
       // according to https://github.com/nodeca/js-yaml
       const obj: any = jsyaml.load(yaml);
 
-      if (mode !== 'edit') {
+      if (mode !== MODES._EDIT) {
         cleanForNew(obj);
       }
 
@@ -1748,7 +1769,7 @@ export default class Resource implements ResourceProperties {
     return splitId.length > 1 ? splitId[1] : splitId[0];
   }
 
-  toJSON(): any {
+  toJSON(): Resource {
     const out: any = {};
     const keys = Object.keys(this);
 

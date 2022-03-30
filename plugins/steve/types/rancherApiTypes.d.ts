@@ -10,6 +10,15 @@ export const enum STATE_COLORS {
 
 export type STATE_COLOR = keyof typeof STATE_COLORS;
 
+export const enum MODES {
+    _CREATE = 'create',
+    _VIEW = 'view',
+    _EDIT = 'edit',
+    _CLONE = 'clone',
+    _STAGE = 'stage',
+    _IMPORT = 'import'
+}
+
 export type StateDetails = {
     color: STATE_COLOR;
     icon?: string;
@@ -18,123 +27,9 @@ export type StateDetails = {
     error?: boolean;
     message?: string;
 }
-export interface MapOfStrings {
-    [key: string]: string;
-}
-
-export interface MapOfNumbers {
-    [key: string]: number;
-}
-
-export type Conditions = {
-    conditions: string[]
-}
 
 export type StateInfoForTypes = {
     [key in STATE_COLORS]: string[]
-}
-
-export type Context = {
-    getters?: any,
-    rootGetters?: any,
-    dispatch?: any,
-    state?: any,
-    rootState?: any
-}
-
-export type Metadata = {
-    name?: string;
-    namespace?: string;
-    uid?: string;
-    annotations?: MapOfStrings;
-    state?: StateDetails;
-    resourceVersion?: string;
-    ownerReferences?: any;
-    relationships?: Relationship[];
-}
-
-export type DetailLocation = {
-    name: string;
-    params: {
-        product: any;
-        cluster: any;
-        resource: string;
-        namespace?: string;
-        id?: string;
-    };
-    query?: any;
-}
-
-export type RehydrateObject = {
-    value?: string,
-    enumerable?: boolean,
-    configurable?: boolean
-}
-
-export type CloneObject = {
-    value?: boolean,
-    enumerable?: boolean,
-    configurable?: boolean,
-    writable?: boolean
-}
-
-export interface ResourceProperties {
-    // Allows constructor to work by setting anything in data
-    // as a property in the Resource class
-    [index: string]: any,
-    __clone?: CloneObject,
-    __rehydrate?: RehydrateObject,
-    state?: StateDetails,
-    displayName?: string,
-    name?: string
-}
-
-export type HttpRequest = {
-    ignoreFields?: string[];
-    urlSuffix?: string;
-    url?: string;
-    method?: string;
-    headers?: {
-        'content-type'?: string;
-        accept?: string;
-    };
-    data?: any;
-}
-
-export type CustomValidationRule = {
-    nullable?: boolean;
-    path?: string;
-    requiredIf?: string;
-    validators?: string[];
-    type?: string;
-    translationKey?: string;
-}
-
-export type OwnerReferenceContent = {
-    key: string;
-    row: Resource;
-    col: any;
-    value?: string;
-}
-export type ResourceDetails = {
-    label?: string;
-    formatter?: string;
-    content?: OwnerReferenceContent[]
-    formatterOpts?: {
-        addSuffix?: boolean;
-    };
-}
-
-export type Action = {
-    action?: string,
-    altAction?: string,
-    label?: string,
-    icon?: string,
-    bulkable?: boolean,
-    enabled?: boolean,
-    bulkAction?: string,
-    weight?: number,
-    divider?: boolean
 }
 
 export const enum STATES_ENUM {
@@ -234,6 +129,79 @@ export type StateList = {
 
 export type STATE_TYPE = keyof typeof STATES_ENUM;
 
-export type ResponseObject = {
-    data: any
+export type Action = {
+    action?: string,
+    altAction?: string,
+    label?: string,
+    icon?: string,
+    bulkable?: boolean,
+    enabled?: boolean,
+    bulkAction?: string,
+    weight?: number,
+    divider?: boolean
+}
+
+export interface MapOfStrings {
+    [key: string]: string;
+}
+
+export interface MapOfNumbers {
+    [key: string]: number;
+}
+
+export type Conditions = {
+    conditions: string[]
+}
+
+export type RehydrateObject = {
+    value?: string,
+    enumerable?: boolean,
+    configurable?: boolean
+}
+
+export type CloneObject = {
+    value?: boolean,
+    enumerable?: boolean,
+    configurable?: boolean,
+    writable?: boolean
+}
+
+export interface ResourceProperties {
+    // Allows constructor to work by setting anything in data
+    // as a property in the Resource class
+    [index: string]: any,
+    __clone?: CloneObject,
+    __rehydrate?: RehydrateObject,
+    state?: string,
+    displayName?: string,
+    name?: string,
+    $getters?: any,
+    $rootGetters?: any,
+    $dispatch?: any,
+    $state?: any,
+    $rootState?: any
+}
+
+export type CustomValidationRule = {
+    nullable?: boolean;
+    path?: string;
+    requiredIf?: string;
+    validators?: string[];
+    type?: string;
+    translationKey?: string;
+}
+
+export type OwnerReferenceContent = {
+    key: string;
+    row: Resource;
+    col: any;
+    value?: string;
+}
+export type ResourceDetails = {
+    label?: string;
+    formatter?: string;
+    content?: OwnerReferenceContent[]
+    formatterOpts?: {
+        addSuffix?: boolean;
+    };
 }
