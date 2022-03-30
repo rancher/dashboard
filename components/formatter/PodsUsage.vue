@@ -9,10 +9,15 @@ export default {
     },
   },
   data() {
-    return { podsUsage: null };
+    return {
+      loading:   true,
+      podsUsage: null
+    };
   },
   async fetch() {
     const req = await this.$store.dispatch('management/request', { url: `/k8s/clusters/${ this.row?.id }/v1/counts` });
+
+    this.loading = false;
     const usedPods = req.data?.[0]?.counts[POD]?.summary?.count || 0;
     const totalPods = this.row?.status?.allocatable?.pods;
 
@@ -26,7 +31,10 @@ export default {
 </script>
 
 <template>
-  <p>{{ podsUsage }}</p>
+  <i v-if="loading" class="icon icon-spinner icon-spin" />
+  <p v-else>
+    {{ podsUsage }}
+  </p>
 </template>
 
 <style lang="scss" scoped>
