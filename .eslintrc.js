@@ -160,7 +160,7 @@ module.exports = {
     'vue/v-slot-style':                     'off',
     'vue/component-tags-order':             'off',
     'vue/no-mutating-props':                'off',
-    '@typescript-eslint/no-unused-vars':    'warn',
+    '@typescript-eslint/no-unused-vars':    'off',
     'array-callback-return':                'off',
     'import/order':                         'off',
     'import/no-named-as-default':           'off',

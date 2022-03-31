@@ -6,15 +6,15 @@ import isFunction from 'lodash/isFunction';
 import isString from 'lodash/isString';
 import uniq from 'lodash/uniq';
 import Vue from 'vue';
-import { HttpRequest, ResponseObject } from '~/plugins/steve/types/axiosTypes';
-import { Metadata } from '~/plugins/steve/types/kubeApiTypes';
-import { DetailLocation } from '~/plugins/steve/types/nuxtTypes';
+import { HttpRequest, ResponseObject } from '@/plugins/steve/types/axiosTypes';
+import { Metadata } from '@/plugins/steve/types/kubeApiTypes';
+import { DetailLocation } from '@/plugins/steve/types/nuxtTypes';
 import {
   Action, CloneObject, Conditions, CustomValidationRule, MapOfStrings, MODES, RehydrateObject,
   ResourceDetails, ResourceProperties, STATE_COLOR, STATE_TYPE, StateDetails, StateInfoForTypes,
   StateList, STATES_ENUM
-} from '~/plugins/steve/types/rancherApiTypes';
-import { Context } from '~/plugins/steve/types/vuexTypes';
+} from '@/plugins/steve/types/rancherApiTypes';
+import { Context } from '@/plugins/steve/types/vuexTypes';
 
 import { NORMAN_NAME } from '@/config/labels-annotations';
 import {
@@ -34,6 +34,7 @@ import {
 
 // eslint-disable-next-line
 import { cleanForNew, normalizeType } from './normalize';
+import typeHelpers from '~/utils/type-helpers';
 
 const STRING_LIKE_TYPES = [
   'string',
@@ -444,7 +445,7 @@ export default class Resource implements ResourceProperties {
   name?: string | undefined;
   transitioning = false;
   // Use a default state because it must be an enumerated type
-  state: STATE_TYPE = 'UNKNOWN';
+  // state: STATE_TYPE = 'UNKNOWN';
   // Links can include anything, such as self, update, shell,
   // sshKeys, update, nodeConfig
   links: MapOfStrings = {};
@@ -456,6 +457,14 @@ export default class Resource implements ResourceProperties {
   actionLinks: MapOfStrings = {};
   __rehydrate?: RehydrateObject = {};
   __clone?: CloneObject = {};
+
+  set state(val: STATE_TYPE) {
+    this.state = val;
+  }
+
+  get state() {
+    return this.state;
+  }
 
   constructor(data: any, ctx: Context, rehydrateNamespace = null, setClone = false) {
     // make more specific

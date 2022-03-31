@@ -5,7 +5,8 @@ export const enum STATE_COLORS {
     error = 'error',
     success = 'success',
     warning = 'warning',
-    unknown = 'unknown'
+    unknown = 'unknown',
+    darker = 'darker'
 }
 
 export type STATE_COLOR = keyof typeof STATE_COLORS;
