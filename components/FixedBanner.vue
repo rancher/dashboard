@@ -37,6 +37,21 @@ export default {
   methods: {
     hideDialog() {
       this.showDialog = false;
+    },
+    handleLineBreaksConsentText(banner) {
+      if (banner.text?.length) {
+        // split text by newline char
+        const textArray = banner.text.split(/\\n/).filter(element => element);
+
+        if (textArray.length > 1) {
+          textArray.forEach((str, i) => {
+            textArray[i] = str.trim();
+          });
+          banner.text = textArray;
+        }
+      }
+
+      return banner;
     }
   },
 
@@ -73,7 +88,9 @@ export default {
 
       return null;
     },
-
+    isTextAnArray() {
+      return Array.isArray(this.banner?.text);
+    },
     showAsDialog() {
       return this.consent && !!this.banner.button;
     }
@@ -93,7 +110,7 @@ export default {
             if (showHeader && this.header) {
               bannerContent = bannerHeader || {};
             } else if (showConsent && this.consent) {
-              bannerContent = bannerConsent || {};
+              bannerContent = this.handleLineBreaksConsentText(bannerConsent) || {};
             } else if (showFooter && this.footer) {
               bannerContent = bannerFooter || {};
             } else {
@@ -115,14 +132,30 @@ export default {
 <template>
   <div v-if="showBanner">
     <div v-if="!showAsDialog" class="banner banner-banner" :style="bannerStyle" :class="{'banner-consent': consent}">
-      {{ banner.text }}
+      <!-- text as array to support line breaks programmatically rather than just exposing HTML -->
+      <div v-if="isTextAnArray">
+        <p v-for="(text, index) in banner.text" :key="index">
+          {{ text }}
+        </p>
+      </div>
+      <p v-else>
+        {{ banner.text }}
+      </p>
     </div>
     <div v-else-if="showDialog">
       <div class="banner-dialog-glass"></div>
       <div class="banner-dialog">
         <div class="banner-dialog-frame" :style="dialogStyle">
           <div class="banner" :style="bannerStyle">
-            {{ banner.text }}
+            <!-- text as array to support line breaks programmatically rather than just exposing HTML -->
+            <div v-if="isTextAnArray">
+              <p v-for="(text, index) in banner.text" :key="index">
+                {{ text }}
+              </p>
+            </div>
+            <p v-else>
+              {{ banner.text }}
+            </p>
           </div>
           <button class="btn role-primary" @click="hideDialog()">
             {{ banner.button }}
@@ -145,7 +178,6 @@ export default {
       position: absolute;
       height: unset;
       min-height: 2em;
-      max-height: 4em;
       overflow: hidden;
     }
   }
