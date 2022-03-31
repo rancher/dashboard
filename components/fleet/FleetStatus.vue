@@ -264,6 +264,11 @@ function toPercent(value, min, max) {
     display: flex;
     align-items: center;
 
+    &:hover {
+      cursor: pointer;
+      color: var(--link);
+    }
+
     .icon {
       margin: 4px 0 0 5px;
       opacity: 0.3;
