@@ -184,6 +184,13 @@ export default {
       }
     },
 
+    /**
+     * Dismiss given error
+     */
+    closeError(index) {
+      this.errors.splice(index, 1);
+    },
+
     emitOrRoute() {
       if ( this.cancelEvent ) {
         this.$emit('cancel');
@@ -249,6 +256,20 @@ export default {
       :is="(isView? 'div' : 'form')"
       class="create-resource-container cru__form"
     >
+      <div
+        class="cru__errors"
+        :v-if="errors.length"
+      >
+        <Banner
+          v-for="(err, i) in errors"
+          :key="i"
+          color="error"
+          :label="stringify(err)"
+          :stacked="true"
+          :closable="true"
+          @close="closeError(i)"
+        />
+      </div>
       <div
         v-if="showSubtypeSelection"
         class="subtypes-container"
@@ -414,16 +435,6 @@ export default {
           </template>
         </ResourceYaml>
       </section>
-
-      <div
-        v-for="(err, idx) in errors"
-        :key="idx"
-      >
-        <Banner
-          color="error"
-          :label="stringify(err)"
-        />
-      </div>
     </form>
   </section>
 </template>
@@ -511,6 +522,14 @@ $logo-space: 100px;
     margin-right: -$space-m;
     margin-bottom: -$space-m;
     padding: $space-s $space-m;
+  }
+
+  &__errors {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--header-bg);
+    margin: 10px 0;
   }
 }
 
