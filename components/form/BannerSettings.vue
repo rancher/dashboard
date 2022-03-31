@@ -93,6 +93,9 @@ export default ({
       ];
 
       return options;
+    },
+    isConsentBanner() {
+      return this.bannerType === 'bannerConsent';
     }
   }
 });
@@ -107,14 +110,15 @@ export default ({
             v-model="value[bannerType].text"
             :disabled="isUiDisabled"
             :label="t('banner.text')"
+            type="multiline"
           />
           <p
-            v-if="bannerType === 'bannerConsent'"
+            v-if="isConsentBanner"
             class="banner-input-footnote mt-5 mb-20"
           >
             {{ t('banner.consentFootnote') }}
           </p>
-          <div v-if="bannerType === 'bannerConsent'" class="mt-10">
+          <div v-if="isConsentBanner" class="mt-10">
             <Checkbox
               v-model="showAsDialog"
               name="bannerDecoration"
