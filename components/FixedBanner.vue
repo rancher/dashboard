@@ -93,6 +93,16 @@ export default {
             if (showHeader && this.header) {
               bannerContent = bannerHeader || {};
             } else if (showConsent && this.consent) {
+              if (bannerConsent.text && bannerConsent.text.length) {
+                // split text by newline char
+                const textArray = bannerConsent.text.split(/\\n/).filter(element => element);
+
+                textArray.forEach((str, i) => {
+                  textArray[i] = str.trim();
+                });
+                bannerConsent.text = textArray;
+              }
+
               bannerContent = bannerConsent || {};
             } else if (showFooter && this.footer) {
               bannerContent = bannerFooter || {};
@@ -121,7 +131,12 @@ export default {
       <div class="banner-dialog-glass"></div>
       <div class="banner-dialog">
         <div class="banner-dialog-frame" :style="dialogStyle">
-          <div class="banner" :style="bannerStyle">
+          <div v-if="Array.isArray(banner.text)" class="banner" :style="bannerStyle">
+            <p v-for="(text, index) in banner.text" :key="index">
+              {{ text }}
+            </p>
+          </div>
+          <div v-else class="banner" :style="bannerStyle">
             {{ banner.text }}
           </div>
           <button class="btn role-primary" @click="hideDialog()">

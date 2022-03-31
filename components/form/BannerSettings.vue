@@ -108,6 +108,12 @@ export default ({
             :disabled="isUiDisabled"
             :label="t('banner.text')"
           />
+          <p
+            v-if="bannerType === 'bannerConsent'"
+            class="banner-input-footnote mt-5 mb-20"
+          >
+            {{ t('banner.consentFootnote') }}
+          </p>
           <div v-if="bannerType === 'bannerConsent'" class="mt-10">
             <Checkbox
               v-model="showAsDialog"
@@ -180,6 +186,11 @@ export default ({
 </template>
 
 <style scoped lang='scss'>
+.banner-input-footnote {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
 .banner-decoration-checkbox {
   position: relative;
   display: inline-flex;
