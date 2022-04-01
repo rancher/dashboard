@@ -83,16 +83,21 @@ export default function({
       // Initialize the plugin
       const p = module;
 
-      p.default(plugin);
+      try {
+        p.default(plugin);
 
-      // Uninstall existing product if there is one
-      this.removePlugin(plugin.name);
+        // Uninstall existing product if there is one
+        this.removePlugin(plugin.name);
 
-      // Load all of the types etc from the plugin
-      this.applyPlugin(plugin);
+        // Load all of the types etc from the plugin
+        this.applyPlugin(plugin);
 
-      // Add the plugin to the store
-      store.dispatch('uiplugins/addPlugin', plugin);
+        // Add the plugin to the store
+        store.dispatch('uiplugins/addPlugin', plugin);
+      } catch (e) {
+        console.error(`Error loading plugin ${ plugin.name }`); // eslint-disable-line no-console
+        console.error(e); // eslint-disable-line no-console
+      }
     },
 
     // Remove the plugin
@@ -128,6 +133,9 @@ export default function({
         this.removeTypeFromStore(store, 'rancher', Object.keys(plugin.types.models));
         this.removeTypeFromStore(store, 'management', Object.keys(plugin.types.models));
       }
+
+      // Uninstall routes
+      pluginRoutes.uninstall(plugin);
 
       // Remove the plugin itself
       store.dispatch('uiplugins/removePlugin', name);
@@ -169,11 +177,6 @@ export default function({
       });
 
       // Routes
-      this.addRoutes(pluginRoutes);
-    },
-
-    addRoutes(plugin) {
-      // pluginRoutes.logRoutes(app.router.getRoutes());
       pluginRoutes.addRoutes(plugin, plugin.routes);
     },
 

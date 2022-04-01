@@ -7,6 +7,8 @@ import { directiveSsr as t } from './plugins/i18n';
 import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
 import { generateDynamicTypeImport } from './pkg/auto-import';
 
+const createProxyMiddleware = require('http-proxy-middleware');
+
 // ===============================================================================================
 // Nuxt configuration
 // ===============================================================================================
@@ -83,6 +85,24 @@ export default function(dir, _appConfig) {
     });
   }
 
+  serverMiddleware.push({
+    path:    '/uiplugins-catalog',
+    handler: (req, res, next) => {
+      const p = req.url.split('?');
+
+      try {
+        const proxy = createProxyMiddleware({
+          target:      p[1],
+          pathRewrite: { '^.*': p[0] }
+        });
+
+        return proxy(req, res, next);
+      } catch (e) {
+        console.error(e); // eslint-disable-line no-console
+      }
+    }
+  });
+
   function includePkg(name) {
     if (name.startsWith('.') || name === 'node_modules') {
       return false;
@@ -136,6 +156,22 @@ export default function(dir, _appConfig) {
     const pkg = ctx[ctx.length - 1];
 
     resource.request = `@rancher/auto-import/${ pkg }`;
+  });
+
+  // @pkg imports must be resolved to the package that it importing them - this allows a package to use @pkg as an alis
+  // to the root of that particular package
+  const pkgImport = new webpack.NormalModuleReplacementPlugin(/^@pkg\/.*\//, (resource) => {
+    const ctx = resource.context.split('/');
+
+    // Find 'pkg' folder in the contxt
+    const index = ctx.findIndex(s => s === 'pkg');
+
+    if (index !== -1) {
+      const pkg = ctx[index + 1];
+      const p = path.resolve(dir, 'pkg', pkg, resource.request.substr(5));
+
+      resource.request = p;
+    }
   });
 
   // Serve up the dist-pkg folder under /pkg
@@ -267,7 +303,6 @@ export default function(dir, _appConfig) {
     alias: {
       '~shell': SHELL_ABS,
       '@shell': SHELL_ABS,
-      '@pkg':   path.join(dir, 'pkg'),
     },
 
     modulesDir: [
@@ -332,6 +367,7 @@ export default function(dir, _appConfig) {
         virtualModules,
         autoImport,
         new VirtualModulesPlugin(autoImportTypes),
+        pkgImport,
       ],
 
       extend(config, { isClient, isDev }) {

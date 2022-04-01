@@ -5,8 +5,19 @@ interface RouteInfo {
   route?: RouteConfig;
 }
 
+interface RouteInstallInfo {
+  plugin: string;
+  route: RouteConfig;
+}
+
+type RouteInstallHistory = {
+  [route: string]: RouteInstallInfo[]
+}
+
 export class PluginRoutes {
   router: Router;
+
+  replacedRoutes: RouteInstallHistory = {};
 
   constructor(router: Router) {
     this.router = router;
@@ -21,6 +32,44 @@ export class PluginRoutes {
     });
   }
 
+  // Ensure we put back any routes that the plugin that is being uninstalled added
+  public uninstall(plugin: any) {
+    // List of routes we need to restore
+    const restore: RouteInfo[] = [];
+
+    Object.keys(this.replacedRoutes).forEach((routeName) => {
+      const info = this.replacedRoutes[routeName];
+
+      for (let index = 0; index < info.length; index++) {
+        const savedRoute = info[index];
+
+        if (savedRoute.plugin === plugin.id) {
+          // The plugin that is being uninstalled replaced an existing route that we will restore
+          if (index === 0) {
+            // Need to restore the previous route, since the plugin owned the active route
+            info.shift();
+
+            restore.push({ parentOrRoute: savedRoute.route });
+
+            break;
+          } else {
+            // Need to updare the previous item so that when it is removed, it restores the correct route
+            const previous = info[index - 1];
+
+            previous.route = savedRoute.route;
+            info.splice(index, 1);
+
+            break;
+          }
+        }
+      }
+    });
+
+    if (restore.length > 0) {
+      this.addRoutes(null, restore);
+    }
+  }
+
   public addRoutes(plugin: any, routes: RouteInfo[]) {
     const appRoutes = this.router.options.routes || [];
     let replaced = 0;
@@ -30,7 +79,7 @@ export class PluginRoutes {
     // Remove all routes that are being replaced
     routes.forEach((r: RouteInfo) => {
       // See if the route exists
-      let existing;
+      let existing: any;
 
       if (r.route) {
         // parentOrRoute is the name of the parent route
@@ -47,8 +96,22 @@ export class PluginRoutes {
       }
 
       if (existing) {
+        const existingRoute = appRoutes[existing];
+
         appRoutes.splice(existing, 1);
         replaced++;
+
+        // Store the route so we can restore it on uninstall
+        if (plugin && existingRoute.name) {
+          if (!this.replacedRoutes[existingRoute.name]) {
+            this.replacedRoutes[existingRoute.name] = [];
+          }
+
+          this.replacedRoutes[existingRoute.name].unshift({
+            plugin: plugin.id,
+            route:  existingRoute
+          });
+        }
       }
     });
 
@@ -70,6 +133,8 @@ export class PluginRoutes {
     }
 
     // If we replaced any routes, then we should reload on uninstall
-    plugin.reloadOnUninstall = replaced > 0;
+    if (plugin) {
+      plugin.reloadOnUninstall = replaced > 0;
+    }
   }
 }

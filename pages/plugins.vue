@@ -8,15 +8,17 @@ export default {
     return {
       name:              '',
       location:          '',
+      catalogUrl:        '',
       view:              'installed',
       dialogOpen:        false,
+      catalogDialogOpen: false,
       canModifyName:     true,
       canModifyLocation: true,
     };
   },
   layout: 'plain',
   async fetch() {
-    await this.$store.dispatch('uiplugins/loadCatalog');
+    await this.$store.dispatch('uiplugins/loadCatalogs');
   },
   computed: {
     ...mapGetters({ plugins: 'uiplugins/plugins' }),
@@ -105,6 +107,21 @@ export default {
       this.$modal.hide('addPluginDialog');
     },
 
+    showAddCatalogDialog() {
+      this.catalogDialogOpen = true;
+      this.$modal.show('addCatlogDialog');
+    },
+    closeAddCatalogDialog() {
+      this.catalogDialogOpen = false;
+      this.$modal.hide('addCatlogDialog');
+    },
+
+    addCatalog() {
+      this.$store.dispatch('uiplugins/addCatalog', this.catalogUrl);
+      this.$store.dispatch('uiplugins/loadCatalogs');
+      this.closeAddCatalogDialog();
+    },
+
     loadPlugin() {
       this.load(this.name, this.location);
     },
@@ -143,7 +160,11 @@ export default {
       }
 
       const name = `${ plugin.name }-${ plugin.version }`;
-      const moduleUrl = `/pkg/${ name }/${ name }.umd.min.js`;
+      let moduleUrl = `/pkg/${ name }/${ name }.umd.min.js`;
+
+      if (plugin.location) {
+        moduleUrl = `${ plugin.location }/${ name }/${ name }.umd.min.js`;
+      }
 
       this.load(name, moduleUrl);
     },
@@ -159,12 +180,15 @@ export default {
   <div class="plugins">
     <div class="plugin-header">
       <h2>Plugins</h2>
+      <button class="btn role-primary mr-10" @click="showAddCatalogDialog()">
+        Add Catalog
+      </button>
       <button class="btn role-primary" @click="showAddDialog()">
         Load
       </button>
     </div>
     <br />
-    <div>
+    <div class="plugin-list">
       <div v-for="plugin in list" :key="plugin.name" class="plugin">
         <div class="plugin-icon">
           <img v-if="plugin.icon" :src="plugin.icon" class="icon" />
@@ -228,10 +252,42 @@ export default {
         </div>
       </div>
     </modal>
+
+    <modal
+      name="addCatlogDialog"
+      height="auto"
+      :scrollable="true"
+      @closed="closeAddCatalogDialog()"
+    >
+      <div class="plugin-add-dialog">
+        <h4 class="mt-20">
+          Add Plugin Catalog
+        </h4>
+        <div class="custom mt-10">
+          <div class="fields">
+            <LabeledInput v-model="catalogUrl" label="Catalog URL" />
+          </div>
+          <div class="dialog-buttons">
+            <button class="btn" @click="closeAddCatalogDialog()">
+              Cancel
+            </button>
+            <button class="btn role-primary" @click="addCatalog()">
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
+    </modal>
   </div>
 </template>
 
 <style lang="scss" scoped>
+  .plugin-list {
+    display: flex;
+    > .plugin:not(:last-child) {
+      margin-right: 20px;
+    }
+  }
   .plugins {
     display: inherit;
   }
