@@ -53,6 +53,11 @@ export default Vue.extend<Data, any, any, any>({
       }
 
       this.$set(this, 'saving', false);
+    },
+    formatURL(str: string) {
+      const matchGithub = str.match('^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+)(.git)*$');
+
+      return `${ matchGithub?.[4] }/${ matchGithub?.[5] }`;
     }
   },
 
@@ -65,33 +70,48 @@ export default Vue.extend<Data, any, any, any>({
   <div>
     <div class="simple-box-row mt-40">
       <SimpleBox class="routes">
-        <div class="box">
+        <div class="box box-two-cols">
           <h1>{{ value.routeCount }}</h1>
-          <h3>
-            {{ t('epinio.applications.detail.counts.routes') }}
-          </h3>
+          <div>
+            <h3>
+              {{ t('epinio.applications.detail.counts.routes') }}
+            </h3>
+
+            <ul>
+              <li v-for="(route) in value.configuration.routes" :key="route.id">
+                <a v-if="value.state === 'running'" :key="route.id + 'a'" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
+                <span v-else :key="route.id + 'a'">{{ `https://${route}` }}</span>
+              </li>
+            </ul>
+          </div>
         </div>
-        <ul>
-          <li v-for="(route) in value.configuration.routes" :key="route.id">
-            <a v-if="value.state === 'running'" :key="route.id + 'a'" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
-            <span v-else :key="route.id + 'a'">{{ `https://${route}` }}</span>
-          </li>
-        </ul>
       </SimpleBox>
       <SimpleBox class="services">
-        <div class="box">
+        <div class="box box-two-cols">
           <h1>{{ value.configCount }}</h1>
-          <h3>
-            {{ t('epinio.applications.detail.counts.config') }}
-          </h3>
+          <div>
+            <h3>
+              {{ t('epinio.applications.detail.counts.config') }}
+            </h3>
+            <p>
+              also
+              {{ value.envCount }}
+              {{ t('epinio.applications.detail.counts.envVars') }}
+            </p>
+          </div>
         </div>
       </SimpleBox>
-      <SimpleBox class="envs">
-        <div class="box">
-          <h1>{{ value.envCount }}</h1>
-          <h3>
-            {{ t('epinio.applications.detail.counts.envVars') }}
-          </h3>
+      <SimpleBox>
+        <div class="box box-timers">
+          <h4>Uptime : <b>1d 32min</b></h4>
+          <div>
+            <span>
+              Created: 2d ago
+            </span>
+            <span>
+              Modifed: 2d ago
+            </span>
+          </div>
         </div>
       </SimpleBox>
     </div>
@@ -114,44 +134,60 @@ export default Vue.extend<Data, any, any, any>({
             <div class="scale-instances">
               <PlusMinus class="mt-15 mb-10" :value="value.desiredInstances" :disabled="saving" @minus="updateInstances(value.desiredInstances-1)" @plus="updateInstances(value.desiredInstances+1)" />
             </div>
-            <table class="stats">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>Min</th>
-                  <th>Max</th>
-                  <th>Avg</th>
-                </tr>
-              </thead>
-              <tr>
-                <td>{{ t('tableHeaders.memory') }}</td>
-                <td>{{ value.instanceMemory.min }}</td>
-                <td>{{ value.instanceMemory.max }}</td>
-                <td>{{ value.instanceMemory.avg }}</td>
-              </tr>
-              <tr>
-                <td>{{ t('tableHeaders.cpu') }}</td>
-                <td>{{ value.instanceCpu.min }}</td>
-                <td>{{ value.instanceCpu.max }}</td>
-                <td>{{ value.instanceCpu.avg }}</td>
-              </tr>
-            </table>
           </SimpleBox>
+          <!-- Source information -->
           <SimpleBox v-if="value.sourceInfo">
             <div class="deployment__origin__row">
-              <h4>Origin</h4><h4>
-                {{ value.sourceInfo.label }}
-              </h4>
+              <h4>Deployment details</h4>
             </div>
-            <div v-for="d of value.sourceInfo.details" :key="d.label" class="deployment__origin__row">
-              <h4>{{ d.label }}</h4><h4>{{ d.value }}</h4>
+            <div class="deployment__origin__list">
+              <ul>
+                <li>
+                  <h4>Origin</h4>
+                  <span>{{ value.sourceInfo.label }}</span>
+                </li>
+
+                <li v-for="d of value.sourceInfo.details" :key="d.label">
+                  <h4>{{ d.label }}</h4>
+                  <span v-if="d.value.startsWith('http')">
+                    <a :href="d.value" target="_blank">{{ formatURL(d.value) }}</a>
+                  </span>
+                  <span v-else>{{ d.value }}</span>
+                </li>
+
+                <li>
+                  <h4>{{ t('epinio.applications.tableHeaders.deployedBy') }}</h4>
+                  <span> {{ value.deployment.username }}</span>
+                </li>
+              </ul>
             </div>
           </SimpleBox>
-          <SimpleBox v-if="value.deployment.username">
+
+          <SimpleBox>
             <div class="deployment__origin__row">
-              <h4>{{ t('epinio.applications.tableHeaders.deployedBy') }}</h4><h4>
-                {{ value.deployment.username }}
-              </h4>
+              <h4>Metrics</h4>
+              <table class="stats">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Min</th>
+                    <th>Max</th>
+                    <th>Avg</th>
+                  </tr>
+                </thead>
+                <tr>
+                  <td>{{ t('tableHeaders.memory') }}</td>
+                  <td>{{ value.instanceMemory.min }}</td>
+                  <td>{{ value.instanceMemory.max }}</td>
+                  <td>{{ value.instanceMemory.avg }}</td>
+                </tr>
+                <tr>
+                  <td>{{ t('tableHeaders.cpu') }}</td>
+                  <td>{{ value.instanceCpu.min }}</td>
+                  <td>{{ value.instanceCpu.max }}</td>
+                  <td>{{ value.instanceCpu.avg }}</td>
+                </tr>
+              </table>
             </div>
           </SimpleBox>
         </div>
@@ -169,8 +205,8 @@ export default Vue.extend<Data, any, any, any>({
   flex-wrap: wrap;
 
   .simple-box {
-    width: 300px;
-    max-width: 350px;
+    width: 450px;
+    max-width: 450px;
     margin-bottom: 20px;
 
     &.routes {
@@ -208,30 +244,84 @@ export default Vue.extend<Data, any, any, any>({
           margin-bottom: 0;
         }
       }
+
+      thead {
+        tr {
+          th {
+            text-align: left;
+            color: #c4c4c4;
+            font-weight: 300;
+          }
+        }
+      }
+    }
+
+    .deployment__origin__list {
+      display: flex;
+      ul {
+        margin: 20px 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        li {
+          margin: 5px;
+          list-style: none;
+          h4 {
+            color: #c4c4c4;
+            font-weight: 300;
+            margin: 0;
+          }
+        }
+      }
     }
   }
   .box {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: flex-start;
+    align-items: flex-start;
     & H1, H3 {
-      margin: 0;
+      margin-left: 5;
     }
 
     H3 {
       flex: 1;
       display: flex;
-      justify-content: center;
+    }
+
+    &-two-cols {
+      display: flex;
+      h1 {
+        font-size: 4.5rem;
+        padding: 0 10px;
+      }
+      div {
+        margin-top: 8px;
+      }
+    }
+
+    &-timers {
+      display: flex;
+      flex-direction: column;
+
+      h4 {
+        font-size: 1.6rem
+      }
+
+      div {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+      }
     }
   }
 }
 
 .deployment {
-  max-width: 955px;
+  max-width: 1336px;
   .simple-box {
     margin-bottom: 0;
-    width: 290px;
-    max-width: 340px;
+    width: 400px;
+    max-width: 400px;
   }
 
   .app-instances {

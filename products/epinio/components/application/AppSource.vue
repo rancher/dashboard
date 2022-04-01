@@ -235,7 +235,6 @@ export default Vue.extend<Data, any, any, any>({
       :clearable="false"
       :reduce="(e) => e.value"
     />
-
     <template v-if="type === APPLICATION_SOURCE_TYPE.ARCHIVE">
       <div class="spacer archive">
         <h3>{{ t('epinio.applications.steps.source.archive.file.label') }}</h3>
