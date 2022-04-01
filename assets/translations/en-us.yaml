@@ -3855,6 +3855,7 @@ resourceDetail:
     view: "{subtype} {name}"
   masthead:
     age: Age
+    restartCount: Pod Restarts
     defaultBannerMessage:
       error: This resource is currently in an error state, but there isn't a detailed message available.
       transitioning: This resource is currently in a transitioning state, but there isn't a detailed message available.
@@ -4522,6 +4523,7 @@ tableHeaders:
   persistentVolumeClaim: Persistent Volume Claim
   persistentVolumeSource: Source
   podImages: Image
+  podRestarts: Restarts
   pods: Pods
   port: Port
   protocol: Protocol

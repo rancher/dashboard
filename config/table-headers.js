@@ -262,6 +262,12 @@ export const POD_IMAGES = {
   formatter: 'PodImages'
 };
 
+export const POD_RESTARTS = {
+  name:      'pod_restarts',
+  labelKey:  'tableHeaders.podRestarts',
+  value:     'restartCount'
+};
+
 export const ENDPOINTS = {
   name:      'endpoint',
   labelKey:  'tableHeaders.endpoints',

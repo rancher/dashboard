@@ -182,6 +182,24 @@ export default class Workload extends SteveModel {
     return this.goToEdit({ sidecar: true });
   }
 
+  get showPodRestarts() {
+    return true;
+  }
+
+  get restartCount() {
+    const pods = this.pods;
+
+    let sum = 0;
+
+    pods.forEach((pod) => {
+      if (pod.status.containerStatuses) {
+        sum += pod.status?.containerStatuses[0].restartCount || 0;
+      }
+    });
+
+    return sum;
+  }
+
   get hasSidecars() {
     const podTemplateSpec = this.type === WORKLOAD_TYPES.CRON_JOB ? this?.spec?.jobTemplate?.spec?.template?.spec : this.spec?.template?.spec;
 
