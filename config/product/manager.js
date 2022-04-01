@@ -136,7 +136,14 @@ export function init(store) {
 
   headers(CAPI.RANCHER_CLUSTER, [
     STATE,
-    NAME_COL,
+    {
+      name:          'name',
+      labelKey:      'tableHeaders.name',
+      value:         'nameDisplay',
+      sort:          ['nameSort'],
+      formatter:     'ClusterLink',
+      canBeVariable: true,
+    },
     {
       name:     'kubernetesVersion',
       labelKey: 'tableHeaders.version',
