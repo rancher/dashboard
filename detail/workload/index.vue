@@ -1,6 +1,8 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
-import { STATE, NAME, NODE, POD_IMAGES } from '@/config/table-headers';
+import {
+  STATE, NAME, NODE, POD_IMAGES, POD_RESTARTS
+} from '@/config/table-headers';
 import { POD, WORKLOAD_TYPES } from '@/config/types';
 import SortableTable from '@/components/SortableTable';
 import Tab from '@/components/Tabbed/Tab';
@@ -143,7 +145,8 @@ export default {
         STATE,
         NAME,
         NODE,
-        POD_IMAGES
+        POD_IMAGES,
+        POD_RESTARTS
       ];
     },
 
