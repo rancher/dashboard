@@ -188,7 +188,9 @@ export default {
      * Dismiss given error
      */
     closeError(index) {
-      this.errors.splice(index, 1);
+      const errors = this.errors.filter((_, i) => i !== index);
+
+      this.$emit('error', errors);
     },
 
     emitOrRoute() {
