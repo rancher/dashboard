@@ -129,7 +129,10 @@ export default function(dir, _appConfig) {
 
     // Ignore hidden folders
     items.filter(name => !name.startsWith('.')).forEach((name) => {
-      if (includePkg(name)) {
+      const f = require(path.join(dir, 'pkg', name, 'package.json'));
+
+      // Package file must have rancher field to be a plugin
+      if (includePkg(name) && f.rancher) {
         reqs += `$plugin.initPlugin('${ name }', require(\'~/pkg/${ name }\')); `;
       }
 
@@ -302,6 +305,7 @@ export default function(dir, _appConfig) {
     alias: {
       '~shell': SHELL_ABS,
       '@shell': SHELL_ABS,
+      '@pkg':   path.join(dir, 'pkg'),
     },
 
     modulesDir: [

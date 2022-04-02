@@ -151,7 +151,7 @@ export default function({
       pluginRoutes.uninstall(plugin);
 
       // Call plugin uninstall hooks
-      plugin.uninstallHooks.forEach(fn => fn(pluginm, this.internal()));
+      plugin.uninstallHooks.forEach(fn => fn(plugin, this.internal()));
 
       // Remove the plugin itself
       store.dispatch('uiplugins/removePlugin', name);

@@ -191,7 +191,7 @@ export default {
     <div class="plugin-list">
       <div v-for="plugin in list" :key="plugin.name" class="plugin">
         <div class="plugin-icon">
-          <img v-if="plugin.icon" :src="plugin.icon" class="icon" />
+          <img v-if="plugin.icon" :src="plugin.icon" class="icon plugin-icon-img" />
           <i v-else class="icon icon-apps"></i>
         </div>
         <div class="plugin-metadata">
@@ -326,6 +326,11 @@ export default {
       font-size: 40px;
       margin-right:10px;
       color: #888;
+
+      .plugin-icon-img {
+        height: 40px;
+        width: 40px;
+      }
     }
 
     .plugin-metadata {
