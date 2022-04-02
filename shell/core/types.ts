@@ -35,12 +35,18 @@ export interface IPlugin {
   /**
    * Plugin metadata
    */
-   metadata: PackageMetadata;
+  metadata: PackageMetadata;
+
+  /**
+   * Add a route to the Vue Router
+   */
+  addRoute(route: RouteConfig): void;
+  addRoute(parent: string, route: RouteConfig): void;
 
    /**
-    * Add a route to the Vue Router
+    * Add a hook to be called when the plugin is uninstalled
+    * @param hook Function to call when the plugin is uninstalled
     */
-   addRoute(route: RouteConfig): void;
-   addRoute(parent: string, route: RouteConfig): void;
+  addUninstallHook(hook: Function): void;
 
 }

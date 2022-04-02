@@ -160,13 +160,12 @@ export default function(dir, _appConfig) {
 
   // @pkg imports must be resolved to the package that it importing them - this allows a package to use @pkg as an alis
   // to the root of that particular package
-  const pkgImport = new webpack.NormalModuleReplacementPlugin(/^@pkg\/.*\//, (resource) => {
+  const pkgImport = new webpack.NormalModuleReplacementPlugin(/^@pkg/, (resource) => {
     const ctx = resource.context.split('/');
-
     // Find 'pkg' folder in the contxt
     const index = ctx.findIndex(s => s === 'pkg');
 
-    if (index !== -1) {
+    if (index !== -1 && (index + 1) < ctx.length) {
       const pkg = ctx[index + 1];
       const p = path.resolve(dir, 'pkg', pkg, resource.request.substr(5));
 

@@ -98,11 +98,8 @@ export class PluginRoutes {
       if (existing) {
         const existingRoute = appRoutes[existing];
 
-        appRoutes.splice(existing, 1);
-        replaced++;
-
         // Store the route so we can restore it on uninstall
-        if (plugin && existingRoute.name) {
+        if (plugin && existingRoute?.name) {
           if (!this.replacedRoutes[existingRoute.name]) {
             this.replacedRoutes[existingRoute.name] = [];
           }
@@ -112,6 +109,9 @@ export class PluginRoutes {
             route:  existingRoute
           });
         }
+
+        appRoutes.splice(existing, 1);
+        replaced++;
       }
     });
 

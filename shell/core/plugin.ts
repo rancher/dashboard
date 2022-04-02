@@ -17,6 +17,9 @@ export class Plugin implements IPlugin {
   // Is this a built-in plugin (bundled with the application)
   public builtin = false;
 
+  // Uninstall hooks
+  public uninstallHooks: Function[] = [];
+
   constructor(id: string) {
     this.id = id;
     this.name = id;
@@ -50,6 +53,10 @@ export class Plugin implements IPlugin {
 
   addRoute(parentOrRoute: any, route?: any): void {
     this.routes.push({ parentOrRoute, route });
+  }
+
+  addUninstallHook(hook: Function) {
+    this.uninstallHooks.push(hook);
   }
 
   register(type: string, name: string, fn: Function) {
