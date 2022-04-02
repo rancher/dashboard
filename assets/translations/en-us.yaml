@@ -2905,6 +2905,10 @@ namespace:
   move: Move
   total: Total
   workloads: Workloads
+  selectNamespaceButton: Use an existing namespace
+  selectNamespaceLabel: Select Namespace
+  addNamespaceButton: Add to a new namespace
+  addNamespaceLabel: Create Namespace
   resourceStates:
       success: 'Active'
       info: 'Transitioning'

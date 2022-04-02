@@ -65,7 +65,7 @@
     background-color: transparent;
     outline: 0;
     box-shadow: none;
-    padding: $input-padding-lg 0 0 0;
+    padding: $input-padding-lg 0 0 1px;
     line-height: calc(#{$input-line-height} + 1px);
 
     &.no-label {

@@ -301,6 +301,10 @@ export default {
 
 <style lang='scss' scoped>
 .labeled-select {
+  // Prevent namespace field from wiggling or changing
+  // height when it is toggled from a LabeledInput to a
+  // LabeledSelect.
+  padding-bottom: 4px;
   position: relative;
 
   &.no-label.compact-input {
@@ -329,7 +333,9 @@ export default {
   }
 
   .labeled-container {
-    padding: $input-padding-sm 0 0 $input-padding-sm;
+    // Make LabeledSelect and LabeledInput the same height so they
+    // don't wiggle when you toggle between them.
+    padding: 7px 0 0 $input-padding-sm;
 
     label {
       margin: 0;

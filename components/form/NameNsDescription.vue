@@ -1,12 +1,12 @@
 <script>
 import { mapGetters } from 'vuex';
 import { get, set } from '@/utils/object';
-import { sortBy } from '@/utils/sort';
 import { NAMESPACE } from '@/config/types';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import { _VIEW, _EDIT } from '@/config/query-params';
 import LabeledInput from '@/components/form/LabeledInput';
 import InputWithSelect from '@/components/form/InputWithSelect';
+import getAvailableNamespaces from '@/utils/namespaces';
 
 export function normalizeName(str) {
   return (str || '')
@@ -183,31 +183,7 @@ export default {
     },
 
     namespaces() {
-      const inStore = this.$store.getters['currentStore'](this.namespaceType);
-      const choices = this.$store.getters[`${ inStore }/all`](this.namespaceType);
-
-      const out = sortBy(
-        choices.filter( (N) => {
-          const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(N.metadata.name);
-
-          return this.isVirtualCluster ? !N.isSystem && !N.isFleetManaged && !isSettingSystemNamespace : true;
-        }).map((obj) => {
-          return {
-            label: obj.nameDisplay,
-            value: obj.id,
-          };
-        }),
-        'label'
-      );
-
-      if (this.forceNamespace) {
-        out.unshift({
-          label: this.forceNamespace,
-          value: this.forceNamespace,
-        });
-      }
-
-      return out;
+      return getAvailableNamespaces(this);
     },
 
     isView() {
