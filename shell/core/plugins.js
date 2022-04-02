@@ -8,7 +8,6 @@ const MODEL_TYPE = 'models';
 export default function({
   app,
   store,
-  $router,
   $axios,
   redirect
 }, inject) {
@@ -20,6 +19,20 @@ export default function({
   const pluginRoutes = new PluginRoutes(app.router);
 
   inject('plugin', {
+    // Plugins should not use these - but we will pass them in for now as a 2nd argument
+    // in case there are use cases not covered that require direct access - we may remove access later
+    internal() {
+      const internal = {
+        app,
+        store,
+        $axios,
+        redirect,
+        plugins: this
+      };
+
+      return internal;
+    },
+
     // Load a plugin from a UI package
     loadAsync(id, mainFile) {
       return new Promise((resolve, reject) => {
@@ -48,7 +61,7 @@ export default function({
           plugins[id] = plugin;
 
           // Initialize the plugin
-          window[id].default(plugin);
+          window[id].default(plugin, this.internal());
 
           // Uninstall existing plugin if there is one
           this.removePlugin(plugin.name);
@@ -84,7 +97,7 @@ export default function({
       const p = module;
 
       try {
-        p.default(plugin);
+        p.default(plugin, this.internal());
 
         // Uninstall existing product if there is one
         this.removePlugin(plugin.name);
@@ -136,6 +149,9 @@ export default function({
 
       // Uninstall routes
       pluginRoutes.uninstall(plugin);
+
+      // Call plugin uninstall hooks
+      plugin.uninstallHooks.forEach(fn => fn(pluginm, this.internal()));
 
       // Remove the plugin itself
       store.dispatch('uiplugins/removePlugin', name);
