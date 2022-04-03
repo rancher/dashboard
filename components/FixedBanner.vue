@@ -131,7 +131,7 @@ export default {
 
 <template>
   <div v-if="showBanner">
-    <div v-if="!showAsDialog" class="banner banner-banner" :style="bannerStyle" :class="{'banner-consent': consent}">
+    <div v-if="!showAsDialog" class="banner" :style="bannerStyle" :class="{'banner-consent': consent}">
       <!-- text as array to support line breaks programmatically rather than just exposing HTML -->
       <div v-if="isTextAnArray">
         <p v-for="(text, index) in banner.text" :key="index">
@@ -192,11 +192,6 @@ export default {
     z-index: 5000;
     background-color: var(--default);
     opacity: 0.75;
-  }
-  .banner-banner {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
   .banner-dialog {
     z-index: 5001;
