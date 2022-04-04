@@ -31,7 +31,7 @@ export default {
 
 <template>
   <p v-if="!value || value === '0'">
-    N/A
+    {{ t('generic.na') }}
   </p>
   <PercentageBarComponent
     v-else
