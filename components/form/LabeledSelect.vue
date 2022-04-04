@@ -26,6 +26,10 @@ export default {
       default: false,
       type:    Boolean
     },
+    required: {
+      default: false,
+      type:    Boolean
+    },
     hoverTooltip: {
       default: true,
       type:    Boolean
