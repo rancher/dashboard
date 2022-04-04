@@ -71,9 +71,13 @@ export default {
 
 <template>
   <div>
-    <div v-if="volumeMounts.length" class="mount-headers">
+    <div
+      v-if="volumeMounts.length"
+      class="mount-headers"
+    >
       <span>
-        {{ t('workload.storage.mountPoint') }}<span class="text-error">*</span>
+        {{ t('workload.storage.mountPoint') }}
+        <span class="text-error">*</span>
       </span>
       <span>
         {{ t('workload.storage.subPath') }}
@@ -83,24 +87,47 @@ export default {
       </span>
       <span />
     </div>
-    <div v-for="(volumeMount, i) in volumeMounts" :key="i" class="mount-rows">
+    <div
+      v-for="(volumeMount, i) in volumeMounts"
+      :key="i"
+      class="mount-rows"
+    >
       <div>
-        <LabeledInput v-model="volumeMount.mountPath" :mode="mode" />
+        <LabeledInput
+          v-model="volumeMount.mountPath"
+          :mode="mode"
+        />
       </div>
       <div>
-        <LabeledInput v-model="volumeMount.subPath" :mode="mode" />
+        <LabeledInput
+          v-model="volumeMount.subPath"
+          :mode="mode"
+        />
       </div>
       <div class="read-only">
-        <Checkbox v-model="volumeMount.readOnly" :mode="mode" />
+        <Checkbox
+          v-model="volumeMount.readOnly"
+          :mode="mode"
+        />
       </div>
       <div class="remove">
-        <button v-if="mode!=='view'" type="button" class="btn btn-sm role-link" @click="remove(volumeMount)">
+        <button
+          v-if="mode!=='view'"
+          type="button"
+          class="btn btn-sm role-link"
+          @click="remove(volumeMount)"
+        >
           {{ t('generic.remove') }}
         </button>
       </div>
     </div>
     <div class="row">
-      <button v-if="mode!=='view'" type="button" class="btn role-tertiary" @click="volumeMounts.push({name})">
+      <button
+        v-if="mode!=='view'"
+        type="button"
+        class="btn role-tertiary"
+        @click="volumeMounts.push({name})"
+      >
         {{ t('workload.storage.addMount') }}
       </button>
     </div>
@@ -109,18 +136,18 @@ export default {
 
 <style lang='scss'>
 .mount-headers, .mount-rows{
-    display: grid;
-    grid-template-columns: 35% 35% auto auto;
-    grid-gap: $column-gutter;
-    margin-bottom: 10px;
-    align-items: center;
+  display: grid;
+  grid-template-columns: 35% 35% auto auto;
+  grid-gap: $column-gutter;
+  margin-bottom: 10px;
+  align-items: center;
 
-    .remove {
-      text-align: right;
-    }
+  .remove {
+    text-align: right;
+  }
 }
 
-.mount-headers{
-    color: var(--input-label);
+.mount-headers {
+  color: var(--input-label);
 }
 </style>

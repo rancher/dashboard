@@ -71,31 +71,15 @@ export default {
   },
 
   data() {
-    if (!this.container.volumeMounts) {
-      this.$set(this.container, 'volumeMounts', []);
-    }
-    if (!this.value.volumes) {
-      this.$set(this.value, 'volumes', []);
-    }
-    const { volumeMounts = [] } = this.container;
-    const names = volumeMounts.reduce((total, each) => {
-      total.push(each.name);
-
-      return total;
-    }, []);
-
-    const containerVolumes = this.value.volumes.filter((volume) => {
-      return names.includes(volume.name);
-    });
+    this.initializeStorage();
 
     return {
-      pvcs: [],
-      containerVolumes,
+      pvcs:           [],
+      storageVolumes: this.getStorageVolumes(),
     };
   },
 
   computed: {
-
     isView() {
       return this.mode === _VIEW;
     },
@@ -106,30 +90,34 @@ export default {
       return this.pvcs.filter(pvc => pvc.metadata.namespace === namespace);
     },
 
-    volumeTypeOpts() {
-      const hasComponent = require
-        .context('@/edit/workload/storage', false, /^.*\.vue$/)
-        .keys()
-        .map(path => path.replace(/(\.\/)|(.vue)/g, ''))
-        .filter(
-          file => file !== 'index' && file !== 'Mount' && file !== 'PVC'
-        );
-
-      const out = [
-        ...hasComponent,
+    /**
+     * Generated list of volumes
+     */
+    volumeTypeOptions() {
+      const excludedFiles = ['index', 'Mount', 'PVC'];
+      const defaultVolumeTypes = [
         'csi',
         'configMap',
         'createPVC',
-        'persistentVolumeClaim',
+        'persistentVolumeClaim'
       ];
+      // Get all the custom volume types from the file names of this folder
+      const customVolumeTypes = require
+        .context('@/edit/workload/storage', false, /^.*\.vue$/)
+        .keys()
+        .map(path => path.replace(/(\.\/)|(.vue)/g, ''))
+        .filter(file => !excludedFiles.includes(file));
 
-      out.sort();
-
-      return out.map(opt => ({
-        label:  this.t(`workload.storage.subtypes.${ opt }`),
-        action: this.addVolume,
-        value:  opt,
-      }));
+      return [
+        ...customVolumeTypes,
+        ...defaultVolumeTypes
+      ]
+        .sort()
+        .map(volumeType => ({
+          label:  this.t(`workload.storage.subtypes.${ volumeType }`),
+          action: this.addVolume,
+          value:  volumeType,
+        }));
     },
 
     pvcNames() {
@@ -138,7 +126,7 @@ export default {
   },
 
   watch: {
-    containerVolumes(neu, old) {
+    storageVolumes(neu, old) {
       removeObjects(this.value.volumes, old);
       addObjects(this.value.volumes, neu);
       const names = neu.reduce((all, each) => {
@@ -152,23 +140,51 @@ export default {
   },
 
   methods: {
+    /**
+     * Initialize missing values for the container
+     */
+    initializeStorage() {
+      if (!this.container.volumeMounts) {
+        this.$set(this.container, 'volumeMounts', []);
+      }
+      if (!this.value.volumes) {
+        this.$set(this.value, 'volumes', []);
+      }
+    },
+
+    /**
+     * Get existing paired storage volumes
+     */
+    getStorageVolumes() {
+      // Extract volume mounts to map storage volumes
+      const { volumeMounts = [] } = this.container;
+      const names = volumeMounts.map(({ name }) => name);
+
+      // Extract storage volumes to allow mutation, if matches mount map
+      const storageVolumes = this.value.volumes.filter((volume) => {
+        return names.includes(volume.name);
+      });
+
+      return storageVolumes;
+    },
+
     addVolume(type) {
       const name = `vol-${ randomStr(5).toLowerCase() }`;
 
       if (type === 'createPVC') {
-        this.containerVolumes.push({
+        this.storageVolumes.push({
           _type:                 'createPVC',
           persistentVolumeClaim: {},
           name,
         });
       } else if (type === 'csi') {
-        this.containerVolumes.push({
+        this.storageVolumes.push({
           _type: type,
           csi:   { volumeAttributes: {} },
           name,
         });
       } else {
-        this.containerVolumes.push({
+        this.storageVolumes.push({
           _type:  type,
           [type]: {},
           name,
@@ -187,7 +203,7 @@ export default {
     },
 
     // import component for volume type
-    componentFor(type) {
+    getComponent(type) {
       switch (type) {
       case 'configMap':
         return require(`@/edit/workload/storage/secret.vue`).default;
@@ -251,17 +267,19 @@ export default {
 
 <template>
   <div>
+    <!-- Storage Volumes -->
     <ArrayListGrouped
-      :key="containerVolumes.length"
-      v-model="containerVolumes"
+      :key="storageVolumes.length"
+      v-model="storageVolumes"
       :mode="mode"
     >
+      <!-- Custom/default storage volume form -->
       <template #default="props">
         <h3>{{ headerFor(volumeType(props.row.value)) }}</h3>
         <div class="bordered-section">
           <component
-            :is="componentFor(volumeType(props.row.value))"
-            v-if="componentFor(volumeType(props.row.value))"
+            :is="getComponent(volumeType(props.row.value))"
+            v-if="getComponent(volumeType(props.row.value))"
             :value="props.row.value"
             :pod-spec="value"
             :mode="mode"
@@ -281,13 +299,23 @@ export default {
             />
           </div>
         </div>
-        <Mount :key="props.row.value.name" :container="container" :pod-spec="value" :name="props.row.value.name" :mode="mode" />
+
+        <!-- Mount point list to be mapped to volume -->
+        <Mount
+          :key="props.row.value.name"
+          :container="container"
+          :pod-spec="value"
+          :name="props.row.value.name"
+          :mode="mode"
+        />
       </template>
+
+      <!-- Add Storage Volume -->
       <template #add>
         <ButtonDropdown
           v-if="!isView"
           :button-label="t('workload.storage.addVolume')"
-          :dropdown-options="volumeTypeOpts"
+          :dropdown-options="volumeTypeOptions"
           size="sm"
           @click-action="e=>addVolume(e.value)"
         />
