@@ -1201,11 +1201,11 @@ export default {
             inactive-class="bg-disabled btn-sm"
             active-class="bg-primary btn-sm"
           ></ButtonGroup>
-          <div v-if="hasReadme && !showingReadmeWindow" class="btn-group">
+          <!-- <div v-if="hasReadme && !showingReadmeWindow" class="btn-group">
             <button type="button" class="btn bg-primary btn-sm" @click="showSlideIn = !showSlideIn">
               {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
             </button>
-          </div>
+          </div> -->
         </div>
         <div class="scroll__container">
           <div class="scroll__content">

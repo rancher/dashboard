@@ -2,6 +2,7 @@
 import AsyncButton from '@/components/AsyncButton';
 import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
+import BadgeState from '@/components/BadgeState';
 import SelectIconGrid from '@/components/SelectIconGrid';
 import TypeDescription from '@/components/TypeDescription';
 import {
@@ -21,6 +22,7 @@ export default {
   components: {
     AsyncButton,
     Banner,
+    BadgeState,
     Loading,
     Checkbox,
     Select,
@@ -205,6 +207,54 @@ export default {
   },
 
   methods: {
+
+    matchHeight() {
+      const slider = document.getElementById('slide-track');
+
+      alert(slider);
+    },
+
+    goto(event) {
+      const elems = document.getElementsByClassName('dot');
+
+      // elems[0].style.background = 'red';
+      const size = elems.length;
+      const targetId = event.currentTarget.id;
+      const slider = document.getElementById('slide-track');
+
+      for (let i = 0; i < size; i++) {
+        const box = elems[i];
+
+        box.style.background = '';
+      }
+      event.currentTarget.style.background = 'red';
+
+      if (targetId === '1') {
+        slider.style.transform = 'translateX(0%)';
+        slider.style.transition = '1s ease-in-out';
+        this.$refs.slide5.style.left = '-93%';
+        this.$refs.slide1.style.left = '7%';
+      } else if (targetId === '2') {
+        slider.style.transform = 'translateX(-20%)';
+        slider.style.transition = '1s ease-in-out';
+        this.$refs.slide5.style.left = '-93%';
+        this.$refs.slide1.style.left = '7%';
+      } else if (targetId === '3') {
+        slider.style.transform = 'translateX(-40%)';
+        slider.style.transition = '1s ease-in-out';
+      } else if (targetId === '4') {
+        slider.style.transform = 'translateX(-60%)';
+        slider.style.transition = '1s ease-in-out';
+        this.$refs.slide1.style.left = '107%';
+        this.$refs.slide5.style.left = '7%';
+      } else if (targetId === '5') {
+        slider.style.transform = 'translateX(-80%)';
+        slider.style.transition = '1s ease-in-out';
+        this.$refs.slide1.style.left = '107%';
+        this.$refs.slide5.style.left = '7%';
+      }
+    },
+
     colorForChart(chart) {
       const repos = this.repoOptions;
       const repo = findBy(repos, '_key', chart.repoKey);
@@ -298,6 +348,7 @@ export default {
         btnCb(false);
       }
     },
+
   },
 };
 </script>
@@ -311,84 +362,184 @@ export default {
           {{ t('catalog.charts.header') }}
         </h1>
       </div>
-    </header>
-    <TypeDescription resource="chart" />
-    <div class="left-right-split">
-      <Select
-        :searchable="false"
-        :options="repoOptionsForDropdown"
-        :value="flattenedRepoNames"
-        class="checkbox-select"
-        :close-on-select="false"
-        @option:selecting="$event.all ? toggleAll(!$event.enabled) : toggleRepo($event, !$event.enabled) "
-      >
-        <template #selected-option="selected">
-          {{ selected.label }}
-        </template>
-        <template #option="repo">
-          <Checkbox
-            :value="repo.enabled"
-            :label="repo.label"
-            class="pull-left repo in-select"
-            :class="{ [repo.color]: true}"
-            :color="repo.color"
-          >
-            <template #label>
-              <span>{{ repo.label }}</span><i v-if="!repo.all" class=" pl-5 icon icon-dot icon-sm" :class="{[repo.color]: true}" />
-            </template>
-          </Checkbox>
-        </template>
-      </Select>
-
-      <Select
-        v-model="category"
-        :clearable="false"
-        :searchable="false"
-        :options="categories"
-        placement="bottom"
-        label="label"
-        style="min-width: 200px;"
-        :reduce="opt => opt.value"
-      >
-        <template #option="opt">
-          {{ opt.label }} ({{ opt.count }})
-        </template>
-      </Select>
-
-      <div class="filter-block">
-        <input
-          ref="searchQuery"
-          v-model="searchQuery"
-          type="search"
-          class="input-sm"
-          :placeholder="t('catalog.charts.search')"
-        >
-
-        <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
-        <AsyncButton class="refresh-btn" mode="refresh" size="sm" @click="refresh" />
-      </div>
-    </div>
-
-    <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
-
-    <div v-if="allCharts.length">
-      <div v-if="filteredCharts.length === 0" style="width: 100%;">
-        <div class="m-50 text-center">
-          <h1>{{ t('catalog.charts.noCharts') }}</h1>
+      <div class="actions-container">
+        <div class="btn-group">
+          <button type="button" class="btn bg-disabled" data-original-title="null" @click="value1 = !value1">
+            Browse
+          </button>
+          <button type="button" class="btn role-primary" data-original-title="null">
+            Featured
+          </button>
         </div>
       </div>
-      <SelectIconGrid
-        v-else
-        :rows="filteredCharts"
-        name-field="chartNameDisplay"
-        description-field="chartDescription"
-        :color-for="colorForChart"
-        @clicked="(row) => selectChart(row)"
-      />
+    </header>
+    <div class="slider">
+      <div id="slide-track" ref="slider" class="slide-track">
+        <div ref="slide1" class="slide">
+          <div class="slide-header">
+            Featured chart
+          </div>
+          <div class="slide-content">
+            <div class="slide-img">
+              <img src="~assets/images/featured/img1.jpg" />
+            </div>
+            <div class="slide-content-right">
+              <BadgeState label="Partner" color="slider-badge  mb-20" />
+              <h1>1 Upbound Universal Crossplan 1</h1>
+              <p>Upbound Universal Crossplan (Uxp) is Upbound's official enterprise-Grade Distribution of Crossplan</p>
+            </div>
+          </div>
+        </div>
+        <div ref="slide2" class="slide">
+          <div class="slide-header">
+            Featured chart
+          </div>
+          <div class="slide-content">
+            <div class="slide-img">
+              <img src="~assets/images/featured/img1.jpg" />
+            </div>
+            <div class="slide-content-right">
+              <BadgeState label="Partner" color="slider-badge  mb-20" />
+              <h1>2 Upbound Universal Crossplan 2</h1>
+              <p>Upbound Universal Crossplan (Uxp) is Upbound's official enterprise-Grade Distribution of Crossplan</p>
+            </div>
+          </div>
+        </div>
+        <div ref="slide3" class="slide">
+          <div class="slide-header">
+            Featured chart
+          </div>
+          <div class="slide-content">
+            <div class="slide-img">
+              <img src="~assets/images/featured/img1.jpg" />
+            </div>
+            <div class="slide-content-right">
+              <BadgeState label="Partner" color="slider-badge  mb-20" />
+              <h1>3 Upbound Universal Crossplan 3</h1>
+              <p>Upbound Universal Crossplan (Uxp) is Upbound's official enterprise-Grade Distribution of Crossplan</p>
+            </div>
+          </div>
+        </div>
+        <div ref="slide4" class="slide">
+          <div class="slide-header">
+            Featured chart
+          </div>
+          <div class="slide-content">
+            <div class="slide-img">
+              <img src="~assets/images/featured/img1.jpg" />
+            </div>
+            <div class="slide-content-right">
+              <BadgeState label="Partner" color="slider-badge  mb-20" />
+              <h1>4 Upbound Universal Crossplan 4</h1>
+              <p>Upbound Universal Crossplan (Uxp) is Upbound's official enterprise-Grade Distribution of Crossplan</p>
+            </div>
+          </div>
+        </div>
+        <div ref="slide5" class="slide">
+          <div class="slide-header">
+            Featured chart
+          </div>
+          <div class="slide-content">
+            <div class="slide-img">
+              <img src="~assets/images/featured/img1.jpg" />
+            </div>
+            <div class="slide-content-right">
+              <BadgeState label="Partner" color="slider-badge  mb-20" />
+              <h1>5 Upbound Universal Crossplan 5</h1>
+              <p>Upbound Universal Crossplan (Uxp) is Upbound's official enterprise-Grade Distribution of Crossplan</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dots">
+        <div id="1" class="dot" @click="goto($event)"></div>
+        <div id="2" class="dot" @click="goto($event)"></div>
+        <div id="3" class="dot" @click="goto($event)"></div>
+        <div id="4" class="dot" @click="goto($event)"></div>
+        <div id="5" class="dot" @click="goto($event)"></div>
+      </div>
     </div>
-    <div v-else class="m-50 text-center">
-      <h1>{{ t('catalog.charts.noCharts') }}</h1>
+
+    <div>
+      <TypeDescription resource="chart" />
+      <div class="left-right-split">
+        <Select
+          :searchable="false"
+          :options="repoOptionsForDropdown"
+          :value="flattenedRepoNames"
+          class="checkbox-select"
+          :close-on-select="false"
+          @option:selecting="$event.all ? toggleAll(!$event.enabled) : toggleRepo($event, !$event.enabled) "
+        >
+          <template #selected-option="selected">
+            {{ selected.label }}
+          </template>
+          <template #option="repo">
+            <Checkbox
+              :value="repo.enabled"
+              :label="repo.label"
+              class="pull-left repo in-select"
+              :class="{ [repo.color]: true}"
+              :color="repo.color"
+            >
+              <template #label>
+                <span>{{ repo.label }}</span><i v-if="!repo.all" class=" pl-5 icon icon-dot icon-sm" :class="{[repo.color]: true}" />
+              </template>
+            </Checkbox>
+          </template>
+        </Select>
+
+        <Select
+          v-model="category"
+          :clearable="false"
+          :searchable="false"
+          :options="categories"
+          placement="bottom"
+          label="label"
+          style="min-width: 200px;"
+          :reduce="opt => opt.value"
+        >
+          <template #option="opt">
+            {{ opt.label }} ({{ opt.count }})
+          </template>
+        </Select>
+
+        <div class="filter-block">
+          <input
+            ref="searchQuery"
+            v-model="searchQuery"
+            type="search"
+            class="input-sm"
+            :placeholder="t('catalog.charts.search')"
+          >
+
+          <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
+          <AsyncButton class="refresh-btn" mode="refresh" size="sm" @click="refresh" />
+        </div>
+      </div>
+
+      <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
+
+      <div v-if="allCharts.length">
+        <div v-if="filteredCharts.length === 0" style="width: 100%;">
+          <div class="m-50 text-center">
+            <h1>{{ t('catalog.charts.noCharts') }}</h1>
+          </div>
+        </div>
+        <SelectIconGrid
+          v-else
+          :rows="filteredCharts"
+          name-field="chartNameDisplay"
+          description-field="chartDescription"
+          :color-for="colorForChart"
+          @clicked="(row) => selectChart(row)"
+        />
+      </div>
+      <div v-else class="m-50 text-center">
+        <h1>{{ t('catalog.charts.noCharts') }}</h1>
+      </div>
     </div>
+  </div>
   </div>
 </template>
 
@@ -590,4 +741,121 @@ export default {
   }
 }
 
+.slider {
+  margin: auto;
+  position: relative;
+  width: 100%;
+  place-items: center;
+  overflow: hidden;
+  margin-bottom: 30px;
+  min-width: 700px;
+}
+
+.slide-track {
+  display: flex;
+  width: calc(60% * 5);
+  animation: scrolls 10s ;
+  position: relative;
+}
+
+  // @keyframes scroll {
+  // from {left: 0px;}
+  //   to {left  : 200px;}
+  // }
+
+  // @keyframes scrolls {
+  //   0% {
+  //     transform: translateX(0px);
+  //   }
+  //   100% {
+  //     transform: translateX(calc(-830px * 4));
+  //   }
+  // }
+
+.slider-badge {
+  background: var(--app-partner-accent);
+  color: var(--body-bg);
+}
+.slide {
+  min-height: 210px;
+  width: 60%;
+  margin: 0 10px;
+  position: relative;
+  border: 1px solid var(--tabbed-border);
+  border-radius: var(--border-radius);
+  left: 7%;
+
+  &:last-child {
+  left: -93%;
+  }
+
+  .slide-header {
+    background: var(--default);
+    width: 100%;
+    padding: 10px 15px;
+  }
+  .slide-content {
+    display: flex;
+    padding: 30px;
+
+    .slide-img {
+      width: 150px;
+
+      img {
+        width: 100%;
+      }
+    }
+
+    .slide-content-right {
+      border-left: 1px solid var(--tabbed-border);
+      margin-left: 30px;
+      padding-left: 30px;
+
+      span {
+        margin: 0;
+      }
+
+    }
+  }
+
+}
+
+.slider::before,
+.slider::after {
+  background: linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+  content: "";
+  height: 100%;
+  position: absolute;
+  width: 15%;
+  z-index: 2;
+}
+
+.slider::before {
+  left: 0;
+  top: 0;
+}
+.slider::after{
+  right: -1px;
+  top: 0;
+  transform: rotate(180deg);
+}
+
+.dots {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: gray;
+    margin: 5px;
+  }
+}
+
+  .active {
+      background: red;
+    }
 </style>
