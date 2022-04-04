@@ -125,6 +125,7 @@ export default {
           <LabeledSelect
             v-if="!createNew"
             v-model="value.persistentVolumeClaim.claimName"
+            :required="true"
             :mode="mode"
             :label="t('workload.storage.subtypes.persistentVolumeClaim')"
             :options="pvcs"
